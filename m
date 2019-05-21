@@ -1,15 +1,16 @@
-From: Vinod Koul <vkoul@kernel.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: [PATCH] dmaengine: ti: edma: Enable support for polled (memcpy)
  completion
-Date: Tue, 21 May 2019 10:34:30 +0530
-Message-ID: <20190521050430.GS15118@vkoul-mobl>
+Date: Tue, 21 May 2019 09:16:12 +0300
+Message-ID: <ce1a2e96-bc4b-3998-0c36-362867907177@ti.com>
 References: <20190514080909.10306-1-peter.ujfalusi@ti.com>
+ <20190521050430.GS15118@vkoul-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190514080909.10306-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20190521050430.GS15118@vkoul-mobl>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,85 +20,65 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Vinod Koul <vkoul@kernel.org>
 Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14-05-19, 11:09, Peter Ujfalusi wrote:
-> When a DMA client driver decides that it is not providing callback for
-> completion of a transfer (and/or does not set the DMA_PREP_INTERRUPT) but
-> it will poll the status of the transfer (in case of short memcpy for
-> example) we will not get interrupt for the completion of the transfer and
-> will not mark the transaction as done.
-> 
-> Check the event registers (ER and EER) and if the channel is inactive then
-> return wioth DMA_COMPLETE to let the client know that the transfer is
-        ^^^^^
-Typo
-
-> completed.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/dma/ti/edma.c | 23 ++++++++++++++++++++---
->  1 file changed, 20 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/dma/ti/edma.c b/drivers/dma/ti/edma.c
-> index ceabdea40ae0..7501445af069 100644
-> --- a/drivers/dma/ti/edma.c
-> +++ b/drivers/dma/ti/edma.c
-> @@ -1211,8 +1211,9 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
->  
->  	edesc->pset[0].param.opt |= ITCCHEN;
->  	if (nslots == 1) {
-> -		/* Enable transfer complete interrupt */
-> -		edesc->pset[0].param.opt |= TCINTEN;
-> +		/* Enable transfer complete interrupt if requested */
-> +		if (tx_flags & DMA_PREP_INTERRUPT)
-> +			edesc->pset[0].param.opt |= TCINTEN;
->  	} else {
->  		/* Enable transfer complete chaining for the first slot */
->  		edesc->pset[0].param.opt |= TCCHEN;
-> @@ -1239,7 +1240,9 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
->  		}
->  
->  		edesc->pset[1].param.opt |= ITCCHEN;
-> -		edesc->pset[1].param.opt |= TCINTEN;
-> +		/* Enable transfer complete interrupt if requested */
-> +		if (tx_flags & DMA_PREP_INTERRUPT)
-> +			edesc->pset[1].param.opt |= TCINTEN;
->  	}
->  
->  	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
-> @@ -1801,6 +1804,20 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
->  	unsigned long flags;
->  
->  	ret = dma_cookie_status(chan, cookie, txstate);
-> +
-> +	if (ret != DMA_COMPLETE && echan->edesc && !echan->edesc->cyclic) {
-> +		struct edma_cc *ecc = echan->ecc;
-> +		int channel = EDMA_CHAN_SLOT(echan->ch_num);
-> +		int j = (channel >> 5);
-> +		unsigned int mask = BIT(channel & 0x1f);
-
-GENMASK or define a macro instead of a magic number?
-
-> +		unsigned int sh_er = edma_shadow0_read_array(ecc, SH_ER, j);
-> +		unsigned int sh_eer = edma_shadow0_read_array(ecc, SH_EER, j);
-> +
-> +		/* The channel is no longer active */
-> +		if (!(sh_er & mask) && !(sh_eer & mask))
-> +			ret = DMA_COMPLETE;
-> +	}
-> +
->  	if (ret == DMA_COMPLETE || !txstate)
->  		return ret;
->  
-> -- 
-> Peter
-> 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
--- 
-~Vinod
+CgpPbiAyMS8wNS8yMDE5IDguMDQsIFZpbm9kIEtvdWwgd3JvdGU6Cj4gT24gMTQtMDUtMTksIDEx
+OjA5LCBQZXRlciBVamZhbHVzaSB3cm90ZToKPj4gV2hlbiBhIERNQSBjbGllbnQgZHJpdmVyIGRl
+Y2lkZXMgdGhhdCBpdCBpcyBub3QgcHJvdmlkaW5nIGNhbGxiYWNrIGZvcgo+PiBjb21wbGV0aW9u
+IG9mIGEgdHJhbnNmZXIgKGFuZC9vciBkb2VzIG5vdCBzZXQgdGhlIERNQV9QUkVQX0lOVEVSUlVQ
+VCkgYnV0Cj4+IGl0IHdpbGwgcG9sbCB0aGUgc3RhdHVzIG9mIHRoZSB0cmFuc2ZlciAoaW4gY2Fz
+ZSBvZiBzaG9ydCBtZW1jcHkgZm9yCj4+IGV4YW1wbGUpIHdlIHdpbGwgbm90IGdldCBpbnRlcnJ1
+cHQgZm9yIHRoZSBjb21wbGV0aW9uIG9mIHRoZSB0cmFuc2ZlciBhbmQKPj4gd2lsbCBub3QgbWFy
+ayB0aGUgdHJhbnNhY3Rpb24gYXMgZG9uZS4KPj4KPj4gQ2hlY2sgdGhlIGV2ZW50IHJlZ2lzdGVy
+cyAoRVIgYW5kIEVFUikgYW5kIGlmIHRoZSBjaGFubmVsIGlzIGluYWN0aXZlIHRoZW4KPj4gcmV0
+dXJuIHdpb3RoIERNQV9DT01QTEVURSB0byBsZXQgdGhlIGNsaWVudCBrbm93IHRoYXQgdGhlIHRy
+YW5zZmVyIGlzCj4gICAgICAgICBeXl5eXgo+IFR5cG8KCk9rCgo+IAo+PiBjb21wbGV0ZWQuCj4+
+Cj4+IFNpZ25lZC1vZmYtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+
+Cj4+IC0tLQo+PiAgZHJpdmVycy9kbWEvdGkvZWRtYS5jIHwgMjMgKysrKysrKysrKysrKysrKysr
+KystLS0KPj4gIDEgZmlsZSBjaGFuZ2VkLCAyMCBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygt
+KQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9kbWEvdGkvZWRtYS5jIGIvZHJpdmVycy9kbWEv
+dGkvZWRtYS5jCj4+IGluZGV4IGNlYWJkZWE0MGFlMC4uNzUwMTQ0NWFmMDY5IDEwMDY0NAo+PiAt
+LS0gYS9kcml2ZXJzL2RtYS90aS9lZG1hLmMKPj4gKysrIGIvZHJpdmVycy9kbWEvdGkvZWRtYS5j
+Cj4+IEBAIC0xMjExLDggKzEyMTEsOSBAQCBzdGF0aWMgc3RydWN0IGRtYV9hc3luY190eF9kZXNj
+cmlwdG9yICplZG1hX3ByZXBfZG1hX21lbWNweSgKPj4gIAo+PiAgCWVkZXNjLT5wc2V0WzBdLnBh
+cmFtLm9wdCB8PSBJVENDSEVOOwo+PiAgCWlmIChuc2xvdHMgPT0gMSkgewo+PiAtCQkvKiBFbmFi
+bGUgdHJhbnNmZXIgY29tcGxldGUgaW50ZXJydXB0ICovCj4+IC0JCWVkZXNjLT5wc2V0WzBdLnBh
+cmFtLm9wdCB8PSBUQ0lOVEVOOwo+PiArCQkvKiBFbmFibGUgdHJhbnNmZXIgY29tcGxldGUgaW50
+ZXJydXB0IGlmIHJlcXVlc3RlZCAqLwo+PiArCQlpZiAodHhfZmxhZ3MgJiBETUFfUFJFUF9JTlRF
+UlJVUFQpCj4+ICsJCQllZGVzYy0+cHNldFswXS5wYXJhbS5vcHQgfD0gVENJTlRFTjsKPj4gIAl9
+IGVsc2Ugewo+PiAgCQkvKiBFbmFibGUgdHJhbnNmZXIgY29tcGxldGUgY2hhaW5pbmcgZm9yIHRo
+ZSBmaXJzdCBzbG90ICovCj4+ICAJCWVkZXNjLT5wc2V0WzBdLnBhcmFtLm9wdCB8PSBUQ0NIRU47
+Cj4+IEBAIC0xMjM5LDcgKzEyNDAsOSBAQCBzdGF0aWMgc3RydWN0IGRtYV9hc3luY190eF9kZXNj
+cmlwdG9yICplZG1hX3ByZXBfZG1hX21lbWNweSgKPj4gIAkJfQo+PiAgCj4+ICAJCWVkZXNjLT5w
+c2V0WzFdLnBhcmFtLm9wdCB8PSBJVENDSEVOOwo+PiAtCQllZGVzYy0+cHNldFsxXS5wYXJhbS5v
+cHQgfD0gVENJTlRFTjsKPj4gKwkJLyogRW5hYmxlIHRyYW5zZmVyIGNvbXBsZXRlIGludGVycnVw
+dCBpZiByZXF1ZXN0ZWQgKi8KPj4gKwkJaWYgKHR4X2ZsYWdzICYgRE1BX1BSRVBfSU5URVJSVVBU
+KQo+PiArCQkJZWRlc2MtPnBzZXRbMV0ucGFyYW0ub3B0IHw9IFRDSU5URU47Cj4+ICAJfQo+PiAg
+Cj4+ICAJcmV0dXJuIHZjaGFuX3R4X3ByZXAoJmVjaGFuLT52Y2hhbiwgJmVkZXNjLT52ZGVzYywg
+dHhfZmxhZ3MpOwo+PiBAQCAtMTgwMSw2ICsxODA0LDIwIEBAIHN0YXRpYyBlbnVtIGRtYV9zdGF0
+dXMgZWRtYV90eF9zdGF0dXMoc3RydWN0IGRtYV9jaGFuICpjaGFuLAo+PiAgCXVuc2lnbmVkIGxv
+bmcgZmxhZ3M7Cj4+ICAKPj4gIAlyZXQgPSBkbWFfY29va2llX3N0YXR1cyhjaGFuLCBjb29raWUs
+IHR4c3RhdGUpOwo+PiArCj4+ICsJaWYgKHJldCAhPSBETUFfQ09NUExFVEUgJiYgZWNoYW4tPmVk
+ZXNjICYmICFlY2hhbi0+ZWRlc2MtPmN5Y2xpYykgewo+PiArCQlzdHJ1Y3QgZWRtYV9jYyAqZWNj
+ID0gZWNoYW4tPmVjYzsKPj4gKwkJaW50IGNoYW5uZWwgPSBFRE1BX0NIQU5fU0xPVChlY2hhbi0+
+Y2hfbnVtKTsKPj4gKwkJaW50IGogPSAoY2hhbm5lbCA+PiA1KTsKPj4gKwkJdW5zaWduZWQgaW50
+IG1hc2sgPSBCSVQoY2hhbm5lbCAmIDB4MWYpOwo+IAo+IEdFTk1BU0sgb3IgZGVmaW5lIGEgbWFj
+cm8gaW5zdGVhZCBvZiBhIG1hZ2ljIG51bWJlcj8KClNvIGl0IGlzIGJldHRlciB0byBjaGFuZ2Ug
+dGhlIG90aGVyIHBsYWNlcyBmaXJzdCBmcm9tIHdoZXJlIEkgaGF2ZSBqdXN0CmNvcGllZCB0aGlz
+LgoKPiAKPj4gKwkJdW5zaWduZWQgaW50IHNoX2VyID0gZWRtYV9zaGFkb3cwX3JlYWRfYXJyYXko
+ZWNjLCBTSF9FUiwgaik7Cj4+ICsJCXVuc2lnbmVkIGludCBzaF9lZXIgPSBlZG1hX3NoYWRvdzBf
+cmVhZF9hcnJheShlY2MsIFNIX0VFUiwgaik7Cj4+ICsKPj4gKwkJLyogVGhlIGNoYW5uZWwgaXMg
+bm8gbG9uZ2VyIGFjdGl2ZSAqLwo+PiArCQlpZiAoIShzaF9lciAmIG1hc2spICYmICEoc2hfZWVy
+ICYgbWFzaykpCj4+ICsJCQlyZXQgPSBETUFfQ09NUExFVEU7Cj4+ICsJfQo+PiArCj4+ICAJaWYg
+KHJldCA9PSBETUFfQ09NUExFVEUgfHwgIXR4c3RhdGUpCj4+ICAJCXJldHVybiByZXQ7Cj4+ICAK
+Pj4gLS0gCj4+IFBldGVyCj4+Cj4+IFRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtr
+YWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgo+PiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYx
+NTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQo+IAoKLSBQw6l0ZXIKClRleGFz
+IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
+LgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBI
+ZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
+YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
+dXgtYXJtLWtlcm5lbAo=
