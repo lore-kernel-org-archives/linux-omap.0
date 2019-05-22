@@ -1,48 +1,69 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 3/3] regulator: lp87565: Add 4-phase lp87561 regulator
- support
-Date: Wed, 22 May 2019 16:35:28 +0100
-Message-ID: <20190522153528.GG8582@sirena.org.uk>
-References: <20190516043218.8222-1-j-keerthy@ti.com>
- <20190516043218.8222-4-j-keerthy@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: Running linux on qemu omap
+Date: Wed, 22 May 2019 21:19:04 +0300
+Message-ID: <20190522181904.GE3621@darkstar.musicnaut.iki.fi>
+References: <20190520190533.GA28160@Red>
+ <20190521232323.GD3621@darkstar.musicnaut.iki.fi>
+ <20190522093341.GA32154@Red>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="p7qwJlK53pWzbayA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190516043218.8222-4-j-keerthy@ti.com>
+In-Reply-To: <20190522093341.GA32154@Red>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: lee.jones@linaro.org, robh+dt@kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+To: Corentin Labbe <clabbe.montjoie@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, qemu-devel@nongnu.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---p7qwJlK53pWzbayA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wed, May 22, 2019 at 11:33:41AM +0200, Corentin Labbe wrote:
+> qemu-system-arm -M help |grep OMAP
+> cheetah              Palm Tungsten|E aka. Cheetah PDA (OMAP310)
+> n800                 Nokia N800 tablet aka. RX-34 (OMAP2420)
+> n810                 Nokia N810 tablet aka. RX-44 (OMAP2420)
+> sx1                  Siemens SX1 (OMAP310) V2
+> sx1-v1               Siemens SX1 (OMAP310) V1
+> 
+> > > The maximum I can get with omap1_defconfig is
+> > > qemu-system-arm -kernel zImage -nographic -machine cheetah -append 'root=/dev/ram0 console=ttyO0'
+> > > Uncompressing Linux... done, booting the kernel.
+> > > then nothing more.
 
-On Thu, May 16, 2019 at 10:02:18AM +0530, Keerthy wrote:
-> The LP8756x family has a single output 4-phase regulator
-> configuration. Add support for the same. The control
-> lies in the master buck which is buck0 for 4-phase
-> configuration. Enable/disable/voltage set happen via
-> buck0 registers.
+With N800/N810 omap2plus_defconfig should be used instead. However,
+I don't think that works either (but haven't tried recently). Also with
+N800/N810 you need to append the DTB file to the kernel image.
 
-Acked-by: Mark Brown <broonie@kernel.org>
+> thanks, with your config I was able to boot both sx1 and cheetah
+> (by adding CONFIG_MACH_OMAP_PALMTE=y)
 
---p7qwJlK53pWzbayA
-Content-Type: application/pgp-signature; name="signature.asc"
+Great!
 
------BEGIN PGP SIGNATURE-----
+> Now I need to find what is missing (or in excess) in omap1_defconfig
+> to made it boot
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlzlbD8ACgkQJNaLcl1U
-h9Alygf9F5WNeDtw1PhBSqAc0Si59+B44/gYO/ffBTyuP2A3hzVd3VvhrYSk1+gO
-gGPdCGdyRMIcs83ijz02XKwWIDhrazQcDQhyVCd0QpbPAB6CpgJnj43DQMgFzAHS
-2i5le6Ossnsc/aPGDgumb26OIL2v6H/mgmTSGEUynKl+0Z3M5MgQHgWmzTNMytLH
-at5abgsiKSt8MCEXReN3AY83M6IdCew01AtsRUAklTLEkC8ggDXrTT8kAYn5mvb+
-a0VpR9W2JNJ8Dxc3i82UY3vrQ35UnIP5/SnUH+apbWcVIcbO46RtXAkHC4yo8tZz
-vBpiIoYfUBSL6hPKnfzob+ryXb8EFA==
-=k1Kg
------END PGP SIGNATURE-----
+A simple (but slow) way would be to start adding config options from
+omap1_defconfig one by one to the working config, and see which one
+makes it fail.
 
---p7qwJlK53pWzbayA--
+> Another obstacle is the disabling of the initrd, perhaps by using
+> sdcard as an "initrd" will do the trick, but the sdcard is ignored for
+> the moment.
+
+Using CONFIG_INITRAMFS_SOURCE it's possible to include a file system
+inside the kernel image.
+
+Based on your boot log, I think the kernel probably panics before the
+MMC/sdcard is found (asynchronous probe). You could try adding rootwait
+to the kernel command line. (My config has CONFIG_CMDLINE_FORCE=y, so
+you need to add it to CONFIG_CMDLINE, as QEMU -append gets ignored). Also
+the sdcard will appear as /dev/mmcblk0 instead of /dev/sda.
+
+The sdcard is working fine for me, and it can be used to run a full-blown
+distro rootfs; I don't know what is the capacity limit in the MMC driver
+but at least 16 GB image is working fine:
+
+[    2.011012] mmc0: new SDHC card at address 4567
+[    2.016419] mmcblk0: mmc0:4567 QEMU! 16.0 GiB
+
+A.
