@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 067/375] net: ethernet: ti: cpsw: fix allmulti cfg in dual_mac mode
-Date: Wed, 22 May 2019 15:16:07 -0400
-Message-ID: <20190522192115.22666-67-sashal@kernel.org>
-References: <20190522192115.22666-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 059/317] net: ethernet: ti: cpsw: fix allmulti cfg in dual_mac mode
+Date: Wed, 22 May 2019 15:19:20 -0400
+Message-ID: <20190522192338.23715-59-sashal@kernel.org>
+References: <20190522192338.23715-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190522192115.22666-1-sashal@kernel.org>
+In-Reply-To: <20190522192338.23715-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
