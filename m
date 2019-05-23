@@ -1,184 +1,59 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next 1/3] net: ethernet: ti: davinci_cpdma: add dma mapped submit
-Date: Thu, 23 May 2019 21:20:33 +0300
-Message-ID: <20190523182035.9283-2-ivan.khoronzhuk@linaro.org>
-References: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
-Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [Qemu-devel] Running linux on qemu omap
+Date: Thu, 23 May 2019 21:36:23 +0300
+Message-ID: <20190523183623.GB5234@darkstar.musicnaut.iki.fi>
+References: <20190520190533.GA28160@Red>
+ <20190521232323.GD3621@darkstar.musicnaut.iki.fi>
+ <20190522093341.GA32154@Red>
+ <20190522181904.GE3621@darkstar.musicnaut.iki.fi>
+ <8977e2bb-8d9e-f4fd-4c44-b4f67e0e7314@redhat.com>
+ <c2972889-fe60-7614-fb6e-e57ddf780a54@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <c2972889-fe60-7614-fb6e-e57ddf780a54@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@redhat.com>
+Cc: Thomas Huth <thuth@redhat.com>, Corentin Labbe <clabbe.montjoie@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, qemu-devel@nongnu.org, linux-kernel@vger.kernel.org, Peter Maydell <peter.maydell@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-In case if dma mapped packet needs to be sent, like with XDP
-page pool, the "mapped" submit can be used. This patch adds dma
-mapped submit based on regular one.
+Hi,
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/davinci_cpdma.c | 88 ++++++++++++++++++++-----
- drivers/net/ethernet/ti/davinci_cpdma.h |  2 +
- 2 files changed, 75 insertions(+), 15 deletions(-)
+On Thu, May 23, 2019 at 02:00:41PM +0200, Philippe Mathieu-Daudé wrote:
+> On 5/23/19 1:27 PM, Thomas Huth wrote:
+> > On 22/05/2019 20.19, Aaro Koskinen wrote:
+> >> On Wed, May 22, 2019 at 11:33:41AM +0200, Corentin Labbe wrote:
+> >>> qemu-system-arm -M help |grep OMAP
+> >>> cheetah              Palm Tungsten|E aka. Cheetah PDA (OMAP310)
+> >>> n800                 Nokia N800 tablet aka. RX-34 (OMAP2420)
+> >>> n810                 Nokia N810 tablet aka. RX-44 (OMAP2420)
+> >>> sx1                  Siemens SX1 (OMAP310) V2
+> >>> sx1-v1               Siemens SX1 (OMAP310) V1
+> >>>
+> >>>>> The maximum I can get with omap1_defconfig is
+> >>>>> qemu-system-arm -kernel zImage -nographic -machine cheetah -append 'root=/dev/ram0 console=ttyO0'
+> >>>>> Uncompressing Linux... done, booting the kernel.
+> >>>>> then nothing more.
+> >>
+> >> With N800/N810 omap2plus_defconfig should be used instead. However,
+> >> I don't think that works either (but haven't tried recently). Also with
+> >> N800/N810 you need to append the DTB file to the kernel image.
+> > 
+> > FWIW, Philippe recently posted a mail how to run older kernels on n810:
+> > 
+> > https://www.mail-archive.com/qemu-devel@nongnu.org/msg610653.html
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 35bf14d8e7af..7f89b2299f05 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -125,6 +125,15 @@ struct cpdma_chan {
- 	u32				rate;
- };
- 
-+struct submit_info {
-+	struct cpdma_chan *chan;
-+	int directed;
-+	void *token;
-+	void *data;
-+	int flags;
-+	int len;
-+};
-+
- struct cpdma_control_info {
- 	u32		reg;
- 	u32		shift, mask;
-@@ -176,6 +185,8 @@ static struct cpdma_control_info controls[] = {
- 				 (directed << CPDMA_TO_PORT_SHIFT));	\
- 	} while (0)
- 
-+#define CPDMA_DMA_EXT_MAP		BIT(16)
-+
- static void cpdma_desc_pool_destroy(struct cpdma_ctlr *ctlr)
- {
- 	struct cpdma_desc_pool *pool = ctlr->pool;
-@@ -1002,10 +1013,12 @@ static void __cpdma_chan_submit(struct cpdma_chan *chan,
- 	}
- }
- 
--int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
--		      int len, int directed)
-+static int cpdma_chan_submit_si(struct submit_info *si)
- {
-+	struct cpdma_chan		*chan = si->chan;
- 	struct cpdma_ctlr		*ctlr = chan->ctlr;
-+	int				len = si->len;
-+	int				swlen = len;
- 	struct cpdma_desc __iomem	*desc;
- 	dma_addr_t			buffer;
- 	unsigned long			flags;
-@@ -1037,16 +1050,22 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- 		chan->stats.runt_transmit_buff++;
- 	}
- 
--	buffer = dma_map_single(ctlr->dev, data, len, chan->dir);
--	ret = dma_mapping_error(ctlr->dev, buffer);
--	if (ret) {
--		cpdma_desc_free(ctlr->pool, desc, 1);
--		ret = -EINVAL;
--		goto unlock_ret;
--	}
--
- 	mode = CPDMA_DESC_OWNER | CPDMA_DESC_SOP | CPDMA_DESC_EOP;
--	cpdma_desc_to_port(chan, mode, directed);
-+	cpdma_desc_to_port(chan, mode, si->directed);
-+
-+	if (si->flags & CPDMA_DMA_EXT_MAP) {
-+		buffer = (dma_addr_t)si->data;
-+		dma_sync_single_for_device(ctlr->dev, buffer, len, chan->dir);
-+		swlen |= CPDMA_DMA_EXT_MAP;
-+	} else {
-+		buffer = dma_map_single(ctlr->dev, si->data, len, chan->dir);
-+		ret = dma_mapping_error(ctlr->dev, buffer);
-+		if (ret) {
-+			cpdma_desc_free(ctlr->pool, desc, 1);
-+			ret = -EINVAL;
-+			goto unlock_ret;
-+		}
-+	}
- 
- 	/* Relaxed IO accessors can be used here as there is read barrier
- 	 * at the end of write sequence.
-@@ -1055,9 +1074,9 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- 	writel_relaxed(buffer, &desc->hw_buffer);
- 	writel_relaxed(len, &desc->hw_len);
- 	writel_relaxed(mode | len, &desc->hw_mode);
--	writel_relaxed((uintptr_t)token, &desc->sw_token);
-+	writel_relaxed((uintptr_t)si->token, &desc->sw_token);
- 	writel_relaxed(buffer, &desc->sw_buffer);
--	writel_relaxed(len, &desc->sw_len);
-+	writel_relaxed(swlen, &desc->sw_len);
- 	desc_read(desc, sw_len);
- 
- 	__cpdma_chan_submit(chan, desc);
-@@ -1072,6 +1091,38 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- 	return ret;
- }
- 
-+int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data, int len,
-+		      int directed)
-+{
-+	struct submit_info si;
-+
-+	si.chan = chan;
-+	si.token = token;
-+	si.data = data;
-+	si.len = len;
-+	si.directed = directed;
-+	si.flags = 0;
-+
-+	return cpdma_chan_submit_si(&si);
-+}
-+EXPORT_SYMBOL_GPL(cpdma_chan_submit);
-+
-+int cpdma_chan_submit_mapped(struct cpdma_chan *chan, void *token,
-+			     dma_addr_t data, int len, int directed)
-+{
-+	struct submit_info si;
-+
-+	si.chan = chan;
-+	si.token = token;
-+	si.data = (void *)data;
-+	si.len = len;
-+	si.directed = directed;
-+	si.flags = CPDMA_DMA_EXT_MAP;
-+
-+	return cpdma_chan_submit_si(&si);
-+}
-+EXPORT_SYMBOL_GPL(cpdma_chan_submit_mapped);
-+
- bool cpdma_check_free_tx_desc(struct cpdma_chan *chan)
- {
- 	struct cpdma_ctlr	*ctlr = chan->ctlr;
-@@ -1097,10 +1148,17 @@ static void __cpdma_chan_free(struct cpdma_chan *chan,
- 	uintptr_t			token;
- 
- 	token      = desc_read(desc, sw_token);
--	buff_dma   = desc_read(desc, sw_buffer);
- 	origlen    = desc_read(desc, sw_len);
- 
--	dma_unmap_single(ctlr->dev, buff_dma, origlen, chan->dir);
-+	buff_dma   = desc_read(desc, sw_buffer);
-+	if (origlen & CPDMA_DMA_EXT_MAP) {
-+		origlen &= ~CPDMA_DMA_EXT_MAP;
-+		dma_sync_single_for_cpu(ctlr->dev, buff_dma, origlen,
-+					chan->dir);
-+	} else {
-+		dma_unmap_single(ctlr->dev, buff_dma, origlen, chan->dir);
-+	}
-+
- 	cpdma_desc_free(pool, desc, 1);
- 	(*chan->handler)((void *)token, outlen, status);
- }
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index 10376062dafa..8f6f27185c63 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -77,6 +77,8 @@ int cpdma_chan_stop(struct cpdma_chan *chan);
- 
- int cpdma_chan_get_stats(struct cpdma_chan *chan,
- 			 struct cpdma_chan_stats *stats);
-+int cpdma_chan_submit_mapped(struct cpdma_chan *chan, void *token,
-+			     dma_addr_t data, int len, int directed);
- int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- 		      int len, int directed);
- int cpdma_chan_process(struct cpdma_chan *chan, int quota);
--- 
-2.17.1
+So it seems the issue with N8x0 is that serial console does not work.
+And we are missing the display support in the mainline kernel.
+
+> However I can see than none of the board listed by Corentin are tested
+> ... That reminder me I never succeed at using the Cheetah PDA. So the
+> OMAP310 is probably bitroting in QEMU...
+
+Cheetah works with serial console. I tried with console on display,
+and it seems to boot up, and the frame buffer window gets correctly
+sized but for some reason it just stays blank.
+
+A.
