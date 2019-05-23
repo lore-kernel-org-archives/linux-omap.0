@@ -1,54 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 0/2] dmaengine: ti: edma: Polled completion support
-Date: Thu, 23 May 2019 13:57:37 +0300
-Message-ID: <19b0d346-5249-e832-8eea-685c8e7706e2@ti.com>
-References: <20190521093646.21836-1-peter.ujfalusi@ti.com>
+From: Thomas Huth <thuth@redhat.com>
+Subject: Re: [Qemu-devel] Running linux on qemu omap
+Date: Thu, 23 May 2019 13:27:34 +0200
+Message-ID: <8977e2bb-8d9e-f4fd-4c44-b4f67e0e7314@redhat.com>
+References: <20190520190533.GA28160@Red>
+ <20190521232323.GD3621@darkstar.musicnaut.iki.fi>
+ <20190522093341.GA32154@Red>
+ <20190522181904.GE3621@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190521093646.21836-1-peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190522181904.GE3621@darkstar.musicnaut.iki.fi>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: vkoul@kernel.org
-Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Corentin Labbe <clabbe.montjoie@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, qemu-devel@nongnu.org, linux-kernel@vger.kernel.org, =?UTF-8?Q?Philippe_Mathieu-Daud=c3=a9?= <philmd@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
-Vmlub2QsCgpPbiAyMS8wNS8yMDE5IDEyLjM2LCBQZXRlciBVamZhbHVzaSB3cm90ZToKPiBIaSwK
-PiAKPiBDaGFuZ2VzIHNpbmNlIHYyOgo+IC0gRml4IHR5cG8gaW4gdGhlIGNvbW1lbnQgZm9yIHBh
-dGNoIDAKPiAKPiBDaGFuZ2VzIHNpbmNlIHYxOgo+IC0gQ2xlYW51cCBwYXRjaCBmb3IgdGhlIGFy
-cmF5IHJlZ2lzdGVyIGhhbmRsaW5nCj4gLSB0eXBvIGZpeGVkIGluIHBhdGNoMiBjb21taXQgbWVz
-c2FnZQo+IAo+IFRoZSBjb2RlIGFyb3VuZCB0aGUgYXJyYXkgcmVnaXN0ZXIgYWNjZXNzIHdhcyBw
-cmV0dHkgY29uZnVzaW5nIGZvciB0aGUgZmlyc3QKPiBsb29rLCBzbyBjbGVhbiB0aGVtIHVwIGZp
-cnN0IHRoZW4gdXNlIHRoZSBjbGVhbmVyIHdheSBpbiB0aGUgcG9sbGVkIGhhbmRsaW5nLgo+IAo+
-IFdoZW4gYSBETUEgY2xpZW50IGRyaXZlciBkZWNpZGVzIHRoYXQgaXQgaXMgbm90IHByb3ZpZGlu
-ZyBjYWxsYmFjayBmb3IKPiBjb21wbGV0aW9uIG9mIGEgdHJhbnNmZXIgKGFuZC9vciBkb2VzIG5v
-dCBzZXQgdGhlIERNQV9QUkVQX0lOVEVSUlVQVCkgYnV0Cj4gaXQgd2lsbCBwb2xsIHRoZSBzdGF0
-dXMgb2YgdGhlIHRyYW5zZmVyIChpbiBjYXNlIG9mIHNob3J0IG1lbWNweSBmb3IKPiBleGFtcGxl
-KSB3ZSB3aWxsIG5vdCBnZXQgaW50ZXJydXB0IGZvciB0aGUgY29tcGxldGlvbiBvZiB0aGUgdHJh
-bnNmZXIgYW5kCj4gd2lsbCBub3QgbWFyayB0aGUgdHJhbnNhY3Rpb24gYXMgZG9uZS4KPiAKPiBD
-aGVjayB0aGUgZXZlbnQgcmVnaXN0ZXJzIChFUiBhbmQgRUVSKSBhbmQgaWYgdGhlIGNoYW5uZWwg
-aXMgaW5hY3RpdmUgdGhlbgo+IHJldHVybiB3aW90aCBETUFfQ09NUExFVEUgdG8gbGV0IHRoZSBj
-bGllbnQga25vdyB0aGF0IHRoZSB0cmFuc2ZlciBpcwo+IGNvbXBsZXRlZC4KClBsZWFzZSBkbyBu
-b3QgcGljayB0aGlzIHVwIHlldCwgSSBnb3QgcmVwb3J0IHRoYXQgaXQgbWlnaHQgY2F1c2Ugc2lk
-ZQplZmZlY3Qgd2hpY2ggSSBuZWVkIHRvIGRlYnVnIHRvIHVuZGVyc3RhbmQuCgo+IAo+IFJlZ2Fy
-ZHMsCj4gUGV0ZXIKPiAtLS0KPiBQZXRlciBVamZhbHVzaSAoMik6Cj4gICBkbWFlbmdpbmU6IHRp
-OiBlZG1hOiBDbGVhbiB1cCB0aGUgMngzMmJpdCBhcnJheSByZWdpc3RlciBhY2Nlc3Nlcwo+ICAg
-ZG1hZW5naW5lOiB0aTogZWRtYTogRW5hYmxlIHN1cHBvcnQgZm9yIHBvbGxlZCAobWVtY3B5KSBj
-b21wbGV0aW9uCj4gCj4gIGRyaXZlcnMvZG1hL3RpL2VkbWEuYyB8IDEyOSArKysrKysrKysrKysr
-KysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDgxIGluc2Vy
-dGlvbnMoKyksIDQ4IGRlbGV0aW9ucygtKQo+IAoKLSBQw6l0ZXIKClRleGFzIEluc3RydW1lbnRz
-IEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9C
-dXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
-cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
-bAo=
+On 22/05/2019 20.19, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Wed, May 22, 2019 at 11:33:41AM +0200, Corentin Labbe wrote:
+>> qemu-system-arm -M help |grep OMAP
+>> cheetah              Palm Tungsten|E aka. Cheetah PDA (OMAP310)
+>> n800                 Nokia N800 tablet aka. RX-34 (OMAP2420)
+>> n810                 Nokia N810 tablet aka. RX-44 (OMAP2420)
+>> sx1                  Siemens SX1 (OMAP310) V2
+>> sx1-v1               Siemens SX1 (OMAP310) V1
+>>
+>>>> The maximum I can get with omap1_defconfig is
+>>>> qemu-system-arm -kernel zImage -nographic -machine cheetah -append 'root=/dev/ram0 console=ttyO0'
+>>>> Uncompressing Linux... done, booting the kernel.
+>>>> then nothing more.
+> 
+> With N800/N810 omap2plus_defconfig should be used instead. However,
+> I don't think that works either (but haven't tried recently). Also with
+> N800/N810 you need to append the DTB file to the kernel image.
+
+FWIW, Philippe recently posted a mail how to run older kernels on n810:
+
+https://www.mail-archive.com/qemu-devel@nongnu.org/msg610653.html
+
+ HTH,
+  Thomas
