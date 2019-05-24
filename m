@@ -1,41 +1,63 @@
-From: Peter Maydell <peter.maydell@linaro.org>
-Subject: Re: [Qemu-devel] Running linux on qemu omap
-Date: Fri, 24 May 2019 10:08:09 +0100
-Message-ID: <CAFEAcA8C0WN5FwaW2kfWiRm1T8wML_fWXDKqRXP-Lv_P7ysy8A@mail.gmail.com>
-References: <20190520190533.GA28160@Red> <20190521232323.GD3621@darkstar.musicnaut.iki.fi>
- <20190522093341.GA32154@Red> <20190522181904.GE3621@darkstar.musicnaut.iki.fi>
- <8977e2bb-8d9e-f4fd-4c44-b4f67e0e7314@redhat.com> <c2972889-fe60-7614-fb6e-e57ddf780a54@redhat.com>
- <20190523183623.GB5234@darkstar.musicnaut.iki.fi>
+From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Subject: Re: [PATCH net-next 0/3] net: ethernet: ti: cpsw: Add XDP support
+Date: Fri, 24 May 2019 12:41:45 +0300
+Message-ID: <20190524094145.GA24675@apalos>
+References: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190523183623.GB5234@darkstar.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: =?UTF-8?Q?Philippe_Mathieu=2DDaud=C3=A9?= <philmd@redhat.com>, Thomas Huth <thuth@redhat.com>, Corentin Labbe <clabbe.montjoie@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, QEMU Developers <qemu-devel@nongnu.org>, lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 23 May 2019 at 19:36, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> Cheetah works with serial console. I tried with console on display,
-> and it seems to boot up, and the frame buffer window gets correctly
-> sized but for some reason it just stays blank.
+Hi Ivan,
 
-As a general question, when you're doing these tests are you
-using a kernel image that is known to work on real hardware?
-One problem we have with some of these older QEMU platforms
-is that it turns out that QEMU is only tested with the kernel,
-and the kernel support for the platform is only tested with
-QEMU, and so you get equal and opposite bugs in QEMU and the
-kernel that cancel each other out and don't get noticed...
-
-(On the QEMU side these platforms are all basically orphaned:
-if somebody submits patches to fix bugs we'll review them,
-but they're unlikely to get a great deal of attention otherwise.
-They're also quite near the top of the "maybe we'll just
-deprecate and then delete these" list, since we have not
-historically had any working guest images to test against.
-If there's a real userbase that wants them to continue to
-exist that's a different matter, of course.)
-
-thanks
-- PMM
+More XDP drivers, that's good!
+> This patchset add XDP support for TI cpsw driver and base it on
+> page_pool allocator. It was verified on af_xdp socket drop,
+> af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
+> 
+> It was verified with following configs enabled:
+> CONFIG_JIT=y
+> CONFIG_BPFILTER=y
+> CONFIG_BPF_SYSCALL=y
+> CONFIG_XDP_SOCKETS=y
+> CONFIG_BPF_EVENTS=y
+> CONFIG_HAVE_EBPF_JIT=y
+> CONFIG_BPF_JIT=y
+> CONFIG_CGROUP_BPF=y
+> 
+> Link on previous RFC:
+> https://lkml.org/lkml/2019/4/17/861
+> 
+The recycling pattern has changed i'll have a closer look in the weekend and let
+you know
+> Also regular tests with iperf2 were done in order to verify impact on
+> regular netstack performance, compared with base commit:
+> https://pastebin.com/JSMT0iZ4
+Do you have any XDP related numbers?
+> 
+> Based on net-next/master
+> 
+> Ivan Khoronzhuk (3):
+>   net: ethernet: ti: davinci_cpdma: add dma mapped submit
+>   net: ethernet: ti: davinci_cpdma: return handler status
+>   net: ethernet: ti: cpsw: add XDP support
+> 
+>  drivers/net/ethernet/ti/Kconfig         |   1 +
+>  drivers/net/ethernet/ti/cpsw.c          | 570 +++++++++++++++++++++---
+>  drivers/net/ethernet/ti/cpsw_ethtool.c  |  55 ++-
+>  drivers/net/ethernet/ti/cpsw_priv.h     |   9 +-
+>  drivers/net/ethernet/ti/davinci_cpdma.c | 122 +++--
+>  drivers/net/ethernet/ti/davinci_cpdma.h |   6 +-
+>  drivers/net/ethernet/ti/davinci_emac.c  |  18 +-
+>  7 files changed, 675 insertions(+), 106 deletions(-)
+> 
+> -- 
+> 2.17.1
+> 
+Thanks
+/Ilias
