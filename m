@@ -1,7 +1,8 @@
 From: Teresa Remmet <t.remmet@phytec.de>
-Subject: [PATCH 5/7] ARM: dts: am335x-pcm-953: Update user led names
-Date: Fri, 24 May 2019 15:20:01 +0200
-Message-ID: <1558704003-393769-6-git-send-email-t.remmet@phytec.de>
+Subject: [PATCH 4/7] ARM: dts: am335x-phycore-som: Enable gpmc node in dts
+ files
+Date: Fri, 24 May 2019 15:20:00 +0200
+Message-ID: <1558704003-393769-5-git-send-email-t.remmet@phytec.de>
 References: <1558704003-393769-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,34 +22,59 @@ To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lis
 Cc: Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Daniel Schultz <d.schultz@phytec.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-Rename user led nodes to match the phytec user leds name scheme.
+As nand flash is not always the primary storage device any more
+disable it in the phycore-som include file. Enable it the device tree
+files where it is populated.
 
 Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
 ---
- arch/arm/boot/dts/am335x-pcm-953.dtsi | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/am335x-phycore-rdk.dts  | 4 ++++
+ arch/arm/boot/dts/am335x-phycore-som.dtsi | 2 +-
+ arch/arm/boot/dts/am335x-wega-rdk.dts     | 4 ++++
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am335x-pcm-953.dtsi b/arch/arm/boot/dts/am335x-pcm-953.dtsi
-index 20a3d9827692..70fb4a15cad9 100644
---- a/arch/arm/boot/dts/am335x-pcm-953.dtsi
-+++ b/arch/arm/boot/dts/am335x-pcm-953.dtsi
-@@ -39,15 +39,13 @@
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&user_leds_pins>;
+diff --git a/arch/arm/boot/dts/am335x-phycore-rdk.dts b/arch/arm/boot/dts/am335x-phycore-rdk.dts
+index 305f0b35d6ea..d674d91e18c7 100644
+--- a/arch/arm/boot/dts/am335x-phycore-rdk.dts
++++ b/arch/arm/boot/dts/am335x-phycore-rdk.dts
+@@ -13,6 +13,10 @@
+ #include "am335x-pcm-953.dtsi"
  
--		green {
--			label = "green:user";
-+		user-led0 {
- 			gpios = <&gpio1 30 GPIO_ACTIVE_HIGH>;
- 			linux,default-trigger = "gpio";
- 			default-state = "on";
- 		};
+ /* SoM */
++&gpmc {
++	status = "okay";
++};
++
+ &i2c_eeprom {
+ 	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+index 2bc2265534e1..adf04dbefe28 100644
+--- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
++++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+@@ -190,7 +190,7 @@
+ };
  
--		yellow {
--			label = "yellow:user";
-+		user-led1 {
- 			gpios = <&gpio1 31 GPIO_ACTIVE_LOW>;
- 			linux,default-trigger = "gpio";
- 			default-state = "on";
+ &gpmc {
+-	status = "okay";
++	status = "disabled";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&nandflash_pins>;
+ 	ranges = <0 0 0x08000000 0x1000000>;   /* CS0: NAND */
+diff --git a/arch/arm/boot/dts/am335x-wega-rdk.dts b/arch/arm/boot/dts/am335x-wega-rdk.dts
+index 6431b7db8109..fd8a844ba780 100644
+--- a/arch/arm/boot/dts/am335x-wega-rdk.dts
++++ b/arch/arm/boot/dts/am335x-wega-rdk.dts
+@@ -13,6 +13,10 @@
+ #include "am335x-wega.dtsi"
+ 
+ /* SoM */
++&gpmc {
++	status = "okay";
++};
++
+ &i2c_eeprom {
+ 	status = "okay";
+ };
 -- 
 2.7.4
