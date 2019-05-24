@@ -1,287 +1,120 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: Droid 4 backlight support
-Date: Fri, 24 May 2019 23:49:10 +0200
-Message-ID: <9285721b-8060-df59-7cdb-9cdd00b843ca@gmail.com>
-References: <20190523220047.GA15523@amd>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: omap2plus_defconfig broken on ARMv6
+Date: Sat, 25 May 2019 01:07:31 +0300
+Message-ID: <20190524220731.GB4597@t60.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------CA1046244CA7FB683BBA048E"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190523220047.GA15523@amd>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, dmurphy@ti.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
-List-Id: linux-omap@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------CA1046244CA7FB683BBA048E
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
+List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On 5/24/19 12:00 AM, Pavel Machek wrote:
-> Hi!
-> 
-> Good news .. we have driver for backlight in mainline, AFAICT.
-> 
-> Bad news .. it is called "lm3532::backlight" or something like that. I
-> guess we should switch to ":backlight" or something? It is quite
-> important to do that before someone starts to use the ABI...
-> 
-> And now... we have the driver, but it is not connected to the
-> backlight subsystem. I guess we could make the LED "default on" for
-> now... but if there's better plan, let me know.
+Noticed today that booting omap2plus_defconfig on N8x0 crashes
+early. Disabling CONFIG_SMP makes it work.
 
-backlight trigger is added to fb_notifier_list
-defined in drivers/video/fbdev/core/fb_notify.c.
-Backlight subsystem is registered on the same notifications
-in drivers/video/backlight.backlight.c.
+Uncompressing Linux... done, booting the kernel.
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 5.2.0-rc1-n8x0-los_925980+-00233-g0a72ef899014 (aaro@amd-fx-6350) (gcc version 8.3.0 (GCC)) #2 SMP Fri May 24 23:55:08 EEST 2019
+[    0.000000] CPU: ARMv6-compatible processor [4107b362] revision 2 (ARMv6TEJ), cr=00c5387d
+[    0.000000] CPU: VIPT aliasing data cache, VIPT aliasing instruction cache
+[    0.000000] OF: fdt: Machine model: Nokia N810
+[    0.000000] printk: bootconsole [earlycon0] enabled
+[    0.000000] Memory policy: Data cache writeback
+[    0.000000] CPU: All CPU(s) started in SVC mode.
+[    0.000000] OMAP2420
+[    0.000000] percpu: Embedded 16 pages/cpu s33996 r8192 d23348 u65536
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 32512
+[    0.000000] Kernel command line: console=ttyO2,115200 earlyprintk
+[    0.000000] Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+[    0.000000] Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.000000] Memory: 119992K/131072K available (4717K kernel code, 153K rwdata, 1488K rodata, 2080K init, 1128K bss, 11080K reserved, 0K cma-reserved, 0K highmem)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] rcu: Hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=4 to nr_cpu_ids=1.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 10 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+[    0.000000] NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+[    0.000000] IRQ: Found an INTC at 0x(ptrval) (revision 2.0) with 96 interrupts
+[    0.000000] random: get_random_bytes called from start_kernel+0x250/0x424 with crng_init=0
+[    0.000000] Clocking rate (Crystal/DPLL/MPU): 19.2/658/329 MHz
+[    0.000000] OMAP clockevent source: timer1 at 32768 Hz
+[    0.000000] clocksource: 32k_counter: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 58327039986419 ns
+[    0.000030] sched_clock: 32 bits at 32kHz, resolution 30517ns, wraps every 65535999984741ns
+[    0.008605] OMAP clocksource: 32k_counter at 32768 Hz
+[    0.014007] hw-breakpoint: CPUID feature registers not supported. Assuming v6 debug is present.
+[    0.023468] Console: colour dummy device 80x30
+[    0.028137] Calibrating delay loop... 326.86 BogoMIPS (lpj=1634304)
+[    0.088439] pid_max: default: 32768 minimum: 301
+[    0.093658] Mount-cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.100494] Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.108276] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
+[    0.115203] Modules linked in:
+[    0.118377] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.2.0-rc1-n8x0-los_925980+-00233-g0a72ef899014 #2
+[    0.128021] Hardware name: Generic OMAP2420 (Flattened Device Tree)
+[    0.134521] PC is at lockref_get+0x2c/0xd0
+[    0.138732] LR is at 0x0
+[    0.141357] pc : [<c023701c>]    lr : [<00000000>]    psr: 60000053
+[    0.147796] sp : c0843ea0  ip : 00000001  fp : c0666a38
+[    0.153198] r10: 00000001  r9 : c0868700  r8 : c0669624
+[    0.158569] r7 : 00000000  r6 : c00de694  r5 : 00000002  r4 : 00010001
+[    0.165283] r3 : 00000001  r2 : 00010001  r1 : 00010001  r0 : c7402050
+[    0.172027] Flags: nZCv  IRQs on  FIQs off  Mode SVC_32  ISA ARM  Segment none
+[    0.179473] Control: 00c5387d  Table: 80004000  DAC: 00000051
+[    0.185394] Process swapper/0 (pid: 0, stack limit = 0x(ptrval))
+[    0.191558] Stack: (0xc0843ea0 to 0xc0844000)
+[    0.196075] 3ea0: c7402000 00000000 c00de694 00000000 c0669624 c0122f4c 00000000 c0843ee8
+[    0.204528] 3ec0: c04b9c20 c7825600 c00de890 00000000 00000004 c0154c00 c7825600 00000000
+[    0.212951] 3ee0: 00000000 c0121b88 c05a91bc 00000002 c7825600 00000000 00000000 c0669624
+[    0.221405] 3f00: c0868700 c0141e2c c7825600 c0141eb4 00000000 c0970728 c0842000 c0141f00
+[    0.229858] 3f20: 00000000 c064b73c c00de8a0 c014031c c0847388 00000000 00000000 c063b070
+[    0.238281] 3f40: c0847388 c064f8f8 00000004 c0847388 c0847390 00000000 00000000 00000001
+[    0.246734] 3f60: c0666a38 c024af58 00000000 9ac7f44c 00000000 c0847360 00000021 c0847080
+[    0.255187] 3f80: c0868700 c064f590 0000002c 00000024 00000000 00000000 c086874c c086874c
+[    0.263610] 3fa0: ffffffff c063ac94 ffffffff ffffffff 00000000 c063a584 00000000 c7ffcd80
+[    0.272064] 3fc0: 00000000 c0666a38 9ac2f64c 00000000 00000000 c063a330 00000051 00c0387d
+[    0.280487] 3fe0: ffffffff 82009000 4107b362 00c5387d 00000000 00000000 00000000 00000000
+[    0.288970] [<c023701c>] (lockref_get) from [<c0122f4c>] (mount_nodev+0x6c/0x94)
+[    0.296600] [<c0122f4c>] (mount_nodev) from [<c0154c00>] (legacy_get_tree+0x28/0x54)
+[    0.304595] [<c0154c00>] (legacy_get_tree) from [<c0121b88>] (vfs_get_tree+0x24/0xf8)
+[    0.312713] [<c0121b88>] (vfs_get_tree) from [<c0141e2c>] (fc_mount+0xc/0x30)
+[    0.320068] [<c0141e2c>] (fc_mount) from [<c0141eb4>] (vfs_kern_mount.part.3+0x64/0x80)
+[    0.328338] [<c0141eb4>] (vfs_kern_mount.part.3) from [<c0141f00>] (kern_mount+0x1c/0x34)
+[    0.336791] [<c0141f00>] (kern_mount) from [<c064b73c>] (shmem_init+0x64/0xb4)
+[    0.344268] [<c064b73c>] (shmem_init) from [<c063b070>] (init_rootfs+0x44/0x88)
+[    0.351837] [<c063b070>] (init_rootfs) from [<c064f8f8>] (mnt_init+0x104/0x268)
+[    0.359374] [<c064f8f8>] (mnt_init) from [<c064f590>] (vfs_caches_init+0x6c/0x88)
+[    0.367095] [<c064f590>] (vfs_caches_init) from [<c063ac94>] (start_kernel+0x368/0x424)
+[    0.375366] [<c063ac94>] (start_kernel) from [<00000000>] (0x0)
+[    0.381469] Code: e3a0e000 e1a04001 e28c5001 f5d0f000 (e1b06f9f) 
+[    0.387786] ---[ end trace 57f1c61709eb3312 ]---
+[    0.392547] Kernel panic - not syncing: Attempted to kill the idle task!
+[    0.399475] ---[ end Kernel panic - not syncing: Attempted to kill the idle task! ]---
 
-So they are somehow related.
+It seems lockref_get+0x2c is __cmpxchg64:
 
-Regarding the LED class device name - when I tried to come up
-with a description for each standardized LED function I realized
-that in case of many functions it would be indeed very useful
-to have devicename. For backlight LED it would be "associated
-frame buffer device node name, e.g. fb0".
+c0236ff0 <lockref_get>:
+[...]
+	__asm__ __volatile__(
+c023701c:	e1b06f9f 	ldrexd	r6, [r0]
+c0237020:	e1360002 	teq	r6, r2
+c0237024:	01370003 	teqeq	r7, r3
+c0237028:	1a000002 	bne	c0237038 <lockref_get+0x48>
+c023702c:	e1a01f94 	strexd	r1, r4, [r0]
+c0237030:	e3310000 	teq	r1, #0
+c0237034:	1afffff8 	bne	c023701c <lockref_get+0x2c>
 
-Attached is what I came up with, and I was going to send to the
-list officially with the v5 of LED naming patch set.
+and ldrexd is not supported on ARMv6.
 
--- 
-Best regards,
-Jacek Anaszewski
-
---------------CA1046244CA7FB683BBA048E
-Content-Type: text/plain; charset=UTF-8;
- name="led-functions.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="led-functions.txt"
-
-This file presents standardized LED functions and their meaning.
-
-Each LED function is described using below template:
-
-- LED function name
-    NDEV : <function meaning when LED devicename section is absent>
-    DEV  : <function meaning when LED devicename section is present>
-    DEVICENAME : <expected LED devicename for DEV case>
-    TRIGGER: <matching LED trigger>
-
-/* LED functions with corresponding trigger support */
-
-- activity
-    NDEV : system activity
-    DEV  : n/a
-    TRIGGER : "activity"
-
-- backlight
-    NDEV : n/a
-    DEV  : backlight of a frame buffer device
-    DEVICENAME : associated frame buffer device, e.g. fb0
-    TRIGGER: "backlight"
-
-- capslock
-    NDEV : n/a
-    DEV  : keyboard capslock state related to the particular input device
-    DEVICENAME : associated input device, e.g. input1
-    TRIGGER : "kbd-capslock"
-
-- disk
-    NDEV : rw activity on any disk in the system
-    DEV  : rw activity on particular disk
-    DEVICENAME : associated disk, e.g.: hda, sdb
-    TRIGGER : "disk-activity", applies only to NDEV case
-
-- disk-read
-    NDEV : read activity on any disk in the system
-    DEV  : read activity on particular disk
-    DEVICENAME : associted disk, e.g.: hda, sdb
-    TRIGGER : "disk-read", applies only to NDEV case
-
-- disk-write
-    NDEV : write activity on any disk in the system
-    DEV  : write activity on particular disk
-    DEVICENAME : associated disk, .e.g" hda, sdb
-    TRIGGER : "disk-write", applies only to NDEV case
-
-- flash
-    NDEV : flash LED (if there is single available on the platform)
-    DEV  : flash LED related to the particular video device
-    DEVICENAME : associated video device, e.g. v4l2-subdev3
-    TRIGGER : "flash"; this LED can be also controlled by v4l2-flash framework
-
-- flash-front
-    NDEV : n/a
-    DEV  : front flash LED related to the particular video device
-    DEVICENAME : associated video device, e.g. v4l2-subdev3
-    TRIGGER : "flash"; this LED can be also controlled by v4l2-flash framework
-
-- flash-rear
-    NDEV : n/a
-    DEV  : rear flash LED related to the particular video device
-    DEVICENAME : associated video device, e.g. v4l2-subdev3
-    TRIGGER : "flash"; this LED can be also controlled by v4l2-flash framework
-
-- heartbeat
-    NDEV : cpu load average expressed as heartbeat-fashion blink frequency
-    DEV  : n/a
-    TRIGGER : "heartbeat"
-
-- lan
-    NDEV : n/a
-    DEV  : network traffic on selected network device
-    DEVICENAME : associated phy, e.g. phy1
-    TRIGGER : "netdev"
-
-- micmute
-    NDEV : platfrom microphone input mute state
-    DEV  : mute state of a microphone belonging to the particular device
-    DEVICENAME : associated audio device
-    TRIGGER : "audio-micmute"
-
-- mtd
-    NDEV : rw actvity on any mtd device in the system
-    DEV  : rw actvity on particular mtd device
-    DEVICENAME : associated mtd device, e.g mtdN
-    TRIGGER : "mtd"
-
-- mute
-    NDEV : platform audio output mute state
-    DEV  : mute state of particular audio device output
-    DEVICENAME : associated audio device
-    TRIGGER : "audio-mute"
-
-- numlock
-    NDEV : n/a
-    DEV  : keyboard numlock state related to the particular input device
-    DEVICENAME : associated input device, e.g. input1
-    TRIGGER : "kbd-numlock"
-
-- panic
-    NDEV : signals kernel panic
-    DEV  : n/a
-    TRIGGER : "panic"
-
-- scrolllock
-    NDEV : n/a
-    DEV  : keyboard scrollock state related to the particular input device
-    DEVICENAME : associated input device, e.g. input1
-    TRIGGER : "kbd-scrolllock"
-
-- torch
-    NDEV : torch LED (if there is single available on the platform)
-    DEV  : torch LED related to the particular video device
-    DEVICENAME : associated video device, e.g. video1, v4l2-subdev3
-    TRIGGER : "torch"; this LED can be also controlled by v4l2-flash framework
-
-- usb
-    NDEV : activity on any USB port
-    DEV  : activity on a particular USB port
-    DEVICENAME: associated USB device identifier
-    TRIGGER : "usbport"
-
-/* LED functions without corresponding trigger support */
-
-- alarm
-    NDEV : system wide alarm
-    DEV  : n/a
-
-- bluetooth
-    NDEV : activity on platform bluetooth adapter
-    DEV  : activity on bluetooth adapter related to the particular device
-    DEVICENAME : associated device
-
-- boot
-    NDEV : when lit indicates system boot
-    DEV  : n/a
-
-- charging
-    NDEV : battery charging status
-    DEV  : n/a
-
-- debug
-    NDEV : signals if device runs in debug mode
-    DEV  : n/a
-
-- disk-err
-    NDEV : failure on any disk in the system
-    DEV  : failure on particular disk
-    DEVICENAME : associted disk, e.g.: hda, sdb
-
-- fault
-    NDEV : general system fault
-    DEV  : fault on particular system device
-    DEVICENAME : related device name
-
-- indicator
-    NDEV : signals if platform camera sensor is active
-    DEV  : signals if camera sensor related to the particular video device is active
-    DEVICENAME : associated video device, e.g.: v4l2-subdev3
-
-- kbd_backlight	- keyboard backlight
-    NDEV : n/a
-    DEV  : backlight state related to the particular input device
-    DEVICENAME : associated input device, e.g. input1
-
-- mail
-    NDEV : signals a new massage in mailbox
-    DEV  : n/a
-
-- programming
-    NDEV : platform firmware update is in progress
-    DEV  : n/a
-
-- power
-    NDEV : power plug presence indicator
-    DEV  : n/a
-
-- rx
-    NDEV : n/a
-    DEV  : activity on rx line of serial port related to the particular tty device
-    DEVICENAME: associated tty device, e.g.: tty1, ttyUSB2
-
-- sd
-    NDEV : n/a
-    DEV  : activity on sd card related to the particular device
-    DEVICENAME: associated disk, e.g. sdb
-
-- sleep
-    NDEV : signals any variant of system hibernation or suspend state
-    DEV  : n/a
-
-- standby
-    NDEV : device standby status
-    DEV  : n/a
-
-- status
-    NDEV : system wide status LED
-    DEV  : n/a
-
-- system
-    NDEV : system is fully operating
-    DEV  : n/a
-
-- tx
-    NDEV : n/a
-    DEV  : activity on tx line of serial port related to the particular tty device
-    DEVICENAME: associated tty device, e.g.: tty1, ttyUSB2
-
-- wan
-    NDEV : activity on any WAN device
-    DEV  : activity on a particular WAN device
-    DEVICENAME: associated WAN device identifier
-
-- wlan
-    NDEV : activity on any wlan device
-    DEV  : activity on a particular wlan device
-    DEVICENAME: associated wlan device identifier
-
-- wps
-    NDEV : n/a
-    DEV  : wps functionality activation state related to the particular device
-    DEVICENAME : associated device name
-
---------------CA1046244CA7FB683BBA048E--
+A.
