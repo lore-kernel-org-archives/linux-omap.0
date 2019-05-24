@@ -1,44 +1,55 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [PATCH net-next 3/3] net: ethernet: ti: cpsw: add XDP support
-Date: Fri, 24 May 2019 13:54:18 +0200
-Message-ID: <20190524135418.5408591e@carbon>
-References: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
-        <20190523182035.9283-4-ivan.khoronzhuk@linaro.org>
+From: Teresa Remmet <t.remmet@phytec.de>
+Subject: [PATCH 0/7] AM335x Phytec boards update
+Date: Fri, 24 May 2019 15:19:56 +0200
+Message-ID: <1558704003-393769-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190523182035.9283-4-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: grygorii.strashko@ti.com, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, brouer@redhat.com, Tariq Toukan <tariqt@mellanox.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Daniel Schultz <d.schultz@phytec.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 23 May 2019 21:20:35 +0300
-Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
+Hello,
 
-> Add XDP support based on rx page_pool allocator, one frame per page.
-> Page pool allocator is used with assumption that only one rx_handler
-> is running simultaneously. DMA map/unmap is reused from page pool
-> despite there is no need to map whole page.
+this series adds basic support for phyCORE-AM335x EMMC and
+adds device tree for phyBOARD-REGOR AM335x. Also fixes issues
+like removing outdated eth phy delay settings and mmc cd active level.
 
-When using page_pool for DMA-mapping, your XDP-memory model must use
-1-page per packet, which you state you do.  This is because
-__page_pool_put_page() fallback mode does a __page_pool_clean_page()
-unmapping the DMA.  Ilias and I are looking at options for removing this
-restriction as Mlx5 would need it (when we extend the SKB to return
-pages to page_pool).
+Teresa
 
-Unfortunately, I've found another blocker for drivers using the DMA
-mapping feature of page_pool.  We don't properly handle the case, where
-a remote TX-driver have xdp_frame's in-flight, and simultaneously the
-sending driver is unloaded and take down the page_pool.  Nothing crash,
-but we end-up calling put_page() on a page that is still DMA-mapped.
+Daniel Schultz (1):
+  ARM: dts: am335x-phycore-som: Add emmc node
 
-I'm working on different solutions for fixing this, see here:
- https://github.com/xdp-project/xdp-project/blob/master/areas/mem/page_pool03_shutdown_inflight.org
+Teresa Remmet (6):
+  ARM: dts: am335x phytec boards: Fix cd-gpios active level
+  ARM: dts: am335x phytec boards: Remove regulator node
+  ARM: dts: am335x-phycore-som: Enable gpmc node in dts files
+  ARM: dts: am335x-pcm-953: Update user led names
+  ARM: dts: am335x-pcm-953: Remove eth phy delay
+  ARM: dts: Add support for phyBOARD-REGOR-AM335x
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-pcm-953.dtsi              |  24 +--
+ arch/arm/boot/dts/am335x-phycore-rdk.dts           |   4 +
+ arch/arm/boot/dts/am335x-phycore-som.dtsi          |  47 +++--
+ arch/arm/boot/dts/am335x-regor-rdk.dts             |  24 +++
+ arch/arm/boot/dts/am335x-regor.dtsi                | 223 +++++++++++++++++++++
+ arch/arm/boot/dts/am335x-wega-rdk.dts              |   4 +
+ arch/arm/boot/dts/am335x-wega.dtsi                 |  18 +-
+ 9 files changed, 304 insertions(+), 44 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-regor-rdk.dts
+ create mode 100644 arch/arm/boot/dts/am335x-regor.dtsi
+
 -- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Principal Kernel Engineer at Red Hat
-  LinkedIn: http://www.linkedin.com/in/brouer
+2.7.4
