@@ -1,7 +1,7 @@
 From: Teresa Remmet <t.remmet@phytec.de>
-Subject: [PATCH 2/7] ARM: dts: am335x phytec boards: Remove regulator node
-Date: Fri, 24 May 2019 15:19:58 +0200
-Message-ID: <1558704003-393769-3-git-send-email-t.remmet@phytec.de>
+Subject: [PATCH 5/7] ARM: dts: am335x-pcm-953: Update user led names
+Date: Fri, 24 May 2019 15:20:01 +0200
+Message-ID: <1558704003-393769-6-git-send-email-t.remmet@phytec.de>
 References: <1558704003-393769-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,69 +21,34 @@ To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lis
 Cc: Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Daniel Schultz <d.schultz@phytec.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-Move regulators directly to the root node like most am335x boards do.
+Rename user led nodes to match the phytec user leds name scheme.
 
 Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
 ---
- arch/arm/boot/dts/am335x-phycore-som.dtsi | 18 +++++++-----------
- arch/arm/boot/dts/am335x-wega.dtsi        | 16 ++++++----------
- 2 files changed, 13 insertions(+), 21 deletions(-)
+ arch/arm/boot/dts/am335x-pcm-953.dtsi | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-index 23c3039c567e..f5b53d30e9a9 100644
---- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
-+++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-@@ -30,17 +30,13 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
+diff --git a/arch/arm/boot/dts/am335x-pcm-953.dtsi b/arch/arm/boot/dts/am335x-pcm-953.dtsi
+index 20a3d9827692..70fb4a15cad9 100644
+--- a/arch/arm/boot/dts/am335x-pcm-953.dtsi
++++ b/arch/arm/boot/dts/am335x-pcm-953.dtsi
+@@ -39,15 +39,13 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&user_leds_pins>;
  
--	regulators {
--		compatible = "simple-bus";
--
--		vcc5v: fixedregulator0 {
--			compatible = "regulator-fixed";
--			regulator-name = "vcc5v";
--			regulator-min-microvolt = <5000000>;
--			regulator-max-microvolt = <5000000>;
--			regulator-boot-on;
--			regulator-always-on;
--		};
-+	vcc5v: fixedregulator0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vcc5v";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		regulator-boot-on;
-+		regulator-always-on;
- 	};
- };
+-		green {
+-			label = "green:user";
++		user-led0 {
+ 			gpios = <&gpio1 30 GPIO_ACTIVE_HIGH>;
+ 			linux,default-trigger = "gpio";
+ 			default-state = "on";
+ 		};
  
-diff --git a/arch/arm/boot/dts/am335x-wega.dtsi b/arch/arm/boot/dts/am335x-wega.dtsi
-index 84581fed3d06..d91ff3e99470 100644
---- a/arch/arm/boot/dts/am335x-wega.dtsi
-+++ b/arch/arm/boot/dts/am335x-wega.dtsi
-@@ -15,16 +15,12 @@
- 		compatible = "ti,da830-evm-audio";
- 	};
- 
--	regulators {
--		compatible = "simple-bus";
--
--		vcc3v3: fixedregulator1 {
--			compatible = "regulator-fixed";
--			regulator-name = "vcc3v3";
--			regulator-min-microvolt = <3300000>;
--			regulator-max-microvolt = <3300000>;
--			regulator-boot-on;
--		};
-+	vcc3v3: fixedregulator1 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vcc3v3";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		regulator-boot-on;
- 	};
- };
- 
+-		yellow {
+-			label = "yellow:user";
++		user-led1 {
+ 			gpios = <&gpio1 31 GPIO_ACTIVE_LOW>;
+ 			linux,default-trigger = "gpio";
+ 			default-state = "on";
 -- 
 2.7.4
