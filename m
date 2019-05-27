@@ -1,47 +1,62 @@
-From: =?UTF-8?Q?Philippe_Mathieu-Daud=c3=a9?= <philmd@redhat.com>
-Subject: Re: [Qemu-devel] Running linux on qemu omap
-Date: Mon, 27 May 2019 18:03:21 +0200
-Message-ID: <55b06c4c-5963-d4ef-4dcf-b222786bfd52@redhat.com>
-References: <20190520190533.GA28160@Red>
- <20190521232323.GD3621@darkstar.musicnaut.iki.fi>
- <20190522093341.GA32154@Red>
- <20190522181904.GE3621@darkstar.musicnaut.iki.fi>
- <8977e2bb-8d9e-f4fd-4c44-b4f67e0e7314@redhat.com>
- <c2972889-fe60-7614-fb6e-e57ddf780a54@redhat.com>
- <20190527063250.GI5447@atomide.com>
- <5dbec436-4356-415e-eb1c-0f506af89744@roeck-us.net>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH net-next 3/3] net: ethernet: ti: cpsw: add XDP support
+Date: Mon, 27 May 2019 21:10:46 +0300
+Message-ID: <20190527181043.GA4246@khorivan>
+References: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
+ <20190523182035.9283-4-ivan.khoronzhuk@linaro.org>
+ <20190524135418.5408591e@carbon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5dbec436-4356-415e-eb1c-0f506af89744@roeck-us.net>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190524135418.5408591e@carbon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>, Tony Lindgren <tony@atomide.com>
-Cc: Thomas Huth <thuth@redhat.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Corentin Labbe <clabbe.montjoie@gmail.com>, linux-omap@vger.kernel.org, qemu-devel@nongnu.org, linux-kernel@vger.kernel.org, Peter Maydell <peter.maydell@linaro.org>
+To: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: grygorii.strashko@ti.com, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Tariq Toukan <tariqt@mellanox.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 5/27/19 5:56 PM, Guenter Roeck wrote:
-> On 5/26/19 11:32 PM, Tony Lindgren wrote:
->> Hi,
->>
->> * Philippe Mathieu-Daudé <philmd@redhat.com> [190523 12:01]:
->>> What I use as reference for testing ARM boards [*] is the work of
->>> Guenter Roeck:
->>> https://github.com/groeck/linux-build-test/blob/master/rootfs/arm/run-qemu-arm.sh
->>>
->>
->> I think Guenter also has v2.3.50-local-linaro branch in his
->> github repo that has support for few extra boards like Beagleboard.
->> Not sure what's the current branch to use though.
->>
-> I'd be happy to use a different (supported) branch, but the Linaro branch
-> was the only one I could find that supports those boards. Unfortunately,
-> qemu changed so much since 2.3 that it is all but impossible to merge
-> the code into mainline qemu without spending a lot of effort on it.
+On Fri, May 24, 2019 at 01:54:18PM +0200, Jesper Dangaard Brouer wrote:
+>On Thu, 23 May 2019 21:20:35 +0300
+>Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
+>
+>> Add XDP support based on rx page_pool allocator, one frame per page.
+>> Page pool allocator is used with assumption that only one rx_handler
+>> is running simultaneously. DMA map/unmap is reused from page pool
+>> despite there is no need to map whole page.
+>
+>When using page_pool for DMA-mapping, your XDP-memory model must use
+>1-page per packet, which you state you do.  This is because
+>__page_pool_put_page() fallback mode does a __page_pool_clean_page()
+>unmapping the DMA.  Ilias and I are looking at options for removing this
+>restriction as Mlx5 would need it (when we extend the SKB to return
+>pages to page_pool).
+Thank for what you do, it can simplify a lot...
 
-Peter commented on that here:
-https://lists.gnu.org/archive/html/qemu-devel/2015-05/msg00137.html
+>
+>Unfortunately, I've found another blocker for drivers using the DMA
+>mapping feature of page_pool.  We don't properly handle the case, where
+>a remote TX-driver have xdp_frame's in-flight, and simultaneously the
+>sending driver is unloaded and take down the page_pool.  Nothing crash,
+>but we end-up calling put_page() on a page that is still DMA-mapped.
 
-"This is not a trivial job (my estimate was that it would be a couple
-of months work to get the complete set sorted out and upstreamed ..."
+Seems so, ... for generic solution, but looks like in case of cpsw there
+is no issue due to "like direct" dma map by adding offset, so whether page_pool
+dma map or dma map/unmap per rx/xmit, shouldn't be big difference.  Not sure
+about all SoCs thought...
+
+Despite of it, for cpsw I keep page_pool while down/up that I'm going to change
+in v2.
+
+>
+>I'm working on different solutions for fixing this, see here:
+> https://github.com/xdp-project/xdp-project/blob/master/areas/mem/page_pool03_shutdown_inflight.org
+Hope there will be no changes in page_pool API.
+
+>-- Best regards,
+>  Jesper Dangaard Brouer
+>  MSc.CS, Principal Kernel Engineer at Red Hat
+>  LinkedIn: http://www.linkedin.com/in/brouer
+
+-- 
+Regards,
+Ivan Khoronzhuk
