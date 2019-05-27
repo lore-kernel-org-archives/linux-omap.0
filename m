@@ -1,45 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv6 0/4] omapdrm: DSI command mode panel support
-Date: Mon, 27 May 2019 04:21:22 -0700
-Message-ID: <20190527112122.GJ5447@atomide.com>
-References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
- <60c45d23-de2f-d94a-c3d7-146a2bee538f@ti.com>
+Subject: [PATCH 00/12] ti-sysc driver changes to drop custom hwmods property
+Date: Mon, 27 May 2019 05:13:36 -0700
+Message-ID: <20190527121348.45251-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <60c45d23-de2f-d94a-c3d7-146a2bee538f@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [190527 10:51]:
-> Hi,
-> 
-> On 23/05/2019 23:07, Sebastian Reichel wrote:
-> > Hi,
-> > 
-> > Here is another round of the DSI command mode panel patchset
-> > integrating the feedback from PATCHv5. The patches are based
-> > on v5.2-rc1 tag. It does not contain the patches required for
-> > OMAP3 support (it needs a workaround for a hardware bug) and
-> > for automatic display rotation. They should get their own series,
-> > once after everything has been moved to DRM panel API. I think
-> > DRM panel conversion should happen _after_ this series, since
-> > otherwise there is a high risk of bricking DSI support completely.
-> > I already started a WIP branch for converting DSI to the DRM panel
-> > API on top of this patchset.
-> 
-> Looks good to me. For some reason I can't boot 5.2-rc2 (on x15) so I haven't
-> been able to test yet. I'll pick the series up in any case, and I'll test it
-> when I get the kernel booting.
+Hi all,
 
-Great good to have these merged finally :)
+Here are changes to improve ti-sysc driver to the point where we can
+finally drop the custom hwmods property for most cases. This series
+drops hwmods property only for omap4 UART and MMC as those can be
+tested with core retention idle.
 
-Hmm I wonder if some x15 models are affected by the SoC variant
-changes queued in my fixes branch?
+I'll be posting more patches for dropping hwmods properties as they
+get tested.
 
 Regards,
 
 Tony
+
+
+Tony Lindgren (12):
+  bus: ti-sysc: Support 16-bit writes too
+  bus: ti-sysc: Make OCP reset work for sysstatus and sysconfig reset
+    bits
+  bus: ti-sysc: Allow QUIRK_LEGACY_IDLE even if legacy_mode is not set
+  bus: ti-sysc: Enable interconnect target module autoidle bit on enable
+  bus: ti-sysc: Handle clockactivity for enable and disable
+  bus: ti-sysc: Handle swsup idle mode quirks
+  bus: ti-sysc: Set ENAWAKEUP if available
+  bus: ti-sysc: Add support for disabling module without legacy mode
+  bus: ti-sysc: Do rstctrl reset handling in two phases
+  bus: ti-sysc: Detect uarts also on omap34xx
+  ARM: dts: Drop legacy custom hwmods property for omap4 uart
+  ARM: dts: Drop legacy custom hwmods property for omap4 mmc
+
+ arch/arm/boot/dts/omap4-l4.dtsi       |   9 --
+ drivers/bus/ti-sysc.c                 | 182 ++++++++++++++++++++------
+ include/linux/platform_data/ti-sysc.h |   1 +
+ 3 files changed, 140 insertions(+), 52 deletions(-)
+
+-- 
+2.21.0
