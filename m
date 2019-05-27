@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/12] bus: ti-sysc: Do rstctrl reset handling in two phases
-Date: Mon, 27 May 2019 05:13:45 -0700
-Message-ID: <20190527121348.45251-10-tony@atomide.com>
+Subject: [PATCH 12/12] ARM: dts: Drop legacy custom hwmods property for omap4 mmc
+Date: Mon, 27 May 2019 05:13:48 -0700
+Message-ID: <20190527121348.45251-13-tony@atomide.com>
 References: <20190527121348.45251-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,87 +9,64 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190527121348.45251-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-We need to deassert rstctrl resets before enabling clocks to avoid clock
-"failed to enable" errors. For asserting rstctrl reset, the clocks need
-to be enabled.
+With recent ti-sysc driver changes, we can now finally probe most
+modules without needing the custom ti,hwmods property.
 
-As the reset controller status is not available for arrays, let's use
-devm_reset_control_get_optional() so we can get the status after reset.
+Let's drop it for omap4 MMC as we can test that for runtime PM
+for core retention idle mode for wlcore WLAN.
 
-Note that depends on a proper PRM rstctrl driver, so far I've only
-tested this with earlier reset-simple patches.
-
+Cc: devicetree@vger.kernel.org
+Cc: Rob Herring <robh@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ arch/arm/boot/dts/omap4-l4.dtsi | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -483,7 +483,7 @@ static void sysc_clkdm_allow_idle(struct sysc *ddata)
- static int sysc_init_resets(struct sysc *ddata)
- {
- 	ddata->rsts =
--		devm_reset_control_array_get_optional_exclusive(ddata->dev);
-+		devm_reset_control_get_optional(ddata->dev, "rstctrl");
- 	if (IS_ERR(ddata->rsts))
- 		return PTR_ERR(ddata->rsts);
+diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
+--- a/arch/arm/boot/dts/omap4-l4.dtsi
++++ b/arch/arm/boot/dts/omap4-l4.dtsi
+@@ -2103,7 +2103,6 @@
  
-@@ -1407,7 +1407,7 @@ static int sysc_legacy_init(struct sysc *ddata)
-  */
- static int sysc_rstctrl_reset_deassert(struct sysc *ddata, bool reset)
- {
--	int error;
-+	int error, val;
+ 		target-module@9c000 {			/* 0x4809c000, ap 53 36.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+-			ti,hwmods = "mmc1";
+ 			reg = <0x9c000 0x4>,
+ 			      <0x9c010 0x4>;
+ 			reg-names = "rev", "sysc";
+@@ -2171,7 +2170,6 @@
  
- 	if (!ddata->rsts)
- 		return 0;
-@@ -1418,7 +1418,14 @@ static int sysc_rstctrl_reset_deassert(struct sysc *ddata, bool reset)
- 			return error;
- 	}
+ 		target-module@ad000 {			/* 0x480ad000, ap 63 50.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+-			ti,hwmods = "mmc3";
+ 			reg = <0xad000 0x4>,
+ 			      <0xad010 0x4>;
+ 			reg-names = "rev", "sysc";
+@@ -2237,7 +2235,6 @@
  
--	return reset_control_deassert(ddata->rsts);
-+	error = reset_control_deassert(ddata->rsts);
-+	if (error == -EEXIST)
-+		return 0;
-+
-+	error = readx_poll_timeout(reset_control_status, ddata->rsts, val,
-+				   val == 0, 100, MAX_MODULE_SOFTRESET_WAIT);
-+
-+	return error;
- }
+ 		target-module@b4000 {			/* 0x480b4000, ap 67 46.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+-			ti,hwmods = "mmc2";
+ 			reg = <0xb4000 0x4>,
+ 			      <0xb4010 0x4>;
+ 			reg-names = "rev", "sysc";
+@@ -2332,7 +2329,6 @@
  
- /*
-@@ -1476,12 +1483,8 @@ static int sysc_init_module(struct sysc *ddata)
- {
- 	int error = 0;
- 	bool manage_clocks = true;
--	bool reset = true;
+ 		target-module@d1000 {			/* 0x480d1000, ap 73 44.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+-			ti,hwmods = "mmc4";
+ 			reg = <0xd1000 0x4>,
+ 			      <0xd1010 0x4>;
+ 			reg-names = "rev", "sysc";
+@@ -2365,7 +2361,6 @@
  
--	if (ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)
--		reset = false;
--
--	error = sysc_rstctrl_reset_deassert(ddata, reset);
-+	error = sysc_rstctrl_reset_deassert(ddata, false);
- 	if (error)
- 		return error;
- 
-@@ -1505,6 +1508,12 @@ static int sysc_init_module(struct sysc *ddata)
- 			goto err_opt_clocks;
- 	}
- 
-+	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)) {
-+		error = sysc_rstctrl_reset_deassert(ddata, true);
-+		if (error)
-+			goto err_main_clocks;
-+	}
-+
- 	ddata->revision = sysc_read_revision(ddata);
- 	sysc_init_revision_quirks(ddata);
- 
+ 		target-module@d5000 {			/* 0x480d5000, ap 75 4e.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+-			ti,hwmods = "mmc5";
+ 			reg = <0xd5000 0x4>,
+ 			      <0xd5010 0x4>;
+ 			reg-names = "rev", "sysc";
 -- 
 2.21.0
