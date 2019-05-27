@@ -1,222 +1,28 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net-next 3/3] net: ethernet: ti: cpsw: add XDP support
-Date: Mon, 27 May 2019 21:29:25 +0300
-Message-ID: <20190527182924.GC4246@khorivan>
-References: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
- <20190523182035.9283-4-ivan.khoronzhuk@linaro.org>
- <6a88616b-9a49-77c3-577e-40670f62f953@ti.com>
+From: Peter Maydell <peter.maydell@linaro.org>
+Subject: Re: [Qemu-devel] Running linux on qemu omap
+Date: Mon, 27 May 2019 19:58:58 +0100
+Message-ID: <CAFEAcA-n8-LV2=hQwQOvRDT+pro7iBQD8i-QBszWHuW56VQsvg@mail.gmail.com>
+References: <20190520190533.GA28160@Red> <20190521232323.GD3621@darkstar.musicnaut.iki.fi>
+ <20190522093341.GA32154@Red> <20190522181904.GE3621@darkstar.musicnaut.iki.fi>
+ <8977e2bb-8d9e-f4fd-4c44-b4f67e0e7314@redhat.com> <c2972889-fe60-7614-fb6e-e57ddf780a54@redhat.com>
+ <20190527063250.GI5447@atomide.com> <5dbec436-4356-415e-eb1c-0f506af89744@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6a88616b-9a49-77c3-577e-40670f62f953@ti.com>
+In-Reply-To: <5dbec436-4356-415e-eb1c-0f506af89744@roeck-us.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii <grygorii.strashko@ti.com>
-Cc: hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Philippe_Mathieu=2DDaud=C3=A9?= <philmd@redhat.com>, Thomas Huth <thuth@redhat.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Corentin Labbe <clabbe.montjoie@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, QEMU Developers <qemu-devel@nongnu.org>, lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 24, 2019 at 08:49:38PM +0300, grygorii wrote:
->Hi Ivan,
->
->On 23/05/2019 21:20, Ivan Khoronzhuk wrote:
->>Add XDP support based on rx page_pool allocator, one frame per page.
->>Page pool allocator is used with assumption that only one rx_handler
->>is running simultaneously. DMA map/unmap is reused from page pool
->>despite there is no need to map whole page.
->>
->>Due to specific of cpsw, the same TX/RX handler can be used by 2
->>network devices, so special fields in buffer are added to identify
->>an interface the frame is destined to. Thus XDP works for both
->>interfaces, that allows to test xdp redirect between two interfaces
->>easily.
->>
->>XDP prog is common for all channels till appropriate changes are added
->>in XDP infrastructure.
->>
->>Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->>---
->>  drivers/net/ethernet/ti/Kconfig        |   1 +
->>  drivers/net/ethernet/ti/cpsw.c         | 555 ++++++++++++++++++++++---
->>  drivers/net/ethernet/ti/cpsw_ethtool.c |  53 +++
->>  drivers/net/ethernet/ti/cpsw_priv.h    |   7 +
->>  4 files changed, 554 insertions(+), 62 deletions(-)
->>
->>diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
->>index bd05a977ee7e..3cb8c5214835 100644
->>--- a/drivers/net/ethernet/ti/Kconfig
->>+++ b/drivers/net/ethernet/ti/Kconfig
->>@@ -50,6 +50,7 @@ config TI_CPSW
->>  	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
->>  	select TI_DAVINCI_MDIO
->>  	select MFD_SYSCON
->>+	select PAGE_POOL
->>  	select REGMAP
->>  	---help---
->>  	  This driver supports TI's CPSW Ethernet Switch.
->>diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->>index 87a600aeee4a..274e6b64ea9e 100644
->>--- a/drivers/net/ethernet/ti/cpsw.c
->>+++ b/drivers/net/ethernet/ti/cpsw.c
->>@@ -31,6 +31,10 @@
->>  #include <linux/if_vlan.h>
->>  #include <linux/kmemleak.h>
->>  #include <linux/sys_soc.h>
->>+#include <net/page_pool.h>
->>+#include <linux/bpf.h>
->>+#include <linux/bpf_trace.h>
->>+#include <linux/filter.h>
->>  #include <linux/pinctrl/consumer.h>
->>  #include <net/pkt_cls.h>
->>@@ -60,6 +64,10 @@ static int descs_pool_size = CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT;
->>  module_param(descs_pool_size, int, 0444);
->>  MODULE_PARM_DESC(descs_pool_size, "Number of CPDMA CPPI descriptors in pool");
->>+/* The buf includes headroom compatible with both skb and xdpf */
->>+#define CPSW_HEADROOM_NA (max(XDP_PACKET_HEADROOM, NET_SKB_PAD) + NET_IP_ALIGN)
->>+#define CPSW_HEADROOM  ALIGN(CPSW_HEADROOM_NA, sizeof(long))
->>+
->>  #define for_each_slave(priv, func, arg...)				\
->>  	do {								\
->>  		struct cpsw_slave *slave;				\
->>@@ -74,6 +82,8 @@ MODULE_PARM_DESC(descs_pool_size, "Number of CPDMA CPPI descriptors in pool");
->>  				(func)(slave++, ##arg);			\
->>  	} while (0)
->>+#define CPSW_XMETA_OFFSET	ALIGN(sizeof(struct xdp_frame), sizeof(long))
->>+
->>  static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
->>  				    __be16 proto, u16 vid);
->>@@ -337,24 +347,58 @@ void cpsw_intr_disable(struct cpsw_common *cpsw)
->>  	return;
->>  }
->
->[..]
->
->>+static int cpsw_xdp_tx_frame_mapped(struct cpsw_priv *priv,
->>+				    struct xdp_frame *xdpf, struct page *page)
->>+{
->>+	struct cpsw_common *cpsw = priv->cpsw;
->>+	struct cpsw_meta_xdp *xmeta;
->>+	struct netdev_queue *txq;
->>+	struct cpdma_chan *txch;
->>+	dma_addr_t dma;
->>+	int ret;
->>+
->>+	xmeta = (void *)xdpf + CPSW_XMETA_OFFSET;
->>+	xmeta->ch = 0;
->>+
->>+	txch = cpsw->txv[0].ch;
->>+	dma = (xdpf->data - (void *)xdpf) + page->dma_addr;
->>+	ret = cpdma_chan_submit_mapped(txch, cpsw_xdpf_to_handle(xdpf), dma,
->>+				       xdpf->len,
->>+				       priv->emac_port + cpsw->data.dual_emac);
->>+	if (ret) {
->>+		xdp_return_frame_rx_napi(xdpf);
->>+		goto stop;
->>+	}
->>+
->>+	/* no tx desc - stop sending us tx frames */
->>+	if (unlikely(!cpdma_check_free_tx_desc(txch)))
->>+		goto stop;
->>+
->>+	return ret;
->>+stop:
->>+	txq = netdev_get_tx_queue(priv->ndev, 0);
->>+	netif_tx_stop_queue(txq);
->>+
->>+	/* Barrier, so that stop_queue visible to other cpus */
->>+	smp_mb__after_atomic();
->>+
->>+	if (cpdma_check_free_tx_desc(txch))
->>+		netif_tx_wake_queue(txq);
->>+
->>+	return ret;
->>+}
->>+
->>+static int cpsw_xdp_tx_frame(struct cpsw_priv *priv, struct xdp_frame *xdpf)
->>+{
->>+	struct cpsw_common *cpsw = priv->cpsw;
->>+	struct cpsw_meta_xdp *xmeta;
->>+	struct netdev_queue *txq;
->>+	struct cpdma_chan *txch;
->>+	int ret;
->>+
->>+	xmeta = (void *)xdpf + CPSW_XMETA_OFFSET;
->>+	if (sizeof(*xmeta) > xdpf->headroom)
->>+		return -EINVAL;
->>+
->>+	xmeta->ndev = priv->ndev;
->>+	xmeta->ch = 0;
->>+
->>+	txch = cpsw->txv[0].ch;
->>+	ret = cpdma_chan_submit(txch, cpsw_xdpf_to_handle(xdpf), xdpf->data,
->>+				xdpf->len,
->>+				priv->emac_port + cpsw->data.dual_emac);
->>+	if (ret) {
->>+		xdp_return_frame_rx_napi(xdpf);
->>+		goto stop;
->>+	}
->>+
->>+	/* no tx desc - stop sending us tx frames */
->>+	if (unlikely(!cpdma_check_free_tx_desc(txch)))
->>+		goto stop;
->>+
->>+	return ret;
->>+stop:
->>+	txq = netdev_get_tx_queue(priv->ndev, 0);
->>+	netif_tx_stop_queue(txq);
->>+
->>+	/* Barrier, so that stop_queue visible to other cpus */
->>+	smp_mb__after_atomic();
->>+
->>+	if (cpdma_check_free_tx_desc(txch))
->>+		netif_tx_wake_queue(txq);
->>+
->>+	return ret;
->>+}
->
->Above 2 functions are mostly identical - could you do smth. with it?
-... I know it should be, but i hadn't found better way for combining them ....
+On Mon, 27 May 2019 at 16:56, Guenter Roeck <linux@roeck-us.net> wrote:
+> I'd be happy to use a different (supported) branch, but the Linaro branch
+> was the only one I could find that supports those boards. Unfortunately,
+> qemu changed so much since 2.3 that it is all but impossible to merge
+> the code into mainline qemu without spending a lot of effort on it.
 
->
->>+
->>+static int cpsw_run_xdp(struct cpsw_priv *priv, struct cpsw_vector *rxv,
->>+			struct xdp_buff *xdp, struct page *page)
->>+{
->>+	struct net_device *ndev = priv->ndev;
->>+	struct xdp_frame *xdpf;
->>+	struct bpf_prog *prog;
->>+	int ret = 1;
->>+	u32 act;
->>+
->>+	rcu_read_lock();
->>+
->>+	prog = READ_ONCE(priv->xdp_prog);
->>+	if (!prog) {
->>+		ret = 0;
->>+		goto out;
->>+	}
->>+
->>+	act = bpf_prog_run_xdp(prog, xdp);
->>+	switch (act) {
->>+	case XDP_PASS:
->>+		ret = 0;
->>+		break;
->>+	case XDP_TX:
->>+		xdpf = convert_to_xdp_frame(xdp);
->>+		if (unlikely(!xdpf))
->>+			xdp_return_buff(xdp);
->>+		else
->>+			cpsw_xdp_tx_frame_mapped(priv, xdpf, page);
->>+		break;
->>+	case XDP_REDIRECT:
->>+		if (xdp_do_redirect(ndev, xdp, prog))
->>+			xdp_return_buff(xdp);
->>+		else
->>+			ret = 2;
->
->could we avoid using consts as return values?
->may be some informative defines/enum?
-Ok, for all "const" cases.
+Even back at 2.3 it wasn't possible to merge the code into mainline
+without spending a lot of effort -- that's why it was not merged :-)
 
--- 
-Regards,
-Ivan Khoronzhuk
+thanks
+-- PMM
