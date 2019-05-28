@@ -1,50 +1,113 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to
- dts
-Date: Tue, 28 May 2019 14:11:49 +0300
-Message-ID: <af325707-3e42-493d-e858-77878ef06138@ti.com>
-References: <20190510194229.20628-1-aford173@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/12] bus: ti-sysc: Support 16-bit writes too
+Date: Tue, 28 May 2019 05:27:22 -0700
+Message-ID: <20190528122722.GO5447@atomide.com>
+References: <20190527121348.45251-1-tony@atomide.com>
+ <20190527121348.45251-2-tony@atomide.com>
+ <5e9a31dfdfd843469c51106fce9ea353@AcuMS.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190510194229.20628-1-aford173@gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <5e9a31dfdfd843469c51106fce9ea353@AcuMS.aculab.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>, linux-omap@vger.kernel.org
-Cc: adam.ford@logicpd.com, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh@kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On 10/05/2019 22:42, Adam Ford wrote:
-> Currently the source code is compiled using hard-coded values
-> from CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK.  This patch allows this
-> clock divider value to be moved to the device tree and be changed
-> without having to recompile the kernel.
+* David Laight <David.Laight@ACULAB.COM> [190528 11:06]:
+> From: Tony Lindgren
+> > Sent: 27 May 2019 13:14
+> > We need to also support 16-bit writes for i2c in addition to the reads
+> > when we start configuring the sysconfig register for reset and idle modes.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  drivers/bus/ti-sysc.c | 7 +++++++
+> >  1 file changed, 7 insertions(+)
+> > 
+> > diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+> > --- a/drivers/bus/ti-sysc.c
+> > +++ b/drivers/bus/ti-sysc.c
+> > @@ -100,6 +100,13 @@ static void sysc_parse_dts_quirks(struct sysc *ddata, struct device_node *np,
+> > 
+> >  static void sysc_write(struct sysc *ddata, int offset, u32 value)
+> >  {
+> > +	if (ddata->cfg.quirks & SYSC_QUIRK_16BIT) {
+> > +		writew_relaxed(value & 0xffff, ddata->module_va + offset);
+> > +		writew_relaxed(value >> 16, ddata->module_va + offset + 4);
 > 
-> Signed-off-by: Adam Ford <aford173@gmail.com>
+> Should that be + 2 ???
 
-I understand why you want to do this, but I'm not sure it's a good idea. 
-It's really something the driver should figure out, and if we add it to 
-the DT, it effectively becomes an ABI.
+Well the stride for I2C revision registers is 4. But while checking
+that again, I noticed that the other registers do not have HI and LO
+registers and should just use a single 16-bit read and write. So far
+it's harmless, but should be fixed.
 
-That said... I'm not sure how good of a job the driver could ever do, as 
-it can't know the future scaling needs of the userspace at the time it 
-is configuring the clock. And so, I'm not nacking this patch, but I 
-don't feel very good about this patch...
+Updated patch below.
 
-The setting also affects all outputs (exluding venc), which may not be 
-what the user wants. Then again, I think this setting is really only 
-needed on OMAP2 & 3, which have only a single output. But that's the 
-same with the current kconfig option, of course.
+Regards,
 
-So, the current CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK is an ugly hack, in my 
-opinion, and moving it to DT makes it a worse hack =). But I don't have 
-any good suggestions either.
+Tony
 
-  Tomi
+8< ----------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 27 May 2019 04:51:53 -0700
+Subject: [PATCH] bus: ti-sysc: Support 16-bit writes too
 
+We need to also support 16-bit writes for i2c in addition to the reads
+when we start configuring the sysconfig register for reset and idle modes.
+
+Note that only i2c revision register has LO and HI registers, so let's
+add a check also for 16-bit register read. This change is currently cosmetic
+and does not affect anything until we enable the module specific quirk
+handling for i2c reset and enable later on.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -100,6 +100,20 @@ static void sysc_parse_dts_quirks(struct sysc *ddata, struct device_node *np,
+ 
+ static void sysc_write(struct sysc *ddata, int offset, u32 value)
+ {
++	if (ddata->cfg.quirks & SYSC_QUIRK_16BIT) {
++		writew_relaxed(value & 0xffff, ddata->module_va + offset);
++
++		/* Only i2c revision has LO and HI register with stride of 4 */
++		if (ddata->offsets[SYSC_REVISION] >= 0 &&
++		    offset == ddata->offsets[SYSC_REVISION]) {
++			u16 hi = value >> 16;
++
++			writew_relaxed(hi, ddata->module_va + offset + 4);
++		}
++
++		return;
++	}
++
+ 	writel_relaxed(value, ddata->module_va + offset);
+ }
+ 
+@@ -109,7 +123,14 @@ static u32 sysc_read(struct sysc *ddata, int offset)
+ 		u32 val;
+ 
+ 		val = readw_relaxed(ddata->module_va + offset);
+-		val |= (readw_relaxed(ddata->module_va + offset + 4) << 16);
++
++		/* Only i2c revision has LO and HI register with stride of 4 */
++		if (ddata->offsets[SYSC_REVISION] >= 0 &&
++		    offset == ddata->offsets[SYSC_REVISION]) {
++			u16 tmp = readw_relaxed(ddata->module_va + offset + 4);
++
++			val |= tmp << 16;
++		}
+ 
+ 		return val;
+ 	}
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.21.0
