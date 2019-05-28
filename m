@@ -1,50 +1,84 @@
-From: Alexandru Ardelean <alexandru.ardelean@analog.com>
-Subject: [PATCH 3/3][V2] lib: re-introduce new match_string() helper/macro
-Date: Tue, 28 May 2019 10:39:32 +0300
-Message-ID: <20190528073932.25365-3-alexandru.ardelean@analog.com>
-References: <20190508112842.11654-1-alexandru.ardelean@analog.com>
- <20190528073932.25365-1-alexandru.ardelean@analog.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCHv2 00/13] ti-sysc driver changes to drop custom hwmods
+ property
+Date: Tue, 28 May 2019 13:32:00 +0530
+Message-ID: <0ba540b0-ad04-ee56-5874-69921eb4f374@ti.com>
+References: <20190528062414.27192-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190528073932.25365-1-alexandru.ardelean@analog.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-clk@vger.kernel.org, linux-rpi-kernel@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-rockchip@lists.infradead.org, linux-pm@vger.kernel.org, linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, kvm@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-mtd@lists.infradead.org, cgroups@vger.kernel.org, linux-mm@kvack.org, linux-security-module@vger.kernel.org
-Cc: heikki.krogerus@linux.intel.com, gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com, Alexandru Ardelean <alexandru.ardelean@analog.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190528062414.27192-1-tony@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, Faiz Abbas <faiz_abbas@ti.com>, Suman Anna <s-anna@ti.com>, Rob Herring <robh@kernel.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This change re-introduces `match_string()` as a macro that uses
-ARRAY_SIZE() to compute the size of the array.
 
-After this change, work can start on migrating subsystems to use this new
-helper. Since the original helper is pretty used, migrating to this new one
-will take a while, and will be reviewed by each subsystem.
 
-Signed-off-by: Alexandru Ardelean <alexandru.ardelean@analog.com>
----
- include/linux/string.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+On 28/05/19 11:54 AM, Tony Lindgren wrote:
+> Hi all,
+> 
+> Here are changes to improve ti-sysc driver to the point where we can
+> finally drop the custom hwmods property for most cases. This series
+> drops hwmods property only for omap4 UART and MMC as those can be
+> tested with core retention idle.
+> 
+> I'll be posting more patches for dropping hwmods properties as they
+> get tested.
 
-diff --git a/include/linux/string.h b/include/linux/string.h
-index 7149fcdf62df..34491b075449 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -198,6 +198,15 @@ static inline int strtobool(const char *s, bool *res)
- int __match_string(const char * const *array, size_t n, const char *string);
- int __sysfs_match_string(const char * const *array, size_t n, const char *s);
- 
-+/**
-+ * match_string - matches given string in an array
-+ * @_a: array of strings
-+ * @_s: string to match with
-+ *
-+ * Helper for __match_string(). Calculates the size of @a automatically.
-+ */
-+#define match_string(_a, _s) __match_string(_a, ARRAY_SIZE(_a), _s)
-+
- /**
-  * sysfs_match_string - matches given string in an array
-  * @_a: array of strings
--- 
-2.20.1
+
+Added missing dra71/76 patches on linux-next which get them to boot.
+
+Tested for boot on dra71/76.
+Tested for DS0 on AM43/33.
+Tested for RTC+DDR mode on am43.
+
+For the series:
+
+Tested-by: Keerthy <j-keerthy@ti.com>
+
+> 
+> Regards,
+> 
+> Tony
+> 
+> Changes since v1:
+> 
+> - Repost the series against v5.2-rc1 as the first patch in the series
+>    got accidentally left out for patch "bus: ti-sysc: Add support for
+>    missing clockdomain handling"
+> 
+> 
+> Tony Lindgren (13):
+>    bus: ti-sysc: Add support for missing clockdomain handling
+>    bus: ti-sysc: Support 16-bit writes too
+>    bus: ti-sysc: Make OCP reset work for sysstatus and sysconfig reset
+>      bits
+>    bus: ti-sysc: Allow QUIRK_LEGACY_IDLE even if legacy_mode is not set
+>    bus: ti-sysc: Enable interconnect target module autoidle bit on enable
+>    bus: ti-sysc: Handle clockactivity for enable and disable
+>    bus: ti-sysc: Handle swsup idle mode quirks
+>    bus: ti-sysc: Set ENAWAKEUP if available
+>    bus: ti-sysc: Add support for disabling module without legacy mode
+>    bus: ti-sysc: Do rstctrl reset handling in two phases
+>    bus: ti-sysc: Detect uarts also on omap34xx
+>    ARM: dts: Drop legacy custom hwmods property for omap4 uart
+>    ARM: dts: Drop legacy custom hwmods property for omap4 mmc
+> 
+>   arch/arm/boot/dts/omap4-l4.dtsi       |   9 -
+>   arch/arm/mach-omap2/omap_hwmod.c      |  39 +---
+>   arch/arm/mach-omap2/pdata-quirks.c    |  60 +++++
+>   drivers/bus/ti-sysc.c                 | 309 ++++++++++++++++++++------
+>   include/linux/platform_data/ti-sysc.h |   9 +
+>   5 files changed, 314 insertions(+), 112 deletions(-)
+> 
