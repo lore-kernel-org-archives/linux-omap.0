@@ -1,84 +1,175 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCHv2 00/13] ti-sysc driver changes to drop custom hwmods
- property
-Date: Tue, 28 May 2019 13:32:00 +0530
-Message-ID: <0ba540b0-ad04-ee56-5874-69921eb4f374@ti.com>
-References: <20190528062414.27192-1-tony@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv6 0/4] omapdrm: DSI command mode panel support
+Date: Tue, 28 May 2019 12:19:30 +0300
+Message-ID: <e507c415-38de-86fe-9265-4b0aed0d7224@ti.com>
+References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
+ <60c45d23-de2f-d94a-c3d7-146a2bee538f@ti.com>
+ <20190527112122.GJ5447@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190528062414.27192-1-tony@atomide.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190527112122.GJ5447@atomide.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, Faiz Abbas <faiz_abbas@ti.com>, Suman Anna <s-anna@ti.com>, Rob Herring <robh@kernel.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel@collabora.com, "H. Nikolaus Schaller" <hns@goldelico.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 28/05/19 11:54 AM, Tony Lindgren wrote:
-> Hi all,
-> 
-> Here are changes to improve ti-sysc driver to the point where we can
-> finally drop the custom hwmods property for most cases. This series
-> drops hwmods property only for omap4 UART and MMC as those can be
-> tested with core retention idle.
-> 
-> I'll be posting more patches for dropping hwmods properties as they
-> get tested.
-
-
-Added missing dra71/76 patches on linux-next which get them to boot.
-
-Tested for boot on dra71/76.
-Tested for DS0 on AM43/33.
-Tested for RTC+DDR mode on am43.
-
-For the series:
-
-Tested-by: Keerthy <j-keerthy@ti.com>
-
-> 
-> Regards,
-> 
-> Tony
-> 
-> Changes since v1:
-> 
-> - Repost the series against v5.2-rc1 as the first patch in the series
->    got accidentally left out for patch "bus: ti-sysc: Add support for
->    missing clockdomain handling"
-> 
-> 
-> Tony Lindgren (13):
->    bus: ti-sysc: Add support for missing clockdomain handling
->    bus: ti-sysc: Support 16-bit writes too
->    bus: ti-sysc: Make OCP reset work for sysstatus and sysconfig reset
->      bits
->    bus: ti-sysc: Allow QUIRK_LEGACY_IDLE even if legacy_mode is not set
->    bus: ti-sysc: Enable interconnect target module autoidle bit on enable
->    bus: ti-sysc: Handle clockactivity for enable and disable
->    bus: ti-sysc: Handle swsup idle mode quirks
->    bus: ti-sysc: Set ENAWAKEUP if available
->    bus: ti-sysc: Add support for disabling module without legacy mode
->    bus: ti-sysc: Do rstctrl reset handling in two phases
->    bus: ti-sysc: Detect uarts also on omap34xx
->    ARM: dts: Drop legacy custom hwmods property for omap4 uart
->    ARM: dts: Drop legacy custom hwmods property for omap4 mmc
-> 
->   arch/arm/boot/dts/omap4-l4.dtsi       |   9 -
->   arch/arm/mach-omap2/omap_hwmod.c      |  39 +---
->   arch/arm/mach-omap2/pdata-quirks.c    |  60 +++++
->   drivers/bus/ti-sysc.c                 | 309 ++++++++++++++++++++------
->   include/linux/platform_data/ti-sysc.h |   9 +
->   5 files changed, 314 insertions(+), 112 deletions(-)
-> 
+T24gMjcvMDUvMjAxOSAxNDoyMSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4+IExvb2tzIGdvb2Qg
+dG8gbWUuIEZvciBzb21lIHJlYXNvbiBJIGNhbid0IGJvb3QgNS4yLXJjMiAob24geDE1KSBzbyBJ
+IGhhdmVuJ3QKPj4gYmVlbiBhYmxlIHRvIHRlc3QgeWV0LiBJJ2xsIHBpY2sgdGhlIHNlcmllcyB1
+cCBpbiBhbnkgY2FzZSwgYW5kIEknbGwgdGVzdCBpdAo+PiB3aGVuIEkgZ2V0IHRoZSBrZXJuZWwg
+Ym9vdGluZy4KPiAKPiBHcmVhdCBnb29kIHRvIGhhdmUgdGhlc2UgbWVyZ2VkIGZpbmFsbHkgOikK
+PiAKPiBIbW0gSSB3b25kZXIgaWYgc29tZSB4MTUgbW9kZWxzIGFyZSBhZmZlY3RlZCBieSB0aGUg
+U29DIHZhcmlhbnQKPiBjaGFuZ2VzIHF1ZXVlZCBpbiBteSBmaXhlcyBicmFuY2g/CgpUaGlzIGlz
+IHdoYXQgSSBzZWUgd2l0aCBlYXJseWNvbiwgb24gbGludXgtb21hcCBmaXhlcyBicmFuY2guIEkg
+dGhpbmsgdGhpcyBsb29rcwpzaW1pbGFyIHRvIHdoYXQgSSBzYXcgd2l0aCBkcmE3NiBfd2l0aG91
+dF8gdGhlIGZpeGVzLgoKWyAgICAxLjI5MDc3MV0gVW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgcGFn
+aW5nIHJlcXVlc3QgYXQgdmlydHVhbCBhZGRyZXNzIDVhNWE1YTVhClsgICAgMS4yOTgyMjJdIHBn
+ZCA9IChwdHJ2YWwpClsgICAgMS4zMDEwMDJdIFs1YTVhNWE1YV0gKnBnZD0wMDAwMDAwMApbICAg
+IDEuMzA0Njk1XSBJbnRlcm5hbCBlcnJvcjogT29wczogNSBbIzFdIFBSRUVNUFQgU01QIEFSTQpb
+ICAgIDEuMzEwMTU4XSBNb2R1bGVzIGxpbmtlZCBpbjoKWyAgICAxLjMxMzMwMF0gQ1BVOiAwIFBJ
+RDogMSBDb21tOiBzd2FwcGVyLzAgTm90IHRhaW50ZWQgNS4yLjAtcmMxLTAwMDE2LWc0MzA2OWU2
+OGYxNjItZGlydHkgIzcKWyAgICAxLjMyMTk3OV0gSGFyZHdhcmUgbmFtZTogR2VuZXJpYyBEUkE3
+NFggKEZsYXR0ZW5lZCBEZXZpY2UgVHJlZSkKWyAgICAxLjMyODI1Nl0gUEMgaXMgYXQgY2xrX2h3
+X2NyZWF0ZV9jbGsucGFydC4zMysweDgvMHg5NApbICAgIDEuMzMzNjMyXSBMUiBpcyBhdCBzeXNj
+X25vdGlmaWVyX2NhbGwrMHg5OC8weDEzOApbICAgIDEuMzM4NTU4XSBwYyA6IFs8YzA1NTQxMTg+
+XSAgICBsciA6IFs8YzA0ZmI1MTQ+XSAgICBwc3I6IDAwMDAwMDEzClsgICAgMS4zNDUwMDFdIHNw
+IDogZWI4ZjdjNzggIGlwIDogNWE1YTVhNWEgIGZwIDogYzBiM2I1MzgKWyAgICAxLjM1MDM3NF0g
+cjEwOiAwMDAwMDAwMSAgcjkgOiAwMDAwMDAwMCAgcjggOiAwMDAwMDAwMApbICAgIDEuMzU1NzQ2
+XSByNyA6IGVhYWI4MzQwICByNiA6IGVhYWJlYTEwICByNSA6IGNmZmVhNzljICByNCA6IDAwMDAw
+MDAwClsgICAgMS4zNjI0NTldIHIzIDogY2ZmZWE3OWMgIHIyIDogZWFhYmM4YzAgIHIxIDogNWE1
+YTVhNWEgIHIwIDogZWFhYmVhMTAKWyAgICAxLjM2OTE3NF0gRmxhZ3M6IG56Y3YgIElSUXMgb24g
+IEZJUXMgb24gIE1vZGUgU1ZDXzMyICBJU0EgQVJNICBTZWdtZW50IG5vbmUKWyAgICAxLjM3NjUx
+M10gQ29udHJvbDogMTBjNTM4N2QgIFRhYmxlOiA4MDAwNDA2YSAgREFDOiAwMDAwMDA1MQpbICAg
+IDEuMzgyNDIyXSBQcm9jZXNzIHN3YXBwZXIvMCAocGlkOiAxLCBzdGFjayBsaW1pdCA9IDB4KHB0
+cnZhbCkpClsgICAgMS4zODg1OTldIFN0YWNrOiAoMHhlYjhmN2M3OCB0byAweGViOGY4MDAwKQpb
+ICAgIDEuMzkzMDc3XSA3YzYwOiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAwMDAwMDAwMCBjZmZlYTc5YwpbICAgIDEuNDAxNDkzXSA3YzgwOiBl
+YWFiZWExMCBjMDRmYjUxNCBjMGU3NmM2YyBmZmZmZmZmZCAwMDAwMDAwMCAwMDAwMDAwMSAwMDAw
+MDAwMCBlYWFiZWExMApbICAgIDEuNDA5OTA1XSA3Y2EwOiAwMDAwMDAwMSBjMDE1Y2VlOCBmZmZm
+ZmZmZiAwMDAwMDAwMSBlYjhkZmI4MCBlYWFiZWExMCBjMGUwNTE0OCAwMDAwMDAwMApbICAgIDEu
+NDE4MzE5XSA3Y2MwOiAwMDAwMDAwMCBjMGUyZTRmMCAwMDAwMDAwMCBjMDE1ZDY4NCAwMDAwMDAw
+MCAwMDAwMDAwMCBlYWFiZWExMCAwMDAwMDAwMApbICAgIDEuNDI2NzMyXSA3Y2UwOiBlYjkzYzgx
+MCBjMDViOTdlNCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwZmVlMmY1NiAwMDAwMDAwMCAw
+ZmVlMmY1NgpbICAgIDEuNDM1MTQzXSA3ZDAwOiAwMDAwMDAwMCBlYWFiZWEwMCAwMDAwMDAwMCBl
+YjkzYzgxMCBlZmRiZmQwYyAwMDAwMDAwMCAwMDAwMDAwMSBjMDc4ZWRiMApbICAgIDEuNDQzNTU3
+XSA3ZDIwOiBlZmRiZmNjMCAwMDAwMDAwMCAwMDAwMDAwMCBjMGUwNTE0OCBjMGUyZTM5MCBjMDc4
+ZWY4OCBlYjkzY2E4YyAwMDAwMDAwMApbICAgIDEuNDUxOTcyXSA3ZDQwOiBjMGEzOWI2NCBlYjkz
+YzgxMCBlYjkzYzg4YyBlYjkzY2E4YyBjMGUwNTE0OCBjMDkxYjBjNCBlYjkzYzgxMCBjMDVjOWFh
+YwpbICAgIDEuNDYwMzg2XSA3ZDYwOiBjMGYxM2JhNCA2MDAwMDAxMyBjMGEzOWI2NCAwZmVlMmY1
+NiBjMGEzOWIzYyBlZmRiZmNjMCBlZmRiZmEzYyBjMGEzOWI2NApbICAgIDEuNDY4ODAwXSA3ZDgw
+OiBjMGUyZTM5MCBlYjkzYzgxMCAwMDAwMDAwMSAwMDAwMDAwMCBjMGEzOWIzYyBjMDc4ZjJiOCAw
+MDAwMDAwMSAwZmVlMmY1NgpbICAgIDEuNDc3MjEzXSA3ZGEwOiBlYWFiODM0MCBlYWFiODM0MCBl
+YjkzYzgxMCAwMDAwMDAwMCBjMGUwNTE0OCAwMDAwMDAwMSAwMDAwMDAxMCBjMDRmYzk2NApbICAg
+IDEuNDg1NjI3XSA3ZGMwOiAwMDAwMDAwMCBjMDM0OTcxNCBjMGUyZTUwMCBlYjkzYzgxMCAwMDAw
+MDAwMSBlZmRiZmEzYyBlYTlkZmQyOCAwMDAwMDAwMApbICAgIDEuNDk0MDM5XSA3ZGUwOiAwMDAw
+MDAwMSAwMDAwMDAwMSAwMDAwMDAwMyAwZmVlMmY1NiAwMDAwMDAwMSBlYjkzYzgxMCAwMDAwMDAw
+MCBjMGU3NmM4YwpbICAgIDEuNTAyNDUxXSA3ZTAwOiAwMDAwMDAwMCAwMDAwMDAwMCBjMGU3NmM4
+YyBjMGViOGYzMCAwMDAwMDAwMCBjMDVjMDBlOCBlYjkzYzgxMCBjMGYwZjM1YwpbICAgIDEuNTEw
+ODY1XSA3ZTIwOiBjMGYwZjM2MCAwMDAwMDAwMCAwMDAwMDAwMCBjMDViZGMwNCBjMGU3NmM4YyBl
+YjkzYzgxMCBjMGVhZjJhMCBlYjkzYzgxMApbICAgIDEuNTE5Mjc4XSA3ZTQwOiBjMGU3NmM4YyBj
+MGU3NmM4YyBjMGUwNTE0OCBmZmZmZTAwMCBjMGQ1YjgzNCAwMDAwMDBkOCBjMGVhZjJhMCBjMDVi
+ZTBiNApbICAgIDEuNTI3NjkyXSA3ZTYwOiBjMGEzOWQwMCBhMDAwMDAxMyBjMGVhZjJhMCBlYjkz
+YzgxMCAwMDAwMDAwMCBjMGU3NmM4YyBjMGUwNTE0OCBmZmZmZTAwMApbICAgIDEuNTM2MTA0XSA3
+ZTgwOiBjMGQ1YjgzNCBjMDViZTQ1MCAwMDAwMDAwMCBjMGU3NmM4YyBlYjkzYzgxMCBjMDViZTRm
+YyBlYjkzODBiNCBjMGU3NmM4YwpbICAgIDEuNTQ0NTE2XSA3ZWEwOiBjMDViZTQ1OCBjMDViYmMy
+NCBjMGVhZjJhMCBlYjhkZmI1OCBlYjkzODBiNCAwZmVlMmY1NiBjMGU3NmM4YyBjMGU3NmM4Ywpb
+ICAgIDEuNTUyOTI4XSA3ZWMwOiBlYTllNDI4MCBjMGU4NTMzOCAwMDAwMDAwMCBjMDViY2Y2OCBj
+MGI3YWE5OCBjMGUwNTE0OCBjMGQzNmIyMCBjMGU3NmM4YwpbICAgIDEuNTYxMzQzXSA3ZWUwOiBj
+MGUwNTE0OCBjMGQzNmIyMCAwMDAwMDAwMCBjMDViZjBhMCBjMGVhZjJhMCBjMGUwNTE0OCBjMGQz
+NmIyMCBjMDEwMmY4OApbICAgIDEuNTY5NzU3XSA3ZjAwOiBjMGM0ZTEwYyAwMDAwMDAwMCBlZmQ5
+YTgyZiBjMDE1YTkwMCAwMDAwMDAwMCBlYjhmN2YxNCBjMGQwMDRhOCAwMDAwMDAwNgpbICAgIDEu
+NTc4MTcxXSA3ZjIwOiAwMDAwMDAwNiBjMGJjMmU4OCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAw
+MCBlZmQ5YTgyNyAwMDAwMDAwMCAwZmVlMmY1NgpbICAgIDEuNTg2NTgzXSA3ZjQwOiBjMGVhZjJh
+MCBjMGQwMDRhOCAwMDAwMDAwNiAwZmVlMmY1NiBjMGQ3NzBlYyAwMDAwMDAwNyBjMGQ1Yjg1NCBj
+MGVjYTA4MApbICAgIDEuNTk0OTk3XSA3ZjYwOiBjMGVjYTA4MCBjMGQwMTIwOCAwMDAwMDAwNiAw
+MDAwMDAwNiAwMDAwMDAwMCBjMGQwMDRhOCBjMDkxNDVlMCAwMDAwMDAwMApbICAgIDEuNjAzNDEx
+XSA3ZjgwOiAwMDAwMDAwMCAwMDAwMDAwMCBjMDkxNDVlMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
+MDAwMCAwMDAwMDAwMCAwMDAwMDAwMApbICAgIDEuNjExODIzXSA3ZmEwOiAwMDAwMDAwMCBjMDkx
+NDVlOCAwMDAwMDAwMCBjMDEwMTBlOCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAw
+MApbICAgIDEuNjIwMjM3XSA3ZmMwOiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAw
+MCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMApbICAgIDEuNjI4NjUxXSA3ZmUw
+OiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAxMyAwMDAwMDAwMCAw
+MDAwMDAwMCAwMDAwMDAwMApbICAgIDEuNjM3MDc0XSBbPGMwNTU0MTE4Pl0gKGNsa19od19jcmVh
+dGVfY2xrLnBhcnQuMzMpIGZyb20gWzxjMDRmYjUxND5dIChzeXNjX25vdGlmaWVyX2NhbGwrMHg5
+OC8weDEzOCkKWyAgICAxLjY0NjY1Nl0gWzxjMDRmYjUxND5dIChzeXNjX25vdGlmaWVyX2NhbGwp
+IGZyb20gWzxjMDE1Y2VlOD5dIChub3RpZmllcl9jYWxsX2NoYWluKzB4MmMvMHhhMCkKWyAgICAx
+LjY1NTYxMl0gWzxjMDE1Y2VlOD5dIChub3RpZmllcl9jYWxsX2NoYWluKSBmcm9tIFs8YzAxNWQ2
+ODQ+XSAoYmxvY2tpbmdfbm90aWZpZXJfY2FsbF9jaGFpbisweDUwLzB4NjgpClsgICAgMS42NjU0
+NjFdIFs8YzAxNWQ2ODQ+XSAoYmxvY2tpbmdfbm90aWZpZXJfY2FsbF9jaGFpbikgZnJvbSBbPGMw
+NWI5N2U0Pl0gKGRldmljZV9hZGQrMHgzYmMvMHg2MjgpClsgICAgMS42NzQ2ODVdIFs8YzA1Yjk3
+ZTQ+XSAoZGV2aWNlX2FkZCkgZnJvbSBbPGMwNzhlZGIwPl0gKG9mX3BsYXRmb3JtX2RldmljZV9j
+cmVhdGVfcGRhdGErMHg5MC8weGJjKQpbICAgIDEuNjgzOTk3XSBbPGMwNzhlZGIwPl0gKG9mX3Bs
+YXRmb3JtX2RldmljZV9jcmVhdGVfcGRhdGEpIGZyb20gWzxjMDc4ZWY4OD5dIChvZl9wbGF0Zm9y
+bV9idXNfY3JlYXRlKzB4MWEwLzB4MzI4KQpbICAgIDEuNjk0NTU4XSBbPGMwNzhlZjg4Pl0gKG9m
+X3BsYXRmb3JtX2J1c19jcmVhdGUpIGZyb20gWzxjMDc4ZjJiOD5dIChvZl9wbGF0Zm9ybV9wb3B1
+bGF0ZSsweDdjLzB4MTA4KQpbICAgIDEuNzA0MDQ2XSBbPGMwNzhmMmI4Pl0gKG9mX3BsYXRmb3Jt
+X3BvcHVsYXRlKSBmcm9tIFs8YzA0ZmM5NjQ+XSAoc3lzY19wcm9iZSsweDlkYy8weGY5OCkKWyAg
+ICAxLjcxMjU1Ml0gWzxjMDRmYzk2ND5dIChzeXNjX3Byb2JlKSBmcm9tIFs8YzA1YzAwZTg+XSAo
+cGxhdGZvcm1fZHJ2X3Byb2JlKzB4NDgvMHg5OCkKWyAgICAxLjcyMDcwMF0gWzxjMDVjMDBlOD5d
+IChwbGF0Zm9ybV9kcnZfcHJvYmUpIGZyb20gWzxjMDViZGMwND5dIChyZWFsbHlfcHJvYmUrMHgx
+MDAvMHg0MGMpClsgICAgMS43MjkyMDVdIFs8YzA1YmRjMDQ+XSAocmVhbGx5X3Byb2JlKSBmcm9t
+IFs8YzA1YmUwYjQ+XSAoZHJpdmVyX3Byb2JlX2RldmljZSsweDZjLzB4MWI4KQpbICAgIDEuNzM3
+NzA5XSBbPGMwNWJlMGI0Pl0gKGRyaXZlcl9wcm9iZV9kZXZpY2UpIGZyb20gWzxjMDViZTQ1MD5d
+IChkZXZpY2VfZHJpdmVyX2F0dGFjaCsweDU4LzB4NjApClsgICAgMS43NDY4MzZdIFs8YzA1YmU0
+NTA+XSAoZGV2aWNlX2RyaXZlcl9hdHRhY2gpIGZyb20gWzxjMDViZTRmYz5dIChfX2RyaXZlcl9h
+dHRhY2grMHhhNC8weDE0OCkKWyAgICAxLjc1NTcwMF0gWzxjMDViZTRmYz5dIChfX2RyaXZlcl9h
+dHRhY2gpIGZyb20gWzxjMDViYmMyND5dIChidXNfZm9yX2VhY2hfZGV2KzB4NzAvMHhiNCkKWyAg
+ICAxLjc2NDExNl0gWzxjMDViYmMyND5dIChidXNfZm9yX2VhY2hfZGV2KSBmcm9tIFs8YzA1YmNm
+Njg+XSAoYnVzX2FkZF9kcml2ZXIrMHgxYTgvMHgyMDApClsgICAgMS43NzI2MjBdIFs8YzA1YmNm
+Njg+XSAoYnVzX2FkZF9kcml2ZXIpIGZyb20gWzxjMDViZjBhMD5dIChkcml2ZXJfcmVnaXN0ZXIr
+MHg3NC8weDEwOCkKWyAgICAxLjc4MDk0OF0gWzxjMDViZjBhMD5dIChkcml2ZXJfcmVnaXN0ZXIp
+IGZyb20gWzxjMDEwMmY4OD5dIChkb19vbmVfaW5pdGNhbGwrMHg0OC8weDI5YykKWyAgICAxLjc4
+OTM2NV0gWzxjMDEwMmY4OD5dIChkb19vbmVfaW5pdGNhbGwpIGZyb20gWzxjMGQwMTIwOD5dIChr
+ZXJuZWxfaW5pdF9mcmVlYWJsZSsweDMwNC8weDNkOCkKWyAgICAxLjc5ODMxN10gWzxjMGQwMTIw
+OD5dIChrZXJuZWxfaW5pdF9mcmVlYWJsZSkgZnJvbSBbPGMwOTE0NWU4Pl0gKGtlcm5lbF9pbml0
+KzB4OC8weDExMCkKWyAgICAxLjgwNjczMl0gWzxjMDkxNDVlOD5dIChrZXJuZWxfaW5pdCkgZnJv
+bSBbPGMwMTAxMGU4Pl0gKHJldF9mcm9tX2ZvcmsrMHgxNC8weDJjKQpbICAgIDEuODE0NTE2XSBF
+eGNlcHRpb24gc3RhY2soMHhlYjhmN2ZiMCB0byAweGViOGY3ZmY4KQpbICAgIDEuODE5NzExXSA3
+ZmEwOiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAwMDAwMDAwMCAwMDAwMDAw
+MCAwMDAwMDAwMCAwMDAwMDAwMApbICAgIDEuODI4MTI0XSA3ZmMwOiAwMDAwMDAwMCAwMDAwMDAw
+MCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMApb
+ICAgIDEuODM2NTM1XSA3ZmUwOiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAw
+MDAwMDAxMyAwMDAwMDAwMApbICAgIDEuODQzMzQyXSBDb2RlOiAwMDAwMTBhYyBjMGI4NWI0OCBl
+OTJkNDA3MCBlMWEwNjAwMCAoZTU5MTUwMDApIApbICAgIDEuODQ5NjQ3XSAtLS1bIGVuZCB0cmFj
+ZSBkZGFiZDM3ZTdhYTNkOTA4IF0tLS0KWyAgICAxLjg1NDQzMF0gS2VybmVsIHBhbmljIC0gbm90
+IHN5bmNpbmc6IEF0dGVtcHRlZCB0byBraWxsIGluaXQhIGV4aXRjb2RlPTB4MDAwMDAwMGIKWyAg
+ICAxLjg2MjMxMV0gQ1BVMTogc3RvcHBpbmcKWyAgICAxLjg2NTA5OF0gQ1BVOiAxIFBJRDogMCBD
+b21tOiBzd2FwcGVyLzEgVGFpbnRlZDogRyAgICAgIEQgICAgICAgICAgIDUuMi4wLXJjMS0wMDAx
+Ni1nNDMwNjllNjhmMTYyLWRpcnR5ICM3ClsgICAgMS44NzUyMDhdIEhhcmR3YXJlIG5hbWU6IEdl
+bmVyaWMgRFJBNzRYIChGbGF0dGVuZWQgRGV2aWNlIFRyZWUpClsgICAgMS44ODE0ODddIFs8YzAx
+MTM5NGM+XSAodW53aW5kX2JhY2t0cmFjZSkgZnJvbSBbPGMwMTBkYTdjPl0gKHNob3dfc3RhY2sr
+MHgxMC8weDE0KQpbICAgIDEuODg5NDYwXSBbPGMwMTBkYTdjPl0gKHNob3dfc3RhY2spIGZyb20g
+WzxjMDhmYzlmND5dIChkdW1wX3N0YWNrKzB4YTgvMHhjNCkKWyAgICAxLjg5Njg5NV0gWzxjMDhm
+YzlmND5dIChkdW1wX3N0YWNrKSBmcm9tIFs8YzAxMTE5ZDg+XSAoaGFuZGxlX0lQSSsweDNlYy8w
+eDQ1MCkKWyAgICAxLjkwNDUxMF0gWzxjMDExMTlkOD5dIChoYW5kbGVfSVBJKSBmcm9tIFs8YzA0
+ZjkyYjA+XSAoZ2ljX2hhbmRsZV9pcnErMHg5NC8weGE4KQpbICAgIDEuOTEyMzAyXSBbPGMwNGY5
+MmIwPl0gKGdpY19oYW5kbGVfaXJxKSBmcm9tIFs8YzAxMDFhYWM+XSAoX19pcnFfc3ZjKzB4NmMv
+MHhhOCkKWyAgICAxLjkxOTk5Nl0gRXhjZXB0aW9uIHN0YWNrKDB4ZWI5MTNmNjAgdG8gMHhlYjkx
+M2ZhOCkKWyAgICAxLjkyNTE5M10gM2Y2MDogMDAwMDA2YzAgMDAwMDAwMDAgZWZkOTBiZTAgYzAx
+MWU0ODAgZmZmZmUwMDAgYzBlMDUxNjggMDAwMDAwMDIgYzBlMDUxYWMKWyAgICAxLjkzMzYwOF0g
+M2Y4MDogMDAwMDAwMDAgYzBlMDUxNDggMDAwMDAwMDAgYzBlMDU1YjAgMDAwMDAwMDAgZWI5MTNm
+YjAgYzAxMGEyMGMgYzAxMGEyMTAKWyAgICAxLjk0MjAxN10gM2ZhMDogNjAwMDAwMTMgZmZmZmZm
+ZmYKWyAgICAxLjk0NTYwOV0gWzxjMDEwMWFhYz5dIChfX2lycV9zdmMpIGZyb20gWzxjMDEwYTIx
+MD5dIChhcmNoX2NwdV9pZGxlKzB4MzAvMHgzYykKWyAgICAxLjk1MzIyMl0gWzxjMDEwYTIxMD5d
+IChhcmNoX2NwdV9pZGxlKSBmcm9tIFs8YzAxNmNkZjA+XSAoZG9faWRsZSsweDFkOC8weDJhOCkK
+WyAgICAxLjk2MDgzNF0gWzxjMDE2Y2RmMD5dIChkb19pZGxlKSBmcm9tIFs8YzAxNmQxODQ+XSAo
+Y3B1X3N0YXJ0dXBfZW50cnkrMHgxOC8weDFjKQpbICAgIDEuOTY4NjIzXSBbPGMwMTZkMTg0Pl0g
+KGNwdV9zdGFydHVwX2VudHJ5KSBmcm9tIFs8ODAxMDI3MGM+XSAoMHg4MDEwMjcwYykKWyAgICAx
+Ljk3NTc5M10gLS0tWyBlbmQgS2VybmVsIHBhbmljIC0gbm90IHN5bmNpbmc6IEF0dGVtcHRlZCB0
+byBraWxsIGluaXQhIGV4aXRjb2RlPTB4MDAwMDAwMGIgXS0tLQoKIFRvbWkKCi0tIApUZXhhcyBJ
+bnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4K
+WS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVs
+c2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
