@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/13] bus: ti-sysc: Add support for disabling module without legacy mode
-Date: Mon, 27 May 2019 23:24:10 -0700
-Message-ID: <20190528062414.27192-10-tony@atomide.com>
+Subject: [PATCH 06/13] bus: ti-sysc: Handle clockactivity for enable and disable
+Date: Mon, 27 May 2019 23:24:07 -0700
+Message-ID: <20190528062414.27192-7-tony@atomide.com>
 References: <20190528062414.27192-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,88 +12,36 @@ To: linux-omap@vger.kernel.org
 Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We must not assert reset for modules with no child device drivers
-until in runtime_suspend. Otherwise register access will fail without
-legacy mode helping us.
-
-Let's add a flag for disable_on_idle and move the reset driver
-handling to runtime suspend and resume. We can then also use the
-disable_on_idle flag to reconfigure sysconfig register for PM
-modes requesting it.
-
-Let's also make the other flags use bitfield while at it instead of
-bool.
+Modules with clockactivity need it configured during enable.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ drivers/bus/ti-sysc.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -89,9 +89,10 @@ struct sysc {
- 	struct ti_sysc_cookie cookie;
- 	const char *name;
- 	u32 revision;
--	bool enabled;
--	bool needs_resume;
--	bool child_needs_resume;
-+	unsigned int enabled:1;
-+	unsigned int needs_resume:1;
-+	unsigned int child_needs_resume:1;
-+	unsigned int disable_on_idle:1;
- 	struct delayed_work idle_work;
- };
- 
-@@ -1007,6 +1008,9 @@ static int __maybe_unused sysc_runtime_suspend_legacy(struct device *dev,
- 		dev_err(dev, "%s: could not idle: %i\n",
- 			__func__, error);
- 
-+	if (ddata->disable_on_idle)
-+		reset_control_assert(ddata->rsts);
-+
- 	return 0;
+@@ -845,6 +845,7 @@ static void sysc_show_registers(struct sysc *ddata)
  }
  
-@@ -1016,6 +1020,9 @@ static int __maybe_unused sysc_runtime_resume_legacy(struct device *dev,
- 	struct ti_sysc_platform_data *pdata;
- 	int error;
+ #define SYSC_IDLE_MASK	(SYSC_NR_IDLEMODES - 1)
++#define SYSC_CLOCACT_ICK	2
  
-+	if (ddata->disable_on_idle)
-+		reset_control_deassert(ddata->rsts);
+ /* Caller needs to manage sysc_clkdm_deny_idle() and sysc_clkdm_allow_idle() */
+ static int sysc_enable_module(struct device *dev)
+@@ -860,6 +861,12 @@ static int sysc_enable_module(struct device *dev)
+ 	regbits = ddata->cap->regbits;
+ 	reg = sysc_read(ddata, ddata->offsets[SYSC_SYSCONFIG]);
+ 
++	/* Set CLOCKACTIVITY, we only use it for ick */
++	if (regbits->clkact_shift >= 0 &&
++	    (ddata->cfg.quirks & SYSC_QUIRK_USE_CLOCKACT ||
++	     ddata->cfg.sysc_val & BIT(regbits->clkact_shift)))
++		reg |= SYSC_CLOCACT_ICK << regbits->clkact_shift;
 +
- 	pdata = dev_get_platdata(ddata->dev);
- 	if (!pdata)
- 		return 0;
-@@ -1063,6 +1070,9 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
- err_allow_idle:
- 	sysc_clkdm_allow_idle(ddata);
- 
-+	if (ddata->disable_on_idle)
-+		reset_control_assert(ddata->rsts);
-+
- 	return error;
- }
- 
-@@ -1076,6 +1086,9 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
- 	if (ddata->enabled)
- 		return 0;
- 
-+	if (ddata->disable_on_idle)
-+		reset_control_deassert(ddata->rsts);
-+
- 	sysc_clkdm_deny_idle(ddata);
- 
- 	if (sysc_opt_clks_needed(ddata)) {
-@@ -2293,7 +2306,7 @@ static int sysc_probe(struct platform_device *pdev)
- 	}
- 
- 	if (!of_get_available_child_count(ddata->dev->of_node))
--		reset_control_assert(ddata->rsts);
-+		ddata->disable_on_idle = true;
- 
- 	return 0;
- 
+ 	/* Set SIDLE mode */
+ 	idlemodes = ddata->cfg.sidlemodes;
+ 	if (!idlemodes || regbits->sidle_shift < 0)
 -- 
 2.21.0
