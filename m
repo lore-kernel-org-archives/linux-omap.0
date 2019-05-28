@@ -1,87 +1,38 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCHv6 0/4] omapdrm: DSI command mode panel support
-Date: Tue, 28 May 2019 15:21:40 +0530
-Message-ID: <00eb938e-00be-0601-8a60-9736fa5eeb5c@ti.com>
-References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
- <60c45d23-de2f-d94a-c3d7-146a2bee538f@ti.com>
- <20190527112122.GJ5447@atomide.com>
- <e507c415-38de-86fe-9265-4b0aed0d7224@ti.com>
- <20190528093952.GM5447@atomide.com>
+Subject: Re: [PATCH v2 3/3] regulator: lp87565: Add 4-phase lp87561 regulator
+ support
+Date: Tue, 28 May 2019 15:23:41 +0530
+Message-ID: <1712197d-7d43-38a8-efde-11b99537eae9@ti.com>
+References: <20190516043218.8222-1-j-keerthy@ti.com>
+ <20190516043218.8222-4-j-keerthy@ti.com>
+ <20190522153528.GG8582@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190528093952.GM5447@atomide.com>
+In-Reply-To: <20190522153528.GG8582@sirena.org.uk>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Mark Brown <broonie@kernel.org>, lee.jones@linaro.org
+Cc: robh+dt@kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 28/05/19 3:09 PM, Tony Lindgren wrote:
-> Hi,
+On 22/05/19 9:05 PM, Mark Brown wrote:
+> On Thu, May 16, 2019 at 10:02:18AM +0530, Keerthy wrote:
+>> The LP8756x family has a single output 4-phase regulator
+>> configuration. Add support for the same. The control
+>> lies in the master buck which is buck0 for 4-phase
+>> configuration. Enable/disable/voltage set happen via
+>> buck0 registers.
 > 
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [190528 09:19]:
->> On 27/05/2019 14:21, Tony Lindgren wrote:
->>
->>>> Looks good to me. For some reason I can't boot 5.2-rc2 (on x15) so I haven't
->>>> been able to test yet. I'll pick the series up in any case, and I'll test it
->>>> when I get the kernel booting.
->>>
->>> Great good to have these merged finally :)
->>>
->>> Hmm I wonder if some x15 models are affected by the SoC variant
->>> changes queued in my fixes branch?
->>
->> This is what I see with earlycon, on linux-omap fixes branch. I think this looks
->> similar to what I saw with dra76 _without_ the fixes.
-> 
-> OK sounds like we need to use some different SoC specific .dtsi file,
-> is this maybe x15 rev c?
-> 
-> You can detect which modules fail based on the module base address
-> for revision register seen with the following debug patch. Then
-> those need to be tagged with status = "disabled" at the module
-> level in the SoC specific dtsi file.
+> Acked-by: Mark Brown <broonie@kernel.org>
 
+Mark/Lee,
 
-Tomi,
+This patch will come via the mfd branch?
 
-My first suspect would be rtc.
+- Keerthy
 
-diff --git a/arch/arm/boot/dts/am5728.dtsi b/arch/arm/boot/dts/am5728.dtsi
-index 82e5427ef6a9..17b1b1b4db92 100644
---- a/arch/arm/boot/dts/am5728.dtsi
-+++ b/arch/arm/boot/dts/am5728.dtsi
-@@ -31,3 +31,7 @@
-  &atl_tm {
-         status = "disabled";
-  };
-+
-+&rtctarget {
-+       status = "disabled";
-+};
-
-Regards,
-Keerthy
-> 
-> Regards,
-> 
-> Tony
-> 
-> 8< --------------
-> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-> --- a/drivers/bus/ti-sysc.c
-> +++ b/drivers/bus/ti-sysc.c
-> @@ -2069,6 +2069,8 @@ static int sysc_probe(struct platform_device *pdev)
->   	struct sysc *ddata;
->   	int error;
->   
-> +	dev_info(&pdev->dev, "probing device\n");
-> +
->   	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
->   	if (!ddata)
->   		return -ENOMEM;
 > 
