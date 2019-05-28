@@ -1,68 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/13] bus: ti-sysc: Handle swsup idle mode quirks
-Date: Mon, 27 May 2019 23:24:08 -0700
-Message-ID: <20190528062414.27192-8-tony@atomide.com>
-References: <20190528062414.27192-1-tony@atomide.com>
+From: Alexandru Ardelean <alexandru.ardelean@analog.com>
+Subject: [PATCH 1/3][V2] lib: fix match_string() helper on -1 array size
+Date: Tue, 28 May 2019 10:39:30 +0300
+Message-ID: <20190528073932.25365-1-alexandru.ardelean@analog.com>
+References: <20190508112842.11654-1-alexandru.ardelean@analog.com>
 Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190528062414.27192-1-tony@atomide.com>
+In-Reply-To: <20190508112842.11654-1-alexandru.ardelean@analog.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
+To: linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-clk@vger.kernel.org, linux-rpi-kernel@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-rockchip@lists.infradead.org, linux-pm@vger.kernel.org, linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, kvm@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-mtd@lists.infradead.org, cgroups@vger.kernel.org, linux-mm@kvack.org, linux-security-module@vger.kernel.org
+Cc: heikki.krogerus@linux.intel.com, gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com, Alexandru Ardelean <alexandru.ardelean@analog.com>
 List-Id: linux-omap@vger.kernel.org
 
-Some modules have idlemodes wired, but not completely functional. We have
-quirks for SWSUP_SIDLE and SWSUP_SIDLE_ACT to manage interconnect target
-modules without hardware support, but we've been only using them so far
-in legacy mode. Let's add support for SWSUP quirks in non-legacy mode too.
+The documentation the `_match_string()` helper mentions that `n`
+should be:
+ * @n: number of strings in the array or -1 for NULL terminated arrays
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+The behavior of the function is different, in the sense that it exits on
+the first NULL element in the array, regardless of whether `n` is -1 or a
+positive number.
+
+This patch changes the behavior, to exit the loop when a NULL element is
+found and n == -1. Essentially, this aligns the behavior with the
+doc-string.
+
+There are currently many users of `match_string()`, and so, in order to go
+through them, the next patches in the series will focus on doing some
+cosmetic changes, which are aimed at grouping the users of
+`match_string()`.
+
+Signed-off-by: Alexandru Ardelean <alexandru.ardelean@analog.com>
 ---
- drivers/bus/ti-sysc.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -872,10 +872,15 @@ static int sysc_enable_module(struct device *dev)
- 	if (!idlemodes || regbits->sidle_shift < 0)
- 		goto set_midle;
+Changelog v1 -> v2:
+* split the initial series into just 3 patches that fix the
+  `match_string()` helper and start introducing a new version of this
+  helper, which computes array-size of static arrays
+
+ lib/string.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/string.c b/lib/string.c
+index 6016eb3ac73d..e2cf5acc83bd 100644
+--- a/lib/string.c
++++ b/lib/string.c
+@@ -681,8 +681,11 @@ int match_string(const char * const *array, size_t n, const char *string)
  
--	best_mode = fls(ddata->cfg.sidlemodes) - 1;
--	if (best_mode > SYSC_IDLE_MASK) {
--		dev_err(dev, "%s: invalid sidlemode\n", __func__);
--		return -EINVAL;
-+	if (ddata->cfg.quirks & (SYSC_QUIRK_SWSUP_SIDLE |
-+				 SYSC_QUIRK_SWSUP_SIDLE_ACT)) {
-+		best_mode = SYSC_IDLE_NO;
-+	} else {
-+		best_mode = fls(ddata->cfg.sidlemodes) - 1;
-+		if (best_mode > SYSC_IDLE_MASK) {
-+			dev_err(dev, "%s: invalid sidlemode\n", __func__);
-+			return -EINVAL;
+ 	for (index = 0; index < n; index++) {
+ 		item = array[index];
+-		if (!item)
++		if (!item) {
++			if (n != (size_t)-1)
++				continue;
+ 			break;
 +		}
+ 		if (!strcmp(item, string))
+ 			return index;
  	}
- 
- 	reg &= ~(SYSC_IDLE_MASK << regbits->sidle_shift);
-@@ -959,10 +964,14 @@ static int sysc_disable_module(struct device *dev)
- 	if (!idlemodes || regbits->sidle_shift < 0)
- 		return 0;
- 
--	ret = sysc_best_idle_mode(idlemodes, &best_mode);
--	if (ret) {
--		dev_err(dev, "%s: invalid sidlemode\n", __func__);
--		return ret;
-+	if (ddata->cfg.quirks & SYSC_QUIRK_SWSUP_SIDLE) {
-+		best_mode = SYSC_IDLE_FORCE;
-+	} else {
-+		ret = sysc_best_idle_mode(idlemodes, &best_mode);
-+		if (ret) {
-+			dev_err(dev, "%s: invalid sidlemode\n", __func__);
-+			return ret;
-+		}
- 	}
- 
- 	reg &= ~(SYSC_IDLE_MASK << regbits->sidle_shift);
 -- 
-2.21.0
+2.20.1
