@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 13/13] ARM: dts: Drop legacy custom hwmods property for omap4 mmc
-Date: Mon, 27 May 2019 23:24:14 -0700
-Message-ID: <20190528062414.27192-14-tony@atomide.com>
+Subject: [PATCH 11/13] bus: ti-sysc: Detect uarts also on omap34xx
+Date: Mon, 27 May 2019 23:24:12 -0700
+Message-ID: <20190528062414.27192-12-tony@atomide.com>
 References: <20190528062414.27192-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,64 +9,35 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190528062414.27192-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With recent ti-sysc driver changes, we can now finally probe most
-modules without needing the custom ti,hwmods property.
+Looks like we currently only detect UART on omap36xx, let's also
+add support for omap34xx. And let's also fix the SWSUP mode, it should
+be SWSUP_SIDLE for omap3, not SWSUP_SIDLE_ACT like for omap4 and later.
 
-Let's drop it for omap4 MMC as we can test that for runtime PM
-for core retention idle mode for wlcore WLAN.
+Note that we are still booting omap3 for most part without ti-sysc,
+so no need to treat this change as a fix.
 
-Cc: devicetree@vger.kernel.org
-Cc: Rob Herring <robh@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap4-l4.dtsi | 5 -----
- 1 file changed, 5 deletions(-)
+ drivers/bus/ti-sysc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
---- a/arch/arm/boot/dts/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/omap4-l4.dtsi
-@@ -2103,7 +2103,6 @@
- 
- 		target-module@9c000 {			/* 0x4809c000, ap 53 36.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "mmc1";
- 			reg = <0x9c000 0x4>,
- 			      <0x9c010 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -2171,7 +2170,6 @@
- 
- 		target-module@ad000 {			/* 0x480ad000, ap 63 50.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "mmc3";
- 			reg = <0xad000 0x4>,
- 			      <0xad010 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -2237,7 +2235,6 @@
- 
- 		target-module@b4000 {			/* 0x480b4000, ap 67 46.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "mmc2";
- 			reg = <0xb4000 0x4>,
- 			      <0xb4010 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -2332,7 +2329,6 @@
- 
- 		target-module@d1000 {			/* 0x480d1000, ap 73 44.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "mmc4";
- 			reg = <0xd1000 0x4>,
- 			      <0xd1010 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -2365,7 +2361,6 @@
- 
- 		target-module@d5000 {			/* 0x480d5000, ap 75 4e.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "mmc5";
- 			reg = <0xd5000 0x4>,
- 			      <0xd5010 0x4>;
- 			reg-names = "rev", "sysc";
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1205,8 +1205,10 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 		   0),
+ 	SYSC_QUIRK("timer", 0, 0, 0x10, -1, 0x4fff1301, 0xffff00ff,
+ 		   0),
++	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x00000046, 0xffffffff,
++		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
+ 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x00000052, 0xffffffff,
+-		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
++		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
+ 	/* Uarts on omap4 and later */
+ 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x50411e03, 0xffff00ff,
+ 		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
 -- 
 2.21.0
