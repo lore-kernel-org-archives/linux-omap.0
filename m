@@ -1,77 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv6 0/4] omapdrm: DSI command mode panel support
-Date: Tue, 28 May 2019 03:18:47 -0700
-Message-ID: <20190528101847.GN5447@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv6 3/4] drm/omap: add framedone interrupt support
+Date: Tue, 28 May 2019 13:19:01 +0300
+Message-ID: <9eb23a5d-438e-7b25-e7cb-8b734a150e43@ti.com>
 References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
- <60c45d23-de2f-d94a-c3d7-146a2bee538f@ti.com>
- <20190527112122.GJ5447@atomide.com>
- <e507c415-38de-86fe-9265-4b0aed0d7224@ti.com>
- <20190528093952.GM5447@atomide.com>
- <14c6c702-844b-756d-2d97-44e8f5a169df@ti.com>
+ <20190523200756.25314-4-sebastian.reichel@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <14c6c702-844b-756d-2d97-44e8f5a169df@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190523200756.25314-4-sebastian.reichel@collabora.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, kernel@collabora.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [190528 10:05]:
-> On 28/05/2019 12:39, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [190528 09:19]:
-> > > On 27/05/2019 14:21, Tony Lindgren wrote:
-> > > 
-> > > > > Looks good to me. For some reason I can't boot 5.2-rc2 (on x15) so I haven't
-> > > > > been able to test yet. I'll pick the series up in any case, and I'll test it
-> > > > > when I get the kernel booting.
-> > > > 
-> > > > Great good to have these merged finally :)
-> > > > 
-> > > > Hmm I wonder if some x15 models are affected by the SoC variant
-> > > > changes queued in my fixes branch?
-> > > 
-> > > This is what I see with earlycon, on linux-omap fixes branch. I think this looks
-> > > similar to what I saw with dra76 _without_ the fixes.
-> > 
-> > OK sounds like we need to use some different SoC specific .dtsi file,
-> > is this maybe x15 rev c?
-> > 
-> > You can detect which modules fail based on the module base address
-> > for revision register seen with the following debug patch. Then
-> > those need to be tagged with status = "disabled" at the module
-> > level in the SoC specific dtsi file.
-> 
-> [    1.370609] ti-sysc 4ae20000.target-module: probing device
-> 
-> This change lets me boot. I don't know that's the correct place, though:
-> 
-> diff --git a/arch/arm/boot/dts/am5728.dtsi b/arch/arm/boot/dts/am5728.dtsi
-> index 82e5427ef6a9..c778f9a86b3a 100644
-> --- a/arch/arm/boot/dts/am5728.dtsi
-> +++ b/arch/arm/boot/dts/am5728.dtsi
-> @@ -31,3 +31,7 @@
-> &atl_tm {
->        status = "disabled";
-> };
-> +
-> +&timer12 {
-> +       status = "disabled";
-> +};
-
-OK we should disable it at the target-module level though. Interesting
-that reading the revision register works with the above, or maybe you
-still get some warning?
-
-> My board is x15 rev A3, attached to AM5 EVM. I've also attached my kernel
-> config.
-
-Strange that this is not affecting other x15? I think timer12 would
-be blocked on HS devices though?
-
-Regards,
-
-Tony
+SGkgU2ViYXN0aWFuLAoKT24gMjMvMDUvMjAxOSAyMzowNywgU2ViYXN0aWFuIFJlaWNoZWwgd3Jv
+dGU6Cgo+IEBAIC0zMDIsNiArMzI4LDMwIEBAIHZvaWQgb21hcF9jcnRjX3ZibGFua19pcnEoc3Ry
+dWN0IGRybV9jcnRjICpjcnRjKQo+ICAgCURCRygiJXM6IGFwcGx5IGRvbmUiLCBvbWFwX2NydGMt
+Pm5hbWUpOwo+ICAgfQo+ICAgCj4gK3ZvaWQgb21hcF9jcnRjX2ZyYW1lZG9uZV9pcnEoc3RydWN0
+IGRybV9jcnRjICpjcnRjLCB1aW50MzJfdCBpcnFzdGF0dXMpCj4gK3sKPiArCXN0cnVjdCBvbWFw
+X2NydGMgKm9tYXBfY3J0YyA9IHRvX29tYXBfY3J0YyhjcnRjKTsKPiArCj4gKwlpZiAoIW9tYXBf
+Y3J0Yy0+ZnJhbWVkb25lX2hhbmRsZXIpIHsKPiArCQlkZXZfd2FybihvbWFwX2NydGMtPmJhc2Uu
+ZGV2LT5kZXYsICJubyBmcmFtZWRvbmUgaGFuZGxlcj8iKTsKPiArCQlyZXR1cm47Cj4gKwl9CgpU
+aGlzIHRyaWdnZXJzIG9uIG5vcm1hbCBkaXNwbGF5cy4KCkZSQU1FRE9ORSBpcyBhbiBpbnRlcnJ1
+cHQgd2UgZ2V0IHdoZW4gRElTUEMncyBvdXRwdXQgdmlkZW9wb3J0IGlzIGJlaW5nIAp0dXJuZWQg
+b2ZmLiBJdCdzIHJhaXNlZCBhZnRlciB0aGUgbGFzdCBmcmFtZSBoYXMgYmVlbiBmaW5pc2hlZCAo
+aS5lLiB0aGUgCkRJU1BDIGlzIHRydWx5IGRvbmUgd2l0aCB0aGF0IHZpZGVvcG9ydCkuCgpXZSBn
+ZXQgaXQgZm9yIGJvdGggY29udmVudGlvbmFsIGRpc3BsYXlzICh3aGVuIHRoZSBkaXNwbGF5IGlz
+IHR1cm5lZCAKb2ZmKSBhbmQgZm9yIERTSSBjb21tYW5kIG1vZGUgKHdoZW4gYSBzaW5nbGUgZnJh
+bWUgaGFzIGJlZW4gc2VudCksIGFzIGluIApib3RoIGNhc2VzIHRoZSB2aWRlb3BvcnQgaXMgZGlz
+YWJsZWQgYWZ0ZXIgdGhlIG9wZXJhdGlvbi4gRm9yIApjb252ZW50aW9uYWwgZGlzcGxheXMsIHlv
+dSBjYW4gdGhpbmsgRlJBTUVET05FIGFzIHRoZSBsYXN0IHZzeW5jLgoKV2UgYWxzbyBoYXZlIHNw
+ZWNpYWwgaGFuZGxpbmcgZm9yIEZSQU1FRE9ORSBpbiBvbWFwX2NydGNfc2V0X2VuYWJsZWQoKSwg
+CndoaWNoIGlzIHVzZWQgdG8gZ2V0IHRoZSBkcm0gZHJpdmVyIHRvIHdhaXQgZm9yIEZSQU1FRE9O
+RSB3aGVuIGRpc2FibGluZyAKdGhlIGRpc3BsYXkuIEkgd29uZGVyIGlmIHRoaXMgc2VwYXJhdGUg
+ZnJhbWVkb25lIGhhbmRsaW5nIG1pZ2h0IHNvbWVob3cgCmNvbmZsaWN0IHdpdGggdGhhdCBjb2Rl
+LiBBbmQvb3Igc2hvdWxkIHRoZXNlIGJlIHNvbWVob3cgY29tYmluZWQuCgogIFRvbWkKCi0tIApU
+ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
+aW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2ls
+ZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
