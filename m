@@ -1,55 +1,45 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: omap2plus_defconfig broken on ARMv6
-Date: Tue, 28 May 2019 07:03:36 +0200
-Message-ID: <56990EA4-E280-4C78-9536-E8AE1964725E@goldelico.com>
-References: <20190524220731.GB4597@t60.musicnaut.iki.fi>
- <20190527055746.GH5447@atomide.com>
- <20190527204135.GA24195@darkstar.musicnaut.iki.fi>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190527204135.GA24195@darkstar.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/12] ti-sysc driver changes to drop custom hwmods
+ property
+Date: Mon, 27 May 2019 23:16:14 -0700
+Message-ID: <20190528061614.GL5447@atomide.com>
+References: <20190527121348.45251-1-tony@atomide.com>
+ <380809b1-7152-faa5-9f43-2243fb4dad19@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <380809b1-7152-faa5-9f43-2243fb4dad19@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-> Am 27.05.2019 um 22:41 schrieb Aaro Koskinen <aaro.koskinen@iki.fi>:
+* Keerthy <j-keerthy@ti.com> [190528 00:58]:
 > 
-> Hi,
 > 
-> On Sun, May 26, 2019 at 10:57:46PM -0700, Tony Lindgren wrote:
->> * Aaro Koskinen <aaro.koskinen@iki.fi> [190524 22:07]:
->>> Noticed today that booting omap2plus_defconfig on N8x0 crashes
->>> early. Disabling CONFIG_SMP makes it work.
->> 
->> OK. It sure used to work when I last tested but that's been quite
->> a while now. Any ideas which commit caused the ldrexd regression?
+> On 27/05/19 5:43 PM, Tony Lindgren wrote:
+> > Hi all,
+> > 
+> > Here are changes to improve ti-sysc driver to the point where we can
+> > finally drop the custom hwmods property for most cases. This series
+> > drops hwmods property only for omap4 UART and MMC as those can be
+> > tested with core retention idle.
+> > 
+> > I'll be posting more patches for dropping hwmods properties as they
+> > get tested.
 > 
-> No idea, I tried even 3.16 and even that seems to have the same issue
-> if multi v6/v7 and SMP is selected.
+> Tony,
+> 
+> What is the base of this series? It does not apply cleanly neither on
+> linux-next nor on top of 5.2->rc1. If there are dependencies do you have a
+> branch?
 
-Could it be an unknown compiler issue?
+Oh thanks for letting me know. It's against v5.2-rc1 but the first
+patch of the series got accidentally left out. Looks like I used -n
+option with git format-patch with -n 12 instead of -n13. I will
+repost the series.
 
-I just had the effect that v5.2-rc1 started to try to build gcc-plugins
-(something I had never heard of before) because some Kconfig defaults
-were changed. And my cross-compiler setup is not capable of doing that.
+Regards,
 
-I have grepped a little into the code and the offending assembler statements
-seem to come from __cmpxchg64() which is indeed very old [1]. But the question
-may be why this 64 bit code is compiled for a 32 bit ARMv6.
-
-Other code seems to be guarded by #ifndef CONFIG_CPU_V6	/* min ARCH >= ARMv6K */
-
-[1]: https://elixir.bootlin.com/linux/v5.2-rc2/source/arch/arm/include/asm/cmpxchg.h#L244
-     https://elixir.bootlin.com/linux/v3.16.68/source/arch/arm/include/asm/cmpxchg.h#L230
+Tony
