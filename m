@@ -1,41 +1,86 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv6 0/4] omapdrm: DSI command mode panel support
-Date: Wed, 29 May 2019 10:06:29 +0300
-Message-ID: <ac487765-01a3-2c82-d86e-db00451563a9@ti.com>
-References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
- <60c45d23-de2f-d94a-c3d7-146a2bee538f@ti.com>
- <20190527112122.GJ5447@atomide.com>
- <e507c415-38de-86fe-9265-4b0aed0d7224@ti.com>
- <20190528093952.GM5447@atomide.com>
- <14c6c702-844b-756d-2d97-44e8f5a169df@ti.com>
- <20190528101847.GN5447@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] mmc voltage and boot issue fixes for omaps for v5.2
+Date: Wed, 29 May 2019 00:32:27 -0700
+Message-ID: <pull-1559115102-965591@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190528101847.GN5447@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel@collabora.com, "H. Nikolaus Schaller" <hns@goldelico.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjgvMDUvMjAxOSAxMzoxOCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4+IE15IGJvYXJkIGlz
-IHgxNSByZXYgQTMsIGF0dGFjaGVkIHRvIEFNNSBFVk0uIEkndmUgYWxzbyBhdHRhY2hlZCBteSBr
-ZXJuZWwKPj4gY29uZmlnLgo+IAo+IFN0cmFuZ2UgdGhhdCB0aGlzIGlzIG5vdCBhZmZlY3Rpbmcg
-b3RoZXIgeDE1PyBJIHRoaW5rIHRpbWVyMTIgd291bGQKPiBiZSBibG9ja2VkIG9uIEhTIGRldmlj
-ZXMgdGhvdWdoPwoKU2VlbXMgdGhhdCB0aGUga2VybmVsIGNvbmZpZyBhZmZlY3RzLiBvbWFwMnBs
-dXNfZGVmY29uZmlnIGJvb3RzIG9rLgoKICBUb21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlu
-bGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2lu
-ZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
-IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
-ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+From: "Tony Lindgren" <tony@atomide.com>
+
+The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
+
+  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/fixes-rc2
+
+for you to fetch changes up to 4ee23cd76c0ce8622976b3da0e2bc89e6d94f6d4:
+
+  Merge branch 'omap-for-v5.2/ti-sysc' into fixes (2019-05-20 08:33:03 -0700)
+
+----------------------------------------------------------------
+Fixes for omap variants for dra7 mmc voltage and boot issues
+
+This series contains dra7 mmc voltage fixes, and fixes to the recent
+changes to probe devices with device tree data insteas of legacy
+platform data:
+
+- Two fixes for dra7 mmc that needs 1.8V mode disabled as in case of a
+  reset, the bootrom will try to access the mmc card at 3.3V potentially
+  damaging the card
+
+- Two regression fixes for am335x d_can. We must allow devices with no
+  control registers for ti-sysc interconnect target module driver for
+  at least d_can, and we remove the incorrect control registers for
+  d_can. And we must configure the osc clock for d_can as otherwise
+  register access may fail depending on the bootloader version
+
+- Four regression fixes for dra7 variant dts files to tag rtc and usb4
+  as disabled for dra71x and dra76x. These SoC variants do not have
+  these devices, and got accidentally enabled when the L4 interconnect
+  got defined in the dra7-l4.dtsi for the dra7 SoC family
+
+----------------------------------------------------------------
+Faiz Abbas (2):
+      ARM: dts: am57xx-idk: Remove support for voltage switching for SD card
+      ARM: dts: dra76x: Update MMC2_HS200_MANUAL1 iodelay values
+
+Keerthy (4):
+      ARM: dts: dra76x: Disable rtc target module
+      ARM: dts: dra76x: Disable usb4_tm target module
+      ARM: dts: dra71x: Disable rtc target module
+      ARM: dts: dra71x: Disable usb4_tm target module
+
+Tony Lindgren (5):
+      ARM: dts: Configure osc clock for d_can on am335x
+      bus: ti-sysc: Handle devices with no control registers
+      Merge branch 'am5-sdio-fixes' into fixes
+      Merge branch 'fixes-dra7' into fixes
+      Merge branch 'omap-for-v5.2/ti-sysc' into fixes
+
+ arch/arm/boot/dts/am33xx-l4.dtsi          | 14 +++++------
+ arch/arm/boot/dts/am437x-l4.dtsi          |  4 ----
+ arch/arm/boot/dts/am57xx-idk-common.dtsi  |  1 +
+ arch/arm/boot/dts/dra7-l4.dtsi            |  2 +-
+ arch/arm/boot/dts/dra71-evm.dts           |  2 +-
+ arch/arm/boot/dts/dra71x.dtsi             | 17 +++++++++++++
+ arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi | 40 +++++++++++++++----------------
+ arch/arm/boot/dts/dra76x.dtsi             |  8 +++++++
+ drivers/bus/ti-sysc.c                     | 23 +++++++++---------
+ 9 files changed, 65 insertions(+), 46 deletions(-)
+ create mode 100644 arch/arm/boot/dts/dra71x.dtsi
