@@ -1,88 +1,51 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net-next 3/3] net: ethernet: ti: cpsw: add XDP support
-Date: Wed, 29 May 2019 12:58:16 +0300
-Message-ID: <20190529095814.GA4639@khorivan>
-References: <20190523182035.9283-1-ivan.khoronzhuk@linaro.org>
- <20190523182035.9283-4-ivan.khoronzhuk@linaro.org>
- <20190529101659.2aa714b8@carbon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190529101659.2aa714b8@carbon>
-Sender: netdev-owner@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+Subject: [PATCH] net: ethernet: ti: cpsw_ethtool: fix ethtool ring param set
+Date: Thu, 30 May 2019 00:47:53 +0300
+Message-ID: <20190529214753.21804-1-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 29, 2019 at 10:16:59AM +0200, Jesper Dangaard Brouer wrote:
->On Thu, 23 May 2019 21:20:35 +0300
->Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
->
->> +static struct page *cpsw_alloc_page(struct cpsw_common *cpsw)
->> +{
->> +	struct page_pool *pool = cpsw->rx_page_pool;
->> +	struct page *page, *prev_page = NULL;
->> +	int try = pool->p.pool_size << 2;
->> +	int start_free = 0, ret;
->> +
->> +	do {
->> +		page = page_pool_dev_alloc_pages(pool);
->> +		if (!page)
->> +			return NULL;
->> +
->> +		/* if netstack has page_pool recycling remove the rest */
->> +		if (page_ref_count(page) == 1)
->> +			break;
->> +
->> +		/* start free pages in use, shouldn't happen */
->> +		if (prev_page == page || start_free) {
->> +			/* dma unmap/puts page if rfcnt != 1 */
->> +			page_pool_recycle_direct(pool, page);
->> +			start_free = 1;
->> +			continue;
->> +		}
->> +
->> +		/* if refcnt > 1, page has been holding by netstack, it's pity,
->> +		 * so put it to the ring to be consumed later when fast cash is
->> +		 * empty. If ring is full then free page by recycling as above.
->> +		 */
->> +		ret = ptr_ring_produce(&pool->ring, page);
->
->This looks very wrong to me!  First of all you are manipulation
->directly with the internal pool->ring and not using the API, which
->makes this code un-maintainable.
-Yes I know, it's hack, it was with assumption to be dropped once page_pool
-recycling is added.
+After adding ethtool ring param sanity check patch:
 
->Second this is wrong, as page_pool
->assume the in-variance that pages on the ring have refcnt==1.
-Yes, but this is w/o obvious reason, seems like it can work with refcnt > 1 if
-remove restriction and use >= instead of ==.
+commit 37e2d99b59c4765112533a1d38174fea58d28a51 ("ethtool: Ensure new
+ring parameters are within bounds during SRINGPARAM")
 
-As I answered on Ilias comment, I'm going to leave version from RFC and drop
-this one.
+cpsw has no ability to change rx descriptor numbers.
+But the reason - initially "tx_max_pending" was not correctly set
+while adding a patch:
 
->
->> +		if (ret) {
->> +			page_pool_recycle_direct(pool, page);
->> +			continue;
->> +		}
->> +
->> +		if (!prev_page)
->> +			prev_page = page;
->> +	} while (try--);
->> +
->> +	return page;
->> +}
->
->
->-- 
->Best regards,
->  Jesper Dangaard Brouer
->  MSc.CS, Principal Kernel Engineer at Red Hat
->  LinkedIn: http://www.linkedin.com/in/brouer
+commit be034fc14015c7fcabe62317d156e98b508a759b ("net: ethernet: ti:
+cpsw: add support for ringparam configuration")
 
+The issue appears after adding sanity check, so fix is for "sanity"
+patch.
+
+Fixes: 37e2d99b59c4765112533a1d38174fea58d28a51 ("ethtool: Ensure new
+ring parameters are within bounds during SRINGPARAM")
+
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+
+Based on net/master
+
+ drivers/net/ethernet/ti/cpsw_ethtool.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
+index a4a7ec0d2531..6d1c9ebae7cc 100644
+--- a/drivers/net/ethernet/ti/cpsw_ethtool.c
++++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
+@@ -643,7 +643,7 @@ void cpsw_get_ringparam(struct net_device *ndev,
+ 	struct cpsw_common *cpsw = priv->cpsw;
+ 
+ 	/* not supported */
+-	ering->tx_max_pending = 0;
++	ering->tx_max_pending = cpsw->descs_pool_size - CPSW_MAX_QUEUES;
+ 	ering->tx_pending = cpdma_get_num_tx_descs(cpsw->dma);
+ 	ering->rx_max_pending = cpsw->descs_pool_size - CPSW_MAX_QUEUES;
+ 	ering->rx_pending = cpdma_get_num_rx_descs(cpsw->dma);
 -- 
-Regards,
-Ivan Khoronzhuk
+2.17.1
