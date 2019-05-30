@@ -1,69 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv6 0/4] omapdrm: DSI command mode panel support
-Date: Thu, 30 May 2019 00:02:30 -0700
-Message-ID: <20190530070230.GR5447@atomide.com>
-References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
- <60c45d23-de2f-d94a-c3d7-146a2bee538f@ti.com>
- <20190527112122.GJ5447@atomide.com>
- <e507c415-38de-86fe-9265-4b0aed0d7224@ti.com>
- <20190528093952.GM5447@atomide.com>
- <14c6c702-844b-756d-2d97-44e8f5a169df@ti.com>
- <20190528101847.GN5447@atomide.com>
- <ac487765-01a3-2c82-d86e-db00451563a9@ti.com>
- <20190529081038.GP5447@atomide.com>
- <20190530054640.GQ5447@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v2 net-next 0/7] net: ethernet: ti: cpsw: Add XDP support
+Date: Thu, 30 May 2019 21:20:32 +0300
+Message-ID: <20190530182039.4945-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190530054640.GQ5447@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
+Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [190530 05:47]:
-> * Tony Lindgren <tony@atomide.com> [190529 08:11]:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [190529 07:06]:
-> > > On 28/05/2019 13:18, Tony Lindgren wrote:
-> > > 
-> > > > > My board is x15 rev A3, attached to AM5 EVM. I've also attached my kernel
-> > > > > config.
-> > > > 
-> > > > Strange that this is not affecting other x15? I think timer12 would
-> > > > be blocked on HS devices though?
-> > > 
-> > > Seems that the kernel config affects. omap2plus_defconfig boots ok.
-> > 
-> > OK, this line in your oops:
-> > 
-> > Unable to handle kernel paging request at virtual address 5a5a5a5a
-> > 
-> > Probably means we hit some slab poison with DEBUG_SLAB set.
-> > Looks like your config boots fine with DEBUG_SLAB disabled
-> > for me.
-> > 
-> > As this only happens for timer12, I wonder if we're again
-> > hitting some uncompress issue with corrupted dtb. Changing
-> > u-boot ftdaddr higher up might possibly make it go away.
-> > Or else there's a bug elsewhere :)
-> 
-> Oh but CM_WKUPAON_TIMER12_CLKCTRL has no CLKSEL option unlike
-> CM_WKUPAON_TIMER1_CLKCTRL. Below is one part of the fix, but
-> it seems like we're missing handling somewhere as trying to
-> get a non-existing clock should just produce -ENODEV type error.
-> 
-> And the clksel should be just handled with assigned-clocks
-> in general, but I think we still need it there until we
-> have drivers/clocksource/ timer drivers updated to boot
-> using early_platform_device.
+This patchset adds XDP support for TI cpsw driver and base it on
+page_pool allocator. It was verified on af_xdp socket drop,
+af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
 
-OK found it, we have the clkctrl clock potentially return
-uninitialized data. I posted two fixes for the issue:
+It was verified with following configs enabled:
+CONFIG_JIT=y
+CONFIG_BPFILTER=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_XDP_SOCKETS=y
+CONFIG_BPF_EVENTS=y
+CONFIG_HAVE_EBPF_JIT=y
+CONFIG_BPF_JIT=y
+CONFIG_CGROUP_BPF=y
 
-[PATCH] clk: ti: clkctrl: Fix returning uninitialized data
-[PATCH] ARM: dts: Drop bogus CLKSEL for timer12 on dra7
+Link on previous v1:
+https://lkml.org/lkml/2019/5/23/795
 
-Regards,
+Also regular tests with iperf2 were done in order to verify impact on
+regular netstack performance, compared with base commit:
+https://pastebin.com/JSMT0iZ4
 
-Tony
+v1..v2:
+- combined xdp_xmit functions
+- used page allocation w/o refcnt juggle
+- unmapped page for skb netstack
+- moved rxq/page pool allocation to open/close pair
+- added several preliminary patches:
+  net: page_pool: add helper function to retrieve dma addresses
+  net: page_pool: add helper function to unmap dma addresses
+  net: ethernet: ti: cpsw: use cpsw as drv data
+  net: ethernet: ti: cpsw_ethtool: simplify slave loops
+
+
+Based on net-next/master
+
+Ilias Apalodimas (2):
+  net: page_pool: add helper function to retrieve dma addresses
+  net: page_pool: add helper function to unmap dma addresses
+
+Ivan Khoronzhuk (5):
+  net: ethernet: ti: cpsw: use cpsw as drv data
+  net: ethernet: ti: cpsw_ethtool: simplify slave loops
+  net: ethernet: ti: davinci_cpdma: add dma mapped submit
+  net: ethernet: ti: davinci_cpdma: return handler status
+  net: ethernet: ti: cpsw: add XDP support
+
+ drivers/net/ethernet/ti/Kconfig         |   1 +
+ drivers/net/ethernet/ti/cpsw.c          | 537 ++++++++++++++++++++----
+ drivers/net/ethernet/ti/cpsw_ethtool.c  | 136 +++++-
+ drivers/net/ethernet/ti/cpsw_priv.h     |  12 +-
+ drivers/net/ethernet/ti/davinci_cpdma.c | 122 ++++--
+ drivers/net/ethernet/ti/davinci_cpdma.h |   6 +-
+ drivers/net/ethernet/ti/davinci_emac.c  |  18 +-
+ include/net/page_pool.h                 |   6 +
+ net/core/page_pool.c                    |   7 +
+ 9 files changed, 710 insertions(+), 135 deletions(-)
+
+-- 
+2.17.1
