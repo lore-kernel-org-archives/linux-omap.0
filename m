@@ -1,57 +1,30 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v2 net-next 2/7] net: page_pool: add helper function to unmap dma addresses
-Date: Thu, 30 May 2019 21:20:34 +0300
-Message-ID: <20190530182039.4945-3-ivan.khoronzhuk@linaro.org>
-References: <20190530182039.4945-1-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190530182039.4945-1-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
-Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Jesper Dangaard Brouer <brouer@redhat.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw_ethtool: fix ethtool ring
+ param set
+Date: Thu, 30 May 2019 14:49:07 -0700 (PDT)
+Message-ID: <20190530.144907.723803908854753596.davem@davemloft.net>
+References: <20190529214753.21804-1-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190529214753.21804-1-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Thu, 30 May 2019 00:47:53 +0300
 
-On a previous patch dma addr was stored in 'struct page'.
-Use that to unmap DMA addresses used by network drivers
+> Fixes: 37e2d99b59c4765112533a1d38174fea58d28a51 ("ethtool: Ensure new
+> ring parameters are within bounds during SRINGPARAM")
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 
-Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- include/net/page_pool.h | 1 +
- net/core/page_pool.c    | 7 +++++++
- 2 files changed, 8 insertions(+)
+Please do not chop up Fixes: tags into multiple lines.
 
-diff --git a/include/net/page_pool.h b/include/net/page_pool.h
-index b885d86cb7a1..ad218cef88c5 100644
---- a/include/net/page_pool.h
-+++ b/include/net/page_pool.h
-@@ -110,6 +110,7 @@ static inline struct page *page_pool_dev_alloc_pages(struct page_pool *pool)
- struct page_pool *page_pool_create(const struct page_pool_params *params);
- 
- void page_pool_destroy(struct page_pool *pool);
-+void page_pool_unmap_page(struct page_pool *pool, struct page *page);
- 
- /* Never call this directly, use helpers below */
- void __page_pool_put_page(struct page_pool *pool,
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index 5b2252c6d49b..205af7bd6d09 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -190,6 +190,13 @@ static void __page_pool_clean_page(struct page_pool *pool,
- 	page->dma_addr = 0;
- }
- 
-+/* unmap the page and clean our state */
-+void page_pool_unmap_page(struct page_pool *pool, struct page *page)
-+{
-+	__page_pool_clean_page(pool, page);
-+}
-+EXPORT_SYMBOL(page_pool_unmap_page);
-+
- /* Return a page to the page allocator, cleaning up our state */
- static void __page_pool_return_page(struct page_pool *pool, struct page *page)
- {
--- 
-2.17.1
+Please do not place an empty line between Fixes: and other tags,
+they should all be together.
+
+Thank you.
