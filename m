@@ -1,30 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw_ethtool: fix ethtool ring
- param set
-Date: Thu, 30 May 2019 14:49:07 -0700 (PDT)
-Message-ID: <20190530.144907.723803908854753596.davem@davemloft.net>
-References: <20190529214753.21804-1-ivan.khoronzhuk@linaro.org>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 0/3] Add HwSpinlock support for TI K3 SoCs
+Date: Thu, 30 May 2019 21:13:18 -0500
+Message-ID: <20190531021321.14025-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190529214753.21804-1-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Thu, 30 May 2019 00:47:53 +0300
+Hi Bjorn,
 
-> Fixes: 37e2d99b59c4765112533a1d38174fea58d28a51 ("ethtool: Ensure new
-> ring parameters are within bounds during SRINGPARAM")
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+The following series adds the support for the HwSpinlock IP present
+on the newer TI K3 AM65x and J721E SoCs. The first 2 patches are
+related to the K3 support, and the last patch is a minor debug related
+trace to see the number of locks registered on each SoC.
 
-Please do not chop up Fixes: tags into multiple lines.
+I will be posting the DT nodes once the binding is acked.
 
-Please do not place an empty line between Fixes: and other tags,
-they should all be together.
+regards
+Suman
 
-Thank you.
+Suman Anna (3):
+  dt-bindings: hwlock: Update OMAP binding for TI K3 SoCs
+  hwspinlock/omap: Add support for TI K3 SoCs
+  hwspinlock/omap: Add a trace during probe
+
+ .../bindings/hwlock/omap-hwspinlock.txt       | 25 +++++++++++++++----
+ drivers/hwspinlock/Kconfig                    |  2 +-
+ drivers/hwspinlock/omap_hwspinlock.c          |  4 +++
+ 3 files changed, 25 insertions(+), 6 deletions(-)
+
+-- 
+2.21.0
