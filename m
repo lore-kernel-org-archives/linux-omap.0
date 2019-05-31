@@ -1,84 +1,89 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 1/3] dt-bindings: hwlock: Update OMAP binding for TI K3 SoCs
-Date: Thu, 30 May 2019 21:13:19 -0500
-Message-ID: <20190531021321.14025-2-s-anna@ti.com>
-References: <20190531021321.14025-1-s-anna@ti.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to dts
+Date: Fri, 31 May 2019 07:13:01 -0500
+Message-ID: <CAHCN7xLNCuqDyvOvtQef+CnRCMit2U2XTDP+=XKkjfmrnVv4kg@mail.gmail.com>
+References: <20190510194229.20628-1-aford173@gmail.com> <af325707-3e42-493d-e858-77878ef06138@ti.com>
+ <CAHCN7xLzoCNW6q5yDCsqMHeNvdNegkGhd0N+q9+Gd8JUGbG=_g@mail.gmail.com> <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190531021321.14025-1-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dri-devel@lists.freedesktop.org, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The TI K3 AM65x and J721E family of SoCs have a HwSpinlock IP that
-is similar to the existing HwSpinlock IP present in OMAP architecture
-based SoCs with minor differences. Update the existing OMAP HwSpinlock
-binding for this IP on TI K3 AM65x and J721E SoCs. The same compatible
-from AM65x SoCs is reused for J721E SoCs.
+On Tue, May 28, 2019 at 10:53 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>
+> Hi,
+>
+> On 28/05/2019 18:09, Adam Ford wrote:
+> > On Tue, May 28, 2019 at 4:11 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> >>
+> >> Hi,
+> >>
+> >> On 10/05/2019 22:42, Adam Ford wrote:
+> >>> Currently the source code is compiled using hard-coded values
+> >>> from CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK.  This patch allows this
+> >>> clock divider value to be moved to the device tree and be changed
+> >>> without having to recompile the kernel.
+> >>>
+> >>> Signed-off-by: Adam Ford <aford173@gmail.com>
+> >>
+> >> I understand why you want to do this, but I'm not sure it's a good idea.
+> >> It's really something the driver should figure out, and if we add it to
+> >> the DT, it effectively becomes an ABI.
+> >>
+> >> That said... I'm not sure how good of a job the driver could ever do, as
+> >> it can't know the future scaling needs of the userspace at the time it
+> >> is configuring the clock. And so, I'm not nacking this patch, but I
+> >> don't feel very good about this patch...
+> >>
+> >> The setting also affects all outputs (exluding venc), which may not be
+> >> what the user wants. Then again, I think this setting is really only
+> >> needed on OMAP2 & 3, which have only a single output. But that's the
+> >> same with the current kconfig option, of course.
+> >>
+> >> So, the current CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK is an ugly hack, in my
+> >> opinion, and moving it to DT makes it a worse hack =). But I don't have
+> >> any good suggestions either.
+> >
+> > As it stands the Logic PD OMAP35 and AM37/DM37 boards (SOM-LV and
+> > Torpedo) require this to be hard coded to 4 or it hangs during start.
+> > This is the case for all versions 4.2+.  I haven't tested it with
+> > older stuff.  Tony has a DM3730 Torpedo kit and reported the hanging
+> > issue to me. I told him to set that value to 4 to make it not hang.
+> > He asked that I move it to the DT to avoid custom kernels.  I agree
+> > it's a hack, but if it's create a customized defconfig file for 4
+> > boards or modify the device tree, it seems like the device tree
+> > approach is less intrusive.
+>
+> Ok, well, I think that's a separate thing from its intended use. The
+> point of the kconfig option is to ensure that the fclk/pclk ratio stays
+> under a certain number to allow enough scaling range. It should never
+> affect a basic non-scaling use case, unless you set it to a too high
+> value, which prevents finding any pclk.
+>
+> Has anyone debugged why the hang is happening?
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- .../bindings/hwlock/omap-hwspinlock.txt       | 25 +++++++++++++++----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+I tried debugging this years ago, and I was told to use the
+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK.
+>
+> If we can't fix the bug itself, rather than adding a DT option, we could
+> change add a min_fck_per_pck field (as you do), keep the kconfig option,
+> and set the min_fck_per_pck based on the kconfig option, _or_ in case of
+> those affected SoCs, set the min_fck_per_pck even without the kconfig
+> option.
 
-diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-index 2c9804f4f4ac..8d365f89694c 100644
---- a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-+++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-@@ -1,12 +1,16 @@
--OMAP4+ HwSpinlock Driver
--========================
-+TI HwSpinlock for OMAP and K3 based SoCs
-+=========================================
- 
- Required properties:
--- compatible:		Should be "ti,omap4-hwspinlock" for
--			    OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
-+- compatible:		Should be one of the following,
-+			  "ti,omap4-hwspinlock" for
-+				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
-+			  "ti,am654-hwspinlock" for
-+				K3 AM65x and J721E SoCs
- - reg:			Contains the hwspinlock module register address space
- 			(base address and length)
- - ti,hwmods:		Name of the hwmod associated with the hwspinlock device
-+			(for OMAP architecture based SoCs only)
- - #hwlock-cells:	Should be 1. The OMAP hwspinlock users will use a
- 			0-indexed relative hwlock number as the argument
- 			specifier value for requesting a specific hwspinlock
-@@ -17,10 +21,21 @@ Please look at the generic hwlock binding for usage information for consumers,
- 
- Example:
- 
--/* OMAP4 */
-+1. OMAP4 SoCs
- hwspinlock: spinlock@4a0f6000 {
- 	compatible = "ti,omap4-hwspinlock";
- 	reg = <0x4a0f6000 0x1000>;
- 	ti,hwmods = "spinlock";
- 	#hwlock-cells = <1>;
- };
-+
-+2. AM65x SoCs and J721E SoCs
-+&cbass_main {
-+	cbass_main_navss: interconnect0 {
-+		hwspinlock: spinlock@30e00000 {
-+			compatible = "ti,am654-hwspinlock";
-+			reg = <0x00 0x30e00000 0x00 0x1000>;
-+			#hwlock-cells = <1>;
-+		};
-+	};
-+};
--- 
-2.21.0
+I am just curious if anyone else sees this.  If nobody is using this
+hack, I wonder how much of the impact it will be.  I'm trying trying
+to get my board to boot without hanging without creating a custom
+defconfig.
+
+adam
+>
+>   Tomi
+>
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
