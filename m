@@ -1,89 +1,49 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to dts
-Date: Fri, 31 May 2019 07:13:01 -0500
-Message-ID: <CAHCN7xLNCuqDyvOvtQef+CnRCMit2U2XTDP+=XKkjfmrnVv4kg@mail.gmail.com>
-References: <20190510194229.20628-1-aford173@gmail.com> <af325707-3e42-493d-e858-77878ef06138@ti.com>
- <CAHCN7xLzoCNW6q5yDCsqMHeNvdNegkGhd0N+q9+Gd8JUGbG=_g@mail.gmail.com> <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv6 3/4] drm/omap: add framedone interrupt support
+Date: Fri, 31 May 2019 15:23:32 +0300
+Message-ID: <bbe14265-4499-4a55-ef94-9def2df365d7@ti.com>
+References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
+ <20190523200756.25314-4-sebastian.reichel@collabora.com>
+ <9eb23a5d-438e-7b25-e7cb-8b734a150e43@ti.com>
+ <20190529215530.mi3fjlsaziq22mw5@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dri-devel@lists.freedesktop.org, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190529215530.mi3fjlsaziq22mw5@earth.universe>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: kernel@collabora.com, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 28, 2019 at 10:53 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->
-> Hi,
->
-> On 28/05/2019 18:09, Adam Ford wrote:
-> > On Tue, May 28, 2019 at 4:11 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >>
-> >> Hi,
-> >>
-> >> On 10/05/2019 22:42, Adam Ford wrote:
-> >>> Currently the source code is compiled using hard-coded values
-> >>> from CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK.  This patch allows this
-> >>> clock divider value to be moved to the device tree and be changed
-> >>> without having to recompile the kernel.
-> >>>
-> >>> Signed-off-by: Adam Ford <aford173@gmail.com>
-> >>
-> >> I understand why you want to do this, but I'm not sure it's a good idea.
-> >> It's really something the driver should figure out, and if we add it to
-> >> the DT, it effectively becomes an ABI.
-> >>
-> >> That said... I'm not sure how good of a job the driver could ever do, as
-> >> it can't know the future scaling needs of the userspace at the time it
-> >> is configuring the clock. And so, I'm not nacking this patch, but I
-> >> don't feel very good about this patch...
-> >>
-> >> The setting also affects all outputs (exluding venc), which may not be
-> >> what the user wants. Then again, I think this setting is really only
-> >> needed on OMAP2 & 3, which have only a single output. But that's the
-> >> same with the current kconfig option, of course.
-> >>
-> >> So, the current CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK is an ugly hack, in my
-> >> opinion, and moving it to DT makes it a worse hack =). But I don't have
-> >> any good suggestions either.
-> >
-> > As it stands the Logic PD OMAP35 and AM37/DM37 boards (SOM-LV and
-> > Torpedo) require this to be hard coded to 4 or it hangs during start.
-> > This is the case for all versions 4.2+.  I haven't tested it with
-> > older stuff.  Tony has a DM3730 Torpedo kit and reported the hanging
-> > issue to me. I told him to set that value to 4 to make it not hang.
-> > He asked that I move it to the DT to avoid custom kernels.  I agree
-> > it's a hack, but if it's create a customized defconfig file for 4
-> > boards or modify the device tree, it seems like the device tree
-> > approach is less intrusive.
->
-> Ok, well, I think that's a separate thing from its intended use. The
-> point of the kconfig option is to ensure that the fclk/pclk ratio stays
-> under a certain number to allow enough scaling range. It should never
-> affect a basic non-scaling use case, unless you set it to a too high
-> value, which prevents finding any pclk.
->
-> Has anyone debugged why the hang is happening?
-
-I tried debugging this years ago, and I was told to use the
-CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK.
->
-> If we can't fix the bug itself, rather than adding a DT option, we could
-> change add a min_fck_per_pck field (as you do), keep the kconfig option,
-> and set the min_fck_per_pck based on the kconfig option, _or_ in case of
-> those affected SoCs, set the min_fck_per_pck even without the kconfig
-> option.
-
-I am just curious if anyone else sees this.  If nobody is using this
-hack, I wonder how much of the impact it will be.  I'm trying trying
-to get my board to boot without hanging without creating a custom
-defconfig.
-
-adam
->
->   Tomi
->
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+T24gMzAvMDUvMjAxOSAwMDo1NSwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cgo+IE9oIHNvcnJ5
+LCBJIG1pc3NlZCB0aGUgcGFydCB0aGF0IG9tYXBfaXJxX3dhaXRfaW5pdCgpIGFjdHVhbGx5Cj4g
+ZW5hYmxlcyB0aGUgZnJhbWVkb25lIGlycS4gSXQgc2hvdWxkIGJlIGVub3VnaCB0byBqdXN0IGRy
+b3AgdGhlCj4gd2FybmluZyAoYW5kIHRoZSBjdXJseSBicmFja2V0cykgdG8ga2VlcCBleGlzdGlu
+ZyBiZWhhdmlvdXIuIFRoZQo+IGNvZGUgZXhpdHMgZWFybHkgd2l0aCB0aGUgYWJvdmUgd2Fybmlu
+ZyBmb3IgYW55IGV4aXN0aW5nIGNvZGUgKHNpbmNlCj4gdGhhdCBkb2VzIG5vdCByZWdpc3RlciBh
+IGZyYW1lZG9uZSBoYW5kbGVyKS4gRFNJIG9uIHRoZSBvdGhlciBoYW5kCj4gZG9lcyBub3QgcmVh
+Y2ggdGhlIG9tYXBfaXJxX3dhaXRfaW5pdCgpIHBhcnQuIFJlZ2FyZGluZyBjb21iaW5pbmcKPiB0
+aGUgbG9naWM6IEkgZG9uJ3QgdGhpbmsgdGhlcmUgaXMgYW55dGhpbmcgdG8gY29tYmluZSByaWdo
+dCBub3cuCj4gSXQgc2hvdWxkIGJlIHBvc3NpYmxlIHRvIHNpbXBsaWZ5IHRoZSBsb2dpYyBhZnRl
+ciBEU0kgaGFzIGJlZW4KPiBjb252ZXJ0ZWQgdG8gZHJtX3BhbmVsIHN0eWxlLCBzaW5jZSB0aGlz
+IHdpbGwgbW92ZSB0aGUgdXBkYXRlIGxvZ2ljCj4gZm9yIHRoZSBzY3JlZW4gY29udGVudCBmcm9t
+IHRoZSBwYW5lbCBkcml2ZXIgdG8gRFNJIGNvcmUuCj4gCj4gVExEUjogSXQncyBlbm91Z2ggdG8g
+cmVtb3ZlIHRoZSB3YXJuaW5nLiBEbyB5b3UgbmVlZCBhIG5ldwo+IHN1Ym1pc3Npb24gZm9yIHRo
+aXM/CgpPay4gTm8sIEkgY2FuIGVkaXQgdGhlIHBhdGNoLgoKTmlrb2xhdXMsIGFyZSB5b3UgYWJs
+ZSB0byB0ZXN0IERTSSB2aWRlb21vZGUgd2l0aCB0aGVzZSBwYXRjaGVzPwoKICBUb21pCgotLSAK
+VGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVs
+c2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNp
+bGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
+bA==
