@@ -1,49 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv6 3/4] drm/omap: add framedone interrupt support
-Date: Fri, 31 May 2019 15:23:32 +0300
-Message-ID: <bbe14265-4499-4a55-ef94-9def2df365d7@ti.com>
-References: <20190523200756.25314-1-sebastian.reichel@collabora.com>
- <20190523200756.25314-4-sebastian.reichel@collabora.com>
- <9eb23a5d-438e-7b25-e7cb-8b734a150e43@ti.com>
- <20190529215530.mi3fjlsaziq22mw5@earth.universe>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190529215530.mi3fjlsaziq22mw5@earth.universe>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: kernel@collabora.com, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v2] net: ethernet: ti: cpsw_ethtool: fix ethtool ring param set
+Date: Fri, 31 May 2019 16:47:25 +0300
+Message-ID: <20190531134725.2054-1-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMzAvMDUvMjAxOSAwMDo1NSwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cgo+IE9oIHNvcnJ5
-LCBJIG1pc3NlZCB0aGUgcGFydCB0aGF0IG9tYXBfaXJxX3dhaXRfaW5pdCgpIGFjdHVhbGx5Cj4g
-ZW5hYmxlcyB0aGUgZnJhbWVkb25lIGlycS4gSXQgc2hvdWxkIGJlIGVub3VnaCB0byBqdXN0IGRy
-b3AgdGhlCj4gd2FybmluZyAoYW5kIHRoZSBjdXJseSBicmFja2V0cykgdG8ga2VlcCBleGlzdGlu
-ZyBiZWhhdmlvdXIuIFRoZQo+IGNvZGUgZXhpdHMgZWFybHkgd2l0aCB0aGUgYWJvdmUgd2Fybmlu
-ZyBmb3IgYW55IGV4aXN0aW5nIGNvZGUgKHNpbmNlCj4gdGhhdCBkb2VzIG5vdCByZWdpc3RlciBh
-IGZyYW1lZG9uZSBoYW5kbGVyKS4gRFNJIG9uIHRoZSBvdGhlciBoYW5kCj4gZG9lcyBub3QgcmVh
-Y2ggdGhlIG9tYXBfaXJxX3dhaXRfaW5pdCgpIHBhcnQuIFJlZ2FyZGluZyBjb21iaW5pbmcKPiB0
-aGUgbG9naWM6IEkgZG9uJ3QgdGhpbmsgdGhlcmUgaXMgYW55dGhpbmcgdG8gY29tYmluZSByaWdo
-dCBub3cuCj4gSXQgc2hvdWxkIGJlIHBvc3NpYmxlIHRvIHNpbXBsaWZ5IHRoZSBsb2dpYyBhZnRl
-ciBEU0kgaGFzIGJlZW4KPiBjb252ZXJ0ZWQgdG8gZHJtX3BhbmVsIHN0eWxlLCBzaW5jZSB0aGlz
-IHdpbGwgbW92ZSB0aGUgdXBkYXRlIGxvZ2ljCj4gZm9yIHRoZSBzY3JlZW4gY29udGVudCBmcm9t
-IHRoZSBwYW5lbCBkcml2ZXIgdG8gRFNJIGNvcmUuCj4gCj4gVExEUjogSXQncyBlbm91Z2ggdG8g
-cmVtb3ZlIHRoZSB3YXJuaW5nLiBEbyB5b3UgbmVlZCBhIG5ldwo+IHN1Ym1pc3Npb24gZm9yIHRo
-aXM/CgpPay4gTm8sIEkgY2FuIGVkaXQgdGhlIHBhdGNoLgoKTmlrb2xhdXMsIGFyZSB5b3UgYWJs
-ZSB0byB0ZXN0IERTSSB2aWRlb21vZGUgd2l0aCB0aGVzZSBwYXRjaGVzPwoKICBUb21pCgotLSAK
-VGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVs
-c2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNp
-bGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
-bA==
+Fix ability to set RX descriptor number, the reason - initially
+"tx_max_pending" was set incorrectly, but the issue appears after
+adding sanity check, so fix is for "sanity" patch.
+
+Fixes: 37e2d99b59c476 ("ethtool: Ensure new ring parameters are within bounds during SRINGPARAM")
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+Based on net/master
+
+ drivers/net/ethernet/ti/cpsw_ethtool.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
+index a4a7ec0d2531..6d1c9ebae7cc 100644
+--- a/drivers/net/ethernet/ti/cpsw_ethtool.c
++++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
+@@ -643,7 +643,7 @@ void cpsw_get_ringparam(struct net_device *ndev,
+ 	struct cpsw_common *cpsw = priv->cpsw;
+ 
+ 	/* not supported */
+-	ering->tx_max_pending = 0;
++	ering->tx_max_pending = cpsw->descs_pool_size - CPSW_MAX_QUEUES;
+ 	ering->tx_pending = cpdma_get_num_tx_descs(cpsw->dma);
+ 	ering->rx_max_pending = cpsw->descs_pool_size - CPSW_MAX_QUEUES;
+ 	ering->rx_pending = cpdma_get_num_rx_descs(cpsw->dma);
+-- 
+2.17.1
