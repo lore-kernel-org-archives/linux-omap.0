@@ -1,72 +1,92 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 15/74] mfd: twl6040: Fix device init errors for ACCCTL register
-Date: Sat,  1 Jun 2019 09:24:02 -0400
-Message-ID: <20190601132501.27021-15-sashal@kernel.org>
-References: <20190601132501.27021-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 51/56] gpio: gpio-omap: add check for off wake capable gpios
+Date: Sat,  1 Jun 2019 09:25:55 -0400
+Message-ID: <20190601132600.27427-51-sashal@kernel.org>
+References: <20190601132600.27427-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190601132501.27021-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190601132600.27427-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, Tero Kristo <t-kristo@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 48171d0ea7caccf21c9ee3ae75eb370f2a756062 ]
+[ Upstream commit da38ef3ed10a09248e13ae16530c2c6d448dc47d ]
 
-I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
+We are currently assuming all GPIOs are non-wakeup capable GPIOs as we
+not configuring the bank->non_wakeup_gpios like we used to earlier with
+platform_data.
 
-twl6040 0-004b: Failed to write 2d = 19: -121
+Let's add omap_gpio_is_off_wakeup_capable() to make the handling clearer
+while considering that later patches may want to configure SoC specific
+bank->non_wakeup_gpios for the GPIOs in wakeup domain.
 
-And then any following register access will produce errors.
-
-There 2d offset above is register ACCCTL that gets written on twl6040
-powerup. With error checking added to the related regcache_sync() call,
-the -EREMOTEIO error is reproducable on twl6040 powerup at least
-duovero.
-
-To fix the error, we need to wait until twl6040 is accessible after the
-powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
-powerup before register write will complete without failures. Let's also
-make sure we warn about possible errors too.
-
-Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
-configuration and regcache_sync() will write the new value to ACCCTL.
-
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Tero Kristo <t-kristo@ti.com>
+Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/mfd/twl6040.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/gpio/gpio-omap.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-index dd19f17a1b637..2b8c479dbfa6e 100644
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
- 			}
- 		}
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 9943273ec9818..c8c49b1d5f9f9 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -292,6 +292,22 @@ static void omap_clear_gpio_debounce(struct gpio_bank *bank, unsigned offset)
+ 	}
+ }
  
-+		/*
-+		 * Register access can produce errors after power-up unless we
-+		 * wait at least 8ms based on measurements on duovero.
-+		 */
-+		usleep_range(10000, 12000);
++/*
++ * Off mode wake-up capable GPIOs in bank(s) that are in the wakeup domain.
++ * See TRM section for GPIO for "Wake-Up Generation" for the list of GPIOs
++ * in wakeup domain. If bank->non_wakeup_gpios is not configured, assume none
++ * are capable waking up the system from off mode.
++ */
++static bool omap_gpio_is_off_wakeup_capable(struct gpio_bank *bank, u32 gpio_mask)
++{
++	u32 no_wake = bank->non_wakeup_gpios;
 +
- 		/* Sync with the HW */
--		regcache_sync(twl6040->regmap);
-+		ret = regcache_sync(twl6040->regmap);
-+		if (ret) {
-+			dev_err(twl6040->dev, "Failed to sync with the HW: %i\n",
-+				ret);
-+			goto out;
-+		}
++	if (no_wake)
++		return !!(~no_wake & gpio_mask);
++
++	return false;
++}
++
+ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 						unsigned trigger)
+ {
+@@ -323,13 +339,7 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 	}
  
- 		/* Default PLL configuration after power up */
- 		twl6040->pll = TWL6040_SYSCLK_SEL_LPPLL;
+ 	/* This part needs to be executed always for OMAP{34xx, 44xx} */
+-	if (!bank->regs->irqctrl) {
+-		/* On omap24xx proceed only when valid GPIO bit is set */
+-		if (bank->non_wakeup_gpios) {
+-			if (!(bank->non_wakeup_gpios & gpio_bit))
+-				goto exit;
+-		}
+-
++	if (!bank->regs->irqctrl && !omap_gpio_is_off_wakeup_capable(bank, gpio)) {
+ 		/*
+ 		 * Log the edge gpio and manually trigger the IRQ
+ 		 * after resume if the input level changes
+@@ -342,7 +352,6 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 			bank->enabled_non_wakeup_gpios &= ~gpio_bit;
+ 	}
+ 
+-exit:
+ 	bank->level_mask =
+ 		readl_relaxed(bank->base + bank->regs->leveldetect0) |
+ 		readl_relaxed(bank->base + bank->regs->leveldetect1);
 -- 
 2.20.1
