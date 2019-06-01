@@ -1,85 +1,72 @@
-From: grygorii <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 net-next 4/7] net: ethernet: ti: cpsw_ethtool: simplify
- slave loops
-Date: Sat, 1 Jun 2019 13:55:51 +0300
-Message-ID: <d9e38ccf-004e-b2bd-fed4-af71157d02b4@ti.com>
-References: <20190530182039.4945-1-ivan.khoronzhuk@linaro.org>
- <20190530182039.4945-5-ivan.khoronzhuk@linaro.org>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 029/186] mfd: twl6040: Fix device init errors for ACCCTL register
+Date: Sat,  1 Jun 2019 09:14:05 -0400
+Message-ID: <20190601131653.24205-29-sashal@kernel.org>
+References: <20190601131653.24205-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190530182039.4945-5-ivan.khoronzhuk@linaro.org>
-Content-Language: en-US
+In-Reply-To: <20190601131653.24205-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, hawk@kernel.org, davem@davemloft.net
-Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Tony Lindgren <tony@atomide.com>
 
+[ Upstream commit 48171d0ea7caccf21c9ee3ae75eb370f2a756062 ]
 
-On 30/05/2019 21:20, Ivan Khoronzhuk wrote:
-> Only for consistency reasons, do it like in main cpsw.c module
-> and use ndev reference but not by means of slave.
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> ---
->   drivers/net/ethernet/ti/cpsw_ethtool.c | 40 ++++++++++++++------------
->   1 file changed, 21 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
-> index a4a7ec0d2531..c260bb32aacf 100644
-> --- a/drivers/net/ethernet/ti/cpsw_ethtool.c
-> +++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
-> @@ -458,7 +458,6 @@ int cpsw_nway_reset(struct net_device *ndev)
->   static void cpsw_suspend_data_pass(struct net_device *ndev)
->   {
+I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
 
-[...]
+twl6040 0-004b: Failed to write 2d = 19: -121
 
->   
->   	return 0;
->   }
-> @@ -587,7 +590,6 @@ int cpsw_set_channels_common(struct net_device *ndev,
->   {
->   	struct cpsw_priv *priv = netdev_priv(ndev);
->   	struct cpsw_common *cpsw = priv->cpsw;
-> -	struct cpsw_slave *slave;
->   	int i, ret;
->   
->   	ret = cpsw_check_ch_settings(cpsw, chs);
-> @@ -604,20 +606,20 @@ int cpsw_set_channels_common(struct net_device *ndev,
->   	if (ret)
->   		goto err;
->   
-> -	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
-> -		if (!(slave->ndev && netif_running(slave->ndev)))
-> +	for (i = 0; i < cpsw->data.slaves; i++) {
-> +		struct net_device *ndev = cpsw->slaves[i].ndev;
+And then any following register access will produce errors.
 
-Sry, but could you rename this local var "ndev" and make it differ from func argument name.
+There 2d offset above is register ACCCTL that gets written on twl6040
+powerup. With error checking added to the related regcache_sync() call,
+the -EREMOTEIO error is reproducable on twl6040 powerup at least
+duovero.
 
-> +
-> +		if (!(ndev && netif_running(ndev)))
->   			continue;
->   
->   		/* Inform stack about new count of queues */
-> -		ret = netif_set_real_num_tx_queues(slave->ndev,
-> -						   cpsw->tx_ch_num);
-> +		ret = netif_set_real_num_tx_queues(ndev, cpsw->tx_ch_num);
->   		if (ret) {
->   			dev_err(priv->dev, "cannot set real number of tx queues\n");
->   			goto err;
->   		}
->   
-> -		ret = netif_set_real_num_rx_queues(slave->ndev,
-> -						   cpsw->rx_ch_num);
-> +		ret = netif_set_real_num_rx_queues(ndev, cpsw->rx_ch_num);
->   		if (ret) {
->   			dev_err(priv->dev, "cannot set real number of rx queues\n");
->   			goto err;
-> 
+To fix the error, we need to wait until twl6040 is accessible after the
+powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
+powerup before register write will complete without failures. Let's also
+make sure we warn about possible errors too.
 
+Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
+configuration and regcache_sync() will write the new value to ACCCTL.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/mfd/twl6040.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index 7c3c5fd5fcd04..86052c5c60696 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
+ 			}
+ 		}
+ 
++		/*
++		 * Register access can produce errors after power-up unless we
++		 * wait at least 8ms based on measurements on duovero.
++		 */
++		usleep_range(10000, 12000);
++
+ 		/* Sync with the HW */
+-		regcache_sync(twl6040->regmap);
++		ret = regcache_sync(twl6040->regmap);
++		if (ret) {
++			dev_err(twl6040->dev, "Failed to sync with the HW: %i\n",
++				ret);
++			goto out;
++		}
+ 
+ 		/* Default PLL configuration after power up */
+ 		twl6040->pll = TWL6040_SYSCLK_SEL_LPPLL;
 -- 
-Best regards,
-grygorii
+2.20.1
