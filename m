@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 027/173] mfd: twl6040: Fix device init errors for ACCCTL register
-Date: Sat,  1 Jun 2019 09:16:59 -0400
-Message-ID: <20190601131934.25053-27-sashal@kernel.org>
-References: <20190601131934.25053-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 15/74] mfd: twl6040: Fix device init errors for ACCCTL register
+Date: Sat,  1 Jun 2019 09:24:02 -0400
+Message-ID: <20190601132501.27021-15-sashal@kernel.org>
+References: <20190601132501.27021-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190601131934.25053-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190601132501.27021-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -44,7 +44,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-index 7c3c5fd5fcd04..86052c5c60696 100644
+index dd19f17a1b637..2b8c479dbfa6e 100644
 --- a/drivers/mfd/twl6040.c
 +++ b/drivers/mfd/twl6040.c
 @@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
