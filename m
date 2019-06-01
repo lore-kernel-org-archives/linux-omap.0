@@ -1,67 +1,53 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v2 net-next 7/7] net: ethernet: ti: cpsw: add XDP support
-Date: Sat, 1 Jun 2019 02:27:28 +0300
-Message-ID: <20190531232727.GB15675@khorivan>
-References: <20190530182039.4945-1-ivan.khoronzhuk@linaro.org>
- <20190530182039.4945-8-ivan.khoronzhuk@linaro.org>
- <20190531174643.4be8b27f@carbon>
- <20190531162523.GA3694@khorivan>
- <20190531183241.255293bc@carbon>
- <20190531170332.GB3694@khorivan>
- <20190601003736.65cb6a61@carbon>
+From: grygorii <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2] net: ethernet: ti: cpsw_ethtool: fix ethtool ring
+ param set
+Date: Sat, 1 Jun 2019 13:36:20 +0300
+Message-ID: <3b1b0ac9-6165-6d59-d3f7-d484705119f2@ti.com>
+References: <20190531134725.2054-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190601003736.65cb6a61@carbon>
-Sender: netdev-owner@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190531134725.2054-1-ivan.khoronzhuk@linaro.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Jun 01, 2019 at 12:37:36AM +0200, Jesper Dangaard Brouer wrote:
->On Fri, 31 May 2019 20:03:33 +0300
->Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
->
->> Probably it's not good example for others how it should be used, not
->> a big problem to move it to separate pools.., even don't remember why
->> I decided to use shared pool, there was some more reasons... need
->> search in history.
->
->Using a shared pool is makes it a lot harder to solve the issue I'm
->currently working on.  That is handling/waiting for in-flight frames to
->complete, before removing the mem ID from the (r)hashtable lookup.  I
->have working code, that basically remove page_pool_destroy() from
->public API, and instead lets xdp_rxq_info_unreg() call it when
->in-flight count reach zero (and delay fully removing the mem ID).
 
-Frankly, not see reason why it can block smth, it can be considered
-like not shared pool. But Ok, anyway it can look more logical and can be
-reused by another SoC. I will add it per channel not a problem,
-at least for now no blockers. Adding pool per channel will create more
-page_pool_destroy() calls, per each pool, that I can be dropped once
-you decided to remove it form the API.
 
-This API is called along with xdp_rxq_info_unreg(), and seems like not
-a problem to just remove page_pool_destroy(), except one case that
-worries me... cpsw has one interesting feature, share same h/w with 2
-network devices like dual mac, basically it's 3 port switch, but used
-as 2 separate interfaces. So that, both of them share same queues/channels/rings.
-XDP rxq requires network device to be set in rxq info, wich is used in the
-code as a pointer and is shared between xdp buffers, so can't be changed in
-flight. That's why each network interface has it's own instances of rxq, but
-page pools per each network device is common, so when I call
-xdp_rxq_info_unreg() per net device it doesn't mean I want to delete
-page pool....But seems I can avoid it calling xdp_rxq_info_unreg()
-for both when delete page pools...
+On 31/05/2019 16:47, Ivan Khoronzhuk wrote:
+> Fix ability to set RX descriptor number, the reason - initially
+> "tx_max_pending" was set incorrectly, but the issue appears after
+> adding sanity check, so fix is for "sanity" patch.
+> 
+> Fixes: 37e2d99b59c476 ("ethtool: Ensure new ring parameters are within bounds during SRINGPARAM")
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+> Based on net/master
+> 
+>   drivers/net/ethernet/ti/cpsw_ethtool.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
+> index a4a7ec0d2531..6d1c9ebae7cc 100644
+> --- a/drivers/net/ethernet/ti/cpsw_ethtool.c
+> +++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
+> @@ -643,7 +643,7 @@ void cpsw_get_ringparam(struct net_device *ndev,
+>   	struct cpsw_common *cpsw = priv->cpsw;
+>   
+>   	/* not supported */
+> -	ering->tx_max_pending = 0;
+> +	ering->tx_max_pending = cpsw->descs_pool_size - CPSW_MAX_QUEUES;
+>   	ering->tx_pending = cpdma_get_num_tx_descs(cpsw->dma);
+>   	ering->rx_max_pending = cpsw->descs_pool_size - CPSW_MAX_QUEUES;
+>   	ering->rx_pending = cpdma_get_num_rx_descs(cpsw->dma);
+> 
 
->
->-- 
->Best regards,
->  Jesper Dangaard Brouer
->  MSc.CS, Principal Kernel Engineer at Red Hat
->  LinkedIn: http://www.linkedin.com/in/brouer
+Thank you.
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
 -- 
-Regards,
-Ivan Khoronzhuk
+Best regards,
+grygorii
