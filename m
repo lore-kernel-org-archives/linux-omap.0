@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 19/99] mfd: twl6040: Fix device init errors for ACCCTL register
-Date: Sat,  1 Jun 2019 09:22:26 -0400
-Message-ID: <20190601132346.26558-19-sashal@kernel.org>
-References: <20190601132346.26558-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 022/141] mfd: twl6040: Fix device init errors for ACCCTL register
+Date: Sat,  1 Jun 2019 09:19:58 -0400
+Message-ID: <20190601132158.25821-22-sashal@kernel.org>
+References: <20190601132158.25821-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190601132346.26558-1-sashal@kernel.org>
+In-Reply-To: <20190601132158.25821-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
