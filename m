@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 07/30] PCI: cadence: Add read and write accessors to perform only 32-bit accesses
-Date: Tue, 4 Jun 2019 18:44:53 +0530
-Message-ID: <20190604131516.13596-8-kishon@ti.com>
+Subject: [RFC PATCH 09/30] PCI: cadence: Add platform_data to start link and check link status
+Date: Tue, 4 Jun 2019 18:44:55 +0530
+Message-ID: <20190604131516.13596-10-kishon@ti.com>
 References: <20190604131516.13596-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,77 +12,145 @@ To: Tom Joseph <tjoseph@cadence.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob H
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Certain platforms like TI's J721E allows only 32-bit register accesses.
-Add read and write accessor to perform only 32-bit accesses in order to
-support platfroms like TI's J721E.
+Add support in cadence driver to read platform_data passed to it from
+platform specific drivers. The platform_data right now contains two
+ops, one to start link and the other to check the link status.
+This is required since the registers for starting a link and for
+checking link status is in the wrapper and not in Cadence PCIe core.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/pcie-cadence.c | 40 +++++++++++++++++++++++++++
- drivers/pci/controller/pcie-cadence.h |  2 ++
- 2 files changed, 42 insertions(+)
+ drivers/pci/controller/pcie-cadence-ep.c   |  1 +
+ drivers/pci/controller/pcie-cadence-host.c |  1 +
+ drivers/pci/controller/pcie-cadence.c      | 41 ++++++++++++++++++++++
+ drivers/pci/controller/pcie-cadence.h      | 13 +++++++
+ 4 files changed, 56 insertions(+)
 
+diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
+index 07f840cfba23..b044167071e6 100644
+--- a/drivers/pci/controller/pcie-cadence-ep.c
++++ b/drivers/pci/controller/pcie-cadence-ep.c
+@@ -462,6 +462,7 @@ static int cdns_pcie_ep_probe(struct platform_device *pdev)
+ 
+ 	pcie = &ep->pcie;
+ 	pcie->is_rc = false;
++	pcie->plat_data = pdev->dev.platform_data;
+ 
+ 	data = (struct cdns_pcie_ep_data *)match->data;
+ 	if (data) {
+diff --git a/drivers/pci/controller/pcie-cadence-host.c b/drivers/pci/controller/pcie-cadence-host.c
+index ab6491b23775..2363f05e7c58 100644
+--- a/drivers/pci/controller/pcie-cadence-host.c
++++ b/drivers/pci/controller/pcie-cadence-host.c
+@@ -304,6 +304,7 @@ static int cdns_pcie_host_probe(struct platform_device *pdev)
+ 	rc->dev = dev;
+ 
+ 	pcie = &rc->pcie;
++	pcie->plat_data = pdev->dev.platform_data;
+ 	pcie->is_rc = true;
+ 
+ 	data = (struct cdns_pcie_host_data *)match->data;
 diff --git a/drivers/pci/controller/pcie-cadence.c b/drivers/pci/controller/pcie-cadence.c
-index cd795f6fc1e2..de5b3b06f2d0 100644
+index de5b3b06f2d0..5ac42b19bb63 100644
 --- a/drivers/pci/controller/pcie-cadence.c
 +++ b/drivers/pci/controller/pcie-cadence.c
-@@ -7,6 +7,46 @@
+@@ -3,6 +3,7 @@
+ // Cadence PCIe controller driver.
+ // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
+ 
++#include <linux/delay.h>
+ #include <linux/kernel.h>
  
  #include "pcie-cadence.h"
+@@ -47,6 +48,46 @@ void cdns_pcie_write32(void __iomem *addr, int size, u32 value)
+ 	writel(val, aligned_addr);
+ }
  
-+u32 cdns_pcie_read32(void __iomem *addr, int size)
++int cdns_pcie_start_link(struct cdns_pcie *pci, bool start)
 +{
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 val = readl(aligned_addr);
++	struct cdns_pcie_plat_data *plat_data;
 +
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		pr_err("Invalid Address in function:%s\n", __func__);
++	plat_data = pci->plat_data;
++	if (!plat_data)
 +		return 0;
-+	}
 +
-+	if (size > 2)
-+		return val;
-+
-+	return (val >> (8 * offset)) & ((1 << (size * 8)) - 1);
++	return plat_data->start_link(plat_data, start);
 +}
 +
-+void cdns_pcie_write32(void __iomem *addr, int size, u32 value)
++static bool cdns_pcie_is_link_up(struct cdns_pcie *pci)
 +{
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 mask;
-+	u32 val;
++	struct cdns_pcie_plat_data *plat_data;
 +
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		pr_err("Invalid Address in function:%s\n", __func__);
-+		return;
++	plat_data = pci->plat_data;
++	if (!plat_data)
++		return true;
++
++	return plat_data->is_link_up(plat_data);
++}
++
++int cdns_pcie_wait_for_link(struct device *dev, struct cdns_pcie *pci)
++{
++	int retries;
++
++	/* Check if the link is up or not */
++	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
++		if (cdns_pcie_is_link_up(pci)) {
++			dev_info(dev, "Link up\n");
++			return 0;
++		}
++		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
 +	}
 +
-+	if (size > 2) {
-+		writel(value, addr);
-+		return;
-+	}
++	dev_err(dev, "Phy link never came up\n");
 +
-+	mask = ~(((1 << (size * 8)) - 1) << (offset * 8));
-+	val = readl(aligned_addr) & mask;
-+	val |= value << (offset * 8);
-+	writel(val, aligned_addr);
++	return -ETIMEDOUT;
 +}
 +
  void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 fn,
  				   u32 r, bool is_io,
  				   u64 cpu_addr, u64 pci_addr, size_t size)
 diff --git a/drivers/pci/controller/pcie-cadence.h b/drivers/pci/controller/pcie-cadence.h
-index 0134c1b1ad65..d157bf5eabd5 100644
+index d157bf5eabd5..3cef398b50da 100644
 --- a/drivers/pci/controller/pcie-cadence.h
 +++ b/drivers/pci/controller/pcie-cadence.h
-@@ -406,6 +406,8 @@ void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r);
- void cdns_pcie_disable_phy(struct cdns_pcie *pcie);
- int cdns_pcie_enable_phy(struct cdns_pcie *pcie);
+@@ -10,6 +10,11 @@
+ #include <linux/pci.h>
+ #include <linux/phy/phy.h>
+ 
++/* Parameters for the waiting for link up routine */
++#define LINK_WAIT_MAX_RETRIES	10
++#define LINK_WAIT_USLEEP_MIN	90000
++#define LINK_WAIT_USLEEP_MAX	100000
++
+ /*
+  * Local Management Registers
+  */
+@@ -221,6 +226,11 @@ enum cdns_pcie_msg_routing {
+ 	MSG_ROUTING_GATHER,
+ };
+ 
++struct cdns_pcie_plat_data {
++	int (*start_link)(struct cdns_pcie_plat_data *data, bool start);
++	bool (*is_link_up)(struct cdns_pcie_plat_data *data);
++};
++
+ /**
+  * struct cdns_pcie - private data for Cadence PCIe controller drivers
+  * @reg_base: IO mapped register base
+@@ -236,6 +246,7 @@ struct cdns_pcie {
+ 	int			phy_count;
+ 	struct phy		**phy;
+ 	struct device_link	**link;
++	struct cdns_pcie_plat_data *plat_data;
+ 	u32 (*read)(void __iomem *addr, int size);
+ 	void (*write)(void __iomem *addr, int size, u32 value);
+ };
+@@ -408,6 +419,8 @@ int cdns_pcie_enable_phy(struct cdns_pcie *pcie);
  int cdns_pcie_init_phy(struct device *dev, struct cdns_pcie *pcie);
-+u32 cdns_pcie_read32(void __iomem *addr, int size);
-+void cdns_pcie_write32(void __iomem *addr, int size, u32 value);
+ u32 cdns_pcie_read32(void __iomem *addr, int size);
+ void cdns_pcie_write32(void __iomem *addr, int size, u32 value);
++int cdns_pcie_start_link(struct cdns_pcie *pci, bool start);
++int cdns_pcie_wait_for_link(struct device *dev, struct cdns_pcie *pci);
  extern const struct dev_pm_ops cdns_pcie_pm_ops;
  
  #endif /* _PCIE_CADENCE_H */
