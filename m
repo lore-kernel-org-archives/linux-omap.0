@@ -1,228 +1,508 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 14/30] PCI: endpoint: Use notification chain mechanism to
- notify EPC events to EPF
-Date: Tue, 4 Jun 2019 18:45:00 +0530
-Message-ID: <20190604131516.13596-15-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 25/30] PCI: j721e: Add TI J721E PCIe driver
+Date: Tue, 4 Jun 2019 18:45:11 +0530
+Message-ID: <20190604131516.13596-26-kishon@ti.com>
 References: <20190604131516.13596-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20190604131516.13596-1-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Tom Joseph <tjoseph-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Gustavo Pimentel <gustavo.pimentel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190604131516.13596-1-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Joseph <tjoseph@cadence.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use atomic_notifier_call_chain to notify EPC events like linkup to EPF
-instead of using linkup ops in EPF driver. This is in preparation for
-adding proper locking mechanism to EPF ops. This will also enable to
-add more events (in addition to linkup) in the future.
+Add support for PCIe controller in J721E SoC. The controller uses the
+Cadence PCIe core programmed by pcie-cadence*.c. The PCIe controller
+will work in both host mode and device mode.
+Some of the features of the controller are:
+  *) Supports both RC mode and EP mode
+  *) Supports Legacy, MSI and MSI-X support
+  *) Supports upto GEN4 speed mode
+  *) Supports SR-IOV
+  *) Ability to route all transactions via SMMU
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+The J721E PCIe wrapper has VMAP block which should be configured
+for routing all transactions via SMMU. Add j721e_pcie_quirk() which
+gets invoked whenever a new PCIe device is registered and configures
+the VMAP block.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/endpoint/functions/pci-epf-test.c | 13 ++++++++---
- drivers/pci/endpoint/pci-epc-core.c           |  9 ++------
- drivers/pci/endpoint/pci-epf-core.c           | 22 +------------------
- include/linux/pci-epc.h                       |  8 +++++++
- include/linux/pci-epf.h                       |  6 ++---
- 5 files changed, 23 insertions(+), 35 deletions(-)
+ drivers/pci/controller/Kconfig     |   9 +
+ drivers/pci/controller/Makefile    |   1 +
+ drivers/pci/controller/pci-j721e.c | 431 +++++++++++++++++++++++++++++
+ 3 files changed, 441 insertions(+)
+ create mode 100644 drivers/pci/controller/pci-j721e.c
 
-diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
-index 27806987e93b..6380641ccc7a 100644
---- a/drivers/pci/endpoint/functions/pci-epf-test.c
-+++ b/drivers/pci/endpoint/functions/pci-epf-test.c
-@@ -360,12 +360,16 @@ static void pci_epf_test_cmd_handler(struct work_struct *work)
- 			   msecs_to_jiffies(1));
- }
+diff --git a/drivers/pci/controller/Kconfig b/drivers/pci/controller/Kconfig
+index 011c57cae4b0..f706aa940f18 100644
+--- a/drivers/pci/controller/Kconfig
++++ b/drivers/pci/controller/Kconfig
+@@ -50,6 +50,15 @@ config PCIE_CADENCE_EP
  
--static void pci_epf_test_linkup(struct pci_epf *epf)
-+static int pci_epf_test_notifier(struct notifier_block *nb, unsigned long val,
-+				 void *data)
- {
-+	struct pci_epf *epf = container_of(nb, struct pci_epf, nb);
- 	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
+ endmenu
  
- 	queue_delayed_work(kpcitest_workqueue, &epf_test->cmd_handler,
- 			   msecs_to_jiffies(1));
++config PCI_J721E
++	bool "J721E PCIe host controller using Cadence PCIe core"
++	depends on PCIE_CADENCE
++	help
++	  Say Y here if you want to support the J721E PCIe controller in host
++	  mode or device mode. This PCIe controller uses the Cadence PCIe core.
++	  This driver also handles legacy interrupts when operating in host
++	  mode.
 +
-+	return NOTIFY_OK;
- }
- 
- static void pci_epf_test_unbind(struct pci_epf *epf)
-@@ -541,8 +545,12 @@ static int pci_epf_test_bind(struct pci_epf *epf)
- 		}
- 	}
- 
--	if (!linkup_notifier)
-+	if (linkup_notifier) {
-+		epf->nb.notifier_call = pci_epf_test_notifier;
-+		pci_epc_register_notifier(epc, &epf->nb);
-+	} else {
- 		queue_work(kpcitest_workqueue, &epf_test->cmd_handler.work);
-+	}
- 
- 	return 0;
- }
-@@ -575,7 +583,6 @@ static int pci_epf_test_probe(struct pci_epf *epf)
- static struct pci_epf_ops ops = {
- 	.unbind	= pci_epf_test_unbind,
- 	.bind	= pci_epf_test_bind,
--	.linkup = pci_epf_test_linkup,
- };
- 
- static struct pci_epf_driver test_driver = {
-diff --git a/drivers/pci/endpoint/pci-epc-core.c b/drivers/pci/endpoint/pci-epc-core.c
-index e4712a0f249c..80831a874dbd 100644
---- a/drivers/pci/endpoint/pci-epc-core.c
-+++ b/drivers/pci/endpoint/pci-epc-core.c
-@@ -538,16 +538,10 @@ EXPORT_SYMBOL_GPL(pci_epc_remove_epf);
-  */
- void pci_epc_linkup(struct pci_epc *epc)
- {
--	unsigned long flags;
--	struct pci_epf *epf;
--
- 	if (!epc || IS_ERR(epc))
- 		return;
- 
--	spin_lock_irqsave(&epc->lock, flags);
--	list_for_each_entry(epf, &epc->pci_epf, list)
--		pci_epf_linkup(epf);
--	spin_unlock_irqrestore(&epc->lock, flags);
-+	atomic_notifier_call_chain(&epc->notifier, 0, NULL);
- }
- EXPORT_SYMBOL_GPL(pci_epc_linkup);
- 
-@@ -611,6 +605,7 @@ __pci_epc_create(struct device *dev, const struct pci_epc_ops *ops,
- 
- 	spin_lock_init(&epc->lock);
- 	INIT_LIST_HEAD(&epc->pci_epf);
-+	ATOMIC_INIT_NOTIFIER_HEAD(&epc->notifier);
- 
- 	device_initialize(&epc->dev);
- 	epc->dev.class = pci_epc_class;
-diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
-index fb1306de8f40..93f28c65ace0 100644
---- a/drivers/pci/endpoint/pci-epf-core.c
-+++ b/drivers/pci/endpoint/pci-epf-core.c
-@@ -20,26 +20,6 @@ static DEFINE_MUTEX(pci_epf_mutex);
- static struct bus_type pci_epf_bus_type;
- static const struct device_type pci_epf_type;
- 
--/**
-- * pci_epf_linkup() - Notify the function driver that EPC device has
-- *		      established a connection with the Root Complex.
-- * @epf: the EPF device bound to the EPC device which has established
-- *	 the connection with the host
-- *
-- * Invoke to notify the function driver that EPC device has established
-- * a connection with the Root Complex.
-- */
--void pci_epf_linkup(struct pci_epf *epf)
--{
--	if (!epf->driver) {
--		dev_WARN(&epf->dev, "epf device not bound to driver\n");
--		return;
--	}
--
--	epf->driver->ops->linkup(epf);
--}
--EXPORT_SYMBOL_GPL(pci_epf_linkup);
--
- /**
-  * pci_epf_unbind() - Notify the function driver that the binding between the
-  *		      EPF device and EPC device has been lost
-@@ -214,7 +194,7 @@ int __pci_epf_register_driver(struct pci_epf_driver *driver,
- 	if (!driver->ops)
- 		return -EINVAL;
- 
--	if (!driver->ops->bind || !driver->ops->unbind || !driver->ops->linkup)
-+	if (!driver->ops->bind || !driver->ops->unbind)
- 		return -EINVAL;
- 
- 	driver->driver.bus = &pci_epf_bus_type;
-diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
-index f641badc2c61..834dfc00aa00 100644
---- a/include/linux/pci-epc.h
-+++ b/include/linux/pci-epc.h
-@@ -89,6 +89,7 @@ struct pci_epc_mem {
-  * @max_functions: max number of functions that can be configured in this EPC
-  * @group: configfs group representing the PCI EPC device
-  * @lock: spinlock to protect pci_epc ops
-+ * @notifier: used to notify EPF of any EPC events (like linkup)
-  */
- struct pci_epc {
- 	struct device			dev;
-@@ -99,6 +100,7 @@ struct pci_epc {
- 	struct config_group		*group;
- 	/* spinlock to protect against concurrent access of EP controller */
- 	spinlock_t			lock;
-+	struct atomic_notifier_head	notifier;
- };
- 
- /**
-@@ -141,6 +143,12 @@ static inline void *epc_get_drvdata(struct pci_epc *epc)
- 	return dev_get_drvdata(&epc->dev);
- }
- 
-+static inline int
-+pci_epc_register_notifier(struct pci_epc *epc, struct notifier_block *nb)
+ config PCIE_XILINX_NWL
+ 	bool "NWL PCIe Core"
+ 	depends on ARCH_ZYNQMP || COMPILE_TEST
+diff --git a/drivers/pci/controller/Makefile b/drivers/pci/controller/Makefile
+index d56a507495c5..9fdefff5283c 100644
+--- a/drivers/pci/controller/Makefile
++++ b/drivers/pci/controller/Makefile
+@@ -2,6 +2,7 @@
+ obj-$(CONFIG_PCIE_CADENCE) += pcie-cadence.o
+ obj-$(CONFIG_PCIE_CADENCE_HOST) += pcie-cadence-host.o
+ obj-$(CONFIG_PCIE_CADENCE_EP) += pcie-cadence-ep.o
++obj-$(CONFIG_PCI_J721E) += pci-j721e.o
+ obj-$(CONFIG_PCI_FTPCI100) += pci-ftpci100.o
+ obj-$(CONFIG_PCI_HYPERV) += pci-hyperv.o
+ obj-$(CONFIG_PCI_MVEBU) += pci-mvebu.o
+diff --git a/drivers/pci/controller/pci-j721e.c b/drivers/pci/controller/pci-j721e.c
+new file mode 100644
+index 000000000000..712cc6a2dd41
+--- /dev/null
++++ b/drivers/pci/controller/pci-j721e.c
+@@ -0,0 +1,431 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * pci-j721e - PCIe controller driver for TI's J721E SoCs
++ *
++ * Copyright (C) 2018-2019 Texas Instruments Incorporated - http://www.ti.com
++ *
++ * Author: Kishon Vijay Abraham I <kishon@ti.com>
++ */
++
++#include <dt-bindings/pci/pci.h>
++#include <linux/io.h>
++#include <linux/irqchip/chained_irq.h>
++#include <linux/irqdomain.h>
++#include <linux/mfd/syscon.h>
++#include <linux/of_device.h>
++#include <linux/of_irq.h>
++#include <linux/pci.h>
++#include <linux/pm_runtime.h>
++#include <linux/regmap.h>
++
++#include "../pci.h"
++#include "pcie-cadence.h"
++
++#define J721E_PCIE_USER_CMD_STATUS	0x4
++#define LINK_TRAINING_ENABLE		BIT(0)
++
++#define J721E_PCIE_USER_LINKSTATUS	0x14
++#define LINK_STATUS			GENMASK(1, 0)
++enum link_status {
++	NO_RECIEVERS_DETECTED,
++	LINK_TRAINING_IN_PROGRESS,
++	LINK_UP_DL_IN_PROGRESS,
++	LINK_UP_DL_COMPLETED,
++};
++
++#define J721E_TRANS_CTRL(a)		((a) * 0xc)
++#define J721E_TRANS_REQ_ID(a)		(((a) * 0xc) + 0x4)
++#define J721E_TRANS_VIRT_ID(a)		(((a) * 0xc) + 0x8)
++
++#define J721E_REQID_MASK		0xffff
++#define J721E_REQID_SHIFT		16
++
++#define J721E_EN			BIT(0)
++#define J721E_ATYPE_SHIFT		16
++
++#define J721E_MODE_RC			BIT(7)
++#define LANE_COUNT_MASK			BIT(8)
++#define LANE_COUNT(n)			((n) << 8)
++
++#define GENERATION_SEL_MASK		GENMASK(1, 0)
++
++#define MAX_LANES			2
++
++enum j721e_atype {
++	PHYS_ADDR,
++	INT_ADDR,
++	VIRT_ADDR,
++	TRANS_ADDR,
++};
++
++#define to_j721e_pcie(x) container_of((x), struct j721e_pcie, plat_data)
++
++struct j721e_pcie {
++	struct device		*dev;
++	struct device_node	*node;
++	u32			mode;
++	u32			num_lanes;
++	struct cdns_pcie_plat_data plat_data;
++	void __iomem		*intd_cfg_base;
++	void __iomem		*user_cfg_base;
++	void __iomem		*vmap_lp_base;
++	u8			vmap_lp_index;
++	bool			enable_smmu;
++};
++
++static inline u32 j721e_pcie_vmap_readl(struct j721e_pcie *pcie, u32 offset)
 +{
-+	return atomic_notifier_chain_register(&epc->notifier, nb);
++	return readl(pcie->vmap_lp_base + offset);
 +}
 +
- struct pci_epc *
- __devm_pci_epc_create(struct device *dev, const struct pci_epc_ops *ops,
- 		      struct module *owner);
-diff --git a/include/linux/pci-epf.h b/include/linux/pci-epf.h
-index 2d6f07556682..4993f7f6439b 100644
---- a/include/linux/pci-epf.h
-+++ b/include/linux/pci-epf.h
-@@ -55,13 +55,10 @@ struct pci_epf_header {
-  * @bind: ops to perform when a EPC device has been bound to EPF device
-  * @unbind: ops to perform when a binding has been lost between a EPC device
-  *	    and EPF device
-- * @linkup: ops to perform when the EPC device has established a connection with
-- *	    a host system
-  */
- struct pci_epf_ops {
- 	int	(*bind)(struct pci_epf *epf);
- 	void	(*unbind)(struct pci_epf *epf);
--	void	(*linkup)(struct pci_epf *epf);
- };
- 
- /**
-@@ -112,6 +109,7 @@ struct pci_epf_bar {
-  * @epc: the EPC device to which this EPF device is bound
-  * @driver: the EPF driver to which this EPF device is bound
-  * @list: to add pci_epf as a list of PCI endpoint functions to pci_epc
-+ * @nb: notifier block to notify EPF of any EPC events (like linkup)
-  */
- struct pci_epf {
- 	struct device		dev;
-@@ -125,6 +123,7 @@ struct pci_epf {
- 	struct pci_epc		*epc;
- 	struct pci_epf_driver	*driver;
- 	struct list_head	list;
-+	struct notifier_block   nb;
- };
- 
- #define to_pci_epf(epf_dev) container_of((epf_dev), struct pci_epf, dev)
-@@ -154,5 +153,4 @@ void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar,
- void pci_epf_free_space(struct pci_epf *epf, void *addr, enum pci_barno bar);
- int pci_epf_bind(struct pci_epf *epf);
- void pci_epf_unbind(struct pci_epf *epf);
--void pci_epf_linkup(struct pci_epf *epf);
- #endif /* __LINUX_PCI_EPF_H */
++static inline void j721e_pcie_vmap_writel(struct j721e_pcie *pcie, u32 offset,
++					  u32 value)
++{
++	writel(value, pcie->vmap_lp_base + offset);
++}
++
++static inline u32 j721e_pcie_intd_readl(struct j721e_pcie *pcie, u32 offset)
++{
++	return readl(pcie->intd_cfg_base + offset);
++}
++
++static inline void j721e_pcie_intd_writel(struct j721e_pcie *pcie, u32 offset,
++					  u32 value)
++{
++	writel(value, pcie->intd_cfg_base + offset);
++}
++
++static inline u32 j721e_pcie_user_readl(struct j721e_pcie *pcie, u32 offset)
++{
++	return readl(pcie->user_cfg_base + offset);
++}
++
++static inline void j721e_pcie_user_writel(struct j721e_pcie *pcie, u32 offset,
++					  u32 value)
++{
++	writel(value, pcie->user_cfg_base + offset);
++}
++
++static void j721e_pcie_quirk(struct pci_dev *pci_dev)
++{
++	struct pci_bus *root_bus;
++	struct pci_dev *bridge;
++	struct j721e_pcie *pcie;
++	struct pci_bus *bus;
++	struct device *dev;
++	int index;
++	u32 val;
++
++	static const struct pci_device_id rc_pci_devids[] = {
++		{ PCI_DEVICE(0x104c, 0xb00d),
++		.class = PCI_CLASS_BRIDGE_PCI << 8, .class_mask = ~0, },
++		{ 0, },
++	};
++
++	dev = pci_get_host_bridge_device(pci_dev);
++	pcie = dev_get_drvdata(dev->parent->parent);
++	bus = pci_dev->bus;
++	index = pcie->vmap_lp_index;
++
++	if (!pcie->enable_smmu)
++		return;
++
++	if (index >= 32)
++		return;
++
++	if (pci_is_root_bus(bus))
++		return;
++
++	root_bus = bus;
++	while (!pci_is_root_bus(root_bus)) {
++		bridge = root_bus->self;
++		root_bus = root_bus->parent;
++	}
++
++	if (pci_match_id(rc_pci_devids, bridge)) {
++		val = J721E_REQID_MASK << J721E_REQID_SHIFT |
++			(bus->number << 8 | pci_dev->devfn);
++		j721e_pcie_vmap_writel(pcie, J721E_TRANS_REQ_ID(index), val);
++		val = VIRT_ADDR << J721E_ATYPE_SHIFT;
++		j721e_pcie_vmap_writel(pcie, J721E_TRANS_VIRT_ID(index), val);
++		j721e_pcie_vmap_writel(pcie, J721E_TRANS_CTRL(index), J721E_EN);
++	}
++
++	pcie->vmap_lp_index++;
++}
++DECLARE_PCI_FIXUP_ENABLE(PCI_ANY_ID, PCI_ANY_ID, j721e_pcie_quirk);
++
++static int j721e_pcie_start_link(struct cdns_pcie_plat_data *data, bool start)
++{
++	struct j721e_pcie *pcie = to_j721e_pcie(data);
++	u32 reg;
++
++	reg = j721e_pcie_user_readl(pcie, J721E_PCIE_USER_CMD_STATUS);
++	if (start)
++		reg |= LINK_TRAINING_ENABLE;
++	else
++		reg &= ~LINK_TRAINING_ENABLE;
++	j721e_pcie_user_writel(pcie, J721E_PCIE_USER_CMD_STATUS, reg);
++
++	return 0;
++}
++
++static bool j721e_pcie_is_link_up(struct cdns_pcie_plat_data *data)
++{
++	struct j721e_pcie *pcie = to_j721e_pcie(data);
++	u32 reg;
++
++	reg = j721e_pcie_user_readl(pcie, J721E_PCIE_USER_LINKSTATUS);
++	reg &= LINK_STATUS;
++	if (reg == LINK_UP_DL_COMPLETED)
++		return true;
++
++	return false;
++}
++
++static int j721e_pcie_set_mode(struct j721e_pcie *pcie, struct regmap *syscon)
++{
++	struct device *dev = pcie->dev;
++	u32 mask = J721E_MODE_RC;
++	u32 mode = pcie->mode;
++	u32 val = 0;
++	int ret = 0;
++
++	if (mode == PCI_MODE_RC)
++		val = J721E_MODE_RC;
++
++	ret = regmap_update_bits(syscon, 0, mask, val);
++	if (ret)
++		dev_err(dev, "failed to set pcie mode\n");
++
++	return ret;
++}
++
++static int j721e_pcie_set_link_speed(struct j721e_pcie *pcie,
++				     struct regmap *syscon)
++{
++	struct device *dev = pcie->dev;
++	struct device_node *np = dev->of_node;
++	int link_speed;
++	u32 val = 0;
++	int ret;
++
++	link_speed = of_pci_get_max_link_speed(np);
++	if (link_speed < 2)
++		link_speed = 2;
++
++	val = link_speed - 1;
++	ret = regmap_update_bits(syscon, 0, GENERATION_SEL_MASK, val);
++	if (ret)
++		dev_err(dev, "failed to set link speed\n");
++
++	return ret;
++}
++
++static int j721e_pcie_set_lane_count(struct j721e_pcie *pcie,
++				     struct regmap *syscon)
++{
++	struct device *dev = pcie->dev;
++	u32 lanes = pcie->num_lanes;
++	u32 val = 0;
++	int ret;
++
++	val = LANE_COUNT(lanes - 1);
++	ret = regmap_update_bits(syscon, 0, LANE_COUNT_MASK, val);
++	if (ret)
++		dev_err(dev, "failed to set link count\n");
++
++	return ret;
++}
++
++static int j721e_pcie_ctrl_init(struct j721e_pcie *pcie)
++{
++	struct device *dev = pcie->dev;
++	struct device_node *node = dev->of_node;
++	struct regmap *syscon;
++	int ret;
++
++	syscon = syscon_regmap_lookup_by_phandle(node, "ti,syscon-pcie-ctrl");
++	if (IS_ERR(syscon)) {
++		dev_err(dev, "Unable to get ti,syscon-pcie-ctrl regmap\n");
++		return PTR_ERR(syscon);
++	}
++
++	ret = j721e_pcie_set_mode(pcie, syscon);
++	if (ret < 0) {
++		dev_err(dev, "Failed to set pci mode\n");
++		return ret;
++	}
++
++	ret = j721e_pcie_set_link_speed(pcie, syscon);
++	if (ret < 0) {
++		dev_err(dev, "Failed to set link speed\n");
++		return ret;
++	}
++
++	ret = j721e_pcie_set_lane_count(pcie, syscon);
++	if (ret < 0) {
++		dev_err(dev, "Failed to set num-lanes\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static const struct of_device_id of_j721e_pcie_match[] = {
++	{
++		.compatible = "ti,j721e-pcie",
++	},
++	{},
++};
++
++static int j721e_pcie_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *node = dev->of_node;
++	struct cdns_pcie_plat_data *plat_data;
++	struct platform_device *platform_dev;
++	struct device_node *child_node;
++	struct j721e_pcie *pcie;
++	struct resource *res;
++	void __iomem *base;
++	u32 num_lanes;
++	u32 mode;
++	int ret;
++
++	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
++	if (!pcie)
++		return -ENOMEM;
++
++	pcie->dev = dev;
++	pcie->node = node;
++	plat_data = &pcie->plat_data;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "intd_cfg");
++	base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(base))
++		return PTR_ERR(base);
++	pcie->intd_cfg_base = base;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "user_cfg");
++	base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(base))
++		return PTR_ERR(base);
++	pcie->user_cfg_base = base;
++
++	plat_data->start_link = j721e_pcie_start_link;
++	plat_data->is_link_up = j721e_pcie_is_link_up;
++
++	ret = of_property_read_u32(node, "pci-mode", &mode);
++	if (ret < 0) {
++		dev_err(dev, "Failed to get pci-mode binding\n");
++		return ret;
++	}
++	pcie->mode = mode;
++
++	ret = of_property_read_u32(node, "num-lanes", &num_lanes);
++	if (ret || num_lanes > MAX_LANES)
++		num_lanes = 1;
++	pcie->num_lanes = num_lanes;
++
++	dev_set_drvdata(dev, pcie);
++	pm_runtime_enable(dev);
++	ret = pm_runtime_get_sync(dev);
++	if (ret < 0) {
++		dev_err(dev, "pm_runtime_get_sync failed\n");
++		goto err_get_sync;
++	}
++
++	ret = j721e_pcie_ctrl_init(pcie);
++	if (ret < 0) {
++		dev_err(dev, "pm_runtime_get_sync failed\n");
++		goto err_get_sync;
++	}
++
++	switch (mode) {
++	case PCI_MODE_RC:
++		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_HOST)) {
++			ret = -ENODEV;
++			goto err_get_sync;
++		}
++
++		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++						   "vmap");
++		base = devm_ioremap_resource(dev, res);
++		if (IS_ERR(base))
++			goto err_get_sync;
++		pcie->vmap_lp_base = base;
++
++		child_node = of_get_child_by_name(node, "pcie");
++		if (!child_node) {
++			dev_WARN(dev, "pcie-rc node is absent\n");
++			goto err_get_sync;
++		}
++
++		if (of_property_read_bool(child_node, "iommu-map"))
++			pcie->enable_smmu = true;
++
++		platform_dev = of_platform_device_create_pdata(child_node, NULL,
++							       plat_data, dev);
++		if (!platform_dev) {
++			ret = -ENODEV;
++			dev_err(dev, "Failed to create Cadence RC device\n");
++			goto err_get_sync;
++		}
++
++		break;
++	case PCI_MODE_EP:
++		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_EP)) {
++			ret = -ENODEV;
++			goto err_get_sync;
++		}
++
++		child_node = of_get_child_by_name(node, "pcie-ep");
++		if (!child_node) {
++			dev_WARN(dev, "pcie-ep node is absent\n");
++			goto err_get_sync;
++		}
++
++		platform_dev = of_platform_device_create_pdata(child_node, NULL,
++							       plat_data, dev);
++		if (!platform_dev) {
++			ret = -ENODEV;
++			dev_err(dev, "Failed to create Cadence EP device\n");
++			goto err_get_sync;
++		}
++
++		break;
++	default:
++		dev_err(dev, "INVALID device type %d\n", mode);
++	}
++
++	return 0;
++
++err_get_sync:
++	pm_runtime_put(dev);
++	pm_runtime_disable(dev);
++
++	return ret;
++}
++
++static int j721e_pcie_remove(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++
++	pm_runtime_put(dev);
++	pm_runtime_disable(dev);
++	of_platform_depopulate(dev);
++
++	return 0;
++}
++
++static struct platform_driver j721e_pcie_driver = {
++	.probe  = j721e_pcie_probe,
++	.remove = j721e_pcie_remove,
++	.driver = {
++		.name	= "j721e-pcie",
++		.of_match_table = of_j721e_pcie_match,
++		.suppress_bind_attrs = true,
++	},
++};
++builtin_platform_driver(j721e_pcie_driver);
 -- 
 2.17.1
