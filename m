@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 04/30] dt-bindings: PCI: cadence: Update EP DT bindings with TI specific compatible
-Date: Tue, 4 Jun 2019 18:44:50 +0530
-Message-ID: <20190604131516.13596-5-kishon@ti.com>
+Subject: [RFC PATCH 05/30] linux/kernel.h: Add PTR_ALIGN_DOWN macro
+Date: Tue, 4 Jun 2019 18:44:51 +0530
+Message-ID: <20190604131516.13596-6-kishon@ti.com>
 References: <20190604131516.13596-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,25 +12,26 @@ To: Tom Joseph <tjoseph@cadence.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob H
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Update DT bindings for Cadence PCIe Endpoint controller with TI specific
-compatible.
+Add a macro for aligning down a pointer. This is useful to get an
+aligned register address when a device allows only word access and
+doesn't allow half word or byte access.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/pci/cdns,cdns-pcie-ep.txt | 1 +
+ include/linux/kernel.h | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/pci/cdns,cdns-pcie-ep.txt b/Documentation/devicetree/bindings/pci/cdns,cdns-pcie-ep.txt
-index 4a0475e2ba7e..536aa4bf6ce3 100644
---- a/Documentation/devicetree/bindings/pci/cdns,cdns-pcie-ep.txt
-+++ b/Documentation/devicetree/bindings/pci/cdns,cdns-pcie-ep.txt
-@@ -2,6 +2,7 @@
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index 74b1ee9027f5..f5be987f1f95 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -34,6 +34,7 @@
+ #define ALIGN_DOWN(x, a)	__ALIGN_KERNEL((x) - ((a) - 1), (a))
+ #define __ALIGN_MASK(x, mask)	__ALIGN_KERNEL_MASK((x), (mask))
+ #define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
++#define PTR_ALIGN_DOWN(p, a)	((typeof(p))ALIGN_DOWN((unsigned long)(p), (a)))
+ #define IS_ALIGNED(x, a)		(((x) & ((typeof(x))(a) - 1)) == 0)
  
- Required properties:
- - compatible: Should contain "cdns,cdns-pcie-ep" to identify the IP used.
-+	      Should contain "ti,j721e-cdns-pcie-ep" for TI platforms.
- - reg: Should contain the controller register base address and AXI interface
-   region base address respectively.
- - reg-names: Must be "reg" and "mem" respectively.
+ /* generic data direction definitions */
 -- 
 2.17.1
