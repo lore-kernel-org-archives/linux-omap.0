@@ -1,27 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net: ethernet: ti: cpsw_ethtool: fix ethtool ring
- param set
-Date: Mon, 03 Jun 2019 14:34:09 -0700 (PDT)
-Message-ID: <20190603.143409.1580682037956010747.davem@davemloft.net>
-References: <20190531134725.2054-1-ivan.khoronzhuk@linaro.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] arm: dts: dra72x: Disable usb4_tm target module
+Date: Tue, 4 Jun 2019 11:43:35 +0530
+Message-ID: <20190604061335.8264-1-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190531134725.2054-1-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: tony@atomide.com, robh+dt@kernel.org
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Fri, 31 May 2019 16:47:25 +0300
+usb4_tm is unsed on dra72 and accessing the module
+with ti,sysc is causing a boot crash hence disable its target
+module.
 
-> Fix ability to set RX descriptor number, the reason - initially
-> "tx_max_pending" was set incorrectly, but the issue appears after
-> adding sanity check, so fix is for "sanity" patch.
-> 
-> Fixes: 37e2d99b59c476 ("ethtool: Ensure new ring parameters are within bounds during SRINGPARAM")
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Fixes: 549fce068a3112 ("ARM: dts: dra7: Add l4 interconnect hierarchy and ti-sysc data")
+Reported-by: Vignesh Raghavendra <vigneshr@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/dra72x.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Applied and queued up for -stable, thanks.
+diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
+index 89831552cd86..9c39c6b9b5d6 100644
+--- a/arch/arm/boot/dts/dra72x.dtsi
++++ b/arch/arm/boot/dts/dra72x.dtsi
+@@ -62,3 +62,7 @@
+ &pcie2_rc {
+ 	compatible = "ti,dra726-pcie-rc", "ti,dra7-pcie";
+ };
++
++&usb4_tm {
++	status = "disabled";
++};
+-- 
+2.17.1
