@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 09/30] PCI: cadence: Add platform_data to start link and check link status
-Date: Tue, 4 Jun 2019 18:44:55 +0530
-Message-ID: <20190604131516.13596-10-kishon@ti.com>
+Subject: [RFC PATCH 11/30] PCI: cadence: Add support to drive PERST# line using GPIO
+Date: Tue, 4 Jun 2019 18:44:57 +0530
+Message-ID: <20190604131516.13596-12-kishon@ti.com>
 References: <20190604131516.13596-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,147 +12,74 @@ To: Tom Joseph <tjoseph@cadence.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob H
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add support in cadence driver to read platform_data passed to it from
-platform specific drivers. The platform_data right now contains two
-ops, one to start link and the other to check the link status.
-This is required since the registers for starting a link and for
-checking link status is in the wrapper and not in Cadence PCIe core.
+In platforms like TI's J721E EVM, the PERST# line is connected to a
+GPIO line and PERST# should be driven high to indicate the clocks are
+stable (As per Figure 2-10: Power Up of the PCIe CEM spec 3.0).
+
+Add support to make GPIO drive PERST# line.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/pcie-cadence-ep.c   |  1 +
- drivers/pci/controller/pcie-cadence-host.c |  1 +
- drivers/pci/controller/pcie-cadence.c      | 41 ++++++++++++++++++++++
- drivers/pci/controller/pcie-cadence.h      | 13 +++++++
- 4 files changed, 56 insertions(+)
+ drivers/pci/controller/pcie-cadence-host.c | 26 ++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
-index 07f840cfba23..b044167071e6 100644
---- a/drivers/pci/controller/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/pcie-cadence-ep.c
-@@ -462,6 +462,7 @@ static int cdns_pcie_ep_probe(struct platform_device *pdev)
- 
- 	pcie = &ep->pcie;
- 	pcie->is_rc = false;
-+	pcie->plat_data = pdev->dev.platform_data;
- 
- 	data = (struct cdns_pcie_ep_data *)match->data;
- 	if (data) {
 diff --git a/drivers/pci/controller/pcie-cadence-host.c b/drivers/pci/controller/pcie-cadence-host.c
-index ab6491b23775..2363f05e7c58 100644
+index 4ad8f2ece6e2..8b3b9827a8d6 100644
 --- a/drivers/pci/controller/pcie-cadence-host.c
 +++ b/drivers/pci/controller/pcie-cadence-host.c
-@@ -304,6 +304,7 @@ static int cdns_pcie_host_probe(struct platform_device *pdev)
- 	rc->dev = dev;
- 
- 	pcie = &rc->pcie;
-+	pcie->plat_data = pdev->dev.platform_data;
- 	pcie->is_rc = true;
- 
- 	data = (struct cdns_pcie_host_data *)match->data;
-diff --git a/drivers/pci/controller/pcie-cadence.c b/drivers/pci/controller/pcie-cadence.c
-index de5b3b06f2d0..5ac42b19bb63 100644
---- a/drivers/pci/controller/pcie-cadence.c
-+++ b/drivers/pci/controller/pcie-cadence.c
-@@ -3,6 +3,7 @@
- // Cadence PCIe controller driver.
+@@ -3,6 +3,8 @@
+ // Cadence PCIe host controller driver.
  // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
  
 +#include <linux/delay.h>
++#include <linux/gpio/consumer.h>
  #include <linux/kernel.h>
+ #include <linux/of_address.h>
+ #include <linux/of_device.h>
+@@ -287,6 +289,7 @@ static int cdns_pcie_host_probe(struct platform_device *pdev)
+ 	struct pci_host_bridge *bridge;
+ 	struct list_head resources;
+ 	struct cdns_pcie_rc *rc;
++	struct gpio_desc *gpiod;
+ 	struct cdns_pcie *pcie;
+ 	struct resource *res;
+ 	int ret;
+@@ -349,13 +352,36 @@ static int cdns_pcie_host_probe(struct platform_device *pdev)
+ 		dev_err(dev, "missing \"mem\"\n");
+ 		return -EINVAL;
+ 	}
++
+ 	pcie->mem_res = res;
  
- #include "pcie-cadence.h"
-@@ -47,6 +48,46 @@ void cdns_pcie_write32(void __iomem *addr, int size, u32 value)
- 	writel(val, aligned_addr);
- }
- 
-+int cdns_pcie_start_link(struct cdns_pcie *pci, bool start)
-+{
-+	struct cdns_pcie_plat_data *plat_data;
-+
-+	plat_data = pci->plat_data;
-+	if (!plat_data)
-+		return 0;
-+
-+	return plat_data->start_link(plat_data, start);
-+}
-+
-+static bool cdns_pcie_is_link_up(struct cdns_pcie *pci)
-+{
-+	struct cdns_pcie_plat_data *plat_data;
-+
-+	plat_data = pci->plat_data;
-+	if (!plat_data)
-+		return true;
-+
-+	return plat_data->is_link_up(plat_data);
-+}
-+
-+int cdns_pcie_wait_for_link(struct device *dev, struct cdns_pcie *pci)
-+{
-+	int retries;
-+
-+	/* Check if the link is up or not */
-+	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-+		if (cdns_pcie_is_link_up(pci)) {
-+			dev_info(dev, "Link up\n");
-+			return 0;
-+		}
-+		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
++	gpiod = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
++	if (IS_ERR(gpiod)) {
++		ret = PTR_ERR(gpiod);
++		if (ret != -EPROBE_DEFER)
++			dev_err(dev, "Failed to get reset GPIO\n");
++		return ret;
 +	}
 +
-+	dev_err(dev, "Phy link never came up\n");
+ 	ret = cdns_pcie_init_phy(dev, pcie);
+ 	if (ret) {
+ 		dev_err(dev, "failed to init phy\n");
+ 		return ret;
+ 	}
 +
-+	return -ETIMEDOUT;
-+}
++	/*
++	 * "Power Sequencing and Reset Signal Timings" table in
++	 * PCI EXPRESS CARD ELECTROMECHANICAL SPECIFICATION, REV. 3.0
++	 * indicates PERST# should be deasserted after minimum of 100us
++	 * once REFCLK is stable. The REFCLK to the connector in RC
++	 * mode is selected while enabling the PHY. So deassert PERST#
++	 * after 100 us.
++	 */
++	if (gpiod) {
++		usleep_range(100, 200);
++		gpiod_set_value_cansleep(gpiod, 1);
++	}
 +
- void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 fn,
- 				   u32 r, bool is_io,
- 				   u64 cpu_addr, u64 pci_addr, size_t size)
-diff --git a/drivers/pci/controller/pcie-cadence.h b/drivers/pci/controller/pcie-cadence.h
-index d157bf5eabd5..3cef398b50da 100644
---- a/drivers/pci/controller/pcie-cadence.h
-+++ b/drivers/pci/controller/pcie-cadence.h
-@@ -10,6 +10,11 @@
- #include <linux/pci.h>
- #include <linux/phy/phy.h>
+ 	platform_set_drvdata(pdev, pcie);
  
-+/* Parameters for the waiting for link up routine */
-+#define LINK_WAIT_MAX_RETRIES	10
-+#define LINK_WAIT_USLEEP_MIN	90000
-+#define LINK_WAIT_USLEEP_MAX	100000
-+
- /*
-  * Local Management Registers
-  */
-@@ -221,6 +226,11 @@ enum cdns_pcie_msg_routing {
- 	MSG_ROUTING_GATHER,
- };
- 
-+struct cdns_pcie_plat_data {
-+	int (*start_link)(struct cdns_pcie_plat_data *data, bool start);
-+	bool (*is_link_up)(struct cdns_pcie_plat_data *data);
-+};
-+
- /**
-  * struct cdns_pcie - private data for Cadence PCIe controller drivers
-  * @reg_base: IO mapped register base
-@@ -236,6 +246,7 @@ struct cdns_pcie {
- 	int			phy_count;
- 	struct phy		**phy;
- 	struct device_link	**link;
-+	struct cdns_pcie_plat_data *plat_data;
- 	u32 (*read)(void __iomem *addr, int size);
- 	void (*write)(void __iomem *addr, int size, u32 value);
- };
-@@ -408,6 +419,8 @@ int cdns_pcie_enable_phy(struct cdns_pcie *pcie);
- int cdns_pcie_init_phy(struct device *dev, struct cdns_pcie *pcie);
- u32 cdns_pcie_read32(void __iomem *addr, int size);
- void cdns_pcie_write32(void __iomem *addr, int size, u32 value);
-+int cdns_pcie_start_link(struct cdns_pcie *pci, bool start);
-+int cdns_pcie_wait_for_link(struct device *dev, struct cdns_pcie *pci);
- extern const struct dev_pm_ops cdns_pcie_pm_ops;
- 
- #endif /* _PCIE_CADENCE_H */
+ 	pm_runtime_enable(dev);
 -- 
 2.17.1
