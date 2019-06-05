@@ -1,42 +1,72 @@
-From: Vignesh Raghavendra <vigneshr@ti.com>
-Subject: [PATCH] dt-bindings: i2c: omap: Add new compatible for J721E SoCs
-Date: Wed, 5 Jun 2019 14:15:04 +0530
-Message-ID: <20190605084504.2777-1-vigneshr@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v3 net-next 0/7] net: ethernet: ti: cpsw: Add XDP support
+Date: Wed,  5 Jun 2019 16:20:02 +0300
+Message-ID: <20190605132009.10734-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
+Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+This patchset adds XDP support for TI cpsw driver and base it on
+page_pool allocator. It was verified on af_xdp socket drop,
+af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
 
-J721E SoCs have same I2C IP as OMAP SoCs. Add new compatible to
-handle J721E SoCs.
+It was verified with following configs enabled:
+CONFIG_JIT=y
+CONFIG_BPFILTER=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_XDP_SOCKETS=y
+CONFIG_BPF_EVENTS=y
+CONFIG_HAVE_EBPF_JIT=y
+CONFIG_BPF_JIT=y
+CONFIG_CGROUP_BPF=y
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
----
+Link on previous v2:
+https://lkml.org/lkml/2019/5/30/1315
 
-Initial support for J721E Platform is proposed here:
-https://lore.kernel.org/patchwork/cover/1077382/
+Also regular tests with iperf2 were done in order to verify impact on
+regular netstack performance, compared with base commit:
+https://pastebin.com/JSMT0iZ4
 
- Documentation/devicetree/bindings/i2c/i2c-omap.txt | 1 +
- 1 file changed, 1 insertion(+)
+v2..v3:
+- each rxq and ndev has its own page pool
 
-diff --git a/Documentation/devicetree/bindings/i2c/i2c-omap.txt b/Documentation/devicetree/bindings/i2c/i2c-omap.txt
-index 4b90ba9f31b7..a44573d7c118 100644
---- a/Documentation/devicetree/bindings/i2c/i2c-omap.txt
-+++ b/Documentation/devicetree/bindings/i2c/i2c-omap.txt
-@@ -7,6 +7,7 @@ Required properties :
- 	"ti,omap3-i2c" for OMAP3 SoCs
- 	"ti,omap4-i2c" for OMAP4+ SoCs
- 	"ti,am654-i2c", "ti,omap4-i2c" for AM654 SoCs
-+	"ti,j721e-i2c", "ti,omap4-i2c" for J721E SoCs
- - ti,hwmods : Must be "i2c<n>", n being the instance number (1-based)
- - #address-cells = <1>;
- - #size-cells = <0>;
+v1..v2:
+- combined xdp_xmit functions
+- used page allocation w/o refcnt juggle
+- unmapped page for skb netstack
+- moved rxq/page pool allocation to open/close pair
+- added several preliminary patches:
+  net: page_pool: add helper function to retrieve dma addresses
+  net: page_pool: add helper function to unmap dma addresses
+  net: ethernet: ti: cpsw: use cpsw as drv data
+  net: ethernet: ti: cpsw_ethtool: simplify slave loops
+
+
+Based on net-next/master
+
+Ilias Apalodimas (2):
+  net: page_pool: add helper function to retrieve dma addresses
+  net: page_pool: add helper function to unmap dma addresses
+
+Ivan Khoronzhuk (5):
+  net: ethernet: ti: cpsw: use cpsw as drv data
+  net: ethernet: ti: cpsw_ethtool: simplify slave loops
+  net: ethernet: ti: davinci_cpdma: add dma mapped submit
+  net: ethernet: ti: davinci_cpdma: return handler status
+  net: ethernet: ti: cpsw: add XDP support
+
+ drivers/net/ethernet/ti/Kconfig         |   1 +
+ drivers/net/ethernet/ti/cpsw.c          | 555 ++++++++++++++++++++----
+ drivers/net/ethernet/ti/cpsw_ethtool.c  | 100 ++++-
+ drivers/net/ethernet/ti/cpsw_priv.h     |   9 +-
+ drivers/net/ethernet/ti/davinci_cpdma.c | 122 ++++--
+ drivers/net/ethernet/ti/davinci_cpdma.h |   6 +-
+ drivers/net/ethernet/ti/davinci_emac.c  |  18 +-
+ include/net/page_pool.h                 |   6 +
+ net/core/page_pool.c                    |   7 +
+ 9 files changed, 685 insertions(+), 139 deletions(-)
+
 -- 
-2.21.0
+2.17.1
