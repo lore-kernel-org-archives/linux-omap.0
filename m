@@ -1,73 +1,51 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 1/2] drm/panel: simple: Add Sharp LQ070Y3DG3B panel support
-Date: Wed,  5 Jun 2019 07:07:02 +0200
-Message-ID: <d16aaa1ac93e4f15c13cd7d621de95836257676a.1559711222.git.hns@goldelico.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [PATCH v2 0/2] drm/panel-simple: Add panel parameters for
+ ortustech-com37h3m05dtc/99dtc and sharp-lq070y3dg3b
+Date: Wed, 5 Jun 2019 10:29:42 +0200
+Message-ID: <20190605082942.GC15169@ravnborg.org>
 References: <cover.1559711222.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <cover.1559711222.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, tomi.valkeinen@ti.com, imirkin@alum.mit.edu, marek.belisko@gmail.com
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, tomi.valkeinen@ti.com, imirkin@alum.mit.edu, marek.belisko@gmail.com, letux-kernel@openphoenux.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The change adds support for the Sharp LQ070Y3DG3B 7.0" TFT LCD panel.
+Hi Nikolaus.
 
-Tested on Letux7004.
+Thanks for the new panel patches.
+On Wed, Jun 05, 2019 at 07:07:01AM +0200, H. Nikolaus Schaller wrote:
+> V2:
+> * fix typo in 99dtc panel compatible string (reported by imirkin@alum.mit.edu)
+> 
+> V1:
+> 
+> Since v5.2-rc1 OMAP is no longer using a special display driver architecture
+> for DPI panels, but uses the general drm/panel/panel-simple.
+> 
+> So we finally can add SoC independent panel definitions for two panel models
+> which we already had worked on quite a while ago (before device tree was
+> introduced):
+> 
+> 	https://patchwork.kernel.org/patch/2851295/
+> 
+> 
+> 
+> H. Nikolaus Schaller (2):
+>   drm/panel: simple: Add Sharp LQ070Y3DG3B panel support
+>   drm/panel: simple: Add Ortustech COM37H3M panel support
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- drivers/gpu/drm/panel/panel-simple.c | 30 ++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+All three panels are missing binding documentation.
+Please submit binding documentation, in separate patches, with
+proper "dt-bindings: xxx" subjects.
+See Documentation/device-tree/bindings/submitting...
 
-diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 569be4efd8d1..5b27829c5a78 100644
---- a/drivers/gpu/drm/panel/panel-simple.c
-+++ b/drivers/gpu/drm/panel/panel-simple.c
-@@ -2204,6 +2204,33 @@ static const struct panel_desc samsung_ltn140at29_301 = {
- 	},
- };
- 
-+static const struct drm_display_mode sharp_lq070y3dg3b_mode = {
-+	.clock = 33260,
-+	.hdisplay = 800,
-+	.hsync_start = 800 + 64,
-+	.hsync_end = 800 + 64 + 128,
-+	.htotal = 800 + 64 + 128 + 64,
-+	.vdisplay = 480,
-+	.vsync_start = 480 + 8,
-+	.vsync_end = 480 + 8 + 2,
-+	.vtotal = 480 + 8 + 2 + 35,
-+	.vrefresh = 60,
-+	.flags = DISPLAY_FLAGS_PIXDATA_POSEDGE,
-+};
-+
-+static const struct panel_desc sharp_lq070y3dg3b = {
-+	.modes = &sharp_lq070y3dg3b_mode,
-+	.num_modes = 1,
-+	.bpc = 8,
-+	.size = {
-+		.width = 152,	/* 152.4mm */
-+		.height = 91,	/* 91.4mm */
-+	},
-+	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
-+	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_POSEDGE |
-+		     DRM_BUS_FLAG_SYNC_DRIVE_POSEDGE,
-+};
-+
- static const struct drm_display_mode sharp_lq035q7db03_mode = {
- 	.clock = 5500,
- 	.hdisplay = 240,
-@@ -2786,6 +2813,9 @@ static const struct of_device_id platform_of_match[] = {
- 	}, {
- 		.compatible = "sharp,lq035q7db03",
- 		.data = &sharp_lq035q7db03,
-+	}, {
-+		.compatible = "sharp,lq070y3dg3b",
-+		.data = &sharp_lq070y3dg3b,
- 	}, {
- 		.compatible = "sharp,lq101k1ly04",
- 		.data = &sharp_lq101k1ly04,
--- 
-2.19.1
+Patches not applied due to the missing docs.
+But the patches itself looked good.
+You have specified bus_flags etc, and added the
+new entries in correct alphabetical order etc.
+
+	Sam
