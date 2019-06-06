@@ -1,72 +1,25 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v3 net-next 0/7] net: ethernet: ti: cpsw: Add XDP support
-Date: Thu, 6 Jun 2019 16:24:22 +0300
-Message-ID: <20190606132420.GA12429@khorivan>
-References: <20190605132009.10734-1-ivan.khoronzhuk@linaro.org>
- <20190605.121450.2198491088032558315.davem@davemloft.net>
- <20190606100850.72a48a43@carbon>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v3] clk: ti: Remove unused functions
+Date: Thu, 06 Jun 2019 10:55:54 -0700
+Message-ID: <20190606175555.B1C132083E@mail.kernel.org>
+References: <20190512100328.27136-1-yuehaibing@huawei.com> <20190529093937.21748-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190606100850.72a48a43@carbon>
-Sender: netdev-owner@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: David Miller <davem@davemloft.net>, grygorii.strashko@ti.com, hawk@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190529093937.21748-1-yuehaibing@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mturquette@baylibre.com, t-kristo@ti.com, tony@atomide.com
+Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 06, 2019 at 10:08:50AM +0200, Jesper Dangaard Brouer wrote:
->On Wed, 05 Jun 2019 12:14:50 -0700 (PDT)
->David Miller <davem@davemloft.net> wrote:
->
->> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->> Date: Wed,  5 Jun 2019 16:20:02 +0300
->>
->> > This patchset adds XDP support for TI cpsw driver and base it on
->> > page_pool allocator. It was verified on af_xdp socket drop,
->> > af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
->>
->> Jesper et al., please give this a good once over.
->
->The issue with merging this, is that I recently discovered two bug with
->page_pool API, when using DMA-mappings, which result in missing
->DMA-unmap's.  These bugs are not "exposed" yet, but will get exposed
->now with this drivers.
->
->The two bugs are:
->
->#1: in-flight packet-pages can still be on remote drivers TX queue,
->while XDP RX driver manage to unregister the page_pool (waiting 1 RCU
->period is not enough).
->
->#2: this patchset also introduce page_pool_unmap_page(), which is
->called before an XDP frame travel into networks stack (as no callback
->exist, yet).  But the CPUMAP redirect *also* needs to call this, else we
->"leak"/miss DMA-unmap.
->
->I do have a working prototype, that fixes these two bugs.  I guess, I'm
->under pressure to send this to the list soon...
+Quoting YueHaibing (2019-05-29 02:39:37)
+> They are not used any more since
+> commit 7558562a70fb ("clk: ti: Drop legacy clk-3xxx-legacy code")
+>=20
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Suggested-by: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
 
-In particular "cpsw" case no dma unmap issue and if no changes in page_pool
-API then no changes to the driver required. page_pool_unmap_page() is
-used here for consistency reasons with attention that it can be
-inherited/reused by other SoCs for what it can be relevant.
-
-One potential change as you mentioned is with dropping page_pool_destroy() that,
-now, can look like:
-
-@@ -571,7 +571,6 @@ static void cpsw_destroy_rx_pool(struct cpsw_priv *priv, int ch)
-                return;
- 
-        xdp_rxq_info_unreg(&priv->xdp_rxq[ch]);
--       page_pool_destroy(priv->page_pool[ch]);
-        priv->page_pool[ch] = NULL;
- }
-
->From what I know there is ongoing change for adding switchdev to cpsw that can
-change a lot and can require more work to rebase / test this patchset, so I want
-to believe it can be merged before this.
-
--- 
-Regards,
-Ivan Khoronzhuk
+Applied to clk-next
