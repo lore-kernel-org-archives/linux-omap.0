@@ -1,54 +1,72 @@
-From: <Nicolas.Ferre@microchip.com>
-Subject: Re: [PATCH v2] ARM: configs: Remove useless UEVENT_HELPER_PATH
-Date: Thu, 6 Jun 2019 09:16:06 +0000
-Message-ID: <58ffd0ff-42e8-1011-0329-65957717de72@microchip.com>
-References: <1559636093-26005-1-git-send-email-krzk@kernel.org>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH v3 net-next 0/7] net: ethernet: ti: cpsw: Add XDP support
+Date: Thu, 6 Jun 2019 16:24:22 +0300
+Message-ID: <20190606132420.GA12429@khorivan>
+References: <20190605132009.10734-1-ivan.khoronzhuk@linaro.org>
+ <20190605.121450.2198491088032558315.davem@davemloft.net>
+ <20190606100850.72a48a43@carbon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1559636093-26005-1-git-send-email-krzk@kernel.org>
-Content-Language: en-US
-Content-ID: <F16069370D8F9048951C20B6228FFB3B@namprd11.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: krzk@kernel.org, arm@kernel.org, arnd@arndb.de, olof@lixom.net, linux@armlinux.org.uk, joel@jms.id.au, andrew@aj.id.au, alexandre.belloni@bootlin.com, Ludovic.Desroches@microchip.com, shawnguo@kernel.org, s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com, vz@mleia.com, slemieux.tyco@gmail.com, jason@lakedaemon.net, andrew@lunn.ch, gregory.clement@bootlin.com, sebastian.hesselbarth@gmail.com, aaro.koskinen@iki.fi, tony@atomide.com, dinguyen@kernel.org, marc.w.gonzalez@free.fr, mans@mansr.com, liviu.dudau@arm.com, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-aspeed@lists.ozlabs.org, linux-omap@vger.kern
-Cc: geert+renesas@glider.be
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190606100850.72a48a43@carbon>
+Sender: netdev-owner@vger.kernel.org
+To: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: David Miller <davem@davemloft.net>, grygorii.strashko@ti.com, hawk@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDQvMDYvMjAxOSBhdCAxMDoxNCwgS3J6eXN6dG9mIEtvemxvd3NraSB3cm90ZToNCj4gUmVt
-b3ZlIHRoZSBDT05GSUdfVUVWRU5UX0hFTFBFUl9QQVRIIGJlY2F1c2U6DQo+IDEuIEl0IGlzIGRp
-c2FibGVkIHNpbmNlIGNvbW1pdCAxYmUwMWQ0YTU3MTQgKCJkcml2ZXI6IGJhc2U6IERpc2FibGUN
-Cj4gICAgIENPTkZJR19VRVZFTlRfSEVMUEVSIGJ5IGRlZmF1bHQiKSBhcyBpdHMgZGVwZW5kZW5j
-eSAoVUVWRU5UX0hFTFBFUikgd2FzDQo+ICAgICBtYWRlIGRlZmF1bHQgdG8gJ24nLA0KPiAyLiBJ
-dCBpcyBub3QgcmVjb21tZW5kZWQgKGhlbHAgbWVzc2FnZTogIlRoaXMgc2hvdWxkIG5vdCBiZSB1
-c2VkIHRvZGF5DQo+ICAgICBbLi4uXSBjcmVhdGVzIGEgaGlnaCBzeXN0ZW0gbG9hZCIpIGFuZCB3
-YXMga2VwdCBvbmx5IGZvciBhbmNpZW50DQo+ICAgICB1c2VybGFuZCwNCj4gMy4gQ2VydGFpbiB1
-c2VybGFuZCBzcGVjaWZpY2FsbHkgcmVxdWVzdHMgaXQgdG8gYmUgZGlzYWJsZWQgKHN5c3RlbWQN
-Cj4gICAgIFJFQURNRTogIkxlZ2FjeSBob3RwbHVnIHNsb3dzIGRvd24gdGhlIHN5c3RlbSBhbmQg
-Y29uZnVzZXMgdWRldiIpLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogS3J6eXN6dG9mIEtvemxvd3Nr
-aSA8a3J6a0BrZXJuZWwub3JnPg0KPiBBY2tlZC1ieTogR2VlcnQgVXl0dGVyaG9ldmVuIDxnZWVy
-dCtyZW5lc2FzQGdsaWRlci5iZT4NCj4gDQo+IC0tLQ0KPiANCj4gQ2hhbmdlcyBzaW5jZSB2MjoN
-Cj4gMS4gUmVtb3ZlIHVucmVsYXRlZCBmaWxlcy4NCj4gMi4gQWRkIEdlZXJ0J3MgYWNrLg0KPiAt
-LS0NCj4gICBhcmNoL2FybS9jb25maWdzL2FjczVrX2RlZmNvbmZpZyAgICAgICAgICB8IDEgLQ0K
-PiAgIGFyY2gvYXJtL2NvbmZpZ3MvYWNzNWtfdGlueV9kZWZjb25maWcgICAgIHwgMSAtDQo+ICAg
-YXJjaC9hcm0vY29uZmlncy9hbTIwMGVwZGtpdF9kZWZjb25maWcgICAgfCAxIC0NCj4gICBhcmNo
-L2FybS9jb25maWdzL2FzcGVlZF9nNF9kZWZjb25maWcgICAgICB8IDEgLQ0KPiAgIGFyY2gvYXJt
-L2NvbmZpZ3MvYXNwZWVkX2c1X2RlZmNvbmZpZyAgICAgIHwgMSAtDQo+ICAgYXJjaC9hcm0vY29u
-Zmlncy9hdDkxX2R0X2RlZmNvbmZpZyAgICAgICAgfCAxIC0NCg0KWy4uXQ0KDQo+ICAgYXJjaC9h
-cm0vY29uZmlncy9zYW1hNV9kZWZjb25maWcgICAgICAgICAgfCAxIC0NCg0KZm9yIGF0OTEgKGF0
-OTFfZHRfZGVmY29uZmlnICYgc2FtYTVfZGVmY29uZmlnKToNCkFja2VkLWJ5OiBOaWNvbGFzIEZl
-cnJlIDxuaWNvbGFzLmZlcnJlQG1pY3JvY2hpcC5jb20+DQoNCj4gICBhcmNoL2FybS9jb25maWdz
-L3NvY2ZwZ2FfZGVmY29uZmlnICAgICAgICB8IDEgLQ0KPiAgIGFyY2gvYXJtL2NvbmZpZ3Mvc3Bl
-YXIxM3h4X2RlZmNvbmZpZyAgICAgIHwgMSAtDQo+ICAgYXJjaC9hcm0vY29uZmlncy9zcGVhcjN4
-eF9kZWZjb25maWcgICAgICAgfCAxIC0NCj4gICBhcmNoL2FybS9jb25maWdzL3NwZWFyNnh4X2Rl
-ZmNvbmZpZyAgICAgICB8IDEgLQ0KPiAgIGFyY2gvYXJtL2NvbmZpZ3Mvc3BpdHpfZGVmY29uZmln
-ICAgICAgICAgIHwgMSAtDQo+ICAgYXJjaC9hcm0vY29uZmlncy90YW5nbzRfZGVmY29uZmlnICAg
-ICAgICAgfCAxIC0NCj4gICBhcmNoL2FybS9jb25maWdzL3RjdF9oYW1tZXJfZGVmY29uZmlnICAg
-ICB8IDEgLQ0KPiAgIGFyY2gvYXJtL2NvbmZpZ3MvdTMwMF9kZWZjb25maWcgICAgICAgICAgIHwg
-MSAtDQo+ICAgYXJjaC9hcm0vY29uZmlncy91ODUwMF9kZWZjb25maWcgICAgICAgICAgfCAxIC0N
-Cj4gICBhcmNoL2FybS9jb25maWdzL3ZleHByZXNzX2RlZmNvbmZpZyAgICAgICB8IDEgLQ0KPiAg
-IGFyY2gvYXJtL2NvbmZpZ3MvdmlwZXJfZGVmY29uZmlnICAgICAgICAgIHwgMSAtDQo+ICAgYXJj
-aC9hcm0vY29uZmlncy94Y2VwX2RlZmNvbmZpZyAgICAgICAgICAgfCAxIC0NCj4gICBhcmNoL2Fy
-bS9jb25maWdzL3pldXNfZGVmY29uZmlnICAgICAgICAgICB8IDEgLQ0KPiAgIGFyY2gvYXJtL2Nv
-bmZpZ3MvenhfZGVmY29uZmlnICAgICAgICAgICAgIHwgMSAtDQo+ICAgNjkgZmlsZXMgY2hhbmdl
-ZCwgNjkgZGVsZXRpb25zKC0pDQpbLi5dDQotLSANCk5pY29sYXMgRmVycmUNCg==
+On Thu, Jun 06, 2019 at 10:08:50AM +0200, Jesper Dangaard Brouer wrote:
+>On Wed, 05 Jun 2019 12:14:50 -0700 (PDT)
+>David Miller <davem@davemloft.net> wrote:
+>
+>> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+>> Date: Wed,  5 Jun 2019 16:20:02 +0300
+>>
+>> > This patchset adds XDP support for TI cpsw driver and base it on
+>> > page_pool allocator. It was verified on af_xdp socket drop,
+>> > af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
+>>
+>> Jesper et al., please give this a good once over.
+>
+>The issue with merging this, is that I recently discovered two bug with
+>page_pool API, when using DMA-mappings, which result in missing
+>DMA-unmap's.  These bugs are not "exposed" yet, but will get exposed
+>now with this drivers.
+>
+>The two bugs are:
+>
+>#1: in-flight packet-pages can still be on remote drivers TX queue,
+>while XDP RX driver manage to unregister the page_pool (waiting 1 RCU
+>period is not enough).
+>
+>#2: this patchset also introduce page_pool_unmap_page(), which is
+>called before an XDP frame travel into networks stack (as no callback
+>exist, yet).  But the CPUMAP redirect *also* needs to call this, else we
+>"leak"/miss DMA-unmap.
+>
+>I do have a working prototype, that fixes these two bugs.  I guess, I'm
+>under pressure to send this to the list soon...
+
+In particular "cpsw" case no dma unmap issue and if no changes in page_pool
+API then no changes to the driver required. page_pool_unmap_page() is
+used here for consistency reasons with attention that it can be
+inherited/reused by other SoCs for what it can be relevant.
+
+One potential change as you mentioned is with dropping page_pool_destroy() that,
+now, can look like:
+
+@@ -571,7 +571,6 @@ static void cpsw_destroy_rx_pool(struct cpsw_priv *priv, int ch)
+                return;
+ 
+        xdp_rxq_info_unreg(&priv->xdp_rxq[ch]);
+-       page_pool_destroy(priv->page_pool[ch]);
+        priv->page_pool[ch] = NULL;
+ }
+
+>From what I know there is ongoing change for adding switchdev to cpsw that can
+change a lot and can require more work to rebase / test this patchset, so I want
+to believe it can be merged before this.
+
+-- 
+Regards,
+Ivan Khoronzhuk
