@@ -1,25 +1,26 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v3] clk: ti: Remove unused functions
-Date: Thu, 06 Jun 2019 10:55:54 -0700
-Message-ID: <20190606175555.B1C132083E@mail.kernel.org>
-References: <20190512100328.27136-1-yuehaibing@huawei.com> <20190529093937.21748-1-yuehaibing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v3 net-next 0/7] net: ethernet: ti: cpsw: Add XDP
+ support
+Date: Thu, 06 Jun 2019 13:56:01 -0700 (PDT)
+Message-ID: <20190606.135601.1164776763745750423.davem@davemloft.net>
+References: <20190605132009.10734-1-ivan.khoronzhuk@linaro.org>
+        <20190605.121450.2198491088032558315.davem@davemloft.net>
+        <20190606100850.72a48a43@carbon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190529093937.21748-1-yuehaibing@huawei.com>
+In-Reply-To: <20190606100850.72a48a43@carbon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mturquette@baylibre.com, t-kristo@ti.com, tony@atomide.com
-Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+To: brouer@redhat.com
+Cc: ivan.khoronzhuk@linaro.org, grygorii.strashko@ti.com, hawk@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Quoting YueHaibing (2019-05-29 02:39:37)
-> They are not used any more since
-> commit 7558562a70fb ("clk: ti: Drop legacy clk-3xxx-legacy code")
->=20
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Suggested-by: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Date: Thu, 6 Jun 2019 10:08:50 +0200
 
-Applied to clk-next
+> I do have a working prototype, that fixes these two bugs.  I guess, I'm
+> under pressure to send this to the list soon...
+
+So I'm going to mark this CPSW patchset as "deferred" while these bugs are
+worked out.
