@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 2/5] drm/panel: simple: Add Ortustech COM37H3M panel support
-Date: Fri,  7 Jun 2019 13:11:08 +0200
-Message-ID: <43b47034b618cff26cea0484591c6deafb7f0685.1559905870.git.hns@goldelico.com>
+Subject: [PATCH v3 4/5] dt-bindings: drm/panel: simple: add ortustech,com37h3m99dtc panel
+Date: Fri,  7 Jun 2019 13:11:10 +0200
+Message-ID: <3e0720fbddfd7b35ad8551440544411485d8ad9f.1559905870.git.hns@goldelico.com>
 References: <cover.1559905870.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,65 +12,29 @@ To: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, 
 Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, devicetree@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-The change adds support for the Ortustech COM37H3M05DTC/99DTC 3.7" TFT LCD panel.
-
-Tested on Letux3704.
-
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- drivers/gpu/drm/panel/panel-simple.c | 33 ++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ .../display/panel/ortustech,com37h3m99dtc.txt        | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt
 
-diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 5b27829c5a78..1fb74908a269 100644
---- a/drivers/gpu/drm/panel/panel-simple.c
-+++ b/drivers/gpu/drm/panel/panel-simple.c
-@@ -2007,6 +2007,33 @@ static const struct panel_desc ontat_yx700wv03 = {
- 	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
- };
- 
-+static const struct drm_display_mode ortustech_com37h3m_mode  = {
-+	.clock = 22153,
-+	.hdisplay = 480,
-+	.hsync_start = 480 + 8,
-+	.hsync_end = 480 + 8 + 10,
-+	.htotal = 480 + 8 + 10 + 10,
-+	.vdisplay = 640,
-+	.vsync_start = 640 + 4,
-+	.vsync_end = 640 + 4 + 3,
-+	.vtotal = 640 + 4 + 3 + 4,
-+	.vrefresh = 60,
-+	.flags = DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC,
-+};
+diff --git a/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt b/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt
+new file mode 100644
+index 000000000000..06a73c3f46b5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt
+@@ -0,0 +1,12 @@
++OrtusTech COM37H3M99DTC Blanview 3.7" VGA portrait TFT-LCD panel
 +
-+static const struct panel_desc ortustech_com37h3m = {
-+	.modes = &ortustech_com37h3m_mode,
-+	.num_modes = 1,
-+	.bpc = 8,
-+	.size = {
-+		.width = 56,	/* 56.16mm */
-+		.height = 75,	/* 74.88mm */
-+	},
-+	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
-+	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_POSEDGE |
-+		     DRM_BUS_FLAG_SYNC_DRIVE_POSEDGE,
-+};
++Required properties:
++- compatible: should be "ortustech,com37h3m99dtc"
 +
- static const struct drm_display_mode ortustech_com43h4m85ulc_mode  = {
- 	.clock = 25000,
- 	.hdisplay = 480,
-@@ -2786,6 +2813,12 @@ static const struct of_device_id platform_of_match[] = {
- 	}, {
- 		.compatible = "ontat,yx700wv03",
- 		.data = &ontat_yx700wv03,
-+	}, {
-+		.compatible = "ortustech,com37h3m05dtc",
-+		.data = &ortustech_com37h3m,
-+	}, {
-+		.compatible = "ortustech,com37h3m99dtc",
-+		.data = &ortustech_com37h3m,
- 	}, {
- 		.compatible = "ortustech,com43h4m85ulc",
- 		.data = &ortustech_com43h4m85ulc,
++Optional properties:
++- enable-gpios: GPIO pin to enable or disable the panel
++- backlight: phandle of the backlight device attached to the panel
++- power-supply: phandle of the regulator that provides the supply voltage
++
++This binding is compatible with the simple-panel binding, which is specified
++in simple-panel.txt in this directory.
 -- 
 2.19.1
