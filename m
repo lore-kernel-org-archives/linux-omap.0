@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 4/5] dt-bindings: drm/panel: simple: add ortustech,com37h3m99dtc panel
-Date: Fri,  7 Jun 2019 13:11:10 +0200
-Message-ID: <3e0720fbddfd7b35ad8551440544411485d8ad9f.1559905870.git.hns@goldelico.com>
+Subject: [PATCH v3 3/5] dt-bindings: drm/panel: simple: add ortustech,com37h3m05dtc panel
+Date: Fri,  7 Jun 2019 13:11:09 +0200
+Message-ID: <a650cb8df1bdf58ec3c8a182532692db16b77f70.1559905870.git.hns@goldelico.com>
 References: <cover.1559905870.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,20 +14,20 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- .../display/panel/ortustech,com37h3m99dtc.txt        | 12 ++++++++++++
+ .../display/panel/ortustech,com37h3m05dtc.txt        | 12 ++++++++++++
  1 file changed, 12 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt
+ create mode 100644 Documentation/devicetree/bindings/display/panel/ortustech,com37h3m05dtc.txt
 
-diff --git a/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt b/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt
+diff --git a/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m05dtc.txt b/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m05dtc.txt
 new file mode 100644
-index 000000000000..06a73c3f46b5
+index 000000000000..c16907c02f80
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt
++++ b/Documentation/devicetree/bindings/display/panel/ortustech,com37h3m05dtc.txt
 @@ -0,0 +1,12 @@
-+OrtusTech COM37H3M99DTC Blanview 3.7" VGA portrait TFT-LCD panel
++OrtusTech COM37H3M05DTC Blanview 3.7" VGA portrait TFT-LCD panel
 +
 +Required properties:
-+- compatible: should be "ortustech,com37h3m99dtc"
++- compatible: should be "ortustech,com37h3m05dtc"
 +
 +Optional properties:
 +- enable-gpios: GPIO pin to enable or disable the panel
