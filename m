@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 5/5] dt-bindings: drm/panel: simple: add sharp,lq070y3dg3b panel
-Date: Fri,  7 Jun 2019 13:11:11 +0200
-Message-ID: <ee90ed56d2c294ce8ac3b44bf2229c5ab9f85e91.1559905870.git.hns@goldelico.com>
+Subject: [PATCH v3 1/5] drm/panel: simple: Add Sharp LQ070Y3DG3B panel support
+Date: Fri,  7 Jun 2019 13:11:07 +0200
+Message-ID: <d16aaa1ac93e4f15c13cd7d621de95836257676a.1559905870.git.hns@goldelico.com>
 References: <cover.1559905870.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,29 +12,62 @@ To: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, 
 Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, devicetree@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
+The change adds support for the Sharp LQ070Y3DG3B 7.0" TFT LCD panel.
+
+Tested on Letux7004.
+
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- .../bindings/display/panel/sharp,lq070y3dg3b.txt     | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/display/panel/sharp,lq070y3dg3b.txt
+ drivers/gpu/drm/panel/panel-simple.c | 30 ++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/display/panel/sharp,lq070y3dg3b.txt b/Documentation/devicetree/bindings/display/panel/sharp,lq070y3dg3b.txt
-new file mode 100644
-index 000000000000..95534b55ee5f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/display/panel/sharp,lq070y3dg3b.txt
-@@ -0,0 +1,12 @@
-+Sharp LQ070Y3DG3B 7.0" WVGA landscape TFT LCD panel
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 569be4efd8d1..5b27829c5a78 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -2204,6 +2204,33 @@ static const struct panel_desc samsung_ltn140at29_301 = {
+ 	},
+ };
+ 
++static const struct drm_display_mode sharp_lq070y3dg3b_mode = {
++	.clock = 33260,
++	.hdisplay = 800,
++	.hsync_start = 800 + 64,
++	.hsync_end = 800 + 64 + 128,
++	.htotal = 800 + 64 + 128 + 64,
++	.vdisplay = 480,
++	.vsync_start = 480 + 8,
++	.vsync_end = 480 + 8 + 2,
++	.vtotal = 480 + 8 + 2 + 35,
++	.vrefresh = 60,
++	.flags = DISPLAY_FLAGS_PIXDATA_POSEDGE,
++};
 +
-+Required properties:
-+- compatible: should be "sharp,lq070y3dg3b"
++static const struct panel_desc sharp_lq070y3dg3b = {
++	.modes = &sharp_lq070y3dg3b_mode,
++	.num_modes = 1,
++	.bpc = 8,
++	.size = {
++		.width = 152,	/* 152.4mm */
++		.height = 91,	/* 91.4mm */
++	},
++	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
++	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_POSEDGE |
++		     DRM_BUS_FLAG_SYNC_DRIVE_POSEDGE,
++};
 +
-+Optional properties:
-+- enable-gpios: GPIO pin to enable or disable the panel
-+- backlight: phandle of the backlight device attached to the panel
-+- power-supply: phandle of the regulator that provides the supply voltage
-+
-+This binding is compatible with the simple-panel binding, which is specified
-+in simple-panel.txt in this directory.
+ static const struct drm_display_mode sharp_lq035q7db03_mode = {
+ 	.clock = 5500,
+ 	.hdisplay = 240,
+@@ -2786,6 +2813,9 @@ static const struct of_device_id platform_of_match[] = {
+ 	}, {
+ 		.compatible = "sharp,lq035q7db03",
+ 		.data = &sharp_lq035q7db03,
++	}, {
++		.compatible = "sharp,lq070y3dg3b",
++		.data = &sharp_lq070y3dg3b,
+ 	}, {
+ 		.compatible = "sharp,lq101k1ly04",
+ 		.data = &sharp_lq101k1ly04,
 -- 
 2.19.1
