@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 08/49] clk: ti: clkctrl: Fix clkdm_clk handling
-Date: Sat,  8 Jun 2019 07:41:49 -0400
-Message-ID: <20190608114232.8731-8-sashal@kernel.org>
-References: <20190608114232.8731-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 06/31] clk: ti: clkctrl: Fix clkdm_clk handling
+Date: Sat,  8 Jun 2019 07:46:17 -0400
+Message-ID: <20190608114646.9415-6-sashal@kernel.org>
+References: <20190608114646.9415-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190608114232.8731-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190608114646.9415-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -30,10 +30,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 421b05392220..ca3218337fd7 100644
+index 53e71d0503ec..82e4d5cccf84 100644
 --- a/drivers/clk/ti/clkctrl.c
 +++ b/drivers/clk/ti/clkctrl.c
-@@ -137,9 +137,6 @@ static int _omap4_clkctrl_clk_enable(struct clk_hw *hw)
+@@ -124,9 +124,6 @@ static int _omap4_clkctrl_clk_enable(struct clk_hw *hw)
  	int ret;
  	union omap4_timeout timeout = { 0 };
  
@@ -43,7 +43,7 @@ index 421b05392220..ca3218337fd7 100644
  	if (clk->clkdm) {
  		ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
  		if (ret) {
-@@ -151,6 +148,9 @@ static int _omap4_clkctrl_clk_enable(struct clk_hw *hw)
+@@ -138,6 +135,9 @@ static int _omap4_clkctrl_clk_enable(struct clk_hw *hw)
  		}
  	}
  
@@ -53,7 +53,7 @@ index 421b05392220..ca3218337fd7 100644
  	val = ti_clk_ll_ops->clk_readl(&clk->enable_reg);
  
  	val &= ~OMAP4_MODULEMODE_MASK;
-@@ -179,7 +179,7 @@ static void _omap4_clkctrl_clk_disable(struct clk_hw *hw)
+@@ -166,7 +166,7 @@ static void _omap4_clkctrl_clk_disable(struct clk_hw *hw)
  	union omap4_timeout timeout = { 0 };
  
  	if (!clk->enable_bit)
