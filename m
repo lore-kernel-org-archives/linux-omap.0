@@ -1,43 +1,66 @@
-From: keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2 3/3] regulator: lp87565: Add 4-phase lp87561 regulator
- support
-Date: Sat, 8 Jun 2019 09:26:31 +0530
-Message-ID: <e68d9939-a56a-b3c5-7f6d-e5783e16a6de@ti.com>
-References: <20190516043218.8222-1-j-keerthy@ti.com>
- <20190516043218.8222-4-j-keerthy@ti.com>
- <20190522153528.GG8582@sirena.org.uk>
- <1712197d-7d43-38a8-efde-11b99537eae9@ti.com>
- <20190528132755.GK2456@sirena.org.uk>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 08/49] clk: ti: clkctrl: Fix clkdm_clk handling
+Date: Sat,  8 Jun 2019 07:41:49 -0400
+Message-ID: <20190608114232.8731-8-sashal@kernel.org>
+References: <20190608114232.8731-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190528132755.GK2456@sirena.org.uk>
-Content-Language: en-US
+In-Reply-To: <20190608114232.8731-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: lee.jones@linaro.org, robh+dt@kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Tony Lindgren <tony@atomide.com>
 
+[ Upstream commit 1cc54078d104f5b4d7e9f8d55362efa5a8daffdb ]
 
-On 5/28/2019 6:57 PM, Mark Brown wrote:
-> On Tue, May 28, 2019 at 03:23:41PM +0530, Keerthy wrote:
->> On 22/05/19 9:05 PM, Mark Brown wrote:
->>> On Thu, May 16, 2019 at 10:02:18AM +0530, Keerthy wrote:
-> 
->>> Acked-by: Mark Brown <broonie@kernel.org>
-> 
->> This patch will come via the mfd branch?
-> 
-> I'd expect so, IIRC it had a build dependency on the earlier patches in
-> the series so if that doesn't happen I'll need to merge the relevant MFD
-> commits.
+We need to always call clkdm_clk_enable() and clkdm_clk_disable() even
+the clkctrl clock(s) enabled for the domain do not have any gate register
+bits. Otherwise clockdomains may never get enabled except when devices get
+probed with the legacy "ti,hwmods" devicetree property.
 
-Mark,
+Fixes: 88a172526c32 ("clk: ti: add support for clkctrl clocks")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/clk/ti/clkctrl.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-mfd patches are on linux-next already. Hope you can pull this one now 
-that dependencies are met.
-
-- Keerthy
-> 
+diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
+index 421b05392220..ca3218337fd7 100644
+--- a/drivers/clk/ti/clkctrl.c
++++ b/drivers/clk/ti/clkctrl.c
+@@ -137,9 +137,6 @@ static int _omap4_clkctrl_clk_enable(struct clk_hw *hw)
+ 	int ret;
+ 	union omap4_timeout timeout = { 0 };
+ 
+-	if (!clk->enable_bit)
+-		return 0;
+-
+ 	if (clk->clkdm) {
+ 		ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
+ 		if (ret) {
+@@ -151,6 +148,9 @@ static int _omap4_clkctrl_clk_enable(struct clk_hw *hw)
+ 		}
+ 	}
+ 
++	if (!clk->enable_bit)
++		return 0;
++
+ 	val = ti_clk_ll_ops->clk_readl(&clk->enable_reg);
+ 
+ 	val &= ~OMAP4_MODULEMODE_MASK;
+@@ -179,7 +179,7 @@ static void _omap4_clkctrl_clk_disable(struct clk_hw *hw)
+ 	union omap4_timeout timeout = { 0 };
+ 
+ 	if (!clk->enable_bit)
+-		return;
++		goto exit;
+ 
+ 	val = ti_clk_ll_ops->clk_readl(&clk->enable_reg);
+ 
+-- 
+2.20.1
