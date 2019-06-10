@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 04/20] gpio: gpio-omap: clean up edge interrupt handling
-Date: Mon, 10 Jun 2019 20:10:47 +0300
-Message-ID: <20190610171103.30903-5-grygorii.strashko@ti.com>
+Subject: [PATCH-next 05/20] gpio: gpio-omap: remove irq_ack method
+Date: Mon, 10 Jun 2019 20:10:48 +0300
+Message-ID: <20190610171103.30903-6-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,75 +14,63 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-The edge interrupt handling was effectively:
+The irq_ack method does not fit our hardware requirements. Edge
+interrupts must be cleared before we handle them, and level interrupts
+must be cleared after handling them.
 
-	isr = ISR_reg & enabled;
-	if (bank->level_mask)
-		level_mask = bank->level_mask & enabled;
-	else
-		level_mask = 0;
+We handle the interrupt clearance in our interrupt handler for edge IRQs
+and in the unmask method for level IRQs.
 
-	edge = isr & ~level_mask;
-
-When bank->level_mask is zero, level_mask will be computed as zero
-anyway, so the if() statement is redundant.  We are then left with:
-
-	isr = ISR_reg & enabled;
-	level_mask = bank->level_mask & enabled;
-	edge = isr & ~level_mask;
-
-This can be simplified further to:
-
-	isr = ISR_reg & enabled;
-	edge = isr & ~bank->level_mask;
-
-since the second mask with 'enabled' is redundant.
-
-Improve the associated comment as well.
+Replace the irq_ack method with the no-op method from the dummy irq
+chip.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/gpio/gpio-omap.c | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 708a135e2f0c..01da1c17bb20 100644
+index 01da1c17bb20..04e3da55e39c 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -733,7 +733,7 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
- static irqreturn_t omap_gpio_irq_handler(int irq, void *gpiobank)
- {
- 	void __iomem *isr_reg = NULL;
--	u32 enabled, isr, level_mask;
-+	u32 enabled, isr, edge;
- 	unsigned int bit;
- 	struct gpio_bank *bank = gpiobank;
- 	unsigned long wa_lock_flags;
-@@ -753,16 +753,14 @@ static irqreturn_t omap_gpio_irq_handler(int irq, void *gpiobank)
- 		enabled = omap_get_gpio_irqbank_mask(bank);
- 		isr = readl_relaxed(isr_reg) & enabled;
+@@ -852,14 +852,6 @@ static void gpio_irq_bus_sync_unlock(struct irq_data *data)
+ 	pm_runtime_put(bank->chip.parent);
+ }
  
--		if (bank->level_mask)
--			level_mask = bank->level_mask & enabled;
--		else
--			level_mask = 0;
+-static void omap_gpio_ack_irq(struct irq_data *d)
+-{
+-	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+-	unsigned offset = d->hwirq;
 -
--		/* clear edge sensitive interrupts before handler(s) are
--		called so that we don't miss any interrupt occurred while
--		executing them */
--		if (isr & ~level_mask)
--			omap_clear_gpio_irqbank(bank, isr & ~level_mask);
-+		/*
-+		 * Clear edge sensitive interrupts before calling handler(s)
-+		 * so subsequent edge transitions are not missed while the
-+		 * handlers are running.
-+		 */
-+		edge = isr & ~bank->level_mask;
-+		if (edge)
-+			omap_clear_gpio_irqbank(bank, edge);
+-	omap_clear_gpio_irqstatus(bank, offset);
+-}
+-
+ static void omap_gpio_mask_irq(struct irq_data *d)
+ {
+ 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+@@ -1181,11 +1173,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ #endif
  
- 		raw_spin_unlock_irqrestore(&bank->lock, lock_flags);
+ 	/* MPUIO is a bit different, reading IRQ status clears it */
+-	if (bank->is_mpuio) {
+-		irqc->irq_ack = dummy_irq_chip.irq_ack;
+-		if (!bank->regs->wkup_en)
+-			irqc->irq_set_wake = NULL;
+-	}
++	if (bank->is_mpuio && !bank->regs->wkup_en)
++		irqc->irq_set_wake = NULL;
  
+ 	irq = &bank->chip.irq;
+ 	irq->chip = irqc;
+@@ -1531,7 +1520,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 
+ 	irqc->irq_startup = omap_gpio_irq_startup,
+ 	irqc->irq_shutdown = omap_gpio_irq_shutdown,
+-	irqc->irq_ack = omap_gpio_ack_irq,
++	irqc->irq_ack = dummy_irq_chip.irq_ack,
+ 	irqc->irq_mask = omap_gpio_mask_irq,
+ 	irqc->irq_unmask = omap_gpio_unmask_irq,
+ 	irqc->irq_set_type = omap_gpio_irq_type,
 -- 
 2.17.1
