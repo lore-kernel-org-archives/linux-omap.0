@@ -1,40 +1,51 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 3/3] regulator: lp87565: Add 4-phase lp87561 regulator
- support
-Date: Mon, 10 Jun 2019 06:48:22 +0100
-Message-ID: <20190610054822.GE4797@dell>
-References: <20190516043218.8222-1-j-keerthy@ti.com>
- <20190516043218.8222-4-j-keerthy@ti.com>
- <20190522153528.GG8582@sirena.org.uk>
- <1712197d-7d43-38a8-efde-11b99537eae9@ti.com>
- <20190528132755.GK2456@sirena.org.uk>
- <e68d9939-a56a-b3c5-7f6d-e5783e16a6de@ti.com>
- <20190608195159.GA5316@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: next/master boot: 257 boots: 11 failed, 229 passed with 16
+ offline, 1 conflict (next-20190604)
+Date: Sun, 9 Jun 2019 23:41:45 -0700
+Message-ID: <20190610064145.GS5447@atomide.com>
+References: <5cf685d0.1c69fb81.e3d89.43ae@mx.google.com>
+ <20190604160018.GI2456@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190608195159.GA5316@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20190604160018.GI2456@sirena.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Mark Brown <broonie@kernel.org>
-Cc: keerthy <j-keerthy@ti.com>, robh+dt@kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+Cc: Kevin Hilman <khilman@baylibre.com>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 08 Jun 2019, Mark Brown wrote:
+Hi,
 
-> On Sat, Jun 08, 2019 at 09:26:31AM +0530, keerthy wrote:
+* Mark Brown <broonie@kernel.org> [190604 16:00]:
+> On Tue, Jun 04, 2019 at 07:53:04AM -0700, kernelci.org bot wrote:
 > 
-> > mfd patches are on linux-next already. Hope you can pull this one now that
-> > dependencies are met.
+> Today's -next fails to boot omap2plus_defconfig on Beagle XM:
 > 
-> Someone will need to send me a copy of the patch, if I acked it I was
-> expecting it to go in with the MFD changes.
+> >     omap2plus_defconfig:
+> >         gcc-8:
+> >           omap3-beagle-xm:
+> >               lab-baylibre: failing since 1 day (last pass: next-20190531 - first fail: next-20190603)
+> 
+> The boot fails silently with no output after the bootloader:
+> 
+>     https://kernelci.org/boot/id/5cf655fc59b5149acad51504/
+> 
+> which isn't much to go on, it does seem to have been OK in
+> multi_v7_defconfig though.
 
-There is/was no need for that.  Patches are built-time orthogonal.
+Thanks for the report, adding Kevin to Cc. I think this is the same
+board that seems to have started randomly failing?
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Regards,
+
+Tony
