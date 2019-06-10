@@ -1,23 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: dts: dra72x: Disable usb4_tm target module
-Date: Mon, 10 Jun 2019 00:06:02 -0700
-Message-ID: <20190610070602.GT5447@atomide.com>
-References: <20190604061335.8264-1-j-keerthy@ti.com>
+Subject: Re: [PATCH 1/7] ARM: dts: am335x phytec boards: Fix cd-gpios active
+ level
+Date: Mon, 10 Jun 2019 00:07:32 -0700
+Message-ID: <20190610070732.GU5447@atomide.com>
+References: <1558704003-393769-1-git-send-email-t.remmet@phytec.de>
+ <1558704003-393769-2-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190604061335.8264-1-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: robh+dt@kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com
+In-Reply-To: <1558704003-393769-2-git-send-email-t.remmet@phytec.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Teresa Remmet <t.remmet@phytec.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Daniel Schultz <d.schultz@phytec.de>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [190603 23:13]:
-> usb4_tm is unsed on dra72 and accessing the module
-> with ti,sysc is causing a boot crash hence disable its target
-> module.
+* Teresa Remmet <t.remmet@phytec.de> [190524 06:20]:
+> Active level of the mmc1 cd gpio needs to be low instead of high.
+> Fix PCM-953 and phyBOARD-WEGA.
 
-Thanks for testing and fixing this, applying into fixes.
+Thanks I'll pick this patch into fixes.
+
+Regards,
 
 Tony
