@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 16/20] gpio: gpio-omap: clean up omap_gpio_restore_context()
-Date: Mon, 10 Jun 2019 20:10:59 +0300
-Message-ID: <20190610171103.30903-17-grygorii.strashko@ti.com>
+Subject: [PATCH-next 19/20] gpio: gpio-omap: irq_startup() must not return error codes
+Date: Mon, 10 Jun 2019 20:11:02 +0300
+Message-ID: <20190610171103.30903-20-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,68 +14,40 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Use local variables to store the base iomem address and regs table
-pointer like omap_gpio_init_context() does. Not only does this make
-the function neater, it also avoids unnecessary reloads of the same
-data multiple times.
+The irq_startup() method returns an unsigned int, but in __irq_startup()
+it is assigned to an int.  However, nothing checks for errors, so any
+error that is returned is ignored.
+
+Remove the check for GPIO-input mode and the error return.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 36 +++++++++++++++---------------------
- 1 file changed, 15 insertions(+), 21 deletions(-)
+ drivers/gpio/gpio-omap.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c24a91b2df97..1c5fa12bcf9f 100644
+index 61e32c7e6670..94b10dfbff3f 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1094,32 +1094,26 @@ static void omap_gpio_init_context(struct gpio_bank *p)
+@@ -635,8 +635,6 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
  
- static void omap_gpio_restore_context(struct gpio_bank *bank)
- {
--	writel_relaxed(bank->context.wake_en,
--				bank->base + bank->regs->wkup_en);
--	writel_relaxed(bank->context.ctrl, bank->base + bank->regs->ctrl);
--	writel_relaxed(bank->context.leveldetect0,
--				bank->base + bank->regs->leveldetect0);
--	writel_relaxed(bank->context.leveldetect1,
--				bank->base + bank->regs->leveldetect1);
--	writel_relaxed(bank->context.risingdetect,
--				bank->base + bank->regs->risingdetect);
--	writel_relaxed(bank->context.fallingdetect,
--				bank->base + bank->regs->fallingdetect);
--	writel_relaxed(bank->context.dataout,
--				bank->base + bank->regs->dataout);
--	writel_relaxed(bank->context.oe, bank->base + bank->regs->direction);
-+	struct omap_gpio_reg_offs *regs = bank->regs;
-+	void __iomem *base = bank->base;
-+
-+	writel_relaxed(bank->context.wake_en, base + regs->wkup_en);
-+	writel_relaxed(bank->context.ctrl, base + regs->ctrl);
-+	writel_relaxed(bank->context.leveldetect0, base + regs->leveldetect0);
-+	writel_relaxed(bank->context.leveldetect1, base + regs->leveldetect1);
-+	writel_relaxed(bank->context.risingdetect, base + regs->risingdetect);
-+	writel_relaxed(bank->context.fallingdetect, base + regs->fallingdetect);
-+	writel_relaxed(bank->context.dataout, base + regs->dataout);
-+	writel_relaxed(bank->context.oe, base + regs->direction);
+ 	if (!LINE_USED(bank->mod_usage, offset))
+ 		omap_set_gpio_direction(bank, offset, 1);
+-	else if (!omap_gpio_is_input(bank, offset))
+-		goto err;
+ 	omap_enable_gpio_module(bank, offset);
+ 	bank->irq_usage |= BIT(offset);
  
- 	if (bank->dbck_enable_mask) {
--		writel_relaxed(bank->context.debounce, bank->base +
--					bank->regs->debounce);
-+		writel_relaxed(bank->context.debounce, base + regs->debounce);
- 		writel_relaxed(bank->context.debounce_en,
--					bank->base + bank->regs->debounce_en);
-+			       base + regs->debounce_en);
- 	}
+@@ -644,9 +642,6 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
+ 	omap_gpio_unmask_irq(d);
  
--	writel_relaxed(bank->context.irqenable1,
--				bank->base + bank->regs->irqenable);
--	writel_relaxed(bank->context.irqenable2,
--				bank->base + bank->regs->irqenable2);
-+	writel_relaxed(bank->context.irqenable1, base + regs->irqenable);
-+	writel_relaxed(bank->context.irqenable2, base + regs->irqenable2);
+ 	return 0;
+-err:
+-	raw_spin_unlock_irqrestore(&bank->lock, flags);
+-	return -EINVAL;
  }
  
- static void omap_gpio_idle(struct gpio_bank *bank, bool may_lose_context)
+ static void omap_gpio_irq_shutdown(struct irq_data *d)
 -- 
 2.17.1
