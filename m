@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 05/20] gpio: gpio-omap: remove irq_ack method
-Date: Mon, 10 Jun 2019 20:10:48 +0300
-Message-ID: <20190610171103.30903-6-grygorii.strashko@ti.com>
+Subject: [PATCH-next 06/20] gpio: gpio-omap: move omap_gpio_request() and omap_gpio_free()
+Date: Mon, 10 Jun 2019 20:10:49 +0300
+Message-ID: <20190610171103.30903-7-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,63 +14,97 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-The irq_ack method does not fit our hardware requirements. Edge
-interrupts must be cleared before we handle them, and level interrupts
-must be cleared after handling them.
-
-We handle the interrupt clearance in our interrupt handler for edge IRQs
-and in the unmask method for level IRQs.
-
-Replace the irq_ack method with the no-op method from the dummy irq
-chip.
+Move these two functions to live beside the rest of the gpio chip
+implementation, rather than in the middle of the irq chip
+implementation.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/gpio/gpio-omap.c | 64 ++++++++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 01da1c17bb20..04e3da55e39c 100644
+index 04e3da55e39c..cc320d09d074 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -852,14 +852,6 @@ static void gpio_irq_bus_sync_unlock(struct irq_data *data)
- 	pm_runtime_put(bank->chip.parent);
+@@ -689,38 +689,6 @@ static int omap_gpio_wake_enable(struct irq_data *d, unsigned int enable)
+ 	return irq_set_irq_wake(bank->irq, enable);
  }
  
--static void omap_gpio_ack_irq(struct irq_data *d)
+-static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
 -{
--	struct gpio_bank *bank = omap_irq_data_get_bank(d);
--	unsigned offset = d->hwirq;
+-	struct gpio_bank *bank = gpiochip_get_data(chip);
+-	unsigned long flags;
 -
--	omap_clear_gpio_irqstatus(bank, offset);
+-	pm_runtime_get_sync(chip->parent);
+-
+-	raw_spin_lock_irqsave(&bank->lock, flags);
+-	omap_enable_gpio_module(bank, offset);
+-	bank->mod_usage |= BIT(offset);
+-	raw_spin_unlock_irqrestore(&bank->lock, flags);
+-
+-	return 0;
 -}
 -
- static void omap_gpio_mask_irq(struct irq_data *d)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
-@@ -1181,11 +1173,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
- #endif
- 
- 	/* MPUIO is a bit different, reading IRQ status clears it */
--	if (bank->is_mpuio) {
--		irqc->irq_ack = dummy_irq_chip.irq_ack;
--		if (!bank->regs->wkup_en)
--			irqc->irq_set_wake = NULL;
+-static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+-{
+-	struct gpio_bank *bank = gpiochip_get_data(chip);
+-	unsigned long flags;
+-
+-	raw_spin_lock_irqsave(&bank->lock, flags);
+-	bank->mod_usage &= ~(BIT(offset));
+-	if (!LINE_USED(bank->irq_usage, offset)) {
+-		omap_set_gpio_direction(bank, offset, 1);
+-		omap_clear_gpio_debounce(bank, offset);
 -	}
-+	if (bank->is_mpuio && !bank->regs->wkup_en)
-+		irqc->irq_set_wake = NULL;
+-	omap_disable_gpio_module(bank, offset);
+-	raw_spin_unlock_irqrestore(&bank->lock, flags);
+-
+-	pm_runtime_put(chip->parent);
+-}
+-
+ /*
+  * We need to unmask the GPIO bank interrupt as soon as possible to
+  * avoid missing GPIO interrupts for other lines in the bank.
+@@ -951,6 +919,38 @@ static inline void omap_mpuio_init(struct gpio_bank *bank)
  
- 	irq = &bank->chip.irq;
- 	irq->chip = irqc;
-@@ -1531,7 +1520,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ /*---------------------------------------------------------------------*/
  
- 	irqc->irq_startup = omap_gpio_irq_startup,
- 	irqc->irq_shutdown = omap_gpio_irq_shutdown,
--	irqc->irq_ack = omap_gpio_ack_irq,
-+	irqc->irq_ack = dummy_irq_chip.irq_ack,
- 	irqc->irq_mask = omap_gpio_mask_irq,
- 	irqc->irq_unmask = omap_gpio_unmask_irq,
- 	irqc->irq_set_type = omap_gpio_irq_type,
++static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
++{
++	struct gpio_bank *bank = gpiochip_get_data(chip);
++	unsigned long flags;
++
++	pm_runtime_get_sync(chip->parent);
++
++	raw_spin_lock_irqsave(&bank->lock, flags);
++	omap_enable_gpio_module(bank, offset);
++	bank->mod_usage |= BIT(offset);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
++
++	return 0;
++}
++
++static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
++{
++	struct gpio_bank *bank = gpiochip_get_data(chip);
++	unsigned long flags;
++
++	raw_spin_lock_irqsave(&bank->lock, flags);
++	bank->mod_usage &= ~(BIT(offset));
++	if (!LINE_USED(bank->irq_usage, offset)) {
++		omap_set_gpio_direction(bank, offset, 1);
++		omap_clear_gpio_debounce(bank, offset);
++	}
++	omap_disable_gpio_module(bank, offset);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
++
++	pm_runtime_put(chip->parent);
++}
++
+ static int omap_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
+ {
+ 	struct gpio_bank *bank;
 -- 
 2.17.1
