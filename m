@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 20/20] gpio: gpio-omap: clean up register access in omap2_set_gpio_debounce()
-Date: Mon, 10 Jun 2019 20:11:03 +0300
-Message-ID: <20190610171103.30903-21-grygorii.strashko@ti.com>
+Subject: [PATCH-next 16/20] gpio: gpio-omap: clean up omap_gpio_restore_context()
+Date: Mon, 10 Jun 2019 20:10:59 +0300
+Message-ID: <20190610171103.30903-17-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,33 +14,68 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
+Use local variables to store the base iomem address and regs table
+pointer like omap_gpio_init_context() does. Not only does this make
+the function neater, it also avoids unnecessary reloads of the same
+data multiple times.
+
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/gpio-omap.c | 36 +++++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 94b10dfbff3f..52592eac0895 100644
+index c24a91b2df97..1c5fa12bcf9f 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -181,7 +181,6 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
- static int omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
- 				   unsigned debounce)
+@@ -1094,32 +1094,26 @@ static void omap_gpio_init_context(struct gpio_bank *p)
+ 
+ static void omap_gpio_restore_context(struct gpio_bank *bank)
  {
--	void __iomem		*reg;
- 	u32			val;
- 	u32			l;
- 	bool			enable = !!debounce;
-@@ -198,8 +197,7 @@ static int omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
- 	l = BIT(offset);
+-	writel_relaxed(bank->context.wake_en,
+-				bank->base + bank->regs->wkup_en);
+-	writel_relaxed(bank->context.ctrl, bank->base + bank->regs->ctrl);
+-	writel_relaxed(bank->context.leveldetect0,
+-				bank->base + bank->regs->leveldetect0);
+-	writel_relaxed(bank->context.leveldetect1,
+-				bank->base + bank->regs->leveldetect1);
+-	writel_relaxed(bank->context.risingdetect,
+-				bank->base + bank->regs->risingdetect);
+-	writel_relaxed(bank->context.fallingdetect,
+-				bank->base + bank->regs->fallingdetect);
+-	writel_relaxed(bank->context.dataout,
+-				bank->base + bank->regs->dataout);
+-	writel_relaxed(bank->context.oe, bank->base + bank->regs->direction);
++	struct omap_gpio_reg_offs *regs = bank->regs;
++	void __iomem *base = bank->base;
++
++	writel_relaxed(bank->context.wake_en, base + regs->wkup_en);
++	writel_relaxed(bank->context.ctrl, base + regs->ctrl);
++	writel_relaxed(bank->context.leveldetect0, base + regs->leveldetect0);
++	writel_relaxed(bank->context.leveldetect1, base + regs->leveldetect1);
++	writel_relaxed(bank->context.risingdetect, base + regs->risingdetect);
++	writel_relaxed(bank->context.fallingdetect, base + regs->fallingdetect);
++	writel_relaxed(bank->context.dataout, base + regs->dataout);
++	writel_relaxed(bank->context.oe, base + regs->direction);
  
- 	clk_enable(bank->dbck);
--	reg = bank->base + bank->regs->debounce;
--	writel_relaxed(debounce, reg);
-+	writel_relaxed(debounce, bank->base + bank->regs->debounce);
+ 	if (bank->dbck_enable_mask) {
+-		writel_relaxed(bank->context.debounce, bank->base +
+-					bank->regs->debounce);
++		writel_relaxed(bank->context.debounce, base + regs->debounce);
+ 		writel_relaxed(bank->context.debounce_en,
+-					bank->base + bank->regs->debounce_en);
++			       base + regs->debounce_en);
+ 	}
  
- 	val = omap_gpio_rmw(bank->base + bank->regs->debounce_en, l, enable);
- 	bank->dbck_enable_mask = val;
+-	writel_relaxed(bank->context.irqenable1,
+-				bank->base + bank->regs->irqenable);
+-	writel_relaxed(bank->context.irqenable2,
+-				bank->base + bank->regs->irqenable2);
++	writel_relaxed(bank->context.irqenable1, base + regs->irqenable);
++	writel_relaxed(bank->context.irqenable2, base + regs->irqenable2);
+ }
+ 
+ static void omap_gpio_idle(struct gpio_bank *bank, bool may_lose_context)
 -- 
 2.17.1
