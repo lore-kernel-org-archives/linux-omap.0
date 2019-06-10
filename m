@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 09/20] gpio: gpio-omap: simplify get_multiple()
-Date: Mon, 10 Jun 2019 20:10:52 +0300
-Message-ID: <20190610171103.30903-10-grygorii.strashko@ti.com>
+Subject: [PATCH-next 11/20] gpio: gpio-omap: simplify bank->level_mask
+Date: Mon, 10 Jun 2019 20:10:54 +0300
+Message-ID: <20190610171103.30903-12-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,72 +14,41 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-There is no reason to have helper functions to read the datain and
-dataout registers when they are only used in one location.  Simplify
-this code to make it more readable.
+bank->level_mask is merely the bitwise or of the level detection
+context which we have already read in this function.  Rather than
+repeating additional reads, compute it from the values already
+read.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 36 +++++++++++-------------------------
- 1 file changed, 11 insertions(+), 25 deletions(-)
+ drivers/gpio/gpio-omap.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index bf1e6f1d0de7..a26decc5c611 100644
+index 8fdac6e4a929..369ce46e2b09 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -175,22 +175,6 @@ static void omap_set_gpio_dataout_mask_multiple(struct gpio_bank *bank,
- 	bank->context.dataout = l;
- }
+@@ -325,6 +325,9 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 	bank->context.fallingdetect =
+ 			readl_relaxed(bank->base + bank->regs->fallingdetect);
  
--static unsigned long omap_get_gpio_datain_multiple(struct gpio_bank *bank,
--					      unsigned long *mask)
--{
--	void __iomem *reg = bank->base + bank->regs->datain;
--
--	return readl_relaxed(reg) & *mask;
--}
--
--static unsigned long omap_get_gpio_dataout_multiple(struct gpio_bank *bank,
--					       unsigned long *mask)
--{
--	void __iomem *reg = bank->base + bank->regs->dataout;
--
--	return readl_relaxed(reg) & *mask;
--}
--
- static inline void omap_gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
- {
- 	int l = readl_relaxed(base + reg);
-@@ -987,18 +971,20 @@ static int omap_gpio_get_multiple(struct gpio_chip *chip, unsigned long *mask,
- 				  unsigned long *bits)
- {
- 	struct gpio_bank *bank = gpiochip_get_data(chip);
--	void __iomem *reg = bank->base + bank->regs->direction;
--	unsigned long in = readl_relaxed(reg), l;
-+	void __iomem *base = bank->base;
-+	u32 direction, m, val = 0;
++	bank->level_mask = bank->context.leveldetect0 |
++			   bank->context.leveldetect1;
 +
-+	direction = readl_relaxed(base + bank->regs->direction);
- 
--	*bits = 0;
-+	m = direction & *mask;
-+	if (m)
-+		val |= readl_relaxed(base + bank->regs->datain) & m;
- 
--	l = in & *mask;
--	if (l)
--		*bits |= omap_get_gpio_datain_multiple(bank, &l);
-+	m = ~direction & *mask;
-+	if (m)
-+		val |= readl_relaxed(base + bank->regs->dataout) & m;
- 
--	l = ~in & *mask;
--	if (l)
--		*bits |= omap_get_gpio_dataout_multiple(bank, &l);
-+	*bits = val;
- 
- 	return 0;
+ 	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+ 		omap_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
+ 		bank->context.wake_en =
+@@ -344,10 +347,6 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 		else
+ 			bank->enabled_non_wakeup_gpios &= ~gpio_bit;
+ 	}
+-
+-	bank->level_mask =
+-		readl_relaxed(bank->base + bank->regs->leveldetect0) |
+-		readl_relaxed(bank->base + bank->regs->leveldetect1);
  }
+ 
+ #ifdef CONFIG_ARCH_OMAP1
 -- 
 2.17.1
