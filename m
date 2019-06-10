@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 13/20] gpio: gpio-omap: simplify omap_toggle_gpio_edge_triggering()
-Date: Mon, 10 Jun 2019 20:10:56 +0300
-Message-ID: <20190610171103.30903-14-grygorii.strashko@ti.com>
+Subject: [PATCH-next 14/20] gpio: gpio-omap: simplify omap_set_gpio_irqenable()
+Date: Mon, 10 Jun 2019 20:10:57 +0300
+Message-ID: <20190610171103.30903-15-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,59 +14,96 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-This function open-codes an exclusive-or bitwise operation using an
-if() statement and explicitly setting or clearing the bit. Instead,
-use an exclusive-or operation instead, and simplify the function.
+omap_set_gpio_irqenable() calls two helpers that are almost the same
+apart from whether they set or clear bits. We can consolidate these:
 
-We can combine the preprocessor conditional using IS_ENABLED() and
-gain some additional compilation coverage.
+- in the set/clear bit register case, we can perform the operation on
+  our saved context copy and write the appropriate set/clear register.
+- otherwise, we can use our read-modify-write helper and invert enable
+  if irqenable_inv is set.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ drivers/gpio/gpio-omap.c | 61 ++++++++++------------------------------
+ 1 file changed, 15 insertions(+), 46 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 1a0890586b45..097ed8d1a117 100644
+index 097ed8d1a117..a90e27d7ce5e 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -326,32 +326,18 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
- 	}
+@@ -529,57 +529,26 @@ static u32 omap_get_gpio_irqbank_mask(struct gpio_bank *bank)
+ 	return l;
  }
  
--#ifdef CONFIG_ARCH_OMAP1
- /*
-  * This only applies to chips that can't do both rising and falling edge
-  * detection at once.  For all other chips, this function is a noop.
-  */
- static void omap_toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
- {
+-static void omap_enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+-{
 -	void __iomem *reg = bank->base;
--	u32 l = 0;
+-	u32 l;
 -
--	if (!bank->regs->irqctrl)
--		return;
--
--	reg += bank->regs->irqctrl;
-+	if (IS_ENABLED(CONFIG_ARCH_OMAP1) && bank->regs->irqctrl) {
-+		void __iomem *reg = bank->base + bank->regs->irqctrl;
- 
--	l = readl_relaxed(reg);
--	if ((l >> gpio) & 1)
--		l &= ~(BIT(gpio));
--	else
--		l |= BIT(gpio);
+-	if (bank->regs->set_irqenable) {
+-		reg += bank->regs->set_irqenable;
+-		l = gpio_mask;
+-		bank->context.irqenable1 |= gpio_mask;
+-	} else {
+-		reg += bank->regs->irqenable;
+-		l = readl_relaxed(reg);
+-		if (bank->regs->irqenable_inv)
+-			l &= ~gpio_mask;
+-		else
+-			l |= gpio_mask;
+-		bank->context.irqenable1 = l;
+-	}
 -
 -	writel_relaxed(l, reg);
-+		writel_relaxed(readl_relaxed(reg) ^ BIT(gpio), reg);
-+	}
- }
--#else
--static void omap_toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio) {}
--#endif
+-}
+-
+-static void omap_disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
++static inline void omap_set_gpio_irqenable(struct gpio_bank *bank,
++					   unsigned offset, int enable)
+ {
+ 	void __iomem *reg = bank->base;
+-	u32 l;
++	u32 gpio_mask = BIT(offset);
  
- static int omap_set_gpio_triggering(struct gpio_bank *bank, int gpio,
- 				    unsigned trigger)
+-	if (bank->regs->clr_irqenable) {
+-		reg += bank->regs->clr_irqenable;
+-		l = gpio_mask;
+-		bank->context.irqenable1 &= ~gpio_mask;
++	if (bank->regs->set_irqenable && bank->regs->clr_irqenable) {
++		if (enable) {
++			reg += bank->regs->set_irqenable;
++			bank->context.irqenable1 |= gpio_mask;
++		} else {
++			reg += bank->regs->clr_irqenable;
++			bank->context.irqenable1 &= ~gpio_mask;
++		}
++		writel_relaxed(gpio_mask, reg);
+ 	} else {
+-		reg += bank->regs->irqenable;
+-		l = readl_relaxed(reg);
+-		if (bank->regs->irqenable_inv)
+-			l |= gpio_mask;
+-		else
+-			l &= ~gpio_mask;
+-		bank->context.irqenable1 = l;
++		bank->context.irqenable1 =
++			omap_gpio_rmw(reg + bank->regs->irqenable, gpio_mask,
++				      enable ^ bank->regs->irqenable_inv);
+ 	}
+-
+-	writel_relaxed(l, reg);
+-}
+-
+-static inline void omap_set_gpio_irqenable(struct gpio_bank *bank,
+-					   unsigned offset, int enable)
+-{
+-	if (enable)
+-		omap_enable_gpio_irqbank(bank, BIT(offset));
+-	else
+-		omap_disable_gpio_irqbank(bank, BIT(offset));
+ }
+ 
+ /* Use disable_irq_wake() and enable_irq_wake() functions from drivers */
 -- 
 2.17.1
