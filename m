@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 02/20] gpio: gpio-omap: fix lack of irqstatus_raw0 for OMAP4
-Date: Mon, 10 Jun 2019 20:10:45 +0300
-Message-ID: <20190610171103.30903-3-grygorii.strashko@ti.com>
+Subject: [PATCH-next 03/20] gpio: gpio-omap: remove remainder of list management
+Date: Mon, 10 Jun 2019 20:10:46 +0300
+Message-ID: <20190610171103.30903-4-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,35 +14,37 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Commit 384ebe1c2849 ("gpio/omap: Add DT support to GPIO driver") added
-the register definition tables to the gpio-omap driver. Subsequently to
-that commit, commit 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx()
-checks from *_runtime_resume()") added definitions for irqstatus_raw*
-registers to the legacy OMAP4 definitions, but missed the DT
-definitions.
+Commit c4791bc6e3a6 ("gpio: omap: drop omap_gpio_list") removed the
+list head and addition to the list head of each gpio bank, but failed
+to remove the list_del() call and the node inside struct gpio_bank.
+Remove these too.
 
-This causes an unintentional change of behaviour for the 1.101 errata
-workaround on OMAP4 platforms. Fix this oversight.
-
-Fixes: 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()")
+Fixes: c4791bc6e3a6 ("gpio: omap: drop omap_gpio_list")
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/gpio/gpio-omap.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 2c6d46396834..44b214e5cefb 100644
+index 44b214e5cefb..708a135e2f0c 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1457,6 +1457,8 @@ static struct omap_gpio_reg_offs omap4_gpio_regs = {
- 	.clr_dataout =		OMAP4_GPIO_CLEARDATAOUT,
- 	.irqstatus =		OMAP4_GPIO_IRQSTATUS0,
- 	.irqstatus2 =		OMAP4_GPIO_IRQSTATUS1,
-+	.irqstatus_raw0 =	OMAP4_GPIO_IRQSTATUSRAW0,
-+	.irqstatus_raw1 =	OMAP4_GPIO_IRQSTATUSRAW1,
- 	.irqenable =		OMAP4_GPIO_IRQSTATUSSET0,
- 	.irqenable2 =		OMAP4_GPIO_IRQSTATUSSET1,
- 	.set_irqenable =	OMAP4_GPIO_IRQSTATUSSET0,
+@@ -47,7 +47,6 @@ struct gpio_regs {
+ };
+ 
+ struct gpio_bank {
+-	struct list_head node;
+ 	void __iomem *base;
+ 	int irq;
+ 	u32 non_wakeup_gpios;
+@@ -1641,7 +1640,6 @@ static int omap_gpio_remove(struct platform_device *pdev)
+ 	struct gpio_bank *bank = platform_get_drvdata(pdev);
+ 
+ 	cpu_pm_unregister_notifier(&bank->nb);
+-	list_del(&bank->node);
+ 	gpiochip_remove(&bank->chip);
+ 	pm_runtime_disable(&pdev->dev);
+ 	if (bank->dbck_flag)
 -- 
 2.17.1
