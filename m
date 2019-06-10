@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 15/20] gpio: gpio-omap: remove dataout variation in context handling
-Date: Mon, 10 Jun 2019 20:10:58 +0300
-Message-ID: <20190610171103.30903-16-grygorii.strashko@ti.com>
+Subject: [PATCH-next 18/20] gpio: gpio-omap: clean up wakeup handling
+Date: Mon, 10 Jun 2019 20:11:01 +0300
+Message-ID: <20190610171103.30903-19-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,47 +14,86 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-When a GPIO block has the set/clear dataout registers implemented, it
-also has the normal dataout register implemented. Reading this register
-reads the current GPIO output state, and writing it sets the GPIOs to
-the explicit state. This is the behaviour that we want when saving and
-restoring the context, so use the dataout register exclusively.
-
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/gpio/gpio-omap.c | 36 +++++++++++++-----------------------
+ 1 file changed, 13 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index a90e27d7ce5e..c24a91b2df97 100644
+index 039bbb1ae6cb..61e32c7e6670 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1087,11 +1087,7 @@ static void omap_gpio_init_context(struct gpio_bank *p)
- 	p->context.fallingdetect = readl_relaxed(base + regs->fallingdetect);
- 	p->context.irqenable1	= readl_relaxed(base + regs->irqenable);
- 	p->context.irqenable2	= readl_relaxed(base + regs->irqenable2);
+@@ -305,12 +305,6 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 	bank->level_mask = bank->context.leveldetect0 |
+ 			   bank->context.leveldetect1;
+ 
+-	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+-		omap_gpio_rmw(base + bank->regs->wkup_en, gpio_bit, trigger != 0);
+-		bank->context.wake_en =
+-			readl_relaxed(bank->base + bank->regs->wkup_en);
+-	}
 -
--	if (regs->set_dataout && p->regs->clr_dataout)
--		p->context.dataout = readl_relaxed(base + regs->set_dataout);
--	else
--		p->context.dataout = readl_relaxed(base + regs->dataout);
-+	p->context.dataout	= readl_relaxed(base + regs->dataout);
+ 	/* This part needs to be executed always for OMAP{34xx, 44xx} */
+ 	if (!bank->regs->irqctrl && !omap_gpio_is_off_wakeup_capable(bank, gpio)) {
+ 		/*
+@@ -343,7 +337,6 @@ static int omap_set_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 				    unsigned trigger)
+ {
+ 	void __iomem *reg = bank->base;
+-	void __iomem *base = bank->base;
+ 	u32 l = 0;
  
- 	p->context_valid = true;
+ 	if (bank->regs->leveldetect0 && bank->regs->wkup_en) {
+@@ -375,11 +368,6 @@ static int omap_set_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 			l |= 2 << (gpio << 1);
+ 		if (trigger & IRQ_TYPE_EDGE_FALLING)
+ 			l |= BIT(gpio << 1);
+-
+-		/* Enable wake-up during idle for dynamic tick */
+-		omap_gpio_rmw(base + bank->regs->wkup_en, BIT(gpio), trigger);
+-		bank->context.wake_en =
+-			readl_relaxed(bank->base + bank->regs->wkup_en);
+ 		writel_relaxed(l, reg);
+ 	}
+ 	return 0;
+@@ -408,17 +396,6 @@ static void omap_enable_gpio_module(struct gpio_bank *bank, unsigned offset)
+ 
+ static void omap_disable_gpio_module(struct gpio_bank *bank, unsigned offset)
+ {
+-	void __iomem *base = bank->base;
+-
+-	if (bank->regs->wkup_en &&
+-	    !LINE_USED(bank->mod_usage, offset) &&
+-	    !LINE_USED(bank->irq_usage, offset)) {
+-		/* Disable wake-up during idle for dynamic tick */
+-		omap_gpio_rmw(base + bank->regs->wkup_en, BIT(offset), 0);
+-		bank->context.wake_en =
+-			readl_relaxed(bank->base + bank->regs->wkup_en);
+-	}
+-
+ 	if (bank->regs->ctrl && !BANK_USED(bank)) {
+ 		void __iomem *reg = bank->base + bank->regs->ctrl;
+ 		u32 ctrl;
+@@ -549,6 +526,19 @@ static inline void omap_set_gpio_irqenable(struct gpio_bank *bank,
+ 			omap_gpio_rmw(reg + bank->regs->irqenable, gpio_mask,
+ 				      enable ^ bank->regs->irqenable_inv);
+ 	}
++
++	/*
++	 * Program GPIO wakeup along with IRQ enable to satisfy OMAP4430 TRM
++	 * note requiring correlation between the IRQ enable registers and
++	 * the wakeup registers.  In any case, we want wakeup from idle
++	 * enabled for the GPIOs which support this feature.
++	 */
++	if (bank->regs->wkup_en &&
++	    (bank->regs->edgectrl1 || !(bank->non_wakeup_gpios & gpio_mask))) {
++		bank->context.wake_en =
++			omap_gpio_rmw(bank->base + bank->regs->wkup_en,
++				      gpio_mask, enable);
++	}
  }
-@@ -1109,11 +1105,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 				bank->base + bank->regs->risingdetect);
- 	writel_relaxed(bank->context.fallingdetect,
- 				bank->base + bank->regs->fallingdetect);
--	if (bank->regs->set_dataout && bank->regs->clr_dataout)
--		writel_relaxed(bank->context.dataout,
--				bank->base + bank->regs->set_dataout);
--	else
--		writel_relaxed(bank->context.dataout,
-+	writel_relaxed(bank->context.dataout,
- 				bank->base + bank->regs->dataout);
- 	writel_relaxed(bank->context.oe, bank->base + bank->regs->direction);
  
+ /* Use disable_irq_wake() and enable_irq_wake() functions from drivers */
 -- 
 2.17.1
