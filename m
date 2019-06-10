@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH-next 08/20] gpio: gpio-omap: simplify get() method
-Date: Mon, 10 Jun 2019 20:10:51 +0300
-Message-ID: <20190610171103.30903-9-grygorii.strashko@ti.com>
+Subject: [PATCH-next 10/20] gpio: gpio-omap: simplify set_multiple()
+Date: Mon, 10 Jun 2019 20:10:53 +0300
+Message-ID: <20190610171103.30903-11-grygorii.strashko@ti.com>
 References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,62 +14,108 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-omap_gpio_get() calls omap_get_gpio_datain() or omap_get_gpio_dataout()
-to read the GPIO state. These two functions are only called from this
-method, so they don't add much value.  Move their contents into
-omap_gpio_get() method and simplify.
+One of the reasons for set_multiple() to exist is to allow multiple
+GPIOs on the same chip to be changed simultaneously - see commit
+5f42424354f5 ("gpiolib: allow simultaneous setting of multiple GPIO
+outputs"):
+
+ - Simultaneous glitch-free setting of multiple pins on any kind of
+   parallel bus attached to GPIOs provided they all reside on the
+   same chip and bank.
+
+In order for this to work, we should not use the atomic set/clear
+registers, but instead read-modify-write the dataout register.  We
+already take the spinlock to ensure that happens atomically, so
+move the code into the set_multiple() function and kill the two
+helper functions.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 25 ++++++-------------------
- 1 file changed, 6 insertions(+), 19 deletions(-)
+ drivers/gpio/gpio-omap.c | 45 +++++++---------------------------------
+ 1 file changed, 7 insertions(+), 38 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 44a4287cce9e..bf1e6f1d0de7 100644
+index a26decc5c611..8fdac6e4a929 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -146,20 +146,6 @@ static void omap_set_gpio_dataout_mask(struct gpio_bank *bank, unsigned offset,
+@@ -74,8 +74,6 @@ struct gpio_bank {
+ 	int context_loss_count;
+ 
+ 	void (*set_dataout)(struct gpio_bank *bank, unsigned gpio, int enable);
+-	void (*set_dataout_multiple)(struct gpio_bank *bank,
+-				     unsigned long *mask, unsigned long *bits);
+ 	int (*get_context_loss_count)(struct device *dev);
+ 
+ 	struct omap_gpio_reg_offs *regs;
+@@ -146,35 +144,6 @@ static void omap_set_gpio_dataout_mask(struct gpio_bank *bank, unsigned offset,
  	bank->context.dataout = l;
  }
  
--static int omap_get_gpio_datain(struct gpio_bank *bank, int offset)
+-/* set multiple data out values using dedicate set/clear register */
+-static void omap_set_gpio_dataout_reg_multiple(struct gpio_bank *bank,
+-					       unsigned long *mask,
+-					       unsigned long *bits)
 -{
--	void __iomem *reg = bank->base + bank->regs->datain;
+-	void __iomem *reg = bank->base;
+-	u32 l;
 -
--	return (readl_relaxed(reg) & (BIT(offset))) != 0;
+-	l = *bits & *mask;
+-	writel_relaxed(l, reg + bank->regs->set_dataout);
+-	bank->context.dataout |= l;
+-
+-	l = ~*bits & *mask;
+-	writel_relaxed(l, reg + bank->regs->clr_dataout);
+-	bank->context.dataout &= ~l;
 -}
 -
--static int omap_get_gpio_dataout(struct gpio_bank *bank, int offset)
+-/* set multiple data out values using mask register */
+-static void omap_set_gpio_dataout_mask_multiple(struct gpio_bank *bank,
+-						unsigned long *mask,
+-						unsigned long *bits)
 -{
 -	void __iomem *reg = bank->base + bank->regs->dataout;
+-	u32 l = (readl_relaxed(reg) & ~*mask) | (*bits & *mask);
 -
--	return (readl_relaxed(reg) & (BIT(offset))) != 0;
+-	writel_relaxed(l, reg);
+-	bank->context.dataout = l;
 -}
 -
- /* set multiple data out values using dedicate set/clear register */
- static void omap_set_gpio_dataout_reg_multiple(struct gpio_bank *bank,
- 					       unsigned long *mask,
-@@ -973,14 +959,15 @@ static int omap_gpio_input(struct gpio_chip *chip, unsigned offset)
- 
- static int omap_gpio_get(struct gpio_chip *chip, unsigned offset)
+ static inline void omap_gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
  {
--	struct gpio_bank *bank;
--
--	bank = gpiochip_get_data(chip);
-+	struct gpio_bank *bank = gpiochip_get_data(chip);
-+	void __iomem *reg;
+ 	int l = readl_relaxed(base + reg);
+@@ -1037,10 +1006,14 @@ static void omap_gpio_set_multiple(struct gpio_chip *chip, unsigned long *mask,
+ 				   unsigned long *bits)
+ {
+ 	struct gpio_bank *bank = gpiochip_get_data(chip);
++	void __iomem *reg = bank->base + bank->regs->dataout;
+ 	unsigned long flags;
++	u32 l;
  
- 	if (omap_gpio_is_input(bank, offset))
--		return omap_get_gpio_datain(bank, offset);
-+		reg = bank->base + bank->regs->datain;
- 	else
--		return omap_get_gpio_dataout(bank, offset);
-+		reg = bank->base + bank->regs->dataout;
-+
-+	return (readl_relaxed(reg) & BIT(offset)) != 0;
+ 	raw_spin_lock_irqsave(&bank->lock, flags);
+-	bank->set_dataout_multiple(bank, mask, bits);
++	l = (readl_relaxed(reg) & ~*mask) | (*bits & *mask);
++	writel_relaxed(l, reg);
++	bank->context.dataout = l;
+ 	raw_spin_unlock_irqrestore(&bank->lock, flags);
  }
  
- static int omap_gpio_output(struct gpio_chip *chip, unsigned offset, int value)
+@@ -1530,14 +1503,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 				pdata->get_context_loss_count;
+ 	}
+ 
+-	if (bank->regs->set_dataout && bank->regs->clr_dataout) {
++	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+ 		bank->set_dataout = omap_set_gpio_dataout_reg;
+-		bank->set_dataout_multiple = omap_set_gpio_dataout_reg_multiple;
+-	} else {
++	else
+ 		bank->set_dataout = omap_set_gpio_dataout_mask;
+-		bank->set_dataout_multiple =
+-				omap_set_gpio_dataout_mask_multiple;
+-	}
+ 
+ 	raw_spin_lock_init(&bank->lock);
+ 	raw_spin_lock_init(&bank->wa_lock);
 -- 
 2.17.1
