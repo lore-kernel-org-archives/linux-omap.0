@@ -1,61 +1,80 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 23/30] of/platform: Export
- of_platform_device_create_pdata()
-Date: Tue, 11 Jun 2019 10:08:24 +0530
-Message-ID: <a80c7c33-7091-70d9-cd86-a19fe43d3bc6@ti.com>
-References: <20190604131516.13596-1-kishon@ti.com>
- <20190604131516.13596-24-kishon@ti.com>
- <CAL_JsqJ5gsctd7L3VOhTO1JdUqmMmSJRpos1XQyfxzmGO7wauw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH-next 00/20]  gpio: gpio-omap: set of fixes and big
+ clean-up
+Date: Tue, 11 Jun 2019 00:37:20 -0700
+Message-ID: <20190611073720.GB5447@atomide.com>
+References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <CAL_JsqJ5gsctd7L3VOhTO1JdUqmMmSJRpos1XQyfxzmGO7wauw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:ARM/Rockchip SoC..." <linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tom Joseph <tjoseph-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>, Gustavo Pimentel <gustavo.pimentel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190610171103.30903-1-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Russell King <rmk@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
+Hi,
 
-On 10/06/19 11:13 PM, Rob Herring wrote:
-> On Tue, Jun 4, 2019 at 7:19 AM Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
->>
->> Export of_platform_device_create_pdata() to be used by drivers to
->> create child devices with the given platform data. This can be used
->> by platform specific driver to send platform data core driver. For e.g.,
->> this will be used by TI's J721E SoC specific PCIe driver to send
->> ->start_link() ops and ->is_link_up() ops to Cadence core PCIe driver.
+* Grygorii Strashko <grygorii.strashko@ti.com> [190610 10:11]:
+> Hi Linus, Russell, Tony, All,
 > 
-> NAK
+> This series contains set of patches from Russell King which were circulated
+> internally for quite some time already and I fill it's reasonable to move
+> future discussion upstream (and also avoid rebasing).
+> Fisrt two patches are fixes and the rest are big, great clean up
+> from Russell King.
 > 
-> of_platform_device_create_pdata() is purely for legacy handling of
-> auxdata which is something I hope to get rid of someday. Or to put it
-> another way, auxdata use is a sign of platforms not fully converted to
-> DT.
+> Personally, I like this clean up and refactoring very much and don't want
+> it to be lost.
 
-All right. Thanks for letting me know your thoughts.
+Adding Aaro to Cc too hopefully for more testing. Yes this is very nice
+and behaves for my idle test cases. I've also boot tested omap1 osk and
+it still works just fine for NFSroot.
 
-Lorenzo,
+FYI, after this series, the only issue I'm aware of still remaining
+is the lost edge wake-up interrupts for L4 PER idle that I posted a WIP
+fix as "[PATCH] gpio: gpio-omap: Fix lost edge wake-up interrupts".
+But that one still needs a bit more work and is a separate fix from this
+series.
 
-We've modeled Cadence PCIe core as a separate driver and for some of the
-functionalities (for example starting LTSSM or checking link status) it has to
-invoke the wrapper driver functions (The registers for these are present in
-wrapper and not in Cadence Core). In the case of Designware, we modeled DWC
-core as a library which provided APIs to be used by wrapper driver. Now that
-Rob is not inclined for passing platform data from one driver to another (in
-this case TI specific J721E driver to Cadence PCIe driver), should we model
-Cadence core also as a library? If you agree, I can prepare patches for making
-Cadence PCIe core as a library. Please let me know your thoughts.
+So for this whole series, please feel free to add:
 
-Thanks
-Kishon
+Tested-by: Tony Lindgren <tony@atomide.com>
+
+
+
+> Code can be found at:
+>  git@git.ti.com:~gragst/ti-linux-kernel/gragsts-ti-linux-kernel.git
+> branch:
+>  lkml-next-gpio-clean-up
+> 
+> Russell King (20):
+>   gpio: gpio-omap: ensure irq is enabled before wakeup
+>   gpio: gpio-omap: fix lack of irqstatus_raw0 for OMAP4
+>   gpio: gpio-omap: remove remainder of list management
+>   gpio: gpio-omap: clean up edge interrupt handling
+>   gpio: gpio-omap: remove irq_ack method
+>   gpio: gpio-omap: move omap_gpio_request() and omap_gpio_free()
+>   gpio: gpio-omap: simplify omap_gpio_get_direction()
+>   gpio: gpio-omap: simplify get() method
+>   gpio: gpio-omap: simplify get_multiple()
+>   gpio: gpio-omap: simplify set_multiple()
+>   gpio: gpio-omap: simplify bank->level_mask
+>   gpio: gpio-omap: simplify read-modify-write
+>   gpio: gpio-omap: simplify omap_toggle_gpio_edge_triggering()
+>   gpio: gpio-omap: simplify omap_set_gpio_irqenable()
+>   gpio: gpio-omap: remove dataout variation in context handling
+>   gpio: gpio-omap: clean up omap_gpio_restore_context()
+>   gpio: gpio-omap: constify register tables
+>   gpio: gpio-omap: clean up wakeup handling
+>   gpio: gpio-omap: irq_startup() must not return error codes
+>   gpio: gpio-omap: clean up register access in omap2_set_gpio_debounce()
+> 
+>  drivers/gpio/gpio-omap.c                | 497 ++++++++----------------
+>  include/linux/platform_data/gpio-omap.h |   2 +-
+>  2 files changed, 161 insertions(+), 338 deletions(-)
+> 
+> -- 
+> 2.17.1
+> 
