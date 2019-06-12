@@ -1,12 +1,12 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH-next 04/20] gpio: gpio-omap: clean up edge interrupt handling
-Date: Wed, 12 Jun 2019 09:57:45 +0200
-Message-ID: <CACRpkdZ2o1AP4YdbNqS7BjHZzpgfpMLSM8GeXNWFPdJ8_C0shQ@mail.gmail.com>
-References: <20190610171103.30903-1-grygorii.strashko@ti.com> <20190610171103.30903-5-grygorii.strashko@ti.com>
+Subject: Re: [PATCH-next 05/20] gpio: gpio-omap: remove irq_ack method
+Date: Wed, 12 Jun 2019 10:42:54 +0200
+Message-ID: <CACRpkdbaXFZQ3d8pQJAxd2WaCJQbBHZZ4XKS3ovrq=ZOmP8o7w@mail.gmail.com>
+References: <20190610171103.30903-1-grygorii.strashko@ti.com> <20190610171103.30903-6-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190610171103.30903-5-grygorii.strashko@ti.com>
+In-Reply-To: <20190610171103.30903-6-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>
@@ -17,31 +17,15 @@ On Mon, Jun 10, 2019 at 7:11 PM Grygorii Strashko
 
 > From: Russell King <rmk+kernel@armlinux.org.uk>
 >
-> The edge interrupt handling was effectively:
+> The irq_ack method does not fit our hardware requirements. Edge
+> interrupts must be cleared before we handle them, and level interrupts
+> must be cleared after handling them.
 >
->         isr = ISR_reg & enabled;
->         if (bank->level_mask)
->                 level_mask = bank->level_mask & enabled;
->         else
->                 level_mask = 0;
+> We handle the interrupt clearance in our interrupt handler for edge IRQs
+> and in the unmask method for level IRQs.
 >
->         edge = isr & ~level_mask;
->
-> When bank->level_mask is zero, level_mask will be computed as zero
-> anyway, so the if() statement is redundant.  We are then left with:
->
->         isr = ISR_reg & enabled;
->         level_mask = bank->level_mask & enabled;
->         edge = isr & ~level_mask;
->
-> This can be simplified further to:
->
->         isr = ISR_reg & enabled;
->         edge = isr & ~bank->level_mask;
->
-> since the second mask with 'enabled' is redundant.
->
-> Improve the associated comment as well.
+> Replace the irq_ack method with the no-op method from the dummy irq
+> chip.
 >
 > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
