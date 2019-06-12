@@ -1,51 +1,72 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 3/3] regulator: lp87565: Add 4-phase lp87561 regulator
- support
-Date: Wed, 12 Jun 2019 15:33:50 +0100
-Message-ID: <20190612143350.GB4660@dell>
-References: <20190516043218.8222-1-j-keerthy@ti.com>
- <20190516043218.8222-4-j-keerthy@ti.com>
- <20190522153528.GG8582@sirena.org.uk>
- <1712197d-7d43-38a8-efde-11b99537eae9@ti.com>
- <20190528132755.GK2456@sirena.org.uk>
- <e68d9939-a56a-b3c5-7f6d-e5783e16a6de@ti.com>
- <20190608195159.GA5316@sirena.org.uk>
- <20190610054822.GE4797@dell>
- <c58ef6cd-893e-c20f-f437-e0343aa83fea@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [RESEND PATCH v2 3/3] regulator: lp87565: Add 4-phase lp87561 regulator support
+Date: Wed, 12 Jun 2019 20:16:20 +0530
+Message-ID: <20190612144620.28331-1-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c58ef6cd-893e-c20f-f437-e0343aa83fea@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, robh+dt@kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+To: lee.jones@linaro.org, broonie@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 12 Jun 2019, Keerthy wrote:
+The LP8756x family has a single output 4-phase regulator
+configuration. Add support for the same. The control
+lies in the master buck which is buck0 for 4-phase
+configuration. Enable/disable/voltage set happen via
+buck0 registers.
 
-> 
-> 
-> On 10/06/19 11:18 AM, Lee Jones wrote:
-> > On Sat, 08 Jun 2019, Mark Brown wrote:
-> > 
-> > > On Sat, Jun 08, 2019 at 09:26:31AM +0530, keerthy wrote:
-> > > 
-> > > > mfd patches are on linux-next already. Hope you can pull this one now that
-> > > > dependencies are met.
-> > > 
-> > > Someone will need to send me a copy of the patch, if I acked it I was
-> > > expecting it to go in with the MFD changes.
-> > 
-> > There is/was no need for that.  Patches are built-time orthogonal.
-> 
-> Sorry i am still not clear. Should i resend this patch?
+Data Sheet: https://www.ti.com/lit/ds/symlink/lp87561-q1.pdf
 
-Yes.  It sounds like Mark no longer has the patch to apply.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Mark Brown <broonie@kernel.org>
+---
 
+patches 1/3 2/3 are already applied to linux-next.
+
+Changes in v2:
+
+  * Changed if/else block to switch statement.
+
+ drivers/regulator/lp87565-regulator.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
+index 81eb4b890c0c..af00d1ffcf33 100644
+--- a/drivers/regulator/lp87565-regulator.c
++++ b/drivers/regulator/lp87565-regulator.c
+@@ -153,6 +153,12 @@ static const struct lp87565_regulator regulators[] = {
+ 			  LP87565_REG_BUCK2_CTRL_1,
+ 			  LP87565_BUCK_CTRL_1_EN, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK2_CTRL_2),
++	LP87565_REGULATOR("BUCK3210", LP87565_BUCK_3210, "buck3210",
++			  lp87565_buck_ops, 256, LP87565_REG_BUCK0_VOUT,
++			  LP87565_BUCK_VSET, LP87565_REG_BUCK0_CTRL_1,
++			  LP87565_BUCK_CTRL_1_EN |
++			  LP87565_BUCK_CTRL_1_FPWM_MP_0_2, 3230,
++			  buck0_1_2_3_ranges, LP87565_REG_BUCK0_CTRL_2),
+ };
+ 
+ static int lp87565_regulator_probe(struct platform_device *pdev)
+@@ -169,9 +175,18 @@ static int lp87565_regulator_probe(struct platform_device *pdev)
+ 	config.driver_data = lp87565;
+ 	config.regmap = lp87565->regmap;
+ 
+-	if (lp87565->dev_type == LP87565_DEVICE_TYPE_LP87565_Q1) {
++	switch (lp87565->dev_type) {
++	case LP87565_DEVICE_TYPE_LP87565_Q1:
+ 		min_idx = LP87565_BUCK_10;
+ 		max_idx = LP87565_BUCK_23;
++		break;
++	case LP87565_DEVICE_TYPE_LP87561_Q1:
++		min_idx = LP87565_BUCK_3210;
++		max_idx = LP87565_BUCK_3210;
++	default:
++		dev_err(lp87565->dev, "Invalid lp config %d\n",
++			lp87565->dev_type);
++		return -EINVAL;
+ 	}
+ 
+ 	for (i = min_idx; i <= max_idx; i++) {
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.17.1
