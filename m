@@ -1,12 +1,13 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH-next 01/20] gpio: gpio-omap: ensure irq is enabled before wakeup
-Date: Wed, 12 Jun 2019 09:54:50 +0200
-Message-ID: <CACRpkdZvd_pApYbDL+PTJ1LDuDuvcVc2OCA_anRoWvwka_xm6g@mail.gmail.com>
-References: <20190610171103.30903-1-grygorii.strashko@ti.com> <20190610171103.30903-2-grygorii.strashko@ti.com>
+Subject: Re: [PATCH-next 02/20] gpio: gpio-omap: fix lack of irqstatus_raw0
+ for OMAP4
+Date: Wed, 12 Jun 2019 09:55:59 +0200
+Message-ID: <CACRpkdZdCxvFQp9xssmqToeT5FrC4quusEgJOAbYo+TxUzGujw@mail.gmail.com>
+References: <20190610171103.30903-1-grygorii.strashko@ti.com> <20190610171103.30903-3-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190610171103.30903-2-grygorii.strashko@ti.com>
+In-Reply-To: <20190610171103.30903-3-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>
@@ -17,21 +18,17 @@ On Mon, Jun 10, 2019 at 7:11 PM Grygorii Strashko
 
 > From: Russell King <rmk+kernel@armlinux.org.uk>
 >
-> Documentation states:
+> Commit 384ebe1c2849 ("gpio/omap: Add DT support to GPIO driver") added
+> the register definition tables to the gpio-omap driver. Subsequently to
+> that commit, commit 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx()
+> checks from *_runtime_resume()") added definitions for irqstatus_raw*
+> registers to the legacy OMAP4 definitions, but missed the DT
+> definitions.
 >
->   NOTE: There must be a correlation between the wake-up enable and
->   interrupt-enable registers. If a GPIO pin has a wake-up configured
->   on it, it must also have the corresponding interrupt enabled (on
->   one of the two interrupt lines).
+> This causes an unintentional change of behaviour for the 1.101 errata
+> workaround on OMAP4 platforms. Fix this oversight.
 >
-> Ensure that this condition is always satisfied by enabling the detection
-> events after enabling the interrupt, and disabling the detection before
-> disabling the interrupt.  This ensures interrupt/wakeup events can not
-> happen until both the wakeup and interrupt enables correlate.
->
-> If we do any clearing, clear between the interrupt enable/disable and
-> trigger setting.
->
+> Fixes: 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()")
 > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
