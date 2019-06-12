@@ -1,43 +1,38 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH-next 20/20] gpio: gpio-omap: clean up register access in omap2_set_gpio_debounce()
-Date: Wed, 12 Jun 2019 11:11:41 +0200
-Message-ID: <CACRpkda2FhYNYA2TkVANOF5GWd3hE9cqM7N_pFDFj9nh-fh=iA@mail.gmail.com>
-References: <20190610171103.30903-1-grygorii.strashko@ti.com> <20190610171103.30903-21-grygorii.strashko@ti.com>
+Subject: Re: [PATCH-next 00/20] gpio: gpio-omap: set of fixes and big clean-up
+Date: Wed, 12 Jun 2019 11:23:07 +0200
+Message-ID: <CACRpkdamKFMrvfi4+L95KqJzPkX69er=CBC3ShUwj0VWArnQRg@mail.gmail.com>
+References: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190610171103.30903-21-grygorii.strashko@ti.com>
+In-Reply-To: <20190610171103.30903-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 10, 2019 at 7:13 PM Grygorii Strashko
+On Mon, Jun 10, 2019 at 7:11 PM Grygorii Strashko
 <grygorii.strashko@ti.com> wrote:
 
-> From: Russell King <rmk+kernel@armlinux.org.uk>
+> This series contains set of patches from Russell King which were circulated
+> internally for quite some time already and I fill it's reasonable to move
+> future discussion upstream (and also avoid rebasing).
+> Fisrt two patches are fixes and the rest are big, great clean up
+> from Russell King.
 >
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Personally, I like this clean up and refactoring very much and don't want
+> it to be lost.
 
-Patch applied.
+I share your view, it is very nice to have Russell's attention to detail
+shaping up this driver.
 
-At your convenience please look at the debounce function a bit
-closer because I think there is a bug/unpredictable behavior:
-
-IIUC the whole bank/block of GPIOs share the same debounce
-timer setting, and it is currently handled in a "last caller wins"
-manner, so if the different GPIOs in the bank has different
-debounce settings, the call order decides what debounce time
-is used across all of them.
-
-In drivers/gpio/gpio-ftgpio.c function ftgpio_gpio_set_config()
-I simply reject a dounce time setting
-different from the currently configured if any GPIOs are
-currently using the deounce feature.
-
-(It's the semantic I came up with but maybe there are other
-ideas here.)
+I vaguely remember at some point wondering why we were
+not using gpio-mmio.c at least partially
+for this driver, as it share this characteristic of keeping a shadow
+copy of the registers around and seem to have offsets from 0..n
+in the registers, but I guess there is some specific
+good reason for not using the library?
 
 Yours,
 Linus Walleij
