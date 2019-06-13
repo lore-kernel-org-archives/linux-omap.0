@@ -1,13 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/4] ti-sysc driver changes for v5.3
-Date: Thu, 13 Jun 2019 00:10:52 -0700
-Message-ID: <pull-1560399818-512977@atomide.com-3>
-References: <pull-1560399818-512977@atomide.com>
+Subject: [GIT PULL 1/4] soc changes for omap variants for v5.3
+Date: Thu, 13 Jun 2019 00:10:50 -0700
+Message-ID: <pull-1560399818-512977@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1560399818-512977@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,50 +21,33 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 4ee23cd76c0ce8622976b3da0e2bc89e6d94f6d4:
+The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
 
-  Merge branch 'omap-for-v5.2/ti-sysc' into fixes (2019-05-20 08:33:03 -0700)
+  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.3/ti-sysc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.3/soc-signed
 
-for you to fetch changes up to 4e23be473e3063a9d3bc06bb0aee89885fffab0e:
+for you to fetch changes up to 45450f36e569e5162957df488b0174c9a952e1b0:
 
-  bus: ti-sysc: Add support for module specific reset quirks (2019-06-10 04:52:22 -0700)
-
-----------------------------------------------------------------
-ti-sysc interconnect target module driver changes for v5.3
-
-This series of changes improves probing devices with ti-sysc to the
-point where we can now probe most devices without the custom dts
-property "ti,hwmods" and no legacy platform data :)
-
-We add support for platform data callbacks for idling and unidling the
-clockdomain the module belongs to. The rest of the series mostly adds
-handling for the various quirks needed by old legacy modules such as
-i2c and watchdog. Some quirk handling is still missing for few modules,
-but those will be added as they get tested.
-
-The related platform data and dts changes will be sent separately.
+  soc: ti: pm33xx: Add a print while entering RTC only mode with DDR in self-refresh (2019-06-10 05:19:26 -0700)
 
 ----------------------------------------------------------------
-Tony Lindgren (12):
-      bus: ti-sysc: Add support for missing clockdomain handling
-      bus: ti-sysc: Support 16-bit writes too
-      bus: ti-sysc: Make OCP reset work for sysstatus and sysconfig reset bits
-      bus: ti-sysc: Allow QUIRK_LEGACY_IDLE even if legacy_mode is not set
-      bus: ti-sysc: Enable interconnect target module autoidle bit on enable
-      bus: ti-sysc: Handle clockactivity for enable and disable
-      bus: ti-sysc: Handle swsup idle mode quirks
-      bus: ti-sysc: Set ENAWAKEUP if available
-      bus: ti-sysc: Add support for disabling module without legacy mode
-      bus: ti-sysc: Do rstctrl reset handling in two phases
-      bus: ti-sysc: Detect uarts also on omap34xx
-      bus: ti-sysc: Add support for module specific reset quirks
+ti-sysc soc changes for v5.3
 
- arch/arm/mach-omap2/omap_hwmod.c      |  39 +--
- arch/arm/mach-omap2/pdata-quirks.c    |  60 +++++
- drivers/bus/ti-sysc.c                 | 454 ++++++++++++++++++++++++++++------
- include/linux/platform_data/ti-sysc.h |  12 +
- 4 files changed, 456 insertions(+), 109 deletions(-)
+Just two changes to make few platform data functions static, and to
+call dev_info() if am437x is suspending to RTC-only mode. We want to
+see this in case of issues as it depends on the board wiring for things
+like DDR memory.
+
+----------------------------------------------------------------
+Keerthy (1):
+      soc: ti: pm33xx: Add a print while entering RTC only mode with DDR in self-refresh
+
+YueHaibing (1):
+      ARM: OMAP2+: Make some variables static
+
+ arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 8 ++++----
+ drivers/soc/ti/pm33xx.c                                 | 1 +
+ 2 files changed, 5 insertions(+), 4 deletions(-)
