@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/4] ti-sysc dts changes for v5.3
-Date: Thu, 13 Jun 2019 00:10:53 -0700
-Message-ID: <pull-1560399818-512977@atomide.com-4>
+Subject: [GIT PULL 2/4] dts changes for omap variants for v5.3
+Date: Thu, 13 Jun 2019 00:10:51 -0700
+Message-ID: <pull-1560399818-512977@atomide.com-2>
 References: <pull-1560399818-512977@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,37 +23,64 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit b6a53c4c872ab6870eb455d10a6f7ff0d99b1b1f:
+The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
 
-  bus: ti-sysc: Detect uarts also on omap34xx (2019-05-28 05:19:17 -0700)
+  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.3/ti-sysc-dt-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.3/dt-signed
 
-for you to fetch changes up to 22a7fc15cf1e742884fdc11a236fcd755225b4f0:
+for you to fetch changes up to 8f62581f820d32eec9698e477ddff21ebfbe0541:
 
-  ARM: dts: Drop legacy custom hwmods property for omap4 mmc (2019-05-28 05:19:17 -0700)
-
-----------------------------------------------------------------
-ti-sysc dts changes for v5.3
-
-We can now drop the custom dts property "ti,hwmods" for drivers that
-have the ti-sysc interconnect target module configured in dts.
-
-Let's start with a minimal changes to omap4 uart and mmc. We use
-omap4 as the starting point as it has runtime PM implemented and all
-the omap variants after that are based on it with similar clkctrl
-clock for the modules. More devices will be updated later on as they
-get tested.
-
-Note that these changes are based on the related ti-sysc driver
-changes.
+  Merge branch 'baltos' into omap-for-v5.3/dt (2019-06-12 00:57:27 -0700)
 
 ----------------------------------------------------------------
-Tony Lindgren (2):
-      ARM: dts: Drop legacy custom hwmods property for omap4 uart
-      ARM: dts: Drop legacy custom hwmods property for omap4 mmc
+dts changes for omap variants for v5.3
 
- arch/arm/boot/dts/omap4-l4.dtsi | 9 ---------
- 1 file changed, 9 deletions(-)
+This series of changes improves support for few boards:
+
+- configure another lcd type for logicpd torpedo devkit
+
+- a series of updates for am335x phytec boards
+
+- configure mmc card detect pin for am335x-baltos
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: Add LCD type 28 support to LogicPD Torpedo DM3730 devkit
+
+Daniel Schultz (1):
+      ARM: dts: am335x-phycore-som: Add emmc node
+
+Teresa Remmet (5):
+      ARM: dts: am335x phytec boards: Remove regulator node
+      ARM: dts: am335x-phycore-som: Enable gpmc node in dts files
+      ARM: dts: am335x-pcm-953: Update user led names
+      ARM: dts: am335x-pcm-953: Remove eth phy delay
+      ARM: dts: Add support for phyBOARD-REGOR-AM335x
+
+Tony Lindgren (1):
+      Merge branch 'baltos' into omap-for-v5.3/dt
+
+Yegor Yefremov (2):
+      ARM: dts: am335x-baltos: Fix PHY mode for ethernet
+      ARM: dts: am335x-baltos: add support for MMC1 CD pin
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts         |  14 +-
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts         |  14 +-
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts         |  13 +-
+ arch/arm/boot/dts/am335x-pcm-953.dtsi              |  22 +-
+ arch/arm/boot/dts/am335x-phycore-rdk.dts           |   4 +
+ arch/arm/boot/dts/am335x-phycore-som.dtsi          |  47 +++--
+ arch/arm/boot/dts/am335x-regor-rdk.dts             |  24 +++
+ arch/arm/boot/dts/am335x-regor.dtsi                | 223 +++++++++++++++++++++
+ arch/arm/boot/dts/am335x-wega-rdk.dts              |   4 +
+ arch/arm/boot/dts/am335x-wega.dtsi                 |  16 +-
+ .../boot/dts/logicpd-torpedo-37xx-devkit-28.dts    |  32 +++
+ 13 files changed, 372 insertions(+), 45 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-regor-rdk.dts
+ create mode 100644 arch/arm/boot/dts/am335x-regor.dtsi
+ create mode 100644 arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
