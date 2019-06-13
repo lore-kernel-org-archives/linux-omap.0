@@ -1,13 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/4] dts changes for omap variants for v5.3
-Date: Thu, 13 Jun 2019 00:10:51 -0700
-Message-ID: <pull-1560399818-512977@atomide.com-2>
-References: <pull-1560399818-512977@atomide.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH v3] ARM: configs: Remove useless UEVENT_HELPER_PATH
+Date: Thu, 13 Jun 2019 16:53:53 +0200
+Message-ID: <CAJKOXPd4LVFGgonbsuxii-5Fu5wWhxU9yotLHw+OXsPcxYw_3g@mail.gmail.com>
+References: <20190604185229.7393-1-krzk@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1560399818-512977@atomide.com>
+In-Reply-To: <20190604185229.7393-1-krzk@kernel.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,70 +17,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-aspeed@lists.ozlabs.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+On Tue, 4 Jun 2019 at 20:52, Krzysztof Kozlowski <krzk@kernel.org> wrote:
+>
+> Remove the CONFIG_UEVENT_HELPER_PATH because:
+> 1. It is disabled since commit 1be01d4a5714 ("driver: base: Disable
+>    CONFIG_UEVENT_HELPER by default") as its dependency (UEVENT_HELPER) was
+>    made default to 'n',
+> 2. It is not recommended (help message: "This should not be used today
+>    [...] creates a high system load") and was kept only for ancient
+>    userland,
+> 3. Certain userland specifically requests it to be disabled (systemd
+>    README: "Legacy hotplug slows down the system and confuses udev").
+>
+> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> Acked-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
+> For vexpress:
+> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+>
+> ---
+>
+> Changes since v2:
+> 1. Remove unrelated files.
+> 2. Add Geert's ack.
+>
+> Changes sice v3:
+> 1. Change also mini2440_defconfig.
+> 2. Add more acks.
 
-The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
+Hi Arnd and Olof,
 
-  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
+Do you want to apply it directly or maybe I can send it along with
+other my defconfig pull request?
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.3/dt-signed
-
-for you to fetch changes up to 8f62581f820d32eec9698e477ddff21ebfbe0541:
-
-  Merge branch 'baltos' into omap-for-v5.3/dt (2019-06-12 00:57:27 -0700)
-
-----------------------------------------------------------------
-dts changes for omap variants for v5.3
-
-This series of changes improves support for few boards:
-
-- configure another lcd type for logicpd torpedo devkit
-
-- a series of updates for am335x phytec boards
-
-- configure mmc card detect pin for am335x-baltos
-
-----------------------------------------------------------------
-Adam Ford (1):
-      ARM: dts: Add LCD type 28 support to LogicPD Torpedo DM3730 devkit
-
-Daniel Schultz (1):
-      ARM: dts: am335x-phycore-som: Add emmc node
-
-Teresa Remmet (5):
-      ARM: dts: am335x phytec boards: Remove regulator node
-      ARM: dts: am335x-phycore-som: Enable gpmc node in dts files
-      ARM: dts: am335x-pcm-953: Update user led names
-      ARM: dts: am335x-pcm-953: Remove eth phy delay
-      ARM: dts: Add support for phyBOARD-REGOR-AM335x
-
-Tony Lindgren (1):
-      Merge branch 'baltos' into omap-for-v5.3/dt
-
-Yegor Yefremov (2):
-      ARM: dts: am335x-baltos: Fix PHY mode for ethernet
-      ARM: dts: am335x-baltos: add support for MMC1 CD pin
-
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +
- arch/arm/boot/dts/Makefile                         |   1 +
- arch/arm/boot/dts/am335x-baltos-ir2110.dts         |  14 +-
- arch/arm/boot/dts/am335x-baltos-ir3220.dts         |  14 +-
- arch/arm/boot/dts/am335x-baltos-ir5221.dts         |  13 +-
- arch/arm/boot/dts/am335x-pcm-953.dtsi              |  22 +-
- arch/arm/boot/dts/am335x-phycore-rdk.dts           |   4 +
- arch/arm/boot/dts/am335x-phycore-som.dtsi          |  47 +++--
- arch/arm/boot/dts/am335x-regor-rdk.dts             |  24 +++
- arch/arm/boot/dts/am335x-regor.dtsi                | 223 +++++++++++++++++++++
- arch/arm/boot/dts/am335x-wega-rdk.dts              |   4 +
- arch/arm/boot/dts/am335x-wega.dtsi                 |  16 +-
- .../boot/dts/logicpd-torpedo-37xx-devkit-28.dts    |  32 +++
- 13 files changed, 372 insertions(+), 45 deletions(-)
- create mode 100644 arch/arm/boot/dts/am335x-regor-rdk.dts
- create mode 100644 arch/arm/boot/dts/am335x-regor.dtsi
- create mode 100644 arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
+Best regards,
+Krzysztof
