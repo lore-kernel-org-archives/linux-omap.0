@@ -1,55 +1,66 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH] regulator: twl: mark vdd1/2 as continuous on twl4030
-Date: Sat, 15 Jun 2019 18:33:14 +0200
-Message-ID: <20190615163314.28173-1-andreas@kemnade.info>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] mmc voltage and boot issue fixes for omaps for v5.2
+Date: Sun, 16 Jun 2019 13:28:08 -0700
+Message-ID: <CAOesGMhF9_3Y184zAC3bdyRMemnM4CLBiOp-vcRaXQOrtf0E1A@mail.gmail.com>
+References: <pull-1559115102-965591@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, lgirdwood@gmail.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, sboyd@kernel.org, nm@ti.com, vireshk@kernel.org, letux-kernel@openphoenux.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1559115102-965591@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, ARM-SoC Maintainers <arm@kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-_opp_supported_by_regulators() wrongly ignored errors from
-regulator_is_supported_voltage(), so it considered errors as
-success. Since
-commit 498209445124 ("regulator: core: simplify return value on suported_voltage")
-regulator_is_supported_voltage() returns a real boolean, so
-errors make _opp_supported_by_regulators() return false.
+On Wed, May 29, 2019 at 12:32 AM Tony Lindgren <tony@atomide.com> wrote:
+>
+> From: "Tony Lindgren" <tony@atomide.com>
+>
+> The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
+>
+>   Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
+>
+> are available in the Git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/fixes-rc2
+>
+> for you to fetch changes up to 4ee23cd76c0ce8622976b3da0e2bc89e6d94f6d4:
+>
+>   Merge branch 'omap-for-v5.2/ti-sysc' into fixes (2019-05-20 08:33:03 -0700)
+>
+> ----------------------------------------------------------------
+> Fixes for omap variants for dra7 mmc voltage and boot issues
+>
+> This series contains dra7 mmc voltage fixes, and fixes to the recent
+> changes to probe devices with device tree data insteas of legacy
+> platform data:
+>
+> - Two fixes for dra7 mmc that needs 1.8V mode disabled as in case of a
+>   reset, the bootrom will try to access the mmc card at 3.3V potentially
+>   damaging the card
+>
+> - Two regression fixes for am335x d_can. We must allow devices with no
+>   control registers for ti-sysc interconnect target module driver for
+>   at least d_can, and we remove the incorrect control registers for
+>   d_can. And we must configure the osc clock for d_can as otherwise
+>   register access may fail depending on the bootloader version
+>
+> - Four regression fixes for dra7 variant dts files to tag rtc and usb4
+>   as disabled for dra71x and dra76x. These SoC variants do not have
+>   these devices, and got accidentally enabled when the L4 interconnect
+>   got defined in the dra7-l4.dtsi for the dra7 SoC family
 
-The VDD1/VDD2 regulators on twl4030 are neither defined with
-voltage lists nor with the continuous flag set, so
-regulator_is_supported_voltage() returns false and an error
-before above mentioned commit (which was considered success)
-The result is that after the above mentioned commit cpufreq
-does not work properly e.g. dm3730.
 
-[    2.490997] core: _opp_supported_by_regulators: OPP minuV: 1012500 maxuV: 1012500, not supported by regulator
-[    2.501617] cpu cpu0: _opp_add: OPP not supported by regulators (300000000)
-[    2.509246] core: _opp_supported_by_regulators: OPP minuV: 1200000 maxuV: 1200000, not supported by regulator
-[    2.519775] cpu cpu0: _opp_add: OPP not supported by regulators (600000000)
-[    2.527313] core: _opp_supported_by_regulators: OPP minuV: 1325000 maxuV: 1325000, not supported by regulator
-[    2.537750] cpu cpu0: _opp_add: OPP not supported by regulators (800000000)
+Merged, thanks!
 
-The patch fixes declaration of VDD1/2 regulators.
 
-Fixes: 498209445124 ("regulator: core: simplify return value on suported_voltage")
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- drivers/regulator/twl-regulator.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 6fa15b2d6fb3..f7bfdf53701d 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -478,6 +478,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
- 		.type = REGULATOR_VOLTAGE, \
- 		.owner = THIS_MODULE, \
- 		.enable_time = turnon_delay, \
-+		.continuous_voltage_range = true, \
- 		.of_map_mode = twl4030reg_map_mode, \
- 		}, \
- 	}
--- 
-2.20.1
+-Olof
