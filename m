@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 20/30] drivers: gpio: wm8994: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:41:01 +0200
-Message-ID: <1560796871-18560-20-git-send-email-info@metux.net>
+Subject: [PATCH 12/30] drivers: gpio: stp-xway: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:53 +0200
+Message-ID: <1560796871-18560-12-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,32 +17,24 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-wm8994.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/gpio/gpio-stp-xway.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/gpio/gpio-wm8994.c b/drivers/gpio/gpio-wm8994.c
-index 9af89cf..d9f4572 100644
---- a/drivers/gpio/gpio-wm8994.c
-+++ b/drivers/gpio/gpio-wm8994.c
-@@ -296,18 +296,7 @@ static int wm8994_gpio_probe(struct platform_device *pdev)
- 	.driver.name	= "wm8994-gpio",
- 	.probe		= wm8994_gpio_probe,
+diff --git a/drivers/gpio/gpio-stp-xway.c b/drivers/gpio/gpio-stp-xway.c
+index 8a319d5..3f5c039 100644
+--- a/drivers/gpio/gpio-stp-xway.c
++++ b/drivers/gpio/gpio-stp-xway.c
+@@ -291,10 +291,4 @@ static int xway_stp_probe(struct platform_device *pdev)
+ 		.of_match_table = xway_stp_match,
+ 	},
  };
 -
--static int __init wm8994_gpio_init(void)
+-static int __init xway_stp_init(void)
 -{
--	return platform_driver_register(&wm8994_gpio_driver);
+-	return platform_driver_register(&xway_stp_driver);
 -}
--subsys_initcall(wm8994_gpio_init);
 -
--static void __exit wm8994_gpio_exit(void)
--{
--	platform_driver_unregister(&wm8994_gpio_driver);
--}
--module_exit(wm8994_gpio_exit);
-+subsys_platform_driver(wm8994_gpio_driver);
- 
- MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
- MODULE_DESCRIPTION("GPIO interface for WM8994");
+-subsys_initcall(xway_stp_init);
++subsys_platform_driver(xway_stp_driver);
 -- 
 1.9.1
