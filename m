@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 30/30] drivers: gpio: max732x: use subsys_i2c_driver()
-Date: Mon, 17 Jun 2019 20:41:11 +0200
-Message-ID: <1560796871-18560-30-git-send-email-info@metux.net>
+Subject: [PATCH 25/30] drivers: gpio: omap: use postcore_platform_driver()
+Date: Mon, 17 Jun 2019 20:41:06 +0200
+Message-ID: <1560796871-18560-25-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -13,39 +13,35 @@ List-Id: linux-omap@vger.kernel.org
 From: Enrico Weigelt <info@metux.net>
 
 Reduce driver init boilerplate by using the new
-subsys_i2c_driver() macro.
+postcore_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-max732x.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/gpio/gpio-omap.c | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff --git a/drivers/gpio/gpio-max732x.c b/drivers/gpio/gpio-max732x.c
-index 5e4102e..c340883 100644
---- a/drivers/gpio/gpio-max732x.c
-+++ b/drivers/gpio/gpio-max732x.c
-@@ -756,21 +756,10 @@ static int max732x_remove(struct i2c_client *client)
- 	.remove		= max732x_remove,
- 	.id_table	= max732x_id,
- };
--
--static int __init max732x_init(void)
--{
--	return i2c_add_driver(&max732x_driver);
--}
- /* register after i2c postcore initcall and before
-  * subsys initcalls that may rely on these GPIOs
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 16289ba..3ea02d3 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1693,17 +1693,7 @@ static int __maybe_unused omap_gpio_runtime_resume(struct device *dev)
+  * machine_init functions access gpio APIs.
+  * Hence omap_gpio_drv_reg() is a postcore_initcall.
   */
--subsys_initcall(max732x_init);
--
--static void __exit max732x_exit(void)
+-static int __init omap_gpio_drv_reg(void)
 -{
--	i2c_del_driver(&max732x_driver);
+-	return platform_driver_register(&omap_gpio_driver);
 -}
--module_exit(max732x_exit);
-+subsys_i2c_driver(max732x_driver);
+-postcore_initcall(omap_gpio_drv_reg);
+-
+-static void __exit omap_gpio_exit(void)
+-{
+-	platform_driver_unregister(&omap_gpio_driver);
+-}
+-module_exit(omap_gpio_exit);
++postcore_platform_driver(omap_gpio_driver);
  
- MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>");
- MODULE_DESCRIPTION("GPIO expander driver for MAX732X");
+ MODULE_DESCRIPTION("omap gpio driver");
+ MODULE_ALIAS("platform:gpio-omap");
 -- 
 1.9.1
