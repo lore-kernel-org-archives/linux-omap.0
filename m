@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 29/30] drivers: gpio: max7300: use arch_platform_driver()
-Date: Mon, 17 Jun 2019 20:41:10 +0200
-Message-ID: <1560796871-18560-29-git-send-email-info@metux.net>
+Subject: [PATCH 30/30] drivers: gpio: max732x: use subsys_i2c_driver()
+Date: Mon, 17 Jun 2019 20:41:11 +0200
+Message-ID: <1560796871-18560-30-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,32 +17,35 @@ subsys_i2c_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-max7300.c | 13 +------------
+ drivers/gpio/gpio-max732x.c | 13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/gpio/gpio-max7300.c b/drivers/gpio/gpio-max7300.c
-index 1ae9ba8..36d5afa 100644
---- a/drivers/gpio/gpio-max7300.c
-+++ b/drivers/gpio/gpio-max7300.c
-@@ -70,18 +70,7 @@ static int max7300_remove(struct i2c_client *client)
- 	.remove = max7300_remove,
- 	.id_table = max7300_id,
+diff --git a/drivers/gpio/gpio-max732x.c b/drivers/gpio/gpio-max732x.c
+index 5e4102e..c340883 100644
+--- a/drivers/gpio/gpio-max732x.c
++++ b/drivers/gpio/gpio-max732x.c
+@@ -756,21 +756,10 @@ static int max732x_remove(struct i2c_client *client)
+ 	.remove		= max732x_remove,
+ 	.id_table	= max732x_id,
  };
 -
--static int __init max7300_init(void)
+-static int __init max732x_init(void)
 -{
--	return i2c_add_driver(&max7300_driver);
+-	return i2c_add_driver(&max732x_driver);
 -}
--subsys_initcall(max7300_init);
+ /* register after i2c postcore initcall and before
+  * subsys initcalls that may rely on these GPIOs
+  */
+-subsys_initcall(max732x_init);
 -
--static void __exit max7300_exit(void)
+-static void __exit max732x_exit(void)
 -{
--	i2c_del_driver(&max7300_driver);
+-	i2c_del_driver(&max732x_driver);
 -}
--module_exit(max7300_exit);
-+subsys_i2c_driver(max7300_driver);
+-module_exit(max732x_exit);
++subsys_i2c_driver(max732x_driver);
  
- MODULE_AUTHOR("Wolfram Sang");
- MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>");
+ MODULE_DESCRIPTION("GPIO expander driver for MAX732X");
 -- 
 1.9.1
