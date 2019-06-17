@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 10/30] drivers: gpio: spear-spics: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:40:51 +0200
-Message-ID: <1560796871-18560-10-git-send-email-info@metux.net>
+Subject: [PATCH 04/30] drivers: gpio: htc-egpio: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:45 +0200
+Message-ID: <1560796871-18560-4-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,23 +17,24 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-spear-spics.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/gpio/gpio-htc-egpio.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/gpio/gpio-spear-spics.c b/drivers/gpio/gpio-spear-spics.c
-index 6eca531..efb99f0 100644
---- a/drivers/gpio/gpio-spear-spics.c
-+++ b/drivers/gpio/gpio-spear-spics.c
-@@ -189,9 +189,4 @@ static int spics_gpio_probe(struct platform_device *pdev)
- 		.of_match_table = spics_gpio_of_match,
- 	},
+diff --git a/drivers/gpio/gpio-htc-egpio.c b/drivers/gpio/gpio-htc-egpio.c
+index 9d3ac51..cc7a655 100644
+--- a/drivers/gpio/gpio-htc-egpio.c
++++ b/drivers/gpio/gpio-htc-egpio.c
+@@ -422,10 +422,4 @@ static int egpio_resume(struct platform_device *pdev)
+ 	.suspend      = egpio_suspend,
+ 	.resume       = egpio_resume,
  };
 -
--static int __init spics_gpio_init(void)
+-static int __init egpio_init(void)
 -{
--	return platform_driver_register(&spics_gpio_driver);
+-	return platform_driver_probe(&egpio_driver, egpio_probe);
 -}
--subsys_initcall(spics_gpio_init);
-+subsys_platform_driver(spics_gpio_driver);
+-/* start early for dependencies */
+-subsys_initcall(egpio_init);
++subsys_platform_driver(egpio_driver);
 -- 
 1.9.1
