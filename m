@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 08/30] drivers: gpio: palmas: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:40:49 +0200
-Message-ID: <1560796871-18560-8-git-send-email-info@metux.net>
+Subject: [PATCH 02/30] drivers: gpio: altera: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:43 +0200
+Message-ID: <1560796871-18560-2-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,23 +17,32 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-palmas.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/gpio/gpio-altera.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/gpio/gpio-palmas.c b/drivers/gpio/gpio-palmas.c
-index e8e9029..4726200 100644
---- a/drivers/gpio/gpio-palmas.c
-+++ b/drivers/gpio/gpio-palmas.c
-@@ -195,9 +195,4 @@ static int palmas_gpio_probe(struct platform_device *pdev)
- 	.driver.of_match_table = of_palmas_gpio_match,
- 	.probe		= palmas_gpio_probe,
+diff --git a/drivers/gpio/gpio-altera.c b/drivers/gpio/gpio-altera.c
+index e088b90..b757c650 100644
+--- a/drivers/gpio/gpio-altera.c
++++ b/drivers/gpio/gpio-altera.c
+@@ -342,18 +342,7 @@ static int altera_gpio_remove(struct platform_device *pdev)
+ 	.probe		= altera_gpio_probe,
+ 	.remove		= altera_gpio_remove,
  };
 -
--static int __init palmas_gpio_init(void)
+-static int __init altera_gpio_init(void)
 -{
--	return platform_driver_register(&palmas_gpio_driver);
+-	return platform_driver_register(&altera_gpio_driver);
 -}
--subsys_initcall(palmas_gpio_init);
-+subsys_platform_driver(palmas_gpio_driver);
+-subsys_initcall(altera_gpio_init);
+-
+-static void __exit altera_gpio_exit(void)
+-{
+-	platform_driver_unregister(&altera_gpio_driver);
+-}
+-module_exit(altera_gpio_exit);
++subsys_platform_driver(altera_gpio_driver);
+ 
+ MODULE_AUTHOR("Tien Hock Loh <thloh@altera.com>");
+ MODULE_DESCRIPTION("Altera GPIO driver");
 -- 
 1.9.1
