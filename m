@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 21/30] drivers: gpio: xilinx: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:41:02 +0200
-Message-ID: <1560796871-18560-21-git-send-email-info@metux.net>
+Subject: [PATCH 20/30] drivers: gpio: wm8994: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:41:01 +0200
+Message-ID: <1560796871-18560-20-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,33 +17,32 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-xilinx.c | 14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/gpio/gpio-wm8994.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/gpio/gpio-xilinx.c b/drivers/gpio/gpio-xilinx.c
-index 32944eb..255facc 100644
---- a/drivers/gpio/gpio-xilinx.c
-+++ b/drivers/gpio/gpio-xilinx.c
-@@ -376,19 +376,7 @@ static int xgpio_probe(struct platform_device *pdev)
- 			.of_match_table	= xgpio_of_match,
- 	},
+diff --git a/drivers/gpio/gpio-wm8994.c b/drivers/gpio/gpio-wm8994.c
+index 9af89cf..d9f4572 100644
+--- a/drivers/gpio/gpio-wm8994.c
++++ b/drivers/gpio/gpio-wm8994.c
+@@ -296,18 +296,7 @@ static int wm8994_gpio_probe(struct platform_device *pdev)
+ 	.driver.name	= "wm8994-gpio",
+ 	.probe		= wm8994_gpio_probe,
  };
 -
--static int __init xgpio_init(void)
+-static int __init wm8994_gpio_init(void)
 -{
--	return platform_driver_register(&xgpio_plat_driver);
+-	return platform_driver_register(&wm8994_gpio_driver);
 -}
+-subsys_initcall(wm8994_gpio_init);
 -
--subsys_initcall(xgpio_init);
--
--static void __exit xgpio_exit(void)
+-static void __exit wm8994_gpio_exit(void)
 -{
--	platform_driver_unregister(&xgpio_plat_driver);
+-	platform_driver_unregister(&wm8994_gpio_driver);
 -}
--module_exit(xgpio_exit);
-+subsys_platform_driver(xgpio_plat_driver);
+-module_exit(wm8994_gpio_exit);
++subsys_platform_driver(wm8994_gpio_driver);
  
- MODULE_AUTHOR("Xilinx, Inc.");
- MODULE_DESCRIPTION("Xilinx GPIO driver");
+ MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
+ MODULE_DESCRIPTION("GPIO interface for WM8994");
 -- 
 1.9.1
