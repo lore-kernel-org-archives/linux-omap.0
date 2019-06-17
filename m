@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 06/30] drivers: gpio: lantiq: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:40:47 +0200
-Message-ID: <1560796871-18560-6-git-send-email-info@metux.net>
+Subject: [PATCH 11/30] drivers: gpio: stmpe: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:52 +0200
+Message-ID: <1560796871-18560-11-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,30 +17,23 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-mm-lantiq.c | 14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/gpio/gpio-stmpe.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-mm-lantiq.c b/drivers/gpio/gpio-mm-lantiq.c
-index b0754fe..3e5ef46 100644
---- a/drivers/gpio/gpio-mm-lantiq.c
-+++ b/drivers/gpio/gpio-mm-lantiq.c
-@@ -146,16 +146,4 @@ static int ltq_mm_remove(struct platform_device *pdev)
- 		.of_match_table = ltq_mm_match,
+diff --git a/drivers/gpio/gpio-stmpe.c b/drivers/gpio/gpio-stmpe.c
+index 65a2315..bb34f34 100644
+--- a/drivers/gpio/gpio-stmpe.c
++++ b/drivers/gpio/gpio-stmpe.c
+@@ -530,9 +530,4 @@ static int stmpe_gpio_probe(struct platform_device *pdev)
  	},
+ 	.probe		= stmpe_gpio_probe,
  };
 -
--static int __init ltq_mm_init(void)
+-static int __init stmpe_gpio_init(void)
 -{
--	return platform_driver_register(&ltq_mm_driver);
+-	return platform_driver_register(&stmpe_gpio_driver);
 -}
--
--subsys_initcall(ltq_mm_init);
--
--static void __exit ltq_mm_exit(void)
--{
--	platform_driver_unregister(&ltq_mm_driver);
--}
--module_exit(ltq_mm_exit);
-+subsys_platform_driver(ltq_mm_driver);
+-subsys_initcall(stmpe_gpio_init);
++subsys_platform_driver(stmpe_gpio_driver);
 -- 
 1.9.1
