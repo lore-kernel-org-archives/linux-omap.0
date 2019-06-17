@@ -1,53 +1,49 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [GIT PULL] Immutable branch between MFD and Regulator due for the
- v5.3 merge window
-Date: Mon, 17 Jun 2019 12:45:48 +0530
-Message-ID: <2a3240e2-75f5-ef87-8fa7-0162a84fb590@ti.com>
-References: <20190612144620.28331-1-j-keerthy@ti.com>
- <20190617070341.GC16364@dell>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] regulator: twl: mark vdd1/2 as continuous on twl4030
+Date: Mon, 17 Jun 2019 11:31:11 +0100
+Message-ID: <20190617103111.GM5316@sirena.org.uk>
+References: <20190615163314.28173-1-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="bNLLTo5eXWXFd6av"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190617070341.GC16364@dell>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190615163314.28173-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: broonie@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, sboyd@kernel.org, nm@ti.com, vireshk@kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--bNLLTo5eXWXFd6av
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 17/06/19 12:33 PM, Lee Jones wrote:
-> Enjoy!
-> 
-> The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
-> 
->    Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
-> 
-> are available in the Git repository at:
-> 
->    git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-regulator-v5.3
-> 
-> for you to fetch changes up to 7ee63bd74750a2c6fac31805ca0ac67f2522bfa5:
-> 
->    regulator: lp87565: Add 4-phase lp87561 regulator support (2019-06-17 08:00:24 +0100)
-> 
-> ----------------------------------------------------------------
-> Immutable branch between MFD and Regulator due for the v5.3 merge window
-> 
-> ----------------------------------------------------------------
-> Keerthy (3):
->        dt-bindings: mfd: lp87565: Add LP87561 configuration
->        mfd: lp87565: Add support for 4-phase LP87561 combination
->        regulator: lp87565: Add 4-phase lp87561 regulator support
+On Sat, Jun 15, 2019 at 06:33:14PM +0200, Andreas Kemnade wrote:
 
-Thanks Lee Jones.
+> The VDD1/VDD2 regulators on twl4030 are neither defined with
+> voltage lists nor with the continuous flag set, so
+> regulator_is_supported_voltage() returns false and an error
+> before above mentioned commit (which was considered success)
+> The result is that after the above mentioned commit cpufreq
+> does not work properly e.g. dm3730.
 
-> 
->   Documentation/devicetree/bindings/mfd/lp87565.txt | 36 +++++++++++++++++++++++
->   drivers/mfd/lp87565.c                             |  4 +++
->   drivers/regulator/lp87565-regulator.c             | 17 ++++++++++-
->   include/linux/mfd/lp87565.h                       |  2 ++
->   4 files changed, 58 insertions(+), 1 deletion(-)
-> 
+Why is this a good fix and not defining the supported voltages?  These
+look like fairly standard linear range regulators.
+
+--bNLLTo5eXWXFd6av
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAl0Ha+sACgkQJNaLcl1U
+h9CySgf/QMQ2EqpD1L/XFhmLo/ZBQ0MxTTbrhP3mxCoktiXaHq/8rC1GKin90FQ+
+63Z79sD50NvjwOao024deSYu+7MVpCoojPdVwdizjH/B2meplYkB5fw3yhHKvsKc
++r1BYXVYODtZC590X8RcFCT4nO91acJoSbkA9dbHhp16+qnyjy/7sr9OmtDwTYkw
+qVjma1T5nDgWfw1G9bQ6WAdQHSdZtuo7LYmPbrvpPXNAaTv2Va2YssbniIOWNgsW
+sC/YRIuwWUztdeRwfhWIbyt3elAP0kUmoRVD1O3WzQx4STBpn97C++fDwjDwgn7H
+F99QnvGMDroMdwasCwHr5TcSfoWAKQ==
+=Awof
+-----END PGP SIGNATURE-----
+
+--bNLLTo5eXWXFd6av--
