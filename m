@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 05/30] drivers: gpio: lynxpoint: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:40:46 +0200
-Message-ID: <1560796871-18560-5-git-send-email-info@metux.net>
+Subject: [PATCH 03/30] drivers: gpio: da9055: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:44 +0200
+Message-ID: <1560796871-18560-3-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,33 +17,32 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-lynxpoint.c | 14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/gpio/gpio-da9055.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/gpio/gpio-lynxpoint.c b/drivers/gpio/gpio-lynxpoint.c
-index 31b4a09..8e6b998 100644
---- a/drivers/gpio/gpio-lynxpoint.c
-+++ b/drivers/gpio/gpio-lynxpoint.c
-@@ -438,19 +438,7 @@ static int lp_gpio_remove(struct platform_device *pdev)
- 		.acpi_match_table = ACPI_PTR(lynxpoint_gpio_acpi_match),
+diff --git a/drivers/gpio/gpio-da9055.c b/drivers/gpio/gpio-da9055.c
+index 6ad0c37..d93f8ba 100644
+--- a/drivers/gpio/gpio-da9055.c
++++ b/drivers/gpio/gpio-da9055.c
+@@ -163,18 +163,7 @@ static int da9055_gpio_probe(struct platform_device *pdev)
+ 		.name	= "da9055-gpio",
  	},
  };
 -
--static int __init lp_gpio_init(void)
+-static int __init da9055_gpio_init(void)
 -{
--	return platform_driver_register(&lp_gpio_driver);
+-	return platform_driver_register(&da9055_gpio_driver);
 -}
+-subsys_initcall(da9055_gpio_init);
 -
--static void __exit lp_gpio_exit(void)
+-static void __exit da9055_gpio_exit(void)
 -{
--	platform_driver_unregister(&lp_gpio_driver);
+-	platform_driver_unregister(&da9055_gpio_driver);
 -}
--
--subsys_initcall(lp_gpio_init);
--module_exit(lp_gpio_exit);
-+subsys_platform_driver(lp_gpio_driver);
+-module_exit(da9055_gpio_exit);
++subsys_platform_driver(da9055_gpio_driver);
  
- MODULE_AUTHOR("Mathias Nyman (Intel)");
- MODULE_DESCRIPTION("GPIO interface for Intel Lynxpoint");
+ MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
+ MODULE_DESCRIPTION("DA9055 GPIO Device Driver");
 -- 
 1.9.1
