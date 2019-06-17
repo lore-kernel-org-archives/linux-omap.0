@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 24/30] drivers: gpio: mxs: use postcore_platform_driver()
-Date: Mon, 17 Jun 2019 20:41:05 +0200
-Message-ID: <1560796871-18560-24-git-send-email-info@metux.net>
+Subject: [PATCH 23/30] drivers: gpio: ep93xx: use postcore_platform_driver()
+Date: Mon, 17 Jun 2019 20:41:04 +0200
+Message-ID: <1560796871-18560-23-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,26 +17,26 @@ postcore_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-mxs.c | 7 +------
+ drivers/gpio/gpio-ep93xx.c | 7 +------
  1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-mxs.c b/drivers/gpio/gpio-mxs.c
-index 5e5437a..e2f54b8 100644
---- a/drivers/gpio/gpio-mxs.c
-+++ b/drivers/gpio/gpio-mxs.c
-@@ -369,12 +369,7 @@ static int mxs_gpio_probe(struct platform_device *pdev)
- 	.probe		= mxs_gpio_probe,
- 	.id_table	= mxs_gpio_ids,
+diff --git a/drivers/gpio/gpio-ep93xx.c b/drivers/gpio/gpio-ep93xx.c
+index 71728d6..d4dfb50 100644
+--- a/drivers/gpio/gpio-ep93xx.c
++++ b/drivers/gpio/gpio-ep93xx.c
+@@ -429,12 +429,7 @@ static int ep93xx_gpio_probe(struct platform_device *pdev)
+ 	},
+ 	.probe		= ep93xx_gpio_probe,
  };
 -
--static int __init mxs_gpio_init(void)
+-static int __init ep93xx_gpio_init(void)
 -{
--	return platform_driver_register(&mxs_gpio_driver);
+-	return platform_driver_register(&ep93xx_gpio_driver);
 -}
--postcore_initcall(mxs_gpio_init);
-+postcore_platform_driver(mxs_gpio_driver);
+-postcore_initcall(ep93xx_gpio_init);
++postcore_platform_driver(ep93xx_gpio_driver);
  
- MODULE_AUTHOR("Freescale Semiconductor, "
- 	      "Daniel Mack <danielncaiaq.de>, "
+ MODULE_AUTHOR("Ryan Mallon <ryan@bluewatersys.com> "
+ 		"H Hartley Sweeten <hsweeten@visionengravers.com>");
 -- 
 1.9.1
