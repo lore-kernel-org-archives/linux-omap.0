@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 02/30] drivers: gpio: altera: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:40:43 +0200
-Message-ID: <1560796871-18560-2-git-send-email-info@metux.net>
+Subject: [PATCH 10/30] drivers: gpio: spear-spics: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:51 +0200
+Message-ID: <1560796871-18560-10-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,32 +17,23 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-altera.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/gpio/gpio-spear-spics.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-altera.c b/drivers/gpio/gpio-altera.c
-index e088b90..b757c650 100644
---- a/drivers/gpio/gpio-altera.c
-+++ b/drivers/gpio/gpio-altera.c
-@@ -342,18 +342,7 @@ static int altera_gpio_remove(struct platform_device *pdev)
- 	.probe		= altera_gpio_probe,
- 	.remove		= altera_gpio_remove,
+diff --git a/drivers/gpio/gpio-spear-spics.c b/drivers/gpio/gpio-spear-spics.c
+index 6eca531..efb99f0 100644
+--- a/drivers/gpio/gpio-spear-spics.c
++++ b/drivers/gpio/gpio-spear-spics.c
+@@ -189,9 +189,4 @@ static int spics_gpio_probe(struct platform_device *pdev)
+ 		.of_match_table = spics_gpio_of_match,
+ 	},
  };
 -
--static int __init altera_gpio_init(void)
+-static int __init spics_gpio_init(void)
 -{
--	return platform_driver_register(&altera_gpio_driver);
+-	return platform_driver_register(&spics_gpio_driver);
 -}
--subsys_initcall(altera_gpio_init);
--
--static void __exit altera_gpio_exit(void)
--{
--	platform_driver_unregister(&altera_gpio_driver);
--}
--module_exit(altera_gpio_exit);
-+subsys_platform_driver(altera_gpio_driver);
- 
- MODULE_AUTHOR("Tien Hock Loh <thloh@altera.com>");
- MODULE_DESCRIPTION("Altera GPIO driver");
+-subsys_initcall(spics_gpio_init);
++subsys_platform_driver(spics_gpio_driver);
 -- 
 1.9.1
