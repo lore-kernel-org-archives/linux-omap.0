@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 15/30] drivers: gpio: tps6586x: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:40:56 +0200
-Message-ID: <1560796871-18560-15-git-send-email-info@metux.net>
+Subject: [PATCH 18/30] drivers: gpio: wm831x: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:59 +0200
+Message-ID: <1560796871-18560-18-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,23 +17,32 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-tps6586x.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/gpio/gpio-wm831x.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/gpio/gpio-tps6586x.c b/drivers/gpio/gpio-tps6586x.c
-index 9b6cc74..8f75718 100644
---- a/drivers/gpio/gpio-tps6586x.c
-+++ b/drivers/gpio/gpio-tps6586x.c
-@@ -122,9 +122,4 @@ static int tps6586x_gpio_probe(struct platform_device *pdev)
- 	.driver.name	= "tps6586x-gpio",
- 	.probe		= tps6586x_gpio_probe,
+diff --git a/drivers/gpio/gpio-wm831x.c b/drivers/gpio/gpio-wm831x.c
+index a3a32a7..324f811 100644
+--- a/drivers/gpio/gpio-wm831x.c
++++ b/drivers/gpio/gpio-wm831x.c
+@@ -296,18 +296,7 @@ static int wm831x_gpio_probe(struct platform_device *pdev)
+ 	.driver.name	= "wm831x-gpio",
+ 	.probe		= wm831x_gpio_probe,
  };
 -
--static int __init tps6586x_gpio_init(void)
+-static int __init wm831x_gpio_init(void)
 -{
--	return platform_driver_register(&tps6586x_gpio_driver);
+-	return platform_driver_register(&wm831x_gpio_driver);
 -}
--subsys_initcall(tps6586x_gpio_init);
-+subsys_platform_driver(tps6586x_gpio_driver);
+-subsys_initcall(wm831x_gpio_init);
+-
+-static void __exit wm831x_gpio_exit(void)
+-{
+-	platform_driver_unregister(&wm831x_gpio_driver);
+-}
+-module_exit(wm831x_gpio_exit);
++subsys_platform_driver(wm831x_gpio_driver);
+ 
+ MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
+ MODULE_DESCRIPTION("GPIO interface for WM831x PMICs");
 -- 
 1.9.1
