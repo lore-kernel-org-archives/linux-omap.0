@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 03/30] drivers: gpio: da9055: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:40:44 +0200
-Message-ID: <1560796871-18560-3-git-send-email-info@metux.net>
+Subject: [PATCH 06/30] drivers: gpio: lantiq: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:47 +0200
+Message-ID: <1560796871-18560-6-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,32 +17,30 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-da9055.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/gpio/gpio-mm-lantiq.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/gpio/gpio-da9055.c b/drivers/gpio/gpio-da9055.c
-index 6ad0c37..d93f8ba 100644
---- a/drivers/gpio/gpio-da9055.c
-+++ b/drivers/gpio/gpio-da9055.c
-@@ -163,18 +163,7 @@ static int da9055_gpio_probe(struct platform_device *pdev)
- 		.name	= "da9055-gpio",
+diff --git a/drivers/gpio/gpio-mm-lantiq.c b/drivers/gpio/gpio-mm-lantiq.c
+index b0754fe..3e5ef46 100644
+--- a/drivers/gpio/gpio-mm-lantiq.c
++++ b/drivers/gpio/gpio-mm-lantiq.c
+@@ -146,16 +146,4 @@ static int ltq_mm_remove(struct platform_device *pdev)
+ 		.of_match_table = ltq_mm_match,
  	},
  };
 -
--static int __init da9055_gpio_init(void)
+-static int __init ltq_mm_init(void)
 -{
--	return platform_driver_register(&da9055_gpio_driver);
+-	return platform_driver_register(&ltq_mm_driver);
 -}
--subsys_initcall(da9055_gpio_init);
 -
--static void __exit da9055_gpio_exit(void)
+-subsys_initcall(ltq_mm_init);
+-
+-static void __exit ltq_mm_exit(void)
 -{
--	platform_driver_unregister(&da9055_gpio_driver);
+-	platform_driver_unregister(&ltq_mm_driver);
 -}
--module_exit(da9055_gpio_exit);
-+subsys_platform_driver(da9055_gpio_driver);
- 
- MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
- MODULE_DESCRIPTION("DA9055 GPIO Device Driver");
+-module_exit(ltq_mm_exit);
++subsys_platform_driver(ltq_mm_driver);
 -- 
 1.9.1
