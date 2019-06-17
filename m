@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 26/30] drivers: gpio: zynq: use postcore_platform_driver()
-Date: Mon, 17 Jun 2019 20:41:07 +0200
-Message-ID: <1560796871-18560-26-git-send-email-info@metux.net>
+Subject: [PATCH 29/30] drivers: gpio: max7300: use arch_platform_driver()
+Date: Mon, 17 Jun 2019 20:41:10 +0200
+Message-ID: <1560796871-18560-29-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -13,40 +13,36 @@ List-Id: linux-omap@vger.kernel.org
 From: Enrico Weigelt <info@metux.net>
 
 Reduce driver init boilerplate by using the new
-postcore_platform_driver() macro.
+subsys_i2c_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-zynq.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/gpio/gpio-max7300.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/gpio/gpio-zynq.c b/drivers/gpio/gpio-zynq.c
-index f241b6c..30ad4ee 100644
---- a/drivers/gpio/gpio-zynq.c
-+++ b/drivers/gpio/gpio-zynq.c
-@@ -952,22 +952,7 @@ static int zynq_gpio_remove(struct platform_device *pdev)
- 	.remove = zynq_gpio_remove,
+diff --git a/drivers/gpio/gpio-max7300.c b/drivers/gpio/gpio-max7300.c
+index 1ae9ba8..36d5afa 100644
+--- a/drivers/gpio/gpio-max7300.c
++++ b/drivers/gpio/gpio-max7300.c
+@@ -70,18 +70,7 @@ static int max7300_remove(struct i2c_client *client)
+ 	.remove = max7300_remove,
+ 	.id_table = max7300_id,
  };
- 
--/**
-- * zynq_gpio_init - Initial driver registration call
-- *
-- * Return: value from platform_driver_register
-- */
--static int __init zynq_gpio_init(void)
--{
--	return platform_driver_register(&zynq_gpio_driver);
--}
--postcore_initcall(zynq_gpio_init);
 -
--static void __exit zynq_gpio_exit(void)
+-static int __init max7300_init(void)
 -{
--	platform_driver_unregister(&zynq_gpio_driver);
+-	return i2c_add_driver(&max7300_driver);
 -}
--module_exit(zynq_gpio_exit);
-+postcore_platform_driver(zynq_gpio_driver);
+-subsys_initcall(max7300_init);
+-
+-static void __exit max7300_exit(void)
+-{
+-	i2c_del_driver(&max7300_driver);
+-}
+-module_exit(max7300_exit);
++subsys_i2c_driver(max7300_driver);
  
- MODULE_AUTHOR("Xilinx Inc.");
- MODULE_DESCRIPTION("Zynq GPIO driver");
+ MODULE_AUTHOR("Wolfram Sang");
+ MODULE_LICENSE("GPL v2");
 -- 
 1.9.1
