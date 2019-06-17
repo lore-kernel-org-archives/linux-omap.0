@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 19/30] drivers: gpio: wm8350: use subsys_platform_driver()
-Date: Mon, 17 Jun 2019 20:41:00 +0200
-Message-ID: <1560796871-18560-19-git-send-email-info@metux.net>
+Subject: [PATCH 14/30] drivers: gpio: tegra: use subsys_platform_driver()
+Date: Mon, 17 Jun 2019 20:40:55 +0200
+Message-ID: <1560796871-18560-14-git-send-email-info@metux.net>
 References: <1560796871-18560-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
@@ -17,32 +17,23 @@ subsys_platform_driver() macro.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/gpio/gpio-wm8350.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/gpio/gpio-tegra.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-wm8350.c b/drivers/gpio/gpio-wm8350.c
-index 460f0a4..21a3191 100644
---- a/drivers/gpio/gpio-wm8350.c
-+++ b/drivers/gpio/gpio-wm8350.c
-@@ -137,18 +137,7 @@ static int wm8350_gpio_probe(struct platform_device *pdev)
- 	.driver.name	= "wm8350-gpio",
- 	.probe		= wm8350_gpio_probe,
+diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
+index f57bfc0..64dbba4 100644
+--- a/drivers/gpio/gpio-tegra.c
++++ b/drivers/gpio/gpio-tegra.c
+@@ -711,9 +711,4 @@ static int tegra_gpio_probe(struct platform_device *pdev)
+ 	},
+ 	.probe		= tegra_gpio_probe,
  };
 -
--static int __init wm8350_gpio_init(void)
+-static int __init tegra_gpio_init(void)
 -{
--	return platform_driver_register(&wm8350_gpio_driver);
+-	return platform_driver_register(&tegra_gpio_driver);
 -}
--subsys_initcall(wm8350_gpio_init);
--
--static void __exit wm8350_gpio_exit(void)
--{
--	platform_driver_unregister(&wm8350_gpio_driver);
--}
--module_exit(wm8350_gpio_exit);
-+subsys_platform_driver(wm8350_gpio_driver);
- 
- MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
- MODULE_DESCRIPTION("GPIO interface for WM8350 PMICs");
+-subsys_initcall(tegra_gpio_init);
++subsys_platform_driver(tegra_gpio_driver);
 -- 
 1.9.1
