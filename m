@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 2/3] dmaengine: ti: edma: Correct the residue calculation
- (fix for memcpy)
-Date: Tue, 18 Jun 2019 16:21:47 +0300
-Message-ID: <20190618132148.26468-3-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 3/3] dmaengine: ti: edma: Support for polled (memcpy)
+ completion
+Date: Tue, 18 Jun 2019 16:21:48 +0300
+Message-ID: <20190618132148.26468-4-peter.ujfalusi@ti.com>
 References: <20190618132148.26468-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,91 +22,103 @@ To: vkoul@kernel.org
 Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-For memcpy we never stored the start address of the transfer for the pset
-which rendered the memcpy residue calculation completely broken.
+When a DMA client driver does not set the DMA_PREP_INTERRUPT because it
+does not want to use interrupts for DMA completion or because it can not
+rely on DMA interrupts due to executing the memcpy when interrupts are
+disabled it will poll the status of the transfer.
 
-In the edma_residue() function we also need to to some correction for the
-calculations:
-Instead waiting for all EDMA channels to be idle (in a busy system it can
-take few iteration to hit a point when all queues are idle) wait for the
-event pending on the given channel (SH_ER for hw synchronized channels,
-SH_ESR for manually triggered channels).
-
-If the position returned by EMDA is 0 it imiplies that the last paRAM set
-has been consumed and we are at the closing dummy set, thus we can conclude
-that the transfer is completed and we can return 0 as residue.
+Since we can not tell from any EDMA register that the transfer is
+completed, we can only know that the paRAM set has been sent to TPTC for
+processing we need to check the residue of the transfer, if it is 0 then
+the transfer is completed.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/ti/edma.c | 31 +++++++++++++++++++++++--------
- 1 file changed, 23 insertions(+), 8 deletions(-)
+ drivers/dma/ti/edma.c | 37 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/dma/ti/edma.c b/drivers/dma/ti/edma.c
-index 3fd7831d1279..48b155cab822 100644
+index 48b155cab822..87d7fdaa204b 100644
 --- a/drivers/dma/ti/edma.c
 +++ b/drivers/dma/ti/edma.c
-@@ -1039,6 +1039,7 @@ static int edma_config_pset(struct dma_chan *chan, struct edma_pset *epset,
- 		src_cidx = cidx;
- 		dst_bidx = acnt;
- 		dst_cidx = cidx;
-+		epset->addr = src_addr;
+@@ -171,6 +171,7 @@ struct edma_desc {
+ 	struct list_head		node;
+ 	enum dma_transfer_direction	direction;
+ 	int				cyclic;
++	bool				polled;
+ 	int				absync;
+ 	int				pset_nr;
+ 	struct edma_chan		*echan;
+@@ -1240,8 +1241,9 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+ 
+ 	edesc->pset[0].param.opt |= ITCCHEN;
+ 	if (nslots == 1) {
+-		/* Enable transfer complete interrupt */
+-		edesc->pset[0].param.opt |= TCINTEN;
++		/* Enable transfer complete interrupt if requested */
++		if (tx_flags & DMA_PREP_INTERRUPT)
++			edesc->pset[0].param.opt |= TCINTEN;
  	} else {
- 		dev_err(dev, "%s: direction not implemented yet\n", __func__);
- 		return -EINVAL;
-@@ -1749,7 +1750,11 @@ static u32 edma_residue(struct edma_desc *edesc)
- 	int loop_count = EDMA_MAX_TR_WAIT_LOOPS;
- 	struct edma_chan *echan = edesc->echan;
- 	struct edma_pset *pset = edesc->pset;
--	dma_addr_t done, pos;
-+	dma_addr_t done, pos, pos_old;
-+	int channel = EDMA_CHAN_SLOT(echan->ch_num);
-+	int idx = EDMA_REG_ARRAY_INDEX(channel);
-+	int ch_bit = EDMA_CHANNEL_BIT(channel);
-+	int event_reg;
- 	int i;
+ 		/* Enable transfer complete chaining for the first slot */
+ 		edesc->pset[0].param.opt |= TCCHEN;
+@@ -1268,9 +1270,14 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+ 		}
  
- 	/*
-@@ -1762,16 +1767,20 @@ static u32 edma_residue(struct edma_desc *edesc)
- 	 * "pos" may represent a transfer request that is still being
- 	 * processed by the EDMACC or EDMATC. We will busy wait until
- 	 * any one of the situations occurs:
--	 *   1. the DMA hardware is idle
--	 *   2. a new transfer request is setup
-+	 *   1. while and event is pending for the channel
-+	 *   2. a position updated
- 	 *   3. we hit the loop limit
- 	 */
--	while (edma_read(echan->ecc, EDMA_CCSTAT) & EDMA_CCSTAT_ACTV) {
--		/* check if a new transfer request is setup */
--		if (edma_get_position(echan->ecc,
--				      echan->slot[0], dst) != pos) {
-+	if (is_slave_direction(edesc->direction))
-+		event_reg = SH_ER;
-+	else
-+		event_reg = SH_ESR;
-+
-+	pos_old = pos;
-+	while (edma_shadow0_read_array(echan->ecc, event_reg, idx) & ch_bit) {
-+		pos = edma_get_position(echan->ecc, echan->slot[0], dst);
-+		if (pos != pos_old)
- 			break;
--		}
- 
- 		if (!--loop_count) {
- 			dev_dbg_ratelimited(echan->vchan.chan.device->dev,
-@@ -1796,6 +1805,12 @@ static u32 edma_residue(struct edma_desc *edesc)
- 		return edesc->residue_stat;
+ 		edesc->pset[1].param.opt |= ITCCHEN;
+-		edesc->pset[1].param.opt |= TCINTEN;
++		/* Enable transfer complete interrupt if requested */
++		if (tx_flags & DMA_PREP_INTERRUPT)
++			edesc->pset[1].param.opt |= TCINTEN;
  	}
  
++	if (!(tx_flags & DMA_PREP_INTERRUPT))
++		edesc->polled = true;
++
+ 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+ }
+ 
+@@ -1840,18 +1847,40 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
+ {
+ 	struct edma_chan *echan = to_edma_chan(chan);
+ 	struct virt_dma_desc *vdesc;
++	struct dma_tx_state txstate_tmp;
+ 	enum dma_status ret;
+ 	unsigned long flags;
+ 
+ 	ret = dma_cookie_status(chan, cookie, txstate);
+-	if (ret == DMA_COMPLETE || !txstate)
++
++	/* Provide a dummy dma_tx_state for completion checking */
++	if (ret != DMA_COMPLETE && !txstate)
++		txstate = &txstate_tmp;
++
++	if (ret == DMA_COMPLETE)
+ 		return ret;
+ 
++	txstate->residue = 0;
+ 	spin_lock_irqsave(&echan->vchan.lock, flags);
+ 	if (echan->edesc && echan->edesc->vdesc.tx.cookie == cookie)
+ 		txstate->residue = edma_residue(echan->edesc);
+ 	else if ((vdesc = vchan_find_desc(&echan->vchan, cookie)))
+ 		txstate->residue = to_edma_desc(&vdesc->tx)->residue;
++
 +	/*
-+	 * If the position is 0, then EDMA loaded the closing dummy slot, the
-+	 * transfer is completed
++	 * Mark the cookie completed if the residue is 0 for non cyclic
++	 * transfers
 +	 */
-+	if (!pos)
-+		return 0;
- 	/*
- 	 * For SG operation we catch up with the last processed
- 	 * status.
++	if (ret != DMA_COMPLETE && !txstate->residue &&
++	    echan->edesc && echan->edesc->polled &&
++	    echan->edesc->vdesc.tx.cookie == cookie) {
++		edma_stop(echan);
++		vchan_cookie_complete(&echan->edesc->vdesc);
++		echan->edesc = NULL;
++		edma_execute(echan);
++		ret = DMA_COMPLETE;
++	}
++
+ 	spin_unlock_irqrestore(&echan->vchan.lock, flags);
+ 
+ 	return ret;
 -- 
 Peter
 
