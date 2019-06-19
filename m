@@ -1,127 +1,155 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: ti: omap-dma: Improved memcpy polling support
-Date: Tue, 18 Jun 2019 16:24:16 +0300
-Message-ID: <20190618132416.26874-1-peter.ujfalusi@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH] ARM: dts: am57xx: Disable voltage switching for SD card
+Date: Wed, 19 Jun 2019 15:54:54 +0530
+Message-ID: <20190619102454.5097-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: vkoul@kernel.org
-Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: mark.rutland@arm.com, robh+dt@kernel.org, tony@atomide.com, faiz_abbas@ti.com, robertcnelson@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-When a DMA client driver does not set the DMA_PREP_INTERRUPT because it
-does not want to use interrupts for DMA completion or because it can not
-rely on DMA interrupts due to executing the memcpy when interrupts are
-disabled it will poll the status of the transfer.
+If UHS speed modes are enabled, a compatible SD card switches down to
+1.8V during enumeration. If after this a software reboot/crash takes
+place and on-chip ROM tries to enumerate the SD card, the difference in
+IO voltages (host @ 3.3V and card @ 1.8V) may end up damaging the card.
 
-If the interrupts are enabled then the cookie will be set completed in the
-interrupt handler so only check in HW completion when the polling is really
-needed.
+The fix for this is to have support for power cycling the card in
+hardware (with a PORz/soft-reset line causing a power cycle of the
+card). Because the beaglebone X15 (rev A,B and C), am57xx-idks and
+am57xx-evms don't have this capability, disable voltage switching for
+these boards.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+The major effect of this is that the maximum supported speed
+mode is now high speed(50 MHz) down from SDR104(200 MHz).
+
+commit 88a748419b84 ("ARM: dts: am57xx-idk: Remove support for voltage
+switching for SD card") did this only for idk boards. Do it for all
+affected boards.
+
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
-Hi,
+ arch/arm/boot/dts/am571x-idk.dts                | 7 +------
+ arch/arm/boot/dts/am572x-idk.dts                | 7 +------
+ arch/arm/boot/dts/am574x-idk.dts                | 7 +------
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 1 +
+ arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts   | 7 +------
+ arch/arm/boot/dts/am57xx-beagle-x15-revc.dts    | 7 +------
+ 6 files changed, 6 insertions(+), 30 deletions(-)
 
-This patch fine-tunes the omap-dma polled memcpy support to be inline with how
-the EDMA driver is handling it.
-
-The polled completion can be tested by applying:
-https://patchwork.kernel.org/patch/10966499/
-
-and run the dmatest with polled = 1 on boards where sDMA is used.
-
-Or boot up any dra7 family device with display enabled. The workaround for DMM
-errata i878 uses polled DMA memcpy.
-
-Regards,
-Peter
-
- drivers/dma/ti/omap-dma.c | 37 ++++++++++++++++++++++++-------------
- 1 file changed, 24 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
-index 5ba7d8485026..75d8f7e13c8d 100644
---- a/drivers/dma/ti/omap-dma.c
-+++ b/drivers/dma/ti/omap-dma.c
-@@ -94,6 +94,7 @@ struct omap_desc {
- 	bool using_ll;
- 	enum dma_transfer_direction dir;
- 	dma_addr_t dev_addr;
-+	bool polled;
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index 66116ad3f9f4..0a043908215c 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -178,14 +178,9 @@
+ };
  
- 	int32_t fi;		/* for OMAP_DMA_SYNC_PACKET / double indexing */
- 	int16_t ei;		/* for double indexing */
-@@ -834,20 +835,10 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default_no_clk_pu>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50_rev20 &mmc1_iodelay_ddr50_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
+ };
  
- 	ret = dma_cookie_status(chan, cookie, txstate);
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+index 4f835222c266..8663a9416af6 100644
+--- a/arch/arm/boot/dts/am572x-idk.dts
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -19,14 +19,9 @@
+ };
  
--	if (!c->paused && c->running) {
--		uint32_t ccr = omap_dma_chan_read(c, CCR);
--		/*
--		 * The channel is no longer active, set the return value
--		 * accordingly
--		 */
--		if (!(ccr & CCR_ENABLE))
--			ret = DMA_COMPLETE;
--	}
--
-+	spin_lock_irqsave(&c->vc.lock, flags);
- 	if (ret == DMA_COMPLETE || !txstate)
--		return ret;
-+		goto out;
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default_no_clk_pu>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev20_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
+ };
  
--	spin_lock_irqsave(&c->vc.lock, flags);
- 	vd = vchan_find_desc(&c->vc, cookie);
- 	if (vd) {
- 		txstate->residue = omap_dma_desc_size(to_omap_dma_desc(&vd->tx));
-@@ -868,6 +859,23 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
- 	}
- 	if (ret == DMA_IN_PROGRESS && c->paused)
- 		ret = DMA_PAUSED;
-+
-+out:
-+	if (ret == DMA_IN_PROGRESS && c->running && c->desc &&
-+	    c->desc->polled && c->desc->vd.tx.cookie == cookie) {
-+		uint32_t ccr = omap_dma_chan_read(c, CCR);
-+		/*
-+		 * The channel is no longer active, set the return value
-+		 * accordingly
-+		 */
-+		if (!(ccr & CCR_ENABLE)) {
-+			struct omap_desc *d = c->desc;
-+			ret = DMA_COMPLETE;
-+			omap_dma_start_desc(c);
-+			vchan_cookie_complete(&d->vd);
-+		}
-+	}
-+
- 	spin_unlock_irqrestore(&c->vc.lock, flags);
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am574x-idk.dts b/arch/arm/boot/dts/am574x-idk.dts
+index dc5141c35610..7935d70874ce 100644
+--- a/arch/arm/boot/dts/am574x-idk.dts
++++ b/arch/arm/boot/dts/am574x-idk.dts
+@@ -24,14 +24,9 @@
+ };
  
- 	return ret;
-@@ -1233,7 +1241,10 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_memcpy(
- 	d->ccr = c->ccr;
- 	d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_POSTINC;
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default_no_clk_pu>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_default>;
+-	pinctrl-3 = <&mmc1_pins_hs>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_conf>;
+-	pinctrl-6 = <&mmc1_pins_ddr50 &mmc1_iodelay_sdr104_conf>;
+ };
  
--	d->cicr = CICR_DROP_IE | CICR_FRAME_IE;
-+	if (tx_flags & DMA_PREP_INTERRUPT)
-+		d->cicr |= CICR_FRAME_IE;
-+	else
-+		d->polled = true;
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+index 2341a56ebab9..0cdfd2853ba8 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+@@ -433,6 +433,7 @@
  
- 	d->csdp = data_type;
+ 	bus-width = <4>;
+ 	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
++	no-1-8-v;
+ };
  
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+index 5a77b334923d..34c69965821b 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+@@ -19,14 +19,9 @@
+ };
+ 
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev11_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev11_conf>;
+ 	vmmc-supply = <&vdd_3v3>;
+ 	vqmmc-supply = <&ldo1_reg>;
+ };
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts
+index 17c41da3b55f..ccd99160bbdf 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts
+@@ -19,14 +19,9 @@
+ };
+ 
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev20_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
+ 	vmmc-supply = <&vdd_3v3>;
+ 	vqmmc-supply = <&ldo1_reg>;
+ };
 -- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.19.2
