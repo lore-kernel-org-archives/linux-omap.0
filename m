@@ -1,55 +1,36 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v3] ARM: configs: Remove useless UEVENT_HELPER_PATH
-Date: Wed, 19 Jun 2019 07:12:30 -0700
-Message-ID: <20190619141230.rtgeunr23gybv7u2@localhost>
-References: <20190604185229.7393-1-krzk@kernel.org>
- <CAJKOXPd4LVFGgonbsuxii-5Fu5wWhxU9yotLHw+OXsPcxYw_3g@mail.gmail.com>
+Subject: Re: [PATCH] ARM: omap2: remove incorrect __init annotation
+Date: Wed, 19 Jun 2019 07:27:22 -0700
+Message-ID: <20190619142722.hsujtf3svd7p2pt4@localhost>
+References: <20190619130529.1502322-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJKOXPd4LVFGgonbsuxii-5Fu5wWhxU9yotLHw+OXsPcxYw_3g@mail.gmail.com>
+In-Reply-To: <20190619130529.1502322-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-aspeed@lists.ozlabs.org, linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: arm@kernel.org, Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 13, 2019 at 04:53:53PM +0200, Krzysztof Kozlowski wrote:
-> On Tue, 4 Jun 2019 at 20:52, Krzysztof Kozlowski <krzk@kernel.org> wrote:
-> >
-> > Remove the CONFIG_UEVENT_HELPER_PATH because:
-> > 1. It is disabled since commit 1be01d4a5714 ("driver: base: Disable
-> >    CONFIG_UEVENT_HELPER by default") as its dependency (UEVENT_HELPER) was
-> >    made default to 'n',
-> > 2. It is not recommended (help message: "This should not be used today
-> >    [...] creates a high system load") and was kept only for ancient
-> >    userland,
-> > 3. Certain userland specifically requests it to be disabled (systemd
-> >    README: "Legacy hotplug slows down the system and confuses udev").
-> >
-> > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-> > Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> > Acked-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
-> > For vexpress:
-> > Acked-by: Sudeep Holla <sudeep.holla@arm.com>
-> >
-> > ---
-> >
-> > Changes since v2:
-> > 1. Remove unrelated files.
-> > 2. Add Geert's ack.
-> >
-> > Changes sice v3:
-> > 1. Change also mini2440_defconfig.
-> > 2. Add more acks.
+On Wed, Jun 19, 2019 at 03:04:54PM +0200, Arnd Bergmann wrote:
+> omap3xxx_prm_enable_io_wakeup() is marked __init, but its caller is not, so
+> we get a warning with clang-8:
 > 
-> Hi Arnd and Olof,
+> WARNING: vmlinux.o(.text+0x343c8): Section mismatch in reference from the function omap3xxx_prm_late_init() to the function .init.text:omap3xxx_prm_enable_io_wakeup()
+> The function omap3xxx_prm_late_init() references
+> the function __init omap3xxx_prm_enable_io_wakeup().
+> This is often because omap3xxx_prm_late_init lacks a __init
+> annotation or the annotation of omap3xxx_prm_enable_io_wakeup is wrong.
 > 
-> Do you want to apply it directly or maybe I can send it along with
-> other my defconfig pull request?
+> When building with gcc, omap3xxx_prm_enable_io_wakeup() is always
+> inlined, so we never noticed in the past.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Oh, just saw v3, since it didn't thread with v2.
+Applied to fixes. Thanks!
 
-Applied already with the equivalent fixups, so we're good.
 
 -Olof
