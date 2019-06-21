@@ -1,140 +1,38 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH v4 net-next 01/11] net: ethernet: ti: cpsw: allow untagged traffic on host port
-Date: Fri, 21 Jun 2019 21:13:04 +0300
-Message-ID: <20190621181314.20778-2-grygorii.strashko@ti.com>
+Subject: [RFC PATCH v4 net-next 08/11] phy: ti: phy-gmii-sel: dependency from ti cpsw-switchdev driver
+Date: Fri, 21 Jun 2019 21:13:11 +0300
+Message-ID: <20190621181314.20778-9-grygorii.strashko@ti.com>
 References: <20190621181314.20778-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190621181314.20778-1-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now untagged vlan traffic is not support on Host P0 port. This patch adds
-in ALE context bitmap of VLANs for which Host P0 port bit set in Force
-Untagged Packet Egress bitmask in VLANs ALE entries, and adds corresponding
-check in VLAN incapsulation header parsing function cpsw_rx_vlan_encap().
+Add dependency from TI_CPSW_SWITCHDEV.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c     | 17 ++++++++---------
- drivers/net/ethernet/ti/cpsw_ale.c | 21 ++++++++++++++++++++-
- drivers/net/ethernet/ti/cpsw_ale.h |  5 +++++
- 3 files changed, 33 insertions(+), 10 deletions(-)
+ drivers/phy/ti/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 7bdd287074fc..fe3b3b89931b 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -381,17 +381,16 @@ static void cpsw_rx_vlan_encap(struct sk_buff *skb)
- 	/* Ignore vid 0 and pass packet as is */
- 	if (!vid)
- 		return;
--	/* Ignore default vlans in dual mac mode */
--	if (cpsw->data.dual_emac &&
--	    vid == cpsw->slaves[priv->emac_port].port_vlan)
--		return;
+diff --git a/drivers/phy/ti/Kconfig b/drivers/phy/ti/Kconfig
+index c3fa1840f8de..174888609779 100644
+--- a/drivers/phy/ti/Kconfig
++++ b/drivers/phy/ti/Kconfig
+@@ -90,8 +90,8 @@ config TWL4030_USB
  
--	prio = (rx_vlan_encap_hdr >>
--		CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT) &
--		CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK;
-+	/* Untag P0 packets if set for vlan */
-+	if (!cpsw_ale_get_vlan_p0_untag(cpsw->ale, vid)) {
-+		prio = (rx_vlan_encap_hdr >>
-+			CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT) &
-+			CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK;
- 
--	vtag = (prio << VLAN_PRIO_SHIFT) | vid;
--	__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vtag);
-+		vtag = (prio << VLAN_PRIO_SHIFT) | vid;
-+		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vtag);
-+	}
- 
- 	/* strip vlan tag for VLAN-tagged packet */
- 	if (pkt_type == CPSW_RX_VLAN_ENCAP_HDR_PKT_VLAN_TAG) {
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 84025dcc78d5..23e7714ebee7 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -5,6 +5,8 @@
-  * Copyright (C) 2012 Texas Instruments
-  *
-  */
-+#include <linux/bitmap.h>
-+#include <linux/if_vlan.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
-@@ -415,6 +417,17 @@ static void cpsw_ale_set_vlan_mcast(struct cpsw_ale *ale, u32 *ale_entry,
- 	writel(unreg_mcast, ale->params.ale_regs + ALE_VLAN_MASK_MUX(idx));
- }
- 
-+void cpsw_ale_set_vlan_untag(struct cpsw_ale *ale, u32 *ale_entry,
-+			     u16 vid, int untag_mask)
-+{
-+	cpsw_ale_set_vlan_untag_force(ale_entry,
-+				      untag_mask, ale->vlan_field_bits);
-+	if (untag_mask & ALE_PORT_HOST)
-+		bitmap_set(ale->p0_untag_vid_mask, vid, 1);
-+	else
-+		bitmap_clear(ale->p0_untag_vid_mask, vid, 1);
-+}
-+
- int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
- 		      int reg_mcast, int unreg_mcast)
- {
-@@ -427,8 +440,8 @@ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
- 
- 	cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_VLAN);
- 	cpsw_ale_set_vlan_id(ale_entry, vid);
-+	cpsw_ale_set_vlan_untag(ale, ale_entry, vid, untag);
- 
--	cpsw_ale_set_vlan_untag_force(ale_entry, untag, ale->vlan_field_bits);
- 	if (!ale->params.nu_switch_ale) {
- 		cpsw_ale_set_vlan_reg_mcast(ale_entry, reg_mcast,
- 					    ale->vlan_field_bits);
-@@ -460,6 +473,7 @@ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
- 		return -ENOENT;
- 
- 	cpsw_ale_read(ale, idx, ale_entry);
-+	cpsw_ale_set_vlan_untag(ale, ale_entry, vid, 0);
- 
- 	if (port_mask)
- 		cpsw_ale_set_vlan_member_list(ale_entry, port_mask,
-@@ -791,6 +805,11 @@ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
- 	if (!ale)
- 		return NULL;
- 
-+	ale->p0_untag_vid_mask =
-+		devm_kmalloc_array(params->dev, BITS_TO_LONGS(VLAN_N_VID),
-+				   sizeof(unsigned long),
-+				   GFP_KERNEL);
-+
- 	ale->params = *params;
- 	ale->ageout = ale->params.ale_ageout * HZ;
- 
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
-index 370df254eb12..93d6d56d12f4 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.h
-+++ b/drivers/net/ethernet/ti/cpsw_ale.h
-@@ -35,6 +35,7 @@ struct cpsw_ale {
- 	u32			port_mask_bits;
- 	u32			port_num_bits;
- 	u32			vlan_field_bits;
-+	unsigned long		*p0_untag_vid_mask;
- };
- 
- enum cpsw_ale_control {
-@@ -115,4 +116,8 @@ int cpsw_ale_control_set(struct cpsw_ale *ale, int port,
- 			 int control, int value);
- void cpsw_ale_dump(struct cpsw_ale *ale, u32 *data);
- 
-+static inline int cpsw_ale_get_vlan_p0_untag(struct cpsw_ale *ale, u16 vid)
-+{
-+	return test_bit(vid, ale->p0_untag_vid_mask);
-+}
- #endif
+ config PHY_TI_GMII_SEL
+ 	tristate
+-	default y if TI_CPSW=y
+-	depends on TI_CPSW || COMPILE_TEST
++	default y if TI_CPSW=y || TI_CPSW_SWITCHDEV=y
++	depends on TI_CPSW || TI_CPSW_SWITCHDEV || COMPILE_TEST
+ 	select GENERIC_PHY
+ 	select REGMAP
+ 	default m
 -- 
 2.17.1
