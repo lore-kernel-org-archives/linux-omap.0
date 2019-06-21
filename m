@@ -1,58 +1,99 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 6/6] thermal/drivers/ti: Remove cooling device usage
-Date: Fri, 21 Jun 2019 15:23:02 +0200
-Message-ID: <20190621132302.30414-6-daniel.lezcano@linaro.org>
-References: <20190621132302.30414-1-daniel.lezcano@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190621132302.30414-1-daniel.lezcano@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: viresh.kumar@linaro.org
-Cc: edubezval@gmail.com, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-pm@vger.kernel.org>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [RFC PATCH v4 net-next 03/11] net: ethernet: ti: cpsw: resolve build deps of cpsw drivers
+Date: Fri, 21 Jun 2019 21:13:06 +0300
+Message-ID: <20190621181314.20778-4-grygorii.strashko@ti.com>
+References: <20190621181314.20778-1-grygorii.strashko@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190621181314.20778-1-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The cpufreq_cooling_unregister() function uses now the policy to
-unregister itself. The only purpose of the cooling device pointer is
-to unregister the cpu cooling device.
+A following patches introduce new CPSW switchdev driver which uses common
+code with legacy CPSW driver. This will introduce build dependency between
+CPSW switchdev and CPSW legacy drivers related to for_each_slave() and
+cpsw_slave_index() - they can be compiled both, but only one of them will
+be not functional depending in Kconfig settings due to duffrences in Slave
+Ports indexes calculation.
 
-As there is no more need of this pointer, remove it.
+To fix this make for_each_slave() local (it's used now only by legacy CPSW
+driver) and convert cpsw_slave_index() to be a function pointer which is
+assigned in probe. Driver to probe is defined by DT.
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c      | 13 +++++++++++++
+ drivers/net/ethernet/ti/cpsw_priv.c |  2 ++
+ drivers/net/ethernet/ti/cpsw_priv.h | 10 ++--------
+ 3 files changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 217b1aae8b4f..170b70b6ec61 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -41,7 +41,6 @@ struct ti_thermal_data {
- 	struct cpufreq_policy *policy;
- 	struct thermal_zone_device *ti_thermal;
- 	struct thermal_zone_device *pcb_tz;
--	struct thermal_cooling_device *cool_dev;
- 	struct ti_bandgap *bgp;
- 	enum thermal_device_mode mode;
- 	struct work_struct thermal_wq;
-@@ -233,6 +232,7 @@ int ti_thermal_register_cpu_cooling(struct ti_bandgap *bgp, int id)
- {
- 	struct ti_thermal_data *data;
- 	struct device_node *np = bgp->dev->of_node;
-+	struct thermal_cooling_device *cdev;
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index fe3b3b89931b..79ac7c1db22b 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -74,6 +74,17 @@ MODULE_PARM_DESC(descs_pool_size, "Number of CPDMA CPPI descriptors in pool");
+ 				(func)(slave++, ##arg);			\
+ 	} while (0)
  
- 	/*
- 	 * We are assuming here that if one deploys the zone
-@@ -256,9 +256,9 @@ int ti_thermal_register_cpu_cooling(struct ti_bandgap *bgp, int id)
- 	}
++static int cpsw_slave_index_priv(struct cpsw_common *cpsw,
++				 struct cpsw_priv *priv)
++{
++	return cpsw->data.dual_emac ? priv->emac_port : cpsw->data.active_slave;
++}
++
++static int cpsw_get_slave_port(u32 slave_num)
++{
++	return slave_num + 1;
++}
++
+ static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
+ 				    __be16 proto, u16 vid);
  
- 	/* Register cooling device */
--	data->cool_dev = cpufreq_cooling_register(data->policy);
--	if (IS_ERR(data->cool_dev)) {
--		int ret = PTR_ERR(data->cool_dev);
-+	cdev = cpufreq_cooling_register(data->policy);
-+	if (IS_ERR(cdev)) {
-+		int ret = PTR_ERR(cdev);
- 		dev_err(bgp->dev, "Failed to register cpu cooling device %d\n",
- 			ret);
- 		cpufreq_cpu_put(data->policy);
+@@ -2368,6 +2379,8 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	if (!cpsw)
+ 		return -ENOMEM;
+ 
++	cpsw_slave_index = cpsw_slave_index_priv;
++
+ 	cpsw->dev = dev;
+ 
+ 	mode = devm_gpiod_get_array_optional(dev, "mode", GPIOD_OUT_LOW);
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
+index 476d050a022c..a1c83af64835 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
++++ b/drivers/net/ethernet/ti/cpsw_priv.c
+@@ -19,6 +19,8 @@
+ #include "cpsw_sl.h"
+ #include "davinci_cpdma.h"
+ 
++int (*cpsw_slave_index)(struct cpsw_common *cpsw, struct cpsw_priv *priv);
++
+ int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
+ 		     int ale_ageout, phys_addr_t desc_mem_phys,
+ 		     int descs_pool_size)
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
+index 04795b97ee71..57b109d4758f 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.h
++++ b/drivers/net/ethernet/ti/cpsw_priv.h
+@@ -367,14 +367,8 @@ struct cpsw_priv {
+ #define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
+ #define napi_to_cpsw(napi)	container_of(napi, struct cpsw_common, napi)
+ 
+-#define cpsw_slave_index(cpsw, priv)				\
+-		((cpsw->data.dual_emac) ? priv->emac_port :	\
+-		cpsw->data.active_slave)
+-
+-static inline int cpsw_get_slave_port(u32 slave_num)
+-{
+-	return slave_num + 1;
+-}
++extern int (*cpsw_slave_index)(struct cpsw_common *cpsw,
++			       struct cpsw_priv *priv);
+ 
+ struct addr_sync_ctx {
+ 	struct net_device *ndev;
 -- 
 2.17.1
