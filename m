@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH v4 net-next 03/11] net: ethernet: ti: cpsw: resolve build deps of cpsw drivers
-Date: Fri, 21 Jun 2019 21:13:06 +0300
-Message-ID: <20190621181314.20778-4-grygorii.strashko@ti.com>
+Subject: [RFC PATCH v4 net-next 01/11] net: ethernet: ti: cpsw: allow untagged traffic on host port
+Date: Fri, 21 Jun 2019 21:13:04 +0300
+Message-ID: <20190621181314.20778-2-grygorii.strashko@ti.com>
 References: <20190621181314.20778-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,88 +12,129 @@ To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andr
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-A following patches introduce new CPSW switchdev driver which uses common
-code with legacy CPSW driver. This will introduce build dependency between
-CPSW switchdev and CPSW legacy drivers related to for_each_slave() and
-cpsw_slave_index() - they can be compiled both, but only one of them will
-be not functional depending in Kconfig settings due to duffrences in Slave
-Ports indexes calculation.
-
-To fix this make for_each_slave() local (it's used now only by legacy CPSW
-driver) and convert cpsw_slave_index() to be a function pointer which is
-assigned in probe. Driver to probe is defined by DT.
+Now untagged vlan traffic is not support on Host P0 port. This patch adds
+in ALE context bitmap of VLANs for which Host P0 port bit set in Force
+Untagged Packet Egress bitmask in VLANs ALE entries, and adds corresponding
+check in VLAN incapsulation header parsing function cpsw_rx_vlan_encap().
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c      | 13 +++++++++++++
- drivers/net/ethernet/ti/cpsw_priv.c |  2 ++
- drivers/net/ethernet/ti/cpsw_priv.h | 10 ++--------
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c     | 17 ++++++++---------
+ drivers/net/ethernet/ti/cpsw_ale.c | 21 ++++++++++++++++++++-
+ drivers/net/ethernet/ti/cpsw_ale.h |  5 +++++
+ 3 files changed, 33 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index fe3b3b89931b..79ac7c1db22b 100644
+index 7bdd287074fc..fe3b3b89931b 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -74,6 +74,17 @@ MODULE_PARM_DESC(descs_pool_size, "Number of CPDMA CPPI descriptors in pool");
- 				(func)(slave++, ##arg);			\
- 	} while (0)
+@@ -381,17 +381,16 @@ static void cpsw_rx_vlan_encap(struct sk_buff *skb)
+ 	/* Ignore vid 0 and pass packet as is */
+ 	if (!vid)
+ 		return;
+-	/* Ignore default vlans in dual mac mode */
+-	if (cpsw->data.dual_emac &&
+-	    vid == cpsw->slaves[priv->emac_port].port_vlan)
+-		return;
  
-+static int cpsw_slave_index_priv(struct cpsw_common *cpsw,
-+				 struct cpsw_priv *priv)
+-	prio = (rx_vlan_encap_hdr >>
+-		CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT) &
+-		CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK;
++	/* Untag P0 packets if set for vlan */
++	if (!cpsw_ale_get_vlan_p0_untag(cpsw->ale, vid)) {
++		prio = (rx_vlan_encap_hdr >>
++			CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT) &
++			CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK;
+ 
+-	vtag = (prio << VLAN_PRIO_SHIFT) | vid;
+-	__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vtag);
++		vtag = (prio << VLAN_PRIO_SHIFT) | vid;
++		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vtag);
++	}
+ 
+ 	/* strip vlan tag for VLAN-tagged packet */
+ 	if (pkt_type == CPSW_RX_VLAN_ENCAP_HDR_PKT_VLAN_TAG) {
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index 84025dcc78d5..23e7714ebee7 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -5,6 +5,8 @@
+  * Copyright (C) 2012 Texas Instruments
+  *
+  */
++#include <linux/bitmap.h>
++#include <linux/if_vlan.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+@@ -415,6 +417,17 @@ static void cpsw_ale_set_vlan_mcast(struct cpsw_ale *ale, u32 *ale_entry,
+ 	writel(unreg_mcast, ale->params.ale_regs + ALE_VLAN_MASK_MUX(idx));
+ }
+ 
++void cpsw_ale_set_vlan_untag(struct cpsw_ale *ale, u32 *ale_entry,
++			     u16 vid, int untag_mask)
 +{
-+	return cpsw->data.dual_emac ? priv->emac_port : cpsw->data.active_slave;
++	cpsw_ale_set_vlan_untag_force(ale_entry,
++				      untag_mask, ale->vlan_field_bits);
++	if (untag_mask & ALE_PORT_HOST)
++		bitmap_set(ale->p0_untag_vid_mask, vid, 1);
++	else
++		bitmap_clear(ale->p0_untag_vid_mask, vid, 1);
 +}
 +
-+static int cpsw_get_slave_port(u32 slave_num)
+ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
+ 		      int reg_mcast, int unreg_mcast)
+ {
+@@ -427,8 +440,8 @@ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
+ 
+ 	cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_VLAN);
+ 	cpsw_ale_set_vlan_id(ale_entry, vid);
++	cpsw_ale_set_vlan_untag(ale, ale_entry, vid, untag);
+ 
+-	cpsw_ale_set_vlan_untag_force(ale_entry, untag, ale->vlan_field_bits);
+ 	if (!ale->params.nu_switch_ale) {
+ 		cpsw_ale_set_vlan_reg_mcast(ale_entry, reg_mcast,
+ 					    ale->vlan_field_bits);
+@@ -460,6 +473,7 @@ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
+ 		return -ENOENT;
+ 
+ 	cpsw_ale_read(ale, idx, ale_entry);
++	cpsw_ale_set_vlan_untag(ale, ale_entry, vid, 0);
+ 
+ 	if (port_mask)
+ 		cpsw_ale_set_vlan_member_list(ale_entry, port_mask,
+@@ -791,6 +805,11 @@ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
+ 	if (!ale)
+ 		return NULL;
+ 
++	ale->p0_untag_vid_mask =
++		devm_kmalloc_array(params->dev, BITS_TO_LONGS(VLAN_N_VID),
++				   sizeof(unsigned long),
++				   GFP_KERNEL);
++
+ 	ale->params = *params;
+ 	ale->ageout = ale->params.ale_ageout * HZ;
+ 
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
+index 370df254eb12..93d6d56d12f4 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.h
++++ b/drivers/net/ethernet/ti/cpsw_ale.h
+@@ -35,6 +35,7 @@ struct cpsw_ale {
+ 	u32			port_mask_bits;
+ 	u32			port_num_bits;
+ 	u32			vlan_field_bits;
++	unsigned long		*p0_untag_vid_mask;
+ };
+ 
+ enum cpsw_ale_control {
+@@ -115,4 +116,8 @@ int cpsw_ale_control_set(struct cpsw_ale *ale, int port,
+ 			 int control, int value);
+ void cpsw_ale_dump(struct cpsw_ale *ale, u32 *data);
+ 
++static inline int cpsw_ale_get_vlan_p0_untag(struct cpsw_ale *ale, u16 vid)
 +{
-+	return slave_num + 1;
++	return test_bit(vid, ale->p0_untag_vid_mask);
 +}
-+
- static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
- 				    __be16 proto, u16 vid);
- 
-@@ -2368,6 +2379,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 	if (!cpsw)
- 		return -ENOMEM;
- 
-+	cpsw_slave_index = cpsw_slave_index_priv;
-+
- 	cpsw->dev = dev;
- 
- 	mode = devm_gpiod_get_array_optional(dev, "mode", GPIOD_OUT_LOW);
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
-index 476d050a022c..a1c83af64835 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.c
-+++ b/drivers/net/ethernet/ti/cpsw_priv.c
-@@ -19,6 +19,8 @@
- #include "cpsw_sl.h"
- #include "davinci_cpdma.h"
- 
-+int (*cpsw_slave_index)(struct cpsw_common *cpsw, struct cpsw_priv *priv);
-+
- int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
- 		     int ale_ageout, phys_addr_t desc_mem_phys,
- 		     int descs_pool_size)
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
-index 04795b97ee71..57b109d4758f 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.h
-+++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -367,14 +367,8 @@ struct cpsw_priv {
- #define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
- #define napi_to_cpsw(napi)	container_of(napi, struct cpsw_common, napi)
- 
--#define cpsw_slave_index(cpsw, priv)				\
--		((cpsw->data.dual_emac) ? priv->emac_port :	\
--		cpsw->data.active_slave)
--
--static inline int cpsw_get_slave_port(u32 slave_num)
--{
--	return slave_num + 1;
--}
-+extern int (*cpsw_slave_index)(struct cpsw_common *cpsw,
-+			       struct cpsw_priv *priv);
- 
- struct addr_sync_ctx {
- 	struct net_device *ndev;
+ #endif
 -- 
 2.17.1
