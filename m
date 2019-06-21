@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH v4 net-next 02/11] net: ethernet: ti: cpsw: ale: modify vlan/mdb api for switchdev
-Date: Fri, 21 Jun 2019 21:13:05 +0300
-Message-ID: <20190621181314.20778-3-grygorii.strashko@ti.com>
+Subject: [RFC PATCH v4 net-next 05/11] dt-bindings: net: ti: add new cpsw switch driver bindings
+Date: Fri, 21 Jun 2019 21:13:08 +0300
+Message-ID: <20190621181314.20778-6-grygorii.strashko@ti.com>
 References: <20190621181314.20778-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,221 +12,176 @@ To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andr
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Add bindings for the new TI CPSW switch driver. Comparing to the legacy
+bindings (net/cpsw.txt):
+- ports definition follows DSA bindings (net/dsa/dsa.txt) and ports can be
+marked as "disabled" if not physically wired.
+- ports definition follows DSA bindings (net/dsa/dsa.txt) and ports can be
+marked as "disabled" if not physically wired.
+- all deprecated properties dropped;
+- all legacy propertiies dropped which represents constant HW cpapbilities
+(cpdma_channels, ale_entries, bd_ram_size, mac_control, slaves,
+active_slave)
+- cpts properties grouped in "cpts" sub-node
 
-A following patch introduces switchdev functionality, so modify
-ALE engine VLANs/MDBs API:
-- cpsw_ale_del_mcast(): update so it will remove only selected ports from
-mcast port_mask or delete whole mcast record if !port_mask
-- cpsw_ale_del_vlan(): update so it will remove only selected ports from
-all VLAN record's masks or delete whole VLAN record if !port_mask
-- add cpsw_ale_vlan_add_modify() to add or modify existing VLAN record's
-masks
-- add cpsw_ale_set_unreg_mcast() for enabling unreg mcast on port VLANs
-
-Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw_ale.c | 127 ++++++++++++++++++++++++++---
- drivers/net/ethernet/ti/cpsw_ale.h |   6 ++
- 2 files changed, 123 insertions(+), 10 deletions(-)
+ .../bindings/net/ti,cpsw-switch.txt           | 147 ++++++++++++++++++
+ 1 file changed, 147 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/net/ti,cpsw-switch.txt
 
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 23e7714ebee7..a1a61868db7d 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -384,6 +384,7 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
- 		       int flags, u16 vid)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
-+	int mcast_members;
- 	int idx;
- 
- 	idx = cpsw_ale_match_addr(ale, addr, (flags & ALE_VLAN) ? vid : 0);
-@@ -392,11 +393,15 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
- 
- 	cpsw_ale_read(ale, idx, ale_entry);
- 
--	if (port_mask)
--		cpsw_ale_set_port_mask(ale_entry, port_mask,
-+	if (port_mask) {
-+		mcast_members = cpsw_ale_get_port_mask(ale_entry,
-+						       ale->port_mask_bits);
-+		mcast_members &= ~port_mask;
-+		cpsw_ale_set_port_mask(ale_entry, mcast_members,
- 				       ale->port_mask_bits);
--	else
-+	} else {
- 		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
-+	}
- 
- 	cpsw_ale_write(ale, idx, ale_entry);
- 	return 0;
-@@ -428,7 +433,7 @@ void cpsw_ale_set_vlan_untag(struct cpsw_ale *ale, u32 *ale_entry,
- 		bitmap_clear(ale->p0_untag_vid_mask, vid, 1);
- }
- 
--int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
-+int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port_mask, int untag,
- 		      int reg_mcast, int unreg_mcast)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
-@@ -450,7 +455,8 @@ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
- 	} else {
- 		cpsw_ale_set_vlan_mcast(ale, ale_entry, reg_mcast, unreg_mcast);
- 	}
--	cpsw_ale_set_vlan_member_list(ale_entry, port, ale->vlan_field_bits);
-+	cpsw_ale_set_vlan_member_list(ale_entry, port_mask,
-+				      ale->vlan_field_bits);
- 
- 	if (idx < 0)
- 		idx = cpsw_ale_match_free(ale);
-@@ -463,6 +469,41 @@ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
- 	return 0;
- }
- 
-+static void cpsw_ale_del_vlan_modify(struct cpsw_ale *ale, u32 *ale_entry,
-+				     u16 vid, int port_mask)
-+{
-+	int reg_mcast, unreg_mcast;
-+	int members, untag;
+diff --git a/Documentation/devicetree/bindings/net/ti,cpsw-switch.txt b/Documentation/devicetree/bindings/net/ti,cpsw-switch.txt
+new file mode 100644
+index 000000000000..787219cddccd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/ti,cpsw-switch.txt
+@@ -0,0 +1,147 @@
++TI SoC Ethernet Switch Controller Device Tree Bindings (new)
++------------------------------------------------------
 +
-+	members = cpsw_ale_get_vlan_member_list(ale_entry,
-+						ale->vlan_field_bits);
-+	members &= ~port_mask;
++The 3-port switch gigabit ethernet subsystem provides ethernet packet
++communication and can be configured as an ethernet switch. It provides the
++gigabit media independent interface (GMII),reduced gigabit media
++independent interface (RGMII), reduced media independent interface (RMII),
++the management data input output (MDIO) for physical layer device (PHY)
++management.
 +
-+	untag = cpsw_ale_get_vlan_untag_force(ale_entry,
-+					      ale->vlan_field_bits);
-+	reg_mcast = cpsw_ale_get_vlan_reg_mcast(ale_entry,
-+						ale->vlan_field_bits);
-+	unreg_mcast = cpsw_ale_get_vlan_unreg_mcast(ale_entry,
-+						    ale->vlan_field_bits);
-+	untag &= members;
-+	reg_mcast &= members;
-+	unreg_mcast &= members;
++Required properties:
++- compatible : be one of the below:
++	  "ti,cpsw-switch" for backward compatible
++	  "ti,am335x-cpsw-switch" for AM335x controllers
++	  "ti,am4372-cpsw-switch" for AM437x controllers
++	  "ti,dra7-cpsw-switch" for DRA7x controllers
++- reg : physical base address and size of the CPSW module IO range
++- ranges : shall contain the CPSW module IO range available for child devices
++- clocks : should contain the CPSW functional clock
++- clock-names : should be "fck"
++	See bindings/clock/clock-bindings.txt
++- interrupts : should contain CPSW RX, TX, MISC, RX_THRESH interrupts
++- interrupt-names : should contain "rx_thresh", "rx", "tx", "misc"
++	See bindings/interrupt-controller/interrupts.txt
 +
-+	cpsw_ale_set_vlan_untag(ale, ale_entry, vid, untag);
++Optional properties:
++- syscon : phandle to the system control device node which provides access to
++	efuse IO range with MAC addresses
 +
-+	if (!ale->params.nu_switch_ale) {
-+		cpsw_ale_set_vlan_reg_mcast(ale_entry, reg_mcast,
-+					    ale->vlan_field_bits);
-+		cpsw_ale_set_vlan_unreg_mcast(ale_entry, unreg_mcast,
-+					      ale->vlan_field_bits);
-+	} else {
-+		cpsw_ale_set_vlan_mcast(ale, ale_entry, reg_mcast,
-+					unreg_mcast);
-+	}
-+	cpsw_ale_set_vlan_member_list(ale_entry, members,
-+				      ale->vlan_field_bits);
-+}
++Required Sub-nodes:
++- ports	: contains CPSW external ports descriptions
++	Required properties:
++	- #address-cells : Must be 1
++	- #size-cells : Must be 0
++	- reg : CPSW port number. Should be 1 or 2
++	- phys : phandle on phy-gmii-sel PHY (see phy/ti-phy-gmii-sel.txt)
++	- phy-mode : operation mode of the PHY interface [1]
++	- phy-handle : phandle to a PHY on an MDIO bus [1]
 +
- int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
-@@ -473,18 +514,84 @@ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
- 		return -ENOENT;
- 
- 	cpsw_ale_read(ale, idx, ale_entry);
--	cpsw_ale_set_vlan_untag(ale, ale_entry, vid, 0);
- 
--	if (port_mask)
--		cpsw_ale_set_vlan_member_list(ale_entry, port_mask,
--					      ale->vlan_field_bits);
--	else
-+	if (port_mask) {
-+		cpsw_ale_del_vlan_modify(ale, ale_entry, vid, port_mask);
-+	} else {
-+		cpsw_ale_set_vlan_untag(ale, ale_entry, vid, 0);
- 		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
-+	}
- 
- 	cpsw_ale_write(ale, idx, ale_entry);
++	Optional properties:
++	- ti,label : Describes the label associated with this port
++	- ti,dual_emac_pvid : Specifies default PORT VID to be used to segregate
++		ports. Default value - CPSW port number.
++	- mac-address : array of 6 bytes, specifies the MAC address. Always
++		accounted first if present [1]
++	- local-mac-address : See [1]
 +
- 	return 0;
- }
- 
-+int cpsw_ale_vlan_add_modify(struct cpsw_ale *ale, u16 vid, int port_mask,
-+			     int untag_mask, int reg_mask, int unreg_mask)
-+{
-+	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
-+	int reg_mcast_members, unreg_mcast_members;
-+	int vlan_members, untag_members;
-+	int idx, ret = 0;
++- mdio : CPSW MDIO bus block description
++	- bus_freq : MDIO Bus frequency
++	See bindings/net/mdio.txt and davinci-mdio.txt
 +
-+	idx = cpsw_ale_match_vlan(ale, vid);
-+	if (idx >= 0)
-+		cpsw_ale_read(ale, idx, ale_entry);
++- cpts : The Common Platform Time Sync (CPTS) module description
++	- clocks : should contain the CPTS reference clock
++	- clock-names : should be "cpts"
++	See bindings/clock/clock-bindings.txt
 +
-+	vlan_members = cpsw_ale_get_vlan_member_list(ale_entry,
-+						     ale->vlan_field_bits);
-+	reg_mcast_members = cpsw_ale_get_vlan_reg_mcast(ale_entry,
-+							ale->vlan_field_bits);
-+	unreg_mcast_members =
-+		cpsw_ale_get_vlan_unreg_mcast(ale_entry,
-+					      ale->vlan_field_bits);
-+	untag_members = cpsw_ale_get_vlan_untag_force(ale_entry,
-+						      ale->vlan_field_bits);
++	Optional properties - all ports:
++	- cpts_clock_mult : Numerator to convert input clock ticks into ns
++	- cpts_clock_shift : Denominator to convert input clock ticks into ns
++			  Mult and shift will be calculated basing on CPTS
++			  rftclk frequency if both cpts_clock_shift and
++			  cpts_clock_mult properties are not provided.
 +
-+	vlan_members |= port_mask;
-+	untag_members = (untag_members & ~port_mask) | untag_mask;
-+	reg_mcast_members = (reg_mcast_members & ~port_mask) | reg_mask;
-+	unreg_mcast_members = (unreg_mcast_members & ~port_mask) | unreg_mask;
++[1] See Documentation/devicetree/bindings/net/ethernet.txt
 +
-+	ret = cpsw_ale_add_vlan(ale, vid, vlan_members, untag_members,
-+				reg_mcast_members, unreg_mcast_members);
-+	if (ret) {
-+		dev_err(ale->params.dev, "Unable to add vlan\n");
-+		return ret;
-+	}
-+	dev_dbg(ale->params.dev, "port mask 0x%x untag 0x%x\n", vlan_members,
-+		untag_mask);
++Examples - SOC:
++mac_sw: ethernet_switch@0 {
++	compatible = "ti,dra7-cpsw-switch","ti,cpsw-switch";
++	reg = <0x0 0x4000>;
++	ranges = <0 0 0x4000>;
++	clocks = <&gmac_main_clk>;
++	clock-names = "fck";
++	#address-cells = <1>;
++	#size-cells = <1>;
++	syscon = <&scm_conf>;
++	status = "disabled";
 +
-+	return ret;
-+}
++	interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
++		     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
++		     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
++		     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
++	interrupt-names = "rx_thresh", "rx", "tx", "misc"
 +
-+void cpsw_ale_set_unreg_mcast(struct cpsw_ale *ale, int unreg_mcast_mask,
-+			      bool add)
-+{
-+	u32 ale_entry[ALE_ENTRY_WORDS];
-+	int unreg_members = 0;
-+	int type, idx;
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
 +
-+	for (idx = 0; idx < ale->params.ale_entries; idx++) {
-+		cpsw_ale_read(ale, idx, ale_entry);
-+		type = cpsw_ale_get_entry_type(ale_entry);
-+		if (type != ALE_TYPE_VLAN)
-+			continue;
++		cpsw_port1: port@1 {
++			reg = <1>;
++			ti,label = "port1";
++			/* Filled in by U-Boot */
++			mac-address = [ 00 00 00 00 00 00 ];
++			phys = <&phy_gmii_sel 1>;
++		};
 +
-+		unreg_members =
-+			cpsw_ale_get_vlan_unreg_mcast(ale_entry,
-+						      ale->vlan_field_bits);
-+		if (add)
-+			unreg_members |= unreg_mcast_mask;
-+		else
-+			unreg_members &= ~unreg_mcast_mask;
-+		cpsw_ale_set_vlan_unreg_mcast(ale_entry, unreg_members,
-+					      ale->vlan_field_bits);
-+		cpsw_ale_write(ale, idx, ale_entry);
-+	}
-+}
++		cpsw_port2: port@2 {
++			reg = <2>;
++			ti,label = "port2";
++			/* Filled in by U-Boot */
++			mac-address = [ 00 00 00 00 00 00 ];
++			phys = <&phy_gmii_sel 2>;
++		};
++	};
 +
- void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti, int port)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS];
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
-index 93d6d56d12f4..70d0955c2652 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.h
-+++ b/drivers/net/ethernet/ti/cpsw_ale.h
-@@ -120,4 +120,10 @@ static inline int cpsw_ale_get_vlan_p0_untag(struct cpsw_ale *ale, u16 vid)
- {
- 	return test_bit(vid, ale->p0_untag_vid_mask);
- }
++	davinci_mdio_sw: mdio@1000 {
++		compatible = "ti,cpsw-mdio","ti,davinci_mdio";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		ti,hwmods = "davinci_mdio";
++		bus_freq = <1000000>;
++		reg = <0x1000 0x100>;
++	};
 +
-+int cpsw_ale_vlan_add_modify(struct cpsw_ale *ale, u16 vid, int port_mask,
-+			     int untag_mask, int reg_mcast, int unreg_mcast);
-+void cpsw_ale_set_unreg_mcast(struct cpsw_ale *ale, int unreg_mcast_mask,
-+			      bool add);
++	cpts {
++		clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 25>;
++		clock-names = "cpts";
++	};
++};
 +
- #endif
++Examples - platform/board:
++
++&mac_sw {
++	pinctrl-names = "default", "sleep";
++	status = "okay";
++};
++
++&cpsw_port1 {
++	phy-handle = <&ethphy0_sw>;
++	phy-mode = "rgmii";
++	ti,dual_emac_pvid = <1>;
++};
++
++&cpsw_port2 {
++	phy-handle = <&ethphy1_sw>;
++	phy-mode = "rgmii";
++	ti,dual_emac_pvid = <2>;
++};
++
++&davinci_mdio_sw {
++	ethphy0_sw: ethernet-phy@0 {
++		reg = <0>;
++	};
++
++	ethphy1_sw: ethernet-phy@1 {
++		reg = <1>;
++	};
++};
 -- 
 2.17.1
