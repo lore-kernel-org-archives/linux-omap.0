@@ -1,89 +1,52 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] net: ethernet: ti: cpsw: Fix suspend/resume break
-Date: Sat, 22 Jun 2019 16:01:40 +0530
-Message-ID: <20190622103140.22902-1-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, ivan.khoronzhuk@linaro.org, andrew@lunn.ch, ilias.apalodimas@linaro.org
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com
+From: Phong Tran <tranmanphong@gmail.com>
+Subject: [PATCH 00/15] cleanup cppcheck signed shifting errors
+Date: Sun, 23 Jun 2019 22:12:58 +0700
+Message-ID: <20190623151313.970-1-tranmanphong@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: mark.rutland@arm.com, kstewart@linuxfoundation.org, songliubraving@fb.com, andrew@lunn.ch, peterz@infradead.org, nsekhar@ti.com, ast@kernel.org, jolsa@redhat.com, netdev@vger.kernel.org, gerg@uclinux.org, lorenzo.pieralisi@arm.com, will@kernel.org, linux-samsung-soc@vger.kernel.org, daniel@iogearbox.net, tranmanphong@gmail.com, festevam@gmail.com, gregory.clement@bootlin.com, allison@lohutok.net, linux@armlinux.org.uk, krzk@kernel.org, haojian.zhuang@gmail.com, bgolaszewski@baylibre.com, tony@atomide.com, mingo@redhat.com, linux-imx@nxp.com, yhs@fb.com, sebastian.hesselbarth@gmail.com, illusionist.neo@gmail.com, jason@lakedaemon.net, liviu.dudau@arm.com, s.hauer@pengutronix.de, acme@kernel.org, lkundrak@v3.sk, robert.jarzmik@free.fr, dmg@turingmachine.org, swinslow@gmail.co
 List-Id: linux-omap@vger.kernel.org
 
-Commit bfe59032bd6127ee190edb30be9381a01765b958 ("net: ethernet:
-ti: cpsw: use cpsw as drv data")changes
-the driver data to struct cpsw_common *cpsw. This is done
-only in probe/remove but the suspend/resume functions are
-still left with struct net_device *ndev. Hence fix both
-suspend & resume also to fetch the updated driver data.
+There are errors with cppcheck 
 
-Fixes: bfe59032bd6127ee1 ("net: ethernet: ti: cpsw: use cpsw as drv data")
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 36 +++++++++++-----------------------
- 1 file changed, 11 insertions(+), 25 deletions(-)
+"Shifting signed 32-bit value by 31 bits is undefined behaviour errors"
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 7bdd287074fc..2aeaad15e20e 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2590,20 +2590,12 @@ static int cpsw_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM_SLEEP
- static int cpsw_suspend(struct device *dev)
- {
--	struct net_device	*ndev = dev_get_drvdata(dev);
--	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
--
--	if (cpsw->data.dual_emac) {
--		int i;
-+	struct cpsw_common *cpsw = dev_get_drvdata(dev);
-+	int i;
- 
--		for (i = 0; i < cpsw->data.slaves; i++) {
--			if (netif_running(cpsw->slaves[i].ndev))
--				cpsw_ndo_stop(cpsw->slaves[i].ndev);
--		}
--	} else {
--		if (netif_running(ndev))
--			cpsw_ndo_stop(ndev);
--	}
-+	for (i = 0; i < cpsw->data.slaves; i++)
-+		if (netif_running(cpsw->slaves[i].ndev))
-+			cpsw_ndo_stop(cpsw->slaves[i].ndev);
- 
- 	/* Select sleep pin state */
- 	pinctrl_pm_select_sleep_state(dev);
-@@ -2613,25 +2605,19 @@ static int cpsw_suspend(struct device *dev)
- 
- static int cpsw_resume(struct device *dev)
- {
--	struct net_device	*ndev = dev_get_drvdata(dev);
--	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
-+	struct cpsw_common *cpsw = dev_get_drvdata(dev);
-+	int i;
- 
- 	/* Select default pin state */
- 	pinctrl_pm_select_default_state(dev);
- 
- 	/* shut up ASSERT_RTNL() warning in netif_set_real_num_tx/rx_queues */
- 	rtnl_lock();
--	if (cpsw->data.dual_emac) {
--		int i;
- 
--		for (i = 0; i < cpsw->data.slaves; i++) {
--			if (netif_running(cpsw->slaves[i].ndev))
--				cpsw_ndo_open(cpsw->slaves[i].ndev);
--		}
--	} else {
--		if (netif_running(ndev))
--			cpsw_ndo_open(ndev);
--	}
-+	for (i = 0; i < cpsw->data.slaves; i++)
-+		if (netif_running(cpsw->slaves[i].ndev))
-+			cpsw_ndo_open(cpsw->slaves[i].ndev);
-+
- 	rtnl_unlock();
- 
- 	return 0;
+This is just a mirror changing.
+
+Phong Tran (15):
+  arm: perf: cleanup cppcheck shifting error
+  ARM: davinci: cleanup cppcheck shifting errors
+  ARM: ep93xx: cleanup cppcheck shifting errors
+  ARM: exynos: cleanup cppcheck shifting error
+  ARM: footbridge: cleanup cppcheck shifting error
+  ARM: imx: cleanup cppcheck shifting errors
+  ARM: ks8695: cleanup cppcheck shifting error
+  ARM: mmp: cleanup cppcheck shifting errors
+  ARM: omap2: cleanup cppcheck shifting error
+  ARM: orion5x: cleanup cppcheck shifting errors
+  ARM: pxa: cleanup cppcheck shifting errors
+  ARM: vexpress: cleanup cppcheck shifting error
+  ARM: mm: cleanup cppcheck shifting errors
+  ARM: bpf: cleanup cppcheck shifting error
+  ARM: vfp: cleanup cppcheck shifting errors
+
+ arch/arm/kernel/perf_event_v7.c    |   6 +-
+ arch/arm/mach-davinci/ddr2.h       |   6 +-
+ arch/arm/mach-ep93xx/soc.h         | 132 ++++++++++++++++++-------------------
+ arch/arm/mach-exynos/suspend.c     |   2 +-
+ arch/arm/mach-footbridge/dc21285.c |   2 +-
+ arch/arm/mach-imx/iomux-mx3.h      |  64 +++++++++---------
+ arch/arm/mach-ks8695/regs-pci.h    |   4 +-
+ arch/arm/mach-mmp/pm-mmp2.h        |  40 +++++------
+ arch/arm/mach-mmp/pm-pxa910.h      |  76 ++++++++++-----------
+ arch/arm/mach-omap2/powerdomain.c  |   2 +-
+ arch/arm/mach-orion5x/pci.c        |   8 +--
+ arch/arm/mach-pxa/irq.c            |   4 +-
+ arch/arm/mach-vexpress/spc.c       |  12 ++--
+ arch/arm/mm/fault.h                |   6 +-
+ arch/arm/net/bpf_jit_32.c          |   2 +-
+ arch/arm/vfp/vfpinstr.h            |  28 ++++----
+ 16 files changed, 197 insertions(+), 197 deletions(-)
+
 -- 
-2.17.1
+2.11.0
