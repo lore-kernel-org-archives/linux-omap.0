@@ -1,29 +1,53 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 01/15] arm: perf: cleanup cppcheck shifting error
-Date: Mon, 24 Jun 2019 09:11:21 +0200
-Message-ID: <20190624071121.GN3436@hirez.programming.kicks-ass.net>
-References: <20190623151313.970-1-tranmanphong@gmail.com>
- <20190623151313.970-2-tranmanphong@gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 2/6] thermal/drivers/cpu_cooling: Unregister with the
+ policy
+Date: Mon, 24 Jun 2019 09:30:00 +0200
+Message-ID: <3f324189-aa1e-ae78-1d69-61e00c5d033a@linaro.org>
+References: <20190621132302.30414-1-daniel.lezcano@linaro.org>
+ <20190621132302.30414-2-daniel.lezcano@linaro.org>
+ <20190624060334.kak2mjuou4napi4x@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190623151313.970-2-tranmanphong@gmail.com>
+In-Reply-To: <20190624060334.kak2mjuou4napi4x@vireshk-i7>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Phong Tran <tranmanphong@gmail.com>
-Cc: mark.rutland@arm.com, kstewart@linuxfoundation.org, songliubraving@fb.com, andrew@lunn.ch, nsekhar@ti.com, ast@kernel.org, jolsa@redhat.com, netdev@vger.kernel.org, gerg@uclinux.org, lorenzo.pieralisi@arm.com, will@kernel.org, linux-samsung-soc@vger.kernel.org, daniel@iogearbox.net, festevam@gmail.com, gregory.clement@bootlin.com, allison@lohutok.net, linux@armlinux.org.uk, krzk@kernel.org, haojian.zhuang@gmail.com, bgolaszewski@baylibre.com, tony@atomide.com, mingo@redhat.com, linux-imx@nxp.com, yhs@fb.com, sebastian.hesselbarth@gmail.com, illusionist.neo@gmail.com, jason@lakedaemon.net, liviu.dudau@arm.com, s.hauer@pengutronix.de, acme@kernel.org, lkundrak@v3.sk, robert.jarzmik@free.fr, dmg@turingmachine.org, swinslow@gmail.com, namhyung@kernel.org, tglx@linutronix.de, linux-omap
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: edubezval@gmail.com, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jun 23, 2019 at 10:12:59PM +0700, Phong Tran wrote:
-> fix "Shifting signed 32-bit value by 31 bits is undefined behaviour
-> errors"
+On 24/06/2019 08:03, Viresh Kumar wrote:
+> On 21-06-19, 15:22, Daniel Lezcano wrote:
+>> Currently the function cpufreq_cooling_register() returns a cooling
+>> device pointer which is used back as a pointer to call the function
+>> cpufreq_cooling_unregister(). Even if it is correct, it would make
+>> sense to not leak the structure inside a cpufreq driver and keep the
+>> code thermal code self-encapsulate. Moreover, that forces to add an
+>> extra variable in each driver using this function.
+>>
+>> Instead of passing the cooling device to unregister, pass the policy.
+>>
+>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> ---
+>>  drivers/cpufreq/arm_big_little.c               |  2 +-
+>>  drivers/cpufreq/cpufreq.c                      |  2 +-
+>>  drivers/thermal/cpu_cooling.c                  | 18 ++++++++++--------
+>>  drivers/thermal/imx_thermal.c                  |  4 ++--
+>>  .../thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
+>>  include/linux/cpu_cooling.h                    |  6 +++---
+>>  6 files changed, 18 insertions(+), 16 deletions(-)
 > 
-> [arch/arm/kernel/perf_event_v7.c:1080]: (error) Shifting signed 32-bit
-> value by 31 bits is undefined behaviour
-> [arch/arm/kernel/perf_event_v7.c:1436]: (error) Shifting signed 32-bit
-> value by 31 bits is undefined behaviour
-> [arch/arm/kernel/perf_event_v7.c:1783]: (error) Shifting signed 32-bit
-> value by 31 bits is undefined behaviour
+> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-I don't think that is true; the kernel uses -fno-strict-overflow (which
-implies -fwrapv) and that takes away all the signed UB.
+Just a side note, does it make sense to have the function called from
+imx_thermal.c and ti-thermal-common.c? Sounds like also a leakage from
+cpufreq to thermal drivers, no?
+
+
+-- 
+ <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
