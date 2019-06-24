@@ -1,53 +1,72 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 2/6] thermal/drivers/cpu_cooling: Unregister with the
- policy
-Date: Mon, 24 Jun 2019 09:30:00 +0200
-Message-ID: <3f324189-aa1e-ae78-1d69-61e00c5d033a@linaro.org>
-References: <20190621132302.30414-1-daniel.lezcano@linaro.org>
- <20190621132302.30414-2-daniel.lezcano@linaro.org>
- <20190624060334.kak2mjuou4napi4x@vireshk-i7>
+From: Gregory CLEMENT <gregory.clement@bootlin.com>
+Subject: Re: [PATCH 10/15] ARM: orion5x: cleanup cppcheck shifting errors
+Date: Mon, 24 Jun 2019 09:31:37 +0200
+Message-ID: <871rzjmobq.fsf@FE-laptop>
+References: <20190623151313.970-1-tranmanphong@gmail.com> <20190623151313.970-11-tranmanphong@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190624060334.kak2mjuou4napi4x@vireshk-i7>
-Content-Language: en-US
+In-Reply-To: <20190623151313.970-11-tranmanphong@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: edubezval@gmail.com, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>
+To: Phong Tran <tranmanphong@gmail.com>, mark.rutland@arm.com, kstewart@linuxfoundation.org, songliubraving@fb.com, andrew@lunn.ch, peterz@infradead.org, nsekhar@ti.com, ast@kernel.org, jolsa@redhat.com, netdev@vger.kernel.org, gerg@uclinux.org, lorenzo.pieralisi@arm.com, will@kernel.org, linux-samsung-soc@vger.kernel.org, daniel@iogearbox.nettranmanphong@gmail.com, festevam@gmail.com, allison@lohutok.net, linux@armlinux.org.uk, krzk@kernel.org, haojian.zhuang@gmail.com, bgolaszewski@baylibre.com, tony@atomide.com, mingo@redhat.com, linux-imx@nxp.com, yhs@fb.com, sebastian.hesselbarth@gmail.com, illusionist.neo@gmail.com, jason@lakedaemon.net, liviu.dudau@arm.com, s.hauer@pengutronix.de, acme@kernel.org, lkundrak@v3.sk, robert.jarzmik@free.fr, dmg@turingmachine.org, swinslow@gmail.co
 List-Id: linux-omap@vger.kernel.org
 
-On 24/06/2019 08:03, Viresh Kumar wrote:
-> On 21-06-19, 15:22, Daniel Lezcano wrote:
->> Currently the function cpufreq_cooling_register() returns a cooling
->> device pointer which is used back as a pointer to call the function
->> cpufreq_cooling_unregister(). Even if it is correct, it would make
->> sense to not leak the structure inside a cpufreq driver and keep the
->> code thermal code self-encapsulate. Moreover, that forces to add an
->> extra variable in each driver using this function.
->>
->> Instead of passing the cooling device to unregister, pass the policy.
->>
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->> ---
->>  drivers/cpufreq/arm_big_little.c               |  2 +-
->>  drivers/cpufreq/cpufreq.c                      |  2 +-
->>  drivers/thermal/cpu_cooling.c                  | 18 ++++++++++--------
->>  drivers/thermal/imx_thermal.c                  |  4 ++--
->>  .../thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
->>  include/linux/cpu_cooling.h                    |  6 +++---
->>  6 files changed, 18 insertions(+), 16 deletions(-)
-> 
-> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Hi Phong,
 
-Just a side note, does it make sense to have the function called from
-imx_thermal.c and ti-thermal-common.c? Sounds like also a leakage from
-cpufreq to thermal drivers, no?
+> [arch/arm/mach-orion5x/pci.c:281]: (error) Shifting signed 32-bit value
+> by 31 bits is undefined behaviour
+> [arch/arm/mach-orion5x/pci.c:305]: (error) Shifting signed 32-bit value
+> by 31 bits is undefined behaviour
+>
 
+While Andrew was Ok with this version, I will wait for your v2 using
+BIT() marcro.
+
+Thanks,
+
+Gregory
+
+
+> Signed-off-by: Phong Tran <tranmanphong@gmail.com>
+> ---
+>  arch/arm/mach-orion5x/pci.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-orion5x/pci.c b/arch/arm/mach-orion5x/pci.c
+> index 76951bfbacf5..1b2c077ee7b8 100644
+> --- a/arch/arm/mach-orion5x/pci.c
+> +++ b/arch/arm/mach-orion5x/pci.c
+> @@ -200,13 +200,13 @@ static int __init pcie_setup(struct pci_sys_data *sys)
+>  /*
+>   * PCI_MODE bits
+>   */
+> -#define PCI_MODE_64BIT			(1 << 2)
+> -#define PCI_MODE_PCIX			((1 << 4) | (1 << 5))
+> +#define PCI_MODE_64BIT			(1U << 2)
+> +#define PCI_MODE_PCIX			((1U << 4) | (1U << 5))
+>  
+>  /*
+>   * PCI_CMD bits
+>   */
+> -#define PCI_CMD_HOST_REORDER		(1 << 29)
+> +#define PCI_CMD_HOST_REORDER		(1U << 29)
+>  
+>  /*
+>   * PCI_P2P_CONF bits
+> @@ -223,7 +223,7 @@ static int __init pcie_setup(struct pci_sys_data *sys)
+>  #define PCI_CONF_FUNC(func)		(((func) & 0x3) << 8)
+>  #define PCI_CONF_DEV(dev)		(((dev) & 0x1f) << 11)
+>  #define PCI_CONF_BUS(bus)		(((bus) & 0xff) << 16)
+> -#define PCI_CONF_ADDR_EN		(1 << 31)
+> +#define PCI_CONF_ADDR_EN		(1U << 31)
+>  
+>  /*
+>   * Internal configuration space
+> -- 
+> 2.11.0
+>
 
 -- 
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Gregory Clement, Bootlin
+Embedded Linux and Kernel engineering
+http://bootlin.com
