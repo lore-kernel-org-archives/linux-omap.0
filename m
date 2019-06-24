@@ -1,56 +1,41 @@
 From: Phong Tran <tranmanphong@gmail.com>
-Subject: [PATCH V2 10/15] ARM: orion5x: cleanup cppcheck shifting errors
-Date: Mon, 24 Jun 2019 20:51:00 +0700
-Message-ID: <20190624135105.15579-11-tranmanphong@gmail.com>
+Subject: [PATCH V2 11/15] ARM: pxa: cleanup cppcheck shifting errors
+Date: Mon, 24 Jun 2019 20:51:01 +0700
+Message-ID: <20190624135105.15579-12-tranmanphong@gmail.com>
 References: <20190623151313.970-1-tranmanphong@gmail.com>
  <20190624135105.15579-1-tranmanphong@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190624135105.15579-1-tranmanphong@gmail.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tranmanphong@gmail.com
 Cc: acme@kernel.org, alexander.shishkin@linux.intel.com, alexander.sverdlin@gmail.com, allison@lohutok.net, andrew@lunn.ch, ast@kernel.org, bgolaszewski@baylibre.com, bpf@vger.kernel.org, daniel@iogearbox.net, daniel@zonque.org, dmg@turingmachine.org, festevam@gmail.com, gerg@uclinux.org, gregkh@linuxfoundation.org, gregory.clement@bootlin.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, illusionist.neo@gmail.com, info@metux.net, jason@lakedaemon.net, jolsa@redhat.com, kafai@fb.com, kernel@pengutronix.de, kgene@kernel.org, krzk@kernel.org, kstewart@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-imx@nxp.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux@armlinux.org.uk, liviu.dudau@arm.com, lkundrak@v3.sk
 List-Id: linux-omap@vger.kernel.org
 
-[arch/arm/mach-orion5x/pci.c:281]: (error) Shifting signed 32-bit value
-by 31 bits is undefined behaviour
-[arch/arm/mach-orion5x/pci.c:305]: (error) Shifting signed 32-bit value
-by 31 bits is undefined behaviour
+[arch/arm/mach-pxa/irq.c:117]: (error) Shifting signed 32-bit value by
+31 bits is undefined behaviour
+[arch/arm/mach-pxa/irq.c:131]: (error) Shifting signed 32-bit value by
+31 bits is undefined behaviour
 
 Signed-off-by: Phong Tran <tranmanphong@gmail.com>
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
 ---
- arch/arm/mach-orion5x/pci.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-pxa/irq.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-orion5x/pci.c b/arch/arm/mach-orion5x/pci.c
-index 76951bfbacf5..f47668530d5e 100644
---- a/arch/arm/mach-orion5x/pci.c
-+++ b/arch/arm/mach-orion5x/pci.c
-@@ -200,13 +200,13 @@ static int __init pcie_setup(struct pci_sys_data *sys)
- /*
-  * PCI_MODE bits
-  */
--#define PCI_MODE_64BIT			(1 << 2)
--#define PCI_MODE_PCIX			((1 << 4) | (1 << 5))
-+#define PCI_MODE_64BIT			BIT(2)
-+#define PCI_MODE_PCIX			(BIT(4) | BIT(5))
+diff --git a/arch/arm/mach-pxa/irq.c b/arch/arm/mach-pxa/irq.c
+index 74efc3ab595f..cbbb5cfecb60 100644
+--- a/arch/arm/mach-pxa/irq.c
++++ b/arch/arm/mach-pxa/irq.c
+@@ -35,9 +35,9 @@
+ #define IPR(i)			(((i) < 32) ? (0x01c + ((i) << 2)) :		\
+ 				((i) < 64) ? (0x0b0 + (((i) - 32) << 2)) :	\
+ 				      (0x144 + (((i) - 64) << 2)))
+-#define ICHP_VAL_IRQ		(1 << 31)
++#define ICHP_VAL_IRQ		BIT(31)
+ #define ICHP_IRQ(i)		(((i) >> 16) & 0x7fff)
+-#define IPR_VALID		(1 << 31)
++#define IPR_VALID		BIT(31)
  
- /*
-  * PCI_CMD bits
-  */
--#define PCI_CMD_HOST_REORDER		(1 << 29)
-+#define PCI_CMD_HOST_REORDER		BIT(29)
+ #define MAX_INTERNAL_IRQS	128
  
- /*
-  * PCI_P2P_CONF bits
-@@ -223,7 +223,7 @@ static int __init pcie_setup(struct pci_sys_data *sys)
- #define PCI_CONF_FUNC(func)		(((func) & 0x3) << 8)
- #define PCI_CONF_DEV(dev)		(((dev) & 0x1f) << 11)
- #define PCI_CONF_BUS(bus)		(((bus) & 0xff) << 16)
--#define PCI_CONF_ADDR_EN		(1 << 31)
-+#define PCI_CONF_ADDR_EN		BIT(31)
- 
- /*
-  * Internal configuration space
 -- 
 2.11.0
