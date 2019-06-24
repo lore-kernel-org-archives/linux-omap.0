@@ -1,56 +1,58 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 0/3] Add HwSpinlock support for TI K3 SoCs
-Date: Mon, 24 Jun 2019 15:38:52 -0500
-Message-ID: <90211f72-7ce4-94e5-aef7-bbe14266dfbb@ti.com>
-References: <20190531021321.14025-1-s-anna@ti.com>
+Subject: Re: [PATCH 0/2] Add Mailbox support for TI K3 SoCs
+Date: Mon, 24 Jun 2019 15:39:34 -0500
+Message-ID: <47b8f278-85ff-18be-d5a0-fde9de6e17f2@ti.com>
+References: <20190604170146.12205-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190531021321.14025-1-s-anna@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190604170146.12205-1-s-anna@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bjorn,
+Hi Jassi,
 
-On 5/30/19 9:13 PM, Suman Anna wrote:
-> Hi Bjorn,
+On 6/4/19 12:01 PM, Suman Anna wrote:
+> Hi Jassi,
 > 
-> The following series adds the support for the HwSpinlock IP present
-> on the newer TI K3 AM65x and J721E SoCs. The first 2 patches are
-> related to the K3 support, and the last patch is a minor debug related
-> trace to see the number of locks registered on each SoC.
+> The following series adds the support for the Mailbox IP present
+> within the Main NavSS module on the newer TI K3 AM65x and J721E SoCs.
 > 
-> I will be posting the DT nodes once the binding is acked.
+> The Mailbox IP is similar to the previous generation IP on OMAP SoCs
+> with a few differences:
+>  - Multiple IP instances from previous DRA7/AM57 family each form a
+>    cluster and are part of the same IP. The driver support will continue
+>    to be based on a cluster.
+>  - The IP is present within a Main NaVSS, and interrupts have to go
+>    through an Interrupt Router within Main NavSS before they reach the
+>    respective processor sub-system's interrupt controllers.
+>  - The register layout is mostly same, with difference in two registers
+> 
+> Support is added by enhancing the existing OMAP Mailbox driver to 
+> support the K3 IP using a new compatible. The driver also has to be
+> adjusted to deal with the 32-bit mailbox payloads vs the 64-bit 
+> pointers used by the Mailbox API on these Arm v8 platforms.
+> 
+> DT nodes will be posted separately once the binding is acked.
 
-If you do not have any comments, can you please pick up this series for
-5.3 merge window?
+Can you please pick this series up for 5.3 merge window if you do not
+have any comments.
 
 Thanks,
 Suman
 
 > 
-> regards
-> Suman
+> Suman Anna (2):
+>   dt-bindings: mailbox: omap: Update bindings for TI K3 SoCs
+>   mailbox/omap: Add support for TI K3 SoCs
 > 
-> Suman Anna (3):
->   dt-bindings: hwlock: Update OMAP binding for TI K3 SoCs
->   hwspinlock/omap: Add support for TI K3 SoCs
->   hwspinlock/omap: Add a trace during probe
-> 
->  .../bindings/hwlock/omap-hwspinlock.txt       | 25 +++++++++++++++----
->  drivers/hwspinlock/Kconfig                    |  2 +-
->  drivers/hwspinlock/omap_hwspinlock.c          |  4 +++
->  3 files changed, 25 insertions(+), 6 deletions(-)
+>  .../bindings/mailbox/omap-mailbox.txt         | 59 ++++++++++++++++---
+>  drivers/mailbox/Kconfig                       |  2 +-
+>  drivers/mailbox/omap-mailbox.c                | 43 ++++++++------
+>  include/linux/omap-mailbox.h                  |  4 +-
+>  4 files changed, 80 insertions(+), 28 deletions(-)
 > 
