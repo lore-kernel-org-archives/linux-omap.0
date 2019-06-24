@@ -1,23 +1,92 @@
-From: Shawn Guo <shawnguo@kernel.org>
-Subject: Re: [PATCH 06/15] ARM: imx: cleanup cppcheck shifting errors
-Date: Mon, 24 Jun 2019 11:16:52 +0800
-Message-ID: <20190624031651.GA16146@dragon>
-References: <20190623151313.970-1-tranmanphong@gmail.com>
- <20190623151313.970-7-tranmanphong@gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH V2] net: ethernet: ti: cpsw: Fix suspend/resume break
+Date: Mon, 24 Jun 2019 10:46:19 +0530
+Message-ID: <20190624051619.20146-1-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190623151313.970-7-tranmanphong@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Phong Tran <tranmanphong@gmail.com>
-Cc: mark.rutland@arm.com, kstewart@linuxfoundation.org, songliubraving@fb.com, andrew@lunn.ch, peterz@infradead.org, nsekhar@ti.com, ast@kernel.org, jolsa@redhat.com, netdev@vger.kernel.org, gerg@uclinux.org, lorenzo.pieralisi@arm.com, will@kernel.org, linux-samsung-soc@vger.kernel.org, daniel@iogearbox.net, festevam@gmail.com, gregory.clement@bootlin.com, allison@lohutok.net, linux@armlinux.org.uk, krzk@kernel.org, haojian.zhuang@gmail.com, bgolaszewski@baylibre.com, tony@atomide.com, mingo@redhat.com, linux-imx@nxp.com, yhs@fb.com, sebastian.hesselbarth@gmail.com, illusionist.neo@gmail.com, jason@lakedaemon.net, liviu.dudau@arm.com, s.hauer@pengutronix.de, acme@kernel.org, lkundrak@v3.sk, robert.jarzmik@free.fr, dmg@turingmachine.org, swinslow@gmail.com, namhyung@kernel.org
+To: davem@davemloft.net, ivan.khoronzhuk@linaro.org, andrew@lunn.ch, ilias.apalodimas@linaro.org
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jun 23, 2019 at 10:13:04PM +0700, Phong Tran wrote:
-> [arch/arm/mach-imx/iomux-mx3.h:93]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> 
-> Signed-off-by: Phong Tran <tranmanphong@gmail.com>
+Commit bfe59032bd6127ee190edb30be9381a01765b958 ("net: ethernet:
+ti: cpsw: use cpsw as drv data")changes
+the driver data to struct cpsw_common *cpsw. This is done
+only in probe/remove but the suspend/resume functions are
+still left with struct net_device *ndev. Hence fix both
+suspend & resume also to fetch the updated driver data.
 
-Applied, thanks.
+Fixes: bfe59032bd6127ee1 ("net: ethernet: ti: cpsw: use cpsw as drv data")
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+
+Change in v2:
+
+  * Added NULL Checks for cpsw->slaves[i].ndev in suspend/resume functions.
+
+ drivers/net/ethernet/ti/cpsw.c | 30 +++++++++---------------------
+ 1 file changed, 9 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 7bdd287074fc..32b7b3b74a6b 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2590,20 +2590,13 @@ static int cpsw_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM_SLEEP
+ static int cpsw_suspend(struct device *dev)
+ {
+-	struct net_device	*ndev = dev_get_drvdata(dev);
+-	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
+-
+-	if (cpsw->data.dual_emac) {
+-		int i;
++	struct cpsw_common *cpsw = dev_get_drvdata(dev);
++	int i;
+ 
+-		for (i = 0; i < cpsw->data.slaves; i++) {
++	for (i = 0; i < cpsw->data.slaves; i++)
++		if (cpsw->slaves[i].ndev)
+ 			if (netif_running(cpsw->slaves[i].ndev))
+ 				cpsw_ndo_stop(cpsw->slaves[i].ndev);
+-		}
+-	} else {
+-		if (netif_running(ndev))
+-			cpsw_ndo_stop(ndev);
+-	}
+ 
+ 	/* Select sleep pin state */
+ 	pinctrl_pm_select_sleep_state(dev);
+@@ -2613,25 +2606,20 @@ static int cpsw_suspend(struct device *dev)
+ 
+ static int cpsw_resume(struct device *dev)
+ {
+-	struct net_device	*ndev = dev_get_drvdata(dev);
+-	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
++	struct cpsw_common *cpsw = dev_get_drvdata(dev);
++	int i;
+ 
+ 	/* Select default pin state */
+ 	pinctrl_pm_select_default_state(dev);
+ 
+ 	/* shut up ASSERT_RTNL() warning in netif_set_real_num_tx/rx_queues */
+ 	rtnl_lock();
+-	if (cpsw->data.dual_emac) {
+-		int i;
+ 
+-		for (i = 0; i < cpsw->data.slaves; i++) {
++	for (i = 0; i < cpsw->data.slaves; i++)
++		if (cpsw->slaves[i].ndev)
+ 			if (netif_running(cpsw->slaves[i].ndev))
+ 				cpsw_ndo_open(cpsw->slaves[i].ndev);
+-		}
+-	} else {
+-		if (netif_running(ndev))
+-			cpsw_ndo_open(ndev);
+-	}
++
+ 	rtnl_unlock();
+ 
+ 	return 0;
+-- 
+2.17.1
