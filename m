@@ -1,202 +1,51 @@
-From: Lubomir Rintel <lkundrak@v3.sk>
-Subject: Re: [PATCH 08/15] ARM: mmp: cleanup cppcheck shifting errors
-Date: Mon, 24 Jun 2019 09:35:35 +0200
-Message-ID: <8aabdf0675f0ee74c21c18d819710a0929c61e2c.camel@v3.sk>
-References: <20190623151313.970-1-tranmanphong@gmail.com>
-         <20190623151313.970-9-tranmanphong@gmail.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 2/6] thermal/drivers/cpu_cooling: Unregister with the
+ policy
+Date: Mon, 24 Jun 2019 13:07:47 +0530
+Message-ID: <20190624073747.hf7jd6ulkmebbxtm@vireshk-i7>
+References: <20190621132302.30414-1-daniel.lezcano@linaro.org>
+ <20190621132302.30414-2-daniel.lezcano@linaro.org>
+ <20190624060334.kak2mjuou4napi4x@vireshk-i7>
+ <3f324189-aa1e-ae78-1d69-61e00c5d033a@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190623151313.970-9-tranmanphong@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <3f324189-aa1e-ae78-1d69-61e00c5d033a@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Phong Tran <tranmanphong@gmail.com>, mark.rutland@arm.com, kstewart@linuxfoundation.org, songliubraving@fb.com, andrew@lunn.ch, peterz@infradead.org, nsekhar@ti.com, ast@kernel.org, jolsa@redhat.com, netdev@vger.kernel.org, gerg@uclinux.org, lorenzo.pieralisi@arm.com, will@kernel.org, linux-samsung-soc@vger.kernel.org, daniel@iogearbox.net, festevam@gmail.com, gregory.clement@bootlin.com, allison@lohutok.net, linux@armlinux.org.uk, krzk@kernel.org, haojian.zhuang@gmail.com, bgolaszewski@baylibre.com, tony@atomide.com, mingo@redhat.com, linux-imx@nxp.com, yhs@fb.com, sebastian.hesselbarth@gmail.com, illusionist.neo@gmail.com, jason@lakedaemon.net, liviu.dudau@arm.com, s.hauer@pengutronix.de, acme@kernel.org, robert.jarzmik@free.fr, dmg@turingmachine.org, swinslow@gmail.com, namhyung
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: edubezval@gmail.com, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 2019-06-23 at 22:13 +0700, Phong Tran wrote:
-> [arch/arm/mach-mmp/pm-mmp2.c:121]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> [arch/arm/mach-mmp/pm-mmp2.c:136]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> [arch/arm/mach-mmp/pm-mmp2.c:244]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> [arch/arm/mach-mmp/pm-pxa910.c:141]: (error) Shifting signed 32-bit
-> value by 31 bits is undefined behaviour
-> [arch/arm/mach-mmp/pm-pxa910.c:159]: (error) Shifting signed 32-bit
-> value by 31 bits is undefined behaviour
+On 24-06-19, 09:30, Daniel Lezcano wrote:
+> On 24/06/2019 08:03, Viresh Kumar wrote:
+> > On 21-06-19, 15:22, Daniel Lezcano wrote:
+> >> Currently the function cpufreq_cooling_register() returns a cooling
+> >> device pointer which is used back as a pointer to call the function
+> >> cpufreq_cooling_unregister(). Even if it is correct, it would make
+> >> sense to not leak the structure inside a cpufreq driver and keep the
+> >> code thermal code self-encapsulate. Moreover, that forces to add an
+> >> extra variable in each driver using this function.
+> >>
+> >> Instead of passing the cooling device to unregister, pass the policy.
+> >>
+> >> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> >> ---
+> >>  drivers/cpufreq/arm_big_little.c               |  2 +-
+> >>  drivers/cpufreq/cpufreq.c                      |  2 +-
+> >>  drivers/thermal/cpu_cooling.c                  | 18 ++++++++++--------
+> >>  drivers/thermal/imx_thermal.c                  |  4 ++--
+> >>  .../thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
+> >>  include/linux/cpu_cooling.h                    |  6 +++---
+> >>  6 files changed, 18 insertions(+), 16 deletions(-)
+> > 
+> > Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 > 
-> Signed-off-by: Phong Tran <tranmanphong@gmail.com>
+> Just a side note, does it make sense to have the function called from
+> imx_thermal.c and ti-thermal-common.c? Sounds like also a leakage from
+> cpufreq to thermal drivers, no?
 
-Like others already pointed out, you may want to send out a v2 that
-would use the BIT() macro. Either way works for me:
+I am not sure what you are proposing here :)
 
-Acked-by: Lubomir Rintel <lkundrak@v3.sk> [mmp]
-
-Thank you
-Lubo
-
-
-> ---
->  arch/arm/mach-mmp/pm-mmp2.h   | 40 +++++++++++------------
->  arch/arm/mach-mmp/pm-pxa910.h | 76 +++++++++++++++++++++----------------------
->  2 files changed, 58 insertions(+), 58 deletions(-)
-> 
-> diff --git a/arch/arm/mach-mmp/pm-mmp2.h b/arch/arm/mach-mmp/pm-mmp2.h
-> index 70299a9450d3..87fd1c81547d 100644
-> --- a/arch/arm/mach-mmp/pm-mmp2.h
-> +++ b/arch/arm/mach-mmp/pm-mmp2.h
-> @@ -12,37 +12,37 @@
->  #include "addr-map.h"
->  
->  #define APMU_PJ_IDLE_CFG			APMU_REG(0x018)
-> -#define APMU_PJ_IDLE_CFG_PJ_IDLE		(1 << 1)
-> -#define APMU_PJ_IDLE_CFG_PJ_PWRDWN		(1 << 5)
-> +#define APMU_PJ_IDLE_CFG_PJ_IDLE		(1U << 1)
-> +#define APMU_PJ_IDLE_CFG_PJ_PWRDWN		(1U << 5)
->  #define APMU_PJ_IDLE_CFG_PWR_SW(x)		((x) << 16)
-> -#define APMU_PJ_IDLE_CFG_L2_PWR_SW		(1 << 19)
-> +#define APMU_PJ_IDLE_CFG_L2_PWR_SW		(1U << 19)
->  #define APMU_PJ_IDLE_CFG_ISO_MODE_CNTRL_MASK	(3 << 28)
->  
->  #define APMU_SRAM_PWR_DWN			APMU_REG(0x08c)
->  
->  #define MPMU_SCCR				MPMU_REG(0x038)
->  #define MPMU_PCR_PJ				MPMU_REG(0x1000)
-> -#define MPMU_PCR_PJ_AXISD			(1 << 31)
-> -#define MPMU_PCR_PJ_SLPEN			(1 << 29)
-> -#define MPMU_PCR_PJ_SPSD			(1 << 28)
-> -#define MPMU_PCR_PJ_DDRCORSD			(1 << 27)
-> -#define MPMU_PCR_PJ_APBSD			(1 << 26)
-> -#define MPMU_PCR_PJ_INTCLR			(1 << 24)
-> -#define MPMU_PCR_PJ_SLPWP0			(1 << 23)
-> -#define MPMU_PCR_PJ_SLPWP1			(1 << 22)
-> -#define MPMU_PCR_PJ_SLPWP2			(1 << 21)
-> -#define MPMU_PCR_PJ_SLPWP3			(1 << 20)
-> -#define MPMU_PCR_PJ_VCTCXOSD			(1 << 19)
-> -#define MPMU_PCR_PJ_SLPWP4			(1 << 18)
-> -#define MPMU_PCR_PJ_SLPWP5			(1 << 17)
-> -#define MPMU_PCR_PJ_SLPWP6			(1 << 16)
-> -#define MPMU_PCR_PJ_SLPWP7			(1 << 15)
-> +#define MPMU_PCR_PJ_AXISD			(1U << 31)
-> +#define MPMU_PCR_PJ_SLPEN			(1U << 29)
-> +#define MPMU_PCR_PJ_SPSD			(1U << 28)
-> +#define MPMU_PCR_PJ_DDRCORSD			(1U << 27)
-> +#define MPMU_PCR_PJ_APBSD			(1U << 26)
-> +#define MPMU_PCR_PJ_INTCLR			(1U << 24)
-> +#define MPMU_PCR_PJ_SLPWP0			(1U << 23)
-> +#define MPMU_PCR_PJ_SLPWP1			(1U << 22)
-> +#define MPMU_PCR_PJ_SLPWP2			(1U << 21)
-> +#define MPMU_PCR_PJ_SLPWP3			(1U << 20)
-> +#define MPMU_PCR_PJ_VCTCXOSD			(1U << 19)
-> +#define MPMU_PCR_PJ_SLPWP4			(1U << 18)
-> +#define MPMU_PCR_PJ_SLPWP5			(1U << 17)
-> +#define MPMU_PCR_PJ_SLPWP6			(1U << 16)
-> +#define MPMU_PCR_PJ_SLPWP7			(1U << 15)
->  
->  #define MPMU_PLL2_CTRL1				MPMU_REG(0x0414)
->  #define MPMU_CGR_PJ				MPMU_REG(0x1024)
->  #define MPMU_WUCRM_PJ				MPMU_REG(0x104c)
-> -#define MPMU_WUCRM_PJ_WAKEUP(x)			(1 << (x))
-> -#define MPMU_WUCRM_PJ_RTC_ALARM			(1 << 17)
-> +#define MPMU_WUCRM_PJ_WAKEUP(x)			(1U << (x))
-> +#define MPMU_WUCRM_PJ_RTC_ALARM			(1U << 17)
->  
->  enum {
->  	POWER_MODE_ACTIVE = 0,
-> diff --git a/arch/arm/mach-mmp/pm-pxa910.h b/arch/arm/mach-mmp/pm-pxa910.h
-> index 8e6344adaf51..0958cde1ca6e 100644
-> --- a/arch/arm/mach-mmp/pm-pxa910.h
-> +++ b/arch/arm/mach-mmp/pm-pxa910.h
-> @@ -10,54 +10,54 @@
->  #define __PXA910_PM_H__
->  
->  #define APMU_MOH_IDLE_CFG			APMU_REG(0x0018)
-> -#define APMU_MOH_IDLE_CFG_MOH_IDLE		(1 << 1)
-> -#define APMU_MOH_IDLE_CFG_MOH_PWRDWN		(1 << 5)
-> -#define APMU_MOH_IDLE_CFG_MOH_SRAM_PWRDWN	(1 << 6)
-> +#define APMU_MOH_IDLE_CFG_MOH_IDLE		(1U << 1)
-> +#define APMU_MOH_IDLE_CFG_MOH_PWRDWN		(1U << 5)
-> +#define APMU_MOH_IDLE_CFG_MOH_SRAM_PWRDWN	(1U << 6)
->  #define APMU_MOH_IDLE_CFG_MOH_PWR_SW(x)		(((x) & 0x3) << 16)
->  #define APMU_MOH_IDLE_CFG_MOH_L2_PWR_SW(x)	(((x) & 0x3) << 18)
-> -#define APMU_MOH_IDLE_CFG_MOH_DIS_MC_SW_REQ	(1 << 21)
-> -#define APMU_MOH_IDLE_CFG_MOH_MC_WAKE_EN	(1 << 20)
-> +#define APMU_MOH_IDLE_CFG_MOH_DIS_MC_SW_REQ	(1U << 21)
-> +#define APMU_MOH_IDLE_CFG_MOH_MC_WAKE_EN	(1U << 20)
->  
->  #define APMU_SQU_CLK_GATE_CTRL			APMU_REG(0x001c)
->  #define APMU_MC_HW_SLP_TYPE			APMU_REG(0x00b0)
->  
->  #define MPMU_FCCR				MPMU_REG(0x0008)
->  #define MPMU_APCR				MPMU_REG(0x1000)
-> -#define MPMU_APCR_AXISD				(1 << 31)
-> -#define MPMU_APCR_DSPSD				(1 << 30)
-> -#define MPMU_APCR_SLPEN				(1 << 29)
-> -#define MPMU_APCR_DTCMSD			(1 << 28)
-> -#define MPMU_APCR_DDRCORSD			(1 << 27)
-> -#define MPMU_APCR_APBSD				(1 << 26)
-> -#define MPMU_APCR_BBSD				(1 << 25)
-> -#define MPMU_APCR_SLPWP0			(1 << 23)
-> -#define MPMU_APCR_SLPWP1			(1 << 22)
-> -#define MPMU_APCR_SLPWP2			(1 << 21)
-> -#define MPMU_APCR_SLPWP3			(1 << 20)
-> -#define MPMU_APCR_VCTCXOSD			(1 << 19)
-> -#define MPMU_APCR_SLPWP4			(1 << 18)
-> -#define MPMU_APCR_SLPWP5			(1 << 17)
-> -#define MPMU_APCR_SLPWP6			(1 << 16)
-> -#define MPMU_APCR_SLPWP7			(1 << 15)
-> -#define MPMU_APCR_MSASLPEN			(1 << 14)
-> -#define MPMU_APCR_STBYEN			(1 << 13)
-> +#define MPMU_APCR_AXISD				(1U << 31)
-> +#define MPMU_APCR_DSPSD				(1U << 30)
-> +#define MPMU_APCR_SLPEN				(1U << 29)
-> +#define MPMU_APCR_DTCMSD			(1U << 28)
-> +#define MPMU_APCR_DDRCORSD			(1U << 27)
-> +#define MPMU_APCR_APBSD				(1U << 26)
-> +#define MPMU_APCR_BBSD				(1U << 25)
-> +#define MPMU_APCR_SLPWP0			(1U << 23)
-> +#define MPMU_APCR_SLPWP1			(1U << 22)
-> +#define MPMU_APCR_SLPWP2			(1U << 21)
-> +#define MPMU_APCR_SLPWP3			(1U << 20)
-> +#define MPMU_APCR_VCTCXOSD			(1U << 19)
-> +#define MPMU_APCR_SLPWP4			(1U << 18)
-> +#define MPMU_APCR_SLPWP5			(1U << 17)
-> +#define MPMU_APCR_SLPWP6			(1U << 16)
-> +#define MPMU_APCR_SLPWP7			(1U << 15)
-> +#define MPMU_APCR_MSASLPEN			(1U << 14)
-> +#define MPMU_APCR_STBYEN			(1U << 13)
->  
->  #define MPMU_AWUCRM				MPMU_REG(0x104c)
-> -#define MPMU_AWUCRM_AP_ASYNC_INT		(1 << 25)
-> -#define MPMU_AWUCRM_AP_FULL_IDLE		(1 << 24)
-> -#define MPMU_AWUCRM_SDH1			(1 << 23)
-> -#define MPMU_AWUCRM_SDH2			(1 << 22)
-> -#define MPMU_AWUCRM_KEYPRESS			(1 << 21)
-> -#define MPMU_AWUCRM_TRACKBALL			(1 << 20)
-> -#define MPMU_AWUCRM_NEWROTARY			(1 << 19)
-> -#define MPMU_AWUCRM_RTC_ALARM			(1 << 17)
-> -#define MPMU_AWUCRM_AP2_TIMER_3			(1 << 13)
-> -#define MPMU_AWUCRM_AP2_TIMER_2			(1 << 12)
-> -#define MPMU_AWUCRM_AP2_TIMER_1			(1 << 11)
-> -#define MPMU_AWUCRM_AP1_TIMER_3			(1 << 10)
-> -#define MPMU_AWUCRM_AP1_TIMER_2			(1 << 9)
-> -#define MPMU_AWUCRM_AP1_TIMER_1			(1 << 8)
-> -#define MPMU_AWUCRM_WAKEUP(x)			(1 << ((x) & 0x7))
-> +#define MPMU_AWUCRM_AP_ASYNC_INT		(1U << 25)
-> +#define MPMU_AWUCRM_AP_FULL_IDLE		(1U << 24)
-> +#define MPMU_AWUCRM_SDH1			(1U << 23)
-> +#define MPMU_AWUCRM_SDH2			(1U << 22)
-> +#define MPMU_AWUCRM_KEYPRESS			(1U << 21)
-> +#define MPMU_AWUCRM_TRACKBALL			(1U << 20)
-> +#define MPMU_AWUCRM_NEWROTARY			(1U << 19)
-> +#define MPMU_AWUCRM_RTC_ALARM			(1U << 17)
-> +#define MPMU_AWUCRM_AP2_TIMER_3			(1U << 13)
-> +#define MPMU_AWUCRM_AP2_TIMER_2			(1U << 12)
-> +#define MPMU_AWUCRM_AP2_TIMER_1			(1U << 11)
-> +#define MPMU_AWUCRM_AP1_TIMER_3			(1U << 10)
-> +#define MPMU_AWUCRM_AP1_TIMER_2			(1U << 9)
-> +#define MPMU_AWUCRM_AP1_TIMER_1			(1U << 8)
-> +#define MPMU_AWUCRM_WAKEUP(x)			(1U << ((x) & 0x7))
->  
->  enum {
->  	POWER_MODE_ACTIVE = 0,
+-- 
+viresh
