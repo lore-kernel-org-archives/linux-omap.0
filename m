@@ -1,199 +1,56 @@
-From: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Subject: Re: [PATCH V2 03/15] ARM: ep93xx: cleanup cppcheck shifting errors
-Date: Mon, 24 Jun 2019 21:16:47 +0200
-Message-ID: <9d21b4dc-4855-b203-bc31-903591d3bb0d@gmail.com>
-References: <20190623151313.970-1-tranmanphong@gmail.com>
- <20190624135105.15579-1-tranmanphong@gmail.com>
- <20190624135105.15579-4-tranmanphong@gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 0/3] Add HwSpinlock support for TI K3 SoCs
+Date: Mon, 24 Jun 2019 15:38:52 -0500
+Message-ID: <90211f72-7ce4-94e5-aef7-bbe14266dfbb@ti.com>
+References: <20190531021321.14025-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190624135105.15579-4-tranmanphong@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190531021321.14025-1-s-anna@ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Phong Tran <tranmanphong@gmail.com>
-Cc: acme@kernel.org, alexander.shishkin@linux.intel.com, allison@lohutok.net, andrew@lunn.ch, ast@kernel.org, bgolaszewski@baylibre.com, bpf@vger.kernel.org, daniel@iogearbox.net, daniel@zonque.org, dmg@turingmachine.org, festevam@gmail.com, gerg@uclinux.org, gregkh@linuxfoundation.org, gregory.clement@bootlin.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, illusionist.neo@gmail.com, info@metux.net, jason@lakedaemon.net, jolsa@redhat.com, kafai@fb.com, kernel@pengutronix.de, kgene@kernel.org, krzk@kernel.org, kstewart@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-imx@nxp.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux@armlinux.org.uk, liviu.dudau@arm.com, lkundrak@v3.sk, lorenzo.pieralisi@arm.com
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Hi Bjorn,
 
-On 24/06/2019 15:50, Phong Tran wrote:
-> [arch/arm/mach-ep93xx/clock.c:102]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> [arch/arm/mach-ep93xx/clock.c:132]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> [arch/arm/mach-ep93xx/clock.c:140]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> [arch/arm/mach-ep93xx/core.c:1001]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-> [arch/arm/mach-ep93xx/core.c:1002]: (error) Shifting signed 32-bit value
-> by 31 bits is undefined behaviour
-
-Acked-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-
-> Signed-off-by: Phong Tran <tranmanphong@gmail.com>
-> ---
->  arch/arm/mach-ep93xx/soc.h | 132 ++++++++++++++++++++++-----------------------
->  1 file changed, 66 insertions(+), 66 deletions(-)
+On 5/30/19 9:13 PM, Suman Anna wrote:
+> Hi Bjorn,
 > 
-> diff --git a/arch/arm/mach-ep93xx/soc.h b/arch/arm/mach-ep93xx/soc.h
-> index f2dace1c9154..250c82f8b0a1 100644
-> --- a/arch/arm/mach-ep93xx/soc.h
-> +++ b/arch/arm/mach-ep93xx/soc.h
-> @@ -109,89 +109,89 @@
->  #define EP93XX_SYSCON_REG(x)		(EP93XX_SYSCON_BASE + (x))
->  #define EP93XX_SYSCON_POWER_STATE	EP93XX_SYSCON_REG(0x00)
->  #define EP93XX_SYSCON_PWRCNT		EP93XX_SYSCON_REG(0x04)
-> -#define EP93XX_SYSCON_PWRCNT_FIR_EN	(1<<31)
-> -#define EP93XX_SYSCON_PWRCNT_UARTBAUD	(1<<29)
-> -#define EP93XX_SYSCON_PWRCNT_USH_EN	(1<<28)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2M1	(1<<27)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2M0	(1<<26)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P8	(1<<25)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P9	(1<<24)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P6	(1<<23)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P7	(1<<22)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P4	(1<<21)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P5	(1<<20)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P2	(1<<19)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P3	(1<<18)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P0	(1<<17)
-> -#define EP93XX_SYSCON_PWRCNT_DMA_M2P1	(1<<16)
-> +#define EP93XX_SYSCON_PWRCNT_FIR_EN	BIT(31)
-> +#define EP93XX_SYSCON_PWRCNT_UARTBAUD	BIT(29)
-> +#define EP93XX_SYSCON_PWRCNT_USH_EN	BIT(28)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2M1	BIT(27)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2M0	BIT(26)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P8	BIT(25)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P9	BIT(24)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P6	BIT(23)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P7	BIT(22)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P4	BIT(21)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P5	BIT(20)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P2	BIT(19)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P3	BIT(18)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P0	BIT(17)
-> +#define EP93XX_SYSCON_PWRCNT_DMA_M2P1	BIT(16)
->  #define EP93XX_SYSCON_HALT		EP93XX_SYSCON_REG(0x08)
->  #define EP93XX_SYSCON_STANDBY		EP93XX_SYSCON_REG(0x0c)
->  #define EP93XX_SYSCON_CLKSET1		EP93XX_SYSCON_REG(0x20)
-> -#define EP93XX_SYSCON_CLKSET1_NBYP1	(1<<23)
-> +#define EP93XX_SYSCON_CLKSET1_NBYP1	BIT(23)
->  #define EP93XX_SYSCON_CLKSET2		EP93XX_SYSCON_REG(0x24)
-> -#define EP93XX_SYSCON_CLKSET2_NBYP2	(1<<19)
-> -#define EP93XX_SYSCON_CLKSET2_PLL2_EN	(1<<18)
-> +#define EP93XX_SYSCON_CLKSET2_NBYP2	BIT(19)
-> +#define EP93XX_SYSCON_CLKSET2_PLL2_EN	BIT(18)
->  #define EP93XX_SYSCON_DEVCFG		EP93XX_SYSCON_REG(0x80)
-> -#define EP93XX_SYSCON_DEVCFG_SWRST	(1<<31)
-> -#define EP93XX_SYSCON_DEVCFG_D1ONG	(1<<30)
-> -#define EP93XX_SYSCON_DEVCFG_D0ONG	(1<<29)
-> -#define EP93XX_SYSCON_DEVCFG_IONU2	(1<<28)
-> -#define EP93XX_SYSCON_DEVCFG_GONK	(1<<27)
-> -#define EP93XX_SYSCON_DEVCFG_TONG	(1<<26)
-> -#define EP93XX_SYSCON_DEVCFG_MONG	(1<<25)
-> -#define EP93XX_SYSCON_DEVCFG_U3EN	(1<<24)
-> -#define EP93XX_SYSCON_DEVCFG_CPENA	(1<<23)
-> -#define EP93XX_SYSCON_DEVCFG_A2ONG	(1<<22)
-> -#define EP93XX_SYSCON_DEVCFG_A1ONG	(1<<21)
-> -#define EP93XX_SYSCON_DEVCFG_U2EN	(1<<20)
-> -#define EP93XX_SYSCON_DEVCFG_EXVC	(1<<19)
-> -#define EP93XX_SYSCON_DEVCFG_U1EN	(1<<18)
-> -#define EP93XX_SYSCON_DEVCFG_TIN	(1<<17)
-> -#define EP93XX_SYSCON_DEVCFG_HC3IN	(1<<15)
-> -#define EP93XX_SYSCON_DEVCFG_HC3EN	(1<<14)
-> -#define EP93XX_SYSCON_DEVCFG_HC1IN	(1<<13)
-> -#define EP93XX_SYSCON_DEVCFG_HC1EN	(1<<12)
-> -#define EP93XX_SYSCON_DEVCFG_HONIDE	(1<<11)
-> -#define EP93XX_SYSCON_DEVCFG_GONIDE	(1<<10)
-> -#define EP93XX_SYSCON_DEVCFG_PONG	(1<<9)
-> -#define EP93XX_SYSCON_DEVCFG_EONIDE	(1<<8)
-> -#define EP93XX_SYSCON_DEVCFG_I2SONSSP	(1<<7)
-> -#define EP93XX_SYSCON_DEVCFG_I2SONAC97	(1<<6)
-> -#define EP93XX_SYSCON_DEVCFG_RASONP3	(1<<4)
-> -#define EP93XX_SYSCON_DEVCFG_RAS	(1<<3)
-> -#define EP93XX_SYSCON_DEVCFG_ADCPD	(1<<2)
-> -#define EP93XX_SYSCON_DEVCFG_KEYS	(1<<1)
-> -#define EP93XX_SYSCON_DEVCFG_SHENA	(1<<0)
-> +#define EP93XX_SYSCON_DEVCFG_SWRST	BIT(31)
-> +#define EP93XX_SYSCON_DEVCFG_D1ONG	BIT(30)
-> +#define EP93XX_SYSCON_DEVCFG_D0ONG	BIT(29)
-> +#define EP93XX_SYSCON_DEVCFG_IONU2	BIT(28)
-> +#define EP93XX_SYSCON_DEVCFG_GONK	BIT(27)
-> +#define EP93XX_SYSCON_DEVCFG_TONG	BIT(26)
-> +#define EP93XX_SYSCON_DEVCFG_MONG	BIT(25)
-> +#define EP93XX_SYSCON_DEVCFG_U3EN	BIT(24)
-> +#define EP93XX_SYSCON_DEVCFG_CPENA	BIT(23)
-> +#define EP93XX_SYSCON_DEVCFG_A2ONG	BIT(22)
-> +#define EP93XX_SYSCON_DEVCFG_A1ONG	BIT(21)
-> +#define EP93XX_SYSCON_DEVCFG_U2EN	BIT(20)
-> +#define EP93XX_SYSCON_DEVCFG_EXVC	BIT(19)
-> +#define EP93XX_SYSCON_DEVCFG_U1EN	BIT(18)
-> +#define EP93XX_SYSCON_DEVCFG_TIN	BIT(17)
-> +#define EP93XX_SYSCON_DEVCFG_HC3IN	BIT(15)
-> +#define EP93XX_SYSCON_DEVCFG_HC3EN	BIT(14)
-> +#define EP93XX_SYSCON_DEVCFG_HC1IN	BIT(13)
-> +#define EP93XX_SYSCON_DEVCFG_HC1EN	BIT(12)
-> +#define EP93XX_SYSCON_DEVCFG_HONIDE	BIT(11)
-> +#define EP93XX_SYSCON_DEVCFG_GONIDE	BIT(10)
-> +#define EP93XX_SYSCON_DEVCFG_PONG	BIT(9)
-> +#define EP93XX_SYSCON_DEVCFG_EONIDE	BIT(8)
-> +#define EP93XX_SYSCON_DEVCFG_I2SONSSP	BIT(7)
-> +#define EP93XX_SYSCON_DEVCFG_I2SONAC97	BIT(6)
-> +#define EP93XX_SYSCON_DEVCFG_RASONP3	BIT(4)
-> +#define EP93XX_SYSCON_DEVCFG_RAS	BIT(3)
-> +#define EP93XX_SYSCON_DEVCFG_ADCPD	BIT(2)
-> +#define EP93XX_SYSCON_DEVCFG_KEYS	BIT(1)
-> +#define EP93XX_SYSCON_DEVCFG_SHENA	BIT(0)
->  #define EP93XX_SYSCON_VIDCLKDIV		EP93XX_SYSCON_REG(0x84)
-> -#define EP93XX_SYSCON_CLKDIV_ENABLE	(1<<15)
-> -#define EP93XX_SYSCON_CLKDIV_ESEL	(1<<14)
-> -#define EP93XX_SYSCON_CLKDIV_PSEL	(1<<13)
-> +#define EP93XX_SYSCON_CLKDIV_ENABLE	BIT(15)
-> +#define EP93XX_SYSCON_CLKDIV_ESEL	BIT(14)
-> +#define EP93XX_SYSCON_CLKDIV_PSEL	BIT(13)
->  #define EP93XX_SYSCON_CLKDIV_PDIV_SHIFT	8
->  #define EP93XX_SYSCON_I2SCLKDIV		EP93XX_SYSCON_REG(0x8c)
-> -#define EP93XX_SYSCON_I2SCLKDIV_SENA	(1<<31)
-> -#define EP93XX_SYSCON_I2SCLKDIV_ORIDE   (1<<29)
-> -#define EP93XX_SYSCON_I2SCLKDIV_SPOL	(1<<19)
-> +#define EP93XX_SYSCON_I2SCLKDIV_SENA	BIT(31)
-> +#define EP93XX_SYSCON_I2SCLKDIV_ORIDE   BIT(29)
-> +#define EP93XX_SYSCON_I2SCLKDIV_SPOL	BIT(19)
->  #define EP93XX_I2SCLKDIV_SDIV		(1 << 16)
->  #define EP93XX_I2SCLKDIV_LRDIV32	(0 << 17)
->  #define EP93XX_I2SCLKDIV_LRDIV64	(1 << 17)
->  #define EP93XX_I2SCLKDIV_LRDIV128	(2 << 17)
->  #define EP93XX_I2SCLKDIV_LRDIV_MASK	(3 << 17)
->  #define EP93XX_SYSCON_KEYTCHCLKDIV	EP93XX_SYSCON_REG(0x90)
-> -#define EP93XX_SYSCON_KEYTCHCLKDIV_TSEN	(1<<31)
-> -#define EP93XX_SYSCON_KEYTCHCLKDIV_ADIV	(1<<16)
-> -#define EP93XX_SYSCON_KEYTCHCLKDIV_KEN	(1<<15)
-> -#define EP93XX_SYSCON_KEYTCHCLKDIV_KDIV	(1<<0)
-> +#define EP93XX_SYSCON_KEYTCHCLKDIV_TSEN	BIT(31)
-> +#define EP93XX_SYSCON_KEYTCHCLKDIV_ADIV	BIT(16)
-> +#define EP93XX_SYSCON_KEYTCHCLKDIV_KEN	BIT(15)
-> +#define EP93XX_SYSCON_KEYTCHCLKDIV_KDIV	BIT(0)
->  #define EP93XX_SYSCON_SYSCFG		EP93XX_SYSCON_REG(0x9c)
->  #define EP93XX_SYSCON_SYSCFG_REV_MASK	(0xf0000000)
->  #define EP93XX_SYSCON_SYSCFG_REV_SHIFT	(28)
-> -#define EP93XX_SYSCON_SYSCFG_SBOOT	(1<<8)
-> -#define EP93XX_SYSCON_SYSCFG_LCSN7	(1<<7)
-> -#define EP93XX_SYSCON_SYSCFG_LCSN6	(1<<6)
-> -#define EP93XX_SYSCON_SYSCFG_LASDO	(1<<5)
-> -#define EP93XX_SYSCON_SYSCFG_LEEDA	(1<<4)
-> -#define EP93XX_SYSCON_SYSCFG_LEECLK	(1<<3)
-> -#define EP93XX_SYSCON_SYSCFG_LCSN2	(1<<1)
-> -#define EP93XX_SYSCON_SYSCFG_LCSN1	(1<<0)
-> +#define EP93XX_SYSCON_SYSCFG_SBOOT	BIT(8)
-> +#define EP93XX_SYSCON_SYSCFG_LCSN7	BIT(7)
-> +#define EP93XX_SYSCON_SYSCFG_LCSN6	BIT(6)
-> +#define EP93XX_SYSCON_SYSCFG_LASDO	BIT(5)
-> +#define EP93XX_SYSCON_SYSCFG_LEEDA	BIT(4)
-> +#define EP93XX_SYSCON_SYSCFG_LEECLK	BIT(3)
-> +#define EP93XX_SYSCON_SYSCFG_LCSN2	BIT(1)
-> +#define EP93XX_SYSCON_SYSCFG_LCSN1	BIT(0)
->  #define EP93XX_SYSCON_SWLOCK		EP93XX_SYSCON_REG(0xc0)
->  
->  /* EP93xx System Controller software locked register write */
+> The following series adds the support for the HwSpinlock IP present
+> on the newer TI K3 AM65x and J721E SoCs. The first 2 patches are
+> related to the K3 support, and the last patch is a minor debug related
+> trace to see the number of locks registered on each SoC.
+> 
+> I will be posting the DT nodes once the binding is acked.
+
+If you do not have any comments, can you please pick up this series for
+5.3 merge window?
+
+Thanks,
+Suman
+
+> 
+> regards
+> Suman
+> 
+> Suman Anna (3):
+>   dt-bindings: hwlock: Update OMAP binding for TI K3 SoCs
+>   hwspinlock/omap: Add support for TI K3 SoCs
+>   hwspinlock/omap: Add a trace during probe
+> 
+>  .../bindings/hwlock/omap-hwspinlock.txt       | 25 +++++++++++++++----
+>  drivers/hwspinlock/Kconfig                    |  2 +-
+>  drivers/hwspinlock/omap_hwspinlock.c          |  4 +++
+>  3 files changed, 25 insertions(+), 6 deletions(-)
+> 
