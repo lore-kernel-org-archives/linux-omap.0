@@ -1,32 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH V2] net: ethernet: ti: cpsw: Fix suspend/resume break
-Date: Mon, 24 Jun 2019 07:23:33 -0700 (PDT)
-Message-ID: <20190624.072333.2300932810459542260.davem@davemloft.net>
-References: <20190624051619.20146-1-j-keerthy@ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH V2 00/15] cleanup cppcheck signed shifting errors
+Date: Mon, 24 Jun 2019 17:27:43 +0200
+Message-ID: <20190624152743.GG3436@hirez.programming.kicks-ass.net>
+References: <20190623151313.970-1-tranmanphong@gmail.com>
+ <20190624135105.15579-1-tranmanphong@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190624051619.20146-1-j-keerthy@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20190624135105.15579-1-tranmanphong@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: j-keerthy@ti.com
-Cc: ivan.khoronzhuk@linaro.org, andrew@lunn.ch, ilias.apalodimas@linaro.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com
+To: Phong Tran <tranmanphong@gmail.com>
+Cc: acme@kernel.org, alexander.shishkin@linux.intel.com, alexander.sverdlin@gmail.com, allison@lohutok.net, andrew@lunn.ch, ast@kernel.org, bgolaszewski@baylibre.com, bpf@vger.kernel.org, daniel@iogearbox.net, daniel@zonque.org, dmg@turingmachine.org, festevam@gmail.com, gerg@uclinux.org, gregkh@linuxfoundation.org, gregory.clement@bootlin.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, illusionist.neo@gmail.com, info@metux.net, jason@lakedaemon.net, jolsa@redhat.com, kafai@fb.com, kernel@pengutronix.de, kgene@kernel.org, krzk@kernel.org, kstewart@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-imx@nxp.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux@armlinux.org.uk, liviu.dudau@arm.com, lkundrak@v3.sk
 List-Id: linux-omap@vger.kernel.org
 
-From: Keerthy <j-keerthy@ti.com>
-Date: Mon, 24 Jun 2019 10:46:19 +0530
-
-> Commit bfe59032bd6127ee190edb30be9381a01765b958 ("net: ethernet:
-> ti: cpsw: use cpsw as drv data")changes
-> the driver data to struct cpsw_common *cpsw. This is done
-> only in probe/remove but the suspend/resume functions are
-> still left with struct net_device *ndev. Hence fix both
-> suspend & resume also to fetch the updated driver data.
+On Mon, Jun 24, 2019 at 08:50:50PM +0700, Phong Tran wrote:
+> There are errors with cppcheck 
 > 
-> Fixes: bfe59032bd6127ee1 ("net: ethernet: ti: cpsw: use cpsw as drv data")
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> "Shifting signed 32-bit value by 31 bits is undefined behaviour errors"
 
-Applied but please make it clear that changes are targetting net-next in the
-future by saying "[PATCH net-next v2] ...." in your Subject line.
+As I've already told you; your checker is bad. That is not in face
+undefined behaviour in the kernel.
 
-Thank you.
+That's not to say you shouldn't clean up the code, but don't give broken
+checkout output as a reason.
