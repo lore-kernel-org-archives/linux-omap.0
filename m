@@ -1,92 +1,41 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH V2] net: ethernet: ti: cpsw: Fix suspend/resume break
-Date: Mon, 24 Jun 2019 10:46:19 +0530
-Message-ID: <20190624051619.20146-1-j-keerthy@ti.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 2/6] thermal/drivers/cpu_cooling: Unregister with the
+ policy
+Date: Mon, 24 Jun 2019 11:33:34 +0530
+Message-ID: <20190624060334.kak2mjuou4napi4x@vireshk-i7>
+References: <20190621132302.30414-1-daniel.lezcano@linaro.org>
+ <20190621132302.30414-2-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190621132302.30414-2-daniel.lezcano@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, ivan.khoronzhuk@linaro.org, andrew@lunn.ch, ilias.apalodimas@linaro.org
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: edubezval@gmail.com, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit bfe59032bd6127ee190edb30be9381a01765b958 ("net: ethernet:
-ti: cpsw: use cpsw as drv data")changes
-the driver data to struct cpsw_common *cpsw. This is done
-only in probe/remove but the suspend/resume functions are
-still left with struct net_device *ndev. Hence fix both
-suspend & resume also to fetch the updated driver data.
+On 21-06-19, 15:22, Daniel Lezcano wrote:
+> Currently the function cpufreq_cooling_register() returns a cooling
+> device pointer which is used back as a pointer to call the function
+> cpufreq_cooling_unregister(). Even if it is correct, it would make
+> sense to not leak the structure inside a cpufreq driver and keep the
+> code thermal code self-encapsulate. Moreover, that forces to add an
+> extra variable in each driver using this function.
+> 
+> Instead of passing the cooling device to unregister, pass the policy.
+> 
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> ---
+>  drivers/cpufreq/arm_big_little.c               |  2 +-
+>  drivers/cpufreq/cpufreq.c                      |  2 +-
+>  drivers/thermal/cpu_cooling.c                  | 18 ++++++++++--------
+>  drivers/thermal/imx_thermal.c                  |  4 ++--
+>  .../thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
+>  include/linux/cpu_cooling.h                    |  6 +++---
+>  6 files changed, 18 insertions(+), 16 deletions(-)
 
-Fixes: bfe59032bd6127ee1 ("net: ethernet: ti: cpsw: use cpsw as drv data")
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-Change in v2:
-
-  * Added NULL Checks for cpsw->slaves[i].ndev in suspend/resume functions.
-
- drivers/net/ethernet/ti/cpsw.c | 30 +++++++++---------------------
- 1 file changed, 9 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 7bdd287074fc..32b7b3b74a6b 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2590,20 +2590,13 @@ static int cpsw_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM_SLEEP
- static int cpsw_suspend(struct device *dev)
- {
--	struct net_device	*ndev = dev_get_drvdata(dev);
--	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
--
--	if (cpsw->data.dual_emac) {
--		int i;
-+	struct cpsw_common *cpsw = dev_get_drvdata(dev);
-+	int i;
- 
--		for (i = 0; i < cpsw->data.slaves; i++) {
-+	for (i = 0; i < cpsw->data.slaves; i++)
-+		if (cpsw->slaves[i].ndev)
- 			if (netif_running(cpsw->slaves[i].ndev))
- 				cpsw_ndo_stop(cpsw->slaves[i].ndev);
--		}
--	} else {
--		if (netif_running(ndev))
--			cpsw_ndo_stop(ndev);
--	}
- 
- 	/* Select sleep pin state */
- 	pinctrl_pm_select_sleep_state(dev);
-@@ -2613,25 +2606,20 @@ static int cpsw_suspend(struct device *dev)
- 
- static int cpsw_resume(struct device *dev)
- {
--	struct net_device	*ndev = dev_get_drvdata(dev);
--	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
-+	struct cpsw_common *cpsw = dev_get_drvdata(dev);
-+	int i;
- 
- 	/* Select default pin state */
- 	pinctrl_pm_select_default_state(dev);
- 
- 	/* shut up ASSERT_RTNL() warning in netif_set_real_num_tx/rx_queues */
- 	rtnl_lock();
--	if (cpsw->data.dual_emac) {
--		int i;
- 
--		for (i = 0; i < cpsw->data.slaves; i++) {
-+	for (i = 0; i < cpsw->data.slaves; i++)
-+		if (cpsw->slaves[i].ndev)
- 			if (netif_running(cpsw->slaves[i].ndev))
- 				cpsw_ndo_open(cpsw->slaves[i].ndev);
--		}
--	} else {
--		if (netif_running(ndev))
--			cpsw_ndo_open(ndev);
--	}
-+
- 	rtnl_unlock();
- 
- 	return 0;
 -- 
-2.17.1
+viresh
