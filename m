@@ -1,7 +1,7 @@
 From: Phong Tran <tranmanphong@gmail.com>
-Subject: [PATCH V3 13/15] ARM: mm: cleanup cppcheck shifting errors
-Date: Tue, 25 Jun 2019 11:03:54 +0700
-Message-ID: <20190625040356.27473-14-tranmanphong@gmail.com>
+Subject: [PATCH V3 14/15] ARM: bpf: cleanup cppcheck shifting error
+Date: Tue, 25 Jun 2019 11:03:55 +0700
+Message-ID: <20190625040356.27473-15-tranmanphong@gmail.com>
 References: <20190624135105.15579-1-tranmanphong@gmail.com>
  <20190625040356.27473-1-tranmanphong@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -17,25 +17,21 @@ change to use BIT() marco for improvement.
 
 Signed-off-by: Phong Tran <tranmanphong@gmail.com>
 ---
- arch/arm/mm/fault.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/net/bpf_jit_32.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mm/fault.h b/arch/arm/mm/fault.h
-index c063708fa503..8a706cb7f21d 100644
---- a/arch/arm/mm/fault.h
-+++ b/arch/arm/mm/fault.h
-@@ -5,9 +5,9 @@
- /*
-  * Fault status register encodings.  We steal bit 31 for our own purposes.
-  */
--#define FSR_LNX_PF		(1 << 31)
--#define FSR_WRITE		(1 << 11)
--#define FSR_FS4			(1 << 10)
-+#define FSR_LNX_PF		BIT(31)
-+#define FSR_WRITE		BIT(11)
-+#define FSR_FS4			BIT(10)
- #define FSR_FS3_0		(15)
- #define FSR_FS5_0		(0x3f)
+diff --git a/arch/arm/net/bpf_jit_32.c b/arch/arm/net/bpf_jit_32.c
+index adff54c312bf..8904d16a8754 100644
+--- a/arch/arm/net/bpf_jit_32.c
++++ b/arch/arm/net/bpf_jit_32.c
+@@ -612,7 +612,7 @@ static inline void emit_a32_mov_se_i64(const bool is64, const s8 dst[],
+ 				       const u32 val, struct jit_ctx *ctx) {
+ 	u64 val64 = val;
  
+-	if (is64 && (val & (1<<31)))
++	if (is64 && (val & BIT(31)))
+ 		val64 |= 0xffffffff00000000ULL;
+ 	emit_a32_mov_i64(dst, val64, ctx);
+ }
 -- 
 2.11.0
