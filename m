@@ -1,7 +1,7 @@
 From: Phong Tran <tranmanphong@gmail.com>
-Subject: [PATCH V3 10/15] ARM: orion5x: cleanup cppcheck shifting errors
-Date: Tue, 25 Jun 2019 11:03:51 +0700
-Message-ID: <20190625040356.27473-11-tranmanphong@gmail.com>
+Subject: [PATCH V3 11/15] ARM: pxa: cleanup cppcheck shifting errors
+Date: Tue, 25 Jun 2019 11:03:52 +0700
+Message-ID: <20190625040356.27473-12-tranmanphong@gmail.com>
 References: <20190624135105.15579-1-tranmanphong@gmail.com>
  <20190625040356.27473-1-tranmanphong@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -16,40 +16,25 @@ There is error from cppcheck tool
 change to use BIT() marco for improvement.
 
 Signed-off-by: Phong Tran <tranmanphong@gmail.com>
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
 ---
- arch/arm/mach-orion5x/pci.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-pxa/irq.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-orion5x/pci.c b/arch/arm/mach-orion5x/pci.c
-index 76951bfbacf5..f47668530d5e 100644
---- a/arch/arm/mach-orion5x/pci.c
-+++ b/arch/arm/mach-orion5x/pci.c
-@@ -200,13 +200,13 @@ static int __init pcie_setup(struct pci_sys_data *sys)
- /*
-  * PCI_MODE bits
-  */
--#define PCI_MODE_64BIT			(1 << 2)
--#define PCI_MODE_PCIX			((1 << 4) | (1 << 5))
-+#define PCI_MODE_64BIT			BIT(2)
-+#define PCI_MODE_PCIX			(BIT(4) | BIT(5))
+diff --git a/arch/arm/mach-pxa/irq.c b/arch/arm/mach-pxa/irq.c
+index 74efc3ab595f..cbbb5cfecb60 100644
+--- a/arch/arm/mach-pxa/irq.c
++++ b/arch/arm/mach-pxa/irq.c
+@@ -35,9 +35,9 @@
+ #define IPR(i)			(((i) < 32) ? (0x01c + ((i) << 2)) :		\
+ 				((i) < 64) ? (0x0b0 + (((i) - 32) << 2)) :	\
+ 				      (0x144 + (((i) - 64) << 2)))
+-#define ICHP_VAL_IRQ		(1 << 31)
++#define ICHP_VAL_IRQ		BIT(31)
+ #define ICHP_IRQ(i)		(((i) >> 16) & 0x7fff)
+-#define IPR_VALID		(1 << 31)
++#define IPR_VALID		BIT(31)
  
- /*
-  * PCI_CMD bits
-  */
--#define PCI_CMD_HOST_REORDER		(1 << 29)
-+#define PCI_CMD_HOST_REORDER		BIT(29)
+ #define MAX_INTERNAL_IRQS	128
  
- /*
-  * PCI_P2P_CONF bits
-@@ -223,7 +223,7 @@ static int __init pcie_setup(struct pci_sys_data *sys)
- #define PCI_CONF_FUNC(func)		(((func) & 0x3) << 8)
- #define PCI_CONF_DEV(dev)		(((dev) & 0x1f) << 11)
- #define PCI_CONF_BUS(bus)		(((bus) & 0xff) << 16)
--#define PCI_CONF_ADDR_EN		(1 << 31)
-+#define PCI_CONF_ADDR_EN		BIT(31)
- 
- /*
-  * Internal configuration space
 -- 
 2.11.0
