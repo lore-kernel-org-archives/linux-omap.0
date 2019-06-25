@@ -1,47 +1,64 @@
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Subject: Re: [PATCH 0/2] Add Mailbox support for TI K3 SoCs
-Date: Mon, 24 Jun 2019 17:21:06 -0500
-Message-ID: <CABb+yY0xOd_oJLg_BffKXuRtnpHeR-jg1EtKE4KVovy2u3MBuA@mail.gmail.com>
-References: <20190604170146.12205-1-s-anna@ti.com> <47b8f278-85ff-18be-d5a0-fde9de6e17f2@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Phong Tran <tranmanphong@gmail.com>
+Subject: [PATCH V3 00/15] cleanup cppcheck signed shifting errors
+Date: Tue, 25 Jun 2019 11:03:41 +0700
+Message-ID: <20190625040356.27473-1-tranmanphong@gmail.com>
+References: <20190624135105.15579-1-tranmanphong@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <47b8f278-85ff-18be-d5a0-fde9de6e17f2@ti.com>
+In-Reply-To: <20190624135105.15579-1-tranmanphong@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Devicetree List <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: tranmanphong@gmail.com
+Cc: acme@kernel.org, alexander.shishkin@linux.intel.com, alexander.sverdlin@gmail.com, allison@lohutok.net, andrew@lunn.ch, ast@kernel.org, bgolaszewski@baylibre.com, bpf@vger.kernel.org, daniel@iogearbox.net, daniel@zonque.org, dmg@turingmachine.org, festevam@gmail.com, gerg@uclinux.org, gregkh@linuxfoundation.org, gregory.clement@bootlin.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, illusionist.neo@gmail.com, info@metux.net, jason@lakedaemon.net, jolsa@redhat.com, kafai@fb.com, kernel@pengutronix.de, kgene@kernel.org, krzk@kernel.org, kstewart@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-imx@nxp.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux@armlinux.org.uk, liviu.dudau@arm.com, lkundrak@v3.sk
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 24, 2019 at 3:39 PM Suman Anna <s-anna@ti.com> wrote:
->
-> Hi Jassi,
->
-> On 6/4/19 12:01 PM, Suman Anna wrote:
-> > Hi Jassi,
-> >
-> > The following series adds the support for the Mailbox IP present
-> > within the Main NavSS module on the newer TI K3 AM65x and J721E SoCs.
-> >
-> > The Mailbox IP is similar to the previous generation IP on OMAP SoCs
-> > with a few differences:
-> >  - Multiple IP instances from previous DRA7/AM57 family each form a
-> >    cluster and are part of the same IP. The driver support will continue
-> >    to be based on a cluster.
-> >  - The IP is present within a Main NaVSS, and interrupts have to go
-> >    through an Interrupt Router within Main NavSS before they reach the
-> >    respective processor sub-system's interrupt controllers.
-> >  - The register layout is mostly same, with difference in two registers
-> >
-> > Support is added by enhancing the existing OMAP Mailbox driver to
-> > support the K3 IP using a new compatible. The driver also has to be
-> > adjusted to deal with the 32-bit mailbox payloads vs the 64-bit
-> > pointers used by the Mailbox API on these Arm v8 platforms.
-> >
-> > DT nodes will be posted separately once the binding is acked.
->
-> Can you please pick this series up for 5.3 merge window if you do not
-> have any comments.
->
-I will. Usually I leave the code to cook in the open for as long as
-possible, more so when no acks are coming.
-Cheers!
+This is also do as the suggestion of "Linux Kernel Mentorship Task List"
+
+https://wiki.linuxfoundation.org/lkmp/lkmp_task_list#cleanup_cppcheck_errors
+"Shifting signed 32-bit value by 31 bits is undefined behaviour errors"
+
+Change Log:
+
+V2: Using BIT() macro instead of (1UL << nr) 
+
+V3: 
+* Update the comments from Russell King.
+* Update commit message and cover letter for clearly the reason as request
+  Peter Zijlstra
+* For avoiding the broken only change (1<<nr) pattern to BIT(nr)
+
+Phong Tran (15):
+  arm: perf: cleanup cppcheck shifting error
+  ARM: davinci: cleanup cppcheck shifting errors
+  ARM: ep93xx: cleanup cppcheck shifting errors
+  ARM: exynos: cleanup cppcheck shifting error
+  ARM: footbridge: cleanup cppcheck shifting error
+  ARM: imx: cleanup cppcheck shifting errors
+  ARM: ks8695: cleanup cppcheck shifting error
+  ARM: mmp: cleanup cppcheck shifting errors
+  ARM: omap2: cleanup cppcheck shifting error
+  ARM: orion5x: cleanup cppcheck shifting errors
+  ARM: pxa: cleanup cppcheck shifting errors
+  ARM: vexpress: cleanup cppcheck shifting error
+  ARM: mm: cleanup cppcheck shifting errors
+  ARM: bpf: cleanup cppcheck shifting error
+  ARM: vfp: cleanup cppcheck shifting errors
+
+ arch/arm/kernel/perf_event_v7.c    |   6 +-
+ arch/arm/mach-davinci/ddr2.h       |   6 +-
+ arch/arm/mach-ep93xx/soc.h         | 134 ++++++++++++++++++-------------------
+ arch/arm/mach-exynos/suspend.c     |   2 +-
+ arch/arm/mach-footbridge/dc21285.c |   2 +-
+ arch/arm/mach-imx/iomux-mx3.h      |  64 +++++++++---------
+ arch/arm/mach-ks8695/regs-pci.h    |   4 +-
+ arch/arm/mach-mmp/pm-mmp2.h        |  40 +++++------
+ arch/arm/mach-mmp/pm-pxa910.h      |  74 ++++++++++----------
+ arch/arm/mach-omap2/powerdomain.c  |   2 +-
+ arch/arm/mach-orion5x/pci.c        |   8 +--
+ arch/arm/mach-pxa/irq.c            |   4 +-
+ arch/arm/mach-vexpress/spc.c       |   4 +-
+ arch/arm/mm/fault.h                |   6 +-
+ arch/arm/net/bpf_jit_32.c          |   2 +-
+ arch/arm/vfp/vfpinstr.h            |   8 +--
+ 16 files changed, 183 insertions(+), 183 deletions(-)
+
+-- 
+2.11.0
