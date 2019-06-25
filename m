@@ -1,66 +1,86 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH v3 1/5] drm/panel: simple: Add Sharp LQ070Y3DG3B panel
+Subject: Re: [PATCH v3 2/5] drm/panel: simple: Add Ortustech COM37H3M panel
  support
-Date: Tue, 25 Jun 2019 22:39:37 +0200
-Message-ID: <20190625203937.GB18595@ravnborg.org>
+Date: Tue, 25 Jun 2019 22:40:00 +0200
+Message-ID: <20190625204000.GC18595@ravnborg.org>
 References: <cover.1559905870.git.hns@goldelico.com>
- <d16aaa1ac93e4f15c13cd7d621de95836257676a.1559905870.git.hns@goldelico.com>
+ <43b47034b618cff26cea0484591c6deafb7f0685.1559905870.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <d16aaa1ac93e4f15c13cd7d621de95836257676a.1559905870.git.hns@goldelico.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <43b47034b618cff26cea0484591c6deafb7f0685.1559905870.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, David Airlie <airlied@linux.ie>, marek.belisko@gmail.com, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, tomi.valkeinen@ti.com, Thierry Reding <thierry.reding@gmail.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, tomi.valkeinen@ti.com, imirkin@alum.mit.edu, marek.belisko@gmail.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDE6MTE6MDdQTSArMDIwMCwgSC4gTmlrb2xhdXMgU2No
-YWxsZXIgd3JvdGU6Cj4gVGhlIGNoYW5nZSBhZGRzIHN1cHBvcnQgZm9yIHRoZSBTaGFycCBMUTA3
-MFkzREczQiA3LjAiIFRGVCBMQ0QgcGFuZWwuCj4gCj4gVGVzdGVkIG9uIExldHV4NzAwNC4KPiAK
-PiBTaWduZWQtb2ZmLWJ5OiBILiBOaWtvbGF1cyBTY2hhbGxlciA8aG5zQGdvbGRlbGljby5jb20+
-ClJldmlld2VkLWJ5OiBTYW0gUmF2bmJvcmcgPHNhbUByYXZuYm9yZy5vcmc+Cj4gLS0tCj4gIGRy
-aXZlcnMvZ3B1L2RybS9wYW5lbC9wYW5lbC1zaW1wbGUuYyB8IDMwICsrKysrKysrKysrKysrKysr
-KysrKysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDMwIGluc2VydGlvbnMoKykKPiAKPiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL3BhbmVsL3BhbmVsLXNpbXBsZS5jIGIvZHJpdmVycy9n
-cHUvZHJtL3BhbmVsL3BhbmVsLXNpbXBsZS5jCj4gaW5kZXggNTY5YmU0ZWZkOGQxLi41YjI3ODI5
-YzVhNzggMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL3BhbmVsL3BhbmVsLXNpbXBsZS5j
-Cj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL3BhbmVsL3BhbmVsLXNpbXBsZS5jCj4gQEAgLTIyMDQs
-NiArMjIwNCwzMyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IHBhbmVsX2Rlc2Mgc2Ftc3VuZ19sdG4x
-NDBhdDI5XzMwMSA9IHsKPiAgCX0sCj4gIH07Cj4gIAo+ICtzdGF0aWMgY29uc3Qgc3RydWN0IGRy
-bV9kaXNwbGF5X21vZGUgc2hhcnBfbHEwNzB5M2RnM2JfbW9kZSA9IHsKPiArCS5jbG9jayA9IDMz
-MjYwLAo+ICsJLmhkaXNwbGF5ID0gODAwLAo+ICsJLmhzeW5jX3N0YXJ0ID0gODAwICsgNjQsCj4g
-KwkuaHN5bmNfZW5kID0gODAwICsgNjQgKyAxMjgsCj4gKwkuaHRvdGFsID0gODAwICsgNjQgKyAx
-MjggKyA2NCwKPiArCS52ZGlzcGxheSA9IDQ4MCwKPiArCS52c3luY19zdGFydCA9IDQ4MCArIDgs
-Cj4gKwkudnN5bmNfZW5kID0gNDgwICsgOCArIDIsCj4gKwkudnRvdGFsID0gNDgwICsgOCArIDIg
-KyAzNSwKPiArCS52cmVmcmVzaCA9IDYwLAo+ICsJLmZsYWdzID0gRElTUExBWV9GTEFHU19QSVhE
-QVRBX1BPU0VER0UsCj4gK307Cj4gKwo+ICtzdGF0aWMgY29uc3Qgc3RydWN0IHBhbmVsX2Rlc2Mg
-c2hhcnBfbHEwNzB5M2RnM2IgPSB7Cj4gKwkubW9kZXMgPSAmc2hhcnBfbHEwNzB5M2RnM2JfbW9k
-ZSwKPiArCS5udW1fbW9kZXMgPSAxLAo+ICsJLmJwYyA9IDgsCj4gKwkuc2l6ZSA9IHsKPiArCQku
-d2lkdGggPSAxNTIsCS8qIDE1Mi40bW0gKi8KPiArCQkuaGVpZ2h0ID0gOTEsCS8qIDkxLjRtbSAq
-Lwo+ICsJfSwKPiArCS5idXNfZm9ybWF0ID0gTUVESUFfQlVTX0ZNVF9SR0I4ODhfMVgyNCwKPiAr
-CS5idXNfZmxhZ3MgPSBEUk1fQlVTX0ZMQUdfREVfSElHSCB8IERSTV9CVVNfRkxBR19QSVhEQVRB
-X1BPU0VER0UgfAo+ICsJCSAgICAgRFJNX0JVU19GTEFHX1NZTkNfRFJJVkVfUE9TRURHRSwKPiAr
-fTsKPiArCj4gIHN0YXRpYyBjb25zdCBzdHJ1Y3QgZHJtX2Rpc3BsYXlfbW9kZSBzaGFycF9scTAz
-NXE3ZGIwM19tb2RlID0gewo+ICAJLmNsb2NrID0gNTUwMCwKPiAgCS5oZGlzcGxheSA9IDI0MCwK
-PiBAQCAtMjc4Niw2ICsyODEzLDkgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQg
-cGxhdGZvcm1fb2ZfbWF0Y2hbXSA9IHsKPiAgCX0sIHsKPiAgCQkuY29tcGF0aWJsZSA9ICJzaGFy
-cCxscTAzNXE3ZGIwMyIsCj4gIAkJLmRhdGEgPSAmc2hhcnBfbHEwMzVxN2RiMDMsCj4gKwl9LCB7
-Cj4gKwkJLmNvbXBhdGlibGUgPSAic2hhcnAsbHEwNzB5M2RnM2IiLAo+ICsJCS5kYXRhID0gJnNo
-YXJwX2xxMDcweTNkZzNiLAo+ICAJfSwgewo+ICAJCS5jb21wYXRpYmxlID0gInNoYXJwLGxxMTAx
-azFseTA0IiwKPiAgCQkuZGF0YSA9ICZzaGFycF9scTEwMWsxbHkwNCwKPiAtLSAKPiAyLjE5LjEK
-PiAKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IGRy
-aS1kZXZlbCBtYWlsaW5nIGxpc3QKPiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4g
-aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+On Fri, Jun 07, 2019 at 01:11:08PM +0200, H. Nikolaus Schaller wrote:
+> The change adds support for the Ortustech COM37H3M05DTC/99DTC 3.7" TFT LCD panel.
+> 
+> Tested on Letux3704.
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+> ---
+>  drivers/gpu/drm/panel/panel-simple.c | 33 ++++++++++++++++++++++++++++
+>  1 file changed, 33 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+> index 5b27829c5a78..1fb74908a269 100644
+> --- a/drivers/gpu/drm/panel/panel-simple.c
+> +++ b/drivers/gpu/drm/panel/panel-simple.c
+> @@ -2007,6 +2007,33 @@ static const struct panel_desc ontat_yx700wv03 = {
+>  	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
+>  };
+>  
+> +static const struct drm_display_mode ortustech_com37h3m_mode  = {
+> +	.clock = 22153,
+> +	.hdisplay = 480,
+> +	.hsync_start = 480 + 8,
+> +	.hsync_end = 480 + 8 + 10,
+> +	.htotal = 480 + 8 + 10 + 10,
+> +	.vdisplay = 640,
+> +	.vsync_start = 640 + 4,
+> +	.vsync_end = 640 + 4 + 3,
+> +	.vtotal = 640 + 4 + 3 + 4,
+> +	.vrefresh = 60,
+> +	.flags = DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC,
+> +};
+> +
+> +static const struct panel_desc ortustech_com37h3m = {
+> +	.modes = &ortustech_com37h3m_mode,
+> +	.num_modes = 1,
+> +	.bpc = 8,
+> +	.size = {
+> +		.width = 56,	/* 56.16mm */
+> +		.height = 75,	/* 74.88mm */
+> +	},
+> +	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+> +	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_POSEDGE |
+> +		     DRM_BUS_FLAG_SYNC_DRIVE_POSEDGE,
+> +};
+> +
+>  static const struct drm_display_mode ortustech_com43h4m85ulc_mode  = {
+>  	.clock = 25000,
+>  	.hdisplay = 480,
+> @@ -2786,6 +2813,12 @@ static const struct of_device_id platform_of_match[] = {
+>  	}, {
+>  		.compatible = "ontat,yx700wv03",
+>  		.data = &ontat_yx700wv03,
+> +	}, {
+> +		.compatible = "ortustech,com37h3m05dtc",
+> +		.data = &ortustech_com37h3m,
+> +	}, {
+> +		.compatible = "ortustech,com37h3m99dtc",
+> +		.data = &ortustech_com37h3m,
+>  	}, {
+>  		.compatible = "ortustech,com43h4m85ulc",
+>  		.data = &ortustech_com43h4m85ulc,
+> -- 
+> 2.19.1
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
