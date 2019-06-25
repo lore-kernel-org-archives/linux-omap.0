@@ -1,51 +1,45 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 01/30] include: linux: platform_device: more helpers for
- declaring platform drivers
-Date: Tue, 25 Jun 2019 11:18:25 +0200
-Message-ID: <CACRpkdYQXFd5q+k8aKWKK5krzq0KpCmo9fsUW8Dx3jHq1LHwhA@mail.gmail.com>
-References: <1560796871-18560-1-git-send-email-info@metux.net>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: nl80211 wlcore regression in next
+Date: Tue, 25 Jun 2019 12:18:39 +0300
+Message-ID: <87r27irpjk.fsf@kamboji.qca.qualcomm.com>
+References: <20190625073837.GG5447@atomide.com>
+        <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
+        <20190625080019.GH5447@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Enrico Weigelt, metux IT consult" <info@metux.net>, Greg KH <gregkh@linuxfoundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tien Hock Loh <thloh@altera.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Sascha Hauer <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre TORGUE <alexandre.torgue@st.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org, patches@opensource.cirrus.com, Rafael J.
+Content-Type: text/plain
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20190625080019.GH5447-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
+        "Tue, 25 Jun 2019 01:00:19 -0700")
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 17, 2019 at 8:41 PM Enrico Weigelt, metux IT consult
-<info@metux.net> wrote:
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
 
-> From: Enrico Weigelt <info@metux.net>
+> Hi,
 >
-> Add more helper macros for trivial driver init cases, similar to the
-> already existing module_platform_driver()+friends - now for those which
-> are initialized at other stages. Lots of drivers couldn't use the existing
-> macros, as they need to be called at different init stages, eg. subsys,
-> postcore, arch.
+> * Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org> [190625 07:47]:
+>> On Tue, 2019-06-25 at 00:38 -0700, Tony Lindgren wrote:
+>> > Hi,
+>> > 
+>> > Looks like at least drivers/net/wireless/ti wlcore driver has stopped
+>> > working in Linux next with commit 901bb9891855 ("nl80211: require and
+>> > validate vendor command policy"). Reverting the commit above makes it
+>> > work again.
+>> > 
+>> > It fails with the warning below, any ideas what goes wrong?
+>> 
+>> Oops. For some reason, I neglected to check the vendor command usage
+>> beyond hwsim.
+>> 
+>> The patch below should work?
 >
-> This helps to further reduce driver init boilerplate.
+> Yeah thanks that fixes the issue for me:
 >
-> Signed-off-by: Enrico Weigelt <info@metux.net>
+> Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-You need to send this to Greg as device core maintainer.
-Possibly to Rafael as well, he did a very intersting rework
-on device dependencies with device links.
+Acked-by: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 
-While in general I agree that this diets down a lot of duplicate
-code that we have done the same way over and over, there
-is the issue that we don't want any drivers to do this mockery
-and instead use deferred probe and ultimately just probe in the
-right order.
-
-I think device links were supposed to fix this up, but it indeed
-assumes that you know of these dependencies before you
-start probing the first driver, and often you do not, unless the
-hardware description explicitly encodes that. And that is one
-big problem.
-
-If we should do this, device core changes must be merged or
-explicitly ACKed first.
-
-Yours,
-Linus Walleij
+-- 
+Kalle Valo
