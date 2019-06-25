@@ -1,43 +1,34 @@
-From: Phong Tran <tranmanphong@gmail.com>
-Subject: [PATCH V3 15/15] ARM: vfp: cleanup cppcheck shifting errors
-Date: Tue, 25 Jun 2019 11:03:56 +0700
-Message-ID: <20190625040356.27473-16-tranmanphong@gmail.com>
-References: <20190624135105.15579-1-tranmanphong@gmail.com>
- <20190625040356.27473-1-tranmanphong@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: nl80211 wlcore regression in next
+Date: Tue, 25 Jun 2019 00:38:37 -0700
+Message-ID: <20190625073837.GG5447@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190625040356.27473-1-tranmanphong@gmail.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: tranmanphong@gmail.com
-Cc: acme@kernel.org, alexander.shishkin@linux.intel.com, alexander.sverdlin@gmail.com, allison@lohutok.net, andrew@lunn.ch, ast@kernel.org, bgolaszewski@baylibre.com, bpf@vger.kernel.org, daniel@iogearbox.net, daniel@zonque.org, dmg@turingmachine.org, festevam@gmail.com, gerg@uclinux.org, gregkh@linuxfoundation.org, gregory.clement@bootlin.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, illusionist.neo@gmail.com, info@metux.net, jason@lakedaemon.net, jolsa@redhat.com, kafai@fb.com, kernel@pengutronix.de, kgene@kernel.org, krzk@kernel.org, kstewart@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-imx@nxp.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux@armlinux.org.uk, liviu.dudau@arm.com, lkundrak@v3.sk
+To: Johannes Berg <johannes.berg@intel.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalreizer@gmail.com>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-There is error from cppcheck tool
-"Shifting signed 32-bit value by 31 bits is undefined behaviour errors"
-change to use BIT() marco for improvement.
+Hi,
 
-Signed-off-by: Phong Tran <tranmanphong@gmail.com>
----
- arch/arm/vfp/vfpinstr.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Looks like at least drivers/net/wireless/ti wlcore driver has stopped
+working in Linux next with commit 901bb9891855 ("nl80211: require and
+validate vendor command policy"). Reverting the commit above makes it
+work again.
 
-diff --git a/arch/arm/vfp/vfpinstr.h b/arch/arm/vfp/vfpinstr.h
-index 38dc154e39ff..8951637c58ff 100644
---- a/arch/arm/vfp/vfpinstr.h
-+++ b/arch/arm/vfp/vfpinstr.h
-@@ -57,10 +57,10 @@
- 
- #define vfp_single(inst)	(((inst) & 0x0000f00) == 0xa00)
- 
--#define FPSCR_N	(1 << 31)
--#define FPSCR_Z	(1 << 30)
--#define FPSCR_C (1 << 29)
--#define FPSCR_V	(1 << 28)
-+#define FPSCR_N	BIT(31)
-+#define FPSCR_Z	BIT(30)
-+#define FPSCR_C BIT(29)
-+#define FPSCR_V	BIT(28)
- 
- /*
-  * Since we aren't building with -mfpu=vfp, we need to code
--- 
-2.11.0
+It fails with the warning below, any ideas what goes wrong?
+
+Regards,
+
+Tony
+
+8< ----------------
+WARNING: CPU: 0 PID: 21 at net/wireless/core.c:868 wiphy_register+0x85c/0xbd4 [cfg80211]
+...
+[<bf05f570>] (wiphy_register [cfg80211]) from [<bf121e08>] (ieee80211_register_hw+0x4e4/0xcd8 [mac80211])
+[<bf121e08>] (ieee80211_register_hw [mac80211]) from [<bf33135c>] (wlcore_nvs_cb+0x758/0xabc [wlcore])
+[<bf33135c>] (wlcore_nvs_cb [wlcore]) from [<c05c3770>] (request_firmware_work_func+0x50/0x8c)
+[<c05c3770>] (request_firmware_work_func) from [<c0154bb8>] (process_one_work+0x20c/0x504)
+...
