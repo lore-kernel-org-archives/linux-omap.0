@@ -1,28 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v4 net-next 0/4] net: ethernet: ti: cpsw: Add XDP
- support
-Date: Tue, 25 Jun 2019 13:46:11 -0700 (PDT)
-Message-ID: <20190625.134611.1728588998382878928.davem@davemloft.net>
-References: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [RFC PATCH v4 net-next 10/11] ARM: dts: am57xx-idk: add dt nodes
+ for new cpsw switch dev driver
+Date: Wed, 26 Jun 2019 01:49:54 +0300
+Message-ID: <20190625224953.GD6485@khorivan>
+References: <20190621181314.20778-1-grygorii.strashko@ti.com>
+ <20190621181314.20778-11-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20190621181314.20778-11-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: grygorii.strashko@ti.com, hawk@kernel.org, brouer@redhat.com, saeedm@mellanox.com, leon@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Tue, 25 Jun 2019 20:59:44 +0300
+On Fri, Jun 21, 2019 at 09:13:13PM +0300, Grygorii Strashko wrote:
+>Add DT nodes for new cpsw switch dev driver.
+>
+>Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>---
+> arch/arm/boot/dts/am571x-idk.dts         | 28 +++++++++++++
+> arch/arm/boot/dts/am572x-idk.dts         |  5 +++
+> arch/arm/boot/dts/am574x-idk.dts         |  5 +++
+> arch/arm/boot/dts/am57xx-idk-common.dtsi |  2 +-
+> arch/arm/boot/dts/dra7-l4.dtsi           | 53 ++++++++++++++++++++++++
+> 5 files changed, 92 insertions(+), 1 deletion(-)
+>
 
-> This patchset adds XDP support for TI cpsw driver and base it on
-> page_pool allocator. It was verified on af_xdp socket drop,
-> af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
+[...]
 
-So happy to watch the progress of this patch set.
+>diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi 
+>b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+>index f7bd26458915..5c7663699efa 100644
+>--- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
+>+++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+>@@ -367,7 +367,7 @@
+> };
+>
+> &mac {
+>-	status = "okay";
+>+//	status = "okay";
+?
 
-Jesper and others, please review.
 
-Thank you.
+-- 
+Regards,
+Ivan Khoronzhuk
