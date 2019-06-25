@@ -1,109 +1,37 @@
-From: Johannes Berg <johannes@sipsolutions.net>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: nl80211 wlcore regression in next
-Date: Tue, 25 Jun 2019 09:46:33 +0200
-Message-ID: <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
+Date: Tue, 25 Jun 2019 01:00:19 -0700
+Message-ID: <20190625080019.GH5447@atomide.com>
 References: <20190625073837.GG5447@atomide.com>
-         (sfid-20190625_093856_832195_5A1A0447)
+ <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190625073837.GG5447@atomide.com> (sfid-20190625_093856_832195_5A1A0447)
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalreizer@gmail.com>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2570f4087d6e3356df34635a0380ec8ce06c9159.camel-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2019-06-25 at 00:38 -0700, Tony Lindgren wrote:
-> Hi,
+Hi,
+
+* Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org> [190625 07:47]:
+> On Tue, 2019-06-25 at 00:38 -0700, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > Looks like at least drivers/net/wireless/ti wlcore driver has stopped
+> > working in Linux next with commit 901bb9891855 ("nl80211: require and
+> > validate vendor command policy"). Reverting the commit above makes it
+> > work again.
+> > 
+> > It fails with the warning below, any ideas what goes wrong?
 > 
-> Looks like at least drivers/net/wireless/ti wlcore driver has stopped
-> working in Linux next with commit 901bb9891855 ("nl80211: require and
-> validate vendor command policy"). Reverting the commit above makes it
-> work again.
+> Oops. For some reason, I neglected to check the vendor command usage
+> beyond hwsim.
 > 
-> It fails with the warning below, any ideas what goes wrong?
+> The patch below should work?
 
-Oops. For some reason, I neglected to check the vendor command usage
-beyond hwsim.
+Yeah thanks that fixes the issue for me:
 
-The patch below should work?
-
-johannes
-
-diff --git a/drivers/net/wireless/ath/wil6210/cfg80211.c b/drivers/net/wireless/ath/wil6210/cfg80211.c
-index 804955d24b30..37ac95940c22 100644
---- a/drivers/net/wireless/ath/wil6210/cfg80211.c
-+++ b/drivers/net/wireless/ath/wil6210/cfg80211.c
-@@ -177,6 +177,7 @@ static const struct wiphy_vendor_command wil_nl80211_vendor_commands[] = {
- 		.info.subcmd = QCA_NL80211_VENDOR_SUBCMD_DMG_RF_GET_SECTOR_CFG,
- 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV |
- 			 WIPHY_VENDOR_CMD_NEED_RUNNING,
-+		.policy = wil_rf_sector_policy,
- 		.doit = wil_rf_sector_get_cfg
- 	},
- 	{
-@@ -184,6 +185,7 @@ static const struct wiphy_vendor_command wil_nl80211_vendor_commands[] = {
- 		.info.subcmd = QCA_NL80211_VENDOR_SUBCMD_DMG_RF_SET_SECTOR_CFG,
- 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV |
- 			 WIPHY_VENDOR_CMD_NEED_RUNNING,
-+		.policy = wil_rf_sector_policy,
- 		.doit = wil_rf_sector_set_cfg
- 	},
- 	{
-@@ -192,6 +194,7 @@ static const struct wiphy_vendor_command wil_nl80211_vendor_commands[] = {
- 			QCA_NL80211_VENDOR_SUBCMD_DMG_RF_GET_SELECTED_SECTOR,
- 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV |
- 			 WIPHY_VENDOR_CMD_NEED_RUNNING,
-+		.policy = wil_rf_sector_policy,
- 		.doit = wil_rf_sector_get_selected
- 	},
- 	{
-@@ -200,6 +203,7 @@ static const struct wiphy_vendor_command wil_nl80211_vendor_commands[] = {
- 			QCA_NL80211_VENDOR_SUBCMD_DMG_RF_SET_SELECTED_SECTOR,
- 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV |
- 			 WIPHY_VENDOR_CMD_NEED_RUNNING,
-+		.policy = wil_rf_sector_policy,
- 		.doit = wil_rf_sector_set_selected
- 	},
- };
-diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/vendor.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/vendor.c
-index d493021f6031..30ebadc5e5bb 100644
---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/vendor.c
-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/vendor.c
-@@ -123,6 +123,7 @@ const struct wiphy_vendor_command brcmf_vendor_cmds[] = {
- 		},
- 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV |
- 			 WIPHY_VENDOR_CMD_NEED_NETDEV,
-+		.policy = VENDOR_CMD_RAW_DATA,
- 		.doit = brcmf_cfg80211_vndr_cmds_dcmd_handler
- 	},
- };
-diff --git a/drivers/net/wireless/ti/wlcore/vendor_cmd.c b/drivers/net/wireless/ti/wlcore/vendor_cmd.c
-index 75756fb8e7b0..cd82d3580e87 100644
---- a/drivers/net/wireless/ti/wlcore/vendor_cmd.c
-+++ b/drivers/net/wireless/ti/wlcore/vendor_cmd.c
-@@ -166,6 +166,7 @@ static const struct wiphy_vendor_command wlcore_vendor_commands[] = {
- 		.flags = WIPHY_VENDOR_CMD_NEED_NETDEV |
- 			 WIPHY_VENDOR_CMD_NEED_RUNNING,
- 		.doit = wlcore_vendor_cmd_smart_config_start,
-+		.policy = wlcore_vendor_attr_policy,
- 	},
- 	{
- 		.info = {
-@@ -175,6 +176,7 @@ static const struct wiphy_vendor_command wlcore_vendor_commands[] = {
- 		.flags = WIPHY_VENDOR_CMD_NEED_NETDEV |
- 			 WIPHY_VENDOR_CMD_NEED_RUNNING,
- 		.doit = wlcore_vendor_cmd_smart_config_stop,
-+		.policy = wlcore_vendor_attr_policy,
- 	},
- 	{
- 		.info = {
-@@ -184,6 +186,7 @@ static const struct wiphy_vendor_command wlcore_vendor_commands[] = {
- 		.flags = WIPHY_VENDOR_CMD_NEED_NETDEV |
- 			 WIPHY_VENDOR_CMD_NEED_RUNNING,
- 		.doit = wlcore_vendor_cmd_smart_config_set_group_key,
-+		.policy = wlcore_vendor_attr_policy,
- 	},
- };
- 
+Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
