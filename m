@@ -1,7 +1,7 @@
 From: Phong Tran <tranmanphong@gmail.com>
-Subject: [PATCH V3 12/15] ARM: vexpress: cleanup cppcheck shifting error
-Date: Tue, 25 Jun 2019 11:03:53 +0700
-Message-ID: <20190625040356.27473-13-tranmanphong@gmail.com>
+Subject: [PATCH V3 13/15] ARM: mm: cleanup cppcheck shifting errors
+Date: Tue, 25 Jun 2019 11:03:54 +0700
+Message-ID: <20190625040356.27473-14-tranmanphong@gmail.com>
 References: <20190624135105.15579-1-tranmanphong@gmail.com>
  <20190625040356.27473-1-tranmanphong@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -17,30 +17,25 @@ change to use BIT() marco for improvement.
 
 Signed-off-by: Phong Tran <tranmanphong@gmail.com>
 ---
- arch/arm/mach-vexpress/spc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mm/fault.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-vexpress/spc.c b/arch/arm/mach-vexpress/spc.c
-index 0f5381d13494..354e0e7025ae 100644
---- a/arch/arm/mach-vexpress/spc.c
-+++ b/arch/arm/mach-vexpress/spc.c
-@@ -69,7 +69,7 @@
- #define A7_PERFVAL_BASE		0xC30
+diff --git a/arch/arm/mm/fault.h b/arch/arm/mm/fault.h
+index c063708fa503..8a706cb7f21d 100644
+--- a/arch/arm/mm/fault.h
++++ b/arch/arm/mm/fault.h
+@@ -5,9 +5,9 @@
+ /*
+  * Fault status register encodings.  We steal bit 31 for our own purposes.
+  */
+-#define FSR_LNX_PF		(1 << 31)
+-#define FSR_WRITE		(1 << 11)
+-#define FSR_FS4			(1 << 10)
++#define FSR_LNX_PF		BIT(31)
++#define FSR_WRITE		BIT(11)
++#define FSR_FS4			BIT(10)
+ #define FSR_FS3_0		(15)
+ #define FSR_FS5_0		(0x3f)
  
- /* Config interface control bits */
--#define SYSCFG_START		(1 << 31)
-+#define SYSCFG_START		BIT(31)
- #define SYSCFG_SCC		(6 << 20)
- #define SYSCFG_STAT		(14 << 20)
- 
-@@ -162,7 +162,7 @@ void ve_spc_cpu_wakeup_irq(u32 cluster, u32 cpu, bool set)
- 	if (cluster >= MAX_CLUSTERS)
- 		return;
- 
--	mask = 1 << cpu;
-+	mask = BIT(cpu);
- 
- 	if (!cluster_is_a15(cluster))
- 		mask <<= 4;
 -- 
 2.11.0
