@@ -1,54 +1,68 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH v3 5/5] dt-bindings: drm/panel: simple: add sharp,
- lq070y3dg3b panel
-Date: Tue, 25 Jun 2019 22:41:40 +0200
-Message-ID: <20190625204140.GE18595@ravnborg.org>
+Subject: Re: [PATCH v3 0/5] drm/panel-simple: Add panel parameters for
+ ortustech-com37h3m05dtc/99dtc and sharp-lq070y3dg3b
+Date: Tue, 25 Jun 2019 22:43:56 +0200
+Message-ID: <20190625204356.GF18595@ravnborg.org>
 References: <cover.1559905870.git.hns@goldelico.com>
- <ee90ed56d2c294ce8ac3b44bf2229c5ab9f85e91.1559905870.git.hns@goldelico.com>
+ <0842FF88-D8E0-441B-837B-769C2EF6C1CB@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <ee90ed56d2c294ce8ac3b44bf2229c5ab9f85e91.1559905870.git.hns@goldelico.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <0842FF88-D8E0-441B-837B-769C2EF6C1CB@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, David Airlie <airlied@linux.ie>, marek.belisko@gmail.com, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, tomi.valkeinen@ti.com, Thierry Reding <thierry.reding@gmail.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, tomi.valkeinen@ti.com, imirkin@alum.mit.edu, marek.belisko@gmail.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDE6MTE6MTFQTSArMDIwMCwgSC4gTmlrb2xhdXMgU2No
-YWxsZXIgd3JvdGU6Cj4gU2lnbmVkLW9mZi1ieTogSC4gTmlrb2xhdXMgU2NoYWxsZXIgPGhuc0Bn
-b2xkZWxpY28uY29tPgpSZXZpZXdlZC1ieTogU2FtIFJhdm5ib3JnIDxzYW1AcmF2bmJvcmcub3Jn
-Pgo+IC0tLQo+ICAuLi4vYmluZGluZ3MvZGlzcGxheS9wYW5lbC9zaGFycCxscTA3MHkzZGczYi50
-eHQgICAgIHwgMTIgKysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25z
-KCspCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGlu
-Z3MvZGlzcGxheS9wYW5lbC9zaGFycCxscTA3MHkzZGczYi50eHQKPiAKPiBkaWZmIC0tZ2l0IGEv
-RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvcGFuZWwvc2hhcnAsbHEw
-NzB5M2RnM2IudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkv
-cGFuZWwvc2hhcnAsbHEwNzB5M2RnM2IudHh0Cj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiBpbmRl
-eCAwMDAwMDAwMDAwMDAuLjk1NTM0YjU1ZWU1Zgo+IC0tLSAvZGV2L251bGwKPiArKysgYi9Eb2N1
-bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9wYW5lbC9zaGFycCxscTA3MHkz
-ZGczYi50eHQKPiBAQCAtMCwwICsxLDEyIEBACj4gK1NoYXJwIExRMDcwWTNERzNCIDcuMCIgV1ZH
-QSBsYW5kc2NhcGUgVEZUIExDRCBwYW5lbAo+ICsKPiArUmVxdWlyZWQgcHJvcGVydGllczoKPiAr
-LSBjb21wYXRpYmxlOiBzaG91bGQgYmUgInNoYXJwLGxxMDcweTNkZzNiIgo+ICsKPiArT3B0aW9u
-YWwgcHJvcGVydGllczoKPiArLSBlbmFibGUtZ3Bpb3M6IEdQSU8gcGluIHRvIGVuYWJsZSBvciBk
-aXNhYmxlIHRoZSBwYW5lbAo+ICstIGJhY2tsaWdodDogcGhhbmRsZSBvZiB0aGUgYmFja2xpZ2h0
-IGRldmljZSBhdHRhY2hlZCB0byB0aGUgcGFuZWwKPiArLSBwb3dlci1zdXBwbHk6IHBoYW5kbGUg
-b2YgdGhlIHJlZ3VsYXRvciB0aGF0IHByb3ZpZGVzIHRoZSBzdXBwbHkgdm9sdGFnZQo+ICsKPiAr
-VGhpcyBiaW5kaW5nIGlzIGNvbXBhdGlibGUgd2l0aCB0aGUgc2ltcGxlLXBhbmVsIGJpbmRpbmcs
-IHdoaWNoIGlzIHNwZWNpZmllZAo+ICtpbiBzaW1wbGUtcGFuZWwudHh0IGluIHRoaXMgZGlyZWN0
-b3J5Lgo+IC0tIAo+IDIuMTkuMQo+IAo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCj4gZHJpLWRldmVsIG1haWxpbmcgbGlzdAo+IGRyaS1kZXZlbEBsaXN0
-cy5mcmVlZGVza3RvcC5vcmcKPiBodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2RyaS1kZXZlbApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
-a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
-cmktZGV2ZWw=
+Hi Nikolaus
+
+> > V3:
+> > * add bindings documentation (suggested by sam@ravnborg.org)
+> > 
+> > V2 2019-06-05 07:07:05:
+> > * fix typo in 99dtc panel compatible string (reported by imirkin@alum.mit.edu)
+> > 
+> > V1 2019-06-04 14:53:00:
+> > 
+> > Since v5.2-rc1 OMAP is no longer using a special display driver architecture
+> > for DPI panels, but uses the general drm/panel/panel-simple.
+> > 
+> > So we finally can add SoC independent panel definitions for two panel models
+> > which we already had worked on quite a while ago (before device tree was
+> > introduced):
+> > 
+> > 	https://patchwork.kernel.org/patch/2851295/
+> > 
+> > 
+> > 
+> > H. Nikolaus Schaller (5):
+> >  drm/panel: simple: Add Sharp LQ070Y3DG3B panel support
+> >  drm/panel: simple: Add Ortustech COM37H3M panel support
+> >  dt-bindings: drm/panel: simple: add ortustech,com37h3m05dtc panel
+> >  dt-bindings: drm/panel: simple: add ortustech,com37h3m99dtc panel
+> >  dt-bindings: drm/panel: simple: add sharp,lq070y3dg3b panel
+> > 
+> > .../display/panel/ortustech,com37h3m05dtc.txt | 12 ++++
+> > .../display/panel/ortustech,com37h3m99dtc.txt | 12 ++++
+> > .../display/panel/sharp,lq070y3dg3b.txt       | 12 ++++
+> > drivers/gpu/drm/panel/panel-simple.c          | 63 +++++++++++++++++++
+> > 4 files changed, 99 insertions(+)
+> > create mode 100644 Documentation/devicetree/bindings/display/panel/ortustech,com37h3m05dtc.txt
+> > create mode 100644 Documentation/devicetree/bindings/display/panel/ortustech,com37h3m99dtc.txt
+> > create mode 100644 Documentation/devicetree/bindings/display/panel/sharp,lq070y3dg3b.txt
+> > 
+> > -- 
+> > 2.19.1
+> > 
+> 
+> any progress towards merging this somewhere? It did not yet arrive in linux-next.
+> 
+> BTW: should also be applied to 5.2
+The drm bits are reviewed. The DT bits needs OK from DT people.
+When we have OK from DT people we can apply them all to drm-misc-next.
+
+If we need them expedited towards the upstream kernel you will need help
+from someone else. But let's get them in drm-misc-next first.
+
+	Sam
