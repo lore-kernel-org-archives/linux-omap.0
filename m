@@ -1,31 +1,74 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH V3 12/15] ARM: vexpress: cleanup cppcheck shifting error
-Date: Tue, 25 Jun 2019 18:24:42 +0100
-Message-ID: <20190625172442.GA19852@e107155-lin>
-References: <20190624135105.15579-1-tranmanphong@gmail.com>
- <20190625040356.27473-1-tranmanphong@gmail.com>
- <20190625040356.27473-13-tranmanphong@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v4 net-next 0/4]  net: ethernet: ti: cpsw: Add XDP support
+Date: Tue, 25 Jun 2019 20:59:44 +0300
+Message-ID: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190625040356.27473-13-tranmanphong@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Phong Tran <tranmanphong@gmail.com>
-Cc: acme@kernel.org, alexander.shishkin@linux.intel.com, alexander.sverdlin@gmail.com, allison@lohutok.net, andrew@lunn.ch, ast@kernel.org, bgolaszewski@baylibre.com, bpf@vger.kernel.org, daniel@iogearbox.net, daniel@zonque.org, dmg@turingmachine.org, festevam@gmail.com, gerg@uclinux.org, gregkh@linuxfoundation.org, gregory.clement@bootlin.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, illusionist.neo@gmail.com, info@metux.net, jason@lakedaemon.net, jolsa@redhat.com, kafai@fb.com, kernel@pengutronix.de, kgene@kernel.org, krzk@kernel.org, kstewart@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-imx@nxp.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux@armlinux.org.uk, liviu.dudau@arm.com, lkundrak@v3.sk
+To: davem@davemloft.net, grygorii.strashko@ti.com, hawk@kernel.org, brouer@redhat.com, saeedm@mellanox.com, leon@kernel.org
+Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 25, 2019 at 11:03:53AM +0700, Phong Tran wrote:
-> There is error from cppcheck tool
-> "Shifting signed 32-bit value by 31 bits is undefined behaviour errors"
-> change to use BIT() marco for improvement.
->
+This patchset adds XDP support for TI cpsw driver and base it on
+page_pool allocator. It was verified on af_xdp socket drop,
+af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
 
-What's your plan for merging this series ? I can take this for v5.4
-If not,
+It was verified with following configs enabled:
+CONFIG_JIT=y
+CONFIG_BPFILTER=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_XDP_SOCKETS=y
+CONFIG_BPF_EVENTS=y
+CONFIG_HAVE_EBPF_JIT=y
+CONFIG_BPF_JIT=y
+CONFIG_CGROUP_BPF=y
 
-Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+Link on previous v3:
+https://lkml.org/lkml/2019/6/5/446
 
---
-Regards,
-Sudeep
+Also regular tests with iperf2 were done in order to verify impact on
+regular netstack performance, compared with base commit:
+https://pastebin.com/JSMT0iZ4
+
+v3..v4:
+- added page pool user counter
+- use same pool for ndevs in dual mac
+- restructured page pool create/destroy according to the last changes in API
+
+v2..v3:
+- each rxq and ndev has its own page pool
+
+v1..v2:
+- combined xdp_xmit functions
+- used page allocation w/o refcnt juggle
+- unmapped page for skb netstack
+- moved rxq/page pool allocation to open/close pair
+- added several preliminary patches:
+  net: page_pool: add helper function to retrieve dma addresses
+  net: page_pool: add helper function to unmap dma addresses
+  net: ethernet: ti: cpsw: use cpsw as drv data
+  net: ethernet: ti: cpsw_ethtool: simplify slave loops
+
+
+Based on net-next/master
+
+Ivan Khoronzhuk (4):
+  net: core: page_pool: add user cnt preventing pool deletion
+  net: ethernet: ti: davinci_cpdma: add dma mapped submit
+  net: ethernet: ti: davinci_cpdma: return handler status
+  net: ethernet: ti: cpsw: add XDP support
+
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |   8 +-
+ drivers/net/ethernet/ti/Kconfig               |   1 +
+ drivers/net/ethernet/ti/cpsw.c                | 536 ++++++++++++++++--
+ drivers/net/ethernet/ti/cpsw_ethtool.c        |  25 +-
+ drivers/net/ethernet/ti/cpsw_priv.h           |   9 +-
+ drivers/net/ethernet/ti/davinci_cpdma.c       | 123 +++-
+ drivers/net/ethernet/ti/davinci_cpdma.h       |   8 +-
+ drivers/net/ethernet/ti/davinci_emac.c        |  18 +-
+ include/net/page_pool.h                       |   7 +
+ net/core/page_pool.c                          |   7 +
+ net/core/xdp.c                                |   3 +
+ 11 files changed, 640 insertions(+), 105 deletions(-)
+
+-- 
+2.17.1
