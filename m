@@ -1,7 +1,7 @@
 From: Phong Tran <tranmanphong@gmail.com>
-Subject: [PATCH V3 11/15] ARM: pxa: cleanup cppcheck shifting errors
-Date: Tue, 25 Jun 2019 11:03:52 +0700
-Message-ID: <20190625040356.27473-12-tranmanphong@gmail.com>
+Subject: [PATCH V3 12/15] ARM: vexpress: cleanup cppcheck shifting error
+Date: Tue, 25 Jun 2019 11:03:53 +0700
+Message-ID: <20190625040356.27473-13-tranmanphong@gmail.com>
 References: <20190624135105.15579-1-tranmanphong@gmail.com>
  <20190625040356.27473-1-tranmanphong@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -17,24 +17,30 @@ change to use BIT() marco for improvement.
 
 Signed-off-by: Phong Tran <tranmanphong@gmail.com>
 ---
- arch/arm/mach-pxa/irq.c | 4 ++--
+ arch/arm/mach-vexpress/spc.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-pxa/irq.c b/arch/arm/mach-pxa/irq.c
-index 74efc3ab595f..cbbb5cfecb60 100644
---- a/arch/arm/mach-pxa/irq.c
-+++ b/arch/arm/mach-pxa/irq.c
-@@ -35,9 +35,9 @@
- #define IPR(i)			(((i) < 32) ? (0x01c + ((i) << 2)) :		\
- 				((i) < 64) ? (0x0b0 + (((i) - 32) << 2)) :	\
- 				      (0x144 + (((i) - 64) << 2)))
--#define ICHP_VAL_IRQ		(1 << 31)
-+#define ICHP_VAL_IRQ		BIT(31)
- #define ICHP_IRQ(i)		(((i) >> 16) & 0x7fff)
--#define IPR_VALID		(1 << 31)
-+#define IPR_VALID		BIT(31)
+diff --git a/arch/arm/mach-vexpress/spc.c b/arch/arm/mach-vexpress/spc.c
+index 0f5381d13494..354e0e7025ae 100644
+--- a/arch/arm/mach-vexpress/spc.c
++++ b/arch/arm/mach-vexpress/spc.c
+@@ -69,7 +69,7 @@
+ #define A7_PERFVAL_BASE		0xC30
  
- #define MAX_INTERNAL_IRQS	128
+ /* Config interface control bits */
+-#define SYSCFG_START		(1 << 31)
++#define SYSCFG_START		BIT(31)
+ #define SYSCFG_SCC		(6 << 20)
+ #define SYSCFG_STAT		(14 << 20)
  
+@@ -162,7 +162,7 @@ void ve_spc_cpu_wakeup_irq(u32 cluster, u32 cpu, bool set)
+ 	if (cluster >= MAX_CLUSTERS)
+ 		return;
+ 
+-	mask = 1 << cpu;
++	mask = BIT(cpu);
+ 
+ 	if (!cluster_is_a15(cluster))
+ 		mask <<= 4;
 -- 
 2.11.0
