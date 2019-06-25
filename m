@@ -1,7 +1,7 @@
 From: Phong Tran <tranmanphong@gmail.com>
-Subject: [PATCH V3 01/15] arm: perf: cleanup cppcheck shifting error
-Date: Tue, 25 Jun 2019 11:03:42 +0700
-Message-ID: <20190625040356.27473-2-tranmanphong@gmail.com>
+Subject: [PATCH V3 02/15] ARM: davinci: cleanup cppcheck shifting errors
+Date: Tue, 25 Jun 2019 11:03:43 +0700
+Message-ID: <20190625040356.27473-3-tranmanphong@gmail.com>
 References: <20190624135105.15579-1-tranmanphong@gmail.com>
  <20190625040356.27473-1-tranmanphong@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -17,25 +17,21 @@ change to use BIT() marco for improvement.
 
 Signed-off-by: Phong Tran <tranmanphong@gmail.com>
 ---
- arch/arm/kernel/perf_event_v7.c | 6 +++---
+ arch/arm/mach-davinci/ddr2.h | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/kernel/perf_event_v7.c b/arch/arm/kernel/perf_event_v7.c
-index a4fb0f8b8f84..2924d7910b10 100644
---- a/arch/arm/kernel/perf_event_v7.c
-+++ b/arch/arm/kernel/perf_event_v7.c
-@@ -697,9 +697,9 @@ static struct attribute_group armv7_pmuv2_events_attr_group = {
- /*
-  * Event filters for PMUv2
-  */
--#define	ARMV7_EXCLUDE_PL1	(1 << 31)
--#define	ARMV7_EXCLUDE_USER	(1 << 30)
--#define	ARMV7_INCLUDE_HYP	(1 << 27)
-+#define	ARMV7_EXCLUDE_PL1	BIT(31)
-+#define	ARMV7_EXCLUDE_USER	BIT(30)
-+#define	ARMV7_INCLUDE_HYP	BIT(27)
- 
- /*
-  * Secure debug enable reg
+diff --git a/arch/arm/mach-davinci/ddr2.h b/arch/arm/mach-davinci/ddr2.h
+index 4f7d7824b0c9..f2f56d16d7d5 100644
+--- a/arch/arm/mach-davinci/ddr2.h
++++ b/arch/arm/mach-davinci/ddr2.h
+@@ -1,5 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #define DDR2_SDRCR_OFFSET	0xc
+-#define DDR2_SRPD_BIT		(1 << 23)
+-#define DDR2_MCLKSTOPEN_BIT	(1 << 30)
+-#define DDR2_LPMODEN_BIT	(1 << 31)
++#define DDR2_SRPD_BIT		BIT(23)
++#define DDR2_MCLKSTOPEN_BIT	BIT(30)
++#define DDR2_LPMODEN_BIT	BIT(31)
 -- 
 2.11.0
