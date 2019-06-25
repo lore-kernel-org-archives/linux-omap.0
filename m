@@ -1,37 +1,44 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: nl80211 wlcore regression in next
-Date: Tue, 25 Jun 2019 01:00:19 -0700
-Message-ID: <20190625080019.GH5447@atomide.com>
+Date: Tue, 25 Jun 2019 10:02:59 +0200
+Message-ID: <7f74087fef1e554e0aeb82a6cec4113727487928.camel@sipsolutions.net>
 References: <20190625073837.GG5447@atomide.com>
- <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
+         <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
+         <20190625080019.GH5447@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2570f4087d6e3356df34635a0380ec8ce06c9159.camel-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190625080019.GH5447@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalreizer@gmail.com>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org> [190625 07:47]:
-> On Tue, 2019-06-25 at 00:38 -0700, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > Looks like at least drivers/net/wireless/ti wlcore driver has stopped
-> > working in Linux next with commit 901bb9891855 ("nl80211: require and
-> > validate vendor command policy"). Reverting the commit above makes it
-> > work again.
-> > 
-> > It fails with the warning below, any ideas what goes wrong?
+On Tue, 2019-06-25 at 01:00 -0700, Tony Lindgren wrote:
+> Hi,
 > 
-> Oops. For some reason, I neglected to check the vendor command usage
-> beyond hwsim.
+> * Johannes Berg <johannes@sipsolutions.net> [190625 07:47]:
+> > On Tue, 2019-06-25 at 00:38 -0700, Tony Lindgren wrote:
+> > > Hi,
+> > > 
+> > > Looks like at least drivers/net/wireless/ti wlcore driver has stopped
+> > > working in Linux next with commit 901bb9891855 ("nl80211: require and
+> > > validate vendor command policy"). Reverting the commit above makes it
+> > > work again.
+> > > 
+> > > It fails with the warning below, any ideas what goes wrong?
+> > 
+> > Oops. For some reason, I neglected to check the vendor command usage
+> > beyond hwsim.
+> > 
+> > The patch below should work?
 > 
-> The patch below should work?
+> Yeah thanks that fixes the issue for me:
+> 
+> Tested-by: Tony Lindgren <tony@atomide.com>
 
-Yeah thanks that fixes the issue for me:
+Thanks, I'll drop that into my tree and hopefully will remember to send
+it on soon.
 
-Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+johannes
