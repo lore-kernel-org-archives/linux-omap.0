@@ -1,86 +1,54 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH v3 2/5] drm/panel: simple: Add Ortustech COM37H3M panel
- support
-Date: Tue, 25 Jun 2019 22:40:00 +0200
-Message-ID: <20190625204000.GC18595@ravnborg.org>
+Subject: Re: [PATCH v3 4/5] dt-bindings: drm/panel: simple: add ortustech,
+ com37h3m99dtc panel
+Date: Tue, 25 Jun 2019 22:40:36 +0200
+Message-ID: <20190625204036.GD18595@ravnborg.org>
 References: <cover.1559905870.git.hns@goldelico.com>
- <43b47034b618cff26cea0484591c6deafb7f0685.1559905870.git.hns@goldelico.com>
+ <3e0720fbddfd7b35ad8551440544411485d8ad9f.1559905870.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <43b47034b618cff26cea0484591c6deafb7f0685.1559905870.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <3e0720fbddfd7b35ad8551440544411485d8ad9f.1559905870.git.hns@goldelico.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, tomi.valkeinen@ti.com, imirkin@alum.mit.edu, marek.belisko@gmail.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, letux-kernel@openphoenux.org
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, David Airlie <airlied@linux.ie>, marek.belisko@gmail.com, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, tomi.valkeinen@ti.com, Thierry Reding <thierry.reding@gmail.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 07, 2019 at 01:11:08PM +0200, H. Nikolaus Schaller wrote:
-> The change adds support for the Ortustech COM37H3M05DTC/99DTC 3.7" TFT LCD panel.
-> 
-> Tested on Letux3704.
-> 
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-> ---
->  drivers/gpu/drm/panel/panel-simple.c | 33 ++++++++++++++++++++++++++++
->  1 file changed, 33 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-> index 5b27829c5a78..1fb74908a269 100644
-> --- a/drivers/gpu/drm/panel/panel-simple.c
-> +++ b/drivers/gpu/drm/panel/panel-simple.c
-> @@ -2007,6 +2007,33 @@ static const struct panel_desc ontat_yx700wv03 = {
->  	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
->  };
->  
-> +static const struct drm_display_mode ortustech_com37h3m_mode  = {
-> +	.clock = 22153,
-> +	.hdisplay = 480,
-> +	.hsync_start = 480 + 8,
-> +	.hsync_end = 480 + 8 + 10,
-> +	.htotal = 480 + 8 + 10 + 10,
-> +	.vdisplay = 640,
-> +	.vsync_start = 640 + 4,
-> +	.vsync_end = 640 + 4 + 3,
-> +	.vtotal = 640 + 4 + 3 + 4,
-> +	.vrefresh = 60,
-> +	.flags = DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC,
-> +};
-> +
-> +static const struct panel_desc ortustech_com37h3m = {
-> +	.modes = &ortustech_com37h3m_mode,
-> +	.num_modes = 1,
-> +	.bpc = 8,
-> +	.size = {
-> +		.width = 56,	/* 56.16mm */
-> +		.height = 75,	/* 74.88mm */
-> +	},
-> +	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
-> +	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_POSEDGE |
-> +		     DRM_BUS_FLAG_SYNC_DRIVE_POSEDGE,
-> +};
-> +
->  static const struct drm_display_mode ortustech_com43h4m85ulc_mode  = {
->  	.clock = 25000,
->  	.hdisplay = 480,
-> @@ -2786,6 +2813,12 @@ static const struct of_device_id platform_of_match[] = {
->  	}, {
->  		.compatible = "ontat,yx700wv03",
->  		.data = &ontat_yx700wv03,
-> +	}, {
-> +		.compatible = "ortustech,com37h3m05dtc",
-> +		.data = &ortustech_com37h3m,
-> +	}, {
-> +		.compatible = "ortustech,com37h3m99dtc",
-> +		.data = &ortustech_com37h3m,
->  	}, {
->  		.compatible = "ortustech,com43h4m85ulc",
->  		.data = &ortustech_com43h4m85ulc,
-> -- 
-> 2.19.1
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDE6MTE6MTBQTSArMDIwMCwgSC4gTmlrb2xhdXMgU2No
+YWxsZXIgd3JvdGU6Cj4gU2lnbmVkLW9mZi1ieTogSC4gTmlrb2xhdXMgU2NoYWxsZXIgPGhuc0Bn
+b2xkZWxpY28uY29tPgpSZXZpZXdlZC1ieTogU2FtIFJhdm5ib3JnIDxzYW1AcmF2bmJvcmcub3Jn
+Pgo+IC0tLQo+ICAuLi4vZGlzcGxheS9wYW5lbC9vcnR1c3RlY2gsY29tMzdoM205OWR0Yy50eHQg
+ICAgICAgIHwgMTIgKysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25z
+KCspCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGlu
+Z3MvZGlzcGxheS9wYW5lbC9vcnR1c3RlY2gsY29tMzdoM205OWR0Yy50eHQKPiAKPiBkaWZmIC0t
+Z2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvcGFuZWwvb3J0
+dXN0ZWNoLGNvbTM3aDNtOTlkdGMudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRp
+bmdzL2Rpc3BsYXkvcGFuZWwvb3J0dXN0ZWNoLGNvbTM3aDNtOTlkdGMudHh0Cj4gbmV3IGZpbGUg
+bW9kZSAxMDA2NDQKPiBpbmRleCAwMDAwMDAwMDAwMDAuLjA2YTczYzNmNDZiNQo+IC0tLSAvZGV2
+L251bGwKPiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9w
+YW5lbC9vcnR1c3RlY2gsY29tMzdoM205OWR0Yy50eHQKPiBAQCAtMCwwICsxLDEyIEBACj4gK09y
+dHVzVGVjaCBDT00zN0gzTTk5RFRDIEJsYW52aWV3IDMuNyIgVkdBIHBvcnRyYWl0IFRGVC1MQ0Qg
+cGFuZWwKPiArCj4gK1JlcXVpcmVkIHByb3BlcnRpZXM6Cj4gKy0gY29tcGF0aWJsZTogc2hvdWxk
+IGJlICJvcnR1c3RlY2gsY29tMzdoM205OWR0YyIKPiArCj4gK09wdGlvbmFsIHByb3BlcnRpZXM6
+Cj4gKy0gZW5hYmxlLWdwaW9zOiBHUElPIHBpbiB0byBlbmFibGUgb3IgZGlzYWJsZSB0aGUgcGFu
+ZWwKPiArLSBiYWNrbGlnaHQ6IHBoYW5kbGUgb2YgdGhlIGJhY2tsaWdodCBkZXZpY2UgYXR0YWNo
+ZWQgdG8gdGhlIHBhbmVsCj4gKy0gcG93ZXItc3VwcGx5OiBwaGFuZGxlIG9mIHRoZSByZWd1bGF0
+b3IgdGhhdCBwcm92aWRlcyB0aGUgc3VwcGx5IHZvbHRhZ2UKPiArCj4gK1RoaXMgYmluZGluZyBp
+cyBjb21wYXRpYmxlIHdpdGggdGhlIHNpbXBsZS1wYW5lbCBiaW5kaW5nLCB3aGljaCBpcyBzcGVj
+aWZpZWQKPiAraW4gc2ltcGxlLXBhbmVsLnR4dCBpbiB0aGlzIGRpcmVjdG9yeS4KPiAtLSAKPiAy
+LjE5LjEKPiAKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+Xwo+IGRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKPiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnCj4gaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmkt
+ZGV2ZWwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
