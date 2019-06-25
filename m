@@ -1,135 +1,33 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v4 net-next 1/4] net: core: page_pool: add user cnt preventing pool deletion
-Date: Tue, 25 Jun 2019 20:59:45 +0300
-Message-ID: <20190625175948.24771-2-ivan.khoronzhuk@linaro.org>
-References: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, grygorii.strashko@ti.com, hawk@kernel.org, brouer@redhat.com, saeedm@mellanox.com, leon@kernel.org
-Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH V3 04/15] ARM: exynos: cleanup cppcheck shifting error
+Date: Tue, 25 Jun 2019 20:49:51 +0200
+Message-ID: <20190625184951.GA10025@kozik-lap>
+References: <20190624135105.15579-1-tranmanphong@gmail.com>
+ <20190625040356.27473-1-tranmanphong@gmail.com>
+ <20190625040356.27473-5-tranmanphong@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190625040356.27473-5-tranmanphong@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Phong Tran <tranmanphong@gmail.com>
+Cc: acme@kernel.org, alexander.shishkin@linux.intel.com, alexander.sverdlin@gmail.com, allison@lohutok.net, andrew@lunn.ch, ast@kernel.org, bgolaszewski@baylibre.com, bpf@vger.kernel.org, daniel@iogearbox.net, daniel@zonque.org, dmg@turingmachine.org, festevam@gmail.com, gerg@uclinux.org, gregkh@linuxfoundation.org, gregory.clement@bootlin.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, illusionist.neo@gmail.com, info@metux.net, jason@lakedaemon.net, jolsa@redhat.com, kafai@fb.com, kernel@pengutronix.de, kgene@kernel.org, kstewart@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-imx@nxp.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux@armlinux.org.uk, liviu.dudau@arm.com, lkundrak@v3.sk, lorenzo.pierali
 List-Id: linux-omap@vger.kernel.org
 
-Add user counter allowing to delete pool only when no users.
-It doesn't prevent pool from flush, only prevents freeing the
-pool instance. Helps when no need to delete the pool and now
-it's user responsibility to free it by calling page_pool_free()
-while destroying procedure. It also makes to use page_pool_free()
-explicitly, not fully hidden in xdp unreg, which looks more
-correct after page pool "create" routine.
+On Tue, Jun 25, 2019 at 11:03:45AM +0700, Phong Tran wrote:
+> There is error from cppcheck tool
+> "Shifting signed 32-bit value by 31 bits is undefined behaviour errors"
+> change to use BIT() marco for improvement.
+> 
+> Signed-off-by: Phong Tran <tranmanphong@gmail.com>
+> ---
+>  arch/arm/mach-exynos/suspend.c | 2 +-
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 8 +++++---
- include/net/page_pool.h                           | 7 +++++++
- net/core/page_pool.c                              | 7 +++++++
- net/core/xdp.c                                    | 3 +++
- 4 files changed, 22 insertions(+), 3 deletions(-)
+Thanks, applied with slightly different commit message. As Peter
+pointed, there is no error because of GCC.  Usually we expect a reply to
+comments on LKML...  and also you could take his hints and use them to
+improve the commit msg to properly describe what is the problem.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 5e40db8f92e6..cb028de64a1d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -545,10 +545,8 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
- 	}
- 	err = xdp_rxq_info_reg_mem_model(&rq->xdp_rxq,
- 					 MEM_TYPE_PAGE_POOL, rq->page_pool);
--	if (err) {
--		page_pool_free(rq->page_pool);
-+	if (err)
- 		goto err_free;
--	}
- 
- 	for (i = 0; i < wq_sz; i++) {
- 		if (rq->wq_type == MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ) {
-@@ -613,6 +611,8 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
- 	if (rq->xdp_prog)
- 		bpf_prog_put(rq->xdp_prog);
- 	xdp_rxq_info_unreg(&rq->xdp_rxq);
-+	if (rq->page_pool)
-+		page_pool_free(rq->page_pool);
- 	mlx5_wq_destroy(&rq->wq_ctrl);
- 
- 	return err;
-@@ -643,6 +643,8 @@ static void mlx5e_free_rq(struct mlx5e_rq *rq)
- 	}
- 
- 	xdp_rxq_info_unreg(&rq->xdp_rxq);
-+	if (rq->page_pool)
-+		page_pool_free(rq->page_pool);
- 	mlx5_wq_destroy(&rq->wq_ctrl);
- }
- 
-diff --git a/include/net/page_pool.h b/include/net/page_pool.h
-index f07c518ef8a5..1ec838e9927e 100644
---- a/include/net/page_pool.h
-+++ b/include/net/page_pool.h
-@@ -101,6 +101,7 @@ struct page_pool {
- 	struct ptr_ring ring;
- 
- 	atomic_t pages_state_release_cnt;
-+	atomic_t user_cnt;
- };
- 
- struct page *page_pool_alloc_pages(struct page_pool *pool, gfp_t gfp);
-@@ -183,6 +184,12 @@ static inline dma_addr_t page_pool_get_dma_addr(struct page *page)
- 	return page->dma_addr;
- }
- 
-+/* used to prevent pool from deallocation */
-+static inline void page_pool_get(struct page_pool *pool)
-+{
-+	atomic_inc(&pool->user_cnt);
-+}
-+
- static inline bool is_page_pool_compiled_in(void)
- {
- #ifdef CONFIG_PAGE_POOL
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index b366f59885c1..169b0e3c870e 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -48,6 +48,7 @@ static int page_pool_init(struct page_pool *pool,
- 		return -ENOMEM;
- 
- 	atomic_set(&pool->pages_state_release_cnt, 0);
-+	atomic_set(&pool->user_cnt, 0);
- 
- 	if (pool->p.flags & PP_FLAG_DMA_MAP)
- 		get_device(pool->p.dev);
-@@ -70,6 +71,8 @@ struct page_pool *page_pool_create(const struct page_pool_params *params)
- 		kfree(pool);
- 		return ERR_PTR(err);
- 	}
-+
-+	page_pool_get(pool);
- 	return pool;
- }
- EXPORT_SYMBOL(page_pool_create);
-@@ -356,6 +359,10 @@ static void __warn_in_flight(struct page_pool *pool)
- 
- void __page_pool_free(struct page_pool *pool)
- {
-+	/* free only if no users */
-+	if (!atomic_dec_and_test(&pool->user_cnt))
-+		return;
-+
- 	WARN(pool->alloc.count, "API usage violation");
- 	WARN(!ptr_ring_empty(&pool->ring), "ptr_ring is not empty");
- 
-diff --git a/net/core/xdp.c b/net/core/xdp.c
-index 829377cc83db..04bdcd784d2e 100644
---- a/net/core/xdp.c
-+++ b/net/core/xdp.c
-@@ -372,6 +372,9 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
- 
- 	mutex_unlock(&mem_id_lock);
- 
-+	if (type == MEM_TYPE_PAGE_POOL)
-+		page_pool_get(xdp_alloc->page_pool);
-+
- 	trace_mem_connect(xdp_alloc, xdp_rxq);
- 	return 0;
- err:
--- 
-2.17.1
+Best regards,
+Krzysztof
