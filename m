@@ -1,45 +1,41 @@
-From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: nl80211 wlcore regression in next
-Date: Tue, 25 Jun 2019 12:18:39 +0300
-Message-ID: <87r27irpjk.fsf@kamboji.qca.qualcomm.com>
-References: <20190625073837.GG5447@atomide.com>
-        <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
-        <20190625080019.GH5447@atomide.com>
+From: keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH V2] net: ethernet: ti: cpsw: Fix suspend/resume break
+Date: Tue, 25 Jun 2019 15:34:41 +0530
+Message-ID: <e8e07695-d3dc-6a67-aede-a84d6cd3dbcc@ti.com>
+References: <20190624051619.20146-1-j-keerthy@ti.com>
+ <20190624.072333.2300932810459542260.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20190625080019.GH5447-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
-        "Tue, 25 Jun 2019 01:00:19 -0700")
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190624.072333.2300932810459542260.davem@davemloft.net>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: ivan.khoronzhuk@linaro.org, andrew@lunn.ch, ilias.apalodimas@linaro.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
 
-> Hi,
->
-> * Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org> [190625 07:47]:
->> On Tue, 2019-06-25 at 00:38 -0700, Tony Lindgren wrote:
->> > Hi,
->> > 
->> > Looks like at least drivers/net/wireless/ti wlcore driver has stopped
->> > working in Linux next with commit 901bb9891855 ("nl80211: require and
->> > validate vendor command policy"). Reverting the commit above makes it
->> > work again.
->> > 
->> > It fails with the warning below, any ideas what goes wrong?
->> 
->> Oops. For some reason, I neglected to check the vendor command usage
->> beyond hwsim.
->> 
->> The patch below should work?
->
-> Yeah thanks that fixes the issue for me:
->
-> Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Acked-by: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+On 6/24/2019 7:53 PM, David Miller wrote:
+> From: Keerthy <j-keerthy@ti.com>
+> Date: Mon, 24 Jun 2019 10:46:19 +0530
+> 
+>> Commit bfe59032bd6127ee190edb30be9381a01765b958 ("net: ethernet:
+>> ti: cpsw: use cpsw as drv data")changes
+>> the driver data to struct cpsw_common *cpsw. This is done
+>> only in probe/remove but the suspend/resume functions are
+>> still left with struct net_device *ndev. Hence fix both
+>> suspend & resume also to fetch the updated driver data.
+>>
+>> Fixes: bfe59032bd6127ee1 ("net: ethernet: ti: cpsw: use cpsw as drv data")
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> 
+> Applied but please make it clear that changes are targetting net-next in the
+> future by saying "[PATCH net-next v2] ...." in your Subject line.
 
--- 
-Kalle Valo
+Sure will do that. Thanks.
+
+> 
+> Thank you.
+> 
