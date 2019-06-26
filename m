@@ -1,125 +1,132 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V3 2/3] thermal/drivers/cpu_cooling: Unregister with the policy
-Date: Wed, 26 Jun 2019 13:28:19 +0200
-Message-ID: <CAJZ5v0h7=BqnQqvULnQr3MuQsS2qwSn7RCZbMo-V+cUi+kbvSg@mail.gmail.com>
-References: <20190625113244.18146-1-daniel.lezcano@linaro.org>
- <20190625113244.18146-2-daniel.lezcano@linaro.org> <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
- <da1d2603-e30a-d877-54c3-1fad218f9d57@linaro.org> <20190626063716.cechnzsb75q5lclr@vireshk-i7>
- <CAJZ5v0jFXmJ3ikEPQUp-cLv3+ZSnp1kP8CxdkZVofV1BS3+UwQ@mail.gmail.com> <8a9b7bd0-9b21-1ce1-6176-cffff4b8d739@linaro.org>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH v4 net-next 1/4] net: core: page_pool: add user cnt
+ preventing pool deletion
+Date: Wed, 26 Jun 2019 13:51:28 +0200
+Message-ID: <20190626135128.5724f40e@carbon>
+References: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org>
+        <20190625175948.24771-2-ivan.khoronzhuk@linaro.org>
+        <20190626124216.494eee86@carbon>
+        <20190626104948.GF6485@khorivan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8a9b7bd0-9b21-1ce1-6176-cffff4b8d739@linaro.org>
+In-Reply-To: <20190626104948.GF6485@khorivan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Eduardo Valentin <edubezval@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@>
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: davem@davemloft.net, grygorii.strashko@ti.com, saeedm@mellanox.com, leon@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, brouer@redhat.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 26, 2019 at 12:19 PM Daniel Lezcano
-<daniel.lezcano@linaro.org> wrote:
->
-> On 26/06/2019 11:06, Rafael J. Wysocki wrote:
-> > On Wed, Jun 26, 2019 at 8:37 AM Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> >>
-> >> On 26-06-19, 08:02, Daniel Lezcano wrote:
-> >>> On 26/06/2019 04:58, Viresh Kumar wrote:
-> >>>> On 25-06-19, 13:32, Daniel Lezcano wrote:
-> >>>>> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> >>>>> index aee024e42618..f07454249fbc 100644
-> >>>>> --- a/drivers/cpufreq/cpufreq.c
-> >>>>> +++ b/drivers/cpufreq/cpufreq.c
-> >>>>> @@ -1379,8 +1379,8 @@ static int cpufreq_online(unsigned int cpu)
-> >>>>>            cpufreq_driver->ready(policy);
-> >>>>>
-> >>>>>    if (cpufreq_thermal_control_enabled(cpufreq_driver))
-> >>>>> -          policy->cdev = of_cpufreq_cooling_register(policy);
-> >>>>> -
-> >>>>> +          of_cpufreq_cooling_register(policy);
-> >>>>> +
-> >>>>
-> >>>> We don't need any error checking here anymore ?
-> >>>
-> >>> There was no error checking initially. This comment and the others below
-> >>> are for an additional patch IMO, not a change in this one.
-> >>
-> >> right, but ...
-> >>
-> >>>>> -void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
-> >>>>> +void cpufreq_cooling_unregister(struct cpufreq_policy *policy)
-> >>>>>  {
-> >>>>>    struct cpufreq_cooling_device *cpufreq_cdev;
-> >>>>>    bool last;
-> >>>>>
-> >>>>> -  if (!cdev)
-> >>>>> -          return;
-> >>
-> >> we used to return without any errors from here. Now we will have
-> >> problems if regsitering fails for some reason.
+On Wed, 26 Jun 2019 13:49:49 +0300
+Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
+
+> On Wed, Jun 26, 2019 at 12:42:16PM +0200, Jesper Dangaard Brouer wrote:
+> >On Tue, 25 Jun 2019 20:59:45 +0300
+> >Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
+> >  
+> >> Add user counter allowing to delete pool only when no users.
+> >> It doesn't prevent pool from flush, only prevents freeing the
+> >> pool instance. Helps when no need to delete the pool and now
+> >> it's user responsibility to free it by calling page_pool_free()
+> >> while destroying procedure. It also makes to use page_pool_free()
+> >> explicitly, not fully hidden in xdp unreg, which looks more
+> >> correct after page pool "create" routine.  
 > >
-> > Specifically, the last cpufreq_cdev in the list will be unregistered
-> > AFAICS, and without removing it from the list for that matter, which
-> > isn't what the caller wants.
->
-> Indeed,
->
-> What about the resulting code above:
->
-> void __cpufreq_cooling_unregister(struct cpufreq_cooling_device
-> *cpufreq_cdev, int last)
-> {
->         /* Unregister the notifier for the last cpufreq cooling device */
->         if (last)
->                 cpufreq_unregister_notifier(&thermal_cpufreq_notifier_block,
->                                             CPUFREQ_POLICY_NOTIFIER);
->
+> >No, this is wrong.  
+> below.
+> 
+> >  
+> >> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> >> ---
+> >>  drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 8 +++++---
+> >>  include/net/page_pool.h                           | 7 +++++++
+> >>  net/core/page_pool.c                              | 7 +++++++
+> >>  net/core/xdp.c                                    | 3 +++
+> >>  4 files changed, 22 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> >> index 5e40db8f92e6..cb028de64a1d 100644
+> >> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> >> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> >> @@ -545,10 +545,8 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
+> >>  	}
+> >>  	err = xdp_rxq_info_reg_mem_model(&rq->xdp_rxq,
+> >>  					 MEM_TYPE_PAGE_POOL, rq->page_pool);
+> >> -	if (err) {
+> >> -		page_pool_free(rq->page_pool);
+> >> +	if (err)
+> >>  		goto err_free;
+> >> -	}
+> >>
+> >>  	for (i = 0; i < wq_sz; i++) {
+> >>  		if (rq->wq_type == MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ) {
+> >> @@ -613,6 +611,8 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
+> >>  	if (rq->xdp_prog)
+> >>  		bpf_prog_put(rq->xdp_prog);
+> >>  	xdp_rxq_info_unreg(&rq->xdp_rxq);
+> >> +	if (rq->page_pool)
+> >> +		page_pool_free(rq->page_pool);
+> >>  	mlx5_wq_destroy(&rq->wq_ctrl);
+> >>
+> >>  	return err;
+> >> @@ -643,6 +643,8 @@ static void mlx5e_free_rq(struct mlx5e_rq *rq)
+> >>  	}
+> >>
+> >>  	xdp_rxq_info_unreg(&rq->xdp_rxq);
+> >> +	if (rq->page_pool)
+> >> +		page_pool_free(rq->page_pool);  
+> >
+> >No, this is wrong.  The hole point with the merged page_pool fixes
+> >patchset was that page_pool_free() needs to be delayed until no-more
+> >in-flight packets exist.  
+> 
+> Probably it's not so obvious, but it's still delayed and deleted only
+> after no-more in-flight packets exist. Here question is only who is able
+> to do this first based on refcnt.
 
-Doesn't the notifier need to be unregistered under cooling_list_lock ?
+Hmm... then I find this API is rather misleading, even the function
+name page_pool_free is misleading ("free"). (Now, I do see, below, that
+page_pool_create() take an extra reference).
 
->         thermal_cooling_device_unregister(cpufreq_cdev->cdev);
->         ida_simple_remove(&cpufreq_ida, cpufreq_cdev->id);
->         kfree(cpufreq_cdev->idle_time);
->         kfree(cpufreq_cdev);
-> }
->
-> /**
->
->  * cpufreq_cooling_unregister - function to remove cpufreq cooling
-> device.
->  * @cdev: thermal cooling device pointer.
->
->  *
->
->  * This interface function unregisters the "thermal-cpufreq-%x" cooling
-> device.
->  */
-> void cpufreq_cooling_unregister(struct cpufreq_policy *policy)
-> {
->         struct cpufreq_cooling_device *cpufreq_cdev;
->         bool last;
->
->         mutex_lock(&cooling_list_lock);
->         list_for_each_entry(cpufreq_cdev, &cpufreq_cdev_list, node) {
->                 if (cpufreq_cdev->policy == policy) {
->                         list_del(&cpufreq_cdev->node);
->                         last = list_empty(&cpufreq_cdev_list);
->                         break;
->                 }
->         }
->         mutex_unlock(&cooling_list_lock);
->
->         if (cpufreq_cdev->policy == policy)
->                 __cpufreq_cooling_unregister(cpufreq_cdev, last);
-> }
-> EXPORT_SYMBOL_GPL(cpufreq_cooling_unregister);
->
->
->
->
-> --
->  <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
->
-> Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-> <http://twitter.com/#!/linaroorg> Twitter |
-> <http://www.linaro.org/linaro-blog/> Blog
->
+But it is still wrong / problematic.  As you allow
+__page_pool_request_shutdown() to be called with elevated refcnt.  Your
+use-case is to have more than 1 xdp_rxq_info struct using the same
+page_pool.  Then you have to call xdp_rxq_info_unreg_mem_model() for
+each, which will call __page_pool_request_shutdown().
+
+For this to be safe, your driver have to stop RX for all the
+xdp_rxq_info structs that share the page_pool.  The page_pool already
+have this requirement, but it comes as natural step when shutting down
+an RXQ.  With your change, you have to take care of stopping the RXQs
+first, and then call xdp_rxq_info_unreg_mem_model() for each
+xdp_rxq_info afterwards.  I assume you do this, but it is just a driver
+bug waiting to happen.
+
+
+> >> diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+> >> index b366f59885c1..169b0e3c870e 100644
+> >> --- a/net/core/page_pool.c
+> >> +++ b/net/core/page_pool.c
+[...]
+> >> @@ -70,6 +71,8 @@ struct page_pool *page_pool_create(const struct page_pool_params *params)
+> >>  		kfree(pool);
+> >>  		return ERR_PTR(err);
+> >>  	}
+> >> +
+> >> +	page_pool_get(pool);
+> >>  	return pool;
+> >>  }
+> >>  EXPORT_SYMBOL(page_pool_create);
+
+The thing (perhaps) like about your API change, is that you also allow
+the driver to explicitly keep the page_pool object across/after a
+xdp_rxq_info_unreg_mem_model().  And this way possibly reuse it for
+another RXQ.  The problem is of-cause that on driver shutdown, this
+will force drivers to implement the same shutdown logic with
+schedule_delayed_work as the core xdp.c code already does.
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Principal Kernel Engineer at Red Hat
+  LinkedIn: http://www.linkedin.com/in/brouer
