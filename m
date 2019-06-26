@@ -1,34 +1,102 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH v4 net-next 3/4] net: ethernet: ti: davinci_cpdma: return
- handler status
-Date: Tue, 25 Jun 2019 22:17:03 -0400
-Message-ID: <CA+FuTScQ2WdEqQpsCdM_KZK9e+Zq7v5B+x=HLthxLAyOhYu-zQ@mail.gmail.com>
-References: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org> <20190625175948.24771-4-ivan.khoronzhuk@linaro.org>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH V3 2/3] thermal/drivers/cpu_cooling: Unregister with the
+ policy
+Date: Wed, 26 Jun 2019 08:28:31 +0530
+Message-ID: <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
+References: <20190625113244.18146-1-daniel.lezcano@linaro.org>
+ <20190625113244.18146-2-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190625175948.24771-4-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: David Miller <davem@davemloft.net>, grygorii.strashko@ti.com, hawk@kernel.org, brouer@redhat.com, saeedm@mellanox.com, leon@kernel.org, Alexei Starovoitov <ast@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, Network Development <netdev@vger.kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, jakub.kicinski@netronome.com, John Fastabend <john.fastabend@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190625113244.18146-2-daniel.lezcano@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: rjw@rjwysocki.net, edubezval@gmail.com, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 25, 2019 at 2:00 PM Ivan Khoronzhuk
-<ivan.khoronzhuk@linaro.org> wrote:
->
-> This change is needed to return flush status of rx handler for
-> flushing redirected xdp frames after processing channel packets.
-> Do it as separate patch for simplicity.
->
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+On 25-06-19, 13:32, Daniel Lezcano wrote:
+> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> index aee024e42618..f07454249fbc 100644
+> --- a/drivers/cpufreq/cpufreq.c
+> +++ b/drivers/cpufreq/cpufreq.c
+> @@ -1379,8 +1379,8 @@ static int cpufreq_online(unsigned int cpu)
+>  		cpufreq_driver->ready(policy);
+>  
+>  	if (cpufreq_thermal_control_enabled(cpufreq_driver))
+> -		policy->cdev = of_cpufreq_cooling_register(policy);
+> -
+> +		of_cpufreq_cooling_register(policy);
+> +	
 
-> @@ -602,7 +605,8 @@ static int cpsw_tx_mq_poll(struct napi_struct *napi_tx, int budget)
->                 else
->                         cur_budget = txv->budget;
->
-> -               num_tx += cpdma_chan_process(txv->ch, cur_budget);
-> +               cpdma_chan_process(txv->ch, &cur_budget);
-> +               num_tx += cur_budget;
+We don't need any error checking here anymore ?
 
-Less code change to add a new argument int *flush to communicate the
-new state and leave the existing argument and return values as is?
+>  	pr_debug("initialization complete\n");
+>  
+>  	return 0;
+> @@ -1468,10 +1468,8 @@ static int cpufreq_offline(unsigned int cpu)
+>  		goto unlock;
+>  	}
+>  
+> -	if (cpufreq_thermal_control_enabled(cpufreq_driver)) {
+> -		cpufreq_cooling_unregister(policy->cdev);
+> -		policy->cdev = NULL;
+> -	}
+> +	if (cpufreq_thermal_control_enabled(cpufreq_driver))
+> +		cpufreq_cooling_unregister(policy);
+
+And we unregister unconditionally, even if we failed ? What if this
+routine prints error messages for such an case ?
+
+>  
+>  	if (cpufreq_driver->stop_cpu)
+>  		cpufreq_driver->stop_cpu(policy);
+> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
+> index 83486775e593..007c7c6bf845 100644
+> --- a/drivers/thermal/cpu_cooling.c
+> +++ b/drivers/thermal/cpu_cooling.c
+> @@ -78,6 +78,7 @@ struct cpufreq_cooling_device {
+>  	struct cpufreq_policy *policy;
+>  	struct list_head node;
+>  	struct time_in_idle *idle_time;
+> +	struct thermal_cooling_device *cdev;
+>  };
+>  
+>  static DEFINE_IDA(cpufreq_ida);
+> @@ -606,6 +607,7 @@ __cpufreq_cooling_register(struct device_node *np,
+>  		goto remove_ida;
+>  
+>  	cpufreq_cdev->clipped_freq = get_state_freq(cpufreq_cdev, 0);
+> +	cpufreq_cdev->cdev = cdev;
+>  
+>  	mutex_lock(&cooling_list_lock);
+>  	/* Register the notifier for first cpufreq cooling device */
+> @@ -699,18 +701,18 @@ EXPORT_SYMBOL_GPL(of_cpufreq_cooling_register);
+>   *
+>   * This interface function unregisters the "thermal-cpufreq-%x" cooling device.
+>   */
+> -void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
+> +void cpufreq_cooling_unregister(struct cpufreq_policy *policy)
+>  {
+>  	struct cpufreq_cooling_device *cpufreq_cdev;
+>  	bool last;
+>  
+> -	if (!cdev)
+> -		return;
+> -
+> -	cpufreq_cdev = cdev->devdata;
+> -
+>  	mutex_lock(&cooling_list_lock);
+> -	list_del(&cpufreq_cdev->node);
+> +	list_for_each_entry(cpufreq_cdev, &cpufreq_cdev_list, node) {
+> +		if (cpufreq_cdev->policy == policy) {
+> +			list_del(&cpufreq_cdev->node);
+> +			break;
+> +		}
+> +	}
+
+What if we reach here without a match for the policy ? We shouldn't
+continue and error out, right ? Print an error message as well ?
+
+-- 
+viresh
