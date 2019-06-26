@@ -1,94 +1,96 @@
-From: Roger Quadros via iommu <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Subject: SATA broken with LPAE
-Date: Wed, 26 Jun 2019 11:43:59 +0300
-Message-ID: <16f065ef-f4ac-46b4-de2a-6b5420ae873a@ti.com>
-Reply-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+From: grygorii <grygorii.strashko@ti.com>
+Subject: Re: [RFC PATCH v4 net-next 06/11] net: ethernet: ti: introduce cpsw
+ switchdev based driver part 1 - dual-emac
+Date: Wed, 26 Jun 2019 17:47:20 +0300
+Message-ID: <d6f1f1fb-21c3-ca5f-2585-8d1c3a4f571d@ti.com>
+References: <20190621181314.20778-1-grygorii.strashko@ti.com>
+ <20190621181314.20778-7-grygorii.strashko@ti.com>
+ <20190626095839.GE6485@khorivan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190626095839.GE6485@khorivan>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: hch-jcswGhMUV9g@public.gmane.org, "hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, Vignesh Raghavendra <vigneshr-l0cyMroinI0@public.gmane.org>, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, jejb-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Christoph / Hans,
 
-SATA has been broken on TI platforms with LPAE, on systems with RAM addresses > 32-bits,
-(e.g. DRA7 rev.H+) since v4.18.
 
-The commit at which it breaks is
-21e07dba9fb1179148089d611fc9e6e70d1887c3 ("scsi: reduce use of block bounce buffers").
+On 26/06/2019 12:58, Ivan Khoronzhuk wrote:
+> Hi Grygorii
+> 
+> Too much code, but I've tried pass thru.
+> Probably expectation the devlink to be reviewed, but several
+> common replies that should be reflected in non RFC v.
+> 
+> On Fri, Jun 21, 2019 at 09:13:09PM +0300, Grygorii Strashko wrote:
+>> From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+>>
+>> Part 1:
+>> Introduce basic CPSW dual_mac driver (cpsw_new.c) which is operating in
+>> dual-emac mode by default, thus working as 2 individual network interfaces.
+>> Main differences from legacy CPSW driver are:
+>>
+>> - optimized promiscuous mode: The P0_UNI_FLOOD (both ports) is enabled in
+>> addition to ALLMULTI (current port) instead of ALE_BYPASS. So, Ports in
+>> promiscuous mode will keep possibility of mcast and vlan filtering, which
+>> is provides significant benefits when ports are joined to the same bridge,
+>> but without enabling "switch" mode, or to different bridges.
+>> - learning disabled on ports as it make not too much sense for
+>>   segregated ports - no forwarding in HW.
+>> - enabled basic support for devlink.
+>>
+>>     devlink dev show
+>>         platform/48484000.ethernet_switch
+>>
+>>     devlink dev param show
+>>      platform/48484000.ethernet_switch:
+>>     name ale_bypass type driver-specific
+>>      values:
+>>         cmode runtime value false
+>>
+>> - "ale_bypass" devlink driver parameter allows to enable
+>> ALE_CONTROL(4).BYPASS mode for debug purposes.
+>> - updated DT bindings.
+>>
+>> Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>
 
-The effect is that the SATA controller starts to see DMA addresses
-above 32-bit which it does not support.
+[...]
 
-Could you please shed some light on how it is supposed to work if
-we don't call blk_queue_bounce_limit() for devices that can do only 32-bit DMA
-on a system that has addressable RAM above 32-bit Physical?
+>> +
+>> +    /* setup host port priority mapping */
+>> +    writel_relaxed(CPDMA_TX_PRIORITY_MAP,
+>> +               &cpsw->host_port_regs->cpdma_tx_pri_map);
+>> +    writel_relaxed(0, &cpsw->host_port_regs->cpdma_rx_chan_map);
+> 
+> ----
+>> +
+>> +    /* disable priority elevation */
+>> +    writel_relaxed(0, &cpsw->regs->ptype);
+>> +
+>> +    /* enable statistics collection only on all ports */
+>> +    writel_relaxed(0x7, &cpsw->regs->stat_port_en);
+>> +
+>> +    /* Enable internal fifo flow control */
+>> +    writel(0x7, &cpsw->regs->flow_control);
+> ---
+> 
+> Would be nice to do the same in old driver.
+> I mean moving it from ndo_open
+> Also were thoughts about this.
 
-The below patch fixes it. Is this the right thing to do?
+I have no plans to perform any kind of optimization in old driver any more.
 
-diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
-index 3aab2e3d57f3..b925dc54cfa5 100644
---- a/drivers/ata/ahci_platform.c
-+++ b/drivers/ata/ahci_platform.c
-@@ -62,6 +62,9 @@ static int ahci_probe(struct platform_device *pdev)
- 	if (of_device_is_compatible(dev->of_node, "hisilicon,hisi-ahci"))
- 		hpriv->flags |= AHCI_HFLAG_NO_FBS | AHCI_HFLAG_NO_NCQ;
- 
-+	if (of_device_is_compatible(dev->of_node, "snps,dwc-ahci"))
-+		hpriv->flags |= AHCI_HFLAG_32BIT_ONLY;
-+
- 	port = acpi_device_get_match_data(dev);
- 	if (!port)
- 		port = &ahci_port_info;
-diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-index 65d0a10c76ad..9083c7b89dfc 100644
---- a/drivers/scsi/scsi_lib.c
-+++ b/drivers/scsi/scsi_lib.c
-@@ -1750,6 +1750,21 @@ static int scsi_map_queues(struct blk_mq_tag_set *set)
- 	return blk_mq_map_queues(&set->map[HCTX_TYPE_DEFAULT]);
- }
- 
-+static u64 scsi_calculate_bounce_limit(struct Scsi_Host *shost)
-+{
-+	struct device *dma_dev = shost->dma_dev;
-+	u64 bounce_limit = 0xffffffff;
-+
-+	if (shost->unchecked_isa_dma)
-+		return BLK_BOUNCE_ISA;
-+
-+	if (dma_dev && dma_dev->dma_mask)
-+		bounce_limit = (u64)dma_max_pfn(dma_dev) << PAGE_SHIFT;
-+
-+	return bounce_limit;
-+}
-+
- void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
- {
- 	struct device *dev = shost->dma_dev;
-@@ -1769,8 +1784,7 @@ void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
- 	}
- 
- 	blk_queue_max_hw_sectors(q, shost->max_sectors);
--	if (shost->unchecked_isa_dma)
--		blk_queue_bounce_limit(q, BLK_BOUNCE_ISA);
-+	blk_queue_bounce_limit(q, scsi_calculate_bounce_limit(shost));
- 	blk_queue_segment_boundary(q, shost->dma_boundary);
- 	dma_set_seg_boundary(dev, shost->dma_boundary);
+Agree with other comments.
 
-cheers,
--roger
+[...]
+
+Thank you.
+
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Best regards,
+grygorii
