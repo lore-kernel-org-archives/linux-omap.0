@@ -1,87 +1,105 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH V3 2/3] thermal/drivers/cpu_cooling: Unregister with the
- policy
-Date: Wed, 26 Jun 2019 08:02:04 +0200
-Message-ID: <da1d2603-e30a-d877-54c3-1fad218f9d57@linaro.org>
-References: <20190625113244.18146-1-daniel.lezcano@linaro.org>
- <20190625113244.18146-2-daniel.lezcano@linaro.org>
- <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+        <u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 01/30] include: linux: platform_device: more helpers for
+ declaring platform drivers
+Date: Wed, 26 Jun 2019 08:14:05 +0200
+Message-ID: <20190626061405.qsqq5na4oactuo6f@pengutronix.de>
+References: <1560796871-18560-1-git-send-email-info@metux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, Fabio Estevam <festevam@gmail.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, edubezval@gmail.com, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>, NXP Linux Team <linux-imx@nxp.com>, Pengutronix Kernel Team <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Zhang Rui <rui.zhang@intel.com>, Javi Merino <javi.merino@kernel.org>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1560796871-18560-1-git-send-email-info@metux.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc: linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, mcoquelin.stm32@gmail.com, thloh@altera.com, festevam@gmail.com, linus.walleij@linaro.org, khilman@kernel.org, patches@opensource.cirrus.com, bgolaszewski@baylibre.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-imx@nxp.com, kernel@pengutronix.de, ssantosh@kernel.org, linux-tegra@vger.kernel.org, andriy.shevchenko@linux.intel.com, shawnguo@kernel.org, s.hauer@pengutronix.de, alexandre.torgue@st.com
 List-Id: linux-omap@vger.kernel.org
 
-CkhpIFZpcmVzaCwKCgpPbiAyNi8wNi8yMDE5IDA0OjU4LCBWaXJlc2ggS3VtYXIgd3JvdGU6Cj4g
-T24gMjUtMDYtMTksIDEzOjMyLCBEYW5pZWwgTGV6Y2FubyB3cm90ZToKPj4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMgYi9kcml2ZXJzL2NwdWZyZXEvY3B1ZnJlcS5jCj4+
-IGluZGV4IGFlZTAyNGU0MjYxOC4uZjA3NDU0MjQ5ZmJjIDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJz
-L2NwdWZyZXEvY3B1ZnJlcS5jCj4+ICsrKyBiL2RyaXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMKPj4g
-QEAgLTEzNzksOCArMTM3OSw4IEBAIHN0YXRpYyBpbnQgY3B1ZnJlcV9vbmxpbmUodW5zaWduZWQg
-aW50IGNwdSkKPj4gIAkJY3B1ZnJlcV9kcml2ZXItPnJlYWR5KHBvbGljeSk7Cj4+ICAKPj4gIAlp
-ZiAoY3B1ZnJlcV90aGVybWFsX2NvbnRyb2xfZW5hYmxlZChjcHVmcmVxX2RyaXZlcikpCj4+IC0J
-CXBvbGljeS0+Y2RldiA9IG9mX2NwdWZyZXFfY29vbGluZ19yZWdpc3Rlcihwb2xpY3kpOwo+PiAt
-Cj4+ICsJCW9mX2NwdWZyZXFfY29vbGluZ19yZWdpc3Rlcihwb2xpY3kpOwo+PiArCQo+IAo+IFdl
-IGRvbid0IG5lZWQgYW55IGVycm9yIGNoZWNraW5nIGhlcmUgYW55bW9yZSA/CgpUaGVyZSB3YXMg
-bm8gZXJyb3IgY2hlY2tpbmcgaW5pdGlhbGx5LiBUaGlzIGNvbW1lbnQgYW5kIHRoZSBvdGhlcnMg
-YmVsb3cKYXJlIGZvciBhbiBhZGRpdGlvbmFsIHBhdGNoIElNTywgbm90IGEgY2hhbmdlIGluIHRo
-aXMgb25lLgoKPj4gIAlwcl9kZWJ1ZygiaW5pdGlhbGl6YXRpb24gY29tcGxldGVcbiIpOwo+PiAg
-Cj4+ICAJcmV0dXJuIDA7Cj4+IEBAIC0xNDY4LDEwICsxNDY4LDggQEAgc3RhdGljIGludCBjcHVm
-cmVxX29mZmxpbmUodW5zaWduZWQgaW50IGNwdSkKPj4gIAkJZ290byB1bmxvY2s7Cj4+ICAJfQo+
-PiAgCj4+IC0JaWYgKGNwdWZyZXFfdGhlcm1hbF9jb250cm9sX2VuYWJsZWQoY3B1ZnJlcV9kcml2
-ZXIpKSB7Cj4+IC0JCWNwdWZyZXFfY29vbGluZ191bnJlZ2lzdGVyKHBvbGljeS0+Y2Rldik7Cj4+
-IC0JCXBvbGljeS0+Y2RldiA9IE5VTEw7Cj4+IC0JfQo+PiArCWlmIChjcHVmcmVxX3RoZXJtYWxf
-Y29udHJvbF9lbmFibGVkKGNwdWZyZXFfZHJpdmVyKSkKPj4gKwkJY3B1ZnJlcV9jb29saW5nX3Vu
-cmVnaXN0ZXIocG9saWN5KTsKPiAKPiBBbmQgd2UgdW5yZWdpc3RlciB1bmNvbmRpdGlvbmFsbHks
-IGV2ZW4gaWYgd2UgZmFpbGVkID8gV2hhdCBpZiB0aGlzCj4gcm91dGluZSBwcmludHMgZXJyb3Ig
-bWVzc2FnZXMgZm9yIHN1Y2ggYW4gY2FzZSA/Cj4+ICAKPj4gIAlpZiAoY3B1ZnJlcV9kcml2ZXIt
-PnN0b3BfY3B1KQo+PiAgCQljcHVmcmVxX2RyaXZlci0+c3RvcF9jcHUocG9saWN5KTsKPj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvdGhlcm1hbC9jcHVfY29vbGluZy5jIGIvZHJpdmVycy90aGVybWFs
-L2NwdV9jb29saW5nLmMKPj4gaW5kZXggODM0ODY3NzVlNTkzLi4wMDdjN2M2YmY4NDUgMTAwNjQ0
-Cj4+IC0tLSBhL2RyaXZlcnMvdGhlcm1hbC9jcHVfY29vbGluZy5jCj4+ICsrKyBiL2RyaXZlcnMv
-dGhlcm1hbC9jcHVfY29vbGluZy5jCj4+IEBAIC03OCw2ICs3OCw3IEBAIHN0cnVjdCBjcHVmcmVx
-X2Nvb2xpbmdfZGV2aWNlIHsKPj4gIAlzdHJ1Y3QgY3B1ZnJlcV9wb2xpY3kgKnBvbGljeTsKPj4g
-IAlzdHJ1Y3QgbGlzdF9oZWFkIG5vZGU7Cj4+ICAJc3RydWN0IHRpbWVfaW5faWRsZSAqaWRsZV90
-aW1lOwo+PiArCXN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpjZGV2Owo+PiAgfTsKPj4g
-IAo+PiAgc3RhdGljIERFRklORV9JREEoY3B1ZnJlcV9pZGEpOwo+PiBAQCAtNjA2LDYgKzYwNyw3
-IEBAIF9fY3B1ZnJlcV9jb29saW5nX3JlZ2lzdGVyKHN0cnVjdCBkZXZpY2Vfbm9kZSAqbnAsCj4+
-ICAJCWdvdG8gcmVtb3ZlX2lkYTsKPj4gIAo+PiAgCWNwdWZyZXFfY2Rldi0+Y2xpcHBlZF9mcmVx
-ID0gZ2V0X3N0YXRlX2ZyZXEoY3B1ZnJlcV9jZGV2LCAwKTsKPj4gKwljcHVmcmVxX2NkZXYtPmNk
-ZXYgPSBjZGV2Owo+PiAgCj4+ICAJbXV0ZXhfbG9jaygmY29vbGluZ19saXN0X2xvY2spOwo+PiAg
-CS8qIFJlZ2lzdGVyIHRoZSBub3RpZmllciBmb3IgZmlyc3QgY3B1ZnJlcSBjb29saW5nIGRldmlj
-ZSAqLwo+PiBAQCAtNjk5LDE4ICs3MDEsMTggQEAgRVhQT1JUX1NZTUJPTF9HUEwob2ZfY3B1ZnJl
-cV9jb29saW5nX3JlZ2lzdGVyKTsKPj4gICAqCj4+ICAgKiBUaGlzIGludGVyZmFjZSBmdW5jdGlv
-biB1bnJlZ2lzdGVycyB0aGUgInRoZXJtYWwtY3B1ZnJlcS0leCIgY29vbGluZyBkZXZpY2UuCj4+
-ICAgKi8KPj4gLXZvaWQgY3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIoc3RydWN0IHRoZXJtYWxf
-Y29vbGluZ19kZXZpY2UgKmNkZXYpCj4+ICt2b2lkIGNwdWZyZXFfY29vbGluZ191bnJlZ2lzdGVy
-KHN0cnVjdCBjcHVmcmVxX3BvbGljeSAqcG9saWN5KQo+PiAgewo+PiAgCXN0cnVjdCBjcHVmcmVx
-X2Nvb2xpbmdfZGV2aWNlICpjcHVmcmVxX2NkZXY7Cj4+ICAJYm9vbCBsYXN0Owo+PiAgCj4+IC0J
-aWYgKCFjZGV2KQo+PiAtCQlyZXR1cm47Cj4+IC0KPj4gLQljcHVmcmVxX2NkZXYgPSBjZGV2LT5k
-ZXZkYXRhOwo+PiAtCj4+ICAJbXV0ZXhfbG9jaygmY29vbGluZ19saXN0X2xvY2spOwo+PiAtCWxp
-c3RfZGVsKCZjcHVmcmVxX2NkZXYtPm5vZGUpOwo+PiArCWxpc3RfZm9yX2VhY2hfZW50cnkoY3B1
-ZnJlcV9jZGV2LCAmY3B1ZnJlcV9jZGV2X2xpc3QsIG5vZGUpIHsKPj4gKwkJaWYgKGNwdWZyZXFf
-Y2Rldi0+cG9saWN5ID09IHBvbGljeSkgewo+PiArCQkJbGlzdF9kZWwoJmNwdWZyZXFfY2Rldi0+
-bm9kZSk7Cj4+ICsJCQlicmVhazsKPj4gKwkJfQo+PiArCX0KPiAKPiBXaGF0IGlmIHdlIHJlYWNo
-IGhlcmUgd2l0aG91dCBhIG1hdGNoIGZvciB0aGUgcG9saWN5ID8gV2Ugc2hvdWxkbid0Cj4gY29u
-dGludWUgYW5kIGVycm9yIG91dCwgcmlnaHQgPyBQcmludCBhbiBlcnJvciBtZXNzYWdlIGFzIHdl
-bGwgPwo+IAoKCi0tIAogPGh0dHA6Ly93d3cubGluYXJvLm9yZy8+IExpbmFyby5vcmcg4pSCIE9w
-ZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwoKRm9sbG93IExpbmFybzogIDxodHRwOi8v
-d3d3LmZhY2Vib29rLmNvbS9wYWdlcy9MaW5hcm8+IEZhY2Vib29rIHwKPGh0dHA6Ly90d2l0dGVy
-LmNvbS8jIS9saW5hcm9vcmc+IFR3aXR0ZXIgfAo8aHR0cDovL3d3dy5saW5hcm8ub3JnL2xpbmFy
-by1ibG9nLz4gQmxvZwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hello,
+
+On Mon, Jun 17, 2019 at 08:40:42PM +0200, Enrico Weigelt, metux IT consult wrote:
+> From: Enrico Weigelt <info@metux.net>
+> 
+> Add more helper macros for trivial driver init cases, similar to the
+> already existing module_platform_driver()+friends - now for those which
+> are initialized at other stages. Lots of drivers couldn't use the existing
+> macros, as they need to be called at different init stages, eg. subsys,
+> postcore, arch.
+> 
+> This helps to further reduce driver init boilerplate.
+> 
+> Signed-off-by: Enrico Weigelt <info@metux.net>
+> ---
+>  include/linux/platform_device.h | 51 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+> 
+> diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
+> index beb25f2..5f3a967 100644
+> --- a/include/linux/platform_device.h
+> +++ b/include/linux/platform_device.h
+> @@ -259,6 +259,57 @@ static inline void platform_set_drvdata(struct platform_device *pdev,
+>  } \
+>  module_exit(__platform_driver##_exit);
+>  
+> +/* postcore_platform_driver() - Helper macro for drivers that don't do
+> + * anything special in module init/exit.  This eliminates a lot of
+> + * boilerplate.  Each module may only use this macro once, and
+> + * calling it replaces postcore_initcall() and module_exit()
+> + */
+> +#define postcore_platform_driver(__platform_driver) \
+> +static int __init __platform_driver##_init(void) \
+> +{ \
+> +	return platform_driver_register(&(__platform_driver)); \
+> +} \
+> +postcore_initcall(__platform_driver##_init); \
+> +static void __exit __platform_driver##_exit(void) \
+> +{ \
+> +	platform_driver_unregister(&(__platform_driver)); \
+> +} \
+> +module_exit(__platform_driver##_exit);
+> +
+> +/* subsys_platform_driver() - Helper macro for drivers that don't do
+> + * anything special in module init/exit.  This eliminates a lot of
+> + * boilerplate.  Each module may only use this macro once, and
+> + * calling it replaces subsys_initcall() and module_exit()
+> + */
+> +#define subsys_platform_driver(__platform_driver) \
+> +static int __init __platform_driver##_init(void) \
+> +{ \
+> +	return platform_driver_register(&(__platform_driver)); \
+> +} \
+> +subsys_initcall(__platform_driver##_init); \
+> +static void __exit __platform_driver##_exit(void) \
+> +{ \
+> +	platform_driver_unregister(&(__platform_driver)); \
+> +} \
+> +module_exit(__platform_driver##_exit);
+
+Would it make sense to do something like:
+
+	#define __module_platform_driver(__platform_driver, __initlvl) \
+	static int __init __platform_driver##_init(void) \
+	{ \
+		return platform_driver_register(&(__platform_driver)); \
+	} \
+	__initlvl ## _initcall(__platform_driver##_init); \
+	static void __exit __platform_driver##_exit(void) \
+	{ \
+		platform_driver_unregister(&(__platform_driver)); \
+	} \
+	module_exit(__platform_driver##_exit);
+
+	#define postcore_platform_driver(__platform_driver) __module_platform_driver(__platform_driver, postcore)
+	#define subsys_platform_driver(__platform_driver) __module_platform_driver(__platform_driver, subsys)
+	...
+
+Which would be more compact and makes the difference between these
+macros a bit more obvious.
+
+Best regards
+Uwe
+
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
