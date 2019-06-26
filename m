@@ -1,14 +1,14 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH v4 net-next 1/4] net: core: page_pool: add user cnt
- preventing pool deletion
-Date: Tue, 25 Jun 2019 21:36:15 -0400
-Message-ID: <CA+FuTSff=+zqxxmCv3+bNxraigNgx_1Wm5Kn2FM7TTSZV4dnOg@mail.gmail.com>
-References: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org> <20190625175948.24771-2-ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH v4 net-next 3/4] net: ethernet: ti: davinci_cpdma: return
+ handler status
+Date: Tue, 25 Jun 2019 22:17:03 -0400
+Message-ID: <CA+FuTScQ2WdEqQpsCdM_KZK9e+Zq7v5B+x=HLthxLAyOhYu-zQ@mail.gmail.com>
+References: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org> <20190625175948.24771-4-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190625175948.24771-2-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190625175948.24771-4-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
 To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 Cc: David Miller <davem@davemloft.net>, grygorii.strashko@ti.com, hawk@kernel.org, brouer@redhat.com, saeedm@mellanox.com, leon@kernel.org, Alexei Starovoitov <ast@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, Network Development <netdev@vger.kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, jakub.kicinski@netronome.com, John Fastabend <john.fastabend@gmail.com>
 List-Id: linux-omap@vger.kernel.org
@@ -16,95 +16,19 @@ List-Id: linux-omap@vger.kernel.org
 On Tue, Jun 25, 2019 at 2:00 PM Ivan Khoronzhuk
 <ivan.khoronzhuk@linaro.org> wrote:
 >
-> Add user counter allowing to delete pool only when no users.
-> It doesn't prevent pool from flush, only prevents freeing the
-> pool instance. Helps when no need to delete the pool and now
-> it's user responsibility to free it by calling page_pool_free()
-> while destroying procedure. It also makes to use page_pool_free()
-> explicitly, not fully hidden in xdp unreg, which looks more
-> correct after page pool "create" routine.
+> This change is needed to return flush status of rx handler for
+> flushing redirected xdp frames after processing channel packets.
+> Do it as separate patch for simplicity.
 >
 > Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> ---
 
-> diff --git a/include/net/page_pool.h b/include/net/page_pool.h
-> index f07c518ef8a5..1ec838e9927e 100644
-> --- a/include/net/page_pool.h
-> +++ b/include/net/page_pool.h
-> @@ -101,6 +101,7 @@ struct page_pool {
->         struct ptr_ring ring;
+> @@ -602,7 +605,8 @@ static int cpsw_tx_mq_poll(struct napi_struct *napi_tx, int budget)
+>                 else
+>                         cur_budget = txv->budget;
 >
->         atomic_t pages_state_release_cnt;
-> +       atomic_t user_cnt;
+> -               num_tx += cpdma_chan_process(txv->ch, cur_budget);
+> +               cpdma_chan_process(txv->ch, &cur_budget);
+> +               num_tx += cur_budget;
 
-refcount_t?
-
->  };
->
->  struct page *page_pool_alloc_pages(struct page_pool *pool, gfp_t gfp);
-> @@ -183,6 +184,12 @@ static inline dma_addr_t page_pool_get_dma_addr(struct page *page)
->         return page->dma_addr;
->  }
->
-> +/* used to prevent pool from deallocation */
-> +static inline void page_pool_get(struct page_pool *pool)
-> +{
-> +       atomic_inc(&pool->user_cnt);
-> +}
-> +
->  static inline bool is_page_pool_compiled_in(void)
->  {
->  #ifdef CONFIG_PAGE_POOL
-> diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-> index b366f59885c1..169b0e3c870e 100644
-> --- a/net/core/page_pool.c
-> +++ b/net/core/page_pool.c
-> @@ -48,6 +48,7 @@ static int page_pool_init(struct page_pool *pool,
->                 return -ENOMEM;
->
->         atomic_set(&pool->pages_state_release_cnt, 0);
-> +       atomic_set(&pool->user_cnt, 0);
->
->         if (pool->p.flags & PP_FLAG_DMA_MAP)
->                 get_device(pool->p.dev);
-> @@ -70,6 +71,8 @@ struct page_pool *page_pool_create(const struct page_pool_params *params)
->                 kfree(pool);
->                 return ERR_PTR(err);
->         }
-> +
-> +       page_pool_get(pool);
->         return pool;
->  }
->  EXPORT_SYMBOL(page_pool_create);
-> @@ -356,6 +359,10 @@ static void __warn_in_flight(struct page_pool *pool)
->
->  void __page_pool_free(struct page_pool *pool)
->  {
-> +       /* free only if no users */
-> +       if (!atomic_dec_and_test(&pool->user_cnt))
-> +               return;
-> +
->         WARN(pool->alloc.count, "API usage violation");
->         WARN(!ptr_ring_empty(&pool->ring), "ptr_ring is not empty");
->
-> diff --git a/net/core/xdp.c b/net/core/xdp.c
-> index 829377cc83db..04bdcd784d2e 100644
-> --- a/net/core/xdp.c
-> +++ b/net/core/xdp.c
-> @@ -372,6 +372,9 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
->
->         mutex_unlock(&mem_id_lock);
->
-> +       if (type == MEM_TYPE_PAGE_POOL)
-> +               page_pool_get(xdp_alloc->page_pool);
-> +
-
-need an analogous page_pool_put in xdp_rxq_info_unreg_mem_model? mlx5
-does not use that inverse function, but intel drivers do.
-
->         trace_mem_connect(xdp_alloc, xdp_rxq);
->         return 0;
->  err:
-> --
-> 2.17.1
->
+Less code change to add a new argument int *flush to communicate the
+new state and leave the existing argument and return values as is?
