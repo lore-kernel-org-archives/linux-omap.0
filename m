@@ -1,49 +1,87 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH V3 3/3] thermal/drivers/cpu_cooling:
- cpufreq_cooling_register returns an int
-Date: Wed, 26 Jun 2019 08:29:53 +0530
-Message-ID: <20190626025953.aapgyiein5tggxei@vireshk-i7>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH V3 2/3] thermal/drivers/cpu_cooling: Unregister with the
+ policy
+Date: Wed, 26 Jun 2019 08:02:04 +0200
+Message-ID: <da1d2603-e30a-d877-54c3-1fad218f9d57@linaro.org>
 References: <20190625113244.18146-1-daniel.lezcano@linaro.org>
- <20190625113244.18146-3-daniel.lezcano@linaro.org>
+ <20190625113244.18146-2-daniel.lezcano@linaro.org>
+ <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190625113244.18146-3-daniel.lezcano@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: rjw@rjwysocki.net, edubezval@gmail.com, linux-kernel@vger.kernel.org, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:THERMAL/CPU_COOLING" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, Fabio Estevam <festevam@gmail.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, edubezval@gmail.com, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>, NXP Linux Team <linux-imx@nxp.com>, Pengutronix Kernel Team <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Zhang Rui <rui.zhang@intel.com>, Javi Merino <javi.merino@kernel.org>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 25-06-19, 13:32, Daniel Lezcano wrote:
-> It looks like after the changes in the patch the only reason for
-
-which patch ? Instead of "patch" you should refer to the latest
-changes in code, like "now that cpufreq_cooling_unregister() doesn't
-accept cdev as an argument ....."
-
-> returning (struct thermal_cooling_device *) from
-> cpufreq_cooling_register() is error checking, but it would be much
-> more straightforward to return int for this purpose.
-> 
-> Moreover, that would prevent the callers of it from doing incorrect
-> things with the returned pointers (like using it to unregister the
-> cooling device).
-> 
-> Replace the returned value an integer instead of a pointer to a
-
-                             as ?
-
-> thermal cooling device structure.
-> 
-> Suggested-by: Rafael J. Wysocki <rafael@kernel.org>
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> ---
->  drivers/thermal/cpu_cooling.c                 | 63 +++++++++----------
->  drivers/thermal/imx_thermal.c                 |  6 +-
->  .../ti-soc-thermal/ti-thermal-common.c        |  7 +--
->  include/linux/cpu_cooling.h                   | 16 ++---
->  4 files changed, 40 insertions(+), 52 deletions(-)
-
--- 
-viresh
+CkhpIFZpcmVzaCwKCgpPbiAyNi8wNi8yMDE5IDA0OjU4LCBWaXJlc2ggS3VtYXIgd3JvdGU6Cj4g
+T24gMjUtMDYtMTksIDEzOjMyLCBEYW5pZWwgTGV6Y2FubyB3cm90ZToKPj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMgYi9kcml2ZXJzL2NwdWZyZXEvY3B1ZnJlcS5jCj4+
+IGluZGV4IGFlZTAyNGU0MjYxOC4uZjA3NDU0MjQ5ZmJjIDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJz
+L2NwdWZyZXEvY3B1ZnJlcS5jCj4+ICsrKyBiL2RyaXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMKPj4g
+QEAgLTEzNzksOCArMTM3OSw4IEBAIHN0YXRpYyBpbnQgY3B1ZnJlcV9vbmxpbmUodW5zaWduZWQg
+aW50IGNwdSkKPj4gIAkJY3B1ZnJlcV9kcml2ZXItPnJlYWR5KHBvbGljeSk7Cj4+ICAKPj4gIAlp
+ZiAoY3B1ZnJlcV90aGVybWFsX2NvbnRyb2xfZW5hYmxlZChjcHVmcmVxX2RyaXZlcikpCj4+IC0J
+CXBvbGljeS0+Y2RldiA9IG9mX2NwdWZyZXFfY29vbGluZ19yZWdpc3Rlcihwb2xpY3kpOwo+PiAt
+Cj4+ICsJCW9mX2NwdWZyZXFfY29vbGluZ19yZWdpc3Rlcihwb2xpY3kpOwo+PiArCQo+IAo+IFdl
+IGRvbid0IG5lZWQgYW55IGVycm9yIGNoZWNraW5nIGhlcmUgYW55bW9yZSA/CgpUaGVyZSB3YXMg
+bm8gZXJyb3IgY2hlY2tpbmcgaW5pdGlhbGx5LiBUaGlzIGNvbW1lbnQgYW5kIHRoZSBvdGhlcnMg
+YmVsb3cKYXJlIGZvciBhbiBhZGRpdGlvbmFsIHBhdGNoIElNTywgbm90IGEgY2hhbmdlIGluIHRo
+aXMgb25lLgoKPj4gIAlwcl9kZWJ1ZygiaW5pdGlhbGl6YXRpb24gY29tcGxldGVcbiIpOwo+PiAg
+Cj4+ICAJcmV0dXJuIDA7Cj4+IEBAIC0xNDY4LDEwICsxNDY4LDggQEAgc3RhdGljIGludCBjcHVm
+cmVxX29mZmxpbmUodW5zaWduZWQgaW50IGNwdSkKPj4gIAkJZ290byB1bmxvY2s7Cj4+ICAJfQo+
+PiAgCj4+IC0JaWYgKGNwdWZyZXFfdGhlcm1hbF9jb250cm9sX2VuYWJsZWQoY3B1ZnJlcV9kcml2
+ZXIpKSB7Cj4+IC0JCWNwdWZyZXFfY29vbGluZ191bnJlZ2lzdGVyKHBvbGljeS0+Y2Rldik7Cj4+
+IC0JCXBvbGljeS0+Y2RldiA9IE5VTEw7Cj4+IC0JfQo+PiArCWlmIChjcHVmcmVxX3RoZXJtYWxf
+Y29udHJvbF9lbmFibGVkKGNwdWZyZXFfZHJpdmVyKSkKPj4gKwkJY3B1ZnJlcV9jb29saW5nX3Vu
+cmVnaXN0ZXIocG9saWN5KTsKPiAKPiBBbmQgd2UgdW5yZWdpc3RlciB1bmNvbmRpdGlvbmFsbHks
+IGV2ZW4gaWYgd2UgZmFpbGVkID8gV2hhdCBpZiB0aGlzCj4gcm91dGluZSBwcmludHMgZXJyb3Ig
+bWVzc2FnZXMgZm9yIHN1Y2ggYW4gY2FzZSA/Cj4+ICAKPj4gIAlpZiAoY3B1ZnJlcV9kcml2ZXIt
+PnN0b3BfY3B1KQo+PiAgCQljcHVmcmVxX2RyaXZlci0+c3RvcF9jcHUocG9saWN5KTsKPj4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvdGhlcm1hbC9jcHVfY29vbGluZy5jIGIvZHJpdmVycy90aGVybWFs
+L2NwdV9jb29saW5nLmMKPj4gaW5kZXggODM0ODY3NzVlNTkzLi4wMDdjN2M2YmY4NDUgMTAwNjQ0
+Cj4+IC0tLSBhL2RyaXZlcnMvdGhlcm1hbC9jcHVfY29vbGluZy5jCj4+ICsrKyBiL2RyaXZlcnMv
+dGhlcm1hbC9jcHVfY29vbGluZy5jCj4+IEBAIC03OCw2ICs3OCw3IEBAIHN0cnVjdCBjcHVmcmVx
+X2Nvb2xpbmdfZGV2aWNlIHsKPj4gIAlzdHJ1Y3QgY3B1ZnJlcV9wb2xpY3kgKnBvbGljeTsKPj4g
+IAlzdHJ1Y3QgbGlzdF9oZWFkIG5vZGU7Cj4+ICAJc3RydWN0IHRpbWVfaW5faWRsZSAqaWRsZV90
+aW1lOwo+PiArCXN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpjZGV2Owo+PiAgfTsKPj4g
+IAo+PiAgc3RhdGljIERFRklORV9JREEoY3B1ZnJlcV9pZGEpOwo+PiBAQCAtNjA2LDYgKzYwNyw3
+IEBAIF9fY3B1ZnJlcV9jb29saW5nX3JlZ2lzdGVyKHN0cnVjdCBkZXZpY2Vfbm9kZSAqbnAsCj4+
+ICAJCWdvdG8gcmVtb3ZlX2lkYTsKPj4gIAo+PiAgCWNwdWZyZXFfY2Rldi0+Y2xpcHBlZF9mcmVx
+ID0gZ2V0X3N0YXRlX2ZyZXEoY3B1ZnJlcV9jZGV2LCAwKTsKPj4gKwljcHVmcmVxX2NkZXYtPmNk
+ZXYgPSBjZGV2Owo+PiAgCj4+ICAJbXV0ZXhfbG9jaygmY29vbGluZ19saXN0X2xvY2spOwo+PiAg
+CS8qIFJlZ2lzdGVyIHRoZSBub3RpZmllciBmb3IgZmlyc3QgY3B1ZnJlcSBjb29saW5nIGRldmlj
+ZSAqLwo+PiBAQCAtNjk5LDE4ICs3MDEsMTggQEAgRVhQT1JUX1NZTUJPTF9HUEwob2ZfY3B1ZnJl
+cV9jb29saW5nX3JlZ2lzdGVyKTsKPj4gICAqCj4+ICAgKiBUaGlzIGludGVyZmFjZSBmdW5jdGlv
+biB1bnJlZ2lzdGVycyB0aGUgInRoZXJtYWwtY3B1ZnJlcS0leCIgY29vbGluZyBkZXZpY2UuCj4+
+ICAgKi8KPj4gLXZvaWQgY3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIoc3RydWN0IHRoZXJtYWxf
+Y29vbGluZ19kZXZpY2UgKmNkZXYpCj4+ICt2b2lkIGNwdWZyZXFfY29vbGluZ191bnJlZ2lzdGVy
+KHN0cnVjdCBjcHVmcmVxX3BvbGljeSAqcG9saWN5KQo+PiAgewo+PiAgCXN0cnVjdCBjcHVmcmVx
+X2Nvb2xpbmdfZGV2aWNlICpjcHVmcmVxX2NkZXY7Cj4+ICAJYm9vbCBsYXN0Owo+PiAgCj4+IC0J
+aWYgKCFjZGV2KQo+PiAtCQlyZXR1cm47Cj4+IC0KPj4gLQljcHVmcmVxX2NkZXYgPSBjZGV2LT5k
+ZXZkYXRhOwo+PiAtCj4+ICAJbXV0ZXhfbG9jaygmY29vbGluZ19saXN0X2xvY2spOwo+PiAtCWxp
+c3RfZGVsKCZjcHVmcmVxX2NkZXYtPm5vZGUpOwo+PiArCWxpc3RfZm9yX2VhY2hfZW50cnkoY3B1
+ZnJlcV9jZGV2LCAmY3B1ZnJlcV9jZGV2X2xpc3QsIG5vZGUpIHsKPj4gKwkJaWYgKGNwdWZyZXFf
+Y2Rldi0+cG9saWN5ID09IHBvbGljeSkgewo+PiArCQkJbGlzdF9kZWwoJmNwdWZyZXFfY2Rldi0+
+bm9kZSk7Cj4+ICsJCQlicmVhazsKPj4gKwkJfQo+PiArCX0KPiAKPiBXaGF0IGlmIHdlIHJlYWNo
+IGhlcmUgd2l0aG91dCBhIG1hdGNoIGZvciB0aGUgcG9saWN5ID8gV2Ugc2hvdWxkbid0Cj4gY29u
+dGludWUgYW5kIGVycm9yIG91dCwgcmlnaHQgPyBQcmludCBhbiBlcnJvciBtZXNzYWdlIGFzIHdl
+bGwgPwo+IAoKCi0tIAogPGh0dHA6Ly93d3cubGluYXJvLm9yZy8+IExpbmFyby5vcmcg4pSCIE9w
+ZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwoKRm9sbG93IExpbmFybzogIDxodHRwOi8v
+d3d3LmZhY2Vib29rLmNvbS9wYWdlcy9MaW5hcm8+IEZhY2Vib29rIHwKPGh0dHA6Ly90d2l0dGVy
+LmNvbS8jIS9saW5hcm9vcmc+IFR3aXR0ZXIgfAo8aHR0cDovL3d3dy5saW5hcm8ub3JnL2xpbmFy
+by1ibG9nLz4gQmxvZwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
+dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LWFybS1rZXJuZWwK
