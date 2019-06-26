@@ -1,601 +1,91 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [RFC PATCH v4 net-next 06/11] net: ethernet: ti: introduce cpsw
- switchdev based driver part 1 - dual-emac
-Date: Wed, 26 Jun 2019 12:58:42 +0300
-Message-ID: <20190626095839.GE6485@khorivan>
-References: <20190621181314.20778-1-grygorii.strashko@ti.com>
- <20190621181314.20778-7-grygorii.strashko@ti.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH V3 2/3] thermal/drivers/cpu_cooling: Unregister with the
+ policy
+Date: Wed, 26 Jun 2019 12:19:53 +0200
+Message-ID: <8a9b7bd0-9b21-1ce1-6176-cffff4b8d739@linaro.org>
+References: <20190625113244.18146-1-daniel.lezcano@linaro.org>
+ <20190625113244.18146-2-daniel.lezcano@linaro.org>
+ <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
+ <da1d2603-e30a-d877-54c3-1fad218f9d57@linaro.org>
+ <20190626063716.cechnzsb75q5lclr@vireshk-i7>
+ <CAJZ5v0jFXmJ3ikEPQUp-cLv3+ZSnp1kP8CxdkZVofV1BS3+UwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190621181314.20778-7-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAJZ5v0jFXmJ3ikEPQUp-cLv3+ZSnp1kP8CxdkZVofV1BS3+UwQ@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, Fabio Estevam <festevam@gmail.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>, NXP Linux Team <linux-imx@nxp.com>, Pengutronix Kernel Team <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Zhang Rui <rui.zhang@intel.com>, Javi Merino <javi.merino@kernel.org>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii
-
-Too much code, but I've tried pass thru.
-Probably expectation the devlink to be reviewed, but several
-common replies that should be reflected in non RFC v.
-
-On Fri, Jun 21, 2019 at 09:13:09PM +0300, Grygorii Strashko wrote:
->From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
->
->Part 1:
-> Introduce basic CPSW dual_mac driver (cpsw_new.c) which is operating in
->dual-emac mode by default, thus working as 2 individual network interfaces.
->Main differences from legacy CPSW driver are:
->
-> - optimized promiscuous mode: The P0_UNI_FLOOD (both ports) is enabled in
->addition to ALLMULTI (current port) instead of ALE_BYPASS. So, Ports in
->promiscuous mode will keep possibility of mcast and vlan filtering, which
->is provides significant benefits when ports are joined to the same bridge,
->but without enabling "switch" mode, or to different bridges.
-> - learning disabled on ports as it make not too much sense for
->   segregated ports - no forwarding in HW.
-> - enabled basic support for devlink.
->
->	devlink dev show
->		platform/48484000.ethernet_switch
->
->	devlink dev param show
->	 platform/48484000.ethernet_switch:
->	name ale_bypass type driver-specific
->	 values:
->		cmode runtime value false
->
-> - "ale_bypass" devlink driver parameter allows to enable
->ALE_CONTROL(4).BYPASS mode for debug purposes.
-> - updated DT bindings.
->
->Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
->Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
->Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->---
-> drivers/net/ethernet/ti/Kconfig     |   19 +-
-> drivers/net/ethernet/ti/Makefile    |    2 +
-> drivers/net/ethernet/ti/cpsw_new.c  | 1555 +++++++++++++++++++++++++++
-> drivers/net/ethernet/ti/cpsw_priv.c |    8 +-
-> drivers/net/ethernet/ti/cpsw_priv.h |   12 +-
-> 5 files changed, 1591 insertions(+), 5 deletions(-)
-> create mode 100644 drivers/net/ethernet/ti/cpsw_new.c
->
-
-[...]
-
->+
->+static void cpsw_rx_handler(void *token, int len, int status)
->+{
->+	struct sk_buff *skb = token;
->+	struct cpsw_common *cpsw;
->+	struct net_device *ndev;
->+	struct sk_buff *new_skb;
->+	struct cpsw_priv *priv;
->+	struct cpdma_chan *ch;
->+	int ret = 0, port;
->+
->+	ndev = skb->dev;
->+	cpsw = ndev_to_cpsw(ndev);
->+
->+	port = CPDMA_RX_SOURCE_PORT(status);
->+	if (port) {
->+		ndev = cpsw->slaves[--port].ndev;
->+		skb->dev = ndev;
->+	}
->+
->+	if (unlikely(status < 0) || unlikely(!netif_running(ndev))) {
->+		/* In dual emac mode check for all interfaces */
->+		if (cpsw->usage_count && status >= 0) {
->+			/* The packet received is for the interface which
->+			 * is already down and the other interface is up
->+			 * and running, instead of freeing which results
->+			 * in reducing of the number of rx descriptor in
->+			 * DMA engine, requeue skb back to cpdma.
->+			 */
->+			new_skb = skb;
->+			goto requeue;
->+		}
->+
->+		/* the interface is going down, skbs are purged */
->+		dev_kfree_skb_any(skb);
->+		return;
->+	}
->+
->+	priv = netdev_priv(ndev);
->+
->+	new_skb = netdev_alloc_skb_ip_align(ndev, cpsw->rx_packet_max);
->+	if (new_skb) {
->+		skb_copy_queue_mapping(new_skb, skb);
->+		skb_put(skb, len);
->+		if (status & CPDMA_RX_VLAN_ENCAP)
->+			cpsw_rx_vlan_encap(skb);
->+		if (priv->rx_ts_enabled)
->+			cpts_rx_timestamp(cpsw->cpts, skb);
->+		skb->protocol = eth_type_trans(skb, ndev);
->+		netif_receive_skb(skb);
->+		ndev->stats.rx_bytes += len;
->+		ndev->stats.rx_packets++;
->+		/* CPDMA stores skb in internal CPPI RAM (SRAM) which belongs
->+		 * to DEV MMIO space. Kmemleak does not scan IO memory and so
->+		 * reports memory leaks.
->+		 * see commit 254a49d5139a ('drivers: net: cpsw: fix kmemleak
->+		 * false-positive reports for sk buffers') for details.
->+		 */
->+		kmemleak_not_leak(new_skb);
->+	} else {
->+		ndev->stats.rx_dropped++;
->+		new_skb = skb;
->+	}
->+
->+requeue:
-
-----
->+	if (netif_dormant(ndev)) {
->+		dev_kfree_skb_any(new_skb);
->+		return;
->+	}
----
-
-drop above, no need any more
-
->+
->+	ch = cpsw->rxv[skb_get_queue_mapping(new_skb)].ch;
->+	ret = cpdma_chan_submit(ch, new_skb, new_skb->data,
->+				skb_tailroom(new_skb), 0);
->+	if (WARN_ON(ret < 0))
->+		dev_kfree_skb_any(new_skb);
-
-Here were a little changes last time, looks like:
-
-	ret = cpdma_chan_submit(ch, new_skb, new_skb->data,
-				skb_tailroom(new_skb), 0);
-	if (ret < 0) {
-		WARN_ON(ret == -ENOMEM);
-		dev_kfree_skb_any(new_skb);
-	}
-
->+}
->+
-
-[...]
-
->+
->+static void cpsw_init_host_port(struct cpsw_priv *priv)
->+{
->+	struct cpsw_common *cpsw = priv->cpsw;
->+	u32 control_reg;
->+
->+	/* soft reset the controller and initialize ale */
->+	soft_reset("cpsw", &cpsw->regs->soft_reset);
->+	cpsw_ale_start(cpsw->ale);
->+
->+	/* switch to vlan unaware mode */
->+	cpsw_ale_control_set(cpsw->ale, HOST_PORT_NUM, ALE_VLAN_AWARE,
->+			     CPSW_ALE_VLAN_AWARE);
->+	control_reg = readl(&cpsw->regs->control);
->+	control_reg |= CPSW_VLAN_AWARE | CPSW_RX_VLAN_ENCAP;
->+	writel(control_reg, &cpsw->regs->control);
->+
->+	/* setup host port priority mapping */
->+	writel_relaxed(CPDMA_TX_PRIORITY_MAP,
->+		       &cpsw->host_port_regs->cpdma_tx_pri_map);
->+	writel_relaxed(0, &cpsw->host_port_regs->cpdma_rx_chan_map);
-
-----
->+
->+	/* disable priority elevation */
->+	writel_relaxed(0, &cpsw->regs->ptype);
->+
->+	/* enable statistics collection only on all ports */
->+	writel_relaxed(0x7, &cpsw->regs->stat_port_en);
->+
->+	/* Enable internal fifo flow control */
->+	writel(0x7, &cpsw->regs->flow_control);
----
-
-Would be nice to do the same in old driver.
-I mean moving it from ndo_open
-Also were thoughts about this.
-
->+
->+	cpsw_init_host_port_dual_mac(priv);
->+
->+	cpsw_ale_control_set(cpsw->ale, HOST_PORT_NUM,
->+			     ALE_PORT_STATE, ALE_PORT_STATE_FORWARD);
->+}
->+
-
-[...]
-
->+
->+static int cpsw_ndo_open(struct net_device *ndev)
->+{
->+	struct cpsw_priv *priv = netdev_priv(ndev);
->+	struct cpsw_common *cpsw = priv->cpsw;
->+	int ret;
->+
->+	cpsw_info(priv, ifdown, "starting ndev\n");
->+	ret = pm_runtime_get_sync(cpsw->dev);
->+	if (ret < 0) {
->+		pm_runtime_put_noidle(cpsw->dev);
->+		return ret;
->+	}
->+
->+	netif_carrier_off(ndev);
->+
->+	/* Notify the stack of the actual queue counts. */
->+	ret = netif_set_real_num_tx_queues(ndev, cpsw->tx_ch_num);
->+	if (ret) {
->+		dev_err(priv->dev, "cannot set real number of tx queues\n");
->+		goto err_cleanup;
->+	}
->+
->+	ret = netif_set_real_num_rx_queues(ndev, cpsw->rx_ch_num);
->+	if (ret) {
->+		dev_err(priv->dev, "cannot set real number of rx queues\n");
->+		goto err_cleanup;
->+	}
->+
->+	/* Initialize host and slave ports */
->+	if (!cpsw->usage_count)
->+		cpsw_init_host_port(priv);
->+	cpsw_slave_open(&cpsw->slaves[priv->emac_port - 1], priv);
->+
->+	/* initialize shared resources for every ndev */
->+	if (!cpsw->usage_count) {
->+		ret = cpsw_fill_rx_channels(priv);
->+		if (ret < 0)
->+			goto err_cleanup;
->+
->+		if (cpts_register(cpsw->cpts))
->+			dev_err(priv->dev, "error registering cpts device\n");
->+
->+		napi_enable(&cpsw->napi_rx);
->+		napi_enable(&cpsw->napi_tx);
->+
->+		if (cpsw->tx_irq_disabled) {
->+			cpsw->tx_irq_disabled = false;
->+			enable_irq(cpsw->irqs_table[1]);
->+		}
->+
->+		if (cpsw->rx_irq_disabled) {
->+			cpsw->rx_irq_disabled = false;
->+			enable_irq(cpsw->irqs_table[0]);
->+		}
->+	}
->+
->+	cpsw_restore(priv);
->+
->+	/* Enable Interrupt pacing if configured */
->+	if (cpsw->coal_intvl != 0) {
->+		struct ethtool_coalesce coal;
->+
->+		coal.rx_coalesce_usecs = cpsw->coal_intvl;
->+		cpsw_set_coalesce(ndev, &coal);
->+	}
->+
->+	cpdma_ctlr_start(cpsw->dma);
->+	cpsw_intr_enable(cpsw);
->+	cpsw->usage_count++;
->+
->+	return 0;
->+
->+err_cleanup:
->+	cpdma_ctlr_stop(cpsw->dma);
-Here were a little changes also:
-Now looks like:
-	if (!cpsw->usage_count) {
-		cpdma_ctlr_stop(cpsw->dma)
-	}
-
-
->+	cpsw_slave_stop(&cpsw->slaves[priv->emac_port - 1], priv);
->+	pm_runtime_put_sync(cpsw->dev);
->+	netif_carrier_off(priv->ndev);
->+	return ret;
->+}
->+
-
-[...]
-
->+
->+static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
->+				       struct net_device *ndev)
->+{
->+	struct cpsw_priv *priv = netdev_priv(ndev);
->+	struct cpsw_common *cpsw = priv->cpsw;
->+	struct cpts *cpts = cpsw->cpts;
->+	struct netdev_queue *txq;
->+	struct cpdma_chan *txch;
->+	int ret, q_idx;
->+
->+	if (skb_padto(skb, CPSW_MIN_PACKET_SIZE)) {
->+		cpsw_err(priv, tx_err, "packet pad failed\n");
->+		ndev->stats.tx_dropped++;
->+		return NET_XMIT_DROP;
->+	}
->+
->+	if (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP &&
->+	    priv->tx_ts_enabled && cpts_can_timestamp(cpts, skb))
->+		skb_shinfo(skb)->tx_flags |= SKBTX_IN_PROGRESS;
->+
->+	q_idx = skb_get_queue_mapping(skb);
->+	if (q_idx >= cpsw->tx_ch_num)
->+		q_idx = q_idx % cpsw->tx_ch_num;
->+
->+	txch = cpsw->txv[q_idx].ch;
->+	txq = netdev_get_tx_queue(ndev, q_idx);
->+	skb_tx_timestamp(skb);
->+	ret = cpdma_chan_submit(txch, skb, skb->data, skb->len,
->+				priv->emac_port);
-------------
-
->+	if (unlikely(ret != 0)) {
->+		cpsw_err(priv, tx_err, "desc submit failed\n");
->+		goto fail;
->+	}
->+
->+	/* If there is no more tx desc left free then we need to
->+	 * tell the kernel to stop sending us tx frames.
->+	 */
->+	if (unlikely(!cpdma_check_free_tx_desc(txch))) {
->+		netif_tx_stop_queue(txq);
->+
->+		/* Barrier, so that stop_queue visible to other cpus */
->+		smp_mb__after_atomic();
->+
->+		if (cpdma_check_free_tx_desc(txch))
->+			netif_tx_wake_queue(txq);
->+	}
->+
->+	return NETDEV_TX_OK;
->+fail:
->+	ndev->stats.tx_dropped++;
->+	netif_tx_stop_queue(txq);
->+
->+	/* Barrier, so that stop_queue visible to other cpus */
->+	smp_mb__after_atomic();
->+
->+	if (cpdma_check_free_tx_desc(txch))
->+		netif_tx_wake_queue(txq);
->+
->+	return NETDEV_TX_BUSY;
->+}
--------------
-
-I have a proposition, here were no reason lastly, but now maybe
-it can be optimized a little. Smth like, replace above on:
-
-	if (unlikely(ret != 0)) {
-		cpsw_err(priv, tx_err, "desc submit failed\n");
-		ndev->stats.tx_dropped++;
-		ret = NETDEV_TX_BUSY;
-		goto fail
-	}
-
-	ret = NETDEV_TX_OK;
-
-	/* If there is no more tx desc left free then we need to
-	 * tell the kernel to stop sending us tx frames.
-	 */
-	if (unlikely(cpdma_check_free_tx_desc(txch)))
-		return ret;
-
-fail:
-	netif_tx_stop_queue(txq);
-
-	/* Barrier, so that stop_queue visible to other cpus */
-	smp_mb__after_atomic();
-
-	if (cpdma_check_free_tx_desc(txch))
-		netif_tx_wake_queue(txq);
-
-	return ret;
-
-Result: minus 6 lines and less dupes.
-
->+
->+
-
-[...]
-
->+static int cpsw_probe(struct platform_device *pdev)
->+{
->+	const struct soc_device_attribute *soc;
->+	struct device *dev = &pdev->dev;
->+	struct resource *ss_res;
->+	struct cpsw_common *cpsw;
->+	struct gpio_descs *mode;
->+	void __iomem *ss_regs;
->+	int ret = 0, ch;
->+	struct clk *clk;
->+	int irq;
->+
->+	cpsw = devm_kzalloc(dev, sizeof(struct cpsw_common), GFP_KERNEL);
->+	if (!cpsw)
->+		return -ENOMEM;
->+
->+	cpsw_slave_index = cpsw_slave_index_priv;
->+
->+	cpsw->dev = dev;
->+
->+	cpsw->slaves = devm_kcalloc(dev,
->+				    CPSW_SLAVE_PORTS_NUM,
->+				    sizeof(struct cpsw_slave),
->+				    GFP_KERNEL);
->+	if (!cpsw->slaves)
->+		return -ENOMEM;
->+
->+	mode = devm_gpiod_get_array_optional(dev, "mode", GPIOD_OUT_LOW);
->+	if (IS_ERR(mode)) {
->+		ret = PTR_ERR(mode);
->+		dev_err(dev, "gpio request failed, ret %d\n", ret);
->+		return ret;
->+	}
->+
->+	clk = devm_clk_get(dev, "fck");
->+	if (IS_ERR(clk)) {
->+		ret = PTR_ERR(clk);
->+		dev_err(dev, "fck is not found %d\n", ret);
->+		return ret;
->+	}
->+	cpsw->bus_freq_mhz = clk_get_rate(clk) / 1000000;
->+
->+	ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->+	ss_regs = devm_ioremap_resource(dev, ss_res);
->+	if (IS_ERR(ss_regs)) {
->+		ret = PTR_ERR(ss_regs);
->+		return ret;
->+	}
->+	cpsw->regs = ss_regs;
->+
->+	irq = platform_get_irq_byname(pdev, "rx");
->+	if (irq < 0)
->+		return irq;
->+	cpsw->irqs_table[0] = irq;
->+
->+	irq = platform_get_irq_byname(pdev, "tx");
->+	if (irq < 0)
->+		return irq;
->+	cpsw->irqs_table[1] = irq;
->+
->+	platform_set_drvdata(pdev, cpsw);
-set cpsw, but below ndev
-
->+	/* This may be required here for child devices. */
->+	pm_runtime_enable(dev);
->+
->+	/* Need to enable clocks with runtime PM api to access module
->+	 * registers
->+	 */
->+	ret = pm_runtime_get_sync(dev);
->+	if (ret < 0) {
->+		pm_runtime_put_noidle(dev);
->+		pm_runtime_disable(dev);
->+		return ret;
->+	}
->+
->+	ret = cpsw_probe_dt(cpsw);
->+	if (ret)
->+		goto clean_dt_ret;
->+
->+	soc = soc_device_match(cpsw_soc_devices);
->+	if (soc)
->+		cpsw->quirk_irq = 1;
->+
->+	cpsw->rx_packet_max = rx_packet_max;
->+	cpsw->descs_pool_size = descs_pool_size;
->+
->+	ret = cpsw_init_common(cpsw, ss_regs, ale_ageout,
->+			       (u32 __force)ss_res->start + CPSW2_BD_OFFSET,
->+			       descs_pool_size);
->+	if (ret)
->+		goto clean_dt_ret;
->+
->+	cpsw->wr_regs = cpsw->version == CPSW_VERSION_1 ?
->+			ss_regs + CPSW1_WR_OFFSET :
->+			ss_regs + CPSW2_WR_OFFSET;
->+
->+	ch = cpsw->quirk_irq ? 0 : 7;
->+	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, ch, cpsw_tx_handler, 0);
->+	if (IS_ERR(cpsw->txv[0].ch)) {
->+		dev_err(dev, "error initializing tx dma channel\n");
->+		ret = PTR_ERR(cpsw->txv[0].ch);
->+		goto clean_cpts;
->+	}
->+
->+	cpsw->rxv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_rx_handler, 1);
->+	if (IS_ERR(cpsw->rxv[0].ch)) {
->+		dev_err(dev, "error initializing rx dma channel\n");
->+		ret = PTR_ERR(cpsw->rxv[0].ch);
->+		goto clean_cpts;
->+	}
->+	cpsw_split_res(cpsw);
->+
->+	/* setup netdevs */
->+	ret = cpsw_create_ports(cpsw);
->+	if (ret)
->+		goto clean_unregister_netdev;
->+
->+	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
->+	 * MISC IRQs which are always kept disabled with this driver so
->+	 * we will not request them.
->+	 *
->+	 * If anyone wants to implement support for those, make sure to
->+	 * first request and append them to irqs_table array.
->+	 */
->+
->+	ret = devm_request_irq(dev, cpsw->irqs_table[0], cpsw_rx_interrupt,
->+			       0, dev_name(dev), cpsw);
->+	if (ret < 0) {
->+		dev_err(dev, "error attaching irq (%d)\n", ret);
->+		goto clean_unregister_netdev;
->+	}
->+
->+	ret = devm_request_irq(dev, cpsw->irqs_table[1], cpsw_tx_interrupt,
->+			       0, dev_name(dev), cpsw);
->+	if (ret < 0) {
->+		dev_err(dev, "error attaching irq (%d)\n", ret);
->+		goto clean_unregister_netdev;
->+	}
->+
->+	ret = cpsw_register_devlink(cpsw);
->+	if (ret)
->+		goto clean_unregister_netdev;
->+
->+	dev_notice(dev, "initialized (regs %pa, pool size %d) hw_ver:%08X %d.%d (%d)\n",
->+		   &ss_res->start, descs_pool_size,
->+		   cpsw->version, CPSW_MAJOR_VERSION(cpsw->version),
->+		   CPSW_MINOR_VERSION(cpsw->version),
->+		   CPSW_RTL_VERSION(cpsw->version));
->+
->+	pm_runtime_put(dev);
->+
->+	return 0;
->+
->+clean_unregister_netdev:
->+	cpsw_unregister_ports(cpsw);
->+clean_cpts:
->+	cpts_release(cpsw->cpts);
->+	cpdma_ctlr_destroy(cpsw->dma);
->+clean_dt_ret:
->+	cpsw_remove_dt(cpsw);
->+	pm_runtime_put_sync(dev);
->+	pm_runtime_disable(dev);
->+	return ret;
->+}
->+
->+static int cpsw_remove(struct platform_device *pdev)
->+{
->+	struct net_device *ndev = platform_get_drvdata(pdev);
-now it's cpsw, as in probe?
-
->+	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
->+	int ret;
->+
->+	ret = pm_runtime_get_sync(&pdev->dev);
->+	if (ret < 0) {
->+		pm_runtime_put_noidle(&pdev->dev);
->+		return ret;
->+	}
->+
->+	cpsw_unregister_devlink(cpsw);
->+	cpsw_unregister_ports(cpsw);
->+
->+	cpts_release(cpsw->cpts);
->+	cpdma_ctlr_destroy(cpsw->dma);
->+	cpsw_remove_dt(cpsw);
->+	pm_runtime_put_sync(&pdev->dev);
->+	pm_runtime_disable(&pdev->dev);
->+	return 0;
->+}
->+
-
-[...]
-
--- 
-Regards,
-Ivan Khoronzhuk
+T24gMjYvMDYvMjAxOSAxMTowNiwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6Cj4gT24gV2VkLCBK
+dW4gMjYsIDIwMTkgYXQgODozNyBBTSBWaXJlc2ggS3VtYXIgPHZpcmVzaC5rdW1hckBsaW5hcm8u
+b3JnPiB3cm90ZToKPj4KPj4gT24gMjYtMDYtMTksIDA4OjAyLCBEYW5pZWwgTGV6Y2FubyB3cm90
+ZToKPj4+IE9uIDI2LzA2LzIwMTkgMDQ6NTgsIFZpcmVzaCBLdW1hciB3cm90ZToKPj4+PiBPbiAy
+NS0wNi0xOSwgMTM6MzIsIERhbmllbCBMZXpjYW5vIHdyb3RlOgo+Pj4+PiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9jcHVmcmVxL2NwdWZyZXEuYyBiL2RyaXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMKPj4+
+Pj4gaW5kZXggYWVlMDI0ZTQyNjE4Li5mMDc0NTQyNDlmYmMgMTAwNjQ0Cj4+Pj4+IC0tLSBhL2Ry
+aXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMKPj4+Pj4gKysrIGIvZHJpdmVycy9jcHVmcmVxL2NwdWZy
+ZXEuYwo+Pj4+PiBAQCAtMTM3OSw4ICsxMzc5LDggQEAgc3RhdGljIGludCBjcHVmcmVxX29ubGlu
+ZSh1bnNpZ25lZCBpbnQgY3B1KQo+Pj4+PiAgICAgICAgICAgIGNwdWZyZXFfZHJpdmVyLT5yZWFk
+eShwb2xpY3kpOwo+Pj4+Pgo+Pj4+PiAgICBpZiAoY3B1ZnJlcV90aGVybWFsX2NvbnRyb2xfZW5h
+YmxlZChjcHVmcmVxX2RyaXZlcikpCj4+Pj4+IC0gICAgICAgICAgcG9saWN5LT5jZGV2ID0gb2Zf
+Y3B1ZnJlcV9jb29saW5nX3JlZ2lzdGVyKHBvbGljeSk7Cj4+Pj4+IC0KPj4+Pj4gKyAgICAgICAg
+ICBvZl9jcHVmcmVxX2Nvb2xpbmdfcmVnaXN0ZXIocG9saWN5KTsKPj4+Pj4gKwo+Pj4+Cj4+Pj4g
+V2UgZG9uJ3QgbmVlZCBhbnkgZXJyb3IgY2hlY2tpbmcgaGVyZSBhbnltb3JlID8KPj4+Cj4+PiBU
+aGVyZSB3YXMgbm8gZXJyb3IgY2hlY2tpbmcgaW5pdGlhbGx5LiBUaGlzIGNvbW1lbnQgYW5kIHRo
+ZSBvdGhlcnMgYmVsb3cKPj4+IGFyZSBmb3IgYW4gYWRkaXRpb25hbCBwYXRjaCBJTU8sIG5vdCBh
+IGNoYW5nZSBpbiB0aGlzIG9uZS4KPj4KPj4gcmlnaHQsIGJ1dCAuLi4KPj4KPj4+Pj4gLXZvaWQg
+Y3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIoc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2Ug
+KmNkZXYpCj4+Pj4+ICt2b2lkIGNwdWZyZXFfY29vbGluZ191bnJlZ2lzdGVyKHN0cnVjdCBjcHVm
+cmVxX3BvbGljeSAqcG9saWN5KQo+Pj4+PiAgewo+Pj4+PiAgICBzdHJ1Y3QgY3B1ZnJlcV9jb29s
+aW5nX2RldmljZSAqY3B1ZnJlcV9jZGV2Owo+Pj4+PiAgICBib29sIGxhc3Q7Cj4+Pj4+Cj4+Pj4+
+IC0gIGlmICghY2RldikKPj4+Pj4gLSAgICAgICAgICByZXR1cm47Cj4+Cj4+IHdlIHVzZWQgdG8g
+cmV0dXJuIHdpdGhvdXQgYW55IGVycm9ycyBmcm9tIGhlcmUuIE5vdyB3ZSB3aWxsIGhhdmUKPj4g
+cHJvYmxlbXMgaWYgcmVnc2l0ZXJpbmcgZmFpbHMgZm9yIHNvbWUgcmVhc29uLgo+IAo+IFNwZWNp
+ZmljYWxseSwgdGhlIGxhc3QgY3B1ZnJlcV9jZGV2IGluIHRoZSBsaXN0IHdpbGwgYmUgdW5yZWdp
+c3RlcmVkCj4gQUZBSUNTLCBhbmQgd2l0aG91dCByZW1vdmluZyBpdCBmcm9tIHRoZSBsaXN0IGZv
+ciB0aGF0IG1hdHRlciwgd2hpY2gKPiBpc24ndCB3aGF0IHRoZSBjYWxsZXIgd2FudHMuCgpJbmRl
+ZWQsCgpXaGF0IGFib3V0IHRoZSByZXN1bHRpbmcgY29kZSBhYm92ZToKCnZvaWQgX19jcHVmcmVx
+X2Nvb2xpbmdfdW5yZWdpc3RlcihzdHJ1Y3QgY3B1ZnJlcV9jb29saW5nX2RldmljZQoqY3B1ZnJl
+cV9jZGV2LCBpbnQgbGFzdCkKewogICAgICAgIC8qIFVucmVnaXN0ZXIgdGhlIG5vdGlmaWVyIGZv
+ciB0aGUgbGFzdCBjcHVmcmVxIGNvb2xpbmcgZGV2aWNlICovCiAgICAgICAgaWYgKGxhc3QpCiAg
+ICAgICAgICAgICAgICBjcHVmcmVxX3VucmVnaXN0ZXJfbm90aWZpZXIoJnRoZXJtYWxfY3B1ZnJl
+cV9ub3RpZmllcl9ibG9jaywKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBDUFVGUkVRX1BPTElDWV9OT1RJRklFUik7CgogICAgICAgIHRoZXJtYWxfY29vbGluZ19k
+ZXZpY2VfdW5yZWdpc3RlcihjcHVmcmVxX2NkZXYtPmNkZXYpOwogICAgICAgIGlkYV9zaW1wbGVf
+cmVtb3ZlKCZjcHVmcmVxX2lkYSwgY3B1ZnJlcV9jZGV2LT5pZCk7CiAgICAgICAga2ZyZWUoY3B1
+ZnJlcV9jZGV2LT5pZGxlX3RpbWUpOwogICAgICAgIGtmcmVlKGNwdWZyZXFfY2Rldik7Cn0KCi8q
+KgoKICogY3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIgLSBmdW5jdGlvbiB0byByZW1vdmUgY3B1
+ZnJlcSBjb29saW5nCmRldmljZS4KICogQGNkZXY6IHRoZXJtYWwgY29vbGluZyBkZXZpY2UgcG9p
+bnRlci4KCiAqCgogKiBUaGlzIGludGVyZmFjZSBmdW5jdGlvbiB1bnJlZ2lzdGVycyB0aGUgInRo
+ZXJtYWwtY3B1ZnJlcS0leCIgY29vbGluZwpkZXZpY2UuCiAqLwp2b2lkIGNwdWZyZXFfY29vbGlu
+Z191bnJlZ2lzdGVyKHN0cnVjdCBjcHVmcmVxX3BvbGljeSAqcG9saWN5KQp7CiAgICAgICAgc3Ry
+dWN0IGNwdWZyZXFfY29vbGluZ19kZXZpY2UgKmNwdWZyZXFfY2RldjsKICAgICAgICBib29sIGxh
+c3Q7CgogICAgICAgIG11dGV4X2xvY2soJmNvb2xpbmdfbGlzdF9sb2NrKTsKICAgICAgICBsaXN0
+X2Zvcl9lYWNoX2VudHJ5KGNwdWZyZXFfY2RldiwgJmNwdWZyZXFfY2Rldl9saXN0LCBub2RlKSB7
+CiAgICAgICAgICAgICAgICBpZiAoY3B1ZnJlcV9jZGV2LT5wb2xpY3kgPT0gcG9saWN5KSB7CiAg
+ICAgICAgICAgICAgICAgICAgICAgIGxpc3RfZGVsKCZjcHVmcmVxX2NkZXYtPm5vZGUpOwogICAg
+ICAgICAgICAgICAgICAgICAgICBsYXN0ID0gbGlzdF9lbXB0eSgmY3B1ZnJlcV9jZGV2X2xpc3Qp
+OwogICAgICAgICAgICAgICAgICAgICAgICBicmVhazsKICAgICAgICAgICAgICAgIH0KICAgICAg
+ICB9CiAgICAgICAgbXV0ZXhfdW5sb2NrKCZjb29saW5nX2xpc3RfbG9jayk7CgogICAgICAgIGlm
+IChjcHVmcmVxX2NkZXYtPnBvbGljeSA9PSBwb2xpY3kpCiAgICAgICAgICAgICAgICBfX2NwdWZy
+ZXFfY29vbGluZ191bnJlZ2lzdGVyKGNwdWZyZXFfY2RldiwgbGFzdCk7Cn0KRVhQT1JUX1NZTUJP
+TF9HUEwoY3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIpOwoKCgoKLS0gCiA8aHR0cDovL3d3dy5s
+aW5hcm8ub3JnLz4gTGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBT
+b0NzCgpGb2xsb3cgTGluYXJvOiAgPGh0dHA6Ly93d3cuZmFjZWJvb2suY29tL3BhZ2VzL0xpbmFy
+bz4gRmFjZWJvb2sgfAo8aHR0cDovL3R3aXR0ZXIuY29tLyMhL2xpbmFyb29yZz4gVHdpdHRlciB8
+CjxodHRwOi8vd3d3LmxpbmFyby5vcmcvbGluYXJvLWJsb2cvPiBCbG9nCgoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
+aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
+cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
