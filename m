@@ -1,91 +1,157 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH V3 2/3] thermal/drivers/cpu_cooling: Unregister with the
- policy
-Date: Wed, 26 Jun 2019 12:19:53 +0200
-Message-ID: <8a9b7bd0-9b21-1ce1-6176-cffff4b8d739@linaro.org>
-References: <20190625113244.18146-1-daniel.lezcano@linaro.org>
- <20190625113244.18146-2-daniel.lezcano@linaro.org>
- <20190626025831.jmyzyypxr6ezpbtu@vireshk-i7>
- <da1d2603-e30a-d877-54c3-1fad218f9d57@linaro.org>
- <20190626063716.cechnzsb75q5lclr@vireshk-i7>
- <CAJZ5v0jFXmJ3ikEPQUp-cLv3+ZSnp1kP8CxdkZVofV1BS3+UwQ@mail.gmail.com>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH v4 net-next 1/4] net: core: page_pool: add user cnt
+ preventing pool deletion
+Date: Wed, 26 Jun 2019 12:42:16 +0200
+Message-ID: <20190626124216.494eee86@carbon>
+References: <20190625175948.24771-1-ivan.khoronzhuk@linaro.org>
+        <20190625175948.24771-2-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAJZ5v0jFXmJ3ikEPQUp-cLv3+ZSnp1kP8CxdkZVofV1BS3+UwQ@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, Fabio Estevam <festevam@gmail.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "open list:TI BANDGAP AND THERMAL DRIVER" <linux-omap@vger.kernel.org>, NXP Linux Team <linux-imx@nxp.com>, Pengutronix Kernel Team <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Zhang Rui <rui.zhang@intel.com>, Javi Merino <javi.merino@kernel.org>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190625175948.24771-2-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: davem@davemloft.net, grygorii.strashko@ti.com, hawk@kernel.org, saeedm@mellanox.com, leon@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, brouer@redhat.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjYvMDYvMjAxOSAxMTowNiwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6Cj4gT24gV2VkLCBK
-dW4gMjYsIDIwMTkgYXQgODozNyBBTSBWaXJlc2ggS3VtYXIgPHZpcmVzaC5rdW1hckBsaW5hcm8u
-b3JnPiB3cm90ZToKPj4KPj4gT24gMjYtMDYtMTksIDA4OjAyLCBEYW5pZWwgTGV6Y2FubyB3cm90
-ZToKPj4+IE9uIDI2LzA2LzIwMTkgMDQ6NTgsIFZpcmVzaCBLdW1hciB3cm90ZToKPj4+PiBPbiAy
-NS0wNi0xOSwgMTM6MzIsIERhbmllbCBMZXpjYW5vIHdyb3RlOgo+Pj4+PiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9jcHVmcmVxL2NwdWZyZXEuYyBiL2RyaXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMKPj4+
-Pj4gaW5kZXggYWVlMDI0ZTQyNjE4Li5mMDc0NTQyNDlmYmMgMTAwNjQ0Cj4+Pj4+IC0tLSBhL2Ry
-aXZlcnMvY3B1ZnJlcS9jcHVmcmVxLmMKPj4+Pj4gKysrIGIvZHJpdmVycy9jcHVmcmVxL2NwdWZy
-ZXEuYwo+Pj4+PiBAQCAtMTM3OSw4ICsxMzc5LDggQEAgc3RhdGljIGludCBjcHVmcmVxX29ubGlu
-ZSh1bnNpZ25lZCBpbnQgY3B1KQo+Pj4+PiAgICAgICAgICAgIGNwdWZyZXFfZHJpdmVyLT5yZWFk
-eShwb2xpY3kpOwo+Pj4+Pgo+Pj4+PiAgICBpZiAoY3B1ZnJlcV90aGVybWFsX2NvbnRyb2xfZW5h
-YmxlZChjcHVmcmVxX2RyaXZlcikpCj4+Pj4+IC0gICAgICAgICAgcG9saWN5LT5jZGV2ID0gb2Zf
-Y3B1ZnJlcV9jb29saW5nX3JlZ2lzdGVyKHBvbGljeSk7Cj4+Pj4+IC0KPj4+Pj4gKyAgICAgICAg
-ICBvZl9jcHVmcmVxX2Nvb2xpbmdfcmVnaXN0ZXIocG9saWN5KTsKPj4+Pj4gKwo+Pj4+Cj4+Pj4g
-V2UgZG9uJ3QgbmVlZCBhbnkgZXJyb3IgY2hlY2tpbmcgaGVyZSBhbnltb3JlID8KPj4+Cj4+PiBU
-aGVyZSB3YXMgbm8gZXJyb3IgY2hlY2tpbmcgaW5pdGlhbGx5LiBUaGlzIGNvbW1lbnQgYW5kIHRo
-ZSBvdGhlcnMgYmVsb3cKPj4+IGFyZSBmb3IgYW4gYWRkaXRpb25hbCBwYXRjaCBJTU8sIG5vdCBh
-IGNoYW5nZSBpbiB0aGlzIG9uZS4KPj4KPj4gcmlnaHQsIGJ1dCAuLi4KPj4KPj4+Pj4gLXZvaWQg
-Y3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIoc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2Ug
-KmNkZXYpCj4+Pj4+ICt2b2lkIGNwdWZyZXFfY29vbGluZ191bnJlZ2lzdGVyKHN0cnVjdCBjcHVm
-cmVxX3BvbGljeSAqcG9saWN5KQo+Pj4+PiAgewo+Pj4+PiAgICBzdHJ1Y3QgY3B1ZnJlcV9jb29s
-aW5nX2RldmljZSAqY3B1ZnJlcV9jZGV2Owo+Pj4+PiAgICBib29sIGxhc3Q7Cj4+Pj4+Cj4+Pj4+
-IC0gIGlmICghY2RldikKPj4+Pj4gLSAgICAgICAgICByZXR1cm47Cj4+Cj4+IHdlIHVzZWQgdG8g
-cmV0dXJuIHdpdGhvdXQgYW55IGVycm9ycyBmcm9tIGhlcmUuIE5vdyB3ZSB3aWxsIGhhdmUKPj4g
-cHJvYmxlbXMgaWYgcmVnc2l0ZXJpbmcgZmFpbHMgZm9yIHNvbWUgcmVhc29uLgo+IAo+IFNwZWNp
-ZmljYWxseSwgdGhlIGxhc3QgY3B1ZnJlcV9jZGV2IGluIHRoZSBsaXN0IHdpbGwgYmUgdW5yZWdp
-c3RlcmVkCj4gQUZBSUNTLCBhbmQgd2l0aG91dCByZW1vdmluZyBpdCBmcm9tIHRoZSBsaXN0IGZv
-ciB0aGF0IG1hdHRlciwgd2hpY2gKPiBpc24ndCB3aGF0IHRoZSBjYWxsZXIgd2FudHMuCgpJbmRl
-ZWQsCgpXaGF0IGFib3V0IHRoZSByZXN1bHRpbmcgY29kZSBhYm92ZToKCnZvaWQgX19jcHVmcmVx
-X2Nvb2xpbmdfdW5yZWdpc3RlcihzdHJ1Y3QgY3B1ZnJlcV9jb29saW5nX2RldmljZQoqY3B1ZnJl
-cV9jZGV2LCBpbnQgbGFzdCkKewogICAgICAgIC8qIFVucmVnaXN0ZXIgdGhlIG5vdGlmaWVyIGZv
-ciB0aGUgbGFzdCBjcHVmcmVxIGNvb2xpbmcgZGV2aWNlICovCiAgICAgICAgaWYgKGxhc3QpCiAg
-ICAgICAgICAgICAgICBjcHVmcmVxX3VucmVnaXN0ZXJfbm90aWZpZXIoJnRoZXJtYWxfY3B1ZnJl
-cV9ub3RpZmllcl9ibG9jaywKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBDUFVGUkVRX1BPTElDWV9OT1RJRklFUik7CgogICAgICAgIHRoZXJtYWxfY29vbGluZ19k
-ZXZpY2VfdW5yZWdpc3RlcihjcHVmcmVxX2NkZXYtPmNkZXYpOwogICAgICAgIGlkYV9zaW1wbGVf
-cmVtb3ZlKCZjcHVmcmVxX2lkYSwgY3B1ZnJlcV9jZGV2LT5pZCk7CiAgICAgICAga2ZyZWUoY3B1
-ZnJlcV9jZGV2LT5pZGxlX3RpbWUpOwogICAgICAgIGtmcmVlKGNwdWZyZXFfY2Rldik7Cn0KCi8q
-KgoKICogY3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIgLSBmdW5jdGlvbiB0byByZW1vdmUgY3B1
-ZnJlcSBjb29saW5nCmRldmljZS4KICogQGNkZXY6IHRoZXJtYWwgY29vbGluZyBkZXZpY2UgcG9p
-bnRlci4KCiAqCgogKiBUaGlzIGludGVyZmFjZSBmdW5jdGlvbiB1bnJlZ2lzdGVycyB0aGUgInRo
-ZXJtYWwtY3B1ZnJlcS0leCIgY29vbGluZwpkZXZpY2UuCiAqLwp2b2lkIGNwdWZyZXFfY29vbGlu
-Z191bnJlZ2lzdGVyKHN0cnVjdCBjcHVmcmVxX3BvbGljeSAqcG9saWN5KQp7CiAgICAgICAgc3Ry
-dWN0IGNwdWZyZXFfY29vbGluZ19kZXZpY2UgKmNwdWZyZXFfY2RldjsKICAgICAgICBib29sIGxh
-c3Q7CgogICAgICAgIG11dGV4X2xvY2soJmNvb2xpbmdfbGlzdF9sb2NrKTsKICAgICAgICBsaXN0
-X2Zvcl9lYWNoX2VudHJ5KGNwdWZyZXFfY2RldiwgJmNwdWZyZXFfY2Rldl9saXN0LCBub2RlKSB7
-CiAgICAgICAgICAgICAgICBpZiAoY3B1ZnJlcV9jZGV2LT5wb2xpY3kgPT0gcG9saWN5KSB7CiAg
-ICAgICAgICAgICAgICAgICAgICAgIGxpc3RfZGVsKCZjcHVmcmVxX2NkZXYtPm5vZGUpOwogICAg
-ICAgICAgICAgICAgICAgICAgICBsYXN0ID0gbGlzdF9lbXB0eSgmY3B1ZnJlcV9jZGV2X2xpc3Qp
-OwogICAgICAgICAgICAgICAgICAgICAgICBicmVhazsKICAgICAgICAgICAgICAgIH0KICAgICAg
-ICB9CiAgICAgICAgbXV0ZXhfdW5sb2NrKCZjb29saW5nX2xpc3RfbG9jayk7CgogICAgICAgIGlm
-IChjcHVmcmVxX2NkZXYtPnBvbGljeSA9PSBwb2xpY3kpCiAgICAgICAgICAgICAgICBfX2NwdWZy
-ZXFfY29vbGluZ191bnJlZ2lzdGVyKGNwdWZyZXFfY2RldiwgbGFzdCk7Cn0KRVhQT1JUX1NZTUJP
-TF9HUEwoY3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIpOwoKCgoKLS0gCiA8aHR0cDovL3d3dy5s
-aW5hcm8ub3JnLz4gTGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBT
-b0NzCgpGb2xsb3cgTGluYXJvOiAgPGh0dHA6Ly93d3cuZmFjZWJvb2suY29tL3BhZ2VzL0xpbmFy
-bz4gRmFjZWJvb2sgfAo8aHR0cDovL3R3aXR0ZXIuY29tLyMhL2xpbmFyb29yZz4gVHdpdHRlciB8
-CjxodHRwOi8vd3d3LmxpbmFyby5vcmcvbGluYXJvLWJsb2cvPiBCbG9nCgoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
-aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Tue, 25 Jun 2019 20:59:45 +0300
+Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
+
+> Add user counter allowing to delete pool only when no users.
+> It doesn't prevent pool from flush, only prevents freeing the
+> pool instance. Helps when no need to delete the pool and now
+> it's user responsibility to free it by calling page_pool_free()
+> while destroying procedure. It also makes to use page_pool_free()
+> explicitly, not fully hidden in xdp unreg, which looks more
+> correct after page pool "create" routine.
+
+No, this is wrong.
+
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 8 +++++---
+>  include/net/page_pool.h                           | 7 +++++++
+>  net/core/page_pool.c                              | 7 +++++++
+>  net/core/xdp.c                                    | 3 +++
+>  4 files changed, 22 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> index 5e40db8f92e6..cb028de64a1d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> @@ -545,10 +545,8 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
+>  	}
+>  	err = xdp_rxq_info_reg_mem_model(&rq->xdp_rxq,
+>  					 MEM_TYPE_PAGE_POOL, rq->page_pool);
+> -	if (err) {
+> -		page_pool_free(rq->page_pool);
+> +	if (err)
+>  		goto err_free;
+> -	}
+>  
+>  	for (i = 0; i < wq_sz; i++) {
+>  		if (rq->wq_type == MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ) {
+> @@ -613,6 +611,8 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
+>  	if (rq->xdp_prog)
+>  		bpf_prog_put(rq->xdp_prog);
+>  	xdp_rxq_info_unreg(&rq->xdp_rxq);
+> +	if (rq->page_pool)
+> +		page_pool_free(rq->page_pool);
+>  	mlx5_wq_destroy(&rq->wq_ctrl);
+>  
+>  	return err;
+> @@ -643,6 +643,8 @@ static void mlx5e_free_rq(struct mlx5e_rq *rq)
+>  	}
+>  
+>  	xdp_rxq_info_unreg(&rq->xdp_rxq);
+> +	if (rq->page_pool)
+> +		page_pool_free(rq->page_pool);
+
+No, this is wrong.  The hole point with the merged page_pool fixes
+patchset was that page_pool_free() needs to be delayed until no-more
+in-flight packets exist.
+
+
+>  	mlx5_wq_destroy(&rq->wq_ctrl);
+>  }
+>  
+> diff --git a/include/net/page_pool.h b/include/net/page_pool.h
+> index f07c518ef8a5..1ec838e9927e 100644
+> --- a/include/net/page_pool.h
+> +++ b/include/net/page_pool.h
+> @@ -101,6 +101,7 @@ struct page_pool {
+>  	struct ptr_ring ring;
+>  
+>  	atomic_t pages_state_release_cnt;
+> +	atomic_t user_cnt;
+>  };
+>  
+>  struct page *page_pool_alloc_pages(struct page_pool *pool, gfp_t gfp);
+> @@ -183,6 +184,12 @@ static inline dma_addr_t page_pool_get_dma_addr(struct page *page)
+>  	return page->dma_addr;
+>  }
+>  
+> +/* used to prevent pool from deallocation */
+> +static inline void page_pool_get(struct page_pool *pool)
+> +{
+> +	atomic_inc(&pool->user_cnt);
+> +}
+> +
+>  static inline bool is_page_pool_compiled_in(void)
+>  {
+>  #ifdef CONFIG_PAGE_POOL
+> diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+> index b366f59885c1..169b0e3c870e 100644
+> --- a/net/core/page_pool.c
+> +++ b/net/core/page_pool.c
+> @@ -48,6 +48,7 @@ static int page_pool_init(struct page_pool *pool,
+>  		return -ENOMEM;
+>  
+>  	atomic_set(&pool->pages_state_release_cnt, 0);
+> +	atomic_set(&pool->user_cnt, 0);
+>  
+>  	if (pool->p.flags & PP_FLAG_DMA_MAP)
+>  		get_device(pool->p.dev);
+> @@ -70,6 +71,8 @@ struct page_pool *page_pool_create(const struct page_pool_params *params)
+>  		kfree(pool);
+>  		return ERR_PTR(err);
+>  	}
+> +
+> +	page_pool_get(pool);
+>  	return pool;
+>  }
+>  EXPORT_SYMBOL(page_pool_create);
+> @@ -356,6 +359,10 @@ static void __warn_in_flight(struct page_pool *pool)
+>  
+>  void __page_pool_free(struct page_pool *pool)
+>  {
+> +	/* free only if no users */
+> +	if (!atomic_dec_and_test(&pool->user_cnt))
+> +		return;
+> +
+>  	WARN(pool->alloc.count, "API usage violation");
+>  	WARN(!ptr_ring_empty(&pool->ring), "ptr_ring is not empty");
+>  
+> diff --git a/net/core/xdp.c b/net/core/xdp.c
+> index 829377cc83db..04bdcd784d2e 100644
+> --- a/net/core/xdp.c
+> +++ b/net/core/xdp.c
+> @@ -372,6 +372,9 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
+>  
+>  	mutex_unlock(&mem_id_lock);
+>  
+> +	if (type == MEM_TYPE_PAGE_POOL)
+> +		page_pool_get(xdp_alloc->page_pool);
+> +
+>  	trace_mem_connect(xdp_alloc, xdp_rxq);
+>  	return 0;
+>  err:
+
+
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Principal Kernel Engineer at Red Hat
+  LinkedIn: http://www.linkedin.com/in/brouer
