@@ -1,62 +1,39 @@
-From: Russell King - ARM Linux admin <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Subject: Re: SATA broken with LPAE
-Date: Thu, 27 Jun 2019 11:09:19 +0100
-Message-ID: <20190627100919.jgvtkhbpbml342cp@shell.armlinux.org.uk>
-References: <16f065ef-f4ac-46b4-de2a-6b5420ae873a@ti.com>
-	<20190626125325.GA4744@lst.de>
-	<20190627090753.b5xfpnsicynnqj5c@shell.armlinux.org.uk>
-	<20190627091530.GA11809@lst.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: am57xx: Disable voltage switching for SD card
+Date: Thu, 27 Jun 2019 04:39:04 -0700
+Message-ID: <20190627113904.GI5447@atomide.com>
+References: <20190619102454.5097-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190627091530.GA11809-jcswGhMUV9g@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, Vignesh Raghavendra <vigneshr-l0cyMroinI0@public.gmane.org>, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, jejb-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org, "Nori,
-	Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20190619102454.5097-1-faiz_abbas@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, robh+dt@kernel.org, robertcnelson@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 27, 2019 at 11:15:30AM +0200, Christoph Hellwig wrote:
-> On Thu, Jun 27, 2019 at 10:07:53AM +0100, Russell King - ARM Linux admin wrote:
-> > dmabounce has only ever been used with specific devices that have weird
-> > setups.  Otherwise, we've never expected what you describe on ARM.  I
-> > also don't recognise your assertion about the way the DMA API should
-> > behave as ever having been documented as a requirement for architectures
-> > to implement.
+* Faiz Abbas <faiz_abbas@ti.com> [190619 03:25]:
+> If UHS speed modes are enabled, a compatible SD card switches down to
+> 1.8V during enumeration. If after this a software reboot/crash takes
+> place and on-chip ROM tries to enumerate the SD card, the difference in
+> IO voltages (host @ 3.3V and card @ 1.8V) may end up damaging the card.
 > 
-> That requirement has basically always been there since at least the
-> 2.6.x days.  The history here is that when 64-bit architectures showed
-> up they all had iommus, so this wasn't an issue.  Next was x86 with
-> highmem, which added special bounce buffering for block I/O and networking
-> only.  Then ia64 showed up that didn't always have an iommu and swiotlb
-> was added as a "software IOMMU".  At this point we had to bounce buffering
-> schemes for block and networking, while everything else potentially
-> DMAing to higher memory relied on swiotlb, which was picked up by
-> basically every architecture that could have memory not covered by a
-> 32-bit mask and didn't have an iommu.
+> The fix for this is to have support for power cycling the card in
+> hardware (with a PORz/soft-reset line causing a power cycle of the
+> card). Because the beaglebone X15 (rev A,B and C), am57xx-idks and
+> am57xx-evms don't have this capability, disable voltage switching for
+> these boards.
+> 
+> The major effect of this is that the maximum supported speed
+> mode is now high speed(50 MHz) down from SDR104(200 MHz).
+> 
+> commit 88a748419b84 ("ARM: dts: am57xx-idk: Remove support for voltage
+> switching for SD card") did this only for idk boards. Do it for all
+> affected boards.
 
-If it wasn't documented...
+Thanks applying into fixes.
 
-> Except it seems arm never did
-> that and has been lucky as people didn't try anything that is not
-> block or networking on their extended physical address space.
+Regards,
 
-Because no one knew that the requirement had been introduced, and we've
-been reliant on all the code you've been stripping out.
-
-You're now causing regressions on 32-bit ARM, so you get to fix it.
-
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+Tony
