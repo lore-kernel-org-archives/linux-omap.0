@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 29/60] ARM: dts: am335x phytec boards: Fix cd-gpios active level
-Date: Wed, 26 Jun 2019 20:35:44 -0400
-Message-ID: <20190627003616.20767-29-sashal@kernel.org>
-References: <20190627003616.20767-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 18/35] ARM: dts: am335x phytec boards: Fix cd-gpios active level
+Date: Wed, 26 Jun 2019 20:39:06 -0400
+Message-ID: <20190627003925.21330-18-sashal@kernel.org>
+References: <20190627003925.21330-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190627003616.20767-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190627003925.21330-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Teresa Remmet <t.remmet@phytec.de>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
