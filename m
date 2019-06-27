@@ -1,57 +1,60 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 18/35] ARM: dts: am335x phytec boards: Fix cd-gpios active level
-Date: Wed, 26 Jun 2019 20:39:06 -0400
-Message-ID: <20190627003925.21330-18-sashal@kernel.org>
-References: <20190627003925.21330-1-sashal@kernel.org>
+From: Russell King - ARM Linux admin <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Subject: Re: SATA broken with LPAE
+Date: Thu, 27 Jun 2019 10:07:53 +0100
+Message-ID: <20190627090753.b5xfpnsicynnqj5c@shell.armlinux.org.uk>
+References: <16f065ef-f4ac-46b4-de2a-6b5420ae873a@ti.com>
+	<20190626125325.GA4744@lst.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190627003925.21330-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Teresa Remmet <t.remmet@phytec.de>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20190626125325.GA4744-jcswGhMUV9g@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, Vignesh Raghavendra <vigneshr-l0cyMroinI0@public.gmane.org>, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, jejb-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org, "Nori,
+	Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Teresa Remmet <t.remmet@phytec.de>
+On Wed, Jun 26, 2019 at 02:53:25PM +0200, Christoph Hellwig wrote:
+> Hi Roger,
+> 
+> it seems the arm dma direct mapping code isn't doing the right thing
+> here.  On other platforms that have > 4G memory we always use swiotlb
+> for bounce buffering in case a device that can't DMA to all the memory.
+> 
+> Arm is the odd one out and uses its own dmabounce framework instead,
+> but it seems like it doesn't get used in this case.  We need to make
+> sure dmabounce (or swiotlb for that matter) is set up if > 32-bit
+> addressing is supported.  I'm not really an arm platform expert,
+> but some of those on the Cc list are and might chime in on how to
+> do that.
 
-[ Upstream commit 8a0098c05a272c9a68f6885e09755755b612459c ]
+dmabounce has only ever been used with specific devices that have weird
+setups.  Otherwise, we've never expected what you describe on ARM.  I
+also don't recognise your assertion about the way the DMA API should
+behave as ever having been documented as a requirement for architectures
+to implement.
 
-Active level of the mmc1 cd gpio needs to be low instead of high.
-Fix PCM-953 and phyBOARD-WEGA.
+dmabounce comes with it some serious issues that have been known to
+cause OOMs with old kernels (which have never been solved), so that
+really isn't the answer.
 
-Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/am335x-pcm-953.dtsi | 2 +-
- arch/arm/boot/dts/am335x-wega.dtsi    | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+This kind of breakage that is now being reported is exactly the problem
+that I thought would happen with your patches.
 
-diff --git a/arch/arm/boot/dts/am335x-pcm-953.dtsi b/arch/arm/boot/dts/am335x-pcm-953.dtsi
-index 1ec8e0d80191..572fbd254690 100644
---- a/arch/arm/boot/dts/am335x-pcm-953.dtsi
-+++ b/arch/arm/boot/dts/am335x-pcm-953.dtsi
-@@ -197,7 +197,7 @@
- 	bus-width = <4>;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
--	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
- 	status = "okay";
- };
- 
-diff --git a/arch/arm/boot/dts/am335x-wega.dtsi b/arch/arm/boot/dts/am335x-wega.dtsi
-index 8ce541739b24..83e4fe595e37 100644
---- a/arch/arm/boot/dts/am335x-wega.dtsi
-+++ b/arch/arm/boot/dts/am335x-wega.dtsi
-@@ -157,7 +157,7 @@
- 	bus-width = <4>;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
--	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
- 	status = "okay";
- };
- 
+32-bit ARM is in maintenance only now, there is no longer any appetite
+nor funding for development work on core code.
+
 -- 
-2.20.1
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
