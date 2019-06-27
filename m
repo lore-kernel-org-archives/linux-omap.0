@@ -1,55 +1,55 @@
-From: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
-Subject: Re: [PATCH 01/30] include: linux: platform_device: more helpers for
- declaring platform drivers
-Date: Wed, 26 Jun 2019 19:27:02 +0200
-Message-ID: <30f541a7-ef9d-d687-ab76-22a4544258f8@metux.net>
-References: <1560796871-18560-1-git-send-email-info@metux.net>
- <20190626061405.qsqq5na4oactuo6f@pengutronix.de>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 01/95] ARM: dts: dra76x: Disable rtc target module
+Date: Wed, 26 Jun 2019 20:28:46 -0400
+Message-ID: <20190627003021.19867-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190626061405.qsqq5na4oactuo6f@pengutronix.de>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, "Enrico Weigelt, metux IT consult" <info@metux.net>
-Cc: linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, mcoquelin.stm32@gmail.com, thloh@altera.com, festevam@gmail.com, linus.walleij@linaro.org, khilman@kernel.org, patches@opensource.cirrus.com, bgolaszewski@baylibre.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-imx@nxp.com, kernel@pengutronix.de, ssantosh@kernel.org, linux-tegra@vger.kernel.org, andriy.shevchenko@linux.intel.com, shawnguo@kernel.org, s.hauer@pengutronix.de, alexandre.torgue@st.com
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 26.06.19 08:14, Uwe Kleine-König wrote:
-Hi,
+From: Keerthy <j-keerthy@ti.com>
 
-> Would it make sense to do something like:
->
-> 	#define __module_platform_driver(__platform_driver, __initlvl) \
-> 	static int __init __platform_driver##_init(void) \
-> 	{ \
-> 		return platform_driver_register(&(__platform_driver)); \
-> 	} \
-> 	__initlvl ## _initcall(__platform_driver##_init); \
-> 	static void __exit __platform_driver##_exit(void) \
-> 	{ \
-> 		platform_driver_unregister(&(__platform_driver)); \
-> 	} \
-> 	module_exit(__platform_driver##_exit);
->
-> 	#define postcore_platform_driver(__platform_driver)
-__module_platform_driver(__platform_driver, postcore)
-> 	#define subsys_platform_driver(__platform_driver)
-__module_platform_driver(__platform_driver, subsys)
-> 	...
->
-> Which would be more compact and makes the difference between these
-> macros a bit more obvious.
-yeah, could do that, but not sure whether it's really good for
-readability when we have so many nested macros :p
+[ Upstream commit f7b9cb944a5d41fdede4e928a47e9d5fce5169d7 ]
 
-OTOH, I didn't want to touch the existing macros for now, just trim down
-the actual init boilerplate, postponing further compactions for later.
+rtc is fused out on dra76 and accessing target module
+register is causing a boot crash hence disable it.
 
---mtx
+Fixes: 549fce068a3112 ("ARM: dts: dra7: Add l4 interconnect hierarchy and ti-sysc data")
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/dra7-l4.dtsi | 2 +-
+ arch/arm/boot/dts/dra76x.dtsi  | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index 414f1cd68733..73f5c050f586 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -3543,7 +3543,7 @@
+ 			};
+ 		};
+ 
+-		target-module@38000 {			/* 0x48838000, ap 29 12.0 */
++		rtctarget: target-module@38000 {			/* 0x48838000, ap 29 12.0 */
+ 			compatible = "ti,sysc-omap4-simple", "ti,sysc";
+ 			ti,hwmods = "rtcss";
+ 			reg = <0x38074 0x4>,
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+index 9ee45aa365d8..5c437271d307 100644
+--- a/arch/arm/boot/dts/dra76x.dtsi
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -81,3 +81,7 @@
+ 		reg = <0x3fc>;
+ 	};
+ };
++
++&rtctarget {
++	status = "disabled";
++};
 -- 
-Enrico Weigelt, metux IT consult
-Free software and Linux embedded engineering
-info@metux.net -- +49-151-27565287
+2.20.1
