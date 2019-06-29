@@ -1,77 +1,70 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH V4 2/3] thermal/drivers/cpu_cooling: Unregister with the
- policy
-Date: Fri, 28 Jun 2019 13:57:35 +0200
-Message-ID: <850b9fbb-e865-fea5-89c3-6eb26750048e@linaro.org>
-References: <20190627210209.32600-1-daniel.lezcano@linaro.org>
- <20190627210209.32600-2-daniel.lezcano@linaro.org>
- <CAJZ5v0jJzCGfQFqi-S3vqs74D73MaE4f7WYF_NVnDKawNV4Wzw@mail.gmail.com>
- <cd79ffe3-4749-9135-27c4-deb4f259d702@linaro.org>
- <CAJZ5v0hPjPMLfiWMPnm59HpmTbJNXw0MDpvRwMGOUpMXYUwgRw@mail.gmail.com>
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+Subject: Re: [PATCH 0/3] Add HwSpinlock support for TI K3 SoCs
+Date: Sat, 29 Jun 2019 11:57:42 -0700
+Message-ID: <20190629185742.GC23094@builder>
+References: <20190531021321.14025-1-s-anna@ti.com>
+ <90211f72-7ce4-94e5-aef7-bbe14266dfbb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hPjPMLfiWMPnm59HpmTbJNXw0MDpvRwMGOUpMXYUwgRw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Eduardo Valentin <edubezval@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Keerthy <j-keerthy@ti.com>, "open list:CPU FREQUENCY DRIVERS - ARM BIG LITTLE" <linux-pm@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, open list:TI BANDG
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <90211f72-7ce4-94e5-aef7-bbe14266dfbb@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-remoteproc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 28/06/2019 12:03, Rafael J. Wysocki wrote:
-> On Fri, Jun 28, 2019 at 11:58 AM Daniel Lezcano
-> <daniel.lezcano@linaro.org> wrote:
->>
->>
->> On 28/06/2019 11:12, Rafael J. Wysocki wrote:
->>> On Thu, Jun 27, 2019 at 11:02 PM Daniel Lezcano
->>> <daniel.lezcano@linaro.org> wrote:
->>>>
->>>> Currently the function cpufreq_cooling_register() returns a cooling
->>>> device pointer which is used back as a pointer to call the function
->>>> cpufreq_cooling_unregister(). Even if it is correct, it would make
->>>> sense to not leak the structure inside a cpufreq driver and keep the
->>>> code thermal code self-encapsulate. Moreover, that forces to add an
->>>> extra variable in each driver using this function.
->>>>
->>>> Instead of passing the cooling device to unregister, pass the policy.
->>>>
->>>> Because the cpufreq_cooling_unregister() function uses the policy to
->>>> unregister itself. The only purpose of the cooling device pointer is
->>>> to unregister the cpu cooling device.
->>>>
->>>> As there is no more need of this pointer, remove it.
->>>>
->>>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->>>> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
->>>
->>> This doesn't apply for me.
->>>
->>> Care to rebase it on top of the Linus' tree?
->>
->> Sure but the patch depends on 1/3 which is in bleeding edge. Shall I
->> rebase the 3 patches on v5.2-rc6 and resend ?
+On Mon 24 Jun 13:38 PDT 2019, Suman Anna wrote:
+
+> Hi Bjorn,
 > 
-> You can do that.
+
+Hi Suman,
+
+> On 5/30/19 9:13 PM, Suman Anna wrote:
+> > Hi Bjorn,
+> > 
+> > The following series adds the support for the HwSpinlock IP present
+> > on the newer TI K3 AM65x and J721E SoCs. The first 2 patches are
+> > related to the K3 support, and the last patch is a minor debug related
+> > trace to see the number of locks registered on each SoC.
+> > 
+> > I will be posting the DT nodes once the binding is acked.
 > 
-> Alternatively, you can rebase on top of my linux-next branch.
+> If you do not have any comments, can you please pick up this series for
+> 5.3 merge window?
+> 
 
-Ok, it is rebased on top of linux-next, however the conflict is coming
-from the energy model patchset sent by Quentin [1][2] I used to based my
-series which is not yet applied in the thermal tree.
+I was waiting for Rob's ack on the dt change, but as it's just a minor
+modification I've merged the series.
 
-I'm wondering if it wouldn't make sense to take Quentin's series also,
-it is a long time around in the mailing list, reviewed and acked. So I
-can send the two remaining patches on top of it without conflict,
-otherwise we will have a conflict in the merge window.
+Thanks,
+Bjorn
 
-[1] https://lkml.org/lkml/2019/5/30/794
-[2] https://lkml.org/lkml/2019/6/19/190
-
--- 
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+> Thanks,
+> Suman
+> 
+> > 
+> > regards
+> > Suman
+> > 
+> > Suman Anna (3):
+> >   dt-bindings: hwlock: Update OMAP binding for TI K3 SoCs
+> >   hwspinlock/omap: Add support for TI K3 SoCs
+> >   hwspinlock/omap: Add a trace during probe
+> > 
+> >  .../bindings/hwlock/omap-hwspinlock.txt       | 25 +++++++++++++++----
+> >  drivers/hwspinlock/Kconfig                    |  2 +-
+> >  drivers/hwspinlock/omap_hwspinlock.c          |  4 +++
+> >  3 files changed, 25 insertions(+), 6 deletions(-)
+> > 
+> 
