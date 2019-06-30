@@ -1,39 +1,83 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v5 net-next 5/6] net: ethernet: ti: cpsw_ethtool: allow res split while down
-Date: Sun, 30 Jun 2019 20:23:47 +0300
-Message-ID: <20190630172348.5692-6-ivan.khoronzhuk@linaro.org>
-References: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v5 net-next 0/6] net: ethernet: ti: cpsw: Add XDP support
+Date: Sun, 30 Jun 2019 20:23:42 +0300
+Message-ID: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
 Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-That's possible to set channel num while interfaces are down. When
-interface gets up it should resplit budget. This resplit can happen
-after phy is up but only if speed is changed, so should be set before
-this, for this allow it to happen while changing number of channels,
-when interfaces are down.
+This patchset adds XDP support for TI cpsw driver and base it on
+page_pool allocator. It was verified on af_xdp socket drop,
+af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw_ethtool.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+It was verified with following configs enabled:
+CONFIG_JIT=y
+CONFIG_BPFILTER=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_XDP_SOCKETS=y
+CONFIG_BPF_EVENTS=y
+CONFIG_HAVE_EBPF_JIT=y
+CONFIG_BPF_JIT=y
+CONFIG_CGROUP_BPF=y
 
-diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
-index 6ab0cec8560a..99935c1d265d 100644
---- a/drivers/net/ethernet/ti/cpsw_ethtool.c
-+++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
-@@ -620,8 +620,7 @@ int cpsw_set_channels_common(struct net_device *ndev,
- 		}
- 	}
- 
--	if (cpsw->usage_count)
--		cpsw_split_res(cpsw);
-+	cpsw_split_res(cpsw);
- 
- 	ret = cpsw_resume_data_pass(ndev);
- 	if (!ret)
+Link on previous v4:
+https://lkml.org/lkml/2019/6/25/996
+
+Also regular tests with iperf2 were done in order to verify impact on
+regular netstack performance, compared with base commit:
+https://pastebin.com/JSMT0iZ4
+
+v4..v5:
+- added two plreliminary patches:
+  net: ethernet: ti: davinci_cpdma: allow desc split while down
+  net: ethernet: ti: cpsw_ethtool: allow res split while down
+- added xdp alocator refcnt on xdp level, avoiding page pool refcnt
+- moved flush status as separate argument for cpdma_chan_process
+- reworked cpsw code according to last changes to allocator
+- added missed statistic counter
+
+v3..v4:
+- added page pool user counter
+- use same pool for ndevs in dual mac
+- restructured page pool create/destroy according to the last changes in API
+
+v2..v3:
+- each rxq and ndev has its own page pool
+
+v1..v2:
+- combined xdp_xmit functions
+- used page allocation w/o refcnt juggle
+- unmapped page for skb netstack
+- moved rxq/page pool allocation to open/close pair
+- added several preliminary patches:
+  net: page_pool: add helper function to retrieve dma addresses
+  net: page_pool: add helper function to unmap dma addresses
+  net: ethernet: ti: cpsw: use cpsw as drv data
+  net: ethernet: ti: cpsw_ethtool: simplify slave loops
+
+
+Based on net-next/master
+
+Ivan Khoronzhuk (6):
+  xdp: allow same allocator usage
+  net: ethernet: ti: davinci_cpdma: add dma mapped submit
+  net: ethernet: ti: davinci_cpdma: return handler status
+  net: ethernet: ti: davinci_cpdma: allow desc split while down
+  net: ethernet: ti: cpsw_ethtool: allow res split while down
+  net: ethernet: ti: cpsw: add XDP support
+
+ drivers/net/ethernet/ti/Kconfig         |   1 +
+ drivers/net/ethernet/ti/cpsw.c          | 520 +++++++++++++++++++++---
+ drivers/net/ethernet/ti/cpsw_ethtool.c  |  78 +++-
+ drivers/net/ethernet/ti/cpsw_priv.h     |   9 +-
+ drivers/net/ethernet/ti/davinci_cpdma.c | 125 +++++-
+ drivers/net/ethernet/ti/davinci_cpdma.h |  11 +-
+ drivers/net/ethernet/ti/davinci_emac.c  |  17 +-
+ include/net/xdp_priv.h                  |   1 +
+ net/core/xdp.c                          |  46 +++
+ 9 files changed, 701 insertions(+), 107 deletions(-)
+
 -- 
 2.17.1
