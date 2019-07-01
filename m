@@ -1,89 +1,57 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v5 net-next 4/6] net: ethernet: ti: davinci_cpdma: allow desc split while down
-Date: Sun, 30 Jun 2019 20:23:46 +0300
-Message-ID: <20190630172348.5692-5-ivan.khoronzhuk@linaro.org>
-References: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 0/5] Minor ti-sysc cleanups
+Date: Mon, 1 Jul 2019 10:18:09 +0300
+Message-ID: <f4b63a80-560e-377c-0e4e-5b8711990747@ti.com>
+References: <20190625233315.22301-1-s-anna@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <20190625233315.22301-1-s-anna@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
-Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-That's possible to set ring params while interfaces are down. When
-interface gets up it uses number of descs to fill rx queue and on
-later on changes to create rx pools. Usually, this resplit can happen
-after phy is up, but it can be needed before this, so allow it to
-happen while setting number of rx descs, when interfaces are down.
-Also, if no dependency on intf state, move it to cpdma layer, where
-it should be.
+On 26/06/2019 02:33, Suman Anna wrote:
+> Hi Tony,
+> 
+> The following series includes minor cleanup patches against the ti-sysc
+> code. Patches are based on top of all your 5.3 staged branches. Feel free
+> to pick them up for either 5.3 (if it is not too late) or 5.4 merge window. 
+> 
+> The first 4 patches are non-coding changes, and the last patch is a minor
+> fixup cleaning up the code flow on failure error paths in sysc_probe()
+> function. I have boot tested on the limited boards that I have - AM335x
+> BeagleBone Black, AM437x IDK, AM57xx GP EVM, OMAP4 PandaBoard and OMAP5
+> uEVM.
+> 
+> regards
+> Suman
+> 
+> Suman Anna (5):
+>   MAINTAINERS: Add ti-sysc files under the OMAP2+ entry
+>   dt-bindings: ti-sysc: Add SPDX license identifier
+>   bus: ti-sysc: Switch to SPDX license identifier
+>   bus: ti-sysc: Add missing kerneldoc comments
+>   bus: ti-sysc: Simplify cleanup upon failures in sysc_probe()
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw_ethtool.c  |  9 ++++-----
- drivers/net/ethernet/ti/davinci_cpdma.c | 10 +++++++++-
- drivers/net/ethernet/ti/davinci_cpdma.h |  3 +--
- 3 files changed, 14 insertions(+), 8 deletions(-)
+For all patches.
 
-diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
-index 7c19eebbabcc..6ab0cec8560a 100644
---- a/drivers/net/ethernet/ti/cpsw_ethtool.c
-+++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
-@@ -664,15 +664,14 @@ int cpsw_set_ringparam(struct net_device *ndev,
- 
- 	cpsw_suspend_data_pass(ndev);
- 
--	cpdma_set_num_rx_descs(cpsw->dma, ering->rx_pending);
--
--	if (cpsw->usage_count)
--		cpdma_chan_split_pool(cpsw->dma);
-+	ret = cpdma_set_num_rx_descs(cpsw->dma, ering->rx_pending);
-+	if (ret)
-+		goto err;
- 
- 	ret = cpsw_resume_data_pass(ndev);
- 	if (!ret)
- 		return 0;
--
-+err:
- 	dev_err(cpsw->dev, "cannot set ring params, closing device\n");
- 	dev_close(ndev);
- 	return ret;
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index ea25b23c8058..7dc2c1ee6238 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -1427,8 +1427,16 @@ int cpdma_get_num_tx_descs(struct cpdma_ctlr *ctlr)
- 	return ctlr->num_tx_desc;
- }
- 
--void cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc)
-+int cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc)
- {
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
- 	ctlr->num_rx_desc = num_rx_desc;
- 	ctlr->num_tx_desc = ctlr->pool->num_desc - ctlr->num_rx_desc;
-+	ret = cpdma_chan_split_pool(ctlr);
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+
-+	return ret;
- }
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index aafa8889c789..df66b8c797ee 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -116,8 +116,7 @@ enum cpdma_control {
- int cpdma_control_get(struct cpdma_ctlr *ctlr, int control);
- int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value);
- int cpdma_get_num_rx_descs(struct cpdma_ctlr *ctlr);
--void cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc);
-+int cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc);
- int cpdma_get_num_tx_descs(struct cpdma_ctlr *ctlr);
--int cpdma_chan_split_pool(struct cpdma_ctlr *ctlr);
- 
- #endif
+Acked-by: Roger Quadros <rogerq@ti.com>
+
+> 
+>  MAINTAINERS                           |  2 ++
+>  drivers/bus/ti-sysc.c                 | 31 +++++++++++++--------------
+>  include/dt-bindings/bus/ti-sysc.h     |  1 +
+>  include/linux/platform_data/ti-sysc.h |  7 ++++--
+>  4 files changed, 23 insertions(+), 18 deletions(-)
+> 
+
 -- 
-2.17.1
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
