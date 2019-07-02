@@ -1,59 +1,129 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: [GIT PULL v2] Immutable branch between MFD and Regulator due for the
- v5.3 merge window
-Date: Tue, 2 Jul 2019 11:46:00 +0100
-Message-ID: <20190702104600.GE4652@dell>
-References: <20190612144620.28331-1-j-keerthy@ti.com>
- <20190617070341.GC16364@dell>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH v5 net-next 6/6] net: ethernet: ti: cpsw: add XDP support
+Date: Tue, 2 Jul 2019 14:37:39 +0300
+Message-ID: <20190702113738.GB4510@khorivan>
+References: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
+ <20190630172348.5692-7-ivan.khoronzhuk@linaro.org>
+ <20190701181901.150c0b71@carbon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190617070341.GC16364@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: broonie@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+In-Reply-To: <20190701181901.150c0b71@carbon>
+Sender: netdev-owner@vger.kernel.org
+To: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: grygorii.strashko@ti.com, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Mark,
+On Mon, Jul 01, 2019 at 06:19:01PM +0200, Jesper Dangaard Brouer wrote:
+>On Sun, 30 Jun 2019 20:23:48 +0300
+>Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
+>
+>> +static int cpsw_ndev_create_xdp_rxq(struct cpsw_priv *priv, int ch)
+>> +{
+>> +	struct cpsw_common *cpsw = priv->cpsw;
+>> +	int ret, new_pool = false;
+>> +	struct xdp_rxq_info *rxq;
+>> +
+>> +	rxq = &priv->xdp_rxq[ch];
+>> +
+>> +	ret = xdp_rxq_info_reg(rxq, priv->ndev, ch);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	if (!cpsw->page_pool[ch]) {
+>> +		ret =  cpsw_create_rx_pool(cpsw, ch);
+>> +		if (ret)
+>> +			goto err_rxq;
+>> +
+>> +		new_pool = true;
+>> +	}
+>> +
+>> +	ret = xdp_rxq_info_reg_mem_model(rxq, MEM_TYPE_PAGE_POOL,
+>> +					 cpsw->page_pool[ch]);
+>> +	if (!ret)
+>> +		return 0;
+>> +
+>> +	if (new_pool) {
+>> +		page_pool_free(cpsw->page_pool[ch]);
+>> +		cpsw->page_pool[ch] = NULL;
+>> +	}
+>> +
+>> +err_rxq:
+>> +	xdp_rxq_info_unreg(rxq);
+>> +	return ret;
+>> +}
+>
+>Looking at this, and Ilias'es XDP-netsec error handling path, it might
+>be a mistake that I removed page_pool_destroy() and instead put the
+>responsibility on xdp_rxq_info_unreg().
+As for me this is started not from page_pool_free, but rather from calling
+unreg_mem_model from rxq_info_unreg. Then, if page_pool_free is hidden
+it looks more a while normal to move all chain to be self destroyed.
 
-This is a subsequent pull which contains the /* fall-through */ fix.
+>
+>As here, we have to detect if page_pool_create() was a success, and then
+>if xdp_rxq_info_reg_mem_model() was a failure, explicitly call
+>page_pool_free() because the xdp_rxq_info_unreg() call cannot "free"
+>the page_pool object given it was not registered.
+Yes, it looked a little bit ugly from the beginning, but, frankly,
+I have got used to this already.
 
-Enjoy!
+>
+>Ivan's patch in[1], might be a better approach, which forced all
+>drivers to explicitly call page_pool_free(), even-though it just
+>dec-refcnt and the real call to page_pool_free() happened via
+>xdp_rxq_info_unreg().
+>
+>To better handle error path, I would re-introduce page_pool_destroy(),
+So, you might to do it later as I understand, and not for my special
+case but becouse it makes error path to look a little bit more pretty.
+I'm perfectly fine with this, and better you add this, for now my
+implementation requires only "xdp: allow same allocator usage" patch,
+but if you insist I can resend also patch in question afterwards my
+series is applied (with modification to cpsw & netsec & mlx5 & page_pool).
 
-The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
+What's your choice? I can add to your series patch needed for cpsw to
+avoid some misuse.
 
-  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
+>as a driver API, that would gracefully handle NULL-pointer case, and
+>then call page_pool_free() with the atomic_dec_and_test().  (It should
+>hopefully simplify the error handling code a bit)
+>
+>[1] https://lore.kernel.org/netdev/20190625175948.24771-2-ivan.khoronzhuk@linaro.org/
+>
+>
+>> +void cpsw_ndev_destroy_xdp_rxqs(struct cpsw_priv *priv)
+>> +{
+>> +	struct cpsw_common *cpsw = priv->cpsw;
+>> +	struct xdp_rxq_info *rxq;
+>> +	int i;
+>> +
+>> +	for (i = 0; i < cpsw->rx_ch_num; i++) {
+>> +		rxq = &priv->xdp_rxq[i];
+>> +		if (xdp_rxq_info_is_reg(rxq))
+>> +			xdp_rxq_info_unreg(rxq);
+>> +	}
+>> +}
+>
+>Are you sure you need to test xdp_rxq_info_is_reg() here?
+Yes it's required in my case as it's used in error path where
+an rx queue can be even not registered and no need in this warn.
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-regulator-v5.3-1
-
-for you to fetch changes up to f3f4363b1239584efc1a22c5ca0f2308e5693c38:
-
-  regulator: lp87565: Fix missing break in switch statement (2019-07-02 11:41:23 +0100)
-
-----------------------------------------------------------------
-Immutable branch between MFD and Regulator due for the v5.3 merge window
-
-----------------------------------------------------------------
-Colin Ian King (1):
-      regulator: lp87565: Fix missing break in switch statement
-
-Keerthy (3):
-      dt-bindings: mfd: lp87565: Add LP87561 configuration
-      mfd: lp87565: Add support for 4-phase LP87561 combination
-      regulator: lp87565: Add 4-phase lp87561 regulator support
-
- Documentation/devicetree/bindings/mfd/lp87565.txt | 36 +++++++++++++++++++++++
- drivers/mfd/lp87565.c                             |  4 +++
- drivers/regulator/lp87565-regulator.c             | 18 +++++++++++-
- include/linux/mfd/lp87565.h                       |  2 ++
- 4 files changed, 59 insertions(+), 1 deletion(-)
+>
+>You should just call xdp_rxq_info_unreg(rxq), if you know that this rxq
+>should be registered.  If your assumption failed, you will get a
+>WARNing, and discover your driver level bug.  This is one of the ways
+>the API is designed to "detect" misuse of the API.  (I found this
+>rather useful, when I converted the approx 12 drivers using this
+>xdp_rxq_info API).
+>
+>-- 
+>Best regards,
+>  Jesper Dangaard Brouer
+>  MSc.CS, Principal Kernel Engineer at Red Hat
+>  LinkedIn: http://www.linkedin.com/in/brouer
 
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Regards,
+Ivan Khoronzhuk
