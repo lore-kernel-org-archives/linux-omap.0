@@ -1,240 +1,59 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v5 net-next 1/6] xdp: allow same allocator usage
-Date: Tue, 2 Jul 2019 13:27:07 +0300
-Message-ID: <20190702102700.GA4510@khorivan>
-References: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
- <20190630172348.5692-2-ivan.khoronzhuk@linaro.org>
- <20190701134059.71757892@carbon>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: [GIT PULL v2] Immutable branch between MFD and Regulator due for the
+ v5.3 merge window
+Date: Tue, 2 Jul 2019 11:46:00 +0100
+Message-ID: <20190702104600.GE4652@dell>
+References: <20190612144620.28331-1-j-keerthy@ti.com>
+ <20190617070341.GC16364@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190701134059.71757892@carbon>
+In-Reply-To: <20190617070341.GC16364@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+To: Keerthy <j-keerthy@ti.com>
+Cc: broonie@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 01, 2019 at 01:40:59PM +0200, Jesper Dangaard Brouer wrote:
->
->I'm very skeptical about this approach.
->
->On Sun, 30 Jun 2019 20:23:43 +0300
->Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
->
->> XDP rxqs can be same for ndevs running under same rx napi softirq.
->> But there is no ability to register same allocator for both rxqs,
->> by fact it can same rxq but has different ndev as a reference.
->
->This description is not very clear. It can easily be misunderstood.
->
->It is an absolute requirement that each RX-queue have their own
->page_pool object/allocator. (This where the performance comes from) as
->the page_pool have NAPI protected array for alloc and XDP_DROP recycle.
->
->Your driver/hardware seems to have special case, where a single
->RX-queue can receive packets for two different net_device'es.
->
->Do you violate this XDP devmap redirect assumption[1]?
->[1] https://github.com/torvalds/linux/blob/v5.2-rc7/kernel/bpf/devmap.c#L324-L329
-Seems that yes, but that's used only for trace for now.
-As it runs under napi and flush clear dev_rx i must do it right in the
-rx_handler. So next patchset version will have one patch less.
+Mark,
 
-Thanks!
+This is a subsequent pull which contains the /* fall-through */ fix.
 
->
->
->> Due to last changes allocator destroy can be defered till the moment
->> all packets are recycled by destination interface, afterwards it's
->> freed. In order to schedule allocator destroy only after all users are
->> unregistered, add refcnt to allocator object and schedule to destroy
->> only it reaches 0.
->
->The guiding principles when designing an API, is to make it easy to
->use, but also make it hard to misuse.
->
->Your API change makes it easy to misuse the API.  As it make it easy to
->(re)use the allocator pointer (likely page_pool) for multiple
->xdp_rxq_info structs.  It is only valid for your use-case, because you
->have hardware where a single RX-queue delivers to two different
->net_devices.  For other normal use-cases, this will be a violation.
->
->If I was a user of this API, and saw your xdp_allocator_get(), then I
->would assume that this was the normal case.  As minimum, we need to add
->a comment in the code, about this specific/intended use-case.  I
->through about detecting the misuse, by adding a queue_index to
->xdp_mem_allocator, that can be checked against, when calling
->xdp_rxq_info_reg_mem_model() with another xdp_rxq_info struct (to catch
->the obvious mistake where queue_index mismatch).
+Enjoy!
 
-I can add, but not sure if it has or can have some conflicts with another
-memory allocators, now or in future. Main here to not became a cornerstone
-in some not obvious use-cases.
+The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
 
-So, for now, let it be in this way:
+  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
 
---- a/include/net/xdp_priv.h
-+++ b/include/net/xdp_priv.h
-@@ -19,6 +19,7 @@ struct xdp_mem_allocator {
-        struct delayed_work defer_wq;
-        unsigned long defer_warn;
-        unsigned long refcnt;
-+       u32 queue_index;
- };
+are available in the Git repository at:
 
- #endif /* __LINUX_NET_XDP_PRIV_H__ */
-diff --git a/net/core/xdp.c b/net/core/xdp.c
-index a44621190fdc..c4bf29810f4d 100644
---- a/net/core/xdp.c
-+++ b/net/core/xdp.c
-@@ -324,7 +324,7 @@ static bool __is_supported_mem_type(enum xdp_mem_type type)
-        return true;
- }
+  git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-regulator-v5.3-1
 
--static struct xdp_mem_allocator *xdp_allocator_get(void *allocator)
-+static struct xdp_mem_allocator *xdp_allocator_find(void *allocator)
- {
-        struct xdp_mem_allocator *xae, *xa = NULL;
-        struct rhashtable_iter iter;
-@@ -336,7 +336,6 @@ static struct xdp_mem_allocator *xdp_allocator_get(void *allocator)
+for you to fetch changes up to f3f4363b1239584efc1a22c5ca0f2308e5693c38:
 
-                while ((xae = rhashtable_walk_next(&iter)) && !IS_ERR(xae)) {
-                        if (xae->allocator == allocator) {
--                               xae->refcnt++;
-                                xa = xae;
-                                break;
-                        }
-@@ -386,9 +385,13 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
-                }
-        }
+  regulator: lp87565: Fix missing break in switch statement (2019-07-02 11:41:23 +0100)
 
--       xdp_alloc = xdp_allocator_get(allocator);
-+       xdp_alloc = xdp_allocator_find(allocator);
-        if (xdp_alloc) {
-+               if (xdp_alloc->queue_index != xdp_rxq->queue_index)
-+                       return -EINVAL;
-+
-                xdp_rxq->mem.id = xdp_alloc->mem.id;
-+               xdp_alloc->refcnt++;
-                return 0;
-        }
+----------------------------------------------------------------
+Immutable branch between MFD and Regulator due for the v5.3 merge window
 
-@@ -406,6 +409,7 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
-        xdp_alloc->mem  = xdp_rxq->mem;
-        xdp_alloc->allocator = allocator;
-        xdp_alloc->refcnt = 1;
-+       xdp_alloc->queue_index = xdp_rxq->queue_index;
+----------------------------------------------------------------
+Colin Ian King (1):
+      regulator: lp87565: Fix missing break in switch statement
 
-        /* Insert allocator into ID lookup table */
-        ptr = rhashtable_insert_slow(mem_id_ht, &id, &xdp_alloc->node);
+Keerthy (3):
+      dt-bindings: mfd: lp87565: Add LP87561 configuration
+      mfd: lp87565: Add support for 4-phase LP87561 combination
+      regulator: lp87565: Add 4-phase lp87561 regulator support
 
-Jesper, are you Ok with this version?
-
->
->
->> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->> ---
->>  include/net/xdp_priv.h |  1 +
->>  net/core/xdp.c         | 46 ++++++++++++++++++++++++++++++++++++++++++
->>  2 files changed, 47 insertions(+)
->>
->> diff --git a/include/net/xdp_priv.h b/include/net/xdp_priv.h
->> index 6a8cba6ea79a..995b21da2f27 100644
->> --- a/include/net/xdp_priv.h
->> +++ b/include/net/xdp_priv.h
->> @@ -18,6 +18,7 @@ struct xdp_mem_allocator {
->>  	struct rcu_head rcu;
->>  	struct delayed_work defer_wq;
->>  	unsigned long defer_warn;
->> +	unsigned long refcnt;
->>  };
->>
->>  #endif /* __LINUX_NET_XDP_PRIV_H__ */
->> diff --git a/net/core/xdp.c b/net/core/xdp.c
->> index b29d7b513a18..a44621190fdc 100644
->> --- a/net/core/xdp.c
->> +++ b/net/core/xdp.c
->> @@ -98,6 +98,18 @@ bool __mem_id_disconnect(int id, bool force)
->>  		WARN(1, "Request remove non-existing id(%d), driver bug?", id);
->>  		return true;
->>  	}
->> +
->> +	/* to avoid calling hash lookup twice, decrement refcnt here till it
->> +	 * reaches zero, then it can be called from workqueue afterwards.
->> +	 */
->> +	if (xa->refcnt)
->> +		xa->refcnt--;
->> +
->> +	if (xa->refcnt) {
->> +		mutex_unlock(&mem_id_lock);
->> +		return true;
->> +	}
->> +
->>  	xa->disconnect_cnt++;
->>
->>  	/* Detects in-flight packet-pages for page_pool */
->> @@ -312,6 +324,33 @@ static bool __is_supported_mem_type(enum xdp_mem_type type)
->>  	return true;
->>  }
->>
->> +static struct xdp_mem_allocator *xdp_allocator_get(void *allocator)
->
->API wise, when you have "get" operation, you usually also have a "put"
->operation...
-
-It's not part of external API.
-I propose to rename it on xdp_allocator_find() as in above diff.
-What do you say?
-
->
->> +{
->> +	struct xdp_mem_allocator *xae, *xa = NULL;
->> +	struct rhashtable_iter iter;
->> +
->> +	mutex_lock(&mem_id_lock);
->> +	rhashtable_walk_enter(mem_id_ht, &iter);
->> +	do {
->> +		rhashtable_walk_start(&iter);
->> +
->> +		while ((xae = rhashtable_walk_next(&iter)) && !IS_ERR(xae)) {
->> +			if (xae->allocator == allocator) {
->> +				xae->refcnt++;
->> +				xa = xae;
->> +				break;
->> +			}
->> +		}
->> +
->> +		rhashtable_walk_stop(&iter);
->> +
->> +	} while (xae == ERR_PTR(-EAGAIN));
->> +	rhashtable_walk_exit(&iter);
->> +	mutex_unlock(&mem_id_lock);
->> +
->> +	return xa;
->> +}
->> +
->>  int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
->>  			       enum xdp_mem_type type, void *allocator)
->>  {
->> @@ -347,6 +386,12 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
->>  		}
->>  	}
->>
->> +	xdp_alloc = xdp_allocator_get(allocator);
->> +	if (xdp_alloc) {
->> +		xdp_rxq->mem.id = xdp_alloc->mem.id;
->> +		return 0;
->> +	}
->> +
->
->The allocator pointer (in-practice) becomes the identifier for the
->mem.id (which rhashtable points to xdp_mem_allocator object).
-
-So, you have no obj against it?
-
-[...]
+ Documentation/devicetree/bindings/mfd/lp87565.txt | 36 +++++++++++++++++++++++
+ drivers/mfd/lp87565.c                             |  4 +++
+ drivers/regulator/lp87565-regulator.c             | 18 +++++++++++-
+ include/linux/mfd/lp87565.h                       |  2 ++
+ 4 files changed, 59 insertions(+), 1 deletion(-)
 
 -- 
-Regards,
-Ivan Khoronzhuk
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
