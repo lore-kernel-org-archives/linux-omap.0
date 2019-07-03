@@ -1,73 +1,63 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 06/39] clk: ti: clkctrl: Fix returning uninitialized data
-Date: Tue,  2 Jul 2019 22:14:41 -0400
-Message-ID: <20190703021514.17727-6-sashal@kernel.org>
-References: <20190703021514.17727-1-sashal@kernel.org>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH v5 net-next 6/6] net: ethernet: ti: cpsw: add XDP
+ support
+Date: Wed, 3 Jul 2019 09:26:03 +0200
+Message-ID: <20190703092603.66f36914@carbon>
+References: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
+        <20190630172348.5692-7-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190703021514.17727-1-sashal@kernel.org>
+In-Reply-To: <20190630172348.5692-7-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Stephen Boyd <sboyd@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, brouer@redhat.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 41b3588dba6ef4b7995735a97e47ff0aeea6c276 ]
+On Sun, 30 Jun 2019 20:23:48 +0300 Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
 
-If we do a clk_get() for a clock that does not exists, we have
-_ti_omap4_clkctrl_xlate() return uninitialized data if no match
-is found. This can be seen in some cases with SLAB_DEBUG enabled:
+> Add XDP support based on rx page_pool allocator, one frame per page.
+> Page pool allocator is used with assumption that only one rx_handler
+> is running simultaneously. DMA map/unmap is reused from page pool
+> despite there is no need to map whole page.
+> 
+> Due to specific of cpsw, the same TX/RX handler can be used by 2
+> network devices, so special fields in buffer are added to identify
+> an interface the frame is destined to. Thus XDP works for both
+> interfaces, that allows to test xdp redirect between two interfaces
+> easily. Aslo, each rx queue have own page pools, but common for both
+> netdevs.
 
-Unable to handle kernel paging request at virtual address 5a5a5a5a
-...
-clk_hw_create_clk.part.33
-sysc_notifier_call
-notifier_call_chain
-blocking_notifier_call_chain
-device_add
+Looking at the details what happen when a single RX-queue can receive
+into multiple net_device'es.  I realize that this driver will
+violate/kill some of the "hidden"/implicit RX-bulking that the
+XDP_REDIRECT code depend on for performance.
 
-Let's fix this by setting a found flag only when we find a match.
+Specifically, it violate this assumption:
+ https://github.com/torvalds/linux/blob/v5.2-rc7/kernel/bpf/devmap.c#L324-L329
 
-Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Fixes: 88a172526c32 ("clk: ti: add support for clkctrl clocks")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Stephen Boyd <sboyd@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/clk/ti/clkctrl.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+	/* Ingress dev_rx will be the same for all xdp_frame's in
+	 * bulk_queue, because bq stored per-CPU and must be flushed
+	 * from net_device drivers NAPI func end.
+	 */
+	if (!bq->dev_rx)
+		bq->dev_rx = dev_rx;
 
-diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 3325ee43bcc1..626090b59cd7 100644
---- a/drivers/clk/ti/clkctrl.c
-+++ b/drivers/clk/ti/clkctrl.c
-@@ -229,6 +229,7 @@ static struct clk_hw *_ti_omap4_clkctrl_xlate(struct of_phandle_args *clkspec,
- {
- 	struct omap_clkctrl_provider *provider = data;
- 	struct omap_clkctrl_clk *entry;
-+	bool found = false;
- 
- 	if (clkspec->args_count != 2)
- 		return ERR_PTR(-EINVAL);
-@@ -238,11 +239,13 @@ static struct clk_hw *_ti_omap4_clkctrl_xlate(struct of_phandle_args *clkspec,
- 
- 	list_for_each_entry(entry, &provider->clocks, node) {
- 		if (entry->reg_offset == clkspec->args[0] &&
--		    entry->bit_offset == clkspec->args[1])
-+		    entry->bit_offset == clkspec->args[1]) {
-+			found = true;
- 			break;
-+		}
- 	}
- 
--	if (!entry)
-+	if (!found)
- 		return ERR_PTR(-EINVAL);
- 
- 	return entry->clk;
+This drivers "NAPI func end", can have received into multiple
+net_devices, before it's NAPI cycle ends.  Thus, violating this code
+assumption.
+
+Knowing all xdp_frame's in the bulk queue is from the same net_device,
+can be used to further optimize XDP.  E.g. the dev->netdev_ops->ndo_xdp_xmit()
+call don't take fully advantage of this, yet.  If we merge this driver,
+it will block optimizations in this area.
+
+NACK
+
 -- 
-2.20.1
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Principal Kernel Engineer at Red Hat
+  LinkedIn: http://www.linkedin.com/in/brouer
