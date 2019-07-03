@@ -1,75 +1,89 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v5 net-next 6/6] net: ethernet: ti: cpsw: add XDP support
-Date: Wed, 3 Jul 2019 10:38:58 +0300
-Message-ID: <20190703073857.GA2927@khorivan>
-References: <20190630172348.5692-1-ivan.khoronzhuk@linaro.org>
- <20190630172348.5692-7-ivan.khoronzhuk@linaro.org>
- <20190703092603.66f36914@carbon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190703092603.66f36914@carbon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+Subject: [PATCH v6 net-next 3/5] net: ethernet: ti: davinci_cpdma: allow desc split while down
+Date: Wed,  3 Jul 2019 13:19:01 +0300
+Message-ID: <20190703101903.8411-4-ivan.khoronzhuk@linaro.org>
+References: <20190703101903.8411-1-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190703101903.8411-1-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
+Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 03, 2019 at 09:26:03AM +0200, Jesper Dangaard Brouer wrote:
->
->On Sun, 30 Jun 2019 20:23:48 +0300 Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
->
->> Add XDP support based on rx page_pool allocator, one frame per page.
->> Page pool allocator is used with assumption that only one rx_handler
->> is running simultaneously. DMA map/unmap is reused from page pool
->> despite there is no need to map whole page.
->>
->> Due to specific of cpsw, the same TX/RX handler can be used by 2
->> network devices, so special fields in buffer are added to identify
->> an interface the frame is destined to. Thus XDP works for both
->> interfaces, that allows to test xdp redirect between two interfaces
->> easily. Aslo, each rx queue have own page pools, but common for both
->> netdevs.
->
->Looking at the details what happen when a single RX-queue can receive
->into multiple net_device'es.  I realize that this driver will
->violate/kill some of the "hidden"/implicit RX-bulking that the
->XDP_REDIRECT code depend on for performance.
->
->Specifically, it violate this assumption:
-> https://github.com/torvalds/linux/blob/v5.2-rc7/kernel/bpf/devmap.c#L324-L329
->
->	/* Ingress dev_rx will be the same for all xdp_frame's in
->	 * bulk_queue, because bq stored per-CPU and must be flushed
->	 * from net_device drivers NAPI func end.
->	 */
->	if (!bq->dev_rx)
->		bq->dev_rx = dev_rx;
->
->This drivers "NAPI func end", can have received into multiple
->net_devices, before it's NAPI cycle ends.  Thus, violating this code
->assumption.
-). I said, I moved to be per device in rx_handler. It violates nothing.
+That's possible to set ring params while interfaces are down. When
+interface gets up it uses number of descs to fill rx queue and on
+later on changes to create rx pools. Usually, this resplit can happen
+after phy is up, but it can be needed before this, so allow it to
+happen while setting number of rx descs, when interfaces are down.
+Also, if no dependency on intf state, move it to cpdma layer, where
+it should be.
 
->
->Knowing all xdp_frame's in the bulk queue is from the same net_device,
->can be used to further optimize XDP.  E.g. the dev->netdev_ops->ndo_xdp_xmit()
->call don't take fully advantage of this, yet.  If we merge this driver,
->it will block optimizations in this area.
->
->NACK
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/cpsw_ethtool.c  |  9 ++++-----
+ drivers/net/ethernet/ti/davinci_cpdma.c | 10 +++++++++-
+ drivers/net/ethernet/ti/davinci_cpdma.h |  3 +--
+ 3 files changed, 14 insertions(+), 8 deletions(-)
 
-Jesper,
-
-Seems I said that I moved it to flush, that does
-dev->netdev_ops->ndo_xdp_xmit(), to rx_handler, so that it's done per device,
-so device is knows per each flush.
-
-In the code, I hope everyone can see ..., after each flush dev_rx is cleared
-to 0. So no any impact on it.
-
-As for me, it's very not clear and strange decision.
-
+diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
+index f60dc1dfc443..08d7aaee8299 100644
+--- a/drivers/net/ethernet/ti/cpsw_ethtool.c
++++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
+@@ -664,15 +664,14 @@ int cpsw_set_ringparam(struct net_device *ndev,
+ 
+ 	cpsw_suspend_data_pass(ndev);
+ 
+-	cpdma_set_num_rx_descs(cpsw->dma, ering->rx_pending);
+-
+-	if (cpsw->usage_count)
+-		cpdma_chan_split_pool(cpsw->dma);
++	ret = cpdma_set_num_rx_descs(cpsw->dma, ering->rx_pending);
++	if (ret)
++		goto err;
+ 
+ 	ret = cpsw_resume_data_pass(ndev);
+ 	if (!ret)
+ 		return 0;
+-
++err:
+ 	dev_err(cpsw->dev, "cannot set ring params, closing device\n");
+ 	dev_close(ndev);
+ 	return ret;
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 8da46394c0e7..4167b0b77c8e 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -1423,8 +1423,16 @@ int cpdma_get_num_tx_descs(struct cpdma_ctlr *ctlr)
+ 	return ctlr->num_tx_desc;
+ }
+ 
+-void cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc)
++int cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc)
+ {
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&ctlr->lock, flags);
+ 	ctlr->num_rx_desc = num_rx_desc;
+ 	ctlr->num_tx_desc = ctlr->pool->num_desc - ctlr->num_rx_desc;
++	ret = cpdma_chan_split_pool(ctlr);
++	spin_unlock_irqrestore(&ctlr->lock, flags);
++
++	return ret;
+ }
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
+index 0271a20c2e09..d3cfe234d16a 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.h
++++ b/drivers/net/ethernet/ti/davinci_cpdma.h
+@@ -116,8 +116,7 @@ enum cpdma_control {
+ int cpdma_control_get(struct cpdma_ctlr *ctlr, int control);
+ int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value);
+ int cpdma_get_num_rx_descs(struct cpdma_ctlr *ctlr);
+-void cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc);
++int cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc);
+ int cpdma_get_num_tx_descs(struct cpdma_ctlr *ctlr);
+-int cpdma_chan_split_pool(struct cpdma_ctlr *ctlr);
+ 
+ #endif
 -- 
-Regards,
-Ivan Khoronzhuk
+2.17.1
