@@ -1,83 +1,42 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v6 net-next 0/5] net: ethernet: ti: cpsw: Add XDP support
-Date: Wed,  3 Jul 2019 13:18:58 +0300
-Message-ID: <20190703101903.8411-1-ivan.khoronzhuk@linaro.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
-Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Fuqian Huang <huangfq.daxian@gmail.com>
+Subject: [PATCH 04/30] clk/ti: Use kmemdup rather than duplicating its implementation
+Date: Wed,  3 Jul 2019 21:13:46 +0800
+Message-ID: <20190703131346.24854-1-huangfq.daxian@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Fuqian Huang <huangfq.daxian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patchset adds XDP support for TI cpsw driver and base it on
-page_pool allocator. It was verified on af_xdp socket drop,
-af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
+kmemdup is introduced to duplicate a region of memory in a neat way.
+Rather than kmalloc/kzalloc + memset, which the programmer needs to
+write the size twice (sometimes lead to mistakes), kmemdup improves
+readability, leads to smaller code and also reduce the chances of mistakes.
+Suggestion to use kmemdup rather than using kmalloc/kzalloc + memset.
 
-It was verified with following configs enabled:
-CONFIG_JIT=y
-CONFIG_BPFILTER=y
-CONFIG_BPF_SYSCALL=y
-CONFIG_XDP_SOCKETS=y
-CONFIG_BPF_EVENTS=y
-CONFIG_HAVE_EBPF_JIT=y
-CONFIG_BPF_JIT=y
-CONFIG_CGROUP_BPF=y
+Signed-off-by: Fuqian Huang <huangfq.daxian@gmail.com>
+---
+ drivers/clk/ti/dpll.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Link on previous v5:
-https://lkml.org/lkml/2019/6/30/89
-
-Also regular tests with iperf2 were done in order to verify impact on
-regular netstack performance, compared with base commit:
-https://pastebin.com/JSMT0iZ4
-
-v5..v6:
-- do changes that is rx_dev while redirect/flush cycle is kept the same
-- dropped net: ethernet: ti: davinci_cpdma: return handler status
-- other changes desc in patches
-
-v4..v5:
-- added two plreliminary patches:
-  net: ethernet: ti: davinci_cpdma: allow desc split while down
-  net: ethernet: ti: cpsw_ethtool: allow res split while down
-- added xdp alocator refcnt on xdp level, avoiding page pool refcnt
-- moved flush status as separate argument for cpdma_chan_process
-- reworked cpsw code according to last changes to allocator
-- added missed statistic counter
-
-v3..v4:
-- added page pool user counter
-- use same pool for ndevs in dual mac
-- restructured page pool create/destroy according to the last changes in API
-
-v2..v3:
-- each rxq and ndev has its own page pool
-
-v1..v2:
-- combined xdp_xmit functions
-- used page allocation w/o refcnt juggle
-- unmapped page for skb netstack
-- moved rxq/page pool allocation to open/close pair
-- added several preliminary patches:
-  net: page_pool: add helper function to retrieve dma addresses
-  net: page_pool: add helper function to unmap dma addresses
-  net: ethernet: ti: cpsw: use cpsw as drv data
-  net: ethernet: ti: cpsw_ethtool: simplify slave loops
-
-Ivan Khoronzhuk (5):
-  xdp: allow same allocator usage
-  net: ethernet: ti: davinci_cpdma: add dma mapped submit
-  net: ethernet: ti: davinci_cpdma: allow desc split while down
-  net: ethernet: ti: cpsw_ethtool: allow res split while down
-  net: ethernet: ti: cpsw: add XDP support
-
- drivers/net/ethernet/ti/Kconfig         |   1 +
- drivers/net/ethernet/ti/cpsw.c          | 485 +++++++++++++++++++++---
- drivers/net/ethernet/ti/cpsw_ethtool.c  |  76 +++-
- drivers/net/ethernet/ti/cpsw_priv.h     |   7 +
- drivers/net/ethernet/ti/davinci_cpdma.c |  99 ++++-
- drivers/net/ethernet/ti/davinci_cpdma.h |   7 +-
- include/net/xdp_priv.h                  |   2 +
- net/core/xdp.c                          |  55 +++
- 8 files changed, 656 insertions(+), 76 deletions(-)
-
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+index 659dadb23279..f728d987ebac 100644
+--- a/drivers/clk/ti/dpll.c
++++ b/drivers/clk/ti/dpll.c
+@@ -291,14 +291,12 @@ static void __init of_ti_dpll_setup(struct device_node *node,
+ 	struct dpll_data *dd = NULL;
+ 	u8 dpll_mode = 0;
+ 
+-	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
++	dd = kmemdup(ddt, sizeof(*dd), GFP_KERNEL);
+ 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
+ 	init = kzalloc(sizeof(*init), GFP_KERNEL);
+ 	if (!dd || !clk_hw || !init)
+ 		goto cleanup;
+ 
+-	memcpy(dd, ddt, sizeof(*dd));
+-
+ 	clk_hw->dpll_data = dd;
+ 	clk_hw->ops = &clkhwops_omap3_dpll;
+ 	clk_hw->hw.init = init;
 -- 
-2.17.1
+2.11.0
