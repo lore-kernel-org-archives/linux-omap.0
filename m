@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 06/26] ARM: omap2: remove incorrect __init annotation
-Date: Tue,  2 Jul 2019 22:16:05 -0400
-Message-ID: <20190703021625.18116-6-sashal@kernel.org>
-References: <20190703021625.18116-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 12/39] ARM: omap2: remove incorrect __init annotation
+Date: Tue,  2 Jul 2019 22:14:47 -0400
+Message-ID: <20190703021514.17727-12-sashal@kernel.org>
+References: <20190703021514.17727-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190703021625.18116-1-sashal@kernel.org>
+In-Reply-To: <20190703021514.17727-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Arnd Bergmann <arnd@arndb.de>, Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Andrew Murray <andrew.murray@arm.com>, Olof Johansson <olof@lixom.net>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, clang-built-linux@googlegroups.com
