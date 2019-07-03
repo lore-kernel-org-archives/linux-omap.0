@@ -1,20 +1,23 @@
 From: Fuqian Huang <huangfq.daxian@gmail.com>
-Subject: [PATCH 04/30] clk/ti: Use kmemdup rather than duplicating its implementation
-Date: Wed,  3 Jul 2019 21:13:46 +0800
-Message-ID: <20190703131346.24854-1-huangfq.daxian@gmail.com>
+Subject: [PATCH v2 05/35] clk/ti: Use kmemdup rather than duplicating its implementation
+Date: Thu,  4 Jul 2019 00:27:00 +0800
+Message-ID: <20190703162700.32091-1-huangfq.daxian@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Fuqian Huang <huangfq.daxian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 kmemdup is introduced to duplicate a region of memory in a neat way.
-Rather than kmalloc/kzalloc + memset, which the programmer needs to
+Rather than kmalloc/kzalloc + memcpy, which the programmer needs to
 write the size twice (sometimes lead to mistakes), kmemdup improves
 readability, leads to smaller code and also reduce the chances of mistakes.
-Suggestion to use kmemdup rather than using kmalloc/kzalloc + memset.
+Suggestion to use kmemdup rather than using kmalloc/kzalloc + memcpy.
 
 Signed-off-by: Fuqian Huang <huangfq.daxian@gmail.com>
 ---
+Changes in v2:
+  - Fix a typo in commit message (memset -> memcpy)
+
  drivers/clk/ti/dpll.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
