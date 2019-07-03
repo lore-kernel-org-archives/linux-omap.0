@@ -1,45 +1,153 @@
-From: Fuqian Huang <huangfq.daxian@gmail.com>
-Subject: [PATCH v2 05/35] clk/ti: Use kmemdup rather than duplicating its implementation
-Date: Thu,  4 Jul 2019 00:27:00 +0800
-Message-ID: <20190703162700.32091-1-huangfq.daxian@gmail.com>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH v6 net-next 1/5] xdp: allow same allocator usage
+Date: Wed, 3 Jul 2019 19:40:13 +0200
+Message-ID: <20190703194013.02842e42@carbon>
+References: <20190703101903.8411-1-ivan.khoronzhuk@linaro.org>
+        <20190703101903.8411-2-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190703101903.8411-2-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Fuqian Huang <huangfq.daxian@gmail.com>
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, brouer@redhat.com
 List-Id: linux-omap@vger.kernel.org
 
-kmemdup is introduced to duplicate a region of memory in a neat way.
-Rather than kmalloc/kzalloc + memcpy, which the programmer needs to
-write the size twice (sometimes lead to mistakes), kmemdup improves
-readability, leads to smaller code and also reduce the chances of mistakes.
-Suggestion to use kmemdup rather than using kmalloc/kzalloc + memcpy.
+On Wed,  3 Jul 2019 13:18:59 +0300
+Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
 
-Signed-off-by: Fuqian Huang <huangfq.daxian@gmail.com>
----
-Changes in v2:
-  - Fix a typo in commit message (memset -> memcpy)
+> First of all, it is an absolute requirement that each RX-queue have
+> their own page_pool object/allocator. And this change is intendant
+> to handle special case, where a single RX-queue can receive packets
+> from two different net_devices.
+> 
+> In order to protect against using same allocator for 2 different rx
+> queues, add queue_index to xdp_mem_allocator to catch the obvious
+> mistake where queue_index mismatch, as proposed by Jesper Dangaard
+> Brouer.
+> 
+> Adding this on xdp allocator level allows drivers with such dependency
+> change the allocators w/o modifications.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+>  include/net/xdp_priv.h |  2 ++
+>  net/core/xdp.c         | 55 ++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 57 insertions(+)
+> 
+> diff --git a/include/net/xdp_priv.h b/include/net/xdp_priv.h
+> index 6a8cba6ea79a..9858a4057842 100644
+> --- a/include/net/xdp_priv.h
+> +++ b/include/net/xdp_priv.h
+> @@ -18,6 +18,8 @@ struct xdp_mem_allocator {
+>  	struct rcu_head rcu;
+>  	struct delayed_work defer_wq;
+>  	unsigned long defer_warn;
+> +	unsigned long refcnt;
+> +	u32 queue_index;
+>  };
 
- drivers/clk/ti/dpll.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+I don't like this approach, because I think we need to extend struct
+xdp_mem_allocator with a net_device pointer, for doing dev_hold(), to
+correctly handle lifetime issues. (As I tried to explain previously).
+This will be much harder after this change, which is why I proposed the
+other patch.
 
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 659dadb23279..f728d987ebac 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -291,14 +291,12 @@ static void __init of_ti_dpll_setup(struct device_node *node,
- 	struct dpll_data *dd = NULL;
- 	u8 dpll_mode = 0;
- 
--	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
-+	dd = kmemdup(ddt, sizeof(*dd), GFP_KERNEL);
- 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
- 	init = kzalloc(sizeof(*init), GFP_KERNEL);
- 	if (!dd || !clk_hw || !init)
- 		goto cleanup;
- 
--	memcpy(dd, ddt, sizeof(*dd));
--
- 	clk_hw->dpll_data = dd;
- 	clk_hw->ops = &clkhwops_omap3_dpll;
- 	clk_hw->hw.init = init;
+
+>  #endif /* __LINUX_NET_XDP_PRIV_H__ */
+> diff --git a/net/core/xdp.c b/net/core/xdp.c
+> index 829377cc83db..4f0ddbb3717a 100644
+> --- a/net/core/xdp.c
+> +++ b/net/core/xdp.c
+> @@ -98,6 +98,18 @@ static bool __mem_id_disconnect(int id, bool force)
+>  		WARN(1, "Request remove non-existing id(%d), driver bug?", id);
+>  		return true;
+>  	}
+> +
+> +	/* to avoid calling hash lookup twice, decrement refcnt here till it
+> +	 * reaches zero, then it can be called from workqueue afterwards.
+> +	 */
+> +	if (xa->refcnt)
+> +		xa->refcnt--;
+> +
+> +	if (xa->refcnt) {
+> +		mutex_unlock(&mem_id_lock);
+> +		return true;
+> +	}
+> +
+>  	xa->disconnect_cnt++;
+>  
+>  	/* Detects in-flight packet-pages for page_pool */
+> @@ -312,6 +324,33 @@ static bool __is_supported_mem_type(enum xdp_mem_type type)
+>  	return true;
+>  }
+>  
+> +static struct xdp_mem_allocator *xdp_allocator_find(void *allocator)
+> +{
+> +	struct xdp_mem_allocator *xae, *xa = NULL;
+> +	struct rhashtable_iter iter;
+> +
+> +	if (!allocator)
+> +		return xa;
+> +
+> +	rhashtable_walk_enter(mem_id_ht, &iter);
+> +	do {
+> +		rhashtable_walk_start(&iter);
+> +
+> +		while ((xae = rhashtable_walk_next(&iter)) && !IS_ERR(xae)) {
+> +			if (xae->allocator == allocator) {
+> +				xa = xae;
+> +				break;
+> +			}
+> +		}
+> +
+> +		rhashtable_walk_stop(&iter);
+> +
+> +	} while (xae == ERR_PTR(-EAGAIN));
+> +	rhashtable_walk_exit(&iter);
+> +
+> +	return xa;
+> +}
+> +
+>  int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
+>  			       enum xdp_mem_type type, void *allocator)
+>  {
+> @@ -347,6 +386,20 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
+>  		}
+>  	}
+>  
+> +	mutex_lock(&mem_id_lock);
+> +	xdp_alloc = xdp_allocator_find(allocator);
+> +	if (xdp_alloc) {
+> +		/* One allocator per queue is supposed only */
+> +		if (xdp_alloc->queue_index != xdp_rxq->queue_index)
+> +			return -EINVAL;
+> +
+> +		xdp_rxq->mem.id = xdp_alloc->mem.id;
+> +		xdp_alloc->refcnt++;
+> +		mutex_unlock(&mem_id_lock);
+> +		return 0;
+> +	}
+> +	mutex_unlock(&mem_id_lock);
+> +
+>  	xdp_alloc = kzalloc(sizeof(*xdp_alloc), gfp);
+>  	if (!xdp_alloc)
+>  		return -ENOMEM;
+> @@ -360,6 +413,8 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
+>  	xdp_rxq->mem.id = id;
+>  	xdp_alloc->mem  = xdp_rxq->mem;
+>  	xdp_alloc->allocator = allocator;
+> +	xdp_alloc->refcnt = 1;
+> +	xdp_alloc->queue_index = xdp_rxq->queue_index;
+>  
+>  	/* Insert allocator into ID lookup table */
+>  	ptr = rhashtable_insert_slow(mem_id_ht, &id, &xdp_alloc->node);
+
+
+
 -- 
-2.11.0
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Principal Kernel Engineer at Red Hat
+  LinkedIn: http://www.linkedin.com/in/brouer
