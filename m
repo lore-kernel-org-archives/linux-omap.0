@@ -1,8 +1,8 @@
 From: Jesper Dangaard Brouer <brouer@redhat.com>
 Subject: Re: [PATCH v7 net-next 5/5] net: ethernet: ti: cpsw: add XDP
  support
-Date: Fri, 5 Jul 2019 10:36:42 +0200
-Message-ID: <20190705103642.5489bc87@carbon>
+Date: Fri, 5 Jul 2019 13:13:54 +0200
+Message-ID: <20190705131354.15a9313c@carbon>
 References: <20190704231406.27083-1-ivan.khoronzhuk@linaro.org>
         <20190704231406.27083-6-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
@@ -18,46 +18,51 @@ List-Id: linux-omap@vger.kernel.org
 On Fri,  5 Jul 2019 02:14:06 +0300
 Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
 
-> Add XDP support based on rx page_pool allocator, one frame per page.
-> Page pool allocator is used with assumption that only one rx_handler
-> is running simultaneously. DMA map/unmap is reused from page pool
-> despite there is no need to map whole page.
-> 
-> Due to specific of cpsw, the same TX/RX handler can be used by 2
-> network devices, so special fields in buffer are added to identify
-> an interface the frame is destined to. Thus XDP works for both
-> interfaces, that allows to test xdp redirect between two interfaces
-> easily. Aslo, each rx queue have own page pools, but common for both
-          ^^^^
-          Also
+> +static int cpsw_xdp_tx_frame(struct cpsw_priv *priv, struct xdp_frame *xdpf,
+> +			     struct page *page)
+> +{
+> +	struct cpsw_common *cpsw = priv->cpsw;
+> +	struct cpsw_meta_xdp *xmeta;
+> +	struct cpdma_chan *txch;
+> +	dma_addr_t dma;
+> +	int ret, port;
+> +
+> +	xmeta = (void *)xdpf + CPSW_XMETA_OFFSET;
+> +	xmeta->ndev = priv->ndev;
+> +	xmeta->ch = 0;
+> +	txch = cpsw->txv[0].ch;
+> +
+> +	port = priv->emac_port + cpsw->data.dual_emac;
+> +	if (page) {
+> +		dma = page_pool_get_dma_addr(page);
+> +		dma += xdpf->data - (void *)xdpf;
 
-> netdevs.
-> 
-> XDP prog is common for all channels till appropriate changes are added
-> in XDP infrastructure. Also, once page_pool recycling becomes part of
-> skb netstack some simplifications can be added, like removing
-> page_pool_release_page() before skb receive.
-> 
-> In order to keep rx_dev while redirect, that can be somehow used in
-> future, do flush in rx_handler, that allows to keep rx dev the same
-> while reidrect. It allows to conform with tracing rx_dev pointed
-        ^^^^^^^^
-        redirect
+This code is only okay because this only happens for XDP_TX, where you
+know this head-room calculation will be true.  The "correct"
+calculation of the head-room would be:
 
-> by Jesper.
-> 
-> Also, there is probability, that XDP generic code can be extended to
-> support multi ndev drivers like this one, using same rx queue for
-> several ndevs, based on switchdev for instance or else. In this case,
-> driver can be modified like exposed here:
-> https://lkml.org/lkml/2019/7/3/243
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+  dma += xdpf->headroom + sizeof(struct xdp_frame);
 
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+The reason behind not using xdpf pointer itself as "data_hard_start",
+is to allow struct xdp_frame to be located in another memory area.
+This will be useful for e.g. AF_XDP transmit, or other zero-copy
+transmit to go through ndo_xdp_xmit() (as we don't want userspace to
+be-able to e.g. "race" change xdpf->len during transmit/DMA-completion).
 
-I didn't spot any issues, but I don't have access to this hardware, so
-I've not tested it.
+
+> +		ret = cpdma_chan_submit_mapped(txch, cpsw_xdpf_to_handle(xdpf),
+> +					       dma, xdpf->len, port);
+> +	} else {
+> +		if (sizeof(*xmeta) > xdpf->headroom) {
+> +			xdp_return_frame_rx_napi(xdpf);
+> +			return -EINVAL;
+> +		}
+> +
+> +		ret = cpdma_chan_submit(txch, cpsw_xdpf_to_handle(xdpf),
+> +					xdpf->data, xdpf->len, port);
+> +	}
+
+
 
 -- 
 Best regards,
