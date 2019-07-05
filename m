@@ -1,195 +1,58 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v8 net-next 2/5] net: ethernet: ti: davinci_cpdma: add dma mapped submit
-Date: Fri,  5 Jul 2019 18:04:59 +0300
-Message-ID: <20190705150502.6600-3-ivan.khoronzhuk@linaro.org>
-References: <20190705150502.6600-1-ivan.khoronzhuk@linaro.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] PCI: dwc: pci-dra7xx: Add missing include file
+Date: Fri, 5 Jul 2019 16:29:05 +0100
+Message-ID: <20190705152905.GA6284@e121166-lin.cambridge.arm.com>
+References: <20190614154044.4972-1-yuehaibing@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190705150502.6600-1-ivan.khoronzhuk@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20190614154044.4972-1-yuehaibing@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
-Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: YueHaibing <yuehaibing@huawei.com>, kishon@ti.com
+Cc: bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-In case if dma mapped packet needs to be sent, like with XDP
-page pool, the "mapped" submit can be used. This patch adds dma
-mapped submit based on regular one.
+On Fri, Jun 14, 2019 at 11:40:44PM +0800, YueHaibing wrote:
+> Fix build error:
+> 
+> drivers/pci/controller/dwc/pci-dra7xx.c:
+>  In function dra7xx_pcie_probe:
+> drivers/pci/controller/dwc/pci-dra7xx.c:777:10:
+>  error: implicit declaration of function devm_gpiod_get_optional;
+>  did you mean devm_regulator_get_optional? [-Werror=implicit-function-declaration]
+> 
+>   reset = devm_gpiod_get_optional(dev, NULL, GPIOD_OUT_HIGH);
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/davinci_cpdma.c | 89 ++++++++++++++++++++++---
- drivers/net/ethernet/ti/davinci_cpdma.h |  4 ++
- 2 files changed, 83 insertions(+), 10 deletions(-)
+Adding the reason (in particular the config options) that triggers
+this error would not hurt.
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 5cf1758d425b..8da46394c0e7 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -139,6 +139,7 @@ struct submit_info {
- 	int directed;
- 	void *token;
- 	void *data;
-+	int flags;
- 	int len;
- };
- 
-@@ -184,6 +185,8 @@ static struct cpdma_control_info controls[] = {
- 				 (directed << CPDMA_TO_PORT_SHIFT));	\
- 	} while (0)
- 
-+#define CPDMA_DMA_EXT_MAP		BIT(16)
-+
- static void cpdma_desc_pool_destroy(struct cpdma_ctlr *ctlr)
- {
- 	struct cpdma_desc_pool *pool = ctlr->pool;
-@@ -1015,6 +1018,7 @@ static int cpdma_chan_submit_si(struct submit_info *si)
- 	struct cpdma_chan		*chan = si->chan;
- 	struct cpdma_ctlr		*ctlr = chan->ctlr;
- 	int				len = si->len;
-+	int				swlen = len;
- 	struct cpdma_desc __iomem	*desc;
- 	dma_addr_t			buffer;
- 	u32				mode;
-@@ -1036,16 +1040,22 @@ static int cpdma_chan_submit_si(struct submit_info *si)
- 		chan->stats.runt_transmit_buff++;
- 	}
- 
--	buffer = dma_map_single(ctlr->dev, si->data, len, chan->dir);
--	ret = dma_mapping_error(ctlr->dev, buffer);
--	if (ret) {
--		cpdma_desc_free(ctlr->pool, desc, 1);
--		return -EINVAL;
--	}
--
- 	mode = CPDMA_DESC_OWNER | CPDMA_DESC_SOP | CPDMA_DESC_EOP;
- 	cpdma_desc_to_port(chan, mode, si->directed);
- 
-+	if (si->flags & CPDMA_DMA_EXT_MAP) {
-+		buffer = (u32)si->data;
-+		dma_sync_single_for_device(ctlr->dev, buffer, len, chan->dir);
-+		swlen |= CPDMA_DMA_EXT_MAP;
-+	} else {
-+		buffer = dma_map_single(ctlr->dev, si->data, len, chan->dir);
-+		ret = dma_mapping_error(ctlr->dev, buffer);
-+		if (ret) {
-+			cpdma_desc_free(ctlr->pool, desc, 1);
-+			return -EINVAL;
-+		}
-+	}
-+
- 	/* Relaxed IO accessors can be used here as there is read barrier
- 	 * at the end of write sequence.
- 	 */
-@@ -1055,7 +1065,7 @@ static int cpdma_chan_submit_si(struct submit_info *si)
- 	writel_relaxed(mode | len, &desc->hw_mode);
- 	writel_relaxed((uintptr_t)si->token, &desc->sw_token);
- 	writel_relaxed(buffer, &desc->sw_buffer);
--	writel_relaxed(len, &desc->sw_len);
-+	writel_relaxed(swlen, &desc->sw_len);
- 	desc_read(desc, sw_len);
- 
- 	__cpdma_chan_submit(chan, desc);
-@@ -1079,6 +1089,32 @@ int cpdma_chan_idle_submit(struct cpdma_chan *chan, void *token, void *data,
- 	si.data = data;
- 	si.len = len;
- 	si.directed = directed;
-+	si.flags = 0;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	if (chan->state == CPDMA_STATE_TEARDOWN) {
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	ret = cpdma_chan_submit_si(&si);
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return ret;
-+}
-+
-+int cpdma_chan_idle_submit_mapped(struct cpdma_chan *chan, void *token,
-+				  dma_addr_t data, int len, int directed)
-+{
-+	struct submit_info si;
-+	unsigned long flags;
-+	int ret;
-+
-+	si.chan = chan;
-+	si.token = token;
-+	si.data = (void *)(u32)data;
-+	si.len = len;
-+	si.directed = directed;
-+	si.flags = CPDMA_DMA_EXT_MAP;
- 
- 	spin_lock_irqsave(&chan->lock, flags);
- 	if (chan->state == CPDMA_STATE_TEARDOWN) {
-@@ -1103,6 +1139,32 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- 	si.data = data;
- 	si.len = len;
- 	si.directed = directed;
-+	si.flags = 0;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	if (chan->state != CPDMA_STATE_ACTIVE) {
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	ret = cpdma_chan_submit_si(&si);
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return ret;
-+}
-+
-+int cpdma_chan_submit_mapped(struct cpdma_chan *chan, void *token,
-+			     dma_addr_t data, int len, int directed)
-+{
-+	struct submit_info si;
-+	unsigned long flags;
-+	int ret;
-+
-+	si.chan = chan;
-+	si.token = token;
-+	si.data = (void *)(u32)data;
-+	si.len = len;
-+	si.directed = directed;
-+	si.flags = CPDMA_DMA_EXT_MAP;
- 
- 	spin_lock_irqsave(&chan->lock, flags);
- 	if (chan->state != CPDMA_STATE_ACTIVE) {
-@@ -1140,10 +1202,17 @@ static void __cpdma_chan_free(struct cpdma_chan *chan,
- 	uintptr_t			token;
- 
- 	token      = desc_read(desc, sw_token);
--	buff_dma   = desc_read(desc, sw_buffer);
- 	origlen    = desc_read(desc, sw_len);
- 
--	dma_unmap_single(ctlr->dev, buff_dma, origlen, chan->dir);
-+	buff_dma   = desc_read(desc, sw_buffer);
-+	if (origlen & CPDMA_DMA_EXT_MAP) {
-+		origlen &= ~CPDMA_DMA_EXT_MAP;
-+		dma_sync_single_for_cpu(ctlr->dev, buff_dma, origlen,
-+					chan->dir);
-+	} else {
-+		dma_unmap_single(ctlr->dev, buff_dma, origlen, chan->dir);
-+	}
-+
- 	cpdma_desc_free(pool, desc, 1);
- 	(*chan->handler)((void *)token, outlen, status);
- }
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index 9343c8c73c1b..0271a20c2e09 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -77,8 +77,12 @@ int cpdma_chan_stop(struct cpdma_chan *chan);
- 
- int cpdma_chan_get_stats(struct cpdma_chan *chan,
- 			 struct cpdma_chan_stats *stats);
-+int cpdma_chan_submit_mapped(struct cpdma_chan *chan, void *token,
-+			     dma_addr_t data, int len, int directed);
- int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- 		      int len, int directed);
-+int cpdma_chan_idle_submit_mapped(struct cpdma_chan *chan, void *token,
-+				  dma_addr_t data, int len, int directed);
- int cpdma_chan_idle_submit(struct cpdma_chan *chan, void *token, void *data,
- 			   int len, int directed);
- int cpdma_chan_process(struct cpdma_chan *chan, int quota);
--- 
-2.17.1
+Kishon please let me know if I can merge it (ACK it if so).
+
+Thanks,
+Lorenzo
+
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+>  drivers/pci/controller/dwc/pci-dra7xx.c | 1 +
+>  1 file changed, 1 insertion(+)
+
+
+> 
+> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+> index 419451e..4234ddb 100644
+> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/types.h>
+>  #include <linux/mfd/syscon.h>
+>  #include <linux/regmap.h>
+> +#include <linux/gpio/consumer.h>
+>  
+>  #include "../../pci.h"
+>  #include "pcie-designware.h"
+> -- 
+> 2.7.4
+> 
+> 
