@@ -1,94 +1,142 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v7 net-next 5/5] net: ethernet: ti: cpsw: add XDP support
-Date: Fri, 5 Jul 2019 15:01:16 +0300
-Message-ID: <20190705120114.GA3587@khorivan>
-References: <20190704231406.27083-1-ivan.khoronzhuk@linaro.org>
- <20190704231406.27083-6-ivan.khoronzhuk@linaro.org>
- <20190705131354.15a9313c@carbon>
+From: Vinod Koul <vkoul@kernel.org>
+Subject: Re: [PATCH] dmaengine: ti: omap-dma: Improved memcpy polling support
+Date: Fri, 5 Jul 2019 11:53:34 +0530
+Message-ID: <20190705062334.GV2911@vkoul-mobl>
+References: <20190618132416.26874-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190705131354.15a9313c@carbon>
-Sender: netdev-owner@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: grygorii.strashko@ti.com, davem@davemloft.net, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+In-Reply-To: <20190618132416.26874-1-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 05, 2019 at 01:13:54PM +0200, Jesper Dangaard Brouer wrote:
->On Fri,  5 Jul 2019 02:14:06 +0300
->Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
->
->> +static int cpsw_xdp_tx_frame(struct cpsw_priv *priv, struct xdp_frame *xdpf,
->> +			     struct page *page)
->> +{
->> +	struct cpsw_common *cpsw = priv->cpsw;
->> +	struct cpsw_meta_xdp *xmeta;
->> +	struct cpdma_chan *txch;
->> +	dma_addr_t dma;
->> +	int ret, port;
->> +
->> +	xmeta = (void *)xdpf + CPSW_XMETA_OFFSET;
->> +	xmeta->ndev = priv->ndev;
->> +	xmeta->ch = 0;
->> +	txch = cpsw->txv[0].ch;
->> +
->> +	port = priv->emac_port + cpsw->data.dual_emac;
->> +	if (page) {
->> +		dma = page_pool_get_dma_addr(page);
->> +		dma += xdpf->data - (void *)xdpf;
->
->This code is only okay because this only happens for XDP_TX, where you
->know this head-room calculation will be true.  The "correct"
->calculation of the head-room would be:
->
->  dma += xdpf->headroom + sizeof(struct xdp_frame);
->
->The reason behind not using xdpf pointer itself as "data_hard_start",
->is to allow struct xdp_frame to be located in another memory area.
+On 18-06-19, 16:24, Peter Ujfalusi wrote:
+> When a DMA client driver does not set the DMA_PREP_INTERRUPT because it
+> does not want to use interrupts for DMA completion or because it can not
+> rely on DMA interrupts due to executing the memcpy when interrupts are
+> disabled it will poll the status of the transfer.
+> 
+> If the interrupts are enabled then the cookie will be set completed in the
+> interrupt handler so only check in HW completion when the polling is really
+> needed.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+> Hi,
+> 
+> This patch fine-tunes the omap-dma polled memcpy support to be inline with how
+> the EDMA driver is handling it.
+> 
+> The polled completion can be tested by applying:
+> https://patchwork.kernel.org/patch/10966499/
+> 
+> and run the dmatest with polled = 1 on boards where sDMA is used.
+> 
+> Or boot up any dra7 family device with display enabled. The workaround for DMM
+> errata i878 uses polled DMA memcpy.
+> 
+> Regards,
+> Peter
+> 
+>  drivers/dma/ti/omap-dma.c | 37 ++++++++++++++++++++++++-------------
+>  1 file changed, 24 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
+> index 5ba7d8485026..75d8f7e13c8d 100644
+> --- a/drivers/dma/ti/omap-dma.c
+> +++ b/drivers/dma/ti/omap-dma.c
+> @@ -94,6 +94,7 @@ struct omap_desc {
+>  	bool using_ll;
+>  	enum dma_transfer_direction dir;
+>  	dma_addr_t dev_addr;
+> +	bool polled;
+>  
+>  	int32_t fi;		/* for OMAP_DMA_SYNC_PACKET / double indexing */
+>  	int16_t ei;		/* for double indexing */
+> @@ -834,20 +835,10 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+>  
+>  	ret = dma_cookie_status(chan, cookie, txstate);
+>  
+> -	if (!c->paused && c->running) {
+> -		uint32_t ccr = omap_dma_chan_read(c, CCR);
+> -		/*
+> -		 * The channel is no longer active, set the return value
+> -		 * accordingly
+> -		 */
+> -		if (!(ccr & CCR_ENABLE))
+> -			ret = DMA_COMPLETE;
+> -	}
+> -
+> +	spin_lock_irqsave(&c->vc.lock, flags);
+>  	if (ret == DMA_COMPLETE || !txstate)
+> -		return ret;
+> +		goto out;
+>  
+> -	spin_lock_irqsave(&c->vc.lock, flags);
+>  	vd = vchan_find_desc(&c->vc, cookie);
+>  	if (vd) {
+>  		txstate->residue = omap_dma_desc_size(to_omap_dma_desc(&vd->tx));
+> @@ -868,6 +859,23 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+>  	}
+>  	if (ret == DMA_IN_PROGRESS && c->paused)
+>  		ret = DMA_PAUSED;
+> +
+> +out:
+> +	if (ret == DMA_IN_PROGRESS && c->running && c->desc &&
+> +	    c->desc->polled && c->desc->vd.tx.cookie == cookie) {
 
-My assumption was based on:
+heh, that makes quite a read!
 
-struct xdp_frame *convert_to_xdp_frame(struct xdp_buff *xdp)
-{
-	...
-	xdp_frame = xdp->data_hard_start;
-	...
+checking DMA_IN_PROGRESS should not make sense, as we should bail out at
+the start if it is completed
 
-	xdp_frame->headroom = headroom - sizeof(*xdp_frame);
-	...
-}
+I think other can be optimzed to make it a better read!
 
-But agree, it doesn't contradict the reason in question.
-So, better use proposed variant. Will check and do this in v8 a little later:
-
-dma += xdpf->headroom + sizeof(struct xdp_frame);
-
->This will be useful for e.g. AF_XDP transmit, or other zero-copy
->transmit to go through ndo_xdp_xmit() (as we don't want userspace to
->be-able to e.g. "race" change xdpf->len during transmit/DMA-completion).
->
->
->> +		ret = cpdma_chan_submit_mapped(txch, cpsw_xdpf_to_handle(xdpf),
->> +					       dma, xdpf->len, port);
->> +	} else {
->> +		if (sizeof(*xmeta) > xdpf->headroom) {
->> +			xdp_return_frame_rx_napi(xdpf);
->> +			return -EINVAL;
->> +		}
->> +
->> +		ret = cpdma_chan_submit(txch, cpsw_xdpf_to_handle(xdpf),
->> +					xdpf->data, xdpf->len, port);
->> +	}
->
->
->
->-- 
->Best regards,
->  Jesper Dangaard Brouer
->  MSc.CS, Principal Kernel Engineer at Red Hat
->  LinkedIn: http://www.linkedin.com/in/brouer
+> +		uint32_t ccr = omap_dma_chan_read(c, CCR);
+> +		/*
+> +		 * The channel is no longer active, set the return value
+> +		 * accordingly
+> +		 */
+> +		if (!(ccr & CCR_ENABLE)) {
+> +			struct omap_desc *d = c->desc;
+> +			ret = DMA_COMPLETE;
+> +			omap_dma_start_desc(c);
+> +			vchan_cookie_complete(&d->vd);
+> +		}
+> +	}
+> +
+>  	spin_unlock_irqrestore(&c->vc.lock, flags);
+>  
+>  	return ret;
+> @@ -1233,7 +1241,10 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_memcpy(
+>  	d->ccr = c->ccr;
+>  	d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_POSTINC;
+>  
+> -	d->cicr = CICR_DROP_IE | CICR_FRAME_IE;
+> +	if (tx_flags & DMA_PREP_INTERRUPT)
+> +		d->cicr |= CICR_FRAME_IE;
+> +	else
+> +		d->polled = true;
+>  
+>  	d->csdp = data_type;
+>  
+> -- 
+> Peter
+> 
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
 -- 
-Regards,
-Ivan Khoronzhuk
+~Vinod
