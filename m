@@ -1,14 +1,16 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH] dmaengine: ti: omap-dma: Improved memcpy polling support
-Date: Fri, 5 Jul 2019 11:53:34 +0530
-Message-ID: <20190705062334.GV2911@vkoul-mobl>
-References: <20190618132416.26874-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 3/3] dmaengine: ti: edma: Support for polled (memcpy)
+ completion
+Date: Fri, 5 Jul 2019 11:47:14 +0530
+Message-ID: <20190705061714.GU2911@vkoul-mobl>
+References: <20190618132148.26468-1-peter.ujfalusi@ti.com>
+ <20190618132148.26468-4-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190618132416.26874-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20190618132148.26468-4-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,116 +24,112 @@ To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 18-06-19, 16:24, Peter Ujfalusi wrote:
+On 18-06-19, 16:21, Peter Ujfalusi wrote:
 > When a DMA client driver does not set the DMA_PREP_INTERRUPT because it
 > does not want to use interrupts for DMA completion or because it can not
 > rely on DMA interrupts due to executing the memcpy when interrupts are
 > disabled it will poll the status of the transfer.
 > 
-> If the interrupts are enabled then the cookie will be set completed in the
-> interrupt handler so only check in HW completion when the polling is really
-> needed.
+> Since we can not tell from any EDMA register that the transfer is
+> completed, we can only know that the paRAM set has been sent to TPTC for
+> processing we need to check the residue of the transfer, if it is 0 then
+> the transfer is completed.
 > 
 > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
-> Hi,
+>  drivers/dma/ti/edma.c | 37 +++++++++++++++++++++++++++++++++----
+>  1 file changed, 33 insertions(+), 4 deletions(-)
 > 
-> This patch fine-tunes the omap-dma polled memcpy support to be inline with how
-> the EDMA driver is handling it.
-> 
-> The polled completion can be tested by applying:
-> https://patchwork.kernel.org/patch/10966499/
-> 
-> and run the dmatest with polled = 1 on boards where sDMA is used.
-> 
-> Or boot up any dra7 family device with display enabled. The workaround for DMM
-> errata i878 uses polled DMA memcpy.
-> 
-> Regards,
-> Peter
-> 
->  drivers/dma/ti/omap-dma.c | 37 ++++++++++++++++++++++++-------------
->  1 file changed, 24 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
-> index 5ba7d8485026..75d8f7e13c8d 100644
-> --- a/drivers/dma/ti/omap-dma.c
-> +++ b/drivers/dma/ti/omap-dma.c
-> @@ -94,6 +94,7 @@ struct omap_desc {
->  	bool using_ll;
->  	enum dma_transfer_direction dir;
->  	dma_addr_t dev_addr;
-> +	bool polled;
+> diff --git a/drivers/dma/ti/edma.c b/drivers/dma/ti/edma.c
+> index 48b155cab822..87d7fdaa204b 100644
+> --- a/drivers/dma/ti/edma.c
+> +++ b/drivers/dma/ti/edma.c
+> @@ -171,6 +171,7 @@ struct edma_desc {
+>  	struct list_head		node;
+>  	enum dma_transfer_direction	direction;
+>  	int				cyclic;
+> +	bool				polled;
+>  	int				absync;
+>  	int				pset_nr;
+>  	struct edma_chan		*echan;
+> @@ -1240,8 +1241,9 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
 >  
->  	int32_t fi;		/* for OMAP_DMA_SYNC_PACKET / double indexing */
->  	int16_t ei;		/* for double indexing */
-> @@ -834,20 +835,10 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+>  	edesc->pset[0].param.opt |= ITCCHEN;
+>  	if (nslots == 1) {
+> -		/* Enable transfer complete interrupt */
+> -		edesc->pset[0].param.opt |= TCINTEN;
+> +		/* Enable transfer complete interrupt if requested */
+> +		if (tx_flags & DMA_PREP_INTERRUPT)
+> +			edesc->pset[0].param.opt |= TCINTEN;
+>  	} else {
+>  		/* Enable transfer complete chaining for the first slot */
+>  		edesc->pset[0].param.opt |= TCCHEN;
+> @@ -1268,9 +1270,14 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+>  		}
+>  
+>  		edesc->pset[1].param.opt |= ITCCHEN;
+> -		edesc->pset[1].param.opt |= TCINTEN;
+> +		/* Enable transfer complete interrupt if requested */
+> +		if (tx_flags & DMA_PREP_INTERRUPT)
+> +			edesc->pset[1].param.opt |= TCINTEN;
+>  	}
+>  
+> +	if (!(tx_flags & DMA_PREP_INTERRUPT))
+> +		edesc->polled = true;
+> +
+>  	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+>  }
+>  
+> @@ -1840,18 +1847,40 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
+>  {
+>  	struct edma_chan *echan = to_edma_chan(chan);
+>  	struct virt_dma_desc *vdesc;
+> +	struct dma_tx_state txstate_tmp;
+>  	enum dma_status ret;
+>  	unsigned long flags;
 >  
 >  	ret = dma_cookie_status(chan, cookie, txstate);
->  
-> -	if (!c->paused && c->running) {
-> -		uint32_t ccr = omap_dma_chan_read(c, CCR);
-> -		/*
-> -		 * The channel is no longer active, set the return value
-> -		 * accordingly
-> -		 */
-> -		if (!(ccr & CCR_ENABLE))
-> -			ret = DMA_COMPLETE;
-> -	}
-> -
-> +	spin_lock_irqsave(&c->vc.lock, flags);
->  	if (ret == DMA_COMPLETE || !txstate)
-> -		return ret;
-> +		goto out;
->  
-> -	spin_lock_irqsave(&c->vc.lock, flags);
->  	vd = vchan_find_desc(&c->vc, cookie);
->  	if (vd) {
->  		txstate->residue = omap_dma_desc_size(to_omap_dma_desc(&vd->tx));
-> @@ -868,6 +859,23 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
->  	}
->  	if (ret == DMA_IN_PROGRESS && c->paused)
->  		ret = DMA_PAUSED;
+> -	if (ret == DMA_COMPLETE || !txstate)
 > +
-> +out:
-> +	if (ret == DMA_IN_PROGRESS && c->running && c->desc &&
-> +	    c->desc->polled && c->desc->vd.tx.cookie == cookie) {
+> +	/* Provide a dummy dma_tx_state for completion checking */
+> +	if (ret != DMA_COMPLETE && !txstate)
+> +		txstate = &txstate_tmp;
+> +
+> +	if (ret == DMA_COMPLETE)
+>  		return ret;
 
-heh, that makes quite a read!
+why not do:
 
-checking DMA_IN_PROGRESS should not make sense, as we should bail out at
-the start if it is completed
+        if (ret == DMA_COMPLETE)
+                return ret;
 
-I think other can be optimzed to make it a better read!
+        if (!txstate)
+                txstate = &txstate_tmp;
 
-> +		uint32_t ccr = omap_dma_chan_read(c, CCR);
-> +		/*
-> +		 * The channel is no longer active, set the return value
-> +		 * accordingly
-> +		 */
-> +		if (!(ccr & CCR_ENABLE)) {
-> +			struct omap_desc *d = c->desc;
-> +			ret = DMA_COMPLETE;
-> +			omap_dma_start_desc(c);
-> +			vchan_cookie_complete(&d->vd);
-> +		}
+> +	txstate->residue = 0;
+>  	spin_lock_irqsave(&echan->vchan.lock, flags);
+>  	if (echan->edesc && echan->edesc->vdesc.tx.cookie == cookie)
+>  		txstate->residue = edma_residue(echan->edesc);
+>  	else if ((vdesc = vchan_find_desc(&echan->vchan, cookie)))
+>  		txstate->residue = to_edma_desc(&vdesc->tx)->residue;
+> +
+> +	/*
+> +	 * Mark the cookie completed if the residue is 0 for non cyclic
+> +	 * transfers
+> +	 */
+> +	if (ret != DMA_COMPLETE && !txstate->residue &&
+> +	    echan->edesc && echan->edesc->polled &&
+> +	    echan->edesc->vdesc.tx.cookie == cookie) {
+> +		edma_stop(echan);
+> +		vchan_cookie_complete(&echan->edesc->vdesc);
+> +		echan->edesc = NULL;
+> +		edma_execute(echan);
+> +		ret = DMA_COMPLETE;
 > +	}
 > +
->  	spin_unlock_irqrestore(&c->vc.lock, flags);
+>  	spin_unlock_irqrestore(&echan->vchan.lock, flags);
 >  
 >  	return ret;
-> @@ -1233,7 +1241,10 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_memcpy(
->  	d->ccr = c->ccr;
->  	d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_POSTINC;
->  
-> -	d->cicr = CICR_DROP_IE | CICR_FRAME_IE;
-> +	if (tx_flags & DMA_PREP_INTERRUPT)
-> +		d->cicr |= CICR_FRAME_IE;
-> +	else
-> +		d->polled = true;
->  
->  	d->csdp = data_type;
->  
 > -- 
 > Peter
 > 
