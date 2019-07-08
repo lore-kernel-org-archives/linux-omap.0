@@ -1,55 +1,101 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v8 net-next 0/5] net: ethernet: ti: cpsw: Add XDP support
-Date: Mon, 8 Jul 2019 23:32:54 +0300
-Message-ID: <20190708203252.GA12580@khorivan>
-References: <20190705150502.6600-1-ivan.khoronzhuk@linaro.org>
- <20190707.183146.1123763637704790378.davem@davemloft.net>
- <20190707.183511.503486832061897586.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH v9 net-next 0/5] net: ethernet: ti: cpsw: Add XDP support
+Date: Tue,  9 Jul 2019 00:34:27 +0300
+Message-ID: <20190708213432.8525-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190707.183511.503486832061897586.davem@davemloft.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: grygorii.strashko@ti.com, hawk@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+To: grygorii.strashko@ti.com, hawk@kernel.org, davem@davemloft.net
+Cc: ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jul 07, 2019 at 06:35:11PM -0700, David Miller wrote:
->From: David Miller <davem@davemloft.net>
->Date: Sun, 07 Jul 2019 18:31:46 -0700 (PDT)
->
->> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->> Date: Fri,  5 Jul 2019 18:04:57 +0300
->>
->>> This patchset adds XDP support for TI cpsw driver and base it on
->>> page_pool allocator. It was verified on af_xdp socket drop,
->>> af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
->>>
->>> It was verified with following configs enabled:
->>  ...
->>
->> I'm applying this to net-next, please deal with whatever follow-ups are
->> necessary.
->
->Nevermind, you really have to fix this:
->
->drivers/net/ethernet/ti/davinci_cpdma.c: In function ‘cpdma_chan_submit_si’:
->drivers/net/ethernet/ti/davinci_cpdma.c:1047:12: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
->   buffer = (u32)si->data;
->            ^
->drivers/net/ethernet/ti/davinci_cpdma.c: In function ‘cpdma_chan_idle_submit_mapped’:
->drivers/net/ethernet/ti/davinci_cpdma.c:1114:12: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
->  si.data = (void *)(u32)data;
->            ^
->drivers/net/ethernet/ti/davinci_cpdma.c: In function ‘cpdma_chan_submit_mapped’:
->drivers/net/ethernet/ti/davinci_cpdma.c:1164:12: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
->  si.data = (void *)(u32)data;
->            ^
-Actrually that's fixed in reply v9 patch.
-But, nevermind, i will send v9 for whole series.
+This patchset adds XDP support for TI cpsw driver and base it on
+page_pool allocator. It was verified on af_xdp socket drop,
+af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
+
+It was verified with following configs enabled:
+CONFIG_JIT=y
+CONFIG_BPFILTER=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_XDP_SOCKETS=y
+CONFIG_BPF_EVENTS=y
+CONFIG_HAVE_EBPF_JIT=y
+CONFIG_BPF_JIT=y
+CONFIG_CGROUP_BPF=y
+
+Link on previous v7:
+https://lkml.org/lkml/2019/7/4/715
+
+Also regular tests with iperf2 were done in order to verify impact on
+regular netstack performance, compared with base commit:
+https://pastebin.com/JSMT0iZ4
+
+v8..v9:
+- fix warnings on arm64 caused by typos in type casting
+
+v7..v8:
+- corrected dma calculation based on headroom instead of hard start
+- minor comment changes
+
+v6..v7:
+- rolled back to v4 solution but with small modification
+- picked up patch:
+  https://www.spinics.net/lists/netdev/msg583145.html
+- added changes related to netsec fix and cpsw
+
+
+v5..v6:
+- do changes that is rx_dev while redirect/flush cycle is kept the same
+- dropped net: ethernet: ti: davinci_cpdma: return handler status
+- other changes desc in patches
+
+v4..v5:
+- added two plreliminary patches:
+  net: ethernet: ti: davinci_cpdma: allow desc split while down
+  net: ethernet: ti: cpsw_ethtool: allow res split while down
+- added xdp alocator refcnt on xdp level, avoiding page pool refcnt
+- moved flush status as separate argument for cpdma_chan_process
+- reworked cpsw code according to last changes to allocator
+- added missed statistic counter
+
+v3..v4:
+- added page pool user counter
+- use same pool for ndevs in dual mac
+- restructured page pool create/destroy according to the last changes in API
+
+v2..v3:
+- each rxq and ndev has its own page pool
+
+v1..v2:
+- combined xdp_xmit functions
+- used page allocation w/o refcnt juggle
+- unmapped page for skb netstack
+- moved rxq/page pool allocation to open/close pair
+- added several preliminary patches:
+  net: page_pool: add helper function to retrieve dma addresses
+  net: page_pool: add helper function to unmap dma addresses
+  net: ethernet: ti: cpsw: use cpsw as drv data
+  net: ethernet: ti: cpsw_ethtool: simplify slave loops
+
+Ivan Khoronzhuk (5):
+  net: core: page_pool: add user refcnt and reintroduce
+    page_pool_destroy
+  net: ethernet: ti: davinci_cpdma: add dma mapped submit
+  net: ethernet: ti: davinci_cpdma: allow desc split while down
+  net: ethernet: ti: cpsw_ethtool: allow res split while down
+  net: ethernet: ti: cpsw: add XDP support
+
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |   4 +-
+ drivers/net/ethernet/socionext/netsec.c       |   8 +-
+ drivers/net/ethernet/ti/Kconfig               |   1 +
+ drivers/net/ethernet/ti/cpsw.c                | 502 ++++++++++++++++--
+ drivers/net/ethernet/ti/cpsw_ethtool.c        |  57 +-
+ drivers/net/ethernet/ti/cpsw_priv.h           |   7 +
+ drivers/net/ethernet/ti/davinci_cpdma.c       | 106 +++-
+ drivers/net/ethernet/ti/davinci_cpdma.h       |   7 +-
+ include/net/page_pool.h                       |  25 +
+ net/core/page_pool.c                          |   8 +
+ net/core/xdp.c                                |   3 +
+ 11 files changed, 640 insertions(+), 88 deletions(-)
 
 -- 
-Regards,
-Ivan Khoronzhuk
+2.17.1
