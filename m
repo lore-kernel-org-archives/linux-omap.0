@@ -1,83 +1,214 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 2/2] DTS: ARM: gta04: introduce legacy spi-cs-high to make display work again
-Date: Mon,  8 Jul 2019 16:46:05 +0200
-Message-ID: <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
-References: <cover.1562597164.git.hns@goldelico.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/6] dt-bindings: irqchip: Add PRUSS interrupt controller
+ bindings
+Date: Mon, 8 Jul 2019 10:59:30 -0500
+Message-ID: <53868885-a78d-448a-1f2a-03a16251d028@ti.com>
+References: <20190708035243.12170-1-s-anna@ti.com>
+ <20190708035243.12170-2-s-anna@ti.com>
+ <b67e8ce6-a291-ce4c-9972-b7fc7cd08bb4@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1562597164.git.hns@goldelico.com>
+In-Reply-To: <b67e8ce6-a291-ce4c-9972-b7fc7cd08bb4@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: letux-kernel@openphoenux.org, linux-spi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>, stable@vger.kernel.org
+To: "Andrew F. Davis" <afd@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-commit 6953c57ab172 "gpio: of: Handle SPI chipselect legacy bindings"
+Hi Andrew,
 
-did introduce logic to centrally handle the legacy spi-cs-high property
-in combination with cs-gpios. This assumes that the polarity
-of the CS has to be inverted if spi-cs-high is missing, even
-and especially if non-legacy GPIO_ACTIVE_HIGH is specified.
+On 7/8/19 9:34 AM, Andrew F. Davis wrote:
+> On 7/7/19 11:52 PM, Suman Anna wrote:
+>> The Programmable Real-Time Unit Subsystem (PRUSS) contains an interrupt
+>> controller (INTC) that can handle various system input events and post
+>> interrupts back to the device-level initiators. The INTC can support
+>> upto 64 input events on most SoCs with individual control configuration
+>> and hardware prioritization. These events are mapped onto 10 interrupt
+>> lines through two levels of many-to-one mapping support. Different
+>> interrupt lines are routed to the individual PRU cores or to the
+>> host CPU or to other PRUSS instances.
+>>
+>> The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
+>> commonly called ICSSG. The ICSSG interrupt controller on K3 SoCs provide
+>> a higher number of host interrupts (20 vs 10) and can handle an increased
+>> number of input events (160 vs 64) from various SoC interrupt sources.
+>>
+>> Add the bindings document for these interrupt controllers on all the
+>> applicable SoCs. It covers the OMAP architecture SoCs - AM33xx, AM437x
+>> and AM57xx; the Keystone 2 architecture based 66AK2G SoC; the Davinci
+>> architecture based OMAPL138 SoCs, and the K3 architecture based AM65x
+>> and J721E SoCs.
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>> Prior version: https://patchwork.kernel.org/patch/10795771/
+>>
+>>  .../interrupt-controller/ti,pruss-intc.txt    | 92 +++++++++++++++++++
+>>  1 file changed, 92 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
+>> new file mode 100644
+>> index 000000000000..020073c07a92
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
+>> @@ -0,0 +1,92 @@
+>> +PRU ICSS INTC on TI SoCs
+>> +========================
+>> +
+>> +Each PRUSS has a single interrupt controller instance that is common to both
+>> +the PRU cores. Most interrupt controllers can route 64 input events which are
+>> +then mapped to 10 possible output interrupts through two levels of mapping.
+>> +The input events can be triggered by either the PRUs and/or various other
+>> +PRUSS internal and external peripherals. The first 2 output interrupts are
+>> +fed exclusively to the internal PRU cores, with the remaining 8 (2 through 9)
+>> +connected to external interrupt controllers including the MPU and/or other
+>> +PRUSS instances, DSPs or devices.
+>> +
+>> +The K3 family of SoCs can handle 160 input events that can be mapped to 20
+>> +different possible output interrupts. The additional output interrupts (10
+>> +through 19) are connected to new sub-modules within the ICSSG instances.
+>> +
+>> +This interrupt-controller node should be defined as a child node of the
+>> +corresponding PRUSS node. The node should be named "interrupt-controller".
+>> +Please see the overall PRUSS bindings document for additional details
+>> +including a complete example,
+>> +    Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>> +
+>> +Required Properties:
+>> +--------------------
+>> +- compatible           : should be one of the following,
+>> +                             "ti,pruss-intc" for OMAP-L13x/AM18x/DA850 SoCs,
+>> +                                                 AM335x family of SoCs,
+>> +                                                 AM437x family of SoCs,
+>> +                                                 AM57xx family of SoCs
+>> +                                                 66AK2G family of SoCs
+>> +                             "ti,icssg-intc" for K3 AM65x & J721E family of SoCs
+>> +- reg                  : base address and size for the PRUSS INTC sub-module
+>> +- interrupts           : all the interrupts generated towards the main host
+>> +                         processor in the SoC. The format depends on the
+>> +                         interrupt specifier for the particular SoC's ARM GIC
+>> +                         parent interrupt controller. A shared interrupt can
+>> +                         be skipped if the desired destination and usage is by
+>> +                         a different processor/device.
+>> +- interrupt-names      : should use one of the following names for each valid
+>> +                         interrupt connected to ARM GIC, the name should match
+>> +                         the corresponding host interrupt number,
+>> +                             "host0", "host1", "host2", "host3", "host4",
+>> +                             "host5", "host6" or "host7"
+>> +- interrupt-controller : mark this node as an interrupt controller
+>> +- #interrupt-cells     : should be 1. Client users shall use the PRU System
+>> +                         event number (the interrupt source that the client
+>> +                         is interested in) as the value of the interrupts
+>> +                         property in their node
+>> +
+>> +Optional Properties:
+>> +--------------------
+>> +The following properties are _required_ only for some SoCs. If none of the below
+>> +properties are defined, it implies that all the host interrupts 2 through 9 are
+>> +connected exclusively to the ARM GIC.
+>> +
+>> +- ti,irqs-reserved     : an array of 8-bit elements of host interrupts between
+>> +                         0 and 7 (corresponding to PRUSS INTC output interrupts
+>> +                         2 through 9) that are not connected to the ARM GIC.
+> 
+> The reason for 0-7 mapping to 2-9 is not instantly clear to someone
+> reading this. If you respin this could you note that reason is
+> interrupts 0 and 1 are always routed back into the PRUSS. 
 
-The DTS for the GTA04 was orginally introduced under the assumption
-that there is no need for spi-cs-high if the gpio is defined with
-proper polarity GPIO_ACTIVE_HIGH.
+Yeah, this is always going to be somewhat confusing since the driver has
+to deal with all hosts from channel-mapping perspective, but only the 8
+interrupts at most that reach MPU for handling interrupts. TRM has
 
-This was not a problem until gpiolib changed the interpretation of
-GPIO_ACTIVE_HIGH and missing spi-cs-high.
+Anyway, I have already mentioned the first 2 interrupt routing in the
+first paragraph above.
 
-The effect is that the missing spi-cs-high is now interpreted as CS being
-low (despite GPIO_ACTIVE_HIGH) which turns off the SPI interface when the
-panel is to be programmed by the panel driver.
+Thinking more
+> on that, the same is true for interrupt 7 ("host5") on AM437x/66AK2G yet
+> we don't skip that in the naming.. now that we have the reserved IRQ
+> mechanism above, why not leave the one-to-one interrupt to name mapping,
+> but always have at least the first two marked as reserved for all the
+> current devices:
+> 
+> ti,irqs-reserved = /bits/ 8 <0 1>;
+> 
+> Then any "hostx" listed as reserved need not be present in the host
+> interrupts property array. To me that would solve the "managing
+> interrupts not targeting the Linux running core" problem and keep the
+> names consistent, e.g.:
 
-Therefore, we have to add the redundant and legacy spi-cs-high property
-to properly pass through the legacy handler.
+I had actually used the interrupt-names always starting from "host2"
+through "host9" (names from PRU perspective) previously, and I have
+changed this to start indexing from 0 in this series to address an
+internal review comment from Grygorii and to align with TRM. All the
+TRMs (except for AM572x) actually use the names/signals "host_intr0",
+"host_intr1".."host_intr7" etc for the interrupts going towards MPU.
+Maybe I should actually rename the interrupt-names to be host_intrX
+instead of hostX to avoid confusion and be exactly aligned with the TRM
+names. I will file a bug against AM57xx TRM to align the names with all
+other SoC TRMs.
 
-Since this is nowhere documented in the bindings, we add some words of
-WARNING.
+I am using "output interrupt lines" to imply names w.r.t PRU vs "host
+interrupt" to imply ARM GIC names.
 
-Cc: stable@vger.kernel.org
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- Documentation/devicetree/bindings/spi/spi-bus.txt | 6 ++++++
- arch/arm/boot/dts/omap3-gta04.dtsi                | 1 +
- 2 files changed, 7 insertions(+)
+regards
+Suman
 
-diff --git a/Documentation/devicetree/bindings/spi/spi-bus.txt b/Documentation/devicetree/bindings/spi/spi-bus.txt
-index 1f6e86f787ef..982aa590058b 100644
---- a/Documentation/devicetree/bindings/spi/spi-bus.txt
-+++ b/Documentation/devicetree/bindings/spi/spi-bus.txt
-@@ -47,6 +47,10 @@ cs1 : native
- cs2 : &gpio1 1 0
- cs3 : &gpio1 2 0
- 
-+WARNING: the polarity of cs-gpios may be inverted in some cases compared
-+to what is specified in the third parameter. In that case the spi-cs-high
-+property must be defined for slave nodes.
-+
- 
- SPI slave nodes must be children of the SPI controller node.
- 
-@@ -69,6 +73,8 @@ All slave nodes can contain the following optional properties:
- 		    phase (CPHA) mode.
- - spi-cs-high     - Empty property indicating device requires chip select
- 		    active high.
-+                   WARNING: this is especially required even if the cs-gpios
-+		    define the gpio as GPIO_ACTIVE_HIGH
- - spi-3wire       - Empty property indicating device requires 3-wire mode.
- - spi-lsb-first   - Empty property indicating device requires LSB first mode.
- - spi-tx-bus-width - The bus width (number of data wires) that is used for MOSI.
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 9a9a29fe88ec..47bab8e1040e 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -124,6 +124,7 @@
- 			spi-max-frequency = <100000>;
- 			spi-cpol;
- 			spi-cpha;
-+			spi-cs-high;
- 
- 			backlight= <&backlight>;
- 			label = "lcd";
--- 
-2.19.1
+> 
+> /* AM437x PRU-ICSS */
+> pruss_intc: interrupt-controller@20000 {
+> 	compatible = "ti,pruss-intc";
+> 	reg = <0x20000 0x2000>;
+> 	interrupts = <                       20       21       22
+> 	                   23       24                25       26>;
+> 	interrupt-names =                   "host2", "host3", "host4",
+> 	                  "host5", "host6",          "host8", "host9";
+> 	interrupt-controller;
+> 	#interrupt-cells = <1>;
+> 	ti,irqs-reserved = /bits/ 8 <0 1 7>;
+> };
+> 
+> Instantly clear which are missing and which "hostx" maps to which host
+> interrupt number.
+> 
+> Andrew
+> 
+>> +                           Eg: AM437x and 66AK2G SoCs do not have "host5"
+>> +                               interrupt connected to MPU
+>> +- ti,irqs-shared       : an array of 8-bit elements of host interrupts between
+>> +                         0 and 7 (corresponding to PRUSS INTC output interrupts
+>> +                         2 through 9) that are also connected to other devices
+>> +                         or processors in the SoC.
+>> +                           Eg: AM65x and J721E SoCs have "host5", "host6" and
+>> +                               "host7" interrupts connected to MPU, and other
+>> +                               ICSSG instances
+>> +
+>> +
+>> +Example:
+>> +--------
+>> +
+>> +1.	/* AM33xx PRU-ICSS */
+>> +	pruss: pruss@0 {
+>> +		compatible = "ti,am3356-pruss";
+>> +		reg = <0x0 0x80000>;
+>> +		#address-cells = <1>;
+>> +		#size-cells = <1>;
+>> +		...
+>> +
+>> +		pruss_intc: interrupt-controller@20000 {
+>> +			compatible = "ti,pruss-intc";
+>> +			reg = <0x20000 0x2000>;
+>> +			interrupts = <20 21 22 23 24 25 26 27>;
+>> +			interrupt-names = "host0", "host1", "host2",
+>> +					  "host3", "host4", "host5",
+>> +					  "host6", "host7";
+>> +			interrupt-controller;
+>> +			#interrupt-cells = <1>;
+>> +			ti,irqs-shared = /bits/ 8 <0 6 7>;
+>> +		};
+>> +	};
+>>
