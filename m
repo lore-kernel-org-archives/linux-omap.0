@@ -1,25 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v9 net-next 0/5] net: ethernet: ti: cpsw: Add XDP
- support
-Date: Mon, 08 Jul 2019 15:12:05 -0700 (PDT)
-Message-ID: <20190708.151205.542308481913266663.davem@davemloft.net>
-References: <20190708213432.8525-1-ivan.khoronzhuk@linaro.org>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/2] dt-bindings: mailbox: omap: Update bindings for TI
+ K3 SoCs
+Date: Mon, 8 Jul 2019 16:54:34 -0600
+Message-ID: <20190708225434.GA24701@bogus>
+References: <20190604170146.12205-1-s-anna@ti.com>
+ <20190604170146.12205-2-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190708213432.8525-1-ivan.khoronzhuk@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20190604170146.12205-2-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: grygorii.strashko@ti.com, hawk@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, xdp-newbies@vger.kernel.org, ilias.apalodimas@linaro.org, netdev@vger.kernel.org, daniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Tue,  9 Jul 2019 00:34:27 +0300
+On Tue, 4 Jun 2019 12:01:45 -0500, Suman Anna wrote:
+> The TI K3 AM65x and J721E family of SoCs have a new Mailbox IP that
+> is based on the existing Mailbox IP present in OMAP architecture based
+> SoCs. Update the existing OMAP Mailbox bindings for this new IP present
+> on TI K3 AM65x and J721E SoCs. The same compatible from AM65x SoCs is
+> reused for J721E SoCs.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>  .../bindings/mailbox/omap-mailbox.txt         | 59 ++++++++++++++++---
+>  1 file changed, 50 insertions(+), 9 deletions(-)
+> 
 
-> This patchset adds XDP support for TI cpsw driver and base it on
-> page_pool allocator. It was verified on af_xdp socket drop,
-> af_xdp l2f, ebpf XDP_DROP, XDP_REDIRECT, XDP_PASS, XDP_TX.
- ...
-
-Series applied, thanks Ivan!
+Reviewed-by: Rob Herring <robh@kernel.org>
