@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 2/6] irqchip/irq-pruss-intc: Add a PRUSS irqchip driver for PRUSS interrupts
-Date: Sun, 7 Jul 2019 22:52:39 -0500
-Message-ID: <20190708035243.12170-3-s-anna@ti.com>
+Subject: [PATCH 6/6] irqchip/irq-pruss-intc: Add support for ICSSG INTC on K3 SoCs
+Date: Sun, 7 Jul 2019 22:52:43 -0500
+Message-ID: <20190708035243.12170-7-s-anna@ti.com>
 References: <20190708035243.12170-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,444 +13,442 @@ To: Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Thoma
 Cc: Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Andrew F. Davis" <afd@ti.com>
+The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
+commonly called ICSSG. The PRUSS INTC present within the ICSSG supports
+more System Events (160 vs 64), more Interrupt Channels and Host Interrupts
+(20 vs 10) compared to the previous generation PRUSS INTC instances. The
+first 2 and the last 10 of these host interrupt lines are used by the
+PRU and other auxiliary cores and sub-modules within the ICSSG, with 8
+host interrupts connected to MPU. The host interrupts 5, 6, 7 are also
+connected to the other ICSSG instances within the SoC and can be
+partitioned as per system integration through the board dts files.
 
-The Programmable Real-Time Unit Subsystem (PRUSS) contains a local
-interrupt controller (INTC) that can handle various system input events
-and post interrupts back to the device-level initiators. The INTC can
-support upto 64 input events with individual control configuration and
-hardware prioritization. These events are mapped onto 10 output interrupt
-lines through two levels of many-to-one mapping support. Different
-interrupt lines are routed to the individual PRU cores or to the host
-CPU, or to other devices on the SoC. Some of these events are sourced
-from peripherals or other sub-modules within that PRUSS, while a few
-others are sourced from SoC-level peripherals/devices.
+Enhance the PRUSS INTC driver to add support for this ICSSG INTC
+instance. This support is added using specific compatible and match
+data and updating the code to use this data instead of the current
+hard-coded macros. The INTC config structure is updated to use the
+higher events and channels on all SoCs, while limiting the actual
+processing to only the relevant number of events/channels/interrupts.
 
-The PRUSS INTC platform driver manages this PRUSS interrupt controller
-and implements an irqchip driver to provide a Linux standard way for
-the PRU client users to enable/disable/ack/re-trigger a PRUSS system
-event. The system events to interrupt channels and host interrupts
-relies on the mapping configuration provided either through the PRU
-firmware blob or via the PRU application's device tree node. The
-mappings will be programmed during the boot/shutdown of a PRU core.
-
-The PRUSS INTC module is reference counted during the interrupt
-setup phase through the irqchip's irq_request_resources() and
-irq_release_resources() ops. This restricts the module from being
-removed as long as there are active interrupt users.
-
-The driver currently supports and can be built for OMAP architecture
-based AM335x, AM437x and AM57xx SoCs; Keystone2 architecture based
-66AK2G SoCs and Davinci architecture based OMAP-L13x/AM18x/DA850 SoCs.
-All of these SoCs support 64 system events, 10 interrupt channels and
-10 output interrupt lines per PRUSS INTC with a few SoC integration
-differences.
-
-NOTE:
-Each PRU-ICSS's INTC on AM57xx SoCs is preceded by a Crossbar that
-enables multiple external events to be routed to a specific number
-of input interrupt events. Any non-default external interrupt event
-directed towards PRUSS needs this crossbar to be setup properly.
-
-Signed-off-by: Andrew F. Davis <afd@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
-Prior version: https://patchwork.kernel.org/patch/10795761/ 
-
- drivers/irqchip/Kconfig          |  10 +
- drivers/irqchip/Makefile         |   1 +
- drivers/irqchip/irq-pruss-intc.c | 352 +++++++++++++++++++++++++++++++
- 3 files changed, 363 insertions(+)
- create mode 100644 drivers/irqchip/irq-pruss-intc.c
+ drivers/irqchip/Kconfig                |   2 +-
+ drivers/irqchip/irq-pruss-intc.c       | 172 +++++++++++++++++--------
+ include/linux/irqchip/irq-pruss-intc.h |   4 +-
+ 3 files changed, 124 insertions(+), 54 deletions(-)
 
 diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index 659c5e0fb835..b0a9479d527c 100644
+index b0a9479d527c..9f36a6252302 100644
 --- a/drivers/irqchip/Kconfig
 +++ b/drivers/irqchip/Kconfig
-@@ -447,6 +447,16 @@ config TI_SCI_INTA_IRQCHIP
- 	  If you wish to use interrupt aggregator irq resources managed by the
- 	  TI System Controller, say Y here. Otherwise, say N.
+@@ -449,7 +449,7 @@ config TI_SCI_INTA_IRQCHIP
  
-+config TI_PRUSS_INTC
-+	tristate "TI PRU-ICSS Interrupt Controller"
-+	depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM437X || SOC_DRA7XX || ARCH_KEYSTONE
-+	select IRQ_DOMAIN
-+	help
-+	   This enables support for the PRU-ICSS Local Interrupt Controller
-+	   present within a PRU-ICSS subsystem present on various TI SoCs.
-+	   The PRUSS INTC enables various interrupts to be routed to multiple
-+	   different processors within the SoC.
-+
- endmenu
- 
- config SIFIVE_PLIC
-diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
-index 606a003a0000..717f1d49e549 100644
---- a/drivers/irqchip/Makefile
-+++ b/drivers/irqchip/Makefile
-@@ -100,3 +100,4 @@ obj-$(CONFIG_MADERA_IRQ)		+= irq-madera.o
- obj-$(CONFIG_LS1X_IRQ)			+= irq-ls1x.o
- obj-$(CONFIG_TI_SCI_INTR_IRQCHIP)	+= irq-ti-sci-intr.o
- obj-$(CONFIG_TI_SCI_INTA_IRQCHIP)	+= irq-ti-sci-inta.o
-+obj-$(CONFIG_TI_PRUSS_INTC)		+= irq-pruss-intc.o
+ config TI_PRUSS_INTC
+ 	tristate "TI PRU-ICSS Interrupt Controller"
+-	depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM437X || SOC_DRA7XX || ARCH_KEYSTONE
++	depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM437X || SOC_DRA7XX || ARCH_KEYSTONE || ARCH_K3
+ 	select IRQ_DOMAIN
+ 	help
+ 	   This enables support for the PRU-ICSS Local Interrupt Controller
 diff --git a/drivers/irqchip/irq-pruss-intc.c b/drivers/irqchip/irq-pruss-intc.c
-new file mode 100644
-index 000000000000..d62186ad1be4
---- /dev/null
+index a0ad50b95cd5..702b1c120b21 100644
+--- a/drivers/irqchip/irq-pruss-intc.c
 +++ b/drivers/irqchip/irq-pruss-intc.c
-@@ -0,0 +1,352 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * PRU-ICSS INTC IRQChip driver for various TI SoCs
-+ *
-+ * Copyright (C) 2016-2019 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Andrew F. Davis <afd@ti.com>
-+ *	Suman Anna <s-anna@ti.com>
-+ */
-+
-+#include <linux/irq.h>
-+#include <linux/irqchip/chained_irq.h>
-+#include <linux/irqdomain.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+
-+/*
-+ * Number of host interrupts reaching the main MPU sub-system. Note that this
-+ * is not the same as the total number of host interrupts supported by the PRUSS
-+ * INTC instance
-+ */
-+#define MAX_NUM_HOST_IRQS	8
-+
-+/* minimum starting host interrupt number for MPU */
-+#define MIN_PRU_HOST_INT	2
-+
-+/* maximum number of system events */
-+#define MAX_PRU_SYS_EVENTS	64
-+
-+/* PRU_ICSS_INTC registers */
-+#define PRU_INTC_REVID		0x0000
-+#define PRU_INTC_CR		0x0004
-+#define PRU_INTC_GER		0x0010
-+#define PRU_INTC_GNLR		0x001c
-+#define PRU_INTC_SISR		0x0020
-+#define PRU_INTC_SICR		0x0024
-+#define PRU_INTC_EISR		0x0028
-+#define PRU_INTC_EICR		0x002c
-+#define PRU_INTC_HIEISR		0x0034
-+#define PRU_INTC_HIDISR		0x0038
-+#define PRU_INTC_GPIR		0x0080
-+#define PRU_INTC_SRSR0		0x0200
-+#define PRU_INTC_SRSR1		0x0204
-+#define PRU_INTC_SECR0		0x0280
-+#define PRU_INTC_SECR1		0x0284
-+#define PRU_INTC_ESR0		0x0300
-+#define PRU_INTC_ESR1		0x0304
-+#define PRU_INTC_ECR0		0x0380
-+#define PRU_INTC_ECR1		0x0384
-+#define PRU_INTC_CMR(x)		(0x0400 + (x) * 4)
-+#define PRU_INTC_HMR(x)		(0x0800 + (x) * 4)
-+#define PRU_INTC_HIPIR(x)	(0x0900 + (x) * 4)
-+#define PRU_INTC_SIPR0		0x0d00
-+#define PRU_INTC_SIPR1		0x0d04
-+#define PRU_INTC_SITR0		0x0d80
-+#define PRU_INTC_SITR1		0x0d84
-+#define PRU_INTC_HINLR(x)	(0x1100 + (x) * 4)
-+#define PRU_INTC_HIER		0x1500
-+
-+/* HIPIR register bit-fields */
-+#define INTC_HIPIR_NONE_HINT	0x80000000
-+
+@@ -7,6 +7,7 @@
+  *	Suman Anna <s-anna@ti.com>
+  */
+ 
++#include <linux/bitmap.h>
+ #include <linux/irq.h>
+ #include <linux/irqchip/chained_irq.h>
+ #include <linux/irqchip/irq-pruss-intc.h>
+@@ -25,9 +26,6 @@
+ /* minimum starting host interrupt number for MPU */
+ #define MIN_PRU_HOST_INT	2
+ 
+-/* maximum number of host interrupts */
+-#define MAX_PRU_HOST_INT	10
+-
+ /* PRU_ICSS_INTC registers */
+ #define PRU_INTC_REVID		0x0000
+ #define PRU_INTC_CR		0x0004
+@@ -40,21 +38,23 @@
+ #define PRU_INTC_HIEISR		0x0034
+ #define PRU_INTC_HIDISR		0x0038
+ #define PRU_INTC_GPIR		0x0080
++#define PRU_INTC_SRSR(x)	(0x0200 + (x) * 4)
+ #define PRU_INTC_SRSR0		0x0200
+ #define PRU_INTC_SRSR1		0x0204
++#define PRU_INTC_SECR(x)	(0x0280 + (x) * 4)
+ #define PRU_INTC_SECR0		0x0280
+ #define PRU_INTC_SECR1		0x0284
++#define PRU_INTC_ESR(x)		(0x0300 + (x) * 4)
+ #define PRU_INTC_ESR0		0x0300
+ #define PRU_INTC_ESR1		0x0304
++#define PRU_INTC_ECR(x)		(0x0380 + (x) * 4)
+ #define PRU_INTC_ECR0		0x0380
+ #define PRU_INTC_ECR1		0x0384
+ #define PRU_INTC_CMR(x)		(0x0400 + (x) * 4)
+ #define PRU_INTC_HMR(x)		(0x0800 + (x) * 4)
+ #define PRU_INTC_HIPIR(x)	(0x0900 + (x) * 4)
+-#define PRU_INTC_SIPR0		0x0d00
+-#define PRU_INTC_SIPR1		0x0d04
+-#define PRU_INTC_SITR0		0x0d80
+-#define PRU_INTC_SITR1		0x0d84
++#define PRU_INTC_SIPR(x)	(0x0d00 + (x) * 4)
++#define PRU_INTC_SITR(x)	(0x0d80 + (x) * 4)
+ #define PRU_INTC_HINLR(x)	(0x1100 + (x) * 4)
+ #define PRU_INTC_HIER		0x1500
+ 
+@@ -74,12 +74,23 @@
+ /* use -1 to mark unassigned events and channels */
+ #define FREE			-1
+ 
 +/**
-+ * struct pruss_intc - PRUSS interrupt controller structure
-+ * @irqs: kernel irq numbers corresponding to PRUSS host interrupts
-+ * @base: base virtual address of INTC register space
-+ * @irqchip: irq chip for this interrupt controller
-+ * @domain: irq domain for this interrupt controller
-+ * @lock: mutex to serialize access to INTC
-+ * @host_mask: indicate which HOST IRQs are enabled
++ * struct pruss_intc_match_data - match data to handle SoC variations
++ * @num_system_events: number of input system events handled by the PRUSS INTC
++ * @num_host_intrs: number of host interrupts supported by the PRUSS INTC
 + */
-+struct pruss_intc {
-+	unsigned int irqs[MAX_NUM_HOST_IRQS];
-+	void __iomem *base;
-+	struct irq_chip *irqchip;
-+	struct irq_domain *domain;
-+	struct mutex lock; /* PRUSS INTC lock */
-+	u32 host_mask;
++struct pruss_intc_match_data {
++	u8 num_system_events;
++	u8 num_host_intrs;
 +};
 +
-+static inline u32 pruss_intc_read_reg(struct pruss_intc *intc, unsigned int reg)
-+{
-+	return readl_relaxed(intc->base + reg);
-+}
+ /**
+  * struct pruss_intc - PRUSS interrupt controller structure
+  * @irqs: kernel irq numbers corresponding to PRUSS host interrupts
+  * @base: base virtual address of INTC register space
+  * @irqchip: irq chip for this interrupt controller
+  * @domain: irq domain for this interrupt controller
++ * @data: cached PRUSS INTC IP configuration data
+  * @config_map: stored INTC configuration mapping data
+  * @lock: mutex to serialize access to INTC
+  * @host_mask: indicate which HOST IRQs are enabled
+@@ -91,6 +102,7 @@ struct pruss_intc {
+ 	void __iomem *base;
+ 	struct irq_chip *irqchip;
+ 	struct irq_domain *domain;
++	const struct pruss_intc_match_data *data;
+ 	struct pruss_intc_config config_map;
+ 	struct mutex lock; /* PRUSS INTC lock */
+ 	u32 host_mask;
+@@ -115,7 +127,7 @@ static int pruss_intc_check_write(struct pruss_intc *intc, unsigned int reg,
+ 	if (!intc)
+ 		return -EINVAL;
+ 
+-	if (sysevent >= MAX_PRU_SYS_EVENTS)
++	if (sysevent >= intc->data->num_system_events)
+ 		return -EINVAL;
+ 
+ 	pruss_intc_write_reg(intc, reg, sysevent);
+@@ -170,17 +182,29 @@ int pruss_intc_configure(struct device *dev,
+ 			 struct pruss_intc_config *intc_config)
+ {
+ 	struct pruss_intc *intc;
+-	int i, idx, ret;
++	int i, idx;
+ 	s8 ch, host;
+-	u64 sysevt_mask = 0;
++	u32 num_events, num_intrs, num_regs;
++	unsigned long *sysevt_bitmap;
++	u32 *sysevts;
+ 	u32 ch_mask = 0;
+ 	u32 host_mask = 0;
++	int ret = 0;
+ 	u32 val;
+ 
+ 	intc = to_pruss_intc(dev);
+ 	if (IS_ERR(intc))
+ 		return PTR_ERR(intc);
+ 
++	num_events = intc->data->num_system_events;
++	num_intrs = intc->data->num_host_intrs;
++	num_regs = DIV_ROUND_UP(num_events, 32);
 +
-+static inline void pruss_intc_write_reg(struct pruss_intc *intc,
-+					unsigned int reg, u32 val)
-+{
-+	writel_relaxed(val, intc->base + reg);
-+}
++	sysevt_bitmap = bitmap_zalloc(num_events, GFP_KERNEL);
++	if (!sysevt_bitmap)
++		return -ENOMEM;
++	sysevts = (u32 *)sysevt_bitmap;
 +
-+static int pruss_intc_check_write(struct pruss_intc *intc, unsigned int reg,
-+				  unsigned int sysevent)
-+{
-+	if (!intc)
-+		return -EINVAL;
+ 	mutex_lock(&intc->lock);
+ 
+ 	/*
+@@ -188,7 +212,7 @@ int pruss_intc_configure(struct device *dev,
+ 	 * for 4 events, with each event occupying the lower nibble in
+ 	 * a register byte address in little-endian fashion
+ 	 */
+-	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
++	for (i = 0; i < num_events; i++) {
+ 		ch = intc_config->sysev_to_ch[i];
+ 		if (ch < 0)
+ 			continue;
+@@ -209,7 +233,7 @@ int pruss_intc_configure(struct device *dev,
+ 			 ((i % CMR_EVT_PER_REG) * CMR_EVT_MAP_BITS));
+ 		val |= ch << ((i % CMR_EVT_PER_REG) * CMR_EVT_MAP_BITS);
+ 		pruss_intc_write_reg(intc, PRU_INTC_CMR(idx), val);
+-		sysevt_mask |= BIT_ULL(i);
++		bitmap_set(sysevt_bitmap, i, 1);
+ 		ch_mask |= BIT(ch);
+ 
+ 		dev_dbg(dev, "SYSEV%d -> CH%d (CMR%d 0x%08x)\n", i, ch, idx,
+@@ -221,7 +245,7 @@ int pruss_intc_configure(struct device *dev,
+ 	 * 4 channels, with each channel occupying the lower nibble in
+ 	 * a register byte address in little-endian fashion
+ 	 */
+-	for (i = 0; i < ARRAY_SIZE(intc_config->ch_to_host); i++) {
++	for (i = 0; i < num_intrs; i++) {
+ 		host = intc_config->ch_to_host[i];
+ 		if (host < 0)
+ 			continue;
+@@ -259,17 +283,19 @@ int pruss_intc_configure(struct device *dev,
+ 			pruss_intc_read_reg(intc, PRU_INTC_HMR(idx)));
+ 	}
+ 
+-	dev_info(dev, "configured system_events = 0x%016llx intr_channels = 0x%08x host_intr = 0x%08x\n",
+-		 sysevt_mask, ch_mask, host_mask);
++	dev_info(dev, "configured system_events[%d-0] = %*pb\n",
++		 num_events - 1, num_events, sysevt_bitmap);
++	dev_info(dev, "configured intr_channels = 0x%08x host_intr = 0x%08x\n",
++		 ch_mask, host_mask);
+ 
+ 	/* enable system events, writing 0 has no-effect */
+-	pruss_intc_write_reg(intc, PRU_INTC_ESR0, lower_32_bits(sysevt_mask));
+-	pruss_intc_write_reg(intc, PRU_INTC_SECR0, lower_32_bits(sysevt_mask));
+-	pruss_intc_write_reg(intc, PRU_INTC_ESR1, upper_32_bits(sysevt_mask));
+-	pruss_intc_write_reg(intc, PRU_INTC_SECR1, upper_32_bits(sysevt_mask));
++	for (i = 0; i < num_regs; i++) {
++		pruss_intc_write_reg(intc, PRU_INTC_ESR(i), sysevts[i]);
++		pruss_intc_write_reg(intc, PRU_INTC_SECR(i), sysevts[i]);
++	}
+ 
+ 	/* enable host interrupts */
+-	for (i = 0; i < MAX_PRU_HOST_INT; i++) {
++	for (i = 0; i < num_intrs; i++) {
+ 		if (host_mask & BIT(i))
+ 			pruss_intc_write_reg(intc, PRU_INTC_HIEISR, i);
+ 	}
+@@ -279,11 +305,9 @@ int pruss_intc_configure(struct device *dev,
+ 
+ 	intc->host_mask |= host_mask;
+ 
+-	mutex_unlock(&intc->lock);
+-	return 0;
+-
+ unlock:
+ 	mutex_unlock(&intc->lock);
++	bitmap_free(sysevt_bitmap);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(pruss_intc_configure);
+@@ -303,26 +327,37 @@ int pruss_intc_unconfigure(struct device *dev,
+ 	struct pruss_intc *intc;
+ 	int i;
+ 	s8 ch, host;
+-	u64 sysevt_mask = 0;
++	u32 num_events, num_intrs, num_regs;
++	unsigned long *sysevt_bitmap;
++	u32 *sysevts;
+ 	u32 host_mask = 0;
+ 
+ 	intc = to_pruss_intc(dev);
+ 	if (IS_ERR(intc))
+ 		return PTR_ERR(intc);
+ 
++	num_events = intc->data->num_system_events;
++	num_intrs = intc->data->num_host_intrs;
++	num_regs = DIV_ROUND_UP(num_events, 32);
 +
-+	if (sysevent >= MAX_PRU_SYS_EVENTS)
-+		return -EINVAL;
++	sysevt_bitmap = bitmap_zalloc(num_events, GFP_KERNEL);
++	if (!sysevt_bitmap)
++		return -ENOMEM;
++	sysevts = (u32 *)sysevt_bitmap;
 +
-+	pruss_intc_write_reg(intc, reg, sysevent);
+ 	mutex_lock(&intc->lock);
+ 
+-	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
++	for (i = 0; i < num_events; i++) {
+ 		ch = intc_config->sysev_to_ch[i];
+ 		if (ch < 0)
+ 			continue;
+ 
+ 		/* mark sysevent free in global map */
+ 		intc->config_map.sysev_to_ch[i] = FREE;
+-		sysevt_mask |= BIT_ULL(i);
++		bitmap_set(sysevt_bitmap, i, 1);
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(intc_config->ch_to_host); i++) {
++	for (i = 0; i < num_intrs; i++) {
+ 		host = intc_config->ch_to_host[i];
+ 		if (host < 0)
+ 			continue;
+@@ -332,24 +367,26 @@ int pruss_intc_unconfigure(struct device *dev,
+ 		host_mask |= BIT(host);
+ 	}
+ 
+-	dev_info(dev, "unconfigured system_events = 0x%016llx host_intr = 0x%08x\n",
+-		 sysevt_mask, host_mask);
++	dev_info(dev, "unconfigured system_events[%d-0] = %*pb\n",
++		 num_events - 1, num_events, sysevt_bitmap);
++	dev_info(dev, "unconfigured host_intr = 0x%08x\n", host_mask);
+ 
+-	/* disable system events, writing 0 has no-effect */
+-	pruss_intc_write_reg(intc, PRU_INTC_ECR0, lower_32_bits(sysevt_mask));
+-	pruss_intc_write_reg(intc, PRU_INTC_ECR1, upper_32_bits(sysevt_mask));
+-	/* clear any pending status */
+-	pruss_intc_write_reg(intc, PRU_INTC_SECR0, lower_32_bits(sysevt_mask));
+-	pruss_intc_write_reg(intc, PRU_INTC_SECR1, upper_32_bits(sysevt_mask));
++	for (i = 0; i < num_regs; i++) {
++		/* disable system events, writing 0 has no-effect */
++		pruss_intc_write_reg(intc, PRU_INTC_ECR(i), sysevts[i]);
++		/* clear any pending status */
++		pruss_intc_write_reg(intc, PRU_INTC_SECR(i), sysevts[i]);
++	}
+ 
+ 	/* disable host interrupts */
+-	for (i = 0; i < MAX_PRU_HOST_INT; i++) {
++	for (i = 0; i < num_intrs; i++) {
+ 		if (host_mask & BIT(i))
+ 			pruss_intc_write_reg(intc, PRU_INTC_HIDISR, i);
+ 	}
+ 
+ 	intc->host_mask &= ~host_mask;
+ 	mutex_unlock(&intc->lock);
++	bitmap_free(sysevt_bitmap);
+ 
+ 	return 0;
+ }
+@@ -358,21 +395,28 @@ EXPORT_SYMBOL_GPL(pruss_intc_unconfigure);
+ static void pruss_intc_init(struct pruss_intc *intc)
+ {
+ 	int i;
++	int num_chnl_map_regs = DIV_ROUND_UP(intc->data->num_system_events,
++					     CMR_EVT_PER_REG);
++	int num_host_intr_regs = DIV_ROUND_UP(intc->data->num_host_intrs,
++					      HMR_CH_PER_REG);
++	int num_event_type_regs =
++			DIV_ROUND_UP(intc->data->num_system_events, 32);
+ 
+-	/* configure polarity to active high for all system interrupts */
+-	pruss_intc_write_reg(intc, PRU_INTC_SIPR0, 0xffffffff);
+-	pruss_intc_write_reg(intc, PRU_INTC_SIPR1, 0xffffffff);
+-
+-	/* configure type to pulse interrupt for all system interrupts */
+-	pruss_intc_write_reg(intc, PRU_INTC_SITR0, 0);
+-	pruss_intc_write_reg(intc, PRU_INTC_SITR1, 0);
++	/*
++	 * configure polarity (SIPR register) to active high and
++	 * type (SITR register) to pulse interrupt for all system events
++	 */
++	for (i = 0; i < num_event_type_regs; i++) {
++		pruss_intc_write_reg(intc, PRU_INTC_SIPR(i), 0xffffffff);
++		pruss_intc_write_reg(intc, PRU_INTC_SITR(i), 0);
++	}
+ 
+-	/* clear all 16 interrupt channel map registers */
+-	for (i = 0; i < 16; i++)
++	/* clear all interrupt channel map registers, 4 events per register */
++	for (i = 0; i < num_chnl_map_regs; i++)
+ 		pruss_intc_write_reg(intc, PRU_INTC_CMR(i), 0);
+ 
+-	/* clear all 3 host interrupt map registers */
+-	for (i = 0; i < 3; i++)
++	/* clear all host interrupt map registers, 4 channels per register */
++	for (i = 0; i < num_host_intr_regs; i++)
+ 		pruss_intc_write_reg(intc, PRU_INTC_HMR(i), 0);
+ }
+ 
+@@ -527,11 +571,20 @@ static int pruss_intc_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	struct irq_chip *irqchip;
+ 	int i, irq, count;
++	const struct pruss_intc_match_data *data;
+ 	u8 temp_intr[MAX_NUM_HOST_IRQS] = { 0 };
++	u8 max_system_events;
 +
-+	return 0;
-+}
-+
-+static void pruss_intc_init(struct pruss_intc *intc)
-+{
-+	int i;
-+
-+	/* configure polarity to active high for all system interrupts */
-+	pruss_intc_write_reg(intc, PRU_INTC_SIPR0, 0xffffffff);
-+	pruss_intc_write_reg(intc, PRU_INTC_SIPR1, 0xffffffff);
-+
-+	/* configure type to pulse interrupt for all system interrupts */
-+	pruss_intc_write_reg(intc, PRU_INTC_SITR0, 0);
-+	pruss_intc_write_reg(intc, PRU_INTC_SITR1, 0);
-+
-+	/* clear all 16 interrupt channel map registers */
-+	for (i = 0; i < 16; i++)
-+		pruss_intc_write_reg(intc, PRU_INTC_CMR(i), 0);
-+
-+	/* clear all 3 host interrupt map registers */
-+	for (i = 0; i < 3; i++)
-+		pruss_intc_write_reg(intc, PRU_INTC_HMR(i), 0);
-+}
-+
-+static void pruss_intc_irq_ack(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
-+}
-+
-+static void pruss_intc_irq_mask(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	pruss_intc_check_write(intc, PRU_INTC_EICR, hwirq);
-+}
-+
-+static void pruss_intc_irq_unmask(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	pruss_intc_check_write(intc, PRU_INTC_EISR, hwirq);
-+}
-+
-+static int pruss_intc_irq_retrigger(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	return pruss_intc_check_write(intc, PRU_INTC_SISR, hwirq);
-+}
-+
-+static int pruss_intc_irq_reqres(struct irq_data *data)
-+{
-+	if (!try_module_get(THIS_MODULE))
++	data = of_device_get_match_data(dev);
++	if (!data)
 +		return -ENODEV;
 +
-+	return 0;
-+}
-+
-+static void pruss_intc_irq_relres(struct irq_data *data)
-+{
-+	module_put(THIS_MODULE);
-+}
-+
-+static int pruss_intc_irq_domain_map(struct irq_domain *d, unsigned int virq,
-+				     irq_hw_number_t hw)
-+{
-+	struct pruss_intc *intc = d->host_data;
-+
-+	irq_set_chip_data(virq, intc);
-+	irq_set_chip_and_handler(virq, intc->irqchip, handle_level_irq);
-+
-+	return 0;
-+}
-+
-+static void pruss_intc_irq_domain_unmap(struct irq_domain *d, unsigned int virq)
-+{
-+	irq_set_chip_and_handler(virq, NULL, NULL);
-+	irq_set_chip_data(virq, NULL);
-+}
-+
-+static const struct irq_domain_ops pruss_intc_irq_domain_ops = {
-+	.xlate	= irq_domain_xlate_onecell,
-+	.map	= pruss_intc_irq_domain_map,
-+	.unmap	= pruss_intc_irq_domain_unmap,
++	max_system_events = data->num_system_events;
+ 
+ 	intc = devm_kzalloc(dev, sizeof(*intc), GFP_KERNEL);
+ 	if (!intc)
+ 		return -ENOMEM;
++	intc->data = data;
+ 	platform_set_drvdata(pdev, intc);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -600,8 +653,7 @@ static int pruss_intc_probe(struct platform_device *pdev)
+ 	irqchip->name = dev_name(dev);
+ 	intc->irqchip = irqchip;
+ 
+-	/* always 64 events */
+-	intc->domain = irq_domain_add_linear(dev->of_node, MAX_PRU_SYS_EVENTS,
++	intc->domain = irq_domain_add_linear(dev->of_node, max_system_events,
+ 					     &pruss_intc_irq_domain_ops, intc);
+ 	if (!intc->domain)
+ 		return -ENOMEM;
+@@ -638,6 +690,7 @@ static int pruss_intc_probe(struct platform_device *pdev)
+ static int pruss_intc_remove(struct platform_device *pdev)
+ {
+ 	struct pruss_intc *intc = platform_get_drvdata(pdev);
++	u8 max_system_events = intc->data->num_system_events;
+ 	unsigned int hwirq;
+ 	int i;
+ 
+@@ -648,7 +701,7 @@ static int pruss_intc_remove(struct platform_device *pdev)
+ 	}
+ 
+ 	if (intc->domain) {
+-		for (hwirq = 0; hwirq < MAX_PRU_SYS_EVENTS; hwirq++)
++		for (hwirq = 0; hwirq < max_system_events; hwirq++)
+ 			irq_dispose_mapping(irq_find_mapping(intc->domain,
+ 							     hwirq));
+ 		irq_domain_remove(intc->domain);
+@@ -657,8 +710,25 @@ static int pruss_intc_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct pruss_intc_match_data pruss_intc_data = {
++	.num_system_events = 64,
++	.num_host_intrs = 10,
 +};
 +
-+static void pruss_intc_irq_handler(struct irq_desc *desc)
-+{
-+	unsigned int irq = irq_desc_get_irq(desc);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
-+	struct pruss_intc *intc = irq_get_handler_data(irq);
-+	u32 hipir;
-+	unsigned int virq;
-+	int i, hwirq;
-+
-+	chained_irq_enter(chip, desc);
-+
-+	/* find our host irq number */
-+	for (i = 0; i < MAX_NUM_HOST_IRQS; i++)
-+		if (intc->irqs[i] == irq)
-+			break;
-+	if (i == MAX_NUM_HOST_IRQS)
-+		goto err;
-+
-+	i += MIN_PRU_HOST_INT;
-+
-+	/* get highest priority pending PRUSS system event */
-+	hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
-+	while (!(hipir & BIT(31))) {
-+		hwirq = hipir & GENMASK(9, 0);
-+		virq = irq_linear_revmap(intc->domain, hwirq);
-+
-+		/*
-+		 * NOTE: manually ACK any system events that do not have a
-+		 * handler mapped yet
-+		 */
-+		if (unlikely(!virq))
-+			pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
-+		else
-+			generic_handle_irq(virq);
-+
-+		/* get next system event */
-+		hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
-+	}
-+err:
-+	chained_irq_exit(chip, desc);
-+}
-+
-+static int pruss_intc_probe(struct platform_device *pdev)
-+{
-+	static const char * const irq_names[] = {
-+				"host0", "host1", "host2", "host3",
-+				"host4", "host5", "host6", "host7", };
-+	struct device *dev = &pdev->dev;
-+	struct pruss_intc *intc;
-+	struct resource *res;
-+	struct irq_chip *irqchip;
-+	int i, irq;
-+
-+	intc = devm_kzalloc(dev, sizeof(*intc), GFP_KERNEL);
-+	if (!intc)
-+		return -ENOMEM;
-+	platform_set_drvdata(pdev, intc);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	intc->base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(intc->base)) {
-+		dev_err(dev, "failed to parse and map intc memory resource\n");
-+		return PTR_ERR(intc->base);
-+	}
-+
-+	dev_dbg(dev, "intc memory: pa %pa size 0x%zx va %pK\n", &res->start,
-+		(size_t)resource_size(res), intc->base);
-+
-+	mutex_init(&intc->lock);
-+
-+	pruss_intc_init(intc);
-+
-+	irqchip = devm_kzalloc(dev, sizeof(*irqchip), GFP_KERNEL);
-+	if (!irqchip)
-+		return -ENOMEM;
-+
-+	irqchip->irq_ack = pruss_intc_irq_ack;
-+	irqchip->irq_mask = pruss_intc_irq_mask;
-+	irqchip->irq_unmask = pruss_intc_irq_unmask;
-+	irqchip->irq_retrigger = pruss_intc_irq_retrigger;
-+	irqchip->irq_request_resources = pruss_intc_irq_reqres;
-+	irqchip->irq_release_resources = pruss_intc_irq_relres;
-+	irqchip->name = dev_name(dev);
-+	intc->irqchip = irqchip;
-+
-+	/* always 64 events */
-+	intc->domain = irq_domain_add_linear(dev->of_node, MAX_PRU_SYS_EVENTS,
-+					     &pruss_intc_irq_domain_ops, intc);
-+	if (!intc->domain)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < MAX_NUM_HOST_IRQS; i++) {
-+		irq = platform_get_irq_byname(pdev, irq_names[i]);
-+		if (irq < 0) {
-+			dev_err(dev->parent, "platform_get_irq_byname failed for %s : %d\n",
-+				irq_names[i], irq);
-+			goto fail_irq;
-+		}
-+
-+		intc->irqs[i] = irq;
-+		irq_set_handler_data(irq, intc);
-+		irq_set_chained_handler(irq, pruss_intc_irq_handler);
-+	}
-+
-+	return 0;
-+
-+fail_irq:
-+	while (--i >= 0) {
-+		if (intc->irqs[i])
-+			irq_set_chained_handler_and_data(intc->irqs[i], NULL,
-+							 NULL);
-+	}
-+	irq_domain_remove(intc->domain);
-+	return irq;
-+}
-+
-+static int pruss_intc_remove(struct platform_device *pdev)
-+{
-+	struct pruss_intc *intc = platform_get_drvdata(pdev);
-+	unsigned int hwirq;
-+	int i;
-+
-+	for (i = 0; i < MAX_NUM_HOST_IRQS; i++) {
-+		if (intc->irqs[i])
-+			irq_set_chained_handler_and_data(intc->irqs[i], NULL,
-+							 NULL);
-+	}
-+
-+	if (intc->domain) {
-+		for (hwirq = 0; hwirq < MAX_PRU_SYS_EVENTS; hwirq++)
-+			irq_dispose_mapping(irq_find_mapping(intc->domain,
-+							     hwirq));
-+		irq_domain_remove(intc->domain);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id pruss_intc_of_match[] = {
-+	{ .compatible = "ti,pruss-intc", },
-+	{ /* sentinel */ },
++static const struct pruss_intc_match_data icssg_intc_data = {
++	.num_system_events = 160,
++	.num_host_intrs = 20,
 +};
-+MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
 +
-+static struct platform_driver pruss_intc_driver = {
-+	.driver = {
-+		.name = "pruss-intc",
-+		.of_match_table = pruss_intc_of_match,
+ static const struct of_device_id pruss_intc_of_match[] = {
+-	{ .compatible = "ti,pruss-intc", },
++	{
++		.compatible = "ti,pruss-intc",
++		.data = &pruss_intc_data,
 +	},
-+	.probe  = pruss_intc_probe,
-+	.remove = pruss_intc_remove,
-+};
-+module_platform_driver(pruss_intc_driver);
-+
-+MODULE_AUTHOR("Andrew F. Davis <afd@ti.com>");
-+MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
-+MODULE_DESCRIPTION("TI PRU-ICSS INTC Driver");
-+MODULE_LICENSE("GPL v2");
++	{
++		.compatible = "ti,icssg-intc",
++		.data = &icssg_intc_data,
++	},
+ 	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
+diff --git a/include/linux/irqchip/irq-pruss-intc.h b/include/linux/irqchip/irq-pruss-intc.h
+index f1f1bb150100..40ba6e0d2dad 100644
+--- a/include/linux/irqchip/irq-pruss-intc.h
++++ b/include/linux/irqchip/irq-pruss-intc.h
+@@ -10,10 +10,10 @@
+ #define __LINUX_IRQ_PRUSS_INTC_H
+ 
+ /* maximum number of system events */
+-#define MAX_PRU_SYS_EVENTS	64
++#define MAX_PRU_SYS_EVENTS	160
+ 
+ /* maximum number of interrupt channels */
+-#define MAX_PRU_CHANNELS	10
++#define MAX_PRU_CHANNELS	20
+ 
+ /**
+  * struct pruss_intc_config - INTC configuration info
 -- 
 2.22.0
