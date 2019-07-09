@@ -1,43 +1,36 @@
-From: Andreas Klinger <ak@it-klinger.de>
-Subject: [PATCH] ARM: dts: am335x-wega.dtsi: fix wrong card detect pin level
-Date: Tue, 9 Jul 2019 20:32:11 +0200
-Message-ID: <20190709183209.y64keopah5rkismc@arbad>
+From: kbuild test robot <lkp@intel.com>
+Subject: [RFC PATCH linux-next] net: ethernet: ti: davinci_cpdma:
+ cpdma_chan_split_pool() can be static
+Date: Wed, 10 Jul 2019 03:32:25 +0800
+Message-ID: <20190709193225.GA89649@lkp-kbuild04>
+References: <201907100329.bQl3UgMB%lkp@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <201907100329.bQl3UgMB%lkp@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: kbuild-all@01.org, Grygorii Strashko <grygorii.strashko@ti.com>, Andrew Lunn <andrew@lunn.ch>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-mmc cards on mmc1 are not detected because of wrong card detect (cd) level.
 
-Change cd from GPIO_ACTIVE_HIGH to GPIO_ACTIVE_LOW.
-
-This is necessary because of commit e63201f19438 ("mmc: omap_hsmmc:
-Delete platform data GPIO CD and WP")
-
-Signed-off-by: Andreas Klinger <ak@it-klinger.de>
+Fixes: 962fb618909e ("net: ethernet: ti: davinci_cpdma: allow desc split while down")
+Signed-off-by: kbuild test robot <lkp@intel.com>
 ---
- arch/arm/boot/dts/am335x-wega.dtsi | 2 +-
+ davinci_cpdma.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am335x-wega.dtsi b/arch/arm/boot/dts/am335x-wega.dtsi
-index b7d28a20341f..84581fed3d06 100644
---- a/arch/arm/boot/dts/am335x-wega.dtsi
-+++ b/arch/arm/boot/dts/am335x-wega.dtsi
-@@ -157,7 +157,7 @@
- 	bus-width = <4>;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
--	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
- 	status = "okay";
- };
- 
--- 
-2.11.0
-
-
--- 
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 0ca2a1a..1f6065b 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -722,7 +722,7 @@ static void cpdma_chan_set_descs(struct cpdma_ctlr *ctlr,
+  * cpdma_chan_split_pool - Splits ctrl pool between all channels.
+  * Has to be called under ctlr lock
+  */
+-int cpdma_chan_split_pool(struct cpdma_ctlr *ctlr)
++static int cpdma_chan_split_pool(struct cpdma_ctlr *ctlr)
+ {
+ 	int tx_per_ch_desc = 0, rx_per_ch_desc = 0;
+ 	int free_rx_num = 0, free_tx_num = 0;
