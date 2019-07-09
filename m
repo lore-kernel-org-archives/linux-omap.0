@@ -1,52 +1,43 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] PCI: dwc: pci-dra7xx: Add missing include file
-Date: Tue, 9 Jul 2019 17:45:03 +0100
-Message-ID: <20190709164503.GB19709@e121166-lin.cambridge.arm.com>
-References: <20190614154044.4972-1-yuehaibing@huawei.com>
+From: Andreas Klinger <ak@it-klinger.de>
+Subject: [PATCH] ARM: dts: am335x-wega.dtsi: fix wrong card detect pin level
+Date: Tue, 9 Jul 2019 20:32:11 +0200
+Message-ID: <20190709183209.y64keopah5rkismc@arbad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190614154044.4972-1-yuehaibing@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: kishon@ti.com, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 14, 2019 at 11:40:44PM +0800, YueHaibing wrote:
-> Fix build error:
-> 
-> drivers/pci/controller/dwc/pci-dra7xx.c:
->  In function dra7xx_pcie_probe:
-> drivers/pci/controller/dwc/pci-dra7xx.c:777:10:
->  error: implicit declaration of function devm_gpiod_get_optional;
->  did you mean devm_regulator_get_optional? [-Werror=implicit-function-declaration]
-> 
->   reset = devm_gpiod_get_optional(dev, NULL, GPIOD_OUT_HIGH);
-> 
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  drivers/pci/controller/dwc/pci-dra7xx.c | 1 +
->  1 file changed, 1 insertion(+)
+mmc cards on mmc1 are not detected because of wrong card detect (cd) level.
 
-Applied to pci/dwc for v5.3, thanks.
+Change cd from GPIO_ACTIVE_HIGH to GPIO_ACTIVE_LOW.
 
-Lorenzo
+This is necessary because of commit e63201f19438 ("mmc: omap_hsmmc:
+Delete platform data GPIO CD and WP")
 
-> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-> index 419451e..4234ddb 100644
-> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-> @@ -26,6 +26,7 @@
->  #include <linux/types.h>
->  #include <linux/mfd/syscon.h>
->  #include <linux/regmap.h>
-> +#include <linux/gpio/consumer.h>
->  
->  #include "../../pci.h"
->  #include "pcie-designware.h"
-> -- 
-> 2.7.4
-> 
-> 
+Signed-off-by: Andreas Klinger <ak@it-klinger.de>
+---
+ arch/arm/boot/dts/am335x-wega.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-wega.dtsi b/arch/arm/boot/dts/am335x-wega.dtsi
+index b7d28a20341f..84581fed3d06 100644
+--- a/arch/arm/boot/dts/am335x-wega.dtsi
++++ b/arch/arm/boot/dts/am335x-wega.dtsi
+@@ -157,7 +157,7 @@
+ 	bus-width = <4>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc1_pins>;
+-	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
++	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+ 	status = "okay";
+ };
+ 
+-- 
+2.11.0
+
+
+-- 
