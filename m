@@ -1,41 +1,95 @@
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 01/12] Documentation: move architectures together
-Date: Fri, 12 Jul 2019 11:34:27 -0600
-Message-ID: <20190712113427.62fa7ffc@lwn.net>
-References: <20190712022018.27989-1-alex.shi@linux.alibaba.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 3/3] dmaengine: ti: edma: Support for polled (memcpy)
+ completion
+Date: Sat, 13 Jul 2019 00:05:43 +0300
+Message-ID: <d695a2fa-61d4-e312-11d9-b501b6bc18a7@ti.com>
+References: <20190618132148.26468-1-peter.ujfalusi@ti.com>
+ <20190618132148.26468-4-peter.ujfalusi@ti.com>
+ <20190705061714.GU2911@vkoul-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190712022018.27989-1-alex.shi@linux.alibaba.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-s390@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.orglinux-doc@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190705061714.GU2911@vkoul-mobl>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vinod Koul <vkoul@kernel.org>
+Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 12 Jul 2019 10:20:07 +0800
-Alex Shi <alex.shi@linux.alibaba.com> wrote:
 
-> There are many different archs in Documentation/ dir, it's better to
-> move them together in 'Documentation/arch' which follows from kernel source.
 
-So this seems certain to collide badly with Mauro's RST-conversion monster
-patch set.
+On 5.7.2019 9.17, Vinod Koul wrote:
+>> @@ -1840,18 +1847,40 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
+>>  {
+>>  	struct edma_chan *echan = to_edma_chan(chan);
+>>  	struct virt_dma_desc *vdesc;
+>> +	struct dma_tx_state txstate_tmp;
+>>  	enum dma_status ret;
+>>  	unsigned long flags;
+>>  
+>>  	ret = dma_cookie_status(chan, cookie, txstate);
+>> -	if (ret == DMA_COMPLETE || !txstate)
+>> +
+>> +	/* Provide a dummy dma_tx_state for completion checking */
+>> +	if (ret != DMA_COMPLETE && !txstate)
+>> +		txstate = &txstate_tmp;
+>> +
+>> +	if (ret == DMA_COMPLETE)
+>>  		return ret;
+> 
+> why not do:
+> 
+>         if (ret == DMA_COMPLETE)
+>                 return ret;
+> 
+>         if (!txstate)
+>                 txstate = &txstate_tmp;
+>
 
-More to the point, though...if we are going to thrash up things this
-badly, we want to be sure that we're doing it right so we don't end up
-renaming everything again.  Grouping stuff into a new arch/ subdirectory
-adds a bit of order, but it doesn't do much toward trying to organize our
-documentation for its readers, and it doesn't help us to modernize the
-docs and get rid of the old, useless stuff.  A quick check shows that many
-of these files have seen no changes other than typo fixes since the
-beginning of the Git era.
+Indeed it is much cleaner this way. Will send an updated series next week.
 
-So, in my mind, this needs some thought.  Maybe we want a
-Documentation/arch in the end, but I'm not convinced that we should just
-create it and fill it with a snow shovel.  This might be a good thing to
-discuss at the kernel summit in September.
+>> +	txstate->residue = 0;
+>>  	spin_lock_irqsave(&echan->vchan.lock, flags);
+>>  	if (echan->edesc && echan->edesc->vdesc.tx.cookie == cookie)
+>>  		txstate->residue = edma_residue(echan->edesc);
+>>  	else if ((vdesc = vchan_find_desc(&echan->vchan, cookie)))
+>>  		txstate->residue = to_edma_desc(&vdesc->tx)->residue;
+>> +
+>> +	/*
+>> +	 * Mark the cookie completed if the residue is 0 for non cyclic
+>> +	 * transfers
+>> +	 */
+>> +	if (ret != DMA_COMPLETE && !txstate->residue &&
+>> +	    echan->edesc && echan->edesc->polled &&
+>> +	    echan->edesc->vdesc.tx.cookie == cookie) {
+>> +		edma_stop(echan);
+>> +		vchan_cookie_complete(&echan->edesc->vdesc);
+>> +		echan->edesc = NULL;
+>> +		edma_execute(echan);
+>> +		ret = DMA_COMPLETE;
+>> +	}
+>> +
+>>  	spin_unlock_irqrestore(&echan->vchan.lock, flags);
+>>  
+>>  	return ret;
+>> -- 
+>> Peter
+>>
+>> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+>> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> 
 
-Thanks,
+-- 
+Peter
 
-jon
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
