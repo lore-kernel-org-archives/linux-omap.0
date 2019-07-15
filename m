@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 27/53] gpio: omap: ensure irq is enabled before wakeup
-Date: Mon, 15 Jul 2019 10:45:09 -0400
-Message-ID: <20190715144535.11636-27-sashal@kernel.org>
-References: <20190715144535.11636-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 078/219] gpio: omap: fix lack of irqstatus_raw0 for OMAP4
+Date: Mon, 15 Jul 2019 10:01:19 -0400
+Message-ID: <20190715140341.6443-78-sashal@kernel.org>
+References: <20190715140341.6443-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190715144535.11636-1-sashal@kernel.org>
+In-Reply-To: <20190715140341.6443-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Russell King <rmk+kernel@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
@@ -14,82 +14,40 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-[ Upstream commit c859e0d479b3b4f6132fc12637c51e01492f31f6 ]
+[ Upstream commit 64ea3e9094a1f13b96c33244a3fb3a0f45690bd2 ]
 
-Documentation states:
+Commit 384ebe1c2849 ("gpio/omap: Add DT support to GPIO driver") added
+the register definition tables to the gpio-omap driver. Subsequently to
+that commit, commit 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx()
+checks from *_runtime_resume()") added definitions for irqstatus_raw*
+registers to the legacy OMAP4 definitions, but missed the DT
+definitions.
 
-  NOTE: There must be a correlation between the wake-up enable and
-  interrupt-enable registers. If a GPIO pin has a wake-up configured
-  on it, it must also have the corresponding interrupt enabled (on
-  one of the two interrupt lines).
+This causes an unintentional change of behaviour for the 1.101 errata
+workaround on OMAP4 platforms. Fix this oversight.
 
-Ensure that this condition is always satisfied by enabling the detection
-events after enabling the interrupt, and disabling the detection before
-disabling the interrupt.  This ensures interrupt/wakeup events can not
-happen until both the wakeup and interrupt enables correlate.
-
-If we do any clearing, clear between the interrupt enable/disable and
-trigger setting.
-
+Fixes: 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()")
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/gpio/gpio-omap.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/gpio/gpio-omap.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index f23136825a6e..6e65c02baad1 100644
+index fafd79438bbf..0708e50a27f0 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -821,9 +821,9 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
- 
- 	raw_spin_lock_irqsave(&bank->lock, flags);
- 	bank->irq_usage &= ~(BIT(offset));
--	omap_set_gpio_irqenable(bank, offset, 0);
--	omap_clear_gpio_irqstatus(bank, offset);
- 	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
-+	omap_clear_gpio_irqstatus(bank, offset);
-+	omap_set_gpio_irqenable(bank, offset, 0);
- 	if (!LINE_USED(bank->mod_usage, offset))
- 		omap_clear_gpio_debounce(bank, offset);
- 	omap_disable_gpio_module(bank, offset);
-@@ -865,8 +865,8 @@ static void omap_gpio_mask_irq(struct irq_data *d)
- 	unsigned long flags;
- 
- 	raw_spin_lock_irqsave(&bank->lock, flags);
--	omap_set_gpio_irqenable(bank, offset, 0);
- 	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
-+	omap_set_gpio_irqenable(bank, offset, 0);
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
- }
- 
-@@ -878,9 +878,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 	unsigned long flags;
- 
- 	raw_spin_lock_irqsave(&bank->lock, flags);
--	if (trigger)
--		omap_set_gpio_triggering(bank, offset, trigger);
--
- 	omap_set_gpio_irqenable(bank, offset, 1);
- 
- 	/*
-@@ -888,9 +885,13 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 	 * is cleared, thus after the handler has run. OMAP4 needs this done
- 	 * after enabing the interrupt to clear the wakeup status.
- 	 */
--	if (bank->level_mask & BIT(offset))
-+	if (bank->regs->leveldetect0 && bank->regs->wkup_en &&
-+	    trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
- 		omap_clear_gpio_irqstatus(bank, offset);
- 
-+	if (trigger)
-+		omap_set_gpio_triggering(bank, offset, trigger);
-+
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
- }
- 
+@@ -1728,6 +1728,8 @@ static struct omap_gpio_reg_offs omap4_gpio_regs = {
+ 	.clr_dataout =		OMAP4_GPIO_CLEARDATAOUT,
+ 	.irqstatus =		OMAP4_GPIO_IRQSTATUS0,
+ 	.irqstatus2 =		OMAP4_GPIO_IRQSTATUS1,
++	.irqstatus_raw0 =	OMAP4_GPIO_IRQSTATUSRAW0,
++	.irqstatus_raw1 =	OMAP4_GPIO_IRQSTATUSRAW1,
+ 	.irqenable =		OMAP4_GPIO_IRQSTATUSSET0,
+ 	.irqenable2 =		OMAP4_GPIO_IRQSTATUSSET1,
+ 	.set_irqenable =	OMAP4_GPIO_IRQSTATUSSET0,
 -- 
 2.20.1
