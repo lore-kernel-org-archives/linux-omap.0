@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 044/105] gpio: omap: fix lack of irqstatus_raw0 for OMAP4
-Date: Mon, 15 Jul 2019 10:27:38 -0400
-Message-ID: <20190715142839.9896-44-sashal@kernel.org>
-References: <20190715142839.9896-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 33/73] gpio: omap: fix lack of irqstatus_raw0 for OMAP4
+Date: Mon, 15 Jul 2019 10:35:49 -0400
+Message-ID: <20190715143629.10893-33-sashal@kernel.org>
+References: <20190715143629.10893-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190715142839.9896-1-sashal@kernel.org>
+In-Reply-To: <20190715143629.10893-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Russell King <rmk+kernel@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
@@ -37,10 +37,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 83c6843db50c..abe54659b1f4 100644
+index 038882183bdf..bd12b433f964 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1604,6 +1604,8 @@ static struct omap_gpio_reg_offs omap4_gpio_regs = {
+@@ -1585,6 +1585,8 @@ static struct omap_gpio_reg_offs omap4_gpio_regs = {
  	.clr_dataout =		OMAP4_GPIO_CLEARDATAOUT,
  	.irqstatus =		OMAP4_GPIO_IRQSTATUS0,
  	.irqstatus2 =		OMAP4_GPIO_IRQSTATUS1,
