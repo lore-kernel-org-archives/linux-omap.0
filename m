@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 060/158] gpio: omap: ensure irq is enabled before wakeup
-Date: Mon, 15 Jul 2019 10:16:31 -0400
-Message-ID: <20190715141809.8445-60-sashal@kernel.org>
-References: <20190715141809.8445-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 045/105] gpio: omap: ensure irq is enabled before wakeup
+Date: Mon, 15 Jul 2019 10:27:39 -0400
+Message-ID: <20190715142839.9896-45-sashal@kernel.org>
+References: <20190715142839.9896-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190715141809.8445-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190715142839.9896-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Russell King <rmk+kernel@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -41,10 +41,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 9254bcf7f647..feabac40743e 100644
+index abe54659b1f4..47e537a91dd8 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -837,9 +837,9 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
+@@ -790,9 +790,9 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
  
  	raw_spin_lock_irqsave(&bank->lock, flags);
  	bank->irq_usage &= ~(BIT(offset));
@@ -56,7 +56,7 @@ index 9254bcf7f647..feabac40743e 100644
  	if (!LINE_USED(bank->mod_usage, offset))
  		omap_clear_gpio_debounce(bank, offset);
  	omap_disable_gpio_module(bank, offset);
-@@ -881,8 +881,8 @@ static void omap_gpio_mask_irq(struct irq_data *d)
+@@ -834,8 +834,8 @@ static void omap_gpio_mask_irq(struct irq_data *d)
  	unsigned long flags;
  
  	raw_spin_lock_irqsave(&bank->lock, flags);
@@ -66,7 +66,7 @@ index 9254bcf7f647..feabac40743e 100644
  	raw_spin_unlock_irqrestore(&bank->lock, flags);
  }
  
-@@ -894,9 +894,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
+@@ -847,9 +847,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
  	unsigned long flags;
  
  	raw_spin_lock_irqsave(&bank->lock, flags);
@@ -76,7 +76,7 @@ index 9254bcf7f647..feabac40743e 100644
  	omap_set_gpio_irqenable(bank, offset, 1);
  
  	/*
-@@ -904,9 +901,13 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
+@@ -857,9 +854,13 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
  	 * is cleared, thus after the handler has run. OMAP4 needs this done
  	 * after enabing the interrupt to clear the wakeup status.
  	 */
