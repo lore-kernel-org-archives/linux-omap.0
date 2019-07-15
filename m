@@ -1,54 +1,53 @@
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: Re: [PATCH 01/12] Documentation: move architectures together
-Date: Sun, 14 Jul 2019 23:21:03 +0800
-Message-ID: <36c522c5-975e-e38e-daad-0f3d9f93b186@linux.alibaba.com>
-References: <20190712022018.27989-1-alex.shi@linux.alibaba.com>
- <20190712113427.62fa7ffc@lwn.net>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 090/249] gpio: omap: fix lack of irqstatus_raw0 for OMAP4
+Date: Mon, 15 Jul 2019 09:44:15 -0400
+Message-ID: <20190715134655.4076-90-sashal@kernel.org>
+References: <20190715134655.4076-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gbk
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190712113427.62fa7ffc@lwn.net>
+In-Reply-To: <20190715134655.4076-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-s390@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Russell King <rmk+kernel@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jon,
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Thanks for quick response!
+[ Upstream commit 64ea3e9094a1f13b96c33244a3fb3a0f45690bd2 ]
 
-ÔÚ 2019/7/13 ÉÏÎç1:34, Jonathan Corbet Ð´µÀ:
-> On Fri, 12 Jul 2019 10:20:07 +0800
-> Alex Shi <alex.shi@linux.alibaba.com> wrote:
-> 
->> There are many different archs in Documentation/ dir, it's better to
->> move them together in 'Documentation/arch' which follows from kernel source.
-> 
-> So this seems certain to collide badly with Mauro's RST-conversion monster
-> patch set.
+Commit 384ebe1c2849 ("gpio/omap: Add DT support to GPIO driver") added
+the register definition tables to the gpio-omap driver. Subsequently to
+that commit, commit 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx()
+checks from *_runtime_resume()") added definitions for irqstatus_raw*
+registers to the legacy OMAP4 definitions, but missed the DT
+definitions.
 
-I don't mean that, sorry, and we can figure out if both of them are worthy to be picked up.
+This causes an unintentional change of behaviour for the 1.101 errata
+workaround on OMAP4 platforms. Fix this oversight.
 
-> 
-> More to the point, though...if we are going to thrash up things this
-> badly, we want to be sure that we're doing it right so we don't end up
-> renaming everything again.  Grouping stuff into a new arch/ subdirectory
-> adds a bit of order, but it doesn't do much toward trying to organize our
-> documentation for its readers, and it doesn't help us to modernize the
-> docs and get rid of the old, useless stuff.  A quick check shows that many
-> of these files have seen no changes other than typo fixes since the
-> beginning of the Git era.
+Fixes: 4e962e8998cc ("gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()")
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/gpio/gpio-omap.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Right, there is some docs which need to be update or even drop, and a reorder would be a timing to push each of arch maintainer to do something, isn't it? Anyway, reordering  documents like kernel source dir could be one of choices. :)
-
-> 
-> So, in my mind, this needs some thought.  Maybe we want a
-> Documentation/arch in the end, but I'm not convinced that we should just
-> create it and fill it with a snow shovel.  This might be a good thing to
-> discuss at the kernel summit in September.
-
-Thanks for considering, anyway, it could be a good start to get hands dirty whether the arch dir is needed. 
-
-Thanks
-Alex
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 9276ef616430..7632c98aa3a4 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1453,6 +1453,8 @@ static struct omap_gpio_reg_offs omap4_gpio_regs = {
+ 	.clr_dataout =		OMAP4_GPIO_CLEARDATAOUT,
+ 	.irqstatus =		OMAP4_GPIO_IRQSTATUS0,
+ 	.irqstatus2 =		OMAP4_GPIO_IRQSTATUS1,
++	.irqstatus_raw0 =	OMAP4_GPIO_IRQSTATUSRAW0,
++	.irqstatus_raw1 =	OMAP4_GPIO_IRQSTATUSRAW1,
+ 	.irqenable =		OMAP4_GPIO_IRQSTATUSSET0,
+ 	.irqenable2 =		OMAP4_GPIO_IRQSTATUSSET1,
+ 	.set_irqenable =	OMAP4_GPIO_IRQSTATUSSET0,
+-- 
+2.20.1
