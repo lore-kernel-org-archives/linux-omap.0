@@ -1,46 +1,144 @@
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Subject: Re: [PATCH 02/12] Documentation/arm: repointer docs to Documentation/arch/arm
-Date: Tue, 16 Jul 2019 16:51:05 +0200
-Message-ID: <CAJKOXPcnMM=h9-MW4qg4OTxaY5eBQ=4tH=Gbd3tSuckFvSOPcw@mail.gmail.com>
-References: <20190712022018.27989-1-alex.shi@linux.alibaba.com> <20190712022018.27989-2-alex.shi@linux.alibaba.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/6] dt-bindings: irqchip: Add PRUSS interrupt controller
+ bindings
+Date: Tue, 16 Jul 2019 12:07:58 -0500
+Message-ID: <2eb76f94-3d01-2620-89a0-207a4084be1b@ti.com>
+References: <20190708035243.12170-1-s-anna@ti.com>
+ <20190708035243.12170-2-s-anna@ti.com>
+ <b67e8ce6-a291-ce4c-9972-b7fc7cd08bb4@ti.com>
+ <53868885-a78d-448a-1f2a-03a16251d028@ti.com>
+ <c3f0061f-22b0-c281-b8ff-4a2cb7e91aba@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190712022018.27989-2-alex.shi@linux.alibaba.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: linux-doc@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-s390@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Kukjin Kim <kgene@kernel.org>, linux-crypto@vger.kernel.org, linux-input@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <c3f0061f-22b0-c281-b8ff-4a2cb7e91aba@lechnology.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: David Lechner <david@lechnology.com>, "Andrew F. Davis" <afd@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 12 Jul 2019 at 04:20, Alex Shi <alex.shi@linux.alibaba.com> wrote:
->
-> Since we move 'arm/arm64' docs to Documentation/arch/{arm,arm64} dir,
-> redirect the doc pointer to them.
->
-> Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Kukjin Kim <kgene@kernel.org>
-> Cc: Krzysztof Kozlowski <krzk@kernel.org>
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: linux-crypto@vger.kernel.org
-> Cc: linux-input@vger.kernel.org
-> Cc: linux-serial@vger.kernel.org
-> ---
->  Documentation/arch/arm/Samsung-S3C24XX/GPIO.txt    |  2 +-
->  .../arch/arm/Samsung-S3C24XX/Overview.txt          |  6 +++---
->  Documentation/arch/arm/Samsung/GPIO.txt            |  2 +-
->  Documentation/arch/arm/Samsung/Overview.txt        |  4 ++--
->  Documentation/devicetree/bindings/arm/xen.txt      |  2 +-
->  Documentation/devicetree/booting-without-of.txt    |  4 ++--
->  Documentation/translations/zh_CN/arm/Booting       |  4 ++--
->  .../translations/zh_CN/arm/kernel_user_helpers.txt |  4 ++--
->  MAINTAINERS                                        |  6 +++---
-
-I assume it will go through doc tree, so for Samsung:
-Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
-
-Best regards,
-Krzysztof
+SGkgRGF2aWQsCgpPbiA3LzEwLzE5IDEyOjA4IFBNLCBEYXZpZCBMZWNobmVyIHdyb3RlOgo+IAo+
+Pj4+ICstIGludGVycnVwdHPCoMKgwqDCoMKgwqDCoMKgwqDCoCA6IGFsbCB0aGUgaW50ZXJydXB0
+cyBnZW5lcmF0ZWQgdG93YXJkcyB0aGUKPj4+PiBtYWluIGhvc3QKPj4+PiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHByb2Nlc3NvciBpbiB0aGUgU29D
+LiBUaGUgZm9ybWF0IGRlcGVuZHMKPj4+PiBvbiB0aGUKPj4+PiArwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGludGVycnVwdCBzcGVjaWZpZXIgZm9yIHRo
+ZSBwYXJ0aWN1bGFyCj4+Pj4gU29DJ3MgQVJNIEdJQwo+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcGFyZW50IGludGVycnVwdCBjb250cm9sbGVy
+LiBBIHNoYXJlZAo+Pj4+IGludGVycnVwdCBjYW4KPj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGJlIHNraXBwZWQgaWYgdGhlIGRlc2lyZWQgZGVz
+dGluYXRpb24gYW5kCj4+Pj4gdXNhZ2UgaXMgYnkKPj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGEgZGlmZmVyZW50IHByb2Nlc3Nvci9kZXZpY2Uu
+Cj4+Pj4gKy0gaW50ZXJydXB0LW5hbWVzwqDCoMKgwqDCoCA6IHNob3VsZCB1c2Ugb25lIG9mIHRo
+ZSBmb2xsb3dpbmcgbmFtZXMgZm9yCj4+Pj4gZWFjaCB2YWxpZAo+Pj4+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaW50ZXJydXB0IGNvbm5lY3RlZCB0
+byBBUk0gR0lDLCB0aGUgbmFtZQo+Pj4+IHNob3VsZCBtYXRjaAo+Pj4+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgdGhlIGNvcnJlc3BvbmRpbmcgaG9z
+dCBpbnRlcnJ1cHQgbnVtYmVyLAo+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAiaG9zdDAiLCAiaG9zdDEiLCAiaG9zdDIiLCAiaG9z
+dDMiLAo+Pj4+ICJob3N0NCIsCj4+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgICJob3N0NSIsICJob3N0NiIgb3IgImhvc3Q3Igo+Pj4+
+ICstIGludGVycnVwdC1jb250cm9sbGVyIDogbWFyayB0aGlzIG5vZGUgYXMgYW4gaW50ZXJydXB0
+IGNvbnRyb2xsZXIKPj4+PiArLSAjaW50ZXJydXB0LWNlbGxzwqDCoMKgwqAgOiBzaG91bGQgYmUg
+MS4gQ2xpZW50IHVzZXJzIHNoYWxsIHVzZSB0aGUKPj4+PiBQUlUgU3lzdGVtCj4+Pj4gK8KgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBldmVudCBudW1iZXIg
+KHRoZSBpbnRlcnJ1cHQgc291cmNlIHRoYXQKPj4+PiB0aGUgY2xpZW50Cj4+Pj4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpcyBpbnRlcmVzdGVkIGlu
+KSBhcyB0aGUgdmFsdWUgb2YgdGhlCj4+Pj4gaW50ZXJydXB0cwo+Pj4+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcHJvcGVydHkgaW4gdGhlaXIgbm9k
+ZQo+Pj4+ICsKPj4+PiArT3B0aW9uYWwgUHJvcGVydGllczoKPj4+PiArLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KPj4+PiArVGhlIGZvbGxvd2luZyBwcm9wZXJ0aWVzIGFyZSBfcmVxdWlyZWRfIG9ubHkg
+Zm9yIHNvbWUgU29Dcy4gSWYgbm9uZQo+Pj4+IG9mIHRoZSBiZWxvdwo+Pj4+ICtwcm9wZXJ0aWVz
+IGFyZSBkZWZpbmVkLCBpdCBpbXBsaWVzIHRoYXQgYWxsIHRoZSBob3N0IGludGVycnVwdHMgMgo+
+Pj4+IHRocm91Z2ggOSBhcmUKPj4+PiArY29ubmVjdGVkIGV4Y2x1c2l2ZWx5IHRvIHRoZSBBUk0g
+R0lDLgo+Pj4+ICsKPj4+PiArLSB0aSxpcnFzLXJlc2VydmVkwqDCoMKgwqAgOiBhbiBhcnJheSBv
+ZiA4LWJpdCBlbGVtZW50cyBvZiBob3N0Cj4+Pj4gaW50ZXJydXB0cyBiZXR3ZWVuCj4+Pj4gK8Kg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAwIGFuZCA3IChj
+b3JyZXNwb25kaW5nIHRvIFBSVVNTIElOVEMKPj4+PiBvdXRwdXQgaW50ZXJydXB0cwo+Pj4+ICvC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgMiB0aHJvdWdo
+IDkpIHRoYXQgYXJlIG5vdCBjb25uZWN0ZWQgdG8gdGhlCj4+Pj4gQVJNIEdJQy4KPj4+Cj4+PiBU
+aGUgcmVhc29uIGZvciAwLTcgbWFwcGluZyB0byAyLTkgaXMgbm90IGluc3RhbnRseSBjbGVhciB0
+byBzb21lb25lCj4+PiByZWFkaW5nIHRoaXMuIElmIHlvdSByZXNwaW4gdGhpcyBjb3VsZCB5b3Ug
+bm90ZSB0aGF0IHJlYXNvbiBpcwo+Pj4gaW50ZXJydXB0cyAwIGFuZCAxIGFyZSBhbHdheXMgcm91
+dGVkIGJhY2sgaW50byB0aGUgUFJVU1MuCj4+Cj4+IFllYWgsIHRoaXMgaXMgYWx3YXlzIGdvaW5n
+IHRvIGJlIHNvbWV3aGF0IGNvbmZ1c2luZyBzaW5jZSB0aGUgZHJpdmVyIGhhcwo+PiB0byBkZWFs
+IHdpdGggYWxsIGhvc3RzIGZyb20gY2hhbm5lbC1tYXBwaW5nIHBlcnNwZWN0aXZlLCBidXQgb25s
+eSB0aGUgOAo+PiBpbnRlcnJ1cHRzIGF0IG1vc3QgdGhhdCByZWFjaCBNUFUgZm9yIGhhbmRsaW5n
+IGludGVycnVwdHMuIFRSTSBoYXMKPj4KPj4gQW55d2F5LCBJIGhhdmUgYWxyZWFkeSBtZW50aW9u
+ZWQgdGhlIGZpcnN0IDIgaW50ZXJydXB0IHJvdXRpbmcgaW4gdGhlCj4+IGZpcnN0IHBhcmFncmFw
+aCBhYm92ZS4KPj4KPj4gVGhpbmtpbmcgbW9yZQo+Pj4gb24gdGhhdCwgdGhlIHNhbWUgaXMgdHJ1
+ZSBmb3IgaW50ZXJydXB0IDcgKCJob3N0NSIpIG9uIEFNNDM3eC82NkFLMkcgeWV0Cj4+PiB3ZSBk
+b24ndCBza2lwIHRoYXQgaW4gdGhlIG5hbWluZy4uIG5vdyB0aGF0IHdlIGhhdmUgdGhlIHJlc2Vy
+dmVkIElSUQo+Pj4gbWVjaGFuaXNtIGFib3ZlLCB3aHkgbm90IGxlYXZlIHRoZSBvbmUtdG8tb25l
+IGludGVycnVwdCB0byBuYW1lIG1hcHBpbmcsCj4+PiBidXQgYWx3YXlzIGhhdmUgYXQgbGVhc3Qg
+dGhlIGZpcnN0IHR3byBtYXJrZWQgYXMgcmVzZXJ2ZWQgZm9yIGFsbCB0aGUKPj4+IGN1cnJlbnQg
+ZGV2aWNlczoKPj4+Cj4+PiB0aSxpcnFzLXJlc2VydmVkID0gL2JpdHMvIDggPDAgMT47Cj4+Pgo+
+Pj4gVGhlbiBhbnkgImhvc3R4IiBsaXN0ZWQgYXMgcmVzZXJ2ZWQgbmVlZCBub3QgYmUgcHJlc2Vu
+dCBpbiB0aGUgaG9zdAo+Pj4gaW50ZXJydXB0cyBwcm9wZXJ0eSBhcnJheS4gVG8gbWUgdGhhdCB3
+b3VsZCBzb2x2ZSB0aGUgIm1hbmFnaW5nCj4+PiBpbnRlcnJ1cHRzIG5vdCB0YXJnZXRpbmcgdGhl
+IExpbnV4IHJ1bm5pbmcgY29yZSIgcHJvYmxlbSBhbmQga2VlcCB0aGUKPj4+IG5hbWVzIGNvbnNp
+c3RlbnQsIGUuZy46Cj4+Cj4+IEkgaGFkIGFjdHVhbGx5IHVzZWQgdGhlIGludGVycnVwdC1uYW1l
+cyBhbHdheXMgc3RhcnRpbmcgZnJvbSAiaG9zdDIiCj4+IHRocm91Z2ggImhvc3Q5IiAobmFtZXMg
+ZnJvbSBQUlUgcGVyc3BlY3RpdmUpIHByZXZpb3VzbHksIGFuZCBJIGhhdmUKPj4gY2hhbmdlZCB0
+aGlzIHRvIHN0YXJ0IGluZGV4aW5nIGZyb20gMCBpbiB0aGlzIHNlcmllcyB0byBhZGRyZXNzIGFu
+Cj4+IGludGVybmFsIHJldmlldyBjb21tZW50IGZyb20gR3J5Z29yaWkgYW5kIHRvIGFsaWduIHdp
+dGggVFJNLiBBbGwgdGhlCj4+IFRSTXMgKGV4Y2VwdCBmb3IgQU01NzJ4KSBhY3R1YWxseSB1c2Ug
+dGhlIG5hbWVzL3NpZ25hbHMgImhvc3RfaW50cjAiLAo+PiAiaG9zdF9pbnRyMSIuLiJob3N0X2lu
+dHI3IiBldGMgZm9yIHRoZSBpbnRlcnJ1cHRzIGdvaW5nIHRvd2FyZHMgTVBVLgo+PiBNYXliZSBJ
+IHNob3VsZCBhY3R1YWxseSByZW5hbWUgdGhlIGludGVycnVwdC1uYW1lcyB0byBiZSBob3N0X2lu
+dHJYCj4+IGluc3RlYWQgb2YgaG9zdFggdG8gYXZvaWQgY29uZnVzaW9uIGFuZCBiZSBleGFjdGx5
+IGFsaWduZWQgd2l0aCB0aGUgVFJNCj4+IG5hbWVzLiBJIHdpbGwgZmlsZSBhIGJ1ZyBhZ2FpbnN0
+IEFNNTd4eCBUUk0gdG8gYWxpZ24gdGhlIG5hbWVzIHdpdGggYWxsCj4+IG90aGVyIFNvQyBUUk1z
+Lgo+Pgo+PiBJIGFtIHVzaW5nICJvdXRwdXQgaW50ZXJydXB0IGxpbmVzIiB0byBpbXBseSBuYW1l
+cyB3LnIudCBQUlUgdnMgImhvc3QKPj4gaW50ZXJydXB0IiB0byBpbXBseSBBUk0gR0lDIG5hbWVz
+Lgo+Pgo+PiByZWdhcmRzCj4+IFN1bWFuCj4+Cj4gCj4gRldJVywgdGhlIEFNMTgwOCBUUk0gb25s
+eSB1c2VzIFBSVV9FVlRPVVQwIHRvIFBSVV9FVlRPVVQ3IGFuZCBkb2VzIG5vdAo+IG1lbnRpb24g
+Imhvc3QiIGluIHJlbGF0aW9uIHRvIHRoZXNlIGludGVycnVwdHMuIFRoZSBBTTN4eHggYW5kIEFN
+NHh4eAo+IGFsc28gdXNlIHNpbWlsYXIgbmFtZXMgKFBSVV9JQ1NTX0VWVE9VVDAsIFBSVV9JQ1NT
+MV9FVlRPVVQwKSBhbHRob3VnaAo+IHRoZXkgZG8gbWVudGlvbiB0aGF0IHRoZSBzb3VyY2UgaXMg
+InByMV9ob3N0WzBdIG91dHB1dC9ldmVudHMgZXhwb3J0ZWQKPiBmcm9tIFBSVV9JQ1NTMSIuIChB
+bHNvLCB0aGUgb2xkZXIgcHJvY2Vzc29ycyBoYXZlIEFJTlRDIGluc3RlYWQgb2YgR0lDKS4KCklu
+ZGVlZCwgRVZUT1VUIHdhcyBvbmx5IHVzZWQgaW4gdGhlIEludGVycnVwdHMgY2hhcHRlciBvbiBB
+TTE4MDgsIEFNMzM1eAphbmQgQU00Mzd4LiBUaGVzZSBUUk1zIGFyZSBvbmx5IGdldHRpbmcgdmVy
+eSBpbmZyZXF1ZW50IHVwZGF0ZXMsIHNvIEkKZG91YnQgd2Ugd2lsbCBoYXZlIHRoZXNlIG5hbWVz
+IHN5bmNocm9uaXplZCB0byB0aGUgb3RoZXIgU29Dcy4KClRoZSBkZXNjcmlwdGlvbnMgaW4gUFJV
+U1MgSU5UQyBzZWN0aW9ucyB0aGVtc2VsdmVzIGFsd2F5cyB1c2UgdGhlIHRlcm0KaG9zdCBpbnRl
+cnJ1cHRzIGZvciBhbGwgaG9zdCBldmVudHMsIGJ1dCB0aGUgb3V0cHV0IHNpZ25hbHMgZ2V0CnJl
+LWluZGV4ZWQgdG8gMCwgd2hpY2ggdGVuZHMgdG8gYmUgY29uZnVzaW5nLgoKPiAKPiBNYXliZSB0
+byBoZWxwIGNsYXJpZnkgaGVyZSB3ZSBjb3VsZCBtZW50aW9uICJldmVudCIgaW4gdGhlIGRvY3M6
+Cj4gCj4gCj4gKy0gaW50ZXJydXB0LW5hbWVzwqDCoMKgwqDCoCA6IHNob3VsZCB1c2Ugb25lIG9m
+IHRoZSBmb2xsb3dpbmcgbmFtZXMgZm9yIGVhY2gKPiB2YWxpZAo+ICvCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaG9zdCBldmVudCBpbnRlcnJ1cHQgY29u
+bmVjdGVkIHRvIEFSTSBpbnRlcnJ1cHQKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgIGNvbnRyb2xsZXIsdGhlIG5hbWUgc2hvdWxkIG1hdGNoIHRoZQo+
+IGNvcnJlc3BvbmRpbmcKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgIGhvc3QgZXZlbnQgaW50ZXJydXB0IG51bWJlciwKClllYWgsIEkgbGlrZSB5b3Vy
+IHJld29yZGluZy4gV2lsbCB1cGRhdGUgZm9yIHRoZSBuZXh0IHZlcnNpb24uCgo+ICvCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAiaG9zdDAi
+LCAiaG9zdDEiLCAiaG9zdDIiLCAiaG9zdDMiLCAiaG9zdDQiLAo+ICvCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAiaG9zdDUiLCAiaG9zdDYi
+IG9yICJob3N0NyIKCkkgd2lsbCBiZSB1cGRhdGluZyB0aGVzZSBuYW1lcyBhcyB3ZWxsIHRvIGFk
+ZCBlaXRoZXIgYSBpbnQgb3IgaW50ciBzdWZmaXguCgo+IAo+IAo+IAo+IC4uLgo+IAo+Pj4+ICsK
+Pj4+PiArRXhhbXBsZToKPj4+PiArLS0tLS0tLS0KPj4+PiArCj4+Pj4gKzEuwqDCoMKgIC8qIEFN
+MzN4eCBQUlUtSUNTUyAqLwo+Pj4+ICvCoMKgwqAgcHJ1c3M6IHBydXNzQDAgewo+IAo+IEkgZG9u
+J3Qgc3VwcG9zZSB0aGVyZSBpcyBhIGdlbmVyaWMgbmFtZSB0aGF0IGNvdWxkIGJlIHVzZWQgaGVy
+ZQo+IGluc3RlYWQgb2YgcHJ1c3M/IEl0IHNlZW1zIGxpa2UgdGhlcmUgc2hvdWxkIGJlIG9uZSBm
+b3IgcmVtb3RlCj4gcHJvY2Vzc29ycyB0aGF0IGFyZW4ndCBEU1BzIG9yIG90aGVyIHNwZWNpYWxp
+emVkIHByb2Nlc3NvcnMuCj4gCgpZZWFoLCB0aGVyZSBpcyBub25lLiBJdCBpcyB0aGUgb3ZlcmFs
+bCBQUlUgc3Vic3lzdGVtLCB0aGUgaW5kaXZpZHVhbApjb3JlcyBhcmUgY2FsbGVkIFBSVS4gVGhl
+IHN1YnN5c3RlbXMgYXJlIHVzdWFsbHkgcmVmZXJyZWQgdG8gYXMgUFJVU1MsClBSVS1JQ1NTIGFu
+ZCBJQ1NTRyAob24gdGhlIG5ld2VyIEszIFNvQ3MpLCBzbyBJIHNpbXBseSBjaG9zZSB0aGUgc2hv
+cnRlcgpwcnVzcy4KCnJlZ2FyZHMKU3VtYW4KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgt
+YXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3Jn
+L21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
