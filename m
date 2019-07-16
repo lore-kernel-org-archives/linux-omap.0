@@ -1,144 +1,525 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 1/6] dt-bindings: irqchip: Add PRUSS interrupt controller
- bindings
-Date: Tue, 16 Jul 2019 12:07:58 -0500
-Message-ID: <2eb76f94-3d01-2620-89a0-207a4084be1b@ti.com>
+Subject: Re: [PATCH 2/6] irqchip/irq-pruss-intc: Add a PRUSS irqchip driver
+ for PRUSS interrupts
+Date: Tue, 16 Jul 2019 12:21:12 -0500
+Message-ID: <54e871a8-dfa4-f65b-5869-d1661144cbf0@ti.com>
 References: <20190708035243.12170-1-s-anna@ti.com>
- <20190708035243.12170-2-s-anna@ti.com>
- <b67e8ce6-a291-ce4c-9972-b7fc7cd08bb4@ti.com>
- <53868885-a78d-448a-1f2a-03a16251d028@ti.com>
- <c3f0061f-22b0-c281-b8ff-4a2cb7e91aba@lechnology.com>
+ <20190708035243.12170-3-s-anna@ti.com>
+ <3d91800b-e858-8c73-5ea8-e99e5ea30e8e@lechnology.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <c3f0061f-22b0-c281-b8ff-4a2cb7e91aba@lechnology.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3d91800b-e858-8c73-5ea8-e99e5ea30e8e@lechnology.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: David Lechner <david@lechnology.com>, "Andrew F. Davis" <afd@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
-Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Lechner <david@lechnology.com>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgRGF2aWQsCgpPbiA3LzEwLzE5IDEyOjA4IFBNLCBEYXZpZCBMZWNobmVyIHdyb3RlOgo+IAo+
-Pj4+ICstIGludGVycnVwdHPCoMKgwqDCoMKgwqDCoMKgwqDCoCA6IGFsbCB0aGUgaW50ZXJydXB0
-cyBnZW5lcmF0ZWQgdG93YXJkcyB0aGUKPj4+PiBtYWluIGhvc3QKPj4+PiArwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHByb2Nlc3NvciBpbiB0aGUgU29D
-LiBUaGUgZm9ybWF0IGRlcGVuZHMKPj4+PiBvbiB0aGUKPj4+PiArwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGludGVycnVwdCBzcGVjaWZpZXIgZm9yIHRo
-ZSBwYXJ0aWN1bGFyCj4+Pj4gU29DJ3MgQVJNIEdJQwo+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcGFyZW50IGludGVycnVwdCBjb250cm9sbGVy
-LiBBIHNoYXJlZAo+Pj4+IGludGVycnVwdCBjYW4KPj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGJlIHNraXBwZWQgaWYgdGhlIGRlc2lyZWQgZGVz
-dGluYXRpb24gYW5kCj4+Pj4gdXNhZ2UgaXMgYnkKPj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGEgZGlmZmVyZW50IHByb2Nlc3Nvci9kZXZpY2Uu
-Cj4+Pj4gKy0gaW50ZXJydXB0LW5hbWVzwqDCoMKgwqDCoCA6IHNob3VsZCB1c2Ugb25lIG9mIHRo
-ZSBmb2xsb3dpbmcgbmFtZXMgZm9yCj4+Pj4gZWFjaCB2YWxpZAo+Pj4+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaW50ZXJydXB0IGNvbm5lY3RlZCB0
-byBBUk0gR0lDLCB0aGUgbmFtZQo+Pj4+IHNob3VsZCBtYXRjaAo+Pj4+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgdGhlIGNvcnJlc3BvbmRpbmcgaG9z
-dCBpbnRlcnJ1cHQgbnVtYmVyLAo+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAiaG9zdDAiLCAiaG9zdDEiLCAiaG9zdDIiLCAiaG9z
-dDMiLAo+Pj4+ICJob3N0NCIsCj4+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgICJob3N0NSIsICJob3N0NiIgb3IgImhvc3Q3Igo+Pj4+
-ICstIGludGVycnVwdC1jb250cm9sbGVyIDogbWFyayB0aGlzIG5vZGUgYXMgYW4gaW50ZXJydXB0
-IGNvbnRyb2xsZXIKPj4+PiArLSAjaW50ZXJydXB0LWNlbGxzwqDCoMKgwqAgOiBzaG91bGQgYmUg
-MS4gQ2xpZW50IHVzZXJzIHNoYWxsIHVzZSB0aGUKPj4+PiBQUlUgU3lzdGVtCj4+Pj4gK8KgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBldmVudCBudW1iZXIg
-KHRoZSBpbnRlcnJ1cHQgc291cmNlIHRoYXQKPj4+PiB0aGUgY2xpZW50Cj4+Pj4gK8KgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpcyBpbnRlcmVzdGVkIGlu
-KSBhcyB0aGUgdmFsdWUgb2YgdGhlCj4+Pj4gaW50ZXJydXB0cwo+Pj4+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcHJvcGVydHkgaW4gdGhlaXIgbm9k
-ZQo+Pj4+ICsKPj4+PiArT3B0aW9uYWwgUHJvcGVydGllczoKPj4+PiArLS0tLS0tLS0tLS0tLS0t
-LS0tLS0KPj4+PiArVGhlIGZvbGxvd2luZyBwcm9wZXJ0aWVzIGFyZSBfcmVxdWlyZWRfIG9ubHkg
-Zm9yIHNvbWUgU29Dcy4gSWYgbm9uZQo+Pj4+IG9mIHRoZSBiZWxvdwo+Pj4+ICtwcm9wZXJ0aWVz
-IGFyZSBkZWZpbmVkLCBpdCBpbXBsaWVzIHRoYXQgYWxsIHRoZSBob3N0IGludGVycnVwdHMgMgo+
-Pj4+IHRocm91Z2ggOSBhcmUKPj4+PiArY29ubmVjdGVkIGV4Y2x1c2l2ZWx5IHRvIHRoZSBBUk0g
-R0lDLgo+Pj4+ICsKPj4+PiArLSB0aSxpcnFzLXJlc2VydmVkwqDCoMKgwqAgOiBhbiBhcnJheSBv
-ZiA4LWJpdCBlbGVtZW50cyBvZiBob3N0Cj4+Pj4gaW50ZXJydXB0cyBiZXR3ZWVuCj4+Pj4gK8Kg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAwIGFuZCA3IChj
-b3JyZXNwb25kaW5nIHRvIFBSVVNTIElOVEMKPj4+PiBvdXRwdXQgaW50ZXJydXB0cwo+Pj4+ICvC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgMiB0aHJvdWdo
-IDkpIHRoYXQgYXJlIG5vdCBjb25uZWN0ZWQgdG8gdGhlCj4+Pj4gQVJNIEdJQy4KPj4+Cj4+PiBU
-aGUgcmVhc29uIGZvciAwLTcgbWFwcGluZyB0byAyLTkgaXMgbm90IGluc3RhbnRseSBjbGVhciB0
-byBzb21lb25lCj4+PiByZWFkaW5nIHRoaXMuIElmIHlvdSByZXNwaW4gdGhpcyBjb3VsZCB5b3Ug
-bm90ZSB0aGF0IHJlYXNvbiBpcwo+Pj4gaW50ZXJydXB0cyAwIGFuZCAxIGFyZSBhbHdheXMgcm91
-dGVkIGJhY2sgaW50byB0aGUgUFJVU1MuCj4+Cj4+IFllYWgsIHRoaXMgaXMgYWx3YXlzIGdvaW5n
-IHRvIGJlIHNvbWV3aGF0IGNvbmZ1c2luZyBzaW5jZSB0aGUgZHJpdmVyIGhhcwo+PiB0byBkZWFs
-IHdpdGggYWxsIGhvc3RzIGZyb20gY2hhbm5lbC1tYXBwaW5nIHBlcnNwZWN0aXZlLCBidXQgb25s
-eSB0aGUgOAo+PiBpbnRlcnJ1cHRzIGF0IG1vc3QgdGhhdCByZWFjaCBNUFUgZm9yIGhhbmRsaW5n
-IGludGVycnVwdHMuIFRSTSBoYXMKPj4KPj4gQW55d2F5LCBJIGhhdmUgYWxyZWFkeSBtZW50aW9u
-ZWQgdGhlIGZpcnN0IDIgaW50ZXJydXB0IHJvdXRpbmcgaW4gdGhlCj4+IGZpcnN0IHBhcmFncmFw
-aCBhYm92ZS4KPj4KPj4gVGhpbmtpbmcgbW9yZQo+Pj4gb24gdGhhdCwgdGhlIHNhbWUgaXMgdHJ1
-ZSBmb3IgaW50ZXJydXB0IDcgKCJob3N0NSIpIG9uIEFNNDM3eC82NkFLMkcgeWV0Cj4+PiB3ZSBk
-b24ndCBza2lwIHRoYXQgaW4gdGhlIG5hbWluZy4uIG5vdyB0aGF0IHdlIGhhdmUgdGhlIHJlc2Vy
-dmVkIElSUQo+Pj4gbWVjaGFuaXNtIGFib3ZlLCB3aHkgbm90IGxlYXZlIHRoZSBvbmUtdG8tb25l
-IGludGVycnVwdCB0byBuYW1lIG1hcHBpbmcsCj4+PiBidXQgYWx3YXlzIGhhdmUgYXQgbGVhc3Qg
-dGhlIGZpcnN0IHR3byBtYXJrZWQgYXMgcmVzZXJ2ZWQgZm9yIGFsbCB0aGUKPj4+IGN1cnJlbnQg
-ZGV2aWNlczoKPj4+Cj4+PiB0aSxpcnFzLXJlc2VydmVkID0gL2JpdHMvIDggPDAgMT47Cj4+Pgo+
-Pj4gVGhlbiBhbnkgImhvc3R4IiBsaXN0ZWQgYXMgcmVzZXJ2ZWQgbmVlZCBub3QgYmUgcHJlc2Vu
-dCBpbiB0aGUgaG9zdAo+Pj4gaW50ZXJydXB0cyBwcm9wZXJ0eSBhcnJheS4gVG8gbWUgdGhhdCB3
-b3VsZCBzb2x2ZSB0aGUgIm1hbmFnaW5nCj4+PiBpbnRlcnJ1cHRzIG5vdCB0YXJnZXRpbmcgdGhl
-IExpbnV4IHJ1bm5pbmcgY29yZSIgcHJvYmxlbSBhbmQga2VlcCB0aGUKPj4+IG5hbWVzIGNvbnNp
-c3RlbnQsIGUuZy46Cj4+Cj4+IEkgaGFkIGFjdHVhbGx5IHVzZWQgdGhlIGludGVycnVwdC1uYW1l
-cyBhbHdheXMgc3RhcnRpbmcgZnJvbSAiaG9zdDIiCj4+IHRocm91Z2ggImhvc3Q5IiAobmFtZXMg
-ZnJvbSBQUlUgcGVyc3BlY3RpdmUpIHByZXZpb3VzbHksIGFuZCBJIGhhdmUKPj4gY2hhbmdlZCB0
-aGlzIHRvIHN0YXJ0IGluZGV4aW5nIGZyb20gMCBpbiB0aGlzIHNlcmllcyB0byBhZGRyZXNzIGFu
-Cj4+IGludGVybmFsIHJldmlldyBjb21tZW50IGZyb20gR3J5Z29yaWkgYW5kIHRvIGFsaWduIHdp
-dGggVFJNLiBBbGwgdGhlCj4+IFRSTXMgKGV4Y2VwdCBmb3IgQU01NzJ4KSBhY3R1YWxseSB1c2Ug
-dGhlIG5hbWVzL3NpZ25hbHMgImhvc3RfaW50cjAiLAo+PiAiaG9zdF9pbnRyMSIuLiJob3N0X2lu
-dHI3IiBldGMgZm9yIHRoZSBpbnRlcnJ1cHRzIGdvaW5nIHRvd2FyZHMgTVBVLgo+PiBNYXliZSBJ
-IHNob3VsZCBhY3R1YWxseSByZW5hbWUgdGhlIGludGVycnVwdC1uYW1lcyB0byBiZSBob3N0X2lu
-dHJYCj4+IGluc3RlYWQgb2YgaG9zdFggdG8gYXZvaWQgY29uZnVzaW9uIGFuZCBiZSBleGFjdGx5
-IGFsaWduZWQgd2l0aCB0aGUgVFJNCj4+IG5hbWVzLiBJIHdpbGwgZmlsZSBhIGJ1ZyBhZ2FpbnN0
-IEFNNTd4eCBUUk0gdG8gYWxpZ24gdGhlIG5hbWVzIHdpdGggYWxsCj4+IG90aGVyIFNvQyBUUk1z
-Lgo+Pgo+PiBJIGFtIHVzaW5nICJvdXRwdXQgaW50ZXJydXB0IGxpbmVzIiB0byBpbXBseSBuYW1l
-cyB3LnIudCBQUlUgdnMgImhvc3QKPj4gaW50ZXJydXB0IiB0byBpbXBseSBBUk0gR0lDIG5hbWVz
-Lgo+Pgo+PiByZWdhcmRzCj4+IFN1bWFuCj4+Cj4gCj4gRldJVywgdGhlIEFNMTgwOCBUUk0gb25s
-eSB1c2VzIFBSVV9FVlRPVVQwIHRvIFBSVV9FVlRPVVQ3IGFuZCBkb2VzIG5vdAo+IG1lbnRpb24g
-Imhvc3QiIGluIHJlbGF0aW9uIHRvIHRoZXNlIGludGVycnVwdHMuIFRoZSBBTTN4eHggYW5kIEFN
-NHh4eAo+IGFsc28gdXNlIHNpbWlsYXIgbmFtZXMgKFBSVV9JQ1NTX0VWVE9VVDAsIFBSVV9JQ1NT
-MV9FVlRPVVQwKSBhbHRob3VnaAo+IHRoZXkgZG8gbWVudGlvbiB0aGF0IHRoZSBzb3VyY2UgaXMg
-InByMV9ob3N0WzBdIG91dHB1dC9ldmVudHMgZXhwb3J0ZWQKPiBmcm9tIFBSVV9JQ1NTMSIuIChB
-bHNvLCB0aGUgb2xkZXIgcHJvY2Vzc29ycyBoYXZlIEFJTlRDIGluc3RlYWQgb2YgR0lDKS4KCklu
-ZGVlZCwgRVZUT1VUIHdhcyBvbmx5IHVzZWQgaW4gdGhlIEludGVycnVwdHMgY2hhcHRlciBvbiBB
-TTE4MDgsIEFNMzM1eAphbmQgQU00Mzd4LiBUaGVzZSBUUk1zIGFyZSBvbmx5IGdldHRpbmcgdmVy
-eSBpbmZyZXF1ZW50IHVwZGF0ZXMsIHNvIEkKZG91YnQgd2Ugd2lsbCBoYXZlIHRoZXNlIG5hbWVz
-IHN5bmNocm9uaXplZCB0byB0aGUgb3RoZXIgU29Dcy4KClRoZSBkZXNjcmlwdGlvbnMgaW4gUFJV
-U1MgSU5UQyBzZWN0aW9ucyB0aGVtc2VsdmVzIGFsd2F5cyB1c2UgdGhlIHRlcm0KaG9zdCBpbnRl
-cnJ1cHRzIGZvciBhbGwgaG9zdCBldmVudHMsIGJ1dCB0aGUgb3V0cHV0IHNpZ25hbHMgZ2V0CnJl
-LWluZGV4ZWQgdG8gMCwgd2hpY2ggdGVuZHMgdG8gYmUgY29uZnVzaW5nLgoKPiAKPiBNYXliZSB0
-byBoZWxwIGNsYXJpZnkgaGVyZSB3ZSBjb3VsZCBtZW50aW9uICJldmVudCIgaW4gdGhlIGRvY3M6
-Cj4gCj4gCj4gKy0gaW50ZXJydXB0LW5hbWVzwqDCoMKgwqDCoCA6IHNob3VsZCB1c2Ugb25lIG9m
-IHRoZSBmb2xsb3dpbmcgbmFtZXMgZm9yIGVhY2gKPiB2YWxpZAo+ICvCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaG9zdCBldmVudCBpbnRlcnJ1cHQgY29u
-bmVjdGVkIHRvIEFSTSBpbnRlcnJ1cHQKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgIGNvbnRyb2xsZXIsdGhlIG5hbWUgc2hvdWxkIG1hdGNoIHRoZQo+
-IGNvcnJlc3BvbmRpbmcKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgIGhvc3QgZXZlbnQgaW50ZXJydXB0IG51bWJlciwKClllYWgsIEkgbGlrZSB5b3Vy
-IHJld29yZGluZy4gV2lsbCB1cGRhdGUgZm9yIHRoZSBuZXh0IHZlcnNpb24uCgo+ICvCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAiaG9zdDAi
-LCAiaG9zdDEiLCAiaG9zdDIiLCAiaG9zdDMiLCAiaG9zdDQiLAo+ICvCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAiaG9zdDUiLCAiaG9zdDYi
-IG9yICJob3N0NyIKCkkgd2lsbCBiZSB1cGRhdGluZyB0aGVzZSBuYW1lcyBhcyB3ZWxsIHRvIGFk
-ZCBlaXRoZXIgYSBpbnQgb3IgaW50ciBzdWZmaXguCgo+IAo+IAo+IAo+IC4uLgo+IAo+Pj4+ICsK
-Pj4+PiArRXhhbXBsZToKPj4+PiArLS0tLS0tLS0KPj4+PiArCj4+Pj4gKzEuwqDCoMKgIC8qIEFN
-MzN4eCBQUlUtSUNTUyAqLwo+Pj4+ICvCoMKgwqAgcHJ1c3M6IHBydXNzQDAgewo+IAo+IEkgZG9u
-J3Qgc3VwcG9zZSB0aGVyZSBpcyBhIGdlbmVyaWMgbmFtZSB0aGF0IGNvdWxkIGJlIHVzZWQgaGVy
-ZQo+IGluc3RlYWQgb2YgcHJ1c3M/IEl0IHNlZW1zIGxpa2UgdGhlcmUgc2hvdWxkIGJlIG9uZSBm
-b3IgcmVtb3RlCj4gcHJvY2Vzc29ycyB0aGF0IGFyZW4ndCBEU1BzIG9yIG90aGVyIHNwZWNpYWxp
-emVkIHByb2Nlc3NvcnMuCj4gCgpZZWFoLCB0aGVyZSBpcyBub25lLiBJdCBpcyB0aGUgb3ZlcmFs
-bCBQUlUgc3Vic3lzdGVtLCB0aGUgaW5kaXZpZHVhbApjb3JlcyBhcmUgY2FsbGVkIFBSVS4gVGhl
-IHN1YnN5c3RlbXMgYXJlIHVzdWFsbHkgcmVmZXJyZWQgdG8gYXMgUFJVU1MsClBSVS1JQ1NTIGFu
-ZCBJQ1NTRyAob24gdGhlIG5ld2VyIEszIFNvQ3MpLCBzbyBJIHNpbXBseSBjaG9zZSB0aGUgc2hv
-cnRlcgpwcnVzcy4KCnJlZ2FyZHMKU3VtYW4KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgt
-YXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Hi David,
+
+On 7/11/19 11:45 AM, David Lechner wrote:
+> On 7/7/19 10:52 PM, Suman Anna wrote:
+>> From: "Andrew F. Davis" <afd@ti.com>
+>>
+>> The Programmable Real-Time Unit Subsystem (PRUSS) contains a local
+>> interrupt controller (INTC) that can handle various system input events
+>> and post interrupts back to the device-level initiators. The INTC can
+>> support upto 64 input events with individual control configuration and
+>> hardware prioritization. These events are mapped onto 10 output interrupt
+>> lines through two levels of many-to-one mapping support. Different
+>> interrupt lines are routed to the individual PRU cores or to the host
+>> CPU, or to other devices on the SoC. Some of these events are sourced
+>> from peripherals or other sub-modules within that PRUSS, while a few
+>> others are sourced from SoC-level peripherals/devices.
+>>
+>> The PRUSS INTC platform driver manages this PRUSS interrupt controller
+>> and implements an irqchip driver to provide a Linux standard way for
+>> the PRU client users to enable/disable/ack/re-trigger a PRUSS system
+>> event. The system events to interrupt channels and host interrupts
+>> relies on the mapping configuration provided either through the PRU
+>> firmware blob or via the PRU application's device tree node. The
+>> mappings will be programmed during the boot/shutdown of a PRU core.
+>>
+>> The PRUSS INTC module is reference counted during the interrupt
+>> setup phase through the irqchip's irq_request_resources() and
+>> irq_release_resources() ops. This restricts the module from being
+>> removed as long as there are active interrupt users.
+>>
+>> The driver currently supports and can be built for OMAP architecture
+>> based AM335x, AM437x and AM57xx SoCs; Keystone2 architecture based
+>> 66AK2G SoCs and Davinci architecture based OMAP-L13x/AM18x/DA850 SoCs.
+>> All of these SoCs support 64 system events, 10 interrupt channels and
+>> 10 output interrupt lines per PRUSS INTC with a few SoC integration
+>> differences.
+>>
+>> NOTE:
+>> Each PRU-ICSS's INTC on AM57xx SoCs is preceded by a Crossbar that
+>> enables multiple external events to be routed to a specific number
+>> of input interrupt events. Any non-default external interrupt event
+>> directed towards PRUSS needs this crossbar to be setup properly.
+> 
+> The all of the explanations above are very helpful. Great work.
+> 
+>>
+>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>> Prior version: https://patchwork.kernel.org/patch/10795761/
+>>
+>>   drivers/irqchip/Kconfig          |  10 +
+>>   drivers/irqchip/Makefile         |   1 +
+>>   drivers/irqchip/irq-pruss-intc.c | 352 +++++++++++++++++++++++++++++++
+>>   3 files changed, 363 insertions(+)
+>>   create mode 100644 drivers/irqchip/irq-pruss-intc.c
+>>
+>> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+>> index 659c5e0fb835..b0a9479d527c 100644
+>> --- a/drivers/irqchip/Kconfig
+>> +++ b/drivers/irqchip/Kconfig
+>> @@ -447,6 +447,16 @@ config TI_SCI_INTA_IRQCHIP
+>>         If you wish to use interrupt aggregator irq resources managed
+>> by the
+>>         TI System Controller, say Y here. Otherwise, say N.
+>>   +config TI_PRUSS_INTC
+>> +    tristate "TI PRU-ICSS Interrupt Controller"
+>> +    depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM437X || SOC_DRA7XX
+>> || ARCH_KEYSTONE
+>> +    select IRQ_DOMAIN
+>> +    help
+>> +       This enables support for the PRU-ICSS Local Interrupt Controller
+>> +       present within a PRU-ICSS subsystem present on various TI SoCs.
+>> +       The PRUSS INTC enables various interrupts to be routed to
+>> multiple
+>> +       different processors within the SoC.
+>> +
+>>   endmenu
+>>     config SIFIVE_PLIC
+>> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
+>> index 606a003a0000..717f1d49e549 100644
+>> --- a/drivers/irqchip/Makefile
+>> +++ b/drivers/irqchip/Makefile
+>> @@ -100,3 +100,4 @@ obj-$(CONFIG_MADERA_IRQ)        += irq-madera.o
+>>   obj-$(CONFIG_LS1X_IRQ)            += irq-ls1x.o
+>>   obj-$(CONFIG_TI_SCI_INTR_IRQCHIP)    += irq-ti-sci-intr.o
+>>   obj-$(CONFIG_TI_SCI_INTA_IRQCHIP)    += irq-ti-sci-inta.o
+>> +obj-$(CONFIG_TI_PRUSS_INTC)        += irq-pruss-intc.o
+>> diff --git a/drivers/irqchip/irq-pruss-intc.c
+>> b/drivers/irqchip/irq-pruss-intc.c
+>> new file mode 100644
+>> index 000000000000..d62186ad1be4
+>> --- /dev/null
+>> +++ b/drivers/irqchip/irq-pruss-intc.c
+>> @@ -0,0 +1,352 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>> +/*
+>> + * PRU-ICSS INTC IRQChip driver for various TI SoCs
+>> + *
+>> + * Copyright (C) 2016-2019 Texas Instruments Incorporated -
+>> http://www.ti.com/
+>> + *    Andrew F. Davis <afd@ti.com>
+>> + *    Suman Anna <s-anna@ti.com>
+>> + */
+>> +
+>> +#include <linux/irq.h>
+>> +#include <linux/irqchip/chained_irq.h>
+>> +#include <linux/irqdomain.h>
+>> +#include <linux/module.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/platform_device.h>
+>> +
+>> +/*
+>> + * Number of host interrupts reaching the main MPU sub-system. Note
+>> that this
+>> + * is not the same as the total number of host interrupts supported
+>> by the PRUSS
+>> + * INTC instance
+>> + */
+>> +#define MAX_NUM_HOST_IRQS    8
+>> +
+>> +/* minimum starting host interrupt number for MPU */
+>> +#define MIN_PRU_HOST_INT    2
+>> +
+>> +/* maximum number of system events */
+>> +#define MAX_PRU_SYS_EVENTS    64
+>> +
+>> +/* PRU_ICSS_INTC registers */
+>> +#define PRU_INTC_REVID        0x0000
+>> +#define PRU_INTC_CR        0x0004
+>> +#define PRU_INTC_GER        0x0010
+>> +#define PRU_INTC_GNLR        0x001c
+>> +#define PRU_INTC_SISR        0x0020
+>> +#define PRU_INTC_SICR        0x0024
+>> +#define PRU_INTC_EISR        0x0028
+>> +#define PRU_INTC_EICR        0x002c
+>> +#define PRU_INTC_HIEISR        0x0034
+>> +#define PRU_INTC_HIDISR        0x0038
+>> +#define PRU_INTC_GPIR        0x0080
+>> +#define PRU_INTC_SRSR0        0x0200
+>> +#define PRU_INTC_SRSR1        0x0204
+>> +#define PRU_INTC_SECR0        0x0280
+>> +#define PRU_INTC_SECR1        0x0284
+>> +#define PRU_INTC_ESR0        0x0300
+>> +#define PRU_INTC_ESR1        0x0304
+>> +#define PRU_INTC_ECR0        0x0380
+>> +#define PRU_INTC_ECR1        0x0384
+>> +#define PRU_INTC_CMR(x)        (0x0400 + (x) * 4)
+>> +#define PRU_INTC_HMR(x)        (0x0800 + (x) * 4)
+>> +#define PRU_INTC_HIPIR(x)    (0x0900 + (x) * 4)
+>> +#define PRU_INTC_SIPR0        0x0d00
+>> +#define PRU_INTC_SIPR1        0x0d04
+>> +#define PRU_INTC_SITR0        0x0d80
+>> +#define PRU_INTC_SITR1        0x0d84
+>> +#define PRU_INTC_HINLR(x)    (0x1100 + (x) * 4)
+>> +#define PRU_INTC_HIER        0x1500
+>> +
+>> +/* HIPIR register bit-fields */
+>> +#define INTC_HIPIR_NONE_HINT    0x80000000
+> 
+> Unused macro. See below.
+
+Will use the macro in the code.
+
+> 
+>> +
+>> +/**
+>> + * struct pruss_intc - PRUSS interrupt controller structure
+>> + * @irqs: kernel irq numbers corresponding to PRUSS host interrupts
+>> + * @base: base virtual address of INTC register space
+>> + * @irqchip: irq chip for this interrupt controller
+>> + * @domain: irq domain for this interrupt controller
+>> + * @lock: mutex to serialize access to INTC
+>> + * @host_mask: indicate which HOST IRQs are enabled
+>> + */
+>> +struct pruss_intc {
+>> +    unsigned int irqs[MAX_NUM_HOST_IRQS];
+>> +    void __iomem *base;
+>> +    struct irq_chip *irqchip;
+>> +    struct irq_domain *domain;
+>> +    struct mutex lock; /* PRUSS INTC lock */
+>> +    u32 host_mask;
+
+This is also unused in this patch, will move this to patch 4.
+
+>> +};
+>> +
+>> +static inline u32 pruss_intc_read_reg(struct pruss_intc *intc,
+>> unsigned int reg)
+>> +{
+>> +    return readl_relaxed(intc->base + reg);
+>> +}
+>> +
+>> +static inline void pruss_intc_write_reg(struct pruss_intc *intc,
+>> +                    unsigned int reg, u32 val)
+>> +{
+>> +    writel_relaxed(val, intc->base + reg);
+>> +}
+>> +
+>> +static int pruss_intc_check_write(struct pruss_intc *intc, unsigned
+>> int reg,
+>> +                  unsigned int sysevent)
+>> +{
+>> +    if (!intc)
+>> +        return -EINVAL;
+>> +
+>> +    if (sysevent >= MAX_PRU_SYS_EVENTS)
+>> +        return -EINVAL;
+>> +
+>> +    pruss_intc_write_reg(intc, reg, sysevent);
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static void pruss_intc_init(struct pruss_intc *intc)
+>> +{
+>> +    int i;
+>> +
+>> +    /* configure polarity to active high for all system interrupts */
+>> +    pruss_intc_write_reg(intc, PRU_INTC_SIPR0, 0xffffffff);
+>> +    pruss_intc_write_reg(intc, PRU_INTC_SIPR1, 0xffffffff);
+>> +
+>> +    /* configure type to pulse interrupt for all system interrupts */
+>> +    pruss_intc_write_reg(intc, PRU_INTC_SITR0, 0);
+>> +    pruss_intc_write_reg(intc, PRU_INTC_SITR1, 0);
+>> +
+>> +    /* clear all 16 interrupt channel map registers */
+>> +    for (i = 0; i < 16; i++)
+>> +        pruss_intc_write_reg(intc, PRU_INTC_CMR(i), 0);
+>> +
+>> +    /* clear all 3 host interrupt map registers */
+>> +    for (i = 0; i < 3; i++)
+>> +        pruss_intc_write_reg(intc, PRU_INTC_HMR(i), 0);
+>> +}
+>> +
+>> +static void pruss_intc_irq_ack(struct irq_data *data)
+>> +{
+>> +    struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
+>> +    unsigned int hwirq = data->hwirq;
+>> +
+>> +    pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
+>> +}
+>> +
+>> +static void pruss_intc_irq_mask(struct irq_data *data)
+>> +{
+>> +    struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
+>> +    unsigned int hwirq = data->hwirq;
+>> +
+>> +    pruss_intc_check_write(intc, PRU_INTC_EICR, hwirq);
+>> +}
+>> +
+>> +static void pruss_intc_irq_unmask(struct irq_data *data)
+>> +{
+>> +    struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
+>> +    unsigned int hwirq = data->hwirq;
+>> +
+>> +    pruss_intc_check_write(intc, PRU_INTC_EISR, hwirq);
+>> +}
+>> +
+>> +static int pruss_intc_irq_retrigger(struct irq_data *data)
+>> +{
+>> +    struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
+>> +    unsigned int hwirq = data->hwirq;
+>> +
+>> +    return pruss_intc_check_write(intc, PRU_INTC_SISR, hwirq);
+>> +}
+>> +
+>> +static int pruss_intc_irq_reqres(struct irq_data *data)
+>> +{
+>> +    if (!try_module_get(THIS_MODULE))
+>> +        return -ENODEV;
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static void pruss_intc_irq_relres(struct irq_data *data)
+>> +{
+>> +    module_put(THIS_MODULE);
+>> +}
+>> +
+>> +static int pruss_intc_irq_domain_map(struct irq_domain *d, unsigned
+>> int virq,
+>> +                     irq_hw_number_t hw)
+>> +{
+>> +    struct pruss_intc *intc = d->host_data;
+>> +
+>> +    irq_set_chip_data(virq, intc);
+>> +    irq_set_chip_and_handler(virq, intc->irqchip, handle_level_irq);
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static void pruss_intc_irq_domain_unmap(struct irq_domain *d,
+>> unsigned int virq)
+>> +{
+>> +    irq_set_chip_and_handler(virq, NULL, NULL);
+>> +    irq_set_chip_data(virq, NULL);
+>> +}
+>> +
+>> +static const struct irq_domain_ops pruss_intc_irq_domain_ops = {
+>> +    .xlate    = irq_domain_xlate_onecell,
+>> +    .map    = pruss_intc_irq_domain_map,
+>> +    .unmap    = pruss_intc_irq_domain_unmap,
+>> +};
+>> +
+>> +static void pruss_intc_irq_handler(struct irq_desc *desc)
+>> +{
+>> +    unsigned int irq = irq_desc_get_irq(desc);
+>> +    struct irq_chip *chip = irq_desc_get_chip(desc);
+>> +    struct pruss_intc *intc = irq_get_handler_data(irq);
+>> +    u32 hipir;
+>> +    unsigned int virq;
+>> +    int i, hwirq;
+>> +
+>> +    chained_irq_enter(chip, desc);
+>> +
+>> +    /* find our host irq number */
+>> +    for (i = 0; i < MAX_NUM_HOST_IRQS; i++)
+>> +        if (intc->irqs[i] == irq)
+>> +            break;
+>> +    if (i == MAX_NUM_HOST_IRQS)
+>> +        goto err;
+>> +
+>> +    i += MIN_PRU_HOST_INT;
+>> +
+>> +    /* get highest priority pending PRUSS system event */
+>> +    hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
+>> +    while (!(hipir & BIT(31))) {
+> 
+> Is BIT(31) here supposed to be INTC_HIPIR_NONE_HINT?
+
+Yes, will replace BIT(31) with the macro.
+
+> 
+>> +        hwirq = hipir & GENMASK(9, 0);
+>> +        virq = irq_linear_revmap(intc->domain, hwirq);
+>> +
+>> +        /*
+>> +         * NOTE: manually ACK any system events that do not have a
+>> +         * handler mapped yet
+>> +         */
+>> +        if (unlikely(!virq))
+>> +            pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
+>> +        else
+>> +            generic_handle_irq(virq);
+>> +
+>> +        /* get next system event */
+>> +        hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
+>> +    }
+>> +err:
+>> +    chained_irq_exit(chip, desc);
+>> +}
+>> +
+>> +static int pruss_intc_probe(struct platform_device *pdev)
+>> +{
+>> +    static const char * const irq_names[] = {
+>> +                "host0", "host1", "host2", "host3",
+>> +                "host4", "host5", "host6", "host7", };
+>> +    struct device *dev = &pdev->dev;
+>> +    struct pruss_intc *intc;
+>> +    struct resource *res;
+>> +    struct irq_chip *irqchip;
+>> +    int i, irq;
+>> +
+>> +    intc = devm_kzalloc(dev, sizeof(*intc), GFP_KERNEL);
+>> +    if (!intc)
+>> +        return -ENOMEM;
+>> +    platform_set_drvdata(pdev, intc);
+>> +
+>> +    res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +    intc->base = devm_ioremap_resource(dev, res);
+>> +    if (IS_ERR(intc->base)) {
+>> +        dev_err(dev, "failed to parse and map intc memory resource\n");
+>> +        return PTR_ERR(intc->base);
+>> +    }
+>> +
+>> +    dev_dbg(dev, "intc memory: pa %pa size 0x%zx va %pK\n", &res->start,
+>> +        (size_t)resource_size(res), intc->base);
+>> +
+>> +    mutex_init(&intc->lock);
+>> +
+>> +    pruss_intc_init(intc);
+>> +
+>> +    irqchip = devm_kzalloc(dev, sizeof(*irqchip), GFP_KERNEL);
+>> +    if (!irqchip)
+>> +        return -ENOMEM;
+>> +
+>> +    irqchip->irq_ack = pruss_intc_irq_ack;
+>> +    irqchip->irq_mask = pruss_intc_irq_mask;
+>> +    irqchip->irq_unmask = pruss_intc_irq_unmask;
+>> +    irqchip->irq_retrigger = pruss_intc_irq_retrigger;
+>> +    irqchip->irq_request_resources = pruss_intc_irq_reqres;
+>> +    irqchip->irq_release_resources = pruss_intc_irq_relres;
+>> +    irqchip->name = dev_name(dev);
+> 
+> Should we also set `irqchip->parent_device = dev;` here?
+> 
+> I tried it and had to add pm runtime stuff as well, otherwise
+> requesting irqs would fail.
+
+I haven't seen any during my local testing. What sort of failure are you
+seeing?
+
+The clocking for the overall PRUSS module will be handled in either the
+ti-sysc driver for OMAP SoCs or in the pruss platform driver.
+
+> 
+>> +    intc->irqchip = irqchip;
+>> +
+>> +    /* always 64 events */
+>> +    intc->domain = irq_domain_add_linear(dev->of_node,
+>> MAX_PRU_SYS_EVENTS,
+>> +                         &pruss_intc_irq_domain_ops, intc);
+>> +    if (!intc->domain)
+>> +        return -ENOMEM;
+>> +
+>> +    for (i = 0; i < MAX_NUM_HOST_IRQS; i++) {
+>> +        irq = platform_get_irq_byname(pdev, irq_names[i]);
+>> +        if (irq < 0) {
+>> +            dev_err(dev->parent, "platform_get_irq_byname failed for
+>> %s : %d\n",
+> 
+> Why dev->parent instead of just dev?
+
+Yeah, will fix this. It is a vestige from previous code where we were
+actually parsing the interrupts from the PRUSS node instead of the PRUSS
+INTC node.
+
+> 
+>> +                irq_names[i], irq);
+>> +            goto fail_irq;
+>> +        }
+>> +
+>> +        intc->irqs[i] = irq;
+>> +        irq_set_handler_data(irq, intc);
+>> +        irq_set_chained_handler(irq, pruss_intc_irq_handler);
+>> +    }
+>> +
+>> +    return 0;
+>> +
+>> +fail_irq:
+>> +    while (--i >= 0) {
+>> +        if (intc->irqs[i])
+>> +            irq_set_chained_handler_and_data(intc->irqs[i], NULL,
+>> +                             NULL);
+>> +    }
+>> +    irq_domain_remove(intc->domain);
+>> +    return irq;
+>> +}
+>> +
+>> +static int pruss_intc_remove(struct platform_device *pdev)
+>> +{
+>> +    struct pruss_intc *intc = platform_get_drvdata(pdev);
+>> +    unsigned int hwirq;
+>> +    int i;
+>> +
+>> +    for (i = 0; i < MAX_NUM_HOST_IRQS; i++) {
+>> +        if (intc->irqs[i])
+>> +            irq_set_chained_handler_and_data(intc->irqs[i], NULL,
+>> +                             NULL);
+>> +    }
+>> +
+>> +    if (intc->domain) {
+> 
+> Is it actuall possible for intc->domain to be NULL here?
+
+Nope, will remove it.
+
+Thank you for all the review comments.
+
+regards
+Suman
+
+> 
+>> +        for (hwirq = 0; hwirq < MAX_PRU_SYS_EVENTS; hwirq++)
+>> +            irq_dispose_mapping(irq_find_mapping(intc->domain,
+>> +                                 hwirq));
+>> +        irq_domain_remove(intc->domain);
+>> +    }
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static const struct of_device_id pruss_intc_of_match[] = {
+>> +    { .compatible = "ti,pruss-intc", },
+>> +    { /* sentinel */ },
+>> +};
+>> +MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
+>> +
+>> +static struct platform_driver pruss_intc_driver = {
+>> +    .driver = {
+>> +        .name = "pruss-intc",
+>> +        .of_match_table = pruss_intc_of_match,
+>> +    },
+>> +    .probe  = pruss_intc_probe,
+>> +    .remove = pruss_intc_remove,
+>> +};
+>> +module_platform_driver(pruss_intc_driver);
+>> +
+>> +MODULE_AUTHOR("Andrew F. Davis <afd@ti.com>");
+>> +MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
+>> +MODULE_DESCRIPTION("TI PRU-ICSS INTC Driver");
+>> +MODULE_LICENSE("GPL v2");
+>>
+> 
