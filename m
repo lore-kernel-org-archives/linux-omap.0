@@ -1,112 +1,73 @@
-From: Nishka Dasgupta <nishkadg.linux@gmail.com>
-Subject: [PATCH] net: ethernet: ti: cpsw: Add of_node_put() before return and break
-Date: Tue, 16 Jul 2019 11:18:43 +0530
-Message-ID: <20190716054843.2957-1-nishkadg.linux@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/2] dmaengine: ti: omap-dma: Readability cleanup in
+ omap_dma_tx_status()
+Date: Tue, 16 Jul 2019 11:24:58 +0300
+Message-ID: <20190716082459.1222-2-peter.ujfalusi@ti.com>
+References: <20190716082459.1222-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net, ivan.khoronzhuk@linaro.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org
-Cc: Nishka Dasgupta <nishkadg.linux@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190716082459.1222-1-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: vkoul@kernel.org
+Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Each iteration of for_each_available_child_of_node puts the previous
-node, but in the case of a return or break from the middle of the loop,
-there is no put, thus causing a memory leak.
-Hence, for function cpsw_probe_dt, create an extra label err_node_put
-that puts the last used node and returns ret; modify the return
-statements in the loop to save the return value in ret and goto this new
-label.
-For function cpsw_remove_dt, add an of_node_put before the break.
-Issue found with Coccinelle.
+The tx_status is most likely going to be asked for the current transfer, so
+check that first then try to fall back to lookup of non started transfers.
 
-Signed-off-by: Nishka Dasgupta <nishkadg.linux@gmail.com>
+In this way the code is a bit more readable and in most cases we will avoid
+to run vchan_find_desc() all the time.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/dma/ti/omap-dma.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index f320f9a0de8b..32a89744972d 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2570,7 +2570,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 			ret = PTR_ERR(slave_data->ifphy);
- 			dev_err(&pdev->dev,
- 				"%d: Error retrieving port phy: %d\n", i, ret);
--			return ret;
-+			goto err_node_put;
- 		}
+diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
+index ba2489d4ea24..029c0bd550d5 100644
+--- a/drivers/dma/ti/omap-dma.c
++++ b/drivers/dma/ti/omap-dma.c
+@@ -832,10 +832,8 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ 		return ret;
  
- 		slave_data->slave_node = slave_node;
-@@ -2589,7 +2589,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 			if (ret) {
- 				if (ret != -EPROBE_DEFER)
- 					dev_err(&pdev->dev, "failed to register fixed-link phy: %d\n", ret);
--				return ret;
-+				goto err_node_put;
- 			}
- 			slave_data->phy_node = of_node_get(slave_node);
- 		} else if (parp) {
-@@ -2607,7 +2607,8 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 			of_node_put(mdio_node);
- 			if (!mdio) {
- 				dev_err(&pdev->dev, "Missing mdio platform device\n");
--				return -EINVAL;
-+				ret = -EINVAL;
-+				goto err_node_put;
- 			}
- 			snprintf(slave_data->phy_id, sizeof(slave_data->phy_id),
- 				 PHY_ID_FMT, mdio->name, phyid);
-@@ -2622,7 +2623,8 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 		if (slave_data->phy_if < 0) {
- 			dev_err(&pdev->dev, "Missing or malformed slave[%d] phy-mode property\n",
- 				i);
--			return slave_data->phy_if;
-+			ret = slave_data->phy_if;
-+			goto err_node_put;
- 		}
- 
- no_phy_slave:
-@@ -2633,7 +2635,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 			ret = ti_cm_get_macid(&pdev->dev, i,
- 					      slave_data->mac_addr);
- 			if (ret)
--				return ret;
-+				goto err_node_put;
- 		}
- 		if (data->dual_emac) {
- 			if (of_property_read_u32(slave_node, "dual_emac_res_vlan",
-@@ -2648,11 +2650,17 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 		}
- 
- 		i++;
--		if (i == data->slaves)
--			break;
-+		if (i == data->slaves) {
-+			ret = 0;
-+			goto err_node_put;
-+		}
- 	}
- 
- 	return 0;
+ 	spin_lock_irqsave(&c->vc.lock, flags);
+-	vd = vchan_find_desc(&c->vc, cookie);
+-	if (vd) {
+-		txstate->residue = omap_dma_desc_size(to_omap_dma_desc(&vd->tx));
+-	} else if (c->desc && c->desc->vd.tx.cookie == cookie) {
 +
-+err_node_put:
-+	of_node_put(slave_node);
-+	return ret;
- }
++	if (c->desc && c->desc->vd.tx.cookie == cookie) {
+ 		struct omap_desc *d = c->desc;
+ 		dma_addr_t pos;
  
- static void cpsw_remove_dt(struct platform_device *pdev)
-@@ -2675,8 +2683,10 @@ static void cpsw_remove_dt(struct platform_device *pdev)
- 		of_node_put(slave_data->phy_node);
+@@ -847,11 +845,15 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ 			pos = 0;
  
- 		i++;
--		if (i == data->slaves)
-+		if (i == data->slaves) {
-+			of_node_put(slave_node);
- 			break;
-+		}
+ 		txstate->residue = omap_dma_desc_size_pos(d, pos);
++	} else if ((vd = vchan_find_desc(&c->vc, cookie))) {
++		txstate->residue = omap_dma_desc_size(to_omap_dma_desc(&vd->tx));
+ 	} else {
+ 		txstate->residue = 0;
  	}
++
+ 	if (ret == DMA_IN_PROGRESS && c->paused)
+ 		ret = DMA_PAUSED;
++
+ 	spin_unlock_irqrestore(&c->vc.lock, flags);
  
- 	of_platform_depopulate(&pdev->dev);
+ 	return ret;
 -- 
-2.19.1
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
