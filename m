@@ -1,79 +1,44 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 2/6] irqchip/irq-pruss-intc: Add a PRUSS irqchip driver
- for PRUSS interrupts
-Date: Wed, 17 Jul 2019 12:21:42 -0500
-Message-ID: <5241ecb9-4ab2-b01c-367c-38c554c056c4@lechnology.com>
-References: <20190708035243.12170-1-s-anna@ti.com>
- <20190708035243.12170-3-s-anna@ti.com>
- <3d91800b-e858-8c73-5ea8-e99e5ea30e8e@lechnology.com>
- <54e871a8-dfa4-f65b-5869-d1661144cbf0@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [Letux-kernel] [PATCH v3 0/5] drm/panel-simple: Add panel parameters for ortustech-com37h3m05dtc/99dtc and sharp-lq070y3dg3b
+Date: Wed, 17 Jul 2019 19:33:35 +0200
+Message-ID: <33D92C0E-A430-4C34-A698-646F2592093D@goldelico.com>
+References: <cover.1559905870.git.hns@goldelico.com> <0842FF88-D8E0-441B-837B-769C2EF6C1CB@goldelico.com> <20190625204356.GF18595@ravnborg.org> <20190626073350.GA15288@ravnborg.org> <CF1D9929-58D2-4E75-932A-870D11BBFBDE@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54e871a8-dfa4-f65b-5869-d1661144cbf0@ti.com>
-Content-Language: en-US
+In-Reply-To: <CF1D9929-58D2-4E75-932A-870D11BBFBDE@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
-Cc: Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, David Airlie <airlied@linux.ie>, Belisko Marek <marek.belisko@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Rob Herring <robh+dt@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 7/16/19 12:21 PM, Suman Anna wrote:
->>> +static int pruss_intc_probe(struct platform_device *pdev)
->>> +{
->>> +    static const char * const irq_names[] = {
->>> +                "host0", "host1", "host2", "host3",
->>> +                "host4", "host5", "host6", "host7", };
->>> +    struct device *dev = &pdev->dev;
->>> +    struct pruss_intc *intc;
->>> +    struct resource *res;
->>> +    struct irq_chip *irqchip;
->>> +    int i, irq;
->>> +
->>> +    intc = devm_kzalloc(dev, sizeof(*intc), GFP_KERNEL);
->>> +    if (!intc)
->>> +        return -ENOMEM;
->>> +    platform_set_drvdata(pdev, intc);
->>> +
->>> +    res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>> +    intc->base = devm_ioremap_resource(dev, res);
->>> +    if (IS_ERR(intc->base)) {
->>> +        dev_err(dev, "failed to parse and map intc memory resource\n");
->>> +        return PTR_ERR(intc->base);
->>> +    }
->>> +
->>> +    dev_dbg(dev, "intc memory: pa %pa size 0x%zx va %pK\n", &res->start,
->>> +        (size_t)resource_size(res), intc->base);
->>> +
->>> +    mutex_init(&intc->lock);
->>> +
->>> +    pruss_intc_init(intc);
->>> +
->>> +    irqchip = devm_kzalloc(dev, sizeof(*irqchip), GFP_KERNEL);
->>> +    if (!irqchip)
->>> +        return -ENOMEM;
->>> +
->>> +    irqchip->irq_ack = pruss_intc_irq_ack;
->>> +    irqchip->irq_mask = pruss_intc_irq_mask;
->>> +    irqchip->irq_unmask = pruss_intc_irq_unmask;
->>> +    irqchip->irq_retrigger = pruss_intc_irq_retrigger;
->>> +    irqchip->irq_request_resources = pruss_intc_irq_reqres;
->>> +    irqchip->irq_release_resources = pruss_intc_irq_relres;
->>> +    irqchip->name = dev_name(dev);
->>
->> Should we also set `irqchip->parent_device = dev;` here?
->>
->> I tried it and had to add pm runtime stuff as well, otherwise
->> requesting irqs would fail.
-> 
-> I haven't seen any during my local testing. What sort of failure are you
-> seeing?
-> 
-> The clocking for the overall PRUSS module will be handled in either the
-> ti-sysc driver for OMAP SoCs or in the pruss platform driver.
-> 
-I was getting -EACCESS bubbling up from rpm_resume() in drivers/base/
-power/runtime.c. It was probably a mix of how I set up the device tree
-and the dummy PRUSS bus driver I made.
+Hi Sam,
 
-I'm sure it will be fine with a proper PRUSS platform driver.
+> Am 26.06.2019 um 14:40 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>=20
+> Hi Sam,
+>=20
+>> Am 26.06.2019 um 09:33 schrieb Sam Ravnborg <sam@ravnborg.org>:
+>>=20
+>> Hi Nikolaus.
+>>=20
+>>>>=20
+>>>> any progress towards merging this somewhere? It did not yet arrive =
+in linux-next.
+>>>>=20
+>>>> BTW: should also be applied to 5.2
+>>> The drm bits are reviewed. The DT bits needs OK from DT people.
+>>> When we have OK from DT people we can apply them all to =
+drm-misc-next.
+>>=20
+>> I got OK on irc from Rob to process these.
+>> All patches are now applied to drm-misc-next.
+>=20
+> Thanks for taking care of this!
+
+I have checked but it seems they are still not merged into linux-next.
+
+BR and thanks,
+Nikolaus
