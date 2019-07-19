@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 078/101] PCI: dwc: pci-dra7xx: Fix compilation when !CONFIG_GPIOLIB
-Date: Fri, 19 Jul 2019 00:07:09 -0400
-Message-ID: <20190719040732.17285-78-sashal@kernel.org>
-References: <20190719040732.17285-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 105/141] PCI: dwc: pci-dra7xx: Fix compilation when !CONFIG_GPIOLIB
+Date: Fri, 19 Jul 2019 00:02:10 -0400
+Message-ID: <20190719040246.15945-105-sashal@kernel.org>
+References: <20190719040246.15945-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190719040732.17285-1-sashal@kernel.org>
+In-Reply-To: <20190719040246.15945-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: YueHaibing <yuehaibing@huawei.com>, Hulk Robot <hulkci@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Kishon Vijay Abraham I <kishon@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
@@ -47,7 +47,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index a32d6dde7a57..412524aa1fde 100644
+index ae84a69ae63a..4ef0a592505c 100644
 --- a/drivers/pci/controller/dwc/pci-dra7xx.c
 +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
 @@ -26,6 +26,7 @@
