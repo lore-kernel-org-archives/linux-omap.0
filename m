@@ -1,62 +1,58 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 105/141] PCI: dwc: pci-dra7xx: Fix compilation when !CONFIG_GPIOLIB
-Date: Fri, 19 Jul 2019 00:02:10 -0400
-Message-ID: <20190719040246.15945-105-sashal@kernel.org>
-References: <20190719040246.15945-1-sashal@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: USB Modem support for Droid 4
+Date: Thu, 18 Jul 2019 22:22:05 -0700
+Message-ID: <20190719052205.GK5447@atomide.com>
+References: <20190718201713.GA25103@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190719040246.15945-1-sashal@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190718201713.GA25103@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: YueHaibing <yuehaibing@huawei.com>, Hulk Robot <hulkci@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Kishon Vijay Abraham I <kishon@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+To: Pavel Machek <pavel@denx.de>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, johan@kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
+Hi,
 
-[ Upstream commit 381ed79c8655a40268ee7391f716edd90c5c3a97 ]
+* Pavel Machek <pavel@denx.de> [190718 20:17]:
+> From: Tony Lindgren <tony@atomide.com>
+> 
+> Droid starts to have useful support in linux-next. Modem is tricky to
+> play with, but this is enough to get basic support.
 
-If CONFIG_GPIOLIB is not selected the compilation results in the
-following build errors:
+Below is a better patch using option driver adding support for all
+the ports. I'll send it out with a proper description after -rc1.
 
-drivers/pci/controller/dwc/pci-dra7xx.c:
- In function dra7xx_pcie_probe:
-drivers/pci/controller/dwc/pci-dra7xx.c:777:10:
- error: implicit declaration of function devm_gpiod_get_optional;
- did you mean devm_regulator_get_optional? [-Werror=implicit-function-declaration]
+Regards,
 
-  reset = devm_gpiod_get_optional(dev, NULL, GPIOD_OUT_HIGH);
+Tony
 
-drivers/pci/controller/dwc/pci-dra7xx.c:778:45: error: ‘GPIOD_OUT_HIGH’
-undeclared (first use in this function); did you mean ‘GPIOF_INIT_HIGH’?
-  reset = devm_gpiod_get_optional(dev, NULL, GPIOD_OUT_HIGH);
-                                             ^~~~~~~~~~~~~~
-                                             GPIOF_INIT_HIGH
-
-Fix them by including the appropriate header file.
-
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-[lorenzo.pieralisi@arm.com: commit log]
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/pci/controller/dwc/pci-dra7xx.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index ae84a69ae63a..4ef0a592505c 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -26,6 +26,7 @@
- #include <linux/types.h>
- #include <linux/mfd/syscon.h>
- #include <linux/regmap.h>
-+#include <linux/gpio/consumer.h>
+8< ----------------
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -83,6 +83,12 @@ static void option_instat_callback(struct urb *urb);
+ #define HUAWEI_PRODUCT_K4605			0x14C6
+ #define HUAWEI_PRODUCT_E173S6			0x1C07
  
- #include "../../pci.h"
- #include "pcie-designware.h"
--- 
-2.20.1
++#define MOTOROLA_VENDOR_ID			0x22b8
++#define MOTOROLA_PRODUCT_MDM6600		0x2a70
++#define MOTOROLA_PRODUCT_MDM9600		0x2e0a
++#define MOTOROLA_PRODUCT_MDM_RAM_DL		0x4281
++#define MOTOROLA_PRODUCT_MDM_QC_DL		0x900e
++
+ #define QUANTA_VENDOR_ID			0x0408
+ #define QUANTA_PRODUCT_Q101			0xEA02
+ #define QUANTA_PRODUCT_Q111			0xEA03
+@@ -968,6 +974,10 @@ static const struct usb_device_id option_ids[] = {
+ 	{ USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0xff, 0x06, 0x7B) },
+ 	{ USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0xff, 0x06, 0x7C) },
+ 
++	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MDM6600, 0xff, 0xff, 0xff) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MDM9600, 0xff, 0xff, 0xff) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MDM_RAM_DL, 0x0a, 0x00, 0xfc) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MDM_QC_DL, 0xff, 0xff, 0xff) },
+ 
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V640) },
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V620) },
