@@ -1,86 +1,59 @@
-From: Pavel Machek <pavel@denx.de>
-Subject: Re: USB Modem support for Droid 4
-Date: Fri, 19 Jul 2019 12:11:41 +0200
-Message-ID: <20190719101141.GA18760@amd>
-References: <20190718201713.GA25103@amd>
- <20190719052205.GK5447@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RFC PATCH 23/30] of/platform: Export
+ of_platform_device_create_pdata()
+Date: Fri, 19 Jul 2019 16:25:37 +0530
+Message-ID: <f9034a1d-1906-54e8-62f0-cdacf95c42ab@ti.com>
+References: <20190604131516.13596-1-kishon@ti.com>
+ <20190604131516.13596-24-kishon@ti.com>
+ <CAL_JsqJ5gsctd7L3VOhTO1JdUqmMmSJRpos1XQyfxzmGO7wauw@mail.gmail.com>
+ <a80c7c33-7091-70d9-cd86-a19fe43d3bc6@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190719052205.GK5447@atomide.com>
+In-Reply-To: <a80c7c33-7091-70d9-cd86-a19fe43d3bc6@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@denx.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, johan@kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Tom Joseph <tjoseph@cadence.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Lorenzo,
 
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 11/06/19 10:08 AM, Kishon Vijay Abraham I wrote:
+> Hi Rob,
+> 
+> On 10/06/19 11:13 PM, Rob Herring wrote:
+>> On Tue, Jun 4, 2019 at 7:19 AM Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>
+>>> Export of_platform_device_create_pdata() to be used by drivers to
+>>> create child devices with the given platform data. This can be used
+>>> by platform specific driver to send platform data core driver. For e.g.,
+>>> this will be used by TI's J721E SoC specific PCIe driver to send
+>>> ->start_link() ops and ->is_link_up() ops to Cadence core PCIe driver.
+>>
+>> NAK
+>>
+>> of_platform_device_create_pdata() is purely for legacy handling of
+>> auxdata which is something I hope to get rid of someday. Or to put it
+>> another way, auxdata use is a sign of platforms not fully converted to
+>> DT.
+> 
+> All right. Thanks for letting me know your thoughts.
+> 
+> Lorenzo,
+> 
+> We've modeled Cadence PCIe core as a separate driver and for some of the
+> functionalities (for example starting LTSSM or checking link status) it has to
+> invoke the wrapper driver functions (The registers for these are present in
+> wrapper and not in Cadence Core). In the case of Designware, we modeled DWC
+> core as a library which provided APIs to be used by wrapper driver. Now that
+> Rob is not inclined for passing platform data from one driver to another (in
+> this case TI specific J721E driver to Cadence PCIe driver), should we model
+> Cadence core also as a library? If you agree, I can prepare patches for making
+> Cadence PCIe core as a library. Please let me know your thoughts.
 
-Hi!
+Can you share your thoughts on this?
 
-> * Pavel Machek <pavel@denx.de> [190718 20:17]:
-> > From: Tony Lindgren <tony@atomide.com>
-> >=20
-> > Droid starts to have useful support in linux-next. Modem is tricky to
-> > play with, but this is enough to get basic support.
->=20
-> Below is a better patch using option driver adding support for all
-> the ports. I'll send it out with a proper description after -rc1.
-
-Thanks!
-
-It works for me, too.
-
-Tested-by: Pavel Machek <pavel@ucw.cz>
-
-> @@ -83,6 +83,12 @@ static void option_instat_callback(struct urb *urb);
->  #define HUAWEI_PRODUCT_K4605			0x14C6
->  #define HUAWEI_PRODUCT_E173S6			0x1C07
-> =20
-> +#define MOTOROLA_VENDOR_ID			0x22b8
-> +#define MOTOROLA_PRODUCT_MDM6600		0x2a70
-> +#define MOTOROLA_PRODUCT_MDM9600		0x2e0a
-> +#define MOTOROLA_PRODUCT_MDM_RAM_DL		0x4281
-> +#define MOTOROLA_PRODUCT_MDM_QC_DL		0x900e
-> +
->  #define QUANTA_VENDOR_ID			0x0408
->  #define QUANTA_PRODUCT_Q101			0xEA02
->  #define QUANTA_PRODUCT_Q111			0xEA03
-> @@ -968,6 +974,10 @@ static const struct usb_device_id option_ids[] =3D {
->  	{ USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0xff, 0x06, 0x7B) },
->  	{ USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0xff, 0x06, 0x7C) },
-> =20
-> +	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MD=
-M6600, 0xff, 0xff, 0xff) },
-> +	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MD=
-M9600, 0xff, 0xff, 0xff) },
-> +	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MD=
-M_RAM_DL, 0x0a, 0x00, 0xfc) },
-> +	{ USB_DEVICE_AND_INTERFACE_INFO(MOTOROLA_VENDOR_ID, MOTOROLA_PRODUCT_MD=
-M_QC_DL, 0xff, 0xff, 0xff) },
-> =20
->  	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V640) },
->  	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V620) },
-
---=20
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl0xl10ACgkQMOfwapXb+vLrVACfXkgc5UNVTqP4Cs6nTFriszl9
-quwAmwWLaqYxjvrh50FxYi5/99eL4kxh
-=GSbE
------END PGP SIGNATURE-----
-
---yrj/dFKFPuw6o+aM--
+Thanks
+Kishon
