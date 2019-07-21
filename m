@@ -1,28 +1,38 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: USB Modem support for Droid 4
-Date: Fri, 19 Jul 2019 19:27:48 +0900
-Message-ID: <20190719102748.GA14546@kroah.com>
-References: <20190718201713.GA25103@amd>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP2+: Drop mmc platform data for am330x and
+ am43xx
+Date: Sat, 20 Jul 2019 21:42:49 -0500
+Message-ID: <0af63198-5a68-2f0d-f14e-2b514580d2d5@lechnology.com>
+References: <20190326181324.32140-1-tony@atomide.com>
+ <20190326181324.32140-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190718201713.GA25103@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@denx.de>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, johan@kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190326181324.32140-2-tony@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 18, 2019 at 10:17:13PM +0200, Pavel Machek wrote:
-> From: Tony Lindgren <tony@atomide.com>
+On 3/26/19 1:13 PM, Tony Lindgren wrote:
+> We can now drop legacy platform data one interconnect target module at
+> a time in favor of the device tree based data that has been added earlier.
 > 
-> Droid starts to have useful support in linux-next. Modem is tricky to
-> play with, but this is enough to get basic support.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
 
-No signed-off-by from Tony?
+This breaks wifi on BeagleBone Blue (found via git bisect). In dmesg, I see:
 
-And no [PATCH] in the subject?
+     platform 47810000.mmc: Cannot lookup hwmod 'mmc3'
 
-odd...
+How can we fix it?
