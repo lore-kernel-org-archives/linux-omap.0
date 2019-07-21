@@ -1,38 +1,96 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: Drop mmc platform data for am330x and
- am43xx
-Date: Sat, 20 Jul 2019 21:42:49 -0500
-Message-ID: <0af63198-5a68-2f0d-f14e-2b514580d2d5@lechnology.com>
-References: <20190326181324.32140-1-tony@atomide.com>
- <20190326181324.32140-2-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190326181324.32140-2-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: [PATCH] usb: dwc3: omap: squash include/linux/platform_data/dwc3-omap.h
+Date: Sun, 21 Jul 2019 16:36:49 +0900
+Message-ID: <20190721073649.11100-1-yamada.masahiro@socionext.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>, linux-usb@vger.kernel.org
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 3/26/19 1:13 PM, Tony Lindgren wrote:
-> We can now drop legacy platform data one interconnect target module at
-> a time in favor of the device tree based data that has been added earlier.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+This enum is only used in drivers/usb/dwc3/dwc3-omap3.c
 
-This breaks wifi on BeagleBone Blue (found via git bisect). In dmesg, I see:
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+---
 
-     platform 47810000.mmc: Cannot lookup hwmod 'mmc3'
+ drivers/usb/dwc3/dwc3-omap.c            |  7 +++-
+ include/linux/platform_data/dwc3-omap.h | 43 -------------------------
+ 2 files changed, 6 insertions(+), 44 deletions(-)
+ delete mode 100644 include/linux/platform_data/dwc3-omap.h
 
-How can we fix it?
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index ed8b86517675..4f51523a07ac 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -14,7 +14,6 @@
+ #include <linux/irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+-#include <linux/platform_data/dwc3-omap.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/ioport.h>
+@@ -106,6 +105,12 @@
+ #define USBOTGSS_UTMI_OTG_CTRL_SESSVALID	BIT(2)
+ #define USBOTGSS_UTMI_OTG_CTRL_VBUSVALID	BIT(1)
+ 
++enum dwc3_omap_utmi_mode {
++	DWC3_OMAP_UTMI_MODE_UNKNOWN = 0,
++	DWC3_OMAP_UTMI_MODE_HW,
++	DWC3_OMAP_UTMI_MODE_SW,
++};
++
+ struct dwc3_omap {
+ 	struct device		*dev;
+ 
+diff --git a/include/linux/platform_data/dwc3-omap.h b/include/linux/platform_data/dwc3-omap.h
+deleted file mode 100644
+index 1d36ca874cc8..000000000000
+--- a/include/linux/platform_data/dwc3-omap.h
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/**
+- * dwc3-omap.h - OMAP Specific Glue layer, header.
+- *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
+- * All rights reserved.
+- *
+- * Author: Felipe Balbi <balbi@ti.com>
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- * 1. Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions, and the following disclaimer,
+- *    without modification.
+- * 2. Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in the
+- *    documentation and/or other materials provided with the distribution.
+- * 3. The names of the above-listed copyright holders may not be used
+- *    to endorse or promote products derived from this software without
+- *    specific prior written permission.
+- *
+- * ALTERNATIVELY, this software may be distributed under the terms of the
+- * GNU General Public License ("GPL") version 2, as published by the Free
+- * Software Foundation.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+- * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- */
+-
+-enum dwc3_omap_utmi_mode {
+-	DWC3_OMAP_UTMI_MODE_UNKNOWN = 0,
+-	DWC3_OMAP_UTMI_MODE_HW,
+-	DWC3_OMAP_UTMI_MODE_SW,
+-};
+-- 
+2.17.1
