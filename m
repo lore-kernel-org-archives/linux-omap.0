@@ -1,62 +1,47 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 00/14] mfd: convert subsystem to i2c_new_dummy_device()
-Date: Mon, 22 Jul 2019 19:26:07 +0200
-Message-ID: <20190722172623.4166-1-wsa+renesas@sang-engineering.com>
+Subject: [PATCH 14/14] mfd: twl-core: convert to i2c_new_dummy_device
+Date: Mon, 22 Jul 2019 19:26:21 +0200
+Message-ID: <20190722172623.4166-15-wsa+renesas@sang-engineering.com>
+References: <20190722172623.4166-1-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190722172623.4166-1-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-i2c@vger.kernel.org
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This series is part of a tree-wide movement to replace the I2C API call
-'i2c_new_dummy' which returns NULL with its new counterpart returning an
-ERRPTR.
+Move from i2c_new_dummy() to i2c_new_dummy_device(), so we now get an
+ERRPTR which we use in error handling.
 
-The series was generated with coccinelle (audited afterwards, of course) and
-build tested by me and by buildbot. No tests on HW have been performed.
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
 
-The branch is based on v5.3-rc1. A branch (with some more stuff included) can
-be found here:
+Generated with coccinelle. Build tested by me and buildbot. Not tested on HW.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c/new_dummy
+ drivers/mfd/twl-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Some drivers still need to be manually converted. Patches for those will be
-sent out individually.
-
-
-Wolfram Sang (14):
-  mfd: 88pm800: convert to i2c_new_dummy_device
-  mfd: 88pm860x-core: convert to i2c_new_dummy_device
-  mfd: ab3100-core: convert to i2c_new_dummy_device
-  mfd: bcm590xx: convert to i2c_new_dummy_device
-  mfd: da9150-core: convert to i2c_new_dummy_device
-  mfd: max14577: convert to i2c_new_dummy_device
-  mfd: max77693: convert to i2c_new_dummy_device
-  mfd: max77843: convert to i2c_new_dummy_device
-  mfd: max8907: convert to i2c_new_dummy_device
-  mfd: max8925-i2c: convert to i2c_new_dummy_device
-  mfd: max8997: convert to i2c_new_dummy_device
-  mfd: max8998: convert to i2c_new_dummy_device
-  mfd: palmas: convert to i2c_new_dummy_device
-  mfd: twl-core: convert to i2c_new_dummy_device
-
- drivers/mfd/88pm800.c       | 12 ++++++------
- drivers/mfd/88pm860x-core.c |  6 +++---
- drivers/mfd/ab3100-core.c   |  6 +++---
- drivers/mfd/bcm590xx.c      |  6 +++---
- drivers/mfd/da9150-core.c   |  6 +++---
- drivers/mfd/max14577.c      |  6 +++---
- drivers/mfd/max77693.c      | 12 ++++++------
- drivers/mfd/max77843.c      |  6 +++---
- drivers/mfd/max8907.c       |  6 +++---
- drivers/mfd/max8925-i2c.c   | 12 ++++++------
- drivers/mfd/max8997.c       | 18 +++++++++---------
- drivers/mfd/max8998.c       |  6 +++---
- drivers/mfd/palmas.c        |  6 +++---
- drivers/mfd/twl-core.c      |  6 +++---
- 14 files changed, 57 insertions(+), 57 deletions(-)
-
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 448d9397ff04..20cf8cfe4f3b 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -1141,12 +1141,12 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		if (i == 0) {
+ 			twl->client = client;
+ 		} else {
+-			twl->client = i2c_new_dummy(client->adapter,
++			twl->client = i2c_new_dummy_device(client->adapter,
+ 						    client->addr + i);
+-			if (!twl->client) {
++			if (IS_ERR(twl->client)) {
+ 				dev_err(&client->dev,
+ 					"can't attach client %d\n", i);
+-				status = -ENOMEM;
++				status = PTR_ERR(twl->client);
+ 				goto fail;
+ 			}
+ 		}
 -- 
 2.20.1
