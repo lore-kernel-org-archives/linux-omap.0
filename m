@@ -1,126 +1,191 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: ti: Mark expected switch fall-throughs"
-	to the asoc tree
-Date: Wed, 31 Jul 2019 12:29:45 +0100 (BST)
-Message-ID: <20190731112945.E36502742CC3@ypsilon.sirena.org.uk>
-References: <20190729221534.GA18696@embeddedor>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP2+: Drop mmc platform data for am330x and
+ am43xx
+Date: Sun, 21 Jul 2019 23:09:51 -0700
+Message-ID: <20190722060951.GL5447@atomide.com>
+References: <20190326181324.32140-1-tony@atomide.com>
+ <20190326181324.32140-2-tony@atomide.com>
+ <0af63198-5a68-2f0d-f14e-2b514580d2d5@lechnology.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7324135832987247995=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20190729221534.GA18696@embeddedor>
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Kees Cook <keescook@chromium.org>, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <0af63198-5a68-2f0d-f14e-2b514580d2d5@lechnology.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: David Lechner <david@lechnology.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============7324135832987247995==
-Content-Type: text/plain
+Hi,
 
-The patch
+* David Lechner <david@lechnology.com> [190721 02:43]:
+> On 3/26/19 1:13 PM, Tony Lindgren wrote:
+> > We can now drop legacy platform data one interconnect target module at
+> > a time in favor of the device tree based data that has been added earlier.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> 
+> This breaks wifi on BeagleBone Blue (found via git bisect). In dmesg, I see:
+> 
+>     platform 47810000.mmc: Cannot lookup hwmod 'mmc3'
 
-   ASoC: ti: Mark expected switch fall-throughs
+Thanks for letting me know and sorry for breaking it.
 
-has been applied to the asoc tree at
+> How can we fix it?
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-5.4
+The warning you pasted above hints that we're still trying to
+probe mmc3 using platform data, and that data no longer exists.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Looks like I've completely missed updating the dts file for
+mmc3 that is directly on the l3 interconnect instead of l4 like
+all the other mmc instances. The same applies for am4 too, and
+I've also left some "ti,hwmods" properties around too..
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+Care to try the following patch and see if it fixes the issue
+for you?
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+I've only boot tested on bbb and am437x-idk and made sure
+the mmc instance probes. But my beaglebone blue lost it's
+serial connector and pads so I have not been testing on it.
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+Regards,
 
-Thanks,
-Mark
+Tony
 
->From 22581e7c51f50fbbadba70499bb5e2d09f830cbb Mon Sep 17 00:00:00 2001
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Date: Mon, 29 Jul 2019 17:15:34 -0500
-Subject: [PATCH] ASoC: ti: Mark expected switch fall-throughs
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Mark switch cases where we are expecting to fall through.
-
-This patch fixes the following warning (Building: arm):
-
-sound/soc/ti/n810.c: In function ‘n810_ext_control’:
-sound/soc/ti/n810.c:48:10: warning: this statement may fall through [-Wimplicit-fallthrough=]
-   line1l = 1;
-   ~~~~~~~^~~
-sound/soc/ti/n810.c:49:2: note: here
-  case N810_JACK_HP:
-  ^~~~
-
-sound/soc/ti/rx51.c: In function ‘rx51_ext_control’:
-sound/soc/ti/rx51.c:57:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
-   hs = 1;
-   ~~~^~~
-sound/soc/ti/rx51.c:58:2: note: here
-  case RX51_JACK_HP:
-  ^~~~
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Link: https://lore.kernel.org/r/20190729221534.GA18696@embeddedor
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- sound/soc/ti/n810.c | 1 +
- sound/soc/ti/rx51.c | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/sound/soc/ti/n810.c b/sound/soc/ti/n810.c
-index 2c3f2a4c1700..3ad2b6daf31e 100644
---- a/sound/soc/ti/n810.c
-+++ b/sound/soc/ti/n810.c
-@@ -46,6 +46,7 @@ static void n810_ext_control(struct snd_soc_dapm_context *dapm)
- 	switch (n810_jack_func) {
- 	case N810_JACK_HS:
- 		line1l = 1;
-+		/* fall through */
- 	case N810_JACK_HP:
- 		hp = 1;
- 		break;
-diff --git a/sound/soc/ti/rx51.c b/sound/soc/ti/rx51.c
-index bc6046534fa5..ccd0e8a07dd1 100644
---- a/sound/soc/ti/rx51.c
-+++ b/sound/soc/ti/rx51.c
-@@ -55,6 +55,7 @@ static void rx51_ext_control(struct snd_soc_dapm_context *dapm)
- 		break;
- 	case RX51_JACK_HS:
- 		hs = 1;
-+		/* fall through */
- 	case RX51_JACK_HP:
- 		hp = 1;
- 		break;
+8< ----------
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1312,7 +1312,6 @@
+ 
+ 		target-module@60000 {			/* 0x48060000, ap 36 0c.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+-			ti,hwmods = "mmc1";
+ 			reg = <0x602fc 0x4>,
+ 			      <0x60110 0x4>,
+ 			      <0x60114 0x4>;
+@@ -1802,7 +1801,6 @@
+ 
+ 		target-module@d8000 {			/* 0x481d8000, ap 64 66.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+-			ti,hwmods = "mmc2";
+ 			reg = <0xd82fc 0x4>,
+ 			      <0xd8110 0x4>,
+ 			      <0xd8114 0x4>;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -234,13 +234,32 @@
+ 			interrupt-names = "edma3_tcerrint";
+ 		};
+ 
+-		mmc3: mmc@47810000 {
+-			compatible = "ti,omap4-hsmmc";
+-			ti,hwmods = "mmc3";
+-			ti,needs-special-reset;
+-			interrupts = <29>;
+-			reg = <0x47810000 0x1000>;
+-			status = "disabled";
++		target-module@47810000 {
++			compatible = "ti,sysc-omap2", "ti,sysc";
++			reg = <0x478102fc 0x4>,
++			      <0x47810110 0x4>,
++			      <0x47810114 0x4>;
++			reg-names = "rev", "sysc", "syss";
++			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
++					 SYSC_OMAP2_ENAWAKEUP |
++					 SYSC_OMAP2_SOFTRESET |
++					 SYSC_OMAP2_AUTOIDLE)>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,syss-mask = <1>;
++			clocks = <&l3s_clkctrl AM3_L3S_MMC3_CLKCTRL 0>;
++			clock-names = "fck";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0x0 0x47810000 0x1000>;
++
++			mmc3: mmc@0 {
++				compatible = "ti,omap4-hsmmc";
++				ti,needs-special-reset;
++				interrupts = <29>;
++				reg = <0x0 0x1000>;
++			};
+ 		};
+ 
+ 		usb: usb@47400000 {
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -228,13 +228,32 @@
+ 			interrupt-names = "edma3_tcerrint";
+ 		};
+ 
+-		mmc3: mmc@47810000 {
+-			compatible = "ti,omap4-hsmmc";
+-			reg = <0x47810000 0x1000>;
+-			ti,hwmods = "mmc3";
+-			ti,needs-special-reset;
+-			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
+-			status = "disabled";
++		target-module@47810000 {
++			compatible = "ti,sysc-omap2", "ti,sysc";
++			reg = <0x478102fc 0x4>,
++			      <0x47810110 0x4>,
++			      <0x47810114 0x4>;
++			reg-names = "rev", "sysc", "syss";
++			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
++					 SYSC_OMAP2_ENAWAKEUP |
++					 SYSC_OMAP2_SOFTRESET |
++					 SYSC_OMAP2_AUTOIDLE)>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,syss-mask = <1>;
++			clocks = <&l3s_clkctrl AM4_L3S_MMC3_CLKCTRL 0>;
++			clock-names = "fck";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0x0 0x47810000 0x1000>;
++
++			mmc3: mmc@0 {
++				compatible = "ti,omap4-hsmmc";
++				ti,needs-special-reset;
++				interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
++				reg = <0x0 0x1000>;
++			};
+ 		};
+ 
+ 		sham: sham@53100000 {
+diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
+--- a/arch/arm/boot/dts/am437x-l4.dtsi
++++ b/arch/arm/boot/dts/am437x-l4.dtsi
+@@ -1085,7 +1085,6 @@
+ 
+ 		target-module@60000 {			/* 0x48060000, ap 30 14.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+-			ti,hwmods = "mmc1";
+ 			reg = <0x602fc 0x4>,
+ 			      <0x60110 0x4>,
+ 			      <0x60114 0x4>;
+@@ -1612,7 +1611,6 @@
+ 
+ 		target-module@d8000 {			/* 0x481d8000, ap 54 5e.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+-			ti,hwmods = "mmc2";
+ 			reg = <0xd82fc 0x4>,
+ 			      <0xd8110 0x4>,
+ 			      <0xd8114 0x4>;
 -- 
-2.20.1
-
-
---===============7324135832987247995==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============7324135832987247995==--
+2.21.0
