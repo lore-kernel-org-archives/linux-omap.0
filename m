@@ -1,55 +1,54 @@
-From: Teresa Remmet <t.remmet@phytec.de>
-Subject: Re: [PATCH] ARM: dts: am335x-wega.dtsi: fix wrong card detect pin
- level
-Date: Mon, 22 Jul 2019 10:06:05 +0200
-Message-ID: <812cb14400ee43176c2118247c8c47230b9206c2.camel@phytec.de>
-References: <20190709183209.y64keopah5rkismc@arbad>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: nl80211 wlcore regression in next
+Date: Mon, 22 Jul 2019 06:02:13 -0700
+Message-ID: <20190722130213.GN5447@atomide.com>
+References: <20190625073837.GG5447@atomide.com>
+ <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
+ <20190625080019.GH5447@atomide.com>
+ <7f74087fef1e554e0aeb82a6cec4113727487928.camel@sipsolutions.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190709183209.y64keopah5rkismc@arbad>
+Content-Disposition: inline
+In-Reply-To: <7f74087fef1e554e0aeb82a6cec4113727487928.camel@sipsolutions.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Klinger <ak@it-klinger.de>, linux-omap@vger.kernel.org
-Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalreizer@gmail.com>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Andreas,
+Hi,
 
-Am Dienstag, den 09.07.2019, 20:32 +0200 schrieb Andreas Klinger:
-> mmc cards on mmc1 are not detected because of wrong card detect (cd)
-> level.
+* Johannes Berg <johannes@sipsolutions.net> [190625 08:03]:
+> On Tue, 2019-06-25 at 01:00 -0700, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > * Johannes Berg <johannes@sipsolutions.net> [190625 07:47]:
+> > > On Tue, 2019-06-25 at 00:38 -0700, Tony Lindgren wrote:
+> > > > Hi,
+> > > > 
+> > > > Looks like at least drivers/net/wireless/ti wlcore driver has stopped
+> > > > working in Linux next with commit 901bb9891855 ("nl80211: require and
+> > > > validate vendor command policy"). Reverting the commit above makes it
+> > > > work again.
+> > > > 
+> > > > It fails with the warning below, any ideas what goes wrong?
+> > > 
+> > > Oops. For some reason, I neglected to check the vendor command usage
+> > > beyond hwsim.
+> > > 
+> > > The patch below should work?
+> > 
+> > Yeah thanks that fixes the issue for me:
+> > 
+> > Tested-by: Tony Lindgren <tony@atomide.com>
 > 
-> Change cd from GPIO_ACTIVE_HIGH to GPIO_ACTIVE_LOW.
-> 
-> This is necessary because of commit e63201f19438 ("mmc: omap_hsmmc:
-> Delete platform data GPIO CD and WP")
+> Thanks, I'll drop that into my tree and hopefully will remember to send
+> it on soon.
 
-Thanks for noticing. But the fix is already in master.
+Looks like this one crept back as the fix is missing from v5.3-rc1.
 
-Teresa
+Forgot to include in the pull request?
 
-> 
-> Signed-off-by: Andreas Klinger <ak@it-klinger.de>
-> ---
->  arch/arm/boot/dts/am335x-wega.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-wega.dtsi
-> b/arch/arm/boot/dts/am335x-wega.dtsi
-> index b7d28a20341f..84581fed3d06 100644
-> --- a/arch/arm/boot/dts/am335x-wega.dtsi
-> +++ b/arch/arm/boot/dts/am335x-wega.dtsi
-> @@ -157,7 +157,7 @@
->  	bus-width = <4>;
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&mmc1_pins>;
-> -	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-> +	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
->  	status = "okay";
->  };
->  
-> -- 
-> 2.11.0
-> 
-> 
+Regards,
+
+Tony
