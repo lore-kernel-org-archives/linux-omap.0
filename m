@@ -1,7 +1,7 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 14/14] mfd: twl-core: convert to i2c_new_dummy_device
-Date: Mon, 22 Jul 2019 19:26:21 +0200
-Message-ID: <20190722172623.4166-15-wsa+renesas@sang-engineering.com>
+Subject: [PATCH 13/14] mfd: palmas: convert to i2c_new_dummy_device
+Date: Mon, 22 Jul 2019 19:26:20 +0200
+Message-ID: <20190722172623.4166-14-wsa+renesas@sang-engineering.com>
 References: <20190722172623.4166-1-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -20,28 +20,28 @@ Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
 Generated with coccinelle. Build tested by me and buildbot. Not tested on HW.
 
- drivers/mfd/twl-core.c | 6 +++---
+ drivers/mfd/palmas.c | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 448d9397ff04..20cf8cfe4f3b 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1141,12 +1141,12 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		if (i == 0) {
- 			twl->client = client;
- 		} else {
--			twl->client = i2c_new_dummy(client->adapter,
-+			twl->client = i2c_new_dummy_device(client->adapter,
- 						    client->addr + i);
--			if (!twl->client) {
-+			if (IS_ERR(twl->client)) {
- 				dev_err(&client->dev,
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 6818ff34837c..f5b3fa973b13 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -549,12 +549,12 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 			palmas->i2c_clients[i] = i2c;
+ 		else {
+ 			palmas->i2c_clients[i] =
+-					i2c_new_dummy(i2c->adapter,
++					i2c_new_dummy_device(i2c->adapter,
+ 							i2c->addr + i);
+-			if (!palmas->i2c_clients[i]) {
++			if (IS_ERR(palmas->i2c_clients[i])) {
+ 				dev_err(palmas->dev,
  					"can't attach client %d\n", i);
--				status = -ENOMEM;
-+				status = PTR_ERR(twl->client);
- 				goto fail;
+-				ret = -ENOMEM;
++				ret = PTR_ERR(palmas->i2c_clients[i]);
+ 				goto err_i2c;
  			}
- 		}
+ 			palmas->i2c_clients[i]->dev.of_node = of_node_get(node);
 -- 
 2.20.1
