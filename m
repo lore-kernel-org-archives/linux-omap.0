@@ -1,44 +1,74 @@
-From: Ezequiel Garcia <ezequiel@collabora.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH] Enable backlight when trigger is activated
-Date: Sun, 21 Jul 2019 20:00:44 -0300
-Message-ID: <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
+Date: Mon, 22 Jul 2019 09:50:32 +0200
+Message-ID: <20190722075032.GA27524@amd>
 References: <20190718190849.GA11409@amd>
+ <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190718190849.GA11409@amd>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org, b.zolnierkie@samsung.com, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org, b.zolnierkie@samsung.com, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgUGF2ZWwsCgpUaGUgY29tbWl0IGxvZyBpcyBsYWNraW5nIHRoZSBwcm9wZXIgImxlZHM6IHRy
-aWdnZXJzOiAiLgoKQWxzby4uLgoKT24gVGh1LCAyMDE5LTA3LTE4IGF0IDIxOjA4ICswMjAwLCBQ
-YXZlbCBNYWNoZWsgd3JvdGU6Cj4gQ29uZmlndXJpbmcgYmFja2xpZ2h0IHRyaWdnZXIgZnJvbSBk
-dHMgcmVzdWx0cyBpbiBiYWNrbGlnaHQgb2ZmIGR1cmluZwo+IGJvb3QuIE1hY2hpbmUgbG9va3Mg
-ZGVhZCB1cG9uIGJvb3QsIHdoaWNoIGlzIG5vdCBnb29kLgo+IAo+IEZpeCB0aGF0IGJ5IGVuYWJs
-aW5nIExFRCBvbiB0cmlnZ2VyIGFjdGl2YXRpb24uCj4gCj4gU2lnbmVkLW9mZi1ieTogUGF2ZWwg
-TWFjaGVrIDxwYXZlbEB1Y3cuY3o+Cj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbGVkcy90cmln
-Z2VyL2xlZHRyaWctYmFja2xpZ2h0LmMgYi9kcml2ZXJzL2xlZHMvdHJpZ2dlci9sZWR0cmlnLWJh
-Y2tsaWdodC5jCj4gaW5kZXggNDg3NTc3ZC4uNmU2YmM3OCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJz
-L2xlZHMvdHJpZ2dlci9sZWR0cmlnLWJhY2tsaWdodC5jCj4gKysrIGIvZHJpdmVycy9sZWRzL3Ry
-aWdnZXIvbGVkdHJpZy1iYWNrbGlnaHQuYwo+IEBAIC0xMTQsNiArMTE0LDggQEAgc3RhdGljIGlu
-dCBibF90cmlnX2FjdGl2YXRlKHN0cnVjdCBsZWRfY2xhc3NkZXYgKmxlZCkKPiAgCW4tPm9sZF9z
-dGF0dXMgPSBVTkJMQU5LOwo+ICAJbi0+bm90aWZpZXIubm90aWZpZXJfY2FsbCA9IGZiX25vdGlm
-aWVyX2NhbGxiYWNrOwo+ICAKPiArCWxlZF9zZXRfYnJpZ2h0bmVzcyhsZWQsIExFRF9PTik7Cj4g
-KwoKVGhpcyBsb29rcyBmaXNoeS4KCk1heWJlIHlvdSBzaG91bGQgdXNlIGEgZGVmYXVsdC1zdGF0
-ZSA9ICJrZWVwIiBpbnN0ZWFkPyAoYW5kIHlvdSdsbCBoYXZlCnRvIHN1cHBvcnQgaXQgaW4gdGhl
-IExFRCBkcml2ZXIpLgoKVGhhdCdsbCBnaXZlIHlvdSBwcm9wZXIgImRvbid0IHRvdWNoIHRoZSBM
-RUQgaWYgaXQgd2FzIHR1cm5lZCBvbiIgYmVoYXZpb3IsCndoaWNoIGlzIHdoYXQgeW91IHNlZW0g
-dG8gd2FudC4KClJlZ2FyZHMsCkV6ZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGlu
-Zm8vZHJpLWRldmVs
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > Configuring backlight trigger from dts results in backlight off during
+> > boot. Machine looks dead upon boot, which is not good.
+> >=20
+> > Fix that by enabling LED on trigger activation.
+
+> > +++ b/drivers/leds/trigger/ledtrig-backlight.c
+> > @@ -114,6 +114,8 @@ static int bl_trig_activate(struct led_classdev *le=
+d)
+> >  	n->old_status =3D UNBLANK;
+> >  	n->notifier.notifier_call =3D fb_notifier_callback;
+> > =20
+> > +	led_set_brightness(led, LED_ON);
+> > +
+>=20
+> This looks fishy.
+>=20
+> Maybe you should use a default-state =3D "keep" instead? (and you'll have
+> to support it in the LED driver).
+>=20
+> That'll give you proper "don't touch the LED if it was turned on" behavio=
+r,
+> which is what you seem to want.
+
+Actually no, that's not what I want. LED should go on if the display
+is active, as soon as trigger is activated.
+
+Unfortunately, I have see no good way to tell if the display is
+active (and display is usually active when trigger is activated).
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAl01asgACgkQMOfwapXb+vK9lgCbBcUNDD1pNFmswZowkerycBcz
+v80AoK7Dv7JR0+GNLhozQBGFuNFWTOIt
+=oVmU
+-----END PGP SIGNATURE-----
+
+--ZPt4rx8FFjLCG7dd--
