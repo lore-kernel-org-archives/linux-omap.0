@@ -1,47 +1,60 @@
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 13/14] mfd: palmas: convert to i2c_new_dummy_device
-Date: Mon, 22 Jul 2019 19:26:20 +0200
-Message-ID: <20190722172623.4166-14-wsa+renesas@sang-engineering.com>
-References: <20190722172623.4166-1-wsa+renesas@sang-engineering.com>
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Subject: Re: [PATCH] Enable backlight when trigger is activated
+Date: Mon, 22 Jul 2019 22:25:05 +0200
+Message-ID: <6fc6af89-1455-7665-47e7-0568ecd87c9c@gmail.com>
+References: <20190718190849.GA11409@amd>
+ <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
+ <20190722075032.GA27524@amd>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190722172623.4166-1-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20190722075032.GA27524@amd>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Ezequiel Garcia <ezequiel@collabora.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, linux-leds@vger.kernel.org, b.zolnierkie@samsung.com, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Move from i2c_new_dummy() to i2c_new_dummy_device(), so we now get an
-ERRPTR which we use in error handling.
+Hi Pavel,
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
+On 7/22/19 9:50 AM, Pavel Machek wrote:
+> Hi!
+> 
+>>> Configuring backlight trigger from dts results in backlight off during
+>>> boot. Machine looks dead upon boot, which is not good.
+>>>
+>>> Fix that by enabling LED on trigger activation.
+> 
+>>> +++ b/drivers/leds/trigger/ledtrig-backlight.c
+>>> @@ -114,6 +114,8 @@ static int bl_trig_activate(struct led_classdev *led)
+>>>  	n->old_status = UNBLANK;
+>>>  	n->notifier.notifier_call = fb_notifier_callback;
+>>>  
+>>> +	led_set_brightness(led, LED_ON);
+>>> +
+>>
+>> This looks fishy.
+>>
+>> Maybe you should use a default-state = "keep" instead? (and you'll have
+>> to support it in the LED driver).
+>>
+>> That'll give you proper "don't touch the LED if it was turned on" behavior,
+>> which is what you seem to want.
+> 
+> Actually no, that's not what I want. LED should go on if the display
+> is active, as soon as trigger is activated.
+> 
+> Unfortunately, I have see no good way to tell if the display is
+> active (and display is usually active when trigger is activated).
 
-Generated with coccinelle. Build tested by me and buildbot. Not tested on HW.
+default-state DT property can be also set to "on"
+(see Documentation/devicetree/bindings/leds/common.txt).
 
- drivers/mfd/palmas.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+You could make use of LED_INIT_DEFAULT_TRIGGER flag and
+parse DT property in the activate op. Similar approach has been
+applied e.g. in ledtrig-pattern.c.
 
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 6818ff34837c..f5b3fa973b13 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -549,12 +549,12 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 			palmas->i2c_clients[i] = i2c;
- 		else {
- 			palmas->i2c_clients[i] =
--					i2c_new_dummy(i2c->adapter,
-+					i2c_new_dummy_device(i2c->adapter,
- 							i2c->addr + i);
--			if (!palmas->i2c_clients[i]) {
-+			if (IS_ERR(palmas->i2c_clients[i])) {
- 				dev_err(palmas->dev,
- 					"can't attach client %d\n", i);
--				ret = -ENOMEM;
-+				ret = PTR_ERR(palmas->i2c_clients[i]);
- 				goto err_i2c;
- 			}
- 			palmas->i2c_clients[i]->dev.of_node = of_node_get(node);
 -- 
-2.20.1
+Best regards,
+Jacek Anaszewski
