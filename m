@@ -1,50 +1,90 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/8] ARM: OMAP2+: Fix missing SYSC_HAS_RESET_STATUS for dra7
- epwmss
-Date: Tue, 23 Jul 2019 04:28:04 -0700
-Message-ID: <20190723112811.44381-2-tony@atomide.com>
+Subject: [PATCH 5/8] ARM: dts: Drop bogus ahclkr clocks for dra7 mcasp 3 to 8
+Date: Tue, 23 Jul 2019 04:28:08 -0700
+Message-ID: <20190723112811.44381-6-tony@atomide.com>
 References: <20190723112811.44381-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190723112811.44381-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Keerthy <j-keerthy@ti.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-TRM says PWMSS_SYSCONFIG bit for SOFTRESET changes to zero when
-reset is completed. Let's configure it as otherwise we get warnings
-on boot when we check the data against dts provided data. Eventually
-the legacy platform data will be just dropped, but let's fix the
-warning first.
+The ahclkr clkctrl clock bit 28 only exists for mcasp 1 and 2 on dra7.
+Otherwise we get the following warning on beagle-x15:
 
+ti-sysc 48468000.target-module: could not add child clock ahclkr: -19
+
+Fixes: 5241ccbf2819 ("ARM: dts: Add missing ranges for dra7 mcasp l3 ports")
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7-l4.dtsi | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -379,7 +379,8 @@ static struct omap_hwmod dra7xx_dcan2_hwmod = {
- static struct omap_hwmod_class_sysconfig dra7xx_epwmss_sysc = {
- 	.rev_offs	= 0x0,
- 	.sysc_offs	= 0x4,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			  SYSC_HAS_RESET_STATUS,
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
- };
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -2818,9 +2818,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x68000 0x2000>,
+@@ -2854,9 +2853,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x6c000 0x2000>,
+@@ -2890,9 +2888,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x70000 0x2000>,
+@@ -2926,9 +2923,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x74000 0x2000>,
+@@ -2962,9 +2958,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x78000 0x2000>,
 -- 
 2.21.0
