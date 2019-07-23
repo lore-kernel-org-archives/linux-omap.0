@@ -1,40 +1,56 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [Letux-kernel] [PATCH v3 0/5] drm/panel-simple: Add panel parameters for ortustech-com37h3m05dtc/99dtc and sharp-lq070y3dg3b
-Date: Tue, 23 Jul 2019 08:59:29 +0200
-Message-ID: <201E8D0D-96A3-4E32-AF88-030879162F61@goldelico.com>
-References: <cover.1559905870.git.hns@goldelico.com> <0842FF88-D8E0-441B-837B-769C2EF6C1CB@goldelico.com> <20190625204356.GF18595@ravnborg.org> <20190626073350.GA15288@ravnborg.org> <CF1D9929-58D2-4E75-932A-870D11BBFBDE@goldelico.com> <33D92C0E-A430-4C34-A698-646F2592093D@goldelico.com> <20190717181455.GB6522@ravnborg.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] ARM: dts: am33xx: Add nodes for eQEP
+Date: Tue, 23 Jul 2019 01:42:13 -0700
+Message-ID: <20190723084213.GR5447@atomide.com>
+References: <20190722154538.5314-1-david@lechnology.com>
+ <20190722154538.5314-4-david@lechnology.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190717181455.GB6522@ravnborg.org>
+Content-Disposition: inline
+In-Reply-To: <20190722154538.5314-4-david@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, David Airlie <airlied@linux.ie>, Belisko Marek <marek.belisko@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Rob Herring <robh+dt@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+To: David Lechner <david@lechnology.com>
+Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sam,
-
-> Am 17.07.2019 um 20:14 schrieb Sam Ravnborg <sam@ravnborg.org>:
+* David Lechner <david@lechnology.com> [190722 15:46]:
+> This adds new nodes for the Texas Instruments Enhanced Quadrature
+> Encoder Pulse (eQEP) module in the PWM subsystem on AM33XX.
 > 
-> Hi Nikolaus.
+> Signed-off-by: David Lechner <david@lechnology.com>
+> ---
+>  arch/arm/boot/dts/am33xx-l4.dtsi | 27 +++++++++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
 > 
->>>>>> BTW: should also be applied to 5.2
->>>>> The drm bits are reviewed. The DT bits needs OK from DT people.
->>>>> When we have OK from DT people we can apply them all to drm-misc-next.
->>>> 
->>>> I got OK on irc from Rob to process these.
->>>> All patches are now applied to drm-misc-next.
->>> 
->>> Thanks for taking care of this!
->> 
->> I have checked but it seems they are still not merged into linux-next.
-> 
-> They will appear in next merge window. They were to late to hit current
-> merge window, as the cut-of time is around .rc5 in the drm subsystem.
-> And this is not really a fix so not stable material.
+> diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+> index 3b1fb2ba4dff..7fdc2f61c553 100644
+> --- a/arch/arm/boot/dts/am33xx-l4.dtsi
+> +++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+> @@ -1908,6 +1908,15 @@
+>  					status = "disabled";
+>  				};
+>  
+> +				eqep0: eqep@180 {
+> +					compatible = "ti,am3352-eqep";
+> +					reg = <0x180 0x80>;
+> +					clocks = <&l4ls_gclk>;
+> +					clock-names = "fck";
+> +					interrupts = <79>;
+> +					status = "disabled";
+> +				};
+> +
 
-have finally arrived. I just wasn't patient enough :)
+You probably no longer need to map any clocks here as this
+is now a child of the interconnect target module managed
+by ti-sysc driver. I have not checked but probably l4ls_gclk
+is same as clocks = <&l4ls_clkctrl AM3_L4LS_EPWMSS0_CLKCTRL 0>
+already managed by ti-sysc. If so, then just using runtime PM
+calls in any of the child device drivers will keep it enabled.
 
-BR and thanks,
-Nikolaus
+If l4ls_gclk is a separate functional clock, then it still
+needs to be managed by the child device driver directly.
+
+Regards,
+
+Tony
