@@ -1,63 +1,50 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: Backlight in motorola Droid 4
-Date: Tue, 23 Jul 2019 10:53:16 -0500
-Message-ID: <b8fbc94f-c087-2c9d-4532-ea423f1626e6@ti.com>
-References: <20181219162626.12297-1-dmurphy@ti.com>
- <20190722205921.GA24787@amd>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP2+: Fix missing SYSC_HAS_RESET_STATUS for
+ dra7 epwmss
+Date: Tue, 23 Jul 2019 13:16:15 -0500
+Message-ID: <212f2172-8612-86b6-83d7-0c70baaaf046@ti.com>
+References: <20190723112811.44381-1-tony@atomide.com>
+ <20190723112811.44381-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190722205921.GA24787@amd>
+In-Reply-To: <20190723112811.44381-2-tony@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
-Cc: jacek.anaszewski@gmail.com, linux-kernel@vger.kernel.org, linux-leds@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Pavel
+On 7/23/19 6:28 AM, Tony Lindgren wrote:
+> TRM says PWMSS_SYSCONFIG bit for SOFTRESET changes to zero when
+> reset is completed. Let's configure it as otherwise we get warnings
+> on boot when we check the data against dts provided data. Eventually
+> the legacy platform data will be just dropped, but let's fix the
+> warning first.
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-On 7/22/19 3:59 PM, Pavel Machek wrote:
-> Hi!
->
-> So now the backlight LED can be controlled. Good. (And thanks!)
->
-> But I seem to remember that backlight had range from "is it really on?"
-> to "very bright"; now it seems to have range from "bright" to "very
-> bright".
->
-> Any ideas what goes on there?
+Reviewed-by: Suman Anna <s-anna@ti.com>
 
-In the LM3552 driver we are changing the Full scale brightness registers 
-for the
+regards
+Suman
 
-specific control bank.
-
-#define LM3532_REG_CTRL_A_BRT    0x17
-#define LM3532_REG_CTRL_B_BRT    0x19
-#define LM3532_REG_CTRL_C_BRT    0x1b
-
-In the ti-lmu code the ALS zones were being modified not the control 
-bank brightness.
-
-#define LM3532_REG_BRT_A            0x70    /* zone 0 */
-#define LM3532_REG_BRT_B            0x76    /* zone 1 */
-#define LM3532_REG_BRT_C            0x7C    /* zone 2 */
-
-Not sure how the ALS is attached in the system if it reports to the host 
-and the host manages
-
-the back light or if the the ALS is connected directly to the LM3532.
-
-Maybe the ALS zone targets need to be updated to allow a fuller range.  
-The LM3532 may be stuck
-
-in a certain zone.
-
-Probably should set up the ALS properties in the device tree.
-
-Dan
-
-> Thanks,
-> 									Pavel
->
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -379,7 +379,8 @@ static struct omap_hwmod dra7xx_dcan2_hwmod = {
+>  static struct omap_hwmod_class_sysconfig dra7xx_epwmss_sysc = {
+>  	.rev_offs	= 0x0,
+>  	.sysc_offs	= 0x4,
+> -	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET,
+> +	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
+> +			  SYSC_HAS_RESET_STATUS,
+>  	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+>  	.sysc_fields	= &omap_hwmod_sysc_type2,
+>  };
+> 
