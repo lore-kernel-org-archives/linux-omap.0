@@ -1,48 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/8] ti-sysc related warning fixes for v5.3-rc cycle
-Date: Tue, 23 Jul 2019 04:28:03 -0700
-Message-ID: <20190723112811.44381-1-tony@atomide.com>
+Subject: [PATCH 2/8] ARM: OMAP2+: Remove unconfigured midlemode for am3 lcdc
+Date: Tue, 23 Jul 2019 04:28:05 -0700
+Message-ID: <20190723112811.44381-3-tony@atomide.com>
+References: <20190723112811.44381-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190723112811.44381-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+We currently get a warning for lcdc because of a difference
+with dts provided configuration compared to the legacy platform
+data. This is because lcdc has SYSC_HAS_MIDLEMODE configured in
+the platform data without configuring the modes.
 
-I noticed that with recent ti-sysc driver changes some new warnings
-have crept in. Mostly they are caused by having different configuration
-in the dts compared to the legacy platform data. Let's fix these first
-before we continue dropping the legacy platform data.
+Let's fix the warning by removing SYSC_HAS_MIDLEMODE. Note that
+the am335x TRM lists SYSC_HAS_MIDLEMODE, but it is unused.
 
-I also noticed we need two fixes for the ti-sysc driver while looking
-at the warnings.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-
-Tony
-
-Tony Lindgren (8):
-  ARM: OMAP2+: Fix missing SYSC_HAS_RESET_STATUS for dra7 epwmss
-  ARM: OMAP2+: Remove unconfigured midlemode for am3 lcdc
-  bus: ti-sysc: Fix handling of forced idle
-  bus: ti-sysc: Fix using configured sysc mask value
-  ARM: dts: Drop bogus ahclkr clocks for dra7 mcasp 3 to 8
-  ARM: dts: Fix flags for gpio7
-  ARM: dts: Fix incorrect dcan register mapping for am3, am4 and dra7
-  ARM: dts: Fix lcdc sysc flags for am3
-
- arch/arm/boot/dts/am33xx-l4.dtsi              |  6 +++-
- arch/arm/boot/dts/am437x-l4.dtsi              |  4 +++
- .../boot/dts/am57xx-beagle-x15-common.dtsi    |  2 +-
- arch/arm/boot/dts/dra7-evm.dts                |  2 +-
- arch/arm/boot/dts/dra7-l4.dtsi                | 31 ++++++++-----------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  2 +-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c     |  3 +-
- drivers/bus/ti-sysc.c                         | 10 +++---
- 8 files changed, 31 insertions(+), 29 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -231,7 +231,7 @@ static struct omap_hwmod am33xx_control_hwmod = {
+ static struct omap_hwmod_class_sysconfig lcdc_sysc = {
+ 	.rev_offs	= 0x0,
+ 	.sysc_offs	= 0x54,
+-	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
++	.sysc_flags	= SYSC_HAS_SIDLEMODE,
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+ 	.sysc_fields	= &omap_hwmod_sysc_type2,
+ };
 -- 
 2.21.0
