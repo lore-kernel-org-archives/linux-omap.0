@@ -1,58 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] serial: 8250_omap: Fix idling for unloaded serdev drivers
-Date: Tue, 23 Jul 2019 04:54:00 -0700
-Message-ID: <20190723115400.46432-1-tony@atomide.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH 3/4] ARM: dts: am33xx: Add nodes for eQEP
+Date: Tue, 23 Jul 2019 09:45:29 -0500
+Message-ID: <af21fd76-7123-b317-896b-bfe18d293325@lechnology.com>
+References: <20190722154538.5314-1-david@lechnology.com>
+ <20190722154538.5314-4-david@lechnology.com>
+ <20190723084213.GR5447@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190723084213.GR5447@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vignesh R <vigneshr@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-For many years omap variants have been setting the runtime PM
-autosuspend delay to -1 to prevent unsafe policy with lossy first
-character on wake-up. The user must specifically enable the timeout
-for UARTs if desired.
+On 7/23/19 3:42 AM, Tony Lindgren wrote:
+> * David Lechner <david@lechnology.com> [190722 15:46]:
+>> This adds new nodes for the Texas Instruments Enhanced Quadrature
+>> Encoder Pulse (eQEP) module in the PWM subsystem on AM33XX.
+>>
+>> Signed-off-by: David Lechner <david@lechnology.com>
+>> ---
+>>   arch/arm/boot/dts/am33xx-l4.dtsi | 27 +++++++++++++++++++++++++++
+>>   1 file changed, 27 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+>> index 3b1fb2ba4dff..7fdc2f61c553 100644
+>> --- a/arch/arm/boot/dts/am33xx-l4.dtsi
+>> +++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+>> @@ -1908,6 +1908,15 @@
+>>   					status = "disabled";
+>>   				};
+>>   
+>> +				eqep0: eqep@180 {
+>> +					compatible = "ti,am3352-eqep";
+>> +					reg = <0x180 0x80>;
+>> +					clocks = <&l4ls_gclk>;
+>> +					clock-names = "fck";
+>> +					interrupts = <79>;
+>> +					status = "disabled";
+>> +				};
+>> +
+> 
+> You probably no longer need to map any clocks here as this> is now a child of the interconnect target module managed
+> by ti-sysc driver. I have not checked but probably l4ls_gclk
+> is same as clocks = <&l4ls_clkctrl AM3_L4LS_EPWMSS0_CLKCTRL 0>
+> already managed by ti-sysc. If so, then just using runtime PM
+> calls in any of the child device drivers will keep it enabled.
+> 
+> If l4ls_gclk is a separate functional clock, then it still
+> needs to be managed by the child device driver directly.
 
-We must not enable the workaround for serdev devices though. It leads
-into UARTs not idling if no serdev devices are loaded and there is no
-sysfs entry to configure the UART in that case. And this means that
-my PM may not work unless the serdev modules are loaded.
+The clock is included so that we can get the clock rate for
+the timing aspects of the eQEP, not for power management.
 
-We can detect a serdev device being configured based on a dts child
-node, and we can simply skip the workround in that case. And the
-serdev driver can idle the port during runtime when suitable if an
-out-of-band wake-up GPIO line exists for example.
-
-Let's also add some comments to the workaround while at it.
-
-Cc: Johan Hovold <johan@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/tty/serial/8250/8250_omap.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -1234,7 +1234,16 @@ static int omap8250_probe(struct platform_device *pdev)
- 
- 	device_init_wakeup(&pdev->dev, true);
- 	pm_runtime_use_autosuspend(&pdev->dev);
--	pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
-+
-+	/*
-+	 * Disable runtime PM until autosuspend delay unless specifically
-+	 * enabled by the user via sysfs. This is the historic way to
-+	 * prevent an unsafe default policy with lossy characters on wake-up.
-+	 * For serdev devices this is not needed, the policy can be managed by
-+	 * the serdev driver.
-+	 */
-+	if (!of_get_available_child_count(pdev->dev.of_node))
-+		pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
- 
- 	pm_runtime_irq_safe(&pdev->dev);
- 	pm_runtime_enable(&pdev->dev);
--- 
-2.21.0
+I chose to use the "fck" name to be consistent with the
+sibling EHRPWM and ECAP nodes that already have the same
+bindings for the same clock.
