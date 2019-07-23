@@ -1,51 +1,65 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 3/8] bus: ti-sysc: Fix handling of forced idle
-Date: Tue, 23 Jul 2019 13:31:35 -0500
-Message-ID: <4336e7ef-3857-e42f-e67c-94809acc59b8@ti.com>
+Subject: Re: [PATCH 2/8] ARM: OMAP2+: Remove unconfigured midlemode for am3
+ lcdc
+Date: Tue, 23 Jul 2019 14:03:12 -0500
+Message-ID: <bcc130a5-f7e0-e182-9f4b-5a48fc3d6e17@ti.com>
 References: <20190723112811.44381-1-tony@atomide.com>
- <20190723112811.44381-4-tony@atomide.com>
+ <20190723112811.44381-3-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190723112811.44381-4-tony@atomide.com>
+In-Reply-To: <20190723112811.44381-3-tony@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>
 Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 7/23/19 6:28 AM, Tony Lindgren wrote:
-> For some devices we can get the following warning on boot:
-> 
-> ti-sysc 48485200.target-module: sysc_disable_module: invalid midlemode
-> 
-> Fix this by treating SYSC_IDLE_FORCE like we do for the other bits
-> for idlemodes mask.
-> 
-> Fixes: d59b60564cbf ("bus: ti-sysc: Add generic enable/disable functions")
-> Cc: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
++ Jyri
 
-Reviewed-by: Suman Anna <s-anna@ti.com>
+On 7/23/19 6:28 AM, Tony Lindgren wrote:
+> We currently get a warning for lcdc because of a difference
+> with dts provided configuration compared to the legacy platform
+> data. This is because lcdc has SYSC_HAS_MIDLEMODE configured in
+> the platform data without configuring the modes.
+
+Hi Tony,
+While I understand that you are trying to match the DT data with the
+existing legacy data, do you know if there was a reason why this was
+omitted in the first place? Should we be really adding the MSTANDBY_
+flags and fix up the DTS node accordingly? I tried looking through the
+git log, and the initial commit itself didn't add the MSTANDBY_ flags
+but used the SYSC_HAS_MIDLEMODE.
+
+Jyri,
+Do you know the history?
 
 regards
 Suman
 
+> 
+> Let's fix the warning by removing SYSC_HAS_MIDLEMODE. Note that
+> the am335x TRM lists SYSC_HAS_MIDLEMODE, but it is unused.
+
+
+
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  drivers/bus/ti-sysc.c | 2 +-
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-> --- a/drivers/bus/ti-sysc.c
-> +++ b/drivers/bus/ti-sysc.c
-> @@ -949,7 +949,7 @@ static int sysc_best_idle_mode(u32 idlemodes, u32 *best_mode)
->  		*best_mode = SYSC_IDLE_SMART_WKUP;
->  	else if (idlemodes & BIT(SYSC_IDLE_SMART))
->  		*best_mode = SYSC_IDLE_SMART;
-> -	else if (idlemodes & SYSC_IDLE_FORCE)
-> +	else if (idlemodes & BIT(SYSC_IDLE_FORCE))
->  		*best_mode = SYSC_IDLE_FORCE;
->  	else
->  		return -EINVAL;
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> @@ -231,7 +231,7 @@ static struct omap_hwmod am33xx_control_hwmod = {
+>  static struct omap_hwmod_class_sysconfig lcdc_sysc = {
+>  	.rev_offs	= 0x0,
+>  	.sysc_offs	= 0x54,
+> -	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
+> +	.sysc_flags	= SYSC_HAS_SIDLEMODE,
+>  	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+>  	.sysc_fields	= &omap_hwmod_sysc_type2,
+>  };
 > 
