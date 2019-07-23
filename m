@@ -1,95 +1,30 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] Enable backlight when trigger is activated
-Date: Mon, 22 Jul 2019 23:04:07 +0200
-Message-ID: <20190722210407.GA25617@amd>
-References: <20190718190849.GA11409@amd>
- <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
- <20190722075032.GA27524@amd>
- <6fc6af89-1455-7665-47e7-0568ecd87c9c@gmail.com>
+From: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Subject: Re: nl80211 wlcore regression in next
+Date: Tue, 23 Jul 2019 07:07:31 +0200
+Message-ID: <262fc08905febd29f9abd0870dbe674fcc5bfb3e.camel@sipsolutions.net>
+References: <20190625073837.GG5447@atomide.com>
+         <2570f4087d6e3356df34635a0380ec8ce06c9159.camel@sipsolutions.net>
+         <20190625080019.GH5447@atomide.com>
+         <7f74087fef1e554e0aeb82a6cec4113727487928.camel@sipsolutions.net>
+         <20190722130213.GN5447@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0121990956=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <6fc6af89-1455-7665-47e7-0568ecd87c9c@gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, mpartap@gmx.net, b.zolnierkie@samsung.com, tony@atomide.com, merlijn@wizzup.org, kernel list <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, sre@kernel.org, nekit1000@gmail.com, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20190722130213.GN5447-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---===============0121990956==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
-Content-Disposition: inline
+> Looks like this one crept back as the fix is missing from v5.3-rc1.
+> 
+> Forgot to include in the pull request?
 
+More like forgot to send the pull request, my bad. I eventually realized
+a couple of days ago and it'll be coming upstream soon. Sorry about
+that.
 
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-> >> This looks fishy.
-> >>
-> >> Maybe you should use a default-state =3D "keep" instead? (and you'll h=
-ave
-> >> to support it in the LED driver).
-> >>
-> >> That'll give you proper "don't touch the LED if it was turned on" beha=
-vior,
-> >> which is what you seem to want.
-> >=20
-> > Actually no, that's not what I want. LED should go on if the display
-> > is active, as soon as trigger is activated.
-> >=20
-> > Unfortunately, I have see no good way to tell if the display is
-> > active (and display is usually active when trigger is activated).
->=20
-> default-state DT property can be also set to "on"
-> (see Documentation/devicetree/bindings/leds/common.txt).
-
-Ok, thanks for the hint, that could work. (I thought we were using
-default trigger to set the LED "on").
-
-Now...this gives me option of 0% or 100% brightness, while best would
-be 10% brightness.... but I guess we can live with that ;-).
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---SLDf9lqlvOQaIe6s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl02JMcACgkQMOfwapXb+vI4ugCeInwKolmtAnBHOQNVsMS09AdN
-Kr8AnAq4ihyjYP61ghzcLq9l2lbwoALF
-=guhn
------END PGP SIGNATURE-----
-
---SLDf9lqlvOQaIe6s--
-
---===============0121990956==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-
---===============0121990956==--
+johannes
