@@ -1,80 +1,33 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 6/8] ARM: dts: Fix flags for gpio7
-Date: Tue, 23 Jul 2019 16:58:39 -0500
-Message-ID: <7b09274a-eed2-a7ef-e1ae-b95f1d0b8666@ti.com>
-References: <20190723112811.44381-1-tony@atomide.com>
- <20190723112811.44381-7-tony@atomide.com>
+From: Lars Melin <larsm17@gmail.com>
+Subject: Re: [PATCH] USB: serial: option: Add Motorola modem UARTs
+Date: Wed, 24 Jul 2019 09:34:09 +0700
+Message-ID: <75e9bccc-d76d-2bc6-f9f3-a0efc25e8238@gmail.com>
+References: <20190723144956.55753-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190723112811.44381-7-tony@atomide.com>
+In-Reply-To: <20190723144956.55753-1-tony@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Johan Hovold <johan@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?Q?Bj=c3=b8rn_Mork?= <bjorn@mork.no>, Dan Williams <dan.j.williams@intel.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On 7/23/2019 21:49, Tony Lindgren wrote:
 
-On 7/23/19 6:28 AM, Tony Lindgren wrote:
-> The ti,no-idle-on-init and ti,no-reset-on-init flags need to be at
-> the interconnect target module level for the modules that have it
-> defined. Otherwise we get the following warnings:
-> 
-> dts flag should be at module level for ti,no-idle-on-init
-> dts flag should be at module level for ti,no-reset-on-init
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> +#define MOTOROLA_VENDOR_ID			0x22b8
+> +#define MOTOROLA_PRODUCT_MDM6600		0x2a70
+> +#define MOTOROLA_PRODUCT_MDM9600		0x2e0a
+> +#define MOTOROLA_PRODUCT_MDM_RAM_DL		0x4281
+> +#define MOTOROLA_PRODUCT_MDM_QC_DL		0x900e
+> +
 
-There's a similar one within the am335x-icev2.dts file for gpio0
-that can also use this fix.
+Johan, when he is back from vacation, will tell you to drop those 
+defines and instead use the values directly in the list with a comment 
+behind reflecting the device model.
+Just telling you so you can save time by sending out your v2 early..
 
-Reviewed-by: Suman Anna <s-anna@ti.com>
 
-regards
-Suman
-
-> ---
->  arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 2 +-
->  arch/arm/boot/dts/dra7-evm.dts                  | 2 +-
->  arch/arm/boot/dts/dra7-l4.dtsi                  | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-> --- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-> +++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-> @@ -379,7 +379,7 @@
->  	};
->  };
->  
-> -&gpio7 {
-> +&gpio7_target {
->  	ti,no-reset-on-init;
->  	ti,no-idle-on-init;
->  };
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -498,7 +498,7 @@
->  	phy-supply = <&ldousb_reg>;
->  };
->  
-> -&gpio7 {
-> +&gpio7_target {
->  	ti,no-reset-on-init;
->  	ti,no-idle-on-init;
->  };
-> diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-> --- a/arch/arm/boot/dts/dra7-l4.dtsi
-> +++ b/arch/arm/boot/dts/dra7-l4.dtsi
-> @@ -1261,7 +1261,7 @@
->  			};
->  		};
->  
-> -		target-module@51000 {			/* 0x48051000, ap 45 2e.0 */
-> +		gpio7_target: target-module@51000 {		/* 0x48051000, ap 45 2e.0 */
->  			compatible = "ti,sysc-omap2", "ti,sysc";
->  			ti,hwmods = "gpio7";
->  			reg = <0x51000 0x4>,
-> 
+best rgds
+/Lars
