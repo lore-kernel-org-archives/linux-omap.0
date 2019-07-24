@@ -1,68 +1,53 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 1/6] dt-bindings: irqchip: Add PRUSS interrupt controller
- bindings
-Date: Wed, 24 Jul 2019 14:42:33 -0500
-Message-ID: <6871c381-9fc6-f6be-6386-f183fcc5546a@ti.com>
-References: <20190708035243.12170-1-s-anna@ti.com>
- <20190708035243.12170-2-s-anna@ti.com> <20190724163419.GA29254@bogus>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 2/2] DTS: ARM: gta04: introduce legacy spi-cs-high to
+ make display work again
+Date: Wed, 24 Jul 2019 13:42:59 -0600
+Message-ID: <20190724194259.GA25847@bogus>
+References: <cover.1562597164.git.hns@goldelico.com>
+ <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190724163419.GA29254@bogus>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>
-Cc: David Lechner <david@lechnology.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Jason Cooper <jason@lakedaemon.net>, devicetree@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>, Tony Lindgren <tony@atomide.com>, Murali Karicheri <m-karicheri2@ti.com>, linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, letux-kernel@openphoenux.org, linux-spi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 7/24/19 11:34 AM, Rob Herring wrote:
-> On Sun, 7 Jul 2019 22:52:38 -0500, Suman Anna wrote:
->> The Programmable Real-Time Unit Subsystem (PRUSS) contains an interrupt
->> controller (INTC) that can handle various system input events and post
->> interrupts back to the device-level initiators. The INTC can support
->> upto 64 input events on most SoCs with individual control configuration
->> and hardware prioritization. These events are mapped onto 10 interrupt
->> lines through two levels of many-to-one mapping support. Different
->> interrupt lines are routed to the individual PRU cores or to the
->> host CPU or to other PRUSS instances.
->>
->> The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
->> commonly called ICSSG. The ICSSG interrupt controller on K3 SoCs provide
->> a higher number of host interrupts (20 vs 10) and can handle an increased
->> number of input events (160 vs 64) from various SoC interrupt sources.
->>
->> Add the bindings document for these interrupt controllers on all the
->> applicable SoCs. It covers the OMAP architecture SoCs - AM33xx, AM437x
->> and AM57xx; the Keystone 2 architecture based 66AK2G SoC; the Davinci
->> architecture based OMAPL138 SoCs, and the K3 architecture based AM65x
->> and J721E SoCs.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> Signed-off-by: Andrew F. Davis <afd@ti.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->> Prior version: https://patchwork.kernel.org/patch/10795771/
->>
->>  .../interrupt-controller/ti,pruss-intc.txt    | 92 +++++++++++++++++++
->>  1 file changed, 92 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
->>
+On Mon, Jul 08, 2019 at 04:46:05PM +0200, H. Nikolaus Schaller wrote:
+> commit 6953c57ab172 "gpio: of: Handle SPI chipselect legacy bindings"
 > 
-> Reviewed-by: Rob Herring <robh@kernel.org>
+> did introduce logic to centrally handle the legacy spi-cs-high property
+> in combination with cs-gpios. This assumes that the polarity
+> of the CS has to be inverted if spi-cs-high is missing, even
+> and especially if non-legacy GPIO_ACTIVE_HIGH is specified.
 > 
+> The DTS for the GTA04 was orginally introduced under the assumption
+> that there is no need for spi-cs-high if the gpio is defined with
+> proper polarity GPIO_ACTIVE_HIGH.
 
-Thanks Rob. I am going to submit a v2 with some minor reword changes
-based on couple of comments, but no addition or removal of properties.
-Should I be retaining your Reviewed-by for v2?
+Given that spi-cs-high is called legacy, that would imply that DT's 
+should not have to use spi-cs-high.
 
-regards
-Suman
+> This was not a problem until gpiolib changed the interpretation of
+> GPIO_ACTIVE_HIGH and missing spi-cs-high.
+
+Then we should fix gpiolib...
+
+> The effect is that the missing spi-cs-high is now interpreted as CS being
+> low (despite GPIO_ACTIVE_HIGH) which turns off the SPI interface when the
+> panel is to be programmed by the panel driver.
+> 
+> Therefore, we have to add the redundant and legacy spi-cs-high property
+> to properly pass through the legacy handler.
+> 
+> Since this is nowhere documented in the bindings, we add some words of
+> WARNING.
+> 
+> Cc: stable@vger.kernel.org
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  Documentation/devicetree/bindings/spi/spi-bus.txt | 6 ++++++
+>  arch/arm/boot/dts/omap3-gta04.dtsi                | 1 +
+>  2 files changed, 7 insertions(+)
