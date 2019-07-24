@@ -1,53 +1,59 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 2/2] DTS: ARM: gta04: introduce legacy spi-cs-high to
- make display work again
-Date: Wed, 24 Jul 2019 13:42:59 -0600
-Message-ID: <20190724194259.GA25847@bogus>
-References: <cover.1562597164.git.hns@goldelico.com>
- <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Subject: Re: [PATCH] Enable backlight when trigger is activated
+Date: Wed, 24 Jul 2019 23:16:39 +0200
+Message-ID: <f00d99cb-da32-05b3-bf49-447cb8bd33e0@gmail.com>
+References: <20190718190849.GA11409@amd>
+ <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
+ <20190722075032.GA27524@amd> <6fc6af89-1455-7665-47e7-0568ecd87c9c@gmail.com>
+ <20190724083355.GA27716@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
+In-Reply-To: <20190724083355.GA27716@amd>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, letux-kernel@openphoenux.org, linux-spi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, linux-leds@vger.kernel.org, b.zolnierkie@samsung.com, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 08, 2019 at 04:46:05PM +0200, H. Nikolaus Schaller wrote:
-> commit 6953c57ab172 "gpio: of: Handle SPI chipselect legacy bindings"
+On 7/24/19 10:33 AM, Pavel Machek wrote:
+> Hi!
 > 
-> did introduce logic to centrally handle the legacy spi-cs-high property
-> in combination with cs-gpios. This assumes that the polarity
-> of the CS has to be inverted if spi-cs-high is missing, even
-> and especially if non-legacy GPIO_ACTIVE_HIGH is specified.
+>>>>> +++ b/drivers/leds/trigger/ledtrig-backlight.c
+>>>>> @@ -114,6 +114,8 @@ static int bl_trig_activate(struct led_classdev *led)
+>>>>>  	n->old_status = UNBLANK;
+>>>>>  	n->notifier.notifier_call = fb_notifier_callback;
+>>>>>  
+>>>>> +	led_set_brightness(led, LED_ON);
+>>>>> +
+>>>>
+>>>> This looks fishy.
+>>>>
+>>>> Maybe you should use a default-state = "keep" instead? (and you'll have
+>>>> to support it in the LED driver).
+>>>>
+>>>> That'll give you proper "don't touch the LED if it was turned on" behavior,
+>>>> which is what you seem to want.
+>>>
+>>> Actually no, that's not what I want. LED should go on if the display
+>>> is active, as soon as trigger is activated.
+>>>
+>>> Unfortunately, I have see no good way to tell if the display is
+>>> active (and display is usually active when trigger is activated).
+>>
+>> default-state DT property can be also set to "on"
+>> (see Documentation/devicetree/bindings/leds/common.txt).
 > 
-> The DTS for the GTA04 was orginally introduced under the assumption
-> that there is no need for spi-cs-high if the gpio is defined with
-> proper polarity GPIO_ACTIVE_HIGH.
+> Yes, except that it does not work with all drivers :-(. In particular,
+> it does not work with lm3532.
+> 
+> We should really move more of the device tree parsing into core, so
+> that there's one place to fix...
 
-Given that spi-cs-high is called legacy, that would imply that DT's 
-should not have to use spi-cs-high.
+Right. We could have something similar to led_get_default_pattern().
+led_get_default_state() ?
 
-> This was not a problem until gpiolib changed the interpretation of
-> GPIO_ACTIVE_HIGH and missing spi-cs-high.
-
-Then we should fix gpiolib...
-
-> The effect is that the missing spi-cs-high is now interpreted as CS being
-> low (despite GPIO_ACTIVE_HIGH) which turns off the SPI interface when the
-> panel is to be programmed by the panel driver.
-> 
-> Therefore, we have to add the redundant and legacy spi-cs-high property
-> to properly pass through the legacy handler.
-> 
-> Since this is nowhere documented in the bindings, we add some words of
-> WARNING.
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  Documentation/devicetree/bindings/spi/spi-bus.txt | 6 ++++++
->  arch/arm/boot/dts/omap3-gta04.dtsi                | 1 +
->  2 files changed, 7 insertions(+)
+-- 
+Best regards,
+Jacek Anaszewski
