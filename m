@@ -1,79 +1,26 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] Enable backlight when trigger is activated
-Date: Wed, 24 Jul 2019 10:33:55 +0200
-Message-ID: <20190724083355.GA27716@amd>
-References: <20190718190849.GA11409@amd>
- <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
- <20190722075032.GA27524@amd>
- <6fc6af89-1455-7665-47e7-0568ecd87c9c@gmail.com>
+From: Emmanuel Vadot <manu@freebsd.org>
+Subject: [PATCH 0/1] ARM: dts: am335x: Fix UARTs length
+Date: Wed, 24 Jul 2019 14:23:28 +0200
+Message-ID: <20190724122329.21231-1-manu@freebsd.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="5vNYLRcllDrimb99"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6fc6af89-1455-7665-47e7-0568ecd87c9c@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, linux-leds@vger.kernel.org, b.zolnierkie@samsung.com, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Emmanuel Vadot <manu@freebsd.org>
 List-Id: linux-omap@vger.kernel.org
 
+For some reason the uart region size were set to 0x2000 while the TRM clearly
+specify that the size is 0x1000.
+I guess this is not a problem on Linux but for FreeBSD the resource manager will
+not allow the mapping when the region declared in the parents is less that the one
+declared in the child.
 
---5vNYLRcllDrimb99
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Emmanuel Vadot (1):
+  ARM: dts: am335x: Fix UARTs length
 
-Hi!
+ arch/arm/boot/dts/am33xx-l4.dtsi | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-> >>> +++ b/drivers/leds/trigger/ledtrig-backlight.c
-> >>> @@ -114,6 +114,8 @@ static int bl_trig_activate(struct led_classdev *=
-led)
-> >>>  	n->old_status =3D UNBLANK;
-> >>>  	n->notifier.notifier_call =3D fb_notifier_callback;
-> >>> =20
-> >>> +	led_set_brightness(led, LED_ON);
-> >>> +
-> >>
-> >> This looks fishy.
-> >>
-> >> Maybe you should use a default-state =3D "keep" instead? (and you'll h=
-ave
-> >> to support it in the LED driver).
-> >>
-> >> That'll give you proper "don't touch the LED if it was turned on" beha=
-vior,
-> >> which is what you seem to want.
-> >=20
-> > Actually no, that's not what I want. LED should go on if the display
-> > is active, as soon as trigger is activated.
-> >=20
-> > Unfortunately, I have see no good way to tell if the display is
-> > active (and display is usually active when trigger is activated).
->=20
-> default-state DT property can be also set to "on"
-> (see Documentation/devicetree/bindings/leds/common.txt).
-
-Yes, except that it does not work with all drivers :-(. In particular,
-it does not work with lm3532.
-
-We should really move more of the device tree parsing into core, so
-that there's one place to fix...
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---5vNYLRcllDrimb99
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl04F/MACgkQMOfwapXb+vISagCfdaWbZQ6RjvGQ3Edw3INdzb04
-i5gAoItfTEBcniDsblUC4rEvK/EzZthi
-=NU1f
------END PGP SIGNATURE-----
-
---5vNYLRcllDrimb99--
+-- 
+2.22.0
