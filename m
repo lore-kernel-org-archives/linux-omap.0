@@ -1,59 +1,169 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: [PATCH] Enable backlight when trigger is activated
-Date: Wed, 24 Jul 2019 23:16:39 +0200
-Message-ID: <f00d99cb-da32-05b3-bf49-447cb8bd33e0@gmail.com>
-References: <20190718190849.GA11409@amd>
- <22d7eca4ad8aa2e73933c4f83c92221ce6e0945a.camel@collabora.com>
- <20190722075032.GA27524@amd> <6fc6af89-1455-7665-47e7-0568ecd87c9c@gmail.com>
- <20190724083355.GA27716@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+From: David Lechner <david@lechnology.com>
+Subject: [PATCH] ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi
+Date: Wed, 24 Jul 2019 16:26:16 -0500
+Message-ID: <20190724212616.17945-1-david@lechnology.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190724083355.GA27716@amd>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, linux-leds@vger.kernel.org, b.zolnierkie@samsung.com, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: David Lechner <david@lechnology.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 7/24/19 10:33 AM, Pavel Machek wrote:
-> Hi!
-> 
->>>>> +++ b/drivers/leds/trigger/ledtrig-backlight.c
->>>>> @@ -114,6 +114,8 @@ static int bl_trig_activate(struct led_classdev *led)
->>>>>  	n->old_status = UNBLANK;
->>>>>  	n->notifier.notifier_call = fb_notifier_callback;
->>>>>  
->>>>> +	led_set_brightness(led, LED_ON);
->>>>> +
->>>>
->>>> This looks fishy.
->>>>
->>>> Maybe you should use a default-state = "keep" instead? (and you'll have
->>>> to support it in the LED driver).
->>>>
->>>> That'll give you proper "don't touch the LED if it was turned on" behavior,
->>>> which is what you seem to want.
->>>
->>> Actually no, that's not what I want. LED should go on if the display
->>> is active, as soon as trigger is activated.
->>>
->>> Unfortunately, I have see no good way to tell if the display is
->>> active (and display is usually active when trigger is activated).
->>
->> default-state DT property can be also set to "on"
->> (see Documentation/devicetree/bindings/leds/common.txt).
-> 
-> Yes, except that it does not work with all drivers :-(. In particular,
-> it does not work with lm3532.
-> 
-> We should really move more of the device tree parsing into core, so
-> that there's one place to fix...
+This makes use of the am335x-osd335x-common.dtsi file that contains the
+common device tree components for Octavo Systems AM335x System-in-
+Package that is used on the BeagleBone Blue.
 
-Right. We could have something similar to led_get_default_pattern().
-led_get_default_state() ?
+This has two minor side-effects:
+1. pinmux_i2c0_pins is renamed to pinmux-i2c0-pins
+2. the 1MHz cpufreq operating point is enabled
 
+Cc: Robert Nelson <robertcnelson@gmail.com>
+Signed-off-by: David Lechner <david@lechnology.com>
+---
+ arch/arm/boot/dts/am335x-boneblue.dts | 92 +--------------------------
+ 1 file changed, 2 insertions(+), 90 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblue.dts b/arch/arm/boot/dts/am335x-boneblue.dts
+index 0257576d5d16..2f6652ef9a15 100644
+--- a/arch/arm/boot/dts/am335x-boneblue.dts
++++ b/arch/arm/boot/dts/am335x-boneblue.dts
+@@ -5,23 +5,13 @@
+ /dts-v1/;
+ 
+ #include "am33xx.dtsi"
++#include "am335x-osd335x-common.dtsi"
+ #include <dt-bindings/interrupt-controller/irq.h>
+ 
+ / {
+ 	model = "TI AM335x BeagleBone Blue";
+ 	compatible = "ti,am335x-bone-blue", "ti,am33xx";
+ 
+-	cpus {
+-		cpu@0 {
+-			cpu0-supply = <&dcdc2_reg>;
+-		};
+-	};
+-
+-	memory@80000000 {
+-		device_type = "memory";
+-		reg = <0x80000000 0x20000000>; /* 512 MB */
+-	};
+-
+ 	chosen {
+ 		stdout-path = &uart0;
+ 	};
+@@ -142,13 +132,6 @@
+ 		>;
+ 	};
+ 
+-	i2c0_pins: pinmux_i2c0_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_PADCONF(AM335X_PIN_I2C0_SDA, PIN_INPUT_PULLUP, MUX_MODE0)	/* (C17) I2C0_SDA.I2C0_SDA */
+-			AM33XX_PADCONF(AM335X_PIN_I2C0_SCL, PIN_INPUT_PULLUP, MUX_MODE0)	/* (C16) I2C0_SCL.I2C0_SCL */
+-		>;
+-	};
+-
+ 	i2c2_pins: pinmux_i2c2_pins {
+ 		pinctrl-single,pins = <
+ 			AM33XX_PADCONF(AM335X_PIN_UART1_CTSN, PIN_INPUT_PULLUP, MUX_MODE3)	/* (D18) uart1_ctsn.I2C2_SDA */
+@@ -328,16 +311,6 @@
+ };
+ 
+ &i2c0 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c0_pins>;
+-
+-	status = "okay";
+-	clock-frequency = <400000>;
+-
+-	tps: tps@24 {
+-		reg = <0x24>;
+-	};
+-
+ 	baseboard_eeprom: baseboard_eeprom@50 {
+ 		compatible = "atmel,24c256";
+ 		reg = <0x50>;
+@@ -381,66 +354,13 @@
+ /include/ "tps65217.dtsi"
+ 
+ &tps {
+-	interrupts = <7>; /* NMI */
+-	interrupt-parent = <&intc>;
++	/delete-property/ ti,pmic-shutdown-controller;
+ 
+ 	charger {
+ 		interrupts = <0>, <1>;
+ 		interrupt-names = "USB", "AC";
+ 		status = "okay";
+ 	};
+-
+-	pwrbutton {
+-		interrupts = <2>;
+-		status = "okay";
+-	};
+-
+-	regulators {
+-		dcdc1_reg: regulator@0 {
+-			regulator-name = "vdds_dpr";
+-			regulator-always-on;
+-		};
+-
+-		dcdc2_reg: regulator@1 {
+-			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
+-			regulator-name = "vdd_mpu";
+-			regulator-min-microvolt = <925000>;
+-			regulator-max-microvolt = <1351500>;
+-			regulator-boot-on;
+-			regulator-always-on;
+-		};
+-
+-		dcdc3_reg: regulator@2 {
+-			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
+-			regulator-name = "vdd_core";
+-			regulator-min-microvolt = <925000>;
+-			regulator-max-microvolt = <1150000>;
+-			regulator-boot-on;
+-			regulator-always-on;
+-		};
+-
+-		ldo1_reg: regulator@3 {
+-			regulator-name = "vio,vrtc,vdds";
+-			regulator-always-on;
+-		};
+-
+-		ldo2_reg: regulator@4 {
+-			regulator-name = "vdd_3v3aux";
+-			regulator-always-on;
+-		};
+-
+-		ldo3_reg: regulator@5 {
+-			regulator-name = "vdd_1v8";
+-			regulator-min-microvolt = <1800000>;
+-			regulator-max-microvolt = <1800000>;
+-			regulator-always-on;
+-		};
+-
+-		ldo4_reg: regulator@6 {
+-			regulator-name = "vdd_3v3a";
+-			regulator-always-on;
+-		};
+-	};
+ };
+ 
+ &mmc1 {
+@@ -502,14 +422,6 @@
+ 	};
+ };
+ 
+-&aes {
+-	status = "okay";
+-};
+-
+-&sham {
+-	status = "okay";
+-};
+-
+ &rtc {
+ 	system-power-controller;
+ 	clocks = <&clk_32768_ck>, <&clk_24mhz_clkctrl AM3_CLK_24MHZ_CLKDIV32K_CLKCTRL 0>;
 -- 
-Best regards,
-Jacek Anaszewski
+2.17.1
