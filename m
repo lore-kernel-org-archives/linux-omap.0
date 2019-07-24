@@ -1,85 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/8] ARM: OMAP2+: Remove unconfigured midlemode for am3
- lcdc
-Date: Tue, 23 Jul 2019 23:31:10 -0700
-Message-ID: <20190724063110.GT5447@atomide.com>
+Subject: Re: [PATCH 5/8] ARM: dts: Drop bogus ahclkr clocks for dra7 mcasp 3
+ to 8
+Date: Tue, 23 Jul 2019 23:47:58 -0700
+Message-ID: <20190724064758.GU5447@atomide.com>
 References: <20190723112811.44381-1-tony@atomide.com>
- <20190723112811.44381-3-tony@atomide.com>
- <bcc130a5-f7e0-e182-9f4b-5a48fc3d6e17@ti.com>
- <52328e14-58b2-2ea1-8b0a-33548a1c6a7a@ti.com>
+ <20190723112811.44381-6-tony@atomide.com>
+ <2c750847-700e-c835-ee53-a656b363c36c@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <52328e14-58b2-2ea1-8b0a-33548a1c6a7a@ti.com>
+In-Reply-To: <2c750847-700e-c835-ee53-a656b363c36c@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [190724 05:50]:
+* Suman Anna <s-anna@ti.com> [190723 21:02]:
+> Hi Tony,
 > 
-> On 24/07/19 12:33 AM, Suman Anna wrote:
-> > + Jyri
-> > 
-> > On 7/23/19 6:28 AM, Tony Lindgren wrote:
-> > > We currently get a warning for lcdc because of a difference
-> > > with dts provided configuration compared to the legacy platform
-> > > data. This is because lcdc has SYSC_HAS_MIDLEMODE configured in
-> > > the platform data without configuring the modes.
-> > 
-> > Hi Tony,
-> > While I understand that you are trying to match the DT data with the
-> > existing legacy data, do you know if there was a reason why this was
-> > omitted in the first place? Should we be really adding the MSTANDBY_
-> > flags and fix up the DTS node accordingly? I tried looking through the
-> > git log, and the initial commit itself didn't add the MSTANDBY_ flags
-> > but used the SYSC_HAS_MIDLEMODE.
-
-Yes the goal is to get rid of all errors and warnings in dmesg output
-so we can spot the real issues.
-
-> > Jyri,
-> > Do you know the history?
+> On 7/23/19 6:28 AM, Tony Lindgren wrote:
+> > The ahclkr clkctrl clock bit 28 only exists for mcasp 1 and 2 on dra7.
+> > Otherwise we get the following warning on beagle-x15:
+...
+> > @@ -2962,9 +2958,8 @@
+> >  					<SYSC_IDLE_SMART>;
+> >  			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+> >  			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 0>,
+> > -				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>,
+> > -				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 28>;
+> > -			clock-names = "fck", "ahclkx", "ahclkr";
+> > +				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>;
+> > +			clock-names = "fck", "ahclkx";
 > 
-> Tony/Suman,
-> 
-> This patch breaks DS0 on am3.
+> The equivalent change to MCASP8 is missing.
 
-OK thanks for testing. Let's drop this for now, sounds like there is
-some midlemode configuration happening even with no flags set.
+Thanks for spotting it, probably should be set up the same way as
+MCASP4 too looking at the TRM.
 
-Probably the right fix is to configure the usable midlemodes instead
-both for platform data and dts data and then drop the platform data.
+Tero, care to check the dra7 mcasp clocks we have defined?
+
+$ grep MCASP drivers/clk/ti/clk-7xx.c
+        { DRA7_IPU_MCASP1_CLKCTRL, dra7_mcasp1_bit_data, CLKF_SW_SUP, "ipu-clkctrl:0000:22" },
+        { DRA7_L4PER2_MCASP2_CLKCTRL, dra7_mcasp2_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:0154:22" },
+        { DRA7_L4PER2_MCASP3_CLKCTRL, dra7_mcasp3_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:015c:22" },
+        { DRA7_L4PER2_MCASP5_CLKCTRL, dra7_mcasp5_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:016c:22" },
+        { DRA7_L4PER2_MCASP8_CLKCTRL, dra7_mcasp8_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:0184:24" },
+        { DRA7_L4PER2_MCASP4_CLKCTRL, dra7_mcasp4_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:018c:22" },
+        { DRA7_L4PER2_MCASP6_CLKCTRL, dra7_mcasp6_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:01f8:22" },
+        { DRA7_L4PER2_MCASP7_CLKCTRL, dra7_mcasp7_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:01fc:22" },
+
+Is bit 24 above correct for MCASP8 or should it too be 22 like
+adjacent MCASP4 in the TRM?
 
 Regards,
 
 Tony
-
-
-
-> > > Let's fix the warning by removing SYSC_HAS_MIDLEMODE. Note that
-> > > the am335x TRM lists SYSC_HAS_MIDLEMODE, but it is unused.
-> > 
-> > 
-> > 
-> > > 
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >   arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 2 +-
-> > >   1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> > > --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> > > +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> > > @@ -231,7 +231,7 @@ static struct omap_hwmod am33xx_control_hwmod = {
-> > >   static struct omap_hwmod_class_sysconfig lcdc_sysc = {
-> > >   	.rev_offs	= 0x0,
-> > >   	.sysc_offs	= 0x54,
-> > > -	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
-> > > +	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-> > >   	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> > >   	.sysc_fields	= &omap_hwmod_sysc_type2,
-> > >   };
-> > > 
-> > 
