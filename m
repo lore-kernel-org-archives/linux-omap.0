@@ -1,97 +1,58 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 2/2] dmaengine: ti: omap-dma: Improved memcpy polling
- support
-Date: Thu, 25 Jul 2019 17:07:02 +0300
-Message-ID: <59794775-95e6-04c3-2660-9344c89df9a1@ti.com>
-References: <20190716082459.1222-1-peter.ujfalusi@ti.com>
- <20190716082459.1222-3-peter.ujfalusi@ti.com>
- <20190725133748.GX12733@vkoul-mobl.Dlink>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/6] dt-bindings: irqchip: Add PRUSS interrupt controller bindings
+Date: Thu, 25 Jul 2019 16:27:48 -0600
+Message-ID: <CAL_JsqJz9eDOMPA=HbvZ3W_h5XMaW8uah7dq6k474MBnSmrq4Q@mail.gmail.com>
+References: <20190708035243.12170-1-s-anna@ti.com> <20190708035243.12170-2-s-anna@ti.com>
+ <20190724163419.GA29254@bogus> <6871c381-9fc6-f6be-6386-f183fcc5546a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190725133748.GX12733@vkoul-mobl.Dlink>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vinod Koul <vkoul@kernel.org>
-Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6871c381-9fc6-f6be-6386-f183fcc5546a@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAyNS8wNy8yMDE5IDE2LjM3LCBWaW5vZCBLb3VsIHdyb3RlOgo+IE9uIDE2LTA3LTE5LCAx
-MToyNCwgUGV0ZXIgVWpmYWx1c2kgd3JvdGU6Cj4+IFdoZW4gYSBETUEgY2xpZW50IGRyaXZlciBk
-b2VzIG5vdCBzZXQgdGhlIERNQV9QUkVQX0lOVEVSUlVQVCBiZWNhdXNlIGl0Cj4+IGRvZXMgbm90
-IHdhbnQgdG8gdXNlIGludGVycnVwdHMgZm9yIERNQSBjb21wbGV0aW9uIG9yIGJlY2F1c2UgaXQg
-Y2FuIG5vdAo+PiByZWx5IG9uIERNQSBpbnRlcnJ1cHRzIGR1ZSB0byBleGVjdXRpbmcgdGhlIG1l
-bWNweSB3aGVuIGludGVycnVwdHMgYXJlCj4+IGRpc2FibGVkIGl0IHdpbGwgcG9sbCB0aGUgc3Rh
-dHVzIG9mIHRoZSB0cmFuc2Zlci4KPj4KPj4gSWYgdGhlIGludGVycnVwdHMgYXJlIGVuYWJsZWQg
-dGhlbiB0aGUgY29va2llIHdpbGwgYmUgc2V0IGNvbXBsZXRlZCBpbiB0aGUKPj4gaW50ZXJydXB0
-IGhhbmRsZXIgc28gb25seSBjaGVjayBpbiBIVyBjb21wbGV0aW9uIHdoZW4gdGhlIHBvbGxpbmcg
-aXMgcmVhbGx5Cj4+IG5lZWRlZC4KPj4KPj4gU2lnbmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kg
-PHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KPj4gLS0tCj4+ICBkcml2ZXJzL2RtYS90aS9vbWFwLWRt
-YS5jIHwgNDQgKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tCj4+ICAxIGZp
-bGUgY2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKSwgMTYgZGVsZXRpb25zKC0pCj4+Cj4+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL2RtYS90aS9vbWFwLWRtYS5jIGIvZHJpdmVycy9kbWEvdGkvb21hcC1k
-bWEuYwo+PiBpbmRleCAwMjljMGJkNTUwZDUuLjk2NmQ4ZjAzMjNiNSAxMDA2NDQKPj4gLS0tIGEv
-ZHJpdmVycy9kbWEvdGkvb21hcC1kbWEuYwo+PiArKysgYi9kcml2ZXJzL2RtYS90aS9vbWFwLWRt
-YS5jCj4+IEBAIC05MSw2ICs5MSw3IEBAIHN0cnVjdCBvbWFwX2Rlc2Mgewo+PiAgCWJvb2wgdXNp
-bmdfbGw7Cj4+ICAJZW51bSBkbWFfdHJhbnNmZXJfZGlyZWN0aW9uIGRpcjsKPj4gIAlkbWFfYWRk
-cl90IGRldl9hZGRyOwo+PiArCWJvb2wgcG9sbGVkOwo+PiAgCj4+ICAJaW50MzJfdCBmaTsJCS8q
-IGZvciBPTUFQX0RNQV9TWU5DX1BBQ0tFVCAvIGRvdWJsZSBpbmRleGluZyAqLwo+PiAgCWludDE2
-X3QgZWk7CQkvKiBmb3IgZG91YmxlIGluZGV4aW5nICovCj4+IEBAIC04MTUsMjYgKzgxNiwyMCBA
-QCBzdGF0aWMgZW51bSBkbWFfc3RhdHVzIG9tYXBfZG1hX3R4X3N0YXR1cyhzdHJ1Y3QgZG1hX2No
-YW4gKmNoYW4sCj4+ICAJc3RydWN0IHZpcnRfZG1hX2Rlc2MgKnZkOwo+PiAgCWVudW0gZG1hX3N0
-YXR1cyByZXQ7Cj4+ICAJdW5zaWduZWQgbG9uZyBmbGFnczsKPj4gKwlzdHJ1Y3Qgb21hcF9kZXNj
-ICpkID0gTlVMTDsKPj4gIAo+PiAgCXJldCA9IGRtYV9jb29raWVfc3RhdHVzKGNoYW4sIGNvb2tp
-ZSwgdHhzdGF0ZSk7Cj4+IC0KPj4gLQlpZiAoIWMtPnBhdXNlZCAmJiBjLT5ydW5uaW5nKSB7Cj4+
-IC0JCXVpbnQzMl90IGNjciA9IG9tYXBfZG1hX2NoYW5fcmVhZChjLCBDQ1IpOwo+PiAtCQkvKgo+
-PiAtCQkgKiBUaGUgY2hhbm5lbCBpcyBubyBsb25nZXIgYWN0aXZlLCBzZXQgdGhlIHJldHVybiB2
-YWx1ZQo+PiAtCQkgKiBhY2NvcmRpbmdseQo+PiAtCQkgKi8KPj4gLQkJaWYgKCEoY2NyICYgQ0NS
-X0VOQUJMRSkpCj4+IC0JCQlyZXQgPSBETUFfQ09NUExFVEU7Cj4+IC0JfQo+PiAtCj4+IC0JaWYg
-KHJldCA9PSBETUFfQ09NUExFVEUgfHwgIXR4c3RhdGUpCj4+ICsJaWYgKHJldCA9PSBETUFfQ09N
-UExFVEUpCj4gCj4gd2h5IGRvIHlvdSB3YW50IHRvIGNvbnRpbnVlIGZvciB0eHN0YXRlIGJlaW5n
-IG51bGw/CgpUaGUgY2FsbGVyIGNvdWxkIG9wdCB0byBub3QgcHJvdmlkZSB0eHN0YXRlIGFuZCBJ
-IHN0aWxsIG5lZWQgdG8gY2hlY2sgaWYKdGhlIG5vbiBjb21wbGV0ZWQgdHJhbnNmZXIgaXMgYWN0
-dWFsbHkgZG9uZSBieSB0aGUgSFcgb3Igbm90LgoKPiBBbHNvIGl0IHdvdWxkIGxlYWQgdG8gTlVM
-TCBwdHIgZGVyZWYgZm9yIHR4c3RhdGUKClRoZXJlIGlzIGEgIXR4c3RhdGUgY2hlY2sgdG8gYXZv
-aWQgdGhhdC4KCj4gCj4+ICAJCXJldHVybiByZXQ7Cj4+ICAKPj4gIAlzcGluX2xvY2tfaXJxc2F2
-ZSgmYy0+dmMubG9jaywgZmxhZ3MpOwo+PiArCWlmIChjLT5kZXNjICYmIGMtPmRlc2MtPnZkLnR4
-LmNvb2tpZSA9PSBjb29raWUpCj4+ICsJCWQgPSBjLT5kZXNjOwo+PiArCj4+ICsJaWYgKCF0eHN0
-YXRlKQo+PiArCQlnb3RvIG91dDsKPj4gIAo+PiAtCWlmIChjLT5kZXNjICYmIGMtPmRlc2MtPnZk
-LnR4LmNvb2tpZSA9PSBjb29raWUpIHsKPj4gLQkJc3RydWN0IG9tYXBfZGVzYyAqZCA9IGMtPmRl
-c2M7Cj4+ICsJaWYgKGQpIHsKPj4gIAkJZG1hX2FkZHJfdCBwb3M7Cj4+ICAKPj4gIAkJaWYgKGQt
-PmRpciA9PSBETUFfTUVNX1RPX0RFVikKPj4gQEAgLTg1MSw4ICs4NDYsMjIgQEAgc3RhdGljIGVu
-dW0gZG1hX3N0YXR1cyBvbWFwX2RtYV90eF9zdGF0dXMoc3RydWN0IGRtYV9jaGFuICpjaGFuLAo+
-PiAgCQl0eHN0YXRlLT5yZXNpZHVlID0gMDsKPj4gIAl9Cj4+ICAKPj4gLQlpZiAocmV0ID09IERN
-QV9JTl9QUk9HUkVTUyAmJiBjLT5wYXVzZWQpCj4+ICtvdXQ6Cj4+ICsJaWYgKHJldCA9PSBETUFf
-SU5fUFJPR1JFU1MgJiYgYy0+cGF1c2VkKSB7Cj4+ICAJCXJldCA9IERNQV9QQVVTRUQ7Cj4+ICsJ
-fSBlbHNlIGlmIChkICYmIGQtPnBvbGxlZCAmJiBjLT5ydW5uaW5nKSB7Cj4+ICsJCXVpbnQzMl90
-IGNjciA9IG9tYXBfZG1hX2NoYW5fcmVhZChjLCBDQ1IpOwo+PiArCQkvKgo+PiArCQkgKiBUaGUg
-Y2hhbm5lbCBpcyBubyBsb25nZXIgYWN0aXZlLCBzZXQgdGhlIHJldHVybiB2YWx1ZQo+PiArCQkg
-KiBhY2NvcmRpbmdseSBhbmQgbWFyayBpdCBhcyBjb21wbGV0ZWQKPj4gKwkJICovCj4+ICsJCWlm
-ICghKGNjciAmIENDUl9FTkFCTEUpKSB7Cj4+ICsJCQlzdHJ1Y3Qgb21hcF9kZXNjICpkID0gYy0+
-ZGVzYzsKPj4gKwkJCXJldCA9IERNQV9DT01QTEVURTsKPj4gKwkJCW9tYXBfZG1hX3N0YXJ0X2Rl
-c2MoYyk7Cj4+ICsJCQl2Y2hhbl9jb29raWVfY29tcGxldGUoJmQtPnZkKTsKPj4gKwkJfQo+PiAr
-CX0KPj4gIAo+PiAgCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmMtPnZjLmxvY2ssIGZsYWdzKTsK
-Pj4gIAo+PiBAQCAtMTE4MCw3ICsxMTg5LDEwIEBAIHN0YXRpYyBzdHJ1Y3QgZG1hX2FzeW5jX3R4
-X2Rlc2NyaXB0b3IgKm9tYXBfZG1hX3ByZXBfZG1hX21lbWNweSgKPj4gIAlkLT5jY3IgPSBjLT5j
-Y3I7Cj4+ICAJZC0+Y2NyIHw9IENDUl9EU1RfQU1PREVfUE9TVElOQyB8IENDUl9TUkNfQU1PREVf
-UE9TVElOQzsKPj4gIAo+PiAtCWQtPmNpY3IgPSBDSUNSX0RST1BfSUUgfCBDSUNSX0ZSQU1FX0lF
-Owo+PiArCWlmICh0eF9mbGFncyAmIERNQV9QUkVQX0lOVEVSUlVQVCkKPj4gKwkJZC0+Y2ljciB8
-PSBDSUNSX0ZSQU1FX0lFOwo+PiArCWVsc2UKPj4gKwkJZC0+cG9sbGVkID0gdHJ1ZTsKPj4gIAo+
-PiAgCWQtPmNzZHAgPSBkYXRhX3R5cGU7Cj4+ICAKPj4gLS0gCj4+IFBldGVyCj4+Cj4+IFRleGFz
-IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
-Lgo+PiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxl
-OiBIZWxzaW5raQo+IAoKLSBQw6l0ZXIKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBv
-cmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYx
-NTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxp
-c3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
-YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Wed, Jul 24, 2019 at 1:42 PM Suman Anna <s-anna@ti.com> wrote:
+>
+> On 7/24/19 11:34 AM, Rob Herring wrote:
+> > On Sun, 7 Jul 2019 22:52:38 -0500, Suman Anna wrote:
+> >> The Programmable Real-Time Unit Subsystem (PRUSS) contains an interrupt
+> >> controller (INTC) that can handle various system input events and post
+> >> interrupts back to the device-level initiators. The INTC can support
+> >> upto 64 input events on most SoCs with individual control configuration
+> >> and hardware prioritization. These events are mapped onto 10 interrupt
+> >> lines through two levels of many-to-one mapping support. Different
+> >> interrupt lines are routed to the individual PRU cores or to the
+> >> host CPU or to other PRUSS instances.
+> >>
+> >> The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
+> >> commonly called ICSSG. The ICSSG interrupt controller on K3 SoCs provide
+> >> a higher number of host interrupts (20 vs 10) and can handle an increased
+> >> number of input events (160 vs 64) from various SoC interrupt sources.
+> >>
+> >> Add the bindings document for these interrupt controllers on all the
+> >> applicable SoCs. It covers the OMAP architecture SoCs - AM33xx, AM437x
+> >> and AM57xx; the Keystone 2 architecture based 66AK2G SoC; the Davinci
+> >> architecture based OMAPL138 SoCs, and the K3 architecture based AM65x
+> >> and J721E SoCs.
+> >>
+> >> Signed-off-by: Suman Anna <s-anna@ti.com>
+> >> Signed-off-by: Andrew F. Davis <afd@ti.com>
+> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >> ---
+> >> Prior version: https://patchwork.kernel.org/patch/10795771/
+> >>
+> >>  .../interrupt-controller/ti,pruss-intc.txt    | 92 +++++++++++++++++++
+> >>  1 file changed, 92 insertions(+)
+> >>  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
+> >>
+> >
+> > Reviewed-by: Rob Herring <robh@kernel.org>
+> >
+>
+> Thanks Rob. I am going to submit a v2 with some minor reword changes
+> based on couple of comments, but no addition or removal of properties.
+> Should I be retaining your Reviewed-by for v2?
+
+Yes.
