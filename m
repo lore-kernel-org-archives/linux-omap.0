@@ -1,58 +1,73 @@
 From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 1/6] dt-bindings: irqchip: Add PRUSS interrupt controller bindings
-Date: Thu, 25 Jul 2019 16:27:48 -0600
-Message-ID: <CAL_JsqJz9eDOMPA=HbvZ3W_h5XMaW8uah7dq6k474MBnSmrq4Q@mail.gmail.com>
-References: <20190708035243.12170-1-s-anna@ti.com> <20190708035243.12170-2-s-anna@ti.com>
- <20190724163419.GA29254@bogus> <6871c381-9fc6-f6be-6386-f183fcc5546a@ti.com>
+Subject: Re: [PATCH 2/2] DTS: ARM: gta04: introduce legacy spi-cs-high to make
+ display work again
+Date: Thu, 25 Jul 2019 16:42:53 -0600
+Message-ID: <CAL_JsqLe_Y9Z6MRt7ojgSVKAb9n95S8j=eGidSVNz2T83j-zPQ@mail.gmail.com>
+References: <cover.1562597164.git.hns@goldelico.com> <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
+ <20190724194259.GA25847@bogus> <2EA06398-E45B-481B-9A26-4DD2E043BF9C@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6871c381-9fc6-f6be-6386-f183fcc5546a@ti.com>
+In-Reply-To: <2EA06398-E45B-481B-9A26-4DD2E043BF9C@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-spi <linux-spi@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 24, 2019 at 1:42 PM Suman Anna <s-anna@ti.com> wrote:
+On Thu, Jul 25, 2019 at 12:23 AM H. Nikolaus Schaller <hns@goldelico.com> wrote:
 >
-> On 7/24/19 11:34 AM, Rob Herring wrote:
-> > On Sun, 7 Jul 2019 22:52:38 -0500, Suman Anna wrote:
-> >> The Programmable Real-Time Unit Subsystem (PRUSS) contains an interrupt
-> >> controller (INTC) that can handle various system input events and post
-> >> interrupts back to the device-level initiators. The INTC can support
-> >> upto 64 input events on most SoCs with individual control configuration
-> >> and hardware prioritization. These events are mapped onto 10 interrupt
-> >> lines through two levels of many-to-one mapping support. Different
-> >> interrupt lines are routed to the individual PRU cores or to the
-> >> host CPU or to other PRUSS instances.
-> >>
-> >> The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
-> >> commonly called ICSSG. The ICSSG interrupt controller on K3 SoCs provide
-> >> a higher number of host interrupts (20 vs 10) and can handle an increased
-> >> number of input events (160 vs 64) from various SoC interrupt sources.
-> >>
-> >> Add the bindings document for these interrupt controllers on all the
-> >> applicable SoCs. It covers the OMAP architecture SoCs - AM33xx, AM437x
-> >> and AM57xx; the Keystone 2 architecture based 66AK2G SoC; the Davinci
-> >> architecture based OMAPL138 SoCs, and the K3 architecture based AM65x
-> >> and J721E SoCs.
-> >>
-> >> Signed-off-by: Suman Anna <s-anna@ti.com>
-> >> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >> ---
-> >> Prior version: https://patchwork.kernel.org/patch/10795771/
-> >>
-> >>  .../interrupt-controller/ti,pruss-intc.txt    | 92 +++++++++++++++++++
-> >>  1 file changed, 92 insertions(+)
-> >>  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
-> >>
-> >
-> > Reviewed-by: Rob Herring <robh@kernel.org>
-> >
+> Hi Rob,
 >
-> Thanks Rob. I am going to submit a v2 with some minor reword changes
-> based on couple of comments, but no addition or removal of properties.
-> Should I be retaining your Reviewed-by for v2?
+> > Am 24.07.2019 um 21:42 schrieb Rob Herring <robh@kernel.org>:
+> >
+> > On Mon, Jul 08, 2019 at 04:46:05PM +0200, H. Nikolaus Schaller wrote:
+> >> commit 6953c57ab172 "gpio: of: Handle SPI chipselect legacy bindings"
+> >>
+> >> did introduce logic to centrally handle the legacy spi-cs-high property
+> >> in combination with cs-gpios. This assumes that the polarity
+> >> of the CS has to be inverted if spi-cs-high is missing, even
+> >> and especially if non-legacy GPIO_ACTIVE_HIGH is specified.
+> >>
+> >> The DTS for the GTA04 was orginally introduced under the assumption
+> >> that there is no need for spi-cs-high if the gpio is defined with
+> >> proper polarity GPIO_ACTIVE_HIGH.
+> >
+> > Given that spi-cs-high is called legacy, that would imply that DT's
+> > should not have to use spi-cs-high.
+>
+> Yes.
+>
+> >
+> >> This was not a problem until gpiolib changed the interpretation of
+> >> GPIO_ACTIVE_HIGH and missing spi-cs-high.
+> >
+> > Then we should fix gpiolib...
+>
+> I tried to convince Linus that this is the right way but he convinced
+> me that a fix that handles all cases does not exist.
+>
+> There seem to be embedded devices with older DTB (potentially in ROM)
+> which provide a plain 0 value for a gpios definition. And either with
+> or without spi-cs-high.
+>
+> Since "0" is the same as "GPIO_ACTIVE_HIGH", the absence of
+> spi-cs-high was and must be interpreted as active low for these
+> devices. This leads to the inversion logic in code.
+>
+> AFAIR it boils down to the question if gpiolib and the bindings
+> should still support such legacy devices with out-of tree DTB,
+> but force in-tree DTS to add the legacy spi-cs-high property.
+>
+> Or if we should fix the 2 or 3 cases of in-tree legacy cases
+> and potentially break out-of tree DTBs.
 
-Yes.
+If it is small number of platforms, then the kernel could handle those
+cases explicitly as needed.
+
+> IMHO it is more general to keep the out-of-tree DTBs working
+> and "fix" what we can control (in-tree DTS).
+
+If we do this, then we need to not call spi-cs-high legacy because
+we're stuck with it forever.
+
+Rob
