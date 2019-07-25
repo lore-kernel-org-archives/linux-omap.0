@@ -1,88 +1,48 @@
-From: Gregory CLEMENT <gregory.clement@bootlin.com>
-Subject: [PATCH 3/3] regulator: twl6030: workaround the VMMC reset behavior
-Date: Thu, 25 Jul 2019 11:45:42 +0200
-Message-ID: <20190725094542.16547-4-gregory.clement@bootlin.com>
-References: <20190725094542.16547-1-gregory.clement@bootlin.com>
+From: William Breathitt Gray <vilhelm.gray@gmail.com>
+Subject: Re: [PATCH 0/4] new driver for TI eQEP
+Date: Thu, 25 Jul 2019 21:40:37 +0900
+Message-ID: <20190725124037.GA4802@icarus>
+References: <20190722154538.5314-1-david@lechnology.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190725094542.16547-1-gregory.clement@bootlin.com>
+Content-Disposition: inline
+In-Reply-To: <20190722154538.5314-1-david@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Gregory CLEMENT <gregory.clement@bootlin.com>
+To: David Lechner <david@lechnology.com>
+Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-During reset the VMMC regulator doesn't reach 0V and only drops to
-1.8V, furthermore the pulse width is under 200us whereas the SD
-specification expect 1ms.
+On Mon, Jul 22, 2019 at 10:45:34AM -0500, David Lechner wrote:
+> This series adds device tree bindings and a new counter driver for the Texas
+> Instruments Enhanced Quadrature Encoder Pulse (eQEP).
+> 
+> As mentioned in one of the commit messages, to start with, the driver only
+> supports reading the current counter value and setting the min/max values.
+> Other features can be added on an as-needed basis.
+> 
+> The only other feature I am interested in is adding is getting time data in
+> order to calculate the rotational speed of a motor. However, there probably
+> needs to be a higher level discussion of how this can fit into the counter
+> subsystem in general first.
 
-The WR_S bit allows the TWL6030 to no reset at all the VMMC during warm
-reset and keep the current voltage. Thanks to this workaround the SD
-card doesn't reach a undefined reset stage.
+I believe exposing some sort of time data has merit. Quadrature counter
+devices in particular are commonly used for position tracking of
+automation systems, and such systems would benefit from velocity/speed
+information. So let's try to introduce that sort of functionality in this
+driver if possible.
 
-Actually this behavior is available for all the LDO regulator, so the
-driver will also allow to use it with any of these regulator.
+First, let's discuss your specific use case and requirements, and hopefully we
+can generalize it enough to be of use for future drivers. From your description,
+it sounds like you're attaching some sort of rotary encoder to the eQEP device.
+Is that correct? What sort of time data are you hoping to use; does the eQEP
+device provide a clock value, or would you be grabbing a timestamp from the
+system?
 
-Signed-off-by: Gregory CLEMENT <gregory.clement@bootlin.com>
----
- drivers/regulator/twl6030-regulator.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+I'm not sure yet if it would make sense to expose rotational speed directly as
+an attribute. If we were to expose just the count value and timestamp since the
+last read, that should be enough for a user to compute the delta and derive
+speed. I'll think more about this since some devices may simplify that case if
+the hardware is able to compute the speed for us.
 
-diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
-index d73c81542ceb..b8100c3cedad 100644
---- a/drivers/regulator/twl6030-regulator.c
-+++ b/drivers/regulator/twl6030-regulator.c
-@@ -57,6 +57,9 @@ struct twlreg_info {
- #define VREG_BC_PROC		3
- #define VREG_BC_CLK_RST		4
- 
-+/* TWL6030 LDO register values for VREG_VOLTAGE */
-+#define TWL6030_VREG_VOLTAGE_WR_S   BIT(7)
-+
- /* TWL6030 LDO register values for CFG_STATE */
- #define TWL6030_CFG_STATE_OFF	0x00
- #define TWL6030_CFG_STATE_ON	0x01
-@@ -68,9 +71,10 @@ struct twlreg_info {
- #define TWL6030_CFG_STATE_APP(v)	(((v) & TWL6030_CFG_STATE_APP_MASK) >>\
- 						TWL6030_CFG_STATE_APP_SHIFT)
- 
--/* Flags for SMPS Voltage reading */
-+/* Flags for SMPS Voltage reading and LDO reading*/
- #define SMPS_OFFSET_EN		BIT(0)
- #define SMPS_EXTENDED_EN	BIT(1)
-+#define TWL_6030_WARM_RESET	BIT(3)
- 
- /* twl6032 SMPS EPROM values */
- #define TWL6030_SMPS_OFFSET		0xB0
-@@ -250,6 +254,9 @@ twl6030ldo_set_voltage_sel(struct regulator_dev *rdev, unsigned selector)
- {
- 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
- 
-+	if (info->flags & TWL_6030_WARM_RESET)
-+		selector |= TWL6030_VREG_VOLTAGE_WR_S;
-+
- 	return twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_VOLTAGE,
- 			    selector);
- }
-@@ -259,6 +266,9 @@ static int twl6030ldo_get_voltage_sel(struct regulator_dev *rdev)
- 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
- 	int vsel = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_VOLTAGE);
- 
-+	if (info->flags & TWL_6030_WARM_RESET)
-+		vsel &= ~TWL6030_VREG_VOLTAGE_WR_S;
-+
- 	return vsel;
- }
- 
-@@ -710,6 +720,9 @@ static int twlreg_probe(struct platform_device *pdev)
- 		break;
- 	}
- 
-+	if (of_get_property(np, "ti,retain-on-reset", NULL))
-+		info->flags |= TWL_6030_WARM_RESET;
-+
- 	config.dev = &pdev->dev;
- 	config.init_data = initdata;
- 	config.driver_data = info;
--- 
-2.20.1
+William Breathitt Gray
