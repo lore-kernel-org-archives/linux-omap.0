@@ -1,16 +1,17 @@
-From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH v5 2/3] dmaengine: ti: edma: Correct the residue
- calculation (fix for memcpy)
-Date: Thu, 25 Jul 2019 19:16:33 +0530
-Message-ID: <20190725134633.GZ12733@vkoul-mobl.Dlink>
-References: <20190716082655.1620-1-peter.ujfalusi@ti.com>
- <20190716082655.1620-3-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 2/2] dmaengine: ti: omap-dma: Improved memcpy polling
+ support
+Date: Thu, 25 Jul 2019 17:07:02 +0300
+Message-ID: <59794775-95e6-04c3-2660-9344c89df9a1@ti.com>
+References: <20190716082459.1222-1-peter.ujfalusi@ti.com>
+ <20190716082459.1222-3-peter.ujfalusi@ti.com>
+ <20190725133748.GX12733@vkoul-mobl.Dlink>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190716082655.1620-3-peter.ujfalusi@ti.com>
+In-Reply-To: <20190725133748.GX12733@vkoul-mobl.Dlink>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,104 +21,77 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Vinod Koul <vkoul@kernel.org>
 Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 16-07-19, 11:26, Peter Ujfalusi wrote:
-> For memcpy we never stored the start address of the transfer for the pset
-> which rendered the memcpy residue calculation completely broken.
-> 
-> In the edma_residue() function we also need to to some correction for the
-> calculations:
-> Instead waiting for all EDMA channels to be idle (in a busy system it can
-> take few iteration to hit a point when all queues are idle) wait for the
-> event pending on the given channel (SH_ER for hw synchronized channels,
-> SH_ESR for manually triggered channels).
-> 
-> If the position returned by EMDA is 0 it imiplies that the last paRAM set
-
-s/imiplies/implies
-
-> has been consumed and we are at the closing dummy set, thus we can conclude
-> that the transfer is completed and we can return 0 as residue.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/dma/ti/edma.c | 31 +++++++++++++++++++++++--------
->  1 file changed, 23 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/dma/ti/edma.c b/drivers/dma/ti/edma.c
-> index a39f817b3888..5b8cbd6d7610 100644
-> --- a/drivers/dma/ti/edma.c
-> +++ b/drivers/dma/ti/edma.c
-> @@ -1026,6 +1026,7 @@ static int edma_config_pset(struct dma_chan *chan, struct edma_pset *epset,
->  		src_cidx = cidx;
->  		dst_bidx = acnt;
->  		dst_cidx = cidx;
-> +		epset->addr = src_addr;
->  	} else {
->  		dev_err(dev, "%s: direction not implemented yet\n", __func__);
->  		return -EINVAL;
-> @@ -1736,7 +1737,11 @@ static u32 edma_residue(struct edma_desc *edesc)
->  	int loop_count = EDMA_MAX_TR_WAIT_LOOPS;
->  	struct edma_chan *echan = edesc->echan;
->  	struct edma_pset *pset = edesc->pset;
-> -	dma_addr_t done, pos;
-> +	dma_addr_t done, pos, pos_old;
-> +	int channel = EDMA_CHAN_SLOT(echan->ch_num);
-> +	int idx = EDMA_REG_ARRAY_INDEX(channel);
-> +	int ch_bit = EDMA_CHANNEL_BIT(channel);
-> +	int event_reg;
->  	int i;
->  
->  	/*
-> @@ -1749,16 +1754,20 @@ static u32 edma_residue(struct edma_desc *edesc)
->  	 * "pos" may represent a transfer request that is still being
->  	 * processed by the EDMACC or EDMATC. We will busy wait until
->  	 * any one of the situations occurs:
-> -	 *   1. the DMA hardware is idle
-> -	 *   2. a new transfer request is setup
-> +	 *   1. while and event is pending for the channel
-> +	 *   2. a position updated
->  	 *   3. we hit the loop limit
->  	 */
-> -	while (edma_read(echan->ecc, EDMA_CCSTAT) & EDMA_CCSTAT_ACTV) {
-> -		/* check if a new transfer request is setup */
-> -		if (edma_get_position(echan->ecc,
-> -				      echan->slot[0], dst) != pos) {
-> +	if (is_slave_direction(edesc->direction))
-> +		event_reg = SH_ER;
-> +	else
-> +		event_reg = SH_ESR;
-> +
-> +	pos_old = pos;
-> +	while (edma_shadow0_read_array(echan->ecc, event_reg, idx) & ch_bit) {
-> +		pos = edma_get_position(echan->ecc, echan->slot[0], dst);
-> +		if (pos != pos_old)
->  			break;
-> -		}
->  
->  		if (!--loop_count) {
->  			dev_dbg_ratelimited(echan->vchan.chan.device->dev,
-> @@ -1783,6 +1792,12 @@ static u32 edma_residue(struct edma_desc *edesc)
->  		return edesc->residue_stat;
->  	}
->  
-> +	/*
-> +	 * If the position is 0, then EDMA loaded the closing dummy slot, the
-> +	 * transfer is completed
-> +	 */
-> +	if (!pos)
-> +		return 0;
->  	/*
->  	 * For SG operation we catch up with the last processed
->  	 * status.
-> -- 
-> Peter
-> 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
--- 
-~Vinod
+CgpPbiAyNS8wNy8yMDE5IDE2LjM3LCBWaW5vZCBLb3VsIHdyb3RlOgo+IE9uIDE2LTA3LTE5LCAx
+MToyNCwgUGV0ZXIgVWpmYWx1c2kgd3JvdGU6Cj4+IFdoZW4gYSBETUEgY2xpZW50IGRyaXZlciBk
+b2VzIG5vdCBzZXQgdGhlIERNQV9QUkVQX0lOVEVSUlVQVCBiZWNhdXNlIGl0Cj4+IGRvZXMgbm90
+IHdhbnQgdG8gdXNlIGludGVycnVwdHMgZm9yIERNQSBjb21wbGV0aW9uIG9yIGJlY2F1c2UgaXQg
+Y2FuIG5vdAo+PiByZWx5IG9uIERNQSBpbnRlcnJ1cHRzIGR1ZSB0byBleGVjdXRpbmcgdGhlIG1l
+bWNweSB3aGVuIGludGVycnVwdHMgYXJlCj4+IGRpc2FibGVkIGl0IHdpbGwgcG9sbCB0aGUgc3Rh
+dHVzIG9mIHRoZSB0cmFuc2Zlci4KPj4KPj4gSWYgdGhlIGludGVycnVwdHMgYXJlIGVuYWJsZWQg
+dGhlbiB0aGUgY29va2llIHdpbGwgYmUgc2V0IGNvbXBsZXRlZCBpbiB0aGUKPj4gaW50ZXJydXB0
+IGhhbmRsZXIgc28gb25seSBjaGVjayBpbiBIVyBjb21wbGV0aW9uIHdoZW4gdGhlIHBvbGxpbmcg
+aXMgcmVhbGx5Cj4+IG5lZWRlZC4KPj4KPj4gU2lnbmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kg
+PHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KPj4gLS0tCj4+ICBkcml2ZXJzL2RtYS90aS9vbWFwLWRt
+YS5jIHwgNDQgKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tCj4+ICAxIGZp
+bGUgY2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKSwgMTYgZGVsZXRpb25zKC0pCj4+Cj4+IGRpZmYg
+LS1naXQgYS9kcml2ZXJzL2RtYS90aS9vbWFwLWRtYS5jIGIvZHJpdmVycy9kbWEvdGkvb21hcC1k
+bWEuYwo+PiBpbmRleCAwMjljMGJkNTUwZDUuLjk2NmQ4ZjAzMjNiNSAxMDA2NDQKPj4gLS0tIGEv
+ZHJpdmVycy9kbWEvdGkvb21hcC1kbWEuYwo+PiArKysgYi9kcml2ZXJzL2RtYS90aS9vbWFwLWRt
+YS5jCj4+IEBAIC05MSw2ICs5MSw3IEBAIHN0cnVjdCBvbWFwX2Rlc2Mgewo+PiAgCWJvb2wgdXNp
+bmdfbGw7Cj4+ICAJZW51bSBkbWFfdHJhbnNmZXJfZGlyZWN0aW9uIGRpcjsKPj4gIAlkbWFfYWRk
+cl90IGRldl9hZGRyOwo+PiArCWJvb2wgcG9sbGVkOwo+PiAgCj4+ICAJaW50MzJfdCBmaTsJCS8q
+IGZvciBPTUFQX0RNQV9TWU5DX1BBQ0tFVCAvIGRvdWJsZSBpbmRleGluZyAqLwo+PiAgCWludDE2
+X3QgZWk7CQkvKiBmb3IgZG91YmxlIGluZGV4aW5nICovCj4+IEBAIC04MTUsMjYgKzgxNiwyMCBA
+QCBzdGF0aWMgZW51bSBkbWFfc3RhdHVzIG9tYXBfZG1hX3R4X3N0YXR1cyhzdHJ1Y3QgZG1hX2No
+YW4gKmNoYW4sCj4+ICAJc3RydWN0IHZpcnRfZG1hX2Rlc2MgKnZkOwo+PiAgCWVudW0gZG1hX3N0
+YXR1cyByZXQ7Cj4+ICAJdW5zaWduZWQgbG9uZyBmbGFnczsKPj4gKwlzdHJ1Y3Qgb21hcF9kZXNj
+ICpkID0gTlVMTDsKPj4gIAo+PiAgCXJldCA9IGRtYV9jb29raWVfc3RhdHVzKGNoYW4sIGNvb2tp
+ZSwgdHhzdGF0ZSk7Cj4+IC0KPj4gLQlpZiAoIWMtPnBhdXNlZCAmJiBjLT5ydW5uaW5nKSB7Cj4+
+IC0JCXVpbnQzMl90IGNjciA9IG9tYXBfZG1hX2NoYW5fcmVhZChjLCBDQ1IpOwo+PiAtCQkvKgo+
+PiAtCQkgKiBUaGUgY2hhbm5lbCBpcyBubyBsb25nZXIgYWN0aXZlLCBzZXQgdGhlIHJldHVybiB2
+YWx1ZQo+PiAtCQkgKiBhY2NvcmRpbmdseQo+PiAtCQkgKi8KPj4gLQkJaWYgKCEoY2NyICYgQ0NS
+X0VOQUJMRSkpCj4+IC0JCQlyZXQgPSBETUFfQ09NUExFVEU7Cj4+IC0JfQo+PiAtCj4+IC0JaWYg
+KHJldCA9PSBETUFfQ09NUExFVEUgfHwgIXR4c3RhdGUpCj4+ICsJaWYgKHJldCA9PSBETUFfQ09N
+UExFVEUpCj4gCj4gd2h5IGRvIHlvdSB3YW50IHRvIGNvbnRpbnVlIGZvciB0eHN0YXRlIGJlaW5n
+IG51bGw/CgpUaGUgY2FsbGVyIGNvdWxkIG9wdCB0byBub3QgcHJvdmlkZSB0eHN0YXRlIGFuZCBJ
+IHN0aWxsIG5lZWQgdG8gY2hlY2sgaWYKdGhlIG5vbiBjb21wbGV0ZWQgdHJhbnNmZXIgaXMgYWN0
+dWFsbHkgZG9uZSBieSB0aGUgSFcgb3Igbm90LgoKPiBBbHNvIGl0IHdvdWxkIGxlYWQgdG8gTlVM
+TCBwdHIgZGVyZWYgZm9yIHR4c3RhdGUKClRoZXJlIGlzIGEgIXR4c3RhdGUgY2hlY2sgdG8gYXZv
+aWQgdGhhdC4KCj4gCj4+ICAJCXJldHVybiByZXQ7Cj4+ICAKPj4gIAlzcGluX2xvY2tfaXJxc2F2
+ZSgmYy0+dmMubG9jaywgZmxhZ3MpOwo+PiArCWlmIChjLT5kZXNjICYmIGMtPmRlc2MtPnZkLnR4
+LmNvb2tpZSA9PSBjb29raWUpCj4+ICsJCWQgPSBjLT5kZXNjOwo+PiArCj4+ICsJaWYgKCF0eHN0
+YXRlKQo+PiArCQlnb3RvIG91dDsKPj4gIAo+PiAtCWlmIChjLT5kZXNjICYmIGMtPmRlc2MtPnZk
+LnR4LmNvb2tpZSA9PSBjb29raWUpIHsKPj4gLQkJc3RydWN0IG9tYXBfZGVzYyAqZCA9IGMtPmRl
+c2M7Cj4+ICsJaWYgKGQpIHsKPj4gIAkJZG1hX2FkZHJfdCBwb3M7Cj4+ICAKPj4gIAkJaWYgKGQt
+PmRpciA9PSBETUFfTUVNX1RPX0RFVikKPj4gQEAgLTg1MSw4ICs4NDYsMjIgQEAgc3RhdGljIGVu
+dW0gZG1hX3N0YXR1cyBvbWFwX2RtYV90eF9zdGF0dXMoc3RydWN0IGRtYV9jaGFuICpjaGFuLAo+
+PiAgCQl0eHN0YXRlLT5yZXNpZHVlID0gMDsKPj4gIAl9Cj4+ICAKPj4gLQlpZiAocmV0ID09IERN
+QV9JTl9QUk9HUkVTUyAmJiBjLT5wYXVzZWQpCj4+ICtvdXQ6Cj4+ICsJaWYgKHJldCA9PSBETUFf
+SU5fUFJPR1JFU1MgJiYgYy0+cGF1c2VkKSB7Cj4+ICAJCXJldCA9IERNQV9QQVVTRUQ7Cj4+ICsJ
+fSBlbHNlIGlmIChkICYmIGQtPnBvbGxlZCAmJiBjLT5ydW5uaW5nKSB7Cj4+ICsJCXVpbnQzMl90
+IGNjciA9IG9tYXBfZG1hX2NoYW5fcmVhZChjLCBDQ1IpOwo+PiArCQkvKgo+PiArCQkgKiBUaGUg
+Y2hhbm5lbCBpcyBubyBsb25nZXIgYWN0aXZlLCBzZXQgdGhlIHJldHVybiB2YWx1ZQo+PiArCQkg
+KiBhY2NvcmRpbmdseSBhbmQgbWFyayBpdCBhcyBjb21wbGV0ZWQKPj4gKwkJICovCj4+ICsJCWlm
+ICghKGNjciAmIENDUl9FTkFCTEUpKSB7Cj4+ICsJCQlzdHJ1Y3Qgb21hcF9kZXNjICpkID0gYy0+
+ZGVzYzsKPj4gKwkJCXJldCA9IERNQV9DT01QTEVURTsKPj4gKwkJCW9tYXBfZG1hX3N0YXJ0X2Rl
+c2MoYyk7Cj4+ICsJCQl2Y2hhbl9jb29raWVfY29tcGxldGUoJmQtPnZkKTsKPj4gKwkJfQo+PiAr
+CX0KPj4gIAo+PiAgCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmMtPnZjLmxvY2ssIGZsYWdzKTsK
+Pj4gIAo+PiBAQCAtMTE4MCw3ICsxMTg5LDEwIEBAIHN0YXRpYyBzdHJ1Y3QgZG1hX2FzeW5jX3R4
+X2Rlc2NyaXB0b3IgKm9tYXBfZG1hX3ByZXBfZG1hX21lbWNweSgKPj4gIAlkLT5jY3IgPSBjLT5j
+Y3I7Cj4+ICAJZC0+Y2NyIHw9IENDUl9EU1RfQU1PREVfUE9TVElOQyB8IENDUl9TUkNfQU1PREVf
+UE9TVElOQzsKPj4gIAo+PiAtCWQtPmNpY3IgPSBDSUNSX0RST1BfSUUgfCBDSUNSX0ZSQU1FX0lF
+Owo+PiArCWlmICh0eF9mbGFncyAmIERNQV9QUkVQX0lOVEVSUlVQVCkKPj4gKwkJZC0+Y2ljciB8
+PSBDSUNSX0ZSQU1FX0lFOwo+PiArCWVsc2UKPj4gKwkJZC0+cG9sbGVkID0gdHJ1ZTsKPj4gIAo+
+PiAgCWQtPmNzZHAgPSBkYXRhX3R5cGU7Cj4+ICAKPj4gLS0gCj4+IFBldGVyCj4+Cj4+IFRleGFz
+IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
+Lgo+PiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxl
+OiBIZWxzaW5raQo+IAoKLSBQw6l0ZXIKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBv
+cmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYx
+NTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxp
+c3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
+YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
