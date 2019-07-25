@@ -1,73 +1,129 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 2/2] DTS: ARM: gta04: introduce legacy spi-cs-high to make
- display work again
-Date: Thu, 25 Jul 2019 16:42:53 -0600
-Message-ID: <CAL_JsqLe_Y9Z6MRt7ojgSVKAb9n95S8j=eGidSVNz2T83j-zPQ@mail.gmail.com>
-References: <cover.1562597164.git.hns@goldelico.com> <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
- <20190724194259.GA25847@bogus> <2EA06398-E45B-481B-9A26-4DD2E043BF9C@goldelico.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH 0/4] new driver for TI eQEP
+Date: Thu, 25 Jul 2019 17:52:21 -0500
+Message-ID: <4616508c-d753-586d-0d3b-5a003e86f582@lechnology.com>
+References: <20190722154538.5314-1-david@lechnology.com>
+ <20190725124037.GA4802@icarus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2EA06398-E45B-481B-9A26-4DD2E043BF9C@goldelico.com>
+In-Reply-To: <20190725124037.GA4802@icarus>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-spi <linux-spi@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, stable <stable@vger.kernel.org>
+To: William Breathitt Gray <vilhelm.gray@gmail.com>
+Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 25, 2019 at 12:23 AM H. Nikolaus Schaller <hns@goldelico.com> wrote:
->
-> Hi Rob,
->
-> > Am 24.07.2019 um 21:42 schrieb Rob Herring <robh@kernel.org>:
-> >
-> > On Mon, Jul 08, 2019 at 04:46:05PM +0200, H. Nikolaus Schaller wrote:
-> >> commit 6953c57ab172 "gpio: of: Handle SPI chipselect legacy bindings"
-> >>
-> >> did introduce logic to centrally handle the legacy spi-cs-high property
-> >> in combination with cs-gpios. This assumes that the polarity
-> >> of the CS has to be inverted if spi-cs-high is missing, even
-> >> and especially if non-legacy GPIO_ACTIVE_HIGH is specified.
-> >>
-> >> The DTS for the GTA04 was orginally introduced under the assumption
-> >> that there is no need for spi-cs-high if the gpio is defined with
-> >> proper polarity GPIO_ACTIVE_HIGH.
-> >
-> > Given that spi-cs-high is called legacy, that would imply that DT's
-> > should not have to use spi-cs-high.
->
-> Yes.
->
-> >
-> >> This was not a problem until gpiolib changed the interpretation of
-> >> GPIO_ACTIVE_HIGH and missing spi-cs-high.
-> >
-> > Then we should fix gpiolib...
->
-> I tried to convince Linus that this is the right way but he convinced
-> me that a fix that handles all cases does not exist.
->
-> There seem to be embedded devices with older DTB (potentially in ROM)
-> which provide a plain 0 value for a gpios definition. And either with
-> or without spi-cs-high.
->
-> Since "0" is the same as "GPIO_ACTIVE_HIGH", the absence of
-> spi-cs-high was and must be interpreted as active low for these
-> devices. This leads to the inversion logic in code.
->
-> AFAIR it boils down to the question if gpiolib and the bindings
-> should still support such legacy devices with out-of tree DTB,
-> but force in-tree DTS to add the legacy spi-cs-high property.
->
-> Or if we should fix the 2 or 3 cases of in-tree legacy cases
-> and potentially break out-of tree DTBs.
+On 7/25/19 7:40 AM, William Breathitt Gray wrote:
+> On Mon, Jul 22, 2019 at 10:45:34AM -0500, David Lechner wrote:
+>> This series adds device tree bindings and a new counter driver for the Texas
+>> Instruments Enhanced Quadrature Encoder Pulse (eQEP).
+>>
+>> As mentioned in one of the commit messages, to start with, the driver only
+>> supports reading the current counter value and setting the min/max values.
+>> Other features can be added on an as-needed basis.
+>>
+>> The only other feature I am interested in is adding is getting time data in
+>> order to calculate the rotational speed of a motor. However, there probably
+>> needs to be a higher level discussion of how this can fit into the counter
+>> subsystem in general first.
+> 
+> I believe exposing some sort of time data has merit. Quadrature counter
+> devices in particular are commonly used for position tracking of
+> automation systems, and such systems would benefit from velocity/speed
+> information. So let's try to introduce that sort of functionality in this
+> driver if possible.
+> 
+> First, let's discuss your specific use case and requirements, and hopefully we
+> can generalize it enough to be of use for future drivers. From your description,
+> it sounds like you're attaching some sort of rotary encoder to the eQEP device.
+> Is that correct? What sort of time data are you hoping to use; does the eQEP
+> device provide a clock value, or would you be grabbing a timestamp from the
+> system?
 
-If it is small number of platforms, then the kernel could handle those
-cases explicitly as needed.
+My use case is robotics using LEGO MINDSTORMS. More specifically, I am using
+motors that have a cheap optical rotary encoder (plastic wheel and infrared
+LED/detectors) that give 360 counts per 1 rotation of the motor shaft. One count
+is defined as the rising edge or falling edge of the A signal. We are looking at
+anywhere from 0 to around 2000 counts per second. We use the speed as feedback in
+a control algorithm to drive the motor at a constant speed. The control loop
+updates on the order of 1 to 10 ms.
 
-> IMHO it is more general to keep the out-of-tree DTBs working
-> and "fix" what we can control (in-tree DTS).
+Because the encoder resolution and speeds are relatively low, we are currently
+logging a timestamp for each count. If no count occurs for 50ms, then we log the
+same count again with a new timestamp (otherwise we would never see 0 speed). To
+get the actual speed, we find the first timestamp > 20 ms before the current
+timestamp then compute the speed as the change in position divided by the change
+in time between these two samples. This give a fairly accurate speed across most
+of the range, but does get a bit noisy once we get below 100 counts per second.
+It also means that we need a ring buffer that holds about 50 samples.
 
-If we do this, then we need to not call spi-cs-high legacy because
-we're stuck with it forever.
+The timestamp itself comes from the eQEP, not the system. There are latching
+registers to ensure that the timestamp read is from exactly the moment when
+the count register was read.
 
-Rob
+  
+> I'm not sure yet if it would make sense to expose rotational speed directly as
+> an attribute. If we were to expose just the count value and timestamp since the
+> last read, that should be enough for a user to compute the delta and derive
+> speed. I'll think more about this since some devices may simplify that case if
+> the hardware is able to compute the speed for us.
+> 
+
+I agree that it probably doesn't make sense to expect drivers to compute the
+speed. There isn't really a general way to do that works for an arbitrary
+speed. For example at high speeds, it is better to just look at the change
+in counts over a fixed interval rather than triggering a timestamp based on
+a certain number of counts.
+
+I also don't think having a timestamp sysfs attribute would be very useful.
+To make it work at all, I think it would have to be implemented such that
+it returns the timestamp for the count that was most recently read via sysfs.
+And it would require 4 syscalls (2 seeks and 2 reads) to get a single count/
+timestamp pair in a control loop. On a 300MHz ARM9 processor, this is not
+a negligible amount of time.
+
+I noticed that several of the other counter drivers also register an IIO
+device. So this got me thinking that perhaps the counter subsystem should
+just be for configuring a counter device an then the IIO subsystem should
+be used for triggers and ring buffers.
+
+For the general case a counter device could have two possible triggers.
+One that triggers an interrupt after X counts and another that triggers
+with a period of T nanoseconds (or microseconds). Both triggers would add
+a count/timestamp pair to an IIO ring buffer.
+
+To fully reproduce our current methodology the first trigger would actually
+need two configurable settings, the count X that triggers every X counts and
+a watchdog time setting (using terminology from eQEP docs) that will also
+trigger if and only if the count does not change before the time has elapsed.
+Note, this is different from the other proposed time based trigger which
+would cause a trigger interrupt at a fixed period regardless of whether
+the count changed or not.
+
+---
+
+Thinking more generally though, I think what I would propose is adding a new
+component to the existing list of Count, Signal and Synapse. The new component
+could be called Event. Event would be more general than the trigger conditions
+I have just discussed. In addition to those two, it could be any event
+generated by the hardware, such as an error condition or a change in direction.
+
+Drivers could register an arbitrary number of events for each Count, so we
+would have /sys/bus/counter/devices/counterX/eventY/*. There should be a few
+standard attributes, like "name" and "enable". Configurable events would need
+ext attributes to allow configuration.
+
+However, I see that there are already preset and error_noise "events" for
+count objects, so maybe we don't do the eventY thing and keep it flatter (or
+is the counter subsystem still considered in "staging" where breaking ABI
+changes could be made?).
+
+When thinking about what events would actually do when enabled though, it
+seems like we should be using IIO events and triggers (we have found reading
+sysfs attributes to be insufficient performance-wise). It seems like unnecessary
+work to reproduce all of this in the counter subsystem. Which makes me wonder if
+it would be better to have counter devices just be a different device type (i.e.
+different struct device_type for dev->type) in the IIO subsystem instead of
+creating a completely new subsystem.
