@@ -1,62 +1,87 @@
-From: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>
-Subject: Re: [PATCH 1/4] dt-bindings: counter: new bindings for TI eQEP
-Date: Sat, 27 Jul 2019 20:48:36 +0100
-Message-ID: <20190727204836.1514265d@archlinux>
-References: <20190722154538.5314-1-david@lechnology.com>
-        <20190722154538.5314-2-david@lechnology.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] ARM: OMAP: dma: Mark expected switch fall-throughs
+Date: Sun, 28 Jul 2019 18:22:40 -0500
+Message-ID: <20190728232240.GA22393@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190722154538.5314-2-david@lechnology.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>
-Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Kees Cook <keescook@chromium.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 22 Jul 2019 10:45:35 -0500
-David Lechner <david@lechnology.com> wrote:
+Mark switch cases where we are expecting to fall through.
 
-> This documents device tree binding for the Texas Instruments Enhanced
-> Quadrature Encoder Pulse (eQEP) Module found in various TI SoCs.
-> 
-> Signed-off-by: David Lechner <david@lechnology.com>
+This patch fixes the following warnings:
 
-Up to William given it is a counter binding, (unless Rob overrules)
-but new bindings are generally preferred as yaml.
+arch/arm/plat-omap/dma.c: In function 'omap_set_dma_src_burst_mode':
+arch/arm/plat-omap/dma.c:384:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+   if (dma_omap2plus()) {
+      ^
+arch/arm/plat-omap/dma.c:393:2: note: here
+  case OMAP_DMA_DATA_BURST_16:
+  ^~~~
+arch/arm/plat-omap/dma.c:394:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+   if (dma_omap2plus()) {
+      ^
+arch/arm/plat-omap/dma.c:402:2: note: here
+  default:
+  ^~~~~~~
+arch/arm/plat-omap/dma.c: In function 'omap_set_dma_dest_burst_mode':
+arch/arm/plat-omap/dma.c:473:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+   if (dma_omap2plus()) {
+      ^
+arch/arm/plat-omap/dma.c:481:2: note: here
+  default:
+  ^~~~~~~
 
-Content looks fine to me.
+Notice that, in this particular case, the code comment is
+modified in accordance with what GCC is expecting to find.
 
-Thanks,
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ arch/arm/plat-omap/dma.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-Jonathan
-
-> ---
->  .../devicetree/bindings/counter/ti-eqep.txt    | 18 ++++++++++++++++++
->  1 file changed, 18 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/counter/ti-eqep.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/counter/ti-eqep.txt b/Documentation/devicetree/bindings/counter/ti-eqep.txt
-> new file mode 100644
-> index 000000000000..fbcebc2c2cc2
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/counter/ti-eqep.txt
-> @@ -0,0 +1,18 @@
-> +Texas Instruments Enhanced Quadrature Encoder Pulse (eQEP) Module
-> +
-> +Required properties:
-> +- compatible:		Must be "ti,am3352-eqep".
-> +- reg:			Physical base address and size of the registers map.
-> +- clocks:		Handle to the PWM's functional clock.
-> +- clock-names:		Must be "fck".
-> +- interrupts:		Handle to the eQEP event interrupt
-> +
-> +Example:
-> +
-> +	eqep0: eqep@180 {
-> +		compatible = "ti,am3352-eqep";
-> +		reg = <0x180 0x80>;
-> +		clocks = <&l4ls_gclk>;
-> +		clock-names = "fck";
-> +		interrupts = <79>;
-> +	};
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 79f43acf9acb..08c99413d02c 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -388,17 +388,15 @@ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ 		/*
+ 		 * not supported by current hardware on OMAP1
+ 		 * w |= (0x03 << 7);
+-		 * fall through
+ 		 */
++		/* fall through */
+ 	case OMAP_DMA_DATA_BURST_16:
+ 		if (dma_omap2plus()) {
+ 			burst = 0x3;
+ 			break;
+ 		}
+-		/*
+-		 * OMAP1 don't support burst 16
+-		 * fall through
+-		 */
++		/* OMAP1 don't support burst 16 */
++		/* fall through */
+ 	default:
+ 		BUG();
+ 	}
+@@ -474,10 +472,8 @@ void omap_set_dma_dest_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ 			burst = 0x3;
+ 			break;
+ 		}
+-		/*
+-		 * OMAP1 don't support burst 16
+-		 * fall through
+-		 */
++		/* OMAP1 don't support burst 16 */
++		/* fall through */
+ 	default:
+ 		printk(KERN_ERR "Invalid DMA burst mode\n");
+ 		BUG();
+-- 
+2.22.0
