@@ -1,14 +1,14 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH v2 0/2] dmaengine: ti: omap-dma: Improved polling support
-Date: Mon, 29 Jul 2019 12:05:15 +0530
-Message-ID: <20190729063515.GE12733@vkoul-mobl.Dlink>
-References: <20190716082459.1222-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v5 0/3] dmaengine: ti: edma: Polled completion support
+Date: Mon, 29 Jul 2019 12:12:09 +0530
+Message-ID: <20190729064209.GF12733@vkoul-mobl.Dlink>
+References: <20190716082655.1620-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190716082459.1222-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20190716082655.1620-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,25 +22,46 @@ To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 16-07-19, 11:24, Peter Ujfalusi wrote:
+On 16-07-19, 11:26, Peter Ujfalusi wrote:
 > Hi,
 > 
-> changes since v1:
-> - New preparation cleanup patch
-> - Simplified code for the main patch to be easier to read
+> Changes since v4:
+> - Split the DMA_COMPLETE and !txstate check as Vinod suggested
 > 
-> This series fine-tunes the omap-dma polled memcpy support to be inline with how
-> the EDMA driver is handling it.
+> Change since v3:
+> - fix DMA pointer tracking for memcpy
+> - completion polling is only done when it is asked by not providing
+>   DMA_PREP_INTERRUPT for memcpy
 > 
-> The polled completion can be tested by applying:
+> Changes since v2:
+> - Fix typo in the comment for patch 0
+> 
+> Changes since v1:
+> - Cleanup patch for the array register handling
+> - typo fixed in patch2 commit message
+> 
+> The code around the array register access was pretty confusing for the first
+> look, so clean them up first then use the cleaner way in the polled handling.
+> 
+> When a DMA client driver does not set the DMA_PREP_INTERRUPT because it
+> does not want to use interrupts for DMA completion or because it can not
+> rely on DMA interrupts due to executing the memcpy when interrupts are
+> disabled it will poll the status of the transfer.
+> 
+> Since we can not tell from any EDMA register that the transfer is
+> completed, we can only know that the paRAM set has been sent to TPTC for
+> processing we need to check the residue of the transfer, if it is 0 then
+> the transfer is completed.
+> 
+> The polled completion can bve tested by applying:
 > https://patchwork.kernel.org/patch/10966499/
 > 
-> and run the dmatest with polled = 1 on boards where sDMA is used.
+> Enabling the memcpy for EDMA and run the dmatest with polled = 1.
 > 
-> Or boot up any dra7 family device with display enabled. The workaround for DMM
-> errata i878 uses polled DMA memcpy.
+> Or, enable the EDMA memcpy support and boot up any dra7 family device with
+> display enabled. The workaround for DMM errata i878 uses polled DMA memcpy.
 
-Applied, thanks
+Applied, thanks. Fixed typo in 2nd patch while at it
 
 -- 
 ~Vinod
