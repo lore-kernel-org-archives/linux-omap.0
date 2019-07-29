@@ -1,15 +1,16 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Vinod Koul <vkoul@kernel.org>
 Subject: Re: [PATCH v5 0/3] dmaengine: ti: edma: Polled completion support
-Date: Mon, 29 Jul 2019 10:24:00 +0300
-Message-ID: <fe201b5b-916d-1889-31b0-dcac20733b65@ti.com>
+Date: Mon, 29 Jul 2019 13:03:19 +0530
+Message-ID: <20190729073319.GK12733@vkoul-mobl.Dlink>
 References: <20190716082655.1620-1-peter.ujfalusi@ti.com>
  <20190729064209.GF12733@vkoul-mobl.Dlink>
+ <fe201b5b-916d-1889-31b0-dcac20733b65@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190729064209.GF12733@vkoul-mobl.Dlink>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <fe201b5b-916d-1889-31b0-dcac20733b65@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,38 +20,51 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vinod Koul <vkoul@kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Vmlub2QsCgpPbiAyOS8wNy8yMDE5IDkuNDIsIFZpbm9kIEtvdWwgd3JvdGU6Cj4gT24gMTYtMDct
-MTksIDExOjI2LCBQZXRlciBVamZhbHVzaSB3cm90ZToKPj4gSGksCj4+Cj4+IENoYW5nZXMgc2lu
-Y2UgdjQ6Cj4+IC0gU3BsaXQgdGhlIERNQV9DT01QTEVURSBhbmQgIXR4c3RhdGUgY2hlY2sgYXMg
-Vmlub2Qgc3VnZ2VzdGVkCj4+Cj4+IENoYW5nZSBzaW5jZSB2MzoKPj4gLSBmaXggRE1BIHBvaW50
-ZXIgdHJhY2tpbmcgZm9yIG1lbWNweQo+PiAtIGNvbXBsZXRpb24gcG9sbGluZyBpcyBvbmx5IGRv
-bmUgd2hlbiBpdCBpcyBhc2tlZCBieSBub3QgcHJvdmlkaW5nCj4+ICAgRE1BX1BSRVBfSU5URVJS
-VVBUIGZvciBtZW1jcHkKPj4KPj4gQ2hhbmdlcyBzaW5jZSB2MjoKPj4gLSBGaXggdHlwbyBpbiB0
-aGUgY29tbWVudCBmb3IgcGF0Y2ggMAo+Pgo+PiBDaGFuZ2VzIHNpbmNlIHYxOgo+PiAtIENsZWFu
-dXAgcGF0Y2ggZm9yIHRoZSBhcnJheSByZWdpc3RlciBoYW5kbGluZwo+PiAtIHR5cG8gZml4ZWQg
-aW4gcGF0Y2gyIGNvbW1pdCBtZXNzYWdlCj4+Cj4+IFRoZSBjb2RlIGFyb3VuZCB0aGUgYXJyYXkg
-cmVnaXN0ZXIgYWNjZXNzIHdhcyBwcmV0dHkgY29uZnVzaW5nIGZvciB0aGUgZmlyc3QKPj4gbG9v
-aywgc28gY2xlYW4gdGhlbSB1cCBmaXJzdCB0aGVuIHVzZSB0aGUgY2xlYW5lciB3YXkgaW4gdGhl
-IHBvbGxlZCBoYW5kbGluZy4KPj4KPj4gV2hlbiBhIERNQSBjbGllbnQgZHJpdmVyIGRvZXMgbm90
-IHNldCB0aGUgRE1BX1BSRVBfSU5URVJSVVBUIGJlY2F1c2UgaXQKPj4gZG9lcyBub3Qgd2FudCB0
-byB1c2UgaW50ZXJydXB0cyBmb3IgRE1BIGNvbXBsZXRpb24gb3IgYmVjYXVzZSBpdCBjYW4gbm90
-Cj4+IHJlbHkgb24gRE1BIGludGVycnVwdHMgZHVlIHRvIGV4ZWN1dGluZyB0aGUgbWVtY3B5IHdo
-ZW4gaW50ZXJydXB0cyBhcmUKPj4gZGlzYWJsZWQgaXQgd2lsbCBwb2xsIHRoZSBzdGF0dXMgb2Yg
-dGhlIHRyYW5zZmVyLgo+Pgo+PiBTaW5jZSB3ZSBjYW4gbm90IHRlbGwgZnJvbSBhbnkgRURNQSBy
-ZWdpc3RlciB0aGF0IHRoZSB0cmFuc2ZlciBpcwo+PiBjb21wbGV0ZWQsIHdlIGNhbiBvbmx5IGtu
-b3cgdGhhdCB0aGUgcGFSQU0gc2V0IGhhcyBiZWVuIHNlbnQgdG8gVFBUQyBmb3IKPj4gcHJvY2Vz
-c2luZyB3ZSBuZWVkIHRvIGNoZWNrIHRoZSByZXNpZHVlIG9mIHRoZSB0cmFuc2ZlciwgaWYgaXQg
-aXMgMCB0aGVuCj4+IHRoZSB0cmFuc2ZlciBpcyBjb21wbGV0ZWQuCj4+Cj4+IFRoZSBwb2xsZWQg
-Y29tcGxldGlvbiBjYW4gYnZlIHRlc3RlZCBieSBhcHBseWluZzoKPj4gaHR0cHM6Ly9wYXRjaHdv
-cmsua2VybmVsLm9yZy9wYXRjaC8xMDk2NjQ5OS8KClNob3VsZCBJIHJlc2VuZCB0aGlzIHBhdGNo
-IHNvIHRoZSBwb2xsZWQgbW9kZSBjYW4gYmUgdGVzdGVkIGluIHVwc3RyZWFtPwoKLSBQw6l0ZXIK
-ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhl
-bHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWlj
-aWxlOiBIZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0
-cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtYXJtLWtlcm5lbAo=
+On 29-07-19, 10:24, Peter Ujfalusi wrote:
+> Vinod,
+> 
+> On 29/07/2019 9.42, Vinod Koul wrote:
+> > On 16-07-19, 11:26, Peter Ujfalusi wrote:
+> >> Hi,
+> >>
+> >> Changes since v4:
+> >> - Split the DMA_COMPLETE and !txstate check as Vinod suggested
+> >>
+> >> Change since v3:
+> >> - fix DMA pointer tracking for memcpy
+> >> - completion polling is only done when it is asked by not providing
+> >>   DMA_PREP_INTERRUPT for memcpy
+> >>
+> >> Changes since v2:
+> >> - Fix typo in the comment for patch 0
+> >>
+> >> Changes since v1:
+> >> - Cleanup patch for the array register handling
+> >> - typo fixed in patch2 commit message
+> >>
+> >> The code around the array register access was pretty confusing for the first
+> >> look, so clean them up first then use the cleaner way in the polled handling.
+> >>
+> >> When a DMA client driver does not set the DMA_PREP_INTERRUPT because it
+> >> does not want to use interrupts for DMA completion or because it can not
+> >> rely on DMA interrupts due to executing the memcpy when interrupts are
+> >> disabled it will poll the status of the transfer.
+> >>
+> >> Since we can not tell from any EDMA register that the transfer is
+> >> completed, we can only know that the paRAM set has been sent to TPTC for
+> >> processing we need to check the residue of the transfer, if it is 0 then
+> >> the transfer is completed.
+> >>
+> >> The polled completion can bve tested by applying:
+> >> https://patchwork.kernel.org/patch/10966499/
+> 
+> Should I resend this patch so the polled mode can be tested in upstream?
+
+Yes sure
+
+-- 
+~Vinod
