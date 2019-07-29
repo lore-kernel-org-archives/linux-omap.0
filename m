@@ -1,46 +1,37 @@
 From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] ARM: OMAP: dma: Mark expected switch fall-throughs
-Date: Mon, 29 Jul 2019 09:34:40 -0700
-Message-ID: <201907290934.B2053972E3@keescook>
-References: <20190728232240.GA22393@embeddedor>
+Subject: Re: [PATCH] mfd: omap-usb-host: Mark expected switch fall-throughs
+Date: Mon, 29 Jul 2019 09:35:24 -0700
+Message-ID: <201907290935.F99432D6@keescook>
+References: <20190728235858.GA23755@embeddedor>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190728232240.GA22393@embeddedor>
+In-Reply-To: <20190728235858.GA23755@embeddedor>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jul 28, 2019 at 06:22:40PM -0500, Gustavo A. R. Silva wrote:
+On Sun, Jul 28, 2019 at 06:58:58PM -0500, Gustavo A. R. Silva wrote:
 > Mark switch cases where we are expecting to fall through.
 > 
 > This patch fixes the following warnings:
 > 
-> arch/arm/plat-omap/dma.c: In function 'omap_set_dma_src_burst_mode':
-> arch/arm/plat-omap/dma.c:384:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
->    if (dma_omap2plus()) {
->       ^
-> arch/arm/plat-omap/dma.c:393:2: note: here
->   case OMAP_DMA_DATA_BURST_16:
->   ^~~~
-> arch/arm/plat-omap/dma.c:394:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
->    if (dma_omap2plus()) {
->       ^
-> arch/arm/plat-omap/dma.c:402:2: note: here
->   default:
->   ^~~~~~~
-> arch/arm/plat-omap/dma.c: In function 'omap_set_dma_dest_burst_mode':
-> arch/arm/plat-omap/dma.c:473:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
->    if (dma_omap2plus()) {
->       ^
-> arch/arm/plat-omap/dma.c:481:2: note: here
->   default:
->   ^~~~~~~
-> 
-> Notice that, in this particular case, the code comment is
-> modified in accordance with what GCC is expecting to find.
+> drivers/mfd/omap-usb-host.c: In function 'usbhs_runtime_resume':
+> drivers/mfd/omap-usb-host.c:303:7: warning: this statement may fall through [-Wimplicit-fallthrough=]
+>     if (!IS_ERR(omap->hsic480m_clk[i])) {
+>        ^
+> drivers/mfd/omap-usb-host.c:313:3: note: here
+>    case OMAP_EHCI_PORT_MODE_TLL:
+>    ^~~~
+> drivers/mfd/omap-usb-host.c: In function 'usbhs_runtime_suspend':
+> drivers/mfd/omap-usb-host.c:345:7: warning: this statement may fall through [-Wimplicit-fallthrough=]
+>     if (!IS_ERR(omap->hsic480m_clk[i]))
+>        ^
+> drivers/mfd/omap-usb-host.c:349:3: note: here
+>    case OMAP_EHCI_PORT_MODE_TLL:
+>    ^~~~
 > 
 > Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
@@ -50,47 +41,31 @@ Reviewed-by: Kees Cook <keescook@chromium.org>
 -Kees
 
 > ---
->  arch/arm/plat-omap/dma.c | 14 +++++---------
->  1 file changed, 5 insertions(+), 9 deletions(-)
+>  drivers/mfd/omap-usb-host.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 79f43acf9acb..08c99413d02c 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -388,17 +388,15 @@ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
->  		/*
->  		 * not supported by current hardware on OMAP1
->  		 * w |= (0x03 << 7);
-> -		 * fall through
->  		 */
-> +		/* fall through */
->  	case OMAP_DMA_DATA_BURST_16:
->  		if (dma_omap2plus()) {
->  			burst = 0x3;
->  			break;
->  		}
-> -		/*
-> -		 * OMAP1 don't support burst 16
-> -		 * fall through
-> -		 */
-> +		/* OMAP1 don't support burst 16 */
-> +		/* fall through */
->  	default:
->  		BUG();
->  	}
-> @@ -474,10 +472,8 @@ void omap_set_dma_dest_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
->  			burst = 0x3;
->  			break;
->  		}
-> -		/*
-> -		 * OMAP1 don't support burst 16
-> -		 * fall through
-> -		 */
-> +		/* OMAP1 don't support burst 16 */
-> +		/* fall through */
->  	default:
->  		printk(KERN_ERR "Invalid DMA burst mode\n");
->  		BUG();
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 792b855a9104..4798d9f3f9d5 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -308,7 +308,7 @@ static int usbhs_runtime_resume(struct device *dev)
+>  					 i, r);
+>  				}
+>  			}
+> -		/* Fall through as HSIC mode needs utmi_clk */
+> +		/* Fall through - as HSIC mode needs utmi_clk */
+>  
+>  		case OMAP_EHCI_PORT_MODE_TLL:
+>  			if (!IS_ERR(omap->utmi_clk[i])) {
+> @@ -344,7 +344,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+>  
+>  			if (!IS_ERR(omap->hsic480m_clk[i]))
+>  				clk_disable_unprepare(omap->hsic480m_clk[i]);
+> -		/* Fall through as utmi_clks were used in HSIC mode */
+> +		/* Fall through - as utmi_clks were used in HSIC mode */
+>  
+>  		case OMAP_EHCI_PORT_MODE_TLL:
+>  			if (!IS_ERR(omap->utmi_clk[i]))
 > -- 
 > 2.22.0
 > 
