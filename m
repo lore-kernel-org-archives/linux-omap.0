@@ -1,16 +1,16 @@
 From: Vinod Koul <vkoul@kernel.org>
 Subject: Re: [PATCH v5 0/3] dmaengine: ti: edma: Polled completion support
-Date: Mon, 29 Jul 2019 13:03:19 +0530
-Message-ID: <20190729073319.GK12733@vkoul-mobl.Dlink>
+Date: Mon, 29 Jul 2019 13:03:54 +0530
+Message-ID: <20190729073354.GL12733@vkoul-mobl.Dlink>
 References: <20190716082655.1620-1-peter.ujfalusi@ti.com>
  <20190729064209.GF12733@vkoul-mobl.Dlink>
- <fe201b5b-916d-1889-31b0-dcac20733b65@ti.com>
+ <f051dd12-911b-2b13-1908-7f0e1bd4b695@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <fe201b5b-916d-1889-31b0-dcac20733b65@ti.com>
+In-Reply-To: <f051dd12-911b-2b13-1908-7f0e1bd4b695@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,7 +24,7 @@ To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 29-07-19, 10:24, Peter Ujfalusi wrote:
+On 29-07-19, 10:22, Peter Ujfalusi wrote:
 > Vinod,
 > 
 > On 29/07/2019 9.42, Vinod Koul wrote:
@@ -61,10 +61,17 @@ On 29-07-19, 10:24, Peter Ujfalusi wrote:
 > >>
 > >> The polled completion can bve tested by applying:
 > >> https://patchwork.kernel.org/patch/10966499/
+> >>
+> >> Enabling the memcpy for EDMA and run the dmatest with polled = 1.
+> >>
+> >> Or, enable the EDMA memcpy support and boot up any dra7 family device with
+> >> display enabled. The workaround for DMM errata i878 uses polled DMA memcpy.
+> > 
+> > Applied, thanks. Fixed typo in 2nd patch while at it
 > 
-> Should I resend this patch so the polled mode can be tested in upstream?
+> Thank you! I was about to send v6 with the fixed typo.
 
-Yes sure
+Simpler typos are ok to fix while applying
 
 -- 
 ~Vinod
