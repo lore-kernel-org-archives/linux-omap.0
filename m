@@ -1,43 +1,69 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-        <u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 2/4] counter: new TI eQEP driver
-Date: Tue, 30 Jul 2019 14:35:23 +0200
-Message-ID: <20190730123523.cjtmr3tpttn6r3pt@pengutronix.de>
-References: <20190722154538.5314-1-david@lechnology.com>
- <20190722154538.5314-3-david@lechnology.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: ti: edma: Remove 'Assignment in if condition'
+Date: Tue, 30 Jul 2019 16:20:06 +0300
+Message-ID: <20190730132006.2790-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190722154538.5314-3-david@lechnology.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>
-Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: vkoul@kernel.org
+Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 22, 2019 at 10:45:36AM -0500, David Lechner wrote:
-> This adds a new counter driver for the Texas Instruments Enhanced
-> Quadrature Encoder Pulse (eQEP) module.
-> 
-> Only very basic functionality is currently implemented - only enough to
-> be able to read the position. The actual device has many more features
-> which can be added to the driver on an as-needed basis.
-> 
-> Signed-off-by: David Lechner <david@lechnology.com>
-> ---
->  MAINTAINERS               |   6 +
->  drivers/counter/Kconfig   |  12 ++
->  drivers/counter/Makefile  |   1 +
->  drivers/counter/ti-eqep.c | 381 ++++++++++++++++++++++++++++++++++++++
->  drivers/pwm/Kconfig       |   2 +-
+While the compiler does not have problem with how it is implemented,
+checkpatch does give en ERROR for this arrangement.
 
-It's not obvious why the change to drivers/pwm/Kconfig is needed. Can
-you please motivate that in the change log?
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/ti/edma.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-Best regards
-Uwe
-
+diff --git a/drivers/dma/ti/edma.c b/drivers/dma/ti/edma.c
+index fe468e2f7e67..6f2d6c592663 100644
+--- a/drivers/dma/ti/edma.c
++++ b/drivers/dma/ti/edma.c
+@@ -1832,7 +1832,6 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
+ 				      struct dma_tx_state *txstate)
+ {
+ 	struct edma_chan *echan = to_edma_chan(chan);
+-	struct virt_dma_desc *vdesc;
+ 	struct dma_tx_state txstate_tmp;
+ 	enum dma_status ret;
+ 	unsigned long flags;
+@@ -1846,12 +1845,18 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
+ 	if (!txstate)
+ 		txstate = &txstate_tmp;
+ 
+-	txstate->residue = 0;
+ 	spin_lock_irqsave(&echan->vchan.lock, flags);
+-	if (echan->edesc && echan->edesc->vdesc.tx.cookie == cookie)
++	if (echan->edesc && echan->edesc->vdesc.tx.cookie == cookie) {
+ 		txstate->residue = edma_residue(echan->edesc);
+-	else if ((vdesc = vchan_find_desc(&echan->vchan, cookie)))
+-		txstate->residue = to_edma_desc(&vdesc->tx)->residue;
++	} else {
++		struct virt_dma_desc *vdesc = vchan_find_desc(&echan->vchan,
++							      cookie);
++
++		if (vdesc)
++			txstate->residue = to_edma_desc(&vdesc->tx)->residue;
++		else
++			txstate->residue = 0;
++	}
+ 
+ 	/*
+ 	 * Mark the cookie completed if the residue is 0 for non cyclic
 -- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
