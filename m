@@ -1,161 +1,282 @@
-From: Chuhong Yuan <hslester96@gmail.com>
-Subject: [PATCH] ARM: Replace strncmp with str_has_prefix
-Date: Tue, 30 Jul 2019 10:44:26 +0800
-Message-ID: <20190730024426.17262-1-hslester96@gmail.com>
+From: William Breathitt Gray <vilhelm.gray@gmail.com>
+Subject: Re: [PATCH 0/4] new driver for TI eQEP
+Date: Tue, 30 Jul 2019 13:45:36 +0900
+Message-ID: <20190730044536.GA5063@icarus>
+References: <20190722154538.5314-1-david@lechnology.com>
+ <20190725124037.GA4802@icarus>
+ <4616508c-d753-586d-0d3b-5a003e86f582@lechnology.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4616508c-d753-586d-0d3b-5a003e86f582@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>, Alexander Clouter <alex@digriz.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Chuhong Yuan <hslester96@gmail.com>
+To: David Lechner <david@lechnology.com>
+Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-In commit b6b2735514bc
-("tracing: Use str_has_prefix() instead of using fixed sizes")
-the newly introduced str_has_prefix() was used
-to replace error-prone strncmp(str, const, len).
-Here fix codes with the same pattern.
+On Thu, Jul 25, 2019 at 05:52:21PM -0500, David Lechner wrote:
+> On 7/25/19 7:40 AM, William Breathitt Gray wrote:
+> > On Mon, Jul 22, 2019 at 10:45:34AM -0500, David Lechner wrote:
+> >> This series adds device tree bindings and a new counter driver for the Texas
+> >> Instruments Enhanced Quadrature Encoder Pulse (eQEP).
+> >>
+> >> As mentioned in one of the commit messages, to start with, the driver only
+> >> supports reading the current counter value and setting the min/max values.
+> >> Other features can be added on an as-needed basis.
+> >>
+> >> The only other feature I am interested in is adding is getting time data in
+> >> order to calculate the rotational speed of a motor. However, there probably
+> >> needs to be a higher level discussion of how this can fit into the counter
+> >> subsystem in general first.
+> > 
+> > I believe exposing some sort of time data has merit. Quadrature counter
+> > devices in particular are commonly used for position tracking of
+> > automation systems, and such systems would benefit from velocity/speed
+> > information. So let's try to introduce that sort of functionality in this
+> > driver if possible.
+> > 
+> > First, let's discuss your specific use case and requirements, and hopefully we
+> > can generalize it enough to be of use for future drivers. From your description,
+> > it sounds like you're attaching some sort of rotary encoder to the eQEP device.
+> > Is that correct? What sort of time data are you hoping to use; does the eQEP
+> > device provide a clock value, or would you be grabbing a timestamp from the
+> > system?
+> 
+> My use case is robotics using LEGO MINDSTORMS. More specifically, I am using
+> motors that have a cheap optical rotary encoder (plastic wheel and infrared
+> LED/detectors) that give 360 counts per 1 rotation of the motor shaft. One count
+> is defined as the rising edge or falling edge of the A signal. We are looking at
+> anywhere from 0 to around 2000 counts per second. We use the speed as feedback in
+> a control algorithm to drive the motor at a constant speed. The control loop
+> updates on the order of 1 to 10 ms.
+> 
+> Because the encoder resolution and speeds are relatively low, we are currently
+> logging a timestamp for each count. If no count occurs for 50ms, then we log the
+> same count again with a new timestamp (otherwise we would never see 0 speed). To
+> get the actual speed, we find the first timestamp > 20 ms before the current
+> timestamp then compute the speed as the change in position divided by the change
+> in time between these two samples. This give a fairly accurate speed across most
+> of the range, but does get a bit noisy once we get below 100 counts per second.
+> It also means that we need a ring buffer that holds about 50 samples.
+> 
+> The timestamp itself comes from the eQEP, not the system. There are latching
+> registers to ensure that the timestamp read is from exactly the moment when
+> the count register was read.
 
-Signed-off-by: Chuhong Yuan <hslester96@gmail.com>
----
- arch/arm/kernel/module-plts.c        | 2 +-
- arch/arm/mach-omap2/omap_device.c    | 4 ++--
- arch/arm/mach-omap2/pm-debug.c       | 8 ++++----
- arch/arm/mach-omap2/pm.c             | 2 +-
- arch/arm/mach-omap2/pm44xx.c         | 2 +-
- arch/arm/mach-omap2/sr_device.c      | 8 ++++----
- arch/arm/mach-orion5x/ts78xx-setup.c | 4 ++--
- 7 files changed, 15 insertions(+), 15 deletions(-)
+So if I understand correctly, there are two registers you're reading: a
+count register and a timestamp register. The count register is updated
+by the rotation of the motor shaft, while the timestamp register is
+updated by reading the count register (thus logging the time associated
+with the read count value).
 
-diff --git a/arch/arm/kernel/module-plts.c b/arch/arm/kernel/module-plts.c
-index b647741c0ab0..92485a90fb63 100644
---- a/arch/arm/kernel/module-plts.c
-+++ b/arch/arm/kernel/module-plts.c
-@@ -230,7 +230,7 @@ int module_frob_arch_sections(Elf_Ehdr *ehdr, Elf_Shdr *sechdrs,
- 		/* sort by type and symbol index */
- 		sort(rels, numrels, sizeof(Elf32_Rel), cmp_rel, NULL);
+> > I'm not sure yet if it would make sense to expose rotational speed directly as
+> > an attribute. If we were to expose just the count value and timestamp since the
+> > last read, that should be enough for a user to compute the delta and derive
+> > speed. I'll think more about this since some devices may simplify that case if
+> > the hardware is able to compute the speed for us.
+> > 
+> 
+> I agree that it probably doesn't make sense to expect drivers to compute the
+> speed. There isn't really a general way to do that works for an arbitrary
+> speed. For example at high speeds, it is better to just look at the change
+> in counts over a fixed interval rather than triggering a timestamp based on
+> a certain number of counts.
+
+This is a good point. Depending on the resolution the user cares about,
+they may be more interested in the speed over a short time interval
+versus a long time interval. It doesn't seem practical to have the driver
+try to handle all possible speed calculations when the user can decide
+themselves how best to use the data.
+
+> I also don't think having a timestamp sysfs attribute would be very useful.
+> To make it work at all, I think it would have to be implemented such that
+> it returns the timestamp for the count that was most recently read via sysfs.
+> And it would require 4 syscalls (2 seeks and 2 reads) to get a single count/
+> timestamp pair in a control loop. On a 300MHz ARM9 processor, this is not
+> a negligible amount of time.
+
+This is a concern I've had as well. The sysfs interface is useful in
+that it provides an intuitive and human-friendly way to expose data
+about devices. But as you note, there is considerable overhead in the
+amount of syscalls we have to make to interact with multiple attributes.
+
+One solution that may work is providing a character device interface in
+addition to the sysfs interface. I believe that should reduce the
+syscall overhead since a user can pass in a data structure with a
+configuration defining what data/actions they want, and receive back
+all data in a single syscall.
+
+I think concern over latency was one of the reasons the GPIO subsystem
+gained a character device interface as well. It's an addition to the
+Counter subsystem that is worth considering, but the possible downsides
+to such an interface should also be investigated.
  
--		if (strncmp(secstrings + dstsec->sh_name, ".init", 5) != 0)
-+		if (!str_has_prefix(secstrings + dstsec->sh_name, ".init"))
- 			core_plts += count_plts(syms, dstsec->sh_addr, rels,
- 						numrels, s->sh_info);
- 		else
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 3acb4192918d..8ef38529f0a7 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -492,8 +492,8 @@ struct platform_device __init *omap_device_build(const char *pdev_name,
- 	if (!pdata && pdata_len > 0)
- 		return ERR_PTR(-EINVAL);
- 
--	if (strncmp(oh->name, "smartreflex", 11) &&
--	    strncmp(oh->name, "dma", 3)) {
-+	if (!str_has_prefix(oh->name, "smartreflex") &&
-+	    !str_has_prefix(oh->name, "dma")) {
- 		pr_warn("%s need to update %s to probe with dt\na",
- 			__func__, pdev_name);
- 		ret = -ENODEV;
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index fceb1e525d26..5aeac364c3de 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -72,7 +72,7 @@ static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
- 
- 	if (strcmp(clkdm->name, "emu_clkdm") == 0 ||
- 		strcmp(clkdm->name, "wkup_clkdm") == 0 ||
--		strncmp(clkdm->name, "dpll", 4) == 0)
-+		str_has_prefix(clkdm->name, "dpll"))
- 		return 0;
- 
- 	seq_printf(s, "%s->%s (%d)\n", clkdm->name, clkdm->pwrdm.ptr->name,
-@@ -88,7 +88,7 @@ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
- 
- 	if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
- 		strcmp(pwrdm->name, "wkup_pwrdm") == 0 ||
--		strncmp(pwrdm->name, "dpll", 4) == 0)
-+		str_has_prefix(pwrdm->name, "dpll"))
- 		return 0;
- 
- 	if (pwrdm->state != pwrdm_read_pwrst(pwrdm))
-@@ -117,7 +117,7 @@ static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
- 
- 	if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
- 		strcmp(pwrdm->name, "wkup_pwrdm") == 0 ||
--		strncmp(pwrdm->name, "dpll", 4) == 0)
-+		str_has_prefix(pwrdm->name, "dpll"))
- 		return 0;
- 
- 	pwrdm_state_switch(pwrdm);
-@@ -186,7 +186,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
- 
- 	pwrdm->timer = t;
- 
--	if (strncmp(pwrdm->name, "dpll", 4) == 0)
-+	if (str_has_prefix(pwrdm->name, "dpll"))
- 		return 0;
- 
- 	d = debugfs_create_dir(pwrdm->name, (struct dentry *)dir);
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 1fde1bf53fb6..d3287ec5d8da 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -96,7 +96,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
- 		goto exit;
- 	}
- 
--	if (!strncmp(oh_name, "mpu", 3))
-+	if (str_has_prefix(oh_name, "mpu"))
- 		/* 
- 		 * All current OMAPs share voltage rail and clock
- 		 * source, so CPU0 is used to represent the MPU-SS.
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 485550af2506..4ba30e690b5a 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -122,7 +122,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	 * through hotplug path and CPU0 explicitly programmed
- 	 * further down in the code path
- 	 */
--	if (!strncmp(pwrdm->name, "cpu", 3)) {
-+	if (str_has_prefix(pwrdm->name, "cpu")) {
- 		if (IS_PM44XX_ERRATUM(PM_OMAP4_CPU_OSWR_DISABLE))
- 			cpu_suspend_state = PWRDM_POWER_RET;
- 		return 0;
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index 62df666c2bd0..885c75e26a2f 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -95,12 +95,12 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 	struct omap_smartreflex_dev_attr *sr_dev_attr;
- 	static int i;
- 
--	if (!strncmp(oh->name, "smartreflex_mpu_iva", 20) ||
--	    !strncmp(oh->name, "smartreflex_mpu", 16))
-+	if (str_has_prefix(oh->name, "smartreflex_mpu_iva") ||
-+	    str_has_prefix(oh->name, "smartreflex_mpu"))
- 		sr_data = &omap_sr_pdata[OMAP_SR_MPU];
--	else if (!strncmp(oh->name, "smartreflex_core", 17))
-+	else if (str_has_prefix(oh->name, "smartreflex_core"))
- 		sr_data = &omap_sr_pdata[OMAP_SR_CORE];
--	else if (!strncmp(oh->name, "smartreflex_iva", 16))
-+	else if (str_has_prefix(oh->name, "smartreflex_iva"))
- 		sr_data = &omap_sr_pdata[OMAP_SR_IVA];
- 
- 	if (!sr_data) {
-diff --git a/arch/arm/mach-orion5x/ts78xx-setup.c b/arch/arm/mach-orion5x/ts78xx-setup.c
-index fda9b75c3a33..d83791f0e2da 100644
---- a/arch/arm/mach-orion5x/ts78xx-setup.c
-+++ b/arch/arm/mach-orion5x/ts78xx-setup.c
-@@ -477,9 +477,9 @@ static ssize_t ts78xx_fpga_store(struct kobject *kobj,
- 		return -EBUSY;
- 	}
- 
--	if (strncmp(buf, "online", sizeof("online") - 1) == 0)
-+	if (str_has_prefix(buf, "online"))
- 		value = 1;
--	else if (strncmp(buf, "offline", sizeof("offline") - 1) == 0)
-+	else if (str_has_prefix(buf, "offline"))
- 		value = 0;
- 	else
- 		return -EINVAL;
--- 
-2.20.1
+> I noticed that several of the other counter drivers also register an IIO
+> device. So this got me thinking that perhaps the counter subsystem should
+> just be for configuring a counter device an then the IIO subsystem should
+> be used for triggers and ring buffers.
+> 
+> For the general case a counter device could have two possible triggers.
+> One that triggers an interrupt after X counts and another that triggers
+> with a period of T nanoseconds (or microseconds). Both triggers would add
+> a count/timestamp pair to an IIO ring buffer.
+> 
+> To fully reproduce our current methodology the first trigger would actually
+> need two configurable settings, the count X that triggers every X counts and
+> a watchdog time setting (using terminology from eQEP docs) that will also
+> trigger if and only if the count does not change before the time has elapsed.
+> Note, this is different from the other proposed time based trigger which
+> would cause a trigger interrupt at a fixed period regardless of whether
+> the count changed or not.
+
+The counter drivers in the kernel right now are registering IIO devices
+in order to keep the preexisting (but now deprecated) IIO Counter
+interface working for these devices -- some users may be using this
+older interface so we don't want to remove it cold turkey. Regardless,
+there's nothing the prevents incorporating the IIO interface with your
+Counter drivers; in fact, in some circumstances it's better that you do
+just that.
+
+The key idea to recognize is how the Counter subsystem differs from the
+IIO subsystem on a conceptual level: the IIO subsystem provides an
+interface for your device by describing it on a hardware level, whereas
+the Counter subsystem provides an interface for your device by
+describing it on a more abstract level.
+
+What I mean is that every interface interaction in the Counter subsystem
+relates to the abstract concept of an ideal "counter device" (Counts,
+Synapses, Signals); if a device functionality or data does not relate
+directly to those ideal counter device components, then the Counter
+subsystem isn't that right interface for it.
+
+For example, it makes sense to have an "enable" attribute or "present"
+attribute, because these functionalities/data are directly related to
+the Count, Synapse, and Signal components conceptually. However, in the
+Counter subsystem you will likely not see something like the IIO
+"in_voltageY_supply_raw" attribute -- not because that data is not
+useful to know about for the operation of the counter device hardware,
+but because it is outside the scope of the Counter subsystem paradigm
+(i.e. it does not directly related to Counts, Synapses, or Signals).
+As such, this would be a case where the counter driver should register
+both a Counter device and IIO device, one to handle the counter device
+on an abstract level while the other provides an interface for control
+of the more specific hardware details.
+
+> ---
+> 
+> Thinking more generally though, I think what I would propose is adding a new
+> component to the existing list of Count, Signal and Synapse. The new component
+> could be called Event. Event would be more general than the trigger conditions
+> I have just discussed. In addition to those two, it could be any event
+> generated by the hardware, such as an error condition or a change in direction.
+> 
+> Drivers could register an arbitrary number of events for each Count, so we
+> would have /sys/bus/counter/devices/counterX/eventY/*. There should be a few
+> standard attributes, like "name" and "enable". Configurable events would need
+> ext attributes to allow configuration.
+> 
+> However, I see that there are already preset and error_noise "events" for
+> count objects, so maybe we don't do the eventY thing and keep it flatter (or
+> is the counter subsystem still considered in "staging" where breaking ABI
+> changes could be made?).
+
+The components for handling events already exist in the Counter
+interface paradigm: Signals and Synapses. Although, the Counter
+subsystem is currently lacking the implementation (I still need to code
+in support for interrupts and such), the paradigm itself supports the
+concept of events and triggers.
+
+Recall that the Counter subsystem represents hardware via the
+abstraction of an idealized "counter device". This is important to
+understand because it means that Signals are not necessarily limited to
+the physical wires of the hardware. To summarize the Counter interface
+paradigm:
+
+    * A Signal is a stream of data to be evaluated.
+    * A Synapse is a trigger condition based on the evaluation of the
+      data streams (i.e. the Signals).
+    * A Count is the accumulation of the effects of Synapses (i.e. the
+      triggers).
+
+As such, in order to represent an event, you would add in a Signal to
+represent the stream of device events, and a Synapse defining the
+specific event that will trigger the action. I'll give an example in
+order to demonstrate what I mean.
+
+A simple clock can be conceptualize as a proper counter device: an
+oscillation is a Signal, a rising edge from that oscillation line can be
+the Synapse, and the current clock value is the Count.
+
+                Count                Synapse          Signal
+                -----                -------          ------
+        +---------------------+
+        | Data: Clock ticks   |    Rising Edge     _____________
+        | Function: Increase  |  <-------------   / Oscillation \
+        |                     |                  _________________
+        +---------------------+
+
+Now, in order to represent your timestamping clock we need two Signals:
+a simple clock and an event stream. The simple clock is the source of
+the current clock ticks we will store, while the event stream provides
+the rotation count register read notification that will trigger the
+timestamp.
+
+                   Count                       Synapse      Signal
+                   -----                       -------      ------
+        +-------------------------------+
+        | Data: Timestamp               |       None        _______
+        | Function: Current clock ticks |  <------------   / Clock \
+        |                               |                 ___________
+        |                               |
+        |                               |    Read event     ________
+        |                               |  <------------   / Events \
+        |                               |                 ____________
+        +-------------------------------+
+
+Note that in this case both Signals either do not exist in or are not
+exposed by the hardware (maybe the simple clock is exposed, but it's not
+necessary to be) -- they are meant to be abstract representations of the
+components of the timestamp clock as an idealized "counter device".
+
+By organizing the timestamp clock in this way, we can control and
+configure the components using the standard Counter interface: common
+attributes such as "name", "preset", "enable", etc. can now be exposed
+to users like every other counter device component.
+
+In theory we can sleep on the timestamp count attribute read (or
+character device equivalent if we go down that route), and be woken when
+an event triggers updating the timestamp value. However, the current
+Counter subsystem implementation is lacking the code for this so it
+needs to be added to the core functionality first.
+
+> When thinking about what events would actually do when enabled though, it
+> seems like we should be using IIO events and triggers (we have found reading
+> sysfs attributes to be insufficient performance-wise). It seems like unnecessary
+> work to reproduce all of this in the counter subsystem. Which makes me wonder if
+> it would be better to have counter devices just be a different device type (i.e.
+> different struct device_type for dev->type) in the IIO subsystem instead of
+> creating a completely new subsystem.
+
+I plan on adding interrupt support for the 104-QUAD-8 counter driver
+since this device has some useful interrupts on configured threshold
+conditions and such, so having the ability to handle an event rather
+than constantly read and loop is something I want to have in the Counter
+subsystem.
+
+It's possible that I can reuse some code from the IIO subsystem, as
+Jonathan pointed out, but overall I believe these should be separate
+subsystems. From the reasons described above, the IIO subsystem and
+Counter subsystem have different goals and thus different
+implementations. I don't think that's a bad thing, and we can share code
+in the few cases where the two may overlap.
+
+Regarding whether to use IIO events and triggers within the TI eQEP
+counter driver, I think we should wait for a proper Counter subsystem
+implementation to be added first. My fear is that we'll have a similar
+situation as what happened with IIO_COUNT, where we'll have to keep a
+IIO interface present with a newer Counter interface. If adding in event
+support to the Counter subsystem will take too long, we can add this TI
+eQEP driver as-is now and later add in the timestamp support.
+
+William Breathitt Gray
