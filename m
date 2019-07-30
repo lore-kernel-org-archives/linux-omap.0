@@ -1,44 +1,57 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 2/4] counter: new TI eQEP driver
-Date: Tue, 30 Jul 2019 10:28:10 -0500
-Message-ID: <58ef00df-4d99-f4f2-0eda-01db2afe5502@lechnology.com>
-References: <20190722154538.5314-1-david@lechnology.com>
- <20190722154538.5314-3-david@lechnology.com>
- <20190730123523.cjtmr3tpttn6r3pt@pengutronix.de>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: Re: Backlight in motorola Droid 4
+Date: Tue, 30 Jul 2019 13:21:11 -0500
+Message-ID: <ff91f577-98ad-d27b-02c2-6ed495cf4a38@ti.com>
+References: <20181219162626.12297-1-dmurphy@ti.com>
+ <20190722205921.GA24787@amd> <b8fbc94f-c087-2c9d-4532-ea423f1626e6@ti.com>
+ <20190724124530.GA30211@amd> <ca69f627-96e2-f982-3a29-18b0127ac6e5@ti.com>
+ <edde330e-516b-ecaa-4139-0bfa766a9c08@ti.com> <20190729220030.GA20100@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190730123523.cjtmr3tpttn6r3pt@pengutronix.de>
+In-Reply-To: <20190729220030.GA20100@amd>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, jacek.anaszewski@gmail.com, linux-kernel@vger.kernel.org, linux-leds@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 7/30/19 7:35 AM, Uwe Kleine-KÃ¶nig wrote:
-> On Mon, Jul 22, 2019 at 10:45:36AM -0500, David Lechner wrote:
->> This adds a new counter driver for the Texas Instruments Enhanced
->> Quadrature Encoder Pulse (eQEP) module.
->>
->> Only very basic functionality is currently implemented - only enough to
->> be able to read the position. The actual device has many more features
->> which can be added to the driver on an as-needed basis.
->>
->> Signed-off-by: David Lechner <david@lechnology.com>
->> ---
->>   MAINTAINERS               |   6 +
->>   drivers/counter/Kconfig   |  12 ++
->>   drivers/counter/Makefile  |   1 +
->>   drivers/counter/ti-eqep.c | 381 ++++++++++++++++++++++++++++++++++++++
->>   drivers/pwm/Kconfig       |   2 +-
-> 
-> It's not obvious why the change to drivers/pwm/Kconfig is needed. Can
-> you please motivate that in the change log?
+Hello
 
-Will do. The short version is that it is needed for power management.
+On 7/29/19 5:00 PM, Pavel Machek wrote:
+> Hi!
+>
+>>> Looking at the rest of the code.
+>>>
+>>> The DT doc indicated that this was a required child property so this is
+>>> why it
+>>>
+>>> errors out.
+>>>
+>>> Dan
+>>>
+>>> <snip>
+>>>
+>> Did you want me to fix up the LM3532 and send the patch?
+> If you could do that, that would be nice :-).
 
-> 
-> Best regards
-> Uwe
-> 
+Ok I am working on this.
+
+Is Droid4 supposed to boot off of mainline?  I see blogs stating it should
+
+but the device locks up when it jumps to the kernel 5.3-rc1.
+
+Unless I need to update my kexec or boot.cfg file but I cannot find any 
+up to date info on that.
+
+Dan
+
+
+>
+>> Or do you have a patch ready to go?
+> No progress there, I'm busy with other stuff...
+>
+> Thanks,
+> 									Pavel
+>
