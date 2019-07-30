@@ -1,45 +1,43 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH] ASoC: ti: Mark expected switch
-	fall-throughs
-Date: Tue, 30 Jul 2019 13:55:28 +0300
-Message-ID: <20190730105528.GA27548@bitmer.com>
-References: <20190729221534.GA18696@embeddedor>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+        <u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 2/4] counter: new TI eQEP driver
+Date: Tue, 30 Jul 2019 14:35:23 +0200
+Message-ID: <20190730123523.cjtmr3tpttn6r3pt@pengutronix.de>
+References: <20190722154538.5314-1-david@lechnology.com>
+ <20190722154538.5314-3-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190729221534.GA18696@embeddedor>
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Kees Cook <keescook@chromium.org>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>
+In-Reply-To: <20190722154538.5314-3-david@lechnology.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Lechner <david@lechnology.com>
+Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBKdWwgMjksIDIwMTkgYXQgMDU6MTU6MzRQTSAtMDUwMCwgR3VzdGF2byBBLiBSLiBT
-aWx2YSB3cm90ZToKPiBNYXJrIHN3aXRjaCBjYXNlcyB3aGVyZSB3ZSBhcmUgZXhwZWN0aW5nIHRv
-IGZhbGwgdGhyb3VnaC4KPiAKPiBUaGlzIHBhdGNoIGZpeGVzIHRoZSBmb2xsb3dpbmcgd2Fybmlu
-ZyAoQnVpbGRpbmc6IGFybSk6Cj4gCj4gc291bmQvc29jL3RpL244MTAuYzogSW4gZnVuY3Rpb24g
-4oCYbjgxMF9leHRfY29udHJvbOKAmToKPiBzb3VuZC9zb2MvdGkvbjgxMC5jOjQ4OjEwOiB3YXJu
-aW5nOiB0aGlzIHN0YXRlbWVudCBtYXkgZmFsbCB0aHJvdWdoIFstV2ltcGxpY2l0LWZhbGx0aHJv
-dWdoPV0KPiAgICBsaW5lMWwgPSAxOwo+ICAgIH5+fn5+fn5efn4KPiBzb3VuZC9zb2MvdGkvbjgx
-MC5jOjQ5OjI6IG5vdGU6IGhlcmUKPiAgIGNhc2UgTjgxMF9KQUNLX0hQOgo+ICAgXn5+fgo+IAo+
-IHNvdW5kL3NvYy90aS9yeDUxLmM6IEluIGZ1bmN0aW9uIOKAmHJ4NTFfZXh0X2NvbnRyb2zigJk6
-Cj4gc291bmQvc29jL3RpL3J4NTEuYzo1Nzo2OiB3YXJuaW5nOiB0aGlzIHN0YXRlbWVudCBtYXkg
-ZmFsbCB0aHJvdWdoIFstV2ltcGxpY2l0LWZhbGx0aHJvdWdoPV0KPiAgICBocyA9IDE7Cj4gICAg
-fn5+Xn5+Cj4gc291bmQvc29jL3RpL3J4NTEuYzo1ODoyOiBub3RlOiBoZXJlCj4gICBjYXNlIFJY
-NTFfSkFDS19IUDoKPiAgIF5+fn4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBHdXN0YXZvIEEuIFIuIFNp
-bHZhIDxndXN0YXZvQGVtYmVkZGVkb3IuY29tPgo+IC0tLQo+ICBzb3VuZC9zb2MvdGkvbjgxMC5j
-IHwgMSArCj4gIHNvdW5kL3NvYy90aS9yeDUxLmMgfCAxICsKPiAgMiBmaWxlcyBjaGFuZ2VkLCAy
-IGluc2VydGlvbnMoKykKPiAKQWNrZWQtYnk6IEphcmtrbyBOaWt1bGEgPGphcmtrby5uaWt1bGFA
-Yml0bWVyLmNvbT4gCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpo
-dHRwczovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2
-ZWwK
+On Mon, Jul 22, 2019 at 10:45:36AM -0500, David Lechner wrote:
+> This adds a new counter driver for the Texas Instruments Enhanced
+> Quadrature Encoder Pulse (eQEP) module.
+> 
+> Only very basic functionality is currently implemented - only enough to
+> be able to read the position. The actual device has many more features
+> which can be added to the driver on an as-needed basis.
+> 
+> Signed-off-by: David Lechner <david@lechnology.com>
+> ---
+>  MAINTAINERS               |   6 +
+>  drivers/counter/Kconfig   |  12 ++
+>  drivers/counter/Makefile  |   1 +
+>  drivers/counter/ti-eqep.c | 381 ++++++++++++++++++++++++++++++++++++++
+>  drivers/pwm/Kconfig       |   2 +-
+
+It's not obvious why the change to drivers/pwm/Kconfig is needed. Can
+you please motivate that in the change log?
+
+Best regards
+Uwe
+
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
