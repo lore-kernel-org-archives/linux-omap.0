@@ -1,17 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: Drop mmc platform data for am330x and
- am43xx
-Date: Sun, 21 Jul 2019 23:09:51 -0700
-Message-ID: <20190722060951.GL5447@atomide.com>
-References: <20190326181324.32140-1-tony@atomide.com>
- <20190326181324.32140-2-tony@atomide.com>
- <0af63198-5a68-2f0d-f14e-2b514580d2d5@lechnology.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v2 0/6] Add TI PRUSS Local Interrupt Controller IRQChip driver
+Date: Wed, 31 Jul 2019 17:41:43 -0500
+Message-ID: <20190731224149.11153-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <0af63198-5a68-2f0d-f14e-2b514580d2d5@lechnology.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,171 +15,59 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: David Lechner <david@lechnology.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Marc Zyngier <maz@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, David Lechner <david@lechnology.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi All,
 
-* David Lechner <david@lechnology.com> [190721 02:43]:
-> On 3/26/19 1:13 PM, Tony Lindgren wrote:
-> > We can now drop legacy platform data one interconnect target module at
-> > a time in favor of the device tree based data that has been added earlier.
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> 
-> This breaks wifi on BeagleBone Blue (found via git bisect). In dmesg, I see:
-> 
->     platform 47810000.mmc: Cannot lookup hwmod 'mmc3'
+The following is a v2 version of the series [1] that adds an IRQChip driver for
+the local interrupt controller present within a Programmable Real-Time Unit and
+Industrial Communication Subsystem (PRU-ICSS) present on a number of TI SoCs 
+including OMAP architecture based AM335x, AM437x, AM57xx SoCs, Keystone 2 
+architecture based 66AK2G SoCs, Davinci architecture based OMAP-L138/DA850 SoCs
+and the latest K3 architecture based AM65x and J721E SoCs. Please see the
+v1 cover-letter [1] for details about the features of this interrupt controller.
+More details can be found in any of the supported SoC TRMs.
+ Eg: Chapter 30.1.6 of AM5728 TRM [2]
 
-Thanks for letting me know and sorry for breaking it.
+Please see the individual patches for exact changes in each patch, following are
+the main changes from v1:
+ - Dropped the pruss_intc_trigger() API and patch and replaced it with a new
+   patch achieving the same through irq_set_irqchip_state() callback (patch 5)
+ - Added cleanup logic on INTC mapping fails and reset the mapping registers
+   during unmap (patch 4)
+ - Minor revisions to the bindings, no new properties introduced (patch 1)
 
-> How can we fix it?
+regards
+Suman
 
-The warning you pasted above hints that we're still trying to
-probe mmc3 using platform data, and that data no longer exists.
+[1] https://patchwork.kernel.org/cover/11034561/
+[2] http://www.ti.com/lit/pdf/spruhz6
 
-Looks like I've completely missed updating the dts file for
-mmc3 that is directly on the l3 interconnect instead of l4 like
-all the other mmc instances. The same applies for am4 too, and
-I've also left some "ti,hwmods" properties around too..
+Andrew F. Davis (1):
+  irqchip/irq-pruss-intc: Add a PRUSS irqchip driver for PRUSS
+    interrupts
 
-Care to try the following patch and see if it fixes the issue
-for you?
+David Lechner (1):
+  irqchip/irq-pruss-intc: Implement irq_{get,set}_irqchip_state ops
 
-I've only boot tested on bbb and am437x-idk and made sure
-the mmc instance probes. But my beaglebone blue lost it's
-serial connector and pads so I have not been testing on it.
+Suman Anna (4):
+  dt-bindings: irqchip: Add PRUSS interrupt controller bindings
+  irqchip/irq-pruss-intc: Add support for shared and invalid interrupts
+  irqchip/irq-pruss-intc: Add helper functions to configure internal
+    mapping
+  irqchip/irq-pruss-intc: Add support for ICSSG INTC on K3 SoCs
 
-Regards,
+ .../interrupt-controller/ti,pruss-intc.txt    |  98 +++
+ drivers/irqchip/Kconfig                       |  10 +
+ drivers/irqchip/Makefile                      |   1 +
+ drivers/irqchip/irq-pruss-intc.c              | 764 ++++++++++++++++++
+ include/linux/irqchip/irq-pruss-intc.h        |  36 +
+ 5 files changed, 909 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
+ create mode 100644 drivers/irqchip/irq-pruss-intc.c
+ create mode 100644 include/linux/irqchip/irq-pruss-intc.h
 
-Tony
-
-8< ----------
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -1312,7 +1312,6 @@
- 
- 		target-module@60000 {			/* 0x48060000, ap 36 0c.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "mmc1";
- 			reg = <0x602fc 0x4>,
- 			      <0x60110 0x4>,
- 			      <0x60114 0x4>;
-@@ -1802,7 +1801,6 @@
- 
- 		target-module@d8000 {			/* 0x481d8000, ap 64 66.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "mmc2";
- 			reg = <0xd82fc 0x4>,
- 			      <0xd8110 0x4>,
- 			      <0xd8114 0x4>;
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -234,13 +234,32 @@
- 			interrupt-names = "edma3_tcerrint";
- 		};
- 
--		mmc3: mmc@47810000 {
--			compatible = "ti,omap4-hsmmc";
--			ti,hwmods = "mmc3";
--			ti,needs-special-reset;
--			interrupts = <29>;
--			reg = <0x47810000 0x1000>;
--			status = "disabled";
-+		target-module@47810000 {
-+			compatible = "ti,sysc-omap2", "ti,sysc";
-+			reg = <0x478102fc 0x4>,
-+			      <0x47810110 0x4>,
-+			      <0x47810114 0x4>;
-+			reg-names = "rev", "sysc", "syss";
-+			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-+					 SYSC_OMAP2_ENAWAKEUP |
-+					 SYSC_OMAP2_SOFTRESET |
-+					 SYSC_OMAP2_AUTOIDLE)>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,syss-mask = <1>;
-+			clocks = <&l3s_clkctrl AM3_L3S_MMC3_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x47810000 0x1000>;
-+
-+			mmc3: mmc@0 {
-+				compatible = "ti,omap4-hsmmc";
-+				ti,needs-special-reset;
-+				interrupts = <29>;
-+				reg = <0x0 0x1000>;
-+			};
- 		};
- 
- 		usb: usb@47400000 {
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -228,13 +228,32 @@
- 			interrupt-names = "edma3_tcerrint";
- 		};
- 
--		mmc3: mmc@47810000 {
--			compatible = "ti,omap4-hsmmc";
--			reg = <0x47810000 0x1000>;
--			ti,hwmods = "mmc3";
--			ti,needs-special-reset;
--			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
--			status = "disabled";
-+		target-module@47810000 {
-+			compatible = "ti,sysc-omap2", "ti,sysc";
-+			reg = <0x478102fc 0x4>,
-+			      <0x47810110 0x4>,
-+			      <0x47810114 0x4>;
-+			reg-names = "rev", "sysc", "syss";
-+			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-+					 SYSC_OMAP2_ENAWAKEUP |
-+					 SYSC_OMAP2_SOFTRESET |
-+					 SYSC_OMAP2_AUTOIDLE)>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,syss-mask = <1>;
-+			clocks = <&l3s_clkctrl AM4_L3S_MMC3_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x47810000 0x1000>;
-+
-+			mmc3: mmc@0 {
-+				compatible = "ti,omap4-hsmmc";
-+				ti,needs-special-reset;
-+				interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
-+				reg = <0x0 0x1000>;
-+			};
- 		};
- 
- 		sham: sham@53100000 {
-diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
---- a/arch/arm/boot/dts/am437x-l4.dtsi
-+++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -1085,7 +1085,6 @@
- 
- 		target-module@60000 {			/* 0x48060000, ap 30 14.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "mmc1";
- 			reg = <0x602fc 0x4>,
- 			      <0x60110 0x4>,
- 			      <0x60114 0x4>;
-@@ -1612,7 +1611,6 @@
- 
- 		target-module@d8000 {			/* 0x481d8000, ap 54 5e.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "mmc2";
- 			reg = <0xd82fc 0x4>,
- 			      <0xd8110 0x4>,
- 			      <0xd8114 0x4>;
 -- 
-2.21.0
+2.22.0
