@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 3/6] irqchip/irq-pruss-intc: Add support for shared and invalid interrupts
-Date: Wed, 31 Jul 2019 17:41:46 -0500
-Message-ID: <20190731224149.11153-4-s-anna@ti.com>
+Subject: [PATCH v2 5/6] irqchip/irq-pruss-intc: Implement irq_{get,set}_irqchip_state ops
+Date: Wed, 31 Jul 2019 17:41:48 -0500
+Message-ID: <20190731224149.11153-6-s-anna@ti.com>
 References: <20190731224149.11153-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,120 +13,96 @@ To: Marc Zyngier <maz@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason C
 Cc: Rob Herring <robh+dt@kernel.org>, David Lechner <david@lechnology.com>, Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The PRUSS INTC has a fixed number of output interrupt lines that are
-connected to a number of processors or other PRUSS instances or other
-devices (like DMA) on the SoC. The output interrupt lines 2 through 9
-are usually connected to the main Arm host processor and are referred
-to as host interrupts 0 through 7 from ARM/MPU perspective.
+From: David Lechner <david@lechnology.com>
 
-All of these 8 host interrupts are not always exclusively connected
-to the Arm interrupt controller. Some SoCs have some interrupt lines
-not connected to the Arm interrupt controller at all, while a few others
-have the interrupt lines connected to multiple processors in which they
-need to be partitioned as per SoC integration needs. For example, AM437x
-and 66AK2G SoCs have 2 PRUSS instances each and have the host interrupt 5
-connected to the other PRUSS, while AM335x has host interrupt 0 shared
-between MPU and TSC_ADC and host interrupts 6 & 7 shared between MPU and
-a DMA controller.
+This implements the irq_get_irqchip_state and irq_set_irqchip_state
+callbacks for the TI PRUSS INTC driver. The set callback can be used
+by drivers to "kick" a PRU by enabling a PRU system event.
 
-Add support to the PRUSS INTC driver to allow both these shared and
-invalid interrupts by not returning a failure if any of these interrupts
-are skipped from the corresponding INTC DT node.
+Example:
+     irq_set_irqchip_state(irq, IRQCHIP_STATE_PENDING, true);
 
+Signed-off-by: David Lechner <david@lechnology.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
-v2:
- - Fixed a typo in error message trace for ti,irqs-shared
- - Updated patch description to use generic "interrupt controller" instead
-   of GIC
- - Revised the kerneldoc comment for invalid_intr
-v1: https://patchwork.kernel.org/patch/11034559/
+v2: New patch from David replacing an exported API from v1,
+    https://patchwork.kernel.org/patch/11034565/
 
- drivers/irqchip/irq-pruss-intc.c | 44 +++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+ drivers/irqchip/irq-pruss-intc.c | 41 ++++++++++++++++++++++++++++++--
+ 1 file changed, 39 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/irqchip/irq-pruss-intc.c b/drivers/irqchip/irq-pruss-intc.c
-index 4a9456544fd0..3a1b8a93cfad 100644
+index 63cfc665be1e..59e26dfbb179 100644
 --- a/drivers/irqchip/irq-pruss-intc.c
 +++ b/drivers/irqchip/irq-pruss-intc.c
-@@ -67,6 +67,8 @@
-  * @irqchip: irq chip for this interrupt controller
-  * @domain: irq domain for this interrupt controller
-  * @lock: mutex to serialize access to INTC
-+ * @shared_intr: bit-map denoting if the MPU host interrupt is shared
-+ * @invalid_intr: bit-map denoting if host interrupt is not connected to MPU
+@@ -7,6 +7,7 @@
+  *	Suman Anna <s-anna@ti.com>
   */
- struct pruss_intc {
- 	unsigned int irqs[MAX_NUM_HOST_IRQS];
-@@ -74,6 +76,8 @@ struct pruss_intc {
- 	struct irq_chip *irqchip;
- 	struct irq_domain *domain;
- 	struct mutex lock; /* PRUSS INTC lock */
-+	u16 shared_intr;
-+	u16 invalid_intr;
- };
  
- static inline u32 pruss_intc_read_reg(struct pruss_intc *intc, unsigned int reg)
-@@ -233,7 +237,8 @@ static int pruss_intc_probe(struct platform_device *pdev)
- 	struct pruss_intc *intc;
- 	struct resource *res;
- 	struct irq_chip *irqchip;
--	int i, irq;
-+	int i, irq, count;
-+	u8 temp_intr[MAX_NUM_HOST_IRQS] = { 0 };
++#include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/irqchip/chained_irq.h>
+ #include <linux/irqchip/irq-pruss-intc.h>
+@@ -40,8 +41,7 @@
+ #define PRU_INTC_HIEISR		0x0034
+ #define PRU_INTC_HIDISR		0x0038
+ #define PRU_INTC_GPIR		0x0080
+-#define PRU_INTC_SRSR0		0x0200
+-#define PRU_INTC_SRSR1		0x0204
++#define PRU_INTC_SRSR(x)	(0x0200 + (x) * 4)
+ #define PRU_INTC_SECR0		0x0280
+ #define PRU_INTC_SECR1		0x0284
+ #define PRU_INTC_ESR0		0x0300
+@@ -439,6 +439,41 @@ static void pruss_intc_irq_relres(struct irq_data *data)
+ 	module_put(THIS_MODULE);
+ }
  
- 	intc = devm_kzalloc(dev, sizeof(*intc), GFP_KERNEL);
- 	if (!intc)
-@@ -250,6 +255,39 @@ static int pruss_intc_probe(struct platform_device *pdev)
- 	dev_dbg(dev, "intc memory: pa %pa size 0x%zx va %pK\n", &res->start,
- 		(size_t)resource_size(res), intc->base);
- 
-+	count = of_property_read_variable_u8_array(dev->of_node,
-+						   "ti,irqs-reserved",
-+						   temp_intr, 0,
-+						   MAX_NUM_HOST_IRQS);
-+	if (count < 0 && count != -EINVAL)
-+		return count;
-+	count = (count == -EINVAL ? 0 : count);
-+	for (i = 0; i < count; i++) {
-+		if (temp_intr[i] < MAX_NUM_HOST_IRQS) {
-+			intc->invalid_intr |= BIT(temp_intr[i]);
-+		} else {
-+			dev_warn(dev, "ignoring invalid reserved irq %d\n",
-+				 temp_intr[i]);
-+		}
-+		temp_intr[i] = 0;
-+	}
++static int pruss_intc_irq_get_irqchip_state(struct irq_data *data,
++					    enum irqchip_irq_state which,
++					    bool *state)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++	u32 reg, mask, srsr;
 +
-+	count = of_property_read_variable_u8_array(dev->of_node,
-+						   "ti,irqs-shared",
-+						   temp_intr, 0,
-+						   MAX_NUM_HOST_IRQS);
-+	if (count < 0 && count != -EINVAL)
-+		return count;
-+	count = (count == -EINVAL ? 0 : count);
-+	for (i = 0; i < count; i++) {
-+		if (temp_intr[i] < MAX_NUM_HOST_IRQS) {
-+			intc->shared_intr |= BIT(temp_intr[i]);
-+		} else {
-+			dev_warn(dev, "ignoring invalid shared irq %d\n",
-+				 temp_intr[i]);
-+		}
-+	}
++	if (which != IRQCHIP_STATE_PENDING)
++		return -EINVAL;
 +
- 	mutex_init(&intc->lock);
++	reg = PRU_INTC_SRSR(data->hwirq / 32);
++	mask = BIT(data->hwirq % 32);
++
++	srsr = pruss_intc_read_reg(intc, reg);
++
++	*state = !!(srsr & mask);
++
++	return 0;
++}
++
++static int pruss_intc_irq_set_irqchip_state(struct irq_data *data,
++					    enum irqchip_irq_state which,
++					    bool state)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++
++	if (which != IRQCHIP_STATE_PENDING)
++		return -EINVAL;
++
++	if (state)
++		return pruss_intc_check_write(intc, PRU_INTC_SISR, data->hwirq);
++
++	return pruss_intc_check_write(intc, PRU_INTC_SICR, data->hwirq);
++}
++
+ static int pruss_intc_irq_domain_map(struct irq_domain *d, unsigned int virq,
+ 				     irq_hw_number_t hw)
+ {
+@@ -583,6 +618,8 @@ static int pruss_intc_probe(struct platform_device *pdev)
+ 	irqchip->irq_unmask = pruss_intc_irq_unmask;
+ 	irqchip->irq_request_resources = pruss_intc_irq_reqres;
+ 	irqchip->irq_release_resources = pruss_intc_irq_relres;
++	irqchip->irq_get_irqchip_state = pruss_intc_irq_get_irqchip_state;
++	irqchip->irq_set_irqchip_state = pruss_intc_irq_set_irqchip_state;
+ 	irqchip->name = dev_name(dev);
+ 	intc->irqchip = irqchip;
  
- 	pruss_intc_init(intc);
-@@ -275,6 +313,10 @@ static int pruss_intc_probe(struct platform_device *pdev)
- 	for (i = 0; i < MAX_NUM_HOST_IRQS; i++) {
- 		irq = platform_get_irq_byname(pdev, irq_names[i]);
- 		if (irq < 0) {
-+			if (intc->shared_intr & BIT(i) ||
-+			    intc->invalid_intr & BIT(i))
-+				continue;
-+
- 			dev_err(dev, "platform_get_irq_byname failed for %s : %d\n",
- 				irq_names[i], irq);
- 			goto fail_irq;
 -- 
 2.22.0
