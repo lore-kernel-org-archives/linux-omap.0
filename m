@@ -1,128 +1,68 @@
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 1/3] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
-Date: Thu,  1 Aug 2019 03:28:21 +0200
-Message-ID: <20190801012823.28730-2-neolynx@gmail.com>
-References: <20190801012823.28730-1-neolynx@gmail.com>
+From: Marc Zyngier <maz@kernel.org>
+Subject: Re: [PATCH v2 4/6] irqchip/irq-pruss-intc: Add helper functions to
+ configure internal mapping
+Date: Thu, 1 Aug 2019 09:45:44 +0100
+Message-ID: <1a63eb50-7c5c-eb3d-3cbe-bd1cc59ce3fe@kernel.org>
+References: <20190731224149.11153-1-s-anna@ti.com>
+ <20190731224149.11153-5-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190801012823.28730-1-neolynx@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>, Thara Gopinath <thara@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190731224149.11153-5-s-anna@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: Rob Herring <robh+dt@kernel.org>, David Lechner <david@lechnology.com>, Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Thara Gopinath <thara@ti.com>
+On 31/07/2019 23:41, Suman Anna wrote:
+> The PRUSS INTC receives a number of system input interrupt source events
+> and supports individual control configuration and hardware prioritization.
+> These input events can be mapped to some output interrupt lines through 2
+> levels of many-to-one mapping i.e. events to channel mapping and channels
+> to output interrupts.
+> 
+> This mapping information is provided through the PRU firmware that is
+> loaded onto a PRU core/s or through the device tree node of the PRU
+> application. The mapping is configured by the PRU remoteproc driver, and
+> is setup before the PRU core is started and cleaned up after the PRU core
+> is stopped. This event mapping configuration logic programs the Channel
+> Map Registers (CMRx) and Host-Interrupt Map Registers (HMRx) only when a
+> new program is being loaded/started and the same events and interrupt
+> channels are reset to zero when stopping a PRU.
+> 
+> Add two helper functions: pruss_intc_configure() & pruss_intc_unconfigure()
+> that the PRU remoteproc driver can use to configure the PRUSS INTC.
 
-Voltage control on TWL can be done using VMODE/I2C1/I2C_SR.
-Since almost all platforms use I2C_SR on omap3, omap3_twl_init by
-default expects that OMAP's I2C_SR is plugged in to TWL's I2C
-and calls omap3_twl_set_sr_bit. On platforms where I2C_SR is not connected,
-the board files are expected to call omap3_twl_set_sr_bit(false) to
-ensure that I2C_SR path is not set for voltage control and prevent
-the default behavior of omap3_twl_init.
+So let me see if I correctly understand this: this adds yet another
+firmware description parser, with a private interface to another
+(undisclosed?) driver, bypassing the standard irqchip configuration
+mechanism. It sounds great, doesn't it?
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/omap_twl.c | 60 ++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+What I cannot really infer from this message (-ETOOMUCHJARGON) is what
+interrupts this affects:
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 6787f1e72c6b..1dae906128c2 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -43,8 +43,15 @@
- 
- static bool is_offset_valid;
- static u8 smps_offset;
-+/*
-+ * Flag to ensure Smartreflex bit in TWL
-+ * being cleared in board file is not overwritten.
-+ */
-+static bool __initdata twl_sr_enable_autoinit;
- 
-+#define TWL4030_DCDC_GLOBAL_CFG        0x06
- #define REG_SMPS_OFFSET         0xE0
-+#define SMARTREFLEX_ENABLE     BIT(3)
- 
- static unsigned long twl4030_vsel_to_uv(const u8 vsel)
- {
-@@ -241,6 +248,18 @@ int __init omap3_twl_init(void)
- 	if (!cpu_is_omap34xx())
- 		return -ENODEV;
- 
-+	/*
-+	 * The smartreflex bit on twl4030 specifies if the setting of voltage
-+	 * is done over the I2C_SR path. Since this setting is independent of
-+	 * the actual usage of smartreflex AVS module, we enable TWL SR bit
-+	 * by default irrespective of whether smartreflex AVS module is enabled
-+	 * on the OMAP side or not. This is because without this bit enabled,
-+	 * the voltage scaling through vp forceupdate/bypass mechanism of
-+	 * voltage scaling will not function on TWL over I2C_SR.
-+	 */
-+	if (!twl_sr_enable_autoinit)
-+		omap3_twl_set_sr_bit(true);
-+
- 	voltdm = voltdm_lookup("mpu_iva");
- 	omap_voltage_register_pmic(voltdm, &omap3_mpu_pmic);
- 
-@@ -249,3 +268,44 @@ int __init omap3_twl_init(void)
- 
- 	return 0;
- }
-+
-+/**
-+ * omap3_twl_set_sr_bit() - Set/Clear SR bit on TWL
-+ * @enable: enable SR mode in twl or not
-+ *
-+ * If 'enable' is true, enables Smartreflex bit on TWL 4030 to make sure
-+ * voltage scaling through OMAP SR works. Else, the smartreflex bit
-+ * on twl4030 is cleared as there are platforms which use OMAP3 and T2 but
-+ * use Synchronized Scaling Hardware Strategy (ENABLE_VMODE=1) and Direct
-+ * Strategy Software Scaling Mode (ENABLE_VMODE=0), for setting the voltages,
-+ * in those scenarios this bit is to be cleared (enable = false).
-+ *
-+ * Returns 0 on sucess, error is returned if I2C read/write fails.
-+ */
-+int __init omap3_twl_set_sr_bit(bool enable)
-+{
-+	u8 temp;
-+	int ret;
-+	if (twl_sr_enable_autoinit)
-+		pr_warning("%s: unexpected multiple calls\n", __func__);
-+
-+	ret = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &temp,
-+					TWL4030_DCDC_GLOBAL_CFG);
-+	if (ret)
-+		goto err;
-+
-+	if (enable)
-+		temp |= SMARTREFLEX_ENABLE;
-+	else
-+		temp &= ~SMARTREFLEX_ENABLE;
-+
-+	ret = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, temp,
-+				TWL4030_DCDC_GLOBAL_CFG);
-+	if (!ret) {
-+		twl_sr_enable_autoinit = true;
-+		return 0;
-+	}
-+err:
-+	pr_err("%s: Error access to TWL4030 (%d)\n", __func__, ret);
-+	return ret;
-+}
+- Interrupts from random devices to the PRUSS?
+- Interrupts from the PRUSS to the host?
+- Something else?
+
+When does this happen? Under control of what? It isn't even clear why
+this is part of this irqchip driver.
+
+Depending what this does, there may be ways to fit it into the standard
+interrupt configuration framework. After all, we already have standard
+interfaces to route interrupts to virtual CPUs, effectively passing full
+control of an interrupt to another entity. If you squint hard enough,
+your PRUSS can fit that description.
+
+If that doesn't work, then we need to make the IRQ framework grok that
+kind of requirement (hence my request for clarification). But I'm
+strongly opposed to inventing a SoC-private way of configuring
+interrupts behind the kernel's back.
+
+Thanks,
+
+	M.
 -- 
-2.17.1
+Jazz is not dead, it just smells funny...
