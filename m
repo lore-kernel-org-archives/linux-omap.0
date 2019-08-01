@@ -1,160 +1,128 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 1/6] dt-bindings: irqchip: Add PRUSS interrupt controller bindings
-Date: Wed, 31 Jul 2019 17:41:44 -0500
-Message-ID: <20190731224149.11153-2-s-anna@ti.com>
-References: <20190731224149.11153-1-s-anna@ti.com>
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 1/3] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Thu,  1 Aug 2019 03:28:21 +0200
+Message-ID: <20190801012823.28730-2-neolynx@gmail.com>
+References: <20190801012823.28730-1-neolynx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190731224149.11153-1-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <maz@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
-Cc: Rob Herring <robh+dt@kernel.org>, David Lechner <david@lechnology.com>, Tony Lindgren <tony@atomide.com>, "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sekhar Nori <nsekhar@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>, Rob Herring <robh@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190801012823.28730-1-neolynx@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>, Thara Gopinath <thara@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The Programmable Real-Time Unit Subsystem (PRUSS) contains an interrupt
-controller (INTC) that can handle various system input events and post
-interrupts back to the device-level initiators. The INTC can support
-upto 64 input events on most SoCs with individual control configuration
-and hardware prioritization. These events are mapped onto 10 output
-interrupt lines through two levels of many-to-one mapping support.
-Different interrupt lines are routed to the individual PRU cores or
-to the host CPU or to other PRUSS instances.
+From: Thara Gopinath <thara@ti.com>
 
-The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
-commonly called ICSSG. The ICSSG interrupt controller on K3 SoCs provide
-a higher number of host interrupts (20 vs 10) and can handle an increased
-number of input events (160 vs 64) from various SoC interrupt sources.
+Voltage control on TWL can be done using VMODE/I2C1/I2C_SR.
+Since almost all platforms use I2C_SR on omap3, omap3_twl_init by
+default expects that OMAP's I2C_SR is plugged in to TWL's I2C
+and calls omap3_twl_set_sr_bit. On platforms where I2C_SR is not connected,
+the board files are expected to call omap3_twl_set_sr_bit(false) to
+ensure that I2C_SR path is not set for voltage control and prevent
+the default behavior of omap3_twl_init.
 
-Add the bindings document for these interrupt controllers on all the
-applicable SoCs. It covers the OMAP architecture SoCs - AM33xx, AM437x
-and AM57xx; the Keystone 2 architecture based 66AK2G SoC; the Davinci
-architecture based OMAPL138 SoCs, and the K3 architecture based AM65x
-and J721E SoCs.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
-v2:
- - Updated the interrupt-names from "hostX" to "host_intrX" and updated
-   example accordingly
- - Updated the description for interrupts property
- - Used generic interrupt controller in descriptions rather than GIC
- - Added some clarifications about interrupt names to PRUSS INTC output
-   interrupts
- - Picked up Rob's reviewed-by
-v1: https://patchwork.kernel.org/patch/11034567/
+ arch/arm/mach-omap2/omap_twl.c | 60 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
 
- .../interrupt-controller/ti,pruss-intc.txt    | 98 +++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
-
-diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
-new file mode 100644
-index 000000000000..17c7b49a7f2e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.txt
-@@ -0,0 +1,98 @@
-+PRU ICSS INTC on TI SoCs
-+========================
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 6787f1e72c6b..1dae906128c2 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -43,8 +43,15 @@
+ 
+ static bool is_offset_valid;
+ static u8 smps_offset;
++/*
++ * Flag to ensure Smartreflex bit in TWL
++ * being cleared in board file is not overwritten.
++ */
++static bool __initdata twl_sr_enable_autoinit;
+ 
++#define TWL4030_DCDC_GLOBAL_CFG        0x06
+ #define REG_SMPS_OFFSET         0xE0
++#define SMARTREFLEX_ENABLE     BIT(3)
+ 
+ static unsigned long twl4030_vsel_to_uv(const u8 vsel)
+ {
+@@ -241,6 +248,18 @@ int __init omap3_twl_init(void)
+ 	if (!cpu_is_omap34xx())
+ 		return -ENODEV;
+ 
++	/*
++	 * The smartreflex bit on twl4030 specifies if the setting of voltage
++	 * is done over the I2C_SR path. Since this setting is independent of
++	 * the actual usage of smartreflex AVS module, we enable TWL SR bit
++	 * by default irrespective of whether smartreflex AVS module is enabled
++	 * on the OMAP side or not. This is because without this bit enabled,
++	 * the voltage scaling through vp forceupdate/bypass mechanism of
++	 * voltage scaling will not function on TWL over I2C_SR.
++	 */
++	if (!twl_sr_enable_autoinit)
++		omap3_twl_set_sr_bit(true);
 +
-+Each PRUSS has a single interrupt controller instance that is common to both
-+the PRU cores. Most interrupt controllers can route 64 input events which are
-+then mapped to 10 possible output interrupts through two levels of mapping.
-+The input events can be triggered by either the PRUs and/or various other PRUSS
-+internal and external peripherals. The first 2 output interrupts (0 & 1) are
-+fed exclusively to the internal PRU cores, with the remaining 8 (2 through 9)
-+connected to external interrupt controllers including the MPU and/or other
-+PRUSS instances, DSPs or devices.
+ 	voltdm = voltdm_lookup("mpu_iva");
+ 	omap_voltage_register_pmic(voltdm, &omap3_mpu_pmic);
+ 
+@@ -249,3 +268,44 @@ int __init omap3_twl_init(void)
+ 
+ 	return 0;
+ }
 +
-+The K3 family of SoCs can handle 160 input events that can be mapped to 20
-+different possible output interrupts. The additional output interrupts (10
-+through 19) are connected to new sub-modules within the ICSSG instances.
++/**
++ * omap3_twl_set_sr_bit() - Set/Clear SR bit on TWL
++ * @enable: enable SR mode in twl or not
++ *
++ * If 'enable' is true, enables Smartreflex bit on TWL 4030 to make sure
++ * voltage scaling through OMAP SR works. Else, the smartreflex bit
++ * on twl4030 is cleared as there are platforms which use OMAP3 and T2 but
++ * use Synchronized Scaling Hardware Strategy (ENABLE_VMODE=1) and Direct
++ * Strategy Software Scaling Mode (ENABLE_VMODE=0), for setting the voltages,
++ * in those scenarios this bit is to be cleared (enable = false).
++ *
++ * Returns 0 on sucess, error is returned if I2C read/write fails.
++ */
++int __init omap3_twl_set_sr_bit(bool enable)
++{
++	u8 temp;
++	int ret;
++	if (twl_sr_enable_autoinit)
++		pr_warning("%s: unexpected multiple calls\n", __func__);
 +
-+This interrupt-controller node should be defined as a child node of the
-+corresponding PRUSS node. The node should be named "interrupt-controller".
-+Please see the overall PRUSS bindings document for additional details
-+including a complete example,
-+    Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
++	ret = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &temp,
++					TWL4030_DCDC_GLOBAL_CFG);
++	if (ret)
++		goto err;
 +
-+Required Properties:
-+--------------------
-+- compatible           : should be one of the following,
-+                             "ti,pruss-intc" for OMAP-L13x/AM18x/DA850 SoCs,
-+                                                 AM335x family of SoCs,
-+                                                 AM437x family of SoCs,
-+                                                 AM57xx family of SoCs
-+                                                 66AK2G family of SoCs
-+                             "ti,icssg-intc" for K3 AM65x & J721E family of SoCs
-+- reg                  : base address and size for the PRUSS INTC sub-module
-+- interrupts           : all the interrupts generated towards the main host
-+                         processor in the SoC. The format depends on the
-+                         interrupt specifier for the particular SoC's Arm
-+                         parent interrupt controller. A shared interrupt can
-+                         be skipped if the desired destination and usage is by
-+                         a different processor/device.
-+- interrupt-names      : should use one of the following names for each valid
-+                         host event interrupt connected to Arm interrupt
-+                         controller, the name should match the corresponding
-+                         host event interrupt number,
-+                             "host_intr0", "host_intr1", "host_intr2",
-+                             "host_intr3", "host_intr4", "host_intr5",
-+                             "host_intr6" or "host_intr7"
-+- interrupt-controller : mark this node as an interrupt controller
-+- #interrupt-cells     : should be 1. Client users shall use the PRU System
-+                         event number (the interrupt source that the client
-+                         is interested in) as the value of the interrupts
-+                         property in their node
++	if (enable)
++		temp |= SMARTREFLEX_ENABLE;
++	else
++		temp &= ~SMARTREFLEX_ENABLE;
 +
-+Optional Properties:
-+--------------------
-+The following properties are _required_ only for some SoCs. If none of the below
-+properties are defined, it implies that all the PRUSS INTC output interrupts 2
-+through 9 (host_intr0 through host_intr7) are connected exclusively to the
-+Arm interrupt controller.
-+
-+- ti,irqs-reserved     : an array of 8-bit elements of host interrupts between
-+                         0 and 7 (corresponding to PRUSS INTC output interrupts
-+                         2 through 9) that are not connected to the Arm
-+                         interrupt controller.
-+                           Eg: AM437x and 66AK2G SoCs do not have "host_intr5"
-+                               interrupt connected to MPU
-+- ti,irqs-shared       : an array of 8-bit elements of host interrupts between
-+                         0 and 7 (corresponding to PRUSS INTC output interrupts
-+                         2 through 9) that are also connected to other devices
-+                         or processors in the SoC.
-+                           Eg: AM65x and J721E SoCs have "host_intr5",
-+                               "host_intr6" and "host_intr7" interrupts
-+                               connected to MPU, and other ICSSG instances
-+
-+
-+Example:
-+--------
-+
-+1.	/* AM33xx PRU-ICSS */
-+	pruss: pruss@0 {
-+		compatible = "ti,am3356-pruss";
-+		reg = <0x0 0x80000>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+		...
-+
-+		pruss_intc: interrupt-controller@20000 {
-+			compatible = "ti,pruss-intc";
-+			reg = <0x20000 0x2000>;
-+			interrupts = <20 21 22 23 24 25 26 27>;
-+			interrupt-names = "host_intr0", "host_intr1",
-+					  "host_intr2", "host_intr3",
-+					  "host_intr4", "host_intr5",
-+					  "host_intr6", "host_intr7";
-+			interrupt-controller;
-+			#interrupt-cells = <1>;
-+			ti,irqs-shared = /bits/ 8 <0 6 7>;
-+		};
-+	};
++	ret = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, temp,
++				TWL4030_DCDC_GLOBAL_CFG);
++	if (!ret) {
++		twl_sr_enable_autoinit = true;
++		return 0;
++	}
++err:
++	pr_err("%s: Error access to TWL4030 (%d)\n", __func__, ret);
++	return ret;
++}
 -- 
-2.22.0
+2.17.1
