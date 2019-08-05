@@ -1,76 +1,56 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] video: fbdev: omapfb_main: Mark expected switch
- fall-throughs
-Date: Fri, 2 Aug 2019 19:12:22 -0700
-Message-ID: <201908021912.0D14906FF9@keescook>
-References: <20190802191542.GA32751@embeddedor>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/2] DTS: ARM: gta04: introduce legacy spi-cs-high to make
+ display work again
+Date: Mon, 5 Aug 2019 12:29:19 +0200
+Message-ID: <CACRpkdY0AVnkRa8sV_Z54qfX9SYufvaYYhU0k2+LitXo0sLx2w@mail.gmail.com>
+References: <cover.1562597164.git.hns@goldelico.com> <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
+ <20190724194259.GA25847@bogus> <2EA06398-E45B-481B-9A26-4DD2E043BF9C@goldelico.com>
+ <CAL_JsqLe_Y9Z6MRt7ojgSVKAb9n95S8j=eGidSVNz2T83j-zPQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190802191542.GA32751@embeddedor>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAL_JsqLe_Y9Z6MRt7ojgSVKAb9n95S8j=eGidSVNz2T83j-zPQ@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-spi <linux-spi@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBBdWcgMDIsIDIwMTkgYXQgMDI6MTU6NDJQTSAtMDUwMCwgR3VzdGF2byBBLiBSLiBT
-aWx2YSB3cm90ZToKPiBNYXJrIHN3aXRjaCBjYXNlcyB3aGVyZSB3ZSBhcmUgZXhwZWN0aW5nIHRv
-IGZhbGwgdGhyb3VnaC4KPiAKPiBUaGlzIHBhdGNoIGZpeGVzIHRoZSBmb2xsb3dpbmcgd2Fybmlu
-ZyAoQnVpbGRpbmc6IG9tYXAxX2RlZmNvbmZpZyBhcm0pOgo+IAo+IGRyaXZlcnMvdmlkZW8vZmJk
-ZXYvb21hcC9vbWFwZmJfbWFpbi5jOjQ0OToyMzogd2FybmluZzogdGhpcyBzdGF0ZW1lbnQgbWF5
-IGZhbGwgdGhyb3VnaCBbLVdpbXBsaWNpdC1mYWxsdGhyb3VnaD1dCj4gZHJpdmVycy92aWRlby9m
-YmRldi9vbWFwL29tYXBmYl9tYWluLmM6MTU0OTo2OiB3YXJuaW5nOiB0aGlzIHN0YXRlbWVudCBt
-YXkgZmFsbCB0aHJvdWdoIFstV2ltcGxpY2l0LWZhbGx0aHJvdWdoPV0KPiBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L29tYXAvb21hcGZiX21haW4uYzoxNTQ3OjM6IHdhcm5pbmc6IHRoaXMgc3RhdGVtZW50
-IG1heSBmYWxsIHRocm91Z2ggWy1XaW1wbGljaXQtZmFsbHRocm91Z2g9XQo+IGRyaXZlcnMvdmlk
-ZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jOjE1NDU6Mzogd2FybmluZzogdGhpcyBzdGF0ZW1l
-bnQgbWF5IGZhbGwgdGhyb3VnaCBbLVdpbXBsaWNpdC1mYWxsdGhyb3VnaD1dCj4gZHJpdmVycy92
-aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmM6MTU0MzozOiB3YXJuaW5nOiB0aGlzIHN0YXRl
-bWVudCBtYXkgZmFsbCB0aHJvdWdoIFstV2ltcGxpY2l0LWZhbGx0aHJvdWdoPV0KPiBkcml2ZXJz
-L3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21haW4uYzoxNTQwOjY6IHdhcm5pbmc6IHRoaXMgc3Rh
-dGVtZW50IG1heSBmYWxsIHRocm91Z2ggWy1XaW1wbGljaXQtZmFsbHRocm91Z2g9XQo+IGRyaXZl
-cnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jOjE1Mzg6Mzogd2FybmluZzogdGhpcyBz
-dGF0ZW1lbnQgbWF5IGZhbGwgdGhyb3VnaCBbLVdpbXBsaWNpdC1mYWxsdGhyb3VnaD1dCj4gZHJp
-dmVycy92aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmM6MTUzNTozOiB3YXJuaW5nOiB0aGlz
-IHN0YXRlbWVudCBtYXkgZmFsbCB0aHJvdWdoIFstV2ltcGxpY2l0LWZhbGx0aHJvdWdoPV0KPiAK
-PiBTaWduZWQtb2ZmLWJ5OiBHdXN0YXZvIEEuIFIuIFNpbHZhIDxndXN0YXZvQGVtYmVkZGVkb3Iu
-Y29tPgoKUmV2aWV3ZWQtYnk6IEtlZXMgQ29vayA8a2Vlc2Nvb2tAY2hyb21pdW0ub3JnPgoKLUtl
-ZXMKCj4gLS0tCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jIHwgOCAr
-KysrKysrKwo+ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jIGIvZHJpdmVycy92aWRl
-by9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMKPiBpbmRleCA5MGVjYTY0ZTMxNDQuLjcwMmNjYTU5
-YmRhMSAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21haW4u
-Ywo+ICsrKyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jCj4gQEAgLTQ0
-Nyw2ICs0NDcsNyBAQCBzdGF0aWMgaW50IHNldF9jb2xvcl9tb2RlKHN0cnVjdCBvbWFwZmJfcGxh
-bmVfc3RydWN0ICpwbGFuZSwKPiAgCQlyZXR1cm4gMDsKPiAgCWNhc2UgMTI6Cj4gIAkJdmFyLT5i
-aXRzX3Blcl9waXhlbCA9IDE2Owo+ICsJCS8qIGZhbGwgdGhyb3VnaCAqLwo+ICAJY2FzZSAxNjoK
-PiAgCQlpZiAocGxhbmUtPmZiZGV2LT5wYW5lbC0+YnBwID09IDEyKQo+ICAJCQlwbGFuZS0+Y29s
-b3JfbW9kZSA9IE9NQVBGQl9DT0xPUl9SR0I0NDQ7Cj4gQEAgLTE1MzQsMjAgKzE1MzUsMjcgQEAg
-c3RhdGljIHZvaWQgb21hcGZiX2ZyZWVfcmVzb3VyY2VzKHN0cnVjdCBvbWFwZmJfZGV2aWNlICpm
-YmRldiwgaW50IHN0YXRlKQo+ICAJY2FzZSBPTUFQRkJfQUNUSVZFOgo+ICAJCWZvciAoaSA9IDA7
-IGkgPCBmYmRldi0+bWVtX2Rlc2MucmVnaW9uX2NudDsgaSsrKQo+ICAJCQl1bnJlZ2lzdGVyX2Zy
-YW1lYnVmZmVyKGZiZGV2LT5mYl9pbmZvW2ldKTsKPiArCQkvKiBmYWxsIHRocm91Z2ggKi8KPiAg
-CWNhc2UgNzoKPiAgCQlvbWFwZmJfdW5yZWdpc3Rlcl9zeXNmcyhmYmRldik7Cj4gKwkJLyogZmFs
-bCB0aHJvdWdoICovCj4gIAljYXNlIDY6Cj4gIAkJaWYgKGZiZGV2LT5wYW5lbC0+ZGlzYWJsZSkK
-PiAgCQkJZmJkZXYtPnBhbmVsLT5kaXNhYmxlKGZiZGV2LT5wYW5lbCk7Cj4gKwkJLyogZmFsbCB0
-aHJvdWdoICovCj4gIAljYXNlIDU6Cj4gIAkJb21hcGZiX3NldF91cGRhdGVfbW9kZShmYmRldiwg
-T01BUEZCX1VQREFURV9ESVNBQkxFRCk7Cj4gKwkJLyogZmFsbCB0aHJvdWdoICovCj4gIAljYXNl
-IDQ6Cj4gIAkJcGxhbmVzX2NsZWFudXAoZmJkZXYpOwo+ICsJCS8qIGZhbGwgdGhyb3VnaCAqLwo+
-ICAJY2FzZSAzOgo+ICAJCWN0cmxfY2xlYW51cChmYmRldik7Cj4gKwkJLyogZmFsbCB0aHJvdWdo
-ICovCj4gIAljYXNlIDI6Cj4gIAkJaWYgKGZiZGV2LT5wYW5lbC0+Y2xlYW51cCkKPiAgCQkJZmJk
-ZXYtPnBhbmVsLT5jbGVhbnVwKGZiZGV2LT5wYW5lbCk7Cj4gKwkJLyogZmFsbCB0aHJvdWdoICov
-Cj4gIAljYXNlIDE6Cj4gIAkJZGV2X3NldF9kcnZkYXRhKGZiZGV2LT5kZXYsIE5VTEwpOwo+ICAJ
-CWtmcmVlKGZiZGV2KTsKPiAtLSAKPiAyLjIyLjAKPiAKCi0tIApLZWVzIENvb2sKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
-bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+On Fri, Jul 26, 2019 at 12:43 AM Rob Herring <robh@kernel.org> wrote:
+> On Thu, Jul 25, 2019 at 12:23 AM H. Nikolaus Schaller <hns@goldelico.com> wrote:
+
+> > I tried to convince Linus that this is the right way but he convinced
+> > me that a fix that handles all cases does not exist.
+> >
+> > There seem to be embedded devices with older DTB (potentially in ROM)
+> > which provide a plain 0 value for a gpios definition. And either with
+> > or without spi-cs-high.
+> >
+> > Since "0" is the same as "GPIO_ACTIVE_HIGH", the absence of
+> > spi-cs-high was and must be interpreted as active low for these
+> > devices. This leads to the inversion logic in code.
+> >
+> > AFAIR it boils down to the question if gpiolib and the bindings
+> > should still support such legacy devices with out-of tree DTB,
+> > but force in-tree DTS to add the legacy spi-cs-high property.
+> >
+> > Or if we should fix the 2 or 3 cases of in-tree legacy cases
+> > and potentially break out-of tree DTBs.
+>
+> If it is small number of platforms, then the kernel could handle those
+> cases explicitly as needed.
+>
+> > IMHO it is more general to keep the out-of-tree DTBs working
+> > and "fix" what we can control (in-tree DTS).
+>
+> If we do this, then we need to not call spi-cs-high legacy because
+> we're stuck with it forever.
+
+I agree. The background on it is here:
+https://lkml.org/lkml/2019/4/2/4
+
+Not using the negatively defined (i.e. if it is no there, the line is
+by default active low) spi-cs-high would break
+PowerPC, who were AFAICT using this to ship devices.
+
+Yours,
+Linus Walleij
