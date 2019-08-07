@@ -1,7 +1,7 @@
 From: David Lechner <david@lechnology.com>
-Subject: [PATCH v2 5/5] ARM: dts: am335x-boneblue: Enable eQEP
-Date: Wed,  7 Aug 2019 14:40:23 -0500
-Message-ID: <20190807194023.15318-6-david@lechnology.com>
+Subject: [PATCH v2 2/5] dt-bindings: counter: new bindings for TI eQEP
+Date: Wed,  7 Aug 2019 14:40:20 -0500
+Message-ID: <20190807194023.15318-3-david@lechnology.com>
 References: <20190807194023.15318-1-david@lechnology.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190807194023.15318-1-david@lechnology.com>
@@ -10,86 +10,75 @@ To: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: David Lechner <david@lechnology.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This enables the Enhanced Quadrature Encoder Pulse (eQEP) module for
-connectors E1, E2 and E3 on BeagleBone Blue.
+This documents device tree binding for the Texas Instruments Enhanced
+Quadrature Encoder Pulse (eQEP) Module found in various TI SoCs.
 
 Signed-off-by: David Lechner <david@lechnology.com>
 ---
 
 v2 changes:
-- none
+- convert to .yaml format
+- rename clock to "sysclkout"
 
- arch/arm/boot/dts/am335x-boneblue.dts | 54 +++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ .../devicetree/bindings/counter/ti-eqep.yaml  | 50 +++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/counter/ti-eqep.yaml
 
-diff --git a/arch/arm/boot/dts/am335x-boneblue.dts b/arch/arm/boot/dts/am335x-boneblue.dts
-index 0257576d5d16..df3978ce061c 100644
---- a/arch/arm/boot/dts/am335x-boneblue.dts
-+++ b/arch/arm/boot/dts/am335x-boneblue.dts
-@@ -258,6 +258,30 @@
- 			AM33XX_PADCONF(AM335X_PIN_MII1_RXD0, PIN_OUTPUT, MUX_MODE7)		/* (M16) gmii1_rxd0.gpio2[21] */
- 		>;
- 	};
+diff --git a/Documentation/devicetree/bindings/counter/ti-eqep.yaml b/Documentation/devicetree/bindings/counter/ti-eqep.yaml
+new file mode 100644
+index 000000000000..8f8b2e87e5c3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/counter/ti-eqep.yaml
+@@ -0,0 +1,50 @@
++# SPDX-License-Identifier: GPL-2.0
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/counter/ti-eqep.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+	/* E1 */
-+	eqep0_pins: pinmux_eqep0_pins {
-+		pinctrl-single,pins = <
-+			AM33XX_PADCONF(AM335X_PIN_MCASP0_AXR0, PIN_INPUT, MUX_MODE1)		/* (B12) mcasp0_aclkr.eQEP0A_in */
-+			AM33XX_PADCONF(AM335X_PIN_MCASP0_FSR, PIN_INPUT, MUX_MODE1)		/* (C13) mcasp0_fsr.eQEP0B_in */
-+		>;
-+	};
++title: Texas Instruments Enhanced Quadrature Encoder Pulse (eQEP) Module
 +
-+	/* E2 */
-+	eqep1_pins: pinmux_eqep1_pins {
-+		pinctrl-single,pins = <
-+			AM33XX_PADCONF(AM335X_PIN_LCD_DATA12, PIN_INPUT, MUX_MODE2)		/* (V2) lcd_data12.eQEP1A_in */
-+			AM33XX_PADCONF(AM335X_PIN_LCD_DATA13, PIN_INPUT, MUX_MODE2)		/* (V3) lcd_data13.eQEP1B_in */
-+		>;
-+	};
++maintainers:
++  - David Lechner <david@lechnology.com>
 +
-+	/* E3 */
-+	eqep2_pins: pinmux_eqep2_pins {
-+		pinctrl-single,pins = <
-+			AM33XX_PADCONF(AM335X_PIN_GPMC_AD12, PIN_INPUT, MUX_MODE4)		/* (T12) gpmc_ad12.eQEP2A_in */
-+			AM33XX_PADCONF(AM335X_PIN_GPMC_AD13, PIN_INPUT, MUX_MODE4)		/* (R12) gpmc_ad13.eQEP2B_in */
-+		>;
-+	};
- };
- 
- &uart0 {
-@@ -530,3 +554,33 @@
- 		line-name = "LS_BUF_EN";
- 	};
- };
++properties:
++  compatible:
++    const: "ti,am3352-eqep"
 +
-+&epwmss0 {
-+	status = "okay";
-+};
++  reg:
++    maxItems: 1
 +
-+&eqep0 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&eqep0_pins>;
-+};
++  interrupts:
++    description: The eQEP event interrupt
++    maxItems: 1
 +
-+&epwmss1 {
-+	status = "okay";
-+};
++  clocks:
++    description: The clock that determines the SYSCLKOUT rate for the eQEP
++                 peripheral.
++    maxItems: 1
 +
-+&eqep1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&eqep1_pins>;
-+};
++  clock-names:
++    const: sysclkout
 +
-+&epwmss2 {
-+	status = "okay";
-+};
++required:
++  - compatible
++  - reg
++  - interrupts
++  - clocks
++  - clock-names
 +
-+&eqep2 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&eqep2_pins>;
-+};
++additionalProperties: false
++
++examples:
++  - |
++    eqep0: eqep@180 {
++        compatible = "ti,am3352-eqep";
++        reg = <0x180 0x80>;
++        clocks = <&l4ls_gclk>;
++        clock-names = "sysclkout";
++        interrupts = <79>;
++    };
++
++...
 -- 
 2.17.1
