@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 7/8] soc: ti: omap-prm: add dra7 PRM data
-Date: Wed, 7 Aug 2019 10:48:58 +0300
-Message-ID: <1565164139-21886-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 8/8] ARM: OMAP2+: pdata-quirks: add PRM data for reset support
+Date: Wed, 7 Aug 2019 10:48:59 +0300
+Message-ID: <1565164139-21886-9-git-send-email-t-kristo@ti.com>
 References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,57 +21,50 @@ To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.k
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM data for dra7 family of SoCs.
+The parent clockdomain for reset must be in force wakeup mode, otherwise
+the reset may never complete. Add pdata quirks for this purpose for PRM
+driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/soc/ti/omap_prm.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ arch/arm/mach-omap2/pdata-quirks.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index fadfc7f..05b7749 100644
---- a/drivers/soc/ti/omap_prm.c
-+++ b/drivers/soc/ti/omap_prm.c
-@@ -73,6 +73,31 @@ struct omap_prm_data omap4_prm_data[] = {
- 	{ },
- };
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 6c6f8fc..87e2457 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -25,6 +25,7 @@
+ #include <linux/platform_data/ti-sysc.h>
+ #include <linux/platform_data/wkup_m3.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
++#include <linux/platform_data/ti-prm.h>
  
-+static struct omap_prm_data dra7_prm_data[] = {
-+	{ .name = "mpu", .base = 0x4ae06300, .pwstst = 0x4 },
-+	{ .name = "dsp1", .base = 0x4ae06400, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-+	{ .name = "ipu", .base = 0x4ae06500, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14, .clkdm_name = "ipu1" },
-+	{ .name = "coreaon", .base = 0x4ae06628, .pwstst = 0x4 },
-+	{ .name = "core", .base = 0x4ae06700, .pwstst = 0x4, .rstctl = 0x210, .rstst = 0x214, .clkdm_name = "ipu2" },
-+	{ .name = "iva", .base = 0x4ae06f00, .pwstst = 0x4 },
-+	{ .name = "cam", .base = 0x4ae07000, .pwstst = 0x4 },
-+	{ .name = "dss", .base = 0x4ae07100, .pwstst = 0x4 },
-+	{ .name = "gpu", .base = 0x4ae07200, .pwstst = 0x4 },
-+	{ .name = "l3init", .base = 0x4ae07300, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-+	{ .name = "l4per", .base = 0x4ae07400, .pwstst = 0x4 },
-+	{ .name = "custefuse", .base = 0x4ae07600, .pwstst = 0x4 },
-+	{ .name = "wkupaon", .base = 0x4ae07724, .pwstst = 0x4 },
-+	{ .name = "emu", .base = 0x4ae07900, .pwstst = 0x4 },
-+	{ .name = "dsp2", .base = 0x4ae07b00, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-+	{ .name = "eve1", .base = 0x4ae07b40, .pwstst = 0x4 },
-+	{ .name = "eve2", .base = 0x4ae07b80, .pwstst = 0x4 },
-+	{ .name = "eve3", .base = 0x4ae07bc0, .pwstst = 0x4 },
-+	{ .name = "eve4", .base = 0x4ae07c00, .pwstst = 0x4 },
-+	{ .name = "rtc", .base = 0x4ae07c60, .pwstst = 0x4 },
-+	{ .name = "vpe", .base = 0x4ae07c80, .pwstst = 0x4 },
-+	{ },
+ #include "clockdomain.h"
+ #include "common.h"
+@@ -565,6 +566,12 @@ void omap_pcs_legacy_init(int irq, void (*rearm)(void))
+ 	pcs_pdata.rearm = rearm;
+ }
+ 
++static struct ti_prm_platform_data ti_prm_pdata = {
++	.clkdm_deny_idle = clkdm_deny_idle,
++	.clkdm_allow_idle = clkdm_allow_idle,
++	.clkdm_lookup = clkdm_lookup,
 +};
 +
- struct omap_rst_map am3_wkup_rst_map[] = {
- 	{ .rst = 3, .st = 5 },
- 	{ .rst = -1 },
-@@ -91,6 +116,7 @@ struct omap_prm_data am3_prm_data[] = {
- 
- static const struct of_device_id omap_prm_id_table[] = {
- 	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
-+	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
- 	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
- 	{ },
+ /*
+  * GPIOs for TWL are initialized by the I2C bus and need custom
+  * handing until DSS has device tree bindings.
+@@ -664,6 +671,9 @@ static void __init omap3_mcbsp_init(void) {}
+ 	/* Common auxdata */
+ 	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
+ 	OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
++	OF_DEV_AUXDATA("ti,omap4-prm-inst", 0, NULL, &ti_prm_pdata),
++	OF_DEV_AUXDATA("ti,dra7-prm-inst", 0, NULL, &ti_prm_pdata),
++	OF_DEV_AUXDATA("ti,am3-prm-inst", 0, NULL, &ti_prm_pdata),
+ 	{ /* sentinel */ },
  };
+ 
 -- 
 1.9.1
 
