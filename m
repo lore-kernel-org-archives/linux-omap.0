@@ -1,8 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP2+: Add workaround for DRA7 DSP MStandby errata
- i879
-Date: Wed, 7 Aug 2019 12:44:40 +0300
-Message-ID: <1565171081-7899-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 3/3] ARM: OMAP2+: omap-iommu.c conversion to ti-sysc
+Date: Wed, 7 Aug 2019 12:44:41 +0300
+Message-ID: <1565171081-7899-4-git-send-email-t-kristo@ti.com>
 References: <1565171081-7899-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,118 +21,153 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+Convert omap2 iommu platform code to use ti-sysc instead of legacy
+omap-device / hwmod interfaces.
 
-Errata Title:
-i879: DSP MStandby requires CD_EMU in SW_WKUP
-
-Description:
-The DSP requires the internal emulation clock to be actively toggling
-in order to successfully enter a low power mode via execution of the
-IDLE instruction and PRCM MStandby/Idle handshake. This assumes that
-other prerequisites and software sequence are followed.
-
-Workaround:
-The emulation clock to the DSP is free-running anytime CCS is connected
-via JTAG debugger to the DSP subsystem or when the CD_EMU clock domain
-is set in SW_WKUP mode. The CD_EMU domain can be set in SW_WKUP mode
-via the CM_EMU_CLKSTCTRL [1:0]CLKTRCTRL field.
-
-Implementation:
-This patch implements this workaround by denying the HW_AUTO mode
-for the EMU clockdomain during the power-up of any DSP processor
-and re-enabling the HW_AUTO mode during the shutdown of the last
-DSP processor (actually done during the enabling and disabling of
-the respective DSP MDMA MMUs). Reference counting has to be used to
-manage the independent sequencing between the multiple DSP processors.
-
-This switching is done at runtime rather than a static clockdomain
-flags value to meet the target power domain state for the EMU power
-domain during suspend.
-
-Note that the DSP MStandby behavior is not consistent across all
-boards prior to this fix. Please see commit 45f871eec6c0 ("ARM:
-OMAP2+: Extend DRA7 IPU1 MMU pdata quirks to DSP MDMA MMUs") for
-details.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap-iommu.c | 43 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 40 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap-iommu.c | 99 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 80 insertions(+), 19 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index 1392a5b..8f6b6b8 100644
+index 8f6b6b8..f8cbf6b 100644
 --- a/arch/arm/mach-omap2/omap-iommu.c
 +++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -19,14 +19,43 @@
+@@ -16,19 +16,27 @@
  
- #include "omap_hwmod.h"
- #include "omap_device.h"
-+#include "clockdomain.h"
+ #include <linux/platform_device.h>
+ #include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/list.h>
+ 
+-#include "omap_hwmod.h"
+-#include "omap_device.h"
+ #include "clockdomain.h"
  #include "powerdomain.h"
  
-+static void omap_iommu_dra7_emu_swsup_config(struct platform_device *pdev,
-+					     bool enable)
-+{
-+	static struct clockdomain *emu_clkdm;
-+	static DEFINE_SPINLOCK(emu_lock);
-+	static atomic_t count;
-+	struct device_node *np = pdev->dev.of_node;
++struct pwrdm_link {
++	struct device *dev;
++	struct powerdomain *pwrdm;
++	struct list_head node;
++};
 +
-+	if (!of_device_is_compatible(np, "ti,dra7-dsp-iommu"))
-+		return;
++static DEFINE_SPINLOCK(iommu_lock);
++static struct clockdomain *emu_clkdm;
++static atomic_t emu_count;
 +
-+	if (!emu_clkdm) {
-+		emu_clkdm = clkdm_lookup("emu_clkdm");
-+		if (WARN_ON_ONCE(!emu_clkdm))
-+			return;
-+	}
-+
-+	spin_lock(&emu_lock);
-+
-+	if (enable && (atomic_inc_return(&count) == 1))
-+		clkdm_deny_idle(emu_clkdm);
-+	else if (!enable && (atomic_dec_return(&count) == 0))
-+		clkdm_allow_idle(emu_clkdm);
-+
-+	spin_unlock(&emu_lock);
+ static void omap_iommu_dra7_emu_swsup_config(struct platform_device *pdev,
+ 					     bool enable)
+ {
+-	static struct clockdomain *emu_clkdm;
+-	static DEFINE_SPINLOCK(emu_lock);
+-	static atomic_t count;
+ 	struct device_node *np = pdev->dev.of_node;
++	unsigned long flags;
+ 
+ 	if (!of_device_is_compatible(np, "ti,dra7-dsp-iommu"))
+ 		return;
+@@ -39,34 +47,87 @@ static void omap_iommu_dra7_emu_swsup_config(struct platform_device *pdev,
+ 			return;
+ 	}
+ 
+-	spin_lock(&emu_lock);
++	spin_lock_irqsave(&iommu_lock, flags);
+ 
+-	if (enable && (atomic_inc_return(&count) == 1))
++	if (enable && (atomic_inc_return(&emu_count) == 1))
+ 		clkdm_deny_idle(emu_clkdm);
+-	else if (!enable && (atomic_dec_return(&count) == 0))
++	else if (!enable && (atomic_dec_return(&emu_count) == 0))
+ 		clkdm_allow_idle(emu_clkdm);
+ 
+-	spin_unlock(&emu_lock);
++	spin_unlock_irqrestore(&iommu_lock, flags);
 +}
 +
++static struct powerdomain *_get_pwrdm(struct device *dev)
++{
++	struct clk *clk;
++	struct clk_hw_omap *hwclk;
++	struct clockdomain *clkdm;
++	struct powerdomain *pwrdm = NULL;
++	struct pwrdm_link *entry;
++	unsigned long flags;
++	static LIST_HEAD(cache);
++
++	spin_lock_irqsave(&iommu_lock, flags);
++
++	list_for_each_entry(entry, &cache, node) {
++		if (entry->dev == dev) {
++			pwrdm = entry->pwrdm;
++			break;
++		}
++	}
++
++	spin_unlock_irqrestore(&iommu_lock, flags);
++
++	if (pwrdm)
++		return pwrdm;
++
++	clk = of_clk_get(dev->of_node->parent, 0);
++	if (!clk) {
++		dev_err(dev, "no fck found\n");
++		return NULL;
++	}
++
++	hwclk = to_clk_hw_omap(__clk_get_hw(clk));
++	clk_put(clk);
++	if (!hwclk || !hwclk->clkdm_name) {
++		dev_err(dev, "no hwclk data\n");
++		return NULL;
++	}
++
++	clkdm = clkdm_lookup(hwclk->clkdm_name);
++	if (!clkdm) {
++		dev_err(dev, "clkdm not found: %s\n", hwclk->clkdm_name);
++		return NULL;
++	}
++
++	pwrdm = clkdm_get_pwrdm(clkdm);
++	if (!pwrdm) {
++		dev_err(dev, "pwrdm not found: %s\n", clkdm->name);
++		return NULL;
++	}
++
++	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
++	if (entry) {
++		entry->dev = dev;
++		entry->pwrdm = pwrdm;
++		spin_lock_irqsave(&iommu_lock, flags);
++		list_add(&entry->node, &cache);
++		spin_unlock_irqrestore(&iommu_lock, flags);
++	}
++
++	return pwrdm;
+ }
+ 
  int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
  				    u8 *pwrst)
  {
  	struct powerdomain *pwrdm;
- 	struct omap_device *od;
+-	struct omap_device *od;
  	u8 next_pwrst;
-+	int ret = 0;
+ 	int ret = 0;
  
- 	od = to_omap_device(pdev);
- 	if (!od)
-@@ -39,13 +68,21 @@ int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
+-	od = to_omap_device(pdev);
+-	if (!od)
+-		return -ENODEV;
+-
+-	if (od->hwmods_cnt != 1)
+-		return -EINVAL;
+-
+-	pwrdm = omap_hwmod_get_pwrdm(od->hwmods[0]);
++	pwrdm = _get_pwrdm(&pdev->dev);
  	if (!pwrdm)
- 		return -EINVAL;
+-		return -EINVAL;
++		return -ENODEV;
  
--	if (request)
-+	if (request) {
+ 	if (request) {
  		*pwrst = pwrdm_read_next_pwrst(pwrdm);
-+		omap_iommu_dra7_emu_swsup_config(pdev, true);
-+	}
- 
- 	if (*pwrst > PWRDM_POWER_RET)
--		return 0;
-+		goto out;
- 
- 	next_pwrst = request ? PWRDM_POWER_ON : *pwrst;
- 
--	return pwrdm_set_next_pwrst(pwrdm, next_pwrst);
-+	ret = pwrdm_set_next_pwrst(pwrdm, next_pwrst);
-+
-+out:
-+	if (!request)
-+		omap_iommu_dra7_emu_swsup_config(pdev, false);
-+
-+	return ret;
- }
 -- 
 1.9.1
 
