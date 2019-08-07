@@ -1,47 +1,102 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH] kernfs: fix memleak in kernel_ops_readdir()
-Date: Wed, 7 Aug 2019 11:45:18 -0700
-Message-ID: <20190807184518.GP136335@devbig004.ftw2.facebook.com>
-References: <20190805173404.GF136335@devbig004.ftw2.facebook.com>
- <20190807132928.GD5443@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: David Lechner <david@lechnology.com>
+Subject: [PATCH v2 1/5] bus/ti-pwmss: move TI PWMSS driver from PWM to bus subsystem
+Date: Wed,  7 Aug 2019 14:40:19 -0500
+Message-ID: <20190807194023.15318-2-david@lechnology.com>
+References: <20190807194023.15318-1-david@lechnology.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190807132928.GD5443@atomide.com>
+In-Reply-To: <20190807194023.15318-1-david@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, Andrea Arcangeli <aarcange@redhat.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: David Lechner <david@lechnology.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+The TI PWMSS driver is a simple bus driver for providing power
+power management for the PWM peripherals on TI AM33xx SoCs, namely
+eCAP, eHRPWM and eQEP. The eQEP is a counter rather than a PWM, so
+it does not make sense to have the bus driver in the PWM subsystem
+since the PWMSS is not exclusive to PWM devices.
 
-On Wed, Aug 07, 2019 at 06:29:28AM -0700, Tony Lindgren wrote:
-> Hi,
-> 
-> * Tejun Heo <tj@kernel.org> [691231 23:00]:
-> > From: Andrea Arcangeli <aarcange@redhat.com>
-> > 
-> > If getdents64 is killed or hits on segfault, it'll leave cgroups
-> > directories in sysfs pinned leaking memory because the kernfs node
-> > won't be freed on rmdir and the parent neither.
-> 
-> Somehow this causes a regression in Linux next for me where I'm seeing
-> lots of sysfs entries now missing under /sys/bus/platform/devices.
-> 
-> For example, I now only see one .serial entry show up in sysfs.
-> Things work again if I revert commit cc798c83898e ("kernfs: fix memleak
-> inkernel_ops_readdir()"). Any ideas why that would be?
-> 
-> Below is a diff -u of ls /sys/bus/platform/devices for reference
-> showing the missing entries with cc798c83898e.
+Signed-off-by: David Lechner <david@lechnology.com>
+---
 
-Ugh, you're right.  It can get double-put cuz ctx->pos is put by
-release too.  Greg, sorry about the noise but can you please revert
-the patch?  I'll look into why this looked like memory leak from
-slabinfo side.
+v2 changes:
+- new patch
 
-Thanks.
+ drivers/bus/Kconfig                           | 9 +++++++++
+ drivers/bus/Makefile                          | 1 +
+ drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} | 0
+ drivers/pwm/Kconfig                           | 9 ---------
+ drivers/pwm/Makefile                          | 1 -
+ 5 files changed, 10 insertions(+), 10 deletions(-)
+ rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)
 
+diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
+index 1851112ccc29..4eeb15839ce0 100644
+--- a/drivers/bus/Kconfig
++++ b/drivers/bus/Kconfig
+@@ -140,6 +140,15 @@ config TEGRA_GMI
+ 	  Driver for the Tegra Generic Memory Interface bus which can be used
+ 	  to attach devices such as NOR, UART, FPGA and more.
+ 
++config  TI_PWMSS
++	bool
++	default y if (ARCH_OMAP2PLUS) && (PWM_TIECAP || PWM_TIEHRPWM)
++	help
++	  PWM Subsystem driver support for AM33xx SOC.
++
++	  PWM submodules require PWM config space access from submodule
++	  drivers and require common parent driver support.
++
+ config TI_SYSC
+ 	bool "TI sysc interconnect target module driver"
+ 	depends on ARCH_OMAP2PLUS
+diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
+index ca300b1914ce..a2d13cf4a877 100644
+--- a/drivers/bus/Makefile
++++ b/drivers/bus/Makefile
+@@ -26,6 +26,7 @@ obj-$(CONFIG_SUNXI_RSB)		+= sunxi-rsb.o
+ obj-$(CONFIG_SIMPLE_PM_BUS)	+= simple-pm-bus.o
+ obj-$(CONFIG_TEGRA_ACONNECT)	+= tegra-aconnect.o
+ obj-$(CONFIG_TEGRA_GMI)		+= tegra-gmi.o
++obj-$(CONFIG_TI_PWMSS)		+= ti-pwmss.o
+ obj-$(CONFIG_TI_SYSC)		+= ti-sysc.o
+ obj-$(CONFIG_TS_NBUS)		+= ts-nbus.o
+ obj-$(CONFIG_UNIPHIER_SYSTEM_BUS)	+= uniphier-system-bus.o
+diff --git a/drivers/pwm/pwm-tipwmss.c b/drivers/bus/ti-pwmss.c
+similarity index 100%
+rename from drivers/pwm/pwm-tipwmss.c
+rename to drivers/bus/ti-pwmss.c
+diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+index a7e57516959e..300396564769 100644
+--- a/drivers/pwm/Kconfig
++++ b/drivers/pwm/Kconfig
+@@ -497,15 +497,6 @@ config  PWM_TIEHRPWM
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called pwm-tiehrpwm.
+ 
+-config  PWM_TIPWMSS
+-	bool
+-	default y if (ARCH_OMAP2PLUS) && (PWM_TIECAP || PWM_TIEHRPWM)
+-	help
+-	  PWM Subsystem driver support for AM33xx SOC.
+-
+-	  PWM submodules require PWM config space access from submodule
+-	  drivers and require common parent driver support.
+-
+ config PWM_TWL
+ 	tristate "TWL4030/6030 PWM support"
+ 	depends on TWL4030_CORE
+diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
+index 76b555b51887..f67eb6e9294d 100644
+--- a/drivers/pwm/Makefile
++++ b/drivers/pwm/Makefile
+@@ -49,7 +49,6 @@ obj-$(CONFIG_PWM_SUN4I)		+= pwm-sun4i.o
+ obj-$(CONFIG_PWM_TEGRA)		+= pwm-tegra.o
+ obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
+ obj-$(CONFIG_PWM_TIEHRPWM)	+= pwm-tiehrpwm.o
+-obj-$(CONFIG_PWM_TIPWMSS)	+= pwm-tipwmss.o
+ obj-$(CONFIG_PWM_TWL)		+= pwm-twl.o
+ obj-$(CONFIG_PWM_TWL_LED)	+= pwm-twl-led.o
+ obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
 -- 
-tejun
+2.17.1
