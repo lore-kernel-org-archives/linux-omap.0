@@ -1,8 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 4/8] soc: ti: omap-prm: add support for denying idle for reset
- clockdomain
-Date: Wed, 7 Aug 2019 10:48:55 +0300
-Message-ID: <1565164139-21886-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 5/8] soc: ti: omap-prm: add omap4 PRM data
+Date: Wed, 7 Aug 2019 10:48:56 +0300
+Message-ID: <1565164139-21886-6-git-send-email-t-kristo@ti.com>
 References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,150 +21,45 @@ To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.k
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-TI SoCs hardware reset signals require the parent clockdomain to be
-in force wakeup mode while de-asserting the reset, otherwise it may
-never complete. To support this, add pdata hooks to control the
-clockdomain directly.
+Add PRM data for omap4 family of SoCs.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/soc/ti/omap_prm.c            | 32 ++++++++++++++++++++++++++++----
- include/linux/platform_data/ti-prm.h | 21 +++++++++++++++++++++
- 2 files changed, 49 insertions(+), 4 deletions(-)
- create mode 100644 include/linux/platform_data/ti-prm.h
+ drivers/soc/ti/omap_prm.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
 diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index d412af3..870515e3 100644
+index 870515e3..9b8d5945 100644
 --- a/drivers/soc/ti/omap_prm.c
 +++ b/drivers/soc/ti/omap_prm.c
-@@ -16,6 +16,8 @@
- #include <linux/reset-controller.h>
- #include <linux/delay.h>
+@@ -54,7 +54,27 @@ struct omap_reset_data {
  
-+#include <linux/platform_data/ti-prm.h>
-+
- struct omap_rst_map {
- 	s8 rst;
- 	s8 st;
-@@ -24,6 +26,7 @@ struct omap_rst_map {
- struct omap_prm_data {
- 	u32 base;
- 	const char *name;
-+	const char *clkdm_name;
- 	u16 pwstctrl;
- 	u16 pwstst;
- 	u16 rstctl;
-@@ -40,6 +43,8 @@ struct omap_prm {
- struct omap_reset_data {
- 	struct reset_controller_dev rcdev;
- 	struct omap_prm *prm;
-+	struct clockdomain *clkdm;
-+	struct device *dev;
- };
+ #define OMAP_PRM_NO_RSTST	BIT(0)
  
- #define to_omap_reset_data(p) container_of((p), struct omap_reset_data, rcdev)
-@@ -108,6 +113,8 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
- 	int st_bit = id;
- 	bool has_rstst;
- 	int timeout = 0;
-+	struct ti_prm_platform_data *pdata = dev_get_platdata(reset->dev);
-+	int ret = 0;
- 
- 	/* check the current status to avoid de-asserting the line twice */
- 	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctl);
-@@ -125,13 +132,16 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
- 		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
- 	}
- 
-+	if (pdata->clkdm_deny_idle && reset->clkdm)
-+		pdata->clkdm_deny_idle(reset->clkdm);
-+
- 	/* de-assert the reset control line */
- 	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctl);
- 	v &= ~(1 << id);
- 	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctl);
- 
- 	if (!has_rstst)
--		return 0;
-+		goto exit;
- 
- 	/* wait for the status to be set */
- 	while (1) {
-@@ -140,13 +150,19 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
- 		if (v)
- 			break;
- 		timeout++;
--		if (timeout > OMAP_RESET_MAX_WAIT)
--			return -EBUSY;
-+		if (timeout > OMAP_RESET_MAX_WAIT) {
-+			ret = -EBUSY;
-+			goto exit;
-+		}
- 
- 		udelay(1);
- 	}
- 
--	return 0;
-+exit:
-+	if (pdata->clkdm_allow_idle && reset->clkdm)
-+		pdata->clkdm_allow_idle(reset->clkdm);
-+
-+	return ret;
- }
- 
- static const struct reset_control_ops omap_reset_ops = {
-@@ -159,6 +175,8 @@ static int omap_prm_reset_probe(struct platform_device *pdev,
- 				struct omap_prm *prm)
- {
- 	struct omap_reset_data *reset;
-+	struct ti_prm_platform_data *pdata = dev_get_platdata(&pdev->dev);
-+	char buf[32];
- 
- 	/*
- 	 * Check if we have resets. If either rstctl or rstst is
-@@ -177,9 +195,15 @@ static int omap_prm_reset_probe(struct platform_device *pdev,
- 	reset->rcdev.ops = &omap_reset_ops;
- 	reset->rcdev.of_node = pdev->dev.of_node;
- 	reset->rcdev.nr_resets = OMAP_MAX_RESETS;
-+	reset->dev = &pdev->dev;
- 
- 	reset->prm = prm;
- 
-+	sprintf(buf, "%s_clkdm", prm->data->clkdm_name ? prm->data->clkdm_name :
-+		prm->data->name);
-+
-+	reset->clkdm = pdata->clkdm_lookup(buf);
-+
- 	return devm_reset_controller_register(&pdev->dev, &reset->rcdev);
- }
- 
-diff --git a/include/linux/platform_data/ti-prm.h b/include/linux/platform_data/ti-prm.h
-new file mode 100644
-index 0000000..28154c3
---- /dev/null
-+++ b/include/linux/platform_data/ti-prm.h
-@@ -0,0 +1,21 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * TI PRM (Power & Reset Manager) platform data
-+ *
-+ * Copyright (C) 2019 Texas Instruments, Inc.
-+ *
-+ * Tero Kristo <t-kristo@ti.com>
-+ */
-+
-+#ifndef _LINUX_PLATFORM_DATA_TI_PRM_H
-+#define _LINUX_PLATFORM_DATA_TI_PRM_H
-+
-+struct clockdomain;
-+
-+struct ti_prm_platform_data {
-+	void (*clkdm_deny_idle)(struct clockdomain *clkdm);
-+	void (*clkdm_allow_idle)(struct clockdomain *clkdm);
-+	struct clockdomain * (*clkdm_lookup)(const char *name);
++struct omap_prm_data omap4_prm_data[] = {
++	{ .name = "mpu", .base = 0x4a306300, .pwstst = 0x4 },
++	{ .name = "tesla", .base = 0x4a306400, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
++	{ .name = "abe", .base = 0x4a306500, .pwstst = 0x4 },
++	{ .name = "always_on_core", .base = 0x4a306600, .pwstst = 0x4 },
++	{ .name = "core", .base = 0x4a306700, .pwstst = 0x4, .rstctl = 0x210, .rstst = 0x214 },
++	{ .name = "ivahd", .base = 0x4a306f00, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
++	{ .name = "cam", .base = 0x4a307000, .pwstst = 0x4 },
++	{ .name = "dss", .base = 0x4a307100, .pwstst = 0x4 },
++	{ .name = "gfx", .base = 0x4a307200, .pwstst = 0x4 },
++	{ .name = "l3init", .base = 0x4a307300, .pwstst = 0x4 },
++	{ .name = "l4per", .base = 0x4a307400, .pwstst = 0x4 },
++	{ .name = "cefuse", .base = 0x4a307600, .pwstst = 0x4 },
++	{ .name = "wkup", .base = 0x4a307700, .pwstst = 0x4 },
++	{ .name = "emu", .base = 0x4a307900, .pwstst = 0x4 },
++	{ .name = "device", .base = 0x4a307b00, .rstctl = 0x0, .rstst = 0x4 },
++	{ },
 +};
 +
-+#endif /* _LINUX_PLATFORM_DATA_TI_PRM_H */
+ static const struct of_device_id omap_prm_id_table[] = {
++	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
+ 	{ },
+ };
+ 
 -- 
 1.9.1
 
