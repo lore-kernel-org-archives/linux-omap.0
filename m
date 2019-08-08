@@ -1,54 +1,46 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 13/22] input: omap: void using mach/*.h headers
-Date: Thu, 8 Aug 2019 15:19:50 -0700
-Message-ID: <20190808221950.GG178933@dtor-ws>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 07/22] ARM: omap1: move perseus spi pinconf to board file
+Date: Thu, 8 Aug 2019 23:24:08 +0100
+Message-ID: <20190808222408.GS3795@sirena.co.uk>
 References: <20190808212234.2213262-1-arnd@arndb.de>
- <20190808212234.2213262-14-arnd@arndb.de>
- <20190808214257.GF178933@dtor-ws>
- <CAK8P3a2TOcjxwCBGkZAhMAf9HuTL=FAB1e0=FAg+oHB0U1nJ0A@mail.gmail.com>
+ <20190808212234.2213262-8-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="kVhvBuyIzNBvw9vr"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAK8P3a2TOcjxwCBGkZAhMAf9HuTL=FAB1e0=FAg+oHB0U1nJ0A@mail.gmail.com>
+In-Reply-To: <20190808212234.2213262-8-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "open list:HID CORE LAYER" <linux-input@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Boris Brezillon <bbrezillon@kernel.org>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 08, 2019 at 11:46:45PM +0200, Arnd Bergmann wrote:
-> On Thu, Aug 8, 2019 at 11:43 PM Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> >
-> > Hi Arnd,
-> >
-> > On Thu, Aug 08, 2019 at 11:22:22PM +0200, Arnd Bergmann wrote:
-> > > By using the new linux/soc/ti/omap1-io.h header instead,
-> > > compile-testing can be enabled, and a CONFIG_ARCH_MULTIPLATFORM
-> > > conversion of omap1 may eventually be possible.
-> > >
-> > > The warning in the header file gets removed in order to
-> > > allow CONFIG_COMPILE_TEST.
-> >
-> > Given that we want to migrate people off this driver everywhere but
-> > OMAP1 I wonder why we would want to improve compile coverage of it.
-> 
-> Mainly for consistency: I'm converting all omap1 drivers in this series to
-> not rely on mach/* headers and to let them be compiled standalone.
-> The other drivers don't have a replacement, so I could treat this different
-> from the rest and skip the Kconfig and platform_data changes if you
-> prefer.
 
-Yes, because at least with the version you posted we are losing the
-#warning telling people to move to matrix_keypad. We could do:
+--kVhvBuyIzNBvw9vr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-#ifndef CONFIG_COMPILE_TEST
-#warning ...
-#endif
+On Thu, Aug 08, 2019 at 11:22:16PM +0200, Arnd Bergmann wrote:
+> The driver has always had a FIXME about this, and it seems
+> like this trivial code move avoids a mach header inclusion,
+> so just do it.
 
-if you really want to allow compiling standalone for testing.
+This appears to be part of a series but I've no cover letter or anything
+else from it.  What's the story for dependencies and merging?
 
-Thanks.
+--kVhvBuyIzNBvw9vr
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-Dmitry
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAl1MoQcACgkQJNaLcl1U
+h9BTcwf+PZNQyv2QwRk6+uATv2Z/5jBqf59MD6hu+nPG7ZvewRhifHBZ0Wn0oGIy
+LKuN77ve2quiHJEaXWc+6uMdkTKzHf0dq7PXzkSHvdGpKY8oXpfv+JxIP1fbvLU2
+LjgoKVq4QXXKOwQKuPuBt6G5MFmPXLsTLnxo0C2CA8bBYHUhY1YNpslOiDbmN7kY
+si0Og/am+P+msK+XEDu2s2waVhOEA9JhUJzNBSLvqdZnVrbKflMnJ1f+lqGPtJuf
+G249qyMoeuoQoq7XX2OmvHk6MPxgjyFnANG88Pmz7kITgyC7M8cQbeMDsox6X5Wf
+yZd+9ZI1XiupoEyUNs+MRVRuLA77Dg==
+=Q0wr
+-----END PGP SIGNATURE-----
+
+--kVhvBuyIzNBvw9vr--
