@@ -1,46 +1,71 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 12/22] serial: 8250/omap1: include linux/soc/ti/omap1-soc.h
-Date: Thu,  8 Aug 2019 23:22:21 +0200
-Message-ID: <20190808212234.2213262-13-arnd@arndb.de>
+Subject: [PATCH 13/22] input: omap: void using mach/*.h headers
+Date: Thu,  8 Aug 2019 23:22:22 +0200
+Message-ID: <20190808212234.2213262-14-arnd@arndb.de>
 References: <20190808212234.2213262-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190808212234.2213262-1-arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-As a preparation for cleaning up the omap1 headers, start
-including linux/soc/ti/omap1-soc.h directly so we can
-keep calling cpu_is_omap1510().
+By using the new linux/soc/ti/omap1-io.h header instead,
+compile-testing can be enabled, and a CONFIG_ARCH_MULTIPLATFORM
+conversion of omap1 may eventually be possible.
+
+The warning in the header file gets removed in order to
+allow CONFIG_COMPILE_TEST.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/tty/serial/8250/8250.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/input/keyboard/Kconfig            | 2 +-
+ drivers/input/keyboard/omap-keypad.c      | 1 +
+ include/linux/platform_data/keypad-omap.h | 5 -----
+ 3 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/8250/8250.h
-index 33ad9d6de532..9deee198fae4 100644
---- a/drivers/tty/serial/8250/8250.h
-+++ b/drivers/tty/serial/8250/8250.h
-@@ -263,6 +263,7 @@ static inline int fintek_8250_probe(struct uart_8250_port *uart) { return 0; }
- #endif
+diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+index 5f1a3b3ee0fb..b454d262906b 100644
+--- a/drivers/input/keyboard/Kconfig
++++ b/drivers/input/keyboard/Kconfig
+@@ -658,7 +658,7 @@ config KEYBOARD_IPAQ_MICRO
  
- #ifdef CONFIG_ARCH_OMAP1
-+#include <linux/soc/ti/omap1-soc.h>
- static inline int is_omap1_8250(struct uart_8250_port *pt)
- {
- 	int res;
+ config KEYBOARD_OMAP
+ 	tristate "TI OMAP keypad support"
+-	depends on ARCH_OMAP1
++	depends on ARCH_OMAP1 || COMPILE_TEST
+ 	select INPUT_MATRIXKMAP
+ 	help
+ 	  Say Y here if you want to use the OMAP keypad.
+diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
+index 5fe7a5633e33..31da8e878535 100644
+--- a/drivers/input/keyboard/omap-keypad.c
++++ b/drivers/input/keyboard/omap-keypad.c
+@@ -24,6 +24,7 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/platform_data/keypad-omap.h>
++#include <linux/soc/ti/omap1-io.h>
+ 
+ #undef NEW_BOARD_LEARNING_MODE
+ 
+diff --git a/include/linux/platform_data/keypad-omap.h b/include/linux/platform_data/keypad-omap.h
+index 3e7c64c854f4..6f058eb188c4 100644
+--- a/include/linux/platform_data/keypad-omap.h
++++ b/include/linux/platform_data/keypad-omap.h
+@@ -5,11 +5,6 @@
+ #ifndef __KEYPAD_OMAP_H
+ #define __KEYPAD_OMAP_H
+ 
+-#ifndef CONFIG_ARCH_OMAP1
+-#warning Please update the board to use matrix-keypad driver
+-#define omap_readw(reg)		0
+-#define omap_writew(val, reg)	do {} while (0)
+-#endif
+ #include <linux/input/matrix_keypad.h>
+ 
+ struct omap_kp_platform_data {
 -- 
 2.20.0
