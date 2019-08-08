@@ -1,205 +1,117 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 08/22] ARM: omap1: move CF chipselect setup to board file
-Date: Thu,  8 Aug 2019 23:22:17 +0200
-Message-ID: <20190808212234.2213262-9-arnd@arndb.de>
+Subject: [PATCH 09/22] fbdev: omap: avoid using mach/*.h files
+Date: Thu,  8 Aug 2019 23:22:18 +0200
+Message-ID: <20190808212234.2213262-10-arnd@arndb.de>
 References: <20190808212234.2213262-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20190808212234.2213262-1-arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Jingoo Han <jingoohan1@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: linux-fbdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-There is only one board that uses the omap_cf driver, so
-moving the chipselect configuration there does not lead
-to code duplication but avoids the use of mach/tc.h
-in drivers.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/mach-omap1/board-osk.c | 38 ++++++++++++++++++++++++++++-----
- drivers/pcmcia/Kconfig          |  3 ++-
- drivers/pcmcia/omap_cf.c        | 38 ++++++---------------------------
- 3 files changed, 42 insertions(+), 37 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 99ebe4503787..38d73da5d13d 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -149,14 +149,14 @@ static struct resource osk5912_cf_resources[] = {
- 	[0] = {
- 		.flags	= IORESOURCE_IRQ,
- 	},
-+	[1] = {
-+		.flags = IORESOURCE_MEM,
-+	},
- };
- 
- static struct platform_device osk5912_cf_device = {
- 	.name		= "omap_cf",
- 	.id		= -1,
--	.dev = {
--		.platform_data	= (void *) 2 /* CS2 */,
--	},
- 	.num_resources	= ARRAY_SIZE(osk5912_cf_resources),
- 	.resource	= osk5912_cf_resources,
- };
-@@ -267,13 +267,41 @@ static void __init osk_init_smc91x(void)
- 	omap_writel(l, EMIFS_CCS(1));
- }
- 
--static void __init osk_init_cf(void)
-+static void __init osk_init_cf(int seg)
- {
-+	struct resource *res = &osk5912_cf_resources[1];
-+
- 	omap_cfg_reg(M7_1610_GPIO62);
- 	if ((gpio_request(62, "cf_irq")) < 0) {
- 		printk("Error requesting gpio 62 for CF irq\n");
- 		return;
- 	}
-+
-+	switch (seg) {
-+	/* NOTE: CS0 could be configured too ... */
-+	case 1:
-+		res->start = OMAP_CS1_PHYS;
-+		break;
-+	case 2:
-+		res->start = OMAP_CS2_PHYS;
-+		break;
-+	case 3:
-+		res->start = omap_cs3_phys();
-+		break;
-+	}
-+
-+	res->end = res->start + SZ_8K - 1;
-+	osk5912_cf_device.dev.platform_data = (void *)(uintptr_t)seg;
-+
-+	/* NOTE:  better EMIFS setup might support more cards; but the
-+	 * TRM only shows how to affect regular flash signals, not their
-+	 * CF/PCMCIA variants...
-+	 */
-+	pr_debug("%s: cs%d, previous ccs %08x acs %08x\n", __func__,
-+		seg, omap_readl(EMIFS_CCS(seg)), omap_readl(EMIFS_ACS(seg)));
-+	omap_writel(0x0004a1b3, EMIFS_CCS(seg));	/* synch mode 4 etc */
-+	omap_writel(0x00000000, EMIFS_ACS(seg));	/* OE hold/setup */
-+
- 	/* the CF I/O IRQ is really active-low */
- 	irq_set_irq_type(gpio_to_irq(62), IRQ_TYPE_EDGE_FALLING);
- }
-@@ -577,7 +605,7 @@ static void __init osk_init(void)
- 	u32 l;
- 
- 	osk_init_smc91x();
--	osk_init_cf();
-+	osk_init_cf(2); /* CS2 */
- 
- 	/* Workaround for wrong CS3 (NOR flash) timing
- 	 * There are some U-Boot versions out there which configure
-diff --git a/drivers/pcmcia/Kconfig b/drivers/pcmcia/Kconfig
-index e004d8da03dc..ca6e2ac2a92f 100644
---- a/drivers/pcmcia/Kconfig
-+++ b/drivers/pcmcia/Kconfig
-@@ -250,7 +250,8 @@ config PCMCIA_VRC4173
- 
- config OMAP_CF
- 	tristate "OMAP CompactFlash Controller"
--	depends on PCMCIA && ARCH_OMAP16XX
-+	depends on PCMCIA
-+	depends on ARCH_OMAP16XX || (ARM && COMPILE_TEST)
- 	help
- 	  Say Y here to support the CompactFlash controller on OMAP.
- 	  Note that this doesn't support "True IDE" mode.
-diff --git a/drivers/pcmcia/omap_cf.c b/drivers/pcmcia/omap_cf.c
-index 0a04eb04f3a2..98df6473034d 100644
---- a/drivers/pcmcia/omap_cf.c
-+++ b/drivers/pcmcia/omap_cf.c
-@@ -16,13 +16,12 @@
- 
- #include <pcmcia/ss.h>
- 
--#include <mach/hardware.h>
- #include <asm/io.h>
- #include <linux/sizes.h>
- 
--#include <mach/mux.h>
--#include <mach/tc.h>
--
-+#include <linux/soc/ti/omap1-io.h>
-+#include <linux/soc/ti/omap1-soc.h>
-+#include <linux/soc/ti/omap1-mux.h>
- 
- /* NOTE:  don't expect this to support many I/O cards.  The 16xx chips have
-  * hard-wired timings to support Compact Flash memory cards; they won't work
-@@ -205,6 +204,7 @@ static int __init omap_cf_probe(struct platform_device *pdev)
- 	struct omap_cf_socket	*cf;
- 	int			irq;
- 	int			status;
-+	struct resource		*res;
- 
- 	seg = (int) pdev->dev.platform_data;
- 	if (seg == 0 || seg > 3)
-@@ -215,6 +215,8 @@ static int __init omap_cf_probe(struct platform_device *pdev)
- 	if (irq < 0)
- 		return -EINVAL;
- 
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
- 	cf = kzalloc(sizeof *cf, GFP_KERNEL);
- 	if (!cf)
- 		return -ENOMEM;
-@@ -230,24 +232,7 @@ static int __init omap_cf_probe(struct platform_device *pdev)
- 		goto fail0;
- 	cf->irq = irq;
- 	cf->socket.pci_irq = irq;
--
--	switch (seg) {
--	/* NOTE: CS0 could be configured too ... */
--	case 1:
--		cf->phys_cf = OMAP_CS1_PHYS;
--		break;
--	case 2:
--		cf->phys_cf = OMAP_CS2_PHYS;
--		break;
--	case 3:
--		cf->phys_cf = omap_cs3_phys();
--		break;
--	default:
--		goto  fail1;
--	}
--	cf->iomem.start = cf->phys_cf;
--	cf->iomem.end = cf->iomem.end + SZ_8K - 1;
--	cf->iomem.flags = IORESOURCE_MEM;
-+	cf->phys_cf = res->start;
- 
- 	/* pcmcia layer only remaps "real" memory */
- 	cf->socket.io_offset = (unsigned long)
-@@ -269,15 +254,6 @@ static int __init omap_cf_probe(struct platform_device *pdev)
- 
- 	pr_info("%s: cs%d on irq %d\n", driver_name, seg, irq);
- 
--	/* NOTE:  better EMIFS setup might support more cards; but the
--	 * TRM only shows how to affect regular flash signals, not their
--	 * CF/PCMCIA variants...
--	 */
--	pr_debug("%s: cs%d, previous ccs %08x acs %08x\n", driver_name,
--		seg, omap_readl(EMIFS_CCS(seg)), omap_readl(EMIFS_ACS(seg)));
--	omap_writel(0x0004a1b3, EMIFS_CCS(seg));	/* synch mode 4 etc */
--	omap_writel(0x00000000, EMIFS_ACS(seg));	/* OE hold/setup */
--
- 	/* CF uses armxor_ck, which is "always" available */
- 
- 	pr_debug("%s: sts %04x cfg %04x control %04x %s\n", driver_name,
--- 
-2.20.0
+QWxsIHRoZSBoZWFkZXJzIHdlIGFjdHVhbGx5IG5lZWQgYXJlIG5vdyBpbiBpbmNsdWRlL2xpbnV4
+L3NvYywKc28gdXNlIHRob3NlIHZlcnNpb25zIGluc3RlYWQgYW5kIGFsbG93IGNvbXBpbGUtdGVz
+dGluZyBvbgpvdGhlciBhcmNoaXRlY3R1cmVzLgoKU2lnbmVkLW9mZi1ieTogQXJuZCBCZXJnbWFu
+biA8YXJuZEBhcm5kYi5kZT4KLS0tCiBkcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9LY29uZmlnICAg
+ICAgICAgIHwgNCArKy0tCiBkcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9vbWFwMV9ibC5jICAgICAg
+IHwgNCArKy0tCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvS2NvbmZpZyAgICAgICAgIHwgNCAr
+Ky0tCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2Ftc19kZWx0YS5jIHwgMiArLQogZHJp
+dmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9kbWEuYyAgICAgICB8IDMgKystCiBkcml2ZXJzL3Zp
+ZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE1MTAuYyAgIHwgMiArLQogZHJpdmVycy92aWRlby9mYmRl
+di9vbWFwL2xjZF9vc2suYyAgICAgICB8IDQgKystLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFw
+L2xjZGMuYyAgICAgICAgICB8IDIgKysKIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJf
+bWFpbi5jICAgfCAzICstLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwL3Nvc3NpLmMgICAgICAg
+ICB8IDEgKwogMTAgZmlsZXMgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwgMTMgZGVsZXRpb25z
+KC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9iYWNrbGlnaHQvS2NvbmZpZyBiL2RyaXZl
+cnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcKaW5kZXggOGIwODFkNjE3NzNlLi4xOTVjNzExMzA4
+MjcgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcKKysrIGIvZHJp
+dmVycy92aWRlby9iYWNrbGlnaHQvS2NvbmZpZwpAQCAtMjEzLDggKzIxMyw4IEBAIGNvbmZpZyBC
+QUNLTElHSFRfTE9DT01PCiAKIGNvbmZpZyBCQUNLTElHSFRfT01BUDEKIAl0cmlzdGF0ZSAiT01B
+UDEgUFdMLWJhc2VkIExDRCBCYWNrbGlnaHQiCi0JZGVwZW5kcyBvbiBBUkNIX09NQVAxCi0JZGVm
+YXVsdCB5CisJZGVwZW5kcyBvbiBBUkNIX09NQVAxIHx8IENPTVBJTEVfVEVTVAorCWRlZmF1bHQg
+QVJDSF9PTUFQMQogCWhlbHAKIAkgIFRoaXMgZHJpdmVyIGNvbnRyb2xzIHRoZSBMQ0QgYmFja2xp
+Z2h0IGxldmVsIGFuZCBwb3dlciBmb3IKIAkgIHRoZSBQV0wgbW9kdWxlIG9mIE9NQVAxIHByb2Nl
+c3NvcnMuICBTYXkgWSBpZiB5b3VyIGJvYXJkCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2Jh
+Y2tsaWdodC9vbWFwMV9ibC5jIGIvZHJpdmVycy92aWRlby9iYWNrbGlnaHQvb21hcDFfYmwuYwpp
+bmRleCA3NDI2MzAyMWIxYjMuLjY5YTQ5Mzg0YjNkZSAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRl
+by9iYWNrbGlnaHQvb21hcDFfYmwuYworKysgYi9kcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9vbWFw
+MV9ibC5jCkBAIC0xNCw4ICsxNCw4IEBACiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgogI2luY2x1
+ZGUgPGxpbnV4L3BsYXRmb3JtX2RhdGEvb21hcDFfYmwuaD4KIAotI2luY2x1ZGUgPG1hY2gvaGFy
+ZHdhcmUuaD4KLSNpbmNsdWRlIDxtYWNoL211eC5oPgorI2luY2x1ZGUgPGxpbnV4L3NvYy90aS9v
+bWFwMS1pby5oPgorI2luY2x1ZGUgPGxpbnV4L3NvYy90aS9vbWFwMS1tdXguaD4KIAogI2RlZmlu
+ZSBPTUFQQkxfTUFYX0lOVEVOU0lUWQkJMHhmZgogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVv
+L2ZiZGV2L29tYXAvS2NvbmZpZyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9LY29uZmlnCmlu
+ZGV4IGRmMmE1ZDBkNGFhMi4uYjE3ODZjZjFiNDg2IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVv
+L2ZiZGV2L29tYXAvS2NvbmZpZworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvS2NvbmZp
+ZwpAQCAtMiw3ICsyLDcgQEAKIGNvbmZpZyBGQl9PTUFQCiAJdHJpc3RhdGUgIk9NQVAgZnJhbWUg
+YnVmZmVyIHN1cHBvcnQiCiAJZGVwZW5kcyBvbiBGQgotCWRlcGVuZHMgb24gQVJDSF9PTUFQMQor
+CWRlcGVuZHMgb24gQVJDSF9PTUFQMSB8fCAoQVJNICYmIENPTVBJTEVfVEVTVCkKIAlzZWxlY3Qg
+RkJfQ0ZCX0ZJTExSRUNUCiAJc2VsZWN0IEZCX0NGQl9DT1BZQVJFQQogCXNlbGVjdCBGQl9DRkJf
+SU1BR0VCTElUCkBAIC00Miw3ICs0Miw3IEBAIGNvbmZpZyBGQl9PTUFQX0xDRF9NSVBJRAogCiBj
+b25maWcgRkJfT01BUF9MQ0RfSDMKIAlib29sICJUUFM2NTAxMCBMQ0QgY29udHJvbGxlciBvbiBP
+TUFQLUgzIgotCWRlcGVuZHMgb24gTUFDSF9PTUFQX0gzCisJZGVwZW5kcyBvbiBNQUNIX09NQVBf
+SDMgfHwgQ09NUElMRV9URVNUCiAJZGVwZW5kcyBvbiBUUFM2NTAxMD15CiAJZGVmYXVsdCB5CiAJ
+aGVscApkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9hbXNfZGVsdGEu
+YyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfYW1zX2RlbHRhLmMKaW5kZXggOGU1NGFh
+ZTU0NGEwLi5kYTJlMzI2MTVhYmUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21h
+cC9sY2RfYW1zX2RlbHRhLmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9hbXNf
+ZGVsdGEuYwpAQCAtMTQsNyArMTQsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2dwaW8vY29uc3VtZXIu
+aD4KICNpbmNsdWRlIDxsaW51eC9sY2QuaD4KIAotI2luY2x1ZGUgPG1hY2gvaGFyZHdhcmUuaD4K
+KyNpbmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtaW8uaD4KIAogI2luY2x1ZGUgIm9tYXBmYi5o
+IgogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2RtYS5jIGIvZHJp
+dmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9kbWEuYwppbmRleCA4NjdhNjNjMDZmNDIuLmY4NTgx
+NzYzNWE4YyAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9kbWEuYwor
+KysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2RtYS5jCkBAIC0yNSw3ICsyNSw4IEBA
+CiAKICNpbmNsdWRlIDxsaW51eC9vbWFwLWRtYS5oPgogCi0jaW5jbHVkZSA8bWFjaC9oYXJkd2Fy
+ZS5oPgorI2luY2x1ZGUgPGxpbnV4L3NvYy90aS9vbWFwMS1zb2MuaD4KKyNpbmNsdWRlIDxsaW51
+eC9zb2MvdGkvb21hcDEtaW8uaD4KIAogI2luY2x1ZGUgImxjZGMuaCIKICNpbmNsdWRlICJsY2Rf
+ZG1hLmgiCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE1MTAu
+YyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfaW5uMTUxMC5jCmluZGV4IDM3ZWQwYzE0
+YWE1YS4uYmI5MTU2MzdlOWI2IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
+bGNkX2lubjE1MTAuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE1MTAu
+YwpAQCAtMTAsNyArMTAsNyBAQAogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPgog
+I2luY2x1ZGUgPGxpbnV4L2lvLmg+CiAKLSNpbmNsdWRlIDxtYWNoL2hhcmR3YXJlLmg+CisjaW5j
+bHVkZSA8bGludXgvc29jL3RpL29tYXAxLXNvYy5oPgogCiAjaW5jbHVkZSAib21hcGZiLmgiCiAK
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rfb3NrLmMgYi9kcml2ZXJz
+L3ZpZGVvL2ZiZGV2L29tYXAvbGNkX29zay5jCmluZGV4IDVkNTc2MjEyOGM4ZC4uODE2OGJhMGQ0
+N2ZkIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX29zay5jCisrKyBi
+L2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rfb3NrLmMKQEAgLTExLDggKzExLDggQEAKICNp
+bmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KICNpbmNsdWRlIDxsaW51eC9ncGlvLmg+
+CiAKLSNpbmNsdWRlIDxtYWNoL2hhcmR3YXJlLmg+Ci0jaW5jbHVkZSA8bWFjaC9tdXguaD4KKyNp
+bmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtaW8uaD4KKyNpbmNsdWRlIDxsaW51eC9zb2MvdGkv
+b21hcDEtbXV4Lmg+CiAKICNpbmNsdWRlICJvbWFwZmIuaCIKIApkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy92aWRlby9mYmRldi9vbWFwL2xjZGMuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rj
+LmMKaW5kZXggNjU5NTNiN2ZiZGI5Li4zYWY3NThmMTJhZmQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
+dmlkZW8vZmJkZXYvb21hcC9sY2RjLmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xj
+ZGMuYwpAQCAtMTcsNiArMTcsOCBAQAogI2luY2x1ZGUgPGxpbnV4L2Nsay5oPgogI2luY2x1ZGUg
+PGxpbnV4L2dmcC5oPgogCisjaW5jbHVkZSA8bGludXgvc29jL3RpL29tYXAxLWlvLmg+CisjaW5j
+bHVkZSA8bGludXgvc29jL3RpL29tYXAxLXNvYy5oPgogI2luY2x1ZGUgPGxpbnV4L29tYXAtZG1h
+Lmg+CiAKICNpbmNsdWRlIDxhc20vbWFjaC10eXBlcy5oPgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92
+aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
+b21hcGZiX21haW4uYwppbmRleCBkYzA2MDU3ZGU5MWQuLmFmNzNhM2Y5YWM1MyAxMDA2NDQKLS0t
+IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMKKysrIGIvZHJpdmVycy92
+aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMKQEAgLTE5LDggKzE5LDcgQEAKIAogI2luY2x1
+ZGUgPGxpbnV4L29tYXAtZG1hLmg+CiAKLSNpbmNsdWRlIDxtYWNoL2hhcmR3YXJlLmg+Ci0KKyNp
+bmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtc29jLmg+CiAjaW5jbHVkZSAib21hcGZiLmgiCiAj
+aW5jbHVkZSAibGNkYy5oIgogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
+c29zc2kuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9zb3NzaS5jCmluZGV4IGFkZTlkNDUy
+MjU0Yy4uNmI5OWQ4OWZiZTZlIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
+c29zc2kuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvc29zc2kuYwpAQCAtMTMsNiAr
+MTMsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2ludGVycnVwdC5oPgogCiAjaW5jbHVkZSA8bGludXgv
+b21hcC1kbWEuaD4KKyNpbmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtaW8uaD4KIAogI2luY2x1
+ZGUgIm9tYXBmYi5oIgogI2luY2x1ZGUgImxjZF9kbWEuaCIKLS0gCjIuMjAuMAoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
+bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
