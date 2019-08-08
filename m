@@ -1,117 +1,125 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 09/22] fbdev: omap: avoid using mach/*.h files
-Date: Thu,  8 Aug 2019 23:22:18 +0200
-Message-ID: <20190808212234.2213262-10-arnd@arndb.de>
+Subject: [PATCH 10/22] usb: omap: avoid mach/*.h headers
+Date: Thu,  8 Aug 2019 23:22:19 +0200
+Message-ID: <20190808212234.2213262-11-arnd@arndb.de>
 References: <20190808212234.2213262-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190808212234.2213262-1-arnd@arndb.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Jingoo Han <jingoohan1@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: linux-fbdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-QWxsIHRoZSBoZWFkZXJzIHdlIGFjdHVhbGx5IG5lZWQgYXJlIG5vdyBpbiBpbmNsdWRlL2xpbnV4
-L3NvYywKc28gdXNlIHRob3NlIHZlcnNpb25zIGluc3RlYWQgYW5kIGFsbG93IGNvbXBpbGUtdGVz
-dGluZyBvbgpvdGhlciBhcmNoaXRlY3R1cmVzLgoKU2lnbmVkLW9mZi1ieTogQXJuZCBCZXJnbWFu
-biA8YXJuZEBhcm5kYi5kZT4KLS0tCiBkcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9LY29uZmlnICAg
-ICAgICAgIHwgNCArKy0tCiBkcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9vbWFwMV9ibC5jICAgICAg
-IHwgNCArKy0tCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvS2NvbmZpZyAgICAgICAgIHwgNCAr
-Ky0tCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2Ftc19kZWx0YS5jIHwgMiArLQogZHJp
-dmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9kbWEuYyAgICAgICB8IDMgKystCiBkcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE1MTAuYyAgIHwgMiArLQogZHJpdmVycy92aWRlby9mYmRl
-di9vbWFwL2xjZF9vc2suYyAgICAgICB8IDQgKystLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFw
-L2xjZGMuYyAgICAgICAgICB8IDIgKysKIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJf
-bWFpbi5jICAgfCAzICstLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwL3Nvc3NpLmMgICAgICAg
-ICB8IDEgKwogMTAgZmlsZXMgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwgMTMgZGVsZXRpb25z
-KC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9iYWNrbGlnaHQvS2NvbmZpZyBiL2RyaXZl
-cnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcKaW5kZXggOGIwODFkNjE3NzNlLi4xOTVjNzExMzA4
-MjcgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcKKysrIGIvZHJp
-dmVycy92aWRlby9iYWNrbGlnaHQvS2NvbmZpZwpAQCAtMjEzLDggKzIxMyw4IEBAIGNvbmZpZyBC
-QUNLTElHSFRfTE9DT01PCiAKIGNvbmZpZyBCQUNLTElHSFRfT01BUDEKIAl0cmlzdGF0ZSAiT01B
-UDEgUFdMLWJhc2VkIExDRCBCYWNrbGlnaHQiCi0JZGVwZW5kcyBvbiBBUkNIX09NQVAxCi0JZGVm
-YXVsdCB5CisJZGVwZW5kcyBvbiBBUkNIX09NQVAxIHx8IENPTVBJTEVfVEVTVAorCWRlZmF1bHQg
-QVJDSF9PTUFQMQogCWhlbHAKIAkgIFRoaXMgZHJpdmVyIGNvbnRyb2xzIHRoZSBMQ0QgYmFja2xp
-Z2h0IGxldmVsIGFuZCBwb3dlciBmb3IKIAkgIHRoZSBQV0wgbW9kdWxlIG9mIE9NQVAxIHByb2Nl
-c3NvcnMuICBTYXkgWSBpZiB5b3VyIGJvYXJkCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2Jh
-Y2tsaWdodC9vbWFwMV9ibC5jIGIvZHJpdmVycy92aWRlby9iYWNrbGlnaHQvb21hcDFfYmwuYwpp
-bmRleCA3NDI2MzAyMWIxYjMuLjY5YTQ5Mzg0YjNkZSAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRl
-by9iYWNrbGlnaHQvb21hcDFfYmwuYworKysgYi9kcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9vbWFw
-MV9ibC5jCkBAIC0xNCw4ICsxNCw4IEBACiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgogI2luY2x1
-ZGUgPGxpbnV4L3BsYXRmb3JtX2RhdGEvb21hcDFfYmwuaD4KIAotI2luY2x1ZGUgPG1hY2gvaGFy
-ZHdhcmUuaD4KLSNpbmNsdWRlIDxtYWNoL211eC5oPgorI2luY2x1ZGUgPGxpbnV4L3NvYy90aS9v
-bWFwMS1pby5oPgorI2luY2x1ZGUgPGxpbnV4L3NvYy90aS9vbWFwMS1tdXguaD4KIAogI2RlZmlu
-ZSBPTUFQQkxfTUFYX0lOVEVOU0lUWQkJMHhmZgogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVv
-L2ZiZGV2L29tYXAvS2NvbmZpZyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9LY29uZmlnCmlu
-ZGV4IGRmMmE1ZDBkNGFhMi4uYjE3ODZjZjFiNDg2IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVv
-L2ZiZGV2L29tYXAvS2NvbmZpZworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvS2NvbmZp
-ZwpAQCAtMiw3ICsyLDcgQEAKIGNvbmZpZyBGQl9PTUFQCiAJdHJpc3RhdGUgIk9NQVAgZnJhbWUg
-YnVmZmVyIHN1cHBvcnQiCiAJZGVwZW5kcyBvbiBGQgotCWRlcGVuZHMgb24gQVJDSF9PTUFQMQor
-CWRlcGVuZHMgb24gQVJDSF9PTUFQMSB8fCAoQVJNICYmIENPTVBJTEVfVEVTVCkKIAlzZWxlY3Qg
-RkJfQ0ZCX0ZJTExSRUNUCiAJc2VsZWN0IEZCX0NGQl9DT1BZQVJFQQogCXNlbGVjdCBGQl9DRkJf
-SU1BR0VCTElUCkBAIC00Miw3ICs0Miw3IEBAIGNvbmZpZyBGQl9PTUFQX0xDRF9NSVBJRAogCiBj
-b25maWcgRkJfT01BUF9MQ0RfSDMKIAlib29sICJUUFM2NTAxMCBMQ0QgY29udHJvbGxlciBvbiBP
-TUFQLUgzIgotCWRlcGVuZHMgb24gTUFDSF9PTUFQX0gzCisJZGVwZW5kcyBvbiBNQUNIX09NQVBf
-SDMgfHwgQ09NUElMRV9URVNUCiAJZGVwZW5kcyBvbiBUUFM2NTAxMD15CiAJZGVmYXVsdCB5CiAJ
-aGVscApkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9hbXNfZGVsdGEu
-YyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfYW1zX2RlbHRhLmMKaW5kZXggOGU1NGFh
-ZTU0NGEwLi5kYTJlMzI2MTVhYmUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21h
-cC9sY2RfYW1zX2RlbHRhLmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9hbXNf
-ZGVsdGEuYwpAQCAtMTQsNyArMTQsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2dwaW8vY29uc3VtZXIu
-aD4KICNpbmNsdWRlIDxsaW51eC9sY2QuaD4KIAotI2luY2x1ZGUgPG1hY2gvaGFyZHdhcmUuaD4K
-KyNpbmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtaW8uaD4KIAogI2luY2x1ZGUgIm9tYXBmYi5o
-IgogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2RtYS5jIGIvZHJp
-dmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9kbWEuYwppbmRleCA4NjdhNjNjMDZmNDIuLmY4NTgx
-NzYzNWE4YyAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9kbWEuYwor
-KysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2RtYS5jCkBAIC0yNSw3ICsyNSw4IEBA
-CiAKICNpbmNsdWRlIDxsaW51eC9vbWFwLWRtYS5oPgogCi0jaW5jbHVkZSA8bWFjaC9oYXJkd2Fy
-ZS5oPgorI2luY2x1ZGUgPGxpbnV4L3NvYy90aS9vbWFwMS1zb2MuaD4KKyNpbmNsdWRlIDxsaW51
-eC9zb2MvdGkvb21hcDEtaW8uaD4KIAogI2luY2x1ZGUgImxjZGMuaCIKICNpbmNsdWRlICJsY2Rf
-ZG1hLmgiCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE1MTAu
-YyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfaW5uMTUxMC5jCmluZGV4IDM3ZWQwYzE0
-YWE1YS4uYmI5MTU2MzdlOWI2IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
-bGNkX2lubjE1MTAuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE1MTAu
-YwpAQCAtMTAsNyArMTAsNyBAQAogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPgog
-I2luY2x1ZGUgPGxpbnV4L2lvLmg+CiAKLSNpbmNsdWRlIDxtYWNoL2hhcmR3YXJlLmg+CisjaW5j
-bHVkZSA8bGludXgvc29jL3RpL29tYXAxLXNvYy5oPgogCiAjaW5jbHVkZSAib21hcGZiLmgiCiAK
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rfb3NrLmMgYi9kcml2ZXJz
-L3ZpZGVvL2ZiZGV2L29tYXAvbGNkX29zay5jCmluZGV4IDVkNTc2MjEyOGM4ZC4uODE2OGJhMGQ0
-N2ZkIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX29zay5jCisrKyBi
-L2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rfb3NrLmMKQEAgLTExLDggKzExLDggQEAKICNp
-bmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KICNpbmNsdWRlIDxsaW51eC9ncGlvLmg+
-CiAKLSNpbmNsdWRlIDxtYWNoL2hhcmR3YXJlLmg+Ci0jaW5jbHVkZSA8bWFjaC9tdXguaD4KKyNp
-bmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtaW8uaD4KKyNpbmNsdWRlIDxsaW51eC9zb2MvdGkv
-b21hcDEtbXV4Lmg+CiAKICNpbmNsdWRlICJvbWFwZmIuaCIKIApkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy92aWRlby9mYmRldi9vbWFwL2xjZGMuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rj
-LmMKaW5kZXggNjU5NTNiN2ZiZGI5Li4zYWY3NThmMTJhZmQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-dmlkZW8vZmJkZXYvb21hcC9sY2RjLmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xj
-ZGMuYwpAQCAtMTcsNiArMTcsOCBAQAogI2luY2x1ZGUgPGxpbnV4L2Nsay5oPgogI2luY2x1ZGUg
-PGxpbnV4L2dmcC5oPgogCisjaW5jbHVkZSA8bGludXgvc29jL3RpL29tYXAxLWlvLmg+CisjaW5j
-bHVkZSA8bGludXgvc29jL3RpL29tYXAxLXNvYy5oPgogI2luY2x1ZGUgPGxpbnV4L29tYXAtZG1h
-Lmg+CiAKICNpbmNsdWRlIDxhc20vbWFjaC10eXBlcy5oPgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92
-aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
-b21hcGZiX21haW4uYwppbmRleCBkYzA2MDU3ZGU5MWQuLmFmNzNhM2Y5YWM1MyAxMDA2NDQKLS0t
-IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMKKysrIGIvZHJpdmVycy92
-aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMKQEAgLTE5LDggKzE5LDcgQEAKIAogI2luY2x1
-ZGUgPGxpbnV4L29tYXAtZG1hLmg+CiAKLSNpbmNsdWRlIDxtYWNoL2hhcmR3YXJlLmg+Ci0KKyNp
-bmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtc29jLmg+CiAjaW5jbHVkZSAib21hcGZiLmgiCiAj
-aW5jbHVkZSAibGNkYy5oIgogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
-c29zc2kuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9zb3NzaS5jCmluZGV4IGFkZTlkNDUy
-MjU0Yy4uNmI5OWQ4OWZiZTZlIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
-c29zc2kuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvc29zc2kuYwpAQCAtMTMsNiAr
-MTMsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2ludGVycnVwdC5oPgogCiAjaW5jbHVkZSA8bGludXgv
-b21hcC1kbWEuaD4KKyNpbmNsdWRlIDxsaW51eC9zb2MvdGkvb21hcDEtaW8uaD4KIAogI2luY2x1
-ZGUgIm9tYXBmYi5oIgogI2luY2x1ZGUgImxjZF9kbWEuaCIKLS0gCjIuMjAuMAoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
-bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+The omap usb drivers still rely on mach/*.h headers that
+are explicitly or implicitly included, but all the required
+definitions are now in include/linux/soc/ti/, so use those
+instead and allow compile-testing on other architectures.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/usb/gadget/udc/Kconfig     | 2 +-
+ drivers/usb/gadget/udc/omap_udc.c  | 2 ++
+ drivers/usb/host/Kconfig           | 2 +-
+ drivers/usb/host/ohci-omap.c       | 7 +++----
+ drivers/usb/phy/Kconfig            | 3 ++-
+ drivers/usb/phy/phy-isp1301-omap.c | 4 ++--
+ 6 files changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/usb/gadget/udc/Kconfig b/drivers/usb/gadget/udc/Kconfig
+index d354036ff6c8..ac0891a3dbf2 100644
+--- a/drivers/usb/gadget/udc/Kconfig
++++ b/drivers/usb/gadget/udc/Kconfig
+@@ -128,7 +128,7 @@ config USB_GR_UDC
+ 
+ config USB_OMAP
+ 	tristate "OMAP USB Device Controller"
+-	depends on ARCH_OMAP1
++	depends on ARCH_OMAP1 || (ARCH_OMAP && COMPILE_TEST)
+ 	depends on ISP1301_OMAP || !(MACH_OMAP_H2 || MACH_OMAP_H3)
+ 	help
+ 	   Many Texas Instruments OMAP processors have flexible full
+diff --git a/drivers/usb/gadget/udc/omap_udc.c b/drivers/usb/gadget/udc/omap_udc.c
+index 721c9c3fe5a7..27b6142ea803 100644
+--- a/drivers/usb/gadget/udc/omap_udc.c
++++ b/drivers/usb/gadget/udc/omap_udc.c
+@@ -43,6 +43,8 @@
+ #include <linux/platform_data/usb-omap1.h>
+ 
+ #include <linux/soc/ti/omap1-usb.h>
++#include <linux/soc/ti/omap1-soc.h>
++#include <linux/soc/ti/omap1-io.h>
+ 
+ #include "omap_udc.h"
+ 
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index 79bbce685583..e566a99bc8c9 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -201,7 +201,7 @@ config USB_EHCI_HCD_NPCM7XX
+ 
+ config USB_EHCI_HCD_OMAP
+ 	tristate "EHCI support for OMAP3 and later chips"
+-	depends on ARCH_OMAP
++	depends on ARCH_OMAP || COMPILE_TEST
+ 	depends on NOP_USB_XCEIV
+ 	default y
+ 	---help---
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index 841563fba20d..be3571778b60 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -27,6 +27,9 @@
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/usb-omap1.h>
+ #include <linux/soc/ti/omap1-usb.h>
++#include <linux/soc/ti/omap1-mux.h>
++#include <linux/soc/ti/omap1-soc.h>
++#include <linux/soc/ti/omap1-io.h>
+ #include <linux/signal.h>
+ #include <linux/usb.h>
+ #include <linux/usb/hcd.h>
+@@ -36,10 +39,6 @@
+ #include <asm/io.h>
+ #include <asm/mach-types.h>
+ 
+-#include <mach/mux.h>
+-
+-#include <mach/hardware.h>
+-
+ #define DRIVER_DESC "OHCI OMAP driver"
+ 
+ #ifdef CONFIG_TPS65010
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index 24b4f091acb8..c6b2559fd334 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -30,7 +30,8 @@ config FSL_USB2_OTG
+ 
+ config ISP1301_OMAP
+ 	tristate "Philips ISP1301 with OMAP OTG"
+-	depends on I2C && ARCH_OMAP_OTG
++	depends on I2C
++	depends on ARCH_OMAP_OTG || (ARM && COMPILE_TEST)
+ 	depends on USB
+ 	depends on USB_GADGET || !USB_GADGET # if USB_GADGET=m, this can't be 'y'
+ 	select USB_PHY
+diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
+index 18cf87dcc21f..0f3475e91403 100644
+--- a/drivers/usb/phy/phy-isp1301-omap.c
++++ b/drivers/usb/phy/phy-isp1301-omap.c
+@@ -23,9 +23,9 @@
+ #include <asm/irq.h>
+ #include <asm/mach-types.h>
+ 
+-#include <mach/mux.h>
+-
++#include <linux/soc/ti/omap1-mux.h>
+ #include <linux/soc/ti/omap1-usb.h>
++#include <linux/soc/ti/omap1-io.h>
+ 
+ #undef VERBOSE
+ 
+-- 
+2.20.0
