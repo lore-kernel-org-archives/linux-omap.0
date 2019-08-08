@@ -1,258 +1,328 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 02/22] ARM: omap1: make omapfb standalone compilable
-Date: Thu,  8 Aug 2019 23:22:11 +0200
-Message-ID: <20190808212234.2213262-3-arnd@arndb.de>
+Subject: [PATCH 03/22] ARM: omap1: move omap15xx local bus handling to usb.c
+Date: Thu,  8 Aug 2019 23:22:12 +0200
+Message-ID: <20190808212234.2213262-4-arnd@arndb.de>
 References: <20190808212234.2213262-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190808212234.2213262-1-arnd@arndb.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIG9tYXBmYiBkcml2ZXIgaXMgc3BsaXQgaW50byBwbGF0Zm9ybSBzcGVjaWZpYyBjb2RlIGZv
-ciBvbWFwMSwgYW5kCmRyaXZlciBjb2RlIHRoYXQgaXMgYWxzbyBzcGVjaWZpYyB0byBvbWFwMS4K
-Ck1vdmluZyBib3RoIHBhcnRzIGludG8gdGhlIGRyaXZlciBkaXJlY3Rvcnkgc2ltcGxpZmllcyB0
-aGUgc3RydWN0dXJlCmFuZCBhdm9pZHMgdGhlIGRlcGVuZGVuY3kgb24gY2VydGFpbiBvbWFwIG1h
-Y2hpbmUgaGVhZGVyIGZpbGVzLgoKVGhlIGludGVycnVwdCBudW1iZXJzIGluIHBhcnRpY3VsYXIg
-aG93ZXZlciBtdXN0IG5vdCBiZSByZWZlcmVuY2VkCmRpcmVjdGx5IGZyb20gdGhlIGRyaXZlciB0
-byBhbGxvdyBidWlsZGluZyBpbiBhIG11bHRpcGxhdGZvcm0KY29uZmlndXJhdGlvbiwgc28gdGhl
-c2UgaGF2ZSB0byBiZSBwYXNzZWQgdGhyb3VnaCByZXNvdXJjZXMsIGlzCmRvbmUgZm9yIGFsbCBv
-dGhlciBvbWFwIGRyaXZlcnMuCgpTaWduZWQtb2ZmLWJ5OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFy
-bmRiLmRlPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDEvTWFrZWZpbGUgICAgICAgICAgICAgICAg
-ICB8ICA0IC0tCiBhcmNoL2FybS9tYWNoLW9tYXAxL2ZiLmMgICAgICAgICAgICAgICAgICAgICAg
-fCAxOSArKysrKysrLQogYXJjaC9hcm0vbWFjaC1vbWFwMS9pbmNsdWRlL21hY2gvbGNkYy5oICAg
-ICAgIHwgNDQgLS0tLS0tLS0tLS0tLS0tLS0tLQogZHJpdmVycy92aWRlby9mYmRldi9NYWtlZmls
-ZSAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9NYWtl
-ZmlsZSAgICAgICAgICAgICB8ICA1ICsrKwogLi4uL3ZpZGVvL2ZiZGV2L29tYXB9L2xjZF9kbWEu
-YyAgICAgICAgICAgICAgIHwgIDQgKy0KIC4uLi92aWRlby9mYmRldi9vbWFwfS9sY2RfZG1hLmgg
-ICAgICAgICAgICAgICB8ICAyIC0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RjLmMgICAg
-ICAgICAgICAgICB8ICA4ICsrLS0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RjLmggICAg
-ICAgICAgICAgICB8IDM1ICsrKysrKysrKysrKysrKwogZHJpdmVycy92aWRlby9mYmRldi9vbWFw
-L29tYXBmYi5oICAgICAgICAgICAgIHwgIDIgKwogZHJpdmVycy92aWRlby9mYmRldi9vbWFwL29t
-YXBmYl9tYWluLmMgICAgICAgIHwgMTYgKysrKysrLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFw
-L3Nvc3NpLmMgICAgICAgICAgICAgIHwgIDMgKy0KIGluY2x1ZGUvbGludXgvb21hcC1kbWEuaCAg
-ICAgICAgICAgICAgICAgICAgICB8ICA3ICsrLQogMTMgZmlsZXMgY2hhbmdlZCwgOTAgaW5zZXJ0
-aW9ucygrKSwgNjEgZGVsZXRpb25zKC0pCiBkZWxldGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vbWFj
-aC1vbWFwMS9pbmNsdWRlL21hY2gvbGNkYy5oCiByZW5hbWUge2FyY2gvYXJtL21hY2gtb21hcDEg
-PT4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwfS9sY2RfZG1hLmMgKDk5JSkKIHJlbmFtZSB7YXJj
-aC9hcm0vbWFjaC1vbWFwMS9pbmNsdWRlL21hY2ggPT4gZHJpdmVycy92aWRlby9mYmRldi9vbWFw
-fS9sY2RfZG1hLmggKDk4JSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAxL01ha2Vm
-aWxlIGIvYXJjaC9hcm0vbWFjaC1vbWFwMS9NYWtlZmlsZQppbmRleCBjNzU3YTUyZDA4MDEuLjQ1
-MGJiZjU1MmI1NyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9NYWtlZmlsZQorKysg
-Yi9hcmNoL2FybS9tYWNoLW9tYXAxL01ha2VmaWxlCkBAIC01Nyw3ICs1NywzIEBAIG9iai0kKENP
-TkZJR19BUkNIX09NQVA3MzApCQkrPSBncGlvN3h4Lm8KIG9iai0kKENPTkZJR19BUkNIX09NQVA4
-NTApCQkrPSBncGlvN3h4Lm8KIG9iai0kKENPTkZJR19BUkNIX09NQVAxNVhYKQkJKz0gZ3BpbzE1
-eHgubwogb2JqLSQoQ09ORklHX0FSQ0hfT01BUDE2WFgpCQkrPSBncGlvMTZ4eC5vCi0KLWlmbmVx
-ICgkKENPTkZJR19GQl9PTUFQKSwpCi1vYmoteSArPSBsY2RfZG1hLm8KLWVuZGlmCmRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9tYWNoLW9tYXAxL2ZiLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2ZiLmMK
-aW5kZXggMGUzMmE5NTlmMjU0Li5iMDkzMzc1YWZjMjcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21h
-Y2gtb21hcDEvZmIuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2ZiLmMKQEAgLTE3LDkgKzE3
-LDEyIEBACiAjaW5jbHVkZSA8bGludXgvaW8uaD4KICNpbmNsdWRlIDxsaW51eC9vbWFwZmIuaD4K
-ICNpbmNsdWRlIDxsaW51eC9kbWEtbWFwcGluZy5oPgorI2luY2x1ZGUgPGxpbnV4L2lycS5oPgog
-CiAjaW5jbHVkZSA8YXNtL21hY2gvbWFwLmg+CiAKKyNpbmNsdWRlIDxtYWNoL2lycXMuaD4KKwog
-I2lmIElTX0VOQUJMRUQoQ09ORklHX0ZCX09NQVApCiAKIHN0YXRpYyBib29sIG9tYXBmYl9sY2Rf
-Y29uZmlndXJlZDsKQEAgLTI3LDYgKzMwLDE5IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcGZiX3BsYXRm
-b3JtX2RhdGEgb21hcGZiX2NvbmZpZzsKIAogc3RhdGljIHU2NCBvbWFwX2ZiX2RtYV9tYXNrID0g
-fih1MzIpMDsKIAorc3RydWN0IHJlc291cmNlIG9tYXBfZmJfcmVzb3VyY2VzW10gPSB7CisJewor
-CQkubmFtZSAgPSAiaXJxIiwKKwkJLnN0YXJ0ID0gSU5UX0xDRF9DVFJMLAorCQkuZmxhZ3MgPSBJ
-T1JFU09VUkNFX0lSUSwKKwl9LAorCXsKKwkJLm5hbWUgID0gImlycSIsCisJCS5zdGFydCA9IElO
-VF9TT1NTSV9NQVRDSCwKKwkJLmZsYWdzID0gSU9SRVNPVVJDRV9JUlEsCisJfSwKK307CisKIHN0
-YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlIG9tYXBfZmJfZGV2aWNlID0gewogCS5uYW1lCQk9
-ICJvbWFwZmIiLAogCS5pZAkJPSAtMSwKQEAgLTM1LDcgKzUxLDggQEAgc3RhdGljIHN0cnVjdCBw
-bGF0Zm9ybV9kZXZpY2Ugb21hcF9mYl9kZXZpY2UgPSB7CiAJCS5jb2hlcmVudF9kbWFfbWFzawk9
-IERNQV9CSVRfTUFTSygzMiksCiAJCS5wbGF0Zm9ybV9kYXRhCQk9ICZvbWFwZmJfY29uZmlnLAog
-CX0sCi0JLm51bV9yZXNvdXJjZXMgPSAwLAorCS5udW1fcmVzb3VyY2VzID0gQVJSQVlfU0laRShv
-bWFwX2ZiX3Jlc291cmNlcyksCisJLnJlc291cmNlID0gb21hcF9mYl9yZXNvdXJjZXMsCiB9Owog
-CiB2b2lkIF9faW5pdCBvbWFwZmJfc2V0X2xjZF9jb25maWcoY29uc3Qgc3RydWN0IG9tYXBfbGNk
-X2NvbmZpZyAqY29uZmlnKQpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9pbmNsdWRl
-L21hY2gvbGNkYy5oIGIvYXJjaC9hcm0vbWFjaC1vbWFwMS9pbmNsdWRlL21hY2gvbGNkYy5oCmRl
-bGV0ZWQgZmlsZSBtb2RlIDEwMDY0NAppbmRleCA3MTUyZGIxZjUzNjEuLjAwMDAwMDAwMDAwMAot
-LS0gYS9hcmNoL2FybS9tYWNoLW9tYXAxL2luY2x1ZGUvbWFjaC9sY2RjLmgKKysrIC9kZXYvbnVs
-bApAQCAtMSw0NCArMCwwIEBACi0vKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMC1v
-ci1sYXRlciAqLwotLyoKLSAqIGFyY2gvYXJtL21hY2gtb21hcDEvaW5jbHVkZS9tYWNoL2xjZGMu
-aAotICoKLSAqIEV4dHJhY3RlZCBmcm9tIGRyaXZlcnMvdmlkZW8vb21hcC9sY2RjLmMKLSAqIENv
-cHlyaWdodCAoQykgMjAwNCBOb2tpYSBDb3Jwb3JhdGlvbgotICogQXV0aG9yOiBJbXJlIERlYWsg
-PGltcmUuZGVha0Bub2tpYS5jb20+Ci0gKi8KLSNpZm5kZWYgX19NQUNIX0xDRENfSF9fCi0jZGVm
-aW5lIF9fTUFDSF9MQ0RDX0hfXwotCi0jZGVmaW5lIE9NQVBfTENEQ19CQVNFCQkJMHhmZmZlYzAw
-MAotI2RlZmluZSBPTUFQX0xDRENfU0laRQkJCTI1NgotI2RlZmluZSBPTUFQX0xDRENfSVJRCQkJ
-SU5UX0xDRF9DVFJMCi0KLSNkZWZpbmUgT01BUF9MQ0RDX0NPTlRST0wJCShPTUFQX0xDRENfQkFT
-RSArIDB4MDApCi0jZGVmaW5lIE9NQVBfTENEQ19USU1JTkcwCQkoT01BUF9MQ0RDX0JBU0UgKyAw
-eDA0KQotI2RlZmluZSBPTUFQX0xDRENfVElNSU5HMQkJKE9NQVBfTENEQ19CQVNFICsgMHgwOCkK
-LSNkZWZpbmUgT01BUF9MQ0RDX1RJTUlORzIJCShPTUFQX0xDRENfQkFTRSArIDB4MGMpCi0jZGVm
-aW5lIE9NQVBfTENEQ19TVEFUVVMJCShPTUFQX0xDRENfQkFTRSArIDB4MTApCi0jZGVmaW5lIE9N
-QVBfTENEQ19TVUJQQU5FTAkJKE9NQVBfTENEQ19CQVNFICsgMHgxNCkKLSNkZWZpbmUgT01BUF9M
-Q0RDX0xJTkVfSU5UCQkoT01BUF9MQ0RDX0JBU0UgKyAweDE4KQotI2RlZmluZSBPTUFQX0xDRENf
-RElTUExBWV9TVEFUVVMJKE9NQVBfTENEQ19CQVNFICsgMHgxYykKLQotI2RlZmluZSBPTUFQX0xD
-RENfU1RBVF9ET05FCQkoMSA8PCAwKQotI2RlZmluZSBPTUFQX0xDRENfU1RBVF9WU1lOQwkJKDEg
-PDwgMSkKLSNkZWZpbmUgT01BUF9MQ0RDX1NUQVRfU1lOQ19MT1NUCSgxIDw8IDIpCi0jZGVmaW5l
-IE9NQVBfTENEQ19TVEFUX0FCQwkJKDEgPDwgMykKLSNkZWZpbmUgT01BUF9MQ0RDX1NUQVRfTElO
-RV9JTlQJCSgxIDw8IDQpCi0jZGVmaW5lIE9NQVBfTENEQ19TVEFUX0ZVRgkJKDEgPDwgNSkKLSNk
-ZWZpbmUgT01BUF9MQ0RDX1NUQVRfTE9BREVEX1BBTEVUVEUJKDEgPDwgNikKLQotI2RlZmluZSBP
-TUFQX0xDRENfQ1RSTF9MQ0RfRU4JCSgxIDw8IDApCi0jZGVmaW5lIE9NQVBfTENEQ19DVFJMX0xD
-RF9URlQJCSgxIDw8IDcpCi0jZGVmaW5lIE9NQVBfTENEQ19DVFJMX0xJTkVfSVJRX0NMUl9TRUwJ
-KDEgPDwgMTApCi0KLSNkZWZpbmUgT01BUF9MQ0RDX0lSUV9WU1lOQwkJKDEgPDwgMikKLSNkZWZp
-bmUgT01BUF9MQ0RDX0lSUV9ET05FCQkoMSA8PCAzKQotI2RlZmluZSBPTUFQX0xDRENfSVJRX0xP
-QURFRF9QQUxFVFRFCSgxIDw8IDQpCi0jZGVmaW5lIE9NQVBfTENEQ19JUlFfTElORV9OSVJRCQko
-MSA8PCA1KQotI2RlZmluZSBPTUFQX0xDRENfSVJRX0xJTkUJCSgxIDw8IDYpCi0jZGVmaW5lIE9N
-QVBfTENEQ19JUlFfTUFTSwkJKCgoMSA8PCA1KSAtIDEpIDw8IDIpCi0KLSNlbmRpZiAvKiBfX01B
-Q0hfTENEQ19IX18gKi8KZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvTWFrZWZpbGUg
-Yi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L01ha2VmaWxlCmluZGV4IGFhYjcxNTU4ODRlYS4uMzMyNDMw
-MWU0YzM2IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L01ha2VmaWxlCisrKyBiL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvTWFrZWZpbGUKQEAgLTExMSw3ICsxMTEsNyBAQCBvYmotJChDT05G
-SUdfRkJfVURMKQkJICArPSB1ZGxmYi5vCiBvYmotJChDT05GSUdfRkJfU01TQ1VGWCkJICArPSBz
-bXNjdWZ4Lm8KIG9iai0kKENPTkZJR19GQl9YSUxJTlgpICAgICAgICAgICArPSB4aWxpbnhmYi5v
-CiBvYmotJChDT05GSUdfRkJfU0hfTU9CSUxFX0xDREMpCSAgKz0gc2hfbW9iaWxlX2xjZGNmYi5v
-Ci1vYmotJChDT05GSUdfRkJfT01BUCkgICAgICAgICAgICAgKz0gb21hcC8KK29iai15CQkJCSAg
-Kz0gb21hcC8KIG9iai15ICAgICAgICAgICAgICAgICAgICAgICAgICAgICArPSBvbWFwMi8KIG9i
-ai0kKENPTkZJR19YRU5fRkJERVZfRlJPTlRFTkQpICArPSB4ZW4tZmJmcm9udC5vCiBvYmotJChD
-T05GSUdfRkJfQ0FSTUlORSkgICAgICAgICAgKz0gY2FybWluZWZiLm8KZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvb21hcC9NYWtlZmlsZSBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21h
-cC9NYWtlZmlsZQppbmRleCBkYWFhNzNhOTRlN2YuLmI4OGUwMmY1Y2IxZiAxMDA2NDQKLS0tIGEv
-ZHJpdmVycy92aWRlby9mYmRldi9vbWFwL01ha2VmaWxlCisrKyBiL2RyaXZlcnMvdmlkZW8vZmJk
-ZXYvb21hcC9NYWtlZmlsZQpAQCAtNSw2ICs1LDExIEBACiAKIG9iai0kKENPTkZJR19GQl9PTUFQ
-KSArPSBvbWFwZmIubwogCitpZmRlZiBDT05GSUdfRkJfT01BUAorIyBtdXN0IGJlIGJ1aWx0LWlu
-CitvYmoteSArPSBsY2RfZG1hLm8KK2VuZGlmCisKIG9ianMteXkgOj0gb21hcGZiX21haW4ubyBs
-Y2RjLm8KIAogb2Jqcy15JChDT05GSUdfRkJfT01BUF9MQ0RDX0VYVEVSTkFMKSArPSBzb3NzaS5v
-CmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAxL2xjZF9kbWEuYyBiL2RyaXZlcnMvdmlk
-ZW8vZmJkZXYvb21hcC9sY2RfZG1hLmMKc2ltaWxhcml0eSBpbmRleCA5OSUKcmVuYW1lIGZyb20g
-YXJjaC9hcm0vbWFjaC1vbWFwMS9sY2RfZG1hLmMKcmVuYW1lIHRvIGRyaXZlcnMvdmlkZW8vZmJk
-ZXYvb21hcC9sY2RfZG1hLmMKaW5kZXggYTcyYWMwYzAyYjRmLi44NjdhNjNjMDZmNDIgMTAwNjQ0
-Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDEvbGNkX2RtYS5jCisrKyBiL2RyaXZlcnMvdmlkZW8v
-ZmJkZXYvb21hcC9sY2RfZG1hLmMKQEAgLTI2LDcgKzI2LDkgQEAKICNpbmNsdWRlIDxsaW51eC9v
-bWFwLWRtYS5oPgogCiAjaW5jbHVkZSA8bWFjaC9oYXJkd2FyZS5oPgotI2luY2x1ZGUgPG1hY2gv
-bGNkYy5oPgorCisjaW5jbHVkZSAibGNkYy5oIgorI2luY2x1ZGUgImxjZF9kbWEuaCIKIAogaW50
-IG9tYXBfbGNkX2RtYV9ydW5uaW5nKHZvaWQpCiB7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNo
-LW9tYXAxL2luY2x1ZGUvbWFjaC9sY2RfZG1hLmggYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAv
-bGNkX2RtYS5oCnNpbWlsYXJpdHkgaW5kZXggOTglCnJlbmFtZSBmcm9tIGFyY2gvYXJtL21hY2gt
-b21hcDEvaW5jbHVkZS9tYWNoL2xjZF9kbWEuaApyZW5hbWUgdG8gZHJpdmVycy92aWRlby9mYmRl
-di9vbWFwL2xjZF9kbWEuaAppbmRleCAxYTNjMGNmMTc4OTkuLjFiNDc4MDE5NzM4MSAxMDA2NDQK
-LS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9pbmNsdWRlL21hY2gvbGNkX2RtYS5oCisrKyBiL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfZG1hLmgKQEAgLTYwLDYgKzYwLDQgQEAgZXh0ZXJu
-IHZvaWQgb21hcF9zZXRfbGNkX2RtYV9iMV92eHJlcyh1bnNpZ25lZCBsb25nIHZ4cmVzKTsKIGV4
-dGVybiB2b2lkIG9tYXBfc2V0X2xjZF9kbWFfYjFfbWlycm9yKGludCBtaXJyb3IpOwogZXh0ZXJu
-IHZvaWQgb21hcF9zZXRfbGNkX2RtYV9iMV9zY2FsZSh1bnNpZ25lZCBpbnQgeHNjYWxlLCB1bnNp
-Z25lZCBpbnQgeXNjYWxlKTsKIAotZXh0ZXJuIGludCBvbWFwX2xjZF9kbWFfcnVubmluZyh2b2lk
-KTsKLQogI2VuZGlmIC8qIF9fTUFDSF9PTUFQMV9MQ0RfRE1BX0hfXyAqLwpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZGMuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21h
-cC9sY2RjLmMKaW5kZXggZmE3M2FjZmMxMzcxLi42NTk1M2I3ZmJkYjkgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RjLmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9v
-bWFwL2xjZGMuYwpAQCAtMTcsNyArMTcsNiBAQAogI2luY2x1ZGUgPGxpbnV4L2Nsay5oPgogI2lu
-Y2x1ZGUgPGxpbnV4L2dmcC5oPgogCi0jaW5jbHVkZSA8bWFjaC9sY2RjLmg+CiAjaW5jbHVkZSA8
-bGludXgvb21hcC1kbWEuaD4KIAogI2luY2x1ZGUgPGFzbS9tYWNoLXR5cGVzLmg+CkBAIC0yNSw2
-ICsyNCw3IEBACiAjaW5jbHVkZSAib21hcGZiLmgiCiAKICNpbmNsdWRlICJsY2RjLmgiCisjaW5j
-bHVkZSAibGNkX2RtYS5oIgogCiAjZGVmaW5lIE1PRFVMRV9OQU1FCQkJImxjZGMiCiAKQEAgLTcx
-Myw3ICs3MTMsNyBAQCBzdGF0aWMgaW50IG9tYXBfbGNkY19pbml0KHN0cnVjdCBvbWFwZmJfZGV2
-aWNlICpmYmRldiwgaW50IGV4dF9tb2RlLAogCX0KIAljbGtfZW5hYmxlKGxjZGMubGNkX2NrKTsK
-IAotCXIgPSByZXF1ZXN0X2lycShPTUFQX0xDRENfSVJRLCBsY2RjX2lycV9oYW5kbGVyLCAwLCBN
-T0RVTEVfTkFNRSwgZmJkZXYpOworCXIgPSByZXF1ZXN0X2lycShmYmRldi0+aW50X2lycSwgbGNk
-Y19pcnFfaGFuZGxlciwgMCwgTU9EVUxFX05BTUUsIGZiZGV2KTsKIAlpZiAocikgewogCQlkZXZf
-ZXJyKGZiZGV2LT5kZXYsICJ1bmFibGUgdG8gZ2V0IElSUVxuIik7CiAJCWdvdG8gZmFpbDI7CkBA
-IC03NDQsNyArNzQ0LDcgQEAgc3RhdGljIGludCBvbWFwX2xjZGNfaW5pdChzdHJ1Y3Qgb21hcGZi
-X2RldmljZSAqZmJkZXYsIGludCBleHRfbW9kZSwKIGZhaWw0OgogCW9tYXBfZnJlZV9sY2RfZG1h
-KCk7CiBmYWlsMzoKLQlmcmVlX2lycShPTUFQX0xDRENfSVJRLCBsY2RjLmZiZGV2KTsKKwlmcmVl
-X2lycShmYmRldi0+aW50X2lycSwgbGNkYy5mYmRldik7CiBmYWlsMjoKIAljbGtfZGlzYWJsZShs
-Y2RjLmxjZF9jayk7CiBmYWlsMToKQEAgLTc1OSw3ICs3NTksNyBAQCBzdGF0aWMgdm9pZCBvbWFw
-X2xjZGNfY2xlYW51cCh2b2lkKQogCQlmcmVlX3BhbGV0dGVfcmFtKCk7CiAJZnJlZV9mYm1lbSgp
-OwogCW9tYXBfZnJlZV9sY2RfZG1hKCk7Ci0JZnJlZV9pcnEoT01BUF9MQ0RDX0lSUSwgbGNkYy5m
-YmRldik7CisJZnJlZV9pcnEobGNkYy5mYmRldi0+aW50X2lycSwgbGNkYy5mYmRldik7CiAJY2xr
-X2Rpc2FibGUobGNkYy5sY2RfY2spOwogCWNsa19wdXQobGNkYy5sY2RfY2spOwogfQpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZGMuaCBiL2RyaXZlcnMvdmlkZW8vZmJk
-ZXYvb21hcC9sY2RjLmgKaW5kZXggOGE3NjA3ZDg2MWMxLi5jYmJmZDliOWU5NDkgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RjLmgKKysrIGIvZHJpdmVycy92aWRlby9m
-YmRldi9vbWFwL2xjZGMuaApAQCAtMSw2ICsxLDQxIEBACiAvKiBTUERYLUxpY2Vuc2UtSWRlbnRp
-ZmllcjogR1BMLTIuMCAqLwogI2lmbmRlZiBMQ0RDX0gKICNkZWZpbmUgTENEQ19ICisvKgorICog
-Q29weXJpZ2h0IChDKSAyMDA0IE5va2lhIENvcnBvcmF0aW9uCisgKiBBdXRob3I6IEltcmUgRGVh
-ayA8aW1yZS5kZWFrQG5va2lhLmNvbT4KKyAqLworI2RlZmluZSBPTUFQX0xDRENfQkFTRQkJCTB4
-ZmZmZWMwMDAKKyNkZWZpbmUgT01BUF9MQ0RDX1NJWkUJCQkyNTYKKyNkZWZpbmUgT01BUF9MQ0RD
-X0lSUQkJCUlOVF9MQ0RfQ1RSTAorCisjZGVmaW5lIE9NQVBfTENEQ19DT05UUk9MCQkoT01BUF9M
-Q0RDX0JBU0UgKyAweDAwKQorI2RlZmluZSBPTUFQX0xDRENfVElNSU5HMAkJKE9NQVBfTENEQ19C
-QVNFICsgMHgwNCkKKyNkZWZpbmUgT01BUF9MQ0RDX1RJTUlORzEJCShPTUFQX0xDRENfQkFTRSAr
-IDB4MDgpCisjZGVmaW5lIE9NQVBfTENEQ19USU1JTkcyCQkoT01BUF9MQ0RDX0JBU0UgKyAweDBj
-KQorI2RlZmluZSBPTUFQX0xDRENfU1RBVFVTCQkoT01BUF9MQ0RDX0JBU0UgKyAweDEwKQorI2Rl
-ZmluZSBPTUFQX0xDRENfU1VCUEFORUwJCShPTUFQX0xDRENfQkFTRSArIDB4MTQpCisjZGVmaW5l
-IE9NQVBfTENEQ19MSU5FX0lOVAkJKE9NQVBfTENEQ19CQVNFICsgMHgxOCkKKyNkZWZpbmUgT01B
-UF9MQ0RDX0RJU1BMQVlfU1RBVFVTCShPTUFQX0xDRENfQkFTRSArIDB4MWMpCisKKyNkZWZpbmUg
-T01BUF9MQ0RDX1NUQVRfRE9ORQkJKDEgPDwgMCkKKyNkZWZpbmUgT01BUF9MQ0RDX1NUQVRfVlNZ
-TkMJCSgxIDw8IDEpCisjZGVmaW5lIE9NQVBfTENEQ19TVEFUX1NZTkNfTE9TVAkoMSA8PCAyKQor
-I2RlZmluZSBPTUFQX0xDRENfU1RBVF9BQkMJCSgxIDw8IDMpCisjZGVmaW5lIE9NQVBfTENEQ19T
-VEFUX0xJTkVfSU5UCQkoMSA8PCA0KQorI2RlZmluZSBPTUFQX0xDRENfU1RBVF9GVUYJCSgxIDw8
-IDUpCisjZGVmaW5lIE9NQVBfTENEQ19TVEFUX0xPQURFRF9QQUxFVFRFCSgxIDw8IDYpCisKKyNk
-ZWZpbmUgT01BUF9MQ0RDX0NUUkxfTENEX0VOCQkoMSA8PCAwKQorI2RlZmluZSBPTUFQX0xDRENf
-Q1RSTF9MQ0RfVEZUCQkoMSA8PCA3KQorI2RlZmluZSBPTUFQX0xDRENfQ1RSTF9MSU5FX0lSUV9D
-TFJfU0VMCSgxIDw8IDEwKQorCisjZGVmaW5lIE9NQVBfTENEQ19JUlFfVlNZTkMJCSgxIDw8IDIp
-CisjZGVmaW5lIE9NQVBfTENEQ19JUlFfRE9ORQkJKDEgPDwgMykKKyNkZWZpbmUgT01BUF9MQ0RD
-X0lSUV9MT0FERURfUEFMRVRURQkoMSA8PCA0KQorI2RlZmluZSBPTUFQX0xDRENfSVJRX0xJTkVf
-TklSUQkJKDEgPDwgNSkKKyNkZWZpbmUgT01BUF9MQ0RDX0lSUV9MSU5FCQkoMSA8PCA2KQorI2Rl
-ZmluZSBPTUFQX0xDRENfSVJRX01BU0sJCSgoKDEgPDwgNSkgLSAxKSA8PCAyKQogCiBpbnQgb21h
-cF9sY2RjX3NldF9kbWFfY2FsbGJhY2sodm9pZCAoKmNhbGxiYWNrKSh2b2lkICpkYXRhKSwgdm9p
-ZCAqZGF0YSk7CiB2b2lkIG9tYXBfbGNkY19mcmVlX2RtYV9jYWxsYmFjayh2b2lkKTsKZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmIuaCBiL2RyaXZlcnMvdmlkZW8v
-ZmJkZXYvb21hcC9vbWFwZmIuaAppbmRleCBkOTMwMTUyYzI4OWMuLjMxM2EwNTFmZTdhNCAxMDA2
-NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL29tYXBmYi5oCisrKyBiL2RyaXZlcnMv
-dmlkZW8vZmJkZXYvb21hcC9vbWFwZmIuaApAQCAtMjA0LDYgKzIwNCw4IEBAIHN0cnVjdCBvbWFw
-ZmJfZGV2aWNlIHsKIAlzdHJ1Y3QgbGNkX3BhbmVsCSpwYW5lbDsJCQkvKiBMQ0QgcGFuZWwgKi8K
-IAljb25zdCBzdHJ1Y3QgbGNkX2N0cmwJKmN0cmw7CQkJLyogTENEIGNvbnRyb2xsZXIgKi8KIAlj
-b25zdCBzdHJ1Y3QgbGNkX2N0cmwJKmludF9jdHJsOwkJLyogaW50ZXJuYWwgTENEIGN0cmwgKi8K
-KwlpbnQJCQlleHRfaXJxOworCWludAkJCWludF9pcnE7CiAJc3RydWN0IGxjZF9jdHJsX2V4dGlm
-CSpleHRfaWY7CQkvKiBMQ0QgY3RybCBleHRlcm5hbAogCQkJCQkJCSAgIGludGVyZmFjZSAqLwog
-CXN0cnVjdCBkZXZpY2UJCSpkZXY7CmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAvb21hcGZiX21haW4uYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5j
-CmluZGV4IDkwZWNhNjRlMzE0NC4uZGMwNjA1N2RlOTFkIDEwMDY0NAotLS0gYS9kcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L29tYXAvb21hcGZiX21haW4uYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAvb21hcGZiX21haW4uYwpAQCAtMTYxOCw3ICsxNjE4LDcgQEAgc3RhdGljIGludCBvbWFwZmJf
-ZG9fcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiwKIAogCWluaXRfc3RhdGUgPSAw
-OwogCi0JaWYgKHBkZXYtPm51bV9yZXNvdXJjZXMgIT0gMCkgeworCWlmIChwZGV2LT5udW1fcmVz
-b3VyY2VzICE9IDEpIHsKIAkJZGV2X2VycigmcGRldi0+ZGV2LCAicHJvYmVkIGZvciBhbiB1bmtu
-b3duIGRldmljZVxuIik7CiAJCXIgPSAtRU5PREVWOwogCQlnb3RvIGNsZWFudXA7CkBAIC0xNjM3
-LDYgKzE2MzcsMjAgQEAgc3RhdGljIGludCBvbWFwZmJfZG9fcHJvYmUoc3RydWN0IHBsYXRmb3Jt
-X2RldmljZSAqcGRldiwKIAkJciA9IC1FTk9NRU07CiAJCWdvdG8gY2xlYW51cDsKIAl9CisJZmJk
-ZXYtPmludF9pcnEgPSBwbGF0Zm9ybV9nZXRfaXJxKHBkZXYsIDApOworCWlmICghZmJkZXYtPmlu
-dF9pcnEpIHsKKwkJZGV2X2VycigmcGRldi0+ZGV2LCAidW5hYmxlIHRvIGdldCBpcnFcbiIpOwor
-CQlyID0gRU5YSU87CisJCWdvdG8gY2xlYW51cDsKKwl9CisKKwlmYmRldi0+ZXh0X2lycSA9IHBs
-YXRmb3JtX2dldF9pcnEocGRldiwgMSk7CisJaWYgKCFmYmRldi0+ZXh0X2lycSkgeworCQlkZXZf
-ZXJyKCZwZGV2LT5kZXYsICJ1bmFibGUgdG8gZ2V0IGlycVxuIik7CisJCXIgPSBFTlhJTzsKKwkJ
-Z290byBjbGVhbnVwOworCX0KKwogCWluaXRfc3RhdGUrKzsKIAogCWZiZGV2LT5kZXYgPSAmcGRl
-di0+ZGV2OwpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL3Nvc3NpLmMgYi9k
-cml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvc29zc2kuYwppbmRleCA4MGFjNjdmMjdmMGQuLmFkZTlk
-NDUyMjU0YyAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL3Nvc3NpLmMKKysr
-IGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL3Nvc3NpLmMKQEAgLTE1LDYgKzE1LDcgQEAKICNp
-bmNsdWRlIDxsaW51eC9vbWFwLWRtYS5oPgogCiAjaW5jbHVkZSAib21hcGZiLmgiCisjaW5jbHVk
-ZSAibGNkX2RtYS5oIgogI2luY2x1ZGUgImxjZGMuaCIKIAogI2RlZmluZSBNT0RVTEVfTkFNRQkJ
-Im9tYXBmYi1zb3NzaSIKQEAgLTYzOCw3ICs2MzksNyBAQCBzdGF0aWMgaW50IHNvc3NpX2luaXQo
-c3RydWN0IG9tYXBmYl9kZXZpY2UgKmZiZGV2KQogCWwgJj0gfigxIDw8IDMxKTsgLyogUkVPUkRF
-UklORyAqLwogCXNvc3NpX3dyaXRlX3JlZyhTT1NTSV9JTklUMV9SRUcsIGwpOwogCi0JaWYgKChy
-ID0gcmVxdWVzdF9pcnEoSU5UXzE2MTBfU29TU0lfTUFUQ0gsIHNvc3NpX21hdGNoX2lycSwKKwlp
-ZiAoKHIgPSByZXF1ZXN0X2lycShmYmRldi0+ZXh0X2lycSwgc29zc2lfbWF0Y2hfaXJxLAogCQkJ
-ICAgICBJUlFfVFlQRV9FREdFX0ZBTExJTkcsCiAJICAgICAic29zc2lfbWF0Y2giLCBzb3NzaS5m
-YmRldi0+ZGV2KSkgPCAwKSB7CiAJCWRldl9lcnIoc29zc2kuZmJkZXYtPmRldiwgImNhbid0IGdl
-dCBTb1NTSSBtYXRjaCBJUlFcbiIpOwpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9vbWFwLWRt
-YS5oIGIvaW5jbHVkZS9saW51eC9vbWFwLWRtYS5oCmluZGV4IGJhM2NmYmI1MjMxMi4uZTlkNzZh
-YzYzMjFkIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L29tYXAtZG1hLmgKKysrIGIvaW5jbHVk
-ZS9saW51eC9vbWFwLWRtYS5oCkBAIC0zNDYsOCArMzQ2LDggQEAgZXh0ZXJuIHZvaWQgb21hcF9k
-bWFfc2V0X2dsb2JhbF9wYXJhbXMoaW50IGFyYl9yYXRlLCBpbnQgbWF4X2ZpZm9fZGVwdGgsCiB2
-b2lkIG9tYXBfZG1hX2dsb2JhbF9jb250ZXh0X3NhdmUodm9pZCk7CiB2b2lkIG9tYXBfZG1hX2ds
-b2JhbF9jb250ZXh0X3Jlc3RvcmUodm9pZCk7CiAKLSNpZiBkZWZpbmVkKENPTkZJR19BUkNIX09N
-QVAxKSAmJiBJU19FTkFCTEVEKENPTkZJR19GQl9PTUFQKQotI2luY2x1ZGUgPG1hY2gvbGNkX2Rt
-YS5oPgorI2lmIElTX0VOQUJMRUQoQ09ORklHX0ZCX09NQVApCitleHRlcm4gaW50IG9tYXBfbGNk
-X2RtYV9ydW5uaW5nKHZvaWQpOwogI2Vsc2UKIHN0YXRpYyBpbmxpbmUgaW50IG9tYXBfbGNkX2Rt
-YV9ydW5uaW5nKHZvaWQpCiB7CkBAIC0zNTYsNiArMzU2LDkgQEAgc3RhdGljIGlubGluZSBpbnQg
-b21hcF9sY2RfZG1hX3J1bm5pbmcodm9pZCkKICNlbmRpZgogCiAjZWxzZSAvKiBDT05GSUdfQVJD
-SF9PTUFQICovCitzdGF0aWMgaW5saW5lIHZvaWQgb21hcF9zZXRfZG1hX3ByaW9yaXR5KGludCBs
-Y2gsIGludCBkc3RfcG9ydCwgaW50IHByaW9yaXR5KQoreworfQogCiBzdGF0aWMgaW5saW5lIHN0
-cnVjdCBvbWFwX3N5c3RlbV9kbWFfcGxhdF9pbmZvICpvbWFwX2dldF9wbGF0X2luZm8odm9pZCkK
-IHsKLS0gCjIuMjAuMAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRl
-dmVs
+The mach/memory.h file only exists to implement a dma offset for "Local
+Bus" devices, and that consists of the OHCI USB controller for practical
+purposes.
+
+The generic dma-mapping interface has gained this exact feature some
+years ago and can do it much more efficiently, so replace the complex
+__arch_virt_to_dma/__arch_dma_to_pfn/... logic with a much simpler boot
+time initialization.
+
+This should also make any code that performs dma mapping calls at
+runtime much more efficient, by eliminating the strcmp() along with
+the computation.
+
+Similar, a portion of the ohci-omap driver is just there for configuring
+the memory translation, this too can get moved into usb.c
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap1/include/mach/memory.h   | 43 -----------
+ arch/arm/mach-omap1/include/mach/omap1510.h |  1 -
+ arch/arm/mach-omap1/usb.c                   | 79 +++++++++++++++++++++
+ drivers/usb/host/ohci-omap.c                | 72 +------------------
+ include/linux/platform_data/usb-omap1.h     |  2 +
+ 5 files changed, 83 insertions(+), 114 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/include/mach/memory.h b/arch/arm/mach-omap1/include/mach/memory.h
+index 1142560e0078..ba3a350479c8 100644
+--- a/arch/arm/mach-omap1/include/mach/memory.h
++++ b/arch/arm/mach-omap1/include/mach/memory.h
+@@ -9,47 +9,4 @@
+ /* REVISIT: omap1 legacy drivers still rely on this */
+ #include <mach/soc.h>
+ 
+-/*
+- * Bus address is physical address, except for OMAP-1510 Local Bus.
+- * OMAP-1510 bus address is translated into a Local Bus address if the
+- * OMAP bus type is lbus. We do the address translation based on the
+- * device overriding the defaults used in the dma-mapping API.
+- * Note that the is_lbus_device() test is not very efficient on 1510
+- * because of the strncmp().
+- */
+-#if defined(CONFIG_ARCH_OMAP15XX) && !defined(__ASSEMBLER__)
+-
+-/*
+- * OMAP-1510 Local Bus address offset
+- */
+-#define OMAP1510_LB_OFFSET	UL(0x30000000)
+-
+-#define virt_to_lbus(x)		((x) - PAGE_OFFSET + OMAP1510_LB_OFFSET)
+-#define lbus_to_virt(x)		((x) - OMAP1510_LB_OFFSET + PAGE_OFFSET)
+-#define is_lbus_device(dev)	(cpu_is_omap15xx() && dev && (strncmp(dev_name(dev), "ohci", 4) == 0))
+-
+-#define __arch_pfn_to_dma(dev, pfn)	\
+-	({ dma_addr_t __dma = __pfn_to_phys(pfn); \
+-	   if (is_lbus_device(dev)) \
+-		__dma = __dma - PHYS_OFFSET + OMAP1510_LB_OFFSET; \
+-	   __dma; })
+-
+-#define __arch_dma_to_pfn(dev, addr)	\
+-	({ dma_addr_t __dma = addr;				\
+-	   if (is_lbus_device(dev))				\
+-		__dma += PHYS_OFFSET - OMAP1510_LB_OFFSET;	\
+-	   __phys_to_pfn(__dma);				\
+-	})
+-
+-#define __arch_dma_to_virt(dev, addr)	({ (void *) (is_lbus_device(dev) ? \
+-						lbus_to_virt(addr) : \
+-						__phys_to_virt(addr)); })
+-
+-#define __arch_virt_to_dma(dev, addr)	({ unsigned long __addr = (unsigned long)(addr); \
+-					   (dma_addr_t) (is_lbus_device(dev) ? \
+-						virt_to_lbus(__addr) : \
+-						__virt_to_phys(__addr)); })
+-
+-#endif	/* CONFIG_ARCH_OMAP15XX */
+-
+ #endif
+diff --git a/arch/arm/mach-omap1/include/mach/omap1510.h b/arch/arm/mach-omap1/include/mach/omap1510.h
+index 3d235244bf5c..7af9c0c7c5ab 100644
+--- a/arch/arm/mach-omap1/include/mach/omap1510.h
++++ b/arch/arm/mach-omap1/include/mach/omap1510.h
+@@ -159,4 +159,3 @@
+ #define OMAP1510_INT_FPGA23		(OMAP_FPGA_IRQ_BASE + 23)
+ 
+ #endif /*  __ASM_ARCH_OMAP15XX_H */
+-
+diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+index d8e9bbda8f7b..740c876ae46b 100644
+--- a/arch/arm/mach-omap1/usb.c
++++ b/arch/arm/mach-omap1/usb.c
+@@ -10,6 +10,7 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
++#include <linux/delay.h>
+ 
+ #include <asm/irq.h>
+ 
+@@ -127,6 +128,7 @@ omap_otg_init(struct omap_usb_config *config)
+ 
+ 		syscon &= ~HST_IDLE_EN;
+ 		ohci_device->dev.platform_data = config;
++
+ 		status = platform_device_register(ohci_device);
+ 		if (status)
+ 			pr_debug("can't register OHCI device, %d\n", status);
+@@ -533,6 +535,80 @@ static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
+ }
+ 
+ #ifdef	CONFIG_ARCH_OMAP15XX
++/* OMAP-1510 OHCI has its own MMU for DMA */
++#define OMAP1510_LB_MEMSIZE	32	/* Should be same as SDRAM size */
++#define OMAP1510_LB_CLOCK_DIV	0xfffec10c
++#define OMAP1510_LB_MMU_CTL	0xfffec208
++#define OMAP1510_LB_MMU_LCK	0xfffec224
++#define OMAP1510_LB_MMU_LD_TLB	0xfffec228
++#define OMAP1510_LB_MMU_CAM_H	0xfffec22c
++#define OMAP1510_LB_MMU_CAM_L	0xfffec230
++#define OMAP1510_LB_MMU_RAM_H	0xfffec234
++#define OMAP1510_LB_MMU_RAM_L	0xfffec238
++
++/*
++ * Bus address is physical address, except for OMAP-1510 Local Bus.
++ * OMAP-1510 bus address is translated into a Local Bus address if the
++ * OMAP bus type is lbus.
++ */
++#define OMAP1510_LB_OFFSET	   UL(0x30000000)
++#define OMAP1510_LB_DMA_PFN_OFFSET ((OMAP1510_LB_OFFSET - PAGE_OFFSET) >> PAGE_SHIFT)
++
++/*
++ * OMAP-1510 specific Local Bus clock on/off
++ */
++static int omap_1510_local_bus_power(int on)
++{
++	if (on) {
++		omap_writel((1 << 1) | (1 << 0), OMAP1510_LB_MMU_CTL);
++		udelay(200);
++	} else {
++		omap_writel(0, OMAP1510_LB_MMU_CTL);
++	}
++
++	return 0;
++}
++
++/*
++ * OMAP-1510 specific Local Bus initialization
++ * NOTE: This assumes 32MB memory size in OMAP1510LB_MEMSIZE.
++ *       See also arch/mach-omap/memory.h for __virt_to_dma() and
++ *       __dma_to_virt() which need to match with the physical
++ *       Local Bus address below.
++ */
++static int omap_1510_local_bus_init(void)
++{
++	unsigned int tlb;
++	unsigned long lbaddr, physaddr;
++
++	omap_writel((omap_readl(OMAP1510_LB_CLOCK_DIV) & 0xfffffff8) | 0x4,
++	       OMAP1510_LB_CLOCK_DIV);
++
++	/* Configure the Local Bus MMU table */
++	for (tlb = 0; tlb < OMAP1510_LB_MEMSIZE; tlb++) {
++		lbaddr = tlb * 0x00100000 + OMAP1510_LB_OFFSET;
++		physaddr = tlb * 0x00100000 + PHYS_OFFSET;
++		omap_writel((lbaddr & 0x0fffffff) >> 22, OMAP1510_LB_MMU_CAM_H);
++		omap_writel(((lbaddr & 0x003ffc00) >> 6) | 0xc,
++		       OMAP1510_LB_MMU_CAM_L);
++		omap_writel(physaddr >> 16, OMAP1510_LB_MMU_RAM_H);
++		omap_writel((physaddr & 0x0000fc00) | 0x300, OMAP1510_LB_MMU_RAM_L);
++		omap_writel(tlb << 4, OMAP1510_LB_MMU_LCK);
++		omap_writel(0x1, OMAP1510_LB_MMU_LD_TLB);
++	}
++
++	/* Enable the walking table */
++	omap_writel(omap_readl(OMAP1510_LB_MMU_CTL) | (1 << 3), OMAP1510_LB_MMU_CTL);
++	udelay(200);
++
++	return 0;
++}
++
++static void omap_1510_local_bus_reset(void)
++{
++	omap_1510_local_bus_power(1);
++	omap_1510_local_bus_init();
++}
+ 
+ /* ULPD_DPLL_CTRL */
+ #define DPLL_IOB		(1 << 13)
+@@ -601,11 +677,14 @@ static void __init omap_1510_usb_init(struct omap_usb_config *config)
+ 		int status;
+ 
+ 		ohci_device.dev.platform_data = config;
++		ohci_device.dev.dma_pfn_offset = OMAP1510_LB_DMA_PFN_OFFSET;
+ 		status = platform_device_register(&ohci_device);
+ 		if (status)
+ 			pr_debug("can't register OHCI device, %d\n", status);
+ 		/* hcd explicitly gates 48MHz */
+ 	}
++
++	config->lb_reset = omap_1510_local_bus_reset;
+ #endif
+ }
+ 
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index d8d35d456456..f7efe65f01c5 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -40,17 +40,6 @@
+ #include <mach/usb.h>
+ 
+ 
+-/* OMAP-1510 OHCI has its own MMU for DMA */
+-#define OMAP1510_LB_MEMSIZE	32	/* Should be same as SDRAM size */
+-#define OMAP1510_LB_CLOCK_DIV	0xfffec10c
+-#define OMAP1510_LB_MMU_CTL	0xfffec208
+-#define OMAP1510_LB_MMU_LCK	0xfffec224
+-#define OMAP1510_LB_MMU_LD_TLB	0xfffec228
+-#define OMAP1510_LB_MMU_CAM_H	0xfffec22c
+-#define OMAP1510_LB_MMU_CAM_L	0xfffec230
+-#define OMAP1510_LB_MMU_RAM_H	0xfffec234
+-#define OMAP1510_LB_MMU_RAM_L	0xfffec238
+-
+ #define DRIVER_DESC "OHCI OMAP driver"
+ 
+ #ifdef CONFIG_TPS65010
+@@ -113,61 +102,6 @@ static int omap_ohci_transceiver_power(int on)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_ARCH_OMAP15XX
+-/*
+- * OMAP-1510 specific Local Bus clock on/off
+- */
+-static int omap_1510_local_bus_power(int on)
+-{
+-	if (on) {
+-		omap_writel((1 << 1) | (1 << 0), OMAP1510_LB_MMU_CTL);
+-		udelay(200);
+-	} else {
+-		omap_writel(0, OMAP1510_LB_MMU_CTL);
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+- * OMAP-1510 specific Local Bus initialization
+- * NOTE: This assumes 32MB memory size in OMAP1510LB_MEMSIZE.
+- *       See also arch/mach-omap/memory.h for __virt_to_dma() and
+- *       __dma_to_virt() which need to match with the physical
+- *       Local Bus address below.
+- */
+-static int omap_1510_local_bus_init(void)
+-{
+-	unsigned int tlb;
+-	unsigned long lbaddr, physaddr;
+-
+-	omap_writel((omap_readl(OMAP1510_LB_CLOCK_DIV) & 0xfffffff8) | 0x4,
+-	       OMAP1510_LB_CLOCK_DIV);
+-
+-	/* Configure the Local Bus MMU table */
+-	for (tlb = 0; tlb < OMAP1510_LB_MEMSIZE; tlb++) {
+-		lbaddr = tlb * 0x00100000 + OMAP1510_LB_OFFSET;
+-		physaddr = tlb * 0x00100000 + PHYS_OFFSET;
+-		omap_writel((lbaddr & 0x0fffffff) >> 22, OMAP1510_LB_MMU_CAM_H);
+-		omap_writel(((lbaddr & 0x003ffc00) >> 6) | 0xc,
+-		       OMAP1510_LB_MMU_CAM_L);
+-		omap_writel(physaddr >> 16, OMAP1510_LB_MMU_RAM_H);
+-		omap_writel((physaddr & 0x0000fc00) | 0x300, OMAP1510_LB_MMU_RAM_L);
+-		omap_writel(tlb << 4, OMAP1510_LB_MMU_LCK);
+-		omap_writel(0x1, OMAP1510_LB_MMU_LD_TLB);
+-	}
+-
+-	/* Enable the walking table */
+-	omap_writel(omap_readl(OMAP1510_LB_MMU_CTL) | (1 << 3), OMAP1510_LB_MMU_CTL);
+-	udelay(200);
+-
+-	return 0;
+-}
+-#else
+-#define omap_1510_local_bus_power(x)	{}
+-#define omap_1510_local_bus_init()	{}
+-#endif
+-
+ #ifdef	CONFIG_USB_OTG
+ 
+ static void start_hnp(struct ohci_hcd *ohci)
+@@ -237,10 +171,8 @@ static int ohci_omap_reset(struct usb_hcd *hcd)
+ 
+ 	omap_ohci_clock_power(1);
+ 
+-	if (cpu_is_omap15xx()) {
+-		omap_1510_local_bus_power(1);
+-		omap_1510_local_bus_init();
+-	}
++	if (config->lb_reset)
++		config->lb_reset();
+ 
+ 	ret = ohci_setup(hcd);
+ 	if (ret < 0)
+diff --git a/include/linux/platform_data/usb-omap1.h b/include/linux/platform_data/usb-omap1.h
+index 43b5ce139c37..878e572a78bf 100644
+--- a/include/linux/platform_data/usb-omap1.h
++++ b/include/linux/platform_data/usb-omap1.h
+@@ -48,6 +48,8 @@ struct omap_usb_config {
+ 	u32 (*usb2_init)(unsigned nwires, unsigned alt_pingroup);
+ 
+ 	int (*ocpi_enable)(void);
++
++	void (*lb_reset)(void);
+ };
+ 
+ #endif /* __LINUX_USB_OMAP1_H */
+-- 
+2.20.0
