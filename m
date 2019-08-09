@@ -1,67 +1,53 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH 02/22] ARM: omap1: make omapfb standalone compilable
-Date: Fri, 9 Aug 2019 16:36:12 +0200
-Message-ID: <487da98d-a862-0207-289a-bca8ff18e51a@samsung.com>
-References: <20190808212234.2213262-1-arnd@arndb.de>
-        <CGME20190808212453epcas2p44ff418662ee1acf428c6842ee4488f9f@epcas2p4.samsung.com>
-        <20190808212234.2213262-3-arnd@arndb.de>
-        <55c9608d-68c4-17f6-2682-7668d5d7720a@samsung.com>
-        <CAK8P3a3grFEGr33s327yNMabK5=1kCJc3k7y55dhzQx9sTvkyQ@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2+: pdata quirk fixes for OMAP IOMMUs
+Date: Fri, 9 Aug 2019 14:16:10 -0500
+Message-ID: <efabe829-90eb-247c-7d7a-9ab5a3c8e6bf@ti.com>
+References: <1565171081-7899-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a3grFEGr33s327yNMabK5=1kCJc3k7y55dhzQx9sTvkyQ@mail.gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1565171081-7899-1-git-send-email-t-kristo@ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tero,
 
-On 8/9/19 1:43 PM, Arnd Bergmann wrote:
-> On Fri, Aug 9, 2019 at 1:32 PM Bartlomiej Zolnierkiewicz
-> <b.zolnierkie@samsung.com> wrote:
->> On 8/8/19 11:22 PM, Arnd Bergmann wrote:
->>> The omapfb driver is split into platform specific code for omap1, and
->>> driver code that is also specific to omap1.
->>>
->>> Moving both parts into the driver directory simplifies the structure
->>> and avoids the dependency on certain omap machine header files.
->>>
->>> The interrupt numbers in particular however must not be referenced
->>> directly from the driver to allow building in a multiplatform
->>> configuration, so these have to be passed through resources, is
->>> done for all other omap drivers.
->>>
->>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->>
->> For fbdev part:
->>
->> Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+On 8/7/19 4:44 AM, Tero Kristo wrote:
+> Hi,
 > 
-> Thanks for taking a look.
-> 
->> [ It seems that adding of static inline for omap_set_dma_priority()
->>   when ARCH_OMAP=n should be in patch #9 but this is a minor issue. ]
-> 
-> That would have been ok as well, but having the addition here was
-> intentional and seems more logical to me as this is where the headers
-> get moved around.
-I see that this is an optimization for making the patch series more
-compact but I think that this addition logically belongs to patch #9
-(which adds support for COMPILE_TEST) where the new code is required.
+> A few quick fixes for OMAP IOMMU pdata quirks. These basically apply
+> one errata for remoteprocs, and also convert the support of iommus
+> to ti-sysc from hwmod for omap4+ devices.
 
-Moreover patch description for patch #2 lacks any comment about this
-addition being a preparation for changes in patch #9 so I was quite
-puzzled about its purpose when seeing it first.
+I do not think this series can go in independently by itself, right. I
+understand that you have posted the individual bits based on your
+integrated branch but the patches do have dependencies against patches
+against other subsystems.
 
-Therefore please have mercy on the poor/stupid reviewer and don't do
-such optimizations intentionally (or at least describe them properly
-somewhere).. ;-)
+You cannot remove the reset stuff without a breakage in functionality
+and without the PRM driver being merged. The second patch has
+dependencies from the OMAP IOMMU fixes series [1] which Joerg has picked
+up today.
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Have you tested these series individually? We will want to restore the
+current broken functionality with clkctrl when using hwmods first, bring
+in the PRM pieces and ti-sysc pieces and then transition over. We can
+directly go ti-sysc with DRA7 MMUs.
+
+regards
+Suman
+
+[1]
+https://lore.kernel.org/linux-iommu/20190809153730.GF12930@8bytes.org/T/#mec99f8e8ed351689f4fcc76f4f000f9144a02b51
