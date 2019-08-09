@@ -1,42 +1,28 @@
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-Subject: Re: [PATCH 03/22] ARM: omap1: move omap15xx local bus handling to usb.c
-Date: Fri, 09 Aug 2019 08:32:28 +0300
-Message-ID: <87y302ewer.fsf@gmail.com>
-References: <20190808212234.2213262-1-arnd@arndb.de> <20190808212234.2213262-4-arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Regression in next with codec unload and snd_soc_component_get/put
+Date: Fri, 9 Aug 2019 00:00:03 -0700
+Message-ID: <20190809070003.GA52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190808212234.2213262-4-arnd@arndb.de>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Mark Brown <broonie@kernel.org>
+Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Arnd Bergmann <arnd@arndb.de> writes:
+Hi,
 
-> The mach/memory.h file only exists to implement a dma offset for "Local
-> Bus" devices, and that consists of the OHCI USB controller for practical
-> purposes.
->
-> The generic dma-mapping interface has gained this exact feature some
-> years ago and can do it much more efficiently, so replace the complex
-> __arch_virt_to_dma/__arch_dma_to_pfn/... logic with a much simpler boot
-> time initialization.
->
-> This should also make any code that performs dma mapping calls at
-> runtime much more efficient, by eliminating the strcmp() along with
-> the computation.
->
-> Similar, a portion of the ohci-omap driver is just there for configuring
-> the memory translation, this too can get moved into usb.c
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Looks like commit 4a81e8f30d0b ("ASoC: soc-component: add
+snd_soc_component_get/put()") causes a regression where trying
+to rmmod a codec driver fails with module is in use error after
+rmmod of snd-soc-audio-graph-card for example.
 
-For all of these patches related to usb:
+Any ideas what goes wrong there?
 
-Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+BTW, looks like the lore.kernel.org link in that commit also is
+unreachable?
 
-Thanks for cleaning this up, Arnd.
+Regards,
 
--- 
-balbi
+Tony
