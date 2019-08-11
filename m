@@ -1,85 +1,65 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Motorola Droid 4 SMS sending
-Date: Sun, 11 Aug 2019 01:14:04 +0200
-Message-ID: <20190810231404.GA26417@amd>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH for v5.3] ARM: OMAP1: ams-delta-fiq: Fix missing irq_ack
+Date: Sun, 11 Aug 2019 10:48:02 +0200
+Message-ID: <20190811084802.630-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2687168709953268268=="
-Return-path: <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-List-Unsubscribe: <https://lists.ofono.org/mailman/options/ofono>,
- <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ofono.org/pipermail/ofono/>
-List-Post: <mailto:ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-List-Help: <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ofono.org/mailman/listinfo/ofono>,
- <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=subscribe>
-Errors-To: ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
-Sender: "ofono" <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-To: ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nekit1000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, mpartap-hi6Y0CQ0nG0@public.gmane.org, merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+Non-serio path of Amstrad Delta FIQ deferred handler depended on
+irq_ack() method provided by OMAP GPIO driver.  That method has been
+removed by commit 693de831c6e5 ("gpio: omap: remove irq_ack method").
+Remove useless code from the deferred handler and reimplement the
+missing operation inside the base FIQ handler.
 
---===============2687168709953268268==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W/nzBZO5zC0uMSeA"
-Content-Disposition: inline
+Should another dependency - irq_unmask() - be ever removed from the OMAP
+GPIO driver, WARN once if missing.
 
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ arch/arm/mach-omap1/ams-delta-fiq-handler.S | 3 ++-
+ arch/arm/mach-omap1/ams-delta-fiq.c         | 4 +---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-Motorola Droid 4 runs packet protocol over serial... and its kernel
-driver requires explicit "write()" boundaries at places where packet
-boundaries should be.
-
-So I can send SMS using low level g_at... functions (that are not
-normally accessible), but not using g_at_chat_send().
-
-If anyone has good idea for clean (or clean enough) solution, let me
-know.
-
-Best regards,
-									Pavel
-
-   snprintf(buf, sizeof(buf), "AT+GCMGS=3D\r");
-   encode_hex_own_buf(pdu, pdu_len, 0, buf_pdu);
-
-#if WANT_IT_BROKEN
-        strcat(buf, buf_pdu+2);
-        g_at_chat_send(data->send_chat, buf, none_prefix, NULL, data, NULL);
-#else
-        g_at_io_write(data->send_chat->parent->io, buf, strlen(buf));
- 	g_at_io_write(data->send_chat->parent->io, buf_pdu, strlen(buf_pdu));
-	g_io_channel_flush(data->send_chat->parent->io->channel, NULL);
-#endif
-		=09
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---W/nzBZO5zC0uMSeA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl1PT7wACgkQMOfwapXb+vLHKQCbB1FXu15H78z7H1X+NaG1Y/pJ
-UfsAn1FJ/Qlz2GsssMPxTbGJBNgwHcZZ
-=YHx4
------END PGP SIGNATURE-----
-
---W/nzBZO5zC0uMSeA--
-
---===============2687168709953268268==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============2687168709953268268==--
+diff --git a/arch/arm/mach-omap1/ams-delta-fiq-handler.S b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+index 81159af44862..14a6c3eb3298 100644
+--- a/arch/arm/mach-omap1/ams-delta-fiq-handler.S
++++ b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+@@ -126,6 +126,8 @@ restart:
+ 	orr r11, r11, r13			@ mask all requested interrupts
+ 	str r11, [r12, #OMAP1510_GPIO_INT_MASK]
+ 
++	str r13, [r12, #OMAP1510_GPIO_INT_STATUS] @ ack all requested interrupts
++
+ 	ands r10, r13, #KEYBRD_CLK_MASK		@ extract keyboard status - set?
+ 	beq hksw				@ no - try next source
+ 
+@@ -133,7 +135,6 @@ restart:
+ 	@@@@@@@@@@@@@@@@@@@@@@
+ 	@ Keyboard clock FIQ mode interrupt handler
+ 	@ r10 now contains KEYBRD_CLK_MASK, use it
+-	str r10, [r12, #OMAP1510_GPIO_INT_STATUS]	@ ack the interrupt
+ 	bic r11, r11, r10				@ unmask it
+ 	str r11, [r12, #OMAP1510_GPIO_INT_MASK]
+ 
+diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
+index 43899fa56674..0254eb9cf8c6 100644
+--- a/arch/arm/mach-omap1/ams-delta-fiq.c
++++ b/arch/arm/mach-omap1/ams-delta-fiq.c
+@@ -70,9 +70,7 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+ 			 * interrupts default to since commit 80ac93c27441
+ 			 * requires interrupt already acked and unmasked.
+ 			 */
+-			if (irq_chip->irq_ack)
+-				irq_chip->irq_ack(d);
+-			if (irq_chip->irq_unmask)
++			if (!WARN_ON_ONCE(!irq_chip->irq_unmask))
+ 				irq_chip->irq_unmask(d);
+ 		}
+ 		for (; irq_counter[gpio] < fiq_count; irq_counter[gpio]++)
+-- 
+2.21.0
