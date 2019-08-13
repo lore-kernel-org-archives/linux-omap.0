@@ -1,57 +1,82 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 14/22] ARM: omap1: use pci_ioremap_io() for omap_cf
-Date: Tue, 13 Aug 2019 13:02:16 +0200
-Message-ID: <CAK8P3a0E+QUn9wcP5Obv-FitWyXCFwcp+oPConeO2p-NV1rqsw@mail.gmail.com>
-References: <20190808212234.2213262-1-arnd@arndb.de> <20190808212234.2213262-15-arnd@arndb.de>
- <20190813103605.GL52127@atomide.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH 2/8] ARM: OMAP2+: Remove unconfigured midlemode for am3
+ lcdc
+Date: Tue, 13 Aug 2019 14:04:31 +0300
+Message-ID: <b5d757dc-6326-4b93-c2a2-2db02a440c26@ti.com>
+References: <20190723112811.44381-1-tony@atomide.com>
+ <20190723112811.44381-3-tony@atomide.com>
+ <bcc130a5-f7e0-e182-9f4b-5a48fc3d6e17@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190813103605.GL52127@atomide.com>
+In-Reply-To: <bcc130a5-f7e0-e182-9f4b-5a48fc3d6e17@ti.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 13, 2019 at 12:36 PM Tony Lindgren <tony@atomide.com> wrote:
+On 23/07/2019 22:03, Suman Anna wrote:
+> + Jyri
+> 
+> On 7/23/19 6:28 AM, Tony Lindgren wrote:
+>> We currently get a warning for lcdc because of a difference
+>> with dts provided configuration compared to the legacy platform
+>> data. This is because lcdc has SYSC_HAS_MIDLEMODE configured in
+>> the platform data without configuring the modes.
+> 
+> Hi Tony,
+> While I understand that you are trying to match the DT data with the
+> existing legacy data, do you know if there was a reason why this was
+> omitted in the first place? Should we be really adding the MSTANDBY_
+> flags and fix up the DTS node accordingly? I tried looking through the
+> git log, and the initial commit itself didn't add the MSTANDBY_ flags
+> but used the SYSC_HAS_MIDLEMODE.
+> 
+> Jyri,
+> Do you know the history?
+> 
 
-> * Arnd Bergmann <arnd@arndb.de> [190808 21:34]:
-> > The ISA I/O space handling in omap_cf is incompatible with
-> > PCI drivers in a multiplatform kernel, and requires a custom
-> > mach/io.h.
-> >
-> > Change the driver to use pci_ioremap_io() like PCI drivers do,
-> > so the generic ioport access can work across platforms.
-> >
-> > To actually use that code, we have to select CONFIG_PCI
-> > here.
-> >
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->
-> Looks like this series boots for me on 5912osk up to this
-> patch
+Sorry. This all has happened before my time. This is all new to me.
 
-Ok, that's something. Thanks for testing!
 
->, but this patch breaks booting somehow.
->
-> Any ideas for fixes?
+BR,
+Jyri
 
-I can think of multiple possible issues:
 
-- I force CONFIG_PCI to be enabled here in order to keep the
-  asm/io.h logic unchanged. If PCI support in itself is an issue,
-  then turning on CONFIG_PCI without the rest of this patch
-  should also break.
 
-- I see that osk is the one board that actually has a CF slot.
-  If it crashes while trying to access a CF device, then I most
-  likely screwed up the I/O port mapping itself, so it uses the
-  wrong virtual and/or physical address for the access.
+> regards
+> Suman
+> 
+>>
+>> Let's fix the warning by removing SYSC_HAS_MIDLEMODE. Note that
+>> the am335x TRM lists SYSC_HAS_MIDLEMODE, but it is unused.
+> 
+> 
+> 
+>>
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+>> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+>> @@ -231,7 +231,7 @@ static struct omap_hwmod am33xx_control_hwmod = {
+>>  static struct omap_hwmod_class_sysconfig lcdc_sysc = {
+>>  	.rev_offs	= 0x0,
+>>  	.sysc_offs	= 0x54,
+>> -	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
+>> +	.sysc_flags	= SYSC_HAS_SIDLEMODE,
+>>  	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+>>  	.sysc_fields	= &omap_hwmod_sysc_type2,
+>>  };
+>>
+> 
 
-- I made on the assumption that only CF devices use inb/outb
-  on any OMAP1 machine. If there is a driver that uses inb/outb
-  instead of readb/writeb, it would have worked by chance before
-  but stopped working now.
 
-        Arnd
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
