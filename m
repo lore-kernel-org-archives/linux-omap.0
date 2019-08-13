@@ -1,54 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: dma: Mark expected switch fall-throughs
-Date: Tue, 13 Aug 2019 05:00:49 -0700
-Message-ID: <20190813120049.GV52127@atomide.com>
-References: <20190728232240.GA22393@embeddedor>
- <201907290934.B2053972E3@keescook>
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Subject: Re: [alsa-devel] Regression in next with codec unload and
+ snd_soc_component_get/put
+Date: Tue, 13 Aug 2019 09:07:59 -0500
+Message-ID: <76dbd0ed-bbba-1a11-376e-7bf28c78ad9c@linux.intel.com>
+References: <20190809070003.GA52127@atomide.com>
+ <s5hwofmhkbs.wl-tiwai@suse.de> <20190809074643.GB52127@atomide.com>
+ <s5hv9v6hhm9.wl-tiwai@suse.de> <20190813102451.GJ52127@atomide.com>
+ <20190813112920.GC5093@sirena.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201907290934.B2053972E3@keescook>
+In-Reply-To: <20190813112920.GC5093@sirena.co.uk>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
+To: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kees Cook <keescook@chromium.org> [190729 16:35]:
-> On Sun, Jul 28, 2019 at 06:22:40PM -0500, Gustavo A. R. Silva wrote:
-> > Mark switch cases where we are expecting to fall through.
-> > 
-> > This patch fixes the following warnings:
-> > 
-> > arch/arm/plat-omap/dma.c: In function 'omap_set_dma_src_burst_mode':
-> > arch/arm/plat-omap/dma.c:384:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
-> >    if (dma_omap2plus()) {
-> >       ^
-> > arch/arm/plat-omap/dma.c:393:2: note: here
-> >   case OMAP_DMA_DATA_BURST_16:
-> >   ^~~~
-> > arch/arm/plat-omap/dma.c:394:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
-> >    if (dma_omap2plus()) {
-> >       ^
-> > arch/arm/plat-omap/dma.c:402:2: note: here
-> >   default:
-> >   ^~~~~~~
-> > arch/arm/plat-omap/dma.c: In function 'omap_set_dma_dest_burst_mode':
-> > arch/arm/plat-omap/dma.c:473:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
-> >    if (dma_omap2plus()) {
-> >       ^
-> > arch/arm/plat-omap/dma.c:481:2: note: here
-> >   default:
-> >   ^~~~~~~
-> > 
-> > Notice that, in this particular case, the code comment is
-> > modified in accordance with what GCC is expecting to find.
-> > 
-> > Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+On 8/13/19 6:29 AM, Mark Brown wrote:
+> On Tue, Aug 13, 2019 at 03:24:51AM -0700, Tony Lindgren wrote:
+>> * Takashi Iwai <tiwai@suse.de> [190809 08:24]:
 > 
-> Reviewed-by: Kees Cook <keescook@chromium.org>
+>>> ... and it was already fixed in the later commit 0e36f36b04e7
+>>> "ASoC: soc-core: fix module_put() warning in soc_cleanup_component".
+> 
+>> Mark, looks like this commit is still not in Linux next, forgot
+>> to push out something?
+> 
+> There's a build failure the Intel guys haven't fixed.
 
-Applying into fixes thanks.
+see ('ASoC: SOF: fix HDA direct MMIO access') posted on alsa-devel 
+yesterday
 
-Tony
+https://mailman.alsa-project.org/pipermail/alsa-devel/2019-August/153914.html
