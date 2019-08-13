@@ -1,46 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] bus: ti-sysc: Simplify cleanup upon failures in
- sysc_probe()
-Date: Tue, 13 Aug 2019 03:59:51 -0700
-Message-ID: <20190813105951.GN52127@atomide.com>
-References: <20190625233315.22301-1-s-anna@ti.com>
- <20190625233315.22301-6-s-anna@ti.com>
- <20190627121158.GJ5447@atomide.com>
- <d1a5c892-abc1-8978-67ee-92c4ecb3622a@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 14/22] ARM: omap1: use pci_ioremap_io() for omap_cf
+Date: Tue, 13 Aug 2019 13:02:16 +0200
+Message-ID: <CAK8P3a0E+QUn9wcP5Obv-FitWyXCFwcp+oPConeO2p-NV1rqsw@mail.gmail.com>
+References: <20190808212234.2213262-1-arnd@arndb.de> <20190808212234.2213262-15-arnd@arndb.de>
+ <20190813103605.GL52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d1a5c892-abc1-8978-67ee-92c4ecb3622a@ti.com>
+In-Reply-To: <20190813103605.GL52127@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [190627 15:24]:
-> On 6/27/19 7:11 AM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Suman Anna <s-anna@ti.com> [190625 23:33]:
-> >> The clocks are not yet parsed and prepared until after a successful
-> >> sysc_get_clocks(), so there is no need to unprepare the clocks upon
-> >> any failure of any of the prior functions in sysc_probe(). The current
-> >> code path would have been a no-op because of the clock validity checks
-> >> within sysc_unprepare(), but let's just simplify the cleanup path by
-> >> returning the error directly.
-> >>
-> >> While at this, also fix the cleanup path for a sysc_init_resets()
-> >> failure which is executed after the clocks are prepared.
-> > 
-> > Sounds like this should get queued separately as a fix for v5.3-rc
-> > cycle, probably got broken with the recent ti-sysc init order changes.
-> 
-> Yeah, this patch does not depend on the previous 4 patches, so can be
-> picked up independently for v5.3-rc as well.
+On Tue, Aug 13, 2019 at 12:36 PM Tony Lindgren <tony@atomide.com> wrote:
 
-OK applying the $subject patch into fixes, and the rest into
-omap-for-v5.4/ti-sysc.
+> * Arnd Bergmann <arnd@arndb.de> [190808 21:34]:
+> > The ISA I/O space handling in omap_cf is incompatible with
+> > PCI drivers in a multiplatform kernel, and requires a custom
+> > mach/io.h.
+> >
+> > Change the driver to use pci_ioremap_io() like PCI drivers do,
+> > so the generic ioport access can work across platforms.
+> >
+> > To actually use that code, we have to select CONFIG_PCI
+> > here.
+> >
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+> Looks like this series boots for me on 5912osk up to this
+> patch
 
-Regards,
+Ok, that's something. Thanks for testing!
 
-Tony
+>, but this patch breaks booting somehow.
+>
+> Any ideas for fixes?
+
+I can think of multiple possible issues:
+
+- I force CONFIG_PCI to be enabled here in order to keep the
+  asm/io.h logic unchanged. If PCI support in itself is an issue,
+  then turning on CONFIG_PCI without the rest of this patch
+  should also break.
+
+- I see that osk is the one board that actually has a CF slot.
+  If it crashes while trying to access a CF device, then I most
+  likely screwed up the I/O port mapping itself, so it uses the
+  wrong virtual and/or physical address for the access.
+
+- I made on the assumption that only CF devices use inb/outb
+  on any OMAP1 machine. If there is a driver that uses inb/outb
+  instead of readb/writeb, it would have worked by chance before
+  but stopped working now.
+
+        Arnd
