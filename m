@@ -1,28 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: dts: am335x-boneblue: Use of
- am335x-osd335x-common.dtsi
-Date: Tue, 13 Aug 2019 04:50:32 -0700
-Message-ID: <20190813115032.GU52127@atomide.com>
-References: <20190807200934.25173-1-david@lechnology.com>
+Subject: Re: [PATCH] ARM: OMAP: dma: Mark expected switch fall-throughs
+Date: Tue, 13 Aug 2019 05:00:49 -0700
+Message-ID: <20190813120049.GV52127@atomide.com>
+References: <20190728232240.GA22393@embeddedor>
+ <201907290934.B2053972E3@keescook>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190807200934.25173-1-david@lechnology.com>
+In-Reply-To: <201907290934.B2053972E3@keescook>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>
-Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
+To: Kees Cook <keescook@chromium.org>
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-omap@vger.kernel.org
 
-* David Lechner <david@lechnology.com> [190807 13:10]:
-> This makes use of the am335x-osd335x-common.dtsi file that contains the
-> common device tree components for Octavo Systems AM335x System-in-
-> Package that is used on the BeagleBone Blue.
+* Kees Cook <keescook@chromium.org> [190729 16:35]:
+> On Sun, Jul 28, 2019 at 06:22:40PM -0500, Gustavo A. R. Silva wrote:
+> > Mark switch cases where we are expecting to fall through.
+> > 
+> > This patch fixes the following warnings:
+> > 
+> > arch/arm/plat-omap/dma.c: In function 'omap_set_dma_src_burst_mode':
+> > arch/arm/plat-omap/dma.c:384:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+> >    if (dma_omap2plus()) {
+> >       ^
+> > arch/arm/plat-omap/dma.c:393:2: note: here
+> >   case OMAP_DMA_DATA_BURST_16:
+> >   ^~~~
+> > arch/arm/plat-omap/dma.c:394:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+> >    if (dma_omap2plus()) {
+> >       ^
+> > arch/arm/plat-omap/dma.c:402:2: note: here
+> >   default:
+> >   ^~~~~~~
+> > arch/arm/plat-omap/dma.c: In function 'omap_set_dma_dest_burst_mode':
+> > arch/arm/plat-omap/dma.c:473:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+> >    if (dma_omap2plus()) {
+> >       ^
+> > arch/arm/plat-omap/dma.c:481:2: note: here
+> >   default:
+> >   ^~~~~~~
+> > 
+> > Notice that, in this particular case, the code comment is
+> > modified in accordance with what GCC is expecting to find.
+> > 
+> > Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 > 
-> This has two minor side-effects:
-> 1. pinmux_i2c0_pins is renamed to pinmux-i2c0-pins
-> 2. the 1000MHz cpufreq operating point is enabled
+> Reviewed-by: Kees Cook <keescook@chromium.org>
 
-Applying into omap-for-v5.4/dt thanks.
+Applying into fixes thanks.
 
 Tony
