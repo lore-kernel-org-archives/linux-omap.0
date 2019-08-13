@@ -1,30 +1,24 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: dts: am335x: Fix UARTs length
-Date: Tue, 13 Aug 2019 03:20:50 -0700
-Message-ID: <20190813102050.GH52127@atomide.com>
-References: <20190724122329.21231-1-manu@freebsd.org>
- <20190724122329.21231-2-manu@freebsd.org>
+Subject: Re: [PATCH] ARM: dts: dra74x: Fix iodelay configuration for mmc3
+Date: Tue, 13 Aug 2019 03:21:38 -0700
+Message-ID: <20190813102138.GI52127@atomide.com>
+References: <20190807105238.21131-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190724122329.21231-2-manu@freebsd.org>
+In-Reply-To: <20190807105238.21131-1-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Emmanuel Vadot <manu@freebsd.org>
-Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, robh+dt@kernel.org, bcousson@baylibre.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Emmanuel Vadot <manu@freebsd.org> [190724 05:24]:
-> As seen on the AM335x TRM all the UARTs controller only are 0x1000 in size.
-> Fix this in the DTS.
+* Faiz Abbas <faiz_abbas@ti.com> [190807 03:53]:
+> According to the latest am572x[1] and dra74x[2] data manuals, mmc3
+> default, hs, sdr12 and sdr25 modes use iodelay values given in
+> MMC3_MANUAL1. Set the MODE_SELECT bit for these so that manual mode is
+> selected and correct iodelay values can be configured.
 
 Thanks applying into fixes.
-
-FYI, the module size is usually (but not always) 0x1000 with additional
-0x1000 for the interconnect related registers.
-
-Regards,
 
 Tony
