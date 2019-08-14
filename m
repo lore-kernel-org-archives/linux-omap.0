@@ -1,84 +1,115 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 21/22] ARM: omap1: use common clk framework
-Date: Thu, 15 Aug 2019 00:10:02 +0300
-Message-ID: <20190814211002.GA1952@darkstar.musicnaut.iki.fi>
-References: <20190808212234.2213262-1-arnd@arndb.de>
- <20190808214347.2865294-1-arnd@arndb.de>
- <20190808214347.2865294-2-arnd@arndb.de>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH v2] regulator: twl: voltage lists for vdd1/2 on twl4030
+Date: Wed, 14 Aug 2019 23:43:19 +0200
+Message-ID: <20190814214319.24087-1-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190808214347.2865294-2-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: tony@atomide.com, lgirdwood@gmail.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, sboyd@kernel.org, nm@ti.com, vireshk@kernel.org
+Cc: Andreas Kemnade <andreas@kemnade.info>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+_opp_supported_by_regulators() wrongly ignored errors from
+regulator_is_supported_voltage(), so it considered errors as
+success. Since
+commit 498209445124 ("regulator: core: simplify return value on suported_voltage")
+regulator_is_supported_voltage() returns a real boolean, so
+errors make _opp_supported_by_regulators() return false.
 
-On Thu, Aug 08, 2019 at 11:43:39PM +0200, Arnd Bergmann wrote:
-> The omap1 clock driver now uses types and calling conventions
-> that are compatible with the common clk core.
-> 
-> Turn on CONFIG_COMMON_CLK and remove all the code that is
-> now duplicated.
-> 
-> Note: if this previous steps didn't already break it, this one
-> most likely will, because the interfaces are very likely to
-> have different semantics.
+That reveals a problem with the declaration of the VDD1/2
+regulators on twl4030.
+The VDD1/VDD2 regulators on twl4030 are neither defined with
+voltage lists nor with the continuous flag set, so
+regulator_is_supported_voltage() returns false and an error
+before above mentioned commit (which was considered success)
+The result is that after the above mentioned commit cpufreq
+does not work properly e.g. dm3730.
 
-QEMU SX1 board works up to this patch (the I/O virtual address change
-included). With this patch, it seems to fail to allocate memory during
-omap1_init_early() (the log is a bit messy as I extracted it using QEMU
-memory dumping):
+[    2.490997] core: _opp_supported_by_regulators: OPP minuV: 1012500 maxuV: 1012500, not supported by regulator
+[    2.501617] cpu cpu0: _opp_add: OPP not supported by regulators (300000000)
+[    2.509246] core: _opp_supported_by_regulators: OPP minuV: 1200000 maxuV: 1200000, not supported by regulator
+[    2.519775] cpu cpu0: _opp_add: OPP not supported by regulators (600000000)
+[    2.527313] core: _opp_supported_by_regulators: OPP minuV: 1325000 maxuV: 1325000, not supported by regulator
+[    2.537750] cpu cpu0: _opp_add: OPP not supported by regulators (800000000)
 
-swapper: page allocation failure: order:0, mode:0x0(), nodemask=(null)
-CPU: 0 PID: 0 Comm: swapper Not tainted 5.3.0-rc4-sx1-los_80efa++ #1
-Hardware name: OMAP310 based Siemens SX1
-[<c000dc44>] (unwind_backtrace) from [<c000cb00>] (show_stack+0x10/0x18)
-[<c000cb00>] (show_stack) from [<c0172ba8>] (dump_stack+0x18/0x24)
-[<c0172ba8>] (dump_stack) from [<c00844e8>] (warn_alloc+0x90/0x140)
-[<c00844e8>] (warn_alloc) from [<c0084dcc>] (__alloc_pages_nodemask+0x7a4/0x9cc)
-[<c0084dcc>] (__alloc_pages_nodemask) from [<c008df24>] (slob_new_pages.constpro
-p.2+0x10/0x3c)
-[<c008df24>] (slob_new_pages.constprop.2) from [<c008e208>] (slob_alloc.constprop.1+0xe4/0x1e8)
-[<c008e208>] (slob_alloc.constprop.1) from [<c008e344>] (__kmalloc+0x38/0xb0)
-[<c008e344>] (__kmalloc) from [<c0126514>] (__clk_register+0x20/0x62c)
-[<c0126514>] (__clk_register) from [<c01f6614>] (omap1_clk_init+0x88/0x220)
-[<c01f6614>] (omap1_clk_init) from [<c01f5820>] (omap1_init_early+0x20/0x30)
-[<c01f5820>] (omap1_init_early) from [<c01f09e8>] (start_kernel+0x48/0x408)
-[<c01f09e8>] (start_kernel) from [<00000000>] (0x0)
-Clocks: ARM_SYSST: 0x003a DPLL_CTL: 0x2002 ARM_CKCTL: 0x3000
-Clocking rate (xtal/DPLL1/MPU): 12.0/12.0/0.0 MHz
-"8<--- cut here ---
-"Unable to handle kernel NULL pointer dereference at virtual address 00000018
-"pgd = (ptrval)
-"[00000018] *pgd=00000000
-Internal error: Oops: 5 [#1] ARM
-CPU: 0 PID: 0 Comm: swapper Not tainted 5.3.0-rc4-sx1-los_80efa++ #1
-Hardware name: OMAP310 based Siemens SX1
-PC is at clk_hw_get_parent+0x4/0x14
-LR is at omap1_clk_enable+0xc/0xcc
-OMAP310 based Siemens SX1
-[    0.000000]  free:0 free_pcp:0 free_cma:0
-pc : [<c0126cd0>]    lr : [<c00128d4>]    psr: 600001d3
-sp : c03aff88  ip : 00000000  fp : 00000000
-r10: 00000001  r9 : 54029252  r8 : 10000100
-r7 : c03b1000  r6 : 00002002  r5 : 0000003a  r4 : c03b5444
-r3 : 00000000  r2 : c03b9818  r1 : ff03ce08  r0 : c03b5444
-Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment user
-Control: 0000317f  Table: 10004000  DAC: 00000055
-Process swapper (pid: 0, stack limit = 0x(ptrval))
-Stack: (0xc03aff88 to 0xc03b0000)
-ff80:                   c03b5438 0000003a 00002002 c01f6734 00000000 00000057
-ffa0: 0000313d c01f5820 00000000 c01f09e8 00000000 00000000 00000000 00000000
-ffc0: 00000000 00000000 00000000 c0201a38 00000000 c01f0330 00000057 0000313d
-ffe0: 00000265 10000100 54029252 0000317f 00000000 00000000 00000000 00000000
-[<c0126cd0>] (clk_hw_get_parent) from [<c00128d4>] (omap1_clk_enable+0xc/0xcc)
-[<c00128d4>] (omap1_clk_enable) from [<c01f6734>] (omap1_clk_init+0x1a8/0x220)
-[<c01f6734>] (omap1_clk_init) from [<c01f5820>] (omap1_init_early+0x20/0x30)
-[<c01f5820>] (omap1_init_early) from [<c01f09e8>] (start_kernel+0x48/0x408)
-[<c01f09e8>] (start_kernel) from [<00000000>] (0x0)
+The patch fixes declaration of VDD1/2 regulators by
+adding proper voltage lists.
 
-A.
+Fixes: 498209445124 ("regulator: core: simplify return value on suported_voltage")
+Cc: stable@vger.kernel.org
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+resent because it was rejected by mailing lists, due to technical
+issues, sorry for the noise.
+changes in v2:
+  using a proper voltage list instead of misusing the continuous flag
+  subject was regulator: twl: mark vdd1/2 as continuous on twl4030
+
+ drivers/regulator/twl-regulator.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 6fa15b2d6fb3..866b4dd01da9 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -359,6 +359,17 @@ static const u16 VINTANA2_VSEL_table[] = {
+ 	2500, 2750,
+ };
+ 
++/* 600mV to 1450mV in 12.5 mV steps */
++static const struct regulator_linear_range VDD1_ranges[] = {
++	REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500)
++};
++
++/* 600mV to 1450mV in 12.5 mV steps, everything above = 1500mV */
++static const struct regulator_linear_range VDD2_ranges[] = {
++	REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500),
++	REGULATOR_LINEAR_RANGE(1500000, 69, 69, 12500)
++};
++
+ static int twl4030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+@@ -427,6 +438,8 @@ static int twl4030smps_get_voltage(struct regulator_dev *rdev)
+ }
+ 
+ static const struct regulator_ops twl4030smps_ops = {
++	.list_voltage   = regulator_list_voltage_linear_range,
++
+ 	.set_voltage	= twl4030smps_set_voltage,
+ 	.get_voltage	= twl4030smps_get_voltage,
+ };
+@@ -466,7 +479,8 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		}, \
+ 	}
+ 
+-#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf) \
++#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf, \
++		n_volt) \
+ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 	.base = offset, \
+ 	.id = num, \
+@@ -479,6 +493,9 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
+ 		.of_map_mode = twl4030reg_map_mode, \
++		.n_voltages = n_volt, \
++		.n_linear_ranges = ARRAY_SIZE(label ## _ranges), \
++		.linear_ranges = label ## _ranges, \
+ 		}, \
+ 	}
+ 
+@@ -518,8 +535,8 @@ TWL4030_ADJUSTABLE_LDO(VSIM, 0x37, 9, 100, 0x00);
+ TWL4030_ADJUSTABLE_LDO(VDAC, 0x3b, 10, 100, 0x08);
+ TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08);
+ TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08);
+-TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08);
+-TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08);
++TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08, 68);
++TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08, 69);
+ /* VUSBCP is managed *only* by the USB subchip */
+ TWL4030_FIXED_LDO(VINTANA1, 0x3f, 1500, 11, 100, 0x08);
+ TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08);
+-- 
+2.20.1
