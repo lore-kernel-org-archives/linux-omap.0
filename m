@@ -1,61 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 14/22] ARM: omap1: use pci_ioremap_io() for omap_cf
-Date: Wed, 14 Aug 2019 06:40:06 -0700
-Message-ID: <20190814134006.GE52127@atomide.com>
-References: <20190808212234.2213262-1-arnd@arndb.de>
- <20190808212234.2213262-15-arnd@arndb.de>
- <20190813103605.GL52127@atomide.com>
- <CAK8P3a0E+QUn9wcP5Obv-FitWyXCFwcp+oPConeO2p-NV1rqsw@mail.gmail.com>
- <20190813181158.GA26798@darkstar.musicnaut.iki.fi>
- <CAK8P3a0LjKrc+7c5Ht9OL7LfYyLnG9=y7u+w24ujA1xAid_yCQ@mail.gmail.com>
- <20190814074918.GA52127@atomide.com>
- <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
+From: Stephen Boyd <swboyd@chromium.org>
+Subject: Re: Regression in Linux next with show wakeup sources stats in sysfs
+Date: Wed, 14 Aug 2019 07:56:50 -0700
+Message-ID: <5d542133.1c69fb81.f5f57.0098@mx.google.com>
+References: <20190814063803.GY52127@atomide.com> <5d53b378.1c69fb81.31b2e.5077@mx.google.com> <20190814073234.GZ52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
+In-Reply-To: <20190814073234.GZ52127@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kalesh Singh <kaleshsingh@google.com>, Tri Vo <trong@android.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [190814 10:37]:
-> On Wed, Aug 14, 2019 at 9:49 AM Tony Lindgren <tony@atomide.com> wrote:
-> > * Arnd Bergmann <arnd@arndb.de> [190813 19:34]:
-> > > On Tue, Aug 13, 2019 at 8:12 PM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> > > diff --git a/arch/arm/mach-omap1/hardware.h b/arch/arm/mach-omap1/hardware.h
-> > > index 232b8deef907..9fc76a3c9e57 100644
-> > > --- a/arch/arm/mach-omap1/hardware.h
-> > > +++ b/arch/arm/mach-omap1/hardware.h
-> > > @@ -61,7 +61,7 @@ static inline u32 omap_cs3_phys(void)
-> > >
-> > >  #endif /* ifndef __ASSEMBLER__ */
-> > >
-> > > -#define OMAP1_IO_OFFSET                0x01000000      /* Virtual IO
-> > > = 0xfefb0000 */
-> > > +#define OMAP1_IO_OFFSET                0x00fb0000      /* Virtual IO
-> > > = 0xff000000 */
-> > >  #define OMAP1_IO_ADDRESS(pa)   IOMEM((pa) - OMAP1_IO_OFFSET)
-> > >
-> > >  #include "serial.h"
-> >
-> > Oh OK yeah sounds like that's the issue.
-> >
-> > > There may be additional locations that hardcode the virtual address.
-> >
-> > Those should be in mach-omap1/io.c, and I recall innovator had some
-> > hardcoded fpga address that should also be checked.
-> 
-> I see four boards with hardcoded I/O addresses, but they are all below
-> the PCI I/O virtual address range, and are not affected by that change.
-> 
-> For the innovator FPGA access, this was ok, it uses the correct address
-> in the OMAP1_IO_OFFSET range.
+Quoting Tony Lindgren (2019-08-14 00:32:34)
+> * Stephen Boyd <swboyd@chromium.org> [190814 07:09]:
+> > Quoting Tony Lindgren (2019-08-13 23:38:03)
+> > > Hi all,
+> > >=20
+> > > Looks like commit 986845e747af ("PM / wakeup: Show wakeup sources sta=
+ts
+> > > in sysfs") has caused a regression in Linux next where I can now get
+> > > some errors like this during the boot:
+> > >=20
+> > > kobject_add_internal failed for wakeup10 (error: -2 parent: usb)
+> > >=20
+> > > Any ideas why this might be happening? Maybe some deferred probe
+> > > related issue?
+> > >=20
+> >=20
+> > Yeah! Take a look at this thread[1] and please test out patches I'm
+> > throwing out there like a total cowboy(d).
+> >=20
+> > [1] https://lkml.kernel.org/r/1565731976.8572.16.camel@lca.pw
+>=20
+> Oh OK thanks, looks like I'm a bit behind then. My test case turned
+> out to be caused by device_init_wakeup() called before device_add() for
+> power_supply in case that helps. In that case create_dir() will fail
+> for kobject_add_internal(). Doing something like below fixes the
+> issue, but seems like we probably have other similar issues as well.
+> Adding Sebastian to Cc in case this might be a real problem despite
+> the other issues.
+>=20
 
-OK thanks for checking. I tried to apply your virtual address patch to
-test boot it, but could not get it to apply. What tree is it against?
+Ah yeah. I sent a patch for power supply earlier[2], but now I'm
+thinking that it would be better to take the approach in the thread I
+mentioned where we just don't add sysfs stuff until when device_add() is
+called.
 
-Regards,
-
-Tony
+[2] https://lkml.kernel.org/r/20190801213330.81079-1-swboyd@chromium.org
