@@ -1,115 +1,117 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2] regulator: twl: voltage lists for vdd1/2 on twl4030
-Date: Wed, 14 Aug 2019 23:43:19 +0200
-Message-ID: <20190814214319.24087-1-andreas@kemnade.info>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] fixes for omap variants for v5.3-rc cycle
+Date: Wed, 14 Aug 2019 21:49:08 -0700
+Message-ID: <pull-1565844391-332885@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: tony@atomide.com, lgirdwood@gmail.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, sboyd@kernel.org, nm@ti.com, vireshk@kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>, stable@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: soc@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-_opp_supported_by_regulators() wrongly ignored errors from
-regulator_is_supported_voltage(), so it considered errors as
-success. Since
-commit 498209445124 ("regulator: core: simplify return value on suported_voltage")
-regulator_is_supported_voltage() returns a real boolean, so
-errors make _opp_supported_by_regulators() return false.
+From: "Tony Lindgren" <tony@atomide.com>
 
-That reveals a problem with the declaration of the VDD1/2
-regulators on twl4030.
-The VDD1/VDD2 regulators on twl4030 are neither defined with
-voltage lists nor with the continuous flag set, so
-regulator_is_supported_voltage() returns false and an error
-before above mentioned commit (which was considered success)
-The result is that after the above mentioned commit cpufreq
-does not work properly e.g. dm3730.
+The following changes since commit 5f9e832c137075045d15cd6899ab0505cfb2ca4b:
 
-[    2.490997] core: _opp_supported_by_regulators: OPP minuV: 1012500 maxuV: 1012500, not supported by regulator
-[    2.501617] cpu cpu0: _opp_add: OPP not supported by regulators (300000000)
-[    2.509246] core: _opp_supported_by_regulators: OPP minuV: 1200000 maxuV: 1200000, not supported by regulator
-[    2.519775] cpu cpu0: _opp_add: OPP not supported by regulators (600000000)
-[    2.527313] core: _opp_supported_by_regulators: OPP minuV: 1325000 maxuV: 1325000, not supported by regulator
-[    2.537750] cpu cpu0: _opp_add: OPP not supported by regulators (800000000)
+  Linus 5.3-rc1 (2019-07-21 14:05:38 -0700)
 
-The patch fixes declaration of VDD1/2 regulators by
-adding proper voltage lists.
+are available in the Git repository at:
 
-Fixes: 498209445124 ("regulator: core: simplify return value on suported_voltage")
-Cc: stable@vger.kernel.org
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
-resent because it was rejected by mailing lists, due to technical
-issues, sorry for the noise.
-changes in v2:
-  using a proper voltage list instead of misusing the continuous flag
-  subject was regulator: twl: mark vdd1/2 as continuous on twl4030
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.3/fixes-rc4
 
- drivers/regulator/twl-regulator.c | 23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+for you to fetch changes up to 4a65bbb9109ed7edd4b6ed7168ced48abb8561a2:
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 6fa15b2d6fb3..866b4dd01da9 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -359,6 +359,17 @@ static const u16 VINTANA2_VSEL_table[] = {
- 	2500, 2750,
- };
- 
-+/* 600mV to 1450mV in 12.5 mV steps */
-+static const struct regulator_linear_range VDD1_ranges[] = {
-+	REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500)
-+};
-+
-+/* 600mV to 1450mV in 12.5 mV steps, everything above = 1500mV */
-+static const struct regulator_linear_range VDD2_ranges[] = {
-+	REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500),
-+	REGULATOR_LINEAR_RANGE(1500000, 69, 69, 12500)
-+};
-+
- static int twl4030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
- {
- 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
-@@ -427,6 +438,8 @@ static int twl4030smps_get_voltage(struct regulator_dev *rdev)
- }
- 
- static const struct regulator_ops twl4030smps_ops = {
-+	.list_voltage   = regulator_list_voltage_linear_range,
-+
- 	.set_voltage	= twl4030smps_set_voltage,
- 	.get_voltage	= twl4030smps_get_voltage,
- };
-@@ -466,7 +479,8 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
- 		}, \
- 	}
- 
--#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf) \
-+#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf, \
-+		n_volt) \
- static const struct twlreg_info TWL4030_INFO_##label = { \
- 	.base = offset, \
- 	.id = num, \
-@@ -479,6 +493,9 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
- 		.owner = THIS_MODULE, \
- 		.enable_time = turnon_delay, \
- 		.of_map_mode = twl4030reg_map_mode, \
-+		.n_voltages = n_volt, \
-+		.n_linear_ranges = ARRAY_SIZE(label ## _ranges), \
-+		.linear_ranges = label ## _ranges, \
- 		}, \
- 	}
- 
-@@ -518,8 +535,8 @@ TWL4030_ADJUSTABLE_LDO(VSIM, 0x37, 9, 100, 0x00);
- TWL4030_ADJUSTABLE_LDO(VDAC, 0x3b, 10, 100, 0x08);
- TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08);
- TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08);
--TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08);
--TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08);
-+TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08, 68);
-+TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08, 69);
- /* VUSBCP is managed *only* by the USB subchip */
- TWL4030_FIXED_LDO(VINTANA1, 0x3f, 1500, 11, 100, 0x08);
- TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08);
--- 
-2.20.1
+  soc: ti: pm33xx: Make two symbols static (2019-08-13 05:05:38 -0700)
+
+----------------------------------------------------------------
+Fixes for omap variants for v5.3-rc cycle
+
+We have another fix to disable voltage switching for am57xx SDIO as
+the bootrom cannot handle all the voltages after a reset that thought
+I had already sent a pull request for earlier but forgot. And we also
+update dra74x iodelay configuration for mmc3 to use the recommended
+values.
+
+Then I noticed we had introduced few new boot warnings with the various
+recent ti-sysc changes and wanted to fix those. I also noticed we still
+have too many warnings to be able to spot the real ones easily and fixed
+up few of those. Sure some of the warnings have been around for a long
+time and few of the fixes could have waited for the merge window, but
+having more usable dmesg log level output is a valuable.
+
+Other fixes are IO size correction for am335x UARTs that cause issues
+for at least FreeBSD using the same device tree file that checks that
+the child IO range is not larger than the parent has.
+
+For omap1 ams-delta keyboard we need to fix a irq ack that broke with
+all the recent gpio changes.
+
+And there are also few static checker warning fixes for recent am335x
+PM changes and ti-sysc driver and one switch fall-though update.
+
+----------------------------------------------------------------
+Emmanuel Vadot (1):
+      ARM: dts: am335x: Fix UARTs length
+
+Faiz Abbas (2):
+      ARM: dts: am57xx: Disable voltage switching for SD card
+      ARM: dts: dra74x: Fix iodelay configuration for mmc3
+
+Gustavo A. R. Silva (1):
+      ARM: OMAP: dma: Mark expected switch fall-throughs
+
+Janusz Krzysztofik (1):
+      ARM: OMAP1: ams-delta-fiq: Fix missing irq_ack
+
+Keerthy (1):
+      soc: ti: pm33xx: Fix static checker warnings
+
+Suman Anna (1):
+      bus: ti-sysc: Simplify cleanup upon failures in sysc_probe()
+
+Tony Lindgren (10):
+      Merge commit '79499bb11db508' into fixes
+      ARM: OMAP2+: Fix missing SYSC_HAS_RESET_STATUS for dra7 epwmss
+      bus: ti-sysc: Fix handling of forced idle
+      bus: ti-sysc: Fix using configured sysc mask value
+      ARM: dts: Fix flags for gpio7
+      ARM: dts: Fix incorrect dcan register mapping for am3, am4 and dra7
+      ARM: OMAP2+: Fix omap4 errata warning on other SoCs
+      Merge branch 'ti-sysc-fixes' into fixes
+      ARM: dts: Fix incomplete dts data for am3 and am4 mmc
+      Merge branch 'ti-sysc-fixes' into fixes
+
+YueHaibing (1):
+      soc: ti: pm33xx: Make two symbols static
+
+ arch/arm/boot/dts/am33xx-l4.dtsi                | 16 +++++---
+ arch/arm/boot/dts/am33xx.dtsi                   | 32 +++++++++++++---
+ arch/arm/boot/dts/am4372.dtsi                   | 32 +++++++++++++---
+ arch/arm/boot/dts/am437x-l4.dtsi                |  4 ++
+ arch/arm/boot/dts/am571x-idk.dts                |  7 +---
+ arch/arm/boot/dts/am572x-idk.dts                |  7 +---
+ arch/arm/boot/dts/am574x-idk.dts                |  7 +---
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |  3 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts   |  7 +---
+ arch/arm/boot/dts/am57xx-beagle-x15-revc.dts    |  7 +---
+ arch/arm/boot/dts/dra7-evm.dts                  |  2 +-
+ arch/arm/boot/dts/dra7-l4.dtsi                  |  6 +--
+ arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi       | 50 ++++++++++++-------------
+ arch/arm/mach-omap1/ams-delta-fiq-handler.S     |  3 +-
+ arch/arm/mach-omap1/ams-delta-fiq.c             |  4 +-
+ arch/arm/mach-omap2/omap4-common.c              |  3 ++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c       |  3 +-
+ arch/arm/plat-omap/dma.c                        | 14 +++----
+ drivers/bus/ti-sysc.c                           | 24 ++++++------
+ drivers/soc/ti/pm33xx.c                         | 19 ++++++----
+ 20 files changed, 138 insertions(+), 112 deletions(-)
