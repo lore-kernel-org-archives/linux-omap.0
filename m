@@ -1,68 +1,144 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] fixes for omap variants for v5.3-rc cycle
-Date: Thu, 15 Aug 2019 14:39:56 +0200
-Message-ID: <CAK8P3a0Ynmu1X+Y6Ba6UP9gfyJddhFj3ZfF5vA45nZgOdfn8fQ@mail.gmail.com>
-References: <pull-1565844391-332885@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1565844391-332885@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: SoC Team <soc@kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: twl: voltage lists for vdd1/2 on twl4030" to the regulator tree
+Date: Thu, 15 Aug 2019 18:14:35 +0100 (BST)
+Message-ID: <20190815171435.3A8AC2742BC7@ypsilon.sirena.org.uk>
+References: <20190814214319.24087-1-andreas@kemnade.info>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190814214319.24087-1-andreas@kemnade.info>
+Sender: stable-owner@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Adam Ford <aford173@gmail.com>, broonie@kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.orgMark Brown <broonie@kernel.org>, nm@ti.com, sboyd@kernel.org, stable@vger.kernel.org, tony@atomide.com, vireshk@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 15, 2019 at 6:49 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> From: "Tony Lindgren" <tony@atomide.com>
->
-> The following changes since commit 5f9e832c137075045d15cd6899ab0505cfb2ca4b:
->
->   Linus 5.3-rc1 (2019-07-21 14:05:38 -0700)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.3/fixes-rc4
->
-> for you to fetch changes up to 4a65bbb9109ed7edd4b6ed7168ced48abb8561a2:
->
->   soc: ti: pm33xx: Make two symbols static (2019-08-13 05:05:38 -0700)
->
-> ----------------------------------------------------------------
-> Fixes for omap variants for v5.3-rc cycle
->
-> We have another fix to disable voltage switching for am57xx SDIO as
-> the bootrom cannot handle all the voltages after a reset that thought
-> I had already sent a pull request for earlier but forgot. And we also
-> update dra74x iodelay configuration for mmc3 to use the recommended
-> values.
->
-> Then I noticed we had introduced few new boot warnings with the various
-> recent ti-sysc changes and wanted to fix those. I also noticed we still
-> have too many warnings to be able to spot the real ones easily and fixed
-> up few of those. Sure some of the warnings have been around for a long
-> time and few of the fixes could have waited for the merge window, but
-> having more usable dmesg log level output is a valuable.
->
-> Other fixes are IO size correction for am335x UARTs that cause issues
-> for at least FreeBSD using the same device tree file that checks that
-> the child IO range is not larger than the parent has.
->
-> For omap1 ams-delta keyboard we need to fix a irq ack that broke with
-> all the recent gpio changes.
->
-> And there are also few static checker warning fixes for recent am335x
-> PM changes and ti-sysc driver and one switch fall-though update.
+The patch
 
-Pulled into fixes, thanks!
+   regulator: twl: voltage lists for vdd1/2 on twl4030
 
-     Arnd
+has been applied to the regulator tree at
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-5.3
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 3829100a63724f6dbf264b2a7f06e7f638ed952d Mon Sep 17 00:00:00 2001
+From: Andreas Kemnade <andreas@kemnade.info>
+Date: Wed, 14 Aug 2019 23:43:19 +0200
+Subject: [PATCH] regulator: twl: voltage lists for vdd1/2 on twl4030
+
+_opp_supported_by_regulators() wrongly ignored errors from
+regulator_is_supported_voltage(), so it considered errors as
+success. Since
+commit 498209445124 ("regulator: core: simplify return value on suported_voltage")
+regulator_is_supported_voltage() returns a real boolean, so
+errors make _opp_supported_by_regulators() return false.
+
+That reveals a problem with the declaration of the VDD1/2
+regulators on twl4030.
+The VDD1/VDD2 regulators on twl4030 are neither defined with
+voltage lists nor with the continuous flag set, so
+regulator_is_supported_voltage() returns false and an error
+before above mentioned commit (which was considered success)
+The result is that after the above mentioned commit cpufreq
+does not work properly e.g. dm3730.
+
+[    2.490997] core: _opp_supported_by_regulators: OPP minuV: 1012500 maxuV: 1012500, not supported by regulator
+[    2.501617] cpu cpu0: _opp_add: OPP not supported by regulators (300000000)
+[    2.509246] core: _opp_supported_by_regulators: OPP minuV: 1200000 maxuV: 1200000, not supported by regulator
+[    2.519775] cpu cpu0: _opp_add: OPP not supported by regulators (600000000)
+[    2.527313] core: _opp_supported_by_regulators: OPP minuV: 1325000 maxuV: 1325000, not supported by regulator
+[    2.537750] cpu cpu0: _opp_add: OPP not supported by regulators (800000000)
+
+The patch fixes declaration of VDD1/2 regulators by
+adding proper voltage lists.
+
+Fixes: 498209445124 ("regulator: core: simplify return value on suported_voltage")
+Cc: stable@vger.kernel.org
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Tested-by: Adam Ford <aford173@gmail.com> #logicpd-torpedo-37xx-devkit
+Link: https://lore.kernel.org/r/20190814214319.24087-1-andreas@kemnade.info
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/twl-regulator.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 6fa15b2d6fb3..866b4dd01da9 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -359,6 +359,17 @@ static const u16 VINTANA2_VSEL_table[] = {
+ 	2500, 2750,
+ };
+ 
++/* 600mV to 1450mV in 12.5 mV steps */
++static const struct regulator_linear_range VDD1_ranges[] = {
++	REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500)
++};
++
++/* 600mV to 1450mV in 12.5 mV steps, everything above = 1500mV */
++static const struct regulator_linear_range VDD2_ranges[] = {
++	REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500),
++	REGULATOR_LINEAR_RANGE(1500000, 69, 69, 12500)
++};
++
+ static int twl4030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+@@ -427,6 +438,8 @@ static int twl4030smps_get_voltage(struct regulator_dev *rdev)
+ }
+ 
+ static const struct regulator_ops twl4030smps_ops = {
++	.list_voltage   = regulator_list_voltage_linear_range,
++
+ 	.set_voltage	= twl4030smps_set_voltage,
+ 	.get_voltage	= twl4030smps_get_voltage,
+ };
+@@ -466,7 +479,8 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		}, \
+ 	}
+ 
+-#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf) \
++#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf, \
++		n_volt) \
+ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 	.base = offset, \
+ 	.id = num, \
+@@ -479,6 +493,9 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
+ 		.of_map_mode = twl4030reg_map_mode, \
++		.n_voltages = n_volt, \
++		.n_linear_ranges = ARRAY_SIZE(label ## _ranges), \
++		.linear_ranges = label ## _ranges, \
+ 		}, \
+ 	}
+ 
+@@ -518,8 +535,8 @@ TWL4030_ADJUSTABLE_LDO(VSIM, 0x37, 9, 100, 0x00);
+ TWL4030_ADJUSTABLE_LDO(VDAC, 0x3b, 10, 100, 0x08);
+ TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08);
+ TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08);
+-TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08);
+-TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08);
++TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08, 68);
++TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08, 69);
+ /* VUSBCP is managed *only* by the USB subchip */
+ TWL4030_FIXED_LDO(VINTANA1, 0x3f, 1500, 11, 100, 0x08);
+ TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08);
+-- 
+2.20.1
