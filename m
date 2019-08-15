@@ -1,123 +1,57 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH v2] regulator: twl: voltage lists for vdd1/2 on twl4030
-Date: Thu, 15 Aug 2019 05:47:14 -0500
-Message-ID: <CAHCN7xL4K+1nJDXDRs7yVi6LhGL-4uPu9M+SN1dcOPu8=M8s2g@mail.gmail.com>
-References: <20190814214319.24087-1-andreas@kemnade.info>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCHv2] USB: serial: option: Add Motorola modem UARTs
+Date: Thu, 15 Aug 2019 13:27:37 +0200
+Message-ID: <20190815112737.GD32300@localhost>
+References: <20190815082602.51765-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190814214319.24087-1-andreas@kemnade.info>
+Content-Disposition: inline
+In-Reply-To: <20190815082602.51765-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org, Stephen Boyd <sboyd@kernel.org>, Nishanth Menon <nm@ti.com>, vireshk@kernel.org, stable@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Johan Hovold <johan@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?iso-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>, Dan Williams <dan.j.williams@intel.com>, Lars Melin <larsm17@gmail.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 14, 2019 at 5:18 PM Andreas Kemnade <andreas@kemnade.info> wrote:
->
-> _opp_supported_by_regulators() wrongly ignored errors from
-> regulator_is_supported_voltage(), so it considered errors as
-> success. Since
-> commit 498209445124 ("regulator: core: simplify return value on suported_voltage")
-> regulator_is_supported_voltage() returns a real boolean, so
-> errors make _opp_supported_by_regulators() return false.
->
-> That reveals a problem with the declaration of the VDD1/2
-> regulators on twl4030.
-> The VDD1/VDD2 regulators on twl4030 are neither defined with
-> voltage lists nor with the continuous flag set, so
-> regulator_is_supported_voltage() returns false and an error
-> before above mentioned commit (which was considered success)
-> The result is that after the above mentioned commit cpufreq
-> does not work properly e.g. dm3730.
->
-> [    2.490997] core: _opp_supported_by_regulators: OPP minuV: 1012500 maxuV: 1012500, not supported by regulator
-> [    2.501617] cpu cpu0: _opp_add: OPP not supported by regulators (300000000)
-> [    2.509246] core: _opp_supported_by_regulators: OPP minuV: 1200000 maxuV: 1200000, not supported by regulator
-> [    2.519775] cpu cpu0: _opp_add: OPP not supported by regulators (600000000)
-> [    2.527313] core: _opp_supported_by_regulators: OPP minuV: 1325000 maxuV: 1325000, not supported by regulator
-> [    2.537750] cpu cpu0: _opp_add: OPP not supported by regulators (800000000)
->
-> The patch fixes declaration of VDD1/2 regulators by
-> adding proper voltage lists.
->
-> Fixes: 498209445124 ("regulator: core: simplify return value on suported_voltage")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+On Thu, Aug 15, 2019 at 01:26:02AM -0700, Tony Lindgren wrote:
+> On Motorola Mapphone devices such as Droid 4 there are five USB ports
+> that do not use the same layout as Gobi 1K/2K/etc devices listed in
+> qcserial.c. So we should use qcaux.c or option.c as noted by
+> Dan Williams <dan.j.williams@intel.com>.
+> 
+> As the Motorola USB serial ports have an interrupt endpoint as shown
+> with lsusb -v, we should use option.c instead of qcaux.c as pointed out
+> by Johan Hovold <johan@kernel.org>.
+> 
+> The ff/ff/ff interfaces seem to always be UARTs on Motorola devices.
+> For the other interfaces, class 0x0a (CDC Data) should not in general
+> be added as they are typically part of a multi-interface function as
+> noted earlier by Bjørn Mork <bjorn@mork.no>.
+> 
+> However, looking at the Motorola mapphone kernel code, the mdm6600 0x0a
+> class is only used for flashing the modem firmware, and there are no
+> other interfaces. So I've added that too with more details below as it
+> works just fine.
+> 
+> The ttyUSB ports on Droid 4 are:
+> 
+> ttyUSB0 DIAG, CQDM-capable
+> ttyUSB1 MUX or NMEA, no response
+> ttyUSB2 MUX or NMEA, no response
+> ttyUSB3 TCMD
+> ttyUSB4 AT-capable
 
-Tested-by: Adam Ford <aford173@gmail.com> #logicpd-torpedo-37xx-devkit
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Tony Lingren <tony@atomide.com>
+
+I fixed up the typo in your name here, which checkpatch caught.
 
 > ---
-> resent because it was rejected by mailing lists, due to technical
-> issues, sorry for the noise.
-> changes in v2:
->   using a proper voltage list instead of misusing the continuous flag
->   subject was regulator: twl: mark vdd1/2 as continuous on twl4030
->
->  drivers/regulator/twl-regulator.c | 23 ++++++++++++++++++++---
->  1 file changed, 20 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-> index 6fa15b2d6fb3..866b4dd01da9 100644
-> --- a/drivers/regulator/twl-regulator.c
-> +++ b/drivers/regulator/twl-regulator.c
-> @@ -359,6 +359,17 @@ static const u16 VINTANA2_VSEL_table[] = {
->         2500, 2750,
->  };
->
-> +/* 600mV to 1450mV in 12.5 mV steps */
-> +static const struct regulator_linear_range VDD1_ranges[] = {
-> +       REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500)
-> +};
-> +
-> +/* 600mV to 1450mV in 12.5 mV steps, everything above = 1500mV */
-> +static const struct regulator_linear_range VDD2_ranges[] = {
-> +       REGULATOR_LINEAR_RANGE(600000, 0, 68, 12500),
-> +       REGULATOR_LINEAR_RANGE(1500000, 69, 69, 12500)
-> +};
-> +
->  static int twl4030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
->  {
->         struct twlreg_info      *info = rdev_get_drvdata(rdev);
-> @@ -427,6 +438,8 @@ static int twl4030smps_get_voltage(struct regulator_dev *rdev)
->  }
->
->  static const struct regulator_ops twl4030smps_ops = {
-> +       .list_voltage   = regulator_list_voltage_linear_range,
-> +
->         .set_voltage    = twl4030smps_set_voltage,
->         .get_voltage    = twl4030smps_get_voltage,
->  };
-> @@ -466,7 +479,8 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
->                 }, \
->         }
->
-> -#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf) \
-> +#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf, \
-> +               n_volt) \
->  static const struct twlreg_info TWL4030_INFO_##label = { \
->         .base = offset, \
->         .id = num, \
-> @@ -479,6 +493,9 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
->                 .owner = THIS_MODULE, \
->                 .enable_time = turnon_delay, \
->                 .of_map_mode = twl4030reg_map_mode, \
-> +               .n_voltages = n_volt, \
-> +               .n_linear_ranges = ARRAY_SIZE(label ## _ranges), \
-> +               .linear_ranges = label ## _ranges, \
->                 }, \
->         }
->
-> @@ -518,8 +535,8 @@ TWL4030_ADJUSTABLE_LDO(VSIM, 0x37, 9, 100, 0x00);
->  TWL4030_ADJUSTABLE_LDO(VDAC, 0x3b, 10, 100, 0x08);
->  TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08);
->  TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08);
-> -TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08);
-> -TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08);
-> +TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08, 68);
-> +TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08, 69);
->  /* VUSBCP is managed *only* by the USB subchip */
->  TWL4030_FIXED_LDO(VINTANA1, 0x3f, 1500, 11, 100, 0x08);
->  TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08);
-> --
-> 2.20.1
->
+> 
+> Changes since v1:
+> - Leave out defines as suggested by Lars
+
+Thanks, Tony. Now applied.
+
+Johan
