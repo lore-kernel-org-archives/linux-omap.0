@@ -1,55 +1,31 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 14/22] ARM: omap1: use pci_ioremap_io() for omap_cf
-Date: Fri, 16 Aug 2019 11:34:03 +0300
-Message-ID: <20190816083403.GB1952@darkstar.musicnaut.iki.fi>
-References: <20190808212234.2213262-1-arnd@arndb.de>
- <20190808212234.2213262-15-arnd@arndb.de>
- <20190813103605.GL52127@atomide.com>
- <CAK8P3a0E+QUn9wcP5Obv-FitWyXCFwcp+oPConeO2p-NV1rqsw@mail.gmail.com>
- <20190813181158.GA26798@darkstar.musicnaut.iki.fi>
- <CAK8P3a0LjKrc+7c5Ht9OL7LfYyLnG9=y7u+w24ujA1xAid_yCQ@mail.gmail.com>
- <20190814074918.GA52127@atomide.com>
- <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH] clk: ti: Don't reference clk_init_data after registration
+Date: Fri, 16 Aug 2019 07:51:34 -0700
+Message-ID: <20190816145135.82244206C1@mail.kernel.org>
+References: <20190815221249.53235-1-sboyd@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
+In-Reply-To: <20190815221249.53235-1-sboyd@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Quoting Stephen Boyd (2019-08-15 15:12:49)
+> A future patch is going to change semantics of clk_register() so that
+> clk_hw::init is guaranteed to be NULL after a clk is registered. Avoid
+> referencing this member here so that we don't run into NULL pointer
+> exceptions.
+>=20
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Stephen Boyd <sboyd@kernel.org>
+> ---
+>=20
+> This might be causing boot regressions in linux-next. Not sure.
+>=20
 
-On Wed, Aug 14, 2019 at 12:36:40PM +0200, Arnd Bergmann wrote:
-> On Wed, Aug 14, 2019 at 9:49 AM Tony Lindgren <tony@atomide.com> wrote:
-> > * Arnd Bergmann <arnd@arndb.de> [190813 19:34]:
-> > > -#define OMAP1_IO_OFFSET                0x01000000      /* Virtual IO
-> > > = 0xfefb0000 */
-> > > +#define OMAP1_IO_OFFSET                0x00fb0000      /* Virtual IO
-> > > = 0xff000000 */
-> > >  #define OMAP1_IO_ADDRESS(pa)   IOMEM((pa) - OMAP1_IO_OFFSET)
-> >
-> > Oh OK yeah sounds like that's the issue.
-> >
-> > > There may be additional locations that hardcode the virtual address.
-> >
-> > Those should be in mach-omap1/io.c, and I recall innovator had some
-> > hardcoded fpga address that should also be checked.
-> 
-> I see four boards with hardcoded I/O addresses, but they are all below
-> the PCI I/O virtual address range, and are not affected by that change.
-> 
-> For the innovator FPGA access, this was ok, it uses the correct address
-> in the OMAP1_IO_OFFSET range.
-
-I tried testing this on OSK board. If I boot with earlyprintk disabled,
-it boots OK and everything works (also CF card) with your playground
-commit 5723b6686943.
-
-However with earlyprintk it seems to hang as soon as kernel tries to print
-something. So something goes wrong with early DEBUG_LL mapping code when
-CONFIG_DEBUG_UART_VIRT=0xff000000 is used?
-
-A.
+I don't see linux-next boot regressions in kernel-ci so it must be
+working.
