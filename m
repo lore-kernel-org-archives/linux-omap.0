@@ -1,94 +1,55 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: [PATCH] clk: ti: Don't reference clk_init_data after registration
-Date: Thu, 15 Aug 2019 15:12:49 -0700
-Message-ID: <20190815221249.53235-1-sboyd@kernel.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 14/22] ARM: omap1: use pci_ioremap_io() for omap_cf
+Date: Fri, 16 Aug 2019 11:34:03 +0300
+Message-ID: <20190816083403.GB1952@darkstar.musicnaut.iki.fi>
+References: <20190808212234.2213262-1-arnd@arndb.de>
+ <20190808212234.2213262-15-arnd@arndb.de>
+ <20190813103605.GL52127@atomide.com>
+ <CAK8P3a0E+QUn9wcP5Obv-FitWyXCFwcp+oPConeO2p-NV1rqsw@mail.gmail.com>
+ <20190813181158.GA26798@darkstar.musicnaut.iki.fi>
+ <CAK8P3a0LjKrc+7c5Ht9OL7LfYyLnG9=y7u+w24ujA1xAid_yCQ@mail.gmail.com>
+ <20190814074918.GA52127@atomide.com>
+ <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-A future patch is going to change semantics of clk_register() so that
-clk_hw::init is guaranteed to be NULL after a clk is registered. Avoid
-referencing this member here so that we don't run into NULL pointer
-exceptions.
+Hi,
 
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Stephen Boyd <sboyd@kernel.org>
----
+On Wed, Aug 14, 2019 at 12:36:40PM +0200, Arnd Bergmann wrote:
+> On Wed, Aug 14, 2019 at 9:49 AM Tony Lindgren <tony@atomide.com> wrote:
+> > * Arnd Bergmann <arnd@arndb.de> [190813 19:34]:
+> > > -#define OMAP1_IO_OFFSET                0x01000000      /* Virtual IO
+> > > = 0xfefb0000 */
+> > > +#define OMAP1_IO_OFFSET                0x00fb0000      /* Virtual IO
+> > > = 0xff000000 */
+> > >  #define OMAP1_IO_ADDRESS(pa)   IOMEM((pa) - OMAP1_IO_OFFSET)
+> >
+> > Oh OK yeah sounds like that's the issue.
+> >
+> > > There may be additional locations that hardcode the virtual address.
+> >
+> > Those should be in mach-omap1/io.c, and I recall innovator had some
+> > hardcoded fpga address that should also be checked.
+> 
+> I see four boards with hardcoded I/O addresses, but they are all below
+> the PCI I/O virtual address range, and are not affected by that change.
+> 
+> For the innovator FPGA access, this was ok, it uses the correct address
+> in the OMAP1_IO_OFFSET range.
 
-This might be causing boot regressions in linux-next. Not sure.
+I tried testing this on OSK board. If I boot with earlyprintk disabled,
+it boots OK and everything works (also CF card) with your playground
+commit 5723b6686943.
 
- drivers/clk/ti/apll.c | 9 +++++----
- drivers/clk/ti/dpll.c | 9 +++++----
- 2 files changed, 10 insertions(+), 8 deletions(-)
+However with earlyprintk it seems to hang as soon as kernel tries to print
+something. So something goes wrong with early DEBUG_LL mapping code when
+CONFIG_DEBUG_UART_VIRT=0xff000000 is used?
 
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index 015a657d3382..ac5bc8857a51 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -140,6 +140,7 @@ static void __init omap_clk_register_apll(void *user,
- 	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
- 	struct dpll_data *ad = clk_hw->dpll_data;
- 	struct clk *clk;
-+	const struct clk_init_data *init = clk_hw->hw.init;
- 
- 	clk = of_clk_get(node, 0);
- 	if (IS_ERR(clk)) {
-@@ -168,15 +169,15 @@ static void __init omap_clk_register_apll(void *user,
- 	clk = ti_clk_register_omap_hw(NULL, &clk_hw->hw, node->name);
- 	if (!IS_ERR(clk)) {
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
--		kfree(clk_hw->hw.init->parent_names);
--		kfree(clk_hw->hw.init);
-+		kfree(init->parent_names);
-+		kfree(init);
- 		return;
- 	}
- 
- cleanup:
- 	kfree(clk_hw->dpll_data);
--	kfree(clk_hw->hw.init->parent_names);
--	kfree(clk_hw->hw.init);
-+	kfree(init->parent_names);
-+	kfree(init);
- 	kfree(clk_hw);
- }
- 
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 659dadb23279..f3f609c465a7 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -165,6 +165,7 @@ static void __init _register_dpll(void *user,
- 	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
- 	struct dpll_data *dd = clk_hw->dpll_data;
- 	struct clk *clk;
-+	const struct clk_init_data *init = hw->init;
- 
- 	clk = of_clk_get(node, 0);
- 	if (IS_ERR(clk)) {
-@@ -196,15 +197,15 @@ static void __init _register_dpll(void *user,
- 
- 	if (!IS_ERR(clk)) {
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
--		kfree(clk_hw->hw.init->parent_names);
--		kfree(clk_hw->hw.init);
-+		kfree(init->parent_names);
-+		kfree(init);
- 		return;
- 	}
- 
- cleanup:
- 	kfree(clk_hw->dpll_data);
--	kfree(clk_hw->hw.init->parent_names);
--	kfree(clk_hw->hw.init);
-+	kfree(init->parent_names);
-+	kfree(init);
- 	kfree(clk_hw);
- }
- 
--- 
-Sent by a computer through tubes
+A.
