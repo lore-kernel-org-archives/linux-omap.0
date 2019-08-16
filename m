@@ -1,7 +1,7 @@
 From: Stephen Boyd <sboyd@kernel.org>
 Subject: Re: [PATCH] clk: ti: Don't reference clk_init_data after registration
-Date: Fri, 16 Aug 2019 07:51:34 -0700
-Message-ID: <20190816145135.82244206C1@mail.kernel.org>
+Date: Fri, 16 Aug 2019 10:22:12 -0700
+Message-ID: <20190816172213.BA93F2086C@mail.kernel.org>
 References: <20190815221249.53235-1-sboyd@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -23,9 +23,5 @@ Quoting Stephen Boyd (2019-08-15 15:12:49)
 > Cc: Tony Lindgren <tony@atomide.com>
 > Signed-off-by: Stephen Boyd <sboyd@kernel.org>
 > ---
->=20
-> This might be causing boot regressions in linux-next. Not sure.
->=20
 
-I don't see linux-next boot regressions in kernel-ci so it must be
-working.
+Applied to clk-next
