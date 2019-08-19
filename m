@@ -1,14 +1,14 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 5/8] soc: ti: omap-prm: add omap4 PRM data
-Date: Mon, 19 Aug 2019 18:08:52 -0500
-Message-ID: <04bc6773-dbd4-e1ab-ce31-d93e99dafb33@ti.com>
+Subject: Re: [PATCH 6/8] soc: ti: omap_prm: add data for am33xx
+Date: Mon, 19 Aug 2019 18:11:19 -0500
+Message-ID: <ca424fbf-feb4-3fad-2e95-4f8ae38547dc@ti.com>
 References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
- <1565164139-21886-6-git-send-email-t-kristo@ti.com>
+ <1565164139-21886-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1565164139-21886-6-git-send-email-t-kristo@ti.com>
+In-Reply-To: <1565164139-21886-7-git-send-email-t-kristo@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -24,48 +24,47 @@ Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On 8/7/19 2:48 AM, Tero Kristo wrote:
-> Add PRM data for omap4 family of SoCs.
+> Add PRM instance data for AM33xx SoC. Includes some basic register
+> definitions and reset data for now.
 > 
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
->  drivers/soc/ti/omap_prm.c | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
+>  drivers/soc/ti/omap_prm.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 > 
 > diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-> index 870515e3..9b8d5945 100644
+> index 9b8d5945..fadfc7f 100644
 > --- a/drivers/soc/ti/omap_prm.c
 > +++ b/drivers/soc/ti/omap_prm.c
-> @@ -54,7 +54,27 @@ struct omap_reset_data {
+> @@ -73,8 +73,25 @@ struct omap_prm_data omap4_prm_data[] = {
+>  	{ },
+>  };
 >  
->  #define OMAP_PRM_NO_RSTST	BIT(0)
->  
-> +struct omap_prm_data omap4_prm_data[] = {
+> +struct omap_rst_map am3_wkup_rst_map[] = {
 
-static const
+static const here and below.
 
 regards
 Suman
 
-> +	{ .name = "mpu", .base = 0x4a306300, .pwstst = 0x4 },
-> +	{ .name = "tesla", .base = 0x4a306400, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-> +	{ .name = "abe", .base = 0x4a306500, .pwstst = 0x4 },
-> +	{ .name = "always_on_core", .base = 0x4a306600, .pwstst = 0x4 },
-> +	{ .name = "core", .base = 0x4a306700, .pwstst = 0x4, .rstctl = 0x210, .rstst = 0x214 },
-> +	{ .name = "ivahd", .base = 0x4a306f00, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-> +	{ .name = "cam", .base = 0x4a307000, .pwstst = 0x4 },
-> +	{ .name = "dss", .base = 0x4a307100, .pwstst = 0x4 },
-> +	{ .name = "gfx", .base = 0x4a307200, .pwstst = 0x4 },
-> +	{ .name = "l3init", .base = 0x4a307300, .pwstst = 0x4 },
-> +	{ .name = "l4per", .base = 0x4a307400, .pwstst = 0x4 },
-> +	{ .name = "cefuse", .base = 0x4a307600, .pwstst = 0x4 },
-> +	{ .name = "wkup", .base = 0x4a307700, .pwstst = 0x4 },
-> +	{ .name = "emu", .base = 0x4a307900, .pwstst = 0x4 },
-> +	{ .name = "device", .base = 0x4a307b00, .rstctl = 0x0, .rstst = 0x4 },
+> +	{ .rst = 3, .st = 5 },
+> +	{ .rst = -1 },
+> +};
+> +
+> +struct omap_prm_data am3_prm_data[] = {
+> +	{ .name = "per", .base = 0x44e00c00, .pwstctrl = 0xc, .pwstst = 0x8, .flags = OMAP_PRM_NO_RSTST },
+> +	{ .name = "wkup", .base = 0x44e00d00, .pwstctrl = 0x4, .pwstst = 0x8, .rstst = 0xc, .rstmap = am3_wkup_rst_map },
+> +	{ .name = "mpu", .base = 0x44e00e00, .pwstst = 0x4 },
+> +	{ .name = "device", .base = 0x44e00f00, .rstctl = 0x0, .rstst = 0x8 },
+> +	{ .name = "rtc", .base = 0x44e01000, .pwstst = 0x4 },
+> +	{ .name = "gfx", .base = 0x44e01100, .pwstst = 0x10, .rstctl = 0x4, .rstst = 0x14 },
+> +	{ .name = "cefuse", .base = 0x44e01200, .pwstst = 0x4 },
 > +	{ },
 > +};
 > +
 >  static const struct of_device_id omap_prm_id_table[] = {
-> +	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
+>  	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
+> +	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
 >  	{ },
 >  };
 >  
