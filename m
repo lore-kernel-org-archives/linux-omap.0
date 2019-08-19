@@ -1,96 +1,87 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: Suspend/Resume Broken on AM43/AM33 Platforms
-Date: Mon, 19 Aug 2019 12:57:13 +0530
-Message-ID: <b0678bfc-05ae-99b4-5b24-5c813efe718d@ti.com>
-References: <49fc7c64-88c0-74d0-2cb3-07986490941d@ti.com>
- <5d5a4150.1c69fb81.3faa2.eee8@mx.google.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: wifi on Motorola Droid 4 in 5.3-rc2
+Date: Mon, 19 Aug 2019 11:19:41 +0200
+Message-ID: <20190819091941.GA21072@amd>
+References: <20190818104629.GA27360@amd>
+ <CAOf5uwnUx3mtGGHFGqKB30qcb_AMhMEhHLp2pf-4pUdhi7KP7w@mail.gmail.com>
+ <20190818114332.GA32205@amd>
+ <87h86elgaa.fsf@tynnyri.adurom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5d5a4150.1c69fb81.3faa2.eee8@mx.google.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <87h86elgaa.fsf@tynnyri.adurom.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <swboyd@chromium.org>, Tony Lindgren <tony@atomide.com>, herbert@gondor.apana.org.au
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+To: Kalle Valo <kvalo@codeaurora.org>
+Cc: Michael Nazzareno Trimarchi <michael@amarulasolutions.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, mpartap@gmx.net, Merlijn Wajer <merlijn@wizzup.org>, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
+--zhXaljGHf11kAtnf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 19/08/19 11:57 AM, Stephen Boyd wrote:
-> Quoting Keerthy (2019-08-18 21:24:58)
->> Hi Stephen,
->>
->> commit 03a3bb7ae63150230c5de645dc95e673ebf17e1a
->> Author: Stephen Boyd <swboyd@chromium.org>
->> Date:   Mon Aug 5 16:32:41 2019 -0700
->>
->>       hwrng: core - Freeze khwrng thread during suspend
->>
->> Commit seems to be breaking suspend/resume on TI AM43/AM33 platforms.
->>
->>
->> rtcwake: wakeup from "mem" using /dev/rtc0 at Sun Nov 18 02:12:12 2018
->> [   54.033833] PM: suspend entry (deep)
->> [   54.037741] Filesystems sync: 0.000 seconds
->> [   54.062730] Freezing user space processes ... (elapsed 0.001 seconds)
->> done.
->> [   54.071313] OOM killer disabled.
->> [   54.074572] Freezing remaining freezable tasks ...
->> [   74.083121] Freezing of tasks failed after 20.003 seconds (1 tasks
->> refusing to freeze, wq_busy=0):
->> [   74.092257] hwrng           R  running task        0   289      2
->> 0x00000020
->> [   74.099511] [<c08c64c4>] (__schedule) from [<c08c6a10>]
->> (schedule+0x3c/0xc0)
->> [   74.106720] [<c08c6a10>] (schedule) from [<c05dbd8c>]
->> (add_hwgenerator_randomness+0xb0/0x100)
->> [   74.115358] [<c05dbd8c>] (add_hwgenerator_randomness) from
->> [<bf1803c8>] (hwrng_fillfn+0xc0/0x14c [rng_core])
-> 
-> Thanks for the report. I suspect we need to check for freezer in
-> add_hwgenerator_randomness(). I find it odd that there's another caller
-> of add_hwgenerator_randomness(), but maybe the ath9k driver can be
-> converted to some sort of hwrng driver instead of calling into the
-> kthread directly.
-> 
-> Anyway, can you try this patch?
+On Sun 2019-08-18 17:06:05, Kalle Valo wrote:
+> Pavel Machek <pavel@ucw.cz> writes:
+>=20
+> > On Sun 2019-08-18 12:53:01, Michael Nazzareno Trimarchi wrote:
+> >> Hi
+> >>=20
+> >> On Sun, Aug 18, 2019 at 12:46 PM Pavel Machek <pavel@ucw.cz> wrote:
+> >> >
+> >> > Hi!
+> >> >
+> >> > First, I guess I should mention that this is first time I'm attempti=
+ng
+> >> > to get wifi going on D4.
+> >> >
+> >> > I'm getting this:
+> >> >
+> >> > user@devuan:~/g/ofono$ sudo ifconfig wlan0 down
+> >> > user@devuan:~/g/ofono$ sudo ifconfig wlan0 up
+> >> > user@devuan:~/g/ofono$ sudo iwlist wlan0 scan
+> >> > wlan0     Interface doesn't support scanning.
+> >> >
+> >>=20
+> >> Try to use iw command. iwlist use an obsolete interface that you need
+> >> to activate in kernel for back compatibility with old command. Can be
+> >> your problem?
+> >
+> > Let me see ... CONFIG_CFG80211_WEXT was not set.
+> >
+> > Tried enabling it, and now I got. I remember getting it before,
+> > too... let me try few more boots, perhaps it is random.
+>=20
+> >From developers' point of view WEXT is ancient and untested, everybody
+> should switch to nl80211. So I strongly using iw (which uses nl80211).
+> Of course this nothing to do with the wlcore warning you saw, just
+> wanted to make you aware the state of wireless extensions.
 
-I applied the below patch on top of latest next branch.
+You may want to add this to Kconfig test... and maybe it would be good
+to mention iwconfig there, for easier grepping.
 
-Fixes the issue.
+I'm using rather old distro; I'll update, but kernel is expected to be
+back-compatible.. and tested :-).
 
-Thanks,
-Keerthy
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> 
-> ---8<---
-> diff --git a/drivers/char/random.c b/drivers/char/random.c
-> index 5d5ea4ce1442..e2e85ca16410 100644
-> --- a/drivers/char/random.c
-> +++ b/drivers/char/random.c
-> @@ -2429,6 +2429,7 @@ void add_hwgenerator_randomness(const char *buffer, size_t count,
->   				size_t entropy)
->   {
->   	struct entropy_store *poolp = &input_pool;
-> +	bool frozen = false;
->   
->   	if (unlikely(crng_init == 0)) {
->   		crng_fast_load(buffer, count);
-> @@ -2439,9 +2440,12 @@ void add_hwgenerator_randomness(const char *buffer, size_t count,
->   	 * We'll be woken up again once below random_write_wakeup_thresh,
->   	 * or when the calling thread is about to terminate.
->   	 */
-> -	wait_event_interruptible(random_write_wait, kthread_should_stop() ||
-> +	wait_event_interruptible(random_write_wait,
-> +			kthread_freezable_should_stop(&frozen) ||
->   			ENTROPY_BITS(&input_pool) <= random_write_wakeup_bits);
-> -	mix_pool_bytes(poolp, buffer, count);
-> -	credit_entropy_bits(poolp, entropy);
-> +	if (!frozen) {
-> +		mix_pool_bytes(poolp, buffer, count);
-> +		credit_entropy_bits(poolp, entropy);
-> +	}
->   }
->   EXPORT_SYMBOL_GPL(add_hwgenerator_randomness);
-> 
+--zhXaljGHf11kAtnf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAl1aaa0ACgkQMOfwapXb+vLfxgCgwnUj/6zNjDP8mVxxlrKZK1lM
+pPoAnRZSZcbtXRDj7ieMQtZo77crQdVF
+=S9kP
+-----END PGP SIGNATURE-----
+
+--zhXaljGHf11kAtnf--
