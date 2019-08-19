@@ -1,121 +1,71 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
- OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
-Date: Mon, 19 Aug 2019 14:43:14 -0500
-Message-ID: <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
-References: <20180108214032.GW3872@atomide.com> <4d99c1ae-7752-949b-7e88-bc8f1dc594a2@wizzup.org>
- <0C51EC59-9CDC-4196-ACF9-24596C9E61B6@goldelico.com> <FA4520D5-62CB-446D-975C-A1C7B9251517@goldelico.com>
- <20190212205132.GO5720@atomide.com> <0b00ce0a-969f-e638-8247-c2da96cf7ce6@gmail.com>
- <20190213004143.GP5720@atomide.com> <480AB632-A544-41E7-95A4-DC354AEBB71A@goldelico.com>
- <CAKpie0SigGGsQxSU+X-Mz5boy-Xx=3wRNOcrf+F=ehFr3RBi7Q@mail.gmail.com>
- <092210C3-05DE-4AFB-986F-81BD8F990B67@goldelico.com> <CAKpie0RXM1UC33YFeFy-kAxfGhYGNkw4vUgNTThf-ZCAhPTVXw@mail.gmail.com>
- <BE23C1E4-2877-49FA-B230-F9C10691B805@goldelico.com> <CAKpie0TSo-8gmDm9_Zw4Sd+kjVVEomp8yA9Vu8qY2U2AcrQc=w@mail.gmail.com>
- <8A069D96-C65F-43F5-8F54-20019CFB1A8D@goldelico.com> <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
- <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com> <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
- <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com> <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
- <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/8] dt-bindings: omap: add new binding for PRM instances
+Date: Mon, 19 Aug 2019 16:28:16 -0500
+Message-ID: <b6506850-f4fc-43be-b5b7-b83cd77b5d66@ti.com>
+References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
+ <1565164139-21886-2-git-send-email-t-kristo@ti.com>
+ <6bf4194b-23c0-2de0-3f9c-e99195336dc7@ti.com>
+ <aa5538ae-76b4-942b-dc98-6e55628cf36a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Pawe=C5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Philipp Rossak <embed3d@gmail.com>, moaz korena <moaz@korena.xyz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?UTF-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <aa5538ae-76b4-942b-dc98-6e55628cf36a@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
+Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 14, 2019 at 3:56 AM H. Nikolaus Schaller <hns@goldelico.com> wrote:
->
-> Hi all,
->
-> > Am 17.07.2019 um 12:51 schrieb Merlijn Wajer <merlijn@wizzup.org>:
-> >
-> > Hi,
-> >
-> > On 10/03/2019 08:07, H. Nikolaus Schaller wrote:
-> >>
-> >>> Am 10.03.2019 um 00:14 schrieb Merlijn Wajer <merlijn@wizzup.org>:
-> >>>
-> >>> Hi,
-> >>>
-> >>> On 15/02/2019 14:09, H. Nikolaus Schaller wrote:
-> >>>
-> >>>>>> At least I can download and start firmware. I just have to find a way to fix the omaplfb so that it works
-> >>>>>> with our omapdrm based panels to runs the CLipBlit test [1] on modern kernels...
-> >>>>>
-> >>>>> Maybe you can compare with what we have here:
-> >>>>> https://github.com/maemo-leste/n9xx-linux/tree/pvr-wip-4.15.7/drivers/gpu/pvr
-> >>>>
-> >>>> I'll take a look into it especially how omaplfb is done.
-> >>>>
-> >>>> First observation is that there is a "flat" tree while I am working on a structured one...
-> >>>> But that is just a marginal difference (mainly significant for Makefile writers).
-> >>>
-> >>> I've ported the Maemo Leste kernel + pvr to 5.0 and it seems to work:
-> >>> https://github.com/maemo-leste/n9xx-linux/commits/pvr-wip-5.0.y
-> >>>
-> >>> Should I add this as maemo-leste-n900-5.0 branch (or something) to
-> >>> https://github.com/openpvrsgx-devgroup/linux_openpvrsgx ?
-> >>
-> >> Yes, that would be nice to be able to easily compare stuff.
-> >
-> > I've just pushed the Maemo Leste v5.1 branch + patches here:
-> >
-> >       https://github.com/openpvrsgx-devgroup/linux_openpvrsgx/tree/n900/v5.1-patch
-> >
-> > This works on N900 with X, but it doesn't use DRM yet. I'm wondering
-> > what a next logical step would be: to try and modules to load/probe on
-> > another device (I have a droid4 or a Pandaboard ES rev B1), or to try
-> > and get DRM PowerVR to work on the N900, with omapdrmfb and dri3wsegl.
-> >
-> > For either path, I'll probably need some help. Any updates from anyone
-> > else? Maybe we should list things people can work - perhaps document
-> > progress in github issues. (Mailing list is also fine, BTW)
-> >
-> > Cheers,
-> > Merlijn
-> >
->
-> I also have pushed good news to
->
->         https://github.com/openpvrsgx-devgroup/linux_openpvrsgx/tree/letux-pvr
->
-> Thanks to the help from the Pyra community, I was able to get a (binary) reference
-> implementation using DRM that works on Pyra/OMAP5. At least the gles1test1.
-
-just a question,
-
-If DRM is working, does that mean it works without needing the overhead of X?
-
-adam
->
-> With that reference setup I was able to fix my Makefiles for the staging/pvr implementation.
->
-> I have tested that it works with v4.19.66 and v5.3-rc4 (LPAE build of the LetuxOS kernel tree)
-> on the Pyra.
->
-> In which areas does this tree go beyond the TI SDK/IMG DDK 1.14?
->
-> * includes internal API fixes for kernels up to v5.3
-> * lives in drivers/staging/pvr/1.14.3699939 - so that we can ask for inclusion in linux-next
-> * has Kconfig and Makefiles for in-kernel configuration (no separate build system)
-> * builds separate kernel modules for omap3430, omap3630, am335x, omap4, omap5, dra7 etc.
->   pvrsrvkm
->   e.g. pvrsrvkm_omap_omap5_sgx544_116
-> * the correct kernel module is automatically probed by matching .compatible in device tree
->   so that the code is multi-platform friendly
-> * includes SoC integration for OMAP3/4/5 and has some preliminary bindings documentation
-> * code base should also support JZ4780/CI20 and some Intel Atom processors (CedarView, Poulsbo)
-> * has got a ToDo to describe what should be done during staging phase
->
->         https://github.com/openpvrsgx-devgroup/linux_openpvrsgx/blob/letux/latest-pvr/drivers/staging/pvr/TODO
->
-> My plans for the next steps are:
->
-> * do more testing (e.g. X11, kmscube)
-> * check if and/or how it can run on am335x (BeagleBone) or OMAP3 (e.g. GTA04, OpenPandora)
-> * try a JZ480/CI20 build (unfortuantely I have no HDMI there with mainline kernels and I am
->   missing the user-space libraries for MIPS).
->
-> BR,
-> Nikolaus
->
+SGkgVGVybywKCk9uIDgvMTkvMTkgNDoyOCBBTSwgVGVybyBLcmlzdG8gd3JvdGU6Cj4gT24gMDgv
+MDgvMjAxOSAwNzozNSwgS2VlcnRoeSB3cm90ZToKPj4KPj4KPj4gT24gMDcvMDgvMTkgMToxOCBQ
+TSwgVGVybyBLcmlzdG8gd3JvdGU6Cj4+PiBBZGQgbmV3IGJpbmRpbmcgZm9yIE9NQVAgUFJNIChQ
+b3dlciBhbmQgUmVzZXQgTWFuYWdlcikgaW5zdGFuY2VzLiBFYWNoCj4+PiBvZiB0aGVzZSB3aWxs
+IGFjdCBhcyBhIHBvd2VyIGRvbWFpbiBjb250cm9sbGVyIGFuZCBwb3RlbnRpYWxseSBhcyBhCj4+
+PiByZXNldAo+Pj4gcHJvdmlkZXIuCj4+Pgo+Pj4gU2lnbmVkLW9mZi1ieTogVGVybyBLcmlzdG8g
+PHQta3Jpc3RvQHRpLmNvbT4KPj4+IC0tLQo+Pj4gwqAgLi4uL2RldmljZXRyZWUvYmluZGluZ3Mv
+YXJtL29tYXAvcHJtLWluc3QudHh0wqDCoMKgwqDCoCB8IDI0Cj4+PiArKysrKysrKysrKysrKysr
+KysrKysrCj4+PiDCoCAxIGZpbGUgY2hhbmdlZCwgMjQgaW5zZXJ0aW9ucygrKQo+Pj4gwqAgY3Jl
+YXRlIG1vZGUgMTAwNjQ0Cj4+PiBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvYXJt
+L29tYXAvcHJtLWluc3QudHh0Cj4+Pgo+Pj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2
+aWNldHJlZS9iaW5kaW5ncy9hcm0vb21hcC9wcm0taW5zdC50eHQKPj4+IGIvRG9jdW1lbnRhdGlv
+bi9kZXZpY2V0cmVlL2JpbmRpbmdzL2FybS9vbWFwL3BybS1pbnN0LnR4dAo+Pj4gbmV3IGZpbGUg
+bW9kZSAxMDA2NDQKPj4+IGluZGV4IDAwMDAwMDAuLmUwYWU4N2IKPj4+IC0tLSAvZGV2L251bGwK
+Pj4+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9hcm0vb21hcC9wcm0t
+aW5zdC50eHQKPj4+IEBAIC0wLDAgKzEsMjQgQEAKPj4+ICtPTUFQIFBSTSBpbnN0YW5jZSBiaW5k
+aW5ncwo+Pj4gKwo+Pj4gK1Bvd2VyIGFuZCBSZXNldCBNYW5hZ2VyIGlzIGFuIElQIGJsb2NrIG9u
+IE9NQVAgZmFtaWx5IG9mIGRldmljZXMgd2hpY2gKPj4+ICtoYW5kbGUgdGhlIHBvd2VyIGRvbWFp
+bnMgYW5kIHRoZWlyIGN1cnJlbnQgc3RhdGUsIGFuZCBwcm92aWRlIHJlc2V0Cj4+PiAraGFuZGxp
+bmcgZm9yIHRoZSBkb21haW5zIGFuZC9vciBzZXBhcmF0ZSBJUCBibG9ja3MgdW5kZXIgdGhlIHBv
+d2VyCj4+PiBkb21haW4KPj4+ICtoaWVyYXJjaHkuCgpTbywgSSBzZWUgdGhhdCB5b3UgYXJlIGFk
+ZGluZyB0aGVzZSBhcyBmbGF0IG5vZGVzIGRpcmVjdGx5IHVuZGVyIHRoZSBwcm0Kbm9kZXMgd2hl
+cmUgd2UgaGF2ZSB0aGUgY2xvY2tzIGFuZCBjbG9ja19kb21haW5zLiBBcmUgeW91IGFudGljaXBh
+dGluZyBhCnNpbmdsZSBEVCBub2RlIGFuZC9vciBkcml2ZXIgbWFuYWdpbmcgYm90aCBwb3dlci1k
+b21haW5zIGFuZCByZXNldHM/Cgo+Pj4gKwo+Pj4gK1JlcXVpcmVkIHByb3BlcnRpZXM6Cj4+PiAr
+LSBjb21wYXRpYmxlOsKgwqDCoCBNdXN0IGJlIG9uZSBvZjoKPj4+ICvCoMKgwqDCoMKgwqDCoCAi
+dGksYW0zLXBybS1pbnN0Igo+Pj4gK8KgwqDCoMKgwqDCoMKgICJ0aSxhbTQtcHJtLWluc3QiCj4+
+PiArwqDCoMKgwqDCoMKgwqAgInRpLG9tYXA0LXBybS1pbnN0Igo+Pj4gK8KgwqDCoMKgwqDCoMKg
+ICJ0aSxvbWFwNS1wcm0taW5zdCIKPj4+ICvCoMKgwqDCoMKgwqDCoCAidGksZHJhNy1wcm0taW5z
+dCIKCldoYXQgYWJvdXQgT01BUDIsIE9NQVAzLCBETTgxNHgsIERNODE2eD8KCnJlZ2FyZHMKU3Vt
+YW4KCj4+PiArLSByZWc6wqDCoMKgwqDCoMKgwqAgQ29udGFpbnMgUFJNIGluc3RhbmNlIHJlZ2lz
+dGVyIGFkZHJlc3MgcmFuZ2UKPj4+ICvCoMKgwqDCoMKgwqDCoCAoYmFzZSBhZGRyZXNzIGFuZCBs
+ZW5ndGgpCj4+Cj4+IEhvdyBhYm91dCByZXNldC1jZWxscyBwcm9wZXJ0eSwgSXNuJ3QgdGhhdCBh
+IG1hbmRhdG9yeSBwcm9wZXJ0eT8KPiAKPiBJdCBpcyBvcHRpb25hbCwgYnV0IHlvdSBhcmUgcmln
+aHQsIHNob3VsZCBiZSBhZGRlZCB0byB0aGlzLgo+IAo+IC1UZXJvCj4gCj4+Cj4+PiArCj4+PiAr
+RXhhbXBsZToKPj4+ICsKPj4+ICtwcm1fZHNwMjogcHJtQDFiMDAgewo+Pj4gK8KgwqDCoCBjb21w
+YXRpYmxlID0gInRpLGRyYTctcHJtLWluc3QiOwo+Pj4gK8KgwqDCoCByZWcgPSA8MHgxYjAwIDB4
+NDA+Owo+Pj4gK8KgwqDCoCAjcmVzZXQtY2VsbHMgPSA8MT47Cj4+PiArfTsKPj4+Cj4gCj4gLS0g
+Cj4gVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAg
+SGVsc2lua2kuCj4gWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9E
+b21pY2lsZTogSGVsc2lua2kKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVs
+QGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
