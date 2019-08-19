@@ -1,118 +1,63 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: wifi on Motorola Droid 4 in 5.3-rc2
-Date: Mon, 19 Aug 2019 11:24:14 +0200
-Message-ID: <20190819092414.GB21072@amd>
-References: <20190818104629.GA27360@amd>
- <CAOf5uwnUx3mtGGHFGqKB30qcb_AMhMEhHLp2pf-4pUdhi7KP7w@mail.gmail.com>
- <20190818114332.GA32205@amd>
- <CAOf5uwncAHQ-nfFzQhv=T+pyXJ+60_QNT4F11VJg+25GjFFkxQ@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/8] dt-bindings: omap: add new binding for PRM instances
+Date: Mon, 19 Aug 2019 12:28:25 +0300
+Message-ID: <aa5538ae-76b4-942b-dc98-6e55628cf36a@ti.com>
+References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
+ <1565164139-21886-2-git-send-email-t-kristo@ti.com>
+ <6bf4194b-23c0-2de0-3f9c-e99195336dc7@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="IiVenqGWf+H9Y6IX"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOf5uwncAHQ-nfFzQhv=T+pyXJ+60_QNT4F11VJg+25GjFFkxQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Nazzareno Trimarchi <michael@amarulasolutions.com>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, mpartap@gmx.net, Merlijn Wajer <merlijn@wizzup.org>, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <6bf4194b-23c0-2de0-3f9c-e99195336dc7@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
+Cc: tony@atomide.com, devicetree@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-
---IiVenqGWf+H9Y6IX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-> > [   13.653778] panel-dsi-cm 58004000.encoder:display: using lookup
-> > tables for GPIO lookup
-> > [   13.661834] panel-dsi-cm 58004000.encoder:display: No GPIO consumer
-> > te found
-> > [   14.756622] ------------[ cut here ]------------
-> > [   14.761352] WARNING: CPU: 0 PID: 20 at
-> > /data/fast/l/k/drivers/net/wireless/ti/wlcore/sdio.c:86
-> > wl12xx_sdio_raw_read+0xa8/0x128
-> > [   14.772888] Modules linked in:
-> > [   14.776062] CPU: 0 PID: 20 Comm: kworker/0:1 Tainted: G        W
-> > 5.3.0-rc4-58571-gdbaece1 #85
-> > [   14.783630] Hardware name: Generic OMAP4 (Flattened Device Tree)
-> > [   14.791381] Workqueue: events request_firmware_work_func
->=20
-> You have a timeout here. Can be that your reset sequence of the wifi
-> is not optimal because
-> is not responding?
-
-I tried delays and printks... WL12XX_REG_FUSE_BD_ADDR_1 read fails,
-and retrying does not really help. If you have idea how to debug/fix
-this, let me know...
-
-Best regards,
-								Pavel
-
-diff --git a/drivers/net/wireless/ti/wl12xx/main.c b/drivers/net/wireless/t=
-i/wl12xx/main.c
-index 3c9c623..afb294a 100644
---- a/drivers/net/wireless/ti/wl12xx/main.c
-+++ b/drivers/net/wireless/ti/wl12xx/main.c
-@@ -1505,24 +1505,40 @@ static int wl12xx_get_fuse_mac(struct wl1271 *wl)
- {
- 	u32 mac1, mac2;
- 	int ret;
--
-+=09
-+	mdelay(1);
-+	printk("get_fuse_mac: %d\n", __LINE__);
- 	ret =3D wlcore_set_partition(wl, &wl->ptable[PART_DRPW]);
- 	if (ret < 0)
- 		goto out;
-=20
-+	mdelay(1);
-+	printk("get_fuse_mac: %d\n", __LINE__);
-+	ret =3D wlcore_read32(wl, WL12XX_REG_FUSE_BD_ADDR_1, &mac1);
-+	if (ret < 0) {
-+	printk("get_fuse_mac: X %d\n", __LINE__);
-+	ret =3D wlcore_read32(wl, WL12XX_REG_FUSE_BD_ADDR_1, &mac1);
-+	if (ret < 0) {
-+	printk("get_fuse_mac: XX %d\n", __LINE__);
- 	ret =3D wlcore_read32(wl, WL12XX_REG_FUSE_BD_ADDR_1, &mac1);
- 	if (ret < 0)
- 		goto out;
-+	}
-+	}
-+=09
-=20
-+	printk("get_fuse_mac: %d\n", __LINE__);
- 	ret =3D wlcore_read32(wl, WL12XX_REG_FUSE_BD_ADDR_2, &mac2);
- 	if (ret < 0)
- 		goto out;
-=20
-+	printk("get_fuse_mac: %d\n", __LINE__);
- 	/* these are the two parts of the BD_ADDR */
- 	wl->fuse_oui_addr =3D ((mac2 & 0xffff) << 8) +
- 		((mac1 & 0xff000000) >> 24);
- 	wl->fuse_nic_addr =3D mac1 & 0xffffff;
-=20
-+	printk("get_fuse_mac: %d\n", __LINE__);
- 	ret =3D wlcore_set_partition(wl, &wl->ptable[PART_DOWN]);
-=20
- out:
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---IiVenqGWf+H9Y6IX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl1aar4ACgkQMOfwapXb+vJb9wCdEMS4069vsm0A0Ev1TelvVMac
-tEUAoMRMPsW6X4ytZQOHwh1J6znBX4KV
-=Zu6g
------END PGP SIGNATURE-----
-
---IiVenqGWf+H9Y6IX--
+T24gMDgvMDgvMjAxOSAwNzozNSwgS2VlcnRoeSB3cm90ZToKPiAKPiAKPiBPbiAwNy8wOC8xOSAx
+OjE4IFBNLCBUZXJvIEtyaXN0byB3cm90ZToKPj4gQWRkIG5ldyBiaW5kaW5nIGZvciBPTUFQIFBS
+TSAoUG93ZXIgYW5kIFJlc2V0IE1hbmFnZXIpIGluc3RhbmNlcy4gRWFjaAo+PiBvZiB0aGVzZSB3
+aWxsIGFjdCBhcyBhIHBvd2VyIGRvbWFpbiBjb250cm9sbGVyIGFuZCBwb3RlbnRpYWxseSBhcyBh
+IHJlc2V0Cj4+IHByb3ZpZGVyLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBUZXJvIEtyaXN0byA8dC1r
+cmlzdG9AdGkuY29tPgo+PiAtLS0KPj4gwqAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvYXJtL29t
+YXAvcHJtLWluc3QudHh0wqDCoMKgwqDCoCB8IDI0IAo+PiArKysrKysrKysrKysrKysrKysrKysr
+Cj4+IMKgIDEgZmlsZSBjaGFuZ2VkLCAyNCBpbnNlcnRpb25zKCspCj4+IMKgIGNyZWF0ZSBtb2Rl
+IDEwMDY0NCAKPj4gRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2FybS9vbWFwL3By
+bS1pbnN0LnR4dAo+Pgo+PiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2Jp
+bmRpbmdzL2FybS9vbWFwL3BybS1pbnN0LnR4dCAKPj4gYi9Eb2N1bWVudGF0aW9uL2RldmljZXRy
+ZWUvYmluZGluZ3MvYXJtL29tYXAvcHJtLWluc3QudHh0Cj4+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0
+Cj4+IGluZGV4IDAwMDAwMDAuLmUwYWU4N2IKPj4gLS0tIC9kZXYvbnVsbAo+PiArKysgYi9Eb2N1
+bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvYXJtL29tYXAvcHJtLWluc3QudHh0Cj4+IEBA
+IC0wLDAgKzEsMjQgQEAKPj4gK09NQVAgUFJNIGluc3RhbmNlIGJpbmRpbmdzCj4+ICsKPj4gK1Bv
+d2VyIGFuZCBSZXNldCBNYW5hZ2VyIGlzIGFuIElQIGJsb2NrIG9uIE9NQVAgZmFtaWx5IG9mIGRl
+dmljZXMgd2hpY2gKPj4gK2hhbmRsZSB0aGUgcG93ZXIgZG9tYWlucyBhbmQgdGhlaXIgY3VycmVu
+dCBzdGF0ZSwgYW5kIHByb3ZpZGUgcmVzZXQKPj4gK2hhbmRsaW5nIGZvciB0aGUgZG9tYWlucyBh
+bmQvb3Igc2VwYXJhdGUgSVAgYmxvY2tzIHVuZGVyIHRoZSBwb3dlciAKPj4gZG9tYWluCj4+ICto
+aWVyYXJjaHkuCj4+ICsKPj4gK1JlcXVpcmVkIHByb3BlcnRpZXM6Cj4+ICstIGNvbXBhdGlibGU6
+wqDCoMKgIE11c3QgYmUgb25lIG9mOgo+PiArwqDCoMKgwqDCoMKgwqAgInRpLGFtMy1wcm0taW5z
+dCIKPj4gK8KgwqDCoMKgwqDCoMKgICJ0aSxhbTQtcHJtLWluc3QiCj4+ICvCoMKgwqDCoMKgwqDC
+oCAidGksb21hcDQtcHJtLWluc3QiCj4+ICvCoMKgwqDCoMKgwqDCoCAidGksb21hcDUtcHJtLWlu
+c3QiCj4+ICvCoMKgwqDCoMKgwqDCoCAidGksZHJhNy1wcm0taW5zdCIKPj4gKy0gcmVnOsKgwqDC
+oMKgwqDCoMKgIENvbnRhaW5zIFBSTSBpbnN0YW5jZSByZWdpc3RlciBhZGRyZXNzIHJhbmdlCj4+
+ICvCoMKgwqDCoMKgwqDCoCAoYmFzZSBhZGRyZXNzIGFuZCBsZW5ndGgpCj4gCj4gSG93IGFib3V0
+IHJlc2V0LWNlbGxzIHByb3BlcnR5LCBJc24ndCB0aGF0IGEgbWFuZGF0b3J5IHByb3BlcnR5PwoK
+SXQgaXMgb3B0aW9uYWwsIGJ1dCB5b3UgYXJlIHJpZ2h0LCBzaG91bGQgYmUgYWRkZWQgdG8gdGhp
+cy4KCi1UZXJvCgo+IAo+PiArCj4+ICtFeGFtcGxlOgo+PiArCj4+ICtwcm1fZHNwMjogcHJtQDFi
+MDAgewo+PiArwqDCoMKgIGNvbXBhdGlibGUgPSAidGksZHJhNy1wcm0taW5zdCI7Cj4+ICvCoMKg
+wqAgcmVnID0gPDB4MWIwMCAweDQwPjsKPj4gK8KgwqDCoCAjcmVzZXQtY2VsbHMgPSA8MT47Cj4+
+ICt9Owo+PgoKLS0KVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAy
+MiwgMDAxODAgSGVsc2lua2kuIFktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlw
+YWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
