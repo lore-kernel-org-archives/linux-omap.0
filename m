@@ -1,64 +1,57 @@
-From: Stephen Boyd <swboyd@chromium.org>
-Subject: Re: Suspend/Resume Broken on AM43/AM33 Platforms
-Date: Mon, 19 Aug 2019 08:00:24 -0700
-Message-ID: <5d5ab989.1c69fb81.6c07e.bcce@mx.google.com>
-References: <49fc7c64-88c0-74d0-2cb3-07986490941d@ti.com> <5d5a4150.1c69fb81.3faa2.eee8@mx.google.com> <b0678bfc-05ae-99b4-5b24-5c813efe718d@ti.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
+ OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Mon, 19 Aug 2019 14:25:34 -0500
+Message-ID: <CAHCN7xJH6ZjksNZ2cyb1rN_TiF-0GKAtW9KD1kv1-JE+gqLgEA@mail.gmail.com>
+References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
+ <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com> <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
+ <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com> <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
+ <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com> <20190814094755.GC52127@atomide.com>
+ <6A6394A6-9D50-4E43-A8E4-716888897AD6@goldelico.com> <20190814131607.GD52127@atomide.com>
+ <CAHCN7xJ2kcr7dOFvxTB_PX_62sX_QV5EyeMPHMaPbZ9fXts9pg@mail.gmail.com> <20190817070307.GJ52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b0678bfc-05ae-99b4-5b24-5c813efe718d@ti.com>
+In-Reply-To: <20190817070307.GJ52127@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, herbert@gondor.apana.org.au
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, =?UTF-8?Q?Pawe=C5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Philipp Rossak <embed3d@gmail.com>, moaz korena <moaz@korena.xyz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?UTF-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Keerthy (2019-08-19 00:27:13)
->=20
->=20
-> On 19/08/19 11:57 AM, Stephen Boyd wrote:
-> > Quoting Keerthy (2019-08-18 21:24:58)
-> >> Hi Stephen,
-> >>
-> >> commit 03a3bb7ae63150230c5de645dc95e673ebf17e1a
-> >> Author: Stephen Boyd <swboyd@chromium.org>
-> >> Date:   Mon Aug 5 16:32:41 2019 -0700
-> >>
-> >>       hwrng: core - Freeze khwrng thread during suspend
-> >>
-> >> Commit seems to be breaking suspend/resume on TI AM43/AM33 platforms.
-> >>
-> >>
-> >> rtcwake: wakeup from "mem" using /dev/rtc0 at Sun Nov 18 02:12:12 2018
-> >> [   54.033833] PM: suspend entry (deep)
-> >> [   54.037741] Filesystems sync: 0.000 seconds
-> >> [   54.062730] Freezing user space processes ... (elapsed 0.001 second=
-s)
-> >> done.
-> >> [   54.071313] OOM killer disabled.
-> >> [   54.074572] Freezing remaining freezable tasks ...
-> >> [   74.083121] Freezing of tasks failed after 20.003 seconds (1 tasks
-> >> refusing to freeze, wq_busy=3D0):
-> >> [   74.092257] hwrng           R  running task        0   289      2
-> >> 0x00000020
-> >> [   74.099511] [<c08c64c4>] (__schedule) from [<c08c6a10>]
-> >> (schedule+0x3c/0xc0)
-> >> [   74.106720] [<c08c6a10>] (schedule) from [<c05dbd8c>]
-> >> (add_hwgenerator_randomness+0xb0/0x100)
-> >> [   74.115358] [<c05dbd8c>] (add_hwgenerator_randomness) from
-> >> [<bf1803c8>] (hwrng_fillfn+0xc0/0x14c [rng_core])
-> >=20
-> > Thanks for the report. I suspect we need to check for freezer in
-> > add_hwgenerator_randomness(). I find it odd that there's another caller
-> > of add_hwgenerator_randomness(), but maybe the ath9k driver can be
-> > converted to some sort of hwrng driver instead of calling into the
-> > kthread directly.
-> >=20
-> > Anyway, can you try this patch?
->=20
-> I applied the below patch on top of latest next branch.
->=20
-> Fixes the issue.
->=20
+On Sat, Aug 17, 2019 at 2:03 AM Tony Lindgren <tony@atomide.com> wrote:
+>
+> * Adam Ford <aford173@gmail.com> [190816 23:02]:
+> > On Wed, Aug 14, 2019 at 8:16 AM Tony Lindgren <tony@atomide.com> wrote:
+> > > Well I just posted some sgx interconnect target module patches. We might
+> > > still have them in v5.4 assuming people manage to review and test them.
+> >
+> > Nikolaus,
+> >
+> > I tested Tony's change and I can confirm that I can read the value
+> > when enabled.  Should I apply his patches to your branch before I
+> > test, or is it go too to go as-is? I've got an AM3517, OMAP35 and a
+> > DM3730.  I am not sure if the AM3517 is even on the radar, but it has
+> > an sgx530 as well.
+>
+> My estimate is am3517 is wired the same way as omap34xx with a 60%
+> chance, then 30% chance it's wired the same way as omap36xx, and then
+> 10% chance for similar wiring to am335x.. So hopefully that leaves 0%
+> chance for yet something different for it's wiring :)
 
-Cool thanks. I'll send an official patch now.
+Based on [1], I went under the assumption it was wired like the
+omap34xx.  I applied your omap34 patches to the am3517.dtsi, and I was
+able to get the same response as I did for the omap3530.  Do you want
+me to post the patches to the mailing list, or do you want to do it?
+
+adam
+
+[1] - http://processors.wiki.ti.com/index.php/GSG:_AM35x_and_OMAP35x_Rebuilding_the_Software#How_to_check_for_SGX_core_revision
+
+>
+> If you have a chance please give it a try. Also check the TRM for the
+> sgx sysconfig register bits to see which of the above matches, and if
+> 3517 has a related rstctrl register like am335x has.
+>
+> Regards,
+>
+> Tony
