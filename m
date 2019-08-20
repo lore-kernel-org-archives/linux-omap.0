@@ -1,67 +1,34 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [Letux-kernel] [PATCH 2/2] DTS: ARM: gta04: introduce legacy
- spi-cs-high to make display work again
-Date: Sat, 31 Aug 2019 08:48:52 +0200
-Message-ID: <20190831084852.5e726cfa@aktux>
-References: <cover.1562597164.git.hns@goldelico.com>
-        <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com>
-        <20190724194259.GA25847@bogus>
-        <2EA06398-E45B-481B-9A26-4DD2E043BF9C@goldelico.com>
-        <CAL_JsqLe_Y9Z6MRt7ojgSVKAb9n95S8j=eGidSVNz2T83j-zPQ@mail.gmail.com>
-        <CACRpkdY0AVnkRa8sV_Z54qfX9SYufvaYYhU0k2+LitXo0sLx2w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdY0AVnkRa8sV_Z54qfX9SYufvaYYhU0k2+LitXo0sLx2w@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Tue, 20 Aug 2019 08:48:51 +0200
+Message-ID: <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
+References: <20180108214032.GW3872@atomide.com> <4d99c1ae-7752-949b-7e88-bc8f1dc594a2@wizzup.org> <0C51EC59-9CDC-4196-ACF9-24596C9E61B6@goldelico.com> <FA4520D5-62CB-446D-975C-A1C7B9251517@goldelico.com> <20190212205132.GO5720@atomide.com> <0b00ce0a-969f-e638-8247-c2da96cf7ce6@gmail.com> <20190213004143.GP5720@atomide.com> <480AB632-A544-41E7-95A4-DC354AEBB71A@goldelico.com> <CAKpie0SigGGsQxSU+X-Mz5boy-Xx=3wRNOcrf+F=ehFr3RBi7Q@mail.gmail.com> <092210C3-05DE-4AFB-986F-81BD8F990B67@goldelico.com> <CAKpie0RXM1UC33YFeFy-kAxfGhYGNkw4vUgNTThf-ZCAhPTVXw@mail.gmail.com> <BE23C1E4-2877-49FA-B230-F9C10691B805@goldelico.com> <CAKpie0TSo-8gmDm9_Zw4Sd+kjVVEomp8yA9Vu8qY2U2AcrQc=w@mail.gmail.com> <8A069D96-C65F-43F5-8F54-20019CFB1A8D@goldelico.com> <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org> <3A03F
+ F16-C203-43ED-AEEF-0260F6B3331A@goldelico.com> <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org> <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com> <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org> <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com> <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: Merlijn Wajer <merlijn@wizzup.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?Q?Pawe=C5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Philipp Rossak <embed3d@gmail.com>, moaz korena <moaz@korena.xyz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On Mon, 5 Aug 2019 12:29:19 +0200
-Linus Walleij <linus.walleij@linaro.org> wrote:
+> Am 19.08.2019 um 21:43 schrieb Adam Ford <aford173@gmail.com>:
+>=20
+>> Thanks to the help from the Pyra community, I was able to get a =
+(binary) reference
+>> implementation using DRM that works on Pyra/OMAP5. At least the =
+gles1test1.
+>=20
+> just a question,
+>=20
+> If DRM is working, does that mean it works without needing the =
+overhead of X?
 
-> On Fri, Jul 26, 2019 at 12:43 AM Rob Herring <robh@kernel.org> wrote:
-> > On Thu, Jul 25, 2019 at 12:23 AM H. Nikolaus Schaller <hns@goldelico.com> wrote:  
-> 
-> > > I tried to convince Linus that this is the right way but he convinced
-> > > me that a fix that handles all cases does not exist.
-> > >
-> > > There seem to be embedded devices with older DTB (potentially in ROM)
-> > > which provide a plain 0 value for a gpios definition. And either with
-> > > or without spi-cs-high.
-> > >
-> > > Since "0" is the same as "GPIO_ACTIVE_HIGH", the absence of
-> > > spi-cs-high was and must be interpreted as active low for these
-> > > devices. This leads to the inversion logic in code.
-> > >
-> > > AFAIR it boils down to the question if gpiolib and the bindings
-> > > should still support such legacy devices with out-of tree DTB,
-> > > but force in-tree DTS to add the legacy spi-cs-high property.
-> > >
-> > > Or if we should fix the 2 or 3 cases of in-tree legacy cases
-> > > and potentially break out-of tree DTBs.  
-> >
-> > If it is small number of platforms, then the kernel could handle those
-> > cases explicitly as needed.
-> >  
-> > > IMHO it is more general to keep the out-of-tree DTBs working
-> > > and "fix" what we can control (in-tree DTS).  
-> >
-> > If we do this, then we need to not call spi-cs-high legacy because
-> > we're stuck with it forever.  
-> 
-> I agree. The background on it is here:
-> https://lkml.org/lkml/2019/4/2/4
-> 
-> Not using the negatively defined (i.e. if it is no there, the line is
-> by default active low) spi-cs-high would break
-> PowerPC, who were AFAICT using this to ship devices.
-> 
-is this thing now just waiting for someone to do a s/legacy//?
-
-Regards,
-Andreas
+Yes, we have to kill X11 to successfully run the gles1test1. An =
+interesting question
+will be how to mix both... E.g. have a 3D rendering in a window =
+controlled by some
+window manager.=
