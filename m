@@ -1,14 +1,14 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 6/8] soc: ti: omap_prm: add data for am33xx
-Date: Tue, 20 Aug 2019 13:48:31 -0500
-Message-ID: <ebb6e240-1252-5a4f-39a2-403ee699d8aa@ti.com>
+Subject: Re: [PATCH 7/8] soc: ti: omap-prm: add dra7 PRM data
+Date: Tue, 20 Aug 2019 14:03:26 -0500
+Message-ID: <0e8aa351-4c58-ab6c-890f-094118b812ac@ti.com>
 References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
- <1565164139-21886-7-git-send-email-t-kristo@ti.com>
+ <1565164139-21886-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1565164139-21886-7-git-send-email-t-kristo@ti.com>
+In-Reply-To: <1565164139-21886-8-git-send-email-t-kristo@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -26,48 +26,61 @@ List-Id: linux-omap@vger.kernel.org
 Hi Tero,
 
 On 8/7/19 2:48 AM, Tero Kristo wrote:
-> Add PRM instance data for AM33xx SoC. Includes some basic register
-> definitions and reset data for now.
+> Add PRM data for dra7 family of SoCs.
 > 
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
->  drivers/soc/ti/omap_prm.c | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
+>  drivers/soc/ti/omap_prm.c | 26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
 > 
 > diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-> index 9b8d5945..fadfc7f 100644
+> index fadfc7f..05b7749 100644
 > --- a/drivers/soc/ti/omap_prm.c
 > +++ b/drivers/soc/ti/omap_prm.c
-> @@ -73,8 +73,25 @@ struct omap_prm_data omap4_prm_data[] = {
+> @@ -73,6 +73,31 @@ struct omap_prm_data omap4_prm_data[] = {
 >  	{ },
 >  };
 >  
-> +struct omap_rst_map am3_wkup_rst_map[] = {
-> +	{ .rst = 3, .st = 5 },
-> +	{ .rst = -1 },
-> +};
-> +
-> +struct omap_prm_data am3_prm_data[] = {
-> +	{ .name = "per", .base = 0x44e00c00, .pwstctrl = 0xc, .pwstst = 0x8, .flags = OMAP_PRM_NO_RSTST },
-> +	{ .name = "wkup", .base = 0x44e00d00, .pwstctrl = 0x4, .pwstst = 0x8, .rstst = 0xc, .rstmap = am3_wkup_rst_map },
-> +	{ .name = "mpu", .base = 0x44e00e00, .pwstst = 0x4 },
+> +static struct omap_prm_data dra7_prm_data[] = {
+> +	{ .name = "mpu", .base = 0x4ae06300, .pwstst = 0x4 },
+> +	{ .name = "dsp1", .base = 0x4ae06400, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
+> +	{ .name = "ipu", .base = 0x4ae06500, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14, .clkdm_name = "ipu1" },
+> +	{ .name = "coreaon", .base = 0x4ae06628, .pwstst = 0x4 },
 
-Has a rstst but no rstctrl, but your registration logic takes care of
-this. Somewhat confusing, when you just look at the data. Should you
-limit the check to only rstctrl and OMAP_PRM_NO_RSTST?
+Public TRM marks this region Reserved. Do you need it for anything?
 
-> +	{ .name = "device", .base = 0x44e00f00, .rstctl = 0x0, .rstst = 0x8 },
+> +	{ .name = "core", .base = 0x4ae06700, .pwstst = 0x4, .rstctl = 0x210, .rstst = 0x214, .clkdm_name = "ipu2" },
+> +	{ .name = "iva", .base = 0x4ae06f00, .pwstst = 0x4 },
 
-No pwrstctrl and pwrstst registers, so same comment as on OMAP4 data.
+Missing rstctrl and rstst offsets.
 
-> +	{ .name = "rtc", .base = 0x44e01000, .pwstst = 0x4 },
-> +	{ .name = "gfx", .base = 0x44e01100, .pwstst = 0x10, .rstctl = 0x4, .rstst = 0x14 },
-> +	{ .name = "cefuse", .base = 0x44e01200, .pwstst = 0x4 },
+> +	{ .name = "cam", .base = 0x4ae07000, .pwstst = 0x4 },
+> +	{ .name = "dss", .base = 0x4ae07100, .pwstst = 0x4 },
+> +	{ .name = "gpu", .base = 0x4ae07200, .pwstst = 0x4 },
+> +	{ .name = "l3init", .base = 0x4ae07300, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
+> +	{ .name = "l4per", .base = 0x4ae07400, .pwstst = 0x4 },
+> +	{ .name = "custefuse", .base = 0x4ae07600, .pwstst = 0x4 },
+> +	{ .name = "wkupaon", .base = 0x4ae07724, .pwstst = 0x4 },
 
-I am not sure if it is better to explicitly list the registers at 0
-offset rather than using the implied value of 0, since there are some
-registers that do not exist on some PRM instances which are also not
-defined.
+No pwstctrl and pwstst bits documented in TRM or are marked reserved.
+
+> +	{ .name = "emu", .base = 0x4ae07900, .pwstst = 0x4 },
+> +	{ .name = "dsp2", .base = 0x4ae07b00, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
+> +	{ .name = "eve1", .base = 0x4ae07b40, .pwstst = 0x4 },
+> +	{ .name = "eve2", .base = 0x4ae07b80, .pwstst = 0x4 },
+> +	{ .name = "eve3", .base = 0x4ae07bc0, .pwstst = 0x4 },
+> +	{ .name = "eve4", .base = 0x4ae07c00, .pwstst = 0x4 },
+
+All EVEs are missing rstctrl and rstst fields.
+
+> +	{ .name = "rtc", .base = 0x4ae07c60, .pwstst = 0x4 },
+
+Undocumented pwstctrl and pwstst registers.
+
+> +	{ .name = "vpe", .base = 0x4ae07c80, .pwstst = 0x4 },
+
+Missing "device" and "instr" PRM. The latter doesn't have any pwrstctl
+and pwrstst though.
 
 regards
 Suman
@@ -75,10 +88,15 @@ Suman
 > +	{ },
 > +};
 > +
+>  struct omap_rst_map am3_wkup_rst_map[] = {
+>  	{ .rst = 3, .st = 5 },
+>  	{ .rst = -1 },
+> @@ -91,6 +116,7 @@ struct omap_prm_data am3_prm_data[] = {
+>  
 >  static const struct of_device_id omap_prm_id_table[] = {
 >  	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
-> +	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
+> +	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
+>  	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
 >  	{ },
 >  };
->  
 > 
