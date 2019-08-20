@@ -1,15 +1,16 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 0/8] soc: ti: Add OMAP PRM driver
-Date: Tue, 20 Aug 2019 11:51:10 -0500
-Message-ID: <88446f5f-60ae-1205-33e5-a225a2764c72@ti.com>
+Subject: Re: [PATCH 5/8] soc: ti: omap-prm: add omap4 PRM data
+Date: Tue, 20 Aug 2019 12:23:58 -0500
+Message-ID: <ed0ec707-ddea-cbfa-ecdf-99faeb770f3f@ti.com>
 References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
- <432a70fc-2683-42ca-3ac7-9775efa3ca41@ti.com>
- <b991f374-9e2a-5f1d-d48d-5f50a3c41756@ti.com>
+ <1565164139-21886-6-git-send-email-t-kristo@ti.com>
+ <04bc6773-dbd4-e1ab-ce31-d93e99dafb33@ti.com>
+ <9d684bdc-28b8-0772-2957-93e01c55aae4@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <b991f374-9e2a-5f1d-d48d-5f50a3c41756@ti.com>
+In-Reply-To: <9d684bdc-28b8-0772-2957-93e01c55aae4@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -24,61 +25,50 @@ To: Tero Kristo <t-kristo@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.i
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 8/20/19 2:54 AM, Tero Kristo wrote:
-> On 20.8.2019 2.20, Suman Anna wrote:
->> Hi Tero,
->>
->> On 8/7/19 2:48 AM, Tero Kristo wrote:
->>> Hi,
->>>
->>> This series adds OMAP PRM driver which initially supports only reset
->>> handling. Later on, power domain support can be added to this to get
->>> rid of the current OMAP power domain handling code which resides
->>> under the mach-omap2 platform directory. Initially, reset data is
->>> added for AM3, OMAP4 and DRA7 SoCs.
->>
->> Wakeup M3 remoteproc driver is fully upstream, so we should be able to
->> test that driver as well if you can add the AM4 data. That will also
->> unblock my PRUSS.
->>
->> If you can add the data to others as well, it will help in easier
->> migration of the individual drivers, otherwise the ti-sysc interconnect,
->> hwmod, and hwmod reset data combinations will all have to be supported
->> in code.
-> 
-> Ok, so you are saying you would need the PRM data for am4 in addition? I
-> can generate that one also.
-
-Yes, if you can include the data for AM4 and OMAP5 as well, then we can
-convert all the SoCs other than OMAP2/OMAP3 at the same time as per your
-comment on bindings. Almost all of the active remoteprocs will be
-covered by these.
-
-OMAP3 ISP driver is also fully upstream, so we would have to manage its
-legacy compatibility.
-
-regards
-Suman
-
-> 
-> -Tero
-> 
->>
->> regards
->> Suman
->>
->>>
->>> I've been testing the reset handling logic with OMAP remoteproc
->>> driver which has been converted to use generic reset framework. This
->>> part is a work in progress, so will be posting patches from that part
->>> later on.
->>>
->>> -Tero
->>>
->>> -- 
->>>
->>
-> 
-> -- 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+T24gOC8yMC8xOSAyOjUyIEFNLCBUZXJvIEtyaXN0byB3cm90ZToKPiBPbiAyMC44LjIwMTkgMi4w
+OCwgU3VtYW4gQW5uYSB3cm90ZToKPj4gT24gOC83LzE5IDI6NDggQU0sIFRlcm8gS3Jpc3RvIHdy
+b3RlOgo+Pj4gQWRkIFBSTSBkYXRhIGZvciBvbWFwNCBmYW1pbHkgb2YgU29Dcy4KPj4+Cj4+PiBT
+aWduZWQtb2ZmLWJ5OiBUZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPgo+Pj4gLS0tCj4+PiDC
+oCBkcml2ZXJzL3NvYy90aS9vbWFwX3BybS5jIHwgMjAgKysrKysrKysrKysrKysrKysrKysKPj4+
+IMKgIDEgZmlsZSBjaGFuZ2VkLCAyMCBpbnNlcnRpb25zKCspCj4+Pgo+Pj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvc29jL3RpL29tYXBfcHJtLmMgYi9kcml2ZXJzL3NvYy90aS9vbWFwX3BybS5jCj4+
+PiBpbmRleCA4NzA1MTVlMy4uOWI4ZDU5NDUgMTAwNjQ0Cj4+PiAtLS0gYS9kcml2ZXJzL3NvYy90
+aS9vbWFwX3BybS5jCj4+PiArKysgYi9kcml2ZXJzL3NvYy90aS9vbWFwX3BybS5jCj4+PiBAQCAt
+NTQsNyArNTQsMjcgQEAgc3RydWN0IG9tYXBfcmVzZXRfZGF0YSB7Cj4+PiDCoCDCoCAjZGVmaW5l
+IE9NQVBfUFJNX05PX1JTVFNUwqDCoMKgIEJJVCgwKQo+Pj4gwqAgK3N0cnVjdCBvbWFwX3BybV9k
+YXRhIG9tYXA0X3BybV9kYXRhW10gPSB7Cj4+Cj4+IHN0YXRpYyBjb25zdAo+IAo+IFdpbGwgZml4
+IHRoaXMgYW5kIHJlc3Qgb2YgdGhlIHNpbWlsYXIgY29tbWVudHMuCj4gCj4gLVRlcm8KPiAKPj4K
+Pj4gcmVnYXJkcwo+PiBTdW1hbgo+Pgo+Pj4gK8KgwqDCoCB7IC5uYW1lID0gIm1wdSIsIC5iYXNl
+ID0gMHg0YTMwNjMwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4gK8KgwqDCoCB7IC5uYW1lID0gInRl
+c2xhIiwgLmJhc2UgPSAweDRhMzA2NDAwLCAucHdzdHN0ID0gMHg0LCAucnN0Y3RsID0KPj4+IDB4
+MTAsIC5yc3RzdCA9IDB4MTQgfSwKPj4+ICvCoMKgwqAgeyAubmFtZSA9ICJhYmUiLCAuYmFzZSA9
+IDB4NGEzMDY1MDAsIC5wd3N0c3QgPSAweDQgfSwKPj4+ICvCoMKgwqAgeyAubmFtZSA9ICJhbHdh
+eXNfb25fY29yZSIsIC5iYXNlID0gMHg0YTMwNjYwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4gK8Kg
+wqDCoCB7IC5uYW1lID0gImNvcmUiLCAuYmFzZSA9IDB4NGEzMDY3MDAsIC5wd3N0c3QgPSAweDQs
+IC5yc3RjdGwgPQo+Pj4gMHgyMTAsIC5yc3RzdCA9IDB4MjE0IH0sCj4+PiArwqDCoMKgIHsgLm5h
+bWUgPSAiaXZhaGQiLCAuYmFzZSA9IDB4NGEzMDZmMDAsIC5wd3N0c3QgPSAweDQsIC5yc3RjdGwg
+PQo+Pj4gMHgxMCwgLnJzdHN0ID0gMHgxNCB9LAo+Pj4gK8KgwqDCoCB7IC5uYW1lID0gImNhbSIs
+IC5iYXNlID0gMHg0YTMwNzAwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4gK8KgwqDCoCB7IC5uYW1l
+ID0gImRzcyIsIC5iYXNlID0gMHg0YTMwNzEwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4gK8KgwqDC
+oCB7IC5uYW1lID0gImdmeCIsIC5iYXNlID0gMHg0YTMwNzIwMCwgLnB3c3RzdCA9IDB4NCB9LAo+
+Pj4gK8KgwqDCoCB7IC5uYW1lID0gImwzaW5pdCIsIC5iYXNlID0gMHg0YTMwNzMwMCwgLnB3c3Rz
+dCA9IDB4NCB9LAo+Pj4gK8KgwqDCoCB7IC5uYW1lID0gImw0cGVyIiwgLmJhc2UgPSAweDRhMzA3
+NDAwLCAucHdzdHN0ID0gMHg0IH0sCj4+PiArwqDCoMKgIHsgLm5hbWUgPSAiY2VmdXNlIiwgLmJh
+c2UgPSAweDRhMzA3NjAwLCAucHdzdHN0ID0gMHg0IH0sCj4+PiArwqDCoMKgIHsgLm5hbWUgPSAi
+d2t1cCIsIC5iYXNlID0gMHg0YTMwNzcwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4gK8KgwqDCoCB7
+IC5uYW1lID0gImVtdSIsIC5iYXNlID0gMHg0YTMwNzkwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4g
+K8KgwqDCoCB7IC5uYW1lID0gImRldmljZSIsIC5iYXNlID0gMHg0YTMwN2IwMCwgLnJzdGN0bCA9
+IDB4MCwgLnJzdHN0ID0KPj4+IDB4NCB9LAoKU28sIGxvb2tzIGxpa2UgeW91IGFyZSB1c2luZyBw
+d3N0Y3RybCBhcyAwIGJ5IGRlZmF1bHQsIGJ1dCBzb21lIG9mIHRoZW0Kd2lsbCBuZWl0aGVyIGhh
+dmUgcHdzdGN0cmwgb3IgcHdzdHN0IGxpa2UgImRldmljZSIgUFJNIGhlcmUuIElzIHRoZSBwbGFu
+CnRvIHVzZSAtMSBmb3IgdGhlIGZpZWxkcywgb3IgYSBmbGFncyBmaWVsZD8KCnJlZ2FyZHMKU3Vt
+YW4KCj4+PiArwqDCoMKgIHsgfSwKPj4+ICt9Owo+Pj4gKwo+Pj4gwqAgc3RhdGljIGNvbnN0IHN0
+cnVjdCBvZl9kZXZpY2VfaWQgb21hcF9wcm1faWRfdGFibGVbXSA9IHsKPj4+ICvCoMKgwqAgeyAu
+Y29tcGF0aWJsZSA9ICJ0aSxvbWFwNC1wcm0taW5zdCIsIC5kYXRhID0gb21hcDRfcHJtX2RhdGEg
+fSwKPj4+IMKgwqDCoMKgwqAgeyB9LAo+Pj4gwqAgfTsKPj4+IMKgCj4+Cj4gCj4gLS0gCj4gVGV4
+YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lu
+a2kuCj4gWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2ls
+ZTogSGVsc2lua2kKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3Rz
+LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1hcm0ta2VybmVsCg==
