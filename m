@@ -1,125 +1,56 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 7/8] soc: ti: omap-prm: add dra7 PRM data
-Date: Wed, 21 Aug 2019 10:36:11 +0300
-Message-ID: <67a06e0c-f85d-bdc4-aedf-9a3c0e80fc6a@ti.com>
-References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
- <1565164139-21886-8-git-send-email-t-kristo@ti.com>
- <0e8aa351-4c58-ab6c-890f-094118b812ac@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
+ OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Wed, 21 Aug 2019 04:38:50 -0700
+Message-ID: <20190821113850.GP52127@atomide.com>
+References: <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
+ <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
+ <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
+ <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
+ <20190814094755.GC52127@atomide.com>
+ <6A6394A6-9D50-4E43-A8E4-716888897AD6@goldelico.com>
+ <20190814131607.GD52127@atomide.com>
+ <CAHCN7xJ2kcr7dOFvxTB_PX_62sX_QV5EyeMPHMaPbZ9fXts9pg@mail.gmail.com>
+ <20190817070307.GJ52127@atomide.com>
+ <CAHCN7xJH6ZjksNZ2cyb1rN_TiF-0GKAtW9KD1kv1-JE+gqLgEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <0e8aa351-4c58-ab6c-890f-094118b812ac@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
-Cc: tony@atomide.com, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHCN7xJH6ZjksNZ2cyb1rN_TiF-0GKAtW9KD1kv1-JE+gqLgEA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>, Philipp Rossak <embed3d@gmail.com>, moaz korena <moaz@korena.xyz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 20.8.2019 22.03, Suman Anna wrote:
-> Hi Tero,
+* Adam Ford <aford173@gmail.com> [190819 19:26]:
+> On Sat, Aug 17, 2019 at 2:03 AM Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > * Adam Ford <aford173@gmail.com> [190816 23:02]:
+> > > On Wed, Aug 14, 2019 at 8:16 AM Tony Lindgren <tony@atomide.com> wrote:
+> > > > Well I just posted some sgx interconnect target module patches. We might
+> > > > still have them in v5.4 assuming people manage to review and test them.
+> > >
+> > > Nikolaus,
+> > >
+> > > I tested Tony's change and I can confirm that I can read the value
+> > > when enabled.  Should I apply his patches to your branch before I
+> > > test, or is it go too to go as-is? I've got an AM3517, OMAP35 and a
+> > > DM3730.  I am not sure if the AM3517 is even on the radar, but it has
+> > > an sgx530 as well.
+> >
+> > My estimate is am3517 is wired the same way as omap34xx with a 60%
+> > chance, then 30% chance it's wired the same way as omap36xx, and then
+> > 10% chance for similar wiring to am335x.. So hopefully that leaves 0%
+> > chance for yet something different for it's wiring :)
 > 
-> On 8/7/19 2:48 AM, Tero Kristo wrote:
->> Add PRM data for dra7 family of SoCs.
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->>   drivers/soc/ti/omap_prm.c | 26 ++++++++++++++++++++++++++
->>   1 file changed, 26 insertions(+)
->>
->> diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
->> index fadfc7f..05b7749 100644
->> --- a/drivers/soc/ti/omap_prm.c
->> +++ b/drivers/soc/ti/omap_prm.c
->> @@ -73,6 +73,31 @@ struct omap_prm_data omap4_prm_data[] = {
->>   	{ },
->>   };
->>   
->> +static struct omap_prm_data dra7_prm_data[] = {
->> +	{ .name = "mpu", .base = 0x4ae06300, .pwstst = 0x4 },
->> +	{ .name = "dsp1", .base = 0x4ae06400, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
->> +	{ .name = "ipu", .base = 0x4ae06500, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14, .clkdm_name = "ipu1" },
->> +	{ .name = "coreaon", .base = 0x4ae06628, .pwstst = 0x4 },
-> 
-> Public TRM marks this region Reserved. Do you need it for anything?
-This is copied from existing PRM data from kernel. However, I'll ditch 
-these for now and only retain the reset enabled domains.
+> Based on [1], I went under the assumption it was wired like the
+> omap34xx.  I applied your omap34 patches to the am3517.dtsi, and I was
+> able to get the same response as I did for the omap3530.  Do you want
+> me to post the patches to the mailing list, or do you want to do it?
 
-> 
->> +	{ .name = "core", .base = 0x4ae06700, .pwstst = 0x4, .rstctl = 0x210, .rstst = 0x214, .clkdm_name = "ipu2" },
->> +	{ .name = "iva", .base = 0x4ae06f00, .pwstst = 0x4 },
-> 
-> Missing rstctrl and rstst offsets.
+OK great, yeah please post patches :)
 
-Will add.
+Thanks,
 
-> 
->> +	{ .name = "cam", .base = 0x4ae07000, .pwstst = 0x4 },
->> +	{ .name = "dss", .base = 0x4ae07100, .pwstst = 0x4 },
->> +	{ .name = "gpu", .base = 0x4ae07200, .pwstst = 0x4 },
->> +	{ .name = "l3init", .base = 0x4ae07300, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
->> +	{ .name = "l4per", .base = 0x4ae07400, .pwstst = 0x4 },
->> +	{ .name = "custefuse", .base = 0x4ae07600, .pwstst = 0x4 },
->> +	{ .name = "wkupaon", .base = 0x4ae07724, .pwstst = 0x4 },
-> 
-> No pwstctrl and pwstst bits documented in TRM or are marked reserved.
-
-Same as coreaon.
-
-> 
->> +	{ .name = "emu", .base = 0x4ae07900, .pwstst = 0x4 },
->> +	{ .name = "dsp2", .base = 0x4ae07b00, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
->> +	{ .name = "eve1", .base = 0x4ae07b40, .pwstst = 0x4 },
->> +	{ .name = "eve2", .base = 0x4ae07b80, .pwstst = 0x4 },
->> +	{ .name = "eve3", .base = 0x4ae07bc0, .pwstst = 0x4 },
->> +	{ .name = "eve4", .base = 0x4ae07c00, .pwstst = 0x4 },
-> 
-> All EVEs are missing rstctrl and rstst fields.
-
-Will add.
-
-> 
->> +	{ .name = "rtc", .base = 0x4ae07c60, .pwstst = 0x4 },
-> 
-> Undocumented pwstctrl and pwstst registers.
-> 
->> +	{ .name = "vpe", .base = 0x4ae07c80, .pwstst = 0x4 },
-> 
-> Missing "device" and "instr" PRM. The latter doesn't have any pwrstctl
-> and pwrstst though.
-
-Will ditch those.
-
--Tero
-
-> 
-> regards
-> Suman
-> 
->> +	{ },
->> +};
->> +
->>   struct omap_rst_map am3_wkup_rst_map[] = {
->>   	{ .rst = 3, .st = 5 },
->>   	{ .rst = -1 },
->> @@ -91,6 +116,7 @@ struct omap_prm_data am3_prm_data[] = {
->>   
->>   static const struct of_device_id omap_prm_id_table[] = {
->>   	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
->> +	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
->>   	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
->>   	{ },
->>   };
->>
-> 
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+TOny
