@@ -1,14 +1,17 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 7/8] soc: ti: omap-prm: add dra7 PRM data
-Date: Tue, 20 Aug 2019 14:03:26 -0500
-Message-ID: <0e8aa351-4c58-ab6c-890f-094118b812ac@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 5/8] soc: ti: omap-prm: add omap4 PRM data
+Date: Wed, 21 Aug 2019 09:38:12 +0300
+Message-ID: <6bb038b8-6bfc-196a-d1fc-b97931be9849@ti.com>
 References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
- <1565164139-21886-8-git-send-email-t-kristo@ti.com>
+ <1565164139-21886-6-git-send-email-t-kristo@ti.com>
+ <04bc6773-dbd4-e1ab-ce31-d93e99dafb33@ti.com>
+ <9d684bdc-28b8-0772-2957-93e01c55aae4@ti.com>
+ <ed0ec707-ddea-cbfa-ecdf-99faeb770f3f@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1565164139-21886-8-git-send-email-t-kristo@ti.com>
+In-Reply-To: <ed0ec707-ddea-cbfa-ecdf-99faeb770f3f@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -19,84 +22,58 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
+To: Suman Anna <s-anna@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tero,
-
-On 8/7/19 2:48 AM, Tero Kristo wrote:
-> Add PRM data for dra7 family of SoCs.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  drivers/soc/ti/omap_prm.c | 26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
-> 
-> diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-> index fadfc7f..05b7749 100644
-> --- a/drivers/soc/ti/omap_prm.c
-> +++ b/drivers/soc/ti/omap_prm.c
-> @@ -73,6 +73,31 @@ struct omap_prm_data omap4_prm_data[] = {
->  	{ },
->  };
->  
-> +static struct omap_prm_data dra7_prm_data[] = {
-> +	{ .name = "mpu", .base = 0x4ae06300, .pwstst = 0x4 },
-> +	{ .name = "dsp1", .base = 0x4ae06400, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-> +	{ .name = "ipu", .base = 0x4ae06500, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14, .clkdm_name = "ipu1" },
-> +	{ .name = "coreaon", .base = 0x4ae06628, .pwstst = 0x4 },
-
-Public TRM marks this region Reserved. Do you need it for anything?
-
-> +	{ .name = "core", .base = 0x4ae06700, .pwstst = 0x4, .rstctl = 0x210, .rstst = 0x214, .clkdm_name = "ipu2" },
-> +	{ .name = "iva", .base = 0x4ae06f00, .pwstst = 0x4 },
-
-Missing rstctrl and rstst offsets.
-
-> +	{ .name = "cam", .base = 0x4ae07000, .pwstst = 0x4 },
-> +	{ .name = "dss", .base = 0x4ae07100, .pwstst = 0x4 },
-> +	{ .name = "gpu", .base = 0x4ae07200, .pwstst = 0x4 },
-> +	{ .name = "l3init", .base = 0x4ae07300, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-> +	{ .name = "l4per", .base = 0x4ae07400, .pwstst = 0x4 },
-> +	{ .name = "custefuse", .base = 0x4ae07600, .pwstst = 0x4 },
-> +	{ .name = "wkupaon", .base = 0x4ae07724, .pwstst = 0x4 },
-
-No pwstctrl and pwstst bits documented in TRM or are marked reserved.
-
-> +	{ .name = "emu", .base = 0x4ae07900, .pwstst = 0x4 },
-> +	{ .name = "dsp2", .base = 0x4ae07b00, .pwstst = 0x4, .rstctl = 0x10, .rstst = 0x14 },
-> +	{ .name = "eve1", .base = 0x4ae07b40, .pwstst = 0x4 },
-> +	{ .name = "eve2", .base = 0x4ae07b80, .pwstst = 0x4 },
-> +	{ .name = "eve3", .base = 0x4ae07bc0, .pwstst = 0x4 },
-> +	{ .name = "eve4", .base = 0x4ae07c00, .pwstst = 0x4 },
-
-All EVEs are missing rstctrl and rstst fields.
-
-> +	{ .name = "rtc", .base = 0x4ae07c60, .pwstst = 0x4 },
-
-Undocumented pwstctrl and pwstst registers.
-
-> +	{ .name = "vpe", .base = 0x4ae07c80, .pwstst = 0x4 },
-
-Missing "device" and "instr" PRM. The latter doesn't have any pwrstctl
-and pwrstst though.
-
-regards
-Suman
-
-> +	{ },
-> +};
-> +
->  struct omap_rst_map am3_wkup_rst_map[] = {
->  	{ .rst = 3, .st = 5 },
->  	{ .rst = -1 },
-> @@ -91,6 +116,7 @@ struct omap_prm_data am3_prm_data[] = {
->  
->  static const struct of_device_id omap_prm_id_table[] = {
->  	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
-> +	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
->  	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
->  	{ },
->  };
-> 
+T24gMjAuOC4yMDE5IDIwLjIzLCBTdW1hbiBBbm5hIHdyb3RlOgo+IE9uIDgvMjAvMTkgMjo1MiBB
+TSwgVGVybyBLcmlzdG8gd3JvdGU6Cj4+IE9uIDIwLjguMjAxOSAyLjA4LCBTdW1hbiBBbm5hIHdy
+b3RlOgo+Pj4gT24gOC83LzE5IDI6NDggQU0sIFRlcm8gS3Jpc3RvIHdyb3RlOgo+Pj4+IEFkZCBQ
+Uk0gZGF0YSBmb3Igb21hcDQgZmFtaWx5IG9mIFNvQ3MuCj4+Pj4KPj4+PiBTaWduZWQtb2ZmLWJ5
+OiBUZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPgo+Pj4+IC0tLQo+Pj4+ICDCoCBkcml2ZXJz
+L3NvYy90aS9vbWFwX3BybS5jIHwgMjAgKysrKysrKysrKysrKysrKysrKysKPj4+PiAgwqAgMSBm
+aWxlIGNoYW5nZWQsIDIwIGluc2VydGlvbnMoKykKPj4+Pgo+Pj4+IGRpZmYgLS1naXQgYS9kcml2
+ZXJzL3NvYy90aS9vbWFwX3BybS5jIGIvZHJpdmVycy9zb2MvdGkvb21hcF9wcm0uYwo+Pj4+IGlu
+ZGV4IDg3MDUxNWUzLi45YjhkNTk0NSAxMDA2NDQKPj4+PiAtLS0gYS9kcml2ZXJzL3NvYy90aS9v
+bWFwX3BybS5jCj4+Pj4gKysrIGIvZHJpdmVycy9zb2MvdGkvb21hcF9wcm0uYwo+Pj4+IEBAIC01
+NCw3ICs1NCwyNyBAQCBzdHJ1Y3Qgb21hcF9yZXNldF9kYXRhIHsKPj4+PiAgwqAgwqAgI2RlZmlu
+ZSBPTUFQX1BSTV9OT19SU1RTVMKgwqDCoCBCSVQoMCkKPj4+PiAgwqAgK3N0cnVjdCBvbWFwX3By
+bV9kYXRhIG9tYXA0X3BybV9kYXRhW10gPSB7Cj4+Pgo+Pj4gc3RhdGljIGNvbnN0Cj4+Cj4+IFdp
+bGwgZml4IHRoaXMgYW5kIHJlc3Qgb2YgdGhlIHNpbWlsYXIgY29tbWVudHMuCj4+Cj4+IC1UZXJv
+Cj4+Cj4+Pgo+Pj4gcmVnYXJkcwo+Pj4gU3VtYW4KPj4+Cj4+Pj4gK8KgwqDCoCB7IC5uYW1lID0g
+Im1wdSIsIC5iYXNlID0gMHg0YTMwNjMwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKgwqAg
+eyAubmFtZSA9ICJ0ZXNsYSIsIC5iYXNlID0gMHg0YTMwNjQwMCwgLnB3c3RzdCA9IDB4NCwgLnJz
+dGN0bCA9Cj4+Pj4gMHgxMCwgLnJzdHN0ID0gMHgxNCB9LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9
+ICJhYmUiLCAuYmFzZSA9IDB4NGEzMDY1MDAsIC5wd3N0c3QgPSAweDQgfSwKPj4+PiArwqDCoMKg
+IHsgLm5hbWUgPSAiYWx3YXlzX29uX2NvcmUiLCAuYmFzZSA9IDB4NGEzMDY2MDAsIC5wd3N0c3Qg
+PSAweDQgfSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAiY29yZSIsIC5iYXNlID0gMHg0YTMwNjcw
+MCwgLnB3c3RzdCA9IDB4NCwgLnJzdGN0bCA9Cj4+Pj4gMHgyMTAsIC5yc3RzdCA9IDB4MjE0IH0s
+Cj4+Pj4gK8KgwqDCoCB7IC5uYW1lID0gIml2YWhkIiwgLmJhc2UgPSAweDRhMzA2ZjAwLCAucHdz
+dHN0ID0gMHg0LCAucnN0Y3RsID0KPj4+PiAweDEwLCAucnN0c3QgPSAweDE0IH0sCj4+Pj4gK8Kg
+wqDCoCB7IC5uYW1lID0gImNhbSIsIC5iYXNlID0gMHg0YTMwNzAwMCwgLnB3c3RzdCA9IDB4NCB9
+LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9ICJkc3MiLCAuYmFzZSA9IDB4NGEzMDcxMDAsIC5wd3N0
+c3QgPSAweDQgfSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAiZ2Z4IiwgLmJhc2UgPSAweDRhMzA3
+MjAwLCAucHdzdHN0ID0gMHg0IH0sCj4+Pj4gK8KgwqDCoCB7IC5uYW1lID0gImwzaW5pdCIsIC5i
+YXNlID0gMHg0YTMwNzMwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9
+ICJsNHBlciIsIC5iYXNlID0gMHg0YTMwNzQwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKg
+wqAgeyAubmFtZSA9ICJjZWZ1c2UiLCAuYmFzZSA9IDB4NGEzMDc2MDAsIC5wd3N0c3QgPSAweDQg
+fSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAid2t1cCIsIC5iYXNlID0gMHg0YTMwNzcwMCwgLnB3
+c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9ICJlbXUiLCAuYmFzZSA9IDB4NGEz
+MDc5MDAsIC5wd3N0c3QgPSAweDQgfSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAiZGV2aWNlIiwg
+LmJhc2UgPSAweDRhMzA3YjAwLCAucnN0Y3RsID0gMHgwLCAucnN0c3QgPQo+Pj4+IDB4NCB9LAo+
+IAo+IFNvLCBsb29rcyBsaWtlIHlvdSBhcmUgdXNpbmcgcHdzdGN0cmwgYXMgMCBieSBkZWZhdWx0
+LCBidXQgc29tZSBvZiB0aGVtCj4gd2lsbCBuZWl0aGVyIGhhdmUgcHdzdGN0cmwgb3IgcHdzdHN0
+IGxpa2UgImRldmljZSIgUFJNIGhlcmUuIElzIHRoZSBwbGFuCj4gdG8gdXNlIC0xIGZvciB0aGUg
+ZmllbGRzLCBvciBhIGZsYWdzIGZpZWxkPwoKTXVsdGlwbGUgcGF0aHMgYXJlIHBvc3NpYmxlLCBJ
+IHdpbGwgc2VlIHdoYXQgbWFrZXMgbW9zdCBzZW5zZSBvbmNlIEkgCmltcGxlbWVudCBpdC4KCi1U
+ZXJvCgo+IAo+IHJlZ2FyZHMKPiBTdW1hbgo+IAo+Pj4+ICvCoMKgwqAgeyB9LAo+Pj4+ICt9Owo+
+Pj4+ICsKPj4+PiAgwqAgc3RhdGljIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgb21hcF9wcm1f
+aWRfdGFibGVbXSA9IHsKPj4+PiArwqDCoMKgIHsgLmNvbXBhdGlibGUgPSAidGksb21hcDQtcHJt
+LWluc3QiLCAuZGF0YSA9IG9tYXA0X3BybV9kYXRhIH0sCj4+Pj4gIMKgwqDCoMKgwqAgeyB9LAo+
+Pj4+ICDCoCB9Owo+Pj4+ICAgCj4+Pgo+Pgo+PiAtLSAKPiAKCi0tClRleGFzIEluc3RydW1lbnRz
+IEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLiBZLXR1bm51cy9C
+dXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
+cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
+dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
+bAo=
