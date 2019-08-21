@@ -1,30 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net] net: cpsw: fix NULL pointer exception in the probe
- error path
-Date: Wed, 21 Aug 2019 14:00:14 -0700 (PDT)
-Message-ID: <20190821.140014.255300007478960933.davem@davemloft.net>
-References: <20190821144123.22248-1-antoine.tenart@bootlin.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] drm/omap: Fix port lookup for SDI output
+Date: Wed, 21 Aug 2019 23:26:27 +0300
+Message-ID: <20190821202627.GD30291@darkstar.musicnaut.iki.fi>
+References: <20190818140838.GC30291@darkstar.musicnaut.iki.fi>
+ <20190821183226.13784-1-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190821144123.22248-1-antoine.tenart@bootlin.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: antoine.tenart@bootlin.com
-Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, maxime.chevallier@bootlin.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20190821183226.13784-1-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Antoine Tenart <antoine.tenart@bootlin.com>
-Date: Wed, 21 Aug 2019 16:41:23 +0200
-
-> In certain cases when the probe function fails the error path calls
-> cpsw_remove_dt() before calling platform_set_drvdata(). This is an
-> issue as cpsw_remove_dt() uses platform_get_drvdata() to retrieve the
-> cpsw_common data and leds to a NULL pointer exception. This patches
-> fixes it by calling platform_set_drvdata() earlier in the probe.
-> 
-> Fixes: 83a8471ba255 ("net: ethernet: ti: cpsw: refactor probe to group common hw initialization")
-> Reported-by: Maxime Chevallier <maxime.chevallier@bootlin.com>
-> Signed-off-by: Antoine Tenart <antoine.tenart@bootlin.com>
-
-Applied and queued up for -stable, thanks.
+SGksCgpPbiBXZWQsIEF1ZyAyMSwgMjAxOSBhdCAwOTozMjoyNlBNICswMzAwLCBMYXVyZW50IFBp
+bmNoYXJ0IHdyb3RlOgo+IFdoZW4gcmVmYWN0b3JpbmcgcG9ydCBsb29rdXAgZm9yIERTUyBvdXRw
+dXRzLCBjb21taXQgZDE3ZWI0NTM3YTdlCj4gKCJkcm0vb21hcDogRmFjdG9yIG91dCBjb21tb24g
+aW5pdC9jbGVhbnVwIGNvZGUgZm9yIG91dHB1dCBkZXZpY2VzIikKPiBpbmNvcnJlY3RseSBoYXJk
+Y29kZWQgdXNhZ2Ugb2YgRFQgcG9ydCAwLiBUaGlzIGJyZWFrcyBvcGVyYXRpb24gZm9yIFNESQo+
+ICh3aGljaCB1c2VzIHRoZSBEVCBwb3J0IDEpIGFuZCBEUEkgb3V0cHV0cyBvdGhlciB0aGFuIERQ
+STAgKHdoaWNoIGFyZQo+IG5vdCB1c2VkIGluIG1haW5saW5lIERUIHNvdXJjZXMpLgo+IAo+IEZp
+eCB0aGlzIGJ5IHVzaW5nIHRoZSBwb3J0IG51bWJlciBmcm9tIHRoZSBvdXRwdXQgb21hcF9kc3Nf
+ZGV2aWNlCj4gb2ZfcG9ydHMgZmllbGQuCj4gCj4gRml4ZXM6IGQxN2ViNDUzN2E3ZSAoImRybS9v
+bWFwOiBGYWN0b3Igb3V0IGNvbW1vbiBpbml0L2NsZWFudXAgY29kZSBmb3Igb3V0cHV0IGRldmlj
+ZXMiKQo+IFNpZ25lZC1vZmYtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRA
+aWRlYXNvbmJvYXJkLmNvbT4KClRlc3RlZC1ieTogQWFybyBLb3NraW5lbiA8YWFyby5rb3NraW5l
+bkBpa2kuZmk+CgpUaGFua3MsIHRoaXMgZml4ZXMgdGhlIGRpc3BsYXkgaXNzdWUgb24gTjkwMC4K
+CkEuCgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMgfCA0ICsr
+Ky0KPiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+IAo+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMgYi9kcml2
+ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMKPiBpbmRleCBkZTBmODgyZjBmN2IuLjE0
+YjQxZGU0NGViYyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0
+cHV0LmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMKPiBAQCAt
+NCw2ICs0LDcgQEAKPiAgICogQXV0aG9yOiBBcmNoaXQgVGFuZWphIDxhcmNoaXRAdGkuY29tPgo+
+ICAgKi8KPiAgCj4gKyNpbmNsdWRlIDxsaW51eC9iaXRvcHMuaD4KPiAgI2luY2x1ZGUgPGxpbnV4
+L2tlcm5lbC5oPgo+ICAjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+Cj4gICNpbmNsdWRlIDxsaW51
+eC9wbGF0Zm9ybV9kZXZpY2UuaD4KPiBAQCAtMjAsNyArMjEsOCBAQCBpbnQgb21hcGRzc19kZXZp
+Y2VfaW5pdF9vdXRwdXQoc3RydWN0IG9tYXBfZHNzX2RldmljZSAqb3V0KQo+ICB7Cj4gIAlzdHJ1
+Y3QgZGV2aWNlX25vZGUgKnJlbW90ZV9ub2RlOwo+ICAKPiAtCXJlbW90ZV9ub2RlID0gb2ZfZ3Jh
+cGhfZ2V0X3JlbW90ZV9ub2RlKG91dC0+ZGV2LT5vZl9ub2RlLCAwLCAwKTsKPiArCXJlbW90ZV9u
+b2RlID0gb2ZfZ3JhcGhfZ2V0X3JlbW90ZV9ub2RlKG91dC0+ZGV2LT5vZl9ub2RlLAo+ICsJCQkJ
+CSAgICAgICBmZnMob3V0LT5vZl9wb3J0cykgLSAxLCAwKTsKPiAgCWlmICghcmVtb3RlX25vZGUp
+IHsKPiAgCQlkZXZfZGJnKG91dC0+ZGV2LCAiZmFpbGVkIHRvIGZpbmQgdmlkZW8gc2lua1xuIik7
+Cj4gIAkJcmV0dXJuIDA7Cj4gLS0gCj4gUmVnYXJkcywKPiAKPiBMYXVyZW50IFBpbmNoYXJ0Cj4g
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
+bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
