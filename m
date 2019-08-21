@@ -1,36 +1,47 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net-next] net: ethernet: ti: use
- devm_platform_ioremap_resource() to simplify code
-Date: Wed, 21 Aug 2019 17:20:34 +0300
-Message-ID: <0a978de8-4b6e-d17d-7184-ce37aa7d1077@ti.com>
-References: <20190821124850.9592-1-yuehaibing@huawei.com>
+From: Antoine Tenart <antoine.tenart@bootlin.com>
+Subject: [PATCH net] net: cpsw: fix NULL pointer exception in the probe error path
+Date: Wed, 21 Aug 2019 16:41:23 +0200
+Message-ID: <20190821144123.22248-1-antoine.tenart@bootlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190821124850.9592-1-yuehaibing@huawei.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>, davem@davemloft.net, ivan.khoronzhuk@linaro.org, andrew@lunn.ch, ynezz@true.cz
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: davem@davemloft.net, grygorii.strashko@ti.com
+Cc: Antoine Tenart <antoine.tenart@bootlin.com>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, maxime.chevallier@bootlin.com
 List-Id: linux-omap@vger.kernel.org
 
+In certain cases when the probe function fails the error path calls
+cpsw_remove_dt() before calling platform_set_drvdata(). This is an
+issue as cpsw_remove_dt() uses platform_get_drvdata() to retrieve the
+cpsw_common data and leds to a NULL pointer exception. This patches
+fixes it by calling platform_set_drvdata() earlier in the probe.
 
+Fixes: 83a8471ba255 ("net: ethernet: ti: cpsw: refactor probe to group common hw initialization")
+Reported-by: Maxime Chevallier <maxime.chevallier@bootlin.com>
+Signed-off-by: Antoine Tenart <antoine.tenart@bootlin.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 21/08/2019 15:48, YueHaibing wrote:
-> Use devm_platform_ioremap_resource() to simplify the code a bit.
-> This is detected by coccinelle.
-> 
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->   drivers/net/ethernet/ti/cpsw.c | 5 ++---
->   1 file changed, 2 insertions(+), 3 deletions(-)
->
-
-Thank you.
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 32a89744972d..a46b8b2e44e1 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2775,6 +2775,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	if (!cpsw)
+ 		return -ENOMEM;
+ 
++	platform_set_drvdata(pdev, cpsw);
+ 	cpsw->dev = dev;
+ 
+ 	mode = devm_gpiod_get_array_optional(dev, "mode", GPIOD_OUT_LOW);
+@@ -2879,7 +2880,6 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		goto clean_cpts;
+ 	}
+ 
+-	platform_set_drvdata(pdev, cpsw);
+ 	priv = netdev_priv(ndev);
+ 	priv->cpsw = cpsw;
+ 	priv->ndev = ndev;
 -- 
-Best regards,
-grygorii
+2.21.0
