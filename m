@@ -1,26 +1,30 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] net: ethernet: ti: use
- devm_platform_ioremap_resource() to simplify code
-Date: Wed, 21 Aug 2019 13:42:37 -0700 (PDT)
-Message-ID: <20190821.134237.1144802507635095173.davem@davemloft.net>
-References: <20190821124850.9592-1-yuehaibing@huawei.com>
+Subject: Re: [PATCH net] net: cpsw: fix NULL pointer exception in the probe
+ error path
+Date: Wed, 21 Aug 2019 14:00:14 -0700 (PDT)
+Message-ID: <20190821.140014.255300007478960933.davem@davemloft.net>
+References: <20190821144123.22248-1-antoine.tenart@bootlin.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190821124850.9592-1-yuehaibing@huawei.com>
+In-Reply-To: <20190821144123.22248-1-antoine.tenart@bootlin.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: yuehaibing@huawei.com
-Cc: grygorii.strashko@ti.com, ivan.khoronzhuk@linaro.org, andrew@lunn.ch, ynezz@true.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: antoine.tenart@bootlin.com
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, maxime.chevallier@bootlin.com
 List-Id: linux-omap@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
-Date: Wed, 21 Aug 2019 20:48:50 +0800
+From: Antoine Tenart <antoine.tenart@bootlin.com>
+Date: Wed, 21 Aug 2019 16:41:23 +0200
 
-> Use devm_platform_ioremap_resource() to simplify the code a bit.
-> This is detected by coccinelle.
+> In certain cases when the probe function fails the error path calls
+> cpsw_remove_dt() before calling platform_set_drvdata(). This is an
+> issue as cpsw_remove_dt() uses platform_get_drvdata() to retrieve the
+> cpsw_common data and leds to a NULL pointer exception. This patches
+> fixes it by calling platform_set_drvdata() earlier in the probe.
 > 
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> Fixes: 83a8471ba255 ("net: ethernet: ti: cpsw: refactor probe to group common hw initialization")
+> Reported-by: Maxime Chevallier <maxime.chevallier@bootlin.com>
+> Signed-off-by: Antoine Tenart <antoine.tenart@bootlin.com>
 
-Applied.
+Applied and queued up for -stable, thanks.
