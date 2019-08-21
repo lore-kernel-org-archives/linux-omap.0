@@ -1,40 +1,74 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net] net: cpsw: fix NULL pointer exception in the probe
- error path
-Date: Wed, 21 Aug 2019 18:02:07 +0300
-Message-ID: <139cd66e-e8f8-0d18-a876-59e791bb8624@ti.com>
-References: <20190821144123.22248-1-antoine.tenart@bootlin.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH 2/8] soc: ti: add initial PRM driver with reset control
+ support
+Date: Wed, 21 Aug 2019 17:10:37 +0200
+Message-ID: <1566400237.4193.15.camel@pengutronix.de>
+References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
+ <1565164139-21886-3-git-send-email-t-kristo@ti.com>
+ <3b76f0e0-7530-e7b5-09df-2de9956f30ee@ti.com>
+ <59709a2d-f13a-bd55-8aba-864c1cf2f19e@ti.com>
+ <9372957c-9ab9-b0dd-fe07-815eb2cb2f16@ti.com>
+ <0f335aec-bfdf-345a-8dfb-dad70aef1af6@ti.com>
+ <a4196b73-63a0-f9d8-1c43-e6c4d1c1d6a4@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190821144123.22248-1-antoine.tenart@bootlin.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Antoine Tenart <antoine.tenart@bootlin.com>, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, maxime.chevallier@bootlin.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <a4196b73-63a0-f9d8-1c43-e6c4d1c1d6a4@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
+Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 21/08/2019 17:41, Antoine Tenart wrote:
-> In certain cases when the probe function fails the error path calls
-> cpsw_remove_dt() before calling platform_set_drvdata(). This is an
-> issue as cpsw_remove_dt() uses platform_get_drvdata() to retrieve the
-> cpsw_common data and leds to a NULL pointer exception. This patches
-> fixes it by calling platform_set_drvdata() earlier in the probe.
-> 
-> Fixes: 83a8471ba255 ("net: ethernet: ti: cpsw: refactor probe to group common hw initialization")
-> Reported-by: Maxime Chevallier <maxime.chevallier@bootlin.com>
-> Signed-off-by: Antoine Tenart <antoine.tenart@bootlin.com>
-> ---
->   drivers/net/ethernet/ti/cpsw.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-
-Thank you.
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
--- 
-Best regards,
-grygorii
+T24gVHVlLCAyMDE5LTA4LTIwIGF0IDExOjQ3IC0wNTAwLCBTdW1hbiBBbm5hIHdyb3RlOgo+IE9u
+IDgvMjAvMTkgMjozNyBBTSwgVGVybyBLcmlzdG8gd3JvdGU6Cj4gPiBPbiAyMC44LjIwMTkgMi4w
+MSwgU3VtYW4gQW5uYSB3cm90ZToKPiA+ID4gSGkgVGVybywKPiA+ID4gCj4gPiA+IE9uIDgvMTkv
+MTkgNDozMiBBTSwgVGVybyBLcmlzdG8gd3JvdGU6ClsuLi5dCj4gPiA+ID4gPiA+ICt7Cj4gPiA+
+ID4gPiA+ICvCoMKgwqAgc3RydWN0IG9tYXBfcmVzZXRfZGF0YSAqcmVzZXQ7Cj4gPiA+ID4gPiA+
+ICsKPiA+ID4gPiA+ID4gK8KgwqDCoCAvKgo+ID4gPiA+ID4gPiArwqDCoMKgwqAgKiBDaGVjayBp
+ZiB3ZSBoYXZlIHJlc2V0cy4gSWYgZWl0aGVyIHJzdGN0bCBvciByc3RzdCBpcwo+ID4gPiA+ID4g
+PiArwqDCoMKgwqAgKiBub24temVybywgd2UgaGF2ZSByZXNldCByZWdpc3RlcnMgaW4gcGxhY2Uu
+IEFkZGl0aW9uYWxseQo+ID4gPiA+ID4gPiArwqDCoMKgwqAgKiB0aGUgZmxhZyBPTUFQX1BSTV9O
+T19SU1RTVCBpbXBsaWVzIHRoYXQgd2UgaGF2ZSByZXNldHMuCj4gPiA+ID4gPiA+ICvCoMKgwqDC
+oCAqLwo+ID4gPiA+ID4gPiArwqDCoMKgIGlmICghcHJtLT5kYXRhLT5yc3RjdGwgJiYgIXBybS0+
+ZGF0YS0+cnN0c3QgJiYKPiA+ID4gPiA+ID4gK8KgwqDCoMKgwqDCoMKgICEocHJtLT5kYXRhLT5m
+bGFncyAmIE9NQVBfUFJNX05PX1JTVFNUKSkKPiA+ID4gPiA+ID4gK8KgwqDCoMKgwqDCoMKgIHJl
+dHVybiAwOwo+ID4gPiA+ID4gPiArCj4gPiA+ID4gPiA+ICvCoMKgwqAgcmVzZXQgPSBkZXZtX2t6
+YWxsb2MoJnBkZXYtPmRldiwgc2l6ZW9mKCpyZXNldCksIEdGUF9LRVJORUwpOwo+ID4gPiA+ID4g
+PiArwqDCoMKgIGlmICghcmVzZXQpCj4gPiA+ID4gPiA+ICvCoMKgwqDCoMKgwqDCoCByZXR1cm4g
+LUVOT01FTTsKPiA+ID4gPiA+ID4gKwo+ID4gPiA+ID4gPiArwqDCoMKgIHJlc2V0LT5yY2Rldi5v
+d25lciA9IFRISVNfTU9EVUxFOwo+ID4gPiA+ID4gPiArwqDCoMKgIHJlc2V0LT5yY2Rldi5vcHMg
+PSAmb21hcF9yZXNldF9vcHM7Cj4gPiA+ID4gPiA+ICvCoMKgwqAgcmVzZXQtPnJjZGV2Lm9mX25v
+ZGUgPSBwZGV2LT5kZXYub2Zfbm9kZTsKPiA+ID4gPiA+ID4gK8KgwqDCoCByZXNldC0+cmNkZXYu
+bnJfcmVzZXRzID0gT01BUF9NQVhfUkVTRVRTOwo+ID4gPiAKPiA+ID4gU3VnZ2VzdCBhZGRpbmcg
+YSBudW1iZXIgb2YgcmVzZXRzIHRvIHBybS0+ZGF0YSwgYW5kIHVzaW5nIGl0IHNvIHRoYXQgd2UK
+PiA+ID4gZG9uJ3QgZXZlbiBlbnRlcnRhaW4gYW55IHJlc2V0cyBiZXlvbmQgdGhlIGFjdHVhbCBu
+dW1iZXIgb2YgcmVzZXRzLgo+ID4gCj4gPiBIbW0gd2h5IGJvdGhlcj8gQWNjZXNzaW5nIGEgc3Rh
+bGUgcmVzZXQgYml0IHdpbGwganVzdCBjYXVzZSBhY2Nlc3MgdG8gYQo+ID4gcmVzZXJ2ZWQgYml0
+IGluIHRoZSByZXNldCByZWdpc3RlciwgZG9pbmcgYmFzaWNhbGx5IG5vdGhpbmcuIEFsc28sIHRo
+aXMKPiA+IHdvdWxkIG5vdCB3b3JrIGZvciBhbTMvYW00IHdrdXAsIGFzIHRoZXJlIGlzIGEgc2lu
+Z2xlIHJlc2V0IGJpdCBhdCBhbgo+ID4gYXJiaXRyYXJ5IHBvc2l0aW9uLgo+IAo+IFRoZSBnZW5l
+cmljIGNvbnZlbnRpb24gc2VlbXMgdG8gYmUgZGVmaW5pbmcgYSByZXNldCBpZCB2YWx1ZSBkZWZp
+bmVkCj4gZnJvbSBpbmNsdWRlL2R0LWJpbmRpbmdzL3Jlc2V0LyB0aGF0IGNhbiBiZSB1c2VkIHRv
+IG1hdGNoIGJldHdlZW4gdGhlCj4gZHQtbm9kZXMgYW5kIHRoZSByZXNldC1jb250cm9sbGVyIGRy
+aXZlci4KPiAKPiBQaGlsaXBwLAo+IEFueSBjb21tZW50cz8KCkFyZSB0aGVyZSBvbmx5IHJlc2V0
+IGJpdHMgYW5kIHJlc2VydmVkIGJpdHMgaW4gdGhlIHJhbmdlIGFjY2Vzc2libGUgYnkKWzAuLk9N
+QVBfTUFYX1JFU0VUU10gb3IgYXJlIHRoZXIgYml0cyB3aXRoIGFub3RoZXIgZnVuY3Rpb24gYXMg
+d2VsbD8KSWYgdGhlIGxhdHRlciBpcyB0aGUgY2FzZSwgSSB3b3VsZCBwcmVmZXIgZW51bWVyYXRp
+bmcgdGhlIHJlc2V0cyBpbiBhCmR0LWJpbmRpbmdzIGhlYWRlciwgd2l0aCB0aGUgZHJpdmVyIGNv
+bnRhaW5pbmcgYW4gZW51bSAtPiByZWcvYml0CnBvc2l0aW9uIGxvb2t1cCB0YWJsZS4KCkluIGdl
+bmVyYWwsIGFzc3VtaW5nIHRoZSBkZXZpY2UgdHJlZSBjb250YWlucyBubyBlcnJvcnMsIHRoaXMg
+c2hvdWxkIG5vdAptYXR0ZXIgbXVjaCwgYnV0IEkgdGhpbmsgaXQgaXMgbmljZSBpZiB0aGUgcmVz
+ZXQgZHJpdmVyLCBldmVuIHdpdGggYQptaXNjb25maWd1cmVkIGRldmljZSB0cmVlLCBjYW4ndCB3
+cml0ZSBpbnRvIGFyYml0cmFyeSBiaXQgZmllbGRzLgoKcmVnYXJkcwpQaGlsaXBwCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVs
+IG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDov
+L2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
