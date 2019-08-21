@@ -1,88 +1,60 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/8] soc: ti: add initial PRM driver with reset control
- support
-Date: Wed, 21 Aug 2019 21:15:22 +0300
-Message-ID: <e75eed22-1bed-4c8a-930d-e05890d58c47@ti.com>
-References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
- <1565164139-21886-3-git-send-email-t-kristo@ti.com>
- <3b76f0e0-7530-e7b5-09df-2de9956f30ee@ti.com>
- <59709a2d-f13a-bd55-8aba-864c1cf2f19e@ti.com>
- <9372957c-9ab9-b0dd-fe07-815eb2cb2f16@ti.com>
- <0f335aec-bfdf-345a-8dfb-dad70aef1af6@ti.com>
- <a4196b73-63a0-f9d8-1c43-e6c4d1c1d6a4@ti.com>
- <1566400237.4193.15.camel@pengutronix.de>
- <5e82199f-2f75-ee05-ba65-1595d0526572@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: OMAP DRM regression on N900
+Date: Wed, 21 Aug 2019 21:31:23 +0300
+Message-ID: <20190821183123.GC26759@pendragon.ideasonboard.com>
+References: <20190818140838.GC30291@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5e82199f-2f75-ee05-ba65-1595d0526572@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Keerthy <j-keerthy@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
-Cc: tony@atomide.com, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190818140838.GC30291@darkstar.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjEuOC4yMDE5IDE4LjQ1LCBTdW1hbiBBbm5hIHdyb3RlOgo+IE9uIDgvMjEvMTkgMTA6MTAg
-QU0sIFBoaWxpcHAgWmFiZWwgd3JvdGU6Cj4+IE9uIFR1ZSwgMjAxOS0wOC0yMCBhdCAxMTo0NyAt
-MDUwMCwgU3VtYW4gQW5uYSB3cm90ZToKPj4+IE9uIDgvMjAvMTkgMjozNyBBTSwgVGVybyBLcmlz
-dG8gd3JvdGU6Cj4+Pj4gT24gMjAuOC4yMDE5IDIuMDEsIFN1bWFuIEFubmEgd3JvdGU6Cj4+Pj4+
-IEhpIFRlcm8sCj4+Pj4+Cj4+Pj4+IE9uIDgvMTkvMTkgNDozMiBBTSwgVGVybyBLcmlzdG8gd3Jv
-dGU6Cj4+IFsuLi5dCj4+Pj4+Pj4+ICt7Cj4+Pj4+Pj4+ICvCoMKgwqAgc3RydWN0IG9tYXBfcmVz
-ZXRfZGF0YSAqcmVzZXQ7Cj4+Pj4+Pj4+ICsKPj4+Pj4+Pj4gK8KgwqDCoCAvKgo+Pj4+Pj4+PiAr
-wqDCoMKgwqAgKiBDaGVjayBpZiB3ZSBoYXZlIHJlc2V0cy4gSWYgZWl0aGVyIHJzdGN0bCBvciBy
-c3RzdCBpcwo+Pj4+Pj4+PiArwqDCoMKgwqAgKiBub24temVybywgd2UgaGF2ZSByZXNldCByZWdp
-c3RlcnMgaW4gcGxhY2UuIEFkZGl0aW9uYWxseQo+Pj4+Pj4+PiArwqDCoMKgwqAgKiB0aGUgZmxh
-ZyBPTUFQX1BSTV9OT19SU1RTVCBpbXBsaWVzIHRoYXQgd2UgaGF2ZSByZXNldHMuCj4+Pj4+Pj4+
-ICvCoMKgwqDCoCAqLwo+Pj4+Pj4+PiArwqDCoMKgIGlmICghcHJtLT5kYXRhLT5yc3RjdGwgJiYg
-IXBybS0+ZGF0YS0+cnN0c3QgJiYKPj4+Pj4+Pj4gK8KgwqDCoMKgwqDCoMKgICEocHJtLT5kYXRh
-LT5mbGFncyAmIE9NQVBfUFJNX05PX1JTVFNUKSkKPj4+Pj4+Pj4gK8KgwqDCoMKgwqDCoMKgIHJl
-dHVybiAwOwo+Pj4+Pj4+PiArCj4+Pj4+Pj4+ICvCoMKgwqAgcmVzZXQgPSBkZXZtX2t6YWxsb2Mo
-JnBkZXYtPmRldiwgc2l6ZW9mKCpyZXNldCksIEdGUF9LRVJORUwpOwo+Pj4+Pj4+PiArwqDCoMKg
-IGlmICghcmVzZXQpCj4+Pj4+Pj4+ICvCoMKgwqDCoMKgwqDCoCByZXR1cm4gLUVOT01FTTsKPj4+
-Pj4+Pj4gKwo+Pj4+Pj4+PiArwqDCoMKgIHJlc2V0LT5yY2Rldi5vd25lciA9IFRISVNfTU9EVUxF
-Owo+Pj4+Pj4+PiArwqDCoMKgIHJlc2V0LT5yY2Rldi5vcHMgPSAmb21hcF9yZXNldF9vcHM7Cj4+
-Pj4+Pj4+ICvCoMKgwqAgcmVzZXQtPnJjZGV2Lm9mX25vZGUgPSBwZGV2LT5kZXYub2Zfbm9kZTsK
-Pj4+Pj4+Pj4gK8KgwqDCoCByZXNldC0+cmNkZXYubnJfcmVzZXRzID0gT01BUF9NQVhfUkVTRVRT
-Owo+Pj4+Pgo+Pj4+PiBTdWdnZXN0IGFkZGluZyBhIG51bWJlciBvZiByZXNldHMgdG8gcHJtLT5k
-YXRhLCBhbmQgdXNpbmcgaXQgc28gdGhhdCB3ZQo+Pj4+PiBkb24ndCBldmVuIGVudGVydGFpbiBh
-bnkgcmVzZXRzIGJleW9uZCB0aGUgYWN0dWFsIG51bWJlciBvZiByZXNldHMuCj4+Pj4KPj4+PiBI
-bW0gd2h5IGJvdGhlcj8gQWNjZXNzaW5nIGEgc3RhbGUgcmVzZXQgYml0IHdpbGwganVzdCBjYXVz
-ZSBhY2Nlc3MgdG8gYQo+Pj4+IHJlc2VydmVkIGJpdCBpbiB0aGUgcmVzZXQgcmVnaXN0ZXIsIGRv
-aW5nIGJhc2ljYWxseSBub3RoaW5nLiBBbHNvLCB0aGlzCj4+Pj4gd291bGQgbm90IHdvcmsgZm9y
-IGFtMy9hbTQgd2t1cCwgYXMgdGhlcmUgaXMgYSBzaW5nbGUgcmVzZXQgYml0IGF0IGFuCj4+Pj4g
-YXJiaXRyYXJ5IHBvc2l0aW9uLgo+Pj4KPj4+IFRoZSBnZW5lcmljIGNvbnZlbnRpb24gc2VlbXMg
-dG8gYmUgZGVmaW5pbmcgYSByZXNldCBpZCB2YWx1ZSBkZWZpbmVkCj4+PiBmcm9tIGluY2x1ZGUv
-ZHQtYmluZGluZ3MvcmVzZXQvIHRoYXQgY2FuIGJlIHVzZWQgdG8gbWF0Y2ggYmV0d2VlbiB0aGUK
-Pj4+IGR0LW5vZGVzIGFuZCB0aGUgcmVzZXQtY29udHJvbGxlciBkcml2ZXIuCj4+Pgo+Pj4gUGhp
-bGlwcCwKPj4+IEFueSBjb21tZW50cz8KPj4KPj4gQXJlIHRoZXJlIG9ubHkgcmVzZXQgYml0cyBh
-bmQgcmVzZXJ2ZWQgYml0cyBpbiB0aGUgcmFuZ2UgYWNjZXNzaWJsZSBieQo+PiBbMC4uT01BUF9N
-QVhfUkVTRVRTXSBvciBhcmUgdGhlciBiaXRzIHdpdGggYW5vdGhlciBmdW5jdGlvbiBhcyB3ZWxs
-Pwo+IAo+IFRoYW5rcyBQaGlsaXBwLCB0aGVzZSBhcmUganVzdCByZXNldCBiaXRzIGFuZCByZXNl
-cnZlZCBiaXRzLgo+IAo+PiBJZiB0aGUgbGF0dGVyIGlzIHRoZSBjYXNlLCBJIHdvdWxkIHByZWZl
-ciBlbnVtZXJhdGluZyB0aGUgcmVzZXRzIGluIGEKPj4gZHQtYmluZGluZ3MgaGVhZGVyLCB3aXRo
-IHRoZSBkcml2ZXIgY29udGFpbmluZyBhbiBlbnVtIC0+IHJlZy9iaXQKPj4gcG9zaXRpb24gbG9v
-a3VwIHRhYmxlLgo+Pgo+PiBJbiBnZW5lcmFsLCBhc3N1bWluZyB0aGUgZGV2aWNlIHRyZWUgY29u
-dGFpbnMgbm8gZXJyb3JzLCB0aGlzIHNob3VsZCBub3QKPj4gbWF0dGVyIG11Y2gsIGJ1dCBJIHRo
-aW5rIGl0IGlzIG5pY2UgaWYgdGhlIHJlc2V0IGRyaXZlciwgZXZlbiB3aXRoIGEKPj4gbWlzY29u
-ZmlndXJlZCBkZXZpY2UgdHJlZSwgY2FuJ3Qgd3JpdGUgaW50byBhcmJpdHJhcnkgYml0IGZpZWxk
-cy4KPiAKPiBUZXJvLAo+IENhbiB5b3UgYWRkIGEgY2hlY2sgZm9yIHRoaXMgaWYgcG9zc2libGU/
-CgpXZWxsLCBJIGNhbiBlbmZvcmNlIHRoZSB1c2FnZSBvZiByZXNldCBiaXQgbWFwcGluZywgd2hp
-Y2ggSSBoYXZlIGFscmVhZHkgCmltcGxlbWVudGVkIGZvciBzb21lIFNvQ3MgbGlrZSBhbTMzeHgu
-IElmIHRoZSBzcGVjaWZpYyBJRCBpcyBub3QgZm91bmQsIApJIGNhbiBiYWlsIG91dC4gU28sIGJh
-c2ljYWxseSBpbiB0aGlzIGV4YW1wbGUgcmVxdWVzdGluZyByZXNldCBhdCBpbmRleCAKMyB3b3Vs
-ZCBzdWNjZWVkLCBidXQgaXQgd291bGQgZmFpbCBmb3IgYW55IG90aGVyIElEOyB0aGlzIHdvdWxk
-IGJlIApkaXJlY3QgSFcgYml0IG1hcHBpbmcuCgotVGVybwotLQpUZXhhcyBJbnN0cnVtZW50cyBG
-aW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4gWS10dW5udXMvQnVz
-aW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
-ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
-Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi Aaro,
+
+On Sun, Aug 18, 2019 at 05:08:38PM +0300, Aaro Koskinen wrote:
+> Hi,
+> 
+> I haven't got display working on N900 since v5.1. Bisected to:
+> 
+> d17eb4537a7eb16da9eafbfd5717e12b45b77251 is the first bad commit
+> commit d17eb4537a7eb16da9eafbfd5717e12b45b77251
+> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Date:   Wed Sep 12 19:41:31 2018 +0300
+> 
+>     drm/omap: Factor out common init/cleanup code for output devices
+
+Sorry :-(
+
+I'll send a tentative fix, I'd appreciate if you could test it.
+
+> looks like with this commit I get only the TV out:
+> 
+> $ ls -l /sys/class/drm/
+> total 0
+> lrwxrwxrwx    1 root     root             0 Aug 18 16:15 card0 -> ../../devices/platform/omapdrm.0/drm/card0
+> lrwxrwxrwx    1 root     root             0 Aug 18 16:15 card0-SVIDEO-1 -> ../../devices/platform/omapdrm.0/drm/card0/card0-SVIDEO-1
+> lrwxrwxrwx    1 root     root             0 Aug 18 16:15 renderD128 -> ../../devices/platform/omapdrm.0/drm/renderD128
+> -r--r--r--    1 root     root          4096 Aug 18 16:15 version
+> 
+> with the previous commit both outputs are there:
+> 
+> $ ls -l /sys/class/drm/
+> total 0
+> lrwxrwxrwx    1 root     root             0 Aug 18 16:28 card0 -> ../../devices/platform/omapdrm.0/drm/card0
+> lrwxrwxrwx    1 root     root             0 Aug 18 16:28 card0-LVDS-1 -> ../../devices/platform/omapdrm.0/drm/card0/card0-LVDS-1
+> lrwxrwxrwx    1 root     root             0 Aug 18 16:28 card0-SVIDEO-1 -> ../../devices/platform/omapdrm.0/drm/card0/card0-SVIDEO-1
+> lrwxrwxrwx    1 root     root             0 Aug 18 16:28 renderD128 -> ../../devices/platform/omapdrm.0/drm/renderD128
+> -r--r--r--    1 root     root          4096 Aug 18 16:28 version
+> 
+> Used .config below.
+
+[snip]
+
+-- 
+Regards,
+
+Laurent Pinchart
