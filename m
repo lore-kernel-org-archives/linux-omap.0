@@ -1,17 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 5/8] soc: ti: omap-prm: add omap4 PRM data
-Date: Wed, 21 Aug 2019 09:38:12 +0300
-Message-ID: <6bb038b8-6bfc-196a-d1fc-b97931be9849@ti.com>
+Subject: Re: [PATCH 6/8] soc: ti: omap_prm: add data for am33xx
+Date: Wed, 21 Aug 2019 10:23:21 +0300
+Message-ID: <8f5f86db-270a-7278-9d9c-e84c0fa9b73c@ti.com>
 References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
- <1565164139-21886-6-git-send-email-t-kristo@ti.com>
- <04bc6773-dbd4-e1ab-ce31-d93e99dafb33@ti.com>
- <9d684bdc-28b8-0772-2957-93e01c55aae4@ti.com>
- <ed0ec707-ddea-cbfa-ecdf-99faeb770f3f@ti.com>
+ <1565164139-21886-7-git-send-email-t-kristo@ti.com>
+ <ebb6e240-1252-5a4f-39a2-403ee699d8aa@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <ed0ec707-ddea-cbfa-ecdf-99faeb770f3f@ti.com>
+In-Reply-To: <ebb6e240-1252-5a4f-39a2-403ee699d8aa@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -26,54 +24,81 @@ To: Suman Anna <s-anna@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infr
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjAuOC4yMDE5IDIwLjIzLCBTdW1hbiBBbm5hIHdyb3RlOgo+IE9uIDgvMjAvMTkgMjo1MiBB
-TSwgVGVybyBLcmlzdG8gd3JvdGU6Cj4+IE9uIDIwLjguMjAxOSAyLjA4LCBTdW1hbiBBbm5hIHdy
-b3RlOgo+Pj4gT24gOC83LzE5IDI6NDggQU0sIFRlcm8gS3Jpc3RvIHdyb3RlOgo+Pj4+IEFkZCBQ
-Uk0gZGF0YSBmb3Igb21hcDQgZmFtaWx5IG9mIFNvQ3MuCj4+Pj4KPj4+PiBTaWduZWQtb2ZmLWJ5
-OiBUZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPgo+Pj4+IC0tLQo+Pj4+ICDCoCBkcml2ZXJz
-L3NvYy90aS9vbWFwX3BybS5jIHwgMjAgKysrKysrKysrKysrKysrKysrKysKPj4+PiAgwqAgMSBm
-aWxlIGNoYW5nZWQsIDIwIGluc2VydGlvbnMoKykKPj4+Pgo+Pj4+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL3NvYy90aS9vbWFwX3BybS5jIGIvZHJpdmVycy9zb2MvdGkvb21hcF9wcm0uYwo+Pj4+IGlu
-ZGV4IDg3MDUxNWUzLi45YjhkNTk0NSAxMDA2NDQKPj4+PiAtLS0gYS9kcml2ZXJzL3NvYy90aS9v
-bWFwX3BybS5jCj4+Pj4gKysrIGIvZHJpdmVycy9zb2MvdGkvb21hcF9wcm0uYwo+Pj4+IEBAIC01
-NCw3ICs1NCwyNyBAQCBzdHJ1Y3Qgb21hcF9yZXNldF9kYXRhIHsKPj4+PiAgwqAgwqAgI2RlZmlu
-ZSBPTUFQX1BSTV9OT19SU1RTVMKgwqDCoCBCSVQoMCkKPj4+PiAgwqAgK3N0cnVjdCBvbWFwX3By
-bV9kYXRhIG9tYXA0X3BybV9kYXRhW10gPSB7Cj4+Pgo+Pj4gc3RhdGljIGNvbnN0Cj4+Cj4+IFdp
-bGwgZml4IHRoaXMgYW5kIHJlc3Qgb2YgdGhlIHNpbWlsYXIgY29tbWVudHMuCj4+Cj4+IC1UZXJv
-Cj4+Cj4+Pgo+Pj4gcmVnYXJkcwo+Pj4gU3VtYW4KPj4+Cj4+Pj4gK8KgwqDCoCB7IC5uYW1lID0g
-Im1wdSIsIC5iYXNlID0gMHg0YTMwNjMwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKgwqAg
-eyAubmFtZSA9ICJ0ZXNsYSIsIC5iYXNlID0gMHg0YTMwNjQwMCwgLnB3c3RzdCA9IDB4NCwgLnJz
-dGN0bCA9Cj4+Pj4gMHgxMCwgLnJzdHN0ID0gMHgxNCB9LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9
-ICJhYmUiLCAuYmFzZSA9IDB4NGEzMDY1MDAsIC5wd3N0c3QgPSAweDQgfSwKPj4+PiArwqDCoMKg
-IHsgLm5hbWUgPSAiYWx3YXlzX29uX2NvcmUiLCAuYmFzZSA9IDB4NGEzMDY2MDAsIC5wd3N0c3Qg
-PSAweDQgfSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAiY29yZSIsIC5iYXNlID0gMHg0YTMwNjcw
-MCwgLnB3c3RzdCA9IDB4NCwgLnJzdGN0bCA9Cj4+Pj4gMHgyMTAsIC5yc3RzdCA9IDB4MjE0IH0s
-Cj4+Pj4gK8KgwqDCoCB7IC5uYW1lID0gIml2YWhkIiwgLmJhc2UgPSAweDRhMzA2ZjAwLCAucHdz
-dHN0ID0gMHg0LCAucnN0Y3RsID0KPj4+PiAweDEwLCAucnN0c3QgPSAweDE0IH0sCj4+Pj4gK8Kg
-wqDCoCB7IC5uYW1lID0gImNhbSIsIC5iYXNlID0gMHg0YTMwNzAwMCwgLnB3c3RzdCA9IDB4NCB9
-LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9ICJkc3MiLCAuYmFzZSA9IDB4NGEzMDcxMDAsIC5wd3N0
-c3QgPSAweDQgfSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAiZ2Z4IiwgLmJhc2UgPSAweDRhMzA3
-MjAwLCAucHdzdHN0ID0gMHg0IH0sCj4+Pj4gK8KgwqDCoCB7IC5uYW1lID0gImwzaW5pdCIsIC5i
-YXNlID0gMHg0YTMwNzMwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9
-ICJsNHBlciIsIC5iYXNlID0gMHg0YTMwNzQwMCwgLnB3c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKg
-wqAgeyAubmFtZSA9ICJjZWZ1c2UiLCAuYmFzZSA9IDB4NGEzMDc2MDAsIC5wd3N0c3QgPSAweDQg
-fSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAid2t1cCIsIC5iYXNlID0gMHg0YTMwNzcwMCwgLnB3
-c3RzdCA9IDB4NCB9LAo+Pj4+ICvCoMKgwqAgeyAubmFtZSA9ICJlbXUiLCAuYmFzZSA9IDB4NGEz
-MDc5MDAsIC5wd3N0c3QgPSAweDQgfSwKPj4+PiArwqDCoMKgIHsgLm5hbWUgPSAiZGV2aWNlIiwg
-LmJhc2UgPSAweDRhMzA3YjAwLCAucnN0Y3RsID0gMHgwLCAucnN0c3QgPQo+Pj4+IDB4NCB9LAo+
-IAo+IFNvLCBsb29rcyBsaWtlIHlvdSBhcmUgdXNpbmcgcHdzdGN0cmwgYXMgMCBieSBkZWZhdWx0
-LCBidXQgc29tZSBvZiB0aGVtCj4gd2lsbCBuZWl0aGVyIGhhdmUgcHdzdGN0cmwgb3IgcHdzdHN0
-IGxpa2UgImRldmljZSIgUFJNIGhlcmUuIElzIHRoZSBwbGFuCj4gdG8gdXNlIC0xIGZvciB0aGUg
-ZmllbGRzLCBvciBhIGZsYWdzIGZpZWxkPwoKTXVsdGlwbGUgcGF0aHMgYXJlIHBvc3NpYmxlLCBJ
-IHdpbGwgc2VlIHdoYXQgbWFrZXMgbW9zdCBzZW5zZSBvbmNlIEkgCmltcGxlbWVudCBpdC4KCi1U
-ZXJvCgo+IAo+IHJlZ2FyZHMKPiBTdW1hbgo+IAo+Pj4+ICvCoMKgwqAgeyB9LAo+Pj4+ICt9Owo+
-Pj4+ICsKPj4+PiAgwqAgc3RhdGljIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgb21hcF9wcm1f
-aWRfdGFibGVbXSA9IHsKPj4+PiArwqDCoMKgIHsgLmNvbXBhdGlibGUgPSAidGksb21hcDQtcHJt
-LWluc3QiLCAuZGF0YSA9IG9tYXA0X3BybV9kYXRhIH0sCj4+Pj4gIMKgwqDCoMKgwqAgeyB9LAo+
-Pj4+ICDCoCB9Owo+Pj4+ICAgCj4+Pgo+Pgo+PiAtLSAKPiAKCi0tClRleGFzIEluc3RydW1lbnRz
-IEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLiBZLXR1bm51cy9C
-dXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
-cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
-bAo=
+On 20.8.2019 21.48, Suman Anna wrote:
+> Hi Tero,
+> 
+> On 8/7/19 2:48 AM, Tero Kristo wrote:
+>> Add PRM instance data for AM33xx SoC. Includes some basic register
+>> definitions and reset data for now.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   drivers/soc/ti/omap_prm.c | 17 +++++++++++++++++
+>>   1 file changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+>> index 9b8d5945..fadfc7f 100644
+>> --- a/drivers/soc/ti/omap_prm.c
+>> +++ b/drivers/soc/ti/omap_prm.c
+>> @@ -73,8 +73,25 @@ struct omap_prm_data omap4_prm_data[] = {
+>>   	{ },
+>>   };
+>>   
+>> +struct omap_rst_map am3_wkup_rst_map[] = {
+>> +	{ .rst = 3, .st = 5 },
+>> +	{ .rst = -1 },
+>> +};
+>> +
+>> +struct omap_prm_data am3_prm_data[] = {
+>> +	{ .name = "per", .base = 0x44e00c00, .pwstctrl = 0xc, .pwstst = 0x8, .flags = OMAP_PRM_NO_RSTST },
+>> +	{ .name = "wkup", .base = 0x44e00d00, .pwstctrl = 0x4, .pwstst = 0x8, .rstst = 0xc, .rstmap = am3_wkup_rst_map },
+>> +	{ .name = "mpu", .base = 0x44e00e00, .pwstst = 0x4 },
+> 
+> Has a rstst but no rstctrl, but your registration logic takes care of
+> this. Somewhat confusing, when you just look at the data. Should you
+> limit the check to only rstctrl and OMAP_PRM_NO_RSTST?
+
+I think its probably better I invert the flags and explicitly state 
+OMAP_PRM_HAS_RSTST | OMAP_PRM_HAS_RSTCTRL, in case any zero value is 
+used for these.
+
+> 
+>> +	{ .name = "device", .base = 0x44e00f00, .rstctl = 0x0, .rstst = 0x8 },
+> 
+> No pwrstctrl and pwrstst registers, so same comment as on OMAP4 data.
+
+I should probably add some flag for this in future once the support for 
+power domains is added.
+
+Anyway, I'll ditch all pwstctrl / pwstst data for now as it seems to 
+bother you too much.
+
+-Tero
+
+> 
+>> +	{ .name = "rtc", .base = 0x44e01000, .pwstst = 0x4 },
+>> +	{ .name = "gfx", .base = 0x44e01100, .pwstst = 0x10, .rstctl = 0x4, .rstst = 0x14 },
+>> +	{ .name = "cefuse", .base = 0x44e01200, .pwstst = 0x4 },
+> 
+> I am not sure if it is better to explicitly list the registers at 0
+> offset rather than using the implied value of 0, since there are some
+> registers that do not exist on some PRM instances which are also not
+> defined.
+> 
+> regards
+> Suman
+> 
+>> +	{ },
+>> +};
+>> +
+>>   static const struct of_device_id omap_prm_id_table[] = {
+>>   	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
+>> +	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
+>>   	{ },
+>>   };
+>>   
+>>
+> 
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
