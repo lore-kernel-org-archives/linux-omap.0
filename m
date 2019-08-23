@@ -1,58 +1,131 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] drm/omap: Fix port lookup for SDI output
-Date: Wed, 21 Aug 2019 23:26:27 +0300
-Message-ID: <20190821202627.GD30291@darkstar.musicnaut.iki.fi>
-References: <20190818140838.GC30291@darkstar.musicnaut.iki.fi>
- <20190821183226.13784-1-laurent.pinchart@ideasonboard.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: [PATCH] ARM: omap2: move platform-specific asm-offset.h to
+ arch/arm/mach-omap2
+Date: Fri, 23 Aug 2019 11:58:08 +0900
+Message-ID: <20190823025808.11875-1-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190821183226.13784-1-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpPbiBXZWQsIEF1ZyAyMSwgMjAxOSBhdCAwOTozMjoyNlBNICswMzAwLCBMYXVyZW50IFBp
-bmNoYXJ0IHdyb3RlOgo+IFdoZW4gcmVmYWN0b3JpbmcgcG9ydCBsb29rdXAgZm9yIERTUyBvdXRw
-dXRzLCBjb21taXQgZDE3ZWI0NTM3YTdlCj4gKCJkcm0vb21hcDogRmFjdG9yIG91dCBjb21tb24g
-aW5pdC9jbGVhbnVwIGNvZGUgZm9yIG91dHB1dCBkZXZpY2VzIikKPiBpbmNvcnJlY3RseSBoYXJk
-Y29kZWQgdXNhZ2Ugb2YgRFQgcG9ydCAwLiBUaGlzIGJyZWFrcyBvcGVyYXRpb24gZm9yIFNESQo+
-ICh3aGljaCB1c2VzIHRoZSBEVCBwb3J0IDEpIGFuZCBEUEkgb3V0cHV0cyBvdGhlciB0aGFuIERQ
-STAgKHdoaWNoIGFyZQo+IG5vdCB1c2VkIGluIG1haW5saW5lIERUIHNvdXJjZXMpLgo+IAo+IEZp
-eCB0aGlzIGJ5IHVzaW5nIHRoZSBwb3J0IG51bWJlciBmcm9tIHRoZSBvdXRwdXQgb21hcF9kc3Nf
-ZGV2aWNlCj4gb2ZfcG9ydHMgZmllbGQuCj4gCj4gRml4ZXM6IGQxN2ViNDUzN2E3ZSAoImRybS9v
-bWFwOiBGYWN0b3Igb3V0IGNvbW1vbiBpbml0L2NsZWFudXAgY29kZSBmb3Igb3V0cHV0IGRldmlj
-ZXMiKQo+IFNpZ25lZC1vZmYtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRA
-aWRlYXNvbmJvYXJkLmNvbT4KClRlc3RlZC1ieTogQWFybyBLb3NraW5lbiA8YWFyby5rb3NraW5l
-bkBpa2kuZmk+CgpUaGFua3MsIHRoaXMgZml4ZXMgdGhlIGRpc3BsYXkgaXNzdWUgb24gTjkwMC4K
-CkEuCgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMgfCA0ICsr
-Ky0KPiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+IAo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMgYi9kcml2
-ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMKPiBpbmRleCBkZTBmODgyZjBmN2IuLjE0
-YjQxZGU0NGViYyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0
-cHV0LmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb3V0cHV0LmMKPiBAQCAt
-NCw2ICs0LDcgQEAKPiAgICogQXV0aG9yOiBBcmNoaXQgVGFuZWphIDxhcmNoaXRAdGkuY29tPgo+
-ICAgKi8KPiAgCj4gKyNpbmNsdWRlIDxsaW51eC9iaXRvcHMuaD4KPiAgI2luY2x1ZGUgPGxpbnV4
-L2tlcm5lbC5oPgo+ICAjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+Cj4gICNpbmNsdWRlIDxsaW51
-eC9wbGF0Zm9ybV9kZXZpY2UuaD4KPiBAQCAtMjAsNyArMjEsOCBAQCBpbnQgb21hcGRzc19kZXZp
-Y2VfaW5pdF9vdXRwdXQoc3RydWN0IG9tYXBfZHNzX2RldmljZSAqb3V0KQo+ICB7Cj4gIAlzdHJ1
-Y3QgZGV2aWNlX25vZGUgKnJlbW90ZV9ub2RlOwo+ICAKPiAtCXJlbW90ZV9ub2RlID0gb2ZfZ3Jh
-cGhfZ2V0X3JlbW90ZV9ub2RlKG91dC0+ZGV2LT5vZl9ub2RlLCAwLCAwKTsKPiArCXJlbW90ZV9u
-b2RlID0gb2ZfZ3JhcGhfZ2V0X3JlbW90ZV9ub2RlKG91dC0+ZGV2LT5vZl9ub2RlLAo+ICsJCQkJ
-CSAgICAgICBmZnMob3V0LT5vZl9wb3J0cykgLSAxLCAwKTsKPiAgCWlmICghcmVtb3RlX25vZGUp
-IHsKPiAgCQlkZXZfZGJnKG91dC0+ZGV2LCAiZmFpbGVkIHRvIGZpbmQgdmlkZW8gc2lua1xuIik7
-Cj4gIAkJcmV0dXJuIDA7Cj4gLS0gCj4gUmVnYXJkcywKPiAKPiBMYXVyZW50IFBpbmNoYXJ0Cj4g
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
-bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
-c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+<generated/ti-pm-asm-offsets.h> is only generated and included by
+arch/arm/mach-omap2/, so it does not need to reside in the globally
+visible include/generated/.
+
+I renamed it to arch/arm/mach-omap2/pm-asm-offsets.h since the prefix
+'ti-' is just redundant in mach-omap2/.
+
+My main motivation of this change is to avoid the race condition for
+the parallel build (-j) when CONFIG_IKHEADERS is enabled.
+
+When it is enabled, all the headers under include/ are archived into
+kernel/kheaders_data.tar.xz and exposed in the sysfs.
+
+In the parallel build, we have no idea in which order files are built.
+
+ - If ti-pm-asm-offsets.h is built before kheaders_data.tar.xz,
+   the header will be included in the archive. Probably nobody will
+   use it, but it is harmless except that it will increase the archive
+   size needlessly.
+
+ - If kheaders_data.tar.xz is built before ti-pm-asm-offsets.h,
+   the header will not be included in the archive. However, in the next
+   build, the archive will be re-generated to include the newly-found
+   ti-pm-asm-offsets.h. This is not nice from the build system point
+   of view.
+
+ - If ti-pm-asm-offsets.h and kheaders_data.tar.xz are built at the
+   same time, the corrupted header might be included in the archive,
+   which does not look nice either.
+
+This commit fixes the race.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Tested-by: Keerthy <j-keerthy@ti.com>
+---
+
+ arch/arm/mach-omap2/.gitignore  | 1 +
+ arch/arm/mach-omap2/Makefile    | 5 +++--
+ arch/arm/mach-omap2/sleep33xx.S | 2 +-
+ arch/arm/mach-omap2/sleep43xx.S | 2 +-
+ 4 files changed, 6 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/.gitignore
+
+diff --git a/arch/arm/mach-omap2/.gitignore b/arch/arm/mach-omap2/.gitignore
+new file mode 100644
+index 000000000000..79a8d6ea7152
+--- /dev/null
++++ b/arch/arm/mach-omap2/.gitignore
+@@ -0,0 +1 @@
++pm-asm-offsets.h
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 600650551621..21c6d4bca3c0 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -223,9 +223,10 @@ obj-y					+= omap_phy_internal.o
+ 
+ obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+ 
+-include/generated/ti-pm-asm-offsets.h: arch/arm/mach-omap2/pm-asm-offsets.s FORCE
++$(obj)/pm-asm-offsets.h: $(obj)/pm-asm-offsets.s FORCE
+ 	$(call filechk,offsets,__TI_PM_ASM_OFFSETS_H__)
+ 
+-$(obj)/sleep33xx.o $(obj)/sleep43xx.o: include/generated/ti-pm-asm-offsets.h
++$(obj)/sleep33xx.o $(obj)/sleep43xx.o: $(obj)/pm-asm-offsets.h
+ 
+ targets += pm-asm-offsets.s
++clean-files += pm-asm-offsets.h
+diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
+index 68fee339d3f1..dc221249bc22 100644
+--- a/arch/arm/mach-omap2/sleep33xx.S
++++ b/arch/arm/mach-omap2/sleep33xx.S
+@@ -6,7 +6,6 @@
+  *	Dave Gerlach, Vaibhav Bedia
+  */
+ 
+-#include <generated/ti-pm-asm-offsets.h>
+ #include <linux/linkage.h>
+ #include <linux/platform_data/pm33xx.h>
+ #include <linux/ti-emif-sram.h>
+@@ -15,6 +14,7 @@
+ 
+ #include "iomap.h"
+ #include "cm33xx.h"
++#include "pm-asm-offsets.h"
+ 
+ #define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED			0x00030000
+ #define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
+diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+index c1f4e4852644..90d2907a2eb2 100644
+--- a/arch/arm/mach-omap2/sleep43xx.S
++++ b/arch/arm/mach-omap2/sleep43xx.S
+@@ -6,7 +6,6 @@
+  *	Dave Gerlach, Vaibhav Bedia
+  */
+ 
+-#include <generated/ti-pm-asm-offsets.h>
+ #include <linux/linkage.h>
+ #include <linux/ti-emif-sram.h>
+ #include <linux/platform_data/pm33xx.h>
+@@ -19,6 +18,7 @@
+ #include "iomap.h"
+ #include "omap-secure.h"
+ #include "omap44xx.h"
++#include "pm-asm-offsets.h"
+ #include "prm33xx.h"
+ #include "prcm43xx.h"
+ 
+-- 
+2.17.1
