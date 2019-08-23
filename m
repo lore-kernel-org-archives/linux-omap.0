@@ -1,52 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 4/5] dt-bindings: dma: ti-edma: Add option for reserved channel ranges
-Date: Fri, 23 Aug 2019 15:56:17 +0300
-Message-ID: <20190823125618.8133-5-peter.ujfalusi@ti.com>
-References: <20190823125618.8133-1-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 2/2] dts changes for omap variants for v5.4
+Date: Fri, 23 Aug 2019 15:24:42 -0700
+Message-ID: <pull-1566599057-142651@atomide.com-2>
+References: <pull-1566599057-142651@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190823125618.8133-1-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vkoul@kernel.org, robh+dt@kernel.org
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1566599057-142651@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: soc@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Similarly to paRAM slots, channels can be used by other cores.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Add optional property to configure the reserved channel ranges.
+The following changes since commit 5f9e832c137075045d15cd6899ab0505cfb2ca4b:
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- Documentation/devicetree/bindings/dma/ti-edma.txt | 5 +++++
- 1 file changed, 5 insertions(+)
+  Linus 5.3-rc1 (2019-07-21 14:05:38 -0700)
 
-diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
-index 4bbc94d829c8..1198682ada99 100644
---- a/Documentation/devicetree/bindings/dma/ti-edma.txt
-+++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-@@ -42,6 +42,9 @@ Optional properties:
- - ti,edma-reserved-slot-ranges: PaRAM slot ranges which should not be used by
- 		the driver, they are allocated to be used by for example the
- 		DSP. See example.
-+- ti,edma-reserved-chan-ranges: channel ranges which should not be used by
-+		the driver, they are allocated to be used by for example the
-+		DSP. See example.
- 
- ------------------------------------------------------------------------------
- eDMA3 Transfer Controller
-@@ -91,6 +94,8 @@ edma: edma@49000000 {
- 	ti,edma-memcpy-channels = <20 21>;
- 	/* The following PaRAM slots are reserved: 35-44 and 100-109 */
- 	ti,edma-reserved-slot-ranges = <35 10>, <100 10>;
-+	/* The following channels are reserved: 35-44 */
-+	ti,edma-reserved-chan-ranges = <35 10>;
- };
- 
- edma_tptc0: tptc@49800000 {
--- 
-Peter
+are available in the Git repository at:
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.4/dt-take2-signed
+
+for you to fetch changes up to a27401cecf7795cda7e0c17751feb98fedbaa99d:
+
+  ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi (2019-08-13 04:51:31 -0700)
+
+----------------------------------------------------------------
+dts changes for omap variants for v5.4
+
+Remove regulator-boot-off properties that we never had in the mainline
+kernel so they won't do anything. We add stdout-path for gta04, and
+make am335x-boneblue use am335x-osd335x-common.dtsi file.
+
+----------------------------------------------------------------
+David Lechner (1):
+      ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi
+
+Ezequiel Garcia (2):
+      ARM: dts: am335x-cm-t335: Remove regulator-boot-off property
+      ARM: dts: omap3-n950-n9: Remove regulator-boot-off property
+
+H. Nikolaus Schaller (1):
+      ARM: dts: gta04: define chosen/stdout-path
+
+ arch/arm/boot/dts/am335x-boneblue.dts | 92 +----------------------------------
+ arch/arm/boot/dts/am335x-cm-t335.dts  |  1 -
+ arch/arm/boot/dts/omap3-gta04.dtsi    |  4 ++
+ arch/arm/boot/dts/omap3-n950-n9.dtsi  |  1 -
+ 4 files changed, 6 insertions(+), 92 deletions(-)
