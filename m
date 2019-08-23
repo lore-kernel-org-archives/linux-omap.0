@@ -1,46 +1,54 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: Fix port lookup for SDI output
-Date: Fri, 23 Aug 2019 11:04:14 +0300
-Message-ID: <45a226f3-7a31-2109-8f01-1628b3d61654@ti.com>
-References: <20190818140838.GC30291@darkstar.musicnaut.iki.fi>
- <20190821183226.13784-1-laurent.pinchart@ideasonboard.com>
- <20190821202627.GD30291@darkstar.musicnaut.iki.fi>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH 2/8] soc: ti: add initial PRM driver with reset control
+ support
+Date: Fri, 23 Aug 2019 10:50:05 +0200
+Message-ID: <1566550205.3023.4.camel@pengutronix.de>
+References: <1565164139-21886-1-git-send-email-t-kristo@ti.com>
+ <1565164139-21886-3-git-send-email-t-kristo@ti.com>
+ <3b76f0e0-7530-e7b5-09df-2de9956f30ee@ti.com>
+ <59709a2d-f13a-bd55-8aba-864c1cf2f19e@ti.com>
+ <9372957c-9ab9-b0dd-fe07-815eb2cb2f16@ti.com>
+ <0f335aec-bfdf-345a-8dfb-dad70aef1af6@ti.com>
+ <a4196b73-63a0-f9d8-1c43-e6c4d1c1d6a4@ti.com>
+ <1566400237.4193.15.camel@pengutronix.de>
+ <5e82199f-2f75-ee05-ba65-1595d0526572@ti.com>
+ <e75eed22-1bed-4c8a-930d-e05890d58c47@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190821202627.GD30291@darkstar.musicnaut.iki.fi>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <e75eed22-1bed-4c8a-930d-e05890d58c47@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, Suman Anna <s-anna@ti.com>, Keerthy <j-keerthy@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
+Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjEvMDgvMjAxOSAyMzoyNiwgQWFybyBLb3NraW5lbiB3cm90ZToKPiBIaSwKPiAKPiBPbiBX
-ZWQsIEF1ZyAyMSwgMjAxOSBhdCAwOTozMjoyNlBNICswMzAwLCBMYXVyZW50IFBpbmNoYXJ0IHdy
-b3RlOgo+PiBXaGVuIHJlZmFjdG9yaW5nIHBvcnQgbG9va3VwIGZvciBEU1Mgb3V0cHV0cywgY29t
-bWl0IGQxN2ViNDUzN2E3ZQo+PiAoImRybS9vbWFwOiBGYWN0b3Igb3V0IGNvbW1vbiBpbml0L2Ns
-ZWFudXAgY29kZSBmb3Igb3V0cHV0IGRldmljZXMiKQo+PiBpbmNvcnJlY3RseSBoYXJkY29kZWQg
-dXNhZ2Ugb2YgRFQgcG9ydCAwLiBUaGlzIGJyZWFrcyBvcGVyYXRpb24gZm9yIFNESQo+PiAod2hp
-Y2ggdXNlcyB0aGUgRFQgcG9ydCAxKSBhbmQgRFBJIG91dHB1dHMgb3RoZXIgdGhhbiBEUEkwICh3
-aGljaCBhcmUKPj4gbm90IHVzZWQgaW4gbWFpbmxpbmUgRFQgc291cmNlcykuCj4+Cj4+IEZpeCB0
-aGlzIGJ5IHVzaW5nIHRoZSBwb3J0IG51bWJlciBmcm9tIHRoZSBvdXRwdXQgb21hcF9kc3NfZGV2
-aWNlCj4+IG9mX3BvcnRzIGZpZWxkLgo+Pgo+PiBGaXhlczogZDE3ZWI0NTM3YTdlICgiZHJtL29t
-YXA6IEZhY3RvciBvdXQgY29tbW9uIGluaXQvY2xlYW51cCBjb2RlIGZvciBvdXRwdXQgZGV2aWNl
-cyIpCj4+IFNpZ25lZC1vZmYtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRA
-aWRlYXNvbmJvYXJkLmNvbT4KPiAKPiBUZXN0ZWQtYnk6IEFhcm8gS29za2luZW4gPGFhcm8ua29z
-a2luZW5AaWtpLmZpPgo+IAo+IFRoYW5rcywgdGhpcyBmaXhlcyB0aGUgZGlzcGxheSBpc3N1ZSBv
-biBOOTAwLgoKVGhhbmtzLCBwdXNoZWQgdG8gZHJtLW1pc2MtZml4ZXMuCgogIFRvbWkKCi0tIApU
-ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
-aW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2ls
-ZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+On Wed, 2019-08-21 at 21:15 +0300, Tero Kristo wrote:
+> On 21.8.2019 18.45, Suman Anna wrote:
+> > On 8/21/19 10:10 AM, Philipp Zabel wrote:
+[...]
+> > > In general, assuming the device tree contains no errors, this should not
+> > > matter much, but I think it is nice if the reset driver, even with a
+> > > misconfigured device tree, can't write into arbitrary bit fields.
+> > 
+> > Tero,
+> > Can you add a check for this if possible?
+> 
+> Well, I can enforce the usage of reset bit mapping, which I have already 
+> implemented for some SoCs like am33xx. If the specific ID is not found, 
+> I can bail out. So, basically in this example requesting reset at index 
+> 3 would succeed, but it would fail for any other ID; this would be 
+> direct HW bit mapping.
+
+That should be fine.
+
+regards
+Philipp
