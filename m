@@ -1,46 +1,45 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/5] dmaengine: ti: edma: Only reset region0 access registers
-Date: Fri, 23 Aug 2019 15:56:15 +0300
-Message-ID: <20190823125618.8133-3-peter.ujfalusi@ti.com>
-References: <20190823125618.8133-1-peter.ujfalusi@ti.com>
+Subject: [PATCH 0/5] dmaengine: ti: edma: Multicore usage related fixes
+Date: Fri, 23 Aug 2019 15:56:13 +0300
+Message-ID: <20190823125618.8133-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190823125618.8133-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: vkoul@kernel.org, robh+dt@kernel.org
 Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Region0 is used by Linux, do not reset other registers controlling access
-for other shadow regions.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+When other cores want to use EDMA for their use cases Linux was not playing
+nicely.
+By design EDMA is supporting shared use with shadow regions. Linux is using
+region0, others can be used by other cores.
+
+In order to not break multicore shared usage of EDMA:
+- do not reset paRAM slots which is not allocated for Linux (reserved paRAM
+  slots)
+- Only reset region0 access registers, do not touch other regions
+- Add option for reserved channels which should not be used by Linux in a similar
+  fashion as we already have for reserved paRAM slots.
+
+Regards,
+Peter
 ---
- drivers/dma/ti/edma.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Peter Ujfalusi (5):
+  dmaengine: ti: edma: Do not reset reserved paRAM slots
+  dmaengine: ti: edma: Only reset region0 access registers
+  dmaengine: ti: edma: Use bitmap_set() instead of open coded
+    edma_set_bits()
+  dt-bindings: dma: ti-edma: Add option for reserved channel ranges
+  dmaengine: ti: edma: Add support for handling reserved channels
 
-diff --git a/drivers/dma/ti/edma.c b/drivers/dma/ti/edma.c
-index 1aae95cc0d4b..87450431f336 100644
---- a/drivers/dma/ti/edma.c
-+++ b/drivers/dma/ti/edma.c
-@@ -2434,11 +2434,10 @@ static int edma_probe(struct platform_device *pdev)
- 		edma_assign_priority_to_queue(ecc, queue_priority_mapping[i][0],
- 					      queue_priority_mapping[i][1]);
- 
--	for (i = 0; i < ecc->num_region; i++) {
--		edma_write_array2(ecc, EDMA_DRAE, i, 0, 0x0);
--		edma_write_array2(ecc, EDMA_DRAE, i, 1, 0x0);
--		edma_write_array(ecc, EDMA_QRAE, i, 0x0);
--	}
-+	edma_write_array2(ecc, EDMA_DRAE, 0, 0, 0x0);
-+	edma_write_array2(ecc, EDMA_DRAE, 0, 1, 0x0);
-+	edma_write_array(ecc, EDMA_QRAE, 0, 0x0);
-+
- 	ecc->info = info;
- 
- 	/* Init the dma device and channels */
+ .../devicetree/bindings/dma/ti-edma.txt       |   5 +
+ drivers/dma/ti/edma.c                         | 190 +++++++++++-------
+ 2 files changed, 123 insertions(+), 72 deletions(-)
+
 -- 
 Peter
 
