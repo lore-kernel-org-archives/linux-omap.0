@@ -1,13 +1,13 @@
 From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Plug in device_enable/idle ops for IOMMUs
-Date: Tue, 27 Aug 2019 18:07:47 +0800
-Message-ID: <201908271808.BaWagJ50%lkp@intel.com>
-References: <20190827001452.31930-2-s-anna@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: Add pdata for OMAP3 ISP IOMMU
+Date: Tue, 27 Aug 2019 22:06:12 +0800
+Message-ID: <201908272209.w09vpC4J%lkp@intel.com>
+References: <20190827001452.31930-3-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="vyy5p73rr6voydil"
+Content-Type: multipart/mixed; boundary="xdzahiu2xxcdo3jp"
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190827001452.31930-2-s-anna-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20190827001452.31930-3-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -22,7 +22,7 @@ Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t
 List-Id: linux-omap@vger.kernel.org
 
 
---vyy5p73rr6voydil
+--xdzahiu2xxcdo3jp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -31,7 +31,7 @@ Hi Suman,
 Thank you for the patch! Yet something to improve:
 
 [auto build test ERROR on arm/for-next]
-[cannot apply to v5.3-rc6 next-20190826]
+[cannot apply to v5.3-rc6 next-20190827]
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Suman-Anna/OMAP-IOMMU-fixes-to-go-with-5-4-OMAP-IOMMU-changes/20190827-121217
@@ -47,59 +47,79 @@ reproduce:
 If you fix the issue, kindly add following tag
 Reported-by: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-All error/warnings (new ones prefixed by >>):
+All errors (new ones prefixed by >>):
 
->> arch/arm/mach-omap2/pdata-quirks.c:92:3: error: 'struct iommu_platform_data' has no member named 'device_enable'
+   arch/arm/mach-omap2/pdata-quirks.c:92:3: error: 'struct iommu_platform_data' has no member named 'device_enable'
      .device_enable = omap_device_enable,
       ^~~~~~~~~~~~~
->> arch/arm/mach-omap2/pdata-quirks.c:92:19: warning: excess elements in struct initializer
+   arch/arm/mach-omap2/pdata-quirks.c:92:19: warning: excess elements in struct initializer
      .device_enable = omap_device_enable,
                       ^~~~~~~~~~~~~~~~~~
    arch/arm/mach-omap2/pdata-quirks.c:92:19: note: (near initialization for 'omap3_iommu_pdata')
->> arch/arm/mach-omap2/pdata-quirks.c:93:3: error: 'struct iommu_platform_data' has no member named 'device_idle'
+   arch/arm/mach-omap2/pdata-quirks.c:93:3: error: 'struct iommu_platform_data' has no member named 'device_idle'
      .device_idle = omap_device_idle,
       ^~~~~~~~~~~
    arch/arm/mach-omap2/pdata-quirks.c:93:17: warning: excess elements in struct initializer
      .device_idle = omap_device_idle,
                     ^~~~~~~~~~~~~~~~
    arch/arm/mach-omap2/pdata-quirks.c:93:17: note: (near initialization for 'omap3_iommu_pdata')
-   arch/arm/mach-omap2/pdata-quirks.c:429:3: error: 'struct iommu_platform_data' has no member named 'device_enable'
+   arch/arm/mach-omap2/pdata-quirks.c:97:3: error: 'struct iommu_platform_data' has no member named 'device_enable'
      .device_enable = omap_device_enable,
       ^~~~~~~~~~~~~
-   arch/arm/mach-omap2/pdata-quirks.c:429:19: warning: excess elements in struct initializer
+>> arch/arm/mach-omap2/pdata-quirks.c:97:19: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
      .device_enable = omap_device_enable,
                       ^~~~~~~~~~~~~~~~~~
-   arch/arm/mach-omap2/pdata-quirks.c:429:19: note: (near initialization for 'omap4_iommu_pdata')
-   arch/arm/mach-omap2/pdata-quirks.c:430:3: error: 'struct iommu_platform_data' has no member named 'device_idle'
+   arch/arm/mach-omap2/pdata-quirks.c:97:19: note: (near initialization for 'omap3_iommu_isp_pdata.reset_name')
+   arch/arm/mach-omap2/pdata-quirks.c:98:3: error: 'struct iommu_platform_data' has no member named 'device_idle'
      .device_idle = omap_device_idle,
       ^~~~~~~~~~~
-   arch/arm/mach-omap2/pdata-quirks.c:430:17: warning: excess elements in struct initializer
+   arch/arm/mach-omap2/pdata-quirks.c:98:17: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
      .device_idle = omap_device_idle,
                     ^~~~~~~~~~~~~~~~
-   arch/arm/mach-omap2/pdata-quirks.c:430:17: note: (near initialization for 'omap4_iommu_pdata')
+   arch/arm/mach-omap2/pdata-quirks.c:98:17: note: (near initialization for 'omap3_iommu_isp_pdata.assert_reset')
+   arch/arm/mach-omap2/pdata-quirks.c:434:3: error: 'struct iommu_platform_data' has no member named 'device_enable'
+     .device_enable = omap_device_enable,
+      ^~~~~~~~~~~~~
+   arch/arm/mach-omap2/pdata-quirks.c:434:19: warning: excess elements in struct initializer
+     .device_enable = omap_device_enable,
+                      ^~~~~~~~~~~~~~~~~~
+   arch/arm/mach-omap2/pdata-quirks.c:434:19: note: (near initialization for 'omap4_iommu_pdata')
+   arch/arm/mach-omap2/pdata-quirks.c:435:3: error: 'struct iommu_platform_data' has no member named 'device_idle'
+     .device_idle = omap_device_idle,
+      ^~~~~~~~~~~
+   arch/arm/mach-omap2/pdata-quirks.c:435:17: warning: excess elements in struct initializer
+     .device_idle = omap_device_idle,
+                    ^~~~~~~~~~~~~~~~
+   arch/arm/mach-omap2/pdata-quirks.c:435:17: note: (near initialization for 'omap4_iommu_pdata')
+   cc1: some warnings being treated as errors
 
-vim +92 arch/arm/mach-omap2/pdata-quirks.c
+vim +97 arch/arm/mach-omap2/pdata-quirks.c
 
     87	
     88	static struct iommu_platform_data omap3_iommu_pdata = {
     89		.reset_name = "mmu",
     90		.assert_reset = omap_device_assert_hardreset,
     91		.deassert_reset = omap_device_deassert_hardreset,
-  > 92		.device_enable = omap_device_enable,
+    92		.device_enable = omap_device_enable,
   > 93		.device_idle = omap_device_idle,
     94	};
     95	
+    96	static struct iommu_platform_data omap3_iommu_isp_pdata = {
+  > 97		.device_enable = omap_device_enable,
+    98		.device_idle = omap_device_idle,
+    99	};
+   100	
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---vyy5p73rr6voydil
+--xdzahiu2xxcdo3jp
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICPryZF0AAy5jb25maWcAjFxbk9s2sn7Pr1BtXnYfEoukbrOn5gEkQQkRQdAEKGnmBaWd
+H4sICIshZV0AAy5jb25maWcAjFxbk9s2sn7Pr1BtXnYfEoukbrOn5gEkQQkRQdAEKGnmBaWd
 yM7UzsU1o8na//40QJEEQFBJyhWbXzdujQb6AkA///TzBH2cX5+P58eH49PTj8nX08vp7Xg+
 /T758vh0+r9JyiYFExOcEvErMOePLx/fPx3fnifzX6Nfp7+8Pcwn29Pby+lpkry+fHn8+gGF
 H19ffvr5J/jzM4DP36Cet39PoMwvT6r0L19fPk7H/zz+8vXhYfLPdZL8a7L8dfbrFPgTVmRk
@@ -1422,11 +1442,11 @@ b+vq83SIfC0uy0xq7sUJPTsf5MCzeNvMQnOl9oO4HjMF9ePpXvus+eNbJypl46nM2OWZXntT
 JC+98giNzto77ygQRvdQarTZVg6owZDKZeORE+6U+5WXLB1HUyW+i8n3qtqFqzR5NEwMq9UV
 f3nByOTCHRiS2d5JrxJnVfJatQO3uDJeN7SpyFCKAlCjk8TMJyNKlML/AoyBb1UKiAQA
 
---vyy5p73rr6voydil
+--xdzahiu2xxcdo3jp
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---vyy5p73rr6voydil--
+--xdzahiu2xxcdo3jp--
