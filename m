@@ -1,60 +1,32 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 14/22] ARM: omap1: use pci_ioremap_io() for omap_cf
-Date: Tue, 27 Aug 2019 18:33:01 +0200
-Message-ID: <CAK8P3a3jqNxoihQ+UFvOZMg=AcF2yzHXs5ay6X1TZX8L3zQ3rg@mail.gmail.com>
-References: <20190808212234.2213262-1-arnd@arndb.de> <20190808212234.2213262-15-arnd@arndb.de>
- <20190813103605.GL52127@atomide.com> <CAK8P3a0E+QUn9wcP5Obv-FitWyXCFwcp+oPConeO2p-NV1rqsw@mail.gmail.com>
- <20190813181158.GA26798@darkstar.musicnaut.iki.fi> <CAK8P3a0LjKrc+7c5Ht9OL7LfYyLnG9=y7u+w24ujA1xAid_yCQ@mail.gmail.com>
- <20190814074918.GA52127@atomide.com> <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
- <20190816083403.GB1952@darkstar.musicnaut.iki.fi>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH] ARM: OMAP2+: Delete an unnecessary kfree() call in
+ omap_hsmmc_pdata_init()
+Date: Tue, 27 Aug 2019 20:14:57 +0200
+Message-ID: <20190827181457.GA16333@lenoch>
+References: <69025c8c-8d84-6686-138b-cde59467b802@web.de>
+ <20190826162050.GX52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190816083403.GB1952@darkstar.musicnaut.iki.fi>
+Content-Disposition: inline
+In-Reply-To: <20190826162050.GX52127@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Markus Elfring <Markus.Elfring@web.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishore Kadiyala <kishore.kadiyala@ti.com>, Russell King <linux@armlinux.org.uk>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Balaji T K <balajitk@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Nikolaus Schaller <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 16, 2019 at 10:34 AM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> On Wed, Aug 14, 2019 at 12:36:40PM +0200, Arnd Bergmann wrote:
-> > On Wed, Aug 14, 2019 at 9:49 AM Tony Lindgren <tony@atomide.com> wrote:
-> > > * Arnd Bergmann <arnd@arndb.de> [190813 19:34]:
-> > > > -#define OMAP1_IO_OFFSET                0x01000000      /* Virtual IO
-> > > > = 0xfefb0000 */
-> > > > +#define OMAP1_IO_OFFSET                0x00fb0000      /* Virtual IO
-> > > > = 0xff000000 */
-> > > >  #define OMAP1_IO_ADDRESS(pa)   IOMEM((pa) - OMAP1_IO_OFFSET)
-> > >
-> > > Oh OK yeah sounds like that's the issue.
-> > >
-> > > > There may be additional locations that hardcode the virtual address.
-> > >
-> > > Those should be in mach-omap1/io.c, and I recall innovator had some
-> > > hardcoded fpga address that should also be checked.
-> >
-> > I see four boards with hardcoded I/O addresses, but they are all below
-> > the PCI I/O virtual address range, and are not affected by that change.
-> >
-> > For the innovator FPGA access, this was ok, it uses the correct address
-> > in the OMAP1_IO_OFFSET range.
->
-> I tried testing this on OSK board. If I boot with earlyprintk disabled,
-> it boots OK and everything works (also CF card) with your playground
-> commit 5723b6686943.
->
-> However with earlyprintk it seems to hang as soon as kernel tries to print
-> something. So something goes wrong with early DEBUG_LL mapping code when
-> CONFIG_DEBUG_UART_VIRT=0xff000000 is used?
+On Mon, Aug 26, 2019 at 09:20:50AM -0700, Tony Lindgren wrote:
+> * Markus Elfring <Markus.Elfring@web.de> [190826 06:31]:
+> > From: Markus Elfring <elfring@users.sourceforge.net>
+> > Date: Mon, 26 Aug 2019 15:05:31 +0200
+> > 
+> > A null pointer would be passed to a call of the function "kfree" directly
+> > after a call of the function "kzalloc" failed at one place.
+> > Remove this superfluous function call.
+> > 
+> > This issue was detected by using the Coccinelle software.
+> 
+> Applying into omap-for-v5.4/soc thanks.
 
-I just redid the calculation and came out with the same address, so I
-don't think I put the wrong one there. The address also does not
-conflict with the PCI mapping, and the address is the same one that
-is installed later, so that should also be fine.
-
-Are you sure you used the correct address in the .config file? If you
-ran 'make oldconfig', the virtual address would not be changed here
-as I just modify the default for a fresh 'make omap1_defconfig'
-run or similar.
-
-        Arnd
+Is it really wise touching almost dead code? Last user is pandora board, so
++Cc: Nikolaus Schaller <hns@goldelico.com>
