@@ -1,8 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 06/11] soc: ti: omap-prm: support resets with no associated
- clockdomain
-Date: Wed, 28 Aug 2019 10:19:36 +0300
-Message-ID: <20190828071941.32378-7-t-kristo@ti.com>
+Subject: [PATCHv2 07/11] soc: ti: omap-prm: add omap4 PRM data
+Date: Wed, 28 Aug 2019 10:19:37 +0300
+Message-ID: <20190828071941.32378-8-t-kristo@ti.com>
 References: <20190828071941.32378-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,74 +21,48 @@ To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.k
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Typically hardware resets on TI SoCs are associated with a clockdomain
-which must be forced to be active while the reset is being de-asserted.
-Otherwise the reset may not de-assert properly leaving the IP in some
-weird metastate. However, some hardware reset lines don't have this
-association in place, so add support for a new PRM flag for this
-purpose.
+Add PRM data for omap4 family of SoCs. Initially this is just used to
+provide reset support.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/soc/ti/omap_prm.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/soc/ti/omap_prm.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index e876bad8f8d5..d7a29e282788 100644
+index d7a29e282788..192eeae67dfc 100644
 --- a/drivers/soc/ti/omap_prm.c
 +++ b/drivers/soc/ti/omap_prm.c
-@@ -56,6 +56,7 @@ struct omap_reset_data {
- 
- #define OMAP_PRM_HAS_RSTCTRL	BIT(0)
- #define OMAP_PRM_HAS_RSTST	BIT(1)
-+#define OMAP_PRM_HAS_NO_CLKDM	BIT(2)
+@@ -60,7 +60,29 @@ struct omap_reset_data {
  
  #define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
  
-@@ -162,7 +163,8 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
- 		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
- 	}
++static const struct omap_rst_map rst_map_01[] = {
++	{ .rst = 0, .st = 0 },
++	{ .rst = 1, .st = 1 },
++	{ .rst = -1 },
++};
++
++static const struct omap_rst_map rst_map_012[] = {
++	{ .rst = 0, .st = 0 },
++	{ .rst = 1, .st = 1 },
++	{ .rst = 2, .st = 2 },
++	{ .rst = -1 },
++};
++
++static const struct omap_prm_data omap4_prm_data[] = {
++	{ .name = "tesla", .base = 0x4a306400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
++	{ .name = "core", .base = 0x4a306700, .rstctrl = 0x210, .rstst = 0x214, .clkdm_name = "ducati", .rstmap = rst_map_012 },
++	{ .name = "ivahd", .base = 0x4a306f00, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_012 },
++	{ .name = "device", .base = 0x4a307b00, .rstctrl = 0x0, .rstst = 0x4, .rstmap = rst_map_01, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
++	{ },
++};
++
+ static const struct of_device_id omap_prm_id_table[] = {
++	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
+ 	{ },
+ };
  
--	pdata->clkdm_deny_idle(reset->clkdm);
-+	if (reset->clkdm)
-+		pdata->clkdm_deny_idle(reset->clkdm);
- 
- 	/* de-assert the reset control line */
- 	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
-@@ -200,7 +202,8 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
- 	}
- 
- exit:
--	pdata->clkdm_allow_idle(reset->clkdm);
-+	if (reset->clkdm)
-+		pdata->clkdm_allow_idle(reset->clkdm);
- 
- 	return ret;
- }
-@@ -229,7 +232,7 @@ static int omap_prm_reset_init(struct platform_device *pdev,
- 		return 0;
- 
- 	/* Check if we have the pdata callbacks in place */
--	if (!pdata->clkdm_lookup || !pdata->clkdm_deny_idle ||
-+	if (!pdata || !pdata->clkdm_lookup || !pdata->clkdm_deny_idle ||
- 	    !pdata->clkdm_allow_idle)
- 		return -EINVAL;
- 
-@@ -256,9 +259,11 @@ static int omap_prm_reset_init(struct platform_device *pdev,
- 	sprintf(buf, "%s_clkdm", prm->data->clkdm_name ? prm->data->clkdm_name :
- 		prm->data->name);
- 
--	reset->clkdm = pdata->clkdm_lookup(buf);
--	if (!reset->clkdm)
--		return -EINVAL;
-+	if (!(prm->data->flags & OMAP_PRM_HAS_NO_CLKDM)) {
-+		reset->clkdm = pdata->clkdm_lookup(buf);
-+		if (!reset->clkdm)
-+			return -EINVAL;
-+	}
- 
- 	while (map->rst >= 0) {
- 		reset->mask |= BIT(map->rst);
 -- 
 2.17.1
 
