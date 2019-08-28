@@ -1,7 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 01/11] dt-bindings: omap: add new binding for PRM instances
-Date: Wed, 28 Aug 2019 10:19:31 +0300
-Message-ID: <20190828071941.32378-2-t-kristo@ti.com>
+Subject: [PATCHv2 03/11] soc: ti: omap-prm: poll for reset complete during
+ de-assert
+Date: Wed, 28 Aug 2019 10:19:33 +0300
+Message-ID: <20190828071941.32378-4-t-kristo@ti.com>
 References: <20190828071941.32378-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,53 +22,52 @@ To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.k
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
-of these will act as a power domain controller and potentially as a reset
-provider.
+Poll for reset completion status during de-assertion of reset, otherwise
+the IP in question might be accessed before it has left reset properly.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
- 1 file changed, 31 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+ drivers/soc/ti/omap_prm.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-new file mode 100644
-index 000000000000..7c7527c37734
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-@@ -0,0 +1,31 @@
-+OMAP PRM instance bindings
+diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+index fd5c431f8736..afeb70761b27 100644
+--- a/drivers/soc/ti/omap_prm.c
++++ b/drivers/soc/ti/omap_prm.c
+@@ -127,6 +127,7 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+ 	u32 v;
+ 	int st_bit;
+ 	bool has_rstst;
++	int timeout = 0;
+ 
+ 	if (!_is_valid_reset(reset, id))
+ 		return -EINVAL;
+@@ -153,6 +154,25 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+ 	v &= ~(1 << id);
+ 	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
+ 
++	if (!has_rstst)
++		return 0;
 +
-+Power and Reset Manager is an IP block on OMAP family of devices which
-+handle the power domains and their current state, and provide reset
-+handling for the domains and/or separate IP blocks under the power domain
-+hierarchy.
++	/* wait for the status to be set */
++	while (1) {
++		v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
++		v &= 1 << st_bit;
++		if (v)
++			break;
++		timeout++;
++		if (timeout > OMAP_RESET_MAX_WAIT) {
++			pr_err("%s: timedout waiting for %s:%lu\n", __func__,
++			       dev_name(rcdev->dev), id);
++			return -EBUSY;
++		}
 +
-+Required properties:
-+- compatible:	Must be one of:
-+		"ti,am3-prm-inst"
-+		"ti,am4-prm-inst"
-+		"ti,omap4-prm-inst"
-+		"ti,omap5-prm-inst"
-+		"ti,dra7-prm-inst"
-+- reg:		Contains PRM instance register address range
-+		(base address and length)
++		udelay(1);
++	}
 +
-+Optional properties:
-+- #reset-cells:	Should be 1 if the PRM instance in question supports resets.
-+- clocks:	Associated clocks for the reset signals if any. Certain reset
-+		signals can't be toggled properly without functional clock
-+		being active for them.
-+
-+Example:
-+
-+prm_dsp2: prm@1b00 {
-+	compatible = "ti,dra7-prm-inst";
-+	reg = <0x1b00 0x40>;
-+	#reset-cells = <1>;
-+	clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
-+};
+ 	return 0;
+ }
+ 
 -- 
 2.17.1
 
