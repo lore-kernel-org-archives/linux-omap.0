@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 02/10] ARM: dts: dra7: add PRM nodes
-Date: Wed, 28 Aug 2019 10:56:36 +0300
-Message-ID: <20190828075644.4493-3-t-kristo@ti.com>
+Subject: [PATCH 03/10] ARM: dts: omap4: add PRM nodes
+Date: Wed, 28 Aug 2019 10:56:37 +0300
+Message-ID: <20190828075644.4493-4-t-kristo@ti.com>
 References: <20190828075644.4493-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,77 +21,65 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM nodes for dra7 series of SoCs. These are initially used to
+Add PRM nodes for omap4 series of SoCs. These are initially used to
 support reset control for some of the nodes, but will be extended
 later to add powerdomain control and support for PRCM irqs among
 other things.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 55 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ arch/arm/boot/dts/omap4-l4.dtsi |  2 +-
+ arch/arm/boot/dts/omap4.dtsi    | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 953f0ffce2a9..95147289be9c 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -763,3 +763,58 @@
+diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
+index bea05dc4ef0f..0977bc39955b 100644
+--- a/arch/arm/boot/dts/omap4-l4.dtsi
++++ b/arch/arm/boot/dts/omap4-l4.dtsi
+@@ -981,7 +981,7 @@
+ 			ranges = <0x0 0x6000 0x2000>;
  
- #include "dra7-l4.dtsi"
- #include "dra7xx-clocks.dtsi"
+ 			prm: prm@0 {
+-				compatible = "ti,omap4-prm";
++				compatible = "ti,omap4-prm", "simple-bus";
+ 				reg = <0x0 0x2000>;
+ 				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
+ 				#address-cells = <1>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index c43e52fd5f65..e377f66fc322 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -443,3 +443,32 @@
+ #include "omap4-l4.dtsi"
+ #include "omap4-l4-abe.dtsi"
+ #include "omap44xx-clocks.dtsi"
 +
 +&prm {
-+	prm_dsp1: prm@400 {
-+		compatible = "ti,dra7-prm-inst";
++	prm_tesla: prm@400 {
++		compatible = "ti,omap4-prm-inst";
 +		reg = <0x400 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&dsp1_clkctrl DRA7_DSP1_MMU0_DSP1_CLKCTRL 0>;
-+	};
-+
-+	prm_ipu: prm@500 {
-+		compatible = "ti,dra7-prm-inst";
-+		reg = <0x500 0x100>;
-+		#reset-cells = <1>;
-+		clocks = <&ipu1_clkctrl DRA7_IPU1_MMU_IPU1_CLKCTRL 0>;
++		clocks = <&tesla_clkctrl OMAP4_DSP_CLKCTRL 0>;
 +	};
 +
 +	prm_core: prm@700 {
-+		compatible = "ti,dra7-prm-inst";
++		compatible = "ti,omap4-prm-inst";
 +		reg = <0x700 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&ipu2_clkctrl DRA7_IPU2_MMU_IPU2_CLKCTRL 0>;
++		clocks = <&ducati_clkctrl OMAP4_IPU_CLKCTRL 0>;
 +	};
 +
-+	prm_iva: prm@f00 {
-+		compatible = "ti,dra7-prm-inst";
++	prm_ivahd: prm@f00 {
++		compatible = "ti,omap4-prm-inst";
 +		reg = <0xf00 0x100>;
++		#reset-cells = <1>;
++		clocks = <&ivahd_clkctrl OMAP4_IVA_CLKCTRL 0>;
 +	};
 +
-+	prm_dsp2: prm@1b00 {
-+		compatible = "ti,dra7-prm-inst";
++	prm_device: prm@1b00 {
++		compatible = "ti,omap4-prm-inst";
 +		reg = <0x1b00 0x40>;
 +		#reset-cells = <1>;
-+		clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
-+	};
-+
-+	prm_eve1: prm@1b40 {
-+		compatible = "ti,dra7-prm-inst";
-+		reg = <0x1b40 0x40>;
-+	};
-+
-+	prm_eve2: prm@1b80 {
-+		compatible = "ti,dra7-prm-inst";
-+		reg = <0x1b80 0x40>;
-+	};
-+
-+	prm_eve3: prm@1bc0 {
-+		compatible = "ti,dra7-prm-inst";
-+		reg = <0x1bc0 0x40>;
-+	};
-+
-+	prm_eve4: prm@1c00 {
-+		compatible = "ti,dra7-prm-inst";
-+		reg = <0x1c00 0x60>;
 +	};
 +};
 -- 
