@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 08/11] soc: ti: omap-prm: add data for am33xx
-Date: Wed, 28 Aug 2019 10:19:38 +0300
-Message-ID: <20190828071941.32378-9-t-kristo@ti.com>
+Subject: [PATCHv2 09/11] soc: ti: omap-prm: add dra7 PRM data
+Date: Wed, 28 Aug 2019 10:19:39 +0300
+Message-ID: <20190828071941.32378-10-t-kristo@ti.com>
 References: <20190828071941.32378-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,58 +21,46 @@ To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.k
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM instance data for AM33xx SoC. Includes some basic register
-definitions and reset data for now.
+Add PRM instance data for dra7 family of SoCs. Initially this is just
+used to provide reset support.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/soc/ti/omap_prm.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/soc/ti/omap_prm.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index 192eeae67dfc..c4b33214bce1 100644
+index c4b33214bce1..a54c2e556b7a 100644
 --- a/drivers/soc/ti/omap_prm.c
 +++ b/drivers/soc/ti/omap_prm.c
-@@ -60,6 +60,11 @@ struct omap_reset_data {
- 
- #define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
- 
-+static const struct omap_rst_map rst_map_0[] = {
-+	{ .rst = 0, .st = 0 },
-+	{ .rst = -1 },
-+};
-+
- static const struct omap_rst_map rst_map_01[] = {
- 	{ .rst = 0, .st = 0 },
- 	{ .rst = 1, .st = 1 },
-@@ -81,8 +86,27 @@ static const struct omap_prm_data omap4_prm_data[] = {
+@@ -86,6 +86,19 @@ static const struct omap_prm_data omap4_prm_data[] = {
  	{ },
  };
  
-+static const struct omap_rst_map am3_per_rst_map[] = {
-+	{ .rst = 1 },
-+	{ .rst = -1 },
-+};
-+
-+static const struct omap_rst_map am3_wkup_rst_map[] = {
-+	{ .rst = 3, .st = 5 },
-+	{ .rst = -1 },
-+};
-+
-+static const struct omap_prm_data am3_prm_data[] = {
-+	{ .name = "per", .base = 0x44e00c00, .rstctrl = 0x0, .rstmap = am3_per_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL, .clkdm_name = "pruss_ocp" },
-+	{ .name = "wkup", .base = 0x44e00d00, .rstctrl = 0x0, .rstst = 0xc, .rstmap = am3_wkup_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
-+	{ .name = "device", .base = 0x44e00f00, .rstctrl = 0x0, .rstst = 0x8, .rstmap = rst_map_01, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
-+	{ .name = "gfx", .base = 0x44e01100, .rstctrl = 0x4, .rstst = 0x14, .rstmap = rst_map_0, .clkdm_name = "gfx_l3" },
++static const struct omap_prm_data dra7_prm_data[] = {
++	{ .name = "dsp1", .base = 0x4ae06400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
++	{ .name = "ipu", .base = 0x4ae06500, .rstctrl = 0x10, .rstst = 0x14, .clkdm_name = "ipu1", .rstmap = rst_map_012 },
++	{ .name = "core", .base = 0x4ae06700, .rstctrl = 0x210, .rstst = 0x214, .clkdm_name = "ipu2", .rstmap = rst_map_012 },
++	{ .name = "iva", .base = 0x4ae06f00, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_012 },
++	{ .name = "dsp2", .base = 0x4ae07b00, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
++	{ .name = "eve1", .base = 0x4ae07b40, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
++	{ .name = "eve2", .base = 0x4ae07b80, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
++	{ .name = "eve3", .base = 0x4ae07bc0, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
++	{ .name = "eve4", .base = 0x4ae07c00, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
 +	{ },
 +};
 +
+ static const struct omap_rst_map am3_per_rst_map[] = {
+ 	{ .rst = 1 },
+ 	{ .rst = -1 },
+@@ -106,6 +119,7 @@ static const struct omap_prm_data am3_prm_data[] = {
+ 
  static const struct of_device_id omap_prm_id_table[] = {
  	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
-+	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
++	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
+ 	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
  	{ },
  };
- 
 -- 
 2.17.1
 
