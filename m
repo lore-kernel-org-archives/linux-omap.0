@@ -1,122 +1,72 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 10/10] ARM: dts: omap5: convert IOMMUs to use ti-sysc
-Date: Wed, 28 Aug 2019 10:56:44 +0300
-Message-ID: <20190828075644.4493-11-t-kristo@ti.com>
-References: <20190828075644.4493-1-t-kristo@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 14/22] ARM: omap1: use pci_ioremap_io() for omap_cf
+Date: Wed, 28 Aug 2019 15:02:36 +0200
+Message-ID: <CAK8P3a1PeBMRuweAmzrTQC85CmwdZPirG3HPg9aJ99p2U7zknQ@mail.gmail.com>
+References: <20190808212234.2213262-1-arnd@arndb.de> <20190808212234.2213262-15-arnd@arndb.de>
+ <20190813103605.GL52127@atomide.com> <CAK8P3a0E+QUn9wcP5Obv-FitWyXCFwcp+oPConeO2p-NV1rqsw@mail.gmail.com>
+ <20190813181158.GA26798@darkstar.musicnaut.iki.fi> <CAK8P3a0LjKrc+7c5Ht9OL7LfYyLnG9=y7u+w24ujA1xAid_yCQ@mail.gmail.com>
+ <20190814074918.GA52127@atomide.com> <CAK8P3a3k_HOGqzMGjtc+7NSaK0Bsa_vxxRFLzY8aP6ev4wa9iA@mail.gmail.com>
+ <20190816083403.GB1952@darkstar.musicnaut.iki.fi> <CAK8P3a3jqNxoihQ+UFvOZMg=AcF2yzHXs5ay6X1TZX8L3zQ3rg@mail.gmail.com>
+ <20190827190453.GJ30291@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190828075644.4493-1-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190827190453.GJ30291@darkstar.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Convert omap5 IOMMUs to use ti-sysc instead of legacy omap-hwmod based
-implementation. Enable the IOMMUs also while doing this.
+On Tue, Aug 27, 2019 at 9:05 PM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+> On Tue, Aug 27, 2019 at 06:33:01PM +0200, Arnd Bergmann wrote:
+> > On Fri, Aug 16, 2019 at 10:34 AM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+> > > However with earlyprintk it seems to hang as soon as kernel tries to print
+> > > something. So something goes wrong with early DEBUG_LL mapping code when
+> > > CONFIG_DEBUG_UART_VIRT=0xff000000 is used?
+> >
+> > I just redid the calculation and came out with the same address, so I
+> > don't think I put the wrong one there. The address also does not
+> > conflict with the PCI mapping, and the address is the same one that
+> > is installed later, so that should also be fine.
+> >
+> > Are you sure you used the correct address in the .config file? If you
+> > ran 'make oldconfig', the virtual address would not be changed here
+> > as I just modify the default for a fresh 'make omap1_defconfig'
+> > run or similar.
+>
+> Yes... You should be able to try this out also in QEMU to see the hang:
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/boot/dts/omap5-l4.dtsi | 11 ++++++---
- arch/arm/boot/dts/omap5.dtsi    | 40 +++++++++++++++++++++------------
- 2 files changed, 34 insertions(+), 17 deletions(-)
+Haven't tried yet, but I took a look at the dump:
 
-diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
-index 0960348002ad..80c2d2fcc03b 100644
---- a/arch/arm/boot/dts/omap5-l4.dtsi
-+++ b/arch/arm/boot/dts/omap5-l4.dtsi
-@@ -349,7 +349,6 @@
- 
- 		target-module@66000 {			/* 0x4a066000, ap 23 0a.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "mmu_dsp";
- 			reg = <0x66000 0x4>,
- 			      <0x66010 0x4>,
- 			      <0x66014 0x4>;
-@@ -364,12 +363,18 @@
- 			/* Domains (V, P, C): mm, dsp_pwrdm, dsp_clkdm */
- 			clocks = <&dsp_clkctrl OMAP5_MMU_DSP_CLKCTRL 0>;
- 			clock-names = "fck";
-+			resets = <&prm_dsp 1>;
-+			reset-names = "rstctrl";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x66000 0x1000>;
- 
--			/* mmu_dsp cannot be moved before reset driver */
--			status = "disabled";
-+			mmu_dsp: mmu@0 {
-+				compatible = "ti,omap4-iommu";
-+				reg = <0x0 0x100>;
-+				interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
-+				#iommu-cells = <0>;
-+			};
- 		};
- 
- 		target-module@70000 {			/* 0x4a070000, ap 79 2e.0 */
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index c8bde171a949..05929d59b0af 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -186,21 +186,33 @@
- 			#gpio-cells = <2>;
- 		};
- 
--		mmu_dsp: mmu@4a066000 {
--			compatible = "ti,omap4-iommu";
--			reg = <0x4a066000 0x100>;
--			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
--			ti,hwmods = "mmu_dsp";
--			#iommu-cells = <0>;
--		};
-+		target-module@55082000 {
-+			compatible = "ti,sysc-omap2", "ti,sysc";
-+			reg = <0x55082000 0x4>,
-+			      <0x55082010 0x4>,
-+			      <0x55082014 0x4>;
-+			reg-names = "rev", "sysc", "syss";
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-+					 SYSC_OMAP2_SOFTRESET |
-+					 SYSC_OMAP2_AUTOIDLE)>;
-+			clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
-+			clock-names = "fck";
-+			resets = <&prm_core 2>;
-+			reset-names = "rstctrl";
-+			ranges = <0x0 0x55082000 0x100>;
-+			#size-cells = <1>;
-+			#address-cells = <1>;
- 
--		mmu_ipu: mmu@55082000 {
--			compatible = "ti,omap4-iommu";
--			reg = <0x55082000 0x100>;
--			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
--			ti,hwmods = "mmu_ipu";
--			#iommu-cells = <0>;
--			ti,iommu-bus-err-back;
-+			mmu_ipu: mmu@0 {
-+				compatible = "ti,omap4-iommu";
-+				reg = <0x0 0x100>;
-+				interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
-+				#iommu-cells = <0>;
-+				ti,iommu-bus-err-back;
-+			};
- 		};
- 
- 		dmm@4e000000 {
--- 
-2.17.1
+> $ qemu-system-arm -M sx1 -kernel sx1-zImage -nographic
+>
+> [ Hangs silently, press Ctrl-a c to enter monitor. ]
+>
+> QEMU 4.1.0 monitor - type 'help' for more information
+> (qemu) info registers
+> R00=c0379de1 R01=0000005b R02=00000000 R03=ff000000
+> R04=00000000 R05=00000031 R06=c038f119 R07=00000000
+> R08=00000000 R09=c038f50e R10=600001d3 R11=00000001
+> R12=00000010 R13=c0379de0 R14=c000e07c R15=c000dfcc
+> PSR=000001d3 ---- A svc32
+> FPSCR: 00000000
+>
+> from System.map:
+> c000df7c T printascii
+> c000dfe0 T printch
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Ok, that is clearly the "busyloop" macro in
+arch/arm/include/debug/8250.S, checking if the data got sent.
+
+The 'r2' register contains zero, so UART_LSR_TEMT and
+UART_LSR_THRE are not set, but presumably the mapping
+was installed right since you did not get a page fault.
+
+I assume you checked that the uart output wasn't already broken
+by one of the earlier patches, right?
+
+Also, looking at arch/arm/mach-omap1/include/mach/uncompress.h
+it seems that SX1 normally uses UART3, not UART1.
+Is that different in qemu?
+
+        Arnd
