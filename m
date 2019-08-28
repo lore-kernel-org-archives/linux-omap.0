@@ -1,128 +1,307 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
-Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
- OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
-Date: Tue, 20 Aug 2019 09:09:03 +0200
-Message-ID: <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
-References: <20180108214032.GW3872@atomide.com>
- <0b00ce0a-969f-e638-8247-c2da96cf7ce6@gmail.com>
- <20190213004143.GP5720@atomide.com>
- <480AB632-A544-41E7-95A4-DC354AEBB71A@goldelico.com>
- <CAKpie0SigGGsQxSU+X-Mz5boy-Xx=3wRNOcrf+F=ehFr3RBi7Q@mail.gmail.com>
- <092210C3-05DE-4AFB-986F-81BD8F990B67@goldelico.com>
- <CAKpie0RXM1UC33YFeFy-kAxfGhYGNkw4vUgNTThf-ZCAhPTVXw@mail.gmail.com>
- <BE23C1E4-2877-49FA-B230-F9C10691B805@goldelico.com>
- <CAKpie0TSo-8gmDm9_Zw4Sd+kjVVEomp8yA9Vu8qY2U2AcrQc=w@mail.gmail.com>
- <8A069D96-C65F-43F5-8F54-20019CFB1A8D@goldelico.com>
- <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
- <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com>
- <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
- <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
- <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
- <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
- <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
- <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv2 02/11] soc: ti: add initial PRM driver with reset control
+ support
+Date: Wed, 28 Aug 2019 10:19:32 +0300
+Message-ID: <20190828071941.32378-3-t-kristo@ti.com>
+References: <20190828071941.32378-1-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="jtGyfkLCCVCpHa0CRw28H4yJodhADJ6QS"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Adam Ford <aford173@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Pawe=c5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Philipp Rossak <embed3d@gmail.com>, moaz korena <moaz@korena.xyz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190828071941.32378-1-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, p.zabel@pengutronix.de
+Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---jtGyfkLCCVCpHa0CRw28H4yJodhADJ6QS
-Content-Type: multipart/mixed; boundary="XMWJxZweNWQ51obQd6sIXuWNdA7y9N8gm";
- protected-headers="v1"
-From: Merlijn Wajer <merlijn@wizzup.org>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Adam Ford <aford173@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>,
- =?UTF-8?Q?Pawe=c5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>,
- Philipp Rossak <embed3d@gmail.com>, moaz korena <moaz@korena.xyz>,
- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
- =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>,
- Tomi Valkeinen <tomi.valkeinen@ti.com>,
- linux-omap <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com,
- Discussions about the Letux Kernel <letux-kernel@openphoenux.org>,
- maemo-leste@lists.dyne.org,
- Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Message-ID: <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
-Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
- OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
-References: <20180108214032.GW3872@atomide.com>
- <4d99c1ae-7752-949b-7e88-bc8f1dc594a2@wizzup.org>
- <0C51EC59-9CDC-4196-ACF9-24596C9E61B6@goldelico.com>
- <FA4520D5-62CB-446D-975C-A1C7B9251517@goldelico.com>
- <20190212205132.GO5720@atomide.com>
- <0b00ce0a-969f-e638-8247-c2da96cf7ce6@gmail.com>
- <20190213004143.GP5720@atomide.com>
- <480AB632-A544-41E7-95A4-DC354AEBB71A@goldelico.com>
- <CAKpie0SigGGsQxSU+X-Mz5boy-Xx=3wRNOcrf+F=ehFr3RBi7Q@mail.gmail.com>
- <092210C3-05DE-4AFB-986F-81BD8F990B67@goldelico.com>
- <CAKpie0RXM1UC33YFeFy-kAxfGhYGNkw4vUgNTThf-ZCAhPTVXw@mail.gmail.com>
- <BE23C1E4-2877-49FA-B230-F9C10691B805@goldelico.com>
- <CAKpie0TSo-8gmDm9_Zw4Sd+kjVVEomp8yA9Vu8qY2U2AcrQc=w@mail.gmail.com>
- <8A069D96-C65F-43F5-8F54-20019CFB1A8D@goldelico.com>
- <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
- <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com>
- <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
- <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
- <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
- <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
- <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
- <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
-In-Reply-To: <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
+Add initial PRM (Power and Reset Management) driver for TI OMAP class
+SoCs. Initially this driver only supports reset control, but can be
+extended to support rest of the functionality, like powerdomain
+control, PRCM irq support etc.
 
---XMWJxZweNWQ51obQd6sIXuWNdA7y9N8gm
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/Kconfig |   1 +
+ drivers/soc/ti/Makefile     |   1 +
+ drivers/soc/ti/omap_prm.c   | 235 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 237 insertions(+)
+ create mode 100644 drivers/soc/ti/omap_prm.c
 
-Hi,
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index fdb6743760a2..ad08d470a2ca 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -109,6 +109,7 @@ config ARCH_OMAP2PLUS
+ 	select TI_SYSC
+ 	select OMAP_IRQCHIP
+ 	select CLKSRC_TI_32K
++	select ARCH_HAS_RESET_CONTROLLER
+ 	help
+ 	  Systems based on OMAP2, OMAP3, OMAP4 or OMAP5
+ 
+diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
+index b3868d392d4f..788b5cd1e180 100644
+--- a/drivers/soc/ti/Makefile
++++ b/drivers/soc/ti/Makefile
+@@ -6,6 +6,7 @@ obj-$(CONFIG_KEYSTONE_NAVIGATOR_QMSS)	+= knav_qmss.o
+ knav_qmss-y := knav_qmss_queue.o knav_qmss_acc.o
+ obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
+ obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
++obj-$(CONFIG_ARCH_OMAP2PLUS)		+= omap_prm.o
+ obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
+ obj-$(CONFIG_TI_SCI_PM_DOMAINS)		+= ti_sci_pm_domains.o
+ obj-$(CONFIG_TI_SCI_INTA_MSI_DOMAIN)	+= ti_sci_inta_msi.o
+diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+new file mode 100644
+index 000000000000..fd5c431f8736
+--- /dev/null
++++ b/drivers/soc/ti/omap_prm.c
+@@ -0,0 +1,235 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * OMAP2+ PRM driver
++ *
++ * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
++ *	Tero Kristo <t-kristo@ti.com>
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/io.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/reset-controller.h>
++#include <linux/delay.h>
++
++struct omap_rst_map {
++	s8 rst;
++	s8 st;
++};
++
++struct omap_prm_data {
++	u32 base;
++	const char *name;
++	u16 rstctrl;
++	u16 rstst;
++	const struct omap_rst_map *rstmap;
++	u8 flags;
++};
++
++struct omap_prm {
++	const struct omap_prm_data *data;
++	void __iomem *base;
++};
++
++struct omap_reset_data {
++	struct reset_controller_dev rcdev;
++	struct omap_prm *prm;
++};
++
++#define to_omap_reset_data(p) container_of((p), struct omap_reset_data, rcdev)
++
++#define OMAP_MAX_RESETS		8
++#define OMAP_RESET_MAX_WAIT	10000
++
++#define OMAP_PRM_HAS_RSTCTRL	BIT(0)
++#define OMAP_PRM_HAS_RSTST	BIT(1)
++
++#define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
++
++static const struct of_device_id omap_prm_id_table[] = {
++	{ },
++};
++
++static bool _is_valid_reset(struct omap_reset_data *reset, unsigned long id)
++{
++	const struct omap_rst_map *map = reset->prm->data->rstmap;
++
++	while (map && map->rst >= 0) {
++		if (map->rst == id)
++			return true;
++		map++;
++	}
++
++	return false;
++}
++
++static int omap_reset_status(struct reset_controller_dev *rcdev,
++			     unsigned long id)
++{
++	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
++	u32 v;
++
++	if (!_is_valid_reset(reset, id))
++		return -EINVAL;
++
++	v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
++	v &= 1 << id;
++	v >>= id;
++
++	return v;
++}
++
++static int omap_reset_assert(struct reset_controller_dev *rcdev,
++			     unsigned long id)
++{
++	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
++	u32 v;
++
++	if (!_is_valid_reset(reset, id))
++		return -EINVAL;
++
++	/* assert the reset control line */
++	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
++	v |= 1 << id;
++	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
++
++	return 0;
++}
++
++static int omap_reset_get_st_bit(struct omap_reset_data *reset,
++				 unsigned long id)
++{
++	const struct omap_rst_map *map = reset->prm->data->rstmap;
++
++	while (map && map->rst >= 0) {
++		if (map->rst == id)
++			return map->st;
++
++		map++;
++	}
++
++	return id;
++}
++
++/*
++ * Note that status will not change until clocks are on, and clocks cannot be
++ * enabled until reset is deasserted. Consumer drivers must check status
++ * separately after enabling clocks.
++ */
++static int omap_reset_deassert(struct reset_controller_dev *rcdev,
++			       unsigned long id)
++{
++	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
++	u32 v;
++	int st_bit;
++	bool has_rstst;
++
++	if (!_is_valid_reset(reset, id))
++		return -EINVAL;
++
++	/* check the current status to avoid de-asserting the line twice */
++	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
++	if (!(v & BIT(id)))
++		return -EEXIST;
++
++	has_rstst = reset->prm->data->rstst ||
++		(reset->prm->data->flags & OMAP_PRM_HAS_RSTST);
++
++	if (has_rstst) {
++		st_bit = omap_reset_get_st_bit(reset, id);
++
++		/* Clear the reset status by writing 1 to the status bit */
++		v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
++		v |= 1 << st_bit;
++		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
++	}
++
++	/* de-assert the reset control line */
++	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
++	v &= ~(1 << id);
++	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
++
++	return 0;
++}
++
++static const struct reset_control_ops omap_reset_ops = {
++	.assert		= omap_reset_assert,
++	.deassert	= omap_reset_deassert,
++	.status		= omap_reset_status,
++};
++
++static int omap_prm_reset_init(struct platform_device *pdev,
++			       struct omap_prm *prm)
++{
++	struct omap_reset_data *reset;
++
++	/*
++	 * Check if we have controllable resets. If either rstctrl is non-zero
++	 * or OMAP_PRM_HAS_RSTCTRL flag is set, we have reset control register
++	 * for the domain.
++	 */
++	if (!prm->data->rstctrl && !(prm->data->flags & OMAP_PRM_HAS_RSTCTRL))
++		return 0;
++
++	reset = devm_kzalloc(&pdev->dev, sizeof(*reset), GFP_KERNEL);
++	if (!reset)
++		return -ENOMEM;
++
++	reset->rcdev.owner = THIS_MODULE;
++	reset->rcdev.ops = &omap_reset_ops;
++	reset->rcdev.of_node = pdev->dev.of_node;
++	reset->rcdev.nr_resets = OMAP_MAX_RESETS;
++
++	reset->prm = prm;
++
++	return devm_reset_controller_register(&pdev->dev, &reset->rcdev);
++}
++
++static int omap_prm_probe(struct platform_device *pdev)
++{
++	struct resource *res;
++	const struct omap_prm_data *data;
++	struct omap_prm *prm;
++	const struct of_device_id *match;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	match = of_match_device(omap_prm_id_table, &pdev->dev);
++	if (!match)
++		return -ENOTSUPP;
++
++	prm = devm_kzalloc(&pdev->dev, sizeof(*prm), GFP_KERNEL);
++	if (!prm)
++		return -ENOMEM;
++
++	data = match->data;
++
++	while (data->base != res->start) {
++		if (!data->base)
++			return -EINVAL;
++		data++;
++	}
++
++	prm->data = data;
++
++	prm->base = devm_ioremap_resource(&pdev->dev, res);
++	if (!prm->base)
++		return -ENOMEM;
++
++	return omap_prm_reset_init(pdev, prm);
++}
++
++static struct platform_driver omap_prm_driver = {
++	.probe = omap_prm_probe,
++	.driver = {
++		.name		= KBUILD_MODNAME,
++		.of_match_table	= omap_prm_id_table,
++	},
++};
++builtin_platform_driver(omap_prm_driver);
+-- 
+2.17.1
 
-On 20/08/2019 08:48, H. Nikolaus Schaller wrote:
->=20
->> Am 19.08.2019 um 21:43 schrieb Adam Ford <aford173@gmail.com>:
->>
->>> Thanks to the help from the Pyra community, I was able to get a (bina=
-ry) reference
->>> implementation using DRM that works on Pyra/OMAP5. At least the gles1=
-test1.
->>
->> just a question,
->>
->> If DRM is working, does that mean it works without needing the overhea=
-d of X?
->=20
-> Yes, we have to kill X11 to successfully run the gles1test1. An interes=
-ting question
-> will be how to mix both... E.g. have a 3D rendering in a window control=
-led by some
-> window manager.
->=20
-
-This is probably what you want to look at / start with:
-https://github.com/TexasInstruments/dri3wsegl
-
-Cheers,
-Merlijn
-
-
---XMWJxZweNWQ51obQd6sIXuWNdA7y9N8gm--
-
---jtGyfkLCCVCpHa0CRw28H4yJodhADJ6QS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXVucjwAKCRAGN09rynK8
-WmPbAQDdulrAiF+QGYfkiYQoh0UpqMR/qVCcl6BjbVm3WBTfaQD7BFd9qGivO+lm
-cAI3kCSaiHUxD8NzVg3xv5jde9HR6As=
-=22xx
------END PGP SIGNATURE-----
-
---jtGyfkLCCVCpHa0CRw28H4yJodhADJ6QS--
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
