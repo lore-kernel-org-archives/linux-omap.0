@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 05/10] ARM: dts: am43xx: Add PRM data
-Date: Wed, 28 Aug 2019 10:56:39 +0300
-Message-ID: <20190828075644.4493-6-t-kristo@ti.com>
+Subject: [PATCH 06/10] ARM: dts: omap5: Add PRM data
+Date: Wed, 28 Aug 2019 10:56:40 +0300
+Message-ID: <20190828075644.4493-7-t-kristo@ti.com>
 References: <20190828075644.4493-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,48 +21,49 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM data for AM43xx SoC. Initially this is used to provide reset
+Add PRM data for OMAP54xx SoC. Initially this is used to provide reset
 support, but will be expanded later to support also powerdomain control.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ arch/arm/boot/dts/omap5.dtsi | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 55aff4db9c7c..4bd22c6ba3ff 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -353,3 +353,32 @@
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index edfd26c03462..c8bde171a949 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -412,3 +412,33 @@
  
- #include "am437x-l4.dtsi"
- #include "am43xx-clocks.dtsi"
+ #include "omap5-l4-abe.dtsi"
+ #include "omap54xx-clocks.dtsi"
 +
-+&prcm {
-+	prm_gfx: prm@400 {
-+		compatible = "ti,am4-prm-inst";
++&prm {
++	prm_dsp: prm@400 {
++		compatible = "ti,omap5-prm-inst";
 +		reg = <0x400 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&gfx_l3_clkctrl AM4_GFX_L3_GFX_CLKCTRL 0>;
++		clocks = <&dsp_clkctrl OMAP5_MMU_DSP_CLKCTRL 0>;
++
 +	};
 +
-+	prm_per: prm@800 {
-+		compatible = "ti,am4-prm-inst";
-+		reg = <0x800 0x100>;
++	prm_core: prm@700 {
++		compatible = "ti,omap5-prm-inst";
++		reg = <0x700 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&pruss_ocp_clkctrl AM4_PRUSS_OCP_PRUSS_CLKCTRL 0>;
++		clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
 +	};
 +
-+	prm_wkup: prm@2000 {
-+		compatible = "ti,am4-prm-inst";
-+		reg = <0x2000 0x100>;
++	prm_iva: prm@1200 {
++		compatible = "ti,omap5-prm-inst";
++		reg = <0x1200 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&l4_wkup_aon_clkctrl AM4_L4_WKUP_AON_WKUP_M3_CLKCTRL 0>;
++		clocks = <&iva_clkctrl OMAP5_IVA_CLKCTRL 0>;
 +	};
 +
-+	prm_device: prm@4000 {
-+		compatible = "ti,am4-prm-inst";
-+		reg = <0x4000 0x100>;
++	prm_device: prm@1c00 {
++		compatible = "ti,omap5-prm-inst";
++		reg = <0x1c00 0x100>;
 +		#reset-cells = <1>;
 +	};
 +};
