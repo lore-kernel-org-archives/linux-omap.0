@@ -1,7 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 05/11] soc: ti: omap-prm: sync func clock status with resets
-Date: Wed, 28 Aug 2019 10:19:35 +0300
-Message-ID: <20190828071941.32378-6-t-kristo@ti.com>
+Subject: [PATCHv2 06/11] soc: ti: omap-prm: support resets with no associated
+ clockdomain
+Date: Wed, 28 Aug 2019 10:19:36 +0300
+Message-ID: <20190828071941.32378-7-t-kristo@ti.com>
 References: <20190828071941.32378-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,120 +22,74 @@ To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.k
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hardware reset signals are tightly coupled with associated clocks, and
-basically de-asserting a reset won't succeed properly if the clock is
-not enabled, and vice-versa. Also, disabling a clock won't fully succeed
-if the associated hardware resets are not asserted. Add status sync
-functionality between these two for TI drivers so that the situations
-can be handled properly without generating any timeouts.
+Typically hardware resets on TI SoCs are associated with a clockdomain
+which must be forced to be active while the reset is being de-asserted.
+Otherwise the reset may not de-assert properly leaving the IP in some
+weird metastate. However, some hardware reset lines don't have this
+association in place, so add support for a new PRM flag for this
+purpose.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/soc/ti/omap_prm.c | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ drivers/soc/ti/omap_prm.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index 38998ce19c71..e876bad8f8d5 100644
+index e876bad8f8d5..d7a29e282788 100644
 --- a/drivers/soc/ti/omap_prm.c
 +++ b/drivers/soc/ti/omap_prm.c
-@@ -15,6 +15,8 @@
- #include <linux/platform_device.h>
- #include <linux/reset-controller.h>
- #include <linux/delay.h>
-+#include <linux/clk.h>
-+#include <linux/clk/ti.h>
+@@ -56,6 +56,7 @@ struct omap_reset_data {
  
- #include <linux/platform_data/ti-prm.h>
+ #define OMAP_PRM_HAS_RSTCTRL	BIT(0)
+ #define OMAP_PRM_HAS_RSTST	BIT(1)
++#define OMAP_PRM_HAS_NO_CLKDM	BIT(2)
  
-@@ -42,7 +44,9 @@ struct omap_reset_data {
- 	struct reset_controller_dev rcdev;
- 	struct omap_prm *prm;
- 	struct clockdomain *clkdm;
-+	struct clk *clk;
- 	struct device *dev;
-+	u32 mask;
- };
+ #define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
  
- #define to_omap_reset_data(p) container_of((p), struct omap_reset_data, rcdev)
-@@ -102,6 +106,8 @@ static int omap_reset_assert(struct reset_controller_dev *rcdev,
- 	v |= 1 << id;
- 	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
+@@ -162,7 +163,8 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+ 		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
+ 	}
  
-+	ti_clk_notify_resets(reset->clk, v == reset->mask);
-+
- 	return 0;
+-	pdata->clkdm_deny_idle(reset->clkdm);
++	if (reset->clkdm)
++		pdata->clkdm_deny_idle(reset->clkdm);
+ 
+ 	/* de-assert the reset control line */
+ 	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
+@@ -200,7 +202,8 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+ 	}
+ 
+ exit:
+-	pdata->clkdm_allow_idle(reset->clkdm);
++	if (reset->clkdm)
++		pdata->clkdm_allow_idle(reset->clkdm);
+ 
+ 	return ret;
  }
+@@ -229,7 +232,7 @@ static int omap_prm_reset_init(struct platform_device *pdev,
+ 		return 0;
  
-@@ -163,9 +169,19 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
- 	v &= ~(1 << id);
- 	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
- 
-+	ti_clk_notify_resets(reset->clk, v == reset->mask);
-+
- 	if (!has_rstst)
- 		goto exit;
- 
-+	/* If associated clock is disabled, we can't poll completion status */
-+	if (reset->clk) {
-+		struct clk_hw *hw = __clk_get_hw(reset->clk);
-+
-+		if (!clk_hw_is_enabled(hw))
-+			return ret;
-+	}
-+
- 	/* wait for the status to be set */
- 	while (1) {
- 		v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
-@@ -199,8 +215,10 @@ static int omap_prm_reset_init(struct platform_device *pdev,
- 			       struct omap_prm *prm)
- {
- 	struct omap_reset_data *reset;
-+	const struct omap_rst_map *map;
- 	struct ti_prm_platform_data *pdata = dev_get_platdata(&pdev->dev);
- 	char buf[32];
-+	u32 v;
- 
- 	/*
- 	 * Check if we have controllable resets. If either rstctrl is non-zero
-@@ -215,6 +233,10 @@ static int omap_prm_reset_init(struct platform_device *pdev,
+ 	/* Check if we have the pdata callbacks in place */
+-	if (!pdata->clkdm_lookup || !pdata->clkdm_deny_idle ||
++	if (!pdata || !pdata->clkdm_lookup || !pdata->clkdm_deny_idle ||
  	    !pdata->clkdm_allow_idle)
  		return -EINVAL;
  
-+	map = prm->data->rstmap;
-+	if (!map)
-+		return -EINVAL;
-+
- 	reset = devm_kzalloc(&pdev->dev, sizeof(*reset), GFP_KERNEL);
- 	if (!reset)
- 		return -ENOMEM;
-@@ -224,6 +246,10 @@ static int omap_prm_reset_init(struct platform_device *pdev,
- 	reset->rcdev.of_node = pdev->dev.of_node;
- 	reset->rcdev.nr_resets = OMAP_MAX_RESETS;
- 	reset->dev = &pdev->dev;
-+	reset->clk = of_clk_get(pdev->dev.of_node, 0);
-+
-+	if (IS_ERR(reset->clk))
-+		reset->clk = NULL;
+@@ -256,9 +259,11 @@ static int omap_prm_reset_init(struct platform_device *pdev,
+ 	sprintf(buf, "%s_clkdm", prm->data->clkdm_name ? prm->data->clkdm_name :
+ 		prm->data->name);
  
- 	reset->prm = prm;
- 
-@@ -234,6 +260,16 @@ static int omap_prm_reset_init(struct platform_device *pdev,
- 	if (!reset->clkdm)
- 		return -EINVAL;
- 
-+	while (map->rst >= 0) {
-+		reset->mask |= BIT(map->rst);
-+		map++;
+-	reset->clkdm = pdata->clkdm_lookup(buf);
+-	if (!reset->clkdm)
+-		return -EINVAL;
++	if (!(prm->data->flags & OMAP_PRM_HAS_NO_CLKDM)) {
++		reset->clkdm = pdata->clkdm_lookup(buf);
++		if (!reset->clkdm)
++			return -EINVAL;
 +	}
-+
-+	if (reset->clk) {
-+		v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
-+		ti_clk_notify_resets(reset->clk, v == reset->mask);
-+	}
-+
- 	return devm_reset_controller_register(&pdev->dev, &reset->rcdev);
- }
  
+ 	while (map->rst >= 0) {
+ 		reset->mask |= BIT(map->rst);
 -- 
 2.17.1
 
