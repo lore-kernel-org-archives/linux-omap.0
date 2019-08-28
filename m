@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 04/10] ARM: dts: am33xx: Add PRM data
-Date: Wed, 28 Aug 2019 10:56:38 +0300
-Message-ID: <20190828075644.4493-5-t-kristo@ti.com>
+Subject: [PATCH 05/10] ARM: dts: am43xx: Add PRM data
+Date: Wed, 28 Aug 2019 10:56:39 +0300
+Message-ID: <20190828075644.4493-6-t-kristo@ti.com>
 References: <20190828075644.4493-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,49 +21,49 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM data for AM33xx SoC. Initially this is used to provide reset
+Add PRM data for AM43xx SoC. Initially this is used to provide reset
 support, but will be expanded later to support also powerdomain control.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 29 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am4372.dtsi | 29 +++++++++++++++++++++++++++++
  1 file changed, 29 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index e5c2f71a7c77..7448400a119e 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -445,3 +445,32 @@
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 55aff4db9c7c..4bd22c6ba3ff 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -353,3 +353,32 @@
  
- #include "am33xx-l4.dtsi"
- #include "am33xx-clocks.dtsi"
+ #include "am437x-l4.dtsi"
+ #include "am43xx-clocks.dtsi"
 +
 +&prcm {
-+	prm_per: prm@c00 {
-+		compatible = "ti,am3-prm-inst";
-+		reg = <0xc00 0x100>;
++	prm_gfx: prm@400 {
++		compatible = "ti,am4-prm-inst";
++		reg = <0x400 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&pruss_ocp_clkctrl AM3_PRUSS_OCP_PRUSS_CLKCTRL 0>;
++		clocks = <&gfx_l3_clkctrl AM4_GFX_L3_GFX_CLKCTRL 0>;
 +	};
 +
-+	prm_wkup: prm@d00 {
-+		compatible = "ti,am3-prm-inst";
-+		reg = <0xd00 0x100>;
++	prm_per: prm@800 {
++		compatible = "ti,am4-prm-inst";
++		reg = <0x800 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&l4_wkup_clkctrl AM3_WKUP_M3_CLKCTRL 0>;
++		clocks = <&pruss_ocp_clkctrl AM4_PRUSS_OCP_PRUSS_CLKCTRL 0>;
 +	};
 +
-+	prm_device: prm@f00 {
-+		compatible = "ti,am3-prm-inst";
-+		reg = <0xf00 0x100>;
++	prm_wkup: prm@2000 {
++		compatible = "ti,am4-prm-inst";
++		reg = <0x2000 0x100>;
 +		#reset-cells = <1>;
++		clocks = <&l4_wkup_aon_clkctrl AM4_L4_WKUP_AON_WKUP_M3_CLKCTRL 0>;
 +	};
 +
-+	prm_gfx: prm@1100 {
-+		compatible = "ti,am3-prm-inst";
-+		reg = <0x1100 0x100>;
++	prm_device: prm@4000 {
++		compatible = "ti,am4-prm-inst";
++		reg = <0x4000 0x100>;
 +		#reset-cells = <1>;
-+		clocks = <&gfx_l3_clkctrl AM3_GFX_CLKCTRL 0>;
 +	};
 +};
 -- 
