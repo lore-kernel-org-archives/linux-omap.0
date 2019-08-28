@@ -1,66 +1,59 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH 3/3] ARM: dts: am3517-evm: Fix missing video
-Date: Wed, 28 Aug 2019 13:33:51 -0500
-Message-ID: <20190828183351.822-3-aford173@gmail.com>
-References: <20190828183351.822-1-aford173@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190828183351.822-1-aford173@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Adam Ford <aford173@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/4] soc changes for omap variants for v5.4
+Date: Wed, 28 Aug 2019 11:34:49 -0700
+Message-ID: <pull-1567016893-318461@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: soc@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-A previous commit removed the panel-dpi driver, which made the
-video on the AM3517-evm stop working because it relied on the dpi
-driver for setting video timings.  Now that the simple-panel driver
-is available in omap2plus, this patch migrates the am3517-evm
-to use a similar panel and remove the manual timing requirements.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Fixes: 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
+The following changes since commit 5f9e832c137075045d15cd6899ab0505cfb2ca4b:
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
+  Linus 5.3-rc1 (2019-07-21 14:05:38 -0700)
 
-diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am3517-evm.dts
-index ebfe28c2f544..a1fd3e63e86e 100644
---- a/arch/arm/boot/dts/am3517-evm.dts
-+++ b/arch/arm/boot/dts/am3517-evm.dts
-@@ -124,10 +124,11 @@
- 	};
- 
- 	lcd0: display@0 {
--		compatible = "panel-dpi";
-+		/* This isn't the exact LCD, but the timings meet spec */
-+		/* To make it work, set CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4 */
-+		compatible = "newhaven,nhd-4.3-480272ef-atxl";
- 		label = "15";
--		status = "okay";
--		pinctrl-names = "default";
-+		backlight = <&bl>;
- 		enable-gpios = <&gpio6 16 GPIO_ACTIVE_HIGH>;	/* gpio176, lcd INI */
- 		vcc-supply = <&vdd_io_reg>;
- 
-@@ -136,22 +137,6 @@
- 				remote-endpoint = <&dpi_out>;
- 			};
- 		};
--
--		panel-timing {
--			clock-frequency = <9000000>;
--			hactive = <480>;
--			vactive = <272>;
--			hfront-porch = <3>;
--			hback-porch = <2>;
--			hsync-len = <42>;
--			vback-porch = <3>;
--			vfront-porch = <4>;
--			vsync-len = <11>;
--			hsync-active = <0>;
--			vsync-active = <0>;
--			de-active = <1>;
--			pixelclk-active = <1>;
--		};
- 	};
- 
- 	bl: backlight {
--- 
-2.17.1
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.4/soc-signed
+
+for you to fetch changes up to 50f57ef83d836d727902a6a7e70cca61b0d02655:
+
+  ARM: OMAP2+: Delete an unnecessary kfree() call in omap_hsmmc_pdata_init() (2019-08-26 08:59:48 -0700)
+
+----------------------------------------------------------------
+SoC changes for omap variants for v5.4
+
+The first change moves platform-specific asm-offsets.h to arch/arm/mach-omap2
+to fix iessu with parallel build with CONFIG_IKHEADERS, and the second change
+removes a useless kfree.
+
+Note that the first change causes a trivial merge conflict with the iommu
+changes for arch/arm/mach-omap2/Makefile.
+
+----------------------------------------------------------------
+Markus Elfring (1):
+      ARM: OMAP2+: Delete an unnecessary kfree() call in omap_hsmmc_pdata_init()
+
+Masahiro Yamada (1):
+      ARM: OMAP2+: move platform-specific asm-offset.h to arch/arm/mach-omap2
+
+ arch/arm/mach-omap2/.gitignore  | 1 +
+ arch/arm/mach-omap2/Makefile    | 5 +++--
+ arch/arm/mach-omap2/hsmmc.c     | 4 +---
+ arch/arm/mach-omap2/sleep33xx.S | 2 +-
+ arch/arm/mach-omap2/sleep43xx.S | 2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/.gitignore
