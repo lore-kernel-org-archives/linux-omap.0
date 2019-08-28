@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 06/10] ARM: dts: omap5: Add PRM data
-Date: Wed, 28 Aug 2019 10:56:40 +0300
-Message-ID: <20190828075644.4493-7-t-kristo@ti.com>
+Subject: [PATCH 08/10] ARM: dts: dra74x: convert IOMMUs to use ti-sysc
+Date: Wed, 28 Aug 2019 10:56:42 +0300
+Message-ID: <20190828075644.4493-9-t-kristo@ti.com>
 References: <20190828075644.4493-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,52 +21,98 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM data for OMAP54xx SoC. Initially this is used to provide reset
-support, but will be expanded later to support also powerdomain control.
+Convert dra74x IOMMUs to use ti-sysc instead of legacy omap-hwmod based
+implementation. Enable the IOMMUs also while doing this.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ arch/arm/boot/dts/dra74x.dtsi | 71 +++++++++++++++++++++++++++--------
+ 1 file changed, 55 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index edfd26c03462..c8bde171a949 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -412,3 +412,33 @@
+diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
+index d1b5b76bc5a8..c5abc436ca1f 100644
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -66,24 +66,63 @@
+ 			};
+ 		};
  
- #include "omap5-l4-abe.dtsi"
- #include "omap54xx-clocks.dtsi"
+-		mmu0_dsp2: mmu@41501000 {
+-			compatible = "ti,dra7-dsp-iommu";
+-			reg = <0x41501000 0x100>;
+-			interrupts = <GIC_SPI 146 IRQ_TYPE_LEVEL_HIGH>;
+-			ti,hwmods = "mmu0_dsp2";
+-			#iommu-cells = <0>;
+-			ti,syscon-mmuconfig = <&dsp2_system 0x0>;
+-			status = "disabled";
++		target-module@41501000 {
++			compatible = "ti,sysc-omap2", "ti,sysc";
++			reg = <0x41501000 0x4>,
++			      <0x41501010 0x4>,
++			      <0x41501014 0x4>;
++			reg-names = "rev", "sysc", "syss";
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
++					 SYSC_OMAP2_SOFTRESET |
++					 SYSC_OMAP2_AUTOIDLE)>;
++			clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
++			clock-names = "fck";
++			resets = <&prm_dsp2 1>;
++			reset-names = "rstctrl";
++			ranges = <0x0 0x41501000 0x1000>;
++			#size-cells = <1>;
++			#address-cells = <1>;
 +
-+&prm {
-+	prm_dsp: prm@400 {
-+		compatible = "ti,omap5-prm-inst";
-+		reg = <0x400 0x100>;
-+		#reset-cells = <1>;
-+		clocks = <&dsp_clkctrl OMAP5_MMU_DSP_CLKCTRL 0>;
++			mmu0_dsp2: mmu@0 {
++				compatible = "ti,dra7-dsp-iommu";
++				reg = <0x0 0x100>;
++				interrupts = <GIC_SPI 146 IRQ_TYPE_LEVEL_HIGH>;
++				#iommu-cells = <0>;
++				ti,syscon-mmuconfig = <&dsp2_system 0x0>;
++			};
+ 		};
+ 
+-		mmu1_dsp2: mmu@41502000 {
+-			compatible = "ti,dra7-dsp-iommu";
+-			reg = <0x41502000 0x100>;
+-			interrupts = <GIC_SPI 147 IRQ_TYPE_LEVEL_HIGH>;
+-			ti,hwmods = "mmu1_dsp2";
+-			#iommu-cells = <0>;
+-			ti,syscon-mmuconfig = <&dsp2_system 0x1>;
+-			status = "disabled";
++		target-module@41502000 {
++			compatible = "ti,sysc-omap2", "ti,sysc";
++			reg = <0x41502000 0x4>,
++			      <0x41502010 0x4>,
++			      <0x41502014 0x4>;
++			reg-names = "rev", "sysc", "syss";
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
++					 SYSC_OMAP2_SOFTRESET |
++					 SYSC_OMAP2_AUTOIDLE)>;
 +
-+	};
++			clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
++			clock-names = "fck";
++			resets = <&prm_dsp2 1>;
++			reset-names = "rstctrl";
++			ranges = <0x0 0x41502000 0x1000>;
++			#size-cells = <1>;
++			#address-cells = <1>;
 +
-+	prm_core: prm@700 {
-+		compatible = "ti,omap5-prm-inst";
-+		reg = <0x700 0x100>;
-+		#reset-cells = <1>;
-+		clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
-+	};
-+
-+	prm_iva: prm@1200 {
-+		compatible = "ti,omap5-prm-inst";
-+		reg = <0x1200 0x100>;
-+		#reset-cells = <1>;
-+		clocks = <&iva_clkctrl OMAP5_IVA_CLKCTRL 0>;
-+	};
-+
-+	prm_device: prm@1c00 {
-+		compatible = "ti,omap5-prm-inst";
-+		reg = <0x1c00 0x100>;
-+		#reset-cells = <1>;
-+	};
-+};
++			mmu1_dsp2: mmu@0 {
++				compatible = "ti,dra7-dsp-iommu";
++				reg = <0x0 0x100>;
++				interrupts = <GIC_SPI 147 IRQ_TYPE_LEVEL_HIGH>;
++				#iommu-cells = <0>;
++				ti,syscon-mmuconfig = <&dsp2_system 0x1>;
++			};
+ 		};
+ 	};
+ };
 -- 
 2.17.1
 
