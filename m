@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 01/10] ARM: dts: omap5: add IVA clkctrl nodes
-Date: Wed, 28 Aug 2019 10:56:35 +0300
-Message-ID: <20190828075644.4493-2-t-kristo@ti.com>
+Subject: [PATCH 02/10] ARM: dts: dra7: add PRM nodes
+Date: Wed, 28 Aug 2019 10:56:36 +0300
+Message-ID: <20190828075644.4493-3-t-kristo@ti.com>
 References: <20190828075644.4493-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,38 +21,79 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add clkctrtl nodes for Image and Video Accelerator subsystem for omap5.
+Add PRM nodes for dra7 series of SoCs. These are initially used to
+support reset control for some of the nodes, but will be extended
+later to add powerdomain control and support for PRCM irqs among
+other things.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap54xx-clocks.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 55 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-index 33e8dd905bff..f1ab2777e33e 100644
---- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-@@ -1132,6 +1132,20 @@
- 		};
- 	};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 953f0ffce2a9..95147289be9c 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -763,3 +763,58 @@
  
-+	iva_cm: iva_cm@1200 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1200 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1200 0x100>;
+ #include "dra7-l4.dtsi"
+ #include "dra7xx-clocks.dtsi"
 +
-+		iva_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0xc>;
-+			#clock-cells = <2>;
-+		};
++&prm {
++	prm_dsp1: prm@400 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x400 0x100>;
++		#reset-cells = <1>;
++		clocks = <&dsp1_clkctrl DRA7_DSP1_MMU0_DSP1_CLKCTRL 0>;
 +	};
 +
- 	dss_cm: dss_cm@1400 {
- 		compatible = "ti,omap4-cm";
- 		reg = <0x1400 0x100>;
++	prm_ipu: prm@500 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x500 0x100>;
++		#reset-cells = <1>;
++		clocks = <&ipu1_clkctrl DRA7_IPU1_MMU_IPU1_CLKCTRL 0>;
++	};
++
++	prm_core: prm@700 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x700 0x100>;
++		#reset-cells = <1>;
++		clocks = <&ipu2_clkctrl DRA7_IPU2_MMU_IPU2_CLKCTRL 0>;
++	};
++
++	prm_iva: prm@f00 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0xf00 0x100>;
++	};
++
++	prm_dsp2: prm@1b00 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x1b00 0x40>;
++		#reset-cells = <1>;
++		clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
++	};
++
++	prm_eve1: prm@1b40 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x1b40 0x40>;
++	};
++
++	prm_eve2: prm@1b80 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x1b80 0x40>;
++	};
++
++	prm_eve3: prm@1bc0 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x1bc0 0x40>;
++	};
++
++	prm_eve4: prm@1c00 {
++		compatible = "ti,dra7-prm-inst";
++		reg = <0x1c00 0x60>;
++	};
++};
 -- 
 2.17.1
 
