@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 09/10] ARM: dts: omap4: convert IOMMUs to use ti-sysc
-Date: Wed, 28 Aug 2019 10:56:43 +0300
-Message-ID: <20190828075644.4493-10-t-kristo@ti.com>
+Subject: [PATCH 10/10] ARM: dts: omap5: convert IOMMUs to use ti-sysc
+Date: Wed, 28 Aug 2019 10:56:44 +0300
+Message-ID: <20190828075644.4493-11-t-kristo@ti.com>
 References: <20190828075644.4493-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,32 +21,32 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Convert omap4 IOMMUs to use ti-sysc instead of legacy omap-hwmod based
+Convert omap5 IOMMUs to use ti-sysc instead of legacy omap-hwmod based
 implementation. Enable the IOMMUs also while doing this.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap4-l4.dtsi | 11 ++++++---
- arch/arm/boot/dts/omap4.dtsi    | 43 +++++++++++++++++++++------------
- 2 files changed, 36 insertions(+), 18 deletions(-)
+ arch/arm/boot/dts/omap5-l4.dtsi | 11 ++++++---
+ arch/arm/boot/dts/omap5.dtsi    | 40 +++++++++++++++++++++------------
+ 2 files changed, 34 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
-index 0977bc39955b..7eca6cdbbdd9 100644
---- a/arch/arm/boot/dts/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/omap4-l4.dtsi
-@@ -321,7 +321,6 @@
+diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
+index 0960348002ad..80c2d2fcc03b 100644
+--- a/arch/arm/boot/dts/omap5-l4.dtsi
++++ b/arch/arm/boot/dts/omap5-l4.dtsi
+@@ -349,7 +349,6 @@
  
- 		target-module@66000 {			/* 0x4a066000, ap 25 26.0 */
+ 		target-module@66000 {			/* 0x4a066000, ap 23 0a.0 */
  			compatible = "ti,sysc-omap2", "ti,sysc";
 -			ti,hwmods = "mmu_dsp";
  			reg = <0x66000 0x4>,
  			      <0x66010 0x4>,
  			      <0x66014 0x4>;
-@@ -335,12 +334,18 @@
- 			/* Domains (V, P, C): iva, tesla_pwrdm, tesla_clkdm */
- 			clocks = <&tesla_clkctrl OMAP4_DSP_CLKCTRL 0>;
+@@ -364,12 +363,18 @@
+ 			/* Domains (V, P, C): mm, dsp_pwrdm, dsp_clkdm */
+ 			clocks = <&dsp_clkctrl OMAP5_MMU_DSP_CLKCTRL 0>;
  			clock-names = "fck";
-+			resets = <&prm_tesla 1>;
++			resets = <&prm_dsp 1>;
 +			reset-names = "rstctrl";
  			#address-cells = <1>;
  			#size-cells = <1>;
@@ -61,13 +61,13 @@ index 0977bc39955b..7eca6cdbbdd9 100644
 +				#iommu-cells = <0>;
 +			};
  		};
- 	};
  
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index e377f66fc322..f28fe1c36b0c 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -173,14 +173,6 @@
+ 		target-module@70000 {			/* 0x4a070000, ap 79 2e.0 */
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index c8bde171a949..05929d59b0af 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -186,21 +186,33 @@
  			#gpio-cells = <2>;
  		};
  
@@ -78,21 +78,6 @@ index e377f66fc322..f28fe1c36b0c 100644
 -			ti,hwmods = "mmu_dsp";
 -			#iommu-cells = <0>;
 -		};
--
- 		target-module@52000000 {
- 			compatible = "ti,sysc-omap4", "ti,sysc";
- 			ti,hwmods = "iss";
-@@ -206,14 +198,35 @@
- 			/* No child device binding, driver in staging */
- 		};
- 
--		mmu_ipu: mmu@55082000 {
--			compatible = "ti,omap4-iommu";
--			reg = <0x55082000 0x100>;
--			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
--			ti,hwmods = "mmu_ipu";
--			#iommu-cells = <0>;
--			ti,iommu-bus-err-back;
 +		target-module@55082000 {
 +			compatible = "ti,sysc-omap2", "ti,sysc";
 +			reg = <0x55082000 0x4>,
@@ -105,14 +90,21 @@ index e377f66fc322..f28fe1c36b0c 100644
 +			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
 +					 SYSC_OMAP2_SOFTRESET |
 +					 SYSC_OMAP2_AUTOIDLE)>;
-+			clocks = <&ducati_clkctrl OMAP4_IPU_CLKCTRL 0>;
++			clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
 +			clock-names = "fck";
 +			resets = <&prm_core 2>;
 +			reset-names = "rstctrl";
 +			ranges = <0x0 0x55082000 0x100>;
 +			#size-cells = <1>;
 +			#address-cells = <1>;
-+
+ 
+-		mmu_ipu: mmu@55082000 {
+-			compatible = "ti,omap4-iommu";
+-			reg = <0x55082000 0x100>;
+-			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
+-			ti,hwmods = "mmu_ipu";
+-			#iommu-cells = <0>;
+-			ti,iommu-bus-err-back;
 +			mmu_ipu: mmu@0 {
 +				compatible = "ti,omap4-iommu";
 +				reg = <0x0 0x100>;
@@ -121,10 +113,8 @@ index e377f66fc322..f28fe1c36b0c 100644
 +				ti,iommu-bus-err-back;
 +			};
  		};
-+
- 		target-module@4012c000 {
- 			compatible = "ti,sysc-omap4", "ti,sysc";
- 			ti,hwmods = "slimbus1";
+ 
+ 		dmm@4e000000 {
 -- 
 2.17.1
 
