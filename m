@@ -1,49 +1,68 @@
-From: santosh.shilimkar@oracle.com
-Subject: Re: [PATCHv3 00/10] soc: ti: add OMAP PRM driver (for reset)
-Date: Fri, 30 Aug 2019 09:50:33 -0700
-Message-ID: <f7d6a2fb-175c-361b-00ff-ddde67700daa@oracle.com>
-References: <20190830121816.30034-1-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] phy: mapphone-mdm6600: Fix uninitialized status value regression
+Date: Fri, 30 Aug 2019 14:43:12 -0700
+Message-ID: <20190830214312.48950-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190830121816.30034-1-t-kristo@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, ssantosh@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, p.zabel@pengutronix.de
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Jacopo Mondi <jacopo@jmondi.org>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 8/30/19 5:18 AM, Tero Kristo wrote:
-> Hi,
-> 
-> V3 of the series, ended up re-sending the whole series as I squashed one
-> patch from v2 and because of that the ordering has changed a bit. Changes
-> in v3 contain fixes for the comments from Philipp Zabel.
-> 
-> - added spinlock to protect register writes
-> - added own xlate function to prevent bad reset IDs to be registered
-> - use mask for the valid reset detection instead of parsing reset map
-> - fixed reset status bit handling
-> - used iopoll macro instead of handwritten poll loop for timeouts
-> - squashed patch #6 into #4 from v2 of the series
-> - some other minor fixes.
-> 
-> This series still depends on the clk driver changes for the reset<->clk
-> syncing [1].
-> 
-This has to wait for another merge window. It will also take care of 
-dependencies landing in mainline. Will push this to linux-next as
-soon as v5.4-rc1 is out. Please remind me in case you don't see it
-in next after 5.4-rc1.
+Only the used bits get cleared with bitmap_zero() when we call
+gpiod_get_array_value_cansleep(). We must mask only the bits we're
+using for ddata->status as the other bits in the bitmap may not be
+initialized.
 
-Regards,
-Snatosh
+And let's also drop useless debug code accidentally left over while
+at it.
+
+Fixes: b9762bebc633 ("gpiolib: Pass bitmaps, not integer arrays, to get/set array")
+Cc: Jacopo Mondi <jacopo@jmondi.org>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Michael Scott <hashcode0f@gmail.com>
+Cc: NeKit <nekit1000@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/phy/motorola/phy-mapphone-mdm6600.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/phy/motorola/phy-mapphone-mdm6600.c b/drivers/phy/motorola/phy-mapphone-mdm6600.c
+--- a/drivers/phy/motorola/phy-mapphone-mdm6600.c
++++ b/drivers/phy/motorola/phy-mapphone-mdm6600.c
+@@ -200,7 +200,7 @@ static void phy_mdm6600_status(struct work_struct *work)
+ 	struct phy_mdm6600 *ddata;
+ 	struct device *dev;
+ 	DECLARE_BITMAP(values, PHY_MDM6600_NR_STATUS_LINES);
+-	int error, i, val = 0;
++	int error;
+ 
+ 	ddata = container_of(work, struct phy_mdm6600, status_work.work);
+ 	dev = ddata->dev;
+@@ -212,16 +212,11 @@ static void phy_mdm6600_status(struct work_struct *work)
+ 	if (error)
+ 		return;
+ 
+-	for (i = 0; i < PHY_MDM6600_NR_STATUS_LINES; i++) {
+-		val |= test_bit(i, values) << i;
+-		dev_dbg(ddata->dev, "XXX %s: i: %i values[i]: %i val: %i\n",
+-			__func__, i, test_bit(i, values), val);
+-	}
+-	ddata->status = values[0];
++	ddata->status = values[0] & ((1 << PHY_MDM6600_NR_STATUS_LINES) - 1);
+ 
+ 	dev_info(dev, "modem status: %i %s\n",
+ 		 ddata->status,
+-		 phy_mdm6600_status_name[ddata->status & 7]);
++		 phy_mdm6600_status_name[ddata->status]);
+ 	complete(&ddata->ack);
+ }
+ 
+-- 
+2.23.0
