@@ -1,17 +1,17 @@
-From: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCHv2 02/11] soc: ti: add initial PRM driver with reset
- control support
-Date: Fri, 30 Aug 2019 11:02:28 +0200
-Message-ID: <1567155748.3714.1.camel@pengutronix.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 03/11] soc: ti: omap-prm: poll for reset complete during
+ de-assert
+Date: Fri, 30 Aug 2019 12:07:07 +0300
+Message-ID: <ceed701f-481c-4905-727e-ba3af2cf8ff2@ti.com>
 References: <20190828071941.32378-1-t-kristo@ti.com>
- <20190828071941.32378-3-t-kristo@ti.com>
- <1567084339.5345.7.camel@pengutronix.de>
- <049da607-c352-4ed1-9a2d-2374d7a7e372@ti.com>
+ <20190828071941.32378-4-t-kristo@ti.com>
+ <1567084467.5345.9.camel@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <049da607-c352-4ed1-9a2d-2374d7a7e372@ti.com>
+In-Reply-To: <1567084467.5345.9.camel@pengutronix.de>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,79 +21,63 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
+To: Philipp Zabel <p.zabel@pengutronix.de>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVGVybywKCk9uIEZyaSwgMjAxOS0wOC0zMCBhdCAxMDoyOCArMDMwMCwgVGVybyBLcmlzdG8g
-d3JvdGU6Cj4gT24gMjkvMDgvMjAxOSAxNjoxMiwgUGhpbGlwcCBaYWJlbCB3cm90ZToKWy4uLl0K
-PiA+IEkgd29uZGVyIGlmIHNwbGl0dGluZyByc3RjdHJsL3JzdHN0L3JzdG1hcCBvdXQgaW50byBh
-IHNlcGFyYXRlIHN0cnVjdHVyZQo+ID4gd291bGQgbWFrZSBzZW5zZS4gVGhhdCBjb3VsZCBiZSBs
-aW5rZWQgZnJvbSBvbWFwX3Jlc2V0X2RhdGEgZGlyZWN0bHkuCj4gPiBUaGF0IG9ubHkgbWFrZXMg
-c2Vuc2UgaWYgdGhlcmUnZCBiZSBlbm91Z2ggY2FzZXMgd2hlcmUgaXQgY2FuIGJlIHJldXNlZAo+
-ID4gZm9yIG11bHRpcGxlIFBSTXMgaW5zdGFuY2VzLgo+IAo+IEhtbSwgc3BsaXR0aW5nIHRoZXNl
-IG91dCB3b3VsZCBtYWtlIGl0IHBvc3NpYmxlIHRvIHNoYXJlIHRoZSBiaXRzIGZvciAKPiBpcHU6
-cyBhY3Jvc3MgZGV2aWNlcywgc2FtZSBmb3IgZHNwOnMgYW5kIGV2ZTpzLgo+IAo+IEhvd2V2ZXIs
-IGFkZGluZyB0b28gbWFueSBsZXZlbHMgb2YgYWJzdHJhY3Rpb24gbWFrZXMgaXQga2luZCBvZiAK
-PiBkaWZmaWN1bHQgdG8gZm9sbG93IHdoYXQgaXMgaGFwcGVuaW5nIHdpdGggdGhlIGNvZGUsIGFu
-ZCBpdCB3b3VsZCBvbmx5IAo+IHNhdmUgbWF5YmUgfjEwMCBieXRlcyBvZiBtZW1vcnkgYXQgdGhl
-IG1vbWVudC4KCkdvb2QgcG9pbnQsIHRoYXQgaXMgbGlrZWx5IG5vdCB3b3J0aCB0aGUgYWRkaXRp
-b25hbCBjb21wbGV4aXR5LgoKWy4uLl0KPiA+IFdoYXQgZG9lcyB0aGUgdmFsdWUgcmVhZCBmcm9t
-IHRoZSByc3RzdCByZWdpc3RlciBpbmRpY2F0ZT8gSXMgaXQgdGhlCj4gPiBjdXJyZW50IHN0YXRl
-IG9mIHRoZSByZXNldCBsaW5lPyBJcyBpdCAwIHVudGlsIGRlYXNzZXJ0aW9uIGlzIGNvbXBsZXRl
-ZCwKPiA+IGFuZCB0aGVuIGl0IHR1cm5zIHRvIDE/Cj4gCj4gVmFsdWUgb2YgMSBpbmRpY2F0ZXMg
-dGhhdCB0aGUgY29ycmVzcG9uZGluZyBJUCBoYXMgYmVlbiByZXNldCAKPiBzdWNjZXNzZnVsbHku
-IFdyaXRpbmcgYmFjayAxIHRvIHRoZSBzYW1lIGJpdCBjbGVhcnMgaXQgb3V0LCBzbyB0aGUgCj4g
-c3RhdHVzIGNhbiBiZSBwb2xsZWQgbGF0ZXIgb24uCgpUaGVuIHRoaXMgc2hvdWxkIG5vdCBiZSBy
-ZXR1cm5lZCBkaXJlY3RseSBieSByZXNldF9jb250cm9sX3N0YXR1czoKCi8qKgrCoCogcmVzZXRf
-Y29udHJvbF9zdGF0dXMgLSByZXR1cm5zIGEgbmVnYXRpdmUgZXJybm8gaWYgbm90IHN1cHBvcnRl
-ZCwgYcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoArCoCogcG9zaXRpdmUgdmFsdWUgaWYg
-dGhlIHJlc2V0IGxpbmUgaXMgYXNzZXJ0ZWQsIG9yIHplcm8gaWYgdGhlIHJlc2V0CsKgKiBsaW5l
-IGlzIG5vdCBhc3NlcnRlZCBvciBpZiB0aGUgZGVzYyBpcyBOVUxMIChvcHRpb25hbCByZXNldCku
-CsKgKi8KClRoaXMgc2hvdWxkIHJldHVybiAwIG9ubHkgaWYgdGhlIGNvbnRyb2wgYml0IGlzIGRl
-YXNzZXJ0ZWQgYW5kIHRoZQpzdGF0dXMgYml0IGlzIGFscmVhZHkgc2V0LgoKSWYgZWl0aGVyIHRo
-ZSBjb250cm9sIGJpdCBpcyBhc3NlcnRlZCwgb3IgaWYgdGhlIHN0YXR1cyBiaXQgaXMgc3RpbGwK
-Y2xlYXJlZCwgdGhpcyBzaG91bGQgcmV0dXJuIDEuCgpbLi4uXQo+ID4gPiArCXJlcyA9IHBsYXRm
-b3JtX2dldF9yZXNvdXJjZShwZGV2LCBJT1JFU09VUkNFX01FTSwgMCk7Cj4gPiA+ICsJaWYgKCFy
-ZXMpCj4gPiA+ICsJCXJldHVybiAtRU5PREVWOwo+ID4gCj4gPiBUaGlzIGNhbiBiZSBtZXJnZWQg
-d2l0aMKgZGV2bV9pb3JlbWFwX3Jlc291cmNlIGJlbG93Lgo+IAo+IFdlbGwsIEkgYWN0dWFsbHkg
-dXNlIHRoZSAicmVzIiBsYXRlciBvbiB0byBtYXAgdGhlIERUIG5vZGUgdG8gdGhlIAo+IGNvcnJl
-c3BvbmRpbmcgcHJtX2RhdGEgYmFzZWQgb24gYWRkcmVzcy4KCk9rLiBJIGdsYW5jZWQgb3ZlciB0
-aGUgZGF0YS0+YmFzZSBsb29wIGJlbG93IGFmdGVyIHF1ZXN0aW9uaW5nIHdoZXRoZXIKaXQgaXMg
-bmVlZGVkIGF0IGFsbC4KCj4gPiAKPiA+ID4gKwltYXRjaCA9IG9mX21hdGNoX2RldmljZShvbWFw
-X3BybV9pZF90YWJsZSwgJnBkZXYtPmRldik7Cj4gPiA+ICsJaWYgKCFtYXRjaCkKPiA+ID4gKwkJ
-cmV0dXJuIC1FTk9UU1VQUDsKPiA+ID4gKwo+ID4gPiArCXBybSA9IGRldm1fa3phbGxvYygmcGRl
-di0+ZGV2LCBzaXplb2YoKnBybSksIEdGUF9LRVJORUwpOwo+ID4gPiArCWlmICghcHJtKQo+ID4g
-PiArCQlyZXR1cm4gLUVOT01FTTsKPiA+ID4gKwo+ID4gPiArCWRhdGEgPSBtYXRjaC0+ZGF0YTsK
-PiA+ID4gKwo+ID4gPiArCXdoaWxlIChkYXRhLT5iYXNlICE9IHJlcy0+c3RhcnQpIHsKPiA+ID4g
-KwkJaWYgKCFkYXRhLT5iYXNlKQo+ID4gPiArCQkJcmV0dXJuIC1FSU5WQUw7Cj4gPiA+ICsJCWRh
-dGErKzsKPiA+ID4gKwl9Cj4gPiAKPiA+IElzIHRoaXMgbm90IHNvbWV0aGluZyB0aGF0IHlvdSB3
-YW50IHRvIGhhdmUgZW5jb2RlZCBpbiB0aGUgY29tcGF0aWJsZQo+ID4gc3RyaW5nPyBUaGV5IGFs
-bCBoYXZlIGEgZGlmZmVyZW50IHJlZ2lzdGVyIGxheW91dC4KPiAKPiBXaXRoIHRoZSBhZGRpdGlv
-biBvZiBhbGwgdGhlIHBybSBpbnN0YW5jZXMgbGF0ZXIgb24sIHRoaXMgY2hhbmdlcy4gTW9zdCAK
-PiBvZiB0aGUgcHJtIGluc3RhbmNlcyB3aWxsIGhhdmUgc2FtZSByZWdpc3RlciBsYXlvdXQgdGhl
-bi4gU2VlIHYxIGRhdGEgCj4gdGhhdCB3YXMgcG9zdGVkIGVhcmxpZXIgWzFdLCBidXQgd2hpY2gg
-SSBkcm9wcGVkIGZvciBub3cgdG8ga2VlcCB0aGlzIAo+IHNlcmllcyBpc29sYXRlZCBmb3IgcmVz
-ZXQgaGFuZGxpbmcgb25seS4gSW4gdGhpcyBwYXRjaCwgeW91IHNlZSB0aGF0IGZvciAKPiBEUkE3
-LCBhbGwgdGhlIHBvd2VyIGRvbWFpbiBoYW5kbGluZyByZWxhdGVkIFBSTSBpbnN0YW5jZXMgaGF2
-ZSBpZGVudGljYWwgCj4gcmVnaXN0ZXIgbGF5b3V0LCB0aGV5IGp1c3QgZGlmZmVyIGJhc2VkIG9u
-IGJhc2UgYWRkcmVzcy4KPgo+IFsxXSBodHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51
-eC1vbWFwL21zZzE0OTg3Mi5odG1sCj4gCj4gSXQgd291bGQgYmUgcG9zc2libGUgdG8gZW5jb2Rl
-IGFsbCBvZiB0aGlzIGJhc2VkIG9uIGRpZmZlcmVudCAKPiBjb21wYXRpYmxlcywgYnV0IHRoZW4g
-dGhlIGFtb3VudCBvZiBkaWZmZXJlbnQgY29tcGF0aWJsZSBzdHJpbmdzIHdvdWxkIAo+IGV4cGxv
-ZGUuLi4gRFJBNyBpcyBqdXN0IG9uZSBTb0MuCgpJIHNlZSBvbmx5IDMgZGlmZmVyZW50IGxheW91
-dHMgaW4gdGhhdCBwYXRjaC4gQWxsIGluc3RhbmNlcyB3aXRoCmlkZW50aWNhbCBsYXlvdXQgY291
-bGQgc2hhcmUgdGhlIHNhbWUgY29tcGF0aWJsZS4KCkVpdGhlciB3YXksIHRoYXQgaXMgRFQgYmlu
-ZGluZ3MgdGVycml0b3J5LCBhbmQgbm90IGZvciBtZSB0byBkZWNpZGUuIEkKanVzdCBmb3VuZCBp
-dCB1bnVzdWFsIHRvIGVuY29kZSB0aGUgZGV2aWNlIHR5cGUgYnkgaXRzIGJhc2UgYWRkcmVzcyBp
-bgp0aGUgZHJpdmVyLgoKPiA+IAo+ID4gPiArCj4gPiA+ICsJcHJtLT5kYXRhID0gZGF0YTsKPiA+
-ID4gKwo+ID4gPiArCXBybS0+YmFzZSA9IGRldm1faW9yZW1hcF9yZXNvdXJjZSgmcGRldi0+ZGV2
-LCByZXMpOwo+ID4gCj4gPiAJcHJtLT5iYXNlID0gZGV2bV9wbGF0Zm9ybV9pb3JlbWFwX3Jlc291
-cmNlKHBkZXYsIDApOwo+IAo+IEkgc3RpbGwgbmVlZCB0aGUgInJlcyIgcG9pbnRlciBhcyBpbmRp
-Y2F0ZWQgYWJvdmUuCgpHb3QgaXQuIElmIHRoZSBsb29rdXAgYnkgYmFzZSBhZGRyZXNzIGlzIG5l
-ZWRlZCwgdGhpcyBoYXMgdG8gc3RheSBzcGxpdC4KCnJlZ2FyZHMKUGhpbGlwcAoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
-YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On 29/08/2019 16:14, Philipp Zabel wrote:
+> Hi Tero,
+> 
+> On Wed, 2019-08-28 at 10:19 +0300, Tero Kristo wrote:
+>> Poll for reset completion status during de-assertion of reset, otherwise
+>> the IP in question might be accessed before it has left reset properly.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   drivers/soc/ti/omap_prm.c | 20 ++++++++++++++++++++
+>>   1 file changed, 20 insertions(+)
+>>
+>> diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+>> index fd5c431f8736..afeb70761b27 100644
+>> --- a/drivers/soc/ti/omap_prm.c
+>> +++ b/drivers/soc/ti/omap_prm.c
+>> @@ -127,6 +127,7 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+>>   	u32 v;
+>>   	int st_bit;
+>>   	bool has_rstst;
+>> +	int timeout = 0;
+>>   
+>>   	if (!_is_valid_reset(reset, id))
+>>   		return -EINVAL;
+>> @@ -153,6 +154,25 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+>>   	v &= ~(1 << id);
+>>   	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
+>>   
+>> +	if (!has_rstst)
+>> +		return 0;
+>> +
+>> +	/* wait for the status to be set */
+>> +	while (1) {
+>> +		v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
+>> +		v &= 1 << st_bit;
+>> +		if (v)
+>> +			break;
+>> +		timeout++;
+>> +		if (timeout > OMAP_RESET_MAX_WAIT) {
+>> +			pr_err("%s: timedout waiting for %s:%lu\n", __func__,
+>> +			       dev_name(rcdev->dev), id);
+>> +			return -EBUSY;
+>> +		}
+>> +
+>> +		udelay(1);
+>> +	}
+> 
+> This looks like you could use
+> 
+> 	readl_relaxed_poll_timeout(_atomic)
+
+Yeah true, let me change that.
+
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
