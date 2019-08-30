@@ -1,13 +1,14 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 10/10] soc: ti: omap-prm: add omap5 PRM data
-Date: Fri, 30 Aug 2019 15:18:16 +0300
-Message-ID: <20190830121816.30034-11-t-kristo@ti.com>
+From: santosh.shilimkar@oracle.com
+Subject: Re: [PATCHv3 00/10] soc: ti: add OMAP PRM driver (for reset)
+Date: Fri, 30 Aug 2019 09:50:33 -0700
+Message-ID: <f7d6a2fb-175c-361b-00ff-ddde67700daa@oracle.com>
 References: <20190830121816.30034-1-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20190830121816.30034-1-t-kristo@ti.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,47 +18,32 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ssantosh@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, p.zabel@pengutronix.de
+To: Tero Kristo <t-kristo@ti.com>, ssantosh@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, p.zabel@pengutronix.de
 Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM instance data for omap5 family of SoCs. Initially this is just
-used to provide reset support.
+On 8/30/19 5:18 AM, Tero Kristo wrote:
+> Hi,
+> 
+> V3 of the series, ended up re-sending the whole series as I squashed one
+> patch from v2 and because of that the ordering has changed a bit. Changes
+> in v3 contain fixes for the comments from Philipp Zabel.
+> 
+> - added spinlock to protect register writes
+> - added own xlate function to prevent bad reset IDs to be registered
+> - use mask for the valid reset detection instead of parsing reset map
+> - fixed reset status bit handling
+> - used iopoll macro instead of handwritten poll loop for timeouts
+> - squashed patch #6 into #4 from v2 of the series
+> - some other minor fixes.
+> 
+> This series still depends on the clk driver changes for the reset<->clk
+> syncing [1].
+> 
+This has to wait for another merge window. It will also take care of 
+dependencies landing in mainline. Will push this to linux-next as
+soon as v5.4-rc1 is out. Please remind me in case you don't see it
+in next after 5.4-rc1.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/soc/ti/omap_prm.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index 216a4b69a6c9..6363923e77f2 100644
---- a/drivers/soc/ti/omap_prm.c
-+++ b/drivers/soc/ti/omap_prm.c
-@@ -87,6 +87,14 @@ static const struct omap_prm_data omap4_prm_data[] = {
- 	{ },
- };
- 
-+static const struct omap_prm_data omap5_prm_data[] = {
-+	{ .name = "dsp", .base = 0x4ae06400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
-+	{ .name = "core", .base = 0x4ae06700, .rstctrl = 0x210, .rstst = 0x214, .clkdm_name = "ipu", .rstmap = rst_map_012 },
-+	{ .name = "iva", .base = 0x4ae07200, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_012 },
-+	{ .name = "device", .base = 0x4ae07c00, .rstctrl = 0x0, .rstst = 0x4, .rstmap = rst_map_01, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
-+	{ },
-+};
-+
- static const struct omap_prm_data dra7_prm_data[] = {
- 	{ .name = "dsp1", .base = 0x4ae06400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
- 	{ .name = "ipu", .base = 0x4ae06500, .rstctrl = 0x10, .rstst = 0x14, .clkdm_name = "ipu1", .rstmap = rst_map_012 },
-@@ -139,6 +147,7 @@ static const struct omap_prm_data am4_prm_data[] = {
- 
- static const struct of_device_id omap_prm_id_table[] = {
- 	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
-+	{ .compatible = "ti,omap5-prm-inst", .data = omap5_prm_data },
- 	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
- 	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
- 	{ .compatible = "ti,am4-prm-inst", .data = am4_prm_data },
--- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Regards,
+Snatosh
