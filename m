@@ -1,18 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 02/11] soc: ti: add initial PRM driver with reset
- control support
-Date: Fri, 30 Aug 2019 12:11:37 +0300
-Message-ID: <11b891ea-7f5c-40fa-89b6-7e5b924cfb99@ti.com>
+Subject: Re: [PATCHv2 01/11] dt-bindings: omap: add new binding for PRM
+ instances
+Date: Fri, 30 Aug 2019 12:18:42 +0300
+Message-ID: <8f4bcd94-6555-26cc-2458-51b0e8712f68@ti.com>
 References: <20190828071941.32378-1-t-kristo@ti.com>
- <20190828071941.32378-3-t-kristo@ti.com>
- <1567084339.5345.7.camel@pengutronix.de>
- <049da607-c352-4ed1-9a2d-2374d7a7e372@ti.com>
- <1567155748.3714.1.camel@pengutronix.de>
+ <20190828071941.32378-2-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1567155748.3714.1.camel@pengutronix.de>
+In-Reply-To: <20190828071941.32378-2-t-kristo@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -23,86 +20,78 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Philipp Zabel <p.zabel@pengutronix.de>, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org
+To: ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, p.zabel@pengutronix.de
 Cc: tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMzAvMDgvMjAxOSAxMjowMiwgUGhpbGlwcCBaYWJlbCB3cm90ZToKPiBIaSBUZXJvLAo+IAo+
-IE9uIEZyaSwgMjAxOS0wOC0zMCBhdCAxMDoyOCArMDMwMCwgVGVybyBLcmlzdG8gd3JvdGU6Cj4+
-IE9uIDI5LzA4LzIwMTkgMTY6MTIsIFBoaWxpcHAgWmFiZWwgd3JvdGU6Cj4gWy4uLl0KPj4+IEkg
-d29uZGVyIGlmIHNwbGl0dGluZyByc3RjdHJsL3JzdHN0L3JzdG1hcCBvdXQgaW50byBhIHNlcGFy
-YXRlIHN0cnVjdHVyZQo+Pj4gd291bGQgbWFrZSBzZW5zZS4gVGhhdCBjb3VsZCBiZSBsaW5rZWQg
-ZnJvbSBvbWFwX3Jlc2V0X2RhdGEgZGlyZWN0bHkuCj4+PiBUaGF0IG9ubHkgbWFrZXMgc2Vuc2Ug
-aWYgdGhlcmUnZCBiZSBlbm91Z2ggY2FzZXMgd2hlcmUgaXQgY2FuIGJlIHJldXNlZAo+Pj4gZm9y
-IG11bHRpcGxlIFBSTXMgaW5zdGFuY2VzLgo+Pgo+PiBIbW0sIHNwbGl0dGluZyB0aGVzZSBvdXQg
-d291bGQgbWFrZSBpdCBwb3NzaWJsZSB0byBzaGFyZSB0aGUgYml0cyBmb3IKPj4gaXB1OnMgYWNy
-b3NzIGRldmljZXMsIHNhbWUgZm9yIGRzcDpzIGFuZCBldmU6cy4KPj4KPj4gSG93ZXZlciwgYWRk
-aW5nIHRvbyBtYW55IGxldmVscyBvZiBhYnN0cmFjdGlvbiBtYWtlcyBpdCBraW5kIG9mCj4+IGRp
-ZmZpY3VsdCB0byBmb2xsb3cgd2hhdCBpcyBoYXBwZW5pbmcgd2l0aCB0aGUgY29kZSwgYW5kIGl0
-IHdvdWxkIG9ubHkKPj4gc2F2ZSBtYXliZSB+MTAwIGJ5dGVzIG9mIG1lbW9yeSBhdCB0aGUgbW9t
-ZW50Lgo+IAo+IEdvb2QgcG9pbnQsIHRoYXQgaXMgbGlrZWx5IG5vdCB3b3J0aCB0aGUgYWRkaXRp
-b25hbCBjb21wbGV4aXR5Lgo+IAo+IFsuLi5dCj4+PiBXaGF0IGRvZXMgdGhlIHZhbHVlIHJlYWQg
-ZnJvbSB0aGUgcnN0c3QgcmVnaXN0ZXIgaW5kaWNhdGU/IElzIGl0IHRoZQo+Pj4gY3VycmVudCBz
-dGF0ZSBvZiB0aGUgcmVzZXQgbGluZT8gSXMgaXQgMCB1bnRpbCBkZWFzc2VydGlvbiBpcyBjb21w
-bGV0ZWQsCj4+PiBhbmQgdGhlbiBpdCB0dXJucyB0byAxPwo+Pgo+PiBWYWx1ZSBvZiAxIGluZGlj
-YXRlcyB0aGF0IHRoZSBjb3JyZXNwb25kaW5nIElQIGhhcyBiZWVuIHJlc2V0Cj4+IHN1Y2Nlc3Nm
-dWxseS4gV3JpdGluZyBiYWNrIDEgdG8gdGhlIHNhbWUgYml0IGNsZWFycyBpdCBvdXQsIHNvIHRo
-ZQo+PiBzdGF0dXMgY2FuIGJlIHBvbGxlZCBsYXRlciBvbi4KPiAKPiBUaGVuIHRoaXMgc2hvdWxk
-IG5vdCBiZSByZXR1cm5lZCBkaXJlY3RseSBieSByZXNldF9jb250cm9sX3N0YXR1czoKPiAKPiAv
-KioKPiAgwqAqIHJlc2V0X2NvbnRyb2xfc3RhdHVzIC0gcmV0dXJucyBhIG5lZ2F0aXZlIGVycm5v
-IGlmIG5vdCBzdXBwb3J0ZWQsIGEKPiAgwqAqIHBvc2l0aXZlIHZhbHVlIGlmIHRoZSByZXNldCBs
-aW5lIGlzIGFzc2VydGVkLCBvciB6ZXJvIGlmIHRoZSByZXNldAo+ICDCoCogbGluZSBpcyBub3Qg
-YXNzZXJ0ZWQgb3IgaWYgdGhlIGRlc2MgaXMgTlVMTCAob3B0aW9uYWwgcmVzZXQpLgo+ICDCoCov
-Cj4gCj4gVGhpcyBzaG91bGQgcmV0dXJuIDAgb25seSBpZiB0aGUgY29udHJvbCBiaXQgaXMgZGVh
-c3NlcnRlZCBhbmQgdGhlCj4gc3RhdHVzIGJpdCBpcyBhbHJlYWR5IHNldC4KPiAKPiBJZiBlaXRo
-ZXIgdGhlIGNvbnRyb2wgYml0IGlzIGFzc2VydGVkLCBvciBpZiB0aGUgc3RhdHVzIGJpdCBpcyBz
-dGlsbAo+IGNsZWFyZWQsIHRoaXMgc2hvdWxkIHJldHVybiAxLgoKSG1tIG9rLCBsZXQgbWUgZml4
-IHRoYXQgYSBiaXQgYWxzby4KCj4gCj4gWy4uLl0KPj4+PiArCXJlcyA9IHBsYXRmb3JtX2dldF9y
-ZXNvdXJjZShwZGV2LCBJT1JFU09VUkNFX01FTSwgMCk7Cj4+Pj4gKwlpZiAoIXJlcykKPj4+PiAr
-CQlyZXR1cm4gLUVOT0RFVjsKPj4+Cj4+PiBUaGlzIGNhbiBiZSBtZXJnZWQgd2l0aMKgZGV2bV9p
-b3JlbWFwX3Jlc291cmNlIGJlbG93Lgo+Pgo+PiBXZWxsLCBJIGFjdHVhbGx5IHVzZSB0aGUgInJl
-cyIgbGF0ZXIgb24gdG8gbWFwIHRoZSBEVCBub2RlIHRvIHRoZQo+PiBjb3JyZXNwb25kaW5nIHBy
-bV9kYXRhIGJhc2VkIG9uIGFkZHJlc3MuCj4gCj4gT2suIEkgZ2xhbmNlZCBvdmVyIHRoZSBkYXRh
-LT5iYXNlIGxvb3AgYmVsb3cgYWZ0ZXIgcXVlc3Rpb25pbmcgd2hldGhlcgo+IGl0IGlzIG5lZWRl
-ZCBhdCBhbGwuCj4gCj4+Pgo+Pj4+ICsJbWF0Y2ggPSBvZl9tYXRjaF9kZXZpY2Uob21hcF9wcm1f
-aWRfdGFibGUsICZwZGV2LT5kZXYpOwo+Pj4+ICsJaWYgKCFtYXRjaCkKPj4+PiArCQlyZXR1cm4g
-LUVOT1RTVVBQOwo+Pj4+ICsKPj4+PiArCXBybSA9IGRldm1fa3phbGxvYygmcGRldi0+ZGV2LCBz
-aXplb2YoKnBybSksIEdGUF9LRVJORUwpOwo+Pj4+ICsJaWYgKCFwcm0pCj4+Pj4gKwkJcmV0dXJu
-IC1FTk9NRU07Cj4+Pj4gKwo+Pj4+ICsJZGF0YSA9IG1hdGNoLT5kYXRhOwo+Pj4+ICsKPj4+PiAr
-CXdoaWxlIChkYXRhLT5iYXNlICE9IHJlcy0+c3RhcnQpIHsKPj4+PiArCQlpZiAoIWRhdGEtPmJh
-c2UpCj4+Pj4gKwkJCXJldHVybiAtRUlOVkFMOwo+Pj4+ICsJCWRhdGErKzsKPj4+PiArCX0KPj4+
-Cj4+PiBJcyB0aGlzIG5vdCBzb21ldGhpbmcgdGhhdCB5b3Ugd2FudCB0byBoYXZlIGVuY29kZWQg
-aW4gdGhlIGNvbXBhdGlibGUKPj4+IHN0cmluZz8gVGhleSBhbGwgaGF2ZSBhIGRpZmZlcmVudCBy
-ZWdpc3RlciBsYXlvdXQuCj4+Cj4+IFdpdGggdGhlIGFkZGl0aW9uIG9mIGFsbCB0aGUgcHJtIGlu
-c3RhbmNlcyBsYXRlciBvbiwgdGhpcyBjaGFuZ2VzLiBNb3N0Cj4+IG9mIHRoZSBwcm0gaW5zdGFu
-Y2VzIHdpbGwgaGF2ZSBzYW1lIHJlZ2lzdGVyIGxheW91dCB0aGVuLiBTZWUgdjEgZGF0YQo+PiB0
-aGF0IHdhcyBwb3N0ZWQgZWFybGllciBbMV0sIGJ1dCB3aGljaCBJIGRyb3BwZWQgZm9yIG5vdyB0
-byBrZWVwIHRoaXMKPj4gc2VyaWVzIGlzb2xhdGVkIGZvciByZXNldCBoYW5kbGluZyBvbmx5LiBJ
-biB0aGlzIHBhdGNoLCB5b3Ugc2VlIHRoYXQgZm9yCj4+IERSQTcsIGFsbCB0aGUgcG93ZXIgZG9t
-YWluIGhhbmRsaW5nIHJlbGF0ZWQgUFJNIGluc3RhbmNlcyBoYXZlIGlkZW50aWNhbAo+PiByZWdp
-c3RlciBsYXlvdXQsIHRoZXkganVzdCBkaWZmZXIgYmFzZWQgb24gYmFzZSBhZGRyZXNzLgo+Pgo+
-PiBbMV0gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtb21hcC9tc2cxNDk4NzIu
-aHRtbAo+Pgo+PiBJdCB3b3VsZCBiZSBwb3NzaWJsZSB0byBlbmNvZGUgYWxsIG9mIHRoaXMgYmFz
-ZWQgb24gZGlmZmVyZW50Cj4+IGNvbXBhdGlibGVzLCBidXQgdGhlbiB0aGUgYW1vdW50IG9mIGRp
-ZmZlcmVudCBjb21wYXRpYmxlIHN0cmluZ3Mgd291bGQKPj4gZXhwbG9kZS4uLiBEUkE3IGlzIGp1
-c3Qgb25lIFNvQy4KPiAKPiBJIHNlZSBvbmx5IDMgZGlmZmVyZW50IGxheW91dHMgaW4gdGhhdCBw
-YXRjaC4gQWxsIGluc3RhbmNlcyB3aXRoCj4gaWRlbnRpY2FsIGxheW91dCBjb3VsZCBzaGFyZSB0
-aGUgc2FtZSBjb21wYXRpYmxlLgo+IAo+IEVpdGhlciB3YXksIHRoYXQgaXMgRFQgYmluZGluZ3Mg
-dGVycml0b3J5LCBhbmQgbm90IGZvciBtZSB0byBkZWNpZGUuIEkKPiBqdXN0IGZvdW5kIGl0IHVu
-dXN1YWwgdG8gZW5jb2RlIHRoZSBkZXZpY2UgdHlwZSBieSBpdHMgYmFzZSBhZGRyZXNzIGluCj4g
-dGhlIGRyaXZlci4KCkknbGwgdHJ5IHRvIHBva2UgUm9iIGZvciBjb21tZW50IG9uIHRoYXQgb24g
-dGhlIGJpbmRpbmdzIHBhdGNoLgoKPiAKPj4+Cj4+Pj4gKwo+Pj4+ICsJcHJtLT5kYXRhID0gZGF0
-YTsKPj4+PiArCj4+Pj4gKwlwcm0tPmJhc2UgPSBkZXZtX2lvcmVtYXBfcmVzb3VyY2UoJnBkZXYt
-PmRldiwgcmVzKTsKPj4+Cj4+PiAJcHJtLT5iYXNlID0gZGV2bV9wbGF0Zm9ybV9pb3JlbWFwX3Jl
-c291cmNlKHBkZXYsIDApOwo+Pgo+PiBJIHN0aWxsIG5lZWQgdGhlICJyZXMiIHBvaW50ZXIgYXMg
-aW5kaWNhdGVkIGFib3ZlLgo+IAo+IEdvdCBpdC4gSWYgdGhlIGxvb2t1cCBieSBiYXNlIGFkZHJl
-c3MgaXMgbmVlZGVkLCB0aGlzIGhhcyB0byBzdGF5IHNwbGl0LgoKT2sgdGhhbmtzIGZvciB0aGUg
-cmV2aWV3cywgbXVjaCBhcHByZWNpYXRlZC4gSSdsbCBzZWUgaWYgSSBjYW4gZ2V0IHJlcGx5IApm
-cm9tIFJvYiBvbiB0aGUgYmluZGluZyBpdGVtLCBvdGhlcndpc2UgSSBtaWdodCBqdXN0IHNlbmQg
-djIgd2l0aCB0aGUgCmV4aXN0aW5nIGJpbmRpbmdzIG91dCBhbmQgc2VuZCBhIHYzIHdpdGggdXBk
-YXRlZCBiaW5kaW5ncyBpZiBuZWNlc3NhcnkuCgotVGVybwotLQpUZXhhcyBJbnN0cnVtZW50cyBG
-aW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4gWS10dW5udXMvQnVz
-aW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
-ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
-Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi Rob,
+
+Quick question below based on some discussion on the implementation 
+details of the PRM support.
+
+On 28/08/2019 10:19, Tero Kristo wrote:
+> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
+> of these will act as a power domain controller and potentially as a reset
+> provider.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>   .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
+>   1 file changed, 31 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> new file mode 100644
+> index 000000000000..7c7527c37734
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> @@ -0,0 +1,31 @@
+> +OMAP PRM instance bindings
+> +
+> +Power and Reset Manager is an IP block on OMAP family of devices which
+> +handle the power domains and their current state, and provide reset
+> +handling for the domains and/or separate IP blocks under the power domain
+> +hierarchy.
+> +
+> +Required properties:
+> +- compatible:	Must be one of:
+> +		"ti,am3-prm-inst"
+> +		"ti,am4-prm-inst"
+> +		"ti,omap4-prm-inst"
+> +		"ti,omap5-prm-inst"
+> +		"ti,dra7-prm-inst"
+
+Each of these bindings describes multiple PRM instances, like 
+ti,dra7-prm-inst maps eventually into 21 different PRM instances. I end 
+up matching these in the kernel based on base address to map additional 
+details, like support for reset handling, supported reset bits, etc.
+
+What is your take on this, should I just provide individual compatible 
+strings for these all, the total amount of them would end up being like 
+70+, or keep them like this? I find it rather cumbersome if I would have 
+to deal with 70+ different compatibles... Also, I would need to keep 
+updating the bindings doc once I add new instances on the supported list.
+
+-Tero
+
+> +- reg:		Contains PRM instance register address range
+> +		(base address and length)
+> +
+> +Optional properties:
+> +- #reset-cells:	Should be 1 if the PRM instance in question supports resets.
+> +- clocks:	Associated clocks for the reset signals if any. Certain reset
+> +		signals can't be toggled properly without functional clock
+> +		being active for them.
+> +
+> +Example:
+> +
+> +prm_dsp2: prm@1b00 {
+> +	compatible = "ti,dra7-prm-inst";
+> +	reg = <0x1b00 0x40>;
+> +	#reset-cells = <1>;
+> +	clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
+> +};
+> 
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
