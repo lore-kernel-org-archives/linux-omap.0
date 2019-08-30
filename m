@@ -1,11 +1,13 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 00/10] soc: ti: add OMAP PRM driver (for reset)
-Date: Fri, 30 Aug 2019 15:18:06 +0300
-Message-ID: <20190830121816.30034-1-t-kristo@ti.com>
+Subject: [PATCHv3 01/10] dt-bindings: omap: add new binding for PRM instances
+Date: Fri, 30 Aug 2019 15:18:07 +0300
+Message-ID: <20190830121816.30034-2-t-kristo@ti.com>
+References: <20190830121816.30034-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190830121816.30034-1-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,27 +21,55 @@ To: ssantosh@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti
 Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
+of these will act as a power domain controller and potentially as a reset
+provider.
 
-V3 of the series, ended up re-sending the whole series as I squashed one
-patch from v2 and because of that the ordering has changed a bit. Changes
-in v3 contain fixes for the comments from Philipp Zabel.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
 
-- added spinlock to protect register writes
-- added own xlate function to prevent bad reset IDs to be registered
-- use mask for the valid reset detection instead of parsing reset map
-- fixed reset status bit handling
-- used iopoll macro instead of handwritten poll loop for timeouts
-- squashed patch #6 into #4 from v2 of the series
-- some other minor fixes.
-
-This series still depends on the clk driver changes for the reset<->clk
-syncing [1].
-
--Tero
-
-[1] https://marc.info/?l=linux-clk&m=156697558331203&w=2
-
+diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+new file mode 100644
+index 000000000000..7c7527c37734
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+@@ -0,0 +1,31 @@
++OMAP PRM instance bindings
++
++Power and Reset Manager is an IP block on OMAP family of devices which
++handle the power domains and their current state, and provide reset
++handling for the domains and/or separate IP blocks under the power domain
++hierarchy.
++
++Required properties:
++- compatible:	Must be one of:
++		"ti,am3-prm-inst"
++		"ti,am4-prm-inst"
++		"ti,omap4-prm-inst"
++		"ti,omap5-prm-inst"
++		"ti,dra7-prm-inst"
++- reg:		Contains PRM instance register address range
++		(base address and length)
++
++Optional properties:
++- #reset-cells:	Should be 1 if the PRM instance in question supports resets.
++- clocks:	Associated clocks for the reset signals if any. Certain reset
++		signals can't be toggled properly without functional clock
++		being active for them.
++
++Example:
++
++prm_dsp2: prm@1b00 {
++	compatible = "ti,dra7-prm-inst";
++	reg = <0x1b00 0x40>;
++	#reset-cells = <1>;
++	clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
++};
+-- 
+2.17.1
 
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
