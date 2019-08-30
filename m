@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 06/10] soc: ti: omap-prm: add omap4 PRM data
-Date: Fri, 30 Aug 2019 15:18:12 +0300
-Message-ID: <20190830121816.30034-7-t-kristo@ti.com>
+Subject: [PATCHv3 07/10] soc: ti: omap-prm: add data for am33xx
+Date: Fri, 30 Aug 2019 15:18:13 +0300
+Message-ID: <20190830121816.30034-8-t-kristo@ti.com>
 References: <20190830121816.30034-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,45 +21,55 @@ To: ssantosh@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti
 Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM data for omap4 family of SoCs. Initially this is just used to
-provide reset support.
+Add PRM instance data for AM33xx SoC. Includes some basic register
+definitions and reset data for now.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/soc/ti/omap_prm.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/soc/ti/omap_prm.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
 diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index 7c8fdc5e6c50..d413e65c9b9b 100644
+index d413e65c9b9b..bc0933315484 100644
 --- a/drivers/soc/ti/omap_prm.c
 +++ b/drivers/soc/ti/omap_prm.c
-@@ -61,7 +61,29 @@ struct omap_reset_data {
+@@ -61,6 +61,11 @@ struct omap_reset_data {
  
  #define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
  
-+static const struct omap_rst_map rst_map_01[] = {
++static const struct omap_rst_map rst_map_0[] = {
 +	{ .rst = 0, .st = 0 },
-+	{ .rst = 1, .st = 1 },
 +	{ .rst = -1 },
 +};
 +
-+static const struct omap_rst_map rst_map_012[] = {
-+	{ .rst = 0, .st = 0 },
-+	{ .rst = 1, .st = 1 },
-+	{ .rst = 2, .st = 2 },
+ static const struct omap_rst_map rst_map_01[] = {
+ 	{ .rst = 0, .st = 0 },
+ 	{ .rst = 1, .st = 1 },
+@@ -82,8 +87,27 @@ static const struct omap_prm_data omap4_prm_data[] = {
+ 	{ },
+ };
+ 
++static const struct omap_rst_map am3_per_rst_map[] = {
++	{ .rst = 1 },
 +	{ .rst = -1 },
 +};
 +
-+static const struct omap_prm_data omap4_prm_data[] = {
-+	{ .name = "tesla", .base = 0x4a306400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
-+	{ .name = "core", .base = 0x4a306700, .rstctrl = 0x210, .rstst = 0x214, .clkdm_name = "ducati", .rstmap = rst_map_012 },
-+	{ .name = "ivahd", .base = 0x4a306f00, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_012 },
-+	{ .name = "device", .base = 0x4a307b00, .rstctrl = 0x0, .rstst = 0x4, .rstmap = rst_map_01, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
++static const struct omap_rst_map am3_wkup_rst_map[] = {
++	{ .rst = 3, .st = 5 },
++	{ .rst = -1 },
++};
++
++static const struct omap_prm_data am3_prm_data[] = {
++	{ .name = "per", .base = 0x44e00c00, .rstctrl = 0x0, .rstmap = am3_per_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL, .clkdm_name = "pruss_ocp" },
++	{ .name = "wkup", .base = 0x44e00d00, .rstctrl = 0x0, .rstst = 0xc, .rstmap = am3_wkup_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
++	{ .name = "device", .base = 0x44e00f00, .rstctrl = 0x0, .rstst = 0x8, .rstmap = rst_map_01, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
++	{ .name = "gfx", .base = 0x44e01100, .rstctrl = 0x4, .rstst = 0x14, .rstmap = rst_map_0, .clkdm_name = "gfx_l3" },
 +	{ },
 +};
 +
  static const struct of_device_id omap_prm_id_table[] = {
-+	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
+ 	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
++	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
  	{ },
  };
  
