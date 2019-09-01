@@ -1,7 +1,7 @@
 From: David Lechner <david@lechnology.com>
-Subject: [PATCH v3 4/6] ARM: dts: am33xx: Add nodes for eQEP
-Date: Sun,  1 Sep 2019 17:58:25 -0500
-Message-ID: <20190901225827.12301-5-david@lechnology.com>
+Subject: [PATCH v3 5/6] ARM: dts: am335x-boneblue: Enable eQEP
+Date: Sun,  1 Sep 2019 17:58:26 -0500
+Message-ID: <20190901225827.12301-6-david@lechnology.com>
 References: <20190901225827.12301-1-david@lechnology.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190901225827.12301-1-david@lechnology.com>
@@ -10,72 +10,88 @@ To: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: David Lechner <david@lechnology.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This adds new nodes for the Texas Instruments Enhanced Quadrature
-Encoder Pulse (eQEP) module in the PWM subsystem on AM33XX.
+This enables the Enhanced Quadrature Encoder Pulse (eQEP) module for
+connectors E1, E2 and E3 on BeagleBone Blue.
 
 Signed-off-by: David Lechner <david@lechnology.com>
 ---
 
 v3 changes:
-- rename eqep@ to counter@
+- none
 v2 changes:
-- clocks renamed to "sysclkout"
+- none
 
+ arch/arm/boot/dts/am335x-boneblue.dts | 54 +++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
- arch/arm/boot/dts/am33xx-l4.dtsi | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-index 3b1fb2ba4dff..8dd5fd9eb862 100644
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -1908,6 +1908,15 @@
- 					status = "disabled";
- 				};
- 
-+				eqep0: counter@180 {
-+					compatible = "ti,am3352-eqep";
-+					reg = <0x180 0x80>;
-+					clocks = <&l4ls_gclk>;
-+					clock-names = "sysclkout";
-+					interrupts = <79>;
-+					status = "disabled";
-+				};
+diff --git a/arch/arm/boot/dts/am335x-boneblue.dts b/arch/arm/boot/dts/am335x-boneblue.dts
+index 0257576d5d16..df3978ce061c 100644
+--- a/arch/arm/boot/dts/am335x-boneblue.dts
++++ b/arch/arm/boot/dts/am335x-boneblue.dts
+@@ -258,6 +258,30 @@
+ 			AM33XX_PADCONF(AM335X_PIN_MII1_RXD0, PIN_OUTPUT, MUX_MODE7)		/* (M16) gmii1_rxd0.gpio2[21] */
+ 		>;
+ 	};
 +
- 				ehrpwm0: pwm@200 {
- 					compatible = "ti,am3352-ehrpwm",
- 						     "ti,am33xx-ehrpwm";
-@@ -1961,6 +1970,15 @@
- 					status = "disabled";
- 				};
- 
-+				eqep1: counter@180 {
-+					compatible = "ti,am3352-eqep";
-+					reg = <0x180 0x80>;
-+					clocks = <&l4ls_gclk>;
-+					clock-names = "sysclkout";
-+					interrupts = <88>;
-+					status = "disabled";
-+				};
++	/* E1 */
++	eqep0_pins: pinmux_eqep0_pins {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_AXR0, PIN_INPUT, MUX_MODE1)		/* (B12) mcasp0_aclkr.eQEP0A_in */
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_FSR, PIN_INPUT, MUX_MODE1)		/* (C13) mcasp0_fsr.eQEP0B_in */
++		>;
++	};
 +
- 				ehrpwm1: pwm@200 {
- 					compatible = "ti,am3352-ehrpwm",
- 						     "ti,am33xx-ehrpwm";
-@@ -2014,6 +2032,15 @@
- 					status = "disabled";
- 				};
- 
-+				eqep2: counter@180 {
-+					compatible = "ti,am3352-eqep";
-+					reg = <0x180 0x80>;
-+					clocks = <&l4ls_gclk>;
-+					clock-names = "sysclkout";
-+					interrupts = <89>;
-+					status = "disabled";
-+				};
++	/* E2 */
++	eqep1_pins: pinmux_eqep1_pins {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA12, PIN_INPUT, MUX_MODE2)		/* (V2) lcd_data12.eQEP1A_in */
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA13, PIN_INPUT, MUX_MODE2)		/* (V3) lcd_data13.eQEP1B_in */
++		>;
++	};
 +
- 				ehrpwm2: pwm@200 {
- 					compatible = "ti,am3352-ehrpwm",
- 						     "ti,am33xx-ehrpwm";
++	/* E3 */
++	eqep2_pins: pinmux_eqep2_pins {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD12, PIN_INPUT, MUX_MODE4)		/* (T12) gpmc_ad12.eQEP2A_in */
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD13, PIN_INPUT, MUX_MODE4)		/* (R12) gpmc_ad13.eQEP2B_in */
++		>;
++	};
+ };
+ 
+ &uart0 {
+@@ -530,3 +554,33 @@
+ 		line-name = "LS_BUF_EN";
+ 	};
+ };
++
++&epwmss0 {
++	status = "okay";
++};
++
++&eqep0 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&eqep0_pins>;
++};
++
++&epwmss1 {
++	status = "okay";
++};
++
++&eqep1 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&eqep1_pins>;
++};
++
++&epwmss2 {
++	status = "okay";
++};
++
++&eqep2 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&eqep2_pins>;
++};
 -- 
 2.17.1
