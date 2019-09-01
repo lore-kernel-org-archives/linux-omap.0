@@ -1,102 +1,81 @@
 From: David Lechner <david@lechnology.com>
-Subject: [PATCH v3 0/6] counter: new TI eQEP driver
-Date: Sun,  1 Sep 2019 17:58:21 -0500
-Message-ID: <20190901225827.12301-1-david@lechnology.com>
+Subject: [PATCH v3 4/6] ARM: dts: am33xx: Add nodes for eQEP
+Date: Sun,  1 Sep 2019 17:58:25 -0500
+Message-ID: <20190901225827.12301-5-david@lechnology.com>
+References: <20190901225827.12301-1-david@lechnology.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190901225827.12301-1-david@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: David Lechner <david@lechnology.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This series adds device tree bindings and a new counter driver for the Texas
-Instruments Enhanced Quadrature Encoder Pulse (eQEP).
+This adds new nodes for the Texas Instruments Enhanced Quadrature
+Encoder Pulse (eQEP) module in the PWM subsystem on AM33XX.
 
-As mentioned in one of the commit messages, to start with, the driver only
-supports reading the current counter value and setting the min/max values.
-Other features can be added as the counter subsystem gains support for them.
+Signed-off-by: David Lechner <david@lechnology.com>
+---
 
 v3 changes:
-- Minor changes to device tree bindings (style and generic node name)
-- Drop action in initializer
-- Fix ordering of pm runtime disable
+- rename eqep@ to counter@
 v2 changes:
-- New patch to move TI PWMSS driver from drivers/pwm/ to drivers/bus/
-- Device tree bindings converted to .yaml format
-- Device tree clock renamed from "fck" to "sysclkout"
-- Dropped unused index and strobe signals from counter driver
-- Added synapses and actions to counter driver
-- Fixed base in of kstrtouint()
-- Clarifications in commit messages
+- clocks renamed to "sysclkout"
 
-This series has been tested on a BeagleBone Blue with the following script:
 
-#!/usr/bin/env python3
+ arch/arm/boot/dts/am33xx-l4.dtsi | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-from os import path
-from time import sleep
-
-COUNTER_PATH = '/sys/bus/counter/devices'
-COUNTERS = ['counter0', 'counter1', 'counter2']
-COUNT0 = 'count0'
-COUNT = 'count'
-FUNCTION = 'function'
-CEILING = 'ceiling'
-FLOOR = 'floor'
-ENABLE = 'enable'
-
-cnts = []
-
-for c in COUNTERS:
-    function_path = path.join(COUNTER_PATH, c, COUNT0, FUNCTION)
-    with open(function_path, 'w') as f:
-        f.write('quadrature x4')
-    floor_path = path.join(COUNTER_PATH, c, COUNT0, FLOOR)
-    with open(floor_path, 'w') as f:
-        f.write(str(0))
-    ceiling_path = path.join(COUNTER_PATH, c, COUNT0, CEILING)
-    with open(ceiling_path, 'w') as f:
-        f.write(str(0xffffffff))
-    enable_path = path.join(COUNTER_PATH, c, COUNT0, ENABLE)
-    with open(enable_path, 'w') as f:
-        f.write('1')
-
-    cnt_path = path.join(COUNTER_PATH, c, COUNT0, COUNT)
-    cnts.append(open(cnt_path, 'r'))
-
-while True:
-    for c in cnts:
-        c.seek(0)
-        val = int(c.read())
-        if val >= 0x80000000:
-            val -= 0x100000000
-        print(val, end=' ')
-    print()
-    sleep(1)
-
-David Lechner (6):
-  bus/ti-pwmss: move TI PWMSS driver from PWM to bus subsystem
-  dt-bindings: counter: new bindings for TI eQEP
-  counter: new TI eQEP driver
-  ARM: dts: am33xx: Add nodes for eQEP
-  ARM: dts: am335x-boneblue: Enable eQEP
-  ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi
-
- .../devicetree/bindings/counter/ti-eqep.yaml  |  50 ++
- MAINTAINERS                                   |   6 +
- arch/arm/boot/dts/am335x-boneblue.dts         | 146 +++---
- arch/arm/boot/dts/am33xx-l4.dtsi              |  27 +
- drivers/bus/Kconfig                           |   9 +
- drivers/bus/Makefile                          |   1 +
- drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} |   0
- drivers/counter/Kconfig                       |  11 +
- drivers/counter/Makefile                      |   1 +
- drivers/counter/ti-eqep.c                     | 473 ++++++++++++++++++
- drivers/pwm/Kconfig                           |   9 -
- drivers/pwm/Makefile                          |   1 -
- 12 files changed, 634 insertions(+), 100 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/counter/ti-eqep.yaml
- rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)
- create mode 100644 drivers/counter/ti-eqep.c
-
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+index 3b1fb2ba4dff..8dd5fd9eb862 100644
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1908,6 +1908,15 @@
+ 					status = "disabled";
+ 				};
+ 
++				eqep0: counter@180 {
++					compatible = "ti,am3352-eqep";
++					reg = <0x180 0x80>;
++					clocks = <&l4ls_gclk>;
++					clock-names = "sysclkout";
++					interrupts = <79>;
++					status = "disabled";
++				};
++
+ 				ehrpwm0: pwm@200 {
+ 					compatible = "ti,am3352-ehrpwm",
+ 						     "ti,am33xx-ehrpwm";
+@@ -1961,6 +1970,15 @@
+ 					status = "disabled";
+ 				};
+ 
++				eqep1: counter@180 {
++					compatible = "ti,am3352-eqep";
++					reg = <0x180 0x80>;
++					clocks = <&l4ls_gclk>;
++					clock-names = "sysclkout";
++					interrupts = <88>;
++					status = "disabled";
++				};
++
+ 				ehrpwm1: pwm@200 {
+ 					compatible = "ti,am3352-ehrpwm",
+ 						     "ti,am33xx-ehrpwm";
+@@ -2014,6 +2032,15 @@
+ 					status = "disabled";
+ 				};
+ 
++				eqep2: counter@180 {
++					compatible = "ti,am3352-eqep";
++					reg = <0x180 0x80>;
++					clocks = <&l4ls_gclk>;
++					clock-names = "sysclkout";
++					interrupts = <89>;
++					status = "disabled";
++				};
++
+ 				ehrpwm2: pwm@200 {
+ 					compatible = "ti,am3352-ehrpwm",
+ 						     "ti,am33xx-ehrpwm";
 -- 
 2.17.1
