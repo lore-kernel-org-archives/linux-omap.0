@@ -1,108 +1,102 @@
-From: Pavel Machek <pavel@denx.de>
-Subject: Re: next-20190830 on Droid 4 was Re: [PATCH 0/4] musb host
- improvments mostly for omap2430 glue
-Date: Sun, 1 Sep 2019 21:49:11 +0200
-Message-ID: <20190901194911.GB30586@amd>
-References: <20190830232058.53414-1-tony@atomide.com>
- <20190901193925.GA30586@amd>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="JP+T4n/bALQSJXh8"
+From: David Lechner <david@lechnology.com>
+Subject: [PATCH v3 0/6] counter: new TI eQEP driver
+Date: Sun,  1 Sep 2019 17:58:21 -0500
+Message-ID: <20190901225827.12301-1-david@lechnology.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190901193925.GA30586@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@denx.de>
-Cc: Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, Jacopo Mondi <jacopo@jmondi.org>, Michael Scott <hashcode0f@gmail.com>
+To: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: David Lechner <david@lechnology.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+This series adds device tree bindings and a new counter driver for the Texas
+Instruments Enhanced Quadrature Encoder Pulse (eQEP).
 
---JP+T4n/bALQSJXh8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+As mentioned in one of the commit messages, to start with, the driver only
+supports reading the current counter value and setting the min/max values.
+Other features can be added as the counter subsystem gains support for them.
 
-On Sun 2019-09-01 21:39:25, Pavel Machek wrote:
-> Hi!
->=20
-> > So I ended up cleaning up omap2430 glue layer a bit for host mode with =
-the
-> > various reproducable errors I was seeing docking droid4 to a lapdock. T=
-here
-> > are a few fixes, and then we end up removing all the devctl register ti=
-nkering
-> > for omap2430 glue layer.
->=20
-> I thought I'd test this, so I took
->=20
-> commit 6d028043b55e54f48fbdf62ea8ce11a4ad830cac
->     Add linux-next specific files for 20190830
->=20
-> Series (and the other two patches you sent around it) applies ok, but
-> the result does not boot.
+v3 changes:
+- Minor changes to device tree bindings (style and generic node name)
+- Drop action in initializer
+- Fix ordering of pm runtime disable
+v2 changes:
+- New patch to move TI PWMSS driver from drivers/pwm/ to drivers/bus/
+- Device tree bindings converted to .yaml format
+- Device tree clock renamed from "fck" to "sysclkout"
+- Dropped unused index and strobe signals from counter driver
+- Added synapses and actions to counter driver
+- Fixed base in of kstrtouint()
+- Clarifications in commit messages
 
-Hmm. Maybe I'm just having problem with the backlight. I do see
-regulator failure:
+This series has been tested on a BeagleBone Blue with the following script:
 
-[    2.143920] cpcap-usb-phy cpcap-usb-phy.0: using device tree for
-GPIO lookup
-[    2.151031] of_get_named_gpiod_flags: parsed 'mode-gpios' property
-of node ')
-[    2.166015] gpio gpiochip2: Persistence not supported for GPIO 28
-214935] ------------[ cut here ]------------
-[    2.219604] WARNING: CPU: 0 PID: 1 at drivers/regulator/core.c:2040
-_regulat0
-[    2.228118] Modules linked in:
-[    2.231201] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-5.3.0-rc6-next-20190834
-[    2.238800] Hardware name: Generic OMAP4 (Flattened Device Tree)
-[    2.244873] [<c010f224>] (unwind_backtrace) from [<c010b4fc>]
-(show_stack+0x)
-[    2.252655] [<c010b4fc>] (show_stack) from [<c08ca584>]
-(dump_stack+0xa8/0xc)
+#!/usr/bin/env python3
 
-and some drm problems:
+from os import path
+from time import sleep
 
-[   59.303253] omap-mcbsp 40124000.mcbsp: CLKS: could not clk_get()
-prcm_fck
-[   59.311492] ------------[ cut here ]------------
-[   59.314666] WARNING: CPU: 0 PID: 2704 at
-drivers/gpu/drm/omapdrm/dss/hdmi4.c0
-[   59.325866] Modules linked in:
-[   59.328948] CPU: 0 PID: 2704 Comm: alsa-sink-HDMI  Tainted: G
-W      4
-[   59.337982] Hardware name: Generic OMAP4 (Flattened Device Tree)
-[   59.344757] [<c010f224>] (unwind_backtrace) from [<c010b4fc>]
-(show_stack+0x)
-[   59.352569] [<c010b4fc>] (show_stack) from [<c08ca584>]
-(dump_stack+0xa8/0xc)
-[   59.359832] [<c08ca584>] (dump_stack) from [<c012de94>]
-(__warn+0xc8/0xf0)
+COUNTER_PATH = '/sys/bus/counter/devices'
+COUNTERS = ['counter0', 'counter1', 'counter2']
+COUNT0 = 'count0'
+COUNT = 'count'
+FUNCTION = 'function'
+CEILING = 'ceiling'
+FLOOR = 'floor'
+ENABLE = 'enable'
 
-But I get login prompt on the serial. And after I do:
+cnts = []
 
-root@devuan:/sys/class/leds/lm3532::backlight# echo 255 > brightness
+for c in COUNTERS:
+    function_path = path.join(COUNTER_PATH, c, COUNT0, FUNCTION)
+    with open(function_path, 'w') as f:
+        f.write('quadrature x4')
+    floor_path = path.join(COUNTER_PATH, c, COUNT0, FLOOR)
+    with open(floor_path, 'w') as f:
+        f.write(str(0))
+    ceiling_path = path.join(COUNTER_PATH, c, COUNT0, CEILING)
+    with open(ceiling_path, 'w') as f:
+        f.write(str(0xffffffff))
+    enable_path = path.join(COUNTER_PATH, c, COUNT0, ENABLE)
+    with open(enable_path, 'w') as f:
+        f.write('1')
 
-I can even see X are running.
+    cnt_path = path.join(COUNTER_PATH, c, COUNT0, COUNT)
+    cnts.append(open(cnt_path, 'r'))
 
-Good so far :-).
+while True:
+    for c in cnts:
+        c.seek(0)
+        val = int(c.read())
+        if val >= 0x80000000:
+            val -= 0x100000000
+        print(val, end=' ')
+    print()
+    sleep(1)
 
-Best regards,							Pavel
+David Lechner (6):
+  bus/ti-pwmss: move TI PWMSS driver from PWM to bus subsystem
+  dt-bindings: counter: new bindings for TI eQEP
+  counter: new TI eQEP driver
+  ARM: dts: am33xx: Add nodes for eQEP
+  ARM: dts: am335x-boneblue: Enable eQEP
+  ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi
 
---=20
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+ .../devicetree/bindings/counter/ti-eqep.yaml  |  50 ++
+ MAINTAINERS                                   |   6 +
+ arch/arm/boot/dts/am335x-boneblue.dts         | 146 +++---
+ arch/arm/boot/dts/am33xx-l4.dtsi              |  27 +
+ drivers/bus/Kconfig                           |   9 +
+ drivers/bus/Makefile                          |   1 +
+ drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} |   0
+ drivers/counter/Kconfig                       |  11 +
+ drivers/counter/Makefile                      |   1 +
+ drivers/counter/ti-eqep.c                     | 473 ++++++++++++++++++
+ drivers/pwm/Kconfig                           |   9 -
+ drivers/pwm/Makefile                          |   1 -
+ 12 files changed, 634 insertions(+), 100 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/counter/ti-eqep.yaml
+ rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)
+ create mode 100644 drivers/counter/ti-eqep.c
 
---JP+T4n/bALQSJXh8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl1sILcACgkQMOfwapXb+vJyDACgkYHyNaGha8AzYvK35pKloee1
-m2EAoIvw/eYdUmGoDUBy6nO6XeLFC2/K
-=oxiI
------END PGP SIGNATURE-----
-
---JP+T4n/bALQSJXh8--
+-- 
+2.17.1
