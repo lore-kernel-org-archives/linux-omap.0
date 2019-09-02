@@ -1,91 +1,35 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv3 01/10] dt-bindings: omap: add new binding for PRM
- instances
-Date: Mon, 02 Sep 2019 14:39:16 +0100
-Message-ID: <20190902042631.GA22055@bogus>
-References: <20190830121816.30034-1-t-kristo@ti.com>
- <20190830121816.30034-2-t-kristo@ti.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH v3 0/6] counter: new TI eQEP driver
+Date: Mon, 2 Sep 2019 09:17:40 -0500
+Message-ID: <68ce4c1a-5098-f6b8-e318-1d86d91a3206@lechnology.com>
+References: <20190901225827.12301-1-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190830121816.30034-2-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: devicetree@vger.kernel.org, tony@atomide.com, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190901225827.12301-1-david@lechnology.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 30, 2019 at 03:18:07PM +0300, Tero Kristo wrote:
-> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
-> of these will act as a power domain controller and potentially as a reset
-> provider.
+On 9/1/19 5:58 PM, David Lechner wrote:
+> This series adds device tree bindings and a new counter driver for the Texas
+> Instruments Enhanced Quadrature Encoder Pulse (eQEP).
 > 
 
-Converting this to schema would be nice.
+...
 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
-
-bindings/reset/
-
->  1 file changed, 31 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> David Lechner (6):
+>    bus/ti-pwmss: move TI PWMSS driver from PWM to bus subsystem
+>    dt-bindings: counter: new bindings for TI eQEP
+>    counter: new TI eQEP driver
+>    ARM: dts: am33xx: Add nodes for eQEP
+>    ARM: dts: am335x-boneblue: Enable eQEP
+>    ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi
 > 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-> new file mode 100644
-> index 000000000000..7c7527c37734
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-> @@ -0,0 +1,31 @@
-> +OMAP PRM instance bindings
-> +
-> +Power and Reset Manager is an IP block on OMAP family of devices which
-> +handle the power domains and their current state, and provide reset
-> +handling for the domains and/or separate IP blocks under the power domain
-> +hierarchy.
-> +
-> +Required properties:
-> +- compatible:	Must be one of:
-> +		"ti,am3-prm-inst"
-> +		"ti,am4-prm-inst"
-> +		"ti,omap4-prm-inst"
-> +		"ti,omap5-prm-inst"
-> +		"ti,dra7-prm-inst"
 
-'-inst' seems a bit redundant.
-
-> +- reg:		Contains PRM instance register address range
-> +		(base address and length)
-> +
-> +Optional properties:
-> +- #reset-cells:	Should be 1 if the PRM instance in question supports resets.
-> +- clocks:	Associated clocks for the reset signals if any. Certain reset
-> +		signals can't be toggled properly without functional clock
-> +		being active for them.
-> +
-> +Example:
-> +
-> +prm_dsp2: prm@1b00 {
-
-reset-controller@...
-
-> +	compatible = "ti,dra7-prm-inst";
-> +	reg = <0x1b00 0x40>;
-> +	#reset-cells = <1>;
-> +	clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
-> +};
-> -- 
-> 2.17.1
-> 
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+In case anyone notices, this series only has 5 patches, not 6. "ARM: dts:
+am335x-boneblue: Use of am335x-osd335x-common.dtsi" is unrelated and was
+submitted separately.
