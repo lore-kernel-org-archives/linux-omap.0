@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [RFC 5/5] ARM: dts: omap3-beagle: make explicitly compatible to ti,omap34xx
-Date: Mon,  2 Sep 2019 12:55:51 +0200
-Message-ID: <150eb34a95b2e7ead8ac81a9ab275592ea31595b.1567421751.git.hns@goldelico.com>
+Subject: [RFC 4/5] ARM: dts: omap3-n950-n9: remove opp-v1 table
+Date: Mon,  2 Sep 2019 12:55:50 +0200
+Message-ID: <2f978667c1533e46e3a5df58871e9048f3eb74e9.1567421751.git.hns@goldelico.com>
 References: <cover.1567421750.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,26 +12,31 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Matching the ti-cpufreq driver needs to specify explicitly if
-a board uses an omap34xx or omap36xx chip.
+With opp-v2 in omap36xx.dtsi and ti-cpufreq driver the
+1GHz capability is automatically detected.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-beagle.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index e3df3c166902..d47213c7a4d0 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -8,7 +8,7 @@
- 
- / {
- 	model = "TI OMAP3 BeagleBoard";
--	compatible = "ti,omap3-beagle", "ti,omap3";
-+	compatible = "ti,omap3-beagle", "ti,omap34xx", "ti,omap3";
- 
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 5441e9ffdbb4..e98b0c615f19 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -11,13 +11,6 @@
  	cpus {
  		cpu@0 {
+ 			cpu0-supply = <&vcc>;
+-			operating-points = <
+-				/* kHz    uV */
+-				300000  1012500
+-				600000  1200000
+-				800000  1325000
+-				1000000	1375000
+-			>;
+ 		};
+ 	};
+ 
 -- 
 2.19.1
