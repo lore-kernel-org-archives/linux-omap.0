@@ -1,89 +1,56 @@
-From: David Lechner <david@lechnology.com>
-Subject: [PATCH v3 2/6] dt-bindings: counter: new bindings for TI eQEP
-Date: Sun,  1 Sep 2019 17:58:23 -0500
-Message-ID: <20190901225827.12301-3-david@lechnology.com>
-References: <20190901225827.12301-1-david@lechnology.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190901225827.12301-1-david@lechnology.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: David Lechner <david@lechnology.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 00/10] soc: ti: add OMAP PRM driver (for reset)
+Date: Mon, 2 Sep 2019 09:50:48 +0300
+Message-ID: <178f8d3a-3658-132f-e937-64313c912dd0@ti.com>
+References: <20190830121816.30034-1-t-kristo@ti.com>
+ <f7d6a2fb-175c-361b-00ff-ddde67700daa@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <f7d6a2fb-175c-361b-00ff-ddde67700daa@oracle.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: santosh.shilimkar@oracle.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, p.zabel@pengutronix.de
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This documents device tree binding for the Texas Instruments Enhanced
-Quadrature Encoder Pulse (eQEP) Module found in various TI SoCs.
+On 30/08/2019 19:50, santosh.shilimkar@oracle.com wrote:
+> On 8/30/19 5:18 AM, Tero Kristo wrote:
+>> Hi,
+>>
+>> V3 of the series, ended up re-sending the whole series as I squashed one
+>> patch from v2 and because of that the ordering has changed a bit. Changes
+>> in v3 contain fixes for the comments from Philipp Zabel.
+>>
+>> - added spinlock to protect register writes
+>> - added own xlate function to prevent bad reset IDs to be registered
+>> - use mask for the valid reset detection instead of parsing reset map
+>> - fixed reset status bit handling
+>> - used iopoll macro instead of handwritten poll loop for timeouts
+>> - squashed patch #6 into #4 from v2 of the series
+>> - some other minor fixes.
+>>
+>> This series still depends on the clk driver changes for the reset<->clk
+>> syncing [1].
+>>
+> This has to wait for another merge window. It will also take care of 
+> dependencies landing in mainline. Will push this to linux-next as
+> soon as v5.4-rc1 is out. Please remind me in case you don't see it
+> in next after 5.4-rc1.
 
-Signed-off-by: David Lechner <david@lechnology.com>
----
+Yep it is very late so did not expect it getting in, just wanted to get 
+the patches rolling. I still hope to see the clock patches getting in 
+this cycle due to dependency, lets keep fingers crossed.
 
-v3 changes:
-- fixed style issues
-- fixed generic node name
-- (was suggested to drop descriptions since there is only one interrupt and one
-  clock, but I opted to keep them anyway)
-v2 changes:
-- convert to .yaml format
-- rename clock to "sysclkout"
-
- .../devicetree/bindings/counter/ti-eqep.yaml  | 50 +++++++++++++++++++
- 1 file changed, 50 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/counter/ti-eqep.yaml
-
-diff --git a/Documentation/devicetree/bindings/counter/ti-eqep.yaml b/Documentation/devicetree/bindings/counter/ti-eqep.yaml
-new file mode 100644
-index 000000000000..85f1ff83afe7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/counter/ti-eqep.yaml
-@@ -0,0 +1,50 @@
-+# SPDX-License-Identifier: GPL-2.0
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/counter/ti-eqep.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: Texas Instruments Enhanced Quadrature Encoder Pulse (eQEP) Module
-+
-+maintainers:
-+  - David Lechner <david@lechnology.com>
-+
-+properties:
-+  compatible:
-+    const: ti,am3352-eqep
-+
-+  reg:
-+    maxItems: 1
-+
-+  interrupts:
-+    description: The eQEP event interrupt
-+    maxItems: 1
-+
-+  clocks:
-+    description: The clock that determines the SYSCLKOUT rate for the eQEP
-+      peripheral.
-+    maxItems: 1
-+
-+  clock-names:
-+    const: sysclkout
-+
-+required:
-+  - compatible
-+  - reg
-+  - interrupts
-+  - clocks
-+  - clock-names
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    eqep0: counter@180 {
-+        compatible = "ti,am3352-eqep";
-+        reg = <0x180 0x80>;
-+        clocks = <&l4ls_gclk>;
-+        clock-names = "sysclkout";
-+        interrupts = <79>;
-+    };
-+
-+...
--- 
-2.17.1
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
