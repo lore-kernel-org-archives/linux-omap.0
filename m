@@ -1,13 +1,20 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 1/4] soc changes for omap variants for v5.4
-Date: Tue, 3 Sep 2019 14:25:29 +0200
-Message-ID: <CAK8P3a2ox-G7238GZmJjxEb1Q-yc9RvQ541xwSKpdqaF+Y_NmQ@mail.gmail.com>
-References: <pull-1567016893-318461@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 01/10] dt-bindings: omap: add new binding for PRM
+ instances
+Date: Tue, 3 Sep 2019 06:16:32 -0700
+Message-ID: <20190903131632.GL52127@atomide.com>
+References: <20190830121816.30034-1-t-kristo@ti.com>
+ <20190830121816.30034-2-t-kristo@ti.com>
+ <20190902042631.GA22055@bogus>
+ <e8d700cd-8f3c-5cea-a022-b20a595fc1e1@ti.com>
+ <CAL_Jsq+AJj1bgOQYG=c86A5HC_g2UZph387oVEKZyP4M18kURw@mail.gmail.com>
+ <7c2c8a4d-d24e-ceec-afc1-04cdc4d5d952@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1567016893-318461@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <7c2c8a4d-d24e-ceec-afc1-04cdc4d5d952@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,36 +24,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: SoC Team <soc@kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 28, 2019 at 8:35 PM Tony Lindgren <tony@atomide.com> wrote:
->
-> From: "Tony Lindgren" <tony@atomide.com>
->
-> The following changes since commit 5f9e832c137075045d15cd6899ab0505cfb2ca4b:
->
->   Linus 5.3-rc1 (2019-07-21 14:05:38 -0700)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.4/soc-signed
->
-> for you to fetch changes up to 50f57ef83d836d727902a6a7e70cca61b0d02655:
->
->   ARM: OMAP2+: Delete an unnecessary kfree() call in omap_hsmmc_pdata_init() (2019-08-26 08:59:48 -0700)
->
-> ----------------------------------------------------------------
-> SoC changes for omap variants for v5.4
->
-> The first change moves platform-specific asm-offsets.h to arch/arm/mach-omap2
-> to fix iessu with parallel build with CONFIG_IKHEADERS, and the second change
-> removes a useless kfree.
->
-> Note that the first change causes a trivial merge conflict with the iommu
-> changes for arch/arm/mach-omap2/Makefile.
+* Tero Kristo <t-kristo@ti.com> [190903 08:15]:
+> On 03/09/2019 11:10, Rob Herring wrote:
+> > I prefer that bindings be complete as possible even if driver support
+> > is not there yet. Adding power domain support may only mean adding
+> > '#power-domain-cells'.
+> > 
+> > The location is fine then.
+> 
+> Yeah, I assume just adding power-domain-cells should be enough. I am not too
+> sure before I start trying this out though so did not want to add it yet.
 
-Pulled into arm/soc, thanks!
+Should we call the device tree node name power-controller instead of
+reset controller though? Most of the PRM instances do not have a
+separate rstctrl reset control functionality.
 
-      Arnd
+Anybody got better any better naming in mind?
+
+Regards,
+
+Tony
