@@ -1,53 +1,54 @@
-From: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCHv3 01/10] dt-bindings: omap: add new binding for PRM
- instances
-Date: Tue, 03 Sep 2019 15:25:29 +0200
-Message-ID: <1567517129.5229.9.camel@pengutronix.de>
-References: <20190830121816.30034-1-t-kristo@ti.com>
- <20190830121816.30034-2-t-kristo@ti.com> <20190902042631.GA22055@bogus>
- <e8d700cd-8f3c-5cea-a022-b20a595fc1e1@ti.com>
- <CAL_Jsq+AJj1bgOQYG=c86A5HC_g2UZph387oVEKZyP4M18kURw@mail.gmail.com>
- <7c2c8a4d-d24e-ceec-afc1-04cdc4d5d952@ti.com>
- <20190903131632.GL52127@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 5/5] ARM: dts: omap3-beagle: make explicitly compatible to
+ ti,omap34xx
+Date: Tue, 3 Sep 2019 06:40:00 -0700
+Message-ID: <20190903134000.GM52127@atomide.com>
+References: <cover.1567421750.git.hns@goldelico.com>
+ <150eb34a95b2e7ead8ac81a9ab275592ea31595b.1567421751.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190903131632.GL52127@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Rob Herring <robh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <150eb34a95b2e7ead8ac81a9ab275592ea31595b.1567421751.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?utf-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Tue, 2019-09-03 at 06:16 -0700, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [190903 08:15]:
-> > On 03/09/2019 11:10, Rob Herring wrote:
-> > > I prefer that bindings be complete as possible even if driver support
-> > > is not there yet. Adding power domain support may only mean adding
-> > > '#power-domain-cells'.
-> > > 
-> > > The location is fine then.
-> > 
-> > Yeah, I assume just adding power-domain-cells should be enough. I am not too
-> > sure before I start trying this out though so did not want to add it yet.
+* H. Nikolaus Schaller <hns@goldelico.com> [190902 10:56]:
+> Matching the ti-cpufreq driver needs to specify explicitly if
+> a board uses an omap34xx or omap36xx chip.
 > 
-> Should we call the device tree node name power-controller instead of
-> reset controller though? Most of the PRM instances do not have a
-> separate rstctrl reset control functionality.
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  arch/arm/boot/dts/omap3-beagle.dts | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Anybody got better any better naming in mind?
+> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+> index e3df3c166902..d47213c7a4d0 100644
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -8,7 +8,7 @@
+>  
+>  / {
+>  	model = "TI OMAP3 BeagleBoard";
+> -	compatible = "ti,omap3-beagle", "ti,omap3";
+> +	compatible = "ti,omap3-beagle", "ti,omap34xx", "ti,omap3";
+>  
+>  	cpus {
+>  		cpu@0 {
 
-power-controller seems fine to me, that is their primary function.
+For a clean-up patch, we should just use the following compatibles
+in general for omap3:
 
-regards
-Philipp
+ti,omap3	omap3
+ti,omap34	omap34xx and omap35xx
+ti,omap36	omap36xx and dm37xx
+ti,am35		am35xx
+
+So we should just leave out the "xx" part. But we still need parse
+also the legacy binding with "xx" in drivers.
+
+Regards,
+
+Tony
