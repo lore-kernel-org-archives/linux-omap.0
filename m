@@ -1,128 +1,94 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 01/10] dt-bindings: omap: add new binding for PRM
- instances
-Date: Tue, 3 Sep 2019 11:14:19 +0300
-Message-ID: <7c2c8a4d-d24e-ceec-afc1-04cdc4d5d952@ti.com>
-References: <20190830121816.30034-1-t-kristo@ti.com>
- <20190830121816.30034-2-t-kristo@ti.com> <20190902042631.GA22055@bogus>
- <e8d700cd-8f3c-5cea-a022-b20a595fc1e1@ti.com>
- <CAL_Jsq+AJj1bgOQYG=c86A5HC_g2UZph387oVEKZyP4M18kURw@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 4/5] dt-bindings: dma: ti-edma: Add option for reserved
+ channel ranges
+Date: Tue, 3 Sep 2019 13:19:45 +0300
+Message-ID: <15d5dc03-d6ca-f438-f37a-e71298abda95@ti.com>
+References: <20190823125618.8133-1-peter.ujfalusi@ti.com>
+ <20190823125618.8133-5-peter.ujfalusi@ti.com> <20190829224728.GA1198@bogus>
+ <a4c5688b-cbeb-5059-5351-11d9ae1b25d5@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAL_Jsq+AJj1bgOQYG=c86A5HC_g2UZph387oVEKZyP4M18kURw@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <a4c5688b-cbeb-5059-5351-11d9ae1b25d5@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Philipp Zabel <p.zabel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "moderated
- list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+Cc: vkoul@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/09/2019 11:10, Rob Herring wrote:
-> On Tue, Sep 3, 2019 at 8:26 AM Tero Kristo <t-kristo@ti.com> wrote:
->>
->> On 02/09/2019 16:39, Rob Herring wrote:
->>> On Fri, Aug 30, 2019 at 03:18:07PM +0300, Tero Kristo wrote:
->>>> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
->>>> of these will act as a power domain controller and potentially as a reset
->>>> provider.
->>>>
+Hi Rob,
+
+On 30/08/2019 8.37, Peter Ujfalusi wrote:
+> Rob,
+> 
+> On 30/08/2019 1.47, Rob Herring wrote:
+>> On Fri, Aug 23, 2019 at 03:56:17PM +0300, Peter Ujfalusi wrote:
+>>> Similarly to paRAM slots, channels can be used by other cores.
 >>>
->>> Converting this to schema would be nice.
->>
->> Do you have documentation about schema somewhere? Basically what I need
->> to do to fix this.
-> 
-> Documentation/devicetree/writing-schema.md (.rst in -next)
-> Documentation/devicetree/bindings/example-schema.yaml
-> 
->>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>> ---
->>>>    .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
+>>> Add optional property to configure the reserved channel ranges.
 >>>
->>> bindings/reset/
->>
->> I did not put this under reset, because this is basically a
->> multi-purpose function. Reset just happens to be the first functionality
->> it is going to provide. It will be followed by power domain support
->> later on.
->>
->> Any thoughts?
-> 
-> I prefer that bindings be complete as possible even if driver support
-> is not there yet. Adding power domain support may only mean adding
-> '#power-domain-cells'.
-> 
-> The location is fine then.
-
-Yeah, I assume just adding power-domain-cells should be enough. I am not 
-too sure before I start trying this out though so did not want to add it 
-yet.
-
-> 
->>>>    1 file changed, 31 insertions(+)
->>>>    create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
->>>> new file mode 100644
->>>> index 000000000000..7c7527c37734
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
->>>> @@ -0,0 +1,31 @@
->>>> +OMAP PRM instance bindings
->>>> +
->>>> +Power and Reset Manager is an IP block on OMAP family of devices which
->>>> +handle the power domains and their current state, and provide reset
->>>> +handling for the domains and/or separate IP blocks under the power domain
->>>> +hierarchy.
->>>> +
->>>> +Required properties:
->>>> +- compatible:       Must be one of:
->>>> +            "ti,am3-prm-inst"
->>>> +            "ti,am4-prm-inst"
->>>> +            "ti,omap4-prm-inst"
->>>> +            "ti,omap5-prm-inst"
->>>> +            "ti,dra7-prm-inst"
+>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>> ---
+>>>  Documentation/devicetree/bindings/dma/ti-edma.txt | 5 +++++
+>>>  1 file changed, 5 insertions(+)
 >>>
->>> '-inst' seems a bit redundant.
+>>> diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
+>>> index 4bbc94d829c8..1198682ada99 100644
+>>> --- a/Documentation/devicetree/bindings/dma/ti-edma.txt
+>>> +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
+>>> @@ -42,6 +42,9 @@ Optional properties:
+>>>  - ti,edma-reserved-slot-ranges: PaRAM slot ranges which should not be used by
+>>>  		the driver, they are allocated to be used by for example the
+>>>  		DSP. See example.
+>>> +- ti,edma-reserved-chan-ranges: channel ranges which should not be used by
+>>> +		the driver, they are allocated to be used by for example the
+>>> +		DSP. See example.
 >>
->> ti,xyz-prm is already reserved by the parent node of all these.
->>
->> The hierarchy is basically like this (omap4 as example):
->>
->> prm: prm@4a306000 {
->>     compatible = "ti,omap4-prm";
->>     ...
->>
->>     prm_dsp: prm@400 {
->>       compatible = "ti,omap4-prm-inst";
->>       ...
->>     };
->>
->>     prm_device: prm@1b00 {
->>       compatible = "ti,omap4-prm-inst";
->>       ...
->>     };
->>
->>     ...
->> };
+>> Based on the other thread, I think extending dma-channel-mask to a 
+>> uint32-array makes sense here.
 > 
-> Okay. Then you need to state this binding must be a child of PRM. The
-> schema would need to take this into account too, so probably best to
-> not convert this yet.
+> Yes, that is the reason I have asked on that and I'm in progress of
+> converting the edma driver to use the dma-channel-mask.
+> Just need to do some shuffling in the driver to get the mask in a form
+> usable by the driver.
 > 
+> I'll send an updated series early next week.
 
-Ok thanks, I'll make the necessary updates and post v4.
+How should the dma-channel-mask uint31-array should be documented and used?
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Basically some EDMA have 32, some 64 channels. This is fine.
+Let's say I want to mask out channel 0-4 and 24-27
+
+This would look like in case of EDMA with 32 channels:
+&edma {
+	/* channel 0-4 and 24-27 is not to be used */
+	dma-channel-mask = <0xf0fffff0>;
+};
+
+How this should look like in case when I have 64 channels?
+&edma {
+	/* channel 0-4 and 24-27 is not to be used */
+	dma-channel-mask = <0xf0fffff0>, <0xffffffff>;
+};
+
+When I read the u32s then
+chan_mask[0] is for channel 0-31 (LSB is channel 0)
+chan_maks[1] is for channel 32-63 (LSB is channel 32)
+
+Or:
+&edma {
+	/* channel 0-4 and 24-27 is not to be used */
+	dma-channel-mask = <0xffffffff>, <0xf0fffff0>;
+};
+
+chan_maks[0] is for channel 32-63 (LSB is channel 32)
+chan_mask[1] is for channel 0-31 (LSB is channel 0)
+
+Do you have pointer on already established notion on how to document and
+handle this?
+
+- Péter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
