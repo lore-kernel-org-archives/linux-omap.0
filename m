@@ -1,14 +1,15 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH] dmaengine: ti: edma: Remove 'Assignment in if condition'
-Date: Wed, 4 Sep 2019 10:06:31 +0530
-Message-ID: <20190904043631.GS2672@vkoul-mobl>
-References: <20190730132006.2790-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] dmaengine: ti: omap-dma: Remove 'Assignment in if
+ condition'
+Date: Wed, 4 Sep 2019 10:10:47 +0530
+Message-ID: <20190904044047.GT2672@vkoul-mobl>
+References: <20190730132015.2863-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190730132006.2790-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20190730132015.2863-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
