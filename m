@@ -1,46 +1,73 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 01/36] ARM: OMAP2+: Fix missing SYSC_HAS_RESET_STATUS for dra7 epwmss
-Date: Wed,  4 Sep 2019 12:00:47 -0400
-Message-ID: <20190904160122.4179-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 09/52] ARM: OMAP1: ams-delta-fiq: Fix missing irq_ack
+Date: Wed,  4 Sep 2019 11:59:21 -0400
+Message-ID: <20190904160004.3671-9-sashal@kernel.org>
+References: <20190904160004.3671-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190904160004.3671-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>, Keerthy <j-keerthy@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-[ Upstream commit afd58b162e48076e3fe66d08a69eefbd6fe71643 ]
+[ Upstream commit fa8397e45c64e60c80373bc19ee56e42a6bed9b6 ]
 
-TRM says PWMSS_SYSCONFIG bit for SOFTRESET changes to zero when
-reset is completed. Let's configure it as otherwise we get warnings
-on boot when we check the data against dts provided data. Eventually
-the legacy platform data will be just dropped, but let's fix the
-warning first.
+Non-serio path of Amstrad Delta FIQ deferred handler depended on
+irq_ack() method provided by OMAP GPIO driver.  That method has been
+removed by commit 693de831c6e5 ("gpio: omap: remove irq_ack method").
+Remove useless code from the deferred handler and reimplement the
+missing operation inside the base FIQ handler.
 
-Reviewed-by: Suman Anna <s-anna@ti.com>
-Tested-by: Keerthy <j-keerthy@ti.com>
+Should another dependency - irq_unmask() - be ever removed from the OMAP
+GPIO driver, WARN once if missing.
+
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap1/ams-delta-fiq-handler.S | 3 ++-
+ arch/arm/mach-omap1/ams-delta-fiq.c         | 4 +---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 2f4f7002f38d0..87b0c38b7ca59 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -389,7 +389,8 @@ static struct omap_hwmod dra7xx_dcan2_hwmod = {
- static struct omap_hwmod_class_sysconfig dra7xx_epwmss_sysc = {
- 	.rev_offs	= 0x0,
- 	.sysc_offs	= 0x4,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			  SYSC_HAS_RESET_STATUS,
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
- };
+diff --git a/arch/arm/mach-omap1/ams-delta-fiq-handler.S b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+index ddc27638ba2a5..017c792be0a07 100644
+--- a/arch/arm/mach-omap1/ams-delta-fiq-handler.S
++++ b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+@@ -135,6 +135,8 @@ restart:
+ 	orr r11, r11, r13			@ mask all requested interrupts
+ 	str r11, [r12, #OMAP1510_GPIO_INT_MASK]
+ 
++	str r13, [r12, #OMAP1510_GPIO_INT_STATUS] @ ack all requested interrupts
++
+ 	ands r10, r13, #KEYBRD_CLK_MASK		@ extract keyboard status - set?
+ 	beq hksw				@ no - try next source
+ 
+@@ -142,7 +144,6 @@ restart:
+ 	@@@@@@@@@@@@@@@@@@@@@@
+ 	@ Keyboard clock FIQ mode interrupt handler
+ 	@ r10 now contains KEYBRD_CLK_MASK, use it
+-	str r10, [r12, #OMAP1510_GPIO_INT_STATUS]	@ ack the interrupt
+ 	bic r11, r11, r10				@ unmask it
+ 	str r11, [r12, #OMAP1510_GPIO_INT_MASK]
+ 
+diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
+index b0dc7ddf5877d..b8ba763fe1086 100644
+--- a/arch/arm/mach-omap1/ams-delta-fiq.c
++++ b/arch/arm/mach-omap1/ams-delta-fiq.c
+@@ -73,9 +73,7 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+ 			 * interrupts default to since commit 80ac93c27441
+ 			 * requires interrupt already acked and unmasked.
+ 			 */
+-			if (irq_chip->irq_ack)
+-				irq_chip->irq_ack(d);
+-			if (irq_chip->irq_unmask)
++			if (!WARN_ON_ONCE(!irq_chip->irq_unmask))
+ 				irq_chip->irq_unmask(d);
+ 		}
+ 		for (; irq_counter[gpio] < fiq_count; irq_counter[gpio]++)
 -- 
 2.20.1
