@@ -1,34 +1,38 @@
-From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH 0/5] dmaengine: ti: edma: Multicore usage related fixes
-Date: Wed, 4 Sep 2019 15:19:56 +0530
-Message-ID: <20190904094956.GT2672@vkoul-mobl>
-References: <20190823125618.8133-1-peter.ujfalusi@ti.com>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] fbdev: omapfb: use devm_platform_ioremap_resource() to simplify code
+Date: Wed, 4 Sep 2019 19:54:06 +0800
+Message-ID: <20190904115406.23880-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190823125618.8133-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: robh+dt@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: b.zolnierkie@samsung.com, tglx@linutronix.de, alexios.zavras@intel.com, gregkh@linuxfoundation.org, allison@lohutok.net, yuehaibing@huawei.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 23-08-19, 15:56, Peter Ujfalusi wrote:
-> Hi,
-> 
-> When other cores want to use EDMA for their use cases Linux was not playing
-> nicely.
-> By design EDMA is supporting shared use with shadow regions. Linux is using
-> region0, others can be used by other cores.
-> 
-> In order to not break multicore shared usage of EDMA:
-> - do not reset paRAM slots which is not allocated for Linux (reserved paRAM
->   slots)
-> - Only reset region0 access registers, do not touch other regions
-> - Add option for reserved channels which should not be used by Linux in a similar
->   fashion as we already have for reserved paRAM slots.
+Use devm_platform_ioremap_resource() to simplify the code a bit.
+This is detected by coccinelle.
 
-Applied 1 to 3, thanks
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ drivers/video/fbdev/omap2/omapfb/vrfb.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
+diff --git a/drivers/video/fbdev/omap2/omapfb/vrfb.c b/drivers/video/fbdev/omap2/omapfb/vrfb.c
+index 819e0bc..ee0dd4c 100644
+--- a/drivers/video/fbdev/omap2/omapfb/vrfb.c
++++ b/drivers/video/fbdev/omap2/omapfb/vrfb.c
+@@ -339,9 +339,7 @@ static int __init vrfb_probe(struct platform_device *pdev)
+ 	int i;
+ 
+ 	/* first resource is the register res, the rest are vrfb contexts */
+-
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	vrfb_base = devm_ioremap_resource(&pdev->dev, mem);
++	vrfb_base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(vrfb_base))
+ 		return PTR_ERR(vrfb_base);
+ 
 -- 
-~Vinod
+2.7.4
