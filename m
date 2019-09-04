@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.2 16/94] ARM: dts: Fix incomplete dts data for am3 and am4 mmc
-Date: Wed,  4 Sep 2019 11:56:21 -0400
-Message-ID: <20190904155739.2816-16-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 13/94] ARM: dts: dra74x: Fix iodelay configuration for mmc3
+Date: Wed,  4 Sep 2019 11:56:18 -0400
+Message-ID: <20190904155739.2816-13-sashal@kernel.org>
 References: <20190904155739.2816-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,125 +9,110 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190904155739.2816-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, David Lechner <david@lechnology.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Faiz Abbas <faiz_abbas@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
 
-[ Upstream commit 5b63fb90adb95a178ad403e1703f59bf1ff2c16b ]
+[ Upstream commit 07f9a8be66a9bd86f9eaedf8f8aeb416195adab8 ]
 
-Commit 4e27f752ab8c ("ARM: OMAP2+: Drop mmc platform data for am330x and
-am43xx") dropped legacy mmc platform data for am3 and am4, but missed the
-fact that we never updated the dts files for mmc3 that is directly on l3
-interconnect instead of l4 interconnect. This leads to a situation with
-no legacy platform data and incomplete dts data.
+According to the latest am572x[1] and dra74x[2] data manuals, mmc3
+default, hs, sdr12 and sdr25 modes use iodelay values given in
+MMC3_MANUAL1. Set the MODE_SELECT bit for these so that manual mode is
+selected and correct iodelay values can be configured.
 
-Let's update the mmc instances on l3 interconnect to probe properly with
-ti-sysc interconnect target module driver to make mmc3 work again. Let's
-still keep legacy "ti,hwmods" property around for v5.2 kernel and only
-drop it later on.
+[1] http://www.ti.com/lit/ds/symlink/am5728.pdf
+[2] http://www.ti.com/lit/ds/symlink/dra746.pdf
 
-Note that there is no need to use property status = "disabled" for mmc3.
-The default for dts is enabled, and runtime PM will idle unused instances
-just fine.
-
-Fixes: 4e27f752ab8c ("ARM: OMAP2+: Drop mmc platform data for am330x and am43xx")
-Reported-by: David Lechner <david@lechnology.com>
-Tested-by: David Lechner <david@lechnology.com>
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 32 ++++++++++++++++++++++++++------
- arch/arm/boot/dts/am4372.dtsi | 32 ++++++++++++++++++++++++++------
- 2 files changed, 52 insertions(+), 12 deletions(-)
+ arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi | 50 +++++++++++------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index e5c2f71a7c77d..fb6b8aa12cc56 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -234,13 +234,33 @@
- 			interrupt-names = "edma3_tcerrint";
- 		};
+diff --git a/arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi b/arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi
+index 28ebb4eb884a9..214b9e6de2c35 100644
+--- a/arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi
++++ b/arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi
+@@ -32,7 +32,7 @@
+  *
+  * Datamanual Revisions:
+  *
+- * AM572x Silicon Revision 2.0: SPRS953B, Revised November 2016
++ * AM572x Silicon Revision 2.0: SPRS953F, Revised May 2019
+  * AM572x Silicon Revision 1.1: SPRS915R, Revised November 2016
+  *
+  */
+@@ -229,45 +229,45 @@
  
--		mmc3: mmc@47810000 {
--			compatible = "ti,omap4-hsmmc";
-+		target-module@47810000 {
-+			compatible = "ti,sysc-omap2", "ti,sysc";
- 			ti,hwmods = "mmc3";
--			ti,needs-special-reset;
--			interrupts = <29>;
--			reg = <0x47810000 0x1000>;
--			status = "disabled";
-+			reg = <0x478102fc 0x4>,
-+			      <0x47810110 0x4>,
-+			      <0x47810114 0x4>;
-+			reg-names = "rev", "sysc", "syss";
-+			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-+					 SYSC_OMAP2_ENAWAKEUP |
-+					 SYSC_OMAP2_SOFTRESET |
-+					 SYSC_OMAP2_AUTOIDLE)>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,syss-mask = <1>;
-+			clocks = <&l3s_clkctrl AM3_L3S_MMC3_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x47810000 0x1000>;
-+
-+			mmc3: mmc@0 {
-+				compatible = "ti,omap4-hsmmc";
-+				ti,needs-special-reset;
-+				interrupts = <29>;
-+				reg = <0x0 0x1000>;
-+			};
- 		};
+ 	mmc3_pins_default: mmc3_pins_default {
+ 		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
+-			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
+-			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
+-			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
+-			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
+-			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
++			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
++			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
++			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
++			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
++			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
++			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
+ 		>;
+ 	};
  
- 		usb: usb@47400000 {
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 55aff4db9c7c2..848e2a8884e2c 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -228,13 +228,33 @@
- 			interrupt-names = "edma3_tcerrint";
- 		};
+ 	mmc3_pins_hs: mmc3_pins_hs {
+ 		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
+-			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
+-			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
+-			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
+-			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
+-			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
++			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
++			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
++			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
++			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
++			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
++			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
+ 		>;
+ 	};
  
--		mmc3: mmc@47810000 {
--			compatible = "ti,omap4-hsmmc";
--			reg = <0x47810000 0x1000>;
-+		target-module@47810000 {
-+			compatible = "ti,sysc-omap2", "ti,sysc";
- 			ti,hwmods = "mmc3";
--			ti,needs-special-reset;
--			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
--			status = "disabled";
-+			reg = <0x478102fc 0x4>,
-+			      <0x47810110 0x4>,
-+			      <0x47810114 0x4>;
-+			reg-names = "rev", "sysc", "syss";
-+			ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-+					 SYSC_OMAP2_ENAWAKEUP |
-+					 SYSC_OMAP2_SOFTRESET |
-+					 SYSC_OMAP2_AUTOIDLE)>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,syss-mask = <1>;
-+			clocks = <&l3s_clkctrl AM4_L3S_MMC3_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x47810000 0x1000>;
-+
-+			mmc3: mmc@0 {
-+				compatible = "ti,omap4-hsmmc";
-+				ti,needs-special-reset;
-+				interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
-+				reg = <0x0 0x1000>;
-+			};
- 		};
+ 	mmc3_pins_sdr12: mmc3_pins_sdr12 {
+ 		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
+-			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
+-			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
+-			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
+-			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
+-			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
++			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
++			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
++			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
++			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
++			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
++			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
+ 		>;
+ 	};
  
- 		sham: sham@53100000 {
+ 	mmc3_pins_sdr25: mmc3_pins_sdr25 {
+ 		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
+-			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
+-			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
+-			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
+-			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
+-			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
++			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
++			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
++			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
++			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
++			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
++			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
+ 		>;
+ 	};
+ 
 -- 
 2.20.1
