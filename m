@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [RFC v2 3/3] ARM: dts: omap3: bulk convert compatible to be explicitly ti,omap3430 or ti,omap36xx
-Date: Wed,  4 Sep 2019 10:53:41 +0200
-Message-ID: <a2b56edcada7b9000a6e906387a02c0ee42681db.1567587220.git.hns@goldelico.com>
+Subject: [RFC v2 1/3] cpufreq: ti-cpufreq: add support for omap34xx and omap36xx
+Date: Wed,  4 Sep 2019 10:53:39 +0200
+Message-ID: <a889b10386bebfbfd6cdb5491367235290d53247.1567587220.git.hns@goldelico.com>
 References: <cover.1567587220.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,256 +12,151 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-According to omap.txt bindings documentation, matching the ti-cpufreq driver needs
-to specify explicitly if a board uses an omap3430 or omap36xx chip.
+This adds code and tables to read the silicon revision and
+eFuse (speed binned / 720 MHz grade) bits for selecting
+opp-v2 table entries.
 
-This needs to add ti,omap3430 to most omap34xx boards and replace ti,omap3630
-by ti,omap36xx for some omap36xx boards (most others already have done it right).
-
-We also clean up some instances of missing ti,am3517 so that we can rely on
-seeing either one of:
-
-ti,am3517
-ti,omap34xx
-ti,omap36xx
-
-in addition to ti,omap3.
+Since these bits are not always part of the syscon register
+range (like for am33xx, am43, dra7), we add code to directly
+read the register values using ioremap() if syscon access fails.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/am3517_mt_ventoux.dts           | 2 +-
- arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts  | 2 +-
- arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts  | 2 +-
- arch/arm/boot/dts/logicpd-torpedo-35xx-devkit.dts | 2 +-
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts | 2 +-
- arch/arm/boot/dts/omap3-beagle.dts                | 2 +-
- arch/arm/boot/dts/omap3-cm-t3530.dts              | 2 +-
- arch/arm/boot/dts/omap3-devkit8000-lcd43.dts      | 2 +-
- arch/arm/boot/dts/omap3-devkit8000-lcd70.dts      | 2 +-
- arch/arm/boot/dts/omap3-devkit8000.dts            | 2 +-
- arch/arm/boot/dts/omap3-evm-37xx.dts              | 2 +-
- arch/arm/boot/dts/omap3-ha-lcd.dts                | 2 +-
- arch/arm/boot/dts/omap3-ha.dts                    | 2 +-
- arch/arm/boot/dts/omap3-ldp.dts                   | 2 +-
- arch/arm/boot/dts/omap3-sbc-t3530.dts             | 2 +-
- arch/arm/boot/dts/omap3-thunder.dts               | 2 +-
- arch/arm/boot/dts/omap3430-sdp.dts                | 2 +-
- 17 files changed, 17 insertions(+), 17 deletions(-)
+ drivers/cpufreq/ti-cpufreq.c | 87 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 85 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am3517_mt_ventoux.dts b/arch/arm/boot/dts/am3517_mt_ventoux.dts
-index e507e4ae0d88..e7d7124a34ba 100644
---- a/arch/arm/boot/dts/am3517_mt_ventoux.dts
-+++ b/arch/arm/boot/dts/am3517_mt_ventoux.dts
-@@ -8,7 +8,7 @@
+diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+index 2ad1ae17932d..b3de3162ea73 100644
+--- a/drivers/cpufreq/ti-cpufreq.c
++++ b/drivers/cpufreq/ti-cpufreq.c
+@@ -31,6 +31,11 @@
+ #define DRA7_EFUSE_OD_MPU_OPP			BIT(1)
+ #define DRA7_EFUSE_HIGH_MPU_OPP			BIT(2)
  
- / {
- 	model = "TeeJet Mt.Ventoux";
--	compatible = "teejet,mt_ventoux", "ti,omap3";
-+	compatible = "teejet,mt_ventoux", "ti,am3517", "ti,omap3";
++#define OMAP3_CONTROL_DEVICE_STATUS		0x4800244C
++#define OMAP3_CONTROL_IDCODE			0x4830A204
++#define OMAP34xx_ProdID_SKUID			0x4830A20C
++#define OMAP3_SYSCON_BASE	(0x48000000 + 0x2000 + 0x270)
++
+ #define VERSION_COUNT				2
  
- 	memory@80000000 {
- 		device_type = "memory";
-diff --git a/arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts b/arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts
-index f7a841a28865..2a0a98fe67f0 100644
---- a/arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts
-+++ b/arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts
-@@ -9,5 +9,5 @@
+ struct ti_cpufreq_data;
+@@ -84,6 +89,13 @@ static unsigned long dra7_efuse_xlate(struct ti_cpufreq_data *opp_data,
+ 	return calculated_efuse;
+ }
  
- / {
- 	model = "LogicPD Zoom OMAP35xx SOM-LV Development Kit";
--	compatible = "logicpd,dm3730-som-lv-devkit", "ti,omap3";
-+	compatible = "logicpd,dm3730-som-lv-devkit", "ti,omap3430", "ti,omap3";
- };
-diff --git a/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts b/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts
-index a604d92221a4..ea441acf000d 100644
---- a/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts
-+++ b/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts
-@@ -9,5 +9,5 @@
- 
- / {
- 	model = "LogicPD Zoom DM3730 SOM-LV Development Kit";
--	compatible = "logicpd,dm3730-som-lv-devkit", "ti,omap3630", "ti,omap3";
-+	compatible = "logicpd,dm3730-som-lv-devkit", "ti,omap36xx", "ti,omap3";
- };
-diff --git a/arch/arm/boot/dts/logicpd-torpedo-35xx-devkit.dts b/arch/arm/boot/dts/logicpd-torpedo-35xx-devkit.dts
-index 7675bc3fa868..57bae2aa910e 100644
---- a/arch/arm/boot/dts/logicpd-torpedo-35xx-devkit.dts
-+++ b/arch/arm/boot/dts/logicpd-torpedo-35xx-devkit.dts
-@@ -9,5 +9,5 @@
- 
- / {
- 	model = "LogicPD Zoom OMAP35xx Torpedo Development Kit";
--	compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap3";
-+	compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap3430", "ti,omap3";
- };
-diff --git a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-index 18c27e85051f..1937a1c36ad3 100644
---- a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-+++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-@@ -9,7 +9,7 @@
- 
- / {
- 	model = "LogicPD Zoom DM3730 Torpedo + Wireless Development Kit";
--	compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap3630", "ti,omap3";
-+	compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap36xx", "ti,omap3";
- 
- 	wl12xx_vmmc: wl12xx_vmmc {
- 		compatible = "regulator-fixed";
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index e3df3c166902..4ed3f93f5841 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -8,7 +8,7 @@
- 
- / {
- 	model = "TI OMAP3 BeagleBoard";
--	compatible = "ti,omap3-beagle", "ti,omap3";
-+	compatible = "ti,omap3-beagle", "ti,omap3430", "ti,omap3";
- 
- 	cpus {
- 		cpu@0 {
-diff --git a/arch/arm/boot/dts/omap3-cm-t3530.dts b/arch/arm/boot/dts/omap3-cm-t3530.dts
-index 76e52c78cbb4..f13644a776aa 100644
---- a/arch/arm/boot/dts/omap3-cm-t3530.dts
-+++ b/arch/arm/boot/dts/omap3-cm-t3530.dts
-@@ -9,7 +9,7 @@
- 
- / {
- 	model = "CompuLab CM-T3530";
--	compatible = "compulab,omap3-cm-t3530", "ti,omap34xx", "ti,omap3";
-+	compatible = "compulab,omap3-cm-t3530", "ti,omap3430", "ti,omap3";
- 
- 	/* Regulator to trigger the reset signal of the Wifi module */
- 	mmc2_sdio_reset: regulator-mmc2-sdio-reset {
-diff --git a/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts b/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts
-index a80fc60bc773..afed85078ad8 100644
---- a/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts
-+++ b/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts
-@@ -11,7 +11,7 @@
- #include "omap3-devkit8000-lcd-common.dtsi"
- / {
- 	model = "TimLL OMAP3 Devkit8000 with 4.3'' LCD panel";
--	compatible = "timll,omap3-devkit8000", "ti,omap3";
-+	compatible = "timll,omap3-devkit8000", "ti,omap3430", "ti,omap3";
- 
- 	lcd0: display {
- 		panel-timing {
-diff --git a/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts b/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts
-index 0753776071f8..07c51a105c0d 100644
---- a/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts
-+++ b/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts
-@@ -11,7 +11,7 @@
- #include "omap3-devkit8000-lcd-common.dtsi"
- / {
- 	model = "TimLL OMAP3 Devkit8000 with 7.0'' LCD panel";
--	compatible = "timll,omap3-devkit8000", "ti,omap3";
-+	compatible = "timll,omap3-devkit8000", "ti,omap3430", "ti,omap3";
- 
- 	lcd0: display {
- 		panel-timing {
-diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
-index faafc48d8f61..162d0726b008 100644
---- a/arch/arm/boot/dts/omap3-devkit8000.dts
-+++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-@@ -7,7 +7,7 @@
- #include "omap3-devkit8000-common.dtsi"
- / {
- 	model = "TimLL OMAP3 Devkit8000";
--	compatible = "timll,omap3-devkit8000", "ti,omap3";
-+	compatible = "timll,omap3-devkit8000", "ti,omap3430", "ti,omap3";
- 
- 	aliases {
- 		display1 = &dvi0;
-diff --git a/arch/arm/boot/dts/omap3-evm-37xx.dts b/arch/arm/boot/dts/omap3-evm-37xx.dts
-index e0c0382388f0..311550ee4eae 100644
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -10,7 +10,7 @@
- 
- / {
- 	model = "TI OMAP37XX EVM (TMDSEVM3730)";
--	compatible = "ti,omap3-evm-37xx", "ti,omap3630", "ti,omap3";
-+	compatible = "ti,omap3-evm-37xx", "ti,omap36xx", "ti,omap3";
++static unsigned long omap3_efuse_xlate(struct ti_cpufreq_data *opp_data,
++				      unsigned long efuse)
++{
++	/* OPP enable bit ("Speed Binned") */
++	return BIT(efuse);
++}
++
+ static struct ti_cpufreq_soc_data am3x_soc_data = {
+ 	.efuse_xlate = amx3_efuse_xlate,
+ 	.efuse_fallback = AM33XX_800M_ARM_MPU_MAX_FREQ,
+@@ -111,6 +123,56 @@ static struct ti_cpufreq_soc_data dra7_soc_data = {
+ 	.multi_regulator = true,
  };
  
- &omap3_pmx_core2 {
-diff --git a/arch/arm/boot/dts/omap3-ha-lcd.dts b/arch/arm/boot/dts/omap3-ha-lcd.dts
-index badb9b3c8897..74751798c00e 100644
---- a/arch/arm/boot/dts/omap3-ha-lcd.dts
-+++ b/arch/arm/boot/dts/omap3-ha-lcd.dts
-@@ -8,7 +8,7 @@
++/*
++ * OMAP35x TRM (SPRUF98K):
++ *  CONTROL_IDCODE (0x4830 A204) describes Silicon revisions.
++ *  Control OMAP Status Register 15:0 (Address 0x4800 244C)
++ *    to separate between omap3503, omap3515, omap3525, omap3530
++ *    and feature presence.
++ *    There are encodings for versions limited to 400/266MHz
++ *    but we ignore.
++ *    Not clear if this also holds for omap34xx.
++ *  some eFuse values e.g. CONTROL_FUSE_OPP1_VDD1
++ *    are stored in the SYSCON register range
++ *  Register 0x4830A20C [ProdID.SKUID] [0:3]
++ *    0x0 for normal 600/430MHz device.
++ *    0x8 for 720/520MHz device.
++ *    Not clear what omap34xx value is.
++ */
++
++static struct ti_cpufreq_soc_data omap34xx_soc_data = {
++	.efuse_xlate = omap3_efuse_xlate,
++	.efuse_offset = OMAP34xx_ProdID_SKUID - OMAP3_SYSCON_BASE,
++	.efuse_shift = 3,
++	.efuse_mask = BIT(3),
++	.rev_offset = OMAP3_CONTROL_IDCODE - OMAP3_SYSCON_BASE,
++	.multi_regulator = false,
++};
++
++/*
++ * AM/DM37x TRM (SPRUGN4M)
++ *  CONTROL_IDCODE (0x4830 A204) describes Silicon revisions.
++ *  Control Device Status Register 15:0 (Address 0x4800 244C)
++ *    to separate between am3703, am3715, dm3725, dm3730
++ *    and feature presence.
++ *   Speed Binned = Bit 9
++ *     0 800/600 MHz
++ *     1 1000/800 MHz
++ *  some eFuse values e.g. CONTROL_FUSE_OPP 1G_VDD1
++ *    are stored in the SYSCON register range.
++ *  There is no 0x4830A20C [ProdID.SKUID] register (exists but
++ *    seems to always read as 0).
++ */
++
++static struct ti_cpufreq_soc_data omap36xx_soc_data = {
++	.efuse_xlate = omap3_efuse_xlate,
++	.efuse_offset = OMAP3_CONTROL_DEVICE_STATUS - OMAP3_SYSCON_BASE,
++	.efuse_shift = 9,
++	.efuse_mask = BIT(9),
++	.rev_offset = OMAP3_CONTROL_IDCODE - OMAP3_SYSCON_BASE,
++	.multi_regulator = false,
++};
++
+ /**
+  * ti_cpufreq_get_efuse() - Parse and return efuse value present on SoC
+  * @opp_data: pointer to ti_cpufreq_data context
+@@ -127,7 +189,15 @@ static int ti_cpufreq_get_efuse(struct ti_cpufreq_data *opp_data,
  
- / {
- 	model = "TI OMAP3 HEAD acoustics LCD-baseboard with TAO3530 SOM";
--	compatible = "headacoustics,omap3-ha-lcd", "technexion,omap3-tao3530", "ti,omap34xx", "ti,omap3";
-+	compatible = "headacoustics,omap3-ha-lcd", "technexion,omap3-tao3530", "ti,omap3430", "ti,omap3";
+ 	ret = regmap_read(opp_data->syscon, opp_data->soc_data->efuse_offset,
+ 			  &efuse);
+-	if (ret) {
++	if (ret == -EIO) {
++		/* not a syscon register! */
++		void __iomem *regs = ioremap(OMAP3_SYSCON_BASE +
++				opp_data->soc_data->efuse_offset, 4);
++
++		efuse = readl(regs);
++		iounmap(regs);
++		}
++	else if (ret) {
+ 		dev_err(dev,
+ 			"Failed to read the efuse value from syscon: %d\n",
+ 			ret);
+@@ -158,7 +228,15 @@ static int ti_cpufreq_get_rev(struct ti_cpufreq_data *opp_data,
+ 
+ 	ret = regmap_read(opp_data->syscon, opp_data->soc_data->rev_offset,
+ 			  &revision);
+-	if (ret) {
++	if (ret == -EIO) {
++		/* not a syscon register! */
++		void __iomem *regs = ioremap(OMAP3_SYSCON_BASE +
++				opp_data->soc_data->rev_offset, 4);
++
++		revision = readl(regs);
++		iounmap(regs);
++		}
++	else if (ret) {
+ 		dev_err(dev,
+ 			"Failed to read the revision number from syscon: %d\n",
+ 			ret);
+@@ -190,6 +268,11 @@ static const struct of_device_id ti_cpufreq_of_match[] = {
+ 	{ .compatible = "ti,am33xx", .data = &am3x_soc_data, },
+ 	{ .compatible = "ti,am43", .data = &am4x_soc_data, },
+ 	{ .compatible = "ti,dra7", .data = &dra7_soc_data },
++	{ .compatible = "ti,omap34xx", .data = &omap34xx_soc_data, },
++	{ .compatible = "ti,omap36xx", .data = &omap36xx_soc_data, },
++	/* legacy */
++	{ .compatible = "ti,omap3430", .data = &omap34xx_soc_data, },
++	{ .compatible = "ti,omap3630", .data = &omap36xx_soc_data, },
+ 	{},
  };
  
- &omap3_pmx_core {
-diff --git a/arch/arm/boot/dts/omap3-ha.dts b/arch/arm/boot/dts/omap3-ha.dts
-index a5365252bfbe..f36cbc0a3586 100644
---- a/arch/arm/boot/dts/omap3-ha.dts
-+++ b/arch/arm/boot/dts/omap3-ha.dts
-@@ -8,7 +8,7 @@
- 
- / {
- 	model = "TI OMAP3 HEAD acoustics baseboard with TAO3530 SOM";
--	compatible = "headacoustics,omap3-ha", "technexion,omap3-tao3530", "ti,omap34xx", "ti,omap3";
-+	compatible = "headacoustics,omap3-ha", "technexion,omap3-tao3530", "ti,omap3430", "ti,omap3";
- };
- 
- &omap3_pmx_core {
-diff --git a/arch/arm/boot/dts/omap3-ldp.dts b/arch/arm/boot/dts/omap3-ldp.dts
-index 9a5fde2d9bce..9947574bd0f8 100644
---- a/arch/arm/boot/dts/omap3-ldp.dts
-+++ b/arch/arm/boot/dts/omap3-ldp.dts
-@@ -10,7 +10,7 @@
- 
- / {
- 	model = "TI OMAP3430 LDP (Zoom1 Labrador)";
--	compatible = "ti,omap3-ldp", "ti,omap3";
-+	compatible = "ti,omap3-ldp", "ti,omap34xx, "ti,omap3";
- 
- 	memory@80000000 {
- 		device_type = "memory";
-diff --git a/arch/arm/boot/dts/omap3-sbc-t3530.dts b/arch/arm/boot/dts/omap3-sbc-t3530.dts
-index ae96002abb3b..19582ef68e60 100644
---- a/arch/arm/boot/dts/omap3-sbc-t3530.dts
-+++ b/arch/arm/boot/dts/omap3-sbc-t3530.dts
-@@ -8,7 +8,7 @@
- 
- / {
- 	model = "CompuLab SBC-T3530 with CM-T3530";
--	compatible = "compulab,omap3-sbc-t3530", "compulab,omap3-cm-t3530", "ti,omap34xx", "ti,omap3";
-+	compatible = "compulab,omap3-sbc-t3530", "compulab,omap3-cm-t3530", "ti,omap3430", "ti,omap3";
- 
- 	aliases {
- 		display0 = &dvi0;
-diff --git a/arch/arm/boot/dts/omap3-thunder.dts b/arch/arm/boot/dts/omap3-thunder.dts
-index 6276e7079b36..b12ff8ecae50 100644
---- a/arch/arm/boot/dts/omap3-thunder.dts
-+++ b/arch/arm/boot/dts/omap3-thunder.dts
-@@ -8,7 +8,7 @@
- 
- / {
- 	model = "TI OMAP3 Thunder baseboard with TAO3530 SOM";
--	compatible = "technexion,omap3-thunder", "technexion,omap3-tao3530", "ti,omap34xx", "ti,omap3";
-+	compatible = "technexion,omap3-thunder", "technexion,omap3-tao3530", "ti,omap3430", "ti,omap3";
- };
- 
- &omap3_pmx_core {
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-index 0abd61108a53..7bfde8aac7ae 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -8,7 +8,7 @@
- 
- / {
- 	model = "TI OMAP3430 SDP";
--	compatible = "ti,omap3430-sdp", "ti,omap3";
-+	compatible = "ti,omap3430-sdp", "ti,omap3430", "ti,omap3";
- 
- 	memory@80000000 {
- 		device_type = "memory";
 -- 
 2.19.1
