@@ -1,45 +1,162 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 4/4] sgx soc glue changes for omaps for v5.4
-Date: Wed, 4 Sep 2019 17:27:37 +0200
-Message-ID: <CAK8P3a1s2go50eYiWQw5DCUEajy2QozKKfs4_Uo6xWUKL3eyrA@mail.gmail.com>
-References: <pull-1567016893-318461@atomide.com>
- <pull-1567016893-318461@atomide.com-4>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 03/94] ARM: dts: am57xx: Disable voltage switching for SD card
+Date: Wed,  4 Sep 2019 11:56:08 -0400
+Message-ID: <20190904155739.2816-3-sashal@kernel.org>
+References: <20190904155739.2816-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1567016893-318461@atomide.com-4>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: SoC Team <soc@kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190904155739.2816-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Faiz Abbas <faiz_abbas@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 28, 2019 at 8:35 PM Tony Lindgren <tony@atomide.com> wrote:
-> SoC glue layer changes for SGX on omap variants for v5.4
->
-> For a while we've had omap4 sgx glue layer defined in dts and probed
-> with ti-sysc driver. This allows idling the sgx module for PM, and
-> removes the need for custom platform glue layer code for any further
-> driver changes.
->
-> We first drop the unused legacy platform data for omap4 sgx. Then for
-> omap5, we need add the missing clkctrl clock data so we can configure
-> sgx. And we configure sgx for omap34xx, omap36xx and am3517.
->
-> For am335x, we still have a dependency for rstctrl reset driver changes,
-> so that will be added later on.
->
-> Note that this branch is based on earlier ti-sysc branch for omap36xx
-> glue layer quirk handling.
+From: Faiz Abbas <faiz_abbas@ti.com>
 
-Pulled into arm/late, thanks!
+[ Upstream commit fb59ee37cfe20d10d19568899d1458a58361246c ]
 
-        Arnd
+If UHS speed modes are enabled, a compatible SD card switches down to
+1.8V during enumeration. If after this a software reboot/crash takes
+place and on-chip ROM tries to enumerate the SD card, the difference in
+IO voltages (host @ 3.3V and card @ 1.8V) may end up damaging the card.
+
+The fix for this is to have support for power cycling the card in
+hardware (with a PORz/soft-reset line causing a power cycle of the
+card). Because the beaglebone X15 (rev A,B and C), am57xx-idks and
+am57xx-evms don't have this capability, disable voltage switching for
+these boards.
+
+The major effect of this is that the maximum supported speed
+mode is now high speed(50 MHz) down from SDR104(200 MHz).
+
+commit 88a748419b84 ("ARM: dts: am57xx-idk: Remove support for voltage
+switching for SD card") did this only for idk boards. Do it for all
+affected boards.
+
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/am571x-idk.dts                | 7 +------
+ arch/arm/boot/dts/am572x-idk.dts                | 7 +------
+ arch/arm/boot/dts/am574x-idk.dts                | 7 +------
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 1 +
+ arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts   | 7 +------
+ arch/arm/boot/dts/am57xx-beagle-x15-revc.dts    | 7 +------
+ 6 files changed, 6 insertions(+), 30 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index 1d5e99964bbf8..0aaacea1d887b 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -175,14 +175,9 @@
+ };
+ 
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default_no_clk_pu>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50_rev20 &mmc1_iodelay_ddr50_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
+ };
+ 
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+index c65d7f6d3b5a6..ea1c119feaa57 100644
+--- a/arch/arm/boot/dts/am572x-idk.dts
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -16,14 +16,9 @@
+ };
+ 
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default_no_clk_pu>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev20_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
+ };
+ 
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am574x-idk.dts b/arch/arm/boot/dts/am574x-idk.dts
+index dc5141c35610e..7935d70874ce2 100644
+--- a/arch/arm/boot/dts/am574x-idk.dts
++++ b/arch/arm/boot/dts/am574x-idk.dts
+@@ -24,14 +24,9 @@
+ };
+ 
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default_no_clk_pu>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_default>;
+-	pinctrl-3 = <&mmc1_pins_hs>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_conf>;
+-	pinctrl-6 = <&mmc1_pins_ddr50 &mmc1_iodelay_sdr104_conf>;
+ };
+ 
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+index d02f5fa61e5f5..d50de7a6ea6c5 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+@@ -430,6 +430,7 @@
+ 
+ 	bus-width = <4>;
+ 	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
++	no-1-8-v;
+ };
+ 
+ &mmc2 {
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+index a374b5cd6db0e..7b113b52c3fb6 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+@@ -16,14 +16,9 @@
+ };
+ 
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev11_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev11_conf>;
+ 	vmmc-supply = <&vdd_3v3>;
+ 	vqmmc-supply = <&ldo1_reg>;
+ };
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts
+index 4badd2144db9a..30c500b15b219 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-revc.dts
+@@ -16,14 +16,9 @@
+ };
+ 
+ &mmc1 {
+-	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
++	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default>;
+ 	pinctrl-1 = <&mmc1_pins_hs>;
+-	pinctrl-2 = <&mmc1_pins_sdr12>;
+-	pinctrl-3 = <&mmc1_pins_sdr25>;
+-	pinctrl-4 = <&mmc1_pins_sdr50>;
+-	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev20_conf>;
+-	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
+ 	vmmc-supply = <&vdd_3v3>;
+ 	vqmmc-supply = <&ldo1_reg>;
+ };
+-- 
+2.20.1
