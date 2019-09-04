@@ -1,15 +1,15 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH] dmaengine: ti: omap-dma: Remove 'Assignment in if
- condition'
-Date: Wed, 4 Sep 2019 10:10:47 +0530
-Message-ID: <20190904044047.GT2672@vkoul-mobl>
-References: <20190730132015.2863-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] dmaengine: ti: omap-dma: Remove variable override in
+ omap_dma_tx_status()
+Date: Wed, 4 Sep 2019 10:11:24 +0530
+Message-ID: <20190904044124.GU2672@vkoul-mobl>
+References: <20190730132029.2971-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190730132015.2863-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20190730132029.2971-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,8 +24,8 @@ Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.
 List-Id: linux-omap@vger.kernel.org
 
 On 30-07-19, 16:20, Peter Ujfalusi wrote:
-> While the compiler does not have problem with how it is implemented,
-> checkpatch does give en ERROR for this arrangement.
+> There is no need to fetch local omap_desc since the desc we have is the
+> correct one already when we need to check the channel status.
 
 Applied, thanks
 
