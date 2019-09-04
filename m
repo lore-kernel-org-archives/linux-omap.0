@@ -1,14 +1,14 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 2/2] dts changes for omap variants for v5.4
-Date: Tue, 3 Sep 2019 16:01:37 +0200
-Message-ID: <CAK8P3a3SQKV3qCebMpvUgPZE5DVjwfJ-pub=FWwbnyY4m=iVeQ@mail.gmail.com>
-References: <pull-1566599057-142651@atomide.com>
- <pull-1566599057-142651@atomide.com-2>
+From: Vinod Koul <vkoul@kernel.org>
+Subject: Re: [PATCH] dmaengine: ti: edma: Remove 'Assignment in if condition'
+Date: Wed, 4 Sep 2019 10:06:31 +0530
+Message-ID: <20190904043631.GS2672@vkoul-mobl>
+References: <20190730132006.2790-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1566599057-142651@atomide.com-2>
+Content-Disposition: inline
+In-Reply-To: <20190730132006.2790-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,18 +18,15 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: SoC Team <soc@kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Aug 24, 2019 at 12:24 AM Tony Lindgren <tony@atomide.com> wrote:
-> ----------------------------------------------------------------
-> dts changes for omap variants for v5.4
->
-> Remove regulator-boot-off properties that we never had in the mainline
-> kernel so they won't do anything. We add stdout-path for gta04, and
-> make am335x-boneblue use am335x-osd335x-common.dtsi file.
+On 30-07-19, 16:20, Peter Ujfalusi wrote:
+> While the compiler does not have problem with how it is implemented,
+> checkpatch does give en ERROR for this arrangement.
 
-Pulled into arm/dt, thanks!
+Applied, thanks
 
-       Arnd
+-- 
+~Vinod
