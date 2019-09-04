@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 03/27] ARM: OMAP2+: Fix omap4 errata warning on other SoCs
-Date: Wed,  4 Sep 2019 12:01:56 -0400
-Message-ID: <20190904160220.4545-3-sashal@kernel.org>
-References: <20190904160220.4545-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 03/36] ARM: OMAP2+: Fix omap4 errata warning on other SoCs
+Date: Wed,  4 Sep 2019 12:00:49 -0400
+Message-ID: <20190904160122.4179-3-sashal@kernel.org>
+References: <20190904160122.4179-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190904160220.4545-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190904160122.4179-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
