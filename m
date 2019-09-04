@@ -1,214 +1,73 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [RFC v2 2/3] ARM: dts: replace opp-v1 tables by opp-v2 for omap34xx and omap36xx
-Date: Wed,  4 Sep 2019 10:53:40 +0200
-Message-ID: <647c83c40a8afd530464a6f7d74634738311399f.1567587220.git.hns@goldelico.com>
-References: <cover.1567587220.git.hns@goldelico.com>
+Subject: [RFC v2 0/3] OMAP3: convert opp-v1 to opp-v2 and read speed binned / 720MHz grade bits
+Date: Wed,  4 Sep 2019 10:53:38 +0200
+Message-ID: <cover.1567587220.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1567587220.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-In addition, move omap3 from whitelist to blacklist in cpufreq-dt-platdev
-in the same patch, because doing either first breaks operation and
-may make trouble in bisect.
+Changes V2:
+* merge separate patch to remove opp-v1 table from n950-n9 into
+  the general omap3xxx.dtsi patch
+* add legacy compatibility to ti,omap3430 and ti,omap3630 for
+  the ti-cpufreq driver
+* make driver and omap3xxx.dtsi patches pass checkpatch
+* add bulk patch to explicitly define compatibility to ti,omap3430
+  and ti,omap36xx in addition to ti,omap3 of all in-tree boards
+  where it was missing
 
-We also can remove opp-v1 table for omap3-n950-n9 since it is now
-automatically detected.
+RFC V1 2019-09-02 12:55:55:
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/omap3-n950-n9.dtsi |  7 ---
- arch/arm/boot/dts/omap34xx.dtsi      | 65 ++++++++++++++++++++++++----
- arch/arm/boot/dts/omap36xx.dtsi      | 53 +++++++++++++++++++----
- drivers/cpufreq/cpufreq-dt-platdev.c |  2 +-
- 4 files changed, 102 insertions(+), 25 deletions(-)
+This patch set converts the opp tables to opp-v2 format
+and extends the ti-cpufreq to support omap3.
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 5441e9ffdbb4..e98b0c615f19 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -11,13 +11,6 @@
- 	cpus {
- 		cpu@0 {
- 			cpu0-supply = <&vcc>;
--			operating-points = <
--				/* kHz    uV */
--				300000  1012500
--				600000  1200000
--				800000  1325000
--				1000000	1375000
--			>;
- 		};
- 	};
- 
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index f572a477f74c..6408a0448834 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -16,19 +16,66 @@
- / {
- 	cpus {
- 		cpu: cpu@0 {
--			/* OMAP343x/OMAP35xx variants OPP1-5 */
--			operating-points = <
--				/* kHz    uV */
--				125000   975000
--				250000  1075000
--				500000  1200000
--				550000  1270000
--				600000  1350000
--			>;
-+			/* OMAP343x/OMAP35xx variants OPP1-6 */
-+			operating-points-v2 = <&cpu0_opp_table>;
-+
- 			clock-latency = <300000>; /* From legacy driver */
- 		};
- 	};
- 
-+	/* see Documentation/devicetree/bindings/opp/opp.txt */
-+	cpu0_opp_table: opp-table {
-+		compatible = "operating-points-v2-ti-cpu";
-+		syscon = <&scm_conf>;
-+
-+		opp1-125000000 {
-+			opp-hz = /bits/ 64 <125000000>;
-+			/*
-+			 * we currently only select the max voltage from table
-+			 * Table 3-3 of the omap3530 Data sheet (SPRS507F).
-+			 * Format is: <target min max>
-+			 */
-+			opp-microvolt = <975000 975000 975000>;
-+			/*
-+			 * first value is silicon revision bit mask
-+			 * second one 720MHz Device Identification bit mask
-+			 */
-+			opp-supported-hw = <0xffffffff 3>;
-+		};
-+
-+		opp2-250000000 {
-+			opp-hz = /bits/ 64 <250000000>;
-+			opp-microvolt = <1075000 1075000 1075000>;
-+			opp-supported-hw = <0xffffffff 3>;
-+			opp-suspend;
-+		};
-+
-+		opp3-500000000 {
-+			opp-hz = /bits/ 64 <500000000>;
-+			opp-microvolt = <1200000 1200000 1200000>;
-+			opp-supported-hw = <0xffffffff 3>;
-+		};
-+
-+		opp4-550000000 {
-+			opp-hz = /bits/ 64 <550000000>;
-+			opp-microvolt = <1270000 1270000 1270000>;
-+			opp-supported-hw = <0xffffffff 3>;
-+		};
-+
-+		opp5-600000000 {
-+			opp-hz = /bits/ 64 <600000000>;
-+			opp-microvolt = <1350000 1350000 1350000>;
-+			opp-supported-hw = <0xffffffff 3>;
-+		};
-+
-+		opp6-720000000 {
-+			opp-hz = /bits/ 64 <720000000>;
-+			opp-microvolt = <1350000 1350000 1350000>;
-+			/* only high-speed grade omap3530 devices */
-+			opp-supported-hw = <0xffffffff 2>;
-+		};
-+	};
-+
- 	ocp@68000000 {
- 		omap3_pmx_core2: pinmux@480025d8 {
- 			compatible = "ti,omap3-padconf", "pinctrl-single";
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 6fb23ada1f64..44f25b0eb45b 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -19,15 +19,52 @@
- 	};
- 
- 	cpus {
--		/* OMAP3630/OMAP37xx 'standard device' variants OPP50 to OPP130 */
-+		/* OMAP3630/OMAP37xx variants OPP50 to OPP130 and OPP1G */
- 		cpu: cpu@0 {
--			operating-points = <
--				/* kHz    uV */
--				300000  1012500
--				600000  1200000
--				800000  1325000
--			>;
--			clock-latency = <300000>; /* From legacy driver */
-+			operating-points-v2 = <&cpu0_opp_table>;
-+
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
-+		};
-+	};
-+
-+	/* see Documentation/devicetree/bindings/opp/opp.txt */
-+	cpu0_opp_table: opp-table {
-+		compatible = "operating-points-v2-ti-cpu";
-+		syscon = <&scm_conf>;
-+
-+		opp50-300000000 {
-+			opp-hz = /bits/ 64 <300000000>;
-+			/*
-+			 * we currently only select the max voltage from table
-+			 * Table 4-19 of the DM3730 Data sheet (SPRS685B)
-+			 * Format is: <target min max>
-+			 */
-+			opp-microvolt = <1012500 1012500 1012500>;
-+			/*
-+			 * first value is silicon revision bit mask
-+			 * second one is "speed binned" bit mask
-+			 */
-+			opp-supported-hw = <0xffffffff 3>;
-+			opp-suspend;
-+		};
-+
-+		opp100-600000000 {
-+			opp-hz = /bits/ 64 <600000000>;
-+			opp-microvolt = <1200000 1200000 1200000>;
-+			opp-supported-hw = <0xffffffff 3>;
-+		};
-+
-+		opp130-800000000 {
-+			opp-hz = /bits/ 64 <800000000>;
-+			opp-microvolt = <1325000 1325000 1325000>;
-+			opp-supported-hw = <0xffffffff 3>;
-+		};
-+
-+		opp1g-1000000000 {
-+			opp-hz = /bits/ 64 <1000000000>;
-+			opp-microvolt = <1375000 1375000 1375000>;
-+			/* only on am/dm37x with speed-binned bit set */
-+			opp-supported-hw = <0xffffffff 2>;
- 		};
- 	};
- 
-diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
-index 03dc4244ab00..68b7fc4225f8 100644
---- a/drivers/cpufreq/cpufreq-dt-platdev.c
-+++ b/drivers/cpufreq/cpufreq-dt-platdev.c
-@@ -86,7 +86,6 @@ static const struct of_device_id whitelist[] __initconst = {
- 	{ .compatible = "st-ericsson,u9540", },
- 
- 	{ .compatible = "ti,omap2", },
--	{ .compatible = "ti,omap3", },
- 	{ .compatible = "ti,omap4", },
- 	{ .compatible = "ti,omap5", },
- 
-@@ -132,6 +131,7 @@ static const struct of_device_id blacklist[] __initconst = {
- 	{ .compatible = "ti,am33xx", },
- 	{ .compatible = "ti,am43", },
- 	{ .compatible = "ti,dra7", },
-+	{ .compatible = "ti,omap3", },
- 
- 	{ }
- };
+It adds 720 MHz (omap34xx) and 1 GHz (omap36xx) OPPs but
+tells the ti-cpufreq driver to disable them if the speed
+binned / 720MHz grade eFuse bits indicate that the chip
+is not rated for that speed. 
+
+It has been tested (for chip variant detection, not reliability
+of the high speed OPPs) on:
+
+* BeagleBoard C2 (omap3430 600MHz)
+* BeagleBoard XM B (dm3730 800MHz)
+* GTA04A4 (dm3730 800MHz)
+* GTA04A5 (dm3730 1GHz)
+
+
+H. Nikolaus Schaller (3):
+  cpufreq: ti-cpufreq: add support for omap34xx and omap36xx
+  ARM: dts: replace opp-v1 tables by opp-v2 for omap34xx and omap36xx
+  ARM: dts: omap3: bulk convert compatible to be explicitly ti,omap3430
+    or ti,omap36xx
+
+ arch/arm/boot/dts/am3517_mt_ventoux.dts       |  2 +-
+ .../boot/dts/logicpd-som-lv-35xx-devkit.dts   |  2 +-
+ .../boot/dts/logicpd-som-lv-37xx-devkit.dts   |  2 +-
+ .../boot/dts/logicpd-torpedo-35xx-devkit.dts  |  2 +-
+ .../boot/dts/logicpd-torpedo-37xx-devkit.dts  |  2 +-
+ arch/arm/boot/dts/omap3-beagle.dts            |  2 +-
+ arch/arm/boot/dts/omap3-cm-t3530.dts          |  2 +-
+ arch/arm/boot/dts/omap3-devkit8000-lcd43.dts  |  2 +-
+ arch/arm/boot/dts/omap3-devkit8000-lcd70.dts  |  2 +-
+ arch/arm/boot/dts/omap3-devkit8000.dts        |  2 +-
+ arch/arm/boot/dts/omap3-evm-37xx.dts          |  2 +-
+ arch/arm/boot/dts/omap3-ha-lcd.dts            |  2 +-
+ arch/arm/boot/dts/omap3-ha.dts                |  2 +-
+ arch/arm/boot/dts/omap3-ldp.dts               |  2 +-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi          |  7 --
+ arch/arm/boot/dts/omap3-sbc-t3530.dts         |  2 +-
+ arch/arm/boot/dts/omap3-thunder.dts           |  2 +-
+ arch/arm/boot/dts/omap3430-sdp.dts            |  2 +-
+ arch/arm/boot/dts/omap34xx.dtsi               | 65 ++++++++++++--
+ arch/arm/boot/dts/omap36xx.dtsi               | 53 +++++++++--
+ drivers/cpufreq/cpufreq-dt-platdev.c          |  2 +-
+ drivers/cpufreq/ti-cpufreq.c                  | 87 ++++++++++++++++++-
+ 22 files changed, 204 insertions(+), 44 deletions(-)
+
 -- 
 2.19.1
