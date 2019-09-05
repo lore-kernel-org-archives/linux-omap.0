@@ -1,38 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/6] counter: new TI eQEP driver
-Date: Thu, 5 Sep 2019 07:10:53 -0700
-Message-ID: <20190905141053.GU52127@atomide.com>
-References: <20190901225827.12301-1-david@lechnology.com>
- <20190905133721.GA728346@icarus>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] bus: ti-sysc: Fix clock handling for no-idle quirks
+Date: Thu, 5 Sep 2019 17:17:04 +0300
+Message-ID: <49ce192d-697b-48e2-2b18-47acb370739b@ti.com>
+References: <20190905140337.19373-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190905133721.GA728346@icarus>
+In-Reply-To: <20190905140337.19373-1-tony@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: William Breathitt Gray <vilhelm.gray@gmail.com>
-Cc: David Lechner <david@lechnology.com>, Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh Raghavendra <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* William Breathitt Gray <vilhelm.gray@gmail.com> [190905 13:38]:
-> On Sun, Sep 01, 2019 at 05:58:21PM -0500, David Lechner wrote:
-> > This series adds device tree bindings and a new counter driver for the Texas
-> > Instruments Enhanced Quadrature Encoder Pulse (eQEP).
-> > 
-> > As mentioned in one of the commit messages, to start with, the driver only
-> > supports reading the current counter value and setting the min/max values.
-> > Other features can be added as the counter subsystem gains support for them.
-...
 
-> I'm satisfied with this version of the patchset.
+
+On 05/09/2019 17:03, Tony Lindgren wrote:
+> NFSroot can fail on dra7 when cpsw is probed using ti-sysc interconnect
+> target module driver as reported by Keerthy.
 > 
-> Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+> Device clocks and the interconnect target module may or may not be
+> enabled by the bootloader on init, but we currently assume the clocks
+> and module are on from the bootloader for "ti,no-idle" and
+> "ti,no-idle-on-init" quirks as reported by Grygorii Strashko.
 > 
-> Jonathan, if you have no objections please pick up this up so that it
-> can make it to the 5.4 merge window coming in soon. Alternatively, I can
-> merge it into my repository instead and hold it for a while longer
-> there, if you prefer that route.
+> Let's fix the issue by always enabling clocks init, and
+> never disable them for "ti,no-idle" quirk. For "ti,no-idle-on-init"
+> quirk, we must decrement the usage count later on to allow PM
+> runtime to idle the module if requested.
+> 
+> Fixes: 1a5cd7c23cc5 ("bus: ti-sysc: Enable all clocks directly during init to read revision")
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Vignesh Raghavendra <vigneshr@ti.com>
+> Reported-by: Keerthy <j-keerthy@ti.com>
+> Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   drivers/bus/ti-sysc.c | 48 +++++++++++++++++++++++++++++++++----------
+>   1 file changed, 37 insertions(+), 11 deletions(-)
+> 
 
-Looks good to me too:
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Thank you, Tony.
+
+-- 
+Best regards,
+grygorii
