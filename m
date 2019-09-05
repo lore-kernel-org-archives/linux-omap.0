@@ -1,7 +1,7 @@
 From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: [BACKPORT 4.14.y 15/18] ASoC: davinci: Kill BUG_ON() usage
-Date: Thu,  5 Sep 2019 10:17:56 -0600
-Message-ID: <20190905161759.28036-16-mathieu.poirier@linaro.org>
+Subject: [BACKPORT 4.14.y 14/18] ASoC: davinci-mcasp: Handle return value of devm_kasprintf
+Date: Thu,  5 Sep 2019 10:17:55 -0600
+Message-ID: <20190905161759.28036-15-mathieu.poirier@linaro.org>
 References: <20190905161759.28036-1-mathieu.poirier@linaro.org>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20190905161759.28036-1-mathieu.poirier@linaro.org>
@@ -10,34 +10,56 @@ To: stable@vger.kernel.org
 Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-pci@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Takashi Iwai <tiwai@suse.de>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-commit befff4fbc27e19b14b343eb4a65d8f75d38b6230 upstream
+commit 0c8b794c4a10aaf7ac0d4a49be2b2638e2038adb upstream
 
-Don't use BUG_ON() for a non-critical sanity check on production
-systems.  This patch replaces with a softer WARN_ON() and an error
-path.
+devm_kasprintf() can fail here and we must check its return value.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 ---
- sound/soc/davinci/davinci-mcasp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ sound/soc/davinci/davinci-mcasp.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index af6cd8b874f5..b4e6f4a04cb6 100644
+index 0480ec4c8035..af6cd8b874f5 100644
 --- a/sound/soc/davinci/davinci-mcasp.c
 +++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1748,7 +1748,8 @@ static int davinci_mcasp_get_dma_type(struct davinci_mcasp *mcasp)
- 				PTR_ERR(chan));
- 		return PTR_ERR(chan);
- 	}
--	BUG_ON(!chan->device || !chan->device->dev);
-+	if (WARN_ON(!chan->device || !chan->device->dev))
-+		return -EINVAL;
- 
- 	if (chan->device->dev->of_node)
- 		ret = of_property_read_string(chan->device->dev->of_node,
+@@ -1894,6 +1894,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	if (irq >= 0) {
+ 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_common",
+ 					  dev_name(&pdev->dev));
++		if (!irq_name) {
++			ret = -ENOMEM;
++			goto err;
++		}
+ 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
+ 						davinci_mcasp_common_irq_handler,
+ 						IRQF_ONESHOT | IRQF_SHARED,
+@@ -1911,6 +1915,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	if (irq >= 0) {
+ 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_rx",
+ 					  dev_name(&pdev->dev));
++		if (!irq_name) {
++			ret = -ENOMEM;
++			goto err;
++		}
+ 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
+ 						davinci_mcasp_rx_irq_handler,
+ 						IRQF_ONESHOT, irq_name, mcasp);
+@@ -1926,6 +1934,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	if (irq >= 0) {
+ 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_tx",
+ 					  dev_name(&pdev->dev));
++		if (!irq_name) {
++			ret = -ENOMEM;
++			goto err;
++		}
+ 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
+ 						davinci_mcasp_tx_irq_handler,
+ 						IRQF_ONESHOT, irq_name, mcasp);
 -- 
 2.17.1
