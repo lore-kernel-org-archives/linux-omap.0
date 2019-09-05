@@ -1,7 +1,7 @@
 From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: [BACKPORT 4.14.y 10/18] PCI: dra7xx: Add shutdown handler to cleanly turn off clocks
-Date: Thu,  5 Sep 2019 10:17:51 -0600
-Message-ID: <20190905161759.28036-11-mathieu.poirier@linaro.org>
+Subject: [BACKPORT 4.14.y 09/18] misc: pci_endpoint_test: Prevent some integer overflows
+Date: Thu,  5 Sep 2019 10:17:50 -0600
+Message-ID: <20190905161759.28036-10-mathieu.poirier@linaro.org>
 References: <20190905161759.28036-1-mathieu.poirier@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190905161759.28036-1-mathieu.poirier@linaro.org>
@@ -10,54 +10,57 @@ To: stable@vger.kernel.org
 Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-pci@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Keerthy <j-keerthy@ti.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-commit 9c049bea083fea21373b8baf51fe49acbe24e105 upstream
+commit 378f79cab12b669928f3a4037f023837ead2ce0c upstream
 
-Add shutdown handler to cleanly turn off clocks.  This will help in cases of
-kexec where in a new kernel can boot abruptly.
+"size + max" can have an arithmetic overflow when we're allocating:
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+	orig_src_addr = dma_alloc_coherent(dev, size + alignment, ...
+
+I've added a few checks to prevent that.
+
+Fixes: 13107c60681f ("misc: pci_endpoint_test: Add support to provide aligned buffer addresses")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 ---
- drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/misc/pci_endpoint_test.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 7f5dfa169d0f..2e0d0b29cdcb 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -817,6 +817,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
- }
- #endif
+diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
+index 9849bf183299..504fa680825d 100644
+--- a/drivers/misc/pci_endpoint_test.c
++++ b/drivers/misc/pci_endpoint_test.c
+@@ -226,6 +226,9 @@ static bool pci_endpoint_test_copy(struct pci_endpoint_test *test, size_t size)
+ 	u32 src_crc32;
+ 	u32 dst_crc32;
  
-+void dra7xx_pcie_shutdown(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-+	int ret;
++	if (size > SIZE_MAX - alignment)
++		goto err;
 +
-+	dra7xx_pcie_stop_link(dra7xx->pci);
+ 	orig_src_addr = dma_alloc_coherent(dev, size + alignment,
+ 					   &orig_src_phys_addr, GFP_KERNEL);
+ 	if (!orig_src_addr) {
+@@ -311,6 +314,9 @@ static bool pci_endpoint_test_write(struct pci_endpoint_test *test, size_t size)
+ 	size_t alignment = test->alignment;
+ 	u32 crc32;
+ 
++	if (size > SIZE_MAX - alignment)
++		goto err;
 +
-+	ret = pm_runtime_put_sync(dev);
-+	if (ret < 0)
-+		dev_dbg(dev, "pm_runtime_put_sync failed\n");
+ 	orig_addr = dma_alloc_coherent(dev, size + alignment, &orig_phys_addr,
+ 				       GFP_KERNEL);
+ 	if (!orig_addr) {
+@@ -369,6 +375,9 @@ static bool pci_endpoint_test_read(struct pci_endpoint_test *test, size_t size)
+ 	size_t alignment = test->alignment;
+ 	u32 crc32;
+ 
++	if (size > SIZE_MAX - alignment)
++		goto err;
 +
-+	pm_runtime_disable(dev);
-+	dra7xx_pcie_disable_phy(dra7xx);
-+}
-+
- static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
- 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
-@@ -830,5 +846,6 @@ static struct platform_driver dra7xx_pcie_driver = {
- 		.suppress_bind_attrs = true,
- 		.pm	= &dra7xx_pcie_pm_ops,
- 	},
-+	.shutdown = dra7xx_pcie_shutdown,
- };
- builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
+ 	orig_addr = dma_alloc_coherent(dev, size + alignment, &orig_phys_addr,
+ 				       GFP_KERNEL);
+ 	if (!orig_addr) {
 -- 
 2.17.1
