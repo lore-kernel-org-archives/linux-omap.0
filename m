@@ -1,95 +1,118 @@
 From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: [BACKPORT 4.14.y 00/18] Backport candidate from TI 4.14 product kernel
-Date: Thu,  5 Sep 2019 10:17:41 -0600
-Message-ID: <20190905161759.28036-1-mathieu.poirier@linaro.org>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
+Subject: [BACKPORT 4.14.y 04/18] usb: dwc3: Allow disabling of metastability workaround
+Date: Thu,  5 Sep 2019 10:17:45 -0600
+Message-ID: <20190905161759.28036-5-mathieu.poirier@linaro.org>
+References: <20190905161759.28036-1-mathieu.poirier@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190905161759.28036-1-mathieu.poirier@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org
 Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-pci@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-These patches are backport candidates picked out of TI's 4.14.y tree [1],
-with most of them already found in the 4.19.y stable tree.
+From: Roger Quadros <rogerq@ti.com>
 
-The set apply and compiles cleanly on 4.14.141.
+commit 42bf02ec6e420e541af9a47437d0bdf961ca2972 upstream
 
-Thanks,
-Mathieu
+Some platforms (e.g. TI's DRA7 USB2 instance) have more trouble
+with the metastability workaround as it supports only
+a High-Speed PHY and the PHY can enter into an Erratic state [1]
+when the controller is set in SuperSpeed mode as part of
+the metastability workaround.
 
+This causes upto 2 seconds delay in enumeration on DRA7's USB2
+instance in gadget mode.
 
-[1]. http://git.ti.com/gitweb/?p=ti-linux-kernel/ti-linux-kernel.git;a=shortlog;h=refs/heads/ti-linux-4.14.y
+If these platforms can be better off without the workaround,
+provide a device tree property to suggest that so the workaround
+is avoided.
 
-Andrew F. Davis (1):
-  ASoC: tlv320aic31xx: Handle inverted BCLK in non-DSP modes
+[1] Device mode enumeration trace showing PHY Erratic Error.
+     irq/90-dwc3-969   [000] d...    52.323145: dwc3_event: event (00000901): Erratic Error [U0]
+     irq/90-dwc3-969   [000] d...    52.560646: dwc3_event: event (00000901): Erratic Error [U0]
+     irq/90-dwc3-969   [000] d...    52.798144: dwc3_event: event (00000901): Erratic Error [U0]
 
-Arvind Yadav (1):
-  ASoC: davinci-mcasp: Handle return value of devm_kasprintf
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+---
+ Documentation/devicetree/bindings/usb/dwc3.txt | 2 ++
+ drivers/usb/dwc3/core.c                        | 3 +++
+ drivers/usb/dwc3/core.h                        | 3 +++
+ drivers/usb/dwc3/gadget.c                      | 6 ++++--
+ 4 files changed, 12 insertions(+), 2 deletions(-)
 
-Christophe Jaillet (1):
-  ASoC: davinci-mcasp: Fix an error handling path in
-    'davinci_mcasp_probe()'
-
-Claudio Foellmi (1):
-  i2c: omap: Trigger bus recovery in lockup case
-
-Dan Carpenter (1):
-  misc: pci_endpoint_test: Prevent some integer overflows
-
-Gustavo A. R. Silva (1):
-  ASoC: tlv320dac31xx: mark expected switch fall-through
-
-Keerthy (2):
-  mfd: palmas: Assign the right powerhold mask for tps65917
-  PCI: dra7xx: Add shutdown handler to cleanly turn off clocks
-
-Kishon Vijay Abraham I (1):
-  misc: pci_endpoint_test: Fix BUG_ON error during pci_disable_msi()
-
-Niklas Cassel (1):
-  PCI: designware-ep: Fix find_first_zero_bit() usage
-
-Roger Quadros (1):
-  usb: dwc3: Allow disabling of metastability workaround
-
-Roman Yeryomin (1):
-  mtd: spi-nor: enable 4B opcodes for mx66l51235l
-
-Sudeep Holla (1):
-  mailbox: reset txdone_method TXDONE_BY_POLL if client knows_txdone
-
-Takashi Iwai (1):
-  ASoC: davinci: Kill BUG_ON() usage
-
-Tony Lindgren (1):
-  drm/omap: panel-dsi-cm: fix driver
-
-Vignesh R (2):
-  PCI: dra7xx: Fix legacy INTD IRQ handling
-  mtd: spi-nor: cadence-quadspi: add a delay in write sequence
-
-Zumeng Chen (1):
-  cpufreq: ti-cpufreq: add missing of_node_put()
-
- .../devicetree/bindings/usb/dwc3.txt          |  2 +
- drivers/cpufreq/ti-cpufreq.c                  |  1 +
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 56 +++++++++++++++++--
- drivers/i2c/busses/i2c-omap.c                 | 25 ++++++++-
- drivers/mailbox/mailbox.c                     |  4 +-
- drivers/mailbox/pcc.c                         |  4 +-
- drivers/mfd/palmas.c                          | 10 +++-
- drivers/misc/pci_endpoint_test.c              | 17 ++++++
- drivers/mtd/spi-nor/cadence-quadspi.c         | 27 ++++++++-
- drivers/mtd/spi-nor/spi-nor.c                 |  2 +-
- drivers/pci/dwc/pci-dra7xx.c                  | 20 ++++++-
- drivers/pci/dwc/pcie-designware-ep.c          | 34 ++++++++---
- drivers/pci/dwc/pcie-designware.h             |  8 ++-
- drivers/usb/dwc3/core.c                       |  3 +
- drivers/usb/dwc3/core.h                       |  3 +
- drivers/usb/dwc3/gadget.c                     |  6 +-
- include/linux/mfd/palmas.h                    |  3 +
- sound/soc/codecs/tlv320aic31xx.c              | 30 ++++++----
- sound/soc/davinci/davinci-mcasp.c             | 21 ++++++-
- 19 files changed, 235 insertions(+), 41 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+index 52fb41046b34..44e8bab159ad 100644
+--- a/Documentation/devicetree/bindings/usb/dwc3.txt
++++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+@@ -47,6 +47,8 @@ Optional properties:
+ 			from P0 to P1/P2/P3 without delay.
+  - snps,dis-tx-ipgap-linecheck-quirk: when set, disable u2mac linestate check
+ 			during HS transmit.
++ - snps,dis_metastability_quirk: when set, disable metastability workaround.
++			CAUTION: use only if you are absolutely sure of it.
+  - snps,is-utmi-l1-suspend: true when DWC3 asserts output signal
+ 			utmi_l1_suspend_n, false when asserts utmi_sleep_n
+  - snps,hird-threshold: HIRD threshold
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 945330ea8d5c..9b093978bd24 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -1115,6 +1115,9 @@ static void dwc3_get_properties(struct dwc3 *dwc)
+ 	device_property_read_u32(dev, "snps,quirk-frame-length-adjustment",
+ 				 &dwc->fladj);
+ 
++	dwc->dis_metastability_quirk = device_property_read_bool(dev,
++				"snps,dis_metastability_quirk");
++
+ 	dwc->lpm_nyet_threshold = lpm_nyet_threshold;
+ 	dwc->tx_de_emphasis = tx_de_emphasis;
+ 
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index abd1142c9e4d..40bf0e0768d9 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -869,6 +869,7 @@ struct dwc3_scratchpad_array {
+  * 	1	- -3.5dB de-emphasis
+  * 	2	- No de-emphasis
+  * 	3	- Reserved
++ * @dis_metastability_quirk: set to disable metastability quirk.
+  * @imod_interval: set the interrupt moderation interval in 250ns
+  *                 increments or 0 to disable.
+  */
+@@ -1025,6 +1026,8 @@ struct dwc3 {
+ 	unsigned		tx_de_emphasis_quirk:1;
+ 	unsigned		tx_de_emphasis:2;
+ 
++	unsigned		dis_metastability_quirk:1;
++
+ 	u16			imod_interval;
+ };
+ 
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 1b99d44e52b9..5916340c4162 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2034,7 +2034,8 @@ static void dwc3_gadget_set_speed(struct usb_gadget *g,
+ 	 * STAR#9000525659: Clock Domain Crossing on DCTL in
+ 	 * USB 2.0 Mode
+ 	 */
+-	if (dwc->revision < DWC3_REVISION_220A) {
++	if (dwc->revision < DWC3_REVISION_220A &&
++	    !dwc->dis_metastability_quirk) {
+ 		reg |= DWC3_DCFG_SUPERSPEED;
+ 	} else {
+ 		switch (speed) {
+@@ -3265,7 +3266,8 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+ 	 * is less than super speed because we don't have means, yet, to tell
+ 	 * composite.c that we are USB 2.0 + LPM ECN.
+ 	 */
+-	if (dwc->revision < DWC3_REVISION_220A)
++	if (dwc->revision < DWC3_REVISION_220A &&
++	    !dwc->dis_metastability_quirk)
+ 		dev_info(dwc->dev, "changing max_speed on rev %08x\n",
+ 				dwc->revision);
+ 
 -- 
 2.17.1
