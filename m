@@ -1,51 +1,73 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [BACKPORT 4.14.y 00/18] Backport candidate from TI 4.14 product
- kernel
-Date: Thu, 5 Sep 2019 18:24:40 +0200
-Message-ID: <20190905162440.GB3695@kunai>
-References: <20190905161759.28036-1-mathieu.poirier@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] bus: ti-sysc: Fix handling of invalid clocks
+Date: Thu,  5 Sep 2019 14:53:56 -0700
+Message-ID: <20190905215356.8168-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="mojUlQ0s9EVzWg2t"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190905161759.28036-1-mathieu.poirier@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mathieu Poirier <mathieu.poirier@linaro.org>
-Cc: stable@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-pci@vger.kernel.org, linux-mtd@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+We can currently get "Unable to handle kernel paging request at
+virtual address" for invalid clocks with dts node but no driver:
 
---mojUlQ0s9EVzWg2t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+(__clk_get_hw) from [<c0138ebc>] (ti_sysc_find_one_clockdomain+0x18/0x34)
+(ti_sysc_find_one_clockdomain) from [<c0138f0c>] (ti_sysc_clkdm_init+0x34/0xdc)
+(ti_sysc_clkdm_init) from [<c0584660>] (sysc_probe+0xa50/0x10e8)
+(sysc_probe) from [<c065c6ac>] (platform_drv_probe+0x58/0xa8)
 
-On Thu, Sep 05, 2019 at 10:17:41AM -0600, Mathieu Poirier wrote:
-> These patches are backport candidates picked out of TI's 4.14.y tree [1],
-> with most of them already found in the 4.19.y stable tree.
+Let's add IS_ERR checks to ti_sysc_clkdm_init() as And let's start treating
+clk_get() with -ENOENT as a proper error. If the clock name is specified
+in device tree we must succeed with clk_get() to continue. For modules with
+no clock names specified in device tree we will just ignore the clocks.
 
-Could you please update your scripting that only the cover-letter and
-I2C related patches will be sent to the I2C mailing list?
+Fixes: 2b2f7def058a ("bus: ti-sysc: Add support for missing clockdomain handling")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/pdata-quirks.c | 4 ++--
+ drivers/bus/ti-sysc.c              | 5 +----
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-
---mojUlQ0s9EVzWg2t
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAl1xNscACgkQFA3kzBSg
-KbbSXA//Qr7qcTKeYW+0LEBOI7jVtHAd2WvUvM5Dd4cDxWi9xFJLp3mq9RHpUp2n
-C+TcMxlcW7slL8ffeERAPOV3hF+IOWkWiMg+9VUHgK2MvWf+fd3wcmBC/8Cn4DQ3
-B8582lHxQQcVy6jYAvgxkojUFDRrVNS0nSb0Vfb8am062q1DIkiilFqdNPNFoGWy
-UMV6JnawALcKyWVHftb8p66KvJ0SRMNdm36It3CDQhr4ZBRnuLkZD5HN0QKljKYp
-0iFy2yoJnsnTZKmtuEetjVNM01avU8wE0CY9gUb3Oi0xQUfPkqOgQ3WtmeolsOLQ
-PriFq6j8Xt4knqOjVhkyPFpfm1uedxeqNF8uUtRL+r0Fm7ytDTwsGashc7so4D0O
-s1oOEKDeYT6EOVBVC/4oxYJmIeRk6PX8qeyt6+7dz4MEkfrR+yWr10zOFr7wX6Bh
-xmDd5nGeWLVCUnRWaXmph+QTjUlmsP/bKDuTtpkVSuM5X5y62NYpZ7WqsQV2Hob9
-NsYPtS4xag5ak71KlvQRVpqaK8Lzgna0qHrXrk9gynDOYpoN+bUsBf+JNfRCKCOa
-RO1DDv2S35m+mFLoS5Ddxo/j2urW36sfuLuUmdGcR3oxovCNcgUyG+CRIDJTwnFn
-HVVbHqEnxF7f+gw6CiKqAdhye4IWXYWxYbK4hKWi540R8iLVI6g=
-=3bwX
------END PGP SIGNATURE-----
-
---mojUlQ0s9EVzWg2t--
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -491,11 +491,11 @@ static int ti_sysc_clkdm_init(struct device *dev,
+ 			      struct clk *fck, struct clk *ick,
+ 			      struct ti_sysc_cookie *cookie)
+ {
+-	if (fck)
++	if (!IS_ERR(fck))
+ 		cookie->clkdm = ti_sysc_find_one_clockdomain(fck);
+ 	if (cookie->clkdm)
+ 		return 0;
+-	if (ick)
++	if (!IS_ERR(ick))
+ 		cookie->clkdm = ti_sysc_find_one_clockdomain(ick);
+ 	if (cookie->clkdm)
+ 		return 0;
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -280,9 +280,6 @@ static int sysc_get_one_clock(struct sysc *ddata, const char *name)
+ 
+ 	ddata->clocks[index] = devm_clk_get(ddata->dev, name);
+ 	if (IS_ERR(ddata->clocks[index])) {
+-		if (PTR_ERR(ddata->clocks[index]) == -ENOENT)
+-			return 0;
+-
+ 		dev_err(ddata->dev, "clock get error for %s: %li\n",
+ 			name, PTR_ERR(ddata->clocks[index]));
+ 
+@@ -357,7 +354,7 @@ static int sysc_get_clocks(struct sysc *ddata)
+ 			continue;
+ 
+ 		error = sysc_get_one_clock(ddata, name);
+-		if (error && error != -ENOENT)
++		if (error)
+ 			return error;
+ 	}
+ 
+-- 
+2.23.0
