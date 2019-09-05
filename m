@@ -1,81 +1,121 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [RFC v2 0/3] OMAP3: convert opp-v1 to opp-v2 and read speed
- binned / 720MHz grade bits
-Date: Thu, 5 Sep 2019 10:33:02 +0530
-Message-ID: <20190905050302.t7dsmyl7xa25umjg@vireshk-i7>
-References: <cover.1567587220.git.hns@goldelico.com>
+From: William Breathitt Gray <vilhelm.gray@gmail.com>
+Subject: Re: [PATCH v3 0/6] counter: new TI eQEP driver
+Date: Thu, 5 Sep 2019 22:37:21 +0900
+Message-ID: <20190905133721.GA728346@icarus>
+References: <20190901225827.12301-1-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1567587220.git.hns@goldelico.com>
+In-Reply-To: <20190901225827.12301-1-david@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?utf-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
+To: David Lechner <david@lechnology.com>, Jonathan Cameron <jic23@kernel.org>
+Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04-09-19, 10:53, H. Nikolaus Schaller wrote:
-> Changes V2:
-> * merge separate patch to remove opp-v1 table from n950-n9 into
->   the general omap3xxx.dtsi patch
-> * add legacy compatibility to ti,omap3430 and ti,omap3630 for
->   the ti-cpufreq driver
-> * make driver and omap3xxx.dtsi patches pass checkpatch
-> * add bulk patch to explicitly define compatibility to ti,omap3430
->   and ti,omap36xx in addition to ti,omap3 of all in-tree boards
->   where it was missing
+On Sun, Sep 01, 2019 at 05:58:21PM -0500, David Lechner wrote:
+> This series adds device tree bindings and a new counter driver for the Texas
+> Instruments Enhanced Quadrature Encoder Pulse (eQEP).
 > 
-> RFC V1 2019-09-02 12:55:55:
+> As mentioned in one of the commit messages, to start with, the driver only
+> supports reading the current counter value and setting the min/max values.
+> Other features can be added as the counter subsystem gains support for them.
 > 
-> This patch set converts the opp tables to opp-v2 format
-> and extends the ti-cpufreq to support omap3.
+> v3 changes:
+> - Minor changes to device tree bindings (style and generic node name)
+> - Drop action in initializer
+> - Fix ordering of pm runtime disable
+> v2 changes:
+> - New patch to move TI PWMSS driver from drivers/pwm/ to drivers/bus/
+> - Device tree bindings converted to .yaml format
+> - Device tree clock renamed from "fck" to "sysclkout"
+> - Dropped unused index and strobe signals from counter driver
+> - Added synapses and actions to counter driver
+> - Fixed base in of kstrtouint()
+> - Clarifications in commit messages
 > 
-> It adds 720 MHz (omap34xx) and 1 GHz (omap36xx) OPPs but
-> tells the ti-cpufreq driver to disable them if the speed
-> binned / 720MHz grade eFuse bits indicate that the chip
-> is not rated for that speed. 
+> This series has been tested on a BeagleBone Blue with the following script:
 > 
-> It has been tested (for chip variant detection, not reliability
-> of the high speed OPPs) on:
+> #!/usr/bin/env python3
 > 
-> * BeagleBoard C2 (omap3430 600MHz)
-> * BeagleBoard XM B (dm3730 800MHz)
-> * GTA04A4 (dm3730 800MHz)
-> * GTA04A5 (dm3730 1GHz)
+> from os import path
+> from time import sleep
 > 
+> COUNTER_PATH = '/sys/bus/counter/devices'
+> COUNTERS = ['counter0', 'counter1', 'counter2']
+> COUNT0 = 'count0'
+> COUNT = 'count'
+> FUNCTION = 'function'
+> CEILING = 'ceiling'
+> FLOOR = 'floor'
+> ENABLE = 'enable'
 > 
-> H. Nikolaus Schaller (3):
->   cpufreq: ti-cpufreq: add support for omap34xx and omap36xx
->   ARM: dts: replace opp-v1 tables by opp-v2 for omap34xx and omap36xx
->   ARM: dts: omap3: bulk convert compatible to be explicitly ti,omap3430
->     or ti,omap36xx
+> cnts = []
 > 
->  arch/arm/boot/dts/am3517_mt_ventoux.dts       |  2 +-
->  .../boot/dts/logicpd-som-lv-35xx-devkit.dts   |  2 +-
->  .../boot/dts/logicpd-som-lv-37xx-devkit.dts   |  2 +-
->  .../boot/dts/logicpd-torpedo-35xx-devkit.dts  |  2 +-
->  .../boot/dts/logicpd-torpedo-37xx-devkit.dts  |  2 +-
->  arch/arm/boot/dts/omap3-beagle.dts            |  2 +-
->  arch/arm/boot/dts/omap3-cm-t3530.dts          |  2 +-
->  arch/arm/boot/dts/omap3-devkit8000-lcd43.dts  |  2 +-
->  arch/arm/boot/dts/omap3-devkit8000-lcd70.dts  |  2 +-
->  arch/arm/boot/dts/omap3-devkit8000.dts        |  2 +-
->  arch/arm/boot/dts/omap3-evm-37xx.dts          |  2 +-
->  arch/arm/boot/dts/omap3-ha-lcd.dts            |  2 +-
->  arch/arm/boot/dts/omap3-ha.dts                |  2 +-
->  arch/arm/boot/dts/omap3-ldp.dts               |  2 +-
->  arch/arm/boot/dts/omap3-n950-n9.dtsi          |  7 --
->  arch/arm/boot/dts/omap3-sbc-t3530.dts         |  2 +-
->  arch/arm/boot/dts/omap3-thunder.dts           |  2 +-
->  arch/arm/boot/dts/omap3430-sdp.dts            |  2 +-
->  arch/arm/boot/dts/omap34xx.dtsi               | 65 ++++++++++++--
->  arch/arm/boot/dts/omap36xx.dtsi               | 53 +++++++++--
->  drivers/cpufreq/cpufreq-dt-platdev.c          |  2 +-
->  drivers/cpufreq/ti-cpufreq.c                  | 87 ++++++++++++++++++-
->  22 files changed, 204 insertions(+), 44 deletions(-)
+> for c in COUNTERS:
+>     function_path = path.join(COUNTER_PATH, c, COUNT0, FUNCTION)
+>     with open(function_path, 'w') as f:
+>         f.write('quadrature x4')
+>     floor_path = path.join(COUNTER_PATH, c, COUNT0, FLOOR)
+>     with open(floor_path, 'w') as f:
+>         f.write(str(0))
+>     ceiling_path = path.join(COUNTER_PATH, c, COUNT0, CEILING)
+>     with open(ceiling_path, 'w') as f:
+>         f.write(str(0xffffffff))
+>     enable_path = path.join(COUNTER_PATH, c, COUNT0, ENABLE)
+>     with open(enable_path, 'w') as f:
+>         f.write('1')
+> 
+>     cnt_path = path.join(COUNTER_PATH, c, COUNT0, COUNT)
+>     cnts.append(open(cnt_path, 'r'))
+> 
+> while True:
+>     for c in cnts:
+>         c.seek(0)
+>         val = int(c.read())
+>         if val >= 0x80000000:
+>             val -= 0x100000000
+>         print(val, end=' ')
+>     print()
+>     sleep(1)
+> 
+> David Lechner (6):
+>   bus/ti-pwmss: move TI PWMSS driver from PWM to bus subsystem
+>   dt-bindings: counter: new bindings for TI eQEP
+>   counter: new TI eQEP driver
+>   ARM: dts: am33xx: Add nodes for eQEP
+>   ARM: dts: am335x-boneblue: Enable eQEP
+>   ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi
+> 
+>  .../devicetree/bindings/counter/ti-eqep.yaml  |  50 ++
+>  MAINTAINERS                                   |   6 +
+>  arch/arm/boot/dts/am335x-boneblue.dts         | 146 +++---
+>  arch/arm/boot/dts/am33xx-l4.dtsi              |  27 +
+>  drivers/bus/Kconfig                           |   9 +
+>  drivers/bus/Makefile                          |   1 +
+>  drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} |   0
+>  drivers/counter/Kconfig                       |  11 +
+>  drivers/counter/Makefile                      |   1 +
+>  drivers/counter/ti-eqep.c                     | 473 ++++++++++++++++++
+>  drivers/pwm/Kconfig                           |   9 -
+>  drivers/pwm/Makefile                          |   1 -
+>  12 files changed, 634 insertions(+), 100 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/counter/ti-eqep.yaml
+>  rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)
+>  create mode 100644 drivers/counter/ti-eqep.c
+> 
+> -- 
+> 2.17.1
 
-Most of the stuff looks fine to me here. I will pick the patches when
-the SoC maintainers provide an Ack.
+I'm satisfied with this version of the patchset.
 
--- 
-viresh
+Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+
+Jonathan, if you have no objections please pick up this up so that it
+can make it to the 5.4 merge window coming in soon. Alternatively, I can
+merge it into my repository instead and hold it for a while longer
+there, if you prefer that route.
+
+Thank you,
+
+William Breathitt Gray
