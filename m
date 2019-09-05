@@ -1,97 +1,96 @@
 From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: [BACKPORT 4.14.y 12/18] mailbox: reset txdone_method TXDONE_BY_POLL if client knows_txdone
-Date: Thu,  5 Sep 2019 10:17:53 -0600
-Message-ID: <20190905161759.28036-13-mathieu.poirier@linaro.org>
+Subject: [BACKPORT 4.14.y 17/18] i2c: omap: Trigger bus recovery in lockup case
+Date: Thu,  5 Sep 2019 10:17:58 -0600
+Message-ID: <20190905161759.28036-18-mathieu.poirier@linaro.org>
 References: <20190905161759.28036-1-mathieu.poirier@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20190905161759.28036-1-mathieu.poirier@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: stable@vger.kernel.org
 Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-pci@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Sudeep Holla <sudeep.holla@arm.com>
+From: Claudio Foellmi <claudio.foellmi@ergon.ch>
 
-commit 33cd7123ac0ba5360656ae27db453de5b9aa711f upstream
+commit 93367bfca98f36cece57c01dbce6ea1b4ac58245 upstream
 
-Currently the mailbox framework sets txdone_method to TXDONE_BY_POLL if
-the controller sets txdone_by_poll. However some clients can have a
-mechanism to do TXDONE_BY_ACK which they can specify by knows_txdone.
-However, we endup setting both TXDONE_BY_POLL and TXDONE_BY_ACK in that
-case. In such scenario, we may end up with below warnings as the tx
-ticker is run both by mailbox framework and the client.
+A very conservative check for bus activity (to prevent interference
+in multimaster setups) prevented the bus recovery methods from being
+triggered in the case that SDA or SCL was stuck low.
+This defeats the purpose of the recovery mechanism, which was introduced
+for exactly this situation (a slave device keeping SDA pulled down).
 
-WARNING: CPU: 1 PID: 0 at kernel/time/hrtimer.c:805 hrtimer_forward+0x88/0xd8
-CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.12.0-rc5 #242
-Hardware name: ARM LTD ARM Juno Development Platform
-task: ffff8009768ca700 task.stack: ffff8009768f8000
-PC is at hrtimer_forward+0x88/0xd8
-LR is at txdone_hrtimer+0xd4/0xf8
-Call trace:
- hrtimer_forward+0x88/0xd8
- __hrtimer_run_queues+0xe4/0x158
- hrtimer_interrupt+0xa4/0x220
- arch_timer_handler_phys+0x30/0x40
- handle_percpu_devid_irq+0x78/0x130
- generic_handle_irq+0x24/0x38
- __handle_domain_irq+0x5c/0xb8
- gic_handle_irq+0x54/0xa8
+Also added a check to make sure SDA is low before attempting recovery.
+If SDA is not stuck low, recovery will not help, so we can skip it.
 
-This patch fixes the issue by resetting TXDONE_BY_POLL if client has set
-knows_txdone.
+Note that bus lockups can persist across reboots. The only other options
+are to reset or power cycle the offending slave device, and many i2c
+slaves do not even have a reset pin.
 
-Cc: Alexey Klimov <alexey.klimov@arm.com>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+If we see that one of the lines is low for the entire timeout duration,
+we can actually be sure that there is no other master driving the bus.
+It is therefore save for us to attempt a bus recovery.
+
+Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
+Tested-by: Vignesh R <vigneshr@ti.com>
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+[wsa: fixed one return code to -EBUSY]
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 ---
- drivers/mailbox/mailbox.c | 4 ++--
- drivers/mailbox/pcc.c     | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-omap.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index 44b49a2676f0..055c90b8253c 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -351,7 +351,7 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
- 	init_completion(&chan->tx_complete);
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 12ba183693d6..a03564f41ad0 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -486,6 +486,22 @@ static int omap_i2c_init(struct omap_i2c_dev *omap)
+ 	return 0;
+ }
  
- 	if (chan->txdone_method	== TXDONE_BY_POLL && cl->knows_txdone)
--		chan->txdone_method |= TXDONE_BY_ACK;
-+		chan->txdone_method = TXDONE_BY_ACK;
++/*
++ * Try bus recovery, but only if SDA is actually low.
++ */
++static int omap_i2c_recover_bus(struct omap_i2c_dev *omap)
++{
++	u16 systest;
++
++	systest = omap_i2c_read_reg(omap, OMAP_I2C_SYSTEST_REG);
++	if ((systest & OMAP_I2C_SYSTEST_SCL_I_FUNC) &&
++	    (systest & OMAP_I2C_SYSTEST_SDA_I_FUNC))
++		return 0; /* bus seems to already be fine */
++	if (!(systest & OMAP_I2C_SYSTEST_SCL_I_FUNC))
++		return -EBUSY; /* recovery would not fix SCL */
++	return i2c_recover_bus(&omap->adapter);
++}
++
+ /*
+  * Waiting on Bus Busy
+  */
+@@ -496,7 +512,7 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *omap)
+ 	timeout = jiffies + OMAP_I2C_TIMEOUT;
+ 	while (omap_i2c_read_reg(omap, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) {
+ 		if (time_after(jiffies, timeout))
+-			return i2c_recover_bus(&omap->adapter);
++			return omap_i2c_recover_bus(omap);
+ 		msleep(1);
+ 	}
  
- 	spin_unlock_irqrestore(&chan->lock, flags);
+@@ -577,8 +593,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
+ 		}
  
-@@ -420,7 +420,7 @@ void mbox_free_channel(struct mbox_chan *chan)
- 	spin_lock_irqsave(&chan->lock, flags);
- 	chan->cl = NULL;
- 	chan->active_req = NULL;
--	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
-+	if (chan->txdone_method == TXDONE_BY_ACK)
- 		chan->txdone_method = TXDONE_BY_POLL;
+ 		if (time_after(jiffies, timeout)) {
++			/*
++			 * SDA or SCL were low for the entire timeout without
++			 * any activity detected. Most likely, a slave is
++			 * locking up the bus with no master driving the clock.
++			 */
+ 			dev_warn(omap->dev, "timeout waiting for bus ready\n");
+-			return -ETIMEDOUT;
++			return omap_i2c_recover_bus(omap);
+ 		}
  
- 	module_put(chan->mbox->dev->driver->owner);
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 9b7005e1345e..27c2294be51a 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -266,7 +266,7 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
- 	init_completion(&chan->tx_complete);
- 
- 	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
--		chan->txdone_method |= TXDONE_BY_ACK;
-+		chan->txdone_method = TXDONE_BY_ACK;
- 
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 
-@@ -312,7 +312,7 @@ void pcc_mbox_free_channel(struct mbox_chan *chan)
- 	spin_lock_irqsave(&chan->lock, flags);
- 	chan->cl = NULL;
- 	chan->active_req = NULL;
--	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
-+	if (chan->txdone_method == TXDONE_BY_ACK)
- 		chan->txdone_method = TXDONE_BY_POLL;
- 
- 	spin_unlock_irqrestore(&chan->lock, flags);
+ 		msleep(1);
 -- 
 2.17.1
