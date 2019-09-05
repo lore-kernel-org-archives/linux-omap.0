@@ -1,96 +1,76 @@
 From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: [BACKPORT 4.14.y 17/18] i2c: omap: Trigger bus recovery in lockup case
-Date: Thu,  5 Sep 2019 10:17:58 -0600
-Message-ID: <20190905161759.28036-18-mathieu.poirier@linaro.org>
+Subject: [BACKPORT 4.14.y 02/18] PCI: dra7xx: Fix legacy INTD IRQ handling
+Date: Thu,  5 Sep 2019 10:17:43 -0600
+Message-ID: <20190905161759.28036-3-mathieu.poirier@linaro.org>
 References: <20190905161759.28036-1-mathieu.poirier@linaro.org>
-Return-path: <stable-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 In-Reply-To: <20190905161759.28036-1-mathieu.poirier@linaro.org>
-Sender: stable-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: stable@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-pci@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: linux-pm@vger.kernel.org, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Claudio Foellmi <claudio.foellmi@ergon.ch>
+From: Vignesh R <vigneshr@ti.com>
 
-commit 93367bfca98f36cece57c01dbce6ea1b4ac58245 upstream
+commit 524d59f6e30aab5b618da55e604c802ccd83e708 upstream
 
-A very conservative check for bus activity (to prevent interference
-in multimaster setups) prevented the bus recovery methods from being
-triggered in the case that SDA or SCL was stuck low.
-This defeats the purpose of the recovery mechanism, which was introduced
-for exactly this situation (a slave device keeping SDA pulled down).
+Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
+uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
+4 which is numbered 0-3. Therefore when INTD IRQ line is used with
+pci-dra7xx driver following warning is seen:
 
-Also added a check to make sure SDA is low before attempting recovery.
-If SDA is not stuck low, recovery will not help, so we can skip it.
+       WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
+       error: hwirq 0x4 is too large for dummy
 
-Note that bus lockups can persist across reboots. The only other options
-are to reset or power cycle the offending slave device, and many i2c
-slaves do not even have a reset pin.
+Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
+range into the 0-3 as done in other PCIe drivers.
 
-If we see that one of the lines is low for the entire timeout duration,
-we can actually be sure that there is no other master driving the bus.
-It is therefore save for us to attempt a bus recovery.
-
-Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
-Tested-by: Vignesh R <vigneshr@ti.com>
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-[wsa: fixed one return code to -EBUSY]
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 ---
- drivers/i2c/busses/i2c-omap.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 12ba183693d6..a03564f41ad0 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -486,6 +486,22 @@ static int omap_i2c_init(struct omap_i2c_dev *omap)
- 	return 0;
- }
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 63052c5e5f82..7f5dfa169d0f 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -227,6 +227,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
  
-+/*
-+ * Try bus recovery, but only if SDA is actually low.
-+ */
-+static int omap_i2c_recover_bus(struct omap_i2c_dev *omap)
-+{
-+	u16 systest;
-+
-+	systest = omap_i2c_read_reg(omap, OMAP_I2C_SYSTEST_REG);
-+	if ((systest & OMAP_I2C_SYSTEST_SCL_I_FUNC) &&
-+	    (systest & OMAP_I2C_SYSTEST_SDA_I_FUNC))
-+		return 0; /* bus seems to already be fine */
-+	if (!(systest & OMAP_I2C_SYSTEST_SCL_I_FUNC))
-+		return -EBUSY; /* recovery would not fix SCL */
-+	return i2c_recover_bus(&omap->adapter);
-+}
-+
- /*
-  * Waiting on Bus Busy
-  */
-@@ -496,7 +512,7 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *omap)
- 	timeout = jiffies + OMAP_I2C_TIMEOUT;
- 	while (omap_i2c_read_reg(omap, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) {
- 		if (time_after(jiffies, timeout))
--			return i2c_recover_bus(&omap->adapter);
-+			return omap_i2c_recover_bus(omap);
- 		msleep(1);
+ static const struct irq_domain_ops intx_domain_ops = {
+ 	.map = dra7xx_pcie_intx_map,
++	.xlate = pci_irqd_intx_xlate,
+ };
+ 
+ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+@@ -270,7 +271,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+ 	case INTC:
+ 	case INTD:
+ 		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
+-						    ffs(reg)));
++						    ffs(reg) - 1));
+ 		break;
  	}
  
-@@ -577,8 +593,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
- 		}
- 
- 		if (time_after(jiffies, timeout)) {
-+			/*
-+			 * SDA or SCL were low for the entire timeout without
-+			 * any activity detected. Most likely, a slave is
-+			 * locking up the bus with no master driving the clock.
-+			 */
- 			dev_warn(omap->dev, "timeout waiting for bus ready\n");
--			return -ETIMEDOUT;
-+			return omap_i2c_recover_bus(omap);
- 		}
- 
- 		msleep(1);
 -- 
 2.17.1
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
