@@ -1,7 +1,7 @@
 From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: [BACKPORT 4.14.y 18/18] cpufreq: ti-cpufreq: add missing of_node_put()
-Date: Thu,  5 Sep 2019 10:17:59 -0600
-Message-ID: <20190905161759.28036-19-mathieu.poirier@linaro.org>
+Subject: [BACKPORT 4.14.y 12/18] mailbox: reset txdone_method TXDONE_BY_POLL if client knows_txdone
+Date: Thu,  5 Sep 2019 10:17:53 -0600
+Message-ID: <20190905161759.28036-13-mathieu.poirier@linaro.org>
 References: <20190905161759.28036-1-mathieu.poirier@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190905161759.28036-1-mathieu.poirier@linaro.org>
@@ -10,31 +10,88 @@ To: stable@vger.kernel.org
 Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-pci@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Zumeng Chen <zumeng.chen@gmail.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
 
-commit 248aefdcc3a7e0cfbd014946b4dead63e750e71b upstream
+commit 33cd7123ac0ba5360656ae27db453de5b9aa711f upstream
 
-call of_node_put to release the refcount of np.
+Currently the mailbox framework sets txdone_method to TXDONE_BY_POLL if
+the controller sets txdone_by_poll. However some clients can have a
+mechanism to do TXDONE_BY_ACK which they can specify by knows_txdone.
+However, we endup setting both TXDONE_BY_POLL and TXDONE_BY_ACK in that
+case. In such scenario, we may end up with below warnings as the tx
+ticker is run both by mailbox framework and the client.
 
-Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+WARNING: CPU: 1 PID: 0 at kernel/time/hrtimer.c:805 hrtimer_forward+0x88/0xd8
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.12.0-rc5 #242
+Hardware name: ARM LTD ARM Juno Development Platform
+task: ffff8009768ca700 task.stack: ffff8009768f8000
+PC is at hrtimer_forward+0x88/0xd8
+LR is at txdone_hrtimer+0xd4/0xf8
+Call trace:
+ hrtimer_forward+0x88/0xd8
+ __hrtimer_run_queues+0xe4/0x158
+ hrtimer_interrupt+0xa4/0x220
+ arch_timer_handler_phys+0x30/0x40
+ handle_percpu_devid_irq+0x78/0x130
+ generic_handle_irq+0x24/0x38
+ __handle_domain_irq+0x5c/0xb8
+ gic_handle_irq+0x54/0xa8
+
+This patch fixes the issue by resetting TXDONE_BY_POLL if client has set
+knows_txdone.
+
+Cc: Alexey Klimov <alexey.klimov@arm.com>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
 Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 ---
- drivers/cpufreq/ti-cpufreq.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/mailbox/mailbox.c | 4 ++--
+ drivers/mailbox/pcc.c     | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-index 4bf47de6101f..cadc324bedb4 100644
---- a/drivers/cpufreq/ti-cpufreq.c
-+++ b/drivers/cpufreq/ti-cpufreq.c
-@@ -205,6 +205,7 @@ static int ti_cpufreq_init(void)
+diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
+index 44b49a2676f0..055c90b8253c 100644
+--- a/drivers/mailbox/mailbox.c
++++ b/drivers/mailbox/mailbox.c
+@@ -351,7 +351,7 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
+ 	init_completion(&chan->tx_complete);
  
- 	np = of_find_node_by_path("/");
- 	match = of_match_node(ti_cpufreq_of_match, np);
-+	of_node_put(np);
- 	if (!match)
- 		return -ENODEV;
+ 	if (chan->txdone_method	== TXDONE_BY_POLL && cl->knows_txdone)
+-		chan->txdone_method |= TXDONE_BY_ACK;
++		chan->txdone_method = TXDONE_BY_ACK;
  
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 
+@@ -420,7 +420,7 @@ void mbox_free_channel(struct mbox_chan *chan)
+ 	spin_lock_irqsave(&chan->lock, flags);
+ 	chan->cl = NULL;
+ 	chan->active_req = NULL;
+-	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
++	if (chan->txdone_method == TXDONE_BY_ACK)
+ 		chan->txdone_method = TXDONE_BY_POLL;
+ 
+ 	module_put(chan->mbox->dev->driver->owner);
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 9b7005e1345e..27c2294be51a 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -266,7 +266,7 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
+ 	init_completion(&chan->tx_complete);
+ 
+ 	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
+-		chan->txdone_method |= TXDONE_BY_ACK;
++		chan->txdone_method = TXDONE_BY_ACK;
+ 
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 
+@@ -312,7 +312,7 @@ void pcc_mbox_free_channel(struct mbox_chan *chan)
+ 	spin_lock_irqsave(&chan->lock, flags);
+ 	chan->cl = NULL;
+ 	chan->active_req = NULL;
+-	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
++	if (chan->txdone_method == TXDONE_BY_ACK)
+ 		chan->txdone_method = TXDONE_BY_POLL;
+ 
+ 	spin_unlock_irqrestore(&chan->lock, flags);
 -- 
 2.17.1
