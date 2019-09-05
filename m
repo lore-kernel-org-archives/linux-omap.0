@@ -1,121 +1,125 @@
-From: William Breathitt Gray <vilhelm.gray@gmail.com>
-Subject: Re: [PATCH v3 0/6] counter: new TI eQEP driver
-Date: Thu, 5 Sep 2019 22:37:21 +0900
-Message-ID: <20190905133721.GA728346@icarus>
-References: <20190901225827.12301-1-david@lechnology.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] bus: ti-sysc: Fix clock handling for no-idle quirks
+Date: Thu,  5 Sep 2019 07:03:37 -0700
+Message-ID: <20190905140337.19373-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190901225827.12301-1-david@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>, Jonathan Cameron <jic23@kernel.org>
-Cc: linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh Raghavendra <vigneshr@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Sep 01, 2019 at 05:58:21PM -0500, David Lechner wrote:
-> This series adds device tree bindings and a new counter driver for the Texas
-> Instruments Enhanced Quadrature Encoder Pulse (eQEP).
-> 
-> As mentioned in one of the commit messages, to start with, the driver only
-> supports reading the current counter value and setting the min/max values.
-> Other features can be added as the counter subsystem gains support for them.
-> 
-> v3 changes:
-> - Minor changes to device tree bindings (style and generic node name)
-> - Drop action in initializer
-> - Fix ordering of pm runtime disable
-> v2 changes:
-> - New patch to move TI PWMSS driver from drivers/pwm/ to drivers/bus/
-> - Device tree bindings converted to .yaml format
-> - Device tree clock renamed from "fck" to "sysclkout"
-> - Dropped unused index and strobe signals from counter driver
-> - Added synapses and actions to counter driver
-> - Fixed base in of kstrtouint()
-> - Clarifications in commit messages
-> 
-> This series has been tested on a BeagleBone Blue with the following script:
-> 
-> #!/usr/bin/env python3
-> 
-> from os import path
-> from time import sleep
-> 
-> COUNTER_PATH = '/sys/bus/counter/devices'
-> COUNTERS = ['counter0', 'counter1', 'counter2']
-> COUNT0 = 'count0'
-> COUNT = 'count'
-> FUNCTION = 'function'
-> CEILING = 'ceiling'
-> FLOOR = 'floor'
-> ENABLE = 'enable'
-> 
-> cnts = []
-> 
-> for c in COUNTERS:
->     function_path = path.join(COUNTER_PATH, c, COUNT0, FUNCTION)
->     with open(function_path, 'w') as f:
->         f.write('quadrature x4')
->     floor_path = path.join(COUNTER_PATH, c, COUNT0, FLOOR)
->     with open(floor_path, 'w') as f:
->         f.write(str(0))
->     ceiling_path = path.join(COUNTER_PATH, c, COUNT0, CEILING)
->     with open(ceiling_path, 'w') as f:
->         f.write(str(0xffffffff))
->     enable_path = path.join(COUNTER_PATH, c, COUNT0, ENABLE)
->     with open(enable_path, 'w') as f:
->         f.write('1')
-> 
->     cnt_path = path.join(COUNTER_PATH, c, COUNT0, COUNT)
->     cnts.append(open(cnt_path, 'r'))
-> 
-> while True:
->     for c in cnts:
->         c.seek(0)
->         val = int(c.read())
->         if val >= 0x80000000:
->             val -= 0x100000000
->         print(val, end=' ')
->     print()
->     sleep(1)
-> 
-> David Lechner (6):
->   bus/ti-pwmss: move TI PWMSS driver from PWM to bus subsystem
->   dt-bindings: counter: new bindings for TI eQEP
->   counter: new TI eQEP driver
->   ARM: dts: am33xx: Add nodes for eQEP
->   ARM: dts: am335x-boneblue: Enable eQEP
->   ARM: dts: am335x-boneblue: Use of am335x-osd335x-common.dtsi
-> 
->  .../devicetree/bindings/counter/ti-eqep.yaml  |  50 ++
->  MAINTAINERS                                   |   6 +
->  arch/arm/boot/dts/am335x-boneblue.dts         | 146 +++---
->  arch/arm/boot/dts/am33xx-l4.dtsi              |  27 +
->  drivers/bus/Kconfig                           |   9 +
->  drivers/bus/Makefile                          |   1 +
->  drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} |   0
->  drivers/counter/Kconfig                       |  11 +
->  drivers/counter/Makefile                      |   1 +
->  drivers/counter/ti-eqep.c                     | 473 ++++++++++++++++++
->  drivers/pwm/Kconfig                           |   9 -
->  drivers/pwm/Makefile                          |   1 -
->  12 files changed, 634 insertions(+), 100 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/counter/ti-eqep.yaml
->  rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)
->  create mode 100644 drivers/counter/ti-eqep.c
-> 
-> -- 
-> 2.17.1
+NFSroot can fail on dra7 when cpsw is probed using ti-sysc interconnect
+target module driver as reported by Keerthy.
 
-I'm satisfied with this version of the patchset.
+Device clocks and the interconnect target module may or may not be
+enabled by the bootloader on init, but we currently assume the clocks
+and module are on from the bootloader for "ti,no-idle" and
+"ti,no-idle-on-init" quirks as reported by Grygorii Strashko.
 
-Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+Let's fix the issue by always enabling clocks init, and
+never disable them for "ti,no-idle" quirk. For "ti,no-idle-on-init"
+quirk, we must decrement the usage count later on to allow PM
+runtime to idle the module if requested.
 
-Jonathan, if you have no objections please pick up this up so that it
-can make it to the 5.4 merge window coming in soon. Alternatively, I can
-merge it into my repository instead and hold it for a while longer
-there, if you prefer that route.
+Fixes: 1a5cd7c23cc5 ("bus: ti-sysc: Enable all clocks directly during init to read revision")
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Reported-by: Keerthy <j-keerthy@ti.com>
+Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 48 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 37 insertions(+), 11 deletions(-)
 
-Thank you,
-
-William Breathitt Gray
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1632,17 +1632,19 @@ static int sysc_init_module(struct sysc *ddata)
+ 	if (error)
+ 		return error;
+ 
+-	if (manage_clocks) {
+-		sysc_clkdm_deny_idle(ddata);
++	sysc_clkdm_deny_idle(ddata);
+ 
+-		error = sysc_enable_opt_clocks(ddata);
+-		if (error)
+-			return error;
++	/*
++	 * Always enable clocks. The bootloader may or may not have enabled
++	 * the related clocks.
++	 */
++	error = sysc_enable_opt_clocks(ddata);
++	if (error)
++		return error;
+ 
+-		error = sysc_enable_main_clocks(ddata);
+-		if (error)
+-			goto err_opt_clocks;
+-	}
++	error = sysc_enable_main_clocks(ddata);
++	if (error)
++		goto err_opt_clocks;
+ 
+ 	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)) {
+ 		error = sysc_rstctrl_reset_deassert(ddata, true);
+@@ -1660,7 +1662,7 @@ static int sysc_init_module(struct sysc *ddata)
+ 			goto err_main_clocks;
+ 	}
+ 
+-	if (!ddata->legacy_mode && manage_clocks) {
++	if (!ddata->legacy_mode) {
+ 		error = sysc_enable_module(ddata->dev);
+ 		if (error)
+ 			goto err_main_clocks;
+@@ -1677,6 +1679,7 @@ static int sysc_init_module(struct sysc *ddata)
+ 	if (manage_clocks)
+ 		sysc_disable_main_clocks(ddata);
+ err_opt_clocks:
++	/* No re-enable of clockdomain autoidle to prevent module autoidle */
+ 	if (manage_clocks) {
+ 		sysc_disable_opt_clocks(ddata);
+ 		sysc_clkdm_allow_idle(ddata);
+@@ -2357,6 +2360,28 @@ static void ti_sysc_idle(struct work_struct *work)
+ 
+ 	ddata = container_of(work, struct sysc, idle_work.work);
+ 
++	/*
++	 * One time decrement of clock usage counts if left on from init.
++	 * Note that we disable opt clocks unconditionally in this case
++	 * as they are enabled unconditionally during init without
++	 * considering sysc_opt_clks_needed() at that point.
++	 */
++	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE |
++				 SYSC_QUIRK_NO_IDLE_ON_INIT)) {
++		sysc_clkdm_deny_idle(ddata);
++		sysc_disable_main_clocks(ddata);
++		sysc_disable_opt_clocks(ddata);
++		sysc_clkdm_allow_idle(ddata);
++	}
++
++	/* Keep permanent PM runtime usage count for SYSC_QUIRK_NO_IDLE */
++	if (ddata->cfg.quirks & SYSC_QUIRK_NO_IDLE)
++		return;
++
++	/*
++	 * Decrement PM runtime usage count for SYSC_QUIRK_NO_IDLE_ON_INIT
++	 * and SYSC_QUIRK_NO_RESET_ON_INIT
++	 */
+ 	if (pm_runtime_active(ddata->dev))
+ 		pm_runtime_put_sync(ddata->dev);
+ }
+@@ -2445,7 +2470,8 @@ static int sysc_probe(struct platform_device *pdev)
+ 	INIT_DELAYED_WORK(&ddata->idle_work, ti_sysc_idle);
+ 
+ 	/* At least earlycon won't survive without deferred idle */
+-	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE_ON_INIT |
++	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE |
++				 SYSC_QUIRK_NO_IDLE_ON_INIT |
+ 				 SYSC_QUIRK_NO_RESET_ON_INIT)) {
+ 		schedule_delayed_work(&ddata->idle_work, 3000);
+ 	} else {
+-- 
+2.23.0
