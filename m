@@ -1,44 +1,43 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [RFC v2 3/3] ARM: dts: omap3: bulk convert compatible to be explicitly ti,omap3430 or ti,omap36xx
-Date: Fri, 6 Sep 2019 19:55:40 +0200
-Message-ID: <17A56ADB-2217-41CC-BE0B-C3899815F10F@goldelico.com>
-References: <cover.1567587220.git.hns@goldelico.com> <a2b56edcada7b9000a6e906387a02c0ee42681db.1567587220.git.hns@goldelico.com> <20190905142734.GV52127@atomide.com> <4BC39938-D63E-4BDC-BA28-5132F77F602D@goldelico.com> <20190906154732.GC52127@atomide.com> <8C8644AC-FA12-4D26-B96A-76B78798612A@goldelico.com> <20190906172403.GG52127@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] bus: ti-sysc: Remove unpaired sysc_clkdm_deny_idle()
+Date: Fri,  6 Sep 2019 13:01:54 -0700
+Message-ID: <20190906200154.6510-1-tony@atomide.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190906172403.GG52127@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-OMAP <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
+To: linux-omap@vger.kernel.org
+Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh Raghavendra <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Commit d098913a10f8 ("bus: ti-sysc: Fix clock handling for no-idle
+quirks") fixed handling for no-idle quirk modules that are not enabled
+by the bootloader.
 
-> Am 06.09.2019 um 19:24 schrieb Tony Lindgren <tony@atomide.com>:
-> 
-> * H. Nikolaus Schaller <hns@goldelico.com> [190906 17:09]:
-> 
->> BTW there is also some code that does special SoC detection based on
->> soc_device_match(), mainly in omapdrm/dss.
->> 
->> If we were to use this mechanism in the ti-cpufreq driver we could
->> match it to ti,omap3 and could avoid all these changes.
->> 
->> But make it less maintainable and code more complex.
-> 
-> Hmm right, yeah using soc_device_match() would remove this issue.
-> It might be worth doing as these SoC variants do not change
-> much and the code should not need updating. Up to you to
-> decide.
+But it also caused unpaired clockdomain calls that won't allow idling
+the system. That's because clkdm_allow_idle_nolock() and
+clkdm_deny_idle_nolock() have usage count with clkdm->forcewake_count.
 
-I have looked through the structure of the ti-cpufreq driver but
-it assumes that each set of register offsets and bit masks
-has its own compatible so that it can just switch descriptor
-tables.
+Let's drop the unpaired sysc_clkdm_deny_idle() to fix idling of devices.
 
-There is no provision to run soc_device_match() instead.
+Fixes: d098913a10f8 ("bus: ti-sysc: Fix clock handling for no-idle quirks")
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-So let's forget this idea...
-
-BR,
-Nikolaus
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -2363,7 +2363,6 @@ static void ti_sysc_idle(struct work_struct *work)
+ 	 */
+ 	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE |
+ 				 SYSC_QUIRK_NO_IDLE_ON_INIT)) {
+-		sysc_clkdm_deny_idle(ddata);
+ 		sysc_disable_main_clocks(ddata);
+ 		sysc_disable_opt_clocks(ddata);
+ 		sysc_clkdm_allow_idle(ddata);
+-- 
+2.23.0
