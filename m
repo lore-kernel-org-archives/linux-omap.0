@@ -1,28 +1,22 @@
-From: Roger Quadros <rogerq@ti.com>
+From: Keerthy <j-keerthy@ti.com>
 Subject: Re: [PATCH] bus: ti-sysc: Fix handling of invalid clocks
-Date: Fri, 6 Sep 2019 10:39:22 +0300
-Message-ID: <3c9f7340-f17f-cecd-3ae4-ec8a1af7c2bf@ti.com>
+Date: Fri, 6 Sep 2019 13:19:08 +0530
+Message-ID: <fd38f85f-c5f0-0166-c55c-0da6d5c2518d@ti.com>
 References: <20190905215356.8168-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190905215356.8168-1-tony@atomide.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org
+Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/09/2019 00:53, Tony Lindgren wrote:
+
+
+On 06/09/19 3:23 AM, Tony Lindgren wrote:
 > We can currently get "Unable to handle kernel paging request at
 > virtual address" for invalid clocks with dts node but no driver:
 > 
@@ -35,12 +29,15 @@ On 06/09/2019 00:53, Tony Lindgren wrote:
 > clk_get() with -ENOENT as a proper error. If the clock name is specified
 > in device tree we must succeed with clk_get() to continue. For modules with
 > no clock names specified in device tree we will just ignore the clocks.
+
+Tested for DS0 and RTC+DDR modes on AM437x
+
+FWIW
+Tested-by: Keerthy <j-keerthy@ti.com>
+
 > 
 > Fixes: 2b2f7def058a ("bus: ti-sysc: Add support for missing clockdomain handling")
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Roger Quadros <rogerq@ti.com>
-
 > ---
 >   arch/arm/mach-omap2/pdata-quirks.c | 4 ++--
 >   drivers/bus/ti-sysc.c              | 5 +----
@@ -86,7 +83,3 @@ Acked-by: Roger Quadros <rogerq@ti.com>
 >   	}
 >   
 > 
-
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
