@@ -1,49 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 01/10] dt-bindings: omap: add new binding for PRM
- instances
-Date: Fri, 6 Sep 2019 08:36:58 -0700
-Message-ID: <20190906153658.GB52127@atomide.com>
-References: <20190830121816.30034-2-t-kristo@ti.com>
- <20190906103558.17694-1-t-kristo@ti.com>
- <CAL_JsqLHTsEz6RJSi3rZ9AKyTBc00abyAxqwG8B9zAqL6cnv+w@mail.gmail.com>
+Subject: Re: [RFC v2 3/3] ARM: dts: omap3: bulk convert compatible to be
+ explicitly ti,omap3430 or ti,omap36xx
+Date: Fri, 6 Sep 2019 08:47:32 -0700
+Message-ID: <20190906154732.GC52127@atomide.com>
+References: <cover.1567587220.git.hns@goldelico.com>
+ <a2b56edcada7b9000a6e906387a02c0ee42681db.1567587220.git.hns@goldelico.com>
+ <20190905142734.GV52127@atomide.com>
+ <4BC39938-D63E-4BDC-BA28-5132F77F602D@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqLHTsEz6RJSi3rZ9AKyTBc00abyAxqwG8B9zAqL6cnv+w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <4BC39938-D63E-4BDC-BA28-5132F77F602D@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?utf-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-OMAP <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh+dt@kernel.org> [190906 12:57]:
-> On Fri, Sep 6, 2019 at 11:36 AM Tero Kristo <t-kristo@ti.com> wrote:
-> >
-> > Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
-> > of these will act as a power domain controller and potentially as a reset
-> > provider.
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > ---
-> > v4:
-> > - renamed nodes as power-controller
-> > - added documentation about hierarchy
-> >
-> >  .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
-> >  1 file changed, 31 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+* H. Nikolaus Schaller <hns@goldelico.com> [190906 07:53]:
+> > Am 05.09.2019 um 16:27 schrieb Tony Lindgren <tony@atomide.com>:
+> > compatible = "ti,omap3-ldp", "ti,omap3430", "ti,omap34xx", "ti,omap3";
 > 
-> Reviewed-by: Rob Herring <robh@kernel.org>
+> After thinking a little about the whole topic the main rule of this change must be:
+> 
+> * do not break any existing in-tree DTS
+> 	=> only *add* to compatible what we need to distinguish between omap34 and omap36
+> 
+> * additions shall only follow new scheme
+> 	=> we only add "ti,omap34xx" or "ti,omap36xx"
+>            but neither "ti,omap3630" nor "ti,omap3430"
 
-Looks good to me too:
+Sorry I don't follow you on this one.. We should always add "ti,omap3630"
+where "ti,omap36xx" is currently used so we can eventually get rid of
+"ti,omap36xx". And the same for 34xx.
 
-Reviewed-by: Tony Lindgren <tony@atomide.com>
+> * cover some out-of-tree DTS
+> 	=> make the ti-cpufreq driver still match "ti,omap3430" or "ti,omap3630"
+> 	   even if this duplicates compatibility
+> 
+> This would mean that the logicpd-som-lv-37xx-devkit.dts gets the additional "ti,omap36xx"
+> while the omap3-ldp.dts would only get an "ti,omap34xx" but no "ti,omap3430" (since we
+> do not use it anywhere).
+> 
+> Could you agree on this approach?
+
+Yeah sounds like logicpd-som-lv-37xx-devkit.dts currently still needs
+"ti,omap36xx" for now.
+
+If modifying omap3-ldp.dts, also add "ti,omap3430" in additon to
+"ti,omap34xx" that it already has.
+
+So basically let's assume the following:
+
+"ti,omap3430" == "ti,omap34xx"
+"ti,omap3630" == "ti,omap36xx"
+
+This means code needs to parse both.
+
+And eventually we just drop the "xx" variants.
+
+So while patching compatibles, let's also update for this to
+avoid multiple patches churning the same compatibles over and
+over.
+
+Regards,
+
+Tony
