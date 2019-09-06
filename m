@@ -1,43 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] bus: ti-sysc: Remove unpaired sysc_clkdm_deny_idle()
-Date: Fri,  6 Sep 2019 13:01:54 -0700
-Message-ID: <20190906200154.6510-1-tony@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 01/10] dt-bindings: omap: add new binding for PRM
+ instances
+Date: Fri, 6 Sep 2019 23:02:28 +0300
+Message-ID: <e2b75368-df70-b6c9-e019-61610859f146@ti.com>
+References: <20190830121816.30034-2-t-kristo@ti.com>
+ <20190906103558.17694-1-t-kristo@ti.com>
+ <CAL_JsqLHTsEz6RJSi3rZ9AKyTBc00abyAxqwG8B9zAqL6cnv+w@mail.gmail.com>
+ <20190906153658.GB52127@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh Raghavendra <vigneshr@ti.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190906153658.GB52127@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM
+ ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit d098913a10f8 ("bus: ti-sysc: Fix clock handling for no-idle
-quirks") fixed handling for no-idle quirk modules that are not enabled
-by the bootloader.
+On 06/09/2019 18:36, Tony Lindgren wrote:
+> * Rob Herring <robh+dt@kernel.org> [190906 12:57]:
+>> On Fri, Sep 6, 2019 at 11:36 AM Tero Kristo <t-kristo@ti.com> wrote:
+>>>
+>>> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
+>>> of these will act as a power domain controller and potentially as a reset
+>>> provider.
+>>>
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> ---
+>>> v4:
+>>> - renamed nodes as power-controller
+>>> - added documentation about hierarchy
+>>>
+>>>   .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
+>>>   1 file changed, 31 insertions(+)
+>>>   create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+>>
+>> Reviewed-by: Rob Herring <robh@kernel.org>
+> 
+> Looks good to me too:
+> 
+> Reviewed-by: Tony Lindgren <tony@atomide.com>
+> 
 
-But it also caused unpaired clockdomain calls that won't allow idling
-the system. That's because clkdm_allow_idle_nolock() and
-clkdm_deny_idle_nolock() have usage count with clkdm->forcewake_count.
+I may need to re-spin slightly new version of this. Stephen has some 
+comments on the clock driver side I am depending on, he does not like 
+the hard link between reset + clocks, so I may need to ditch the 
+"clocks" property from this one also.
 
-Let's drop the unpaired sysc_clkdm_deny_idle() to fix idling of devices.
+I'll see next week which direction I need to go.
 
-Fixes: d098913a10f8 ("bus: ti-sysc: Fix clock handling for no-idle quirks")
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Vignesh Raghavendra <vigneshr@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -2363,7 +2363,6 @@ static void ti_sysc_idle(struct work_struct *work)
- 	 */
- 	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE |
- 				 SYSC_QUIRK_NO_IDLE_ON_INIT)) {
--		sysc_clkdm_deny_idle(ddata);
- 		sysc_disable_main_clocks(ddata);
- 		sysc_disable_opt_clocks(ddata);
- 		sysc_clkdm_allow_idle(ddata);
--- 
-2.23.0
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
