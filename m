@@ -1,64 +1,85 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 01/10] dt-bindings: omap: add new binding for PRM
- instances
-Date: Fri, 6 Sep 2019 23:02:28 +0300
-Message-ID: <e2b75368-df70-b6c9-e019-61610859f146@ti.com>
-References: <20190830121816.30034-2-t-kristo@ti.com>
- <20190906103558.17694-1-t-kristo@ti.com>
- <CAL_JsqLHTsEz6RJSi3rZ9AKyTBc00abyAxqwG8B9zAqL6cnv+w@mail.gmail.com>
- <20190906153658.GB52127@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190906153658.GB52127@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM
- ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [RFC v2 1/3] cpufreq: ti-cpufreq: add support for omap34xx and omap36xx
+Date: Fri, 6 Sep 2019 22:46:49 +0200
+Message-ID: <1ED2450A-A445-42B8-8956-58A53F15DBE2@goldelico.com>
+References: <cover.1567587220.git.hns@goldelico.com> <a889b10386bebfbfd6cdb5491367235290d53247.1567587220.git.hns@goldelico.com> <20190905143226.GW52127@atomide.com> <20190906030158.leuumg7rwsvowwfx@vireshk-i7>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190906030158.leuumg7rwsvowwfx@vireshk-i7>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-OMAP <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-On 06/09/2019 18:36, Tony Lindgren wrote:
-> * Rob Herring <robh+dt@kernel.org> [190906 12:57]:
->> On Fri, Sep 6, 2019 at 11:36 AM Tero Kristo <t-kristo@ti.com> wrote:
->>>
->>> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
->>> of these will act as a power domain controller and potentially as a reset
->>> provider.
->>>
->>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>> ---
->>> v4:
->>> - renamed nodes as power-controller
->>> - added documentation about hierarchy
->>>
->>>   .../devicetree/bindings/arm/omap/prm-inst.txt | 31 +++++++++++++++++++
->>>   1 file changed, 31 insertions(+)
->>>   create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
->>
->> Reviewed-by: Rob Herring <robh@kernel.org>
-> 
-> Looks good to me too:
-> 
-> Reviewed-by: Tony Lindgren <tony@atomide.com>
-> 
+Hi,
 
-I may need to re-spin slightly new version of this. Stephen has some 
-comments on the clock driver side I am depending on, he does not like 
-the hard link between reset + clocks, so I may need to ditch the 
-"clocks" property from this one also.
+> Am 06.09.2019 um 05:01 schrieb Viresh Kumar <viresh.kumar@linaro.org>:
+>=20
+> On 05-09-19, 07:32, Tony Lindgren wrote:
+>> * H. Nikolaus Schaller <hns@goldelico.com> [190904 08:54]:
+>>> This adds code and tables to read the silicon revision and
+>>> eFuse (speed binned / 720 MHz grade) bits for selecting
+>>> opp-v2 table entries.
+>>>=20
+>>> Since these bits are not always part of the syscon register
+>>> range (like for am33xx, am43, dra7), we add code to directly
+>>> read the register values using ioremap() if syscon access fails.
+>>=20
+>> This is nice :) Seems to work for me based on a quick test
+>> on at least omap36xx.
+>>=20
+>> Looks like n900 produces the following though:
+>>=20
+>> core: _opp_supported_by_regulators: OPP minuV: 1270000 maxuV: =
+1270000, not supported by regulator
+>> cpu cpu0: _opp_add: OPP not supported by regulators (550000000)
+>=20
+> That's a DT thing I believe where the voltage doesn't fit what the
+> regulator can support.
 
-I'll see next week which direction I need to go.
+I can confirm this on BeagleBoard C2:
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+root@gta04:~# dmesg|fgrep -i opp
+[    2.347442] core: _opp_supported_by_regulators: OPP minuV: 1270000 =
+maxuV: 1270000, not supported by regulator
+[    2.359222] cpu cpu0: _opp_add: OPP not supported by regulators =
+(550000000)
+[    2.580993] omap2_set_init_voltage: unable to find boot up OPP for =
+vdd_core
+root@gta04:~#=20
+
+>=20
+>> But presumably that can be further patched.
+
+Well, the opp-v1 table also has this voltage point:
+
+			/* OMAP343x/OMAP35xx variants OPP1-5 */
+			operating-points =3D <
+				/* kHz    uV */
+				125000   975000
+				250000  1075000
+				500000  1200000
+				550000  1270000
+				600000  1350000
+			>;
+
+
+This is OPP4 which is recommended by OMAP3530 data sheet to be 1.27V +/- =
+5%
+
+Data sheet of tps65950 says
+
+	=E2=80=A2 VDD1: 1.2-A, buck DC/DC converter (VOUT =3D 0.6 V to =
+1.45 V, in steps of 12.5 mV)
+
+This means 1270 mV is not a "step" and rejected by the twl4030 driver.
+Maybe nobody did notice yet because the opp-v1 drivers did not warn...
+
+The closest value to 1.27V is 0.6V + 54 * 12.5mV is 1.275V
+
+So let's also change the OPP4 to 1275000 uV in the opp-v2 table.
+
+BR and thanks,
+Nikolaus=
