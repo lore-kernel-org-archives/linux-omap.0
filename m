@@ -1,101 +1,123 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [RFC v2 1/3] cpufreq: ti-cpufreq: add support for omap34xx and omap36xx
-Date: Sat, 7 Sep 2019 08:34:14 +0200
-Message-ID: <12A8E9DF-3D58-48A7-BC91-898B21536E04@goldelico.com>
-References: <cover.1567587220.git.hns@goldelico.com> <a889b10386bebfbfd6cdb5491367235290d53247.1567587220.git.hns@goldelico.com> <20190905143226.GW52127@atomide.com> <20190906030158.leuumg7rwsvowwfx@vireshk-i7> <1ED2450A-A445-42B8-8956-58A53F15DBE2@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1ED2450A-A445-42B8-8956-58A53F15DBE2@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <aford173@gmail.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Subject: [PATCH 4/4] DTS: bindings: omap: update bindings documentation
+Date: Sat,  7 Sep 2019 08:56:15 +0200
+Message-ID: <3063019699f21e161221897e14c124a4e5366fa0.1567839375.git.hns@goldelico.com>
+References: <cover.1567839375.git.hns@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <cover.1567839375.git.hns@goldelico.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>, Teresa Remmet <t.remmet@phytec.de>, "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* clarify that we now need either "ti,omap3430" or "ti,omap3630" or "ti,am3517" for omap3 chips
+* clarify that "ti,omap3" has no default
+* clarify that AM33x is not an "ti,omap3"
+* clarify that the list of boards is incomplete
+* remove some "ti,am33xx", "ti,omap3"
+* add some missing "ti,omap4"
 
-> Am 06.09.2019 um 22:46 schrieb H. Nikolaus Schaller =
-<hns@goldelico.com>:
->=20
-> Hi,
->=20
->> Am 06.09.2019 um 05:01 schrieb Viresh Kumar =
-<viresh.kumar@linaro.org>:
->>=20
->> On 05-09-19, 07:32, Tony Lindgren wrote:
->>> * H. Nikolaus Schaller <hns@goldelico.com> [190904 08:54]:
->>>> This adds code and tables to read the silicon revision and
->>>> eFuse (speed binned / 720 MHz grade) bits for selecting
->>>> opp-v2 table entries.
->>>>=20
->>>> Since these bits are not always part of the syscon register
->>>> range (like for am33xx, am43, dra7), we add code to directly
->>>> read the register values using ioremap() if syscon access fails.
->>>=20
->>> This is nice :) Seems to work for me based on a quick test
->>> on at least omap36xx.
->>>=20
->>> Looks like n900 produces the following though:
->>>=20
->>> core: _opp_supported_by_regulators: OPP minuV: 1270000 maxuV: =
-1270000, not supported by regulator
->>> cpu cpu0: _opp_add: OPP not supported by regulators (550000000)
->>=20
->> That's a DT thing I believe where the voltage doesn't fit what the
->> regulator can support.
->=20
-> I can confirm this on BeagleBoard C2:
->=20
-> root@gta04:~# dmesg|fgrep -i opp
-> [    2.347442] core: _opp_supported_by_regulators: OPP minuV: 1270000 =
-maxuV: 1270000, not supported by regulator
-> [    2.359222] cpu cpu0: _opp_add: OPP not supported by regulators =
-(550000000)
-> [    2.580993] omap2_set_init_voltage: unable to find boot up OPP for =
-vdd_core
-> root@gta04:~#=20
->=20
->>=20
->>> But presumably that can be further patched.
->=20
-> Well, the opp-v1 table also has this voltage point:
->=20
-> 			/* OMAP343x/OMAP35xx variants OPP1-5 */
-> 			operating-points =3D <
-> 				/* kHz    uV */
-> 				125000   975000
-> 				250000  1075000
-> 				500000  1200000
-> 				550000  1270000
-> 				600000  1350000
-> 			>;
->=20
->=20
-> This is OPP4 which is recommended by OMAP3530 data sheet to be 1.27V =
-+/- 5%
->=20
-> Data sheet of tps65950 says
->=20
-> 	=E2=80=A2 VDD1: 1.2-A, buck DC/DC converter (VOUT =3D 0.6 V to =
-1.45 V, in steps of 12.5 mV)
->=20
-> This means 1270 mV is not a "step" and rejected by the twl4030 driver.
-> Maybe nobody did notice yet because the opp-v1 drivers did not warn...
->=20
-> The closest value to 1.27V is 0.6V + 54 * 12.5mV is 1.275V
->=20
-> So let's also change the OPP4 to 1275000 uV in the opp-v2 table.
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ .../devicetree/bindings/arm/omap/omap.txt     | 30 +++++++++++--------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-The OPP is now available. Only
-
-[    2.569519] omap2_set_init_voltage: unable to find boot up OPP for =
-vdd_core
-
-remains but this is a different issue (mismatch between U-Boot =
-clock/vdd_core
-setup and kernel table). Most likely U-Boot runs with an 300MHz OPP =
-which is
-not defined by data sheet or kernel opp tables.
-
-BR,
-Nikolaus=
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index b301f753ed2c..e77635c5422c 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -43,7 +43,7 @@ SoC Families:
+ 
+ - OMAP2 generic - defaults to OMAP2420
+   compatible = "ti,omap2"
+-- OMAP3 generic - defaults to OMAP3430
++- OMAP3 generic
+   compatible = "ti,omap3"
+ - OMAP4 generic - defaults to OMAP4430
+   compatible = "ti,omap4"
+@@ -51,6 +51,8 @@ SoC Families:
+   compatible = "ti,omap5"
+ - DRA7 generic - defaults to DRA742
+   compatible = "ti,dra7"
++- AM33x generic
++  compatible = "ti,am33xx"
+ - AM43x generic - defaults to AM4372
+   compatible = "ti,am43"
+ 
+@@ -63,12 +65,14 @@ SoCs:
+ 
+ - OMAP3430
+   compatible = "ti,omap3430", "ti,omap3"
++  legacy: "ti,omap34xx" - please do not use any more
+ - AM3517
+   compatible = "ti,am3517", "ti,omap3"
+ - OMAP3630
+-  compatible = "ti,omap36xx", "ti,omap3"
+-- AM33xx
+-  compatible = "ti,am33xx", "ti,omap3"
++  compatible = "ti,omap3630", "ti,omap3"
++  legacy: "ti,omap36xx" - please do not use any more
++- AM335x
++  compatible = "ti,am33xx"
+ 
+ - OMAP4430
+   compatible = "ti,omap4430", "ti,omap4"
+@@ -110,19 +114,19 @@ SoCs:
+ - AM4372
+   compatible = "ti,am4372", "ti,am43"
+ 
+-Boards:
++Boards (incomplete list of examples):
+ 
+ - OMAP3 BeagleBoard : Low cost community board
+-  compatible = "ti,omap3-beagle", "ti,omap3"
++  compatible = "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
+ 
+ - OMAP3 Tobi with Overo : Commercial expansion board with daughter board
+-  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3"
++  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3"
+ 
+ - OMAP4 SDP : Software Development Board
+-  compatible = "ti,omap4-sdp", "ti,omap4430"
++  compatible = "ti,omap4-sdp", "ti,omap4430", "ti,omap4"
+ 
+ - OMAP4 PandaBoard : Low cost community board
+-  compatible = "ti,omap4-panda", "ti,omap4430"
++  compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4"
+ 
+ - OMAP4 DuoVero with Parlor : Commercial expansion board with daughter board
+   compatible = "gumstix,omap4-duovero-parlor", "gumstix,omap4-duovero", "ti,omap4430", "ti,omap4";
+@@ -134,16 +138,16 @@ Boards:
+   compatible = "variscite,var-dvk-om44", "variscite,var-som-om44", "ti,omap4460", "ti,omap4";
+ 
+ - OMAP3 EVM : Software Development Board for OMAP35x, AM/DM37x
+-  compatible = "ti,omap3-evm", "ti,omap3"
++  compatible = "ti,omap3-evm", "ti,omap3630", "ti,omap3"
+ 
+ - AM335X EVM : Software Development Board for AM335x
+-  compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
++  compatible = "ti,am335x-evm", "ti,am33xx"
+ 
+ - AM335X Bone : Low cost community board
+-  compatible = "ti,am335x-bone", "ti,am33xx", "ti,omap3"
++  compatible = "ti,am335x-bone", "ti,am33xx"
+ 
+ - AM3359 ICEv2 : Low cost Industrial Communication Engine EVM.
+-  compatible = "ti,am3359-icev2", "ti,am33xx", "ti,omap3"
++  compatible = "ti,am3359-icev2", "ti,am33xx"
+ 
+ - AM335X OrionLXm : Substation Automation Platform
+   compatible = "novatech,am335x-lxm", "ti,am33xx"
+-- 
+2.19.1
