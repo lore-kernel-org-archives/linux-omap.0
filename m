@@ -1,13 +1,12 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 4/4] DTS: bindings: omap: update bindings documentation
-Date: Sat,  7 Sep 2019 08:56:15 +0200
-Message-ID: <3063019699f21e161221897e14c124a4e5366fa0.1567839375.git.hns@goldelico.com>
-References: <cover.1567839375.git.hns@goldelico.com>
+Subject: [PATCH 0/4] OMAP3: convert opp-v1 to opp-v2 and read speed binned /
+ 720MHz grade bits
+Date: Sat,  7 Sep 2019 08:56:11 +0200
+Message-ID: <cover.1567839375.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1567839375.git.hns@goldelico.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,103 +20,100 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* clarify that we now need either "ti,omap3430" or "ti,omap3630" or "ti,am3517" for omap3 chips
-* clarify that "ti,omap3" has no default
-* clarify that AM33x is not an "ti,omap3"
-* clarify that the list of boards is incomplete
-* remove some "ti,am33xx", "ti,omap3"
-* add some missing "ti,omap4"
+Changes PATCH V1:
+* fix typo in omap3-ldp.dts
+  (reported by Tony Lindgren <tony@atomide.com>)
+* extend commit message to describe the bit patterns needed
+  for opp-supported-hw
+* add error check to ioremap()
+  (suggested by Christ van Willegen <cvwillegen@gmail.com>)
+* update Documentation/devicetree/bindings/arm/omap/omap.txt
+* change bulk update to use "ti,omap3430" and "ti,omap3630"
+* update OPP4 of omap3430 to 1275 mV since it was not a valid
+  voltage for the twl4030 driver (reported by Tony Lindgren
+  <tony@atomide.com>)
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- .../devicetree/bindings/arm/omap/omap.txt     | 30 +++++++++++--------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+RFC V2 2019-09-04 10:53:43:
+* merge separate patch to remove opp-v1 table from n950-n9 into
+  the general omap3xxx.dtsi patch
+  (suggested by Viresh Kumar <viresh.kumar@linaro.org>)
+* add legacy compatibility to ti,omap3430 and ti,omap3630 for
+  the ti-cpufreq driver
+* make driver and omap3xxx.dtsi patches pass checkpatch
+* add bulk patch to explicitly define compatibility to ti,omap3430
+  and ti,omap36xx in addition to ti,omap3 of all in-tree boards
+  where it was missing
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index b301f753ed2c..e77635c5422c 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -43,7 +43,7 @@ SoC Families:
- 
- - OMAP2 generic - defaults to OMAP2420
-   compatible = "ti,omap2"
--- OMAP3 generic - defaults to OMAP3430
-+- OMAP3 generic
-   compatible = "ti,omap3"
- - OMAP4 generic - defaults to OMAP4430
-   compatible = "ti,omap4"
-@@ -51,6 +51,8 @@ SoC Families:
-   compatible = "ti,omap5"
- - DRA7 generic - defaults to DRA742
-   compatible = "ti,dra7"
-+- AM33x generic
-+  compatible = "ti,am33xx"
- - AM43x generic - defaults to AM4372
-   compatible = "ti,am43"
- 
-@@ -63,12 +65,14 @@ SoCs:
- 
- - OMAP3430
-   compatible = "ti,omap3430", "ti,omap3"
-+  legacy: "ti,omap34xx" - please do not use any more
- - AM3517
-   compatible = "ti,am3517", "ti,omap3"
- - OMAP3630
--  compatible = "ti,omap36xx", "ti,omap3"
--- AM33xx
--  compatible = "ti,am33xx", "ti,omap3"
-+  compatible = "ti,omap3630", "ti,omap3"
-+  legacy: "ti,omap36xx" - please do not use any more
-+- AM335x
-+  compatible = "ti,am33xx"
- 
- - OMAP4430
-   compatible = "ti,omap4430", "ti,omap4"
-@@ -110,19 +114,19 @@ SoCs:
- - AM4372
-   compatible = "ti,am4372", "ti,am43"
- 
--Boards:
-+Boards (incomplete list of examples):
- 
- - OMAP3 BeagleBoard : Low cost community board
--  compatible = "ti,omap3-beagle", "ti,omap3"
-+  compatible = "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
- 
- - OMAP3 Tobi with Overo : Commercial expansion board with daughter board
--  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3"
-+  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3"
- 
- - OMAP4 SDP : Software Development Board
--  compatible = "ti,omap4-sdp", "ti,omap4430"
-+  compatible = "ti,omap4-sdp", "ti,omap4430", "ti,omap4"
- 
- - OMAP4 PandaBoard : Low cost community board
--  compatible = "ti,omap4-panda", "ti,omap4430"
-+  compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4"
- 
- - OMAP4 DuoVero with Parlor : Commercial expansion board with daughter board
-   compatible = "gumstix,omap4-duovero-parlor", "gumstix,omap4-duovero", "ti,omap4430", "ti,omap4";
-@@ -134,16 +138,16 @@ Boards:
-   compatible = "variscite,var-dvk-om44", "variscite,var-som-om44", "ti,omap4460", "ti,omap4";
- 
- - OMAP3 EVM : Software Development Board for OMAP35x, AM/DM37x
--  compatible = "ti,omap3-evm", "ti,omap3"
-+  compatible = "ti,omap3-evm", "ti,omap3630", "ti,omap3"
- 
- - AM335X EVM : Software Development Board for AM335x
--  compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
-+  compatible = "ti,am335x-evm", "ti,am33xx"
- 
- - AM335X Bone : Low cost community board
--  compatible = "ti,am335x-bone", "ti,am33xx", "ti,omap3"
-+  compatible = "ti,am335x-bone", "ti,am33xx"
- 
- - AM3359 ICEv2 : Low cost Industrial Communication Engine EVM.
--  compatible = "ti,am3359-icev2", "ti,am33xx", "ti,omap3"
-+  compatible = "ti,am3359-icev2", "ti,am33xx"
- 
- - AM335X OrionLXm : Substation Automation Platform
-   compatible = "novatech,am335x-lxm", "ti,am33xx"
+RFC V1 2019-09-02 12:55:55:
+
+This patch set converts the omap3 opp tables to opp-v2 format
+and extends the ti-cpufreq to support omap3.
+
+It adds 720 MHz (omap34xx) and 1 GHz (omap36xx) OPPs but
+tells the ti-cpufreq driver to disable them if the speed
+binned / 720MHz grade eFuse bits indicate that the chip
+is not rated for that speed. 
+
+It has been tested (for chip variant detection, not reliability
+of the high speed OPPs) on:
+
+* BeagleBoard C2 (omap3530 600MHz)
+* BeagleBoard XM B (dm3730 800MHz)
+* GTA04A4 (dm3730 800MHz)
+* GTA04A5 (dm3730 1GHz)
+
+
+H. Nikolaus Schaller (4):
+  cpufreq: ti-cpufreq: add support for omap34xx and omap36xx
+  ARM: dts: replace opp-v1 tables by opp-v2 for omap34xx and omap36xx
+  ARM: dts: omap3: bulk convert compatible to be explicitly ti,omap3430
+    or ti,omap3630 or ti,am3517
+  DTS: bindings: omap: update bindings documentation
+
+ .../devicetree/bindings/arm/omap/omap.txt     | 30 +++---
+ arch/arm/boot/dts/am3517_mt_ventoux.dts       |  2 +-
+ .../boot/dts/logicpd-som-lv-35xx-devkit.dts   |  2 +-
+ .../boot/dts/logicpd-torpedo-35xx-devkit.dts  |  2 +-
+ arch/arm/boot/dts/omap3-beagle-xm.dts         |  2 +-
+ arch/arm/boot/dts/omap3-beagle.dts            |  2 +-
+ arch/arm/boot/dts/omap3-cm-t3530.dts          |  2 +-
+ arch/arm/boot/dts/omap3-cm-t3730.dts          |  2 +-
+ arch/arm/boot/dts/omap3-devkit8000-lcd43.dts  |  2 +-
+ arch/arm/boot/dts/omap3-devkit8000-lcd70.dts  |  2 +-
+ arch/arm/boot/dts/omap3-devkit8000.dts        |  2 +-
+ arch/arm/boot/dts/omap3-gta04.dtsi            |  2 +-
+ arch/arm/boot/dts/omap3-ha-lcd.dts            |  2 +-
+ arch/arm/boot/dts/omap3-ha.dts                |  2 +-
+ arch/arm/boot/dts/omap3-igep0020-rev-f.dts    |  2 +-
+ arch/arm/boot/dts/omap3-igep0020.dts          |  2 +-
+ arch/arm/boot/dts/omap3-igep0030-rev-g.dts    |  2 +-
+ arch/arm/boot/dts/omap3-igep0030.dts          |  2 +-
+ arch/arm/boot/dts/omap3-ldp.dts               |  2 +-
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi       |  2 +-
+ arch/arm/boot/dts/omap3-lilly-dbb056.dts      |  2 +-
+ arch/arm/boot/dts/omap3-n9.dts                |  2 +-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi          |  7 --
+ arch/arm/boot/dts/omap3-n950.dts              |  2 +-
+ .../arm/boot/dts/omap3-overo-storm-alto35.dts |  2 +-
+ .../boot/dts/omap3-overo-storm-chestnut43.dts |  2 +-
+ .../boot/dts/omap3-overo-storm-gallop43.dts   |  2 +-
+ .../arm/boot/dts/omap3-overo-storm-palo35.dts |  2 +-
+ .../arm/boot/dts/omap3-overo-storm-palo43.dts |  2 +-
+ .../arm/boot/dts/omap3-overo-storm-summit.dts |  2 +-
+ arch/arm/boot/dts/omap3-overo-storm-tobi.dts  |  2 +-
+ .../boot/dts/omap3-overo-storm-tobiduo.dts    |  2 +-
+ arch/arm/boot/dts/omap3-pandora-1ghz.dts      |  2 +-
+ arch/arm/boot/dts/omap3-sbc-t3530.dts         |  2 +-
+ arch/arm/boot/dts/omap3-sbc-t3730.dts         |  2 +-
+ arch/arm/boot/dts/omap3-sniper.dts            |  2 +-
+ arch/arm/boot/dts/omap3-thunder.dts           |  2 +-
+ arch/arm/boot/dts/omap3-zoom3.dts             |  2 +-
+ arch/arm/boot/dts/omap3430-sdp.dts            |  2 +-
+ arch/arm/boot/dts/omap34xx.dtsi               | 65 +++++++++++--
+ arch/arm/boot/dts/omap36xx.dtsi               | 53 +++++++++--
+ drivers/cpufreq/cpufreq-dt-platdev.c          |  2 +-
+ drivers/cpufreq/ti-cpufreq.c                  | 91 ++++++++++++++++++-
+ 43 files changed, 245 insertions(+), 77 deletions(-)
+
 -- 
 2.19.1
