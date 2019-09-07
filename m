@@ -1,101 +1,96 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [Letux-kernel] [RFC v2 1/3] cpufreq: ti-cpufreq: add support
- for omap34xx and omap36xx
-Date: Sat, 7 Sep 2019 09:19:41 +0200
-Message-ID: <20190907091941.43a17d56@aktux>
-References: <cover.1567587220.git.hns@goldelico.com>
-        <a889b10386bebfbfd6cdb5491367235290d53247.1567587220.git.hns@goldelico.com>
-        <20190905143226.GW52127@atomide.com>
-        <20190906030158.leuumg7rwsvowwfx@vireshk-i7>
-        <1ED2450A-A445-42B8-8956-58A53F15DBE2@goldelico.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [Letux-kernel] [RFC PATCH 0/3] Enable 1GHz support on omap36xx
+Date: Sat, 7 Sep 2019 09:37:39 +0200
+Message-ID: <FA2920FE-B76A-4D44-A264-862A1CCBF7FC@goldelico.com>
+References: <20190801012823.28730-1-neolynx@gmail.com> <CAHCN7x+nD0J6KZYtfH+0ApQTPO5byO2obMkUwc9Uf4WubyRbTw@mail.gmail.com> <C04F49BA-1229-4E96-9FCF-4FC662D1DB11@goldelico.com> <CAHCN7x+Ye6sB_YqO0sAX1OJDw64B-qGS3pL545v3Xk5z914cwQ@mail.gmail.com> <0C1EF64E-B33C-4BFA-A7D3-471DD1B9EE86@goldelico.com> <515048DE-138D-4400-8168-F2B7D61F1005@goldelico.com> <CAHCN7xLPCX9rZ0+7KVBiA_bgZ6tg6VeCXqD-UXu+6iwpFMPVrA@mail.gmail.com> <7B3D1D77-3E8C-444F-90B9-6DF2641178B8@goldelico.com> <CAHCN7xLW58ggx3CpVL=HdCVHWo6D-MCTB91A_9rtSRoZQ+xJuQ@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1ED2450A-A445-42B8-8956-58A53F15DBE2@goldelico.com>
+In-Reply-To: <CAHCN7xLW58ggx3CpVL=HdCVHWo6D-MCTB91A_9rtSRoZQ+xJuQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Viresh Kumar <viresh.kumar@linaro.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, kernel@pyra-handheld.com, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <aford173@gmail.com>
+To: Adam Ford <aford173@gmail.com>
+Cc: =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 6 Sep 2019 22:46:49 +0200
-"H. Nikolaus Schaller" <hns@goldelico.com> wrote:
+Hi Adam,
 
-> Hi,
+> Am 02.09.2019 um 23:10 schrieb Adam Ford <aford173@gmail.com>:
 >=20
-> > Am 06.09.2019 um 05:01 schrieb Viresh Kumar <viresh.kumar@linaro.org>:
-> >=20
-> > On 05-09-19, 07:32, Tony Lindgren wrote: =20
-> >> * H. Nikolaus Schaller <hns@goldelico.com> [190904 08:54]: =20
-> >>> This adds code and tables to read the silicon revision and
-> >>> eFuse (speed binned / 720 MHz grade) bits for selecting
-> >>> opp-v2 table entries.
-> >>>=20
-> >>> Since these bits are not always part of the syscon register
-> >>> range (like for am33xx, am43, dra7), we add code to directly
-> >>> read the register values using ioremap() if syscon access fails. =20
-> >>=20
-> >> This is nice :) Seems to work for me based on a quick test
-> >> on at least omap36xx.
-> >>=20
-> >> Looks like n900 produces the following though:
-> >>=20
-> >> core: _opp_supported_by_regulators: OPP minuV: 1270000 maxuV: 1270000,=
- not supported by regulator
-> >> cpu cpu0: _opp_add: OPP not supported by regulators (550000000) =20
-> >=20
-> > That's a DT thing I believe where the voltage doesn't fit what the
-> > regulator can support. =20
+> On Mon, Sep 2, 2019 at 10:46 AM H. Nikolaus Schaller =
+<hns@goldelico.com> wrote:
+>>=20
+>>=20
+>>=20
+>> But my tests show that decoding works now. So you already might give =
+it a try.
 >=20
-> I can confirm this on BeagleBoard C2:
->=20
-> root@gta04:~# dmesg|fgrep -i opp
-> [    2.347442] core: _opp_supported_by_regulators: OPP minuV: 1270000 max=
-uV: 1270000, not supported by regulator
-> [    2.359222] cpu cpu0: _opp_add: OPP not supported by regulators (55000=
-0000)
-> [    2.580993] omap2_set_init_voltage: unable to find boot up OPP for vdd=
-_core
-> root@gta04:~#=20
->=20
-> >  =20
-> >> But presumably that can be further patched. =20
->=20
-> Well, the opp-v1 table also has this voltage point:
->=20
-> 			/* OMAP343x/OMAP35xx variants OPP1-5 */
-> 			operating-points =3D <
-> 				/* kHz    uV */
-> 				125000   975000
-> 				250000  1075000
-> 				500000  1200000
-> 				550000  1270000
-> 				600000  1350000
-> 			>; =20
->=20
->=20
-> This is OPP4 which is recommended by OMAP3530 data sheet to be 1.27V +/- =
-5%
->=20
-> Data sheet of tps65950 says
->=20
-> 	=E2=80=A2 VDD1: 1.2-A, buck DC/DC converter (VOUT =3D 0.6 V to 1.45 V, i=
-n steps of 12.5 mV)
->=20
-> This means 1270 mV is not a "step" and rejected by the twl4030 driver.
-> Maybe nobody did notice yet because the opp-v1 drivers did not warn...
->=20
-The reason probably is that errors about supported voltages were handled
-incorrecly in opp code in former times. Then someone fixed and
-cpufreq did not work on omap3 at all due to twl-regulator not specifying
-voltages for VDD1.
-Then I did a fix "regulator: twl: voltage lists for vdd1/2 on twl4030"
-which is still living in linux-next/pending-fixes (and probably also
-in Nikolaus's trees). Mark Brown
-did apparently not send his pull request.
+> I am traveling all this week, but I have an omap3530, DM3730
+> (omap3630), and an AM3517 that I use for testing.
 
-As a side effect of all that voltage checking corrections these
-errors are unveiled.
+now as the omap3430 and omap3630 opp-v2 tables are installed,
+we could add am35x7 as well.
 
-Regards,
-Andreas
+What needs to be done:
+
+1. add OPP-v2 table to am3517.dtsi
+
+for example copy skeleton from omap36xx.dtsi
+
+and define reasonable clock speeds. I would think about
+150 MHz, 300 MHz, 600MHz.
+
+Debatable is if we need a clock-latency definition.
+
+2. change all voltages to 1.2V
+
+			opp-microvolt =3D <1200000 1200000 1200000>;
+
+There is no point to specify 3 voltages <target min max> here since we
+will never need a min and a max value.
+
+			opp-microvolt =3D <1200000>;
+
+should also be ok (AFAIK, parser handles single-value records).
+
+3. AFAIK there is no speed binned eFuse...
+
+But the ti-cpufreq driver always wants to read some eFuse register.
+
+So please check if you can read 0x4800244C and 0x4830A204
+like on omap36xx and if they produce stable values (and not
+random noise).
+
+If yes, we simply assume that am3517 is similar enough to omap3630,
+ignore that there is no eFuse, but read the register anyways and
+then ignore the bit if it is 0 or 1.
+
+This means that all OPPs can get
+
+			opp-supported-hw =3D <0xffffffff 0xffffffff>;
+
+There could also be a default handler if this property is missing,
+but I have not researched this.
+
+4. add compatible to ti-cpufreq
+and share the register offsets, bit masks etc. with omap3630:
+
+	{ .compatible =3D "ti,am33xx", .data =3D &am3x_soc_data, },
+	{ .compatible =3D "ti,am3517", .data =3D &omap36xx_soc_data, },
+	{ .compatible =3D "ti,am43", .data =3D &am4x_soc_data, },
+	{ .compatible =3D "ti,dra7", .data =3D &dra7_soc_data },
+	{ .compatible =3D "ti,omap3430", .data =3D &omap34xx_soc_data, =
+},
+	{ .compatible =3D "ti,omap3630", .data =3D &omap36xx_soc_data, =
+},
+
+5. configure for CONFIG_ARM_TI_CPUFREQ=3Dy
+
+This should IMHO suffice.
+
+Since I can't test anything I can't define working OPP points
+and therefore I can't provide patches myself. Hope you can make
+it work this way.
+
+BR,
+Nikolaus=
