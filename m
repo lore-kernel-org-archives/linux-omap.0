@@ -1,96 +1,221 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [Letux-kernel] [RFC PATCH 0/3] Enable 1GHz support on omap36xx
-Date: Sat, 7 Sep 2019 09:37:39 +0200
-Message-ID: <FA2920FE-B76A-4D44-A264-862A1CCBF7FC@goldelico.com>
-References: <20190801012823.28730-1-neolynx@gmail.com> <CAHCN7x+nD0J6KZYtfH+0ApQTPO5byO2obMkUwc9Uf4WubyRbTw@mail.gmail.com> <C04F49BA-1229-4E96-9FCF-4FC662D1DB11@goldelico.com> <CAHCN7x+Ye6sB_YqO0sAX1OJDw64B-qGS3pL545v3Xk5z914cwQ@mail.gmail.com> <0C1EF64E-B33C-4BFA-A7D3-471DD1B9EE86@goldelico.com> <515048DE-138D-4400-8168-F2B7D61F1005@goldelico.com> <CAHCN7xLPCX9rZ0+7KVBiA_bgZ6tg6VeCXqD-UXu+6iwpFMPVrA@mail.gmail.com> <7B3D1D77-3E8C-444F-90B9-6DF2641178B8@goldelico.com> <CAHCN7xLW58ggx3CpVL=HdCVHWo6D-MCTB91A_9rtSRoZQ+xJuQ@mail.gmail.com>
+Subject: Re: [PATCH 1/4] cpufreq: ti-cpufreq: add support for omap34xx and
+ omap36xx
+Date: Sat, 7 Sep 2019 09:37:35 +0200
+Message-ID: <F12B47AA-DED2-4BD9-B144-2463A2AE6094@goldelico.com>
+References: <cover.1567839375.git.hns@goldelico.com>
+ <0eb7129f6148faac0150d6299ac97347484c7125.1567839375.git.hns@goldelico.com>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHCN7xLW58ggx3CpVL=HdCVHWo6D-MCTB91A_9rtSRoZQ+xJuQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <0eb7129f6148faac0150d6299ac97347484c7125.1567839375.git.hns@goldelico.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>, Teresa Remmet <t.remmet@phytec.de>, Nikolaus Schaller <hns@goldelico.com>
+Cc: devicetree <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Adam,
 
-> Am 02.09.2019 um 23:10 schrieb Adam Ford <aford173@gmail.com>:
->=20
-> On Mon, Sep 2, 2019 at 10:46 AM H. Nikolaus Schaller =
-<hns@goldelico.com> wrote:
->>=20
->>=20
->>=20
->> But my tests show that decoding works now. So you already might give =
-it a try.
->=20
-> I am traveling all this week, but I have an omap3530, DM3730
-> (omap3630), and an AM3517 that I use for testing.
+> Am 07.09.2019 um 08:56 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> 
+> This adds code and tables to read the silicon revision and
+> eFuse (speed binned / 720 MHz grade) bits for selecting
+> opp-v2 table entries.
+> 
+> Since these bits are not always part of the syscon register
+> range (like for am33xx, am43, dra7), we add code to directly
+> read the register values using ioremap() if syscon access fails.
+> 
+> The format of the opp-supported-hw entries is that it has
+> two 32 bit bitfields. E.g.:
+> 
+> 	opp-supported-hw = <0xffffffff 3>
+> 
+> The first value is matched against the bit position of the
+> silicon revision which is (see TRM)
+> 
+> omap34xx:
+> BIT(0)	ES1.0
+> BIT(1)	ES2.0
+> BIT(2)	ES2.1
+> BIT(3)	ES3.0
+> BIT(4)	ES3.1
+> BIT(7)	ES3.1.2
+> 
+> omap36xx:
+> BIT(0)	ES1.0
+> BIT(1)	ES1.1
+> BIT(2)	ES1.2
+> 
+> The second value is matched against the speed grade eFuse:
+> 
+> BIT(0)	no high speed OPP
+> BIT(1)	high speed OPP
+> 
+> This means for the example above that it is always enabled
+> while e.g.
+> 
+> 	opp-supported-hw = <0x1 2>
+> 
+> enables the OPP only for ES1.0 BIT(0) and if the high speed
+> eFuse is set BIT(1).
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+> drivers/cpufreq/ti-cpufreq.c | 91 +++++++++++++++++++++++++++++++++++-
+> 1 file changed, 89 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+> index 2ad1ae17932d..f2f58d689320 100644
+> --- a/drivers/cpufreq/ti-cpufreq.c
+> +++ b/drivers/cpufreq/ti-cpufreq.c
+> @@ -31,6 +31,11 @@
+> #define DRA7_EFUSE_OD_MPU_OPP			BIT(1)
+> #define DRA7_EFUSE_HIGH_MPU_OPP			BIT(2)
+> 
+> +#define OMAP3_CONTROL_DEVICE_STATUS		0x4800244C
+> +#define OMAP3_CONTROL_IDCODE			0x4830A204
+> +#define OMAP34xx_ProdID_SKUID			0x4830A20C
+> +#define OMAP3_SYSCON_BASE	(0x48000000 + 0x2000 + 0x270)
+> +
+> #define VERSION_COUNT				2
+> 
+> struct ti_cpufreq_data;
+> @@ -84,6 +89,13 @@ static unsigned long dra7_efuse_xlate(struct ti_cpufreq_data *opp_data,
+> 	return calculated_efuse;
+> }
+> 
+> +static unsigned long omap3_efuse_xlate(struct ti_cpufreq_data *opp_data,
+> +				      unsigned long efuse)
+> +{
+> +	/* OPP enable bit ("Speed Binned") */
+> +	return BIT(efuse);
+> +}
+> +
+> static struct ti_cpufreq_soc_data am3x_soc_data = {
+> 	.efuse_xlate = amx3_efuse_xlate,
+> 	.efuse_fallback = AM33XX_800M_ARM_MPU_MAX_FREQ,
+> @@ -111,6 +123,56 @@ static struct ti_cpufreq_soc_data dra7_soc_data = {
+> 	.multi_regulator = true,
+> };
+> 
+> +/*
+> + * OMAP35x TRM (SPRUF98K):
+> + *  CONTROL_IDCODE (0x4830 A204) describes Silicon revisions.
+> + *  Control OMAP Status Register 15:0 (Address 0x4800 244C)
+> + *    to separate between omap3503, omap3515, omap3525, omap3530
+> + *    and feature presence.
+> + *    There are encodings for versions limited to 400/266MHz
+> + *    but we ignore.
+> + *    Not clear if this also holds for omap34xx.
+> + *  some eFuse values e.g. CONTROL_FUSE_OPP1_VDD1
+> + *    are stored in the SYSCON register range
+> + *  Register 0x4830A20C [ProdID.SKUID] [0:3]
+> + *    0x0 for normal 600/430MHz device.
+> + *    0x8 for 720/520MHz device.
+> + *    Not clear what omap34xx value is.
+> + */
+> +
+> +static struct ti_cpufreq_soc_data omap34xx_soc_data = {
+> +	.efuse_xlate = omap3_efuse_xlate,
+> +	.efuse_offset = OMAP34xx_ProdID_SKUID - OMAP3_SYSCON_BASE,
+> +	.efuse_shift = 3,
+> +	.efuse_mask = BIT(3),
+> +	.rev_offset = OMAP3_CONTROL_IDCODE - OMAP3_SYSCON_BASE,
+> +	.multi_regulator = false,
+> +};
+> +
+> +/*
+> + * AM/DM37x TRM (SPRUGN4M)
+> + *  CONTROL_IDCODE (0x4830 A204) describes Silicon revisions.
+> + *  Control Device Status Register 15:0 (Address 0x4800 244C)
+> + *    to separate between am3703, am3715, dm3725, dm3730
+> + *    and feature presence.
+> + *   Speed Binned = Bit 9
+> + *     0 800/600 MHz
+> + *     1 1000/800 MHz
+> + *  some eFuse values e.g. CONTROL_FUSE_OPP 1G_VDD1
+> + *    are stored in the SYSCON register range.
+> + *  There is no 0x4830A20C [ProdID.SKUID] register (exists but
+> + *    seems to always read as 0).
+> + */
+> +
+> +static struct ti_cpufreq_soc_data omap36xx_soc_data = {
+> +	.efuse_xlate = omap3_efuse_xlate,
+> +	.efuse_offset = OMAP3_CONTROL_DEVICE_STATUS - OMAP3_SYSCON_BASE,
+> +	.efuse_shift = 9,
+> +	.efuse_mask = BIT(9),
+> +	.rev_offset = OMAP3_CONTROL_IDCODE - OMAP3_SYSCON_BASE,
+> +	.multi_regulator = false,
+> +};
+> +
+> /**
+>  * ti_cpufreq_get_efuse() - Parse and return efuse value present on SoC
+>  * @opp_data: pointer to ti_cpufreq_data context
+> @@ -127,7 +189,17 @@ static int ti_cpufreq_get_efuse(struct ti_cpufreq_data *opp_data,
+> 
+> 	ret = regmap_read(opp_data->syscon, opp_data->soc_data->efuse_offset,
+> 			  &efuse);
+> -	if (ret) {
+> +	if (ret == -EIO) {
+> +		/* not a syscon register! */
+> +		void __iomem *regs = ioremap(OMAP3_SYSCON_BASE +
+> +				opp_data->soc_data->efuse_offset, 4);
+> +
+> +		if (!regs)
+> +			return -ENOMEM;
+> +		efuse = readl(regs);
+> +		iounmap(regs);
+> +		}
+> +	else if (ret) {
+> 		dev_err(dev,
+> 			"Failed to read the efuse value from syscon: %d\n",
+> 			ret);
+> @@ -158,7 +230,17 @@ static int ti_cpufreq_get_rev(struct ti_cpufreq_data *opp_data,
+> 
+> 	ret = regmap_read(opp_data->syscon, opp_data->soc_data->rev_offset,
+> 			  &revision);
+> -	if (ret) {
+> +	if (ret == -EIO) {
+> +		/* not a syscon register! */
+> +		void __iomem *regs = ioremap(OMAP3_SYSCON_BASE +
+> +				opp_data->soc_data->rev_offset, 4);
+> +
+> +		if (!regs)
+> +			return -ENOMEM;
+> +		revision = readl(regs);
+> +		iounmap(regs);
+> +		}
+> +	else if (ret) {
+> 		dev_err(dev,
+> 			"Failed to read the revision number from syscon: %d\n",
+> 			ret);
+> @@ -190,6 +272,11 @@ static const struct of_device_id ti_cpufreq_of_match[] = {
+> 	{ .compatible = "ti,am33xx", .data = &am3x_soc_data, },
+> 	{ .compatible = "ti,am43", .data = &am4x_soc_data, },
+> 	{ .compatible = "ti,dra7", .data = &dra7_soc_data },
+> +	{ .compatible = "ti,omap34xx", .data = &omap34xx_soc_data, },
+> +	{ .compatible = "ti,omap36xx", .data = &omap36xx_soc_data, },
+> +	/* legacy */
+> +	{ .compatible = "ti,omap3430", .data = &omap34xx_soc_data, },
+> +	{ .compatible = "ti,omap3630", .data = &omap36xx_soc_data, },
 
-now as the omap3430 and omap3630 opp-v2 tables are installed,
-we could add am35x7 as well.
+Well, I just realized that with the latest DTS changes,
 
-What needs to be done:
+ti,omap34xx and ti,omap36xx are legacy and
+ti,omap3430 and ti,omap3630 are now official.
 
-1. add OPP-v2 table to am3517.dtsi
-
-for example copy skeleton from omap36xx.dtsi
-
-and define reasonable clock speeds. I would think about
-150 MHz, 300 MHz, 600MHz.
-
-Debatable is if we need a clock-latency definition.
-
-2. change all voltages to 1.2V
-
-			opp-microvolt =3D <1200000 1200000 1200000>;
-
-There is no point to specify 3 voltages <target min max> here since we
-will never need a min and a max value.
-
-			opp-microvolt =3D <1200000>;
-
-should also be ok (AFAIK, parser handles single-value records).
-
-3. AFAIK there is no speed binned eFuse...
-
-But the ti-cpufreq driver always wants to read some eFuse register.
-
-So please check if you can read 0x4800244C and 0x4830A204
-like on omap36xx and if they produce stable values (and not
-random noise).
-
-If yes, we simply assume that am3517 is similar enough to omap3630,
-ignore that there is no eFuse, but read the register anyways and
-then ignore the bit if it is 0 or 1.
-
-This means that all OPPs can get
-
-			opp-supported-hw =3D <0xffffffff 0xffffffff>;
-
-There could also be a default handler if this property is missing,
-but I have not researched this.
-
-4. add compatible to ti-cpufreq
-and share the register offsets, bit masks etc. with omap3630:
-
-	{ .compatible =3D "ti,am33xx", .data =3D &am3x_soc_data, },
-	{ .compatible =3D "ti,am3517", .data =3D &omap36xx_soc_data, },
-	{ .compatible =3D "ti,am43", .data =3D &am4x_soc_data, },
-	{ .compatible =3D "ti,dra7", .data =3D &dra7_soc_data },
-	{ .compatible =3D "ti,omap3430", .data =3D &omap34xx_soc_data, =
-},
-	{ .compatible =3D "ti,omap3630", .data =3D &omap36xx_soc_data, =
-},
-
-5. configure for CONFIG_ARM_TI_CPUFREQ=3Dy
-
-This should IMHO suffice.
-
-Since I can't test anything I can't define working OPP points
-and therefore I can't provide patches myself. Hope you can make
-it work this way.
-
-BR,
-Nikolaus=
+> 	{},
+> };
+> 
+> -- 
+> 2.19.1
+> 
