@@ -1,46 +1,54 @@
-From: Tomas Novotny <tomas@novotny.cz>
-Subject: omap-mcbsp: TX Buffer Overflow
-Date: Fri, 6 Sep 2019 16:51:09 +0200
-Message-ID: <20190906165109.53c5a306@tomas.local.tbs-biometrics.cz>
+From: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>
+Subject: Re: [PATCH v3 1/6] bus/ti-pwmss: move TI PWMSS driver from PWM to
+ bus subsystem
+Date: Sun, 8 Sep 2019 12:15:24 +0100
+Message-ID: <20190908121524.49b4874d@archlinux>
+References: <20190901225827.12301-1-david@lechnology.com>
+        <20190901225827.12301-2-david@lechnology.com>
+        <20190902150245.GE1445@ulmo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190902150245.GE1445@ulmo>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: David Lechner <david@lechnology.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 2 Sep 2019 17:02:45 +0200
+Thierry Reding <thierry.reding@gmail.com> wrote:
 
-we have AM3703 based board similar to BeagleBoard. I'm hitting this error
-after upgrade to latest LTS 4.19.71 (upgraded from 4.1):
+> On Sun, Sep 01, 2019 at 05:58:22PM -0500, David Lechner wrote:
+> > The TI PWMSS driver is a simple bus driver for providing power
+> > power management for the PWM peripherals on TI AM33xx SoCs, namely
+> > eCAP, eHRPWM and eQEP. The eQEP is a counter rather than a PWM, so
+> > it does not make sense to have the bus driver in the PWM subsystem
+> > since the PWMSS is not exclusive to PWM devices.
+> > 
+> > Signed-off-by: David Lechner <david@lechnology.com>
+> > ---
+> > 
+> > v3 changes:
+> > - none
+> > v2 changes:
+> > - new patch
+> > 
+> >  drivers/bus/Kconfig                           | 9 +++++++++
+> >  drivers/bus/Makefile                          | 1 +
+> >  drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} | 0
+> >  drivers/pwm/Kconfig                           | 9 ---------
+> >  drivers/pwm/Makefile                          | 1 -
+> >  5 files changed, 10 insertions(+), 10 deletions(-)
+> >  rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)  
+> 
+> Acked-by: Thierry Reding <thierry.reding@gmail.com>
 
-omap-mcbsp 49022000.mcbsp: TX Buffer Overflow!
-
-This appears during or after playing of short (~2s) ding-dong wav. That error
-exists for longer time, because handling of tx buffer overflow irq was
-introduced in 2016: 4e85e7776eba ("ASoC: omap-mcbsp: Enable TX/RX under and
-overflow interrupts"). I've cherry-picked it to 4.1 and I see the error there also.
-The sound seems clear and ok to me, but we are using low quality speaker.
-
-There are two workarounds to get rid of the message:
-1) Change 'dma_op_mode' sysfs attribute from 'element' to 'threshold'. I
-found that just by coincidence when checking sysfs attributes.
-2) Compile kernel with CONFIG_VIDEO_OMAP3=y. Found on Logic PD forum [1].
-
-Does anybody have any idea what's going wrong? Or why these (somehow)
-unrelated workarounds help?
+Do we need an immutable branch for these precursor patches to the
+driver addition? It's not going to make 5.4 via my tree as cutting it
+too fine so we'll be in the position of holding these in a non obvious
+tree for a whole cycle. 
 
 Thanks,
 
-Tomas
-
-[1] https://support.logicpd.com/TDGForum/tabid/124/aft/2277/Default.aspx
+Jonathan
