@@ -1,68 +1,116 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] bus: ti-sysc: Remove unpaired sysc_clkdm_deny_idle()
-Date: Mon, 9 Sep 2019 07:27:12 +0530
-Message-ID: <40e5c2a1-3682-584a-4eb9-4d96901bbfda@ti.com>
-References: <20190906200154.6510-1-tony@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC PATCH] ASoC: ams-delta: Take control over
+ audio mute GPIO pins
+Date: Mon, 9 Sep 2019 10:56:09 +0300
+Message-ID: <1a93e50f-b9da-a473-e60a-90fa490586ad@ti.com>
+References: <20190907111650.15440-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190906200154.6510-1-tony@atomide.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20190907111650.15440-1-jmkrzyszt@gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Vignesh Raghavendra <vigneshr@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 07/09/19 1:31 AM, Tony Lindgren wrote:
-> Commit d098913a10f8 ("bus: ti-sysc: Fix clock handling for no-idle
-> quirks") fixed handling for no-idle quirk modules that are not enabled
-> by the bootloader.
-> 
-> But it also caused unpaired clockdomain calls that won't allow idling
-> the system. That's because clkdm_allow_idle_nolock() and
-> clkdm_deny_idle_nolock() have usage count with clkdm->forcewake_count.
-> 
-> Let's drop the unpaired sysc_clkdm_deny_idle() to fix idling of devices.
-
-Tested-by: Keerthy <j-keerthy@ti.com>
-
-I believe still the previous fix [1] for nfs boot is still not on 
-linux-next. Are you planning on more testing or it will be queued as fixes?
-
-
-[1] https://lkml.org/lkml/2019/9/5/616
-
-- Keerthy
-
-> 
-> Fixes: d098913a10f8 ("bus: ti-sysc: Fix clock handling for no-idle quirks")
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Vignesh Raghavendra <vigneshr@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   drivers/bus/ti-sysc.c | 1 -
->   1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-> --- a/drivers/bus/ti-sysc.c
-> +++ b/drivers/bus/ti-sysc.c
-> @@ -2363,7 +2363,6 @@ static void ti_sysc_idle(struct work_struct *work)
->   	 */
->   	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE |
->   				 SYSC_QUIRK_NO_IDLE_ON_INIT)) {
-> -		sysc_clkdm_deny_idle(ddata);
->   		sysc_disable_main_clocks(ddata);
->   		sysc_disable_opt_clocks(ddata);
->   		sysc_clkdm_allow_idle(ddata);
-> 
+CgpPbiAwNy8wOS8yMDE5IDE0LjE2LCBKYW51c3ogS3J6eXN6dG9maWsgd3JvdGU6Cj4gU2luY2Ug
+Y29tbWl0IDExMzdjZWVlNzZiYSAoIkFSTTogT01BUDE6IGFtcy1kZWx0YTogRG9uJ3QgcmVxdWVz
+dCB1bnVzZWQKPiBHUElPcyIpLCBvbi1ib2FyZCBhdWRpbyBoYXMgYXBwZWFyZWQgbXV0ZWQuICBJ
+dCBoYXMgYmVlbiBkaXNjb3ZlcmVkIHRoYXQKPiBiZWxpZXZlZCB0byBiZSB1bnVzZWQgR1BJTyBw
+aW5zICJob29rZmxhc2gxIiBhbmQgImhvb2tmbGFzaDIiIG5lZWQgdG8gYmUKPiBzZXQgbG93IGZv
+ciBhdWRpYmxlIHNvdW5kIGluIGhhbmRzZnJlZSBhbmQgaGFuZHNldCBtb2RlIHJlc3BlY3RpdmVs
+eS4KPiAKPiBBY2NvcmRpbmcgdG8gQW1zdHJhZCBFMyB3aWtpLCB0aGUgcHVycG9zZSBvZiBib3Ro
+IHBpbnMgaGFzbid0IGJlZW4KPiBjbGVhcmx5IGlkZW50aWZpZWQuICBPcmlnaW5hbCBBbXN0cmFk
+IHNvZnR3YXJlIHVzZWQgdG8gcHJvZHVjZSBhIGhpZ2gKPiBwdWxzZSBvbiB0aGVtIHdoZW4gdGhl
+IHBob25lIHdhcyB0YWtlbiBvZmYgaG9vayBvciByZWNhbGwgd2FzIHByZXNzZWQuCj4gV2l0aCB0
+aGUgY3VycmVudCBmaW5kaW5ncywgd2UgY2FuIGFzc3VtZSB0aGUgcGlucyBwcm92aWRlIGEga2lu
+ZCBvZgo+IGF1ZGlvIG11dGUgZnVuY3Rpb24sIHNlcGFyYXRlbHkgZm9yIGhhbmRzZXQgYW5kIGhh
+bmRzZnJlZSBvcGVyYXRpb24KPiBtb2Rlcy4KPiAKPiBDb21taXQgMmFmZGI0YzQxZDc4ICgiQVJN
+OiBPTUFQMTogYW1zLWRlbHRhOiBGaXggYXVkaW8gcGVybWFuZW50bHkKPiBtdXRlZCIpIGF0dGVt
+cHRlZCB0byBmaXggdGhlIGlzc3VlIHRlbXBvcmFyaWx5IGJ5IGhvZ2dpbmcgdGhlIEdQSU8gcGlu
+Cj4gImhvb2tmbGFzaDEiIHJlbmFtZWQgdG8gImF1ZGlvX211dGUiLCBob3dldmVyIHRoZSBmaXgg
+b2NjdXJyZWQKPiBpbmNvbXBsZXRlIGFzIGl0IHJlc3RvcmVkIGF1ZGlibGUgc291bmQgb25seSBm
+b3IgaGFuZHNmcmVlIG1vZGUuCj4gCj4gU3RvcCBob2dnaW5nIHRoYXQgcGluLCByZW5hbWUgdGhl
+IHBpbnMgdG8gImhhbmRzZnJlZV9tdXRlIiBhbmQKPiAiaGFuZHNldF9tdXRlIiByZXNwZWN0aXZl
+bHkgYW5kIGltcGxlbWVudCBhcHByb3ByaWF0ZSBEQVBNIGV2ZW50Cj4gY2FsbGJhY2tzIGZvciAi
+U3BlYWtlciIgYW5kICJFYXJwaWVjZSIgREFQTSB3aWRnZXRzLgoKUmV2aWV3ZWQtYnk6IFBldGVy
+IFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Cgo+IEZpeGVzOiAxMTM3Y2VlZTc2YmEg
+KCJBUk06IE9NQVAxOiBhbXMtZGVsdGE6IERvbid0IHJlcXVlc3QgdW51c2VkIEdQSU9zIikKPiBT
+aWduZWQtb2ZmLWJ5OiBKYW51c3ogS3J6eXN6dG9maWsgPGpta3J6eXN6dEBnbWFpbC5jb20+Cj4g
+LS0tCj4gIGFyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtYW1zLWRlbHRhLmMgfCAxMCArKysrKy0t
+LS0KPiAgc291bmQvc29jL3RpL2Ftcy1kZWx0YS5jICAgICAgICAgICAgICB8IDMxICsrKysrKysr
+KysrKysrKysrKysrKysrKystLQo+ICAyIGZpbGVzIGNoYW5nZWQsIDM1IGluc2VydGlvbnMoKyks
+IDYgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9h
+cmQtYW1zLWRlbHRhLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWFtcy1kZWx0YS5jCj4g
+aW5kZXggZTQ3YTZmYmNmZDZlLi5hMmFhN2ExMmIzNzQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0v
+bWFjaC1vbWFwMS9ib2FyZC1hbXMtZGVsdGEuYwo+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDEv
+Ym9hcmQtYW1zLWRlbHRhLmMKPiBAQCAtMjQ2LDggKzI0Niw4IEBAIHN0YXRpYyBzdHJ1Y3QgcGxh
+dGZvcm1fZGV2aWNlIGxhdGNoMl9ncGlvX2RldmljZSA9IHsKPiAgI2RlZmluZSBMQVRDSDJfUElO
+X1NDQVJEX0NNRFZDQwkJMTEKPiAgI2RlZmluZSBMQVRDSDJfUElOX01PREVNX05SRVNFVAkJMTIK
+PiAgI2RlZmluZSBMQVRDSDJfUElOX01PREVNX0NPREVDCQkxMwo+IC0jZGVmaW5lIExBVENIMl9Q
+SU5fQVVESU9fTVVURQkJMTQKPiAtI2RlZmluZSBMQVRDSDJfUElOX0hPT0tGTEFTSAkJMTUKPiAr
+I2RlZmluZSBMQVRDSDJfUElOX0hBTkRTRlJFRV9NVVRFCTE0Cj4gKyNkZWZpbmUgTEFUQ0gyX1BJ
+Tl9IQU5EU0VUX01VVEUJCTE1Cj4gIAo+ICBzdGF0aWMgc3RydWN0IHJlZ3VsYXRvcl9jb25zdW1l
+cl9zdXBwbHkgbW9kZW1fbnJlc2V0X2NvbnN1bWVyc1tdID0gewo+ICAJUkVHVUxBVE9SX1NVUFBM
+WSgiUkVTRVQjIiwgInNlcmlhbDgyNTAuMSIpLAo+IEBAIC00NzYsNiArNDc2LDEwIEBAIHN0YXRp
+YyBzdHJ1Y3QgZ3Bpb2RfbG9va3VwX3RhYmxlIGFtc19kZWx0YV9hdWRpb19ncGlvX3RhYmxlID0g
+ewo+ICAJCQkgICAgImhvb2tfc3dpdGNoIiwgMCksCj4gIAkJR1BJT19MT09LVVAoTEFUQ0gyX0xB
+QkVMLCBMQVRDSDJfUElOX01PREVNX0NPREVDLAo+ICAJCQkgICAgIm1vZGVtX2NvZGVjIiwgMCks
+Cj4gKwkJR1BJT19MT09LVVAoTEFUQ0gyX0xBQkVMLCBMQVRDSDJfUElOX0hBTkRTRlJFRV9NVVRF
+LAo+ICsJCQkgICAgImhhbmRzZnJlZV9tdXRlIiwgMCksCj4gKwkJR1BJT19MT09LVVAoTEFUQ0gy
+X0xBQkVMLCBMQVRDSDJfUElOX0hBTkRTRVRfTVVURSwKPiArCQkJICAgICJoYW5kc2V0X211dGUi
+LCAwKSwKPiAgCQl7IH0sCj4gIAl9LAo+ICB9Owo+IEBAIC01OTAsOCArNTk0LDYgQEAgc3RhdGlj
+IGludCBncGlvY2hpcF9tYXRjaF9ieV9sYWJlbChzdHJ1Y3QgZ3Bpb19jaGlwICpjaGlwLCB2b2lk
+ICpkYXRhKQo+ICBzdGF0aWMgc3RydWN0IGdwaW9kX2hvZyBhbXNfZGVsdGFfZ3Bpb19ob2dzW10g
+PSB7Cj4gIAlHUElPX0hPRyhMQVRDSDJfTEFCRUwsIExBVENIMl9QSU5fS0VZQlJEX0RBVEFPVVQs
+ICJrZXlicmRfZGF0YW91dCIsCj4gIAkJIEdQSU9fQUNUSVZFX0hJR0gsIEdQSU9EX09VVF9MT1cp
+LAo+IC0JR1BJT19IT0coTEFUQ0gyX0xBQkVMLCBMQVRDSDJfUElOX0FVRElPX01VVEUsICJhdWRp
+b19tdXRlIiwKPiAtCQkgR1BJT19BQ1RJVkVfSElHSCwgR1BJT0RfT1VUX0xPVyksCj4gIAl7fSwK
+PiAgfTsKPiAgCj4gZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy90aS9hbXMtZGVsdGEuYyBiL3NvdW5k
+L3NvYy90aS9hbXMtZGVsdGEuYwo+IGluZGV4IGRlZThmYzcwYTY0Zi4uOGUyZmI4MWFkMDVjIDEw
+MDY0NAo+IC0tLSBhL3NvdW5kL3NvYy90aS9hbXMtZGVsdGEuYwo+ICsrKyBiL3NvdW5kL3NvYy90
+aS9hbXMtZGVsdGEuYwo+IEBAIC0yMywxNCArMjMsMzEgQEAKPiAgI2luY2x1ZGUgIm9tYXAtbWNi
+c3AuaCIKPiAgI2luY2x1ZGUgIi4uL2NvZGVjcy9jeDIwNDQyLmgiCj4gIAo+ICtzdGF0aWMgc3Ry
+dWN0IGdwaW9fZGVzYyAqaGFuZHNldF9tdXRlOwo+ICtzdGF0aWMgc3RydWN0IGdwaW9fZGVzYyAq
+aGFuZHNmcmVlX211dGU7Cj4gKwo+ICtzdGF0aWMgaW50IGFtc19kZWx0YV9ldmVudF9oYW5kc2V0
+KHN0cnVjdCBzbmRfc29jX2RhcG1fd2lkZ2V0ICp3LAo+ICsJCQkJICAgc3RydWN0IHNuZF9rY29u
+dHJvbCAqaywgaW50IGV2ZW50KQo+ICt7Cj4gKwlncGlvZF9zZXRfdmFsdWVfY2Fuc2xlZXAoaGFu
+ZHNldF9tdXRlLCAhU05EX1NPQ19EQVBNX0VWRU5UX09OKGV2ZW50KSk7Cj4gKwlyZXR1cm4gMDsK
+PiArfQo+ICsKPiArc3RhdGljIGludCBhbXNfZGVsdGFfZXZlbnRfaGFuZHNmcmVlKHN0cnVjdCBz
+bmRfc29jX2RhcG1fd2lkZ2V0ICp3LAo+ICsJCQkJICAgICBzdHJ1Y3Qgc25kX2tjb250cm9sICpr
+LCBpbnQgZXZlbnQpCj4gK3sKPiArCWdwaW9kX3NldF92YWx1ZV9jYW5zbGVlcChoYW5kc2ZyZWVf
+bXV0ZSwgIVNORF9TT0NfREFQTV9FVkVOVF9PTihldmVudCkpOwo+ICsJcmV0dXJuIDA7Cj4gK30K
+PiArCj4gIC8qIEJvYXJkIHNwZWNpZmljIERBUE0gd2lkZ2V0cyAqLwo+ICBzdGF0aWMgY29uc3Qg
+c3RydWN0IHNuZF9zb2NfZGFwbV93aWRnZXQgYW1zX2RlbHRhX2RhcG1fd2lkZ2V0c1tdID0gewo+
+ICAJLyogSGFuZHNldCAqLwo+ICAJU05EX1NPQ19EQVBNX01JQygiTW91dGhwaWVjZSIsIE5VTEwp
+LAo+IC0JU05EX1NPQ19EQVBNX0hQKCJFYXJwaWVjZSIsIE5VTEwpLAo+ICsJU05EX1NPQ19EQVBN
+X0hQKCJFYXJwaWVjZSIsIGFtc19kZWx0YV9ldmVudF9oYW5kc2V0KSwKPiAgCS8qIEhhbmRzZnJl
+ZS9TcGVha2VycGhvbmUgKi8KPiAgCVNORF9TT0NfREFQTV9NSUMoIk1pY3JvcGhvbmUiLCBOVUxM
+KSwKPiAtCVNORF9TT0NfREFQTV9TUEsoIlNwZWFrZXIiLCBOVUxMKSwKPiArCVNORF9TT0NfREFQ
+TV9TUEsoIlNwZWFrZXIiLCBhbXNfZGVsdGFfZXZlbnRfaGFuZHNmcmVlKSwKPiAgfTsKPiAgCj4g
+IC8qIEhvdyB0aGV5IGFyZSBjb25uZWN0ZWQgdG8gY29kZWMgcGlucyAqLwo+IEBAIC01NDIsNiAr
+NTU5LDE2IEBAIHN0YXRpYyBpbnQgYW1zX2RlbHRhX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
+Y2UgKnBkZXYpCj4gIAo+ICAJY2FyZC0+ZGV2ID0gJnBkZXYtPmRldjsKPiAgCj4gKwloYW5kc2V0
+X211dGUgPSBkZXZtX2dwaW9kX2dldChjYXJkLT5kZXYsICJoYW5kc2V0X211dGUiLAo+ICsJCQkJ
+ICAgICAgR1BJT0RfT1VUX0hJR0gpOwo+ICsJaWYgKElTX0VSUihoYW5kc2V0X211dGUpKQo+ICsJ
+CXJldHVybiBQVFJfRVJSKGhhbmRzZXRfbXV0ZSk7Cj4gKwo+ICsJaGFuZHNmcmVlX211dGUgPSBk
+ZXZtX2dwaW9kX2dldChjYXJkLT5kZXYsICJoYW5kc2ZyZWVfbXV0ZSIsCj4gKwkJCQkJR1BJT0Rf
+T1VUX0hJR0gpOwo+ICsJaWYgKElTX0VSUihoYW5kc2ZyZWVfbXV0ZSkpCj4gKwkJcmV0dXJuIFBU
+Ul9FUlIoaGFuZHNmcmVlX211dGUpOwo+ICsKPiAgCXJldCA9IHNuZF9zb2NfcmVnaXN0ZXJfY2Fy
+ZChjYXJkKTsKPiAgCWlmIChyZXQpIHsKPiAgCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJzbmRfc29j
+X3JlZ2lzdGVyX2NhcmQgZmFpbGVkICglZClcbiIsIHJldCk7Cj4gCgotIFDDqXRlcgoKVGV4YXMg
+SW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2ku
+ClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhl
+bHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFs
+c2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwczov
+L21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
