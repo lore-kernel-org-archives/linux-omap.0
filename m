@@ -1,78 +1,165 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 1/2] cpufreq: ti-cpufreq: Add support for AM3517
-Date: Mon, 9 Sep 2019 20:20:43 +0200
-Message-ID: <CBA5BBAF-3875-415D-A6C1-2C5B18AAA002@goldelico.com>
-References: <20190909154502.19804-1-aford173@gmail.com> <6081134F-AACD-412C-B36A-BF9463C9712B@goldelico.com> <CAHCN7xLfOo7xsmDq5ZuPZsh02pjKx3w9FkJGN6AowJoHkRrWmg@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [Letux-kernel] [RFC PATCH 0/3] Enable 1GHz support on omap36xx
+Date: Mon, 9 Sep 2019 14:13:10 -0500
+Message-ID: <CAHCN7x+fgtMHMNYU2W7BRQwd-d2g_Tb8-L5QNcnZjCF=VzRXJg@mail.gmail.com>
+References: <C04F49BA-1229-4E96-9FCF-4FC662D1DB11@goldelico.com>
+ <CAHCN7x+Ye6sB_YqO0sAX1OJDw64B-qGS3pL545v3Xk5z914cwQ@mail.gmail.com>
+ <0C1EF64E-B33C-4BFA-A7D3-471DD1B9EE86@goldelico.com> <515048DE-138D-4400-8168-F2B7D61F1005@goldelico.com>
+ <CAHCN7xLPCX9rZ0+7KVBiA_bgZ6tg6VeCXqD-UXu+6iwpFMPVrA@mail.gmail.com>
+ <7B3D1D77-3E8C-444F-90B9-6DF2641178B8@goldelico.com> <CAHCN7xLW58ggx3CpVL=HdCVHWo6D-MCTB91A_9rtSRoZQ+xJuQ@mail.gmail.com>
+ <FA2920FE-B76A-4D44-A264-862A1CCBF7FC@goldelico.com> <CAHCN7xJsPa0i+Z+qpCkWcdAh9+udmGT0RPNchdDsfB=8ptd3Nw@mail.gmail.com>
+ <87420DBD-770F-4C32-9499-A3AEA5876E8A@goldelico.com> <20190909163236.GP52127@atomide.com>
+ <E001F74D-724E-4C50-9265-CBD33C4F2918@goldelico.com> <F8F08882-8011-441C-9581-ECCE9772EC21@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHCN7xLfOo7xsmDq5ZuPZsh02pjKx3w9FkJGN6AowJoHkRrWmg@mail.gmail.com>
+In-Reply-To: <F8F08882-8011-441C-9581-ECCE9772EC21@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Andreas Kemnade <andreas@kemnade.info>, Tony Lindgren <tony@atomide.com>, Adam Ford <adam.ford@logicpd.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Sep 9, 2019 at 1:11 PM H. Nikolaus Schaller <hns@goldelico.com> wro=
+te:
+>
+>
+> > Am 09.09.2019 um 18:54 schrieb H. Nikolaus Schaller <hns@goldelico.com>=
+:
+> >
+> > Hi Tony,
+> >
+> >> Am 09.09.2019 um 18:32 schrieb Tony Lindgren <tony@atomide.com>:
+> >>
+> >> Hi,
+> >>
+> >> * H. Nikolaus Schaller <hns@goldelico.com> [190909 14:57]:
+> >>> Another question that came up by private mail from Andr=C3=A9 was if =
+we
+> >>> should better disable the turbo OPPs of omap34xx and 36xx by default
+> >>> (status =3D "disabled";) because there are concerns about overheating
+> >>> the chips and we have no thermal regulation like for omap4 & 5.
+> >>>
+> >>> But this would mean that every board DTS would have to set it explici=
+tly
+> >>> to "enabled".
+> >>
+> >> Yes I started thinking about that too. I think there is a requirement
+> >> to do the scaling via the voltage processor for the higher modes.
+> >
+> > It depends on how you read the little footnotes...
+> >
+> > Table 4-18. Processor Voltages Without SmartReflex:
+> >
+> >       =E2=80=A2 This table defines the safe VDD1 (vdd_mpu_iva) voltage =
+ranges to be used before using the SmartReflex AVS feature for OPPs calibra=
+tion.
+> >       =E2=80=A2 Values are defined when SmartReflexTM feature is deacti=
+vated. They can be lower when SmartReflexTM is activated.
+> >       =E2=80=A2 OPP130 and OPP1G are not available above TJ of 90C.
+> >       =E2=80=A2 (6)  OPP1G is a high performance operating point which =
+has following requirements:
+> >               =E2=80=A2 =E2=80=93  ABB LDO must be set to FBB (Forward =
+Body Bias) mode when switching to this OPP. It requires having a 1 F capaci=
+tor connected to cap_vdd_bb_mpu_iva.
+> >               =E2=80=A2 =E2=80=93  AVS (Adaptive Voltage Scaling) power=
+ technique must be used to achieve optimum operating voltage.
+> >
+> > So I read this as:
+> >
+> > * OPP130 and OPP1G should be guarded by 90=C2=B0C thermal framework
+> > * OPP1G should also set the ABB LDO to FBB mode
+> > * AVS does only reduce voltage levels (to save energy =3D heat =3D prob=
+lem)
+> > * only if we want "optimum operating voltage" (read as: "lowest possibl=
+e voltage" =3D "highest energy saving") we must use AVS
+> >
+> > I.e. we do not necessarily need AVS or SmartReflex or help from the
+> > twl4030 (except for changing the voltage).
+> >
+> >> And there needs to be some way to automatically change to a lower
+> >> OPP in some cases.
+> >
+> > That should probably be done through the thermal framework like
+> > on omap4 & omap5?
+> >
+> >>
+> >> For normal OPPs, using the twl regulator directly should be OK.
+> >
+> > Maybe for the turbo OPPs as well.
+> >
+> >> For the higher modes, maybe we could pass the callback functions
+> >> from arch/arm/mach-omap2/voltage.c for the twl regulator so the
+> >> voltage processor hardware can handle them directly. Or add a
+> >> separate regulator driver operating the voltages like Nishanth
+> >> posted patches for earlier.
+> >
+> > So in my (limited) understanding it would suffice to set the ABB LDO
+> > to FBB mode for OPP1G.
+>
+> Ok, we have to check if the ti,abb-v2 "LDO" driver
+> drivers/regulator/ti-abb-regulator.c
+> can handle that with a DT entry similar to:
+>
+> https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/omap5.dt=
+si#L365
 
-> Am 09.09.2019 um 20:17 schrieb Adam Ford <aford173@gmail.com>:
->=20
-> On Mon, Sep 9, 2019 at 1:13 PM H. Nikolaus Schaller =
-<hns@goldelico.com> wrote:
->>=20
->> Hi Adam,
->>=20
->>> Am 09.09.2019 um 17:45 schrieb Adam Ford <aford173@gmail.com>:
->>>=20
->>> The AM3517 only lists 600MHz @ 1.2V, but the revister values for
->>=20
->> a small typo...
->>=20
->> s/revister/register/
->>=20
->>> 0x4830A204 =3D 1b86 802f, it seems like am3517 might be a derivative
->>> of the omap36 which has OPPs would be OPP50 (300 MHz) and OPP100
->>> (600 MHz).
->>>=20
->>> This patch simply enable adds the am3517 to the compatible table
->>> using the omap3630 structure instead of the 3430.
->>>=20
->>> Signed-off-by: Adam Ford <aford173@gmail.com>
->>>=20
->>> diff --git a/drivers/cpufreq/ti-cpufreq.c =
-b/drivers/cpufreq/ti-cpufreq.c
->>> index f2f58d689320..6b69fb1d6bdf 100644
->>> --- a/drivers/cpufreq/ti-cpufreq.c
->>> +++ b/drivers/cpufreq/ti-cpufreq.c
->>> @@ -270,6 +270,7 @@ static int =
-ti_cpufreq_setup_syscon_register(struct ti_cpufreq_data *opp_data)
->>>=20
->>> static const struct of_device_id ti_cpufreq_of_match[] =3D {
->>>      { .compatible =3D "ti,am33xx", .data =3D &am3x_soc_data, },
->>> +     { .compatible =3D "ti,am3517", .data =3D &omap36xx_soc_data, =
-},
->>>      { .compatible =3D "ti,am43", .data =3D &am4x_soc_data, },
->>>      { .compatible =3D "ti,dra7", .data =3D &dra7_soc_data },
->>>      { .compatible =3D "ti,omap34xx", .data =3D &omap34xx_soc_data, =
-},
->>> --
->>> 2.17.1
->>>=20
->>=20
->> Looks good to me.
->>=20
->> Should I include your two patches to my patch set (and resend)?
->> Or should we keep them separated?
->=20
-> Go ahead and take credit for them.  I just did what you told me to do
-> and tested them.
+At least for the 3630, the ti-abb-regulator driver is the same driver,
+but different structures based on v1, v2, or v3 are used based on
+which compatible flag is used.
 
-Well, you are still the Author, the one who wrote down the ideas :)
-I think git will even keep the author name untouched.
+I tried enabling the vbb-supply in the device tree, but the driver
+doesn't load it without .multi_regulator being true.
 
-> Go ahead and mark it as Tested-by with my name.
+cpus {
+/* OMAP3630/OMAP37xx variants OPP50 to OPP130 and OPP1G */
+     cpu: cpu@0 {
+          operating-points-v2 =3D <&cpu0_opp_table>;
+          vbb-supply =3D <&abb_mpu_iva>;
+          clock-latency =3D <300000>; /* From omap-cpufreq driver */
+     };
+};
 
-Best is to keep your Signed-Off + mine and add a tested-by as well :)
+I enabled that in the 3630 structure, but then the opp must list
+voltage points for both regulators.
+Looking at the entry for abb_mpu_iva, it appears to have voltages that
+directly match the OPP table, so I made a duplicate entry:
 
-BR and thanks,
-Nikolaus
+ opp-microvolt =3D <1012500 1012500 1012500>,
+                           <1012500 1012500 1012500>;
+
+and similar for 600, 800 and 1000 similar to the way dra7.dtsi does
+it, but then I got some nasty errors and crashes.
+
+I started undoing the stuff, and I wanted to see if the abb_mpu_iva
+regulator was even running, but I would get -22 errors when I went to
+read the voltage.
+
+# cat /sys/devices/platform/68000000.ocp/483072f0.regulator-abb-mpu/regulat=
+or/regulator.5/microvolts
+-22
+
+If someone has any suggestions on how to test the abb_mpu_iva driver,
+let me know.
+
+>
+> Needs a little time to add to a new version of the patch set.
+>
+> > And make sure that the TJ does not exceed 90=C2=B0C by reducing the cpu=
+freq
+> > through the thermal framework. But: the thermal sensors of the omap3
+> > are quite odd (they seem to jump up by 10=C2=B0 after first use).
+
+Can we just do a dummy read to get it out of the way?  ;-)
+
+>
+> I'll leave this out for the moment for future study.
+Works for me, Baby steps.
+
+Thanks for all your work.
+
+adam
+>
+> BR and thanks,
+> Nikolaus
+>
