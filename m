@@ -1,15 +1,14 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC PATCH] ASoC: ams-delta: Take control over
- audio mute GPIO pins
-Date: Mon, 9 Sep 2019 10:56:09 +0300
-Message-ID: <1a93e50f-b9da-a473-e60a-90fa490586ad@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "ASoC: ams-delta: Take control over audio mute
+	GPIO pins" to the asoc tree
+Date: Mon,  9 Sep 2019 11:07:17 +0100 (BST)
+Message-ID: <20190909100717.7F4E7D02D5A@fitzroy.sirena.org.uk>
 References: <20190907111650.15440-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <20190907111650.15440-1-jmkrzyszt@gmail.com>
-Content-Language: en-US
 List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -19,98 +18,162 @@ List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: alsa-devel@alsa-project.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAwNy8wOS8yMDE5IDE0LjE2LCBKYW51c3ogS3J6eXN6dG9maWsgd3JvdGU6Cj4gU2luY2Ug
-Y29tbWl0IDExMzdjZWVlNzZiYSAoIkFSTTogT01BUDE6IGFtcy1kZWx0YTogRG9uJ3QgcmVxdWVz
-dCB1bnVzZWQKPiBHUElPcyIpLCBvbi1ib2FyZCBhdWRpbyBoYXMgYXBwZWFyZWQgbXV0ZWQuICBJ
-dCBoYXMgYmVlbiBkaXNjb3ZlcmVkIHRoYXQKPiBiZWxpZXZlZCB0byBiZSB1bnVzZWQgR1BJTyBw
-aW5zICJob29rZmxhc2gxIiBhbmQgImhvb2tmbGFzaDIiIG5lZWQgdG8gYmUKPiBzZXQgbG93IGZv
-ciBhdWRpYmxlIHNvdW5kIGluIGhhbmRzZnJlZSBhbmQgaGFuZHNldCBtb2RlIHJlc3BlY3RpdmVs
-eS4KPiAKPiBBY2NvcmRpbmcgdG8gQW1zdHJhZCBFMyB3aWtpLCB0aGUgcHVycG9zZSBvZiBib3Ro
-IHBpbnMgaGFzbid0IGJlZW4KPiBjbGVhcmx5IGlkZW50aWZpZWQuICBPcmlnaW5hbCBBbXN0cmFk
-IHNvZnR3YXJlIHVzZWQgdG8gcHJvZHVjZSBhIGhpZ2gKPiBwdWxzZSBvbiB0aGVtIHdoZW4gdGhl
-IHBob25lIHdhcyB0YWtlbiBvZmYgaG9vayBvciByZWNhbGwgd2FzIHByZXNzZWQuCj4gV2l0aCB0
-aGUgY3VycmVudCBmaW5kaW5ncywgd2UgY2FuIGFzc3VtZSB0aGUgcGlucyBwcm92aWRlIGEga2lu
-ZCBvZgo+IGF1ZGlvIG11dGUgZnVuY3Rpb24sIHNlcGFyYXRlbHkgZm9yIGhhbmRzZXQgYW5kIGhh
-bmRzZnJlZSBvcGVyYXRpb24KPiBtb2Rlcy4KPiAKPiBDb21taXQgMmFmZGI0YzQxZDc4ICgiQVJN
-OiBPTUFQMTogYW1zLWRlbHRhOiBGaXggYXVkaW8gcGVybWFuZW50bHkKPiBtdXRlZCIpIGF0dGVt
-cHRlZCB0byBmaXggdGhlIGlzc3VlIHRlbXBvcmFyaWx5IGJ5IGhvZ2dpbmcgdGhlIEdQSU8gcGlu
-Cj4gImhvb2tmbGFzaDEiIHJlbmFtZWQgdG8gImF1ZGlvX211dGUiLCBob3dldmVyIHRoZSBmaXgg
-b2NjdXJyZWQKPiBpbmNvbXBsZXRlIGFzIGl0IHJlc3RvcmVkIGF1ZGlibGUgc291bmQgb25seSBm
-b3IgaGFuZHNmcmVlIG1vZGUuCj4gCj4gU3RvcCBob2dnaW5nIHRoYXQgcGluLCByZW5hbWUgdGhl
-IHBpbnMgdG8gImhhbmRzZnJlZV9tdXRlIiBhbmQKPiAiaGFuZHNldF9tdXRlIiByZXNwZWN0aXZl
-bHkgYW5kIGltcGxlbWVudCBhcHByb3ByaWF0ZSBEQVBNIGV2ZW50Cj4gY2FsbGJhY2tzIGZvciAi
-U3BlYWtlciIgYW5kICJFYXJwaWVjZSIgREFQTSB3aWRnZXRzLgoKUmV2aWV3ZWQtYnk6IFBldGVy
-IFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Cgo+IEZpeGVzOiAxMTM3Y2VlZTc2YmEg
-KCJBUk06IE9NQVAxOiBhbXMtZGVsdGE6IERvbid0IHJlcXVlc3QgdW51c2VkIEdQSU9zIikKPiBT
-aWduZWQtb2ZmLWJ5OiBKYW51c3ogS3J6eXN6dG9maWsgPGpta3J6eXN6dEBnbWFpbC5jb20+Cj4g
-LS0tCj4gIGFyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtYW1zLWRlbHRhLmMgfCAxMCArKysrKy0t
-LS0KPiAgc291bmQvc29jL3RpL2Ftcy1kZWx0YS5jICAgICAgICAgICAgICB8IDMxICsrKysrKysr
-KysrKysrKysrKysrKysrKystLQo+ICAyIGZpbGVzIGNoYW5nZWQsIDM1IGluc2VydGlvbnMoKyks
-IDYgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9h
-cmQtYW1zLWRlbHRhLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWFtcy1kZWx0YS5jCj4g
-aW5kZXggZTQ3YTZmYmNmZDZlLi5hMmFhN2ExMmIzNzQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0v
-bWFjaC1vbWFwMS9ib2FyZC1hbXMtZGVsdGEuYwo+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDEv
-Ym9hcmQtYW1zLWRlbHRhLmMKPiBAQCAtMjQ2LDggKzI0Niw4IEBAIHN0YXRpYyBzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlIGxhdGNoMl9ncGlvX2RldmljZSA9IHsKPiAgI2RlZmluZSBMQVRDSDJfUElO
-X1NDQVJEX0NNRFZDQwkJMTEKPiAgI2RlZmluZSBMQVRDSDJfUElOX01PREVNX05SRVNFVAkJMTIK
-PiAgI2RlZmluZSBMQVRDSDJfUElOX01PREVNX0NPREVDCQkxMwo+IC0jZGVmaW5lIExBVENIMl9Q
-SU5fQVVESU9fTVVURQkJMTQKPiAtI2RlZmluZSBMQVRDSDJfUElOX0hPT0tGTEFTSAkJMTUKPiAr
-I2RlZmluZSBMQVRDSDJfUElOX0hBTkRTRlJFRV9NVVRFCTE0Cj4gKyNkZWZpbmUgTEFUQ0gyX1BJ
-Tl9IQU5EU0VUX01VVEUJCTE1Cj4gIAo+ICBzdGF0aWMgc3RydWN0IHJlZ3VsYXRvcl9jb25zdW1l
-cl9zdXBwbHkgbW9kZW1fbnJlc2V0X2NvbnN1bWVyc1tdID0gewo+ICAJUkVHVUxBVE9SX1NVUFBM
-WSgiUkVTRVQjIiwgInNlcmlhbDgyNTAuMSIpLAo+IEBAIC00NzYsNiArNDc2LDEwIEBAIHN0YXRp
-YyBzdHJ1Y3QgZ3Bpb2RfbG9va3VwX3RhYmxlIGFtc19kZWx0YV9hdWRpb19ncGlvX3RhYmxlID0g
-ewo+ICAJCQkgICAgImhvb2tfc3dpdGNoIiwgMCksCj4gIAkJR1BJT19MT09LVVAoTEFUQ0gyX0xB
-QkVMLCBMQVRDSDJfUElOX01PREVNX0NPREVDLAo+ICAJCQkgICAgIm1vZGVtX2NvZGVjIiwgMCks
-Cj4gKwkJR1BJT19MT09LVVAoTEFUQ0gyX0xBQkVMLCBMQVRDSDJfUElOX0hBTkRTRlJFRV9NVVRF
-LAo+ICsJCQkgICAgImhhbmRzZnJlZV9tdXRlIiwgMCksCj4gKwkJR1BJT19MT09LVVAoTEFUQ0gy
-X0xBQkVMLCBMQVRDSDJfUElOX0hBTkRTRVRfTVVURSwKPiArCQkJICAgICJoYW5kc2V0X211dGUi
-LCAwKSwKPiAgCQl7IH0sCj4gIAl9LAo+ICB9Owo+IEBAIC01OTAsOCArNTk0LDYgQEAgc3RhdGlj
-IGludCBncGlvY2hpcF9tYXRjaF9ieV9sYWJlbChzdHJ1Y3QgZ3Bpb19jaGlwICpjaGlwLCB2b2lk
-ICpkYXRhKQo+ICBzdGF0aWMgc3RydWN0IGdwaW9kX2hvZyBhbXNfZGVsdGFfZ3Bpb19ob2dzW10g
-PSB7Cj4gIAlHUElPX0hPRyhMQVRDSDJfTEFCRUwsIExBVENIMl9QSU5fS0VZQlJEX0RBVEFPVVQs
-ICJrZXlicmRfZGF0YW91dCIsCj4gIAkJIEdQSU9fQUNUSVZFX0hJR0gsIEdQSU9EX09VVF9MT1cp
-LAo+IC0JR1BJT19IT0coTEFUQ0gyX0xBQkVMLCBMQVRDSDJfUElOX0FVRElPX01VVEUsICJhdWRp
-b19tdXRlIiwKPiAtCQkgR1BJT19BQ1RJVkVfSElHSCwgR1BJT0RfT1VUX0xPVyksCj4gIAl7fSwK
-PiAgfTsKPiAgCj4gZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy90aS9hbXMtZGVsdGEuYyBiL3NvdW5k
-L3NvYy90aS9hbXMtZGVsdGEuYwo+IGluZGV4IGRlZThmYzcwYTY0Zi4uOGUyZmI4MWFkMDVjIDEw
-MDY0NAo+IC0tLSBhL3NvdW5kL3NvYy90aS9hbXMtZGVsdGEuYwo+ICsrKyBiL3NvdW5kL3NvYy90
-aS9hbXMtZGVsdGEuYwo+IEBAIC0yMywxNCArMjMsMzEgQEAKPiAgI2luY2x1ZGUgIm9tYXAtbWNi
-c3AuaCIKPiAgI2luY2x1ZGUgIi4uL2NvZGVjcy9jeDIwNDQyLmgiCj4gIAo+ICtzdGF0aWMgc3Ry
-dWN0IGdwaW9fZGVzYyAqaGFuZHNldF9tdXRlOwo+ICtzdGF0aWMgc3RydWN0IGdwaW9fZGVzYyAq
-aGFuZHNmcmVlX211dGU7Cj4gKwo+ICtzdGF0aWMgaW50IGFtc19kZWx0YV9ldmVudF9oYW5kc2V0
-KHN0cnVjdCBzbmRfc29jX2RhcG1fd2lkZ2V0ICp3LAo+ICsJCQkJICAgc3RydWN0IHNuZF9rY29u
-dHJvbCAqaywgaW50IGV2ZW50KQo+ICt7Cj4gKwlncGlvZF9zZXRfdmFsdWVfY2Fuc2xlZXAoaGFu
-ZHNldF9tdXRlLCAhU05EX1NPQ19EQVBNX0VWRU5UX09OKGV2ZW50KSk7Cj4gKwlyZXR1cm4gMDsK
-PiArfQo+ICsKPiArc3RhdGljIGludCBhbXNfZGVsdGFfZXZlbnRfaGFuZHNmcmVlKHN0cnVjdCBz
-bmRfc29jX2RhcG1fd2lkZ2V0ICp3LAo+ICsJCQkJICAgICBzdHJ1Y3Qgc25kX2tjb250cm9sICpr
-LCBpbnQgZXZlbnQpCj4gK3sKPiArCWdwaW9kX3NldF92YWx1ZV9jYW5zbGVlcChoYW5kc2ZyZWVf
-bXV0ZSwgIVNORF9TT0NfREFQTV9FVkVOVF9PTihldmVudCkpOwo+ICsJcmV0dXJuIDA7Cj4gK30K
-PiArCj4gIC8qIEJvYXJkIHNwZWNpZmljIERBUE0gd2lkZ2V0cyAqLwo+ICBzdGF0aWMgY29uc3Qg
-c3RydWN0IHNuZF9zb2NfZGFwbV93aWRnZXQgYW1zX2RlbHRhX2RhcG1fd2lkZ2V0c1tdID0gewo+
-ICAJLyogSGFuZHNldCAqLwo+ICAJU05EX1NPQ19EQVBNX01JQygiTW91dGhwaWVjZSIsIE5VTEwp
-LAo+IC0JU05EX1NPQ19EQVBNX0hQKCJFYXJwaWVjZSIsIE5VTEwpLAo+ICsJU05EX1NPQ19EQVBN
-X0hQKCJFYXJwaWVjZSIsIGFtc19kZWx0YV9ldmVudF9oYW5kc2V0KSwKPiAgCS8qIEhhbmRzZnJl
-ZS9TcGVha2VycGhvbmUgKi8KPiAgCVNORF9TT0NfREFQTV9NSUMoIk1pY3JvcGhvbmUiLCBOVUxM
-KSwKPiAtCVNORF9TT0NfREFQTV9TUEsoIlNwZWFrZXIiLCBOVUxMKSwKPiArCVNORF9TT0NfREFQ
-TV9TUEsoIlNwZWFrZXIiLCBhbXNfZGVsdGFfZXZlbnRfaGFuZHNmcmVlKSwKPiAgfTsKPiAgCj4g
-IC8qIEhvdyB0aGV5IGFyZSBjb25uZWN0ZWQgdG8gY29kZWMgcGlucyAqLwo+IEBAIC01NDIsNiAr
-NTU5LDE2IEBAIHN0YXRpYyBpbnQgYW1zX2RlbHRhX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
-Y2UgKnBkZXYpCj4gIAo+ICAJY2FyZC0+ZGV2ID0gJnBkZXYtPmRldjsKPiAgCj4gKwloYW5kc2V0
-X211dGUgPSBkZXZtX2dwaW9kX2dldChjYXJkLT5kZXYsICJoYW5kc2V0X211dGUiLAo+ICsJCQkJ
-ICAgICAgR1BJT0RfT1VUX0hJR0gpOwo+ICsJaWYgKElTX0VSUihoYW5kc2V0X211dGUpKQo+ICsJ
-CXJldHVybiBQVFJfRVJSKGhhbmRzZXRfbXV0ZSk7Cj4gKwo+ICsJaGFuZHNmcmVlX211dGUgPSBk
-ZXZtX2dwaW9kX2dldChjYXJkLT5kZXYsICJoYW5kc2ZyZWVfbXV0ZSIsCj4gKwkJCQkJR1BJT0Rf
-T1VUX0hJR0gpOwo+ICsJaWYgKElTX0VSUihoYW5kc2ZyZWVfbXV0ZSkpCj4gKwkJcmV0dXJuIFBU
-Ul9FUlIoaGFuZHNmcmVlX211dGUpOwo+ICsKPiAgCXJldCA9IHNuZF9zb2NfcmVnaXN0ZXJfY2Fy
-ZChjYXJkKTsKPiAgCWlmIChyZXQpIHsKPiAgCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJzbmRfc29j
-X3JlZ2lzdGVyX2NhcmQgZmFpbGVkICglZClcbiIsIHJldCk7Cj4gCgotIFDDqXRlcgoKVGV4YXMg
-SW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2ku
-ClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhl
-bHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFs
-c2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwczov
-L21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+The patch
+
+   ASoC: ams-delta: Take control over audio mute GPIO pins
+
+has been applied to the asoc tree at
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-5.3
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 73681f4f1426847b421649c6aa6c2dc303acc7c8 Mon Sep 17 00:00:00 2001
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Date: Sat, 7 Sep 2019 13:16:50 +0200
+Subject: [PATCH] ASoC: ams-delta: Take control over audio mute GPIO pins
+
+Since commit 1137ceee76ba ("ARM: OMAP1: ams-delta: Don't request unused
+GPIOs"), on-board audio has appeared muted.  It has been discovered that
+believed to be unused GPIO pins "hookflash1" and "hookflash2" need to be
+set low for audible sound in handsfree and handset mode respectively.
+
+According to Amstrad E3 wiki, the purpose of both pins hasn't been
+clearly identified.  Original Amstrad software used to produce a high
+pulse on them when the phone was taken off hook or recall was pressed.
+With the current findings, we can assume the pins provide a kind of
+audio mute function, separately for handset and handsfree operation
+modes.
+
+Commit 2afdb4c41d78 ("ARM: OMAP1: ams-delta: Fix audio permanently
+muted") attempted to fix the issue temporarily by hogging the GPIO pin
+"hookflash1" renamed to "audio_mute", however the fix occurred
+incomplete as it restored audible sound only for handsfree mode.
+
+Stop hogging that pin, rename the pins to "handsfree_mute" and
+"handset_mute" respectively and implement appropriate DAPM event
+callbacks for "Speaker" and "Earpiece" DAPM widgets.
+
+Fixes: 1137ceee76ba ("ARM: OMAP1: ams-delta: Don't request unused GPIOs")
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Link: https://lore.kernel.org/r/20190907111650.15440-1-jmkrzyszt@gmail.com
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ arch/arm/mach-omap1/board-ams-delta.c | 10 +++++----
+ sound/soc/ti/ams-delta.c              | 31 +++++++++++++++++++++++++--
+ 2 files changed, 35 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 36498ea1b2f3..c2affc727967 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -245,8 +245,8 @@ static struct platform_device latch2_gpio_device = {
+ #define LATCH2_PIN_SCARD_CMDVCC		11
+ #define LATCH2_PIN_MODEM_NRESET		12
+ #define LATCH2_PIN_MODEM_CODEC		13
+-#define LATCH2_PIN_AUDIO_MUTE		14
+-#define LATCH2_PIN_HOOKFLASH		15
++#define LATCH2_PIN_HANDSFREE_MUTE	14
++#define LATCH2_PIN_HANDSET_MUTE		15
+ 
+ static struct regulator_consumer_supply modem_nreset_consumers[] = {
+ 	REGULATOR_SUPPLY("RESET#", "serial8250.1"),
+@@ -475,6 +475,10 @@ static struct gpiod_lookup_table ams_delta_audio_gpio_table = {
+ 			    "hook_switch", 0),
+ 		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_MODEM_CODEC,
+ 			    "modem_codec", 0),
++		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_HANDSFREE_MUTE,
++			    "handsfree_mute", 0),
++		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_HANDSET_MUTE,
++			    "handset_mute", 0),
+ 		{ },
+ 	},
+ };
+@@ -589,8 +593,6 @@ static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
+ static struct gpiod_hog ams_delta_gpio_hogs[] = {
+ 	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_KEYBRD_DATAOUT, "keybrd_dataout",
+ 		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
+-	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_AUDIO_MUTE, "audio_mute",
+-		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
+ 	{},
+ };
+ 
+diff --git a/sound/soc/ti/ams-delta.c b/sound/soc/ti/ams-delta.c
+index dee8fc70a64f..8e2fb81ad05c 100644
+--- a/sound/soc/ti/ams-delta.c
++++ b/sound/soc/ti/ams-delta.c
+@@ -23,14 +23,31 @@
+ #include "omap-mcbsp.h"
+ #include "../codecs/cx20442.h"
+ 
++static struct gpio_desc *handset_mute;
++static struct gpio_desc *handsfree_mute;
++
++static int ams_delta_event_handset(struct snd_soc_dapm_widget *w,
++				   struct snd_kcontrol *k, int event)
++{
++	gpiod_set_value_cansleep(handset_mute, !SND_SOC_DAPM_EVENT_ON(event));
++	return 0;
++}
++
++static int ams_delta_event_handsfree(struct snd_soc_dapm_widget *w,
++				     struct snd_kcontrol *k, int event)
++{
++	gpiod_set_value_cansleep(handsfree_mute, !SND_SOC_DAPM_EVENT_ON(event));
++	return 0;
++}
++
+ /* Board specific DAPM widgets */
+ static const struct snd_soc_dapm_widget ams_delta_dapm_widgets[] = {
+ 	/* Handset */
+ 	SND_SOC_DAPM_MIC("Mouthpiece", NULL),
+-	SND_SOC_DAPM_HP("Earpiece", NULL),
++	SND_SOC_DAPM_HP("Earpiece", ams_delta_event_handset),
+ 	/* Handsfree/Speakerphone */
+ 	SND_SOC_DAPM_MIC("Microphone", NULL),
+-	SND_SOC_DAPM_SPK("Speaker", NULL),
++	SND_SOC_DAPM_SPK("Speaker", ams_delta_event_handsfree),
+ };
+ 
+ /* How they are connected to codec pins */
+@@ -542,6 +559,16 @@ static int ams_delta_probe(struct platform_device *pdev)
+ 
+ 	card->dev = &pdev->dev;
+ 
++	handset_mute = devm_gpiod_get(card->dev, "handset_mute",
++				      GPIOD_OUT_HIGH);
++	if (IS_ERR(handset_mute))
++		return PTR_ERR(handset_mute);
++
++	handsfree_mute = devm_gpiod_get(card->dev, "handsfree_mute",
++					GPIOD_OUT_HIGH);
++	if (IS_ERR(handsfree_mute))
++		return PTR_ERR(handsfree_mute);
++
+ 	ret = snd_soc_register_card(card);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
+-- 
+2.20.1
