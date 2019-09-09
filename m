@@ -1,66 +1,28 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH 2/2] ARM: dts: Add OPP-V2 table for AM3517
-Date: Mon,  9 Sep 2019 10:45:02 -0500
-Message-ID: <20190909154502.19804-2-aford173@gmail.com>
-References: <20190909154502.19804-1-aford173@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] bus: ti-sysc: Remove unpaired sysc_clkdm_deny_idle()
+Date: Mon, 9 Sep 2019 09:19:21 -0700
+Message-ID: <20190909161921.GN52127@atomide.com>
+References: <20190906200154.6510-1-tony@atomide.com>
+ <40e5c2a1-3682-584a-4eb9-4d96901bbfda@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190909154502.19804-1-aford173@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <40e5c2a1-3682-584a-4eb9-4d96901bbfda@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: neolynx@gmail.com, letux-kernel@openphoenux.org, andreas@kemnade.info, tony@atomide.com, adam.ford@logicpd.com, hns@goldelico.com, Adam Ford <aford173@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh Raghavendra <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The AM3517 only lists 600MHz @ 1.2V, but the revister values for
-0x4830A204 = 1b86 802f, it seems like am3517 might be a derivative
-of the omap36 which has OPPs would be OPP50 (300 MHz) and OPP100
-(600 MHz).
+Hi,
 
-This patch sets up the OPP50 and OPP100 tables at 300MHz and 600MHz
-for the AM3517 with each having an operating voltage at 1.2V.
+* Keerthy <j-keerthy@ti.com> [190909 01:57]:
+> I believe still the previous fix [1] for nfs boot is still not on
+> linux-next. Are you planning on more testing or it will be queued as fixes?
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
+I pushed out the pending fixes on Saturday so they should be in
+the next version of Linux next.
 
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
-index 23ea381d363f..a0f23361d4bc 100644
---- a/arch/arm/boot/dts/am3517.dtsi
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -16,6 +16,37 @@
- 		can = &hecc;
- 	};
- 
-+	cpus {
-+		cpu: cpu@0 {
-+			/* Based on OMAP3630 variants OPP50 and OPP100 */
-+			operating-points-v2 = <&cpu0_opp_table>;
-+
-+			clock-latency = <300000>; /* From legacy driver */
-+		};
-+	};
-+
-+	cpu0_opp_table: opp-table {
-+		compatible = "operating-points-v2-ti-cpu";
-+		syscon = <&scm_conf>;
-+		/*
-+		 * AM3517 TRM only lists 600MHz @ 1.2V, but omap36xx
-+		 * appear to operate at 300MHz as well. Since AM3517 only
-+		 * lists one operating voltage, it will remain fixed at 1.2V
-+		 */
-+		opp50-300000000 {
-+			opp-hz = /bits/ 64 <300000000>;
-+			opp-microvolt = <1200000>;
-+			opp-supported-hw = <0xffffffff 0xffffffff>;
-+			opp-suspend;
-+		};
-+
-+		opp100-600000000 {
-+			opp-hz = /bits/ 64 <600000000>;
-+			opp-microvolt = <1200000>;
-+			opp-supported-hw = <0xffffffff 0xffffffff>;
-+		};
-+	};
-+
- 	ocp@68000000 {
- 		am35x_otg_hs: am35x_otg_hs@5c040000 {
- 			compatible = "ti,omap3-musb";
--- 
-2.17.1
+Regards,
+
+Tony
