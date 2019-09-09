@@ -1,165 +1,55 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: Re: [Letux-kernel] [RFC PATCH 0/3] Enable 1GHz support on omap36xx
-Date: Mon, 9 Sep 2019 14:13:10 -0500
-Message-ID: <CAHCN7x+fgtMHMNYU2W7BRQwd-d2g_Tb8-L5QNcnZjCF=VzRXJg@mail.gmail.com>
-References: <C04F49BA-1229-4E96-9FCF-4FC662D1DB11@goldelico.com>
- <CAHCN7x+Ye6sB_YqO0sAX1OJDw64B-qGS3pL545v3Xk5z914cwQ@mail.gmail.com>
- <0C1EF64E-B33C-4BFA-A7D3-471DD1B9EE86@goldelico.com> <515048DE-138D-4400-8168-F2B7D61F1005@goldelico.com>
- <CAHCN7xLPCX9rZ0+7KVBiA_bgZ6tg6VeCXqD-UXu+6iwpFMPVrA@mail.gmail.com>
- <7B3D1D77-3E8C-444F-90B9-6DF2641178B8@goldelico.com> <CAHCN7xLW58ggx3CpVL=HdCVHWo6D-MCTB91A_9rtSRoZQ+xJuQ@mail.gmail.com>
- <FA2920FE-B76A-4D44-A264-862A1CCBF7FC@goldelico.com> <CAHCN7xJsPa0i+Z+qpCkWcdAh9+udmGT0RPNchdDsfB=8ptd3Nw@mail.gmail.com>
- <87420DBD-770F-4C32-9499-A3AEA5876E8A@goldelico.com> <20190909163236.GP52127@atomide.com>
- <E001F74D-724E-4C50-9265-CBD33C4F2918@goldelico.com> <F8F08882-8011-441C-9581-ECCE9772EC21@goldelico.com>
+Subject: Re: [RFC] ARM: omap3: Enable HWMODS for HW Random Number Generator
+Date: Mon, 9 Sep 2019 14:19:10 -0500
+Message-ID: <CAHCN7x+7aafrZTtDFqbYJFtrozi8jCmiFE8SyFSmEhyd_Xh6tQ@mail.gmail.com>
+References: <20190828150037.2640-1-aford173@gmail.com>
+ <20190905230443.GA52127@atomide.com>
+ <CAHCN7xL0fbr=Sv+b=0AuGB1PPhAAFdAFLEd_iBM+ZMTkUw5sHQ@mail.gmail.com>
+ <CAHCN7xL-Gfxe0qF5w7BUsHnyhcNNpmCnchdKErnmiqggXfsLWw@mail.gmail.com>
+ <20190909134033.s26eiurpat3iekse@pali> <20190909163543.GQ52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <F8F08882-8011-441C-9581-ECCE9772EC21@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190909163543.GQ52127@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 9, 2019 at 1:11 PM H. Nikolaus Schaller <hns@goldelico.com> wro=
-te:
->
->
-> > Am 09.09.2019 um 18:54 schrieb H. Nikolaus Schaller <hns@goldelico.com>=
-:
-> >
-> > Hi Tony,
-> >
-> >> Am 09.09.2019 um 18:32 schrieb Tony Lindgren <tony@atomide.com>:
-> >>
-> >> Hi,
-> >>
-> >> * H. Nikolaus Schaller <hns@goldelico.com> [190909 14:57]:
-> >>> Another question that came up by private mail from Andr=C3=A9 was if =
-we
-> >>> should better disable the turbo OPPs of omap34xx and 36xx by default
-> >>> (status =3D "disabled";) because there are concerns about overheating
-> >>> the chips and we have no thermal regulation like for omap4 & 5.
-> >>>
-> >>> But this would mean that every board DTS would have to set it explici=
-tly
-> >>> to "enabled".
-> >>
-> >> Yes I started thinking about that too. I think there is a requirement
-> >> to do the scaling via the voltage processor for the higher modes.
-> >
-> > It depends on how you read the little footnotes...
-> >
-> > Table 4-18. Processor Voltages Without SmartReflex:
-> >
-> >       =E2=80=A2 This table defines the safe VDD1 (vdd_mpu_iva) voltage =
-ranges to be used before using the SmartReflex AVS feature for OPPs calibra=
-tion.
-> >       =E2=80=A2 Values are defined when SmartReflexTM feature is deacti=
-vated. They can be lower when SmartReflexTM is activated.
-> >       =E2=80=A2 OPP130 and OPP1G are not available above TJ of 90C.
-> >       =E2=80=A2 (6)  OPP1G is a high performance operating point which =
-has following requirements:
-> >               =E2=80=A2 =E2=80=93  ABB LDO must be set to FBB (Forward =
-Body Bias) mode when switching to this OPP. It requires having a 1 F capaci=
-tor connected to cap_vdd_bb_mpu_iva.
-> >               =E2=80=A2 =E2=80=93  AVS (Adaptive Voltage Scaling) power=
- technique must be used to achieve optimum operating voltage.
-> >
-> > So I read this as:
-> >
-> > * OPP130 and OPP1G should be guarded by 90=C2=B0C thermal framework
-> > * OPP1G should also set the ABB LDO to FBB mode
-> > * AVS does only reduce voltage levels (to save energy =3D heat =3D prob=
-lem)
-> > * only if we want "optimum operating voltage" (read as: "lowest possibl=
-e voltage" =3D "highest energy saving") we must use AVS
-> >
-> > I.e. we do not necessarily need AVS or SmartReflex or help from the
-> > twl4030 (except for changing the voltage).
-> >
-> >> And there needs to be some way to automatically change to a lower
-> >> OPP in some cases.
-> >
-> > That should probably be done through the thermal framework like
-> > on omap4 & omap5?
-> >
-> >>
-> >> For normal OPPs, using the twl regulator directly should be OK.
-> >
-> > Maybe for the turbo OPPs as well.
-> >
-> >> For the higher modes, maybe we could pass the callback functions
-> >> from arch/arm/mach-omap2/voltage.c for the twl regulator so the
-> >> voltage processor hardware can handle them directly. Or add a
-> >> separate regulator driver operating the voltages like Nishanth
-> >> posted patches for earlier.
-> >
-> > So in my (limited) understanding it would suffice to set the ABB LDO
-> > to FBB mode for OPP1G.
->
-> Ok, we have to check if the ti,abb-v2 "LDO" driver
-> drivers/regulator/ti-abb-regulator.c
-> can handle that with a DT entry similar to:
->
-> https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/omap5.dt=
-si#L365
-
-At least for the 3630, the ti-abb-regulator driver is the same driver,
-but different structures based on v1, v2, or v3 are used based on
-which compatible flag is used.
-
-I tried enabling the vbb-supply in the device tree, but the driver
-doesn't load it without .multi_regulator being true.
-
-cpus {
-/* OMAP3630/OMAP37xx variants OPP50 to OPP130 and OPP1G */
-     cpu: cpu@0 {
-          operating-points-v2 =3D <&cpu0_opp_table>;
-          vbb-supply =3D <&abb_mpu_iva>;
-          clock-latency =3D <300000>; /* From omap-cpufreq driver */
-     };
-};
-
-I enabled that in the 3630 structure, but then the opp must list
-voltage points for both regulators.
-Looking at the entry for abb_mpu_iva, it appears to have voltages that
-directly match the OPP table, so I made a duplicate entry:
-
- opp-microvolt =3D <1012500 1012500 1012500>,
-                           <1012500 1012500 1012500>;
-
-and similar for 600, 800 and 1000 similar to the way dra7.dtsi does
-it, but then I got some nasty errors and crashes.
-
-I started undoing the stuff, and I wanted to see if the abb_mpu_iva
-regulator was even running, but I would get -22 errors when I went to
-read the voltage.
-
-# cat /sys/devices/platform/68000000.ocp/483072f0.regulator-abb-mpu/regulat=
-or/regulator.5/microvolts
--22
-
-If someone has any suggestions on how to test the abb_mpu_iva driver,
-let me know.
-
->
-> Needs a little time to add to a new version of the patch set.
->
-> > And make sure that the TJ does not exceed 90=C2=B0C by reducing the cpu=
-freq
-> > through the thermal framework. But: the thermal sensors of the omap3
-> > are quite odd (they seem to jump up by 10=C2=B0 after first use).
-
-Can we just do a dummy read to get it out of the way?  ;-)
-
->
-> I'll leave this out for the moment for future study.
-Works for me, Baby steps.
-
-Thanks for all your work.
-
-adam
->
-> BR and thanks,
-> Nikolaus
->
+T24gTW9uLCBTZXAgOSwgMjAxOSBhdCAxMTozNSBBTSBUb255IExpbmRncmVuIDx0b255QGF0b21p
+ZGUuY29tPiB3cm90ZToKPgo+ICogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPiBb
+MTkwOTA5IDEzOjQxXToKPiA+IE9uIE1vbmRheSAwOSBTZXB0ZW1iZXIgMjAxOSAwODozNzowOSBB
+ZGFtIEZvcmQgd3JvdGU6Cj4gPiA+IEkgYXBwbGllZCB0aGlzIG9uIDUuMyBhbmQgaXQgaXMgd29y
+a2luZy4gIEkgYXNzdW1lIHRoZSBzYW1lIGlzIHRydWUgaW4gZm9yLW5leHQuCj4KPiBIbW0gSSBu
+b3RpY2VkIEkgc3RvcHBlZCBnZXR0aW5nIFJORyBkYXRhIGFmdGVyIHNldmVyYWwgcm1tb2QgbW9k
+cHJvYmUKPiBjeWNsZXMsIG9yIHNldmVyYWwgaGQgL2Rldi9yYW5kb20gcmVhZHMuIEFueWJvZHkg
+ZWxzZSBzZWVpbmcgdGhhdD8KCk9uIHRoZSBMb2dpYyBQRCBUb3JwZWRvLCBJIHdhcyBhYmxlIHRv
+IHJlYWQgZnJvbSAvZGV2L2h3cm5nIGFuZAovZGV2L3JhbmRvbSAxMHggd2l0aG91dCBpc3N1ZQpJ
+IGhhdmUgaW5zdGFsbGVkIHJuZy10b29scyBhbmQgSSBoYXZlIHNzaGQgcnVubmluZyBhbmQgc29t
+ZSBvdGhlcgpzdHVmZiB0aGF0IG1pZ2h0IGdldCBpbiB0aGUgd2F5IGlmIEkgZG8gYW4gcm1tb2Qg
+dG9vIG11Y2gsIGJ1dCBJCnJlbW92ZWQgYW5kIG1vZHByb2JlZCB0aGUgb21hcC1ybmcgM3ggYW5k
+IG5ldmVyIHNhdyBhbiBpc3N1ZSByZWFkaW5nCmVpdGhlciAvZGV2L2h3cm5nIG9yIC9kZXYvcmFu
+ZG9tLgoKSSBoYXZlIGJlZW4gbWVhbmluZyB0byB0ZXN0IHRoaXMgb24gdGhlIEFNMzUxNyBhbmQg
+aGF2ZW4ndCBnb3R0ZW4gdG8KaXQgeWV0LCBidXQgSSBhc3N1bWUgeW91J3ZlIG9ubHkgdGVzdGVk
+IG9tYXAzNjMwLCBpcyB0aGF0IHRydWU/CgphZGFtCj4KPiA+ID4gRG8geW91IHdhbnQgdG8gc3Vi
+bWl0IGEgZm9ybWFsIHBhdGNoPyAgSSAgY2FuIG1hcmsgaXQgYXMgJ3Rlc3RlZC1ieScKPiA+ID4g
+VGhpcyByZWFsbHkgaGVscHMgc3BlZWQgdXAgdGhlIHN0YXJ0dXAgc2VxdWVuY2Ugb24gYm9hcmRz
+IHdpdGggc3NoZAo+ID4gPiBiZWNhdXNlIGl0IGRlbGF5cyBmb3IgbmVhcmx5IDgwIHNlY29uZHMg
+d2FpdGluZyBmb3IgZW50cm9weSB3aXRob3V0Cj4gPiA+IHRoZSBod3JuZy4KPiA+Cj4gPiBIaSEg
+V2hlbiBhcHBseWluZyBhIHBhdGNoLCBjb3VsZCB5b3UgcGxlYXNlIGRpc2FibGUgdGhpcyBybmcg
+Zm9yIG45MDA/Cj4gPgo+ID4gSW4gb21hcDMtbjkwMC5kdHMgZm9yIHJuZyBzaG91bGQgYmUgc3Rh
+dHVzID0gImRpc2FibGVkIiAoYXMgVG9ueSBhbHJlYWR5Cj4gPiB3cm90ZSksIHNpbWlsYXJseSBs
+aWtlIGZvciBhZXMuCj4KPiBZZWFoIEknbGwgcG9zdCBhIHByb3BlciBwYXRjaCBhZnRlciAtcmMx
+Lgo+Cj4gUmVnYXJkcywKPgo+IFRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
