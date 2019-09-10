@@ -1,55 +1,83 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [RFC] ARM: omap3: Enable HWMODS for HW Random Number Generator
-Date: Mon, 9 Sep 2019 14:19:10 -0500
-Message-ID: <CAHCN7x+7aafrZTtDFqbYJFtrozi8jCmiFE8SyFSmEhyd_Xh6tQ@mail.gmail.com>
-References: <20190828150037.2640-1-aford173@gmail.com>
- <20190905230443.GA52127@atomide.com>
- <CAHCN7xL0fbr=Sv+b=0AuGB1PPhAAFdAFLEd_iBM+ZMTkUw5sHQ@mail.gmail.com>
- <CAHCN7xL-Gfxe0qF5w7BUsHnyhcNNpmCnchdKErnmiqggXfsLWw@mail.gmail.com>
- <20190909134033.s26eiurpat3iekse@pali> <20190909163543.GQ52127@atomide.com>
+From: Tomas Novotny <tomas@novotny.cz>
+Subject: Re: omap-mcbsp: TX Buffer Overflow
+Date: Tue, 10 Sep 2019 10:05:39 +0200
+Message-ID: <20190910100539.03a4ea67@tomas.local.tbs-biometrics.cz>
+References: <20190906165109.53c5a306@tomas.local.tbs-biometrics.cz>
+ <20190907091358.GA7166@lenoch> <20190909162407.GO52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190909163543.GQ52127@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20190909162407.GO52127@atomide.com>
+List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
 To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Cc: linux-omap@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBTZXAgOSwgMjAxOSBhdCAxMTozNSBBTSBUb255IExpbmRncmVuIDx0b255QGF0b21p
-ZGUuY29tPiB3cm90ZToKPgo+ICogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPiBb
-MTkwOTA5IDEzOjQxXToKPiA+IE9uIE1vbmRheSAwOSBTZXB0ZW1iZXIgMjAxOSAwODozNzowOSBB
-ZGFtIEZvcmQgd3JvdGU6Cj4gPiA+IEkgYXBwbGllZCB0aGlzIG9uIDUuMyBhbmQgaXQgaXMgd29y
-a2luZy4gIEkgYXNzdW1lIHRoZSBzYW1lIGlzIHRydWUgaW4gZm9yLW5leHQuCj4KPiBIbW0gSSBu
-b3RpY2VkIEkgc3RvcHBlZCBnZXR0aW5nIFJORyBkYXRhIGFmdGVyIHNldmVyYWwgcm1tb2QgbW9k
-cHJvYmUKPiBjeWNsZXMsIG9yIHNldmVyYWwgaGQgL2Rldi9yYW5kb20gcmVhZHMuIEFueWJvZHkg
-ZWxzZSBzZWVpbmcgdGhhdD8KCk9uIHRoZSBMb2dpYyBQRCBUb3JwZWRvLCBJIHdhcyBhYmxlIHRv
-IHJlYWQgZnJvbSAvZGV2L2h3cm5nIGFuZAovZGV2L3JhbmRvbSAxMHggd2l0aG91dCBpc3N1ZQpJ
-IGhhdmUgaW5zdGFsbGVkIHJuZy10b29scyBhbmQgSSBoYXZlIHNzaGQgcnVubmluZyBhbmQgc29t
-ZSBvdGhlcgpzdHVmZiB0aGF0IG1pZ2h0IGdldCBpbiB0aGUgd2F5IGlmIEkgZG8gYW4gcm1tb2Qg
-dG9vIG11Y2gsIGJ1dCBJCnJlbW92ZWQgYW5kIG1vZHByb2JlZCB0aGUgb21hcC1ybmcgM3ggYW5k
-IG5ldmVyIHNhdyBhbiBpc3N1ZSByZWFkaW5nCmVpdGhlciAvZGV2L2h3cm5nIG9yIC9kZXYvcmFu
-ZG9tLgoKSSBoYXZlIGJlZW4gbWVhbmluZyB0byB0ZXN0IHRoaXMgb24gdGhlIEFNMzUxNyBhbmQg
-aGF2ZW4ndCBnb3R0ZW4gdG8KaXQgeWV0LCBidXQgSSBhc3N1bWUgeW91J3ZlIG9ubHkgdGVzdGVk
-IG9tYXAzNjMwLCBpcyB0aGF0IHRydWU/CgphZGFtCj4KPiA+ID4gRG8geW91IHdhbnQgdG8gc3Vi
-bWl0IGEgZm9ybWFsIHBhdGNoPyAgSSAgY2FuIG1hcmsgaXQgYXMgJ3Rlc3RlZC1ieScKPiA+ID4g
-VGhpcyByZWFsbHkgaGVscHMgc3BlZWQgdXAgdGhlIHN0YXJ0dXAgc2VxdWVuY2Ugb24gYm9hcmRz
-IHdpdGggc3NoZAo+ID4gPiBiZWNhdXNlIGl0IGRlbGF5cyBmb3IgbmVhcmx5IDgwIHNlY29uZHMg
-d2FpdGluZyBmb3IgZW50cm9weSB3aXRob3V0Cj4gPiA+IHRoZSBod3JuZy4KPiA+Cj4gPiBIaSEg
-V2hlbiBhcHBseWluZyBhIHBhdGNoLCBjb3VsZCB5b3UgcGxlYXNlIGRpc2FibGUgdGhpcyBybmcg
-Zm9yIG45MDA/Cj4gPgo+ID4gSW4gb21hcDMtbjkwMC5kdHMgZm9yIHJuZyBzaG91bGQgYmUgc3Rh
-dHVzID0gImRpc2FibGVkIiAoYXMgVG9ueSBhbHJlYWR5Cj4gPiB3cm90ZSksIHNpbWlsYXJseSBs
-aWtlIGZvciBhZXMuCj4KPiBZZWFoIEknbGwgcG9zdCBhIHByb3BlciBwYXRjaCBhZnRlciAtcmMx
-Lgo+Cj4gUmVnYXJkcywKPgo+IFRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi Tony,
+
+On Mon, 9 Sep 2019 09:24:07 -0700
+Tony Lindgren <tony@atomide.com> wrote:
+
+> * Ladislav Michl <ladis@linux-mips.org> [190907 09:14]:
+> > On Fri, Sep 06, 2019 at 04:51:09PM +0200, Tomas Novotny wrote:  
+> > > Hi,
+> > > 
+> > > we have AM3703 based board similar to BeagleBoard. I'm hitting this error
+> > > after upgrade to latest LTS 4.19.71 (upgraded from 4.1):
+> > > 
+> > > omap-mcbsp 49022000.mcbsp: TX Buffer Overflow!
+> > > 
+> > > This appears during or after playing of short (~2s) ding-dong wav. That error
+> > > exists for longer time, because handling of tx buffer overflow irq was
+> > > introduced in 2016: 4e85e7776eba ("ASoC: omap-mcbsp: Enable TX/RX under and
+> > > overflow interrupts"). I've cherry-picked it to 4.1 and I see the error there also.
+> > > The sound seems clear and ok to me, but we are using low quality speaker.  
+> > 
+> > Just FYI, for stream capture there's
+> > omap-mcbsp 49022000.mcbsp: RX Buffer Underflow!
+> > 
+> > As far as I remember all stable kernels we have in production - 4.9.x, 4.14.x and
+> > 4.19.x - are affected. IGEPv2 with both DM3730 and OMAP3530 are affected
+> > (headless machines, CONFIG_VIDEO_OMAP3=n).  
+> 
+> Hmm I wonder if this is still related to the SoC idling?
+> See commit 9834ffd1ecc3 ("ASoC: omap-mcbsp: Add PM QoS support for McBSP
+> to prevent glitches"), maybe something still needs to be fixed in that
+> area.
+
+I also found the cpuidle information somewhere, but CPU_IDLE=n (and let PM=y)
+didn't help me. I'm speaking just for playback. I can do some better test if
+you want.
+
+Thanks,
+
+Tomas
+
+> > And DT is probably worth updating:
+> > omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+> > omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+> > 
+> > I never motivated myself to dig deeper as catured stream looks pretty normal.  
+> 
+> These mean the devices should really have separate nodes
+> in the dts rather than combining multiple devices into a
+> single node with multiple reg entries.
+> 
+> The issue with combining multiple devices into a single device
+> is that flushing posted write with a read back to one register
+> range will not flush it for the other which can cause mysterious
+> bugs.
+> 
+> Regards,
+> 
+> Tony
+> 
