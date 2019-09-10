@@ -1,73 +1,174 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [RFC] ARM: omap3: Enable HWMODS for HW Random Number Generator
-Date: Tue, 10 Sep 2019 18:39:06 +0200
-Message-ID: <20190910163906.ypyeaido6h4nurvv@pali>
-References: <20190828150037.2640-1-aford173@gmail.com>
- <20190905230443.GA52127@atomide.com>
- <CAHCN7xL0fbr=Sv+b=0AuGB1PPhAAFdAFLEd_iBM+ZMTkUw5sHQ@mail.gmail.com>
- <CAHCN7xL-Gfxe0qF5w7BUsHnyhcNNpmCnchdKErnmiqggXfsLWw@mail.gmail.com>
- <20190909134033.s26eiurpat3iekse@pali>
- <20190909163543.GQ52127@atomide.com>
- <CAHCN7x+t-OVRE7pVM4V87_YMWpgO+_Vashfn1s5msoqC5eiwTg@mail.gmail.com>
- <CAHCN7xLaGQMM67VC-2_G8XC7UuG4c+TbbYb4z=ibJwZsQF4YVw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="v7pe77r44rvnt7o5"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [Letux-kernel] [RFC PATCH 0/3] Enable 1GHz support on omap36xx
+Date: Tue, 10 Sep 2019 18:59:17 +0200
+Message-ID: <3663B13C-1AAB-4BE3-8CAD-F821B70393FA@goldelico.com>
+References: <C04F49BA-1229-4E96-9FCF-4FC662D1DB11@goldelico.com> <CAHCN7x+Ye6sB_YqO0sAX1OJDw64B-qGS3pL545v3Xk5z914cwQ@mail.gmail.com> <0C1EF64E-B33C-4BFA-A7D3-471DD1B9EE86@goldelico.com> <515048DE-138D-4400-8168-F2B7D61F1005@goldelico.com> <CAHCN7xLPCX9rZ0+7KVBiA_bgZ6tg6VeCXqD-UXu+6iwpFMPVrA@mail.gmail.com> <7B3D1D77-3E8C-444F-90B9-6DF2641178B8@goldelico.com> <CAHCN7xLW58ggx3CpVL=HdCVHWo6D-MCTB91A_9rtSRoZQ+xJuQ@mail.gmail.com> <FA2920FE-B76A-4D44-A264-862A1CCBF7FC@goldelico.com> <CAHCN7xJsPa0i+Z+qpCkWcdAh9+udmGT0RPNchdDsfB=8ptd3Nw@mail.gmail.com> <87420DBD-770F-4C32-9499-A3AEA5876E8A@goldelico.com> <20190909163236.GP52127@atomide.com> <E001F74D-724E-4C50-9265-CBD33C4F2918@goldelico.com> <F8F08882-8011-441C-9581-ECCE9772EC21@goldelico.com> <CAHCN7x+fgtMHMNYU2W7BRQwd-d2g_Tb8-L5QNcnZjCF=VzRXJ
+ g@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHCN7xLaGQMM67VC-2_G8XC7UuG4c+TbbYb4z=ibJwZsQF4YVw@mail.gmail.com>
+In-Reply-To: <CAHCN7x+fgtMHMNYU2W7BRQwd-d2g_Tb8-L5QNcnZjCF=VzRXJg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Adam Ford <aford173@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <adam.ford@logicpd.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Paul Walmsley <paul@pwsan.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Adam,
 
---v7pe77r44rvnt7o5
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tuesday 10 September 2019 11:21:34 Adam Ford wrote:
-> According to a note in omap_hwmod_3xxx_data.c,
+> Am 09.09.2019 um 21:13 schrieb Adam Ford <aford173@gmail.com>:
 >=20
-> /*
->  * Apparently the SHA/MD5 and AES accelerator IP blocks are
->  * only present on some AM35xx chips, and no one knows which
->  * ones.  See
->  * http://www.spinics.net/lists/arm-kernel/msg215466.html So
->  * if you need these IP blocks on an AM35xx, try uncommenting
->  * the following lines.
->  */
+> On Mon, Sep 9, 2019 at 1:11 PM H. Nikolaus Schaller =
+<hns@goldelico.com> wrote:
+>>=20
+>> Ok, we have to check if the ti,abb-v2 "LDO" driver
+>> drivers/regulator/ti-abb-regulator.c
+>> can handle that with a DT entry similar to:
+>>=20
+>> =
+https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/omap5.dts=
+i#L365
 >=20
-> I decided to uncomment the hwmod entries, and I got the following:
+> At least for the 3630, the ti-abb-regulator driver is the same driver,
+> but different structures based on v1, v2, or v3 are used based on
+> which compatible flag is used.
 >=20
-> [    0.263222] omap_hwmod: sham: _wait_target_ready failed: -16
-> [    0.263248] omap_hwmod: sham: cannot be enabled for reset (3)
-> [    0.265837] omap_hwmod: aes: _wait_target_ready failed: -16
-> [    0.265851] omap_hwmod: aes: cannot be enabled for reset (3)
-> [    6.208866] omap_hwmod: sham: _wait_target_ready failed: -16
-> [    6.287732] omap_hwmod: aes: _wait_target_ready failed: -16
+> I tried enabling the vbb-supply in the device tree, but the driver
+> doesn't load it without .multi_regulator being true.
+>=20
+> cpus {
+> /* OMAP3630/OMAP37xx variants OPP50 to OPP130 and OPP1G */
+>     cpu: cpu@0 {
+>          operating-points-v2 =3D <&cpu0_opp_table>;
+>          vbb-supply =3D <&abb_mpu_iva>;
 
-Hi! Same errors I got in qemu-n900, but not on real N900. So I guess
-those errors means that IP blocks are not present.
+Oh, that is great that the app_mpu_iva already exists!
 
-> Based on this, I wonder if the sham and aes modules are not present.
-> If this is the case, it might explain why I cannot use the rng either.
+So we just need plumbing pieces together.
 
-Probably this is the reason, you do not have crypto/rng HW engine.
+>          clock-latency =3D <300000>; /* =46rom omap-cpufreq driver */
+>     };
+> };
+>=20
+> I enabled that in the 3630 structure, but then the opp must list
+> voltage points for both regulators.
+> Looking at the entry for abb_mpu_iva, it appears to have voltages that
+> directly match the OPP table, so I made a duplicate entry:
+>=20
+> opp-microvolt =3D <1012500 1012500 1012500>,
+>                           <1012500 1012500 1012500>;
+>=20
+> and similar for 600, 800 and 1000 similar to the way dra7.dtsi does
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Yes.
 
---v7pe77r44rvnt7o5
-Content-Type: application/pgp-signature; name="signature.asc"
+> it, but then I got some nasty errors and crashes.
 
------BEGIN PGP SIGNATURE-----
+I have done the same but not (yet) seen a crash or error. Maybe you had
+a typo?
 
-iF0EABECAB0WIQS4VrIQdKium2krgIWL8Mk9A+RDUgUCXXfRqAAKCRCL8Mk9A+RD
-UvMwAKC5PytcObjM5hlbkUO3+dfjWZwPBQCffPh8UWUkmuzDbXQs1ybxGZqap80=
-=Gd7N
------END PGP SIGNATURE-----
+>=20
+> I started undoing the stuff, and I wanted to see if the abb_mpu_iva
+> regulator was even running, but I would get -22 errors when I went to
+> read the voltage.
+>=20
+> # cat =
+/sys/devices/platform/68000000.ocp/483072f0.regulator-abb-mpu/regulator/re=
+gulator.5/microvolts
+> -22
 
---v7pe77r44rvnt7o5--
+So it reports wrong voltage settings of -22=C2=B5V...
+
+I have tested and have the same.
+
+root@letux:~# cd =
+/sys/bus/platform/devices/483072f0.regulator-abb-mpu/regulator/regulator.3=
+/
+=
+root@letux:/sys/bus/platform/devices/483072f0.regulator-abb-mpu/regulator/=
+regulator.3# ls -l
+total 0
+lrwxrwxrwx 1 root root    0 Jan  1 00:02 device -> =
+../../../483072f0.regulator-abb-mpu
+-r--r--r-- 1 root root 4096 Jan  1 00:02 max_microvolts
+-r--r--r-- 1 root root 4096 Jan  1 00:02 microvolts
+-r--r--r-- 1 root root 4096 Jan  1 00:02 min_microvolts
+-r--r--r-- 1 root root 4096 Jan  1 00:02 name
+-r--r--r-- 1 root root 4096 Jan  1 00:02 num_users
+lrwxrwxrwx 1 root root    0 Jan  1 00:02 of_node -> =
+../../../../../../firmware/devicetree/base/ocp@68000000/regulator-abb-mpu
+drwxr-xr-x 2 root root    0 Jan  1 00:02 power
+-r--r--r-- 1 root root 4096 Jan  1 00:02 requested_microamps
+lrwxrwxrwx 1 root root    0 Jan  1 00:02 subsystem -> =
+../../../../../../class/regulator
+-r--r--r-- 1 root root 4096 Jan  1 00:02 suspend_disk_state
+-r--r--r-- 1 root root 4096 Jan  1 00:02 suspend_mem_state
+-r--r--r-- 1 root root 4096 Jan  1 00:02 suspend_standby_state
+-r--r--r-- 1 root root 4096 Jan  1 00:02 type
+-rw-r--r-- 1 root root 4096 Jan  1 00:02 uevent
+=
+root@letux:/sys/bus/platform/devices/483072f0.regulator-abb-mpu/regulator/=
+regulator.3# cat *
+cat: device: Is a directory
+1375000
+-22
+1012500
+abb_mpu_iva
+1
+cat: of_node: Is a directory
+cat: power: Is a directory
+0
+cat: subsystem: Is a directory
+disabled
+disabled
+disabled
+voltage
+OF_NAME=3Dregulator-abb-mpu
+OF_FULLNAME=3D/ocp@68000000/regulator-abb-mpu
+OF_COMPATIBLE_0=3Dti,abb-v1
+OF_COMPATIBLE_N=3D1
+=
+root@letux:/sys/bus/platform/devices/483072f0.regulator-abb-mpu/regulator/=
+regulator.3# cd
+root@letux:~# cpufreq-info=20
+cpufrequtils 008: cpufreq-info (C) Dominik Brodowski 2004-2009
+Report errors and bugs to cpufreq@vger.kernel.org, please.
+analyzing CPU 0:
+  driver: cpufreq-dt
+  CPUs which run at the same hardware frequency: 0
+  CPUs which need to have their frequency coordinated by software: 0
+  maximum transition latency: 300 us.
+  hardware limits: 300 MHz - 1000 MHz
+  available frequency steps: 300 MHz, 600 MHz, 800 MHz, 1000 MHz
+  available cpufreq governors: conservative, userspace, powersave, =
+ondemand, performance
+  current policy: frequency should be within 300 MHz and 1000 MHz.
+                  The governor "ondemand" may decide which speed to use
+                  within this range.
+  current CPU frequency is 300 MHz (asserted by call to hardware).
+  cpufreq stats: 300 MHz:31.36%, 600 MHz:4.23%, 800 MHz:3.76%, 1000 =
+MHz:60.65%  (1933)
+root@letux:~#=20
+
+So it runs with different OPPs... My chip may also be more robust to =
+wrong ABB FBB setting.
+
+>=20
+> If someone has any suggestions on how to test the abb_mpu_iva driver,
+> let me know.
+
+Well, next I want to look into the code for cat microvolts and
+maybe add some printk to understand the result...
+
+A first result is that it comes from
+
+	/* We do not know where the OPP voltage is at the moment */
+	abb->current_info_idx =3D -EINVAL;
+
+But this is not treated as an -EINVAL but value of -22 microvolts...
+Maybe an error check is missing somewhere in the regulator core.
+
+I just need more time to track it down.
+
+BR and thanks for the description,
+Nikolaus
