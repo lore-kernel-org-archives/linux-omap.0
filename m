@@ -1,91 +1,73 @@
-From: Adam Ford <aford173@gmail.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 Subject: Re: [RFC] ARM: omap3: Enable HWMODS for HW Random Number Generator
-Date: Tue, 10 Sep 2019 11:21:34 -0500
-Message-ID: <CAHCN7xLaGQMM67VC-2_G8XC7UuG4c+TbbYb4z=ibJwZsQF4YVw@mail.gmail.com>
+Date: Tue, 10 Sep 2019 18:39:06 +0200
+Message-ID: <20190910163906.ypyeaido6h4nurvv@pali>
 References: <20190828150037.2640-1-aford173@gmail.com>
  <20190905230443.GA52127@atomide.com>
  <CAHCN7xL0fbr=Sv+b=0AuGB1PPhAAFdAFLEd_iBM+ZMTkUw5sHQ@mail.gmail.com>
  <CAHCN7xL-Gfxe0qF5w7BUsHnyhcNNpmCnchdKErnmiqggXfsLWw@mail.gmail.com>
- <20190909134033.s26eiurpat3iekse@pali> <20190909163543.GQ52127@atomide.com>
+ <20190909134033.s26eiurpat3iekse@pali>
+ <20190909163543.GQ52127@atomide.com>
  <CAHCN7x+t-OVRE7pVM4V87_YMWpgO+_Vashfn1s5msoqC5eiwTg@mail.gmail.com>
+ <CAHCN7xLaGQMM67VC-2_G8XC7UuG4c+TbbYb4z=ibJwZsQF4YVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAHCN7x+t-OVRE7pVM4V87_YMWpgO+_Vashfn1s5msoqC5eiwTg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="v7pe77r44rvnt7o5"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHCN7xLaGQMM67VC-2_G8XC7UuG4c+TbbYb4z=ibJwZsQF4YVw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <adam.ford@logicpd.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Paul Walmsley <paul@pwsan.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCBTZXAgMTAsIDIwMTkgYXQgMTA6NDggQU0gQWRhbSBGb3JkIDxhZm9yZDE3M0BnbWFp
-bC5jb20+IHdyb3RlOgo+Cj4gT24gTW9uLCBTZXAgOSwgMjAxOSBhdCAxMTozNSBBTSBUb255IExp
-bmRncmVuIDx0b255QGF0b21pZGUuY29tPiB3cm90ZToKPiA+Cj4gPiAqIFBhbGkgUm9ow6FyIDxw
-YWxpLnJvaGFyQGdtYWlsLmNvbT4gWzE5MDkwOSAxMzo0MV06Cj4gPiA+IE9uIE1vbmRheSAwOSBT
-ZXB0ZW1iZXIgMjAxOSAwODozNzowOSBBZGFtIEZvcmQgd3JvdGU6Cj4gPiA+ID4gSSBhcHBsaWVk
-IHRoaXMgb24gNS4zIGFuZCBpdCBpcyB3b3JraW5nLiAgSSBhc3N1bWUgdGhlIHNhbWUgaXMgdHJ1
-ZSBpbiBmb3ItbmV4dC4KPiA+Cj4gPiBIbW0gSSBub3RpY2VkIEkgc3RvcHBlZCBnZXR0aW5nIFJO
-RyBkYXRhIGFmdGVyIHNldmVyYWwgcm1tb2QgbW9kcHJvYmUKPiA+IGN5Y2xlcywgb3Igc2V2ZXJh
-bCBoZCAvZGV2L3JhbmRvbSByZWFkcy4gQW55Ym9keSBlbHNlIHNlZWluZyB0aGF0Pwo+ID4KPiA+
-ID4gPiBEbyB5b3Ugd2FudCB0byBzdWJtaXQgYSBmb3JtYWwgcGF0Y2g/ICBJICBjYW4gbWFyayBp
-dCBhcyAndGVzdGVkLWJ5Jwo+ID4gPiA+IFRoaXMgcmVhbGx5IGhlbHBzIHNwZWVkIHVwIHRoZSBz
-dGFydHVwIHNlcXVlbmNlIG9uIGJvYXJkcyB3aXRoIHNzaGQKPiA+ID4gPiBiZWNhdXNlIGl0IGRl
-bGF5cyBmb3IgbmVhcmx5IDgwIHNlY29uZHMgd2FpdGluZyBmb3IgZW50cm9weSB3aXRob3V0Cj4g
-PiA+ID4gdGhlIGh3cm5nLgo+ID4gPgo+ID4gPiBIaSEgV2hlbiBhcHBseWluZyBhIHBhdGNoLCBj
-b3VsZCB5b3UgcGxlYXNlIGRpc2FibGUgdGhpcyBybmcgZm9yIG45MDA/Cj4gPiA+Cj4gPiA+IElu
-IG9tYXAzLW45MDAuZHRzIGZvciBybmcgc2hvdWxkIGJlIHN0YXR1cyA9ICJkaXNhYmxlZCIgKGFz
-IFRvbnkgYWxyZWFkeQo+ID4gPiB3cm90ZSksIHNpbWlsYXJseSBsaWtlIGZvciBhZXMuCj4gPgo+
-ID4gWWVhaCBJJ2xsIHBvc3QgYSBwcm9wZXIgcGF0Y2ggYWZ0ZXIgLXJjMS4KPgo+IEZZSSwKPgo+
-IEJ5IHB1dHRpbmcgeW91ciBub2RlIGludG8gb21hcDM0eHguZHRzaSBhbmQgb21hcDM2eHguZHRz
-aSBhbG9uZyB3aXRoCj4gdGhlIGZvbGxvd2luZywgSSBjYW4gZ2V0IHRoZSBSTkcgdG8gd29yayBv
-biBhbiBPTUFQMzUzMCBhbmQgYSBETTM3MzAuCj4KPgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9i
-b290L2R0cy9vbWFwMzR4eC1vbWFwMzZ4eC1jbG9ja3MuZHRzaQo+IGIvYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDM0eHgtb21hcDM2eHgtY2xvY2tzLmR0c2kKPiBpbmRleCA1ZTlkMWFmY2Q0MjIuLjcz
-ZjM1MWU2ZDEzMiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMzR4eC1vbWFw
-MzZ4eC1jbG9ja3MuZHRzaQo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzNHh4LW9tYXAz
-Nnh4LWNsb2Nrcy5kdHNpCj4gQEAgLTI1OSw3ICsyNTksNyBAQAo+ICAgICAgICAgICAgICAgICAg
-ICAgICAgICA8JmkyYzFfaWNrPiwgPCZ1YXJ0Ml9pY2s+LCA8JnVhcnQxX2ljaz4sIDwmZ3B0MTFf
-aWNrPiwKPiAgICAgICAgICAgICAgICAgICAgICAgICAgPCZncHQxMF9pY2s+LCA8Jm1jYnNwNV9p
-Y2s+LCA8Jm1jYnNwMV9pY2s+LAo+ICAgICAgICAgICAgICAgICAgICAgICAgICA8Jm9tYXBjdHJs
-X2ljaz4sIDwmYWVzMl9pY2s+LCA8JnNoYTEyX2ljaz4sIDwmaWNyX2ljaz4sCj4gLSAgICAgICAg
-ICAgICAgICAgICAgICAgIDwmZGVzMl9pY2s+LCA8Jm1zcHJvX2ljaz4sIDwmbWFpbGJveGVzX2lj
-az4sCj4gKyAgICAgICAgICAgICAgICAgICAgICAgIDwmZGVzMl9pY2s+LCA8Jm1zcHJvX2ljaz4s
-IDwmbWFpbGJveGVzX2ljaz4sCj4gPCZybmdfaWNrPiwKPiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgPCZtc3Byb19mY2s+Owo+ICAgICAgICAgfTsKPiAgfTsKPgo+IEkgdHJpZWQgZG9pbmcgdGhl
-IHNhbWUgZm9yIGFtMzUxNywgYnV0IGl0IGRvZXNuJ3QgYXBwZWFyIHRvIHdvcmsuICBJbgo+IGZh
-Y3QsIHRoZSBib2FyZCBoYW5ncyBhdCBib290IHdpdGggbm8gc3BsYXQsIHNvIEkgYXNzdW1lIHRo
-YXQgc29tZQo+IGNsb2NrIGlzbid0IHJ1bm5pbmcgYW5kIGNhdXNpbmcgYSBoYW5nLiAgRmlndXJl
-IDQtNTAgaW4gdGhlIEFNMzUxNyBUUk0KPiBzaG93cyB0aGUgc2VjdXJpdHlfbDRfaWNsazIsIHNv
-IEkgd29uZGVyIGlmIHRoZSBIVyBtb2RzIGZvciBBRVMsIFNIQSwKPiBldGMgYXJlIGRvaW5nIHNv
-bWV0aGluZyB0byBlbmFibGUgdGhpcyBjbG9jay4gIFRob3NlIEhXbW9kcyBhcmUKPiBkaXNhYmxl
-ZCBvbiBBTTM1MTcuICBJIHRyaWVkIHR1cm5pbmcgb24gdGhlIGh3bW9kcyBmb3IgdGhlbSBiZWZv
-cmUKPiB3aXRob3V0IHN1Y2Nlc3MsIGJ1dCBJJ2xsIHRyeSBpdCBhZ2Fpbi4KCkFjY29yZGluZyB0
-byBhIG5vdGUgaW4gb21hcF9od21vZF8zeHh4X2RhdGEuYywKCi8qCiAqIEFwcGFyZW50bHkgdGhl
-IFNIQS9NRDUgYW5kIEFFUyBhY2NlbGVyYXRvciBJUCBibG9ja3MgYXJlCiAqIG9ubHkgcHJlc2Vu
-dCBvbiBzb21lIEFNMzV4eCBjaGlwcywgYW5kIG5vIG9uZSBrbm93cyB3aGljaAogKiBvbmVzLiAg
-U2VlCiAqIGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvYXJtLWtlcm5lbC9tc2cyMTU0NjYu
-aHRtbCBTbwogKiBpZiB5b3UgbmVlZCB0aGVzZSBJUCBibG9ja3Mgb24gYW4gQU0zNXh4LCB0cnkg
-dW5jb21tZW50aW5nCiAqIHRoZSBmb2xsb3dpbmcgbGluZXMuCiAqLwoKSSBkZWNpZGVkIHRvIHVu
-Y29tbWVudCB0aGUgaHdtb2QgZW50cmllcywgYW5kIEkgZ290IHRoZSBmb2xsb3dpbmc6CgpbICAg
-IDAuMjYzMjIyXSBvbWFwX2h3bW9kOiBzaGFtOiBfd2FpdF90YXJnZXRfcmVhZHkgZmFpbGVkOiAt
-MTYKWyAgICAwLjI2MzI0OF0gb21hcF9od21vZDogc2hhbTogY2Fubm90IGJlIGVuYWJsZWQgZm9y
-IHJlc2V0ICgzKQpbICAgIDAuMjY1ODM3XSBvbWFwX2h3bW9kOiBhZXM6IF93YWl0X3RhcmdldF9y
-ZWFkeSBmYWlsZWQ6IC0xNgpbICAgIDAuMjY1ODUxXSBvbWFwX2h3bW9kOiBhZXM6IGNhbm5vdCBi
-ZSBlbmFibGVkIGZvciByZXNldCAoMykKWyAgICA2LjIwODg2Nl0gb21hcF9od21vZDogc2hhbTog
-X3dhaXRfdGFyZ2V0X3JlYWR5IGZhaWxlZDogLTE2ClsgICAgNi4yODc3MzJdIG9tYXBfaHdtb2Q6
-IGFlczogX3dhaXRfdGFyZ2V0X3JlYWR5IGZhaWxlZDogLTE2CgpCYXNlZCBvbiB0aGlzLCBJIHdv
-bmRlciBpZiB0aGUgc2hhbSBhbmQgYWVzIG1vZHVsZXMgYXJlIG5vdCBwcmVzZW50LgpJZiB0aGlz
-IGlzIHRoZSBjYXNlLCBpdCBtaWdodCBleHBsYWluIHdoeSBJIGNhbm5vdCB1c2UgdGhlIHJuZyBl
-aXRoZXIuCgphZGFtCj4KPiBhZGFtCj4gPgo+ID4gUmVnYXJkcywKPiA+Cj4gPiBUb255CgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2Vy
-bmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0
-cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVs
-Cg==
+
+--v7pe77r44rvnt7o5
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tuesday 10 September 2019 11:21:34 Adam Ford wrote:
+> According to a note in omap_hwmod_3xxx_data.c,
+>=20
+> /*
+>  * Apparently the SHA/MD5 and AES accelerator IP blocks are
+>  * only present on some AM35xx chips, and no one knows which
+>  * ones.  See
+>  * http://www.spinics.net/lists/arm-kernel/msg215466.html So
+>  * if you need these IP blocks on an AM35xx, try uncommenting
+>  * the following lines.
+>  */
+>=20
+> I decided to uncomment the hwmod entries, and I got the following:
+>=20
+> [    0.263222] omap_hwmod: sham: _wait_target_ready failed: -16
+> [    0.263248] omap_hwmod: sham: cannot be enabled for reset (3)
+> [    0.265837] omap_hwmod: aes: _wait_target_ready failed: -16
+> [    0.265851] omap_hwmod: aes: cannot be enabled for reset (3)
+> [    6.208866] omap_hwmod: sham: _wait_target_ready failed: -16
+> [    6.287732] omap_hwmod: aes: _wait_target_ready failed: -16
+
+Hi! Same errors I got in qemu-n900, but not on real N900. So I guess
+those errors means that IP blocks are not present.
+
+> Based on this, I wonder if the sham and aes modules are not present.
+> If this is the case, it might explain why I cannot use the rng either.
+
+Probably this is the reason, you do not have crypto/rng HW engine.
+
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--v7pe77r44rvnt7o5
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQS4VrIQdKium2krgIWL8Mk9A+RDUgUCXXfRqAAKCRCL8Mk9A+RD
+UvMwAKC5PytcObjM5hlbkUO3+dfjWZwPBQCffPh8UWUkmuzDbXQs1ybxGZqap80=
+=Gd7N
+-----END PGP SIGNATURE-----
+
+--v7pe77r44rvnt7o5--
