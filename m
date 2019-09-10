@@ -1,78 +1,91 @@
 From: Adam Ford <aford173@gmail.com>
 Subject: Re: [RFC] ARM: omap3: Enable HWMODS for HW Random Number Generator
-Date: Tue, 10 Sep 2019 10:48:29 -0500
-Message-ID: <CAHCN7x+t-OVRE7pVM4V87_YMWpgO+_Vashfn1s5msoqC5eiwTg@mail.gmail.com>
-References: <20190828150037.2640-1-aford173@gmail.com> <20190905230443.GA52127@atomide.com>
+Date: Tue, 10 Sep 2019 11:21:34 -0500
+Message-ID: <CAHCN7xLaGQMM67VC-2_G8XC7UuG4c+TbbYb4z=ibJwZsQF4YVw@mail.gmail.com>
+References: <20190828150037.2640-1-aford173@gmail.com>
+ <20190905230443.GA52127@atomide.com>
  <CAHCN7xL0fbr=Sv+b=0AuGB1PPhAAFdAFLEd_iBM+ZMTkUw5sHQ@mail.gmail.com>
  <CAHCN7xL-Gfxe0qF5w7BUsHnyhcNNpmCnchdKErnmiqggXfsLWw@mail.gmail.com>
  <20190909134033.s26eiurpat3iekse@pali> <20190909163543.GQ52127@atomide.com>
+ <CAHCN7x+t-OVRE7pVM4V87_YMWpgO+_Vashfn1s5msoqC5eiwTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190909163543.GQ52127@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAHCN7x+t-OVRE7pVM4V87_YMWpgO+_Vashfn1s5msoqC5eiwTg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <adam.ford@logicpd.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Paul Walmsley <paul@pwsan.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 9, 2019 at 11:35 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [190909 13:41]:
-> > On Monday 09 September 2019 08:37:09 Adam Ford wrote:
-> > > I applied this on 5.3 and it is working.  I assume the same is true i=
-n for-next.
->
-> Hmm I noticed I stopped getting RNG data after several rmmod modprobe
-> cycles, or several hd /dev/random reads. Anybody else seeing that?
->
-> > > Do you want to submit a formal patch?  I  can mark it as 'tested-by'
-> > > This really helps speed up the startup sequence on boards with sshd
-> > > because it delays for nearly 80 seconds waiting for entropy without
-> > > the hwrng.
-> >
-> > Hi! When applying a patch, could you please disable this rng for n900?
-> >
-> > In omap3-n900.dts for rng should be status =3D "disabled" (as Tony alre=
-ady
-> > wrote), similarly like for aes.
->
-> Yeah I'll post a proper patch after -rc1.
-
-FYI,
-
-By putting your node into omap34xx.dtsi and omap36xx.dtsi along with
-the following, I can get the RNG to work on an OMAP3530 and a DM3730.
-
-
-diff --git a/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi
-b/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi
-index 5e9d1afcd422..73f351e6d132 100644
---- a/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi
-@@ -259,7 +259,7 @@
-                         <&i2c1_ick>, <&uart2_ick>, <&uart1_ick>, <&gpt11_i=
-ck>,
-                         <&gpt10_ick>, <&mcbsp5_ick>, <&mcbsp1_ick>,
-                         <&omapctrl_ick>, <&aes2_ick>, <&sha12_ick>, <&icr_=
-ick>,
--                        <&des2_ick>, <&mspro_ick>, <&mailboxes_ick>,
-+                        <&des2_ick>, <&mspro_ick>, <&mailboxes_ick>,
-<&rng_ick>,
-                         <&mspro_fck>;
-        };
- };
-
-I tried doing the same for am3517, but it doesn't appear to work.  In
-fact, the board hangs at boot with no splat, so I assume that some
-clock isn't running and causing a hang.  Figure 4-50 in the AM3517 TRM
-shows the security_l4_iclk2, so I wonder if the HW mods for AES, SHA,
-etc are doing something to enable this clock.  Those HWmods are
-disabled on AM3517.  I tried turning on the hwmods for them before
-without success, but I'll try it again.
-
-adam
->
-> Regards,
->
-> Tony
+T24gVHVlLCBTZXAgMTAsIDIwMTkgYXQgMTA6NDggQU0gQWRhbSBGb3JkIDxhZm9yZDE3M0BnbWFp
+bC5jb20+IHdyb3RlOgo+Cj4gT24gTW9uLCBTZXAgOSwgMjAxOSBhdCAxMTozNSBBTSBUb255IExp
+bmRncmVuIDx0b255QGF0b21pZGUuY29tPiB3cm90ZToKPiA+Cj4gPiAqIFBhbGkgUm9ow6FyIDxw
+YWxpLnJvaGFyQGdtYWlsLmNvbT4gWzE5MDkwOSAxMzo0MV06Cj4gPiA+IE9uIE1vbmRheSAwOSBT
+ZXB0ZW1iZXIgMjAxOSAwODozNzowOSBBZGFtIEZvcmQgd3JvdGU6Cj4gPiA+ID4gSSBhcHBsaWVk
+IHRoaXMgb24gNS4zIGFuZCBpdCBpcyB3b3JraW5nLiAgSSBhc3N1bWUgdGhlIHNhbWUgaXMgdHJ1
+ZSBpbiBmb3ItbmV4dC4KPiA+Cj4gPiBIbW0gSSBub3RpY2VkIEkgc3RvcHBlZCBnZXR0aW5nIFJO
+RyBkYXRhIGFmdGVyIHNldmVyYWwgcm1tb2QgbW9kcHJvYmUKPiA+IGN5Y2xlcywgb3Igc2V2ZXJh
+bCBoZCAvZGV2L3JhbmRvbSByZWFkcy4gQW55Ym9keSBlbHNlIHNlZWluZyB0aGF0Pwo+ID4KPiA+
+ID4gPiBEbyB5b3Ugd2FudCB0byBzdWJtaXQgYSBmb3JtYWwgcGF0Y2g/ICBJICBjYW4gbWFyayBp
+dCBhcyAndGVzdGVkLWJ5Jwo+ID4gPiA+IFRoaXMgcmVhbGx5IGhlbHBzIHNwZWVkIHVwIHRoZSBz
+dGFydHVwIHNlcXVlbmNlIG9uIGJvYXJkcyB3aXRoIHNzaGQKPiA+ID4gPiBiZWNhdXNlIGl0IGRl
+bGF5cyBmb3IgbmVhcmx5IDgwIHNlY29uZHMgd2FpdGluZyBmb3IgZW50cm9weSB3aXRob3V0Cj4g
+PiA+ID4gdGhlIGh3cm5nLgo+ID4gPgo+ID4gPiBIaSEgV2hlbiBhcHBseWluZyBhIHBhdGNoLCBj
+b3VsZCB5b3UgcGxlYXNlIGRpc2FibGUgdGhpcyBybmcgZm9yIG45MDA/Cj4gPiA+Cj4gPiA+IElu
+IG9tYXAzLW45MDAuZHRzIGZvciBybmcgc2hvdWxkIGJlIHN0YXR1cyA9ICJkaXNhYmxlZCIgKGFz
+IFRvbnkgYWxyZWFkeQo+ID4gPiB3cm90ZSksIHNpbWlsYXJseSBsaWtlIGZvciBhZXMuCj4gPgo+
+ID4gWWVhaCBJJ2xsIHBvc3QgYSBwcm9wZXIgcGF0Y2ggYWZ0ZXIgLXJjMS4KPgo+IEZZSSwKPgo+
+IEJ5IHB1dHRpbmcgeW91ciBub2RlIGludG8gb21hcDM0eHguZHRzaSBhbmQgb21hcDM2eHguZHRz
+aSBhbG9uZyB3aXRoCj4gdGhlIGZvbGxvd2luZywgSSBjYW4gZ2V0IHRoZSBSTkcgdG8gd29yayBv
+biBhbiBPTUFQMzUzMCBhbmQgYSBETTM3MzAuCj4KPgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9i
+b290L2R0cy9vbWFwMzR4eC1vbWFwMzZ4eC1jbG9ja3MuZHRzaQo+IGIvYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDM0eHgtb21hcDM2eHgtY2xvY2tzLmR0c2kKPiBpbmRleCA1ZTlkMWFmY2Q0MjIuLjcz
+ZjM1MWU2ZDEzMiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMzR4eC1vbWFw
+MzZ4eC1jbG9ja3MuZHRzaQo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzNHh4LW9tYXAz
+Nnh4LWNsb2Nrcy5kdHNpCj4gQEAgLTI1OSw3ICsyNTksNyBAQAo+ICAgICAgICAgICAgICAgICAg
+ICAgICAgICA8JmkyYzFfaWNrPiwgPCZ1YXJ0Ml9pY2s+LCA8JnVhcnQxX2ljaz4sIDwmZ3B0MTFf
+aWNrPiwKPiAgICAgICAgICAgICAgICAgICAgICAgICAgPCZncHQxMF9pY2s+LCA8Jm1jYnNwNV9p
+Y2s+LCA8Jm1jYnNwMV9pY2s+LAo+ICAgICAgICAgICAgICAgICAgICAgICAgICA8Jm9tYXBjdHJs
+X2ljaz4sIDwmYWVzMl9pY2s+LCA8JnNoYTEyX2ljaz4sIDwmaWNyX2ljaz4sCj4gLSAgICAgICAg
+ICAgICAgICAgICAgICAgIDwmZGVzMl9pY2s+LCA8Jm1zcHJvX2ljaz4sIDwmbWFpbGJveGVzX2lj
+az4sCj4gKyAgICAgICAgICAgICAgICAgICAgICAgIDwmZGVzMl9pY2s+LCA8Jm1zcHJvX2ljaz4s
+IDwmbWFpbGJveGVzX2ljaz4sCj4gPCZybmdfaWNrPiwKPiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgPCZtc3Byb19mY2s+Owo+ICAgICAgICAgfTsKPiAgfTsKPgo+IEkgdHJpZWQgZG9pbmcgdGhl
+IHNhbWUgZm9yIGFtMzUxNywgYnV0IGl0IGRvZXNuJ3QgYXBwZWFyIHRvIHdvcmsuICBJbgo+IGZh
+Y3QsIHRoZSBib2FyZCBoYW5ncyBhdCBib290IHdpdGggbm8gc3BsYXQsIHNvIEkgYXNzdW1lIHRo
+YXQgc29tZQo+IGNsb2NrIGlzbid0IHJ1bm5pbmcgYW5kIGNhdXNpbmcgYSBoYW5nLiAgRmlndXJl
+IDQtNTAgaW4gdGhlIEFNMzUxNyBUUk0KPiBzaG93cyB0aGUgc2VjdXJpdHlfbDRfaWNsazIsIHNv
+IEkgd29uZGVyIGlmIHRoZSBIVyBtb2RzIGZvciBBRVMsIFNIQSwKPiBldGMgYXJlIGRvaW5nIHNv
+bWV0aGluZyB0byBlbmFibGUgdGhpcyBjbG9jay4gIFRob3NlIEhXbW9kcyBhcmUKPiBkaXNhYmxl
+ZCBvbiBBTTM1MTcuICBJIHRyaWVkIHR1cm5pbmcgb24gdGhlIGh3bW9kcyBmb3IgdGhlbSBiZWZv
+cmUKPiB3aXRob3V0IHN1Y2Nlc3MsIGJ1dCBJJ2xsIHRyeSBpdCBhZ2Fpbi4KCkFjY29yZGluZyB0
+byBhIG5vdGUgaW4gb21hcF9od21vZF8zeHh4X2RhdGEuYywKCi8qCiAqIEFwcGFyZW50bHkgdGhl
+IFNIQS9NRDUgYW5kIEFFUyBhY2NlbGVyYXRvciBJUCBibG9ja3MgYXJlCiAqIG9ubHkgcHJlc2Vu
+dCBvbiBzb21lIEFNMzV4eCBjaGlwcywgYW5kIG5vIG9uZSBrbm93cyB3aGljaAogKiBvbmVzLiAg
+U2VlCiAqIGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvYXJtLWtlcm5lbC9tc2cyMTU0NjYu
+aHRtbCBTbwogKiBpZiB5b3UgbmVlZCB0aGVzZSBJUCBibG9ja3Mgb24gYW4gQU0zNXh4LCB0cnkg
+dW5jb21tZW50aW5nCiAqIHRoZSBmb2xsb3dpbmcgbGluZXMuCiAqLwoKSSBkZWNpZGVkIHRvIHVu
+Y29tbWVudCB0aGUgaHdtb2QgZW50cmllcywgYW5kIEkgZ290IHRoZSBmb2xsb3dpbmc6CgpbICAg
+IDAuMjYzMjIyXSBvbWFwX2h3bW9kOiBzaGFtOiBfd2FpdF90YXJnZXRfcmVhZHkgZmFpbGVkOiAt
+MTYKWyAgICAwLjI2MzI0OF0gb21hcF9od21vZDogc2hhbTogY2Fubm90IGJlIGVuYWJsZWQgZm9y
+IHJlc2V0ICgzKQpbICAgIDAuMjY1ODM3XSBvbWFwX2h3bW9kOiBhZXM6IF93YWl0X3RhcmdldF9y
+ZWFkeSBmYWlsZWQ6IC0xNgpbICAgIDAuMjY1ODUxXSBvbWFwX2h3bW9kOiBhZXM6IGNhbm5vdCBi
+ZSBlbmFibGVkIGZvciByZXNldCAoMykKWyAgICA2LjIwODg2Nl0gb21hcF9od21vZDogc2hhbTog
+X3dhaXRfdGFyZ2V0X3JlYWR5IGZhaWxlZDogLTE2ClsgICAgNi4yODc3MzJdIG9tYXBfaHdtb2Q6
+IGFlczogX3dhaXRfdGFyZ2V0X3JlYWR5IGZhaWxlZDogLTE2CgpCYXNlZCBvbiB0aGlzLCBJIHdv
+bmRlciBpZiB0aGUgc2hhbSBhbmQgYWVzIG1vZHVsZXMgYXJlIG5vdCBwcmVzZW50LgpJZiB0aGlz
+IGlzIHRoZSBjYXNlLCBpdCBtaWdodCBleHBsYWluIHdoeSBJIGNhbm5vdCB1c2UgdGhlIHJuZyBl
+aXRoZXIuCgphZGFtCj4KPiBhZGFtCj4gPgo+ID4gUmVnYXJkcywKPiA+Cj4gPiBUb255CgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2Vy
+bmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0
+cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVs
+Cg==
