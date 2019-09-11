@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 6/8] ARM: dts: omap36xx: using OPP1G needs to control the abb_ldo
-Date: Wed, 11 Sep 2019 19:47:12 +0200
-Message-ID: <59a0f6267c75859c25665548db2e8a9c4229d3b4.1568224033.git.hns@goldelico.com>
+Subject: [PATCH v3 2/8] ARM: dts: omap34xx & omap36xx: replace opp-v1 tables by opp-v2 for
+Date: Wed, 11 Sep 2019 19:47:08 +0200
+Message-ID: <5b3cebcc745d20bcbf06e548f8e5665e083b5474.1568224033.git.hns@goldelico.com>
 References: <cover.1568224032.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,126 +12,235 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-See DM3730,DM275 data sheet (SPRS685B) footnote (6) in Table 4-19
-which says that ABB must be switched to FBB mode when using the
-OPP1G.
+With the driver installed, we can change the opp-v1 table format
+to opp-v2.
 
-The LOD definition abb_mpu_iva already exists so that we need
-to add plumbing for vbb-supply = <&abb_mpu_iva>
-and define two voltage vectors for each OPP so that the abb LDO
-is also updated by the ti-cpufreq driver.
+In addition, move omap3 from whitelist to blacklist in cpufreq-dt-platdev
+in the same patch, because doing either first breaks operation and
+may make trouble in bisect.
 
-We also must switch the ti_cpufreq_soc_data to multi_regulator.
+We also can remove opp-v1 table for omap3-n950-n9 since its 1GHz
+capability is now automatically detected.
 
-Note: reading out the abb reglator voltage to verify that
-it does do transitions can be done by
+We also fix a wrong OPP4 voltage for omap3430 which must be
+0.6V + 54*12.5mV = 1275mV. Otherwise the twl4030 driver will reject
+this OPP.
 
-cat /sys/devices/platform/68000000.ocp/483072f0.regulator-abb-mpu/regulator/regulator.*/microvolts
+Note: the high speed OPPs that were not available in the opp-v1 tables
+are tagged "turbo-mode;" which means they are not automatically
+activated by the govenors or cpu-freq.
 
-Likewise, read the twl4030 provided VDD voltage by
+To enable you have to write
 
-cat /sys/devices/platform/68000000.ocp/48070000.i2c/i2c-0/0-0048/48070000.i2c:twl@48:regulator-vdd1/regulator/regulator.*/microvolts
+echo 1 >/sys/devices/system/cpu/cpufreq/boost
 
-Note: to check if the ABB FBB is enabled/disabled, check
-registers
+Note: to hard disable an OPP in a board.dts file use e.g.
 
-PRM_LDO_ABB_CTRL 0x483072F4 bit 3:0 1=bypass 5=FBB
-PRM_LDO_ABB_SETUP 0x483072F0 0x00=bypass 0x11=FBB
+&cpu0_opp_table: {
+	/delete-node/ opp1g-1000000000;	/* do not use */
+};
 
-e.g.
+or alternatively:
 
-/dev/mem opened.
-Memory mapped at address 0xb6fe4000.
-Value at address 0x483072F4 (0xb6fe42f4): 0x3205
-/dev/mem opened.
-Memory mapped at address 0xb6f89000.
-Value at address 0x483072F4 (0xb6f892f4): 0x3201
+&cpu0_opp_table: {
+	opp1g-1000000000 {
+		status = "disabled";	/* do not use */
+	};
+};
 
-Note: omap34xx and am3517 have/need no comparable LDO
-or mechanism.
-
-Suggested-by: Adam Ford <aford173@gmail.com>
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap36xx.dtsi | 21 ++++++++++++++++-----
- drivers/cpufreq/ti-cpufreq.c    |  2 +-
- 2 files changed, 17 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/omap3-n950-n9.dtsi |  7 ---
+ arch/arm/boot/dts/omap34xx.dtsi      | 66 ++++++++++++++++++++++++----
+ arch/arm/boot/dts/omap36xx.dtsi      | 54 +++++++++++++++++++----
+ drivers/cpufreq/cpufreq-dt-platdev.c |  2 +-
+ 4 files changed, 104 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index cb5bd0969124..4bb4f534afe2 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -23,6 +23,7 @@
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 5441e9ffdbb4..e98b0c615f19 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -11,13 +11,6 @@
+ 	cpus {
+ 		cpu@0 {
+ 			cpu0-supply = <&vcc>;
+-			operating-points = <
+-				/* kHz    uV */
+-				300000  1012500
+-				600000  1200000
+-				800000  1325000
+-				1000000	1375000
+-			>;
+ 		};
+ 	};
+ 
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index f572a477f74c..1d2737c0ba27 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -16,19 +16,67 @@
+ / {
+ 	cpus {
  		cpu: cpu@0 {
- 			operating-points-v2 = <&cpu0_opp_table>;
- 
-+			vbb-supply = <&abb_mpu_iva>;
- 			clock-latency = <300000>; /* From omap-cpufreq driver */
- 		};
- 	};
-@@ -37,9 +38,11 @@
- 			/*
- 			 * we currently only select the max voltage from table
- 			 * Table 4-19 of the DM3730 Data sheet (SPRS685B)
--			 * Format is: <target min max>
-+			 * Format is:	cpu0-supply:	<target min max>
-+			 *		vbb-supply:	<target min max>
- 			 */
--			opp-microvolt = <1012500 1012500 1012500>;
-+			opp-microvolt = <1012500 1012500 1012500>,
-+					 <1012500 1012500 1012500>;
- 			/*
- 			 * first value is silicon revision bit mask
- 			 * second one is "speed binned" bit mask
-@@ -50,25 +53,33 @@
- 
- 		opp100-600000000 {
- 			opp-hz = /bits/ 64 <600000000>;
--			opp-microvolt = <1200000 1200000 1200000>;
-+			opp-microvolt = <1200000 1200000 1200000>,
-+					 <1200000 1200000 1200000>;
- 			opp-supported-hw = <0xffffffff 3>;
- 		};
- 
- 		opp130-800000000 {
- 			opp-hz = /bits/ 64 <800000000>;
--			opp-microvolt = <1325000 1325000 1325000>;
-+			opp-microvolt = <1325000 1325000 1325000>,
-+					 <1325000 1325000 1325000>;
- 			opp-supported-hw = <0xffffffff 3>;
- 		};
- 
- 		opp1g-1000000000 {
- 			opp-hz = /bits/ 64 <1000000000>;
--			opp-microvolt = <1375000 1375000 1375000>;
-+			opp-microvolt = <1375000 1375000 1375000>,
-+					 <1375000 1375000 1375000>;
- 			/* only on am/dm37x with speed-binned bit set */
- 			opp-supported-hw = <0xffffffff 2>;
- 			turbo-mode;
+-			/* OMAP343x/OMAP35xx variants OPP1-5 */
+-			operating-points = <
+-				/* kHz    uV */
+-				125000   975000
+-				250000  1075000
+-				500000  1200000
+-				550000  1270000
+-				600000  1350000
+-			>;
++			/* OMAP343x/OMAP35xx variants OPP1-6 */
++			operating-points-v2 = <&cpu0_opp_table>;
++
+ 			clock-latency = <300000>; /* From legacy driver */
  		};
  	};
  
-+	opp_supply_mpu_iva: opp_supply {
-+		compatible = "ti,omap-opp-supply";
-+		ti,absolute-max-voltage-uv = <1375000>;
++	/* see Documentation/devicetree/bindings/opp/opp.txt */
++	cpu0_opp_table: opp-table {
++		compatible = "operating-points-v2-ti-cpu";
++		syscon = <&scm_conf>;
++
++		opp1-125000000 {
++			opp-hz = /bits/ 64 <125000000>;
++			/*
++			 * we currently only select the max voltage from table
++			 * Table 3-3 of the omap3530 Data sheet (SPRS507F).
++			 * Format is: <target min max>
++			 */
++			opp-microvolt = <975000 975000 975000>;
++			/*
++			 * first value is silicon revision bit mask
++			 * second one 720MHz Device Identification bit mask
++			 */
++			opp-supported-hw = <0xffffffff 3>;
++		};
++
++		opp2-250000000 {
++			opp-hz = /bits/ 64 <250000000>;
++			opp-microvolt = <1075000 1075000 1075000>;
++			opp-supported-hw = <0xffffffff 3>;
++			opp-suspend;
++		};
++
++		opp3-500000000 {
++			opp-hz = /bits/ 64 <500000000>;
++			opp-microvolt = <1200000 1200000 1200000>;
++			opp-supported-hw = <0xffffffff 3>;
++		};
++
++		opp4-550000000 {
++			opp-hz = /bits/ 64 <550000000>;
++			opp-microvolt = <1275000 1275000 1275000>;
++			opp-supported-hw = <0xffffffff 3>;
++		};
++
++		opp5-600000000 {
++			opp-hz = /bits/ 64 <600000000>;
++			opp-microvolt = <1350000 1350000 1350000>;
++			opp-supported-hw = <0xffffffff 3>;
++		};
++
++		opp6-720000000 {
++			opp-hz = /bits/ 64 <720000000>;
++			opp-microvolt = <1350000 1350000 1350000>;
++			/* only high-speed grade omap3530 devices */
++			opp-supported-hw = <0xffffffff 2>;
++			turbo-mode;
++		};
 +	};
 +
  	ocp@68000000 {
- 		uart4: serial@49042000 {
- 			compatible = "ti,omap3-uart";
-diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-index 1a3073a3093e..f4704f9033e0 100644
---- a/drivers/cpufreq/ti-cpufreq.c
-+++ b/drivers/cpufreq/ti-cpufreq.c
-@@ -174,7 +174,7 @@ static struct ti_cpufreq_soc_data omap36xx_soc_data = {
- 	.efuse_shift = 9,
- 	.efuse_mask = BIT(9),
- 	.rev_offset = OMAP3_CONTROL_IDCODE - OMAP3_SYSCON_BASE,
--	.multi_regulator = false,
-+	.multi_regulator = true,
- };
+ 		omap3_pmx_core2: pinmux@480025d8 {
+ 			compatible = "ti,omap3-padconf", "pinctrl-single";
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 6fb23ada1f64..cb5bd0969124 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -19,15 +19,53 @@
+ 	};
  
- /**
+ 	cpus {
+-		/* OMAP3630/OMAP37xx 'standard device' variants OPP50 to OPP130 */
++		/* OMAP3630/OMAP37xx variants OPP50 to OPP130 and OPP1G */
+ 		cpu: cpu@0 {
+-			operating-points = <
+-				/* kHz    uV */
+-				300000  1012500
+-				600000  1200000
+-				800000  1325000
+-			>;
+-			clock-latency = <300000>; /* From legacy driver */
++			operating-points-v2 = <&cpu0_opp_table>;
++
++			clock-latency = <300000>; /* From omap-cpufreq driver */
++		};
++	};
++
++	/* see Documentation/devicetree/bindings/opp/opp.txt */
++	cpu0_opp_table: opp-table {
++		compatible = "operating-points-v2-ti-cpu";
++		syscon = <&scm_conf>;
++
++		opp50-300000000 {
++			opp-hz = /bits/ 64 <300000000>;
++			/*
++			 * we currently only select the max voltage from table
++			 * Table 4-19 of the DM3730 Data sheet (SPRS685B)
++			 * Format is: <target min max>
++			 */
++			opp-microvolt = <1012500 1012500 1012500>;
++			/*
++			 * first value is silicon revision bit mask
++			 * second one is "speed binned" bit mask
++			 */
++			opp-supported-hw = <0xffffffff 3>;
++			opp-suspend;
++		};
++
++		opp100-600000000 {
++			opp-hz = /bits/ 64 <600000000>;
++			opp-microvolt = <1200000 1200000 1200000>;
++			opp-supported-hw = <0xffffffff 3>;
++		};
++
++		opp130-800000000 {
++			opp-hz = /bits/ 64 <800000000>;
++			opp-microvolt = <1325000 1325000 1325000>;
++			opp-supported-hw = <0xffffffff 3>;
++		};
++
++		opp1g-1000000000 {
++			opp-hz = /bits/ 64 <1000000000>;
++			opp-microvolt = <1375000 1375000 1375000>;
++			/* only on am/dm37x with speed-binned bit set */
++			opp-supported-hw = <0xffffffff 2>;
++			turbo-mode;
+ 		};
+ 	};
+ 
+diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
+index 03dc4244ab00..68b7fc4225f8 100644
+--- a/drivers/cpufreq/cpufreq-dt-platdev.c
++++ b/drivers/cpufreq/cpufreq-dt-platdev.c
+@@ -86,7 +86,6 @@ static const struct of_device_id whitelist[] __initconst = {
+ 	{ .compatible = "st-ericsson,u9540", },
+ 
+ 	{ .compatible = "ti,omap2", },
+-	{ .compatible = "ti,omap3", },
+ 	{ .compatible = "ti,omap4", },
+ 	{ .compatible = "ti,omap5", },
+ 
+@@ -132,6 +131,7 @@ static const struct of_device_id blacklist[] __initconst = {
+ 	{ .compatible = "ti,am33xx", },
+ 	{ .compatible = "ti,am43", },
+ 	{ .compatible = "ti,dra7", },
++	{ .compatible = "ti,omap3", },
+ 
+ 	{ }
+ };
 -- 
 2.19.1
