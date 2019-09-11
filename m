@@ -1,88 +1,67 @@
-From: Sebastian Reichel <sre@kernel.org>
+From: Adam Ford <aford173@gmail.com>
 Subject: Re: [PATCH 1/2] ARM: omap2plus_defconfig: Update for removed items
-Date: Wed, 11 Sep 2019 17:50:21 +0100
-Message-ID: <20190911165021.qr5i37mpnua3fvw5@earth.universe>
-References: <20190911145226.21088-1-aford173@gmail.com>
+Date: Wed, 11 Sep 2019 12:13:27 -0500
+Message-ID: <CAHCN7xKin45Hqr1fgoOmbBKaM_hM_xnvrs2_5nnxAifHL2Sz0A@mail.gmail.com>
+References: <20190911145226.21088-1-aford173@gmail.com> <20190911165021.qr5i37mpnua3fvw5@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="cquryzuhszuj65pm"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190911145226.21088-1-aford173@gmail.com>
+In-Reply-To: <20190911165021.qr5i37mpnua3fvw5@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: linux-omap@vger.kernel.org, adam.ford@logicpd.com, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, arm-soc <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Sep 11, 2019 at 11:50 AM Sebastian Reichel <sre@kernel.org> wrote:
+>
+> Hi,
+>
+> On Wed, Sep 11, 2019 at 09:52:25AM -0500, Adam Ford wrote:
+> > The omap panel-dpi driver was removed in
+> > Commit 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
+> >
+> > The tFP410 and DVI connector was remove in
+> > Commit be3143d8b27f ("drm/omap: Remove TFP410 and DVI connector drivers")
+> >
+> > This patch removes these items from the omap2plus_defconfig.
+>
+> The omapdrm specific drivers have generic replacements, that
+> should be added to the defconfig instead:
+>
+> DRM_OMAP_PANEL_DPI -> DRM_PANEL_SIMPLE
+> DRM_OMAP_ENCODER_TFP410 -> DRM_TI_TFP410
+>
+> Nothing should be required for DRM_OMAP_CONNECTOR_DVI.
 
---cquryzuhszuj65pm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The DPI panel was already done.
 
-Hi,
+https://patchwork.kernel.org/patch/11119569/
 
-On Wed, Sep 11, 2019 at 09:52:25AM -0500, Adam Ford wrote:
-> The omap panel-dpi driver was removed in
-> Commit 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
->=20
-> The tFP410 and DVI connector was remove in
-> Commit be3143d8b27f ("drm/omap: Remove TFP410 and DVI connector drivers")
->=20
-> This patch removes these items from the omap2plus_defconfig.
+I'll submit a patch for the TFP410
 
-The omapdrm specific drivers have generic replacements, that
-should be added to the defconfig instead:
-
-DRM_OMAP_PANEL_DPI -> DRM_PANEL_SIMPLE
-DRM_OMAP_ENCODER_TFP410 -> DRM_TI_TFP410
-
-Nothing should be required for DRM_OMAP_CONNECTOR_DVI.
-
--- Sebastian
-
-> Signed-off-by: Adam Ford <aford173@gmail.com>
->=20
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
-2plus_defconfig
-> index c7bf9c493646..166b36be2ca6 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -349,12 +349,9 @@ CONFIG_OMAP5_DSS_HDMI=3Dy
->  CONFIG_OMAP2_DSS_SDI=3Dy
->  CONFIG_OMAP2_DSS_DSI=3Dy
->  CONFIG_DRM_OMAP_ENCODER_OPA362=3Dm
-> -CONFIG_DRM_OMAP_ENCODER_TFP410=3Dm
->  CONFIG_DRM_OMAP_ENCODER_TPD12S015=3Dm
-> -CONFIG_DRM_OMAP_CONNECTOR_DVI=3Dm
->  CONFIG_DRM_OMAP_CONNECTOR_HDMI=3Dm
->  CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=3Dm
-> -CONFIG_DRM_OMAP_PANEL_DPI=3Dm
->  CONFIG_DRM_OMAP_PANEL_DSI_CM=3Dm
->  CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=3Dm
->  CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=3Dm
-> --=20
-> 2.17.1
->=20
-
---cquryzuhszuj65pm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl15JckACgkQ2O7X88g7
-+poVgRAAgMcfz1sNIFGJyjDqAyhgu3cqv4oHp9J6JpEc+oy01vP+KpXSncCd2V7q
-4qo1PkL++BZUN7uOYLNKK3f4KH8RSkITyzhTiY9Sj8nqASc+khTbYyCms+lePx3M
-vSgxevdTU4Nw3VzjR67z5IsXz8VyEwmDGyunTc8lhnkPupuSOUg8YW/3XA363Epu
-CYsHJSJykrVvtScBGs4dcgPD+eIPqfMTslhCMw8zxzAy3HBqsHqDu6tfYDAL1DB/
-K0L+QhILnkSKh+g8C0oC/sikdJTgwdHen0Lx9iYJqqaFutLabuP4FNovPMCt7bJ4
-ciHZV6etFcW4ci9sX7L9jgbn9oZtfMhifI5T2JfDxGrMfNWpRf3wehvsoL1Gqupe
-zUX0rgAb50PFGxkAn9mPnbEvtaKBP6tkLTVTDNThf2jbK5gn9yS6dXjES8q7XIJI
-t+/a8NiQRUmNBhlQNtdlY8g2mqmP9orSSZD0AUULhIw9tmEvCCdlRuFNLkm8/Wr6
-5S0QHbfMi+W7nlnEF3g7lRmtpbbwA7/glTCehYmuOvtFVZH9sBPu6XoESS2pyyMv
-2H1yrhxPUku8EnRgIsO3ZQDKF7xXT0F1teL2PQbO17HoaPWaBJq36HJ99UvUpGQU
-eegD9nrFhGv5mBQSxFwlNju5cuJ5k4yELT8CZjMkd08KJJfopkQ=
-=k12s
------END PGP SIGNATURE-----
-
---cquryzuhszuj65pm--
+adam
+>
+> -- Sebastian
+>
+> > Signed-off-by: Adam Ford <aford173@gmail.com>
+> >
+> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> > index c7bf9c493646..166b36be2ca6 100644
+> > --- a/arch/arm/configs/omap2plus_defconfig
+> > +++ b/arch/arm/configs/omap2plus_defconfig
+> > @@ -349,12 +349,9 @@ CONFIG_OMAP5_DSS_HDMI=y
+> >  CONFIG_OMAP2_DSS_SDI=y
+> >  CONFIG_OMAP2_DSS_DSI=y
+> >  CONFIG_DRM_OMAP_ENCODER_OPA362=m
+> > -CONFIG_DRM_OMAP_ENCODER_TFP410=m
+> >  CONFIG_DRM_OMAP_ENCODER_TPD12S015=m
+> > -CONFIG_DRM_OMAP_CONNECTOR_DVI=m
+> >  CONFIG_DRM_OMAP_CONNECTOR_HDMI=m
+> >  CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=m
+> > -CONFIG_DRM_OMAP_PANEL_DPI=m
+> >  CONFIG_DRM_OMAP_PANEL_DSI_CM=m
+> >  CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=m
+> >  CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=m
+> > --
+> > 2.17.1
+> >
