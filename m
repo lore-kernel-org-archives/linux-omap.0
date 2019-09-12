@@ -1,14 +1,17 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH 1/3] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
-Date: Thu, 12 Sep 2019 13:59:43 -0500
-Message-ID: <CAHCN7x+Vd+ECoa4fmUfoX47znag+NxKSzRt3iouQCZ2CQ2T--A@mail.gmail.com>
-References: <20190801012823.28730-1-neolynx@gmail.com>
- <20190801012823.28730-2-neolynx@gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 10/10] ARM: OMAP2+: pdata-quirks: add PRM data for reset
+ support
+Date: Thu, 12 Sep 2019 23:09:21 +0300
+Message-ID: <4103d986-20fa-0dce-df6b-b0955ceabd74@ti.com>
+References: <20190912113916.20093-1-t-kristo@ti.com>
+ <20190912113916.20093-11-t-kristo@ti.com>
+ <20190912170953.GT52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190801012823.28730-2-neolynx@gmail.com>
+In-Reply-To: <20190912170953.GT52127@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,88 +21,48 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Shweta Gulati <shweta.gulati@ti.com>, Thara Gopinath <thara@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBKdWwgMzEsIDIwMTkgYXQgODoyOSBQTSBBbmRyw6kgUm90aCA8bmVvbHlueEBnbWFp
-bC5jb20+IHdyb3RlOgo+Cj4gRnJvbTogVGhhcmEgR29waW5hdGggPHRoYXJhQHRpLmNvbT4KPgo+
-IFZvbHRhZ2UgY29udHJvbCBvbiBUV0wgY2FuIGJlIGRvbmUgdXNpbmcgVk1PREUvSTJDMS9JMkNf
-U1IuCj4gU2luY2UgYWxtb3N0IGFsbCBwbGF0Zm9ybXMgdXNlIEkyQ19TUiBvbiBvbWFwMywgb21h
-cDNfdHdsX2luaXQgYnkKPiBkZWZhdWx0IGV4cGVjdHMgdGhhdCBPTUFQJ3MgSTJDX1NSIGlzIHBs
-dWdnZWQgaW4gdG8gVFdMJ3MgSTJDCj4gYW5kIGNhbGxzIG9tYXAzX3R3bF9zZXRfc3JfYml0LiBP
-biBwbGF0Zm9ybXMgd2hlcmUgSTJDX1NSIGlzIG5vdCBjb25uZWN0ZWQsCj4gdGhlIGJvYXJkIGZp
-bGVzIGFyZSBleHBlY3RlZCB0byBjYWxsIG9tYXAzX3R3bF9zZXRfc3JfYml0KGZhbHNlKSB0bwo+
-IGVuc3VyZSB0aGF0IEkyQ19TUiBwYXRoIGlzIG5vdCBzZXQgZm9yIHZvbHRhZ2UgY29udHJvbCBh
-bmQgcHJldmVudAo+IHRoZSBkZWZhdWx0IGJlaGF2aW9yIG9mIG9tYXAzX3R3bF9pbml0Lgo+Cj4g
-U2lnbmVkLW9mZi1ieTogTmlzaGFudGggTWVub24gPG5tQHRpLmNvbT4KPiBTaWduZWQtb2ZmLWJ5
-OiBUaGFyYSBHb3BpbmF0aCA8dGhhcmFAdGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFNod2V0YSBH
-dWxhdGkgPHNod2V0YS5ndWxhdGlAdGkuY29tPgo+IENjOiBsaW51eC1hcm0ta2VybmVsQGxpc3Rz
-LmluZnJhZGVhZC5vcmcKPiBTaWduZWQtb2ZmLWJ5OiBLZXZpbiBIaWxtYW4gPGtoaWxtYW5AdGku
-Y29tPgoKVG9ueSwKCklzIHRoZXJlIGEgc3RhdHVzIHVwZGF0ZSBvbiB0aGlzIHNlcmllcz8gIEl0
-J3MgYmVlbiBzZXZlcmFsIG1vbnRocywKYW5kIEkgaGF2ZW4ndCBzZWVuIGFueSBmZWVkYmFjayBv
-biBpdCwgbm9yIGRvZXMgaXQgYXBwZWFyIHRvIGJlIGluIGFueQpvZiB5b3VyIGJyYW5jaGVzIHRo
-YXQgSSBjYW4gc2VlLgoKYWRhbQo+IC0tLQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfdHds
-LmMgfCA2MCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFu
-Z2VkLCA2MCBpbnNlcnRpb25zKCspCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9vbWFwX3R3bC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX3R3bC5jCj4gaW5kZXggNjc4
-N2YxZTcyYzZiLi4xZGFlOTA2MTI4YzIgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9vbWFwX3R3bC5jCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX3R3bC5jCj4gQEAg
-LTQzLDggKzQzLDE1IEBACj4KPiAgc3RhdGljIGJvb2wgaXNfb2Zmc2V0X3ZhbGlkOwo+ICBzdGF0
-aWMgdTggc21wc19vZmZzZXQ7Cj4gKy8qCj4gKyAqIEZsYWcgdG8gZW5zdXJlIFNtYXJ0cmVmbGV4
-IGJpdCBpbiBUV0wKPiArICogYmVpbmcgY2xlYXJlZCBpbiBib2FyZCBmaWxlIGlzIG5vdCBvdmVy
-d3JpdHRlbi4KPiArICovCj4gK3N0YXRpYyBib29sIF9faW5pdGRhdGEgdHdsX3NyX2VuYWJsZV9h
-dXRvaW5pdDsKPgo+ICsjZGVmaW5lIFRXTDQwMzBfRENEQ19HTE9CQUxfQ0ZHICAgICAgICAweDA2
-Cj4gICNkZWZpbmUgUkVHX1NNUFNfT0ZGU0VUICAgICAgICAgMHhFMAo+ICsjZGVmaW5lIFNNQVJU
-UkVGTEVYX0VOQUJMRSAgICAgQklUKDMpCj4KPiAgc3RhdGljIHVuc2lnbmVkIGxvbmcgdHdsNDAz
-MF92c2VsX3RvX3V2KGNvbnN0IHU4IHZzZWwpCj4gIHsKPiBAQCAtMjQxLDYgKzI0OCwxOCBAQCBp
-bnQgX19pbml0IG9tYXAzX3R3bF9pbml0KHZvaWQpCj4gICAgICAgICBpZiAoIWNwdV9pc19vbWFw
-MzR4eCgpKQo+ICAgICAgICAgICAgICAgICByZXR1cm4gLUVOT0RFVjsKPgo+ICsgICAgICAgLyoK
-PiArICAgICAgICAqIFRoZSBzbWFydHJlZmxleCBiaXQgb24gdHdsNDAzMCBzcGVjaWZpZXMgaWYg
-dGhlIHNldHRpbmcgb2Ygdm9sdGFnZQo+ICsgICAgICAgICogaXMgZG9uZSBvdmVyIHRoZSBJMkNf
-U1IgcGF0aC4gU2luY2UgdGhpcyBzZXR0aW5nIGlzIGluZGVwZW5kZW50IG9mCj4gKyAgICAgICAg
-KiB0aGUgYWN0dWFsIHVzYWdlIG9mIHNtYXJ0cmVmbGV4IEFWUyBtb2R1bGUsIHdlIGVuYWJsZSBU
-V0wgU1IgYml0Cj4gKyAgICAgICAgKiBieSBkZWZhdWx0IGlycmVzcGVjdGl2ZSBvZiB3aGV0aGVy
-IHNtYXJ0cmVmbGV4IEFWUyBtb2R1bGUgaXMgZW5hYmxlZAo+ICsgICAgICAgICogb24gdGhlIE9N
-QVAgc2lkZSBvciBub3QuIFRoaXMgaXMgYmVjYXVzZSB3aXRob3V0IHRoaXMgYml0IGVuYWJsZWQs
-Cj4gKyAgICAgICAgKiB0aGUgdm9sdGFnZSBzY2FsaW5nIHRocm91Z2ggdnAgZm9yY2V1cGRhdGUv
-YnlwYXNzIG1lY2hhbmlzbSBvZgo+ICsgICAgICAgICogdm9sdGFnZSBzY2FsaW5nIHdpbGwgbm90
-IGZ1bmN0aW9uIG9uIFRXTCBvdmVyIEkyQ19TUi4KPiArICAgICAgICAqLwo+ICsgICAgICAgaWYg
-KCF0d2xfc3JfZW5hYmxlX2F1dG9pbml0KQo+ICsgICAgICAgICAgICAgICBvbWFwM190d2xfc2V0
-X3NyX2JpdCh0cnVlKTsKPiArCj4gICAgICAgICB2b2x0ZG0gPSB2b2x0ZG1fbG9va3VwKCJtcHVf
-aXZhIik7Cj4gICAgICAgICBvbWFwX3ZvbHRhZ2VfcmVnaXN0ZXJfcG1pYyh2b2x0ZG0sICZvbWFw
-M19tcHVfcG1pYyk7Cj4KPiBAQCAtMjQ5LDMgKzI2OCw0NCBAQCBpbnQgX19pbml0IG9tYXAzX3R3
-bF9pbml0KHZvaWQpCj4KPiAgICAgICAgIHJldHVybiAwOwo+ICB9Cj4gKwo+ICsvKioKPiArICog
-b21hcDNfdHdsX3NldF9zcl9iaXQoKSAtIFNldC9DbGVhciBTUiBiaXQgb24gVFdMCj4gKyAqIEBl
-bmFibGU6IGVuYWJsZSBTUiBtb2RlIGluIHR3bCBvciBub3QKPiArICoKPiArICogSWYgJ2VuYWJs
-ZScgaXMgdHJ1ZSwgZW5hYmxlcyBTbWFydHJlZmxleCBiaXQgb24gVFdMIDQwMzAgdG8gbWFrZSBz
-dXJlCj4gKyAqIHZvbHRhZ2Ugc2NhbGluZyB0aHJvdWdoIE9NQVAgU1Igd29ya3MuIEVsc2UsIHRo
-ZSBzbWFydHJlZmxleCBiaXQKPiArICogb24gdHdsNDAzMCBpcyBjbGVhcmVkIGFzIHRoZXJlIGFy
-ZSBwbGF0Zm9ybXMgd2hpY2ggdXNlIE9NQVAzIGFuZCBUMiBidXQKPiArICogdXNlIFN5bmNocm9u
-aXplZCBTY2FsaW5nIEhhcmR3YXJlIFN0cmF0ZWd5IChFTkFCTEVfVk1PREU9MSkgYW5kIERpcmVj
-dAo+ICsgKiBTdHJhdGVneSBTb2Z0d2FyZSBTY2FsaW5nIE1vZGUgKEVOQUJMRV9WTU9ERT0wKSwg
-Zm9yIHNldHRpbmcgdGhlIHZvbHRhZ2VzLAo+ICsgKiBpbiB0aG9zZSBzY2VuYXJpb3MgdGhpcyBi
-aXQgaXMgdG8gYmUgY2xlYXJlZCAoZW5hYmxlID0gZmFsc2UpLgo+ICsgKgo+ICsgKiBSZXR1cm5z
-IDAgb24gc3VjZXNzLCBlcnJvciBpcyByZXR1cm5lZCBpZiBJMkMgcmVhZC93cml0ZSBmYWlscy4K
-PiArICovCj4gK2ludCBfX2luaXQgb21hcDNfdHdsX3NldF9zcl9iaXQoYm9vbCBlbmFibGUpCj4g
-K3sKPiArICAgICAgIHU4IHRlbXA7Cj4gKyAgICAgICBpbnQgcmV0Owo+ICsgICAgICAgaWYgKHR3
-bF9zcl9lbmFibGVfYXV0b2luaXQpCj4gKyAgICAgICAgICAgICAgIHByX3dhcm5pbmcoIiVzOiB1
-bmV4cGVjdGVkIG11bHRpcGxlIGNhbGxzXG4iLCBfX2Z1bmNfXyk7Cj4gKwo+ICsgICAgICAgcmV0
-ID0gdHdsX2kyY19yZWFkX3U4KFRXTF9NT0RVTEVfUE1fUkVDRUlWRVIsICZ0ZW1wLAo+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBUV0w0MDMwX0RDRENfR0xPQkFMX0NG
-Ryk7Cj4gKyAgICAgICBpZiAocmV0KQo+ICsgICAgICAgICAgICAgICBnb3RvIGVycjsKPiArCj4g
-KyAgICAgICBpZiAoZW5hYmxlKQo+ICsgICAgICAgICAgICAgICB0ZW1wIHw9IFNNQVJUUkVGTEVY
-X0VOQUJMRTsKPiArICAgICAgIGVsc2UKPiArICAgICAgICAgICAgICAgdGVtcCAmPSB+U01BUlRS
-RUZMRVhfRU5BQkxFOwo+ICsKPiArICAgICAgIHJldCA9IHR3bF9pMmNfd3JpdGVfdTgoVFdMX01P
-RFVMRV9QTV9SRUNFSVZFUiwgdGVtcCwKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IFRXTDQwMzBfRENEQ19HTE9CQUxfQ0ZHKTsKPiArICAgICAgIGlmICghcmV0KSB7Cj4gKyAgICAg
-ICAgICAgICAgIHR3bF9zcl9lbmFibGVfYXV0b2luaXQgPSB0cnVlOwo+ICsgICAgICAgICAgICAg
-ICByZXR1cm4gMDsKPiArICAgICAgIH0KPiArZXJyOgo+ICsgICAgICAgcHJfZXJyKCIlczogRXJy
-b3IgYWNjZXNzIHRvIFRXTDQwMzAgKCVkKVxuIiwgX19mdW5jX18sIHJldCk7Cj4gKyAgICAgICBy
-ZXR1cm4gcmV0Owo+ICt9Cj4gLS0KPiAyLjE3LjEKPgo+Cj4gX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KPiBsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlz
-dAo+IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5p
-bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
-YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On 12/09/2019 20:09, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [190912 11:40]:
+>> @@ -565,6 +566,12 @@ void omap_pcs_legacy_init(int irq, void (*rearm)(void))
+>>   	pcs_pdata.rearm = rearm;
+>>   }
+>>   
+>> +static struct ti_prm_platform_data ti_prm_pdata = {
+>> +	.clkdm_deny_idle = clkdm_deny_idle,
+>> +	.clkdm_allow_idle = clkdm_allow_idle,
+>> +	.clkdm_lookup = clkdm_lookup,
+>> +};
+>> +
+>>   /*
+>>    * GPIOs for TWL are initialized by the I2C bus and need custom
+>>    * handing until DSS has device tree bindings.
+>> @@ -664,6 +671,11 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
+>>   	/* Common auxdata */
+>>   	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
+>>   	OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
+>> +	OF_DEV_AUXDATA("ti,omap4-prm-inst", 0, NULL, &ti_prm_pdata),
+>> +	OF_DEV_AUXDATA("ti,omap5-prm-inst", 0, NULL, &ti_prm_pdata),
+>> +	OF_DEV_AUXDATA("ti,dra7-prm-inst", 0, NULL, &ti_prm_pdata),
+>> +	OF_DEV_AUXDATA("ti,am3-prm-inst", 0, NULL, &ti_prm_pdata),
+>> +	OF_DEV_AUXDATA("ti,am4-prm-inst", 0, NULL, &ti_prm_pdata),
+>>   	{ /* sentinel */ },
+>>   };
+> 
+> Hmm I think I already commented on this.. Just one entry please:
+> 
+> 	OF_DEV_AUXDATA("ti,omap-prm-inst", 0, NULL, &ti_prm_pdata),
+> 
+> As the auxdata is the same for all of them. Note that all the
+> dts files need to have also the generic compatible
+> "ti,omap-prm-inst" after the SoC specific one.
+
+Ok that should be fine, sorry for missing it out. I can update this in 
+the next rev, just need to update the dt binding also.
+
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
