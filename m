@@ -1,63 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv5 10/10] ARM: OMAP2+: pdata-quirks: add PRM data for
- reset support
-Date: Thu, 12 Sep 2019 10:09:53 -0700
-Message-ID: <20190912170953.GT52127@atomide.com>
-References: <20190912113916.20093-1-t-kristo@ti.com>
- <20190912113916.20093-11-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190912113916.20093-11-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org
+From: Adam Ford <aford173@gmail.com>
+Subject: [RFC] ARM: dts: omap36xx: Enable thermal throttling
+Date: Thu, 12 Sep 2019 13:30:37 -0500
+Message-ID: <20190912183037.18449-1-aford173@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: hns@goldelico.com, tony@atomide.com, neolynx@gmail.com, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, andreas@kemnade.info, nm@ti.com, adam.ford@logicpd.com, Adam Ford <aford173@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [190912 11:40]:
-> @@ -565,6 +566,12 @@ void omap_pcs_legacy_init(int irq, void (*rearm)(void))
->  	pcs_pdata.rearm = rearm;
->  }
->  
-> +static struct ti_prm_platform_data ti_prm_pdata = {
-> +	.clkdm_deny_idle = clkdm_deny_idle,
-> +	.clkdm_allow_idle = clkdm_allow_idle,
-> +	.clkdm_lookup = clkdm_lookup,
-> +};
-> +
->  /*
->   * GPIOs for TWL are initialized by the I2C bus and need custom
->   * handing until DSS has device tree bindings.
-> @@ -664,6 +671,11 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
->  	/* Common auxdata */
->  	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
->  	OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
-> +	OF_DEV_AUXDATA("ti,omap4-prm-inst", 0, NULL, &ti_prm_pdata),
-> +	OF_DEV_AUXDATA("ti,omap5-prm-inst", 0, NULL, &ti_prm_pdata),
-> +	OF_DEV_AUXDATA("ti,dra7-prm-inst", 0, NULL, &ti_prm_pdata),
-> +	OF_DEV_AUXDATA("ti,am3-prm-inst", 0, NULL, &ti_prm_pdata),
-> +	OF_DEV_AUXDATA("ti,am4-prm-inst", 0, NULL, &ti_prm_pdata),
->  	{ /* sentinel */ },
->  };
+The thermal sensor in the omap3 family isn't accurate, but it's
+better than nothing.  The various OPP's enabled for the omap3630
+support up to OPP1G, however the datasheet for the DM3730 states
+that OPP130 and OPP1G are not available above TJ of 90C.
 
-Hmm I think I already commented on this.. Just one entry please:
+This patch configures the thermal throttling to limit the
+operating points of the omap3630 to Only OPP50 and OPP100 if
+the thermal sensor reads a value above 90C.
 
-	OF_DEV_AUXDATA("ti,omap-prm-inst", 0, NULL, &ti_prm_pdata),
+Signed-off-by: Adam Ford <aford173@gmail.com>
 
-As the auxdata is the same for all of them. Note that all the
-dts files need to have also the generic compatible
-"ti,omap-prm-inst" after the SoC specific one.
-
-Regards,
-
-Tony
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 4bb4f534afe2..58b9d347019f 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -25,6 +25,7 @@
+ 
+ 			vbb-supply = <&abb_mpu_iva>;
+ 			clock-latency = <300000>; /* From omap-cpufreq driver */
++			#cooling-cells = <2>;
+ 		};
+ 	};
+ 
+@@ -195,6 +196,31 @@
+ 	};
+ };
+ 
++&cpu_thermal {
++	cpu_trips: trips {
++		/* OPP130 and OPP1G are not available above TJ of 90C. */
++		cpu_alert0: cpu_alert {
++			temperature = <90000>; /* millicelsius */
++			hysteresis = <2000>; /* millicelsius */
++			type = "passive";
++		};
++
++		cpu_crit: cpu_crit {
++			temperature = <125000>; /* millicelsius */
++			hysteresis = <2000>; /* millicelsius */
++			type = "critical";
++		};
++	};
++
++	cpu_cooling_maps: cooling-maps {
++		map0 {
++			trip = <&cpu_alert0>;
++			/* Only allow OPP50 and OPP100 */
++			cooling-device = <&cpu 0 1>;
++		};
++	};
++};
++
+ /* OMAP3630 needs dss_96m_fck for VENC */
+ &venc {
+ 	clocks = <&dss_tv_fck>, <&dss_96m_fck>;
+-- 
+2.17.1
