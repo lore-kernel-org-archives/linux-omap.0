@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 01/10] dt-bindings: omap: add new binding for PRM instances
-Date: Thu, 12 Sep 2019 14:39:07 +0300
-Message-ID: <20190912113916.20093-2-t-kristo@ti.com>
+Subject: [PATCHv5 05/10] soc: ti: omap-prm: add omap4 PRM data
+Date: Thu, 12 Sep 2019 14:39:11 +0300
+Message-ID: <20190912113916.20093-6-t-kristo@ti.com>
 References: <20190912113916.20093-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,53 +21,48 @@ To: linux-omap@vger.kernel.org, ssantosh@kernel.org, p.zabel@pengutronix.de, rob
 Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
-of these will act as a power domain controller and potentially as a reset
-provider.
+Add PRM data for omap4 family of SoCs. Initially this is just used to
+provide reset support.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
-v5: - dropped the clocks property as the dependency towards clocks was
-      removed
-    - changed the name of the node to be power-controller
+ drivers/soc/ti/omap_prm.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
- .../devicetree/bindings/arm/omap/prm-inst.txt | 28 +++++++++++++++++++
- 1 file changed, 28 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-
-diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-new file mode 100644
-index 000000000000..942f7aac3b00
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-@@ -0,0 +1,27 @@
-+OMAP PRM instance bindings
-+
-+Power and Reset Manager is an IP block on OMAP family of devices which
-+handle the power domains and their current state, and provide reset
-+handling for the domains and/or separate IP blocks under the power domain
-+hierarchy.
-+
-+Required properties:
-+- compatible:	Must be one of:
-+		"ti,am3-prm-inst"
-+		"ti,am4-prm-inst"
-+		"ti,omap4-prm-inst"
-+		"ti,omap5-prm-inst"
-+		"ti,dra7-prm-inst"
-+- reg:		Contains PRM instance register address range
-+		(base address and length)
-+
-+Optional properties:
-+- #reset-cells:	Should be 1 if the PRM instance in question supports resets.
-+
-+Example:
-+
-+prm_dsp2: power-controller@1b00 {
-+	compatible = "ti,dra7-prm-inst";
-+	reg = <0x1b00 0x40>;
-+	#reset-cells = <1>;
+diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+index 3d9393ff67e3..24b1da3492c0 100644
+--- a/drivers/soc/ti/omap_prm.c
++++ b/drivers/soc/ti/omap_prm.c
+@@ -58,7 +58,29 @@ struct omap_reset_data {
+ 
+ #define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
+ 
++static const struct omap_rst_map rst_map_01[] = {
++	{ .rst = 0, .st = 0 },
++	{ .rst = 1, .st = 1 },
++	{ .rst = -1 },
 +};
++
++static const struct omap_rst_map rst_map_012[] = {
++	{ .rst = 0, .st = 0 },
++	{ .rst = 1, .st = 1 },
++	{ .rst = 2, .st = 2 },
++	{ .rst = -1 },
++};
++
++static const struct omap_prm_data omap4_prm_data[] = {
++	{ .name = "tesla", .base = 0x4a306400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_01 },
++	{ .name = "core", .base = 0x4a306700, .rstctrl = 0x210, .rstst = 0x214, .clkdm_name = "ducati", .rstmap = rst_map_012 },
++	{ .name = "ivahd", .base = 0x4a306f00, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_012 },
++	{ .name = "device", .base = 0x4a307b00, .rstctrl = 0x0, .rstst = 0x4, .rstmap = rst_map_01, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
++	{ },
++};
++
+ static const struct of_device_id omap_prm_id_table[] = {
++	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
+ 	{ },
+ };
+ 
 -- 
 2.17.1
 
