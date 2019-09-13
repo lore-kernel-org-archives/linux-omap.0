@@ -1,69 +1,87 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [RFC 2/2] ARM: omap3: Consolidate thermal references to common omap3
-Date: Fri, 13 Sep 2019 10:04:09 -0500
-Message-ID: <20190913150410.27391-2-aford173@gmail.com>
-References: <20190913150410.27391-1-aford173@gmail.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [RFC] ARM: dts: omap36xx: Enable thermal throttling
+Date: Fri, 13 Sep 2019 17:09:00 +0200
+Message-ID: <7C9393BD-B23B-41A6-BF96-E53CD707AAC7@goldelico.com>
+References: <20190912183037.18449-1-aford173@gmail.com> <D4F7E03C-1880-45AC-8F7C-6C8A336E2A01@goldelico.com> <CAHCN7xK100mR=fNns3qdDKpOyWsTWXgDnnngQfQ_j8cB_SFfuA@mail.gmail.com> <98751DAF-B3F7-4638-97BE-1D067B24EF18@goldelico.com> <CAHCN7xL-CmwmXP3PLdwAHiC-9tMjrpY4k7ZhxQ9WoXY6yUz8BA@mail.gmail.com> <ABCE2ACA-D19A-42D2-9606-C60F1A5CBCCB@goldelico.com> <CAHCN7xKfeh-cqJVfbW_km27cgee2MEBdPM3edACRi0fCaohxvw@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190913150410.27391-1-aford173@gmail.com>
+In-Reply-To: <CAHCN7xKfeh-cqJVfbW_km27cgee2MEBdPM3edACRi0fCaohxvw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: adam.ford@logicpd.com, nm@ti.com, hns@goldelico.com, Adam Ford <aford173@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>, Nishanth Menon <nm@ti.com>, Adam Ford <adam.ford@logicpd.com>, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-Because the omap34xx, omap36xx and am3517 SoC's have the same
-thermal junction limits, there is no need to duplicate the entry
-multiple times.
 
-This patch removes the thermal references from omap36xx and
-omap34xx and pushes it into the common omap3.dtsi file with
-the added benefit of enabling the thermal info on the AM3517.
+> Am 13.09.2019 um 17:01 schrieb Adam Ford <aford173@gmail.com>:
+>=20
+> On Fri, Sep 13, 2019 at 9:24 AM H. Nikolaus Schaller =
+<hns@goldelico.com> wrote:
+>>=20
+>>=20
+>>> Am 13.09.2019 um 16:05 schrieb Adam Ford <aford173@gmail.com>:
+>>>=20
+>>> On Fri, Sep 13, 2019 at 8:32 AM H. Nikolaus Schaller =
+<hns@goldelico.com> wrote:
+>>>>=20
+>>>> Hi Adam,
+>>>>=20
+>>>>> Am 13.09.2019 um 13:07 schrieb Adam Ford <aford173@gmail.com>:
+>>>>=20
+>>>>>>> +     cpu_cooling_maps: cooling-maps {
+>>>>>>> +             map0 {
+>>>>>>> +                     trip =3D <&cpu_alert0>;
+>>>>>>> +                     /* Only allow OPP50 and OPP100 */
+>>>>>>> +                     cooling-device =3D <&cpu 0 1>;
+>>>>>>=20
+>>>>>> omap4-cpu-thermal.dtsi uses THERMAL_NO_LIMIT constants but I do =
+not
+>>>>>> understand their meaning (and how it relates to the opp list).
+>>>>>=20
+>>>>> I read through the documentation, but it wasn't completely clear =
+to
+>>>>> me. AFAICT, the numbers after &cpu represent the min and max index =
+in
+>>>>> the OPP table when the condition is hit.
+>>>>=20
+>>>> Ok. It seems to use "cooling state" for those and the first is =
+minimum
+>>>> and the last is maximum. Using THERMAL_NO_LIMIT (-1UL) means to =
+have
+>>>> no limits.
+>>>>=20
+>>>> Since here we use the &cpu node it is likely that the "cooling =
+state"
+>>>> is the same as the OPP index currently in use.
+>>>>=20
+>>>> I have looked through the .dts which use cpu_crit and the picture =
+is
+>>>> not unique...
+>>>>=20
+>>>> omap4           seems to only define it
+>>>> am57xx          has two different grade dtsi files
+>>>> dra7            overwrites critical temperature value
+>>>> am57xx-beagle   defines a gpio to control a fan
+>>>=20
+>=20
+> I am going to push a separate but related RFC with 2 patches in the
+> series.  This new one will setup the alerts and maps without any
+> throttling for all omap3's in the first patch.  The second patch will
+> consolidate the thermal references to omap3.dtsi so omap34, omap36 and
+> am35 can all use them without having to duplicate the entries.
+>=20
+> It will make the omap36xx changes simpler to manage, because we can
+> just modify a portion of the entries instead of having the whole
+> table.
+>=20
+> Once this parallel RFC gets comments/feedback, I'll re-integrate the
+> omap36xx throttling.
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
+Good idea. I have looked over them and they seem to be ok.
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 4043ecb38016..db9cafddbe69 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -44,6 +44,10 @@
- 		};
- 	};
- 
-+	thermal_zones: thermal-zones {
-+		#include "omap3-cpu-thermal.dtsi"
-+	};
-+
- 	pmu@54000000 {
- 		compatible = "arm,cortex-a8-pmu";
- 		reg = <0x54000000 0x800000>;
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index f572a477f74c..b80378d6e5c1 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -101,10 +101,6 @@
- 			};
- 		};
- 	};
--
--	thermal_zones: thermal-zones {
--		#include "omap3-cpu-thermal.dtsi"
--	};
- };
- 
- &ssi {
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 6fb23ada1f64..ff2dca63a04e 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -140,10 +140,6 @@
- 			};
- 		};
- 	};
--
--	thermal_zones: thermal-zones {
--		#include "omap3-cpu-thermal.dtsi"
--	};
- };
- 
- /* OMAP3630 needs dss_96m_fck for VENC */
--- 
-2.17.1
+>=20
+> adam
+
+BR and thanks,
+Nikolaus
