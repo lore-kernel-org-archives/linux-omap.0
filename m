@@ -1,84 +1,62 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: [RFC v2 2/2] ARM: omap3: Consolidate thermal references to common omap3
-Date: Fri, 13 Sep 2019 10:37:14 -0500
-Message-ID: <20190913153714.30980-2-aford173@gmail.com>
-References: <20190913153714.30980-1-aford173@gmail.com>
+Subject: [RFC v2 1/2] ARM: dts: omap3: Add cpu trips and cooling map for omap3 family
+Date: Fri, 13 Sep 2019 10:37:13 -0500
+Message-ID: <20190913153714.30980-1-aford173@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190913153714.30980-1-aford173@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: adam.ford@logicpd.com, nm@ti.com, hns@goldelico.com, Adam Ford <aford173@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Because the omap34xx, omap36xx and am3517 SoC's have the same
-thermal junction limits, there is no need to duplicate the entry
-multiple times.
+The OMAP3530, AM3517 and DM3730 all show thresholds of 90C and 105C
+depending on commercial or industrial temperature ratings.  This
+patch expands the thermal information to the limits of 90 and 105
+for alert and critical.
 
-This patch removes the thermal references from omap36xx and
-omap34xx and pushes it into the common omap3.dtsi file with
-the added benefit of enabling the thermal info on the AM3517.
+For boards who never use industrial temperatures, these can be
+changed on their respective device trees with something like:
+
+&cpu_alert0 {
+	temperature = <85000>; /* millicelsius */
+};
+
+&cpu_crit {
+	temperature = <90000>; /* millicelsius */
+};
 
 Signed-off-by: Adam Ford <aford173@gmail.com>
 ---
-V2:	Add node name for cpu and add cooling-cells entry
+V2:  Change the CPU reference to &cpu instead of &cpu0
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 4043ecb38016..84704eb3b604 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -32,7 +32,7 @@
- 		#address-cells = <1>;
- 		#size-cells = <0>;
+diff --git a/arch/arm/boot/dts/omap3-cpu-thermal.dtsi b/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
+index 235ecfd61e2d..dfbd0cb0b00b 100644
+--- a/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
++++ b/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
+@@ -17,4 +17,25 @@ cpu_thermal: cpu_thermal {
  
--		cpu@0 {
-+		cpu: cpu@0 {
- 			compatible = "arm,cortex-a8";
- 			device_type = "cpu";
- 			reg = <0x0>;
-@@ -41,9 +41,14 @@
- 			clock-names = "cpu";
- 
- 			clock-latency = <300000>; /* From omap-cpufreq driver */
-+			#cooling-cells = <2>;
- 		};
- 	};
- 
-+	thermal_zones: thermal-zones {
-+		#include "omap3-cpu-thermal.dtsi"
+ 			/* sensor       ID */
+ 	thermal-sensors = <&bandgap     0>;
++
++	cpu_trips: trips {
++		cpu_alert0: cpu_alert {
++			temperature = <90000>; /* millicelsius */
++			hysteresis = <2000>; /* millicelsius */
++			type = "passive";
++		};
++		cpu_crit: cpu_crit {
++			temperature = <105000>; /* millicelsius */
++			hysteresis = <2000>; /* millicelsius */
++			type = "critical";
++		};
 +	};
 +
- 	pmu@54000000 {
- 		compatible = "arm,cortex-a8-pmu";
- 		reg = <0x54000000 0x800000>;
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index f572a477f74c..b80378d6e5c1 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -101,10 +101,6 @@
- 			};
- 		};
- 	};
--
--	thermal_zones: thermal-zones {
--		#include "omap3-cpu-thermal.dtsi"
--	};
++	cpu_cooling_maps: cooling-maps {
++		map0 {
++			trip = <&cpu_alert0>;
++			cooling-device =
++				<&cpu THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
++		};
++	};
  };
- 
- &ssi {
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 6fb23ada1f64..ff2dca63a04e 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -140,10 +140,6 @@
- 			};
- 		};
- 	};
--
--	thermal_zones: thermal-zones {
--		#include "omap3-cpu-thermal.dtsi"
--	};
- };
- 
- /* OMAP3630 needs dss_96m_fck for VENC */
 -- 
 2.17.1
