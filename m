@@ -1,140 +1,122 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 Subject: Re: [RFC] ARM: dts: omap36xx: Enable thermal throttling
-Date: Fri, 13 Sep 2019 00:33:40 +0200
-Message-ID: <2ef812a4-2f2d-b2e2-9fa4-080775e24bc8@linaro.org>
+Date: Fri, 13 Sep 2019 08:55:57 +0200
+Message-ID: <D4F7E03C-1880-45AC-8F7C-6C8A336E2A01@goldelico.com>
 References: <20190912183037.18449-1-aford173@gmail.com>
- <51bb8890-bfd7-c241-1ce5-151df3a90513@linaro.org>
- <CAHCN7xKjwkJHysSkNymF=sw6KuS=FqbapuRFZODuj6E_hmRG1A@mail.gmail.com>
-Mime-Version: 1.0
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHCN7xKjwkJHysSkNymF=sw6KuS=FqbapuRFZODuj6E_hmRG1A@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <20190912183037.18449-1-aford173@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>, Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Andr=c3=a9_Roth?= <neolynx@gmail.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>, Nishanth Menon <nm@ti.com>, Adam Ford <adam.ford@logicpd.com>
+To: Adam Ford <aford173@gmail.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, neolynx@gmail.com, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, andreas@kemnade.info, nm@ti.com, adam.ford@logicpd.com
 List-Id: linux-omap@vger.kernel.org
-
 
 Hi Adam,
 
-On 12/09/2019 23:19, Adam Ford wrote:
-> On Thu, Sep 12, 2019 at 4:12 PM Daniel Lezcano
-> <daniel.lezcano@linaro.org> wrote:
->>
->> On 12/09/2019 20:30, Adam Ford wrote:
->>> The thermal sensor in the omap3 family isn't accurate, but it's
->>> better than nothing.  The various OPP's enabled for the omap3630
->>> support up to OPP1G, however the datasheet for the DM3730 states
->>> that OPP130 and OPP1G are not available above TJ of 90C.
->>>
->>> This patch configures the thermal throttling to limit the
->>> operating points of the omap3630 to Only OPP50 and OPP100 if
->>> the thermal sensor reads a value above 90C.
+> Am 12.09.2019 um 20:30 schrieb Adam Ford <aford173@gmail.com>:
+>=20
+> The thermal sensor in the omap3 family isn't accurate, but it's
+> better than nothing.  The various OPP's enabled for the omap3630
+> support up to OPP1G, however the datasheet for the DM3730 states
+> that OPP130 and OPP1G are not available above TJ of 90C.
 
-Oh, that's a very interesting use case.
+We may have to add similar things for omap34xx as well. See
+data sheet 3.3 Recommended Operating Conditions
 
-AFAICT the thermal framework is not designed to deal with this
-situation. I agree this setup may work (even if I'm not convinced about
-the stability of the whole).
+But when reading them they do not limit temperature but
+number of operation hours of each OPP depending on temperature...
+That is clearly beyond what a kernel can do (we would have to
+have access to some NVRAM in the kernel counting hours).
 
-May be Viresh can help for the cpufreq side?
+>=20
+> This patch configures the thermal throttling to limit the
+> operating points of the omap3630 to Only OPP50 and OPP100 if
 
->> Out of curiosity, what are the OPP50 and OPP100 mentioned above? and
->> what does mean "OPP130 and OPP1G are not available above TJ of 90C"?
->>
-> OPP130 is the 800 MHz and OPP1G is 1GHz operating point.
-> The 90C is the max junction temperature.  When the temperature exceeds
-> 90C, the processor is not designed to operate at 800+ MHz.  The
-> statement itself is a direct quote from the public datasheet for the
-> dm3730, Table 4-19.
+s/Only/only/
 
-> The datasheet is: http://www.ti.com/lit/ds/symlink/dm3730.pdf
+> the thermal sensor reads a value above 90C.
+>=20
+> Signed-off-by: Adam Ford <aford173@gmail.com>
+>=20
+> diff --git a/arch/arm/boot/dts/omap36xx.dtsi =
+b/arch/arm/boot/dts/omap36xx.dtsi
+> index 4bb4f534afe2..58b9d347019f 100644
+> --- a/arch/arm/boot/dts/omap36xx.dtsi
+> +++ b/arch/arm/boot/dts/omap36xx.dtsi
+> @@ -25,6 +25,7 @@
+>=20
+> 			vbb-supply =3D <&abb_mpu_iva>;
+> 			clock-latency =3D <300000>; /* =46rom =
+omap-cpufreq driver */
+> +			#cooling-cells =3D <2>;
+> 		};
+> 	};
+>=20
+> @@ -195,6 +196,31 @@
+> 	};
+> };
+>=20
+> +&cpu_thermal {
+> +	cpu_trips: trips {
 
-It is ambiguous how it is stated:
+Yes, that is comparable to what I have seen in omap5 DT where I know
+that thermal throttling works.
 
-"OPP130 and OPP1G are not available above TJ of 90C"
+> +		/* OPP130 and OPP1G are not available above TJ of 90C. =
+*/
+> +		cpu_alert0: cpu_alert {
+> +			temperature =3D <90000>; /* millicelsius */
+> +			hysteresis =3D <2000>; /* millicelsius */
+> +			type =3D "passive";
+> +		};
+> +
+> +		cpu_crit: cpu_crit {
+> +			temperature =3D <125000>; /* millicelsius */
 
-that can be interpreted the OPP is disabled by the hardware, no?
+Shouldn't this be 105=C2=B0C for all omap3 chips (industrial temperature =
+range)?
 
-> The operating points were updated in [1], but they haven't yet been
-> fully applied yet, but during the discussion, the question came about
-> regarding how to limit the speed at high temp, so that's why this
-> patch was done.
-> 
-> [1] - https://patchwork.kernel.org/patch/11141643/
+> +			hysteresis =3D <2000>; /* millicelsius */
+> +			type =3D "critical";
+> +		};
+> +	};
+> +
+> +	cpu_cooling_maps: cooling-maps {
+> +		map0 {
+> +			trip =3D <&cpu_alert0>;
+> +			/* Only allow OPP50 and OPP100 */
+> +			cooling-device =3D <&cpu 0 1>;
 
-I see, you switched to opp-v2.
+omap4-cpu-thermal.dtsi uses THERMAL_NO_LIMIT constants but I do not
+understand their meaning (and how it relates to the opp list).
 
-Thanks for the detailed answer.
+> +		};
+> +	};
 
+Seems to make sense when comparing to omap4-cpu-thermal.dtsi...
 
+Maybe we can add the trip points to omap3-cpu-thermal.dtsi
+because they seem to be the same for all omap3 variants and
+just have a SoC variant specific cooling map for omap36xx.dtsi.
 
->> I don't see the connection between these OPP names and the definition in
->> the DT.
->>
->>> Signed-off-by: Adam Ford <aford173@gmail.com>
->>>
->>> diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
->>> index 4bb4f534afe2..58b9d347019f 100644
->>> --- a/arch/arm/boot/dts/omap36xx.dtsi
->>> +++ b/arch/arm/boot/dts/omap36xx.dtsi
->>> @@ -25,6 +25,7 @@
->>>
->>>                       vbb-supply = <&abb_mpu_iva>;
->>>                       clock-latency = <300000>; /* From omap-cpufreq driver */
->>> +                     #cooling-cells = <2>;
->>>               };
->>>       };
->>>
->>> @@ -195,6 +196,31 @@
->>>       };
->>>  };
->>>
->>> +&cpu_thermal {
->>> +     cpu_trips: trips {
->>> +             /* OPP130 and OPP1G are not available above TJ of 90C. */
->>> +             cpu_alert0: cpu_alert {
->>> +                     temperature = <90000>; /* millicelsius */
->>> +                     hysteresis = <2000>; /* millicelsius */
->>> +                     type = "passive";
->>> +             };
->>> +
->>> +             cpu_crit: cpu_crit {
->>> +                     temperature = <125000>; /* millicelsius */
->>> +                     hysteresis = <2000>; /* millicelsius */
->>> +                     type = "critical";
->>> +             };
->>> +     };
->>> +
->>> +     cpu_cooling_maps: cooling-maps {
->>> +             map0 {
->>> +                     trip = <&cpu_alert0>;
->>> +                     /* Only allow OPP50 and OPP100 */
->>> +                     cooling-device = <&cpu 0 1>;
->>> +             };
->>> +     };
->>> +};
->>> +
->>>  /* OMAP3630 needs dss_96m_fck for VENC */
->>>  &venc {
->>>       clocks = <&dss_tv_fck>, <&dss_96m_fck>;
->>>
->>
->>
->> --
->>  <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
->>
->> Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
->> <http://twitter.com/#!/linaroorg> Twitter |
->> <http://www.linaro.org/linaro-blog/> Blog
->>
+> +};
+> +
+> /* OMAP3630 needs dss_96m_fck for VENC */
+> &venc {
+> 	clocks =3D <&dss_tv_fck>, <&dss_96m_fck>;
+> --=20
+> 2.17.1
+>=20
 
+The question is how we can test that. Heating up the omap36xx to 90=C2=B0C=
 
--- 
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+or even 105=C2=B0C isn't that easy like with omap5...
 
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Maybe we can modify the millicelsius values for testing purposes to
+something in reachable range, e.g. 60=C2=B0C and 70=C2=B0C and watch =
+what happens?
+
+BR,
+Nikolaus
