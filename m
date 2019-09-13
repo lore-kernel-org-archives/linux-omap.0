@@ -1,87 +1,59 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [RFC] ARM: dts: omap36xx: Enable thermal throttling
-Date: Fri, 13 Sep 2019 17:09:00 +0200
-Message-ID: <7C9393BD-B23B-41A6-BF96-E53CD707AAC7@goldelico.com>
-References: <20190912183037.18449-1-aford173@gmail.com> <D4F7E03C-1880-45AC-8F7C-6C8A336E2A01@goldelico.com> <CAHCN7xK100mR=fNns3qdDKpOyWsTWXgDnnngQfQ_j8cB_SFfuA@mail.gmail.com> <98751DAF-B3F7-4638-97BE-1D067B24EF18@goldelico.com> <CAHCN7xL-CmwmXP3PLdwAHiC-9tMjrpY4k7ZhxQ9WoXY6yUz8BA@mail.gmail.com> <ABCE2ACA-D19A-42D2-9606-C60F1A5CBCCB@goldelico.com> <CAHCN7xKfeh-cqJVfbW_km27cgee2MEBdPM3edACRi0fCaohxvw@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHCN7xKfeh-cqJVfbW_km27cgee2MEBdPM3edACRi0fCaohxvw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>, Nishanth Menon <nm@ti.com>, Adam Ford <adam.ford@logicpd.com>, kernel@pyra-handheld.com
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH 1/3] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Fri, 13 Sep 2019 10:11:22 -0500
+Message-ID: <CAHCN7xLh+6rdfjaXJJxv_s82OhPiVGhksu2L+krZAnYCTnpijw@mail.gmail.com>
+References: <20190801012823.28730-1-neolynx@gmail.com>
+ <20190801012823.28730-2-neolynx@gmail.com>
+ <CAHCN7x+Vd+ECoa4fmUfoX47znag+NxKSzRt3iouQCZ2CQ2T--A@mail.gmail.com>
+ <20190912210937.GU52127@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190912210937.GU52127@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Shweta Gulati <shweta.gulati@ti.com>, =?UTF-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Thara Gopinath <thara@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-> Am 13.09.2019 um 17:01 schrieb Adam Ford <aford173@gmail.com>:
->=20
-> On Fri, Sep 13, 2019 at 9:24 AM H. Nikolaus Schaller =
-<hns@goldelico.com> wrote:
->>=20
->>=20
->>> Am 13.09.2019 um 16:05 schrieb Adam Ford <aford173@gmail.com>:
->>>=20
->>> On Fri, Sep 13, 2019 at 8:32 AM H. Nikolaus Schaller =
-<hns@goldelico.com> wrote:
->>>>=20
->>>> Hi Adam,
->>>>=20
->>>>> Am 13.09.2019 um 13:07 schrieb Adam Ford <aford173@gmail.com>:
->>>>=20
->>>>>>> +     cpu_cooling_maps: cooling-maps {
->>>>>>> +             map0 {
->>>>>>> +                     trip =3D <&cpu_alert0>;
->>>>>>> +                     /* Only allow OPP50 and OPP100 */
->>>>>>> +                     cooling-device =3D <&cpu 0 1>;
->>>>>>=20
->>>>>> omap4-cpu-thermal.dtsi uses THERMAL_NO_LIMIT constants but I do =
-not
->>>>>> understand their meaning (and how it relates to the opp list).
->>>>>=20
->>>>> I read through the documentation, but it wasn't completely clear =
-to
->>>>> me. AFAICT, the numbers after &cpu represent the min and max index =
-in
->>>>> the OPP table when the condition is hit.
->>>>=20
->>>> Ok. It seems to use "cooling state" for those and the first is =
-minimum
->>>> and the last is maximum. Using THERMAL_NO_LIMIT (-1UL) means to =
-have
->>>> no limits.
->>>>=20
->>>> Since here we use the &cpu node it is likely that the "cooling =
-state"
->>>> is the same as the OPP index currently in use.
->>>>=20
->>>> I have looked through the .dts which use cpu_crit and the picture =
-is
->>>> not unique...
->>>>=20
->>>> omap4           seems to only define it
->>>> am57xx          has two different grade dtsi files
->>>> dra7            overwrites critical temperature value
->>>> am57xx-beagle   defines a gpio to control a fan
->>>=20
->=20
-> I am going to push a separate but related RFC with 2 patches in the
-> series.  This new one will setup the alerts and maps without any
-> throttling for all omap3's in the first patch.  The second patch will
-> consolidate the thermal references to omap3.dtsi so omap34, omap36 and
-> am35 can all use them without having to duplicate the entries.
->=20
-> It will make the omap36xx changes simpler to manage, because we can
-> just modify a portion of the entries instead of having the whole
-> table.
->=20
-> Once this parallel RFC gets comments/feedback, I'll re-integrate the
-> omap36xx throttling.
-
-Good idea. I have looked over them and they seem to be ok.
-
->=20
-> adam
-
-BR and thanks,
-Nikolaus
+T24gVGh1LCBTZXAgMTIsIDIwMTkgYXQgNDowOSBQTSBUb255IExpbmRncmVuIDx0b255QGF0b21p
+ZGUuY29tPiB3cm90ZToKPgo+ICogQWRhbSBGb3JkIDxhZm9yZDE3M0BnbWFpbC5jb20+IFsxOTA5
+MTIgMTk6MDBdOgo+ID4gT24gV2VkLCBKdWwgMzEsIDIwMTkgYXQgODoyOSBQTSBBbmRyw6kgUm90
+aCA8bmVvbHlueEBnbWFpbC5jb20+IHdyb3RlOgo+ID4gPgo+ID4gPiBGcm9tOiBUaGFyYSBHb3Bp
+bmF0aCA8dGhhcmFAdGkuY29tPgo+ID4gPgo+ID4gPiBWb2x0YWdlIGNvbnRyb2wgb24gVFdMIGNh
+biBiZSBkb25lIHVzaW5nIFZNT0RFL0kyQzEvSTJDX1NSLgo+ID4gPiBTaW5jZSBhbG1vc3QgYWxs
+IHBsYXRmb3JtcyB1c2UgSTJDX1NSIG9uIG9tYXAzLCBvbWFwM190d2xfaW5pdCBieQo+ID4gPiBk
+ZWZhdWx0IGV4cGVjdHMgdGhhdCBPTUFQJ3MgSTJDX1NSIGlzIHBsdWdnZWQgaW4gdG8gVFdMJ3Mg
+STJDCj4gPiA+IGFuZCBjYWxscyBvbWFwM190d2xfc2V0X3NyX2JpdC4gT24gcGxhdGZvcm1zIHdo
+ZXJlIEkyQ19TUiBpcyBub3QgY29ubmVjdGVkLAo+ID4gPiB0aGUgYm9hcmQgZmlsZXMgYXJlIGV4
+cGVjdGVkIHRvIGNhbGwgb21hcDNfdHdsX3NldF9zcl9iaXQoZmFsc2UpIHRvCj4gPiA+IGVuc3Vy
+ZSB0aGF0IEkyQ19TUiBwYXRoIGlzIG5vdCBzZXQgZm9yIHZvbHRhZ2UgY29udHJvbCBhbmQgcHJl
+dmVudAo+ID4gPiB0aGUgZGVmYXVsdCBiZWhhdmlvciBvZiBvbWFwM190d2xfaW5pdC4KPiA+ID4K
+PiA+ID4gU2lnbmVkLW9mZi1ieTogTmlzaGFudGggTWVub24gPG5tQHRpLmNvbT4KPiA+ID4gU2ln
+bmVkLW9mZi1ieTogVGhhcmEgR29waW5hdGggPHRoYXJhQHRpLmNvbT4KPiA+ID4gU2lnbmVkLW9m
+Zi1ieTogU2h3ZXRhIEd1bGF0aSA8c2h3ZXRhLmd1bGF0aUB0aS5jb20+Cj4gPiA+IENjOiBsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKPiA+ID4gU2lnbmVkLW9mZi1ieTogS2V2
+aW4gSGlsbWFuIDxraGlsbWFuQHRpLmNvbT4KPiA+Cj4gPiBUb255LAo+ID4KPiA+IElzIHRoZXJl
+IGEgc3RhdHVzIHVwZGF0ZSBvbiB0aGlzIHNlcmllcz8gIEl0J3MgYmVlbiBzZXZlcmFsIG1vbnRo
+cywKPiA+IGFuZCBJIGhhdmVuJ3Qgc2VlbiBhbnkgZmVlZGJhY2sgb24gaXQsIG5vciBkb2VzIGl0
+IGFwcGVhciB0byBiZSBpbiBhbnkKPiA+IG9mIHlvdXIgYnJhbmNoZXMgdGhhdCBJIGNhbiBzZWUu
+Cj4KPiBXZWxsIGl0IHdhcyB0YWdnZWQgUkZDLi4gRG9lcyBzb21ldGhpbmcgbmVlZCB1cGRhdGlu
+Zwo+IHdpdGggaXQ/CgpJIGRpZG4ndCBub3RpY2UgdGhlIFJUQyB1bnRpbCB5b3UgcG9pbnRlZCBv
+dXQgdGhlIDAvMyBmaWxlIHNob3dlZCB0aGUgUkZDLgoKQW5kcmUgLSAgc2luY2UgeW91IGhhdmUg
+c2lnbi1vZmYgYnkgdmFyaW91cyBUSSBwZW9wbGUgYW5kIFRvbnkgc2VlbXMKc2F0aXNmaWVkLCB3
+b3VsZCB5b3UgYmUgd2lsbCB0byByZS1iYXNlIGFuZCBwdXNoIHRoZSBwYXRjaCBzZXJpZXMKd2l0
+aG91dCB0aGUgUkZDPwoKSSB0aGluayBzb21lIG9mIHRoZSB3b3JrIHRoYXQgSCBOaWtvbGF1cyBT
+Y2hhbGxlciBpcyBkb2luZyB3aWxsCmJlbmVmaXQgZnJvbSB0aGlzLgoKVGhhbmsgeW91LAoKYWRh
+bQo+Cj4gQXQgbGVhc3QgdGhlIGZpcnN0IHR3byBwYXRjaGVzIGxvb2tlZCBPSyB0byBtZS4KPgo+
+IFJlZ2FyZHMsCj4KPiBUb255CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVs
+QGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
