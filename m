@@ -1,63 +1,204 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 0/6] Non-urgent fixes and improvments for omap3-rom-rng
-Date: Sat, 14 Sep 2019 15:05:40 +0200
-Message-ID: <20190914130540.jvtxaame7pat7jph@earth.universe>
-References: <20190913220922.29501-1-tony@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [RFC v2 1/2] ARM: dts: omap3: Add cpu trips and cooling map for
+ omap3 family
+Date: Sat, 14 Sep 2019 08:42:51 -0500
+Message-ID: <CAHCN7xKU1v-BFkwiuZQx82+Cmdgj_1CH1j51bN0TaaduWcu8rQ@mail.gmail.com>
+References: <20190913153714.30980-1-aford173@gmail.com> <B710D701-6311-4344-BF4E-F39157BBF2BD@goldelico.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="mdog2bpqvzul6dqe"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190913220922.29501-1-tony@atomide.com>
+In-Reply-To: <B710D701-6311-4344-BF4E-F39157BBF2BD@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <aford173@gmail.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, Nishanth Menon <nm@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Sat, Sep 14, 2019 at 4:20 AM H. Nikolaus Schaller <hns@goldelico.com> wr=
+ote:
+>
+>
+> > Am 13.09.2019 um 17:37 schrieb Adam Ford <aford173@gmail.com>:
+> >
+> > The OMAP3530, AM3517 and DM3730 all show thresholds of 90C and 105C
+> > depending on commercial or industrial temperature ratings.  This
+> > patch expands the thermal information to the limits of 90 and 105
+> > for alert and critical.
+> >
+> > For boards who never use industrial temperatures, these can be
+> > changed on their respective device trees with something like:
+> >
+> > &cpu_alert0 {
+> >       temperature =3D <85000>; /* millicelsius */
+> > };
+> >
+> > &cpu_crit {
+> >       temperature =3D <90000>; /* millicelsius */
+> > };
+> >
+> > Signed-off-by: Adam Ford <aford173@gmail.com>
+> > ---
+> > V2:  Change the CPU reference to &cpu instead of &cpu0
+> >
+> > diff --git a/arch/arm/boot/dts/omap3-cpu-thermal.dtsi b/arch/arm/boot/d=
+ts/omap3-cpu-thermal.dtsi
+> > index 235ecfd61e2d..dfbd0cb0b00b 100644
+> > --- a/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
+> > +++ b/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
+> > @@ -17,4 +17,25 @@ cpu_thermal: cpu_thermal {
+> >
+> >                       /* sensor       ID */
+> >       thermal-sensors =3D <&bandgap     0>;
+> > +
+> > +     cpu_trips: trips {
+> > +             cpu_alert0: cpu_alert {
+> > +                     temperature =3D <90000>; /* millicelsius */
+> > +                     hysteresis =3D <2000>; /* millicelsius */
+> > +                     type =3D "passive";
+> > +             };
+> > +             cpu_crit: cpu_crit {
+> > +                     temperature =3D <105000>; /* millicelsius */
+> > +                     hysteresis =3D <2000>; /* millicelsius */
+> > +                     type =3D "critical";
+> > +             };
+> > +     };
+> > +
+> > +     cpu_cooling_maps: cooling-maps {
+> > +             map0 {
+> > +                     trip =3D <&cpu_alert0>;
+> > +                     cooling-device =3D
+> > +                             <&cpu THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+> > +             };
+> > +     };
+> > };
+> > --
+> > 2.17.1
+> >
+>
+> Here is my test log (GTA04A5 with DM3730CBP100).
+> "high-load" script is driving the NEON to full power
+> and would report calculation errors.
+>
+> There is no noise visible in the bandgap sensor data
+> induced by power supply fluctuations (log shows system
+> voltage while charging).
+>
 
---mdog2bpqvzul6dqe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Great data!
 
-Hi,
+> root@letux:~# ./high-load -n2
+> 100% load stress test for 1 cores running ./neon_loop2
+> Sat Sep 14 09:05:50 UTC 2019 65=C2=B0 4111mV 1000MHz
+> Sat Sep 14 09:05:50 UTC 2019 67=C2=B0 4005mV 1000MHz
+> Sat Sep 14 09:05:52 UTC 2019 68=C2=B0 4000mV 1000MHz
+> Sat Sep 14 09:05:53 UTC 2019 68=C2=B0 4000mV 1000MHz
+> Sat Sep 14 09:05:55 UTC 2019 72=C2=B0 3976mV 1000MHz
+> Sat Sep 14 09:05:56 UTC 2019 72=C2=B0 4023mV 1000MHz
+> Sat Sep 14 09:05:57 UTC 2019 72=C2=B0 3900mV 1000MHz
+> Sat Sep 14 09:05:59 UTC 2019 73=C2=B0 4029mV 1000MHz
+> Sat Sep 14 09:06:00 UTC 2019 73=C2=B0 3988mV 1000MHz
+> Sat Sep 14 09:06:01 UTC 2019 73=C2=B0 4005mV 1000MHz
+> Sat Sep 14 09:06:03 UTC 2019 73=C2=B0 4011mV 1000MHz
+> Sat Sep 14 09:06:04 UTC 2019 73=C2=B0 4117mV 1000MHz
+> Sat Sep 14 09:06:06 UTC 2019 73=C2=B0 4005mV 1000MHz
+> Sat Sep 14 09:06:07 UTC 2019 75=C2=B0 3994mV 1000MHz
+> Sat Sep 14 09:06:08 UTC 2019 75=C2=B0 3970mV 1000MHz
+> Sat Sep 14 09:06:09 UTC 2019 75=C2=B0 4046mV 1000MHz
+> Sat Sep 14 09:06:11 UTC 2019 75=C2=B0 4005mV 1000MHz
+> Sat Sep 14 09:06:12 UTC 2019 75=C2=B0 4023mV 1000MHz
+> Sat Sep 14 09:06:14 UTC 2019 75=C2=B0 3970mV 1000MHz
+> Sat Sep 14 09:06:15 UTC 2019 75=C2=B0 4011mV 1000MHz
+> Sat Sep 14 09:06:16 UTC 2019 77=C2=B0 4017mV 1000MHz
+> Sat Sep 14 09:06:18 UTC 2019 77=C2=B0 3994mV 1000MHz
+> Sat Sep 14 09:06:19 UTC 2019 77=C2=B0 3994mV 1000MHz
+> Sat Sep 14 09:06:20 UTC 2019 77=C2=B0 3988mV 1000MHz
+> Sat Sep 14 09:06:22 UTC 2019 77=C2=B0 4023mV 1000MHz
+> Sat Sep 14 09:06:23 UTC 2019 77=C2=B0 4023mV 1000MHz
+> Sat Sep 14 09:06:24 UTC 2019 78=C2=B0 4005mV 1000MHz
+> Sat Sep 14 09:06:26 UTC 2019 78=C2=B0 4105mV 1000MHz
+> Sat Sep 14 09:06:27 UTC 2019 78=C2=B0 4011mV 1000MHz
+> Sat Sep 14 09:06:28 UTC 2019 78=C2=B0 3994mV 1000MHz
+> Sat Sep 14 09:06:30 UTC 2019 78=C2=B0 4123mV 1000MHz
+> ...
+> Sat Sep 14 09:09:57 UTC 2019 88=C2=B0 4082mV 1000MHz
+> Sat Sep 14 09:09:59 UTC 2019 88=C2=B0 4164mV 1000MHz
+> Sat Sep 14 09:10:00 UTC 2019 88=C2=B0 4058mV 1000MHz
+> Sat Sep 14 09:10:01 UTC 2019 88=C2=B0 4058mV 1000MHz
+> Sat Sep 14 09:10:03 UTC 2019 88=C2=B0 4082mV 1000MHz
+> Sat Sep 14 09:10:04 UTC 2019 88=C2=B0 4058mV 1000MHz
+> Sat Sep 14 09:10:06 UTC 2019 88=C2=B0 4146mV 1000MHz
+> Sat Sep 14 09:10:07 UTC 2019 88=C2=B0 4041mV 1000MHz
+> Sat Sep 14 09:10:08 UTC 2019 88=C2=B0 4035mV 1000MHz
+> Sat Sep 14 09:10:10 UTC 2019 88=C2=B0 4052mV 1000MHz
+> Sat Sep 14 09:10:11 UTC 2019 88=C2=B0 4087mV 1000MHz
+> Sat Sep 14 09:10:12 UTC 2019 88=C2=B0 4152mV 1000MHz
+> Sat Sep 14 09:10:14 UTC 2019 88=C2=B0 4070mV 1000MHz
+> Sat Sep 14 09:10:15 UTC 2019 88=C2=B0 4064mV 1000MHz
+> Sat Sep 14 09:10:17 UTC 2019 88=C2=B0 4170mV 1000MHz
+> Sat Sep 14 09:10:18 UTC 2019 88=C2=B0 4058mV 1000MHz
+> Sat Sep 14 09:10:19 UTC 2019 88=C2=B0 4187mV 1000MHz
+> Sat Sep 14 09:10:21 UTC 2019 88=C2=B0 4093mV 1000MHz
+> Sat Sep 14 09:10:22 UTC 2019 88=C2=B0 4087mV 1000MHz
+> Sat Sep 14 09:10:23 UTC 2019 90=C2=B0 4070mV 1000MHz
 
-On Fri, Sep 13, 2019 at 03:09:16PM -0700, Tony Lindgren wrote:
-> Here are fixes and improvments for omap3-rom-rng that's been broken for
-> a while.
->=20
-> The first four patches get it working, and then the last two patches add
-> support for runtime PM.
+Should we be a little more conservative?  Without knowing the
+accuracy, i believe we do not want to run at 800 or 1GHz at 90C, so if
+we made this value 89 instead of 90, we would throttle a little more
+conservatively.
 
-Nice cleanups, the series is
+> Sat Sep 14 09:10:25 UTC 2019 88=C2=B0 4123mV 800MHz
+> Sat Sep 14 09:10:26 UTC 2019 88=C2=B0 4064mV 1000MHz
+> Sat Sep 14 09:10:28 UTC 2019 90=C2=B0 4058mV 1000MHz
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Again here, I interpret the data sheet correctly, we're technically out of =
+spec
 
-Assuming you use clk_prepare_enable() in the runtime PM handler, I
-suggest to add another patch and go all the way to managed resources:
-devm_add_action() can be used for disabling runtime PM and
-devm_hwrng_register() can be used to register the hwrng device.
-
--- Sebastian
-
---mdog2bpqvzul6dqe
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl185ZkACgkQ2O7X88g7
-+ppqNA/+JmsrHxkgYD+ip05tbafR/Z7vXD250VZkgq+1vhiP5xn3FfwHTGHmNB02
-WSnGZFh1i5i1XleRfA/2ITvoaqT3EhCx89DZPqrg1GYiUR/Ol3HhIh8axTOs331G
-KIFbTI3ZGH3pVqS7N77Egf4vGqmv/rUUnMZjm8b6flGVpLL4WvqPpGvs8Yglxdmq
-j+EntLH/jD+vm1MdaTgTLL7DchwgCW0uonukbfMKZqan8p7S9akqhvxmIo+G9OdV
-Ok19HmlUf/Mplg959p6HjaE0ycZ/6j2r7PZQrnYlzIyt6jyvbusIZPawOW7LSkWE
-0TU6c00OHJwDN0dM5oL23AZM9I3kR5HF4Dd9Cfk1VaWnFpEumOrP1sjp0Czb2ZgL
-bVtlqfkhu+LDF052Sb544DbYICaRj6OB4LICDM6IEkPiwLgquK2vu0BmAIXmUMNV
-wEmQW+u2fIqDxUez15RSpgnToI35NFXj8XotFdyDtMpuNqM6hsV6wadMEE/j83l/
-8BJ0+RR4ftudQWdFTDDmyPPnbADAnRLjb4RF1HJWd94u1PrX88q5CHag1gPE+Jq+
-XpUIZDjezBO9srd3UWteMBFGdpKTdxMQsfhxav/a11vMe+RAXcyKzzGg6rvCSx+X
-YMnq5CJdagSR1nmSFEJuv3lENUgBXxniwRX7EFbxsOE46kV2IXc=
-=lttE
------END PGP SIGNATURE-----
-
---mdog2bpqvzul6dqe--
+> Sat Sep 14 09:10:29 UTC 2019 88=C2=B0 4076mV 1000MHz
+> Sat Sep 14 09:10:30 UTC 2019 88=C2=B0 4064mV 1000MHz
+> Sat Sep 14 09:10:32 UTC 2019 88=C2=B0 4117mV 1000MHz
+> Sat Sep 14 09:10:33 UTC 2019 88=C2=B0 4105mV 800MHz
+> Sat Sep 14 09:10:34 UTC 2019 88=C2=B0 4070mV 1000MHz
+> Sat Sep 14 09:10:36 UTC 2019 88=C2=B0 4076mV 1000MHz
+> Sat Sep 14 09:10:37 UTC 2019 88=C2=B0 4087mV 1000MHz
+> Sat Sep 14 09:10:39 UTC 2019 88=C2=B0 4017mV 1000MHz
+> Sat Sep 14 09:10:40 UTC 2019 88=C2=B0 4093mV 1000MHz
+> Sat Sep 14 09:10:41 UTC 2019 88=C2=B0 4058mV 800MHz
+> Sat Sep 14 09:10:42 UTC 2019 88=C2=B0 4035mV 1000MHz
+> Sat Sep 14 09:10:44 UTC 2019 90=C2=B0 4058mV 1000MHz
+> Sat Sep 14 09:10:45 UTC 2019 88=C2=B0 4064mV 1000MHz
+> Sat Sep 14 09:10:47 UTC 2019 88=C2=B0 4064mV 1000MHz
+> Sat Sep 14 09:10:48 UTC 2019 88=C2=B0 4029mV 1000MHz
+> Sat Sep 14 09:10:50 UTC 2019 90=C2=B0 4046mV 1000MHz
+> ^Ckill 4680
+> root@letux:~# cpufreq-info
+> cpufrequtils 008: cpufreq-info (C) Dominik Brodowski 2004-2009
+> Report errors and bugs to cpufreq@vger.kernel.org, please.
+> analyzing CPU 0:
+>   driver: cpufreq-dt
+>   CPUs which run at the same hardware frequency: 0
+>   CPUs which need to have their frequency coordinated by software: 0
+>   maximum transition latency: 300 us.
+>   hardware limits: 300 MHz - 1000 MHz
+>   available frequency steps: 300 MHz, 600 MHz, 800 MHz, 1000 MHz
+>   available cpufreq governors: conservative, userspace, powersave, ondema=
+nd, performance
+>   current policy: frequency should be within 300 MHz and 1000 MHz.
+>                   The governor "ondemand" may decide which speed to use
+>                   within this range.
+>   current CPU frequency is 600 MHz (asserted by call to hardware).
+>   cpufreq stats: 300 MHz:22.81%, 600 MHz:2.50%, 800 MHz:2.10%, 1000 MHz:7=
+2.59%  (1563)
+> root@letux:~#
+>
+> So OPP is reduced if bandgap sensor reports >=3D 90=C2=B0C
+> which almost immediately makes the temperature
+> go down.
+>
+> No operational hickups were observed.
+>
+> Surface temperature of the PoP chip did rise to
+> approx. 53=C2=B0C during this test.
+>
+> Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # on GTA04A5 with dm3=
+730cbp100
+>
