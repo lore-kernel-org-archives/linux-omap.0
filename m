@@ -1,41 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] Non-urgent fixes and improvments for omap3-rom-rng
-Date: Sat, 14 Sep 2019 10:59:13 -0700
-Message-ID: <20190914175913.GW52127@atomide.com>
-References: <20190913220922.29501-1-tony@atomide.com>
- <20190914130540.jvtxaame7pat7jph@earth.universe>
+Subject: [PATCH 3/7] hwrng: omap3-rom - Call clk_disable_unprepare() on exit only if not idled
+Date: Sat, 14 Sep 2019 14:02:56 -0700
+Message-ID: <20190914210300.15836-4-tony@atomide.com>
+References: <20190914210300.15836-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190914130540.jvtxaame7pat7jph@earth.universe>
+In-Reply-To: <20190914210300.15836-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <aford173@gmail.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org
+To: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-crypto@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <aford173@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [190914 13:06]:
-> Hi,
-> 
-> On Fri, Sep 13, 2019 at 03:09:16PM -0700, Tony Lindgren wrote:
-> > Here are fixes and improvments for omap3-rom-rng that's been broken for
-> > a while.
-> > 
-> > The first four patches get it working, and then the last two patches add
-> > support for runtime PM.
-> 
-> Nice cleanups, the series is
-> 
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-> 
-> Assuming you use clk_prepare_enable() in the runtime PM handler, I
-> suggest to add another patch and go all the way to managed resources:
-> devm_add_action() can be used for disabling runtime PM and
-> devm_hwrng_register() can be used to register the hwrng device.
+When unloading omap3-rom-rng, we'll get the following:
 
-Sure good idea. I'll post a patch for that when I post v2 of
-this set.
+WARNING: CPU: 0 PID: 100 at drivers/clk/clk.c:948 clk_core_disable
 
-Regards,
+This is because the clock may be already disabled by omap3_rom_rng_idle().
+Let's fix the issue by checking for rng_idle on exit.
 
-Tony
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Adam Ford <aford173@gmail.com>
+Cc: Pali Rohár <pali.rohar@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Fixes: 1c6b7c2108bd ("hwrng: OMAP3 ROM Random Number Generator support")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/char/hw_random/omap3-rom-rng.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/char/hw_random/omap3-rom-rng.c b/drivers/char/hw_random/omap3-rom-rng.c
+--- a/drivers/char/hw_random/omap3-rom-rng.c
++++ b/drivers/char/hw_random/omap3-rom-rng.c
+@@ -127,7 +127,8 @@ static int omap3_rom_rng_remove(struct platform_device *pdev)
+ {
+ 	cancel_delayed_work_sync(&idle_work);
+ 	hwrng_unregister(&omap3_rom_rng_ops);
+-	clk_disable_unprepare(rng_clk);
++	if (!rng_idle)
++		clk_disable_unprepare(rng_clk);
+ 	return 0;
+ }
+ 
+-- 
+2.23.0
