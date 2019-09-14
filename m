@@ -1,187 +1,145 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [RFC v2 1/2] ARM: dts: omap3: Add cpu trips and cooling map for omap3 family
-Date: Sat, 14 Sep 2019 11:20:29 +0200
-Message-ID: <B710D701-6311-4344-BF4E-F39157BBF2BD@goldelico.com>
-References: <20190913153714.30980-1-aford173@gmail.com>
+From: H. Nikolaus Schaller <hns@goldelico.com>
+Subject: Re: [PATCH v3 6/8] ARM: dts: omap36xx: using OPP1G needs to control
+ the abb_ldo
+Date: Sat, 14 Sep 2019 11:30:10 +0200
+Message-ID: <F05A8A00-9B2A-4159-BE5B-C93DF139F73E@goldelico.com>
+References: <cover.1568224032.git.hns@goldelico.com>
+ <59a0f6267c75859c25665548db2e8a9c4229d3b4.1568224033.git.hns@goldelico.com>
+ <CAHCN7x+RTSHg7jKys=Jv6Urz0PsHNTM8EnFT1dwAZOtsjxpEAw@mail.gmail.com>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190913153714.30980-1-aford173@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAHCN7x+RTSHg7jKys=Jv6Urz0PsHNTM8EnFT1dwAZOtsjxpEAw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Adam Ford <aford173@gmail.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, Nishanth Menon <nm@ti.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, Teresa Remmet <t.remmet@phytec.de>, Javier Martinez Canillas <javier@dowhile0.org>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 
-> Am 13.09.2019 um 17:37 schrieb Adam Ford <aford173@gmail.com>:
->=20
-> The OMAP3530, AM3517 and DM3730 all show thresholds of 90C and 105C
-> depending on commercial or industrial temperature ratings.  This
-> patch expands the thermal information to the limits of 90 and 105
-> for alert and critical.
->=20
-> For boards who never use industrial temperatures, these can be
-> changed on their respective device trees with something like:
->=20
-> &cpu_alert0 {
-> 	temperature =3D <85000>; /* millicelsius */
-> };
->=20
-> &cpu_crit {
-> 	temperature =3D <90000>; /* millicelsius */
-> };
->=20
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-> ---
-> V2:  Change the CPU reference to &cpu instead of &cpu0
->=20
-> diff --git a/arch/arm/boot/dts/omap3-cpu-thermal.dtsi =
-b/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
-> index 235ecfd61e2d..dfbd0cb0b00b 100644
-> --- a/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
-> +++ b/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
-> @@ -17,4 +17,25 @@ cpu_thermal: cpu_thermal {
->=20
-> 			/* sensor       ID */
-> 	thermal-sensors =3D <&bandgap     0>;
-> +
-> +	cpu_trips: trips {
-> +		cpu_alert0: cpu_alert {
-> +			temperature =3D <90000>; /* millicelsius */
-> +			hysteresis =3D <2000>; /* millicelsius */
-> +			type =3D "passive";
-> +		};
-> +		cpu_crit: cpu_crit {
-> +			temperature =3D <105000>; /* millicelsius */
-> +			hysteresis =3D <2000>; /* millicelsius */
-> +			type =3D "critical";
-> +		};
-> +	};
-> +
-> +	cpu_cooling_maps: cooling-maps {
-> +		map0 {
-> +			trip =3D <&cpu_alert0>;
-> +			cooling-device =3D
-> +				<&cpu THERMAL_NO_LIMIT =
-THERMAL_NO_LIMIT>;
-> +		};
-> +	};
-> };
-> --=20
-> 2.17.1
->=20
+> Am 13.09.2019 um 23:13 schrieb Adam Ford <aford173@gmail.com>:
+> 
+> On Wed, Sep 11, 2019 at 12:47 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
+>> 
+>> See DM3730,DM275 data sheet (SPRS685B) footnote (6) in Table 4-19
+>> which says that ABB must be switched to FBB mode when using the
+>> OPP1G.
+>> 
+>> The LOD definition abb_mpu_iva already exists so that we need
+>> to add plumbing for vbb-supply = <&abb_mpu_iva>
+>> and define two voltage vectors for each OPP so that the abb LDO
+>> is also updated by the ti-cpufreq driver.
+>> 
+>> We also must switch the ti_cpufreq_soc_data to multi_regulator.
+>> 
+>> Note: reading out the abb reglator voltage to verify that
+>> it does do transitions can be done by
+>> 
+>> cat /sys/devices/platform/68000000.ocp/483072f0.regulator-abb-mpu/regulator/regulator.*/microvolts
+>> 
+>> Likewise, read the twl4030 provided VDD voltage by
+>> 
+>> cat /sys/devices/platform/68000000.ocp/48070000.i2c/i2c-0/0-0048/48070000.i2c:twl@48:regulator-vdd1/regulator/regulator.*/microvolts
+>> 
+>> Note: to check if the ABB FBB is enabled/disabled, check
+>> registers
+>> 
+>> PRM_LDO_ABB_CTRL 0x483072F4 bit 3:0 1=bypass 5=FBB
+>> PRM_LDO_ABB_SETUP 0x483072F0 0x00=bypass 0x11=FBB
+>> 
+>> e.g.
+>> 
+>> /dev/mem opened.
+>> Memory mapped at address 0xb6fe4000.
+>> Value at address 0x483072F4 (0xb6fe42f4): 0x3205
+>> /dev/mem opened.
+>> Memory mapped at address 0xb6f89000.
+>> Value at address 0x483072F4 (0xb6f892f4): 0x3201
+>> 
+>> Note: omap34xx and am3517 have/need no comparable LDO
+>> or mechanism.
+>> 
+>> Suggested-by: Adam Ford <aford173@gmail.com>
+>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>> ---
+>> arch/arm/boot/dts/omap36xx.dtsi | 21 ++++++++++++++++-----
+>> drivers/cpufreq/ti-cpufreq.c    |  2 +-
+>> 2 files changed, 17 insertions(+), 6 deletions(-)
+>> 
+>> diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+>> index cb5bd0969124..4bb4f534afe2 100644
+>> --- a/arch/arm/boot/dts/omap36xx.dtsi
+>> +++ b/arch/arm/boot/dts/omap36xx.dtsi
+>> @@ -23,6 +23,7 @@
+>>                cpu: cpu@0 {
+>>                        operating-points-v2 = <&cpu0_opp_table>;
+>> 
+>> +                       vbb-supply = <&abb_mpu_iva>;
+>>                        clock-latency = <300000>; /* From omap-cpufreq driver */
+>>                };
+>>        };
+>> @@ -37,9 +38,11 @@
+>>                        /*
+>>                         * we currently only select the max voltage from table
+>>                         * Table 4-19 of the DM3730 Data sheet (SPRS685B)
+>> -                        * Format is: <target min max>
+>> +                        * Format is:   cpu0-supply:    <target min max>
+>> +                        *              vbb-supply:     <target min max>
+>>                         */
+>> -                       opp-microvolt = <1012500 1012500 1012500>;
+>> +                       opp-microvolt = <1012500 1012500 1012500>,
+>> +                                        <1012500 1012500 1012500>;
+>>                        /*
+>>                         * first value is silicon revision bit mask
+>>                         * second one is "speed binned" bit mask
+>> @@ -50,25 +53,33 @@
+>> 
+>>                opp100-600000000 {
+>>                        opp-hz = /bits/ 64 <600000000>;
+>> -                       opp-microvolt = <1200000 1200000 1200000>;
+>> +                       opp-microvolt = <1200000 1200000 1200000>,
+>> +                                        <1200000 1200000 1200000>;
+>>                        opp-supported-hw = <0xffffffff 3>;
+>>                };
+>> 
+>>                opp130-800000000 {
+>>                        opp-hz = /bits/ 64 <800000000>;
+>> -                       opp-microvolt = <1325000 1325000 1325000>;
+>> +                       opp-microvolt = <1325000 1325000 1325000>,
+>> +                                        <1325000 1325000 1325000>;
+>>                        opp-supported-hw = <0xffffffff 3>;
+>>                };
+>> 
+>>                opp1g-1000000000 {
+>>                        opp-hz = /bits/ 64 <1000000000>;
+>> -                       opp-microvolt = <1375000 1375000 1375000>;
+>> +                       opp-microvolt = <1375000 1375000 1375000>,
+>> +                                        <1375000 1375000 1375000>;
+>>                        /* only on am/dm37x with speed-binned bit set */
+>>                        opp-supported-hw = <0xffffffff 2>;
+>>                        turbo-mode;
+> 
+> If / when the thermal changes I submitted get approved, would you
+> entertain dropping this turbo-mode flag so it's enabled by default?
 
-Here is my test log (GTA04A5 with DM3730CBP100).
-"high-load" script is driving the NEON to full power
-and would report calculation errors.
+Yes, that makes sense.
 
-There is no noise visible in the bandgap sensor data
-induced by power supply fluctuations (log shows system
-voltage while charging).
+To keep patches clearly grouped into two series (better for bisect or
+partial revert or apply in any order), I would suggest that we do
 
-root@letux:~# ./high-load -n2
-100% load stress test for 1 cores running ./neon_loop2
-Sat Sep 14 09:05:50 UTC 2019 65=C2=B0 4111mV 1000MHz
-Sat Sep 14 09:05:50 UTC 2019 67=C2=B0 4005mV 1000MHz
-Sat Sep 14 09:05:52 UTC 2019 68=C2=B0 4000mV 1000MHz
-Sat Sep 14 09:05:53 UTC 2019 68=C2=B0 4000mV 1000MHz
-Sat Sep 14 09:05:55 UTC 2019 72=C2=B0 3976mV 1000MHz
-Sat Sep 14 09:05:56 UTC 2019 72=C2=B0 4023mV 1000MHz
-Sat Sep 14 09:05:57 UTC 2019 72=C2=B0 3900mV 1000MHz
-Sat Sep 14 09:05:59 UTC 2019 73=C2=B0 4029mV 1000MHz
-Sat Sep 14 09:06:00 UTC 2019 73=C2=B0 3988mV 1000MHz
-Sat Sep 14 09:06:01 UTC 2019 73=C2=B0 4005mV 1000MHz
-Sat Sep 14 09:06:03 UTC 2019 73=C2=B0 4011mV 1000MHz
-Sat Sep 14 09:06:04 UTC 2019 73=C2=B0 4117mV 1000MHz
-Sat Sep 14 09:06:06 UTC 2019 73=C2=B0 4005mV 1000MHz
-Sat Sep 14 09:06:07 UTC 2019 75=C2=B0 3994mV 1000MHz
-Sat Sep 14 09:06:08 UTC 2019 75=C2=B0 3970mV 1000MHz
-Sat Sep 14 09:06:09 UTC 2019 75=C2=B0 4046mV 1000MHz
-Sat Sep 14 09:06:11 UTC 2019 75=C2=B0 4005mV 1000MHz
-Sat Sep 14 09:06:12 UTC 2019 75=C2=B0 4023mV 1000MHz
-Sat Sep 14 09:06:14 UTC 2019 75=C2=B0 3970mV 1000MHz
-Sat Sep 14 09:06:15 UTC 2019 75=C2=B0 4011mV 1000MHz
-Sat Sep 14 09:06:16 UTC 2019 77=C2=B0 4017mV 1000MHz
-Sat Sep 14 09:06:18 UTC 2019 77=C2=B0 3994mV 1000MHz
-Sat Sep 14 09:06:19 UTC 2019 77=C2=B0 3994mV 1000MHz
-Sat Sep 14 09:06:20 UTC 2019 77=C2=B0 3988mV 1000MHz
-Sat Sep 14 09:06:22 UTC 2019 77=C2=B0 4023mV 1000MHz
-Sat Sep 14 09:06:23 UTC 2019 77=C2=B0 4023mV 1000MHz
-Sat Sep 14 09:06:24 UTC 2019 78=C2=B0 4005mV 1000MHz
-Sat Sep 14 09:06:26 UTC 2019 78=C2=B0 4105mV 1000MHz
-Sat Sep 14 09:06:27 UTC 2019 78=C2=B0 4011mV 1000MHz
-Sat Sep 14 09:06:28 UTC 2019 78=C2=B0 3994mV 1000MHz
-Sat Sep 14 09:06:30 UTC 2019 78=C2=B0 4123mV 1000MHz
-...
-Sat Sep 14 09:09:57 UTC 2019 88=C2=B0 4082mV 1000MHz
-Sat Sep 14 09:09:59 UTC 2019 88=C2=B0 4164mV 1000MHz
-Sat Sep 14 09:10:00 UTC 2019 88=C2=B0 4058mV 1000MHz
-Sat Sep 14 09:10:01 UTC 2019 88=C2=B0 4058mV 1000MHz
-Sat Sep 14 09:10:03 UTC 2019 88=C2=B0 4082mV 1000MHz
-Sat Sep 14 09:10:04 UTC 2019 88=C2=B0 4058mV 1000MHz
-Sat Sep 14 09:10:06 UTC 2019 88=C2=B0 4146mV 1000MHz
-Sat Sep 14 09:10:07 UTC 2019 88=C2=B0 4041mV 1000MHz
-Sat Sep 14 09:10:08 UTC 2019 88=C2=B0 4035mV 1000MHz
-Sat Sep 14 09:10:10 UTC 2019 88=C2=B0 4052mV 1000MHz
-Sat Sep 14 09:10:11 UTC 2019 88=C2=B0 4087mV 1000MHz
-Sat Sep 14 09:10:12 UTC 2019 88=C2=B0 4152mV 1000MHz
-Sat Sep 14 09:10:14 UTC 2019 88=C2=B0 4070mV 1000MHz
-Sat Sep 14 09:10:15 UTC 2019 88=C2=B0 4064mV 1000MHz
-Sat Sep 14 09:10:17 UTC 2019 88=C2=B0 4170mV 1000MHz
-Sat Sep 14 09:10:18 UTC 2019 88=C2=B0 4058mV 1000MHz
-Sat Sep 14 09:10:19 UTC 2019 88=C2=B0 4187mV 1000MHz
-Sat Sep 14 09:10:21 UTC 2019 88=C2=B0 4093mV 1000MHz
-Sat Sep 14 09:10:22 UTC 2019 88=C2=B0 4087mV 1000MHz
-Sat Sep 14 09:10:23 UTC 2019 90=C2=B0 4070mV 1000MHz
-Sat Sep 14 09:10:25 UTC 2019 88=C2=B0 4123mV 800MHz
-Sat Sep 14 09:10:26 UTC 2019 88=C2=B0 4064mV 1000MHz
-Sat Sep 14 09:10:28 UTC 2019 90=C2=B0 4058mV 1000MHz
-Sat Sep 14 09:10:29 UTC 2019 88=C2=B0 4076mV 1000MHz
-Sat Sep 14 09:10:30 UTC 2019 88=C2=B0 4064mV 1000MHz
-Sat Sep 14 09:10:32 UTC 2019 88=C2=B0 4117mV 1000MHz
-Sat Sep 14 09:10:33 UTC 2019 88=C2=B0 4105mV 800MHz
-Sat Sep 14 09:10:34 UTC 2019 88=C2=B0 4070mV 1000MHz
-Sat Sep 14 09:10:36 UTC 2019 88=C2=B0 4076mV 1000MHz
-Sat Sep 14 09:10:37 UTC 2019 88=C2=B0 4087mV 1000MHz
-Sat Sep 14 09:10:39 UTC 2019 88=C2=B0 4017mV 1000MHz
-Sat Sep 14 09:10:40 UTC 2019 88=C2=B0 4093mV 1000MHz
-Sat Sep 14 09:10:41 UTC 2019 88=C2=B0 4058mV 800MHz
-Sat Sep 14 09:10:42 UTC 2019 88=C2=B0 4035mV 1000MHz
-Sat Sep 14 09:10:44 UTC 2019 90=C2=B0 4058mV 1000MHz
-Sat Sep 14 09:10:45 UTC 2019 88=C2=B0 4064mV 1000MHz
-Sat Sep 14 09:10:47 UTC 2019 88=C2=B0 4064mV 1000MHz
-Sat Sep 14 09:10:48 UTC 2019 88=C2=B0 4029mV 1000MHz
-Sat Sep 14 09:10:50 UTC 2019 90=C2=B0 4046mV 1000MHz
-^Ckill 4680
-root@letux:~# cpufreq-info=20
-cpufrequtils 008: cpufreq-info (C) Dominik Brodowski 2004-2009
-Report errors and bugs to cpufreq@vger.kernel.org, please.
-analyzing CPU 0:
-  driver: cpufreq-dt
-  CPUs which run at the same hardware frequency: 0
-  CPUs which need to have their frequency coordinated by software: 0
-  maximum transition latency: 300 us.
-  hardware limits: 300 MHz - 1000 MHz
-  available frequency steps: 300 MHz, 600 MHz, 800 MHz, 1000 MHz
-  available cpufreq governors: conservative, userspace, powersave, =
-ondemand, performance
-  current policy: frequency should be within 300 MHz and 1000 MHz.
-                  The governor "ondemand" may decide which speed to use
-                  within this range.
-  current CPU frequency is 600 MHz (asserted by call to hardware).
-  cpufreq stats: 300 MHz:22.81%, 600 MHz:2.50%, 800 MHz:2.10%, 1000 =
-MHz:72.59%  (1563)
-root@letux:~#=20
+1. add OPP1G logic (with turbo-mode; specified)
+2. add thermal throttling
+3. remove turbo-mode again as soon as both are merged
 
-So OPP is reduced if bandgap sensor reports >=3D 90=C2=B0C
-which almost immediately makes the temperature
-go down.
+A patch for 2b is waiting for 1 and 2a to be confirmed :)
 
-No operational hickups were observed.
-
-Surface temperature of the PoP chip did rise to
-approx. 53=C2=B0C during this test.
-
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # on GTA04A5 with =
-dm3730cbp100
+BR,
+Nikolaus
