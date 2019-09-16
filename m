@@ -1,65 +1,74 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 0/7] Non-urgent fixes and improvments for omap3-rom-rng
-Date: Mon, 16 Sep 2019 09:47:03 +0300
-Message-ID: <364b98db-2b0a-6317-178e-910397b32ffb@ti.com>
-References: <20190914210300.15836-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190914210300.15836-1-tony@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: linux-crypto@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <aford173@gmail.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>, devicetree@vger.kernel.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [Letux-kernel] [PATCH 2/2] DTS: ARM: gta04: introduce legacy spi-cs-high to make display work again
+Date: Mon, 16 Sep 2019 12:59:19 +0200
+Message-ID: <ED6A6797-D1F9-473B-ABFF-B6951A924BC1@goldelico.com>
+References: <cover.1562597164.git.hns@goldelico.com> <8ae7cf816b22ef9cecee0d789fcf9e8a06495c39.1562597164.git.hns@goldelico.com> <20190724194259.GA25847@bogus> <2EA06398-E45B-481B-9A26-4DD2E043BF9C@goldelico.com> <CAL_JsqLe_Y9Z6MRt7ojgSVKAb9n95S8j=eGidSVNz2T83j-zPQ@mail.gmail.com> <CACRpkdY0AVnkRa8sV_Z54qfX9SYufvaYYhU0k2+LitXo0sLx2w@mail.gmail.com> <20190831084852.5e726cfa@aktux>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190831084852.5e726cfa@aktux>
+Sender: stable-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 15/09/2019 00:02, Tony Lindgren wrote:
-> Hi all,
-> 
-> Here are fixes and improvments for omap3-rom-rng that's been broken for
-> a while.
-> 
-> The first four patches get it working, and then the last two patches add
-> support for runtime PM.
-> 
-> I did not add Sebastian's acks from v1 set as many of the patches
-> changed. Please review again :)
+ping.
 
-Series looks fine to me also, don't have possibility to test omap3 ROM 
-RNG though (don't have HW for this.) For the whole series:
+Device omap3-gta04 is neither working with v5.3 nor linux-next quite a =
+while and we need a solution.
 
-Reviewed-by: Tero Kristo <t-kristo@ti.com>
+> Am 31.08.2019 um 08:48 schrieb Andreas Kemnade <andreas@kemnade.info>:
+>=20
+> Hi,
+>=20
+> On Mon, 5 Aug 2019 12:29:19 +0200
+> Linus Walleij <linus.walleij@linaro.org> wrote:
+>=20
+>> On Fri, Jul 26, 2019 at 12:43 AM Rob Herring <robh@kernel.org> wrote:
+>>> On Thu, Jul 25, 2019 at 12:23 AM H. Nikolaus Schaller =
+<hns@goldelico.com> wrote: =20
+>>=20
+>>>> I tried to convince Linus that this is the right way but he =
+convinced
+>>>> me that a fix that handles all cases does not exist.
+>>>>=20
+>>>> There seem to be embedded devices with older DTB (potentially in =
+ROM)
+>>>> which provide a plain 0 value for a gpios definition. And either =
+with
+>>>> or without spi-cs-high.
+>>>>=20
+>>>> Since "0" is the same as "GPIO_ACTIVE_HIGH", the absence of
+>>>> spi-cs-high was and must be interpreted as active low for these
+>>>> devices. This leads to the inversion logic in code.
+>>>>=20
+>>>> AFAIR it boils down to the question if gpiolib and the bindings
+>>>> should still support such legacy devices with out-of tree DTB,
+>>>> but force in-tree DTS to add the legacy spi-cs-high property.
+>>>>=20
+>>>> Or if we should fix the 2 or 3 cases of in-tree legacy cases
+>>>> and potentially break out-of tree DTBs. =20
+>>>=20
+>>> If it is small number of platforms, then the kernel could handle =
+those
+>>> cases explicitly as needed.
+>>>=20
+>>>> IMHO it is more general to keep the out-of-tree DTBs working
+>>>> and "fix" what we can control (in-tree DTS). =20
 
-
-
+>>>=20
+>>> If we do this, then we need to not call spi-cs-high legacy because
+>>> we're stuck with it forever. =20
+>>=20
+>> I agree. The background on it is here:
+>> https://lkml.org/lkml/2019/4/2/4
+>>=20
+>> Not using the negatively defined (i.e. if it is no there, the line is
+>> by default active low) spi-cs-high would break
+>> PowerPC, who were AFAICT using this to ship devices.
+>>=20
+> is this thing now just waiting for someone to do a s/legacy//?
+>=20
 > Regards,
-> 
-> Tony
-> 
-> Changes since v1:
-> - Use clk_prepare_enable() as pointed out by Sebastian
-> - Simplify runtime PM changes patch
-> - Add a new patch for devm changes as suggested by Sebastian
-> 
-> 
-> Tony Lindgren (7):
->    ARM: OMAP2+: Check omap3-rom-rng for GP device instead of HS device
->    hwrng: omap3-rom - Fix missing clock by probing with device tree
->    hwrng: omap3-rom - Call clk_disable_unprepare() on exit only if not
->      idled
->    hwrng: omap3-rom - Initialize default quality to get data
->    hwrng: omap3-rom - Update to use standard driver data
->    hwrng: omap3-rom - Use runtime PM instead of custom functions
->    hwrng: omap3-rom - Use devm hwrng and runtime PM
-> 
->   .../devicetree/bindings/rng/omap3_rom_rng.txt |  27 +++
->   arch/arm/boot/dts/omap3-n900.dts              |   6 +
->   arch/arm/mach-omap2/pdata-quirks.c            |  14 +-
->   drivers/char/hw_random/omap3-rom-rng.c        | 168 +++++++++++-------
->   4 files changed, 139 insertions(+), 76 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/rng/omap3_rom_rng.txt
-> 
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> Andreas
