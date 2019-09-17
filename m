@@ -1,43 +1,71 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv5 01/10] dt-bindings: omap: add new binding for PRM
- instances
-Date: Tue, 17 Sep 2019 12:48:17 -0500
-Message-ID: <20190917174817.GA27938@bogus>
-References: <20190912113916.20093-1-t-kristo@ti.com>
- <20190912113916.20093-2-t-kristo@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH net-next] net: ethernet: ti: use devm_platform_ioremap_resource()
+ to simplify code
+Date: Tue, 17 Sep 2019 20:35:51 +0200
+Message-ID: <CAMuHMdXdd4oiHqTpFTYBTSeCB6A78_gSGmwPy5EgPRZXibOqZw@mail.gmail.com>
+References: <20190821124850.9592-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190912113916.20093-2-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: devicetree@vger.kernel.org, tony@atomide.com, robh+dt@kernel.org, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190821124850.9592-1-yuehaibing@huawei.com>
+Sender: netdev-owner@vger.kernel.org
+To: YueHaibing <yuehaibing@huawei.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, ivan.khoronzhuk@linaro.org, Andrew Lunn <andrew@lunn.ch>, =?UTF-8?Q?Petr_=C5=A0tetiar?= <ynezz@true.cz>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 12 Sep 2019 14:39:07 +0300, Tero Kristo wrote:
-> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
-> of these will act as a power domain controller and potentially as a reset
-> provider.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-> v5: - dropped the clocks property as the dependency towards clocks was
->       removed
->     - changed the name of the node to be power-controller
-> 
->  .../devicetree/bindings/arm/omap/prm-inst.txt | 28 +++++++++++++++++++
->  1 file changed, 28 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-> 
+Hi YueHaibing,
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+On Wed, Aug 21, 2019 at 2:51 PM YueHaibing <yuehaibing@huawei.com> wrote:
+> Use devm_platform_ioremap_resource() to simplify the code a bit.
+> This is detected by coccinelle.
+>
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+>  drivers/net/ethernet/ti/cpsw.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 32a8974..5401095 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -2764,7 +2764,7 @@ static int cpsw_probe(struct platform_device *pdev)
+>         struct net_device               *ndev;
+>         struct cpsw_priv                *priv;
+>         void __iomem                    *ss_regs;
+> -       struct resource                 *res, *ss_res;
+> +       struct resource                 *ss_res;
+>         struct gpio_descs               *mode;
+>         const struct soc_device_attribute *soc;
+>         struct cpsw_common              *cpsw;
+> @@ -2798,8 +2798,7 @@ static int cpsw_probe(struct platform_device *pdev)
+
+And just out-of-context, we also have:
+
+        ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+        ss_regs = devm_ioremap_resource(dev, ss_res);
+        if (IS_ERR(ss_regs))
+
+which was not detected as being the same pattern?
+
+Interesting...
+
+>                 return PTR_ERR(ss_regs);
+>         cpsw->regs = ss_regs;
+>
+> -       res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> -       cpsw->wr_regs = devm_ioremap_resource(dev, res);
+> +       cpsw->wr_regs = devm_platform_ioremap_resource(pdev, 1);
+>         if (IS_ERR(cpsw->wr_regs))
+>                 return PTR_ERR(cpsw->wr_regs);
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
