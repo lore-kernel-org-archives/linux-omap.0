@@ -1,71 +1,37 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH net-next] net: ethernet: ti: use devm_platform_ioremap_resource()
- to simplify code
-Date: Tue, 17 Sep 2019 20:35:51 +0200
-Message-ID: <CAMuHMdXdd4oiHqTpFTYBTSeCB6A78_gSGmwPy5EgPRZXibOqZw@mail.gmail.com>
-References: <20190821124850.9592-1-yuehaibing@huawei.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v3 5/8] cpufreq: ti-cpufreq: omap36xx use "cpu0","vbb" if
+ run in multi_regulator mode
+Date: Tue, 17 Sep 2019 14:22:47 -0500
+Message-ID: <20190917192247.GA7233@bogus>
+References: <cover.1568224032.git.hns@goldelico.com>
+ <1c803be8060fb99b7d92e2f5cde3c0e1962fbe2b.1568224033.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190821124850.9592-1-yuehaibing@huawei.com>
-Sender: netdev-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, ivan.khoronzhuk@linaro.org, Andrew Lunn <andrew@lunn.ch>, =?UTF-8?Q?Petr_=C5=A0tetiar?= <ynezz@true.cz>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1c803be8060fb99b7d92e2f5cde3c0e1962fbe2b.1568224033.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>, =?iso-8859-1?Q?Andr=E9?= Roth <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>, Teresa Remmet <t.remmet@phytec.de>, "H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi YueHaibing,
-
-On Wed, Aug 21, 2019 at 2:51 PM YueHaibing <yuehaibing@huawei.com> wrote:
-> Use devm_platform_ioremap_resource() to simplify the code a bit.
-> This is detected by coccinelle.
->
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+On Wed, 11 Sep 2019 19:47:11 +0200, "H. Nikolaus Schaller" wrote:
+> In preparation for using the multi_regulator capability of
+> this driver for handling the ABB LDO for OPP1G of the omap36xx
+> we have to take care that the (legacy) vdd-supply name is
+> cpu0-supply = <&vcc>;
+> 
+> To do this we add another field to the SoC description table which
+> optionally can specify a list of regulator names.
+> 
+> For omap36xx we define "cpu0-supply" and "vbb-supply".
+> 
+> The default remains "vdd-supply" and "vbb-supply".
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 > ---
->  drivers/net/ethernet/ti/cpsw.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 32a8974..5401095 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -2764,7 +2764,7 @@ static int cpsw_probe(struct platform_device *pdev)
->         struct net_device               *ndev;
->         struct cpsw_priv                *priv;
->         void __iomem                    *ss_regs;
-> -       struct resource                 *res, *ss_res;
-> +       struct resource                 *ss_res;
->         struct gpio_descs               *mode;
->         const struct soc_device_attribute *soc;
->         struct cpsw_common              *cpsw;
-> @@ -2798,8 +2798,7 @@ static int cpsw_probe(struct platform_device *pdev)
+>  .../devicetree/bindings/cpufreq/ti-cpufreq.txt       |  6 +++++-
+>  drivers/cpufreq/ti-cpufreq.c                         | 12 ++++++++++--
+>  2 files changed, 15 insertions(+), 3 deletions(-)
+> 
 
-And just out-of-context, we also have:
-
-        ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-        ss_regs = devm_ioremap_resource(dev, ss_res);
-        if (IS_ERR(ss_regs))
-
-which was not detected as being the same pattern?
-
-Interesting...
-
->                 return PTR_ERR(ss_regs);
->         cpsw->regs = ss_regs;
->
-> -       res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-> -       cpsw->wr_regs = devm_ioremap_resource(dev, res);
-> +       cpsw->wr_regs = devm_platform_ioremap_resource(pdev, 1);
->         if (IS_ERR(cpsw->wr_regs))
->                 return PTR_ERR(cpsw->wr_regs);
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Acked-by: Rob Herring <robh@kernel.org>
