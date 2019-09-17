@@ -1,52 +1,43 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH 3/3] ARM: logicpd-torpedo-37xx-devkit-28: Reference new DRM panel
-Date: Tue, 17 Sep 2019 11:12:13 -0500
-Message-ID: <20190917161214.2913-3-aford173@gmail.com>
-References: <20190917161214.2913-1-aford173@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190917161214.2913-1-aford173@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org, adam.ford@logicpd.com, Adam Ford <aford173@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCHv5 01/10] dt-bindings: omap: add new binding for PRM
+ instances
+Date: Tue, 17 Sep 2019 12:48:17 -0500
+Message-ID: <20190917174817.GA27938@bogus>
+References: <20190912113916.20093-1-t-kristo@ti.com>
+ <20190912113916.20093-2-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190912113916.20093-2-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, robh+dt@kernel.org, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With the removal of the panel-dpi from the omap drivers, the
-LCD no longer works.  This patch points the device tree to
-a newly created panel named "logicpd,type28"
+On Thu, 12 Sep 2019 14:39:07 +0300, Tero Kristo wrote:
+> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
+> of these will act as a power domain controller and potentially as a reset
+> provider.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+> v5: - dropped the clocks property as the dependency towards clocks was
+>       removed
+>     - changed the name of the node to be power-controller
+> 
+>  .../devicetree/bindings/arm/omap/prm-inst.txt | 28 +++++++++++++++++++
+>  1 file changed, 28 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> 
 
-Fixes: 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
-
-Signed-off-by: Adam Ford <aford173@gmail.com>
-
-diff --git a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
-index 07ac99b9cda6..00c426bd51a0 100644
---- a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
-+++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
-@@ -11,22 +11,8 @@
- #include "logicpd-torpedo-37xx-devkit.dts"
- 
- &lcd0 {
--
-+	/* This isn't the exact LCD, but the timings meet spec */
-+	/* To make it work, set CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4 */
-+	compatible = "logicpd,type28";
- 	label = "28";
--
--	panel-timing {
--		clock-frequency = <9000000>;
--		hactive = <480>;
--		vactive = <272>;
--		hfront-porch = <3>;
--		hback-porch = <2>;
--		hsync-len = <42>;
--		vback-porch = <3>;
--		vfront-porch = <2>;
--		vsync-len = <11>;
--		hsync-active = <1>;
--		vsync-active = <1>;
--		de-active = <1>;
--		pixelclk-active = <0>;
--	};
- };
--- 
-2.17.1
+Reviewed-by: Rob Herring <robh@kernel.org>
