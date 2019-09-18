@@ -1,80 +1,80 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH net-next] net: ethernet: ti: use devm_platform_ioremap_resource()
- to simplify code
-Date: Wed, 18 Sep 2019 11:35:59 +0200
-Message-ID: <CAMuHMdW4Yzd6tMP=mTWvcVdeCbKiDE+Nm2V=73Wsbc5rG6uYNQ@mail.gmail.com>
-References: <20190821124850.9592-1-yuehaibing@huawei.com> <CAMuHMdXdd4oiHqTpFTYBTSeCB6A78_gSGmwPy5EgPRZXibOqZw@mail.gmail.com>
- <12c00786-980f-5761-3117-3e741e63d7b3@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [RFC] ARM: dts: omap36xx: Enable thermal throttling
+Date: Wed, 18 Sep 2019 11:36:26 +0200
+Message-ID: <6B087285-DFAF-45AD-8D32-6A1264252342@goldelico.com>
+References: <20190912183037.18449-1-aford173@gmail.com> <51bb8890-bfd7-c241-1ce5-151df3a90513@linaro.org> <CAHCN7xKjwkJHysSkNymF=sw6KuS=FqbapuRFZODuj6E_hmRG1A@mail.gmail.com> <2ef812a4-2f2d-b2e2-9fa4-080775e24bc8@linaro.org> <20190918092418.que4c5jpcn2dcavx@vireshk-mac-ubuntu>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <12c00786-980f-5761-3117-3e741e63d7b3@ti.com>
+In-Reply-To: <20190918092418.que4c5jpcn2dcavx@vireshk-mac-ubuntu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: YueHaibing <yuehaibing@huawei.com>, "David S. Miller" <davem@davemloft.net>, ivan.khoronzhuk@linaro.org, Andrew Lunn <andrew@lunn.ch>, =?UTF-8?Q?Petr_=C5=A0tetiar?= <ynezz@true.cz>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Adam Ford <aford173@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Kemnade <andreas@kemnade.info>, Nishanth Menon <nm@ti.com>, Adam Ford <adam.ford@logicpd.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii,
+Hi,
 
-On Wed, Sep 18, 2019 at 11:29 AM Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> On 17/09/2019 21:35, Geert Uytterhoeven wrote:
-> > On Wed, Aug 21, 2019 at 2:51 PM YueHaibing <yuehaibing@huawei.com> wrote:
-> >> Use devm_platform_ioremap_resource() to simplify the code a bit.
-> >> This is detected by coccinelle.
-> >>
-> >> Reported-by: Hulk Robot <hulkci@huawei.com>
-> >> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> >> ---
-> >>   drivers/net/ethernet/ti/cpsw.c | 5 ++---
-> >>   1 file changed, 2 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> >> index 32a8974..5401095 100644
-> >> --- a/drivers/net/ethernet/ti/cpsw.c
-> >> +++ b/drivers/net/ethernet/ti/cpsw.c
-> >> @@ -2764,7 +2764,7 @@ static int cpsw_probe(struct platform_device *pdev)
-> >>          struct net_device               *ndev;
-> >>          struct cpsw_priv                *priv;
-> >>          void __iomem                    *ss_regs;
-> >> -       struct resource                 *res, *ss_res;
-> >> +       struct resource                 *ss_res;
-> >>          struct gpio_descs               *mode;
-> >>          const struct soc_device_attribute *soc;
-> >>          struct cpsw_common              *cpsw;
-> >> @@ -2798,8 +2798,7 @@ static int cpsw_probe(struct platform_device *pdev)
-> >
-> > And just out-of-context, we also have:
-> >
-> >          ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> >          ss_regs = devm_ioremap_resource(dev, ss_res);
-> >          if (IS_ERR(ss_regs))
-> >
-> > which was not detected as being the same pattern?
-> >
-> > Interesting...
->
-> ss_res is used below to determine phys address of CPPI RAM.
+> Am 18.09.2019 um 11:24 schrieb Viresh Kumar <viresh.kumar@linaro.org>:
+>=20
+> On 13-09-19, 00:33, Daniel Lezcano wrote:
+>>=20
+>> Hi Adam,
+>>=20
+>> On 12/09/2019 23:19, Adam Ford wrote:
+>>> On Thu, Sep 12, 2019 at 4:12 PM Daniel Lezcano
+>>> <daniel.lezcano@linaro.org> wrote:
+>>>>=20
+>>>> On 12/09/2019 20:30, Adam Ford wrote:
+>>>>> The thermal sensor in the omap3 family isn't accurate, but it's
+>>>>> better than nothing.  The various OPP's enabled for the omap3630
+>>>>> support up to OPP1G, however the datasheet for the DM3730 states
+>>>>> that OPP130 and OPP1G are not available above TJ of 90C.
+>>>>>=20
+>>>>> This patch configures the thermal throttling to limit the
+>>>>> operating points of the omap3630 to Only OPP50 and OPP100 if
+>>>>> the thermal sensor reads a value above 90C.
+>>=20
+>> Oh, that's a very interesting use case.
+>>=20
+>> AFAICT the thermal framework is not designed to deal with this
+>> situation. I agree this setup may work (even if I'm not convinced =
+about
+>> the stability of the whole).
+>>=20
+>> May be Viresh can help for the cpufreq side?
+>=20
+> Sorry but I am not able to understand what's not supported by thermal =
+framework
+> here and what can I do to help :)
 
-Right, thanks, I missed that.
+Well, it appears that it is not supported that the thermal
+framework can enable/disable individual OPPs. Rather it disables
+more and more of them from highest index to lowest (like a
+fan spinning up in speed).
 
-> >
-> >>                  return PTR_ERR(ss_regs);
-> >>          cpsw->regs = ss_regs;
-> >>
-> >> -       res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-> >> -       cpsw->wr_regs = devm_ioremap_resource(dev, res);
-> >> +       cpsw->wr_regs = devm_platform_ioremap_resource(pdev, 1);
-> >>          if (IS_ERR(cpsw->wr_regs))
-> >>                  return PTR_ERR(cpsw->wr_regs);
+But it has turned out that we do not need that. It was only
+a too verbatim interpretation of the data sheet which says
+that certain OPPs (OPP130 and OPP1G) must not be enabled above
+a thermal limit of 90=C2=B0C while the others can be used above.
 
-Gr{oetje,eeting}s,
+But just going down stepwise to lower frequency OPPs as long
+as above thermal limit is fine for practical situations.
 
-                        Geert
+So instead of "limit the operating points of the omap3630 to
+Only OPP50 and OPP100 if the thermal sensor reads a value above
+90C" we can just "go down from OPP1G -> OPP130 -> OPP100 -> OPP50
+until the thermal sensors reads a value below 90C". And
+that is easily done with existing cpufreq and thermal framework
+(as we have tested).
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+This will of course also exclude OPP100 and OPP50 above 90=C2=B0C
+where no thermal limit is given in the data sheet, but as far
+as we know it is impossible (without running the board in a thermal
+chamber) to get the chip above 90C in these low-frequency/voltage
+OPPs.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Hope this clarifies.
+
+BR and thanks,
+Nikolaus
