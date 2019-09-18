@@ -1,64 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] fixes for omaps for v5.4 merge window
-Date: Wed, 18 Sep 2019 08:10:24 -0700
-Message-ID: <pull-1568819401-72461@atomide.com>
+Subject: Re: [PATCH 5/8] ARM: dts: Drop bogus ahclkr clocks for dra7 mcasp 3
+ to 8
+Date: Wed, 18 Sep 2019 08:51:08 -0700
+Message-ID: <20190918155108.GD5610@atomide.com>
+References: <20190723112811.44381-1-tony@atomide.com>
+ <20190723112811.44381-6-tony@atomide.com>
+ <2c750847-700e-c835-ee53-a656b363c36c@ti.com>
+ <20190724064758.GU5447@atomide.com>
+ <931eb0e1-8024-3003-1fb3-6f6ad8b74bf9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: soc@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <931eb0e1-8024-3003-1fb3-6f6ad8b74bf9@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+* Tero Kristo <t-kristo@ti.com> [190917 07:22]:
+> On 24/07/2019 09:47, Tony Lindgren wrote:
+> > * Suman Anna <s-anna@ti.com> [190723 21:02]:
+> > > Hi Tony,
+> > > 
+> > > On 7/23/19 6:28 AM, Tony Lindgren wrote:
+> > > > The ahclkr clkctrl clock bit 28 only exists for mcasp 1 and 2 on dra7.
+> > > > Otherwise we get the following warning on beagle-x15:
+> > ...
+> > > > @@ -2962,9 +2958,8 @@
+> > > >   					<SYSC_IDLE_SMART>;
+> > > >   			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+> > > >   			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 0>,
+> > > > -				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>,
+> > > > -				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 28>;
+> > > > -			clock-names = "fck", "ahclkx", "ahclkr";
+> > > > +				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>;
+> > > > +			clock-names = "fck", "ahclkx";
+> > > 
+> > > The equivalent change to MCASP8 is missing.
+> > 
+> > Thanks for spotting it, probably should be set up the same way as
+> > MCASP4 too looking at the TRM.
+> > 
+> > Tero, care to check the dra7 mcasp clocks we have defined?
+> 
+> Sorry, missed this earlier.
+> 
+> > 
+> > $ grep MCASP drivers/clk/ti/clk-7xx.c
+> >          { DRA7_IPU_MCASP1_CLKCTRL, dra7_mcasp1_bit_data, CLKF_SW_SUP, "ipu-clkctrl:0000:22" },
+> >          { DRA7_L4PER2_MCASP2_CLKCTRL, dra7_mcasp2_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:0154:22" },
+> >          { DRA7_L4PER2_MCASP3_CLKCTRL, dra7_mcasp3_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:015c:22" },
+> >          { DRA7_L4PER2_MCASP5_CLKCTRL, dra7_mcasp5_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:016c:22" },
+> >          { DRA7_L4PER2_MCASP8_CLKCTRL, dra7_mcasp8_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:0184:24" },
+> >          { DRA7_L4PER2_MCASP4_CLKCTRL, dra7_mcasp4_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:018c:22" },
+> >          { DRA7_L4PER2_MCASP6_CLKCTRL, dra7_mcasp6_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:01f8:22" },
+> >          { DRA7_L4PER2_MCASP7_CLKCTRL, dra7_mcasp7_bit_data, CLKF_SW_SUP, "l4per2-clkctrl:01fc:22" },
+> > 
+> > Is bit 24 above correct for MCASP8 or should it too be 22 like
+> > adjacent MCASP4 in the TRM?
+> 
+> So yeah, mcasp8 is wrong here, should be 22 as rest of them. I did fix
+> mcasp8 clocks partially when doing the conversion but missed the parenting
+> here; it was completely broken before.
 
-The following changes since commit 4a65bbb9109ed7edd4b6ed7168ced48abb8561a2:
+OK thanks, I'll post a patch to fix that and an updated mcasp dts fix.
 
-  soc: ti: pm33xx: Make two symbols static (2019-08-13 05:05:38 -0700)
+Regards,
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/fixes-5.4-merge-window
-
-for you to fetch changes up to a4c8723a162e6244fb01944fbf446750575dba59:
-
-  bus: ti-sysc: Remove unpaired sysc_clkdm_deny_idle() (2019-09-06 12:57:46 -0700)
-
-----------------------------------------------------------------
-Fixes for omap variants
-
-Few fixes for ti-sysc interconnect target module driver for no-idle
-quirks that caused nfsroot to fail on some dra7 boards.
-
-And let's fixes to get LCD working again for logicpd board that got
-broken a while back with removal of panel-dpi driver. We need to now
-use generic CONFIG_DRM_PANEL_SIMPLE instead.
-
-----------------------------------------------------------------
-Adam Ford (4):
-      ARM: omap2plus_defconfig: Fix missing video
-      ARM: dts: logicpd-torpedo-baseboard: Fix missing video
-      ARM: dts: am3517-evm: Fix missing video
-      ARM: dts: logicpd-som-lv: Fix i2c2 and i2c3 Pin mux
-
-Tony Lindgren (3):
-      bus: ti-sysc: Fix clock handling for no-idle quirks
-      bus: ti-sysc: Fix handling of invalid clocks
-      bus: ti-sysc: Remove unpaired sysc_clkdm_deny_idle()
-
- arch/arm/boot/dts/am3517-evm.dts                 | 23 ++---------
- arch/arm/boot/dts/logicpd-som-lv.dtsi            | 26 ++++++------
- arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi | 37 +++--------------
- arch/arm/configs/omap2plus_defconfig             |  1 +
- arch/arm/mach-omap2/pdata-quirks.c               |  4 +-
- drivers/bus/ti-sysc.c                            | 52 +++++++++++++++++-------
- 6 files changed, 64 insertions(+), 79 deletions(-)
+Tony
