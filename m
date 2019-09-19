@@ -1,13 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 01/10] dt-bindings: omap: add new binding for PRM instances
-Date: Thu, 19 Sep 2019 15:30:01 +0300
-Message-ID: <20190919123001.23081-1-t-kristo@ti.com>
-References: <20190917174817.GA27938@bogus>
+Subject: [PATCHv6 10/10] ARM: OMAP2+: pdata-quirks: add PRM data for reset
+ support
+Date: Thu, 19 Sep 2019 15:32:58 +0300
+Message-ID: <20190919123258.23172-1-t-kristo@ti.com>
+References: <20190912170953.GT52127@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190917174817.GA27938@bogus>
+In-Reply-To: <20190912170953.GT52127@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,59 +18,55 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ssantosh@kernel.org, p.zabel@pengutronix.de, robh+dt@kernel.org, tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: ssantosh@kernel.org, p.zabel@pengutronix.de, tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
-of these will act as a power domain controller and potentially as a reset
-provider.
+The parent clockdomain for reset must be in force wakeup mode, otherwise
+the reset may never complete. Add pdata quirks for this purpose for PRM
+driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
-v6: added common compatible as per request from Tony Lindgren. This is
-    to simplify the support code in patch #10 of the series slightly
+v6: replaced platform specific compatibles with a single common
+    compatible check
 
- .../devicetree/bindings/arm/omap/prm-inst.txt | 30 +++++++++++++++++++
- 1 file changed, 30 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+ arch/arm/mach-omap2/pdata-quirks.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-new file mode 100644
-index 000000000000..31f8d8b44a51
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
-@@ -0,0 +1,30 @@
-+OMAP PRM instance bindings
-+
-+Power and Reset Manager is an IP block on OMAP family of devices which
-+handle the power domains and their current state, and provide reset
-+handling for the domains and/or separate IP blocks under the power domain
-+hierarchy.
-+
-+Required properties:
-+- compatible:	Must contain one of the following:
-+		"ti,am3-prm-inst"
-+		"ti,am4-prm-inst"
-+		"ti,omap4-prm-inst"
-+		"ti,omap5-prm-inst"
-+		"ti,dra7-prm-inst"
-+		and additionally must contain:
-+		"ti,omap-prm-inst"
-+- reg:		Contains PRM instance register address range
-+		(base address and length)
-+
-+Optional properties:
-+- #reset-cells:	Should be 1 if the PRM instance in question supports resets.
-+
-+Example:
-+
-+prm_dsp2: prm@1b00 {
-+	compatible = "ti,omap-prm-inst", "ti,dra7-prm-inst";
-+	reg = <0x1b00 0x40>;
-+	#reset-cells = <1>;
-+	clocks = <&dsp2_clkctrl DRA7_DSP2_MMU0_DSP2_CLKCTRL 0>;
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 6c6f8fce854e..45ffa1204cd2 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -25,6 +25,7 @@
+ #include <linux/platform_data/ti-sysc.h>
+ #include <linux/platform_data/wkup_m3.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
++#include <linux/platform_data/ti-prm.h>
+ 
+ #include "clockdomain.h"
+ #include "common.h"
+@@ -565,6 +566,12 @@ void omap_pcs_legacy_init(int irq, void (*rearm)(void))
+ 	pcs_pdata.rearm = rearm;
+ }
+ 
++static struct ti_prm_platform_data ti_prm_pdata = {
++	.clkdm_deny_idle = clkdm_deny_idle,
++	.clkdm_allow_idle = clkdm_allow_idle,
++	.clkdm_lookup = clkdm_lookup,
 +};
++
+ /*
+  * GPIOs for TWL are initialized by the I2C bus and need custom
+  * handing until DSS has device tree bindings.
+@@ -664,6 +671,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
+ 	/* Common auxdata */
+ 	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
+ 	OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
++	OF_DEV_AUXDATA("ti,omap-prm-inst", 0, NULL, &ti_prm_pdata),
+ 	{ /* sentinel */ },
+ };
+ 
 -- 
 2.17.1
 
