@@ -1,74 +1,33 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 10/10] ARM: OMAP2+: pdata-quirks: add PRM data for reset
- support
-Date: Thu, 19 Sep 2019 15:32:58 +0300
-Message-ID: <20190919123258.23172-1-t-kristo@ti.com>
-References: <20190912170953.GT52127@atomide.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: remoteproc: don't allow modular build
+Date: Thu, 19 Sep 2019 19:47:24 +0200
+Message-ID: <20190919174724.GB9622@lst.de>
+References: <5bf9425f-4ea0-09db-70cc-415ac0031b95@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190912170953.GT52127@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ssantosh@kernel.org, p.zabel@pengutronix.de, tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5bf9425f-4ea0-09db-70cc-415ac0031b95@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: hch@lst.de, bjorn.andersson@linaro.org, Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The parent clockdomain for reset must be in force wakeup mode, otherwise
-the reset may never complete. Add pdata quirks for this purpose for PRM
-driver.
+On Thu, Sep 19, 2019 at 11:01:35AM +0530, Keerthy wrote:
+> Hi Christoph/Bjorn,
+>
+> There are a bunch of defconfigs that rely on modular build of remoteproc.
+>
+> If i do a git grep CONFIG_REMOTEPROC on linux-next:
+>
+> arch/arm/configs/davinci_all_defconfig:CONFIG_REMOTEPROC=m
+> arch/arm/configs/multi_v7_defconfig:CONFIG_REMOTEPROC=m
+> arch/arm/configs/omap2plus_defconfig:CONFIG_REMOTEPROC=m
+> arch/arm/configs/qcom_defconfig:CONFIG_REMOTEPROC=y
+> arch/arm64/configs/defconfig:CONFIG_REMOTEPROC=m
+>
+> All of them now stop building the remoteproc as a module and all the 
+> dependent modules consequently do not get built. Do you recommend all of 
+> them to get converted to built in?
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
-v6: replaced platform specific compatibles with a single common
-    compatible check
-
- arch/arm/mach-omap2/pdata-quirks.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 6c6f8fce854e..45ffa1204cd2 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -25,6 +25,7 @@
- #include <linux/platform_data/ti-sysc.h>
- #include <linux/platform_data/wkup_m3.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
-+#include <linux/platform_data/ti-prm.h>
- 
- #include "clockdomain.h"
- #include "common.h"
-@@ -565,6 +566,12 @@ void omap_pcs_legacy_init(int irq, void (*rearm)(void))
- 	pcs_pdata.rearm = rearm;
- }
- 
-+static struct ti_prm_platform_data ti_prm_pdata = {
-+	.clkdm_deny_idle = clkdm_deny_idle,
-+	.clkdm_allow_idle = clkdm_allow_idle,
-+	.clkdm_lookup = clkdm_lookup,
-+};
-+
- /*
-  * GPIOs for TWL are initialized by the I2C bus and need custom
-  * handing until DSS has device tree bindings.
-@@ -664,6 +671,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
- 	/* Common auxdata */
- 	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
- 	OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
-+	OF_DEV_AUXDATA("ti,omap-prm-inst", 0, NULL, &ti_prm_pdata),
- 	{ /* sentinel */ },
- };
- 
--- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Yes, I guess we need to do that.
