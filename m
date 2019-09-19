@@ -1,33 +1,41 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: remoteproc: don't allow modular build
-Date: Thu, 19 Sep 2019 19:47:24 +0200
-Message-ID: <20190919174724.GB9622@lst.de>
-References: <5bf9425f-4ea0-09db-70cc-415ac0031b95@ti.com>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCHv6 01/10] dt-bindings: omap: add new binding for PRM
+ instances
+Date: Thu, 19 Sep 2019 14:54:39 -0500
+Message-ID: <CAL_Jsq+x93K9=L4s6ZdmsDb__==kP36WbM_WY1pB-_QNPOhsGw@mail.gmail.com>
+References: <20190917174817.GA27938@bogus>
+ <20190919123001.23081-1-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5bf9425f-4ea0-09db-70cc-415ac0031b95@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: hch@lst.de, bjorn.andersson@linaro.org, Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190919123001.23081-1-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Philipp Zabel <p.zabel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 19, 2019 at 11:01:35AM +0530, Keerthy wrote:
-> Hi Christoph/Bjorn,
+On Thu, Sep 19, 2019 at 7:30 AM Tero Kristo <t-kristo@ti.com> wrote:
 >
-> There are a bunch of defconfigs that rely on modular build of remoteproc.
+> Add new binding for OMAP PRM (Power and Reset Manager) instances. Each
+> of these will act as a power domain controller and potentially as a reset
+> provider.
 >
-> If i do a git grep CONFIG_REMOTEPROC on linux-next:
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+> v6: added common compatible as per request from Tony Lindgren. This is
+>     to simplify the support code in patch #10 of the series slightly
 >
-> arch/arm/configs/davinci_all_defconfig:CONFIG_REMOTEPROC=m
-> arch/arm/configs/multi_v7_defconfig:CONFIG_REMOTEPROC=m
-> arch/arm/configs/omap2plus_defconfig:CONFIG_REMOTEPROC=m
-> arch/arm/configs/qcom_defconfig:CONFIG_REMOTEPROC=y
-> arch/arm64/configs/defconfig:CONFIG_REMOTEPROC=m
->
-> All of them now stop building the remoteproc as a module and all the 
-> dependent modules consequently do not get built. Do you recommend all of 
-> them to get converted to built in?
+>  .../devicetree/bindings/arm/omap/prm-inst.txt | 30 +++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/prm-inst.txt
 
-Yes, I guess we need to do that.
+Reviewed-by: Rob Herring <robh@kernel.org>
