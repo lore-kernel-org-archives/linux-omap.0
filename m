@@ -1,53 +1,67 @@
-From: santosh.shilimkar@oracle.com
-Subject: Re: [PATCHv5 00/10] soc: ti: add OMAP PRM driver (for reset)
-Date: Fri, 20 Sep 2019 12:19:56 -0700
-Message-ID: <13a77bd8-72bd-6a44-9141-d5492be82d82@oracle.com>
-References: <20190912113916.20093-1-t-kristo@ti.com>
- <20190920142849.GS5610@atomide.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [PATCH 2/3] dt-bindings: Add Logic PD Type 28 display panel
+Date: Sat, 21 Sep 2019 21:07:08 +0200
+Message-ID: <20190921190708.GB32133@ravnborg.org>
+References: <20190917161214.2913-1-aford173@gmail.com>
+ <20190917161214.2913-2-aford173@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190920142849.GS5610@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190917161214.2913-2-aford173@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, adam.ford@logicpd.com, Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 9/20/19 7:28 AM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [190912 04:39]:
->> Hi,
->>
->> V5 of the series, re-sent the whole series as one patch was dropped.
->> Changes compared to v3/v4:
->>
->> - removed dependency towards clock driver (patch #5 was completely
->>    dropped compared to v3/v4)
->> - dropped clocks property from dt binding
->> - re-added the pdata patch which was accidentally dropped out (it has
->>    dependency towards this series.)
->>
->> The new implementation (without clock driver dependency) relies on the
->> bus driver to sequence events properly, otherwise some timeouts will
->> occur either at clock driver or reset driver end.
-> 
-> With the two updated patches seems like we're done with this
-> series?
-> 
-> If so, I suggest either Santosh or me sets up an immutable
-> branch against v5.3 or v5.4-rc1 that we all can merge in.
-> I will need it for the related dts changes at least.
-> 
-I will pick this up Tony and apply it once v5.4-rc1 is out.
+Hi Adam.
 
-Regards,
-Santosh
+Good with even more panels.
+But for new bindings please use meta-schema (.yaml) format.
+This is what we use for new bindings as it allows better
+validation.
+
+	Sam
+
+On Tue, Sep 17, 2019 at 11:12:12AM -0500, Adam Ford wrote:
+> This patch adds documentation of device tree bindings for the WVGA panel
+> Logic PD Type 28 display.
+> 
+> Signed-off-by: Adam Ford <aford173@gmail.com>
+> 
+> diff --git a/Documentation/devicetree/bindings/display/panel/logicpd,type28.txt b/Documentation/devicetree/bindings/display/panel/logicpd,type28.txt
+> new file mode 100644
+> index 000000000000..829fc5210e06
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/display/panel/logicpd,type28.txt
+> @@ -0,0 +1,26 @@
+> +Logic PD Type 28 4.3" WQVGA TFT LCD panel
+> +
+> +This binding is compatible with the simple-panel binding, which is specified
+> +in simple-panel.txt in this directory.
+> +
+> +Required properties:
+> +- compatible: should be "logicpd,type28"
+> +
+> +Optional properties:
+> +- power-supply: regulator to provide the supply voltage
+> +- enable-gpios: GPIO pin to enable or disable the panel
+> +- backlight: phandle of the backlight device attached to the panel
+Is it correct that these are optional for the descrivbed panel?
+
+> +
+> +Optional nodes:
+> +- Video port for RGB input.
+> +
+> +Example:
+> +	lcd0: display {
+> +		compatible = "logicpd,type28";
+> +		enable-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;
+> +		port {
+> +			lcd_in: endpoint {
+> +				remote-endpoint = <&dpi_out>;
+> +			};
+> +		};
+> +	};
+> -- 
+> 2.17.1
