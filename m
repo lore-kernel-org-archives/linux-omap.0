@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.2 109/185] ARM: OMAP2+: move platform-specific asm-offset.h to arch/arm/mach-omap2
-Date: Sun, 22 Sep 2019 14:48:07 -0400
-Message-ID: <20190922184924.32534-109-sashal@kernel.org>
-References: <20190922184924.32534-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 120/203] ARM: OMAP2+: move platform-specific asm-offset.h to arch/arm/mach-omap2
+Date: Sun, 22 Sep 2019 14:42:26 -0400
+Message-ID: <20190922184350.30563-120-sashal@kernel.org>
+References: <20190922184350.30563-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190922184924.32534-1-sashal@kernel.org>
+In-Reply-To: <20190922184350.30563-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
@@ -68,10 +68,10 @@ index 0000000000000..79a8d6ea71520
 @@ -0,0 +1 @@
 +pm-asm-offsets.h
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 85d1b13c9215b..26baeb6477aff 100644
+index 6006505516219..21c6d4bca3c0f 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -236,9 +236,10 @@ obj-y					+= omap_phy_internal.o
+@@ -223,9 +223,10 @@ obj-y					+= omap_phy_internal.o
  
  obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
  
@@ -85,7 +85,7 @@ index 85d1b13c9215b..26baeb6477aff 100644
  targets += pm-asm-offsets.s
 +clean-files += pm-asm-offsets.h
 diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
-index 47a816468cdb4..a003769121aaa 100644
+index 68fee339d3f12..dc221249bc22c 100644
 --- a/arch/arm/mach-omap2/sleep33xx.S
 +++ b/arch/arm/mach-omap2/sleep33xx.S
 @@ -6,7 +6,6 @@
@@ -105,7 +105,7 @@ index 47a816468cdb4..a003769121aaa 100644
  #define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED			0x00030000
  #define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
 diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
-index 0c1031442571f..27b13d47cf193 100644
+index c1f4e4852644e..90d2907a2eb27 100644
 --- a/arch/arm/mach-omap2/sleep43xx.S
 +++ b/arch/arm/mach-omap2/sleep43xx.S
 @@ -6,7 +6,6 @@
