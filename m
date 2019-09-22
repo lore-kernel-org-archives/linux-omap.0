@@ -1,70 +1,56 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH 3/3] ARM: logicpd-torpedo-37xx-devkit-28: Reference new
- DRM panel
-Date: Sat, 21 Sep 2019 21:09:41 +0200
-Message-ID: <20190921190941.GD32133@ravnborg.org>
-References: <20190917161214.2913-1-aford173@gmail.com>
- <20190917161214.2913-3-aford173@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Enable more droid4 devices as
+ loadable modules
+Date: Sun, 22 Sep 2019 10:57:40 -0700
+Message-ID: <20190922175740.26445-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190917161214.2913-3-aford173@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, adam.ford@logicpd.com, Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Adam.
+Droid4 needs USB option serial driver for modem, and lm3532 for the
+LCD backlight.
 
-On Tue, Sep 17, 2019 at 11:12:13AM -0500, Adam Ford wrote:
-> With the removal of the panel-dpi from the omap drivers, the
-> LCD no longer works.  This patch points the device tree to
-> a newly created panel named "logicpd,type28"
-> 
-> Fixes: 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
-> 
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-Looks good.
-One nit below.
+Note that the LCD backlight does not yet get enabled automatically,
+but needs to be done manually with:
 
-With this addressed:
+# echo 50 > /sys/class/leds/lm3532::backlight/brightness
 
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-	Sam
-> 
-> diff --git a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
-> index 07ac99b9cda6..00c426bd51a0 100644
-> --- a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
-> +++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
-> @@ -11,22 +11,8 @@
->  #include "logicpd-torpedo-37xx-devkit.dts"
->  
->  &lcd0 {
-> -
-> +	/* This isn't the exact LCD, but the timings meet spec */
-> +	/* To make it work, set CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4 */
-> +	compatible = "logicpd,type28";
->  	label = "28";
-You left this property - but us it documented and what use has it?
-
-> -
-> -	panel-timing {
-> -		clock-frequency = <9000000>;
-> -		hactive = <480>;
-> -		vactive = <272>;
-> -		hfront-porch = <3>;
-> -		hback-porch = <2>;
-> -		hsync-len = <42>;
-> -		vback-porch = <3>;
-> -		vfront-porch = <2>;
-> -		vsync-len = <11>;
-> -		hsync-active = <1>;
-> -		vsync-active = <1>;
-> -		de-active = <1>;
-> -		pixelclk-active = <0>;
-> -	};
->  };
-> -- 
-> 2.17.1
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -429,6 +429,7 @@ CONFIG_USB_SERIAL_GENERIC=y
+ CONFIG_USB_SERIAL_SIMPLE=m
+ CONFIG_USB_SERIAL_FTDI_SIO=m
+ CONFIG_USB_SERIAL_PL2303=m
++CONFIG_USB_SERIAL_OPTION=m
+ CONFIG_USB_TEST=m
+ CONFIG_NOP_USB_XCEIV=m
+ CONFIG_AM335X_PHY_USB=m
+@@ -466,6 +467,7 @@ CONFIG_MMC_SDHCI_OMAP=y
+ CONFIG_NEW_LEDS=y
+ CONFIG_LEDS_CLASS=m
+ CONFIG_LEDS_CPCAP=m
++CONFIG_LEDS_LM3532=m
+ CONFIG_LEDS_GPIO=m
+ CONFIG_LEDS_PCA963X=m
+ CONFIG_LEDS_PWM=m
+-- 
+2.23.0
