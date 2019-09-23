@@ -1,8 +1,10 @@
 From: Adam Ford <aford173@gmail.com>
 Subject: [PATCH] MAINTAINERS: Add logicpd-som-lv and logicpd-torpedo to OMAP TREE
-Date: Mon, 23 Sep 2019 08:59:06 -0500
-Message-ID: <20190923135908.23080-1-aford173@gmail.com>
+Date: Mon, 23 Sep 2019 08:59:07 -0500
+Message-ID: <20190923135908.23080-2-aford173@gmail.com>
+References: <20190923135908.23080-1-aford173@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190923135908.23080-1-aford173@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>
