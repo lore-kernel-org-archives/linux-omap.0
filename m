@@ -1,7 +1,7 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH V2 2/3] dt-bindings: Add Logic PD Type 28 display panel
-Date: Mon, 23 Sep 2019 08:44:48 -0500
-Message-ID: <20190923134449.22326-2-aford173@gmail.com>
+Subject: [PATCH V2 3/3] ARM: logicpd-torpedo-37xx-devkit-28: Reference new DRM panel
+Date: Mon, 23 Sep 2019 08:44:49 -0500
+Message-ID: <20190923134449.22326-3-aford173@gmail.com>
 References: <20190923134449.22326-1-aford173@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190923134449.22326-1-aford173@gmail.com>
@@ -10,57 +10,45 @@ To: dri-devel@lists.freedesktop.org
 Cc: linux-omap@vger.kernel.org, adam.ford@logicpd.com, Adam Ford <aford173@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds documentation of device tree bindings for the WVGA panel
-Logic PD Type 28 display.
+With the removal of the panel-dpi from the omap drivers, the
+LCD no longer works.  This patch points the device tree to
+a newly created panel named "logicpd,type28"
+
+Fixes: 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
 
 Signed-off-by: Adam Ford <aford173@gmail.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 ---
-V2:  Use YAML instead of TXT for binding
+V2:  Remove legacy 'label' from binding
 
-diff --git a/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
-new file mode 100644
-index 000000000000..707e2a17c8c2
---- /dev/null
-+++ b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
-@@ -0,0 +1,39 @@
-+# SPDX-License-Identifier: (GPL-2.0+ OR X11)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/display/panel/ronbo,rb070d30.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: Logic PD Type 28 4.3" WQVGA TFT LCD panel
-+
-+properties:
-+  compatible:
-+    const: logicpd,type28
-+
-+  power-supply:
-+    description: Regulator to provide the supply voltage
-+    maxItems: 1
-+
-+  enable-gpios:
-+    description: GPIO pin to enable or disable the panel
-+    maxItems: 1
-+
-+  backlight:
-+    description: Backlight used by the panel
-+    $ref: "/schemas/types.yaml#/definitions/phandle"
-+
-+required:
-+  - compatible
-+
-+additionalProperties: false
-+
-+examples:
-+	lcd0: display {
-+		compatible = "logicpd,type28";
-+		enable-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;
-+		port {
-+			lcd_in: endpoint {
-+				remote-endpoint = <&dpi_out>;
-+			};
-+		};
-+	};
+diff --git a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
+index 07ac99b9cda6..cdb89b3e2a9b 100644
+--- a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
++++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts
+@@ -11,22 +11,6 @@
+ #include "logicpd-torpedo-37xx-devkit.dts"
+ 
+ &lcd0 {
+-
+-	label = "28";
+-
+-	panel-timing {
+-		clock-frequency = <9000000>;
+-		hactive = <480>;
+-		vactive = <272>;
+-		hfront-porch = <3>;
+-		hback-porch = <2>;
+-		hsync-len = <42>;
+-		vback-porch = <3>;
+-		vfront-porch = <2>;
+-		vsync-len = <11>;
+-		hsync-active = <1>;
+-		vsync-active = <1>;
+-		de-active = <1>;
+-		pixelclk-active = <0>;
+-	};
++	/* To make it work, set CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4 */
++	compatible = "logicpd,type28";
+ };
 -- 
 2.17.1
