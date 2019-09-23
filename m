@@ -1,41 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] DTS: ARM: gta04: introduce legacy spi-cs-high to make
- display work again
-Date: Mon, 23 Sep 2019 10:34:41 -0700
-Message-ID: <20190923173441.GV5610@atomide.com>
-References: <c031340840daba810bb2a612c35eea7fab307e56.1568995874.git.hns@goldelico.com>
+Subject: Re: [PATCHv5 00/10] soc: ti: add OMAP PRM driver (for reset)
+Date: Mon, 23 Sep 2019 10:47:09 -0700
+Message-ID: <20190923174709.GY5610@atomide.com>
+References: <20190912113916.20093-1-t-kristo@ti.com>
+ <20190920142849.GS5610@atomide.com>
+ <13a77bd8-72bd-6a44-9141-d5492be82d82@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <c031340840daba810bb2a612c35eea7fab307e56.1568995874.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, broonie@kernel.org, linus.walleij@linaro.org, stable@vger.kernel.org, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
+In-Reply-To: <13a77bd8-72bd-6a44-9141-d5492be82d82@oracle.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: santosh.shilimkar@oracle.com
+Cc: devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, robh+dt@kernel.org, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* H. Nikolaus Schaller <hns@goldelico.com> [190920 09:12]:
-> commit 6953c57ab172 "gpio: of: Handle SPI chipselect legacy bindings"
-> 
-> did introduce logic to centrally handle the legacy spi-cs-high property
-> in combination with cs-gpios. This assumes that the polarity
-> of the CS has to be inverted if spi-cs-high is missing, even
-> and especially if non-legacy GPIO_ACTIVE_HIGH is specified.
-> 
-> The DTS for the GTA04 was orginally introduced under the assumption
-> that there is no need for spi-cs-high if the gpio is defined with
-> proper polarity GPIO_ACTIVE_HIGH.
-> 
-> This was not a problem until gpiolib changed the interpretation of
-> GPIO_ACTIVE_HIGH and missing spi-cs-high.
-> 
-> The effect is that the missing spi-cs-high is now interpreted as CS being
-> low (despite GPIO_ACTIVE_HIGH) which turns off the SPI interface when the
-> panel is to be programmed by the panel driver.
-> 
-> Therefore, we have to add the redundant and legacy spi-cs-high property
-> to properly activate CS.
+* santosh.shilimkar@oracle.com <santosh.shilimkar@oracle.com> [190920 19:20]:
+> On 9/20/19 7:28 AM, Tony Lindgren wrote:
+> > * Tero Kristo <t-kristo@ti.com> [190912 04:39]:
+> > > Hi,
+> > > 
+> > > V5 of the series, re-sent the whole series as one patch was dropped.
+> > > Changes compared to v3/v4:
+> > > 
+> > > - removed dependency towards clock driver (patch #5 was completely
+> > >    dropped compared to v3/v4)
+> > > - dropped clocks property from dt binding
+> > > - re-added the pdata patch which was accidentally dropped out (it has
+> > >    dependency towards this series.)
+> > > 
+> > > The new implementation (without clock driver dependency) relies on the
+> > > bus driver to sequence events properly, otherwise some timeouts will
+> > > occur either at clock driver or reset driver end.
+> > 
+> > With the two updated patches seems like we're done with this
+> > series?
+> > 
+> > If so, I suggest either Santosh or me sets up an immutable
+> > branch against v5.3 or v5.4-rc1 that we all can merge in.
+> > I will need it for the related dts changes at least.
+> > 
+> I will pick this up Tony and apply it once v5.4-rc1 is out.
 
-Thanks applying into fixes.
+OK thanks.
 
 Tony
