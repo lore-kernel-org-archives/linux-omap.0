@@ -1,58 +1,62 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH 2/3] clk: let init callback return an error code
-Date: Tue, 24 Sep 2019 18:19:39 +0200
-Message-ID: <20190924161939.GD28770@lunn.ch>
-References: <20190924123954.31561-1-jbrunet@baylibre.com>
- <20190924123954.31561-3-jbrunet@baylibre.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP2+: Fix missing reset done flag for am3 and am43
+Date: Tue, 24 Sep 2019 09:36:18 -0700
+Message-ID: <20190924163618.25534-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190924123954.31561-3-jbrunet@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Brunet <jbrunet@baylibre.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Tero Kristo <t-kristo@ti.com>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 24, 2019 at 02:39:53PM +0200, Jerome Brunet wrote:
-> If the init callback is allowed to request resources, it needs a return
-> value to report the outcome of such a request.
-> 
-> Signed-off-by: Jerome Brunet <jbrunet@baylibre.com>
-> ---
-> 
->  Sorry about the spam.
->  This patch change quite a few files so I have tried to Cc the
->  relevant people. Stephen, You may notice that I have added a
->  couple of the network people. You need an Ack from one of them
->  since the Amlogic G12a mdio mux has a clock which uses the .init()
->  callback
+For ti,sysc-omap4 compatible devices with no sysstatus register, we do have
+reset done status available in the SOFTRESET bit that clears when the reset
+is done. This is documented for example in am437x TRM for DMTIMER_TIOCP_CFG
+register. The am335x TRM just says that SOFTRESET bit value 1 means reset is
+ongoing, but it behaves the same way clearing after reset is done.
 
->  static void __init of_ti_clockdomain_setup(struct device_node *node)
-> diff --git a/drivers/net/phy/mdio-mux-meson-g12a.c b/drivers/net/phy/mdio-mux-meson-g12a.c
-> index 7a9ad54582e1..bf86c9c7a288 100644
-> --- a/drivers/net/phy/mdio-mux-meson-g12a.c
-> +++ b/drivers/net/phy/mdio-mux-meson-g12a.c
-> @@ -123,7 +123,7 @@ static int g12a_ephy_pll_is_enabled(struct clk_hw *hw)
->  	return (val & PLL_CTL0_LOCK_DIG) ? 1 : 0;
->  }
->  
-> -static void g12a_ephy_pll_init(struct clk_hw *hw)
-> +static int g12a_ephy_pll_init(struct clk_hw *hw)
->  {
->  	struct g12a_ephy_pll *pll = g12a_ephy_pll_to_dev(hw);
->  
-> @@ -136,6 +136,8 @@ static void g12a_ephy_pll_init(struct clk_hw *hw)
->  	writel(0x20200000, pll->base + ETH_PLL_CTL5);
->  	writel(0x0000c002, pll->base + ETH_PLL_CTL6);
->  	writel(0x00000023, pll->base + ETH_PLL_CTL7);
-> +
-> +	return 0;
->  }
+With the ti-sysc driver handling this automatically based on no sysstatus
+register defined, we see warnings if SYSC_HAS_RESET_STATUS is missing in the
+legacy platform data:
 
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
+ti-sysc 48042000.target-module: sysc_flags 00000222 != 00000022
+ti-sysc 48044000.target-module: sysc_flags 00000222 != 00000022
+ti-sysc 48046000.target-module: sysc_flags 00000222 != 00000022
+...
 
-It should be safe to merge this via the clk tree. You would probably
-know about an possible merge conflicts, since you wrote this driver!
+Let's fix these warnings by adding SYSC_HAS_RESET_STATUS. Let's also
+remove the useless parentheses while at it.
 
-    Andrew
+If it turns out we do have ti,sysc-omap4 compatible devices without a
+working SOFTRESET bit we can set up additional quirk handling for it.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+@@ -811,7 +811,8 @@ static struct omap_hwmod_class_sysconfig am33xx_timer_sysc = {
+ 	.rev_offs	= 0x0000,
+ 	.sysc_offs	= 0x0010,
+ 	.syss_offs	= 0x0014,
+-	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
++	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
++			  SYSC_HAS_RESET_STATUS,
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+ 			  SIDLE_SMART_WKUP),
+ 	.sysc_fields	= &omap_hwmod_sysc_type2,
+-- 
+2.23.0
