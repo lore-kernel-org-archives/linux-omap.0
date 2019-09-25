@@ -1,129 +1,204 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix warnings with broken
- omap2_set_init_voltage()
-Date: Wed, 25 Sep 2019 14:51:15 -0500
-Message-ID: <CAHCN7xKfk8C=cccMUPLn1voKRaUQC1GSJi_0EPAaW2Rg7Zc8Eg@mail.gmail.com>
-References: <20190924233222.52757-1-tony@atomide.com>
+Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to dts
+Date: Wed, 25 Sep 2019 15:51:55 -0500
+Message-ID: <CAHCN7xJexJvh71vyb31ETgo=n_y_CupHH-AZwVK9mZe3GzJfEQ@mail.gmail.com>
+References: <20190510194229.20628-1-aford173@gmail.com> <af325707-3e42-493d-e858-77878ef06138@ti.com>
+ <CAHCN7xLzoCNW6q5yDCsqMHeNvdNegkGhd0N+q9+Gd8JUGbG=_g@mail.gmail.com> <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190924233222.52757-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCBTZXAgMjQsIDIwMTkgYXQgNjozMiBQTSBUb255IExpbmRncmVuIDx0b255QGF0b21p
-ZGUuY29tPiB3cm90ZToKPgo+IFRoaXMgY29kZSBpcyBjdXJyZW50bHkgdW5hYmxlIHRvIGZpbmQg
-dGhlIGR0cyBvcHAgdGFibGVzIGFzIHRpLWNwdWZyZXEKPiBuZWVkcyB0byBzZXQgdGhlbSB1cCBm
-aXJzdCBiYXNlZCBvbiBzcGVlZCBiaW5uaW5nLgo+Cj4gV2Ugc3RvcHBlZCBpbml0aWFsaXppbmcg
-dGhlIG9wcCB0YWJsZXMgd2l0aCBwbGF0Zm9ybSBjb2RlIHllYXJzIGFnbyBmb3IKPiBkZXZpY2Ug
-dHJlZSBiYXNlZCBib290aW5nIHdpdGggY29tbWl0IDkyZDUxODU2ZDc0MCAoIkFSTTogT01BUDMr
-OiBkbyBub3QKPiByZWdpc3RlciBub24tZHQgT1BQIHRhYmxlcyBmb3IgZGV2aWNlIHRyZWUgYm9v
-dCIpLCBhbmQgYWxsIG9mIG1hY2gtb21hcDIKPiBpcyBub3cgYm9vdGluZyB1c2luZyBkZXZpY2Ug
-dHJlZS4KPgo+IFdlIGN1cnJlbnRseSBnZXQgdGhlIGZvbGxvd2luZyBlcnJvcnMgb24gaW5pdDoK
-Pgo+IG9tYXAyX3NldF9pbml0X3ZvbHRhZ2U6IHVuYWJsZSB0byBmaW5kIGJvb3QgdXAgT1BQIGZv
-ciB2ZGRfbXB1Cj4gb21hcDJfc2V0X2luaXRfdm9sdGFnZTogdW5hYmxlIHRvIHNldCB2ZGRfbXB1
-Cj4gb21hcDJfc2V0X2luaXRfdm9sdGFnZTogdW5hYmxlIHRvIGZpbmQgYm9vdCB1cCBPUFAgZm9y
-IHZkZF9jb3JlCj4gb21hcDJfc2V0X2luaXRfdm9sdGFnZTogdW5hYmxlIHRvIHNldCB2ZGRfY29y
-ZQo+IG9tYXAyX3NldF9pbml0X3ZvbHRhZ2U6IHVuYWJsZSB0byBmaW5kIGJvb3QgdXAgT1BQIGZv
-ciB2ZGRfaXZhCj4gb21hcDJfc2V0X2luaXRfdm9sdGFnZTogdW5hYmxlIHRvIHNldCB2ZGRfaXZh
-Cj4KPiBMZXQncyBqdXN0IGRyb3AgdGhlIHVudXNlZCBjb2RlLiBOb3dhZGF5cyB0aS1jcHVmcmVx
-IHNob3VsZCBiZSB1c2VkIHRvCj4gdG8gaW5pdGlhbGl6ZSB0aGluZ3MgcHJvcGVybHkuCgpBRkFJ
-Q1QsIHRoZSB0aS1jcHVmcmVxIGNoYW5nZXMgaGF2ZW4ndCBiZWVuIGFwcGxpZWQgeWV0IHRvIHN1
-cHBvcnQKb21hcDMgYm9hcmRzLCBidXQgdGhlIHJlZ3VsYXIgY3B1ZnJlcSBkb2VzLCBhbmQgaXQg
-c2VlbXMgT0suCgo+Cj4gQ2M6IEFkYW0gRm9yZCA8YWZvcmQxNzNAZ21haWwuY29tPgo+IENjOiBB
-bmRyw6kgUm90aCA8bmVvbHlueEBnbWFpbC5jb20+Cj4gQ2M6ICJILiBOaWtvbGF1cyBTY2hhbGxl
-ciIgPGhuc0Bnb2xkZWxpY28uY29tPgo+IENjOiBOaXNoYW50aCBNZW5vbiA8bm1AdGkuY29tPgo+
-IENjOiBUZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkg
-TGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gLS0tCj4KPiBHdXlzLCBwbGVhc2UgY2hlY2sg
-YW5kIGFjayBpZiB3ZSBjYW4gcmVhbGx5IGRvIHRoaXMgdG8gZ2V0IHJpZCBvZiBzb21lCj4gcG9p
-bnRsZXNzIGRtZXNnIC1sMyBlcnJvcnMgd2l0aG91dCBhZmZlY3RpbmcgdGhlIG9uZ29pbmcgY3B1
-ZnJlcSBhbmQKPiB2b2x0YWdlIHdvcmsuCj4KClRlc3RlZC1ieTogQWRhbSBGb3JkIDxhZm9yZDE3
-M0BnbWFpbC5jb20+ICNsb2dpY3BkLXRvcnBlZG8tMzd4eC1kZXZraXQKCj4gLS0tCj4gIGFyY2gv
-YXJtL21hY2gtb21hcDIvcG0uYyB8IDEwMCAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDEwMCBkZWxldGlvbnMoLSkKPgo+IGRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMK
-PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLW9t
-YXAyL3BtLmMKPiBAQCAtNzQsODMgKzc0LDYgQEAgaW50IG9tYXBfcG1fY2xrZG1zX3NldHVwKHN0
-cnVjdCBjbG9ja2RvbWFpbiAqY2xrZG0sIHZvaWQgKnVudXNlZCkKPiAgICAgICAgIHJldHVybiAw
-Owo+ICB9Cj4KPiAtLyoKPiAtICogVGhpcyBBUEkgaXMgdG8gYmUgY2FsbGVkIGR1cmluZyBpbml0
-IHRvIHNldCB0aGUgdmFyaW91cyB2b2x0YWdlCj4gLSAqIGRvbWFpbnMgdG8gdGhlIHZvbHRhZ2Ug
-YXMgcGVyIHRoZSBvcHAgdGFibGUuIFR5cGljYWxseSB3ZSBib290IHVwCj4gLSAqIGF0IHRoZSBu
-b21pbmFsIHZvbHRhZ2UuIFNvIHRoaXMgZnVuY3Rpb24gZmluZHMgb3V0IHRoZSByYXRlIG9mCj4g
-LSAqIHRoZSBjbG9jayBhc3NvY2lhdGVkIHdpdGggdGhlIHZvbHRhZ2UgZG9tYWluLCBmaW5kcyBv
-dXQgdGhlIGNvcnJlY3QKPiAtICogb3BwIGVudHJ5IGFuZCBzZXRzIHRoZSB2b2x0YWdlIGRvbWFp
-biB0byB0aGUgdm9sdGFnZSBzcGVjaWZpZWQKPiAtICogaW4gdGhlIG9wcCBlbnRyeQo+IC0gKi8K
-PiAtc3RhdGljIGludCBfX2luaXQgb21hcDJfc2V0X2luaXRfdm9sdGFnZShjaGFyICp2ZGRfbmFt
-ZSwgY2hhciAqY2xrX25hbWUsCj4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBjb25zdCBjaGFyICpvaF9uYW1lKQo+IC17Cj4gLSAgICAgICBzdHJ1Y3Qgdm9sdGFnZWRv
-bWFpbiAqdm9sdGRtOwo+IC0gICAgICAgc3RydWN0IGNsayAqY2xrOwo+IC0gICAgICAgc3RydWN0
-IGRldl9wbV9vcHAgKm9wcDsKPiAtICAgICAgIHVuc2lnbmVkIGxvbmcgZnJlcSwgYm9vdHVwX3Zv
-bHQ7Cj4gLSAgICAgICBzdHJ1Y3QgZGV2aWNlICpkZXY7Cj4gLQo+IC0gICAgICAgaWYgKCF2ZGRf
-bmFtZSB8fCAhY2xrX25hbWUgfHwgIW9oX25hbWUpIHsKPiAtICAgICAgICAgICAgICAgcHJfZXJy
-KCIlczogaW52YWxpZCBwYXJhbWV0ZXJzXG4iLCBfX2Z1bmNfXyk7Cj4gLSAgICAgICAgICAgICAg
-IGdvdG8gZXhpdDsKPiAtICAgICAgIH0KPiAtCj4gLSAgICAgICBpZiAoIXN0cm5jbXAob2hfbmFt
-ZSwgIm1wdSIsIDMpKQo+IC0gICAgICAgICAgICAgICAvKgo+IC0gICAgICAgICAgICAgICAgKiBB
-bGwgY3VycmVudCBPTUFQcyBzaGFyZSB2b2x0YWdlIHJhaWwgYW5kIGNsb2NrCj4gLSAgICAgICAg
-ICAgICAgICAqIHNvdXJjZSwgc28gQ1BVMCBpcyB1c2VkIHRvIHJlcHJlc2VudCB0aGUgTVBVLVNT
-Lgo+IC0gICAgICAgICAgICAgICAgKi8KPiAtICAgICAgICAgICAgICAgZGV2ID0gZ2V0X2NwdV9k
-ZXZpY2UoMCk7Cj4gLSAgICAgICBlbHNlCj4gLSAgICAgICAgICAgICAgIGRldiA9IG9tYXBfZGV2
-aWNlX2dldF9ieV9od21vZF9uYW1lKG9oX25hbWUpOwo+IC0KPiAtICAgICAgIGlmIChJU19FUlIo
-ZGV2KSkgewo+IC0gICAgICAgICAgICAgICBwcl9lcnIoIiVzOiBVbmFibGUgdG8gZ2V0IGRldiBw
-b2ludGVyIGZvciBod21vZCAlc1xuIiwKPiAtICAgICAgICAgICAgICAgICAgICAgICBfX2Z1bmNf
-Xywgb2hfbmFtZSk7Cj4gLSAgICAgICAgICAgICAgIGdvdG8gZXhpdDsKPiAtICAgICAgIH0KPiAt
-Cj4gLSAgICAgICB2b2x0ZG0gPSB2b2x0ZG1fbG9va3VwKHZkZF9uYW1lKTsKPiAtICAgICAgIGlm
-ICghdm9sdGRtKSB7Cj4gLSAgICAgICAgICAgICAgIHByX2VycigiJXM6IHVuYWJsZSB0byBnZXQg
-dmRkIHBvaW50ZXIgZm9yIHZkZF8lc1xuIiwKPiAtICAgICAgICAgICAgICAgICAgICAgICBfX2Z1
-bmNfXywgdmRkX25hbWUpOwo+IC0gICAgICAgICAgICAgICBnb3RvIGV4aXQ7Cj4gLSAgICAgICB9
-Cj4gLQo+IC0gICAgICAgY2xrID0gIGNsa19nZXQoTlVMTCwgY2xrX25hbWUpOwo+IC0gICAgICAg
-aWYgKElTX0VSUihjbGspKSB7Cj4gLSAgICAgICAgICAgICAgIHByX2VycigiJXM6IHVuYWJsZSB0
-byBnZXQgY2xrICVzXG4iLCBfX2Z1bmNfXywgY2xrX25hbWUpOwo+IC0gICAgICAgICAgICAgICBn
-b3RvIGV4aXQ7Cj4gLSAgICAgICB9Cj4gLQo+IC0gICAgICAgZnJlcSA9IGNsa19nZXRfcmF0ZShj
-bGspOwo+IC0gICAgICAgY2xrX3B1dChjbGspOwo+IC0KPiAtICAgICAgIG9wcCA9IGRldl9wbV9v
-cHBfZmluZF9mcmVxX2NlaWwoZGV2LCAmZnJlcSk7Cj4gLSAgICAgICBpZiAoSVNfRVJSKG9wcCkp
-IHsKPiAtICAgICAgICAgICAgICAgcHJfZXJyKCIlczogdW5hYmxlIHRvIGZpbmQgYm9vdCB1cCBP
-UFAgZm9yIHZkZF8lc1xuIiwKPiAtICAgICAgICAgICAgICAgICAgICAgICBfX2Z1bmNfXywgdmRk
-X25hbWUpOwo+IC0gICAgICAgICAgICAgICBnb3RvIGV4aXQ7Cj4gLSAgICAgICB9Cj4gLQo+IC0g
-ICAgICAgYm9vdHVwX3ZvbHQgPSBkZXZfcG1fb3BwX2dldF92b2x0YWdlKG9wcCk7Cj4gLSAgICAg
-ICBkZXZfcG1fb3BwX3B1dChvcHApOwo+IC0KPiAtICAgICAgIGlmICghYm9vdHVwX3ZvbHQpIHsK
-PiAtICAgICAgICAgICAgICAgcHJfZXJyKCIlczogdW5hYmxlIHRvIGZpbmQgdm9sdGFnZSBjb3Jy
-ZXNwb25kaW5nIHRvIHRoZSBib290dXAgT1BQIGZvciB2ZGRfJXNcbiIsCj4gLSAgICAgICAgICAg
-ICAgICAgICAgICBfX2Z1bmNfXywgdmRkX25hbWUpOwo+IC0gICAgICAgICAgICAgICBnb3RvIGV4
-aXQ7Cj4gLSAgICAgICB9Cj4gLQo+IC0gICAgICAgdm9sdGRtX3NjYWxlKHZvbHRkbSwgYm9vdHVw
-X3ZvbHQpOwo+IC0gICAgICAgcmV0dXJuIDA7Cj4gLQo+IC1leGl0Ogo+IC0gICAgICAgcHJfZXJy
-KCIlczogdW5hYmxlIHRvIHNldCB2ZGRfJXNcbiIsIF9fZnVuY19fLCB2ZGRfbmFtZSk7Cj4gLSAg
-ICAgICByZXR1cm4gLUVJTlZBTDsKPiAtfQo+IC0KPiAgI2lmZGVmIENPTkZJR19TVVNQRU5ECj4g
-IHN0YXRpYyBpbnQgb21hcF9wbV9lbnRlcihzdXNwZW5kX3N0YXRlX3Qgc3VzcGVuZF9zdGF0ZSkK
-PiAgewo+IEBAIC0yMDgsMjUgKzEzMSw2IEBAIHZvaWQgb21hcF9jb21tb25fc3VzcGVuZF9pbml0
-KHZvaWQgKnBtX3N1c3BlbmQpCj4gIH0KPiAgI2VuZGlmIC8qIENPTkZJR19TVVNQRU5EICovCj4K
-PiAtc3RhdGljIHZvaWQgX19pbml0IG9tYXAzX2luaXRfdm9sdGFnZXModm9pZCkKPiAtewo+IC0g
-ICAgICAgaWYgKCFzb2NfaXNfb21hcDM0eHgoKSkKPiAtICAgICAgICAgICAgICAgcmV0dXJuOwo+
-IC0KPiAtICAgICAgIG9tYXAyX3NldF9pbml0X3ZvbHRhZ2UoIm1wdV9pdmEiLCAiZHBsbDFfY2si
-LCAibXB1Iik7Cj4gLSAgICAgICBvbWFwMl9zZXRfaW5pdF92b2x0YWdlKCJjb3JlIiwgImwzX2lj
-ayIsICJsM19tYWluIik7Cj4gLX0KPiAtCj4gLXN0YXRpYyB2b2lkIF9faW5pdCBvbWFwNF9pbml0
-X3ZvbHRhZ2VzKHZvaWQpCj4gLXsKPiAtICAgICAgIGlmICghc29jX2lzX29tYXA0NHh4KCkpCj4g
-LSAgICAgICAgICAgICAgIHJldHVybjsKPiAtCj4gLSAgICAgICBvbWFwMl9zZXRfaW5pdF92b2x0
-YWdlKCJtcHUiLCAiZHBsbF9tcHVfY2siLCAibXB1Iik7Cj4gLSAgICAgICBvbWFwMl9zZXRfaW5p
-dF92b2x0YWdlKCJjb3JlIiwgImwzX2Rpdl9jayIsICJsM19tYWluXzEiKTsKPiAtICAgICAgIG9t
-YXAyX3NldF9pbml0X3ZvbHRhZ2UoIml2YSIsICJkcGxsX2l2YV9tNXgyX2NrIiwgIml2YSIpOwo+
-IC19Cj4gLQo+ICBpbnQgX19tYXliZV91bnVzZWQgb21hcF9wbV9ub3BfaW5pdCh2b2lkKQo+ICB7
-Cj4gICAgICAgICByZXR1cm4gMDsKPiBAQCAtMjQ2LDEwICsxNTAsNiBAQCBpbnQgX19pbml0IG9t
-YXAyX2NvbW1vbl9wbV9sYXRlX2luaXQodm9pZCkKPiAgICAgICAgIG9tYXA0X3R3bF9pbml0KCk7
-Cj4gICAgICAgICBvbWFwX3ZvbHRhZ2VfbGF0ZV9pbml0KCk7Cj4KPiAtICAgICAgIC8qIEluaXRp
-YWxpemUgdGhlIHZvbHRhZ2VzICovCj4gLSAgICAgICBvbWFwM19pbml0X3ZvbHRhZ2VzKCk7Cj4g
-LSAgICAgICBvbWFwNF9pbml0X3ZvbHRhZ2VzKCk7Cj4gLQo+ICAgICAgICAgLyogU21hcnRyZWZs
-ZXggZGV2aWNlIGluaXQgKi8KPiAgICAgICAgIG9tYXBfZGV2aW5pdF9zbWFydHJlZmxleCgpOwo+
-Cj4gLS0KPiAyLjIzLjAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Tue, May 28, 2019 at 10:53 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>
+> Hi,
+>
+> On 28/05/2019 18:09, Adam Ford wrote:
+> > On Tue, May 28, 2019 at 4:11 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> >>
+> >> Hi,
+> >>
+> >> On 10/05/2019 22:42, Adam Ford wrote:
+> >>> Currently the source code is compiled using hard-coded values
+> >>> from CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK.  This patch allows this
+> >>> clock divider value to be moved to the device tree and be changed
+> >>> without having to recompile the kernel.
+> >>>
+> >>> Signed-off-by: Adam Ford <aford173@gmail.com>
+> >>
+> >> I understand why you want to do this, but I'm not sure it's a good idea.
+> >> It's really something the driver should figure out, and if we add it to
+> >> the DT, it effectively becomes an ABI.
+> >>
+> >> That said... I'm not sure how good of a job the driver could ever do, as
+> >> it can't know the future scaling needs of the userspace at the time it
+> >> is configuring the clock. And so, I'm not nacking this patch, but I
+> >> don't feel very good about this patch...
+> >>
+> >> The setting also affects all outputs (exluding venc), which may not be
+> >> what the user wants. Then again, I think this setting is really only
+> >> needed on OMAP2 & 3, which have only a single output. But that's the
+> >> same with the current kconfig option, of course.
+> >>
+> >> So, the current CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK is an ugly hack, in my
+> >> opinion, and moving it to DT makes it a worse hack =). But I don't have
+> >> any good suggestions either.
+> >
+> > As it stands the Logic PD OMAP35 and AM37/DM37 boards (SOM-LV and
+> > Torpedo) require this to be hard coded to 4 or it hangs during start.
+> > This is the case for all versions 4.2+.  I haven't tested it with
+> > older stuff.  Tony has a DM3730 Torpedo kit and reported the hanging
+> > issue to me. I told him to set that value to 4 to make it not hang.
+> > He asked that I move it to the DT to avoid custom kernels.  I agree
+> > it's a hack, but if it's create a customized defconfig file for 4
+> > boards or modify the device tree, it seems like the device tree
+> > approach is less intrusive.
+>
+> Ok, well, I think that's a separate thing from its intended use. The
+> point of the kconfig option is to ensure that the fclk/pclk ratio stays
+> under a certain number to allow enough scaling range. It should never
+> affect a basic non-scaling use case, unless you set it to a too high
+> value, which prevents finding any pclk.
+>
+> Has anyone debugged why the hang is happening?
+I started to debug this, but I got distracted when I noticed the LCD
+did't work at all on modern kernels.  I have that fixed now, so I can
+go back to investigating this.
+
+Working version:
+
+[    7.999359] DISPC: dispc_runtime_get
+[    7.999542] DSS: dss_restore_context
+[    7.999542] DSS: context restored
+[    7.999572] DISPC: dispc_runtime_put
+[    7.999603] DISPC: dispc_save_context
+[    7.999633] DISPC: context saved
+[    7.999694] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
+[    7.999694] [drm] No driver support for vblank timestamp query.
+[    8.025909] DSS: dss_save_context
+[    8.025939] DSS: context saved
+[    8.031951] DISPC: dispc_runtime_get
+[    8.032043] DSS: dss_restore_context
+[    8.032043] DSS: context restored
+[    8.032073] DPI: dpi_set_timings
+[    8.032104] DISPC: dispc_ovl_setup 0, pa 0x9e900000, pa_uv
+0x00000000, sw 480, 0,0, 480x272 -> 480x272, cmode 34325258, rot 1,
+chan 0 repl 1
+[    8.032135] DISPC: scrw 480, width 480
+[    8.032135] DISPC: offset0 0, offset1 0, row_inc 1, pix_inc 1
+[    8.032135] DISPC: 0,0 480x272 -> 480x272
+[    8.032135] DISPC: dispc_enable_plane 0, 1
+[    8.032165] DISPC: dispc_runtime_get
+[    8.032196] DISPC: dispc_runtime_get
+[    8.032196] DSS: set fck to 36000000
+[    8.032257] DISPC: lck = 36000000 (1)
+[    8.032257] DISPC: pck = 9000000 (4)
+[    8.034240] DISPC: channel 0 xres 480 yres 272
+[    8.034271] DISPC: pck 9000000
+[    8.034271] DISPC: hsync_len 42 hfp 3 hbp 2 vsw 11 vfp 2 vbp 3
+[    8.034271] DISPC: vsync_level 1 hsync_level 1 data_pclk_edge 1
+de_level 1 sync_pclk_edge -1
+[    8.034271] DISPC: hsync 17077Hz, vsync 59Hz
+[    8.493347] DISPC: dispc_runtime_put
+[    8.493438] Console: switching to colour frame buffer device 60x34
+[    8.493774] DISPC: dispc_runtime_get
+[    8.493835] DISPC: dispc_ovl_setup 0, pa 0x9e900000, pa_uv
+0x00000000, sw 480, 0,0, 480x272 -> 480x272, cmode 34325258, rot 1,
+chan 0 repl 1
+[    8.493896] DISPC: scrw 480, width 480
+[    8.493896] DISPC: offset0 0, offset1 0, row_inc 1, pix_inc 1
+[    8.493927] DISPC: 0,0 480x272 -> 480x272
+[    8.493957] DISPC: dispc_enable_plane 0, 1
+[    8.493988] DISPC: GO LCD
+[    8.506774] DISPC: dispc_runtime_put
+[    8.512298] omapdrm omapdrm.0: fb0: omapdrmdrmfb frame buffer device
+[    8.516632] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
+[    8.581359] wlcore: WARNING Detected unconfigured mac address in
+nvs, derive from fuse instead.
+[    8.581359] wlcore: WARNING Your device performance is not optimized.
+[    8.581390] wlcore: WARNING Please use the calibrator tool to
+configure your device.
+[    8.583862] wlcore: loaded
+[    9.520355] DISPC: dispc_runtime_get
+[    9.520446] DISPC: dispc_ovl_setup 0, pa 0x9e900000, pa_uv
+0x00000000, sw 480, 0,0, 480x272 -> 480x272, cmode 34325258, rot 1,
+chan 0 repl 1
+[    9.520477] DISPC: scrw 480, width 480
+[    9.520507] DISPC: offset0 0, offset1 0, row_inc 1, pix_inc 1
+[    9.520538] DISPC: 0,0 480x272 -> 480x272
+[    9.520568] DISPC: dispc_enable_plane 0, 1
+[    9.520599] DISPC: GO LCD
+[    9.535400] DISPC: dispc_runtime_put
+
+
+The Non-working version with the divisor set to 0:
+
+[   10.719512] DSS: dss_runtime_get
+[   10.723022] DSS: dss_restore_context
+[   10.726623] DSS: OMAP DSS rev 2.0
+[   10.730041] DSS: dss_runtime_put
+[   10.733306] DSS: dss_save_context
+[   10.736633] DSS: context saved
+[   10.740417] DSS: dss_restore_context
+[   10.744018] DSS: context restored
+[   10.748046] DISPC: dispc_runtime_get
+[   10.751770] DISPC: fifo(0) threshold (bytes), old 960/1023, new 960/1023
+[   10.758514] DISPC: fifo(1) threshold (bytes), old 960/1023, new 960/1023
+[   10.765289] DISPC: fifo(2) threshold (bytes), old 960/1023, new 960/1023
+[   10.772033] DISPC: dispc_restore_context
+[   10.775970] DISPC: dispc_restore_gamma_tables()
+[   10.780578] DISPC: fifo(0) threshold (bytes), old 960/1023, new 960/1023
+[   10.787322] DISPC: fifo(1) threshold (bytes), old 960/1023, new 960/1023
+[   10.794067] DISPC: fifo(2) threshold (bytes), old 960/1023, new 960/1023
+[   10.800842] omapdss_dispc 48050400.dispc: OMAP DISPC rev 3.0
+[   10.806518] DISPC: dispc_runtime_put
+[   10.810150] DISPC: dispc_save_context
+[   10.813873] DISPC: context saved
+[   10.817291] omapdss_dss 48050000.dss: bound 48050400.dispc (ops
+hdmi5_configure [omapdss])
+[   10.927215] DSS: dss_save_context
+[   10.930725] DSS: context saved
+[   11.097503] omapdrm omapdrm.0: DMM not available, disable DMM support
+[   11.104248] omapdss_dss 48050000.dss: connect(NULL, 48050000.dss)
+[   11.110473] omapdss_dss 48050000.dss: connect(48050000.dss, NULL)
+[   11.116729] DISPC: dispc_runtime_get
+[   11.120452] DSS: dss_restore_context
+[   11.124053] DSS: context restored
+[   11.127410] DISPC: dispc_runtime_put
+[   11.131072] DISPC: dispc_save_context
+[   11.134765] DISPC: context saved
+[   11.138092] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
+[   11.144775] [drm] No driver support for vblank timestamp query.
+[   11.156372] DSS: dss_save_context
+[   11.159729] DSS: context saved
+
+** hang **
+
+I noticed there doesn't seem to be the calculation for setting fck,
+pck or any of the timings.  Are there any more debug options I can
+enable?
+
+I would prefer to fix the calculation so the display can work without
+the defconfig or device tree modification, and then we dump this all
+together.
+
+>
+> If we can't fix the bug itself, rather than adding a DT option, we could
+> change add a min_fck_per_pck field (as you do), keep the kconfig option,
+> and set the min_fck_per_pck based on the kconfig option, _or_ in case of
+> those affected SoCs, set the min_fck_per_pck even without the kconfig
+> option.
+>
+>   Tomi
+>
+
+thanks
+
+adam
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
