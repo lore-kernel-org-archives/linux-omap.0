@@ -1,36 +1,55 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to dts
-Date: Mon, 30 Sep 2019 16:56:39 +0200
-Message-ID: <BCB0237F-1AF7-4603-A778-8944C3618BC7@goldelico.com>
-References: <20190510194229.20628-1-aford173@gmail.com> <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com> <CAHCN7xJexJvh71vyb31ETgo=n_y_CupHH-AZwVK9mZe3GzJfEQ@mail.gmail.com> <845055e2-8182-de74-2077-629fdf50ac6c@ti.com> <CAHCN7xJFrTLOnbqrnH2W_T2whR8Xji0EMNR_cy8GYkDV-JDodQ@mail.gmail.com> <854f6130-c8a8-81cb-aa76-4830f218ae54@ti.com> <CAHCN7xKocdiWOdmoWQV3POr84qte6WNt0QbQRAwxKSvU8COB_w@mail.gmail.com> <0473526e-df0a-94a5-5c22-debd0084ab16@ti.com> <36369388-e9c8-22cd-8c19-e2bdf2d0389b@ti.com> <eb2eb1f6-3c9b-7ecb-667e-819033af9c14@ti.com> <23eba53a-9304-2ceb-d97e-01891ec0b3ed@ti.com> <cb028b1e-05ca-9b22-be5d-c63f5fd56cc4@ti.com> <F3335195-6EB7-4D44-B884-2F29D9238011@goldelico.com> <CAHCN7xL9bFxO=2i1DzmRj6A3XwUNdt=DZeJ2a0EZ0f9gcFTy6g@mail.gmail.com> <CAHCN7x+vCfPTRE+zzYUwAXdbBzRotTP2hSOgsHB0FdgBh
- ZV5zA@mail.gmail.com> <CAHCN7xJDV=R9Ysjhff7=mEXdciwPP_5LQbHwaUT8KvhSkLKw8A@mail.gmail.com> <04306a5e-f9be-35a4-1aa1-5795d780e289@ti.com> <3777f1b1-2d9a-334b-b9e7-99dfda2ae29b@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3777f1b1-2d9a-334b-b9e7-99dfda2ae29b@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Adam Ford <aford173@gmail.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2 linux-next 2/4] arm: configs: davinci_all_defconfig:
+ Change CONFIG_REMOTEPROC from m to y
+Date: Mon, 30 Sep 2019 20:39:58 +0530
+Message-ID: <e48c767f-6153-a8d5-b88d-f74927921ae2@ti.com>
+References: <20190920075946.13282-1-j-keerthy@ti.com>
+ <20190920075946.13282-3-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190920075946.13282-3-j-keerthy@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>, arnd@arndb.de, olof@lixom.net, t-kristo@ti.com, catalin.marinas@arm.com, will@kernel.org, tony@atomide.com
+Cc: linux-kernel@vger.kernel.org, bjorn.andersson@linaro.org, linux-omap@vger.kernel.org, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 20/09/19 1:29 PM, Keerthy wrote:
+> Commit 6334150e9a36 ("remoteproc: don't allow modular build")
+> changes CONFIG_REMOTEPROC to a boolean from a tristate config
+> option which inhibits all defconfigs marking CONFIG_REMOTEPROC as
+> a module in compiling the remoteproc and dependent config options.
+> 
+> So fix the davinci_all_defconfig to have CONFIG_REMOTEPROC built in.
+> 
+> Fixes: 6334150e9a36 ("remoteproc: don't allow modular build")
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm/configs/davinci_all_defconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/configs/davinci_all_defconfig b/arch/arm/configs/davinci_all_defconfig
+> index b34970ce6b31..01e3c0f4be92 100644
+> --- a/arch/arm/configs/davinci_all_defconfig
+> +++ b/arch/arm/configs/davinci_all_defconfig
+> @@ -228,7 +228,7 @@ CONFIG_RTC_DRV_OMAP=m
+>  CONFIG_DMADEVICES=y
+>  CONFIG_TI_EDMA=y
+>  CONFIG_COMMON_CLK_PWM=m
+> -CONFIG_REMOTEPROC=m
+> +CONFIG_REMOTEPROC=y
 
-> Am 30.09.2019 um 16:27 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
->=20
-> On 30/09/2019 17:20, Tomi Valkeinen wrote:
->=20
->> Let's see what Tero says, but yeah, something is odd here. I expected =
-the max divider to be 16 with Tero's patch, but I don't see it having =
-that effect. I can get the div to 31.
->> You can see this from the clock register 0x48004e40 (CM_CLKSEL_DSS). =
-The lowest bits are the divider, 5 to 0. The TRM says max div is 32.
->> Tero said for him the dividers > 16 didn't "stick" to the register. =
-I'm now wondering if he has an old beagleboard with OMAP34xx, which has =
-max div 16.
->=20
-> So testing a bit more here, I can see the DSS working fine and fps as =
-expected when I write values directly to CM_CLKSEL_DSS:5:0, with =
-dividers up to 31. With 32, DSS breaks. The TRM (AM/DM37x) says value 32 =
-is valid.
+Acked-by: Sekhar Nori <nsekhar@ti.com>
 
-Just a blind guess: is there something in the errata to take care of?
+Thanks,
+Sekhar
