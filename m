@@ -1,79 +1,150 @@
-From: keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2 linux-next 4/4] arm64: configs: defconfig: Change
- CONFIG_REMOTEPROC from m to y
-Date: Tue, 1 Oct 2019 04:40:47 +0530
-Message-ID: <0c8dcf78-6f9e-f47f-1175-90b716cdad84@ti.com>
-References: <20190920075946.13282-1-j-keerthy@ti.com>
- <20190920075946.13282-5-j-keerthy@ti.com>
- <20190930134856.umdoeq7k6ukmajij@willie-the-truck>
- <CAOesGMgs7rKOVnimDwSpeGTAf93Er+Ymzy9-R-mKkQK6MQcF3Q@mail.gmail.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Mon, 30 Sep 2019 18:42:13 -0500
+Message-ID: <CAHCN7xKdACg962p+bEO8+jHGHoVdsRXZKZ5hmE4nTO1_zsDmYw@mail.gmail.com>
+References: <20181221011752.25627-1-sre@kernel.org> <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
+ <20190319133154.7tbfafy7pguzw2tk@earth.universe> <CAHCN7xLZFLs=ed539bwuT6s-n6SDof-um7B3AeErQ2ChztC26A@mail.gmail.com>
+ <CAHCN7xLQ=h3bfwS=uTfjSpOtv9qWbic0=_51WJz9KmX7v8+vmw@mail.gmail.com>
+ <FCCA9B3E-80AD-416E-B6E4-85E90721881E@holtmann.org> <CAHCN7x+2t++EifqQ17kyzW0=NnnQ4A1HeFvE4pEzJ02cXwy+LA@mail.gmail.com>
+ <4C83753E-205B-42CE-AF85-74674B311151@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOesGMgs7rKOVnimDwSpeGTAf93Er+Ymzy9-R-mKkQK6MQcF3Q@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>, Will Deacon <will@kernel.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Sekhar Nori <nsekhar@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Andersson <bjorn.andersson@linaro.org>, Tero Kristo <t-kristo@ti.com>, hch@lst.de, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4C83753E-205B-42CE-AF85-74674B311151@holtmann.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, May 10, 2019 at 10:38 AM Marcel Holtmann <marcel@holtmann.org> wrot=
+e:
+>
+> Hi Adam,
+>
+> >>>>>>> This moves all remaining users of the legacy TI_ST driver to hcil=
+l (patches
+> >>>>>>> 1-3). Then patches 4-7 convert wl128x-radio driver to a standard =
+platform
+> >>>>>>> device driver with support for multiple instances. Patch 7 will r=
+esult in
+> >>>>>>> (userless) TI_ST driver no longer supporting radio at runtime. Pa=
+tch 8-11 do
+> >>>>>>> some cleanups in the wl128x-radio driver. Finally patch 12 remove=
+s the TI_ST
+> >>>>>>> specific parts from wl128x-radio and adds the required infrastruc=
+ture to use it
+> >>>>>>> with the serdev hcill driver instead. The remaining patches 13 an=
+d 14 remove
+> >>>>>>> the old TI_ST code.
+> >>>>>>>
+> >>>>>>> The new code has been tested on the Motorola Droid 4. For testing=
+ the audio
+> >>>>>>> should be configured to route Ext to Speaker or Headphone. Then y=
+ou need to
+> >>>>>>> plug headphone, since its cable is used as antenna. For testing t=
+here is a
+> >>>>>>> 'radio' utility packages in Debian. When you start the utility yo=
+u need to
+> >>>>>>> specify a frequency, since initial get_frequency returns an error=
+:
+> >>>>>>
+> >>>>>> What is the status of this series?
+> >>>>>>
+> >>>>>> Based on some of the replies (from Adam Ford in particular) it app=
+ears that
+> >>>>>> this isn't ready to be merged, so is a v2 planned?
+> >>>>>
+> >>>>> Yes, a v2 is planned, but I'm super busy at the moment. I don't
+> >>>>> expect to send something for this merge window. Neither LogicPD
+> >>>>> nor IGEP use FM radio, so I can just remove FM support from the
+> >>>>> TI_ST framework. Converting those platforms to hci_ll can be done
+> >>>>> in a different patchset.
+> >>>>>
+> >>>>> If that was the only issue there would be a v2 already. But Marcel
+> >>>>> Holtmann suggested to pass the custom packet data through the BT
+> >>>>> subsystem, which is non-trivial (at least for me) :)
+> >>>>
+> >>>> I am running some tests today on the wl1283-st on the Logic PD Torpe=
+do
+> >>>> board.  Tony had suggested a few options, so I'm going to try those.
+> >>>> Looking at those today.  If/when you have a V2, please CC me on it. =
+If
+> >>>> it's been posted, can you send me a link?  I would really like to se=
+e
+> >>>> the st-kim driver go away so I'd like to resolve the issues with the
+> >>>> torpedo board.
+> >>>
+> >>> I have run a bunch of tests on the 5.1 kernel.  I am able to get the
+> >>> firmware to load now and the hci0 goes up.  I was able to establish a
+> >>> BLE connection to a TI Sensor Tag and read and write data to it with
+> >>> good success on the wl1283.
+> >>>
+> >>> Unfortunately, when I tried to do some more extensive testing over
+> >>> classic Bluetooth, I got an error that repeats itself at seemingly
+> >>> random intervals:
+> >>>     Bluetooth: hci0: Frame reassembly failed (-84)
+> >>>
+> >>> I can still scan and pair, but these Frame reassembly failed errors
+> >>> appear to come and go.
+> >>
+> >> there are only 3 places in h4_recv_buf that return EILSEQ. Just add an=
+ extra printk to these to figure out which one it is. Maybe it is just extr=
+a packet types that we need to handle. If it is not the packet type one, pr=
+int what packet we have that is causing this.
+> >>
+> >
+> > I added some code around
+> >
+> > /* Check for invalid packet type */
+> >    if (!skb) {
+> >     printk("Check for invalid packet type %x\n", (unsigned int)
+> > (&pkts[i])->type);
+> >     return ERR_PTR(-EILSEQ);
+> > }
+> >
+> > I don't know if I did it right or I am reading the packet type
+> > correctly, but the frame reassembly errors are being caught here.
+> >
+> > [  408.519165] Check for invalid packet type ff
+> > [  408.523559] Bluetooth: hci0: Frame reassembly failed (-84)
+>
+> so now we need to figure our on how to handle HCI_VENDOR_PKT.
+>
+> #define LL_RECV_VENDOR \
+>         .type =3D HCI_VENDOR_PKT, \
+>         .hlen =3D aaa, \
+>         .loff =3D bbb, \
+>         .lsize =3D ccc, \
+>         .maxlen =3D ddd
+>
+> static const struct h4_recv_pkt ll_recv_pkts[] =3D {
+>         ...
+>         { LL_RECV_WAKE_ACK,  .recv =3D ll_recv_frame  },
+>         { LL_RECV_VENDOR,    .recv =3D hci_recv_diag  },
+> };
+>
+> Can you hexdump the data inside the skb and we can figure out what it use=
+s for the header and size.
+>
+> In hci_bcm.c there are a few examples of fixed size packets and bpa10x.c =
+contains one where it follows an actual header definition. Also hci_nokia.c=
+ contains a few for their packets.
 
+I haven't forgotten this, but I was highly distracted.  I wanted to
+test a bunch of stuff on omap3630 and imx6 boards to prep them for the
+upcoming 5.4 LTS kernel.  As of now I 'think' this is the last item on
+my to-do list.
 
-On 10/1/2019 12:16 AM, Olof Johansson wrote:
-> On Mon, Sep 30, 2019 at 6:49 AM Will Deacon <will@kernel.org> wrote:
->>
->> On Fri, Sep 20, 2019 at 01:29:46PM +0530, Keerthy wrote:
->>> Commit 6334150e9a36 ("remoteproc: don't allow modular build")
->>> changes CONFIG_REMOTEPROC to a boolean from a tristate config
->>> option which inhibits all defconfigs marking CONFIG_REMOTEPROC as
->>> a module in compiling the remoteproc and dependent config options.
->>>
->>> So fix the defconfig to have CONFIG_REMOTEPROC built in.
->>>
->>> Fixes: 6334150e9a36 ("remoteproc: don't allow modular build")
->>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>> ---
->>>   arch/arm64/configs/defconfig | 2 +-
->>>   1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
->>> index 8e05c39eab08..c9a867ac32d4 100644
->>> --- a/arch/arm64/configs/defconfig
->>> +++ b/arch/arm64/configs/defconfig
->>> @@ -723,7 +723,7 @@ CONFIG_TEGRA_IOMMU_SMMU=y
->>>   CONFIG_ARM_SMMU=y
->>>   CONFIG_ARM_SMMU_V3=y
->>>   CONFIG_QCOM_IOMMU=y
->>> -CONFIG_REMOTEPROC=m
->>> +CONFIG_REMOTEPROC=y
->>>   CONFIG_QCOM_Q6V5_MSS=m
->>>   CONFIG_QCOM_Q6V5_PAS=m
->>>   CONFIG_QCOM_SYSMON=m
->>
->> Acked-by: Will Deacon <will@kernel.org>
->>
->> This fixes the following annoying warning from "make defconfig" on arm64:
->>
->>    arch/arm64/configs/defconfig:726:warning: symbol value 'm' invalid for REMOTEPROC
->>
->> I'm assuming the fix will go via arm-soc, but I can take it otherwise
->> (please just let me know).
-> 
-> Thanks, I'll pick this up, but I'll squash the 4 one-line changes into
-> one commit instead of separate patches.
+I'm going to try and throw some debug code into the older st/kim
+driver as well as debug this.  I know some people have stated they
+have wl1283-st working on a dm3730.  dump some logs?  I am curious to
+see if there is anything that can be gained by sharing the info.  I'd
+love to see the older st/kim drivers deprecated.
 
-Thanks Olof.
-
-> 
-> 
-> -Olof
-> 
+adam
+>
+> Regards
+>
+> Marcel
+>
