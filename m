@@ -1,30 +1,55 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to dts
-Date: Mon, 30 Sep 2019 15:38:51 +0200
-Message-ID: <F3335195-6EB7-4D44-B884-2F29D9238011@goldelico.com>
-References: <20190510194229.20628-1-aford173@gmail.com> <af325707-3e42-493d-e858-77878ef06138@ti.com> <CAHCN7xLzoCNW6q5yDCsqMHeNvdNegkGhd0N+q9+Gd8JUGbG=_g@mail.gmail.com> <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com> <CAHCN7xJexJvh71vyb31ETgo=n_y_CupHH-AZwVK9mZe3GzJfEQ@mail.gmail.com> <845055e2-8182-de74-2077-629fdf50ac6c@ti.com> <CAHCN7xJFrTLOnbqrnH2W_T2whR8Xji0EMNR_cy8GYkDV-JDodQ@mail.gmail.com> <854f6130-c8a8-81cb-aa76-4830f218ae54@ti.com> <CAHCN7xKocdiWOdmoWQV3POr84qte6WNt0QbQRAwxKSvU8COB_w@mail.gmail.com> <0473526e-df0a-94a5-5c22-debd0084ab16@ti.com> <36369388-e9c8-22cd-8c19-e2bdf2d0389b@ti.com> <eb2eb1f6-3c9b-7ecb-667e-819033af9c14@ti.com> <23eba53a-9304-2ceb-d97e-01891ec0b3ed@ti.com> <cb028b1e-05ca-9b22-be5d-c63f5fd56cc4@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Will Deacon <will@kernel.org>
+Subject: Re: [PATCH v2 linux-next 4/4] arm64: configs: defconfig: Change
+ CONFIG_REMOTEPROC from m to y
+Date: Mon, 30 Sep 2019 14:48:57 +0100
+Message-ID: <20190930134856.umdoeq7k6ukmajij@willie-the-truck>
+References: <20190920075946.13282-1-j-keerthy@ti.com>
+ <20190920075946.13282-5-j-keerthy@ti.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cb028b1e-05ca-9b22-be5d-c63f5fd56cc4@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20190920075946.13282-5-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Adam Ford <aford173@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Keerthy <j-keerthy@ti.com>
+Cc: arnd@arndb.de, nsekhar@ti.com, olof@lixom.net, t-kristo@ti.com, catalin.marinas@arm.com, tony@atomide.com, s-anna@ti.com, hch@lst.de, bjorn.andersson@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Sep 20, 2019 at 01:29:46PM +0530, Keerthy wrote:
+> Commit 6334150e9a36 ("remoteproc: don't allow modular build")
+> changes CONFIG_REMOTEPROC to a boolean from a tristate config
+> option which inhibits all defconfigs marking CONFIG_REMOTEPROC as
+> a module in compiling the remoteproc and dependent config options.
+> 
+> So fix the defconfig to have CONFIG_REMOTEPROC built in.
+> 
+> Fixes: 6334150e9a36 ("remoteproc: don't allow modular build")
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm64/configs/defconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+> index 8e05c39eab08..c9a867ac32d4 100644
+> --- a/arch/arm64/configs/defconfig
+> +++ b/arch/arm64/configs/defconfig
+> @@ -723,7 +723,7 @@ CONFIG_TEGRA_IOMMU_SMMU=y
+>  CONFIG_ARM_SMMU=y
+>  CONFIG_ARM_SMMU_V3=y
+>  CONFIG_QCOM_IOMMU=y
+> -CONFIG_REMOTEPROC=m
+> +CONFIG_REMOTEPROC=y
+>  CONFIG_QCOM_Q6V5_MSS=m
+>  CONFIG_QCOM_Q6V5_PAS=m
+>  CONFIG_QCOM_SYSMON=m
 
-> Am 30.09.2019 um 10:53 schrieb Tero Kristo <t-kristo@ti.com>:
->=20
-> The best action here is probably to drop the max-div value for this =
-clock to 16. Can someone check this with their display setup and see =
-what happens? Attached patch should do the trick.
+Acked-by: Will Deacon <will@kernel.org>
 
-I have checked on GTA04 and OpenPandora (DM3730 resp. OMAP3430) and did =
-not notice a negative effect.
+This fixes the following annoying warning from "make defconfig" on arm64:
 
-(Well, we never see the problem that is discussed here and have built =
-with CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=3D0).
+  arch/arm64/configs/defconfig:726:warning: symbol value 'm' invalid for REMOTEPROC
 
-BR,
-Nikolaus
+I'm assuming the fix will go via arm-soc, but I can take it otherwise
+(please just let me know).
+
+Will
