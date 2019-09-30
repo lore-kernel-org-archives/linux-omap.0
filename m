@@ -1,100 +1,109 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to dts
-Date: Mon, 30 Sep 2019 09:04:18 -0500
-Message-ID: <CAHCN7x+vCfPTRE+zzYUwAXdbBzRotTP2hSOgsHB0FdgBhZV5zA@mail.gmail.com>
-References: <20190510194229.20628-1-aford173@gmail.com> <af325707-3e42-493d-e858-77878ef06138@ti.com>
+Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to
+ dts
+Date: Mon, 30 Sep 2019 09:12:26 -0500
+Message-ID: <CAHCN7xJDV=R9Ysjhff7=mEXdciwPP_5LQbHwaUT8KvhSkLKw8A@mail.gmail.com>
+References: <20190510194229.20628-1-aford173@gmail.com>
+ <af325707-3e42-493d-e858-77878ef06138@ti.com>
  <CAHCN7xLzoCNW6q5yDCsqMHeNvdNegkGhd0N+q9+Gd8JUGbG=_g@mail.gmail.com>
- <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com> <CAHCN7xJexJvh71vyb31ETgo=n_y_CupHH-AZwVK9mZe3GzJfEQ@mail.gmail.com>
- <845055e2-8182-de74-2077-629fdf50ac6c@ti.com> <CAHCN7xJFrTLOnbqrnH2W_T2whR8Xji0EMNR_cy8GYkDV-JDodQ@mail.gmail.com>
- <854f6130-c8a8-81cb-aa76-4830f218ae54@ti.com> <CAHCN7xKocdiWOdmoWQV3POr84qte6WNt0QbQRAwxKSvU8COB_w@mail.gmail.com>
- <0473526e-df0a-94a5-5c22-debd0084ab16@ti.com> <36369388-e9c8-22cd-8c19-e2bdf2d0389b@ti.com>
- <eb2eb1f6-3c9b-7ecb-667e-819033af9c14@ti.com> <23eba53a-9304-2ceb-d97e-01891ec0b3ed@ti.com>
- <cb028b1e-05ca-9b22-be5d-c63f5fd56cc4@ti.com> <F3335195-6EB7-4D44-B884-2F29D9238011@goldelico.com>
+ <7ada0752-6f65-2906-cb29-a47c9490fd57@ti.com>
+ <CAHCN7xJexJvh71vyb31ETgo=n_y_CupHH-AZwVK9mZe3GzJfEQ@mail.gmail.com>
+ <845055e2-8182-de74-2077-629fdf50ac6c@ti.com>
+ <CAHCN7xJFrTLOnbqrnH2W_T2whR8Xji0EMNR_cy8GYkDV-JDodQ@mail.gmail.com>
+ <854f6130-c8a8-81cb-aa76-4830f218ae54@ti.com>
+ <CAHCN7xKocdiWOdmoWQV3POr84qte6WNt0QbQRAwxKSvU8COB_w@mail.gmail.com>
+ <0473526e-df0a-94a5-5c22-debd0084ab16@ti.com>
+ <36369388-e9c8-22cd-8c19-e2bdf2d0389b@ti.com>
+ <eb2eb1f6-3c9b-7ecb-667e-819033af9c14@ti.com>
+ <23eba53a-9304-2ceb-d97e-01891ec0b3ed@ti.com>
+ <cb028b1e-05ca-9b22-be5d-c63f5fd56cc4@ti.com>
+ <F3335195-6EB7-4D44-B884-2F29D9238011@goldelico.com>
  <CAHCN7xL9bFxO=2i1DzmRj6A3XwUNdt=DZeJ2a0EZ0f9gcFTy6g@mail.gmail.com>
+ <CAHCN7x+vCfPTRE+zzYUwAXdbBzRotTP2hSOgsHB0FdgBhZV5zA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHCN7xL9bFxO=2i1DzmRj6A3XwUNdt=DZeJ2a0EZ0f9gcFTy6g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAHCN7x+vCfPTRE+zzYUwAXdbBzRotTP2hSOgsHB0FdgBhZV5zA@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: devicetree <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 30, 2019 at 8:54 AM Adam Ford <aford173@gmail.com> wrote:
->
-> On Mon, Sep 30, 2019 at 8:39 AM H. Nikolaus Schaller <hns@goldelico.com> wrote:
-> >
-> >
-> > > Am 30.09.2019 um 10:53 schrieb Tero Kristo <t-kristo@ti.com>:
-> > >
-> > > The best action here is probably to drop the max-div value for this clock to 16. Can someone check this with their display setup and see what happens? Attached patch should do the trick.
-> >
-> > I have checked on GTA04 and OpenPandora (DM3730 resp. OMAP3430) and did not notice a negative effect.
-> >
-> > (Well, we never see the problem that is discussed here and have built with CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0).
->
-> I have never been able to use CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0, but
-> I assume it's either a function of pck or a combination of pck with
-> the resolution.
->
-> Based on Tomi's comment, I assume he's working on the following.  Can
-> you also try:
->
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c
-> b/drivers/gpu/drm/omapdrm/dss/dss.c
-> index 5711b7a720e6..5e584f32ea6a 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dss.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dss.c
-> @@ -1090,7 +1090,7 @@ static const struct dss_features omap34xx_dss_feats = {
->
->  static const struct dss_features omap3630_dss_feats = {
->         .model                  =       DSS_MODEL_OMAP3,
-> -       .fck_div_max            =       32,
-> +       .fck_div_max            =       16,
->         .fck_freq_max           =       173000000,
->         .dss_fck_multiplier     =       1,
->         .parent_clk_name        =       "dpll4_ck",
->
->
-> Hopefully it doesn't break the 3630 for you, but it fixed my issue
-> with no back trace:
->
-> [    9.915588] DSS: set fck to 54000000
-> [    9.915618] DISPC: lck = 54000000 (1)
-> [    9.915649] DISPC: pck = 9000000 (6)
-> [    9.917633] DISPC: channel 0 xres 480 yres 272
-> [    9.917663] DISPC: pck 9000000
->
-> I do wonder, however if there is a divider that is higher than 16, but
-> lower than 32.
-> I was able to run fck at 36MHz before with divide by 4 to 9MHz, so I
-> am hoping that by running at 54MHz / 6 doesn't draw more power.  I was
-> reading through the datasheet, but I could not find any reference to
-> the max divider.
->
-
-For run, I tested a max divider of 27, and I was able to get it
-functional with a slower fck
-
-[    9.939056] DSS: set fck to 36000000
-[    9.939086] DISPC: lck = 36000000 (1)
-[    9.939086] DISPC: pck = 9000000 (4)
-[    9.941314] DISPC: channel 0 xres 480 yres 272
-[    9.941314] DISPC: pck 9000000
-[    9.941314] DISPC: hsync_len 42 hfp 3 hbp 2 vsw 11 vfp 2 vbp 3
-[    9.941314] DISPC: vsync_level 1 hsync_level 1 data_pclk_edge 1
-de_level 1 sync_pclk_edge -1
-[    9.941345] DISPC: hsync 17077Hz, vsync 59Hz
-
-
-I don't know the implications, so if the people from TI say stick with
-16, I'm fine with that, but at least there is some evidence that it
-can be higher than 16, but lower than 32.
-
-adam
-
-> adam
-> >
-> > BR,
-> > Nikolaus
-> >
+T24gTW9uLCBTZXAgMzAsIDIwMTkgYXQgOTowNCBBTSBBZGFtIEZvcmQgPGFmb3JkMTczQGdtYWls
+LmNvbT4gd3JvdGU6Cj4KPiBPbiBNb24sIFNlcCAzMCwgMjAxOSBhdCA4OjU0IEFNIEFkYW0gRm9y
+ZCA8YWZvcmQxNzNAZ21haWwuY29tPiB3cm90ZToKPiA+Cj4gPiBPbiBNb24sIFNlcCAzMCwgMjAx
+OSBhdCA4OjM5IEFNIEguIE5pa29sYXVzIFNjaGFsbGVyIDxobnNAZ29sZGVsaWNvLmNvbT4gd3Jv
+dGU6Cj4gPiA+Cj4gPiA+Cj4gPiA+ID4gQW0gMzAuMDkuMjAxOSB1bSAxMDo1MyBzY2hyaWViIFRl
+cm8gS3Jpc3RvIDx0LWtyaXN0b0B0aS5jb20+Ogo+ID4gPiA+Cj4gPiA+ID4gVGhlIGJlc3QgYWN0
+aW9uIGhlcmUgaXMgcHJvYmFibHkgdG8gZHJvcCB0aGUgbWF4LWRpdiB2YWx1ZSBmb3IgdGhpcyBj
+bG9jayB0byAxNi4gQ2FuIHNvbWVvbmUgY2hlY2sgdGhpcyB3aXRoIHRoZWlyIGRpc3BsYXkgc2V0
+dXAgYW5kIHNlZSB3aGF0IGhhcHBlbnM/IEF0dGFjaGVkIHBhdGNoIHNob3VsZCBkbyB0aGUgdHJp
+Y2suCj4gPiA+Cj4gPiA+IEkgaGF2ZSBjaGVja2VkIG9uIEdUQTA0IGFuZCBPcGVuUGFuZG9yYSAo
+RE0zNzMwIHJlc3AuIE9NQVAzNDMwKSBhbmQgZGlkIG5vdCBub3RpY2UgYSBuZWdhdGl2ZSBlZmZl
+Y3QuCj4gPiA+Cj4gPiA+IChXZWxsLCB3ZSBuZXZlciBzZWUgdGhlIHByb2JsZW0gdGhhdCBpcyBk
+aXNjdXNzZWQgaGVyZSBhbmQgaGF2ZSBidWlsdCB3aXRoIENPTkZJR19PTUFQMl9EU1NfTUlOX0ZD
+S19QRVJfUENLPTApLgo+ID4KPiA+IEkgaGF2ZSBuZXZlciBiZWVuIGFibGUgdG8gdXNlIENPTkZJ
+R19PTUFQMl9EU1NfTUlOX0ZDS19QRVJfUENLPTAsIGJ1dAo+ID4gSSBhc3N1bWUgaXQncyBlaXRo
+ZXIgYSBmdW5jdGlvbiBvZiBwY2sgb3IgYSBjb21iaW5hdGlvbiBvZiBwY2sgd2l0aAo+ID4gdGhl
+IHJlc29sdXRpb24uCj4gPgo+ID4gQmFzZWQgb24gVG9taSdzIGNvbW1lbnQsIEkgYXNzdW1lIGhl
+J3Mgd29ya2luZyBvbiB0aGUgZm9sbG93aW5nLiAgQ2FuCj4gPiB5b3UgYWxzbyB0cnk6Cj4gPgo+
+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc3MuYwo+ID4gYi9k
+cml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNzLmMKPiA+IGluZGV4IDU3MTFiN2E3MjBlNi4u
+NWU1ODRmMzJlYTZhIDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNz
+L2Rzcy5jCj4gPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNzLmMKPiA+IEBA
+IC0xMDkwLDcgKzEwOTAsNyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGRzc19mZWF0dXJlcyBvbWFw
+MzR4eF9kc3NfZmVhdHMgPSB7Cj4gPgo+ID4gIHN0YXRpYyBjb25zdCBzdHJ1Y3QgZHNzX2ZlYXR1
+cmVzIG9tYXAzNjMwX2Rzc19mZWF0cyA9IHsKPiA+ICAgICAgICAgLm1vZGVsICAgICAgICAgICAg
+ICAgICAgPSAgICAgICBEU1NfTU9ERUxfT01BUDMsCj4gPiAtICAgICAgIC5mY2tfZGl2X21heCAg
+ICAgICAgICAgID0gICAgICAgMzIsCj4gPiArICAgICAgIC5mY2tfZGl2X21heCAgICAgICAgICAg
+ID0gICAgICAgMTYsCj4gPiAgICAgICAgIC5mY2tfZnJlcV9tYXggICAgICAgICAgID0gICAgICAg
+MTczMDAwMDAwLAo+ID4gICAgICAgICAuZHNzX2Zja19tdWx0aXBsaWVyICAgICA9ICAgICAgIDEs
+Cj4gPiAgICAgICAgIC5wYXJlbnRfY2xrX25hbWUgICAgICAgID0gICAgICAgImRwbGw0X2NrIiwK
+PiA+Cj4gPgo+ID4gSG9wZWZ1bGx5IGl0IGRvZXNuJ3QgYnJlYWsgdGhlIDM2MzAgZm9yIHlvdSwg
+YnV0IGl0IGZpeGVkIG15IGlzc3VlCj4gPiB3aXRoIG5vIGJhY2sgdHJhY2U6Cj4gPgo+ID4gWyAg
+ICA5LjkxNTU4OF0gRFNTOiBzZXQgZmNrIHRvIDU0MDAwMDAwCj4gPiBbICAgIDkuOTE1NjE4XSBE
+SVNQQzogbGNrID0gNTQwMDAwMDAgKDEpCj4gPiBbICAgIDkuOTE1NjQ5XSBESVNQQzogcGNrID0g
+OTAwMDAwMCAoNikKPiA+IFsgICAgOS45MTc2MzNdIERJU1BDOiBjaGFubmVsIDAgeHJlcyA0ODAg
+eXJlcyAyNzIKPiA+IFsgICAgOS45MTc2NjNdIERJU1BDOiBwY2sgOTAwMDAwMAo+ID4KPiA+IEkg
+ZG8gd29uZGVyLCBob3dldmVyIGlmIHRoZXJlIGlzIGEgZGl2aWRlciB0aGF0IGlzIGhpZ2hlciB0
+aGFuIDE2LCBidXQKPiA+IGxvd2VyIHRoYW4gMzIuCj4gPiBJIHdhcyBhYmxlIHRvIHJ1biBmY2sg
+YXQgMzZNSHogYmVmb3JlIHdpdGggZGl2aWRlIGJ5IDQgdG8gOU1Ieiwgc28gSQo+ID4gYW0gaG9w
+aW5nIHRoYXQgYnkgcnVubmluZyBhdCA1NE1IeiAvIDYgZG9lc24ndCBkcmF3IG1vcmUgcG93ZXIu
+ICBJIHdhcwo+ID4gcmVhZGluZyB0aHJvdWdoIHRoZSBkYXRhc2hlZXQsIGJ1dCBJIGNvdWxkIG5v
+dCBmaW5kIGFueSByZWZlcmVuY2UgdG8KPiA+IHRoZSBtYXggZGl2aWRlci4KPiA+Cj4KPiBGb3Ig
+cnVuLCBJIHRlc3RlZCBhIG1heCBkaXZpZGVyIG9mIDI3LCBhbmQgSSB3YXMgYWJsZSB0byBnZXQg
+aXQKPiBmdW5jdGlvbmFsIHdpdGggYSBzbG93ZXIgZmNrCj4KPiBbICAgIDkuOTM5MDU2XSBEU1M6
+IHNldCBmY2sgdG8gMzYwMDAwMDAKPiBbICAgIDkuOTM5MDg2XSBESVNQQzogbGNrID0gMzYwMDAw
+MDAgKDEpCj4gWyAgICA5LjkzOTA4Nl0gRElTUEM6IHBjayA9IDkwMDAwMDAgKDQpCj4gWyAgICA5
+Ljk0MTMxNF0gRElTUEM6IGNoYW5uZWwgMCB4cmVzIDQ4MCB5cmVzIDI3Mgo+IFsgICAgOS45NDEz
+MTRdIERJU1BDOiBwY2sgOTAwMDAwMAo+IFsgICAgOS45NDEzMTRdIERJU1BDOiBoc3luY19sZW4g
+NDIgaGZwIDMgaGJwIDIgdnN3IDExIHZmcCAyIHZicCAzCj4gWyAgICA5Ljk0MTMxNF0gRElTUEM6
+IHZzeW5jX2xldmVsIDEgaHN5bmNfbGV2ZWwgMSBkYXRhX3BjbGtfZWRnZSAxCj4gZGVfbGV2ZWwg
+MSBzeW5jX3BjbGtfZWRnZSAtMQo+IFsgICAgOS45NDEzNDVdIERJU1BDOiBoc3luYyAxNzA3N0h6
+LCB2c3luYyA1OUh6Cj4KPgo+IEkgZG9uJ3Qga25vdyB0aGUgaW1wbGljYXRpb25zLCBzbyBpZiB0
+aGUgcGVvcGxlIGZyb20gVEkgc2F5IHN0aWNrIHdpdGgKPiAxNiwgSSdtIGZpbmUgd2l0aCB0aGF0
+LCBidXQgYXQgbGVhc3QgdGhlcmUgaXMgc29tZSBldmlkZW5jZSB0aGF0IGl0Cj4gY2FuIGJlIGhp
+Z2hlciB0aGFuIDE2LCBidXQgbG93ZXIgdGhhbiAzMi4KPgoKU29ycnkgZm9yIGFsbCB0aGUgc3Bh
+bSwgYnV0IEkgbW92ZWQgYm90aCBvZiB0aGVtIHRvIDMxIGZyb20gMzIsIGFuZCBpdAphbHNvIHNl
+ZW1zIHRvIHdvcmsgc3VjY2Vzc2Z1bGx5IGF0IDMxLgoKWyAgIDI2LjkyMzAwNF0gRFNTOiBzZXQg
+ZmNrIHRvIDM2MDAwMDAwClsgICAyNi45MjMwMzRdIERJU1BDOiBsY2sgPSAzNjAwMDAwMCAoMSkK
+WyAgIDI2LjkyMzAzNF0gRElTUEM6IHBjayA9IDkwMDAwMDAgKDQpClsgICAyNi45MjUwNDhdIERJ
+U1BDOiBjaGFubmVsIDAgeHJlcyA0ODAgeXJlcyAyNzIKWyAgIDI2LjkyNTA0OF0gRElTUEM6IHBj
+ayA5MDAwMDAwClsgICAyNi45MjUwNDhdIERJU1BDOiBoc3luY19sZW4gNDIgaGZwIDMgaGJwIDIg
+dnN3IDExIHZmcCAyIHZicCAzClsgICAyNi45MjUwNzldIERJU1BDOiB2c3luY19sZXZlbCAxIGhz
+eW5jX2xldmVsIDEgZGF0YV9wY2xrX2VkZ2UgMQpkZV9sZXZlbCAxIHN5bmNfcGNsa19lZGdlIC0x
+ClsgICAyNi45MjUwNzldIERJU1BDOiBoc3luYyAxNzA3N0h6LCB2c3luYyA1OUh6ClsgICAyNy4z
+ODQ2MTNdIERJU1BDOiBkaXNwY19ydW50aW1lX3B1dAoKSXMgaXQgcG9zc2libGUgdG8gdXNlIDMx
+PwoKYWRhbQoKPiBhZGFtCj4KPiA+IGFkYW0KPiA+ID4KPiA+ID4gQlIsCj4gPiA+IE5pa29sYXVz
+Cj4gPiA+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
+aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
+czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
