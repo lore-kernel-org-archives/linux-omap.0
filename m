@@ -1,16 +1,11 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v2 linux-next 4/4] arm64: configs: defconfig: Change
- CONFIG_REMOTEPROC from m to y
-Date: Mon, 30 Sep 2019 11:46:23 -0700
-Message-ID: <CAOesGMgs7rKOVnimDwSpeGTAf93Er+Ymzy9-R-mKkQK6MQcF3Q@mail.gmail.com>
-References: <20190920075946.13282-1-j-keerthy@ti.com>
- <20190920075946.13282-5-j-keerthy@ti.com>
- <20190930134856.umdoeq7k6ukmajij@willie-the-truck>
+From: Adam Ford <aford173@gmail.com>
+Subject: [PATCH] Bluetooth: hci_ll: set operational frequency earlier
+Date: Mon, 30 Sep 2019 15:10:18 -0500
+Message-ID: <CAHCN7xLOCC00UC4PB3vHa6Q7yyhXVEaWgx2X9D9L2dDubd_5fA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190930134856.umdoeq7k6ukmajij@willie-the-truck>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,51 +15,32 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will@kernel.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Sekhar Nori <nsekhar@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Andersson <bjorn.andersson@linaro.org>, Tero Kristo <t-kristo@ti.com>, Catalin Marinas <catalin.marinas@arm.com>, hch@lst.de, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, Philipp Puschmann <philipp.puschmann@emlix.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 30, 2019 at 6:49 AM Will Deacon <will@kernel.org> wrote:
->
-> On Fri, Sep 20, 2019 at 01:29:46PM +0530, Keerthy wrote:
-> > Commit 6334150e9a36 ("remoteproc: don't allow modular build")
-> > changes CONFIG_REMOTEPROC to a boolean from a tristate config
-> > option which inhibits all defconfigs marking CONFIG_REMOTEPROC as
-> > a module in compiling the remoteproc and dependent config options.
-> >
-> > So fix the defconfig to have CONFIG_REMOTEPROC built in.
-> >
-> > Fixes: 6334150e9a36 ("remoteproc: don't allow modular build")
-> > Signed-off-by: Keerthy <j-keerthy@ti.com>
-> > ---
-> >  arch/arm64/configs/defconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
-> > index 8e05c39eab08..c9a867ac32d4 100644
-> > --- a/arch/arm64/configs/defconfig
-> > +++ b/arch/arm64/configs/defconfig
-> > @@ -723,7 +723,7 @@ CONFIG_TEGRA_IOMMU_SMMU=y
-> >  CONFIG_ARM_SMMU=y
-> >  CONFIG_ARM_SMMU_V3=y
-> >  CONFIG_QCOM_IOMMU=y
-> > -CONFIG_REMOTEPROC=m
-> > +CONFIG_REMOTEPROC=y
-> >  CONFIG_QCOM_Q6V5_MSS=m
-> >  CONFIG_QCOM_Q6V5_PAS=m
-> >  CONFIG_QCOM_SYSMON=m
->
-> Acked-by: Will Deacon <will@kernel.org>
->
-> This fixes the following annoying warning from "make defconfig" on arm64:
->
->   arch/arm64/configs/defconfig:726:warning: symbol value 'm' invalid for REMOTEPROC
->
-> I'm assuming the fix will go via arm-soc, but I can take it otherwise
-> (please just let me know).
+Is anyone else having issues with the hci_ll after  a2e02f38eff8
+("Bluetooth: hci_ll: set operational frequency earlier") was applied?
 
-Thanks, I'll pick this up, but I'll squash the 4 one-line changes into
-one commit instead of separate patches.
+I have an i.MX6Q with a WL1837MOD attached to UART2.  After this patch
+I git a bunch of timeouts when initializing the device using the 5.3
+and 5.3.1 kernel.   I know a bunch of omap and imx users have done
+some various tests over the years, so I thought I'd ask.
 
+[  195.911836] Bluetooth: hci0: command 0xff36 tx timeout
+[  206.071837] Bluetooth: hci0: command 0x1001 tx timeout
+[  214.231862] Bluetooth: hci0: Reading TI version information failed (-110)
+[  214.238712] Bluetooth: hci0: download firmware failed, retrying...
+[  216.391834] Bluetooth: hci0: command 0xff36 tx timeout
+[  226.551843] Bluetooth: hci0: command 0x1001 tx timeout
+[  234.711856] Bluetooth: hci0: Reading TI version information failed (-110)
+[  234.718705] Bluetooth: hci0: download firmware failed, retrying...
+[  236.871832] Bluetooth: hci0: command 0xff36 tx timeout
+[  247.031837] Bluetooth: hci0: command 0x1001 tx timeout
+[  255.191852] Bluetooth: hci0: Reading TI version information failed (-110)
+[  255.198706] Bluetooth: hci0: download firmware failed, retrying...
+Can't init device hci0: Connection timed out (110)
 
--Olof
+Revering this patch fixes the issue, and subsequent patch proposals
+form Philipp haven't seemed to fix the issues for me on 5.3
+
+adam
