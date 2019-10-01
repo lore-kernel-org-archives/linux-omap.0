@@ -1,82 +1,71 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH V4 1/3] drm/panel: simple: Add Logic PD Type 28 display support
-Date: Tue,  1 Oct 2019 18:39:18 -0500
-Message-ID: <20191001233923.16514-1-aford173@gmail.com>
+Subject: [PATCH V4 2/3] dt-bindings: Add Logic PD Type 28 display panel
+Date: Tue,  1 Oct 2019 18:39:19 -0500
+Message-ID: <20191001233923.16514-2-aford173@gmail.com>
+References: <20191001233923.16514-1-aford173@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191001233923.16514-1-aford173@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dri-devel@lists.freedesktop.org
 Cc: linux-omap@vger.kernel.org, adam.ford@logicpd.com, Adam Ford <aford173@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Previously, there was an omap panel-dpi driver that would
-read generic timings from the device tree and set the display
-timing accordingly.  This driver was removed so the screen
-no longer functions.  This patch modifies the panel-simple
-file to setup the timings to the same values previously used.
-
-Fixes: 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
+This patch adds documentation of device tree bindings for the WVGA panel
+Logic PD Type 28 display.
 
 Signed-off-by: Adam Ford <aford173@gmail.com>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
-V4:  No Change
-V3:  No Change
-V2:  No Change
+V4:  Update per Rob H's suggestions and copy other panel yaml example from 5.4-rc1
+V3:  Correct build errors from 'make dt_binding_check'
+V2:  Use YAML instead of TXT for binding
 
-diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 28fa6ba7b767..8abb31f83ffc 100644
---- a/drivers/gpu/drm/panel/panel-simple.c
-+++ b/drivers/gpu/drm/panel/panel-simple.c
-@@ -2048,6 +2048,40 @@ static const struct drm_display_mode mitsubishi_aa070mc01_mode = {
- 	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
- };
- 
-+static const struct drm_display_mode logicpd_type_28_mode = {
-+	.clock = 9000,
-+	.hdisplay = 480,
-+	.hsync_start = 480 + 3,
-+	.hsync_end = 480 + 3 + 42,
-+	.htotal = 480 + 3 + 42 + 2,
+diff --git a/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+new file mode 100644
+index 000000000000..e2c62e8f1db4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+@@ -0,0 +1,42 @@
++# SPDX-License-Identifier: GPL-2.0
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/display/panel/logicpd,type28.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+	.vdisplay = 272,
-+	.vsync_start = 272 + 2,
-+	.vsync_end = 272 + 2 + 11,
-+	.vtotal = 272 + 2 + 11 + 3,
-+	.vrefresh = 60,
-+	.flags = DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC,
-+};
++title: Logic PD Type 28 4.3" WQVGA TFT LCD panel
 +
-+static const struct panel_desc logicpd_type_28 = {
-+	.modes = &logicpd_type_28_mode,
-+	.num_modes = 1,
-+	.bpc = 8,
-+	.size = {
-+		.width = 105,
-+		.height = 67,
-+	},
-+	.delay = {
-+		.prepare = 200,
-+		.enable = 200,
-+		.unprepare = 200,
-+		.disable = 200,
-+	},
-+	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
-+	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE |
-+		     DRM_BUS_FLAG_SYNC_DRIVE_NEGEDGE,
-+};
++maintainers:
++  - Adam Ford <aford173@gmail.com>
 +
- static const struct panel_desc mitsubishi_aa070mc01 = {
- 	.modes = &mitsubishi_aa070mc01_mode,
- 	.num_modes = 1,
-@@ -3264,6 +3298,9 @@ static const struct of_device_id platform_of_match[] = {
- 	}, {
- 		.compatible = "lg,lp129qe",
- 		.data = &lg_lp129qe,
-+	}, {
-+		.compatible = "logicpd,type28",
-+		.data = &logicpd_type_28,
- 	}, {
- 		.compatible = "mitsubishi,aa070mc01-ca1",
- 		.data = &mitsubishi_aa070mc01,
++allOf:
++  - $ref: panel-common.yaml#
++
++properties:
++  compatible:
++    const: logicpd,type28
++
++  power-supply: true
++  enable-gpios: true
++  backlight: true
++  port: true
++
++required:
++  - compatible
++
++additionalProperties: false
++
++examples:
++  - |
++    lcd0: display {
++      compatible = "logicpd,type28";
++      enable-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;
++      backlight = <&backlight>;
++      port {
++        lcd_in: endpoint {
++          remote-endpoint = <&dpi_out>;
++        };
++      };
++    };
++
++...
 -- 
 2.17.1
