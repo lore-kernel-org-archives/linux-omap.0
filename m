@@ -1,68 +1,93 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to
- dts
-Date: Tue, 1 Oct 2019 12:31:38 +0300
-Message-ID: <f01bf6ec-e531-371b-4f66-312b12379273@ti.com>
-References: <20190510194229.20628-1-aford173@gmail.com>
- <854f6130-c8a8-81cb-aa76-4830f218ae54@ti.com>
- <CAHCN7xKocdiWOdmoWQV3POr84qte6WNt0QbQRAwxKSvU8COB_w@mail.gmail.com>
- <0473526e-df0a-94a5-5c22-debd0084ab16@ti.com>
- <36369388-e9c8-22cd-8c19-e2bdf2d0389b@ti.com>
- <eb2eb1f6-3c9b-7ecb-667e-819033af9c14@ti.com>
- <23eba53a-9304-2ceb-d97e-01891ec0b3ed@ti.com>
- <cb028b1e-05ca-9b22-be5d-c63f5fd56cc4@ti.com>
- <F3335195-6EB7-4D44-B884-2F29D9238011@goldelico.com>
- <CAHCN7xL9bFxO=2i1DzmRj6A3XwUNdt=DZeJ2a0EZ0f9gcFTy6g@mail.gmail.com>
- <CAHCN7x+vCfPTRE+zzYUwAXdbBzRotTP2hSOgsHB0FdgBhZV5zA@mail.gmail.com>
- <CAHCN7xJDV=R9Ysjhff7=mEXdciwPP_5LQbHwaUT8KvhSkLKw8A@mail.gmail.com>
- <04306a5e-f9be-35a4-1aa1-5795d780e289@ti.com>
- <3777f1b1-2d9a-334b-b9e7-99dfda2ae29b@ti.com>
- <CAHCN7xJNJca8W_yw5nNY3AmKDSPoLzJ8voPmR1HS3bNcU8uQGg@mail.gmail.com>
- <6cd7c9f0-cb26-588b-dfd1-faf462732549@ti.com>
- <ec718740-bb8f-0d31-3622-89a62bd8fede@ti.com>
- <202ae3b3-f72c-5b5b-4344-be22c8368cc7@ti.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH] Bluetooth: hci_ll: set operational frequency earlier
+Date: Tue, 1 Oct 2019 07:37:37 -0500
+Message-ID: <CAHCN7xJ7GsnwT3CM7giK1ydGY_9SFNMbhz6U0k2eYvpz_EK9oQ@mail.gmail.com>
+References: <CAHCN7xLOCC00UC4PB3vHa6Q7yyhXVEaWgx2X9D9L2dDubd_5fA@mail.gmail.com>
+ <9525ffc4-3e1f-9941-8f7b-ba74690add77@emlix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <202ae3b3-f72c-5b5b-4344-be22c8368cc7@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tero Kristo <t-kristo@ti.com>, Adam Ford <aford173@gmail.com>
-Cc: devicetree <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <9525ffc4-3e1f-9941-8f7b-ba74690add77@emlix.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Philipp Puschmann <philipp.puschmann@emlix.com>
+Cc: "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDEvMTAvMjAxOSAxMToxMiwgVGVybyBLcmlzdG8gd3JvdGU6Cj4gT24gMDEvMTAvMjAxOSAw
-ODowNywgVG9taSBWYWxrZWluZW4gd3JvdGU6Cj4+IE9uIDMwLzA5LzIwMTkgMjA6NDgsIFRlcm8g
-S3Jpc3RvIHdyb3RlOgo+Pgo+Pj4gSG1taCwgYWZ0ZXIgc29tZSB0ZXN0aW5nLCBpdCBzZWVtcyB0
-aGVyZSBpcyBiYWQgc3R1ZmYgaGFwcGVuaW5nIHdpdGggCj4+PiB0aGUgZGl2aWRlciBjbG9jayBp
-bXBsZW1lbnRhdGlvbiwgSSBhbSByZS13b3JraW5nIGl0IGFzIG9mIG5vdy4gCj4+PiBCYXNpY2Fs
-bHkgd2hhdCBpcyB3cm9uZyBpcyB0aGF0IHdpdGggYSBkaXZpZGVyIG1heCB2YWx1ZSBvZiBzYXkg
-MTYsIAo+Pj4gdGhlIGRyaXZlciBhdHRlbXB0cyB0byBjcmFmdCB0aGUgbWF4IHZhbHVlIGludG8g
-YSBtYXNrLCBidXQgdGhpcyBlbmRzIAo+Pj4gdXAgYmVpbmcgMHgxZi4gSWYgdGhlIG1heCB2YWx1
-ZSBpcyAxNSwgaXQgZW5kcyB1cCBpbnRvIDB4ZiB3aGljaCBpcyAKPj4+IGNvcnJlY3QuCj4+Cj4+
-IE9rLCB0aGF0IGV4cGxhaW5zIHRoZSBtYXggbm90IHdvcmtpbmcuCj4+Cj4+IEl0IGRvZXNuJ3Qg
-ZXhwbGFpbiB0aGUgb3RoZXIgaXNzdWUsIHdoZXJlIHRoZSBUUk0gc2F5cyB0aGUgbWF4IGRpdiBp
-cyAKPj4gMzIsIGJ1dCBpdCBkb2VzIG5vdCB3b3JrLiBCdXQgdGFraW5nIHRoZSBtYXggZGl2IGZy
-b20gdGhlIG9sZCBTb0NzLCAKPj4gMTYsIGlzIG5vdCBjb3JyZWN0IGVpdGhlciwgYXMgaXQgc2Vl
-bXMgdGhhdCBkaXZpZGVycyB1cCB0byAzMSB3b3JrIG9rLgo+Pgo+PiDCoMKgVG9taQo+Pgo+IAo+
-IE9rLCBhdHRhY2hlZCBhIHNlcmllcyB0aGF0IGhvcGVmdWxseSBmaXhlcyBpdCwgYW55IHRlc3Rp
-bmcgZmVlZGJhY2sgCj4gd2VsY29tZSBiZWZvcmUgSSBwb3N0IHRoaXMgcHJvcGVybHkuCj4gCj4g
-VGhpcyBhbHNvIHN1cHBvcnRzIG9tYXAzNnh4IGRwbGw0X200X2NrIGRpdmlkZXIgdXAtdG8gMzEs
-IG90aGVyIG9tYXAzIAo+IGZhbWlseSBpcyBsaW1pdGVkIHRvIDE2LgoKV29ya3MgZm9yIG1lLiBU
-aGlzIGFsc28gbmVlZHMgdGhlIGNoYW5nZSB0byBkc3MuYyB0byBjaGFuZ2UgdGhlIG1heCBmcm9t
-IAozMiB0byAzMS4gSSdsbCBzZW5kIGEgcGF0Y2ggZm9yIHRoYXQgc2VwYXJhdGVseS4KCiAgVG9t
-aQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAw
-MTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2th
-L0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
-a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
-cmktZGV2ZWw=
+On Tue, Oct 1, 2019 at 2:04 AM Philipp Puschmann
+<philipp.puschmann@emlix.com> wrote:
+>
+> A few times i have seen this here too. The wl1837mod should definitely be able to set
+> the operaional frequency before loading the firmware.
+> It takes nearly 5 seconds to upload the firmware with 115kbps while only
+> 0.2s with 3mbps. So i see a high interest to do it the fast way.
+> A problem i have identified may be the power supply. At least on my custom board
+> the power supply is controlled via gpio. But the serial bluetooth device has no
+> support for a regulator. As it is controlled by wifi driver only. I have prepared a patch
+> adding regulator support to hci_ll driver. In a few weeks i may try to get it upstream.
+
+Any change you can share with me what you have?  With 5.4 being the
+next LTS and at least two of us with broken boards, I am concerned
+that a patch in a few weeks may not make the cut for the final release
+of 5.4.
+
+>
+> Another problem may be the timings. The timings the driver uses are according the wl1837mod
+> datasheets but it may that not all devices of that class or the wiring have the same
+> specifications and this causes the trouble.
+>
+> For the above mentioned performance gain i would like to see the problem really solved.
+
+I agree it would be nice to have it working fast, but for others of
+us, we just need to work, so unless there is a clear solution to the
+problem, I would advocate reverting the patch until the solution can
+be found that doesn't break other boards.
+
+> It may be enough to add some sleep time or small delay or something of that kind in
+> ll_setup().
+>
+
+I am willing to try something if you want.
+
+
+adam
+> Regards,
+> Philipp
+>
+>
+> Am 30.09.19 um 22:10 schrieb Adam Ford:
+> > Is anyone else having issues with the hci_ll after  a2e02f38eff8
+> > ("Bluetooth: hci_ll: set operational frequency earlier") was applied?
+> >
+> > I have an i.MX6Q with a WL1837MOD attached to UART2.  After this patch
+> > I git a bunch of timeouts when initializing the device using the 5.3
+> > and 5.3.1 kernel.   I know a bunch of omap and imx users have done
+> > some various tests over the years, so I thought I'd ask.
+> >
+> > [  195.911836] Bluetooth: hci0: command 0xff36 tx timeout
+> > [  206.071837] Bluetooth: hci0: command 0x1001 tx timeout
+> > [  214.231862] Bluetooth: hci0: Reading TI version information failed (-110)
+> > [  214.238712] Bluetooth: hci0: download firmware failed, retrying...
+> > [  216.391834] Bluetooth: hci0: command 0xff36 tx timeout
+> > [  226.551843] Bluetooth: hci0: command 0x1001 tx timeout
+> > [  234.711856] Bluetooth: hci0: Reading TI version information failed (-110)
+> > [  234.718705] Bluetooth: hci0: download firmware failed, retrying...
+> > [  236.871832] Bluetooth: hci0: command 0xff36 tx timeout
+> > [  247.031837] Bluetooth: hci0: command 0x1001 tx timeout
+> > [  255.191852] Bluetooth: hci0: Reading TI version information failed (-110)
+> > [  255.198706] Bluetooth: hci0: download firmware failed, retrying...
+> > Can't init device hci0: Connection timed out (110)
+> >
+> > Revering this patch fixes the issue, and subsequent patch proposals
+> > form Philipp haven't seemed to fix the issues for me on 5.3
+> >
+> > adam
+> >
