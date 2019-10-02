@@ -1,63 +1,57 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH] drm/omap: fix max fclk divider for omap36xx
-Date: Wed, 2 Oct 2019 07:44:10 -0500
-Message-ID: <CAHCN7xKCSVSJ2h7Y-NF_TNDhB-LKH=aMmma4g8dH56POqDVWUA@mail.gmail.com>
-References: <20191002122542.8449-1-tomi.valkeinen@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] ARM: dts: am335x-sancloud-bbe: Fix PHY mode for ethernet
+Date: Wed, 2 Oct 2019 17:48:35 +0300
+Message-ID: <d027ef07-807d-6a7b-2939-b67be4542469@ti.com>
+References: <20191002095416.19603-1-jhofstee@victronenergy.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20191002122542.8449-1-tomi.valkeinen@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "H . Nikolaus Schaller" <hns@goldelico.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191002095416.19603-1-jhofstee@victronenergy.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeroen Hofstee <jhofstee@victronenergy.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 2, 2019 at 7:25 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->
-> The OMAP36xx and AM/DM37x TRMs say that the maximum divider for DSS fclk
-> (in CM_CLKSEL_DSS) is 32. Experimentation shows that this is not
-> correct, and using divider of 32 breaks DSS with a flood or underflows
-> and sync losts. Dividers up to 31 seem to work fine.
->
-> There is another patch to the DT files to limit the divider correctly,
-> but as the DSS driver also needs to know the maximum divider to be able
-> to iteratively find good rates, we also need to do the fix in the DSS
-> driver.
->
 
-When combined with the cock divider patch [1], this fixes a hanging
-issue on a DM3730 with a 480x272 screen where the pixel clock is set
-to 9MHz and the clock divider attempts to calculate a fclk and hangs.
-I have always had to hack the divider to prevent the hang.
 
-If possible, it would be nice to have this applied to 5.4 branch since
-it will be an LTS kernel.
+On 02/10/2019 12:54, Jeroen Hofstee wrote:
+> cd28d1d6e52e: ("net: phy: at803x: Disable phy delay for RGMII mode") broke
+> the ethernet networking on the beaglebone enhanced.
 
-[1] - https://patchwork.kernel.org/cover/11170951/
+Above commit is incorrect (by itself) and there are few more commits on top of
+it, so pls. update reference to commit(s)
 
-Tested-by: Adam Ford <aford173@gmail.com>
+bb0ce4c1517d net: phy: at803x: stop switching phy delay config needlessly
+6d4cd041f0af net: phy: at803x: disable delay only for RGMII mode
 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Adam Ford <aford173@gmail.com>
-> Cc: stable@vger.kernel.org
+
+> 
+> The board relied on the bug in the at803x driver to always enable the rx
+> delay. So change the phy-mode to rgmii-id so it is enabled again.
+> 
+> Signed-off-by: Jeroen Hofstee <jhofstee@victronenergy.com>
+> cc: Koen Kooi <koen@dominion.thruhere.net>
 > ---
->  drivers/gpu/drm/omapdrm/dss/dss.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c b/drivers/gpu/drm/omapdrm/dss/dss.c
-> index e226324adb69..4bdd63b57100 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dss.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dss.c
-> @@ -1083,7 +1083,7 @@ static const struct dss_features omap34xx_dss_feats = {
->
->  static const struct dss_features omap3630_dss_feats = {
->         .model                  =       DSS_MODEL_OMAP3,
-> -       .fck_div_max            =       32,
-> +       .fck_div_max            =       31,
->         .fck_freq_max           =       173000000,
->         .dss_fck_multiplier     =       1,
->         .parent_clk_name        =       "dpll4_ck",
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
->
+>   arch/arm/boot/dts/am335x-sancloud-bbe.dts | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-sancloud-bbe.dts b/arch/arm/boot/dts/am335x-sancloud-bbe.dts
+> index 8678e6e35493..e5fdb7abb0d5 100644
+> --- a/arch/arm/boot/dts/am335x-sancloud-bbe.dts
+> +++ b/arch/arm/boot/dts/am335x-sancloud-bbe.dts
+> @@ -108,7 +108,7 @@
+>   
+>   &cpsw_emac0 {
+>   	phy-handle = <&ethphy0>;
+> -	phy-mode = "rgmii-txid";
+> +	phy-mode = "rgmii-id";
+>   };
+>   
+>   &i2c0 {
+> 
+
+-- 
+Best regards,
+grygorii
