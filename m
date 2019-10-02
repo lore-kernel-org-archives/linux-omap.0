@@ -1,42 +1,48 @@
-From: Jeroen Hofstee <jhofstee@victronenergy.com>
-Subject: [PATCH] ARM: dts: am335x-sancloud-bbe: Fix PHY mode for ethernet
-Date: Wed, 2 Oct 2019 09:54:40 +0000
-Message-ID: <20191002095416.19603-1-jhofstee@victronenergy.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH] drm/omap: fix max fclk divider for omap36xx
+Date: Wed, 2 Oct 2019 15:25:42 +0300
+Message-ID: <20191002122542.8449-1-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Jeroen Hofstee <jhofstee@victronenergy.com>, Koen Kooi <koen@dominion.thruhere.net>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org
+Cc: "H . Nikolaus Schaller" <hns@goldelico.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-cd28d1d6e52e: ("net: phy: at803x: Disable phy delay for RGMII mode") broke
-the ethernet networking on the beaglebone enhanced.
-
-The board relied on the bug in the at803x driver to always enable the rx
-delay. So change the phy-mode to rgmii-id so it is enabled again.
-
-Signed-off-by: Jeroen Hofstee <jhofstee@victronenergy.com>
-cc: Koen Kooi <koen@dominion.thruhere.net>
----
- arch/arm/boot/dts/am335x-sancloud-bbe.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/am335x-sancloud-bbe.dts b/arch/arm/boot/dts/=
-am335x-sancloud-bbe.dts
-index 8678e6e35493..e5fdb7abb0d5 100644
---- a/arch/arm/boot/dts/am335x-sancloud-bbe.dts
-+++ b/arch/arm/boot/dts/am335x-sancloud-bbe.dts
-@@ -108,7 +108,7 @@
-=20
- &cpsw_emac0 {
- 	phy-handle =3D <&ethphy0>;
--	phy-mode =3D "rgmii-txid";
-+	phy-mode =3D "rgmii-id";
- };
-=20
- &i2c0 {
---=20
-2.17.1
+VGhlIE9NQVAzNnh4IGFuZCBBTS9ETTM3eCBUUk1zIHNheSB0aGF0IHRoZSBtYXhpbXVtIGRpdmlk
+ZXIgZm9yIERTUyBmY2xrCihpbiBDTV9DTEtTRUxfRFNTKSBpcyAzMi4gRXhwZXJpbWVudGF0aW9u
+IHNob3dzIHRoYXQgdGhpcyBpcyBub3QKY29ycmVjdCwgYW5kIHVzaW5nIGRpdmlkZXIgb2YgMzIg
+YnJlYWtzIERTUyB3aXRoIGEgZmxvb2Qgb3IgdW5kZXJmbG93cwphbmQgc3luYyBsb3N0cy4gRGl2
+aWRlcnMgdXAgdG8gMzEgc2VlbSB0byB3b3JrIGZpbmUuCgpUaGVyZSBpcyBhbm90aGVyIHBhdGNo
+IHRvIHRoZSBEVCBmaWxlcyB0byBsaW1pdCB0aGUgZGl2aWRlciBjb3JyZWN0bHksCmJ1dCBhcyB0
+aGUgRFNTIGRyaXZlciBhbHNvIG5lZWRzIHRvIGtub3cgdGhlIG1heGltdW0gZGl2aWRlciB0byBi
+ZSBhYmxlCnRvIGl0ZXJhdGl2ZWx5IGZpbmQgZ29vZCByYXRlcywgd2UgYWxzbyBuZWVkIHRvIGRv
+IHRoZSBmaXggaW4gdGhlIERTUwpkcml2ZXIuCgpTaWduZWQtb2ZmLWJ5OiBUb21pIFZhbGtlaW5l
+biA8dG9taS52YWxrZWluZW5AdGkuY29tPgpDYzogQWRhbSBGb3JkIDxhZm9yZDE3M0BnbWFpbC5j
+b20+CkNjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnCi0tLQogZHJpdmVycy9ncHUvZHJtL29tYXBk
+cm0vZHNzL2Rzcy5jIHwgMiArLQogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRl
+bGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2Rzcy5j
+IGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2Rzcy5jCmluZGV4IGUyMjYzMjRhZGI2OS4u
+NGJkZDYzYjU3MTAwIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNz
+LmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2Rzcy5jCkBAIC0xMDgzLDcgKzEw
+ODMsNyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGRzc19mZWF0dXJlcyBvbWFwMzR4eF9kc3NfZmVh
+dHMgPSB7CiAKIHN0YXRpYyBjb25zdCBzdHJ1Y3QgZHNzX2ZlYXR1cmVzIG9tYXAzNjMwX2Rzc19m
+ZWF0cyA9IHsKIAkubW9kZWwJCQk9CURTU19NT0RFTF9PTUFQMywKLQkuZmNrX2Rpdl9tYXgJCT0J
+MzIsCisJLmZja19kaXZfbWF4CQk9CTMxLAogCS5mY2tfZnJlcV9tYXgJCT0JMTczMDAwMDAwLAog
+CS5kc3NfZmNrX211bHRpcGxpZXIJPQkxLAogCS5wYXJlbnRfY2xrX25hbWUJPQkiZHBsbDRfY2si
+LAotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAx
+ODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2Ev
+RG9taWNpbGU6IEhlbHNpbmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
+a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
+cmktZGV2ZWw=
