@@ -1,13 +1,12 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] fixes for omaps for v5.4
-Date: Thu, 3 Oct 2019 09:22:15 -0700
-Message-ID: <CAOesGMg_5omTAeyjeS_GOF8drtjS3DEQz_0+8XP2HhnD8X_wMA@mail.gmail.com>
-References: <pull-1570040410-308159@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Fix selected panels after generic
+ panel changes
+Date: Thu,  3 Oct 2019 09:55:39 -0700
+Message-ID: <20191003165539.50318-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1570040410-308159@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,27 +16,45 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: SoC Team <soc@kernel.org>, ARM-SoC Maintainers <arm@kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jyri Sarha <jsarha@ti.com>, linux-arm-kernel@lists.infradead.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 2, 2019 at 11:21 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> From: "Tony Lindgren" <tony@atomide.com>
->
-> The following changes since commit 4d856f72c10ecb060868ed10ff1b1453943fc6c8:
->
->   Linux 5.3 (2019-09-15 14:19:32 -0700)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.4/fixes-rc1-signed
->
-> for you to fetch changes up to f90ec6cdf674248dcad85bf9af6e064bf472b841:
->
->   ARM: dts: am4372: Set memory bandwidth limit for DISPC (2019-09-30 09:32:03 -0700)
+The old omapdrm panels got removed for v5.4 in favor of generic panels,
+and the Kconfig options changed. Let's update omap2plus_defconfig
+accordingly so the same panels are still enabled.
 
-Merged, thanks!
+Cc: Jyri Sarha <jsarha@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-
--Olof
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -356,14 +356,14 @@ CONFIG_DRM_OMAP_CONNECTOR_HDMI=m
+ CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=m
+ CONFIG_DRM_OMAP_PANEL_DPI=m
+ CONFIG_DRM_OMAP_PANEL_DSI_CM=m
+-CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=m
+-CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=m
+-CONFIG_DRM_OMAP_PANEL_SHARP_LS037V7DW01=m
+-CONFIG_DRM_OMAP_PANEL_TPO_TD028TTEC1=m
+-CONFIG_DRM_OMAP_PANEL_TPO_TD043MTEA1=m
+-CONFIG_DRM_OMAP_PANEL_NEC_NL8048HL11=m
+ CONFIG_DRM_TILCDC=m
+ CONFIG_DRM_PANEL_SIMPLE=m
++CONFIG_DRM_PANEL_LG_LB035Q02=m
++CONFIG_DRM_PANEL_NEC_NL8048HL11=m
++CONFIG_DRM_PANEL_SHARP_LS037V7DW01=m
++CONFIG_DRM_PANEL_SONY_ACX565AKM=m
++CONFIG_DRM_PANEL_TPO_TD028TTEC1=m
++CONFIG_DRM_PANEL_TPO_TD043MTEA1=m
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
+-- 
+2.23.0
