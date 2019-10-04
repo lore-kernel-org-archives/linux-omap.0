@@ -1,80 +1,57 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: omap2plus_defconfig: Fix selected panels after
- generic panel changes
-Date: Fri, 4 Oct 2019 11:41:58 +0300
-Message-ID: <03ca02c1-2816-17cd-03fd-5b72e5d0ec96@ti.com>
-References: <20191003165539.50318-1-tony@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: DM3730 Bluetooth Performance differences between SERIAL_8250_OMAP vs SERIAL_OMAP
+Date: Fri, 4 Oct 2019 05:02:05 -0500
+Message-ID: <CAHCN7xLO5VgA6tW4p7QjwPv_QXv==zbC38TxXtsR5x9H0mUGJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191003165539.50318-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Jyri Sarha <jsarha@ti.com>, linux-arm-kernel@lists.infradead.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/10/2019 19:55, Tony Lindgren wrote:
-> The old omapdrm panels got removed for v5.4 in favor of generic panels,
-> and the Kconfig options changed. Let's update omap2plus_defconfig
-> accordingly so the same panels are still enabled.
-> 
-> Cc: Jyri Sarha <jsarha@ti.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   arch/arm/configs/omap2plus_defconfig | 12 ++++++------
->   1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -356,14 +356,14 @@ CONFIG_DRM_OMAP_CONNECTOR_HDMI=m
->   CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=m
->   CONFIG_DRM_OMAP_PANEL_DPI=m
->   CONFIG_DRM_OMAP_PANEL_DSI_CM=m
-> -CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=m
-> -CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=m
-> -CONFIG_DRM_OMAP_PANEL_SHARP_LS037V7DW01=m
-> -CONFIG_DRM_OMAP_PANEL_TPO_TD028TTEC1=m
-> -CONFIG_DRM_OMAP_PANEL_TPO_TD043MTEA1=m
-> -CONFIG_DRM_OMAP_PANEL_NEC_NL8048HL11=m
->   CONFIG_DRM_TILCDC=m
->   CONFIG_DRM_PANEL_SIMPLE=m
-> +CONFIG_DRM_PANEL_LG_LB035Q02=m
-> +CONFIG_DRM_PANEL_NEC_NL8048HL11=m
-> +CONFIG_DRM_PANEL_SHARP_LS037V7DW01=m
-> +CONFIG_DRM_PANEL_SONY_ACX565AKM=m
-> +CONFIG_DRM_PANEL_TPO_TD028TTEC1=m
-> +CONFIG_DRM_PANEL_TPO_TD043MTEA1=m
->   CONFIG_FB=y
->   CONFIG_FIRMWARE_EDID=y
->   CONFIG_FB_MODE_HELPERS=y
+I am running Kernel 5.3.2 trying to troubleshoot some intermittent
+Bluetooth issues, and I think I have narrowed it down to the serial
+driver in use.
+By default, omap2plus_defconfig enables both SERIAL_8250_OMAP and
+SERIAL_OMAP.  I have my console device configured as  ttyS0, and all
+appears fine.  When I enable Bluetooth, however, I get intermittent
+errors on an DM3730 / OMAP3630.
 
-Sorry, I didn't remember to update these. Some additions:
+Using the 8250 driver for Blueotooth I get intermittent frame errors
+and data loss.
 
-These can be dropped, they no longer exist:
+Scanning ...
+[   28.482452] Bluetooth: hci0: Frame reassembly failed (-84)
+[   36.162170] Bluetooth: hci0: Frame reassembly failed (-84)
+        F4:4E:FC:C9:2F:57       BluJax
+# l2ping F4:4E:FC:C9:2F:57
+Ping: F4:4E:FC:C9:2F:57 from 00:18:30:49:7D:63 (data size 44) ...
+44 bytes from F4:4E:FC:C9:2F:57 id 0 time 8.27ms
+no response from F4:4E:FC:C9:2F:57: id 1
+^C2 sent, 1 received, 50% loss
 
-CONFIG_DRM_OMAP_ENCODER_TFP410=m
-CONFIG_DRM_OMAP_CONNECTOR_DVI=m
-CONFIG_DRM_OMAP_PANEL_DPI=m
+(after a fairly long hang, I hit control-c)
 
-This can be added to get the DVI output working on many of the boards:
+However, disabling the 8250 driver and using the only SERIAL_OMAP and
+the console routed to ttyO0, the Bluetooth works well, so I believe it
+to be a serial driver issue and not a Bluetooth error.
 
-CONFIG_DRM_TI_TFP410=m
+# hcitool scan
+Scanning ...
+        F4:4E:FC:C9:2F:57       BluJax
+^C
+# l2ping F4:4E:FC:C9:2F:57
+Ping: F4:4E:FC:C9:2F:57 from 00:18:30:49:7D:63 (data size 44) ...
+44 bytes from F4:4E:FC:C9:2F:57 id 0 time 6.90ms
+...
+44 bytes from F4:4E:FC:C9:2F:57 id 14 time 28.29ms
+^C15 sent, 15 received, 0% loss
+#
 
-  Tomi
+0% loss and regular, repeatable communication without any Frame
+reassembly errors.
 
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Any suggestions on how to troubleshoot or what might cause the
+difference between the two drivers?
+
+adam
