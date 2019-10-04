@@ -1,63 +1,118 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCHv2 1/4] ARM: dts: LogicPD Torpedo: Add WiLink UART node
-Date: Thu, 3 Oct 2019 16:40:26 -0500
-Message-ID: <CAHCN7xLtHcU6q8_dorZOySPaQATce9qbvzcK1Tn0MoEF+tURHA@mail.gmail.com>
-References: <20191003134147.9458-1-sre@kernel.org> <20191003134147.9458-2-sre@kernel.org>
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: [PATCH] ARM: dts: am3874-iceboard: Fix 'i2c-mux-idle-disconnect' usage
+Date: Thu,  3 Oct 2019 18:45:48 -0700
+Message-ID: <20191004014548.29583-1-andrew.smirnov@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191003134147.9458-2-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kernel@collabora.com, Sebastian Reichel <sebastian.reichel@collabora.com>
+To: linux-omap@vger.kernel.org
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Graeme Smecher <gsmecher@threespeedlogic.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 3, 2019 at 8:42 AM Sebastian Reichel <sre@kernel.org> wrote:
->
-> From: Sebastian Reichel <sebastian.reichel@collabora.com>
->
-> Add a node for the UART part of WiLink chip.
-Thank you.
+According to
+Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.txt,
+i2c-mux-idle-disconnect is a property of a parent node since it
+pertains to the mux/switch as a whole, so move it there and drop all
+of the concurrences in child nodes.
 
-hci0:   Type: Primary  Bus: UART
-        BD Address: 00:18:30:49:7D:63  ACL MTU: 1021:4  SCO MTU: 180:4
-        UP RUNNING
-        RX bytes:6185 acl:0 sco:0 events:581 errors:0
-        TX bytes:91006 acl:0 sco:0 commands:578 errors:0
+Fixes: d031773169df ("ARM: dts: Adds device tree file for McGill's IceBoard, based on TI AM3874")
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: Benoît Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Graeme Smecher <gsmecher@threespeedlogic.com>
+Cc: linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
 
->
-> This is compile tested only!
->
-I am not sure which is more appropriate,
+This is purely a drive-by fix, since it concerns the HW I've never
+heard of before. However I was working with PCA9548
+(vf610-zii-scu4-aib is my HW) and looking at various users in the
+kernel, when this code caught my eye. Apologies for the noise if this
+fix is somehow bogus.
 
-Acked-by: Adam Ford <aford173@gmail.com>
-Tested-by: Adam Ford <aford173@gmail.com>
+In case that it matters this patch is based on top of 5.4-rc1.
 
-> Cc: Adam Ford <aford173@gmail.com>
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-> ---
->  arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-> index 18c27e85051f..c34ba0ef8b4d 100644
-> --- a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-> +++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-> @@ -50,6 +50,14 @@
->         };
->  };
->
-> +&uart2 {
-> +       bluetooth {
-> +               compatible = "ti,wl1283-st";
-> +               enable-gpios = <&gpio6 2 GPIO_ACTIVE_HIGH>; /* gpio 162 */
-> +               max-speed = <3000000>;
-> +       };
-> +};
-> +
->  &omap3_pmx_core {
->         mmc3_pins: pinmux_mm3_pins {
->                 pinctrl-single,pins = <
-> --
-> 2.23.0
->
+Thanks,
+Andrey Smirnov
+
+ arch/arm/boot/dts/am3874-iceboard.dts | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am3874-iceboard.dts b/arch/arm/boot/dts/am3874-iceboard.dts
+index 883fb85135d4..1b4b2b0500e4 100644
+--- a/arch/arm/boot/dts/am3874-iceboard.dts
++++ b/arch/arm/boot/dts/am3874-iceboard.dts
+@@ -111,13 +111,13 @@
+ 		reg = <0x70>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
++		i2c-mux-idle-disconnect;
+ 
+ 		i2c@0 {
+ 			/* FMC A */
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <0>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@1 {
+@@ -125,7 +125,6 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <1>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@2 {
+@@ -133,7 +132,6 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <2>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@3 {
+@@ -141,7 +139,6 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <3>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@4 {
+@@ -149,14 +146,12 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <4>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@5 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <5>;
+-			i2c-mux-idle-disconnect;
+ 
+ 			ina230@40 { compatible = "ti,ina230"; reg = <0x40>; shunt-resistor = <5000>; };
+ 			ina230@41 { compatible = "ti,ina230"; reg = <0x41>; shunt-resistor = <5000>; };
+@@ -182,14 +177,12 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <6>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@7 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <7>;
+-			i2c-mux-idle-disconnect;
+ 
+ 			u41: pca9575@20 {
+ 				compatible = "nxp,pca9575";
+-- 
+2.21.0
