@@ -1,59 +1,147 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCHv2 0/7] Non-urgent fixes and improvments for omap3-rom-rng
-Date: Sat, 5 Oct 2019 01:40:41 +1000
-Message-ID: <20191004154041.GL5148@gondor.apana.org.au>
-References: <20190914210300.15836-1-tony@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: DM3730 Bluetooth Performance differences between SERIAL_8250_OMAP
+ vs SERIAL_OMAP
+Date: Fri, 4 Oct 2019 11:51:27 -0500
+Message-ID: <CAHCN7xKirqyj3un1k+QNeoKc0DvOt4g8ScFScG02pZF=OX+GZg@mail.gmail.com>
+References: <CAHCN7xLO5VgA6tW4p7QjwPv_QXv==zbC38TxXtsR5x9H0mUGJA@mail.gmail.com>
+ <CAHCN7xJPv7W381R7LS4bB8xWWpugz2NwbTUtj-hqHnDBZ9MFzA@mail.gmail.com>
+ <CAGm1_kv6RMUDppu6ZjY9Dq7QL=hS=D+e3KS37+V0ncbwoXE6mQ@mail.gmail.com> <CAHCN7xKsGz4UA4gfM5jpS9UE-V7_k265G_hB=wQ5Ueh3T5kaNQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190914210300.15836-1-tony@atomide.com>
+In-Reply-To: <CAHCN7xKsGz4UA4gfM5jpS9UE-V7_k265G_hB=wQ5Ueh3T5kaNQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Matt Mackall <mpm@selenic.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Adam Ford <aford173@gmail.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Sep 14, 2019 at 02:02:53PM -0700, Tony Lindgren wrote:
-> Hi all,
-> 
-> Here are fixes and improvments for omap3-rom-rng that's been broken for
-> a while.
-> 
-> The first four patches get it working, and then the last two patches add
-> support for runtime PM.
-> 
-> I did not add Sebastian's acks from v1 set as many of the patches
-> changed. Please review again :)
-> 
-> Regards,
-> 
-> Tony
-> 
-> Changes since v1:
-> - Use clk_prepare_enable() as pointed out by Sebastian
-> - Simplify runtime PM changes patch
-> - Add a new patch for devm changes as suggested by Sebastian
-> 
-> 
-> Tony Lindgren (7):
->   ARM: OMAP2+: Check omap3-rom-rng for GP device instead of HS device
->   hwrng: omap3-rom - Fix missing clock by probing with device tree
->   hwrng: omap3-rom - Call clk_disable_unprepare() on exit only if not
->     idled
->   hwrng: omap3-rom - Initialize default quality to get data
->   hwrng: omap3-rom - Update to use standard driver data
->   hwrng: omap3-rom - Use runtime PM instead of custom functions
->   hwrng: omap3-rom - Use devm hwrng and runtime PM
-> 
->  .../devicetree/bindings/rng/omap3_rom_rng.txt |  27 +++
->  arch/arm/boot/dts/omap3-n900.dts              |   6 +
->  arch/arm/mach-omap2/pdata-quirks.c            |  14 +-
->  drivers/char/hw_random/omap3-rom-rng.c        | 168 +++++++++++-------
->  4 files changed, 139 insertions(+), 76 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/rng/omap3_rom_rng.txt
+On Fri, Oct 4, 2019 at 9:08 AM Adam Ford <aford173@gmail.com> wrote:
+>
+> On Fri, Oct 4, 2019 at 7:27 AM Yegor Yefremov
+> <yegorslists@googlemail.com> wrote:
+> >
+> > Hi Adam,
+> >
+> > On Fri, Oct 4, 2019 at 12:39 PM Adam Ford <aford173@gmail.com> wrote:
+> > >
+> > > On Fri, Oct 4, 2019 at 5:02 AM Adam Ford <aford173@gmail.com> wrote:
+> > > >
+> > > > I am running Kernel 5.3.2 trying to troubleshoot some intermittent
+> > > > Bluetooth issues, and I think I have narrowed it down to the serial
+> > > > driver in use.
+> > >
+> > > I should have also noted that it's using UART2 with CTS and RTS on the
+> > > DM3730 (omap3630) and its configured with a baud rate of 3M.
+> > > I tried slowing it to 115200, but that didn't help.  I tried disabling
+> > > the DMA hooks from the device tree, and that didn't help.
+> > >
+> > > > By default, omap2plus_defconfig enables both SERIAL_8250_OMAP and
+> > > > SERIAL_OMAP.  I have my console device configured as  ttyS0, and all
+> > > > appears fine.  When I enable Bluetooth, however, I get intermittent
+> > > > errors on an DM3730 / OMAP3630.
+> > > >
+> > > > Using the 8250 driver for Blueotooth I get intermittent frame errors
+> > > > and data loss.
+> > > >
+> > > > Scanning ...
+> > > > [   28.482452] Bluetooth: hci0: Frame reassembly failed (-84)
+> > > > [   36.162170] Bluetooth: hci0: Frame reassembly failed (-84)
+> > > >         F4:4E:FC:C9:2F:57       BluJax
+> > > > # l2ping F4:4E:FC:C9:2F:57
+> > > > Ping: F4:4E:FC:C9:2F:57 from 00:18:30:49:7D:63 (data size 44) ...
+> > > > 44 bytes from F4:4E:FC:C9:2F:57 id 0 time 8.27ms
+> > > > no response from F4:4E:FC:C9:2F:57: id 1
+> > > > ^C2 sent, 1 received, 50% loss
+> > > >
+> > > > (after a fairly long hang, I hit control-c)
+> > > >
+> > > > However, disabling the 8250 driver and using the only SERIAL_OMAP and
+> > > > the console routed to ttyO0, the Bluetooth works well, so I believe it
+> > > > to be a serial driver issue and not a Bluetooth error.
+> > > >
+> > > > # hcitool scan
+> > > > Scanning ...
+> > > >         F4:4E:FC:C9:2F:57       BluJax
+> > > > ^C
+> > > > # l2ping F4:4E:FC:C9:2F:57
+> > > > Ping: F4:4E:FC:C9:2F:57 from 00:18:30:49:7D:63 (data size 44) ...
+> > > > 44 bytes from F4:4E:FC:C9:2F:57 id 0 time 6.90ms
+> > > > ...
+> > > > 44 bytes from F4:4E:FC:C9:2F:57 id 14 time 28.29ms
+> > > > ^C15 sent, 15 received, 0% loss
+> > > > #
+> > > >
+> > > > 0% loss and regular, repeatable communication without any Frame
+> > > > reassembly errors.
+> > > >
+> > >
+> > > I tried disabling SERIAL_OMAP and using only SERIAL_8250_OMAP, but
+> > > that didn't help.  Because the issue goes away when I disable
+> > > SERIAL_8250_OMAP, I am wondering if something is either being
+> > > misconfigured or some IRQ or DMA integration is missing that may be
+> > > present with the older SERIAL_OMAP driver.
+> > >
+> > > > Any suggestions on how to troubleshoot or what might cause the
+> > > > difference between the two drivers?
+> >
+> > Can it be related to this issue [1]? Can you confirm that 5.2 is
+> > working as expected with the 8250 driver?
+> >
+> > [1] https://marc.info/?l=linux-serial&m=156965039008649&w=2
+>
+> I reverted the whole 8250 directory to d99482673f95 ("serial:
+> mctrl_gpio: Check if GPIO property exisits before requesting it") and
+> it is somewhat better, but it's not as good as the stock OMAP serial
+> driver.  I get some frame errors and eventually, I get some timeouts,
+> but it's not as bad.  I'll try to implement the RTS and CTS as gpio
+> pins and change the device tree accordingly.  It might shed some light
+> on the situation.
 
-All applied.  Thanks.
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+I tried to manually setup RTS and CTS pins as GPIO, but that didn't
+work, so I changed it back.
+
+It looks like the clocking is correct.  I don't know enough about the
+DMA or the IRQ to know if it's working correctly.
+
+I was wondering if the problem is in the handshaking or not.
+I added " uart-has-rtscts;" to by uart node thinking it might help,
+but it did not.
+
+>
+8250_omap.c has some checks to see if we can enable autoRTS:
+
+if (termios->c_cflag & CRTSCTS && up->port.flags & UPF_HARD_FLOW &&
+    !up->gpios) {
+     /* Enable AUTOCTS (autoRTS is enabled when RTS is raised) */
+     ...
+}
+
+Based on this, I would expect up->gpios to always be zero if we want
+auto RTS CTS.
+
+I threw some debug code into the serial driver to look at the status
+of the various flags that go into setting up auto RTS/CTS.
+
+[   13.837005] termios->c_cflag & CRTSCTS = 80000000
+[   13.841888] up->port.flags & UPF_HARD_FLOW = 300000
+[   13.846801] up->gpios = ce3f3cc0
+[   17.166595] termios->c_cflag & CRTSCTS = 0
+[   17.170745] up->port.flags & UPF_HARD_FLOW = 300000
+[   17.175781] up->gpios = ce3f3d40
+
+I don't know which port is which, but I only have two active uarts
+(console and Bluetooth)
+The Bluetooth port should use handshaking and the console should not.
+
+>From the look of the dump, up->gpios is never 0, so the last
+evaluation would always be false unless I am misinterpreting
+something.
+
+I tried to modify the check to remove !up->gpios check, but that
+didn't help either, but it made it a little better.
+
+
+> adam
+> >
+> > Cheers,
+> > Yegor
