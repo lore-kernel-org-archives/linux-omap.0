@@ -1,69 +1,95 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH] serial: 8250_omap: Fix idling for unloaded serdev drivers
-Date: Fri, 4 Oct 2019 14:29:35 -0500
-Message-ID: <CAHCN7x+6KYjnm5daRe_Y5XEWnDBWQnz8rOKYH2wTgx9avvokmQ@mail.gmail.com>
-References: <20190723115400.46432-1-tony@atomide.com>
+From: Stephen Boyd <swboyd@chromium.org>
+Subject: [PATCH 00/10] Stop NULLifying match pointer in of_match_device()
+Date: Fri,  4 Oct 2019 14:43:24 -0700
+Message-ID: <20191004214334.149976-1-swboyd@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190723115400.46432-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vignesh R <vigneshr@ti.com>, linux-serial@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Johan Hovold <johan@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Alexandre Torgue <alexandre.torgue@st.com>, alsa-devel@alsa-project.org, Andrew Lunn <andrew@lunn.ch>, Arnd Bergmann <arnd@arndb.de>, Dan Murphy <dmurphy@ti.com>, "David S. Miller" <davem@davemloft.net>, Frank Rowand <frowand.list@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gregory Clement <gregory.clement@bootlin.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Guenter Roeck <linux@roeck-us.net>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Jacopo Mondi <jacopo@jmondi.org>, Jaroslav Kysela <perex@perex.cz>, Jason Cooper <jason@lakedaemon.net>, Jean Delvare <jdelvare@suse.com>, Jiri Slaby <jslaby@suse.co>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 23, 2019 at 5:21 PM Tony Lindgren <tony@atomide.com> wrote:
->
-> For many years omap variants have been setting the runtime PM
-> autosuspend delay to -1 to prevent unsafe policy with lossy first
-> character on wake-up. The user must specifically enable the timeout
-> for UARTs if desired.
->
-> We must not enable the workaround for serdev devices though. It leads
-> into UARTs not idling if no serdev devices are loaded and there is no
-> sysfs entry to configure the UART in that case. And this means that
-> my PM may not work unless the serdev modules are loaded.
->
-> We can detect a serdev device being configured based on a dts child
-> node, and we can simply skip the workround in that case. And the
-> serdev driver can idle the port during runtime when suitable if an
-> out-of-band wake-up GPIO line exists for example.
->
-> Let's also add some comments to the workaround while at it.
+of_match_device() uses of_match_ptr() to make the match table argument
+NULL via the pre-processor when CONFIG_OF=n. This makes life harder for
+compilers who think that match tables are never used and warn about
+unused variables when CONFIG_OF=n. This series changes various callers
+to use of_device_get_match_data() instead, which doesn't have this
+problem, and removes the of_match_ptr() usage from of_match_device() so
+that the compiler can stop complaining about unused variables. It will
+do dead code elimination instead and remove the match table if it isn't
+actually used.
 
-This seems to help some of the stability issues I am seeing on the
-DM3730 UART2 running Bluetooth at 3000000 baud.
-Does it make sense to backport this to the stable kernels?
+Huge Cc list!
 
-adam
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Cc: Alexandre Torgue <alexandre.torgue@st.com>
+Cc: <alsa-devel@alsa-project.org>
+Cc: Andrew Lunn <andrew@lunn.ch>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Murphy <dmurphy@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gregory Clement <gregory.clement@bootlin.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Cc: Jacopo Mondi <jacopo@jmondi.org>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Jean Delvare <jdelvare@suse.com>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: <linux-hwmon@vger.kernel.org>
+Cc: <linux-leds@vger.kernel.org>
+Cc: <linux-media@vger.kernel.org>
+Cc: <linux-omap@vger.kernel.org>
+Cc: <linux-renesas-soc@vger.kernel.org>
+Cc: <linux-rtc@vger.kernel.org>
+Cc: <linux-serial@vger.kernel.org>
+Cc: <linux-spi@vger.kernel.org>
+Cc: <linux-usb@vger.kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
+Cc: Paul Cercueil <paul@crapouillou.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Richard Leitner <richard.leitner@skidata.com>
+Cc: Riku Voipio <riku.voipio@iki.fi>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.com>
 
->
-> Cc: Johan Hovold <johan@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/tty/serial/8250/8250_omap.c | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-> --- a/drivers/tty/serial/8250/8250_omap.c
-> +++ b/drivers/tty/serial/8250/8250_omap.c
-> @@ -1234,7 +1234,16 @@ static int omap8250_probe(struct platform_device *pdev)
->
->         device_init_wakeup(&pdev->dev, true);
->         pm_runtime_use_autosuspend(&pdev->dev);
-> -       pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
-> +
-> +       /*
-> +        * Disable runtime PM until autosuspend delay unless specifically
-> +        * enabled by the user via sysfs. This is the historic way to
-> +        * prevent an unsafe default policy with lossy characters on wake-up.
-> +        * For serdev devices this is not needed, the policy can be managed by
-> +        * the serdev driver.
-> +        */
-> +       if (!of_get_available_child_count(pdev->dev.of_node))
-> +               pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
->
->         pm_runtime_irq_safe(&pdev->dev);
->         pm_runtime_enable(&pdev->dev);
-> --
-> 2.21.0
+Stephen Boyd (10):
+  leds: pca953x: Use of_device_get_match_data()
+  media: renesas-ceu: Use of_device_get_match_data()
+  rtc: armada38x: Use of_device_get_match_data()
+  drivers: net: davinci_mdio: Use of_device_get_match_data()
+  serial: stm32: Use of_device_get_match_data()
+  usb: usb251xb: Use of_device_get_match_data()
+  ASoC: jz4740: Use of_device_get_match_data()
+  spi: gpio: Look for a device node instead of match
+  hwmon: (lm70) Avoid undefined reference to match table
+  of/device: Don't NULLify match table in of_match_device() with
+    CONFIG_OF=n
+
+ drivers/hwmon/lm70.c                   |  2 +-
+ drivers/leds/leds-pca9532.c            | 14 +----
+ drivers/media/platform/renesas-ceu.c   |  2 +-
+ drivers/net/ethernet/ti/davinci_mdio.c | 12 ++---
+ drivers/rtc/rtc-armada38x.c            | 10 ++--
+ drivers/spi/spi-gpio.c                 |  5 +-
+ drivers/tty/serial/stm32-usart.c       | 71 ++++++++++++--------------
+ drivers/tty/serial/stm32-usart.h       |  2 +-
+ drivers/usb/misc/usb251xb.c            | 12 ++---
+ include/linux/of_device.h              |  4 +-
+ sound/soc/jz4740/jz4740-i2s.c          |  5 +-
+ 11 files changed, 55 insertions(+), 84 deletions(-)
+
+
+base-commit: 54ecb8f7028c5eb3d740bb82b0f1d90f2df63c5c
+-- 
+Sent by a computer through tubes
