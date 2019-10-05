@@ -1,121 +1,174 @@
-From: Graeme Smecher <gsmecher@threespeedlogic.com>
-Subject: Re: [PATCH] ARM: dts: am3874-iceboard: Fix 'i2c-mux-idle-disconnect'
- usage
-Date: Fri, 4 Oct 2019 16:52:23 -0700
-Message-ID: <c40b8414-45a8-575a-c3c8-902ed35e5764@threespeedlogic.com>
-References: <20191004014548.29583-1-andrew.smirnov@gmail.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: DM3730 Bluetooth Performance differences between SERIAL_8250_OMAP
+ vs SERIAL_OMAP
+Date: Fri, 4 Oct 2019 22:45:46 -0500
+Message-ID: <CAHCN7xLkBi0dWiuirh7sAgywKFM5Oe=sU3nojSuN2MMzkqyEEA@mail.gmail.com>
+References: <CAHCN7xLO5VgA6tW4p7QjwPv_QXv==zbC38TxXtsR5x9H0mUGJA@mail.gmail.com>
+ <CAHCN7xJPv7W381R7LS4bB8xWWpugz2NwbTUtj-hqHnDBZ9MFzA@mail.gmail.com>
+ <CAGm1_kv6RMUDppu6ZjY9Dq7QL=hS=D+e3KS37+V0ncbwoXE6mQ@mail.gmail.com>
+ <CAHCN7xKsGz4UA4gfM5jpS9UE-V7_k265G_hB=wQ5Ueh3T5kaNQ@mail.gmail.com> <CAHCN7xKirqyj3un1k+QNeoKc0DvOt4g8ScFScG02pZF=OX+GZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------D88F802452A7457DB086316E"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191004014548.29583-1-andrew.smirnov@gmail.com>
-Content-Language: en-US
+In-Reply-To: <CAHCN7xKirqyj3un1k+QNeoKc0DvOt4g8ScFScG02pZF=OX+GZg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Smirnov <andrew.smirnov@gmail.com>, linux-omap@vger.kernel.org
-Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------D88F802452A7457DB086316E
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Fri, Oct 4, 2019 at 11:51 AM Adam Ford <aford173@gmail.com> wrote:
+>
+> On Fri, Oct 4, 2019 at 9:08 AM Adam Ford <aford173@gmail.com> wrote:
+> >
+> > On Fri, Oct 4, 2019 at 7:27 AM Yegor Yefremov
+> > <yegorslists@googlemail.com> wrote:
+> > >
+> > > Hi Adam,
+> > >
+> > > On Fri, Oct 4, 2019 at 12:39 PM Adam Ford <aford173@gmail.com> wrote:
+> > > >
+> > > > On Fri, Oct 4, 2019 at 5:02 AM Adam Ford <aford173@gmail.com> wrote:
+> > > > >
+> > > > > I am running Kernel 5.3.2 trying to troubleshoot some intermittent
+> > > > > Bluetooth issues, and I think I have narrowed it down to the serial
+> > > > > driver in use.
+> > > >
+> > > > I should have also noted that it's using UART2 with CTS and RTS on the
+> > > > DM3730 (omap3630) and its configured with a baud rate of 3M.
+> > > > I tried slowing it to 115200, but that didn't help.  I tried disabling
+> > > > the DMA hooks from the device tree, and that didn't help.
+> > > >
+> > > > > By default, omap2plus_defconfig enables both SERIAL_8250_OMAP and
+> > > > > SERIAL_OMAP.  I have my console device configured as  ttyS0, and all
+> > > > > appears fine.  When I enable Bluetooth, however, I get intermittent
+> > > > > errors on an DM3730 / OMAP3630.
+> > > > >
+> > > > > Using the 8250 driver for Blueotooth I get intermittent frame errors
+> > > > > and data loss.
+> > > > >
+> > > > > Scanning ...
+> > > > > [   28.482452] Bluetooth: hci0: Frame reassembly failed (-84)
+> > > > > [   36.162170] Bluetooth: hci0: Frame reassembly failed (-84)
+> > > > >         F4:4E:FC:C9:2F:57       BluJax
+> > > > > # l2ping F4:4E:FC:C9:2F:57
+> > > > > Ping: F4:4E:FC:C9:2F:57 from 00:18:30:49:7D:63 (data size 44) ...
+> > > > > 44 bytes from F4:4E:FC:C9:2F:57 id 0 time 8.27ms
+> > > > > no response from F4:4E:FC:C9:2F:57: id 1
+> > > > > ^C2 sent, 1 received, 50% loss
+> > > > >
+> > > > > (after a fairly long hang, I hit control-c)
+> > > > >
+> > > > > However, disabling the 8250 driver and using the only SERIAL_OMAP and
+> > > > > the console routed to ttyO0, the Bluetooth works well, so I believe it
+> > > > > to be a serial driver issue and not a Bluetooth error.
+> > > > >
+> > > > > # hcitool scan
+> > > > > Scanning ...
+> > > > >         F4:4E:FC:C9:2F:57       BluJax
+> > > > > ^C
+> > > > > # l2ping F4:4E:FC:C9:2F:57
+> > > > > Ping: F4:4E:FC:C9:2F:57 from 00:18:30:49:7D:63 (data size 44) ...
+> > > > > 44 bytes from F4:4E:FC:C9:2F:57 id 0 time 6.90ms
+> > > > > ...
+> > > > > 44 bytes from F4:4E:FC:C9:2F:57 id 14 time 28.29ms
+> > > > > ^C15 sent, 15 received, 0% loss
+> > > > > #
+> > > > >
+> > > > > 0% loss and regular, repeatable communication without any Frame
+> > > > > reassembly errors.
+> > > > >
+> > > >
+> > > > I tried disabling SERIAL_OMAP and using only SERIAL_8250_OMAP, but
+> > > > that didn't help.  Because the issue goes away when I disable
+> > > > SERIAL_8250_OMAP, I am wondering if something is either being
+> > > > misconfigured or some IRQ or DMA integration is missing that may be
+> > > > present with the older SERIAL_OMAP driver.
+> > > >
+> > > > > Any suggestions on how to troubleshoot or what might cause the
+> > > > > difference between the two drivers?
+> > >
+> > > Can it be related to this issue [1]? Can you confirm that 5.2 is
+> > > working as expected with the 8250 driver?
+> > >
+> > > [1] https://marc.info/?l=linux-serial&m=156965039008649&w=2
+> >
+> > I reverted the whole 8250 directory to d99482673f95 ("serial:
+> > mctrl_gpio: Check if GPIO property exisits before requesting it") and
+> > it is somewhat better, but it's not as good as the stock OMAP serial
+> > driver.  I get some frame errors and eventually, I get some timeouts,
+> > but it's not as bad.  I'll try to implement the RTS and CTS as gpio
+> > pins and change the device tree accordingly.  It might shed some light
+> > on the situation.
+>
+> I tried to manually setup RTS and CTS pins as GPIO, but that didn't
+> work, so I changed it back.
+>
+> It looks like the clocking is correct.  I don't know enough about the
+> DMA or the IRQ to know if it's working correctly.
+>
+> I was wondering if the problem is in the handshaking or not.
+> I added " uart-has-rtscts;" to by uart node thinking it might help,
+> but it did not.
+>
+> >
+> 8250_omap.c has some checks to see if we can enable autoRTS:
+>
+> if (termios->c_cflag & CRTSCTS && up->port.flags & UPF_HARD_FLOW &&
+>     !up->gpios) {
+>      /* Enable AUTOCTS (autoRTS is enabled when RTS is raised) */
+>      ...
+> }
+>
+> Based on this, I would expect up->gpios to always be zero if we want
+> auto RTS CTS.
+>
+> I threw some debug code into the serial driver to look at the status
+> of the various flags that go into setting up auto RTS/CTS.
+>
+> [   13.837005] termios->c_cflag & CRTSCTS = 80000000
+> [   13.841888] up->port.flags & UPF_HARD_FLOW = 300000
+> [   13.846801] up->gpios = ce3f3cc0
+> [   17.166595] termios->c_cflag & CRTSCTS = 0
+> [   17.170745] up->port.flags & UPF_HARD_FLOW = 300000
+> [   17.175781] up->gpios = ce3f3d40
+>
+> I don't know which port is which, but I only have two active uarts
+> (console and Bluetooth)
+> The Bluetooth port should use handshaking and the console should not.
+>
+> From the look of the dump, up->gpios is never 0, so the last
+> evaluation would always be false unless I am misinterpreting
+> something.
+>
+> I tried to modify the check to remove !up->gpios check, but that
+> didn't help either, but it made it a little better.
 
-Hi Andrey,
+I have it working now on the 5.3.y branch, but I had to do 4 things.
 
-On 2019-10-03 6:45 p.m., Andrey Smirnov wrote:
-> According to
-> Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.txt,
-> i2c-mux-idle-disconnect is a property of a parent node since it
-> pertains to the mux/switch as a whole, so move it there and drop all
-> of the concurrences in child nodes.
->=20
-> Fixes: d031773169df ("ARM: dts: Adds device tree file for McGill's IceB=
-oard, based on TI AM3874")
-> Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
-> Cc: Beno=C3=AEt Cousson <bcousson@baylibre.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Graeme Smecher <gsmecher@threespeedlogic.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: devicetree@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> ---
->=20
-> This is purely a drive-by fix, since it concerns the HW I've never
-> heard of before. However I was working with PCA9548
-> (vf610-zii-scu4-aib is my HW) and looking at various users in the
-> kernel, when this code caught my eye. Apologies for the noise if this
-> fix is somehow bogus.
->=20
-> In case that it matters this patch is based on top of 5.4-rc1.
+1)   Disable the older OMAP serial driver
+2)   Apply [1] patch
+3)   Disable 8250 DMA support
+4)  Remove checks for !up->gpios in the 8250-omap.c code.
 
-Thanks! We do have I2C address collisions on downstream bus segments, so
-keeping these segments isolated is important. I'm surprised this patch
-was necessary and happy to see it.
+With all those changes, I am able to successfully and repeatedly scan
+and l2ping Bluetooth devices.  Without any one of those, I get frame
+errors or lost packets.
 
-Lightly tested on 5.3.
+I wonder if we can dump the legacy omap serial driver once  the 8250
+driver is working better.  That would eliminate at least one of the 4.
+I am not sure what's up with the DMA, and I've already stated some
+thoughts on item 4 in a previous e-mail.
 
-Tested-by: Graeme Smecher <gsmecher@threespeedlogic.com>
+I think the [1] patch is probably going to help fix some other issues
+and should probably be backported, but by itself it isn't enough to
+fix the Bluetooth problem on the OMAP3630.
 
-cheers,
-Graeme
+[1] - https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/drivers/tty/serial/8250/8250_omap.c?h=v5.4-rc1&id=627a545c6bb0c7de09208e6546f5111290477261
 
---------------D88F802452A7457DB086316E
-Content-Type: application/pgp-keys;
- name="pEpkey.asc"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="pEpkey.asc"
-
------BEGIN PGP PUBLIC KEY BLOCK-----
-
-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
-gbQuluiSg2k+M+9FMQ=3D=3D
-=3DO3pl
------END PGP PUBLIC KEY BLOCK-----
-
---------------D88F802452A7457DB086316E--
+adam
+>
+>
+> > adam
+> > >
+> > > Cheers,
+> > > Yegor
