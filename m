@@ -1,17 +1,15 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] ARM: omap2plus_defconfig: Fix selected panels after
- generic panel changes
-Date: Sun, 6 Oct 2019 17:07:48 +0200
-Message-ID: <577CC8B5-FBE6-45ED-8BAA-05C49CE93DD8@goldelico.com>
-References: <20191003165539.50318-1-tony@atomide.com>
- <03ca02c1-2816-17cd-03fd-5b72e5d0ec96@ti.com>
- <39E48EC6-65FE-419B-BBE8-E72CB44B517D@goldelico.com>
- <20191006145348.GD4740@pendragon.ideasonboard.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH v3 03/10] ARM: dts: exynos: Rename SysRAM node to "sram"
+Date: Sun, 6 Oct 2019 17:48:57 +0200
+Message-ID: <20191006154857.GB29365@kozik-lap>
+References: <20191002164316.14905-1-krzk@kernel.org>
+ <20191002164316.14905-3-krzk@kernel.org>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191006145348.GD4740@pendragon.ideasonboard.com>
+Content-Disposition: inline
+In-Reply-To: <20191002164316.14905-3-krzk@kernel.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,91 +19,24 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Kukjin Kim <kgene@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Laurent,
-
-> Am 06.10.2019 um 16:53 schrieb Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+On Wed, Oct 02, 2019 at 06:43:09PM +0200, Krzysztof Kozlowski wrote:
+> The device node name should reflect generic class of a device so rename
+> the SysRAM node from "sysram" to "sram".  The child nodes stay as before
+> as "smp-sysram" to match their real purpose.  This will be also in sync
+> with upcoming DT schema.  No functional change.
 > 
-> Hi Nikolaus,
-> 
-> On Sat, Oct 05, 2019 at 12:50:37PM +0200, H. Nikolaus Schaller wrote:
->>> Am 04.10.2019 um 10:41 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
->>> 
->>> On 03/10/2019 19:55, Tony Lindgren wrote:
->>>> The old omapdrm panels got removed for v5.4 in favor of generic panels,
->>>> and the Kconfig options changed. Let's update omap2plus_defconfig
->>>> accordingly so the same panels are still enabled.
->>>> Cc: Jyri Sarha <jsarha@ti.com>
->>>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
->>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
->>>> ---
->>>> arch/arm/configs/omap2plus_defconfig | 12 ++++++------
->>>> 1 file changed, 6 insertions(+), 6 deletions(-)
->>>> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
->>>> --- a/arch/arm/configs/omap2plus_defconfig
->>>> +++ b/arch/arm/configs/omap2plus_defconfig
->>>> @@ -356,14 +356,14 @@ CONFIG_DRM_OMAP_CONNECTOR_HDMI=m
->>>> CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=m
->>>> CONFIG_DRM_OMAP_PANEL_DPI=m
->>>> CONFIG_DRM_OMAP_PANEL_DSI_CM=m
->>>> -CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=m
->>>> -CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=m
->>>> -CONFIG_DRM_OMAP_PANEL_SHARP_LS037V7DW01=m
->>>> -CONFIG_DRM_OMAP_PANEL_TPO_TD028TTEC1=m
->>>> -CONFIG_DRM_OMAP_PANEL_TPO_TD043MTEA1=m
->>>> -CONFIG_DRM_OMAP_PANEL_NEC_NL8048HL11=m
->>>> CONFIG_DRM_TILCDC=m
->>>> CONFIG_DRM_PANEL_SIMPLE=m
->>>> +CONFIG_DRM_PANEL_LG_LB035Q02=m
->>>> +CONFIG_DRM_PANEL_NEC_NL8048HL11=m
->>>> +CONFIG_DRM_PANEL_SHARP_LS037V7DW01=m
->>>> +CONFIG_DRM_PANEL_SONY_ACX565AKM=m
->>>> +CONFIG_DRM_PANEL_TPO_TD028TTEC1=m
->>>> +CONFIG_DRM_PANEL_TPO_TD043MTEA1=m
->>>> CONFIG_FB=y
->>>> CONFIG_FIRMWARE_EDID=y
->>>> CONFIG_FB_MODE_HELPERS=y
->>> 
->>> Sorry, I didn't remember to update these. Some additions:
->>> 
->>> These can be dropped, they no longer exist:
->>> 
->>> CONFIG_DRM_OMAP_ENCODER_TFP410=m
->>> CONFIG_DRM_OMAP_CONNECTOR_DVI=m
->>> CONFIG_DRM_OMAP_PANEL_DPI=m
->> 
->> After being hit by the __always_inline issue [1] I am now
->> back with being able to test v5.4-rc1.
->> 
->> Now this patch fixes the build problem, but we still have
->> one: panel drivers are no longer automatically loaded at
->> boot. We now need to manually modprobe them.
->> 
->> This has been observed with GTA04 (TD028TTEC1) and OpenPandora
->> (TD043MTEA1). So moving the drivers seems to have changed/broken
->> something with DT based driver matching.
-> 
-> That's really weird, the driver name, the SPI device table and the OF
-> device table are the same
+> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+> ---
+>  arch/arm/boot/dts/exynos3250.dtsi | 2 +-
+>  arch/arm/boot/dts/exynos4210.dtsi | 2 +-
+>  arch/arm/boot/dts/exynos4412.dtsi | 2 +-
+>  arch/arm/boot/dts/exynos5250.dtsi | 2 +-
+>  arch/arm/boot/dts/exynos54xx.dtsi | 2 +-
 
-Yes, that is what I wonder as well. The panels are child nodes of
-the SPI nodes and should be probed through the SPI bus.
+Applied this one to samsung-soc.
 
-> (except for the "omapdss," prefix that we
-> don't add anymore in omapdss-boot-init.c). Would you be able to
-> investigate what broke ?
-
-Yes, they have been removed from the omapdss_of_fixups_whitelist
-but that shouldn't make a difference... And other generic dpi panels
-work on other omap3 boards.
-
-Most likely something with deferred probing?
-
-I'll try to find clues in the next days.
-
-BR,
-Nikolaus
+Best regards,
+Krzysztof
