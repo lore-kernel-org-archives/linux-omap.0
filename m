@@ -1,88 +1,55 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] drm: panels: fix spi aliases of former omap panels
-Date: Mon, 7 Oct 2019 19:04:46 +0200
-Message-ID: <20191007170446.yotb24s6jhe6nx3r@earth.universe>
-References: <20191007164130.31534-1-andreas@kemnade.info>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 0/5] Fix SPI module alias for panels used by omapdrm
+Date: Mon,  7 Oct 2019 20:07:56 +0300
+Message-ID: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="iql274jatv4mpjov"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191007164130.31534-1-andreas@kemnade.info>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: thierry.reding@gmail.com, sam@ravnborg.org, airlied@linux.ie, daniel@ffwll.ch, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, omi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, thierry.reding@gmail.com, letux-kernel@openphoenux.org, sam@ravnborg.org
 List-Id: linux-omap@vger.kernel.org
 
-
---iql274jatv4mpjov
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Oct 07, 2019 at 06:41:30PM +0200, Andreas Kemnade wrote:
-> When the panels were moved from omap/displays/ to panel/
-> omapdss prefix was stripped, which cause spi modalias
-> to not contain the vendor-prefix anymore.
->=20
-> so we had e.g. in former times:
-> compatible=3Domapdss,tpo,td028ttec1 -> modalias=3Dspi:tpo,td028ttec1
-> now:
-> compatible=3Dtpo,td028ttec1 -> modalias=3Dspi:td028ttec1
->=20
-> This is consistent with other drivers. Tested the td028ttec.c
-> only, but the pattern looks the same for the other ones.
->=20
-> Fixes: 45f16c82db7e8 ("drm/omap: displays: Remove unused panel drivers")
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
-
-Patch looks good to me, but you have one false positive.
-
-> [...]
->
-> diff --git a/drivers/gpu/drm/panel/panel-sharp-ls037v7dw01.c b/drivers/gp=
-u/drm/panel/panel-sharp-ls037v7dw01.c
-> index 46cd9a2501298..838d39a263f53 100644
-> --- a/drivers/gpu/drm/panel/panel-sharp-ls037v7dw01.c
-> +++ b/drivers/gpu/drm/panel/panel-sharp-ls037v7dw01.c
-> @@ -204,7 +204,7 @@ static int ls037v7dw01_remove(struct platform_device =
-*pdev)
->  }
-> =20
->  static const struct of_device_id ls037v7dw01_of_match[] =3D {
-> -	{ .compatible =3D "sharp,ls037v7dw01", },
-> +	{ .compatible =3D "ls037v7dw01", },
->  	{ /* sentinel */ },
->  };
-> =20
-
-The DT compatible should have a vendor prefix.
-
-> [...]
-
--- Sebastian
-
---iql274jatv4mpjov
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl2bcCsACgkQ2O7X88g7
-+pqKSQ/9HclHNhGRa3L+55z5K08PEFcrfqZTjrhBUnQW/JOnaun8CyHC229w9gfF
-cZ8Z3E0HY6xKlIFHP6K3kjdjcPghU58QXAhneBIf8zr0OiChnuleAe3gZ89WAB8f
-Zy/PCAj+tNLWaUzhlwYe0VW+IXkDbXrF5VCkwUIs96QFNAduLraco7wMxpnl1Kcl
-FQScSqD7wEXQD55dqnJwEVrYfi1C3JjdrtTPXTAZj3mBcpKekYLQ0JzVAx7JqpwQ
-PkRXYjCrVwQ7VfO0gXkqxEjXucK+K/gN6dcIz0wj6Evrl+Pj0e3GKl8RPzWZnk0h
-dAtJ/HXclZyh+qlQKLj0dmFuVHebBlWaLO30Kl4WiuKsGXAq2NfpXS9+Nq4ZaRXM
-X/pH730gVRGvA6/nlPkkkHoqL/0p2/APW40uPBdzUoKCWpOUGoFbG1rknKfVR7Ug
-MNCpJXPv7Jgu9U7pd/mkmlLE08Yu76tshniFFZPz8kzkrkkRwrxIimO/65VTIrFr
-hpzDkZPD8DLDb2q287r7UwL3zgccP85jMrPj+l+XPyhZTErWk6HTadm+JRqAWSX3
-c1Bh47Pb3PPdxSoOp6tddkbeYWutsufe9CA+lXG46tH8X0VKYQ7KtIj+BzclQLkd
-NbbAU4Ja6+mExXInkjgnjB1DGIZ/qSZF9TtwmbZUS6Pe5Rp3NEA=
-=vfl2
------END PGP SIGNATURE-----
-
---iql274jatv4mpjov--
+SGVsbG8sCgpUaGlzIHBhdGNoIHNlcmllcyBmaXhlcyBhIG1vZHVsZSBhbGlhcyBpc3N1ZSB3aXRo
+IHRoZSBmaXZlIHJlY2VudGx5CmFkZGVkIHBhbmVsIGRyaXZlcnMgdXNlZCBieSBvbWFwZHJtLgoK
+QmVmb3JlIHRob3NlIHBhbmVsIGRyaXZlcnMsIG9tYXBkcm0gaGFkIGN1c3RvbSBkcml2ZXJzIGZv
+ciB0aGUgcGFuZWxzLAphbmQgcHJlZml4ZWQgdGhlIE9GIGNvbXBhdGlibGUgc3RyaW5ncyB3aXRo
+IGFuICJvbWFwZHNzLCIgcHJlZml4LiBUaGUKU1BJIGRldmljZSBJRHMgYXJlIGNvbnN0cnVjdGVk
+IGJ5IHN0cmlwcGluZyB0aGUgT0YgY29tcGF0aWJsZSBzdHJpbmcKZnJvbSB0aGUgcHJlZml4LCBy
+ZXN1bHRpbmcgaW4gdGhlICJvbWFwZHNzLCIgcHJlZml4IGJlaW5nIHJlbW92ZWQsIGJ1dAp0aGUg
+c3Vic2VxdWVuY2UgT0YgdmVuZG9yIHByZWZpeCBiZWluZyBrZXB0LiBUaGUgU1BJIGRyaXZlcnMg
+dGh1cyBoYWQKbW9kdWxlcyBhbGlhc2VzIHRoYXQgY29udGFpbmVkIHRoZSB2ZW5kb3IgcHJlZml4
+LgoKTm93IHRoYXQgdGhlIHBhbmVscyBhcmUgc3VwcG9ydGVkIGJ5IHN0YW5kYXJkIGRyaXZlcnMg
+YW5kIHRoZSAib21hcGRzcywiCnByZWZpeCBpcyByZW1vdmVkLCB0aGUgU1BJIGRldmljZSBJRHMg
+YXJlIHN0cmlwcGVkIGZyb20gdGhlIE9GIHZlbmRvcgpwcmVmaXguIEFzIHRoZSBuZXcgcGFuZWwg
+ZHJpdmVycyBjb3BpZWQgdGhlIG1vZHVsZSBhbGlhc2VzIGZyb20gdGhlCm9tYXBkcm0tc3BlY2lm
+aWMgZHJpdmVycywgdGhleSBjb250YWluIHRoZSB2ZW5kb3IgcHJlZml4IGluIHRoZWlyIFNQSQpt
+b2R1bGUgYWxpYXNlcywgYW5kIGFyZSB0aHVzIG5vdCBsb2FkZWQgYXV0b21hdGljYWxseS4KCkZp
+eCB0aGlzIGJ5IHJlbW92aW5nIHRoZSB2ZW5kb3IgcHJlZml4IGZyb20gdGhlIFNQSSBtb2R1bGVz
+IGFsaWFzZXMgaW4KdGhlIGRyaXZlcnMuIEZvciBjb25zaXN0ZW5jeSByZWFzb24sIHRoZSBtYW51
+YWwgbW9kdWxlIGFsaWFzZXMgYXJlIGFsc28KbW92ZWQgdG8gdXNlIGFuIFNQSSBtb2R1bGUgdGFi
+bGUuCgpUaGVzZSBwYXRjaGVzIGFyZSBiYXNlZCBvbiB0aGUgZHJtLW1pc2MtZml4ZXMgYnJhbmNo
+IGFzIHRoZXkgZml4IHY1LjQKcmVncmVzc2lvbnMuCgpMYXVyZW50IFBpbmNoYXJ0ICg1KToKICBk
+cm0vcGFuZWw6IGxnLWxiMDM1cTAyOiBGaXggU1BJIGFsaWFzCiAgZHJtL3BhbmVsOiBuZWMtbmw4
+MDQ4aGwxMTogRml4IFNQSSBhbGlhcwogIGRybS9wYW5lbDogc29ueS1hY3g1NjVha206IEZpeCBT
+UEkgYWxpYXMKICBkcm0vcGFuZWw6IHRwby10ZDAyOHR0ZWMxOiBGaXggU1BJIGFsaWFzCiAgZHJt
+L3BhbmVsOiB0cG8tdGQwNDNtdGVhMTogRml4IFNQSSBhbGlhcwoKIGRyaXZlcnMvZ3B1L2RybS9w
+YW5lbC9wYW5lbC1sZy1sYjAzNXEwMi5jICAgIHwgOSArKysrKysrKy0KIGRyaXZlcnMvZ3B1L2Ry
+bS9wYW5lbC9wYW5lbC1uZWMtbmw4MDQ4aGwxMS5jIHwgOSArKysrKysrKy0KIGRyaXZlcnMvZ3B1
+L2RybS9wYW5lbC9wYW5lbC1zb255LWFjeDU2NWFrbS5jIHwgOSArKysrKysrKy0KIGRyaXZlcnMv
+Z3B1L2RybS9wYW5lbC9wYW5lbC10cG8tdGQwMjh0dGVjMS5jIHwgMyArLS0KIGRyaXZlcnMvZ3B1
+L2RybS9wYW5lbC9wYW5lbC10cG8tdGQwNDNtdGVhMS5jIHwgOSArKysrKysrKy0KIDUgZmlsZXMg
+Y2hhbmdlZCwgMzMgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKCi0tIApSZWdhcmRzLAoK
+TGF1cmVudCBQaW5jaGFydAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
+b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
+LWRldmVs
