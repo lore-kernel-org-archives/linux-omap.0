@@ -1,71 +1,48 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 8/9] soc: ti: omap-prm: add am4 PRM data
-Date: Tue, 8 Oct 2019 10:19:12 +0300
-Message-ID: <20191008071913.28740-9-t-kristo@ti.com>
-References: <20191008071913.28740-1-t-kristo@ti.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [Letux-kernel] [PATCH 4/5] drm/panel: tpo-td028ttec1: Fix SPI
+ alias
+Date: Mon, 7 Oct 2019 19:58:49 +0200
+Message-ID: <20191007195849.72562d6b@aktux>
+References: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
+ <20191007170801.27647-5-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191008071913.28740-1-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, ssantosh@kernel.org
-Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, p.zabel@pengutronix.de
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20191007170801.27647-5-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, thierry.reding@gmail.com, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, sam@ravnborg.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM instance data for am4 family of SoCs. Initially this is just
-used to provide reset support.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/soc/ti/omap_prm.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
-
-diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index de11ce08ff7b..73ea64896770 100644
---- a/drivers/soc/ti/omap_prm.c
-+++ b/drivers/soc/ti/omap_prm.c
-@@ -115,10 +115,30 @@ static const struct omap_prm_data am3_prm_data[] = {
- 	{ },
- };
- 
-+static const struct omap_rst_map am4_per_rst_map[] = {
-+	{ .rst = 1, .st = 0 },
-+	{ .rst = -1 },
-+};
-+
-+static const struct omap_rst_map am4_device_rst_map[] = {
-+	{ .rst = 0, .st = 1 },
-+	{ .rst = 1, .st = 0 },
-+	{ .rst = -1 },
-+};
-+
-+static const struct omap_prm_data am4_prm_data[] = {
-+	{ .name = "gfx", .base = 0x44df0400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_0, .clkdm_name = "gfx_l3" },
-+	{ .name = "per", .base = 0x44df0800, .rstctrl = 0x10, .rstst = 0x14, .rstmap = am4_per_rst_map, .clkdm_name = "pruss_ocp" },
-+	{ .name = "wkup", .base = 0x44df2000, .rstctrl = 0x10, .rstst = 0x14, .rstmap = am3_wkup_rst_map, .flags = OMAP_PRM_HAS_NO_CLKDM },
-+	{ .name = "device", .base = 0x44df4000, .rstctrl = 0x0, .rstst = 0x4, .rstmap = am4_device_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
-+	{ },
-+};
-+
- static const struct of_device_id omap_prm_id_table[] = {
- 	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
- 	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
- 	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
-+	{ .compatible = "ti,am4-prm-inst", .data = am4_prm_data },
- 	{ },
- };
- 
--- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+T24gTW9uLCAgNyBPY3QgMjAxOSAyMDowODowMCArMDMwMApMYXVyZW50IFBpbmNoYXJ0IDxsYXVy
+ZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IHdyb3RlOgoKPiBUaGUgcGFuZWwtdHBvLXRk
+MDI4dHRlYzEgZHJpdmVyIGluY29ycmVjdGx5IGluY2x1ZGVzIHRoZSBPRiB2ZW5kb3IKPiBwcmVm
+aXggaW4gaXRzIFNQSSBhbGlhcy4gRml4IGl0Lgo+IAo+IEZpeGVzOiA0MTViOGRkMDg3MTEgKCJk
+cm0vcGFuZWw6IEFkZCBkcml2ZXIgZm9yIHRoZSBUb3Bwb2x5IFREMDI4VFRFQzEgcGFuZWwiKQo+
+IFJlcG9ydGVkLWJ5OiBILiBOaWtvbGF1cyBTY2hhbGxlciA8aG5zQGdvbGRlbGljby5jb20+Cj4g
+U2lnbmVkLW9mZi1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29u
+Ym9hcmQuY29tPgoKVGVzdGVkLWJ5OiBBbmRyZWFzIEtlbW5hZGUgPGFuZHJlYXNAa2VtbmFkZS5p
+bmZvPgoKPiAtLS0KPiAgZHJpdmVycy9ncHUvZHJtL3BhbmVsL3BhbmVsLXRwby10ZDAyOHR0ZWMx
+LmMgfCAzICstLQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDIgZGVsZXRpb25z
+KC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9wYW5lbC9wYW5lbC10cG8tdGQw
+Mjh0dGVjMS5jIGIvZHJpdmVycy9ncHUvZHJtL3BhbmVsL3BhbmVsLXRwby10ZDAyOHR0ZWMxLmMK
+PiBpbmRleCBkN2IyZTM0NjI2ZWYuLmYyYmFmZjgyN2Y1MCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJz
+L2dwdS9kcm0vcGFuZWwvcGFuZWwtdHBvLXRkMDI4dHRlYzEuYwo+ICsrKyBiL2RyaXZlcnMvZ3B1
+L2RybS9wYW5lbC9wYW5lbC10cG8tdGQwMjh0dGVjMS5jCj4gQEAgLTM3NSw4ICszNzUsNyBAQCBz
+dGF0aWMgY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCB0ZDAyOHR0ZWMxX29mX21hdGNoW10gPSB7
+Cj4gIE1PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIHRkMDI4dHRlYzFfb2ZfbWF0Y2gpOwo+ICAKPiAg
+c3RhdGljIGNvbnN0IHN0cnVjdCBzcGlfZGV2aWNlX2lkIHRkMDI4dHRlYzFfaWRzW10gPSB7Cj4g
+LQl7ICJ0cG8sdGQwMjh0dGVjMSIsIDB9LAo+IC0JeyAidG9wcG9seSx0ZDAyOHR0ZWMxIiwgMCB9
+LAo+ICsJeyAidGQwMjh0dGVjMSIsIDAgfSwKPiAgCXsgLyogc2VudGluZWwgKi8gfQo+ICB9Owo+
+ICAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
