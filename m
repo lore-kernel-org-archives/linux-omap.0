@@ -1,102 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
- OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
-Date: Mon, 7 Oct 2019 08:52:52 -0700
-Message-ID: <20191007155252.GQ5610@atomide.com>
-References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
- <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com>
- <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
- <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
- <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
- <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
- <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
- <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
- <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
- <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
+Subject: Re: [PATCH] serial: 8250_omap: Fix idling for unloaded serdev drivers
+Date: Mon, 7 Oct 2019 08:56:44 -0700
+Message-ID: <20191007155644.GR5610@atomide.com>
+References: <20190723115400.46432-1-tony@atomide.com>
+ <CAHCN7x+6KYjnm5daRe_Y5XEWnDBWQnz8rOKYH2wTgx9avvokmQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
+In-Reply-To: <CAHCN7x+6KYjnm5daRe_Y5XEWnDBWQnz8rOKYH2wTgx9avvokmQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
+To: Adam Ford <aford173@gmail.com>
+Cc: Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vignesh R <vigneshr@ti.com>, linux-serial@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Adam Ford <aford173@gmail.com> [191004 19:30]:
+> On Tue, Jul 23, 2019 at 5:21 PM Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > For many years omap variants have been setting the runtime PM
+> > autosuspend delay to -1 to prevent unsafe policy with lossy first
+> > character on wake-up. The user must specifically enable the timeout
+> > for UARTs if desired.
+> >
+> > We must not enable the workaround for serdev devices though. It leads
+> > into UARTs not idling if no serdev devices are loaded and there is no
+> > sysfs entry to configure the UART in that case. And this means that
+> > my PM may not work unless the serdev modules are loaded.
+> >
+> > We can detect a serdev device being configured based on a dts child
+> > node, and we can simply skip the workround in that case. And the
+> > serdev driver can idle the port during runtime when suitable if an
+> > out-of-band wake-up GPIO line exists for example.
+> >
+> > Let's also add some comments to the workaround while at it.
+> 
+> This seems to help some of the stability issues I am seeing on the
+> DM3730 UART2 running Bluetooth at 3000000 baud.
+> Does it make sense to backport this to the stable kernels?
 
-* H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
-> Hi all,
-> with the arrival of v5.4-rc1 some of Tony's sysc patches have arrived
-> upstream, so we do no longer need them here.
-> 
-> Therefore, I have rebased my drivers/staging/pvr driver [1] and fixed some
-> more issues:
-> * omap4 build only needs to distinguish between omap4420/30/60 and omap4470,
->   because the latter has an sgx544 inside and the other sgx540
->   This is solved by creating a new omap4470.dts
-> * I have added proper reg values and interrupts to the omap4 device
->   tree node of the sgx (child node of the target-module)
-> * some updates to my sgxdump and sgxdemo scripts (assuming simple
->   Debian Stretch rootfs)
-> * James Hilliard has contributed a fix for osfunc.c
-> * omap2plus also needs to be configured for STAGING and PREEMPT
->   to be able to compile the driver
-> * I have added the __always_inline fix [2] which is needed for v5.4 with
->   CONFIG_CC_OPTIMIZE_FOR_SIZE=y (which I are enabled on the Letux builds)
-> 
-> Unfortunately Tero's rstctrl patches did not yet make it upstream (or even
-> linux-next) so I also have a copy in this branch.
-> 
-> Results of first testing are:
-> * OMAP3530 (OpenPandora, BeagleBoard C): fails with
-> [  559.247558] PVR_K:(Error): SysLocateDevices: platform_get_resource failed
-> 
-> * DM3730 (GTA04, BeagleBoard XM): kernel module loads
-> 
-> * OMAP4460 (Pandaboard ES): kernel module loads
-> 
-> * AM335x (BeagleBoneBlack): reports a problem with omap_reset_deassert:
-> [  204.246706] omap_reset_deassert: timedout waiting for gfx:0
+Sure if it helps with issues, it should be safe to apply to earlier
+kernels that have serdev potentially in use.
 
-Please try with Tero's current github branch at github.com/t-kristo/linux-pm.git
-5.4-rc1-ipc from few days ago, the earlier versions had still issues.
-
-> * OMAP5 (Pyra): fails to enable the clocks (did work with the previous version)
-> [  304.140363] clock-controller:clk:0000:0: failed to enable
-> [  304.147388] PVR_K:(Error): EnableSGXClocks: pm_runtime_get_sync failed (16)
-
-Hmm no idea what might be up with this one. Did some clkctrl clock
-fixes maybe cause a regression here? Tero do you have any ideas?
-
-> * OMAP5 with omap2plus_defconfig:
-> root@letux:~# echo on > $(find /sys -name control | grep \/5600)
-> [  213.490926] clock-controller:clk:0000:0: failed to enable
-> root@letux:~# 
-> 
-> * pvrsrvctl --start --no-module:
->   reports (where the kernel module loads) that the uKernel does not run
-> 
-> So I have several ideas what the reasons for the problems on the non-omap5
-> devices could be:
-> * initial code may have some omap5 specific hack inside
-> * or has omap5 specific magic constants
-> * uKernel may "know" on which platform it runs and
->   we would need differently patched user-space code
->   for each one
-> * omap5 has a dual core sgx544 while the other
->   have single core
-> * the register address translation is not yet correct and
->   this inhibits communicating of the user-space libs
->   with the uKernel
-> 
-> Maybe, if someone can point me to a complete and working BeagleBone source
-> tree (any kernel release) which makes use of 1.14.3699939 SDK, I could compare
-> code and address setup to find what makes the difference.
+No need for earlier kernels before serdev though.
 
 Regards,
 
 Tony
 
-> [1]: https://github.com/openpvrsgx-devgroup/linux_openpvrsgx/commits/letux-pvr
-> [2]: https://lkml.org/lkml/2019/10/2/201
+> > Cc: Johan Hovold <johan@kernel.org>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  drivers/tty/serial/8250/8250_omap.c | 11 ++++++++++-
+> >  1 file changed, 10 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> > --- a/drivers/tty/serial/8250/8250_omap.c
+> > +++ b/drivers/tty/serial/8250/8250_omap.c
+> > @@ -1234,7 +1234,16 @@ static int omap8250_probe(struct platform_device *pdev)
+> >
+> >         device_init_wakeup(&pdev->dev, true);
+> >         pm_runtime_use_autosuspend(&pdev->dev);
+> > -       pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
+> > +
+> > +       /*
+> > +        * Disable runtime PM until autosuspend delay unless specifically
+> > +        * enabled by the user via sysfs. This is the historic way to
+> > +        * prevent an unsafe default policy with lossy characters on wake-up.
+> > +        * For serdev devices this is not needed, the policy can be managed by
+> > +        * the serdev driver.
+> > +        */
+> > +       if (!of_get_available_child_count(pdev->dev.of_node))
+> > +               pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
+> >
+> >         pm_runtime_irq_safe(&pdev->dev);
+> >         pm_runtime_enable(&pdev->dev);
+> > --
+> > 2.21.0
