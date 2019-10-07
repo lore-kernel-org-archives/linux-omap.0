@@ -1,78 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: 8250_omap: Fix idling for unloaded serdev drivers
-Date: Mon, 7 Oct 2019 08:56:44 -0700
-Message-ID: <20191007155644.GR5610@atomide.com>
-References: <20190723115400.46432-1-tony@atomide.com>
- <CAHCN7x+6KYjnm5daRe_Y5XEWnDBWQnz8rOKYH2wTgx9avvokmQ@mail.gmail.com>
-Mime-Version: 1.0
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Mon, 7 Oct 2019 17:56:38 +0200
+Message-ID: <D1CD5D93-4178-4359-AF00-FFC3AA9CA054@goldelico.com>
+References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org> <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com> <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org> <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com> <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org> <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com> <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com> <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com> <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org> <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com> <20191007155252.GQ5610@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHCN7x+6KYjnm5daRe_Y5XEWnDBWQnz8rOKYH2wTgx9avvokmQ@mail.gmail.com>
+In-Reply-To: <20191007155252.GQ5610@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vignesh R <vigneshr@ti.com>, linux-serial@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Johan Hovold <johan@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?utf-8?Q?Pawe=C5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173@gmail.com> [191004 19:30]:
-> On Tue, Jul 23, 2019 at 5:21 PM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > For many years omap variants have been setting the runtime PM
-> > autosuspend delay to -1 to prevent unsafe policy with lossy first
-> > character on wake-up. The user must specifically enable the timeout
-> > for UARTs if desired.
-> >
-> > We must not enable the workaround for serdev devices though. It leads
-> > into UARTs not idling if no serdev devices are loaded and there is no
-> > sysfs entry to configure the UART in that case. And this means that
-> > my PM may not work unless the serdev modules are loaded.
-> >
-> > We can detect a serdev device being configured based on a dts child
-> > node, and we can simply skip the workround in that case. And the
-> > serdev driver can idle the port during runtime when suitable if an
-> > out-of-band wake-up GPIO line exists for example.
-> >
-> > Let's also add some comments to the workaround while at it.
-> 
-> This seems to help some of the stability issues I am seeing on the
-> DM3730 UART2 running Bluetooth at 3000000 baud.
-> Does it make sense to backport this to the stable kernels?
 
-Sure if it helps with issues, it should be safe to apply to earlier
-kernels that have serdev potentially in use.
+> Am 07.10.2019 um 17:52 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> Hi,
+>=20
+> * H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
+>>=20
+>>=20
+>> * AM335x (BeagleBoneBlack): reports a problem with =
+omap_reset_deassert:
+>> [  204.246706] omap_reset_deassert: timedout waiting for gfx:0
+>=20
+> Please try with Tero's current github branch at =
+github.com/t-kristo/linux-pm.git
+> 5.4-rc1-ipc from few days ago, the earlier versions had still issues.
 
-No need for earlier kernels before serdev though.
+I have seen there has been a new version today and I'll try that one =
+asap.
 
-Regards,
+>=20
+>> * OMAP5 (Pyra): fails to enable the clocks (did work with the =
+previous version)
+>> [  304.140363] clock-controller:clk:0000:0: failed to enable
+>> [  304.147388] PVR_K:(Error): EnableSGXClocks: pm_runtime_get_sync =
+failed (16)
+>=20
+> Hmm no idea what might be up with this one. Did some clkctrl clock
+> fixes maybe cause a regression here? Tero do you have any ideas?
 
-Tony
-
-> > Cc: Johan Hovold <johan@kernel.org>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  drivers/tty/serial/8250/8250_omap.c | 11 ++++++++++-
-> >  1 file changed, 10 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-> > --- a/drivers/tty/serial/8250/8250_omap.c
-> > +++ b/drivers/tty/serial/8250/8250_omap.c
-> > @@ -1234,7 +1234,16 @@ static int omap8250_probe(struct platform_device *pdev)
-> >
-> >         device_init_wakeup(&pdev->dev, true);
-> >         pm_runtime_use_autosuspend(&pdev->dev);
-> > -       pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
-> > +
-> > +       /*
-> > +        * Disable runtime PM until autosuspend delay unless specifically
-> > +        * enabled by the user via sysfs. This is the historic way to
-> > +        * prevent an unsafe default policy with lossy characters on wake-up.
-> > +        * For serdev devices this is not needed, the policy can be managed by
-> > +        * the serdev driver.
-> > +        */
-> > +       if (!of_get_available_child_count(pdev->dev.of_node))
-> > +               pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
-> >
-> >         pm_runtime_irq_safe(&pdev->dev);
-> >         pm_runtime_enable(&pdev->dev);
-> > --
-> > 2.21.0
+BR and thanks,
+Nikolaus
