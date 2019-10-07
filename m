@@ -1,63 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Set status to disable for MMC3
-Date: Mon, 7 Oct 2019 09:16:34 -0700
-Message-ID: <20191007161634.GS5610@atomide.com>
-References: <20191007080339.57209-1-manu@freebsd.org>
+Subject: Re: [PATCH 0/3] bus: ti-sysc: fix reset sequencing
+Date: Mon, 7 Oct 2019 09:38:07 -0700
+Message-ID: <20191007163807.GU5610@atomide.com>
+References: <20191007122931.18668-1-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191007080339.57209-1-manu@freebsd.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Emmanuel Vadot <manu@freebsd.org>
-Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20191007122931.18668-1-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Tero Kristo <t-kristo@ti.com> [191007 12:30]:
+> Hi,
+> 
+> These three patches make sure that IOMMU/remoteprocs work across
+> all devices with the latest OMAP PRM series for reset support [1].
+> The last dangling issues were caused by the removal of the hardlink
+> between the reset + clock drivers.
 
-* Emmanuel Vadot <manu@freebsd.org> [191007 08:04]:
-> Commit 5b63fb90adb95 ("ARM: dts: Fix incomplete dts data for am3 and am4 mmc")
-> fixed the mmc instances on the l3 interconnect but removed the disabled status.
-> Fix this and let boards properly define it if it have it.
-
-The dts default is "okay", and should be fine for all the
-internal devices even if not pinned out on the board. This
-way the devices get properly idled during boot, and we
-avoid repeating status = "enabled" over and over again in
-the board specific dts files.
-
-Then the board specific dts files might want to configure
-devices with status = "disabled" if really needed. But this
-should be only done for devices that Linux must not use,
-such as crypto acclerators on secure devices if claimed by
-the secure mode.
-
-So if this fixes something, it's almost certainly a sign
-of something else being broken?
+OK. I presume these are safe to wait for v5.5 since we don't
+have the rstctrl driver yet?
 
 Regards,
 
 Tony
 
 
-> Fixes: 5b63fb90adb95 ("ARM: dts: Fix incomplete dts data for am3 and am4 mmc")
-> Signed-off-by: Emmanuel Vadot <manu@freebsd.org>
-> ---
->  arch/arm/boot/dts/am33xx.dtsi | 1 +
->  1 file changed, 1 insertion(+)
+> [1] https://patchwork.kernel.org/cover/11142871/
 > 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index fb6b8aa12cc5..b3a1fd9e39fa 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -260,6 +260,7 @@
->  				ti,needs-special-reset;
->  				interrupts = <29>;
->  				reg = <0x0 0x1000>;
-> +				status = "disabled";
->  			};
->  		};
->  
-> -- 
-> 2.22.0
 > 
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
