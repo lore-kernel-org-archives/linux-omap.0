@@ -1,80 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Set status to disable for MMC3
-Date: Mon, 7 Oct 2019 10:46:22 -0700
-Message-ID: <20191007174622.GW5610@atomide.com>
-References: <20191007080339.57209-1-manu@freebsd.org>
- <20191007161634.GS5610@atomide.com>
- <20191007183830.71e1303d6bd713014dc36710@bidouilliste.com>
- <20191007165859.GV5610@atomide.com>
- <20191007192922.7ce3423bd1fd03551487e907@bidouilliste.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/3] bus: ti-sysc: fix reset sequencing
+Date: Mon, 7 Oct 2019 22:00:16 +0300
+Message-ID: <32031606-23da-2e0b-6d75-7225a082eb6b@ti.com>
+References: <20191007122931.18668-1-t-kristo@ti.com>
+ <20191007163807.GU5610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191007192922.7ce3423bd1fd03551487e907@bidouilliste.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Emmanuel Vadot <manu@bidouilliste.com>
-Cc: Emmanuel Vadot <manu@freebsd.org>, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20191007163807.GU5610@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Emmanuel Vadot <manu@bidouilliste.com> [191007 17:30]:
-> On Mon, 7 Oct 2019 09:58:59 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
-> > There should be no need to do that for SoC internal devices, the
-> > the default status = "okay" should be just fine. Setting the
-> > status = "disabled" for SoC internal devices and then enabling them
-> > again for tens of board specific dts files just generates tons of
-> > pointless extra churn for the board specific configuration.
+On 07/10/2019 19:38, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [191007 12:30]:
+>> Hi,
+>>
+>> These three patches make sure that IOMMU/remoteprocs work across
+>> all devices with the latest OMAP PRM series for reset support [1].
+>> The last dangling issues were caused by the removal of the hardlink
+>> between the reset + clock drivers.
 > 
->  Setting the status = "okay" means that you can use the device. What's
-> the point of enabling a device if you can't use it ? Or worse can't
-> probe it like i2c or spi ?
+> OK. I presume these are safe to wait for v5.5 since we don't
+> have the rstctrl driver yet?
 
-The main reasons for not setting SoC internal devices with
-status = "disabled" are:
+Yeah, they are safe to wait.
 
-1. The SoC internal device is there for sure and also accessible
-   for the kernel
-
-2. Setting an SoC internal device with status = "disabled" makes
-   the kernel completely ignore it and it cannot be idled for PM
-   if left on from the bootloader
-
-3. We avoid tens of lines of pointess repetive status = "okay"
-   tinkering for multiple devices per each board specic dts file
-   making them more readable and easier to maintain
-
->  Is the plan for TI dts to have every (or almost) device tree node
-> enabled even if the device isn't usable on the board ?
-
-This has always been the case with omap3, 4, and 5. I don't
-know when folks started tagging am33xx SoC internal devices as
-disabled but that should have never been necessary.
-
-Few years back I suggested some patches for status = "incomplete"
-to deal with cases where the device is there but not pinned
-out or otherwise not complete. But so far we've gotten away
-without that, so probably not needed.
-
-> > >  In this case it's FreeBSD being  because (I think) we have bad support
-> > > for the clocks for this module so we panic when we read from it as the
-> > > module isn't clocked. And since I find it wrong to have device enabled
-> > > while it isn't present I've sent this patch.
-> > 
-> > Thanks for clarifying what happens. OK, sounds like FreeBSD might be
-> > missing clock handling for some devices then.
-> > 
-> > What Linux does is probe the internal devices and then idle the
-> > unused ones as bootloaders often leave many things enabled. Otherwise
-> > the SoC power management won't work properly because device clocks
-> > will block deeper SoC idle states.
-> 
->  I can understand stand but then the bootload should be fixed to not
-> enable devices that aren't enabled in the DTS if it does that.
-
-This is not doable as in many cases the bootloader cannot be
-updated as it can be signed for phones like n900 and droid4.
-
-Regards,
-
-Tony
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
