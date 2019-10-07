@@ -1,53 +1,93 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 5/5] drm/panel: tpo-td043mtea1: Fix SPI alias
-Date: Mon,  7 Oct 2019 20:08:01 +0300
-Message-ID: <20191007170801.27647-6-laurent.pinchart@ideasonboard.com>
-References: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
+Subject: Re: [Letux-kernel] [PATCH] ARM: omap2plus_defconfig: Fix selected
+ panels after generic panel changes
+Date: Mon, 7 Oct 2019 20:08:11 +0300
+Message-ID: <20191007170811.GA11781@pendragon.ideasonboard.com>
+References: <20191003165539.50318-1-tony@atomide.com>
+ <03ca02c1-2816-17cd-03fd-5b72e5d0ec96@ti.com>
+ <39E48EC6-65FE-419B-BBE8-E72CB44B517D@goldelico.com>
+ <20191006145348.GD4740@pendragon.ideasonboard.com>
+ <20191006223958.67725fdf@aktux> <20191007064035.72016c78@aktux>
+ <654d00a7-d802-d116-84c4-7c614d0fe272@ti.com>
+ <20191007180957.69cf7b55@aktux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, thierry.reding@gmail.com, letux-kernel@openphoenux.org, sam@ravnborg.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20191007180957.69cf7b55@aktux>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIHBhbmVsLXRwby10ZDA0M210ZWExIGRyaXZlciBpbmNvcnJlY3RseSBpbmNsdWRlcyB0aGUg
-T0YgdmVuZG9yCnByZWZpeCBpbiBpdHMgU1BJIGFsaWFzLiBGaXggaXQsIGFuZCBtb3ZlIHRoZSBt
-YW51YWwgYWxpYXMgdG8gYW4gU1BJCm1vZHVsZSBkZXZpY2UgdGFibGUuCgpGaXhlczogZGMyZTFl
-NWIyNzk5ICgiZHJtL3BhbmVsOiBBZGQgZHJpdmVyIGZvciB0aGUgVG9wcG9seSBURDA0M01URUEx
-IHBhbmVsIikKUmVwb3J0ZWQtYnk6IEguIE5pa29sYXVzIFNjaGFsbGVyIDxobnNAZ29sZGVsaWNv
-LmNvbT4KU2lnbmVkLW9mZi1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBp
-ZGVhc29uYm9hcmQuY29tPgotLS0KIGRyaXZlcnMvZ3B1L2RybS9wYW5lbC9wYW5lbC10cG8tdGQw
-NDNtdGVhMS5jIHwgOSArKysrKysrKy0KIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyks
-IDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vcGFuZWwvcGFuZWwt
-dHBvLXRkMDQzbXRlYTEuYyBiL2RyaXZlcnMvZ3B1L2RybS9wYW5lbC9wYW5lbC10cG8tdGQwNDNt
-dGVhMS5jCmluZGV4IDg0MzcwNTYyOTEwZi4uYmExNjNjNzc5MDg0IDEwMDY0NAotLS0gYS9kcml2
-ZXJzL2dwdS9kcm0vcGFuZWwvcGFuZWwtdHBvLXRkMDQzbXRlYTEuYworKysgYi9kcml2ZXJzL2dw
-dS9kcm0vcGFuZWwvcGFuZWwtdHBvLXRkMDQzbXRlYTEuYwpAQCAtNDkxLDkgKzQ5MSwxNyBAQCBz
-dGF0aWMgY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCB0ZDA0M210ZWExX29mX21hdGNoW10gPSB7
-CiAKIE1PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIHRkMDQzbXRlYTFfb2ZfbWF0Y2gpOwogCitzdGF0
-aWMgY29uc3Qgc3RydWN0IHNwaV9kZXZpY2VfaWQgdGQwNDNtdGVhMV9pZHNbXSA9IHsKKwl7ICJ0
-ZDA0M210ZWExIiwgMCB9LAorCXsgLyogc2VudGluZWwgKi8gfQorfTsKKworTU9EVUxFX0RFVklD
-RV9UQUJMRShzcGksIHRkMDQzbXRlYTFfaWRzKTsKKwogc3RhdGljIHN0cnVjdCBzcGlfZHJpdmVy
-IHRkMDQzbXRlYTFfZHJpdmVyID0gewogCS5wcm9iZQkJPSB0ZDA0M210ZWExX3Byb2JlLAogCS5y
-ZW1vdmUJCT0gdGQwNDNtdGVhMV9yZW1vdmUsCisJLmlkX3RhYmxlCT0gdGQwNDNtdGVhMV9pZHMs
-CiAJLmRyaXZlcgkJPSB7CiAJCS5uYW1lCT0gInBhbmVsLXRwby10ZDA0M210ZWExIiwKIAkJLnBt
-CT0gJnRkMDQzbXRlYTFfcG1fb3BzLApAQCAtNTAzLDcgKzUxMSw2IEBAIHN0YXRpYyBzdHJ1Y3Qg
-c3BpX2RyaXZlciB0ZDA0M210ZWExX2RyaXZlciA9IHsKIAogbW9kdWxlX3NwaV9kcml2ZXIodGQw
-NDNtdGVhMV9kcml2ZXIpOwogCi1NT0RVTEVfQUxJQVMoInNwaTp0cG8sdGQwNDNtdGVhMSIpOwog
-TU9EVUxFX0FVVEhPUigiR3Jhxb52eWRhcyBJZ25vdGFzIDxub3Rhc2FzQGdtYWlsLmNvbT4iKTsK
-IE1PRFVMRV9ERVNDUklQVElPTigiVFBPIFREMDQzTVRFQTEgUGFuZWwgRHJpdmVyIik7CiBNT0RV
-TEVfTElDRU5TRSgiR1BMIik7Ci0tIApSZWdhcmRzLAoKTGF1cmVudCBQaW5jaGFydAoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxp
-bmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+On Mon, Oct 07, 2019 at 06:09:57PM +0200, Andreas Kemnade wrote:
+> On Mon, 7 Oct 2019 17:29:20 +0300 Tomi Valkeinen wrote:
+> > On 07/10/2019 07:40, Andreas Kemnade wrote:
+> > 
+> >>>> That's really weird, the driver name, the SPI device table and the OF
+> >>>> device table are the same (except for the "omapdss," prefix that we
+> >>>> don't add anymore in omapdss-boot-init.c). Would you be able to
+> >>>> investigate what broke ?
+> >>>>      
+> >>> in earlier times:
+> >>>
+> >>> root@gta04:/sys/bus/spi/devices/spi4.0# cat modalias
+> >>> spi:tpo,td028ttec1
+> >>>
+> >>> now in 5.4-rc1:
+> >>> root@gta04:/sys/bus/spi/devices/spi4.0# cat modalias
+> >>> spi:td028ttec1
+> >>>
+> >>> root@gta04:~# modinfo /lib/modules/5.4.0-rc1-letux+/kernel/drivers/gpu/drm/panel/panel-tpo-td028ttec1.ko
+> >>> filename:       /lib/modules/5.4.0-rc1-letux+/kernel/drivers/gpu/drm/panel/panel-tpo-td028ttec1.ko
+> >>> license:        GPL
+> >>> description:    Toppoly TD028TTEC1 panel driver
+> >>> author:         H. Nikolaus Schaller <hns@goldelico.com>
+> >>> srcversion:     6B3E224BCD3D76253CF361C
+> >>> alias:          of:N*T*Ctoppoly,td028ttec1C*
+> >>> alias:          of:N*T*Ctoppoly,td028ttec1
+> >>> alias:          of:N*T*Ctpo,td028ttec1C*
+> >>> alias:          of:N*T*Ctpo,td028ttec1
+> >>> alias:          spi:toppoly,td028ttec1
+> >>> alias:          spi:tpo,td028ttec1
+> >>> depends:        drm
+> >>> intree:         Y
+> >>> name:           panel_tpo_td028ttec1
+> >>> vermagic:       5.4.0-rc1-letux+ SMP preempt mod_unload ARMv7 p2v8
+> >>>
+> >>> That alias is not in the list.
+> >>>  
+> >> some more research:
+> >> in former times
+> >> of_modalias_node() has stripped the omapdss prefix, result: modalias=spi:tpo,td028ttec1
+> >> now it strips the tpo prefix because there is no omapdss prefix anymore.  
+> > 
+> > I haven't studied this more yet, but yes, I can see of_modalias_node 
+> > stripping the vendor prefix on purpose. I do wonder how this is supposed 
+> > to work, it would make more sense to me to keep the vendor prefix.
+> > 
+> > Is the spi_device_id supposed to be without vendor prefix? With a quick 
+> > grep, this seems to be the case.
+>
+> as it is done in drivers/spi/spi.c we have no influence from drm side.
+> So we must live with it. Also checked several drivers, no vendor-prefix
+> there.
+
+I *think* SPI drivers are not supposed to include any prefix. The fix
+would then simply be to strip the prefix from the SPI table (leaving it
+there for the OF table of course). I've submitted a patch series to do
+so.
+
+-- 
+Regards,
+
+Laurent Pinchart
