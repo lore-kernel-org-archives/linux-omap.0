@@ -1,18 +1,17 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [Letux-kernel] [PATCH] ARM: omap2plus_defconfig: Fix selected
- panels after generic panel changes
-Date: Mon, 7 Oct 2019 06:40:35 +0200
-Message-ID: <20191007064035.72016c78@aktux>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: omap2plus_defconfig: Fix selected panels after
+ generic panel changes
+Date: Mon, 7 Oct 2019 09:13:24 +0300
+Message-ID: <21f98050-4eb1-e709-387f-164fb420deaf@ti.com>
 References: <20191003165539.50318-1-tony@atomide.com>
  <03ca02c1-2816-17cd-03fd-5b72e5d0ec96@ti.com>
- <39E48EC6-65FE-419B-BBE8-E72CB44B517D@goldelico.com>
- <20191006145348.GD4740@pendragon.ideasonboard.com>
- <20191006223958.67725fdf@aktux>
+ <20191004155426.GM5610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191006223958.67725fdf@aktux>
+In-Reply-To: <20191004155426.GM5610@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,113 +21,71 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, linux-arm-kernel@lists.infradead.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 6 Oct 2019 22:39:58 +0200
-Andreas Kemnade <andreas@kemnade.info> wrote:
+On 04/10/2019 18:54, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [191004 08:42]:
+>> On 03/10/2019 19:55, Tony Lindgren wrote:
+>>> The old omapdrm panels got removed for v5.4 in favor of generic panels,
+>>> and the Kconfig options changed. Let's update omap2plus_defconfig
+>>> accordingly so the same panels are still enabled.
+>>>
+>>> Cc: Jyri Sarha <jsarha@ti.com>
+>>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>>> ---
+>>>    arch/arm/configs/omap2plus_defconfig | 12 ++++++------
+>>>    1 file changed, 6 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+>>> --- a/arch/arm/configs/omap2plus_defconfig
+>>> +++ b/arch/arm/configs/omap2plus_defconfig
+>>> @@ -356,14 +356,14 @@ CONFIG_DRM_OMAP_CONNECTOR_HDMI=m
+>>>    CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=m
+>>>    CONFIG_DRM_OMAP_PANEL_DPI=m
+>>>    CONFIG_DRM_OMAP_PANEL_DSI_CM=m
+>>> -CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=m
+>>> -CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=m
+>>> -CONFIG_DRM_OMAP_PANEL_SHARP_LS037V7DW01=m
+>>> -CONFIG_DRM_OMAP_PANEL_TPO_TD028TTEC1=m
+>>> -CONFIG_DRM_OMAP_PANEL_TPO_TD043MTEA1=m
+>>> -CONFIG_DRM_OMAP_PANEL_NEC_NL8048HL11=m
+>>>    CONFIG_DRM_TILCDC=m
+>>>    CONFIG_DRM_PANEL_SIMPLE=m
+>>> +CONFIG_DRM_PANEL_LG_LB035Q02=m
+>>> +CONFIG_DRM_PANEL_NEC_NL8048HL11=m
+>>> +CONFIG_DRM_PANEL_SHARP_LS037V7DW01=m
+>>> +CONFIG_DRM_PANEL_SONY_ACX565AKM=m
+>>> +CONFIG_DRM_PANEL_TPO_TD028TTEC1=m
+>>> +CONFIG_DRM_PANEL_TPO_TD043MTEA1=m
+>>>    CONFIG_FB=y
+>>>    CONFIG_FIRMWARE_EDID=y
+>>>    CONFIG_FB_MODE_HELPERS=y
+>>
+>> Sorry, I didn't remember to update these. Some additions:
+>>
+>> These can be dropped, they no longer exist:
+>>
+>> CONFIG_DRM_OMAP_ENCODER_TFP410=m
+>> CONFIG_DRM_OMAP_CONNECTOR_DVI=m
+>> CONFIG_DRM_OMAP_PANEL_DPI=m
+>>
+>> This can be added to get the DVI output working on many of the boards:
+>>
+>> CONFIG_DRM_TI_TFP410=m
+> 
+> We have patches already posted for these by Adam and me so we
+> should be good to go with just $subject patch missing now.
 
-> On Sun, 6 Oct 2019 17:53:48 +0300
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> 
-> > Hi Nikolaus,
-> > 
-> > On Sat, Oct 05, 2019 at 12:50:37PM +0200, H. Nikolaus Schaller wrote:  
-> > > > Am 04.10.2019 um 10:41 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
-> > > > 
-> > > > On 03/10/2019 19:55, Tony Lindgren wrote:    
-> > > >> The old omapdrm panels got removed for v5.4 in favor of generic panels,
-> > > >> and the Kconfig options changed. Let's update omap2plus_defconfig
-> > > >> accordingly so the same panels are still enabled.
-> > > >> Cc: Jyri Sarha <jsarha@ti.com>
-> > > >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > >> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > >> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > >> ---
-> > > >>  arch/arm/configs/omap2plus_defconfig | 12 ++++++------
-> > > >>  1 file changed, 6 insertions(+), 6 deletions(-)
-> > > >> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> > > >> --- a/arch/arm/configs/omap2plus_defconfig
-> > > >> +++ b/arch/arm/configs/omap2plus_defconfig
-> > > >> @@ -356,14 +356,14 @@ CONFIG_DRM_OMAP_CONNECTOR_HDMI=m
-> > > >>  CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=m
-> > > >>  CONFIG_DRM_OMAP_PANEL_DPI=m
-> > > >>  CONFIG_DRM_OMAP_PANEL_DSI_CM=m
-> > > >> -CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=m
-> > > >> -CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=m
-> > > >> -CONFIG_DRM_OMAP_PANEL_SHARP_LS037V7DW01=m
-> > > >> -CONFIG_DRM_OMAP_PANEL_TPO_TD028TTEC1=m
-> > > >> -CONFIG_DRM_OMAP_PANEL_TPO_TD043MTEA1=m
-> > > >> -CONFIG_DRM_OMAP_PANEL_NEC_NL8048HL11=m
-> > > >>  CONFIG_DRM_TILCDC=m
-> > > >>  CONFIG_DRM_PANEL_SIMPLE=m
-> > > >> +CONFIG_DRM_PANEL_LG_LB035Q02=m
-> > > >> +CONFIG_DRM_PANEL_NEC_NL8048HL11=m
-> > > >> +CONFIG_DRM_PANEL_SHARP_LS037V7DW01=m
-> > > >> +CONFIG_DRM_PANEL_SONY_ACX565AKM=m
-> > > >> +CONFIG_DRM_PANEL_TPO_TD028TTEC1=m
-> > > >> +CONFIG_DRM_PANEL_TPO_TD043MTEA1=m
-> > > >>  CONFIG_FB=y
-> > > >>  CONFIG_FIRMWARE_EDID=y
-> > > >>  CONFIG_FB_MODE_HELPERS=y    
-> > > > 
-> > > > Sorry, I didn't remember to update these. Some additions:
-> > > > 
-> > > > These can be dropped, they no longer exist:
-> > > > 
-> > > > CONFIG_DRM_OMAP_ENCODER_TFP410=m
-> > > > CONFIG_DRM_OMAP_CONNECTOR_DVI=m
-> > > > CONFIG_DRM_OMAP_PANEL_DPI=m    
-> > > 
-> > > After being hit by the __always_inline issue [1] I am now
-> > > back with being able to test v5.4-rc1.
-> > > 
-> > > Now this patch fixes the build problem, but we still have
-> > > one: panel drivers are no longer automatically loaded at
-> > > boot. We now need to manually modprobe them.
-> > > 
-> > > This has been observed with GTA04 (TD028TTEC1) and OpenPandora
-> > > (TD043MTEA1). So moving the drivers seems to have changed/broken
-> > > something with DT based driver matching.    
-> > 
-> > That's really weird, the driver name, the SPI device table and the OF
-> > device table are the same (except for the "omapdss," prefix that we
-> > don't add anymore in omapdss-boot-init.c). Would you be able to
-> > investigate what broke ?
-> >   
-> in earlier times:
-> 
-> root@gta04:/sys/bus/spi/devices/spi4.0# cat modalias 
-> spi:tpo,td028ttec1
-> 
-> now in 5.4-rc1:
-> root@gta04:/sys/bus/spi/devices/spi4.0# cat modalias 
-> spi:td028ttec1
-> 
-> root@gta04:~# modinfo /lib/modules/5.4.0-rc1-letux+/kernel/drivers/gpu/drm/panel/panel-tpo-td028ttec1.ko 
-> filename:       /lib/modules/5.4.0-rc1-letux+/kernel/drivers/gpu/drm/panel/panel-tpo-td028ttec1.ko
-> license:        GPL
-> description:    Toppoly TD028TTEC1 panel driver
-> author:         H. Nikolaus Schaller <hns@goldelico.com>
-> srcversion:     6B3E224BCD3D76253CF361C
-> alias:          of:N*T*Ctoppoly,td028ttec1C*
-> alias:          of:N*T*Ctoppoly,td028ttec1
-> alias:          of:N*T*Ctpo,td028ttec1C*
-> alias:          of:N*T*Ctpo,td028ttec1
-> alias:          spi:toppoly,td028ttec1
-> alias:          spi:tpo,td028ttec1
-> depends:        drm
-> intree:         Y
-> name:           panel_tpo_td028ttec1
-> vermagic:       5.4.0-rc1-letux+ SMP preempt mod_unload ARMv7 p2v8 
-> 
-> That alias is not in the list.
-> 
-some more research:
-in former times
-of_modalias_node() has stripped the omapdss prefix, result: modalias=spi:tpo,td028ttec1
-now it strips the tpo prefix because there is no omapdss prefix anymore.
+Ok.
 
-Regards,
-Andreas
+Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+  Tomi
+
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
