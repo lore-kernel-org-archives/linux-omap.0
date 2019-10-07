@@ -1,67 +1,56 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] drm: panels: fix spi aliases of former omap panels
-Date: Mon, 7 Oct 2019 20:16:35 +0300
-Message-ID: <20191007171635.GC11781@pendragon.ideasonboard.com>
-References: <20191007164130.31534-1-andreas@kemnade.info>
- <20191007170446.yotb24s6jhe6nx3r@earth.universe>
- <20191007191428.016ddcd4@aktux>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [PATCH 0/5] Fix SPI module alias for panels used by omapdrm
+Date: Mon, 7 Oct 2019 19:22:56 +0200
+Message-ID: <20191007172256.GA1956@ravnborg.org>
+References: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20191007191428.016ddcd4@aktux>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Sebastian Reichel <sre@kernel.org>, thierry.reding@gmail.com, sam@ravnborg.org, airlied@linux.ie, daniel@ffwll.ch, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, omi Valkeinen <tomi.valkeinen@ti.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, thierry.reding@gmail.com, Jyri Sarha <jsarha@ti.com>, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
-
-On Mon, Oct 07, 2019 at 07:14:28PM +0200, Andreas Kemnade wrote:
-> On Mon, 7 Oct 2019 19:04:46 +0200 Sebastian Reichel wrote:
-> > On Mon, Oct 07, 2019 at 06:41:30PM +0200, Andreas Kemnade wrote:
-> > > When the panels were moved from omap/displays/ to panel/
-> > > omapdss prefix was stripped, which cause spi modalias
-> > > to not contain the vendor-prefix anymore.
-> > > 
-> > > so we had e.g. in former times:
-> > > compatible=omapdss,tpo,td028ttec1 -> modalias=spi:tpo,td028ttec1
-> > > now:
-> > > compatible=tpo,td028ttec1 -> modalias=spi:td028ttec1
-> > > 
-> > > This is consistent with other drivers. Tested the td028ttec.c
-> > > only, but the pattern looks the same for the other ones.
-> > > 
-> > > Fixes: 45f16c82db7e8 ("drm/omap: displays: Remove unused panel drivers")
-> > > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> > > ---  
-> > 
-> > Patch looks good to me, but you have one false positive.
-> > 
-> > > [...]
-> > >
-> > > diff --git a/drivers/gpu/drm/panel/panel-sharp-ls037v7dw01.c b/drivers/gpu/drm/panel/panel-sharp-ls037v7dw01.c
-> > > index 46cd9a2501298..838d39a263f53 100644
-> > > --- a/drivers/gpu/drm/panel/panel-sharp-ls037v7dw01.c
-> > > +++ b/drivers/gpu/drm/panel/panel-sharp-ls037v7dw01.c
-> > > @@ -204,7 +204,7 @@ static int ls037v7dw01_remove(struct platform_device *pdev)
-> > >  }
-> > >  
-> > >  static const struct of_device_id ls037v7dw01_of_match[] = {
-> > > -	{ .compatible = "sharp,ls037v7dw01", },
-> > > +	{ .compatible = "ls037v7dw01", },
-> > >  	{ /* sentinel */ },
-> > >  };
-> > 
-> > The DT compatible should have a vendor prefix.
-> 
-> oops, sorry, but I it seems that Laurent already has submitted a fix.
-
-Seems we've been racing each other :-S Feel free to submit a v2 of this
-patch if you think it's better than my series. As long as the problem
-gets fixed, I'll be happy :-)
-
--- 
-Regards,
-
-Laurent Pinchart
+SGkgTGF1cmVudC4KT24gTW9uLCBPY3QgMDcsIDIwMTkgYXQgMDg6MDc6NTZQTSArMDMwMCwgTGF1
+cmVudCBQaW5jaGFydCB3cm90ZToKPiBIZWxsbywKPiAKPiBUaGlzIHBhdGNoIHNlcmllcyBmaXhl
+cyBhIG1vZHVsZSBhbGlhcyBpc3N1ZSB3aXRoIHRoZSBmaXZlIHJlY2VudGx5Cj4gYWRkZWQgcGFu
+ZWwgZHJpdmVycyB1c2VkIGJ5IG9tYXBkcm0uCj4gCj4gQmVmb3JlIHRob3NlIHBhbmVsIGRyaXZl
+cnMsIG9tYXBkcm0gaGFkIGN1c3RvbSBkcml2ZXJzIGZvciB0aGUgcGFuZWxzLAo+IGFuZCBwcmVm
+aXhlZCB0aGUgT0YgY29tcGF0aWJsZSBzdHJpbmdzIHdpdGggYW4gIm9tYXBkc3MsIiBwcmVmaXgu
+IFRoZQo+IFNQSSBkZXZpY2UgSURzIGFyZSBjb25zdHJ1Y3RlZCBieSBzdHJpcHBpbmcgdGhlIE9G
+IGNvbXBhdGlibGUgc3RyaW5nCj4gZnJvbSB0aGUgcHJlZml4LCByZXN1bHRpbmcgaW4gdGhlICJv
+bWFwZHNzLCIgcHJlZml4IGJlaW5nIHJlbW92ZWQsIGJ1dAo+IHRoZSBzdWJzZXF1ZW5jZSBPRiB2
+ZW5kb3IgcHJlZml4IGJlaW5nIGtlcHQuIFRoZSBTUEkgZHJpdmVycyB0aHVzIGhhZAo+IG1vZHVs
+ZXMgYWxpYXNlcyB0aGF0IGNvbnRhaW5lZCB0aGUgdmVuZG9yIHByZWZpeC4KPiAKPiBOb3cgdGhh
+dCB0aGUgcGFuZWxzIGFyZSBzdXBwb3J0ZWQgYnkgc3RhbmRhcmQgZHJpdmVycyBhbmQgdGhlICJv
+bWFwZHNzLCIKPiBwcmVmaXggaXMgcmVtb3ZlZCwgdGhlIFNQSSBkZXZpY2UgSURzIGFyZSBzdHJp
+cHBlZCBmcm9tIHRoZSBPRiB2ZW5kb3IKPiBwcmVmaXguIEFzIHRoZSBuZXcgcGFuZWwgZHJpdmVy
+cyBjb3BpZWQgdGhlIG1vZHVsZSBhbGlhc2VzIGZyb20gdGhlCj4gb21hcGRybS1zcGVjaWZpYyBk
+cml2ZXJzLCB0aGV5IGNvbnRhaW4gdGhlIHZlbmRvciBwcmVmaXggaW4gdGhlaXIgU1BJCj4gbW9k
+dWxlIGFsaWFzZXMsIGFuZCBhcmUgdGh1cyBub3QgbG9hZGVkIGF1dG9tYXRpY2FsbHkuCj4gCj4g
+Rml4IHRoaXMgYnkgcmVtb3ZpbmcgdGhlIHZlbmRvciBwcmVmaXggZnJvbSB0aGUgU1BJIG1vZHVs
+ZXMgYWxpYXNlcyBpbgo+IHRoZSBkcml2ZXJzLiBGb3IgY29uc2lzdGVuY3kgcmVhc29uLCB0aGUg
+bWFudWFsIG1vZHVsZSBhbGlhc2VzIGFyZSBhbHNvCj4gbW92ZWQgdG8gdXNlIGFuIFNQSSBtb2R1
+bGUgdGFibGUuCgpHb29kIGV4cGxhbmF0aW9uIC0gdGhhbmtzLgoKPiAKPiBUaGVzZSBwYXRjaGVz
+IGFyZSBiYXNlZCBvbiB0aGUgZHJtLW1pc2MtZml4ZXMgYnJhbmNoIGFzIHRoZXkgZml4IHY1LjQK
+PiByZWdyZXNzaW9ucy4KPiAKPiBMYXVyZW50IFBpbmNoYXJ0ICg1KToKPiAgIGRybS9wYW5lbDog
+bGctbGIwMzVxMDI6IEZpeCBTUEkgYWxpYXMKPiAgIGRybS9wYW5lbDogbmVjLW5sODA0OGhsMTE6
+IEZpeCBTUEkgYWxpYXMKPiAgIGRybS9wYW5lbDogc29ueS1hY3g1NjVha206IEZpeCBTUEkgYWxp
+YXMKPiAgIGRybS9wYW5lbDogdHBvLXRkMDI4dHRlYzE6IEZpeCBTUEkgYWxpYXMKPiAgIGRybS9w
+YW5lbDogdHBvLXRkMDQzbXRlYTE6IEZpeCBTUEkgYWxpYXMKCkZ1bGwgc2VyaWVzIGlzOgpBY2tl
+ZC1ieTogU2FtIFJhdm5ib3JnIDxzYW1AcmF2bmJvcmcub3JnPgoKSSBleHBlY3Qgc29tZW9uZSBl
+bHNlIHRvIHBpY2sgdGhlbSB1cCBvciB0aGF0IHlvdSBhcHBseSB0aGVtLgoKCVNhbQpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
+ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
