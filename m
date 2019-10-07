@@ -1,78 +1,84 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 0/5] Fix SPI module alias for panels used by omapdrm
-Date: Mon, 7 Oct 2019 19:27:45 +0200
-Message-ID: <20191007172745.e7obunwprgdiclwk@earth.universe>
-References: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv2] wlcore: fix race for WL1271_FLAG_IRQ_RUNNING
+Date: Mon,  7 Oct 2019 10:28:00 -0700
+Message-ID: <20191007172800.64249-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0829100985=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, thierry.reding@gmail.com, Jyri Sarha <jsarha@ti.com>, letux-kernel@openphoenux.org, sam@ravnborg.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+We set WL1271_FLAG_IRQ_RUNNING in the beginning of wlcore_irq(), and test
+for it in wlcore_runtime_resume(). But WL1271_FLAG_IRQ_RUNNING currently
+gets cleared too early by wlcore_irq_locked() before wlcore_irq() is done
+calling it. And this will race against wlcore_runtime_resume() testing it.
 
---===============0829100985==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="6l3anbcfnqxbanzz"
-Content-Disposition: inline
+Let's set and clear IRQ_RUNNING in wlcore_irq() so wlcore_runtime_resume()
+can rely on it. And let's remove old comments about hardirq, that's no
+longer the case as we're using request_threaded_irq().
 
+This fixes occasional annoying wlcore firmware reboots stat start with
+"wlcore: WARNING ELP wakeup timeout!" followed by a multisecond latency
+when the wlcore firmware gets wrongly rebooted waiting for an ELP wake
+interrupt that won't be coming.
 
---6l3anbcfnqxbanzz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Note that I also suspect some form of this issue was the root cause why
+the wlcore GPIO interrupt has been often configured as a level interrupt
+instead of edge as an attempt to work around the ELP wake timeout errors.
 
-Hi,
+Fixes: fa2648a34e73 ("wlcore: Add support for runtime PM")
+Cc: Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: Guy Mishol <guym-l0cyMroinI0@public.gmane.org>
+Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
 
-On Mon, Oct 07, 2019 at 08:07:56PM +0300, Laurent Pinchart wrote:
-> This patch series fixes a module alias issue with the five recently
-> added panel drivers used by omapdrm.
+Changes since v1:
 
-For the whole series:
+- Add locking around clear_bit like we do elsewhere in the driver
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+ drivers/net/wireless/ti/wlcore/main.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
--- Sebastian
-
---6l3anbcfnqxbanzz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl2bdY0ACgkQ2O7X88g7
-+ppcMw//R+no2w6dsdlDSaOCK/KGfl9/Zag/UlNED/KhLLbD4m9KCs5kfUR2e11S
-BLfqv7I5m0hPIW2/t57YC58pMiZJHR+VwVAgpUwyFRaPzBYh+WLjuGDu/ZhKHwSD
-mreHbqJGFo3lxWKmSRXL9/qsAxdgyt+0Ge4GmqnLEy4mI0UmZBl/C2lOQzJJeJqs
-mbUSBgXeK5MBgsUGX9d4sAEmgCM+SE/tD57cxmNFShA8WJw8+IBDKMvCzXUWOv0Y
-gL5udj/ZiZ124g5iZkcsfuMIl2fzr5xwCJ3VUdxRlYYmJd8+XUlKoI2QAM34+qgs
-GGhqxmh+g2crHHuzJXNN7exwS0v8f+jF61Evo+whanNXOVE531iqMO+EOySxs6HF
-Szuap7KNTrzouANBOiTwqeZBx9jePxyJCCu23pAEP1yoAgSMe2Aj+YmWcMqCjMWU
-zmRvZuF9Nh3jPa+v5VCFKS0ywCEhZME2iOd0ua1A50i/XKRJ35L6e62BUh8yW60l
-CxU58A9YUO2x+nzG3QlvnroBdQIEpjLp3tnhsBC0E7cMicrQ2RncRxgpqw63P201
-+uaIX7j8PXQ4SUwA587026IRWCdXzZepD1Y+nsXUboOtFY6BhZMpRGJf0payP3bT
-Hd9KikLDwiC9rWTJpnVdq7q1M2KBd2EdLIy22X0maaWLY7RKm9Y=
-=WZC1
------END PGP SIGNATURE-----
-
---6l3anbcfnqxbanzz--
-
---===============0829100985==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-
---===============0829100985==--
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -544,11 +544,6 @@ static int wlcore_irq_locked(struct wl1271 *wl)
+ 	}
+ 
+ 	while (!done && loopcount--) {
+-		/*
+-		 * In order to avoid a race with the hardirq, clear the flag
+-		 * before acknowledging the chip.
+-		 */
+-		clear_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags);
+ 		smp_mb__after_atomic();
+ 
+ 		ret = wlcore_fw_status(wl, wl->fw_status);
+@@ -668,7 +663,7 @@ static irqreturn_t wlcore_irq(int irq, void *cookie)
+ 		disable_irq_nosync(wl->irq);
+ 		pm_wakeup_event(wl->dev, 0);
+ 		spin_unlock_irqrestore(&wl->wl_lock, flags);
+-		return IRQ_HANDLED;
++		goto out_handled;
+ 	}
+ 	spin_unlock_irqrestore(&wl->wl_lock, flags);
+ 
+@@ -692,6 +687,11 @@ static irqreturn_t wlcore_irq(int irq, void *cookie)
+ 
+ 	mutex_unlock(&wl->mutex);
+ 
++out_handled:
++	spin_lock_irqsave(&wl->wl_lock, flags);
++	clear_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags);
++	spin_unlock_irqrestore(&wl->wl_lock, flags);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+-- 
+2.23.0
