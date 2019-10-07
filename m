@@ -1,8 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 3/3] bus: ti-sysc: avoid toggling power state of module during
- probe
-Date: Mon, 7 Oct 2019 15:29:31 +0300
-Message-ID: <20191007122931.18668-4-t-kristo@ti.com>
+Subject: [PATCH 2/3] bus: ti-sysc: drop the extra hardreset during init
+Date: Mon, 7 Oct 2019 15:29:30 +0300
+Message-ID: <20191007122931.18668-3-t-kristo@ti.com>
 References: <20191007122931.18668-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,92 +21,79 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Current implementation for ti-sysc powers down the module once module
-init is complete. However, right after power is disabled, it is enabled
-via runtime PM. This is unnecessary so avoid it by re-ordering the
-events a bit; move powering down of the module post runtime PM enable
-which makes sure the use counts are maintained properly and there is
-no extra power down/up sequence for the module.
+There seems to be unnecessary extra hardreset line toggling applied
+during module init. This is unnecessary, as the reset lines are already
+asserted during boot, and it can cause certain modules to hang (iommus,
+remoteprocs.) Remove the extra hardreset toggle, and remove the now
+redundant function to handle this also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/bus/ti-sysc.c | 32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ drivers/bus/ti-sysc.c | 37 +------------------------------------
+ 1 file changed, 1 insertion(+), 36 deletions(-)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 6f392469d5b0..5b69457fa857 100644
+index c9d01e2d3a64..6f392469d5b0 100644
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -1580,11 +1580,6 @@ static int sysc_reset(struct sysc *ddata)
- static int sysc_init_module(struct sysc *ddata)
- {
- 	int error = 0;
--	bool manage_clocks = true;
+@@ -1518,37 +1518,6 @@ static int sysc_legacy_init(struct sysc *ddata)
+ 	return error;
+ }
+ 
+-/**
+- * sysc_rstctrl_reset_deassert - deassert rstctrl reset
+- * @ddata: device driver data
+- * @reset: reset before deassert
+- *
+- * A module can have both OCP softreset control and external rstctrl.
+- * If more complicated rstctrl resets are needed, please handle these
+- * directly from the child device driver and map only the module reset
+- * for the parent interconnect target module device.
+- *
+- * Automatic reset of the module on init can be skipped with the
+- * "ti,no-reset-on-init" device tree property.
+- */
+-static int sysc_rstctrl_reset_deassert(struct sysc *ddata, bool reset)
+-{
+-	int error;
 -
--	if (ddata->cfg.quirks &
--	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))
--		manage_clocks = false;
+-	if (!ddata->rsts)
+-		return 0;
+-
+-	if (reset) {
+-		error = reset_control_assert(ddata->rsts);
+-		if (error)
+-			return error;
+-	}
+-
+-	reset_control_deassert(ddata->rsts);
+-
+-	return 0;
+-}
+-
+ /*
+  * Note that the caller must ensure the interconnect target module is enabled
+  * before calling reset. Otherwise reset will not complete.
+@@ -1613,10 +1582,6 @@ static int sysc_init_module(struct sysc *ddata)
+ 	int error = 0;
+ 	bool manage_clocks = true;
  
- 	error = sysc_clockdomain_init(ddata);
- 	if (error)
-@@ -1617,28 +1612,32 @@ static int sysc_init_module(struct sysc *ddata)
- 	if (ddata->legacy_mode) {
- 		error = sysc_legacy_init(ddata);
+-	error = sysc_rstctrl_reset_deassert(ddata, false);
+-	if (error)
+-		return error;
+-
+ 	if (ddata->cfg.quirks &
+ 	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))
+ 		manage_clocks = false;
+@@ -1640,7 +1605,7 @@ static int sysc_init_module(struct sysc *ddata)
+ 		goto err_opt_clocks;
+ 
+ 	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)) {
+-		error = sysc_rstctrl_reset_deassert(ddata, true);
++		error = reset_control_deassert(ddata->rsts);
  		if (error)
--			goto err_main_clocks;
-+			goto err_reset;
+ 			goto err_main_clocks;
  	}
- 
- 	if (!ddata->legacy_mode) {
- 		error = sysc_enable_module(ddata->dev);
- 		if (error)
--			goto err_main_clocks;
-+			goto err_reset;
- 	}
- 
- 	error = sysc_reset(ddata);
- 	if (error)
- 		dev_err(ddata->dev, "Reset failed with %d\n", error);
- 
--	if (!ddata->legacy_mode && manage_clocks)
-+	if (error && !ddata->legacy_mode)
- 		sysc_disable_module(ddata->dev);
- 
-+err_reset:
-+	if (error && !(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT))
-+		reset_control_assert(ddata->rsts);
-+
- err_main_clocks:
--	if (manage_clocks)
-+	if (error)
- 		sysc_disable_main_clocks(ddata);
- err_opt_clocks:
- 	/* No re-enable of clockdomain autoidle to prevent module autoidle */
--	if (manage_clocks) {
-+	if (error) {
- 		sysc_disable_opt_clocks(ddata);
- 		sysc_clkdm_allow_idle(ddata);
- 	}
-@@ -2411,9 +2410,16 @@ static int sysc_probe(struct platform_device *pdev)
- 		goto unprepare;
- 	}
- 
--	/* Balance reset counts */
--	if (ddata->rsts)
--		reset_control_assert(ddata->rsts);
-+	/* Balance use counts as PM runtime should have enabled these all */
-+	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT))
-+		reset_control_assert(ddata->rsts);
-+
-+	if (!(ddata->cfg.quirks &
-+	      (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))) {
-+		sysc_disable_main_clocks(ddata);
-+		sysc_disable_opt_clocks(ddata);
-+		sysc_clkdm_allow_idle(ddata);
-+	}
- 
- 	sysc_show_registers(ddata);
- 
 -- 
 2.17.1
 
