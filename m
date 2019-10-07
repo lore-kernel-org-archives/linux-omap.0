@@ -1,62 +1,80 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/5] Fix SPI module alias for panels used by omapdrm
-Date: Mon, 7 Oct 2019 20:44:26 +0300
-Message-ID: <20191007174426.GF11781@pendragon.ideasonboard.com>
-References: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
- <20191007172256.GA1956@ravnborg.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Set status to disable for MMC3
+Date: Mon, 7 Oct 2019 10:46:22 -0700
+Message-ID: <20191007174622.GW5610@atomide.com>
+References: <20191007080339.57209-1-manu@freebsd.org>
+ <20191007161634.GS5610@atomide.com>
+ <20191007183830.71e1303d6bd713014dc36710@bidouilliste.com>
+ <20191007165859.GV5610@atomide.com>
+ <20191007192922.7ce3423bd1fd03551487e907@bidouilliste.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191007172256.GA1956@ravnborg.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, thierry.reding@gmail.com, Jyri Sarha <jsarha@ti.com>, letux-kernel@openphoenux.org
+In-Reply-To: <20191007192922.7ce3423bd1fd03551487e907@bidouilliste.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Emmanuel Vadot <manu@bidouilliste.com>
+Cc: Emmanuel Vadot <manu@freebsd.org>, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2FtLAoKT24gTW9uLCBPY3QgMDcsIDIwMTkgYXQgMDc6MjI6NTZQTSArMDIwMCwgU2FtIFJh
-dm5ib3JnIHdyb3RlOgo+IEhpIExhdXJlbnQuCj4gT24gTW9uLCBPY3QgMDcsIDIwMTkgYXQgMDg6
-MDc6NTZQTSArMDMwMCwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToKPiA+IEhlbGxvLAo+ID4gCj4g
-PiBUaGlzIHBhdGNoIHNlcmllcyBmaXhlcyBhIG1vZHVsZSBhbGlhcyBpc3N1ZSB3aXRoIHRoZSBm
-aXZlIHJlY2VudGx5Cj4gPiBhZGRlZCBwYW5lbCBkcml2ZXJzIHVzZWQgYnkgb21hcGRybS4KPiA+
-IAo+ID4gQmVmb3JlIHRob3NlIHBhbmVsIGRyaXZlcnMsIG9tYXBkcm0gaGFkIGN1c3RvbSBkcml2
-ZXJzIGZvciB0aGUgcGFuZWxzLAo+ID4gYW5kIHByZWZpeGVkIHRoZSBPRiBjb21wYXRpYmxlIHN0
-cmluZ3Mgd2l0aCBhbiAib21hcGRzcywiIHByZWZpeC4gVGhlCj4gPiBTUEkgZGV2aWNlIElEcyBh
-cmUgY29uc3RydWN0ZWQgYnkgc3RyaXBwaW5nIHRoZSBPRiBjb21wYXRpYmxlIHN0cmluZwo+ID4g
-ZnJvbSB0aGUgcHJlZml4LCByZXN1bHRpbmcgaW4gdGhlICJvbWFwZHNzLCIgcHJlZml4IGJlaW5n
-IHJlbW92ZWQsIGJ1dAo+ID4gdGhlIHN1YnNlcXVlbmNlIE9GIHZlbmRvciBwcmVmaXggYmVpbmcg
-a2VwdC4gVGhlIFNQSSBkcml2ZXJzIHRodXMgaGFkCj4gPiBtb2R1bGVzIGFsaWFzZXMgdGhhdCBj
-b250YWluZWQgdGhlIHZlbmRvciBwcmVmaXguCj4gPiAKPiA+IE5vdyB0aGF0IHRoZSBwYW5lbHMg
-YXJlIHN1cHBvcnRlZCBieSBzdGFuZGFyZCBkcml2ZXJzIGFuZCB0aGUgIm9tYXBkc3MsIgo+ID4g
-cHJlZml4IGlzIHJlbW92ZWQsIHRoZSBTUEkgZGV2aWNlIElEcyBhcmUgc3RyaXBwZWQgZnJvbSB0
-aGUgT0YgdmVuZG9yCj4gPiBwcmVmaXguIEFzIHRoZSBuZXcgcGFuZWwgZHJpdmVycyBjb3BpZWQg
-dGhlIG1vZHVsZSBhbGlhc2VzIGZyb20gdGhlCj4gPiBvbWFwZHJtLXNwZWNpZmljIGRyaXZlcnMs
-IHRoZXkgY29udGFpbiB0aGUgdmVuZG9yIHByZWZpeCBpbiB0aGVpciBTUEkKPiA+IG1vZHVsZSBh
-bGlhc2VzLCBhbmQgYXJlIHRodXMgbm90IGxvYWRlZCBhdXRvbWF0aWNhbGx5Lgo+ID4gCj4gPiBG
-aXggdGhpcyBieSByZW1vdmluZyB0aGUgdmVuZG9yIHByZWZpeCBmcm9tIHRoZSBTUEkgbW9kdWxl
-cyBhbGlhc2VzIGluCj4gPiB0aGUgZHJpdmVycy4gRm9yIGNvbnNpc3RlbmN5IHJlYXNvbiwgdGhl
-IG1hbnVhbCBtb2R1bGUgYWxpYXNlcyBhcmUgYWxzbwo+ID4gbW92ZWQgdG8gdXNlIGFuIFNQSSBt
-b2R1bGUgdGFibGUuCj4gCj4gR29vZCBleHBsYW5hdGlvbiAtIHRoYW5rcy4KPiAKPiA+IFRoZXNl
-IHBhdGNoZXMgYXJlIGJhc2VkIG9uIHRoZSBkcm0tbWlzYy1maXhlcyBicmFuY2ggYXMgdGhleSBm
-aXggdjUuNAo+ID4gcmVncmVzc2lvbnMuCj4gPiAKPiA+IExhdXJlbnQgUGluY2hhcnQgKDUpOgo+
-ID4gICBkcm0vcGFuZWw6IGxnLWxiMDM1cTAyOiBGaXggU1BJIGFsaWFzCj4gPiAgIGRybS9wYW5l
-bDogbmVjLW5sODA0OGhsMTE6IEZpeCBTUEkgYWxpYXMKPiA+ICAgZHJtL3BhbmVsOiBzb255LWFj
-eDU2NWFrbTogRml4IFNQSSBhbGlhcwo+ID4gICBkcm0vcGFuZWw6IHRwby10ZDAyOHR0ZWMxOiBG
-aXggU1BJIGFsaWFzCj4gPiAgIGRybS9wYW5lbDogdHBvLXRkMDQzbXRlYTE6IEZpeCBTUEkgYWxp
-YXMKPiAKPiBGdWxsIHNlcmllcyBpczoKPiBBY2tlZC1ieTogU2FtIFJhdm5ib3JnIDxzYW1AcmF2
-bmJvcmcub3JnPgo+IAo+IEkgZXhwZWN0IHNvbWVvbmUgZWxzZSB0byBwaWNrIHRoZW0gdXAgb3Ig
-dGhhdCB5b3UgYXBwbHkgdGhlbS4KCkknZCBsaWtlIHNvbWVvbmUgdG8gdGVzdCB0aGUgcGF0Y2hl
-cyBmaXJzdCBpZiBwb3NzaWJsZSA6LSkgVG9taSwgY291bGQKeW91IHRoZW4gcGljayB0aGVzZSB1
-cCBhcyB2NS40IGZpeGVzID8KCi0tIApSZWdhcmRzLAoKTGF1cmVudCBQaW5jaGFydApfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
-ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+* Emmanuel Vadot <manu@bidouilliste.com> [191007 17:30]:
+> On Mon, 7 Oct 2019 09:58:59 -0700
+> Tony Lindgren <tony@atomide.com> wrote:
+> > There should be no need to do that for SoC internal devices, the
+> > the default status = "okay" should be just fine. Setting the
+> > status = "disabled" for SoC internal devices and then enabling them
+> > again for tens of board specific dts files just generates tons of
+> > pointless extra churn for the board specific configuration.
+> 
+>  Setting the status = "okay" means that you can use the device. What's
+> the point of enabling a device if you can't use it ? Or worse can't
+> probe it like i2c or spi ?
+
+The main reasons for not setting SoC internal devices with
+status = "disabled" are:
+
+1. The SoC internal device is there for sure and also accessible
+   for the kernel
+
+2. Setting an SoC internal device with status = "disabled" makes
+   the kernel completely ignore it and it cannot be idled for PM
+   if left on from the bootloader
+
+3. We avoid tens of lines of pointess repetive status = "okay"
+   tinkering for multiple devices per each board specic dts file
+   making them more readable and easier to maintain
+
+>  Is the plan for TI dts to have every (or almost) device tree node
+> enabled even if the device isn't usable on the board ?
+
+This has always been the case with omap3, 4, and 5. I don't
+know when folks started tagging am33xx SoC internal devices as
+disabled but that should have never been necessary.
+
+Few years back I suggested some patches for status = "incomplete"
+to deal with cases where the device is there but not pinned
+out or otherwise not complete. But so far we've gotten away
+without that, so probably not needed.
+
+> > >  In this case it's FreeBSD being  because (I think) we have bad support
+> > > for the clocks for this module so we panic when we read from it as the
+> > > module isn't clocked. And since I find it wrong to have device enabled
+> > > while it isn't present I've sent this patch.
+> > 
+> > Thanks for clarifying what happens. OK, sounds like FreeBSD might be
+> > missing clock handling for some devices then.
+> > 
+> > What Linux does is probe the internal devices and then idle the
+> > unused ones as bootloaders often leave many things enabled. Otherwise
+> > the SoC power management won't work properly because device clocks
+> > will block deeper SoC idle states.
+> 
+>  I can understand stand but then the bootload should be fixed to not
+> enable devices that aren't enabled in the DTS if it does that.
+
+This is not doable as in many cases the bootloader cannot be
+updated as it can be signed for phones like n900 and droid4.
+
+Regards,
+
+Tony
