@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/3] bus: ti-sysc: drop the extra hardreset during init
-Date: Mon, 7 Oct 2019 15:29:30 +0300
-Message-ID: <20191007122931.18668-3-t-kristo@ti.com>
+Subject: [PATCH 1/3] bus: ti-sysc: re-order reset and main clock controls
+Date: Mon, 7 Oct 2019 15:29:29 +0300
+Message-ID: <20191007122931.18668-2-t-kristo@ti.com>
 References: <20191007122931.18668-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,79 +21,59 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-There seems to be unnecessary extra hardreset line toggling applied
-during module init. This is unnecessary, as the reset lines are already
-asserted during boot, and it can cause certain modules to hang (iommus,
-remoteprocs.) Remove the extra hardreset toggle, and remove the now
-redundant function to handle this also.
+The main clocks and reset controls have a hardware level dependency,
+where one can't transition state without the other one transitioning.
+Because we don't have the dependency implemented in software, we must
+ensure the ordering of these two is done properly; they way this is
+handled is that clocks transition on software level without delay,
+and the status is only polled on reset side. Because of this, we must
+re-order the main clock and reset handling on the ti-sysc driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/bus/ti-sysc.c | 37 +------------------------------------
- 1 file changed, 1 insertion(+), 36 deletions(-)
+ drivers/bus/ti-sysc.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index c9d01e2d3a64..6f392469d5b0 100644
+index 193d8b23d54d..c9d01e2d3a64 100644
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -1518,37 +1518,6 @@ static int sysc_legacy_init(struct sysc *ddata)
- 	return error;
- }
+@@ -1032,8 +1032,6 @@ static int __maybe_unused sysc_runtime_resume_legacy(struct device *dev,
+ 	struct ti_sysc_platform_data *pdata;
+ 	int error;
  
--/**
-- * sysc_rstctrl_reset_deassert - deassert rstctrl reset
-- * @ddata: device driver data
-- * @reset: reset before deassert
-- *
-- * A module can have both OCP softreset control and external rstctrl.
-- * If more complicated rstctrl resets are needed, please handle these
-- * directly from the child device driver and map only the module reset
-- * for the parent interconnect target module device.
-- *
-- * Automatic reset of the module on init can be skipped with the
-- * "ti,no-reset-on-init" device tree property.
-- */
--static int sysc_rstctrl_reset_deassert(struct sysc *ddata, bool reset)
--{
--	int error;
--
--	if (!ddata->rsts)
--		return 0;
--
--	if (reset) {
--		error = reset_control_assert(ddata->rsts);
--		if (error)
--			return error;
--	}
--
 -	reset_control_deassert(ddata->rsts);
 -
--	return 0;
--}
--
- /*
-  * Note that the caller must ensure the interconnect target module is enabled
-  * before calling reset. Otherwise reset will not complete.
-@@ -1613,10 +1582,6 @@ static int sysc_init_module(struct sysc *ddata)
- 	int error = 0;
- 	bool manage_clocks = true;
+ 	pdata = dev_get_platdata(ddata->dev);
+ 	if (!pdata)
+ 		return 0;
+@@ -1046,6 +1044,8 @@ static int __maybe_unused sysc_runtime_resume_legacy(struct device *dev,
+ 		dev_err(dev, "%s: could not enable: %i\n",
+ 			__func__, error);
  
--	error = sysc_rstctrl_reset_deassert(ddata, false);
--	if (error)
--		return error;
++	reset_control_deassert(ddata->rsts);
++
+ 	return 0;
+ }
+ 
+@@ -1099,8 +1099,6 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
+ 
+ 	sysc_clkdm_deny_idle(ddata);
+ 
+-	reset_control_deassert(ddata->rsts);
 -
- 	if (ddata->cfg.quirks &
- 	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))
- 		manage_clocks = false;
-@@ -1640,7 +1605,7 @@ static int sysc_init_module(struct sysc *ddata)
+ 	if (sysc_opt_clks_needed(ddata)) {
+ 		error = sysc_enable_opt_clocks(ddata);
+ 		if (error)
+@@ -1111,6 +1109,8 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
+ 	if (error)
  		goto err_opt_clocks;
  
- 	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)) {
--		error = sysc_rstctrl_reset_deassert(ddata, true);
-+		error = reset_control_deassert(ddata->rsts);
++	reset_control_deassert(ddata->rsts);
++
+ 	if (ddata->legacy_mode) {
+ 		error = sysc_runtime_resume_legacy(dev, ddata);
  		if (error)
- 			goto err_main_clocks;
- 	}
 -- 
 2.17.1
 
