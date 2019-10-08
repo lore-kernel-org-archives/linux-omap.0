@@ -1,47 +1,37 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv8 1/9] dt-bindings: omap: add new binding for PRM instances
-Date: Wed, 9 Oct 2019 09:52:37 +0300
-Message-ID: <115ab938-e025-98fa-3b9e-0b3ced39307d@ti.com>
-References: <20191008125544.20679-1-t-kristo@ti.com>
- <20191008125544.20679-2-t-kristo@ti.com>
- <20191008154655.u34wkbqgmelv3aea@earth.universe>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 7/7] drm/omap: hdmi4: fix use of uninitialized var
+Date: Tue, 8 Oct 2019 07:13:35 -0700
+Message-ID: <20191008141335.GB5610@atomide.com>
+References: <20190930103840.18970-1-tomi.valkeinen@ti.com>
+ <20190930103840.18970-8-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191008154655.u34wkbqgmelv3aea@earth.universe>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: devicetree@vger.kernel.org, tony@atomide.com, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20190930103840.18970-8-tomi.valkeinen@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/10/2019 18:46, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Tue, Oct 08, 2019 at 03:55:36PM +0300, Tero Kristo wrote:
->> +Example:
->> +
->> +prm_dsp2: prm@1b00 {
->> +	compatible = "ti,omap-prm-inst", "ti,dra7-prm-inst";
-> 
-> Nit: compatible values are sorted the other way around (most
-> specific first).
-
-Hmm right, I would not like to re-post the whole series just for this 
-seeing all the acks are in place already.
-
-Santosh, do you want to fix this locally or shall we post a separate 
-patch later on to fix this?
-
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkwOTMwIDEwOjM4XToK
+PiBJZiB1c2VfbWNsayBpcyBmYWxzZSwgbWNsa19tb2RlIGlzIHdyaXR0ZW4gdG8gYSByZWdpc3Rl
+ciB3aXRob3V0Cj4gaW5pdGlhbGl6YXRpb24uIFRoaXMgZG9lc24ndCBjYXVzZSBhbnkgaWxsIGVm
+ZmVjdHMgYXMgdGhlIHdyaXR0ZW4gdmFsdWUKPiBpcyBub3QgdXNlZCB3aGVuIHVzZV9tY2xrIGlz
+IGZhbHNlLgo+IAo+IFRvIGZpeCB0aGlzLCB3cml0ZSB1c2VfbWNsayBvbmx5IHdoZW4gdXNlX21j
+bGsgaXMgdHJ1ZS4KCkhleSBuaWNlIGNhdGNoLiBCYXNlZCBvbiBhIHF1aWNrIHRlc3QgbG9va3Mg
+bGlrZSB0aGlzIGZpeGVzIGFuCmlzc3VlIHdoZXJlIHBvd2VyIGNvbnN1bXB0aW9uIHN0YXlzIGhp
+Z2hlciBhZnRlciB1c2luZyBIRE1JLgoKV291bGQgYmUgbmljZSB0byBoYXZlIG1lcmdlZCBpbiB0
+aGUgdjUuNC1yYyBzZXJpZXM6CgpUZXN0ZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlk
+ZS5jb20+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
+aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
+czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
