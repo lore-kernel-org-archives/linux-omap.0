@@ -1,46 +1,47 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 7/7] drm/omap: hdmi4: fix use of uninitialized var
-Date: Tue, 8 Oct 2019 17:16:30 +0300
-Message-ID: <ffb498fb-5041-d3e9-2702-879f3d389adf@ti.com>
-References: <20190930103840.18970-1-tomi.valkeinen@ti.com>
- <20190930103840.18970-8-tomi.valkeinen@ti.com>
- <20191008141335.GB5610@atomide.com>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCHv2] wlcore: fix race for WL1271_FLAG_IRQ_RUNNING
+Date: Tue, 08 Oct 2019 17:16:36 +0300
+Message-ID: <87h84j7263.fsf@kamboji.qca.qualcomm.com>
+References: <20191007172800.64249-1-tony@atomide.com>
+        <20191008140556.GZ5610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191008141335.GB5610@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Content-Type: text/plain
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20191008140556.GZ5610-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
+        "Tue, 8 Oct 2019 07:05:56 -0700")
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDgvMTAvMjAxOSAxNzoxMywgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIFRvbWkgVmFsa2Vp
-bmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+IFsxOTA5MzAgMTA6MzhdOgo+PiBJZiB1c2VfbWNs
-ayBpcyBmYWxzZSwgbWNsa19tb2RlIGlzIHdyaXR0ZW4gdG8gYSByZWdpc3RlciB3aXRob3V0Cj4+
-IGluaXRpYWxpemF0aW9uLiBUaGlzIGRvZXNuJ3QgY2F1c2UgYW55IGlsbCBlZmZlY3RzIGFzIHRo
-ZSB3cml0dGVuIHZhbHVlCj4+IGlzIG5vdCB1c2VkIHdoZW4gdXNlX21jbGsgaXMgZmFsc2UuCj4+
-Cj4+IFRvIGZpeCB0aGlzLCB3cml0ZSB1c2VfbWNsayBvbmx5IHdoZW4gdXNlX21jbGsgaXMgdHJ1
-ZS4KPiAKPiBIZXkgbmljZSBjYXRjaC4gQmFzZWQgb24gYSBxdWljayB0ZXN0IGxvb2tzIGxpa2Ug
-dGhpcyBmaXhlcyBhbgo+IGlzc3VlIHdoZXJlIHBvd2VyIGNvbnN1bXB0aW9uIHN0YXlzIGhpZ2hl
-ciBhZnRlciB1c2luZyBIRE1JLgo+IAo+IFdvdWxkIGJlIG5pY2UgdG8gaGF2ZSBtZXJnZWQgaW4g
-dGhlIHY1LjQtcmMgc2VyaWVzOgo+IAo+IFRlc3RlZC1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
-dG9taWRlLmNvbT4KClJlYWxseT8gT2ssIHdlbGwsIHRoZW4gaXQgd2FzIGEgZ29vZCByYW5kb20g
-ZmluZCA9KS4KCkkgZGlkIGFscmVhZHkgcHVzaCB0aGlzIHRvIGRybS1taXNjLW5leHQsIGFzIEkg
-dGhvdWdodCBpdCBkb2VzIG5vdCBoYXZlIAphbnkgcmVhbCBlZmZlY3QuIEknbGwgY2hlY2sgaWYg
-aXQncyBvayB0byBwdXNoIHRvIGRybS1taXNjLWZpeGVzIHRvbywgCndpdGggQ2Mgc3RhYmxlLgoK
-ICBUb21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAy
-MiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlw
-YWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2RyaS1kZXZlbA==
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [191007 17:29]:
+>> We set WL1271_FLAG_IRQ_RUNNING in the beginning of wlcore_irq(), and test
+>> for it in wlcore_runtime_resume(). But WL1271_FLAG_IRQ_RUNNING currently
+>> gets cleared too early by wlcore_irq_locked() before wlcore_irq() is done
+>> calling it. And this will race against wlcore_runtime_resume() testing it.
+>> 
+>> Let's set and clear IRQ_RUNNING in wlcore_irq() so wlcore_runtime_resume()
+>> can rely on it. And let's remove old comments about hardirq, that's no
+>> longer the case as we're using request_threaded_irq().
+>> 
+>> This fixes occasional annoying wlcore firmware reboots stat start with
+>> "wlcore: WARNING ELP wakeup timeout!" followed by a multisecond latency
+>> when the wlcore firmware gets wrongly rebooted waiting for an ELP wake
+>> interrupt that won't be coming.
+>> 
+>> Note that I also suspect some form of this issue was the root cause why
+>> the wlcore GPIO interrupt has been often configured as a level interrupt
+>> instead of edge as an attempt to work around the ELP wake timeout errors.
+>
+> So this fixed a reproducable test case where loading some webpages
+> often produced ELP timeout errors. But looks like I'm still seeing ELP
+> timeouts elsewhere. So best to wait on this one. Something is still
+> wrong with the ELP timeout handling.
+
+Ok, I'll drop this then. Please send v3 once you think the patch is
+ready to be applied.
+
+-- 
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
