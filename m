@@ -1,8 +1,7 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 07/11] ARM: OMAP2+: prm44xx: make prm_{save,
- restore}_context static
-Date: Tue,  8 Oct 2019 13:34:49 +0100
-Message-ID: <20191008123453.1651-7-ben.dooks@codethink.co.uk>
+Subject: [PATCH 06/11] ARM: OMAP2+: do not export am43xx_control functions
+Date: Tue,  8 Oct 2019 13:34:48 +0100
+Message-ID: <20191008123453.1651-6-ben.dooks@codethink.co.uk>
 References: <20191008123453.1651-1-ben.dooks@codethink.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,41 +21,41 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: linux-kernel@lists.codethink.co.uk, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Ben Dooks <ben.dooks@codethink.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-The prm_{save,restore}_context functions are not exported
-so make them static to avoid the following warnings:
+Do not export am43xx_control_{save,restore}_context to avoid
+the foloowing warnings:
 
-arch/arm/mach-omap2/prm44xx.c:748:6: warning: symbol 'prm_save_context' was not declared. Should it be static?
-arch/arm/mach-omap2/prm44xx.c:759:6: warning: symbol 'prm_restore_context' was not declared. Should it be static?
+arch/arm/mach-omap2/control.c:687:6: warning: symbol 'am43xx_control_save_context' was not declared. Should it be static?
+arch/arm/mach-omap2/control.c:701:6: warning: symbol 'am43xx_control_restore_context' was not declared. Should it be static?
 
 Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
-Cc: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 ---
- arch/arm/mach-omap2/prm44xx.c | 4 ++--
+ arch/arm/mach-omap2/control.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 1d9346f2a4ae..25093c1e5b9a 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -745,7 +745,7 @@ struct pwrdm_ops omap4_pwrdm_operations = {
- 
- static int omap44xx_prm_late_init(void);
- 
--void prm_save_context(void)
-+static void prm_save_context(void)
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index c84b5e260617..73338cf80d76 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -684,7 +684,7 @@ static u32 am33xx_control_vals[ARRAY_SIZE(am43xx_control_reg_offsets)];
+  *
+  * Save the wkup domain registers
+  */
+-void am43xx_control_save_context(void)
++static void am43xx_control_save_context(void)
  {
- 	omap_prm_context.irq_enable =
- 			omap4_prm_read_inst_reg(AM43XX_PRM_OCP_SOCKET_INST,
-@@ -756,7 +756,7 @@ void prm_save_context(void)
- 						omap4_prcm_irq_setup.pm_ctrl);
- }
+ 	int i;
  
--void prm_restore_context(void)
-+static void prm_restore_context(void)
+@@ -698,7 +698,7 @@ void am43xx_control_save_context(void)
+  *
+  * Restore the wkup domain registers
+  */
+-void am43xx_control_restore_context(void)
++static void am43xx_control_restore_context(void)
  {
- 	omap4_prm_write_inst_reg(omap_prm_context.irq_enable,
- 				 OMAP4430_PRM_OCP_SOCKET_INST,
+ 	int i;
+ 
 -- 
 2.23.0
