@@ -1,13 +1,17 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 06/11] ARM: OMAP2+: do not export am43xx_control functions
-Date: Tue,  8 Oct 2019 13:34:48 +0100
-Message-ID: <20191008123453.1651-6-ben.dooks@codethink.co.uk>
-References: <20191008123453.1651-1-ben.dooks@codethink.co.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 2/9] soc: ti: add initial PRM driver with reset control
+ support
+Date: Tue, 8 Oct 2019 15:42:05 +0300
+Message-ID: <5a2833e7-b967-c5fd-f50a-89dbd3ddf1a1@ti.com>
+References: <20191008071913.28740-1-t-kristo@ti.com>
+ <20191008071913.28740-3-t-kristo@ti.com>
+ <1570534767.18914.1.camel@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191008123453.1651-1-ben.dooks@codethink.co.uk>
+In-Reply-To: <1570534767.18914.1.camel@pengutronix.de>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,45 +21,222 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@lists.codethink.co.uk, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Ben Dooks <ben.dooks@codethink.co.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-omap@vger.kernel.org, ssantosh@kernel.org
+Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Do not export am43xx_control_{save,restore}_context to avoid
-the foloowing warnings:
+On 08/10/2019 14:39, Philipp Zabel wrote:
+> On Tue, 2019-10-08 at 10:19 +0300, Tero Kristo wrote:
+>> Add initial PRM (Power and Reset Management) driver for TI OMAP class
+>> SoCs. Initially this driver only supports reset control, but can be
+>> extended to support rest of the functionality, like powerdomain
+>> control, PRCM irq support etc.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/Kconfig |   1 +
+>>   drivers/soc/ti/Makefile     |   1 +
+>>   drivers/soc/ti/omap_prm.c   | 259 ++++++++++++++++++++++++++++++++++++
+>>   3 files changed, 261 insertions(+)
+>>   create mode 100644 drivers/soc/ti/omap_prm.c
+>>
+>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+>> index fdb6743760a2..ad08d470a2ca 100644
+>> --- a/arch/arm/mach-omap2/Kconfig
+>> +++ b/arch/arm/mach-omap2/Kconfig
+>> @@ -109,6 +109,7 @@ config ARCH_OMAP2PLUS
+>>   	select TI_SYSC
+>>   	select OMAP_IRQCHIP
+>>   	select CLKSRC_TI_32K
+>> +	select ARCH_HAS_RESET_CONTROLLER
+>>   	help
+>>   	  Systems based on OMAP2, OMAP3, OMAP4 or OMAP5
+>>   
+>> diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
+>> index b3868d392d4f..788b5cd1e180 100644
+>> --- a/drivers/soc/ti/Makefile
+>> +++ b/drivers/soc/ti/Makefile
+>> @@ -6,6 +6,7 @@ obj-$(CONFIG_KEYSTONE_NAVIGATOR_QMSS)	+= knav_qmss.o
+>>   knav_qmss-y := knav_qmss_queue.o knav_qmss_acc.o
+>>   obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
+>>   obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
+>> +obj-$(CONFIG_ARCH_OMAP2PLUS)		+= omap_prm.o
+>>   obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
+>>   obj-$(CONFIG_TI_SCI_PM_DOMAINS)		+= ti_sci_pm_domains.o
+>>   obj-$(CONFIG_TI_SCI_INTA_MSI_DOMAIN)	+= ti_sci_inta_msi.o
+>> diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+>> new file mode 100644
+>> index 000000000000..ab0b66ad715d
+>> --- /dev/null
+>> +++ b/drivers/soc/ti/omap_prm.c
+>> @@ -0,0 +1,259 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>> +/*
+>> + * OMAP2+ PRM driver
+>> + *
+>> + * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
+>> + *	Tero Kristo <t-kristo@ti.com>
+>> + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/device.h>
+>> +#include <linux/io.h>
+>> +#include <linux/iopoll.h>
+>> +#include <linux/of.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/reset-controller.h>
+>> +#include <linux/delay.h>
+>> +
+>> +struct omap_rst_map {
+>> +	s8 rst;
+>> +	s8 st;
+>> +};
+>> +
+>> +struct omap_prm_data {
+>> +	u32 base;
+>> +	const char *name;
+>> +	u16 rstctrl;
+>> +	u16 rstst;
+>> +	const struct omap_rst_map *rstmap;
+>> +	u8 flags;
+>> +};
+>> +
+>> +struct omap_prm {
+>> +	const struct omap_prm_data *data;
+>> +	void __iomem *base;
+>> +};
+>> +
+>> +struct omap_reset_data {
+>> +	struct reset_controller_dev rcdev;
+>> +	struct omap_prm *prm;
+>> +	u32 mask;
+>> +	spinlock_t lock;
+>> +};
+>> +
+>> +#define to_omap_reset_data(p) container_of((p), struct omap_reset_data, rcdev)
+>> +
+>> +#define OMAP_MAX_RESETS		8
+>> +#define OMAP_RESET_MAX_WAIT	10000
+>> +
+>> +#define OMAP_PRM_HAS_RSTCTRL	BIT(0)
+>> +#define OMAP_PRM_HAS_RSTST	BIT(1)
+>> +
+>> +#define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
+>> +
+>> +static const struct of_device_id omap_prm_id_table[] = {
+>> +	{ },
+>> +};
+>> +
+>> +static bool _is_valid_reset(struct omap_reset_data *reset, unsigned long id)
+>> +{
+>> +	if (reset->mask & BIT(id))
+>> +		return true;
+>> +
+>> +	return false;
+>> +}
+>> +
+>> +static int omap_reset_get_st_bit(struct omap_reset_data *reset,
+>> +				 unsigned long id)
+>> +{
+>> +	const struct omap_rst_map *map = reset->prm->data->rstmap;
+>> +
+>> +	while (map->rst >= 0) {
+>> +		if (map->rst == id)
+>> +			return map->st;
+>> +
+>> +		map++;
+>> +	}
+>> +
+>> +	return id;
+>> +}
+>> +
+>> +static int omap_reset_status(struct reset_controller_dev *rcdev,
+>> +			     unsigned long id)
+>> +{
+>> +	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
+>> +	u32 v;
+>> +	int st_bit = omap_reset_get_st_bit(reset, id);
+>> +	bool has_rstst = reset->prm->data->rstst ||
+>> +		(reset->prm->data->flags & OMAP_PRM_HAS_RSTST);
+>> +
+>> +	/* Check if we have rstst */
+>> +	if (!has_rstst)
+>> +		return -ENOTSUPP;
+>> +
+>> +	/* Check if hw reset line is asserted */
+>> +	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
+>> +	if (v & BIT(id))
+>> +		return 1;
+>> +
+>> +	/*
+>> +	 * Check reset status, high value means reset sequence has been
+>> +	 * completed successfully so we can return 0 here (reset deasserted)
+>> +	 */
+>> +	v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
+>> +	v >>= st_bit;
+>> +	v &= 1;
+>> +
+>> +	return !v;
+>> +}
+>> +
+>> +static int omap_reset_assert(struct reset_controller_dev *rcdev,
+>> +			     unsigned long id)
+>> +{
+>> +	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
+>> +	u32 v;
+>> +	unsigned long flags;
+>> +
+>> +	/* assert the reset control line */
+>> +	spin_lock_irqsave(&reset->lock, flags);
+>> +	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
+>> +	v |= 1 << id;
+>> +	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
+>> +	spin_unlock_irqrestore(&reset->lock, flags);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+>> +			       unsigned long id)
+>> +{
+>> +	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
+>> +	u32 v;
+>> +	int st_bit;
+>> +	bool has_rstst;
+>> +	unsigned long flags;
+>> +
+>> +	has_rstst = reset->prm->data->rstst ||
+>> +		(reset->prm->data->flags & OMAP_PRM_HAS_RSTST);
+>> +
+>> +	if (has_rstst) {
+>> +		st_bit = omap_reset_get_st_bit(reset, id);
+>> +
+>> +		/* Clear the reset status by writing 1 to the status bit */
+>> +		v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
+>> +		v |= 1 << st_bit;
+>> +		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
+> 
+> Could this accidentally clear the bits of other already completed
+> resets? If this is a "write 1 to clear" register, and writing zero bits
+> has no effect, I'd expect this to be just:
+> 
+> 		v = 1 << st_bit;
+> 		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
 
-arch/arm/mach-omap2/control.c:687:6: warning: symbol 'am43xx_control_save_context' was not declared. Should it be static?
-arch/arm/mach-omap2/control.c:701:6: warning: symbol 'am43xx_control_restore_context' was not declared. Should it be static?
+You are right, good catch there. Just checked against TRMs and 
+functionality in code and this is true, writing the status bit only as 1 
+suffices.
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
----
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
----
- arch/arm/mach-omap2/control.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Also checked the legacy hwmod based implementation for this, and it 
+seems like this has always been broken, however the reset signals are 
+quite fast to toggle so it hasn't caused any visible problems before...
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index c84b5e260617..73338cf80d76 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -684,7 +684,7 @@ static u32 am33xx_control_vals[ARRAY_SIZE(am43xx_control_reg_offsets)];
-  *
-  * Save the wkup domain registers
-  */
--void am43xx_control_save_context(void)
-+static void am43xx_control_save_context(void)
- {
- 	int i;
- 
-@@ -698,7 +698,7 @@ void am43xx_control_save_context(void)
-  *
-  * Restore the wkup domain registers
-  */
--void am43xx_control_restore_context(void)
-+static void am43xx_control_restore_context(void)
- {
- 	int i;
- 
--- 
-2.23.0
+> With this fixed (or, if I am mistaken, clarified):
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+Thanks, will post v8 with this fix.
+
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
