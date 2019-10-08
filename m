@@ -1,118 +1,228 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
- OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
-Date: Tue, 8 Oct 2019 11:00:46 +0300
-Message-ID: <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
-References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
- <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com>
- <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
- <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
- <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
- <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
- <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
- <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
- <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
- <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
- <20191007155252.GQ5610@atomide.com>
- <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com>
- <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCHv7 2/9] soc: ti: add initial PRM driver with reset
+ control support
+Date: Tue, 08 Oct 2019 13:39:27 +0200
+Message-ID: <1570534767.18914.1.camel@pengutronix.de>
+References: <20191008071913.28740-1-t-kristo@ti.com>
+ <20191008071913.28740-3-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="------------7ED48B5A386B4ABAF462F2A2"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Tony Lindgren <tony@atomide.com>, Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?UTF-8?Q?Pawe=c5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20191008071913.28740-3-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, ssantosh@kernel.org
+Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---------------7ED48B5A386B4ABAF462F2A2
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 07/10/2019 22:24, H. Nikolaus Schaller wrote:
-> Hi Tero,
+On Tue, 2019-10-08 at 10:19 +0300, Tero Kristo wrote:
+> Add initial PRM (Power and Reset Management) driver for TI OMAP class
+> SoCs. Initially this driver only supports reset control, but can be
+> extended to support rest of the functionality, like powerdomain
+> control, PRCM irq support etc.
 > 
->> Am 07.10.2019 um 21:18 schrieb Tero Kristo <t-kristo@ti.com>:
->>
->> On 07/10/2019 18:52, Tony Lindgren wrote:
->>> Hi,
->>> * H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
->>> Please try with Tero's current github branch at github.com/t-kristo/linux-pm.git
->>> 5.4-rc1-ipc from few days ago, the earlier versions had still issues.
->>
->> Yeah, this one should be fixed now.
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |   1 +
+>  drivers/soc/ti/Makefile     |   1 +
+>  drivers/soc/ti/omap_prm.c   | 259 ++++++++++++++++++++++++++++++++++++
+>  3 files changed, 261 insertions(+)
+>  create mode 100644 drivers/soc/ti/omap_prm.c
 > 
-> Ok! Will try asap.
-> 
->>
->>>> * OMAP5 (Pyra): fails to enable the clocks (did work with the previous version)
->>>> [  304.140363] clock-controller:clk:0000:0: failed to enable
->>>> [  304.147388] PVR_K:(Error): EnableSGXClocks: pm_runtime_get_sync failed (16)
->>> Hmm no idea what might be up with this one. Did some clkctrl clock
->>> fixes maybe cause a regression here? Tero do you have any ideas?
->>
->> So, this one I am not too sure, I haven't looked at omap5 graphics clocking. I don't think it has anything to do with reset handling though.
->>
->> Is there some simple way to try this out on board; without PVR module that is?
-> 
-> Yes, I have also seen it when just running the commands in the original commit message [1]:
-> 
-> # echo on > $(find /sys -name control | grep \/5600)
-> # rwmem 0x5600fe00	# OCP Revision
-> 0x5600fe00 = 0x40000000
-> # echo auto > $(find /sys -name control | grep \/5600)
-> # rwmem 0x5600fe10
-> # rwmem 0x56000024
-> 
-> But I have not yet tested with 5.4-rc2, just 5.4-rc1.
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index fdb6743760a2..ad08d470a2ca 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -109,6 +109,7 @@ config ARCH_OMAP2PLUS
+>  	select TI_SYSC
+>  	select OMAP_IRQCHIP
+>  	select CLKSRC_TI_32K
+> +	select ARCH_HAS_RESET_CONTROLLER
+>  	help
+>  	  Systems based on OMAP2, OMAP3, OMAP4 or OMAP5
+>  
+> diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
+> index b3868d392d4f..788b5cd1e180 100644
+> --- a/drivers/soc/ti/Makefile
+> +++ b/drivers/soc/ti/Makefile
+> @@ -6,6 +6,7 @@ obj-$(CONFIG_KEYSTONE_NAVIGATOR_QMSS)	+= knav_qmss.o
+>  knav_qmss-y := knav_qmss_queue.o knav_qmss_acc.o
+>  obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
+>  obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
+> +obj-$(CONFIG_ARCH_OMAP2PLUS)		+= omap_prm.o
+>  obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
+>  obj-$(CONFIG_TI_SCI_PM_DOMAINS)		+= ti_sci_pm_domains.o
+>  obj-$(CONFIG_TI_SCI_INTA_MSI_DOMAIN)	+= ti_sci_inta_msi.o
+> diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+> new file mode 100644
+> index 000000000000..ab0b66ad715d
+> --- /dev/null
+> +++ b/drivers/soc/ti/omap_prm.c
+> @@ -0,0 +1,259 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * OMAP2+ PRM driver
+> + *
+> + * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
+> + *	Tero Kristo <t-kristo@ti.com>
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/device.h>
+> +#include <linux/io.h>
+> +#include <linux/iopoll.h>
+> +#include <linux/of.h>
+> +#include <linux/of_device.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/reset-controller.h>
+> +#include <linux/delay.h>
+> +
+> +struct omap_rst_map {
+> +	s8 rst;
+> +	s8 st;
+> +};
+> +
+> +struct omap_prm_data {
+> +	u32 base;
+> +	const char *name;
+> +	u16 rstctrl;
+> +	u16 rstst;
+> +	const struct omap_rst_map *rstmap;
+> +	u8 flags;
+> +};
+> +
+> +struct omap_prm {
+> +	const struct omap_prm_data *data;
+> +	void __iomem *base;
+> +};
+> +
+> +struct omap_reset_data {
+> +	struct reset_controller_dev rcdev;
+> +	struct omap_prm *prm;
+> +	u32 mask;
+> +	spinlock_t lock;
+> +};
+> +
+> +#define to_omap_reset_data(p) container_of((p), struct omap_reset_data, rcdev)
+> +
+> +#define OMAP_MAX_RESETS		8
+> +#define OMAP_RESET_MAX_WAIT	10000
+> +
+> +#define OMAP_PRM_HAS_RSTCTRL	BIT(0)
+> +#define OMAP_PRM_HAS_RSTST	BIT(1)
+> +
+> +#define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
+> +
+> +static const struct of_device_id omap_prm_id_table[] = {
+> +	{ },
+> +};
+> +
+> +static bool _is_valid_reset(struct omap_reset_data *reset, unsigned long id)
+> +{
+> +	if (reset->mask & BIT(id))
+> +		return true;
+> +
+> +	return false;
+> +}
+> +
+> +static int omap_reset_get_st_bit(struct omap_reset_data *reset,
+> +				 unsigned long id)
+> +{
+> +	const struct omap_rst_map *map = reset->prm->data->rstmap;
+> +
+> +	while (map->rst >= 0) {
+> +		if (map->rst == id)
+> +			return map->st;
+> +
+> +		map++;
+> +	}
+> +
+> +	return id;
+> +}
+> +
+> +static int omap_reset_status(struct reset_controller_dev *rcdev,
+> +			     unsigned long id)
+> +{
+> +	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
+> +	u32 v;
+> +	int st_bit = omap_reset_get_st_bit(reset, id);
+> +	bool has_rstst = reset->prm->data->rstst ||
+> +		(reset->prm->data->flags & OMAP_PRM_HAS_RSTST);
+> +
+> +	/* Check if we have rstst */
+> +	if (!has_rstst)
+> +		return -ENOTSUPP;
+> +
+> +	/* Check if hw reset line is asserted */
+> +	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
+> +	if (v & BIT(id))
+> +		return 1;
+> +
+> +	/*
+> +	 * Check reset status, high value means reset sequence has been
+> +	 * completed successfully so we can return 0 here (reset deasserted)
+> +	 */
+> +	v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
+> +	v >>= st_bit;
+> +	v &= 1;
+> +
+> +	return !v;
+> +}
+> +
+> +static int omap_reset_assert(struct reset_controller_dev *rcdev,
+> +			     unsigned long id)
+> +{
+> +	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
+> +	u32 v;
+> +	unsigned long flags;
+> +
+> +	/* assert the reset control line */
+> +	spin_lock_irqsave(&reset->lock, flags);
+> +	v = readl_relaxed(reset->prm->base + reset->prm->data->rstctrl);
+> +	v |= 1 << id;
+> +	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
+> +	spin_unlock_irqrestore(&reset->lock, flags);
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+> +			       unsigned long id)
+> +{
+> +	struct omap_reset_data *reset = to_omap_reset_data(rcdev);
+> +	u32 v;
+> +	int st_bit;
+> +	bool has_rstst;
+> +	unsigned long flags;
+> +
+> +	has_rstst = reset->prm->data->rstst ||
+> +		(reset->prm->data->flags & OMAP_PRM_HAS_RSTST);
+> +
+> +	if (has_rstst) {
+> +		st_bit = omap_reset_get_st_bit(reset, id);
+> +
+> +		/* Clear the reset status by writing 1 to the status bit */
+> +		v = readl_relaxed(reset->prm->base + reset->prm->data->rstst);
+> +		v |= 1 << st_bit;
+> +		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
 
-Ok, there is a one liner DTS data fix for this issue, attached.
+Could this accidentally clear the bits of other already completed
+resets? If this is a "write 1 to clear" register, and writing zero bits
+has no effect, I'd expect this to be just:
 
--Tero
+		v = 1 << st_bit;
+		writel_relaxed(v, reset->prm->base + reset->prm->data->rstst);
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
---------------7ED48B5A386B4ABAF462F2A2
-Content-Type: text/x-patch;
-	name="0001-ARM-dts-omap5-fix-gpu_cm-clock-provider-name.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0001-ARM-dts-omap5-fix-gpu_cm-clock-provider-name.patch"
+With this fixed (or, if I am mistaken, clarified):
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 
->From 57f9fecb167c0ef9f1ae2a1aa93a05ca8add52a2 Mon Sep 17 00:00:00 2001
-From: Tero Kristo <t-kristo@ti.com>
-Date: Tue, 8 Oct 2019 10:56:42 +0300
-Subject: [PATCH 1/1] ARM: dts: omap5: fix gpu_cm clock provider name
-
-The clkctrl code searches for the parent clockdomain based on the name
-of the CM provider node. The introduction of SGX node for omap5 made
-the node name for the gpu_cm to be clock-controller. There is no
-clockdomain named like this, so the lookup fails. Fix by changing
-the node name properly.
-
-Fixes: 394534cb07d8 ("ARM: dts: Configure sgx for omap5")
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/boot/dts/omap54xx-clocks.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-index 939ec7dfc366..db9885103099 100644
---- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-@@ -1160,7 +1160,7 @@
- 		};
- 	};
- 
--	gpu_cm: clock-controller@1500 {
-+	gpu_cm: gpu_cm@1500 {
- 		compatible = "ti,omap4-cm";
- 		reg = <0x1500 0x100>;
- 		#address-cells = <1>;
--- 
-2.17.1
-
-
---------------7ED48B5A386B4ABAF462F2A2--
+regards
+Philipp
