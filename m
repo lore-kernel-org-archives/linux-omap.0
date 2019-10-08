@@ -1,47 +1,57 @@
-From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCHv2] wlcore: fix race for WL1271_FLAG_IRQ_RUNNING
-Date: Tue, 08 Oct 2019 17:16:36 +0300
-Message-ID: <87h84j7263.fsf@kamboji.qca.qualcomm.com>
-References: <20191007172800.64249-1-tony@atomide.com>
-        <20191008140556.GZ5610@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: am3874-iceboard: Fix 'i2c-mux-idle-disconnect'
+ usage
+Date: Tue, 8 Oct 2019 07:16:59 -0700
+Message-ID: <20191008141659.GC5610@atomide.com>
+References: <20191004014548.29583-1-andrew.smirnov@gmail.com>
+ <c40b8414-45a8-575a-c3c8-902ed35e5764@threespeedlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20191008140556.GZ5610-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
-        "Tue, 8 Oct 2019 07:05:56 -0700")
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <c40b8414-45a8-575a-c3c8-902ed35e5764@threespeedlogic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Graeme Smecher <gsmecher@threespeedlogic.com>
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+* Graeme Smecher <gsmecher@threespeedlogic.com> [191004 23:53]:
+> Hi Andrey,
+> 
+> On 2019-10-03 6:45 p.m., Andrey Smirnov wrote:
+> > According to
+> > Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.txt,
+> > i2c-mux-idle-disconnect is a property of a parent node since it
+> > pertains to the mux/switch as a whole, so move it there and drop all
+> > of the concurrences in child nodes.
+> > 
+> > Fixes: d031773169df ("ARM: dts: Adds device tree file for McGill's IceBoard, based on TI AM3874")
+> > Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+> > Cc: Benoît Cousson <bcousson@baylibre.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Graeme Smecher <gsmecher@threespeedlogic.com>
+> > Cc: linux-omap@vger.kernel.org
+> > Cc: devicetree@vger.kernel.org
+> > Cc: linux-kernel@vger.kernel.org
+> > ---
+> > 
+> > This is purely a drive-by fix, since it concerns the HW I've never
+> > heard of before. However I was working with PCA9548
+> > (vf610-zii-scu4-aib is my HW) and looking at various users in the
+> > kernel, when this code caught my eye. Apologies for the noise if this
+> > fix is somehow bogus.
+> > 
+> > In case that it matters this patch is based on top of 5.4-rc1.
+> 
+> Thanks! We do have I2C address collisions on downstream bus segments, so
+> keeping these segments isolated is important. I'm surprised this patch
+> was necessary and happy to see it.
+> 
+> Lightly tested on 5.3.
+> 
+> Tested-by: Graeme Smecher <gsmecher@threespeedlogic.com>
 
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [191007 17:29]:
->> We set WL1271_FLAG_IRQ_RUNNING in the beginning of wlcore_irq(), and test
->> for it in wlcore_runtime_resume(). But WL1271_FLAG_IRQ_RUNNING currently
->> gets cleared too early by wlcore_irq_locked() before wlcore_irq() is done
->> calling it. And this will race against wlcore_runtime_resume() testing it.
->> 
->> Let's set and clear IRQ_RUNNING in wlcore_irq() so wlcore_runtime_resume()
->> can rely on it. And let's remove old comments about hardirq, that's no
->> longer the case as we're using request_threaded_irq().
->> 
->> This fixes occasional annoying wlcore firmware reboots stat start with
->> "wlcore: WARNING ELP wakeup timeout!" followed by a multisecond latency
->> when the wlcore firmware gets wrongly rebooted waiting for an ELP wake
->> interrupt that won't be coming.
->> 
->> Note that I also suspect some form of this issue was the root cause why
->> the wlcore GPIO interrupt has been often configured as a level interrupt
->> instead of edge as an attempt to work around the ELP wake timeout errors.
->
-> So this fixed a reproducable test case where loading some webpages
-> often produced ELP timeout errors. But looks like I'm still seeing ELP
-> timeouts elsewhere. So best to wait on this one. Something is still
-> wrong with the ELP timeout handling.
+Applying into fixes thanks.
 
-Ok, I'll drop this then. Please send v3 once you think the patch is
-ready to be applied.
-
--- 
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Tony
