@@ -1,97 +1,44 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] wlcore: fix race for WL1271_FLAG_IRQ_RUNNING
-Date: Tue, 8 Oct 2019 07:05:56 -0700
-Message-ID: <20191008140556.GZ5610@atomide.com>
-References: <20191007172800.64249-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] bus: ti-sysc: fix reset sequencing
+Date: Tue, 8 Oct 2019 07:09:27 -0700
+Message-ID: <20191008140927.GA5610@atomide.com>
+References: <20191007122931.18668-1-t-kristo@ti.com>
+ <20191007163807.GU5610@atomide.com>
+ <32031606-23da-2e0b-6d75-7225a082eb6b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191007172800.64249-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <32031606-23da-2e0b-6d75-7225a082eb6b@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [191007 17:29]:
-> We set WL1271_FLAG_IRQ_RUNNING in the beginning of wlcore_irq(), and test
-> for it in wlcore_runtime_resume(). But WL1271_FLAG_IRQ_RUNNING currently
-> gets cleared too early by wlcore_irq_locked() before wlcore_irq() is done
-> calling it. And this will race against wlcore_runtime_resume() testing it.
+* Tero Kristo <t-kristo@ti.com> [191007 19:00]:
+> On 07/10/2019 19:38, Tony Lindgren wrote:
+> > * Tero Kristo <t-kristo@ti.com> [191007 12:30]:
+> > > Hi,
+> > > 
+> > > These three patches make sure that IOMMU/remoteprocs work across
+> > > all devices with the latest OMAP PRM series for reset support [1].
+> > > The last dangling issues were caused by the removal of the hardlink
+> > > between the reset + clock drivers.
+> > 
+> > OK. I presume these are safe to wait for v5.5 since we don't
+> > have the rstctrl driver yet?
 > 
-> Let's set and clear IRQ_RUNNING in wlcore_irq() so wlcore_runtime_resume()
-> can rely on it. And let's remove old comments about hardirq, that's no
-> longer the case as we're using request_threaded_irq().
-> 
-> This fixes occasional annoying wlcore firmware reboots stat start with
-> "wlcore: WARNING ELP wakeup timeout!" followed by a multisecond latency
-> when the wlcore firmware gets wrongly rebooted waiting for an ELP wake
-> interrupt that won't be coming.
-> 
-> Note that I also suspect some form of this issue was the root cause why
-> the wlcore GPIO interrupt has been often configured as a level interrupt
-> instead of edge as an attempt to work around the ELP wake timeout errors.
+> Yeah, they are safe to wait.
 
-So this fixed a reproducable test case where loading some webpages
-often produced ELP timeout errors. But looks like I'm still seeing ELP
-timeouts elsewhere. So best to wait on this one. Something is still
-wrong with the ELP timeout handling.
-
-Regards,
+OK applying into omap-for-v5.5/ti-sysc thanks.
 
 Tony
-
-> Fixes: fa2648a34e73 ("wlcore: Add support for runtime PM")
-> Cc: Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
-> Cc: Guy Mishol <guym-l0cyMroinI0@public.gmane.org>
-> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
-> 
-> Changes since v1:
-> 
-> - Add locking around clear_bit like we do elsewhere in the driver
-> 
->  drivers/net/wireless/ti/wlcore/main.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
-> --- a/drivers/net/wireless/ti/wlcore/main.c
-> +++ b/drivers/net/wireless/ti/wlcore/main.c
-> @@ -544,11 +544,6 @@ static int wlcore_irq_locked(struct wl1271 *wl)
->  	}
->  
->  	while (!done && loopcount--) {
-> -		/*
-> -		 * In order to avoid a race with the hardirq, clear the flag
-> -		 * before acknowledging the chip.
-> -		 */
-> -		clear_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags);
->  		smp_mb__after_atomic();
->  
->  		ret = wlcore_fw_status(wl, wl->fw_status);
-> @@ -668,7 +663,7 @@ static irqreturn_t wlcore_irq(int irq, void *cookie)
->  		disable_irq_nosync(wl->irq);
->  		pm_wakeup_event(wl->dev, 0);
->  		spin_unlock_irqrestore(&wl->wl_lock, flags);
-> -		return IRQ_HANDLED;
-> +		goto out_handled;
->  	}
->  	spin_unlock_irqrestore(&wl->wl_lock, flags);
->  
-> @@ -692,6 +687,11 @@ static irqreturn_t wlcore_irq(int irq, void *cookie)
->  
->  	mutex_unlock(&wl->mutex);
->  
-> +out_handled:
-> +	spin_lock_irqsave(&wl->wl_lock, flags);
-> +	clear_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags);
-> +	spin_unlock_irqrestore(&wl->wl_lock, flags);
-> +
->  	return IRQ_HANDLED;
->  }
->  
-> -- 
-> 2.23.0
