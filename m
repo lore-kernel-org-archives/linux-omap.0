@@ -1,73 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am335x-sancloud-bbe: Fix PHY mode for ethernet
-Date: Tue, 8 Oct 2019 10:02:59 -0700
-Message-ID: <20191008170259.GI5610@atomide.com>
-References: <20191002095416.19603-1-jhofstee@victronenergy.com>
- <d027ef07-807d-6a7b-2939-b67be4542469@ti.com>
- <436f1712-7dec-db40-d08f-1a3032af3596@victronenergy.com>
- <d85cd860-22a3-6142-7f2d-736a428d7a31@ti.com>
- <20191008142349.GE5610@atomide.com>
- <1f779973-1702-47eb-158f-7000770c435a@victronenergy.com>
- <20191008161416.GG5610@atomide.com>
- <4fa5393d-0b2c-4b8c-128a-81ab05a14a82@victronenergy.com>
- <20191008165154.GH5610@atomide.com>
- <a8a72544-7f30-c896-22e4-7d85bd0b4235@victronenergy.com>
-Mime-Version: 1.0
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Tue, 8 Oct 2019 22:15:57 +0200
+Message-ID: <0FEF1AB1-5FE0-4EEE-BEB9-0957BB424C18@goldelico.com>
+References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org> <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com> <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org> <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com> <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org> <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com> <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com> <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com> <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org> <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com> <20191007155252.GQ5610@atomide.com> <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com> <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com> <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a8a72544-7f30-c896-22e4-7d85bd0b4235@victronenergy.com>
+In-Reply-To: <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeroen Hofstee <jhofstee@victronenergy.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, open list <linux-kernel@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?utf-8?Q?Pawe=C5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Jeroen Hofstee <jhofstee@victronenergy.com> [191008 17:00]:
-> Hi,
-> 
-> On 10/8/19 6:51 PM, Tony Lindgren wrote:
-> > * Jeroen Hofstee <jhofstee@victronenergy.com> [191008 16:43]:
-> >> Hello Tony,
-> >>
-> >> On 10/8/19 6:14 PM, Tony Lindgren wrote:
-> >>> * Jeroen Hofstee <jhofstee@victronenergy.com> [191008 16:03]:
-> >>>> Hello Tony,
-> >>>>
-> >>>> On 10/8/19 4:23 PM, Tony Lindgren wrote:
-> >>>>> * Grygorii Strashko <grygorii.strashko@ti.com> [191003 02:32]:
-> >>>>>> On 03/10/2019 11:16, Jeroen Hofstee wrote:
-> >>>>>>> Furthermore 4.19 is fine, so there is no need to include it in stable
-> >>>>>>> and have a note to make sure also other patches are required etc.
-> >>>>>> Hence all above patches went in 5.1 it would be correct to mention only
-> >>>>>> 6d4cd041f0af net: phy: at803x: disable delay only for RGMII mode
-> >>>>> Jeroen, can you please send an updated patch with the fixes
-> >>>>> tag changed?
-> >>>>>
-> >>>> For completeness, there is no "Fixes tag" as you mentioned.
-> >>>> The commit only refers to another commit which introduces
-> >>>> a problem.
-> >>> Well please add the fixes tag, that way this will get
-> >>> properly applied to earlier stable kernels too :)
-> >> But 4.19 is fine, this is an issue in 5.1 as in EOL...
-> >> I really don't understand why I should waste time
-> >> to figure out what happened exactly during the 5.1
-> >> release cycle...
-> > Hmm so what's the issue with just adding the fixes tag Grygorii
-> > suggested:
-> >
-> > 6d4cd041f0af ("net: phy: at803x: disable delay only for RGMII mode")
-> >
-> > No need to dig further?
-> 
-> Grygorii doesn't suggest to add a fixes tag, just to change the referenced
-> commit to another. Obviously I would like to understand why another commit
-> should be referenced. And then I should read and parse the response, so there
-> is no special reason, just time...
 
-OK sure. Well once you guys have the commit figured out, let me
-know what to apply. And we know Grygorii is mostly right based
-on his history of comments so best to not ignore that :)
+> Am 08.10.2019 um 10:00 schrieb Tero Kristo <t-kristo@ti.com>:
+>=20
+> On 07/10/2019 22:24, H. Nikolaus Schaller wrote:
+>> Hi Tero,
+>>> Am 07.10.2019 um 21:18 schrieb Tero Kristo <t-kristo@ti.com>:
+>>>=20
+>>> On 07/10/2019 18:52, Tony Lindgren wrote:
+>>>> Hi,
+>>>> * H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
+>>>> Please try with Tero's current github branch at =
+github.com/t-kristo/linux-pm.git
+>>>> 5.4-rc1-ipc from few days ago, the earlier versions had still =
+issues.
+>>>=20
+>>> Yeah, this one should be fixed now.
+>> Ok! Will try asap.
+>>>=20
+>>>>> * OMAP5 (Pyra): fails to enable the clocks (did work with the =
+previous version)
+>>>>> [  304.140363] clock-controller:clk:0000:0: failed to enable
+>>>>> [  304.147388] PVR_K:(Error): EnableSGXClocks: pm_runtime_get_sync =
+failed (16)
+>>>> Hmm no idea what might be up with this one. Did some clkctrl clock
+>>>> fixes maybe cause a regression here? Tero do you have any ideas?
+>>>=20
+>>> So, this one I am not too sure, I haven't looked at omap5 graphics =
+clocking. I don't think it has anything to do with reset handling =
+though.
+>>>=20
+>>> Is there some simple way to try this out on board; without PVR =
+module that is?
+>> Yes, I have also seen it when just running the commands in the =
+original commit message [1]:
+>> # echo on > $(find /sys -name control | grep \/5600)
+>> # rwmem 0x5600fe00	# OCP Revision
+>> 0x5600fe00 =3D 0x40000000
+>> # echo auto > $(find /sys -name control | grep \/5600)
+>> # rwmem 0x5600fe10
+>> # rwmem 0x56000024
+>> But I have not yet tested with 5.4-rc2, just 5.4-rc1.
+>=20
+> Ok, there is a one liner DTS data fix for this issue, attached.
 
-Cheers,
+Yes, have tested and it fixes omap5. I have the 3D demo running again on =
+the Pyra. Yay!
 
-Tony
+Together with the latest rstcrtl patches, am335x is now better.
+No omap_reset_deassert: timedout waiting for gfx:0 any more.
+
+But I can't access the sgx registers and get memory faults. Maybe
+my script has a bug and is trying the wrong address. Have to check
+with some distance...
+
+I have also tested omap3630 and omap4460 and they are not worse,
+but also not better. So I think the foundation for sgx clock and
+reset is now ok.
+
+BR and thanks,
+Nikolaus=
