@@ -1,71 +1,110 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 8/9] soc: ti: omap-prm: add am4 PRM data
-Date: Tue, 8 Oct 2019 15:55:43 +0300
-Message-ID: <20191008125544.20679-9-t-kristo@ti.com>
-References: <20191008125544.20679-1-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
+ OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Tue, 8 Oct 2019 06:49:06 -0700
+Message-ID: <20191008134906.GX5610@atomide.com>
+References: <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
+ <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
+ <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
+ <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
+ <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
+ <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
+ <20191007155252.GQ5610@atomide.com>
+ <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com>
+ <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com>
+ <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191008125544.20679-1-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, ssantosh@kernel.org
-Cc: tony@atomide.com, devicetree@vger.kernel.org, p.zabel@pengutronix.de, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM instance data for am4 family of SoCs. Initially this is just
-used to provide reset support.
+* Tero Kristo <t-kristo@ti.com> [191008 08:01]:
+> On 07/10/2019 22:24, H. Nikolaus Schaller wrote:
+> > Hi Tero,
+> > 
+> > > Am 07.10.2019 um 21:18 schrieb Tero Kristo <t-kristo@ti.com>:
+> > > 
+> > > On 07/10/2019 18:52, Tony Lindgren wrote:
+> > > > Hi,
+> > > > * H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
+> > > > Please try with Tero's current github branch at github.com/t-kristo/linux-pm.git
+> > > > 5.4-rc1-ipc from few days ago, the earlier versions had still issues.
+> > > 
+> > > Yeah, this one should be fixed now.
+> > 
+> > Ok! Will try asap.
+> > 
+> > > 
+> > > > > * OMAP5 (Pyra): fails to enable the clocks (did work with the previous version)
+> > > > > [  304.140363] clock-controller:clk:0000:0: failed to enable
+> > > > > [  304.147388] PVR_K:(Error): EnableSGXClocks: pm_runtime_get_sync failed (16)
+> > > > Hmm no idea what might be up with this one. Did some clkctrl clock
+> > > > fixes maybe cause a regression here? Tero do you have any ideas?
+> > > 
+> > > So, this one I am not too sure, I haven't looked at omap5 graphics clocking. I don't think it has anything to do with reset handling though.
+> > > 
+> > > Is there some simple way to try this out on board; without PVR module that is?
+> > 
+> > Yes, I have also seen it when just running the commands in the original commit message [1]:
+> > 
+> > # echo on > $(find /sys -name control | grep \/5600)
+> > # rwmem 0x5600fe00	# OCP Revision
+> > 0x5600fe00 = 0x40000000
+> > # echo auto > $(find /sys -name control | grep \/5600)
+> > # rwmem 0x5600fe10
+> > # rwmem 0x56000024
+> > 
+> > But I have not yet tested with 5.4-rc2, just 5.4-rc1.
+> 
+> Ok, there is a one liner DTS data fix for this issue, attached.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/soc/ti/omap_prm.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+Arhg OK that thing again.. I must have changed node name while
+cleaning up the patch or something. Thanks, will apply into fixes.
 
-diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-index de11ce08ff7b..73ea64896770 100644
---- a/drivers/soc/ti/omap_prm.c
-+++ b/drivers/soc/ti/omap_prm.c
-@@ -115,10 +115,30 @@ static const struct omap_prm_data am3_prm_data[] = {
- 	{ },
- };
- 
-+static const struct omap_rst_map am4_per_rst_map[] = {
-+	{ .rst = 1, .st = 0 },
-+	{ .rst = -1 },
-+};
-+
-+static const struct omap_rst_map am4_device_rst_map[] = {
-+	{ .rst = 0, .st = 1 },
-+	{ .rst = 1, .st = 0 },
-+	{ .rst = -1 },
-+};
-+
-+static const struct omap_prm_data am4_prm_data[] = {
-+	{ .name = "gfx", .base = 0x44df0400, .rstctrl = 0x10, .rstst = 0x14, .rstmap = rst_map_0, .clkdm_name = "gfx_l3" },
-+	{ .name = "per", .base = 0x44df0800, .rstctrl = 0x10, .rstst = 0x14, .rstmap = am4_per_rst_map, .clkdm_name = "pruss_ocp" },
-+	{ .name = "wkup", .base = 0x44df2000, .rstctrl = 0x10, .rstst = 0x14, .rstmap = am3_wkup_rst_map, .flags = OMAP_PRM_HAS_NO_CLKDM },
-+	{ .name = "device", .base = 0x44df4000, .rstctrl = 0x0, .rstst = 0x4, .rstmap = am4_device_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
-+	{ },
-+};
-+
- static const struct of_device_id omap_prm_id_table[] = {
- 	{ .compatible = "ti,omap4-prm-inst", .data = omap4_prm_data },
- 	{ .compatible = "ti,dra7-prm-inst", .data = dra7_prm_data },
- 	{ .compatible = "ti,am3-prm-inst", .data = am3_prm_data },
-+	{ .compatible = "ti,am4-prm-inst", .data = am4_prm_data },
- 	{ },
- };
- 
--- 
-2.17.1
+Then for v5.5, we should start using custom compatible properties
+for the clock controller instances. I'll be posting a patch for that.
+Otherwise scripts/checkpatch.pl --strict type clean-up will cause
+unexpected issues.
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Regards,
+
+Tony
+
+> From 57f9fecb167c0ef9f1ae2a1aa93a05ca8add52a2 Mon Sep 17 00:00:00 2001
+> From: Tero Kristo <t-kristo@ti.com>
+> Date: Tue, 8 Oct 2019 10:56:42 +0300
+> Subject: [PATCH 1/1] ARM: dts: omap5: fix gpu_cm clock provider name
+> 
+> The clkctrl code searches for the parent clockdomain based on the name
+> of the CM provider node. The introduction of SGX node for omap5 made
+> the node name for the gpu_cm to be clock-controller. There is no
+> clockdomain named like this, so the lookup fails. Fix by changing
+> the node name properly.
+> 
+> Fixes: 394534cb07d8 ("ARM: dts: Configure sgx for omap5")
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/boot/dts/omap54xx-clocks.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+> index 939ec7dfc366..db9885103099 100644
+> --- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+> @@ -1160,7 +1160,7 @@
+>  		};
+>  	};
+>  
+> -	gpu_cm: clock-controller@1500 {
+> +	gpu_cm: gpu_cm@1500 {
+>  		compatible = "ti,omap4-cm";
+>  		reg = <0x1500 0x100>;
+>  		#address-cells = <1>;
+> -- 
+> 2.17.1
+> 
