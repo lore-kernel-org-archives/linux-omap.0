@@ -1,52 +1,118 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [Letux-kernel] [PATCH 4/5] drm/panel: tpo-td028ttec1: Fix SPI
- alias
-Date: Mon, 7 Oct 2019 21:33:29 +0200
-Message-ID: <4524D803-D5C8-4201-B1B3-7EB88FE1460C@goldelico.com>
-References: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
- <20191007170801.27647-5-laurent.pinchart@ideasonboard.com>
- <20191007195849.72562d6b@aktux>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191007195849.72562d6b@aktux>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, dri-devel@lists.freedesktop.org, Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, thierry.reding@gmail.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, sam@ravnborg.org
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
+ OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Tue, 8 Oct 2019 11:00:46 +0300
+Message-ID: <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
+References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
+ <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com>
+ <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
+ <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
+ <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
+ <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
+ <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
+ <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
+ <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
+ <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
+ <20191007155252.GQ5610@atomide.com>
+ <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com>
+ <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+        boundary="------------7ED48B5A386B4ABAF462F2A2"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Tony Lindgren <tony@atomide.com>, Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?UTF-8?Q?Pawe=c5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Cj4gQW0gMDcuMTAuMjAxOSB1bSAxOTo1OCBzY2hyaWViIEFuZHJlYXMgS2VtbmFkZSA8YW5kcmVh
-c0BrZW1uYWRlLmluZm8+Ogo+IAo+IE9uIE1vbiwgIDcgT2N0IDIwMTkgMjA6MDg6MDAgKzAzMDAK
-PiBMYXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IHdy
-b3RlOgo+IAo+PiBUaGUgcGFuZWwtdHBvLXRkMDI4dHRlYzEgZHJpdmVyIGluY29ycmVjdGx5IGlu
-Y2x1ZGVzIHRoZSBPRiB2ZW5kb3IKPj4gcHJlZml4IGluIGl0cyBTUEkgYWxpYXMuIEZpeCBpdC4K
-Pj4gCj4+IEZpeGVzOiA0MTViOGRkMDg3MTEgKCJkcm0vcGFuZWw6IEFkZCBkcml2ZXIgZm9yIHRo
-ZSBUb3Bwb2x5IFREMDI4VFRFQzEgcGFuZWwiKQo+PiBSZXBvcnRlZC1ieTogSC4gTmlrb2xhdXMg
-U2NoYWxsZXIgPGhuc0Bnb2xkZWxpY28uY29tPgo+PiBTaWduZWQtb2ZmLWJ5OiBMYXVyZW50IFBp
-bmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+Cj4gCj4gVGVzdGVkLWJ5
-OiBBbmRyZWFzIEtlbW5hZGUgPGFuZHJlYXNAa2VtbmFkZS5pbmZvPgpUZXN0ZWQtYnk6IEguIE5p
-a29sYXVzIFNjaGFsbGVyIDxobnNAZ29sZGVsaWNvLmNvbT4KPiAKPj4gLS0tCj4+IGRyaXZlcnMv
-Z3B1L2RybS9wYW5lbC9wYW5lbC10cG8tdGQwMjh0dGVjMS5jIHwgMyArLS0KPj4gMSBmaWxlIGNo
-YW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAyIGRlbGV0aW9ucygtKQo+PiAKPj4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvZ3B1L2RybS9wYW5lbC9wYW5lbC10cG8tdGQwMjh0dGVjMS5jIGIvZHJpdmVycy9n
-cHUvZHJtL3BhbmVsL3BhbmVsLXRwby10ZDAyOHR0ZWMxLmMKPj4gaW5kZXggZDdiMmUzNDYyNmVm
-Li5mMmJhZmY4MjdmNTAgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9wYW5lbC9wYW5l
-bC10cG8tdGQwMjh0dGVjMS5jCj4+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9wYW5lbC9wYW5lbC10
-cG8tdGQwMjh0dGVjMS5jCj4+IEBAIC0zNzUsOCArMzc1LDcgQEAgc3RhdGljIGNvbnN0IHN0cnVj
-dCBvZl9kZXZpY2VfaWQgdGQwMjh0dGVjMV9vZl9tYXRjaFtdID0gewo+PiBNT0RVTEVfREVWSUNF
-X1RBQkxFKG9mLCB0ZDAyOHR0ZWMxX29mX21hdGNoKTsKPj4gCj4+IHN0YXRpYyBjb25zdCBzdHJ1
-Y3Qgc3BpX2RldmljZV9pZCB0ZDAyOHR0ZWMxX2lkc1tdID0gewo+PiAtCXsgInRwbyx0ZDAyOHR0
-ZWMxIiwgMH0sCj4+IC0JeyAidG9wcG9seSx0ZDAyOHR0ZWMxIiwgMCB9LAo+PiArCXsgInRkMDI4
-dHRlYzEiLCAwIH0sCj4+IAl7IC8qIHNlbnRpbmVsICovIH0KPj4gfTsKPj4gCj4gCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
-ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+--------------7ED48B5A386B4ABAF462F2A2
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+
+On 07/10/2019 22:24, H. Nikolaus Schaller wrote:
+> Hi Tero,
+> 
+>> Am 07.10.2019 um 21:18 schrieb Tero Kristo <t-kristo@ti.com>:
+>>
+>> On 07/10/2019 18:52, Tony Lindgren wrote:
+>>> Hi,
+>>> * H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
+>>> Please try with Tero's current github branch at github.com/t-kristo/linux-pm.git
+>>> 5.4-rc1-ipc from few days ago, the earlier versions had still issues.
+>>
+>> Yeah, this one should be fixed now.
+> 
+> Ok! Will try asap.
+> 
+>>
+>>>> * OMAP5 (Pyra): fails to enable the clocks (did work with the previous version)
+>>>> [  304.140363] clock-controller:clk:0000:0: failed to enable
+>>>> [  304.147388] PVR_K:(Error): EnableSGXClocks: pm_runtime_get_sync failed (16)
+>>> Hmm no idea what might be up with this one. Did some clkctrl clock
+>>> fixes maybe cause a regression here? Tero do you have any ideas?
+>>
+>> So, this one I am not too sure, I haven't looked at omap5 graphics clocking. I don't think it has anything to do with reset handling though.
+>>
+>> Is there some simple way to try this out on board; without PVR module that is?
+> 
+> Yes, I have also seen it when just running the commands in the original commit message [1]:
+> 
+> # echo on > $(find /sys -name control | grep \/5600)
+> # rwmem 0x5600fe00	# OCP Revision
+> 0x5600fe00 = 0x40000000
+> # echo auto > $(find /sys -name control | grep \/5600)
+> # rwmem 0x5600fe10
+> # rwmem 0x56000024
+> 
+> But I have not yet tested with 5.4-rc2, just 5.4-rc1.
+
+Ok, there is a one liner DTS data fix for this issue, attached.
+
+-Tero
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--------------7ED48B5A386B4ABAF462F2A2
+Content-Type: text/x-patch;
+	name="0001-ARM-dts-omap5-fix-gpu_cm-clock-provider-name.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="0001-ARM-dts-omap5-fix-gpu_cm-clock-provider-name.patch"
+
+>From 57f9fecb167c0ef9f1ae2a1aa93a05ca8add52a2 Mon Sep 17 00:00:00 2001
+From: Tero Kristo <t-kristo@ti.com>
+Date: Tue, 8 Oct 2019 10:56:42 +0300
+Subject: [PATCH 1/1] ARM: dts: omap5: fix gpu_cm clock provider name
+
+The clkctrl code searches for the parent clockdomain based on the name
+of the CM provider node. The introduction of SGX node for omap5 made
+the node name for the gpu_cm to be clock-controller. There is no
+clockdomain named like this, so the lookup fails. Fix by changing
+the node name properly.
+
+Fixes: 394534cb07d8 ("ARM: dts: Configure sgx for omap5")
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/boot/dts/omap54xx-clocks.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+index 939ec7dfc366..db9885103099 100644
+--- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+@@ -1160,7 +1160,7 @@
+ 		};
+ 	};
+ 
+-	gpu_cm: clock-controller@1500 {
++	gpu_cm: gpu_cm@1500 {
+ 		compatible = "ti,omap4-cm";
+ 		reg = <0x1500 0x100>;
+ 		#address-cells = <1>;
+-- 
+2.17.1
+
+
+--------------7ED48B5A386B4ABAF462F2A2--
