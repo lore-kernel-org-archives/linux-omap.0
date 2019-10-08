@@ -1,39 +1,82 @@
-From: Jeroen Hofstee <jhofstee@victronenergy.com>
-Subject: Re: [PATCH] ARM: dts: am335x-sancloud-bbe: Fix PHY mode for ethernet
-Date: Tue, 8 Oct 2019 14:46:51 +0000
-Message-ID: <e3f824c9-92bd-1750-bdd4-dce61e618008@victronenergy.com>
-References: <20191002095416.19603-1-jhofstee@victronenergy.com>
- <d027ef07-807d-6a7b-2939-b67be4542469@ti.com>
- <436f1712-7dec-db40-d08f-1a3032af3596@victronenergy.com>
- <d85cd860-22a3-6142-7f2d-736a428d7a31@ti.com>
- <20191008142349.GE5610@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCHv8 1/9] dt-bindings: omap: add new binding for PRM instances
+Date: Tue, 8 Oct 2019 17:46:55 +0200
+Message-ID: <20191008154655.u34wkbqgmelv3aea@earth.universe>
+References: <20191008125544.20679-1-t-kristo@ti.com>
+ <20191008125544.20679-2-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191008142349.GE5610@atomide.com>
-Content-Language: en-US
-Content-ID: <4D6D65D68B507E4CBD6C706EF6CA5632@eurprd07.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, open list <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============8435942204498745943=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20191008125544.20679-2-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8gVG9ueSwNCg0KT24gMTAvOC8xOSA0OjIzIFBNLCBUb255IExpbmRncmVuIHdyb3RlOg0K
-PiAqIEdyeWdvcmlpIFN0cmFzaGtvIDxncnlnb3JpaS5zdHJhc2hrb0B0aS5jb20+IFsxOTEwMDMg
-MDI6MzJdOg0KPj4gT24gMDMvMTAvMjAxOSAxMToxNiwgSmVyb2VuIEhvZnN0ZWUgd3JvdGU6DQo+
-Pj4gRnVydGhlcm1vcmUgNC4xOSBpcyBmaW5lLCBzbyB0aGVyZSBpcyBubyBuZWVkIHRvIGluY2x1
-ZGUgaXQgaW4gc3RhYmxlDQo+Pj4gYW5kIGhhdmUgYSBub3RlIHRvIG1ha2Ugc3VyZSBhbHNvIG90
-aGVyIHBhdGNoZXMgYXJlIHJlcXVpcmVkIGV0Yy4NCj4+IEhlbmNlIGFsbCBhYm92ZSBwYXRjaGVz
-IHdlbnQgaW4gNS4xIGl0IHdvdWxkIGJlIGNvcnJlY3QgdG8gbWVudGlvbiBvbmx5DQo+PiA2ZDRj
-ZDA0MWYwYWYgbmV0OiBwaHk6IGF0ODAzeDogZGlzYWJsZSBkZWxheSBvbmx5IGZvciBSR01JSSBt
-b2RlDQo+IEplcm9lbiwgY2FuIHlvdSBwbGVhc2Ugc2VuZCBhbiB1cGRhdGVkIHBhdGNoIHdpdGgg
-dGhlIGZpeGVzDQo+IHRhZyBjaGFuZ2VkPw0KDQoNCk5vdCBhdCB0aGUgbW9tZW50LiBJIGFtIHJp
-Z2h0IHRoYXQgdGhlIG1lbnRpb25lZCBjb21taXQNCmlzIHRoZSBmaXJzdCBvbmUgdG8gYnJlYWsg
-dGhlIGV0aGVybmV0LiBHcnlnb3JpaSBpcyByaWdodCBpdA0Kc2VlbXMgdGhhdCB0aGF0IGNvbW1p
-dCBzaG91bGRuJ3QgYWZmZWN0IGl0LCB5ZXQgaXQgZG9lcy4NCg0KU28gSSB3b3VsZCBsaWtlIHRv
-IHVuZGVyc3RhbmQgaG93IGl0IGJyZWFrcyB0aGluZ3Mgc28gSSBjYW4NCnVwIHdpdGggYSBzZW5z
-aWJsZSBjb21taXQgbWVzc2FnZSAob3Igd2UganVzdCBkcm9wIHJlZmVyZW5jZQ0KdG8gb3RoZXIg
-Y29tbWl0cyBzbyBJIGRvbid0IGhhdmUgdG8gZGlnIHRocm91Z2ggdGhlIDUuMSBoaXN0b3J5LA0K
-dGhlIHBhdGNoIGJ5IGl0c2VsZiBpcyBhbHNvIHZhbGlkKS4NCg0KUmVnYXJkcywNCg0KSmVyb2Vu
-DQoNCg==
+
+--===============8435942204498745943==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ctyqydaobcxcfjee"
+Content-Disposition: inline
+
+
+--ctyqydaobcxcfjee
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+On Tue, Oct 08, 2019 at 03:55:36PM +0300, Tero Kristo wrote:
+> +Example:
+> +
+> +prm_dsp2: prm@1b00 {
+> +	compatible = "ti,omap-prm-inst", "ti,dra7-prm-inst";
+
+Nit: compatible values are sorted the other way around (most
+specific first).
+
+-- Sebastian
+
+--ctyqydaobcxcfjee
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl2cr2gACgkQ2O7X88g7
++pqWmxAAnbs6GjNR1+b2puQnzOpb3nsF6NWlckoiR/wBE5/utyC4v95yoB2Jm+sS
+c7GlleJA5DmF8E40TuOq3HL/z+dt5P/vWX9egt0um6TtHZ3Z7rMWuwvv5TK+3St8
+DF7ktlGqs2KG/E96LMf762P69CK2IccE7GUpY7N+MiFOZFuMJ7e+vUMyetuuSqeT
+1r/RxLgyNAbeM5X0l4mN95Tv6A+aeuBr0jpX+N97vsEXUtdJ+5aLrlFX+8zsc/rn
+LpexzXPaUDR5RgotC/+l9TxCAXwmHKJtPo0lLSsOWtctaD5MHYH/VkWAMCO3EGx8
+YhOTT2ZNnfsR51Nc0mee/LzhrHGVYrnh+V15riJilNypnY+2wIw+B91xbJoMBFx2
+PWLdwU+z67Cnc/+R/qaAYFNOQAfji1e+dAR5uAybReYzJGGRx+IOX/CInPuNZEdh
+YMbngcINMVVEd3PzdCHUsIUOoXTpoAl0PlLVvLcf9JMxkn+5+SD23Sk+oNEjreVD
+39Sb8bmrUG5C8DWBgddKpRE9dSbooLJhdkNApMUDdZwoluEDYeYlH2UDE+j7OkN6
+kTZXans1Iq0fkkq/w/V3AQO5Z8aP+FHIIg6j6Jy6zD3C9L7Lw4EdhWFBBPDFpWp/
+UGPs6TkWr0rre1fR657a3oKgv3OYwThEf3+bnTvbK7RiVQukc0Q=
+=qzjC
+-----END PGP SIGNATURE-----
+
+--ctyqydaobcxcfjee--
+
+
+--===============8435942204498745943==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8435942204498745943==--
