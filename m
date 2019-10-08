@@ -1,62 +1,36 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/5] Fix SPI module alias for panels used by omapdrm
-Date: Tue, 8 Oct 2019 08:24:38 +0300
-Message-ID: <c5bac722-89ac-7d17-2a8c-7297ecb4f836@ti.com>
-References: <20191007170801.27647-1-laurent.pinchart@ideasonboard.com>
- <20191007172256.GA1956@ravnborg.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv7 0/9] soc: ti: add OMAP PRM driver (for reset)
+Date: Tue, 8 Oct 2019 10:19:04 +0300
+Message-ID: <20191008071913.28740-1-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191007172256.GA1956@ravnborg.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sam Ravnborg <sam@ravnborg.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Jyri Sarha <jsarha@ti.com>, thierry.reding@gmail.com, dri-devel@lists.freedesktop.org, letux-kernel@openphoenux.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, ssantosh@kernel.org
+Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, p.zabel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDcvMTAvMjAxOSAyMDoyMiwgU2FtIFJhdm5ib3JnIHdyb3RlOgo+IEhpIExhdXJlbnQuCj4g
-T24gTW9uLCBPY3QgMDcsIDIwMTkgYXQgMDg6MDc6NTZQTSArMDMwMCwgTGF1cmVudCBQaW5jaGFy
-dCB3cm90ZToKPj4gSGVsbG8sCj4+Cj4+IFRoaXMgcGF0Y2ggc2VyaWVzIGZpeGVzIGEgbW9kdWxl
-IGFsaWFzIGlzc3VlIHdpdGggdGhlIGZpdmUgcmVjZW50bHkKPj4gYWRkZWQgcGFuZWwgZHJpdmVy
-cyB1c2VkIGJ5IG9tYXBkcm0uCj4+Cj4+IEJlZm9yZSB0aG9zZSBwYW5lbCBkcml2ZXJzLCBvbWFw
-ZHJtIGhhZCBjdXN0b20gZHJpdmVycyBmb3IgdGhlIHBhbmVscywKPj4gYW5kIHByZWZpeGVkIHRo
-ZSBPRiBjb21wYXRpYmxlIHN0cmluZ3Mgd2l0aCBhbiAib21hcGRzcywiIHByZWZpeC4gVGhlCj4+
-IFNQSSBkZXZpY2UgSURzIGFyZSBjb25zdHJ1Y3RlZCBieSBzdHJpcHBpbmcgdGhlIE9GIGNvbXBh
-dGlibGUgc3RyaW5nCj4+IGZyb20gdGhlIHByZWZpeCwgcmVzdWx0aW5nIGluIHRoZSAib21hcGRz
-cywiIHByZWZpeCBiZWluZyByZW1vdmVkLCBidXQKPj4gdGhlIHN1YnNlcXVlbmNlIE9GIHZlbmRv
-ciBwcmVmaXggYmVpbmcga2VwdC4gVGhlIFNQSSBkcml2ZXJzIHRodXMgaGFkCj4+IG1vZHVsZXMg
-YWxpYXNlcyB0aGF0IGNvbnRhaW5lZCB0aGUgdmVuZG9yIHByZWZpeC4KPj4KPj4gTm93IHRoYXQg
-dGhlIHBhbmVscyBhcmUgc3VwcG9ydGVkIGJ5IHN0YW5kYXJkIGRyaXZlcnMgYW5kIHRoZSAib21h
-cGRzcywiCj4+IHByZWZpeCBpcyByZW1vdmVkLCB0aGUgU1BJIGRldmljZSBJRHMgYXJlIHN0cmlw
-cGVkIGZyb20gdGhlIE9GIHZlbmRvcgo+PiBwcmVmaXguIEFzIHRoZSBuZXcgcGFuZWwgZHJpdmVy
-cyBjb3BpZWQgdGhlIG1vZHVsZSBhbGlhc2VzIGZyb20gdGhlCj4+IG9tYXBkcm0tc3BlY2lmaWMg
-ZHJpdmVycywgdGhleSBjb250YWluIHRoZSB2ZW5kb3IgcHJlZml4IGluIHRoZWlyIFNQSQo+PiBt
-b2R1bGUgYWxpYXNlcywgYW5kIGFyZSB0aHVzIG5vdCBsb2FkZWQgYXV0b21hdGljYWxseS4KPj4K
-Pj4gRml4IHRoaXMgYnkgcmVtb3ZpbmcgdGhlIHZlbmRvciBwcmVmaXggZnJvbSB0aGUgU1BJIG1v
-ZHVsZXMgYWxpYXNlcyBpbgo+PiB0aGUgZHJpdmVycy4gRm9yIGNvbnNpc3RlbmN5IHJlYXNvbiwg
-dGhlIG1hbnVhbCBtb2R1bGUgYWxpYXNlcyBhcmUgYWxzbwo+PiBtb3ZlZCB0byB1c2UgYW4gU1BJ
-IG1vZHVsZSB0YWJsZS4KPiAKPiBHb29kIGV4cGxhbmF0aW9uIC0gdGhhbmtzLgo+IAo+Pgo+PiBU
-aGVzZSBwYXRjaGVzIGFyZSBiYXNlZCBvbiB0aGUgZHJtLW1pc2MtZml4ZXMgYnJhbmNoIGFzIHRo
-ZXkgZml4IHY1LjQKPj4gcmVncmVzc2lvbnMuCj4+Cj4+IExhdXJlbnQgUGluY2hhcnQgKDUpOgo+
-PiAgICBkcm0vcGFuZWw6IGxnLWxiMDM1cTAyOiBGaXggU1BJIGFsaWFzCj4+ICAgIGRybS9wYW5l
-bDogbmVjLW5sODA0OGhsMTE6IEZpeCBTUEkgYWxpYXMKPj4gICAgZHJtL3BhbmVsOiBzb255LWFj
-eDU2NWFrbTogRml4IFNQSSBhbGlhcwo+PiAgICBkcm0vcGFuZWw6IHRwby10ZDAyOHR0ZWMxOiBG
-aXggU1BJIGFsaWFzCj4+ICAgIGRybS9wYW5lbDogdHBvLXRkMDQzbXRlYTE6IEZpeCBTUEkgYWxp
-YXMKPiAKPiBGdWxsIHNlcmllcyBpczoKPiBBY2tlZC1ieTogU2FtIFJhdm5ib3JnIDxzYW1AcmF2
-bmJvcmcub3JnPgo+IAo+IEkgZXhwZWN0IHNvbWVvbmUgZWxzZSB0byBwaWNrIHRoZW0gdXAgb3Ig
-dGhhdCB5b3UgYXBwbHkgdGhlbS4KClRoYW5rcyEgSSd2ZSBwdXNoZWQgdGhlc2UgdG8gZHJtLW1p
-c2MtZml4ZXMuCgogIFRvbWkKCi0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jr
-a2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1
-MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
-ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
-aWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Hi,
+
+This is just a re-send of v6 on request from Santosh to gather all
+patches in a single clean series.
+
+Applied Reviewed by tags to patch 1/9 only, (I actually dropped one
+erroneous line from it also, I missed removing the clocks entry from
+the examply so that one is gone; kept the reviewed by tags though)
+and dropped patch 10 from the series (that one should be applied by Tony.)
+
+-Tero
+
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
