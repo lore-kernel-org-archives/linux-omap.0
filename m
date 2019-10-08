@@ -1,7 +1,7 @@
-From: Jeroen Hofstee <jhofstee@victronenergy.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] ARM: dts: am335x-sancloud-bbe: Fix PHY mode for ethernet
-Date: Tue, 8 Oct 2019 16:42:47 +0000
-Message-ID: <4fa5393d-0b2c-4b8c-128a-81ab05a14a82@victronenergy.com>
+Date: Tue, 8 Oct 2019 09:51:54 -0700
+Message-ID: <20191008165154.GH5610@atomide.com>
 References: <20191002095416.19603-1-jhofstee@victronenergy.com>
  <d027ef07-807d-6a7b-2939-b67be4542469@ti.com>
  <436f1712-7dec-db40-d08f-1a3032af3596@victronenergy.com>
@@ -9,36 +9,52 @@ References: <20191002095416.19603-1-jhofstee@victronenergy.com>
  <20191008142349.GE5610@atomide.com>
  <1f779973-1702-47eb-158f-7000770c435a@victronenergy.com>
  <20191008161416.GG5610@atomide.com>
+ <4fa5393d-0b2c-4b8c-128a-81ab05a14a82@victronenergy.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191008161416.GG5610@atomide.com>
-Content-Language: en-US
-Content-ID: <3D3318AB959123469B049ABE63C6EF67@eurprd07.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <4fa5393d-0b2c-4b8c-128a-81ab05a14a82@victronenergy.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, open list <linux-kernel@vger.kernel.org>
+To: Jeroen Hofstee <jhofstee@victronenergy.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8gVG9ueSwNCg0KT24gMTAvOC8xOSA2OjE0IFBNLCBUb255IExpbmRncmVuIHdyb3RlOg0K
-PiAqIEplcm9lbiBIb2ZzdGVlIDxqaG9mc3RlZUB2aWN0cm9uZW5lcmd5LmNvbT4gWzE5MTAwOCAx
-NjowM106DQo+PiBIZWxsbyBUb255LA0KPj4NCj4+IE9uIDEwLzgvMTkgNDoyMyBQTSwgVG9ueSBM
-aW5kZ3JlbiB3cm90ZToNCj4+PiAqIEdyeWdvcmlpIFN0cmFzaGtvIDxncnlnb3JpaS5zdHJhc2hr
-b0B0aS5jb20+IFsxOTEwMDMgMDI6MzJdOg0KPj4+PiBPbiAwMy8xMC8yMDE5IDExOjE2LCBKZXJv
-ZW4gSG9mc3RlZSB3cm90ZToNCj4+Pj4+IEZ1cnRoZXJtb3JlIDQuMTkgaXMgZmluZSwgc28gdGhl
-cmUgaXMgbm8gbmVlZCB0byBpbmNsdWRlIGl0IGluIHN0YWJsZQ0KPj4+Pj4gYW5kIGhhdmUgYSBu
-b3RlIHRvIG1ha2Ugc3VyZSBhbHNvIG90aGVyIHBhdGNoZXMgYXJlIHJlcXVpcmVkIGV0Yy4NCj4+
-Pj4gSGVuY2UgYWxsIGFib3ZlIHBhdGNoZXMgd2VudCBpbiA1LjEgaXQgd291bGQgYmUgY29ycmVj
-dCB0byBtZW50aW9uIG9ubHkNCj4+Pj4gNmQ0Y2QwNDFmMGFmIG5ldDogcGh5OiBhdDgwM3g6IGRp
-c2FibGUgZGVsYXkgb25seSBmb3IgUkdNSUkgbW9kZQ0KPj4+IEplcm9lbiwgY2FuIHlvdSBwbGVh
-c2Ugc2VuZCBhbiB1cGRhdGVkIHBhdGNoIHdpdGggdGhlIGZpeGVzDQo+Pj4gdGFnIGNoYW5nZWQ/
-DQo+Pj4NCj4+IEZvciBjb21wbGV0ZW5lc3MsIHRoZXJlIGlzIG5vICJGaXhlcyB0YWciIGFzIHlv
-dSBtZW50aW9uZWQuDQo+PiBUaGUgY29tbWl0IG9ubHkgcmVmZXJzIHRvIGFub3RoZXIgY29tbWl0
-IHdoaWNoIGludHJvZHVjZXMNCj4+IGEgcHJvYmxlbS4NCj4gV2VsbCBwbGVhc2UgYWRkIHRoZSBm
-aXhlcyB0YWcsIHRoYXQgd2F5IHRoaXMgd2lsbCBnZXQNCj4gcHJvcGVybHkgYXBwbGllZCB0byBl
-YXJsaWVyIHN0YWJsZSBrZXJuZWxzIHRvbyA6KQ0KDQpCdXQgNC4xOSBpcyBmaW5lLCB0aGlzIGlz
-IGFuIGlzc3VlIGluIDUuMSBhcyBpbiBFT0wuLi4NCkkgcmVhbGx5IGRvbid0IHVuZGVyc3RhbmQg
-d2h5IEkgc2hvdWxkIHdhc3RlIHRpbWUNCnRvIGZpZ3VyZSBvdXQgd2hhdCBoYXBwZW5lZCBleGFj
-dGx5IGR1cmluZyB0aGUgNS4xDQpyZWxlYXNlIGN5Y2xlLi4uDQoNClJlZ2FyZHMsDQoNCkplcm9l
-bg0KDQo=
+* Jeroen Hofstee <jhofstee@victronenergy.com> [191008 16:43]:
+> Hello Tony,
+> 
+> On 10/8/19 6:14 PM, Tony Lindgren wrote:
+> > * Jeroen Hofstee <jhofstee@victronenergy.com> [191008 16:03]:
+> >> Hello Tony,
+> >>
+> >> On 10/8/19 4:23 PM, Tony Lindgren wrote:
+> >>> * Grygorii Strashko <grygorii.strashko@ti.com> [191003 02:32]:
+> >>>> On 03/10/2019 11:16, Jeroen Hofstee wrote:
+> >>>>> Furthermore 4.19 is fine, so there is no need to include it in stable
+> >>>>> and have a note to make sure also other patches are required etc.
+> >>>> Hence all above patches went in 5.1 it would be correct to mention only
+> >>>> 6d4cd041f0af net: phy: at803x: disable delay only for RGMII mode
+> >>> Jeroen, can you please send an updated patch with the fixes
+> >>> tag changed?
+> >>>
+> >> For completeness, there is no "Fixes tag" as you mentioned.
+> >> The commit only refers to another commit which introduces
+> >> a problem.
+> > Well please add the fixes tag, that way this will get
+> > properly applied to earlier stable kernels too :)
+> 
+> But 4.19 is fine, this is an issue in 5.1 as in EOL...
+> I really don't understand why I should waste time
+> to figure out what happened exactly during the 5.1
+> release cycle...
+
+Hmm so what's the issue with just adding the fixes tag Grygorii
+suggested:
+
+6d4cd041f0af ("net: phy: at803x: disable delay only for RGMII mode")
+
+No need to dig further?
+
+Regards,
+
+Tony
