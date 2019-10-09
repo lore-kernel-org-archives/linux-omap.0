@@ -1,61 +1,64 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 05/21] ARM: OMAP2+: Fix missing reset done flag for am3 and am43
-Date: Wed,  9 Oct 2019 13:05:58 -0400
-Message-ID: <20191009170615.32750-5-sashal@kernel.org>
-References: <20191009170615.32750-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 14/68] ARM: dts: Fix gpio0 flags for am335x-icev2
+Date: Wed,  9 Oct 2019 13:04:53 -0400
+Message-ID: <20191009170547.32204-14-sashal@kernel.org>
+References: <20191009170547.32204-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20191009170615.32750-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191009170547.32204-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Lokesh Vutla <lokeshvutla@ti.com>, Suman Anna <s-anna@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 8ad8041b98c665b6147e607b749586d6e20ba73a ]
+[ Upstream commit 4ef5d76b453908f21341e661a9b6f96862f6f589 ]
 
-For ti,sysc-omap4 compatible devices with no sysstatus register, we do have
-reset done status available in the SOFTRESET bit that clears when the reset
-is done. This is documented for example in am437x TRM for DMTIMER_TIOCP_CFG
-register. The am335x TRM just says that SOFTRESET bit value 1 means reset is
-ongoing, but it behaves the same way clearing after reset is done.
+The ti,no-idle-on-init and ti,no-reset-on-init flags need to be at
+the interconnect target module level for the modules that have it
+defined. Otherwise we get the following warnings:
 
-With the ti-sysc driver handling this automatically based on no sysstatus
-register defined, we see warnings if SYSC_HAS_RESET_STATUS is missing in the
-legacy platform data:
+dts flag should be at module level for ti,no-idle-on-init
+dts flag should be at module level for ti,no-reset-on-init
 
-ti-sysc 48042000.target-module: sysc_flags 00000222 != 00000022
-ti-sysc 48044000.target-module: sysc_flags 00000222 != 00000022
-ti-sysc 48046000.target-module: sysc_flags 00000222 != 00000022
-...
-
-Let's fix these warnings by adding SYSC_HAS_RESET_STATUS. Let's also
-remove the useless parentheses while at it.
-
-If it turns out we do have ti,sysc-omap4 compatible devices without a
-working SOFTRESET bit we can set up additional quirk handling for it.
-
+Fixes: 87fc89ced3a7 ("ARM: dts: am335x: Move l4 child devices to probe them with ti-sysc")
+Cc: Lokesh Vutla <lokeshvutla@ti.com>
+Reported-by: Suman Anna <s-anna@ti.com>
+Reviewed-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am335x-icev2.dts | 2 +-
+ arch/arm/boot/dts/am33xx-l4.dtsi   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index de06a1d5ffab5..e61c14f590634 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -966,7 +966,8 @@ static struct omap_hwmod_class_sysconfig am33xx_timer_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
- 	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			  SYSC_HAS_RESET_STATUS,
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			  SIDLE_SMART_WKUP),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
+diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
+index 18f70b35da4c7..204bccfcc110a 100644
+--- a/arch/arm/boot/dts/am335x-icev2.dts
++++ b/arch/arm/boot/dts/am335x-icev2.dts
+@@ -432,7 +432,7 @@
+ 	pinctrl-0 = <&mmc0_pins_default>;
+ };
+ 
+-&gpio0 {
++&gpio0_target {
+ 	/* Do not idle the GPIO used for holding the VTT regulator */
+ 	ti,no-reset-on-init;
+ 	ti,no-idle-on-init;
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+index 46849d6ecb3e2..1515f4f914999 100644
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -127,7 +127,7 @@
+ 			ranges = <0x0 0x5000 0x1000>;
+ 		};
+ 
+-		target-module@7000 {			/* 0x44e07000, ap 14 20.0 */
++		gpio0_target: target-module@7000 {	/* 0x44e07000, ap 14 20.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+ 			ti,hwmods = "gpio1";
+ 			reg = <0x7000 0x4>,
 -- 
 2.20.1
