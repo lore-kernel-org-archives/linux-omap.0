@@ -1,47 +1,178 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 11/26] ARM: dts: am4372: Set memory bandwidth limit for DISPC
-Date: Wed,  9 Oct 2019 13:05:43 -0400
-Message-ID: <20191009170558.32517-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 07/26] ARM: OMAP2+: Fix warnings with broken omap2_set_init_voltage()
+Date: Wed,  9 Oct 2019 13:05:39 -0400
+Message-ID: <20191009170558.32517-7-sashal@kernel.org>
 References: <20191009170558.32517-1-sashal@kernel.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191009170558.32517-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>, =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit f90ec6cdf674248dcad85bf9af6e064bf472b841 ]
+[ Upstream commit cf395f7ddb9ebc6b2d28d83b53d18aa4e7c19701 ]
 
-Set memory bandwidth limit to filter out resolutions above 720p@60Hz to
-avoid underflow errors due to the bandwidth needs of higher resolutions.
+This code is currently unable to find the dts opp tables as ti-cpufreq
+needs to set them up first based on speed binning.
 
-am43xx can not provide enough bandwidth to DISPC to correctly handle
-'high' resolutions.
+We stopped initializing the opp tables with platform code years ago for
+device tree based booting with commit 92d51856d740 ("ARM: OMAP3+: do not
+register non-dt OPP tables for device tree boot"), and all of mach-omap2
+is now booting using device tree.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+We currently get the following errors on init:
+
+omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu
+omap2_set_init_voltage: unable to set vdd_mpu
+omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+omap2_set_init_voltage: unable to set vdd_core
+omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
+omap2_set_init_voltage: unable to set vdd_iva
+
+Let's just drop the unused code. Nowadays ti-cpufreq should be used to
+to initialize things properly.
+
+Cc: Adam Ford <aford173@gmail.com>
+Cc: André Roth <neolynx@gmail.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Tested-by: Adam Ford <aford173@gmail.com> #logicpd-torpedo-37xx-devkit
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am4372.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap2/pm.c | 100 ---------------------------------------
+ 1 file changed, 100 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index d4b7c59eec685..cf1e4f747242f 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -1142,6 +1142,8 @@
- 				ti,hwmods = "dss_dispc";
- 				clocks = <&disp_clk>;
- 				clock-names = "fck";
-+
-+				max-memory-bandwidth = <230000000>;
- 			};
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index ca03af8fe43ff..ddf96adf65ab3 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -77,83 +77,6 @@ int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
+ 	return 0;
+ }
  
- 			rfbi: rfbi@4832a800 {
+-/*
+- * This API is to be called during init to set the various voltage
+- * domains to the voltage as per the opp table. Typically we boot up
+- * at the nominal voltage. So this function finds out the rate of
+- * the clock associated with the voltage domain, finds out the correct
+- * opp entry and sets the voltage domain to the voltage specified
+- * in the opp entry
+- */
+-static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+-					 const char *oh_name)
+-{
+-	struct voltagedomain *voltdm;
+-	struct clk *clk;
+-	struct dev_pm_opp *opp;
+-	unsigned long freq, bootup_volt;
+-	struct device *dev;
+-
+-	if (!vdd_name || !clk_name || !oh_name) {
+-		pr_err("%s: invalid parameters\n", __func__);
+-		goto exit;
+-	}
+-
+-	if (!strncmp(oh_name, "mpu", 3))
+-		/* 
+-		 * All current OMAPs share voltage rail and clock
+-		 * source, so CPU0 is used to represent the MPU-SS.
+-		 */
+-		dev = get_cpu_device(0);
+-	else
+-		dev = omap_device_get_by_hwmod_name(oh_name);
+-
+-	if (IS_ERR(dev)) {
+-		pr_err("%s: Unable to get dev pointer for hwmod %s\n",
+-			__func__, oh_name);
+-		goto exit;
+-	}
+-
+-	voltdm = voltdm_lookup(vdd_name);
+-	if (!voltdm) {
+-		pr_err("%s: unable to get vdd pointer for vdd_%s\n",
+-			__func__, vdd_name);
+-		goto exit;
+-	}
+-
+-	clk =  clk_get(NULL, clk_name);
+-	if (IS_ERR(clk)) {
+-		pr_err("%s: unable to get clk %s\n", __func__, clk_name);
+-		goto exit;
+-	}
+-
+-	freq = clk_get_rate(clk);
+-	clk_put(clk);
+-
+-	opp = dev_pm_opp_find_freq_ceil(dev, &freq);
+-	if (IS_ERR(opp)) {
+-		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
+-			__func__, vdd_name);
+-		goto exit;
+-	}
+-
+-	bootup_volt = dev_pm_opp_get_voltage(opp);
+-	dev_pm_opp_put(opp);
+-
+-	if (!bootup_volt) {
+-		pr_err("%s: unable to find voltage corresponding to the bootup OPP for vdd_%s\n",
+-		       __func__, vdd_name);
+-		goto exit;
+-	}
+-
+-	voltdm_scale(voltdm, bootup_volt);
+-	return 0;
+-
+-exit:
+-	pr_err("%s: unable to set vdd_%s\n", __func__, vdd_name);
+-	return -EINVAL;
+-}
+-
+ #ifdef CONFIG_SUSPEND
+ static int omap_pm_enter(suspend_state_t suspend_state)
+ {
+@@ -211,25 +134,6 @@ void omap_common_suspend_init(void *pm_suspend)
+ }
+ #endif /* CONFIG_SUSPEND */
+ 
+-static void __init omap3_init_voltages(void)
+-{
+-	if (!soc_is_omap34xx())
+-		return;
+-
+-	omap2_set_init_voltage("mpu_iva", "dpll1_ck", "mpu");
+-	omap2_set_init_voltage("core", "l3_ick", "l3_main");
+-}
+-
+-static void __init omap4_init_voltages(void)
+-{
+-	if (!soc_is_omap44xx())
+-		return;
+-
+-	omap2_set_init_voltage("mpu", "dpll_mpu_ck", "mpu");
+-	omap2_set_init_voltage("core", "l3_div_ck", "l3_main_1");
+-	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
+-}
+-
+ int __maybe_unused omap_pm_nop_init(void)
+ {
+ 	return 0;
+@@ -249,10 +153,6 @@ int __init omap2_common_pm_late_init(void)
+ 	omap4_twl_init();
+ 	omap_voltage_late_init();
+ 
+-	/* Initialize the voltages */
+-	omap3_init_voltages();
+-	omap4_init_voltages();
+-
+ 	/* Smartreflex device init */
+ 	omap_devinit_smartreflex();
+ 
 -- 
 2.20.1
