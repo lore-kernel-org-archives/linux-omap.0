@@ -1,69 +1,132 @@
-From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP2+: force iomem for omap_interconnect_sync
-Date: Wed, 9 Oct 2019 17:14:24 +0100
-Message-ID: <20191009161423.GB1337@shell.armlinux.org.uk>
-References: <20191009133902.28405-1-ben.dooks@codethink.co.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
+ OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Wed, 9 Oct 2019 19:34:47 +0300
+Message-ID: <9059e380-3a80-5d93-6224-08e4eeabf116@ti.com>
+References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
+ <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com>
+ <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
+ <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
+ <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
+ <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
+ <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
+ <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
+ <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
+ <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
+ <20191007155252.GQ5610@atomide.com>
+ <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com>
+ <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com>
+ <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
+ <0FEF1AB1-5FE0-4EEE-BEB9-0957BB424C18@goldelico.com>
+ <270E1695-9B1F-4470-AEA2-724E2139BCF5@goldelico.com>
+ <77a524bb-26e7-c090-e7e2-ce0da2896725@ti.com>
+ <C7139FF6-F71F-4FE4-807B-62E1E5C61238@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20191009133902.28405-1-ben.dooks@codethink.co.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: linux-kernel@lists.codethink.co.uk, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <C7139FF6-F71F-4FE4-807B-62E1E5C61238@goldelico.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Tony Lindgren <tony@atomide.com>, Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?UTF-8?Q?Pawe=c5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 09, 2019 at 02:39:02PM +0100, Ben Dooks wrote:
-> Force the type of omap_interconnect_sync to avoid the
-> following sparse warnign:
+On 09/10/2019 17:23, H. Nikolaus Schaller wrote:
 > 
-> arch/arm/mach-omap2/omap4-common.c:142:27: warning: incorrect type in assignment (different address spaces)
-> arch/arm/mach-omap2/omap4-common.c:142:27:    expected void [noderef] <asn:2> *static [toplevel] sram_sync
-> arch/arm/mach-omap2/omap4-common.c:142:27:    got void *
+>> Am 09.10.2019 um 15:55 schrieb Tero Kristo <t-kristo@ti.com>:
+>>
+>> On 09/10/2019 15:53, H. Nikolaus Schaller wrote:
+>>>> Am 08.10.2019 um 22:15 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+>>>>
+>>>>
+>>>> But I can't access the sgx registers and get memory faults. Maybe
+>>>> my script has a bug and is trying the wrong address. Have to check
+>>>> with some distance...
+>>> Now I have done more tests on am335x. It is not my script but something else.
+>>> Trying to read 0x5600fe00 after doing
+>>> echo on > /sys/bus/platform/devices/5600fe00.target-module/power/control
+>>> gives page faults.
+>>> When trying to load the kernel driver, the omap_reset_deassert message has
+>>> gone but the driver does no initialize:
+>>> root@letux:~# modprobe pvrsrvkm_omap_am335x_sgx530_125
+>>> [   45.774712] pvrsrvkm_omap_am335x_sgx530_125: module is from the staging directory, the quality is unknown, you have been warned.
+>>> root@letux:~#
+>>> Here is the CM/PM register dump after enabling power/control
+>>> *** SGX Register Dump ***
+>>> 0x44E00900 00000301 CM_GFX_L3_CLKSTCTRL
+>>> 0x44E00904 00050000 CM_GFX_GFX_CLKCTRL
+>>> 0x44E0090c 00000002 CM_GFX_L4LS_GFX_CLKSTCTR
+>>> 0x44E00910 00030000 CM_GFX_MMUCFG_CLKCTRL
+>>> 0x44E00914 00030000 CM_GFX_MMUDATA_CLKCTRL
+>>> 0x44E0052c 00000000 CM_DPLL.CLKSEL_GFX_FCLK
+>>> 0x44E01100 00060047 PM_GFX_PWRSTCTRL
+>>> 0x44E01104 00000001 RM_GFX_RSTCTRL
+>>> 0x44E01110 00000037 PM_GFX_PWRSTST
+>>
+>> Are you sure you have the graphics node properly applied in your kernel?
 > 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> ---
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> ---
->  arch/arm/mach-omap2/omap4-common.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Not really... There are several patch sets which seem to be necessary
+> (to support all omap variants) and I am not sure if I have them all and correctly.
 > 
-> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> index 5c3845730dbf..d27c5f61d708 100644
-> --- a/arch/arm/mach-omap2/omap4-common.c
-> +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -139,7 +139,7 @@ static int __init omap4_sram_init(void)
->  		pr_warn("%s:Unable to get sram pool needed to handle errata I688\n",
->  			__func__);
->  	else
-> -		sram_sync = (void *)gen_pool_alloc(sram_pool, PAGE_SIZE);
-> +		sram_sync = (void __force __iomem *)gen_pool_alloc(sram_pool, PAGE_SIZE);
+> I have collected these patches on top of v5.4-rc2:
+> 
+> 272d7200c77a ARM: dts: omap5: fix gpu_cm clock provider name
+> 96fa23010f2a dt-bindings: omap: add new binding for PRM instances
+> a164172c1f40 soc: ti: add initial PRM driver with reset control support
+> 42a5e4261993 soc: ti: omap-prm: poll for reset complete during de-assert
+> 9237f39716be soc: ti: omap-prm: add support for denying idle for reset clockdomain
+> bf2ae22e5bcf soc: ti: omap-prm: add omap4 PRM data
+> be5cb64f10e0 soc: ti: omap-prm: add data for am33xx
+> 86646d7d79be soc: ti: omap-prm: add dra7 PRM data
+> c3b5455dfd65 soc: ti: omap-prm: add am4 PRM data
+> e26d4ff7ad15 soc: ti: omap-prm: add omap5 PRM data
+> 66369100d1fc clk: ti: am43xx: drop idlest polling from gfx clock
 
-Not sure about this one - did you check whether the memory returned
-here really is iomem memory?  If it isn't iomem memory, then the
-warning should remain.
+You should have similar patch as above for am33xx. Otherwise it will 
+probably fail probing the ti-sysc, resulting in the failure you see.
 
-Never hide a valid sparse warning - to do so goes against the whole
-point of sparse checks.  It isn't "pointing out that a cast is missing,
-we must add a cast", the point of sparse is to find and identify where
-the code is actually incorrect - in other words, MMIO accessors are
-used on memory that is not MMIO, or direct dereferences are used on
-memory that is MMIO.  If we go around merely casting the warnings away,
-it makes sparse completely pointless.
+-Tero
 
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+> d96899e143de bus: ti-sysc: re-order reset and main clock controls
+> 45071446bd05 bus: ti-sysc: drop the extra hardreset during init
+> 0da134c3aa9d bus: ti-sysc: avoid toggling power state of module during probe
+> 17b70c96b539 ARM: OMAP2+: pdata-quirks: add PRM data for reset support
+> af81a68c65d7 clk: ti: clkctrl: fix setting up clkctrl clocks
+> d7dd7f44bce4 clk: ti: clkctrl: convert to use bit helper macros instead of bitops
+> 42ee8270adfd clk: ti: clkctrl: add new exported API for checking standby info
+> 218b39a8c851 dt-bindings: clk: add omap5 iva clkctrl definitions
+> 41b6c466efde clk: ti: omap5: add IVA subsystem clkctrl data
+> 38cfdebcc2f8 clk: ti: dra7xx: Drop idlest polling from IPU & DSP clkctrl clocks
+> 39e827b0dfe5 clk: ti: omap4: Drop idlest polling from IPU & DSP clkctrl clocks
+> f4584f1e5bff clk: ti: omap5: Drop idlest polling from IPU & DSP clkctrl clocks
+> 1c7f5871e5a0 clk: ti: am43xx: drop idlest polling from pruss clkctrl clock
+> 53363c4cfb3d clk: ti: am33xx: drop idlest polling from pruss clkctrl clock
+> 1907994ee9ce ARM: dts: omap5: add IVA clkctrl nodes
+> 8182f3f282de ARM: dts: dra7: add PRM nodes
+> ff2880fb99c7 ARM: dts: omap4: add PRM nodes
+> 4d49da48c458 ARM: dts: am33xx: Add PRM data
+> 325cffda2b2d ARM: dts: am43xx: Add PRM data
+> b6ceeb4c5b74 ARM: dts: omap5: Add PRM data
+> 303b7b4bcc60 ARM: dts: dra7: convert IOMMUs to use ti-sysc
+> d875126d92f7 ARM: dts: dra74x: convert IOMMUs to use ti-sysc
+> 8f699534deb8 ARM: dts: omap4: convert IOMMUs to use ti-sysc
+> b1ec9e25a686 ARM: dts: omap5: convert IOMMUs to use ti-sysc
+> e90c0cc1e4a5 ARM: dts: Configure rstctrl reset for SGX
+> 
+> 
+>> As you can see the RM_GFX_RSTCTRL is still asserted (it should be zero so that you can access the module) and the CM_GFX_GFX_CLKCTRL is also disabled (bits 0-1 are 0, should be 2 in the working case.)
+> 
+> Ok.
+> 
+>>
+>> It works for me with my branch + the single am33xx patch from Tony.
+> 
+> Is there a link so that I can compare with the right version?
+> 
+> BR and thanks,
+> Nikolaus
+> 
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
