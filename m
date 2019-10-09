@@ -1,127 +1,121 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: Lay common foundation to make PVR/SGX work without hacks on
- OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
-Date: Wed, 9 Oct 2019 16:55:57 +0300
-Message-ID: <77a524bb-26e7-c090-e7e2-ce0da2896725@ti.com>
-References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org>
- <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com>
- <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
- <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
- <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
- <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
- <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
- <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
- <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
- <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
- <20191007155252.GQ5610@atomide.com>
- <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com>
- <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com>
- <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com>
- <0FEF1AB1-5FE0-4EEE-BEB9-0957BB424C18@goldelico.com>
- <270E1695-9B1F-4470-AEA2-724E2139BCF5@goldelico.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Wed, 9 Oct 2019 16:23:31 +0200
+Message-ID: <C7139FF6-F71F-4FE4-807B-62E1E5C61238@goldelico.com>
+References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org> <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com> <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org> <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com> <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org> <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com> <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com> <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com> <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org> <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com> <20191007155252.GQ5610@atomide.com> <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com> <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com> <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com> <0FEF1AB1-5FE0-4EEE-BEB9-0957BB424C18@goldelico.com> <270E1695-9B1F-4470-
+ AEA2-724E2139BCF5@goldelico.com> <77a524bb-26e7-c090-e7e2-ce0da2896725@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <270E1695-9B1F-4470-AEA2-724E2139BCF5@goldelico.com>
-Content-Language: en-US
+In-Reply-To: <77a524bb-26e7-c090-e7e2-ce0da2896725@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?UTF-8?Q?Pawe=c5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?utf-8?Q?Pawe=C5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/10/2019 15:53, H. Nikolaus Schaller wrote:
-> 
->> Am 08.10.2019 um 22:15 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
->>
->>
->>> Am 08.10.2019 um 10:00 schrieb Tero Kristo <t-kristo@ti.com>:
->>>
->>> On 07/10/2019 22:24, H. Nikolaus Schaller wrote:
->>>> Hi Tero,
->>>>> Am 07.10.2019 um 21:18 schrieb Tero Kristo <t-kristo@ti.com>:
->>>>>
->>>>> On 07/10/2019 18:52, Tony Lindgren wrote:
->>>>>> Hi,
->>>>>> * H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
->>>>>> Please try with Tero's current github branch at github.com/t-kristo/linux-pm.git
->>>>>> 5.4-rc1-ipc from few days ago, the earlier versions had still issues.
->>>>>
->>>>> Yeah, this one should be fixed now.
->>>> Ok! Will try asap.
->>>>>
->>>>>>> * OMAP5 (Pyra): fails to enable the clocks (did work with the previous version)
->>>>>>> [  304.140363] clock-controller:clk:0000:0: failed to enable
->>>>>>> [  304.147388] PVR_K:(Error): EnableSGXClocks: pm_runtime_get_sync failed (16)
->>>>>> Hmm no idea what might be up with this one. Did some clkctrl clock
->>>>>> fixes maybe cause a regression here? Tero do you have any ideas?
->>>>>
->>>>> So, this one I am not too sure, I haven't looked at omap5 graphics clocking. I don't think it has anything to do with reset handling though.
->>>>>
->>>>> Is there some simple way to try this out on board; without PVR module that is?
->>>> Yes, I have also seen it when just running the commands in the original commit message [1]:
->>>> # echo on > $(find /sys -name control | grep \/5600)
->>>> # rwmem 0x5600fe00	# OCP Revision
->>>> 0x5600fe00 = 0x40000000
->>>> # echo auto > $(find /sys -name control | grep \/5600)
->>>> # rwmem 0x5600fe10
->>>> # rwmem 0x56000024
->>>> But I have not yet tested with 5.4-rc2, just 5.4-rc1.
->>>
->>> Ok, there is a one liner DTS data fix for this issue, attached.
->>
->> Yes, have tested and it fixes omap5. I have the 3D demo running again on the Pyra. Yay!
->>
->> Together with the latest rstcrtl patches, am335x is now better.
->> No omap_reset_deassert: timedout waiting for gfx:0 any more.
->>
->> But I can't access the sgx registers and get memory faults. Maybe
->> my script has a bug and is trying the wrong address. Have to check
->> with some distance...
-> 
-> Now I have done more tests on am335x. It is not my script but something else.
-> 
-> Trying to read 0x5600fe00 after doing
-> 
-> echo on > /sys/bus/platform/devices/5600fe00.target-module/power/control
-> 
-> gives page faults.
-> 
-> When trying to load the kernel driver, the omap_reset_deassert message has
-> gone but the driver does no initialize:
-> 
-> root@letux:~# modprobe pvrsrvkm_omap_am335x_sgx530_125
-> [   45.774712] pvrsrvkm_omap_am335x_sgx530_125: module is from the staging directory, the quality is unknown, you have been warned.
-> root@letux:~#
-> 
-> Here is the CM/PM register dump after enabling power/control
-> 
-> *** SGX Register Dump ***
-> 0x44E00900 00000301 CM_GFX_L3_CLKSTCTRL
-> 0x44E00904 00050000 CM_GFX_GFX_CLKCTRL
-> 0x44E0090c 00000002 CM_GFX_L4LS_GFX_CLKSTCTR
-> 0x44E00910 00030000 CM_GFX_MMUCFG_CLKCTRL
-> 0x44E00914 00030000 CM_GFX_MMUDATA_CLKCTRL
-> 0x44E0052c 00000000 CM_DPLL.CLKSEL_GFX_FCLK
-> 0x44E01100 00060047 PM_GFX_PWRSTCTRL
-> 0x44E01104 00000001 RM_GFX_RSTCTRL
-> 0x44E01110 00000037 PM_GFX_PWRSTST
 
-Are you sure you have the graphics node properly applied in your kernel?
+> Am 09.10.2019 um 15:55 schrieb Tero Kristo <t-kristo@ti.com>:
+>=20
+> On 09/10/2019 15:53, H. Nikolaus Schaller wrote:
+>>> Am 08.10.2019 um 22:15 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>>>=20
+>>>=20
+>>> But I can't access the sgx registers and get memory faults. Maybe
+>>> my script has a bug and is trying the wrong address. Have to check
+>>> with some distance...
+>> Now I have done more tests on am335x. It is not my script but =
+something else.
+>> Trying to read 0x5600fe00 after doing
+>> echo on > =
+/sys/bus/platform/devices/5600fe00.target-module/power/control
+>> gives page faults.
+>> When trying to load the kernel driver, the omap_reset_deassert =
+message has
+>> gone but the driver does no initialize:
+>> root@letux:~# modprobe pvrsrvkm_omap_am335x_sgx530_125
+>> [   45.774712] pvrsrvkm_omap_am335x_sgx530_125: module is from the =
+staging directory, the quality is unknown, you have been warned.
+>> root@letux:~#
+>> Here is the CM/PM register dump after enabling power/control
+>> *** SGX Register Dump ***
+>> 0x44E00900 00000301 CM_GFX_L3_CLKSTCTRL
+>> 0x44E00904 00050000 CM_GFX_GFX_CLKCTRL
+>> 0x44E0090c 00000002 CM_GFX_L4LS_GFX_CLKSTCTR
+>> 0x44E00910 00030000 CM_GFX_MMUCFG_CLKCTRL
+>> 0x44E00914 00030000 CM_GFX_MMUDATA_CLKCTRL
+>> 0x44E0052c 00000000 CM_DPLL.CLKSEL_GFX_FCLK
+>> 0x44E01100 00060047 PM_GFX_PWRSTCTRL
+>> 0x44E01104 00000001 RM_GFX_RSTCTRL
+>> 0x44E01110 00000037 PM_GFX_PWRSTST
+>=20
+> Are you sure you have the graphics node properly applied in your =
+kernel?
 
-As you can see the RM_GFX_RSTCTRL is still asserted (it should be zero 
-so that you can access the module) and the CM_GFX_GFX_CLKCTRL is also 
+Not really... There are several patch sets which seem to be necessary
+(to support all omap variants) and I am not sure if I have them all and =
+correctly.
+
+I have collected these patches on top of v5.4-rc2:
+
+272d7200c77a ARM: dts: omap5: fix gpu_cm clock provider name
+96fa23010f2a dt-bindings: omap: add new binding for PRM instances
+a164172c1f40 soc: ti: add initial PRM driver with reset control support
+42a5e4261993 soc: ti: omap-prm: poll for reset complete during de-assert
+9237f39716be soc: ti: omap-prm: add support for denying idle for reset =
+clockdomain
+bf2ae22e5bcf soc: ti: omap-prm: add omap4 PRM data
+be5cb64f10e0 soc: ti: omap-prm: add data for am33xx
+86646d7d79be soc: ti: omap-prm: add dra7 PRM data
+c3b5455dfd65 soc: ti: omap-prm: add am4 PRM data
+e26d4ff7ad15 soc: ti: omap-prm: add omap5 PRM data
+66369100d1fc clk: ti: am43xx: drop idlest polling from gfx clock
+d96899e143de bus: ti-sysc: re-order reset and main clock controls
+45071446bd05 bus: ti-sysc: drop the extra hardreset during init
+0da134c3aa9d bus: ti-sysc: avoid toggling power state of module during =
+probe
+17b70c96b539 ARM: OMAP2+: pdata-quirks: add PRM data for reset support
+af81a68c65d7 clk: ti: clkctrl: fix setting up clkctrl clocks
+d7dd7f44bce4 clk: ti: clkctrl: convert to use bit helper macros instead =
+of bitops
+42ee8270adfd clk: ti: clkctrl: add new exported API for checking standby =
+info
+218b39a8c851 dt-bindings: clk: add omap5 iva clkctrl definitions
+41b6c466efde clk: ti: omap5: add IVA subsystem clkctrl data
+38cfdebcc2f8 clk: ti: dra7xx: Drop idlest polling from IPU & DSP clkctrl =
+clocks
+39e827b0dfe5 clk: ti: omap4: Drop idlest polling from IPU & DSP clkctrl =
+clocks
+f4584f1e5bff clk: ti: omap5: Drop idlest polling from IPU & DSP clkctrl =
+clocks
+1c7f5871e5a0 clk: ti: am43xx: drop idlest polling from pruss clkctrl =
+clock
+53363c4cfb3d clk: ti: am33xx: drop idlest polling from pruss clkctrl =
+clock
+1907994ee9ce ARM: dts: omap5: add IVA clkctrl nodes
+8182f3f282de ARM: dts: dra7: add PRM nodes
+ff2880fb99c7 ARM: dts: omap4: add PRM nodes
+4d49da48c458 ARM: dts: am33xx: Add PRM data
+325cffda2b2d ARM: dts: am43xx: Add PRM data
+b6ceeb4c5b74 ARM: dts: omap5: Add PRM data
+303b7b4bcc60 ARM: dts: dra7: convert IOMMUs to use ti-sysc
+d875126d92f7 ARM: dts: dra74x: convert IOMMUs to use ti-sysc
+8f699534deb8 ARM: dts: omap4: convert IOMMUs to use ti-sysc
+b1ec9e25a686 ARM: dts: omap5: convert IOMMUs to use ti-sysc
+e90c0cc1e4a5 ARM: dts: Configure rstctrl reset for SGX
+
+
+> As you can see the RM_GFX_RSTCTRL is still asserted (it should be zero =
+so that you can access the module) and the CM_GFX_GFX_CLKCTRL is also =
 disabled (bits 0-1 are 0, should be 2 in the working case.)
 
-It works for me with my branch + the single am33xx patch from Tony.
+Ok.
 
--Tero
+>=20
+> It works for me with my branch + the single am33xx patch from Tony.
 
-> 
-> BR,
-> Nikolaus
-> 
-> 
+Is there a link so that I can compare with the right version?
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+BR and thanks,
+Nikolaus
