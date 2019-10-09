@@ -1,68 +1,52 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 3/3] ARM: dts: dra7: Add ti-sysc node for VPE
-Date: Wed, 9 Oct 2019 12:56:28 -0500
-Message-ID: <20191009175628.20570-4-bparrot@ti.com>
-References: <20191009175628.20570-1-bparrot@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv8 0/9] soc: ti: add OMAP PRM driver (for reset)
+Date: Wed, 9 Oct 2019 11:39:11 -0700
+Message-ID: <20191009183911.GN5610@atomide.com>
+References: <20191008125544.20679-1-t-kristo@ti.com>
+ <20191008140002.GY5610@atomide.com>
+ <5e10f95c-7ec9-d3a7-6862-f6f07a9c1495@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191009175628.20570-1-bparrot@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <5e10f95c-7ec9-d3a7-6862-f6f07a9c1495@oracle.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Cc: devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add VPE node as a child of l4 interconnect in order for it to probe
-using ti-sysc.
+* santosh.shilimkar@oracle.com <santosh.shilimkar@oracle.com> [191009 09:02]:
+> On 10/8/19 7:00 AM, Tony Lindgren wrote:
+> > * Tero Kristo <t-kristo@ti.com> [191008 05:56]:
+> > > Hi,
+> > > 
+> > > Hopefully this is the final revision of the series. Just a repost of v7
+> > > with the single comment from Philipp fixed, and added reviewed by tags
+> > > from him for couple of the patches.
+> > 
+> > Santosh, when applying these, can you please provide me an immutable
+> > branch maybe against v5.4-rc1 that I can use as the base for the related
+> > dts changes?
+> > 
+> > For the whole series where not already done, please feel free to add:
+> > 
+> > Reviewed-by: Tony Lindgren <tony@atomide.com>
+> > 
+> Pushed a branch out with series and your reviewed-by tag. I have tagged
+> it yet in case Peter's soc patches get ready.
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux-keystone.git
+> for_5.5/driver-soc
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- arch/arm/boot/dts/dra7-l4.dtsi | 30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+Great, thanks!
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index ea0e7c19eb4e..d876c1754f33 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -4158,12 +4158,36 @@
- 			ranges = <0x0 0x1b0000 0x10000>;
- 		};
- 
--		target-module@1d0000 {			/* 0x489d0000, ap 27 30.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+		target-module@1d0010 {			/* 0x489d0000, ap 27 30.0 */
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x1d0010 0x4>;
-+			reg-names = "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&vpe_clkctrl DRA7_VPE_VPE_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x1d0000 0x10000>;
-+
-+			vpe: vpe@0 {
-+				compatible = "ti,vpe";
-+				reg = <0x0000 0x120>,
-+				      <0x0700 0x80>,
-+				      <0x5700 0x18>,
-+				      <0xd000 0x400>;
-+				reg-names = "vpe_top",
-+					    "sc",
-+					    "csc",
-+					    "vpdma";
-+				interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
- 		};
- 	};
- };
--- 
-2.17.1
+Tony
