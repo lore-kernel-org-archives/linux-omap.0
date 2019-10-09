@@ -1,50 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 7/7] drm/omap: hdmi4: fix use of uninitialized var
-Date: Tue, 8 Oct 2019 07:21:53 -0700
-Message-ID: <20191008142153.GD5610@atomide.com>
-References: <20190930103840.18970-1-tomi.valkeinen@ti.com>
- <20190930103840.18970-8-tomi.valkeinen@ti.com>
- <20191008141335.GB5610@atomide.com>
- <ffb498fb-5041-d3e9-2702-879f3d389adf@ti.com>
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 1/2] ARM: OMAP2+: make dra7xx_sha0_hwmod static
+Date: Wed,  9 Oct 2019 09:56:45 +0100
+Message-ID: <20191009085646.21755-1-ben.dooks@codethink.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <ffb498fb-5041-d3e9-2702-879f3d389adf@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@lists.codethink.co.uk, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Ben Dooks <ben.dooks@codethink.co.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkxMDA4IDE0OjE3XToK
-PiBPbiAwOC8xMC8yMDE5IDE3OjEzLCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gKiBUb21pIFZh
-bGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkwOTMwIDEwOjM4XToKPiA+ID4gSWYg
-dXNlX21jbGsgaXMgZmFsc2UsIG1jbGtfbW9kZSBpcyB3cml0dGVuIHRvIGEgcmVnaXN0ZXIgd2l0
-aG91dAo+ID4gPiBpbml0aWFsaXphdGlvbi4gVGhpcyBkb2Vzbid0IGNhdXNlIGFueSBpbGwgZWZm
-ZWN0cyBhcyB0aGUgd3JpdHRlbiB2YWx1ZQo+ID4gPiBpcyBub3QgdXNlZCB3aGVuIHVzZV9tY2xr
-IGlzIGZhbHNlLgo+ID4gPiAKPiA+ID4gVG8gZml4IHRoaXMsIHdyaXRlIHVzZV9tY2xrIG9ubHkg
-d2hlbiB1c2VfbWNsayBpcyB0cnVlLgo+ID4gCj4gPiBIZXkgbmljZSBjYXRjaC4gQmFzZWQgb24g
-YSBxdWljayB0ZXN0IGxvb2tzIGxpa2UgdGhpcyBmaXhlcyBhbgo+ID4gaXNzdWUgd2hlcmUgcG93
-ZXIgY29uc3VtcHRpb24gc3RheXMgaGlnaGVyIGFmdGVyIHVzaW5nIEhETUkuCj4gPiAKPiA+IFdv
-dWxkIGJlIG5pY2UgdG8gaGF2ZSBtZXJnZWQgaW4gdGhlIHY1LjQtcmMgc2VyaWVzOgo+ID4gCj4g
-PiBUZXN0ZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gCj4gUmVhbGx5
-PyBPaywgd2VsbCwgdGhlbiBpdCB3YXMgYSBnb29kIHJhbmRvbSBmaW5kID0pLgoKWWVhaCBzbyBp
-dCBzZWVtcyA6KSBFYXJsaWVyIEkgdGhvdWdodCB0aGVyZSdzIHN0aWxsIHNvbWUKY2xrY3RybCBz
-ZXR0aW5nIHdyb25nIGFmdGVyIHVzaW5nIEhETUksIGJ1dCBkaWQgbm90IHNlZQphbnl0aGluZyBk
-aWZmaW5nIHRoZSBjbGtjdHJsIHJlZ2lzdGVycyBiZWZvcmUgYW5kIGFmdGVyCmFuZCBnYXZlIHVw
-LgoKPiBJIGRpZCBhbHJlYWR5IHB1c2ggdGhpcyB0byBkcm0tbWlzYy1uZXh0LCBhcyBJIHRob3Vn
-aHQgaXQgZG9lcyBub3QgaGF2ZSBhbnkKPiByZWFsIGVmZmVjdC4gSSdsbCBjaGVjayBpZiBpdCdz
-IG9rIHRvIHB1c2ggdG8gZHJtLW1pc2MtZml4ZXMgdG9vLCB3aXRoIENjCj4gc3RhYmxlLgoKT0sg
-Z3JlYXQgdGhhbmtzLgoKVG9ueQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
-a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
-cmktZGV2ZWw=
+VGhlIGRyYTd4eF9zaGEwX2h3bW9kIG9iamVjdCBpcyBub3QgZXhwb3J0ZWQgb3V0c2lkZSBvZgpv
+bWFwX2h3bW9kXzd4eF9kYXRhLiBzbyBtYWtlIGl0IHN0YXRpYyB0byBhdm9pZCB0aGUKZm9sbG93
+aW5nIHdhcm5pbmc6CgphcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfN3h4X2RhdGEuYzo2
+ODY6MTk6IHdhcm5pbmc6IHN5bWJvbCAnZHJhN3h4X3NoYTBfaHdtb2QnIHdhcyBub3QgZGVjbGFy
+ZWQuIFNob3VsZCBpdCBiZSBzdGF0aWM/CgpTaWduZWQtb2ZmLWJ5OiBCZW4gRG9va3MgPGJlbi5k
+b29rc0Bjb2RldGhpbmsuY28udWs+Ci0tLQpDYzogIkJlbm/DrnQgQ291c3NvbiIgPGJjb3Vzc29u
+QGJheWxpYnJlLmNvbT4KQ2M6IFBhdWwgV2FsbXNsZXkgPHBhdWxAcHdzYW4uY29tPgpDYzogVG9u
+eSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwu
+b3JnCi0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzd4eF9kYXRhLmMgfCAyICst
+CiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1n
+aXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfN3h4X2RhdGEuYyBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvb21hcF9od21vZF83eHhfZGF0YS5jCmluZGV4IGU1YmQ1NDlkMmE1ZS4uYmQz
+OTJkNTkzODJiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfN3h4
+X2RhdGEuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfN3h4X2RhdGEuYwpA
+QCAtNjgzLDcgKzY4Myw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9od21vZF9jbGFzcyBkcmE3eHhf
+c2hhMF9od21vZF9jbGFzcyA9IHsKIAkuc3lzYwkJPSAmZHJhN3h4X3NoYTBfc3lzYywKIH07CiAK
+LXN0cnVjdCBvbWFwX2h3bW9kIGRyYTd4eF9zaGEwX2h3bW9kID0geworc3RhdGljIHN0cnVjdCBv
+bWFwX2h3bW9kIGRyYTd4eF9zaGEwX2h3bW9kID0gewogCS5uYW1lCQk9ICJzaGFtIiwKIAkuY2xh
+c3MJCT0gJmRyYTd4eF9zaGEwX2h3bW9kX2NsYXNzLAogCS5jbGtkbV9uYW1lCT0gImw0c2VjX2Ns
+a2RtIiwKLS0gCjIuMjMuMAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
+bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
