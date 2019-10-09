@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 06/26] ARM: OMAP2+: Fix missing reset done flag for am3 and am43
-Date: Wed,  9 Oct 2019 13:05:38 -0400
-Message-ID: <20191009170558.32517-6-sashal@kernel.org>
-References: <20191009170558.32517-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 04/13] ARM: OMAP2+: Fix missing reset done flag for am3 and am43
+Date: Wed,  9 Oct 2019 13:06:23 -0400
+Message-ID: <20191009170635.536-4-sashal@kernel.org>
+References: <20191009170635.536-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20191009170558.32517-1-sashal@kernel.org>
+In-Reply-To: <20191009170635.536-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
@@ -44,10 +44,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index 9ded7bf972e71..3b8fe014a3e94 100644
+index e2d84aa7f595f..fa1c6707877a7 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -946,7 +946,8 @@ static struct omap_hwmod_class_sysconfig am33xx_timer_sysc = {
+@@ -939,7 +939,8 @@ static struct omap_hwmod_class_sysconfig am33xx_timer_sysc = {
  	.rev_offs	= 0x0000,
  	.sysc_offs	= 0x0010,
  	.syss_offs	= 0x0014,
