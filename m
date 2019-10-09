@@ -1,64 +1,47 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.3 14/68] ARM: dts: Fix gpio0 flags for am335x-icev2
-Date: Wed,  9 Oct 2019 13:04:53 -0400
-Message-ID: <20191009170547.32204-14-sashal@kernel.org>
-References: <20191009170547.32204-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 11/26] ARM: dts: am4372: Set memory bandwidth limit for DISPC
+Date: Wed,  9 Oct 2019 13:05:43 -0400
+Message-ID: <20191009170558.32517-11-sashal@kernel.org>
+References: <20191009170558.32517-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191009170547.32204-1-sashal@kernel.org>
+In-Reply-To: <20191009170558.32517-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Lokesh Vutla <lokeshvutla@ti.com>, Suman Anna <s-anna@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-[ Upstream commit 4ef5d76b453908f21341e661a9b6f96862f6f589 ]
+[ Upstream commit f90ec6cdf674248dcad85bf9af6e064bf472b841 ]
 
-The ti,no-idle-on-init and ti,no-reset-on-init flags need to be at
-the interconnect target module level for the modules that have it
-defined. Otherwise we get the following warnings:
+Set memory bandwidth limit to filter out resolutions above 720p@60Hz to
+avoid underflow errors due to the bandwidth needs of higher resolutions.
 
-dts flag should be at module level for ti,no-idle-on-init
-dts flag should be at module level for ti,no-reset-on-init
+am43xx can not provide enough bandwidth to DISPC to correctly handle
+'high' resolutions.
 
-Fixes: 87fc89ced3a7 ("ARM: dts: am335x: Move l4 child devices to probe them with ti-sysc")
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Reported-by: Suman Anna <s-anna@ti.com>
-Reviewed-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am335x-icev2.dts | 2 +-
- arch/arm/boot/dts/am33xx-l4.dtsi   | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am4372.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
-index 18f70b35da4c7..204bccfcc110a 100644
---- a/arch/arm/boot/dts/am335x-icev2.dts
-+++ b/arch/arm/boot/dts/am335x-icev2.dts
-@@ -432,7 +432,7 @@
- 	pinctrl-0 = <&mmc0_pins_default>;
- };
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d4b7c59eec685..cf1e4f747242f 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -1142,6 +1142,8 @@
+ 				ti,hwmods = "dss_dispc";
+ 				clocks = <&disp_clk>;
+ 				clock-names = "fck";
++
++				max-memory-bandwidth = <230000000>;
+ 			};
  
--&gpio0 {
-+&gpio0_target {
- 	/* Do not idle the GPIO used for holding the VTT regulator */
- 	ti,no-reset-on-init;
- 	ti,no-idle-on-init;
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-index 46849d6ecb3e2..1515f4f914999 100644
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -127,7 +127,7 @@
- 			ranges = <0x0 0x5000 0x1000>;
- 		};
- 
--		target-module@7000 {			/* 0x44e07000, ap 14 20.0 */
-+		gpio0_target: target-module@7000 {	/* 0x44e07000, ap 14 20.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
- 			ti,hwmods = "gpio1";
- 			reg = <0x7000 0x4>,
+ 			rfbi: rfbi@4832a800 {
 -- 
 2.20.1
