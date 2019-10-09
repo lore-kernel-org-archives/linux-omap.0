@@ -1,72 +1,106 @@
-From: Jeroen Hofstee <jhofstee@victronenergy.com>
-Subject: Re: [PATCH] ARM: dts: am335x-sancloud-bbe: Fix PHY mode for ethernet
-Date: Wed, 9 Oct 2019 10:09:40 +0000
-Message-ID: <c486a797-6305-8a62-8604-aef5e835ae72@victronenergy.com>
-References: <20191002095416.19603-1-jhofstee@victronenergy.com>
- <d027ef07-807d-6a7b-2939-b67be4542469@ti.com>
- <436f1712-7dec-db40-d08f-1a3032af3596@victronenergy.com>
- <d85cd860-22a3-6142-7f2d-736a428d7a31@ti.com>
- <20191008142349.GE5610@atomide.com>
- <1f779973-1702-47eb-158f-7000770c435a@victronenergy.com>
- <20191008161416.GG5610@atomide.com>
- <4fa5393d-0b2c-4b8c-128a-81ab05a14a82@victronenergy.com>
- <20191008165154.GH5610@atomide.com>
- <a8a72544-7f30-c896-22e4-7d85bd0b4235@victronenergy.com>
- <20191008170259.GI5610@atomide.com>
- <6dbdf76a-5c04-63ef-0676-5b02fd29c456@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: Lay common foundation to make PVR/SGX work without hacks on OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Wed, 9 Oct 2019 14:53:42 +0200
+Message-ID: <270E1695-9B1F-4470-AEA2-724E2139BCF5@goldelico.com>
+References: <d0cbfaaf-813e-8803-f90b-931a38396750@wizzup.org> <3A03FF16-C203-43ED-AEEF-0260F6B3331A@goldelico.com> <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org> <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com> <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org> <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com> <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com> <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com> <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org> <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com> <20191007155252.GQ5610@atomide.com> <64474fb1-f6d2-52d0-175a-65bb493dc1fe@ti.com> <9253CFB5-0AF7-4EA0-AC7F-6DE37318238A@goldelico.com> <0bb4739d-e26f-de49-fd80-257a836e892a@ti.com> <0FEF1AB1-5FE0-4EEE-BEB9-0957BB424C18@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6dbdf76a-5c04-63ef-0676-5b02fd29c456@ti.com>
-Content-Language: en-US
-Content-ID: <7B1DCEF4A23B7B41A86D797B330A500F@eurprd07.prod.outlook.com>
+In-Reply-To: <0FEF1AB1-5FE0-4EEE-BEB9-0957BB424C18@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, open list <linux-kernel@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?utf-8?Q?Pawe=C5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, maemo-leste@lists.dyne.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8gR3J5Z29ycmksDQoNCk9uIDEwLzkvMTkgMTE6NDMgQU0sIEdyeWdvcmlpIFN0cmFzaGtv
-IHdyb3RlOg0KPg0KPg0KPj4+IEdyeWdvcmlpIGRvZXNuJ3Qgc3VnZ2VzdCB0byBhZGQgYSBmaXhl
-cyB0YWcsIGp1c3QgdG8gY2hhbmdlIHRoZSANCj4+PiByZWZlcmVuY2VkDQo+Pj4gY29tbWl0IHRv
-IGFub3RoZXIuIE9idmlvdXNseSBJIHdvdWxkIGxpa2UgdG8gdW5kZXJzdGFuZCB3aHkgYW5vdGhl
-ciANCj4+PiBjb21taXQNCj4+PiBzaG91bGQgYmUgcmVmZXJlbmNlZC4gQW5kIHRoZW4gSSBzaG91
-bGQgcmVhZCBhbmQgcGFyc2UgdGhlIHJlc3BvbnNlLCANCj4+PiBzbyB0aGVyZQ0KPj4+IGlzIG5v
-IHNwZWNpYWwgcmVhc29uLCBqdXN0IHRpbWUuLi4NCj4+DQo+PiBPSyBzdXJlLiBXZWxsIG9uY2Ug
-eW91IGd1eXMgaGF2ZSB0aGUgY29tbWl0IGZpZ3VyZWQgb3V0LCBsZXQgbWUNCj4+IGtub3cgd2hh
-dCB0byBhcHBseS4gQW5kIHdlIGtub3cgR3J5Z29yaWkgaXMgbW9zdGx5IHJpZ2h0IGJhc2VkDQo+
-PiBvbiBoaXMgaGlzdG9yeSBvZiBjb21tZW50cyBzbyBiZXN0IHRvIG5vdCBpZ25vcmUgdGhhdCA6
-KQ0KPg0KPiBTcnksIGJ1dCBJIGRvIG5vdCB0aGluayBteSByZXF1ZXN0IGlzIHNvbWVob3cgc3Bl
-Y2lhbC4NCj4gWWVzLCB5b3VyIHBhdGNoIGlzIGNvcnJlY3QgYnkgaXRzZWxmLCBidXQgY29tbWl0
-IGRlc2NyaXB0aW9uIGlzIG5vdDoNCj4gMSkgY29tbWl0IGNkMjhkMWQ2ZTUyZTogKCJuZXQ6IHBo
-eTogYXQ4MDN4OiBEaXNhYmxlIHBoeSBkZWxheSBmb3IgDQo+IFJHTUlJIG1vZGUiKcKgIHdoaWNo
-IHlvdSd2ZSBtZW50aW9uZWQgaXMgQSBCVUcNCj4gYW5kIHNob3VsZCBub3QgYmUgbWVyZ2VkIGZp
-cnN0IG9mIGFsbCAod2hpY2ggeW91IGNhbiBmaW5kIG91dCBieSANCj4gcmVhZGluZyBjb3JyZXNw
-b25kaW5nIHRocmVhZCkuDQo+DQo+IGp1c3QgdHJ5IGNoZWNrb3V0IHRoYXQgY29tbWl0IGFuZCBh
-cHBseSB5b3VyIHBhdGNoIG9uIHRvcCAtIG5ldHdvcmtpbmcgDQo+IHNob3VsZCBub3Qgd29yay4N
-Cj4NCj4gQnV0IGl0IHdhcyBtZXJnZWQgYW5kIG5vdCByZXZlcnRlZCAtIGluc3RlYWQgdHdvIG1v
-cmUgcGF0Y2hlcyB3ZXJlIA0KPiBhcHBsaWVkIHRvIGZpeCByZWdyZXNzaW9uLg0KPg0KPiAyKSBU
-aG9zZSBjb21taXRzIGFyZSBkZWZpbmVkIGZpbmFsIGJlaGF2aW9yICh3aGljaCBpIGFnYWluIGV4
-cGxhaW5lZCANCj4gYWJvdmUpIGFuZCB0aGF0IG5ldyBiZWhhdmlvciBoYXJkbHkgY2FuDQo+IGJl
-IGNhbGxlZCAidGhlIGJ1ZyBpbiB0aGUgYXQ4MDN4IGRyaXZlciIgYXMsIHVuZm9ydHVuYXRlbHks
-IHRoZXJlIHdlcmUgDQo+IG5vIGNvbW1vbiBjb25jbHVzaW9uIGhvdyBkZWZhdWx0IHZhbHVlcyBm
-b3INCj4gUlgvVFggZGVsYXkgc2hvdWxkIGJlIGhhbmRsZWQgdnMgcGh5LW1vZGUgPSAicmdtaWkt
-dHhpZCIvInJnbWlpLXJ4aWQiLg0KPiBPcmlnaW5hbGx5IG1hbnkgUEhZIGRyaXZlciBrZXB0IHRo
-ZW0gZGVmYXVsdCAoYXMgcGVyIGJvb3QgDQo+IHN0cmFwcGluZy9ib290bG9hZGVyIGNvbmZpZ3Vy
-YXRpb24pLCBidXQgbm93DQo+IHNvbWUgZHJpdmVyIChpbmNsdWRpbmcgYXQ4MDN4KSBzdGFydGVk
-IGRpc2FibGluZyBSWCBkZWxheSBpZiANCj4gInJnbWlpLXR4aWQiIG9yIFRYIGRlbGF5IGlmICJy
-Z21paS1yeGlkIi4NCj4NCj4gSGVuY2UsIHBscyB1cGRhdGUgY29tbWl0IG1lc3NhZ2UgYW5kIGFk
-ZCBwcm9wZXIgZml4ZXMgdGFnLiBzbXRoIGxpa2U6DQo+ICJOb3cgYWZ0ZXIgY29tbWl0IDZkNGNk
-MDQxZjBhZiBuZXQ6IHBoeTogYXQ4MDN4OiBkaXNhYmxlIGRlbGF5IG9ubHkgDQo+IGZvciBSR01J
-SSBtb2RlIHRoZSBkcml2ZXIgd2lsbCBmb3JjaWJseSBkaXNhYmxlDQo+IFJHTUlJIFJYIGRlbGF5
-IGlmIHBoeS1tb2RlID0gInJnbWlpLXR4aWQiIGlzIHNwZWNpZmllZCBpbiBEVCB3aGljaCANCj4g
-d2lsbCBicmVhayBuZXR3b3JraW5nIG9uIC4uDQo+DQo+IEhlbmNlIGNoYW5nZSAuLiB0byBlbnN1
-cmUgLi4uDQo+IEZpeGVzOiAiDQo+DQo+DQoNClllcywgdGhhdCBwYXJ0IGlzIGNsZWFyIHRvIG1l
-LCBhbmQgSSBhbSBub3Qgc2F5aW5nIHlvdSBhcmUgaW5jb3JyZWN0LA0Kb25seSB0aGF0IEkgd291
-bGQgbGlrZSB0byB1bmRlcnN0YW5kIHdoeSBhYm92ZSBjb21taXQgcG9wcyB1cA0KKHNpbmNlIGl0
-IG1ha2VzIG5vIHNlbnNlIHRvIG1lIGFzIHdlbGwsIG15IG93biBjb21taXQpLiBBbmQgdGhlIHJl
-YXNvbg0KaXMgcmF0aGVyIHNpbGx5LCBJIGd1ZXNzLi4uIEkgZml4ZWQgaXQgb24gbWFzdGVyLCB0
-aGVyZWFmdGVyIGNoZWNrZWQgdGhlIA0KNS4xIGJyYW5jaCwNCndoaWxlIGtlZXBpbmcgdGhlIGZp
-eGVkIGR0Yi4uLiA6KA0KDQpMZXQgbWUgY2hlY2sgdGhhdCBhbmQgSSB3aWxsIHNlbmQgYSB2Mi4g
-TGlrZWx5IHRvbW9ycm93DQooSSBhbSBub3QgbmVhciB0aGUgZGV2aWNlIGF0IHRoZSBtb21lbnQp
-Lg0KDQpSZWdhcmRzLA0KDQpKZXJvZW4NCg0K
+
+> Am 08.10.2019 um 22:15 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>=20
+>=20
+>> Am 08.10.2019 um 10:00 schrieb Tero Kristo <t-kristo@ti.com>:
+>>=20
+>> On 07/10/2019 22:24, H. Nikolaus Schaller wrote:
+>>> Hi Tero,
+>>>> Am 07.10.2019 um 21:18 schrieb Tero Kristo <t-kristo@ti.com>:
+>>>>=20
+>>>> On 07/10/2019 18:52, Tony Lindgren wrote:
+>>>>> Hi,
+>>>>> * H. Nikolaus Schaller <hns@goldelico.com> [191005 16:59]:
+>>>>> Please try with Tero's current github branch at =
+github.com/t-kristo/linux-pm.git
+>>>>> 5.4-rc1-ipc from few days ago, the earlier versions had still =
+issues.
+>>>>=20
+>>>> Yeah, this one should be fixed now.
+>>> Ok! Will try asap.
+>>>>=20
+>>>>>> * OMAP5 (Pyra): fails to enable the clocks (did work with the =
+previous version)
+>>>>>> [  304.140363] clock-controller:clk:0000:0: failed to enable
+>>>>>> [  304.147388] PVR_K:(Error): EnableSGXClocks: =
+pm_runtime_get_sync failed (16)
+>>>>> Hmm no idea what might be up with this one. Did some clkctrl clock
+>>>>> fixes maybe cause a regression here? Tero do you have any ideas?
+>>>>=20
+>>>> So, this one I am not too sure, I haven't looked at omap5 graphics =
+clocking. I don't think it has anything to do with reset handling =
+though.
+>>>>=20
+>>>> Is there some simple way to try this out on board; without PVR =
+module that is?
+>>> Yes, I have also seen it when just running the commands in the =
+original commit message [1]:
+>>> # echo on > $(find /sys -name control | grep \/5600)
+>>> # rwmem 0x5600fe00	# OCP Revision
+>>> 0x5600fe00 =3D 0x40000000
+>>> # echo auto > $(find /sys -name control | grep \/5600)
+>>> # rwmem 0x5600fe10
+>>> # rwmem 0x56000024
+>>> But I have not yet tested with 5.4-rc2, just 5.4-rc1.
+>>=20
+>> Ok, there is a one liner DTS data fix for this issue, attached.
+>=20
+> Yes, have tested and it fixes omap5. I have the 3D demo running again =
+on the Pyra. Yay!
+>=20
+> Together with the latest rstcrtl patches, am335x is now better.
+> No omap_reset_deassert: timedout waiting for gfx:0 any more.
+>=20
+> But I can't access the sgx registers and get memory faults. Maybe
+> my script has a bug and is trying the wrong address. Have to check
+> with some distance...
+
+Now I have done more tests on am335x. It is not my script but something =
+else.
+
+Trying to read 0x5600fe00 after doing
+
+echo on > /sys/bus/platform/devices/5600fe00.target-module/power/control
+
+gives page faults.
+
+When trying to load the kernel driver, the omap_reset_deassert message =
+has
+gone but the driver does no initialize:
+
+root@letux:~# modprobe pvrsrvkm_omap_am335x_sgx530_125
+[   45.774712] pvrsrvkm_omap_am335x_sgx530_125: module is from the =
+staging directory, the quality is unknown, you have been warned.
+root@letux:~#
+
+Here is the CM/PM register dump after enabling power/control
+
+*** SGX Register Dump ***
+0x44E00900 00000301 CM_GFX_L3_CLKSTCTRL
+0x44E00904 00050000 CM_GFX_GFX_CLKCTRL
+0x44E0090c 00000002 CM_GFX_L4LS_GFX_CLKSTCTR
+0x44E00910 00030000 CM_GFX_MMUCFG_CLKCTRL
+0x44E00914 00030000 CM_GFX_MMUDATA_CLKCTRL
+0x44E0052c 00000000 CM_DPLL.CLKSEL_GFX_FCLK
+0x44E01100 00060047 PM_GFX_PWRSTCTRL
+0x44E01104 00000001 RM_GFX_RSTCTRL
+0x44E01110 00000037 PM_GFX_PWRSTST
+
+BR,
+Nikolaus
