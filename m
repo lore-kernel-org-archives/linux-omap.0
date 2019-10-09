@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.3 15/68] ARM: OMAP2+: Fix missing reset done flag for am3 and am43
-Date: Wed,  9 Oct 2019 13:04:54 -0400
-Message-ID: <20191009170547.32204-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 05/68] ARM: dts: Fix wrong clocks for dra7 mcasp
+Date: Wed,  9 Oct 2019 13:04:44 -0400
+Message-ID: <20191009170547.32204-5-sashal@kernel.org>
 References: <20191009170547.32204-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,53 +9,194 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191009170547.32204-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 8ad8041b98c665b6147e607b749586d6e20ba73a ]
+[ Upstream commit 2d3c8ba3cffa00f76bedb713c8c2126c82d8cd13 ]
 
-For ti,sysc-omap4 compatible devices with no sysstatus register, we do have
-reset done status available in the SOFTRESET bit that clears when the reset
-is done. This is documented for example in am437x TRM for DMTIMER_TIOCP_CFG
-register. The am335x TRM just says that SOFTRESET bit value 1 means reset is
-ongoing, but it behaves the same way clearing after reset is done.
+The ahclkr clkctrl clock bit 28 only exists for mcasp 1 and 2 on dra7.
+This causes the following warning on beagle-x15:
 
-With the ti-sysc driver handling this automatically based on no sysstatus
-register defined, we see warnings if SYSC_HAS_RESET_STATUS is missing in the
-legacy platform data:
+ti-sysc 48468000.target-module: could not add child clock ahclkr: -19
 
-ti-sysc 48042000.target-module: sysc_flags 00000222 != 00000022
-ti-sysc 48044000.target-module: sysc_flags 00000222 != 00000022
-ti-sysc 48046000.target-module: sysc_flags 00000222 != 00000022
-...
+Also the mcasp clkctrl clock bits are wrong:
 
-Let's fix these warnings by adding SYSC_HAS_RESET_STATUS. Let's also
-remove the useless parentheses while at it.
+For mcasp1 and 2 we have four clocks at bits 28, 24, 22 and 0:
 
-If it turns out we do have ti,sysc-omap4 compatible devices without a
-working SOFTRESET bit we can set up additional quirk handling for it.
+bit 28 is ahclkr
+bit 24 is ahclkx
+bit 22 is auxclk
+bit 0 is fck
 
+For mcasp3 to 8 we have three clocks at bits 24, 22 and 0.
+
+bit 24 is ahclkx
+bit 22 is auxclk
+bit 0 is fck
+
+We do not have currently mapped auxclk at bit 22 for the drivers, that can
+be added if needed.
+
+Fixes: 5241ccbf2819 ("ARM: dts: Add missing ranges for dra7 mcasp l3 ports")
+Cc: Suman Anna <s-anna@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7-l4.dtsi | 48 +++++++++++++++-------------------
+ 1 file changed, 21 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index adb6271f819be..7773876d165f1 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -811,7 +811,8 @@ static struct omap_hwmod_class_sysconfig am33xx_timer_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
- 	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			  SYSC_HAS_RESET_STATUS,
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			  SIDLE_SMART_WKUP),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index 21e5914fdd620..099d6fe2a57ad 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -2762,7 +2762,7 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 129 1>, <&edma_xbar 128 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&ipu_clkctrl DRA7_IPU_MCASP1_CLKCTRL 22>,
++				clocks = <&ipu_clkctrl DRA7_IPU_MCASP1_CLKCTRL 0>,
+ 					 <&ipu_clkctrl DRA7_IPU_MCASP1_CLKCTRL 24>,
+ 					 <&ipu_clkctrl DRA7_IPU_MCASP1_CLKCTRL 28>;
+ 				clock-names = "fck", "ahclkx", "ahclkr";
+@@ -2799,8 +2799,8 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 131 1>, <&edma_xbar 130 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP2_CLKCTRL 22>,
+-					 <&l4per2_clkctrl DRA7_L4PER2_MCASP2_CLKCTRL 24>,
++				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP2_CLKCTRL 0>,
++					 <&ipu_clkctrl DRA7_IPU_MCASP1_CLKCTRL 24>,
+ 					 <&l4per2_clkctrl DRA7_L4PER2_MCASP2_CLKCTRL 28>;
+ 				clock-names = "fck", "ahclkx", "ahclkr";
+ 				status = "disabled";
+@@ -2818,9 +2818,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x68000 0x2000>,
+@@ -2836,7 +2835,7 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 133 1>, <&edma_xbar 132 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 22>,
++				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 0>,
+ 					 <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 24>;
+ 				clock-names = "fck", "ahclkx";
+ 				status = "disabled";
+@@ -2854,9 +2853,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x6c000 0x2000>,
+@@ -2872,7 +2870,7 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 135 1>, <&edma_xbar 134 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 22>,
++				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 0>,
+ 					 <&l4per2_clkctrl DRA7_L4PER2_MCASP4_CLKCTRL 24>;
+ 				clock-names = "fck", "ahclkx";
+ 				status = "disabled";
+@@ -2890,9 +2888,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x70000 0x2000>,
+@@ -2908,7 +2905,7 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 137 1>, <&edma_xbar 136 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 22>,
++				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 0>,
+ 					 <&l4per2_clkctrl DRA7_L4PER2_MCASP5_CLKCTRL 24>;
+ 				clock-names = "fck", "ahclkx";
+ 				status = "disabled";
+@@ -2926,9 +2923,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x74000 0x2000>,
+@@ -2944,7 +2940,7 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 139 1>, <&edma_xbar 138 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 22>,
++				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 0>,
+ 					 <&l4per2_clkctrl DRA7_L4PER2_MCASP6_CLKCTRL 24>;
+ 				clock-names = "fck", "ahclkx";
+ 				status = "disabled";
+@@ -2962,9 +2958,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x78000 0x2000>,
+@@ -2980,7 +2975,7 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 141 1>, <&edma_xbar 140 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 22>,
++				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 0>,
+ 					 <&l4per2_clkctrl DRA7_L4PER2_MCASP7_CLKCTRL 24>;
+ 				clock-names = "fck", "ahclkx";
+ 				status = "disabled";
+@@ -2998,9 +2993,8 @@
+ 					<SYSC_IDLE_SMART>;
+ 			/* Domains (P, C): l4per_pwrdm, l4per2_clkdm */
+ 			clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP8_CLKCTRL 0>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP8_CLKCTRL 24>,
+-				 <&l4per2_clkctrl DRA7_L4PER2_MCASP8_CLKCTRL 28>;
+-			clock-names = "fck", "ahclkx", "ahclkr";
++				 <&l4per2_clkctrl DRA7_L4PER2_MCASP8_CLKCTRL 24>;
++			clock-names = "fck", "ahclkx";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x7c000 0x2000>,
+@@ -3016,7 +3010,7 @@
+ 				interrupt-names = "tx", "rx";
+ 				dmas = <&edma_xbar 143 1>, <&edma_xbar 142 1>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP8_CLKCTRL 22>,
++				clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP8_CLKCTRL 0>,
+ 					 <&l4per2_clkctrl DRA7_L4PER2_MCASP8_CLKCTRL 24>;
+ 				clock-names = "fck", "ahclkx";
+ 				status = "disabled";
 -- 
 2.20.1
