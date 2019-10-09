@@ -1,81 +1,61 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCHv3] wlcore: clean-up clearing of WL1271_FLAG_IRQ_RUNNING
-Date: Wed,  9 Oct 2019 09:50:06 -0700
-Message-ID: <20191009165006.41567-1-tony@atomide.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 06/26] ARM: OMAP2+: Fix missing reset done flag for am3 and am43
+Date: Wed,  9 Oct 2019 13:05:38 -0400
+Message-ID: <20191009170558.32517-6-sashal@kernel.org>
+References: <20191009170558.32517-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20191009170558.32517-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We set WL1271_FLAG_IRQ_RUNNING in the beginning of wlcore_irq(), but clear
-it before interrupt handling is done in wlcore_irq_locked().
+From: Tony Lindgren <tony@atomide.com>
 
-Let's move the clearing to the end of wlcore_irq() where it gets set,
-and remove the old comments about hardirq. That's no longer the case as
-we're using request_threaded_irq().
+[ Upstream commit 8ad8041b98c665b6147e607b749586d6e20ba73a ]
 
-Note that the WL1271_FLAG_IRQ_RUNNING should never race between the
-interrupt handler and wlcore_runtime_resume() as because of autosuspend
-timeout we cannot enter idle between wlcore_irq_locked() and the end of
-wlcore_irq().
+For ti,sysc-omap4 compatible devices with no sysstatus register, we do have
+reset done status available in the SOFTRESET bit that clears when the reset
+is done. This is documented for example in am437x TRM for DMTIMER_TIOCP_CFG
+register. The am335x TRM just says that SOFTRESET bit value 1 means reset is
+ongoing, but it behaves the same way clearing after reset is done.
 
-Cc: Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: Guy Mishol <guym-l0cyMroinI0@public.gmane.org>
-Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+With the ti-sysc driver handling this automatically based on no sysstatus
+register defined, we see warnings if SYSC_HAS_RESET_STATUS is missing in the
+legacy platform data:
 
-Changes since v2:
+ti-sysc 48042000.target-module: sysc_flags 00000222 != 00000022
+ti-sysc 48044000.target-module: sysc_flags 00000222 != 00000022
+ti-sysc 48046000.target-module: sysc_flags 00000222 != 00000022
+...
 
-- Downgraded to clean-up from a fix as the race should never happen
+Let's fix these warnings by adding SYSC_HAS_RESET_STATUS. Let's also
+remove the useless parentheses while at it.
 
-Changes since v1:
+If it turns out we do have ti,sysc-omap4 compatible devices without a
+working SOFTRESET bit we can set up additional quirk handling for it.
 
-- Add locking around clear_bit like we do elsewhere in the driver
-
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/wireless/ti/wlcore/main.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
---- a/drivers/net/wireless/ti/wlcore/main.c
-+++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -544,11 +544,6 @@ static int wlcore_irq_locked(struct wl1271 *wl)
- 	}
- 
- 	while (!done && loopcount--) {
--		/*
--		 * In order to avoid a race with the hardirq, clear the flag
--		 * before acknowledging the chip.
--		 */
--		clear_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags);
- 		smp_mb__after_atomic();
- 
- 		ret = wlcore_fw_status(wl, wl->fw_status);
-@@ -668,7 +663,7 @@ static irqreturn_t wlcore_irq(int irq, void *cookie)
- 		disable_irq_nosync(wl->irq);
- 		pm_wakeup_event(wl->dev, 0);
- 		spin_unlock_irqrestore(&wl->wl_lock, flags);
--		return IRQ_HANDLED;
-+		goto out_handled;
- 	}
- 	spin_unlock_irqrestore(&wl->wl_lock, flags);
- 
-@@ -692,6 +687,11 @@ static irqreturn_t wlcore_irq(int irq, void *cookie)
- 
- 	mutex_unlock(&wl->mutex);
- 
-+out_handled:
-+	spin_lock_irqsave(&wl->wl_lock, flags);
-+	clear_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags);
-+	spin_unlock_irqrestore(&wl->wl_lock, flags);
-+
- 	return IRQ_HANDLED;
- }
- 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+index 9ded7bf972e71..3b8fe014a3e94 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+@@ -946,7 +946,8 @@ static struct omap_hwmod_class_sysconfig am33xx_timer_sysc = {
+ 	.rev_offs	= 0x0000,
+ 	.sysc_offs	= 0x0010,
+ 	.syss_offs	= 0x0014,
+-	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
++	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
++			  SYSC_HAS_RESET_STATUS,
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+ 			  SIDLE_SMART_WKUP),
+ 	.sysc_fields	= &omap_hwmod_sysc_type2,
 -- 
-2.23.0
+2.20.1
