@@ -1,7 +1,7 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+From: Jeroen Hofstee <jhofstee@victronenergy.com>
 Subject: Re: [PATCH] ARM: dts: am335x-sancloud-bbe: Fix PHY mode for ethernet
-Date: Wed, 9 Oct 2019 12:43:14 +0300
-Message-ID: <6dbdf76a-5c04-63ef-0676-5b02fd29c456@ti.com>
+Date: Wed, 9 Oct 2019 10:09:40 +0000
+Message-ID: <c486a797-6305-8a62-8604-aef5e835ae72@victronenergy.com>
 References: <20191002095416.19603-1-jhofstee@victronenergy.com>
  <d027ef07-807d-6a7b-2939-b67be4542469@ti.com>
  <436f1712-7dec-db40-d08f-1a3032af3596@victronenergy.com>
@@ -13,89 +13,60 @@ References: <20191002095416.19603-1-jhofstee@victronenergy.com>
  <20191008165154.GH5610@atomide.com>
  <a8a72544-7f30-c896-22e4-7d85bd0b4235@victronenergy.com>
  <20191008170259.GI5610@atomide.com>
+ <6dbdf76a-5c04-63ef-0676-5b02fd29c456@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191008170259.GI5610@atomide.com>
+In-Reply-To: <6dbdf76a-5c04-63ef-0676-5b02fd29c456@ti.com>
 Content-Language: en-US
+Content-ID: <7B1DCEF4A23B7B41A86D797B330A500F@eurprd07.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Jeroen Hofstee <jhofstee@victronenergy.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, open list <linux-kernel@vger.kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 08/10/2019 20:02, Tony Lindgren wrote:
-> * Jeroen Hofstee <jhofstee@victronenergy.com> [191008 17:00]:
->> Hi,
->>
->> On 10/8/19 6:51 PM, Tony Lindgren wrote:
->>> * Jeroen Hofstee <jhofstee@victronenergy.com> [191008 16:43]:
->>>> Hello Tony,
->>>>
->>>> On 10/8/19 6:14 PM, Tony Lindgren wrote:
->>>>> * Jeroen Hofstee <jhofstee@victronenergy.com> [191008 16:03]:
->>>>>> Hello Tony,
->>>>>>
->>>>>> On 10/8/19 4:23 PM, Tony Lindgren wrote:
->>>>>>> * Grygorii Strashko <grygorii.strashko@ti.com> [191003 02:32]:
->>>>>>>> On 03/10/2019 11:16, Jeroen Hofstee wrote:
->>>>>>>>> Furthermore 4.19 is fine, so there is no need to include it in stable
->>>>>>>>> and have a note to make sure also other patches are required etc.
->>>>>>>> Hence all above patches went in 5.1 it would be correct to mention only
->>>>>>>> 6d4cd041f0af net: phy: at803x: disable delay only for RGMII mode
->>>>>>> Jeroen, can you please send an updated patch with the fixes
->>>>>>> tag changed?
->>>>>>>
->>>>>> For completeness, there is no "Fixes tag" as you mentioned.
->>>>>> The commit only refers to another commit which introduces
->>>>>> a problem.
->>>>> Well please add the fixes tag, that way this will get
->>>>> properly applied to earlier stable kernels too :)
->>>> But 4.19 is fine, this is an issue in 5.1 as in EOL...
->>>> I really don't understand why I should waste time
->>>> to figure out what happened exactly during the 5.1
->>>> release cycle...
->>> Hmm so what's the issue with just adding the fixes tag Grygorii
->>> suggested:
->>>
->>> 6d4cd041f0af ("net: phy: at803x: disable delay only for RGMII mode")
->>>
->>> No need to dig further?
->>
->> Grygorii doesn't suggest to add a fixes tag, just to change the referenced
->> commit to another. Obviously I would like to understand why another commit
->> should be referenced. And then I should read and parse the response, so there
->> is no special reason, just time...
-> 
-> OK sure. Well once you guys have the commit figured out, let me
-> know what to apply. And we know Grygorii is mostly right based
-> on his history of comments so best to not ignore that :)
-
-Sry, but I do not think my request is somehow special.
-Yes, your patch is correct by itself, but commit description is not:
-1) commit cd28d1d6e52e: ("net: phy: at803x: Disable phy delay for RGMII mode")  which you've mentioned is A BUG
-and should not be merged first of all (which you can find out by reading corresponding thread).
-
-just try checkout that commit and apply your patch on top - networking should not work.
-
-But it was merged and not reverted - instead two more patches were applied to fix regression.
-
-2) Those commits are defined final behavior (which i again explained above) and that new behavior hardly can
-be called "the bug in the at803x driver" as, unfortunately, there were no common conclusion how default values for
-RX/TX delay should be handled vs phy-mode = "rgmii-txid"/"rgmii-rxid".
-Originally many PHY driver kept them default (as per boot strapping/bootloader configuration), but now
-some driver (including at803x) started disabling RX delay if "rgmii-txid" or TX delay if "rgmii-rxid".
-
-Hence, pls update commit message and add proper fixes tag. smth like:
-"Now after commit 6d4cd041f0af net: phy: at803x: disable delay only for RGMII mode the driver will forcibly disable
-RGMII RX delay if phy-mode = "rgmii-txid" is specified in DT which will break networking on ..
-
-Hence change .. to ensure ...
-Fixes: "
-
-
--- 
-Best regards,
-grygorii
+SGVsbG8gR3J5Z29ycmksDQoNCk9uIDEwLzkvMTkgMTE6NDMgQU0sIEdyeWdvcmlpIFN0cmFzaGtv
+IHdyb3RlOg0KPg0KPg0KPj4+IEdyeWdvcmlpIGRvZXNuJ3Qgc3VnZ2VzdCB0byBhZGQgYSBmaXhl
+cyB0YWcsIGp1c3QgdG8gY2hhbmdlIHRoZSANCj4+PiByZWZlcmVuY2VkDQo+Pj4gY29tbWl0IHRv
+IGFub3RoZXIuIE9idmlvdXNseSBJIHdvdWxkIGxpa2UgdG8gdW5kZXJzdGFuZCB3aHkgYW5vdGhl
+ciANCj4+PiBjb21taXQNCj4+PiBzaG91bGQgYmUgcmVmZXJlbmNlZC4gQW5kIHRoZW4gSSBzaG91
+bGQgcmVhZCBhbmQgcGFyc2UgdGhlIHJlc3BvbnNlLCANCj4+PiBzbyB0aGVyZQ0KPj4+IGlzIG5v
+IHNwZWNpYWwgcmVhc29uLCBqdXN0IHRpbWUuLi4NCj4+DQo+PiBPSyBzdXJlLiBXZWxsIG9uY2Ug
+eW91IGd1eXMgaGF2ZSB0aGUgY29tbWl0IGZpZ3VyZWQgb3V0LCBsZXQgbWUNCj4+IGtub3cgd2hh
+dCB0byBhcHBseS4gQW5kIHdlIGtub3cgR3J5Z29yaWkgaXMgbW9zdGx5IHJpZ2h0IGJhc2VkDQo+
+PiBvbiBoaXMgaGlzdG9yeSBvZiBjb21tZW50cyBzbyBiZXN0IHRvIG5vdCBpZ25vcmUgdGhhdCA6
+KQ0KPg0KPiBTcnksIGJ1dCBJIGRvIG5vdCB0aGluayBteSByZXF1ZXN0IGlzIHNvbWVob3cgc3Bl
+Y2lhbC4NCj4gWWVzLCB5b3VyIHBhdGNoIGlzIGNvcnJlY3QgYnkgaXRzZWxmLCBidXQgY29tbWl0
+IGRlc2NyaXB0aW9uIGlzIG5vdDoNCj4gMSkgY29tbWl0IGNkMjhkMWQ2ZTUyZTogKCJuZXQ6IHBo
+eTogYXQ4MDN4OiBEaXNhYmxlIHBoeSBkZWxheSBmb3IgDQo+IFJHTUlJIG1vZGUiKcKgIHdoaWNo
+IHlvdSd2ZSBtZW50aW9uZWQgaXMgQSBCVUcNCj4gYW5kIHNob3VsZCBub3QgYmUgbWVyZ2VkIGZp
+cnN0IG9mIGFsbCAod2hpY2ggeW91IGNhbiBmaW5kIG91dCBieSANCj4gcmVhZGluZyBjb3JyZXNw
+b25kaW5nIHRocmVhZCkuDQo+DQo+IGp1c3QgdHJ5IGNoZWNrb3V0IHRoYXQgY29tbWl0IGFuZCBh
+cHBseSB5b3VyIHBhdGNoIG9uIHRvcCAtIG5ldHdvcmtpbmcgDQo+IHNob3VsZCBub3Qgd29yay4N
+Cj4NCj4gQnV0IGl0IHdhcyBtZXJnZWQgYW5kIG5vdCByZXZlcnRlZCAtIGluc3RlYWQgdHdvIG1v
+cmUgcGF0Y2hlcyB3ZXJlIA0KPiBhcHBsaWVkIHRvIGZpeCByZWdyZXNzaW9uLg0KPg0KPiAyKSBU
+aG9zZSBjb21taXRzIGFyZSBkZWZpbmVkIGZpbmFsIGJlaGF2aW9yICh3aGljaCBpIGFnYWluIGV4
+cGxhaW5lZCANCj4gYWJvdmUpIGFuZCB0aGF0IG5ldyBiZWhhdmlvciBoYXJkbHkgY2FuDQo+IGJl
+IGNhbGxlZCAidGhlIGJ1ZyBpbiB0aGUgYXQ4MDN4IGRyaXZlciIgYXMsIHVuZm9ydHVuYXRlbHks
+IHRoZXJlIHdlcmUgDQo+IG5vIGNvbW1vbiBjb25jbHVzaW9uIGhvdyBkZWZhdWx0IHZhbHVlcyBm
+b3INCj4gUlgvVFggZGVsYXkgc2hvdWxkIGJlIGhhbmRsZWQgdnMgcGh5LW1vZGUgPSAicmdtaWkt
+dHhpZCIvInJnbWlpLXJ4aWQiLg0KPiBPcmlnaW5hbGx5IG1hbnkgUEhZIGRyaXZlciBrZXB0IHRo
+ZW0gZGVmYXVsdCAoYXMgcGVyIGJvb3QgDQo+IHN0cmFwcGluZy9ib290bG9hZGVyIGNvbmZpZ3Vy
+YXRpb24pLCBidXQgbm93DQo+IHNvbWUgZHJpdmVyIChpbmNsdWRpbmcgYXQ4MDN4KSBzdGFydGVk
+IGRpc2FibGluZyBSWCBkZWxheSBpZiANCj4gInJnbWlpLXR4aWQiIG9yIFRYIGRlbGF5IGlmICJy
+Z21paS1yeGlkIi4NCj4NCj4gSGVuY2UsIHBscyB1cGRhdGUgY29tbWl0IG1lc3NhZ2UgYW5kIGFk
+ZCBwcm9wZXIgZml4ZXMgdGFnLiBzbXRoIGxpa2U6DQo+ICJOb3cgYWZ0ZXIgY29tbWl0IDZkNGNk
+MDQxZjBhZiBuZXQ6IHBoeTogYXQ4MDN4OiBkaXNhYmxlIGRlbGF5IG9ubHkgDQo+IGZvciBSR01J
+SSBtb2RlIHRoZSBkcml2ZXIgd2lsbCBmb3JjaWJseSBkaXNhYmxlDQo+IFJHTUlJIFJYIGRlbGF5
+IGlmIHBoeS1tb2RlID0gInJnbWlpLXR4aWQiIGlzIHNwZWNpZmllZCBpbiBEVCB3aGljaCANCj4g
+d2lsbCBicmVhayBuZXR3b3JraW5nIG9uIC4uDQo+DQo+IEhlbmNlIGNoYW5nZSAuLiB0byBlbnN1
+cmUgLi4uDQo+IEZpeGVzOiAiDQo+DQo+DQoNClllcywgdGhhdCBwYXJ0IGlzIGNsZWFyIHRvIG1l
+LCBhbmQgSSBhbSBub3Qgc2F5aW5nIHlvdSBhcmUgaW5jb3JyZWN0LA0Kb25seSB0aGF0IEkgd291
+bGQgbGlrZSB0byB1bmRlcnN0YW5kIHdoeSBhYm92ZSBjb21taXQgcG9wcyB1cA0KKHNpbmNlIGl0
+IG1ha2VzIG5vIHNlbnNlIHRvIG1lIGFzIHdlbGwsIG15IG93biBjb21taXQpLiBBbmQgdGhlIHJl
+YXNvbg0KaXMgcmF0aGVyIHNpbGx5LCBJIGd1ZXNzLi4uIEkgZml4ZWQgaXQgb24gbWFzdGVyLCB0
+aGVyZWFmdGVyIGNoZWNrZWQgdGhlIA0KNS4xIGJyYW5jaCwNCndoaWxlIGtlZXBpbmcgdGhlIGZp
+eGVkIGR0Yi4uLiA6KA0KDQpMZXQgbWUgY2hlY2sgdGhhdCBhbmQgSSB3aWxsIHNlbmQgYSB2Mi4g
+TGlrZWx5IHRvbW9ycm93DQooSSBhbSBub3QgbmVhciB0aGUgZGV2aWNlIGF0IHRoZSBtb21lbnQp
+Lg0KDQpSZWdhcmRzLA0KDQpKZXJvZW4NCg0K
