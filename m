@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/8] ARM: OMAP2+: Remove bogus warnings for machines without
- twl PMIC
-Date: Wed,  9 Oct 2019 17:12:19 -0700
-Message-ID: <20191010001224.41826-4-tony@atomide.com>
+Subject: [PATCH 6/8] ARM: OMAP2+: Allow per oswr for omap4
+Date: Wed,  9 Oct 2019 17:12:22 -0700
+Message-ID: <20191010001224.41826-7-tony@atomide.com>
 References: <20191010001224.41826-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,39 +21,40 @@ To: linux-omap@vger.kernel.org
 Cc: Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-In general we want to see a quiet dmesg output with no errors or warnings
-unless something is really wrong and needs attention. We currently see
-these bogus warnings on boot:
+Commit f74297dd9354 ("ARM: OMAP2+: Make sure LOGICRETSTATE bits are not
+cleared") disabled oswr (open switch retention) for per and core domains
+as various GPIO related issues were noticed if the bootloader had
+configured the bits for LOGICRETSTATE for per and core domains.
 
-twl: not initialized
-twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-...
-
-Let's avoid these by checking if a device tree node for cpcap PMIC exists.
+With the recent gpio-omap fixes, mostly related to commit e6818d29ea15
+("gpio: gpio-omap: configure edge detection for level IRQs for idle
+wakeup"), things now behave for enabling per oswr for omap4.
 
 Cc: Merlijn Wajer <merlijn@wizzup.org>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Sebastian Reichel <sre@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_twl.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/pm44xx.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -219,7 +219,8 @@ int __init omap4_twl_init(void)
- {
- 	struct voltagedomain *voltdm;
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -136,10 +136,12 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	 * we currently will see lost GPIO interrupts for wlcore and
+ 	 * smsc911x at least if per hits retention during idle.
+ 	 */
+-	if (!strncmp(pwrdm->name, "core", 4) ||
+-	    !strncmp(pwrdm->name, "l4per", 5))
++	if (!strncmp(pwrdm->name, "core", 4)
+ 		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
  
--	if (!cpu_is_omap44xx())
-+	if (!cpu_is_omap44xx() ||
-+	    of_find_compatible_node(NULL, NULL, "motorola,cpcap"))
- 		return -ENODEV;
- 
- 	voltdm = voltdm_lookup("mpu");
++	if (!strncmp(pwrdm->name, "l4per", 5)
++		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
++
+ 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+ 	if (!pwrst)
+ 		return -ENOMEM;
 -- 
 2.23.0
