@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/8] ARM: OMAP2+: Initialize voltage controller for omap4
-Date: Wed,  9 Oct 2019 17:12:24 -0700
-Message-ID: <20191010001224.41826-9-tony@atomide.com>
+Subject: [PATCH 7/8] ARM: OMAP2+: Allow core oswr for omap4
+Date: Wed,  9 Oct 2019 17:12:23 -0700
+Message-ID: <20191010001224.41826-8-tony@atomide.com>
 References: <20191010001224.41826-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,71 +21,46 @@ To: linux-omap@vger.kernel.org
 Cc: Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-We're missing initializing the PRM_VOLTCTRL register for voltage
-controller. Let's add omap4_vc_init_pmic_signaling() similar to what we
-have for omap3 and enable voltage control for retention.
+Commit f74297dd9354 ("ARM: OMAP2+: Make sure LOGICRETSTATE bits are not
+cleared") disabled oswr (open switch retention) for per and core domains
+as various GPIO related issues were noticed if the bootloader had
+configured the bits for LOGICRETSTATE for per and core domains.
 
-This brings down droid4 power consumption with mainline kernel to somewhere
-between 40 and 50mW from about 70 to 80 mW for the whole device when running
-idle with LCD and backlight off, WLAN connected, and USB and modem modules
-unloaded.
-
-Mostly just rmmod of omap2430, ohci-platform and phy-mapphone-mdm6600 are
-needed to idle USB and shut down the modem. And after that measuring idle
-power consumption can be done with reading sysfs entry every ten seconds for
-/sys/class/power_supply/battery/power_avg. Then rmmod of phy-cpcap-usb will
-save few more mW, but will disable the debug UART.
-
-Note that sometimes CM_L4PER_UART1_CLKCTRL at 0x4a009540 does not idle
-properly after unloading of phy-mapphone-mdm6600.
+With the recent gpio-omap fixes, mostly related to commit e6818d29ea15
+("gpio: gpio-omap: configure edge detection for level IRQs for idle
+wakeup"), things now behave for enabling core oswr for omap4.
 
 Cc: Merlijn Wajer <merlijn@wizzup.org>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Sebastian Reichel <sre@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/vc.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ arch/arm/mach-omap2/pm44xx.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -26,6 +26,16 @@
- #include "scrm44xx.h"
- #include "control.h"
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -128,18 +128,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 		return 0;
+ 	}
  
-+#define OMAP4430_AUTO_CTRL_VDD_IVA(x)		((x) << 4)
-+#define OMAP4430_AUTO_CTRL_VDD_MPU(x)		((x) << 2)
-+#define OMAP4430_AUTO_CTRL_VDD_CORE(x)		((x) << 0)
-+#define OMAP4430_AUTO_CTRL_VDD_RET		2
-+
-+#define OMAP4_VDD_DEFAULT_VAL	\
-+	(OMAP4430_AUTO_CTRL_VDD_IVA(OMAP4430_AUTO_CTRL_VDD_RET) | \
-+	 OMAP4430_AUTO_CTRL_VDD_MPU(OMAP4430_AUTO_CTRL_VDD_RET) | \
-+	 OMAP4430_AUTO_CTRL_VDD_CORE(OMAP4430_AUTO_CTRL_VDD_RET))
-+
- /**
-  * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
-  * @sa: bit for slave address
-@@ -542,9 +552,19 @@ static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
- 	writel_relaxed(val, OMAP4_SCRM_CLKSETUPTIME);
- }
+-	/*
+-	 * Bootloader or kexec boot may have LOGICRETSTATE cleared
+-	 * for some domains. This is the case when kexec booting from
+-	 * Android kernels that support off mode for example.
+-	 * Make sure it's set at least for core and per, otherwise
+-	 * we currently will see lost GPIO interrupts for wlcore and
+-	 * smsc911x at least if per hits retention during idle.
+-	 */
+-	if (!strncmp(pwrdm->name, "core", 4)
+-		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
+-
+-	if (!strncmp(pwrdm->name, "l4per", 5)
++	if (!strncmp(pwrdm->name, "core", 4) ||
++	    !strncmp(pwrdm->name, "l4per", 5))
+ 		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
  
-+static void __init omap4_vc_init_pmic_signaling(struct voltagedomain *voltdm)
-+{
-+	if (vc.vd)
-+		return;
-+
-+	vc.vd = voltdm;
-+	voltdm->write(OMAP4_VDD_DEFAULT_VAL, OMAP4_PRM_VOLTCTRL_OFFSET);
-+}
-+
- /* OMAP4 specific voltage init functions */
- static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
- {
-+	omap4_vc_init_pmic_signaling(voltdm);
- 	omap4_set_timings(voltdm, true);
- 	omap4_set_timings(voltdm, false);
- }
+ 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
 -- 
 2.23.0
