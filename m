@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/8] ARM: OMAP2+: Remove unused wakeup_cpu
-Date: Wed,  9 Oct 2019 17:12:17 -0700
-Message-ID: <20191010001224.41826-2-tony@atomide.com>
+Subject: [PATCH 2/8] ARM: OMAP2+: Drop bogus wkup domain oswr setting
+Date: Wed,  9 Oct 2019 17:12:18 -0700
+Message-ID: <20191010001224.41826-3-tony@atomide.com>
 References: <20191010001224.41826-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,38 +21,30 @@ To: linux-omap@vger.kernel.org
 Cc: Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-After commit 32d174ed1bd7 ("ARM: OMAP4: MPUSS PM: remove unnecessary
-shim functions for powerdomain control") this is no longer used.
-
-The code continues execution after context restore on the same CPU,
-so we can just use pm_info->pwrdm.
+The wkup domain is always on and does not have logic off setting. This
+got accidentally added by commit f74297dd9354 ("ARM: OMAP2+: Make sure
+LOGICRETSTATE bits are not cleared") but is harmless.
 
 Cc: Merlijn Wajer <merlijn@wizzup.org>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Sebastian Reichel <sre@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 2 --
- 1 file changed, 2 deletions(-)
+ arch/arm/mach-omap2/pm44xx.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -227,7 +227,6 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- {
- 	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
- 	unsigned int save_state = 0, cpu_logic_state = PWRDM_POWER_RET;
--	unsigned int wakeup_cpu;
- 
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		return -ENXIO;
-@@ -292,7 +291,6 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	 * secure devices, CPUx does WFI which can result in
- 	 * domain transition
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -137,8 +137,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	 * smsc911x at least if per hits retention during idle.
  	 */
--	wakeup_cpu = smp_processor_id();
- 	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
+ 	if (!strncmp(pwrdm->name, "core", 4) ||
+-	    !strncmp(pwrdm->name, "l4per", 5) ||
+-	    !strncmp(pwrdm->name, "wkup", 4))
++	    !strncmp(pwrdm->name, "l4per", 5))
+ 		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
  
- 	pwrdm_post_transition(NULL);
+ 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
 -- 
 2.23.0
