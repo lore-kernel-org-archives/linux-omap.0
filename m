@@ -1,70 +1,28 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 5/5] ARM: dts: omap5: Add PRM data
-Date: Thu, 10 Oct 2019 11:21:08 +0300
-Message-ID: <20191010082108.15448-6-t-kristo@ti.com>
-References: <20191010082108.15448-1-t-kristo@ti.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH v3 0/8] OMAP3: convert opp-v1 to opp-v2 and read speed
+ binned / 720MHz grade bits
+Date: Thu, 10 Oct 2019 16:15:20 +0530
+Message-ID: <20191010104520.n77wxxyxvyeo2i4u@vireshk-i7>
+References: <cover.1568224032.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191010082108.15448-1-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1568224032.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Adam Ford <aford173@gmail.com>, =?utf-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>, Teresa Remmet <t.remmet@phytec.de>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM data for OMAP54xx SoC. Initially this is used to provide reset
-support, but will be expanded later to support also powerdomain control.
+On 11-09-19, 19:47, H. Nikolaus Schaller wrote:
+> CHANGES V3:
+> * make omap36xx control the abb-ldo and properly switch mode
+>   (suggested by Adam Ford <aford173@gmail.com>)
+> * add a note about enabling the turbo-mode OPPs
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+Applied the series to cpufreq/arm tree.
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 1fb7937638f0..cec8a38fb420 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -435,3 +435,29 @@
- 
- #include "omap5-l4-abe.dtsi"
- #include "omap54xx-clocks.dtsi"
-+
-+&prm {
-+	prm_dsp: prm@400 {
-+		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
-+		reg = <0x400 0x100>;
-+		#reset-cells = <1>;
-+	};
-+
-+	prm_core: prm@700 {
-+		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
-+		reg = <0x700 0x100>;
-+		#reset-cells = <1>;
-+	};
-+
-+	prm_iva: prm@1200 {
-+		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
-+		reg = <0x1200 0x100>;
-+		#reset-cells = <1>;
-+	};
-+
-+	prm_device: prm@1c00 {
-+		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
-+		reg = <0x1c00 0x100>;
-+		#reset-cells = <1>;
-+	};
-+};
+Also shared a branch for you Tony: cpufreq/ti/oppv2.
+
 -- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+viresh
