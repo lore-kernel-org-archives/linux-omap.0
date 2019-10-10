@@ -1,58 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 7/7] drm/omap: hdmi4: fix use of uninitialized var
-Date: Thu, 10 Oct 2019 09:47:21 +0300
-Message-ID: <59381248-5ded-7ea9-40a6-cbfb58a3c5b1@ti.com>
-References: <20190930103840.18970-1-tomi.valkeinen@ti.com>
- <20190930103840.18970-8-tomi.valkeinen@ti.com>
- <20191008141335.GB5610@atomide.com>
- <ffb498fb-5041-d3e9-2702-879f3d389adf@ti.com>
- <20191008142153.GD5610@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv8 1/9] dt-bindings: omap: add new binding for PRM instances
+Date: Thu, 10 Oct 2019 10:13:47 +0300
+Message-ID: <95642d2d-af8e-061c-ef6a-7b615222f360@ti.com>
+References: <20191008125544.20679-1-t-kristo@ti.com>
+ <20191008125544.20679-2-t-kristo@ti.com>
+ <20191008154655.u34wkbqgmelv3aea@earth.universe>
+ <115ab938-e025-98fa-3b9e-0b3ced39307d@ti.com>
+ <dc2a9659-8593-e5d0-54b2-44d827e76759@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191008142153.GD5610@atomide.com>
+Content-Type: text/plain; charset="windows-1252"; Format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <dc2a9659-8593-e5d0-54b2-44d827e76759@oracle.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, Sebastian Reichel <sre@kernel.org>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDgvMTAvMjAxOSAxNzoyMSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIFRvbWkgVmFsa2Vp
-bmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+IFsxOTEwMDggMTQ6MTddOgo+PiBPbiAwOC8xMC8y
-MDE5IDE3OjEzLCBUb255IExpbmRncmVuIHdyb3RlOgo+Pj4gKiBUb21pIFZhbGtlaW5lbiA8dG9t
-aS52YWxrZWluZW5AdGkuY29tPiBbMTkwOTMwIDEwOjM4XToKPj4+PiBJZiB1c2VfbWNsayBpcyBm
-YWxzZSwgbWNsa19tb2RlIGlzIHdyaXR0ZW4gdG8gYSByZWdpc3RlciB3aXRob3V0Cj4+Pj4gaW5p
-dGlhbGl6YXRpb24uIFRoaXMgZG9lc24ndCBjYXVzZSBhbnkgaWxsIGVmZmVjdHMgYXMgdGhlIHdy
-aXR0ZW4gdmFsdWUKPj4+PiBpcyBub3QgdXNlZCB3aGVuIHVzZV9tY2xrIGlzIGZhbHNlLgo+Pj4+
-Cj4+Pj4gVG8gZml4IHRoaXMsIHdyaXRlIHVzZV9tY2xrIG9ubHkgd2hlbiB1c2VfbWNsayBpcyB0
-cnVlLgo+Pj4KPj4+IEhleSBuaWNlIGNhdGNoLiBCYXNlZCBvbiBhIHF1aWNrIHRlc3QgbG9va3Mg
-bGlrZSB0aGlzIGZpeGVzIGFuCj4+PiBpc3N1ZSB3aGVyZSBwb3dlciBjb25zdW1wdGlvbiBzdGF5
-cyBoaWdoZXIgYWZ0ZXIgdXNpbmcgSERNSS4KPj4+Cj4+PiBXb3VsZCBiZSBuaWNlIHRvIGhhdmUg
-bWVyZ2VkIGluIHRoZSB2NS40LXJjIHNlcmllczoKPj4+Cj4+PiBUZXN0ZWQtYnk6IFRvbnkgTGlu
-ZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4+Cj4+IFJlYWxseT8gT2ssIHdlbGwsIHRoZW4gaXQg
-d2FzIGEgZ29vZCByYW5kb20gZmluZCA9KS4KPiAKPiBZZWFoIHNvIGl0IHNlZW1zIDopIEVhcmxp
-ZXIgSSB0aG91Z2h0IHRoZXJlJ3Mgc3RpbGwgc29tZQo+IGNsa2N0cmwgc2V0dGluZyB3cm9uZyBh
-ZnRlciB1c2luZyBIRE1JLCBidXQgZGlkIG5vdCBzZWUKPiBhbnl0aGluZyBkaWZmaW5nIHRoZSBj
-bGtjdHJsIHJlZ2lzdGVycyBiZWZvcmUgYW5kIGFmdGVyCj4gYW5kIGdhdmUgdXAuCj4gCj4+IEkg
-ZGlkIGFscmVhZHkgcHVzaCB0aGlzIHRvIGRybS1taXNjLW5leHQsIGFzIEkgdGhvdWdodCBpdCBk
-b2VzIG5vdCBoYXZlIGFueQo+PiByZWFsIGVmZmVjdC4gSSdsbCBjaGVjayBpZiBpdCdzIG9rIHRv
-IHB1c2ggdG8gZHJtLW1pc2MtZml4ZXMgdG9vLCB3aXRoIENjCj4+IHN0YWJsZS4KPiAKPiBPSyBn
-cmVhdCB0aGFua3MuCgpQdXNoaW5nIHRoaXMgdG8gZml4ZXMgdG9vIHdvdWxkIGNhdXNlIGNvbmZs
-aWN0cywgc28gd2Ugc2hvdWxkbid0IHB1c2ggCndpdGhvdXQgZ29vZCByZWFzb24uIEhvdyBtdWNo
-IHBvd2VyIHNhdmluZyB5b3Ugc2VlPwoKSSB0aGluayB0aGlzIGNhbiBzdGlsbCBiZSBzZW50IHRv
-IHN0YWJsZSBsYXRlciwgYWZ0ZXIgaXQgaGFzIGJlZW4gbWVyZ2VkIAp0byBtYWlubGluZS4KCiAg
-VG9taQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIs
-IDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFp
-a2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9kcmktZGV2ZWw=
+On 09/10/2019 18:59, santosh.shilimkar@oracle.com wrote:
+> =
+
+> =
+
+> On 10/8/19 11:52 PM, Tero Kristo wrote:
+>> On 08/10/2019 18:46, Sebastian Reichel wrote:
+>>> Hi,
+>>>
+>>> On Tue, Oct 08, 2019 at 03:55:36PM +0300, Tero Kristo wrote:
+>>>> +Example:
+>>>> +
+>>>> +prm_dsp2: prm@1b00 {
+>>>> +=A0=A0=A0 compatible =3D "ti,omap-prm-inst", "ti,dra7-prm-inst";
+>>>
+>>> Nit: compatible values are sorted the other way around (most
+>>> specific first).
+>>
+>> Hmm right, I would not like to re-post the whole series just for this =
+
+>> seeing all the acks are in place already.
+>>
+>> Santosh, do you want to fix this locally or shall we post a separate =
+
+>> patch later on to fix this?
+>>
+> No need. I fixed it up. Pls check.
+> =
+
+> git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux-keystone.git=
+ for_5.5/driver-soc =
+
+
+Yeah, looks fine to me.
+
+Thanks,
+Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
