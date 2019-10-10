@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/5] ARM: dts: omap4: add PRM nodes
-Date: Thu, 10 Oct 2019 11:21:05 +0300
-Message-ID: <20191010082108.15448-3-t-kristo@ti.com>
+Subject: [PATCH 5/5] ARM: dts: omap5: Add PRM data
+Date: Thu, 10 Oct 2019 11:21:08 +0300
+Message-ID: <20191010082108.15448-6-t-kristo@ti.com>
 References: <20191010082108.15448-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,61 +21,45 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add PRM nodes for omap4 series of SoCs. These are initially used to
-support reset control for some of the nodes, but will be extended
-later to add powerdomain control and support for PRCM irqs among
-other things.
+Add PRM data for OMAP54xx SoC. Initially this is used to provide reset
+support, but will be expanded later to support also powerdomain control.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap4-l4.dtsi |  2 +-
- arch/arm/boot/dts/omap4.dtsi    | 29 +++++++++++++++++++++++++++++
- 2 files changed, 30 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap5.dtsi | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
-index d60d5e0ecc4c..3421ef387e21 100644
---- a/arch/arm/boot/dts/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/omap4-l4.dtsi
-@@ -1007,7 +1007,7 @@
- 			ranges = <0x0 0x6000 0x2000>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 1fb7937638f0..cec8a38fb420 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -435,3 +435,29 @@
  
- 			prm: prm@0 {
--				compatible = "ti,omap4-prm";
-+				compatible = "ti,omap4-prm", "simple-bus";
- 				reg = <0x0 0x2000>;
- 				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
- 				#address-cells = <1>;
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 7cc95bc1598b..f25f027e7c1c 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -442,3 +442,29 @@
- #include "omap4-l4.dtsi"
- #include "omap4-l4-abe.dtsi"
- #include "omap44xx-clocks.dtsi"
+ #include "omap5-l4-abe.dtsi"
+ #include "omap54xx-clocks.dtsi"
 +
 +&prm {
-+	prm_tesla: prm@400 {
-+		compatible = "ti,omap4-prm-inst", "ti,omap-prm-inst";
++	prm_dsp: prm@400 {
++		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
 +		reg = <0x400 0x100>;
 +		#reset-cells = <1>;
 +	};
 +
 +	prm_core: prm@700 {
-+		compatible = "ti,omap4-prm-inst", "ti,omap-prm-inst";
++		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
 +		reg = <0x700 0x100>;
 +		#reset-cells = <1>;
 +	};
 +
-+	prm_ivahd: prm@f00 {
-+		compatible = "ti,omap4-prm-inst", "ti,omap-prm-inst";
-+		reg = <0xf00 0x100>;
++	prm_iva: prm@1200 {
++		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
++		reg = <0x1200 0x100>;
 +		#reset-cells = <1>;
 +	};
 +
-+	prm_device: prm@1b00 {
-+		compatible = "ti,omap4-prm-inst", "ti,omap-prm-inst";
-+		reg = <0x1b00 0x40>;
++	prm_device: prm@1c00 {
++		compatible = "ti,omap5-prm-inst", "ti,omap-prm-inst";
++		reg = <0x1c00 0x100>;
 +		#reset-cells = <1>;
 +	};
 +};
