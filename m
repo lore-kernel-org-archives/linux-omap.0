@@ -1,18 +1,13 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv8 1/9] dt-bindings: omap: add new binding for PRM instances
-Date: Thu, 10 Oct 2019 10:13:47 +0300
-Message-ID: <95642d2d-af8e-061c-ef6a-7b615222f360@ti.com>
-References: <20191008125544.20679-1-t-kristo@ti.com>
- <20191008125544.20679-2-t-kristo@ti.com>
- <20191008154655.u34wkbqgmelv3aea@earth.universe>
- <115ab938-e025-98fa-3b9e-0b3ced39307d@ti.com>
- <dc2a9659-8593-e5d0-54b2-44d827e76759@oracle.com>
+Subject: [PATCH 3/5] ARM: dts: am33xx: Add PRM data
+Date: Thu, 10 Oct 2019 11:21:06 +0300
+Message-ID: <20191010082108.15448-4-t-kristo@ti.com>
+References: <20191010082108.15448-1-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; Format="flowed"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <dc2a9659-8593-e5d0-54b2-44d827e76759@oracle.com>
-Content-Language: en-US
+In-Reply-To: <20191010082108.15448-1-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,47 +17,54 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, Sebastian Reichel <sre@kernel.org>
-Cc: devicetree@vger.kernel.org, tony@atomide.com, p.zabel@pengutronix.de, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/10/2019 18:59, santosh.shilimkar@oracle.com wrote:
-> =
+Add PRM data for AM33xx SoC. Initially this is used to provide reset
+support, but will be expanded later to support also powerdomain control.
 
-> =
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-> On 10/8/19 11:52 PM, Tero Kristo wrote:
->> On 08/10/2019 18:46, Sebastian Reichel wrote:
->>> Hi,
->>>
->>> On Tue, Oct 08, 2019 at 03:55:36PM +0300, Tero Kristo wrote:
->>>> +Example:
->>>> +
->>>> +prm_dsp2: prm@1b00 {
->>>> +=A0=A0=A0 compatible =3D "ti,omap-prm-inst", "ti,dra7-prm-inst";
->>>
->>> Nit: compatible values are sorted the other way around (most
->>> specific first).
->>
->> Hmm right, I would not like to re-post the whole series just for this =
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index fb6b8aa12cc5..33b3346e4769 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -465,3 +465,29 @@
+ 
+ #include "am33xx-l4.dtsi"
+ #include "am33xx-clocks.dtsi"
++
++&prcm {
++	prm_per: prm@c00 {
++		compatible = "ti,am3-prm-inst", "ti,omap-prm-inst";
++		reg = <0xc00 0x100>;
++		#reset-cells = <1>;
++	};
++
++	prm_wkup: prm@d00 {
++		compatible = "ti,am3-prm-inst", "ti,omap-prm-inst";
++		reg = <0xd00 0x100>;
++		#reset-cells = <1>;
++	};
++
++	prm_device: prm@f00 {
++		compatible = "ti,am3-prm-inst", "ti,omap-prm-inst";
++		reg = <0xf00 0x100>;
++		#reset-cells = <1>;
++	};
++
++	prm_gfx: prm@1100 {
++		compatible = "ti,am3-prm-inst", "ti,omap-prm-inst";
++		reg = <0x1100 0x100>;
++		#reset-cells = <1>;
++	};
++};
+-- 
+2.17.1
 
->> seeing all the acks are in place already.
->>
->> Santosh, do you want to fix this locally or shall we post a separate =
-
->> patch later on to fix this?
->>
-> No need. I fixed it up. Pls check.
-> =
-
-> git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux-keystone.git=
- for_5.5/driver-soc =
-
-
-Yeah, looks fine to me.
-
-Thanks,
-Tero
 --
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
