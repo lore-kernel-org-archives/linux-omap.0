@@ -1,65 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 7/7] drm/omap: hdmi4: fix use of uninitialized var
-Date: Thu, 10 Oct 2019 06:24:07 -0700
-Message-ID: <20191010132407.GS5610@atomide.com>
-References: <20190930103840.18970-1-tomi.valkeinen@ti.com>
- <20190930103840.18970-8-tomi.valkeinen@ti.com>
- <20191008141335.GB5610@atomide.com>
- <ffb498fb-5041-d3e9-2702-879f3d389adf@ti.com>
- <20191008142153.GD5610@atomide.com>
- <59381248-5ded-7ea9-40a6-cbfb58a3c5b1@ti.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH v3 02/10] dt-bindings: sram: Convert Samsung Exynos
+ SYSRAM bindings to json-schema
+Date: Fri, 11 Oct 2019 09:52:53 +0200
+Message-ID: <20191011075253.GA7998@pi3>
+References: <20191002164316.14905-1-krzk@kernel.org>
+ <20191002164316.14905-2-krzk@kernel.org>
+ <20191010193356.GA9975@bogus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <59381248-5ded-7ea9-40a6-cbfb58a3c5b1@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+In-Reply-To: <20191010193356.GA9975@bogus>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Kukjin Kim <kgene@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkxMDEwIDA2OjQ4XToK
-PiBPbiAwOC8xMC8yMDE5IDE3OjIxLCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gKiBUb21pIFZh
-bGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkxMDA4IDE0OjE3XToKPiA+ID4gT24g
-MDgvMTAvMjAxOSAxNzoxMywgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ID4gPiAqIFRvbWkgVmFs
-a2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+IFsxOTA5MzAgMTA6MzhdOgo+ID4gPiA+ID4g
-SWYgdXNlX21jbGsgaXMgZmFsc2UsIG1jbGtfbW9kZSBpcyB3cml0dGVuIHRvIGEgcmVnaXN0ZXIg
-d2l0aG91dAo+ID4gPiA+ID4gaW5pdGlhbGl6YXRpb24uIFRoaXMgZG9lc24ndCBjYXVzZSBhbnkg
-aWxsIGVmZmVjdHMgYXMgdGhlIHdyaXR0ZW4gdmFsdWUKPiA+ID4gPiA+IGlzIG5vdCB1c2VkIHdo
-ZW4gdXNlX21jbGsgaXMgZmFsc2UuCj4gPiA+ID4gPiAKPiA+ID4gPiA+IFRvIGZpeCB0aGlzLCB3
-cml0ZSB1c2VfbWNsayBvbmx5IHdoZW4gdXNlX21jbGsgaXMgdHJ1ZS4KPiA+ID4gPiAKPiA+ID4g
-PiBIZXkgbmljZSBjYXRjaC4gQmFzZWQgb24gYSBxdWljayB0ZXN0IGxvb2tzIGxpa2UgdGhpcyBm
-aXhlcyBhbgo+ID4gPiA+IGlzc3VlIHdoZXJlIHBvd2VyIGNvbnN1bXB0aW9uIHN0YXlzIGhpZ2hl
-ciBhZnRlciB1c2luZyBIRE1JLgo+ID4gPiA+IAo+ID4gPiA+IFdvdWxkIGJlIG5pY2UgdG8gaGF2
-ZSBtZXJnZWQgaW4gdGhlIHY1LjQtcmMgc2VyaWVzOgo+ID4gPiA+IAo+ID4gPiA+IFRlc3RlZC1i
-eTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiA+ID4gCj4gPiA+IFJlYWxseT8g
-T2ssIHdlbGwsIHRoZW4gaXQgd2FzIGEgZ29vZCByYW5kb20gZmluZCA9KS4KPiA+IAo+ID4gWWVh
-aCBzbyBpdCBzZWVtcyA6KSBFYXJsaWVyIEkgdGhvdWdodCB0aGVyZSdzIHN0aWxsIHNvbWUKPiA+
-IGNsa2N0cmwgc2V0dGluZyB3cm9uZyBhZnRlciB1c2luZyBIRE1JLCBidXQgZGlkIG5vdCBzZWUK
-PiA+IGFueXRoaW5nIGRpZmZpbmcgdGhlIGNsa2N0cmwgcmVnaXN0ZXJzIGJlZm9yZSBhbmQgYWZ0
-ZXIKPiA+IGFuZCBnYXZlIHVwLgo+ID4gCj4gPiA+IEkgZGlkIGFscmVhZHkgcHVzaCB0aGlzIHRv
-IGRybS1taXNjLW5leHQsIGFzIEkgdGhvdWdodCBpdCBkb2VzIG5vdCBoYXZlIGFueQo+ID4gPiBy
-ZWFsIGVmZmVjdC4gSSdsbCBjaGVjayBpZiBpdCdzIG9rIHRvIHB1c2ggdG8gZHJtLW1pc2MtZml4
-ZXMgdG9vLCB3aXRoIENjCj4gPiA+IHN0YWJsZS4KPiA+IAo+ID4gT0sgZ3JlYXQgdGhhbmtzLgo+
-IAo+IFB1c2hpbmcgdGhpcyB0byBmaXhlcyB0b28gd291bGQgY2F1c2UgY29uZmxpY3RzLCBzbyB3
-ZSBzaG91bGRuJ3QgcHVzaAo+IHdpdGhvdXQgZ29vZCByZWFzb24uIEhvdyBtdWNoIHBvd2VyIHNh
-dmluZyB5b3Ugc2VlPwoKU3VyZSBubyBydXNoIHdpdGggdGhpcyBvbmUuIEkgc2hvdWxkIGFsc28g
-dGVzdCBhZ2FpbiB0aGF0IGl0CnJlYWxseSBmaXhlcyB0aGUgaXNzdWUgSSdtIHNlZWluZy4KCkht
-bSBzbyB3aGF0IHJlZ2lzdGVyIGRvZXMgdGhpcyBjbG9jayBhY3R1YWxseSBjaGFuZ2U/CgpJJ20g
-c2VlaW5nIGFuIGluY3JlYXNlIG9mIGZldyB0ZW5zIG9mIGV4dHJhIG1XLCB3aGljaCBtZWFucyBh
-dApsZWFzdCBvbmUgZGF5IG9mIHN0YW5kYnkgdGltZSBsZXNzIGZvciBtZSA6KSBJdCBkb2VzIG5v
-dCBoYXBwZW4KYWx3YXlzLCBtYXliZSBoYWxmIG9mIHRoZSB0aW1lLgoKPiBJIHRoaW5rIHRoaXMg
-Y2FuIHN0aWxsIGJlIHNlbnQgdG8gc3RhYmxlIGxhdGVyLCBhZnRlciBpdCBoYXMgYmVlbiBtZXJn
-ZWQgdG8KPiBtYWlubGluZS4KClllcyBzdXJlLgoKVGhhbmtzLAoKVG9ueQpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0
-CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3Rv
-cC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+On Thu, Oct 10, 2019 at 02:33:56PM -0500, Rob Herring wrote:
+> On Wed, Oct 02, 2019 at 06:43:08PM +0200, Krzysztof Kozlowski wrote:
+> > Convert Samsung Exynos SYSRAM bindings to DT schema format using
+> > json-schema.
+> > 
+> > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+> > 
+> > ---
+> > 
+> > Changes since v2:
+> > 1. Use sram as name of node in example.
+> > 
+> > Changes since v1:
+> > 1. Indent example with four spaces (more readable).
+> > ---
+> >  .../devicetree/bindings/sram/samsung-sram.txt | 38 ------------
+> >  .../bindings/sram/samsung-sram.yaml           | 58 +++++++++++++++++++
+> >  MAINTAINERS                                   |  2 +-
+> >  3 files changed, 59 insertions(+), 39 deletions(-)
+> >  delete mode 100644 Documentation/devicetree/bindings/sram/samsung-sram.txt
+> >  create mode 100644 Documentation/devicetree/bindings/sram/samsung-sram.yaml
+> 
+> 
+> > diff --git a/Documentation/devicetree/bindings/sram/samsung-sram.yaml b/Documentation/devicetree/bindings/sram/samsung-sram.yaml
+> > new file mode 100644
+> > index 000000000000..3e77c434ecca
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/sram/samsung-sram.yaml
+> > @@ -0,0 +1,58 @@
+> > +# SPDX-License-Identifier: GPL-2.0
+> > +%YAML 1.2
+> > +---
+> > +$id: http://devicetree.org/schemas/sram/samsung-sram.yaml#
+> > +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> > +
+> > +title: Samsung Exynos SoC SYSRAM for SMP bringup
+> > +
+> > +maintainers:
+> > +  - Krzysztof Kozlowski <krzk@kernel.org>
+> > +
+> > +description: |+
+> > +  Samsung SMP-capable Exynos SoCs use part of the SYSRAM for the bringup
+> > +  of the secondary cores. Once the core gets powered up it executes the
+> > +  code that is residing at some specific location of the SYSRAM.
+> > +
+> > +  Therefore reserved section sub-nodes have to be added to the mmio-sram
+> > +  declaration. These nodes are of two types depending upon secure or
+> > +  non-secure execution environment.
+> > +
+> > +allOf:
+> > +  - $ref: "sram.yaml#"
+> > +
+> > +properties:
+> > +  $nodename:
+> > +    pattern: "^sysram(@.*)?"
+> 
+> As you are renaming all the node names, this will no longer work. If you 
+> change it to 'sram', that's going to match others, but would still work 
+> as long as the child node names are unique to Samsung. If you change 
+> them to '*-sram' then, you'd have to come up with something else. That 
+> probably means using 'compatible' strings. At that point, it's kind of 
+> silly to just be validating what your are using to select the schema. It 
+> may be better to just add the compatible strings into sram.yaml if 
+> that's the only difference.
+
+You're right. I'll move them to sram.yaml and maybe add also example.
+
+
+Best regards,
+Krzysztof
