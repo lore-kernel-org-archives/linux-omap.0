@@ -1,88 +1,44 @@
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Subject: Re: [PATCH v3 02/10] dt-bindings: sram: Convert Samsung Exynos
- SYSRAM bindings to json-schema
-Date: Fri, 11 Oct 2019 09:52:53 +0200
-Message-ID: <20191011075253.GA7998@pi3>
-References: <20191002164316.14905-1-krzk@kernel.org>
- <20191002164316.14905-2-krzk@kernel.org>
- <20191010193356.GA9975@bogus>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCHv3] wlcore: clean-up clearing of WL1271_FLAG_IRQ_RUNNING
+Date: Fri, 11 Oct 2019 08:56:19 +0000 (UTC)
+Message-ID: <20191011085619.87D4960B19@smtp.codeaurora.org>
+References: <20191009165006.41567-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191010193356.GA9975@bogus>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kukjin Kim <kgene@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20191009165006.41567-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 10, 2019 at 02:33:56PM -0500, Rob Herring wrote:
-> On Wed, Oct 02, 2019 at 06:43:08PM +0200, Krzysztof Kozlowski wrote:
-> > Convert Samsung Exynos SYSRAM bindings to DT schema format using
-> > json-schema.
-> > 
-> > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-> > 
-> > ---
-> > 
-> > Changes since v2:
-> > 1. Use sram as name of node in example.
-> > 
-> > Changes since v1:
-> > 1. Indent example with four spaces (more readable).
-> > ---
-> >  .../devicetree/bindings/sram/samsung-sram.txt | 38 ------------
-> >  .../bindings/sram/samsung-sram.yaml           | 58 +++++++++++++++++++
-> >  MAINTAINERS                                   |  2 +-
-> >  3 files changed, 59 insertions(+), 39 deletions(-)
-> >  delete mode 100644 Documentation/devicetree/bindings/sram/samsung-sram.txt
-> >  create mode 100644 Documentation/devicetree/bindings/sram/samsung-sram.yaml
-> 
-> 
-> > diff --git a/Documentation/devicetree/bindings/sram/samsung-sram.yaml b/Documentation/devicetree/bindings/sram/samsung-sram.yaml
-> > new file mode 100644
-> > index 000000000000..3e77c434ecca
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/sram/samsung-sram.yaml
-> > @@ -0,0 +1,58 @@
-> > +# SPDX-License-Identifier: GPL-2.0
-> > +%YAML 1.2
-> > +---
-> > +$id: http://devicetree.org/schemas/sram/samsung-sram.yaml#
-> > +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> > +
-> > +title: Samsung Exynos SoC SYSRAM for SMP bringup
-> > +
-> > +maintainers:
-> > +  - Krzysztof Kozlowski <krzk@kernel.org>
-> > +
-> > +description: |+
-> > +  Samsung SMP-capable Exynos SoCs use part of the SYSRAM for the bringup
-> > +  of the secondary cores. Once the core gets powered up it executes the
-> > +  code that is residing at some specific location of the SYSRAM.
-> > +
-> > +  Therefore reserved section sub-nodes have to be added to the mmio-sram
-> > +  declaration. These nodes are of two types depending upon secure or
-> > +  non-secure execution environment.
-> > +
-> > +allOf:
-> > +  - $ref: "sram.yaml#"
-> > +
-> > +properties:
-> > +  $nodename:
-> > +    pattern: "^sysram(@.*)?"
-> 
-> As you are renaming all the node names, this will no longer work. If you 
-> change it to 'sram', that's going to match others, but would still work 
-> as long as the child node names are unique to Samsung. If you change 
-> them to '*-sram' then, you'd have to come up with something else. That 
-> probably means using 'compatible' strings. At that point, it's kind of 
-> silly to just be validating what your are using to select the schema. It 
-> may be better to just add the compatible strings into sram.yaml if 
-> that's the only difference.
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 
-You're right. I'll move them to sram.yaml and maybe add also example.
+> We set WL1271_FLAG_IRQ_RUNNING in the beginning of wlcore_irq(), but clear
+> it before interrupt handling is done in wlcore_irq_locked().
+> 
+> Let's move the clearing to the end of wlcore_irq() where it gets set,
+> and remove the old comments about hardirq. That's no longer the case as
+> we're using request_threaded_irq().
+> 
+> Note that the WL1271_FLAG_IRQ_RUNNING should never race between the
+> interrupt handler and wlcore_runtime_resume() as because of autosuspend
+> timeout we cannot enter idle between wlcore_irq_locked() and the end of
+> wlcore_irq().
+> 
+> Cc: Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+> Cc: Guy Mishol <guym-l0cyMroinI0@public.gmane.org>
+> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
+Patch applied to wireless-drivers-next.git, thanks.
 
-Best regards,
-Krzysztof
+4633d30b61ac wlcore: clean-up clearing of WL1271_FLAG_IRQ_RUNNING
+
+-- 
+https://patchwork.kernel.org/patch/11181621/
+
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
