@@ -1,92 +1,63 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 8/8] ARM: OMAP2+: Initialize voltage controller for omap4
-Date: Sun, 13 Oct 2019 17:08:15 +0200
-Message-ID: <20191013150815.GF13278@amd>
-References: <20191010001224.41826-1-tony@atomide.com>
- <20191010001224.41826-9-tony@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH] drm/omap: fix max fclk divider for omap36xx
+Date: Sun, 13 Oct 2019 10:56:09 -0500
+Message-ID: <CAHCN7xLjGkLHMWejEk-3vJ-OwzjB+BXtnPWoonh4mAVxbkzMWQ@mail.gmail.com>
+References: <20191002122542.8449-1-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2479985975132430250=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191010001224.41826-9-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20191002122542.8449-1-tomi.valkeinen@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "H . Nikolaus Schaller" <hns@goldelico.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Oct 2, 2019 at 7:25 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>
+> The OMAP36xx and AM/DM37x TRMs say that the maximum divider for DSS fclk
+> (in CM_CLKSEL_DSS) is 32. Experimentation shows that this is not
+> correct, and using divider of 32 breaks DSS with a flood or underflows
+> and sync losts. Dividers up to 31 seem to work fine.
+>
+> There is another patch to the DT files to limit the divider correctly,
+> but as the DSS driver also needs to know the maximum divider to be able
+> to iteratively find good rates, we also need to do the fix in the DSS
+> driver.
+>
 
---===============2479985975132430250==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TeJTyD9hb8KJN2Jy"
-Content-Disposition: inline
+Tomi,
 
+Is there any way you can do a patch for the FB version for the older
+4.9 and 4.14 kernels?  I think they are still defaulting to the omapfb
+instead of DRM, so the underflow issue still appears by default and
+the patch only impacts the DRM version of the driver.  If not, do you
+have any objections if I submit a patch to stable for those two LTS
+branches?
 
---TeJTyD9hb8KJN2Jy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+thanks,
 
-On Wed 2019-10-09 17:12:24, Tony Lindgren wrote:
-> We're missing initializing the PRM_VOLTCTRL register for voltage
-> controller. Let's add omap4_vc_init_pmic_signaling() similar to what we
-> have for omap3 and enable voltage control for retention.
->=20
-> This brings down droid4 power consumption with mainline kernel to somewhe=
-re
-> between 40 and 50mW from about 70 to 80 mW for the whole device when runn=
-ing
-> idle with LCD and backlight off, WLAN connected, and USB and modem modules
-> unloaded.
->=20
-> Mostly just rmmod of omap2430, ohci-platform and phy-mapphone-mdm6600 are
-> needed to idle USB and shut down the modem. And after that measuring idle
-> power consumption can be done with reading sysfs entry every ten seconds =
-for
-> /sys/class/power_supply/battery/power_avg. Then rmmod of phy-cpcap-usb wi=
-ll
-> save few more mW, but will disable the debug UART.
->=20
-> Note that sometimes CM_L4PER_UART1_CLKCTRL at 0x4a009540 does not idle
-> properly after unloading of phy-mapphone-mdm6600.
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---TeJTyD9hb8KJN2Jy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl2jPd8ACgkQMOfwapXb+vKc6QCfTInHiCOojLoYl+MSblD5nQ+O
-DR4AoKLHNZ8Zwjp6K/Te03yOdXiHsdQx
-=5UcY
------END PGP SIGNATURE-----
-
---TeJTyD9hb8KJN2Jy--
-
-
---===============2479985975132430250==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============2479985975132430250==--
+adam
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: Adam Ford <aford173@gmail.com>
+> Cc: stable@vger.kernel.org
+> ---
+>  drivers/gpu/drm/omapdrm/dss/dss.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c b/drivers/gpu/drm/omapdrm/dss/dss.c
+> index e226324adb69..4bdd63b57100 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/dss.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/dss.c
+> @@ -1083,7 +1083,7 @@ static const struct dss_features omap34xx_dss_feats = {
+>
+>  static const struct dss_features omap3630_dss_feats = {
+>         .model                  =       DSS_MODEL_OMAP3,
+> -       .fck_div_max            =       32,
+> +       .fck_div_max            =       31,
+>         .fck_freq_max           =       173000000,
+>         .dss_fck_multiplier     =       1,
+>         .parent_clk_name        =       "dpll4_ck",
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+>
