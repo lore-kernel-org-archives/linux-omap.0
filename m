@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/8] ARM: OMAP2+: Drop bogus wkup domain oswr setting
-Date: Sun, 13 Oct 2019 17:07:44 +0200
-Message-ID: <20191013150744.GD13278@amd>
+Subject: Re: [PATCH 7/8] ARM: OMAP2+: Allow core oswr for omap4
+Date: Sun, 13 Oct 2019 17:08:07 +0200
+Message-ID: <20191013150806.GE13278@amd>
 References: <20191010001224.41826-1-tony@atomide.com>
- <20191010001224.41826-3-tony@atomide.com>
+ <20191010001224.41826-8-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7009002446132112942=="
+Content-Type: multipart/mixed; boundary="===============5302955438175212347=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191010001224.41826-3-tony@atomide.com>
+In-Reply-To: <20191010001224.41826-8-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,70 +22,78 @@ Cc: Merlijn Wajer <merlijn@wizzup.org>, linux-omap@vger.kernel.org, Sebastian Re
 List-Id: linux-omap@vger.kernel.org
 
 
---===============7009002446132112942==
+--===============5302955438175212347==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="g7w8+K/95kPelPD2"
+	protocol="application/pgp-signature"; boundary="vmttodhTwj0NAgWp"
 Content-Disposition: inline
 
 
---g7w8+K/95kPelPD2
+--vmttodhTwj0NAgWp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
-
-> The wkup domain is always on and does not have logic off setting. This
-> got accidentally added by commit f74297dd9354 ("ARM: OMAP2+: Make sure
-> LOGICRETSTATE bits are not cleared") but is harmless.
+On Wed 2019-10-09 17:12:23, Tony Lindgren wrote:
+> Commit f74297dd9354 ("ARM: OMAP2+: Make sure LOGICRETSTATE bits are not
+> cleared") disabled oswr (open switch retention) for per and core domains
+> as various GPIO related issues were noticed if the bootloader had
+> configured the bits for LOGICRETSTATE for per and core domains.
+>=20
+> With the recent gpio-omap fixes, mostly related to commit e6818d29ea15
+> ("gpio: gpio-omap: configure edge detection for level IRQs for idle
+> wakeup"), things now behave for enabling core oswr for omap4.
 >=20
 > Cc: Merlijn Wajer <merlijn@wizzup.org>
 > Cc: Pavel Machek <pavel@ucw.cz>
 > Cc: Sebastian Reichel <sre@kernel.org>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/pm44xx.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -137,8 +137,7 @@ static int __init pwrdms_setup(struct powerdomain *pw=
-rdm, void *unused)
->  	 * smsc911x at least if per hits retention during idle.
->  	 */
->  	if (!strncmp(pwrdm->name, "core", 4) ||
-> -	    !strncmp(pwrdm->name, "l4per", 5) ||
-> -	    !strncmp(pwrdm->name, "wkup", 4))
-> +	    !strncmp(pwrdm->name, "l4per", 5))
->  		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
 
-This is rather theoretical, but if the powerdomain is called
-"corelation-not-causation", do you still want the if() to trigger?
+2,7,8 basically modify same lines of code? Should that be done in one
+patch?
 
 Best regards,
-								Pavel
+
+									Pavel
+> =20
+> -	/*
+> -	 * Bootloader or kexec boot may have LOGICRETSTATE cleared
+> -	 * for some domains. This is the case when kexec booting from
+> -	 * Android kernels that support off mode for example.
+> -	 * Make sure it's set at least for core and per, otherwise
+> -	 * we currently will see lost GPIO interrupts for wlcore and
+> -	 * smsc911x at least if per hits retention during idle.
+> -	 */
+> -	if (!strncmp(pwrdm->name, "core", 4)
+> -		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
+> -
+> -	if (!strncmp(pwrdm->name, "l4per", 5)
+> +	if (!strncmp(pwrdm->name, "core", 4) ||
+> +	    !strncmp(pwrdm->name, "l4per", 5))
+>  		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
+> =20
+>  	pwrst =3D kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---g7w8+K/95kPelPD2
+--vmttodhTwj0NAgWp
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAl2jPcAACgkQMOfwapXb+vLvaQCfZphVuGB+26TYrQM9wURB4MpE
-ujoAoJwodeejH3c14UMdTuuo+wICdQj0
-=FiNP
+iEYEARECAAYFAl2jPdYACgkQMOfwapXb+vIJzACeMNSoapkU3z/f5DKDV6Y0WjlP
+2mUAoJQ12bblkgVJi+y4SH2xOqtXPW2x
+=yYl4
 -----END PGP SIGNATURE-----
 
---g7w8+K/95kPelPD2--
+--vmttodhTwj0NAgWp--
 
 
---===============7009002446132112942==
+--===============5302955438175212347==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -96,4 +104,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============7009002446132112942==--
+--===============5302955438175212347==--
