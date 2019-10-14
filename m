@@ -1,63 +1,28 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH] drm/omap: fix max fclk divider for omap36xx
-Date: Sun, 13 Oct 2019 10:56:09 -0500
-Message-ID: <CAHCN7xLjGkLHMWejEk-3vJ-OwzjB+BXtnPWoonh4mAVxbkzMWQ@mail.gmail.com>
-References: <20191002122542.8449-1-tomi.valkeinen@ti.com>
+From: Shawn Guo <shawnguo@kernel.org>
+Subject: Re: [PATCH v3 06/10] ARM: dts: imx: Rename "iram" node to "sram"
+Date: Mon, 14 Oct 2019 19:32:41 +0800
+Message-ID: <20191014113240.GN12262@dragon>
+References: <20191002164316.14905-1-krzk@kernel.org>
+ <20191002164316.14905-6-krzk@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20191002122542.8449-1-tomi.valkeinen@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "H . Nikolaus Schaller" <hns@goldelico.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20191002164316.14905-6-krzk@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Kukjin Kim <kgene@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.orglinux-
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 2, 2019 at 7:25 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->
-> The OMAP36xx and AM/DM37x TRMs say that the maximum divider for DSS fclk
-> (in CM_CLKSEL_DSS) is 32. Experimentation shows that this is not
-> correct, and using divider of 32 breaks DSS with a flood or underflows
-> and sync losts. Dividers up to 31 seem to work fine.
->
-> There is another patch to the DT files to limit the divider correctly,
-> but as the DSS driver also needs to know the maximum divider to be able
-> to iteratively find good rates, we also need to do the fix in the DSS
-> driver.
->
+On Wed, Oct 02, 2019 at 06:43:12PM +0200, Krzysztof Kozlowski wrote:
+> The device node name should reflect generic class of a device so rename
+> the "iram" node to "sram".  This will be also in sync with upcoming DT
+> schema.  No functional change.
+> 
+> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 
-Tomi,
+Acked-by: Shawn Guo <shawnguo@kernel.org>
 
-Is there any way you can do a patch for the FB version for the older
-4.9 and 4.14 kernels?  I think they are still defaulting to the omapfb
-instead of DRM, so the underflow issue still appears by default and
-the patch only impacts the DRM version of the driver.  If not, do you
-have any objections if I submit a patch to stable for those two LTS
-branches?
+Let me know if you want it go through IMX tree.
 
-thanks,
-
-adam
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Adam Ford <aford173@gmail.com>
-> Cc: stable@vger.kernel.org
-> ---
->  drivers/gpu/drm/omapdrm/dss/dss.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c b/drivers/gpu/drm/omapdrm/dss/dss.c
-> index e226324adb69..4bdd63b57100 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dss.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dss.c
-> @@ -1083,7 +1083,7 @@ static const struct dss_features omap34xx_dss_feats = {
->
->  static const struct dss_features omap3630_dss_feats = {
->         .model                  =       DSS_MODEL_OMAP3,
-> -       .fck_div_max            =       32,
-> +       .fck_div_max            =       31,
->         .fck_freq_max           =       173000000,
->         .dss_fck_multiplier     =       1,
->         .parent_clk_name        =       "dpll4_ck",
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
->
+Shawn
