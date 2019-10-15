@@ -1,111 +1,125 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [Patch 1/3] dt-bindings: media: ti-vpe: Document VPE driver
-Date: Tue, 15 Oct 2019 17:29:47 -0500
-Message-ID: <20191015222947.GA13388@bogus>
-References: <20191009175628.20570-1-bparrot@ti.com>
- <20191009175628.20570-2-bparrot@ti.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH V4 2/3] dt-bindings: Add Logic PD Type 28 display panel
+Date: Tue, 15 Oct 2019 18:04:21 -0500
+Message-ID: <CAHCN7xLCvN1v00H10KUX625awz+nea6rhA_LYnftspjaZ+od-g@mail.gmail.com>
+References: <20191001233923.16514-1-aford173@gmail.com> <20191001233923.16514-5-aford173@gmail.com>
+ <20191009233130.GA1002@bogus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191009175628.20570-2-bparrot@ti.com>
+In-Reply-To: <20191009233130.GA1002@bogus>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 09, 2019 at 12:56:26PM -0500, Benoit Parrot wrote:
-> Device Tree bindings for the Video Processing Engine (VPE) driver.
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> ---
->  .../devicetree/bindings/media/ti-vpe.txt      | 48 +++++++++++++++++++
->  MAINTAINERS                                   |  1 +
->  2 files changed, 49 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
+On Wed, Oct 9, 2019 at 6:31 PM Rob Herring <robh@kernel.org> wrote:
+>
+> On Tue, Oct 01, 2019 at 06:39:22PM -0500, Adam Ford wrote:
+> > This patch adds documentation of device tree bindings for the WVGA panel
+> > Logic PD Type 28 display.
+> >
+> > Signed-off-by: Adam Ford <aford173@gmail.com>
+> > ---
+> > V4:  Update per Rob H's suggestions and copy other panel yaml example from 5.4-rc1
+> > V3:  Correct build errors from 'make dt_binding_check'
+>
+> The example still fails to build here.
 
-Please convert to DT schema format.
+I cannot replicate the build error on 5.4-RC3 at least for this
+binding on V4 of the patch.  I get build error on other bindings.
 
-> 
-> diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
-> new file mode 100644
-> index 000000000000..b2942fa8c3ea
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
-> @@ -0,0 +1,48 @@
-> +Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
-> +------------------------------------------------------
-> +
-> +The Video Processing Engine (VPE) is a key component for image post
-> +processing applications. VPE consist of a single memory to memory
-> +path which can perform chroma up/down sampling, deinterlacing,
-> +scaling and color space conversion.
-> +
-> +Required properties:
-> +- compatible: must be "ti,vpe"
+$ make dt_binding_check ARCH=arm
+scripts/kconfig/conf  --syncconfig Kconfig
+  SCHEMA  Documentation/devicetree/bindings/processed-schema.yaml
+/home/aford/src/linux/Documentation/devicetree/bindings/net/adi,adin.yaml:
+ignoring, error in schema 'adi,rx-internal-delay-ps'
+warning: no schema found in file:
+Documentation/devicetree/bindings/net/adi,adin.yaml
+/home/aford/src/linux/Documentation/devicetree/bindings/regulator/fixed-regulator.yaml:
+ignoring, error in schema '0'
+warning: no schema found in file:
+Documentation/devicetree/bindings/regulator/fixed-regulator.yaml
+  CHKDT   Documentation/devicetree/bindings/arm/amlogic/amlogic,meson-gx-ao-secure.yaml
+  ....
+  CHKDT   Documentation/devicetree/bindings/display/panel/tpo,tpg110.yaml
+  CHKDT   Documentation/devicetree/bindings/display/panel/ampire,am-480272h3tmqw-t01h.yaml
+  CHKDT   Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+  CHKDT   Documentation/devicetree/bindings/display/panel/ronbo,rb070d30.yaml
+ ...
+ CHKDT   Documentation/devicetree/bindings/media/allwinner,sun4i-a10-ir.yaml
+  CHKDT   Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
+Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml:
+$id: path/filename 'arm/allwinner,sun4i-a10-csi.yaml' doesn't match
+actual filename
+Documentation/devicetree/bindings/Makefile:12: recipe for target
+'Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.example.dts'
+failed
+make[1]: *** [Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.example.dts]
+Error 1
+Makefile:1263: recipe for target 'dt_binding_check' failed
+make: *** [dt_binding_check] Error 2
 
-Needs to have SoC specific compatibles.
 
-> +- reg:	physical base address and length of the registers set for the 4
-> +	memory regions required;
-> +- reg-names: name associated with the memory regions described is <reg>;
+I took out some of the logs to make it less chatty.  I don't know
+anything about yaml or what the expectations are, so if there is a
+test beyond 'make dt_binding_check' please let me know.
 
-The names need to be documented.
+Thank you,
 
-> +- interrupts: should contain IRQ line for VPE;
-> +
-> +Example:
-> +
-> +	target-module@1d0010 {                  /* 0x489d0000, ap 27 30.0 */
-> +		compatible = "ti,sysc-omap4", "ti,sysc";
-> +		reg = <0x1d0010 0x4>;
-> +		reg-names = "sysc";
-> +		ti,sysc-midle = <SYSC_IDLE_FORCE>,
-> +				<SYSC_IDLE_NO>,
-> +				<SYSC_IDLE_SMART>;
-> +		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-> +				<SYSC_IDLE_NO>,
-> +				<SYSC_IDLE_SMART>;
-> +		clocks = <&vpe_clkctrl DRA7_VPE_VPE_CLKCTRL 0>;
-> +		clock-names = "fck";
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		ranges = <0x0 0x1d0000 0x10000>;
+adam
 
-All this is outside the scope of this binding.
-
-> +
-> +		vpe: vpe@0 {
-> +			compatible = "ti,vpe";
-> +			reg = <0x0000 0x120>,
-> +			      <0x0700 0x80>,
-> +			      <0x5700 0x18>,
-> +			      <0xd000 0x400>;
-> +			reg-names = "vpe_top",
-> +				    "sc",
-> +				    "csc",
-> +				    "vpdma";
-> +			interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
-
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-
-Not documented, nor needed as there are no child nodes.
-
-> +		};
-> +	};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 8598f49fa2c8..63dcda51f8ae 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -16299,6 +16299,7 @@ W:	http://linuxtv.org/
->  Q:	http://patchwork.linuxtv.org/project/linux-media/list/
->  S:	Maintained
->  F:	drivers/media/platform/ti-vpe/
-> +F:	Documentation/devicetree/bindings/media/ti-vpe.txt
->  
->  TI WILINK WIRELESS DRIVERS
->  L:	linux-wireless@vger.kernel.org
-> -- 
-> 2.17.1
-> 
+>
+> > V2:  Use YAML instead of TXT for binding
+> >
+> > diff --git a/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+> > new file mode 100644
+> > index 000000000000..e2c62e8f1db4
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+> > @@ -0,0 +1,42 @@
+> > +# SPDX-License-Identifier: GPL-2.0
+> > +%YAML 1.2
+> > +---
+> > +$id: http://devicetree.org/schemas/display/panel/logicpd,type28.yaml#
+> > +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> > +
+> > +title: Logic PD Type 28 4.3" WQVGA TFT LCD panel
+> > +
+> > +maintainers:
+> > +  - Adam Ford <aford173@gmail.com>
+> > +
+> > +allOf:
+> > +  - $ref: panel-common.yaml#
+> > +
+> > +properties:
+> > +  compatible:
+> > +    const: logicpd,type28
+> > +
+> > +  power-supply: true
+> > +  enable-gpios: true
+> > +  backlight: true
+> > +  port: true
+> > +
+> > +required:
+> > +  - compatible
+> > +
+> > +additionalProperties: false
+> > +
+> > +examples:
+> > +  - |
+> > +    lcd0: display {
+> > +      compatible = "logicpd,type28";
+> > +      enable-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;
+> > +      backlight = <&backlight>;
+> > +      port {
+> > +        lcd_in: endpoint {
+> > +          remote-endpoint = <&dpi_out>;
+> > +        };
+> > +      };
+> > +    };
+> > +
+> > +...
+> > --
+> > 2.17.1
+> >
