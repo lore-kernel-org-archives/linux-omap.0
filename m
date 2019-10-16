@@ -1,61 +1,62 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH V5 2/3] dt-bindings: Add Logic PD Type 28 display panel
-Date: Wed, 16 Oct 2019 17:40:18 +0300
-Message-ID: <20191016144018.GG5175@pendragon.ideasonboard.com>
-References: <20191016135147.7743-1-aford173@gmail.com>
- <20191016135147.7743-2-aford173@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/8] ARM: OMAP2+: Drop bogus wkup domain oswr setting
+Date: Wed, 16 Oct 2019 07:40:53 -0700
+Message-ID: <20191016144053.GC5610@atomide.com>
+References: <20191010001224.41826-1-tony@atomide.com>
+ <20191010001224.41826-3-tony@atomide.com>
+ <20191013150744.GD13278@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191016135147.7743-2-aford173@gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Adam Ford <aford173@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, David Airlie <airlied@linux.ie>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-omap@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
+In-Reply-To: <20191013150744.GD13278@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Merlijn Wajer <merlijn@wizzup.org>, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgQWRhbSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gV2VkLCBPY3QgMTYsIDIwMTkg
-YXQgMDg6NTE6NDZBTSAtMDUwMCwgQWRhbSBGb3JkIHdyb3RlOgo+IFRoaXMgcGF0Y2ggYWRkcyBk
-b2N1bWVudGF0aW9uIG9mIGRldmljZSB0cmVlIGJpbmRpbmdzIGZvciB0aGUgV1ZHQSBwYW5lbAo+
-IExvZ2ljIFBEIFR5cGUgMjggZGlzcGxheS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBBZGFtIEZvcmQg
-PGFmb3JkMTczQGdtYWlsLmNvbT4KPiAtLS0KPiBWNTogIFJlcGxhY2UgR1BJT19BQ1RJVkVfSElH
-SCB3aXRoIDAgdG8gZml4IG1ha2UgZHRfYmluZGluZ19jaGVjayAtawo+IFY0OiAgVXBkYXRlIHBl
-ciBSb2IgSCdzIHN1Z2dlc3Rpb25zIGFuZCBjb3B5IG90aGVyIHBhbmVsIHlhbWwgZXhhbXBsZSBm
-cm9tIDUuNC1yYzEKPiBWMzogIENvcnJlY3QgYnVpbGQgZXJyb3JzIGZyb20gJ21ha2UgZHRfYmlu
-ZGluZ19jaGVjaycKPiBWMjogIFVzZSBZQU1MIGluc3RlYWQgb2YgVFhUIGZvciBiaW5kaW5nCj4g
-Cj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5
-L3BhbmVsL2xvZ2ljcGQsdHlwZTI4LnlhbWwgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmlu
-ZGluZ3MvZGlzcGxheS9wYW5lbC9sb2dpY3BkLHR5cGUyOC55YW1sCj4gbmV3IGZpbGUgbW9kZSAx
-MDA2NDQKPiBpbmRleCAwMDAwMDAwMDAwMDAuLjI4MzQyODdiOGQ4OAo+IC0tLSAvZGV2L251bGwK
-PiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9wYW5lbC9s
-b2dpY3BkLHR5cGUyOC55YW1sCj4gQEAgLTAsMCArMSw0MiBAQAo+ICsjIFNQRFgtTGljZW5zZS1J
-ZGVudGlmaWVyOiBHUEwtMi4wCj4gKyVZQU1MIDEuMgo+ICstLS0KPiArJGlkOiBodHRwOi8vZGV2
-aWNldHJlZS5vcmcvc2NoZW1hcy9kaXNwbGF5L3BhbmVsL2xvZ2ljcGQsdHlwZTI4LnlhbWwjCj4g
-KyRzY2hlbWE6IGh0dHA6Ly9kZXZpY2V0cmVlLm9yZy9tZXRhLXNjaGVtYXMvY29yZS55YW1sIwo+
-ICsKPiArdGl0bGU6IExvZ2ljIFBEIFR5cGUgMjggNC4zIiBXUVZHQSBURlQgTENEIHBhbmVsCj4g
-Kwo+ICttYWludGFpbmVyczoKPiArICAtIEFkYW0gRm9yZCA8YWZvcmQxNzNAZ21haWwuY29tPgo+
-ICsKPiArYWxsT2Y6Cj4gKyAgLSAkcmVmOiBwYW5lbC1jb21tb24ueWFtbCMKPiArCj4gK3Byb3Bl
-cnRpZXM6Cj4gKyAgY29tcGF0aWJsZToKPiArICAgIGNvbnN0OiBsb2dpY3BkLHR5cGUyOAo+ICsK
-PiArICBwb3dlci1zdXBwbHk6IHRydWUKPiArICBlbmFibGUtZ3Bpb3M6IHRydWUKPiArICBiYWNr
-bGlnaHQ6IHRydWUKPiArICBwb3J0OiB0cnVlCj4gKwo+ICtyZXF1aXJlZDoKPiArICAtIGNvbXBh
-dGlibGUKClNob3VsZCB0aGUgcG9ydCBiZSByZXF1aXJlZCB0b28gPyBBcGFydCBmcm9tIHRoYXQs
-CgpSZXZpZXdlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29u
-Ym9hcmQuY29tPgoKPiArCj4gK2FkZGl0aW9uYWxQcm9wZXJ0aWVzOiBmYWxzZQo+ICsKPiArZXhh
-bXBsZXM6Cj4gKyAgLSB8Cj4gKyAgICBsY2QwOiBkaXNwbGF5IHsKPiArICAgICAgY29tcGF0aWJs
-ZSA9ICJsb2dpY3BkLHR5cGUyOCI7Cj4gKyAgICAgIGVuYWJsZS1ncGlvcyA9IDwmZ3BpbzUgMjcg
-MD47Cj4gKyAgICAgIGJhY2tsaWdodCA9IDwmYmFja2xpZ2h0PjsKPiArICAgICAgcG9ydCB7Cj4g
-KyAgICAgICAgbGNkX2luOiBlbmRwb2ludCB7Cj4gKyAgICAgICAgICByZW1vdGUtZW5kcG9pbnQg
-PSA8JmRwaV9vdXQ+Owo+ICsgICAgICAgIH07Cj4gKyAgICAgIH07Cj4gKyAgICB9Owo+ICsKPiAr
-Li4uCgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
-ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
-aWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+* Pavel Machek <pavel@ucw.cz> [191013 15:08]:
+> Hi!
+> 
+> > The wkup domain is always on and does not have logic off setting. This
+> > got accidentally added by commit f74297dd9354 ("ARM: OMAP2+: Make sure
+> > LOGICRETSTATE bits are not cleared") but is harmless.
+> > 
+> > Cc: Merlijn Wajer <merlijn@wizzup.org>
+> > Cc: Pavel Machek <pavel@ucw.cz>
+> > Cc: Sebastian Reichel <sre@kernel.org>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap2/pm44xx.c | 3 +--
+> >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> > --- a/arch/arm/mach-omap2/pm44xx.c
+> > +++ b/arch/arm/mach-omap2/pm44xx.c
+> > @@ -137,8 +137,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+> >  	 * smsc911x at least if per hits retention during idle.
+> >  	 */
+> >  	if (!strncmp(pwrdm->name, "core", 4) ||
+> > -	    !strncmp(pwrdm->name, "l4per", 5) ||
+> > -	    !strncmp(pwrdm->name, "wkup", 4))
+> > +	    !strncmp(pwrdm->name, "l4per", 5))
+> >  		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
+> 
+> This is rather theoretical, but if the powerdomain is called
+> "corelation-not-causation", do you still want the if() to trigger?
+
+No need to if no writable register bits exists if I understand
+your theoretical comment right :)
+
+Regards,
+
+Tony
