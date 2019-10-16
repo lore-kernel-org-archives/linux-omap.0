@@ -1,145 +1,83 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: Re: [Patch 1/3] dt-bindings: media: ti-vpe: Document VPE driver
-Date: Wed, 16 Oct 2019 08:22:39 -0500
-Message-ID: <20191016132239.ufptwl44ktmhvylo@ti.com>
-References: <20191009175628.20570-1-bparrot@ti.com>
- <20191009175628.20570-2-bparrot@ti.com>
- <20191015222947.GA13388@bogus>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Adam Ford <aford173@gmail.com>
+Subject: [PATCH V5 1/3] drm/panel: simple: Add Logic PD Type 28 display support
+Date: Wed, 16 Oct 2019 08:51:45 -0500
+Message-ID: <20191016135147.7743-1-aford173@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191015222947.GA13388@bogus>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: dri-devel@lists.freedesktop.org
+Cc: linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Rob Herring <robh@kernel.org> wrote on Tue [2019-Oct-15 17:29:47 -0500]:
-> On Wed, Oct 09, 2019 at 12:56:26PM -0500, Benoit Parrot wrote:
-> > Device Tree bindings for the Video Processing Engine (VPE) driver.
-> > 
-> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> > ---
-> >  .../devicetree/bindings/media/ti-vpe.txt      | 48 +++++++++++++++++++
-> >  MAINTAINERS                                   |  1 +
-> >  2 files changed, 49 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
-> 
-> Please convert to DT schema format.
+Previously, there was an omap panel-dpi driver that would
+read generic timings from the device tree and set the display
+timing accordingly.  This driver was removed so the screen
+no longer functions.  This patch modifies the panel-simple
+file to setup the timings to the same values previously used.
 
-I can do that.
-Before posting/merging a .yaml, are we supposed to be able to pass these?
-# make dt_binding_check
-# make dtbs_check
+Fixes: 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
 
-Because currently with 5.4-rc3 these fails.
+Signed-off-by: Adam Ford <aford173@gmail.com>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+---
+V5:  No Change
+V4:  No Change
+V3:  No Change
+V2:  No Change
 
-Is there a way to run these "test command" target a specific .yaml and not
-the whole set?
-
-> 
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
-> > new file mode 100644
-> > index 000000000000..b2942fa8c3ea
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
-> > @@ -0,0 +1,48 @@
-> > +Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
-> > +------------------------------------------------------
-> > +
-> > +The Video Processing Engine (VPE) is a key component for image post
-> > +processing applications. VPE consist of a single memory to memory
-> > +path which can perform chroma up/down sampling, deinterlacing,
-> > +scaling and color space conversion.
-> > +
-> > +Required properties:
-> > +- compatible: must be "ti,vpe"
-> 
-> Needs to have SoC specific compatibles.
-
-Yes, I'll fix that.
-
-> 
-> > +- reg:	physical base address and length of the registers set for the 4
-> > +	memory regions required;
-> > +- reg-names: name associated with the memory regions described is <reg>;
-> 
-> The names need to be documented.
-
-Ok.
-
-> 
-> > +- interrupts: should contain IRQ line for VPE;
-> > +
-> > +Example:
-> > +
-> > +	target-module@1d0010 {                  /* 0x489d0000, ap 27 30.0 */
-> > +		compatible = "ti,sysc-omap4", "ti,sysc";
-> > +		reg = <0x1d0010 0x4>;
-> > +		reg-names = "sysc";
-> > +		ti,sysc-midle = <SYSC_IDLE_FORCE>,
-> > +				<SYSC_IDLE_NO>,
-> > +				<SYSC_IDLE_SMART>;
-> > +		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-> > +				<SYSC_IDLE_NO>,
-> > +				<SYSC_IDLE_SMART>;
-> > +		clocks = <&vpe_clkctrl DRA7_VPE_VPE_CLKCTRL 0>;
-> > +		clock-names = "fck";
-> > +		#address-cells = <1>;
-> > +		#size-cells = <1>;
-> > +		ranges = <0x0 0x1d0000 0x10000>;
-> 
-> All this is outside the scope of this binding.
-
-OK I was not sure if the whole interconnect thing was needed in the example
-or not.
-
-> 
-> > +
-> > +		vpe: vpe@0 {
-> > +			compatible = "ti,vpe";
-> > +			reg = <0x0000 0x120>,
-> > +			      <0x0700 0x80>,
-> > +			      <0x5700 0x18>,
-> > +			      <0xd000 0x400>;
-> > +			reg-names = "vpe_top",
-> > +				    "sc",
-> > +				    "csc",
-> > +				    "vpdma";
-> > +			interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
-> 
-> > +			#address-cells = <1>;
-> > +			#size-cells = <0>;
-> 
-> Not documented, nor needed as there are no child nodes.
-
-Yeah, I'll remove that.
-
-> 
-> > +		};
-> > +	};
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index 8598f49fa2c8..63dcda51f8ae 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -16299,6 +16299,7 @@ W:	http://linuxtv.org/
-> >  Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-> >  S:	Maintained
-> >  F:	drivers/media/platform/ti-vpe/
-> > +F:	Documentation/devicetree/bindings/media/ti-vpe.txt
-
-Now with the dt_schemas, I noticed that the maintainer's name is part of
-the yaml file. Do we still need to add this to the MAINTAINERS file as
-well?
-
-Benoit
-
-
-> >  
-> >  TI WILINK WIRELESS DRIVERS
-> >  L:	linux-wireless@vger.kernel.org
-> > -- 
-> > 2.17.1
-> > 
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 5d487686d25c..72f69709f349 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -2061,6 +2061,40 @@ static const struct drm_display_mode mitsubishi_aa070mc01_mode = {
+ 	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
+ };
+ 
++static const struct drm_display_mode logicpd_type_28_mode = {
++	.clock = 9000,
++	.hdisplay = 480,
++	.hsync_start = 480 + 3,
++	.hsync_end = 480 + 3 + 42,
++	.htotal = 480 + 3 + 42 + 2,
++
++	.vdisplay = 272,
++	.vsync_start = 272 + 2,
++	.vsync_end = 272 + 2 + 11,
++	.vtotal = 272 + 2 + 11 + 3,
++	.vrefresh = 60,
++	.flags = DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC,
++};
++
++static const struct panel_desc logicpd_type_28 = {
++	.modes = &logicpd_type_28_mode,
++	.num_modes = 1,
++	.bpc = 8,
++	.size = {
++		.width = 105,
++		.height = 67,
++	},
++	.delay = {
++		.prepare = 200,
++		.enable = 200,
++		.unprepare = 200,
++		.disable = 200,
++	},
++	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
++	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE |
++		     DRM_BUS_FLAG_SYNC_DRIVE_NEGEDGE,
++};
++
+ static const struct panel_desc mitsubishi_aa070mc01 = {
+ 	.modes = &mitsubishi_aa070mc01_mode,
+ 	.num_modes = 1,
+@@ -3287,6 +3321,9 @@ static const struct of_device_id platform_of_match[] = {
+ 	}, {
+ 		.compatible = "lg,lp129qe",
+ 		.data = &lg_lp129qe,
++	}, {
++		.compatible = "logicpd,type28",
++		.data = &logicpd_type_28,
+ 	}, {
+ 		.compatible = "mitsubishi,aa070mc01-ca1",
+ 		.data = &mitsubishi_aa070mc01,
+-- 
+2.17.1
