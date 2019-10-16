@@ -1,89 +1,61 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH V4 2/3] dt-bindings: Add Logic PD Type 28 display panel
-Date: Wed, 16 Oct 2019 08:55:48 -0500
-Message-ID: <CAHCN7xLN99HyZRBr-CkxvkZntx3LfBd5ELcdLPjPRH7kLKr2uw@mail.gmail.com>
-References: <20191001233923.16514-1-aford173@gmail.com> <20191001233923.16514-5-aford173@gmail.com>
- <20191009233130.GA1002@bogus> <CAHCN7xLCvN1v00H10KUX625awz+nea6rhA_LYnftspjaZ+od-g@mail.gmail.com>
- <CAL_JsqJoPda6Oj14WTdm737Mydn+pzvdqkyCPry+zU7drheq=g@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH V5 2/3] dt-bindings: Add Logic PD Type 28 display panel
+Date: Wed, 16 Oct 2019 17:40:18 +0300
+Message-ID: <20191016144018.GG5175@pendragon.ideasonboard.com>
+References: <20191016135147.7743-1-aford173@gmail.com>
+ <20191016135147.7743-2-aford173@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL_JsqJoPda6Oj14WTdm737Mydn+pzvdqkyCPry+zU7drheq=g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20191016135147.7743-2-aford173@gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Adam Ford <aford173@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, David Airlie <airlied@linux.ie>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-omap@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 16, 2019 at 8:15 AM Rob Herring <robh@kernel.org> wrote:
->
-> On Tue, Oct 15, 2019 at 6:04 PM Adam Ford <aford173@gmail.com> wrote:
-> >
-> > On Wed, Oct 9, 2019 at 6:31 PM Rob Herring <robh@kernel.org> wrote:
-> > >
-> > > On Tue, Oct 01, 2019 at 06:39:22PM -0500, Adam Ford wrote:
-> > > > This patch adds documentation of device tree bindings for the WVGA panel
-> > > > Logic PD Type 28 display.
-> > > >
-> > > > Signed-off-by: Adam Ford <aford173@gmail.com>
-> > > > ---
-> > > > V4:  Update per Rob H's suggestions and copy other panel yaml example from 5.4-rc1
-> > > > V3:  Correct build errors from 'make dt_binding_check'
-> > >
-> > > The example still fails to build here.
-> >
-> > I cannot replicate the build error on 5.4-RC3 at least for this
-> > binding on V4 of the patch.  I get build error on other bindings.
-> >
-> > $ make dt_binding_check ARCH=arm
-> > scripts/kconfig/conf  --syncconfig Kconfig
-> >   SCHEMA  Documentation/devicetree/bindings/processed-schema.yaml
-> > /home/aford/src/linux/Documentation/devicetree/bindings/net/adi,adin.yaml:
-> > ignoring, error in schema 'adi,rx-internal-delay-ps'
-> > warning: no schema found in file:
-> > Documentation/devicetree/bindings/net/adi,adin.yaml
-> > /home/aford/src/linux/Documentation/devicetree/bindings/regulator/fixed-regulator.yaml:
-> > ignoring, error in schema '0'
-> > warning: no schema found in file:
-> > Documentation/devicetree/bindings/regulator/fixed-regulator.yaml
-> >   CHKDT   Documentation/devicetree/bindings/arm/amlogic/amlogic,meson-gx-ao-secure.yaml
-> >   ....
-> >   CHKDT   Documentation/devicetree/bindings/display/panel/tpo,tpg110.yaml
-> >   CHKDT   Documentation/devicetree/bindings/display/panel/ampire,am-480272h3tmqw-t01h.yaml
-> >   CHKDT   Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
-> >   CHKDT   Documentation/devicetree/bindings/display/panel/ronbo,rb070d30.yaml
-> >  ...
-> >  CHKDT   Documentation/devicetree/bindings/media/allwinner,sun4i-a10-ir.yaml
-> >   CHKDT   Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
-> > Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml:
-> > $id: path/filename 'arm/allwinner,sun4i-a10-csi.yaml' doesn't match
-> > actual filename
-> > Documentation/devicetree/bindings/Makefile:12: recipe for target
-> > 'Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.example.dts'
-> > failed
-> > make[1]: *** [Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.example.dts]
-> > Error 1
-> > Makefile:1263: recipe for target 'dt_binding_check' failed
-> > make: *** [dt_binding_check] Error 2
-> >
-> >
-> > I took out some of the logs to make it less chatty.  I don't know
-> > anything about yaml or what the expectations are, so if there is a
-> > test beyond 'make dt_binding_check' please let me know.
->
-> Perhaps 'make -k' is needed because of the other failures. Or try on
-> top of linux-next which should all be fixed.
-
-Thanks.  I didn't know about the '-k'  I replaced GPIO_ACTIVE_HIGH
-with 0 and it seems to have fixed the error.
-Sorry about all the noise.  Hopefully I did it right.  There is a V5
-patch waiting now starting at [1]
-
-[1] - https://patchwork.kernel.org/patch/11193399/
-
-adam
-
-
-
-
->
-> Rob
+SGkgQWRhbSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gV2VkLCBPY3QgMTYsIDIwMTkg
+YXQgMDg6NTE6NDZBTSAtMDUwMCwgQWRhbSBGb3JkIHdyb3RlOgo+IFRoaXMgcGF0Y2ggYWRkcyBk
+b2N1bWVudGF0aW9uIG9mIGRldmljZSB0cmVlIGJpbmRpbmdzIGZvciB0aGUgV1ZHQSBwYW5lbAo+
+IExvZ2ljIFBEIFR5cGUgMjggZGlzcGxheS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBBZGFtIEZvcmQg
+PGFmb3JkMTczQGdtYWlsLmNvbT4KPiAtLS0KPiBWNTogIFJlcGxhY2UgR1BJT19BQ1RJVkVfSElH
+SCB3aXRoIDAgdG8gZml4IG1ha2UgZHRfYmluZGluZ19jaGVjayAtawo+IFY0OiAgVXBkYXRlIHBl
+ciBSb2IgSCdzIHN1Z2dlc3Rpb25zIGFuZCBjb3B5IG90aGVyIHBhbmVsIHlhbWwgZXhhbXBsZSBm
+cm9tIDUuNC1yYzEKPiBWMzogIENvcnJlY3QgYnVpbGQgZXJyb3JzIGZyb20gJ21ha2UgZHRfYmlu
+ZGluZ19jaGVjaycKPiBWMjogIFVzZSBZQU1MIGluc3RlYWQgb2YgVFhUIGZvciBiaW5kaW5nCj4g
+Cj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5
+L3BhbmVsL2xvZ2ljcGQsdHlwZTI4LnlhbWwgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmlu
+ZGluZ3MvZGlzcGxheS9wYW5lbC9sb2dpY3BkLHR5cGUyOC55YW1sCj4gbmV3IGZpbGUgbW9kZSAx
+MDA2NDQKPiBpbmRleCAwMDAwMDAwMDAwMDAuLjI4MzQyODdiOGQ4OAo+IC0tLSAvZGV2L251bGwK
+PiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9wYW5lbC9s
+b2dpY3BkLHR5cGUyOC55YW1sCj4gQEAgLTAsMCArMSw0MiBAQAo+ICsjIFNQRFgtTGljZW5zZS1J
+ZGVudGlmaWVyOiBHUEwtMi4wCj4gKyVZQU1MIDEuMgo+ICstLS0KPiArJGlkOiBodHRwOi8vZGV2
+aWNldHJlZS5vcmcvc2NoZW1hcy9kaXNwbGF5L3BhbmVsL2xvZ2ljcGQsdHlwZTI4LnlhbWwjCj4g
+KyRzY2hlbWE6IGh0dHA6Ly9kZXZpY2V0cmVlLm9yZy9tZXRhLXNjaGVtYXMvY29yZS55YW1sIwo+
+ICsKPiArdGl0bGU6IExvZ2ljIFBEIFR5cGUgMjggNC4zIiBXUVZHQSBURlQgTENEIHBhbmVsCj4g
+Kwo+ICttYWludGFpbmVyczoKPiArICAtIEFkYW0gRm9yZCA8YWZvcmQxNzNAZ21haWwuY29tPgo+
+ICsKPiArYWxsT2Y6Cj4gKyAgLSAkcmVmOiBwYW5lbC1jb21tb24ueWFtbCMKPiArCj4gK3Byb3Bl
+cnRpZXM6Cj4gKyAgY29tcGF0aWJsZToKPiArICAgIGNvbnN0OiBsb2dpY3BkLHR5cGUyOAo+ICsK
+PiArICBwb3dlci1zdXBwbHk6IHRydWUKPiArICBlbmFibGUtZ3Bpb3M6IHRydWUKPiArICBiYWNr
+bGlnaHQ6IHRydWUKPiArICBwb3J0OiB0cnVlCj4gKwo+ICtyZXF1aXJlZDoKPiArICAtIGNvbXBh
+dGlibGUKClNob3VsZCB0aGUgcG9ydCBiZSByZXF1aXJlZCB0b28gPyBBcGFydCBmcm9tIHRoYXQs
+CgpSZXZpZXdlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29u
+Ym9hcmQuY29tPgoKPiArCj4gK2FkZGl0aW9uYWxQcm9wZXJ0aWVzOiBmYWxzZQo+ICsKPiArZXhh
+bXBsZXM6Cj4gKyAgLSB8Cj4gKyAgICBsY2QwOiBkaXNwbGF5IHsKPiArICAgICAgY29tcGF0aWJs
+ZSA9ICJsb2dpY3BkLHR5cGUyOCI7Cj4gKyAgICAgIGVuYWJsZS1ncGlvcyA9IDwmZ3BpbzUgMjcg
+MD47Cj4gKyAgICAgIGJhY2tsaWdodCA9IDwmYmFja2xpZ2h0PjsKPiArICAgICAgcG9ydCB7Cj4g
+KyAgICAgICAgbGNkX2luOiBlbmRwb2ludCB7Cj4gKyAgICAgICAgICByZW1vdGUtZW5kcG9pbnQg
+PSA8JmRwaV9vdXQ+Owo+ICsgICAgICAgIH07Cj4gKyAgICAgIH07Cj4gKyAgICB9Owo+ICsKPiAr
+Li4uCgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
+aWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
