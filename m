@@ -1,80 +1,37 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 2/3] ARM: dts: am437x-sk-evm: Add VPFE and OV2659 entries
-Date: Wed, 16 Oct 2019 13:49:53 -0500
-Message-ID: <20191016184954.14048-3-bparrot@ti.com>
-References: <20191016184954.14048-1-bparrot@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCHv2 4/4] Bluetooth: btwilink: drop superseded driver
+Date: Wed, 16 Oct 2019 21:15:03 +0200
+Message-ID: <BC1F82AC-2988-4BC6-99EA-1C9F9289E582@holtmann.org>
+References: <20191003134147.9458-1-sre@kernel.org>
+ <20191003134147.9458-5-sre@kernel.org>
+Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3594.4.19\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191016184954.14048-1-bparrot@ti.com>
+In-Reply-To: <20191003134147.9458-5-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Sebastian Reichel <sebastian.reichel@collabora.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add VPFE device nodes entries.
-Add OmniVision OV2659 sensor device nodes and linkage.
+Hi Sebastian,
 
-The sensor clock (xvclk) is sourced from clkout1.
-Add clock entries to properly select clkout1 and set its parent
-clock to sys_clkin_ck.
+> All users of this driver have been converted to the serdev based
+> hci_ll driver. The unused driver can be safely dropped now.
+> 
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+> ---
+> drivers/bluetooth/Kconfig    |  11 --
+> drivers/bluetooth/Makefile   |   1 -
+> drivers/bluetooth/btwilink.c | 337 -----------------------------------
+> 3 files changed, 349 deletions(-)
+> delete mode 100644 drivers/bluetooth/btwilink.c
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- arch/arm/boot/dts/am437x-sk-evm.dts | 27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+patch has been applied to bluetooth-next tree.
 
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 74eaa6a3b258..25222497f828 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -272,6 +272,12 @@
- 		>;
- 	};
- 
-+	clkout1_pin: pinmux_clkout1_pin {
-+		pinctrl-single,pins = <
-+			0x270 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* XDMA_EVENT_INTR0/CLKOUT1 */
-+		>;
-+	};
-+
- 	cpsw_default: cpsw_default {
- 		pinctrl-single,pins = <
- 			/* Slave 1 */
-@@ -593,6 +599,25 @@
- 	pinctrl-0 = <&i2c1_pins>;
- 	clock-frequency = <400000>;
- 
-+	ov2659@30 {
-+		compatible = "ovti,ov2659";
-+		reg = <0x30>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&clkout1_pin>;
-+
-+		clocks = <&clkout1_mux_ck>;
-+		clock-names = "xvclk";
-+		assigned-clocks = <&clkout1_mux_ck>;
-+		assigned-clock-parents = <&clkout1_osc_div_ck>;
-+
-+		port {
-+			ov2659_1: endpoint {
-+				remote-endpoint = <&vpfe0_ep>;
-+				link-frequencies = /bits/ 64 <70000000>;
-+			};
-+		};
-+	};
-+
- 	edt-ft5306@38 {
- 		status = "okay";
- 		compatible = "edt,edt-ft5306", "edt,edt-ft5x06";
-@@ -877,7 +902,7 @@
- 	/* Camera port */
- 	port {
- 		vpfe0_ep: endpoint {
--			/* remote-endpoint = <&sensor>; add once we have it */
-+			remote-endpoint = <&ov2659_1>;
- 			ti,am437x-vpfe-interface = <0>;
- 			bus-width = <8>;
- 			hsync-active = <0>;
--- 
-2.17.1
+However what I really like to see is that you re-introduce a btwilink driver that is purely serdev based and doesn’t rely on any hci_uart/hci_ldisc code. A clean serdev only driver is that best and easier to maintain long term.
+
+Regards
+
+Marcel
