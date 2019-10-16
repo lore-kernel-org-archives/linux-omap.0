@@ -1,37 +1,118 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCHv2 4/4] Bluetooth: btwilink: drop superseded driver
-Date: Wed, 16 Oct 2019 21:15:03 +0200
-Message-ID: <BC1F82AC-2988-4BC6-99EA-1C9F9289E582@holtmann.org>
-References: <20191003134147.9458-1-sre@kernel.org>
- <20191003134147.9458-5-sre@kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3594.4.19\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [Letux-kernel] Lay common foundation to make PVR/SGX work
+ without hacks on OMAP34xx, OMAP36xx, AM335x and potentially OMAP4, OMAP5
+Date: Wed, 16 Oct 2019 16:03:18 -0700
+Message-ID: <20191016230318.GK5610@atomide.com>
+References: <3b0a5e78-c4c2-1963-bac7-b49496a1e9b9@wizzup.org>
+ <1F942AAB-1648-46C0-ADD5-90F6898778BE@goldelico.com>
+ <84cac9b8-0eff-33f8-464d-4f8045d7db19@wizzup.org>
+ <BFAA7FA6-A352-476A-99F9-02EA663A6AAD@goldelico.com>
+ <CAHCN7x+87xTsA3MeHy7kUWU0SU3X8HmSc2wbk5gKvYm1dRNe6A@mail.gmail.com>
+ <04809E3E-A690-4931-B949-1CFDAF407C14@goldelico.com>
+ <ebb50954-b456-4dab-0765-9dfa06c67075@wizzup.org>
+ <C3A56737-6187-4B31-8697-3A02DD164429@goldelico.com>
+ <72851E17-9B56-4CA5-B164-667836A7C894@goldelico.com>
+ <1A69DA38-DD6D-4C2B-9F42-D293796AC98A@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191003134147.9458-5-sre@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1A69DA38-DD6D-4C2B-9F42-D293796AC98A@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Sebastian Reichel <sebastian.reichel@collabora.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Merlijn Wajer <merlijn@wizzup.org>, Adam Ford <aford173@gmail.com>, Philipp Rossak <embed3d@gmail.com>, =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, moaz korena <moaz@korena.xyz>, James Hilliard <james.hilliard1@gmail.com>, maemo-leste@lists.dyne.org, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kernel@pyra-handheld.com, Robert Nelson <robertcnelson@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sebastian,
-
-> All users of this driver have been converted to the serdev based
-> hci_ll driver. The unused driver can be safely dropped now.
+* H. Nikolaus Schaller <hns@goldelico.com> [191014 09:12]:
 > 
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-> ---
-> drivers/bluetooth/Kconfig    |  11 --
-> drivers/bluetooth/Makefile   |   1 -
-> drivers/bluetooth/btwilink.c | 337 -----------------------------------
-> 3 files changed, 349 deletions(-)
-> delete mode 100644 drivers/bluetooth/btwilink.c
+> > Am 12.10.2019 um 15:09 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> > 
+> > Hi,
+> > 
+> >> Am 05.10.2019 um 18:58 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> > 
+> > I have found the following description, followed all steps, and it works:
+> > 
+> > http://blog.0xpebbles.org/PowerVR-SGX-on-the-beaglebone-black-in-2019
+> > 
+> > So with this, I have got a working user-space setup for BeagleBone and some working
+> > pvrsrvkm.ko module (kernel 4.4.155-ti-r155) for evaluation.
+> 
+> > What I don't have yet is the full source code or build recipe for the specific
+> > 4.4.155-ti-r155 pvrsrvkm.ko from TI.
+> > 
+> > But even without having this yet, I can start experiments by replacing
+> > kernel and pvrsrvkm.ko with mine. This should allow to gain new insights.
+> 
+> Good news:
+> 
+> after making a Hybrid SD image of the setup described above and replacing the
+> 4.4.155-ti-r155 kernel with its pvrsrvkm.ko by my own 5.4-rc2 kernel and pvrsrvkm,
+> I was able to start the pvrsrv uKernel. And run the gles1test1 on beaglebone
+> (without LCD but also without errors).
+> 
+> With this knowledge I could adapt my user-space. There are indeed different
+> non-free binaries for sgx530, sgx540, sgx544. And SGX needs enough coherent memory.
+> So I could make a completely self-built kernel and rootfs (using the git clone from
+> ti for the firmware + make install) run on BeagleBone.
+> 
+> Here is a quickly taken video:
+> 
+> https://youtu.be/jFCPR_EvtjY
 
-patch has been applied to bluetooth-next tree.
+Nice :)
 
-However what I really like to see is that you re-introduce a btwilink driver that is purely serdev based and doesn’t rely on any hci_uart/hci_ldisc code. A clean serdev only driver is that best and easier to maintain long term.
+> With the same setup, I can now also load the kernel driver and run pvrsrvctl on
+> DM3730 without errors, but the gles1test1 reports some error and fails to run.
+> Maybe something in the video subsystem or memory mapping is still wrong.
+> 
+> Unfortunately, the same setup does not run on omap5. It looks like there are different
+> releases for the non-free binaries and I have to pick the right one.
+> 
+> On BBB the version I could make running is branch ti-img-sgx/1.14.3699939_k4.4 from
+> git://git.ti.com/graphics/omap5-sgx-ddk-um-linux.git. Target ti335x works while
+> target jacinto6evm fails for OMAP5. A diff on the binaries for e.g. pvrsrvctl shows
+> that they are different.
+> 
+> If you want to repeat this setup and my instructions are too imprecise, please
+> ask.
+> 
+> So in summary this means:
+> * the common foundation (clock, reset, power etc.) setup is working - thanks to Tero, Tony and others
+> * I have added device tree nodes for each SoC type to define sgx registers, interrupts, compatible etc.
+> * compiling SoC specific kernel module variants from single source tree works
+> * the work can already be demoed on BBB and OMAP5 Pyra (using different user-space binaries)
+> 
+> Basically I am now ready to post an RFC for the sgx child device nodes together
+> with a bindings document [1]. But I am not sure if I should better wait until
+> really all underlaying prm+rtsctl+syscon+idlest-polling patches by Tero and Tony [2]
+> have matured in linux-next and have arrived in v5.5-rc1. Would be short before Xmas.
 
-Regards
+I think you've already proven that we can have a generic binding for the
+sgx using standard properties :) So AFAIK, there's nothing stopping you
+from posting the binding and dts changes for review for v5.5.
 
-Marcel
+> Independent of low level patches, we all have to discuss how we want to get the GPLed
+> kernel driver [3] into mainline drivers/staging. This likely needs more cleanup before
+> it can be proposed.
+
+You probably need a shell script using sed or something to get rid of the
+crazy directory path for the kernel driver :) Just make it something like:
+
+drivers/staging/pvr
+
+Then if you have a script doing the directory path conversion, you can
+still convert and diff against any other prv branches you may find.
+
+And you can get rid of all the LINUX_VERSION_CODE stuff too for the
+mainline kernel.
+
+Regards,
+
+Tony
+
+
+> [1]: https://github.com/openpvrsgx-devgroup/linux_openpvrsgx/commits/letux/omap-pvr-soc-glue-v5
+> [2]: https://github.com/openpvrsgx-devgroup/linux_openpvrsgx/commits/letux/omap-sysc-prm-gfx
+> [3]: https://github.com/openpvrsgx-devgroup/linux_openpvrsgx/commits/letux/latest-pvr
+> 
