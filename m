@@ -1,130 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/8] ARM: OMAP2+: Initialize voltage controller for omap4
-Date: Wed, 16 Oct 2019 07:53:24 -0700
-Message-ID: <20191016145324.GE5610@atomide.com>
-References: <20191010001224.41826-1-tony@atomide.com>
- <20191010001224.41826-9-tony@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH V5 2/3] dt-bindings: Add Logic PD Type 28 display panel
+Date: Wed, 16 Oct 2019 09:55:11 -0500
+Message-ID: <CAHCN7xJhHHoia_o4rb0VgvCP71X94Pvem684F2quMijNNpNxVA@mail.gmail.com>
+References: <20191016135147.7743-1-aford173@gmail.com> <20191016135147.7743-2-aford173@gmail.com>
+ <20191016144018.GG5175@pendragon.ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20191010001224.41826-9-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191016144018.GG5175@pendragon.ideasonboard.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [191010 00:13]:
-> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -26,6 +26,16 @@
->  #include "scrm44xx.h"
->  #include "control.h"
->  
-> +#define OMAP4430_AUTO_CTRL_VDD_IVA(x)		((x) << 4)
-> +#define OMAP4430_AUTO_CTRL_VDD_MPU(x)		((x) << 2)
-> +#define OMAP4430_AUTO_CTRL_VDD_CORE(x)		((x) << 0)
-> +#define OMAP4430_AUTO_CTRL_VDD_RET		2
-> +
-> +#define OMAP4_VDD_DEFAULT_VAL	\
-> +	(OMAP4430_AUTO_CTRL_VDD_IVA(OMAP4430_AUTO_CTRL_VDD_RET) | \
-> +	 OMAP4430_AUTO_CTRL_VDD_MPU(OMAP4430_AUTO_CTRL_VDD_RET) | \
-> +	 OMAP4430_AUTO_CTRL_VDD_CORE(OMAP4430_AUTO_CTRL_VDD_RET))
-> +
+On Wed, Oct 16, 2019 at 9:40 AM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Adam,
+>
+> Thank you for the patch.
+>
+> On Wed, Oct 16, 2019 at 08:51:46AM -0500, Adam Ford wrote:
+> > This patch adds documentation of device tree bindings for the WVGA panel
+> > Logic PD Type 28 display.
+> >
+> > Signed-off-by: Adam Ford <aford173@gmail.com>
+> > ---
+> > V5:  Replace GPIO_ACTIVE_HIGH with 0 to fix make dt_binding_check -k
+> > V4:  Update per Rob H's suggestions and copy other panel yaml example from 5.4-rc1
+> > V3:  Correct build errors from 'make dt_binding_check'
+> > V2:  Use YAML instead of TXT for binding
+> >
+> > diff --git a/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+> > new file mode 100644
+> > index 000000000000..2834287b8d88
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+> > @@ -0,0 +1,42 @@
+> > +# SPDX-License-Identifier: GPL-2.0
+> > +%YAML 1.2
+> > +---
+> > +$id: http://devicetree.org/schemas/display/panel/logicpd,type28.yaml#
+> > +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> > +
+> > +title: Logic PD Type 28 4.3" WQVGA TFT LCD panel
+> > +
+> > +maintainers:
+> > +  - Adam Ford <aford173@gmail.com>
+> > +
+> > +allOf:
+> > +  - $ref: panel-common.yaml#
+> > +
+> > +properties:
+> > +  compatible:
+> > +    const: logicpd,type28
+> > +
+> > +  power-supply: true
+> > +  enable-gpios: true
+> > +  backlight: true
+> > +  port: true
+> > +
+> > +required:
+> > +  - compatible
+>
+> Should the port be required too ? Apart from that,
 
-I noticed I had left out OMAP4430_VDD_IVA_PRESENCE and
-OMAP4430_VDD_MPU_PRESENCE that should be enabled.
+I supposed that's true, but I used ampire,am-480272h3tmqw-t01h.yaml as
+the example, and it doesn't list it as a required item.
+Is there anything else I need to address?  I feel like I'm trying to
+hit a moving target.
 
-Updated patch below.
-
-Regards,
-
-Tony
-
-8< --------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 16 Oct 2019 07:37:07 -0700
-Subject: [PATCHv2] ARM: OMAP2+: Initialize voltage controller for omap4
-
-We're missing initializing the PRM_VOLTCTRL register for voltage
-controller. Let's add omap4_vc_init_pmic_signaling() similar to what we
-have for omap3 and enable voltage control for retention.
-
-This brings down droid4 power consumption with mainline kernel to somewhere
-between 40 and 50mW from about 70 to 80 mW for the whole device when running
-idle with LCD and backlight off, WLAN connected, and USB and modem modules
-unloaded.
-
-Mostly just rmmod of omap2430, ohci-platform and phy-mapphone-mdm6600 are
-needed to idle USB and shut down the modem. And after that measuring idle
-power consumption can be done with reading sysfs entry every ten seconds for
-/sys/class/power_supply/battery/power_avg. Then rmmod of phy-cpcap-usb will
-save few more mW, but will disable the debug UART.
-
-Note that sometimes CM_L4PER_UART1_CLKCTRL at 0x4a009540 does not idle
-properly after unloading of phy-mapphone-mdm6600.
-
-Cc: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/vc.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -26,6 +26,19 @@
- #include "scrm44xx.h"
- #include "control.h"
- 
-+#define OMAP4430_VDD_IVA_PRESENCE		BIT(9)
-+#define OMAP4430_VDD_MPU_PRESENCE		BIT(8)
-+#define OMAP4430_AUTO_CTRL_VDD_IVA(x)		((x) << 4)
-+#define OMAP4430_AUTO_CTRL_VDD_MPU(x)		((x) << 2)
-+#define OMAP4430_AUTO_CTRL_VDD_CORE(x)		((x) << 0)
-+#define OMAP4430_AUTO_CTRL_VDD_RET		2
-+
-+#define OMAP4_VDD_DEFAULT_VAL	\
-+	(OMAP4430_VDD_IVA_PRESENCE | OMAP4430_VDD_MPU_PRESENCE | \
-+	 OMAP4430_AUTO_CTRL_VDD_IVA(OMAP4430_AUTO_CTRL_VDD_RET) | \
-+	 OMAP4430_AUTO_CTRL_VDD_MPU(OMAP4430_AUTO_CTRL_VDD_RET) | \
-+	 OMAP4430_AUTO_CTRL_VDD_CORE(OMAP4430_AUTO_CTRL_VDD_RET))
-+
- /**
-  * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
-  * @sa: bit for slave address
-@@ -542,9 +555,19 @@ static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
- 	writel_relaxed(val, OMAP4_SCRM_CLKSETUPTIME);
- }
- 
-+static void __init omap4_vc_init_pmic_signaling(struct voltagedomain *voltdm)
-+{
-+	if (vc.vd)
-+		return;
-+
-+	vc.vd = voltdm;
-+	voltdm->write(OMAP4_VDD_DEFAULT_VAL, OMAP4_PRM_VOLTCTRL_OFFSET);
-+}
-+
- /* OMAP4 specific voltage init functions */
- static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
- {
-+	omap4_vc_init_pmic_signaling(voltdm);
- 	omap4_set_timings(voltdm, true);
- 	omap4_set_timings(voltdm, false);
- }
--- 
-2.23.0
+adam
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> > +
+> > +additionalProperties: false
+> > +
+> > +examples:
+> > +  - |
+> > +    lcd0: display {
+> > +      compatible = "logicpd,type28";
+> > +      enable-gpios = <&gpio5 27 0>;
+> > +      backlight = <&backlight>;
+> > +      port {
+> > +        lcd_in: endpoint {
+> > +          remote-endpoint = <&dpi_out>;
+> > +        };
+> > +      };
+> > +    };
+> > +
+> > +...
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
