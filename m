@@ -1,97 +1,69 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH V5 2/3] dt-bindings: Add Logic PD Type 28 display panel
-Date: Wed, 16 Oct 2019 09:55:11 -0500
-Message-ID: <CAHCN7xJhHHoia_o4rb0VgvCP71X94Pvem684F2quMijNNpNxVA@mail.gmail.com>
-References: <20191016135147.7743-1-aford173@gmail.com> <20191016135147.7743-2-aford173@gmail.com>
- <20191016144018.GG5175@pendragon.ideasonboard.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [Patch 1/3] dt-bindings: media: ti-vpe: Document VPE driver
+Date: Wed, 16 Oct 2019 10:36:54 -0500
+Message-ID: <CAL_JsqKAGE=CytS89ET+r4+mSGfYPR5FMRUo2_jjVTZgW9o=Nw@mail.gmail.com>
+References: <20191009175628.20570-1-bparrot@ti.com> <20191009175628.20570-2-bparrot@ti.com>
+ <20191015222947.GA13388@bogus> <20191016132239.ufptwl44ktmhvylo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191016144018.GG5175@pendragon.ideasonboard.com>
+In-Reply-To: <20191016132239.ufptwl44ktmhvylo@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 16, 2019 at 9:40 AM Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
+On Wed, Oct 16, 2019 at 8:20 AM Benoit Parrot <bparrot@ti.com> wrote:
 >
-> Hi Adam,
->
-> Thank you for the patch.
->
-> On Wed, Oct 16, 2019 at 08:51:46AM -0500, Adam Ford wrote:
-> > This patch adds documentation of device tree bindings for the WVGA panel
-> > Logic PD Type 28 display.
+> Rob Herring <robh@kernel.org> wrote on Tue [2019-Oct-15 17:29:47 -0500]:
+> > On Wed, Oct 09, 2019 at 12:56:26PM -0500, Benoit Parrot wrote:
+> > > Device Tree bindings for the Video Processing Engine (VPE) driver.
+> > >
+> > > Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> > > ---
+> > >  .../devicetree/bindings/media/ti-vpe.txt      | 48 +++++++++++++++++++
+> > >  MAINTAINERS                                   |  1 +
+> > >  2 files changed, 49 insertions(+)
+> > >  create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
 > >
-> > Signed-off-by: Adam Ford <aford173@gmail.com>
-> > ---
-> > V5:  Replace GPIO_ACTIVE_HIGH with 0 to fix make dt_binding_check -k
-> > V4:  Update per Rob H's suggestions and copy other panel yaml example from 5.4-rc1
-> > V3:  Correct build errors from 'make dt_binding_check'
-> > V2:  Use YAML instead of TXT for binding
-> >
-> > diff --git a/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
-> > new file mode 100644
-> > index 000000000000..2834287b8d88
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
-> > @@ -0,0 +1,42 @@
-> > +# SPDX-License-Identifier: GPL-2.0
-> > +%YAML 1.2
-> > +---
-> > +$id: http://devicetree.org/schemas/display/panel/logicpd,type28.yaml#
-> > +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> > +
-> > +title: Logic PD Type 28 4.3" WQVGA TFT LCD panel
-> > +
-> > +maintainers:
-> > +  - Adam Ford <aford173@gmail.com>
-> > +
-> > +allOf:
-> > +  - $ref: panel-common.yaml#
-> > +
-> > +properties:
-> > +  compatible:
-> > +    const: logicpd,type28
-> > +
-> > +  power-supply: true
-> > +  enable-gpios: true
-> > +  backlight: true
-> > +  port: true
-> > +
-> > +required:
-> > +  - compatible
+> > Please convert to DT schema format.
 >
-> Should the port be required too ? Apart from that,
+> I can do that.
+> Before posting/merging a .yaml, are we supposed to be able to pass these?
+> # make dt_binding_check
+> # make dtbs_check
 
-I supposed that's true, but I used ampire,am-480272h3tmqw-t01h.yaml as
-the example, and it doesn't list it as a required item.
-Is there anything else I need to address?  I feel like I'm trying to
-hit a moving target.
+Only dt_binding_check needs to be warning free. It is good to test
+your schema with dtbs_check and make sure any warnings seem valid.
 
-adam
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Because currently with 5.4-rc3 these fails.
+
+Yeah, still waiting on regulator and media fixes. :( linux-next is fixed.
+
+> Is there a way to run these "test command" target a specific .yaml and not
+> the whole set?
+
+Yes, it's documented in writing-schema.rst. Use DT_SCHEMA_FILES  to
+test just your schema file.
+
+[...]
+
+> > > diff --git a/MAINTAINERS b/MAINTAINERS
+> > > index 8598f49fa2c8..63dcda51f8ae 100644
+> > > --- a/MAINTAINERS
+> > > +++ b/MAINTAINERS
+> > > @@ -16299,6 +16299,7 @@ W:  http://linuxtv.org/
+> > >  Q: http://patchwork.linuxtv.org/project/linux-media/list/
+> > >  S: Maintained
+> > >  F: drivers/media/platform/ti-vpe/
+> > > +F: Documentation/devicetree/bindings/media/ti-vpe.txt
 >
-> > +
-> > +additionalProperties: false
-> > +
-> > +examples:
-> > +  - |
-> > +    lcd0: display {
-> > +      compatible = "logicpd,type28";
-> > +      enable-gpios = <&gpio5 27 0>;
-> > +      backlight = <&backlight>;
-> > +      port {
-> > +        lcd_in: endpoint {
-> > +          remote-endpoint = <&dpi_out>;
-> > +        };
-> > +      };
-> > +    };
-> > +
-> > +...
->
-> --
-> Regards,
->
-> Laurent Pinchart
+> Now with the dt_schemas, I noticed that the maintainer's name is part of
+> the yaml file. Do we still need to add this to the MAINTAINERS file as
+> well?
+
+Within the schema is really preparation for having schema outside of
+the kernel tree and because lots of bindings don't have a MAINTAINERS
+entry. So yes, you can still have both.
+
+Rob
