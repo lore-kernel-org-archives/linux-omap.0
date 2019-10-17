@@ -1,7 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 04/10] crypto: omap-des: add IV output handling
-Date: Thu, 17 Oct 2019 15:25:43 +0300
-Message-ID: <20191017122549.4634-5-t-kristo@ti.com>
+Subject: [PATCH 03/10] crypto: omap-aes: remove the sysfs group during driver
+ removal
+Date: Thu, 17 Oct 2019 15:25:42 +0300
+Message-ID: <20191017122549.4634-4-t-kristo@ti.com>
 References: <20191017122549.4634-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,39 +22,30 @@ To: herbert@gondor.apana.org.au, davem@davemloft.net, linux-crypto@vger.kernel.o
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently omap-des driver does not copy end result IV out at all. This
-is evident with the additional checks done at the crypto test manager.
-Fix by copying out the IV values from HW.
+The driver removal should also cleanup the created sysfs group. If not,
+the driver fails the subsequent probe as the files exist already. Also,
+drop a completely unnecessary pointer assignment from the removal
+function at the same time.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/crypto/omap-des.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/crypto/omap-aes.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/crypto/omap-des.c b/drivers/crypto/omap-des.c
-index 4c4dbc2b377e..ea82d55ea8c3 100644
---- a/drivers/crypto/omap-des.c
-+++ b/drivers/crypto/omap-des.c
-@@ -597,6 +597,7 @@ static int omap_des_crypt_req(struct crypto_engine *engine,
- static void omap_des_done_task(unsigned long data)
- {
- 	struct omap_des_dev *dd = (struct omap_des_dev *)data;
-+	int i;
- 
- 	pr_debug("enter done_task\n");
- 
-@@ -615,6 +616,11 @@ static void omap_des_done_task(unsigned long data)
- 	omap_crypto_cleanup(&dd->out_sgl, dd->orig_out, 0, dd->total_save,
- 			    FLAGS_OUT_DATA_ST_SHIFT, dd->flags);
- 
-+	if ((dd->flags & FLAGS_CBC) && dd->req->iv)
-+		for (i = 0; i < 2; i++)
-+			((u32 *)dd->req->iv)[i] =
-+				omap_des_read(dd, DES_REG_IV(dd, i));
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index a1fc03ed01f3..38c750e83dbe 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -1296,7 +1296,8 @@ static int omap_aes_remove(struct platform_device *pdev)
+ 	tasklet_kill(&dd->done_task);
+ 	omap_aes_dma_cleanup(dd);
+ 	pm_runtime_disable(dd->dev);
+-	dd = NULL;
 +
- 	omap_des_finish_req(dd, 0);
++	sysfs_remove_group(&dd->dev->kobj, &omap_aes_attr_group);
  
- 	pr_debug("exit\n");
+ 	return 0;
+ }
 -- 
 2.17.1
 
