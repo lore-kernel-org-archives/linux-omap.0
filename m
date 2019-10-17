@@ -1,8 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 03/10] crypto: omap-aes: remove the sysfs group during driver
- removal
-Date: Thu, 17 Oct 2019 15:25:42 +0300
-Message-ID: <20191017122549.4634-4-t-kristo@ti.com>
+Subject: [PATCH 05/10] crypto: omap-aes: add IV output handling
+Date: Thu, 17 Oct 2019 15:25:44 +0300
+Message-ID: <20191017122549.4634-6-t-kristo@ti.com>
 References: <20191017122549.4634-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,30 +21,45 @@ To: herbert@gondor.apana.org.au, davem@davemloft.net, linux-crypto@vger.kernel.o
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The driver removal should also cleanup the created sysfs group. If not,
-the driver fails the subsequent probe as the files exist already. Also,
-drop a completely unnecessary pointer assignment from the removal
-function at the same time.
+Currently omap-aes driver does not copy end result IV out at all. This
+is evident with the additional checks done at the crypto test manager.
+Fix by copying out the IV values from HW.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/crypto/omap-aes.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/crypto/omap-aes.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index a1fc03ed01f3..38c750e83dbe 100644
+index 38c750e83dbe..c40876353b19 100644
 --- a/drivers/crypto/omap-aes.c
 +++ b/drivers/crypto/omap-aes.c
-@@ -1296,7 +1296,8 @@ static int omap_aes_remove(struct platform_device *pdev)
- 	tasklet_kill(&dd->done_task);
- 	omap_aes_dma_cleanup(dd);
- 	pm_runtime_disable(dd->dev);
--	dd = NULL;
-+
-+	sysfs_remove_group(&dd->dev->kobj, &omap_aes_attr_group);
- 
- 	return 0;
+@@ -479,6 +479,14 @@ static int omap_aes_crypt_req(struct crypto_engine *engine,
+ 	return omap_aes_crypt_dma_start(dd);
  }
+ 
++static void omap_aes_copy_ivout(struct omap_aes_dev *dd, u8 *ivbuf)
++{
++	int i;
++
++	for (i = 0; i < 4; i++)
++		((u32 *)ivbuf)[i] = omap_aes_read(dd, AES_REG_IV(dd, i));
++}
++
+ static void omap_aes_done_task(unsigned long data)
+ {
+ 	struct omap_aes_dev *dd = (struct omap_aes_dev *)data;
+@@ -500,6 +508,10 @@ static void omap_aes_done_task(unsigned long data)
+ 	omap_crypto_cleanup(&dd->out_sgl, dd->orig_out, 0, dd->total_save,
+ 			    FLAGS_OUT_DATA_ST_SHIFT, dd->flags);
+ 
++	/* Update IV output */
++	if (dd->flags & (FLAGS_CBC | FLAGS_CTR))
++		omap_aes_copy_ivout(dd, dd->req->iv);
++
+ 	omap_aes_finish_req(dd, 0);
+ 
+ 	pr_debug("exit\n");
 -- 
 2.17.1
 
