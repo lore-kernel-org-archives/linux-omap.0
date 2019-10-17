@@ -1,72 +1,75 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH v3 1/6] bus/ti-pwmss: move TI PWMSS driver from PWM to
- bus subsystem
-Date: Thu, 17 Oct 2019 21:58:01 +0100
-Message-ID: <20191017215751.7d05170c@archlinux>
-References: <20190901225827.12301-1-david@lechnology.com>
-        <20190901225827.12301-2-david@lechnology.com>
-        <20190902150245.GE1445@ulmo>
-        <20190908121524.49b4874d@archlinux>
-        <20190908194447.GM52127@atomide.com>
+From: Suman Anna via iommu <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Subject: Re: [PATCH 0/2] OMAP IOMMU fixes to go with 5.4 OMAP IOMMU changes
+Date: Thu, 17 Oct 2019 17:59:26 -0500
+Message-ID: <68474455-c997-a40e-74c4-ea3e0faa6c24@ti.com>
+References: <20190827001452.31930-1-s-anna@ti.com>
+Reply-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190908194447.GM52127@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, David Lechner <david@lechnology.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20190827001452.31930-1-s-anna-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 8 Sep 2019 12:44:48 -0700
-Tony Lindgren <tony@atomide.com> wrote:
+Hi Tony,
 
-> * Jonathan Cameron <jic23@jic23.retrosnub.co.uk> [190908 11:16]:
-> > On Mon, 2 Sep 2019 17:02:45 +0200
-> > Thierry Reding <thierry.reding@gmail.com> wrote:
-> >   
-> > > On Sun, Sep 01, 2019 at 05:58:22PM -0500, David Lechner wrote:  
-> > > > The TI PWMSS driver is a simple bus driver for providing power
-> > > > power management for the PWM peripherals on TI AM33xx SoCs, namely
-> > > > eCAP, eHRPWM and eQEP. The eQEP is a counter rather than a PWM, so
-> > > > it does not make sense to have the bus driver in the PWM subsystem
-> > > > since the PWMSS is not exclusive to PWM devices.
-> > > > 
-> > > > Signed-off-by: David Lechner <david@lechnology.com>
-> > > > ---
-> > > > 
-> > > > v3 changes:
-> > > > - none
-> > > > v2 changes:
-> > > > - new patch
-> > > > 
-> > > >  drivers/bus/Kconfig                           | 9 +++++++++
-> > > >  drivers/bus/Makefile                          | 1 +
-> > > >  drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} | 0
-> > > >  drivers/pwm/Kconfig                           | 9 ---------
-> > > >  drivers/pwm/Makefile                          | 1 -
-> > > >  5 files changed, 10 insertions(+), 10 deletions(-)
-> > > >  rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)    
-> > > 
-> > > Acked-by: Thierry Reding <thierry.reding@gmail.com>  
-> > 
-> > Do we need an immutable branch for these precursor patches to the
-> > driver addition? It's not going to make 5.4 via my tree as cutting it
-> > too fine so we'll be in the position of holding these in a non obvious
-> > tree for a whole cycle.   
+On 8/26/19 7:14 PM, Suman Anna wrote:
+> Hi Tony,
 > 
-> Sure an immutable branch would be nice in case of unlikely
-> dts file conflicts. And yeah no need to try to rush to v5.4.
+> The following 2 patches need to go along with the recent "iommu/omap: misc
+> fixes" series [1] that is currently staged [2] for a 5.4 merge and available
+> in linux-next. That series added runtime pm callbacks in preparation for
+> the ti-sysc migration, but without adding the necessary platform data
+> callbacks for the existing functional MMUs on OMAP3, OMAP4 and OMAP5 SoCs.
+> These 2 patches add the same to maintain the functionality (l3_noc errors
+> are the visible symptom while enabling the MMUs without these patches).
 > 
-> Regards,
+> OMAP4 and OMAP5 would also need another set of fixes related to the
+> breakage caused by the switch to clkctrl clocks as seen in [3].
 > 
-> Tony
-immutable branch created based on 5.4-rc1 at:
-https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/log/?h=ib-ti-eqep-5.4-rc1
+> These patches do have a dependency on the staged patches, so either you
+> submit a pull-request towards 5.4-rc2 using 5.4-rc1 baseline, or let
+> Joerg pick these through the arm/omap IOMMU branch for 5.4-rc1 itself.
+> 
+> Sakari/Laurent,
+> Appreciate it if you can check the OMAP3 ISP functionality on latest
+> linux-next with the second patch. I have verified the ISP MMU programming
+> only through an unit-test.
+> 
+> Tero,
+> I will be submitting another patch against OMAP IOMMU driver to skip the
+> pdata callbacks for ti-sysc in the next couple of days.
+> 
+> regards
+> Suman
+> 
+> [1] https://lore.kernel.org/linux-iommu/20190809153730.GF12930-zLv9SwRftAIdnm+yROfE0A@public.gmane.org/T/#mec99f8e8ed351689f4fcc76f4f000f9144a02b51
+> [2] https://git.kernel.org/pub/scm/linux/kernel/git/joro/iommu.git/log/?h=arm/omap
+> [3] https://patchwork.kernel.org/patch/11082125/#22829477
+> 
+> Suman Anna (2):
+>   ARM: OMAP2+: Plug in device_enable/idle ops for IOMMUs
+>   ARM: OMAP2+: Add pdata for OMAP3 ISP IOMMU
 
-I'll pull it into IIO in a few minutes as have one more of these
-to do at the same time.  Includes patches 1-4 of this series.
+Can you please pick these patches up for 5.4-rc cycle? The OMAP IOMMU
+changes that went in for 5.4-rc1 need the pdata to be plugged in.
 
-Thanks,
+regards
+Suman
 
-Jonathan
+> 
+>  arch/arm/mach-omap2/pdata-quirks.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
