@@ -1,8 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 07/10] crypto: omap-aes-gcm: fix corner case with only auth
- data
-Date: Thu, 17 Oct 2019 15:25:46 +0300
-Message-ID: <20191017122549.4634-8-t-kristo@ti.com>
+Subject: [PATCH 10/10] crypto: omap-aes: fixup aligned data cleanup
+Date: Thu, 17 Oct 2019 15:25:49 +0300
+Message-ID: <20191017122549.4634-11-t-kristo@ti.com>
 References: <20191017122549.4634-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,55 +21,32 @@ To: herbert@gondor.apana.org.au, davem@davemloft.net, linux-crypto@vger.kernel.o
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Fix a corner case where only authdata is generated, without any provided
-assocdata / cryptdata. Passing the empty scatterlists to OMAP AES core driver
-in this case would confuse it, failing to map DMAs.
+Aligned data cleanup is using wrong pointers in the cleanup calls. Most
+of the time these are right, but can cause mysterious problems in some
+cases. Fix to use the same pointers that were used with the align call.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/crypto/omap-aes-gcm.c | 22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ drivers/crypto/omap-aes.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/crypto/omap-aes-gcm.c b/drivers/crypto/omap-aes-gcm.c
-index 9bbedbccfadf..dfd4d1cac421 100644
---- a/drivers/crypto/omap-aes-gcm.c
-+++ b/drivers/crypto/omap-aes-gcm.c
-@@ -148,12 +148,14 @@ static int omap_aes_gcm_copy_buffers(struct omap_aes_dev *dd,
- 	if (req->src == req->dst || dd->out_sg == sg_arr)
- 		flags |= OMAP_CRYPTO_FORCE_COPY;
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index c40876353b19..649abbc92fd4 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -502,10 +502,10 @@ static void omap_aes_done_task(unsigned long data)
+ 		omap_aes_crypt_dma_stop(dd);
+ 	}
  
--	ret = omap_crypto_align_sg(&dd->out_sg, cryptlen,
--				   AES_BLOCK_SIZE, &dd->out_sgl,
--				   flags,
--				   FLAGS_OUT_DATA_ST_SHIFT, &dd->flags);
--	if (ret)
--		return ret;
-+	if (cryptlen) {
-+		ret = omap_crypto_align_sg(&dd->out_sg, cryptlen,
-+					   AES_BLOCK_SIZE, &dd->out_sgl,
-+					   flags,
-+					   FLAGS_OUT_DATA_ST_SHIFT, &dd->flags);
-+		if (ret)
-+			return ret;
-+	}
+-	omap_crypto_cleanup(dd->in_sgl, NULL, 0, dd->total_save,
++	omap_crypto_cleanup(dd->in_sg, NULL, 0, dd->total_save,
+ 			    FLAGS_IN_DATA_ST_SHIFT, dd->flags);
  
- 	dd->in_sg_len = sg_nents_for_len(dd->in_sg, alen + clen);
- 	dd->out_sg_len = sg_nents_for_len(dd->out_sg, clen);
-@@ -287,8 +289,12 @@ static int omap_aes_gcm_handle_queue(struct omap_aes_dev *dd,
- 		return err;
+-	omap_crypto_cleanup(&dd->out_sgl, dd->orig_out, 0, dd->total_save,
++	omap_crypto_cleanup(dd->out_sg, dd->orig_out, 0, dd->total_save,
+ 			    FLAGS_OUT_DATA_ST_SHIFT, dd->flags);
  
- 	err = omap_aes_write_ctrl(dd);
--	if (!err)
--		err = omap_aes_crypt_dma_start(dd);
-+	if (!err) {
-+		if (dd->in_sg_len && dd->out_sg_len)
-+			err = omap_aes_crypt_dma_start(dd);
-+		else
-+			omap_aes_gcm_dma_out_callback(dd);
-+	}
- 
- 	if (err) {
- 		omap_aes_gcm_finish_req(dd, err);
+ 	/* Update IV output */
 -- 
 2.17.1
 
