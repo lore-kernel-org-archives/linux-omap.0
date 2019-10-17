@@ -1,54 +1,83 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 10/10] crypto: omap-aes: fixup aligned data cleanup
-Date: Thu, 17 Oct 2019 15:25:49 +0300
-Message-ID: <20191017122549.4634-11-t-kristo@ti.com>
-References: <20191017122549.4634-1-t-kristo@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH V5 2/3] dt-bindings: Add Logic PD Type 28 display panel
+Date: Thu, 17 Oct 2019 09:37:38 -0500
+Message-ID: <20191017143738.GA10960@bogus>
+References: <20191016135147.7743-1-aford173@gmail.com>
+ <20191016135147.7743-2-aford173@gmail.com>
+ <20191016144018.GG5175@pendragon.ideasonboard.com>
+ <CAHCN7xJhHHoia_o4rb0VgvCP71X94Pvem684F2quMijNNpNxVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191017122549.4634-1-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: herbert@gondor.apana.org.au, davem@davemloft.net, linux-crypto@vger.kernel.org, ard.biesheuvel@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHCN7xJhHHoia_o4rb0VgvCP71X94Pvem684F2quMijNNpNxVA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel <dri-devel@lists.freedesktop.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Aligned data cleanup is using wrong pointers in the cleanup calls. Most
-of the time these are right, but can cause mysterious problems in some
-cases. Fix to use the same pointers that were used with the align call.
+On Wed, Oct 16, 2019 at 09:55:11AM -0500, Adam Ford wrote:
+> On Wed, Oct 16, 2019 at 9:40 AM Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+> >
+> > Hi Adam,
+> >
+> > Thank you for the patch.
+> >
+> > On Wed, Oct 16, 2019 at 08:51:46AM -0500, Adam Ford wrote:
+> > > This patch adds documentation of device tree bindings for the WVGA panel
+> > > Logic PD Type 28 display.
+> > >
+> > > Signed-off-by: Adam Ford <aford173@gmail.com>
+> > > ---
+> > > V5:  Replace GPIO_ACTIVE_HIGH with 0 to fix make dt_binding_check -k
+> > > V4:  Update per Rob H's suggestions and copy other panel yaml example from 5.4-rc1
+> > > V3:  Correct build errors from 'make dt_binding_check'
+> > > V2:  Use YAML instead of TXT for binding
+> > >
+> > > diff --git a/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+> > > new file mode 100644
+> > > index 000000000000..2834287b8d88
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/display/panel/logicpd,type28.yaml
+> > > @@ -0,0 +1,42 @@
+> > > +# SPDX-License-Identifier: GPL-2.0
+> > > +%YAML 1.2
+> > > +---
+> > > +$id: http://devicetree.org/schemas/display/panel/logicpd,type28.yaml#
+> > > +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> > > +
+> > > +title: Logic PD Type 28 4.3" WQVGA TFT LCD panel
+> > > +
+> > > +maintainers:
+> > > +  - Adam Ford <aford173@gmail.com>
+> > > +
+> > > +allOf:
+> > > +  - $ref: panel-common.yaml#
+> > > +
+> > > +properties:
+> > > +  compatible:
+> > > +    const: logicpd,type28
+> > > +
+> > > +  power-supply: true
+> > > +  enable-gpios: true
+> > > +  backlight: true
+> > > +  port: true
+> > > +
+> > > +required:
+> > > +  - compatible
+> >
+> > Should the port be required too ? Apart from that,
+> 
+> I supposed that's true, but I used ampire,am-480272h3tmqw-t01h.yaml as
+> the example, and it doesn't list it as a required item.
+> Is there anything else I need to address?  I feel like I'm trying to
+> hit a moving target.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/crypto/omap-aes.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+'port' can be omitted because the panel can be a child node of 
+the display controller instead. That's decided by the display controller 
+binding, not the panel binding.
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index c40876353b19..649abbc92fd4 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -502,10 +502,10 @@ static void omap_aes_done_task(unsigned long data)
- 		omap_aes_crypt_dma_stop(dd);
- 	}
- 
--	omap_crypto_cleanup(dd->in_sgl, NULL, 0, dd->total_save,
-+	omap_crypto_cleanup(dd->in_sg, NULL, 0, dd->total_save,
- 			    FLAGS_IN_DATA_ST_SHIFT, dd->flags);
- 
--	omap_crypto_cleanup(&dd->out_sgl, dd->orig_out, 0, dd->total_save,
-+	omap_crypto_cleanup(dd->out_sg, dd->orig_out, 0, dd->total_save,
- 			    FLAGS_OUT_DATA_ST_SHIFT, dd->flags);
- 
- 	/* Update IV output */
--- 
-2.17.1
+Reviewed-by: Rob Herring <robh@kernel.org>
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Rob
