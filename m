@@ -1,7 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 05/10] crypto: omap-aes: add IV output handling
-Date: Thu, 17 Oct 2019 15:25:44 +0300
-Message-ID: <20191017122549.4634-6-t-kristo@ti.com>
+Subject: [PATCH 06/10] crypto: omap-sham: fix buffer handling for split test
+ cases
+Date: Thu, 17 Oct 2019 15:25:45 +0300
+Message-ID: <20191017122549.4634-7-t-kristo@ti.com>
 References: <20191017122549.4634-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,45 +22,66 @@ To: herbert@gondor.apana.org.au, davem@davemloft.net, linux-crypto@vger.kernel.o
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently omap-aes driver does not copy end result IV out at all. This
-is evident with the additional checks done at the crypto test manager.
-Fix by copying out the IV values from HW.
+Current buffer handling logic fails in a case where the buffer contains
+existing data from previous update which is divisible by block size.
+This results in a block size of data to be left missing from the sg
+list going out to the hw accelerator, ending up in stalling the
+crypto accelerator driver (the last request never completes fully due
+to missing data.)
+
+Fix this by passing the total size of the data instead of the data size
+of current request, and also parsing the buffer contents within the
+prepare request handling.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/crypto/omap-aes.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/crypto/omap-sham.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index 38c750e83dbe..c40876353b19 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -479,6 +479,14 @@ static int omap_aes_crypt_req(struct crypto_engine *engine,
- 	return omap_aes_crypt_dma_start(dd);
- }
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index 0bf07a7c060b..e71cd977b621 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -740,11 +740,12 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
+ 	struct scatterlist *sg_tmp = sg;
+ 	int new_len;
+ 	int offset = rctx->offset;
++	int bufcnt = rctx->bufcnt;
  
-+static void omap_aes_copy_ivout(struct omap_aes_dev *dd, u8 *ivbuf)
-+{
-+	int i;
-+
-+	for (i = 0; i < 4; i++)
-+		((u32 *)ivbuf)[i] = omap_aes_read(dd, AES_REG_IV(dd, i));
-+}
-+
- static void omap_aes_done_task(unsigned long data)
- {
- 	struct omap_aes_dev *dd = (struct omap_aes_dev *)data;
-@@ -500,6 +508,10 @@ static void omap_aes_done_task(unsigned long data)
- 	omap_crypto_cleanup(&dd->out_sgl, dd->orig_out, 0, dd->total_save,
- 			    FLAGS_OUT_DATA_ST_SHIFT, dd->flags);
+ 	if (!sg || !sg->length || !nbytes)
+ 		return 0;
  
-+	/* Update IV output */
-+	if (dd->flags & (FLAGS_CBC | FLAGS_CTR))
-+		omap_aes_copy_ivout(dd, dd->req->iv);
-+
- 	omap_aes_finish_req(dd, 0);
+-	new_len = nbytes - offset;
++	new_len = nbytes;
  
- 	pr_debug("exit\n");
+ 	if (offset)
+ 		list_ok = false;
+@@ -763,6 +764,16 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
+ 	while (nbytes > 0 && sg_tmp) {
+ 		n++;
+ 
++		if (bufcnt) {
++			if (!IS_ALIGNED(bufcnt, bs)) {
++				aligned = false;
++				break;
++			}
++			nbytes -= bufcnt;
++			bufcnt = 0;
++			continue;
++		}
++
+ #ifdef CONFIG_ZONE_DMA
+ 		if (page_zonenum(sg_page(sg_tmp)) != ZONE_DMA) {
+ 			aligned = false;
+@@ -859,7 +870,7 @@ static int omap_sham_prepare_request(struct ahash_request *req, bool update)
+ 	if (rctx->bufcnt)
+ 		memcpy(rctx->dd->xmit_buf, rctx->buffer, rctx->bufcnt);
+ 
+-	ret = omap_sham_align_sgs(req->src, nbytes, bs, final, rctx);
++	ret = omap_sham_align_sgs(req->src, rctx->total, bs, final, rctx);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
 2.17.1
 
