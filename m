@@ -1,8 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 06/10] crypto: omap-sham: fix buffer handling for split test
- cases
-Date: Thu, 17 Oct 2019 15:25:45 +0300
-Message-ID: <20191017122549.4634-7-t-kristo@ti.com>
+Subject: [PATCH 08/10] crypto: omap-sham: fix split update cases with
+ cryptomgr tests
+Date: Thu, 17 Oct 2019 15:25:47 +0300
+Message-ID: <20191017122549.4634-9-t-kristo@ti.com>
 References: <20191017122549.4634-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,66 +22,220 @@ To: herbert@gondor.apana.org.au, davem@davemloft.net, linux-crypto@vger.kernel.o
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Current buffer handling logic fails in a case where the buffer contains
-existing data from previous update which is divisible by block size.
-This results in a block size of data to be left missing from the sg
-list going out to the hw accelerator, ending up in stalling the
-crypto accelerator driver (the last request never completes fully due
-to missing data.)
+The updated crypto manager finds a couple of new bugs from the omap-sham
+driver. Basically the split update cases fail to calculate the amount of
+data to be sent properly, leading into failed results and hangs with the
+hw accelerator.
 
-Fix this by passing the total size of the data instead of the data size
-of current request, and also parsing the buffer contents within the
-prepare request handling.
+To fix these, the buffer handling needs to be fixed, but we do some cleanup
+for the code at the same time to cut away some unnecessary code so that
+it is easier to fix.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/crypto/omap-sham.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/crypto/omap-sham.c | 102 ++++++++++++-------------------------
+ 1 file changed, 33 insertions(+), 69 deletions(-)
 
 diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index 0bf07a7c060b..e71cd977b621 100644
+index e71cd977b621..33a58ebf652c 100644
 --- a/drivers/crypto/omap-sham.c
 +++ b/drivers/crypto/omap-sham.c
-@@ -740,11 +740,12 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
- 	struct scatterlist *sg_tmp = sg;
- 	int new_len;
- 	int offset = rctx->offset;
-+	int bufcnt = rctx->bufcnt;
+@@ -648,6 +648,8 @@ static int omap_sham_copy_sg_lists(struct omap_sham_reqctx *ctx,
+ 	struct scatterlist *tmp;
+ 	int offset = ctx->offset;
  
- 	if (!sg || !sg->length || !nbytes)
- 		return 0;
- 
--	new_len = nbytes - offset;
-+	new_len = nbytes;
- 
- 	if (offset)
- 		list_ok = false;
-@@ -763,6 +764,16 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
- 	while (nbytes > 0 && sg_tmp) {
++	ctx->total = new_len;
++
+ 	if (ctx->bufcnt)
  		n++;
  
-+		if (bufcnt) {
-+			if (!IS_ALIGNED(bufcnt, bs)) {
-+				aligned = false;
+@@ -665,6 +667,7 @@ static int omap_sham_copy_sg_lists(struct omap_sham_reqctx *ctx,
+ 		sg_set_buf(tmp, ctx->dd->xmit_buf, ctx->bufcnt);
+ 		tmp = sg_next(tmp);
+ 		ctx->sg_len++;
++		new_len -= ctx->bufcnt;
+ 	}
+ 
+ 	while (sg && new_len) {
+@@ -682,15 +685,18 @@ static int omap_sham_copy_sg_lists(struct omap_sham_reqctx *ctx,
+ 		if (len > 0) {
+ 			new_len -= len;
+ 			sg_set_page(tmp, sg_page(sg), len, sg->offset);
++			ctx->sg_len++;
+ 			if (new_len <= 0)
+-				sg_mark_end(tmp);
 +				break;
-+			}
-+			nbytes -= bufcnt;
-+			bufcnt = 0;
-+			continue;
-+		}
+ 			tmp = sg_next(tmp);
+-			ctx->sg_len++;
+ 		}
+ 
+ 		sg = sg_next(sg);
+ 	}
+ 
++	if (tmp)
++		sg_mark_end(tmp);
 +
- #ifdef CONFIG_ZONE_DMA
- 		if (page_zonenum(sg_page(sg_tmp)) != ZONE_DMA) {
- 			aligned = false;
-@@ -859,7 +870,7 @@ static int omap_sham_prepare_request(struct ahash_request *req, bool update)
+ 	set_bit(FLAGS_SGS_ALLOCED, &ctx->dd->flags);
+ 
+ 	ctx->offset += new_len - ctx->bufcnt;
+@@ -726,6 +732,7 @@ static int omap_sham_copy_sgs(struct omap_sham_reqctx *ctx,
+ 	ctx->sg_len = 1;
+ 	ctx->offset += new_len - ctx->bufcnt;
+ 	ctx->bufcnt = 0;
++	ctx->total = new_len;
+ 
+ 	return 0;
+ }
+@@ -771,6 +778,9 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
+ 			}
+ 			nbytes -= bufcnt;
+ 			bufcnt = 0;
++			if (!nbytes)
++				list_ok = false;
++
+ 			continue;
+ 		}
+ 
+@@ -820,9 +830,9 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
+ 		return omap_sham_copy_sgs(rctx, sg, bs, new_len);
+ 	else if (!list_ok)
+ 		return omap_sham_copy_sg_lists(rctx, sg, bs, new_len);
+-	else
+-		rctx->offset += new_len;
+ 
++	rctx->total = new_len;
++	rctx->offset += new_len;
+ 	rctx->sg_len = n;
+ 	rctx->sg = sg;
+ 
+@@ -834,99 +844,54 @@ static int omap_sham_prepare_request(struct ahash_request *req, bool update)
+ 	struct omap_sham_reqctx *rctx = ahash_request_ctx(req);
+ 	int bs;
+ 	int ret;
+-	int nbytes;
++	unsigned int nbytes;
+ 	bool final = rctx->flags & BIT(FLAGS_FINUP);
+-	int xmit_len, hash_later;
++	int hash_later;
+ 
+ 	bs = get_block_size(rctx);
+ 
+-	if (update)
+-		nbytes = req->nbytes;
+-	else
+-		nbytes = 0;
++	nbytes = rctx->bufcnt;
+ 
+-	rctx->total = nbytes + rctx->bufcnt - rctx->offset;
++	if (update)
++		nbytes += req->nbytes - rctx->offset;
+ 
+ 	dev_dbg(rctx->dd->dev,
+ 		"%s: nbytes=%d, bs=%d, total=%d, offset=%d, bufcnt=%d\n",
+ 		__func__, nbytes, bs, rctx->total, rctx->offset,
+ 		rctx->bufcnt);
+ 
+-	if (!rctx->total)
++	if (!nbytes)
+ 		return 0;
+ 
+-	if (nbytes && (!IS_ALIGNED(rctx->bufcnt, bs))) {
++	rctx->total = nbytes;
++
++	if (update && req->nbytes && (!IS_ALIGNED(rctx->bufcnt, bs))) {
+ 		int len = bs - rctx->bufcnt % bs;
+ 
+-		if (len > nbytes)
+-			len = nbytes;
++		if (len > req->nbytes)
++			len = req->nbytes;
+ 		scatterwalk_map_and_copy(rctx->buffer + rctx->bufcnt, req->src,
+ 					 0, len, 0);
+ 		rctx->bufcnt += len;
+-		nbytes -= len;
+ 		rctx->offset = len;
+ 	}
+ 
  	if (rctx->bufcnt)
  		memcpy(rctx->dd->xmit_buf, rctx->buffer, rctx->bufcnt);
  
--	ret = omap_sham_align_sgs(req->src, nbytes, bs, final, rctx);
-+	ret = omap_sham_align_sgs(req->src, rctx->total, bs, final, rctx);
+-	ret = omap_sham_align_sgs(req->src, rctx->total, bs, final, rctx);
++	ret = omap_sham_align_sgs(req->src, nbytes, bs, final, rctx);
  	if (ret)
  		return ret;
  
+-	xmit_len = rctx->total;
+-
+-	if (xmit_len > OMAP_SHA_MAX_DMA_LEN)
+-		xmit_len = OMAP_SHA_MAX_DMA_LEN;
+-
+-	if (!IS_ALIGNED(xmit_len, bs)) {
+-		if (final)
+-			xmit_len = DIV_ROUND_UP(xmit_len, bs) * bs;
+-		else
+-			xmit_len = xmit_len / bs * bs;
+-	} else if (!final && rctx->total == xmit_len) {
+-		xmit_len -= bs;
+-	}
+-
+-	hash_later = rctx->total - xmit_len;
++	hash_later = nbytes - rctx->total;
+ 	if (hash_later < 0)
+ 		hash_later = 0;
+ 
+-	if (rctx->bufcnt && nbytes) {
+-		/* have data from previous operation and current */
+-		sg_init_table(rctx->sgl, 2);
+-		sg_set_buf(rctx->sgl, rctx->dd->xmit_buf, rctx->bufcnt);
+-
+-		sg_chain(rctx->sgl, 2, req->src);
+-
+-		rctx->sg = rctx->sgl;
+-
+-		rctx->sg_len++;
+-	} else if (rctx->bufcnt) {
+-		/* have buffered data only */
+-		sg_init_table(rctx->sgl, 1);
+-		sg_set_buf(rctx->sgl, rctx->dd->xmit_buf, xmit_len);
+-
+-		rctx->sg = rctx->sgl;
+-
+-		rctx->sg_len = 1;
+-	}
+-
+-	if (hash_later && hash_later <= rctx->buflen) {
+-		int offset = 0;
+-
+-		if (hash_later > req->nbytes) {
+-			memcpy(rctx->buffer, rctx->buffer + xmit_len,
+-			       hash_later - req->nbytes);
+-			offset = hash_later - req->nbytes;
+-		}
+-
+-		if (req->nbytes) {
+-			scatterwalk_map_and_copy(rctx->buffer + offset,
+-						 req->src,
+-						 offset + req->nbytes -
+-						 hash_later, hash_later, 0);
+-		}
++	if (hash_later) {
++		scatterwalk_map_and_copy(rctx->buffer,
++					 req->src,
++					 req->nbytes - hash_later,
++					 hash_later, 0);
+ 
+ 		rctx->bufcnt = hash_later;
+ 	} else {
+@@ -936,8 +901,7 @@ static int omap_sham_prepare_request(struct ahash_request *req, bool update)
+ 	if (hash_later > rctx->buflen)
+ 		set_bit(FLAGS_HUGE, &rctx->dd->flags);
+ 
+-	if (!final)
+-		rctx->total = xmit_len;
++	rctx->total = min(nbytes, rctx->total);
+ 
+ 	return 0;
+ }
 -- 
 2.17.1
 
