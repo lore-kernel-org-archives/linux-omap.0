@@ -1,103 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] bus: ti-sysc: Fix watchdog quirk handling
-Date: Thu, 17 Oct 2019 11:21:44 -0700
-Message-ID: <20191017182144.10175-1-tony@atomide.com>
+From: Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH v3 1/6] bus/ti-pwmss: move TI PWMSS driver from PWM to
+ bus subsystem
+Date: Thu, 17 Oct 2019 21:58:01 +0100
+Message-ID: <20191017215751.7d05170c@archlinux>
+References: <20190901225827.12301-1-david@lechnology.com>
+        <20190901225827.12301-2-david@lechnology.com>
+        <20190902150245.GE1445@ulmo>
+        <20190908121524.49b4874d@archlinux>
+        <20190908194447.GM52127@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190908194447.GM52127@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Lechner <david@lechnology.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-I noticed that when probed with ti-sysc, watchdog can trigger on am3, am4
-and dra7 causing a device reset.
+On Sun, 8 Sep 2019 12:44:48 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-Turns out I made several mistakes implementing the watchdog quirk handling:
+> * Jonathan Cameron <jic23@jic23.retrosnub.co.uk> [190908 11:16]:
+> > On Mon, 2 Sep 2019 17:02:45 +0200
+> > Thierry Reding <thierry.reding@gmail.com> wrote:
+> >   
+> > > On Sun, Sep 01, 2019 at 05:58:22PM -0500, David Lechner wrote:  
+> > > > The TI PWMSS driver is a simple bus driver for providing power
+> > > > power management for the PWM peripherals on TI AM33xx SoCs, namely
+> > > > eCAP, eHRPWM and eQEP. The eQEP is a counter rather than a PWM, so
+> > > > it does not make sense to have the bus driver in the PWM subsystem
+> > > > since the PWMSS is not exclusive to PWM devices.
+> > > > 
+> > > > Signed-off-by: David Lechner <david@lechnology.com>
+> > > > ---
+> > > > 
+> > > > v3 changes:
+> > > > - none
+> > > > v2 changes:
+> > > > - new patch
+> > > > 
+> > > >  drivers/bus/Kconfig                           | 9 +++++++++
+> > > >  drivers/bus/Makefile                          | 1 +
+> > > >  drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} | 0
+> > > >  drivers/pwm/Kconfig                           | 9 ---------
+> > > >  drivers/pwm/Makefile                          | 1 -
+> > > >  5 files changed, 10 insertions(+), 10 deletions(-)
+> > > >  rename drivers/{pwm/pwm-tipwmss.c => bus/ti-pwmss.c} (100%)    
+> > > 
+> > > Acked-by: Thierry Reding <thierry.reding@gmail.com>  
+> > 
+> > Do we need an immutable branch for these precursor patches to the
+> > driver addition? It's not going to make 5.4 via my tree as cutting it
+> > too fine so we'll be in the position of holding these in a non obvious
+> > tree for a whole cycle.   
+> 
+> Sure an immutable branch would be nice in case of unlikely
+> dts file conflicts. And yeah no need to try to rush to v5.4.
+> 
+> Regards,
+> 
+> Tony
+immutable branch created based on 5.4-rc1 at:
+https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/log/?h=ib-ti-eqep-5.4-rc1
 
-1. We must do both writes to spr register
+I'll pull it into IIO in a few minutes as have one more of these
+to do at the same time.  Includes patches 1-4 of this series.
 
-2. We must also call the reset quirk on disable
+Thanks,
 
-3. On am3 and am4 we need to also set swsup quirk flag
-
-I probably only tested this earlier with watchdog service running when the
-watchdog never gets disabled.
-
-Fixes: 4e23be473e30 ("bus: ti-sysc: Add support for module specific reset quirks")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -74,6 +74,7 @@ static const char * const clock_names[SYSC_MAX_CLOCKS] = {
-  * @clk_disable_quirk: module specific clock disable quirk
-  * @reset_done_quirk: module specific reset done quirk
-  * @module_enable_quirk: module specific enable quirk
-+ * @module_disable_quirk: module specific disable quirk
-  */
- struct sysc {
- 	struct device *dev;
-@@ -100,6 +101,7 @@ struct sysc {
- 	void (*clk_disable_quirk)(struct sysc *sysc);
- 	void (*reset_done_quirk)(struct sysc *sysc);
- 	void (*module_enable_quirk)(struct sysc *sysc);
-+	void (*module_disable_quirk)(struct sysc *sysc);
- };
- 
- static void sysc_parse_dts_quirks(struct sysc *ddata, struct device_node *np,
-@@ -959,6 +961,9 @@ static int sysc_disable_module(struct device *dev)
- 	if (ddata->offsets[SYSC_SYSCONFIG] == -ENODEV)
- 		return 0;
- 
-+	if (ddata->module_disable_quirk)
-+		ddata->module_disable_quirk(ddata);
-+
- 	regbits = ddata->cap->regbits;
- 	reg = sysc_read(ddata, ddata->offsets[SYSC_SYSCONFIG]);
- 
-@@ -1248,6 +1253,9 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_MODULE_QUIRK_SGX),
- 	SYSC_QUIRK("wdt", 0, 0, 0x10, 0x14, 0x502a0500, 0xfffff0f0,
- 		   SYSC_MODULE_QUIRK_WDT),
-+	/* Watchdog on am3 and am4 */
-+	SYSC_QUIRK("wdt", 0x44e35000, 0, 0x10, 0x14, 0x502a0500, 0xfffff0f0,
-+		   SYSC_MODULE_QUIRK_WDT | SYSC_QUIRK_SWSUP_SIDLE),
- 
- #ifdef DEBUG
- 	SYSC_QUIRK("adc", 0, 0, 0x10, -1, 0x47300001, 0xffffffff, 0),
-@@ -1440,14 +1448,14 @@ static void sysc_reset_done_quirk_wdt(struct sysc *ddata)
- 				   !(val & 0x10), 100,
- 				   MAX_MODULE_SOFTRESET_WAIT);
- 	if (error)
--		dev_warn(ddata->dev, "wdt disable spr failed\n");
-+		dev_warn(ddata->dev, "wdt disable step1 failed\n");
- 
--	sysc_write(ddata, wps, 0x5555);
-+	sysc_write(ddata, spr, 0x5555);
- 	error = readl_poll_timeout(ddata->module_va + wps, val,
- 				   !(val & 0x10), 100,
- 				   MAX_MODULE_SOFTRESET_WAIT);
- 	if (error)
--		dev_warn(ddata->dev, "wdt disable wps failed\n");
-+		dev_warn(ddata->dev, "wdt disable step2 failed\n");
- }
- 
- static void sysc_init_module_quirks(struct sysc *ddata)
-@@ -1471,8 +1479,10 @@ static void sysc_init_module_quirks(struct sysc *ddata)
- 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_SGX)
- 		ddata->module_enable_quirk = sysc_module_enable_quirk_sgx;
- 
--	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_WDT)
-+	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_WDT) {
- 		ddata->reset_done_quirk = sysc_reset_done_quirk_wdt;
-+		ddata->module_disable_quirk = sysc_reset_done_quirk_wdt;
-+	}
- }
- 
- static int sysc_clockdomain_init(struct sysc *ddata)
--- 
-2.23.0
+Jonathan
