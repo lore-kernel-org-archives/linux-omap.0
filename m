@@ -1,118 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: Configure voltage controller for cpcap to
- low-speed
-Date: Fri, 18 Oct 2019 15:21:07 -0700
-Message-ID: <20191018222107.32917-3-tony@atomide.com>
-References: <20191018222107.32917-1-tony@atomide.com>
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: Re: [PATCH] omapfb: reduce stack usage
+Date: Fri, 18 Oct 2019 23:30:12 +0100
+Message-ID: <20191018223012.tkpwbo3mg5mthlnz@debian>
+References: <20191018163004.23498-1-sudipm.mukherjee@gmail.com>
+ <20191018172728.GA11857@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191018222107.32917-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20191018172728.GA11857@lenoch>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Looks like the i2c timings in high-speed mode do not work properly to
-allow us to clear I2C_DISABLE bits for PRM_VOLTCTRL register and the
-device reboots if I2C_DISABLE bits are cleared.
-
-Let's configure the voltage controller i2c for low-speed mode as done in
-the Motorola Mapphone Android Linux kernel. This saves us about 7mW of
-power during retention compared to the high-speed values.
-
-Let's also change the low-speed warning to pr_info about relying on the
-bootloader configured low-speed values like we currently do.
-
-Cc: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/pmic-cpcap.c | 18 +++++++++++++-----
- arch/arm/mach-omap2/vc.c         |  2 +-
- 2 files changed, 14 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pmic-cpcap.c b/arch/arm/mach-omap2/pmic-cpcap.c
---- a/arch/arm/mach-omap2/pmic-cpcap.c
-+++ b/arch/arm/mach-omap2/pmic-cpcap.c
-@@ -61,7 +61,7 @@ static struct omap_voltdm_pmic omap_cpcap_core = {
- 	.i2c_slave_addr = 0x02,
- 	.volt_reg_addr = 0x00,
- 	.cmd_reg_addr = 0x01,
--	.i2c_high_speed = true,
-+	.i2c_high_speed = false,
- 	.vsel_to_uv = omap_cpcap_vsel_to_uv,
- 	.uv_to_vsel = omap_cpcap_uv_to_vsel,
- };
-@@ -78,7 +78,7 @@ static struct omap_voltdm_pmic omap_cpcap_iva = {
- 	.i2c_slave_addr = 0x44,
- 	.volt_reg_addr = 0x0,
- 	.cmd_reg_addr = 0x01,
--	.i2c_high_speed = true,
-+	.i2c_high_speed = false,
- 	.vsel_to_uv = omap_cpcap_vsel_to_uv,
- 	.uv_to_vsel = omap_cpcap_uv_to_vsel,
- };
-@@ -125,7 +125,7 @@ static struct omap_voltdm_pmic omap443x_max8952_mpu = {
- 	.i2c_slave_addr = 0x60,
- 	.volt_reg_addr = 0x03,
- 	.cmd_reg_addr = 0x03,
--	.i2c_high_speed = true,
-+	.i2c_high_speed = false,
- 	.vsel_to_uv = omap_max8952_vsel_to_uv,
- 	.uv_to_vsel = omap_max8952_uv_to_vsel,
- };
-@@ -212,7 +212,7 @@ static struct omap_voltdm_pmic omap4_fan_core = {
- 	.vddmax = 1375000,
- 	.vp_timeout_us = OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr = 0x4A,
--	.i2c_high_speed = true,
-+	.i2c_high_speed = false,
- 	.volt_reg_addr = 0x01,
- 	.cmd_reg_addr = 0x01,
- 	.vsel_to_uv = omap_fan535508_vsel_to_uv,
-@@ -232,7 +232,7 @@ static struct omap_voltdm_pmic omap4_fan_iva = {
- 	.i2c_slave_addr = 0x48,
- 	.volt_reg_addr = 0x01,
- 	.cmd_reg_addr = 0x01,
--	.i2c_high_speed = true,
-+	.i2c_high_speed = false,
- 	.vsel_to_uv = omap_fan535503_vsel_to_uv,
- 	.uv_to_vsel = omap_fan535503_uv_to_vsel,
- };
-@@ -263,3 +263,11 @@ int __init omap4_cpcap_init(void)
- 
- 	return 0;
- }
-+
-+static int __init cpcap_late_init(void)
-+{
-+	omap4_vc_set_pmic_signaling(PWRDM_POWER_RET);
-+
-+	return 0;
-+}
-+omap_late_initcall(cpcap_late_init);
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -670,7 +670,7 @@ static void __init omap4_vc_i2c_timing_init(struct voltagedomain *voltdm)
- 	const struct i2c_init_data *i2c_data;
- 
- 	if (!voltdm->pmic->i2c_high_speed) {
--		pr_warn("%s: only high speed supported!\n", __func__);
-+		pr_info("%s: using bootloader low-speed timings\n", __func__);
- 		return;
- 	}
- 
--- 
-2.23.0
+T24gRnJpLCBPY3QgMTgsIDIwMTkgYXQgMDc6Mjc6MjhQTSArMDIwMCwgTGFkaXNsYXYgTWljaGwg
+d3JvdGU6Cj4gT24gRnJpLCBPY3QgMTgsIDIwMTkgYXQgMDU6MzA6MDRQTSArMDEwMCwgU3VkaXAg
+TXVraGVyamVlIHdyb3RlOgo+ID4gVGhlIGJ1aWxkIG9mIHh0ZW5zYSBhbGxtb2Rjb25maWcgaXMg
+Z2l2aW5nIGEgd2FybmluZyBvZjoKPiA+IEluIGZ1bmN0aW9uICdkc2lfZHVtcF9kc2lkZXZfaXJx
+cyc6Cj4gPiB3YXJuaW5nOiB0aGUgZnJhbWUgc2l6ZSBvZiAxMTIwIGJ5dGVzIGlzIGxhcmdlciB0
+aGFuIDEwMjQgYnl0ZXMKPiA+IAo+ID4gQWxsb2NhdGUgdGhlIG1lbW9yeSBmb3IgJ3N0cnVjdCBk
+c2lfaXJxX3N0YXRzJyBkeW5hbWljYWxseSBpbnN0ZWFkCj4gPiBvZiBhc3NpZ25pbmcgaXQgaW4g
+c3RhY2suCj4gCj4gU28gbm93IGZ1bmN0aW9uIGNhbiBmYWlsIHNpbGVudGx5LCBleGVjdXRlcyBs
+b25nZXIsIGNvZGUgaXMgc2xpZ3RobHkKPiBiaWdnZXIuLi4gQW5kIGFsbCB0aGF0IHRvIHNpbGVu
+dCB3YXJuaW5nIGFib3V0IGV4Y2VlZGluZyBmcmFtZSBzaXplLgo+IElzIGl0IHJlYWxseSB3b3J0
+aCAiZml4aW5nIj8KClRoZSBvbmx5IHBvaW50IG9mIGZhaWx1cmUgaXMgaWYga21hbGxvYygpIGZh
+aWxzIGFuZCBpZiBrbWFsbG9jKCkgZmFpbHMgdGhlbgp0aGVyZSB3aWxsIGJlIGVycm9yIHByaW50
+cyBpbiBkbWVzZyB0byB0ZWxsIHRoZSB1c2VyIHRoYXQgdGhlcmUgaXMgbm8KbWVtb3J5IGxlZnQg
+aW4gdGhlIHN5c3RlbS4gQWJvdXQgdGhlIHNpemUgYmlnZ2VyLCBpdCBzZWVtcwp0aGUgZHJpdmVy
+cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2RzaS5vIGZpbGUgaXMgc21hbGxlciB3aXRo
+IHRoZQpwYXRjaC4KVGhpcyBpcyB3aXRob3V0IHRoZSBwYXRjaDoKLXJ3LXItLXItLSAxIHN1ZGlw
+IHN1ZGlwIDMxNjg1NiBPY3QgMTggMjI6MjcgZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFw
+ZmIvZHNzL2RzaS5vCkFuZCB0aGlzIGlzIHdpdGggdGhlIHBhdGNoOgotcnctci0tci0tIDEgc3Vk
+aXAgc3VkaXAgMzE2NDM2IE9jdCAxOCAyMDowOSBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29t
+YXBmYi9kc3MvZHNpLm8KCkFuZCBhbHNvLCBvYmpkdW1wIHNob3dzIG1lIHRoYXQgPGRzaV9kdW1w
+X2RzaWRldl9pcnFzPiB3YXMgdGFraW5nIHVwIDB4RDdECmJ5dGVzLCBhbmQgbm93IHdpdGggdGhl
+IHBhdGNoIGl0IGlzIHRha2luZyB1cCAweEJFRCBieXRlcywgdGhhdHMgYSBzYXZpbmcKb2YgNDAw
+IGJ5dGVzLiBJZiBpdCBoYXMgNDAwIGJ5dGVzIG9mIGxlc3MgY29kZSB0byBleGVjdXRlIHdpbGwg
+aXQgbm90IGJlCmZhc3RlciBub3c/CgpCdXQsIEkgbWF5IGJlIHRvdGFsbHkgd3JvbmcgaW4gbXkg
+dGhpbmtpbmcsIGFuZCBpbiB0aGF0IGNhc2UsIHBsZWFzZSBmZWVsCmZyZWUgdG8gcmVqZWN0IHRo
+ZSBwYXRjaC4KCi0tClJlZ2FyZHMKU3VkaXAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
+dGluZm8vZHJpLWRldmVs
