@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 2/7] ARM: DTS: am33xx: add sgx gpu child node
-Date: Fri, 18 Oct 2019 20:46:25 +0200
-Message-ID: <fd15fe04514a26ba308df040ea92cb864ebdffcd.1571424390.git.hns@goldelico.com>
+Subject: [PATCH 6/7] ARM: DTS: omap4: add sgx gpu child node
+Date: Fri, 18 Oct 2019 20:46:29 +0200
+Message-ID: <4d9788256c2a34f97b5f2474333ceb113601dd6a.1571424390.git.hns@goldelico.com>
 References: <cover.1571424390.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,34 +14,63 @@ List-Id: linux-omap@vger.kernel.org
 
 and add timer and interrupt.
 
-Tested on BeagleBone Black.
+Since omap4420/30/60 and omap4470 come with different SGX variants
+we need to introduce a new omap4470.dtsi. If an omap4470 board
+does not want to use SGX it is no problem to still include
+omap4460.dtsi.
+
+Tested on PandaBoard ES.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi   | 11 +++++++----
+ arch/arm/boot/dts/omap4470.dts | 16 ++++++++++++++++
+ 2 files changed, 23 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4470.dts
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index a9d848d50b20..e76a47991de3 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -480,10 +480,13 @@
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 7cc95bc1598b..4c94555ae0d0 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -347,10 +347,13 @@
  			#size-cells = <1>;
- 			ranges = <0 0x56000000 0x1000000>;
+ 			ranges = <0 0x56000000 0x2000000>;
  
 -			/*
 -			 * Closed source PowerVR driver, no child device
 -			 * binding or driver in mainline
 -			 */
 +			sgx: sgx@0 {
-+				compatible = "img,sgx530-125", "img,sgx530", "ti,omap-am335x-sgx530-125";
-+				reg = <0x00 0x1000000>;	/* 16 MB */
++				compatible = "img,sgx540-120", "img,sgx540", "ti,omap-omap4-sgx540-120";
++				reg = <0x0 0x2000000>;	/* 32MB */
 +				reg-names = "sgx";
-+				interrupts = <37>;
-+				timer = <&timer7>;
++				interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
++				timer = <&timer11>;
 +			};
  		};
- 	};
- };
+ 
+ 		dss: dss@58000000 {
+diff --git a/arch/arm/boot/dts/omap4470.dts b/arch/arm/boot/dts/omap4470.dts
+new file mode 100644
+index 000000000000..45b0b4b8ce32
+--- /dev/null
++++ b/arch/arm/boot/dts/omap4470.dts
+@@ -0,0 +1,16 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Device Tree Source for OMAP4470 SoC
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++#include "omap4460.dtsi"
++
++&sgx {
++	compatible = "img,sgx544-112", "img,sgx544", "ti,omap-omap4-sgx544-112";
++	img,cores = <1>;
++};
 -- 
 2.19.1
