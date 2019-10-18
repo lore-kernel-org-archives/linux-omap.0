@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 7/9] arm: dts: dra76-evm: Add CAL and OV5640 nodes
-Date: Fri, 18 Oct 2019 10:48:47 -0500
-Message-ID: <20191018154849.3127-8-bparrot@ti.com>
+Subject: [Patch 4/9] ARM: dts: DRA72: Add CAL dtsi node
+Date: Fri, 18 Oct 2019 10:48:44 -0500
+Message-ID: <20191018154849.3127-5-bparrot@ti.com>
 References: <20191018154849.3127-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,74 +12,67 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add device nodes for CSI2 camera board OV5640.
-Add the CAL port nodes with the necessary linkage to the ov5640 nodes.
+This patch adds the required dtsi node to support the Camera
+Adaptation Layer (CAL) for the DRA72 family of devices.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/dra76-evm.dts | 39 +++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ arch/arm/boot/dts/dra72x.dtsi | 43 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 1fb6f13fb5e2..c9fdf62c68e9 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -116,6 +116,12 @@
- 		regulator-min-microvolt = <1800000>;
- 		regulator-max-microvolt = <1800000>;
- 	};
-+
-+	clk_ov5640_fixed: clk_ov5640_fixed {
-+		compatible = "fixed-clock";
-+		#clock-cells = <0>;
-+		clock-frequency = <24000000>;
-+	};
- };
- 
- &i2c1 {
-@@ -317,6 +323,27 @@
+diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
+index f5762709c853..29d4c7664e90 100644
+--- a/arch/arm/boot/dts/dra72x.dtsi
++++ b/arch/arm/boot/dts/dra72x.dtsi
+@@ -17,6 +17,49 @@
  	};
  };
  
-+&i2c5 {
-+	status = "okay";
-+	clock-frequency = <400000>;
++&l4_per2 {
++	target-module@5b000 {			/* 0x4845b000, ap 59 46.0 */
++		compatible = "ti,sysc-omap4", "ti,sysc";
++		reg = <0x5b000 0x4>,
++		      <0x5b010 0x4>;
++		reg-names = "rev", "sysc";
++		ti,sysc-midle = <SYSC_IDLE_FORCE>,
++				<SYSC_IDLE_NO>;
++		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++				<SYSC_IDLE_NO>;
++		clocks = <&cam_clkctrl DRA7_CAM_VIP2_CLKCTRL 0>;
++		clock-names = "fck";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0x0 0x5b000 0x1000>;
 +
-+	ov5640@3c {
-+		compatible = "ovti,ov5640";
-+		reg = <0x3c>;
++		cal: cal@0 {
++			compatible = "ti,dra72-cal";
++			reg = <0x0000 0x400>,
++			      <0x0800 0x40>,
++			      <0x0900 0x40>;
++			reg-names = "cal_top",
++				    "cal_rx_core0",
++				    "cal_rx_core1";
++			interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
++			syscon-camerrx = <&scm_conf 0xE94>;
++			status = "disabled";
 +
-+		clocks = <&clk_ov5640_fixed>;
-+		clock-names = "xclk";
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
 +
-+		port {
-+			csi2_cam0: endpoint {
-+				remote-endpoint = <&csi2_phy0>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
++				csi2_0: port@0 {
++					reg = <0>;
++				};
++				csi2_1: port@1 {
++					reg = <1>;
++				};
 +			};
 +		};
 +	};
 +};
 +
- &cpu0 {
- 	vdd-supply = <&buck10_reg>;
- };
-@@ -447,3 +474,15 @@
- 		max-bitrate = <5000000>;
- 	};
- };
-+
-+&cal {
-+	status = "okay";
-+};
-+
-+&csi2_0 {
-+	csi2_phy0: endpoint@0 {
-+		remote-endpoint = <&csi2_cam0>;
-+		clock-lanes = <0>;
-+		data-lanes = <1 2>;
-+	};
-+};
+ &dss {
+ 	reg = <0x58000000 0x80>,
+ 	      <0x58004054 0x4>,
 -- 
 2.17.1
