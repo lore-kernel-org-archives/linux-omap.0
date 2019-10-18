@@ -1,78 +1,91 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/2] OMAP IOMMU fixes to go with 5.4 OMAP IOMMU changes
-Date: Fri, 18 Oct 2019 08:41:58 -0700
-Message-ID: <20191018154158.GQ5610@atomide.com>
-References: <20190827001452.31930-1-s-anna@ti.com>
-	<68474455-c997-a40e-74c4-ea3e0faa6c24@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <68474455-c997-a40e-74c4-ea3e0faa6c24-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH] omapfb: reduce stack usage
+Date: Fri, 18 Oct 2019 17:30:04 +0100
+Message-ID: <20191018163004.23498-1-sudipm.mukherjee@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [191017 23:00]:
-> Hi Tony,
-> 
-> On 8/26/19 7:14 PM, Suman Anna wrote:
-> > Hi Tony,
-> > 
-> > The following 2 patches need to go along with the recent "iommu/omap: misc
-> > fixes" series [1] that is currently staged [2] for a 5.4 merge and available
-> > in linux-next. That series added runtime pm callbacks in preparation for
-> > the ti-sysc migration, but without adding the necessary platform data
-> > callbacks for the existing functional MMUs on OMAP3, OMAP4 and OMAP5 SoCs.
-> > These 2 patches add the same to maintain the functionality (l3_noc errors
-> > are the visible symptom while enabling the MMUs without these patches).
-> > 
-> > OMAP4 and OMAP5 would also need another set of fixes related to the
-> > breakage caused by the switch to clkctrl clocks as seen in [3].
-> > 
-> > These patches do have a dependency on the staged patches, so either you
-> > submit a pull-request towards 5.4-rc2 using 5.4-rc1 baseline, or let
-> > Joerg pick these through the arm/omap IOMMU branch for 5.4-rc1 itself.
-> > 
-> > Sakari/Laurent,
-> > Appreciate it if you can check the OMAP3 ISP functionality on latest
-> > linux-next with the second patch. I have verified the ISP MMU programming
-> > only through an unit-test.
-> > 
-> > Tero,
-> > I will be submitting another patch against OMAP IOMMU driver to skip the
-> > pdata callbacks for ti-sysc in the next couple of days.
-> > 
-> > regards
-> > Suman
-> > 
-> > [1] https://lore.kernel.org/linux-iommu/20190809153730.GF12930-zLv9SwRftAIdnm+yROfE0A@public.gmane.org/T/#mec99f8e8ed351689f4fcc76f4f000f9144a02b51
-> > [2] https://git.kernel.org/pub/scm/linux/kernel/git/joro/iommu.git/log/?h=arm/omap
-> > [3] https://patchwork.kernel.org/patch/11082125/#22829477
-> > 
-> > Suman Anna (2):
-> >   ARM: OMAP2+: Plug in device_enable/idle ops for IOMMUs
-> >   ARM: OMAP2+: Add pdata for OMAP3 ISP IOMMU
-> 
-> Can you please pick these patches up for 5.4-rc cycle? The OMAP IOMMU
-> changes that went in for 5.4-rc1 need the pdata to be plugged in.
+The build of xtensa allmodconfig is giving a warning of:
+In function 'dsi_dump_dsidev_irqs':
+warning: the frame size of 1120 bytes is larger than 1024 bytes
 
-Oh OK. Sorry for missing these, I untagged them earlier as they
-produced kbuilder test failures as the dependencies were
-missing earlier.
+Allocate the memory for 'struct dsi_irq_stats' dynamically instead
+of assigning it in stack.
 
-Applying both into fixes.
+Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+---
+ drivers/video/fbdev/omap2/omapfb/dss/dsi.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
+index d620376216e1..43402467bf40 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
+@@ -1536,22 +1536,25 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
+ {
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+ 	unsigned long flags;
+-	struct dsi_irq_stats stats;
++	struct dsi_irq_stats *stats;
+ 
++	stats = kmalloc(sizeof(*stats), GFP_KERNEL);
++	if (!stats)
++		return;
+ 	spin_lock_irqsave(&dsi->irq_stats_lock, flags);
+ 
+-	stats = dsi->irq_stats;
++	memcpy(stats, &dsi->irq_stats, sizeof(*stats));
+ 	memset(&dsi->irq_stats, 0, sizeof(dsi->irq_stats));
+ 	dsi->irq_stats.last_reset = jiffies;
+ 
+ 	spin_unlock_irqrestore(&dsi->irq_stats_lock, flags);
+ 
+ 	seq_printf(s, "period %u ms\n",
+-			jiffies_to_msecs(jiffies - stats.last_reset));
++			jiffies_to_msecs(jiffies - stats->last_reset));
+ 
+-	seq_printf(s, "irqs %d\n", stats.irq_count);
++	seq_printf(s, "irqs %d\n", stats->irq_count);
+ #define PIS(x) \
+-	seq_printf(s, "%-20s %10d\n", #x, stats.dsi_irqs[ffs(DSI_IRQ_##x)-1]);
++	seq_printf(s, "%-20s %10d\n", #x, stats->dsi_irqs[ffs(DSI_IRQ_##x)-1]);
+ 
+ 	seq_printf(s, "-- DSI%d interrupts --\n", dsi->module_id + 1);
+ 	PIS(VC0);
+@@ -1575,10 +1578,10 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
+ 
+ #define PIS(x) \
+ 	seq_printf(s, "%-20s %10d %10d %10d %10d\n", #x, \
+-			stats.vc_irqs[0][ffs(DSI_VC_IRQ_##x)-1], \
+-			stats.vc_irqs[1][ffs(DSI_VC_IRQ_##x)-1], \
+-			stats.vc_irqs[2][ffs(DSI_VC_IRQ_##x)-1], \
+-			stats.vc_irqs[3][ffs(DSI_VC_IRQ_##x)-1]);
++			stats->vc_irqs[0][ffs(DSI_VC_IRQ_##x)-1], \
++			stats->vc_irqs[1][ffs(DSI_VC_IRQ_##x)-1], \
++			stats->vc_irqs[2][ffs(DSI_VC_IRQ_##x)-1], \
++			stats->vc_irqs[3][ffs(DSI_VC_IRQ_##x)-1]);
+ 
+ 	seq_printf(s, "-- VC interrupts --\n");
+ 	PIS(CS);
+@@ -1594,7 +1597,7 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
+ 
+ #define PIS(x) \
+ 	seq_printf(s, "%-20s %10d\n", #x, \
+-			stats.cio_irqs[ffs(DSI_CIO_IRQ_##x)-1]);
++			stats->cio_irqs[ffs(DSI_CIO_IRQ_##x)-1]);
+ 
+ 	seq_printf(s, "-- CIO interrupts --\n");
+ 	PIS(ERRSYNCESC1);
+@@ -1618,6 +1621,7 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
+ 	PIS(ULPSACTIVENOT_ALL0);
+ 	PIS(ULPSACTIVENOT_ALL1);
+ #undef PIS
++	kfree(stats);
+ }
+ 
+ static void dsi1_dump_irqs(struct seq_file *s)
+-- 
+2.11.0
