@@ -1,23 +1,107 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: ARM: add __always_inline to functions called from __get_user_check()
-Date: Fri, 18 Oct 2019 12:06:23 +0200
-Message-ID: <1823C41A-3296-4DEA-B71F-5AD548335F8B@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] ARM: OMAP2+: Make some functions static
+Date: Fri, 18 Oct 2019 20:07:01 +0800
+Message-ID: <20191018120701.29364-1-yuehaibing@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: khilman@kernel.org, tony@atomide.com, linux@armlinux.org.uk
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-I wonder what happened to your patch. We were "hit" by it in v5.4-rc1 and
-after finding, it made our OMAP based device bootable again (using our
-own defconfig which optimizes for SIZE).
+Fix sparse warnings:
 
-But it does not seem to have arrived in linux-next and should IMHO
-be fixed during the v5.4 release candidate cycle.
+arch/arm/mach-omap2/pmic-cpcap.c:29:15: warning: symbol 'omap_cpcap_vsel_to_uv' was not declared. Should it be static?
+arch/arm/mach-omap2/pmic-cpcap.c:43:15: warning: symbol 'omap_cpcap_uv_to_vsel' was not declared. Should it be static?
+arch/arm/mach-omap2/pmic-cpcap.c:93:15: warning: symbol 'omap_max8952_vsel_to_uv' was not declared. Should it be static?
+arch/arm/mach-omap2/pmic-cpcap.c:107:15: warning: symbol 'omap_max8952_uv_to_vsel' was not declared. Should it be static?
+arch/arm/mach-omap2/pmic-cpcap.c:140:15: warning: symbol 'omap_fan535503_vsel_to_uv' was not declared. Should it be static?
+arch/arm/mach-omap2/pmic-cpcap.c:155:15: warning: symbol 'omap_fan535508_vsel_to_uv' was not declared. Should it be static?
+arch/arm/mach-omap2/pmic-cpcap.c:173:15: warning: symbol 'omap_fan535503_uv_to_vsel' was not declared. Should it be static?
+arch/arm/mach-omap2/pmic-cpcap.c:192:15: warning: symbol 'omap_fan535508_uv_to_vsel' was not declared. Should it be static?
 
-BR and thanks,
-Nikolaus Schaller
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ arch/arm/mach-omap2/pmic-cpcap.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pmic-cpcap.c b/arch/arm/mach-omap2/pmic-cpcap.c
+index 2c2a178..3cdf40e 100644
+--- a/arch/arm/mach-omap2/pmic-cpcap.c
++++ b/arch/arm/mach-omap2/pmic-cpcap.c
+@@ -26,7 +26,7 @@
+  * Returns the microvolts DC that the CPCAP PMIC should generate when
+  * programmed with @vsel.
+  */
+-unsigned long omap_cpcap_vsel_to_uv(unsigned char vsel)
++static unsigned long omap_cpcap_vsel_to_uv(unsigned char vsel)
+ {
+ 	if (vsel > 0x44)
+ 		vsel = 0x44;
+@@ -40,7 +40,7 @@ unsigned long omap_cpcap_vsel_to_uv(unsigned char vsel)
+  * Returns the VSEL value necessary for the CPCAP PMIC to
+  * generate an output voltage equal to or greater than @uv microvolts DC.
+  */
+-unsigned char omap_cpcap_uv_to_vsel(unsigned long uv)
++static unsigned char omap_cpcap_uv_to_vsel(unsigned long uv)
+ {
+ 	if (uv < 600000)
+ 		uv = 600000;
+@@ -90,7 +90,7 @@ static struct omap_voltdm_pmic omap_cpcap_iva = {
+  * Returns the microvolts DC that the MAX8952 Regulator should generate when
+  * programmed with @vsel.
+  */
+-unsigned long omap_max8952_vsel_to_uv(unsigned char vsel)
++static unsigned long omap_max8952_vsel_to_uv(unsigned char vsel)
+ {
+ 	if (vsel > 0x3F)
+ 		vsel = 0x3F;
+@@ -104,7 +104,7 @@ unsigned long omap_max8952_vsel_to_uv(unsigned char vsel)
+  * Returns the VSEL value necessary for the MAX8952 Regulator to
+  * generate an output voltage equal to or greater than @uv microvolts DC.
+  */
+-unsigned char omap_max8952_uv_to_vsel(unsigned long uv)
++static unsigned char omap_max8952_uv_to_vsel(unsigned long uv)
+ {
+ 	if (uv < 770000)
+ 		uv = 770000;
+@@ -137,7 +137,7 @@ static struct omap_voltdm_pmic omap443x_max8952_mpu = {
+  * Returns the microvolts DC that the FAN535503 Regulator should generate when
+  * programmed with @vsel.
+  */
+-unsigned long omap_fan535503_vsel_to_uv(unsigned char vsel)
++static unsigned long omap_fan535503_vsel_to_uv(unsigned char vsel)
+ {
+ 	/* Extract bits[5:0] */
+ 	vsel &= 0x3F;
+@@ -152,7 +152,7 @@ unsigned long omap_fan535503_vsel_to_uv(unsigned char vsel)
+  * Returns the microvolts DC that the FAN535508 Regulator should generate when
+  * programmed with @vsel.
+  */
+-unsigned long omap_fan535508_vsel_to_uv(unsigned char vsel)
++static unsigned long omap_fan535508_vsel_to_uv(unsigned char vsel)
+ {
+ 	/* Extract bits[5:0] */
+ 	vsel &= 0x3F;
+@@ -170,7 +170,7 @@ unsigned long omap_fan535508_vsel_to_uv(unsigned char vsel)
+  * Returns the VSEL value necessary for the MAX8952 Regulator to
+  * generate an output voltage equal to or greater than @uv microvolts DC.
+  */
+-unsigned char omap_fan535503_uv_to_vsel(unsigned long uv)
++static unsigned char omap_fan535503_uv_to_vsel(unsigned long uv)
+ {
+ 	unsigned char vsel;
+ 	if (uv < 750000)
+@@ -189,7 +189,7 @@ unsigned char omap_fan535503_uv_to_vsel(unsigned long uv)
+  * Returns the VSEL value necessary for the MAX8952 Regulator to
+  * generate an output voltage equal to or greater than @uv microvolts DC.
+  */
+-unsigned char omap_fan535508_uv_to_vsel(unsigned long uv)
++static unsigned char omap_fan535508_uv_to_vsel(unsigned long uv)
+ {
+ 	unsigned char vsel;
+ 	if (uv < 750000)
+-- 
+2.7.4
