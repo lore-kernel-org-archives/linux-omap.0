@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/2] Better voltage controller configuration for droid4
-Date: Fri, 18 Oct 2019 15:21:05 -0700
-Message-ID: <20191018222107.32917-1-tony@atomide.com>
+Subject: [PATCH 1/2] ARM: OMAP2+: Configure voltage controller for retention
+Date: Fri, 18 Oct 2019 15:21:06 -0700
+Message-ID: <20191018222107.32917-2-tony@atomide.com>
+References: <20191018222107.32917-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20191018222107.32917-1-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,38 +21,86 @@ To: linux-omap@vger.kernel.org
 Cc: Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Similar to existing omap3_vc_set_pmic_signaling(), let's add omap4
+specific omap4_vc_set_pmic_signaling(). This allows the configured
+devices to enable voltage controller for retention later on during
+init.
 
-Here are two more patches to change droid4 to use low-speed configuration
-like the Motorola Mapphone Android Linux kernel does.
+Cc: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/vc.c | 32 +++++++++++++++++++++++++++++---
+ arch/arm/mach-omap2/vc.h |  2 +-
+ 2 files changed, 30 insertions(+), 4 deletions(-)
 
-This gains us a power saving of 7mW bringing the whole device power
-consumption in retention idle mode to about 32mW between wakeups with
-screen blanked, modem off, usb and phy modules unloaded and wlan
-connected. That's about the same number as I measured Android do in
-flight mode suspended.
-
-With the pending modem patches with modem online, I'm now seeing average
-power consumption of about 60 - 70mW for the whole device as measured
-once a minute from /sys/class/power_supply/battery/power_avg.
-
-The patches are against v5.4-rc1 on top of the related patches:
-
-[PATCH 0/8] Improve PM for omap4 devices
-
-Regards,
-
-Tony
-
-
-Tony Lindgren (2):
-  ARM: OMAP2+: Configure voltage controller for retention
-  ARM: OMAP2+: Configure voltage controller for cpcap to low-speed
-
- arch/arm/mach-omap2/pmic-cpcap.c | 18 ++++++++++++-----
- arch/arm/mach-omap2/vc.c         | 34 ++++++++++++++++++++++++++++----
- arch/arm/mach-omap2/vc.h         |  2 +-
- 3 files changed, 44 insertions(+), 10 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -36,15 +36,21 @@
+ #define OMAP4430_AUTO_CTRL_VDD_CORE(x)		((x) << 0)
+ #define OMAP4430_AUTO_CTRL_VDD_RET		2
+ 
+-#define OMAP4_VDD_DEFAULT_VAL	\
++#define OMAP4430_VDD_I2C_DISABLE_MASK	\
+ 	(OMAP4430_VDD_IVA_I2C_DISABLE | \
+-	 OMAP4430_VDD_MPU_I2C_DISABLE |	 \
+-	 OMAP4430_VDD_CORE_I2C_DISABLE | \
++	 OMAP4430_VDD_MPU_I2C_DISABLE | \
++	 OMAP4430_VDD_CORE_I2C_DISABLE)
++
++#define OMAP4_VDD_DEFAULT_VAL	\
++	(OMAP4430_VDD_I2C_DISABLE_MASK | \
+ 	 OMAP4430_VDD_IVA_PRESENCE | OMAP4430_VDD_MPU_PRESENCE | \
+ 	 OMAP4430_AUTO_CTRL_VDD_IVA(OMAP4430_AUTO_CTRL_VDD_RET) | \
+ 	 OMAP4430_AUTO_CTRL_VDD_MPU(OMAP4430_AUTO_CTRL_VDD_RET) | \
+ 	 OMAP4430_AUTO_CTRL_VDD_CORE(OMAP4430_AUTO_CTRL_VDD_RET))
+ 
++#define OMAP4_VDD_RET_VAL	\
++	(OMAP4_VDD_DEFAULT_VAL & ~OMAP4430_VDD_I2C_DISABLE_MASK)
++
+ /**
+  * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
+  * @sa: bit for slave address
+@@ -299,6 +305,26 @@ void omap3_vc_set_pmic_signaling(int core_next_state)
+ 	}
+ }
+ 
++void omap4_vc_set_pmic_signaling(int core_next_state)
++{
++	struct voltagedomain *vd = vc.vd;
++	u32 val;
++
++	if (!vd)
++		return;
++
++	switch (core_next_state) {
++	case PWRDM_POWER_RET:
++		val = OMAP4_VDD_RET_VAL;
++		break;
++	default:
++		val = OMAP4_VDD_DEFAULT_VAL;
++		break;
++	}
++
++	vd->write(val, OMAP4_PRM_VOLTCTRL_OFFSET);
++}
++
+ /*
+  * Configure signal polarity for sys_clkreq and sys_off_mode pins
+  * as the default values are wrong and can cause the system to hang
+diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -117,7 +117,7 @@ extern struct omap_vc_param omap4_iva_vc_data;
+ extern struct omap_vc_param omap4_core_vc_data;
+ 
+ void omap3_vc_set_pmic_signaling(int core_next_state);
+-
++void omap4_vc_set_pmic_signaling(int core_next_state);
+ 
+ void omap_vc_init_channel(struct voltagedomain *voltdm);
+ int omap_vc_pre_scale(struct voltagedomain *voltdm,
 -- 
 2.23.0
