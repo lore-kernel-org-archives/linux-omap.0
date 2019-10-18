@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 3/7] ARM: DTS: am3517: add sgx gpu child node
-Date: Fri, 18 Oct 2019 20:46:26 +0200
-Message-ID: <8102dc33bcf21d653539cb43fb41ce600c1f9e74.1571424390.git.hns@goldelico.com>
+Subject: [PATCH 4/7] ARM: DTS: omap3: add sgx gpu child node
+Date: Fri, 18 Oct 2019 20:46:27 +0200
+Message-ID: <ebc994aa9e1a5669c2c79a8452562eae10419291.1571424390.git.hns@goldelico.com>
 References: <cover.1571424390.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,27 +12,29 @@ To: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herrin
 Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-and add timer and interrupt.
+and add timer and interrupt
+
+Tested on OpenPandora 600 MHz.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/am3517.dtsi | 13 ++++++++-----
+ arch/arm/boot/dts/omap34xx.dtsi | 13 ++++++++-----
  1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
-index bf3002009b00..5716bb33d7fe 100644
---- a/arch/arm/boot/dts/am3517.dtsi
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -97,7 +97,7 @@
- 		 * revision register instead of the unreadable OCP revision
- 		 * register.
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index 7b09cbee8bb8..28d5c77d6d6c 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -111,7 +111,7 @@
+ 		 * are also different clocks, but we do not have any dts users
+ 		 * for it.
  		 */
 -		sgx_module: target-module@50000000 {
 +		target-module@50000000 {
  			compatible = "ti,sysc-omap2", "ti,sysc";
  			reg = <0x50000014 0x4>;
  			reg-names = "rev";
-@@ -107,10 +107,13 @@
+@@ -121,10 +121,13 @@
  			#size-cells = <1>;
  			ranges = <0 0x50000000 0x4000>;
  
@@ -41,14 +43,14 @@ index bf3002009b00..5716bb33d7fe 100644
 -			 * binding or driver in mainline
 -			 */
 +			sgx: sgx@0 {
-+				compatible = "img,sgx530-125", "img,sgx530", "ti,omap-am3517-sgx530-125";
-+				reg = <0x0 0x4000>;
++				compatible = "img,sgx530-121", "img,sgx530", "ti,omap-omap3-sgx530-121";
++				reg = <0x0 0x4000>;	/* 64kB */
 +				reg-names = "sgx";
 +				interrupts = <21>;
 +				timer = <&timer11>;
 +			};
  		};
  	};
- };
+ 
 -- 
 2.19.1
