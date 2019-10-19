@@ -1,62 +1,43 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] omapfb: reduce stack usage
-Date: Fri, 18 Oct 2019 18:19:15 -0700
-Message-ID: <184cdd47d4064420b05c16f10588595c65f789e5.camel@perches.com>
-References: <20191018163004.23498-1-sudipm.mukherjee@gmail.com>
- <20191018172728.GA11857@lenoch> <20191018223012.tkpwbo3mg5mthlnz@debian>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: ARM: add __always_inline to functions called from __get_user_check()
+Date: Sat, 19 Oct 2019 10:59:46 +0900
+Message-ID: <CAK7LNARFk--KYWNrrduiPgeBAu6T49brJXd_Nb8ZQOfYrbFmAA@mail.gmail.com>
+References: <1823C41A-3296-4DEA-B71F-5AD548335F8B@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191018223012.tkpwbo3mg5mthlnz@debian>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>, Ladislav Michl <ladis@linux-mips.org>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1823C41A-3296-4DEA-B71F-5AD548335F8B@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCAyMDE5LTEwLTE4IGF0IDIzOjMwICswMTAwLCBTdWRpcCBNdWtoZXJqZWUgd3JvdGU6
-Cj4gT24gRnJpLCBPY3QgMTgsIDIwMTkgYXQgMDc6Mjc6MjhQTSArMDIwMCwgTGFkaXNsYXYgTWlj
-aGwgd3JvdGU6Cj4gPiBPbiBGcmksIE9jdCAxOCwgMjAxOSBhdCAwNTozMDowNFBNICswMTAwLCBT
-dWRpcCBNdWtoZXJqZWUgd3JvdGU6Cj4gPiA+IFRoZSBidWlsZCBvZiB4dGVuc2EgYWxsbW9kY29u
-ZmlnIGlzIGdpdmluZyBhIHdhcm5pbmcgb2Y6Cj4gPiA+IEluIGZ1bmN0aW9uICdkc2lfZHVtcF9k
-c2lkZXZfaXJxcyc6Cj4gPiA+IHdhcm5pbmc6IHRoZSBmcmFtZSBzaXplIG9mIDExMjAgYnl0ZXMg
-aXMgbGFyZ2VyIHRoYW4gMTAyNCBieXRlcwo+ID4gPiAKPiA+ID4gQWxsb2NhdGUgdGhlIG1lbW9y
-eSBmb3IgJ3N0cnVjdCBkc2lfaXJxX3N0YXRzJyBkeW5hbWljYWxseSBpbnN0ZWFkCj4gPiA+IG9m
-IGFzc2lnbmluZyBpdCBpbiBzdGFjay4KPiA+IAo+ID4gU28gbm93IGZ1bmN0aW9uIGNhbiBmYWls
-IHNpbGVudGx5LCBleGVjdXRlcyBsb25nZXIsIGNvZGUgaXMgc2xpZ3RobHkKPiA+IGJpZ2dlci4u
-LiBBbmQgYWxsIHRoYXQgdG8gc2lsZW50IHdhcm5pbmcgYWJvdXQgZXhjZWVkaW5nIGZyYW1lIHNp
-emUuCj4gPiBJcyBpdCByZWFsbHkgd29ydGggImZpeGluZyI/CgpEZXBlbmRzIGlmIGl0IGNvdWxk
-IGZhaWwgaW4gcHJhY3RpY2UgZHVlIHRvIGEgc3RhY2sgb3ZlcnJ1bi4KCj4gVGhlIG9ubHkgcG9p
-bnQgb2YgZmFpbHVyZSBpcyBpZiBrbWFsbG9jKCkgZmFpbHMgYW5kIGlmIGttYWxsb2MoKSBmYWls
-cyB0aGVuCj4gdGhlcmUgd2lsbCBiZSBlcnJvciBwcmludHMgaW4gZG1lc2cgdG8gdGVsbCB0aGUg
-dXNlciB0aGF0IHRoZXJlIGlzIG5vCj4gbWVtb3J5IGxlZnQgaW4gdGhlIHN5c3RlbS4gQWJvdXQg
-dGhlIHNpemUgYmlnZ2VyLCBpdCBzZWVtcwo+IHRoZSBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAy
-L29tYXBmYi9kc3MvZHNpLm8gZmlsZSBpcyBzbWFsbGVyIHdpdGggdGhlCj4gcGF0Y2guCj4gVGhp
-cyBpcyB3aXRob3V0IHRoZSBwYXRjaDoKPiAtcnctci0tci0tIDEgc3VkaXAgc3VkaXAgMzE2ODU2
-IE9jdCAxOCAyMjoyNyBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvZHNpLm8K
-PiBBbmQgdGhpcyBpcyB3aXRoIHRoZSBwYXRjaDoKPiAtcnctci0tci0tIDEgc3VkaXAgc3VkaXAg
-MzE2NDM2IE9jdCAxOCAyMDowOSBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
-ZHNpLm8KPiAKPiBBbmQgYWxzbywgb2JqZHVtcCBzaG93cyBtZSB0aGF0IDxkc2lfZHVtcF9kc2lk
-ZXZfaXJxcz4gd2FzIHRha2luZyB1cCAweEQ3RAo+IGJ5dGVzLCBhbmQgbm93IHdpdGggdGhlIHBh
-dGNoIGl0IGlzIHRha2luZyB1cCAweEJFRCBieXRlcywgdGhhdHMgYSBzYXZpbmcKPiBvZiA0MDAg
-Ynl0ZXMuIElmIGl0IGhhcyA0MDAgYnl0ZXMgb2YgbGVzcyBjb2RlIHRvIGV4ZWN1dGUgd2lsbCBp
-dCBub3QgYmUKPiBmYXN0ZXIgbm93PwoKWW91IHNob3VsZCB0cnkgY29tcGlsaW5nIHdpdGhvdXQg
-YWxsIHRoZSBkZWJ1Z2dpbmcgc3ltYm9scyAoZGVmY29uZmlnKQoKPiBCdXQsIEkgbWF5IGJlIHRv
-dGFsbHkgd3JvbmcgaW4gbXkgdGhpbmtpbmcsIGFuZCBpbiB0aGF0IGNhc2UsIHBsZWFzZSBmZWVs
-Cj4gZnJlZSB0byByZWplY3QgdGhlIHBhdGNoLgoKV2l0aG91dCB5b3VyIHBhdGNoOgoKJCBvYmpk
-dW1wIC14IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kc2kubyB8IGdyZXAg
-ZHNpX2R1bXBfZHNpZGV2X2lycXMKMDAwMDBkMjAgbCAgICAgRiAudGV4dAkwMDAwMDYxYyBkc2lf
-ZHVtcF9kc2lkZXZfaXJxcwoKV2l0aCB5b3VyIHBhdGNoOgoKJCBvYmpkdW1wIC14IGRyaXZlcnMv
-dmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kc2kubyB8IGdyZXAgZHNpX2R1bXBfZHNpZGV2
-X2lycXMKMDAwMDBkMjAgbCAgICAgRiAudGV4dAkwMDAwMDYzOCBkc2lfZHVtcF9kc2lkZXZfaXJx
-cwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+On Fri, Oct 18, 2019 at 7:06 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
+>
+> Hi,
+> I wonder what happened to your patch. We were "hit" by it in v5.4-rc1 and
+> after finding, it made our OMAP based device bootable again (using our
+> own defconfig which optimizes for SIZE).
+>
+> But it does not seem to have arrived in linux-next
+
+It is in linux-next.
+
+
+> and should IMHO
+> be fixed during the v5.4 release candidate cycle.
+
+I agree.
+
+
+Masahiro
+
+>
+> BR and thanks,
+> Nikolaus Schaller
+>
+
+
+-- 
+Best Regards
+Masahiro Yamada
