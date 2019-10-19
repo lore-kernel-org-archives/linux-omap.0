@@ -1,50 +1,58 @@
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: Re: [PATCH] omapfb: reduce stack usage
-Date: Sat, 19 Oct 2019 10:11:54 +0100
-Message-ID: <20191019091154.qlmb7abqoqdmtz7f@debian>
-References: <20191018163004.23498-1-sudipm.mukherjee@gmail.com>
- <20191018172728.GA11857@lenoch>
- <20191018223012.tkpwbo3mg5mthlnz@debian>
- <184cdd47d4064420b05c16f10588595c65f789e5.camel@perches.com>
+From: Kalle Valo <kvalo@codeaurora.org>
+Subject: Re: [PATCH 0/9] OpenPandora: make wl1251 connected to mmc3 sdio port of OpenPandora work again
+Date: Sat, 19 Oct 2019 14:06:41 +0300
+Message-ID: <87sgnpvvsu.fsf@kamboji.qca.qualcomm.com>
+References: <cover.1571430329.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <184cdd47d4064420b05c16f10588595c65f789e5.camel@perches.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Joe Perches <joe@perches.com>
-Cc: linux-fbdev@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1571430329.git.hns@goldelico.com> (H. Nikolaus Schaller's
+        message of "Fri, 18 Oct 2019 22:25:21 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>, Mike Rapoport <rppt@linux.ibm.com>, David Sterba <dsterba@suse.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Petr Mladek <pmladek@suse.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Yangtao Li <tiny.windzz@gmail.com>, Alexios Zavras <alexios.zavras@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, John Stultz <john.stultz@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBPY3QgMTgsIDIwMTkgYXQgMDY6MTk6MTVQTSAtMDcwMCwgSm9lIFBlcmNoZXMgd3Jv
-dGU6Cj4gT24gRnJpLCAyMDE5LTEwLTE4IGF0IDIzOjMwICswMTAwLCBTdWRpcCBNdWtoZXJqZWUg
-d3JvdGU6Cj4gPiBPbiBGcmksIE9jdCAxOCwgMjAxOSBhdCAwNzoyNzoyOFBNICswMjAwLCBMYWRp
-c2xhdiBNaWNobCB3cm90ZToKPiA+ID4gT24gRnJpLCBPY3QgMTgsIDIwMTkgYXQgMDU6MzA6MDRQ
-TSArMDEwMCwgU3VkaXAgTXVraGVyamVlIHdyb3RlOgo+ID4gPiA+IFRoZSBidWlsZCBvZiB4dGVu
-c2EgYWxsbW9kY29uZmlnIGlzIGdpdmluZyBhIHdhcm5pbmcgb2Y6Cj4gPiA+ID4gSW4gZnVuY3Rp
-b24gJ2RzaV9kdW1wX2RzaWRldl9pcnFzJzoKPiA+ID4gPiB3YXJuaW5nOiB0aGUgZnJhbWUgc2l6
-ZSBvZiAxMTIwIGJ5dGVzIGlzIGxhcmdlciB0aGFuIDEwMjQgYnl0ZXMKPHNuaXA+Cj4gCj4gV2l0
-aG91dCB5b3VyIHBhdGNoOgo+IAo+ICQgb2JqZHVtcCAteCBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAyL29tYXBmYi9kc3MvZHNpLm8gfCBncmVwIGRzaV9kdW1wX2RzaWRldl9pcnFzCj4gMDAwMDBk
-MjAgbCAgICAgRiAudGV4dAkwMDAwMDYxYyBkc2lfZHVtcF9kc2lkZXZfaXJxcwo+IAo+IFdpdGgg
-eW91ciBwYXRjaDoKPiAKPiAkIG9iamR1bXAgLXggZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
-bWFwZmIvZHNzL2RzaS5vIHwgZ3JlcCBkc2lfZHVtcF9kc2lkZXZfaXJxcwo+IDAwMDAwZDIwIGwg
-ICAgIEYgLnRleHQJMDAwMDA2MzggZHNpX2R1bXBfZHNpZGV2X2lycXMKCkkgZGlkIG9iamR1bXAg
-LWQgYW5kIHRoZW4gY29tcGFyZWQgd2hlcmUgaXQgc3RhcnRlZCBhbmQgd2hlcmUgaXQgZW5kZWQu
-CgpCdXQsIGluIGFueWNhc2UsIHRoaXMgZHJpdmVyIGlzIGZyYW1lYnVmZmVyIGRyaXZlciBmb3Ig
-b21hcDIgYW5kIGluCnJlYWxpdHksIGNhbiBvbmx5IGJlIHVzZWQgb24gYXJtIHBsYXRmb3JtIGFu
-ZCB3aGVuIEkgYnVpbGQgdGhlIGRyaXZlcgp3aXRoIGFybSBjb21waWxlciBJIGFtIG5vdCBnZXR0
-aW5nIHRoaXMgd2FybmluZy4gVGhpcyBpcyBub3QgYSB2YWxpZApjb25jZXJuLCBwbGVhc2UgcmVq
-ZWN0IHRoaXMgcGF0Y2guCgotLQpSZWdhcmRzClN1ZGlwCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+"H. Nikolaus Schaller" <hns@goldelico.com> writes:
+
+> Here we have a set of scattered patches to make the OpenPandora WiFi work again.
+>
+> v4.7 did break the pdata-quirks which made the mmc3 interface
+> fail completely, because some code now assumes device tree
+> based instantiation.
+>
+> Fixes: 81eef6ca9201 ("mmc: omap_hsmmc: Use dma_request_chan() for requesting DMA channel")
+>
+> v4.11 did break the sdio qirks for wl1251 which made the driver no longer
+> load, although the device was found as an sdio client.
+>
+> Fixes: 884f38607897 ("mmc: core: move some sdio IDs out of quirks file")
+>
+> To solve these issues:
+> * we convert mmc3 and wl1251 initialization from pdata-quirks
+>   to device tree
+> * we make the wl1251 driver read properties from device tree
+> * we fix the mmc core vendor ids and quirks
+> * we fix the wl1251 (and wl1271) driver to use only vendor ids
+>   from header file instead of (potentially conflicting) local
+>   definitions
+>
+>
+> H. Nikolaus Schaller (9):
+>   Documentation: dt: wireless: update wl1251 for sdio
+>   net: wireless: ti: wl1251 add device tree support
+>   DTS: ARM: pandora-common: define wl1251 as child node of mmc3
+>   mmc: host: omap_hsmmc: add code for special init of wl1251 to get rid
+>     of pandora_wl1251_init_card
+>   omap: pdata-quirks: remove openpandora quirks for mmc3 and wl1251
+>   mmc: sdio: fix wl1251 vendor id
+>   mmc: core: fix wl1251 sdio quirks
+>   net: wireless: ti: wl1251 use new SDIO_VENDOR_ID_TI_WL1251 definition
+>   net: wireless: ti: remove local VENDOR_ID and DEVICE_ID definitions
+
+I didn't get patches 3-7 so I don't know what they have, but what's the
+plan how these should be applied? Normally wl1251 patches go via
+wireless-drivers-next but are you planning something else?
+
+-- 
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
