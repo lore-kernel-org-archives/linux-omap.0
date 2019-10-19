@@ -1,93 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/9] omap: pdata-quirks: remove openpandora quirks for
- mmc3 and wl1251
-Date: Sat, 19 Oct 2019 09:22:55 -0700
-Message-ID: <20191019162255.GR5610@atomide.com>
-References: <63f59daa6b6e079905ff128b88282cf2c72e3540.1571430329.git.hns@goldelico.com>
- <20191019133621.C1CE421897@mail.kernel.org>
- <A0434659-A282-44AA-90E9-D234ADF8A04A@goldelico.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v2 01/11] Documentation: dt: wireless: update wl1251 for sdio
+Date: Sat, 19 Oct 2019 20:41:16 +0200
+Message-ID: <741828f69eca2a9c9a0a7e80973c91f50cc71f9b.1571510481.git.hns@goldelico.com>
+References: <cover.1571510481.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <A0434659-A282-44AA-90E9-D234ADF8A04A@goldelico.com>
-Sender: stable-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Sasha Levin <sashal@kernel.org>, devicetree <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, stable <stable@vger.kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <cover.1571510481.git.hns@goldelico.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>, Kalle Valo <kvalo@codeaurora.org>, Mike Rapoport <rppt@linux.ibm.com>, David Sterba <dsterba@suse.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Petr Mladek <pmladek@suse.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Yangtao Li <tiny.windzz@gmail.com>, Alexios Zavras <alexios.zavras@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, John Stultz <john.stultz@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: devicetree@vger.kernel.org, letux-kernel@openphoenux.org, linux-mmc@vger.kernel.org, kernel@pyra-handheld.com, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* H. Nikolaus Schaller <hns@goldelico.com> [191019 15:18]:
-> 
-> > Am 19.10.2019 um 15:36 schrieb Sasha Levin <sashal@kernel.org>:
-> > 
-> > Hi,
-> > 
-> > [This is an automated email]
-> > 
-> > This commit has been processed because it contains a "Fixes:" tag,
-> > fixing commit: 81eef6ca92014 mmc: omap_hsmmc: Use dma_request_chan() for requesting DMA channel.
-> > 
-> > The bot has tested the following trees: v5.3.6, v4.19.79, v4.14.149, v4.9.196.
-> > 
-> > v5.3.6: Build OK!
-> > v4.19.79: Failed to apply! Possible dependencies:
-> >    Unable to calculate
-> > 
-> > v4.14.149: Failed to apply! Possible dependencies:
-> >    0486738928bf0 ("ARM: OMAP1: ams-delta: add GPIO lookup tables")
-> >    0920ca103f8d8 ("ARM: sa1100: provide infrastructure to support generic CF sockets")
-> >    29786e9b6551b ("ARM: sa1100/assabet: convert to generic CF sockets")
-> >    2bcb1be092370 ("Input: ams_delta_serio: Replace power GPIO with regulator")
-> >    56de7570b3264 ("Input: ams_delta_serio: use private structure")
-> >    7be893aa2d6a1 ("pcmcia: sa1100: provide generic CF support")
-> >    b51af86559d4b ("ARM: sa1100/shannon: convert to generic CF sockets")
-> >    b955153bfa68d ("ARM: sa1100/assabet: add BCR/BSR GPIO driver")
-> >    c2f9b05fd5c12 ("media: arch: sh: ecovec: Use new renesas-ceu camera driver")
-> >    df88c57689278 ("Input: ams_delta_serio: convert to platform driver")
-> >    efdfeb079cc3b ("regulator: fixed: Convert to use GPIO descriptor only")
-> 
-> ^^^ this is the relevant one.
-> 
-> > 
-> > v4.9.196: Failed to apply! Possible dependencies:
-> >    0486738928bf0 ("ARM: OMAP1: ams-delta: add GPIO lookup tables")
-> >    072f58af1dfbc ("ARM: dts: Add devicetree for the Raspberry Pi 3, for arm32 (v6)")
-> >    1aa1d858f582c ("ARM: dts: bcm283x: Add dtsi for OTG mode")
-> >    29786e9b6551b ("ARM: sa1100/assabet: convert to generic CF sockets")
-> >    2bcb1be092370 ("Input: ams_delta_serio: Replace power GPIO with regulator")
-> >    3bfe25fa9f8a5 ("ARM: dts: bcm283x: Move the BCM2837 DT contents from arm64 to arm.")
-> >    56de7570b3264 ("Input: ams_delta_serio: use private structure")
-> >    6c1b417adc8fa ("ARM: pxa: ezx: use the new pxa_camera platform_data")
-> >    7ade445c26269 ("ARM: pxa: magician: Add support for ADS7846 touchscreen")
-> >    8f9bafbb92c03 ("ARM: dts: aspeed: Add Romulus BMC platform")
-> >    b24413180f560 ("License cleanup: add SPDX GPL-2.0 license identifier to files with no license")
-> >    b5478c1b67bcd ("alpha: add asm/extable.h")
-> >    b955153bfa68d ("ARM: sa1100/assabet: add BCR/BSR GPIO driver")
-> >    d9fa04725f27f ("ARM: pxa: em-x270: use the new pxa_camera platform_data")
-> >    df88c57689278 ("Input: ams_delta_serio: convert to platform driver")
-> >    efdfeb079cc3b ("regulator: fixed: Convert to use GPIO descriptor only")
-> >    fe7bf9dcfff5b ("ARM: dts: add a devicetree for Raidsonic NAS IB-4220-B")
-> > 
-> > 
-> > NOTE: The patch will not be queued to stable trees until it is upstream.
-> > 
-> > How should we proceed with this patch?
-> 
-> I have checked and the reason is that 
-> 
-> efdfeb079cc3b ("regulator: fixed: Convert to use GPIO descriptor only")
-> 
-> was introduced after v.4.19 which was also partially reverted by this patch
-> if based on mainline.
-> 
-> I have split it up into the partial revert of efdfeb079cc3b  for mainline
-> and the real patch which now applies to all relevant stable trees.
-> 
-> So I'll sent a v2 asap.
+The standard method for sdio devices connected to
+an sdio interface is to define them as a child node
+like we can see with wlcore.
 
-Please also remove arch/arm/mach-omap2/hsmmc.[ch] as I think that
-can be now done :)
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Acked-by: Kalle Valo <kvalo@codeaurora.org>
+---
+ .../bindings/net/wireless/ti,wl1251.txt       | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-Regards,
-
-Tony
+diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+index bb2fcde6f7ff..88612ff29f2d 100644
+--- a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
++++ b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+@@ -35,3 +35,29 @@ Examples:
+ 		ti,power-gpio = <&gpio3 23 GPIO_ACTIVE_HIGH>; /* 87 */
+ 	};
+ };
++
++&mmc3 {
++	vmmc-supply = <&wlan_en>;
++
++	bus-width = <4>;
++	non-removable;
++	ti,non-removable;
++	cap-power-off-card;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc3_pins>;
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	wlan: wl1251@1 {
++		compatible = "ti,wl1251";
++
++		reg = <1>;
++
++		interrupt-parent = <&gpio1>;
++		interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;	/* GPIO_21 */
++
++		ti,wl1251-has-eeprom;
++	};
++};
+-- 
+2.19.1
