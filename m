@@ -1,79 +1,84 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCHv2 0/4] Convert all btwilink users to hci_ll and drop
- btwilink
-Date: Sun, 20 Oct 2019 22:33:52 +0200
-Message-ID: <20191020203352.rh3n6qpagiyift7d@earth.universe>
+Subject: Re: [PATCHv2 4/4] Bluetooth: btwilink: drop superseded driver
+Date: Sun, 20 Oct 2019 22:59:01 +0200
+Message-ID: <20191020205901.56bafijk7cu3rpaj@earth.universe>
 References: <20191003134147.9458-1-sre@kernel.org>
- <20191008143116.GF5610@atomide.com>
+ <20191003134147.9458-5-sre@kernel.org>
+ <BC1F82AC-2988-4BC6-99EA-1C9F9289E582@holtmann.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="sm5ahi5a3wy7vwrr"
+        protocol="application/pgp-signature"; boundary="td6khbzgjxudi7vx"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191008143116.GF5610@atomide.com>
+In-Reply-To: <BC1F82AC-2988-4BC6-99EA-1C9F9289E582@holtmann.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Adam Ford <aford173@gmail.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
 
---sm5ahi5a3wy7vwrr
-Content-Type: text/plain; charset=us-ascii
+--td6khbzgjxudi7vx
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
+Hi,
 
-On Tue, Oct 08, 2019 at 07:31:16AM -0700, Tony Lindgren wrote:
-> * Sebastian Reichel <sre@kernel.org> [191003 06:42]:
-> > This moves the remaining users of btwilink to the "new" serdev based hc=
-i_ll
-> > driver and drops the btwilink driver afterwards. The patches were only =
-compile
-> > tested by me, but Enric tested the IGEP platform and Adam will test the=
- LogicPD
-> > platform.
+On Wed, Oct 16, 2019 at 09:15:03PM +0200, Marcel Holtmann wrote:
+> > All users of this driver have been converted to the serdev based
+> > hci_ll driver. The unused driver can be safely dropped now.
 > >=20
-> > I kept the TI_ST driver for now, since I plan to send a second patchset=
- for the
-> > FM radio driver. Once the FM driver has been converted to also use hci_=
-ll, we
-> > can remove TI_ST completly.
-> >=20
-> > My suggestion is for the patch handling is, that everything simply goes=
- through
-> > Tony's tree.
+> > Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+> > ---
+> > drivers/bluetooth/Kconfig    |  11 --
+> > drivers/bluetooth/Makefile   |   1 -
+> > drivers/bluetooth/btwilink.c | 337 -----------------------------------
+> > 3 files changed, 349 deletions(-)
+> > delete mode 100644 drivers/bluetooth/btwilink.c
 >=20
-> Sounds good to me, good to see kim gone with patch 3/4 :)
+> patch has been applied to bluetooth-next tree.
 >=20
-> Marcel, care to ack the old driver removal patch?
+> However what I really like to see is that you re-introduce a
+> btwilink driver that is purely serdev based and doesn=E2=80=99t rely on
+> any hci_uart/hci_ldisc code. A clean serdev only driver is that
+> best and easier to maintain long term.
 
-Looks like Marcel missed the extra messages and merged the 4th
-patch, so I guess you can just merge patches 1-3. Technically that
-might lead to temporarily missing BT support on those two devices
-when the BT tree is merged before ARM tree during the merge window.
-Not a big issue I guess.
+So basically move the serdev implementation from hci_ll.c into its
+own driver and make hci_ll hci_uart based only? That effectively
+means, that we have two implementations of the protocol. I don't
+think this will improve maintainability, since then bugs needs to
+be fixed in two places? Note, that we have a couple of drivers
+with serdev+hci_uart by now:
+
+for file in $(grep -l serdev drivers/bluetooth/hci_*c) ; grep -l hci_uart_r=
+egister_proto "${file}"
+hci_bcm.c
+hci_h5.c
+hci_ldisc.c
+hci_ll.c
+hci_mrvl.c
+hci_qca.c
 
 -- Sebastian
 
---sm5ahi5a3wy7vwrr
+--td6khbzgjxudi7vx
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl2sxK0ACgkQ2O7X88g7
-+prIog//SHiTMzn4T99dMKj3MWuzk7SikJRKPSRc4rnLfbXHvx0WAXEADzr/fabi
-8Ek3V2rGN7RUAQmXvkqI2+cUVs/9+EwGjW2NfVvDECrhaitscUuX9IJ7+lQ3Mw4j
-eptrRQkRQtdmlP1ppPL5m8zBqomcGSMZnOwmYMuUA/Sh8968iQkECsqvUKsC5A08
-QpBNlLw+ZQgA8/C7/87ZiBnyQNr/EG+KSQCoKxVg8mt390DA3gMLCwLrbzqznDVB
-Q7ZZpxcRovyuVxDPHqzvHLcCKPWCbPIQ1mToXIGWaAkkzbRBON28UhRed8nvXT5Y
-ctZffUovpG3iXfpg7WmxMqZIf7X7wAHVbDakDIrrqgxn+WCOAUqKQ/kzFwi1P8fE
-sY4TwCTxZDpvGuTVNov+Rt1RMgEesNWT/wCVaLIA3xDSGzbz2hY9xImVrZ7WfFaA
-NelFzGcuNsdok3witPD+pf/kyULA0FE3bjS4yP1vrxqvB4TFkjAayPaTsZmteevA
-DZTKOEToREcx23/D6eXQtL5u+Y0tYlWAqXxGKSqj5NeDnykaRvXHEpyAjENCSza4
-mCAMNGeBLy+EAYhRztWADLKbxqogKNMnvYFmuiXO/GNwHKGOnAW8Dt7njbkipXrx
-k//UTEB3wKEz3zlrnbbfNg01YQP+9DiaBqXsOq1YgMLtVo4A354=
-=xq8e
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl2sypEACgkQ2O7X88g7
++pp5QQ/9HZr+yWBHDmBiphnMo30Xi90YCZ1Ov6RyGhUJWw2lvBcGkkHGCLuk8M/6
+qvfk4YCI7zdqajXZkVSB7+dRp6QWkt4D5+B8ORjDC1zc103auFsIZmdTBn3c/8/O
+Ed5DR6BKdGgtpdYxnsidYb3GJ5oMCHW9emRVJ603nUrbaipJTlEELjtyC8qemPtK
+px9eTLAAD15WLhImFcq3vs9zP6mZV7EkTIgoIYAoUSJ6MQyapAeQbN19WTn7j+i8
+YF3bB9+NCmM6Y2WJtuzBfq8n4B06OqSB8Yx2oNqRAFNlajIk7AnFwdU9JUj8rdYi
+UrPzL+F0jzitbw0ES05xushHWmMXP+0I4XljEcjiq+UUd3/VkYYYegca+gXmTl+4
+9DSQuITzpuhnKKgV7+VnlxIRg21KFrvC5Xib0BkDCYyTJq085hCq7b97aMlK/YJW
+o04C9zu2vlvtFflQ5ENR5T/t7A6mSpUVcwCOme3o2AhhW7rWWrGZAhFhIq2PFxLp
+9uOTquKl+WbW+rZM+Jx9RhrgGPivmEs+zFzV+bNESuLLcPB3v+b865NvRD+ESzZw
+lFMocVKVE6zgwgy5UiX9/43dcBIdaPeSLdcgz1KoTt91ugDEwzLaaBMkeJjZtsdi
+8qcw1yxVVk+sRBf4PgApEwvvaei+KF4AoNE59m4b5OIkZo4+bPQ=
+=OkWc
 -----END PGP SIGNATURE-----
 
---sm5ahi5a3wy7vwrr--
+--td6khbzgjxudi7vx--
