@@ -1,33 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] bus: ti-sysc: Use swsup quirks also for am335x musb
-Date: Mon, 21 Oct 2019 14:22:25 -0700
-Message-ID: <20191021212225.28148-1-tony@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH] MAINTAINERS: Add logicpd-som-lv and logicpd-torpedo to
+ OMAP TREE
+Date: Mon, 21 Oct 2019 16:40:52 -0500
+Message-ID: <CAHCN7xLQvYbY_Pu5hQOO8o+1o8CAVvXq_-RM78Q=jYvtLxtmbg@mail.gmail.com>
+References: <20190923135908.23080-1-aford173@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190923135908.23080-1-aford173@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Also on am335x we need the swsup quirks for musb.
+On Mon, Sep 23, 2019 at 8:59 AM Adam Ford <aford173@gmail.com> wrote:
+>
+> The OMAP DEVICE TREE SUPPORT lists a bunch of device tree files
+> with wildcard names using am3*, am4*, am5*, dra7*, and *omap*.
+> Unfortunately, the LogicPD boards do not follow this convention
+> so changes to these boards don't get automatically flagged to
+> route to the omap mailing list.  After consulting with Tony
+> Lindgren, he agreed it made sense to add these boards to the
+> list.
+>
+> This patch adds the omap based boards to the omap device tree
+> maintainer list.
+>
+> Signed-off-by: Adam Ford <aford173@gmail.com>
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c | 2 ++
- 1 file changed, 2 insertions(+)
+Tony,
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1259,6 +1259,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_MODULE_QUIRK_SGX),
- 	SYSC_QUIRK("usb_otg_hs", 0, 0x400, 0x404, 0x408, 0x00000050,
- 		   0xffffffff, SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
-+	SYSC_QUIRK("usb_otg_hs", 0, 0, 0x10, -1, 0x4ea2080d, 0xffffffff,
-+		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
- 	SYSC_QUIRK("wdt", 0, 0, 0x10, 0x14, 0x502a0500, 0xfffff0f0,
- 		   SYSC_MODULE_QUIRK_WDT),
- 	/* Watchdog on am3 and am4 */
--- 
-2.23.0
+Are you ok with this?  I am not sure who to bug, but I am guessing
+whomever it is will want/need your approval too.
+
+adam
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a50e97a63bc8..0ee89575699c 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -11645,6 +11645,8 @@ F:      arch/arm/boot/dts/*am3*
+>  F:     arch/arm/boot/dts/*am4*
+>  F:     arch/arm/boot/dts/*am5*
+>  F:     arch/arm/boot/dts/*dra7*
+> +F:     arch/arm/boot/dts/logicpd-som-lv*
+> +F:     arch/arm/boot/dts/logicpd-torpedo*
+>
+>  OMAP DISPLAY SUBSYSTEM and FRAMEBUFFER SUPPORT (DSS2)
+>  L:     linux-omap@vger.kernel.org
+> --
+> 2.17.1
+>
