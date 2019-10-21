@@ -1,162 +1,59 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH 1/7] dt-bindings: gpu: pvrsgx: add initial bindings
-Date: Mon, 21 Oct 2019 10:07:51 -0500
-Message-ID: <CAL_Jsq+obsTSU3iP1wm_3-FsAJ4Mxiz0NbMY1_h5NeFn67Sj+A@mail.gmail.com>
-References: <cover.1571424390.git.hns@goldelico.com> <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCHv2 4/4] Bluetooth: btwilink: drop superseded driver
+Date: Mon, 21 Oct 2019 17:14:15 +0200
+Message-ID: <AC376F8D-77F3-4497-94D1-FE25A5ED9337@holtmann.org>
+References: <20191003134147.9458-1-sre@kernel.org>
+ <20191003134147.9458-5-sre@kernel.org>
+ <BC1F82AC-2988-4BC6-99EA-1C9F9289E582@holtmann.org>
+ <20191020205901.56bafijk7cu3rpaj@earth.universe>
+Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3594.4.19\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com>
+In-Reply-To: <20191020205901.56bafijk7cu3rpaj@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 18, 2019 at 1:46 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
->
-> The Imagination PVR/SGX GPU is part of several SoC from
-> multiple vendors, e.g. TI OMAP, Ingenic JZ4780, Intel Poulsbo
-> and others.
->
-> Here we describe how the SGX processor is interfaced to
-> the SoC (registers, interrupt etc.).
->
-> Clock, Reset and power management should be handled
-> by the parent node.
+Hi Sebastian,
 
-That's TI specific.
+>>> All users of this driver have been converted to the serdev based
+>>> hci_ll driver. The unused driver can be safely dropped now.
+>>> 
+>>> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+>>> ---
+>>> drivers/bluetooth/Kconfig    |  11 --
+>>> drivers/bluetooth/Makefile   |   1 -
+>>> drivers/bluetooth/btwilink.c | 337 -----------------------------------
+>>> 3 files changed, 349 deletions(-)
+>>> delete mode 100644 drivers/bluetooth/btwilink.c
+>> 
+>> patch has been applied to bluetooth-next tree.
+>> 
+>> However what I really like to see is that you re-introduce a
+>> btwilink driver that is purely serdev based and doesn’t rely on
+>> any hci_uart/hci_ldisc code. A clean serdev only driver is that
+>> best and easier to maintain long term.
+> 
+> So basically move the serdev implementation from hci_ll.c into its
+> own driver and make hci_ll hci_uart based only? That effectively
+> means, that we have two implementations of the protocol. I don't
+> think this will improve maintainability, since then bugs needs to
+> be fixed in two places? Note, that we have a couple of drivers
+> with serdev+hci_uart by now:
+> 
+> for file in $(grep -l serdev drivers/bluetooth/hci_*c) ; grep -l hci_uart_register_proto "${file}"
+> hci_bcm.c
+> hci_h5.c
+> hci_ldisc.c
+> hci_ll.c
+> hci_mrvl.c
+> hci_qca.c
 
->
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  .../devicetree/bindings/gpu/img,pvrsgx.txt    | 76 +++++++++++++++++++
->  1 file changed, 76 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/gpu/img,pvrsgx.txt
+I would like to have something similar to btmtkuart.c which is a pure serdev driver that doesn’t depend on any hci_ldisc.c framework. If we have this, then we would just drop hci_ll.c from the kernel and focus on the serdev only version. As noted, there is no need for any other driver at that point since everything is probed anyway. Users will not even notice the difference.
 
-Please make this DT schema format.
+Regards
 
-> diff --git a/Documentation/devicetree/bindings/gpu/img,pvrsgx.txt b/Documentation/devicetree/bindings/gpu/img,pvrsgx.txt
-> new file mode 100644
-> index 000000000000..4ad87c075791
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/gpu/img,pvrsgx.txt
-> @@ -0,0 +1,76 @@
-> +Imagination PVR/SGX GPU
-> +
-> +Only the Imagination SGX530, SGX540 and SGX544 GPUs are currently covered by this binding.
-> +
-> +Required properties:
-> +- compatible:  Should be one of
-> +               "img,sgx530-121", "img,sgx530", "ti,omap-omap3-sgx530-121";
-> +                 - BeagleBoard ABC, OpenPandora 600MHz
-> +               "img,sgx530-125", "img,sgx530", "ti,omap-omap3-sgx530-125";
-> +                 - BeagleBoard XM, GTA04, OpenPandora 1GHz
-> +               "img,sgx530-125", "img,sgx530", "ti,omap-am3517-sgx530-125";
-> +               "img,sgx530-125", "img,sgx530", "ti,omap-am335x-sgx530-125";
-> +                 - BeagleBone Black
-> +               "img,sgx540-120", "img,sgx540", "ti,omap-omap4-sgx540-120";
-> +                 - Pandaboard (ES)
-> +               "img,sgx544-112", "img,sgx544", "ti,omap-omap4-sgx544-112";
-> +               "img,sgx544-116", "img,sgx544", "ti,omap-omap5-sgx544-116";
-> +                 - OMAP5 UEVM, Pyra Handheld
-> +               "img,sgx544-116", "img,sgx544", "ti,omap-dra7-sgx544-116";
-
-The order here is wrong. Should be most specific first.
-
-Drop 'omap-' from the compatible.
-
-> +
-> +               For further study:
-> +                       "ti,omap-am3517-sgx530-?"
-> +                       "ti,omap-am43xx-sgx530-?"
-> +                       "ti,ti43xx-sgx"
-> +                       "ti,ti81xx-sgx"
-> +                       "img,jz4780-sgx5??-?"
-> +                       "intel,poulsbo-sgx?"
-> +                       "intel,cedarview-sgx?"
-> +                       "sunxi,sgx-544-?" - Banana-Pi-M3 (Allwinner A83T)
-
-Just drop these.
-
-> +
-> +               The "ti,omap..." entries are needed temporarily to handle SoC
-> +               specific builds of the kernel module.
-> +
-> +               In the long run, only the "img,sgx..." entry should suffice
-> +               to match a generic driver for all architectures and driver
-> +               code can dynamically find out on which SoC it is running.
-
-Drop this. Which compatible an OS matches on is not relevant to the
-binding. And 'temporarily' is wrong as the SoC specific compatible
-strings are what are used for handling errata or other integration
-specific things.
-
-> +
-> +
-> +- reg:         Physical base addresses and lengths of the register areas.
-
-How many?
-
-> +- reg-names:   Names for the register areas.
-
-If only 1 as the example suggests, then you don't need this.
-
-> +- interrupts:  The interrupt numbers.
-> +
-> +Optional properties:
-> +- timer:       the timer to be used by the driver.
-
-Needs a better description and vendor prefix at least.
-
-Why is this needed rather than using the OS's timers?
-
-> +- img,cores:   number of cores. Defaults to <1>.
-
-Not discoverable?
-
-> +
-> +/ {
-> +       ocp {
-> +               sgx_module: target-module@56000000 {
-
-This is TI specific and this binding covers other chips in theory at
-least. This part is outside the scope
-
-> +                       compatible = "ti,sysc-omap4", "ti,sysc";
-> +                       reg = <0x5600fe00 0x4>,
-> +                             <0x5600fe10 0x4>;
-
-How does it work that these registers overlap the GPU registers?
-
-> +                       reg-names = "rev", "sysc";
-> +                       ti,sysc-midle = <SYSC_IDLE_FORCE>,
-> +                                       <SYSC_IDLE_NO>,
-> +                                       <SYSC_IDLE_SMART>;
-> +                       ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-> +                                       <SYSC_IDLE_NO>,
-> +                                       <SYSC_IDLE_SMART>;
-> +                       clocks = <&gpu_clkctrl OMAP5_GPU_CLKCTRL 0>;
-> +                       clock-names = "fck";
-> +                       #address-cells = <1>;
-> +                       #size-cells = <1>;
-> +                       ranges = <0 0x56000000 0x2000000>;
-> +
-> +                       sgx@fe00 {
-
-gpu@...
-
-
-
-> +                               compatible = "img,sgx544-116", "img,sgx544", "ti,omap-omap5-sgx544-116";
-> +                               reg = <0xfe00 0x200>;
-> +                               reg-names = "sgx";
-> +                               interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
-> +                               timer = <&timer11>;
-> +                               img,cores = <2>;
-> +                       };
-> +               };
-> +       };
-> +};
-> --
-> 2.19.1
->
+Marcel
