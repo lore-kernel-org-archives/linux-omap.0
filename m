@@ -1,46 +1,64 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v2 07/11] omap: remove old hsmmc.[ch] and in Makefile
-Date: Mon, 21 Oct 2019 19:07:31 +0200
-Message-ID: <3FDBE28F-B2C5-4EDE-905C-687F601462B6@goldelico.com>
-References: <cover.1571510481.git.hns@goldelico.com> <9bd4c0bb0df26523d7f5265cdb06d86d63dafba8.1571510481.git.hns@goldelico.com> <20191021143008.GS5610@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/7] dt-bindings: gpu: pvrsgx: add initial bindings
+Date: Mon, 21 Oct 2019 10:10:13 -0700
+Message-ID: <20191021171013.GX5610@atomide.com>
+References: <cover.1571424390.git.hns@goldelico.com>
+ <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com>
+ <CAL_Jsq+obsTSU3iP1wm_3-FsAJ4Mxiz0NbMY1_h5NeFn67Sj+A@mail.gmail.com>
+ <CEA29A3B-4116-4FE3-8E18-0C97353688DC@goldelico.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191021143008.GS5610@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <CEA29A3B-4116-4FE3-8E18-0C97353688DC@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>, Kalle Valo <kvalo@codeaurora.org>, Mike Rapoport <rppt@linux.ibm.com>, David Sterba <dsterba@suse.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Petr Mladek <pmladek@suse.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Yangtao Li <tiny.windzz@gmail.com>, Alexios Zavras <alexios.zavras@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, John Stultz <john.stultz@linaro.org>, Bjorn Helgaas <bhelgaas@google.co>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Rob Herring <robh+dt@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-
-> Am 21.10.2019 um 16:30 schrieb Tony Lindgren <tony@atomide.com>:
+* H. Nikolaus Schaller <hns@goldelico.com> [191021 15:46]:
+> > Am 21.10.2019 um 17:07 schrieb Rob Herring <robh+dt@kernel.org>:
+> > On Fri, Oct 18, 2019 at 1:46 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
+> >> +- reg:         Physical base addresses and lengths of the register areas.
+> > 
+> > How many?
 > 
-> * H. Nikolaus Schaller <hns@goldelico.com> [191019 18:43]:
->> --- a/arch/arm/mach-omap2/Makefile
->> +++ b/arch/arm/mach-omap2/Makefile
->> @@ -216,7 +216,6 @@ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
->> 
->> # Platform specific device init code
->> 
->> -omap-hsmmc-$(CONFIG_MMC_OMAP_HS)	:= hsmmc.o
->> obj-y					+= $(omap-hsmmc-m) $(omap-hsmmc-y)
+> I assume there is only one. At least it suffices to make the existing
+> driver work with it.
 > 
-> The related obj-y line can go now too, right?
+> > 
+> >> +- reg-names:   Names for the register areas.
+> > 
+> > If only 1 as the example suggests, then you don't need this.
+> 
+> ok.
 
-Yes, I think so. It is a construction that I have never seen before :)
-Therefore I did not recognize that it is related.
+My guess is that sgx is just a private interconnect instance
+with few control modules like mmu and clocks, and the driver(s)
+should consist of independent modules like iommu and clock
+driver.
 
-> And looks like common.h also has struct omap2_hsmmc_info
-> so maybe check by grepping for hsmmc_info to see it's gone.
+So yeah I agree, it's best to leave reg names out of the
+dts at least for now.
 
-Yes, it is just a forward-declaration of the struct name with
-no user anywhere.
+> >> +                       compatible = "ti,sysc-omap4", "ti,sysc";
+> >> +                       reg = <0x5600fe00 0x4>,
+> >> +                             <0x5600fe10 0x4>;
+> > 
+> > How does it work that these registers overlap the GPU registers?
+> 
+> Both drivers have access to these registers. Likely, the gpu driver
+> ignores them and does access other ranges.
 
-Scheduled for v3.
+Unfortunately TI is stuffing the interconnect target module
+control registers at random places within the unused register
+space of the child module(s). So the module control registers
+are all over the map at various offsets.
 
-BTW: should this series go through your tree since it is an
-omap machine?
+Adding holes for each module control register to the child nodes
+seems like an overkill to work around this IMO. Especially
+considering many drivers only understand one IO range currently.
 
-BR and thanks,
-Nikolaus
+Regards,
+
+Tony
