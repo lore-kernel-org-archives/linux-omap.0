@@ -1,54 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] dt-bindings: gpu: pvrsgx: add initial bindings
-Date: Mon, 21 Oct 2019 10:25:57 -0700
-Message-ID: <20191021172557.GB5610@atomide.com>
-References: <cover.1571424390.git.hns@goldelico.com>
- <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com>
- <CAL_Jsq+obsTSU3iP1wm_3-FsAJ4Mxiz0NbMY1_h5NeFn67Sj+A@mail.gmail.com>
- <CEA29A3B-4116-4FE3-8E18-0C97353688DC@goldelico.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: make dra7xx_sha0_hwmod static
+Date: Mon, 21 Oct 2019 10:35:33 -0700
+Message-ID: <20191021173533.GD5610@atomide.com>
+References: <20191009085646.21755-1-ben.dooks@codethink.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CEA29A3B-4116-4FE3-8E18-0C97353688DC@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Rob Herring <robh+dt@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
+In-Reply-To: <20191009085646.21755-1-ben.dooks@codethink.co.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: linux-kernel@lists.codethink.co.uk, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* H. Nikolaus Schaller <hns@goldelico.com> [191021 15:46]:
-> > Am 21.10.2019 um 17:07 schrieb Rob Herring <robh+dt@kernel.org>:
-> > On Fri, Oct 18, 2019 at 1:46 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
-> >> +Optional properties:
-> >> +- timer:       the timer to be used by the driver.
-> > 
-> > Needs a better description and vendor prefix at least.
+* Ben Dooks <ben.dooks@codethink.co.uk> [191009 01:57]:
+> The dra7xx_sha0_hwmod object is not exported outside of
+> omap_hwmod_7xx_data. so make it static to avoid the
+> following warning:
 > 
-> I am not yet sure if it is vendor specific or if all
-> SGX implementations need some timer.
-> 
-> > 
-> > Why is this needed rather than using the OS's timers?
-> 
-> Because nobody understands the current (out of tree and
-> planned for staging) driver well enough what the timer
-> is doing. It is currently hard coded that some omap refer
-> to timer7 and others use timer11.
+> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:686:19: warning: symbol 'dra7xx_sha0_hwmod' was not declared. Should it be static?
 
-Just configure it in the driver based on the compatible
-value to keep it out of the dts. It's best to stick to
-standard bindings.
-
-> >> +- img,cores:   number of cores. Defaults to <1>.
-> > 
-> > Not discoverable?
-> 
-> Not sure if it is. This is probably available in undocumented
-> registers of the sgx.
-
-This too, and whatever non-standrd other properities
-you might have.
-
-Regards,
+Applying into omap-for-v5.5/soc thanks.
 
 Tony
