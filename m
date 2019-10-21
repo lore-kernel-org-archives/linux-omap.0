@@ -1,61 +1,162 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] clk/ti/adpll: allocate room for terminating null
-Date: Mon, 21 Oct 2019 07:31:10 -0700
-Message-ID: <20191021143110.GT5610@atomide.com>
-References: <20191019155441.2b1b349f@heffalump.sk2.org>
- <20191019140634.15596-1-steve@sk2.org>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH 1/7] dt-bindings: gpu: pvrsgx: add initial bindings
+Date: Mon, 21 Oct 2019 10:07:51 -0500
+Message-ID: <CAL_Jsq+obsTSU3iP1wm_3-FsAJ4Mxiz0NbMY1_h5NeFn67Sj+A@mail.gmail.com>
+References: <cover.1571424390.git.hns@goldelico.com> <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191019140634.15596-1-steve@sk2.org>
+In-Reply-To: <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Kitt <steve@sk2.org>
-Cc: Stephen Boyd <sboyd@kernel.org>, Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-* Stephen Kitt <steve@sk2.org> [191019 14:07]:
-> The buffer allocated in ti_adpll_clk_get_name doesn't account for the
-> terminating null. This patch switches to devm_kasprintf to avoid
-> overflowing.
-> 
-> Signed-off-by: Stephen Kitt <steve@sk2.org>
-> ---
-> Changes since v2:
->   - Move "adpll" into the format string and drop base_name entirely.
-> 
-> Changes since v1:
->   - Use devm_kasprintf instead of manually allocating the target
->     buffer.
+On Fri, Oct 18, 2019 at 1:46 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
+>
+> The Imagination PVR/SGX GPU is part of several SoC from
+> multiple vendors, e.g. TI OMAP, Ingenic JZ4780, Intel Poulsbo
+> and others.
+>
+> Here we describe how the SGX processor is interfaced to
+> the SoC (registers, interrupt etc.).
+>
+> Clock, Reset and power management should be handled
+> by the parent node.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+That's TI specific.
 
+>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 > ---
->  drivers/clk/ti/adpll.c | 11 ++---------
->  1 file changed, 2 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
-> index fdfb90058504..bb2f2836dab2 100644
-> --- a/drivers/clk/ti/adpll.c
-> +++ b/drivers/clk/ti/adpll.c
-> @@ -194,15 +194,8 @@ static const char *ti_adpll_clk_get_name(struct ti_adpll_data *d,
->  		if (err)
->  			return NULL;
->  	} else {
-> -		const char *base_name = "adpll";
-> -		char *buf;
-> -
-> -		buf = devm_kzalloc(d->dev, 8 + 1 + strlen(base_name) + 1 +
-> -				    strlen(postfix), GFP_KERNEL);
-> -		if (!buf)
-> -			return NULL;
-> -		sprintf(buf, "%08lx.%s.%s", d->pa, base_name, postfix);
-> -		name = buf;
-> +		name = devm_kasprintf(d->dev, GFP_KERNEL, "%08lx.adpll.%s",
-> +				      d->pa, postfix);
->  	}
->  
->  	return name;
-> -- 
-> 2.20.1
-> 
+>  .../devicetree/bindings/gpu/img,pvrsgx.txt    | 76 +++++++++++++++++++
+>  1 file changed, 76 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/gpu/img,pvrsgx.txt
+
+Please make this DT schema format.
+
+> diff --git a/Documentation/devicetree/bindings/gpu/img,pvrsgx.txt b/Documentation/devicetree/bindings/gpu/img,pvrsgx.txt
+> new file mode 100644
+> index 000000000000..4ad87c075791
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/gpu/img,pvrsgx.txt
+> @@ -0,0 +1,76 @@
+> +Imagination PVR/SGX GPU
+> +
+> +Only the Imagination SGX530, SGX540 and SGX544 GPUs are currently covered by this binding.
+> +
+> +Required properties:
+> +- compatible:  Should be one of
+> +               "img,sgx530-121", "img,sgx530", "ti,omap-omap3-sgx530-121";
+> +                 - BeagleBoard ABC, OpenPandora 600MHz
+> +               "img,sgx530-125", "img,sgx530", "ti,omap-omap3-sgx530-125";
+> +                 - BeagleBoard XM, GTA04, OpenPandora 1GHz
+> +               "img,sgx530-125", "img,sgx530", "ti,omap-am3517-sgx530-125";
+> +               "img,sgx530-125", "img,sgx530", "ti,omap-am335x-sgx530-125";
+> +                 - BeagleBone Black
+> +               "img,sgx540-120", "img,sgx540", "ti,omap-omap4-sgx540-120";
+> +                 - Pandaboard (ES)
+> +               "img,sgx544-112", "img,sgx544", "ti,omap-omap4-sgx544-112";
+> +               "img,sgx544-116", "img,sgx544", "ti,omap-omap5-sgx544-116";
+> +                 - OMAP5 UEVM, Pyra Handheld
+> +               "img,sgx544-116", "img,sgx544", "ti,omap-dra7-sgx544-116";
+
+The order here is wrong. Should be most specific first.
+
+Drop 'omap-' from the compatible.
+
+> +
+> +               For further study:
+> +                       "ti,omap-am3517-sgx530-?"
+> +                       "ti,omap-am43xx-sgx530-?"
+> +                       "ti,ti43xx-sgx"
+> +                       "ti,ti81xx-sgx"
+> +                       "img,jz4780-sgx5??-?"
+> +                       "intel,poulsbo-sgx?"
+> +                       "intel,cedarview-sgx?"
+> +                       "sunxi,sgx-544-?" - Banana-Pi-M3 (Allwinner A83T)
+
+Just drop these.
+
+> +
+> +               The "ti,omap..." entries are needed temporarily to handle SoC
+> +               specific builds of the kernel module.
+> +
+> +               In the long run, only the "img,sgx..." entry should suffice
+> +               to match a generic driver for all architectures and driver
+> +               code can dynamically find out on which SoC it is running.
+
+Drop this. Which compatible an OS matches on is not relevant to the
+binding. And 'temporarily' is wrong as the SoC specific compatible
+strings are what are used for handling errata or other integration
+specific things.
+
+> +
+> +
+> +- reg:         Physical base addresses and lengths of the register areas.
+
+How many?
+
+> +- reg-names:   Names for the register areas.
+
+If only 1 as the example suggests, then you don't need this.
+
+> +- interrupts:  The interrupt numbers.
+> +
+> +Optional properties:
+> +- timer:       the timer to be used by the driver.
+
+Needs a better description and vendor prefix at least.
+
+Why is this needed rather than using the OS's timers?
+
+> +- img,cores:   number of cores. Defaults to <1>.
+
+Not discoverable?
+
+> +
+> +/ {
+> +       ocp {
+> +               sgx_module: target-module@56000000 {
+
+This is TI specific and this binding covers other chips in theory at
+least. This part is outside the scope
+
+> +                       compatible = "ti,sysc-omap4", "ti,sysc";
+> +                       reg = <0x5600fe00 0x4>,
+> +                             <0x5600fe10 0x4>;
+
+How does it work that these registers overlap the GPU registers?
+
+> +                       reg-names = "rev", "sysc";
+> +                       ti,sysc-midle = <SYSC_IDLE_FORCE>,
+> +                                       <SYSC_IDLE_NO>,
+> +                                       <SYSC_IDLE_SMART>;
+> +                       ti,sysc-sidle = <SYSC_IDLE_FORCE>,
+> +                                       <SYSC_IDLE_NO>,
+> +                                       <SYSC_IDLE_SMART>;
+> +                       clocks = <&gpu_clkctrl OMAP5_GPU_CLKCTRL 0>;
+> +                       clock-names = "fck";
+> +                       #address-cells = <1>;
+> +                       #size-cells = <1>;
+> +                       ranges = <0 0x56000000 0x2000000>;
+> +
+> +                       sgx@fe00 {
+
+gpu@...
+
+
+
+> +                               compatible = "img,sgx544-116", "img,sgx544", "ti,omap-omap5-sgx544-116";
+> +                               reg = <0xfe00 0x200>;
+> +                               reg-names = "sgx";
+> +                               interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
+> +                               timer = <&timer11>;
+> +                               img,cores = <2>;
+> +                       };
+> +               };
+> +       };
+> +};
+> --
+> 2.19.1
+>
