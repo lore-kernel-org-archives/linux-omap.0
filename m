@@ -1,37 +1,24 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: Re: [Patch 0/3] ARM: dts: dra7: add vpe nodes
-Date: Tue, 22 Oct 2019 11:33:19 -0500
-Message-ID: <20191022163319.ceb5wkwabw3w3kou@ti.com>
-References: <20191009175628.20570-1-bparrot@ti.com>
- <20191022162720.yile7i4qwxgbuuou@ti.com>
- <20191022163048.GY5610@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 10/10] ARM: dts: omap: Rename "ocmcram" node to "sram"
+Date: Tue, 22 Oct 2019 09:35:50 -0700
+Message-ID: <20191022163550.GB5610@atomide.com>
+References: <20191002164316.14905-1-krzk@kernel.org>
+ <20191002164316.14905-10-krzk@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191022163048.GY5610@atomide.com>
+In-Reply-To: <20191002164316.14905-10-krzk@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Kukjin Kim <kgene@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-sam
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 09:30:48 -0700]:
-> * Benoit Parrot <bparrot@ti.com> [191022 16:28]:
-> > Tony,
-> > 
-> > Ping,
-> > 
-> > I already had comments from Rob but i would like your feedback before
-> > sending a v2.
-> 
-> Looks good to me in general other than what Rob commented
-> on. Did not spot any node naming issues here :)
+* Krzysztof Kozlowski <krzk@kernel.org> [191002 09:45]:
+> The device node name should reflect generic class of a device so rename
+> the "ocmcram" node to "sram".  This will be also in sync with upcoming DT
+> schema.  No functional change.
 
-Would I need to split off the clk*.c/.h as well here though?
+Applying this into omap-for-v5.5/dt thanks.
 
-Benoit
-
-> 
-> Regards,
-> 
-> Tony
+Tony
