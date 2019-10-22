@@ -1,42 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: ams-delta FIQ: Fix a typo ("Initiaize")
-Date: Tue, 22 Oct 2019 09:10:16 -0700
-Message-ID: <20191022161016.GS5610@atomide.com>
-References: <20191002145301.11332-1-j.neuschaefer@gmx.net>
+From: Benoit Parrot <bparrot@ti.com>
+Subject: Re: [Patch 1/9] ARM: dts: dra7: add cam clkctrl node
+Date: Tue, 22 Oct 2019 11:13:13 -0500
+Message-ID: <20191022161313.nzwovtxipibpvwpf@ti.com>
+References: <20191018154849.3127-1-bparrot@ti.com>
+ <20191018154849.3127-2-bparrot@ti.com>
+ <20191022154012.GM5610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191002145301.11332-1-j.neuschaefer@gmx.net>
+In-Reply-To: <20191022154012.GM5610@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan =?utf-8?Q?Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>
-Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Jonathan Neuschäfer <j.neuschaefer@gmx.net> [191002 07:54]:
-> Signed-off-by: Jonathan Neuschäfer <j.neuschaefer@gmx.net>
-> ---
->  arch/arm/mach-omap1/ams-delta-fiq.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 08:40:12 -0700]:
+> * Benoit Parrot <bparrot@ti.com> [191018 15:46]:
+> > Add clkctrl nodes for CAM domain.
 > 
-> diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
-> index 0254eb9cf8c6..4eea3e39e633 100644
-> --- a/arch/arm/mach-omap1/ams-delta-fiq.c
-> +++ b/arch/arm/mach-omap1/ams-delta-fiq.c
-> @@ -110,7 +110,7 @@ void __init ams_delta_init_fiq(struct gpio_chip *chip,
+> You're missing the Linux clk folks and list from Cc, can
+> you please resend?
+
+Sure.
+
 > 
->  		/*
->  		 * FIQ handler takes full control over serio data and clk GPIO
-> -		 * pins.  Initiaize them and keep requested so nobody can
-> +		 * pins.  Initialize them and keep requested so nobody can
->  		 * interfere.  Fail if any of those two couldn't be requested.
->  		 */
->  		switch (i) {
-> --
+> I need an ack for the clk-7xx.c changes if I'm to apply
+> this patch.
+> 
+> Probably the best way would be for tero to collect
+> all the drivers/clk/ti clock data changes and provide
+> an immutable branch with those that I can merge too.
 
-Thanks applying into omap-for-v5.5/omap1.
+So I assume then that the clk*.c and header file changes should be split in
+a separate patch?
 
-Regards,
+Tero,
+Let me know how youo would like to proceed.
 
-Tony
+Benoit
+
+> 
+> That way the related dts changes can be applied on
+> top of it with things working.
+> 
+> Regards,
+> 
+> Tony
