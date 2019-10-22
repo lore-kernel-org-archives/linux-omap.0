@@ -1,48 +1,59 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: Re: [Patch 1/9] ARM: dts: dra7: add cam clkctrl node
-Date: Tue, 22 Oct 2019 11:13:13 -0500
-Message-ID: <20191022161313.nzwovtxipibpvwpf@ti.com>
-References: <20191018154849.3127-1-bparrot@ti.com>
- <20191018154849.3127-2-bparrot@ti.com>
- <20191022154012.GM5610@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 1/7] dt-bindings: gpu: pvrsgx: add initial bindings
+Date: Tue, 22 Oct 2019 18:14:38 +0200
+Message-ID: <8FCDC0F6-7734-4629-9646-7BEED89FEF25@goldelico.com>
+References: <cover.1571424390.git.hns@goldelico.com> <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com> <CAL_Jsq+obsTSU3iP1wm_3-FsAJ4Mxiz0NbMY1_h5NeFn67Sj+A@mail.gmail.com> <CEA29A3B-4116-4FE3-8E18-0C97353688DC@goldelico.com> <20191021172557.GB5610@atomide.com> <C6CD5A50-7F0A-4F56-ABB9-CAEDF7E47A5D@goldelico.com> <20191022150202.GJ5610@atomide.com> <CC62CE92-28DF-406E-B61C-22F8F341AAFB@goldelico.com> <20191022153650.GL5610@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191022154012.GM5610@atomide.com>
+In-Reply-To: <20191022153650.GL5610@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 08:40:12 -0700]:
-> * Benoit Parrot <bparrot@ti.com> [191018 15:46]:
-> > Add clkctrl nodes for CAM domain.
+
+> Am 22.10.2019 um 17:36 schrieb Tony Lindgren <tony@atomide.com>:
 > 
-> You're missing the Linux clk folks and list from Cc, can
-> you please resend?
-
-Sure.
-
+> * H. Nikolaus Schaller <hns@goldelico.com> [191022 15:12]:
+>> Hm. How should that work? Some SoC have the sgx544 as single
+>> core and others as dual core. This imho does not fit into
+>> the "img,sgx544-$revision" scheme which could be matched to.
 > 
-> I need an ack for the clk-7xx.c changes if I'm to apply
-> this patch.
-> 
-> Probably the best way would be for tero to collect
-> all the drivers/clk/ti clock data changes and provide
-> an immutable branch with those that I can merge too.
+> Well don't you have then just two separate child nodes,
+> one for each core with their own register range?
 
-So I assume then that the clk*.c and header file changes should be split in
-a separate patch?
-
-Tero,
-Let me know how youo would like to proceed.
-
-Benoit
+Doesn't look so. AFAIK the architecture of SGX is that there
+is a single scheduler which is accessed by the register range
+and it internally has control over multiple cores.
 
 > 
-> That way the related dts changes can be applied on
-> top of it with things working.
+> That is assuming they're really separate instances..
+
+No. There is some internal magic in the driver. It just
+needs to know that there is one or two nodes. Currently
+this is handled by some #define option when calling the
+inner Makefile.
+
+My idea was to replace the #ifdef by checking for the
+img,cores property.
+
+> 
+>> But maybe we do it the same as with the timer for the moment,
+>> i.e. keep it in some unpublished patch set.
+> 
+> Yeah makes sense to me until things get sorted out.
+> 
+>> At the moment I have more problems understanding how the yaml
+>> thing works. I understand and fully support the overall goal,
+>> but it is quite difficult to get a start here. And there do not
+>> seem to be tools or scripts to help converting from old style
+>> text format (even if not perfect, this would be helpful) and
+>> I have no yaml editor that helps keeping the indentation
+>> correct. So this slows down a v2 a little bit.
+> 
+> Sounds handy to me :)
 > 
 > Regards,
 > 
