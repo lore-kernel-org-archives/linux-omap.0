@@ -1,59 +1,59 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 1/7] dt-bindings: gpu: pvrsgx: add initial bindings
-Date: Tue, 22 Oct 2019 18:14:38 +0200
-Message-ID: <8FCDC0F6-7734-4629-9646-7BEED89FEF25@goldelico.com>
-References: <cover.1571424390.git.hns@goldelico.com> <f0fb68dc7bc027e5e911721852f6bc6fa2d77a63.1571424390.git.hns@goldelico.com> <CAL_Jsq+obsTSU3iP1wm_3-FsAJ4Mxiz0NbMY1_h5NeFn67Sj+A@mail.gmail.com> <CEA29A3B-4116-4FE3-8E18-0C97353688DC@goldelico.com> <20191021172557.GB5610@atomide.com> <C6CD5A50-7F0A-4F56-ABB9-CAEDF7E47A5D@goldelico.com> <20191022150202.GJ5610@atomide.com> <CC62CE92-28DF-406E-B61C-22F8F341AAFB@goldelico.com> <20191022153650.GL5610@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Benoit Parrot <bparrot@ti.com>
+Subject: Re: [Patch 5/9] arm: dts: dra72-evm-common: Add entries for the CSI2
+ cameras
+Date: Tue, 22 Oct 2019 11:16:20 -0500
+Message-ID: <20191022161620.pnxrmbhucyvh6swr@ti.com>
+References: <20191018154849.3127-1-bparrot@ti.com>
+ <20191018154849.3127-6-bparrot@ti.com>
+ <20191022154446.GN5610@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191022153650.GL5610@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20191022154446.GN5610@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
+Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 08:44:46 -0700]:
+> * Benoit Parrot <bparrot@ti.com> [191018 15:46]:
+> > Add device nodes for CSI2 camera board OV5640.
+> > Add the CAL port nodes with the necessary linkage to the ov5640 nodes.
+> > 
+> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> > ---
+> >  arch/arm/boot/dts/dra72-evm-common.dtsi | 35 +++++++++++++++++++++++++
+> >  1 file changed, 35 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+> > index 8641a3d7d8ad..e4c01a67f6de 100644
+> > --- a/arch/arm/boot/dts/dra72-evm-common.dtsi
+> > +++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+> > @@ -187,6 +187,12 @@
+> >  		gpio = <&gpio5 8 GPIO_ACTIVE_HIGH>;
+> >  		enable-active-high;
+> >  	};
+> > +
+> > +	clk_ov5640_fixed: clk_ov5640_fixed {
+> > +		compatible = "fixed-clock";
+> > +		#clock-cells = <0>;
+> > +		clock-frequency = <24000000>;
+> > +	};
+> >  };
+> 
+> The clock node name should be generic and not use
+> undescores. If there is a hidden dependency to the
+> clock node name here, it should be mentioned in the
+> patch for the non-standard use.
 
-> Am 22.10.2019 um 17:36 schrieb Tony Lindgren <tony@atomide.com>:
-> 
-> * H. Nikolaus Schaller <hns@goldelico.com> [191022 15:12]:
->> Hm. How should that work? Some SoC have the sgx544 as single
->> core and others as dual core. This imho does not fit into
->> the "img,sgx544-$revision" scheme which could be matched to.
-> 
-> Well don't you have then just two separate child nodes,
-> one for each core with their own register range?
+Not sure what you mean by generic, here.
+This is just to provide a "clock" node which gives the "value" of the fixed
+oscillator frequency so driver can get to it, the actual name does not
+matter.
 
-Doesn't look so. AFAIK the architecture of SGX is that there
-is a single scheduler which is accessed by the register range
-and it internally has control over multiple cores.
+Benoit
 
-> 
-> That is assuming they're really separate instances..
-
-No. There is some internal magic in the driver. It just
-needs to know that there is one or two nodes. Currently
-this is handled by some #define option when calling the
-inner Makefile.
-
-My idea was to replace the #ifdef by checking for the
-img,cores property.
-
-> 
->> But maybe we do it the same as with the timer for the moment,
->> i.e. keep it in some unpublished patch set.
-> 
-> Yeah makes sense to me until things get sorted out.
-> 
->> At the moment I have more problems understanding how the yaml
->> thing works. I understand and fully support the overall goal,
->> but it is quite difficult to get a start here. And there do not
->> seem to be tools or scripts to help converting from old style
->> text format (even if not perfect, this would be helpful) and
->> I have no yaml editor that helps keeping the indentation
->> correct. So this slows down a v2 a little bit.
-> 
-> Sounds handy to me :)
 > 
 > Regards,
 > 
