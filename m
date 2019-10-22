@@ -1,53 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch 0/3] ARM: dts: dra7: add vpe nodes
-Date: Tue, 22 Oct 2019 09:46:36 -0700
-Message-ID: <20191022164636.GD5610@atomide.com>
-References: <20191009175628.20570-1-bparrot@ti.com>
- <20191022162720.yile7i4qwxgbuuou@ti.com>
- <20191022163048.GY5610@atomide.com>
- <20191022163319.ceb5wkwabw3w3kou@ti.com>
- <20191022163754.GC5610@atomide.com>
- <20191022164429.4hcyrnmtvklfd4oq@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [Patch 1/3] ARM: dts: am43xx: add support for clkout1 clock
+Date: Tue, 22 Oct 2019 19:47:39 +0300
+Message-ID: <586dcabb-0400-50d6-5488-16bddc059286@ti.com>
+References: <20191016184954.14048-1-bparrot@ti.com>
+ <20191016184954.14048-2-bparrot@ti.com> <20191022154816.GO5610@atomide.com>
+ <20191022162134.fpawonjdjvd5kxza@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191022164429.4hcyrnmtvklfd4oq@ti.com>
+In-Reply-To: <20191022162134.fpawonjdjvd5kxza@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Parrot <bparrot@ti.com> [191022 16:45]:
-> Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 09:37:54 -0700]:
-> > * Benoit Parrot <bparrot@ti.com> [191022 16:34]:
-> > > Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 09:30:48 -0700]:
-> > > > * Benoit Parrot <bparrot@ti.com> [191022 16:28]:
-> > > > > Tony,
-> > > > > 
-> > > > > Ping,
-> > > > > 
-> > > > > I already had comments from Rob but i would like your feedback before
-> > > > > sending a v2.
-> > > > 
-> > > > Looks good to me in general other than what Rob commented
-> > > > on. Did not spot any node naming issues here :)
-> > > 
-> > > Would I need to split off the clk*.c/.h as well here though?
-> > 
-> > Yeah please do patches with just drivers/clk/ti and
-> > include/dt-bindings/clock changes in them. then Tero
-> > can queue them into an immutable branch that I can merge
-> > in too and use as a base for the dts changes.
+On 22/10/2019 19:21, Benoit Parrot wrote:
+> Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 08:48:16 -0700]:
+>> * Benoit Parrot <bparrot@ti.com> [191016 18:47]:
+>>> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> @@ -704,6 +704,60 @@
+>>>   		ti,bit-shift = <8>;
+>>>   		reg = <0x2a48>;
+>>>   	};
+>>> +
+>>> +	clkout1_osc_div_ck: clkout1_osc_div_ck {
+>>> +		#clock-cells = <0>;
+>>> +		compatible = "ti,divider-clock";
+>>> +		clocks = <&sys_clkin_ck>;
+>>> +		ti,bit-shift = <20>;
+>>> +		ti,max-div = <4>;
+>>> +		reg = <0x4100>;
+>>> +	};
+>>
+>> Here too please describe why the clock names are not generic.
 > 
-> Although the .h is in include/dt-binding. Does it still belong in the same
-> patch as drivers/clk/ti/clk-7xx.c then?
+> Tero originally had this patch in the kernel so this is somewhat of a
+> revert. Since these "clock" were removed. If the name syntax is no longer
+> valid for some reason, then I will need a little more informations to
+> proceed.
 > 
-> Just making sure....
+> Tero, can you assist here?
 
-Yes if it's needed to compile the drivers/clk/ti patch.
-Otherwise it can stay with the dts changes.
+This one is just following the naming convention of the rest of the 
+clocks atm.
 
-Regards,
+If we need to fix all the underscore name clocks, that requires pretty 
+much complete revamp of both the dts data + clock data under the clock 
+driver, and it is not backwards compatible either. How should we tackle 
+that one?
 
-Tony
+We could maybe add support code in kernel to do s/-/_/g for the "new" 
+clocks so that their parent-child relationships would be retained, and 
+then convert the clocks in phases.
+
+-Tero
+
+> 
+> Benoit
+> 
+>>
+>> Regards,
+>>
+>> Tony
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
