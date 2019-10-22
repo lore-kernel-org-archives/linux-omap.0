@@ -1,49 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch 5/9] arm: dts: dra72-evm-common: Add entries for the CSI2
- cameras
-Date: Tue, 22 Oct 2019 08:44:46 -0700
-Message-ID: <20191022154446.GN5610@atomide.com>
-References: <20191018154849.3127-1-bparrot@ti.com>
- <20191018154849.3127-6-bparrot@ti.com>
+Subject: Re: [Patch 1/3] ARM: dts: am43xx: add support for clkout1 clock
+Date: Tue, 22 Oct 2019 08:48:16 -0700
+Message-ID: <20191022154816.GO5610@atomide.com>
+References: <20191016184954.14048-1-bparrot@ti.com>
+ <20191016184954.14048-2-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191018154849.3127-6-bparrot@ti.com>
+In-Reply-To: <20191016184954.14048-2-bparrot@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Benoit Parrot <bparrot@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Parrot <bparrot@ti.com> [191018 15:46]:
-> Add device nodes for CSI2 camera board OV5640.
-> Add the CAL port nodes with the necessary linkage to the ov5640 nodes.
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> ---
->  arch/arm/boot/dts/dra72-evm-common.dtsi | 35 +++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-> index 8641a3d7d8ad..e4c01a67f6de 100644
-> --- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-> @@ -187,6 +187,12 @@
->  		gpio = <&gpio5 8 GPIO_ACTIVE_HIGH>;
->  		enable-active-high;
+* Benoit Parrot <bparrot@ti.com> [191016 18:47]:
+> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> @@ -704,6 +704,60 @@
+>  		ti,bit-shift = <8>;
+>  		reg = <0x2a48>;
 >  	};
 > +
-> +	clk_ov5640_fixed: clk_ov5640_fixed {
-> +		compatible = "fixed-clock";
+> +	clkout1_osc_div_ck: clkout1_osc_div_ck {
 > +		#clock-cells = <0>;
-> +		clock-frequency = <24000000>;
+> +		compatible = "ti,divider-clock";
+> +		clocks = <&sys_clkin_ck>;
+> +		ti,bit-shift = <20>;
+> +		ti,max-div = <4>;
+> +		reg = <0x4100>;
 > +	};
->  };
 
-The clock node name should be generic and not use
-undescores. If there is a hidden dependency to the
-clock node name here, it should be mentioned in the
-patch for the non-standard use.
+Here too please describe why the clock names are not generic.
 
 Regards,
 
