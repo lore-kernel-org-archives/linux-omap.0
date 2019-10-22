@@ -1,55 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] configs: ARM: omap2plus: Enable OMAP3_THERMAL
-Date: Tue, 22 Oct 2019 09:22:23 -0700
-Message-ID: <20191022162223.GU5610@atomide.com>
-References: <20191007220540.30690-1-aford173@gmail.com>
+Subject: Re: [Patch 5/9] arm: dts: dra72-evm-common: Add entries for the CSI2
+ cameras
+Date: Tue, 22 Oct 2019 09:27:39 -0700
+Message-ID: <20191022162739.GW5610@atomide.com>
+References: <20191018154849.3127-1-bparrot@ti.com>
+ <20191018154849.3127-6-bparrot@ti.com>
+ <20191022154446.GN5610@atomide.com>
+ <20191022161620.pnxrmbhucyvh6swr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191007220540.30690-1-aford173@gmail.com>
+In-Reply-To: <20191022161620.pnxrmbhucyvh6swr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: linux-omap@vger.kernel.org, adam.ford@logicpd.com, hns@goldelico.com, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Adam Ford <aford173@gmail.com> [191007 15:06]:
-> The some in the OMAP3 family have a bandgap thermal sensor, but
-> omap2plus has it disabled.
+* Benoit Parrot <bparrot@ti.com> [191022 16:17]:
+> Tony Lindgren <tony@atomide.com> wrote on Tue [2019-Oct-22 08:44:46 -0700]:
+> > * Benoit Parrot <bparrot@ti.com> [191018 15:46]:
+> > > Add device nodes for CSI2 camera board OV5640.
+> > > Add the CAL port nodes with the necessary linkage to the ov5640 nodes.
+> > > 
+> > > Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> > > ---
+> > >  arch/arm/boot/dts/dra72-evm-common.dtsi | 35 +++++++++++++++++++++++++
+> > >  1 file changed, 35 insertions(+)
+> > > 
+> > > diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+> > > index 8641a3d7d8ad..e4c01a67f6de 100644
+> > > --- a/arch/arm/boot/dts/dra72-evm-common.dtsi
+> > > +++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+> > > @@ -187,6 +187,12 @@
+> > >  		gpio = <&gpio5 8 GPIO_ACTIVE_HIGH>;
+> > >  		enable-active-high;
+> > >  	};
+> > > +
+> > > +	clk_ov5640_fixed: clk_ov5640_fixed {
+> > > +		compatible = "fixed-clock";
+> > > +		#clock-cells = <0>;
+> > > +		clock-frequency = <24000000>;
+> > > +	};
+> > >  };
+> > 
+> > The clock node name should be generic and not use
+> > undescores. If there is a hidden dependency to the
+> > clock node name here, it should be mentioned in the
+> > patch for the non-standard use.
 > 
-> This patch enables the OMAP3_THERMAL by default like the rest of
-> the OMAP family.
+> Not sure what you mean by generic, here.
+> This is just to provide a "clock" node which gives the "value" of the fixed
+> oscillator frequency so driver can get to it, the actual name does not
+> matter.
 
-Looks like this breaks off mode during idle for omap3, and that's
-probably why it never got enabled. The difference in power
-consumption during idle is about 7mW vs 32mW for the SoC as
-measured from torpedo shunt for main_battery_som.
+Oh just something like:
 
-I think the right fix might be simply to add handling for
-CPU_CLUSTER_PM_ENTER to the related thermal driver to disable
-it during idle like we have for gpio-omap.c for example.
+	clk_ov5640_fixed: clock@foo {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;
+	};
+
+Or just clock if the only instance and no reg?
+
+We currently get tons of warnings for TI clocks, that's
+thousands of lines because of non-standard naming and
+use of undescore instead of dash for the naming.. Let's
+not add more.
 
 Regards,
 
 Tony
-
-> 
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 8f1c2b6f9e56..7e14a8c8bb29 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -292,6 +292,7 @@ CONFIG_THERMAL_GOV_FAIR_SHARE=y
->  CONFIG_THERMAL_GOV_USER_SPACE=y
->  CONFIG_CPU_THERMAL=y
->  CONFIG_TI_THERMAL=y
-> +CONFIG_OMAP3_THERMAL=y
->  CONFIG_OMAP4_THERMAL=y
->  CONFIG_OMAP5_THERMAL=y
->  CONFIG_DRA752_THERMAL=y
-> -- 
-> 2.17.1
-> 
