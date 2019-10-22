@@ -1,56 +1,56 @@
-From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 07/11] omap: remove old hsmmc.[ch] and in Makefile
-Date: Tue, 22 Oct 2019 08:58:44 +0200
-Message-ID: <CAPDyKFryqo3wF-GphhytNqrDL4rbZ7Qou1Ki3e2_5w-yh2o=uw@mail.gmail.com>
-References: <cover.1571510481.git.hns@goldelico.com> <9bd4c0bb0df26523d7f5265cdb06d86d63dafba8.1571510481.git.hns@goldelico.com>
- <20191021143008.GS5610@atomide.com> <3FDBE28F-B2C5-4EDE-905C-687F601462B6@goldelico.com>
- <20191021171104.GY5610@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [RFC] ARM: omap3: Enable HWMODS for HW Random Number Generator
+Date: Tue, 22 Oct 2019 07:13:00 -0500
+Message-ID: <CAHCN7xJjMNOLT5oPn8CArApM5b2ksPon8eALq=gUi0ZqoLjGHQ@mail.gmail.com>
+References: <20190828150037.2640-1-aford173@gmail.com>
+ <20190905230443.GA52127@atomide.com>
+ <CAHCN7xL0fbr=Sv+b=0AuGB1PPhAAFdAFLEd_iBM+ZMTkUw5sHQ@mail.gmail.com>
+ <CAHCN7xL-Gfxe0qF5w7BUsHnyhcNNpmCnchdKErnmiqggXfsLWw@mail.gmail.com>
+ <20190909134033.s26eiurpat3iekse@pali> <20190909163543.GQ52127@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20191021171104.GY5610-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DTML <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-wireless <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190909163543.GQ52127@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-- Trimmed cc-list (could be a good idea for next submission as well)
-
-On Mon, 21 Oct 2019 at 19:11, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->
-> * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [191021 17:08]:
-> >
-> > > Am 21.10.2019 um 16:30 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
-> > >
-> > > * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [191019 18:43]:
-> > >> --- a/arch/arm/mach-omap2/Makefile
-> > >> +++ b/arch/arm/mach-omap2/Makefile
-> > >> @@ -216,7 +216,6 @@ obj-$(CONFIG_MACH_NOKIA_N8X0)          += board-n8x0.o
-> > >>
-> > >> # Platform specific device init code
-> > >>
-> > >> -omap-hsmmc-$(CONFIG_MMC_OMAP_HS)  := hsmmc.o
-> > >> obj-y                                      += $(omap-hsmmc-m) $(omap-hsmmc-y)
-> > >
-> > > The related obj-y line can go now too, right?
-> >
-> > Yes, I think so. It is a construction that I have never seen before :)
-> > Therefore I did not recognize that it is related.
-> >
-> > > And looks like common.h also has struct omap2_hsmmc_info
-> > > so maybe check by grepping for hsmmc_info to see it's gone.
-> >
-> > Yes, it is just a forward-declaration of the struct name with
-> > no user anywhere.
-> >
-> > Scheduled for v3.
-> >
-> > BTW: should this series go through your tree since it is an
-> > omap machine?
->
-> Or MMC tree as that's where the code change really are.
-
-I am okay with that. I will have a look at the series and provide some comments.
-
-Kind regards
-Uffe
+T24gTW9uLCBTZXAgOSwgMjAxOSBhdCAxMTozNSBBTSBUb255IExpbmRncmVuIDx0b255QGF0b21p
+ZGUuY29tPiB3cm90ZToKPgo+ICogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPiBb
+MTkwOTA5IDEzOjQxXToKPiA+IE9uIE1vbmRheSAwOSBTZXB0ZW1iZXIgMjAxOSAwODozNzowOSBB
+ZGFtIEZvcmQgd3JvdGU6Cj4gPiA+IEkgYXBwbGllZCB0aGlzIG9uIDUuMyBhbmQgaXQgaXMgd29y
+a2luZy4gIEkgYXNzdW1lIHRoZSBzYW1lIGlzIHRydWUgaW4gZm9yLW5leHQuCj4KPiBIbW0gSSBu
+b3RpY2VkIEkgc3RvcHBlZCBnZXR0aW5nIFJORyBkYXRhIGFmdGVyIHNldmVyYWwgcm1tb2QgbW9k
+cHJvYmUKPiBjeWNsZXMsIG9yIHNldmVyYWwgaGQgL2Rldi9yYW5kb20gcmVhZHMuIEFueWJvZHkg
+ZWxzZSBzZWVpbmcgdGhhdD8KPgo+ID4gPiBEbyB5b3Ugd2FudCB0byBzdWJtaXQgYSBmb3JtYWwg
+cGF0Y2g/ICBJICBjYW4gbWFyayBpdCBhcyAndGVzdGVkLWJ5Jwo+ID4gPiBUaGlzIHJlYWxseSBo
+ZWxwcyBzcGVlZCB1cCB0aGUgc3RhcnR1cCBzZXF1ZW5jZSBvbiBib2FyZHMgd2l0aCBzc2hkCj4g
+PiA+IGJlY2F1c2UgaXQgZGVsYXlzIGZvciBuZWFybHkgODAgc2Vjb25kcyB3YWl0aW5nIGZvciBl
+bnRyb3B5IHdpdGhvdXQKPiA+ID4gdGhlIGh3cm5nLgo+ID4KPiA+IEhpISBXaGVuIGFwcGx5aW5n
+IGEgcGF0Y2gsIGNvdWxkIHlvdSBwbGVhc2UgZGlzYWJsZSB0aGlzIHJuZyBmb3IgbjkwMD8KPiA+
+Cj4gPiBJbiBvbWFwMy1uOTAwLmR0cyBmb3Igcm5nIHNob3VsZCBiZSBzdGF0dXMgPSAiZGlzYWJs
+ZWQiIChhcyBUb255IGFscmVhZHkKPiA+IHdyb3RlKSwgc2ltaWxhcmx5IGxpa2UgZm9yIGFlcy4K
+Pgo+IFllYWggSSdsbCBwb3N0IGEgcHJvcGVyIHBhdGNoIGFmdGVyIC1yYzEuCgpUb255LAoKSSBh
+bSBqdXN0IGZvbGxvd2luZyB1cCBvbiB0aGlzLiAgV2l0aG91dCB0aGUgSFdSTkcgdGhlcmUgYXJl
+IHNvbWUKdG9vbHMgYW5kIGRhZW1vbnMgbGlrZSBzc2hkIHdoaWNoIHdhaXQgYSBsb25nIHRpbWUg
+YXQgc3RhcnR1cC4gIFRoZQpwYXRjaCB5b3Ugc2VudCByZWFsbHkgaGVscHMgc3BlZWQgdXAgdGhl
+IHN0YXJ0dXAgdGltZSBpbiB0aGVzZSBjYXNlcy4KQXQgbGVhc3QgaW4gbXkgY2FzZSwgaXQgc2hh
+dmVzIDgwIHNlY29uZHMgb2ZmIGJ5IGVsaW1pbmF0aW5nIHRoZQpkZWxheXMuCgpEbyB5b3UgdGhp
+bmsgeW91J2xsIGhhdmUgdGltZSB0byBwb3N0IGEgbW9yZSBmb3JtYWwgcGF0Y2g/ICBJZiBub3Qs
+IEkKY2FuIGRvIGl0LiAgSSBqdXN0IGRvbid0IGtub3cgd2hpY2ggbWFpbGluZyBsaXN0IGlzIHRo
+ZSBtb3JlCmFwcHJvcHJpYXRlLiAgSSB3YXMgYWJsZSB0byB2ZXJpdHkgeW91ciBwYXRjaCBvbiBh
+IERNMzczMCBhbmQgT01BUDM1MzAKClRoYW5rcywKCmFkYW0KCgo+Cj4gUmVnYXJkcywKPgo+IFRv
+bnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4
+LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFk
+Lm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFy
+bS1rZXJuZWwK
