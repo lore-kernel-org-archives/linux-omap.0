@@ -1,73 +1,87 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCHv2 4/4] Bluetooth: btwilink: drop superseded driver
-Date: Wed, 23 Oct 2019 14:42:43 +0200
-Message-ID: <299B10E1-E7A8-4346-BED9-A48446C4D866@holtmann.org>
-References: <20191003134147.9458-1-sre@kernel.org>
- <20191003134147.9458-5-sre@kernel.org>
- <BC1F82AC-2988-4BC6-99EA-1C9F9289E582@holtmann.org>
- <20191020205901.56bafijk7cu3rpaj@earth.universe>
- <AC376F8D-77F3-4497-94D1-FE25A5ED9337@holtmann.org>
- <20191023122745.ldh2ghnzazdhaf2x@earth.universe>
-Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3594.4.19\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] configs: ARM: omap2plus: Enable OMAP3_THERMAL
+Date: Wed, 23 Oct 2019 07:36:46 -0700
+Message-ID: <20191023143646.GG5610@atomide.com>
+References: <20191007220540.30690-1-aford173@gmail.com>
+ <20191022162223.GU5610@atomide.com>
+ <CAHCN7xLy975mxX+cm56PMx-TKODEZjYPfMHb=byspKxYXXq7OA@mail.gmail.com>
+ <20191022221919.GF5610@atomide.com>
+ <1CE62E4E-1A38-448C-9197-8FA16747F942@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191023122745.ldh2ghnzazdhaf2x@earth.universe>
+Content-Disposition: inline
+In-Reply-To: <1CE62E4E-1A38-448C-9197-8FA16747F942@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Adam Ford <aford173@gmail.com>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sebastian,
-
->>>>> All users of this driver have been converted to the serdev based
->>>>> hci_ll driver. The unused driver can be safely dropped now.
->>>>> 
->>>>> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
->>>>> ---
->>>>> drivers/bluetooth/Kconfig    |  11 --
->>>>> drivers/bluetooth/Makefile   |   1 -
->>>>> drivers/bluetooth/btwilink.c | 337 -----------------------------------
->>>>> 3 files changed, 349 deletions(-)
->>>>> delete mode 100644 drivers/bluetooth/btwilink.c
->>>> 
->>>> patch has been applied to bluetooth-next tree.
->>>> 
->>>> However what I really like to see is that you re-introduce a
->>>> btwilink driver that is purely serdev based and doesn’t rely on
->>>> any hci_uart/hci_ldisc code. A clean serdev only driver is that
->>>> best and easier to maintain long term.
->>> 
->>> So basically move the serdev implementation from hci_ll.c into its
->>> own driver and make hci_ll hci_uart based only? That effectively
->>> means, that we have two implementations of the protocol. I don't
->>> think this will improve maintainability, since then bugs needs to
->>> be fixed in two places? Note, that we have a couple of drivers
->>> with serdev+hci_uart by now:
->>> 
->>> for file in $(grep -l serdev drivers/bluetooth/hci_*c) ; grep -l hci_uart_register_proto "${file}"
->>> hci_bcm.c
->>> hci_h5.c
->>> hci_ldisc.c
->>> hci_ll.c
->>> hci_mrvl.c
->>> hci_qca.c
->> 
->> I would like to have something similar to btmtkuart.c which is a
->> pure serdev driver that doesn’t depend on any hci_ldisc.c
->> framework. If we have this, then we would just drop hci_ll.c from
->> the kernel and focus on the serdev only version. As noted, there
->> is no need for any other driver at that point since everything is
->> probed anyway. Users will not even notice the difference.
+* H. Nikolaus Schaller <hns@goldelico.com> [191023 04:42]:
 > 
-> This can be achieved by just removing the hci_uart part from
-> hci_ll. But AFAIK there are some non-wilink based TI HCILL
-> devices, which do not require any extra platform data and might
-> still use the hci_uart part.
+> > Am 23.10.2019 um 00:19 schrieb Tony Lindgren <tony@atomide.com>:
+> > 
+> > * Adam Ford <aford173@gmail.com> [191022 19:01]:
+> >> On Tue, Oct 22, 2019 at 11:22 AM Tony Lindgren <tony@atomide.com> wrote:
+> >>> 
+> >>> Hi,
+> >>> 
+> >>> * Adam Ford <aford173@gmail.com> [191007 15:06]:
+> >>>> The some in the OMAP3 family have a bandgap thermal sensor, but
+> >>>> omap2plus has it disabled.
+> >>>> 
+> >>>> This patch enables the OMAP3_THERMAL by default like the rest of
+> >>>> the OMAP family.
+> >>> 
+> >>> Looks like this breaks off mode during idle for omap3, and that's
+> >>> probably why it never got enabled. The difference in power
+> >>> consumption during idle is about 7mW vs 32mW for the SoC as
+> >>> measured from torpedo shunt for main_battery_som.
+> >>> 
+> >>> I think the right fix might be simply to add handling for
+> >>> CPU_CLUSTER_PM_ENTER to the related thermal driver to disable
+> >>> it during idle like we have for gpio-omap.c for example.
+> >> 
+> >> I am not sure I know where to start on fixing that issue.  Would you
+> >> entertain enabling the driver if we set the device tree to 'disabled'
+> >> by default?  This way if people want to to use it, it can be enabled
+> >> on a per-device option.  Once the power stuff gets resolved, we might
+> >> be able to enable it by default.  For people who are planning on using
+> >> the DM3730 @ 1GHz in high temp environments, I am not sure they'll
+> >> care about low power.
+> > 
+> > They should both work fine together though. They are not mutually
+> > exclusive features.
+> > 
+> >> I'll try to look into it when I have time, but I was hoping a
+> >> compromise might be a reasonable work-around.
+> > 
+> > It should be hopefully a trivial fix.. I have not looked at the
+> > driver code though.
+> 
+> If I am taken right, it is the drivers/thermal/ti-soc-thermal/ti-*.c
+> which is a common driver for omap3, omap4, omap5. They only differ
+> in the thermal data and which registers and bits are used to access
+> the ADC.
 
-the hci_ldisc and hci_uart driver abstraction provides enqueue and dequeue handling that just needs to be removed and done natively in the serdev driver. This should be all straight forward and we can keep the current hci_ll.c around for a bit to see what users we have. However I really want to migrate everything over to native serdev drivers that are standalone. The TI HCILL is complex enough to warrant a separate driver.
+Yes so it seems. Enabling OMAP3_THERMAL adds support to
+of_ti_bandgap_match[] for omap3 and causes the issue.
 
-Regards
+> So is this problem with off mode also known for omap4 and omap5?
 
-Marcel
+Probably. But we don't have off mode working for omap4, and
+it cannot be used for omap5 AFAIK.
+
+My guess is we need to call clk_disable() and call
+ti_bandgap_save_ctxt() on CPU_CLUSTER_PM_ENTER similar to
+what ti_bandgap_suspend does. And then restore it on
+CPU_CLUSTER_PM_EXIT.
+
+There's a similar example already in gpio_omap_cpu_notifier().
+Not sure if there is some related errata to deal with too,
+probably the old Nokia n900 or n9 would provide some hints
+on what exactly needs to be done.
+
+Regards,
+
+Tony
