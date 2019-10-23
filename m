@@ -1,41 +1,95 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH -next] ARM: OMAP2+: Remove duplicated include from pmic-cpcap.c
-Date: Wed, 23 Oct 2019 06:29:00 +0000
-Message-ID: <20191023062900.43576-1-yuehaibing@huawei.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCHv2 0/4] Convert all btwilink users to hci_ll and drop
+ btwilink
+Date: Wed, 23 Oct 2019 14:06:23 +0200
+Message-ID: <20191023120623.gxuxm53tdcvo7biu@earth.universe>
+References: <20191003134147.9458-1-sre@kernel.org>
+ <20191008143116.GF5610@atomide.com>
+ <20191020203352.rh3n6qpagiyift7d@earth.universe>
+ <20191022160111.GP5610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>
-Cc: kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="kqi4wz7ug3lodin7"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20191022160111.GP5610@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>, Adam Ford <aford173@gmail.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove duplicated include.
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- arch/arm/mach-omap2/pmic-cpcap.c | 2 --
- 1 file changed, 2 deletions(-)
+--kqi4wz7ug3lodin7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/pmic-cpcap.c b/arch/arm/mach-omap2/pmic-cpcap.c
-index 2c2a178d988d..38b0307dc79d 100644
---- a/arch/arm/mach-omap2/pmic-cpcap.c
-+++ b/arch/arm/mach-omap2/pmic-cpcap.c
-@@ -15,8 +15,6 @@
- #include "voltage.h"
- 
- #include <linux/init.h>
--#include <linux/kernel.h>
--#include "pm.h"
- #include "vc.h"
- 
- /**
+Hi,
+
+On Tue, Oct 22, 2019 at 09:01:11AM -0700, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@kernel.org> [191020 20:34]:
+> > On Tue, Oct 08, 2019 at 07:31:16AM -0700, Tony Lindgren wrote:
+> > > * Sebastian Reichel <sre@kernel.org> [191003 06:42]:
+> > > > This moves the remaining users of btwilink to the "new" serdev base=
+d hci_ll
+> > > > driver and drops the btwilink driver afterwards. The patches were o=
+nly compile
+> > > > tested by me, but Enric tested the IGEP platform and Adam will test=
+ the LogicPD
+> > > > platform.
+> > > >=20
+> > > > I kept the TI_ST driver for now, since I plan to send a second patc=
+hset for the
+> > > > FM radio driver. Once the FM driver has been converted to also use =
+hci_ll, we
+> > > > can remove TI_ST completly.
+> > > >=20
+> > > > My suggestion is for the patch handling is, that everything simply =
+goes through
+> > > > Tony's tree.
+> > >=20
+> > > Sounds good to me, good to see kim gone with patch 3/4 :)
+> > >=20
+> > > Marcel, care to ack the old driver removal patch?
+> >=20
+> > Looks like Marcel missed the extra messages and merged the 4th
+> > patch, so I guess you can just merge patches 1-3. Technically that
+> > might lead to temporarily missing BT support on those two devices
+> > when the BT tree is merged before ARM tree during the merge window.
+> > Not a big issue I guess.
+>=20
+> Sure no problem. Applying dts changes into omap-for-v5.5/dt
+> and the pdata quirk removal to omap-for-v5.5/soc.
+
+Thanks.
+
+> I guess ti_wilink_st.h will need some follow-up patch to
+> remove unused platform data, but best to wait on that.
+
+The header will receive a cleanup in the patchset moving the FM
+driver from TI_ST to serdev based bluetooth driver. After that
+patchset most of the ti_wilink_st.h content can be removed.
+
+-- Sebastian
+
+--kqi4wz7ug3lodin7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl2wQjsACgkQ2O7X88g7
++prBfxAAjpFCamhjBDtV/91EgED/tFuRdEnoinyCfwtkvetGj6ljLv6H0IFFGGbu
+ZSkbuRndI0qzeOXV5MeY2750pIGaL7rNlHXME5oDfPPgg65ucWpBc9CKQjY0n68s
+Rg3SlkNH/24toPFqJ383aeErCa6VjV/KXUfTG4zVzDB7BOaJKy6u146WoscCsZtn
+x84vtolpNSupyuk0TrQnDKTWObhT0/gIXYR4TOQ8W77GST7kUWotluJao3/w/m0I
+j07dObLoZKvdRaWWUO16lSbbmlximfSIuhK0rutZfLU8LS0RIkrO7AytF4+NtlqT
+L18y1eUaIZronA+8gNNTLgHAHIMVhn0AegIwJ4zpudlzLop0KC7DWLs5g7/9FifX
+SQ2KNuZ9IiW2mel1q/Qinh3j0c7eW5faIZB9Zy6xOpwqSwzKLtabh8bIOLdjQBgA
+gC870bXSa3+du/651t662SmRdYsrJRANoTIaTVgpyLpVmuANebHvs910ASvoRX5j
+WBSSne3TPN2yA47m54Lf9swkGG8iP2dy/ytpDqmFTOGrumbBXorYGlj9NzotIUpZ
+UQtgJ9PpQTFP4zkLYO1/MDPmXod2+puyLPjMJDaiUpc9AKgwLwYrDKmLT1TOMIja
+NLZ7ae+8J0Qd3HIqGU/rf9bqrBB/gnxNGOlR1OLWkDy2hTDNG60=
+=AWMy
+-----END PGP SIGNATURE-----
+
+--kqi4wz7ug3lodin7--
