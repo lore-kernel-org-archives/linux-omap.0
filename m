@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v5 net-next 10/12] ARM: dts: dra7: add dt nodes for new cpsw switch dev driver
-Date: Thu, 24 Oct 2019 13:09:12 +0300
-Message-ID: <20191024100914.16840-11-grygorii.strashko@ti.com>
+Subject: [PATCH v5 net-next 11/12] ARM: dts: am571x-idk: enable for new cpsw switch dev driver
+Date: Thu, 24 Oct 2019 13:09:13 +0300
+Message-ID: <20191024100914.16840-12-grygorii.strashko@ti.com>
 References: <20191024100914.16840-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,75 +12,93 @@ To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andr
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add DT nodes for new cpsw switch dev driver.
+Add DT nodes for new cpsw switchdev driver for am571x-idk board for now to
+enable testing of the new solution.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- arch/arm/boot/dts/dra7-l4.dtsi | 52 ++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ arch/arm/boot/dts/am571x-idk.dts         | 27 ++++++++++++++++++++++++
+ arch/arm/boot/dts/am572x-idk.dts         |  5 +++++
+ arch/arm/boot/dts/am574x-idk.dts         |  5 +++++
+ arch/arm/boot/dts/am57xx-idk-common.dtsi |  5 -----
+ 4 files changed, 37 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index 5cac2dd58241..2f3a19edc7af 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -3079,6 +3079,58 @@
- 					phys = <&phy_gmii_sel 2>;
- 				};
- 			};
-+
-+			mac_sw: switch@0 {
-+				compatible = "ti,dra7-cpsw-switch","ti,cpsw-switch";
-+				reg = <0x0 0x4000>;
-+				ranges = <0 0 0x4000>;
-+				clocks = <&gmac_main_clk>;
-+				clock-names = "fck";
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				syscon = <&scm_conf>;
-+				status = "disabled";
-+
-+				interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "rx_thresh", "rx", "tx", "misc";
-+
-+				ethernet-ports {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+
-+					cpsw_port1: port@1 {
-+						reg = <1>;
-+						label = "port1";
-+						mac-address = [ 00 00 00 00 00 00 ];
-+						phys = <&phy_gmii_sel 1>;
-+					};
-+
-+					cpsw_port2: port@2 {
-+						reg = <2>;
-+						label = "port2";
-+						mac-address = [ 00 00 00 00 00 00 ];
-+						phys = <&phy_gmii_sel 2>;
-+					};
-+				};
-+
-+				davinci_mdio_sw: mdio@1000 {
-+					compatible = "ti,cpsw-mdio","ti,davinci_mdio";
-+					clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 0>;
-+					clock-names = "fck";
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					bus_freq = <1000000>;
-+					reg = <0x1000 0x100>;
-+				};
-+
-+				cpts {
-+					clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 25>;
-+					clock-names = "cpts";
-+				};
-+			};
- 		};
- 	};
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index 0aaacea1d887..820ce3b60bb6 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -186,3 +186,30 @@
+ 	pinctrl-1 = <&mmc2_pins_hs>;
+ 	pinctrl-2 = <&mmc2_pins_ddr_rev20 &mmc2_iodelay_ddr_conf>;
  };
++
++&mac_sw {
++	pinctrl-names = "default", "sleep";
++	status = "okay";
++};
++
++&cpsw_port1 {
++	phy-handle = <&ethphy0_sw>;
++	phy-mode = "rgmii";
++	ti,dual-emac-pvid = <1>;
++};
++
++&cpsw_port2 {
++	phy-handle = <&ethphy1_sw>;
++	phy-mode = "rgmii";
++	ti,dual-emac-pvid = <2>;
++};
++
++&davinci_mdio_sw {
++	ethphy0_sw: ethernet-phy@0 {
++		reg = <0>;
++	};
++
++	ethphy1_sw: ethernet-phy@1 {
++		reg = <1>;
++	};
++};
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+index ea1c119feaa5..c3d966904d64 100644
+--- a/arch/arm/boot/dts/am572x-idk.dts
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -27,3 +27,8 @@
+ 	pinctrl-1 = <&mmc2_pins_hs>;
+ 	pinctrl-2 = <&mmc2_pins_ddr_rev20>;
+ };
++
++&mac {
++	status = "okay";
++	dual_emac;
++};
+diff --git a/arch/arm/boot/dts/am574x-idk.dts b/arch/arm/boot/dts/am574x-idk.dts
+index 7935d70874ce..fa0088025b2c 100644
+--- a/arch/arm/boot/dts/am574x-idk.dts
++++ b/arch/arm/boot/dts/am574x-idk.dts
+@@ -35,3 +35,8 @@
+ 	pinctrl-1 = <&mmc2_pins_default>;
+ 	pinctrl-2 = <&mmc2_pins_default>;
+ };
++
++&mac {
++	status = "okay";
++	dual_emac;
++};
+diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+index 423855a2a2d6..398721c7201c 100644
+--- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+@@ -363,11 +363,6 @@
+ 	ext-clk-src;
+ };
+ 
+-&mac {
+-	status = "okay";
+-	dual_emac;
+-};
+-
+ &cpsw_emac0 {
+ 	phy-handle = <&ethphy0>;
+ 	phy-mode = "rgmii";
 -- 
 2.17.1
