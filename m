@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] soc changes for omaps for v5.5
-Date: Thu, 24 Oct 2019 09:36:53 -0700
-Message-ID: <pull-1571934890-285615@atomide.com>
+Subject: [GIT PULL 3/3] drop legacy platform data for omaps for v5.5
+Date: Thu, 24 Oct 2019 09:36:55 -0700
+Message-ID: <pull-1571934890-285615@atomide.com-3>
+References: <pull-1571934890-285615@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1571934890-285615@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,90 +23,110 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 17a9e5bbbfe5a5a6356e47cdc1c1656e1e5e1f62:
+The following changes since commit 1819ef2e2d12d5b1a6ee54ac1c2afe35cffc677c:
 
-  Merge tag 'wlcore-fix' into fixes (2019-10-11 09:15:35 -0700)
+  bus: ti-sysc: Use swsup quirks also for am335x musb (2019-10-21 14:15:55 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/soc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/ti-sysc-drop-pdata-v2-signed-take2
 
-for you to fetch changes up to bc794744cdc56f53b495debbe054946d1b620441:
+for you to fetch changes up to b08a0c577518a02ea08673f68881223a3ed35cc6:
 
-  Merge branch 'omap-for-v5.5/pm' into omap-for-v5.5/soc (2019-10-23 10:42:39 -0700)
-
-----------------------------------------------------------------
-SoC changes for omaps for v5.5
-
-This series of changes contains SoC related clean-up, and some PM
-improvments:
-
-- SoC clean-up to drop unused enable_wakeup and disable_wakeup,
-  simplify clkdm_clock_enable and disable, and few sparse fixes
-
-- Drop pdata-quirks for TI bluetooth, this is now handled by a serdev
-  driver
-
-- A series of PM changes to re-enable core oswr (open switch retention)
-  for omap4 that got disabled earlier because of various gpio-omap issues
-  that have been fixed earlier this year. We want to do this in small
-  steps for the pwrdm_set_logic_retst() changes so we can identify the
-  domain in case of unexpected issues
-
-- A series of PM changes to configure voltage controller for droid4.
-  Eventually the voltage controller configuration should use device tree,
-  but we want to get things working first. These changes bring down
-  down the idle power consumption for droid4 with LCD blanked, WLAN
-  connected, USB disabled, and modem disabled to about 32 to 35mW from
-  about 39 to 45 mW
+  ARM: OMAP2+: Drop legacy platform data for am335x musb (2019-10-23 07:46:32 -0700)
 
 ----------------------------------------------------------------
-Ben Dooks (4):
-      ARM: OMAP2+: do not export am43xx_control functions
-      ARM: OMAP2+: make dra7xx_sha0_hwmod static
-      ARM: OMAP2+: prm44xx: make prm_{save,restore}_context static
-      ARM: OMAP2+: make omap44xx_sha0_hwmod and omap44xx_l3_main_2__des static
+Drop legacy platform data for omaps for v5.5
 
-Sebastian Reichel (1):
-      ARM: OMAP2+: pdata-quirks: drop TI_ST/KIM support
+This series of changes continues dropping legacy platform data for
+omaps. With the proper device tree configuration in place in the dts
+files for ti-sysc interconnect target module driver, we can drop the
+related platform data and legacy ti,hwmods custom property.
 
-Tony Lindgren (13):
-      ARM: OMAP2+: Remove unused wakeup_cpu
-      ARM: OMAP2+: Drop bogus wkup domain oswr setting
-      ARM: OMAP2+: Remove bogus warnings for machines without twl PMIC
-      ARM: OMAP2+: Update 4430 voltage controller operating points
-      ARM: OMAP2+: Configure voltage controller for cpcap
-      ARM: OMAP2+: Allow per oswr for omap4
-      ARM: OMAP2+: Allow core oswr for omap4
-      ARM: OMAP2+: Initialize voltage controller for omap4
-      ARM: OMAP2+: Drop unused enable_wakeup and disable_wakeup
-      ARM: OMAP2+: Simplify code for clkdm_clock_enable and disable
-      ARM: OMAP2+: Configure voltage controller for retention
-      ARM: OMAP2+: Configure voltage controller for cpcap to low-speed
-      Merge branch 'omap-for-v5.5/pm' into omap-for-v5.5/soc
+Most of the patches in this series drop platform data and custom dts
+property one device class and one SoC at time. This way we can easily
+revert one patch at a time in case of unexpected issues if the fix is
+not trivial.
 
-YueHaibing (2):
-      ARM: OMAP2+: Make some functions static
-      ARM: OMAP2+: Remove duplicated include from pmic-cpcap.c
+For am335x musb, we need to first update the device tree to probe with
+ti-sysc interconnect target module driver. And then the following
+patches drop the legacy platform data.
 
- arch/arm/mach-omap2/Makefile               |   5 +
- arch/arm/mach-omap2/clockdomain.c          |  78 +++------
- arch/arm/mach-omap2/control.c              |   4 +-
- arch/arm/mach-omap2/control.h              |   1 +
- arch/arm/mach-omap2/omap-mpuss-lowpower.c  |   2 -
- arch/arm/mach-omap2/omap_hwmod.c           |  97 -----------
- arch/arm/mach-omap2/omap_hwmod.h           |   3 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   4 +-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c  |   2 +-
- arch/arm/mach-omap2/omap_twl.c             |   8 +-
- arch/arm/mach-omap2/opp4xxx_data.c         |  16 +-
- arch/arm/mach-omap2/pdata-quirks.c         |  52 ------
- arch/arm/mach-omap2/pm.c                   |   1 +
- arch/arm/mach-omap2/pm.h                   |  14 ++
- arch/arm/mach-omap2/pm44xx.c               |  13 +-
- arch/arm/mach-omap2/pmic-cpcap.c           | 271 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.c              |   4 +-
- arch/arm/mach-omap2/vc.c                   |  57 +++++-
- arch/arm/mach-omap2/vc.h                   |   2 +-
- 19 files changed, 389 insertions(+), 245 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pmic-cpcap.c
+Note that this series depends on earlier ti-sysc related driver changes
+
+----------------------------------------------------------------
+Tony Lindgren (34):
+      ARM: OMAP2+: Drop legacy platform data for am3 and am4 gpio
+      ARM: dts: Drop custom hwmod property for omap4 gpio
+      ARM: dts: Drop custom hwmod property for omap5 gpio
+      ARM: OMAP2+: Drop legacy platform data for dra7 mailbox
+      ARM: OMAP2+: Drop legacy platform data for am3 and am4 mailbox
+      ARM: OMAP2+: Drop legacy platform data for omap4 mailbox
+      ARM: OMAP2+: Drop legacy platform data for omap5 mailbox
+      ARM: dts: Drop custom hwmod property for omap5 mcspi
+      ARM: OMAP2+: Drop legacy platform data for omap5 mcspi
+      ARM: dts: Drop custom hwmod property for am33xx uart
+      ARM: dts: Drop custom hwmod property for am4 uart
+      ARM: dts: Drop custom hwmod property for omap5 uart
+      ARM: dts: Drop custom hwmod property for am3 i2c
+      ARM: dts: Drop custom hwmod property for am4 i2c
+      ARM: dts: Drop custom hwmod property for omap5 i2c
+      ARM: dts: Drop custom hwmod property for am3 mmc
+      ARM: dts: Drop custom hwmod property for am4 mmc
+      ARM: dts: Drop custom hwmod property for omap5 mmc
+      ARM: OMAP2+: Drop legacy platform data for am3 and am4 wdt
+      ARM: OMAP2+: Drop legacy platform data for dra7 wdt
+      ARM: OMAP2+: Drop legacy platform data for omap5 wdt
+      ARM: OMAP2+: Drop legacy platform data for omap4 mcbsp
+      ARM: OMAP2+: Drop legacy platform data for omap5 mcbsp
+      ARM: OMAP2+: Drop legacy platform data for am4 hdq1w
+      ARM: OMAP2+: Drop legacy platform data for dra7 hdq1w
+      ARM: OMAP2+: Drop legacy platform data for omap4 hdq1w
+      ARM: OMAP2+: Drop legacy platform data for am3 and am4 rng
+      ARM: OMAP2+: Drop legacy platform data for dra7 rng
+      ARM: OMAP2+: Drop legacy platform data for am3 and am4 mcasp
+      ARM: OMAP2+: Drop legacy platform data for omap4 mcasp
+      ARM: OMAP2+: Drop legacy platform data for musb on omap4
+      ARM: dts: Probe am335x musb with ti-sysc
+      ARM: dts: Drop pointless status changing for am3 musb
+      ARM: OMAP2+: Drop legacy platform data for am335x musb
+
+ arch/arm/boot/dts/am335x-baltos.dtsi               |  12 -
+ arch/arm/boot/dts/am335x-bone-common.dtsi          |  22 --
+ arch/arm/boot/dts/am335x-boneblue.dts              |  22 --
+ arch/arm/boot/dts/am335x-chiliboard.dts            |  18 -
+ arch/arm/boot/dts/am335x-cm-t335.dts               |  20 -
+ arch/arm/boot/dts/am335x-evm.dts                   |  25 --
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  25 --
+ arch/arm/boot/dts/am335x-guardian.dts              |  22 --
+ arch/arm/boot/dts/am335x-igep0033.dtsi             |  25 --
+ arch/arm/boot/dts/am335x-lxm.dts                   |  22 --
+ arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi  |  17 -
+ arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts     |  22 --
+ arch/arm/boot/dts/am335x-osd3358-sm-red.dts        |  22 --
+ arch/arm/boot/dts/am335x-pcm-953.dtsi              |  25 --
+ arch/arm/boot/dts/am335x-pdu001.dts                |  28 --
+ arch/arm/boot/dts/am335x-pepper.dts                |  20 -
+ arch/arm/boot/dts/am335x-pocketbeagle.dts          |  22 --
+ arch/arm/boot/dts/am335x-regor.dtsi                |  21 -
+ arch/arm/boot/dts/am335x-shc.dts                   |  17 -
+ arch/arm/boot/dts/am335x-sl50.dts                  |  22 --
+ arch/arm/boot/dts/am335x-wega.dtsi                 |  26 --
+ arch/arm/boot/dts/am33xx-l4.dtsi                   |  27 +-
+ arch/arm/boot/dts/am33xx.dtsi                      |  67 ++--
+ arch/arm/boot/dts/am4372.dtsi                      |   1 -
+ arch/arm/boot/dts/am437x-l4.dtsi                   |  23 --
+ arch/arm/boot/dts/dra7-l4.dtsi                     |  16 -
+ arch/arm/boot/dts/omap4-l4-abe.dtsi                |   4 -
+ arch/arm/boot/dts/omap4-l4.dtsi                    |  14 -
+ arch/arm/boot/dts/omap5-l4-abe.dtsi                |   3 -
+ arch/arm/boot/dts/omap5-l4.dtsi                    |  30 --
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |   9 -
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       |  32 --
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 231 -----------
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  58 ---
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  48 ---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 343 ----------------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         | 317 ---------------
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 431 ---------------------
+ 38 files changed, 39 insertions(+), 2070 deletions(-)
