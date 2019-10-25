@@ -1,59 +1,76 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH v5 net-next 05/12] dt-bindings: net: ti: add new cpsw
- switch driver bindings
-Date: Fri, 25 Oct 2019 10:47:20 -0700
-Message-ID: <caf68306-46ce-f97d-b45a-0fc1cd5323f7@gmail.com>
-References: <20191024100914.16840-1-grygorii.strashko@ti.com>
- <20191024100914.16840-6-grygorii.strashko@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 01/11] Documentation: dt: wireless: update wl1251 for
+ sdio
+Date: Fri, 25 Oct 2019 16:13:38 -0500
+Message-ID: <20191025211338.GA20249@bogus>
+References: <cover.1571510481.git.hns@goldelico.com>
+ <741828f69eca2a9c9a0a7e80973c91f50cc71f9b.1571510481.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191024100914.16840-6-grygorii.strashko@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <741828f69eca2a9c9a0a7e80973c91f50cc71f9b.1571510481.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>, Kalle Valo <kvalo@codeaurora.org>, Mike Rapoport <rppt@linux.ibm.com>, David Sterba <dsterba@suse.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Petr Mladek <pmladek@suse.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Yangtao Li <tiny.windzz@gmail.com>, Alexios Zavras <alexios.zavras@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, John Stultz <john.stultz@linaro.org>, Bjorn Helgaas <bhelgaas@google.>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/24/19 3:09 AM, Grygorii Strashko wrote:
-> Add bindings for the new TI CPSW switch driver. Comparing to the legacy
-> bindings (net/cpsw.txt):
-> - ports definition follows DSA bindings (net/dsa/dsa.txt) and ports can be
-> marked as "disabled" if not physically wired.
-> - all deprecated properties dropped;
-> - all legacy propertiies dropped which represent constant HW cpapbilities
-> (cpdma_channels, ale_entries, bd_ram_size, mac_control, slaves,
-> active_slave)
-> - TI CPTS DT properties are reused as is, but grouped in "cpts" sub-node
-> - TI Davinci MDIO DT bindings are reused as is, because Davinci MDIO is
-> reused.
+On Sat, Oct 19, 2019 at 08:41:16PM +0200, H. Nikolaus Schaller wrote:
+> The standard method for sdio devices connected to
+> an sdio interface is to define them as a child node
+> like we can see with wlcore.
 > 
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> Acked-by: Kalle Valo <kvalo@codeaurora.org>
 > ---
-
-[snip]
-> +- mdio : CPSW MDIO bus block description
-> +	- bus_freq : MDIO Bus frequency
-
-clock-frequency is a more typical property to describe the bus clock's
-frequency, that is what i2c and spi do.
-
-> +	See bindings/net/mdio.txt and davinci-mdio.txt
+>  .../bindings/net/wireless/ti,wl1251.txt       | 26 +++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+> index bb2fcde6f7ff..88612ff29f2d 100644
+> --- a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+> +++ b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+> @@ -35,3 +35,29 @@ Examples:
+>  		ti,power-gpio = <&gpio3 23 GPIO_ACTIVE_HIGH>; /* 87 */
+>  	};
+>  };
 > +
-> +- cpts : The Common Platform Time Sync (CPTS) module description
-> +	- clocks : should contain the CPTS reference clock
-> +	- clock-names : should be "cpts"
-> +	See bindings/clock/clock-bindings.txt
+> +&mmc3 {
+> +	vmmc-supply = <&wlan_en>;
 > +
-> +	Optional properties - all ports:
-> +	- cpts_clock_mult : Numerator to convert input clock ticks into ns
-> +	- cpts_clock_shift : Denominator to convert input clock ticks into ns
-> +			  Mult and shift will be calculated basing on CPTS
-> +			  rftclk frequency if both cpts_clock_shift and
-> +			  cpts_clock_mult properties are not provided.
+> +	bus-width = <4>;
+> +	non-removable;
+> +	ti,non-removable;
+> +	cap-power-off-card;
+> +
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&mmc3_pins>;
 
-Why would those two be needed that would be modeled in the Linux Common
-Clock Framework?
--- 
-Florian
+None of the above are really relevant to this binding.
+
+> +
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +
+> +	wlan: wl1251@1 {
+
+wifi@1
+
+> +		compatible = "ti,wl1251";
+> +
+> +		reg = <1>;
+> +
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;	/* GPIO_21 */
+> +
+> +		ti,wl1251-has-eeprom;
+> +	};
+> +};
+> -- 
+> 2.19.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
