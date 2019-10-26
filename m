@@ -1,16 +1,15 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v2 01/11] Documentation: dt: wireless: update wl1251 for
- sdio
-Date: Sat, 26 Oct 2019 10:24:05 +0200
-Message-ID: <3A15C879-3A17-4FFC-B41E-0B98B63E8F7C@goldelico.com>
-References: <cover.1571510481.git.hns@goldelico.com>
- <741828f69eca2a9c9a0a7e80973c91f50cc71f9b.1571510481.git.hns@goldelico.com>
- <20191025211338.GA20249@bogus>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH 07/10] crypto: omap-aes-gcm: fix corner case with only
+ auth data
+Date: Sat, 26 Oct 2019 17:04:05 +0200
+Message-ID: <CAKv+Gu-4j3yUT7ekPukj1t50WXuNBb+XwwCqP7qHCkH_ZE9ipw@mail.gmail.com>
+References: <20191017122549.4634-1-t-kristo@ti.com>
+ <20191017122549.4634-8-t-kristo@ti.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191025211338.GA20249@bogus>
+In-Reply-To: <20191017122549.4634-8-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,73 +19,71 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Ulf Hansson <ulf.hansson@linaro.org>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, Kefeng Wang <wangkefeng.wang@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, Yangtao Li <tiny.windzz@gmail.com>, Kalle Valo <kvalo@codeaurora.org>, Petr Mladek <pmladek@suse.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Alexios Zavras <alexios.zavras@intel.com>, John Stultz <john.stultz@linaro.org>, David Sterba <dsterba@suse.com>, Thomas Gleixner <tglx@linutronix.de>, letux-kernel@openphoenux.org, Allison Randal <allison@lohutok.net>, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundatio>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "open list:HARDWARE RANDOM NUMBER GENERATOR CORE" <linux-crypto@vger.kernel.org>, linux-omap@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, 17 Oct 2019 at 14:26, Tero Kristo <t-kristo@ti.com> wrote:
+>
+> Fix a corner case where only authdata is generated, without any provided
+> assocdata / cryptdata. Passing the empty scatterlists to OMAP AES core driver
+> in this case would confuse it, failing to map DMAs.
+>
 
-> Am 25.10.2019 um 23:13 schrieb Rob Herring <robh@kernel.org>:
-> 
-> On Sat, Oct 19, 2019 at 08:41:16PM +0200, H. Nikolaus Schaller wrote:
->> The standard method for sdio devices connected to
->> an sdio interface is to define them as a child node
->> like we can see with wlcore.
->> 
->> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->> Acked-by: Kalle Valo <kvalo@codeaurora.org>
->> ---
->> .../bindings/net/wireless/ti,wl1251.txt       | 26 +++++++++++++++++++
->> 1 file changed, 26 insertions(+)
->> 
->> diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
->> index bb2fcde6f7ff..88612ff29f2d 100644
->> --- a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
->> +++ b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
->> @@ -35,3 +35,29 @@ Examples:
->> 		ti,power-gpio = <&gpio3 23 GPIO_ACTIVE_HIGH>; /* 87 */
->> 	};
->> };
->> +
->> +&mmc3 {
->> +	vmmc-supply = <&wlan_en>;
->> +
->> +	bus-width = <4>;
->> +	non-removable;
->> +	ti,non-removable;
->> +	cap-power-off-card;
->> +
->> +	pinctrl-names = "default";
->> +	pinctrl-0 = <&mmc3_pins>;
-> 
-> None of the above are really relevant to this binding.
+So this change appears to be the culprit for causing the remaining
+issue that I reported in the cover letter of the followup series that
+I sent out.
 
-Ok, but how and where do we document that they are needed to make both ends of the interface work together?
+The logic below does not account for the case where only assocdata is
+provided, which is a valid use of an AEAD.
 
-> 
->> +
->> +	#address-cells = <1>;
->> +	#size-cells = <0>;
->> +
->> +	wlan: wl1251@1 {
-> 
-> wifi@1
-
-Ok.
-
-> 
->> +		compatible = "ti,wl1251";
->> +
->> +		reg = <1>;
->> +
->> +		interrupt-parent = <&gpio1>;
->> +		interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;	/* GPIO_21 */
->> +
->> +		ti,wl1251-has-eeprom;
->> +	};
->> +};
->> -- 
->> 2.19.1
->> 
-
-BR and thanks,
-Nikolaus
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  drivers/crypto/omap-aes-gcm.c | 22 ++++++++++++++--------
+>  1 file changed, 14 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/crypto/omap-aes-gcm.c b/drivers/crypto/omap-aes-gcm.c
+> index 9bbedbccfadf..dfd4d1cac421 100644
+> --- a/drivers/crypto/omap-aes-gcm.c
+> +++ b/drivers/crypto/omap-aes-gcm.c
+> @@ -148,12 +148,14 @@ static int omap_aes_gcm_copy_buffers(struct omap_aes_dev *dd,
+>         if (req->src == req->dst || dd->out_sg == sg_arr)
+>                 flags |= OMAP_CRYPTO_FORCE_COPY;
+>
+> -       ret = omap_crypto_align_sg(&dd->out_sg, cryptlen,
+> -                                  AES_BLOCK_SIZE, &dd->out_sgl,
+> -                                  flags,
+> -                                  FLAGS_OUT_DATA_ST_SHIFT, &dd->flags);
+> -       if (ret)
+> -               return ret;
+> +       if (cryptlen) {
+> +               ret = omap_crypto_align_sg(&dd->out_sg, cryptlen,
+> +                                          AES_BLOCK_SIZE, &dd->out_sgl,
+> +                                          flags,
+> +                                          FLAGS_OUT_DATA_ST_SHIFT, &dd->flags);
+> +               if (ret)
+> +                       return ret;
+> +       }
+>
+>         dd->in_sg_len = sg_nents_for_len(dd->in_sg, alen + clen);
+>         dd->out_sg_len = sg_nents_for_len(dd->out_sg, clen);
+> @@ -287,8 +289,12 @@ static int omap_aes_gcm_handle_queue(struct omap_aes_dev *dd,
+>                 return err;
+>
+>         err = omap_aes_write_ctrl(dd);
+> -       if (!err)
+> -               err = omap_aes_crypt_dma_start(dd);
+> +       if (!err) {
+> +               if (dd->in_sg_len && dd->out_sg_len)
+> +                       err = omap_aes_crypt_dma_start(dd);
+> +               else
+> +                       omap_aes_gcm_dma_out_callback(dd);
+> +       }
+>
+>         if (err) {
+>                 omap_aes_gcm_finish_req(dd, err);
+> --
+> 2.17.1
+>
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
