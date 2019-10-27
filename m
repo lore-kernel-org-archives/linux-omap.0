@@ -1,35 +1,42 @@
 From: kbuild test robot <lkp@intel.com>
-Subject: [RFC PATCH] net: ethernet: ti: cpsw_port_offload_fwd_mark_update()
- can be static
+Subject: Re: [PATCH v5 net-next 07/12] net: ethernet: ti: introduce cpsw
+ switchdev based driver part 2 - switch
 Date: Sun, 27 Oct 2019 19:22:56 +0800
-Message-ID: <20191027112256.rnfy3y572ovdmn3h@4978f4969bb8>
+Message-ID: <201910271911.gUJglaTl%lkp@intel.com>
 References: <20191024100914.16840-8-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20191024100914.16840-8-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 Cc: kbuild-all@lists.01.org, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Grygorii,
 
-Fixes: 9da120bc2cdf ("net: ethernet: ti: introduce cpsw switchdev based driver part 2 - switch")
-Signed-off-by: kbuild test robot <lkp@intel.com>
+I love your patch! Perhaps something to improve:
+
+[auto build test WARNING on net-next/master]
+
+url:    https://github.com/0day-ci/linux/commits/Grygorii-Strashko/net-ethernet-ti-introduce-new-cpsw-switchdev-based-driver/20191027-143414
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git 503a64635d5ef7351657c78ad77f8b5ff658d5fc
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.1-dirty
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+
+If you fix the issue, kindly add following tag
+Reported-by: kbuild test robot <lkp@intel.com>
+
+
+sparse warnings: (new ones prefixed by >>)
+
+>> drivers/net/ethernet/ti/cpsw_new.c:1444:6: sparse: sparse: symbol 'cpsw_port_offload_fwd_mark_update' was not declared. Should it be static?
+
+Please review and possibly fold the followup patch.
+
 ---
- cpsw_new.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index f3606ccc747f4..5ff2d72db34c5 100644
---- a/drivers/net/ethernet/ti/cpsw_new.c
-+++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -1441,7 +1441,7 @@ bool cpsw_port_dev_check(const struct net_device *ndev)
- 	return false;
- }
- 
--void cpsw_port_offload_fwd_mark_update(struct cpsw_common *cpsw)
-+static void cpsw_port_offload_fwd_mark_update(struct cpsw_common *cpsw)
- {
- 	int set_val = 0;
- 	int i;
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
