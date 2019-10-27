@@ -1,8 +1,8 @@
 From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH v5 net-next 01/12] net: ethernet: ti: cpsw: allow
- untagged traffic on host port
-Date: Sun, 27 Oct 2019 18:02:05 +0800
-Message-ID: <201910271709.5w7JExAE%lkp@intel.com>
+Subject: [RFC PATCH] net: ethernet: ti: cpsw: cpsw_ale_set_vlan_untag() can
+ be static
+Date: Sun, 27 Oct 2019 18:02:06 +0800
+Message-ID: <20191027100206.hjpsvdjeophopzmg@4978f4969bb8>
 References: <20191024100914.16840-2-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,30 +13,25 @@ Sender: linux-kernel-owner@vger.kernel.org
 Cc: kbuild-all@lists.01.org, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii,
 
-I love your patch! Perhaps something to improve:
-
-[auto build test WARNING on net-next/master]
-
-url:    https://github.com/0day-ci/linux/commits/Grygorii-Strashko/net-ethernet-ti-introduce-new-cpsw-switchdev-based-driver/20191027-143414
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git 503a64635d5ef7351657c78ad77f8b5ff658d5fc
-reproduce:
-        # apt-get install sparse
-        # sparse version: v0.6.1-dirty
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
-
-If you fix the issue, kindly add following tag
-Reported-by: kbuild test robot <lkp@intel.com>
-
-
-sparse warnings: (new ones prefixed by >>)
-
->> drivers/net/ethernet/ti/cpsw_ale.c:420:6: sparse: sparse: symbol 'cpsw_ale_set_vlan_untag' was not declared. Should it be static?
-
-Please review and possibly fold the followup patch.
-
+Fixes: 7e6abf354826 ("net: ethernet: ti: cpsw: allow untagged traffic on host port")
+Signed-off-by: kbuild test robot <lkp@intel.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ cpsw_ale.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index 23e7714ebee7b..3ed5ad372c1cb 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -417,8 +417,8 @@ static void cpsw_ale_set_vlan_mcast(struct cpsw_ale *ale, u32 *ale_entry,
+ 	writel(unreg_mcast, ale->params.ale_regs + ALE_VLAN_MASK_MUX(idx));
+ }
+ 
+-void cpsw_ale_set_vlan_untag(struct cpsw_ale *ale, u32 *ale_entry,
+-			     u16 vid, int untag_mask)
++static void cpsw_ale_set_vlan_untag(struct cpsw_ale *ale, u32 *ale_entry,
++				    u16 vid, int untag_mask)
+ {
+ 	cpsw_ale_set_vlan_untag_force(ale_entry,
+ 				      untag_mask, ale->vlan_field_bits);
