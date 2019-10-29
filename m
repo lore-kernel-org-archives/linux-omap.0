@@ -1,358 +1,178 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 03/17] remoteproc/omap: Add device tree support
-Date: Mon, 28 Oct 2019 14:42:24 +0200
-Message-ID: <20191028124238.19224-4-t-kristo@ti.com>
-References: <20191028124238.19224-1-t-kristo@ti.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH v5 net-next 05/12] dt-bindings: net: ti: add new cpsw
+ switch driver bindings
+Date: Tue, 29 Oct 2019 03:23:05 +0100
+Message-ID: <20191029022305.GK15259@lunn.ch>
+References: <20191024100914.16840-1-grygorii.strashko@ti.com>
+ <20191024100914.16840-6-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191028124238.19224-1-t-kristo@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20191024100914.16840-6-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+> +TI SoC Ethernet Switch Controller Device Tree Bindings (new)
+> +------------------------------------------------------
+> +
+> +The 3-port switch gigabit ethernet subsystem provides ethernet packet
+> +communication and can be configured as an ethernet switch.
 
-OMAP4+ SoCs support device tree boot only. The OMAP remoteproc
-driver is enhanced to support remoteproc devices created through
-Device Tree, support for legacy platform devices has been
-deprecated. The current DT support handles the IPU and DSP
-processor subsystems on OMAP4 and OMAP5 SoCs.
+Hi Grygorii
 
-The OMAP remoteproc driver relies on the omap_device, omap_hwmod
-and control module layers for performing clock, reset and boot
-vector management (DSP remoteprocs only) of the devices, but
-some of these are limited only to the machine-specific layers
-in arch/arm. The dependency against control module API for boot
-vector management of the DSP remoteprocs has now been removed
-with added logic to parse the boot register from the DT node
-and program it appropriately directly within the driver.
+Maybe referring it to a 3-port switch will cause confusion, since in
+this use case, it only has 2 ports, and you only list two ports in the
+device tree.
 
-The dependency on omap_device API for clock and reset control
-remains though and is to be achieved through OMAP rproc specific
-platform data ops, and the required implementations to boot and
-shutdown have been added in the machine layer. These need to be
-plugged in to the remoteproc devices through pdata quirks, for
-properly booting the remote processors.
+> It provides the
+> +gigabit media independent interface (GMII),reduced gigabit media
+> +independent interface (RGMII), reduced media independent interface (RMII),
+> +the management data input output (MDIO) for physical layer device (PHY)
+> +management.
+> +
+> +Required properties:
+> +- compatible : be one of the below:
+> +	  "ti,cpsw-switch" for backward compatible
+> +	  "ti,am335x-cpsw-switch" for AM335x controllers
+> +	  "ti,am4372-cpsw-switch" for AM437x controllers
+> +	  "ti,dra7-cpsw-switch" for DRA7x controllers
+> +- reg : physical base address and size of the CPSW module IO range
+> +- ranges : shall contain the CPSW module IO range available for child devices
+> +- clocks : should contain the CPSW functional clock
+> +- clock-names : should be "fck"
+> +	See bindings/clock/clock-bindings.txt
+> +- interrupts : should contain CPSW RX_THRESH, RX, TX, MISC interrupts
+> +- interrupt-names : should contain "rx_thresh", "rx", "tx", "misc"
+> +	See bindings/interrupt-controller/interrupts.txt
+> +
+> +Optional properties:
+> +- syscon : phandle to the system control device node which provides access to
+> +	efuse IO range with MAC addresses
+> +
+> +Required Sub-nodes:
+> +- ethernet-ports : contains CPSW external ports descriptions
+> +	Required properties:
+> +	- #address-cells : Must be 1
+> +	- #size-cells : Must be 0
+> +	- reg : CPSW port number. Should be 1 or 2
+> +	- phys : phandle on phy-gmii-sel PHY (see phy/ti-phy-gmii-sel.txt)
+> +	- phy-mode : See [1]
+> +	- phy-handle : See [1]
+> +
+> +	Optional properties:
+> +	- label : Describes the label associated with this port
+> +	- ti,dual-emac-pvid : Specifies default PORT VID to be used to segregate
+> +		ports. Default value - CPSW port number.
+> +	- mac-address : See [1]
+> +	- local-mac-address : See [1]
+> +
+> +- mdio : CPSW MDIO bus block description
+> +	- bus_freq : MDIO Bus frequency
+> +	See bindings/net/mdio.txt and davinci-mdio.txt
+> +
+> +- cpts : The Common Platform Time Sync (CPTS) module description
+> +	- clocks : should contain the CPTS reference clock
+> +	- clock-names : should be "cpts"
+> +	See bindings/clock/clock-bindings.txt
+> +
+> +	Optional properties - all ports:
+> +	- cpts_clock_mult : Numerator to convert input clock ticks into ns
+> +	- cpts_clock_shift : Denominator to convert input clock ticks into ns
+> +			  Mult and shift will be calculated basing on CPTS
+> +			  rftclk frequency if both cpts_clock_shift and
+> +			  cpts_clock_mult properties are not provided.
+> +
+> +[1] See Documentation/devicetree/bindings/net/ethernet-controller.yaml
+> +
+> +Examples:
+> +
+> +mac_sw: switch@0 {
+> +	compatible = "ti,dra7-cpsw-switch","ti,cpsw-switch";
+> +	reg = <0x0 0x4000>;
+> +	ranges = <0 0 0x4000>;
+> +	clocks = <&gmac_main_clk>;
+> +	clock-names = "fck";
+> +	#address-cells = <1>;
+> +	#size-cells = <1>;
+> +	syscon = <&scm_conf>;
+> +	status = "disabled";
+> +
+> +	interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
+> +		     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
+> +		     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
+> +		     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
+> +	interrupt-names = "rx_thresh", "rx", "tx", "misc"
+> +
+> +	ethernet-ports {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		cpsw_port1: port@1 {
+> +			reg = <1>;
+> +			label = "port1";
+> +			/* Filled in by U-Boot */
+> +			mac-address = [ 00 00 00 00 00 00 ];
+> +			phys = <&phy_gmii_sel 1>;
+> +		};
+> +
+> +		cpsw_port2: port@2 {
+> +			reg = <2>;
+> +			label = "wan";
+> +			/* Filled in by U-Boot */
+> +			mac-address = [ 00 00 00 00 00 00 ];
+> +			phys = <&phy_gmii_sel 2>;
+> +		};
+> +	};
+> +
+> +	davinci_mdio_sw: mdio@1000 {
+> +		compatible = "ti,cpsw-mdio","ti,davinci_mdio";
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		ti,hwmods = "davinci_mdio";
+> +		bus_freq = <1000000>;
+> +		reg = <0x1000 0x100>;
+> +	};
+> +
+> +	cpts {
+> +		clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 25>;
+> +		clock-names = "cpts";
+> +	};
+> +};
+> +
+> +&mac_sw {
+> +	pinctrl-names = "default", "sleep";
+> +	status = "okay";
+> +};
+> +
+> +&cpsw_port1 {
+> +	phy-handle = <&ethphy0_sw>;
+> +	phy-mode = "rgmii";
+> +	ti,dual_emac_pvid = <1>;
+> +};
+> +
+> +&cpsw_port2 {
+> +	phy-handle = <&ethphy1_sw>;
+> +	phy-mode = "rgmii";
+> +	ti,dual_emac_pvid = <2>;
+> +};
+> +
+> +&davinci_mdio_sw {
+> +	ethphy0_sw: ethernet-phy@0 {
+> +		reg = <0>;
+> +	};
+> +
+> +	ethphy1_sw: ethernet-phy@1 {
+> +		reg = <1>;
+> +	};
+> +};
 
-The OMAP remoteproc driver expects the firmware images to have
-fixed names. This used to be defined through platform data
-previously, and are now coded into the driver. The following
-names are to be expected of the firmwares,
-	OMAP4 - IPU: omap4-ipu-fw.xem3
-	        DSP: omap4-dsp-fw.xe64T
-	OMAP5 - IPU: omap5-ipu-fw.xem4
-	        DSP: omap5-dsp-fw.xe64T
+In an example, it is unusual to split things up like this. I
+understand that parts of this will be in the dtsi file, and parts in
+the .dts file, but examples generally keep it all as one. And when you
+re-write this in YAML so it can be used to validated real DTs, you
+will have to combine it.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
-[t-kristo@ti.com: converted to use ti-sysc framework]
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/remoteproc/omap_remoteproc.c | 187 +++++++++++++++++++++++----
- 1 file changed, 164 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 6398194075aa..cd776189d20b 100644
---- a/drivers/remoteproc/omap_remoteproc.c
-+++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -2,7 +2,7 @@
- /*
-  * OMAP Remote Processor driver
-  *
-- * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Copyright (C) 2011-2018 Texas Instruments Incorporated - http://www.ti.com/
-  * Copyright (C) 2011 Google, Inc.
-  *
-  * Ohad Ben-Cohen <ohad@wizery.com>
-@@ -16,27 +16,53 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/err.h>
-+#include <linux/of_device.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/remoteproc.h>
- #include <linux/mailbox_client.h>
- #include <linux/omap-mailbox.h>
--
--#include <linux/platform_data/remoteproc-omap.h>
-+#include <linux/regmap.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/reset.h>
- 
- #include "omap_remoteproc.h"
- #include "remoteproc_internal.h"
- 
-+/**
-+ * struct omap_rproc_boot_data - boot data structure for the DSP omap rprocs
-+ * @syscon: regmap handle for the system control configuration module
-+ * @boot_reg: boot register offset within the @syscon regmap
-+ */
-+struct omap_rproc_boot_data {
-+	struct regmap *syscon;
-+	unsigned int boot_reg;
-+};
-+
- /**
-  * struct omap_rproc - omap remote processor state
-  * @mbox: mailbox channel handle
-  * @client: mailbox client to request the mailbox channel
-+ * @boot_data: boot data structure for setting processor boot address
-  * @rproc: rproc handle
-+ * @reset: reset handle
-  */
- struct omap_rproc {
- 	struct mbox_chan *mbox;
- 	struct mbox_client client;
-+	struct omap_rproc_boot_data *boot_data;
- 	struct rproc *rproc;
-+	struct reset_control *reset;
-+};
-+
-+/**
-+ * struct omap_rproc_dev_data - device data for the omap remote processor
-+ * @device_name: device name of the remote processor
-+ * @fw_name: firmware name to use
-+ */
-+struct omap_rproc_dev_data {
-+	const char *device_name;
-+	const char *fw_name;
- };
- 
- /**
-@@ -92,6 +118,21 @@ static void omap_rproc_kick(struct rproc *rproc, int vqid)
- 			ret);
- }
- 
-+/**
-+ * omap_rproc_write_dsp_boot_addr - set boot address for a DSP remote processor
-+ * @rproc: handle of a remote processor
-+ *
-+ * Set boot address for a supported DSP remote processor.
-+ */
-+static void omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
-+{
-+	struct omap_rproc *oproc = rproc->priv;
-+	struct omap_rproc_boot_data *bdata = oproc->boot_data;
-+	u32 offset = bdata->boot_reg;
-+
-+	regmap_write(bdata->syscon, offset, rproc->bootaddr);
-+}
-+
- /*
-  * Power up the remote processor.
-  *
-@@ -103,13 +144,11 @@ static int omap_rproc_start(struct rproc *rproc)
- {
- 	struct omap_rproc *oproc = rproc->priv;
- 	struct device *dev = rproc->dev.parent;
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
- 	int ret;
- 	struct mbox_client *client = &oproc->client;
- 
--	if (pdata->set_bootaddr)
--		pdata->set_bootaddr(rproc->bootaddr);
-+	if (oproc->boot_data)
-+		omap_rproc_write_dsp_boot_addr(rproc);
- 
- 	client->dev = dev;
- 	client->tx_done = NULL;
-@@ -117,7 +156,7 @@ static int omap_rproc_start(struct rproc *rproc)
- 	client->tx_block = false;
- 	client->knows_txdone = false;
- 
--	oproc->mbox = omap_mbox_request_channel(client, pdata->mbox_name);
-+	oproc->mbox = mbox_request_channel(client, 0);
- 	if (IS_ERR(oproc->mbox)) {
- 		ret = -EBUSY;
- 		dev_err(dev, "mbox_request_channel failed: %ld\n",
-@@ -138,11 +177,7 @@ static int omap_rproc_start(struct rproc *rproc)
- 		goto put_mbox;
- 	}
- 
--	ret = pdata->device_enable(pdev);
--	if (ret) {
--		dev_err(dev, "omap_device_enable failed: %d\n", ret);
--		goto put_mbox;
--	}
-+	reset_control_deassert(oproc->reset);
- 
- 	return 0;
- 
-@@ -154,15 +189,9 @@ static int omap_rproc_start(struct rproc *rproc)
- /* power off the remote processor */
- static int omap_rproc_stop(struct rproc *rproc)
- {
--	struct device *dev = rproc->dev.parent;
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
- 	struct omap_rproc *oproc = rproc->priv;
--	int ret;
- 
--	ret = pdata->device_shutdown(pdev);
--	if (ret)
--		return ret;
-+	reset_control_assert(oproc->reset);
- 
- 	mbox_free_channel(oproc->mbox);
- 
-@@ -175,12 +204,118 @@ static const struct rproc_ops omap_rproc_ops = {
- 	.kick		= omap_rproc_kick,
- };
- 
-+static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
-+	.device_name	= "dsp",
-+	.fw_name	= "omap4-dsp-fw.xe64T",
-+};
-+
-+static const struct omap_rproc_dev_data omap4_ipu_dev_data = {
-+	.device_name	= "ipu",
-+	.fw_name	= "omap4-ipu-fw.xem3",
-+};
-+
-+static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
-+	.device_name	= "dsp",
-+	.fw_name	= "omap5-dsp-fw.xe64T",
-+};
-+
-+static const struct omap_rproc_dev_data omap5_ipu_dev_data = {
-+	.device_name	= "ipu",
-+	.fw_name	= "omap5-ipu-fw.xem4",
-+};
-+
-+static const struct of_device_id omap_rproc_of_match[] = {
-+	{
-+		.compatible     = "ti,omap4-dsp",
-+		.data           = &omap4_dsp_dev_data,
-+	},
-+	{
-+		.compatible     = "ti,omap4-ipu",
-+		.data           = &omap4_ipu_dev_data,
-+	},
-+	{
-+		.compatible     = "ti,omap5-dsp",
-+		.data           = &omap5_dsp_dev_data,
-+	},
-+	{
-+		.compatible     = "ti,omap5-ipu",
-+		.data           = &omap5_ipu_dev_data,
-+	},
-+	{
-+		/* end */
-+	},
-+};
-+MODULE_DEVICE_TABLE(of, omap_rproc_of_match);
-+
-+static const char *omap_rproc_get_firmware(struct platform_device *pdev)
-+{
-+	const struct omap_rproc_dev_data *data;
-+
-+	data = of_device_get_match_data(&pdev->dev);
-+	if (!data)
-+		return ERR_PTR(-ENODEV);
-+
-+	return data->fw_name;
-+}
-+
-+static int omap_rproc_get_boot_data(struct platform_device *pdev,
-+				    struct rproc *rproc)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct omap_rproc *oproc = rproc->priv;
-+	int ret;
-+
-+	if (!of_device_is_compatible(np, "ti,omap4-dsp") &&
-+	    !of_device_is_compatible(np, "ti,omap5-dsp"))
-+		return 0;
-+
-+	oproc->boot_data = devm_kzalloc(&pdev->dev, sizeof(*oproc->boot_data),
-+					GFP_KERNEL);
-+	if (!oproc->boot_data)
-+		return -ENOMEM;
-+
-+	if (!of_property_read_bool(np, "syscon-bootreg")) {
-+		dev_err(&pdev->dev, "syscon-bootreg property is missing\n");
-+		return -EINVAL;
-+	}
-+
-+	oproc->boot_data->syscon =
-+			syscon_regmap_lookup_by_phandle(np, "syscon-bootreg");
-+	if (IS_ERR(oproc->boot_data->syscon)) {
-+		ret = PTR_ERR(oproc->boot_data->syscon);
-+		return ret;
-+	}
-+
-+	if (of_property_read_u32_index(np, "syscon-bootreg", 1,
-+				       &oproc->boot_data->boot_reg)) {
-+		dev_err(&pdev->dev, "couldn't get the boot register\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int omap_rproc_probe(struct platform_device *pdev)
- {
--	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
-+	struct device_node *np = pdev->dev.of_node;
- 	struct omap_rproc *oproc;
- 	struct rproc *rproc;
-+	const char *firmware;
- 	int ret;
-+	struct reset_control *reset;
-+
-+	if (!np) {
-+		dev_err(&pdev->dev, "only DT-based devices are supported\n");
-+		return -ENODEV;
-+	}
-+
-+	reset = devm_reset_control_array_get_optional_exclusive(&pdev->dev);
-+	if (IS_ERR(reset))
-+		return PTR_ERR(reset);
-+
-+	firmware = omap_rproc_get_firmware(pdev);
-+	if (IS_ERR(firmware))
-+		return PTR_ERR(firmware);
- 
- 	ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
- 	if (ret) {
-@@ -188,16 +323,21 @@ static int omap_rproc_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
--	rproc = rproc_alloc(&pdev->dev, pdata->name, &omap_rproc_ops,
--			    pdata->firmware, sizeof(*oproc));
-+	rproc = rproc_alloc(&pdev->dev, dev_name(&pdev->dev), &omap_rproc_ops,
-+			    firmware, sizeof(*oproc));
- 	if (!rproc)
- 		return -ENOMEM;
- 
- 	oproc = rproc->priv;
- 	oproc->rproc = rproc;
-+	oproc->reset = reset;
- 	/* All existing OMAP IPU and DSP processors have an MMU */
- 	rproc->has_iommu = true;
- 
-+	ret = omap_rproc_get_boot_data(pdev, rproc);
-+	if (ret)
-+		goto free_rproc;
-+
- 	platform_set_drvdata(pdev, rproc);
- 
- 	ret = rproc_add(rproc);
-@@ -226,6 +366,7 @@ static struct platform_driver omap_rproc_driver = {
- 	.remove = omap_rproc_remove,
- 	.driver = {
- 		.name = "omap-rproc",
-+		.of_match_table = omap_rproc_of_match,
- 	},
- };
- 
--- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+     Andrew
