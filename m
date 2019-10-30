@@ -1,69 +1,20 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH v5 net-next 06/12] net: ethernet: ti: introduce cpsw
-  switchdev based driver part 1 - dual-emac
-Date: Tue, 29 Oct 2019 13:32:30 +0100
-Message-ID: <20191029123230.GM15259@lunn.ch>
-References: <20191024100914.16840-1-grygorii.strashko@ti.com>
- <20191024100914.16840-7-grygorii.strashko@ti.com>
-Mime-Version: 1.0
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [RFC v2 1/2] ARM: dts: omap3: Add cpu trips and cooling map for omap3 family
+Date: Wed, 30 Oct 2019 09:39:45 +0100
+Message-ID: <C469028D-959D-4BD1-9226-C0190A197CE5@goldelico.com>
+References: <20190913153714.30980-1-aford173@gmail.com> <B710D701-6311-4344-BF4E-F39157BBF2BD@goldelico.com> <CAHCN7xKU1v-BFkwiuZQx82+Cmdgj_1CH1j51bN0TaaduWcu8rQ@mail.gmail.com> <97204F98-FA33-4EBA-80AC-2FB3A6E78B2B@goldelico.com> <CAHCN7xJus=Unsm5rvgtccM9jpdiwGnJXrfjhavwkoswGbNd7qw@mail.gmail.com> <CAHCN7x+=O6f4Q0ps1d5KA+-E9L-8wr5B9XggzurJWtEnxEj7yg@mail.gmail.com> <FD6FED45-EF20-49D8-A2B2-012FB314DCC6@goldelico.com> <CAHCN7xLN+52ZW6tzCQPDvwqrdgaQaMrkhPFPotYDr7RdNwqeNA@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191024100914.16840-7-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHCN7xLN+52ZW6tzCQPDvwqrdgaQaMrkhPFPotYDr7RdNwqeNA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, Nishanth Menon <nm@ti.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-> +static int cpsw_probe(struct platform_device *pdev)
-> +{
-> +	const struct soc_device_attribute *soc;
-> +	struct device *dev = &pdev->dev;
-> +	struct resource *ss_res;
-> +	struct cpsw_common *cpsw;
-> +	struct gpio_descs *mode;
-> +	void __iomem *ss_regs;
-> +	int ret = 0, ch;
-> +	struct clk *clk;
-> +	int irq;
-> +
+Hi Adam,
+what is the status of this RFC/PATCH?
 
-...
-
-> +
-> +	/* setup netdevs */
-> +	ret = cpsw_create_ports(cpsw);
-> +	if (ret)
-> +		goto clean_unregister_netdev;
-
-At this point, the slave ports go live. If the kernel is configured
-with NFS root etc, it will start using the interfaces.
-
-+
-> +	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
-> +	 * MISC IRQs which are always kept disabled with this driver so
-> +	 * we will not request them.
-> +	 *
-> +	 * If anyone wants to implement support for those, make sure to
-> +	 * first request and append them to irqs_table array.
-> +	 */
-> +
-> +	ret = devm_request_irq(dev, cpsw->irqs_table[0], cpsw_rx_interrupt,
-> +			       0, dev_name(dev), cpsw);
-> +	if (ret < 0) {
-> +		dev_err(dev, "error attaching irq (%d)\n", ret);
-> +		goto clean_unregister_netdev;
-> +	}
-> +
-> +	ret = devm_request_irq(dev, cpsw->irqs_table[1], cpsw_tx_interrupt,
-> +			       0, dev_name(dev), cpsw);
-> +	if (ret < 0) {
-> +		dev_err(dev, "error attaching irq (%d)\n", ret);
-> +		goto clean_unregister_netdev;
-> +	}
-
-Are there any race conditions if the network starts using the devices
-before interrupts are requested? To be safe, maybe this should be done
-before the slaves are created?
-
-       Andrew
+BR and thanks,
+Nikolaus
