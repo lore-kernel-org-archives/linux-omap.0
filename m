@@ -1,104 +1,115 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH V5 1/3] drm/panel: simple: Add Logic PD Type 28 display support
-Date: Wed, 30 Oct 2019 09:44:20 -0500
-Message-ID: <CAHCN7xJ-1b_OHXy_u8TvA5i4PuWGbci6YN3x1hUY_UaLxzu+QQ@mail.gmail.com>
-References: <20191016135147.7743-1-aford173@gmail.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 30/81] ARM: dts: am3874-iceboard: Fix 'i2c-mux-idle-disconnect' usage
+Date: Wed, 30 Oct 2019 11:48:36 -0400
+Message-ID: <20191030154928.9432-30-sashal@kernel.org>
+References: <20191030154928.9432-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191016135147.7743-1-aford173@gmail.com>
+In-Reply-To: <20191030154928.9432-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dri-devel <dri-devel@lists.freedesktop.org>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Graeme Smecher <gsmecher@threespeedlogic.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Sasha Levin <sashal@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 16, 2019 at 8:52 AM Adam Ford <aford173@gmail.com> wrote:
->
-> Previously, there was an omap panel-dpi driver that would
-> read generic timings from the device tree and set the display
-> timing accordingly.  This driver was removed so the screen
-> no longer functions.  This patch modifies the panel-simple
-> file to setup the timings to the same values previously used.
->
-> Fixes: 8bf4b1621178 ("drm/omap: Remove panel-dpi driver")
->
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
 
-Will this be able to make it into linux-next for the 5.5 merge window?
- I believe Tony has picked up the device tree portion in his omap
-tree, but I haven't seen any notifications on this series on whether
-or not it's being applied.  I also don't know which tree I need to
-look if it's already been applied.
+[ Upstream commit 647c8977e111c0a62c93a489ebc4b045c833fdb4 ]
 
-This fixes a regression introduced a while ago where the driver I was
-using for the display was removed.
+According to
+Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.txt,
+i2c-mux-idle-disconnect is a property of a parent node since it
+pertains to the mux/switch as a whole, so move it there and drop all
+of the concurrences in child nodes.
 
-thank you,
+Fixes: d031773169df ("ARM: dts: Adds device tree file for McGill's IceBoard, based on TI AM3874")
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: Benoît Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Graeme Smecher <gsmecher@threespeedlogic.com>
+Cc: linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Tested-by: Graeme Smecher <gsmecher@threespeedlogic.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/am3874-iceboard.dts | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-adam
-
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-> ---
-> V5:  No Change
-> V4:  No Change
-> V3:  No Change
-> V2:  No Change
->
-> diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-> index 5d487686d25c..72f69709f349 100644
-> --- a/drivers/gpu/drm/panel/panel-simple.c
-> +++ b/drivers/gpu/drm/panel/panel-simple.c
-> @@ -2061,6 +2061,40 @@ static const struct drm_display_mode mitsubishi_aa070mc01_mode = {
->         .flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
->  };
->
-> +static const struct drm_display_mode logicpd_type_28_mode = {
-> +       .clock = 9000,
-> +       .hdisplay = 480,
-> +       .hsync_start = 480 + 3,
-> +       .hsync_end = 480 + 3 + 42,
-> +       .htotal = 480 + 3 + 42 + 2,
-> +
-> +       .vdisplay = 272,
-> +       .vsync_start = 272 + 2,
-> +       .vsync_end = 272 + 2 + 11,
-> +       .vtotal = 272 + 2 + 11 + 3,
-> +       .vrefresh = 60,
-> +       .flags = DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC,
-> +};
-> +
-> +static const struct panel_desc logicpd_type_28 = {
-> +       .modes = &logicpd_type_28_mode,
-> +       .num_modes = 1,
-> +       .bpc = 8,
-> +       .size = {
-> +               .width = 105,
-> +               .height = 67,
-> +       },
-> +       .delay = {
-> +               .prepare = 200,
-> +               .enable = 200,
-> +               .unprepare = 200,
-> +               .disable = 200,
-> +       },
-> +       .bus_format = MEDIA_BUS_FMT_RGB888_1X24,
-> +       .bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE |
-> +                    DRM_BUS_FLAG_SYNC_DRIVE_NEGEDGE,
-> +};
-> +
->  static const struct panel_desc mitsubishi_aa070mc01 = {
->         .modes = &mitsubishi_aa070mc01_mode,
->         .num_modes = 1,
-> @@ -3287,6 +3321,9 @@ static const struct of_device_id platform_of_match[] = {
->         }, {
->                 .compatible = "lg,lp129qe",
->                 .data = &lg_lp129qe,
-> +       }, {
-> +               .compatible = "logicpd,type28",
-> +               .data = &logicpd_type_28,
->         }, {
->                 .compatible = "mitsubishi,aa070mc01-ca1",
->                 .data = &mitsubishi_aa070mc01,
-> --
-> 2.17.1
->
+diff --git a/arch/arm/boot/dts/am3874-iceboard.dts b/arch/arm/boot/dts/am3874-iceboard.dts
+index 883fb85135d46..1b4b2b0500e4c 100644
+--- a/arch/arm/boot/dts/am3874-iceboard.dts
++++ b/arch/arm/boot/dts/am3874-iceboard.dts
+@@ -111,13 +111,13 @@
+ 		reg = <0x70>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
++		i2c-mux-idle-disconnect;
+ 
+ 		i2c@0 {
+ 			/* FMC A */
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <0>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@1 {
+@@ -125,7 +125,6 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <1>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@2 {
+@@ -133,7 +132,6 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <2>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@3 {
+@@ -141,7 +139,6 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <3>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@4 {
+@@ -149,14 +146,12 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <4>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@5 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <5>;
+-			i2c-mux-idle-disconnect;
+ 
+ 			ina230@40 { compatible = "ti,ina230"; reg = <0x40>; shunt-resistor = <5000>; };
+ 			ina230@41 { compatible = "ti,ina230"; reg = <0x41>; shunt-resistor = <5000>; };
+@@ -182,14 +177,12 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <6>;
+-			i2c-mux-idle-disconnect;
+ 		};
+ 
+ 		i2c@7 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <7>;
+-			i2c-mux-idle-disconnect;
+ 
+ 			u41: pca9575@20 {
+ 				compatible = "nxp,pca9575";
+-- 
+2.20.1
