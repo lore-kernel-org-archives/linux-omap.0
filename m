@@ -1,94 +1,82 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
 Subject: Re: [PATCH v5 net-next 06/12] net: ethernet: ti: introduce cpsw
  switchdev based driver part 1 - dual-emac
-Date: Fri, 1 Nov 2019 22:16:34 +0200
-Message-ID: <d87c72e1-cb91-04a2-c881-0d8eec4671e2@ti.com>
+Date: Fri, 1 Nov 2019 22:34:57 +0200
+Message-ID: <24b1623d-48df-328a-eda7-4195e9df2b22@ti.com>
 References: <20191024100914.16840-1-grygorii.strashko@ti.com>
  <20191024100914.16840-7-grygorii.strashko@ti.com>
- <20191029122422.GL15259@lunn.ch>
+ <20191029123230.GM15259@lunn.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191029122422.GL15259@lunn.ch>
+In-Reply-To: <20191029123230.GM15259@lunn.ch>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Lunn <andrew@lunn.ch>
 Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andrew,
 
-On 29/10/2019 14:24, Andrew Lunn wrote:
->>   config TI_CPTS
->>   	bool "TI Common Platform Time Sync (CPTS) Support"
->> -	depends on TI_CPSW || TI_KEYSTONE_NETCP || COMPILE_TEST
->> +	depends on TI_CPSW || TI_KEYSTONE_NETCP || COMPILE_TEST || TI_CPSW_SWITCHDEV
-> 
-> nit picking, but COMPILE_TEST is generally last on the line.
-> 
->> +/**
->> + * cpsw_set_mc - adds multicast entry to the table if it's not added or deletes
->> + * if it's not deleted
->> + * @ndev: device to sync
->> + * @addr: address to be added or deleted
->> + * @vid: vlan id, if vid < 0 set/unset address for real device
->> + * @add: add address if the flag is set or remove otherwise
->> + */
->> +static int cpsw_set_mc(struct net_device *ndev, const u8 *addr,
->> +		       int vid, int add)
+
+On 29/10/2019 14:32, Andrew Lunn wrote:
+>> +static int cpsw_probe(struct platform_device *pdev)
 >> +{
->> +	struct cpsw_priv *priv = netdev_priv(ndev);
->> +	struct cpsw_common *cpsw = priv->cpsw;
->> +	int slave_no = cpsw_slave_index(cpsw, priv);
->> +	int mask, flags, ret;
-> 
-> David will complain about reverse Christmas tree. You need to move
-> some of the assignments into the body of the function. This problems
-> happens a few times in the code.
-> 
->> +static int cpsw_set_pauseparam(struct net_device *ndev,
->> +			       struct ethtool_pauseparam *pause)
->> +{
->> +	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
->> +	struct cpsw_priv *priv = netdev_priv(ndev);
+>> +	const struct soc_device_attribute *soc;
+>> +	struct device *dev = &pdev->dev;
+>> +	struct resource *ss_res;
+>> +	struct cpsw_common *cpsw;
+>> +	struct gpio_descs *mode;
+>> +	void __iomem *ss_regs;
+>> +	int ret = 0, ch;
+>> +	struct clk *clk;
+>> +	int irq;
 >> +
->> +	priv->rx_pause = pause->rx_pause ? true : false;
->> +	priv->tx_pause = pause->tx_pause ? true : false;
+> 
+> ...
+> 
 >> +
->> +	return phy_restart_aneg(cpsw->slaves[priv->emac_port - 1].phy);
->> +}
+>> +	/* setup netdevs */
+>> +	ret = cpsw_create_ports(cpsw);
+>> +	if (ret)
+>> +		goto clean_unregister_netdev;
 > 
-> You should look at the value of pause.autoneg.
-
-I'll use phy_validate_pause() and phy_set_asym_pause() here,
-and fix other comments.
-
+> At this point, the slave ports go live. If the kernel is configured
+> with NFS root etc, it will start using the interfaces.
 > 
->> +static const struct devlink_ops cpsw_devlink_ops;
+> +
+>> +	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
+>> +	 * MISC IRQs which are always kept disabled with this driver so
+>> +	 * we will not request them.
+>> +	 *
+>> +	 * If anyone wants to implement support for those, make sure to
+>> +	 * first request and append them to irqs_table array.
+>> +	 */
+>> +
+>> +	ret = devm_request_irq(dev, cpsw->irqs_table[0], cpsw_rx_interrupt,
+>> +			       0, dev_name(dev), cpsw);
+>> +	if (ret < 0) {
+>> +		dev_err(dev, "error attaching irq (%d)\n", ret);
+>> +		goto clean_unregister_netdev;
+>> +	}
+>> +
+>> +	ret = devm_request_irq(dev, cpsw->irqs_table[1], cpsw_tx_interrupt,
+>> +			       0, dev_name(dev), cpsw);
+>> +	if (ret < 0) {
+>> +		dev_err(dev, "error attaching irq (%d)\n", ret);
+>> +		goto clean_unregister_netdev;
+>> +	}
 > 
-> It would be nice to avoid this forward declaration.
+> Are there any race conditions if the network starts using the devices
+> before interrupts are requested? To be safe, maybe this should be done
+> before the slaves are created?
 
-It's not declaration, it's definition of devlink_ops without any standard callbacks implemented.
+Usually during boot - there is no parallel probing (as opposite to modules loading by
+udev, for example). Also, there is barrier init call deferred_probe_initcall() to ensure all
+drivers probed before going to mount rootfs.
 
-> 
->> +static const struct devlink_param cpsw_devlink_params[] = {
->> +	DEVLINK_PARAM_DRIVER(CPSW_DL_PARAM_ALE_BYPASS,
->> +			     "ale_bypass", DEVLINK_PARAM_TYPE_BOOL,
->> +			     BIT(DEVLINK_PARAM_CMODE_RUNTIME),
->> +			     cpsw_dl_ale_ctrl_get, cpsw_dl_ale_ctrl_set, NULL),
->> +};
-> 
-> Is this documented?
-
-In patch 9. But I'll update it and add standard devlink parameter definition, like:
-
-ale_bypass	[DEVICE, DRIVER-SPECIFIC]
-		Allows to enable ALE_CONTROL(4).BYPASS mode for debug purposes
-		Type: bool
-		Configuration mode: runtime
-
-Thank you for review.
+So, i do not think this could cause any issue - max few packets will be delayed
+until kernel will switch back here, but the chances that ndo_open will be finished before probe ->0.
 
 -- 
 Best regards,
