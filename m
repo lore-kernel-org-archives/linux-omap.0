@@ -1,57 +1,86 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH v5 net-next 06/12] net: ethernet: ti: introduce cpsw
- switchdev based driver part 1 - dual-emac
-Date: Fri, 1 Nov 2019 21:39:13 +0100
-Message-ID: <20191101203913.GD31534@lunn.ch>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v5 net-next 05/12] dt-bindings: net: ti: add new cpsw
+ switch driver bindings
+Date: Fri, 1 Nov 2019 22:40:59 +0200
+Message-ID: <b81b6502-0e2b-d786-ae71-b40b0a1fab79@ti.com>
 References: <20191024100914.16840-1-grygorii.strashko@ti.com>
- <20191024100914.16840-7-grygorii.strashko@ti.com>
- <20191029122422.GL15259@lunn.ch>
- <d87c72e1-cb91-04a2-c881-0d8eec4671e2@ti.com>
+ <20191024100914.16840-6-grygorii.strashko@ti.com>
+ <caf68306-46ce-f97d-b45a-0fc1cd5323f7@gmail.com>
+ <6e64b70e-604a-b8c6-12ce-7977ffa4ed5a@ti.com>
+ <5c286f76-d108-5d78-dd8f-19e1baf64396@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d87c72e1-cb91-04a2-c881-0d8eec4671e2@ti.com>
+In-Reply-To: <5c286f76-d108-5d78-dd8f-19e1baf64396@gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> > > +static const struct devlink_ops cpsw_devlink_ops;
-> > 
-> > It would be nice to avoid this forward declaration.
+
+
+On 01/11/2019 19:36, Florian Fainelli wrote:
+> On 11/1/19 10:25 AM, Grygorii Strashko wrote:
+>> Hi Florian,
+>>
+>> On 25/10/2019 20:47, Florian Fainelli wrote:
+>>> On 10/24/19 3:09 AM, Grygorii Strashko wrote:
+>>>> Add bindings for the new TI CPSW switch driver. Comparing to the legacy
+>>>> bindings (net/cpsw.txt):
+>>>> - ports definition follows DSA bindings (net/dsa/dsa.txt) and ports
+>>>> can be
+>>>> marked as "disabled" if not physically wired.
+>>>> - all deprecated properties dropped;
+>>>> - all legacy propertiies dropped which represent constant HW
+>>>> cpapbilities
+>>>> (cpdma_channels, ale_entries, bd_ram_size, mac_control, slaves,
+>>>> active_slave)
+>>>> - TI CPTS DT properties are reused as is, but grouped in "cpts" sub-node
+>>>> - TI Davinci MDIO DT bindings are reused as is, because Davinci MDIO is
+>>>> reused.
+>>>>
+>>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>>> ---
+>>>
+>>> [snip]
+>>>> +- mdio : CPSW MDIO bus block description
+>>>> +    - bus_freq : MDIO Bus frequency
+>>>
+>>> clock-frequency is a more typical property to describe the bus clock's
+>>> frequency, that is what i2c and spi do.
+>>
+>> The MDIO is re-used here unchanged (including bindings).
+>> i think, I could try to add standard optional property "bus-frequency"
+>> to MDIO bindings
+>> as separate series, and deprecate "bus_freq".
 > 
-> It's not declaration, it's definition of devlink_ops without any standard callbacks implemented.
-
-Ho Grygorii
-
-Ah, yes.
-
-How about
-
-= {
-  };
-
-to make it clearer?
-
-> > > +static const struct devlink_param cpsw_devlink_params[] = {
-> > > +	DEVLINK_PARAM_DRIVER(CPSW_DL_PARAM_ALE_BYPASS,
-> > > +			     "ale_bypass", DEVLINK_PARAM_TYPE_BOOL,
-> > > +			     BIT(DEVLINK_PARAM_CMODE_RUNTIME),
-> > > +			     cpsw_dl_ale_ctrl_get, cpsw_dl_ale_ctrl_set, NULL),
-> > > +};
-> > 
-> > Is this documented?
+> What is wrong with 'clock-frequency'?
 > 
-> In patch 9. But I'll update it and add standard devlink parameter definition, like:
+> Documentation/devicetree/bindings/i2c/i2c.txt:
 > 
-> ale_bypass	[DEVICE, DRIVER-SPECIFIC]
-> 		Allows to enable ALE_CONTROL(4).BYPASS mode for debug purposes
-> 		Type: bool
-> 		Configuration mode: runtime
+> - clock-frequency
+>          frequency of bus clock in Hz.
+> 
+> Documentation/devicetree/bindings/net/brcm,unimac-mdio.txt:
+> 
+> - clock-frequency: the MDIO bus clock that must be output by the MDIO bus
+>    hardware, if absent, the default hardware values are used
+> 
+> Maybe this is a bit of a misnomer as it is usually considered a
+> replacement for the lack of a proper "clocks" property with a clock
+> provider, but we can flip the coin around any way we want, it looks
+> almost the same.
+> 
 
-And please you the standard file naming and location,
-Documentation/networking/devlink-params-foo.txt
+I can do clock-frequency, but I like more bus-frequency (personally)
+due to more understandable meaning, and because in "Devicetree Specification v0.2"
+clock-frequency is defined as more related to clocks.
 
-Thanks
-	Andrew
+Any way I hope you agree that it should be part separate discussion?
+
+
+-- 
+Best regards,
+grygorii
