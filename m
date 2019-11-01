@@ -1,89 +1,35 @@
 From: Andrew Lunn <andrew@lunn.ch>
 Subject: Re: [PATCH v5 net-next 06/12] net: ethernet: ti: introduce cpsw
  switchdev based driver part 1 - dual-emac
-Date: Fri, 1 Nov 2019 21:57:29 +0100
-Message-ID: <20191101205729.GE31534@lunn.ch>
+Date: Fri, 1 Nov 2019 21:59:40 +0100
+Message-ID: <20191101205940.GF31534@lunn.ch>
 References: <20191024100914.16840-1-grygorii.strashko@ti.com>
  <20191024100914.16840-7-grygorii.strashko@ti.com>
- <20191029123230.GM15259@lunn.ch>
- <24b1623d-48df-328a-eda7-4195e9df2b22@ti.com>
+ <20191029122422.GL15259@lunn.ch>
+ <d87c72e1-cb91-04a2-c881-0d8eec4671e2@ti.com>
+ <20191101203913.GD31534@lunn.ch>
+ <8f3eb934-7dcd-b43a-de96-6a864ef67c92@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <24b1623d-48df-328a-eda7-4195e9df2b22@ti.com>
+In-Reply-To: <8f3eb934-7dcd-b43a-de96-6a864ef67c92@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 01, 2019 at 10:34:57PM +0200, Grygorii Strashko wrote:
-> 
-> 
-> On 29/10/2019 14:32, Andrew Lunn wrote:
-> > > +static int cpsw_probe(struct platform_device *pdev)
-> > > +{
-> > > +	const struct soc_device_attribute *soc;
-> > > +	struct device *dev = &pdev->dev;
-> > > +	struct resource *ss_res;
-> > > +	struct cpsw_common *cpsw;
-> > > +	struct gpio_descs *mode;
-> > > +	void __iomem *ss_regs;
-> > > +	int ret = 0, ch;
-> > > +	struct clk *clk;
-> > > +	int irq;
-> > > +
-> > 
-> > ...
-> > 
-> > > +
-> > > +	/* setup netdevs */
-> > > +	ret = cpsw_create_ports(cpsw);
-> > > +	if (ret)
-> > > +		goto clean_unregister_netdev;
-> > 
-> > At this point, the slave ports go live. If the kernel is configured
-> > with NFS root etc, it will start using the interfaces.
-> > 
-> > +
-> > > +	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
-> > > +	 * MISC IRQs which are always kept disabled with this driver so
-> > > +	 * we will not request them.
-> > > +	 *
-> > > +	 * If anyone wants to implement support for those, make sure to
-> > > +	 * first request and append them to irqs_table array.
-> > > +	 */
-> > > +
-> > > +	ret = devm_request_irq(dev, cpsw->irqs_table[0], cpsw_rx_interrupt,
-> > > +			       0, dev_name(dev), cpsw);
-> > > +	if (ret < 0) {
-> > > +		dev_err(dev, "error attaching irq (%d)\n", ret);
-> > > +		goto clean_unregister_netdev;
-> > > +	}
-> > > +
-> > > +	ret = devm_request_irq(dev, cpsw->irqs_table[1], cpsw_tx_interrupt,
-> > > +			       0, dev_name(dev), cpsw);
-> > > +	if (ret < 0) {
-> > > +		dev_err(dev, "error attaching irq (%d)\n", ret);
-> > > +		goto clean_unregister_netdev;
-> > > +	}
-> > 
-> > Are there any race conditions if the network starts using the devices
-> > before interrupts are requested? To be safe, maybe this should be done
-> > before the slaves are created?
-> 
-> Usually during boot - there is no parallel probing (as opposite to modules loading by
-> udev, for example). Also, there is barrier init call deferred_probe_initcall() to ensure all
-> drivers probed before going to mount rootfs.
-> 
-> So, i do not think this could cause any issue - max few packets will be delayed
-> until kernel will switch back here, but the chances that ndo_open will be finished before probe ->0.
+> > And please you the standard file naming and location,
+> > Documentation/networking/devlink-params-foo.txt
+> Ok. I will.
+> But I'd like to clarify:
+> - drivers documentation placed in ./Documentation/networking/device_drivers/ti/
+> so could you confirm pls, that you want me to add devlink-params documentation in separate file
+> and palace it in ./Documentation/networking/ folder directly?
 
-I helped track down a crash recently, along these lines. ndo_open()
-was getting called before the probe function finished, when kernel ip
-address auto config was in action. This is not to do with parallel
-probing, i think there is something in register_netdev() which is
-triggered each time an interface is added to do the ip
-configuration. And the first thing that does is open the interface.
+Hi Grygorii
 
-	  Andrew
+That appears to be the expected place for devlink documentation. You
+can link to it from your document in the ti subdirectory.
+
+    Andrew
