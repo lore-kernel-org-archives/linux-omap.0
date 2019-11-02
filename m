@@ -1,35 +1,40 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH v5 net-next 06/12] net: ethernet: ti: introduce cpsw
- switchdev based driver part 1 - dual-emac
-Date: Fri, 1 Nov 2019 21:59:40 +0100
-Message-ID: <20191101205940.GF31534@lunn.ch>
-References: <20191024100914.16840-1-grygorii.strashko@ti.com>
- <20191024100914.16840-7-grygorii.strashko@ti.com>
- <20191029122422.GL15259@lunn.ch>
- <d87c72e1-cb91-04a2-c881-0d8eec4671e2@ti.com>
- <20191101203913.GD31534@lunn.ch>
- <8f3eb934-7dcd-b43a-de96-6a864ef67c92@ti.com>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] thermal: ti-soc-thermal: Remove dev_err() on platform_get_irq() failure
+Date: Sat, 2 Nov 2019 15:56:54 +0800
+Message-ID: <20191102075654.36700-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <8f3eb934-7dcd-b43a-de96-6a864ef67c92@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+To: edubezval@gmail.com, j-keerthy@ti.com, rui.zhang@intel.com, daniel.lezcano@linaro.org, amit.kucheria@verdurent.com
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
-> > And please you the standard file naming and location,
-> > Documentation/networking/devlink-params-foo.txt
-> Ok. I will.
-> But I'd like to clarify:
-> - drivers documentation placed in ./Documentation/networking/device_drivers/ti/
-> so could you confirm pls, that you want me to add devlink-params documentation in separate file
-> and palace it in ./Documentation/networking/ folder directly?
+platform_get_irq() will call dev_err() itself on failure,
+so there is no need for the driver to also do this.
+This is detected by coccinelle.
 
-Hi Grygorii
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-That appears to be the expected place for devlink documentation. You
-can link to it from your document in the ti subdirectory.
-
-    Andrew
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+index 2fa78f7..89c3ba7 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -787,10 +787,9 @@ static int ti_bandgap_talert_init(struct ti_bandgap *bgp,
+ 	int ret;
+ 
+ 	bgp->irq = platform_get_irq(pdev, 0);
+-	if (bgp->irq < 0) {
+-		dev_err(&pdev->dev, "get_irq failed\n");
++	if (bgp->irq < 0)
+ 		return bgp->irq;
+-	}
++
+ 	ret = request_threaded_irq(bgp->irq, NULL,
+ 				   ti_bandgap_talert_irq_handler,
+ 				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+-- 
+2.7.4
