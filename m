@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 08/10] arm: dts: dra76-evm: Add CAL and OV5640 nodes
-Date: Mon, 4 Nov 2019 14:48:51 -0600
-Message-ID: <20191104204853.4355-9-bparrot@ti.com>
+Subject: [Patch v2 10/10] arm64: dts: k3-am654-base-board: Add CSI2 OV5640 camera
+Date: Mon, 4 Nov 2019 14:48:53 -0600
+Message-ID: <20191104204853.4355-11-bparrot@ti.com>
 References: <20191104204853.4355-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,21 +12,23 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add device nodes for CSI2 camera board OV5640.
-Add the CAL port nodes with the necessary linkage to the ov5640 nodes.
+Add support for the OV5640 CSI camera:
+- add the OV5640 nodes
+- add the CAL node linkage
+- enable CAL node
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/dra76-evm.dts | 39 +++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ .../arm64/boot/dts/ti/k3-am654-base-board.dts | 36 +++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 1fb6f13fb5e2..a0a4bf0e1e30 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -116,6 +116,12 @@
- 		regulator-min-microvolt = <1800000>;
- 		regulator-max-microvolt = <1800000>;
+diff --git a/arch/arm64/boot/dts/ti/k3-am654-base-board.dts b/arch/arm64/boot/dts/ti/k3-am654-base-board.dts
+index 1102b84f853d..73290c646334 100644
+--- a/arch/arm64/boot/dts/ti/k3-am654-base-board.dts
++++ b/arch/arm64/boot/dts/ti/k3-am654-base-board.dts
+@@ -53,6 +53,12 @@
+ 			gpios = <&wkup_gpio0 27 GPIO_ACTIVE_LOW>;
+ 		};
  	};
 +
 +	clk_ov5640_fixed: clock {
@@ -36,14 +38,11 @@ index 1fb6f13fb5e2..a0a4bf0e1e30 100644
 +	};
  };
  
- &i2c1 {
-@@ -317,6 +323,27 @@
- 	};
- };
- 
-+&i2c5 {
-+	status = "okay";
-+	clock-frequency = <400000>;
+ &wkup_pmx0 {
+@@ -184,6 +190,23 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&main_i2c1_pins_default>;
+ 	clock-frequency = <400000>;
 +
 +	ov5640@3c {
 +		compatible = "ovti,ov5640";
@@ -60,14 +59,13 @@ index 1fb6f13fb5e2..a0a4bf0e1e30 100644
 +			};
 +		};
 +	};
-+};
 +
- &cpu0 {
- 	vdd-supply = <&buck10_reg>;
  };
-@@ -447,3 +474,15 @@
- 		max-bitrate = <5000000>;
- 	};
+ 
+ &main_i2c2 {
+@@ -280,3 +303,16 @@
+ &pcie1_ep {
+ 	status = "disabled";
  };
 +
 +&cal {
@@ -81,5 +79,6 @@ index 1fb6f13fb5e2..a0a4bf0e1e30 100644
 +		data-lanes = <1 2>;
 +	};
 +};
++
 -- 
 2.17.1
