@@ -1,42 +1,36 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 0/5] ARM: dts: dra7: add vpe nodes
-Date: Mon, 4 Nov 2019 14:38:36 -0600
-Message-ID: <20191104203841.3628-1-bparrot@ti.com>
+Subject: [Patch v2 5/5] media: ti-vpe: vpe: fix compatible to match bindings
+Date: Mon, 4 Nov 2019 14:38:41 -0600
+Message-ID: <20191104203841.3628-6-bparrot@ti.com>
+References: <20191104203841.3628-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191104203841.3628-1-bparrot@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Hans Verkuil <hverkuil@xs4all.nl>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch series adds the needed clkctrl and ty-sysc nodes for VPE module.
-We also document the VPE DT bindings.
+Update the compatible string to match the updated bindings.
 
-Changes since v1:
-- Added a patch to update the compatible in the driver
-- Removed unnededed #cell #size properties
-- Updated the compatible in dtsi to match binding
-- Split off the clk code into its own patch
-- Added device specific prefix
-- Converted binding to dt schema
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Benoit Parrot (5):
-  dt-bindings: media: ti-vpe: Document VPE driver
-  clk: ti: dra7: add vpe clkctrl data
-  ARM: dts: dra7: add vpe clkctrl node
-  ARM: dts: dra7: Add ti-sysc node for VPE
-  media: ti-vpe: vpe: fix compatible to match bindings
-
- .../devicetree/bindings/media/ti,vpe.yaml     | 64 +++++++++++++++++++
- MAINTAINERS                                   |  1 +
- arch/arm/boot/dts/dra7-l4.dtsi                | 28 +++++++-
- arch/arm/boot/dts/dra7xx-clocks.dtsi          | 18 +++++-
- drivers/clk/ti/clk-7xx.c                      |  6 ++
- drivers/media/platform/ti-vpe/vpe.c           |  2 +-
- include/dt-bindings/clock/dra7.h              | 10 +++
- 7 files changed, 123 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/ti,vpe.yaml
-
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index b54f637633a7..65c2c048b018 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -2644,7 +2644,7 @@ static int vpe_remove(struct platform_device *pdev)
+ #if defined(CONFIG_OF)
+ static const struct of_device_id vpe_of_match[] = {
+ 	{
+-		.compatible = "ti,vpe",
++		.compatible = "ti,dra7-vpe",
+ 	},
+ 	{},
+ };
 -- 
 2.17.1
