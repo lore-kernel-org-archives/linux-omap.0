@@ -1,76 +1,49 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 2/5] clk: ti: dra7: add vpe clkctrl data
-Date: Mon, 4 Nov 2019 14:38:38 -0600
-Message-ID: <20191104203841.3628-3-bparrot@ti.com>
-References: <20191104203841.3628-1-bparrot@ti.com>
+Subject: [Patch v2 00/10] ARM: dts: dra7: add cal nodes
+Date: Mon, 4 Nov 2019 14:48:43 -0600
+Message-ID: <20191104204853.4355-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191104203841.3628-1-bparrot@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add clkctrl data for VPE.
+This patch series adds the needed clkctrl and ty-sysc nodes for CAL module.
+It also adds support for the module in related dtsi and dts for DRA72,
+DRA76 and AM654 SoC.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/clk/ti/clk-7xx.c         |  6 ++++++
- include/dt-bindings/clock/dra7.h | 10 ++++++++++
- 2 files changed, 16 insertions(+)
+Changes since v1:
+- Fix clock name to make it generic
+- Updated the binding to use ti,camerrx-control instead of sycon_camerrx
+- Split off the clk code into its own patch
+- Add clk mailing list as requested
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index b57fe09b428b..5dd9cad07542 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -146,6 +146,11 @@ static const struct omap_clkctrl_reg_data dra7_rtc_clkctrl_regs[] __initconst =
- 	{ 0 },
- };
- 
-+static const struct omap_clkctrl_reg_data dra7_vpe_clkctrl_regs[] __initconst = {
-+	{ DRA7_VPE_VPE_CLKCTRL, NULL, CLKF_HW_SUP, "dpll_core_h23x2_ck" },
-+	{ 0 },
-+};
-+
- static const struct omap_clkctrl_reg_data dra7_coreaon_clkctrl_regs[] __initconst = {
- 	{ DRA7_COREAON_SMARTREFLEX_MPU_CLKCTRL, NULL, CLKF_SW_SUP, "wkupaon_iclk_mux" },
- 	{ DRA7_COREAON_SMARTREFLEX_CORE_CLKCTRL, NULL, CLKF_SW_SUP, "wkupaon_iclk_mux" },
-@@ -769,6 +774,7 @@ const struct omap_clkctrl_data dra7_clkctrl_data[] __initconst = {
- 	{ 0x4a005550, dra7_ipu_clkctrl_regs },
- 	{ 0x4a005620, dra7_dsp2_clkctrl_regs },
- 	{ 0x4a005720, dra7_rtc_clkctrl_regs },
-+	{ 0x4a005760, dra7_vpe_clkctrl_regs },
- 	{ 0x4a008620, dra7_coreaon_clkctrl_regs },
- 	{ 0x4a008720, dra7_l3main1_clkctrl_regs },
- 	{ 0x4a008920, dra7_ipu2_clkctrl_regs },
-diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
-index 72f2e8411523..2b765e579b2a 100644
---- a/include/dt-bindings/clock/dra7.h
-+++ b/include/dt-bindings/clock/dra7.h
-@@ -29,6 +29,11 @@
- #define DRA7_RTC_CLKCTRL_INDEX(offset)	((offset) - DRA7_RTC_CLKCTRL_OFFSET)
- #define DRA7_RTCSS_CLKCTRL	DRA7_RTC_CLKCTRL_INDEX(0x44)
- 
-+/* vpe clocks */
-+#define DRA7_VPE_CLKCTRL_OFFSET	0x60
-+#define DRA7_VPE_CLKCTRL_INDEX(offset)	((offset) - DRA7_VPE_CLKCTRL_OFFSET)
-+#define DRA7_VPE_CLKCTRL	DRA7_VPE_CLKCTRL_INDEX(0x64)
-+
- /* coreaon clocks */
- #define DRA7_SMARTREFLEX_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
- #define DRA7_SMARTREFLEX_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
-@@ -192,6 +197,11 @@
- /* rtc clocks */
- #define DRA7_RTC_RTCSS_CLKCTRL	DRA7_CLKCTRL_INDEX(0x44)
- 
-+/* vpe clocks */
-+#define DRA7_VPE_CLKCTRL_OFFSET	0x60
-+#define DRA7_VPE_CLKCTRL_INDEX(offset)	((offset) - DRA7_VPE_CLKCTRL_OFFSET)
-+#define DRA7_VPE_VPE_CLKCTRL	DRA7_VPE_CLKCTRL_INDEX(0x64)
-+
- /* coreaon clocks */
- #define DRA7_COREAON_SMARTREFLEX_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
- #define DRA7_COREAON_SMARTREFLEX_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
+Benoit Parrot (10):
+  clk: ti: dra7: add cam clkctrl data
+  ARM: dts: dra7: add cam clkctrl node
+  ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
+  ARM: dts: dra7-l4: Add ti-sysc node for CAM
+  ARM: dts: DRA72: Add CAL dtsi node
+  arm: dts: dra72-evm-common: Add entries for the CSI2 cameras
+  arm: dtsi: dra76x: Add CAL dtsi node
+  arm: dts: dra76-evm: Add CAL and OV5640 nodes
+  arm64: dts: k3-am65-main Add CAL node
+  arm64: dts: k3-am654-base-board: Add CSI2 OV5640 camera
+
+ arch/arm/boot/dts/dra7-l4.dtsi                | 43 ++++++++++++++++---
+ arch/arm/boot/dts/dra72-evm-common.dtsi       | 35 +++++++++++++++
+ arch/arm/boot/dts/dra72x.dtsi                 | 43 +++++++++++++++++++
+ arch/arm/boot/dts/dra76-evm.dts               | 39 +++++++++++++++++
+ arch/arm/boot/dts/dra76x.dtsi                 | 43 +++++++++++++++++++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi          | 14 ++++++
+ arch/arm/mach-omap2/clockdomains7xx_data.c    |  2 +-
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi      | 23 ++++++++++
+ .../arm64/boot/dts/ti/k3-am654-base-board.dts | 36 ++++++++++++++++
+ drivers/clk/ti/clk-7xx.c                      | 19 ++++++++
+ include/dt-bindings/clock/dra7.h              | 10 +++++
+ 11 files changed, 300 insertions(+), 7 deletions(-)
+
 -- 
 2.17.1
