@@ -1,46 +1,91 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v1 7/7] dt-bindings: PCI: Use IRQ flags for legacy PCI IRQ
- interrupts
-Date: Tue, 5 Nov 2019 16:08:29 +0100
-Message-ID: <CACRpkdb=5i3+H3OtGXSYQEjSq5ROrysfmnG-koGck+chEEgLnQ@mail.gmail.com>
-References: <20191104163834.8932-1-andrew.murray@arm.com>
- <20191104163834.8932-8-andrew.murray@arm.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 00/62] Add definition for GPIO direction
+Date: Tue, 5 Nov 2019 14:40:26 +0100
+Message-ID: <20191105134026.vl6h6kghuzmslptx@pengutronix.de>
+References: <cover.1572875541.git.matti.vaittinen@fi.rohmeurope.com>
+ <20191105122042.GO32742@smile.fi.intel.com>
+ <4e6fa62d7022c7b1426477a150a93c899725f5b0.camel@fi.rohmeurope.com>
+ <20191105131038.duol3rwwkbuvgvwv@pengutronix.de>
+ <20191105133025.GR32742@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20191104163834.8932-8-andrew.murray-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Andrew Murray <andrew.murray-5wv7dgnIgG8@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Karthikeyan Mitran <m.karthikeyan-DTHOJn6Rh8lhmhkoCovsdw@public.gmane.org>, David Daney <david.daney-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shawn Lin <shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, Binghui Wang <wangbinghui-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, Jonathan Chocron <jonnyc-vV1OtcyAfmbQT0dZR+AlfA@public.gmane.org>, Toan Le <toan-shex6MNQR2J/SfDzf78azzKzEDxYleXD@public.gmane.org>, Will Deacon <will-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jesper Nilsson <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, Ryder Lee <ryder.lee-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>, Kunihiko Hayashi <hayashi.kunihiko-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Fabio Estevam <festevam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tom Joseph <tjoseph-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-VrBV9hrLPhE@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, "open list:ARM/Rockchip SoC..." <linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Andy Gross <agross@ke>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20191105133025.GR32742@smile.fi.intel.com>
+List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
+To: "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>
+Cc: "semi.malinen@ge.com" <semi.malinen@ge.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-aspeed@lists.ozlabs.org" <linux-aspeed@lists.ozlabs.org>, "david.daney@cavium.com" <david.daney@cavium.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "sathyanarayanan.kuppuswamy@linux.intel.com" <sathyanarayanan.kuppuswamy@linux.intel.com>, "ptyser@xes-inc.com" <ptyser@xes-inc.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "marek.behun@nic.cz" <marek.behun@nic.cz>, "festevam@gmail.com" <festevam@gmail.com>, "linux-stm32@st-md-mailman.stormreply.com" <linux-stm32@st-md-mailman.stormreply.com>, "marek.vasut+renesas@gmail.com" <marek.vasut+renesas@gmail.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "khilman@kernel.org" <khilman@kernel.org>, "michal.simek@xilinx.com" <michal.simek@xilinx.com>, "jonathanh@nvidia.com" <jonathan>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andrew,
+On Tue, Nov 05, 2019 at 03:30:25PM +0200, andriy.shevchenko@linux.intel.com=
+ wrote:
+> On Tue, Nov 05, 2019 at 02:10:38PM +0100, Uwe Kleine-K=F6nig wrote:
+> > On Tue, Nov 05, 2019 at 12:54:55PM +0000, Vaittinen, Matti wrote:
+> > > On Tue, 2019-11-05 at 14:20 +0200, Andy Shevchenko wrote:
+> > > > I would also like to see bloat-o-meter statistics before and after
+> > > > your patch.
+> > > > My guts tell me that the result will be not in the favour of yours
+> > > > solution.
+> > > =
 
-thanks for your patch!
+> > > Can you please tell me what type of stats you hope to see? I can try
+> > > generating what you are after. The cover letter contained typical +/-
+> > > change stats from git and summary:
+> > > =
 
-On Mon, Nov 4, 2019 at 5:39 PM Andrew Murray <andrew.murray-5wv7dgnIgG8@public.gmane.org> wrote:
+> > > 62 files changed, 228 insertions(+), 104 deletions(-)
+> > =
 
-> Replace magic numbers used to describe legacy PCI IRQ interrupts
-> with #define.
->
-> Signed-off-by: Andrew Murray <andrew.murray-5wv7dgnIgG8@public.gmane.org>
+> > I guess he wants to see
+> > =
 
-When I add examples I usually make sure that above the examples
-are the appropriate #include files, this is becoming more important
-as we convert to yaml, then you need the right includes because the
-examples will get compiled.
+> > 	scripts/bloat-o-meter vmlinuz.old vmlinuz
+> =
 
-With that taken into account:
-Reviewed-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Yes, but be sure you have compiled them all and build them all in.
+> Otherwise you might get wrong result.
+> =
 
-Yours,
-Linus Walleij
+> > . I would expect a 0 there. I didn't look in detail, but in general I
+> > like the idea to give 0 and 1 a symbolic name.
+> =
+
+> I'll will be fine with that if and only if maintainers are okay. For now,
+> I don't like the idea to trade bad for worse.
+
+I don't see you concern.
+
+	int somefunction(...)
+	{
+		return 1;
+	}
+
+is definitively worse than
+
+	int somefunction(...)
+	{
+		return GPIO_LINE_DIRECTION_IN;
+	}
+
+and after cpp had its go on the source the compiler sees the exact same
+thing, so I don't expect any size changes. The only change is that to
+write (or understand) the above code, you have to know that 1
+corresponds to GPIO input (or was it output?) while in the later
+function it is obvious that we're talking about an input.
+
+Best regards
+Uwe
+
+-- =
+
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
