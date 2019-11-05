@@ -1,66 +1,55 @@
-From: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
-Subject: [PATCH v2 1/2] gpio: Add definition for GPIO direction
-Date: Wed, 6 Nov 2019 10:51:47 +0200
-Message-ID: <fcd51b067bafa571b3d9879a3afc31e8c764100d.1573029228.git.matti.vaittinen@fi.rohmeurope.com>
-References: <cover.1573029228.git.matti.vaittinen@fi.rohmeurope.com>
+From: "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 00/62] Add definition for GPIO direction
+Date: Tue, 5 Nov 2019 17:17:42 +0200
+Message-ID: <20191105151742.GU32742@smile.fi.intel.com>
+References: <cover.1572875541.git.matti.vaittinen@fi.rohmeurope.com>
+ <20191105122042.GO32742@smile.fi.intel.com>
+ <4e6fa62d7022c7b1426477a150a93c899725f5b0.camel@fi.rohmeurope.com>
+ <20191105131038.duol3rwwkbuvgvwv@pengutronix.de>
+ <938a5ec7b41ae9ce7b0de83764d6b774cfdaa781.camel@fi.rohmeurope.com>
+ <20191105133604.d2xcasxw7pwzwvh7@pengutronix.de>
+ <a967c764d135ab0f96f6b1df62ac91426c935b44.camel@fi.rohmeurope.com>
+ <20191105145946.2ye6ujvqzn2d6fqd@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1573029228.git.matti.vaittinen@fi.rohmeurope.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: matti.vaittinen@fi.rohmeurope.com, mazziesaccount@gmail.com
-Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>, linux-aspeed@lists.ozlabs.org, David Daney <david.daney@cavium.com>, Linus Walleij <linus.walleij@linaro.org>, alsa-devel@alsa-project.org, Peter Tyser <ptyser@xes-inc.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Fabio Estevam <festevam@gmail.com>, linux-stm32@st-md-mailman.stormreply.com, Marek Vasut <marek.vasut+renesas@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Michal Simek <michal.simek@xilinx.com>, Marek Behun <marek.behun@nic.cz>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Ludovic Desroches <ludovic.desroches@microchip.com>, bcm-kernel-feedback-list@broadcom.com, Joel Stanley <joel@jms.id.au>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Bamvor Jian Zhang <bamv2005@gmail.com>
+In-Reply-To: <20191105145946.2ye6ujvqzn2d6fqd@pengutronix.de>
+List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: "semi.malinen@ge.com" <semi.malinen@ge.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-aspeed@lists.ozlabs.org" <linux-aspeed@lists.ozlabs.org>, "david.daney@cavium.com" <david.daney@cavium.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "sathyanarayanan.kuppuswamy@linux.intel.com" <sathyanarayanan.kuppuswamy@linux.intel.com>, "ptyser@xes-inc.com" <ptyser@xes-inc.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "marek.behun@nic.cz" <marek.behun@nic.cz>, "festevam@gmail.com" <festevam@gmail.com>, "linux-stm32@st-md-mailman.stormreply.com" <linux-stm32@st-md-mailman.stormreply.com>, "marek.vasut+renesas@gmail.com" <marek.vasut+renesas@gmail.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "khilman@kernel.org" <khilman@kernel.org>, "michal.simek@xilinx.com" <michal.simek@xilinx.com>, "jonathanh@nvidia.com" <jonathan>
 List-Id: linux-omap@vger.kernel.org
 
-At least for me it is difficult to remember the meaning of GPIO
-direction values. Define GPIO_LINE_DIRECTION_IN and
-GPIO_LINE_DIRECTION_OUT so that occasional GPIO contributors would
-not need to always check the meaning of hard coded values 1 and 0.
+On Tue, Nov 05, 2019 at 03:59:46PM +0100, Uwe Kleine-K=F6nig wrote:
+> On Tue, Nov 05, 2019 at 02:00:02PM +0000, Vaittinen, Matti wrote:
+> > On Tue, 2019-11-05 at 14:36 +0100, Uwe Kleine-K=F6nig wrote:
+> > Thanks Uwe! That was kind! I'm on Fedora but I guess I can find the
+> > multiarch binutils :) I'll try that tomorrow when I'm back at the
+> > office. Let's see what kind of results I can get from it.
+> > =
 
-Signed-off-by: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
----
+> > Unfortunately bunch of the GPIOs depend on x86 - so I need to see what
+> > I can compile in with decent effort. For my compile test I just hacked
+> > the Makefile to force all in and added some dummy macros to fix few
+> > missing functions :| But I guess I can get some results.
+> =
 
-Changes from v1: No changes.
+> Enable CONFIG_COMPILE_TEST and then you should be able to compile most
+> drivers also on the wrong architecture.
 
- include/linux/gpio/driver.h | 3 +++
- 1 file changed, 3 insertions(+)
+*Wrong* is a wrong word here. I guess you misspelled *another* / *not nativ=
+e*.
 
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index 5dd9c982e2cb..cc9ade4552d9 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -22,6 +22,9 @@ enum gpio_lookup_flags;
- 
- struct gpio_chip;
- 
-+#define GPIO_LINE_DIRECTION_IN	1
-+#define GPIO_LINE_DIRECTION_OUT	0
-+
- /**
-  * struct gpio_irq_chip - GPIO interrupt controller
-  */
--- 
-2.21.0
+-- =
 
-
--- 
-Matti Vaittinen, Linux device drivers
-ROHM Semiconductors, Finland SWDC
-Kiviharjunlenkki 1E
-90220 OULU
-FINLAND
-
-~~~ "I don't think so," said Rene Descartes. Just then he vanished ~~~
-Simon says - in Latin please.
-~~~ "non cogito me" dixit Rene Descarte, deinde evanescavit ~~~
-Thanks to Simon Glass for the translation =] 
+With Best Regards,
+Andy Shevchenko
