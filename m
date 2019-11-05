@@ -1,20 +1,19 @@
-From: "Vaittinen, Matti" <Matti.Vaittinen@fi.rohmeurope.com>
+From: "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>
 Subject: Re: [PATCH 00/62] Add definition for GPIO direction
-Date: Tue, 5 Nov 2019 14:00:02 +0000
-Message-ID: <a967c764d135ab0f96f6b1df62ac91426c935b44.camel@fi.rohmeurope.com>
+Date: Tue, 5 Nov 2019 16:28:36 +0200
+Message-ID: <20191105142836.GS32742@smile.fi.intel.com>
 References: <cover.1572875541.git.matti.vaittinen@fi.rohmeurope.com>
  <20191105122042.GO32742@smile.fi.intel.com>
  <4e6fa62d7022c7b1426477a150a93c899725f5b0.camel@fi.rohmeurope.com>
  <20191105131038.duol3rwwkbuvgvwv@pengutronix.de>
- <938a5ec7b41ae9ce7b0de83764d6b774cfdaa781.camel@fi.rohmeurope.com>
- <20191105133604.d2xcasxw7pwzwvh7@pengutronix.de>
+ <20191105133025.GR32742@smile.fi.intel.com>
+ <20191105134026.vl6h6kghuzmslptx@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20191105133604.d2xcasxw7pwzwvh7@pengutronix.de>
-Content-Language: de-DE
-Content-ID: <6A3BE4366B287B4BADDE281B8B369397@de.rohmeurope.com>
+Content-Disposition: inline
+In-Reply-To: <20191105134026.vl6h6kghuzmslptx@pengutronix.de>
 List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -24,66 +23,85 @@ List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: "u.kleine-koenig@pengutronix.de" <u.kleine-koenig@pengutronix.de>
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
 Cc: "semi.malinen@ge.com" <semi.malinen@ge.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-aspeed@lists.ozlabs.org" <linux-aspeed@lists.ozlabs.org>, "david.daney@cavium.com" <david.daney@cavium.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "sathyanarayanan.kuppuswamy@linux.intel.com" <sathyanarayanan.kuppuswamy@linux.intel.com>, "ptyser@xes-inc.com" <ptyser@xes-inc.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "marek.behun@nic.cz" <marek.behun@nic.cz>, "festevam@gmail.com" <festevam@gmail.com>, "linux-stm32@st-md-mailman.stormreply.com" <linux-stm32@st-md-mailman.stormreply.com>, "marek.vasut+renesas@gmail.com" <marek.vasut+renesas@gmail.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "khilman@kernel.org" <khilman@kernel.org>, "michal.simek@xilinx.com" <michal.simek@xilinx.com>, "jonathanh@nvidia.com" <jonathan>
 List-Id: linux-omap@vger.kernel.org
 
-DQpPbiBUdWUsIDIwMTktMTEtMDUgYXQgMTQ6MzYgKzAxMDAsIFV3ZSBLbGVpbmUtS8O2bmlnIHdy
-b3RlOg0KPiBPbiBUdWUsIE5vdiAwNSwgMjAxOSBhdCAwMTozMDoyMFBNICswMDAwLCBWYWl0dGlu
-ZW4sIE1hdHRpIHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxOS0xMS0wNSBhdCAxNDoxMCArMDEwMCwg
-VXdlIEtsZWluZS1Lw7ZuaWcgd3JvdGU6DQo+ID4gPiBIZWxsbywNCj4gPiA+IA0KPiA+ID4gT24g
-VHVlLCBOb3YgMDUsIDIwMTkgYXQgMTI6NTQ6NTVQTSArMDAwMCwgVmFpdHRpbmVuLCBNYXR0aSB3
-cm90ZToNCj4gPiA+ID4gT24gVHVlLCAyMDE5LTExLTA1IGF0IDE0OjIwICswMjAwLCBBbmR5IFNo
-ZXZjaGVua28gd3JvdGU6DQo+ID4gPiA+ID4gSSB3b3VsZCBhbHNvIGxpa2UgdG8gc2VlIGJsb2F0
-LW8tbWV0ZXIgc3RhdGlzdGljcyBiZWZvcmUgYW5kDQo+ID4gPiA+ID4gYWZ0ZXINCj4gPiA+ID4g
-PiB5b3VyIHBhdGNoLg0KPiA+ID4gPiA+IE15IGd1dHMgdGVsbCBtZSB0aGF0IHRoZSByZXN1bHQg
-d2lsbCBiZSBub3QgaW4gdGhlIGZhdm91ciBvZg0KPiA+ID4gPiA+IHlvdXJzDQo+ID4gPiA+ID4g
-c29sdXRpb24uDQo+ID4gPiA+IA0KPiA+ID4gPiBDYW4geW91IHBsZWFzZSB0ZWxsIG1lIHdoYXQg
-dHlwZSBvZiBzdGF0cyB5b3UgaG9wZSB0byBzZWU/IEkNCj4gPiA+ID4gY2FuDQo+ID4gPiA+IHRy
-eQ0KPiA+ID4gPiBnZW5lcmF0aW5nIHdoYXQgeW91IGFyZSBhZnRlci4gVGhlIGNvdmVyIGxldHRl
-ciBjb250YWluZWQNCj4gPiA+ID4gdHlwaWNhbA0KPiA+ID4gPiArLy0NCj4gPiA+ID4gY2hhbmdl
-IHN0YXRzIGZyb20gZ2l0IGFuZCBzdW1tYXJ5Og0KPiA+ID4gPiANCj4gPiA+ID4gNjIgZmlsZXMg
-Y2hhbmdlZCwgMjI4IGluc2VydGlvbnMoKyksIDEwNCBkZWxldGlvbnMoLSkNCj4gPiA+IA0KPiA+
-ID4gSSBndWVzcyBoZSB3YW50cyB0byBzZWUNCj4gPiA+IA0KPiA+ID4gCXNjcmlwdHMvYmxvYXQt
-by1tZXRlciB2bWxpbnV6Lm9sZCB2bWxpbnV6DQo+ID4gPiANCj4gPiA+IC4gSSB3b3VsZCBleHBl
-Y3QgYSAwIHRoZXJlLiBJIGRpZG4ndCBsb29rIGluIGRldGFpbCwgYnV0IGluDQo+ID4gPiBnZW5l
-cmFsIEkNCj4gPiA+IGxpa2UgdGhlIGlkZWEgdG8gZ2l2ZSAwIGFuZCAxIGEgc3ltYm9saWMgbmFt
-ZS4NCj4gPiANCj4gPiBUaGFua3MgVXdlLiBUaGlzIGZhciBJIGhhdmUgb25seSBjcm9zcy1jb21w
-aWxlZCB0aGUgc2VyaWVzIGZvciBhcm0NCj4gPiB3aGljaCBJIHVzZSBmb3IgZGV2ZWxvcGluZyB0
-aGUgUk9ITSBQTUlDcy4gc2NyaXB0cy9ibG9hdC1vLW1ldGVyIC8NCj4gPiB0b29scyBpdCB1c2Vz
-IGRvZXMgbm90IHNlZW0gdG8gcmVjb2duaXplIHRoZSBpbWFnZSBmb3JtYXQgKG5vdCBhDQo+ID4g
-YmlnDQo+ID4gc3VycHJpemUgYXMgbXkgaG9zdCBpcyB4ODZfNjQpLg0KPiANCj4gSXQgd29ya3Mg
-Zm9yIG1lLCBJIGd1ZXNzIHRoYXQncyBiZWNhdXNlIG15IGJpbnV0aWxzIHN1cHBvcnQgc2V2ZXJh
-bA0KPiBhcmNoaXRlY3R1cmVzOg0KPiANCj4gCSQgbm0gLS1oZWxwDQo+IAkuLi4NCj4gCW5tOiBz
-dXBwb3J0ZWQgdGFyZ2V0czogZWxmNjQteDg2LTY0IGVsZjMyLWkzODYgZWxmMzItaWFtY3UNCj4g
-ZWxmMzIteDg2LTY0DQo+IAlwZWktaTM4NiBwZWkteDg2LTY0IGVsZjY0LWwxb20gZWxmNjQtazFv
-bSBlbGY2NC1saXR0bGUgZWxmNjQtDQo+IGJpZw0KPiAJZWxmMzItbGl0dGxlIGVsZjMyLWJpZyBl
-bGY2NC1saXR0bGVhYXJjaDY0IGVsZjY0LWJpZ2FhcmNoNjQNCj4gCWVsZjMyLWxpdHRsZWFhcmNo
-NjQgZWxmMzItYmlnYWFyY2g2NCBlbGYzMi1saXR0bGVhcm0gZWxmMzItDQo+IGJpZ2FybQ0KPiAJ
-ZWxmNjQtYWxwaGEgZWNvZmYtbGl0dGxlYWxwaGEgZWxmMzItbGl0dGxlYXJtLWZkcGljIGVsZjMy
-LQ0KPiBiaWdhcm0tZmRwaWMNCj4gCWVsZjMyLWhwcGEtbGludXggZWxmMzItaHBwYSBlbGY2NC1p
-YTY0LWxpdHRsZSBlbGY2NC1pYTY0LWJpZw0KPiBwZWktaWE2NA0KPiAJZWxmMzItbTMyci1saW51
-eCBlbGYzMi1tMzJybGUtbGludXggZWxmMzItbTY4ayBlbGYzMi0NCj4gdHJhZGJpZ21pcHMNCj4g
-CWVsZjMyLXRyYWRsaXR0bGVtaXBzIGVjb2ZmLWJpZ21pcHMgZWNvZmYtbGl0dGxlbWlwcyBlbGYz
-Mi0NCj4gbnRyYWRiaWdtaXBzDQo+IAllbGY2NC10cmFkYmlnbWlwcyBlbGYzMi1udHJhZGxpdHRs
-ZW1pcHMgZWxmNjQtdHJhZGxpdHRsZW1pcHMNCj4gCWVsZjMyLXBvd2VycGMgYWl4Y29mZi1yczYw
-MDAgZWxmMzItcG93ZXJwY2xlIHBwY2Jvb3QgZWxmNjQtDQo+IHBvd2VycGMNCj4gCWVsZjY0LXBv
-d2VycGNsZSBhaXhjb2ZmNjQtcnM2MDAwIGFpeDVjb2ZmNjQtcnM2MDAwIGVsZjY0LQ0KPiBsaXR0
-bGVyaXNjdg0KPiAJZWxmMzItbGl0dGxlcmlzY3YgZWxmMzItczM5MCBlbGY2NC1zMzkwIGVsZjMy
-LXNoLWxpbnV4IGVsZjMyLQ0KPiBzaGJpZy1saW51eA0KPiAJZWxmMzItc2gtZmRwaWMgZWxmMzIt
-c2hiaWctZmRwaWMgZWxmMzItc3BhcmMgZWxmNjQtc3BhcmMgcGUtDQo+IHg4Ni02NA0KPiAJcGUt
-Ymlnb2JqLXg4Ni02NCBwZS1pMzg2IHBsdWdpbiBzcmVjIHN5bWJvbHNyZWMgdmVyaWxvZyB0ZWto
-ZXgNCj4gYmluYXJ5DQo+IAlpaGV4DQo+IA0KPiAoYWRkZWQgbGluZSBicmVha3MgZm9yIGVhc2ll
-ciByZWFkaW5nKS4gSSBnb3QgdGhpcyBieSBpbnN0YWxsaW5nDQo+IGJpbnV0aWxzLW11bHRpYXJj
-aCAob24gRGViaWFuKS4NCg0KVGhhbmtzIFV3ZSEgVGhhdCB3YXMga2luZCEgSSdtIG9uIEZlZG9y
-YSBidXQgSSBndWVzcyBJIGNhbiBmaW5kIHRoZQ0KbXVsdGlhcmNoIGJpbnV0aWxzIDopIEknbGwg
-dHJ5IHRoYXQgdG9tb3Jyb3cgd2hlbiBJJ20gYmFjayBhdCB0aGUNCm9mZmljZS4gTGV0J3Mgc2Vl
-IHdoYXQga2luZCBvZiByZXN1bHRzIEkgY2FuIGdldCBmcm9tIGl0Lg0KDQpVbmZvcnR1bmF0ZWx5
-IGJ1bmNoIG9mIHRoZSBHUElPcyBkZXBlbmQgb24geDg2IC0gc28gSSBuZWVkIHRvIHNlZSB3aGF0
-DQpJIGNhbiBjb21waWxlIGluIHdpdGggZGVjZW50IGVmZm9ydC4gRm9yIG15IGNvbXBpbGUgdGVz
-dCBJIGp1c3QgaGFja2VkDQp0aGUgTWFrZWZpbGUgdG8gZm9yY2UgYWxsIGluIGFuZCBhZGRlZCBz
-b21lIGR1bW15IG1hY3JvcyB0byBmaXggZmV3DQptaXNzaW5nIGZ1bmN0aW9ucyA6fCBCdXQgSSBn
-dWVzcyBJIGNhbiBnZXQgc29tZSByZXN1bHRzLg0KDQo+IA0KPiBCZXN0IHJlZ2FyZHMNCj4gVXdl
-DQo+IA0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpB
-bHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cHM6
-Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
+On Tue, Nov 05, 2019 at 02:40:26PM +0100, Uwe Kleine-K=F6nig wrote:
+> On Tue, Nov 05, 2019 at 03:30:25PM +0200, andriy.shevchenko@linux.intel.c=
+om wrote:
+> > On Tue, Nov 05, 2019 at 02:10:38PM +0100, Uwe Kleine-K=F6nig wrote:
+> > > On Tue, Nov 05, 2019 at 12:54:55PM +0000, Vaittinen, Matti wrote:
+> > > > On Tue, 2019-11-05 at 14:20 +0200, Andy Shevchenko wrote:
+> > > > > I would also like to see bloat-o-meter statistics before and after
+> > > > > your patch.
+> > > > > My guts tell me that the result will be not in the favour of yours
+> > > > > solution.
+> > > > =
+
+> > > > Can you please tell me what type of stats you hope to see? I can try
+> > > > generating what you are after. The cover letter contained typical +=
+/-
+> > > > change stats from git and summary:
+> > > > =
+
+> > > > 62 files changed, 228 insertions(+), 104 deletions(-)
+> > > =
+
+> > > I guess he wants to see
+> > > =
+
+> > > 	scripts/bloat-o-meter vmlinuz.old vmlinuz
+> > =
+
+> > Yes, but be sure you have compiled them all and build them all in.
+> > Otherwise you might get wrong result.
+> > =
+
+> > > . I would expect a 0 there. I didn't look in detail, but in general I
+> > > like the idea to give 0 and 1 a symbolic name.
+> > =
+
+> > I'll will be fine with that if and only if maintainers are okay. For no=
+w,
+> > I don't like the idea to trade bad for worse.
+> =
+
+> I don't see you concern.
+> =
+
+> 	int somefunction(...)
+> 	{
+> 		return 1;
+> 	}
+> =
+
+> is definitively worse than
+> =
+
+> 	int somefunction(...)
+> 	{
+> 		return GPIO_LINE_DIRECTION_IN;
+> 	}
+> =
+
+> and after cpp had its go on the source the compiler sees the exact same
+> thing, so I don't expect any size changes. The only change is that to
+> write (or understand) the above code, you have to know that 1
+> corresponds to GPIO input (or was it output?) while in the later
+> function it is obvious that we're talking about an input.
+
+In almost all cases I'm involved in the original code is different:
+
+	return !!foo();
+
+vs.
+
+	if (foo())
+		return A;
+	return B;
+
+-- =
+
+With Best Regards,
+Andy Shevchenko
