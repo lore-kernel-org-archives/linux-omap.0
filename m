@@ -1,78 +1,50 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 05/10] ARM: dts: DRA72: Add CAL dtsi node
-Date: Mon, 4 Nov 2019 14:48:48 -0600
-Message-ID: <20191104204853.4355-6-bparrot@ti.com>
-References: <20191104204853.4355-1-bparrot@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH -next] thermal: ti-soc-thermal: Remove dev_err() on
+ platform_get_irq() failure
+Date: Tue, 5 Nov 2019 11:38:35 +0530
+Message-ID: <655d95c2-20d2-e03f-539e-32fbe69da9fc@ti.com>
+References: <20191102075654.36700-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191104204853.4355-1-bparrot@ti.com>
+In-Reply-To: <20191102075654.36700-1-yuehaibing@huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
+To: YueHaibing <yuehaibing@huawei.com>, edubezval@gmail.com, rui.zhang@intel.com, daniel.lezcano@linaro.org, amit.kucheria@verdurent.com
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds the required dtsi node to support the Camera
-Adaptation Layer (CAL) for the DRA72 family of devices.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- arch/arm/boot/dts/dra72x.dtsi | 43 +++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
-index f5762709c853..726e46ae887d 100644
---- a/arch/arm/boot/dts/dra72x.dtsi
-+++ b/arch/arm/boot/dts/dra72x.dtsi
-@@ -17,6 +17,49 @@
- 	};
- };
- 
-+&l4_per2 {
-+	target-module@5b000 {			/* 0x4845b000, ap 59 46.0 */
-+		compatible = "ti,sysc-omap4", "ti,sysc";
-+		reg = <0x5b000 0x4>,
-+		      <0x5b010 0x4>;
-+		reg-names = "rev", "sysc";
-+		ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>;
-+		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>;
-+		clocks = <&cam_clkctrl DRA7_CAM_VIP2_CLKCTRL 0>;
-+		clock-names = "fck";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0x0 0x5b000 0x1000>;
-+
-+		cal: cal@0 {
-+			compatible = "ti,dra72-cal";
-+			reg = <0x0000 0x400>,
-+			      <0x0800 0x40>,
-+			      <0x0900 0x40>;
-+			reg-names = "cal_top",
-+				    "cal_rx_core0",
-+				    "cal_rx_core1";
-+			interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,camerrx-control = <&scm_conf 0xE94>;
-+			status = "disabled";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				csi2_0: port@0 {
-+					reg = <0>;
-+				};
-+				csi2_1: port@1 {
-+					reg = <1>;
-+				};
-+			};
-+		};
-+	};
-+};
-+
- &dss {
- 	reg = <0x58000000 0x80>,
- 	      <0x58004054 0x4>,
--- 
-2.17.1
+On 02/11/19 1:26 PM, YueHaibing wrote:
+> platform_get_irq() will call dev_err() itself on failure,
+> so there is no need for the driver to also do this.
+> This is detected by coccinelle.
+
+Acked-by: Keerthy <j-keerthy@ti.com>
+
+> 
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+>   drivers/thermal/ti-soc-thermal/ti-bandgap.c | 5 ++---
+>   1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> index 2fa78f7..89c3ba7 100644
+> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> @@ -787,10 +787,9 @@ static int ti_bandgap_talert_init(struct ti_bandgap *bgp,
+>   	int ret;
+>   
+>   	bgp->irq = platform_get_irq(pdev, 0);
+> -	if (bgp->irq < 0) {
+> -		dev_err(&pdev->dev, "get_irq failed\n");
+> +	if (bgp->irq < 0)
+>   		return bgp->irq;
+> -	}
+> +
+>   	ret = request_threaded_irq(bgp->irq, NULL,
+>   				   ti_bandgap_talert_irq_handler,
+>   				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+> 
