@@ -1,66 +1,57 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v3 4/5] ARM: dts: dra7: Add ti-sysc node for VPE
-Date: Wed, 6 Nov 2019 14:26:21 -0600
-Message-ID: <20191106202622.2648-5-bparrot@ti.com>
-References: <20191106202622.2648-1-bparrot@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v1 7/7] dt-bindings: PCI: Use IRQ flags for legacy PCI
+ IRQ interrupts
+Date: Wed, 6 Nov 2019 17:47:19 -0600
+Message-ID: <20191106234719.GA23983@bogus>
+References: <20191104163834.8932-1-andrew.murray@arm.com>
+ <20191104163834.8932-8-andrew.murray@arm.com>
+ <CACRpkdb=5i3+H3OtGXSYQEjSq5ROrysfmnG-koGck+chEEgLnQ@mail.gmail.com>
+ <20191105151622.GN9723@e119886-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191106202622.2648-1-bparrot@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20191105151622.GN9723@e119886-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Andrew Murray <andrew.murray@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Sascha Hauer <s.hauer@pengutronix.de>, Heiko Stuebner <heiko@sntech.de>, Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>, David Daney <david.daney@cavium.com>, linux-pci <linux-pci@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Binghui Wang <wangbinghui@hisilicon.com>, Michal Simek <michal.simek@xilinx.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Jonathan Chocron <jonnyc@amazon.com>, Toan Le <toan@os.amperecomputing.com>, Will Deacon <will@kernel.org>, Jesper Nilsson <jesper.nilsson@axis.com>, Ryder Lee <ryder.lee@mediatek.com>, Kunihiko Hayashi <hayashi.kunihiko@socionext.com>, Fabio Estevam <festevam@gmail.com>, Tom Joseph <tjoseph@cadence.com>, linux-arm-kernel@axis.com, Kishon Vijay Abraham I <kishon@ti.com>, "open list:ARM/Rockchip SoC..." <linux-rockchip>
 List-Id: linux-omap@vger.kernel.org
 
-Add VPE node as a child of l4 interconnect in order for it to probe
-using ti-sysc.
+On Tue, Nov 05, 2019 at 03:16:23PM +0000, Andrew Murray wrote:
+> On Tue, Nov 05, 2019 at 04:08:29PM +0100, Linus Walleij wrote:
+> > Hi Andrew,
+> > 
+> > thanks for your patch!
+> 
+> Thanks for the review.
+> 
+> > 
+> > On Mon, Nov 4, 2019 at 5:39 PM Andrew Murray <andrew.murray@arm.com> wrote:
+> > 
+> > > Replace magic numbers used to describe legacy PCI IRQ interrupts
+> > > with #define.
+> > >
+> > > Signed-off-by: Andrew Murray <andrew.murray@arm.com>
+> > 
+> > When I add examples I usually make sure that above the examples
+> > are the appropriate #include files, this is becoming more important
+> > as we convert to yaml, then you need the right includes because the
+> > examples will get compiled.
+> 
+> OK thanks - I can see other files in Documentation that take this approach
+> I'll update this patch on my respin.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- arch/arm/boot/dts/dra7-l4.dtsi | 28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+FYI, It's been on my todo to add common includes like irq.h and gpio.h 
+to the example template used to compile the examples, so everyone 
+doesn't have to add them.
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index ea0e7c19eb4e..0917231a20e2 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -4158,12 +4158,34 @@
- 			ranges = <0x0 0x1b0000 0x10000>;
- 		};
- 
--		target-module@1d0000 {			/* 0x489d0000, ap 27 30.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+		target-module@1d0010 {			/* 0x489d0000, ap 27 30.0 */
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x1d0010 0x4>;
-+			reg-names = "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&vpe_clkctrl DRA7_VPE_VPE_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x1d0000 0x10000>;
-+
-+			vpe: vpe@0 {
-+				compatible = "ti,dra7-vpe";
-+				reg = <0x0000 0x120>,
-+				      <0x0700 0x80>,
-+				      <0x5700 0x18>,
-+				      <0xd000 0x400>;
-+				reg-names = "vpe_top",
-+					    "sc",
-+					    "csc",
-+					    "vpdma";
-+				interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
-+			};
- 		};
- 	};
- };
--- 
-2.17.1
+Rob
