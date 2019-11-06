@@ -1,10 +1,10 @@
 From: "Ben Dooks (Codethink)" <ben.dooks@codethink.co.uk>
-Subject: [PATCH] OMAP2: fixup doc comments in omap_device
-Date: Wed,  6 Nov 2019 11:59:45 +0000
-Message-ID: <20191106115945.4298-1-ben.dooks@codethink.co.uk>
+Subject: [PATCH] OMAP2: remove unused wakeup_cpu
+Date: Wed,  6 Nov 2019 12:06:05 +0000
+Message-ID: <20191106120605.11571-1-ben.dooks@codethink.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -19,104 +19,33 @@ To: linux-kernel@lists.codethink.co.uk
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "Ben Dooks (Codethink)" <ben.dooks@codethink.co.uk>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The documentation comments in this file are out of
-date with the code, so fix this to avoid the
-following warnings:
-
-arch/arm/mach-omap2/omap_device.c:133: warning: Function parameter or member 'pdev' not described in 'omap_device_build_from_dt'
-arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdev_name' description in 'omap_device_build_from_dt'
-arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdev_id' description in 'omap_device_build_from_dt'
-arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'oh' description in 'omap_device_build_from_dt'
-arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdata' description in 'omap_device_build_from_dt'
-arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdata_len' description in 'omap_device_build_from_dt'
-arch/arm/mach-omap2/omap_device.c:309: warning: Function parameter or member 'pdev' not described in 'omap_device_get_context_loss_count'
-arch/arm/mach-omap2/omap_device.c:309: warning: Excess function parameter 'od' description in 'omap_device_get_context_loss_count'
-arch/arm/mach-omap2/omap_device.c:335: warning: Function parameter or member 'ohs' not described in 'omap_device_alloc'
-arch/arm/mach-omap2/omap_device.c:335: warning: Function parameter or member 'oh_cnt' not described in 'omap_device_alloc'
-arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'oh' description in 'omap_device_alloc'
-arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'pdata' description in 'omap_device_alloc'
-arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'pdata_len' description in 'omap_device_alloc'
-arch/arm/mach-omap2/omap_device.c:659: warning: Function parameter or member 'pdev' not described in 'omap_device_register'
-arch/arm/mach-omap2/omap_device.c:659: warning: Excess function parameter 'od' description in 'omap_device_register'
-arch/arm/mach-omap2/omap_device.c:682: warning: Function parameter or member 'pdev' not described in 'omap_device_enable'
-arch/arm/mach-omap2/omap_device.c:682: warning: Excess function parameter 'od' description in 'omap_device_enable'
-arch/arm/mach-omap2/omap_device.c:713: warning: Function parameter or member 'pdev' not described in 'omap_device_idle'
-arch/arm/mach-omap2/omap_device.c:713: warning: Excess function parameter 'od' description in 'omap_device_idle'
-
-Signed-off-by: Ben Dooks (Codethink) <ben.dooks@codethink.co.uk>
----
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
----
- arch/arm/mach-omap2/omap_device.c | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 3acb4192918d..1d55602b3f8f 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -119,11 +119,7 @@ static void _add_hwmod_clocks_clkdev(struct omap_device *od,
- 
- /**
-  * omap_device_build_from_dt - build an omap_device with multiple hwmods
-- * @pdev_name: name of the platform_device driver to use
-- * @pdev_id: this platform_device's connection ID
-- * @oh: ptr to the single omap_hwmod that backs this omap_device
-- * @pdata: platform_data ptr to associate with the platform_device
-- * @pdata_len: amount of memory pointed to by @pdata
-+ * @pdev: The platform device to update.
-  *
-  * Function for building an omap_device already registered from device-tree
-  *
-@@ -292,7 +288,7 @@ static int _omap_device_idle_hwmods(struct omap_device *od)
- 
- /**
-  * omap_device_get_context_loss_count - get lost context count
-- * @od: struct omap_device *
-+ * @pdev: The platform device to update.
-  *
-  * Using the primary hwmod, query the context loss count for this
-  * device.
-@@ -321,9 +317,8 @@ int omap_device_get_context_loss_count(struct platform_device *pdev)
- /**
-  * omap_device_alloc - allocate an omap_device
-  * @pdev: platform_device that will be included in this omap_device
-- * @oh: ptr to the single omap_hwmod that backs this omap_device
-- * @pdata: platform_data ptr to associate with the platform_device
-- * @pdata_len: amount of memory pointed to by @pdata
-+ * @ohs: ptr to the omap_hwmod for this omap_device
-+ * @oh_cnt: the size of the ohs list
-  *
-  * Convenience function for allocating an omap_device structure and filling
-  * hwmods, and resources.
-@@ -649,7 +644,7 @@ struct dev_pm_domain omap_device_pm_domain = {
- 
- /**
-  * omap_device_register - register an omap_device with one omap_hwmod
-- * @od: struct omap_device * to register
-+ * @pdev: the platform device (omap_device) to register.
-  *
-  * Register the omap_device structure.  This currently just calls
-  * platform_device_register() on the underlying platform_device.
-@@ -668,7 +663,7 @@ int omap_device_register(struct platform_device *pdev)
- 
- /**
-  * omap_device_enable - fully activate an omap_device
-- * @od: struct omap_device * to activate
-+ * @pdev: the platform device to activate
-  *
-  * Do whatever is necessary for the hwmods underlying omap_device @od
-  * to be accessible and ready to operate.  This generally involves
-@@ -702,7 +697,7 @@ int omap_device_enable(struct platform_device *pdev)
- 
- /**
-  * omap_device_idle - idle an omap_device
-- * @od: struct omap_device * to idle
-+ * @pdev: The platform_device (omap_device) to idle
-  *
-  * Idle omap_device @od.  Device drivers call this function indirectly
-  * via pm_runtime_put*().  Returns -EINVAL if the omap_device is not
--- 
-2.24.0.rc1
+VGhlIHdha2V1cF9jcHUgdmFyaWFibGUgaW4gb21hcDRfZW50ZXJfbG93cG93ZXIoKSBpcyBzZXQK
+YnV0IHRoZW4gaXMgbm90IHVzZWQgYWZ0ZXIgdGhpcy4gUmVtb3ZlIGl0IHRvIGZpeAp0aGUgY29t
+cGlsZXIgd2FybmluZzoKCmFyY2gvYXJtL21hY2gtb21hcDIvb21hcC1tcHVzcy1sb3dwb3dlci5j
+OiBJbiBmdW5jdGlvbiDDom9tYXA0X2VudGVyX2xvd3Bvd2Vyw6I6CmFyY2gvYXJtL21hY2gtb21h
+cDIvb21hcC1tcHVzcy1sb3dwb3dlci5jOjIzMDoxNTogd2FybmluZzogdmFyaWFibGUgw6J3YWtl
+dXBfY3B1w6Igc2V0IGJ1dCBub3QgdXNlZCBbLVd1bnVzZWQtYnV0LXNldC12YXJpYWJsZV0KClNp
+Z25lZC1vZmYtYnk6IEJlbiBEb29rcyAoQ29kZXRoaW5rKSA8YmVuLmRvb2tzQGNvZGV0aGluay5j
+by51az4KLS0tCkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUnVzc2Vs
+bCBLaW5nIDxsaW51eEBhcm1saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVs
+Lm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCi0tLQogYXJjaC9h
+cm0vbWFjaC1vbWFwMi9vbWFwLW1wdXNzLWxvd3Bvd2VyLmMgfCAyIC0tCiAxIGZpbGUgY2hhbmdl
+ZCwgMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXAt
+bXB1c3MtbG93cG93ZXIuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1tcHVzcy1sb3dwb3dl
+ci5jCmluZGV4IDJkOGY5MDU0NjU5MS4uNjdmYTI4NTMyYTNhIDEwMDY0NAotLS0gYS9hcmNoL2Fy
+bS9tYWNoLW9tYXAyL29tYXAtbXB1c3MtbG93cG93ZXIuYworKysgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL29tYXAtbXB1c3MtbG93cG93ZXIuYwpAQCAtMjI3LDcgKzIyNyw2IEBAIGludCBvbWFwNF9l
+bnRlcl9sb3dwb3dlcih1bnNpZ25lZCBpbnQgY3B1LCB1bnNpZ25lZCBpbnQgcG93ZXJfc3RhdGUp
+CiB7CiAJc3RydWN0IG9tYXA0X2NwdV9wbV9pbmZvICpwbV9pbmZvID0gJnBlcl9jcHUob21hcDRf
+cG1faW5mbywgY3B1KTsKIAl1bnNpZ25lZCBpbnQgc2F2ZV9zdGF0ZSA9IDAsIGNwdV9sb2dpY19z
+dGF0ZSA9IFBXUkRNX1BPV0VSX1JFVDsKLQl1bnNpZ25lZCBpbnQgd2FrZXVwX2NwdTsKIAogCWlm
+IChvbWFwX3JldigpID09IE9NQVA0NDMwX1JFVl9FUzFfMCkKIAkJcmV0dXJuIC1FTlhJTzsKQEAg
+LTI5Miw3ICsyOTEsNiBAQCBpbnQgb21hcDRfZW50ZXJfbG93cG93ZXIodW5zaWduZWQgaW50IGNw
+dSwgdW5zaWduZWQgaW50IHBvd2VyX3N0YXRlKQogCSAqIHNlY3VyZSBkZXZpY2VzLCBDUFV4IGRv
+ZXMgV0ZJIHdoaWNoIGNhbiByZXN1bHQgaW4KIAkgKiBkb21haW4gdHJhbnNpdGlvbgogCSAqLwot
+CXdha2V1cF9jcHUgPSBzbXBfcHJvY2Vzc29yX2lkKCk7CiAJcHdyZG1fc2V0X25leHRfcHdyc3Qo
+cG1faW5mby0+cHdyZG0sIFBXUkRNX1BPV0VSX09OKTsKIAogCXB3cmRtX3Bvc3RfdHJhbnNpdGlv
+bihOVUxMKTsKLS0gCjIuMjQuMC5yYzEKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
