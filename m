@@ -1,70 +1,122 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: Long Delay on startup of wl18xx Wireless chip
-Date: Wed, 6 Nov 2019 11:38:24 +0100
-Message-ID: <7BC95BF7-0E1D-4863-AB71-37BB6E8E297E@goldelico.com>
-References: <CAHCN7xJiJKBgkiRm-MF9NpgQqfV4=zSVRShc5Sb5Lya2TAxU0g@mail.gmail.com> <CAHCN7xK0Y7=Wr9Kq02CWCbQjWVOocU02LLEB=QsVB22yNNoQPw@mail.gmail.com> <87sgn1z467.fsf@codeaurora.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87sgn1z467.fsf@codeaurora.org>
-Sender: netdev-owner@vger.kernel.org
-To: Kalle Valo <kvalo@codeaurora.org>, Adam Ford <aford173@gmail.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "David S . Miller" <davem@davemloft.net>, linux-wireless@vger.kernel.org, netdev <netdev@vger.kernel.org>
+From: "Ben Dooks (Codethink)" <ben.dooks@codethink.co.uk>
+Subject: [PATCH] OMAP2: fixup doc comments in omap_device
+Date: Wed,  6 Nov 2019 11:59:45 +0000
+Message-ID: <20191106115945.4298-1-ben.dooks@codethink.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@lists.codethink.co.uk
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "Ben Dooks (Codethink)" <ben.dooks@codethink.co.uk>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+The documentation comments in this file are out of
+date with the code, so fix this to avoid the
+following warnings:
 
-> Am 06.11.2019 um 11:32 schrieb Kalle Valo <kvalo@codeaurora.org>:
->=20
-> Adam Ford <aford173@gmail.com> writes:
->=20
->> On Tue, Nov 5, 2019 at 12:25 PM Adam Ford <aford173@gmail.com> wrote:
->>>=20
->>> I am seeing a really long delay at startup of the wl18xx using the =
-5.4 kernel.
->>>=20
->>=20
->> Sorry I had to resend.  I forgot to do plaintext.  Google switched
->> settings on me and neglected to inform me.
->>=20
->>=20
->>> [ 7.895551] wl18xx_driver wl18xx.2.auto: Direct firmware load for
->>> ti-connectivity/wl18xx-conf.bin failed with error -2
->>> [ 7.906416] wl18xx_driver wl18xx.2.auto: Falling back to sysfs
->>> fallback for: ti-connectivity/wl18xx-conf.bin
->>>=20
->>> At this point in the sequence, I can login to Linux, but the WL18xx =
-is unavailable.
->>>=20
->>> [   35.032382] vwl1837: disabling
->>> [ 69.594874] wlcore: ERROR could not get configuration binary
->>> ti-connectivity/wl18xx-conf.bin: -11
->>> [   69.604013] wlcore: WARNING falling back to default config
->>> [   70.174821] wlcore: wl18xx HW: 183x or 180x, PG 2.2 (ROM 0x11)
->>> [ 70.189003] wlcore: WARNING Detected unconfigured mac address in
->>> nvs, derive from fuse instead.
->>> [   70.197851] wlcore: WARNING This default nvs file can be removed =
-from the file system
->>> [   70.218816] wlcore: loaded
->>>=20
->>> It is now at this point when the wl18xx is available.
->>>=20
->>> I have the wl18xx and wlcore setup as a module so it should load
->>> after the filesystem is mounted. I am not using a wl18xx-conf.bin,
->>> but I never needed to use this before.
->>>=20
->>> It seems to me unreasonable to wait 60+ seconds after everything is
->>> mounted for the wireless chip to become available. Before I attempt
->>> to bisect this, I was hoping someone might have seen this. I am also
->>> trying to avoid duplicating someone else's efforts.
->>>=20
->>> I know the 4.19 doesn't behave like this.
->=20
-> Try disabling CONFIG_FW_LOADER_USER_HELPER, that usually causes a 60
-> second delay if the user space is not setup to handle the request. (Or
-> something like that.)
+arch/arm/mach-omap2/omap_device.c:133: warning: Function parameter or member 'pdev' not described in 'omap_device_build_from_dt'
+arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdev_name' description in 'omap_device_build_from_dt'
+arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdev_id' description in 'omap_device_build_from_dt'
+arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'oh' description in 'omap_device_build_from_dt'
+arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdata' description in 'omap_device_build_from_dt'
+arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdata_len' description in 'omap_device_build_from_dt'
+arch/arm/mach-omap2/omap_device.c:309: warning: Function parameter or member 'pdev' not described in 'omap_device_get_context_loss_count'
+arch/arm/mach-omap2/omap_device.c:309: warning: Excess function parameter 'od' description in 'omap_device_get_context_loss_count'
+arch/arm/mach-omap2/omap_device.c:335: warning: Function parameter or member 'ohs' not described in 'omap_device_alloc'
+arch/arm/mach-omap2/omap_device.c:335: warning: Function parameter or member 'oh_cnt' not described in 'omap_device_alloc'
+arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'oh' description in 'omap_device_alloc'
+arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'pdata' description in 'omap_device_alloc'
+arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'pdata_len' description in 'omap_device_alloc'
+arch/arm/mach-omap2/omap_device.c:659: warning: Function parameter or member 'pdev' not described in 'omap_device_register'
+arch/arm/mach-omap2/omap_device.c:659: warning: Excess function parameter 'od' description in 'omap_device_register'
+arch/arm/mach-omap2/omap_device.c:682: warning: Function parameter or member 'pdev' not described in 'omap_device_enable'
+arch/arm/mach-omap2/omap_device.c:682: warning: Excess function parameter 'od' description in 'omap_device_enable'
+arch/arm/mach-omap2/omap_device.c:713: warning: Function parameter or member 'pdev' not described in 'omap_device_idle'
+arch/arm/mach-omap2/omap_device.c:713: warning: Excess function parameter 'od' description in 'omap_device_idle'
 
-I can confirm that I have it disabled in our config which seems to work.
+Signed-off-by: Ben Dooks (Codethink) <ben.dooks@codethink.co.uk>
+---
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+---
+ arch/arm/mach-omap2/omap_device.c | 19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-BR,
-Nikolaus
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 3acb4192918d..1d55602b3f8f 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -119,11 +119,7 @@ static void _add_hwmod_clocks_clkdev(struct omap_device *od,
+ 
+ /**
+  * omap_device_build_from_dt - build an omap_device with multiple hwmods
+- * @pdev_name: name of the platform_device driver to use
+- * @pdev_id: this platform_device's connection ID
+- * @oh: ptr to the single omap_hwmod that backs this omap_device
+- * @pdata: platform_data ptr to associate with the platform_device
+- * @pdata_len: amount of memory pointed to by @pdata
++ * @pdev: The platform device to update.
+  *
+  * Function for building an omap_device already registered from device-tree
+  *
+@@ -292,7 +288,7 @@ static int _omap_device_idle_hwmods(struct omap_device *od)
+ 
+ /**
+  * omap_device_get_context_loss_count - get lost context count
+- * @od: struct omap_device *
++ * @pdev: The platform device to update.
+  *
+  * Using the primary hwmod, query the context loss count for this
+  * device.
+@@ -321,9 +317,8 @@ int omap_device_get_context_loss_count(struct platform_device *pdev)
+ /**
+  * omap_device_alloc - allocate an omap_device
+  * @pdev: platform_device that will be included in this omap_device
+- * @oh: ptr to the single omap_hwmod that backs this omap_device
+- * @pdata: platform_data ptr to associate with the platform_device
+- * @pdata_len: amount of memory pointed to by @pdata
++ * @ohs: ptr to the omap_hwmod for this omap_device
++ * @oh_cnt: the size of the ohs list
+  *
+  * Convenience function for allocating an omap_device structure and filling
+  * hwmods, and resources.
+@@ -649,7 +644,7 @@ struct dev_pm_domain omap_device_pm_domain = {
+ 
+ /**
+  * omap_device_register - register an omap_device with one omap_hwmod
+- * @od: struct omap_device * to register
++ * @pdev: the platform device (omap_device) to register.
+  *
+  * Register the omap_device structure.  This currently just calls
+  * platform_device_register() on the underlying platform_device.
+@@ -668,7 +663,7 @@ int omap_device_register(struct platform_device *pdev)
+ 
+ /**
+  * omap_device_enable - fully activate an omap_device
+- * @od: struct omap_device * to activate
++ * @pdev: the platform device to activate
+  *
+  * Do whatever is necessary for the hwmods underlying omap_device @od
+  * to be accessible and ready to operate.  This generally involves
+@@ -702,7 +697,7 @@ int omap_device_enable(struct platform_device *pdev)
+ 
+ /**
+  * omap_device_idle - idle an omap_device
+- * @od: struct omap_device * to idle
++ * @pdev: The platform_device (omap_device) to idle
+  *
+  * Idle omap_device @od.  Device drivers call this function indirectly
+  * via pm_runtime_put*().  Returns -EINVAL if the omap_device is not
+-- 
+2.24.0.rc1
