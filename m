@@ -1,55 +1,61 @@
-From: Markus Elfring <Markus.Elfring@web.de>
-Subject: [PATCH] bus: ti-sysc: Adjust exception handling in
- sysc_child_add_named_clock()
-Date: Wed, 6 Nov 2019 19:22:05 +0100
-Message-ID: <8874d0c5-856a-809f-cba6-1b970df68d13@web.de>
+From: Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v3 3/5] ARM: dts: dra7: add vpe clkctrl node
+Date: Wed, 6 Nov 2019 14:26:20 -0600
+Message-ID: <20191106202622.2648-4-bparrot@ti.com>
+References: <20191106202622.2648-1-bparrot@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
+In-Reply-To: <20191106202622.2648-1-bparrot@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 6 Nov 2019 19:12:30 +0100
+Add clkctrl nodes for VPE module.
 
-Add a jump target so that a call of the function =E2=80=9Cclk_put=E2=80=9D
-can be better reused at the end of this function.
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-=2D--
- drivers/bus/ti-sysc.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 97b85493aa43..2042f6e45163 100644
-=2D-- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1766,9 +1766,8 @@ static int sysc_child_add_named_clock(struct sysc *d=
-data,
-
- 	clk =3D clk_get(child, name);
- 	if (!IS_ERR(clk)) {
--		clk_put(clk);
--
--		return -EEXIST;
-+		error =3D -EEXIST;
-+		goto put_clk;
- 	}
-
- 	clk =3D clk_get(ddata->dev, name);
-@@ -1778,7 +1777,7 @@ static int sysc_child_add_named_clock(struct sysc *d=
-data,
- 	l =3D clkdev_create(clk, name, dev_name(child));
- 	if (!l)
- 		error =3D -ENOMEM;
--
-+put_clk:
- 	clk_put(clk);
-
- 	return error;
-=2D-
-2.24.0
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 93e1eb83bed9..d1c2406ec71c 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1591,10 +1591,10 @@
+ 
+ 	rtc_cm: rtc-cm@700 {
+ 		compatible = "ti,omap4-cm";
+-		reg = <0x700 0x100>;
++		reg = <0x700 0x60>;
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-		ranges = <0 0x700 0x100>;
++		ranges = <0 0x700 0x60>;
+ 
+ 		rtc_clkctrl: rtc-clkctrl@20 {
+ 			compatible = "ti,clkctrl";
+@@ -1603,6 +1603,20 @@
+ 		};
+ 	};
+ 
++	vpe_cm: vpe-cm@760 {
++		compatible = "ti,omap4-cm";
++		reg = <0x760 0xc>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x760 0xc>;
++
++		vpe_clkctrl: vpe-clkctrl@0 {
++			compatible = "ti,clkctrl";
++			reg = <0x0 0xc>;
++			#clock-cells = <2>;
++		};
++	};
++
+ };
+ 
+ &cm_core {
+-- 
+2.17.1
