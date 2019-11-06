@@ -1,77 +1,291 @@
-From: "Vaittinen, Matti" <Matti.Vaittinen@fi.rohmeurope.com>
-Subject: Re: [PATCH v2 0/2] Add definition for GPIO direction
-Date: Wed, 6 Nov 2019 12:25:18 +0000
-Message-ID: <ddcd02cc6c709837a28cae2cbfa672c506927659.camel@fi.rohmeurope.com>
-References: <cover.1573029228.git.matti.vaittinen@fi.rohmeurope.com>
- <20191106120846.5bunrqj3uz4khih5@earth.universe>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 01/17] dt-bindings: remoteproc: Add OMAP remoteproc
+ bindings
+Date: Wed, 6 Nov 2019 14:44:23 +0200
+Message-ID: <25d55648-1fad-7de2-0937-5efeee8672eb@ti.com>
+References: <20191028124238.19224-1-t-kristo@ti.com>
+ <20191028124238.19224-2-t-kristo@ti.com> <20191106032727.GA21162@bogus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191106120846.5bunrqj3uz4khih5@earth.universe>
-Content-Language: de-DE
-Content-ID: <FD03FC67CBBBB149AC58086B204B0910@de.rohmeurope.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "sre@kernel.org" <sre@kernel.org>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-aspeed@lists.ozlabs.org" <linux-aspeed@lists.ozlabs.org>, "david.daney@cavium.com" <david.daney@cavium.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "sathyanarayanan.kuppuswamy@linux.intel.com" <sathyanarayanan.kuppuswamy@linux.intel.com>, "ptyser@xes-inc.com" <ptyser@xes-inc.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "marek.behun@nic.cz" <marek.behun@nic.cz>, "festevam@gmail.com" <festevam@gmail.com>, "linux-stm32@st-md-mailman.stormreply.com" <linux-stm32@st-md-mailman.stormreply.com>, "marek.vasut+renesas@gmail.com" <marek.vasut+renesas@gmail.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "khilman@kernel.org" <khilman@kernel.org>, "michal.simek@xilinx.com" <michal.simek@xilinx.com>, "jonathanh@nvidia.com" <jonathanh@nvidia.com>"bgolaszewski@baylibre.com" <b>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191106032727.GA21162@bogus>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On Wed, 2019-11-06 at 13:08 +0100, Sebastian Reichel wrote:
-> Hi,
+On 06/11/2019 05:27, Rob Herring wrote:
+> On Mon, Oct 28, 2019 at 02:42:22PM +0200, Tero Kristo wrote:
+>> From: Suman Anna <s-anna@ti.com>
+>>
+>> Add the device tree bindings document for the IPU and DSP
+>> remote processor devices on OMAP4+ SoCs.
+>>
+>> Cc: Rob Herring <robh@kernel.org>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   .../remoteproc/ti,omap-remoteproc.txt         | 205 ++++++++++++++++++
+>>   1 file changed, 205 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.txt
+>>
 > 
-> On Wed, Nov 06, 2019 at 10:51:06AM +0200, Matti Vaittinen wrote:
-> > The patch series adds definitions for GPIO line directions.
-> > 
-> > For occasional GPIO contributor like me it is always a pain to
-> > remember
-> > whether 1 or 0 was used for GPIO direction INPUT/OUTPUT.
+> Looks to be in pretty good shape, but how about doing a schema.
+
+iommu / mailbox is not in schema format, can I just convert this one to 
+schema without considering those? If yes, I can go ahead and do it.
+
 > 
-> Maybe also update the GPIO drivers in pinctrl?
+>> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.txt b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.txt
+>> new file mode 100644
+>> index 000000000000..e2bcfcab21c1
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.txt
+>> @@ -0,0 +1,205 @@
+>> +OMAP4+ Remoteproc Devices
+>> +=========================
+>> +
+>> +The OMAP family of SoCs usually have one or more slave processor sub-systems
+>> +that are used to offload some of the processor-intensive tasks, or to manage
+>> +other hardware accelerators, for achieving various system level goals.
+>> +
+>> +The processor cores in the sub-system are usually behind an IOMMU, and may
+>> +contain additional sub-modules like Internal RAM and/or ROMs, L1 and/or L2
+>> +caches, an Interrupt Controller, a Cache Controller etc.
+>> +
+>> +The OMAP SoCs usually have a DSP processor sub-system and/or an IPU processor
+>> +sub-system. The DSP processor sub-system can contain any of the TI's C64x,
+>> +C66x or C67x family of DSP cores as the main execution unit. The IPU processor
+>> +sub-system usually contains either a Dual-Core Cortex-M3 or Dual-Core Cortex-M4
+>> +processors.
+>> +
+>> +Remote Processor Node:
+>> +======================
+>> +Each remote processor sub-system is represented as a single DT node. Each node
+>> +has a number of required or optional properties that enable the OS running on
+>> +the host processor (MPU) to perform the device management of the remote
+>> +processor and to communicate with the remote processor. The various properties
+>> +can be classified as constant or variable. The constant properties are dictated
+>> +by the SoC and does not change from one board to another having the same SoC.
+>> +Examples of constant properties include 'iommus', 'reg'. The variable properties
+>> +are dictated by the system integration aspects such as memory on the board, or
+>> +configuration used within the corresponding firmware image. Examples of variable
+>> +properties include 'mboxes', 'memory-region', 'timers', 'watchdog-timers' etc.
+>> +
+>> +Required properties:
+>> +--------------------
+>> +The following are the mandatory properties:
+>> +
+>> +- compatible:	Should be one of the following,
+>> +		    "ti,omap4-dsp" for DSPs on OMAP4 SoCs
+>> +		    "ti,omap5-dsp" for DSPs on OMAP5 SoCs
+>> +		    "ti,dra7-dsp" for DSPs on DRA7xx/AM57xx SoCs
+>> +		    "ti,omap4-ipu" for IPUs on OMAP4 SoCs
+>> +		    "ti,omap5-ipu" for IPUs on OMAP5 SoCs
+>> +		    "ti,dra7-ipu" for IPUs on DRA7xx/AM57xx SoCs
+>> +
+>> +- iommus:	phandles to OMAP IOMMU nodes, that need to be programmed
+>> +		for this remote processor to access any external RAM memory or
+>> +		other peripheral device address spaces. This property usually
+>> +		has only a single phandle. Multiple phandles are used only in
+>> +		cases where the sub-system has different ports for different
+>> +		sub-modules within the processor sub-system (eg: DRA7 DSPs),
+>> +		and need the same programming in both the MMUs.
+
+^ the target of this is not in schema.
+
+>> +
+>> +- mboxes:	OMAP Mailbox specifier denoting the sub-mailbox, to be used for
+>> +		communication with the remote processor. The specifier format is
+>> +		as per the bindings,
+>> +		Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>> +		This property should match with the sub-mailbox node used in
+>> +		the firmware image.
+
+^ Neither this one.
+
+>> +
+>> +Optional properties:
+>> +--------------------
+>> +Some of these properties are mandatory on some SoCs, and some are optional
+>> +depending on the configuration of the firmware image to be executed on the
+>> +remote processor. The conditions are mentioned for each property.
+>> +
+>> +The following are the optional properties:
+>> +- reg:			Address space for any remoteproc memories present on
+>> +			the SoC. Should contain an entry for each value in
+>> +			'reg-names'. These are mandatory for all DSP and IPU
+>> +			processors that have them (OMAP4/OMAP5 DSPs do not have
+>> +			any RAMs)
+>> +
+>> +- reg-names:		Required names for each of the address spaces defined in
+>> +			the 'reg' property. Should contain a string from among
+>> +			the following names, each representing the corresponding
+>> +			internal RAM memory region,
+>> +			   "l2ram" for L2 RAM,
+>> +			   "l1pram" for L1 Program RAM Memory/Cache,
+>> +			   "l1dram" for L1 Data RAM Memory/Cache,
+>> +
+>> +			All devices may not have all the above memories.
+>> +
+>> +- syscon-bootreg:	Should be a pair of the phandle to the System Control
 > 
-> $ git grep -l gpio_get_direction drivers/pinctrl
-> drivers/pinctrl/bcm/pinctrl-bcm2835.c
-> drivers/pinctrl/bcm/pinctrl-iproc-gpio.c
-> drivers/pinctrl/intel/pinctrl-baytrail.c
-> drivers/pinctrl/intel/pinctrl-cherryview.c
-> drivers/pinctrl/intel/pinctrl-intel.c
-> drivers/pinctrl/mediatek/pinctrl-mtk-common.c
-> drivers/pinctrl/mediatek/pinctrl-paris.c
-> drivers/pinctrl/mvebu/pinctrl-armada-37xx.c
-> drivers/pinctrl/pinctrl-amd.c
-> drivers/pinctrl/pinctrl-at91.c
-> drivers/pinctrl/pinctrl-axp209.c
-> drivers/pinctrl/pinctrl-ingenic.c
-> drivers/pinctrl/pinctrl-ocelot.c
-> drivers/pinctrl/pinctrl-oxnas.c
-> drivers/pinctrl/pinctrl-pic32.c
-> drivers/pinctrl/pinctrl-pistachio.c
-> drivers/pinctrl/pinctrl-rk805.c
-> drivers/pinctrl/pinctrl-rockchip.c
-> drivers/pinctrl/pinctrl-rza1.c
-> drivers/pinctrl/pinctrl-st.c
-> drivers/pinctrl/pinctrl-stmfx.c
-> drivers/pinctrl/pinctrl-sx150x.c
-> drivers/pinctrl/qcom/pinctrl-msm.c
-> drivers/pinctrl/stm32/pinctrl-stm32.c
-> drivers/pinctrl/vt8500/pinctrl-wmt.c
+> ti,bootreg
 
-Ouch. I didn't check from pinctrl but I see those should be converted
-as well. I'm a bit short on time right now so if anyone else is
-interested I won't mind :)
+This one I can fix.
 
-Luckily the value for IN and OUT is not changed - only the defines were
-added - so all of the drivers do not need to be done at once. If no one
-else will take the pinctrl part then I can probably do pinctrl patches
-for v5.6 cycle.
+> 
+>> +			Configuration region that contains the boot address
+>> +			register, and the register offset of the boot address
+>> +			register within the System Control module. This property
+>> +			is required for all the DSP instances on OMAP4, OMAP5
+>> +			and DRA7xx SoCs.
+>> +
+>> +- memory-region:	phandle to the reserved memory node to be associated
+>> +			with the remoteproc device. The reserved memory node
+>> +			can be a CMA memory node, and should be defined as
+>> +			per the bindings,
+>> +			Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
+>> +
+>> +- mbox-names:		Optional names for the OMAP mailbox specifiers mentioned
+>> +			in the 'mboxes' property, one per specifier value
+> 
+>  From the mboxes description, seemed like only one entry?
+> 
+> Need to define the values here.
 
-Br,
-	Matti Vaittinen
+I think I can just ditch this. The current driver doesn't care about the 
+name at all. It is not used in any of the examples / current DT data either.
+
+> 
+>> +
+>> +- timers:		One or more phandles to OMAP DMTimer nodes, that serve
+>> +			as System/Tick timers for the OS running on the remote
+>> +			processors. This will usually be a single timer if the
+>> +			processor sub-system is running in SMP mode, or one per
+>> +			core in the processor sub-system. This can also be used
+>> +			to reserve specific timers to be dedicated to the
+>> +			remote processors.
+>> +
+>> +			This property is mandatory on remote processors requiring
+>> +			external tick wakeup, and to support Power Management
+>> +			features. The timers to be used should match with the
+>> +			timers used in the firmware image.
+>> +
+>> +- watchdog-timers:	One or more phandles to OMAP DMTimer nodes, used to
+>> +			serve as Watchdog timers for the processor cores. This
+>> +			will usually be one per executing processor core, even
+>> +			if the processor sub-system is running a SMP OS.
+>> +
+>> +			The timers to be used should match with the watchdog
+>> +			timers used in the firmware image.
+> 
+> These 2 are not standard names. Either need 'ti,' prefix or we should
+> standardize them. There's been some discussion of an input capture
+> binding and I was wondering if it should be more general to any
+> timer function.
+
+I'll convert these to ti,xyz for now.
+
+-Tero
+
+> 
+>> +
+>> +Example:
+>> +--------
+>> +
+>> +1. OMAP4 DSP
+>> +	/* DSP Reserved Memory node */
+>> +	reserved-memory {
+>> +		#address-cells = <1>;
+>> +		#size-cells = <1>;
+>> +		ranges;
+>> +
+>> +		dsp_memory_region: dsp-memory@98000000 {
+>> +			compatible = "shared-dma-pool";
+>> +			reg = <0x98000000 0x800000>;
+>> +			reusable;
+>> +		};
+>> +	};
+>> +
+>> +	/* DSP node */
+>> +	ocp {
+>> +		dsp: dsp {
+>> +			compatible = "ti,omap4-dsp";
+>> +			syscon-bootreg = <&scm_conf 0x304>;
+>> +			iommus = <&mmu_dsp>;
+>> +			mboxes = <&mailbox &mbox_dsp>;
+>> +			memory-region = <&dsp_memory_region>;
+>> +			timers = <&timer5>;
+>> +			watchdog-timers = <&timer6>;
+>> +		};
+>> +	};
+>> +
+>> +2. OMAP5 IPU
+>> +	/* IPU Reserved Memory node */
+>> +	reserved-memory {
+>> +		#address-cells = <2>;
+>> +		#size-cells = <2>;
+>> +		ranges;
+>> +
+>> +		ipu_memory_region: ipu-memory@95800000 {
+>> +			compatible = "shared-dma-pool";
+>> +			reg = <0 0x95800000 0 0x3800000>;
+>> +			reusable;
+>> +		};
+>> +	};
+>> +
+>> +	/* IPU node */
+>> +	ocp {
+>> +		ipu: ipu@55020000 {
+>> +			compatible = "ti,omap5-ipu";
+>> +			reg = <0x55020000 0x10000>;
+>> +			reg-names = "l2ram";
+>> +			iommus = <&mmu_ipu>;
+>> +			mboxes = <&mailbox &mbox_ipu>;
+>> +			memory-region = <&ipu_memory_region>;
+>> +			timers = <&timer3>, <&timer4>;
+>> +			watchdog-timers = <&timer9>, <&timer11>;
+>> +		};
+>> +	};
+>> +
+>> +3. DRA7xx/AM57xx DSP
+>> +	/* DSP1 Reserved Memory node */
+>> +	reserved-memory {
+>> +		#address-cells = <2>;
+>> +		#size-cells = <2>;
+>> +		ranges;
+>> +
+>> +		dsp1_memory_region: dsp1-memory@99000000 {
+>> +			compatible = "shared-dma-pool";
+>> +			reg = <0x0 0x99000000 0x0 0x4000000>;
+>> +			reusable;
+>> +		};
+>> +	};
+>> +
+>> +	/* DSP1 node */
+>> +	ocp {
+>> +		dsp1: dsp@40800000 {
+>> +			compatible = "ti,dra7-dsp";
+>> +			reg = <0x40800000 0x48000>,
+>> +			      <0x40e00000 0x8000>,
+>> +			      <0x40f00000 0x8000>;
+>> +			reg-names = "l2ram", "l1pram", "l1dram";
+>> +			syscon-bootreg = <&scm_conf 0x55c>;
+>> +			iommus = <&mmu0_dsp1>, <&mmu1_dsp1>;
+>> +			mboxes = <&mailbox5 &mbox_dsp1_ipc3x>;
+>> +			memory-region = <&dsp1_memory_region>;
+>> +			timers = <&timer5>;
+>> +			watchdog-timers = <&timer10>;
+>> +		};
+>> +	};
+>> -- 
+>> 2.17.1
+>>
+>> --
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
