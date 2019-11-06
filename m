@@ -1,16 +1,16 @@
-From: Tero Kristo <t-kristo@ti.com>
+From: Gilad Ben-Yossef <gilad@benyossef.com>
 Subject: Re: [PATCH 09/10] crypto: add timeout to crypto_wait_req
-Date: Wed, 6 Nov 2019 09:25:18 +0200
-Message-ID: <076f0bc6-ad04-9543-db02-d7c7060db036@ti.com>
+Date: Wed, 6 Nov 2019 09:33:20 +0200
+Message-ID: <CAOtvUMc7pbtPAPUbEmz_MTHmB9LboQVdgG-t9tHCr=biEbFuUQ@mail.gmail.com>
 References: <20191017122549.4634-1-t-kristo@ti.com>
  <20191017122549.4634-10-t-kristo@ti.com>
  <CAOtvUMeBXjDBhSVgMOW=hshEx_AkNPg-Zk2c2jCDzY8vyXWW5g@mail.gmail.com>
+ <076f0bc6-ad04-9543-db02-d7c7060db036@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOtvUMeBXjDBhSVgMOW=hshEx_AkNPg-Zk2c2jCDzY8vyXWW5g@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <076f0bc6-ad04-9543-db02-d7c7060db036@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,63 +20,49 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Gilad Ben-Yossef <gilad@benyossef.com>
+To: Tero Kristo <t-kristo@ti.com>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Eric Biggers <ebiggers@google.com>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDYvMTEvMjAxOSAwODozOSwgR2lsYWQgQmVuLVlvc3NlZiB3cm90ZToKPiBIaSwKPiAKPiAK
-PiBPbiBUaHUsIE9jdCAxNywgMjAxOSBhdCAzOjI2IFBNIFRlcm8gS3Jpc3RvIDx0LWtyaXN0b0B0
-aS5jb20+IHdyb3RlOgo+Pgo+PiBDdXJyZW50bHkgY3J5cHRvX3dhaXRfcmVxIHdhaXRzIGluZGVm
-aW5pdGVseSBmb3IgYW4gYXN5bmMgY3J5cHRvIHJlcXVlc3QKPj4gdG8gY29tcGxldGUuIFRoaXMg
-aXMgYmFkIGFzIGl0IGNhbiBjYXVzZSBmb3IgZXhhbXBsZSB0aGUgY3J5cHRvIHRlc3QKPj4gbWFu
-YWdlciB0byBoYW5nIHdpdGhvdXQgYW55IG5vdGlmaWNhdGlvbiBhcyB0byB3aHkgaXQgaGFzIGhh
-cHBlbmVkLgo+PiBJbnN0ZWFkIG9mIHdhaXRpbmcgaW5kZWZpbml0ZWx5LCBhZGQgYSAxIHNlY29u
-ZCB0aW1lb3V0IHRvIHRoZSBjYWxsLAo+PiBhbmQgcHJvdmlkZSBhIHdhcm5pbmcgcHJpbnQgaWYg
-YSB0aW1lb3V0IGhhcHBlbnMuCj4gCj4gV2hpbGUgdGhlIGluY2VudGl2ZSBpcyBjbGVhciBhbmQg
-cG9zaXRpdmUsIHRoaXMgc3VnZ2VzdGVkIHNvbHV0aW9uCj4gY3JlYXRlcyBwcm9ibGVtcyBvZiBp
-dHMgb3duLgo+IEluIG1hbnkgKG1vc3Q/KSBjYXNlcyB3aGVyZSB3ZSBhcmUgd2FpdGluZyBoZXJl
-LCB3ZSBhcmUgd2FpdGluZyBmb3IgYQo+IERNQSBvcGVyYXRpb24gdG8gZmluaXNoIGZyb20gaGFy
-ZHdhcmUuCj4gRXhpdGluZyB3aGlsZSB0aGlzIHBlbmRpbmcgRE1BIG9wZXJhdGlvbiBpcyBub3Qg
-ZmluaXNoZWQsIGV2ZW4gd2l0aCBhCj4gcHJvcGVyIGVycm9yIHJldHVybiB2YWx1ZSwgaXMgZGFu
-Z2Vyb3VzIGJlY2F1c2UKPiB1bmxlc3MgdGhlIGNhbGxpbmcgY29kZSB0YWtlcyBncmVhdCBjYXJl
-IHRvIG5vdCByZWxlYXNlIHRoZSBtZW1vcnkgdGhlCj4gRE1BIGlzIGJlaW5nIGRvbmUgZnJvbS90
-bywgdGhpcyBjYW4gaGF2ZSBkaXNhc3Ryb3VzIGVmZmVjdHMuCj4gCj4gQXMgRXJpYyBoYXMgYWxy
-ZWFkeSBtZW50aW9uZWQsIG9uZSBzZWNvbmQgbWlnaHQgc2VlbSBsaWtlIGEgbG9uZyB0aW1lLAo+
-IGJ1dCB3ZSBkb24ndCByZWFsbHkga25vdyBpZiBpdCBpcyBlbm91Z2guCj4gCj4gSG93IGFib3V0
-IGFkZGluZyBhIHNlY29uZCBBUEkgKGlnLiBjcnlwdG9fd2FpdF9yZXFfdGltZW91dCkgd2hpY2gK
-PiBzdXBwb3J0cyBhIGNhbGVlIHNwZWNpZmllZCB0aW1lb3V0IHdoZXJlCj4gdGhlIGNhbGxlIGtu
-b3dzIGhvdyB0byBjb3JyZWN0bHkgZGVhbCB3aXRoIHRpbWVvdXQgYW5kIHBvcnQgdGhlCj4gcmVs
-ZXZhbnQgY2FsbCBzaXRlcyB0byB1c2UgdGhpcz8KClllYWgsIHRoYXQgd291bGQgd29yayBmb3Ig
-bWUuIEkgZ3Vlc3Mgd2UgY291bGQganVzdCBzd2FwIHRoZSB0ZXN0bWdyIHRvIAp1c2UgdGhpcyB0
-aW1lb3V0IEFQSSwgYXMgaXQgaXMgcXVpdGUgY2xlYXIgaXQgc2hvdWxkIHRpbWVvdXQgcmF0aGVy
-IHRoYW4gCndhaXQgaW5kZWZpbml0ZWx5LCBhbmQgYWZhaWNzLCB0aGUgZGF0YSBidWZmZXJzIGl0
-IHVzZXMgYXJlIGxpbWl0ZWQgCnNpemUuIEl0IGRvZXNuJ3QgcmVhbGx5IG1hdHRlciBmb3IgaXQg
-d2hldGhlciB0aGUgdGltZW91dCBpcyAxIHNlY29uZCBvciAKMTAgc2Vjb25kcywgYXMgbG9uZyBh
-cyBpdCBldmVudHVhbGx5IHRpbWVzIG91dC4KCi1UZXJvCgo+IAo+IFRoYW5rcyEKPiBHaWxhZAo+
-IAo+IAo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBUZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPgo+
-PiAtLS0KPj4gICBpbmNsdWRlL2xpbnV4L2NyeXB0by5oIHwgOSArKysrKysrKy0KPj4gICAxIGZp
-bGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCj4+Cj4+IGRpZmYgLS1n
-aXQgYS9pbmNsdWRlL2xpbnV4L2NyeXB0by5oIGIvaW5jbHVkZS9saW51eC9jcnlwdG8uaAo+PiBp
-bmRleCAxOWVhM2EzNzFkN2IuLmI4ZjBlNWMzY2MwYyAxMDA2NDQKPj4gLS0tIGEvaW5jbHVkZS9s
-aW51eC9jcnlwdG8uaAo+PiArKysgYi9pbmNsdWRlL2xpbnV4L2NyeXB0by5oCj4+IEBAIC02ODIs
-OCArNjgyLDE1IEBAIHN0YXRpYyBpbmxpbmUgaW50IGNyeXB0b193YWl0X3JlcShpbnQgZXJyLCBz
-dHJ1Y3QgY3J5cHRvX3dhaXQgKndhaXQpCj4+ICAgICAgICAgIHN3aXRjaCAoZXJyKSB7Cj4+ICAg
-ICAgICAgIGNhc2UgLUVJTlBST0dSRVNTOgo+PiAgICAgICAgICBjYXNlIC1FQlVTWToKPj4gLSAg
-ICAgICAgICAgICAgIHdhaXRfZm9yX2NvbXBsZXRpb24oJndhaXQtPmNvbXBsZXRpb24pOwo+PiAr
-ICAgICAgICAgICAgICAgZXJyID0gd2FpdF9mb3JfY29tcGxldGlvbl90aW1lb3V0KCZ3YWl0LT5j
-b21wbGV0aW9uLAo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIG1zZWNzX3RvX2ppZmZpZXMoMTAwMCkpOwo+PiAgICAgICAgICAgICAgICAgIHJlaW5p
-dF9jb21wbGV0aW9uKCZ3YWl0LT5jb21wbGV0aW9uKTsKPj4gKyAgICAgICAgICAgICAgIGlmICgh
-ZXJyKSB7Cj4+ICsgICAgICAgICAgICAgICAgICAgICAgIHByX2VycigiJXM6IHRpbWVvdXQgZm9y
-ICVwXG4iLCBfX2Z1bmNfXywgd2FpdCk7Cj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGVyciA9
-IC1FVElNRURPVVQ7Cj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOwo+PiArICAgICAg
-ICAgICAgICAgfQo+PiArCj4+ICAgICAgICAgICAgICAgICAgZXJyID0gd2FpdC0+ZXJyOwo+PiAg
-ICAgICAgICAgICAgICAgIGJyZWFrOwo+PiAgICAgICAgICB9Owo+PiAtLQo+PiAyLjE3LjEKPj4K
-Pj4gLS0KPiAKPiAKPiAKPiAtLQo+IEdpbGFkIEJlbi1Zb3NzZWYKPiBDaGllZiBDb2ZmZWUgRHJp
-bmtlcgo+IAo+IHZhbHVlcyBvZiDOsiB3aWxsIGdpdmUgcmlzZSB0byBkb20hCj4gCgotLQpUZXhh
-cyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5r
-aS4gWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTog
-SGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LWFybS1rZXJuZWwK
+On Wed, Nov 6, 2019 at 9:25 AM Tero Kristo <t-kristo@ti.com> wrote:
+>
+> On 06/11/2019 08:39, Gilad Ben-Yossef wrote:
+> > Hi,
+> >
+> >
+> > On Thu, Oct 17, 2019 at 3:26 PM Tero Kristo <t-kristo@ti.com> wrote:
+> >>
+> >> Currently crypto_wait_req waits indefinitely for an async crypto request
+> >> to complete. This is bad as it can cause for example the crypto test
+> >> manager to hang without any notification as to why it has happened.
+> >> Instead of waiting indefinitely, add a 1 second timeout to the call,
+> >> and provide a warning print if a timeout happens.
+> >
+> > While the incentive is clear and positive, this suggested solution
+> > creates problems of its own.
+> > In many (most?) cases where we are waiting here, we are waiting for a
+> > DMA operation to finish from hardware.
+> > Exiting while this pending DMA operation is not finished, even with a
+> > proper error return value, is dangerous because
+> > unless the calling code takes great care to not release the memory the
+> > DMA is being done from/to, this can have disastrous effects.
+> >
+> > As Eric has already mentioned, one second might seem like a long time,
+> > but we don't really know if it is enough.
+> >
+> > How about adding a second API (ig. crypto_wait_req_timeout) which
+> > supports a calee specified timeout where
+> > the calle knows how to correctly deal with timeout and port the
+> > relevant call sites to use this?
+>
+> Yeah, that would work for me. I guess we could just swap the testmgr to
+> use this timeout API, as it is quite clear it should timeout rather than
+> wait indefinitely, and afaics, the data buffers it uses are limited
+> size. It doesn't really matter for it whether the timeout is 1 second or
+> 10 seconds, as long as it eventually times out.
+
+
+As long as you avoid releasing the memory used on timeout, that should
+work well, I think.
+
+Gilad
