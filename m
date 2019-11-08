@@ -1,50 +1,70 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 09/10] crypto: add timeout to crypto_wait_req
-Date: Fri, 8 Nov 2019 11:22:48 +0200
-Message-ID: <2ab94492-21e4-fbe0-41eb-e12b02511d7c@ti.com>
-References: <20191017122549.4634-1-t-kristo@ti.com>
- <20191017122549.4634-10-t-kristo@ti.com>
- <CAOtvUMeBXjDBhSVgMOW=hshEx_AkNPg-Zk2c2jCDzY8vyXWW5g@mail.gmail.com>
- <076f0bc6-ad04-9543-db02-d7c7060db036@ti.com>
- <CAOtvUMc7pbtPAPUbEmz_MTHmB9LboQVdgG-t9tHCr=biEbFuUQ@mail.gmail.com>
- <20191108022759.GB1140@sol.localdomain>
- <d55c0182-5fb0-2ef9-f056-54b396fb0026@ti.com>
- <20191108091608.i5fxt2vu2nwrybgn@gondor.apana.org.au>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 107/205] ARM: dts: omap3-gta04: fixes for tvout / venc
+Date: Fri,  8 Nov 2019 06:36:14 -0500
+Message-ID: <20191108113752.12502-107-sashal@kernel.org>
+References: <20191108113752.12502-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191108091608.i5fxt2vu2nwrybgn@gondor.apana.org.au>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gilad Ben-Yossef <gilad@benyossef.com>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191108113752.12502-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/11/2019 11:16, Herbert Xu wrote:
-> On Fri, Nov 08, 2019 at 09:40:57AM +0200, Tero Kristo wrote:
->>
->> The problem is not detecting a hung task, the problem is determining what
->> caused the hang. Personally I don't care if the system dies if a crypto
->> accelerator self test has failed, as long as I get reported about the exact
->> nature of the failure. The failures are expected to happen only in
->> development phase of a crypto driver.
->>
->> With the timeout patch in place, I get reported what exact crypto test case
->> failed and I can focus my debug efforts on that one.
-> 
-> If that's all you need then how about just making the wait killable?
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-Yeah, that would be an alternative.
+[ Upstream commit f6591391373dbff2c0200e1055d4ff86191578d2 ]
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+* fix connector compatibility (composite)
+* add comment for gpio1 23
+* add proper #address-cells
+* we use only one venc_out channel for composite
+
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index ae33e0e0f1d2c..eee5fa0035071 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -131,7 +131,7 @@
+ 	};
+ 
+ 	tv0: connector {
+-		compatible = "svideo-connector";
++		compatible = "composite-video-connector";
+ 		label = "tv";
+ 
+ 		port {
+@@ -143,7 +143,7 @@
+ 
+ 	tv_amp: opa362 {
+ 		compatible = "ti,opa362";
+-		enable-gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++		enable-gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;	/* GPIO_23 to enable video out amplifier */
+ 
+ 		ports {
+ 			#address-cells = <1>;
+@@ -551,10 +551,14 @@
+ 
+ 	vdda-supply = <&vdac>;
+ 
++	#address-cells = <1>;
++	#size-cells = <0>;
++
+ 	port {
++		reg = <0>;
+ 		venc_out: endpoint {
+ 			remote-endpoint = <&opa_in>;
+-			ti,channels = <2>;
++			ti,channels = <1>;
+ 			ti,invert-polarity;
+ 		};
+ 	};
+-- 
+2.20.1
