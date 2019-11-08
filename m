@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 33/64] ARM: dts: omap3-gta04: keep vpll2 always on
-Date: Fri,  8 Nov 2019 06:45:14 -0500
-Message-ID: <20191108114545.15351-33-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 31/64] ARM: dts: omap3-gta04: fix touchscreen tsc2007
+Date: Fri,  8 Nov 2019 06:45:12 -0500
+Message-ID: <20191108114545.15351-31-sashal@kernel.org>
 References: <20191108114545.15351-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,34 +14,56 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-[ Upstream commit 1ae00833e30c9b4af5cbfda65d75b1de12f74013 ]
+[ Upstream commit 7384a24248eda140a234d356b6c840701ee9f055 ]
 
-This is needed to make the display and venc work properly.
-Compare to omap3-beagle.dts.
+we fix penirq polarity, add penirq pinmux and touchscreen
+properties.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 6b8e013e49bb9..7191506934494 100644
+index e86f42086a29b..6e809b0ff5c9f 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -536,6 +536,12 @@
- 	regulator-max-microvolt = <3150000>;
+@@ -274,6 +274,13 @@
+ 			OMAP3_CORE1_IOPAD(0x2134, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio112 */
+ 		>;
+ 	};
++
++	penirq_pins: pinmux_penirq_pins {
++		pinctrl-single,pins = <
++			/* here we could enable to wakeup the cpu from suspend by a pen touch */
++			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
++		>;
++	};
  };
  
-+/* Needed to power the DPI pins */
-+
-+&vpll2 {
-+	regulator-always-on;
-+};
-+
- &dss {
- 	pinctrl-names = "default";
- 	pinctrl-0 = < &dss_dpi_pins >;
+ &omap3_pmx_core2 {
+@@ -411,10 +418,19 @@
+ 	tsc2007@48 {
+ 		compatible = "ti,tsc2007";
+ 		reg = <0x48>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&penirq_pins>;
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
+-		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
++		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;	/* GPIO_160 */
+ 		ti,x-plate-ohms = <600>;
++		touchscreen-size-x = <480>;
++		touchscreen-size-y = <640>;
++		touchscreen-max-pressure = <1000>;
++		touchscreen-fuzz-x = <3>;
++		touchscreen-fuzz-y = <8>;
++		touchscreen-fuzz-pressure = <10>;
++		touchscreen-inverted-y;
+ 	};
+ 
+ 	/* RFID EEPROM */
 -- 
 2.20.1
