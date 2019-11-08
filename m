@@ -1,89 +1,25 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: Re: [Patch v2 3/5] ARM: dts: dra7: add vpe clkctrl node
-Date: Fri, 8 Nov 2019 11:02:31 -0600
-Message-ID: <20191108170231.ubwfu2nvcwjfabas@ti.com>
-References: <20191104203841.3628-1-bparrot@ti.com>
- <20191104203841.3628-4-bparrot@ti.com>
- <20191108165554.GF5610@atomide.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v3] clk/ti/adpll: allocate room for terminating null
+Date: Fri, 08 Nov 2019 09:00:25 -0800
+Message-ID: <20191108170026.55DA52178F@mail.kernel.org>
+References: <20191019155441.2b1b349f@heffalump.sk2.org> <20191019140634.15596-1-steve@sk2.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191108165554.GF5610@atomide.com>
+In-Reply-To: <20191019140634.15596-1-steve@sk2.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Kitt <steve@sk2.org>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> wrote on Fri [2019-Nov-08 08:55:54 -0800]:
-> Hi,
-> 
-> * Benoit Parrot <bparrot@ti.com> [191104 20:39]:
-> > Add clkctrl nodes for VPE module.
-> 
-> Can you please add a comment describing that we currently need to
-> use custom node names here instead of the standard naming?
+Quoting Stephen Kitt (2019-10-19 07:06:34)
+> The buffer allocated in ti_adpll_clk_get_name doesn't account for the
+> terminating null. This patch switches to devm_kasprintf to avoid
+> overflowing.
+>=20
+> Signed-off-by: Stephen Kitt <steve@sk2.org>
+> ---
 
-Tony, what do you mean "custom node name" here?
-I followed the exact same syntax that was already there... confused..
-
-Benoit
-
-> 
-> I can queue this and other dts change once I have an immutable clock
-> changes branch from Tero.
-> 
-> Or if Tero wants to also pick up the clock node dtsi patch I can ack it,
-> up to Tero.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> > ---
-> >  arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 ++++++++++++++++--
-> >  1 file changed, 16 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> > index 93e1eb83bed9..d1c2406ec71c 100644
-> > --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> > +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> > @@ -1591,10 +1591,10 @@
-> >  
-> >  	rtc_cm: rtc-cm@700 {
-> >  		compatible = "ti,omap4-cm";
-> > -		reg = <0x700 0x100>;
-> > +		reg = <0x700 0x60>;
-> >  		#address-cells = <1>;
-> >  		#size-cells = <1>;
-> > -		ranges = <0 0x700 0x100>;
-> > +		ranges = <0 0x700 0x60>;
-> >  
-> >  		rtc_clkctrl: rtc-clkctrl@20 {
-> >  			compatible = "ti,clkctrl";
-> > @@ -1603,6 +1603,20 @@
-> >  		};
-> >  	};
-> >  
-> > +	vpe_cm: vpe-cm@760 {
-> > +		compatible = "ti,omap4-cm";
-> > +		reg = <0x760 0xc>;
-> > +		#address-cells = <1>;
-> > +		#size-cells = <1>;
-> > +		ranges = <0 0x760 0xc>;
-> > +
-> > +		vpe_clkctrl: vpe-clkctrl@0 {
-> > +			compatible = "ti,clkctrl";
-> > +			reg = <0x0 0xc>;
-> > +			#clock-cells = <2>;
-> > +		};
-> > +	};
-> > +
-> >  };
-> >  
-> >  &cm_core {
-> > -- 
-> > 2.17.1
-> > 
+Please don't send as replies to existing threads. It screws up my
+tooling and makes it more manual to apply the patch. I guess I'll have
+to go fix my scripts to ignore certain emails.
