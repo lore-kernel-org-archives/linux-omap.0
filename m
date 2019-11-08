@@ -1,115 +1,102 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 5.3 030/140] ARM: dts: am3874-iceboard: Fix i2c-mux-idle-disconnect usage
-Date: Fri,  8 Nov 2019 19:49:18 +0100
-Message-ID: <20191108174905.818458961@linuxfoundation.org>
-References: <20191108174900.189064908@linuxfoundation.org>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH 1/2] configs: ARM: omap2plus: Enable OMAP3_THERMAL
+Date: Fri, 8 Nov 2019 14:02:29 -0600
+Message-ID: <CAHCN7xKi4oSoVbRM=-D1s2GnMig8xs6iYNwUWj2Ohfj+1okx=Q@mail.gmail.com>
+References: <20191007220540.30690-1-aford173@gmail.com> <20191022162223.GU5610@atomide.com>
+ <CAHCN7xLy975mxX+cm56PMx-TKODEZjYPfMHb=byspKxYXXq7OA@mail.gmail.com>
+ <20191022221919.GF5610@atomide.com> <1CE62E4E-1A38-448C-9197-8FA16747F942@goldelico.com>
+ <20191023143646.GG5610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191108174900.189064908@linuxfoundation.org>
+In-Reply-To: <20191023143646.GG5610@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Andrey Smirnov <andrew.smirnov@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Graeme Smecher <gsmecher@threespeedlogic.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Sasha Levin <sashal@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
+On Wed, Oct 23, 2019 at 9:36 AM Tony Lindgren <tony@atomide.com> wrote:
+>
+> * H. Nikolaus Schaller <hns@goldelico.com> [191023 04:42]:
+> >
+> > > Am 23.10.2019 um 00:19 schrieb Tony Lindgren <tony@atomide.com>:
+> > >
+> > > * Adam Ford <aford173@gmail.com> [191022 19:01]:
+> > >> On Tue, Oct 22, 2019 at 11:22 AM Tony Lindgren <tony@atomide.com> wrote:
+> > >>>
+> > >>> Hi,
+> > >>>
+> > >>> * Adam Ford <aford173@gmail.com> [191007 15:06]:
+> > >>>> The some in the OMAP3 family have a bandgap thermal sensor, but
+> > >>>> omap2plus has it disabled.
+> > >>>>
+> > >>>> This patch enables the OMAP3_THERMAL by default like the rest of
+> > >>>> the OMAP family.
+> > >>>
+> > >>> Looks like this breaks off mode during idle for omap3, and that's
+> > >>> probably why it never got enabled. The difference in power
+> > >>> consumption during idle is about 7mW vs 32mW for the SoC as
+> > >>> measured from torpedo shunt for main_battery_som.
+> > >>>
+> > >>> I think the right fix might be simply to add handling for
+> > >>> CPU_CLUSTER_PM_ENTER to the related thermal driver to disable
+> > >>> it during idle like we have for gpio-omap.c for example.
+> > >>
+> > >> I am not sure I know where to start on fixing that issue.  Would you
+> > >> entertain enabling the driver if we set the device tree to 'disabled'
+> > >> by default?  This way if people want to to use it, it can be enabled
+> > >> on a per-device option.  Once the power stuff gets resolved, we might
+> > >> be able to enable it by default.  For people who are planning on using
+> > >> the DM3730 @ 1GHz in high temp environments, I am not sure they'll
+> > >> care about low power.
+> > >
+> > > They should both work fine together though. They are not mutually
+> > > exclusive features.
+> > >
+> > >> I'll try to look into it when I have time, but I was hoping a
+> > >> compromise might be a reasonable work-around.
+> > >
+> > > It should be hopefully a trivial fix.. I have not looked at the
+> > > driver code though.
+> >
+> > If I am taken right, it is the drivers/thermal/ti-soc-thermal/ti-*.c
+> > which is a common driver for omap3, omap4, omap5. They only differ
+> > in the thermal data and which registers and bits are used to access
+> > the ADC.
+>
+> Yes so it seems. Enabling OMAP3_THERMAL adds support to
+> of_ti_bandgap_match[] for omap3 and causes the issue.
+>
+> > So is this problem with off mode also known for omap4 and omap5?
+>
+> Probably. But we don't have off mode working for omap4, and
+> it cannot be used for omap5 AFAIK.
+>
+> My guess is we need to call clk_disable() and call
+> ti_bandgap_save_ctxt() on CPU_CLUSTER_PM_ENTER similar to
+> what ti_bandgap_suspend does. And then restore it on
+> CPU_CLUSTER_PM_EXIT.
+>
+> There's a similar example already in gpio_omap_cpu_notifier().
+> Not sure if there is some related errata to deal with too,
+> probably the old Nokia n900 or n9 would provide some hints
+> on what exactly needs to be done.
 
-[ Upstream commit 647c8977e111c0a62c93a489ebc4b045c833fdb4 ]
+I 'think' I have a patch ready that does what you're asking, but I
+will fully admit that I don't completely grasp what's going on.
 
-According to
-Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.txt,
-i2c-mux-idle-disconnect is a property of a parent node since it
-pertains to the mux/switch as a whole, so move it there and drop all
-of the concurrences in child nodes.
+I'll submit it as an RFC, but I am not even sure I understand what to
+put into the description, so if you're OK with reviewing the RFC, feel
+free to mark up the actual commit message as well.
 
-Fixes: d031773169df ("ARM: dts: Adds device tree file for McGill's IceBoard, based on TI AM3874")
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
-Cc: Benoît Cousson <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Graeme Smecher <gsmecher@threespeedlogic.com>
-Cc: linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Tested-by: Graeme Smecher <gsmecher@threespeedlogic.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/am3874-iceboard.dts | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+>From what I can see, the changes haven't negatively impact stuff. I
+didn't see the power consumption go up before, so I am not sure I can
+replicate your findings.
 
-diff --git a/arch/arm/boot/dts/am3874-iceboard.dts b/arch/arm/boot/dts/am3874-iceboard.dts
-index 883fb85135d46..1b4b2b0500e4c 100644
---- a/arch/arm/boot/dts/am3874-iceboard.dts
-+++ b/arch/arm/boot/dts/am3874-iceboard.dts
-@@ -111,13 +111,13 @@
- 		reg = <0x70>;
- 		#address-cells = <1>;
- 		#size-cells = <0>;
-+		i2c-mux-idle-disconnect;
- 
- 		i2c@0 {
- 			/* FMC A */
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <0>;
--			i2c-mux-idle-disconnect;
- 		};
- 
- 		i2c@1 {
-@@ -125,7 +125,6 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <1>;
--			i2c-mux-idle-disconnect;
- 		};
- 
- 		i2c@2 {
-@@ -133,7 +132,6 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <2>;
--			i2c-mux-idle-disconnect;
- 		};
- 
- 		i2c@3 {
-@@ -141,7 +139,6 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <3>;
--			i2c-mux-idle-disconnect;
- 		};
- 
- 		i2c@4 {
-@@ -149,14 +146,12 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <4>;
--			i2c-mux-idle-disconnect;
- 		};
- 
- 		i2c@5 {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <5>;
--			i2c-mux-idle-disconnect;
- 
- 			ina230@40 { compatible = "ti,ina230"; reg = <0x40>; shunt-resistor = <5000>; };
- 			ina230@41 { compatible = "ti,ina230"; reg = <0x41>; shunt-resistor = <5000>; };
-@@ -182,14 +177,12 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <6>;
--			i2c-mux-idle-disconnect;
- 		};
- 
- 		i2c@7 {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			reg = <7>;
--			i2c-mux-idle-disconnect;
- 
- 			u41: pca9575@20 {
- 				compatible = "nxp,pca9575";
--- 
-2.20.1
+It'll be posted shortly.
+
+adam
+>
+> Regards,
+>
+> Tony
