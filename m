@@ -1,69 +1,70 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 110/205] ARM: dts: omap3-gta04: make NAND partitions compatible with recent U-Boot
-Date: Fri,  8 Nov 2019 06:36:17 -0500
-Message-ID: <20191108113752.12502-110-sashal@kernel.org>
-References: <20191108113752.12502-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 050/103] ARM: dts: omap3-gta04: fixes for tvout / venc
+Date: Fri,  8 Nov 2019 06:42:15 -0500
+Message-ID: <20191108114310.14363-50-sashal@kernel.org>
+References: <20191108114310.14363-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191108113752.12502-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20191108114310.14363-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-[ Upstream commit fa99c21ecb3cd4021a60d0e8bf880e78b5bd0729 ]
+[ Upstream commit f6591391373dbff2c0200e1055d4ff86191578d2 ]
 
-Vendor defined U-Boot has changed the partition scheme a while ago:
-
-* kernel partition 6MB
-* file system partition uses the remainder up to end of the NAND
-* increased size of the environment partition (to get an OneNAND compatible base address)
-* shrink the U-Boot partition
-
-Let's be compatible (e.g. Debian kernel built from upstream).
+* fix connector compatibility (composite)
+* add comment for gpio1 23
+* add proper #address-cells
+* we use only one venc_out channel for composite
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index de873e395c05d..bb435684500fc 100644
+index 0b0aa020a8d5d..5f62b2f3c6e93 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -619,22 +619,22 @@
+@@ -123,7 +123,7 @@
+ 	};
  
- 		bootloaders@80000 {
- 			label = "U-Boot";
--			reg = <0x80000 0x1e0000>;
-+			reg = <0x80000 0x1c0000>;
- 		};
+ 	tv0: connector {
+-		compatible = "svideo-connector";
++		compatible = "composite-video-connector";
+ 		label = "tv";
  
--		bootloaders_env@260000 {
-+		bootloaders_env@240000 {
- 			label = "U-Boot Env";
--			reg = <0x260000 0x20000>;
-+			reg = <0x240000 0x40000>;
- 		};
+ 		port {
+@@ -135,7 +135,7 @@
  
- 		kernel@280000 {
- 			label = "Kernel";
--			reg = <0x280000 0x400000>;
-+			reg = <0x280000 0x600000>;
- 		};
+ 	tv_amp: opa362 {
+ 		compatible = "ti,opa362";
+-		enable-gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++		enable-gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;	/* GPIO_23 to enable video out amplifier */
  
--		filesystem@680000 {
-+		filesystem@880000 {
- 			label = "File System";
--			reg = <0x680000 0xf980000>;
-+			reg = <0x880000 0>;	/* 0 = MTDPART_SIZ_FULL */
+ 		ports {
+ 			#address-cells = <1>;
+@@ -540,10 +540,14 @@
+ 
+ 	vdda-supply = <&vdac>;
+ 
++	#address-cells = <1>;
++	#size-cells = <0>;
++
+ 	port {
++		reg = <0>;
+ 		venc_out: endpoint {
+ 			remote-endpoint = <&opa_in>;
+-			ti,channels = <2>;
++			ti,channels = <1>;
+ 			ti,invert-polarity;
  		};
  	};
- };
 -- 
 2.20.1
