@@ -1,78 +1,138 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] configs: ARM: omap2plus: Enable OMAP3_THERMAL
-Date: Fri, 8 Nov 2019 13:21:33 -0800
-Message-ID: <20191108212133.GS5610@atomide.com>
-References: <20191007220540.30690-1-aford173@gmail.com>
- <20191022162223.GU5610@atomide.com>
- <CAHCN7xLy975mxX+cm56PMx-TKODEZjYPfMHb=byspKxYXXq7OA@mail.gmail.com>
- <20191022221919.GF5610@atomide.com>
- <1CE62E4E-1A38-448C-9197-8FA16747F942@goldelico.com>
- <20191023143646.GG5610@atomide.com>
- <CAHCN7xKi4oSoVbRM=-D1s2GnMig8xs6iYNwUWj2Ohfj+1okx=Q@mail.gmail.com>
- <20191108205139.GP5610@atomide.com>
- <CAHCN7xLv9K07ya4Ssj_zs_7pwGwWVT_P4QbH88Bz0wPjB=HX_A@mail.gmail.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: [PATCH V2] thermal: ti-soc-thermal:  Enable addition power management
+Date: Fri,  8 Nov 2019 15:22:13 -0600
+Message-ID: <20191108212213.3861-1-aford173@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHCN7xLv9K07ya4Ssj_zs_7pwGwWVT_P4QbH88Bz0wPjB=HX_A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: hns@goldelico.com, adam.ford@logicpd.com, Adam Ford <aford173@gmail.com>, Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@verdurent.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173@gmail.com> [191108 21:05]:
-> On Fri, Nov 8, 2019 at 2:51 PM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Adam Ford <aford173@gmail.com> [191108 20:03]:
-> > > On Wed, Oct 23, 2019 at 9:36 AM Tony Lindgren <tony@atomide.com> wrote:
-> > > > My guess is we need to call clk_disable() and call
-> > > > ti_bandgap_save_ctxt() on CPU_CLUSTER_PM_ENTER similar to
-> > > > what ti_bandgap_suspend does. And then restore it on
-> > > > CPU_CLUSTER_PM_EXIT.
-> > > >
-> > > > There's a similar example already in gpio_omap_cpu_notifier().
-> > > > Not sure if there is some related errata to deal with too,
-> > > > probably the old Nokia n900 or n9 would provide some hints
-> > > > on what exactly needs to be done.
-> > >
-> > > I 'think' I have a patch ready that does what you're asking, but I
-> > > will fully admit that I don't completely grasp what's going on.
-> > >
-> > > I'll submit it as an RFC, but I am not even sure I understand what to
-> > > put into the description, so if you're OK with reviewing the RFC, feel
-> > > free to mark up the actual commit message as well.
-> > >
-> > > From what I can see, the changes haven't negatively impact stuff. I
-> > > didn't see the power consumption go up before, so I am not sure I can
-> > > replicate your findings.
-> > >
-> > > It'll be posted shortly.
-> >
-> > Yeah seems to do the job, thanks for fixing this issue.
-> 
-> I am glad I could help!  I am learning new stuff.  :-)
-> 
-> Once the other patch to fix the bandgap clock idling, will it be
-> possible to accept this as-is, or do you need me to re-base and submit
-> again?
+The bandgap sensor can be idled when the processor is, but it
+isn't currently being done. The power consumption of OMAP3
+boards can elevated if the bangap sensor is enabled, because
+the bandgap clock blocks deeper idle states the SoC.
 
-No need to resend, I've tagged it again to apply after the
-driver fix hits the mainline kernel.
+We should idle bandgap with cpu_notifier instead of
+runtime PM to avoid tagging it with pm_runtime_irq_safe()
+that we want to stop using for drivers in general.
 
-> Ideally, once we get the thermal stuff in and we can drop Nikolaus'
-> turbo option on the 1GHz processor and just let the processor scale to
-> 1GHz without having to deal with the boost stuff since it should
-> throttle back when the junction temp hits its threshold.
+This patch uses additional power management to idle the clock
+of the bandgap when it is not needed.
 
-Right. AFAIK we also still need some way to represent the
-arch/arm/mach-omap2/voltage.c as drivers/regulator some kind
-of regulator controller regulator for cpufreq to use.
+Reviewed-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
+Suggested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Adam Ford <aford173@gmail.com>
 
-> If you want me to re-base, please let me know which branch I should use.
-
-No need for that.
-
-Thanks,
-
-Tony
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+index 2fa78f738568..35edac688843 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -26,10 +26,18 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_gpio.h>
+ #include <linux/io.h>
++#include <linux/cpu_pm.h>
++#include <linux/device.h>
++#include <linux/pm_runtime.h>
++#include <linux/pm.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ 
+ #include "ti-bandgap.h"
+ 
+ static int ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id);
++static int bandgap_omap_cpu_notifier(struct notifier_block *nb,
++				  unsigned long cmd, void *v);
+ 
+ /***   Helper functions to access registers and their bitfields   ***/
+ 
+@@ -1025,6 +1033,9 @@ int ti_bandgap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	bgp->nb.notifier_call = bandgap_omap_cpu_notifier;
++	cpu_pm_register_notifier(&bgp->nb);
++
+ 	return 0;
+ 
+ remove_last_cooling:
+@@ -1060,7 +1071,9 @@ int ti_bandgap_remove(struct platform_device *pdev)
+ 	struct ti_bandgap *bgp = platform_get_drvdata(pdev);
+ 	int i;
+ 
+-	/* First thing is to remove sensor interfaces */
++	cpu_pm_unregister_notifier(&bgp->nb);
++
++	/* Remove sensor interfaces */
+ 	for (i = 0; i < bgp->conf->sensor_count; i++) {
+ 		if (bgp->conf->sensors[i].unregister_cooling)
+ 			bgp->conf->sensors[i].unregister_cooling(bgp, i);
+@@ -1174,6 +1187,38 @@ static int ti_bandgap_suspend(struct device *dev)
+ 	return err;
+ }
+ 
++static int bandgap_omap_cpu_notifier(struct notifier_block *nb,
++				  unsigned long cmd, void *v)
++{
++	struct ti_bandgap *bgp;
++
++	bgp = container_of(nb, struct ti_bandgap, nb);
++
++	spin_lock(&bgp->lock);
++	switch (cmd) {
++	case CPU_CLUSTER_PM_ENTER:
++		if (bgp->is_suspended)
++			break;
++		ti_bandgap_save_ctxt(bgp);
++		ti_bandgap_power(bgp, false);
++		if (TI_BANDGAP_HAS(bgp, CLK_CTRL))
++			clk_disable(bgp->fclock);
++		break;
++	case CPU_CLUSTER_PM_ENTER_FAILED:
++	case CPU_CLUSTER_PM_EXIT:
++		if (bgp->is_suspended)
++			break;
++		if (TI_BANDGAP_HAS(bgp, CLK_CTRL))
++			clk_enable(bgp->fclock);
++		ti_bandgap_power(bgp, true);
++		ti_bandgap_restore_ctxt(bgp);
++		break;
++	}
++	spin_unlock(&bgp->lock);
++
++	return NOTIFY_OK;
++}
++
+ static int ti_bandgap_resume(struct device *dev)
+ {
+ 	struct ti_bandgap *bgp = dev_get_drvdata(dev);
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+index bb9b0f7faf99..a21d07a1a23a 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+@@ -12,6 +12,10 @@
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
+ #include <linux/err.h>
++#include <linux/cpu_pm.h>
++#include <linux/device.h>
++#include <linux/pm_runtime.h>
++#include <linux/pm.h>
+ 
+ /**
+  * DOC: bandgap driver data structure
+@@ -201,6 +205,8 @@ struct ti_bandgap {
+ 	int				irq;
+ 	int				tshut_gpio;
+ 	u32				clk_rate;
++	struct notifier_block		nb;
++	unsigned int is_suspended:1;
+ };
+ 
+ /**
+-- 
+2.20.1
