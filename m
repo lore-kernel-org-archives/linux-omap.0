@@ -1,7 +1,7 @@
 From: Stephen Boyd <sboyd@kernel.org>
 Subject: Re: [PATCH v3] clk/ti/adpll: allocate room for terminating null
-Date: Fri, 08 Nov 2019 09:00:25 -0800
-Message-ID: <20191108170026.55DA52178F@mail.kernel.org>
+Date: Fri, 08 Nov 2019 09:01:54 -0800
+Message-ID: <20191108170154.B830E222C4@mail.kernel.org>
 References: <20191019155441.2b1b349f@heffalump.sk2.org> <20191019140634.15596-1-steve@sk2.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -20,6 +20,4 @@ Quoting Stephen Kitt (2019-10-19 07:06:34)
 > Signed-off-by: Stephen Kitt <steve@sk2.org>
 > ---
 
-Please don't send as replies to existing threads. It screws up my
-tooling and makes it more manual to apply the patch. I guess I'll have
-to go fix my scripts to ignore certain emails.
+Applied to clk-next
