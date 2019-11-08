@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 22/44] ARM: dts: omap3-gta04: make NAND partitions compatible with recent U-Boot
-Date: Fri,  8 Nov 2019 06:46:58 -0500
-Message-ID: <20191108114721.15944-22-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 23/44] ARM: dts: omap3-gta04: keep vpll2 always on
+Date: Fri,  8 Nov 2019 06:46:59 -0500
+Message-ID: <20191108114721.15944-23-sashal@kernel.org>
 References: <20191108114721.15944-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,56 +14,34 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-[ Upstream commit fa99c21ecb3cd4021a60d0e8bf880e78b5bd0729 ]
+[ Upstream commit 1ae00833e30c9b4af5cbfda65d75b1de12f74013 ]
 
-Vendor defined U-Boot has changed the partition scheme a while ago:
-
-* kernel partition 6MB
-* file system partition uses the remainder up to end of the NAND
-* increased size of the environment partition (to get an OneNAND compatible base address)
-* shrink the U-Boot partition
-
-Let's be compatible (e.g. Debian kernel built from upstream).
+This is needed to make the display and venc work properly.
+Compare to omap3-beagle.dts.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 196b3f5158c90..0ea793e365e45 100644
+index 0ea793e365e45..acd0a9deb116b 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -523,22 +523,22 @@
- 
- 		bootloaders@80000 {
- 			label = "U-Boot";
--			reg = <0x80000 0x1e0000>;
-+			reg = <0x80000 0x1c0000>;
- 		};
- 
--		bootloaders_env@260000 {
-+		bootloaders_env@240000 {
- 			label = "U-Boot Env";
--			reg = <0x260000 0x20000>;
-+			reg = <0x240000 0x40000>;
- 		};
- 
- 		kernel@280000 {
- 			label = "Kernel";
--			reg = <0x280000 0x400000>;
-+			reg = <0x280000 0x600000>;
- 		};
- 
--		filesystem@680000 {
-+		filesystem@880000 {
- 			label = "File System";
--			reg = <0x680000 0xf980000>;
-+			reg = <0x880000 0>;	/* 0 = MTDPART_SIZ_FULL */
- 		};
- 	};
+@@ -460,6 +460,12 @@
+ 	regulator-max-microvolt = <3150000>;
  };
+ 
++/* Needed to power the DPI pins */
++
++&vpll2 {
++	regulator-always-on;
++};
++
+ &dss {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = < &dss_dpi_pins >;
 -- 
 2.20.1
