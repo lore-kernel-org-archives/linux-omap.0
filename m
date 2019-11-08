@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 107/205] ARM: dts: omap3-gta04: fixes for tvout / venc
-Date: Fri,  8 Nov 2019 06:36:14 -0500
-Message-ID: <20191108113752.12502-107-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 109/205] ARM: dts: omap3-gta04: fix touchscreen tsc2007
+Date: Fri,  8 Nov 2019 06:36:16 -0500
+Message-ID: <20191108113752.12502-109-sashal@kernel.org>
 References: <20191108113752.12502-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,57 +14,56 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-[ Upstream commit f6591391373dbff2c0200e1055d4ff86191578d2 ]
+[ Upstream commit 7384a24248eda140a234d356b6c840701ee9f055 ]
 
-* fix connector compatibility (composite)
-* add comment for gpio1 23
-* add proper #address-cells
-* we use only one venc_out channel for composite
+we fix penirq polarity, add penirq pinmux and touchscreen
+properties.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index ae33e0e0f1d2c..eee5fa0035071 100644
+index 79d708ce3a93f..de873e395c05d 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -131,7 +131,7 @@
+@@ -283,6 +283,13 @@
+ 			OMAP3_CORE1_IOPAD(0x2134, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio112 */
+ 		>;
  	};
- 
- 	tv0: connector {
--		compatible = "svideo-connector";
-+		compatible = "composite-video-connector";
- 		label = "tv";
- 
- 		port {
-@@ -143,7 +143,7 @@
- 
- 	tv_amp: opa362 {
- 		compatible = "ti,opa362";
--		enable-gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
-+		enable-gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;	/* GPIO_23 to enable video out amplifier */
- 
- 		ports {
- 			#address-cells = <1>;
-@@ -551,10 +551,14 @@
- 
- 	vdda-supply = <&vdac>;
- 
-+	#address-cells = <1>;
-+	#size-cells = <0>;
 +
- 	port {
-+		reg = <0>;
- 		venc_out: endpoint {
- 			remote-endpoint = <&opa_in>;
--			ti,channels = <2>;
-+			ti,channels = <1>;
- 			ti,invert-polarity;
- 		};
++	penirq_pins: pinmux_penirq_pins {
++		pinctrl-single,pins = <
++			/* here we could enable to wakeup the cpu from suspend by a pen touch */
++			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
++		>;
++	};
+ };
+ 
+ &omap3_pmx_core2 {
+@@ -423,10 +430,19 @@
+ 	tsc2007@48 {
+ 		compatible = "ti,tsc2007";
+ 		reg = <0x48>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&penirq_pins>;
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
+-		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
++		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;	/* GPIO_160 */
+ 		ti,x-plate-ohms = <600>;
++		touchscreen-size-x = <480>;
++		touchscreen-size-y = <640>;
++		touchscreen-max-pressure = <1000>;
++		touchscreen-fuzz-x = <3>;
++		touchscreen-fuzz-y = <8>;
++		touchscreen-fuzz-pressure = <10>;
++		touchscreen-inverted-y;
  	};
+ 
+ 	/* RFID EEPROM */
 -- 
 2.20.1
