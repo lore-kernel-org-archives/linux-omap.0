@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 108/205] ARM: dts: omap3-gta04: tvout: enable as display1 alias
-Date: Fri,  8 Nov 2019 06:36:15 -0500
-Message-ID: <20191108113752.12502-108-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 111/205] ARM: dts: omap3-gta04: keep vpll2 always on
+Date: Fri,  8 Nov 2019 06:36:18 -0500
+Message-ID: <20191108113752.12502-111-sashal@kernel.org>
 References: <20191108113752.12502-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,30 +14,34 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-[ Upstream commit 8905592b6e50cec905e6c6035bbd36201a3bfac1 ]
+[ Upstream commit 1ae00833e30c9b4af5cbfda65d75b1de12f74013 ]
 
-The omap dss susbystem takes the display aliases to find
-out which displays exist. To enable tv-out we must define
-an alias.
+This is needed to make the display and venc work properly.
+Compare to omap3-beagle.dts.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index eee5fa0035071..79d708ce3a93f 100644
+index bb435684500fc..0c39a2340030b 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -28,6 +28,7 @@
+@@ -548,6 +548,12 @@
+ 	regulator-max-microvolt = <3150000>;
+ };
  
- 	aliases {
- 		display0 = &lcd;
-+		display1 = &tv0;
- 	};
- 
- 	/* fixed 26MHz oscillator */
++/* Needed to power the DPI pins */
++
++&vpll2 {
++	regulator-always-on;
++};
++
+ &dss {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = < &dss_dpi_pins >;
 -- 
 2.20.1
