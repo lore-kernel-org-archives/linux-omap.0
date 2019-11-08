@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 23/44] ARM: dts: omap3-gta04: keep vpll2 always on
-Date: Fri,  8 Nov 2019 06:46:59 -0500
-Message-ID: <20191108114721.15944-23-sashal@kernel.org>
-References: <20191108114721.15944-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 33/64] ARM: dts: omap3-gta04: keep vpll2 always on
+Date: Fri,  8 Nov 2019 06:45:14 -0500
+Message-ID: <20191108114545.15351-33-sashal@kernel.org>
+References: <20191108114545.15351-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191108114721.15944-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20191108114545.15351-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,10 +27,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 0ea793e365e45..acd0a9deb116b 100644
+index 6b8e013e49bb9..7191506934494 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -460,6 +460,12 @@
+@@ -536,6 +536,12 @@
  	regulator-max-microvolt = <3150000>;
  };
  
