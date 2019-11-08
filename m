@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 052/103] ARM: dts: omap3-gta04: fix touchscreen tsc2007
-Date: Fri,  8 Nov 2019 06:42:17 -0500
-Message-ID: <20191108114310.14363-52-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 049/103] ARM: dts: omap3-gta04: give spi_lcd node a label so that we can overwrite in other DTS files
+Date: Fri,  8 Nov 2019 06:42:14 -0500
+Message-ID: <20191108114310.14363-49-sashal@kernel.org>
 References: <20191108114310.14363-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,56 +14,30 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-[ Upstream commit 7384a24248eda140a234d356b6c840701ee9f055 ]
+[ Upstream commit fa0d7dc355c890725b6178dab0cc11b194203afa ]
 
-we fix penirq polarity, add penirq pinmux and touchscreen
-properties.
+needed for device variants based on GTA04 board but with
+different display panel (driver).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 7e9d6c4cdbfb6..11daca2f19c32 100644
+index 4504908c23fe9..0b0aa020a8d5d 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -275,6 +275,13 @@
- 			OMAP3_CORE1_IOPAD(0x2134, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio112 */
- 		>;
- 	};
-+
-+	penirq_pins: pinmux_penirq_pins {
-+		pinctrl-single,pins = <
-+			/* here we could enable to wakeup the cpu from suspend by a pen touch */
-+			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
-+		>;
-+	};
- };
- 
- &omap3_pmx_core2 {
-@@ -412,10 +419,19 @@
- 	tsc2007@48 {
- 		compatible = "ti,tsc2007";
- 		reg = <0x48>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&penirq_pins>;
- 		interrupt-parent = <&gpio6>;
- 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
--		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
-+		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;	/* GPIO_160 */
- 		ti,x-plate-ohms = <600>;
-+		touchscreen-size-x = <480>;
-+		touchscreen-size-y = <640>;
-+		touchscreen-max-pressure = <1000>;
-+		touchscreen-fuzz-x = <3>;
-+		touchscreen-fuzz-y = <8>;
-+		touchscreen-fuzz-pressure = <10>;
-+		touchscreen-inverted-y;
+@@ -71,7 +71,7 @@
+ 		#sound-dai-cells = <0>;
  	};
  
- 	/* RFID EEPROM */
+-	spi_lcd {
++	spi_lcd: spi_lcd {
+ 		compatible = "spi-gpio";
+ 		#address-cells = <0x1>;
+ 		#size-cells = <0x0>;
 -- 
 2.20.1
