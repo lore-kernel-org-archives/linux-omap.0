@@ -1,43 +1,57 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 106/205] ARM: dts: omap3-gta04: give spi_lcd node a label so that we can overwrite in other DTS files
-Date: Fri,  8 Nov 2019 06:36:13 -0500
-Message-ID: <20191108113752.12502-106-sashal@kernel.org>
-References: <20191108113752.12502-1-sashal@kernel.org>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH] fbdev/omap: fix max fclk divider for omap36xx
+Date: Fri, 8 Nov 2019 07:09:31 -0600
+Message-ID: <CAHCN7xJjX4jWhcRstJV02py0D4Wq_XHoWt9aHTxXANEOwdp+rg@mail.gmail.com>
+References: <20191018124938.29313-1-aford173@gmail.com> <7b8b6eba-2cb3-9b25-66e2-e128cc09ceb4@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191108113752.12502-1-sashal@kernel.org>
+In-Reply-To: <7b8b6eba-2cb3-9b25-66e2-e128cc09ceb4@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adam Ford <adam.ford@logicpd.com>, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
+On Mon, Oct 21, 2019 at 3:42 AM Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>
+> On 18/10/2019 15:49, Adam Ford wrote:
+> > The OMAP36xx and AM/DM37x TRMs say that the maximum divider for DSS fclk
+> > (in CM_CLKSEL_DSS) is 32. Experimentation shows that this is not
+> > correct, and using divider of 32 breaks DSS with a flood or underflows
+> > and sync losts. Dividers up to 31 seem to work fine.
+> >
+> > There is another patch to the DT files to limit the divider correctly,
+> > but as the DSS driver also needs to know the maximum divider to be able
+> > to iteratively find good rates, we also need to do the fix in the DSS
+> > driver.
+> >
+> > Signed-off-by: Adam Ford <aford173@gmail.com>
+> > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Cc: stable@vger.kernel.org #linux-4.9.y+
+> >
+> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> > index 48c6500c24e1..4429ad37b64c 100644
+> > --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> > @@ -843,7 +843,7 @@ static const struct dss_features omap34xx_dss_feats = {
+> >   };
+> >
+> >   static const struct dss_features omap3630_dss_feats = {
+> > -     .fck_div_max            =       32,
+> > +     .fck_div_max            =       31,
+> >       .dss_fck_multiplier     =       1,
+> >       .parent_clk_name        =       "dpll4_ck",
+> >       .dpi_select_source      =       &dss_dpi_select_source_omap2_omap3,
+> >
+>
+> Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-[ Upstream commit fa0d7dc355c890725b6178dab0cc11b194203afa ]
+What is the next step to get these integrated into 4.9+?
 
-needed for device variants based on GTA04 board but with
-different display panel (driver).
-
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index ac830b9177763..ae33e0e0f1d2c 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -78,7 +78,7 @@
- 		#sound-dai-cells = <0>;
- 	};
- 
--	spi_lcd {
-+	spi_lcd: spi_lcd {
- 		compatible = "spi-gpio";
- 		#address-cells = <0x1>;
- 		#size-cells = <0x0>;
--- 
-2.20.1
+adam
+>
+>   Tomi
+>
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
