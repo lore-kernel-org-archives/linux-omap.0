@@ -1,53 +1,45 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 09/10] crypto: add timeout to crypto_wait_req
-Date: Sat, 9 Nov 2019 13:01:08 +0800
-Message-ID: <20191109050108.mcykgg2izb7htrek@gondor.apana.org.au>
-References: <20191017122549.4634-1-t-kristo@ti.com>
- <20191017122549.4634-10-t-kristo@ti.com>
- <CAOtvUMeBXjDBhSVgMOW=hshEx_AkNPg-Zk2c2jCDzY8vyXWW5g@mail.gmail.com>
- <076f0bc6-ad04-9543-db02-d7c7060db036@ti.com>
- <CAOtvUMc7pbtPAPUbEmz_MTHmB9LboQVdgG-t9tHCr=biEbFuUQ@mail.gmail.com>
- <20191108022759.GB1140@sol.localdomain>
- <d55c0182-5fb0-2ef9-f056-54b396fb0026@ti.com>
- <20191108091608.i5fxt2vu2nwrybgn@gondor.apana.org.au>
- <2ab94492-21e4-fbe0-41eb-e12b02511d7c@ti.com>
- <20191109022749.GB9739@sol.localdomain>
+From: Vignesh Raghavendra <vigneshr@ti.com>
+Subject: [PATCH] mfd: ti_am335x_tscadc: Fix static checker warning
+Date: Sat, 9 Nov 2019 10:36:18 +0530
+Message-ID: <20191109050618.20637-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20191109022749.GB9739@sol.localdomain>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, Gilad Ben-Yossef <gilad@benyossef.com>, David Miller <davem@davemloft.net>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-omap@vger.kernel.org, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh Raghavendra <vigneshr@ti.com>, Dan Murphy <dmurphy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 08, 2019 at 06:27:49PM -0800, Eric Biggers wrote:
-> 
-> I don't see how making crypto_wait_req killable would be any better than adding
-> a timeout, since in both cases the crypto operation would still be proceeding in
-> the background while things are being freed.
+It is possible that platform_get_resource() might return NULL and
+therefore code needs to check for this condition before
+de-referencing the pointer.
+Therefore move the de-referencing of 'res' pointer after
+devm_ioremap_resource() which would have checked the validity of the
+pointer
 
-Right, you would need to modify the caller to actually distinguish
-between the killed case vs. actual completion.
+Reported-by: Dan Murphy <dmurphy@ti.com>
+Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+---
+ drivers/mfd/ti_am335x_tscadc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Would it help if the crypto self-tests printed a pr_debug() message when
-> starting each test vector?  These wouldn't be shown by default, but it would be
-> possible to enable them using dynamic-debug or by adding '#define DEBUG' to the
-> top of the source file.
-
-This should be simpler to implement.
-
-Thanks,
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index fd111296b959..926c289cb040 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -182,11 +182,11 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 		tscadc->irq = err;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	tscadc->tscadc_phys_base = res->start;
+ 	tscadc->tscadc_base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(tscadc->tscadc_base))
+ 		return PTR_ERR(tscadc->tscadc_base);
+ 
++	tscadc->tscadc_phys_base = res->start;
+ 	tscadc->regmap = devm_regmap_init_mmio(&pdev->dev,
+ 			tscadc->tscadc_base, &tscadc_regmap_config);
+ 	if (IS_ERR(tscadc->regmap)) {
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.24.0
