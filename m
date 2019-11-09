@@ -1,82 +1,60 @@
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-Subject: Re: [PATCH 02/17] remoteproc/omap: Switch to SPDX license identifiers
-Date: Fri, 8 Nov 2019 17:03:48 -0800
-Message-ID: <20191109010348.GB5662@tuxbook-pro>
-References: <20191028124238.19224-1-t-kristo@ti.com>
- <20191028124238.19224-3-t-kristo@ti.com>
+From: Eric Biggers <ebiggers@kernel.org>
+Subject: Re: [PATCH 09/10] crypto: add timeout to crypto_wait_req
+Date: Fri, 8 Nov 2019 18:27:49 -0800
+Message-ID: <20191109022749.GB9739@sol.localdomain>
+References: <20191017122549.4634-1-t-kristo@ti.com>
+ <20191017122549.4634-10-t-kristo@ti.com>
+ <CAOtvUMeBXjDBhSVgMOW=hshEx_AkNPg-Zk2c2jCDzY8vyXWW5g@mail.gmail.com>
+ <076f0bc6-ad04-9543-db02-d7c7060db036@ti.com>
+ <CAOtvUMc7pbtPAPUbEmz_MTHmB9LboQVdgG-t9tHCr=biEbFuUQ@mail.gmail.com>
+ <20191108022759.GB1140@sol.localdomain>
+ <d55c0182-5fb0-2ef9-f056-54b396fb0026@ti.com>
+ <20191108091608.i5fxt2vu2nwrybgn@gondor.apana.org.au>
+ <2ab94492-21e4-fbe0-41eb-e12b02511d7c@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191028124238.19224-3-t-kristo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <2ab94492-21e4-fbe0-41eb-e12b02511d7c@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tero Kristo <t-kristo@ti.com>
-Cc: ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com
+Cc: Herbert Xu <herbert@gondor.apana.org.au>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gilad Ben-Yossef <gilad@benyossef.com>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon 28 Oct 05:42 PDT 2019, Tero Kristo wrote:
-
-> From: Suman Anna <s-anna@ti.com>
+On Fri, Nov 08, 2019 at 11:22:48AM +0200, Tero Kristo wrote:
+> On 08/11/2019 11:16, Herbert Xu wrote:
+> > On Fri, Nov 08, 2019 at 09:40:57AM +0200, Tero Kristo wrote:
+> > > 
+> > > The problem is not detecting a hung task, the problem is determining what
+> > > caused the hang. Personally I don't care if the system dies if a crypto
+> > > accelerator self test has failed, as long as I get reported about the exact
+> > > nature of the failure. The failures are expected to happen only in
+> > > development phase of a crypto driver.
+> > > 
+> > > With the timeout patch in place, I get reported what exact crypto test case
+> > > failed and I can focus my debug efforts on that one.
+> > 
+> > If that's all you need then how about just making the wait killable?
 > 
-> Use the appropriate SPDX license identifiers in various OMAP remoteproc
-> source files and drop the previous boilerplate license text.
+> Yeah, that would be an alternative.
 > 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  drivers/remoteproc/omap_remoteproc.h | 27 +--------------------------
->  1 file changed, 1 insertion(+), 26 deletions(-)
-> 
-> diff --git a/drivers/remoteproc/omap_remoteproc.h b/drivers/remoteproc/omap_remoteproc.h
-> index f6d2036d383d..1e6fef753c4f 100644
-> --- a/drivers/remoteproc/omap_remoteproc.h
-> +++ b/drivers/remoteproc/omap_remoteproc.h
-> @@ -1,35 +1,10 @@
-> +/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
 
-Please confirm that you actually intend to change the license from BSD
-to dual here.
+I don't see how making crypto_wait_req killable would be any better than adding
+a timeout, since in both cases the crypto operation would still be proceeding in
+the background while things are being freed.
 
-Regards,
-Bjorn
+Would it help if the crypto self-tests printed a pr_debug() message when
+starting each test vector?  These wouldn't be shown by default, but it would be
+possible to enable them using dynamic-debug or by adding '#define DEBUG' to the
+top of the source file.
 
->  /*
->   * Remote processor messaging
->   *
->   * Copyright (C) 2011 Texas Instruments, Inc.
->   * Copyright (C) 2011 Google, Inc.
->   * All rights reserved.
-> - *
-> - * Redistribution and use in source and binary forms, with or without
-> - * modification, are permitted provided that the following conditions
-> - * are met:
-> - *
-> - * * Redistributions of source code must retain the above copyright
-> - *   notice, this list of conditions and the following disclaimer.
-> - * * Redistributions in binary form must reproduce the above copyright
-> - *   notice, this list of conditions and the following disclaimer in
-> - *   the documentation and/or other materials provided with the
-> - *   distribution.
-> - * * Neither the name Texas Instruments nor the names of its
-> - *   contributors may be used to endorse or promote products derived
-> - *   from this software without specific prior written permission.
-> - *
-> - * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-> - * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-> - * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-> - * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-> - * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-> - * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-> - * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-> - * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-> - * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> - * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-> - * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
->   */
->  
->  #ifndef _OMAP_RPMSG_H
-> -- 
-> 2.17.1
-> 
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+- Eric
