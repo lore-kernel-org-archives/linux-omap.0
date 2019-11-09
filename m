@@ -1,60 +1,173 @@
-From: Eric Biggers <ebiggers@kernel.org>
-Subject: Re: [PATCH 09/10] crypto: add timeout to crypto_wait_req
-Date: Fri, 8 Nov 2019 18:27:49 -0800
-Message-ID: <20191109022749.GB9739@sol.localdomain>
-References: <20191017122549.4634-1-t-kristo@ti.com>
- <20191017122549.4634-10-t-kristo@ti.com>
- <CAOtvUMeBXjDBhSVgMOW=hshEx_AkNPg-Zk2c2jCDzY8vyXWW5g@mail.gmail.com>
- <076f0bc6-ad04-9543-db02-d7c7060db036@ti.com>
- <CAOtvUMc7pbtPAPUbEmz_MTHmB9LboQVdgG-t9tHCr=biEbFuUQ@mail.gmail.com>
- <20191108022759.GB1140@sol.localdomain>
- <d55c0182-5fb0-2ef9-f056-54b396fb0026@ti.com>
- <20191108091608.i5fxt2vu2nwrybgn@gondor.apana.org.au>
- <2ab94492-21e4-fbe0-41eb-e12b02511d7c@ti.com>
+From: Vignesh Raghavendra <vigneshr@ti.com>
+Subject: [PATCH] spi: omap2-mcspi: Remove redundant checks
+Date: Sat, 9 Nov 2019 09:48:27 +0530
+Message-ID: <20191109041827.26934-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <2ab94492-21e4-fbe0-41eb-e12b02511d7c@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gilad Ben-Yossef <gilad@benyossef.com>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh Raghavendra <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 08, 2019 at 11:22:48AM +0200, Tero Kristo wrote:
-> On 08/11/2019 11:16, Herbert Xu wrote:
-> > On Fri, Nov 08, 2019 at 09:40:57AM +0200, Tero Kristo wrote:
-> > > 
-> > > The problem is not detecting a hung task, the problem is determining what
-> > > caused the hang. Personally I don't care if the system dies if a crypto
-> > > accelerator self test has failed, as long as I get reported about the exact
-> > > nature of the failure. The failures are expected to happen only in
-> > > development phase of a crypto driver.
-> > > 
-> > > With the timeout patch in place, I get reported what exact crypto test case
-> > > failed and I can focus my debug efforts on that one.
-> > 
-> > If that's all you need then how about just making the wait killable?
-> 
-> Yeah, that would be an alternative.
-> 
+Both omap2_mcspi_tx_dma() and omap2_mcspi_rx_dma() are only called from
+omap2_mcspi_txrx_dma() and omap2_mcspi_txrx_dma() is always called after
+making sure that mcspi_dma->dma_rx and mcspi_dma->dma_tx are not NULL
+(see omap2_mcspi_transfer_one()).
+Therefore remove redundant NULL checks for omap2_mcspi->dma_tx and
+omap2_mcspi->dma_rx pointers in omap2_mcspi_tx_dma() and
+omap2_mcspi_rx_dma() respectively.
 
-I don't see how making crypto_wait_req killable would be any better than adding
-a timeout, since in both cases the crypto operation would still be proceeding in
-the background while things are being freed.
+Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+---
+ drivers/spi/spi-omap2-mcspi.c | 105 +++++++++++++++-------------------
+ 1 file changed, 47 insertions(+), 58 deletions(-)
 
-Would it help if the crypto self-tests printed a pr_debug() message when
-starting each test vector?  These wouldn't be shown by default, but it would be
-possible to enable them using dynamic-debug or by adding '#define DEBUG' to the
-top of the source file.
-
-- Eric
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 848e03e5f42d..7e2292c11d12 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -397,30 +397,26 @@ static void omap2_mcspi_tx_dma(struct spi_device *spi,
+ {
+ 	struct omap2_mcspi	*mcspi;
+ 	struct omap2_mcspi_dma  *mcspi_dma;
++	struct dma_async_tx_descriptor *tx;
+ 
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+ 
+-	if (mcspi_dma->dma_tx) {
+-		struct dma_async_tx_descriptor *tx;
++	dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
+ 
+-		dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
+-
+-		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, xfer->tx_sg.sgl,
+-					     xfer->tx_sg.nents,
+-					     DMA_MEM_TO_DEV,
+-					     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+-		if (tx) {
+-			tx->callback = omap2_mcspi_tx_callback;
+-			tx->callback_param = spi;
+-			dmaengine_submit(tx);
+-		} else {
+-			/* FIXME: fall back to PIO? */
+-		}
++	tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, xfer->tx_sg.sgl,
++				     xfer->tx_sg.nents,
++				     DMA_MEM_TO_DEV,
++				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++	if (tx) {
++		tx->callback = omap2_mcspi_tx_callback;
++		tx->callback_param = spi;
++		dmaengine_submit(tx);
++	} else {
++		/* FIXME: fall back to PIO? */
+ 	}
+ 	dma_async_issue_pending(mcspi_dma->dma_tx);
+ 	omap2_mcspi_set_dma_req(spi, 0, 1);
+-
+ }
+ 
+ static unsigned
+@@ -439,6 +435,7 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 	int			word_len, element_count;
+ 	struct omap2_mcspi_cs	*cs = spi->controller_state;
+ 	void __iomem		*chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
++	struct dma_async_tx_descriptor *tx;
+ 
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+@@ -462,55 +459,47 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 	else /* word_len <= 32 */
+ 		element_count = count >> 2;
+ 
+-	if (mcspi_dma->dma_rx) {
+-		struct dma_async_tx_descriptor *tx;
+ 
+-		dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
++	dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
+ 
++	/*
++	 *  Reduce DMA transfer length by one more if McSPI is
++	 *  configured in turbo mode.
++	 */
++	if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
++		transfer_reduction += es;
++
++	if (transfer_reduction) {
++		/* Split sgl into two. The second sgl won't be used. */
++		sizes[0] = count - transfer_reduction;
++		sizes[1] = transfer_reduction;
++		nb_sizes = 2;
++	} else {
+ 		/*
+-		 *  Reduce DMA transfer length by one more if McSPI is
+-		 *  configured in turbo mode.
++		 * Don't bother splitting the sgl. This essentially
++		 * clones the original sgl.
+ 		 */
+-		if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
+-			transfer_reduction += es;
+-
+-		if (transfer_reduction) {
+-			/* Split sgl into two. The second sgl won't be used. */
+-			sizes[0] = count - transfer_reduction;
+-			sizes[1] = transfer_reduction;
+-			nb_sizes = 2;
+-		} else {
+-			/*
+-			 * Don't bother splitting the sgl. This essentially
+-			 * clones the original sgl.
+-			 */
+-			sizes[0] = count;
+-			nb_sizes = 1;
+-		}
++		sizes[0] = count;
++		nb_sizes = 1;
++	}
+ 
+-		ret = sg_split(xfer->rx_sg.sgl, xfer->rx_sg.nents,
+-			       0, nb_sizes,
+-			       sizes,
+-			       sg_out, out_mapped_nents,
+-			       GFP_KERNEL);
++	ret = sg_split(xfer->rx_sg.sgl, xfer->rx_sg.nents, 0, nb_sizes,
++		       sizes, sg_out, out_mapped_nents, GFP_KERNEL);
+ 
+-		if (ret < 0) {
+-			dev_err(&spi->dev, "sg_split failed\n");
+-			return 0;
+-		}
++	if (ret < 0) {
++		dev_err(&spi->dev, "sg_split failed\n");
++		return 0;
++	}
+ 
+-		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx,
+-					     sg_out[0],
+-					     out_mapped_nents[0],
+-					     DMA_DEV_TO_MEM,
+-					     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+-		if (tx) {
+-			tx->callback = omap2_mcspi_rx_callback;
+-			tx->callback_param = spi;
+-			dmaengine_submit(tx);
+-		} else {
+-				/* FIXME: fall back to PIO? */
+-		}
++	tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, sg_out[0],
++				     out_mapped_nents[0], DMA_DEV_TO_MEM,
++				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++	if (tx) {
++		tx->callback = omap2_mcspi_rx_callback;
++		tx->callback_param = spi;
++		dmaengine_submit(tx);
++	} else {
++		/* FIXME: fall back to PIO? */
+ 	}
+ 
+ 	dma_async_issue_pending(mcspi_dma->dma_rx);
+-- 
+2.24.0
