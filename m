@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 18/66] ARM: dts: am335x-evm: fix number of cpsw
-Date: Sat,  9 Nov 2019 21:47:57 -0500
-Message-ID: <20191110024846.32598-18-sashal@kernel.org>
-References: <20191110024846.32598-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 030/109] ARM: dts: am335x-evm: fix number of cpsw
+Date: Sat,  9 Nov 2019 21:44:22 -0500
+Message-ID: <20191110024541.31567-30-sashal@kernel.org>
+References: <20191110024541.31567-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191110024846.32598-1-sashal@kernel.org>
+In-Reply-To: <20191110024541.31567-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
@@ -31,10 +31,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e82432c79f85f..3f3ad09c7cd5f 100644
+index 478434ebff92d..27ff3e689e96e 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -701,6 +701,7 @@
+@@ -724,6 +724,7 @@
  	pinctrl-0 = <&cpsw_default>;
  	pinctrl-1 = <&cpsw_sleep>;
  	status = "okay";
@@ -42,7 +42,7 @@ index e82432c79f85f..3f3ad09c7cd5f 100644
  };
  
  &davinci_mdio {
-@@ -708,15 +709,14 @@
+@@ -731,15 +732,14 @@
  	pinctrl-0 = <&davinci_mdio_default>;
  	pinctrl-1 = <&davinci_mdio_sleep>;
  	status = "okay";
