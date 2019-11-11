@@ -1,15 +1,15 @@
 From: Bjorn Andersson <bjorn.andersson@linaro.org>
-Subject: Re: [PATCH 06/17] remoteproc/omap: Add the rproc ops .da_to_va()
- implementation
-Date: Mon, 11 Nov 2019 15:22:51 -0800
-Message-ID: <20191111232251.GH3108315@builder>
+Subject: Re: [PATCH 07/17] remoteproc/omap: Initialize and assign reserved
+ memory node
+Date: Mon, 11 Nov 2019 15:23:29 -0800
+Message-ID: <20191111232329.GI3108315@builder>
 References: <20191028124238.19224-1-t-kristo@ti.com>
- <20191028124238.19224-7-t-kristo@ti.com>
+ <20191028124238.19224-8-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191028124238.19224-7-t-kristo@ti.com>
+In-Reply-To: <20191028124238.19224-8-t-kristo@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
 Cc: ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com
@@ -19,71 +19,75 @@ On Mon 28 Oct 05:42 PDT 2019, Tero Kristo wrote:
 
 > From: Suman Anna <s-anna@ti.com>
 > 
-> An implementation for the rproc ops .da_to_va() has been added
-> that provides the address translation between device addresses
-> to kernel virtual addresses for internal RAMs present on that
-> particular remote processor device. The implementation provides
-> the translations based on the addresses parsed and stored during
-> the probe.
+> The reserved memory nodes are not assigned to platform devices by
+> default in the driver core to avoid the lookup for every platform
+> device and incur a penalty as the real users are expected to be
+> only a few devices.
 > 
-> This ops gets invoked by the exported rproc_da_to_va() function
-> and allows the remoteproc core's ELF loader to be able to load
-> program data directly into the internal memories.
+> OMAP remoteproc devices fall into the above category and the OMAP
+> remoteproc driver _requires_ specific CMA pools to be assigned
+> for each device at the moment to align on the location of the
+> vrings and vring buffers in the RTOS-side firmware images. So,
+> use the of_reserved_mem_device_init/release() API appropriately
+> to assign the corresponding reserved memory region to the OMAP
+> remoteproc device. Note that only one region per device is
+> allowed by the framework.
 > 
 > Signed-off-by: Suman Anna <s-anna@ti.com>
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+
+Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+
 > ---
->  drivers/remoteproc/omap_remoteproc.c | 35 ++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
+>  drivers/remoteproc/omap_remoteproc.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
 > 
 > diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-> index bbd6ff360e10..0524f7e0ffa4 100644
+> index 0524f7e0ffa4..0b80570effee 100644
 > --- a/drivers/remoteproc/omap_remoteproc.c
 > +++ b/drivers/remoteproc/omap_remoteproc.c
-> @@ -230,10 +230,45 @@ static int omap_rproc_stop(struct rproc *rproc)
->  	return 0;
->  }
+> @@ -17,6 +17,7 @@
+>  #include <linux/module.h>
+>  #include <linux/err.h>
+>  #include <linux/of_device.h>
+> +#include <linux/of_reserved_mem.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/remoteproc.h>
+> @@ -454,14 +455,22 @@ static int omap_rproc_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		goto free_rproc;
 >  
-> +/*
-> + * Internal Memory translation helper
-
-Please format this as kerneldoc.
-
-> + *
-> + * Custom function implementing the rproc .da_to_va ops to provide address
-> + * translation (device address to kernel virtual address) for internal RAMs
-> + * present in a DSP or IPU device). The translated addresses can be used
-> + * either by the remoteproc core for loading, or by any rpmsg bus drivers.
-> + */
-> +static void *omap_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-> +{
-> +	struct omap_rproc *oproc = rproc->priv;
-> +	void *va = NULL;
-> +	int i;
-> +	u32 offset;
-> +
-> +	if (len <= 0)
-> +		return NULL;
-> +
-> +	if (!oproc->num_mems)
-> +		return NULL;
-> +
-> +	for (i = 0; i < oproc->num_mems; i++) {
-> +		if (da >= oproc->mem[i].dev_addr && da + len <=
-> +		    oproc->mem[i].dev_addr +  oproc->mem[i].size) {
-> +			offset = da -  oproc->mem[i].dev_addr;
-> +			/* __force to make sparse happy with type conversion */
-> +			va = (__force void *)(oproc->mem[i].cpu_addr + offset);
-
-Replace va = and break; with just a return here.
-
-> +			break;
-> +		}
+> +	ret = of_reserved_mem_device_init(&pdev->dev);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "device does not have specific CMA pool\n");
+> +		goto free_rproc;
 > +	}
 > +
-> +	return va;
-
-return NULL here.
-
-Regards,
-Bjorn
+>  	platform_set_drvdata(pdev, rproc);
+>  
+>  	ret = rproc_add(rproc);
+>  	if (ret)
+> -		goto free_rproc;
+> +		goto release_mem;
+>  
+>  	return 0;
+>  
+> +release_mem:
+> +	of_reserved_mem_device_release(&pdev->dev);
+>  free_rproc:
+>  	rproc_free(rproc);
+>  	return ret;
+> @@ -473,6 +482,7 @@ static int omap_rproc_remove(struct platform_device *pdev)
+>  
+>  	rproc_del(rproc);
+>  	rproc_free(rproc);
+> +	of_reserved_mem_device_release(&pdev->dev);
+>  
+>  	return 0;
+>  }
+> -- 
+> 2.17.1
+> 
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
