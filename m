@@ -1,230 +1,206 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP1: drop duplicated dependency on ARCH_OMAP1
-Date: Mon, 11 Nov 2019 20:51:01 +0200
-Message-ID: <20191111185101.GA27282@darkstar.musicnaut.iki.fi>
-References: <20191111171034.28896-1-uwe@kleine-koenig.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20191111171034.28896-1-uwe@kleine-koenig.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <uwe@kleine-koenig.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: omap2-mcspi: Remove redundant checks" to the spi tree
+Date: Mon, 11 Nov 2019 19:49:09 +0000 (GMT)
+Message-ID: <20191111194909.20B342742C95@ypsilon.sirena.org.uk>
+References: <20191109041827.26934-1-vigneshr@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191109041827.26934-1-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh Raghavendra <vigneshr@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The patch
 
-On Mon, Nov 11, 2019 at 06:10:34PM +0100, Uwe Kleine-K=F6nig wrote:
-> All of arch/arm/mach-omap1/Kconfig is enclosed in a big "if ARCH_OMAP1"
-> and so every symbol already has a dependency on ARCH_OMAP1 even without
-> mentioning it in their list of dependencies.
-> =
+   spi: omap2-mcspi: Remove redundant checks
 
-> Also dependencies on ARCH_OMAP can be dropped as it is selected by
-> ARCH_OMAP1.
-> =
+has been applied to the spi tree at
 
-> Signed-off-by: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-5.5
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-A.
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-> ---
->  arch/arm/mach-omap1/Kconfig | 33 +++++++++++++--------------------
->  1 file changed, 13 insertions(+), 20 deletions(-)
-> =
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-> diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-> index 2a17dc1d122c..948da556162e 100644
-> --- a/arch/arm/mach-omap1/Kconfig
-> +++ b/arch/arm/mach-omap1/Kconfig
-> @@ -4,30 +4,25 @@ if ARCH_OMAP1
->  menu "TI OMAP1 specific features"
->  =
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
->  comment "OMAP Core Type"
-> -	depends on ARCH_OMAP1
->  =
+Thanks,
+Mark
 
->  config ARCH_OMAP730
-> -	depends on ARCH_OMAP1
->  	bool "OMAP730 Based System"
->  	select ARCH_OMAP_OTG
->  	select CPU_ARM926T
->  	select OMAP_MPU_TIMER
->  =
+>From 8d8584912a4348ca41653dca70f2099a82e644d9 Mon Sep 17 00:00:00 2001
+From: Vignesh Raghavendra <vigneshr@ti.com>
+Date: Sat, 9 Nov 2019 09:48:27 +0530
+Subject: [PATCH] spi: omap2-mcspi: Remove redundant checks
 
->  config ARCH_OMAP850
-> -	depends on ARCH_OMAP1
->  	bool "OMAP850 Based System"
->  	select ARCH_OMAP_OTG
->  	select CPU_ARM926T
->  =
+Both omap2_mcspi_tx_dma() and omap2_mcspi_rx_dma() are only called from
+omap2_mcspi_txrx_dma() and omap2_mcspi_txrx_dma() is always called after
+making sure that mcspi_dma->dma_rx and mcspi_dma->dma_tx are not NULL
+(see omap2_mcspi_transfer_one()).
+Therefore remove redundant NULL checks for omap2_mcspi->dma_tx and
+omap2_mcspi->dma_rx pointers in omap2_mcspi_tx_dma() and
+omap2_mcspi_rx_dma() respectively.
 
->  config ARCH_OMAP15XX
-> -	depends on ARCH_OMAP1
->  	default y
->  	bool "OMAP15xx Based System"
->  	select CPU_ARM925T
->  	select OMAP_MPU_TIMER
->  =
+Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+Link: https://lore.kernel.org/r/20191109041827.26934-1-vigneshr@ti.com
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-omap2-mcspi.c | 105 +++++++++++++++-------------------
+ 1 file changed, 47 insertions(+), 58 deletions(-)
 
->  config ARCH_OMAP16XX
-> -	depends on ARCH_OMAP1
->  	bool "OMAP16xx Based System"
->  	select ARCH_OMAP_OTG
->  	select CPU_ARM926T
-> @@ -35,7 +30,6 @@ config ARCH_OMAP16XX
->  =
-
->  config OMAP_MUX
->  	bool "OMAP multiplexing support"
-> -	depends on ARCH_OMAP
->  	default y
->  	help
->  	  Pin multiplexing support for OMAP boards. If your bootloader
-> @@ -60,25 +54,24 @@ config OMAP_MUX_WARNINGS
->  	  printed, it's safe to deselect OMAP_MUX for your product.
->  =
-
->  comment "OMAP Board Type"
-> -	depends on ARCH_OMAP1
->  =
-
->  config MACH_OMAP_INNOVATOR
->  	bool "TI Innovator"
-> -	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX)
-> +	depends on ARCH_OMAP15XX || ARCH_OMAP16XX
->  	help
->            TI OMAP 1510 or 1610 Innovator board support. Say Y here if you
->            have such a board.
->  =
-
->  config MACH_OMAP_H2
->  	bool "TI H2 Support"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP16XX
-> +	depends on ARCH_OMAP16XX
->      	help
->  	  TI OMAP 1610/1611B H2 board support. Say Y here if you have such
->  	  a board.
->  =
-
->  config MACH_OMAP_H3
->  	bool "TI H3 Support"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP16XX
-> +	depends on ARCH_OMAP16XX
->      	help
->  	  TI OMAP 1710 H3 board support. Say Y here if you have such
->  	  a board.
-> @@ -91,7 +84,7 @@ config MACH_HERALD
->  =
-
->  config MACH_OMAP_OSK
->  	bool "TI OSK Support"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP16XX
-> +	depends on ARCH_OMAP16XX
->      	help
->  	  TI OMAP 5912 OSK (OMAP Starter Kit) board support. Say Y here
->            if you have such a board.
-> @@ -106,21 +99,21 @@ config OMAP_OSK_MISTRAL
->  =
-
->  config MACH_OMAP_PERSEUS2
->  	bool "TI Perseus2"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP730
-> +	depends on ARCH_OMAP730
->      	help
->  	  Support for TI OMAP 730 Perseus2 board. Say Y here if you have such
->  	  a board.
->  =
-
->  config MACH_OMAP_FSAMPLE
->  	bool "TI F-Sample"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP730
-> +	depends on ARCH_OMAP730
->      	help
->  	  Support for TI OMAP 850 F-Sample board. Say Y here if you have such
->  	  a board.
->  =
-
->  config MACH_OMAP_PALMTE
->  	bool "Palm Tungsten E"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP15XX
-> +	depends on ARCH_OMAP15XX
->  	help
->  	  Support for the Palm Tungsten E PDA.  To boot the kernel, you'll
->  	  need a PalmOS compatible bootloader; check out
-> @@ -129,7 +122,7 @@ config MACH_OMAP_PALMTE
->  =
-
->  config MACH_OMAP_PALMZ71
->  	bool "Palm Zire71"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP15XX
-> +	depends on ARCH_OMAP15XX
->  	help
->  	 Support for the Palm Zire71 PDA. To boot the kernel,
->  	 you'll need a PalmOS compatible bootloader; check out
-> @@ -138,7 +131,7 @@ config MACH_OMAP_PALMZ71
->  =
-
->  config MACH_OMAP_PALMTT
->  	bool "Palm Tungsten|T"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP15XX
-> +	depends on ARCH_OMAP15XX
->  	help
->  	  Support for the Palm Tungsten|T PDA. To boot the kernel, you'll
->  	  need a PalmOS compatible bootloader (Garux); check out
-> @@ -147,7 +140,7 @@ config MACH_OMAP_PALMTT
->  =
-
->  config MACH_SX1
->  	bool "Siemens SX1"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP15XX
-> +	depends on ARCH_OMAP15XX
->  	select I2C
->  	help
->  	  Support for the Siemens SX1 phone. To boot the kernel,
-> @@ -159,14 +152,14 @@ config MACH_SX1
->  =
-
->  config MACH_NOKIA770
->  	bool "Nokia 770"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP16XX
-> +	depends on ARCH_OMAP16XX
->  	help
->  	  Support for the Nokia 770 Internet Tablet. Say Y here if you
->  	  have such a device.
->  =
-
->  config MACH_AMS_DELTA
->  	bool "Amstrad E3 (Delta)"
-> -	depends on ARCH_OMAP1 && ARCH_OMAP15XX
-> +	depends on ARCH_OMAP15XX
->  	select FIQ
->  	select GPIO_GENERIC_PLATFORM
->  	select LEDS_GPIO_REGISTER
-> @@ -178,7 +171,7 @@ config MACH_AMS_DELTA
->  =
-
->  config MACH_OMAP_GENERIC
->  	bool "Generic OMAP board"
-> -	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX)
-> +	depends on ARCH_OMAP15XX || ARCH_OMAP16XX
->  	help
->            Support for generic OMAP-1510, 1610 or 1710 board with
->            no FPGA. Can be used as template for porting Linux to
-> -- =
-
-> 2.23.0
-> =
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 848e03e5f42d..7e2292c11d12 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -397,30 +397,26 @@ static void omap2_mcspi_tx_dma(struct spi_device *spi,
+ {
+ 	struct omap2_mcspi	*mcspi;
+ 	struct omap2_mcspi_dma  *mcspi_dma;
++	struct dma_async_tx_descriptor *tx;
+ 
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+ 
+-	if (mcspi_dma->dma_tx) {
+-		struct dma_async_tx_descriptor *tx;
++	dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
+ 
+-		dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
+-
+-		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, xfer->tx_sg.sgl,
+-					     xfer->tx_sg.nents,
+-					     DMA_MEM_TO_DEV,
+-					     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+-		if (tx) {
+-			tx->callback = omap2_mcspi_tx_callback;
+-			tx->callback_param = spi;
+-			dmaengine_submit(tx);
+-		} else {
+-			/* FIXME: fall back to PIO? */
+-		}
++	tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, xfer->tx_sg.sgl,
++				     xfer->tx_sg.nents,
++				     DMA_MEM_TO_DEV,
++				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++	if (tx) {
++		tx->callback = omap2_mcspi_tx_callback;
++		tx->callback_param = spi;
++		dmaengine_submit(tx);
++	} else {
++		/* FIXME: fall back to PIO? */
+ 	}
+ 	dma_async_issue_pending(mcspi_dma->dma_tx);
+ 	omap2_mcspi_set_dma_req(spi, 0, 1);
+-
+ }
+ 
+ static unsigned
+@@ -439,6 +435,7 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 	int			word_len, element_count;
+ 	struct omap2_mcspi_cs	*cs = spi->controller_state;
+ 	void __iomem		*chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
++	struct dma_async_tx_descriptor *tx;
+ 
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+@@ -462,55 +459,47 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 	else /* word_len <= 32 */
+ 		element_count = count >> 2;
+ 
+-	if (mcspi_dma->dma_rx) {
+-		struct dma_async_tx_descriptor *tx;
+ 
+-		dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
++	dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
+ 
++	/*
++	 *  Reduce DMA transfer length by one more if McSPI is
++	 *  configured in turbo mode.
++	 */
++	if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
++		transfer_reduction += es;
++
++	if (transfer_reduction) {
++		/* Split sgl into two. The second sgl won't be used. */
++		sizes[0] = count - transfer_reduction;
++		sizes[1] = transfer_reduction;
++		nb_sizes = 2;
++	} else {
+ 		/*
+-		 *  Reduce DMA transfer length by one more if McSPI is
+-		 *  configured in turbo mode.
++		 * Don't bother splitting the sgl. This essentially
++		 * clones the original sgl.
+ 		 */
+-		if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
+-			transfer_reduction += es;
+-
+-		if (transfer_reduction) {
+-			/* Split sgl into two. The second sgl won't be used. */
+-			sizes[0] = count - transfer_reduction;
+-			sizes[1] = transfer_reduction;
+-			nb_sizes = 2;
+-		} else {
+-			/*
+-			 * Don't bother splitting the sgl. This essentially
+-			 * clones the original sgl.
+-			 */
+-			sizes[0] = count;
+-			nb_sizes = 1;
+-		}
++		sizes[0] = count;
++		nb_sizes = 1;
++	}
+ 
+-		ret = sg_split(xfer->rx_sg.sgl, xfer->rx_sg.nents,
+-			       0, nb_sizes,
+-			       sizes,
+-			       sg_out, out_mapped_nents,
+-			       GFP_KERNEL);
++	ret = sg_split(xfer->rx_sg.sgl, xfer->rx_sg.nents, 0, nb_sizes,
++		       sizes, sg_out, out_mapped_nents, GFP_KERNEL);
+ 
+-		if (ret < 0) {
+-			dev_err(&spi->dev, "sg_split failed\n");
+-			return 0;
+-		}
++	if (ret < 0) {
++		dev_err(&spi->dev, "sg_split failed\n");
++		return 0;
++	}
+ 
+-		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx,
+-					     sg_out[0],
+-					     out_mapped_nents[0],
+-					     DMA_DEV_TO_MEM,
+-					     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+-		if (tx) {
+-			tx->callback = omap2_mcspi_rx_callback;
+-			tx->callback_param = spi;
+-			dmaengine_submit(tx);
+-		} else {
+-				/* FIXME: fall back to PIO? */
+-		}
++	tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, sg_out[0],
++				     out_mapped_nents[0], DMA_DEV_TO_MEM,
++				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++	if (tx) {
++		tx->callback = omap2_mcspi_rx_callback;
++		tx->callback_param = spi;
++		dmaengine_submit(tx);
++	} else {
++		/* FIXME: fall back to PIO? */
+ 	}
+ 
+ 	dma_async_issue_pending(mcspi_dma->dma_rx);
+-- 
+2.20.1
