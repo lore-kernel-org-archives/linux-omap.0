@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2: remove unused wakeup_cpu
-Date: Mon, 11 Nov 2019 12:45:57 -0800
-Message-ID: <20191111204557.GY5610@atomide.com>
-References: <20191106120605.11571-1-ben.dooks@codethink.co.uk>
+Subject: Re: [PATCH] OMAP2: fixup doc comments in omap_device
+Date: Mon, 11 Nov 2019 12:49:50 -0800
+Message-ID: <20191111204950.GZ5610@atomide.com>
+References: <20191106115945.4298-1-ben.dooks@codethink.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191106120605.11571-1-ben.dooks@codethink.co.uk>
+In-Reply-To: <20191106115945.4298-1-ben.dooks@codethink.co.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,16 +22,31 @@ To: "Ben Dooks (Codethink)" <ben.dooks@codethink.co.uk>
 Cc: linux-kernel@lists.codethink.co.uk, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgoqIEJlbiBEb29rcyAoQ29kZXRoaW5rKSA8YmVuLmRvb2tzQGNvZGV0aGluay5jby51az4g
-WzE5MTEwNiAwNDowNl06Cj4gVGhlIHdha2V1cF9jcHUgdmFyaWFibGUgaW4gb21hcDRfZW50ZXJf
-bG93cG93ZXIoKSBpcyBzZXQKPiBidXQgdGhlbiBpcyBub3QgdXNlZCBhZnRlciB0aGlzLiBSZW1v
-dmUgaXQgdG8gZml4Cj4gdGhlIGNvbXBpbGVyIHdhcm5pbmc6Cj4gCj4gYXJjaC9hcm0vbWFjaC1v
-bWFwMi9vbWFwLW1wdXNzLWxvd3Bvd2VyLmM6IEluIGZ1bmN0aW9uIMOib21hcDRfZW50ZXJfbG93
-cG93ZXLDojoKPiBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtbXB1c3MtbG93cG93ZXIuYzoyMzA6
-MTU6IHdhcm5pbmc6IHZhcmlhYmxlIMOid2FrZXVwX2NwdcOiIHNldCBidXQgbm90IHVzZWQgWy1X
-dW51c2VkLWJ1dC1zZXQtdmFyaWFibGVdCgpJIGhhdmUgYWxyZWFkeSBxdWV1ZWQgdXAgYW4gZWFy
-bGllciBzaW1pbGFyIHBhdGNoOgoKNTM5NWI1NTU3YWNiICgiQVJNOiBPTUFQMis6IFJlbW92ZSB1
-bnVzZWQgd2FrZXVwX2NwdSIpCgpUaGFua3MsCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
-aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
-ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+* Ben Dooks (Codethink) <ben.dooks@codethink.co.uk> [191106 04:00]:
+> The documentation comments in this file are out of
+> date with the code, so fix this to avoid the
+> following warnings:
+> 
+> arch/arm/mach-omap2/omap_device.c:133: warning: Function parameter or member 'pdev' not described in 'omap_device_build_from_dt'
+> arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdev_name' description in 'omap_device_build_from_dt'
+> arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdev_id' description in 'omap_device_build_from_dt'
+> arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'oh' description in 'omap_device_build_from_dt'
+> arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdata' description in 'omap_device_build_from_dt'
+> arch/arm/mach-omap2/omap_device.c:133: warning: Excess function parameter 'pdata_len' description in 'omap_device_build_from_dt'
+> arch/arm/mach-omap2/omap_device.c:309: warning: Function parameter or member 'pdev' not described in 'omap_device_get_context_loss_count'
+> arch/arm/mach-omap2/omap_device.c:309: warning: Excess function parameter 'od' description in 'omap_device_get_context_loss_count'
+> arch/arm/mach-omap2/omap_device.c:335: warning: Function parameter or member 'ohs' not described in 'omap_device_alloc'
+> arch/arm/mach-omap2/omap_device.c:335: warning: Function parameter or member 'oh_cnt' not described in 'omap_device_alloc'
+> arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'oh' description in 'omap_device_alloc'
+> arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'pdata' description in 'omap_device_alloc'
+> arch/arm/mach-omap2/omap_device.c:335: warning: Excess function parameter 'pdata_len' description in 'omap_device_alloc'
+> arch/arm/mach-omap2/omap_device.c:659: warning: Function parameter or member 'pdev' not described in 'omap_device_register'
+> arch/arm/mach-omap2/omap_device.c:659: warning: Excess function parameter 'od' description in 'omap_device_register'
+> arch/arm/mach-omap2/omap_device.c:682: warning: Function parameter or member 'pdev' not described in 'omap_device_enable'
+> arch/arm/mach-omap2/omap_device.c:682: warning: Excess function parameter 'od' description in 'omap_device_enable'
+> arch/arm/mach-omap2/omap_device.c:713: warning: Function parameter or member 'pdev' not described in 'omap_device_idle'
+> arch/arm/mach-omap2/omap_device.c:713: warning: Excess function parameter 'od' description in 'omap_device_idle'
+
+Thanks applying into omap-for-v5.5/soc.
+
+Tony
