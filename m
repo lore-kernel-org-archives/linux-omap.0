@@ -1,15 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: drop duplicated dependency on ARCH_OMAP1
-Date: Mon, 11 Nov 2019 12:32:20 -0800
-Message-ID: <20191111203220.GX5610@atomide.com>
-References: <20191111171034.28896-1-uwe@kleine-koenig.org>
- <20191111185101.GA27282@darkstar.musicnaut.iki.fi>
+Subject: Re: [PATCH] OMAP2: remove unused wakeup_cpu
+Date: Mon, 11 Nov 2019 12:45:57 -0800
+Message-ID: <20191111204557.GY5610@atomide.com>
+References: <20191106120605.11571-1-ben.dooks@codethink.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191111185101.GA27282@darkstar.musicnaut.iki.fi>
+In-Reply-To: <20191106120605.11571-1-ben.dooks@codethink.co.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,21 +18,20 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <uwe@kleine-koenig.org>
+To: "Ben Dooks (Codethink)" <ben.dooks@codethink.co.uk>
+Cc: linux-kernel@lists.codethink.co.uk, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBBYXJvIEtvc2tpbmVuIDxhYXJvLmtvc2tpbmVuQGlraS5maT4gWzE5MTExMSAxODo1MV06Cj4g
-SGksCj4gCj4gT24gTW9uLCBOb3YgMTEsIDIwMTkgYXQgMDY6MTA6MzRQTSArMDEwMCwgVXdlIEts
-ZWluZS1Lw7ZuaWcgd3JvdGU6Cj4gPiBBbGwgb2YgYXJjaC9hcm0vbWFjaC1vbWFwMS9LY29uZmln
-IGlzIGVuY2xvc2VkIGluIGEgYmlnICJpZiBBUkNIX09NQVAxIgo+ID4gYW5kIHNvIGV2ZXJ5IHN5
-bWJvbCBhbHJlYWR5IGhhcyBhIGRlcGVuZGVuY3kgb24gQVJDSF9PTUFQMSBldmVuIHdpdGhvdXQK
-PiA+IG1lbnRpb25pbmcgaXQgaW4gdGhlaXIgbGlzdCBvZiBkZXBlbmRlbmNpZXMuCj4gPiAKPiA+
-IEFsc28gZGVwZW5kZW5jaWVzIG9uIEFSQ0hfT01BUCBjYW4gYmUgZHJvcHBlZCBhcyBpdCBpcyBz
-ZWxlY3RlZCBieQo+ID4gQVJDSF9PTUFQMS4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogVXdlIEts
-ZWluZS1Lw7ZuaWcgPHV3ZUBrbGVpbmUta29lbmlnLm9yZz4KPiAKPiBBY2tlZC1ieTogQWFybyBL
-b3NraW5lbiA8YWFyby5rb3NraW5lbkBpa2kuZmk+CgpUaGFua3MgYXBwbHlpbmcgaW50byBvbWFw
-LWZvci01LjUvb21hcDEuCgpSZWdhcmRzLAoKVG9ueQoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
-dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+SGksCgoqIEJlbiBEb29rcyAoQ29kZXRoaW5rKSA8YmVuLmRvb2tzQGNvZGV0aGluay5jby51az4g
+WzE5MTEwNiAwNDowNl06Cj4gVGhlIHdha2V1cF9jcHUgdmFyaWFibGUgaW4gb21hcDRfZW50ZXJf
+bG93cG93ZXIoKSBpcyBzZXQKPiBidXQgdGhlbiBpcyBub3QgdXNlZCBhZnRlciB0aGlzLiBSZW1v
+dmUgaXQgdG8gZml4Cj4gdGhlIGNvbXBpbGVyIHdhcm5pbmc6Cj4gCj4gYXJjaC9hcm0vbWFjaC1v
+bWFwMi9vbWFwLW1wdXNzLWxvd3Bvd2VyLmM6IEluIGZ1bmN0aW9uIMOib21hcDRfZW50ZXJfbG93
+cG93ZXLDojoKPiBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtbXB1c3MtbG93cG93ZXIuYzoyMzA6
+MTU6IHdhcm5pbmc6IHZhcmlhYmxlIMOid2FrZXVwX2NwdcOiIHNldCBidXQgbm90IHVzZWQgWy1X
+dW51c2VkLWJ1dC1zZXQtdmFyaWFibGVdCgpJIGhhdmUgYWxyZWFkeSBxdWV1ZWQgdXAgYW4gZWFy
+bGllciBzaW1pbGFyIHBhdGNoOgoKNTM5NWI1NTU3YWNiICgiQVJNOiBPTUFQMis6IFJlbW92ZSB1
+bnVzZWQgd2FrZXVwX2NwdSIpCgpUaGFua3MsCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
