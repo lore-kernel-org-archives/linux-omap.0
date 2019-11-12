@@ -1,154 +1,315 @@
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-Subject: Re: [PATCH 08/17] remoteproc/omap: Add support for DRA7xx remote
- processors
-Date: Tue, 12 Nov 2019 10:13:43 -0800
-Message-ID: <20191112181343.GJ3797@yoga>
-References: <20191028124238.19224-1-t-kristo@ti.com>
- <20191028124238.19224-9-t-kristo@ti.com>
- <20191111233707.GJ3108315@builder>
- <0d26759a-8a48-e573-cbf6-721c6e5367c1@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v6 net-next 06/13] dt-bindings: net: ti: add new cpsw
+ switch driver bindings
+Date: Tue, 12 Nov 2019 13:06:57 -0600
+Message-ID: <20191112190657.GA5578@bogus>
+References: <20191109151525.18651-1-grygorii.strashko@ti.com>
+ <20191109151525.18651-7-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <0d26759a-8a48-e573-cbf6-721c6e5367c1@ti.com>
+In-Reply-To: <20191109151525.18651-7-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue 12 Nov 00:37 PST 2019, Tero Kristo wrote:
+On Sat, Nov 09, 2019 at 05:15:18PM +0200, Grygorii Strashko wrote:
+> Add bindings for the new TI CPSW switch driver. Comparing to the legacy
+> bindings (net/cpsw.txt):
+> - ports definition follows DSA bindings (net/dsa/dsa.txt) and ports can be
+> marked as "disabled" if not physically wired.
+> - all deprecated properties dropped;
+> - all legacy propertiies dropped which represent constant HW cpapbilities
+> (cpdma_channels, ale_entries, bd_ram_size, mac_control, slaves,
+> active_slave)
+> - TI CPTS DT properties are reused as is, but grouped in "cpts" sub-node
+> - TI Davinci MDIO DT bindings are reused as is, because Davinci MDIO is
+> reused.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  .../bindings/net/ti,cpsw-switch.yaml          | 245 ++++++++++++++++++
+>  1 file changed, 245 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml
+> 
+> diff --git a/Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml b/Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml
+> new file mode 100644
+> index 000000000000..afeb6a4f1ada
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml
+> @@ -0,0 +1,245 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +%YAML 1.2
+> +---
+> +$id: http://devicetree.org/schemas/net/ti,cpsw-switch.yaml#
+> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> +
+> +title: TI SoC Ethernet Switch Controller (CPSW) Device Tree Bindings
+> +
+> +maintainers:
+> +  - Grygorii Strashko <grygorii.strashko@ti.com>
+> +  - Sekhar Nori <nsekhar@ti.com>
+> +
+> +description:
+> +  The 3-port switch gigabit ethernet subsystem provides ethernet packet
+> +  communication and can be configured as an ethernet switch. It provides the
+> +  gigabit media independent interface (GMII),reduced gigabit media
+> +  independent interface (RGMII), reduced media independent interface (RMII),
+> +  the management data input output (MDIO) for physical layer device (PHY)
+> +  management.
+> +
+> +properties:
+> +  compatible:
+> +    oneOf:
+> +      - const: ti,cpsw-switch
+> +      - items:
+> +         - const: ti,am335x-cpsw-switch
+> +         - const: ti,cpsw-switch
+> +      - items:
+> +        - const: ti,am4372-cpsw-switch
+> +        - const: ti,cpsw-switch
+> +      - items:
+> +        - const: ti,dra7-cpsw-switch
+> +        - const: ti,cpsw-switch
+> +
+> +  reg:
+> +    maxItems: 1
+> +    description:
+> +       The physical base address and size of full the CPSW module IO range
+> +
+> +  ranges: true
+> +
+> +  clocks:
+> +    maxItems: 1
+> +    description: CPSW functional clock
+> +
+> +  clock-names:
+> +    maxItems: 1
+> +    items:
+> +      - const: fck
+> +
+> +  interrupts:
+> +    maxItems: 4
 
-> On 12/11/2019 01:37, Bjorn Andersson wrote:
-> > On Mon 28 Oct 05:42 PDT 2019, Tero Kristo wrote:
-[..]
-> > > +	for (; data && data->device_name; data++) {
-> > > +		if (!strcmp(dev_name(&pdev->dev), data->device_name))
-> > 
-> > I don't fancy the reliance on node names in devicetree, is this well
-> > defined in the binding?
-> 
-> I don't think it is.... So, would it be better to just replace the
-> compatible strings for dra7 remoteprocs to be like ti,dra7-dsp1 /
-> ti,dra7-dsp2 etc.? I think that would clean up the code also quite a bit.
-> 
+Implied by 'items' list.
 
-While it would solve "my" problem I'm not entirely sure about it being
-a proper way to flag that they should have different default firmware.
+> +    items:
+> +      - description: RX_THRESH interrupt
+> +      - description: RX interrupt
+> +      - description: TX interrupt
+> +      - description: MISC interrupt
+> +
+> +  interrupt-names:
+> +    maxItems: 4
 
-One way would be to simply rely on a "firmware-name" property read from
-DeviceTree (this was previously objected to, but we have that for
-several bindings now).
+Implied by 'items' list.
 
-Regards,
-Bjorn
+> +    items:
+> +      - const: "rx_thresh"
+> +      - const: "rx"
+> +      - const: "tx"
+> +      - const: "misc"
+> +
+> +  pinctrl-names: true
+> +
+> +  syscon:
+> +    $ref: /schemas/types.yaml#definitions/phandle
+> +    maxItems: 1
 
-> > 
-> > > +			return data->fw_name;
-> > > +	}
-> > > +
-> > > +	return ERR_PTR(-ENOENT);
-> > >   }
-> > >   static int omap_rproc_get_boot_data(struct platform_device *pdev,
-> > > @@ -334,7 +384,8 @@ static int omap_rproc_get_boot_data(struct platform_device *pdev,
-> > >   	int ret;
-> > >   	if (!of_device_is_compatible(np, "ti,omap4-dsp") &&
-> > > -	    !of_device_is_compatible(np, "ti,omap5-dsp"))
-> > > +	    !of_device_is_compatible(np, "ti,omap5-dsp") &&
-> > > +	    !of_device_is_compatible(np, "ti,dra7-dsp"))
-> > >   		return 0;
-> > >   	oproc->boot_data = devm_kzalloc(&pdev->dev, sizeof(*oproc->boot_data),
-> > > @@ -360,18 +411,27 @@ static int omap_rproc_get_boot_data(struct platform_device *pdev,
-> > >   		return -EINVAL;
-> > >   	}
-> > > +	if (of_device_is_compatible(np, "ti,dra7-dsp"))
-> > > +		oproc->boot_data->boot_reg_shift = 10;
-> > 
-> > Put this in omap_rproc_dev_data.
+Not an array, so not needed.
+
+> +    description:
+> +      Phandle to the system control device node which provides access to
+> +      efuse IO range with MAC addresses
+> +
+> +
+> +  ethernet-ports:
+> +    type: object
+> +    properties:
+> +      '#address-cells':
+> +        const: 1
+> +      '#size-cells':
+> +        const: 0
+> +
+> +    patternProperties:
+> +      "^port@[0-9]+$":
+> +          type: object
+> +          minItems: 1
+> +          maxItems: 2
+> +          description: CPSW external ports
+> +
+> +          allOf:
+> +            - $ref: ethernet-controller.yaml#
+> +
+> +          properties:
+> +            reg:
+> +              maxItems: 1
+> +              enum: [1, 2]
+> +              description: CPSW port number
+> +
+> +            phys:
+> +              $ref: /schemas/types.yaml#definitions/phandle-array
+> +              maxItems: 1
+> +              description:  phandle on phy-gmii-sel PHY
+> +
+> +            label:
+> +              $ref: /schemas/types.yaml#/definitions/string-array
+> +              maxItems: 1
+> +              description: label associated with this port
+> +
+> +            ti,dual-emac-pvid:
+> +              $ref: /schemas/types.yaml#/definitions/uint32
+> +              maxItems: 1
+> +              minimum: 1
+> +              maximum: 1024
+> +              description:
+> +                Specifies default PORT VID to be used to segregate
+> +                ports. Default value - CPSW port number.
+> +
+> +          required:
+> +            - reg
+> +            - phys
+> +
+> +  mdio:
+> +    type: object
+> +    allOf:
+> +      - $ref: "ti,davinci-mdio.yaml#"
+> +    description:
+> +      CPSW MDIO bus.
+> +
+> +  cpts:
+> +    type: object
+> +    description:
+> +      The Common Platform Time Sync (CPTS) module
+> +
+> +    properties:
+> +      clocks:
+> +        maxItems: 1
+> +        description: CPTS reference clock
+> +
+> +      clock-names:
+> +        maxItems: 1
+> +        items:
+> +          - const: cpts
+> +
+> +      cpts_clock_mult:
+> +        $ref: /schemas/types.yaml#/definitions/uint32
+> +        maxItems: 1
+
+Not an array, so not needed.
+
+Is there a set or range of values you can define?
+
+> +        description:
+> +          Numerator to convert input clock ticks into ns
+> +
+> +      cpts_clock_shift:
+> +        $ref: /schemas/types.yaml#/definitions/uint32
+> +        maxItems: 1
+
+Same comments here.
+
+> +        description:
+> +          Denominator to convert input clock ticks into ns.
+> +          Mult and shift will be calculated basing on CPTS rftclk frequency if
+> +          both cpts_clock_shift and cpts_clock_mult properties are not provided.
+> +
+> +    required:
+> +      - clocks
+> +      - clock-names
+> +
+> +required:
+> +  - compatible
+> +  - reg
+> +  - ranges
+> +  - clocks
+> +  - clock-names
+> +  - interrupts
+> +  - interrupt-names
+> +  - '#address-cells'
+> +  - '#size-cells'
+> +
+> +examples:
+> +  - |
+> +    #include <dt-bindings/interrupt-controller/irq.h>
+> +    #include <dt-bindings/interrupt-controller/arm-gic.h>
+> +    #include <dt-bindings/clock/dra7.h>
+> +
+> +    mac_sw: switch@0 {
+> +        compatible = "ti,dra7-cpsw-switch","ti,cpsw-switch";
+> +        reg = <0x0 0x4000>;
+> +        ranges = <0 0 0x4000>;
+> +        clocks = <&gmac_main_clk>;
+> +        clock-names = "fck";
+> +        #address-cells = <1>;
+> +        #size-cells = <1>;
+> +        syscon = <&scm_conf>;
+> +        inctrl-names = "default", "sleep";
+> +
+> +        interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
+> +                     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
+> +                     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
+> +                     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
+> +        interrupt-names = "rx_thresh", "rx", "tx", "misc";
+> +
+> +        ethernet-ports {
+> +                #address-cells = <1>;
+> +                #size-cells = <0>;
+> +
+> +                cpsw_port1: port@1 {
+> +                        reg = <1>;
+> +                        label = "port1";
+> +                        mac-address = [ 00 00 00 00 00 00 ];
+> +                        phys = <&phy_gmii_sel 1>;
+> +                        phy-handle = <&ethphy0_sw>;
+> +                        phy-mode = "rgmii";
+> +                        ti,dual_emac_pvid = <1>;
+> +                };
+> +
+> +                cpsw_port2: port@2 {
+> +                        reg = <2>;
+> +                        label = "wan";
+> +                        mac-address = [ 00 00 00 00 00 00 ];
+> +                        phys = <&phy_gmii_sel 2>;
+> +                        phy-handle = <&ethphy1_sw>;
+> +                        phy-mode = "rgmii";
+> +                        ti,dual_emac_pvid = <2>;
+> +                };
+> +        };
+> +
+> +        davinci_mdio_sw: mdio@1000 {
+> +                compatible = "ti,cpsw-mdio","ti,davinci_mdio";
+> +                reg = <0x1000 0x100>;
+> +                clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 0>;
+> +                clock-names = "fck";
+> +                #address-cells = <1>;
+> +                #size-cells = <0>;
+> +                bus_freq = <1000000>;
+> +
+> +                ethphy0_sw: ethernet-phy@0 {
+> +                        reg = <0>;
+> +                };
+> +
+> +                ethphy1_sw: ethernet-phy@1 {
+> +                        reg = <41>;
+
+make dt_binding_check fails:
+
+/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/net/ti,cpsw-switch.example.dt.yaml: 
+mdio@1000: ethernet-phy@1:reg:0:0: 41 is greater than the maximum of 31
+/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/net/ti,cpsw-switch.example.dt.yaml: 
+ethernet-phy@1: reg:0:0: 41 is greater than the maximum of 31
+
+> +                };
+> +        };
+> +
+> +        cpts {
+> +                clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 25>;
+> +                clock-names = "cpts";
+> +        };
+> +    };
+> -- 
+> 2.17.1
 > 
-> Yeah.
-> 
-> > 
-> > > +
-> > >   	return 0;
-> > >   }
-> > >   static int omap_rproc_of_get_internal_memories(struct platform_device *pdev,
-> > >   					       struct rproc *rproc)
-> > >   {
-> > > -	static const char * const mem_names[] = {"l2ram"};
-> > > +	static const char * const ipu_mem_names[] = {"l2ram"};
-> > > +	static const char * const dra7_dsp_mem_names[] = {"l2ram", "l1pram",
-> > > +								"l1dram"};
-> > >   	struct device_node *np = pdev->dev.of_node;
-> > >   	struct omap_rproc *oproc = rproc->priv;
-> > >   	struct device *dev = &pdev->dev;
-> > > +	const char * const *mem_names;
-> > >   	struct resource *res;
-> > >   	int num_mems;
-> > > +	const __be32 *addrp;
-> > > +	u32 l4_offset = 0;
-> > > +	u64 size;
-> > >   	int i;
-> > >   	/* OMAP4 and OMAP5 DSPs do not have support for flat SRAM */
-> > > @@ -379,7 +439,15 @@ static int omap_rproc_of_get_internal_memories(struct platform_device *pdev,
-> > >   	    of_device_is_compatible(np, "ti,omap5-dsp"))
-> > >   		return 0;
-> > > -	num_mems = ARRAY_SIZE(mem_names);
-> > > +	/* DRA7 DSPs have two additional SRAMs at L1 level */
-> > > +	if (of_device_is_compatible(np, "ti,dra7-dsp")) {
-> > > +		mem_names = dra7_dsp_mem_names;
-> > > +		num_mems = ARRAY_SIZE(dra7_dsp_mem_names);
-> > > +	} else {
-> > > +		mem_names = ipu_mem_names;
-> > > +		num_mems = ARRAY_SIZE(ipu_mem_names);
-> > > +	}
-> > > +
-> > >   	oproc->mem = devm_kcalloc(dev, num_mems, sizeof(*oproc->mem),
-> > >   				  GFP_KERNEL);
-> > >   	if (!oproc->mem)
-> > > @@ -395,7 +463,26 @@ static int omap_rproc_of_get_internal_memories(struct platform_device *pdev,
-> > >   			return PTR_ERR(oproc->mem[i].cpu_addr);
-> > >   		}
-> > >   		oproc->mem[i].bus_addr = res->start;
-> > > -		oproc->mem[i].dev_addr = OMAP_RPROC_IPU_L2RAM_DEV_ADDR;
-> > > +
-> > > +		/*
-> > > +		 * The DSPs have the internal memories starting at a fixed
-> > > +		 * offset of 0x800000 from address 0, and this corresponds to
-> > > +		 * L2RAM. The L3 address view has the L2RAM bus address as the
-> > > +		 * starting address for the IP, so the L2RAM memory region needs
-> > > +		 * to be processed first, and the device addresses for each
-> > > +		 * memory region can be computed using the relative offset
-> > > +		 * from this base address.
-> > > +		 */
-> > > +		if (of_device_is_compatible(np, "ti,dra7-dsp") &&
-> > 
-> > Please don't use a ternary operator repeatedly, it makes the code hard
-> > to follow.
-> 
-> Yeah this parts looks somewhat messy, let me try to fix that.
-> 
-> -Tero
-> 
-> > 
-> > Regards,
-> > Bjorn
-> > 
-> > > +		    !strcmp(mem_names[i], "l2ram")) {
-> > > +			addrp = of_get_address(dev->of_node, i, &size, NULL);
-> > > +			l4_offset = of_translate_address(dev->of_node, addrp);
-> > > +		}
-> > > +		oproc->mem[i].dev_addr =
-> > > +			of_device_is_compatible(np, "ti,dra7-dsp") ?
-> > > +				res->start - l4_offset +
-> > > +				OMAP_RPROC_DSP_LOCAL_MEM_OFFSET :
-> > > +				OMAP_RPROC_IPU_L2RAM_DEV_ADDR;
-> > >   		oproc->mem[i].size = resource_size(res);
-> > >   		dev_dbg(dev, "memory %8s: bus addr %pa size 0x%x va %p da 0x%x\n",
-> > > -- 
-> > > 2.17.1
-> > > 
-> > > --
-> 
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
