@@ -1,119 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch v2 1/3] ARM: dts: am43xx: add support for clkout1 clock
-Date: Tue, 12 Nov 2019 07:39:51 -0800
-Message-ID: <20191112153951.GJ5610@atomide.com>
-References: <20191112142929.23058-1-bparrot@ti.com>
- <20191112142929.23058-2-bparrot@ti.com>
+Subject: Re: [PATCH v6 net-next 06/13] dt-bindings: net: ti: add new cpsw
+ switch driver bindings
+Date: Tue, 12 Nov 2019 08:22:30 -0800
+Message-ID: <20191112162230.GK5610@atomide.com>
+References: <20191109151525.18651-1-grygorii.strashko@ti.com>
+ <20191109151525.18651-7-grygorii.strashko@ti.com>
+ <20191111172652.GV5610@atomide.com>
+ <bac9a300-cbd5-d342-a96d-d90fdcf2e4c3@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191112142929.23058-2-bparrot@ti.com>
+In-Reply-To: <bac9a300-cbd5-d342-a96d-d90fdcf2e4c3@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Parrot <bparrot@ti.com> [191112 14:30]:
-> From: Tero Kristo <t-kristo@ti.com>
-> 
-> clkout1 clock node and its generation tree was missing. Add this based
-> on the data on TRM and PRCM functional spec.
-> 
-> commit 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes") effectively
-> reverted this commit 8010f13a40d3 ("ARM: dts: am43xx: add support for
-> clkout1 clock") which is needed for the ov2659 camera sensor clock
-> definition hence it is being re-applied here.
-> 
-> Note that because of the current dts node name dependency for mapping to
-> clock domain, we must still use "clkout1-*ck" naming instead of generic
-> "clock@" naming for the node. And because of this, it's probably best to
-> apply the dts node addition together along with the other clock changes.
-> 
-> Fixes: 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes")
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Tested-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi,
 
-Hmm I don't think I did any work on this, the above should be:
+* Grygorii Strashko <grygorii.strashko@ti.com> [191112 09:54]:
+> No, sorry I do not agree. The MDIO is inseparable part of CPSW and it's enabled when CPSW is enabled
+> (on interconnect level), more over I want to get rid of platform device in MDIO for most of the cases
+> as it only introduces boot/probing complexity.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Well the fact that mdio is enabled at the interconnect level is why
+I think the cpsw child modules are independent components :)
 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> ---
->  arch/arm/boot/dts/am43xx-clocks.dtsi | 54 ++++++++++++++++++++++++++++
->  1 file changed, 54 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> index 091356f2a8c1..c726cd8dbdf1 100644
-> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> @@ -704,6 +704,60 @@
->  		ti,bit-shift = <8>;
->  		reg = <0x2a48>;
->  	};
-> +
-> +	clkout1_osc_div_ck: clkout1-osc-div-ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,divider-clock";
-> +		clocks = <&sys_clkin_ck>;
-> +		ti,bit-shift = <20>;
-> +		ti,max-div = <4>;
-> +		reg = <0x4100>;
-> +	};
-> +
-> +	clkout1_src2_mux_ck: clkout1-src2-mux-ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,mux-clock";
-> +		clocks = <&clk_rc32k_ck>, <&sysclk_div>, <&dpll_ddr_m2_ck>,
-> +			 <&dpll_per_m2_ck>, <&dpll_disp_m2_ck>,
-> +			 <&dpll_mpu_m2_ck>;
-> +		reg = <0x4100>;
-> +	};
-> +
-> +	clkout1_src2_pre_div_ck: clkout1-src2-pre-div-ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,divider-clock";
-> +		clocks = <&clkout1_src2_mux_ck>;
-> +		ti,bit-shift = <4>;
-> +		ti,max-div = <8>;
-> +		reg = <0x4100>;
-> +	};
-> +
-> +	clkout1_src2_post_div_ck: clkout1-src2-post-div-ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,divider-clock";
-> +		clocks = <&clkout1_src2_pre_div_ck>;
-> +		ti,bit-shift = <8>;
-> +		ti,max-div = <32>;
-> +		ti,index-power-of-two;
-> +		reg = <0x4100>;
-> +	};
-> +
-> +	clkout1_mux_ck: clkout1-mux-ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,mux-clock";
-> +		clocks = <&clkout1_osc_div_ck>, <&clk_rc32k_ck>,
-> +			 <&clkout1_src2_post_div_ck>, <&dpll_extdev_m2_ck>;
-> +		ti,bit-shift = <16>;
-> +		reg = <0x4100>;
-> +	};
-> +
-> +	clkout1_ck: clkout1-ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&clkout1_mux_ck>;
-> +		ti,bit-shift = <23>;
-> +		reg = <0x4100>;
-> +	};
->  };
->  
->  &prcm {
-> -- 
-> 2.17.1
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+So I did the following quick test on pocketbeagle with Linux next,
+it has no Ethernet wired up, and by default we have ethernet@0
+set to status = "disabled".
+
+Manually enable the target module at 0x4a100000:
+# echo on > /sys/devices/platform/ocp/4a000000.interconnect/\
+4a000000.interconnect:segment@0/4a101200.target-module/power/control
+
+Dump out mdio registers at offset 0x1000:
+# rwmem 0x4a101000+0x100
+0x4a101000 = 0x40070106
+0x4a101004 = 0x810000ff
+0x4a101008 = 0000000000
+0x4a10100c = 0000000000
+0x4a101010 = 0000000000
+0x4a101014 = 0000000000
+0x4a101018 = 0000000000
+...
+
+So yup, it seems quite independent of the other child devices
+on the same interconnect target mdoule. I'm quessing it's the
+same story for other modules like cppi_dma and so on, this
+should be easy to check.
+
+Hmm and isn't the some version of mdio also used stuffed into
+davinci_emac and netcp too?
+
+Anyways, up to you. But my experience is that having separate
+driver modules is the way to go than trying to treat any TI
+"subsystem" as a single device. This is because the child modules
+tend to get updated and changed and moved around over time.
+
+Regards,
+
+Tony
