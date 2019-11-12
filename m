@@ -1,63 +1,85 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v5 net-next 00/12] net: ethernet: ti: introduce new cpsw
- switchdev based driver
-Date: Tue, 12 Nov 2019 11:48:30 +0200
-Message-ID: <3c24b4c0-7ef2-71d3-b537-90def7c15fec@ti.com>
-References: <20191024100914.16840-1-grygorii.strashko@ti.com>
- <20191024160549.GY5610@atomide.com>
- <dc621a9d-eb92-5df9-81d7-ad2b037ac3c7@ti.com>
- <20191111170826.GT5610@atomide.com>
+Subject: Re: [PATCH v6 net-next 06/13] dt-bindings: net: ti: add new cpsw
+ switch driver bindings
+Date: Tue, 12 Nov 2019 11:53:50 +0200
+Message-ID: <bac9a300-cbd5-d342-a96d-d90fdcf2e4c3@ti.com>
+References: <20191109151525.18651-1-grygorii.strashko@ti.com>
+ <20191109151525.18651-7-grygorii.strashko@ti.com>
+ <20191111172652.GV5610@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20191111170826.GT5610@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191111172652.GV5610@atomide.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Cc: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 11/11/2019 19:08, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [191109 15:16]:
->> Hi Tony,
->>
->> On 24/10/2019 19:05, Tony Lindgren wrote:
->>> Hi,
->>>
->>> * Grygorii Strashko <grygorii.strashko@ti.com> [191024 10:10]:
->>>> This the RFC v5 which introduces new CPSW switchdev based driver which is
->>>> operating in dual-emac mode by default, thus working as 2 individual
->>>> network interfaces. The Switch mode can be enabled by configuring devlink driver
->>>> parameter "switch_mode" to 1/true:
->>>> 	devlink dev param set platform/48484000.ethernet_switch \
->>>> 	name switch_mode value 1 cmode runtime
->>>
->>> Just wondering about the migration plan.. Is this a replacement
->>> driver or used in addition to the old driver?
->>>
->>
->> Sry, I've missed you mail.
->>
->> As it's pretty big change the idea is to keep both drivers at least for sometime.
->> Step 1: add new driver and enable it on one platform. Do announcement.
->> Step 2: switch all one-port and dual mac drivers to the new driver
->> Step 3: switch all other platform to cpsw switchdev and deprecate old driver.
+On 11/11/2019 19:26, Tony Lindgren wrote:
+> Hi,
 > 
-> OK sounds good to me. So for the dts changes, we keep the old binding
-> and just add a new module there?
-
-yes, in general.
-As you can see Patch 11 I've rearranged cpsw nodes between boards so cpsw_new is enabled
-only on one board. But, Am5/dr7 board are good candidates to enable cpsw_new in batch as
-the have only dual_mac default cfg.
-
+> * Grygorii Strashko <grygorii.strashko@ti.com> [191109 15:17]:
+>> +    mac_sw: switch@0 {
+>> +        compatible = "ti,dra7-cpsw-switch","ti,cpsw-switch";
+>> +        reg = <0x0 0x4000>;
+>> +        ranges = <0 0 0x4000>;
+>> +        clocks = <&gmac_main_clk>;
+>> +        clock-names = "fck";
+>> +        #address-cells = <1>;
+>> +        #size-cells = <1>;
+>> +        syscon = <&scm_conf>;
+>> +        inctrl-names = "default", "sleep";
+>> +
+>> +        interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
+>> +                     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
+>> +                     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
+>> +                     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
+>> +        interrupt-names = "rx_thresh", "rx", "tx", "misc";
 > 
-> Or do you also have to disable some parts of the old dts?
+> I think with the ti-sysc managing the interconnect target module as the
+> parent of this, you should be able add all the modules as direct children
+> of ti-sysc with minor fixups. This would simplify things, and makes it
+> easier to update the driver later on when the child modules get
+> changed/updated/moved around.
+> 
+> The child modules just need to call PM runtime to have access to their
+> registers, and whatever cpsw control module part could be a separate
+> driver providing Linux standard services for example for clock gating :)
+> 
+>> +        davinci_mdio_sw: mdio@1000 {
+>> +                compatible = "ti,cpsw-mdio","ti,davinci_mdio";
+>> +                reg = <0x1000 0x100>;
+>> +                clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 0>;
+>> +                clock-names = "fck";
+>> +                #address-cells = <1>;
+>> +                #size-cells = <0>;
+>> +                bus_freq = <1000000>;
+>> +
+>> +                ethphy0_sw: ethernet-phy@0 {
+>> +                        reg = <0>;
+>> +                };
+>> +
+>> +                ethphy1_sw: ethernet-phy@1 {
+>> +                        reg = <41>;
+>> +                };
+>> +        };
+> 
+> And in this case, mdio above would just move up one level.
+> 
+> This goes back to my earlier comments saying the cpsw is really just
+> a private interconnect with a collection of various mostly independent
+> modules. Sounds like you're heading that way already though at the
+> driver level :)
 
-it will be the case for am3/am5 most probably.
+No, sorry I do not agree. The MDIO is inseparable part of CPSW and it's enabled when CPSW is enabled
+(on interconnect level), more over I want to get rid of platform device in MDIO for most of the cases
+as it only introduces boot/probing complexity.
+
+The same is valid for CPTS.
 
 -- 
 Best regards,
