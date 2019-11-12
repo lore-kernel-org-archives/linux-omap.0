@@ -1,43 +1,65 @@
 From: Bjorn Andersson <bjorn.andersson@linaro.org>
-Subject: Re: [PATCH 13/17] remoteproc/omap: add support for system
- suspend/resume
-Date: Mon, 11 Nov 2019 22:15:36 -0800
-Message-ID: <20191112061536.GO3108315@builder>
+Subject: Re: [PATCH 15/17] remoteproc/omap: report device exceptions and
+ trigger recovery
+Date: Mon, 11 Nov 2019 22:26:42 -0800
+Message-ID: <20191112062642.GP3108315@builder>
 References: <20191028124238.19224-1-t-kristo@ti.com>
- <20191028124238.19224-14-t-kristo@ti.com>
+ <20191028124238.19224-16-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191028124238.19224-14-t-kristo@ti.com>
+In-Reply-To: <20191028124238.19224-16-t-kristo@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
 Cc: ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 On Mon 28 Oct 05:42 PDT 2019, Tero Kristo wrote:
+
+> From: Suman Anna <s-anna@ti.com>
+> 
+> The OMAP remote processors send a special mailbox message
+> (RP_MBOX_CRASH) when they crash and detect an internal device
+> exception.
+> 
+> Add support to the mailbox handling function upon detection of
+> this special message to report this crash to the remoteproc core.
+> The remoteproc core can trigger a recovery using the prevailing
+> recovery mechanism, already in use for MMU Fault recovery.
+> 
+> Signed-off-by: Subramaniam Chanderashekarapuram <subramaniam.ca@ti.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+
+You're missing a Co-developed-by
+
+Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  drivers/remoteproc/omap_remoteproc.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
 > diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-[..]
-> +static int _omap_rproc_suspend(struct rproc *rproc)
-
-I think it would make sense to inline this and _omap_rproc_resume() in
-their single call sites.
-
-[..]
-> +static int _omap_rproc_resume(struct rproc *rproc)
-> +{
-[..]
-> @@ -806,6 +972,14 @@ static int omap_rproc_probe(struct platform_device *pdev)
->  			oproc->num_timers);
->  	}
+> index 8bd415c8fc86..6f797025bb6b 100644
+> --- a/drivers/remoteproc/omap_remoteproc.c
+> +++ b/drivers/remoteproc/omap_remoteproc.c
+> @@ -360,8 +360,12 @@ static void omap_rproc_mbox_callback(struct mbox_client *client, void *data)
 >  
-> +	init_completion(&oproc->pm_comp);
-> +
-> +	oproc->fck = of_clk_get(np, 0);
-
-devm_clk_get() ? 
-
-Otherwise I think you're lacking a clk_put() in omap_rproc_remove()
-
-Regards,
-Bjorn
+>  	switch (msg) {
+>  	case RP_MBOX_CRASH:
+> -		/* just log this for now. later, we'll also do recovery */
+> +		/*
+> +		 * remoteproc detected an exception, notify the rproc core.
+> +		 * The remoteproc core will handle the recovery.
+> +		 */
+>  		dev_err(dev, "omap rproc %s crashed\n", name);
+> +		rproc_report_crash(oproc->rproc, RPROC_FATAL_ERROR);
+>  		break;
+>  	case RP_MBOX_ECHO_REPLY:
+>  		dev_info(dev, "received echo reply from %s\n", name);
+> -- 
+> 2.17.1
+> 
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
