@@ -1,11 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] few more soc changes for omaps for v5.5
-Date: Tue, 12 Nov 2019 09:33:02 -0800
-Message-ID: <pull-1573579927-542764@atomide.com-2>
+Subject: [GIT PULL 3/3] update maintainers file paths
+Date: Tue, 12 Nov 2019 09:33:03 -0800
+Message-ID: <pull-1573579927-542764@atomide.com-3>
 References: <pull-1573579927-542764@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <pull-1573579927-542764@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -21,35 +21,23 @@ To: soc@kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogIlRvbnkgTGluZGdyZW4iIDx0b255QGF0b21pZGUuY29tPgoKVGhlIGZvbGxvd2luZyBj
-aGFuZ2VzIHNpbmNlIGNvbW1pdCBiYzc5NDc0NGNkYzU2ZjUzYjQ5NWRlYmJlMDU0OTQ2ZDFiNjIw
-NDQxOgoKICBNZXJnZSBicmFuY2ggJ29tYXAtZm9yLXY1LjUvcG0nIGludG8gb21hcC1mb3ItdjUu
-NS9zb2MgKDIwMTktMTAtMjMgMTA6NDI6MzkgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRoZSBH
-aXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9r
-ZXJuZWwvZ2l0L3RtbGluZC9saW51eC1vbWFwIHRhZ3Mvb21hcC1mb3ItdjUuNS9zb2MtbGF0ZS1z
-aWduZWQKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byAwYjQ5MTkwNGYwNTNlNDE2ODUx
-NjJhZjVjNTQxMWI4NWIxOGM5N2E3OgoKICBBUk06IE9NQVAyKzogQWRkIG1pc3NpbmcgcHV0X2Rl
-dmljZSgpIGNhbGwgaW4gb21hcGRzc19pbml0X29mKCkgKDIwMTktMTEtMTEgMTI6NTI6NTEgLTA4
-MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tCkZldyBsYXRlIFNvQyBjaGFuZ2VzIGZvciB2NS41IG1lcmdlIHdpbmRvdwoK
-VGhlc2UgY2hhbmdlcyBqdXN0IGNsZWFuIHVwIGZldyB0eXBvcywgYW5kIHRoZXJlIGlzIG9uZSBu
-b24tY3JpdGljYWwKY29ycmVjdGlvbiBvZiBtaXNzaW5nIHB1dF9kZXZpY2UoKSBhZnRlciBjYWxs
-aW5nIG9mX3BsYXRmb3JtX3BvcHVsYXRlKCkKZm9yIGRpc3BsYXkgY29udHJvbGxlci4KCk5hdHVy
-YWxseSBub25lIG9mIHRoaXMgaXMgdXJnZW50IGFuZCBjYW4gYmUgbWVyZ2VkIHdoZW4gc3VpdGFi
-bGUuCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tCkJlbiBEb29rcyAoQ29kZXRoaW5rKSAoMSk6CiAgICAgIE9NQVAyOiBmaXh1
-cCBkb2MgY29tbWVudHMgaW4gb21hcF9kZXZpY2UKCkpvbmF0aGFuIE5ldXNjaMOkZmVyICgxKToK
-ICAgICAgQVJNOiBPTUFQMTogYW1zLWRlbHRhIEZJUTogRml4IGEgdHlwbyAoIkluaXRpYWl6ZSIp
-CgpNYXJrdXMgRWxmcmluZyAoMSk6CiAgICAgIEFSTTogT01BUDIrOiBBZGQgbWlzc2luZyBwdXRf
-ZGV2aWNlKCkgY2FsbCBpbiBvbWFwZHNzX2luaXRfb2YoKQoKVG9ueSBMaW5kZ3JlbiAoMSk6CiAg
-ICAgIE1lcmdlIGJyYW5jaCAnb21hcC1mb3ItdjUuNS9vbWFwMScgaW50byBvbWFwLWZvci12NS41
-L3NvYwoKVXdlIEtsZWluZS1Lw7ZuaWcgKDEpOgogICAgICBBUk06IE9NQVAxOiBkcm9wIGR1cGxp
-Y2F0ZWQgZGVwZW5kZW5jeSBvbiBBUkNIX09NQVAxCgogYXJjaC9hcm0vbWFjaC1vbWFwMS9LY29u
-ZmlnICAgICAgICAgfCAzMyArKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KIGFyY2gv
-YXJtL21hY2gtb21hcDEvYW1zLWRlbHRhLWZpcS5jIHwgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21h
-cDIvZGlzcGxheS5jICAgICAgIHwgIDEgKwogYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2Rldmlj
-ZS5jICAgfCAxOSArKysrKysrLS0tLS0tLS0tLS0tCiA0IGZpbGVzIGNoYW5nZWQsIDIyIGluc2Vy
-dGlvbnMoKyksIDMzIGRlbGV0aW9ucygtKQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJt
-LWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+From: "Tony Lindgren" <tony@atomide.com>
+
+The following changes since commit 93a212ebfb083cba977d4c3b9d214068a97689cc:
+
+  MAINTAINERS: Add logicpd-som-lv and logicpd-torpedo to OMAP TREE (2019-10-22 09:02:41 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/maintainers-signed
+
+for you to fetch changes up to 93a212ebfb083cba977d4c3b9d214068a97689cc:
+
+  MAINTAINERS: Add logicpd-som-lv and logicpd-torpedo to OMAP TREE (2019-10-22 09:02:41 -0700)
+
+----------------------------------------------------------------
+Update MAINTAINERS file for LogicPD dts files
+
+Just one patch to update MAINTAINERS file for LogicPD boards.
+
+----------------------------------------------------------------
