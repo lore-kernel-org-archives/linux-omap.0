@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] few more dts changes for omaps for v5.5
-Date: Tue, 12 Nov 2019 09:33:01 -0800
-Message-ID: <pull-1573579927-542764@atomide.com>
+Subject: [GIT PULL 2/3] few more soc changes for omaps for v5.5
+Date: Tue, 12 Nov 2019 09:33:02 -0800
+Message-ID: <pull-1573579927-542764@atomide.com-2>
+References: <pull-1573579927-542764@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1573579927-542764@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,42 +21,35 @@ To: soc@kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
-
-The following changes since commit fedc8844d5004ffa69d3e320081bfd59979e1937:
-
-  Merge branch 'omap-for-v5.5/droid4' into omap-for-v5.5/dt (2019-10-23 10:34:28 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/dt-late-signed
-
-for you to fetch changes up to abb0e36b434d784864fe0e4d5dedd17f4d72f3e3:
-
-  ARM: dts: logicpd-torpedo: Disable USB Host (2019-11-11 13:03:06 -0800)
-
-----------------------------------------------------------------
-Few late dts changes for omaps for v5.5 merge window
-
-Let's configure omap3 rng as we can now easily do it with a dts change
-only by tagging it with status = "disabled" for n900 where it's not
-accessible. This improves the boot-up time with distros quite a bit with
-proper entropy source around.
-
-There's also another minor update for logicpd-torpedo that does not have
-USB host pins wired.
-
-----------------------------------------------------------------
-Adam Ford (1):
-      ARM: dts: logicpd-torpedo: Disable USB Host
-
-Tony Lindgren (2):
-      ARM: dts: Configure omap3 rng
-      Merge branch 'rng' into omap-for-v5.5/dt
-
- arch/arm/boot/dts/am3517.dtsi                   |  6 ++++++
- arch/arm/boot/dts/logicpd-torpedo-som.dtsi      |  5 +++++
- arch/arm/boot/dts/omap3-n900.dts                |  5 +++++
- arch/arm/boot/dts/omap3.dtsi                    | 25 +++++++++++++++++++++++++
- arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi |  2 +-
- 5 files changed, 42 insertions(+), 1 deletion(-)
+RnJvbTogIlRvbnkgTGluZGdyZW4iIDx0b255QGF0b21pZGUuY29tPgoKVGhlIGZvbGxvd2luZyBj
+aGFuZ2VzIHNpbmNlIGNvbW1pdCBiYzc5NDc0NGNkYzU2ZjUzYjQ5NWRlYmJlMDU0OTQ2ZDFiNjIw
+NDQxOgoKICBNZXJnZSBicmFuY2ggJ29tYXAtZm9yLXY1LjUvcG0nIGludG8gb21hcC1mb3ItdjUu
+NS9zb2MgKDIwMTktMTAtMjMgMTA6NDI6MzkgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRoZSBH
+aXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9r
+ZXJuZWwvZ2l0L3RtbGluZC9saW51eC1vbWFwIHRhZ3Mvb21hcC1mb3ItdjUuNS9zb2MtbGF0ZS1z
+aWduZWQKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byAwYjQ5MTkwNGYwNTNlNDE2ODUx
+NjJhZjVjNTQxMWI4NWIxOGM5N2E3OgoKICBBUk06IE9NQVAyKzogQWRkIG1pc3NpbmcgcHV0X2Rl
+dmljZSgpIGNhbGwgaW4gb21hcGRzc19pbml0X29mKCkgKDIwMTktMTEtMTEgMTI6NTI6NTEgLTA4
+MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tCkZldyBsYXRlIFNvQyBjaGFuZ2VzIGZvciB2NS41IG1lcmdlIHdpbmRvdwoK
+VGhlc2UgY2hhbmdlcyBqdXN0IGNsZWFuIHVwIGZldyB0eXBvcywgYW5kIHRoZXJlIGlzIG9uZSBu
+b24tY3JpdGljYWwKY29ycmVjdGlvbiBvZiBtaXNzaW5nIHB1dF9kZXZpY2UoKSBhZnRlciBjYWxs
+aW5nIG9mX3BsYXRmb3JtX3BvcHVsYXRlKCkKZm9yIGRpc3BsYXkgY29udHJvbGxlci4KCk5hdHVy
+YWxseSBub25lIG9mIHRoaXMgaXMgdXJnZW50IGFuZCBjYW4gYmUgbWVyZ2VkIHdoZW4gc3VpdGFi
+bGUuCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tCkJlbiBEb29rcyAoQ29kZXRoaW5rKSAoMSk6CiAgICAgIE9NQVAyOiBmaXh1
+cCBkb2MgY29tbWVudHMgaW4gb21hcF9kZXZpY2UKCkpvbmF0aGFuIE5ldXNjaMOkZmVyICgxKToK
+ICAgICAgQVJNOiBPTUFQMTogYW1zLWRlbHRhIEZJUTogRml4IGEgdHlwbyAoIkluaXRpYWl6ZSIp
+CgpNYXJrdXMgRWxmcmluZyAoMSk6CiAgICAgIEFSTTogT01BUDIrOiBBZGQgbWlzc2luZyBwdXRf
+ZGV2aWNlKCkgY2FsbCBpbiBvbWFwZHNzX2luaXRfb2YoKQoKVG9ueSBMaW5kZ3JlbiAoMSk6CiAg
+ICAgIE1lcmdlIGJyYW5jaCAnb21hcC1mb3ItdjUuNS9vbWFwMScgaW50byBvbWFwLWZvci12NS41
+L3NvYwoKVXdlIEtsZWluZS1Lw7ZuaWcgKDEpOgogICAgICBBUk06IE9NQVAxOiBkcm9wIGR1cGxp
+Y2F0ZWQgZGVwZW5kZW5jeSBvbiBBUkNIX09NQVAxCgogYXJjaC9hcm0vbWFjaC1vbWFwMS9LY29u
+ZmlnICAgICAgICAgfCAzMyArKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KIGFyY2gv
+YXJtL21hY2gtb21hcDEvYW1zLWRlbHRhLWZpcS5jIHwgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21h
+cDIvZGlzcGxheS5jICAgICAgIHwgIDEgKwogYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2Rldmlj
+ZS5jICAgfCAxOSArKysrKysrLS0tLS0tLS0tLS0tCiA0IGZpbGVzIGNoYW5nZWQsIDIyIGluc2Vy
+dGlvbnMoKyksIDMzIGRlbGV0aW9ucygtKQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJt
+LWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
