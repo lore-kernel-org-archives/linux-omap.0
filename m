@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v4 3/3] ARM: dts: dra7: Add ti-sysc node for VPE
-Date: Tue, 12 Nov 2019 08:26:57 -0600
-Message-ID: <20191112142657.22898-4-bparrot@ti.com>
+Subject: [Patch v4 2/3] ARM: dts: dra7: add vpe clkctrl node
+Date: Tue, 12 Nov 2019 08:26:56 -0600
+Message-ID: <20191112142657.22898-3-bparrot@ti.com>
 References: <20191112142657.22898-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,55 +12,55 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add VPE node as a child of l4 interconnect in order for it to probe
-using ti-sysc.
+Add clkctrl nodes for VPE module.
+
+Note that because of the current dts node name dependency for mapping to
+clock domain, we must still use "vpe-clkctrl@" naming instead of generic
+"clock@" naming for the node. And because of this, it's probably best to
+apply the dts node addition together along with the other clock changes.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/dra7-l4.dtsi | 28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index ea0e7c19eb4e..0917231a20e2 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -4158,12 +4158,34 @@
- 			ranges = <0x0 0x1b0000 0x10000>;
- 		};
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 93e1eb83bed9..d1c2406ec71c 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1591,10 +1591,10 @@
  
--		target-module@1d0000 {			/* 0x489d0000, ap 27 30.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+		target-module@1d0010 {			/* 0x489d0000, ap 27 30.0 */
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x1d0010 0x4>;
-+			reg-names = "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&vpe_clkctrl DRA7_VPE_VPE_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x1d0000 0x10000>;
-+
-+			vpe: vpe@0 {
-+				compatible = "ti,dra7-vpe";
-+				reg = <0x0000 0x120>,
-+				      <0x0700 0x80>,
-+				      <0x5700 0x18>,
-+				      <0xd000 0x400>;
-+				reg-names = "vpe_top",
-+					    "sc",
-+					    "csc",
-+					    "vpdma";
-+				interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
-+			};
+ 	rtc_cm: rtc-cm@700 {
+ 		compatible = "ti,omap4-cm";
+-		reg = <0x700 0x100>;
++		reg = <0x700 0x60>;
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-		ranges = <0 0x700 0x100>;
++		ranges = <0 0x700 0x60>;
+ 
+ 		rtc_clkctrl: rtc-clkctrl@20 {
+ 			compatible = "ti,clkctrl";
+@@ -1603,6 +1603,20 @@
  		};
  	};
+ 
++	vpe_cm: vpe-cm@760 {
++		compatible = "ti,omap4-cm";
++		reg = <0x760 0xc>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x760 0xc>;
++
++		vpe_clkctrl: vpe-clkctrl@0 {
++			compatible = "ti,clkctrl";
++			reg = <0x0 0xc>;
++			#clock-cells = <2>;
++		};
++	};
++
  };
+ 
+ &cm_core {
 -- 
 2.17.1
