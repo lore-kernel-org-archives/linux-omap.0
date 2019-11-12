@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v3 04/10] ARM: dts: dra7-l4: Add ti-sysc node for CAM
-Date: Tue, 12 Nov 2019 08:27:47 -0600
-Message-ID: <20191112142753.22976-5-bparrot@ti.com>
+Subject: [Patch v3 02/10] ARM: dts: dra7: add cam clkctrl node
+Date: Tue, 12 Nov 2019 08:27:45 -0600
+Message-ID: <20191112142753.22976-3-bparrot@ti.com>
 References: <20191112142753.22976-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,82 +12,42 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add CAM nodes as a child of l4 interconnect in order for it to probe
-using ti-sysc.
+Add clkctrl nodes for CAM domain.
+
+Note that because of the current dts node name dependency for mapping to
+clock domain, we must still use "cam-clkctrl@" naming instead of generic
+"clock@" naming for the node. And because of this, it's probably best to
+apply the dts node addition together along with the other clock changes.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/dra7-l4.dtsi | 43 +++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index 0917231a20e2..8f5c26a4f7c8 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -4135,27 +4135,58 @@
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index d1c2406ec71c..199f8d483f75 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1734,6 +1734,20 @@
  		};
+ 	};
  
- 		target-module@170000 {			/* 0x48970000, ap 21 0a.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x170010 0x4>;
-+			reg-names = "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&cam_clkctrl DRA7_CAM_VIP1_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x170000 0x10000>;
-+			status = "disabled";
- 		};
- 
- 		target-module@190000 {			/* 0x48990000, ap 23 2e.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x190010 0x4>;
-+			reg-names = "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&cam_clkctrl DRA7_CAM_VIP2_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x190000 0x10000>;
-+			status = "disabled";
- 		};
- 
- 		target-module@1b0000 {			/* 0x489b0000, ap 25 34.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x1b0000 0x4>,
-+			      <0x1b0010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&cam_clkctrl DRA7_CAM_VIP3_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x1b0000 0x10000>;
-+			status = "disabled";
- 		};
- 
- 		target-module@1d0010 {			/* 0x489d0000, ap 27 30.0 */
++	cam_cm: cam-cm@1000 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1000 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1000 0x100>;
++
++		cam_clkctrl: cam-clkctrl@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x2c>;
++			#clock-cells = <2>;
++		};
++	};
++
+ 	dss_cm: dss-cm@1100 {
+ 		compatible = "ti,omap4-cm";
+ 		reg = <0x1100 0x100>;
 -- 
 2.17.1
