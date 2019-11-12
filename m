@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v3 03/10] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
-Date: Tue, 12 Nov 2019 08:27:46 -0600
-Message-ID: <20191112142753.22976-4-bparrot@ti.com>
+Subject: [Patch v3 01/10] clk: ti: dra7: add cam clkctrl data
+Date: Tue, 12 Nov 2019 08:27:44 -0600
+Message-ID: <20191112142753.22976-2-bparrot@ti.com>
 References: <20191112142753.22976-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,78 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Both CAL and VIP rely on this clock domain. But CAL DPHY require
-LVDSRX_96M_GFCLK to be active. When this domain is set to HWSUP the
-LVDSRX_96M_GFCLK is on;y active when VIP1 clock is also active.  If only
-CAL on DRA72x (which uses the VIP2 clkctrl) probes the CAM domain is
-enabled but the LVDSRX_96M_GFCLK is left gated. Since LVDSRX_96M_GFCLK
-is sourcing the input clock to the DPHY then actual frame capture cannot
-start as the phy are inactive.
-
-So we either have to also enabled VIP1 even if we don't intend on using
-it or we need to set the CAM domain to use SWSUP only.
-
-This patch implements the latter.
+Add clkctrl data for CAM domain.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clk/ti/clk-7xx.c         | 19 +++++++++++++++++++
+ include/dt-bindings/clock/dra7.h | 10 ++++++++++
+ 2 files changed, 29 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
-index 3068802824b7..27835c4d1aa9 100644
---- a/arch/arm/mach-omap2/clockdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
-@@ -606,7 +606,7 @@ static struct clockdomain cam_7xx_clkdm = {
- 	.dep_bit	  = DRA7XX_CAM_STATDEP_SHIFT,
- 	.wkdep_srcs	  = cam_wkup_sleep_deps,
- 	.sleepdep_srcs	  = cam_wkup_sleep_deps,
--	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		  = CLKDM_CAN_SWSUP,
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index 5dd9cad07542..8f2204a36b51 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -151,6 +151,24 @@ static const struct omap_clkctrl_reg_data dra7_vpe_clkctrl_regs[] __initconst =
+ 	{ 0 },
  };
  
- static struct clockdomain l4per_7xx_clkdm = {
++static const char * const dra7_cam_gfclk_mux_parents[] __initconst = {
++	"l3_iclk_div",
++	"core_iss_main_clk",
++	NULL,
++};
++
++static const struct omap_clkctrl_bit_data dra7_cam_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, dra7_cam_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data dra7_cam_clkctrl_regs[] __initconst = {
++	{ DRA7_CAM_VIP1_CLKCTRL, dra7_cam_bit_data, CLKF_HW_SUP, "l3_iclk_div" },
++	{ DRA7_CAM_VIP2_CLKCTRL, dra7_cam_bit_data, CLKF_HW_SUP, "l3_iclk_div" },
++	{ DRA7_CAM_VIP3_CLKCTRL, dra7_cam_bit_data, CLKF_HW_SUP, "l3_iclk_div" },
++	{ 0 },
++};
++
+ static const struct omap_clkctrl_reg_data dra7_coreaon_clkctrl_regs[] __initconst = {
+ 	{ DRA7_COREAON_SMARTREFLEX_MPU_CLKCTRL, NULL, CLKF_SW_SUP, "wkupaon_iclk_mux" },
+ 	{ DRA7_COREAON_SMARTREFLEX_CORE_CLKCTRL, NULL, CLKF_SW_SUP, "wkupaon_iclk_mux" },
+@@ -783,6 +801,7 @@ const struct omap_clkctrl_data dra7_clkctrl_data[] __initconst = {
+ 	{ 0x4a008c00, dra7_atl_clkctrl_regs },
+ 	{ 0x4a008d20, dra7_l4cfg_clkctrl_regs },
+ 	{ 0x4a008e20, dra7_l3instr_clkctrl_regs },
++	{ 0x4a009020, dra7_cam_clkctrl_regs },
+ 	{ 0x4a009120, dra7_dss_clkctrl_regs },
+ 	{ 0x4a009320, dra7_l3init_clkctrl_regs },
+ 	{ 0x4a0093b0, dra7_pcie_clkctrl_regs },
+diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
+index 2b765e579b2a..2c058a534bab 100644
+--- a/include/dt-bindings/clock/dra7.h
++++ b/include/dt-bindings/clock/dra7.h
+@@ -34,6 +34,11 @@
+ #define DRA7_VPE_CLKCTRL_INDEX(offset)	((offset) - DRA7_VPE_CLKCTRL_OFFSET)
+ #define DRA7_VPE_CLKCTRL	DRA7_VPE_CLKCTRL_INDEX(0x64)
+ 
++/* vip clocks */
++#define DRA7_VIP1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++#define DRA7_VIP2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
++#define DRA7_VIP3_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
++
+ /* coreaon clocks */
+ #define DRA7_SMARTREFLEX_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
+ #define DRA7_SMARTREFLEX_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
+@@ -202,6 +207,11 @@
+ #define DRA7_VPE_CLKCTRL_INDEX(offset)	((offset) - DRA7_VPE_CLKCTRL_OFFSET)
+ #define DRA7_VPE_VPE_CLKCTRL	DRA7_VPE_CLKCTRL_INDEX(0x64)
+ 
++/* vip clocks */
++#define DRA7_CAM_VIP1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++#define DRA7_CAM_VIP2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
++#define DRA7_CAM_VIP3_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
++
+ /* coreaon clocks */
+ #define DRA7_COREAON_SMARTREFLEX_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
+ #define DRA7_COREAON_SMARTREFLEX_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
 -- 
 2.17.1
