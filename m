@@ -1,43 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] update maintainers file paths
-Date: Tue, 12 Nov 2019 09:33:03 -0800
-Message-ID: <pull-1573579927-542764@atomide.com-3>
-References: <pull-1573579927-542764@atomide.com>
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+Subject: Re: [PATCH 13/17] remoteproc/omap: add support for system
+ suspend/resume
+Date: Tue, 12 Nov 2019 10:06:23 -0800
+Message-ID: <20191112180623.GI3797@yoga>
+References: <20191028124238.19224-1-t-kristo@ti.com>
+ <20191028124238.19224-14-t-kristo@ti.com>
+ <20191112061536.GO3108315@builder>
+ <c0fe03eb-86c9-8c67-684e-b1f6f606b7ed@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1573579927-542764@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: soc@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <c0fe03eb-86c9-8c67-684e-b1f6f606b7ed@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+On Tue 12 Nov 00:45 PST 2019, Tero Kristo wrote:
 
-The following changes since commit 93a212ebfb083cba977d4c3b9d214068a97689cc:
+> On 12/11/2019 08:15, Bjorn Andersson wrote:
+> > On Mon 28 Oct 05:42 PDT 2019, Tero Kristo wrote:
+> > > diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+> > [..]
+> > > +static int _omap_rproc_suspend(struct rproc *rproc)
+> > 
+> > I think it would make sense to inline this and _omap_rproc_resume() in
+> > their single call sites.
+> 
+> Well, these get re-used in following patch for runtime PM also, so it is
+> probably better leave this for compiler to decide?
+> 
 
-  MAINTAINERS: Add logicpd-som-lv and logicpd-torpedo to OMAP TREE (2019-10-22 09:02:41 -0700)
+I didn't see that until later, this is fine.
 
-are available in the Git repository at:
+Regards,
+Bjorn
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/maintainers-signed
-
-for you to fetch changes up to 93a212ebfb083cba977d4c3b9d214068a97689cc:
-
-  MAINTAINERS: Add logicpd-som-lv and logicpd-torpedo to OMAP TREE (2019-10-22 09:02:41 -0700)
-
-----------------------------------------------------------------
-Update MAINTAINERS file for LogicPD dts files
-
-Just one patch to update MAINTAINERS file for LogicPD boards.
-
-----------------------------------------------------------------
+> > 
+> > [..]
+> > > +static int _omap_rproc_resume(struct rproc *rproc)
+> > > +{
+> > [..]
+> > > @@ -806,6 +972,14 @@ static int omap_rproc_probe(struct platform_device *pdev)
+> > >   			oproc->num_timers);
+> > >   	}
+> > > +	init_completion(&oproc->pm_comp);
+> > > +
+> > > +	oproc->fck = of_clk_get(np, 0);
+> > 
+> > devm_clk_get() ?
+> > 
+> > Otherwise I think you're lacking a clk_put() in omap_rproc_remove()
+> 
+> Yeah, let me replace with devm_clk_get.
+> 
+> -Tero
+> 
+> > 
+> > Regards,
+> > Bjorn
+> > 
+> 
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
