@@ -1,67 +1,119 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch v3 09/10] arm64: dts: k3-am65-main Add CAL node
-Date: Tue, 12 Nov 2019 07:38:31 -0800
-Message-ID: <20191112153831.GI5610@atomide.com>
-References: <20191112142753.22976-1-bparrot@ti.com>
- <20191112142753.22976-10-bparrot@ti.com>
+Subject: Re: [Patch v2 1/3] ARM: dts: am43xx: add support for clkout1 clock
+Date: Tue, 12 Nov 2019 07:39:51 -0800
+Message-ID: <20191112153951.GJ5610@atomide.com>
+References: <20191112142929.23058-1-bparrot@ti.com>
+ <20191112142929.23058-2-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191112142753.22976-10-bparrot@ti.com>
+In-Reply-To: <20191112142929.23058-2-bparrot@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Parrot <bparrot@ti.com> [191112 14:25]:
-> Add CAL dtsi node for AM654 device. Including proper power-domains and
-> clock properties.
+* Benoit Parrot <bparrot@ti.com> [191112 14:30]:
+> From: Tero Kristo <t-kristo@ti.com>
 > 
+> clkout1 clock node and its generation tree was missing. Add this based
+> on the data on TRM and PRCM functional spec.
+> 
+> commit 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes") effectively
+> reverted this commit 8010f13a40d3 ("ARM: dts: am43xx: add support for
+> clkout1 clock") which is needed for the ov2659 camera sensor clock
+> definition hence it is being re-applied here.
+> 
+> Note that because of the current dts node name dependency for mapping to
+> clock domain, we must still use "clkout1-*ck" naming instead of generic
+> "clock@" naming for the node. And because of this, it's probably best to
+> apply the dts node addition together along with the other clock changes.
+> 
+> Fixes: 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes")
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Tested-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Hmm I don't think I did any work on this, the above should be:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
 > Signed-off-by: Benoit Parrot <bparrot@ti.com>
 > ---
->  arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
+>  arch/arm/boot/dts/am43xx-clocks.dtsi | 54 ++++++++++++++++++++++++++++
+>  1 file changed, 54 insertions(+)
 > 
-> diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-> index 799c75fa7981..4c65ed445e8b 100644
-> --- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-> +++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-> @@ -516,4 +516,27 @@
->  		dma-coherent;
->  		interrupts = <GIC_SPI 355 IRQ_TYPE_EDGE_RISING>;
+> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> index 091356f2a8c1..c726cd8dbdf1 100644
+> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> @@ -704,6 +704,60 @@
+>  		ti,bit-shift = <8>;
+>  		reg = <0x2a48>;
 >  	};
 > +
-> +	cal: cal@6f03000 {
-> +		compatible = "ti,am654-cal";
-> +		reg = <0x0 0x06f03000 0x0 0x400>,
-> +		      <0x0 0x06f03800 0x0 0x40>;
-> +		reg-names = "cal_top",
-> +			    "cal_rx_core0";
-> +		interrupts = <GIC_SPI 152 IRQ_TYPE_LEVEL_HIGH>;
-> +		ti,camerrx-control = <&scm_conf 0x40c0>;
-> +		clock-names = "fck";
-> +		clocks = <&k3_clks 2 0>;
-> +		power-domains = <&k3_pds 2 TI_SCI_PD_EXCLUSIVE>;
-> +		status = "disabled";
+> +	clkout1_osc_div_ck: clkout1-osc-div-ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,divider-clock";
+> +		clocks = <&sys_clkin_ck>;
+> +		ti,bit-shift = <20>;
+> +		ti,max-div = <4>;
+> +		reg = <0x4100>;
+> +	};
 > +
-> +		ports {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
+> +	clkout1_src2_mux_ck: clkout1-src2-mux-ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,mux-clock";
+> +		clocks = <&clk_rc32k_ck>, <&sysclk_div>, <&dpll_ddr_m2_ck>,
+> +			 <&dpll_per_m2_ck>, <&dpll_disp_m2_ck>,
+> +			 <&dpll_mpu_m2_ck>;
+> +		reg = <0x4100>;
+> +	};
 > +
-> +			csi2_0: port@0 {
-> +				reg = <0>;
-> +			};
-> +		};
+> +	clkout1_src2_pre_div_ck: clkout1-src2-pre-div-ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,divider-clock";
+> +		clocks = <&clkout1_src2_mux_ck>;
+> +		ti,bit-shift = <4>;
+> +		ti,max-div = <8>;
+> +		reg = <0x4100>;
+> +	};
+> +
+> +	clkout1_src2_post_div_ck: clkout1-src2-post-div-ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,divider-clock";
+> +		clocks = <&clkout1_src2_pre_div_ck>;
+> +		ti,bit-shift = <8>;
+> +		ti,max-div = <32>;
+> +		ti,index-power-of-two;
+> +		reg = <0x4100>;
+> +	};
+> +
+> +	clkout1_mux_ck: clkout1-mux-ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,mux-clock";
+> +		clocks = <&clkout1_osc_div_ck>, <&clk_rc32k_ck>,
+> +			 <&clkout1_src2_post_div_ck>, <&dpll_extdev_m2_ck>;
+> +		ti,bit-shift = <16>;
+> +		reg = <0x4100>;
+> +	};
+> +
+> +	clkout1_ck: clkout1-ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&clkout1_mux_ck>;
+> +		ti,bit-shift = <23>;
+> +		reg = <0x4100>;
 > +	};
 >  };
-
-Here too just drop the status = "disabled" line. For reference, see commit
-12afc0cf8121 ("ARM: dts: Drop pointless status changing for am3 musb")
-in Linux next where we remove about 450 lines of pointless back and forth
-noise from status = "disabled" to various board specific files setting
-musb components back to status = "okay".
-
-Regards,
-
-Tony
+>  
+>  &prcm {
+> -- 
+> 2.17.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
