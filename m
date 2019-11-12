@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v3 08/10] arm: dts: dra76-evm: Add CAL and OV5640 nodes
-Date: Tue, 12 Nov 2019 08:27:51 -0600
-Message-ID: <20191112142753.22976-9-bparrot@ti.com>
+Subject: [Patch v3 09/10] arm64: dts: k3-am65-main Add CAL node
+Date: Tue, 12 Nov 2019 08:27:52 -0600
+Message-ID: <20191112142753.22976-10-bparrot@ti.com>
 References: <20191112142753.22976-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,74 +12,45 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add device nodes for CSI2 camera board OV5640.
-Add the CAL port nodes with the necessary linkage to the ov5640 nodes.
+Add CAL dtsi node for AM654 device. Including proper power-domains and
+clock properties.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/dra76-evm.dts | 39 +++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 1fb6f13fb5e2..a0a4bf0e1e30 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -116,6 +116,12 @@
- 		regulator-min-microvolt = <1800000>;
- 		regulator-max-microvolt = <1800000>;
+diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+index 799c75fa7981..4c65ed445e8b 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+@@ -516,4 +516,27 @@
+ 		dma-coherent;
+ 		interrupts = <GIC_SPI 355 IRQ_TYPE_EDGE_RISING>;
  	};
 +
-+	clk_ov5640_fixed: clock {
-+		compatible = "fixed-clock";
-+		#clock-cells = <0>;
-+		clock-frequency = <24000000>;
-+	};
- };
- 
- &i2c1 {
-@@ -317,6 +323,27 @@
- 	};
- };
- 
-+&i2c5 {
-+	status = "okay";
-+	clock-frequency = <400000>;
++	cal: cal@6f03000 {
++		compatible = "ti,am654-cal";
++		reg = <0x0 0x06f03000 0x0 0x400>,
++		      <0x0 0x06f03800 0x0 0x40>;
++		reg-names = "cal_top",
++			    "cal_rx_core0";
++		interrupts = <GIC_SPI 152 IRQ_TYPE_LEVEL_HIGH>;
++		ti,camerrx-control = <&scm_conf 0x40c0>;
++		clock-names = "fck";
++		clocks = <&k3_clks 2 0>;
++		power-domains = <&k3_pds 2 TI_SCI_PD_EXCLUSIVE>;
++		status = "disabled";
 +
-+	ov5640@3c {
-+		compatible = "ovti,ov5640";
-+		reg = <0x3c>;
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
 +
-+		clocks = <&clk_ov5640_fixed>;
-+		clock-names = "xclk";
-+
-+		port {
-+			csi2_cam0: endpoint {
-+				remote-endpoint = <&csi2_phy0>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
++			csi2_0: port@0 {
++				reg = <0>;
 +			};
 +		};
 +	};
-+};
-+
- &cpu0 {
- 	vdd-supply = <&buck10_reg>;
  };
-@@ -447,3 +474,15 @@
- 		max-bitrate = <5000000>;
- 	};
- };
-+
-+&cal {
-+	status = "okay";
-+};
-+
-+&csi2_0 {
-+	csi2_phy0: endpoint@0 {
-+		remote-endpoint = <&csi2_cam0>;
-+		clock-lanes = <0>;
-+		data-lanes = <1 2>;
-+	};
-+};
 -- 
 2.17.1
