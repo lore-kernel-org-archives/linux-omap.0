@@ -1,64 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 net-next 06/13] dt-bindings: net: ti: add new cpsw
- switch driver bindings
-Date: Tue, 12 Nov 2019 08:22:30 -0800
-Message-ID: <20191112162230.GK5610@atomide.com>
-References: <20191109151525.18651-1-grygorii.strashko@ti.com>
- <20191109151525.18651-7-grygorii.strashko@ti.com>
- <20191111172652.GV5610@atomide.com>
- <bac9a300-cbd5-d342-a96d-d90fdcf2e4c3@ti.com>
+Subject: [GIT PULL 1/3] few more dts changes for omaps for v5.5
+Date: Tue, 12 Nov 2019 09:33:01 -0800
+Message-ID: <pull-1573579927-542764@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <bac9a300-cbd5-d342-a96d-d90fdcf2e4c3@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: soc@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: "Tony Lindgren" <tony@atomide.com>
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [191112 09:54]:
-> No, sorry I do not agree. The MDIO is inseparable part of CPSW and it's enabled when CPSW is enabled
-> (on interconnect level), more over I want to get rid of platform device in MDIO for most of the cases
-> as it only introduces boot/probing complexity.
+The following changes since commit fedc8844d5004ffa69d3e320081bfd59979e1937:
 
-Well the fact that mdio is enabled at the interconnect level is why
-I think the cpsw child modules are independent components :)
+  Merge branch 'omap-for-v5.5/droid4' into omap-for-v5.5/dt (2019-10-23 10:34:28 -0700)
 
-So I did the following quick test on pocketbeagle with Linux next,
-it has no Ethernet wired up, and by default we have ethernet@0
-set to status = "disabled".
+are available in the Git repository at:
 
-Manually enable the target module at 0x4a100000:
-# echo on > /sys/devices/platform/ocp/4a000000.interconnect/\
-4a000000.interconnect:segment@0/4a101200.target-module/power/control
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/dt-late-signed
 
-Dump out mdio registers at offset 0x1000:
-# rwmem 0x4a101000+0x100
-0x4a101000 = 0x40070106
-0x4a101004 = 0x810000ff
-0x4a101008 = 0000000000
-0x4a10100c = 0000000000
-0x4a101010 = 0000000000
-0x4a101014 = 0000000000
-0x4a101018 = 0000000000
-...
+for you to fetch changes up to abb0e36b434d784864fe0e4d5dedd17f4d72f3e3:
 
-So yup, it seems quite independent of the other child devices
-on the same interconnect target mdoule. I'm quessing it's the
-same story for other modules like cppi_dma and so on, this
-should be easy to check.
+  ARM: dts: logicpd-torpedo: Disable USB Host (2019-11-11 13:03:06 -0800)
 
-Hmm and isn't the some version of mdio also used stuffed into
-davinci_emac and netcp too?
+----------------------------------------------------------------
+Few late dts changes for omaps for v5.5 merge window
 
-Anyways, up to you. But my experience is that having separate
-driver modules is the way to go than trying to treat any TI
-"subsystem" as a single device. This is because the child modules
-tend to get updated and changed and moved around over time.
+Let's configure omap3 rng as we can now easily do it with a dts change
+only by tagging it with status = "disabled" for n900 where it's not
+accessible. This improves the boot-up time with distros quite a bit with
+proper entropy source around.
 
-Regards,
+There's also another minor update for logicpd-torpedo that does not have
+USB host pins wired.
 
-Tony
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: logicpd-torpedo: Disable USB Host
+
+Tony Lindgren (2):
+      ARM: dts: Configure omap3 rng
+      Merge branch 'rng' into omap-for-v5.5/dt
+
+ arch/arm/boot/dts/am3517.dtsi                   |  6 ++++++
+ arch/arm/boot/dts/logicpd-torpedo-som.dtsi      |  5 +++++
+ arch/arm/boot/dts/omap3-n900.dts                |  5 +++++
+ arch/arm/boot/dts/omap3.dtsi                    | 25 +++++++++++++++++++++++++
+ arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi |  2 +-
+ 5 files changed, 42 insertions(+), 1 deletion(-)
