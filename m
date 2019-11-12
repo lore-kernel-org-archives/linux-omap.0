@@ -1,74 +1,64 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 15/17] remoteproc/omap: report device exceptions and
- trigger recovery
-Date: Tue, 12 Nov 2019 10:46:15 +0200
-Message-ID: <a88ac4e2-ff00-f1d2-2339-72c3315687e4@ti.com>
-References: <20191028124238.19224-1-t-kristo@ti.com>
- <20191028124238.19224-16-t-kristo@ti.com> <20191112062642.GP3108315@builder>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v5 net-next 00/12] net: ethernet: ti: introduce new cpsw
+ switchdev based driver
+Date: Tue, 12 Nov 2019 11:48:30 +0200
+Message-ID: <3c24b4c0-7ef2-71d3-b537-90def7c15fec@ti.com>
+References: <20191024100914.16840-1-grygorii.strashko@ti.com>
+ <20191024160549.GY5610@atomide.com>
+ <dc621a9d-eb92-5df9-81d7-ad2b037ac3c7@ti.com>
+ <20191111170826.GT5610@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191112062642.GP3108315@builder>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20191111170826.GT5610@atomide.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Andersson <bjorn.andersson@linaro.org>
-Cc: ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/11/2019 08:26, Bjorn Andersson wrote:
-> On Mon 28 Oct 05:42 PDT 2019, Tero Kristo wrote:
-> 
->> From: Suman Anna <s-anna@ti.com>
->>
->> The OMAP remote processors send a special mailbox message
->> (RP_MBOX_CRASH) when they crash and detect an internal device
->> exception.
->>
->> Add support to the mailbox handling function upon detection of
->> this special message to report this crash to the remoteproc core.
->> The remoteproc core can trigger a recovery using the prevailing
->> recovery mechanism, already in use for MMU Fault recovery.
->>
->> Signed-off-by: Subramaniam Chanderashekarapuram <subramaniam.ca@ti.com>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
-> 
-> You're missing a Co-developed-by
 
-Yep, let me fix that.
 
--Tero
+On 11/11/2019 19:08, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [191109 15:16]:
+>> Hi Tony,
+>>
+>> On 24/10/2019 19:05, Tony Lindgren wrote:
+>>> Hi,
+>>>
+>>> * Grygorii Strashko <grygorii.strashko@ti.com> [191024 10:10]:
+>>>> This the RFC v5 which introduces new CPSW switchdev based driver which is
+>>>> operating in dual-emac mode by default, thus working as 2 individual
+>>>> network interfaces. The Switch mode can be enabled by configuring devlink driver
+>>>> parameter "switch_mode" to 1/true:
+>>>> 	devlink dev param set platform/48484000.ethernet_switch \
+>>>> 	name switch_mode value 1 cmode runtime
+>>>
+>>> Just wondering about the migration plan.. Is this a replacement
+>>> driver or used in addition to the old driver?
+>>>
+>>
+>> Sry, I've missed you mail.
+>>
+>> As it's pretty big change the idea is to keep both drivers at least for sometime.
+>> Step 1: add new driver and enable it on one platform. Do announcement.
+>> Step 2: switch all one-port and dual mac drivers to the new driver
+>> Step 3: switch all other platform to cpsw switchdev and deprecate old driver.
+> 
+> OK sounds good to me. So for the dts changes, we keep the old binding
+> and just add a new module there?
+
+yes, in general.
+As you can see Patch 11 I've rearranged cpsw nodes between boards so cpsw_new is enabled
+only on one board. But, Am5/dr7 board are good candidates to enable cpsw_new in batch as
+the have only dual_mac default cfg.
 
 > 
-> Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
-> 
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->>   drivers/remoteproc/omap_remoteproc.c | 6 +++++-
->>   1 file changed, 5 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
->> index 8bd415c8fc86..6f797025bb6b 100644
->> --- a/drivers/remoteproc/omap_remoteproc.c
->> +++ b/drivers/remoteproc/omap_remoteproc.c
->> @@ -360,8 +360,12 @@ static void omap_rproc_mbox_callback(struct mbox_client *client, void *data)
->>   
->>   	switch (msg) {
->>   	case RP_MBOX_CRASH:
->> -		/* just log this for now. later, we'll also do recovery */
->> +		/*
->> +		 * remoteproc detected an exception, notify the rproc core.
->> +		 * The remoteproc core will handle the recovery.
->> +		 */
->>   		dev_err(dev, "omap rproc %s crashed\n", name);
->> +		rproc_report_crash(oproc->rproc, RPROC_FATAL_ERROR);
->>   		break;
->>   	case RP_MBOX_ECHO_REPLY:
->>   		dev_info(dev, "received echo reply from %s\n", name);
->> -- 
->> 2.17.1
->>
->> --
+> Or do you also have to disable some parts of the old dts?
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+it will be the case for am3/am5 most probably.
+
+-- 
+Best regards,
+grygorii
