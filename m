@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 004/115] ARM: dts: omap5: enable OTG role for DWC3 controller
-Date: Tue, 12 Nov 2019 20:54:31 -0500
-Message-ID: <20191113015622.11592-4-sashal@kernel.org>
-References: <20191113015622.11592-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 03/68] ARM: dts: omap5: enable OTG role for DWC3 controller
+Date: Tue, 12 Nov 2019 20:58:27 -0500
+Message-ID: <20191113015932.12655-3-sashal@kernel.org>
+References: <20191113015932.12655-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191113015622.11592-1-sashal@kernel.org>
+In-Reply-To: <20191113015932.12655-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
@@ -32,7 +32,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index 7824b2631cb6b..f65343f8e1d69 100644
+index 4caadb2532497..3e9e3d90f2b4f 100644
 --- a/arch/arm/boot/dts/omap5-board-common.dtsi
 +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
 @@ -694,6 +694,10 @@
