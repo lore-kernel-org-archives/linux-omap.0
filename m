@@ -1,307 +1,81 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv2 01/17] dt-bindings: remoteproc: Add OMAP remoteproc
- bindings
-Date: Wed, 13 Nov 2019 08:25:52 -0600
-Message-ID: <20191113142552.GA12429@bogus>
-References: <20191028124238.19224-2-t-kristo@ti.com>
- <20191107140508.32298-1-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] bus: ti-sysc: Add module enable quirk for audio AESS
+Date: Wed, 13 Nov 2019 09:37:02 -0800
+Message-ID: <20191113173702.57107-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191107140508.32298-1-t-kristo@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com, devicetree@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 07, 2019 at 04:05:08PM +0200, Tero Kristo wrote:
-> From: Suman Anna <s-anna@ti.com>
-> 
-> Add the device tree bindings document for the IPU and DSP
-> remote processor devices on OMAP4+ SoCs.
-> 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> [t-kristo@ti.com: converted to schema]
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  .../remoteproc/ti,omap-remoteproc.yaml        | 250 ++++++++++++++++++
->  1 file changed, 250 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
-> 
-> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
-> new file mode 100644
-> index 000000000000..901ccf1024c2
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
-> @@ -0,0 +1,249 @@
-> +# SPDX-License-Identifier: GPL-2.0
+We must set the autogating bit on enable for AESS (Audio Engine SubSystem)
+when probed with ti-sysc interconnect target module driver. Otherwise it
+won't idle properly.
 
-For new bindings:
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c                 | 14 +++++++++++++-
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/remoteproc/ti,omap-remoteproc.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> +
-> +title: OMAP4+ Remoteproc Devices
-> +
-> +maintainers:
-> +  - Suman Anna <s-anna@ti.com>
-> +
-> +description:
-> +  The OMAP family of SoCs usually have one or more slave processor sub-systems
-> +  that are used to offload some of the processor-intensive tasks, or to manage
-> +  other hardware accelerators, for achieving various system level goals.
-> +
-> +  The processor cores in the sub-system are usually behind an IOMMU, and may
-> +  contain additional sub-modules like Internal RAM and/or ROMs, L1 and/or L2
-> +  caches, an Interrupt Controller, a Cache Controller etc.
-> +
-> +  The OMAP SoCs usually have a DSP processor sub-system and/or an IPU processor
-> +  sub-system. The DSP processor sub-system can contain any of the TI's C64x,
-> +  C66x or C67x family of DSP cores as the main execution unit. The IPU processor
-> +  sub-system usually contains either a Dual-Core Cortex-M3 or Dual-Core
-> +  Cortex-M4 processors.
-> +
-> +  Each remote processor sub-system is represented as a single DT node. Each node
-> +  has a number of required or optional properties that enable the OS running on
-> +  the host processor (MPU) to perform the device management of the remote
-> +  processor and to communicate with the remote processor. The various properties
-> +  can be classified as constant or variable. The constant properties are
-> +  dictated by the SoC and does not change from one board to another having the
-> +  same SoC. Examples of constant properties include 'iommus', 'reg'. The
-> +  variable properties are dictated by the system integration aspects such as
-> +  memory on the board, or configuration used within the corresponding firmware
-> +  image. Examples of variable properties include 'mboxes', 'memory-region',
-> +  'timers', 'watchdog-timers' etc.
-> +
-> +properties:
-> +  compatible:
-> +    enum:
-> +      - ti,omap4-dsp
-> +      - ti,omap5-dsp
-> +      - ti,dra7-dsp
-> +      - ti,omap4-ipu
-> +      - ti,omap5-ipu
-> +      - ti,dra7-ipu
-> +
-> +  iommus:
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-
-The type is already defined. You just need to say how many (with 
-min/maxItems).
-
-> +    description: |
-> +      phandles to OMAP IOMMU nodes, that need to be programmed
-> +      for this remote processor to access any external RAM memory or
-> +      other peripheral device address spaces. This property usually
-> +      has only a single phandle. Multiple phandles are used only in
-> +      cases where the sub-system has different ports for different
-> +      sub-modules within the processor sub-system (eg: DRA7 DSPs),
-> +      and need the same programming in both the MMUs.
-> +
-> +  mboxes:
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-
-Same here.
-
-> +    description: |
-> +      OMAP Mailbox specifier denoting the sub-mailbox, to be used for
-> +      communication with the remote processor. The specifier format is
-> +      as per the bindings,
-> +      Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-> +      This property should match with the sub-mailbox node used in
-> +      the firmware image.
-> +
-> +# Optional properties:
-> +# --------------------
-> +# Some of these properties are mandatory on some SoCs, and some are optional
-> +# depending on the configuration of the firmware image to be executed on the
-> +# remote processor. The conditions are mentioned for each property.
-
-if/then schema can define which ones are required for specific 
-compatibles.
-
-> +#
-> +# The following are the optional properties:
-> +
-> +  reg:
-> +    minItems: 1
-> +    maxItems: 3
-> +    description: |
-> +      Address space for any remoteproc memories present on
-> +      the SoC. Should contain an entry for each value in
-> +      'reg-names'. These are mandatory for all DSP and IPU
-> +      processors that have them (OMAP4/OMAP5 DSPs do not have
-> +      any RAMs)
-> +
-> +  reg-names:
-> +    description: |
-> +      Required names for each of the address spaces defined in
-> +      the 'reg' property. Should contain a string from among
-> +      the following names, each representing the corresponding
-> +      internal RAM memory region.
-> +    minItems: 1
-> +    maxItems: 3
-> +    items:
-> +      - const: l2ram
-> +      - const: l1pram
-> +      - const: l1dram
-> +
-> +  ti,bootreg:
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-> +    description: |
-> +      Should be a pair of the phandle to the System Control
-> +      Configuration region that contains the boot address
-> +      register, and the register offset of the boot address
-> +      register within the System Control module. This property
-> +      is required for all the DSP instances on OMAP4, OMAP5
-> +      and DRA7xx SoCs.
-> +
-> +  memory-region:
-> +    $ref: /schemas/types.yaml#/definitions/phandle
-> +    description: |
-> +      phandle to the reserved memory node to be associated
-> +      with the remoteproc device. The reserved memory node
-> +      can be a CMA memory node, and should be defined as
-> +      per the bindings,
-> +      Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-> +
-> +  ti,timers:
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-> +    description: |
-> +      One or more phandles to OMAP DMTimer nodes, that serve
-> +      as System/Tick timers for the OS running on the remote
-> +      processors. This will usually be a single timer if the
-> +      processor sub-system is running in SMP mode, or one per
-> +      core in the processor sub-system. This can also be used
-> +      to reserve specific timers to be dedicated to the
-> +      remote processors.
-> +
-> +      This property is mandatory on remote processors requiring
-> +      external tick wakeup, and to support Power Management
-> +      features. The timers to be used should match with the
-> +      timers used in the firmware image.
-> +
-> +  ti,watchdog-timers:
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-> +    description: |
-> +      One or more phandles to OMAP DMTimer nodes, used to
-> +      serve as Watchdog timers for the processor cores. This
-> +      will usually be one per executing processor core, even
-> +      if the processor sub-system is running a SMP OS.
-> +
-> +      The timers to be used should match with the watchdog
-> +      timers used in the firmware image.
-> +
-> +required:
-> +  - compatible
-> +  - iommus
-> +  - mboxes
-> +
-> +examples:
-> +  - |
-> +
-> +    //Example 1: OMAP4 DSP
-> +
-> +    /* DSP Reserved Memory node */
-> +    reserved-memory {
-> +        #address-cells = <1>;
-> +        #size-cells = <1>;
-> +
-> +        dsp_memory_region: dsp-memory@98000000 {
-> +            compatible = "shared-dma-pool";
-> +            reg = <0x98000000 0x800000>;
-> +            reusable;
-> +        };
-> +    };
-> +
-> +    /* DSP node */
-> +    ocp {
-> +        dsp: dsp {
-> +            compatible = "ti,omap4-dsp";
-> +            ti,bootreg = <&scm_conf 0x304>;
-> +            iommus = <&mmu_dsp>;
-> +            mboxes = <&mailbox &mbox_dsp>;
-> +            memory-region = <&dsp_memory_region>;
-> +            ti,timers = <&timer5>;
-> +            ti,watchdog-timers = <&timer6>;
-> +        };
-> +    };
-> +
-> +  - |+
-> +
-> +    //Example 2: OMAP5 IPU
-> +
-> +    /* IPU Reserved Memory node */
-> +    reserved-memory {
-> +        #address-cells = <2>;
-> +        #size-cells = <2>;
-> +
-> +        ipu_memory_region: ipu-memory@95800000 {
-> +            compatible = "shared-dma-pool";
-> +            reg = <0 0x95800000 0 0x3800000>;
-> +            reusable;
-> +        };
-> +    };
-> +
-> +    /* IPU node */
-> +    ocp {
-> +        #address-cells = <1>;
-> +        #size-cells = <1>;
-> +
-> +        ipu: ipu@55020000 {
-> +            compatible = "ti,omap5-ipu";
-> +            reg = <0x55020000 0x10000>;
-> +            reg-names = "l2ram";
-> +            iommus = <&mmu_ipu>;
-> +            mboxes = <&mailbox &mbox_ipu>;
-> +            memory-region = <&ipu_memory_region>;
-> +            ti,timers = <&timer3>, <&timer4>;
-> +            ti,watchdog-timers = <&timer9>, <&timer11>;
-> +        };
-> +    };
-> +
-> +  - |+
-> +
-> +    //Example 3: DRA7xx/AM57xx DSP
-> +
-> +    /* DSP1 Reserved Memory node */
-> +    reserved-memory {
-> +        #address-cells = <2>;
-> +        #size-cells = <2>;
-> +
-> +        dsp1_memory_region: dsp1-memory@99000000 {
-> +            compatible = "shared-dma-pool";
-> +            reg = <0x0 0x99000000 0x0 0x4000000>;
-> +            reusable;
-> +        };
-> +    };
-> +
-> +    /* DSP1 node */
-> +    ocp {
-> +        #address-cells = <1>;
-> +        #size-cells = <1>;
-> +
-> +        dsp1: dsp@40800000 {
-> +            compatible = "ti,dra7-dsp";
-> +            reg = <0x40800000 0x48000>,
-> +                  <0x40e00000 0x8000>,
-> +                  <0x40f00000 0x8000>;
-> +            reg-names = "l2ram", "l1pram", "l1dram";
-> +            ti,bootreg = <&scm_conf 0x55c>;
-> +            iommus = <&mmu0_dsp1>, <&mmu1_dsp1>;
-> +            mboxes = <&mailbox5 &mbox_dsp1_ipc3x>;
-> +            memory-region = <&dsp1_memory_region>;
-> +            ti,timers = <&timer5>;
-> +            ti,watchdog-timers = <&timer10>;
-> +        };
-> +    };
-> -- 
-> 2.17.1
-> 
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1248,6 +1248,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 		   SYSC_QUIRK_SWSUP_SIDLE),
+ 
+ 	/* Quirks that need to be set based on detected module */
++	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff,
++		   SYSC_MODULE_QUIRK_AESS),
+ 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
+ 		   SYSC_MODULE_QUIRK_HDQ1W),
+ 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x0000000a, 0xffffffff,
+@@ -1276,7 +1278,6 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ #ifdef DEBUG
+ 	SYSC_QUIRK("adc", 0, 0, 0x10, -1, 0x47300001, 0xffffffff, 0),
+ 	SYSC_QUIRK("atl", 0, 0, -1, -1, 0x0a070100, 0xffffffff, 0),
+-	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff, 0),
+ 	SYSC_QUIRK("cm", 0, 0, -1, -1, 0x40000301, 0xffffffff, 0),
+ 	SYSC_QUIRK("control", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
+ 	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
+@@ -1408,6 +1409,14 @@ static void sysc_clk_enable_quirk_hdq1w(struct sysc *ddata)
+ 	sysc_write(ddata, offset, val);
+ }
+ 
++/* AESS (Audio Engine SubSystem) needs autogating set after enable */
++static void sysc_module_enable_quirk_aess(struct sysc *ddata)
++{
++	int offset = 0x7c;	/* AESS_AUTO_GATING_ENABLE */
++
++	sysc_write(ddata, offset, 1);
++}
++
+ /* I2C needs extra enable bit toggling for reset */
+ static void sysc_clk_quirk_i2c(struct sysc *ddata, bool enable)
+ {
+@@ -1490,6 +1499,9 @@ static void sysc_init_module_quirks(struct sysc *ddata)
+ 		return;
+ 	}
+ 
++	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_AESS)
++		ddata->module_enable_quirk = sysc_module_enable_quirk_aess;
++
+ 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_SGX)
+ 		ddata->module_enable_quirk = sysc_module_enable_quirk_sgx;
+ 
+diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+--- a/include/linux/platform_data/ti-sysc.h
++++ b/include/linux/platform_data/ti-sysc.h
+@@ -49,6 +49,7 @@ struct sysc_regbits {
+ 	s8 emufree_shift;
+ };
+ 
++#define SYSC_MODULE_QUIRK_AESS		BIT(19)
+ #define SYSC_MODULE_QUIRK_SGX		BIT(18)
+ #define SYSC_MODULE_QUIRK_HDQ1W		BIT(17)
+ #define SYSC_MODULE_QUIRK_I2C		BIT(16)
+-- 
+2.23.0
