@@ -1,47 +1,64 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 202/209] ARM: dts: omap5: Fix dual-role mode on Super-Speed port
-Date: Tue, 12 Nov 2019 20:50:18 -0500
-Message-ID: <20191113015025.9685-202-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 116/209] i2c: omap: use core to detect 'no zero length' quirk
+Date: Tue, 12 Nov 2019 20:48:52 -0500
+Message-ID: <20191113015025.9685-116-sashal@kernel.org>
 References: <20191113015025.9685-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191113015025.9685-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Roger Quadros <rogerq@ti.com>, "H . Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Roger Quadros <rogerq@ti.com>
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-[ Upstream commit a763ecc15d0e37c3a15ff6825183061209832685 ]
+[ Upstream commit f37b2bb6ac3e6ebf855d9d4f05cc6932a8e5b463 ]
 
-OMAP5's Super-Speed USB port has a software mailbox register
-that needs to be fed with VBUS and ID events from an external
-VBUS/ID comparator.
+And don't reimplement in the driver.
 
-Without this, Host role will not work correctly.
-
-Fixes: 656c1a65ab55 ("ARM: dts: omap5: enable OTG role for DWC3 controller")
-Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap5-board-common.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/i2c/busses/i2c-omap.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index c2dc4199b4ec2..61a06f6add3ca 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -704,6 +704,7 @@
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 2ac86096ddd95..cd9c65f3d404f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -661,9 +661,6 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	dev_dbg(omap->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
+ 		msg->addr, msg->len, msg->flags, stop);
+ 
+-	if (msg->len == 0)
+-		return -EINVAL;
+-
+ 	omap->receiver = !!(msg->flags & I2C_M_RD);
+ 	omap_i2c_resize_fifo(omap, msg->len, omap->receiver);
+ 
+@@ -1179,6 +1176,10 @@ static const struct i2c_algorithm omap_i2c_algo = {
+ 	.functionality	= omap_i2c_func,
  };
  
- &dwc3 {
-+	extcon = <&extcon_usb3>;
- 	dr_mode = "otg";
- };
- 
++static const struct i2c_adapter_quirks omap_i2c_quirks = {
++	.flags = I2C_AQ_NO_ZERO_LEN,
++};
++
+ #ifdef CONFIG_OF
+ static struct omap_i2c_bus_platform_data omap2420_pdata = {
+ 	.rev = OMAP_I2C_IP_VERSION_1,
+@@ -1453,6 +1454,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	adap->class = I2C_CLASS_DEPRECATED;
+ 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
+ 	adap->algo = &omap_i2c_algo;
++	adap->quirks = &omap_i2c_quirks;
+ 	adap->dev.parent = &pdev->dev;
+ 	adap->dev.of_node = pdev->dev.of_node;
+ 	adap->bus_recovery_info = &omap_i2c_bus_recovery_info;
 -- 
 2.20.1
