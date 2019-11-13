@@ -1,47 +1,51 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 112/115] ARM: dts: omap5: Fix dual-role mode on Super-Speed port
-Date: Tue, 12 Nov 2019 20:56:19 -0500
-Message-ID: <20191113015622.11592-112-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 003/115] ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
+Date: Tue, 12 Nov 2019 20:54:30 -0500
+Message-ID: <20191113015622.11592-3-sashal@kernel.org>
 References: <20191113015622.11592-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20191113015622.11592-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Roger Quadros <rogerq@ti.com>, "H . Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Roger Quadros <rogerq@ti.com>
+From: Vignesh R <vigneshr@ti.com>
 
-[ Upstream commit a763ecc15d0e37c3a15ff6825183061209832685 ]
+[ Upstream commit b830526f304764753fcb8b4a563a94080e982a6c ]
 
-OMAP5's Super-Speed USB port has a software mailbox register
-that needs to be fed with VBUS and ID events from an external
-VBUS/ID comparator.
+Add ti,syscon-unaligned-access property to PCIe RC nodes to set
+appropriate bits in CTRL_CORE_SMA_SW_7 register to enable workaround for
+errata i870.
 
-Without this, Host role will not work correctly.
-
-Fixes: 656c1a65ab55 ("ARM: dts: omap5: enable OTG role for DWC3 controller")
-Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Vignesh R <vigneshr@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap5-board-common.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/dra7.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index f65343f8e1d69..c58f14de01451 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -695,6 +695,7 @@
- };
- 
- &dwc3 {
-+	extcon = <&extcon_usb3>;
- 	dr_mode = "otg";
- };
- 
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 0bf354024ef55..3af1aa7a3213d 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -314,6 +314,7 @@
+ 						<0 0 0 2 &pcie1_intc 2>,
+ 						<0 0 0 3 &pcie1_intc 3>,
+ 						<0 0 0 4 &pcie1_intc 4>;
++				ti,syscon-unaligned-access = <&scm_conf1 0x14 1>;
+ 				status = "disabled";
+ 				pcie1_intc: interrupt-controller {
+ 					interrupt-controller;
+@@ -367,6 +368,7 @@
+ 						<0 0 0 2 &pcie2_intc 2>,
+ 						<0 0 0 3 &pcie2_intc 3>,
+ 						<0 0 0 4 &pcie2_intc 4>;
++				ti,syscon-unaligned-access = <&scm_conf1 0x14 2>;
+ 				pcie2_intc: interrupt-controller {
+ 					interrupt-controller;
+ 					#address-cells = <0>;
 -- 
 2.20.1
