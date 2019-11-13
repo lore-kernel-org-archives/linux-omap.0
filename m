@@ -1,28 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v6 net-next 02/13] net: ethernet: ti: cpsw: allow
- untagged traffic on host port
-Date: Mon, 11 Nov 2019 14:38:30 -0800 (PST)
-Message-ID: <20191111.143830.839461521636004353.davem@davemloft.net>
-References: <20191109151525.18651-1-grygorii.strashko@ti.com>
-        <20191109151525.18651-3-grygorii.strashko@ti.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 004/115] ARM: dts: omap5: enable OTG role for DWC3 controller
+Date: Tue, 12 Nov 2019 20:54:31 -0500
+Message-ID: <20191113015622.11592-4-sashal@kernel.org>
+References: <20191113015622.11592-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191109151525.18651-3-grygorii.strashko@ti.com>
+In-Reply-To: <20191113015622.11592-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: f.fainelli@gmail.com, netdev@vger.kernel.org, ilias.apalodimas@linaro.org, andrew@lunn.ch, ivan.khoronzhuk@linaro.org, jiri@resnulli.us, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, m-karicheri2@ti.com, ivecera@redhat.com, robh+dt@kernel.org, devicetree@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Sat, 9 Nov 2019 17:15:14 +0200
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-> +	ale->p0_untag_vid_mask =
-> +		devm_kmalloc_array(params->dev, BITS_TO_LONGS(VLAN_N_VID),
-> +				   sizeof(unsigned long),
-> +				   GFP_KERNEL);
-> +
+[ Upstream commit 656c1a65ab555ee5c7cd0d6aee8ab82ca3c1795f ]
 
-devm_kmalloc_array() can fail and you must check the return value and
-cleanup with -ENOMEM if necessary.
+Since SMPS10 and OTG cable detection extcon are described here, and
+work to enable OTG power when an OTG cable is plugged in, we can
+define OTG mode in the controller (which is disabled by default in
+omap5.dtsi).
+
+Tested on OMAP5EVM and Pyra.
+
+Suggested-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/omap5-board-common.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 7824b2631cb6b..f65343f8e1d69 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -694,6 +694,10 @@
+ 	vbus-supply = <&smps10_out1_reg>;
+ };
+ 
++&dwc3 {
++	dr_mode = "otg";
++};
++
+ &mcspi1 {
+ 
+ };
+-- 
+2.20.1
