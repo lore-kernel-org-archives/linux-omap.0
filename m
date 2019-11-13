@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 116/209] i2c: omap: use core to detect 'no zero length' quirk
-Date: Tue, 12 Nov 2019 20:48:52 -0500
-Message-ID: <20191113015025.9685-116-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 004/209] ARM: dts: omap5: enable OTG role for DWC3 controller
+Date: Tue, 12 Nov 2019 20:47:00 -0500
+Message-ID: <20191113015025.9685-4-sashal@kernel.org>
 References: <20191113015025.9685-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,56 +9,42 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191113015025.9685-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-[ Upstream commit f37b2bb6ac3e6ebf855d9d4f05cc6932a8e5b463 ]
+[ Upstream commit 656c1a65ab555ee5c7cd0d6aee8ab82ca3c1795f ]
 
-And don't reimplement in the driver.
+Since SMPS10 and OTG cable detection extcon are described here, and
+work to enable OTG power when an OTG cable is plugged in, we can
+define OTG mode in the controller (which is disabled by default in
+omap5.dtsi).
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Tested on OMAP5EVM and Pyra.
+
+Suggested-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/i2c/busses/i2c-omap.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap5-board-common.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2ac86096ddd95..cd9c65f3d404f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -661,9 +661,6 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	dev_dbg(omap->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
- 		msg->addr, msg->len, msg->flags, stop);
- 
--	if (msg->len == 0)
--		return -EINVAL;
--
- 	omap->receiver = !!(msg->flags & I2C_M_RD);
- 	omap_i2c_resize_fifo(omap, msg->len, omap->receiver);
- 
-@@ -1179,6 +1176,10 @@ static const struct i2c_algorithm omap_i2c_algo = {
- 	.functionality	= omap_i2c_func,
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 8b8db9d8e9126..c2dc4199b4ec2 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -703,6 +703,10 @@
+ 	vbus-supply = <&smps10_out1_reg>;
  };
  
-+static const struct i2c_adapter_quirks omap_i2c_quirks = {
-+	.flags = I2C_AQ_NO_ZERO_LEN,
++&dwc3 {
++	dr_mode = "otg";
 +};
 +
- #ifdef CONFIG_OF
- static struct omap_i2c_bus_platform_data omap2420_pdata = {
- 	.rev = OMAP_I2C_IP_VERSION_1,
-@@ -1453,6 +1454,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	adap->class = I2C_CLASS_DEPRECATED;
- 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
- 	adap->algo = &omap_i2c_algo;
-+	adap->quirks = &omap_i2c_quirks;
- 	adap->dev.parent = &pdev->dev;
- 	adap->dev.of_node = pdev->dev.of_node;
- 	adap->bus_recovery_info = &omap_i2c_bus_recovery_info;
+ &mcspi1 {
+ 
+ };
 -- 
 2.20.1
