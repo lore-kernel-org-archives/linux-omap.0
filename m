@@ -1,37 +1,40 @@
-From: Caleb Robey <c-robey@ti.com>
-Subject: [uL PATCH 2/2] ARM: dts: am5729: beaglebone-ai: dra7 reqs in dts
-Date: Wed, 13 Nov 2019 16:13:44 -0600
-Message-ID: <20191113221345.4795-3-c-robey@ti.com>
-References: <20191113221345.4795-1-c-robey@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] clk: ti: dra7-atl: Remove pm_runtime_irq_safe()
+Date: Thu, 14 Nov 2019 12:17:18 +0200
+Message-ID: <20191114101718.20619-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191113221345.4795-1-c-robey@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-patch-review@list.ti.com
-Cc: Jason Kridner <jkridner@gmail.com>, Lokesh Vutla <lokeshvutla@ti.com>, Jason Kridner <jdk@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Andreas Dannenberg <dannenberg@ti.com>, Jean-Jacques Hiblot <jjhiblot@ti.com>, Caleb Robey <c-robey@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, "Andrew F . Davis" <afd@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: t-kristo@ti.com, mturquette@baylibre.com
+Cc: sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Small nomenclature change for beaglebone AI compatibility.
+This is not needed for anything, and prevents proper PM transitions for
+parent devices which is bad in case of ti-sysc; this effectively kills
+PM completely. Thus, remove the flag.
 
-Signed-off-by: Jason Kridner <jdk@ti.com>
-
+Suggested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clk/ti/clk-dra7-atl.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 953f0ffce2a9..563d64c69fd4 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -143,7 +143,7 @@
- 	 * the moment, just use a fake OCP bus entry to represent the whole bus
- 	 * hierarchy.
- 	 */
--	ocp {
-+	ocp: ocp {
- 		compatible = "ti,dra7-l3-noc", "simple-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
+diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+index f65e16c4f3c4..8d4c08b034bd 100644
+--- a/drivers/clk/ti/clk-dra7-atl.c
++++ b/drivers/clk/ti/clk-dra7-atl.c
+@@ -233,7 +233,6 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
+ 	cinfo->iobase = of_iomap(node, 0);
+ 	cinfo->dev = &pdev->dev;
+ 	pm_runtime_enable(cinfo->dev);
+-	pm_runtime_irq_safe(cinfo->dev);
+ 
+ 	pm_runtime_get_sync(cinfo->dev);
+ 	atl_write(cinfo, DRA7_ATL_PCLKMUX_REG(0), DRA7_ATL_PCLKMUX);
 -- 
-2.17.1
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
