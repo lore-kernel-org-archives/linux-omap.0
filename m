@@ -1,84 +1,94 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dt-bindings: clock: Move ti-dra7-atl.h to dt-bindigs/clock
-Date: Thu, 14 Nov 2019 12:18:17 +0200
-Message-ID: <20191114101817.20831-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] bus: ti-sysc: Add module enable quirk for audio AESS
+Date: Thu, 14 Nov 2019 12:25:08 +0200
+Message-ID: <4188f17f-67ce-42f8-c9c0-b7d6c74173a1@ti.com>
+References: <20191113173702.57107-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191113173702.57107-1-tony@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: t-kristo@ti.com, mturquette@baylibre.com, robh+dt@kernel.org
-Cc: sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Most of the clock related dt-binding header files are located in
-dt-bindings/clock folder. It would be good to keep all the similar
-header files at a single location.
 
-Suggested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- Documentation/devicetree/bindings/clock/ti/dra7-atl.txt | 4 ++--
- arch/arm/boot/dts/dra7-evm-common.dtsi                  | 2 +-
- arch/arm/boot/dts/dra72-evm-common.dtsi                 | 2 +-
- include/dt-bindings/{clk => clock}/ti-dra7-atl.h        | 0
- 4 files changed, 4 insertions(+), 4 deletions(-)
- rename include/dt-bindings/{clk => clock}/ti-dra7-atl.h (100%)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt b/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-index 10f7047755f3..21c002d28b9b 100644
---- a/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-+++ b/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-@@ -43,7 +43,7 @@ Configuration of ATL instances:
- 	- aws : Audio word select signal selection
- };
- 
--For valid word select signals, see the dt-bindings/clk/ti-dra7-atl.h include
-+For valid word select signals, see the dt-bindings/clock/ti-dra7-atl.h include
- file.
- 
- Examples:
-@@ -83,7 +83,7 @@ atl: atl@4843c000 {
- 	clock-names = "fck";
- };
- 
--#include <dt-bindings/clk/ti-dra7-atl.h>
-+#include <dt-bindings/clock/ti-dra7-atl.h>
- 
- &atl {
- 
-diff --git a/arch/arm/boot/dts/dra7-evm-common.dtsi b/arch/arm/boot/dts/dra7-evm-common.dtsi
-index 82eeba8faef1..23244b5a9942 100644
---- a/arch/arm/boot/dts/dra7-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra7-evm-common.dtsi
-@@ -4,7 +4,7 @@
-  */
- 
- #include <dt-bindings/gpio/gpio.h>
--#include <dt-bindings/clk/ti-dra7-atl.h>
-+#include <dt-bindings/clock/ti-dra7-atl.h>
- #include <dt-bindings/input/input.h>
- 
- / {
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index 8641a3d7d8ad..9eabfd1502da 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -6,7 +6,7 @@
- 
- #include "dra72x.dtsi"
- #include <dt-bindings/gpio/gpio.h>
--#include <dt-bindings/clk/ti-dra7-atl.h>
-+#include <dt-bindings/clock/ti-dra7-atl.h>
- 
- / {
- 	compatible = "ti,dra72-evm", "ti,dra722", "ti,dra72", "ti,dra7";
-diff --git a/include/dt-bindings/clk/ti-dra7-atl.h b/include/dt-bindings/clock/ti-dra7-atl.h
-similarity index 100%
-rename from include/dt-bindings/clk/ti-dra7-atl.h
-rename to include/dt-bindings/clock/ti-dra7-atl.h
--- 
-Peter
+On 13/11/2019 19.37, Tony Lindgren wrote:
+> We must set the autogating bit on enable for AESS (Audio Engine SubSystem)
+> when probed with ti-sysc interconnect target module driver. Otherwise it
+> won't idle properly.
+> 
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/bus/ti-sysc.c                 | 14 +++++++++++++-
+>  include/linux/platform_data/ti-sysc.h |  1 +
+>  2 files changed, 14 insertions(+), 1 deletion(-)
+
+Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+> --- a/drivers/bus/ti-sysc.c
+> +++ b/drivers/bus/ti-sysc.c
+> @@ -1248,6 +1248,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+>  		   SYSC_QUIRK_SWSUP_SIDLE),
+>  
+>  	/* Quirks that need to be set based on detected module */
+> +	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff,
+> +		   SYSC_MODULE_QUIRK_AESS),
+>  	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
+>  		   SYSC_MODULE_QUIRK_HDQ1W),
+>  	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x0000000a, 0xffffffff,
+> @@ -1276,7 +1278,6 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+>  #ifdef DEBUG
+>  	SYSC_QUIRK("adc", 0, 0, 0x10, -1, 0x47300001, 0xffffffff, 0),
+>  	SYSC_QUIRK("atl", 0, 0, -1, -1, 0x0a070100, 0xffffffff, 0),
+> -	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff, 0),
+>  	SYSC_QUIRK("cm", 0, 0, -1, -1, 0x40000301, 0xffffffff, 0),
+>  	SYSC_QUIRK("control", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
+>  	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
+> @@ -1408,6 +1409,14 @@ static void sysc_clk_enable_quirk_hdq1w(struct sysc *ddata)
+>  	sysc_write(ddata, offset, val);
+>  }
+>  
+> +/* AESS (Audio Engine SubSystem) needs autogating set after enable */
+> +static void sysc_module_enable_quirk_aess(struct sysc *ddata)
+> +{
+> +	int offset = 0x7c;	/* AESS_AUTO_GATING_ENABLE */
+> +
+> +	sysc_write(ddata, offset, 1);
+> +}
+> +
+>  /* I2C needs extra enable bit toggling for reset */
+>  static void sysc_clk_quirk_i2c(struct sysc *ddata, bool enable)
+>  {
+> @@ -1490,6 +1499,9 @@ static void sysc_init_module_quirks(struct sysc *ddata)
+>  		return;
+>  	}
+>  
+> +	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_AESS)
+> +		ddata->module_enable_quirk = sysc_module_enable_quirk_aess;
+> +
+>  	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_SGX)
+>  		ddata->module_enable_quirk = sysc_module_enable_quirk_sgx;
+>  
+> diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+> --- a/include/linux/platform_data/ti-sysc.h
+> +++ b/include/linux/platform_data/ti-sysc.h
+> @@ -49,6 +49,7 @@ struct sysc_regbits {
+>  	s8 emufree_shift;
+>  };
+>  
+> +#define SYSC_MODULE_QUIRK_AESS		BIT(19)
+>  #define SYSC_MODULE_QUIRK_SGX		BIT(18)
+>  #define SYSC_MODULE_QUIRK_HDQ1W		BIT(17)
+>  #define SYSC_MODULE_QUIRK_I2C		BIT(16)
+> 
+
+- Péter
 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
