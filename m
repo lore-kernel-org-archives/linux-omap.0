@@ -1,23 +1,24 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] clk: ti: dra7-atl: Remove pm_runtime_irq_safe()
-Date: Thu, 14 Nov 2019 08:50:58 -0800
-Message-ID: <20191114165058.GQ5610@atomide.com>
-References: <20191114101718.20619-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] dt-bindings: clock: Move ti-dra7-atl.h to
+ dt-bindigs/clock
+Date: Thu, 14 Nov 2019 08:51:34 -0800
+Message-ID: <20191114165134.GR5610@atomide.com>
+References: <20191114101817.20831-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191114101718.20619-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20191114101817.20831-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: t-kristo@ti.com, mturquette@baylibre.com, robh+dt@kernel.org, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [191114 10:16]:
-> This is not needed for anything, and prevents proper PM transitions for
-> parent devices which is bad in case of ti-sysc; this effectively kills
-> PM completely. Thus, remove the flag.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [191114 10:17]:
+> Most of the clock related dt-binding header files are located in
+> dt-bindings/clock folder. It would be good to keep all the similar
+> header files at a single location.
 
-Good to hear and thanks for clearing this one:
+Thanks for moving this:
 
-Reviewed-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
