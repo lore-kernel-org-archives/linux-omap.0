@@ -1,24 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dt-bindings: clock: Move ti-dra7-atl.h to
- dt-bindigs/clock
-Date: Thu, 14 Nov 2019 08:51:34 -0800
-Message-ID: <20191114165134.GR5610@atomide.com>
-References: <20191114101817.20831-1-peter.ujfalusi@ti.com>
+From: Caleb Robey <c-robey@ti.com>
+Subject: [PATCH 0/2] ARM: dts: am5729: beaglebone-ai: Enable BeagleBone AI
+Date: Thu, 14 Nov 2019 11:06:17 -0600
+Message-ID: <20191114170620.12346-1-c-robey@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191114101817.20831-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: t-kristo@ti.com, mturquette@baylibre.com, robh+dt@kernel.org, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: linux_omap@vger.kernel.org
+Cc: Jason Kridner <jkridner@gmail.com>, Lokesh Vutla <lokeshvutla@ti.com>, Jason Kridner <jdk@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Andreas Dannenberg <dannenberg@ti.com>, Jean-Jacques Hiblot <jjhiblot@ti.com>, Caleb Robey <c-robey@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, "Andrew F . Davis" <afd@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Tom Rini <trini@konsulko.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [191114 10:17]:
-> Most of the clock related dt-binding header files are located in
-> dt-bindings/clock folder. It would be good to keep all the similar
-> header files at a single location.
+The following patches
+1) Minor change to dra7.dtsi
+2) Add device tree file for BeagleBone AI
 
-Thanks for moving this:
+update: moved dra7.dtsi changes before dts addition to prevent
+compilation breaks
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Caleb Robey (2):
+  ARM: dts: am5729: beaglebone-ai: dra7 reqs in dts
+  ARM: dts: am5729: beaglebone-ai: adding device tree
+
+ arch/arm/boot/dts/Makefile                |   1 +
+ arch/arm/boot/dts/am5729-beagleboneai.dts | 733 ++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi               |   2 +-
+ 3 files changed, 735 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am5729-beagleboneai.dts
+
+-- 
+2.17.1
