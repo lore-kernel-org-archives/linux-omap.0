@@ -1,94 +1,68 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] bus: ti-sysc: Add module enable quirk for audio AESS
-Date: Thu, 14 Nov 2019 12:25:08 +0200
-Message-ID: <4188f17f-67ce-42f8-c9c0-b7d6c74173a1@ti.com>
-References: <20191113173702.57107-1-tony@atomide.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v3 01/12] Documentation: dt: wireless: update wl1251 for sdio
+Date: Thu, 14 Nov 2019 15:11:11 +0100
+Message-ID: <CAPDyKFpGU+tXC8thz52BQfKHNerzYSUroSihh6GpZELFm-1gRQ@mail.gmail.com>
+References: <cover.1573122644.git.hns@goldelico.com> <17b12e91c878dcb74160e3df5f88bc8a9e3f7fce.1573122644.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191113173702.57107-1-tony@atomide.com>
-Content-Language: en-US
+In-Reply-To: <17b12e91c878dcb74160e3df5f88bc8a9e3f7fce.1573122644.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Kalle Valo <kvalo@codeaurora.org>, Mike Rapoport <rppt@linux.ibm.com>, David Sterba <dsterba@suse.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Petr Mladek <pmladek@suse.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Yangtao Li <tiny.windzz@gmail.com>, Alexios Zavras <alexios.zavras@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, John Stultz <john.stultz@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 13/11/2019 19.37, Tony Lindgren wrote:
-> We must set the autogating bit on enable for AESS (Audio Engine SubSystem)
-> when probed with ti-sysc interconnect target module driver. Otherwise it
-> won't idle properly.
-> 
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+On Thu, 7 Nov 2019 at 11:32, H. Nikolaus Schaller <hns@goldelico.com> wrote:
+>
+> The standard method for sdio devices connected to
+> an sdio interface is to define them as a child node
+> like we can see with wlcore.
+>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> Acked-by: Kalle Valo <kvalo@codeaurora.org>
 > ---
->  drivers/bus/ti-sysc.c                 | 14 +++++++++++++-
->  include/linux/platform_data/ti-sysc.h |  1 +
->  2 files changed, 14 insertions(+), 1 deletion(-)
-
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-> --- a/drivers/bus/ti-sysc.c
-> +++ b/drivers/bus/ti-sysc.c
-> @@ -1248,6 +1248,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
->  		   SYSC_QUIRK_SWSUP_SIDLE),
->  
->  	/* Quirks that need to be set based on detected module */
-> +	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff,
-> +		   SYSC_MODULE_QUIRK_AESS),
->  	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
->  		   SYSC_MODULE_QUIRK_HDQ1W),
->  	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x0000000a, 0xffffffff,
-> @@ -1276,7 +1278,6 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
->  #ifdef DEBUG
->  	SYSC_QUIRK("adc", 0, 0, 0x10, -1, 0x47300001, 0xffffffff, 0),
->  	SYSC_QUIRK("atl", 0, 0, -1, -1, 0x0a070100, 0xffffffff, 0),
-> -	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff, 0),
->  	SYSC_QUIRK("cm", 0, 0, -1, -1, 0x40000301, 0xffffffff, 0),
->  	SYSC_QUIRK("control", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
->  	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
-> @@ -1408,6 +1409,14 @@ static void sysc_clk_enable_quirk_hdq1w(struct sysc *ddata)
->  	sysc_write(ddata, offset, val);
->  }
->  
-> +/* AESS (Audio Engine SubSystem) needs autogating set after enable */
-> +static void sysc_module_enable_quirk_aess(struct sysc *ddata)
-> +{
-> +	int offset = 0x7c;	/* AESS_AUTO_GATING_ENABLE */
-> +
-> +	sysc_write(ddata, offset, 1);
-> +}
-> +
->  /* I2C needs extra enable bit toggling for reset */
->  static void sysc_clk_quirk_i2c(struct sysc *ddata, bool enable)
->  {
-> @@ -1490,6 +1499,9 @@ static void sysc_init_module_quirks(struct sysc *ddata)
->  		return;
->  	}
->  
-> +	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_AESS)
-> +		ddata->module_enable_quirk = sysc_module_enable_quirk_aess;
-> +
->  	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_SGX)
->  		ddata->module_enable_quirk = sysc_module_enable_quirk_sgx;
->  
-> diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
-> --- a/include/linux/platform_data/ti-sysc.h
-> +++ b/include/linux/platform_data/ti-sysc.h
-> @@ -49,6 +49,7 @@ struct sysc_regbits {
->  	s8 emufree_shift;
+>  .../bindings/net/wireless/ti,wl1251.txt       | 26 +++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+> index bb2fcde6f7ff..f38950560982 100644
+> --- a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+> +++ b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
+> @@ -35,3 +35,29 @@ Examples:
+>                 ti,power-gpio = <&gpio3 23 GPIO_ACTIVE_HIGH>; /* 87 */
+>         };
 >  };
->  
-> +#define SYSC_MODULE_QUIRK_AESS		BIT(19)
->  #define SYSC_MODULE_QUIRK_SGX		BIT(18)
->  #define SYSC_MODULE_QUIRK_HDQ1W		BIT(17)
->  #define SYSC_MODULE_QUIRK_I2C		BIT(16)
-> 
+> +
+> +&mmc3 {
+> +       vmmc-supply = <&wlan_en>;
+> +
+> +       bus-width = <4>;
+> +       non-removable;
+> +       ti,non-removable;
+> +       cap-power-off-card;
+> +
+> +       pinctrl-names = "default";
+> +       pinctrl-0 = <&mmc3_pins>;
+> +
+> +       #address-cells = <1>;
+> +       #size-cells = <0>;
+> +
+> +       wlan: wifi@1 {
+> +               compatible = "ti,wl1251";
+> +
+> +               reg = <1>;
+> +
+> +               interrupt-parent = <&gpio1>;
+> +               interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;  /* GPIO_21 */
+> +
+> +               ti,wl1251-has-eeprom;
+> +       };
+> +};
 
-- Péter
+One minor thing, the "ti,power-gpio" is not required anymore, as it's
+not needed for the SDIO case for pandora.
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Please move it to an option section.
+
+Kind regards
+Uffe
