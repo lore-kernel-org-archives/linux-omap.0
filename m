@@ -1,114 +1,145 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: Sense of soc bus? (was: [PATCH] base: soc: Export
- soc_device_to_device() helper)
-Date: Fri, 15 Nov 2019 09:58:18 +0100
-Message-ID: <CAMuHMdWOWWQoJh5=07VMRhtrFR_Gc_qNhjTV4tCsvwvMn0kYfA@mail.gmail.com>
-References: <20191103013645.9856-3-afaerber@suse.de> <20191111045609.7026-1-afaerber@suse.de>
- <20191111052741.GB3176397@kroah.com> <586fa37c-6292-aca4-fa7c-73064858afaf@suse.de>
- <20191111064040.GA3502217@kroah.com> <a88442df-dc6b-07e5-8dee-9e308bdda450@suse.de>
- <20191112052347.GA1197504@kroah.com> <20191112072926.isjxfa4ci6akhx56@pengutronix.de>
- <aff81b8e-f041-73a5-6a95-d308fa07842c@suse.de> <c8572f70-5550-8cee-4381-fd7de7ae5af0@baylibre.com>
+From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 00/12] OpenPandora: make wl1251 connected to mmc3 sdio
+ port of OpenPandora work again
+Date: Fri, 15 Nov 2019 10:29:46 +0100
+Message-ID: <CAPDyKFr=Uk1i0c=3WvuOYCQ__Skpr-9mjVM2Yqst-hd8zY6OeQ@mail.gmail.com>
+References: <cover.1573122644.git.hns@goldelico.com> <CAPDyKFrntf2Kd9Zf7uxRCUk_OrKD8B3xOKmvPaf04X21L5HwWA@mail.gmail.com>
+ <5F5A5FC0-8F91-4D5B-9EF6-AF36FE38B588@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c8572f70-5550-8cee-4381-fd7de7ae5af0@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: =?UTF-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Geert Uytterhoeven <geert+renesas@glider.be>, linux-realtek-soc@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Andersson <bjorn.andersson@linaro.org>, Thierry Reding <thierry.reding@gmail.com>, Lee Jones <lee.jones@linaro.org>, Rob Herring <robh@kernel.org>, Kevin Hilman <khilman@baylibre.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Michal Simek <michal.simek@xilinx.com>, Jonathan Hunter <jonathanh@nvidia.com>, NXP Linux Team <linux-imx@nxp.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, boot-architecture@lists.linaro.org, Sascha Hauer <s.hauer@pengutronix.d>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5F5A5FC0-8F91-4D5B-9EF6-AF36FE38B588-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kefeng Wang <wangkefeng.wang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, DTML <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-wireless <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Mike Rapoport <rppt-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, Yangtao Li <tiny.windzz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, Alexios Zavras <alexios.zavras-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, David Sterba <dst>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Neil,
-
-On Fri, Nov 15, 2019 at 9:52 AM Neil Armstrong <narmstrong@baylibre.com> wrote:
-> On 12/11/2019 11:47, Andreas Färber wrote:
-> > Am 12.11.19 um 08:29 schrieb Uwe Kleine-König:
-> >> On Tue, Nov 12, 2019 at 06:23:47AM +0100, Greg Kroah-Hartman wrote:
-> >>> On Mon, Nov 11, 2019 at 09:10:41PM +0100, Andreas Färber wrote:
-> >>>> Am 11.11.19 um 07:40 schrieb Greg Kroah-Hartman:
-> >>>>> On Mon, Nov 11, 2019 at 06:42:05AM +0100, Andreas Färber wrote:
-> >>>>>> Am 11.11.19 um 06:27 schrieb Greg Kroah-Hartman:
-> >>>>>>> On Mon, Nov 11, 2019 at 05:56:09AM +0100, Andreas Färber wrote:
-> >>>>>>>> Use of soc_device_to_device() in driver modules causes a build failure.
-> >>>>>>>> Given that the helper is nicely documented in include/linux/sys_soc.h,
-> >>>>>>>> let's export it as GPL symbol.
-> >>>>>>>
-> >>>>>>> I thought we were fixing the soc drivers to not need this.  What
-> >>>>>>> happened to that effort?  I thought I had patches in my tree (or
-> >>>>>>> someone's tree) that did some of this work already, such that this
-> >>>>>>> symbol isn't needed anymore.
-> >>>>>>
-> >>>>>> I do still see this function used in next-20191108 in drivers/soc/.
-> >>>>>>
-> >>>>>> I'll be happy to adjust my RFC driver if someone points me to how!
-> >>>>>
-> >>>>> Look at c31e73121f4c ("base: soc: Handle custom soc information sysfs
-> >>>>> entries") for how you can just use the default attributes for the soc to
-> >>>>> create the needed sysfs files, instead of having to do it "by hand"
-> >>>>> which is racy and incorrect.
-> >>>>
-> >>>> Unrelated.
-> >>>>
-> >>>>>> Given the current struct layout, a type cast might work (but ugly).
-> >>>>>> Or if we stay with my current RFC driver design, we could use the
-> >>>>>> platform_device instead of the soc_device (which would clutter the
-> >>>>>> screen more than "soc soc0:") or resort to pr_info() w/o device.
-> >>>>>
-> >>>>> Ick, no, don't cast blindly.  What do you need the pointer for?  Is this
-> >>>>> for in-tree code?
-> >>>>
-> >>>> No, an RFC patchset: https://patchwork.kernel.org/cover/11224261/
-> >>>>
-> >>>> As I indicated above, I used it for a dev_info(), which I can easily
-> >>>> avoid by using pr_info() instead:
-> >>>>
-> >>>> diff --git a/drivers/soc/realtek/chip.c b/drivers/soc/realtek/chip.c
-> >>>> index e5078c6731fd..f9380e831659 100644
-> >>>> --- a/drivers/soc/realtek/chip.c
-> >>>> +++ b/drivers/soc/realtek/chip.c
-> >>>> @@ -178,8 +178,7 @@ static int rtd_soc_probe(struct platform_device *pdev)
-> >>>>
-> >>>>         platform_set_drvdata(pdev, soc_dev);
-> >>>>
-> >>>> -       dev_info(soc_device_to_device(soc_dev),
-> >>>> -               "%s %s (0x%08x) rev %s (0x%08x) detected\n",
-> >>>> +       pr_info("%s %s (0x%08x) rev %s (0x%08x) detected\n",
-> >>>>                 soc_dev_attr->family, soc_dev_attr->soc_id, chip_id,
-> >>>>                 soc_dev_attr->revision, chip_rev);
-> >>>
-> >>> First off, the driver should not be spitting out noise for when all goes
-> >>> well like this :)
+On Thu, 14 Nov 2019 at 16:16, H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
+>
+> Hi Ulf,
+>
+> > Am 14.11.2019 um 15:18 schrieb Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>:
+> >
+> > On Thu, 7 Nov 2019 at 11:31, H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
 > >>
-> >> I didn't follow the discussion closely, but I think I want to object
-> >> here a bit. While I agree that each driver emitting some stuff to the
-> >> log buffer is hardly helpful, seeing the exact SoC details is indeed
-> >> useful at times. With my Debian kernel team member hat on, I'd say
-> >> keep this information. This way the SoC details make it into kernel bug
-> >> reports without effort on our side.
+> >>
+> >> * add a revisit note for special wl1251 handling code because it should
+> >>  be solved more generic in mmc core - suggested by Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> >> * remove init_card callback from platform_data/hsmmc-omap.h - suggested by Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> >> * remove obstructive always-on for vwlan regulator - suggested by Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> >> * rename DT node - suggested by Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> >> * fix ARM: dts: subject prefix - suggested by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> >> * also remove omap2_hsmmc_info and obc-y line in Makefile - suggested by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > >
-> > Seconded. For example, RTD1295 will support LSADC only from revision B00
-> > on (and it's not the first time I'm seeing such things in the industry).
-> > So if a user complains, it will be helpful to see that information.
+> > No further comments from my side. Let's just agree on how to deal with
+> > the ti,power-gpio, then I can apply this.
+>
+> I'd say it can be a separate patch since it does not fix the Pandora
+> issues, but is a new and independent optimization.
+>
+> And in case someone complains and uses it for some out-of tree purpose
+> it can be discussed or even be reverted easier if it is a separate patch.
+>
+> I can do it in the next days.
+
+Okay, that sounds reasonable.
+
+In the meantime, I have queued up the series on my next branch (for v5.5).
+
+I fixed up a couple of complaints from checkpatch, and also added
+stable tags for the first two patches in the series, as that what
+missing.
+
+Kind regards
+Uffe
+
+
+>
+> > Thanks a lot for fixing all this mess!
+>
+> I hope the users also appreciate our work.
+>
+> Best regards,
+> Nikolaus
+>
 > >
-> > Referencing your Amlogic review, with all due respect for its authors,
-> > the common framework here just lets that information evaporate into the
-> > deeps of sysfs.
+> > Kind regards
+> > Uffe
+> >
+> >>
+> >> PATCH V2 2019-10-19 20:41:47:
+> >> * added acked-by for wl1251 patches - Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> >> * really removed old pdata-quirks code (not through #if 0)
+> >> * splited out a partial revert of
+> >>        efdfeb079cc3b ("regulator: fixed: Convert to use GPIO descriptor only")
+> >>  because that was introduced after v4.19 and stops the removal of
+> >>  the pdata-quirks patch from cleanly applying to v4.9, v4.14, v4.19
+> >>  - reported by Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> >> * added a new patch to remove old omap hsmmc since pdata quirks
+> >>  were last user - suggested by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> >>
+> >> PATCH V1 2019-10-18 22:25:39:
+> >> Here we have a set of scattered patches to make the OpenPandora WiFi work again.
+> >>
+> >> v4.7 did break the pdata-quirks which made the mmc3 interface
+> >> fail completely, because some code now assumes device tree
+> >> based instantiation.
+> >>
+> >> Fixes: 81eef6ca9201 ("mmc: omap_hsmmc: Use dma_request_chan() for requesting DMA channel")
+> >>
+> >> v4.11 did break the sdio qirks for wl1251 which made the driver no longer
+> >> load, although the device was found as an sdio client.
+> >>
+> >> Fixes: 884f38607897 ("mmc: core: move some sdio IDs out of quirks file")
+> >>
+> >> To solve these issues:
+> >> * we convert mmc3 and wl1251 initialization from pdata-quirks
+> >>  to device tree
+> >> * we make the wl1251 driver read properties from device tree
+> >> * we fix the mmc core vendor ids and quirks
+> >> * we fix the wl1251 (and wl1271) driver to use only vendor ids
+> >>  from header file instead of (potentially conflicting) local
+> >>  definitions
+> >>
+> >>
+> >> H. Nikolaus Schaller (12):
+> >>  Documentation: dt: wireless: update wl1251 for sdio
+> >>  net: wireless: ti: wl1251 add device tree support
+> >>  ARM: dts: pandora-common: define wl1251 as child node of mmc3
+> >>  mmc: host: omap_hsmmc: add code for special init of wl1251 to get rid
+> >>    of pandora_wl1251_init_card
+> >>  omap: pdata-quirks: revert pandora specific gpiod additions
+> >>  omap: pdata-quirks: remove openpandora quirks for mmc3 and wl1251
+> >>  omap: remove omap2_hsmmc_info in old hsmmc.[ch] and update Makefile
+> >>  mmc: host: omap-hsmmc: remove init_card pdata callback from pdata
+> >>  mmc: sdio: fix wl1251 vendor id
+> >>  mmc: core: fix wl1251 sdio quirks
+> >>  net: wireless: ti: wl1251 use new SDIO_VENDOR_ID_TI_WL1251 definition
+> >>  net: wireless: ti: remove local VENDOR_ID and DEVICE_ID definitions
+> >>
+> >> .../bindings/net/wireless/ti,wl1251.txt       |  26 +++
+> >> arch/arm/boot/dts/omap3-pandora-common.dtsi   |  36 +++-
+> >> arch/arm/mach-omap2/Makefile                  |   3 -
+> >> arch/arm/mach-omap2/common.h                  |   1 -
+> >> arch/arm/mach-omap2/hsmmc.c                   | 171 ------------------
+> >> arch/arm/mach-omap2/hsmmc.h                   |  32 ----
+> >> arch/arm/mach-omap2/pdata-quirks.c            | 105 -----------
+> >> drivers/mmc/core/quirks.h                     |   7 +
+> >> drivers/mmc/host/omap_hsmmc.c                 |  30 ++-
+> >> drivers/net/wireless/ti/wl1251/sdio.c         |  23 ++-
+> >> drivers/net/wireless/ti/wlcore/sdio.c         |   8 -
+> >> include/linux/mmc/sdio_ids.h                  |   2 +
+> >> include/linux/platform_data/hsmmc-omap.h      |   3 -
+> >> 13 files changed, 111 insertions(+), 336 deletions(-)
+> >> delete mode 100644 arch/arm/mach-omap2/hsmmc.c
+> >> delete mode 100644 arch/arm/mach-omap2/hsmmc.h
+> >>
+> >> --
+> >> 2.23.0
+> >>
 >
-> Hopefully we never had the case where needed to use the soc info in drivers,
-> but now we have one and having such infrastructure already in-place will help.
 >
-> Renesas platforms makes a extensive usage of the soc info infrastructure to
-> figure out plenty of HW parameters at runtime and lower their DT changes.
-
-We do our best to use it solely for detecting quirks in early SoC revisions.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
