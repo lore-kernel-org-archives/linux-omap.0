@@ -1,118 +1,105 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 037/237] net: ethernet: ti: cpsw: fix lost of mcast packets while rx_mode update
-Date: Sat, 16 Nov 2019 10:37:52 -0500
-Message-ID: <20191116154113.7417-37-sashal@kernel.org>
-References: <20191116154113.7417-1-sashal@kernel.org>
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Subject: [RFCv1 03/42] drm/omap: constify write buffers
+Date: Sun, 17 Nov 2019 03:39:49 +0100
+Message-ID: <20191117024028.2233-4-sebastian.reichel@collabora.com>
+References: <20191117024028.2233-1-sebastian.reichel@collabora.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191116154113.7417-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20191117024028.2233-1-sebastian.reichel@collabora.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: kernel@collabora.com, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-
-[ Upstream commit 5da1948969bc1991920987ce4361ea56046e5a98 ]
-
-Whenever kernel or user decides to call rx mode update, it clears
-every multicast entry from forwarding table and in some time adds
-it again. This time can be enough to drop incoming multicast packets.
-
-That's why clear only staled multicast entries and update or add new
-one afterwards.
-
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/net/ethernet/ti/cpsw.c | 46 +++++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 1afed85550c0a..ef79d2b6070b9 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -570,7 +570,7 @@ static inline int cpsw_get_slave_port(u32 slave_num)
- 	return slave_num + 1;
- }
- 
--static void cpsw_add_mcast(struct cpsw_priv *priv, u8 *addr)
-+static void cpsw_add_mcast(struct cpsw_priv *priv, const u8 *addr)
- {
- 	struct cpsw_common *cpsw = priv->cpsw;
- 
-@@ -662,16 +662,35 @@ static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
- 	}
- }
- 
--static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
-+static int cpsw_add_mc_addr(struct net_device *ndev, const u8 *addr)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+
-+	cpsw_add_mcast(priv, addr);
-+	return 0;
-+}
-+
-+static int cpsw_del_mc_addr(struct net_device *ndev, const u8 *addr)
- {
- 	struct cpsw_priv *priv = netdev_priv(ndev);
- 	struct cpsw_common *cpsw = priv->cpsw;
--	int vid;
-+	int vid, flags;
- 
--	if (cpsw->data.dual_emac)
-+	if (cpsw->data.dual_emac) {
- 		vid = cpsw->slaves[priv->emac_port].port_vlan;
--	else
--		vid = cpsw->data.default_vlan;
-+		flags = ALE_VLAN;
-+	} else {
-+		vid = 0;
-+		flags = 0;
-+	}
-+
-+	cpsw_ale_del_mcast(cpsw->ale, addr, 0, flags, vid);
-+	return 0;
-+}
-+
-+static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
-+{
-+	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
- 
- 	if (ndev->flags & IFF_PROMISC) {
- 		/* Enable promiscuous mode */
-@@ -684,19 +703,9 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 	}
- 
- 	/* Restore allmulti on vlans if necessary */
--	cpsw_ale_set_allmulti(cpsw->ale, priv->ndev->flags & IFF_ALLMULTI);
--
--	/* Clear all mcast from ALE */
--	cpsw_ale_flush_multicast(cpsw->ale, ALE_ALL_PORTS, vid);
-+	cpsw_ale_set_allmulti(cpsw->ale, ndev->flags & IFF_ALLMULTI);
- 
--	if (!netdev_mc_empty(ndev)) {
--		struct netdev_hw_addr *ha;
--
--		/* program multicast address list into ALE register */
--		netdev_for_each_mc_addr(ha, ndev) {
--			cpsw_add_mcast(priv, ha->addr);
--		}
--	}
-+	__dev_mc_sync(ndev, cpsw_add_mc_addr, cpsw_del_mc_addr);
- }
- 
- static void cpsw_intr_enable(struct cpsw_common *cpsw)
-@@ -1956,6 +1965,7 @@ static int cpsw_ndo_stop(struct net_device *ndev)
- 	struct cpsw_common *cpsw = priv->cpsw;
- 
- 	cpsw_info(priv, ifdown, "shutting down cpsw device\n");
-+	__dev_mc_unsync(priv->ndev, cpsw_del_mc_addr);
- 	netif_tx_stop_all_queues(priv->ndev);
- 	netif_carrier_off(priv->ndev);
- 
--- 
-2.20.1
+VGhlIHdyaXRlIGJ1ZmZlcnMgYXJlIG5vdCBtb2RpZmllZCwgc28gdGhleSBjYW4gYmUgY29uc3Rh
+bnQuCgpTaWduZWQtb2ZmLWJ5OiBTZWJhc3RpYW4gUmVpY2hlbCA8c2ViYXN0aWFuLnJlaWNoZWxA
+Y29sbGFib3JhLmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMgICAg
+IHwgMjQgKysrKysrKysrKysrLS0tLS0tLS0tLS0tCiBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9k
+c3Mvb21hcGRzcy5oIHwgMTAgKysrKystLS0tLQogMiBmaWxlcyBjaGFuZ2VkLCAxNyBpbnNlcnRp
+b25zKCspLCAxNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21h
+cGRybS9kc3MvZHNpLmMgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMKaW5kZXgg
+ZmE4MWZiZjM0NDJlLi5iZjYxMzFlNWZhMTQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9v
+bWFwZHJtL2Rzcy9kc2kuYworKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMK
+QEAgLTI2MDEsMTEgKzI2MDEsMTEgQEAgc3RhdGljIGlubGluZSB2b2lkIGRzaV92Y193cml0ZV9s
+b25nX3BheWxvYWQoc3RydWN0IGRzaV9kYXRhICpkc2ksIGludCBjaGFubmVsLAogfQogCiBzdGF0
+aWMgaW50IGRzaV92Y19zZW5kX2xvbmcoc3RydWN0IGRzaV9kYXRhICpkc2ksIGludCBjaGFubmVs
+LCB1OCBkYXRhX3R5cGUsCi0JCQkgICAgdTggKmRhdGEsIHUxNiBsZW4sIHU4IGVjYykKKwkJCSAg
+ICBjb25zdCB1OCAqZGF0YSwgdTE2IGxlbiwgdTggZWNjKQogewogCS8qdTMyIHZhbDsgKi8KIAlp
+bnQgaTsKLQl1OCAqcDsKKwljb25zdCB1OCAqcDsKIAlpbnQgciA9IDA7CiAJdTggYjEsIGIyLCBi
+MywgYjQ7CiAKQEAgLTI2OTgsNyArMjY5OCw3IEBAIHN0YXRpYyBpbnQgZHNpX3ZjX3NlbmRfbnVs
+bChzdHJ1Y3QgZHNpX2RhdGEgKmRzaSwgaW50IGNoYW5uZWwpCiB9CiAKIHN0YXRpYyBpbnQgZHNp
+X3ZjX3dyaXRlX25vc3luY19jb21tb24oc3RydWN0IGRzaV9kYXRhICpkc2ksIGludCBjaGFubmVs
+LAotCQkJCSAgICAgIHU4ICpkYXRhLCBpbnQgbGVuLAorCQkJCSAgICAgIGNvbnN0IHU4ICpkYXRh
+LCBpbnQgbGVuLAogCQkJCSAgICAgIGVudW0gZHNzX2RzaV9jb250ZW50X3R5cGUgdHlwZSkKIHsK
+IAlpbnQgcjsKQEAgLTI3MjksNyArMjcyOSw3IEBAIHN0YXRpYyBpbnQgZHNpX3ZjX3dyaXRlX25v
+c3luY19jb21tb24oc3RydWN0IGRzaV9kYXRhICpkc2ksIGludCBjaGFubmVsLAogfQogCiBzdGF0
+aWMgaW50IGRzaV92Y19kY3Nfd3JpdGVfbm9zeW5jKHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmRz
+c2RldiwgaW50IGNoYW5uZWwsCi0JCXU4ICpkYXRhLCBpbnQgbGVuKQorCQljb25zdCB1OCAqZGF0
+YSwgaW50IGxlbikKIHsKIAlzdHJ1Y3QgZHNpX2RhdGEgKmRzaSA9IHRvX2RzaV9kYXRhKGRzc2Rl
+dik7CiAKQEAgLTI3MzgsNyArMjczOCw3IEBAIHN0YXRpYyBpbnQgZHNpX3ZjX2Rjc193cml0ZV9u
+b3N5bmMoc3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2LCBpbnQgY2hhbm5lbCwKIH0KIAog
+c3RhdGljIGludCBkc2lfdmNfZ2VuZXJpY193cml0ZV9ub3N5bmMoc3RydWN0IG9tYXBfZHNzX2Rl
+dmljZSAqZHNzZGV2LCBpbnQgY2hhbm5lbCwKLQkJdTggKmRhdGEsIGludCBsZW4pCisJCWNvbnN0
+IHU4ICpkYXRhLCBpbnQgbGVuKQogewogCXN0cnVjdCBkc2lfZGF0YSAqZHNpID0gdG9fZHNpX2Rh
+dGEoZHNzZGV2KTsKIApAQCAtMjc0Nyw3ICsyNzQ3LDcgQEAgc3RhdGljIGludCBkc2lfdmNfZ2Vu
+ZXJpY193cml0ZV9ub3N5bmMoc3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2LCBpbnQgY2hh
+bm4KIH0KIAogc3RhdGljIGludCBkc2lfdmNfd3JpdGVfY29tbW9uKHN0cnVjdCBvbWFwX2Rzc19k
+ZXZpY2UgKmRzc2RldiwKLQkJCSAgICAgICBpbnQgY2hhbm5lbCwgdTggKmRhdGEsIGludCBsZW4s
+CisJCQkgICAgICAgaW50IGNoYW5uZWwsIGNvbnN0IHU4ICpkYXRhLCBpbnQgbGVuLAogCQkJICAg
+ICAgIGVudW0gZHNzX2RzaV9jb250ZW50X3R5cGUgdHlwZSkKIHsKIAlzdHJ1Y3QgZHNpX2RhdGEg
+KmRzaSA9IHRvX2RzaV9kYXRhKGRzc2Rldik7CkBAIC0yNzc2LDE1ICsyNzc2LDE1IEBAIHN0YXRp
+YyBpbnQgZHNpX3ZjX3dyaXRlX2NvbW1vbihzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYs
+CiAJcmV0dXJuIHI7CiB9CiAKLXN0YXRpYyBpbnQgZHNpX3ZjX2Rjc193cml0ZShzdHJ1Y3Qgb21h
+cF9kc3NfZGV2aWNlICpkc3NkZXYsIGludCBjaGFubmVsLCB1OCAqZGF0YSwKLQkJaW50IGxlbikK
+K3N0YXRpYyBpbnQgZHNpX3ZjX2Rjc193cml0ZShzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3Nk
+ZXYsIGludCBjaGFubmVsLAorCQljb25zdCB1OCAqZGF0YSwgaW50IGxlbikKIHsKIAlyZXR1cm4g
+ZHNpX3ZjX3dyaXRlX2NvbW1vbihkc3NkZXYsIGNoYW5uZWwsIGRhdGEsIGxlbiwKIAkJCURTU19E
+U0lfQ09OVEVOVF9EQ1MpOwogfQogCi1zdGF0aWMgaW50IGRzaV92Y19nZW5lcmljX3dyaXRlKHN0
+cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmRzc2RldiwgaW50IGNoYW5uZWwsIHU4ICpkYXRhLAotCQlp
+bnQgbGVuKQorc3RhdGljIGludCBkc2lfdmNfZ2VuZXJpY193cml0ZShzdHJ1Y3Qgb21hcF9kc3Nf
+ZGV2aWNlICpkc3NkZXYsIGludCBjaGFubmVsLAorCQljb25zdCB1OCAqZGF0YSwgaW50IGxlbikK
+IHsKIAlyZXR1cm4gZHNpX3ZjX3dyaXRlX2NvbW1vbihkc3NkZXYsIGNoYW5uZWwsIGRhdGEsIGxl
+biwKIAkJCURTU19EU0lfQ09OVEVOVF9HRU5FUklDKTsKQEAgLTI4MTAsNyArMjgxMCw3IEBAIHN0
+YXRpYyBpbnQgZHNpX3ZjX2Rjc19zZW5kX3JlYWRfcmVxdWVzdChzdHJ1Y3QgZHNpX2RhdGEgKmRz
+aSwgaW50IGNoYW5uZWwsCiB9CiAKIHN0YXRpYyBpbnQgZHNpX3ZjX2dlbmVyaWNfc2VuZF9yZWFk
+X3JlcXVlc3Qoc3RydWN0IGRzaV9kYXRhICpkc2ksIGludCBjaGFubmVsLAotCQkJCQkgICAgdTgg
+KnJlcWRhdGEsIGludCByZXFsZW4pCisJCQkJCSAgICBjb25zdCB1OCAqcmVxZGF0YSwgaW50IHJl
+cWxlbikKIHsKIAl1MTYgZGF0YTsKIAl1OCBkYXRhX3R5cGU7CkBAIC0yOTgzLDcgKzI5ODMsNyBA
+QCBzdGF0aWMgaW50IGRzaV92Y19kY3NfcmVhZChzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3Nk
+ZXYsIGludCBjaGFubmVsLCB1OCBkY3NfYwogfQogCiBzdGF0aWMgaW50IGRzaV92Y19nZW5lcmlj
+X3JlYWQoc3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2LCBpbnQgY2hhbm5lbCwKLQkJdTgg
+KnJlcWRhdGEsIGludCByZXFsZW4sIHU4ICpidWYsIGludCBidWZsZW4pCisJCWNvbnN0IHU4ICpy
+ZXFkYXRhLCBpbnQgcmVxbGVuLCB1OCAqYnVmLCBpbnQgYnVmbGVuKQogewogCXN0cnVjdCBkc2lf
+ZGF0YSAqZHNpID0gdG9fZHNpX2RhdGEoZHNzZGV2KTsKIAlpbnQgcjsKZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9vbWFwZHNzLmggYi9kcml2ZXJzL2dwdS9kcm0vb21h
+cGRybS9kc3Mvb21hcGRzcy5oCmluZGV4IDZkZDA4ZDA5NmVlZC4uYWUxYTQ2MDBkYWIyIDEwMDY0
+NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mvb21hcGRzcy5oCisrKyBiL2RyaXZl
+cnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9vbWFwZHNzLmgKQEAgLTMxNSwxOCArMzE1LDE4IEBAIHN0
+cnVjdCBvbWFwZHNzX2RzaV9vcHMgewogCiAJLyogZGF0YSB0cmFuc2ZlciAqLwogCWludCAoKmRj
+c193cml0ZSkoc3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2LCBpbnQgY2hhbm5lbCwKLQkJ
+CXU4ICpkYXRhLCBpbnQgbGVuKTsKKwkJCWNvbnN0IHU4ICpkYXRhLCBpbnQgbGVuKTsKIAlpbnQg
+KCpkY3Nfd3JpdGVfbm9zeW5jKShzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYsIGludCBj
+aGFubmVsLAotCQkJdTggKmRhdGEsIGludCBsZW4pOworCQkJY29uc3QgdTggKmRhdGEsIGludCBs
+ZW4pOwogCWludCAoKmRjc19yZWFkKShzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYsIGlu
+dCBjaGFubmVsLCB1OCBkY3NfY21kLAogCQkJdTggKmRhdGEsIGludCBsZW4pOwogCiAJaW50ICgq
+Z2VuX3dyaXRlKShzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYsIGludCBjaGFubmVsLAot
+CQkJdTggKmRhdGEsIGludCBsZW4pOworCQkJY29uc3QgdTggKmRhdGEsIGludCBsZW4pOwogCWlu
+dCAoKmdlbl93cml0ZV9ub3N5bmMpKHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmRzc2RldiwgaW50
+IGNoYW5uZWwsCi0JCQl1OCAqZGF0YSwgaW50IGxlbik7CisJCQljb25zdCB1OCAqZGF0YSwgaW50
+IGxlbik7CiAJaW50ICgqZ2VuX3JlYWQpKHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmRzc2Rldiwg
+aW50IGNoYW5uZWwsCi0JCQl1OCAqcmVxZGF0YSwgaW50IHJlcWxlbiwKKwkJCWNvbnN0IHU4ICpy
+ZXFkYXRhLCBpbnQgcmVxbGVuLAogCQkJdTggKmRhdGEsIGludCBsZW4pOwogCiAJaW50ICgqYnRh
+X3N5bmMpKHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmRzc2RldiwgaW50IGNoYW5uZWwpOwotLSAK
+Mi4yNC4wCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
+cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
