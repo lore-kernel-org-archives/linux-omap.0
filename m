@@ -1,99 +1,49 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v7 net-next 04/13] net: ethernet: ti: cpsw: resolve build deps of cpsw drivers
-Date: Wed, 20 Nov 2019 00:19:16 +0200
-Message-ID: <20191119221925.28426-5-grygorii.strashko@ti.com>
+From: Jakub Kicinski <jakub.kicinski@netronome.com>
+Subject: Re: [PATCH v7 net-next 07/13] net: ethernet: ti: introduce cpsw
+ switchdev based driver part 1 - dual-emac
+Date: Tue, 19 Nov 2019 15:12:21 -0800
+Message-ID: <20191119151221.14ff2d28@cakuba.netronome.com>
 References: <20191119221925.28426-1-grygorii.strashko@ti.com>
+        <20191119221925.28426-8-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191119221925.28426-1-grygorii.strashko@ti.com>
+In-Reply-To: <20191119221925.28426-8-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>
-Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-A following patches introduce new CPSW switchdev driver which uses common
-code with legacy CPSW driver. This will introduce build dependency between
-CPSW switchdev and CPSW legacy drivers related to for_each_slave() and
-cpsw_slave_index() - they can be compiled both, but only one of them will
-be not functional depending in Kconfig settings due to duffrences in Slave
-Ports indexes calculation.
+On Wed, 20 Nov 2019 00:19:19 +0200, Grygorii Strashko wrote:
+> From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+> 
+> Part 1:
+>  Introduce basic CPSW dual_mac driver (cpsw_new.c) which is operating in
+> dual-emac mode by default, thus working as 2 individual network interfaces.
+> Main differences from legacy CPSW driver are:
+> 
+>  - optimized promiscuous mode: The P0_UNI_FLOOD (both ports) is enabled in
+> addition to ALLMULTI (current port) instead of ALE_BYPASS. So, Ports in
+> promiscuous mode will keep possibility of mcast and vlan filtering, which
+> is provides significant benefits when ports are joined to the same bridge,
+> but without enabling "switch" mode, or to different bridges.
+>  - learning disabled on ports as it make not too much sense for
+>    segregated ports - no forwarding in HW.
+>  - enabled basic support for devlink.
+> 
+> 	devlink dev show
+> 		platform/48484000.switch
+> 
+> 	devlink dev param show
+> 	 platform/48484000.switch:
+> 	name ale_bypass type driver-specific
+> 	 values:
+> 		cmode runtime value false
+> 
+>  - "ale_bypass" devlink driver parameter allows to enable
+> ALE_CONTROL(4).BYPASS mode for debug purposes.
+>  - updated DT bindings.
 
-To fix this make for_each_slave() local (it's used now only by legacy CPSW
-driver) and convert cpsw_slave_index() to be a function pointer which is
-assigned in probe. Driver to probe is defined by DT.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c      | 13 +++++++++++++
- drivers/net/ethernet/ti/cpsw_priv.c |  2 ++
- drivers/net/ethernet/ti/cpsw_priv.h | 10 ++--------
- 3 files changed, 17 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 15a76d3842c5..225e5351752a 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -87,6 +87,17 @@ MODULE_PARM_DESC(descs_pool_size, "Number of CPDMA CPPI descriptors in pool");
- #define CPSW_XDP_CONSUMED		1
- #define CPSW_XDP_PASS			0
- 
-+static int cpsw_slave_index_priv(struct cpsw_common *cpsw,
-+				 struct cpsw_priv *priv)
-+{
-+	return cpsw->data.dual_emac ? priv->emac_port : cpsw->data.active_slave;
-+}
-+
-+static int cpsw_get_slave_port(u32 slave_num)
-+{
-+	return slave_num + 1;
-+}
-+
- static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
- 				    __be16 proto, u16 vid);
- 
-@@ -2774,6 +2785,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	platform_set_drvdata(pdev, cpsw);
-+	cpsw_slave_index = cpsw_slave_index_priv;
-+
- 	cpsw->dev = dev;
- 
- 	mode = devm_gpiod_get_array_optional(dev, "mode", GPIOD_OUT_LOW);
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
-index 476d050a022c..a1c83af64835 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.c
-+++ b/drivers/net/ethernet/ti/cpsw_priv.c
-@@ -19,6 +19,8 @@
- #include "cpsw_sl.h"
- #include "davinci_cpdma.h"
- 
-+int (*cpsw_slave_index)(struct cpsw_common *cpsw, struct cpsw_priv *priv);
-+
- int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
- 		     int ale_ageout, phys_addr_t desc_mem_phys,
- 		     int descs_pool_size)
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
-index 8bfa761fa552..65f0e410344d 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.h
-+++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -373,14 +373,8 @@ struct cpsw_priv {
- #define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
- #define napi_to_cpsw(napi)	container_of(napi, struct cpsw_common, napi)
- 
--#define cpsw_slave_index(cpsw, priv)				\
--		((cpsw->data.dual_emac) ? priv->emac_port :	\
--		cpsw->data.active_slave)
--
--static inline int cpsw_get_slave_port(u32 slave_num)
--{
--	return slave_num + 1;
--}
-+extern int (*cpsw_slave_index)(struct cpsw_common *cpsw,
-+			       struct cpsw_priv *priv);
- 
- struct addr_sync_ctx {
- 	struct net_device *ndev;
--- 
-2.17.1
+Could you please add documentation for the devlink parameter under
+Documentation/networking/devlink-params-* ?
