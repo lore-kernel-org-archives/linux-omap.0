@@ -1,17 +1,17 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: Re: [RFCv1 32/42] drm/omap: dsi: convert to drm_panel
-Date: Tue, 19 Nov 2019 22:21:21 +0100
-Message-ID: <20191119212121.htqjlqbetoli5kp4@earth.universe>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFCv1 33/42] drm/omap: dsi: use atomic helper for dirtyfb
+Date: Tue, 19 Nov 2019 06:32:43 -0800
+Message-ID: <20191119143243.GH35479@atomide.com>
 References: <20191117024028.2233-1-sebastian.reichel@collabora.com>
- <20191117024028.2233-33-sebastian.reichel@collabora.com>
- <D109D867-1C8E-44F6-9C91-AF55BCB3FDD3@goldelico.com>
- <20191118144558.abix5y555jk63szb@earth.universe>
- <9681B365-9174-43CE-BCAE-ED986F182935@goldelico.com>
- <469800BA-25F8-4E0A-8194-50C197BC4BF5@goldelico.com>
+ <20191117024028.2233-34-sebastian.reichel@collabora.com>
+ <20191118230535.GG35479@atomide.com>
+ <e91c7fc9-18e0-cc22-4617-127fe9be2c1b@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1965200750=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <469800BA-25F8-4E0A-8194-50C197BC4BF5@goldelico.com>
+Content-Disposition: inline
+In-Reply-To: <e91c7fc9-18e0-cc22-4617-127fe9be2c1b@ti.com>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -21,88 +21,41 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: kernel@collabora.com, Tony Lindgren <tony@atomide.com>, Merlijn Wajer <merlijn@wizzup.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: kernel@collabora.com, "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---===============1965200750==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="nxwd6lhuvnkw4xqv"
-Content-Disposition: inline
-
-
---nxwd6lhuvnkw4xqv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Nikolaus,
-
-On Tue, Nov 19, 2019 at 10:42:55AM +0100, H. Nikolaus Schaller wrote:
-> > Am 18.11.2019 um 15:51 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
-> >=20
-> >> Ok, I tried not to break video mode support, but I do not have any
-> >> hardware. Make sure to set the MIPI_DSI_MODE_VIDEO flag in the panel
-> >> driver.
-> >=20
-> > Indeed, this may be missing (can't look into the code at the moment)...
-> > Or I did something wrong when refactoring the driver.
-> > We will find out.
->=20
-> Yes, MIPI_DSI_MODE_VIDEO was indeed missing/wrongly applied and some
-> more bugs. But I still wasn't able to make it work.
->=20
-> I also tried to fake the panel-orisetech-otm8009a.c DSI driver into
-> my setup. It should not properly program the panel by DCS command
-> but it should try to.
->=20
-> Result is the same: I can see it being probed and calling get_modes
-> but then:
->=20
-> [drm] Cannot find any crtc or sizes
->=20
-> And I don't see calls to .enable or .prepare where DCS commands would
-> be sent.
-
-You probably want to enable all kind of drm debugging to get more
-information. I guess, that some timing check fails, e.g.
-dsi_check_timings(). If the timing checks fail, the mode will not
-be added as valid mode. When no valid mode is found, the panel
-will not be enabled.
-
--- Sebastian
-
---nxwd6lhuvnkw4xqv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl3UXNEACgkQ2O7X88g7
-+pr+qQ//RvImY+pnQMKdBuAnUUgREwqGVEkxUwXNIheUOR2qfZ72HHvrGZppeOxT
-351fOvDf8pI5mNn62y/sva2IgUsA3pg7GeL4ELnSXrALg5mz4DlipUP2upUu9R2d
-TUhg2JKX9fKWysuoxmC5x40eVkvJcxYpqR75LJHR2B3Z4HZnLaGQvsgIaIywj150
-duMtyPV9kyn44ZnMvVqXsiTN/ibMPNggAaXxy2EAcJNaJdYFe1FGLy3SEarmrIES
-K8jE32BYoLZ1iwbAcb4WdrVk8Ib+xl2x1tkiTFtwyi6opX/vUAimwUCLIZAT2f/a
-Gt4breU3BMlkqrPFWTWiNPj08unb8I7DMrtrO9vpwkcEwep+sIljuBWSPs1UKYbr
-q96YnsLwomup5goKxvbmAKLyO36cz40r+VwHC8vM7fO84IRF+nzh/o6fR4a8MbQX
-KFgEP/37oaOsT1+N7Qm5wFxO8UBZqJw3YQ7w2lSntI1hCJgxw+SI0qbHRUHDCTWc
-fL+nHLgM17LKbGd182IoCB90kFq9qeA4LUgPOiqgVN5FArcZeliZKLho9nr9rpR1
-IOKzZEIaCWrkVJaxW7h/bRp17RO63fwHo25rv7YHqfubqlvfs/ya7R0YqXYp9c8G
-s4SqtG6CaQP+br0kCWWwOr8gXY3/XV4mjG0zKXbkKDh4yuDHOMg=
-=VN58
------END PGP SIGNATURE-----
-
---nxwd6lhuvnkw4xqv--
-
---===============1965200750==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-
---===============1965200750==--
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkxMTE5IDA1OjQyXToK
+PiBPbiAxOS8xMS8yMDE5IDAxOjA1LCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gKiBTZWJhc3Rp
+YW4gUmVpY2hlbCA8c2ViYXN0aWFuLnJlaWNoZWxAY29sbGFib3JhLmNvbT4gWzE5MTExNyAwNzox
+MV06Cj4gPiA+IFdlIGNhbiBzaW1wbHkgdXNlIHRoZSBhdG9taWMgaGVscGVyIGZvcgo+ID4gPiBo
+YW5kbGluZyB0aGUgZGlydHlmYiBjYWxsYmFjay4KPiA+IC4uLgo+ID4gPiAtLS0gYS9kcml2ZXJz
+L2dwdS9kcm0vb21hcGRybS9vbWFwX2NydGMuYwo+ID4gPiArKysgYi9kcml2ZXJzL2dwdS9kcm0v
+b21hcGRybS9vbWFwX2NydGMuYwo+ID4gPiAtdm9pZCBvbWFwX2NydGNfZmx1c2goc3RydWN0IGRy
+bV9jcnRjICpjcnRjKQo+ID4gPiArc3RhdGljIHZvaWQgb21hcF9jcnRjX2ZsdXNoKHN0cnVjdCBk
+cm1fY3J0YyAqY3J0YykKPiA+ID4gICB7Cj4gPiA+ICAgCXN0cnVjdCBvbWFwX2NydGMgKm9tYXBf
+Y3J0YyA9IHRvX29tYXBfY3J0YyhjcnRjKTsKPiA+ID4gLQlzdHJ1Y3Qgb21hcF9jcnRjX3N0YXRl
+ICpvbWFwX3N0YXRlID0gdG9fb21hcF9jcnRjX3N0YXRlKGNydGMtPnN0YXRlKTsKPiA+ID4gLQo+
+ID4gPiAtCWlmICghb21hcF9zdGF0ZS0+bWFudWFsbHlfdXBkYXRlZCkKPiA+ID4gLQkJcmV0dXJu
+Owo+ID4gPiAgIAlpZiAoIWRlbGF5ZWRfd29ya19wZW5kaW5nKCZvbWFwX2NydGMtPnVwZGF0ZV93
+b3JrKSkKPiA+ID4gICAJCXNjaGVkdWxlX2RlbGF5ZWRfd29yaygmb21hcF9jcnRjLT51cGRhdGVf
+d29yaywgMCk7Cj4gPiAKPiA+IEl0IHdvdWxkIGJlIG5pY2UgaWYgb21hcF9jcnRjX2ZsdXNoKCkg
+d291bGQgYmVjb21lIGp1c3Qgc29tZSBnZW5lcmljCj4gPiB2b2lkIGZ1bmN0aW9uIHdpdGggbm8g
+bmVlZCB0byBwYXNzIGl0IGEgY3J0Yy4gSSBndWVzcyBmb3IgdGhhdCBpdAo+ID4gc2hvdWxkIGtu
+b3cgd2hhdCBwYW5lbHMgYXJlIGluIG1hbnVhbCBjb21tYW5kIG1vZGUgdG8gcmVmcmVzaCB0aGVt
+LgoKUHJvYWJseSBzdGlsbCBjYW5ub3QgYmUgYSB2b2lkIGZ1bmN0aW9uLCBidXQgc2VlbXMgbGlr
+ZSB3ZSBuZWVkIHRvCmNhbGwgc29tZXRoaW5nIG91dHNpZGUgb21hcF9jcnRjLmMuCgo+ID4gVGhl
+IHJlYXNvbiBJJ20gYnJpbmdpbmcgdGhpcyB1cCBpcyBiZWNhdXNlIGl0IGxvb2tzIGxpa2Ugd2Ug
+bmVlZAo+ID4gdG8gYWxzbyBmbHVzaCBEU0kgY29tbWFuZCBtb2RlIHBhbmVscyBmcm9tIG9tYXBf
+Z2VtX29wX2ZpbmlzaCgpCj4gPiBmb3IgZ2xlcyBhbmQgdGhlIGdlbSBjb2RlIHByb2JhYmx5IHNo
+b3VsZCBub3QgbmVlZCB0byBrbm93IGFueXRoaW5nCj4gPiBhYm91dCBjcnRjLCByaWdodD8KPiAK
+PiBXZSBoYXZlbid0IGhhZCBvbWFwX2dlbV9vcF9maW5pc2goKSBpbiB0aGUga2VybmVsIGZvciBz
+b21lIHllYXJzIG5vdy4uLgo+IAo+IFNob3VsZG4ndCBhIG5vcm1hbCBwYWdlIGZsaXAsIG9yIGlm
+IGRvaW5nIHNpbmdsZS1idWZmZXJpbmcsIHVzaW5nIHRoZQo+IGRpcnR5ZmIgaW9jdGwsIGRvIHRo
+ZSBqb2I/CgpJdCBkb2VzIG5vdCBzZWVtIHRvIGhhcHBlbiB3aXRoIHRoZSBvbGQgcHZyLW9tYXA0
+IHJlbGF0ZWQgcGF0Y2hlcwphbmQgd2hhdGV2ZXIgZ2xlcyByZWxhdGVkIHRlc3RzIGF0IGxlYXN0
+LiBJZiB5b3UgaGF2ZSBzb21lIGlkZWEKd2hlcmUgaXQgc2hvdWxkIGdldCBjYWxsZWQgSSBjYW4g
+dGFrZSBhIGxvb2sgYXQgc29tZSBwb2ludC4KClJlZ2FyZHMsCgpUb255Cl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QK
+ZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9w
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
