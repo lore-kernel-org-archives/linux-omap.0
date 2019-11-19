@@ -1,48 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFCv1 33/42] drm/omap: dsi: use atomic helper for dirtyfb
-Date: Mon, 18 Nov 2019 15:05:35 -0800
-Message-ID: <20191118230535.GG35479@atomide.com>
-References: <20191117024028.2233-1-sebastian.reichel@collabora.com>
- <20191117024028.2233-34-sebastian.reichel@collabora.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv2 00/15] Remoteproc: updates for OMAP remoteproc support
+Date: Tue, 19 Nov 2019 16:16:30 +0200
+Message-ID: <20191119141645.19777-1-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20191117024028.2233-34-sebastian.reichel@collabora.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sebastian.reichel@collabora.com>
-Cc: kernel@collabora.com, "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-KiBTZWJhc3RpYW4gUmVpY2hlbCA8c2ViYXN0aWFuLnJlaWNoZWxAY29sbGFib3JhLmNvbT4gWzE5
-MTExNyAwNzoxMV06Cj4gV2UgY2FuIHNpbXBseSB1c2UgdGhlIGF0b21pYyBoZWxwZXIgZm9yCj4g
-aGFuZGxpbmcgdGhlIGRpcnR5ZmIgY2FsbGJhY2suCi4uLgo+IC0tLSBhL2RyaXZlcnMvZ3B1L2Ry
-bS9vbWFwZHJtL29tYXBfY3J0Yy5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21h
-cF9jcnRjLmMKPiAtdm9pZCBvbWFwX2NydGNfZmx1c2goc3RydWN0IGRybV9jcnRjICpjcnRjKQo+
-ICtzdGF0aWMgdm9pZCBvbWFwX2NydGNfZmx1c2goc3RydWN0IGRybV9jcnRjICpjcnRjKQo+ICB7
-Cj4gIAlzdHJ1Y3Qgb21hcF9jcnRjICpvbWFwX2NydGMgPSB0b19vbWFwX2NydGMoY3J0Yyk7Cj4g
-LQlzdHJ1Y3Qgb21hcF9jcnRjX3N0YXRlICpvbWFwX3N0YXRlID0gdG9fb21hcF9jcnRjX3N0YXRl
-KGNydGMtPnN0YXRlKTsKPiAtCj4gLQlpZiAoIW9tYXBfc3RhdGUtPm1hbnVhbGx5X3VwZGF0ZWQp
-Cj4gLQkJcmV0dXJuOwo+ICAKPiAgCWlmICghZGVsYXllZF93b3JrX3BlbmRpbmcoJm9tYXBfY3J0
-Yy0+dXBkYXRlX3dvcmspKQo+ICAJCXNjaGVkdWxlX2RlbGF5ZWRfd29yaygmb21hcF9jcnRjLT51
-cGRhdGVfd29yaywgMCk7CgpJdCB3b3VsZCBiZSBuaWNlIGlmIG9tYXBfY3J0Y19mbHVzaCgpIHdv
-dWxkIGJlY29tZSBqdXN0IHNvbWUgZ2VuZXJpYwp2b2lkIGZ1bmN0aW9uIHdpdGggbm8gbmVlZCB0
-byBwYXNzIGl0IGEgY3J0Yy4gSSBndWVzcyBmb3IgdGhhdCBpdApzaG91bGQga25vdyB3aGF0IHBh
-bmVscyBhcmUgaW4gbWFudWFsIGNvbW1hbmQgbW9kZSB0byByZWZyZXNoIHRoZW0uCgpUaGUgcmVh
-c29uIEknbSBicmluZ2luZyB0aGlzIHVwIGlzIGJlY2F1c2UgaXQgbG9va3MgbGlrZSB3ZSBuZWVk
-CnRvIGFsc28gZmx1c2ggRFNJIGNvbW1hbmQgbW9kZSBwYW5lbHMgZnJvbSBvbWFwX2dlbV9vcF9m
-aW5pc2goKQpmb3IgZ2xlcyBhbmQgdGhlIGdlbSBjb2RlIHByb2JhYmx5IHNob3VsZCBub3QgbmVl
-ZCB0byBrbm93IGFueXRoaW5nCmFib3V0IGNydGMsIHJpZ2h0PwoKT3IgbWF5YmUgdGhlcmUgaXMg
-c29tZSBiZXR0ZXIgcGxhY2UgdG8gY2FsbCBpdD8KClJlZ2FyZHMsCgpUb255Cl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxp
-c3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNr
-dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+Hi,
+
+This is v2 of the series [1], addressing comments from Bjorn and Rob.
+Bindings patch is funnily v2.5, as I posted v2 already and wanted to
+keep this somehow in sync. Individual patches contain comments about the
+changes, or Reviewed-by tags provided if there are no changes.
+
+I also dropped the conversion patch to SPDX licensing until I can
+confirm the license we want to use. Lets just keep the existing in place
+until that.
+
+This series still depends on the reset + clock patches posted earlier,
+but both of those dependencies are in linux-next now.
+
+-Tero
+
+[1] https://patchwork.kernel.org/cover/11215421/
+
+
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
