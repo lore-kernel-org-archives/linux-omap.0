@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 04/15] remoteproc/omap: Add support to parse internal memories from DT
-Date: Tue, 19 Nov 2019 16:16:34 +0200
-Message-ID: <20191119141645.19777-5-t-kristo@ti.com>
+Subject: [PATCHv2 03/15] remoteproc/omap: Add a sanity check for DSP boot address alignment
+Date: Tue, 19 Nov 2019 16:16:33 +0200
+Message-ID: <20191119141645.19777-4-t-kristo@ti.com>
 References: <20191119141645.19777-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,188 +14,65 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The OMAP remoteproc driver has been enhanced to parse and store
-the kernel mappings for different internal RAM memories that may
-be present within each remote processor IP subsystem. Different
-devices have varying memories present on current SoCs. The current
-support handles the L2RAM for all IPU devices on OMAP4+ SoCs. The
-DSPs on OMAP4/OMAP5 only have Unicaches and do not have any L1 or
-L2 RAM memories.
-
-IPUs are expected to have the L2RAM at a fixed device address of
-0x20000000, based on the current limitations on Attribute MMU
-configurations.
-
-NOTE:
-The current logic doesn't handle the parsing of memories for DRA7
-remoteproc devices, and will be added alongside the DRA7 support.
+The DSP remote processors on OMAP SoCs require a boot register to
+be programmed with a boot address, and this boot address needs to
+be on a 1KB boundary. The current code is simply masking the boot
+address appropriately without performing any sanity checks before
+releasing the resets. An unaligned boot address results in an
+undefined execution behavior and can result in various bus errors
+like MMU Faults or L3 NoC errors. Such errors are hard to debug and
+can be easily avoided by adding a sanity check for the alignment
+before booting a DSP remote processor.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
-[t-kristo: converted to parse mem names / device addresses from pdata]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
-v2:
- - add remote proc memory info under pdata, rather than doing extensive
-   OF compatible checks in code
-
- drivers/remoteproc/omap_remoteproc.c | 86 ++++++++++++++++++++++++++++
- 1 file changed, 86 insertions(+)
+ drivers/remoteproc/omap_remoteproc.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index d80f5d7b5931..844703507a74 100644
+index 558634624590..d80f5d7b5931 100644
 --- a/drivers/remoteproc/omap_remoteproc.c
 +++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -39,11 +39,27 @@ struct omap_rproc_boot_data {
- 	unsigned int boot_reg;
- };
- 
-+/*
-+ * struct omap_rproc_mem - internal memory structure
-+ * @cpu_addr: MPU virtual address of the memory region
-+ * @bus_addr: bus address used to access the memory region
-+ * @dev_addr: device address of the memory region from DSP view
-+ * @size: size of the memory region
-+ */
-+struct omap_rproc_mem {
-+	void __iomem *cpu_addr;
-+	phys_addr_t bus_addr;
-+	u32 dev_addr;
-+	size_t size;
-+};
-+
- /**
-  * struct omap_rproc - omap remote processor state
-  * @mbox: mailbox channel handle
-  * @client: mailbox client to request the mailbox channel
-  * @boot_data: boot data structure for setting processor boot address
-+ * @mem: internal memory regions data
-+ * @num_mems: number of internal memory regions
-  * @rproc: rproc handle
-  * @reset: reset handle
+@@ -124,13 +124,22 @@ static void omap_rproc_kick(struct rproc *rproc, int vqid)
+  *
+  * Set boot address for a supported DSP remote processor.
   */
-@@ -51,6 +67,8 @@ struct omap_rproc {
- 	struct mbox_chan *mbox;
- 	struct mbox_client client;
- 	struct omap_rproc_boot_data *boot_data;
-+	struct omap_rproc_mem *mem;
-+	int num_mems;
- 	struct rproc *rproc;
- 	struct reset_control *reset;
- };
-@@ -59,10 +77,14 @@ struct omap_rproc {
-  * struct omap_rproc_dev_data - device data for the omap remote processor
-  * @device_name: device name of the remote processor
-  * @has_bootreg: true if this remote processor has boot register
-+ * @mem_names: memory names for this remote processor
-+ * @dev_addrs: device addresses corresponding to the memory names
-  */
- struct omap_rproc_dev_data {
- 	const char *device_name;
- 	bool has_bootreg;
-+	const char * const *mem_names;
-+	const u32 *dev_addrs;
- };
+-static void omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
++static int omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
+ {
++	struct device *dev = rproc->dev.parent;
+ 	struct omap_rproc *oproc = rproc->priv;
+ 	struct omap_rproc_boot_data *bdata = oproc->boot_data;
+ 	u32 offset = bdata->boot_reg;
  
- /**
-@@ -216,6 +238,14 @@ static const struct rproc_ops omap_rproc_ops = {
- 	.kick		= omap_rproc_kick,
- };
- 
-+static const char * const ipu_mem_names[] = {
-+	"l2ram", NULL
-+};
-+
-+static const u32 ipu_dev_addrs[] = {
-+	0x20000000,
-+};
-+
- static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
- 	.device_name	= "dsp",
- 	.has_bootreg	= true,
-@@ -223,6 +253,8 @@ static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
- 
- static const struct omap_rproc_dev_data omap4_ipu_dev_data = {
- 	.device_name	= "ipu",
-+	.mem_names	= ipu_mem_names,
-+	.dev_addrs	= ipu_dev_addrs,
- };
- 
- static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
-@@ -232,6 +264,8 @@ static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
- 
- static const struct omap_rproc_dev_data omap5_ipu_dev_data = {
- 	.device_name	= "ipu",
-+	.mem_names	= ipu_mem_names,
-+	.dev_addrs	= ipu_dev_addrs,
- };
- 
- static const struct of_device_id omap_rproc_of_match[] = {
-@@ -311,6 +345,54 @@ static int omap_rproc_get_boot_data(struct platform_device *pdev,
- 	return 0;
- }
- 
-+static int omap_rproc_of_get_internal_memories(struct platform_device *pdev,
-+					       struct rproc *rproc)
-+{
-+	struct omap_rproc *oproc = rproc->priv;
-+	struct device *dev = &pdev->dev;
-+	const struct omap_rproc_dev_data *data;
-+	struct resource *res;
-+	int num_mems;
-+	int i;
-+
-+	data = of_device_get_match_data(&pdev->dev);
-+	if (!data)
-+		return -ENODEV;
-+
-+	if (!data->mem_names)
-+		return 0;
-+
-+	for (num_mems = 0; data->mem_names[num_mems]; num_mems++)
-+		;
-+
-+	oproc->mem = devm_kcalloc(dev, num_mems, sizeof(*oproc->mem),
-+				  GFP_KERNEL);
-+	if (!oproc->mem)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < num_mems; i++) {
-+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-+						   data->mem_names[i]);
-+		oproc->mem[i].cpu_addr = devm_ioremap_resource(dev, res);
-+		if (IS_ERR(oproc->mem[i].cpu_addr)) {
-+			dev_err(dev, "failed to parse and map %s memory\n",
-+				data->mem_names[i]);
-+			return PTR_ERR(oproc->mem[i].cpu_addr);
-+		}
-+		oproc->mem[i].bus_addr = res->start;
-+		oproc->mem[i].dev_addr = data->dev_addrs[i];
-+		oproc->mem[i].size = resource_size(res);
-+
-+		dev_dbg(dev, "memory %8s: bus addr %pa size 0x%x va %p da 0x%x\n",
-+			data->mem_names[i], &oproc->mem[i].bus_addr,
-+			oproc->mem[i].size, oproc->mem[i].cpu_addr,
-+			oproc->mem[i].dev_addr);
++	if (rproc->bootaddr & (SZ_1K - 1)) {
++		dev_err(dev, "invalid boot address 0x%x, must be aligned on a 1KB boundary\n",
++			rproc->bootaddr);
++		return -EINVAL;
 +	}
-+	oproc->num_mems = num_mems;
++
+ 	regmap_write(bdata->syscon, offset, rproc->bootaddr);
 +
 +	return 0;
-+}
-+
- static int omap_rproc_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
-@@ -350,6 +432,10 @@ static int omap_rproc_probe(struct platform_device *pdev)
- 	/* All existing OMAP IPU and DSP processors have an MMU */
- 	rproc->has_iommu = true;
+ }
  
-+	ret = omap_rproc_of_get_internal_memories(pdev, rproc);
-+	if (ret)
-+		goto free_rproc;
-+
- 	ret = omap_rproc_get_boot_data(pdev, rproc);
- 	if (ret)
- 		goto free_rproc;
+ /*
+@@ -147,8 +156,11 @@ static int omap_rproc_start(struct rproc *rproc)
+ 	int ret;
+ 	struct mbox_client *client = &oproc->client;
+ 
+-	if (oproc->boot_data)
+-		omap_rproc_write_dsp_boot_addr(rproc);
++	if (oproc->boot_data) {
++		ret = omap_rproc_write_dsp_boot_addr(rproc);
++		if (ret)
++			return ret;
++	}
+ 
+ 	client->dev = dev;
+ 	client->tx_done = NULL;
 -- 
 2.17.1
 
