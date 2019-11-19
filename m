@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 09/15] remoteproc/omap: Remove the omap_rproc_reserve_cma declaration
-Date: Tue, 19 Nov 2019 16:16:39 +0200
-Message-ID: <20191119141645.19777-10-t-kristo@ti.com>
+Subject: [PATCHv2 05/15] remoteproc/omap: Add the rproc ops .da_to_va() implementation
+Date: Tue, 19 Nov 2019 16:16:35 +0200
+Message-ID: <20191119141645.19777-6-t-kristo@ti.com>
 References: <20191119141645.19777-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,44 +14,80 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The omap_rproc_reserve_cma() function is not defined at the moment.
-This prototype was to be used to define a function to declare a
-remoteproc device-specific CMA pool.
+An implementation for the rproc ops .da_to_va() has been added
+that provides the address translation between device addresses
+to kernel virtual addresses for internal RAMs present on that
+particular remote processor device. The implementation provides
+the translations based on the addresses parsed and stored during
+the probe.
 
-The remoteproc devices will be defined through DT going forward. A
-device specific CMA pool will be defined under the reserved-memory
-node, and will be associated with the appropriate remoteproc device
-node. This function prototype will no longer be needed and has
-therefore been cleaned up.
+This ops gets invoked by the exported rproc_da_to_va() function
+and allows the remoteproc core's ELF loader to be able to load
+program data directly into the internal memories.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
- include/linux/platform_data/remoteproc-omap.h | 12 ------------
- 1 file changed, 12 deletions(-)
+v2:
+ - minor cleanups of code, fixed kerneldoc comments
 
-diff --git a/include/linux/platform_data/remoteproc-omap.h b/include/linux/platform_data/remoteproc-omap.h
-index 6bea01e199fe..49c78805916f 100644
---- a/include/linux/platform_data/remoteproc-omap.h
-+++ b/include/linux/platform_data/remoteproc-omap.h
-@@ -21,16 +21,4 @@ struct omap_rproc_pdata {
- 	int (*device_shutdown)(struct platform_device *pdev);
+ drivers/remoteproc/omap_remoteproc.c | 39 ++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+index 844703507a74..28f14e24b389 100644
+--- a/drivers/remoteproc/omap_remoteproc.c
++++ b/drivers/remoteproc/omap_remoteproc.c
+@@ -232,10 +232,49 @@ static int omap_rproc_stop(struct rproc *rproc)
+ 	return 0;
+ }
+ 
++/**
++ * omap_rproc_da_to_va() - internal memory translation helper
++ * @rproc: remote processor to apply the address translation for
++ * @da: device address to translate
++ * @len: length of the memory buffer
++ *
++ * Custom function implementing the rproc .da_to_va ops to provide address
++ * translation (device address to kernel virtual address) for internal RAMs
++ * present in a DSP or IPU device). The translated addresses can be used
++ * either by the remoteproc core for loading, or by any rpmsg bus drivers.
++ * Returns the translated virtual address in kernel memory space, or NULL
++ * in failure.
++ */
++static void *omap_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++{
++	struct omap_rproc *oproc = rproc->priv;
++	int i;
++	u32 offset;
++
++	if (len <= 0)
++		return NULL;
++
++	if (!oproc->num_mems)
++		return NULL;
++
++	for (i = 0; i < oproc->num_mems; i++) {
++		if (da >= oproc->mem[i].dev_addr && da + len <=
++		    oproc->mem[i].dev_addr +  oproc->mem[i].size) {
++			offset = da -  oproc->mem[i].dev_addr;
++			/* __force to make sparse happy with type conversion */
++			return (__force void *)(oproc->mem[i].cpu_addr +
++						offset);
++		}
++	}
++
++	return NULL;
++}
++
+ static const struct rproc_ops omap_rproc_ops = {
+ 	.start		= omap_rproc_start,
+ 	.stop		= omap_rproc_stop,
+ 	.kick		= omap_rproc_kick,
++	.da_to_va	= omap_rproc_da_to_va,
  };
  
--#if defined(CONFIG_OMAP_REMOTEPROC) || defined(CONFIG_OMAP_REMOTEPROC_MODULE)
--
--void __init omap_rproc_reserve_cma(void);
--
--#else
--
--static inline void __init omap_rproc_reserve_cma(void)
--{
--}
--
--#endif
--
- #endif /* _PLAT_REMOTEPROC_H */
+ static const char * const ipu_mem_names[] = {
 -- 
 2.17.1
 
