@@ -1,262 +1,280 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v7 net-next 10/13] Documentation: networking: add cpsw switchdev based driver documentation
-Date: Wed, 20 Nov 2019 00:19:22 +0200
-Message-ID: <20191119221925.28426-11-grygorii.strashko@ti.com>
+Subject: [PATCH v7 net-next 06/13] dt-bindings: net: ti: add new cpsw switch driver bindings
+Date: Wed, 20 Nov 2019 00:19:18 +0200
+Message-ID: <20191119221925.28426-7-grygorii.strashko@ti.com>
 References: <20191119221925.28426-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20191119221925.28426-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Jiri Pirko <jiri@resnulli.us>
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Ivan Vecera <ivecera@redhat.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Add bindings for the new TI CPSW switch driver. Comparing to the legacy
+bindings (net/cpsw.txt):
+- ports definition follows DSA bindings (net/dsa/dsa.txt) and ports can be
+marked as "disabled" if not physically wired.
+- all deprecated properties dropped;
+- all legacy propertiies dropped which represent constant HW cpapbilities
+(cpdma_channels, ale_entries, bd_ram_size, mac_control, slaves,
+active_slave)
+- TI CPTS DT properties are reused as is, but grouped in "cpts" sub-node
+- TI Davinci MDIO DT bindings are reused as is, because Davinci MDIO is
+reused.
 
-A new cpsw dirver based on switchdev was added. Add documentation about
-basic configuration and future features
-
-Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- .../device_drivers/ti/cpsw_switchdev.txt      | 210 ++++++++++++++++++
- .../devlink-params-ti-cpsw-switch.txt         |  10 +
- 2 files changed, 220 insertions(+)
- create mode 100644 Documentation/networking/device_drivers/ti/cpsw_switchdev.txt
- create mode 100644 Documentation/networking/devlink-params-ti-cpsw-switch.txt
+ .../bindings/net/ti,cpsw-switch.yaml          | 240 ++++++++++++++++++
+ 1 file changed, 240 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml
 
-diff --git a/Documentation/networking/device_drivers/ti/cpsw_switchdev.txt b/Documentation/networking/device_drivers/ti/cpsw_switchdev.txt
+diff --git a/Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml b/Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml
 new file mode 100644
-index 000000000000..ba1112f383f0
+index 000000000000..81ae8cafabc1
 --- /dev/null
-+++ b/Documentation/networking/device_drivers/ti/cpsw_switchdev.txt
-@@ -0,0 +1,210 @@
-+* Texas Instruments CPSW switchdev based ethernet driver 2.0
++++ b/Documentation/devicetree/bindings/net/ti,cpsw-switch.yaml
+@@ -0,0 +1,240 @@
++# SPDX-License-Identifier: GPL-2.0
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/net/ti,cpsw-switch.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+- Port renaming
-+On older udev versions renaming of ethX to swXpY will not be automatically
-+supported
-+In order to rename via udev:
-+ip -d link show dev sw0p1 | grep switchid
++title: TI SoC Ethernet Switch Controller (CPSW) Device Tree Bindings
 +
-+SUBSYSTEM=="net", ACTION=="add", ATTR{phys_switch_id}==<switchid>, \
-+        ATTR{phys_port_name}!="", NAME="sw0$attr{phys_port_name}"
++maintainers:
++  - Grygorii Strashko <grygorii.strashko@ti.com>
++  - Sekhar Nori <nsekhar@ti.com>
 +
++description:
++  The 3-port switch gigabit ethernet subsystem provides ethernet packet
++  communication and can be configured as an ethernet switch. It provides the
++  gigabit media independent interface (GMII),reduced gigabit media
++  independent interface (RGMII), reduced media independent interface (RMII),
++  the management data input output (MDIO) for physical layer device (PHY)
++  management.
 +
-+====================
-+# Dual mac mode
-+====================
-+- The new (cpsw_new.c) driver is operating in dual-emac mode by default, thus
-+working as 2 individual network interfaces. Main differences from legacy CPSW
-+driver are:
-+ - optimized promiscuous mode: The P0_UNI_FLOOD (both ports) is enabled in
-+addition to ALLMULTI (current port) instead of ALE_BYPASS.
-+So, Ports in promiscuous mode will keep possibility of mcast and vlan filtering,
-+which is provides significant benefits when ports are joined to the same bridge,
-+but without enabling "switch" mode, or to different bridges.
-+ - learning disabled on ports as it make not too much sense for
-+   segregated ports - no forwarding in HW.
-+ - enabled basic support for devlink.
++properties:
++  compatible:
++    oneOf:
++      - const: ti,cpsw-switch
++      - items:
++         - const: ti,am335x-cpsw-switch
++         - const: ti,cpsw-switch
++      - items:
++        - const: ti,am4372-cpsw-switch
++        - const: ti,cpsw-switch
++      - items:
++        - const: ti,dra7-cpsw-switch
++        - const: ti,cpsw-switch
 +
-+	devlink dev show
-+		platform/48484000.switch
++  reg:
++    maxItems: 1
++    description:
++       The physical base address and size of full the CPSW module IO range
 +
-+	devlink dev param show
-+	platform/48484000.switch:
-+	name switch_mode type driver-specific
-+	values:
-+		cmode runtime value false
-+	name ale_bypass type driver-specific
-+	values:
-+		cmode runtime value false
++  ranges: true
 +
-+Devlink configuration parameters
-+====================
-+See Documentation/networking/devlink-params-ti-cpsw-switch.txt
++  clocks:
++    maxItems: 1
++    description: CPSW functional clock
 +
-+====================
-+# Bridging in dual mac mode
-+====================
-+The dual_mac mode requires two vids to be reserved for internal purposes,
-+which, by default, equal CPSW Port numbers. As result, bridge has to be
-+configured in vlan unaware mode or default_pvid has to be adjusted.
++  clock-names:
++    maxItems: 1
++    items:
++      - const: fck
 +
-+	ip link add name br0 type bridge
-+	ip link set dev br0 type bridge vlan_filtering 0
-+	echo 0 > /sys/class/net/br0/bridge/default_pvid
-+	ip link set dev sw0p1 master br0
-+	ip link set dev sw0p2 master br0
-+ - or -
-+	ip link add name br0 type bridge
-+	ip link set dev br0 type bridge vlan_filtering 0
-+	echo 100 > /sys/class/net/br0/bridge/default_pvid
-+	ip link set dev br0 type bridge vlan_filtering 1
-+	ip link set dev sw0p1 master br0
-+	ip link set dev sw0p2 master br0
++  interrupts:
++    items:
++      - description: RX_THRESH interrupt
++      - description: RX interrupt
++      - description: TX interrupt
++      - description: MISC interrupt
 +
-+====================
-+# Enabling "switch"
-+====================
-+The Switch mode can be enabled by configuring devlink driver parameter
-+"switch_mode" to 1/true:
-+	devlink dev param set platform/48484000.switch \
-+	name switch_mode value 1 cmode runtime
++  interrupt-names:
++    items:
++      - const: "rx_thresh"
++      - const: "rx"
++      - const: "tx"
++      - const: "misc"
 +
-+This can be done regardless of the state of Port's netdev devices - UP/DOWN, but
-+Port's netdev devices have to be in UP before joining to the bridge to avoid
-+overwriting of bridge configuration as CPSW switch driver copletly reloads its
-+configuration when first Port changes its state to UP.
++  pinctrl-names: true
 +
-+When the both interfaces joined the bridge - CPSW switch driver will enable
-+marking packets with offload_fwd_mark flag unless "ale_bypass=0"
-+
-+All configuration is implemented via switchdev API.
-+
-+====================
-+# Bridge setup
-+====================
-+	devlink dev param set platform/48484000.switch \
-+	name switch_mode value 1 cmode runtime
-+
-+	ip link add name br0 type bridge
-+	ip link set dev br0 type bridge ageing_time 1000
-+	ip link set dev sw0p1 up
-+	ip link set dev sw0p2 up
-+	ip link set dev sw0p1 master br0
-+	ip link set dev sw0p2 master br0
-+	[*] bridge vlan add dev br0 vid 1 pvid untagged self
-+
-+[*] if vlan_filtering=1. where default_pvid=1
-+
-+=================
-+# On/off STP
-+=================
-+ip link set dev BRDEV type bridge stp_state 1/0
-+
-+Note. Steps [*] are mandatory.
-+
-+====================
-+# VLAN configuration
-+====================
-+bridge vlan add dev br0 vid 1 pvid untagged self <---- add cpu port to VLAN 1
-+
-+Note. This step is mandatory for bridge/default_pvid.
-+
-+=================
-+# Add extra VLANs
-+=================
-+ 1. untagged:
-+    bridge vlan add dev sw0p1 vid 100 pvid untagged master
-+    bridge vlan add dev sw0p2 vid 100 pvid untagged master
-+    bridge vlan add dev br0 vid 100 pvid untagged self <---- Add cpu port to VLAN100
-+
-+ 2. tagged:
-+    bridge vlan add dev sw0p1 vid 100 master
-+    bridge vlan add dev sw0p2 vid 100 master
-+    bridge vlan add dev br0 vid 100 pvid tagged self <---- Add cpu port to VLAN100
-+
-+====
-+FDBs
-+====
-+FDBs are automatically added on the appropriate switch port upon detection
-+
-+Manually adding FDBs:
-+bridge fdb add aa:bb:cc:dd:ee:ff dev sw0p1 master vlan 100
-+bridge fdb add aa:bb:cc:dd:ee:fe dev sw0p2 master <---- Add on all VLANs
-+
-+====
-+MDBs
-+====
-+MDBs are automatically added on the appropriate switch port upon detection
-+
-+Manually adding MDBs:
-+bridge mdb add dev br0 port sw0p1 grp 239.1.1.1 permanent vid 100
-+bridge mdb add dev br0 port sw0p1 grp 239.1.1.1 permanent <---- Add on all VLANs
-+
-+==================
-+Multicast flooding
-+==================
-+CPU port mcast_flooding is always on
-+
-+Turning flooding on/off on swithch ports:
-+bridge link set dev sw0p1 mcast_flood on/off
-+
-+==================
-+Access and Trunk port
-+==================
-+ bridge vlan add dev sw0p1 vid 100 pvid untagged master
-+ bridge vlan add dev sw0p2 vid 100 master
++  syscon:
++    $ref: /schemas/types.yaml#definitions/phandle
++    description:
++      Phandle to the system control device node which provides access to
++      efuse IO range with MAC addresses
 +
 +
-+ bridge vlan add dev br0 vid 100 self
-+ ip link add link br0 name br0.100 type vlan id 100
++  ethernet-ports:
++    type: object
++    properties:
++      '#address-cells':
++        const: 1
++      '#size-cells':
++        const: 0
 +
-+ Note. Setting PVID on Bridge device itself working only for
-+ default VLAN (default_pvid).
++    patternProperties:
++      "^port@[0-9]+$":
++          type: object
++          minItems: 1
++          maxItems: 2
++          description: CPSW external ports
 +
-+=====================
-+ NFS
-+=====================
-+The only way for NFS to work is by chrooting to a minimal environment when
-+switch configuration that will affect connectivity is needed.
-+Assuming you are booting NFS with eth1 interface(the script is hacky and
-+it's just there to prove NFS is doable).
++          allOf:
++            - $ref: ethernet-controller.yaml#
 +
-+setup.sh:
-+#!/bin/sh
-+mkdir proc
-+mount -t proc none /proc
-+ifconfig br0  > /dev/null
-+if [ $? -ne 0 ]; then
-+        echo "Setting up bridge"
-+        ip link add name br0 type bridge
-+        ip link set dev br0 type bridge ageing_time 1000
-+        ip link set dev br0 type bridge vlan_filtering 1
++          properties:
++            reg:
++              maxItems: 1
++              enum: [1, 2]
++              description: CPSW port number
 +
-+        ip link set eth1 down
-+        ip link set eth1 name sw0p1
-+        ip link set dev sw0p1 up
-+        ip link set dev sw0p2 up
-+        ip link set dev sw0p2 master br0
-+        ip link set dev sw0p1 master br0
-+        bridge vlan add dev br0 vid 1 pvid untagged self
-+        ifconfig sw0p1 0.0.0.0
-+        udhchc -i br0
-+fi
-+umount /proc
++            phys:
++              $ref: /schemas/types.yaml#definitions/phandle-array
++              maxItems: 1
++              description:  phandle on phy-gmii-sel PHY
 +
-+run_nfs.sh:
-+#!/bin/sh
-+mkdir /tmp/root/bin -p
-+mkdir /tmp/root/lib -p
++            label:
++              $ref: /schemas/types.yaml#/definitions/string-array
++              maxItems: 1
++              description: label associated with this port
 +
-+cp -r /lib/ /tmp/root/
-+cp -r /bin/ /tmp/root/
-+cp /sbin/ip /tmp/root/bin
-+cp /sbin/bridge /tmp/root/bin
-+cp /sbin/ifconfig /tmp/root/bin
-+cp /sbin/udhcpc /tmp/root/bin
-+cp /path/to/setup.sh /tmp/root/bin
-+chroot /tmp/root/ busybox sh /bin/setup.sh
++            ti,dual-emac-pvid:
++              $ref: /schemas/types.yaml#/definitions/uint32
++              maxItems: 1
++              minimum: 1
++              maximum: 1024
++              description:
++                Specifies default PORT VID to be used to segregate
++                ports. Default value - CPSW port number.
 +
-+run ./run_nfs.sh
++          required:
++            - reg
++            - phys
 +
-diff --git a/Documentation/networking/devlink-params-ti-cpsw-switch.txt b/Documentation/networking/devlink-params-ti-cpsw-switch.txt
-new file mode 100644
-index 000000000000..4037458499f7
---- /dev/null
-+++ b/Documentation/networking/devlink-params-ti-cpsw-switch.txt
-@@ -0,0 +1,10 @@
-+ale_bypass	[DEVICE, DRIVER-SPECIFIC]
-+		Allows to enable ALE_CONTROL(4).BYPASS mode for debug purposes.
-+		All packets will be sent to the Host port only if enabled.
-+		Type: bool
-+		Configuration mode: runtime
++  mdio:
++    type: object
++    allOf:
++      - $ref: "ti,davinci-mdio.yaml#"
++    description:
++      CPSW MDIO bus.
 +
-+switch_mode	[DEVICE, DRIVER-SPECIFIC]
-+		Enable switch mode
-+		Type: bool
-+		Configuration mode: runtime
++  cpts:
++    type: object
++    description:
++      The Common Platform Time Sync (CPTS) module
++
++    properties:
++      clocks:
++        maxItems: 1
++        description: CPTS reference clock
++
++      clock-names:
++        maxItems: 1
++        items:
++          - const: cpts
++
++      cpts_clock_mult:
++        $ref: /schemas/types.yaml#/definitions/uint32
++        description:
++          Numerator to convert input clock ticks into ns
++
++      cpts_clock_shift:
++        $ref: /schemas/types.yaml#/definitions/uint32
++        description:
++          Denominator to convert input clock ticks into ns.
++          Mult and shift will be calculated basing on CPTS rftclk frequency if
++          both cpts_clock_shift and cpts_clock_mult properties are not provided.
++
++    required:
++      - clocks
++      - clock-names
++
++required:
++  - compatible
++  - reg
++  - ranges
++  - clocks
++  - clock-names
++  - interrupts
++  - interrupt-names
++  - '#address-cells'
++  - '#size-cells'
++
++examples:
++  - |
++    #include <dt-bindings/interrupt-controller/irq.h>
++    #include <dt-bindings/interrupt-controller/arm-gic.h>
++    #include <dt-bindings/clock/dra7.h>
++
++    mac_sw: switch@0 {
++        compatible = "ti,dra7-cpsw-switch","ti,cpsw-switch";
++        reg = <0x0 0x4000>;
++        ranges = <0 0 0x4000>;
++        clocks = <&gmac_main_clk>;
++        clock-names = "fck";
++        #address-cells = <1>;
++        #size-cells = <1>;
++        syscon = <&scm_conf>;
++        inctrl-names = "default", "sleep";
++
++        interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
++                     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
++                     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
++                     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
++        interrupt-names = "rx_thresh", "rx", "tx", "misc";
++
++        ethernet-ports {
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                cpsw_port1: port@1 {
++                        reg = <1>;
++                        label = "port1";
++                        mac-address = [ 00 00 00 00 00 00 ];
++                        phys = <&phy_gmii_sel 1>;
++                        phy-handle = <&ethphy0_sw>;
++                        phy-mode = "rgmii";
++                        ti,dual_emac_pvid = <1>;
++                };
++
++                cpsw_port2: port@2 {
++                        reg = <2>;
++                        label = "wan";
++                        mac-address = [ 00 00 00 00 00 00 ];
++                        phys = <&phy_gmii_sel 2>;
++                        phy-handle = <&ethphy1_sw>;
++                        phy-mode = "rgmii";
++                        ti,dual_emac_pvid = <2>;
++                };
++        };
++
++        davinci_mdio_sw: mdio@1000 {
++                compatible = "ti,cpsw-mdio","ti,davinci_mdio";
++                reg = <0x1000 0x100>;
++                clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 0>;
++                clock-names = "fck";
++                #address-cells = <1>;
++                #size-cells = <0>;
++                bus_freq = <1000000>;
++
++                ethphy0_sw: ethernet-phy@0 {
++                        reg = <0>;
++                };
++
++                ethphy1_sw: ethernet-phy@1 {
++                        reg = <1>;
++                };
++        };
++
++        cpts {
++                clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 25>;
++                clock-names = "cpts";
++        };
++    };
 -- 
 2.17.1
