@@ -1,77 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFCv1 33/42] drm/omap: dsi: use atomic helper for dirtyfb
-Date: Tue, 19 Nov 2019 17:55:57 +0200
-Message-ID: <46aba805-1d3a-2efc-23f6-d957bf6a44c3@ti.com>
-References: <20191117024028.2233-1-sebastian.reichel@collabora.com>
- <20191117024028.2233-34-sebastian.reichel@collabora.com>
- <20191118230535.GG35479@atomide.com>
- <e91c7fc9-18e0-cc22-4617-127fe9be2c1b@ti.com>
- <20191119143243.GH35479@atomide.com>
- <edff7dfa-8b95-48ac-59e0-14553f3c8d39@ti.com>
- <20191119150643.GI35479@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Use ARM SMC Calling Convention when OP-TEE is
+ available
+Date: Tue, 19 Nov 2019 08:21:57 -0800
+Message-ID: <20191119162157.GJ35479@atomide.com>
+References: <20191118165236.22136-1-afd@ti.com>
+ <20191118215759.GD35479@atomide.com>
+ <b86e1d66-1566-521c-a445-4f0ae2fd95d6@ti.com>
+ <20191118223128.GE35479@atomide.com>
+ <29db708e-119e-8a89-7d43-e38e2a10dc07@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191119150643.GI35479@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel@collabora.com, "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <29db708e-119e-8a89-7d43-e38e2a10dc07@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTkvMTEvMjAxOSAxNzowNiwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4+IFRoZSB1c2Vyc3Bh
-Y2UgYXBwcyBuZWVkIHRvIGRvIHRoaXMuIElmIHRoZXkncmUgdXNpbmcgc2luZ2xlLWJ1ZmZlcmlu
-ZywgdGhlbgo+PiB1c2luZyB0aGUgZGlydHlmYiBpb2N0bCBzaG91bGQgZG8gdGhlIHRyaWNrLCBh
-ZnRlciB0aGUgU0dYIGhhcyBmaW5pc2hlZAo+PiBkcmF3aW5nLgo+IAo+IFNvdW5kcyBsaWtlIHRo
-YXQncyBub3QgaGFwcGVuaW5nLgo+IAo+IEJ1dCB3aHkgd291bGQgdGhlIHVzZXJzcGFjZSBhcHAg
-bmVlZCB0byBrbm93IHRoaXMgbWlnaHQgYmUgbmVlZGVkIGZvcgo+IGEgRFNJIGNvbW1hbmQgbW9k
-ZSBkaXNwbGF5IGFuZCB0aGF0IGl0J3Mgbm90IG5lZWRlZCBmb3IgSERNST8KCldoZW4gZG91Ymxl
-LWJ1ZmZlcmluZywgdGhlIHVzZXJzcGFjZSBkb2Vzbid0IG5lZWQgdG8gY2FyZSwgYXMgdGhlIApw
-YWdlLWZsaXAgaW9jdGwgZXhwbGljaXRseSB0ZWxscyB0aGF0IHRoZSBidWZmZXIgaXMgcmVhZHku
-CgpXaGVuIHNpbmdsZSBidWZmZXJpbmcsIGVpdGhlciB0aGUgdXNlcnNwYWNlIGhhcyB0byB0ZWxs
-IHRoYXQgdGhlIGJ1ZmZlciAKaXMgbm93IHJlYWR5LCBvciB0aGUga2VybmVsIGhhcyB0byBndWVz
-cyBiYXNlZCBvbiBzb21ldGhpbmcuIEJ1dCBhZmFpY3MsIAp0aGUgbGF0dGVyIGlzIGFsd2F5cyBh
-IGd1ZXNzLCBhbmQgbWF5IG5vdCBiZSBhIGdvb2QgZ3Vlc3MuCgpUaGUga2VybmVsIGNvdWxkIHRy
-aWdnZXIgYSBkZWxheWVkIHVwZGF0ZSBiYXNlZCBvbiwgc2F5LCBwYWdlIGZhdWx0IGlmIApkcmF3
-aW5nIHdpdGggQ1BVLiBCdXQgaG93IG11Y2ggZGVsYXllZC4uLiBBbmQgd2l0aCB0aGlzIHNjZW5h
-cmlvLCB3ZSAKd291bGQgc29tZWhvdyBuZWVkIHRvIGZpbmQgYSB3YXkgdG8gY2F0Y2ggdGhlIHdy
-aXRlcyBmcm9tIGFueSBJUCB0byB0aGUgCmJ1ZmZlciwgYW5kIGFmYWlrIHRoZXJlJ3Mgbm8gc3Vj
-aCB0aGluZy4KCj4+IEl0J3MgcHJvYmFibHkgc29tZXdoYXQgZGlmZmljdWx0IGlmIEVHTCBpcyBj
-b250cm9sbGluZyB0aGUgZGlzcGxheSwgYXMsCj4+IGFmYWlrLCBTR1ggRUdMIGlzIGNsb3NlZCBz
-b3VyY2UsIGFuZCB0aGF0J3MgcHJvYmFibHkgd2hlcmUgaXQgc2hvdWxkIGJlCj4+IGRvbmUuCj4+
-Cj4+IEJ1dCBhZGRpbmcgYmFjayB0aGUgaGFja3kgb21hcCBnZW0gc3luYyBzdHVmZiwgYW5kIHRo
-ZW4gc29tZWhvdyBndWVzc2luZwo+PiBmcm9tIHRoZSBzeW5jIGZpbmlzaCB0aGF0IHNvbWUgZGlz
-cGxheSBuZWVkcyB0byBiZSB1cGRhdGVkLi4uIEl0IGp1c3QgZG9lcwo+PiBub3Qgc291bmQgcmln
-aHQgdG8gbWUuCj4gCj4gUmlnaHQgaXQncyB1Z2x5LiBTdGlsbCBzb3VuZHMgbGlrZSB3ZSBuZWVk
-IHNvbWV0aGluZyBpbiB0aGUga2VybmVsCj4gdGhhdCBrbm93cyAidGhpcyBpcyBhIERTSSBjb21t
-YW5kIG1vZGUgTENEIGFuZCBuZWVkcyB0byBiZSB1cGRhdGVkIi4KCkkgdGhpbmsgb25lIG9wdGlv
-biBpcyB0byByZWZyZXNoIHRoZSBjb21tYW5kIG1vZGUgZGlzcGxheSBhbGwgdGhlIHRpbWUuIApF
-aXRoZXIgdXNpbmcgYSB0aW1lciwgb3IgdHJpZ2dlciB1cGRhdGVzIGJhc2VkIG9uIHRoZSBwcmV2
-aW91cyB1cGRhdGUgCmJlaW5nIGZpbmlzaGVkLgoKT2YgY291cnNlLCB0aGF0J3Mga2luZCBvZiBh
-Z2FpbnN0IHRoZSB3aG9sZSBwb2ludCBvZiBtYW51YWwgdXBkYXRlIApkaXNwbGF5LCBidXQgdGhl
-biBpdCBzaG91bGQgZWZmZWN0aXZlbHkgYmVoYXZlIGxpa2UgYSBjb252ZW50aW9uYWwgCmFsd2F5
-cy11cGRhdGluZyBkaXNwbGF5IChleGNlcHQgeW91ciBIVyBpcyBtb3JlIGV4cGVuc2l2ZSBhbmQg
-Y29uc3VtZXMgCm1vcmUgcG93ZXIgdGhhbiBhIGNvbnZlbnRpb25hbCBkaXNwbGF5KS4KClRoZXJl
-J3MgdGhpcyBQYW5lbCBTZWxmIFJlZnJlc2ggZmVhdHVyZSBpbiBEaXNwbGF5UG9ydCAod2hpY2gg
-SSB0aGluayBpcyAKaW1wbGVtZW50ZWQgaW4gZHJtX3NlbGZfcmVmcmVzaF9oZWxwZXIuYyksIHdo
-aWNoIGhhcyBzb21lIHNpbWlsYXJpdGllcyAKdG8gdGhpcyBjYXNlLiBCdXQgaWYgSSByZWFkIGl0
-IHJpZ2h0LCB0aGF0IGFsc28gZXhwZWN0cyBzb21lIGtpbmQgb2YgCnRyaWdnZXIgZnJvbSB1c2Vy
-c3BhY2UgKGFueSBEUk0gY29tbWl0KSB0byBzdGFydCB0aGUgcmVmcmVzaC4KCkFmYWlrLCBXZXN0
-b24gYW5kIFggYm90aCBoYW5kbGUgcGFnZSBmbGlwcyBhbmQvb3IgZGlydHlpbmcgdGhlIGZiLCBz
-byAKdGhleSBzaG91bGQgd29yay4gQXJlIHRoZXJlIGFwcGxpY2F0aW9ucyB0aGF0IGRvIG5vdCB3
-b3JrLCBhbmQgY2Fubm90IGJlIAptYWRlIHRvIHdvcmssIGV4Y2VwdCB0aGUgZmV3IFNHWCB0ZXN0
-IGFwcHM/CgogIFRvbWkKCi0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2Fs
-YW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEt
-NC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
-YW4vbGlzdGluZm8vZHJpLWRldmVs
+* Andrew F. Davis <afd@ti.com> [191119 01:14]:
+> On 11/18/19 5:31 PM, Tony Lindgren wrote:
+> > * Andrew F. Davis <afd@ti.com> [191118 22:14]:
+> >> On 11/18/19 4:57 PM, Tony Lindgren wrote:
+> >>> Hi,
+> >>>
+> >>> * Andrew F. Davis <afd@ti.com> [191118 08:53]:
+> >>>> +#define OMAP_SIP_SMC_STD_CALL_VAL(func_num) \
+> >>>> +	ARM_SMCCC_CALL_VAL(ARM_SMCCC_STD_CALL, ARM_SMCCC_SMC_32, \
+> >>>> +	ARM_SMCCC_OWNER_SIP, (func_num))
+> >>>> +
+> >>>> +void omap_smc1(u32 fn, u32 arg)
+> >>>> +{
+> >>>> +	struct device_node *optee;
+> >>>> +	struct arm_smccc_res res;
+> >>>> +
+> >>>> +	/*
+> >>>> +	 * If this platform has OP-TEE installed we use ARM SMC calls
+> >>>> +	 * otherwise fall back to the OMAP ROM style calls.
+> >>>> +	 */
+> >>>> +	optee = of_find_node_by_path("/firmware/optee");
+> >>>> +	if (optee) {
+> >>>> +		arm_smccc_smc(OMAP_SIP_SMC_STD_CALL_VAL(fn), arg,
+> >>>> +			      0, 0, 0, 0, 0, 0, &res);
+> >>>> +		WARN(res.a0, "Secure function call 0x%08x failed\n", fn);
+> >>>> +	} else {
+> >>>> +		_omap_smc1(fn, arg);
+> >>>> +	}
+> >>>> +}
+> >>>
+> >>> I think we're better off just making arm_smccc_smc() work properly.
+> >>> See cat arch/arm*/kernel/smccc-call.S.
+> >>>
+> >>
+> >>
+> >> arm_smccc_smc() does work properly already, I'm using it here.
+> > 
+> > OK. I guess I don't follow then why we can't use arm_smccc_smc()
+> > for old code.
+> > 
+> 
+> 
+> Our ROM code needs r12 to have the function code in it, where as the ARM
+> SMC calling convention standard requires that (plus some other
+> information) stored in r0. Our ROM doesn't know anything about the that
+> standard that came out years after we shipped these devices. And as such
+> is not complaint.
+
+Right.
+
+> A generic smc() call would be nice, but arm_smccc_smc() is specifically
+> for SMCCC.
+
+To me it seeems that HAVE_ARM_SMCCC is a generic feature though.
+It's not limited to OPTEE. We have select HAVE_ARM_SMCCC if CPU_V7
+in arch/arm/Kconfig, and OPTEE depends on HAVE_ARM_SMCCC.
+
+>From that point of view it seems that we could have HAVE_ARM_SMCCC
+enabled also for v6 and use it for all mach-omap2 with a wrapper.
+
+So I'd like to have our smc callers eventually just call generic
+generic arm_smccc_smc(OMAP_SIP_SMC_STD_CALL_VAL(fn)...) rather
+than the custom calls. And we want to update to using the generic
+functions one case at a time as the features get tested :)
+
+In any case, you should do the necessary checks for HAVE_ARM_SMCCC
+only once during init. I'm not sure how much checking for
+"/firmware/optee" helps here, sounds like we have a broken system
+if the firmware is not there while the arm_smccc_smc() should
+still work just fine :)
+
+Regards,
+
+Tony
