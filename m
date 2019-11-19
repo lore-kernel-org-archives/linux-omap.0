@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 07/15] remoteproc/omap: Add support for DRA7xx remote processors
-Date: Tue, 19 Nov 2019 16:16:37 +0200
-Message-ID: <20191119141645.19777-8-t-kristo@ti.com>
+Subject: [PATCHv2 09/15] remoteproc/omap: Remove the omap_rproc_reserve_cma declaration
+Date: Tue, 19 Nov 2019 16:16:39 +0200
+Message-ID: <20191119141645.19777-10-t-kristo@ti.com>
 References: <20191119141645.19777-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,172 +14,44 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-DRA7xx/AM57xx SoCs have two IPU and up to two DSP processor subsystems
-for offloading different computation algorithms. The IPU processor
-subsystem contains dual-core ARM Cortex-M4 processors, and is very
-similar to those on OMAP5. The DSP processor subsystem is based on
-the TI's standard TMS320C66x DSP CorePac core.
+The omap_rproc_reserve_cma() function is not defined at the moment.
+This prototype was to be used to define a function to declare a
+remoteproc device-specific CMA pool.
 
-Support has been added to the OMAP remoteproc driver through new
-DRA7xx specific compatibles for properly probing and booting all
-the different processor subsystem instances on DRA7xx/AM57xx
-SoCs - IPU1, IPU2, DSP1 & DSP2. A build dependency with SOC_DRA7XX
-is added to enable the driver to be built in DRA7xx-only configuration.
-
-The DSP boot address programming needed enhancement for DRA7xx as the
-boot register fields are different on DRA7 compared to OMAP4 and OMAP5
-SoCs. The register on DRA7xx contains additional fields within the
-register and the boot address bit-field is right-shifted by 10 bits.
-The internal memory parsing logic has also been updated to compute
-the device addresses for the L2 RAM for DSP devices using relative
-addressing logic, and to parse two additional RAMs at L1 level - L1P
-and L1D. This allows the remoteproc driver to support loading into
-these regions for a small subset of firmware images requiring as
-such. The most common usage would be to use the L1 programmable
-RAMs as L1 Caches.
-
-The firmware lookup logic also has to be adjusted for DRA7xx as
-there are (can be) more than one instance of both the IPU and DSP
-remote processors for the first time in OMAP4+ SoCs.
+The remoteproc devices will be defined through DT going forward. A
+device specific CMA pool will be defined under the reserved-memory
+node, and will be associated with the appropriate remoteproc device
+node. This function prototype will no longer be needed and has
+therefore been cleaned up.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
-[t-kristo@ti.com: moved address translation quirks to pdata]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
-v2:
- - moved address translation quirks to pdata
+ include/linux/platform_data/remoteproc-omap.h | 12 ------------
+ 1 file changed, 12 deletions(-)
 
- drivers/remoteproc/Kconfig           |  2 +-
- drivers/remoteproc/omap_remoteproc.c | 45 +++++++++++++++++++++++++++-
- 2 files changed, 45 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index 94afdde4bc9f..d6450d7fcf92 100644
---- a/drivers/remoteproc/Kconfig
-+++ b/drivers/remoteproc/Kconfig
-@@ -25,7 +25,7 @@ config IMX_REMOTEPROC
- 
- config OMAP_REMOTEPROC
- 	tristate "OMAP remoteproc support"
--	depends on ARCH_OMAP4 || SOC_OMAP5
-+	depends on ARCH_OMAP4 || SOC_OMAP5 || SOC_DRA7XX
- 	depends on OMAP_IOMMU
- 	select MAILBOX
- 	select OMAP2PLUS_MBOX
-diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 3ad74c4b4071..4af55d1f2702 100644
---- a/drivers/remoteproc/omap_remoteproc.c
-+++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -34,10 +34,13 @@
-  * struct omap_rproc_boot_data - boot data structure for the DSP omap rprocs
-  * @syscon: regmap handle for the system control configuration module
-  * @boot_reg: boot register offset within the @syscon regmap
-+ * @boot_reg_shift: bit-field shift required for the boot address value in
-+ *		    @boot_reg
-  */
- struct omap_rproc_boot_data {
- 	struct regmap *syscon;
- 	unsigned int boot_reg;
-+	unsigned int boot_reg_shift;
+diff --git a/include/linux/platform_data/remoteproc-omap.h b/include/linux/platform_data/remoteproc-omap.h
+index 6bea01e199fe..49c78805916f 100644
+--- a/include/linux/platform_data/remoteproc-omap.h
++++ b/include/linux/platform_data/remoteproc-omap.h
+@@ -21,16 +21,4 @@ struct omap_rproc_pdata {
+ 	int (*device_shutdown)(struct platform_device *pdev);
  };
  
- /*
-@@ -78,12 +82,14 @@ struct omap_rproc {
-  * struct omap_rproc_dev_data - device data for the omap remote processor
-  * @device_name: device name of the remote processor
-  * @has_bootreg: true if this remote processor has boot register
-+ * @boot_reg_shift: bit shift for the boot register mask
-  * @mem_names: memory names for this remote processor
-  * @dev_addrs: device addresses corresponding to the memory names
-  */
- struct omap_rproc_dev_data {
- 	const char *device_name;
- 	bool has_bootreg;
-+	int boot_reg_shift;
- 	const char * const *mem_names;
- 	const u32 *dev_addrs;
- };
-@@ -153,6 +159,8 @@ static int omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
- 	struct omap_rproc *oproc = rproc->priv;
- 	struct omap_rproc_boot_data *bdata = oproc->boot_data;
- 	u32 offset = bdata->boot_reg;
-+	u32 value;
-+	u32 mask;
- 
- 	if (rproc->bootaddr & (SZ_1K - 1)) {
- 		dev_err(dev, "invalid boot address 0x%x, must be aligned on a 1KB boundary\n",
-@@ -160,7 +168,10 @@ static int omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
- 		return -EINVAL;
- 	}
- 
--	regmap_write(bdata->syscon, offset, rproc->bootaddr);
-+	value = rproc->bootaddr >> bdata->boot_reg_shift;
-+	mask = ~(SZ_1K - 1) >> bdata->boot_reg_shift;
-+
-+	regmap_update_bits(bdata->syscon, offset, mask, value);
- 
- 	return 0;
- }
-@@ -286,6 +297,14 @@ static const u32 ipu_dev_addrs[] = {
- 	0x20000000,
- };
- 
-+static const char * const dra7_dsp_mem_names[] = {
-+	"l2ram", "l1pram", "l1dram", NULL
-+};
-+
-+static const u32 dra7_dsp_dev_addrs[] = {
-+	0x800000, 0xe00000, 0xf00000,
-+};
-+
- static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
- 	.device_name	= "dsp",
- 	.has_bootreg	= true,
-@@ -308,6 +327,20 @@ static const struct omap_rproc_dev_data omap5_ipu_dev_data = {
- 	.dev_addrs	= ipu_dev_addrs,
- };
- 
-+static const struct omap_rproc_dev_data dra7_dsp_dev_data = {
-+	.device_name	= "dsp",
-+	.has_bootreg	= true,
-+	.boot_reg_shift	= 10,
-+	.mem_names	= dra7_dsp_mem_names,
-+	.dev_addrs	= dra7_dsp_dev_addrs,
-+};
-+
-+static const struct omap_rproc_dev_data dra7_ipu_dev_data = {
-+	.device_name	= "ipu",
-+	.mem_names	= ipu_mem_names,
-+	.dev_addrs	= ipu_dev_addrs,
-+};
-+
- static const struct of_device_id omap_rproc_of_match[] = {
- 	{
- 		.compatible     = "ti,omap4-dsp",
-@@ -325,6 +358,14 @@ static const struct of_device_id omap_rproc_of_match[] = {
- 		.compatible     = "ti,omap5-ipu",
- 		.data           = &omap5_ipu_dev_data,
- 	},
-+	{
-+		.compatible     = "ti,dra7-dsp",
-+		.data           = &dra7_dsp_dev_data,
-+	},
-+	{
-+		.compatible     = "ti,dra7-ipu",
-+		.data           = &dra7_ipu_dev_data,
-+	},
- 	{
- 		/* end */
- 	},
-@@ -382,6 +423,8 @@ static int omap_rproc_get_boot_data(struct platform_device *pdev,
- 		return -EINVAL;
- 	}
- 
-+	oproc->boot_data->boot_reg_shift = data->boot_reg_shift;
-+
- 	return 0;
- }
- 
+-#if defined(CONFIG_OMAP_REMOTEPROC) || defined(CONFIG_OMAP_REMOTEPROC_MODULE)
+-
+-void __init omap_rproc_reserve_cma(void);
+-
+-#else
+-
+-static inline void __init omap_rproc_reserve_cma(void)
+-{
+-}
+-
+-#endif
+-
+ #endif /* _PLAT_REMOTEPROC_H */
 -- 
 2.17.1
 
