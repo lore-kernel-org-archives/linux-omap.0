@@ -1,63 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few ti-sysc fixes and updates for v5.5 merge window
-Date: Wed, 20 Nov 2019 10:16:19 -0800
-Message-ID: <pull-1574273726-31367@atomide.com>
+From: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Subject: Re: [PATCH] ARM: Fix Kconfig indentation
+Date: Wed, 20 Nov 2019 19:23:58 +0100
+Message-ID: <20191120192358.389c43da67a4d07c0d19b90d@gmail.com>
+References: <20191120133734.12345-1-krzk@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: soc@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191120133734.12345-1-krzk@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Hartley Sweeten <hsweeten@visionengravers.com>, Linus Walleij <linusw@kernel.org>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khalasa@piap.pl>, Lubomir Rintel <lkundrak@v3.sk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Barry Song <baohua@kernel.org>, Kukjin Kim <kgene@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Hi Krzysztof,
 
-The following changes since commit b82049f2c1395d0bf99f0ae291c748c9dcb7d507:
+for the EP93xx part,
 
-  Merge tag 'omap-for-v5.5/soc-late-signed' into omap-for-v5.5/ti-sysc-late (2019-11-20 10:01:38 -0800)
+On Wed, 20 Nov 2019 21:37:34 +0800
+Krzysztof Kozlowski <krzk@kernel.org> wrote:
 
-are available in the Git repository at:
+> Adjust indentation from spaces to tab (+optional two spaces) as in
+> coding style with command like:
+> 	$ sed -e 's/^        /\t/' -i */Kconfig
+>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/ti-sysc-late-signed
+Acked-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+ 
+> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+> ---
+>  arch/arm/Kconfig-nommu        | 10 +++++-----
+>  arch/arm/Kconfig.debug        |  4 ++--
+>  arch/arm/mach-ep93xx/Kconfig  |  8 ++++----
+>  arch/arm/mach-ixp4xx/Kconfig  | 16 ++++++++--------
+>  arch/arm/mach-mmp/Kconfig     |  2 +-
+>  arch/arm/mach-omap1/Kconfig   | 14 +++++++-------
+>  arch/arm/mach-prima2/Kconfig  |  6 +++---
+>  arch/arm/mach-s3c24xx/Kconfig |  4 ++--
+>  arch/arm/mach-s3c64xx/Kconfig |  6 +++---
+>  arch/arm/plat-samsung/Kconfig |  2 +-
+>  10 files changed, 36 insertions(+), 36 deletions(-)
+> 
 
-for you to fetch changes up to d7d8d62a3f3b50b606c9395298b017bd9fd9c8d4:
+[...]
 
-  Merge branches 'omap-for-v5.5/soc' and 'omap-for-v5.5/ti-sysc' into omap-for-v5.5/ti-sysc-late (2019-11-20 10:04:05 -0800)
+> diff --git a/arch/arm/mach-ep93xx/Kconfig b/arch/arm/mach-ep93xx/Kconfig
+> index f2db5fd38145..bf81dfab7f1b 100644
+> --- a/arch/arm/mach-ep93xx/Kconfig
+> +++ b/arch/arm/mach-ep93xx/Kconfig
+> @@ -126,10 +126,10 @@ config MACH_MICRO9S
+>  	  Contec Micro9-Slim board.
+>  
+>  config MACH_SIM_ONE
+> -        bool "Support Simplemachines Sim.One board"
+> -        help
+> -          Say 'Y' here if you want your kernel to support the
+> -          Simplemachines Sim.One board.
+> +	bool "Support Simplemachines Sim.One board"
+> +	help
+> +	  Say 'Y' here if you want your kernel to support the
+> +	  Simplemachines Sim.One board.
+>  
+>  config MACH_SNAPPER_CL15
+>  	bool "Support Bluewater Systems Snapper CL15 Module"
 
-----------------------------------------------------------------
-Few ti-sysc related fixes for v5.5 merge window
 
-Just few minor changes that can be merged when suitable, but would
-be good to have these in v5.5-rc1 to remove dependencies between branches
-for more changes later on in v5.6:
-
-- Add quirk handling for AESS (Audio Engine Sub System)
-
-- We want to drop the useless gptimer option for omap4 as there are local
-  timers
-
-- A minor error path handling improvment for sysc_child_add_named_clock()
-  that will make further patching a bit easier
-
-----------------------------------------------------------------
-Markus Elfring (1):
-      bus: ti-sysc: Adjust exception handling in sysc_child_add_named_clock()
-
-Tony Lindgren (3):
-      bus: ti-sysc: Add module enable quirk for audio AESS
-      ARM: OMAP2+: Drop useless gptimer option for omap4
-      Merge branches 'omap-for-v5.5/soc' and 'omap-for-v5.5/ti-sysc' into omap-for-v5.5/ti-sysc-late
-
- arch/arm/mach-omap2/timer.c           |  4 ++--
- drivers/bus/ti-sysc.c                 | 21 ++++++++++++++++-----
- include/linux/platform_data/ti-sysc.h |  1 +
- 3 files changed, 19 insertions(+), 7 deletions(-)
+-- 
+Alexander Sverdlin.
