@@ -1,40 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFCv1 33/42] drm/omap: dsi: use atomic helper for dirtyfb
-Date: Tue, 19 Nov 2019 19:48:20 -0800
-Message-ID: <20191120034820.GR35479@atomide.com>
-References: <20191117024028.2233-1-sebastian.reichel@collabora.com>
- <20191117024028.2233-34-sebastian.reichel@collabora.com>
- <20191118230535.GG35479@atomide.com>
- <e91c7fc9-18e0-cc22-4617-127fe9be2c1b@ti.com>
- <20191119143243.GH35479@atomide.com>
- <edff7dfa-8b95-48ac-59e0-14553f3c8d39@ti.com>
- <20191119150643.GI35479@atomide.com>
- <46aba805-1d3a-2efc-23f6-d957bf6a44c3@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 00/15] Remoteproc: updates for OMAP remoteproc support
+Date: Wed, 20 Nov 2019 13:28:06 +0200
+Message-ID: <46a3bfb0-6bf1-b3d9-14a6-d2ed5b91c930@ti.com>
+References: <20191119141645.19777-1-t-kristo@ti.com>
+ <CANLsYkwyLMHzKkm-6X+OgQ+khRYJshMJsxdst7+c7n+hX4nLpQ@mail.gmail.com>
+ <CANLsYkwcWDOPx_rpL5RkzsNLyw+ccPE0bNhar6xv1SZ1=R5xmA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <46aba805-1d3a-2efc-23f6-d957bf6a44c3@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: kernel@collabora.com, "H. Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sebastian.reichel@collabora.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANLsYkwcWDOPx_rpL5RkzsNLyw+ccPE0bNhar6xv1SZ1=R5xmA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: Bjorn Andersson <bjorn.andersson@linaro.org>, Ohad Ben-Cohen <ohad@wizery.com>, linux-remoteproc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkxMTE5IDE1OjU2XToK
-PiBBZmFpaywgV2VzdG9uIGFuZCBYIGJvdGggaGFuZGxlIHBhZ2UgZmxpcHMgYW5kL29yIGRpcnR5
-aW5nIHRoZSBmYiwgc28gdGhleQo+IHNob3VsZCB3b3JrLiBBcmUgdGhlcmUgYXBwbGljYXRpb25z
-IHRoYXQgZG8gbm90IHdvcmssIGFuZCBjYW5ub3QgYmUgbWFkZSB0bwo+IHdvcmssIGV4Y2VwdCB0
-aGUgZmV3IFNHWCB0ZXN0IGFwcHM/CgpJJ20gbm90IHN1cmUgc3VyZSB5ZXQgd2hhdCBhbGwgaXQg
-YWZmZWN0cywgSSdsbCBkbyBzb21lIG1vcmUgdGVzdHMgb24gaXQuCgpSZWdhcmRzLAoKVG9ueQpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwg
-bWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0
-cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+On 19/11/2019 20:07, Mathieu Poirier wrote:
+> On Tue, 19 Nov 2019 at 10:31, Mathieu Poirier
+> <mathieu.poirier@linaro.org> wrote:
+>>
+>> On Tue, 19 Nov 2019 at 07:17, Tero Kristo <t-kristo@ti.com> wrote:
+>>>
+>>> Hi,
+>>>
+>>> This is v2 of the series [1], addressing comments from Bjorn and Rob.
+>>> Bindings patch is funnily v2.5, as I posted v2 already and wanted to
+>>> keep this somehow in sync. Individual patches contain comments about the
+>>> changes, or Reviewed-by tags provided if there are no changes.
+>>>
+>>> I also dropped the conversion patch to SPDX licensing until I can
+>>> confirm the license we want to use. Lets just keep the existing in place
+>>> until that.
+>>>
+>>> This series still depends on the reset + clock patches posted earlier,
+>>> but both of those dependencies are in linux-next now.
+>>
+>> I tried to apply your set to today's linux-next (next-20191119) but it
+>> fails at patch 13.
+> 
+> Digging further into this patch 12 is causing problem on next-20191119 (not 13):
+> 
+> mpoirier@xps15:~/work/remoteproc/kernel-review$ git apply --reject
+> 0012-remoteproc-omap-add-support-for-system-suspend-resum.patch
+> Checking patch drivers/remoteproc/omap_remoteproc.c...
+> Hunk #3 succeeded at 85 (offset -1 lines).
+> Hunk #4 succeeded at 99 (offset -1 lines).
+> Hunk #5 succeeded at 359 (offset -1 lines).
+> Hunk #6 succeeded at 544 (offset -1 lines).
+> Hunk #7 succeeded at 952 (offset -1 lines).
+> Hunk #8 succeeded at 992 (offset -2 lines).
+> Checking patch drivers/remoteproc/omap_remoteproc.h...
+> error: while searching for:
+> /*
+>   * Remote processor messaging
+>   *
+>   * Copyright (C) 2011 Texas Instruments, Inc.
+>   * Copyright (C) 2011 Google, Inc.
+>   * All rights reserved.
+>   */
+> 
+> error: patch failed: drivers/remoteproc/omap_remoteproc.h:2
+> Hunk #2 succeeded at 57 (offset 25 lines).
+> Hunk #3 succeeded at 80 (offset 25 lines).
+> Applied patch drivers/remoteproc/omap_remoteproc.c cleanly.
+> Applying patch drivers/remoteproc/omap_remoteproc.h with 1 reject...
+> Rejected hunk #1.
+> Hunk #2 applied cleanly.
+> Hunk #3 applied cleanly.
+> 
+> Your patch expects the last line of the first hunk to be '*/' but it
+> is '*' in linux-next.
+
+Hmm right, this seems my bad. This is caused by me dropping the SPDX 
+license conversion patch from the series, if that is applied, it goes 
+cleanly.
+
+Simple rebase of patch 12 is going to fix that though.
+
+-Tero
+
+> 
+>>
+>> Mathieu
+>>
+>>>
+>>> -Tero
+>>>
+>>> [1] https://patchwork.kernel.org/cover/11215421/
+>>>
+>>>
+>>>
+>>> --
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
