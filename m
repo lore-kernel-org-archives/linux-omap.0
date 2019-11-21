@@ -1,151 +1,76 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: [PATCH 1/1] ARM: dts: am5729: beaglebone-ai: adding device tree
-Date: Thu, 21 Nov 2019 08:19:43 -0500
-Message-ID: <0926767e-111b-22f5-e87d-51a7269307aa@ti.com>
+From: "Robey, Caleb" <c-robey@ti.com>
+Subject: RE: [PATCH 1/1] ARM: dts: am5729: beaglebone-ai: adding device tree
+Date: Thu, 21 Nov 2019 14:41:49 +0000
+Message-ID: <12acbc1a96754fe68d7447b6ee99efd3@ti.com>
 References: <20191119202850.18149-1-c-robey@ti.com>
  <20191119202850.18149-2-c-robey@ti.com>
+ <8465b8c3-db4b-31fd-a299-3d5251ec99cf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191119202850.18149-2-c-robey@ti.com>
+In-Reply-To: <8465b8c3-db4b-31fd-a299-3d5251ec99cf@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Caleb Robey <c-robey@ti.com>, linux-omap@vger.kernel.org
-Cc: Jason Kridner <jkridner@gmail.com>, Lokesh Vutla <lokeshvutla@ti.com>, Jason Kridner <jdk@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Andreas Dannenberg <dannenberg@ti.com>, Jean-Jacques Hiblot <jjhiblot@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Tom Rini <trini@konsulko.com>, Robert Nelson <robertcnelson@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Jason Kridner <jkridner@gmail.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Kridner, Jason" <jdk@ti.com>, "Rizvi, Mohammad Faiz Abbas" <faiz_abbas@ti.com>, "Dannenberg, Andreas" <dannenberg@ti.com>, "Hiblot, Jean-Jacques" <jjhiblot@ti.com>, "Bajjuri, Praneeth" <praneeth@ti.com>, "Davis, Andrew" <afd@ti.com>, Tom Rini <trini@konsulko.com>, Robert Nelson <robertcnelson@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/19/19 3:28 PM, Caleb Robey wrote:
-> From: Jason Kridner <jdk@ti.com>
-> 
-> BeagleBoard.org BeagleBone AI is an open source hardware single
-> board computer based on the Texas Instruments AM5729 SoC featuring
-> dual-core 1.5GHz Arm Cortex-A15 processor, dual-core C66 digital
-> signal processor (DSP), quad-core embedded vision engine (EVE),
-> Arm Cortex-M4 processors, dual programmable realtime unit
-> industrial control subsystems and more. The board features 1GB
-> DDR3L, USB3.0 Type-C, USB HS Type-A, microHDMI, 16GB eMMC flash,
-> 1G Ethernet, 802.11ac 2/5GHz, Bluetooth, and BeagleBone expansion
-> headers.
-> 
-> For more information, refer to:
-> https://beaglebone.ai
-> 
-> This patch introduces the BeagleBone AI device tree.
-> 
-> Note that the device use the "ti,tpd12s016" component which is
-> software compatible with "ti,tpd12s015". Thus we only use the
-> latter driver.
-> 
-> Signed-off-by: Jason Kridner <jdk@ti.com>
-> Signed-off-by: Caleb Robey <c-robey@ti.com>
-> Cc: Robert Nelson <robertcnelson@gmail.com>
-> 
-> ---
->  arch/arm/boot/dts/Makefile                |   1 +
->  arch/arm/boot/dts/am5729-beagleboneai.dts | 782 ++++++++++++++++++++++
->  2 files changed, 783 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am5729-beagleboneai.dts
-> 
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index b21b3a64641a..b1154dbda73c 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -791,6 +791,7 @@ dtb-$(CONFIG_SOC_DRA7XX) += \
->  	am57xx-beagle-x15.dtb \
->  	am57xx-beagle-x15-revb1.dtb \
->  	am57xx-beagle-x15-revc.dtb \
-> +	am5729-beagleboneai.dtb \
->  	am57xx-cl-som-am57x.dtb \
->  	am57xx-sbc-am57x.dtb \
->  	am572x-idk.dtb \
-> diff --git a/arch/arm/boot/dts/am5729-beagleboneai.dts b/arch/arm/boot/dts/am5729-beagleboneai.dts
-> new file mode 100644
-> index 000000000000..7d0e132e6a23
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am5729-beagleboneai.dts
-> @@ -0,0 +1,782 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright (C) 2014-2019 Texas Instruments Incorporated - http://www.ti.com/
-
-
-I know this is mostly a copy/paste from other boards, but lets not claim
-copyright 5 years back on a file describing a device that was not even
-thought up then.
-
-
-> + */
-> +
-> +/dts-v1/;
-> +
-> +#include "dra74x.dtsi"
-> +#include "am57xx-commercial-grade.dtsi"
-> +#include "dra74x-mmc-iodelay.dtsi"
-> +#include "dra74-ipu-dsp-common.dtsi"
-> +#include <dt-bindings/gpio/gpio.h>
-> +#include <dt-bindings/interrupt-controller/irq.h>
-> +#include <dt-bindings/pinctrl/dra.h>
-> +
-> +/ {
-> +	model = "BeagleBoard.org BeagleBone AI";
-> +	compatible = "beagleboard.org,am5729-beagleboneai", "ti,am5728",
-> +		     "ti,dra742", "ti,dra74", "ti,dra7";
-> +
-> +	aliases {
-> +		rtc0 = &tps659038_rtc;
-> +		rtc1 = &rtc;
-> +		display0 = &hdmi_conn;
-> +	};
-> +
-> +	chosen {
-> +		stdout-path = &uart1;
-> +	};
-> +
-> +	memory@0 {
-> +		device_type = "memory";
-> +		reg = <0x0 0x80000000 0x0 0x40000000>;
-> +	};
-> +
-> +	reserved-memory {
-> +		#address-cells = <2>;
-> +		#size-cells = <2>;
-> +		ranges;
-> +
-> +		ipu2_memory_region: ipu2-memory@95800000 {
-> +			compatible = "shared-dma-pool";
-> +			reg = <0x0 0x95800000 0x0 0x3800000>;
-> +			reusable;
-> +			status = "okay";
-> +		};
-
-
-Now these reserved memories are unused.
-
-Andrew
-
-
-> +
-> +		dsp1_memory_region: dsp1-memory@99000000 {
-> +			compatible = "shared-dma-pool";
-> +			reg = <0x0 0x99000000 0x0 0x4000000>;
-> +			reusable;
-> +			status = "okay";
-> +		};
-> +
-> +		ipu1_memory_region: ipu1-memory@9d000000 {
-> +			compatible = "shared-dma-pool";
-> +			reg = <0x0 0x9d000000 0x0 0x2000000>;
-> +			reusable;
-> +			status = "okay";
-> +		};
-> +
-> +		dsp2_memory_region: dsp2-memory@9f000000 {
-> +			compatible = "shared-dma-pool";
-> +			reg = <0x0 0x9f000000 0x0 0x800000>;
-> +			reusable;
-> +			status = "okay";
-> +		};
-> +
-> +	};
-> +
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogU3RyYXNoa28sIEdyeWdv
+cmlpDQo+IFNlbnQ6IFRodXJzZGF5LCBOb3ZlbWJlciAyMSwgMjAxOSA1OjA1IEFNDQo+IFRvOiBS
+b2JleSwgQ2FsZWI7IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IENjOiBKYXNvbiBLcmlk
+bmVyOyBWdXRsYSwgTG9rZXNoOyBLcmlkbmVyLCBKYXNvbjsgUml6dmksIE1vaGFtbWFkIEZhaXoN
+Cj4gQWJiYXM7IERhbm5lbmJlcmcsIEFuZHJlYXM7IEhpYmxvdCwgSmVhbi1KYWNxdWVzOyBCYWpq
+dXJpLCBQcmFuZWV0aDsgRGF2aXMsDQo+IEFuZHJldzsgVG9tIFJpbmk7IFJvYmVydCBOZWxzb247
+IFJvYiBIZXJyaW5nOyBNYXJrIFJ1dGxhbmQ7IEJlbm/DrnQNCj4gQ291c3NvbjsgVG9ueSBMaW5k
+Z3JlbjsgZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5r
+ZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMS8xXSBBUk06IGR0czogYW01NzI5OiBi
+ZWFnbGVib25lLWFpOiBhZGRpbmcgZGV2aWNlDQo+IHRyZWUNCj4gDQo+IA0KPiANCj4gT24gMTkv
+MTEvMjAxOSAyMjoyOCwgQ2FsZWIgUm9iZXkgd3JvdGU6DQo+ID4gRnJvbTogSmFzb24gS3JpZG5l
+ciA8amRrQHRpLmNvbT4NCj4gPg0KPiA+IEJlYWdsZUJvYXJkLm9yZyBCZWFnbGVCb25lIEFJIGlz
+IGFuIG9wZW4gc291cmNlIGhhcmR3YXJlIHNpbmdsZQ0KPiA+IGJvYXJkIGNvbXB1dGVyIGJhc2Vk
+IG9uIHRoZSBUZXhhcyBJbnN0cnVtZW50cyBBTTU3MjkgU29DIGZlYXR1cmluZw0KPiA+IGR1YWwt
+Y29yZSAxLjVHSHogQXJtIENvcnRleC1BMTUgcHJvY2Vzc29yLCBkdWFsLWNvcmUgQzY2IGRpZ2l0
+YWwNCj4gPiBzaWduYWwgcHJvY2Vzc29yIChEU1ApLCBxdWFkLWNvcmUgZW1iZWRkZWQgdmlzaW9u
+IGVuZ2luZSAoRVZFKSwNCj4gPiBBcm0gQ29ydGV4LU00IHByb2Nlc3NvcnMsIGR1YWwgcHJvZ3Jh
+bW1hYmxlIHJlYWx0aW1lIHVuaXQNCj4gPiBpbmR1c3RyaWFsIGNvbnRyb2wgc3Vic3lzdGVtcyBh
+bmQgbW9yZS4gVGhlIGJvYXJkIGZlYXR1cmVzIDFHQg0KPiA+IEREUjNMLCBVU0IzLjAgVHlwZS1D
+LCBVU0IgSFMgVHlwZS1BLCBtaWNyb0hETUksIDE2R0IgZU1NQyBmbGFzaCwNCj4gPiAxRyBFdGhl
+cm5ldCwgODAyLjExYWMgMi81R0h6LCBCbHVldG9vdGgsIGFuZCBCZWFnbGVCb25lIGV4cGFuc2lv
+bg0KPiA+IGhlYWRlcnMuDQo+ID4NCj4gPiBGb3IgbW9yZSBpbmZvcm1hdGlvbiwgcmVmZXIgdG86
+DQo+ID4gaHR0cHM6Ly9iZWFnbGVib25lLmFpDQo+IA0KPiANCj4gPg0KPiA+IFRoaXMgcGF0Y2gg
+aW50cm9kdWNlcyB0aGUgQmVhZ2xlQm9uZSBBSSBkZXZpY2UgdHJlZS4NCj4gPg0KPiA+IE5vdGUg
+dGhhdCB0aGUgZGV2aWNlIHVzZSB0aGUgInRpLHRwZDEyczAxNiIgY29tcG9uZW50IHdoaWNoIGlz
+DQo+ID4gc29mdHdhcmUgY29tcGF0aWJsZSB3aXRoICJ0aSx0cGQxMnMwMTUiLiBUaHVzIHdlIG9u
+bHkgdXNlIHRoZQ0KPiA+IGxhdHRlciBkcml2ZXIuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBK
+YXNvbiBLcmlkbmVyIDxqZGtAdGkuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IENhbGViIFJvYmV5
+IDxjLXJvYmV5QHRpLmNvbT4NCj4gPiBDYzogUm9iZXJ0IE5lbHNvbiA8cm9iZXJ0Y25lbHNvbkBn
+bWFpbC5jb20+DQo+ID4NCj4gPiAtLS0NCj4gPiAgIGFyY2gvYXJtL2Jvb3QvZHRzL01ha2VmaWxl
+ICAgICAgICAgICAgICAgIHwgICAxICsNCj4gPiAgIGFyY2gvYXJtL2Jvb3QvZHRzL2FtNTcyOS1i
+ZWFnbGVib25lYWkuZHRzIHwgNzgyDQo+ICsrKysrKysrKysrKysrKysrKysrKysNCj4gPiAgIDIg
+ZmlsZXMgY2hhbmdlZCwgNzgzIGluc2VydGlvbnMoKykNCj4gPiAgIGNyZWF0ZSBtb2RlIDEwMDY0
+NCBhcmNoL2FybS9ib290L2R0cy9hbTU3MjktYmVhZ2xlYm9uZWFpLmR0cw0KPiA+DQo+ID4gZGlm
+ZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL01ha2VmaWxlIGIvYXJjaC9hcm0vYm9vdC9kdHMv
+TWFrZWZpbGUNCj4gPiBpbmRleCBiMjFiM2E2NDY0MWEuLmIxMTU0ZGJkYTczYyAxMDA2NDQNCj4g
+PiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9NYWtlZmlsZQ0KPiA+ICsrKyBiL2FyY2gvYXJtL2Jv
+b3QvZHRzL01ha2VmaWxlDQo+IA0KPiBbLi5dDQo+IA0KPiA+ICsNCj4gPiArJnVhcnQxIHsNCj4g
+PiArCXN0YXR1cyA9ICJva2F5IjsNCj4gPiArfTsNCj4gPiArDQo+ID4gKyZkYXZpbmNpX21kaW8g
+ew0KPiA+ICsJcmVzZXQtZ3Bpb3MgPSA8JmdwaW8yIDIzIEdQSU9fQUNUSVZFX0xPVz47DQo+ID4g
+KwlyZXNldC1kZWxheS11cyA9IDwyPjsNCj4gPiArDQo+ID4gKwlwaHkwOiBldGhlcm5ldC1waHlA
+MSB7DQo+ID4gKwkJcmVnID0gPDQ+Ow0KPiA+ICsJCWNvbXBhdGlibGUgPSAiZXRoZXJuZXQtcGh5
+LWlkMDA0ZC5kMDcyIiwNCj4gPiArCQkJImV0aGVybmV0LXBoeS1pZWVlODAyLjMtYzIyIjsNCj4g
+DQo+IFBscywgZG8gbm90IGlnbm9yZSBteSBjb21tZW50cy4NCj4gDQo+IEFib3ZlIGNvbXBhdGli
+bGUgc2hvdWxkIG5vdCBiZSByZXF1aXJlZC4NCg0KR3J5Z29yaSwgSSBhbSBzbyBzb3JyeSBhYm91
+dCB0aGlzIC0gSSBoYWQgZGVsZXRlZCB0aGlzLA0KYnV0IG11c3QgaGF2ZSBtYWRlIGEgbWlzdGFr
+ZSBpbiB0aGUgcmVzdWJtaXNzaW9uLiBJDQp3aWxsIGZpeCBpdCBpbW1lZGlhdGVseS4NCg0KDQo+
+IA0KPiA+ICsJCWVlZS1icm9rZW4tMTAwdHg7DQo+ID4gKwkJZWVlLWJyb2tlbi0xMDAwdDsNCj4g
+PiArCX07DQo+ID4gK307DQo+ID4gKw0KPiA+ICsmbWFjIHsNCj4gPiArCXNsYXZlcyA9IDwxPjsN
+Cj4gPiArCXN0YXR1cyA9ICJva2F5IjsNCj4gPiArfTsNCj4gDQo+IFBscywgbW92ZSBjcHN3IG5v
+ZGUgaGVyZQ0KDQpTYW1lIGFzIGFib3ZlLi4uIHRoaXMgbXVzdCBiZSB0aGUgd3JvbmcgZmlsZS4g
+SSBhcG9sb2dpemUuDQogDQoNCj4gDQo+ID4gKw0KPiA+ICsmb2NwIHsNCj4gPiArCXBydXNzMV9z
+aG1lbTogcHJ1c3Nfc2htZW1ANGIyMDAwMDAgew0KPiA+ICsJCXN0YXR1cyA9ICJva2F5IjsNCj4g
+PiArCQljb21wYXRpYmxlID0gInRpLHBydXNzLXNobWVtIjsNCj4gPiArCQlyZWcgPSA8MHg0YjIw
+MDAwMCAweDAyMDAwMD47DQo+ID4gKwl9Ow0KPiA+ICsNCj4gDQo+IFsuLl0NCj4gDQo+ID4gKw0K
+PiA+ICsmY3Bzd19lbWFjMCB7DQo+ID4gKwlwaHktaGFuZGxlID0gPCZwaHkwPjsNCj4gPiArCXBo
+eS1tb2RlID0gInJnbWlpIjsNCj4gPiArfTsNCj4gDQo+IE1vdmUgaXQgdXAsIHBscy4NCj4gDQo+
+IC0tDQo+IEJlc3QgcmVnYXJkcywNCj4gZ3J5Z29yaWkNCg==
