@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 010/127] ARM: OMAP1: fix USB configuration for device-only setups
-Date: Fri, 22 Nov 2019 00:53:48 -0500
-Message-ID: <20191122055544.3299-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 055/127] drivers/regulator: fix a missing check of return value
+Date: Fri, 22 Nov 2019 00:54:33 -0500
+Message-ID: <20191122055544.3299-54-sashal@kernel.org>
 References: <20191122055544.3299-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,51 +9,46 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191122055544.3299-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Kangjie Lu <kjlu@umn.edu>, Mark Brown <broonie@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Kangjie Lu <kjlu@umn.edu>
 
-[ Upstream commit c7b7b5cbd0c859b1546a5a3455d457708bdadf4c ]
+[ Upstream commit 966e927bf8cc6a44f8b72582a1d6d3ffc73b12ad ]
 
-Currently we do USB configuration only if the host mode (CONFIG_USB)
-is enabled. But it should be done also in the case of device-only setups,
-so change the condition to CONFIG_USB_SUPPORT. This allows to use
-omap_udc on Palm Tungsten E.
+If palmas_smps_read() fails, we should not use the read data in "reg"
+which may contain random value. The fix inserts a check for the return
+value of palmas_smps_read(): If it fails, we return the error code
+upstream and stop using "reg".
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap1/Makefile           | 2 +-
- arch/arm/mach-omap1/include/mach/usb.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/regulator/palmas-regulator.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index e8ccf51c6f292..ec0235899de20 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -25,7 +25,7 @@ obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index bb5ab7d78895b..c2cc392a27d40 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -443,13 +443,16 @@ static int palmas_ldo_write(struct palmas *palmas, unsigned int reg,
+ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
+ {
+ 	int id = rdev_get_id(dev);
++	int ret;
+ 	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+ 	struct palmas_pmic_driver_data *ddata = pmic->palmas->pmic_ddata;
+ 	struct palmas_regs_info *rinfo = &ddata->palmas_regs_info[id];
+ 	unsigned int reg;
+ 	bool rail_enable = true;
  
- led-y := leds.o
+-	palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	ret = palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	if (ret)
++		return ret;
  
--usb-fs-$(CONFIG_USB)			:= usb.o
-+usb-fs-$(CONFIG_USB_SUPPORT)		:= usb.o
- obj-y					+= $(usb-fs-m) $(usb-fs-y)
+ 	reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
  
- # Specific board support
-diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
-index 77867778d4ec7..5429d86c7190d 100644
---- a/arch/arm/mach-omap1/include/mach/usb.h
-+++ b/arch/arm/mach-omap1/include/mach/usb.h
-@@ -11,7 +11,7 @@
- 
- #include <linux/platform_data/usb-omap1.h>
- 
--#if IS_ENABLED(CONFIG_USB)
-+#if IS_ENABLED(CONFIG_USB_SUPPORT)
- void omap1_usb_init(struct omap_usb_config *pdata);
- #else
- static inline void omap1_usb_init(struct omap_usb_config *pdata)
 -- 
 2.20.1
