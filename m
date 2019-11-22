@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 070/219] usb: ehci-omap: Fix deferred probe for phy handling
-Date: Fri, 22 Nov 2019 00:46:42 -0500
-Message-ID: <20191122054911.1750-63-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 108/219] drivers/regulator: fix a missing check of return value
+Date: Fri, 22 Nov 2019 00:47:20 -0500
+Message-ID: <20191122054911.1750-101-sashal@kernel.org>
 References: <20191122054911.1750-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,56 +9,46 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Roger Quadros <rogerq@ti.com>, Johan Hovold <johan@kernel.org>, Ladislav Michl <ladis@linux-mips.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Kangjie Lu <kjlu@umn.edu>, Mark Brown <broonie@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Roger Quadros <rogerq@ti.com>
+From: Kangjie Lu <kjlu@umn.edu>
 
-[ Upstream commit 8dc7623bf608495b6e6743e805807c7840673573 ]
+[ Upstream commit 966e927bf8cc6a44f8b72582a1d6d3ffc73b12ad ]
 
-PHY model is being used on omap5 platforms even if port mode
-is not OMAP_EHCI_PORT_MODE_PHY. So don't guess if PHY is required
-or not based on PHY mode.
+If palmas_smps_read() fails, we should not use the read data in "reg"
+which may contain random value. The fix inserts a check for the return
+value of palmas_smps_read(): If it fails, we return the error code
+upstream and stop using "reg".
 
-If PHY is provided in device tree, it must be required. So, if
-devm_usb_get_phy_by_phandle() gives us an error code other
-than -ENODEV (no PHY) then error out.
-
-This fixes USB Ethernet on omap5-uevm if PHY happens to
-probe after EHCI thus causing a -EPROBE_DEFER.
-
-Cc: Johan Hovold <johan@kernel.org>
-Cc: Ladislav Michl <ladis@linux-mips.org>
-Reported-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/usb/host/ehci-omap.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/regulator/palmas-regulator.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 7e4c13346a1ee..7d20296cbe9f9 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -159,11 +159,12 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		/* get the PHY device */
- 		phy = devm_usb_get_phy_by_phandle(dev, "phys", i);
- 		if (IS_ERR(phy)) {
--			/* Don't bail out if PHY is not absolutely necessary */
--			if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
-+			ret = PTR_ERR(phy);
-+			if (ret == -ENODEV) { /* no PHY */
-+				phy = NULL;
- 				continue;
-+			}
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index bb5ab7d78895b..c2cc392a27d40 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -443,13 +443,16 @@ static int palmas_ldo_write(struct palmas *palmas, unsigned int reg,
+ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
+ {
+ 	int id = rdev_get_id(dev);
++	int ret;
+ 	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+ 	struct palmas_pmic_driver_data *ddata = pmic->palmas->pmic_ddata;
+ 	struct palmas_regs_info *rinfo = &ddata->palmas_regs_info[id];
+ 	unsigned int reg;
+ 	bool rail_enable = true;
  
--			ret = PTR_ERR(phy);
- 			if (ret != -EPROBE_DEFER)
- 				dev_err(dev, "Can't get PHY for port %d: %d\n",
- 					i, ret);
+-	palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	ret = palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	if (ret)
++		return ret;
+ 
+ 	reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+ 
 -- 
 2.20.1
