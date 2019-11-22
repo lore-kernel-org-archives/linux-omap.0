@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 108/219] drivers/regulator: fix a missing check of return value
-Date: Fri, 22 Nov 2019 00:47:20 -0500
-Message-ID: <20191122054911.1750-101-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 131/219] regulator: tps65910: fix a missing check of return value
+Date: Fri, 22 Nov 2019 00:47:43 -0500
+Message-ID: <20191122054911.1750-124-sashal@kernel.org>
 References: <20191122054911.1750-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,41 +14,33 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Kangjie Lu <kjlu@umn.edu>
 
-[ Upstream commit 966e927bf8cc6a44f8b72582a1d6d3ffc73b12ad ]
+[ Upstream commit cd07e3701fa6a4c68f8493ee1d12caa18d46ec6a ]
 
-If palmas_smps_read() fails, we should not use the read data in "reg"
-which may contain random value. The fix inserts a check for the return
-value of palmas_smps_read(): If it fails, we return the error code
-upstream and stop using "reg".
+tps65910_reg_set_bits() may fail. The fix checks if it fails, and if so,
+returns with its error code.
 
 Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/regulator/palmas-regulator.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/regulator/tps65910-regulator.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index bb5ab7d78895b..c2cc392a27d40 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -443,13 +443,16 @@ static int palmas_ldo_write(struct palmas *palmas, unsigned int reg,
- static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
- {
- 	int id = rdev_get_id(dev);
-+	int ret;
- 	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
- 	struct palmas_pmic_driver_data *ddata = pmic->palmas->pmic_ddata;
- 	struct palmas_regs_info *rinfo = &ddata->palmas_regs_info[id];
- 	unsigned int reg;
- 	bool rail_enable = true;
+diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
+index 02ccdaa226a73..5ebb6ee73f077 100644
+--- a/drivers/regulator/tps65910-regulator.c
++++ b/drivers/regulator/tps65910-regulator.c
+@@ -1102,8 +1102,10 @@ static int tps65910_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, pmic);
  
--	palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
-+	ret = palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
-+	if (ret)
-+		return ret;
+ 	/* Give control of all register to control port */
+-	tps65910_reg_set_bits(pmic->mfd, TPS65910_DEVCTRL,
++	err = tps65910_reg_set_bits(pmic->mfd, TPS65910_DEVCTRL,
+ 				DEVCTRL_SR_CTL_I2C_SEL_MASK);
++	if (err < 0)
++		return err;
  
- 	reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
- 
+ 	switch (tps65910_chip_id(tps65910)) {
+ 	case TPS65910:
 -- 
 2.20.1
