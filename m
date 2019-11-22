@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 024/219] ARM: dts: Fix hsi gdd range for omap4
-Date: Fri, 22 Nov 2019 00:45:56 -0500
-Message-ID: <20191122054911.1750-17-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 027/219] bus: ti-sysc: Check for no-reset and no-idle flags at the child level
+Date: Fri, 22 Nov 2019 00:45:59 -0500
+Message-ID: <20191122054911.1750-20-sashal@kernel.org>
 References: <20191122054911.1750-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,46 +9,101 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit e9e685480b74aef3f3d0967dadb52eea3ff625d2 ]
+[ Upstream commit 4014c08ba39476a18af546186da625a6833a1529 ]
 
-While reviewing the missing mcasp ranges I noticed omap4 hsi range
-for gdd is wrong so let's fix it.
+With ti-sysc, we need to now have the device tree properties for
+ti,no-reset-on-init and ti,no-idle-on-init at the module level instead
+of the child device level.
 
-I'm not aware of any omap4 devices in mainline kernel though that use
-hsi though.
+Let's check for these properties at the child device level to enable
+quirks, and warn about moving the properties to the module level.
 
-Fixes: 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe
-them with ti-sysc")
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Otherwise am335x-evm based boards tagging gpio1 with ti,no-reset-on-init
+will have their DDR power disabled if wired up in such a tricky way.
+
+Note that this should not be an issue for earlier kernels as we don't
+rely on this until the dts files have been updated to probe with ti-sysc
+interconnect target driver.
+
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Reported-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap4-l4.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/bus/ti-sysc.c | 32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
-index 6eb26b837446c..5059ecac44787 100644
---- a/arch/arm/boot/dts/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/omap4-l4.dtsi
-@@ -196,12 +196,12 @@
- 			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
--			ranges = <0x0 0x58000 0x4000>;
-+			ranges = <0x0 0x58000 0x5000>;
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index e95b26319cd91..5b31131d0cba2 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -91,6 +91,9 @@ struct sysc {
+ 	struct delayed_work idle_work;
+ };
  
- 			hsi: hsi@0 {
- 				compatible = "ti,omap4-hsi";
- 				reg = <0x0 0x4000>,
--				      <0x4a05c000 0x1000>;
-+				      <0x5000 0x1000>;
- 				reg-names = "sys", "gdd";
++static void sysc_parse_dts_quirks(struct sysc *ddata, struct device_node *np,
++				  bool is_child);
++
+ void sysc_write(struct sysc *ddata, int offset, u32 value)
+ {
+ 	writel_relaxed(value, ddata->module_va + offset);
+@@ -374,6 +377,7 @@ static int sysc_check_one_child(struct sysc *ddata,
+ 		dev_warn(ddata->dev, "really a child ti,hwmods property?");
  
- 				clocks = <&l3_init_clkctrl OMAP4_HSI_CLKCTRL 0>;
+ 	sysc_check_quirk_stdout(ddata, np);
++	sysc_parse_dts_quirks(ddata, np, true);
+ 
+ 	return 0;
+ }
+@@ -1343,23 +1347,37 @@ static const struct sysc_dts_quirk sysc_dts_quirks[] = {
+ 	  .mask = SYSC_QUIRK_NO_RESET_ON_INIT, },
+ };
+ 
+-static int sysc_init_dts_quirks(struct sysc *ddata)
++static void sysc_parse_dts_quirks(struct sysc *ddata, struct device_node *np,
++				  bool is_child)
+ {
+-	struct device_node *np = ddata->dev->of_node;
+ 	const struct property *prop;
+-	int i, len, error;
+-	u32 val;
+-
+-	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
++	int i, len;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sysc_dts_quirks); i++) {
+-		prop = of_get_property(np, sysc_dts_quirks[i].name, &len);
++		const char *name = sysc_dts_quirks[i].name;
++
++		prop = of_get_property(np, name, &len);
+ 		if (!prop)
+ 			continue;
+ 
+ 		ddata->cfg.quirks |= sysc_dts_quirks[i].mask;
++		if (is_child) {
++			dev_warn(ddata->dev,
++				 "dts flag should be at module level for %s\n",
++				 name);
++		}
+ 	}
++}
++
++static int sysc_init_dts_quirks(struct sysc *ddata)
++{
++	struct device_node *np = ddata->dev->of_node;
++	int error;
++	u32 val;
++
++	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
+ 
++	sysc_parse_dts_quirks(ddata, np, false);
+ 	error = of_property_read_u32(np, "ti,sysc-delay-us", &val);
+ 	if (!error) {
+ 		if (val > 255) {
 -- 
 2.20.1
