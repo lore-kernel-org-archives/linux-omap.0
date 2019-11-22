@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 029/219] ARM: OMAP1: fix USB configuration for device-only setups
-Date: Fri, 22 Nov 2019 00:46:01 -0500
-Message-ID: <20191122054911.1750-22-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 070/219] usb: ehci-omap: Fix deferred probe for phy handling
+Date: Fri, 22 Nov 2019 00:46:42 -0500
+Message-ID: <20191122054911.1750-63-sashal@kernel.org>
 References: <20191122054911.1750-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,51 +9,56 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Roger Quadros <rogerq@ti.com>, Johan Hovold <johan@kernel.org>, Ladislav Michl <ladis@linux-mips.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Roger Quadros <rogerq@ti.com>
 
-[ Upstream commit c7b7b5cbd0c859b1546a5a3455d457708bdadf4c ]
+[ Upstream commit 8dc7623bf608495b6e6743e805807c7840673573 ]
 
-Currently we do USB configuration only if the host mode (CONFIG_USB)
-is enabled. But it should be done also in the case of device-only setups,
-so change the condition to CONFIG_USB_SUPPORT. This allows to use
-omap_udc on Palm Tungsten E.
+PHY model is being used on omap5 platforms even if port mode
+is not OMAP_EHCI_PORT_MODE_PHY. So don't guess if PHY is required
+or not based on PHY mode.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+If PHY is provided in device tree, it must be required. So, if
+devm_usb_get_phy_by_phandle() gives us an error code other
+than -ENODEV (no PHY) then error out.
+
+This fixes USB Ethernet on omap5-uevm if PHY happens to
+probe after EHCI thus causing a -EPROBE_DEFER.
+
+Cc: Johan Hovold <johan@kernel.org>
+Cc: Ladislav Michl <ladis@linux-mips.org>
+Reported-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap1/Makefile           | 2 +-
- arch/arm/mach-omap1/include/mach/usb.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/host/ehci-omap.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index e8ccf51c6f292..ec0235899de20 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -25,7 +25,7 @@ obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 7e4c13346a1ee..7d20296cbe9f9 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -159,11 +159,12 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		/* get the PHY device */
+ 		phy = devm_usb_get_phy_by_phandle(dev, "phys", i);
+ 		if (IS_ERR(phy)) {
+-			/* Don't bail out if PHY is not absolutely necessary */
+-			if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
++			ret = PTR_ERR(phy);
++			if (ret == -ENODEV) { /* no PHY */
++				phy = NULL;
+ 				continue;
++			}
  
- led-y := leds.o
- 
--usb-fs-$(CONFIG_USB)			:= usb.o
-+usb-fs-$(CONFIG_USB_SUPPORT)		:= usb.o
- obj-y					+= $(usb-fs-m) $(usb-fs-y)
- 
- # Specific board support
-diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
-index 77867778d4ec7..5429d86c7190d 100644
---- a/arch/arm/mach-omap1/include/mach/usb.h
-+++ b/arch/arm/mach-omap1/include/mach/usb.h
-@@ -11,7 +11,7 @@
- 
- #include <linux/platform_data/usb-omap1.h>
- 
--#if IS_ENABLED(CONFIG_USB)
-+#if IS_ENABLED(CONFIG_USB_SUPPORT)
- void omap1_usb_init(struct omap_usb_config *pdata);
- #else
- static inline void omap1_usb_init(struct omap_usb_config *pdata)
+-			ret = PTR_ERR(phy);
+ 			if (ret != -EPROBE_DEFER)
+ 				dev_err(dev, "Can't get PHY for port %d: %d\n",
+ 					i, ret);
 -- 
 2.20.1
