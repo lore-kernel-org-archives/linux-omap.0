@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 6/8] ARM: DTS: omap4: add sgx gpu child node
-Date: Sun, 24 Nov 2019 12:40:26 +0100
-Message-ID: <920e425c2dbded7656625f762d5a66b439e9c631.1574595627.git.hns@goldelico.com>
+Subject: [PATCH v3 8/8] MIPS: DTS: jz4780: add sgx gpu node
+Date: Sun, 24 Nov 2019 12:40:28 +0100
+Message-ID: <c73e2cee4f818654f264b0b7b5458bfaa0ac6a7a.1574595627.git.hns@goldelico.com>
 References: <cover.1574595627.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,64 +9,40 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1574595627.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Cercueil <paul@crapouillou.net>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paulburton@kernel.org>, James Hogan <jhogan@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>, Paul Boddie <paul@boddie.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-and add interrupt.
+and add interrupt and clocks.
 
-Since omap4420/30/60 and omap4470 come with different SGX variants
-we need to introduce a new omap4470.dtsi. If an omap4470 board
-does not want to use SGX it is no problem to still include
-omap4460.dtsi.
+Tested to build for CI20 board and load a (non-working) driver.
 
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # PandaBoard ES
+Suggested-by: Paul Boddie <paul@boddie.org.uk>
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap4.dtsi   |  9 +++++----
- arch/arm/boot/dts/omap4470.dts | 15 +++++++++++++++
- 2 files changed, 20 insertions(+), 4 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4470.dts
+ arch/mips/boot/dts/ingenic/jz4780.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 7cc95bc1598b..4d5958fbe1ef 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -347,10 +347,11 @@
- 			#size-cells = <1>;
- 			ranges = <0 0x56000000 0x2000000>;
+diff --git a/arch/mips/boot/dts/ingenic/jz4780.dtsi b/arch/mips/boot/dts/ingenic/jz4780.dtsi
+index c54bd7cfec55..21ea5f4a405b 100644
+--- a/arch/mips/boot/dts/ingenic/jz4780.dtsi
++++ b/arch/mips/boot/dts/ingenic/jz4780.dtsi
+@@ -46,6 +46,17 @@
+ 		#clock-cells = <1>;
+ 	};
  
--			/*
--			 * Closed source PowerVR driver, no child device
--			 * binding or driver in mainline
--			 */
-+			sgx: img@0 {
-+				compatible = "ti,omap4-sgx540-120", "img,sgx540-120", "img,sgx540";
-+				reg = <0x0 0x2000000>;	/* 32MB */
-+				interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
-+			};
- 		};
- 
- 		dss: dss@58000000 {
-diff --git a/arch/arm/boot/dts/omap4470.dts b/arch/arm/boot/dts/omap4470.dts
-new file mode 100644
-index 000000000000..19b554612401
---- /dev/null
-+++ b/arch/arm/boot/dts/omap4470.dts
-@@ -0,0 +1,15 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Device Tree Source for OMAP4470 SoC
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+#include "omap4460.dtsi"
++	gpu: gpu@13040000 {
++		compatible = "ingenic,jz4780-sgx540-120", "img,sgx540-120", "img,sgx540", "img,sgx5";
++		reg = <0x13040000 0x4000>;
 +
-+&sgx {
-+	compatible = "img,sgx544-112", "img,sgx544", "ti,omap-omap4-sgx544-112";
-+};
++		clocks = <&cgu JZ4780_CLK_GPU>;
++		clock-names = "gpu";
++
++		interrupt-parent = <&intc>;
++		interrupts = <63>;
++	};
++
+ 	tcu: timer@10002000 {
+ 		compatible = "ingenic,jz4780-tcu",
+ 			     "ingenic,jz4770-tcu",
 -- 
 2.23.0
