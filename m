@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 4/8] ARM: DTS: omap3: add sgx gpu child node
-Date: Sun, 24 Nov 2019 12:40:24 +0100
-Message-ID: <deaddbf0d29f30bfe675314e03e59cfc4749fad6.1574595627.git.hns@goldelico.com>
+Subject: [PATCH v3 2/8] ARM: DTS: am33xx: add sgx gpu child node
+Date: Sun, 24 Nov 2019 12:40:22 +0100
+Message-ID: <2ae609d6958727723ebaea2cfb62b547b38c23ee.1574595627.git.hns@goldelico.com>
 References: <cover.1574595627.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,42 +12,65 @@ To: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herrin
 Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-and add interrupt
+and add timer and interrupt
 
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # OpenPandora 600 MHz.
+Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # BeagleBone Black
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap34xx.dtsi | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi | 38 +++++++++++++++++++++++++++++++----
+ 1 file changed, 34 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index 7b09cbee8bb8..9b050d71849b 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -111,7 +111,7 @@
- 		 * are also different clocks, but we do not have any dts users
- 		 * for it.
- 		 */
--		sgx_module: target-module@50000000 {
-+		target-module@50000000 {
- 			compatible = "ti,sysc-omap2", "ti,sysc";
- 			reg = <0x50000014 0x4>;
- 			reg-names = "rev";
-@@ -121,10 +121,11 @@
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index a9d848d50b20..1fbc8a2cc7fd 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -480,13 +480,43 @@
  			#size-cells = <1>;
- 			ranges = <0 0x50000000 0x4000>;
+ 			ranges = <0 0x56000000 0x1000000>;
  
 -			/*
 -			 * Closed source PowerVR driver, no child device
 -			 * binding or driver in mainline
 -			 */
 +			sgx: gpu@0 {
-+				compatible = "ti,omap3-sgx530-121", "img,sgx530-121", "img,sgx530";
-+				reg = <0x0 0x4000>;	/* 64kB */
-+				interrupts = <21>;
++				compatible = "ti,am3352-sgx530-125", "img,sgx530-125", "img,sgx530";
++				reg = <0x00 0x1000000>;	/* 16 MB */
++				interrupts = <37>;
 +			};
  		};
  	};
+ };
  
+ #include "am33xx-l4.dtsi"
+ #include "am33xx-clocks.dtsi"
++
++&prcm {
++	prm_per: prm@c00 {
++		compatible = "ti,am3-prm-inst";
++		reg = <0xc00 0x100>;
++		#reset-cells = <1>;
++		clocks = <&pruss_ocp_clkctrl AM3_PRUSS_OCP_PRUSS_CLKCTRL 0>;
++	};
++
++	prm_wkup: prm@d00 {
++		compatible = "ti,am3-prm-inst";
++		reg = <0xd00 0x100>;
++		#reset-cells = <1>;
++		clocks = <&l4_wkup_clkctrl AM3_WKUP_M3_CLKCTRL 0>;
++	};
++
++	prm_device: prm@f00 {
++		compatible = "ti,am3-prm-inst";
++		reg = <0xf00 0x100>;
++		#reset-cells = <1>;
++	};
++
++	prm_gfx: prm@1100 {
++		compatible = "ti,am3-prm-inst";
++		reg = <0x1100 0x100>;
++		#reset-cells = <1>;
++		clocks = <&gfx_l3_clkctrl AM3_GFX_CLKCTRL 0>;
++	};
++};
 -- 
 2.23.0
