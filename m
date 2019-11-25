@@ -1,73 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 8/8] MIPS: DTS: jz4780: add sgx gpu node
-Date: Mon, 25 Nov 2019 07:46:21 -0800
-Message-ID: <20191125154621.GY35479@atomide.com>
-References: <cover.1574595627.git.hns@goldelico.com>
- <c73e2cee4f818654f264b0b7b5458bfaa0ac6a7a.1574595627.git.hns@goldelico.com>
- <1574600246.3.0@crapouillou.net>
- <20191124174837.GX35479@atomide.com>
- <FA810F13-BF2A-4849-9BAA-01FA2F768976@goldelico.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] ARM: dts: omap3-tao3530: Fix incorrect MMC card detection
+ GPIO polarity
+Date: Mon, 25 Nov 2019 20:27:12 +0200
+Message-ID: <27e677de-4e45-7eef-45b5-796e29fd39c0@bitmer.com>
+References: <20191116151651.7042-1-jarkko.nikula@bitmer.com>
+ <20191125111125.AF5D720836@mail.kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <FA810F13-BF2A-4849-9BAA-01FA2F768976@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Paul Cercueil <paul@crapouillou.net>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paulburton@kernel.org>, James Hogan <jhogan@kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, OpenPVRSGX Linux Driver Group <openpvrsgx-devgroup@letux.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, Paul Boddie <paul@boddie.org.uk>
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20191125111125.AF5D720836@mail.kernel.org>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Sasha Levin <sashal@kernel.org>, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* H. Nikolaus Schaller <hns@goldelico.com> [191124 18:00]:
-> Hi Paul, Tony,
+On 11/25/19 1:11 PM, Sasha Levin wrote:
+> Hi,
 > 
-> > Am 24.11.2019 um 18:48 schrieb Tony Lindgren <tony@atomide.com>:
-> > 
-> > * Paul Cercueil <paul@crapouillou.net> [191124 12:58]:
-> >> Le dim., nov. 24, 2019 at 12:40, H. Nikolaus Schaller <hns@goldelico.com> a
-> >> écrit :
-> >>> and add interrupt and clocks.
-> > ...
-> >>> --- a/arch/mips/boot/dts/ingenic/jz4780.dtsi
-> >>> +++ b/arch/mips/boot/dts/ingenic/jz4780.dtsi
-> >>> @@ -46,6 +46,17 @@
-> >>> 		#clock-cells = <1>;
-> >>> 	};
-> >>> 
-> >>> +	gpu: gpu@13040000 {
-> >> 
-> >> We try to keep the nodes ordered by address, could you move this node where
-> >> it belongs?
-> > ...
+> [This is an automated email]
 > 
-> Yes, I have noted.
+> This commit has been processed because it contains a "Fixes:" tag,
+> fixing commit: 3a637e008e54 ("ARM: dts: Use defined GPIO constants in flags cell for OMAP2+ boards").
 > 
-> > 
-> >>> +		compatible = "ingenic,jz4780-sgx540-120", "img,sgx540-120",
-> >>> "img,sgx540", "img,sgx5";
-> >>> +		reg = <0x13040000 0x4000>;
-> >>> +
-> >>> +		clocks = <&cgu JZ4780_CLK_GPU>;
-> >>> +		clock-names = "gpu";
-> > 
-> > Just checking.. Is there something else to configure here
-> > potentially in addition to the clocks?
+> The bot has tested the following trees: v5.3.12, v4.19.85, v4.14.155, v4.9.202, v4.4.202.
 > 
-> It doesn't look so. Unfortuantely there isn't much information
-> except a v3.18 kernel supported by the vendor and that one also
-> just has a gpu node with clock control.
+> v5.3.12: Build OK!
+> v4.19.85: Build OK!
+> v4.14.155: Build OK!
+> v4.9.202: Failed to apply! Possible dependencies:
+>     1a177cf72b3a ("ARM: dts: dra72-evm-tps65917: Add voltage supplies to usb_phy, mmc, dss")
+>     45ea75eb92a4 ("ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc"")
+>     5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
+>     6eebfeb9cf0d ("ARM: dts: Add support for dra718-evm")
+>     e9a05fbd21de ("ARM: dts: dra72-evm: Fix modelling of regulators")
 > 
-> > That is, do we need to do some interconnect specific
-> > configuration etc in addition to the clocks to have
-> > runtime PM work for enabling and disabling sgx on
-> > jz4780?
+> v4.4.202: Failed to apply! Possible dependencies:
+>     12ca468306a2 ("ARM: dts: am57xx: cl-som-am57x: add dual EMAC support")
+>     1a472e14ba08 ("ARM: dts: am57xx: cl-som-am57x: dts: add RTC support")
+>     27ddd846cb25 ("ARM: dts: am57xx: cl-som-am57x: add USB support")
+>     2c7cf1f48f36 ("ARM: dts: am57xx: cl-som-am57x: add EEPROM support")
+>     2d47fc3b9801 ("ARM: dts: am57xx: cl-som-am57x: add touchscreen support")
+>     317d15679a5e ("ARM: dts: dra72-evm: Mark uart1 rxd as wakeup capable")
+>     387450fc882e ("ARM: dts: am57xx: cl-som-am57x: add basic module support")
+>     3a1de8082405 ("ARM: dts: dra7xx: Fix compatible string for PCF8575 chip")
+>     4424cd009648 ("ARM: dts: am57xx: cl-som-am57x: add analog audio support")
+>     45ea75eb92a4 ("ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc"")
+>     488f270d90e1 ("ARM: dts: dra7: Fix NAND device nodes")
+>     4e8603eff519 ("ARM: dts: omap: remove unneeded unit name for sound nodes")
+>     6686f744df70 ("ARM: dts: DRA72-EVM: Add regulator-allow-bypass property for ldo1 and ldo2")
+>     6cfec12f2545 ("ARM: dts: dra72-evm: Enable AFIFO use for McASP3")
+>     6eebfeb9cf0d ("ARM: dts: Add support for dra718-evm")
+>     8deb60f535fa ("ARM: dts: am57xx: cl-som-am57x: add eMMC support")
+>     9255ea8472d2 ("ARM: dts: dra72-evm: Use DRA7XX_CORE_IOPAD pinmux macro")
+>     a23fc1558487 ("ARM: dts: dra7x-evm: Provide NAND ready pin")
+>     a4240d3af677 ("ARM: dts: Add support for dra72-evm rev C (SR2.0)")
+>     a7cac713f90a ("ARM: dts: AM572x-IDK Initial Support")
+>     cc2d681420d0 ("ARM: dts: am57xx: cl-som-am57x: add spi-flash support")
+>     e1fdd060f08d ("ARM: dts: am57xx: sbc-am57x: add basic board support")
+>     e9a05fbd21de ("ARM: dts: dra72-evm: Fix modelling of regulators")
 > 
-> I think we have to leave that open for further study.
+> 
+> NOTE: The patch will not be queued to stable trees until it is upstream.
+> 
+> How should we proceed with this patch?
+> 
+Ah, it doesn't apply to v4.4 and v4.9 due the commit 45ea75eb92a4 ("ARM:
+dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc"") but that commit
+doesn't apply either stable and probably even should not even if it would.
 
-OK for now, let's assume we just need to call
-clk_enable/disable from the PM runtime functions if a
-clock exists.
+I believe best is me to submit a separate version for v4.4/v4.9.
 
-Regards,
-
-Tony
+-- 
+Jarkko
