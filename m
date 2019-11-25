@@ -1,62 +1,73 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 3/4] ARM: dts: dra76-evm: add HDMI output
-Date: Mon, 25 Nov 2019 15:10:59 +0200
-Message-ID: <20191125131100.9839-3-tomi.valkeinen@ti.com>
-References: <20191125131100.9839-1-tomi.valkeinen@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 8/8] MIPS: DTS: jz4780: add sgx gpu node
+Date: Mon, 25 Nov 2019 07:46:21 -0800
+Message-ID: <20191125154621.GY35479@atomide.com>
+References: <cover.1574595627.git.hns@goldelico.com>
+ <c73e2cee4f818654f264b0b7b5458bfaa0ac6a7a.1574595627.git.hns@goldelico.com>
+ <1574600246.3.0@crapouillou.net>
+ <20191124174837.GX35479@atomide.com>
+ <FA810F13-BF2A-4849-9BAA-01FA2F768976@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191125131100.9839-1-tomi.valkeinen@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com
-Cc: mark.rutland@arm.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, robh+dt@kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <FA810F13-BF2A-4849-9BAA-01FA2F768976@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Paul Cercueil <paul@crapouillou.net>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paulburton@kernel.org>, James Hogan <jhogan@kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, OpenPVRSGX Linux Driver Group <openpvrsgx-devgroup@letux.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, Paul Boddie <paul@boddie.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-QWRkIERSQTc2IEVWTSBIRE1JIG91dHB1dCBmb3IgdGhlIGJhc2UgYm9hcmQuCgpTaWduZWQtb2Zm
-LWJ5OiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPgotLS0KIGFyY2gvYXJt
-L2Jvb3QvZHRzL2RyYTc2LWV2bS5kdHMgfCA2NiArKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysKIDEgZmlsZSBjaGFuZ2VkLCA2NiBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvYXJj
-aC9hcm0vYm9vdC9kdHMvZHJhNzYtZXZtLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTc2LWV2
-bS5kdHMKaW5kZXggMWZiNmYxM2ZiNWUyLi44NmEzZTc5OTA5YTggMTAwNjQ0Ci0tLSBhL2FyY2gv
-YXJtL2Jvb3QvZHRzL2RyYTc2LWV2bS5kdHMKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNzYt
-ZXZtLmR0cwpAQCAtMTMsNiArMTMsMTMgQEAKIAltb2RlbCA9ICJUSSBEUkE3NjIgRVZNIjsKIAlj
-b21wYXRpYmxlID0gInRpLGRyYTc2LWV2bSIsICJ0aSxkcmE3NjIiLCAidGksZHJhNyI7CiAKKwlh
-bGlhc2VzIHsKKwkJZGlzcGxheTAgPSAmaGRtaTA7CisKKwkJc291bmQwID0gJnNvdW5kMDsKKwkJ
-c291bmQxID0gJmhkbWk7CisJfTsKKwogCW1lbW9yeUAwIHsKIAkJZGV2aWNlX3R5cGUgPSAibWVt
-b3J5IjsKIAkJcmVnID0gPDB4MCAweDgwMDAwMDAwIDB4MCAweDgwMDAwMDAwPjsKQEAgLTExNiw2
-ICsxMjMsNDggQEAKIAkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTgwMDAwMD47CiAJCXJl
-Z3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDE4MDAwMDA+OwogCX07CisKKwloZG1pMDogY29ubmVj
-dG9yIHsKKwkJY29tcGF0aWJsZSA9ICJoZG1pLWNvbm5lY3RvciI7CisJCWxhYmVsID0gImhkbWki
-OworCisJCXR5cGUgPSAiYSI7CisKKwkJcG9ydCB7CisJCQloZG1pX2Nvbm5lY3Rvcl9pbjogZW5k
-cG9pbnQgeworCQkJCXJlbW90ZS1lbmRwb2ludCA9IDwmdHBkMTJzMDE1X291dD47CisJCQl9Owor
-CQl9OworCX07CisKKwl0cGQxMnMwMTU6IGVuY29kZXIgeworCQljb21wYXRpYmxlID0gInRpLHRw
-ZDEyczAxNSI7CisKKwkJZ3Bpb3MgPSA8JmdwaW83IDMwIEdQSU9fQUNUSVZFX0hJR0g+LCAgIC8q
-IGdwaW83XzMwLCBDVCBDUCBIUEQgKi8KKwkJCTwmZ3BpbzcgMzEgR1BJT19BQ1RJVkVfSElHSD4s
-ICAgLyogZ3BpbzdfMzEsIExTIE9FICovCisJCQk8JmdwaW83IDEyIEdQSU9fQUNUSVZFX0hJR0g+
-OyAgIC8qIGdwaW83XzEyL3NwMV9jczIsIEhQRCAqLworCisJCXBvcnRzIHsKKwkJCSNhZGRyZXNz
-LWNlbGxzID0gPDE+OworCQkJI3NpemUtY2VsbHMgPSA8MD47CisKKwkJCXBvcnRAMCB7CisJCQkJ
-cmVnID0gPDA+OworCisJCQkJdHBkMTJzMDE1X2luOiBlbmRwb2ludCB7CisJCQkJCXJlbW90ZS1l
-bmRwb2ludCA9IDwmaGRtaV9vdXQ+OworCQkJCX07CisJCQl9OworCisJCQlwb3J0QDEgeworCQkJ
-CXJlZyA9IDwxPjsKKworCQkJCXRwZDEyczAxNV9vdXQ6IGVuZHBvaW50IHsKKwkJCQkJcmVtb3Rl
-LWVuZHBvaW50ID0gPCZoZG1pX2Nvbm5lY3Rvcl9pbj47CisJCQkJfTsKKwkJCX07CisJCX07CisJ
-fTsKIH07CiAKICZpMmMxIHsKQEAgLTQxMSw2ICs0NjAsMjMgQEAKIAlwaHktc3VwcGx5ID0gPCZs
-ZG8zX3JlZz47CiB9OwogCismZHNzIHsKKwlzdGF0dXMgPSAib2siOworCXZkZGFfdmlkZW8tc3Vw
-cGx5ID0gPCZsZG81X3JlZz47Cit9OworCismaGRtaSB7CisJc3RhdHVzID0gIm9rIjsKKworCXZk
-ZGEtc3VwcGx5ID0gPCZsZG8xX3JlZz47CisKKwlwb3J0IHsKKwkJaGRtaV9vdXQ6IGVuZHBvaW50
-IHsKKwkJCXJlbW90ZS1lbmRwb2ludCA9IDwmdHBkMTJzMDE1X2luPjsKKwkJfTsKKwl9OworfTsK
-KwogJnFzcGkgewogCXNwaS1tYXgtZnJlcXVlbmN5ID0gPDk2MDAwMDAwPjsKIAltMjVwODBAMCB7
-Ci0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4
-MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9E
-b21pY2lsZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
-dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
-aS1kZXZlbA==
+* H. Nikolaus Schaller <hns@goldelico.com> [191124 18:00]:
+> Hi Paul, Tony,
+> 
+> > Am 24.11.2019 um 18:48 schrieb Tony Lindgren <tony@atomide.com>:
+> > 
+> > * Paul Cercueil <paul@crapouillou.net> [191124 12:58]:
+> >> Le dim., nov. 24, 2019 at 12:40, H. Nikolaus Schaller <hns@goldelico.com> a
+> >> écrit :
+> >>> and add interrupt and clocks.
+> > ...
+> >>> --- a/arch/mips/boot/dts/ingenic/jz4780.dtsi
+> >>> +++ b/arch/mips/boot/dts/ingenic/jz4780.dtsi
+> >>> @@ -46,6 +46,17 @@
+> >>> 		#clock-cells = <1>;
+> >>> 	};
+> >>> 
+> >>> +	gpu: gpu@13040000 {
+> >> 
+> >> We try to keep the nodes ordered by address, could you move this node where
+> >> it belongs?
+> > ...
+> 
+> Yes, I have noted.
+> 
+> > 
+> >>> +		compatible = "ingenic,jz4780-sgx540-120", "img,sgx540-120",
+> >>> "img,sgx540", "img,sgx5";
+> >>> +		reg = <0x13040000 0x4000>;
+> >>> +
+> >>> +		clocks = <&cgu JZ4780_CLK_GPU>;
+> >>> +		clock-names = "gpu";
+> > 
+> > Just checking.. Is there something else to configure here
+> > potentially in addition to the clocks?
+> 
+> It doesn't look so. Unfortuantely there isn't much information
+> except a v3.18 kernel supported by the vendor and that one also
+> just has a gpu node with clock control.
+> 
+> > That is, do we need to do some interconnect specific
+> > configuration etc in addition to the clocks to have
+> > runtime PM work for enabling and disabling sgx on
+> > jz4780?
+> 
+> I think we have to leave that open for further study.
+
+OK for now, let's assume we just need to call
+clk_enable/disable from the PM runtime functions if a
+clock exists.
+
+Regards,
+
+Tony
