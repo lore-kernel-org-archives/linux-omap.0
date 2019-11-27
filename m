@@ -1,76 +1,61 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH] ARM: dts: omap3-tao3530: Fix incorrect MMC card detection
- GPIO polarity
-Date: Mon, 25 Nov 2019 20:27:12 +0200
-Message-ID: <27e677de-4e45-7eef-45b5-796e29fd39c0@bitmer.com>
-References: <20191116151651.7042-1-jarkko.nikula@bitmer.com>
- <20191125111125.AF5D720836@mail.kernel.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] net: ethernet: ti: ale: ensure vlan/mdb deleted when no members
+Date: Wed, 27 Nov 2019 17:59:05 +0200
+Message-ID: <20191127155905.22921-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20191125111125.AF5D720836@mail.kernel.org>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Sasha Levin <sashal@kernel.org>, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>
+Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/25/19 1:11 PM, Sasha Levin wrote:
-> Hi,
-> 
-> [This is an automated email]
-> 
-> This commit has been processed because it contains a "Fixes:" tag,
-> fixing commit: 3a637e008e54 ("ARM: dts: Use defined GPIO constants in flags cell for OMAP2+ boards").
-> 
-> The bot has tested the following trees: v5.3.12, v4.19.85, v4.14.155, v4.9.202, v4.4.202.
-> 
-> v5.3.12: Build OK!
-> v4.19.85: Build OK!
-> v4.14.155: Build OK!
-> v4.9.202: Failed to apply! Possible dependencies:
->     1a177cf72b3a ("ARM: dts: dra72-evm-tps65917: Add voltage supplies to usb_phy, mmc, dss")
->     45ea75eb92a4 ("ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc"")
->     5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
->     6eebfeb9cf0d ("ARM: dts: Add support for dra718-evm")
->     e9a05fbd21de ("ARM: dts: dra72-evm: Fix modelling of regulators")
-> 
-> v4.4.202: Failed to apply! Possible dependencies:
->     12ca468306a2 ("ARM: dts: am57xx: cl-som-am57x: add dual EMAC support")
->     1a472e14ba08 ("ARM: dts: am57xx: cl-som-am57x: dts: add RTC support")
->     27ddd846cb25 ("ARM: dts: am57xx: cl-som-am57x: add USB support")
->     2c7cf1f48f36 ("ARM: dts: am57xx: cl-som-am57x: add EEPROM support")
->     2d47fc3b9801 ("ARM: dts: am57xx: cl-som-am57x: add touchscreen support")
->     317d15679a5e ("ARM: dts: dra72-evm: Mark uart1 rxd as wakeup capable")
->     387450fc882e ("ARM: dts: am57xx: cl-som-am57x: add basic module support")
->     3a1de8082405 ("ARM: dts: dra7xx: Fix compatible string for PCF8575 chip")
->     4424cd009648 ("ARM: dts: am57xx: cl-som-am57x: add analog audio support")
->     45ea75eb92a4 ("ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc"")
->     488f270d90e1 ("ARM: dts: dra7: Fix NAND device nodes")
->     4e8603eff519 ("ARM: dts: omap: remove unneeded unit name for sound nodes")
->     6686f744df70 ("ARM: dts: DRA72-EVM: Add regulator-allow-bypass property for ldo1 and ldo2")
->     6cfec12f2545 ("ARM: dts: dra72-evm: Enable AFIFO use for McASP3")
->     6eebfeb9cf0d ("ARM: dts: Add support for dra718-evm")
->     8deb60f535fa ("ARM: dts: am57xx: cl-som-am57x: add eMMC support")
->     9255ea8472d2 ("ARM: dts: dra72-evm: Use DRA7XX_CORE_IOPAD pinmux macro")
->     a23fc1558487 ("ARM: dts: dra7x-evm: Provide NAND ready pin")
->     a4240d3af677 ("ARM: dts: Add support for dra72-evm rev C (SR2.0)")
->     a7cac713f90a ("ARM: dts: AM572x-IDK Initial Support")
->     cc2d681420d0 ("ARM: dts: am57xx: cl-som-am57x: add spi-flash support")
->     e1fdd060f08d ("ARM: dts: am57xx: sbc-am57x: add basic board support")
->     e9a05fbd21de ("ARM: dts: dra72-evm: Fix modelling of regulators")
-> 
-> 
-> NOTE: The patch will not be queued to stable trees until it is upstream.
-> 
-> How should we proceed with this patch?
-> 
-Ah, it doesn't apply to v4.4 and v4.9 due the commit 45ea75eb92a4 ("ARM:
-dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc"") but that commit
-doesn't apply either stable and probably even should not even if it would.
+The recently updated ALE APIs cpsw_ale_del_mcast() and
+cpsw_ale_del_vlan_modify() have an issue and will not delete ALE entry even
+if VLAN/mcast group has no more members. Hence fix it here and delete ALE
+entry if !port_mask.
 
-I believe best is me to submit a separate version for v4.4/v4.9.
+The issue affected only new cpsw switchdev driver.
 
+Fixes: e85c14370783 ("net: ethernet: ti: ale: modify vlan/mdb api for switchdev")
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw_ale.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index 929f3d3354e3..a5179ecfea05 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -396,12 +396,14 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
+ 	if (port_mask) {
+ 		mcast_members = cpsw_ale_get_port_mask(ale_entry,
+ 						       ale->port_mask_bits);
+-		mcast_members &= ~port_mask;
+-		cpsw_ale_set_port_mask(ale_entry, mcast_members,
++		port_mask = mcast_members & ~port_mask;
++	}
++
++	if (port_mask)
++		cpsw_ale_set_port_mask(ale_entry, port_mask,
+ 				       ale->port_mask_bits);
+-	} else {
++	else
+ 		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
+-	}
+ 
+ 	cpsw_ale_write(ale, idx, ale_entry);
+ 	return 0;
+@@ -478,6 +480,10 @@ static void cpsw_ale_del_vlan_modify(struct cpsw_ale *ale, u32 *ale_entry,
+ 	members = cpsw_ale_get_vlan_member_list(ale_entry,
+ 						ale->vlan_field_bits);
+ 	members &= ~port_mask;
++	if (!members) {
++		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
++		return;
++	}
+ 
+ 	untag = cpsw_ale_get_vlan_untag_force(ale_entry,
+ 					      ale->vlan_field_bits);
 -- 
-Jarkko
+2.17.1
