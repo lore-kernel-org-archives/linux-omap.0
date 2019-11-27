@@ -1,82 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few omap dts fixes for v5.5 merge window
-Date: Wed, 27 Nov 2019 08:06:27 -0800
-Message-ID: <pull-1574870758-237468@atomide.com>
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: [PATCH 07/13] video: omapfb: use const pointer for
+ fb_ops
+Date: Wed, 27 Nov 2019 18:32:03 +0200
+Message-ID: <609dbe6eefdfd0138aa5d2d4ceeb58684811dc6e.1574871797.git.jani.nikula@intel.com>
+References: <cover.1574871797.git.jani.nikula@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: soc@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1574871797.git.jani.nikula@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: jani.nikula@intel.com, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
-
-The following changes since commit abb0e36b434d784864fe0e4d5dedd17f4d72f3e3:
-
-  ARM: dts: logicpd-torpedo: Disable USB Host (2019-11-11 13:03:06 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/dt-fixes-merge-window-signed
-
-for you to fetch changes up to 3e5c3c41ae925458150273e2f74ffbf999530c5f:
-
-  ARM: dts: Fix sgx sysconfig register for omap4 (2019-11-25 07:40:01 -0800)
-
-----------------------------------------------------------------
-Device tree fixes for omap variants for for v5.5 merge window
-
-This series of changes contains fixes for few SoC and board specific
-issues that would be good to have merged for v5.5-rc1:
-
-- Fix incorrect MMC card detection polarity for omap3-tao3530
-
-- Fix wrong am57xx-beagle-x15 pinmux named states for eMMC
-
-- Fix dra7 cpsw mdio clock that causes wrong speed
-
-- Fix vcsi for droid4 so it won't get turned off after init
-
-- Fix rev and sysconfig register offsets for omap4 sgx so it can idle
-
-Then there are also two minor late changes to logicpd-torpedo-baseboard
-to configure 1-wire HDQ for battery stats, and remove out of date
-workaround comments no longer needed.
-
-----------------------------------------------------------------
-Adam Ford (2):
-      ARM: dts: logicpd-torpedo-baseboard:  Enable HDQ
-      ARM: dts: logicpd-torpedo: Remove unnecessary notes/comments
-
-Faiz Abbas (1):
-      ARM: dts: am57xx-beagle-x15: Update pinmux name to ddr_3_3v
-
-Grygorii Strashko (1):
-      ARM: dts: dra7: fix cpsw mdio fck clock
-
-Jarkko Nikula (1):
-      ARM: dts: omap3-tao3530: Fix incorrect MMC card detection GPIO polarity
-
-Tony Lindgren (2):
-      ARM: dts: Fix vcsi regulator to be always-on for droid4 to prevent hangs
-      ARM: dts: Fix sgx sysconfig register for omap4
-
- arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts        |  2 +-
- arch/arm/boot/dts/am57xx-beagle-x15-revc.dts         |  2 +-
- arch/arm/boot/dts/dra7-l4.dtsi                       |  2 +-
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit-28.dts |  1 -
- arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi     | 13 ++++++++++++-
- arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi       |  4 ++--
- arch/arm/boot/dts/omap3-tao3530.dtsi                 |  2 +-
- arch/arm/boot/dts/omap4.dtsi                         |  4 ++--
- 8 files changed, 20 insertions(+), 10 deletions(-)
+VXNlIGNvbnN0IGZvciBmYl9vcHMgdG8gbGV0IHVzIG1ha2UgdGhlIGluZm8tPmZib3BzIHBvaW50
+ZXIgY29uc3QgaW4gdGhlCmZ1dHVyZS4KCkNjOiBsaW51eC1mYmRldkB2Z2VyLmtlcm5lbC5vcmcK
+Q2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEphbmkgTmlrdWxh
+IDxqYW5pLm5pa3VsYUBpbnRlbC5jb20+Ci0tLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwL29t
+YXBmYl9tYWluLmMgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVs
+ZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21h
+aW4uYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jCmluZGV4IDcwMmNj
+YTU5YmRhMS4uZThhMzA0Zjg0ZWE4IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
+YXAvb21hcGZiX21haW4uYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21h
+aW4uYwpAQCAtMTA1Miw3ICsxMDUyLDcgQEAgc3RhdGljIGludCBvbWFwZmJfaW9jdGwoc3RydWN0
+IGZiX2luZm8gKmZiaSwgdW5zaWduZWQgaW50IGNtZCwKIHsKIAlzdHJ1Y3Qgb21hcGZiX3BsYW5l
+X3N0cnVjdCAqcGxhbmUgPSBmYmktPnBhcjsKIAlzdHJ1Y3Qgb21hcGZiX2RldmljZQkqZmJkZXYg
+PSBwbGFuZS0+ZmJkZXY7Ci0Jc3RydWN0IGZiX29wcwkJKm9wcyA9IGZiaS0+ZmJvcHM7CisJY29u
+c3Qgc3RydWN0IGZiX29wcyAqb3BzID0gZmJpLT5mYm9wczsKIAl1bmlvbiB7CiAJCXN0cnVjdCBv
+bWFwZmJfdXBkYXRlX3dpbmRvdwl1cGRhdGVfd2luZG93OwogCQlzdHJ1Y3Qgb21hcGZiX3BsYW5l
+X2luZm8JcGxhbmVfaW5mbzsKLS0gCjIuMjAuMQoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vaW50ZWwtZ2Z4
