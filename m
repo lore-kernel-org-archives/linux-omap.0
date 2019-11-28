@@ -1,43 +1,79 @@
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: [PATCH 07/13] video: omapfb: use const pointer for
- fb_ops
-Date: Wed, 27 Nov 2019 18:32:03 +0200
-Message-ID: <609dbe6eefdfd0138aa5d2d4ceeb58684811dc6e.1574871797.git.jani.nikula@intel.com>
-References: <cover.1574871797.git.jani.nikula@intel.com>
+From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Subject: Re: [PATCH] net: ethernet: ti: ale: ensure vlan/mdb deleted when no
+ members
+Date: Thu, 28 Nov 2019 10:21:27 +0200
+Message-ID: <20191128082127.GA16359@apalos.home>
+References: <20191127155905.22921-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1574871797.git.jani.nikula@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: jani.nikula@intel.com, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20191127155905.22921-1-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-VXNlIGNvbnN0IGZvciBmYl9vcHMgdG8gbGV0IHVzIG1ha2UgdGhlIGluZm8tPmZib3BzIHBvaW50
-ZXIgY29uc3QgaW4gdGhlCmZ1dHVyZS4KCkNjOiBsaW51eC1mYmRldkB2Z2VyLmtlcm5lbC5vcmcK
-Q2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEphbmkgTmlrdWxh
-IDxqYW5pLm5pa3VsYUBpbnRlbC5jb20+Ci0tLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwL29t
-YXBmYl9tYWluLmMgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVs
-ZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21h
-aW4uYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jCmluZGV4IDcwMmNj
-YTU5YmRhMS4uZThhMzA0Zjg0ZWE4IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAvb21hcGZiX21haW4uYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21h
-aW4uYwpAQCAtMTA1Miw3ICsxMDUyLDcgQEAgc3RhdGljIGludCBvbWFwZmJfaW9jdGwoc3RydWN0
-IGZiX2luZm8gKmZiaSwgdW5zaWduZWQgaW50IGNtZCwKIHsKIAlzdHJ1Y3Qgb21hcGZiX3BsYW5l
-X3N0cnVjdCAqcGxhbmUgPSBmYmktPnBhcjsKIAlzdHJ1Y3Qgb21hcGZiX2RldmljZQkqZmJkZXYg
-PSBwbGFuZS0+ZmJkZXY7Ci0Jc3RydWN0IGZiX29wcwkJKm9wcyA9IGZiaS0+ZmJvcHM7CisJY29u
-c3Qgc3RydWN0IGZiX29wcyAqb3BzID0gZmJpLT5mYm9wczsKIAl1bmlvbiB7CiAJCXN0cnVjdCBv
-bWFwZmJfdXBkYXRlX3dpbmRvdwl1cGRhdGVfd2luZG93OwogCQlzdHJ1Y3Qgb21hcGZiX3BsYW5l
-X2luZm8JcGxhbmVfaW5mbzsKLS0gCjIuMjAuMQoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vaW50ZWwtZ2Z4
+On Wed, Nov 27, 2019 at 05:59:05PM +0200, Grygorii Strashko wrote:
+> The recently updated ALE APIs cpsw_ale_del_mcast() and
+> cpsw_ale_del_vlan_modify() have an issue and will not delete ALE entry even
+> if VLAN/mcast group has no more members. Hence fix it here and delete ALE
+> entry if !port_mask.
+> 
+> The issue affected only new cpsw switchdev driver.
+> 
+> Fixes: e85c14370783 ("net: ethernet: ti: ale: modify vlan/mdb api for switchdev")
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  drivers/net/ethernet/ti/cpsw_ale.c | 14 ++++++++++----
+>  1 file changed, 10 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+> index 929f3d3354e3..a5179ecfea05 100644
+> --- a/drivers/net/ethernet/ti/cpsw_ale.c
+> +++ b/drivers/net/ethernet/ti/cpsw_ale.c
+> @@ -396,12 +396,14 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
+>  	if (port_mask) {
+>  		mcast_members = cpsw_ale_get_port_mask(ale_entry,
+>  						       ale->port_mask_bits);
+> -		mcast_members &= ~port_mask;
+> -		cpsw_ale_set_port_mask(ale_entry, mcast_members,
+> +		port_mask = mcast_members & ~port_mask;
+> +	}
+> +
+> +	if (port_mask)
+> +		cpsw_ale_set_port_mask(ale_entry, port_mask,
+>  				       ale->port_mask_bits);
+> -	} else {
+> +	else
+>  		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
+> -	}
+
+The code assumed calls cpsw_ale_del_mcast() should have a port mask '0' when
+deleting an entry. Do we want to have 'dual' functionality on it? 
+This will delete mcast entries if port mask is 0 or port mask matches exactly
+what's configured right?
+
+>  	cpsw_ale_write(ale, idx, ale_entry);
+>  	return 0;
+> @@ -478,6 +480,10 @@ static void cpsw_ale_del_vlan_modify(struct cpsw_ale *ale, u32 *ale_entry,
+>  	members = cpsw_ale_get_vlan_member_list(ale_entry,
+>  						ale->vlan_field_bits);
+>  	members &= ~port_mask;
+> +	if (!members) {
+> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
+> +		return;
+> +	}
+
+This makes sense the call was missing 
+
+>  
+>  	untag = cpsw_ale_get_vlan_untag_force(ale_entry,
+>  					      ale->vlan_field_bits);
+> -- 
+> 2.17.1
+> 
+
+
+Thanks
+/Ilias
