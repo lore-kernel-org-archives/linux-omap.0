@@ -1,30 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net: ethernet: ti: ale: ensure vlan/mdb deleted
- when no members
-Date: Sat, 30 Nov 2019 09:46:06 -0800 (PST)
-Message-ID: <20191130.094606.1605980362790188417.davem@davemloft.net>
-References: <20191129175809.815-1-grygorii.strashko@ti.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [PATCH V5 2/3] dt-bindings: Add Logic PD Type 28 display panel
+Date: Sat, 30 Nov 2019 23:15:33 +0100
+Message-ID: <20191130221533.GC29715@ravnborg.org>
+References: <20191016135147.7743-1-aford173@gmail.com>
+ <20191016135147.7743-2-aford173@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191129175809.815-1-grygorii.strashko@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20191016135147.7743-2-aford173@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, ilias.apalodimas@linaro.org, andrew@lunn.ch, nsekhar@ti.com, ivan.khoronzhuk@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sebastian.reichel@collabora.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Fri, 29 Nov 2019 19:58:09 +0200
-
-> The recently updated ALE APIs cpsw_ale_del_mcast() and
-> cpsw_ale_del_vlan_modify() have an issue and will not delete ALE entry even
-> if VLAN/mcast group has no more members. Hence fix it here and delete ALE
-> entry if !port_mask.
+Hi Adam.
+On Wed, Oct 16, 2019 at 08:51:46AM -0500, Adam Ford wrote:
+> This patch adds documentation of device tree bindings for the WVGA panel
+> Logic PD Type 28 display.
 > 
-> The issue affected only new cpsw switchdev driver.
+> Signed-off-by: Adam Ford <aford173@gmail.com>
+> ---
+> V5:  Replace GPIO_ACTIVE_HIGH with 0 to fix make dt_binding_check -k
+> V4:  Update per Rob H's suggestions and copy other panel yaml example from 5.4-rc1
+> V3:  Correct build errors from 'make dt_binding_check'
+> V2:  Use YAML instead of TXT for binding
 > 
-> Fixes: e85c14370783 ("net: ethernet: ti: ale: modify vlan/mdb api for switchdev")
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Applied.
+Applied to drm-misc-next.
+It was applied before the driver changes so we had bindings
+for the driver changes when applied.
+
+	Sam
