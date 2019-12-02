@@ -1,62 +1,231 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH] ARM: dts: am335x-evm: Use drm simple-panel instead of
- tilcdc-panel
-Date: Mon, 2 Dec 2019 20:57:29 +0200
-Message-ID: <20191202185729.12921-1-jsarha@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, tony@atomide.com, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix warnings with broken omap2_set_init_voltage()
+Date: Mon, 2 Dec 2019 22:09:26 +0100
+Message-ID: <8FFD44DB-73F8-4807-91E1-C97DA8F781BA@goldelico.com>
+References: <20190924233222.52757-1-tony@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190924233222.52757-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>, Adam Ford <aford173@gmail.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-TW92ZSB0byB1c2UgdGhlIG5ldyBkcm0gcGFuZWwgc3VwcG9ydCBpbiB0aWxjZGMgdG9nZXRoZXIg
-d2l0aCBhZGRlZAoidGZjLHM5NzAwcnR3djQzdHItMDFiIi1wYW5lbCBzdXBwb3J0IGluIGRybSBw
-YW5lbC1zaW1wbGUuCgpTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgpS
-ZXZpZXdlZC1ieTogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KLS0tCiJ0
-ZmMsczk3MDBydHd2NDN0ci0wMWIiIGluIHBhbmVsLXNpbXBsZSBoYXMgYmVlbiBpbiBmb3Igc29t
-ZSB0aW1lIG5vdwpzbyBpdCBpcyBhYm91dCB0aW1lIHRvIGdldCB0aGlzIGluIHRvby4KCiBhcmNo
-L2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cyB8IDQ0ICsrKysrKysrKysrKystLS0tLS0tLS0t
-LS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgMjYgZGVsZXRpb25z
-KC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMgYi9hcmNo
-L2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cwppbmRleCBhMDAxNDU3MDVjOWIuLjBlMjg2YTFj
-OWNjNSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMKKysrIGIv
-YXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMKQEAgLTExMyw3ICsxMTMsNyBAQAogCQl9
-OwogCX07CiAKLQliYWNrbGlnaHQgeworCWJhY2tsaWdodDogYmFja2xpZ2h0IHsKIAkJY29tcGF0
-aWJsZSA9ICJwd20tYmFja2xpZ2h0IjsKIAkJcHdtcyA9IDwmZWNhcDAgMCA1MDAwMCAwPjsKIAkJ
-YnJpZ2h0bmVzcy1sZXZlbHMgPSA8MCA1MSA1MyA1NiA2MiA3NSAxMDEgMTUyIDI1NT47CkBAIC0x
-MjEsMzUgKzEyMSwxOSBAQAogCX07CiAKIAlwYW5lbCB7Ci0JCWNvbXBhdGlibGUgPSAidGksdGls
-Y2RjLHBhbmVsIjsKKwkJY29tcGF0aWJsZSA9ICJ0ZmMsczk3MDBydHd2NDN0ci0wMWIiOworCiAJ
-CXN0YXR1cyA9ICJva2F5IjsKKwogCQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwogCQlwaW5j
-dHJsLTAgPSA8JmxjZF9waW5zX3MwPjsKLQkJcGFuZWwtaW5mbyB7Ci0JCQlhYy1iaWFzICAgICAg
-ICAgICA9IDwyNTU+OwotCQkJYWMtYmlhcy1pbnRycHQgICAgPSA8MD47Ci0JCQlkbWEtYnVyc3Qt
-c3ogICAgICA9IDwxNj47Ci0JCQlicHAgICAgICAgICAgICAgICA9IDwzMj47Ci0JCQlmZGQgICAg
-ICAgICAgICAgICA9IDwweDgwPjsKLQkJCXN5bmMtZWRnZSAgICAgICAgID0gPDA+OwotCQkJc3lu
-Yy1jdHJsICAgICAgICAgPSA8MT47Ci0JCQlyYXN0ZXItb3JkZXIgICAgICA9IDwwPjsKLQkJCWZp
-Zm8tdGggICAgICAgICAgID0gPDA+OwotCQl9OwogCi0JCWRpc3BsYXktdGltaW5ncyB7Ci0JCQk4
-MDB4NDgwcDYyIHsKLQkJCQljbG9jay1mcmVxdWVuY3kgPSA8MzAwMDAwMDA+OwotCQkJCWhhY3Rp
-dmUgPSA8ODAwPjsKLQkJCQl2YWN0aXZlID0gPDQ4MD47Ci0JCQkJaGZyb250LXBvcmNoID0gPDM5
-PjsKLQkJCQloYmFjay1wb3JjaCA9IDwzOT47Ci0JCQkJaHN5bmMtbGVuID0gPDQ3PjsKLQkJCQl2
-YmFjay1wb3JjaCA9IDwyOT47Ci0JCQkJdmZyb250LXBvcmNoID0gPDEzPjsKLQkJCQl2c3luYy1s
-ZW4gPSA8Mj47Ci0JCQkJaHN5bmMtYWN0aXZlID0gPDE+OwotCQkJCXZzeW5jLWFjdGl2ZSA9IDwx
-PjsKKwkJYmFja2xpZ2h0ID0gPCZiYWNrbGlnaHQ+OworCQlwb3J0cyB7CisJCQlwb3J0IHsKKwkJ
-CQlwYW5lbF8wOiBlbmRwb2ludEAwIHsKKwkJCQkJcmVtb3RlLWVuZHBvaW50ID0gPCZsY2RjXzA+
-OworCQkJCX07CiAJCQl9OwogCQl9OwogCX07CkBAIC01MjUsNiArNTA5LDE0IEBACiAJc3RhdHVz
-ID0gIm9rYXkiOwogCiAJYmx1ZS1hbmQtcmVkLXdpcmluZyA9ICJjcm9zc2VkIjsKKworCXBvcnRz
-IHsKKwkJcG9ydCB7CisJCQlsY2RjXzA6IGVuZHBvaW50QDAgeworCQkJCXJlbW90ZS1lbmRwb2lu
-dCA9IDwmcGFuZWxfMD47CisJCQl9OworCQl9OworCX07CiB9OwogCiAmZWxtIHsKLS0gClRleGFz
-IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
-LiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBI
-ZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-ZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
-dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Hi Tony,
+
+> Am 25.09.2019 um 01:32 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> This code is currently unable to find the dts opp tables as ti-cpufreq
+> needs to set them up first based on speed binning.
+>=20
+> We stopped initializing the opp tables with platform code years ago =
+for
+> device tree based booting with commit 92d51856d740 ("ARM: OMAP3+: do =
+not
+> register non-dt OPP tables for device tree boot"), and all of =
+mach-omap2
+> is now booting using device tree.
+>=20
+> We currently get the following errors on init:
+>=20
+> omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu
+> omap2_set_init_voltage: unable to set vdd_mpu
+> omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+> omap2_set_init_voltage: unable to set vdd_core
+> omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
+> omap2_set_init_voltage: unable to set vdd_iva
+>=20
+> Let's just drop the unused code. Nowadays ti-cpufreq should be used to
+> to initialize things properly.
+>=20
+> Cc: Adam Ford <aford173@gmail.com>
+> Cc: Andr=C3=A9 Roth <neolynx@gmail.com>
+> Cc: "H. Nikolaus Schaller" <hns@goldelico.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>=20
+> Guys, please check and ack if we can really do this to get rid of some
+> pointless dmesg -l3 errors without affecting the ongoing cpufreq and
+> voltage work.
+
+unfortunately we did not yet test in combination with the 1GHz OPP
+patches for omap3630 (queued for v5.5-rc1) and it appears that this
+patch breaks the 1GHz OPP.
+
+The symptom is that it works fine on a dm3730 with 800MHz rating
+but results in spurious kernel panics, stack corruption, virtual memory
+failures, OneNAND DMA timeouts etc. on a dm3730 with 1GHz speed grade.
+
+We can also re-add the "turbo-mode" tags in the omap36xx.dtsi (or
+remove the 1GHz OPP) and can then boot with 800MHz max. clock. But
+enabling boost (echo 1 >/sys/devices/system/cpu/cpufreq/boost) makes
+the problem and its symptoms appear almost immediately.
+
+After some scratching our heads we found that v5.3.7 is still good and
+v5.3.8 is bad. A bisect of our tree (which includes the 1GHz OPP) did
+point to this patch whichwas apparently already backported to v5.3.8 and
+v5.4.
+
+So I assume that the code removed here enabled or initialized something
+we need for safe 1GHz transitions. Maybe the ABB-LDO. Or it looks up the
+vdd regulator and initializes it earlier than without this code. Maybe
+it also (pre-)initializes some clk which could now be left uninitialized
+too long?
+
+Note that seeing the log message indicates that voltdm_scale() and
+dev_pm_opp_get_voltage() are not called, but all functions before could
+be with side-effects.
+
+v5.5-rc1 will likely fail right from the beginning (only on 1GHz rated
+omap36xx) because it makes the combination of this patch and 1GHz OPP
+public (linux-next should already fail but it appears that nobody has
+tested).
+
+Any ideas how to fix? Before I try to do a revert and then add goto =
+exit;
+after each function call and see which ones are essential for 1GHz.
+
+BR,
+Nikolaus
+
+
+>=20
+> ---
+> arch/arm/mach-omap2/pm.c | 100 ---------------------------------------
+> 1 file changed, 100 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -74,83 +74,6 @@ int omap_pm_clkdms_setup(struct clockdomain *clkdm, =
+void *unused)
+> 	return 0;
+> }
+>=20
+> -/*
+> - * This API is to be called during init to set the various voltage
+> - * domains to the voltage as per the opp table. Typically we boot up
+> - * at the nominal voltage. So this function finds out the rate of
+> - * the clock associated with the voltage domain, finds out the =
+correct
+> - * opp entry and sets the voltage domain to the voltage specified
+> - * in the opp entry
+> - */
+> -static int __init omap2_set_init_voltage(char *vdd_name, char =
+*clk_name,
+> -					 const char *oh_name)
+> -{
+> -	struct voltagedomain *voltdm;
+> -	struct clk *clk;
+> -	struct dev_pm_opp *opp;
+> -	unsigned long freq, bootup_volt;
+> -	struct device *dev;
+> -
+> -	if (!vdd_name || !clk_name || !oh_name) {
+> -		pr_err("%s: invalid parameters\n", __func__);
+> -		goto exit;
+> -	}
+> -
+> -	if (!strncmp(oh_name, "mpu", 3))
+> -		/*=20
+> -		 * All current OMAPs share voltage rail and clock
+> -		 * source, so CPU0 is used to represent the MPU-SS.
+> -		 */
+> -		dev =3D get_cpu_device(0);
+> -	else
+> -		dev =3D omap_device_get_by_hwmod_name(oh_name);
+> -
+> -	if (IS_ERR(dev)) {
+> -		pr_err("%s: Unable to get dev pointer for hwmod %s\n",
+> -			__func__, oh_name);
+> -		goto exit;
+> -	}
+> -
+> -	voltdm =3D voltdm_lookup(vdd_name);
+> -	if (!voltdm) {
+> -		pr_err("%s: unable to get vdd pointer for vdd_%s\n",
+> -			__func__, vdd_name);
+> -		goto exit;
+> -	}
+> -
+> -	clk =3D  clk_get(NULL, clk_name);
+> -	if (IS_ERR(clk)) {
+> -		pr_err("%s: unable to get clk %s\n", __func__, =
+clk_name);
+> -		goto exit;
+> -	}
+> -
+> -	freq =3D clk_get_rate(clk);
+> -	clk_put(clk);
+> -
+> -	opp =3D dev_pm_opp_find_freq_ceil(dev, &freq);
+> -	if (IS_ERR(opp)) {
+> -		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
+> -			__func__, vdd_name);
+> -		goto exit;
+> -	}
+> -
+> -	bootup_volt =3D dev_pm_opp_get_voltage(opp);
+> -	dev_pm_opp_put(opp);
+> -
+> -	if (!bootup_volt) {
+> -		pr_err("%s: unable to find voltage corresponding to the =
+bootup OPP for vdd_%s\n",
+> -		       __func__, vdd_name);
+> -		goto exit;
+> -	}
+> -
+> -	voltdm_scale(voltdm, bootup_volt);
+> -	return 0;
+> -
+> -exit:
+> -	pr_err("%s: unable to set vdd_%s\n", __func__, vdd_name);
+> -	return -EINVAL;
+> -}
+> -
+> #ifdef CONFIG_SUSPEND
+> static int omap_pm_enter(suspend_state_t suspend_state)
+> {
+> @@ -208,25 +131,6 @@ void omap_common_suspend_init(void *pm_suspend)
+> }
+> #endif /* CONFIG_SUSPEND */
+>=20
+> -static void __init omap3_init_voltages(void)
+> -{
+> -	if (!soc_is_omap34xx())
+> -		return;
+> -
+> -	omap2_set_init_voltage("mpu_iva", "dpll1_ck", "mpu");
+> -	omap2_set_init_voltage("core", "l3_ick", "l3_main");
+> -}
+> -
+> -static void __init omap4_init_voltages(void)
+> -{
+> -	if (!soc_is_omap44xx())
+> -		return;
+> -
+> -	omap2_set_init_voltage("mpu", "dpll_mpu_ck", "mpu");
+> -	omap2_set_init_voltage("core", "l3_div_ck", "l3_main_1");
+> -	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
+> -}
+> -
+> int __maybe_unused omap_pm_nop_init(void)
+> {
+> 	return 0;
+> @@ -246,10 +150,6 @@ int __init omap2_common_pm_late_init(void)
+> 	omap4_twl_init();
+> 	omap_voltage_late_init();
+>=20
+> -	/* Initialize the voltages */
+> -	omap3_init_voltages();
+> -	omap4_init_voltages();
+> -
+> 	/* Smartreflex device init */
+> 	omap_devinit_smartreflex();
+>=20
+> --=20
+> 2.23.0
