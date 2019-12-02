@@ -1,35 +1,62 @@
-From: Mans Rullgard <mans@mansr.com>
-Subject: [PATCH] ARM: dts: am335x-sancloud-bbe: fix phy mode
-Date: Sun,  1 Dec 2019 17:07:06 +0000
-Message-ID: <20191201170706.7173-1-mans@mansr.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH] ARM: dts: am335x-evm: Use drm simple-panel instead of
+ tilcdc-panel
+Date: Mon, 2 Dec 2019 20:57:29 +0200
+Message-ID: <20191202185729.12921-1-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, tony@atomide.com, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-The phy mode should be rgmii-id.  For some reason, it used to work with
-rgmii-txid but doesn't any more.
-
-Signed-off-by: Mans Rullgard <mans@mansr.com>
----
- arch/arm/boot/dts/am335x-sancloud-bbe.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/am335x-sancloud-bbe.dts b/arch/arm/boot/dts/am335x-sancloud-bbe.dts
-index 8678e6e35493..e5fdb7abb0d5 100644
---- a/arch/arm/boot/dts/am335x-sancloud-bbe.dts
-+++ b/arch/arm/boot/dts/am335x-sancloud-bbe.dts
-@@ -108,7 +108,7 @@
- 
- &cpsw_emac0 {
- 	phy-handle = <&ethphy0>;
--	phy-mode = "rgmii-txid";
-+	phy-mode = "rgmii-id";
- };
- 
- &i2c0 {
--- 
-2.24.0
+TW92ZSB0byB1c2UgdGhlIG5ldyBkcm0gcGFuZWwgc3VwcG9ydCBpbiB0aWxjZGMgdG9nZXRoZXIg
+d2l0aCBhZGRlZAoidGZjLHM5NzAwcnR3djQzdHItMDFiIi1wYW5lbCBzdXBwb3J0IGluIGRybSBw
+YW5lbC1zaW1wbGUuCgpTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgpS
+ZXZpZXdlZC1ieTogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KLS0tCiJ0
+ZmMsczk3MDBydHd2NDN0ci0wMWIiIGluIHBhbmVsLXNpbXBsZSBoYXMgYmVlbiBpbiBmb3Igc29t
+ZSB0aW1lIG5vdwpzbyBpdCBpcyBhYm91dCB0aW1lIHRvIGdldCB0aGlzIGluIHRvby4KCiBhcmNo
+L2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cyB8IDQ0ICsrKysrKysrKysrKystLS0tLS0tLS0t
+LS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgMjYgZGVsZXRpb25z
+KC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMgYi9hcmNo
+L2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cwppbmRleCBhMDAxNDU3MDVjOWIuLjBlMjg2YTFj
+OWNjNSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMKKysrIGIv
+YXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMKQEAgLTExMyw3ICsxMTMsNyBAQAogCQl9
+OwogCX07CiAKLQliYWNrbGlnaHQgeworCWJhY2tsaWdodDogYmFja2xpZ2h0IHsKIAkJY29tcGF0
+aWJsZSA9ICJwd20tYmFja2xpZ2h0IjsKIAkJcHdtcyA9IDwmZWNhcDAgMCA1MDAwMCAwPjsKIAkJ
+YnJpZ2h0bmVzcy1sZXZlbHMgPSA8MCA1MSA1MyA1NiA2MiA3NSAxMDEgMTUyIDI1NT47CkBAIC0x
+MjEsMzUgKzEyMSwxOSBAQAogCX07CiAKIAlwYW5lbCB7Ci0JCWNvbXBhdGlibGUgPSAidGksdGls
+Y2RjLHBhbmVsIjsKKwkJY29tcGF0aWJsZSA9ICJ0ZmMsczk3MDBydHd2NDN0ci0wMWIiOworCiAJ
+CXN0YXR1cyA9ICJva2F5IjsKKwogCQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwogCQlwaW5j
+dHJsLTAgPSA8JmxjZF9waW5zX3MwPjsKLQkJcGFuZWwtaW5mbyB7Ci0JCQlhYy1iaWFzICAgICAg
+ICAgICA9IDwyNTU+OwotCQkJYWMtYmlhcy1pbnRycHQgICAgPSA8MD47Ci0JCQlkbWEtYnVyc3Qt
+c3ogICAgICA9IDwxNj47Ci0JCQlicHAgICAgICAgICAgICAgICA9IDwzMj47Ci0JCQlmZGQgICAg
+ICAgICAgICAgICA9IDwweDgwPjsKLQkJCXN5bmMtZWRnZSAgICAgICAgID0gPDA+OwotCQkJc3lu
+Yy1jdHJsICAgICAgICAgPSA8MT47Ci0JCQlyYXN0ZXItb3JkZXIgICAgICA9IDwwPjsKLQkJCWZp
+Zm8tdGggICAgICAgICAgID0gPDA+OwotCQl9OwogCi0JCWRpc3BsYXktdGltaW5ncyB7Ci0JCQk4
+MDB4NDgwcDYyIHsKLQkJCQljbG9jay1mcmVxdWVuY3kgPSA8MzAwMDAwMDA+OwotCQkJCWhhY3Rp
+dmUgPSA8ODAwPjsKLQkJCQl2YWN0aXZlID0gPDQ4MD47Ci0JCQkJaGZyb250LXBvcmNoID0gPDM5
+PjsKLQkJCQloYmFjay1wb3JjaCA9IDwzOT47Ci0JCQkJaHN5bmMtbGVuID0gPDQ3PjsKLQkJCQl2
+YmFjay1wb3JjaCA9IDwyOT47Ci0JCQkJdmZyb250LXBvcmNoID0gPDEzPjsKLQkJCQl2c3luYy1s
+ZW4gPSA8Mj47Ci0JCQkJaHN5bmMtYWN0aXZlID0gPDE+OwotCQkJCXZzeW5jLWFjdGl2ZSA9IDwx
+PjsKKwkJYmFja2xpZ2h0ID0gPCZiYWNrbGlnaHQ+OworCQlwb3J0cyB7CisJCQlwb3J0IHsKKwkJ
+CQlwYW5lbF8wOiBlbmRwb2ludEAwIHsKKwkJCQkJcmVtb3RlLWVuZHBvaW50ID0gPCZsY2RjXzA+
+OworCQkJCX07CiAJCQl9OwogCQl9OwogCX07CkBAIC01MjUsNiArNTA5LDE0IEBACiAJc3RhdHVz
+ID0gIm9rYXkiOwogCiAJYmx1ZS1hbmQtcmVkLXdpcmluZyA9ICJjcm9zc2VkIjsKKworCXBvcnRz
+IHsKKwkJcG9ydCB7CisJCQlsY2RjXzA6IGVuZHBvaW50QDAgeworCQkJCXJlbW90ZS1lbmRwb2lu
+dCA9IDwmcGFuZWxfMD47CisJCQl9OworCQl9OworCX07CiB9OwogCiAmZWxtIHsKLS0gClRleGFz
+IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
+LiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBI
+ZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+ZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
