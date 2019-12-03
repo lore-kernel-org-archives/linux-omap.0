@@ -1,198 +1,130 @@
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: Re: [PATCH v3 00/12] video, drm,
- etc: constify fbops in struct fb_info
-Date: Tue, 03 Dec 2019 18:42:17 +0200
-Message-ID: <87immxicnq.fsf@intel.com>
-References: <cover.1575390740.git.jani.nikula@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1575390740.git.jani.nikula@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
-Cc: Steve Glendinning <steve.glendinning@shawell.net>, Andy Walls <awalls@md.metrocast.net>, kvm@vger.kernel.org, Robin van der Gracht <robin@protonic.nl>, intel-gfx@lists.freedesktop.org, Bernie Thompson <bernie@plugable.com>, ivtv-devel@ivtvdriver.org, Hans Verkuil <hverkuil@xs4all.nl>, Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>, Kirti Wankhede <kwankhede@nvidia.com>, Noralf =?utf-8?Q?Tr?= =?utf-8?Q?=C3=B8nnes?= <noralf@tronnes.org>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Jaya Kumar <jayalk@intworks.biz>, Bruno =?utf-8?Q?Pr=C3=A9mont?= <bonbons@linux-vserver.org>, linux-media@vger.kernel.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix warnings with broken
+ omap2_set_init_voltage()
+Date: Tue, 3 Dec 2019 17:54:23 +0100
+Message-ID: <FB42ED12-5DDB-4A9E-941A-ACBE2C10C36A@goldelico.com>
+References: <20190924233222.52757-1-tony@atomide.com>
+ <8FFD44DB-73F8-4807-91E1-C97DA8F781BA@goldelico.com>
+ <20191202213929.GB35479@atomide.com>
+ <EE749881-C3DB-4BBE-85FE-E5AF3D34884F@goldelico.com>
+ <BAF5B057-1017-4174-8C3F-4B49B31E2E0D@goldelico.com>
+ <20191203154447.GC35479@atomide.com>
+ <5F430C0D-7F25-4680-87B9-2D65A08A9F83@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5F430C0D-7F25-4680-87B9-2D65A08A9F83@goldelico.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <aford173@gmail.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCAwMyBEZWMgMjAxOSwgSmFuaSBOaWt1bGEgPGphbmkubmlrdWxhQGludGVsLmNvbT4g
-d3JvdGU6Cj4gVGhpcyBpcyB2MyBvZiBodHRwczovL3BhdGNod29yay5mcmVlZGVza3RvcC5vcmcv
-c2VyaWVzLzcwMTk4Ly4KPgo+IDBkYXkgcmVwb3J0ZWQgc29tZSBidWlsZCBmYWlsdXJlcywgYW5k
-IEkgbmVlZGVkIHRvIGFkZCBwYXRjaGVzIDEtNSBhbmQgNwoKU2hvdWxkIGJlLCBwYXRjaGVzIDEt
-NCBhbmQgNy4KCj4gdG8gYWRkcmVzcyB0aGVtLiBQYXRjaCA4IHdhcyBhbWVuZGVkIGFjY29yZGlu
-Z2x5IChkcm9wcGVkIHNvbWUgY29uc3RzKSwKPiBidXQgdGhlIG90aGVyIHBhdGNoZXMgcmVtYWlu
-IHRoZSBzYW1lIGZyb20gdjIsIGV4Y2VwdCB0aGUgb25lcyBJIG1lcmdlZAo+IGFscmVhZHkuCj4K
-PiBCUiwKPiBKYW5pLgo+Cj4KPiBDYzogQW5keSBXYWxscyA8YXdhbGxzQG1kLm1ldHJvY2FzdC5u
-ZXQ+Cj4gQ2M6IEJlcm5pZSBUaG9tcHNvbiA8YmVybmllQHBsdWdhYmxlLmNvbT4KPiBDYzogQnJ1
-bm8gUHLDqW1vbnQgPGJvbmJvbnNAbGludXgtdnNlcnZlci5vcmc+Cj4gQ2M6IERhbmllbCBWZXR0
-ZXIgPGRhbmllbEBmZndsbC5jaD4KPiBDYzogSGFucyBWZXJrdWlsIDxodmVya3VpbEB4czRhbGwu
-bmw+Cj4gQ2M6IEpheWEgS3VtYXIgPGpheWFsa0BpbnR3b3Jrcy5iaXo+Cj4gQ2M6IEtpcnRpIFdh
-bmtoZWRlIDxrd2Fua2hlZGVAbnZpZGlhLmNvbT4KPiBDYzogTWlndWVsIE9qZWRhIFNhbmRvbmlz
-IDxtaWd1ZWwub2plZGEuc2FuZG9uaXNAZ21haWwuY29tPgo+IENjOiBOb3JhbGYgVHLDuG5uZXMg
-PG5vcmFsZkB0cm9ubmVzLm9yZz4KPiBDYzogUm9iaW4gdmFuIGRlciBHcmFjaHQgPHJvYmluQHBy
-b3RvbmljLm5sPgo+IENjOiBTdGV2ZSBHbGVuZGlubmluZyA8c3RldmUuZ2xlbmRpbm5pbmdAc2hh
-d2VsbC5uZXQ+Cj4gQ2M6IFZpbGxlIFN5cmrDpGzDpCA8dmlsbGUuc3lyamFsYUBsaW51eC5pbnRl
-bC5jb20+Cj4gQ2M6IGRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPiBDYzogaXZ0di1k
-ZXZlbEBpdnR2ZHJpdmVyLm9yZwo+IENjOiBrdm1Admdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4
-LWZiZGV2QHZnZXIua2VybmVsLm9yZwo+IENjOiBsaW51eC1pbnB1dEB2Z2VyLmtlcm5lbC5vcmcK
-PiBDYzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5r
-ZXJuZWwub3JnCj4KPiBKYW5pIE5pa3VsYSAoMTIpOgo+ICAgdmlkZW86IGZiZGV2OiBhdHlmYjog
-bW9kaWZ5IHRoZSBzdGF0aWMgZmJfb3BzIGRpcmVjdGx5Cj4gICB2aWRlbzogZmJkZXY6IG1iODYy
-eHg6IG1vZGlmeSB0aGUgc3RhdGljIGZiX29wcyBkaXJlY3RseQo+ICAgdmlkZW86IGZiZGV2OiBu
-dmlkaWE6IG1vZGlmeSB0aGUgc3RhdGljIGZiX29wcyBkaXJlY3RseQo+ICAgdmlkZW86IGZiZGV2
-OiB1dmVzYWZiOiBtb2RpZnkgdGhlIHN0YXRpYyBmYl9vcHMgZGlyZWN0bHkKPiAgIHZpZGVvOiBm
-YmRldjogbWFrZSBmYm9wcyBtZW1iZXIgb2Ygc3RydWN0IGZiX2luZm8gYSBjb25zdCBwb2ludGVy
-Cj4gICBkcm06IGNvbnN0aWZ5IGZiIG9wcyBhY3Jvc3MgYWxsIGRyaXZlcnMKPiAgIHZpZGVvOiBm
-YmRldjogaW50ZWxmYjogdXNlIGNvbnN0IHBvaW50ZXIgZm9yIGZiX29wcwo+ICAgdmlkZW86IGNv
-bnN0aWZ5IGZiIG9wcyBhY3Jvc3MgYWxsIGRyaXZlcnMKPiAgIEhJRDogcGljb0xDRDogY29uc3Rp
-ZnkgZmIgb3BzCj4gICBtZWRpYTogY29uc3RpZnkgZmIgb3BzIGFjcm9zcyBhbGwgZHJpdmVycwo+
-ICAgc2FtcGxlczogdmZpby1tZGV2OiBjb25zdGlmeSBmYiBvcHMKPiAgIGF1eGRpc3BsYXk6IGNv
-bnN0aWZ5IGZiIG9wcwo+Cj4gIGRyaXZlcnMvYXV4ZGlzcGxheS9jZmFnMTI4NjRiZmIuYyAgICAg
-ICAgICAgICB8ICAyICstCj4gIGRyaXZlcnMvYXV4ZGlzcGxheS9odDE2azMzLmMgICAgICAgICAg
-ICAgICAgICB8ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9mYi5j
-ICAgICAgICB8ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS9hcm1hZGEvYXJtYWRhX2ZiZGV2LmMg
-ICAgICAgICB8ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS9kcm1fZmJfaGVscGVyLmMgICAgICAg
-ICAgICAgICB8ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS9leHlub3MvZXh5bm9zX2RybV9mYmRl
-di5jICAgICB8ICAyICstCj4gIC4uLi9ncHUvZHJtL2hpc2lsaWNvbi9oaWJtYy9oaWJtY19kcm1f
-ZmJkZXYuYyB8ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS9pOTE1L2Rpc3BsYXkvaW50ZWxfZmJk
-ZXYuYyAgICB8ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS9tc20vbXNtX2ZiZGV2LmMgICAgICAg
-ICAgICAgICB8ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfZmJjb24u
-YyAgICAgICB8ICA0ICsrLS0KPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9mYmRldi5j
-ICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy9ncHUvZHJtL3JhZGVvbi9yYWRlb25fZmIuYyAg
-ICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy9ncHUvZHJtL3JvY2tjaGlwL3JvY2tjaGlwX2Ry
-bV9mYmRldi5jIHwgIDIgKy0KPiAgZHJpdmVycy9ncHUvZHJtL3RlZ3JhL2ZiLmMgICAgICAgICAg
-ICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy9ncHUvZHJtL3Ztd2dmeC92bXdnZnhfZmIuYyAg
-ICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy9oaWQvaGlkLXBpY29sY2RfZmIuYyAgICAgICAg
-ICAgICAgICAgIHwgIDMgKy0tCj4gIGRyaXZlcnMvbWVkaWEvcGNpL2l2dHYvaXZ0dmZiLmMgICAg
-ICAgICAgICAgICB8ICAzICstLQo+ICBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3ZpdmlkL3Zpdmlk
-LW9zZC5jICAgICAgfCAgMyArLS0KPiAgZHJpdmVycy92aWRlby9mYmRldi82ODMyOGZiLmMgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hY29ybmZiLmMgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hbWJhLWNsY2QuYyAg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hbWlmYi5jICAgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hcmNmYi5jICAgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hcmtmYi5jICAgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hc2lsaWFudGZiLmMg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hdG1lbF9sY2RmYi5j
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hdHkvYXR5MTI4ZmIu
-YyAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hdHkvYXR5ZmIuaCAg
-ICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hdHkvYXR5ZmJfYmFz
-ZS5jICAgICAgICAgIHwgIDYgKysrLS0tCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvYXR5L21hY2g2
-NF9jdXJzb3IuYyAgICAgICB8ICA0ICsrLS0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hdHkvcmFk
-ZW9uX2Jhc2UuYyAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hdTExMDBm
-Yi5jICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9hdTEyMDBm
-Yi5jICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9icm9hZHNo
-ZWV0ZmIuYyAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9idzIuYyAg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jYXJtaW5l
-ZmIuYyAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jZzE0LmMg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jZzMuYyAg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jZzYuYyAg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jaGlwc2Zi
-LmMgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jaXJydXNm
-Yi5jICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jbHBzNzEx
-eC1mYi5jICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jb2JhbHRf
-bGNkZmIuYyAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jb250cm9s
-ZmIuYyAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9jeWJlcjIw
-MDBmYi5jICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9kYTh4eC1m
-Yi5jICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9kbmZiLmMg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9lZmlmYi5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9lcDkzeHgt
-ZmIuYyAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9mYi1wdXYz
-LmMgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9mZmIuYyAg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9mbTJmYi5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9mc2wtZGl1
-LWZiLmMgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9nMzY0ZmIu
-YyAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9nYmVmYi5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9nZW9kZS9n
-eDFmYl9jb3JlLmMgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9nZW9kZS9n
-eGZiX2NvcmUuYyAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9nZW9kZS9s
-eGZiX2NvcmUuYyAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9nb2xkZmlz
-aGZiLmMgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9ncnZnYS5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9neHQ0NTAw
-LmMgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9oZWN1YmFm
-Yi5jICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9oZ2FmYi5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9oaXRmYi5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9ocGZiLmMg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9oeXBlcnZf
-ZmIuYyAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9pNzQwZmIu
-YyAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9pbXN0dGZi
-LmMgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9pbXhmYi5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9pbnRlbGZi
-L2ludGVsZmIuaCAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9pbnRlbGZi
-L2ludGVsZmJkcnYuYyAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9reXJvL2Zi
-ZGV2LmMgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9sZW8uYyAg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9tYWNmYi5j
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9tYXRyb3gv
-bWF0cm94ZmJfY3J0YzIuYyAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9tYXhpbmVm
-Yi5jICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9tYjg2Mnh4
-L21iODYyeHhmYi5oICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9tYjg2Mnh4
-L21iODYyeHhmYl9hY2NlbC5jIHwgMTUgKysrKysrKy0tLS0tLS0KPiAgZHJpdmVycy92aWRlby9m
-YmRldi9tYjg2Mnh4L21iODYyeHhmYmRydi5jICAgIHwgIDQgKysrLQo+ICBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L21ieC9tYnhmYi5jICAgICAgICAgICAgICAgfCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L21ldHJvbm9tZWZiLmMgICAgICAgICAgICAgfCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L21tcC9mYi9tbXBmYi5jICAgICAgICAgICAgfCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L214M2ZiLmMgICAgICAgICAgICAgICAgICAgfCAgNSArKystLQo+ICBkcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L25lb2ZiLmMgICAgICAgICAgICAgICAgICAgfCAgMiArLQo+ICBkcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L252aWRpYS9udmlkaWEuYyAgICAgICAgICAgfCAyMCArKysrKysrKysrLS0tLS0t
-LS0tCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvb2NmYi5jICAgICAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvb2ZmYi5jICAgICAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIC4uLi92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvb21hcGZiLW1haW4uYyAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcDkxMDAuYyAgICAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcGxhdGludW1mYi5jICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcG0yZmIuYyAgICAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcG0zZmIuYyAgICAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcG1hZy1hYS1mYi5jICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcG1hZy1iYS1mYi5jICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcG1hZ2ItYi1mYi5jICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcHMzZmIuYyAgICAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcHZyMmZiLmMgICAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcHhhMTY4ZmIuYyAgICAgICAgICAgICAgICB8ICAy
-ICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvcHhhZmIuYyAgICAgICAgICAgICAgICAgICB8ICA0
-ICsrLS0KPiAgZHJpdmVycy92aWRlby9mYmRldi9xNDBmYi5jICAgICAgICAgICAgICAgICAgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9yaXZhL2ZiZGV2LmMgICAgICAgICAgICAgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9zM2MtZmIuYyAgICAgICAgICAgICAgICAgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9zM2MyNDEwZmIuYyAgICAgICAgICAgICAgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9zM2ZiLmMgICAgICAgICAgICAgICAgICAgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9zYTExMDBmYi5jICAgICAgICAgICAgICAgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9zYXZhZ2Uvc2F2YWdlZmJfZHJpdmVyLmMgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9zaDc3NjBmYi5jICAgICAgICAgICAgICAgIHwg
-IDIgKy0KPiAgZHJpdmVycy92aWRlby9mYmRldi9zaF9tb2JpbGVfbGNkY2ZiLmMgICAgICAgIHwg
-IDQgKystLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3NpbXBsZWZiLmMgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3Npcy9zaXNfbWFpbi5jICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3NrZWxldG9uZmIuYyAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3NtNzEyZmIuYyAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3Ntc2N1ZnguYyAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3NzZDEzMDdmYi5jICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3NzdGZiLmMgICAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3N0aWZiLmMgICAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjEwMDAuYyAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjI1MDAuYyAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjUwMC5jICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3RjeC5jICAgICAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3RkZnhmYi5jICAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3RnYWZiLmMgICAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3RtaW9mYi5jICAgICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3RyaWRlbnRmYi5jICAgICAgICAgICAgICAg
-fCAgMiArLQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L3V2ZXNhZmIuYyAgICAgICAgICAgICAgICAg
-fCAgNCArKy0tCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvdmFsa3lyaWVmYi5jICAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvdmZiLmMgICAgICAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvdmdhMTZmYi5jICAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvdnQ4NTAwbGNkZmIuYyAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvdnQ4NjIzZmIuYyAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvdzEwMGZiLmMgICAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvd204NTA1ZmIuYyAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYveGVuLWZiZnJvbnQuYyAgICAgICAgICAg
-ICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYveGlsaW54ZmIuYyAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIGluY2x1ZGUvbGludXgvZmIuaCAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIHNhbXBsZXMvdmZpby1tZGV2L21kcHktZmIuYyAgICAgICAgICAgICAgICAg
-ICB8ICAyICstCj4gIDEzNiBmaWxlcyBjaGFuZ2VkLCAxNjMgaW5zZXJ0aW9ucygrKSwgMTYyIGRl
-bGV0aW9ucygtKQoKLS0gCkphbmkgTmlrdWxhLCBJbnRlbCBPcGVuIFNvdXJjZSBHcmFwaGljcyBD
-ZW50ZXIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50
-ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
-Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4
+
+> Am 03.12.2019 um 16:58 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> 
+> 
+>> Am 03.12.2019 um 16:44 schrieb Tony Lindgren <tony@atomide.com>:
+>> 
+>> * H. Nikolaus Schaller <hns@goldelico.com> [191203 12:31]:
+>>> Ok, dev_pm_opp_find_freq_ceil() is doing what it should do and it
+>>> returns the first OPP higher or equal than the frequency passed in.
+>>> 
+>>> The real reason for the warning is that the same OPP table is used
+>>> for vdd_mpu_iva and vdd_core and it appears as if "core" (l3_ick)
+>>> runs at 200 MHz which does not correspond to a valid OPP.
+>> 
+>> OK
+>> 
+>>> So to silcence the warning it suffices to remove
+>>> 
+>>> 	omap2_set_init_voltage("core", "l3_ick", "l3_main");
+>>> 
+>>> The question is now what l3_ick has to do with the OPPs at all
+>>> and how it should interwork with OPPs and cpufreq.
+>> 
+>> So what changed then for iva in your configuration then?
+>> 
+>> At least I'm getting errors for both for 34xx and dm3730 with
+>> Linux next and reverted commit cf395f7ddb9e ("ARM: OMAP2+: Fix
+>> warnings with broken omap2_set_init_voltage()"):
+>> 
+>> omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu_iva
+>> omap2_set_init_voltage: unable to set vdd_mpu_iva
+>> omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+>> omap2_set_init_voltage: unable to set vdd_core
+> 
+> Hm... Is there maybe a dependency on u-boot?
+> 
+> We are using a quite old version which may boot with vdd_mpu_iva
+> as 300 MHz while yours may have a different clock.
+> 
+> What we could do is augment the printk (or dev_err) to tell
+> in these warnings what it is looking for...
+> 
+> 	opp = dev_pm_opp_find_freq_ceil(dev, &freq);
+> 	if (IS_ERR(opp)) {
+> 		pr_err("%s: unable to find boot up OPP for vdd_%s freq %ulHz\n",
+> 		__func__, vdd_name, freq);
+> 		goto exit;
+> 	}
+
+Easier and always prints info:
+
+	freq = clk_get_rate(clk);
+	clk_put(clk);
+
+	pr_info("%s: vdd=%s clk=%s %luHz oh=%s\n", __func__, vdd_name, clk_name, freq, oh_name);
+
+	opp = dev_pm_opp_find_freq_ceil(dev, &freq);
+
+I get this:
+
+[    2.908142] omap2_set_init_voltage: vdd=mpu_iva clk=dpll1_ck 1000000000Hz oh=mpu
+[    2.930816] omap2_set_init_voltage: vdd=core clk=l3_ick 200000000Hz oh=l3_main
+[    2.946228] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+[    2.953460] omap2_set_init_voltage: unable to set vdd_core
+
+Which means that cpufreq already has increased dpll1_ck to 1 GHz
+(I have removed the turbo-mode tags so that it already boots at
+full speed) and l3_ick runs at initial 200 MHz.
+
+> 
+>> Then for fixing this code, seems like this can all happen from
+>> a regular device driver init based on the dts data.. We've had
+>> PM init completely ignore these errors already for years so
+>> whatever dependency there might be seems non-critical :)
+>> 
+>>> Or does all this mean we may need a second OPP fable for vdd_core
+>>> and 200 MHz? But what would it be good for? I have not seen any
+>>> reference for "core-OPPs" in the TRM.
+>> 
+>> OK yeah sounds like all the domains need an opp table.
+>> 
+>> Also, I recall some SoCs having a dependency between having to
+>> run DSP at a lower rate for higher MPU rates, not sure if omap3
+>> has such dependencies though.
+> 
+> Well, I not aware of documentation of such dependencies and there
+> is also some confusion what vdd_mpu_iva exactly is and what vdd_core is.
+> twl4030 has vdd1 and vdd2 but their relationship isn't clear either.
+> 
+> Maybe Tero or Nisanth can clarify?
+> 
+> BR and thanks,
+> Nikolaus
+> 
+> 
+> _______________________________________________
+> http://projects.goldelico.com/p/gta04-kernel/
+> Letux-kernel mailing list
+> Letux-kernel@openphoenux.org
+> http://lists.goldelico.com/mailman/listinfo.cgi/letux-kernel
