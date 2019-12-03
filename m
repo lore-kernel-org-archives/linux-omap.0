@@ -1,74 +1,73 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix warnings with broken
- omap2_set_init_voltage()
-Date: Mon, 2 Dec 2019 23:15:22 +0100
-Message-ID: <20191202231522.5e7fe3f8@aktux>
-References: <20190924233222.52757-1-tony@atomide.com>
-        <8FFD44DB-73F8-4807-91E1-C97DA8F781BA@goldelico.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] ARM: dts: am335x-evm: Use drm simple-panel instead of
+ tilcdc-panel
+Date: Tue, 3 Dec 2019 09:29:32 +0200
+Message-ID: <20191203072932.GL4730@pendragon.ideasonboard.com>
+References: <20191202185729.12921-1-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8FFD44DB-73F8-4807-91E1-C97DA8F781BA@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>, Adam Ford <aford173@gmail.com>, =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20191202185729.12921-1-jsarha@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2 Dec 2019 22:09:26 +0100
-"H. Nikolaus Schaller" <hns@goldelico.com> wrote:
-
-> Hi Tony,
->=20
-> > Am 25.09.2019 um 01:32 schrieb Tony Lindgren <tony@atomide.com>:
-> >=20
-> > This code is currently unable to find the dts opp tables as ti-cpufreq
-> > needs to set them up first based on speed binning.
-> >=20
-> > We stopped initializing the opp tables with platform code years ago for
-> > device tree based booting with commit 92d51856d740 ("ARM: OMAP3+: do not
-> > register non-dt OPP tables for device tree boot"), and all of mach-omap2
-> > is now booting using device tree.
-> >=20
-> > We currently get the following errors on init:
-> >=20
-> > omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu
-> > omap2_set_init_voltage: unable to set vdd_mpu
-> > omap2_set_init_voltage: unable to find boot up OPP for vdd_core
-> > omap2_set_init_voltage: unable to set vdd_core
-> > omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
-> > omap2_set_init_voltage: unable to set vdd_iva
-> >=20
-> > Let's just drop the unused code. Nowadays ti-cpufreq should be used to
-> > to initialize things properly.
-> >=20
-> > Cc: Adam Ford <aford173@gmail.com>
-> > Cc: Andr=C3=A9 Roth <neolynx@gmail.com>
-> > Cc: "H. Nikolaus Schaller" <hns@goldelico.com>
-> > Cc: Nishanth Menon <nm@ti.com>
-> > Cc: Tero Kristo <t-kristo@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >=20
-> > Guys, please check and ack if we can really do this to get rid of some
-> > pointless dmesg -l3 errors without affecting the ongoing cpufreq and
-> > voltage work. =20
->=20
-> unfortunately we did not yet test in combination with the 1GHz OPP
-> patches for omap3630 (queued for v5.5-rc1) and it appears that this
-> patch breaks the 1GHz OPP.
->=20
-> The symptom is that it works fine on a dm3730 with 800MHz rating
-> but results in spurious kernel panics, stack corruption, virtual memory
-> failures, OneNAND DMA timeouts etc. on a dm3730 with 1GHz speed grade.
->=20
-I #if 0'ed the 1Ghz opp and found out that the OneNAND DMA timeouts
-are independant of 1Ghz. But the result is interesting:
-With this patch
-xxd /dev/mtd0 shows only ff
-without this patch gives content, it is slower.
-In both cases I see
-[  476.533477] omap2-onenand 4000000.onenand: timeout waiting for DMA
-
-Regards,
-Andreas
+SGkgSnlyaSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gTW9uLCBEZWMgMDIsIDIwMTkg
+YXQgMDg6NTc6MjlQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90ZToKPiBNb3ZlIHRvIHVzZSB0aGUg
+bmV3IGRybSBwYW5lbCBzdXBwb3J0IGluIHRpbGNkYyB0b2dldGhlciB3aXRoIGFkZGVkCj4gInRm
+YyxzOTcwMHJ0d3Y0M3RyLTAxYiItcGFuZWwgc3VwcG9ydCBpbiBkcm0gcGFuZWwtc2ltcGxlLgo+
+IAo+IFNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Cj4gUmV2aWV3ZWQt
+Ynk6IFRvbWkgVmFsa2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+Cj4gLS0tCj4gInRmYyxz
+OTcwMHJ0d3Y0M3RyLTAxYiIgaW4gcGFuZWwtc2ltcGxlIGhhcyBiZWVuIGluIGZvciBzb21lIHRp
+bWUgbm93Cj4gc28gaXQgaXMgYWJvdXQgdGltZSB0byBnZXQgdGhpcyBpbiB0b28uCj4gCj4gIGFy
+Y2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ldm0uZHRzIHwgNDQgKysrKysrKysrKysrKy0tLS0tLS0t
+LS0tLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDE4IGluc2VydGlvbnMoKyksIDI2IGRlbGV0
+aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0
+cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ldm0uZHRzCj4gaW5kZXggYTAwMTQ1NzA1Yzli
+Li4wZTI4NmExYzljYzUgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2
+bS5kdHMKPiArKysgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cwo+IEBAIC0xMTMs
+NyArMTEzLDcgQEAKPiAgCQl9Owo+ICAJfTsKPiAgCj4gLQliYWNrbGlnaHQgewo+ICsJYmFja2xp
+Z2h0OiBiYWNrbGlnaHQgewo+ICAJCWNvbXBhdGlibGUgPSAicHdtLWJhY2tsaWdodCI7Cj4gIAkJ
+cHdtcyA9IDwmZWNhcDAgMCA1MDAwMCAwPjsKPiAgCQlicmlnaHRuZXNzLWxldmVscyA9IDwwIDUx
+IDUzIDU2IDYyIDc1IDEwMSAxNTIgMjU1PjsKPiBAQCAtMTIxLDM1ICsxMjEsMTkgQEAKPiAgCX07
+Cj4gIAo+ICAJcGFuZWwgewo+IC0JCWNvbXBhdGlibGUgPSAidGksdGlsY2RjLHBhbmVsIjsKPiAr
+CQljb21wYXRpYmxlID0gInRmYyxzOTcwMHJ0d3Y0M3RyLTAxYiI7Cj4gKwo+ICAJCXN0YXR1cyA9
+ICJva2F5IjsKCkkgdGhpbmsgdGhpcyBjYW4gYmUgZHJvcHBlZCBhcyBpdCdzIGltcGxpY2l0LgoK
+PiArCj4gIAkJcGluY3RybC1uYW1lcyA9ICJkZWZhdWx0IjsKPiAgCQlwaW5jdHJsLTAgPSA8Jmxj
+ZF9waW5zX3MwPjsKPiAtCQlwYW5lbC1pbmZvIHsKPiAtCQkJYWMtYmlhcyAgICAgICAgICAgPSA8
+MjU1PjsKPiAtCQkJYWMtYmlhcy1pbnRycHQgICAgPSA8MD47Cj4gLQkJCWRtYS1idXJzdC1zeiAg
+ICAgID0gPDE2PjsKPiAtCQkJYnBwICAgICAgICAgICAgICAgPSA8MzI+Owo+IC0JCQlmZGQgICAg
+ICAgICAgICAgICA9IDwweDgwPjsKPiAtCQkJc3luYy1lZGdlICAgICAgICAgPSA8MD47Cj4gLQkJ
+CXN5bmMtY3RybCAgICAgICAgID0gPDE+Owo+IC0JCQlyYXN0ZXItb3JkZXIgICAgICA9IDwwPjsK
+PiAtCQkJZmlmby10aCAgICAgICAgICAgPSA8MD47Cj4gLQkJfTsKPiAgCj4gLQkJZGlzcGxheS10
+aW1pbmdzIHsKPiAtCQkJODAweDQ4MHA2MiB7Cj4gLQkJCQljbG9jay1mcmVxdWVuY3kgPSA8MzAw
+MDAwMDA+Owo+IC0JCQkJaGFjdGl2ZSA9IDw4MDA+Owo+IC0JCQkJdmFjdGl2ZSA9IDw0ODA+Owo+
+IC0JCQkJaGZyb250LXBvcmNoID0gPDM5PjsKPiAtCQkJCWhiYWNrLXBvcmNoID0gPDM5PjsKPiAt
+CQkJCWhzeW5jLWxlbiA9IDw0Nz47Cj4gLQkJCQl2YmFjay1wb3JjaCA9IDwyOT47Cj4gLQkJCQl2
+ZnJvbnQtcG9yY2ggPSA8MTM+Owo+IC0JCQkJdnN5bmMtbGVuID0gPDI+Owo+IC0JCQkJaHN5bmMt
+YWN0aXZlID0gPDE+Owo+IC0JCQkJdnN5bmMtYWN0aXZlID0gPDE+Owo+ICsJCWJhY2tsaWdodCA9
+IDwmYmFja2xpZ2h0PjsKCkkgd291bGQgYWRkIGEgYmxhbmsgbGluZSBoZXJlLgoKPiArCQlwb3J0
+cyB7Cj4gKwkJCXBvcnQgewo+ICsJCQkJcGFuZWxfMDogZW5kcG9pbnRAMCB7Cj4gKwkJCQkJcmVt
+b3RlLWVuZHBvaW50ID0gPCZsY2RjXzA+Owo+ICsJCQkJfTsKPiAgCQkJfTsKPiAgCQl9OwoKVGhl
+IG91dHRlciBwb3J0cyBub2RlIGlzbid0IHJlcXVpcmVkIGlmIHRoZXJlJ3MgYSBzaW5nbGUgcG9y
+dCwgdXAgdG8KeW91LgoKPiAgCX07Cj4gQEAgLTUyNSw2ICs1MDksMTQgQEAKPiAgCXN0YXR1cyA9
+ICJva2F5IjsKPiAgCj4gIAlibHVlLWFuZC1yZWQtd2lyaW5nID0gImNyb3NzZWQiOwo+ICsKPiAr
+CXBvcnRzIHsKPiArCQlwb3J0IHsKPiArCQkJbGNkY18wOiBlbmRwb2ludEAwIHsKPiArCQkJCXJl
+bW90ZS1lbmRwb2ludCA9IDwmcGFuZWxfMD47Cj4gKwkJCX07Cj4gKwkJfTsKPiArCX07CgpTYW1l
+IGhlcmUuCgpXaXRoIHRoZSBhYm92ZSBpc3N1ZXMgYWRkcmVzc2VkIGFzIGFwcGxpY2FibGUsCgpS
+ZXZpZXdlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9h
+cmQuY29tPgoKPiAgfTsKPiAgCj4gICZlbG0gewoKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNo
+YXJ0Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
