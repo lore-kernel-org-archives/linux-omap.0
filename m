@@ -1,51 +1,135 @@
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: Re: [PATCH v2 07/14] video: omapfb: use const pointer for fb_ops
-Date: Tue, 03 Dec 2019 11:16:00 +0200
-Message-ID: <877e3dkbvz.fsf@intel.com>
-References: <cover.1575022735.git.jani.nikula@intel.com>
- <dfa4376e219ffeef9175993eaff91b5fe7ecccab.1575022735.git.jani.nikula@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <dfa4376e219ffeef9175993eaff91b5fe7ecccab.1575022735.git.jani.nikula@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix warnings with broken
+ omap2_set_init_voltage()
+Date: Tue, 3 Dec 2019 10:53:09 +0100
+Message-ID: <EE749881-C3DB-4BBE-85FE-E5AF3D34884F@goldelico.com>
+References: <20190924233222.52757-1-tony@atomide.com>
+ <8FFD44DB-73F8-4807-91E1-C97DA8F781BA@goldelico.com>
+ <20191202213929.GB35479@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20191202213929.GB35479@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>, Andreas Kemnade <andreas@kemnade.info>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <aford173@gmail.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCAyOSBOb3YgMjAxOSwgSmFuaSBOaWt1bGEgPGphbmkubmlrdWxhQGludGVsLmNvbT4g
-d3JvdGU6Cj4gVXNlIGNvbnN0IGZvciBmYl9vcHMgdG8gbGV0IHVzIG1ha2UgdGhlIGluZm8tPmZi
-b3BzIHBvaW50ZXIgY29uc3QgaW4gdGhlCj4gZnV0dXJlLgo+Cj4gQ2M6IGxpbnV4LWZiZGV2QHZn
-ZXIua2VybmVsLm9yZwo+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwo+IFJldmlld2Vk
-LWJ5OiBEYW5pZWwgVmV0dGVyIDxkYW5pZWwudmV0dGVyQGZmd2xsLmNoPgo+IFNpZ25lZC1vZmYt
-Ynk6IEphbmkgTmlrdWxhIDxqYW5pLm5pa3VsYUBpbnRlbC5jb20+CgpQdXNoZWQgdXAgdG8gYW5k
-IGluY2x1ZGluZyB0aGlzIHBhdGNoIHRvIGRybS1taXNjLW5leHQsIHRoYW5rcyBmb3IgdGhlCnJl
-dmlld3MgYW5kIGFja3MuCgpJIG1heSBoYXZlIG1pc3NlZCBzb21lIHBvaW50ZXIgY2hhc2luZyB1
-c2VzIG9mIGluZm8tPmZib3BzLCByZXBvcnRlZCBieQowZGF5LiBJJ2xsIG5lZWQgdG8gZG91Ymxl
-IGNoZWNrIHRob3NlIGJlZm9yZSBwcm9jZWVkaW5nIHdpdGggdGhlIG5leHQKcGF0Y2guCgpCUiwK
-SmFuaS4KCj4gLS0tCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jIHwg
-MiArLQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkKPgo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21haW4uYyBiL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvb21hcC9vbWFwZmJfbWFpbi5jCj4gaW5kZXggNzAyY2NhNTliZGEx
-Li5lOGEzMDRmODRlYTggMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL29t
-YXBmYl9tYWluLmMKPiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZiX21haW4u
-Ywo+IEBAIC0xMDUyLDcgKzEwNTIsNyBAQCBzdGF0aWMgaW50IG9tYXBmYl9pb2N0bChzdHJ1Y3Qg
-ZmJfaW5mbyAqZmJpLCB1bnNpZ25lZCBpbnQgY21kLAo+ICB7Cj4gIAlzdHJ1Y3Qgb21hcGZiX3Bs
-YW5lX3N0cnVjdCAqcGxhbmUgPSBmYmktPnBhcjsKPiAgCXN0cnVjdCBvbWFwZmJfZGV2aWNlCSpm
-YmRldiA9IHBsYW5lLT5mYmRldjsKPiAtCXN0cnVjdCBmYl9vcHMJCSpvcHMgPSBmYmktPmZib3Bz
-Owo+ICsJY29uc3Qgc3RydWN0IGZiX29wcyAqb3BzID0gZmJpLT5mYm9wczsKPiAgCXVuaW9uIHsK
-PiAgCQlzdHJ1Y3Qgb21hcGZiX3VwZGF0ZV93aW5kb3cJdXBkYXRlX3dpbmRvdzsKPiAgCQlzdHJ1
-Y3Qgb21hcGZiX3BsYW5lX2luZm8JcGxhbmVfaW5mbzsKCi0tIApKYW5pIE5pa3VsYSwgSW50ZWwg
-T3BlbiBTb3VyY2UgR3JhcGhpY3MgQ2VudGVyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
-LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2RyaS1kZXZlbA==
+HiTony,
+
+> Am 02.12.2019 um 22:39 schrieb Tony Lindgren <tony@atomide.com>:
+> 
+> Hi,
+> 
+> * H. Nikolaus Schaller <hns@goldelico.com> [191202 21:10]:
+>>> Am 25.09.2019 um 01:32 schrieb Tony Lindgren <tony@atomide.com>:
+>>> Guys, please check and ack if we can really do this to get rid of some
+>>> pointless dmesg -l3 errors without affecting the ongoing cpufreq and
+>>> voltage work.
+>> 
+>> unfortunately we did not yet test in combination with the 1GHz OPP
+>> patches for omap3630 (queued for v5.5-rc1) and it appears that this
+>> patch breaks the 1GHz OPP.
+>> 
+>> The symptom is that it works fine on a dm3730 with 800MHz rating
+>> but results in spurious kernel panics, stack corruption, virtual memory
+>> failures, OneNAND DMA timeouts etc. on a dm3730 with 1GHz speed grade.
+> 
+> Hmm yeah OK, I was a bit worried about this breaking something.
+> 
+>> We can also re-add the "turbo-mode" tags in the omap36xx.dtsi (or
+>> remove the 1GHz OPP) and can then boot with 800MHz max. clock. But
+>> enabling boost (echo 1 >/sys/devices/system/cpu/cpufreq/boost) makes
+>> the problem and its symptoms appear almost immediately.
+>> 
+>> After some scratching our heads we found that v5.3.7 is still good and
+>> v5.3.8 is bad. A bisect of our tree (which includes the 1GHz OPP) did
+>> point to this patch whichwas apparently already backported to v5.3.8 and
+>> v5.4.
+>> 
+>> So I assume that the code removed here enabled or initialized something
+>> we need for safe 1GHz transitions. Maybe the ABB-LDO. Or it looks up the
+>> vdd regulator and initializes it earlier than without this code. Maybe
+>> it also (pre-)initializes some clk which could now be left uninitialized
+>> too long?
+> 
+> It was just doing voltdm_lookup() and clk_get_rate() and then failed
+> dev_pm_opp_find_freq_ceil(), but I don't see what these might affect..
+> 
+>> Note that seeing the log message indicates that voltdm_scale() and
+>> dev_pm_opp_get_voltage() are not called, but all functions before could
+>> be with side-effects.
+> 
+> Yes that is strange. There's no clk_prepare() before we proceed to
+> call clk_get_rate() either, not sure if that matter here though.
+> 
+>> v5.5-rc1 will likely fail right from the beginning (only on 1GHz rated
+>> omap36xx) because it makes the combination of this patch and 1GHz OPP
+>> public (linux-next should already fail but it appears that nobody has
+>> tested).
+> 
+> OK
+
+Well, it is not that urgent as I thought since I have not yet submitted
+my patch to remove the turbo-mode tags for 1GHz OPP. Therefore even if this
+code is deployed, no dm3730 will try to boot or run at 1GHz unless
+manually enabled by echo 1 >/sys/devices/system/cpu/cpufreq/boost.
+
+> 
+>> Any ideas how to fix? Before I try to do a revert and then add goto exit;
+>> after each function call and see which ones are essential for 1GHz.
+> 
+> If you have things reproducable, care to try to narrow the issue down
+> a bit by trying see which parts of the old omap2_set_init_voltage()
+> fix the issue?
+> 
+> The issue should be there somewhere in the few lines of code before
+> dev_pm_opp_find_freq_ceil(), right?
+> 
+> It would be good to understand what's going on before reverting or
+> fixing things condering that a revert would add back code that has
+> it's own errors and fails to init :)
+
+Indeed!
+
+> 
+> Another thing to check is if the dev instance is actually the right
+> one we had in omap2_set_init_voltage() vs the dts dev instance as
+> we use that with dev_pm_opp_find_freq_ceil().
+
+As a first step I tried to comment out some steps but immediately
+got failures.
+
+What I then noticed is that there is only a message for
+
+[    2.508392] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+[    2.517639] omap2_set_init_voltage: unable to set vdd_core
+
+There is none for vdd_mpu_iva. This OPP initialization is successful
+and does call voltdm_scale() once.
+
+So it appears as if omap3_init_voltages() is not a complete no-op.
+
+IMHO the reason for the message is that u-boot defines a frequency
+and voltage that can not be found in the OPP table at all.
+
+Maybe a better solution to get rid of the message would be to modify 
+dev_pm_opp_find_freq_ceil() to interpolate between OPPs?
+
+Hm. After looking into the code I start to wonder why it fails at
+all. _find_freq_ceil() should return the highest available frequency
+above the one passed in and u-boot should not pass more than 800 MHz...
+
+That is IMHO a good next step to go into details.
+
+BR,
+Nikolaus
