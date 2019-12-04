@@ -1,62 +1,54 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: am335x-evmsk: Use drm simple-panel instead of
- tilcdc-panel
-Date: Wed, 4 Dec 2019 13:26:01 +0200
-Message-ID: <1aa8c476-031a-e156-7648-c9740a98e3ee@ti.com>
-References: <20191204105554.14212-1-jsarha@ti.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] OMAP: DSS2: remove non-zero check on variable r
+Date: Wed,  4 Dec 2019 15:28:47 +0000
+Message-ID: <20191204152847.1435188-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20191204105554.14212-1-jsarha@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>, dri-devel@lists.freedesktop.org, tony@atomide.com, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAwNC8xMi8yMDE5IDEyLjU1LCBKeXJpIFNhcmhhIHdyb3RlOgo+IE1vdmUgdG8gdXNlIHRo
-ZSBuZXcgZHJtIHBhbmVsIHN1cHBvcnQgaW4gdGlsY2RjIHRvZ2V0aGVyIHdpdGggYWRkZWQKPiAi
-bmV3aGF2ZW4sbmhkLTQuMy00ODAyNzJlZi1hdHhsIi1wYW5lbCBzdXBwb3J0IGluIGRybSBwYW5l
-bC1zaW1wbGUuCgpUZXN0ZWQtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5j
-b20+Cgo+IFNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Cj4gLS0tCj4g
-IGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ldm1zay5kdHMgfCAzOCArKysrKysrKysrLS0tLS0t
-LS0tLS0tLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDI2IGRl
-bGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtZXZt
-c2suZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bXNrLmR0cwo+IGluZGV4IGUyOGE1
-YjgyZmRmMy4uYjE0OWU0ODUyMGI0IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2Ft
-MzM1eC1ldm1zay5kdHMKPiArKysgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtZXZtc2suZHRz
-Cj4gQEAgLTE4MywzNiArMTgzLDE2IEBACj4gIAl9Owo+ICAKPiAgCXBhbmVsIHsKPiAtCQljb21w
-YXRpYmxlID0gInRpLHRpbGNkYyxwYW5lbCI7Cj4gKwkJY29tcGF0aWJsZSA9ICJuZXdoYXZlbixu
-aGQtNC4zLTQ4MDI3MmVmLWF0eGwiOwo+ICsKPiAgCQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQi
-LCAic2xlZXAiOwo+ICAJCXBpbmN0cmwtMCA9IDwmbGNkX3BpbnNfZGVmYXVsdD47Cj4gIAkJcGlu
-Y3RybC0xID0gPCZsY2RfcGluc19zbGVlcD47Cj4gIAkJYmFja2xpZ2h0ID0gPCZsY2RfYmw+Owo+
-IC0JCXN0YXR1cyA9ICJva2F5IjsKPiAtCQlwYW5lbC1pbmZvIHsKPiAtCQkJYWMtYmlhcwkJPSA8
-MjU1PjsKPiAtCQkJYWMtYmlhcy1pbnRycHQJPSA8MD47Cj4gLQkJCWRtYS1idXJzdC1zegk9IDwx
-Nj47Cj4gLQkJCWJwcAkJPSA8MzI+Owo+IC0JCQlmZGQJCT0gPDB4ODA+Owo+IC0JCQlzeW5jLWVk
-Z2UJPSA8MD47Cj4gLQkJCXN5bmMtY3RybAk9IDwxPjsKPiAtCQkJcmFzdGVyLW9yZGVyCT0gPDA+
-Owo+IC0JCQlmaWZvLXRoCQk9IDwwPjsKPiAtCQl9Owo+IC0JCWRpc3BsYXktdGltaW5ncyB7Cj4g
-LQkJCTQ4MHgyNzIgewo+IC0JCQkJaGFjdGl2ZQkJPSA8NDgwPjsKPiAtCQkJCXZhY3RpdmUJCT0g
-PDI3Mj47Cj4gLQkJCQloYmFjay1wb3JjaAk9IDw0Mz47Cj4gLQkJCQloZnJvbnQtcG9yY2gJPSA8
-OD47Cj4gLQkJCQloc3luYy1sZW4JPSA8ND47Cj4gLQkJCQl2YmFjay1wb3JjaAk9IDwxMj47Cj4g
-LQkJCQl2ZnJvbnQtcG9yY2gJPSA8ND47Cj4gLQkJCQl2c3luYy1sZW4JPSA8MTA+Owo+IC0JCQkJ
-Y2xvY2stZnJlcXVlbmN5ID0gPDkwMDAwMDA+Owo+IC0JCQkJaHN5bmMtYWN0aXZlCT0gPDA+Owo+
-IC0JCQkJdnN5bmMtYWN0aXZlCT0gPDA+Owo+ICsKPiArCQlwb3J0IHsKPiArCQkJcGFuZWxfMDog
-ZW5kcG9pbnRAMCB7Cj4gKwkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8JmxjZGNfMD47Cj4gIAkJCX07
-Cj4gIAkJfTsKPiAgCX07Cj4gQEAgLTc1MCw2ICs3MzAsMTIgQEAKPiAgCXN0YXR1cyA9ICJva2F5
-IjsKPiAgCj4gIAlibHVlLWFuZC1yZWQtd2lyaW5nID0gImNyb3NzZWQiOwo+ICsKPiArCXBvcnQg
-ewo+ICsJCWxjZGNfMDogZW5kcG9pbnRAMCB7Cj4gKwkJCXJlbW90ZS1lbmRwb2ludCA9IDwmcGFu
-ZWxfMD47Cj4gKwkJfTsKPiArCX07Cj4gIH07Cj4gIAo+ICAmcnRjIHsKPiAKCi0gUMOpdGVyCgpU
-ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
-aW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2ls
-ZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+From: Colin Ian King <colin.king@canonical.com>
+
+Variable r is being initialized to zero, so the check of a non-zero
+rv is redundant and can be removed.
+
+It appears that the previous case statements set r to be -EINVAL
+and the "Fallthrough" comment afterwards suggested it was going
+to fall through to this non-zero check but won't because of the
+break statement. Remove the confusion by removing the Fallthrough
+comment too.
+
+Addresses-Coverity: ("Logically dead code")
+Fixes: b39a982ddecf ("OMAP: DSS2: omapfb driver")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+index 858c2c011d19..a2a2c1b205d9 100644
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -1154,16 +1154,12 @@ static int _setcolreg(struct fb_info *fbi, u_int regno, u_int red, u_int green,
+ 		   r = fbdev->ctrl->setcolreg(regno, red, green, blue,
+ 		   transp, update_hw_pal);
+ 		   */
+-		/* Fallthrough */
+ 		r = -EINVAL;
+ 		break;
+ 	case OMAPFB_COLOR_RGB565:
+ 	case OMAPFB_COLOR_RGB444:
+ 	case OMAPFB_COLOR_RGB24P:
+ 	case OMAPFB_COLOR_RGB24U:
+-		if (r != 0)
+-			break;
+-
+ 		if (regno < 16) {
+ 			u32 pal;
+ 			pal = ((red >> (16 - var->red.length)) <<
+-- 
+2.24.0
