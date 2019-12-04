@@ -1,88 +1,47 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: linux-next: Tree for Dec 3 (switchdev & TI_CPSW_SWITCHDEV)
-Date: Wed, 4 Dec 2019 08:11:11 -0800
-Message-ID: <af707faa-7f95-0d6f-3f72-1746161e09a8@infradead.org>
-References: <20191203155405.31404722@canb.auug.org.au>
- <58aebf62-54f8-9084-147b-801ea65327bb@infradead.org>
- <f2700b07-df9b-94ce-0323-a4fece236838@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH 1/2] net: ethernet: ti: cpsw_switchdev: fix unmet direct dependencies detected for NET_SWITCHDEV
+Date: Wed, 4 Dec 2019 19:45:32 +0200
+Message-ID: <20191204174533.32207-2-grygorii.strashko@ti.com>
+References: <20191204174533.32207-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f2700b07-df9b-94ce-0323-a4fece236838@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux Next Mailing List <linux-next@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Jiri Pirko <jiri@resnulli.us>, Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20191204174533.32207-1-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Randy Dunlap <rdunlap@infradead.org>, netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/4/19 7:35 AM, Grygorii Strashko wrote:
-> 
-> 
-> On 04/12/2019 01:43, Randy Dunlap wrote:
->> On 12/2/19 8:54 PM, Stephen Rothwell wrote:
->>> Hi all,
->>>
->>> Please do not add any material for v5.6 to your linux-next included
->>> trees until after v5.5-rc1 has been released.
->>>
->>> Changes since 20191202:
->>
->> I am seeing this (happens to be on i386; I doubt that it matters):
->> CONFIG_COMPILE_TEST=y
->>
->>
->> WARNING: unmet direct dependencies detected for NET_SWITCHDEV
->>    Depends on [n]: NET [=y] && INET [=n]
->>    Selected by [y]:
->>    - TI_CPSW_SWITCHDEV [=y] && NETDEVICES [=y] && ETHERNET [=y] && NET_VENDOR_TI [=y] && (ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST [=y])
->>
->> because TI_CPSW_SWITCHDEV blindly selects NET_SWITCHDEV even though
->> INET is not set/enabled, while NET_SWITCHDEV depends on INET.
->>
->> However, the build succeeds, including net/switchdev/*.
->>
->> So why does NET_SWITCHDEV depend on INET?
->>
->> It looks like TI_CPSW_SWITCHDEV should depend on INET (based on the
->> Kconfig rules), but in practice it doesn't seem to matter to the build.
->>
-> 
-> Thanks for reporting this. I'd like to ask for some advice of how to proceed?
-> a) change it to "depends on NET_SWITCHDEV" (as it's done in other drivers),
-> but this will require to add NET_SWITCHDEV in defconfig
+Replace "select NET_SWITCHDEV" vs "depends on NET_SWITCHDEV" to fix Kconfig
+warning with CONFIG_COMPILE_TEST=y
 
-IMO TI_CPSW_SWITCHDEV should depend on NET_SWITCHDEV, as other drivers do that.
+WARNING: unmet direct dependencies detected for NET_SWITCHDEV
+  Depends on [n]: NET [=y] && INET [=n]
+  Selected by [y]:
+  - TI_CPSW_SWITCHDEV [=y] && NETDEVICES [=y] && ETHERNET [=y] && NET_VENDOR_TI [=y] && (ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST [=y])
 
-That will require to add NET_SWITCHDEV in what defconfig?
-To me, it just means that whoever is doing the kernel config must enable/set
-NET_SWITCHDEV first, same as other drivers that depend on NET_SWITCHDEV.
+because TI_CPSW_SWITCHDEV blindly selects NET_SWITCHDEV even though
+INET is not set/enabled, while NET_SWITCHDEV depends on INET.
 
-> b) change it to "imply NET_SWITCHDEV", but then NET_SWITCHDEV can be switched off
-> manually or by random build and cause build failure of cpsw_new.
-> To fix build below diff can be used, but TI_CPSW_SWITCHDEV will not be functional
-> 
-> ---
-> diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-> index 71215db7934b..22e8fc548d48 100644
-> --- a/drivers/net/ethernet/ti/cpsw_new.c
-> +++ b/drivers/net/ethernet/ti/cpsw_new.c
-> @@ -368,8 +368,9 @@ static void cpsw_rx_handler(void *token, int len, int status)
->                 page_pool_recycle_direct(pool, page);
->                 goto requeue;
->         }
-> -
-> +#ifdef CONFIG_NET_SWITCHDEV
->         skb->offload_fwd_mark = priv->offload_fwd_mark;
-> +#endif
->         skb_reserve(skb, headroom);
->         skb_put(skb, len);
->         skb->dev = ndev;
-> 
-> Thank you.
-> 
-
-
--- 
-~Randy
 Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
+index 9170572346b5..a46f4189fde3 100644
+--- a/drivers/net/ethernet/ti/Kconfig
++++ b/drivers/net/ethernet/ti/Kconfig
+@@ -62,7 +62,7 @@ config TI_CPSW
+ config TI_CPSW_SWITCHDEV
+ 	tristate "TI CPSW Switch Support with switchdev"
+ 	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
+-	select NET_SWITCHDEV
++	depends on NET_SWITCHDEV
+ 	select TI_DAVINCI_MDIO
+ 	select MFD_SYSCON
+ 	select REGMAP
+-- 
+2.17.1
