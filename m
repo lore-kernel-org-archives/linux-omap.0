@@ -1,54 +1,60 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 2/2] dt-bindings: display: Add obsolete note to "ti, tilcdc,
- panel" binding
-Date: Wed, 4 Dec 2019 19:53:11 +0200
-Message-ID: <eabe78184ea7125dcff50826a0ee12a892443017.1575481630.git.jsarha@ti.com>
-References: <cover.1575481630.git.jsarha@ti.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH 1/2] net: ethernet: ti: cpsw_switchdev: fix unmet direct
+ dependencies detected for NET_SWITCHDEV
+Date: Wed, 4 Dec 2019 13:26:22 -0800
+Message-ID: <5c844455-8116-5c3d-43eb-c3d12710c9c9@infradead.org>
+References: <20191204174533.32207-1-grygorii.strashko@ti.com>
+ <20191204174533.32207-2-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1575481630.git.jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, tony@atomide.com, sam@ravnborg.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191204174533.32207-2-grygorii.strashko@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlICJ0aSx0aWxjZGMscGFuZWwiIGJpbmRpbmcgc2hvdWxkIG5vdCBiZSB1c2VkIGFueW1vcmUs
-IHNpbmNlIHRpbGNkYwppcyBmdWxseSBjYXBhYmxlIG9mIHVzaW5nIGdlbmVyaWMgZHJtIHBhbmVs
-cyBsaWtlIHBhbmVsLXNpbXBsZSBhbmQKcGFuZWwtY29tbW9uIGJpbmRpbmcuIEhvd2V2ZXIsIHRo
-ZSBvYnNvbGV0ZSBiaW5kaW5nIGlzIHN0aWxsIHdpZGVseQp1c2VkIGluIG1hbnkgbWFpbmxpbmUg
-c3VwcG9ydGVkIHBsYXRmb3JtcyB0aGF0IEkgZG8gbm90IGhhdmUgYWNjZXNzIHRvCmFuZCB3aG8g
-a25vd3MgaG93IG1hbnkgY3VzdG9tIHBsYXRmb3Jtcy4gU28gSSBhbSBhZnJhaWQgd2UgaGF2ZSB0
-bwprZWVwIHRoZSBvbGQgYnVuZGxlZCB0aWxjZGMgcGFuZWwgZHJpdmVyIGFyb3VuZC4KClNpZ25l
-ZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQogRG9jdW1lbnRhdGlvbi9k
-ZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvdGlsY2RjL3BhbmVsLnR4dCB8IDYgKysrKysrCiAx
-IGZpbGUgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlv
-bi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvdGlsY2RjL3BhbmVsLnR4dCBiL0RvY3VtZW50
-YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3RpbGNkYy9wYW5lbC50eHQKaW5kZXgg
-ODA4MjE2MzEwZWEyLi41NDk2M2Y5MTczY2MgMTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24vZGV2
-aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3RpbGNkYy9wYW5lbC50eHQKKysrIGIvRG9jdW1lbnRh
-dGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvdGlsY2RjL3BhbmVsLnR4dApAQCAtMSw1
-ICsxLDExIEBACiBEZXZpY2UtVHJlZSBiaW5kaW5ncyBmb3IgdGlsY2RjIERSTSBnZW5lcmljIHBh
-bmVsIG91dHB1dCBkcml2ZXIKIAorTk9URTogVGhpcyBiaW5kaW5nIChhbmQgdGhlIHJlbGF0ZWQg
-ZHJpdmVyKSBpcyBvYnNvbGV0ZSBhbmQgc2hvdWxkIG5vdAorICAgICAgYmUgdXNlZCBhbnltb3Jl
-LiBQbGVhc2UgcmVmZXIgdG8gZHJtIHBhbmVsLWNvbW1vbiBiaW5kaW5nIChhbmQKKyAgICAgIHRv
-IGEgZ2VuZXJpYyBkcm0gcGFuZWwgZHJpdmVyIGxpa2UgcGFuZWwtc2ltcGxlKS4KKyAgICAgIERv
-Y3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3BhbmVsL3BhbmVsLWNvbW1v
-bi55YW1sCisgICAgICAoZHJpdmVycy9ncHUvZHJtL3BhbmVsL3BhbmVsLXNpbXBsZS5jKQorCiBS
-ZXF1aXJlZCBwcm9wZXJ0aWVzOgogIC0gY29tcGF0aWJsZTogdmFsdWUgc2hvdWxkIGJlICJ0aSx0
-aWxjZGMscGFuZWwiLgogIC0gcGFuZWwtaW5mbzogY29uZmlndXJhdGlvbiBpbmZvIHRvIGNvbmZp
-Z3VyZSBMQ0RDIGNvcnJlY3RseSBmb3IgdGhlIHBhbmVsCi0tIApUZXhhcyBJbnN0cnVtZW50cyBG
-aW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4gWS10dW5udXMvQnVz
-aW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWls
-aW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZy
-ZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+On 12/4/19 9:45 AM, Grygorii Strashko wrote:
+> Replace "select NET_SWITCHDEV" vs "depends on NET_SWITCHDEV" to fix Kconfig
+> warning with CONFIG_COMPILE_TEST=y
+> 
+> WARNING: unmet direct dependencies detected for NET_SWITCHDEV
+>   Depends on [n]: NET [=y] && INET [=n]
+>   Selected by [y]:
+>   - TI_CPSW_SWITCHDEV [=y] && NETDEVICES [=y] && ETHERNET [=y] && NET_VENDOR_TI [=y] && (ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST [=y])
+> 
+> because TI_CPSW_SWITCHDEV blindly selects NET_SWITCHDEV even though
+> INET is not set/enabled, while NET_SWITCHDEV depends on INET.
+> 
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+
+Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+
+Thanks.
+
+> ---
+>  drivers/net/ethernet/ti/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
+> index 9170572346b5..a46f4189fde3 100644
+> --- a/drivers/net/ethernet/ti/Kconfig
+> +++ b/drivers/net/ethernet/ti/Kconfig
+> @@ -62,7 +62,7 @@ config TI_CPSW
+>  config TI_CPSW_SWITCHDEV
+>  	tristate "TI CPSW Switch Support with switchdev"
+>  	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
+> -	select NET_SWITCHDEV
+> +	depends on NET_SWITCHDEV
+>  	select TI_DAVINCI_MDIO
+>  	select MFD_SYSCON
+>  	select REGMAP
+> 
+
+
+-- 
+~Randy
