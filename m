@@ -1,55 +1,55 @@
-From: Baolin Wang <baolin.wang7@gmail.com>
-Subject: [PATCH 3/3] hwspinlock: omap: Use devm_hwspin_lock_register() to register hwlock controller
-Date: Wed,  4 Dec 2019 17:31:31 +0800
-Message-ID: <84ccc6ffd5269a725359ff42e131c5aedf087546.1575451463.git.baolin.wang7@gmail.com>
-References: <cover.1575451463.git.baolin.wang7@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1575451463.git.baolin.wang7@gmail.com>
-In-Reply-To: <cover.1575451463.git.baolin.wang7@gmail.com>
-References: <cover.1575451463.git.baolin.wang7@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: baolin.wang7@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH] ARM: dts: am335x-evmsk: Use drm simple-panel instead of
+ tilcdc-panel
+Date: Wed, 4 Dec 2019 12:55:54 +0200
+Message-ID: <20191204105554.14212-1-jsarha@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, tony@atomide.com, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_hwspin_lock_register() to register the hwlock controller instead of
-unregistering the hwlock controller explicitly when removing the device.
-
-Signed-off-by: Baolin Wang <baolin.wang7@gmail.com>
----
- drivers/hwspinlock/omap_hwspinlock.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index 3b05560..9e8a8c2 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -131,8 +131,8 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 	for (i = 0, hwlock = &bank->lock[0]; i < num_locks; i++, hwlock++)
- 		hwlock->priv = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
- 
--	ret = hwspin_lock_register(bank, &pdev->dev, &omap_hwspinlock_ops,
--						base_id, num_locks);
-+	ret = devm_hwspin_lock_register(&pdev->dev, bank, &omap_hwspinlock_ops,
-+					base_id, num_locks);
- 	if (ret)
- 		goto runtime_err;
- 
-@@ -148,15 +148,6 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 
- static int omap_hwspinlock_remove(struct platform_device *pdev)
- {
--	struct hwspinlock_device *bank = platform_get_drvdata(pdev);
--	int ret;
--
--	ret = hwspin_lock_unregister(bank);
--	if (ret) {
--		dev_err(&pdev->dev, "%s failed: %d\n", __func__, ret);
--		return ret;
--	}
--
- 	pm_runtime_disable(&pdev->dev);
- 
- 	return 0;
--- 
-1.7.9.5
+TW92ZSB0byB1c2UgdGhlIG5ldyBkcm0gcGFuZWwgc3VwcG9ydCBpbiB0aWxjZGMgdG9nZXRoZXIg
+d2l0aCBhZGRlZAoibmV3aGF2ZW4sbmhkLTQuMy00ODAyNzJlZi1hdHhsIi1wYW5lbCBzdXBwb3J0
+IGluIGRybSBwYW5lbC1zaW1wbGUuCgpTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2FyaGFA
+dGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ldm1zay5kdHMgfCAzOCArKysr
+KysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25z
+KCspLCAyNiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9hbTMz
+NXgtZXZtc2suZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bXNrLmR0cwppbmRleCBl
+MjhhNWI4MmZkZjMuLmIxNDllNDg1MjBiNCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMv
+YW0zMzV4LWV2bXNrLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtZXZtc2suZHRz
+CkBAIC0xODMsMzYgKzE4MywxNiBAQAogCX07CiAKIAlwYW5lbCB7Ci0JCWNvbXBhdGlibGUgPSAi
+dGksdGlsY2RjLHBhbmVsIjsKKwkJY29tcGF0aWJsZSA9ICJuZXdoYXZlbixuaGQtNC4zLTQ4MDI3
+MmVmLWF0eGwiOworCiAJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCIsICJzbGVlcCI7CiAJCXBp
+bmN0cmwtMCA9IDwmbGNkX3BpbnNfZGVmYXVsdD47CiAJCXBpbmN0cmwtMSA9IDwmbGNkX3BpbnNf
+c2xlZXA+OwogCQliYWNrbGlnaHQgPSA8JmxjZF9ibD47Ci0JCXN0YXR1cyA9ICJva2F5IjsKLQkJ
+cGFuZWwtaW5mbyB7Ci0JCQlhYy1iaWFzCQk9IDwyNTU+OwotCQkJYWMtYmlhcy1pbnRycHQJPSA8
+MD47Ci0JCQlkbWEtYnVyc3Qtc3oJPSA8MTY+OwotCQkJYnBwCQk9IDwzMj47Ci0JCQlmZGQJCT0g
+PDB4ODA+OwotCQkJc3luYy1lZGdlCT0gPDA+OwotCQkJc3luYy1jdHJsCT0gPDE+OwotCQkJcmFz
+dGVyLW9yZGVyCT0gPDA+OwotCQkJZmlmby10aAkJPSA8MD47Ci0JCX07Ci0JCWRpc3BsYXktdGlt
+aW5ncyB7Ci0JCQk0ODB4MjcyIHsKLQkJCQloYWN0aXZlCQk9IDw0ODA+OwotCQkJCXZhY3RpdmUJ
+CT0gPDI3Mj47Ci0JCQkJaGJhY2stcG9yY2gJPSA8NDM+OwotCQkJCWhmcm9udC1wb3JjaAk9IDw4
+PjsKLQkJCQloc3luYy1sZW4JPSA8ND47Ci0JCQkJdmJhY2stcG9yY2gJPSA8MTI+OwotCQkJCXZm
+cm9udC1wb3JjaAk9IDw0PjsKLQkJCQl2c3luYy1sZW4JPSA8MTA+OwotCQkJCWNsb2NrLWZyZXF1
+ZW5jeSA9IDw5MDAwMDAwPjsKLQkJCQloc3luYy1hY3RpdmUJPSA8MD47Ci0JCQkJdnN5bmMtYWN0
+aXZlCT0gPDA+OworCisJCXBvcnQgeworCQkJcGFuZWxfMDogZW5kcG9pbnRAMCB7CisJCQkJcmVt
+b3RlLWVuZHBvaW50ID0gPCZsY2RjXzA+OwogCQkJfTsKIAkJfTsKIAl9OwpAQCAtNzUwLDYgKzcz
+MCwxMiBAQAogCXN0YXR1cyA9ICJva2F5IjsKIAogCWJsdWUtYW5kLXJlZC13aXJpbmcgPSAiY3Jv
+c3NlZCI7CisKKwlwb3J0IHsKKwkJbGNkY18wOiBlbmRwb2ludEAwIHsKKwkJCXJlbW90ZS1lbmRw
+b2ludCA9IDwmcGFuZWxfMD47CisJCX07CisJfTsKIH07CiAKICZydGMgewotLSAKVGV4YXMgSW5z
+dHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuIFkt
+dHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNp
+bmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmkt
+ZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6
+Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
