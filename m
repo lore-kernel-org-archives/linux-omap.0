@@ -1,46 +1,41 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2] net: ethernet: ti: cpsw: fix extra rx interrupt
-Date: Fri, 6 Dec 2019 14:28:20 +0200
-Message-ID: <20191206122820.24811-1-grygorii.strashko@ti.com>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix extra rx interrupt
+Date: Fri, 6 Dec 2019 14:28:52 +0200
+Message-ID: <6f133a89-7ed9-85a6-9c4a-6249346d26b0@ti.com>
+References: <20191205151817.1076-1-grygorii.strashko@ti.com>
+ <20191205.124225.1227757906747730493.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191205.124225.1227757906747730493.davem@davemloft.net>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Now RX interrupt is triggered twice every time, because in
-cpsw_rx_interrupt() it is asked first and then disabled. So there will be
-pending interrupt always, when RX interrupt is enabled again in NAPI
-handler.
 
-Fix it by first disabling IRQ and then do ask.
 
-Fixes: 870915feabdc ("drivers: net: cpsw: remove disable_irq/enable_irq as irq can be masked from cpsw itself")
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
-Hi
+On 05/12/2019 22:42, David Miller wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
+> Date: Thu, 5 Dec 2019 17:18:17 +0200
+> 
+>> This is an old issue, but I can't specify Fixes tag.
+> 
+> This is never true, there is always an appropriate Fixes: tag
+> even it means specifying the tag that created Linus's GIT repo.
+> 
+>> And, unfortunatelly,
+>> it can't be backported as is even in v5.4.
+> 
+> This I always don't understand.
+> 
+> You must elaborate and specify a Fixes: tag.
+> 
 
-It requires manual backporting if selected for stable.
-I can prepare separate patch for 5.4 if needed. 
+Thank you for comments I've sent v2
 
- drivers/net/ethernet/ti/cpsw_priv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
-index b833cc1d188c..707d5eb480ce 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.c
-+++ b/drivers/net/ethernet/ti/cpsw_priv.c
-@@ -100,8 +100,8 @@ irqreturn_t cpsw_rx_interrupt(int irq, void *dev_id)
- {
- 	struct cpsw_common *cpsw = dev_id;
- 
--	cpdma_ctlr_eoi(cpsw->dma, CPDMA_EOI_RX);
- 	writel(0, &cpsw->wr_regs->rx_en);
-+	cpdma_ctlr_eoi(cpsw->dma, CPDMA_EOI_RX);
- 
- 	if (cpsw->quirk_irq) {
- 		disable_irq_nosync(cpsw->irqs_table[0]);
 -- 
-2.17.1
+Best regards,
+grygorii
