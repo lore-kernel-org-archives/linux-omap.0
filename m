@@ -1,66 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] arm: omap2plus_defconfig: enable NET_SWITCHDEV
-Date: Fri, 6 Dec 2019 07:50:26 -0800
-Message-ID: <20191206155026.GE35479@atomide.com>
-References: <20191204174533.32207-1-grygorii.strashko@ti.com>
- <20191204174533.32207-3-grygorii.strashko@ti.com>
- <c8058866-2be9-831c-19f6-31d17decb6f1@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix warnings with broken
+ omap2_set_init_voltage()
+Date: Fri, 6 Dec 2019 10:20:40 -0800
+Message-ID: <20191206182040.GH35479@atomide.com>
+References: <20190924233222.52757-1-tony@atomide.com>
+ <8FFD44DB-73F8-4807-91E1-C97DA8F781BA@goldelico.com>
+ <20191202213929.GB35479@atomide.com>
+ <EE749881-C3DB-4BBE-85FE-E5AF3D34884F@goldelico.com>
+ <BAF5B057-1017-4174-8C3F-4B49B31E2E0D@goldelico.com>
+ <20191203154447.GC35479@atomide.com>
+ <5F430C0D-7F25-4680-87B9-2D65A08A9F83@goldelico.com>
+ <FB42ED12-5DDB-4A9E-941A-ACBE2C10C36A@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <c8058866-2be9-831c-19f6-31d17decb6f1@ti.com>
+In-Reply-To: <FB42ED12-5DDB-4A9E-941A-ACBE2C10C36A@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>, netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?utf-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Adam Ford <aford173@gmail.com>, arm-soc <linux-arm-kernel@lists.infradead.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [191206 11:08]:
-> Hi Tony,
+* H. Nikolaus Schaller <hns@goldelico.com> [191203 16:55]:
+> > What we could do is augment the printk (or dev_err) to tell
+> > in these warnings what it is looking for...
+> > 
+> > 	opp = dev_pm_opp_find_freq_ceil(dev, &freq);
+> > 	if (IS_ERR(opp)) {
+> > 		pr_err("%s: unable to find boot up OPP for vdd_%s freq %ulHz\n",
+> > 		__func__, vdd_name, freq);
+> > 		goto exit;
+> > 	}
 > 
-> On 04/12/2019 19:45, Grygorii Strashko wrote:
-> > The TI_CPSW_SWITCHDEV definition in Kconfig was changed from "select
-> > NET_SWITCHDEV" to "depends on NET_SWITCHDEV", and therefore it is required
-> > to explicitelly enable NET_SWITCHDEV config option in omap2plus_defconfig.
-> > 
-> > Fixes: 3727d259ddaf ("arm: omap2plus_defconfig: enable new cpsw switchdev driver")
-> > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> > ---
-> >   arch/arm/configs/omap2plus_defconfig | 3 ++-
-> >   1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> > index 89cce8d4bc6b..7bbef86a4e76 100644
-> > --- a/arch/arm/configs/omap2plus_defconfig
-> > +++ b/arch/arm/configs/omap2plus_defconfig
-> > @@ -92,6 +92,7 @@ CONFIG_IP_PNP_BOOTP=y
-> >   CONFIG_IP_PNP_RARP=y
-> >   CONFIG_NETFILTER=y
-> >   CONFIG_PHONET=m
-> > +CONFIG_NET_SWITCHDEV=y
-> >   CONFIG_CAN=m
-> >   CONFIG_CAN_C_CAN=m
-> >   CONFIG_CAN_C_CAN_PLATFORM=m
-> > @@ -182,6 +183,7 @@ CONFIG_SMSC911X=y
-> >   # CONFIG_NET_VENDOR_STMICRO is not set
-> >   CONFIG_TI_DAVINCI_EMAC=y
-> >   CONFIG_TI_CPSW=y
-> > +CONFIG_TI_CPSW_SWITCHDEV=y
-> >   CONFIG_TI_CPTS=y
-> >   # CONFIG_NET_VENDOR_VIA is not set
-> >   # CONFIG_NET_VENDOR_WIZNET is not set
-> > @@ -554,4 +556,3 @@ CONFIG_DEBUG_INFO_DWARF4=y
-> >   CONFIG_MAGIC_SYSRQ=y
-> >   CONFIG_SCHEDSTATS=y
-> >   # CONFIG_DEBUG_BUGVERBOSE is not set
-> > -CONFIG_TI_CPSW_SWITCHDEV=y
-> > 
+> Easier and always prints info:
 > 
-> Could it be applied as fix, as without it cpsw switch driver will not be built,
-> so no networking on am571x-idk
+> 	freq = clk_get_rate(clk);
+> 	clk_put(clk);
+> 
+> 	pr_info("%s: vdd=%s clk=%s %luHz oh=%s\n", __func__, vdd_name, clk_name, freq, oh_name);
+> 
+> 	opp = dev_pm_opp_find_freq_ceil(dev, &freq);
+> 
+> I get this:
+> 
+> [    2.908142] omap2_set_init_voltage: vdd=mpu_iva clk=dpll1_ck 1000000000Hz oh=mpu
+> [    2.930816] omap2_set_init_voltage: vdd=core clk=l3_ick 200000000Hz oh=l3_main
+> [    2.946228] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+> [    2.953460] omap2_set_init_voltage: unable to set vdd_core
 
-OK I'll be applying it into fixes.
+OK yeah that's more descriptive.
 
-Thanks,
+> Which means that cpufreq already has increased dpll1_ck to 1 GHz
+> (I have removed the turbo-mode tags so that it already boots at
+> full speed) and l3_ick runs at initial 200 MHz.
+
+OK. I wonder where this initial code should live though..
+
+Regards,
 
 Tony
