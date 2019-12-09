@@ -1,60 +1,75 @@
-From: Vignesh Raghavendra <vigneshr@ti.com>
-Subject: Re: [PATCH] gpio: pca953x: Read irq trigger type from DT
-Date: Mon, 9 Dec 2019 10:45:34 +0530
-Message-ID: <bfaa7ed4-6acf-3941-0de6-f139eed7cf99@ti.com>
-References: <20191205144508.31339-1-vigneshr@ti.com>
- <5837a37d-479d-5c33-45b5-c1b32b0cdc52@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 00/13] Add PCIe support to TI's J721E SoC
+Date: Mon, 9 Dec 2019 14:51:34 +0530
+Message-ID: <20191209092147.22901-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5837a37d-479d-5c33-45b5-c1b32b0cdc52@ti.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Andrew Murray <andrew.murray@arm.com>
+Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii,
+TI's J721E SoC uses Cadence PCIe core to implement both RC mode
+and EP mode.
 
-On 05/12/19 8:31 pm, Grygorii Strashko wrote:
-> 
-> 
-> On 05/12/2019 16:45, Vignesh Raghavendra wrote:
-[...]
+The high level features are:
+  *) Supports Legacy, MSI and MSI-X interrupt
+  *) Supports upto GEN4 speed mode
+  *) Supports SR-IOV
+  *) Supports multiple physical function
+  *) Ability to route all transactions via SMMU
 
->> @@ -768,10 +769,14 @@ static int pca953x_irq_setup(struct pca953x_chip
->> *chip, int irq_base)
->>       bitmap_and(chip->irq_stat, irq_stat, reg_direction,
->> chip->gpio_chip.ngpio);
->>       mutex_init(&chip->irq_lock);
->>   +    irqflags = irq_get_trigger_type(client->irq);
->> +    if (irqflags == IRQF_TRIGGER_NONE)
->> +        irqflags = IRQF_TRIGGER_LOW;
-> 
-> I think you can just drop IRQF_TRIGGER_LOW:
-> - for paltform code it will be set from resources in
-> platform_get_irq_optional()
-> - for DT code it will be set in __setup_irq()
-> 
+This patch series
+  *) Add support in Cadence PCIe core to be used for TI's J721E SoC
+  *) Add a driver for J721E PCIe wrapper
 
-Ok, will drop setting IRQF_TRIGGER_LOW in v2.
+This is a trimmed down series of the initial RFC series [1].
 
-Thanks for the review!
+Changes from RFC [1]:
+  *) Ability to route all transactions via SMMU is removed
+  *) SR-IOV support is removed
+  *) Miscellaneous improvement to endpoint core is removed
 
->> +    irqflags |= IRQF_ONESHOT | IRQF_SHARED;
->> +
->>       ret = devm_request_threaded_irq(&client->dev, client->irq,
->>                       NULL, pca953x_irq_handler,
->> -                    IRQF_TRIGGER_LOW | IRQF_ONESHOT |
->> -                    IRQF_SHARED,
->> +                    irqflags,
->>                       dev_name(&client->dev), chip);
->>       if (ret) {
->>           dev_err(&client->dev, "failed to request irq %d\n",
->>
-> 
+All these will be sent as smaller series.
+
+I've also pushed the series along with device tree changes [2].
+
+[1] -> https://lkml.org/lkml/2019/6/4/619
+[2] -> https://github.com/kishon/linux-wip.git j7_pci_v1
+
+Kishon Vijay Abraham I (13):
+  PCI: cadence: Remove stray "pm_runtime_put_sync()" in error path
+  linux/kernel.h: Add PTR_ALIGN_DOWN macro
+  PCI: cadence: Add support to use custom read and write accessors
+  PCI: cadence: Add support to start link and verify link status
+  PCI: cadence: Add read and write accessors to perform only 32-bit
+    accesses
+  PCI: cadence: Allow pci_host_bridge to have custom pci_ops
+  PCI: cadence: Add new *ops* for CPU addr fixup
+  PCI: cadence: Use local management register to configure Vendor ID
+  dt-bindings: PCI: Add host mode dt-bindings for TI's J721E SoC
+  dt-bindings: PCI: Add EP mode dt-bindings for TI's J721E SoC
+  PCI: j721e: Add TI J721E PCIe driver
+  misc: pci_endpoint_test: Add J721E in pci_device_id table
+  MAINTAINERS: Add Kishon Vijay Abraham I for TI J721E SoC PCIe
+
+ .../bindings/pci/ti,j721e-pci-ep.yaml         | 113 +++++
+ .../bindings/pci/ti,j721e-pci-host.yaml       | 161 +++++++
+ MAINTAINERS                                   |   3 +-
+ drivers/misc/pci_endpoint_test.c              |   9 +
+ drivers/pci/controller/cadence/Kconfig        |  23 +
+ drivers/pci/controller/cadence/Makefile       |   1 +
+ drivers/pci/controller/cadence/pci-j721e.c    | 430 ++++++++++++++++++
+ .../pci/controller/cadence/pcie-cadence-ep.c  |  10 +-
+ .../controller/cadence/pcie-cadence-host.c    |  55 ++-
+ drivers/pci/controller/cadence/pcie-cadence.c |  48 +-
+ drivers/pci/controller/cadence/pcie-cadence.h | 133 +++++-
+ include/linux/kernel.h                        |   1 +
+ 12 files changed, 958 insertions(+), 29 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+ create mode 100644 Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+ create mode 100644 drivers/pci/controller/cadence/pci-j721e.c
 
 -- 
-Regards
-Vignesh
+2.17.1
