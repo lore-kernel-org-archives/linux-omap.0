@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 05/13] PCI: cadence: Add read and write accessors to perform only 32-bit accesses
-Date: Mon, 9 Dec 2019 14:51:39 +0530
-Message-ID: <20191209092147.22901-6-kishon@ti.com>
+Subject: [PATCH 06/13] PCI: cadence: Allow pci_host_bridge to have custom pci_ops
+Date: Mon, 9 Dec 2019 14:51:40 +0530
+Message-ID: <20191209092147.22901-7-kishon@ti.com>
 References: <20191209092147.22901-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,79 +12,65 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@ar
 Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Certain platforms like TI's J721E allow only 32-bit register accesses.
-Add read and write accessors to perform only 32-bit accesses in order to
-support platfroms like TI's J721E.
+Certain platforms like TI's J721E allows only 32-bit configuration
+space access. In such cases pci_generic_config_read and
+pci_generic_config_write cannot be used. Add support in Cadence core
+to let pci_host_bridge have custom pci_ops.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/cadence/pcie-cadence.c | 40 +++++++++++++++++++
- drivers/pci/controller/cadence/pcie-cadence.h |  2 +
- 2 files changed, 42 insertions(+)
+ drivers/pci/controller/cadence/pcie-cadence-host.c | 7 ++++---
+ drivers/pci/controller/cadence/pcie-cadence.h      | 8 ++++++++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.c b/drivers/pci/controller/cadence/pcie-cadence.c
-index cd795f6fc1e2..de5b3b06f2d0 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence.c
-@@ -7,6 +7,46 @@
+diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+index 0929554f5a81..2efc33b1cade 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence-host.c
++++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
+@@ -12,8 +12,8 @@
  
  #include "pcie-cadence.h"
  
-+u32 cdns_pcie_read32(void __iomem *addr, int size)
-+{
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 val = readl(aligned_addr);
-+
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		pr_err("Invalid Address in function:%s\n", __func__);
-+		return 0;
-+	}
-+
-+	if (size > 2)
-+		return val;
-+
-+	return (val >> (8 * offset)) & ((1 << (size * 8)) - 1);
-+}
-+
-+void cdns_pcie_write32(void __iomem *addr, int size, u32 value)
-+{
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 mask;
-+	u32 val;
-+
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		pr_err("Invalid Address in function:%s\n", __func__);
-+		return;
-+	}
-+
-+	if (size > 2) {
-+		writel(value, addr);
-+		return;
-+	}
-+
-+	mask = ~(((1 << (size * 8)) - 1) << (offset * 8));
-+	val = readl(aligned_addr) & mask;
-+	val |= value << (offset * 8);
-+	writel(val, aligned_addr);
-+}
-+
- void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 fn,
- 				   u32 r, bool is_io,
- 				   u64 cpu_addr, u64 pci_addr, size_t size)
+-static void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+-				      int where)
++void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
++			       int where)
+ {
+ 	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
+ 	struct cdns_pcie_rc *rc = pci_host_bridge_priv(bridge);
+@@ -289,7 +289,8 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+ 	list_splice_init(&resources, &bridge->windows);
+ 	bridge->dev.parent = dev;
+ 	bridge->busnr = pcie->bus;
+-	bridge->ops = &cdns_pcie_host_ops;
++	if (!bridge->ops)
++		bridge->ops = &cdns_pcie_host_ops;
+ 	bridge->map_irq = of_irq_parse_and_map_pci;
+ 	bridge->swizzle_irq = pci_common_swizzle;
+ 
 diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index f0395eaf9df5..5171d0da37da 100644
+index 5171d0da37da..c879dd3d2893 100644
 --- a/drivers/pci/controller/cadence/pcie-cadence.h
 +++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -498,6 +498,8 @@ void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r);
- void cdns_pcie_disable_phy(struct cdns_pcie *pcie);
- int cdns_pcie_enable_phy(struct cdns_pcie *pcie);
- int cdns_pcie_init_phy(struct device *dev, struct cdns_pcie *pcie);
-+u32 cdns_pcie_read32(void __iomem *addr, int size);
-+void cdns_pcie_write32(void __iomem *addr, int size, u32 value);
- extern const struct dev_pm_ops cdns_pcie_pm_ops;
+@@ -472,11 +472,19 @@ static inline bool cdns_pcie_is_link_up(struct cdns_pcie *pcie)
  
- #endif /* _PCIE_CADENCE_H */
+ #ifdef CONFIG_PCIE_CADENCE_HOST
+ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
++void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
++			       int where);
+ #else
+ static inline int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+ {
+ 	return 0;
+ }
++
++static inline void __iomem *cdns_pci_map_bus(struct pci_bus *bus,
++					     unsigned int devfn,
++					     int where)
++{
++}
+ #endif
+ 
+ #ifdef CONFIG_PCIE_CADENCE_EP
 -- 
 2.17.1
