@@ -1,43 +1,61 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 13/13] MAINTAINERS: Add Kishon Vijay Abraham I for TI J721E SoC PCIe
-Date: Mon, 9 Dec 2019 14:51:47 +0530
-Message-ID: <20191209092147.22901-14-kishon@ti.com>
-References: <20191209092147.22901-1-kishon@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v2 0/3] drm/tilcdc: Remove "ti, tilcdc, tfp410" and mark "ti,
+ tilcdc, panel" obsolete
+Date: Mon, 9 Dec 2019 16:42:13 +0200
+Message-ID: <cover.1575901747.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191209092147.22901-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Andrew Murray <andrew.murray@arm.com>
-Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, tony@atomide.com, sam@ravnborg.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-Add Kishon Vijay Abraham I as MAINTAINER for TI J721E SoC PCIe.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- MAINTAINERS | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index bd5847e802de..a9533d0752de 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12691,13 +12691,14 @@ S:	Maintained
- F:	Documentation/devicetree/bindings/pci/designware-pcie.txt
- F:	drivers/pci/controller/dwc/*designware*
- 
--PCI DRIVER FOR TI DRA7XX
-+PCI DRIVER FOR TI DRA7XX/J721E
- M:	Kishon Vijay Abraham I <kishon@ti.com>
- L:	linux-omap@vger.kernel.org
- L:	linux-pci@vger.kernel.org
- S:	Supported
- F:	Documentation/devicetree/bindings/pci/ti-pci.txt
- F:	drivers/pci/controller/dwc/pci-dra7xx.c
-+F:	drivers/pci/controller/cadence/pci-j721e.c
- 
- PCI DRIVER FOR TI KEYSTONE
- M:	Murali Karicheri <m-karicheri2@ti.com>
--- 
-2.17.1
+U2luY2UgdjE6Ci0gQWRkIFJldmlld2VkLWJ5OiBMYXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBp
+bmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+CiAgdG8gImRybS90aWxjZGM6IFJlbW92ZSBvYnNvbGV0
+ZSBidW5kbGVkIHRpbGNkYyB0ZnA0MTAgZHJpdmVyIgotIEFkZCAiZHJtL3RpbGNkYzogcGFuZWw6
+IEFkZCBXQVJOKCkgd2l0aCBhIGNvbW1lbnQgdG8gdGlsY2RjLXBhbmVsIHByb2JlIgoKTm9ib2R5
+IHNob3VsZCBhbnkgbW9yZSB1c2UgdGhlIG9sZCB0aWxjZGMgYnVuZGxlZCBkcml2ZXJzIGFueW1v
+cmUuIFRoZQpkcml2ZXIgaXMgZnVsbHkgY2FwYWJsZSBvZiB1c2luZyB0aGUgZ2VuZXJpYyBkcm0g
+YnJpZGdlIGFuZCBwYW5lbApkcml2ZXJzLiAgSG93ZXZlciwgdGhlIG9ic29sZXRlICJ0aSx0aWxj
+ZGMscGFuZWwiIGJpbmRpbmcgaXMgc3RpbGwKd2lkZWx5IHVzZWQgaW4gbWFueSBtYWlubGluZSBz
+dXBwb3J0ZWQgcGxhdGZvcm1zIHRoYXQgSSBkbyBub3QgaGF2ZQphY2Nlc3MgdG8gYW5kIHdobyBr
+bm93cyBob3cgbWFueSBjdXN0b20gcGxhdGZvcm1zLiBTbyBJIGFtIGFmcmFpZCB3ZQpoYXZlIHRv
+IGtlZXAgdGhlIG9sZCBidW5kbGVkIHRpbGNkYyBwYW5lbCBkcml2ZXIgYXJvdW5kLgoKSSdsbCB3
+YWl0IHdpdGggbWVyZ2luZyB0aGUgInRpLHRpbGNkYyxwYW5lbCIgcGF0Y2hlcyB1bnRpbCB0aGVz
+ZQpwYXRjaGVzIGhhdmUgYmVlbiBtZXJnZWQ6Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L2FyY2hpdmVzL2RyaS1kZXZlbC8yMDE5LURlY2VtYmVyLzI0NzMwMS5odG1sCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL2FyY2hpdmVzL2RyaS1kZXZlbC8yMDE5LURlY2VtYmVyLzI0NzU5
+NC5odG1sClNvIEkgY2FuIHJlZmVyIHRvIHRoZW0gYXMgYW4gZXhhbXBsZSBpbiB0aGUgY29tbWVu
+dHMuIAoKQnV0IEknbGwgbWVyZ2UgImRybS90aWxjZGM6IFJlbW92ZSBvYnNvbGV0ZSBidW5kbGVk
+IHRpbGNkYyB0ZnA0MTAKZHJpdmVyIiB0cm91Z2ggZHJtLW1pc2MgaW4gY291cGxlIGRheXMgaWYg
+SSBkbyBub3QgaGVhciBhbnkKb2JqZWN0aW9ucy4KCkp5cmkgU2FyaGEgKDMpOgogIGRybS90aWxj
+ZGM6IFJlbW92ZSBvYnNvbGV0ZSBidW5kbGVkIHRpbGNkYyB0ZnA0MTAgZHJpdmVyCiAgZHQtYmlu
+ZGluZ3M6IGRpc3BsYXk6IEFkZCBvYnNvbGV0ZSBub3RlIHRvICJ0aSx0aWxjZGMscGFuZWwiIGJp
+bmRpbmcKICBkcm0vdGlsY2RjOiBwYW5lbDogQWRkIFdBUk4oKSB3aXRoIGEgY29tbWVudCB0byB0
+aWxjZGMtcGFuZWwgcHJvYmUKCiAuLi4vYmluZGluZ3MvZGlzcGxheS90aWxjZGMvcGFuZWwudHh0
+ICAgICAgICAgfCAgIDYgKwogLi4uL2JpbmRpbmdzL2Rpc3BsYXkvdGlsY2RjL3RmcDQxMC50eHQg
+ICAgICAgIHwgIDIxIC0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvTWFrZWZpbGUgICAgICAgICAg
+ICAgICB8ICAgMSAtCiBkcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYyAgICAgICAg
+ICAgfCAgIDMgLQogZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfcGFuZWwuYyAgICAgICAg
+IHwgIDEwICsKIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3RmcDQxMC5jICAgICAgICB8
+IDM3OSAtLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3Rm
+cDQxMC5oICAgICAgICB8ICAxNSAtCiA3IGZpbGVzIGNoYW5nZWQsIDE2IGluc2VydGlvbnMoKyks
+IDQxOSBkZWxldGlvbnMoLSkKIGRlbGV0ZSBtb2RlIDEwMDY0NCBEb2N1bWVudGF0aW9uL2Rldmlj
+ZXRyZWUvYmluZGluZ3MvZGlzcGxheS90aWxjZGMvdGZwNDEwLnR4dAogZGVsZXRlIG1vZGUgMTAw
+NjQ0IGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3RmcDQxMC5jCiBkZWxldGUgbW9kZSAx
+MDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfdGZwNDEwLmgKCi0tIApUZXhhcyBJ
+bnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4g
+WS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVs
+c2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
+aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
+czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
