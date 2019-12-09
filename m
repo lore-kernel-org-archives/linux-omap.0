@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 04/13] PCI: cadence: Add support to start link and verify link status
-Date: Mon, 9 Dec 2019 14:51:38 +0530
-Message-ID: <20191209092147.22901-5-kishon@ti.com>
+Subject: [PATCH 03/13] PCI: cadence: Add support to use custom read and write accessors
+Date: Mon, 9 Dec 2019 14:51:37 +0530
+Message-ID: <20191209092147.22901-4-kishon@ti.com>
 References: <20191209092147.22901-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,146 +12,197 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@ar
 Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add cdns_pcie_ops to start link and verify link status. The registers
-to start link and to check link status is in Platform specific PCIe
-wrapper. Add support for platform specific drivers to add callback
-functions for the PCIe Cadence core to start link and verify link status.
+Add support to use custom read and write accessors. Platforms that
+doesn't support half word or byte access or any other constraint
+while accessing registers can use this feature to populate custom
+read and write accessors. These custom accessors are used for both
+standard register access and configuration space register access.
+This is in preparation for adding PCIe support in TI's J721E SoC which
+uses Cadence PCIe core.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../pci/controller/cadence/pcie-cadence-ep.c  |  8 ++++++
- .../controller/cadence/pcie-cadence-host.c    | 28 +++++++++++++++++++
- drivers/pci/controller/cadence/pcie-cadence.h | 23 +++++++++++++++
- 3 files changed, 59 insertions(+)
+ drivers/pci/controller/cadence/pcie-cadence.h | 99 +++++++++++++++++--
+ 1 file changed, 90 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-index 560f22b4d165..088394b6be04 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-@@ -355,8 +355,10 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- {
- 	struct cdns_pcie_ep *ep = epc_get_drvdata(epc);
- 	struct cdns_pcie *pcie = &ep->pcie;
-+	struct device *dev = pcie->dev;
- 	struct pci_epf *epf;
- 	u32 cfg;
-+	int ret;
- 
- 	/*
- 	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
-@@ -367,6 +369,12 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- 		cfg |= BIT(epf->func_no);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
- 
-+	ret = cdns_pcie_start_link(pcie, true);
-+	if (ret) {
-+		dev_err(dev, "Failed to start link\n");
-+		return ret;
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index ccf55e143e1d..0929554f5a81 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -3,6 +3,7 @@
- // Cadence PCIe host controller driver.
- // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
- 
-+#include <linux/delay.h>
- #include <linux/kernel.h>
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
-@@ -201,6 +202,23 @@ static int cdns_pcie_host_init(struct device *dev,
- 	return err;
- }
- 
-+static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
-+{
-+	struct device *dev = pcie->dev;
-+	int retries;
-+
-+	/* Check if the link is up or not */
-+	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-+		if (cdns_pcie_is_link_up(pcie)) {
-+			dev_info(dev, "Link up\n");
-+			return 0;
-+		}
-+		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
-+	}
-+
-+	return -ETIMEDOUT;
-+}
-+
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- {
- 	struct device *dev = rc->pcie.dev;
-@@ -254,6 +272,16 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- 
- 	pcie->mem_res = res;
- 
-+	ret = cdns_pcie_start_link(pcie, true);
-+	if (ret) {
-+		dev_err(dev, "Failed to start link\n");
-+		return ret;
-+	}
-+
-+	ret = cdns_pcie_host_wait_for_link(pcie);
-+	if (ret)
-+		dev_dbg(dev, "PCIe link never came up\n");
-+
- 	ret = cdns_pcie_host_init(dev, &resources, rc);
- 	if (ret)
- 		goto err_init;
 diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index d0d91c69fa1d..f0395eaf9df5 100644
+index a2b28b912ca4..d0d91c69fa1d 100644
 --- a/drivers/pci/controller/cadence/pcie-cadence.h
 +++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -10,6 +10,11 @@
- #include <linux/pci.h>
- #include <linux/phy/phy.h>
+@@ -223,6 +223,11 @@ enum cdns_pcie_msg_routing {
+ 	MSG_ROUTING_GATHER,
+ };
  
-+/* Parameters for the waiting for link up routine */
-+#define LINK_WAIT_MAX_RETRIES	10
-+#define LINK_WAIT_USLEEP_MIN	90000
-+#define LINK_WAIT_USLEEP_MAX	100000
++struct cdns_pcie_ops {
++	u32	(*read)(void __iomem *addr, int size);
++	void	(*write)(void __iomem *addr, int size, u32 value);
++};
 +
- /*
-  * Local Management Registers
-  */
-@@ -226,6 +231,8 @@ enum cdns_pcie_msg_routing {
- struct cdns_pcie_ops {
- 	u32	(*read)(void __iomem *addr, int size);
- 	void	(*write)(void __iomem *addr, int size, u32 value);
-+	int	(*start_link)(struct cdns_pcie *pcie, bool start);
-+	bool	(*is_link_up)(struct cdns_pcie *pcie);
+ /**
+  * struct cdns_pcie - private data for Cadence PCIe controller drivers
+  * @reg_base: IO mapped register base
+@@ -239,7 +244,7 @@ struct cdns_pcie {
+ 	int			phy_count;
+ 	struct phy		**phy;
+ 	struct device_link	**link;
+-	const struct cdns_pcie_common_ops *ops;
++	const struct cdns_pcie_ops *ops;
  };
  
  /**
-@@ -447,6 +454,22 @@ static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
- 	return readl(addr);
+@@ -301,21 +306,47 @@ struct cdns_pcie_ep {
+ /* Register access */
+ static inline void cdns_pcie_writeb(struct cdns_pcie *pcie, u32 reg, u8 value)
+ {
++	void __iomem *addr = pcie->reg_base + reg;
++
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x1, value);
++		return;
++	}
++
+ 	writeb(value, pcie->reg_base + reg);
  }
  
-+static inline int cdns_pcie_start_link(struct cdns_pcie *pcie, bool start)
-+{
-+	if (pcie->ops->start_link)
-+		return pcie->ops->start_link(pcie, start);
+ static inline void cdns_pcie_writew(struct cdns_pcie *pcie, u32 reg, u16 value)
+ {
++	void __iomem *addr = pcie->reg_base + reg;
 +
-+	return 0;
-+}
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x2, value);
++		return;
++	}
 +
-+static inline bool cdns_pcie_is_link_up(struct cdns_pcie *pcie)
-+{
-+	if (pcie->ops->is_link_up)
-+		return pcie->ops->is_link_up(pcie);
+ 	writew(value, pcie->reg_base + reg);
+ }
+ 
+ static inline void cdns_pcie_writel(struct cdns_pcie *pcie, u32 reg, u32 value)
+ {
++	void __iomem *addr = pcie->reg_base + reg;
 +
-+	return true;
-+}
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x4, value);
++		return;
++	}
 +
+ 	writel(value, pcie->reg_base + reg);
+ }
+ 
+ static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
+ {
++	void __iomem *addr = pcie->reg_base + reg;
++
++	if (pcie->ops && pcie->ops->read)
++		return pcie->ops->read(addr, 0x4);
++
+ 	return readl(pcie->reg_base + reg);
+ }
+ 
+@@ -323,47 +354,97 @@ static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
+ static inline void cdns_pcie_rp_writeb(struct cdns_pcie *pcie,
+ 				       u32 reg, u8 value)
+ {
+-	writeb(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
++
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x1, value);
++		return;
++	}
++
++	writeb(value, addr);
+ }
+ 
+ static inline void cdns_pcie_rp_writew(struct cdns_pcie *pcie,
+ 				       u32 reg, u16 value)
+ {
+-	writew(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
++
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x2, value);
++		return;
++	}
++
++	writew(value, addr);
+ }
+ 
+ /* Endpoint Function register access */
+ static inline void cdns_pcie_ep_fn_writeb(struct cdns_pcie *pcie, u8 fn,
+ 					  u32 reg, u8 value)
+ {
+-	writeb(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
++
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x1, value);
++		return;
++	}
++
++	writeb(value, addr);
+ }
+ 
+ static inline void cdns_pcie_ep_fn_writew(struct cdns_pcie *pcie, u8 fn,
+ 					  u32 reg, u16 value)
+ {
+-	writew(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
++
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x2, value);
++		return;
++	}
++
++	writew(value, addr);
+ }
+ 
+ static inline void cdns_pcie_ep_fn_writel(struct cdns_pcie *pcie, u8 fn,
+ 					  u32 reg, u32 value)
+ {
+-	writel(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
++
++	if (pcie->ops && pcie->ops->write) {
++		pcie->ops->write(addr, 0x4, value);
++		return;
++	}
++
++	writel(value, addr);
+ }
+ 
+ static inline u8 cdns_pcie_ep_fn_readb(struct cdns_pcie *pcie, u8 fn, u32 reg)
+ {
+-	return readb(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
++
++	if (pcie->ops && pcie->ops->read)
++		return pcie->ops->read(addr, 0x1);
++
++	return readb(addr);
+ }
+ 
+ static inline u16 cdns_pcie_ep_fn_readw(struct cdns_pcie *pcie, u8 fn, u32 reg)
+ {
+-	return readw(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
++
++	if (pcie->ops && pcie->ops->read)
++		return pcie->ops->read(addr, 0x2);
++
++	return readw(addr);
+ }
+ 
+ static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
+ {
+-	return readl(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
++	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
++
++	if (pcie->ops && pcie->ops->read)
++		return pcie->ops->read(addr, 0x4);
++
++	return readl(addr);
+ }
+ 
  #ifdef CONFIG_PCIE_CADENCE_HOST
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
- #else
 -- 
 2.17.1
