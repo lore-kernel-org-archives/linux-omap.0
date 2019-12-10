@@ -1,81 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] bus: ti-sysc: Implement quirk handling for CLKDM_NOAUTO
-Date: Tue, 10 Dec 2019 08:13:42 -0800
-Message-ID: <20191210161342.15142-1-tony@atomide.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 323/350] net: ethernet: ti: ale: clean ale tbl on init and intf restart
+Date: Tue, 10 Dec 2019 16:07:08 -0500
+Message-ID: <20191210210735.9077-284-sashal@kernel.org>
+References: <20191210210735.9077-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Suman Anna <s-anna@ti.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191210210735.9077-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-For dra7 dcan and dwc3 instances we need to block clockdomain autoidle.
-Let's do this with CLKDM_NOAUTO quirk flag and enable it for dcan and
-dwc3.
+From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+[ Upstream commit 7fe579dfb90fcdf0c7722f33c772d5f0d1bc7cb6 ]
+
+Clean CPSW ALE on init and intf restart (up/down) to avoid reading obsolete
+or garbage entries from ALE table.
+
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/bus/ti-sysc.c                 | 10 ++++++++--
- include/linux/platform_data/ti-sysc.h |  1 +
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpsw_ale.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -473,7 +473,7 @@ static void sysc_clkdm_deny_idle(struct sysc *ddata)
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index 84025dcc78d59..e7c24396933e9 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -779,6 +779,7 @@ void cpsw_ale_start(struct cpsw_ale *ale)
+ void cpsw_ale_stop(struct cpsw_ale *ale)
  {
- 	struct ti_sysc_platform_data *pdata;
+ 	del_timer_sync(&ale->timer);
++	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
+ 	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
+ }
  
--	if (ddata->legacy_mode)
-+	if (ddata->legacy_mode || (ddata->cfg.quirks & SYSC_QUIRK_CLKDM_NOAUTO))
- 		return;
+@@ -862,6 +863,7 @@ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
+ 					ALE_UNKNOWNVLAN_FORCE_UNTAG_EGRESS;
+ 	}
  
- 	pdata = dev_get_platdata(ddata->dev);
-@@ -485,7 +485,7 @@ static void sysc_clkdm_allow_idle(struct sysc *ddata)
- {
- 	struct ti_sysc_platform_data *pdata;
++	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
+ 	return ale;
+ }
  
--	if (ddata->legacy_mode)
-+	if (ddata->legacy_mode || (ddata->cfg.quirks & SYSC_QUIRK_CLKDM_NOAUTO))
- 		return;
- 
- 	pdata = dev_get_platdata(ddata->dev);
-@@ -1245,6 +1245,12 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	/* Quirks that need to be set based on detected module */
- 	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff,
- 		   SYSC_MODULE_QUIRK_AESS),
-+	SYSC_QUIRK("dcan", 0x48480000, 0x20, -1, -1, 0xa3170504, 0xffffffff,
-+		   SYSC_QUIRK_CLKDM_NOAUTO),
-+	SYSC_QUIRK("dwc3", 0x48880000, 0, 0x10, -1, 0x500a0200, 0xffffffff,
-+		   SYSC_QUIRK_CLKDM_NOAUTO),
-+	SYSC_QUIRK("dwc3", 0x488c0000, 0, 0x10, -1, 0x500a0200, 0xffffffff,
-+		   SYSC_QUIRK_CLKDM_NOAUTO),
- 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
- 		   SYSC_MODULE_QUIRK_HDQ1W),
- 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x0000000a, 0xffffffff,
-diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
---- a/include/linux/platform_data/ti-sysc.h
-+++ b/include/linux/platform_data/ti-sysc.h
-@@ -49,6 +49,7 @@ struct sysc_regbits {
- 	s8 emufree_shift;
- };
- 
-+#define SYSC_QUIRK_CLKDM_NOAUTO		BIT(21)
- #define SYSC_QUIRK_FORCE_MSTANDBY	BIT(20)
- #define SYSC_MODULE_QUIRK_AESS		BIT(19)
- #define SYSC_MODULE_QUIRK_SGX		BIT(18)
 -- 
-2.24.0
+2.20.1
