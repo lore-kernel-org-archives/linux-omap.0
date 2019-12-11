@@ -1,50 +1,93 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 166/177] net: ethernet: ti: ale: clean ale tbl on init and intf restart
-Date: Tue, 10 Dec 2019 16:32:10 -0500
-Message-ID: <20191210213221.11921-166-sashal@kernel.org>
-References: <20191210213221.11921-1-sashal@kernel.org>
+From: Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v4 04/10] ARM: dts: dra7-l4: Add ti-sysc node for CAM
+Date: Wed, 11 Dec 2019 08:05:52 -0600
+Message-ID: <20191211140558.10407-5-bparrot@ti.com>
+References: <20191211140558.10407-1-bparrot@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20191210213221.11921-1-sashal@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191211140558.10407-1-bparrot@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+Add CAM nodes as a child of l4 interconnect in order for it to probe
+using ti-sysc.
 
-[ Upstream commit 7fe579dfb90fcdf0c7722f33c772d5f0d1bc7cb6 ]
-
-Clean CPSW ALE on init and intf restart (up/down) to avoid reading obsolete
-or garbage entries from ALE table.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw_ale.c | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/dra7-l4.dtsi | 43 +++++++++++++++++++++++++++++-----
+ 1 file changed, 37 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 5766225a4ce11..c245629a38c76 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -793,6 +793,7 @@ EXPORT_SYMBOL_GPL(cpsw_ale_start);
- void cpsw_ale_stop(struct cpsw_ale *ale)
- {
- 	del_timer_sync(&ale->timer);
-+	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
- 	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
- }
- EXPORT_SYMBOL_GPL(cpsw_ale_stop);
-@@ -877,6 +878,7 @@ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
- 					ALE_UNKNOWNVLAN_FORCE_UNTAG_EGRESS;
- 	}
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index 8fe428ac12d8..7f76411d2876 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -4166,27 +4166,58 @@
+ 		};
  
-+	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
- 	return ale;
- }
- EXPORT_SYMBOL_GPL(cpsw_ale_create);
+ 		target-module@170000 {			/* 0x48970000, ap 21 0a.0 */
+-			compatible = "ti,sysc";
+-			status = "disabled";
++			compatible = "ti,sysc-omap4", "ti,sysc";
++			reg = <0x170010 0x4>;
++			reg-names = "sysc";
++			ti,sysc-midle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			clocks = <&cam_clkctrl DRA7_CAM_VIP1_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x170000 0x10000>;
++			status = "disabled";
+ 		};
+ 
+ 		target-module@190000 {			/* 0x48990000, ap 23 2e.0 */
+-			compatible = "ti,sysc";
+-			status = "disabled";
++			compatible = "ti,sysc-omap4", "ti,sysc";
++			reg = <0x190010 0x4>;
++			reg-names = "sysc";
++			ti,sysc-midle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			clocks = <&cam_clkctrl DRA7_CAM_VIP2_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x190000 0x10000>;
++			status = "disabled";
+ 		};
+ 
+ 		target-module@1b0000 {			/* 0x489b0000, ap 25 34.0 */
+-			compatible = "ti,sysc";
+-			status = "disabled";
++			compatible = "ti,sysc-omap4", "ti,sysc";
++			reg = <0x1b0000 0x4>,
++			      <0x1b0010 0x4>;
++			reg-names = "rev", "sysc";
++			ti,sysc-midle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			clocks = <&cam_clkctrl DRA7_CAM_VIP3_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x1b0000 0x10000>;
++			status = "disabled";
+ 		};
+ 
+ 		target-module@1d0010 {			/* 0x489d0000, ap 27 30.0 */
 -- 
-2.20.1
+2.17.1
