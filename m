@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/13] ARM: OMAP2+: Drop legacy platform data for omap4 slimbus
-Date: Wed, 11 Dec 2019 11:12:04 -0800
-Message-ID: <20191211191206.12190-12-tony@atomide.com>
+Subject: [PATCH 13/13] ARM: OMAP2+: Drop legacy platform data for omap4 fdif
+Date: Wed, 11 Dec 2019 11:12:06 -0800
+Message-ID: <20191211191206.12190-14-tony@atomide.com>
 References: <20191211191206.12190-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -32,148 +32,119 @@ the platform data and ti,hwmods property in a single patch.
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
  arch/arm/boot/dts/omap4-l4.dtsi            |  1 -
- arch/arm/boot/dts/omap4.dtsi               |  1 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 93 ----------------------
- 3 files changed, 95 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 62 ----------------------
+ 2 files changed, 63 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
 --- a/arch/arm/boot/dts/omap4-l4.dtsi
 +++ b/arch/arm/boot/dts/omap4-l4.dtsi
-@@ -1881,7 +1881,6 @@ i2c2: i2c@0 {
+@@ -715,7 +715,6 @@ target-module@8000 {			/* 0x4a108000, ap 63 62.0 */
  
- 		target-module@76000 {			/* 0x48076000, ap 39 38.0 */
+ 		target-module@a000 {			/* 0x4a10a000, ap 65 50.0 */
  			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "slimbus2";
- 			reg = <0x76000 0x4>,
- 			      <0x76010 0x4>;
- 			reg-names = "rev", "sysc";
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -216,7 +216,6 @@ mmu_ipu: mmu@55082000 {
- 		};
- 		target-module@4012c000 {
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "slimbus1";
- 			reg = <0x4012c000 0x4>,
- 			      <0x4012c010 0x4>;
+-			ti,hwmods = "fdif";
+ 			reg = <0xa000 0x4>,
+ 			      <0xa010 0x4>;
  			reg-names = "rev", "sysc";
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1187,72 +1187,6 @@ static struct omap_hwmod omap44xx_sl2if_hwmod = {
+@@ -752,50 +752,6 @@ static struct omap_hwmod omap44xx_emif2_hwmod = {
  	},
  };
  
 -/*
-- * 'slimbus' class
-- * bidirectional, multi-drop, multi-channel two-line serial interface between
-- * the device and external components
+- * 'fdif' class
+- * face detection hw accelerator module
 - */
 -
--static struct omap_hwmod_class_sysconfig omap44xx_slimbus_sysc = {
+-static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc = {
 -	.rev_offs	= 0x0000,
 -	.sysc_offs	= 0x0010,
--	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
--			   SYSC_HAS_SOFTRESET),
+-	/*
+-	 * FDIF needs 100 OCP clk cycles delay after a softreset before
+-	 * accessing sysconfig again.
+-	 * The lowest frequency at the moment for L3 bus is 100 MHz, so
+-	 * 1usec delay is needed. Add an x2 margin to be safe (2 usecs).
+-	 *
+-	 * TODO: Indicate errata when available.
+-	 */
+-	.srst_udelay	= 2,
+-	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
+-			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
 -	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   SIDLE_SMART_WKUP),
+-			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
 -	.sysc_fields	= &omap_hwmod_sysc_type2,
 -};
 -
--static struct omap_hwmod_class omap44xx_slimbus_hwmod_class = {
--	.name	= "slimbus",
--	.sysc	= &omap44xx_slimbus_sysc,
+-static struct omap_hwmod_class omap44xx_fdif_hwmod_class = {
+-	.name	= "fdif",
+-	.sysc	= &omap44xx_fdif_sysc,
 -};
 -
--/* slimbus1 */
--static struct omap_hwmod_opt_clk slimbus1_opt_clks[] = {
--	{ .role = "fclk_1", .clk = "slimbus1_fclk_1" },
--	{ .role = "fclk_0", .clk = "slimbus1_fclk_0" },
--	{ .role = "fclk_2", .clk = "slimbus1_fclk_2" },
--	{ .role = "slimbus_clk", .clk = "slimbus1_slimbus_clk" },
--};
--
--static struct omap_hwmod omap44xx_slimbus1_hwmod = {
--	.name		= "slimbus1",
--	.class		= &omap44xx_slimbus_hwmod_class,
--	.clkdm_name	= "abe_clkdm",
+-/* fdif */
+-static struct omap_hwmod omap44xx_fdif_hwmod = {
+-	.name		= "fdif",
+-	.class		= &omap44xx_fdif_hwmod_class,
+-	.clkdm_name	= "iss_clkdm",
+-	.main_clk	= "fdif_fck",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs = OMAP4_CM1_ABE_SLIMBUS_CLKCTRL_OFFSET,
--			.context_offs = OMAP4_RM_ABE_SLIMBUS_CONTEXT_OFFSET,
+-			.clkctrl_offs = OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
+-			.context_offs = OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
 -			.modulemode   = MODULEMODE_SWCTRL,
 -		},
 -	},
--	.opt_clks	= slimbus1_opt_clks,
--	.opt_clks_cnt	= ARRAY_SIZE(slimbus1_opt_clks),
--};
--
--/* slimbus2 */
--static struct omap_hwmod_opt_clk slimbus2_opt_clks[] = {
--	{ .role = "fclk_1", .clk = "slimbus2_fclk_1" },
--	{ .role = "fclk_0", .clk = "slimbus2_fclk_0" },
--	{ .role = "slimbus_clk", .clk = "slimbus2_slimbus_clk" },
--};
--
--static struct omap_hwmod omap44xx_slimbus2_hwmod = {
--	.name		= "slimbus2",
--	.class		= &omap44xx_slimbus_hwmod_class,
--	.clkdm_name	= "l4_per_clkdm",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = OMAP4_CM_L4PER_SLIMBUS2_CLKCTRL_OFFSET,
--			.context_offs = OMAP4_RM_L4PER_SLIMBUS2_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
--		},
--	},
--	.opt_clks	= slimbus2_opt_clks,
--	.opt_clks_cnt	= ARRAY_SIZE(slimbus2_opt_clks),
 -};
 -
  /*
-  * 'timer' class
-  * general purpose timer module with accurate 1ms tick
-@@ -1988,30 +1922,6 @@ static struct omap_hwmod_ocp_if __maybe_unused omap44xx_l3_main_2__sl2if = {
+  * 'gpmc' class
+  * general purpose memory controller
+@@ -1474,14 +1430,6 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
--/* l4_abe -> slimbus1 */
--static struct omap_hwmod_ocp_if omap44xx_l4_abe__slimbus1 = {
--	.master		= &omap44xx_l4_abe_hwmod,
--	.slave		= &omap44xx_slimbus1_hwmod,
--	.clk		= "ocp_abe_iclk",
--	.user		= OCP_USER_MPU,
+-/* fdif -> l3_main_2 */
+-static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 = {
+-	.master		= &omap44xx_fdif_hwmod,
+-	.slave		= &omap44xx_l3_main_2_hwmod,
+-	.clk		= "l3_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
--/* l4_abe -> slimbus1 (dma) */
--static struct omap_hwmod_ocp_if omap44xx_l4_abe__slimbus1_dma = {
--	.master		= &omap44xx_l4_abe_hwmod,
--	.slave		= &omap44xx_slimbus1_hwmod,
--	.clk		= "ocp_abe_iclk",
--	.user		= OCP_USER_SDMA,
--};
--
--/* l4_per -> slimbus2 */
--static struct omap_hwmod_ocp_if omap44xx_l4_per__slimbus2 = {
--	.master		= &omap44xx_l4_per_hwmod,
--	.slave		= &omap44xx_slimbus2_hwmod,
+ /* ipu -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_ipu__l3_main_2 = {
+ 	.master		= &omap44xx_ipu_hwmod,
+@@ -1818,14 +1766,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_per__dss_venc = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+-/* l4_cfg -> fdif */
+-static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif = {
+-	.master		= &omap44xx_l4_cfg_hwmod,
+-	.slave		= &omap44xx_fdif_hwmod,
 -	.clk		= "l4_div_ck",
 -	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
- /* l4_wkup -> timer1 */
- static struct omap_hwmod_ocp_if omap44xx_l4_wkup__timer1 = {
- 	.master		= &omap44xx_l4_wkup_hwmod,
-@@ -2131,9 +2041,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap44xx_l4_wkup__prm,
- 	&omap44xx_l4_wkup__scrm,
- 	/* &omap44xx_l3_main_2__sl2if, */
--	&omap44xx_l4_abe__slimbus1,
--	&omap44xx_l4_abe__slimbus1_dma,
--	&omap44xx_l4_per__slimbus2,
- 	&omap44xx_l4_wkup__timer1,
- 	/* &omap44xx_l4_cfg__usb_host_fs, */
- 	&omap44xx_l4_cfg__usb_host_hs,
+ /* l3_main_2 -> gpmc */
+ static struct omap_hwmod_ocp_if omap44xx_l3_main_2__gpmc = {
+ 	.master		= &omap44xx_l3_main_2_hwmod,
+@@ -1983,7 +1923,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_mpu__l3_main_1,
+ 	&omap44xx_debugss__l3_main_2,
+ 	&omap44xx_dma_system__l3_main_2,
+-	&omap44xx_fdif__l3_main_2,
+ 	&omap44xx_ipu__l3_main_2,
+ 	&omap44xx_iss__l3_main_2,
+ 	&omap44xx_iva__l3_main_2,
+@@ -2026,7 +1965,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_l4_per__dss_rfbi,
+ 	&omap44xx_l3_main_2__dss_venc,
+ 	&omap44xx_l4_per__dss_venc,
+-	&omap44xx_l4_cfg__fdif,
+ 	&omap44xx_l3_main_2__gpmc,
+ 	&omap44xx_l3_main_2__ipu,
+ 	&omap44xx_l3_main_2__iss,
 -- 
 2.24.1
