@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/13] ARM: OMAP2+: Drop legacy platform data for omap4 kbd
-Date: Wed, 11 Dec 2019 11:12:02 -0800
-Message-ID: <20191211191206.12190-10-tony@atomide.com>
+Subject: [PATCH 10/13] ARM: OMAP2+: Drop legacy platform data for omap5 kbd
+Date: Wed, 11 Dec 2019 11:12:03 -0800
+Message-ID: <20191211191206.12190-11-tony@atomide.com>
 References: <20191211191206.12190-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -31,25 +31,25 @@ the platform data and ti,hwmods property in a single patch.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap4-l4.dtsi            |  1 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 45 ----------------------
- 2 files changed, 46 deletions(-)
+ arch/arm/boot/dts/omap5-l4.dtsi            |  1 -
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 42 ----------------------
+ 2 files changed, 43 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
---- a/arch/arm/boot/dts/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/omap4-l4.dtsi
-@@ -1171,7 +1171,6 @@ timer1: timer@0 {
+diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
+--- a/arch/arm/boot/dts/omap5-l4.dtsi
++++ b/arch/arm/boot/dts/omap5-l4.dtsi
+@@ -2363,7 +2363,6 @@ timer1: timer@0 {
  
- 		target-module@c000 {			/* 0x4a31c000, ap 11 20.0 */
+ 		target-module@c000 {			/* 0x4ae1c000, ap 11 1c.0 */
  			compatible = "ti,sysc-omap2", "ti,sysc";
 -			ti,hwmods = "kbd";
  			reg = <0xc000 0x4>,
- 			      <0xc010 0x4>,
- 			      <0xc014 0x4>;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -949,42 +949,6 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
+ 			      <0xc010 0x4>;
+ 			reg-names = "rev", "sysc";
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -559,39 +559,6 @@ static struct omap_hwmod omap54xx_emif2_hwmod = {
  	},
  };
  
@@ -58,62 +58,59 @@ diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/om
 - * keyboard controller
 - */
 -
--static struct omap_hwmod_class_sysconfig omap44xx_kbd_sysc = {
+-static struct omap_hwmod_class_sysconfig omap54xx_kbd_sysc = {
 -	.rev_offs	= 0x0000,
 -	.sysc_offs	= 0x0010,
--	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
--			   SYSC_HAS_EMUFREE | SYSC_HAS_ENAWAKEUP |
--			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
--			   SYSS_HAS_RESET_STATUS),
+-	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_SIDLEMODE |
+-			   SYSC_HAS_SOFTRESET),
 -	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
 -	.sysc_fields	= &omap_hwmod_sysc_type1,
 -};
 -
--static struct omap_hwmod_class omap44xx_kbd_hwmod_class = {
+-static struct omap_hwmod_class omap54xx_kbd_hwmod_class = {
 -	.name	= "kbd",
--	.sysc	= &omap44xx_kbd_sysc,
+-	.sysc	= &omap54xx_kbd_sysc,
 -};
 -
 -/* kbd */
--static struct omap_hwmod omap44xx_kbd_hwmod = {
+-static struct omap_hwmod omap54xx_kbd_hwmod = {
 -	.name		= "kbd",
--	.class		= &omap44xx_kbd_hwmod_class,
--	.clkdm_name	= "l4_wkup_clkdm",
+-	.class		= &omap54xx_kbd_hwmod_class,
+-	.clkdm_name	= "wkupaon_clkdm",
 -	.main_clk	= "sys_32k_ck",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs = OMAP4_CM_WKUP_KEYBOARD_CLKCTRL_OFFSET,
--			.context_offs = OMAP4_RM_WKUP_KEYBOARD_CONTEXT_OFFSET,
+-			.clkctrl_offs = OMAP54XX_CM_WKUPAON_KBD_CLKCTRL_OFFSET,
+-			.context_offs = OMAP54XX_RM_WKUPAON_KBD_CONTEXT_OFFSET,
 -			.modulemode   = MODULEMODE_SWCTRL,
 -		},
 -	},
 -};
  
  
- /*
-@@ -1968,14 +1932,6 @@ static struct omap_hwmod_ocp_if omap44xx_l3_main_2__iva = {
- 	.user		= OCP_USER_MPU,
+ 
+@@ -1147,14 +1114,6 @@ static struct omap_hwmod_ocp_if omap54xx_mpu__emif2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
 -/* l4_wkup -> kbd */
--static struct omap_hwmod_ocp_if omap44xx_l4_wkup__kbd = {
--	.master		= &omap44xx_l4_wkup_hwmod,
--	.slave		= &omap44xx_kbd_hwmod,
--	.clk		= "l4_wkup_clk_mux_ck",
+-static struct omap_hwmod_ocp_if omap54xx_l4_wkup__kbd = {
+-	.master		= &omap54xx_l4_wkup_hwmod,
+-	.slave		= &omap54xx_kbd_hwmod,
+-	.clk		= "wkupaon_iclk_mux",
 -	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
- /* l3_main_2 -> ocmc_ram */
- static struct omap_hwmod_ocp_if omap44xx_l3_main_2__ocmc_ram = {
- 	.master		= &omap44xx_l3_main_2_hwmod,
-@@ -2166,7 +2122,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap44xx_l3_main_2__iss,
- 	/* &omap44xx_iva__sl2if, */
- 	&omap44xx_l3_main_2__iva,
--	&omap44xx_l4_wkup__kbd,
- 	&omap44xx_l3_main_2__mmu_ipu,
- 	&omap44xx_l4_cfg__mmu_dsp,
- 	&omap44xx_l3_main_2__ocmc_ram,
+ /* l4_cfg -> mpu */
+ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
+ 	.master		= &omap54xx_l4_cfg_hwmod,
+@@ -1224,7 +1183,6 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap54xx_mpu__emif1,
+ 	&omap54xx_mpu__emif2,
+ 	&omap54xx_l3_main_2__mmu_ipu,
+-	&omap54xx_l4_wkup__kbd,
+ 	&omap54xx_l4_cfg__mpu,
+ 	&omap54xx_l4_wkup__timer1,
+ 	&omap54xx_l4_cfg__usb_host_hs,
 -- 
 2.24.1
