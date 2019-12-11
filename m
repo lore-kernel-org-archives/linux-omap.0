@@ -1,106 +1,70 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "spi: spi-ti-qspi: Fix a bug when accessing non default CS" to the spi tree
-Date: Wed, 11 Dec 2019 16:55:15 +0000
-Message-ID: <applied-20191211155216.30212-1-vigneshr@ti.com>
-References: <20191211155216.30212-1-vigneshr@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191211155216.30212-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh Raghavendra <vigneshr@ti.com>
-Cc: Andreas Dannenberg <dannenberg@ti.com>dannenberg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/16] Drop legacy platform data for various omap devices
+Date: Wed, 11 Dec 2019 09:19:58 -0800
+Message-ID: <20191211172014.35201-1-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Vignesh R <vigneshr@ti.com>, Keerthy <j-keerthy@ti.com>, Jyri Sarha <jsarha@ti.com>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+Hi all,
 
-   spi: spi-ti-qspi: Fix a bug when accessing non default CS
+In order to get the l4 instances closer to being usable with genpd, we
+continue dropping legacy platform data for various devices.
 
-has been applied to the spi tree at
+Please test, some patches may depend on the earlier patches to drop
+platform data to apply as they touch the same files.
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-5.5
+Regards,
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Tony
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+Tony Lindgren (16):
+  ARM: OMAP2+: Drop legacy platform data for am3 and am4 epwmss
+  ARM: OMAP2+: Drop legacy platform data for dra7 epwmss
+  ARM: OMAP2+: Drop legacy platform data for am3 and am4 spinlock
+  ARM: OMAP2+: Drop legacy platform data for omap4 spinlock
+  ARM: OMAP2+: Drop legacy platform data for omap5 spinlock
+  ARM: OMAP2+: Drop legacy platform data for dra7 spinlock
+  ARM: OMAP2+: Drop legacy platform data for am3 and am4 spi
+  ARM: OMAP2+: Drop legacy platform data for am3 and am4 dcan
+  ARM: OMAP2+: Drop legacy platform data for dra7 dcan
+  ARM: OMAP2+: Drop legacy platform data for am3 adc_tsc
+  ARM: OMAP2+: Drop legacy platform data for am4 adc_tsc
+  ARM: OMAP2+: Drop legacy platform data for am3 and am4 rtc
+  ARM: OMAP2+: Drop legacy platform data for am3 and am4 elm
+  ARM: OMAP2+: Drop legacy platform data for omap4 elm
+  ARM: OMAP2+: Drop legacy platform data for dra7 elm
+  ARM: OMAP2+: Drop legacy platform data for am3 lcdc
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+ arch/arm/boot/dts/am33xx-l4.dtsi              |  12 -
+ arch/arm/boot/dts/am437x-l4.dtsi              |  19 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts          |   4 +
+ arch/arm/boot/dts/dra7-l4.dtsi                |   5 -
+ arch/arm/boot/dts/omap4-l4.dtsi               |   2 -
+ arch/arm/boot/dts/omap5-l4.dtsi               |   1 -
+ .../omap_hwmod_33xx_43xx_common_data.h        |  21 --
+ .../omap_hwmod_33xx_43xx_interconnect_data.c  |  76 ------
+ .../omap_hwmod_33xx_43xx_ipblock_data.c       | 247 ------------------
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  85 ------
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c    | 183 -------------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  85 ------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c    |  43 ---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c     | 236 -----------------
+ 14 files changed, 5 insertions(+), 1014 deletions(-)
 
-Thanks,
-Mark
-
->From c52c91bb9aa6bd8c38dbf9776158e33038aedd43 Mon Sep 17 00:00:00 2001
-From: Vignesh Raghavendra <vigneshr@ti.com>
-Date: Wed, 11 Dec 2019 21:22:16 +0530
-Subject: [PATCH] spi: spi-ti-qspi: Fix a bug when accessing non default CS
-
-When switching ChipSelect from default CS0 to any other CS, driver fails
-to update the bits in system control module register that control which
-CS is mapped for MMIO access. This causes reads to fail when driver
-tries to access QSPI flash on CS1/2/3.
-
-Fix this by updating appropriate bits whenever active CS changes.
-
-Reported-by: Andreas Dannenberg <dannenberg@ti.com>
-Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
-Link: https://lore.kernel.org/r/20191211155216.30212-1-vigneshr@ti.com
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/spi/spi-ti-qspi.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 3cb65371ae3b..66dcb6128539 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -62,6 +62,7 @@ struct ti_qspi {
- 	u32 dc;
- 
- 	bool mmap_enabled;
-+	int current_cs;
- };
- 
- #define QSPI_PID			(0x0)
-@@ -487,6 +488,7 @@ static void ti_qspi_enable_memory_map(struct spi_device *spi)
- 				   MEM_CS_EN(spi->chip_select));
- 	}
- 	qspi->mmap_enabled = true;
-+	qspi->current_cs = spi->chip_select;
- }
- 
- static void ti_qspi_disable_memory_map(struct spi_device *spi)
-@@ -498,6 +500,7 @@ static void ti_qspi_disable_memory_map(struct spi_device *spi)
- 		regmap_update_bits(qspi->ctrl_base, qspi->ctrl_reg,
- 				   MEM_CS_MASK, 0);
- 	qspi->mmap_enabled = false;
-+	qspi->current_cs = -1;
- }
- 
- static void ti_qspi_setup_mmap_read(struct spi_device *spi, u8 opcode,
-@@ -543,7 +546,7 @@ static int ti_qspi_exec_mem_op(struct spi_mem *mem,
- 
- 	mutex_lock(&qspi->list_lock);
- 
--	if (!qspi->mmap_enabled)
-+	if (!qspi->mmap_enabled || qspi->current_cs != mem->spi->chip_select)
- 		ti_qspi_enable_memory_map(mem->spi);
- 	ti_qspi_setup_mmap_read(mem->spi, op->cmd.opcode, op->data.buswidth,
- 				op->addr.nbytes, op->dummy.nbytes);
-@@ -799,6 +802,7 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 		}
- 	}
- 	qspi->mmap_enabled = false;
-+	qspi->current_cs = -1;
- 
- 	ret = devm_spi_register_master(&pdev->dev, master);
- 	if (!ret)
 -- 
-2.20.1
+2.24.1
