@@ -1,15 +1,46 @@
-From: Vignesh Raghavendra <vigneshr@ti.com>
-Subject: [PATCH] spi: spi-ti-qspi: Fix a bug when accessing non default CS
-Date: Wed, 11 Dec 2019 21:22:16 +0530
-Message-ID: <20191211155216.30212-1-vigneshr@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: spi-ti-qspi: Fix a bug when accessing non default CS" to the spi tree
+Date: Wed, 11 Dec 2019 16:55:15 +0000
+Message-ID: <applied-20191211155216.30212-1-vigneshr@ti.com>
+References: <20191211155216.30212-1-vigneshr@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191211155216.30212-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh Raghavendra <vigneshr@ti.com>, dannenberg@ti.com, linux-omap@vger.kernel.org
+To: Vignesh Raghavendra <vigneshr@ti.com>
+Cc: Andreas Dannenberg <dannenberg@ti.com>dannenberg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>
 List-Id: linux-omap@vger.kernel.org
+
+The patch
+
+   spi: spi-ti-qspi: Fix a bug when accessing non default CS
+
+has been applied to the spi tree at
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-5.5
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From c52c91bb9aa6bd8c38dbf9776158e33038aedd43 Mon Sep 17 00:00:00 2001
+From: Vignesh Raghavendra <vigneshr@ti.com>
+Date: Wed, 11 Dec 2019 21:22:16 +0530
+Subject: [PATCH] spi: spi-ti-qspi: Fix a bug when accessing non default CS
 
 When switching ChipSelect from default CS0 to any other CS, driver fails
 to update the bits in system control module register that control which
@@ -20,6 +51,8 @@ Fix this by updating appropriate bits whenever active CS changes.
 
 Reported-by: Andreas Dannenberg <dannenberg@ti.com>
 Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+Link: https://lore.kernel.org/r/20191211155216.30212-1-vigneshr@ti.com
+Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
  drivers/spi/spi-ti-qspi.c | 6 +++++-
  1 file changed, 5 insertions(+), 1 deletion(-)
@@ -70,4 +103,4 @@ index 3cb65371ae3b..66dcb6128539 100644
  	ret = devm_spi_register_master(&pdev->dev, master);
  	if (!ret)
 -- 
-2.24.0
+2.20.1
