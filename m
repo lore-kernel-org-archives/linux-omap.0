@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/13] ARM: OMAP2+: Drop legacy platform data for omap5 kbd
-Date: Wed, 11 Dec 2019 11:12:03 -0800
-Message-ID: <20191211191206.12190-11-tony@atomide.com>
+Subject: [PATCH 12/13] ARM: OMAP2+: Drop legacy platform data for dra7 rtcss
+Date: Wed, 11 Dec 2019 11:12:05 -0800
+Message-ID: <20191211191206.12190-13-tony@atomide.com>
 References: <20191211191206.12190-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,88 +29,91 @@ As we're just dropping data, and the early platform data init
 is based on the custom ti,hwmods property, we want to drop both
 the platform data and ti,hwmods property in a single patch.
 
+Cc: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap5-l4.dtsi            |  1 -
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 42 ----------------------
- 2 files changed, 43 deletions(-)
+ arch/arm/boot/dts/dra7-l4.dtsi            |  1 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 44 -----------------------
+ 2 files changed, 45 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
---- a/arch/arm/boot/dts/omap5-l4.dtsi
-+++ b/arch/arm/boot/dts/omap5-l4.dtsi
-@@ -2363,7 +2363,6 @@ timer1: timer@0 {
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -3561,7 +3561,6 @@ timer16: timer@0 {
  
- 		target-module@c000 {			/* 0x4ae1c000, ap 11 1c.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "kbd";
- 			reg = <0xc000 0x4>,
- 			      <0xc010 0x4>;
+ 		rtctarget: target-module@38000 {			/* 0x48838000, ap 29 12.0 */
+ 			compatible = "ti,sysc-omap4-simple", "ti,sysc";
+-			ti,hwmods = "rtcss";
+ 			reg = <0x38074 0x4>,
+ 			      <0x38078 0x4>;
  			reg-names = "rev", "sysc";
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -559,39 +559,6 @@ static struct omap_hwmod omap54xx_emif2_hwmod = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -700,41 +700,6 @@ static struct omap_hwmod dra7xx_qspi_hwmod = {
  	},
  };
  
 -/*
-- * 'kbd' class
-- * keyboard controller
+- * 'rtcss' class
+- *
 - */
--
--static struct omap_hwmod_class_sysconfig omap54xx_kbd_sysc = {
--	.rev_offs	= 0x0000,
--	.sysc_offs	= 0x0010,
--	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_SIDLEMODE |
--			   SYSC_HAS_SOFTRESET),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
--	.sysc_fields	= &omap_hwmod_sysc_type1,
+-static struct omap_hwmod_class_sysconfig dra7xx_rtcss_sysc = {
+-	.rev_offs	= 0x0074,
+-	.sysc_offs	= 0x0078,
+-	.sysc_flags	= SYSC_HAS_SIDLEMODE,
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP),
+-	.sysc_fields	= &omap_hwmod_sysc_type3,
 -};
 -
--static struct omap_hwmod_class omap54xx_kbd_hwmod_class = {
--	.name	= "kbd",
--	.sysc	= &omap54xx_kbd_sysc,
+-static struct omap_hwmod_class dra7xx_rtcss_hwmod_class = {
+-	.name	= "rtcss",
+-	.sysc	= &dra7xx_rtcss_sysc,
+-	.unlock	= &omap_hwmod_rtc_unlock,
+-	.lock	= &omap_hwmod_rtc_lock,
 -};
 -
--/* kbd */
--static struct omap_hwmod omap54xx_kbd_hwmod = {
--	.name		= "kbd",
--	.class		= &omap54xx_kbd_hwmod_class,
--	.clkdm_name	= "wkupaon_clkdm",
+-/* rtcss */
+-static struct omap_hwmod dra7xx_rtcss_hwmod = {
+-	.name		= "rtcss",
+-	.class		= &dra7xx_rtcss_hwmod_class,
+-	.clkdm_name	= "rtc_clkdm",
 -	.main_clk	= "sys_32k_ck",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_WKUPAON_KBD_CLKCTRL_OFFSET,
--			.context_offs = OMAP54XX_RM_WKUPAON_KBD_CONTEXT_OFFSET,
+-			.clkctrl_offs = DRA7XX_CM_RTC_RTCSS_CLKCTRL_OFFSET,
+-			.context_offs = DRA7XX_RM_RTC_RTCSS_CONTEXT_OFFSET,
 -			.modulemode   = MODULEMODE_SWCTRL,
 -		},
 -	},
 -};
- 
- 
- 
-@@ -1147,14 +1114,6 @@ static struct omap_hwmod_ocp_if omap54xx_mpu__emif2 = {
+-
+ /*
+  * 'sata' class
+  *
+@@ -1240,14 +1205,6 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__qspi = {
  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
--/* l4_wkup -> kbd */
--static struct omap_hwmod_ocp_if omap54xx_l4_wkup__kbd = {
--	.master		= &omap54xx_l4_wkup_hwmod,
--	.slave		= &omap54xx_kbd_hwmod,
--	.clk		= "wkupaon_iclk_mux",
+-/* l4_per3 -> rtcss */
+-static struct omap_hwmod_ocp_if dra7xx_l4_per3__rtcss = {
+-	.master		= &dra7xx_l4_per3_hwmod,
+-	.slave		= &dra7xx_rtcss_hwmod,
+-	.clk		= "l4_root_clk_div",
 -	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
- /* l4_cfg -> mpu */
- static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
- 	.master		= &omap54xx_l4_cfg_hwmod,
-@@ -1224,7 +1183,6 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap54xx_mpu__emif1,
- 	&omap54xx_mpu__emif2,
- 	&omap54xx_l3_main_2__mmu_ipu,
--	&omap54xx_l4_wkup__kbd,
- 	&omap54xx_l4_cfg__mpu,
- 	&omap54xx_l4_wkup__timer1,
- 	&omap54xx_l4_cfg__usb_host_hs,
+ /* l4_cfg -> sata */
+ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__sata = {
+ 	.master		= &dra7xx_l4_cfg_hwmod,
+@@ -1417,7 +1374,6 @@ static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
+ };
+ 
+ static struct omap_hwmod_ocp_if *rtc_hwmod_ocp_ifs[] __initdata = {
+-	&dra7xx_l4_per3__rtcss,
+ 	NULL,
+ };
+ 
 -- 
 2.24.1
