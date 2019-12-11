@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v4 04/10] ARM: dts: dra7-l4: Add ti-sysc node for CAM
-Date: Wed, 11 Dec 2019 08:05:52 -0600
-Message-ID: <20191211140558.10407-5-bparrot@ti.com>
+Subject: [Patch v4 06/10] arm: dts: dra72-evm-common: Add entries for the CSI2 cameras
+Date: Wed, 11 Dec 2019 08:05:54 -0600
+Message-ID: <20191211140558.10407-7-bparrot@ti.com>
 References: <20191211140558.10407-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,82 +12,66 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@
 Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add CAM nodes as a child of l4 interconnect in order for it to probe
-using ti-sysc.
+Add device nodes for CSI2 camera board OV5640.
+Add the CAL port nodes with the necessary linkage to the ov5640 nodes.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/dra7-l4.dtsi | 43 +++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/dra72-evm-common.dtsi | 31 +++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index 8fe428ac12d8..7f76411d2876 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -4166,27 +4166,58 @@
- 		};
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index 8641a3d7d8ad..7a9b7584b092 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -187,6 +187,12 @@
+ 		gpio = <&gpio5 8 GPIO_ACTIVE_HIGH>;
+ 		enable-active-high;
+ 	};
++
++	clk_ov5640_fixed: clock {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <24000000>;
++	};
+ };
  
- 		target-module@170000 {			/* 0x48970000, ap 21 0a.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x170010 0x4>;
-+			reg-names = "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&cam_clkctrl DRA7_CAM_VIP1_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x170000 0x10000>;
-+			status = "disabled";
+ &dra7_pmx_core {
+@@ -269,6 +275,23 @@
+ 			line-name = "vin6_sel_s0";
  		};
+ 	};
++
++	ov5640@3c {
++		compatible = "ovti,ov5640";
++		reg = <0x3c>;
++
++		clocks = <&clk_ov5640_fixed>;
++		clock-names = "xclk";
++
++		port {
++			csi2_cam0: endpoint {
++				remote-endpoint = <&csi2_phy0>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++	};
++
+ };
  
- 		target-module@190000 {			/* 0x48990000, ap 23 2e.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x190010 0x4>;
-+			reg-names = "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&cam_clkctrl DRA7_CAM_VIP2_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x190000 0x10000>;
-+			status = "disabled";
- 		};
- 
- 		target-module@1b0000 {			/* 0x489b0000, ap 25 34.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x1b0000 0x4>,
-+			      <0x1b0010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&cam_clkctrl DRA7_CAM_VIP3_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x1b0000 0x10000>;
-+			status = "disabled";
- 		};
- 
- 		target-module@1d0010 {			/* 0x489d0000, ap 27 30.0 */
+ &uart1 {
+@@ -580,3 +603,11 @@
+ &pcie1_rc {
+ 	status = "okay";
+ };
++
++&csi2_0 {
++	csi2_phy0: endpoint {
++		remote-endpoint = <&csi2_cam0>;
++		clock-lanes = <0>;
++		data-lanes = <1 2>;
++	};
++};
 -- 
 2.17.1
