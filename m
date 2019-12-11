@@ -1,113 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 16/16] ARM: OMAP2+: Drop legacy platform data for am3 lcdc
-Date: Wed, 11 Dec 2019 09:20:14 -0800
-Message-ID: <20191211172014.35201-17-tony@atomide.com>
-References: <20191211172014.35201-1-tony@atomide.com>
+Subject: [PATCH] bus: ti-sysc: Fix missing reset delay handling
+Date: Wed, 11 Dec 2019 10:59:01 -0800
+Message-ID: <20191211185901.9879-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191211172014.35201-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Vignesh R <vigneshr@ti.com>, Keerthy <j-keerthy@ti.com>, Jyri Sarha <jsarha@ti.com>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>, Roger Quadros <rogerq@ti.com>
+Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We can now probe devices with ti-sysc interconnect driver and dts
-data. Let's drop the related platform data and custom ti,hwmods
-dts property.
+We have dts property for "ti,sysc-delay-us", and we're using it, but the
+wait after OCP softreset only happens if devices are probed in legacy mode.
 
-As we're just dropping data, and the early platform data init
-is based on the custom ti,hwmods property, we want to drop both
-the platform data and ti,hwmods property in a single patch.
+Let's add a delay after writing the OCP softreset when specified.
 
+Fixes: e0db94fe87da ("bus: ti-sysc: Make OCP reset work for sysstatus and sysconfig reset bits")
 Cc: Keerthy <j-keerthy@ti.com>
-Cc: Jyri Sarha <jsarha@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am33xx-l4.dtsi           |  1 -
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 36 ----------------------
- 2 files changed, 37 deletions(-)
+ drivers/bus/ti-sysc.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -2006,7 +2006,6 @@ ehrpwm2: pwm@200 {
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1590,6 +1590,10 @@ static int sysc_reset(struct sysc *ddata)
+ 	sysc_val |= sysc_mask;
+ 	sysc_write(ddata, sysc_offset, sysc_val);
  
- 		target-module@e000 {			/* 0x4830e000, ap 72 4a.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "lcdc";
- 			reg = <0xe000 0x4>,
- 			      <0xe054 0x4>;
- 			reg-names = "rev", "sysc";
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -196,34 +196,6 @@ static struct omap_hwmod am33xx_control_hwmod = {
- 	},
- };
++	if (ddata->cfg.srst_udelay)
++		usleep_range(ddata->cfg.srst_udelay,
++			     ddata->cfg.srst_udelay * 2);
++
+ 	if (ddata->clk_enable_quirk)
+ 		ddata->clk_enable_quirk(ddata);
  
--/* lcdc */
--static struct omap_hwmod_class_sysconfig lcdc_sysc = {
--	.rev_offs	= 0x0,
--	.sysc_offs	= 0x54,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE,
--	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			  MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART,
--	.sysc_fields	= &omap_hwmod_sysc_type2,
--};
--
--static struct omap_hwmod_class am33xx_lcdc_hwmod_class = {
--	.name		= "lcdc",
--	.sysc		= &lcdc_sysc,
--};
--
--static struct omap_hwmod am33xx_lcdc_hwmod = {
--	.name		= "lcdc",
--	.class		= &am33xx_lcdc_hwmod_class,
--	.clkdm_name	= "lcdc_clkdm",
--	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
--	.main_clk	= "lcd_gclk",
--	.prcm		= {
--		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_LCDC_CLKCTRL_OFFSET,
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
- 
- /*
-  * Interfaces
-@@ -301,13 +273,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_wkup__control = {
- 	.user		= OCP_USER_MPU,
- };
- 
--static struct omap_hwmod_ocp_if am33xx_l3_main__lcdc = {
--	.master		= &am33xx_l3_main_hwmod,
--	.slave		= &am33xx_lcdc_hwmod,
--	.clk		= "dpll_core_m4_ck",
--	.user		= OCP_USER_MPU,
--};
--
- /* l4 wkup -> timer1 */
- static struct omap_hwmod_ocp_if am33xx_l4_wkup__timer1 = {
- 	.master		= &am33xx_l4_wkup_hwmod,
-@@ -340,7 +305,6 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_ls__timer2,
- 	&am33xx_l3_main__tpcc,
- 	&am33xx_l3_s__gpmc,
--	&am33xx_l3_main__lcdc,
- 	&am33xx_l3_main__tptc0,
- 	&am33xx_l3_main__tptc1,
- 	&am33xx_l3_main__tptc2,
 -- 
 2.24.1
