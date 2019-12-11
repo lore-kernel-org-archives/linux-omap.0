@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v3 1/3] ARM: dts: am43xx: add support for clkout1 clock
-Date: Wed, 11 Dec 2019 08:07:18 -0600
-Message-ID: <20191211140720.10539-2-bparrot@ti.com>
+Subject: [Patch v3 2/3] ARM: dts: am437x-sk-evm: Add VPFE and OV2659 entries
+Date: Wed, 11 Dec 2019 08:07:19 -0600
+Message-ID: <20191211140720.10539-3-bparrot@ti.com>
 References: <20191211140720.10539-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,94 +12,69 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@
 Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+Add VPFE device nodes entries.
+Add OmniVision OV2659 sensor device nodes and linkage.
 
-clkout1 clock node and its generation tree was missing. Add this based
-on the data on TRM and PRCM functional spec.
+The sensor clock (xvclk) is sourced from clkout1.
+Add clock entries to properly select clkout1 and set its parent
+clock to sys_clkin_ck.
 
-commit 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes") effectively
-reverted this commit 8010f13a40d3 ("ARM: dts: am43xx: add support for
-clkout1 clock") which is needed for the ov2659 camera sensor clock
-definition hence it is being re-applied here.
-
-Note that because of the current dts node name dependency for mapping to
-clock domain, we must still use "clkout1-*ck" naming instead of generic
-"clock@" naming for the node. And because of this, it's probably best to
-apply the dts node addition together along with the other clock changes.
-
-Fixes: 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes")
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Tested-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/am43xx-clocks.dtsi | 54 ++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ arch/arm/boot/dts/am437x-sk-evm.dts | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-index 091356f2a8c1..c726cd8dbdf1 100644
---- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-@@ -704,6 +704,60 @@
- 		ti,bit-shift = <8>;
- 		reg = <0x2a48>;
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 74eaa6a3b258..25222497f828 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -272,6 +272,12 @@
+ 		>;
  	};
-+
-+	clkout1_osc_div_ck: clkout1-osc-div-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&sys_clkin_ck>;
-+		ti,bit-shift = <20>;
-+		ti,max-div = <4>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_src2_mux_ck: clkout1-src2-mux-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&clk_rc32k_ck>, <&sysclk_div>, <&dpll_ddr_m2_ck>,
-+			 <&dpll_per_m2_ck>, <&dpll_disp_m2_ck>,
-+			 <&dpll_mpu_m2_ck>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_src2_pre_div_ck: clkout1-src2-pre-div-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&clkout1_src2_mux_ck>;
-+		ti,bit-shift = <4>;
-+		ti,max-div = <8>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_src2_post_div_ck: clkout1-src2-post-div-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&clkout1_src2_pre_div_ck>;
-+		ti,bit-shift = <8>;
-+		ti,max-div = <32>;
-+		ti,index-power-of-two;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_mux_ck: clkout1-mux-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&clkout1_osc_div_ck>, <&clk_rc32k_ck>,
-+			 <&clkout1_src2_post_div_ck>, <&dpll_extdev_m2_ck>;
-+		ti,bit-shift = <16>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_ck: clkout1-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&clkout1_mux_ck>;
-+		ti,bit-shift = <23>;
-+		reg = <0x4100>;
-+	};
- };
  
- &prcm {
++	clkout1_pin: pinmux_clkout1_pin {
++		pinctrl-single,pins = <
++			0x270 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* XDMA_EVENT_INTR0/CLKOUT1 */
++		>;
++	};
++
+ 	cpsw_default: cpsw_default {
+ 		pinctrl-single,pins = <
+ 			/* Slave 1 */
+@@ -593,6 +599,25 @@
+ 	pinctrl-0 = <&i2c1_pins>;
+ 	clock-frequency = <400000>;
+ 
++	ov2659@30 {
++		compatible = "ovti,ov2659";
++		reg = <0x30>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&clkout1_pin>;
++
++		clocks = <&clkout1_mux_ck>;
++		clock-names = "xvclk";
++		assigned-clocks = <&clkout1_mux_ck>;
++		assigned-clock-parents = <&clkout1_osc_div_ck>;
++
++		port {
++			ov2659_1: endpoint {
++				remote-endpoint = <&vpfe0_ep>;
++				link-frequencies = /bits/ 64 <70000000>;
++			};
++		};
++	};
++
+ 	edt-ft5306@38 {
+ 		status = "okay";
+ 		compatible = "edt,edt-ft5306", "edt,edt-ft5x06";
+@@ -877,7 +902,7 @@
+ 	/* Camera port */
+ 	port {
+ 		vpfe0_ep: endpoint {
+-			/* remote-endpoint = <&sensor>; add once we have it */
++			remote-endpoint = <&ov2659_1>;
+ 			ti,am437x-vpfe-interface = <0>;
+ 			bus-width = <8>;
+ 			hsync-active = <0>;
 -- 
 2.17.1
