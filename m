@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v4 10/10] arm64: dts: k3-am654-base-board: Add CSI2 OV5640 camera
-Date: Wed, 11 Dec 2019 08:05:58 -0600
-Message-ID: <20191211140558.10407-11-bparrot@ti.com>
+Subject: [Patch v4 03/10] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
+Date: Wed, 11 Dec 2019 08:05:51 -0600
+Message-ID: <20191211140558.10407-4-bparrot@ti.com>
 References: <20191211140558.10407-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,69 +12,37 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@
 Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add support for the OV5640 CSI camera:
-- add the OV5640 nodes
-- add the CAL node linkage
-- enable CAL node
+Both CAL and VIP rely on this clock domain. But CAL DPHY require
+LVDSRX_96M_GFCLK to be active. When this domain is set to HWSUP the
+LVDSRX_96M_GFCLK is on;y active when VIP1 clock is also active.  If only
+CAL on DRA72x (which uses the VIP2 clkctrl) probes the CAM domain is
+enabled but the LVDSRX_96M_GFCLK is left gated. Since LVDSRX_96M_GFCLK
+is sourcing the input clock to the DPHY then actual frame capture cannot
+start as the phy are inactive.
+
+So we either have to also enabled VIP1 even if we don't intend on using
+it or we need to set the CAM domain to use SWSUP only.
+
+This patch implements the latter.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- .../arm64/boot/dts/ti/k3-am654-base-board.dts | 32 +++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/ti/k3-am654-base-board.dts b/arch/arm64/boot/dts/ti/k3-am654-base-board.dts
-index 8a85b482ad31..f918c5804589 100644
---- a/arch/arm64/boot/dts/ti/k3-am654-base-board.dts
-+++ b/arch/arm64/boot/dts/ti/k3-am654-base-board.dts
-@@ -53,6 +53,12 @@
- 			gpios = <&wkup_gpio0 27 GPIO_ACTIVE_LOW>;
- 		};
- 	};
-+
-+	clk_ov5640_fixed: clock {
-+		compatible = "fixed-clock";
-+		#clock-cells = <0>;
-+		clock-frequency = <24000000>;
-+	};
+diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+index 3068802824b7..27835c4d1aa9 100644
+--- a/arch/arm/mach-omap2/clockdomains7xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+@@ -606,7 +606,7 @@ static struct clockdomain cam_7xx_clkdm = {
+ 	.dep_bit	  = DRA7XX_CAM_STATDEP_SHIFT,
+ 	.wkdep_srcs	  = cam_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = cam_wkup_sleep_deps,
+-	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++	.flags		  = CLKDM_CAN_SWSUP,
  };
  
- &wkup_pmx0 {
-@@ -184,6 +190,23 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&main_i2c1_pins_default>;
- 	clock-frequency = <400000>;
-+
-+	ov5640@3c {
-+		compatible = "ovti,ov5640";
-+		reg = <0x3c>;
-+
-+		clocks = <&clk_ov5640_fixed>;
-+		clock-names = "xclk";
-+
-+		port {
-+			csi2_cam0: endpoint {
-+				remote-endpoint = <&csi2_phy0>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+	};
-+
- };
- 
- &main_i2c2 {
-@@ -339,3 +362,12 @@
- &mailbox0_cluster11 {
- 	status = "disabled";
- };
-+
-+&csi2_0 {
-+	csi2_phy0: endpoint {
-+		remote-endpoint = <&csi2_cam0>;
-+		clock-lanes = <0>;
-+		data-lanes = <1 2>;
-+	};
-+};
-+
+ static struct clockdomain l4per_7xx_clkdm = {
 -- 
 2.17.1
