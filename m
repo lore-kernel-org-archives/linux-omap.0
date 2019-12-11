@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/16] ARM: OMAP2+: Drop legacy platform data for omap5
- spinlock
-Date: Wed, 11 Dec 2019 09:20:03 -0800
-Message-ID: <20191211172014.35201-6-tony@atomide.com>
+Subject: [PATCH 06/16] ARM: OMAP2+: Drop legacy platform data for dra7 spinlock
+Date: Wed, 11 Dec 2019 09:20:04 -0800
+Message-ID: <20191211172014.35201-7-tony@atomide.com>
 References: <20191211172014.35201-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -34,87 +33,87 @@ Cc: Suman Anna <s-anna@ti.com>
 Cc: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap5-l4.dtsi            |  1 -
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 43 ----------------------
+ arch/arm/boot/dts/dra7-l4.dtsi            |  1 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 43 -----------------------
  2 files changed, 44 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
---- a/arch/arm/boot/dts/omap5-l4.dtsi
-+++ b/arch/arm/boot/dts/omap5-l4.dtsi
-@@ -627,7 +627,6 @@ mbox_dsp: mbox_dsp {
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -471,7 +471,6 @@ mailbox1: mailbox@0 {
  
- 		target-module@76000 {			/* 0x4a0f6000, ap 27 0c.0 */
+ 		target-module@f6000 {			/* 0x4a0f6000, ap 25 78.0 */
  			compatible = "ti,sysc-omap2", "ti,sysc";
 -			ti,hwmods = "spinlock";
- 			reg = <0x76000 0x4>,
- 			      <0x76010 0x4>,
- 			      <0x76014 0x4>;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -684,40 +684,6 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
- 	},
+ 			reg = <0xf6000 0x4>,
+ 			      <0xf6010 0x4>,
+ 			      <0xf6014 0x4>;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -962,40 +962,6 @@ static struct omap_hwmod dra7xx_smartreflex_mpu_hwmod = {
+ 	.dev_attr	= &smartreflex_mpu_dev_attr,
  };
  
 -/*
 - * 'spinlock' class
-- * spinlock provides hardware assistance for synchronizing the processes
-- * running on multiple processors
+- *
 - */
 -
--static struct omap_hwmod_class_sysconfig omap54xx_spinlock_sysc = {
+-static struct omap_hwmod_class_sysconfig dra7xx_spinlock_sysc = {
 -	.rev_offs	= 0x0000,
 -	.sysc_offs	= 0x0010,
 -	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
--			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
--			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
+-	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
+-			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
+-			   SYSS_HAS_RESET_STATUS),
 -	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
 -	.sysc_fields	= &omap_hwmod_sysc_type1,
 -};
 -
--static struct omap_hwmod_class omap54xx_spinlock_hwmod_class = {
+-static struct omap_hwmod_class dra7xx_spinlock_hwmod_class = {
 -	.name	= "spinlock",
--	.sysc	= &omap54xx_spinlock_sysc,
+-	.sysc	= &dra7xx_spinlock_sysc,
 -};
 -
 -/* spinlock */
--static struct omap_hwmod omap54xx_spinlock_hwmod = {
+-static struct omap_hwmod dra7xx_spinlock_hwmod = {
 -	.name		= "spinlock",
--	.class		= &omap54xx_spinlock_hwmod_class,
+-	.class		= &dra7xx_spinlock_hwmod_class,
 -	.clkdm_name	= "l4cfg_clkdm",
+-	.main_clk	= "l3_iclk_div",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_L4CFG_SPINLOCK_CLKCTRL_OFFSET,
--			.context_offs = OMAP54XX_RM_L4CFG_SPINLOCK_CONTEXT_OFFSET,
+-			.clkctrl_offs = DRA7XX_CM_L4CFG_SPINLOCK_CLKCTRL_OFFSET,
+-			.context_offs = DRA7XX_RM_L4CFG_SPINLOCK_CONTEXT_OFFSET,
 -		},
 -	},
 -};
  
  /*
-  * 'ocp2scp' class
-@@ -1262,14 +1228,6 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
+  * 'timer' class
+@@ -1536,14 +1502,6 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__smartreflex_mpu = {
  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
 -/* l4_cfg -> spinlock */
--static struct omap_hwmod_ocp_if omap54xx_l4_cfg__spinlock = {
--	.master		= &omap54xx_l4_cfg_hwmod,
--	.slave		= &omap54xx_spinlock_hwmod,
--	.clk		= "l4_root_clk_div",
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__spinlock = {
+-	.master		= &dra7xx_l4_cfg_hwmod,
+-	.slave		= &dra7xx_spinlock_hwmod,
+-	.clk		= "l3_iclk_div",
 -	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
- /* l4_cfg -> ocp2scp1 */
- static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp1 = {
- 	.master		= &omap54xx_l4_cfg_hwmod,
-@@ -1341,7 +1299,6 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap54xx_l3_main_2__mmu_ipu,
- 	&omap54xx_l4_wkup__kbd,
- 	&omap54xx_l4_cfg__mpu,
--	&omap54xx_l4_cfg__spinlock,
- 	&omap54xx_l4_cfg__ocp2scp1,
- 	&omap54xx_l4_wkup__timer1,
- 	&omap54xx_l4_cfg__usb_host_hs,
+ /* l4_wkup -> timer1 */
+ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__timer1 = {
+ 	.master		= &dra7xx_l4_wkup_hwmod,
+@@ -1678,7 +1636,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_cfg__sata,
+ 	&dra7xx_l4_cfg__smartreflex_core,
+ 	&dra7xx_l4_cfg__smartreflex_mpu,
+-	&dra7xx_l4_cfg__spinlock,
+ 	&dra7xx_l4_wkup__timer1,
+ 	&dra7xx_l4_per1__timer2,
+ 	&dra7xx_l4_per1__timer3,
 -- 
 2.24.1
