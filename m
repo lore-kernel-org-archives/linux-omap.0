@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v4 01/10] clk: ti: dra7: add cam clkctrl data
-Date: Wed, 11 Dec 2019 08:05:49 -0600
-Message-ID: <20191211140558.10407-2-bparrot@ti.com>
+Subject: [Patch v4 05/10] ARM: dts: DRA72: Add CAL dtsi node
+Date: Wed, 11 Dec 2019 08:05:53 -0600
+Message-ID: <20191211140558.10407-6-bparrot@ti.com>
 References: <20191211140558.10407-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,80 +12,66 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@
 Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add clkctrl data for CAM domain.
+This patch adds the required dtsi node to support the Camera
+Adaptation Layer (CAL) for the DRA72 family of devices.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/clk/ti/clk-7xx.c         | 19 +++++++++++++++++++
- include/dt-bindings/clock/dra7.h | 10 ++++++++++
- 2 files changed, 29 insertions(+)
+ arch/arm/boot/dts/dra72x.dtsi | 42 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 34e49f909a07..ddfce4b050e5 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -151,6 +151,24 @@ static const struct omap_clkctrl_reg_data dra7_vpe_clkctrl_regs[] __initconst =
- 	{ 0 },
+diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
+index f5762709c853..82b57a35abc0 100644
+--- a/arch/arm/boot/dts/dra72x.dtsi
++++ b/arch/arm/boot/dts/dra72x.dtsi
+@@ -17,6 +17,48 @@
+ 	};
  };
  
-+static const char * const dra7_cam_gfclk_mux_parents[] __initconst = {
-+	"l3_iclk_div",
-+	"core_iss_main_clk",
-+	NULL,
++&l4_per2 {
++	target-module@5b000 {			/* 0x4845b000, ap 59 46.0 */
++		compatible = "ti,sysc-omap4", "ti,sysc";
++		reg = <0x5b000 0x4>,
++		      <0x5b010 0x4>;
++		reg-names = "rev", "sysc";
++		ti,sysc-midle = <SYSC_IDLE_FORCE>,
++				<SYSC_IDLE_NO>;
++		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++				<SYSC_IDLE_NO>;
++		clocks = <&cam_clkctrl DRA7_CAM_VIP2_CLKCTRL 0>;
++		clock-names = "fck";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0x0 0x5b000 0x1000>;
++
++		cal: cal@0 {
++			compatible = "ti,dra72-cal";
++			reg = <0x0000 0x400>,
++			      <0x0800 0x40>,
++			      <0x0900 0x40>;
++			reg-names = "cal_top",
++				    "cal_rx_core0",
++				    "cal_rx_core1";
++			interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
++			ti,camerrx-control = <&scm_conf 0xE94>;
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				csi2_0: port@0 {
++					reg = <0>;
++				};
++				csi2_1: port@1 {
++					reg = <1>;
++				};
++			};
++		};
++	};
 +};
 +
-+static const struct omap_clkctrl_bit_data dra7_cam_bit_data[] __initconst = {
-+	{ 24, TI_CLK_MUX, dra7_cam_gfclk_mux_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_reg_data dra7_cam_clkctrl_regs[] __initconst = {
-+	{ DRA7_CAM_VIP1_CLKCTRL, dra7_cam_bit_data, CLKF_HW_SUP, "l3_iclk_div" },
-+	{ DRA7_CAM_VIP2_CLKCTRL, dra7_cam_bit_data, CLKF_HW_SUP, "l3_iclk_div" },
-+	{ DRA7_CAM_VIP3_CLKCTRL, dra7_cam_bit_data, CLKF_HW_SUP, "l3_iclk_div" },
-+	{ 0 },
-+};
-+
- static const struct omap_clkctrl_reg_data dra7_coreaon_clkctrl_regs[] __initconst = {
- 	{ DRA7_COREAON_SMARTREFLEX_MPU_CLKCTRL, NULL, CLKF_SW_SUP, "wkupaon_iclk_mux" },
- 	{ DRA7_COREAON_SMARTREFLEX_CORE_CLKCTRL, NULL, CLKF_SW_SUP, "wkupaon_iclk_mux" },
-@@ -783,6 +801,7 @@ const struct omap_clkctrl_data dra7_clkctrl_data[] __initconst = {
- 	{ 0x4a008c00, dra7_atl_clkctrl_regs },
- 	{ 0x4a008d20, dra7_l4cfg_clkctrl_regs },
- 	{ 0x4a008e20, dra7_l3instr_clkctrl_regs },
-+	{ 0x4a009020, dra7_cam_clkctrl_regs },
- 	{ 0x4a009120, dra7_dss_clkctrl_regs },
- 	{ 0x4a009320, dra7_l3init_clkctrl_regs },
- 	{ 0x4a0093b0, dra7_pcie_clkctrl_regs },
-diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
-index 2b765e579b2a..2c058a534bab 100644
---- a/include/dt-bindings/clock/dra7.h
-+++ b/include/dt-bindings/clock/dra7.h
-@@ -34,6 +34,11 @@
- #define DRA7_VPE_CLKCTRL_INDEX(offset)	((offset) - DRA7_VPE_CLKCTRL_OFFSET)
- #define DRA7_VPE_CLKCTRL	DRA7_VPE_CLKCTRL_INDEX(0x64)
- 
-+/* vip clocks */
-+#define DRA7_VIP1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
-+#define DRA7_VIP2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
-+#define DRA7_VIP3_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
-+
- /* coreaon clocks */
- #define DRA7_SMARTREFLEX_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
- #define DRA7_SMARTREFLEX_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
-@@ -202,6 +207,11 @@
- #define DRA7_VPE_CLKCTRL_INDEX(offset)	((offset) - DRA7_VPE_CLKCTRL_OFFSET)
- #define DRA7_VPE_VPE_CLKCTRL	DRA7_VPE_CLKCTRL_INDEX(0x64)
- 
-+/* vip clocks */
-+#define DRA7_CAM_VIP1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
-+#define DRA7_CAM_VIP2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
-+#define DRA7_CAM_VIP3_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
-+
- /* coreaon clocks */
- #define DRA7_COREAON_SMARTREFLEX_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
- #define DRA7_COREAON_SMARTREFLEX_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
+ &dss {
+ 	reg = <0x58000000 0x80>,
+ 	      <0x58004054 0x4>,
 -- 
 2.17.1
