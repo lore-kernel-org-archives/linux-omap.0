@@ -1,14 +1,14 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 5/5] ARM: OMAP2+: use separate IOMMU pdata to fix DRA7 IPU1
- boot
-Date: Thu, 12 Dec 2019 15:05:41 +0200
-Message-ID: <20191212130541.3657-6-t-kristo@ti.com>
-References: <20191212130541.3657-1-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] bus: ti-sysc: Drop MMU quirks
+Date: Thu, 12 Dec 2019 08:59:20 -0800
+Message-ID: <20191212165920.GU35479@atomide.com>
+References: <20191212124751.3400-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191212130541.3657-1-t-kristo@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20191212124751.3400-1-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,95 +18,18 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: s-anna@ti.com, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: s-anna@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+* Tero Kristo <t-kristo@ti.com> [191212 04:48]:
+> From: Suman Anna <s-anna@ti.com>
+> 
+> The OMAP IOMMU driver no longer uses the pm_runtime_irq_safe() API
+> after commit 1432ebbd6003 ("iommu/omap: remove pm_runtime_irq_safe
+> flag for OMAP IOMMUs"), so the SYSC_QUIRK_LEGACY_IDLE quirk is no
+> longer needed for MMU devices. Drop the same.
 
-The IPU1 MMU has been using common IOMMU pdata quirks defined and
-used by all IPU IOMMU devices on OMAP4 and beyond. Separate out the
-pdata for IPU1 MMU with the additional .set_pwrdm_constraint ops
-plugged in, so that the IPU1 power domain can be restricted to ON
-state during the boot and active period of the IPU1 remote processor.
-This eliminates the pre-conditions for the IPU1 boot issue as
-described in commit afe518400bdb ("iommu/omap: fix boot issue on
-remoteprocs with AMMU/Unicache").
+Thanks applying into omap-for-v5.6/ti-sysc.
 
-NOTE:
-1. RET is not a valid target power domain state on DRA7 platforms,
-   and IPU power domain is normally programmed for OFF. The IPU1
-   still fails to boot though, and an unclearable l3_noc error is
-   thrown currently on 4.14 kernel without this fix. This behavior
-   is slightly different from previous 4.9 LTS kernel.
-2. The fix is currently applied only to IPU1 on DRA7xx SoC, as the
-   other affected processors on OMAP4/OMAP5/DRA7 are in domains
-   that are not entering RET. IPU2 on DRA7 is in CORE power domain
-   which is only programmed for ON power state. The fix can be easily
-   scaled if these domains do hit RET in the future.
-3. The issue was not seen on current DRA7 platforms if any of the
-   DSP remote processors were booted and using one of the GPTimers
-   5, 6, 7 or 8 on previous 4.9 LTS kernel. This was due to the
-   errata fix for i874 implemented in commit 1cbabcb9807e ("ARM:
-   DRA7: clockdomain: Implement timer workaround for errata i874")
-   which keeps the IPU1 power domain from entering RET when the
-   timers are active. But the timer workaround did not make any
-   difference on 4.14 kernel, and an l3_noc error was seen still
-   without this fix.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/mach-omap2/pdata-quirks.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 88ca7f82510a..7c6e57e4bcb2 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -43,6 +43,17 @@ struct pdata_init {
- static struct of_dev_auxdata omap_auxdata_lookup[];
- static struct twl4030_gpio_platform_data twl_gpio_auxdata;
- 
-+#if IS_ENABLED(CONFIG_OMAP_IOMMU)
-+int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
-+				    u8 *pwrst);
-+#else
-+static inline int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev,
-+						  bool request, u8 *pwrst)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_MACH_NOKIA_N8X0
- static void __init omap2420_n8x0_legacy_init(void)
- {
-@@ -276,6 +287,10 @@ static void __init omap5_uevm_legacy_init(void)
- #endif
- 
- #ifdef CONFIG_SOC_DRA7XX
-+static struct iommu_platform_data dra7_ipu1_dsp_iommu_pdata = {
-+	.set_pwrdm_constraint = omap_iommu_set_pwrdm_constraint,
-+};
-+
- static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc1;
- static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc2;
- static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc3;
-@@ -499,6 +514,12 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
- 		       &dra7_hsmmc_data_mmc2),
- 	OF_DEV_AUXDATA("ti,dra7-hsmmc", 0x480ad000, "480ad000.mmc",
- 		       &dra7_hsmmc_data_mmc3),
-+	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x40d01000, "40d01000.mmu",
-+		       &dra7_ipu1_dsp_iommu_pdata),
-+	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x41501000, "41501000.mmu",
-+		       &dra7_ipu1_dsp_iommu_pdata),
-+	OF_DEV_AUXDATA("ti,dra7-iommu", 0x58882000, "58882000.mmu",
-+		       &dra7_ipu1_dsp_iommu_pdata),
- #endif
- 	/* Common auxdata */
- 	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
--- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Tony
