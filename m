@@ -1,71 +1,60 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [Patch v3 0/3] ARM: dts: am43x-vpfe/ov2659.patch
-Date: Fri, 13 Dec 2019 09:42:32 +0200
-Message-ID: <c4ae58dc-3c81-f493-a665-6926baa0f04c@ti.com>
-References: <20191211140720.10539-1-bparrot@ti.com>
- <20191212174123.GF35479@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: dts: am437x-gp-evm: add HDMI support
+Date: Thu, 12 Dec 2019 09:31:10 -0800
+Message-ID: <20191212173110.GA35479@atomide.com>
+References: <20191125131100.9839-1-tomi.valkeinen@ti.com>
+ <20191212172104.GY35479@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191212174123.GF35479@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Parrot <bparrot@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20191212172104.GY35479@atomide.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, robh+dt@kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/12/2019 19:41, Tony Lindgren wrote:
-> * Benoit Parrot <bparrot@ti.com> [191211 06:04]:
->> This patch series adds the missing camera endpoint (ov2659) as well as
->> the required source clocks nodes for the sensor.
->>
->> On the am437x-sk-evm the camera sensor is sourced from clkout1 but that
->> clock nodes/tree was removed as it was unsed at the time, we are
->> re-adding the needed clock nodes here.
+* Tony Lindgren <tony@atomide.com> [191212 17:21]:
+> Hi,
 > 
-> Tero, it seems I can already pick this series?
-
-I believe it is ready if you approve the clkout1 clock patch.
-
-> Or ou want to queue the changes to am43xx-clocks.dtsi along with all
-> your other clock patches?
-
-Well, I have actually never queued any omap2+ dts patches myself, and I 
-don't think there would be too many of those coming for next merge either.
-
--Tero
-
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [191125 05:11]:
+> > Add HDMI support for AM437x GP EVM. The HDMI uses SiI9022 HDMI encoder,
+> > and is mutually exclusive with the LCD. The choice between LCD and HDMI
+> > is made by booting either with am437x-gp-evm.dtb or
+> > am437x-gp-evm-hdmi.dtb.
 > 
-> Regards,
+> So Linux kernel needs a new board device tree file to toggle a GPIO line
+> to switch between LCD mode and HDMI?
 > 
-> Tony
+> That does not sound very user friendly for something that's supposed
+> to be hot pluggabe :)
 > 
->   
->> Changes since v2:
->> - Fixed/added Tony's ack
->>
->> Changes since v1:
->> - Fix clock name to make it generic
->> - Add non-standard clock node naming to commit message as per Tony's
->>    comment
->> - Rename all clock nodes to use '-' instead of '_'
->>
->> Benoit Parrot (2):
->>    ARM: dts: am437x-sk-evm: Add VPFE and OV2659 entries
->>    ARM: dts: am43x-epos-evm: Add VPFE and OV2659 entries
->>
->> Tero Kristo (1):
->>    ARM: dts: am43xx: add support for clkout1 clock
->>
->>   arch/arm/boot/dts/am437x-sk-evm.dts  | 27 +++++++++++++-
->>   arch/arm/boot/dts/am43x-epos-evm.dts | 23 +++++++++++-
->>   arch/arm/boot/dts/am43xx-clocks.dtsi | 54 ++++++++++++++++++++++++++++
->>   3 files changed, 102 insertions(+), 2 deletions(-)
->>
->> -- 
->> 2.17.1
->>
+> > +/* Override SelLCDorHDMI from am437x-gp-evm.dts to select HDMI */
+> > +&gpio5 {
+> > +	p8 {
+> > +		output-low;
+> > +	};
+> > +};
+> 
+> How about just leave the gpio unconfigured and document that a userspace
+> tool or /sys/kernel/debug/gpio is needed to toggle between the modes?
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Adding also Linus Walleij to Cc in case he has some ideas here.
+
+Anyways, I'm applying the changes to dra76-evm am57xx-idk-common
+into omap-for-v5.6/dt as they have no GPIO pin limitation.
+
+I'd like to hear comments from folks on the first two though.
+
+Regards,
+
+Tony
