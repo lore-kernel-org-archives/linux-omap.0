@@ -1,7 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 4/5] ARM: OMAP2+: omap-iommu.c conversion to ti-sysc
-Date: Thu, 12 Dec 2019 15:05:40 +0200
-Message-ID: <20191212130541.3657-5-t-kristo@ti.com>
+Subject: [PATCH 5/5] ARM: OMAP2+: use separate IOMMU pdata to fix DRA7 IPU1
+ boot
+Date: Thu, 12 Dec 2019 15:05:41 +0200
+Message-ID: <20191212130541.3657-6-t-kristo@ti.com>
 References: <20191212130541.3657-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,153 +22,89 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: s-anna@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Convert omap2 iommu platform code to use ti-sysc instead of legacy
-omap-device / hwmod interfaces.
+From: Suman Anna <s-anna@ti.com>
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+The IPU1 MMU has been using common IOMMU pdata quirks defined and
+used by all IPU IOMMU devices on OMAP4 and beyond. Separate out the
+pdata for IPU1 MMU with the additional .set_pwrdm_constraint ops
+plugged in, so that the IPU1 power domain can be restricted to ON
+state during the boot and active period of the IPU1 remote processor.
+This eliminates the pre-conditions for the IPU1 boot issue as
+described in commit afe518400bdb ("iommu/omap: fix boot issue on
+remoteprocs with AMMU/Unicache").
+
+NOTE:
+1. RET is not a valid target power domain state on DRA7 platforms,
+   and IPU power domain is normally programmed for OFF. The IPU1
+   still fails to boot though, and an unclearable l3_noc error is
+   thrown currently on 4.14 kernel without this fix. This behavior
+   is slightly different from previous 4.9 LTS kernel.
+2. The fix is currently applied only to IPU1 on DRA7xx SoC, as the
+   other affected processors on OMAP4/OMAP5/DRA7 are in domains
+   that are not entering RET. IPU2 on DRA7 is in CORE power domain
+   which is only programmed for ON power state. The fix can be easily
+   scaled if these domains do hit RET in the future.
+3. The issue was not seen on current DRA7 platforms if any of the
+   DSP remote processors were booted and using one of the GPTimers
+   5, 6, 7 or 8 on previous 4.9 LTS kernel. This was due to the
+   errata fix for i874 implemented in commit 1cbabcb9807e ("ARM:
+   DRA7: clockdomain: Implement timer workaround for errata i874")
+   which keeps the IPU1 power domain from entering RET when the
+   timers are active. But the timer workaround did not make any
+   difference on 4.14 kernel, and an l3_noc error was seen still
+   without this fix.
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/mach-omap2/omap-iommu.c | 99 ++++++++++++++++++++++++++------
- 1 file changed, 80 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/pdata-quirks.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index 78247e6f4a72..54aff33e55e6 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -8,19 +8,27 @@
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 88ca7f82510a..7c6e57e4bcb2 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -43,6 +43,17 @@ struct pdata_init {
+ static struct of_dev_auxdata omap_auxdata_lookup[];
+ static struct twl4030_gpio_platform_data twl_gpio_auxdata;
  
- #include <linux/platform_device.h>
- #include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/list.h>
++#if IS_ENABLED(CONFIG_OMAP_IOMMU)
++int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
++				    u8 *pwrst);
++#else
++static inline int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev,
++						  bool request, u8 *pwrst)
++{
++	return 0;
++}
++#endif
++
+ #ifdef CONFIG_MACH_NOKIA_N8X0
+ static void __init omap2420_n8x0_legacy_init(void)
+ {
+@@ -276,6 +287,10 @@ static void __init omap5_uevm_legacy_init(void)
+ #endif
  
--#include "omap_hwmod.h"
--#include "omap_device.h"
- #include "clockdomain.h"
- #include "powerdomain.h"
- 
-+struct pwrdm_link {
-+	struct device *dev;
-+	struct powerdomain *pwrdm;
-+	struct list_head node;
+ #ifdef CONFIG_SOC_DRA7XX
++static struct iommu_platform_data dra7_ipu1_dsp_iommu_pdata = {
++	.set_pwrdm_constraint = omap_iommu_set_pwrdm_constraint,
 +};
 +
-+static DEFINE_SPINLOCK(iommu_lock);
-+static struct clockdomain *emu_clkdm;
-+static atomic_t emu_count;
-+
- static void omap_iommu_dra7_emu_swsup_config(struct platform_device *pdev,
- 					     bool enable)
- {
--	static struct clockdomain *emu_clkdm;
--	static DEFINE_SPINLOCK(emu_lock);
--	static atomic_t count;
- 	struct device_node *np = pdev->dev.of_node;
-+	unsigned long flags;
- 
- 	if (!of_device_is_compatible(np, "ti,dra7-dsp-iommu"))
- 		return;
-@@ -31,34 +39,87 @@ static void omap_iommu_dra7_emu_swsup_config(struct platform_device *pdev,
- 			return;
- 	}
- 
--	spin_lock(&emu_lock);
-+	spin_lock_irqsave(&iommu_lock, flags);
- 
--	if (enable && (atomic_inc_return(&count) == 1))
-+	if (enable && (atomic_inc_return(&emu_count) == 1))
- 		clkdm_deny_idle(emu_clkdm);
--	else if (!enable && (atomic_dec_return(&count) == 0))
-+	else if (!enable && (atomic_dec_return(&emu_count) == 0))
- 		clkdm_allow_idle(emu_clkdm);
- 
--	spin_unlock(&emu_lock);
-+	spin_unlock_irqrestore(&iommu_lock, flags);
-+}
-+
-+static struct powerdomain *_get_pwrdm(struct device *dev)
-+{
-+	struct clk *clk;
-+	struct clk_hw_omap *hwclk;
-+	struct clockdomain *clkdm;
-+	struct powerdomain *pwrdm = NULL;
-+	struct pwrdm_link *entry;
-+	unsigned long flags;
-+	static LIST_HEAD(cache);
-+
-+	spin_lock_irqsave(&iommu_lock, flags);
-+
-+	list_for_each_entry(entry, &cache, node) {
-+		if (entry->dev == dev) {
-+			pwrdm = entry->pwrdm;
-+			break;
-+		}
-+	}
-+
-+	spin_unlock_irqrestore(&iommu_lock, flags);
-+
-+	if (pwrdm)
-+		return pwrdm;
-+
-+	clk = of_clk_get(dev->of_node->parent, 0);
-+	if (!clk) {
-+		dev_err(dev, "no fck found\n");
-+		return NULL;
-+	}
-+
-+	hwclk = to_clk_hw_omap(__clk_get_hw(clk));
-+	clk_put(clk);
-+	if (!hwclk || !hwclk->clkdm_name) {
-+		dev_err(dev, "no hwclk data\n");
-+		return NULL;
-+	}
-+
-+	clkdm = clkdm_lookup(hwclk->clkdm_name);
-+	if (!clkdm) {
-+		dev_err(dev, "clkdm not found: %s\n", hwclk->clkdm_name);
-+		return NULL;
-+	}
-+
-+	pwrdm = clkdm_get_pwrdm(clkdm);
-+	if (!pwrdm) {
-+		dev_err(dev, "pwrdm not found: %s\n", clkdm->name);
-+		return NULL;
-+	}
-+
-+	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
-+	if (entry) {
-+		entry->dev = dev;
-+		entry->pwrdm = pwrdm;
-+		spin_lock_irqsave(&iommu_lock, flags);
-+		list_add(&entry->node, &cache);
-+		spin_unlock_irqrestore(&iommu_lock, flags);
-+	}
-+
-+	return pwrdm;
- }
- 
- int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
- 				    u8 *pwrst)
- {
- 	struct powerdomain *pwrdm;
--	struct omap_device *od;
- 	u8 next_pwrst;
- 	int ret = 0;
- 
--	od = to_omap_device(pdev);
--	if (!od)
--		return -ENODEV;
--
--	if (od->hwmods_cnt != 1)
--		return -EINVAL;
--
--	pwrdm = omap_hwmod_get_pwrdm(od->hwmods[0]);
-+	pwrdm = _get_pwrdm(&pdev->dev);
- 	if (!pwrdm)
--		return -EINVAL;
-+		return -ENODEV;
- 
- 	if (request) {
- 		*pwrst = pwrdm_read_next_pwrst(pwrdm);
+ static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc1;
+ static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc2;
+ static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc3;
+@@ -499,6 +514,12 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
+ 		       &dra7_hsmmc_data_mmc2),
+ 	OF_DEV_AUXDATA("ti,dra7-hsmmc", 0x480ad000, "480ad000.mmc",
+ 		       &dra7_hsmmc_data_mmc3),
++	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x40d01000, "40d01000.mmu",
++		       &dra7_ipu1_dsp_iommu_pdata),
++	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x41501000, "41501000.mmu",
++		       &dra7_ipu1_dsp_iommu_pdata),
++	OF_DEV_AUXDATA("ti,dra7-iommu", 0x58882000, "58882000.mmu",
++		       &dra7_ipu1_dsp_iommu_pdata),
+ #endif
+ 	/* Common auxdata */
+ 	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
 -- 
 2.17.1
 
