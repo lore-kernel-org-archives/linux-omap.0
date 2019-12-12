@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/5] ARM: OMAP4+: remove pdata quirks for omap4+ iommus
-Date: Thu, 12 Dec 2019 15:05:38 +0200
-Message-ID: <20191212130541.3657-3-t-kristo@ti.com>
+Subject: [PATCH 4/5] ARM: OMAP2+: omap-iommu.c conversion to ti-sysc
+Date: Thu, 12 Dec 2019 15:05:40 +0200
+Message-ID: <20191212130541.3657-5-t-kristo@ti.com>
 References: <20191212130541.3657-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,46 +21,153 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: s-anna@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-IOMMU driver will be using ti-sysc bus driver for power management control
-going forward, and the pdata quirks are not needed for anything anymore.
+Convert omap2 iommu platform code to use ti-sysc instead of legacy
+omap-device / hwmod interfaces.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pdata-quirks.c | 14 --------------
- 1 file changed, 14 deletions(-)
+ arch/arm/mach-omap2/omap-iommu.c | 99 ++++++++++++++++++++++++++------
+ 1 file changed, 80 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index d8260e61ef92..88ca7f82510a 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -261,16 +261,6 @@ static void __init omap3_pandora_legacy_init(void)
- }
- #endif /* CONFIG_ARCH_OMAP3 */
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index 78247e6f4a72..54aff33e55e6 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -8,19 +8,27 @@
  
--#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
--static struct iommu_platform_data omap4_iommu_pdata = {
--	.reset_name = "mmu_cache",
--	.assert_reset = omap_device_assert_hardreset,
--	.deassert_reset = omap_device_deassert_hardreset,
--	.device_enable = omap_device_enable,
--	.device_idle = omap_device_idle,
--};
--#endif
+ #include <linux/platform_device.h>
+ #include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/list.h>
+ 
+-#include "omap_hwmod.h"
+-#include "omap_device.h"
+ #include "clockdomain.h"
+ #include "powerdomain.h"
+ 
++struct pwrdm_link {
++	struct device *dev;
++	struct powerdomain *pwrdm;
++	struct list_head node;
++};
++
++static DEFINE_SPINLOCK(iommu_lock);
++static struct clockdomain *emu_clkdm;
++static atomic_t emu_count;
++
+ static void omap_iommu_dra7_emu_swsup_config(struct platform_device *pdev,
+ 					     bool enable)
+ {
+-	static struct clockdomain *emu_clkdm;
+-	static DEFINE_SPINLOCK(emu_lock);
+-	static atomic_t count;
+ 	struct device_node *np = pdev->dev.of_node;
++	unsigned long flags;
+ 
+ 	if (!of_device_is_compatible(np, "ti,dra7-dsp-iommu"))
+ 		return;
+@@ -31,34 +39,87 @@ static void omap_iommu_dra7_emu_swsup_config(struct platform_device *pdev,
+ 			return;
+ 	}
+ 
+-	spin_lock(&emu_lock);
++	spin_lock_irqsave(&iommu_lock, flags);
+ 
+-	if (enable && (atomic_inc_return(&count) == 1))
++	if (enable && (atomic_inc_return(&emu_count) == 1))
+ 		clkdm_deny_idle(emu_clkdm);
+-	else if (!enable && (atomic_dec_return(&count) == 0))
++	else if (!enable && (atomic_dec_return(&emu_count) == 0))
+ 		clkdm_allow_idle(emu_clkdm);
+ 
+-	spin_unlock(&emu_lock);
++	spin_unlock_irqrestore(&iommu_lock, flags);
++}
++
++static struct powerdomain *_get_pwrdm(struct device *dev)
++{
++	struct clk *clk;
++	struct clk_hw_omap *hwclk;
++	struct clockdomain *clkdm;
++	struct powerdomain *pwrdm = NULL;
++	struct pwrdm_link *entry;
++	unsigned long flags;
++	static LIST_HEAD(cache);
++
++	spin_lock_irqsave(&iommu_lock, flags);
++
++	list_for_each_entry(entry, &cache, node) {
++		if (entry->dev == dev) {
++			pwrdm = entry->pwrdm;
++			break;
++		}
++	}
++
++	spin_unlock_irqrestore(&iommu_lock, flags);
++
++	if (pwrdm)
++		return pwrdm;
++
++	clk = of_clk_get(dev->of_node->parent, 0);
++	if (!clk) {
++		dev_err(dev, "no fck found\n");
++		return NULL;
++	}
++
++	hwclk = to_clk_hw_omap(__clk_get_hw(clk));
++	clk_put(clk);
++	if (!hwclk || !hwclk->clkdm_name) {
++		dev_err(dev, "no hwclk data\n");
++		return NULL;
++	}
++
++	clkdm = clkdm_lookup(hwclk->clkdm_name);
++	if (!clkdm) {
++		dev_err(dev, "clkdm not found: %s\n", hwclk->clkdm_name);
++		return NULL;
++	}
++
++	pwrdm = clkdm_get_pwrdm(clkdm);
++	if (!pwrdm) {
++		dev_err(dev, "pwrdm not found: %s\n", clkdm->name);
++		return NULL;
++	}
++
++	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
++	if (entry) {
++		entry->dev = dev;
++		entry->pwrdm = pwrdm;
++		spin_lock_irqsave(&iommu_lock, flags);
++		list_add(&entry->node, &cache);
++		spin_unlock_irqrestore(&iommu_lock, flags);
++	}
++
++	return pwrdm;
+ }
+ 
+ int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
+ 				    u8 *pwrst)
+ {
+ 	struct powerdomain *pwrdm;
+-	struct omap_device *od;
+ 	u8 next_pwrst;
+ 	int ret = 0;
+ 
+-	od = to_omap_device(pdev);
+-	if (!od)
+-		return -ENODEV;
 -
- #if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
- static struct wkup_m3_platform_data wkup_m3_data = {
- 	.reset_name = "wkup_m3",
-@@ -495,10 +485,6 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
- 		       &wkup_m3_data),
- #endif
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
--	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
--		       &omap4_iommu_pdata),
--	OF_DEV_AUXDATA("ti,omap4-iommu", 0x55082000, "55082000.mmu",
--		       &omap4_iommu_pdata),
- 	OF_DEV_AUXDATA("ti,omap4-smartreflex-iva", 0x4a0db000,
- 		       "4a0db000.smartreflex", &omap_sr_pdata[OMAP_SR_IVA]),
- 	OF_DEV_AUXDATA("ti,omap4-smartreflex-core", 0x4a0dd000,
+-	if (od->hwmods_cnt != 1)
+-		return -EINVAL;
+-
+-	pwrdm = omap_hwmod_get_pwrdm(od->hwmods[0]);
++	pwrdm = _get_pwrdm(&pdev->dev);
+ 	if (!pwrdm)
+-		return -EINVAL;
++		return -ENODEV;
+ 
+ 	if (request) {
+ 		*pwrst = pwrdm_read_next_pwrst(pwrdm);
 -- 
 2.17.1
 
