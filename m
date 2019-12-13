@@ -1,14 +1,12 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 12/16] ARM: OMAP2+: Drop legacy platform data for am3 and
- am4 rtc
-Date: Fri, 13 Dec 2019 10:58:13 +0530
-Message-ID: <422c4d8d-27e3-7055-e8a4-c830a7e569be@ti.com>
-References: <20191211172014.35201-1-tony@atomide.com>
- <20191211172014.35201-13-tony@atomide.com>
+Subject: Re: [PATCH 00/13] Drop more legacy platform data for omaps
+Date: Fri, 13 Dec 2019 11:39:10 +0530
+Message-ID: <732d073a-8f46-8df0-3bc2-b24b845e3e91@ti.com>
+References: <20191211191206.12190-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------2AAA9547B1D936A896CFD252"
+Content-Type: multipart/mixed; boundary="------------24BD0487D7392C320305683D"
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191211172014.35201-13-tony@atomide.com>
+In-Reply-To: <20191211191206.12190-1-tony@atomide.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -20,364 +18,78 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Vignesh R <vigneshr@ti.com>, Jyri Sarha <jsarha@ti.com>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>, Roger Quadros <rogerq@ti.com>
+Cc: Benoit Parrot <bparrot@ti.com>, Sebastian Reichel <sre@kernel.org>, Bin Liu <b-liu@ti.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---------------2AAA9547B1D936A896CFD252
+--------------24BD0487D7392C320305683D
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
 
 
-On 11/12/19 10:50 pm, Tony Lindgren wrote:
-> We can now probe devices with ti-sysc interconnect driver and dts
-> data. Let's drop the related platform data and custom ti,hwmods
-> dts property.
+On 12/12/19 12:41 am, Tony Lindgren wrote:
+> Hi all,
 >=20
-> As we're just dropping data, and the early platform data init
-> is based on the custom ti,hwmods property, we want to drop both
-> the platform data and ti,hwmods property in a single patch.
+> Here are more patches to drop legacy platform data for v5.6,
+> please test.
 >=20
-> Note that we also must tag rtc as disabled on am43x-epos-evm as
-> it's not accessible according to commit 4321dc8dff35 ("ARM: AM43XX:
-> hwmod: Add rtc hwmod").
+> To make testing easier, I've pushed out all the related patches
+> I've posted over past few days into omap-for-5.6/ti-sysc-testing
+> branch at [0][1].
+
+Hi Tony,
+
+Boot tested on DRA71 & DRA76.
+
+Tested for RTC+DDR mode and DS0 mode on AM437x.
+Tested for DS0 on am335x-evm & am335x-beagle-bone-black.
+
+FWIW
+
+Tested-by: Keerthy <j-keerthy@ti.com>
+
+- Keerthy
+
 >=20
-
-Tony,
-
-Both AM3 & AM4 are crashing while probing rtc. Due to rtc-clkctrl enable
-failure. So this breaks AM4/3.
-
-[   15.884334] l4-rtc-clkctrl:0000:0: failed to enable
-[   15.889502] 8<--- cut here ---
-[   15.892580] Unhandled fault: external abort on non-linefetch (0x1028)
-at 0xf9e3e054
-[   15.900276] pgd =3D 5fc023bc
-[   15.902992] [f9e3e054] *pgd=3D44e11452(bad)
-[   15.907031] Internal error: : 1028 [#1] SMP ARM
-[   15.911582] Modules linked in: rtc_omap(+) musb_dsps(+) omap_wdt
-musb_hdrc watchdog udc_core ti_am335x_tscadc phy_am335x usbcore
-phy_am335x_control phy_generic usb_common cppi41 wkup_m3_rproc
-matrix_keypad matrix_keymap cpufreq_dt pwm_bl autofs4
-[   15.933449] CPU: 0 PID: 127 Comm: systemd-udevd Not tainted
-5.5.0-rc1-207506-g8ce8793 #1
-[   15.941572] Hardware name: Generic AM33XX (Flattened Device Tree)
-[   15.947722] PC is at omap_rtc_probe+0x388/0x508 [rtc_omap]
-[   15.953237] LR is at omap_rtc_probe+0x104/0x508 [rtc_omap]
-[   15.958744] pc : [<bf09e250>]    lr : [<bf09dfcc>]    psr: 200f0013
-[   15.965036] sp : eda7bcc8  ip : 00000001  fp : c0e05148
-[   15.970280] r10: 00000016  r9 : bf0a0080  r8 : 00000000
-[   15.975525] r7 : 00000000  r6 : eeb85800  r5 : eeb85810  r4 : ed8250c0=
-
-[   15.982079] r3 : f9e3e000  r2 : 00000001  r1 : 600f0013  r0 : ed8250c0=
-
-[   15.988634] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM
-Segment none
-[   15.995799] Control: 10c5387d  Table: ada58019  DAC: 00000051
-[   16.001567] Process systemd-udevd (pid: 127, stack limit =3D 0x102b225=
-7)
-[   16.008122] Stack: (0xeda7bcc8 to 0xeda7c000)
-[   16.012500] bcc0:                   00000001 eeb85810 c0ee7b9c
-bf0a0080 eeb85810 00000000
-[   16.020715] bce0: bf0a0080 00000000 00000000 c060ad50 eeb85810
-c0ee7b9c c0ee7ba0 00000000
-[   16.028931] bd00: 00000000 c0608cf8 eeb85810 bf0a0080 bf0a0080
-c0e05148 ffffe000 00000028
-[   16.037146] bd20: bf0a0100 c0608fe8 bf09f13c a00f0013 ef4e3f70
-eeb85810 00000000 bf0a0080
-[   16.045361] bd40: c0e05148 ffffe000 00000028 c0609290 00000000
-bf0a0080 eeb85810 c06092f0
-[   16.053577] bd60: eeb847b4 bf0a0080 c0609298 c06070d0 00000028
-ee81be58 eeb847b4 d88e86a8
-[   16.061793] bd80: c0e858e0 bf0a0080 eda08280 c0e858e0 00000000
-c060803c bf09f5c0 00000000
-[   16.070008] bda0: bf0a0080 bf0a0080 c0e05148 bf0a3000 00000000
-c0609d88 c0ead180 c0e05148
-[   16.078223] bdc0: bf0a3000 c0102e80 c08fc7ec ed85e000 a00f0013
-c08fc500 c0ea6b9c d88e86a8
-[   16.086438] bde0: c0ba1dc0 eda08280 a00f0013 a00f0013 00000008
-c01d9200 00000001 bf0a0100
-[   16.094653] be00: c0e05148 d88e86a8 edc62d00 bf0a0100 00000002
-d88e86a8 bf0a0100 edc62d00
-[   16.102868] be20: ed98ab80 00000002 ed98abc0 c01d923c 00000002
-ed98ab80 eda7bf30 00000002
-[   16.111083] be40: ed98ab80 c01db70c bf0a010c 00007fff bf0a0100
-c01d8008 00010a34 bf0a0148
-[   16.119300] be60: b6e7a0c4 bf0a5560 bf0a0100 bf0a0214 bf0a02f8
-c0a06314 ffffe000 bf09f635
-[   16.127515] be80: ed920001 00000000 c0bd8d00 c0bc2958 bf09f03c
-00000001 00000000 00000000
-[   16.135729] bea0: 00000000 00000000 6e72656b 00006c65 00000000
-00000000 00000000 00000000
-[   16.143944] bec0: 00000000 00000000 00000000 00000000 00000000
-00000000 00000000 00000000
-[   16.152160] bee0: 00000000 d88e86a8 7fffffff c0e05148 00000000
-00000007 b6e7a0c4 7fffffff
-[   16.160375] bf00: 00000000 0000017b 00497d88 c01dbbe4 7fffffff
-00000000 00000003 eef12840
-[   16.168590] bf20: 00000000 f1245000 00010a34 00000000 f1246a77
-f1247740 f1245000 00010a34
-[   16.176806] bf40: f12550fc f1254eb8 f125105c 00004000 000043a0
-000024cc 00004630 00000000
-[   16.185022] bf60: 00000000 00000000 000024bc 00000038 00000039
-0000001e 0000001b 00000018
-[   16.193238] bf80: 00000000 d88e86a8 004985d0 00000000 00000001
-00000000 0000017b c0101204
-[   16.201453] bfa0: eda7a000 c01011e0 00000000 00000001 00000007
-b6e7a0c4 00000000 004985d0
-[   16.209668] bfc0: 00000000 00000001 00000000 0000017b 00000000
-00473dec 00000000 00497d88
-[   16.217883] bfe0: bead4990 bead4980 b6e72c58 b6daca82 60010030
-00000007 00000000 00000000
-[   16.226148] [<bf09e250>] (omap_rtc_probe [rtc_omap]) from
-[<c060ad50>] (platform_drv_probe+0x48/0x98)
-[   16.235420] [<c060ad50>] (platform_drv_probe) from [<c0608cf8>]
-(really_probe+0x1dc/0x348)
-[   16.243725] [<c0608cf8>] (really_probe) from [<c0608fe8>]
-(driver_probe_device+0x5c/0x164)
-[   16.252029] [<c0608fe8>] (driver_probe_device) from [<c0609290>]
-(device_driver_attach+0x58/0x60)
-[   16.260942] [<c0609290>] (device_driver_attach) from [<c06092f0>]
-(__driver_attach+0x58/0xcc)
-[   16.269506] [<c06092f0>] (__driver_attach) from [<c06070d0>]
-(bus_for_each_dev+0x70/0xb4)
-[   16.277722] [<c06070d0>] (bus_for_each_dev) from [<c060803c>]
-(bus_add_driver+0xf0/0x1d4)
-[   16.285938] [<c060803c>] (bus_add_driver) from [<c0609d88>]
-(driver_register+0x74/0x108)
-[   16.294072] [<c0609d88>] (driver_register) from [<c0102e80>]
-(do_one_initcall+0x48/0x22c)
-[   16.302293] [<c0102e80>] (do_one_initcall) from [<c01d923c>]
-(do_init_module+0x5c/0x234)
-[   16.310422] [<c01d923c>] (do_init_module) from [<c01db70c>]
-(load_module+0x2270/0x24f4)
-[   16.318462] [<c01db70c>] (load_module) from [<c01dbbe4>]
-(sys_finit_module+0xbc/0xdc)
-[   16.326329] [<c01dbbe4>] (sys_finit_module) from [<c01011e0>]
-(__sys_trace_return+0x0/0x20)
-[   16.334714] Exception stack(0xeda7bfa8 to 0xeda7bff0)
-[   16.339788] bfa0:                   00000000 00000001 00000007
-b6e7a0c4 00000000 004985d0
-[   16.348004] bfc0: 00000000 00000001 00000000 0000017b 00000000
-00473dec 00000000 00497d88
-[   16.356216] bfe0: bead4990 bead4980 b6e72c58 b6daca82
-[   16.361294] Code: eb5a9a1f e2900000 13a00001 eaffff31 (e5d38054)
-[   16.367418] ---[ end trace dee8d33f801e8530 ]---
-
-Regards,
-Keerthy
-
-> Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/boot/dts/am33xx-l4.dtsi              |  1 -
->  arch/arm/boot/dts/am437x-l4.dtsi              |  3 +-
->  arch/arm/boot/dts/am43x-epos-evm.dts          |  4 +++
->  .../omap_hwmod_33xx_43xx_common_data.h        |  2 --
->  .../omap_hwmod_33xx_43xx_interconnect_data.c  |  8 -----
->  .../omap_hwmod_33xx_43xx_ipblock_data.c       | 36 -------------------=
-
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  1 -
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c    |  8 -----
->  8 files changed, 5 insertions(+), 58 deletions(-)
+> Regards,
 >=20
-> diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33x=
-x-l4.dtsi
-> --- a/arch/arm/boot/dts/am33xx-l4.dtsi
-> +++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-> @@ -414,7 +414,6 @@ target-module@39000 {			/* 0x44e39000, ap 33 02.0 *=
-/
-> =20
->  		target-module@3e000 {			/* 0x44e3e000, ap 35 60.0 */
->  			compatible =3D "ti,sysc-omap4-simple", "ti,sysc";
-> -			ti,hwmods =3D "rtc";
->  			reg =3D <0x3e074 0x4>,
->  			      <0x3e078 0x4>;
->  			reg-names =3D "rev", "sysc";
-> diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437=
-x-l4.dtsi
-> --- a/arch/arm/boot/dts/am437x-l4.dtsi
-> +++ b/arch/arm/boot/dts/am437x-l4.dtsi
-> @@ -410,9 +410,8 @@ target-module@39000 {			/* 0x44e39000, ap 32 02.0 *=
-/
->  			ranges =3D <0x0 0x39000 0x1000>;
->  		};
-> =20
-> -		target-module@3e000 {			/* 0x44e3e000, ap 34 60.0 */
-> +		rtc_target: target-module@3e000 {	/* 0x44e3e000, ap 34 60.0 */
->  			compatible =3D "ti,sysc-omap4-simple", "ti,sysc";
-> -			ti,hwmods =3D "rtc";
->  			reg =3D <0x3e074 0x4>,
->  			      <0x3e078 0x4>;
->  			reg-names =3D "rev", "sysc";
-> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/a=
-m43x-epos-evm.dts
-> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
-> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-> @@ -828,6 +828,10 @@ &epwmss0 {
->  	status =3D "okay";
->  };
-> =20
-> +&rtc_target {
-> +	status =3D "disabled";
-> +};
-> +
->  &tscadc {
->  	status =3D "okay";
-> =20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/a=
-rch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-> @@ -27,7 +27,6 @@ extern struct omap_hwmod_ocp_if am33xx_l3_s__l3_main;=
+> Tony
+>=20
+> [0] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git=
+ omap-for-5.6/ti-sysc-testing
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.g=
+it/log/?h=3Domap-for-5.6/ti-sysc-testing
+>=20
+>=20
+> Tony Lindgren (13):
+>   ARM: OMAP2+: Drop legacy platform data for am4 ocp2scp
+>   ARM: OMAP2+: Drop legacy platform data for omap4 ocp2scp
+>   ARM: OMAP2+: Drop legacy platform data for omap5 ocp2scp
+>   ARM: OMAP2+: Drop legacy platform data for dra7 ocp2scp
+>   ARM: OMAP2+: Drop legacy platform data for am4 vpfe
+>   ARM: OMAP2+: Drop legacy platform data for omap4 hsi
+>   ARM: OMAP2+: Drop legacy platform data for omap4 smartreflex
+>   ARM: OMAP2+: Drop legacy platform data for dra7 smartreflex
+>   ARM: OMAP2+: Drop legacy platform data for omap4 kbd
+>   ARM: OMAP2+: Drop legacy platform data for omap5 kbd
+>   ARM: OMAP2+: Drop legacy platform data for omap4 slimbus
+>   ARM: OMAP2+: Drop legacy platform data for dra7 rtcss
+>   ARM: OMAP2+: Drop legacy platform data for omap4 fdif
+>=20
+>  arch/arm/boot/dts/am437x-l4.dtsi           |   4 -
+>  arch/arm/boot/dts/dra7-l4.dtsi             |   5 -
+>  arch/arm/boot/dts/omap4-l4.dtsi            |   8 -
+>  arch/arm/boot/dts/omap4.dtsi               |   1 -
+>  arch/arm/boot/dts/omap5-l4.dtsi            |   3 -
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 115 ------
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 423 ---------------------=
 
->  extern struct omap_hwmod_ocp_if am33xx_pruss__l3_main;
->  extern struct omap_hwmod_ocp_if am33xx_gfx__l3_main;
->  extern struct omap_hwmod_ocp_if am33xx_l3_main__gfx;
-> -extern struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc;
->  extern struct omap_hwmod_ocp_if am33xx_l4_ls__elm;
->  extern struct omap_hwmod_ocp_if am33xx_l3_s__gpmc;
->  extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer2;
-> @@ -51,7 +50,6 @@ extern struct omap_hwmod am33xx_smartreflex0_hwmod;
->  extern struct omap_hwmod am33xx_smartreflex1_hwmod;
->  extern struct omap_hwmod am33xx_elm_hwmod;
->  extern struct omap_hwmod am33xx_gpmc_hwmod;
-> -extern struct omap_hwmod am33xx_rtc_hwmod;
->  extern struct omap_hwmod am33xx_timer1_hwmod;
->  extern struct omap_hwmod am33xx_timer2_hwmod;
->  extern struct omap_hwmod am33xx_tpcc_hwmod;
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data=
-=2Ec b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-> @@ -98,14 +98,6 @@ struct omap_hwmod_ocp_if am33xx_l3_main__gfx =3D {
->  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
-> -/* l4 wkup -> rtc */
-> -struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc =3D {
-> -	.master		=3D &am33xx_l4_wkup_hwmod,
-> -	.slave		=3D &am33xx_rtc_hwmod,
-> -	.clk		=3D "clkdiv32k_ick",
-> -	.user		=3D OCP_USER_MPU,
-> -};
-> -
->  struct omap_hwmod_ocp_if am33xx_l4_ls__elm =3D {
->  	.master		=3D &am33xx_l4_ls_hwmod,
->  	.slave		=3D &am33xx_elm_hwmod,
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/=
-arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-> @@ -26,7 +26,6 @@
->  #define CLKCTRL(oh, clkctrl) ((oh).prcm.omap4.clkctrl_offs =3D (clkctr=
-l))
->  #define RSTCTRL(oh, rstctrl) ((oh).prcm.omap4.rstctrl_offs =3D (rstctr=
-l))
->  #define RSTST(oh, rstst) ((oh).prcm.omap4.rstst_offs =3D (rstst))
-> -#define PRCM_FLAGS(oh, flag) ((oh).prcm.omap4.flags =3D (flag))
-> =20
->  /*
->   * 'l3' class
-> @@ -331,38 +330,6 @@ struct omap_hwmod am33xx_gpmc_hwmod =3D {
->  };
-> =20
-> =20
-> -/*
-> - * 'rtc' class
-> - * rtc subsystem
-> - */
-> -static struct omap_hwmod_class_sysconfig am33xx_rtc_sysc =3D {
-> -	.rev_offs	=3D 0x0074,
-> -	.sysc_offs	=3D 0x0078,
-> -	.sysc_flags	=3D SYSC_HAS_SIDLEMODE,
-> -	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO |
-> -			  SIDLE_SMART | SIDLE_SMART_WKUP),
-> -	.sysc_fields	=3D &omap_hwmod_sysc_type3,
-> -};
-> -
-> -static struct omap_hwmod_class am33xx_rtc_hwmod_class =3D {
-> -	.name		=3D "rtc",
-> -	.sysc		=3D &am33xx_rtc_sysc,
-> -	.unlock		=3D &omap_hwmod_rtc_unlock,
-> -	.lock		=3D &omap_hwmod_rtc_lock,
-> -};
-> -
-> -struct omap_hwmod am33xx_rtc_hwmod =3D {
-> -	.name		=3D "rtc",
-> -	.class		=3D &am33xx_rtc_hwmod_class,
-> -	.clkdm_name	=3D "l4_rtc_clkdm",
-> -	.main_clk	=3D "clk_32768_ck",
-> -	.prcm		=3D {
-> -		.omap4	=3D {
-> -			.modulemode	=3D MODULEMODE_SWCTRL,
-> -		},
-> -	},
-> -};
-> -
->  /* 'timer 2-7' class */
->  static struct omap_hwmod_class_sysconfig am33xx_timer_sysc =3D {
->  	.rev_offs	=3D 0x0000,
-> @@ -504,8 +471,6 @@ static void omap_hwmod_am33xx_clkctrl(void)
->  	CLKCTRL(am33xx_smartreflex1_hwmod,
->  		AM33XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_timer1_hwmod, AM33XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET);
-> -	CLKCTRL(am33xx_rtc_hwmod, AM33XX_CM_RTC_RTC_CLKCTRL_OFFSET);
-> -	PRCM_FLAGS(am33xx_rtc_hwmod, HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_gpmc_hwmod, AM33XX_CM_PER_GPMC_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_l4_ls_hwmod, AM33XX_CM_PER_L4LS_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_l4_wkup_hwmod, AM33XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
-> @@ -543,7 +508,6 @@ static void omap_hwmod_am43xx_clkctrl(void)
->  	CLKCTRL(am33xx_smartreflex1_hwmod,
->  		AM43XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_timer1_hwmod, AM43XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET);
-> -	CLKCTRL(am33xx_rtc_hwmod, AM43XX_CM_RTC_RTC_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_gpmc_hwmod, AM43XX_CM_PER_GPMC_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_l4_ls_hwmod, AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET);
->  	CLKCTRL(am33xx_l4_wkup_hwmod, AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_33xx_data.c
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> @@ -336,7 +336,6 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_i=
-fs[] __initdata =3D {
->  	&am33xx_l4_wkup__smartreflex0,
->  	&am33xx_l4_wkup__smartreflex1,
->  	&am33xx_l4_wkup__timer1,
-> -	&am33xx_l4_wkup__rtc,
->  	&am33xx_l4_hs__pruss,
->  	&am33xx_l4_ls__timer2,
->  	&am33xx_l3_main__tpcc,
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_43xx_data.c
-> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> @@ -491,11 +491,6 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_=
-ifs[] __initdata =3D {
->  	NULL,
->  };
-> =20
-> -static struct omap_hwmod_ocp_if *am43xx_rtc_hwmod_ocp_ifs[] __initdata=
- =3D {
-> -	&am33xx_l4_wkup__rtc,
-> -	NULL,
-> -};
-> -
->  int __init am43xx_hwmod_init(void)
->  {
->  	int ret;
-> @@ -504,8 +499,5 @@ int __init am43xx_hwmod_init(void)
->  	omap_hwmod_init();
->  	ret =3D omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
-> =20
-> -	if (!ret && of_machine_is_compatible("ti,am4372"))
-> -		ret =3D omap_hwmod_register_links(am43xx_rtc_hwmod_ocp_ifs);
-> -
->  	return ret;
->  }
+>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 117 ------
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 194 ----------
+>  9 files changed, 870 deletions(-)
 >=20
 
---------------2AAA9547B1D936A896CFD252
+--------------24BD0487D7392C320305683D
 Content-Type: application/pgp-keys; name="pEpkey.asc"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: attachment; filename="pEpkey.asc"
@@ -524,7 +236,7 @@ Xpo=3D
 =3DNfsW
 -----END PGP PUBLIC KEY BLOCK-----
 
---------------2AAA9547B1D936A896CFD252
+--------------24BD0487D7392C320305683D
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -535,4 +247,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---------------2AAA9547B1D936A896CFD252--
+--------------24BD0487D7392C320305683D--
