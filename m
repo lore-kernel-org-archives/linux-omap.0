@@ -1,46 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch v3 0/3] ARM: dts: am43x-vpfe/ov2659.patch
-Date: Fri, 13 Dec 2019 07:29:38 -0800
-Message-ID: <20191213152938.GK35479@atomide.com>
-References: <20191211140720.10539-1-bparrot@ti.com>
- <20191212174123.GF35479@atomide.com>
- <c4ae58dc-3c81-f493-a665-6926baa0f04c@ti.com>
+Subject: [GIT PULL] omap fixes for v5.5-rc cycle
+Date: Fri, 13 Dec 2019 08:35:40 -0800
+Message-ID: <pull-1576254925-709310@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c4ae58dc-3c81-f493-a665-6926baa0f04c@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Benoit Parrot <bparrot@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: soc@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [191213 07:43]:
-> On 12/12/2019 19:41, Tony Lindgren wrote:
-> > * Benoit Parrot <bparrot@ti.com> [191211 06:04]:
-> > > This patch series adds the missing camera endpoint (ov2659) as well as
-> > > the required source clocks nodes for the sensor.
-> > > 
-> > > On the am437x-sk-evm the camera sensor is sourced from clkout1 but that
-> > > clock nodes/tree was removed as it was unsed at the time, we are
-> > > re-adding the needed clock nodes here.
-> > 
-> > Tero, it seems I can already pick this series?
-> 
-> I believe it is ready if you approve the clkout1 clock patch.
+From: "Tony Lindgren" <tony@atomide.com>
 
-OK yeah looks fine.
+The following changes since commit e42617b825f8073569da76dc4510bfa019b1c35a:
 
-> > Or ou want to queue the changes to am43xx-clocks.dtsi along with all
-> > your other clock patches?
-> 
-> Well, I have actually never queued any omap2+ dts patches myself, and I
-> don't think there would be too many of those coming for next merge either.
+  Linux 5.5-rc1 (2019-12-08 14:57:55 -0800)
 
-OK will queue this series then. For the other ones from Benoit
-looks like we need an immutable clock branch before I can apply
-anything.
+are available in the Git repository at:
 
-Regards,
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/fixes-rc1-signed
 
-Tony
+for you to fetch changes up to e709ed70d122e94cb426b1e1f905829eae19a009:
+
+  bus: ti-sysc: Fix missing reset delay handling (2019-12-12 08:20:10 -0800)
+
+----------------------------------------------------------------
+Fixes for omap variants for v5.5-rc1 cycle
+
+This series of changes contains fixes for issues recently noticed:
+
+- The ti-sysc interconnect target module driver needs fixes for
+  mstandby quirk handling and reset delay
+
+- We need to configure am335x-sancloud-bbe to use rgmii-id mode because of
+  the phy changes done earlier
+
+- NET_SWITCHDEV is no longer selected in Kconfig but a dependency and we
+  must enable CONFIG_NET_SWITCHDEV to have TI_CPSW_SWITCHDEV
+
+- We are still relying on DEBUG_FS at least for PM configuration, let's
+  add it back
+
+- We need to update compatible for am437x-gp/epos-evm because of the
+  recent changes to use generic panels
+
+----------------------------------------------------------------
+Grygorii Strashko (1):
+      ARM: omap2plus_defconfig: enable NET_SWITCHDEV
+
+Mans Rullgard (1):
+      ARM: dts: am335x-sancloud-bbe: fix phy mode
+
+Tomi Valkeinen (1):
+      ARM: dts: am437x-gp/epos-evm: fix panel compatible
+
+Tony Lindgren (3):
+      bus: ti-sysc: Fix missing force mstandby quirk handling
+      ARM: omap2plus_defconfig: Add back DEBUG_FS
+      bus: ti-sysc: Fix missing reset delay handling
+
+ arch/arm/boot/dts/am335x-sancloud-bbe.dts | 2 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts       | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts      | 2 +-
+ arch/arm/configs/omap2plus_defconfig      | 4 +++-
+ drivers/bus/ti-sysc.c                     | 7 ++++++-
+ include/linux/platform_data/ti-sysc.h     | 1 +
+ 6 files changed, 13 insertions(+), 5 deletions(-)
