@@ -1,92 +1,49 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 05/15] remoteproc/omap: Add the rproc ops .da_to_va() implementation
-Date: Fri, 13 Dec 2019 14:55:27 +0200
-Message-ID: <20191213125537.11509-6-t-kristo@ti.com>
-References: <20191213125537.11509-1-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 12/16] ARM: OMAP2+: Drop legacy platform data for am3 and
+ am4 rtc
+Date: Fri, 13 Dec 2019 06:59:26 -0800
+Message-ID: <20191213145926.GI35479@atomide.com>
+References: <20191211172014.35201-1-tony@atomide.com>
+ <20191211172014.35201-13-tony@atomide.com>
+ <422c4d8d-27e3-7055-e8a4-c830a7e569be@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191213125537.11509-1-t-kristo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <422c4d8d-27e3-7055-e8a4-c830a7e569be@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Suman Anna <s-anna@ti.com>, Vignesh R <vigneshr@ti.com>, Jyri Sarha <jsarha@ti.com>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Franklin S Cooper Jr <fcooper@ti.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+* Keerthy <j-keerthy@ti.com> [191213 05:28]:
+> On 11/12/19 10:50 pm, Tony Lindgren wrote:
+> > We can now probe devices with ti-sysc interconnect driver and dts
+> > data. Let's drop the related platform data and custom ti,hwmods
+> > dts property.
+> > 
+> > As we're just dropping data, and the early platform data init
+> > is based on the custom ti,hwmods property, we want to drop both
+> > the platform data and ti,hwmods property in a single patch.
+> > 
+> > Note that we also must tag rtc as disabled on am43x-epos-evm as
+> > it's not accessible according to commit 4321dc8dff35 ("ARM: AM43XX:
+> > hwmod: Add rtc hwmod").
+> 
+> Both AM3 & AM4 are crashing while probing rtc. Due to rtc-clkctrl enable
+> failure. So this breaks AM4/3.
 
-An implementation for the rproc ops .da_to_va() has been added
-that provides the address translation between device addresses
-to kernel virtual addresses for internal RAMs present on that
-particular remote processor device. The implementation provides
-the translations based on the addresses parsed and stored during
-the probe.
+Oh thanks for letting me know. I'll take a look.
 
-This ops gets invoked by the exported rproc_da_to_va() function
-and allows the remoteproc core's ELF loader to be able to load
-program data directly into the internal memories.
+Regards,
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/remoteproc/omap_remoteproc.c | 39 ++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
-
-diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 844703507a74..28f14e24b389 100644
---- a/drivers/remoteproc/omap_remoteproc.c
-+++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -232,10 +232,49 @@ static int omap_rproc_stop(struct rproc *rproc)
- 	return 0;
- }
- 
-+/**
-+ * omap_rproc_da_to_va() - internal memory translation helper
-+ * @rproc: remote processor to apply the address translation for
-+ * @da: device address to translate
-+ * @len: length of the memory buffer
-+ *
-+ * Custom function implementing the rproc .da_to_va ops to provide address
-+ * translation (device address to kernel virtual address) for internal RAMs
-+ * present in a DSP or IPU device). The translated addresses can be used
-+ * either by the remoteproc core for loading, or by any rpmsg bus drivers.
-+ * Returns the translated virtual address in kernel memory space, or NULL
-+ * in failure.
-+ */
-+static void *omap_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+{
-+	struct omap_rproc *oproc = rproc->priv;
-+	int i;
-+	u32 offset;
-+
-+	if (len <= 0)
-+		return NULL;
-+
-+	if (!oproc->num_mems)
-+		return NULL;
-+
-+	for (i = 0; i < oproc->num_mems; i++) {
-+		if (da >= oproc->mem[i].dev_addr && da + len <=
-+		    oproc->mem[i].dev_addr +  oproc->mem[i].size) {
-+			offset = da -  oproc->mem[i].dev_addr;
-+			/* __force to make sparse happy with type conversion */
-+			return (__force void *)(oproc->mem[i].cpu_addr +
-+						offset);
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
- static const struct rproc_ops omap_rproc_ops = {
- 	.start		= omap_rproc_start,
- 	.stop		= omap_rproc_stop,
- 	.kick		= omap_rproc_kick,
-+	.da_to_va	= omap_rproc_da_to_va,
- };
- 
- static const char * const ipu_mem_names[] = {
--- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Tony
