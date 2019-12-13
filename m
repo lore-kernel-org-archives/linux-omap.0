@@ -1,12 +1,12 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 00/16] Drop legacy platform data for various omap devices
-Date: Fri, 13 Dec 2019 11:40:43 +0530
-Message-ID: <87376f9c-6900-612b-e96a-0e44d087d095@ti.com>
-References: <20191211172014.35201-1-tony@atomide.com>
+Subject: Re: [PATCH] bus: ti-sysc: Fix missing reset delay handling
+Date: Fri, 13 Dec 2019 11:41:15 +0530
+Message-ID: <3ffb7088-8a10-c75a-1ad5-27701fad18e0@ti.com>
+References: <20191211185901.9879-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------5E7BF3703CF31460EEA1C4C2"
+Content-Type: multipart/mixed; boundary="------------950C312003D33B2A83474718"
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191211172014.35201-1-tony@atomide.com>
+In-Reply-To: <20191211185901.9879-1-tony@atomide.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -18,30 +18,25 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Vignesh R <vigneshr@ti.com>, Jyri Sarha <jsarha@ti.com>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>, Roger Quadros <rogerq@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Suman Anna <s-anna@ti.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---------------5E7BF3703CF31460EEA1C4C2
+--------------950C312003D33B2A83474718
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
 
 
-On 11/12/19 10:49 pm, Tony Lindgren wrote:
-> Hi all,
+On 12/12/19 12:29 am, Tony Lindgren wrote:
+> We have dts property for "ti,sysc-delay-us", and we're using it, but th=
+e
+> wait after OCP softreset only happens if devices are probed in legacy m=
+ode.
 >=20
-> In order to get the l4 instances closer to being usable with genpd, we
-> continue dropping legacy platform data for various devices.
->=20
-> Please test, some patches may depend on the earlier patches to drop
-> platform data to apply as they touch the same files.
+> Let's add a delay after writing the OCP softreset when specified.
+
 
 Hi Tony,
-
-As reported earlier patchh 12 of this series causes a crash at boot
-while probing the rtc.
-
-For the rest of the series:
 
 Boot tested on DRA72 & DRA76.
 
@@ -56,48 +51,31 @@ Tested-by: Keerthy <j-keerthy@ti.com>
 
 
 >=20
-> Regards,
+> Fixes: e0db94fe87da ("bus: ti-sysc: Make OCP reset work for sysstatus a=
+nd sysconfig reset bits")
+> Cc: Keerthy <j-keerthy@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/bus/ti-sysc.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 >=20
-> Tony
->=20
->=20
-> Tony Lindgren (16):
->   ARM: OMAP2+: Drop legacy platform data for am3 and am4 epwmss
->   ARM: OMAP2+: Drop legacy platform data for dra7 epwmss
->   ARM: OMAP2+: Drop legacy platform data for am3 and am4 spinlock
->   ARM: OMAP2+: Drop legacy platform data for omap4 spinlock
->   ARM: OMAP2+: Drop legacy platform data for omap5 spinlock
->   ARM: OMAP2+: Drop legacy platform data for dra7 spinlock
->   ARM: OMAP2+: Drop legacy platform data for am3 and am4 spi
->   ARM: OMAP2+: Drop legacy platform data for am3 and am4 dcan
->   ARM: OMAP2+: Drop legacy platform data for dra7 dcan
->   ARM: OMAP2+: Drop legacy platform data for am3 adc_tsc
->   ARM: OMAP2+: Drop legacy platform data for am4 adc_tsc
->   ARM: OMAP2+: Drop legacy platform data for am3 and am4 rtc
->   ARM: OMAP2+: Drop legacy platform data for am3 and am4 elm
->   ARM: OMAP2+: Drop legacy platform data for omap4 elm
->   ARM: OMAP2+: Drop legacy platform data for dra7 elm
->   ARM: OMAP2+: Drop legacy platform data for am3 lcdc
->=20
->  arch/arm/boot/dts/am33xx-l4.dtsi              |  12 -
->  arch/arm/boot/dts/am437x-l4.dtsi              |  19 +-
->  arch/arm/boot/dts/am43x-epos-evm.dts          |   4 +
->  arch/arm/boot/dts/dra7-l4.dtsi                |   5 -
->  arch/arm/boot/dts/omap4-l4.dtsi               |   2 -
->  arch/arm/boot/dts/omap5-l4.dtsi               |   1 -
->  .../omap_hwmod_33xx_43xx_common_data.h        |  21 --
->  .../omap_hwmod_33xx_43xx_interconnect_data.c  |  76 ------
->  .../omap_hwmod_33xx_43xx_ipblock_data.c       | 247 ------------------=
-
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  85 ------
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c    | 183 -------------
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  85 ------
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c    |  43 ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c     | 236 -----------------
->  14 files changed, 5 insertions(+), 1014 deletions(-)
+> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+> --- a/drivers/bus/ti-sysc.c
+> +++ b/drivers/bus/ti-sysc.c
+> @@ -1590,6 +1590,10 @@ static int sysc_reset(struct sysc *ddata)
+>  	sysc_val |=3D sysc_mask;
+>  	sysc_write(ddata, sysc_offset, sysc_val);
+> =20
+> +	if (ddata->cfg.srst_udelay)
+> +		usleep_range(ddata->cfg.srst_udelay,
+> +			     ddata->cfg.srst_udelay * 2);
+> +
+>  	if (ddata->clk_enable_quirk)
+>  		ddata->clk_enable_quirk(ddata);
+> =20
 >=20
 
---------------5E7BF3703CF31460EEA1C4C2
+--------------950C312003D33B2A83474718
 Content-Type: application/pgp-keys; name="pEpkey.asc"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: attachment; filename="pEpkey.asc"
@@ -244,7 +222,7 @@ Xpo=3D
 =3DNfsW
 -----END PGP PUBLIC KEY BLOCK-----
 
---------------5E7BF3703CF31460EEA1C4C2
+--------------950C312003D33B2A83474718
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -255,4 +233,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---------------5E7BF3703CF31460EEA1C4C2--
+--------------950C312003D33B2A83474718--
