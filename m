@@ -1,12 +1,12 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 00/13] Drop more legacy platform data for omaps
-Date: Fri, 13 Dec 2019 11:39:10 +0530
-Message-ID: <732d073a-8f46-8df0-3bc2-b24b845e3e91@ti.com>
-References: <20191211191206.12190-1-tony@atomide.com>
+Subject: Re: [PATCH 00/16] Drop legacy platform data for various omap devices
+Date: Fri, 13 Dec 2019 11:40:43 +0530
+Message-ID: <87376f9c-6900-612b-e96a-0e44d087d095@ti.com>
+References: <20191211172014.35201-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------24BD0487D7392C320305683D"
+Content-Type: multipart/mixed; boundary="------------5E7BF3703CF31460EEA1C4C2"
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191211191206.12190-1-tony@atomide.com>
+In-Reply-To: <20191211172014.35201-1-tony@atomide.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -18,28 +18,32 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Benoit Parrot <bparrot@ti.com>, Sebastian Reichel <sre@kernel.org>, Bin Liu <b-liu@ti.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Cc: Vignesh R <vigneshr@ti.com>, Jyri Sarha <jsarha@ti.com>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---------------24BD0487D7392C320305683D
+--------------5E7BF3703CF31460EEA1C4C2
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
 
 
-On 12/12/19 12:41 am, Tony Lindgren wrote:
+On 11/12/19 10:49 pm, Tony Lindgren wrote:
 > Hi all,
 >=20
-> Here are more patches to drop legacy platform data for v5.6,
-> please test.
+> In order to get the l4 instances closer to being usable with genpd, we
+> continue dropping legacy platform data for various devices.
 >=20
-> To make testing easier, I've pushed out all the related patches
-> I've posted over past few days into omap-for-5.6/ti-sysc-testing
-> branch at [0][1].
+> Please test, some patches may depend on the earlier patches to drop
+> platform data to apply as they touch the same files.
 
 Hi Tony,
 
-Boot tested on DRA71 & DRA76.
+As reported earlier patchh 12 of this series causes a crash at boot
+while probing the rtc.
+
+For the rest of the series:
+
+Boot tested on DRA72 & DRA76.
 
 Tested for RTC+DDR mode and DS0 mode on AM437x.
 Tested for DS0 on am335x-evm & am335x-beagle-bone-black.
@@ -50,46 +54,50 @@ Tested-by: Keerthy <j-keerthy@ti.com>
 
 - Keerthy
 
+
 >=20
 > Regards,
 >=20
 > Tony
 >=20
-> [0] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git=
- omap-for-5.6/ti-sysc-testing
-> [1] https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.g=
-it/log/?h=3Domap-for-5.6/ti-sysc-testing
 >=20
+> Tony Lindgren (16):
+>   ARM: OMAP2+: Drop legacy platform data for am3 and am4 epwmss
+>   ARM: OMAP2+: Drop legacy platform data for dra7 epwmss
+>   ARM: OMAP2+: Drop legacy platform data for am3 and am4 spinlock
+>   ARM: OMAP2+: Drop legacy platform data for omap4 spinlock
+>   ARM: OMAP2+: Drop legacy platform data for omap5 spinlock
+>   ARM: OMAP2+: Drop legacy platform data for dra7 spinlock
+>   ARM: OMAP2+: Drop legacy platform data for am3 and am4 spi
+>   ARM: OMAP2+: Drop legacy platform data for am3 and am4 dcan
+>   ARM: OMAP2+: Drop legacy platform data for dra7 dcan
+>   ARM: OMAP2+: Drop legacy platform data for am3 adc_tsc
+>   ARM: OMAP2+: Drop legacy platform data for am4 adc_tsc
+>   ARM: OMAP2+: Drop legacy platform data for am3 and am4 rtc
+>   ARM: OMAP2+: Drop legacy platform data for am3 and am4 elm
+>   ARM: OMAP2+: Drop legacy platform data for omap4 elm
+>   ARM: OMAP2+: Drop legacy platform data for dra7 elm
+>   ARM: OMAP2+: Drop legacy platform data for am3 lcdc
 >=20
-> Tony Lindgren (13):
->   ARM: OMAP2+: Drop legacy platform data for am4 ocp2scp
->   ARM: OMAP2+: Drop legacy platform data for omap4 ocp2scp
->   ARM: OMAP2+: Drop legacy platform data for omap5 ocp2scp
->   ARM: OMAP2+: Drop legacy platform data for dra7 ocp2scp
->   ARM: OMAP2+: Drop legacy platform data for am4 vpfe
->   ARM: OMAP2+: Drop legacy platform data for omap4 hsi
->   ARM: OMAP2+: Drop legacy platform data for omap4 smartreflex
->   ARM: OMAP2+: Drop legacy platform data for dra7 smartreflex
->   ARM: OMAP2+: Drop legacy platform data for omap4 kbd
->   ARM: OMAP2+: Drop legacy platform data for omap5 kbd
->   ARM: OMAP2+: Drop legacy platform data for omap4 slimbus
->   ARM: OMAP2+: Drop legacy platform data for dra7 rtcss
->   ARM: OMAP2+: Drop legacy platform data for omap4 fdif
->=20
->  arch/arm/boot/dts/am437x-l4.dtsi           |   4 -
->  arch/arm/boot/dts/dra7-l4.dtsi             |   5 -
->  arch/arm/boot/dts/omap4-l4.dtsi            |   8 -
->  arch/arm/boot/dts/omap4.dtsi               |   1 -
->  arch/arm/boot/dts/omap5-l4.dtsi            |   3 -
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 115 ------
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 423 ---------------------=
+>  arch/arm/boot/dts/am33xx-l4.dtsi              |  12 -
+>  arch/arm/boot/dts/am437x-l4.dtsi              |  19 +-
+>  arch/arm/boot/dts/am43x-epos-evm.dts          |   4 +
+>  arch/arm/boot/dts/dra7-l4.dtsi                |   5 -
+>  arch/arm/boot/dts/omap4-l4.dtsi               |   2 -
+>  arch/arm/boot/dts/omap5-l4.dtsi               |   1 -
+>  .../omap_hwmod_33xx_43xx_common_data.h        |  21 --
+>  .../omap_hwmod_33xx_43xx_interconnect_data.c  |  76 ------
+>  .../omap_hwmod_33xx_43xx_ipblock_data.c       | 247 ------------------=
 
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 117 ------
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 194 ----------
->  9 files changed, 870 deletions(-)
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  85 ------
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c    | 183 -------------
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  85 ------
+>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c    |  43 ---
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c     | 236 -----------------
+>  14 files changed, 5 insertions(+), 1014 deletions(-)
 >=20
 
---------------24BD0487D7392C320305683D
+--------------5E7BF3703CF31460EEA1C4C2
 Content-Type: application/pgp-keys; name="pEpkey.asc"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: attachment; filename="pEpkey.asc"
@@ -236,7 +244,7 @@ Xpo=3D
 =3DNfsW
 -----END PGP PUBLIC KEY BLOCK-----
 
---------------24BD0487D7392C320305683D
+--------------5E7BF3703CF31460EEA1C4C2
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -247,4 +255,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---------------24BD0487D7392C320305683D--
+--------------5E7BF3703CF31460EEA1C4C2--
