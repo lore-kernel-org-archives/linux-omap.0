@@ -1,92 +1,68 @@
-From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Subject: Re: BUG - was: [GIT PULL 2/3] bcm2835-soc-next-2019-10-15
-Date: Sat, 14 Dec 2019 12:59:47 +0000
-Message-ID: <20191214125947.GD1337@shell.armlinux.org.uk>
-References: <1571159725-5090-1-git-send-email-wahrenst@gmx.net>
- <1571159725-5090-2-git-send-email-wahrenst@gmx.net>
- <12244E4E-A1A0-4EE9-ACD3-EA165D9A2C79@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: dts: am437x-gp-evm: add HDMI support
+Date: Fri, 13 Dec 2019 06:57:32 -0800
+Message-ID: <20191213145732.GH35479@atomide.com>
+References: <20191125131100.9839-1-tomi.valkeinen@ti.com>
+ <20191212172104.GY35479@atomide.com>
+ <20191212173110.GA35479@atomide.com>
+ <d09526b2-8435-bef2-0489-0c3c8173d451@ti.com>
+ <20191213104204.GB4860@pendragon.ideasonboard.com>
+ <2f5cfca4-d36d-da2d-59ba-b76669daeded@ti.com>
+ <20191213114207.GC4860@pendragon.ideasonboard.com>
+ <36d8dde1-1a76-5a5f-2a41-8bc52dfcf2fa@ti.com>
+ <20191213122845.GD4860@pendragon.ideasonboard.com>
+ <3900f4b3-4604-cb64-ebdd-ae168ef1d2fb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <12244E4E-A1A0-4EE9-ACD3-EA165D9A2C79@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Stefan Wahren <wahrenst@gmx.net>, Florian Fainelli <f.fainelli@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bcm-kernel-feedback-list@broadcom.com, linux-rpi-kernel@lists.infradead.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <3900f4b3-4604-cb64-ebdd-ae168ef1d2fb@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, robh+dt@kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Dec 14, 2019 at 11:54:19AM +0100, H. Nikolaus Schaller wrote:
-> Hi Stefan,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [191213 12:34]:
+> On 13/12/2019 14:28, Laurent Pinchart wrote:
 > 
-> > Am 15.10.2019 um 19:15 schrieb Stefan Wahren <wahrenst@gmx.net>:
+> > > So... In the DT file, we would have multiple endpoints in the same output port in DSS, one going to
+> > > the panel, one to the SiI9022? omapdrm could then create two encoders, one abstracting the DPI
+> > > output and the connection to the panel, one abstracting the DPI output and SiI9022?
 > > 
-> > Hi Florian,
+> > That's the idea, yes.
 > > 
-> > The following changes since commit 54ecb8f7028c5eb3d740bb82b0f1d90f2df63c5c:
+> > > And then someone would need to handle the GPIO, and set it based on the output used. These kind of
+> > > gpios are always difficult, as they don't belong anywhere =).
 > > 
-> >  Linux 5.4-rc1 (2019-09-30 10:35:40 -0700)
+> > https://lore.kernel.org/lkml/20191211061911.238393-5-hsinyi@chromium.org/
 > > 
-> > are available in the git repository at:
-> > 
-> >  git://github.com/anholt/linux tags/bcm2835-soc-next-2019-10-15
-> > 
-> > for you to fetch changes up to 781fa0a954240c8487683ddf837fb2c4ede8e7ca:
-> > 
-> >  ARM: bcm: Add support for BCM2711 SoC (2019-10-10 19:21:03 +0200)
+> > Still, the infrastructure in omapdrm would need quite a bit of work.
+> > We're just about to get a helper layer for linear pipelines merged, and
+> > we already need to go one step further :-)
 > 
-> this patch has finally arrived in v5.5-rc1 but it seems to break
-> multiplatform build.
-> 
-> We run a distribution kernel that supports OMAP3/4/5, i.MX6 and RasPi 3B+
-> but since rebasing to v5.5-rc1 the kernel hangs after "Starting Kernel ...".
-> On all ARM devices (incl. RasPi 3B+).
-> 
-> Playing with our defconfig did show that deconfiguring CONFIG_ARCH_BCM2835
-> makes the kernel work again.
-> 
-> After further analysis it turns out that reverting this patch also
-> makes the boards work again.
-> 
-> I am not exactly sure what the reason is, but it may have something to
-> do with the new auto-selection of CONFIG_ZONE_DMA which is not automatically
-> selected by OMAP and i.MX6.
-> 
-> To reproduce on some OMAP device (i.MX6 should be similar)
-> 
-> 1st test:
-> 
-> git checkout v5.5-rc1
-> make omap2plus_defconfig
-> 
-> => boots OMAP device
-> 
-> 2nd test:
-> 
-> ( echo CONFIG_ARCH_BCM2835=y; echo CONFIG_ARCH_BCM=y ) >>arch/arm/configs/omap2plus_defconfig
-> make omap2plus_defconfig
-> 
-> => fails to boot OMAP device
-> 
-> 3rd test:
-> 
-> git revert 781fa0a954240c8487683ddf837fb2c4ede8e7ca
-> make omap2plus_defconfig
-> 
-> => boots OMAP device
-> 
-> BTW: the RasPi 3B+ runs equally well without this patch. So what is it
-> good for?
-> 
-> So please check and fix this patch.
+> Alright, sounds like this will be doable in the future. So let's drop this
+> and the epos HDMI patches for now.
 
-Enabling ZONE_DMA shouldn't cause this problem - but as it does, please
-enable memblock debugging and early console, and please send any boot
-messages you can get from the system when it fails to boot.  Also
-having a successful boot log may be useful.
+Oh OK. Sounds like no other solution is usable right now short of
+separate dts files like you've done.
 
-Thanks.
+> This does sound like quite a bit of work, as you say, so I have no idea when
+> we can get there (on the omapdrm side). In the minimum we should first get
+> the big omapdrm rework done, in order to avoid nasty conflicts.
+> 
+> Thanks for educating me =).
 
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+Sounds a nice plan though :)
+
+Thanks,
+
+Tony
