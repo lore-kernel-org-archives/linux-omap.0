@@ -1,11 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v5.5-rc cycle
-Date: Fri, 13 Dec 2019 08:35:40 -0800
-Message-ID: <pull-1576254925-709310@atomide.com>
-Mime-Version: 1.0
+From: H. Nikolaus Schaller <hns@goldelico.com>
+Subject: BUG - was: [GIT PULL 2/3] bcm2835-soc-next-2019-10-15
+Date: Sat, 14 Dec 2019 11:54:19 +0100
+Message-ID: <12244E4E-A1A0-4EE9-ACD3-EA165D9A2C79@goldelico.com>
+References: <1571159725-5090-1-git-send-email-wahrenst@gmx.net>
+ <1571159725-5090-2-git-send-email-wahrenst@gmx.net>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1571159725-5090-2-git-send-email-wahrenst@gmx.net>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,63 +18,87 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: soc@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: Stefan Wahren <wahrenst@gmx.net>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bcm-kernel-feedback-list@broadcom.com, linux-rpi-kernel@lists.infradead.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Hi Stefan,
 
-The following changes since commit e42617b825f8073569da76dc4510bfa019b1c35a:
+> Am 15.10.2019 um 19:15 schrieb Stefan Wahren <wahrenst@gmx.net>:
+> 
+> Hi Florian,
+> 
+> The following changes since commit 54ecb8f7028c5eb3d740bb82b0f1d90f2df63c5c:
+> 
+>  Linux 5.4-rc1 (2019-09-30 10:35:40 -0700)
+> 
+> are available in the git repository at:
+> 
+>  git://github.com/anholt/linux tags/bcm2835-soc-next-2019-10-15
+> 
+> for you to fetch changes up to 781fa0a954240c8487683ddf837fb2c4ede8e7ca:
+> 
+>  ARM: bcm: Add support for BCM2711 SoC (2019-10-10 19:21:03 +0200)
 
-  Linux 5.5-rc1 (2019-12-08 14:57:55 -0800)
+this patch has finally arrived in v5.5-rc1 but it seems to break
+multiplatform build.
 
-are available in the Git repository at:
+We run a distribution kernel that supports OMAP3/4/5, i.MX6 and RasPi 3B+
+but since rebasing to v5.5-rc1 the kernel hangs after "Starting Kernel ...".
+On all ARM devices (incl. RasPi 3B+).
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/fixes-rc1-signed
+Playing with our defconfig did show that deconfiguring CONFIG_ARCH_BCM2835
+makes the kernel work again.
 
-for you to fetch changes up to e709ed70d122e94cb426b1e1f905829eae19a009:
+After further analysis it turns out that reverting this patch also
+makes the boards work again.
 
-  bus: ti-sysc: Fix missing reset delay handling (2019-12-12 08:20:10 -0800)
+I am not exactly sure what the reason is, but it may have something to
+do with the new auto-selection of CONFIG_ZONE_DMA which is not automatically
+selected by OMAP and i.MX6.
 
-----------------------------------------------------------------
-Fixes for omap variants for v5.5-rc1 cycle
+To reproduce on some OMAP device (i.MX6 should be similar)
 
-This series of changes contains fixes for issues recently noticed:
+1st test:
 
-- The ti-sysc interconnect target module driver needs fixes for
-  mstandby quirk handling and reset delay
+git checkout v5.5-rc1
+make omap2plus_defconfig
 
-- We need to configure am335x-sancloud-bbe to use rgmii-id mode because of
-  the phy changes done earlier
+=> boots OMAP device
 
-- NET_SWITCHDEV is no longer selected in Kconfig but a dependency and we
-  must enable CONFIG_NET_SWITCHDEV to have TI_CPSW_SWITCHDEV
+2nd test:
 
-- We are still relying on DEBUG_FS at least for PM configuration, let's
-  add it back
+( echo CONFIG_ARCH_BCM2835=y; echo CONFIG_ARCH_BCM=y ) >>arch/arm/configs/omap2plus_defconfig
+make omap2plus_defconfig
 
-- We need to update compatible for am437x-gp/epos-evm because of the
-  recent changes to use generic panels
+=> fails to boot OMAP device
 
-----------------------------------------------------------------
-Grygorii Strashko (1):
-      ARM: omap2plus_defconfig: enable NET_SWITCHDEV
+3rd test:
 
-Mans Rullgard (1):
-      ARM: dts: am335x-sancloud-bbe: fix phy mode
+git revert 781fa0a954240c8487683ddf837fb2c4ede8e7ca
+make omap2plus_defconfig
 
-Tomi Valkeinen (1):
-      ARM: dts: am437x-gp/epos-evm: fix panel compatible
+=> boots OMAP device
 
-Tony Lindgren (3):
-      bus: ti-sysc: Fix missing force mstandby quirk handling
-      ARM: omap2plus_defconfig: Add back DEBUG_FS
-      bus: ti-sysc: Fix missing reset delay handling
+BTW: the RasPi 3B+ runs equally well without this patch. So what is it
+good for?
 
- arch/arm/boot/dts/am335x-sancloud-bbe.dts | 2 +-
- arch/arm/boot/dts/am437x-gp-evm.dts       | 2 +-
- arch/arm/boot/dts/am43x-epos-evm.dts      | 2 +-
- arch/arm/configs/omap2plus_defconfig      | 4 +++-
- drivers/bus/ti-sysc.c                     | 7 ++++++-
- include/linux/platform_data/ti-sysc.h     | 1 +
- 6 files changed, 13 insertions(+), 5 deletions(-)
+So please check and fix this patch.
+
+> ----------------------------------------------------------------
+> This pull request introduces the machine board code for the BCM2711,
+> which is placed on the Raspberry Pi 4.
+> 
+> ----------------------------------------------------------------
+> Stefan Wahren (1):
+>      ARM: bcm: Add support for BCM2711 SoC
+> 
+> arch/arm/mach-bcm/Kconfig    |  4 +++-
+> arch/arm/mach-bcm/Makefile   |  3 ++-
+> arch/arm/mach-bcm/bcm2711.c  | 24 ++++++++++++++++++++++++
+> arch/arm64/Kconfig.platforms |  5 +++--
+> 4 files changed, 32 insertions(+), 4 deletions(-)
+> create mode 100644 arch/arm/mach-bcm/bcm2711.c
+
+BR and thanks,
+Nikolaus Schaller
