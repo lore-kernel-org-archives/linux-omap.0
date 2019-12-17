@@ -1,72 +1,26 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v4 6/8] ARM: DTS: omap4: add sgx gpu child node
-Date: Tue, 17 Dec 2019 19:02:04 +0100
-Message-ID: <52af9ae6dd26c42e5ada1af247d2c070d0635fcf.1576605726.git.hns@goldelico.com>
-References: <cover.1576605726.git.hns@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] AM57xx: Fix bugs in device tree files
+Date: Tue, 17 Dec 2019 10:23:53 -0800
+Message-ID: <20191217182353.GC35479@atomide.com>
+References: <20191217085124.22480-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1576605726.git.hns@goldelico.com>
+Content-Disposition: inline
+In-Reply-To: <20191217085124.22480-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Cercueil <paul@crapouillou.net>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paulburton@kernel.org>, James Hogan <jhogan@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-and add interrupt.
+* Kishon Vijay Abraham I <kishon@ti.com> [191217 00:50]:
+> This series
+>  *) Removes gpio property from endpoint device tree node (since it's
+>     used for driving PERST# line)
+>  *) Fix gpio used for driving PERST# line in AM571x IDK
+>  *) Model 5V0 regulator which is used for deriving the regulator
+>     connected to COMQ port in beagle x15
 
-Since omap4420/30/60 and omap4470 come with different SGX variants
-we need to introduce a new omap4470.dtsi. If an omap4470 board
-does not want to use SGX it is no problem to still include
-omap4460.dtsi.
+Thanks applying all into fixes.
 
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # PandaBoard ES
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/omap4.dtsi   |  9 +++++----
- arch/arm/boot/dts/omap4470.dts | 15 +++++++++++++++
- 2 files changed, 20 insertions(+), 4 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4470.dts
-
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 2de8a6b53de9..bfca05309a99 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -347,10 +347,11 @@
- 			#size-cells = <1>;
- 			ranges = <0 0x56000000 0x2000000>;
- 
--			/*
--			 * Closed source PowerVR driver, no child device
--			 * binding or driver in mainline
--			 */
-+			sgx: img@0 {
-+				compatible = "ti,omap4-sgx540-120", "img,sgx540-120", "img,sgx540";
-+				reg = <0x0 0x2000000>;	/* 32MB */
-+				interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
-+			};
- 		};
- 
- 		dss: dss@58000000 {
-diff --git a/arch/arm/boot/dts/omap4470.dts b/arch/arm/boot/dts/omap4470.dts
-new file mode 100644
-index 000000000000..19b554612401
---- /dev/null
-+++ b/arch/arm/boot/dts/omap4470.dts
-@@ -0,0 +1,15 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Device Tree Source for OMAP4470 SoC
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+#include "omap4460.dtsi"
-+
-+&sgx {
-+	compatible = "img,sgx544-112", "img,sgx544", "ti,omap-omap4-sgx544-112";
-+};
--- 
-2.23.0
+Tony
