@@ -1,76 +1,120 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v4 0/8] ARM/MIPS: DTS: add child nodes describing the PVRSGX GPU present in some OMAP SoC and JZ4780 (and many more)
-Date: Tue, 17 Dec 2019 19:01:58 +0100
-Message-ID: <cover.1576605726.git.hns@goldelico.com>
+Subject: [PATCH v4 1/8] dt-bindings: add img,pvrsgx.yaml for Imagination GPUs
+Date: Tue, 17 Dec 2019 19:01:59 +0100
+Message-ID: <aedc895985d966cf709d153d5b0bed07f59bdcfd.1576605726.git.hns@goldelico.com>
+References: <cover.1576605726.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1576605726.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Cercueil <paul@crapouillou.net>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paulburton@kernel.org>, James Hogan <jhogan@kernel.org>
 Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-* MIPS: DTS: jz4780: removed "img,sgx5" from bindings
-* YAML bindings: updated according to suggestions by Rob Herring
-* MIPS: DTS: jz4780: insert-sorted gpu node by register address - suggested by Paul Cercueil
+The Imagination PVR/SGX GPU is part of several SoC from
+multiple vendors, e.g. TI OMAP, Ingenic JZ4780, Intel Poulsbo
+and others.
 
-PATCH V3 2019-11-24 12:40:33:
-* reworked YAML format with help by Rob Herring
-* removed .txt binding document
-* change compatible "ti,am335x-sgx" to "ti,am3352-sgx" - suggested by Tony Lindgren
+With this binding, we describe how the SGX processor is
+interfaced to the SoC (registers, interrupt etc.).
 
-PATCH V2 2019-11-07 12:06:17:
-* tried to convert bindings to YAML format - suggested by Rob Herring
-* added JZ4780 DTS node (proven to load the driver)
-* removed timer and img,cores properties until we know we really need them - suggested by Rob Herring
+In most cases, Clock, Reset and power management is handled
+by a parent node or elsewhere.
 
-PATCH V1 2019-10-18 20:46:35:
+Tested by make dt_binding_check dtbs_check
 
-This patch series defines child nodes for the SGX5xx interface inside
-different SoC so that a driver can be found and probed by the
-compatible strings and can retrieve information about the SGX revision
-that is included in a specific SoC. It also defines the interrupt number
-to be used by the SGX driver.
-
-There is currently no mainline driver for these GPUs, but a project [1]
-is ongoing with the goal to get the open-source part as provided by TI/IMG
-and others into drivers/gpu/drm/pvrsgx.
-
-The kernel modules built from this project have successfully demonstrated
-to work with the DTS definitions from this patch set on AM335x BeagleBone
-Black, DM3730 and OMAP5 Pyra and Droid 4. They partially work on OMAP3530 and
-PandaBoard ES but that is likely a problem in the kernel driver or the
-(non-free) user-space libraries and binaries.
-
-Wotk for JZ4780 (CI20 board) is in progress and there is potential to extend
-this work to e.g. BananaPi-M3 (A83) and  some Intel Poulsbo and CedarView
-devices.
-
-[1]: https://github.com/openpvrsgx-devgroup
-
-
-H. Nikolaus Schaller (8):
-  dt-bindings: add img,pvrsgx.yaml for Imagination GPUs
-  ARM: DTS: am33xx: add sgx gpu child node
-  ARM: DTS: am3517: add sgx gpu child node
-  ARM: DTS: omap3: add sgx gpu child node
-  ARM: DTS: omap36xx: add sgx gpu child node
-  ARM: DTS: omap4: add sgx gpu child node
-  ARM: DTS: omap5: add sgx gpu child node
-  MIPS: DTS: jz4780: add sgx gpu node
-
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
  .../devicetree/bindings/gpu/img,pvrsgx.yaml   | 80 +++++++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi                 |  9 ++-
- arch/arm/boot/dts/am3517.dtsi                 | 11 +--
- arch/arm/boot/dts/omap34xx.dtsi               | 11 +--
- arch/arm/boot/dts/omap36xx.dtsi               | 11 +--
- arch/arm/boot/dts/omap4.dtsi                  |  9 ++-
- arch/arm/boot/dts/omap4470.dts                | 15 ++++
- arch/arm/boot/dts/omap5.dtsi                  |  9 ++-
- arch/mips/boot/dts/ingenic/jz4780.dtsi        | 11 +++
- 9 files changed, 139 insertions(+), 27 deletions(-)
+ 1 file changed, 80 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/gpu/img,pvrsgx.yaml
- create mode 100644 arch/arm/boot/dts/omap4470.dts
 
+diff --git a/Documentation/devicetree/bindings/gpu/img,pvrsgx.yaml b/Documentation/devicetree/bindings/gpu/img,pvrsgx.yaml
+new file mode 100644
+index 000000000000..44799774e34d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/gpu/img,pvrsgx.yaml
+@@ -0,0 +1,80 @@
++# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/gpu/img,pvrsgx.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Imagination PVR/SGX GPU
++
++maintainers:
++  - H. Nikolaus Schaller <hns@goldelico.com>
++
++description: |+
++  This binding describes the Imagination SGX5 series of 3D accelerators which
++  are found in several different SoC like TI OMAP, Sitara, Ingenic JZ4780,
++  Allwinner A83, and Intel Poulsbo and CedarView and more.
++
++  For an almost complete list see: https://en.wikipedia.org/wiki/PowerVR#Implementations
++  
++  Only the Imagination SGX530, SGX540 and SGX544 GPUs are currently covered by
++  this binding but the extension of the pattern is straightforward.
++  
++  The SGX node is usually a child node of some DT node belonging to the SoC
++  which handles clocks, reset and general address space mapping of the SGX
++  register area.
++
++properties:
++  compatible:
++    enum:
++    # Example: BeagleBoard A/B/C, OpenPandora 600MHz
++      - ti,omap3-sgx530-121, img,sgx530-121, img,sgx530
++    # Example: BeagleBoard XM, GTA04, OpenPandora 1GHz
++      - ti,omap3-sgx530-125, img,sgx530-125, img,sgx530
++    # Example: BeagleBone Black
++      - ti,am3352-sgx530-125, img,sgx530-125, img,sgx530
++    # Example: Pandaboard, Pandaboard ES
++      - ti,omap4-sgx540-120, img,sgx540-120, img,sgx540
++      - ti,omap4-sgx544-112, img,sgx544-112, img,sgx544
++    # Example: OMAP5 UEVM, Pyra Handheld
++      - ti,omap5-sgx544-116, img,sgx544-116, img,sgx544
++      - ti,dra7-sgx544-116, img,sgx544-116, img,sgx544
++    # Example: CI20
++      - ingenic,jz4780-sgx540-120, img,sgx540-120, img,sgx540
++    # the following entries are not validated with real hardware
++    # more TI SoC
++      - ti,am3517-sgx530-125, img,sgx530-125, img,sgx530
++      - ti,am4-sgx530-125, img,sgx530-125, img,sgx530
++      - ti,ti81xx-sgx530-125, img,sgx530-125, img,sgx530
++    # Example: Banana-Pi-M3 (Allwinner A83T)
++      - allwinner,sun8i-a83t-sgx544-116, img,sgx544-116, img,sgx544
++    # Example: Atom Z5xx
++      - intel,poulsbo-gma500-sgx535, img,sgx535-116, img,sgx535
++    # Example: Atom Z24xx
++      - intel,medfield-gma-sgx540, img,sgx540-116, img,sgx540
++    # Example: Atom N2600, D2500
++      - intel,cedarview-gma3600-sgx545, img,sgx545-116, img,sgx545
++
++  reg:
++    maxItems: 1
++
++  interrupts:
++    maxItems: 1
++
++required:
++  - compatible
++  - reg
++  - interrupts
++
++additionalProperties: false
++
++examples:
++  - |+
++    #include <dt-bindings/interrupt-controller/arm-gic.h>
++
++    gpu@fe00 {
++      compatible = "ti,omap-omap5-sgx544-116", "img,sgx544-116", "img,sgx544", "img,sgx5";
++      reg = <0xfe00 0x200>;
++      interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
++    };
++
++...
 -- 
 2.23.0
