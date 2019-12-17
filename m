@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v4 2/8] ARM: DTS: am33xx: add sgx gpu child node
-Date: Tue, 17 Dec 2019 19:02:00 +0100
-Message-ID: <30fbbc9dc573a1cedf2d4a9d3301ffceaa5ea1ee.1576605726.git.hns@goldelico.com>
+Subject: [PATCH v4 4/8] ARM: DTS: omap3: add sgx gpu child node
+Date: Tue, 17 Dec 2019 19:02:02 +0100
+Message-ID: <103c92a7d19387860aea406e0356249b02a3cbce.1576605726.git.hns@goldelico.com>
 References: <cover.1576605726.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,33 +12,42 @@ To: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herrin
 Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-mips@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-and add timer and interrupt
+and add interrupt
 
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # BeagleBone Black
+Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # OpenPandora 600 MHz.
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/omap34xx.dtsi | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index c427ce8c2539..11c7b0dbb5dc 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -477,10 +477,11 @@
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index c4dd9801840d..a858a2e8002d 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -159,7 +159,7 @@
+ 		 * are also different clocks, but we do not have any dts users
+ 		 * for it.
+ 		 */
+-		sgx_module: target-module@50000000 {
++		target-module@50000000 {
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+ 			reg = <0x50000014 0x4>;
+ 			reg-names = "rev";
+@@ -169,10 +169,11 @@
  			#size-cells = <1>;
- 			ranges = <0 0x56000000 0x1000000>;
+ 			ranges = <0 0x50000000 0x4000>;
  
 -			/*
 -			 * Closed source PowerVR driver, no child device
 -			 * binding or driver in mainline
 -			 */
 +			sgx: gpu@0 {
-+				compatible = "ti,am3352-sgx530-125", "img,sgx530-125", "img,sgx530";
-+				reg = <0x00 0x1000000>;	/* 16 MB */
-+				interrupts = <37>;
++				compatible = "ti,omap3-sgx530-121", "img,sgx530-121", "img,sgx530";
++				reg = <0x0 0x4000>;	/* 64kB */
++				interrupts = <21>;
 +			};
  		};
  	};
- };
+ 
 -- 
 2.23.0
