@@ -1,174 +1,91 @@
 From: Andrew Murray <andrew.murray@arm.com>
-Subject: Re: [PATCH 04/13] PCI: cadence: Add support to start link and verify
- link status
-Date: Tue, 17 Dec 2019 11:58:27 +0000
-Message-ID: <20191217115826.GA24359@e119886-lin.cambridge.arm.com>
+Subject: Re: [PATCH 06/13] PCI: cadence: Allow pci_host_bridge to have custom
+ pci_ops
+Date: Tue, 17 Dec 2019 12:32:44 +0000
+Message-ID: <20191217123243.GC24359@e119886-lin.cambridge.arm.com>
 References: <20191209092147.22901-1-kishon@ti.com>
- <20191209092147.22901-5-kishon@ti.com>
+ <20191209092147.22901-7-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191209092147.22901-5-kishon@ti.com>
+In-Reply-To: <20191209092147.22901-7-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 09, 2019 at 02:51:38PM +0530, Kishon Vijay Abraham I wrote:
-> Add cdns_pcie_ops to start link and verify link status. The registers
-> to start link and to check link status is in Platform specific PCIe
-> wrapper. Add support for platform specific drivers to add callback
-> functions for the PCIe Cadence core to start link and verify link status.
+On Mon, Dec 09, 2019 at 02:51:40PM +0530, Kishon Vijay Abraham I wrote:
+> Certain platforms like TI's J721E allows only 32-bit configuration
+> space access. In such cases pci_generic_config_read and
+> pci_generic_config_write cannot be used. Add support in Cadence core
+> to let pci_host_bridge have custom pci_ops.
 > 
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  .../pci/controller/cadence/pcie-cadence-ep.c  |  8 ++++++
->  .../controller/cadence/pcie-cadence-host.c    | 28 +++++++++++++++++++
->  drivers/pci/controller/cadence/pcie-cadence.h | 23 +++++++++++++++
->  3 files changed, 59 insertions(+)
+>  drivers/pci/controller/cadence/pcie-cadence-host.c | 7 ++++---
+>  drivers/pci/controller/cadence/pcie-cadence.h      | 8 ++++++++
+>  2 files changed, 12 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> index 560f22b4d165..088394b6be04 100644
-> --- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> +++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> @@ -355,8 +355,10 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
->  {
->  	struct cdns_pcie_ep *ep = epc_get_drvdata(epc);
->  	struct cdns_pcie *pcie = &ep->pcie;
-> +	struct device *dev = pcie->dev;
->  	struct pci_epf *epf;
->  	u32 cfg;
-> +	int ret;
->  
->  	/*
->  	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
-> @@ -367,6 +369,12 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
->  		cfg |= BIT(epf->func_no);
->  	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
->  
-> +	ret = cdns_pcie_start_link(pcie, true);
-> +	if (ret) {
-> +		dev_err(dev, "Failed to start link\n");
-> +		return ret;
-> +	}
-> +
->  	return 0;
->  }
->  
 > diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-> index ccf55e143e1d..0929554f5a81 100644
+> index 0929554f5a81..2efc33b1cade 100644
 > --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
 > +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-> @@ -3,6 +3,7 @@
->  // Cadence PCIe host controller driver.
->  // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
+> @@ -12,8 +12,8 @@
 >  
-> +#include <linux/delay.h>
->  #include <linux/kernel.h>
->  #include <linux/of_address.h>
->  #include <linux/of_pci.h>
-> @@ -201,6 +202,23 @@ static int cdns_pcie_host_init(struct device *dev,
->  	return err;
+>  #include "pcie-cadence.h"
+>  
+> -static void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+> -				      int where)
+> +void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+> +			       int where)
+>  {
+>  	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
+>  	struct cdns_pcie_rc *rc = pci_host_bridge_priv(bridge);
+> @@ -289,7 +289,8 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+>  	list_splice_init(&resources, &bridge->windows);
+>  	bridge->dev.parent = dev;
+>  	bridge->busnr = pcie->bus;
+> -	bridge->ops = &cdns_pcie_host_ops;
+> +	if (!bridge->ops)
+> +		bridge->ops = &cdns_pcie_host_ops;
+>  	bridge->map_irq = of_irq_parse_and_map_pci;
+>  	bridge->swizzle_irq = pci_common_swizzle;
+>  
+> diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
+> index 5171d0da37da..c879dd3d2893 100644
+> --- a/drivers/pci/controller/cadence/pcie-cadence.h
+> +++ b/drivers/pci/controller/cadence/pcie-cadence.h
+> @@ -472,11 +472,19 @@ static inline bool cdns_pcie_is_link_up(struct cdns_pcie *pcie)
+>  
+>  #ifdef CONFIG_PCIE_CADENCE_HOST
+>  int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
+> +void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+> +			       int where);
+
+The commit message doesn't explain why this change in visibility is needed).
+
+>  #else
+>  static inline int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+>  {
+>  	return 0;
 >  }
->  
-> +static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
+> +
+> +static inline void __iomem *cdns_pci_map_bus(struct pci_bus *bus,
+> +					     unsigned int devfn,
+> +					     int where)
 > +{
-> +	struct device *dev = pcie->dev;
-> +	int retries;
-> +
-> +	/* Check if the link is up or not */
-> +	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-> +		if (cdns_pcie_is_link_up(pcie)) {
-> +			dev_info(dev, "Link up\n");
-> +			return 0;
-> +		}
-> +		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
-> +	}
-> +
-> +	return -ETIMEDOUT;
-> +}
 
-This patch looks fine, except this function (above) is identical to
-dw_pcie_wait_for_link, advk_pcie_wait_for_link and nwl_wait_for_link. Even
-the definitions of LINK_WAIT_USLEEP_xx are the same.
-
-I don't see any justification to duplicating this again - can you consolidate
-these functions to something that all controller drivers can use?
+This still needs to return something right?
 
 Thanks,
 
 Andrew Murray
 
-> +
->  int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
->  {
->  	struct device *dev = rc->pcie.dev;
-> @@ -254,6 +272,16 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
->  
->  	pcie->mem_res = res;
->  
-> +	ret = cdns_pcie_start_link(pcie, true);
-> +	if (ret) {
-> +		dev_err(dev, "Failed to start link\n");
-> +		return ret;
-> +	}
-> +
-> +	ret = cdns_pcie_host_wait_for_link(pcie);
-> +	if (ret)
-> +		dev_dbg(dev, "PCIe link never came up\n");
-> +
->  	ret = cdns_pcie_host_init(dev, &resources, rc);
->  	if (ret)
->  		goto err_init;
-> diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-> index d0d91c69fa1d..f0395eaf9df5 100644
-> --- a/drivers/pci/controller/cadence/pcie-cadence.h
-> +++ b/drivers/pci/controller/cadence/pcie-cadence.h
-> @@ -10,6 +10,11 @@
->  #include <linux/pci.h>
->  #include <linux/phy/phy.h>
->  
-> +/* Parameters for the waiting for link up routine */
-> +#define LINK_WAIT_MAX_RETRIES	10
-> +#define LINK_WAIT_USLEEP_MIN	90000
-> +#define LINK_WAIT_USLEEP_MAX	100000
-> +
->  /*
->   * Local Management Registers
->   */
-> @@ -226,6 +231,8 @@ enum cdns_pcie_msg_routing {
->  struct cdns_pcie_ops {
->  	u32	(*read)(void __iomem *addr, int size);
->  	void	(*write)(void __iomem *addr, int size, u32 value);
-> +	int	(*start_link)(struct cdns_pcie *pcie, bool start);
-> +	bool	(*is_link_up)(struct cdns_pcie *pcie);
->  };
->  
->  /**
-> @@ -447,6 +454,22 @@ static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
->  	return readl(addr);
->  }
->  
-> +static inline int cdns_pcie_start_link(struct cdns_pcie *pcie, bool start)
-> +{
-> +	if (pcie->ops->start_link)
-> +		return pcie->ops->start_link(pcie, start);
-> +
-> +	return 0;
 > +}
-> +
-> +static inline bool cdns_pcie_is_link_up(struct cdns_pcie *pcie)
-> +{
-> +	if (pcie->ops->is_link_up)
-> +		return pcie->ops->is_link_up(pcie);
-> +
-> +	return true;
-> +}
-> +
->  #ifdef CONFIG_PCIE_CADENCE_HOST
->  int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
->  #else
+>  #endif
+>  
+>  #ifdef CONFIG_PCIE_CADENCE_EP
 > -- 
 > 2.17.1
 > 
