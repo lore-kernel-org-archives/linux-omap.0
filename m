@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v4 3/8] ARM: DTS: am3517: add sgx gpu child node
-Date: Tue, 17 Dec 2019 19:02:01 +0100
-Message-ID: <2b4a61c0ca433dc8577f6f23d68af083cc32f2d6.1576605726.git.hns@goldelico.com>
+Subject: [PATCH v4 7/8] ARM: DTS: omap5: add sgx gpu child node
+Date: Tue, 17 Dec 2019 19:02:05 +0100
+Message-ID: <118fefcd5426570822051d2333d9a97304bf2962.1576605726.git.hns@goldelico.com>
 References: <cover.1576605726.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,39 +14,31 @@ List-Id: linux-omap@vger.kernel.org
 
 and add interrupt.
 
+Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # Pyra-Handheld.
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/am3517.dtsi | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
-index 125379ecab2f..6d2ad5e5f1a6 100644
---- a/arch/arm/boot/dts/am3517.dtsi
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -128,7 +128,7 @@
- 		 * revision register instead of the unreadable OCP revision
- 		 * register.
- 		 */
--		sgx_module: target-module@50000000 {
-+		target-module@50000000 {
- 			compatible = "ti,sysc-omap2", "ti,sysc";
- 			reg = <0x50000014 0x4>;
- 			reg-names = "rev";
-@@ -138,10 +138,11 @@
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 1f6ad1debc90..3bb7a4949c12 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -274,10 +274,11 @@
  			#size-cells = <1>;
- 			ranges = <0 0x50000000 0x4000>;
+ 			ranges = <0 0x56000000 0x2000000>;
  
 -			/*
 -			 * Closed source PowerVR driver, no child device
 -			 * binding or driver in mainline
 -			 */
 +			sgx: gpu@0 {
-+				compatible = "ti,am3517-sgx530-125", "img,sgx530-125", "img,sgx530";
-+				reg = <0x0 0x4000>;
-+				interrupts = <21>;
++				compatible = "ti,omap5-sgx544-116", "img,sgx544-116", "img,sgx544";
++				reg = <0x0 0x10000>;
++				interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
 +			};
  		};
- 	};
- };
+ 
+ 		dss: dss@58000000 {
 -- 
 2.23.0
