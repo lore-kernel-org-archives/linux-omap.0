@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/14] ARM: dts: Configure interconnect target module for
- omap2 sdma
-Date: Mon, 16 Dec 2019 16:19:13 -0800
-Message-ID: <20191217001925.44558-3-tony@atomide.com>
+Subject: [PATCH 03/14] ARM: dts: Configure interconnect target module for
+ omap3 sdma
+Date: Mon, 16 Dec 2019 16:19:14 -0800
+Message-ID: <20191217001925.44558-4-tony@atomide.com>
 References: <20191217001925.44558-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,8 +28,8 @@ module, but keep the legacy "ti,hwmods" peroperty to avoid new boot
 time warnings. The legacy property will be removed in later patches
 together with the legacy platform data.
 
-Note that we want to use separate compatible for omap2420 and
-omap2430 so let's do that here too while at it.
+Note that we want to use separate compatible for omap34xx and
+omap36xx so let's do that here too while at it.
 
 Cc: devicetree@vger.kernel.org
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
@@ -39,30 +39,35 @@ Cc: Russell King <rmk+kernel@armlinux.org.uk>
 Cc: Vinod Koul <vkoul@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap2.dtsi    | 42 +++++++++++++++++++++++++--------
- arch/arm/boot/dts/omap2430.dtsi |  4 ++++
- 2 files changed, 36 insertions(+), 10 deletions(-)
+ arch/arm/boot/dts/omap3-n900.dts |  5 ++++
+ arch/arm/boot/dts/omap3.dtsi     | 45 +++++++++++++++++++++++++-------
+ arch/arm/boot/dts/omap36xx.dtsi  |  4 +++
+ 3 files changed, 44 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
---- a/arch/arm/boot/dts/omap2.dtsi
-+++ b/arch/arm/boot/dts/omap2.dtsi
-@@ -8,6 +8,7 @@
-  * kind, whether express or implied.
-  */
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -482,6 +482,11 @@ &vintdig {
+ 	regulator-always-on;
+ };
  
-+#include <dt-bindings/bus/ti-sysc.h>
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/interrupt-controller/irq.h>
- #include <dt-bindings/pinctrl/omap.h>
-@@ -79,17 +80,38 @@ intc: interrupt-controller@1 {
- 			reg = <0x480FE000 0x1000>;
++/* First two dma channels are reserved on secure omap3 */
++&sdma {
++	dma-channel-mask = <0xfffffffc>;
++};
++
+ &twl {
+ 	twl_audio: audio {
+ 		compatible = "ti,twl4030-audio";
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -206,17 +206,42 @@ intc: interrupt-controller@48200000 {
+ 			reg = <0x48200000 0x1000>;
  		};
  
 -		sdma: dma-controller@48056000 {
--			compatible = "ti,omap2430-sdma", "ti,omap2420-sdma";
-+		target-module@48056000 {
-+			compatible = "ti,sysc-omap2", "ti,sysc";
- 			ti,hwmods = "dma";
+-			compatible = "ti,omap3630-sdma", "ti,omap3430-sdma";
 -			reg = <0x48056000 0x1000>;
 -			interrupts = <12>,
 -				     <13>,
@@ -70,7 +75,10 @@ diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
 -				     <15>;
 -			#dma-cells = <1>;
 -			dma-channels = <32>;
--			dma-requests = <64>;
+-			dma-requests = <96>;
++		target-module@48056000 {
++			compatible = "ti,sysc-omap2", "ti,sysc";
+ 			ti,hwmods = "dma";
 +			reg = <0x48056000 0x4>,
 +			      <0x4805602c 0x4>,
 +			      <0x48056028 0x4>;
@@ -82,40 +90,44 @@ diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
 +			ti,sysc-midle = <SYSC_IDLE_FORCE>,
 +					<SYSC_IDLE_NO>,
 +					<SYSC_IDLE_SMART>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
 +			ti,syss-mask = <1>;
-+			clocks = <&core_l3_ck>;
-+			clock-names = "fck";
++			/* Domains (V, P, C): core, core_pwrdm, core_l3_clkdm */
++			clocks = <&core_l3_ick>;
++			clock-names = "ick";
 +			#address-cells = <1>;
 +			#size-cells = <1>;
 +			ranges = <0 0x48056000 0x1000>;
 +
 +			sdma: dma-controller@0 {
-+				compatible = "ti,omap2420-sdma", "ti,omap-sdma";
-+				reg = <0 0x1000>;
++				compatible = "ti,omap3430-sdma", "ti,omap-sdma";
++				reg = <0x0 0x1000>;
 +				interrupts = <12>,
 +					     <13>,
 +					     <14>,
 +					     <15>;
 +				#dma-cells = <1>;
 +				dma-channels = <32>;
-+				dma-requests = <64>;
++				dma-requests = <96>;
 +			};
  		};
  
- 		i2c1: i2c@48070000 {
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -309,6 +309,10 @@ wd_timer2: wdt@49016000 {
+ 		gpio1: gpio@48310000 {
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -223,6 +223,10 @@ thermal_zones: thermal-zones {
  	};
  };
  
 +&sdma {
-+	compatible = "ti,omap2430-sdma", "ti,omap-sdma";
++	compatible = "ti,omap3630-sdma", "ti,omap-sdma";
 +};
 +
- &i2c1 {
- 	compatible = "ti,omap2430-i2c";
- };
+ /* OMAP3630 needs dss_96m_fck for VENC */
+ &venc {
+ 	clocks = <&dss_tv_fck>, <&dss_96m_fck>;
 -- 
 2.24.1
