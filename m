@@ -1,47 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/14] Remove legacy sdma code for dt booting omaps
-Date: Tue, 17 Dec 2019 06:50:53 -0800
-Message-ID: <20191217145053.GV35479@atomide.com>
-References: <20191217001925.44558-1-tony@atomide.com>
- <a62d8087-afad-fd04-bfe2-79ce6ea08ffe@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: Use ARM SMC Calling Convention when OP-TEE is
+ available
+Date: Tue, 17 Dec 2019 07:07:32 -0800
+Message-ID: <20191217150732.GW35479@atomide.com>
+References: <7fa11037-8d33-2274-c8cc-80e9630b38b0@ti.com>
+ <20191119192029.GP35479@atomide.com>
+ <0ad31b32-712e-5bef-5645-0336dfec99cc@ti.com>
+ <20191119194425.GQ35479@atomide.com>
+ <f2f53e5e-6c95-e32f-d67a-284bb88e73e0@ti.com>
+ <1ff8ae4b-5de3-4fdf-7318-d33398dc7fc8@ti.com>
+ <20191216210407.GR35479@atomide.com>
+ <9adad579-98b4-f228-caf3-f4996dcaecda@ti.com>
+ <20191216224105.GS35479@atomide.com>
+ <35e4b682-0d2f-23b1-6df4-428c6bcb4d59@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <a62d8087-afad-fd04-bfe2-79ce6ea08ffe@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Vinod Koul <vinod.koul@intel.com>, Vinod Koul <vkoul@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <35e4b682-0d2f-23b1-6df4-428c6bcb4d59@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [191217 09:54]:
-> Thanks for doing this!
-> First things first:
-> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+* Andrew F. Davis <afd@ti.com> [191217 13:14]:
+> On 12/16/19 5:41 PM, Tony Lindgren wrote:
+> > Please just add omap_early_initcall() to omap-secure.c while at it
+> > to deal with this.
+>
+> omap_early_initcall()s are not called until after all the SMC calls have
+> already happened.
 
-Thanks for testing!
-
-> But I was only able to test it with CPU_IDLE=n otherwise (even w/o this series)
-> I got a flood of (PandaBoard-ES):
-> 
-> [  315.995819] ------------[ cut here ]------------
-> [  316.000457] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:141 l3_interrupt_handler+0x264/0x384
-> [  316.009613] 44000000.ocp:L3 Standard Error: MASTER USBHOSTHS TARGET ABE (Read Link): At Address: 0x00000000 : Data Access in User mode during Functional access
-
-Can you please email me your .config and I'll take a look?
-
-I'm not seeing that with pandaboard es here at least with
-omap2plus_defconfig.
+Oh OK. Then let's just add omap_secure_init() that's called from
+*_init_early() as late as possible. We will have more use for that
+init later on too.
 
 Regards,
 
