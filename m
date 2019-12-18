@@ -1,19 +1,19 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 15/18] mfd: omap-usb-tll: Make it explicitly non-modular
-Date: Wed, 18 Dec 2019 15:48:54 -0500
-Message-ID: <1576702137-25905-16-git-send-email-paul.gortmaker@windriver.com>
+Subject: [PATCH 17/18] mfd: palmas: Make it explicitly non-modular
+Date: Wed, 18 Dec 2019 15:48:56 -0500
+Message-ID: <1576702137-25905-18-git-send-email-paul.gortmaker@windriver.com>
 References: <1576702137-25905-1-git-send-email-paul.gortmaker@windriver.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1576702137-25905-1-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 The Kconfig currently controlling compilation of this code is:
 
-drivers/mfd/Kconfig:config MFD_OMAP_USB_HOST
-drivers/mfd/Kconfig:    bool "TI OMAP USBHS core and TLL driver"
+drivers/mfd/Kconfig:config MFD_PALMAS
+drivers/mfd/Kconfig:    bool "TI Palmas series chips"
 
 ...meaning that it currently is not being built as a module by anyone.
 
@@ -27,6 +27,9 @@ code for non-modular drivers.
 Since module_init was not in use by this code, the init ordering
 remains unchanged with this commit.
 
+We delete the include of module.h as well as an unused instance of
+moduleparam.h include as well.
+
 Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
 
 We also delete the MODULE_LICENSE tag etc. since all that information
@@ -34,98 +37,91 @@ is already contained at the top of the file in the comments.
 
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
 Cc: linux-omap@vger.kernel.org
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- drivers/mfd/omap-usb-tll.c | 47 ++++------------------------------------------
- 1 file changed, 4 insertions(+), 43 deletions(-)
+ drivers/mfd/palmas.c | 36 +-----------------------------------
+ 1 file changed, 1 insertion(+), 35 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 265f5e350e1c..77c8d98a6731 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -7,7 +7,7 @@
-  * Author: Roger Quadros <rogerq@ti.com>
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index f5b3fa973b13..0e96c5cd02c6 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -7,8 +7,6 @@
+  * Author: Graeme Gregory <gg@slimlogic.co.uk>
   */
- #include <linux/kernel.h>
+ 
 -#include <linux/module.h>
-+#include <linux/init.h>
- #include <linux/types.h>
+-#include <linux/moduleparam.h>
+ #include <linux/init.h>
  #include <linux/slab.h>
- #include <linux/spinlock.h>
-@@ -269,46 +269,18 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 	return 0;
+ #include <linux/i2c.h>
+@@ -500,7 +498,6 @@ static const struct of_device_id of_palmas_match_tbl[] = {
+ 	},
+ 	{ },
+ };
+-MODULE_DEVICE_TABLE(of, of_palmas_match_tbl);
+ 
+ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 			    const struct i2c_device_id *id)
+@@ -700,26 +697,6 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 	return ret;
  }
  
--/**
-- * usbtll_omap_remove - shutdown processing for UHH & TLL HCDs
-- * @pdev: USB Host Controller being removed
-- *
-- * Reverses the effect of usbtll_omap_probe().
-- */
--static int usbtll_omap_remove(struct platform_device *pdev)
+-static int palmas_i2c_remove(struct i2c_client *i2c)
 -{
--	struct usbtll_omap *tll = platform_get_drvdata(pdev);
+-	struct palmas *palmas = i2c_get_clientdata(i2c);
 -	int i;
 -
--	spin_lock(&tll_lock);
--	tll_dev = NULL;
--	spin_unlock(&tll_lock);
+-	regmap_del_irq_chip(palmas->irq, palmas->irq_data);
 -
--	for (i = 0; i < tll->nch; i++) {
--		if (!IS_ERR(tll->ch_clk[i])) {
--			clk_unprepare(tll->ch_clk[i]);
--			clk_put(tll->ch_clk[i]);
--		}
+-	for (i = 1; i < PALMAS_NUM_CLIENTS; i++) {
+-		if (palmas->i2c_clients[i])
+-			i2c_unregister_device(palmas->i2c_clients[i]);
 -	}
 -
--	pm_runtime_disable(&pdev->dev);
+-	if (palmas == palmas_dev) {
+-		pm_power_off = NULL;
+-		palmas_dev = NULL;
+-	}
+-
 -	return 0;
 -}
 -
- static const struct of_device_id usbtll_omap_dt_ids[] = {
- 	{ .compatible = "ti,usbhs-tll" },
- 	{ }
+ static const struct i2c_device_id palmas_i2c_id[] = {
+ 	{ "palmas", },
+ 	{ "twl6035", },
+@@ -727,15 +704,14 @@ static const struct i2c_device_id palmas_i2c_id[] = {
+ 	{ "tps65913", },
+ 	{ /* end */ }
  };
+-MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
  
--MODULE_DEVICE_TABLE(of, usbtll_omap_dt_ids);
--
- static struct platform_driver usbtll_omap_driver = {
+ static struct i2c_driver palmas_i2c_driver = {
  	.driver = {
--		.name		= (char *)usbtll_driver_name,
--		.of_match_table = usbtll_omap_dt_ids,
-+		.name			= (char *)usbtll_driver_name,
-+		.of_match_table		= usbtll_omap_dt_ids,
-+		.suppress_bind_attrs	= true,
+ 		   .name = "palmas",
+ 		   .of_match_table = of_palmas_match_tbl,
++		   .suppress_bind_attrs = true,
  	},
- 	.probe		= usbtll_omap_probe,
--	.remove		= usbtll_omap_remove,
+ 	.probe = palmas_i2c_probe,
+-	.remove = palmas_i2c_remove,
+ 	.id_table = palmas_i2c_id,
  };
  
- int omap_tll_init(struct usbhs_omap_platform_data *pdata)
-@@ -446,11 +418,6 @@ int omap_tll_disable(struct usbhs_omap_platform_data *pdata)
+@@ -745,13 +721,3 @@ static int __init palmas_i2c_init(void)
  }
- EXPORT_SYMBOL_GPL(omap_tll_disable);
- 
--MODULE_AUTHOR("Keshava Munegowda <keshava_mgowda@ti.com>");
--MODULE_AUTHOR("Roger Quadros <rogerq@ti.com>");
--MODULE_LICENSE("GPL v2");
--MODULE_DESCRIPTION("usb tll driver for TI OMAP EHCI and OHCI controllers");
+ /* init early so consumer devices can complete system boot */
+ subsys_initcall(palmas_i2c_init);
 -
- static int __init omap_usbtll_drvinit(void)
- {
- 	return platform_driver_register(&usbtll_omap_driver);
-@@ -462,9 +429,3 @@ static int __init omap_usbtll_drvinit(void)
-  * the usbhs core driver probe function is called.
-  */
- fs_initcall(omap_usbtll_drvinit);
--
--static void __exit omap_usbtll_drvexit(void)
+-static void __exit palmas_i2c_exit(void)
 -{
--	platform_driver_unregister(&usbtll_omap_driver);
+-	i2c_del_driver(&palmas_i2c_driver);
 -}
--module_exit(omap_usbtll_drvexit);
+-module_exit(palmas_i2c_exit);
+-
+-MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
+-MODULE_DESCRIPTION("Palmas chip family multi-function driver");
+-MODULE_LICENSE("GPL");
 -- 
 2.7.4
