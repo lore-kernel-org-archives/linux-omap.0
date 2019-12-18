@@ -1,106 +1,114 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 10/18] mfd: twl6040: Make it explicitly non-modular
-Date: Wed, 18 Dec 2019 15:48:49 -0500
-Message-ID: <1576702137-25905-11-git-send-email-paul.gortmaker@windriver.com>
-References: <1576702137-25905-1-git-send-email-paul.gortmaker@windriver.com>
+Subject: [PATCH 00/18] mfd: demodularization of non-modular drivers
+Date: Wed, 18 Dec 2019 15:48:39 -0500
+Message-ID: <1576702137-25905-1-git-send-email-paul.gortmaker@windriver.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1576702137-25905-1-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Alexandre Torgue <alexandre.torgue@st.com>, Daniel Ribeiro <drwyrm@gmail.com>, Graeme Gregory <gg@slimlogic.co.uk>, Haojian Zhuang <haojian.zhuang@marvell.com>, Harald Welte <laforge@openezx.org>, Ian Molton <spyro@f2s.com>, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Mike Rapoport <mike@compulab.co.il>, Milo Kim <milo.kim@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rabin Vincent <rabin.vincent@stericsson.com>, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Yang@mail.windriver.com
 List-Id: linux-omap@vger.kernel.org
 
-The Kconfig/Makefile controlling compilation of this code is:
+This group of MFD drivers are all controlled by "bool" Kconfig settings,
+but contain module infrastructure like unused/orphaned "remove" and
+__exit functions, use of <linux/module.h> and/or MODULE_ macros that
+are no-ops in the non-modular case.
 
-drivers/mfd/Kconfig:config TWL6040_CORE
-drivers/mfd/Kconfig:    bool "TI TWL6040 audio codec"
+We can remove/replace all of the above.  We are trying to make driver
+code consistent with the Makefiles/Kconfigs that control them.  This
+means not using modular functions/macros for drivers that can never be
+built as a module.  Some of the downfalls this leads to are:
 
-drivers/mfd/Makefile: obj-$(CONFIG_TWL6040_CORE)      += twl6040.o
+ (1) it is easy to accidentally write unused module_exit and remove code
+ (2) it can be misleading when reading the source, thinking it can be
+     modular when the Makefile and/or Kconfig prohibit it
+ (3) it requires the include of the module.h header file which in turn
+     includes nearly everything else, thus adding to CPP overhead.
+ (4) it gets copied/replicated into other drivers and spreads quickly.
 
-...meaning that it currently is not being built as a module by anyone.
+We've integrated hundreds of these type cleanups already, as the git
+history will show.  This is just a continuation of that objective.
 
-Lets remove the modular code that is essentially orphaned, so that
-when reading the driver there is no doubt it is builtin-only.
+The ".remove" function linked into the device structure deserves an
+extra comment.  While the normal execution path would be from a module
+unload (if it was modular), it is theoretically possible that a person
+could use the core driver infrastructure to manually push the driver off
+the hardware; an "unbind" event -- which would run the ".remove" function.
 
-We explicitly disallow a driver unbind, since that doesn't have a
-sensible use case anyway, and it allows us to drop the ".remove"
-code for non-modular drivers.
+Given that, in this series, when we delete a ".remove" function from
+the driver struct, we also disable unbind.  Should there be a valid use
+case out there that has been overlooked, this will ensure we get to see
+it and can react/revert accordingly.
 
-Since module_i2c_driver() uses the same init level priority as
-builtin_i2c_driver() the init ordering remains unchanged with
-this commit.
+Build testing was done on drivers/mfd for allmodconfig on x86_64, ARM
+and ARM-64 (on linux-next).
 
-Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
-
-We also delete the MODULE_LICENSE tag etc. since all that information
-is already contained at the top of the file in the comments.
-
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>
-Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- drivers/mfd/twl6040.c | 29 +++--------------------------
- 1 file changed, 3 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-index b9c6d94b4002..531eefb2fab5 100644
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -9,7 +9,7 @@
-  * Copyright:	(C) 2011 Texas Instruments, Inc.
-  */
- 
--#include <linux/module.h>
-+#include <linux/init.h>
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/kernel.h>
-@@ -808,41 +808,18 @@ static int twl6040_probe(struct i2c_client *client,
- 	return ret;
- }
- 
--static int twl6040_remove(struct i2c_client *client)
--{
--	struct twl6040 *twl6040 = i2c_get_clientdata(client);
--
--	if (twl6040->power_count)
--		twl6040_power(twl6040, 0);
--
--	regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
--
--	mfd_remove_devices(&client->dev);
--
--	regulator_bulk_disable(TWL6040_NUM_SUPPLIES, twl6040->supplies);
--
--	return 0;
--}
--
- static const struct i2c_device_id twl6040_i2c_id[] = {
- 	{ "twl6040", 0, },
- 	{ "twl6041", 0, },
- 	{ },
- };
--MODULE_DEVICE_TABLE(i2c, twl6040_i2c_id);
- 
- static struct i2c_driver twl6040_driver = {
- 	.driver = {
- 		.name = "twl6040",
-+		.suppress_bind_attrs = true,
- 	},
- 	.probe		= twl6040_probe,
--	.remove		= twl6040_remove,
- 	.id_table	= twl6040_i2c_id,
- };
--
--module_i2c_driver(twl6040_driver);
--
--MODULE_DESCRIPTION("TWL6040 MFD");
--MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
--MODULE_AUTHOR("Jorge Eduardo Candelaria <jorge.candelaria@ti.com>");
--MODULE_LICENSE("GPL");
-+builtin_i2c_driver(twl6040_driver);
+Cc: Alexandre Torgue <alexandre.torgue@st.com>
+Cc: Daniel Ribeiro <drwyrm@gmail.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Haojian Zhuang <haojian.zhuang@marvell.com>
+Cc: Harald Welte <laforge@openezx.org>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
+Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Milo Kim <milo.kim@ti.com>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Rabin Vincent <rabin.vincent@stericsson.com>
+Cc: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Viresh Kumar <vireshk@kernel.org>
+Cc: Yang, Bin <bin.yang@intel.com>
+Cc: Zhu, Lejun <lejun.zhu@linux.intel.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-stm32@st-md-mailman.stormreply.com
+
+Paul Gortmaker (18):
+  mfd: stmpe-spi: Make it explicitly non-modular
+  mfd: stmpe-i2c: Make it explicitly non-modular
+  mfd: ezx-pcap: Make it explicitly non-modular
+  mfd: 88pm860x-*: Make it explicitly non-modular
+  mfd: tc3589: Make it explicitly non-modular
+  mfd: tc6387xb: Make it explicitly non-modular
+  mfd: tc6393xb: Make it explicitly non-modular
+  mfd: twl4030-audio: Make it explicitly non-modular
+  mfd: twl4030-power: Make it explicitly non-modular
+  mfd: twl6040: Make it explicitly non-modular
+  mfd: t7l66xb: Make it explicitly non-modular
+  mfd: lp8788: Make it explicitly non-modular
+  mfd: menelaus: Make it explicitly non-modular
+  mfd: tps6586x: Make it explicitly non-modular
+  mfd: omap-usb-tll: Make it explicitly non-modular
+  mfd: omap-usb-host: Make it explicitly non-modular
+  mfd: palmas: Make it explicitly non-modular
+  mfd: intel_soc_pmic_core: Make it explicitly non-modular
+
+ drivers/mfd/88pm860x-core.c       | 40 ++-------------------------------
+ drivers/mfd/88pm860x-i2c.c        |  1 -
+ drivers/mfd/ezx-pcap.c            | 42 +++-------------------------------
+ drivers/mfd/intel_soc_pmic_core.c | 31 +++-----------------------
+ drivers/mfd/lp8788.c              | 24 ++------------------
+ drivers/mfd/menelaus.c            | 24 ++++----------------
+ drivers/mfd/omap-usb-host.c       | 47 +++++----------------------------------
+ drivers/mfd/omap-usb-tll.c        | 47 ++++-----------------------------------
+ drivers/mfd/palmas.c              | 36 +-----------------------------
+ drivers/mfd/stmpe-i2c.c           | 23 ++-----------------
+ drivers/mfd/stmpe-spi.c           | 23 ++-----------------
+ drivers/mfd/stmpe.c               | 14 ------------
+ drivers/mfd/stmpe.h               |  1 -
+ drivers/mfd/t7l66xb.c             | 37 ++++--------------------------
+ drivers/mfd/tc3589x.c             | 26 ++--------------------
+ drivers/mfd/tc6387xb.c            | 30 ++++---------------------
+ drivers/mfd/tc6393xb.c            | 43 ++---------------------------------
+ drivers/mfd/tps6586x.c            | 26 ++--------------------
+ drivers/mfd/twl4030-audio.c       | 21 +++--------------
+ drivers/mfd/twl4030-power.c       | 19 +++-------------
+ drivers/mfd/twl6040.c             | 29 +++---------------------
+ 21 files changed, 51 insertions(+), 533 deletions(-)
+
 -- 
 2.7.4
