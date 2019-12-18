@@ -1,19 +1,21 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 16/18] mfd: omap-usb-host: Make it explicitly non-modular
-Date: Wed, 18 Dec 2019 15:48:55 -0500
-Message-ID: <1576702137-25905-17-git-send-email-paul.gortmaker@windriver.com>
+Subject: [PATCH 10/18] mfd: twl6040: Make it explicitly non-modular
+Date: Wed, 18 Dec 2019 15:48:49 -0500
+Message-ID: <1576702137-25905-11-git-send-email-paul.gortmaker@windriver.com>
 References: <1576702137-25905-1-git-send-email-paul.gortmaker@windriver.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1576702137-25905-1-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The Kconfig currently controlling compilation of this code is:
+The Kconfig/Makefile controlling compilation of this code is:
 
-drivers/mfd/Kconfig:config MFD_OMAP_USB_HOST
-drivers/mfd/Kconfig:    bool "TI OMAP USBHS core and TLL driver"
+drivers/mfd/Kconfig:config TWL6040_CORE
+drivers/mfd/Kconfig:    bool "TI TWL6040 audio codec"
+
+drivers/mfd/Makefile: obj-$(CONFIG_TWL6040_CORE)      += twl6040.o
 
 ...meaning that it currently is not being built as a module by anyone.
 
@@ -24,8 +26,9 @@ We explicitly disallow a driver unbind, since that doesn't have a
 sensible use case anyway, and it allows us to drop the ".remove"
 code for non-modular drivers.
 
-Since module_init was not in use by this code, the init ordering
-remains unchanged with this commit.
+Since module_i2c_driver() uses the same init level priority as
+builtin_i2c_driver() the init ordering remains unchanged with
+this commit.
 
 Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
 
@@ -34,95 +37,70 @@ is already contained at the top of the file in the comments.
 
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>
+Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
 Cc: linux-omap@vger.kernel.org
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- drivers/mfd/omap-usb-host.c | 47 +++++----------------------------------------
- 1 file changed, 5 insertions(+), 42 deletions(-)
+ drivers/mfd/twl6040.c | 29 +++--------------------------
+ 1 file changed, 3 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 4798d9f3f9d5..118756d7be19 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -7,7 +7,7 @@
-  * Author: Roger Quadros <rogerq@ti.com>
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index b9c6d94b4002..531eefb2fab5 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -9,7 +9,7 @@
+  * Copyright:	(C) 2011 Texas Instruments, Inc.
   */
- #include <linux/kernel.h>
+ 
 -#include <linux/module.h>
 +#include <linux/init.h>
  #include <linux/types.h>
  #include <linux/slab.h>
- #include <linux/delay.h>
-@@ -803,28 +803,6 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ #include <linux/kernel.h>
+@@ -808,41 +808,18 @@ static int twl6040_probe(struct i2c_client *client,
  	return ret;
  }
  
--static int usbhs_omap_remove_child(struct device *dev, void *data)
+-static int twl6040_remove(struct i2c_client *client)
 -{
--	dev_info(dev, "unregistering\n");
--	platform_device_unregister(to_platform_device(dev));
+-	struct twl6040 *twl6040 = i2c_get_clientdata(client);
+-
+-	if (twl6040->power_count)
+-		twl6040_power(twl6040, 0);
+-
+-	regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
+-
+-	mfd_remove_devices(&client->dev);
+-
+-	regulator_bulk_disable(TWL6040_NUM_SUPPLIES, twl6040->supplies);
+-
 -	return 0;
 -}
 -
--/**
-- * usbhs_omap_remove - shutdown processing for UHH & TLL HCDs
-- * @pdev: USB Host Controller being removed
-- *
-- * Reverses the effect of usbhs_omap_probe().
-- */
--static int usbhs_omap_remove(struct platform_device *pdev)
--{
--	pm_runtime_disable(&pdev->dev);
--
--	/* remove children */
--	device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
--	return 0;
--}
--
- static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
- 	.runtime_suspend	= usbhs_runtime_suspend,
- 	.runtime_resume		= usbhs_runtime_resume,
-@@ -835,25 +813,16 @@ static const struct of_device_id usbhs_omap_dt_ids[] = {
- 	{ }
+ static const struct i2c_device_id twl6040_i2c_id[] = {
+ 	{ "twl6040", 0, },
+ 	{ "twl6041", 0, },
+ 	{ },
  };
+-MODULE_DEVICE_TABLE(i2c, twl6040_i2c_id);
  
--MODULE_DEVICE_TABLE(of, usbhs_omap_dt_ids);
--
--
- static struct platform_driver usbhs_omap_driver = {
+ static struct i2c_driver twl6040_driver = {
  	.driver = {
--		.name		= (char *)usbhs_driver_name,
--		.pm		= &usbhsomap_dev_pm_ops,
--		.of_match_table = usbhs_omap_dt_ids,
-+		.name			= (char *)usbhs_driver_name,
-+		.pm			= &usbhsomap_dev_pm_ops,
-+		.of_match_table		= usbhs_omap_dt_ids,
-+		.suppress_bind_attr	= true,
+ 		.name = "twl6040",
++		.suppress_bind_attrs = true,
  	},
- 	.probe		= usbhs_omap_probe,
--	.remove		= usbhs_omap_remove,
+ 	.probe		= twl6040_probe,
+-	.remove		= twl6040_remove,
+ 	.id_table	= twl6040_i2c_id,
  };
- 
--MODULE_AUTHOR("Keshava Munegowda <keshava_mgowda@ti.com>");
--MODULE_AUTHOR("Roger Quadros <rogerq@ti.com>");
--MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
--MODULE_LICENSE("GPL v2");
--MODULE_DESCRIPTION("usb host common core driver for omap EHCI and OHCI");
 -
- static int omap_usbhs_drvinit(void)
- {
- 	return platform_driver_register(&usbhs_omap_driver);
-@@ -867,9 +836,3 @@ static int omap_usbhs_drvinit(void)
-  * usb tll driver
-  */
- fs_initcall_sync(omap_usbhs_drvinit);
+-module_i2c_driver(twl6040_driver);
 -
--static void omap_usbhs_drvexit(void)
--{
--	platform_driver_unregister(&usbhs_omap_driver);
--}
--module_exit(omap_usbhs_drvexit);
+-MODULE_DESCRIPTION("TWL6040 MFD");
+-MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
+-MODULE_AUTHOR("Jorge Eduardo Candelaria <jorge.candelaria@ti.com>");
+-MODULE_LICENSE("GPL");
++builtin_i2c_driver(twl6040_driver);
 -- 
 2.7.4
