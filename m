@@ -1,93 +1,376 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 03/13] PCI: cadence: Add support to use custom read and
- write accessors
-Date: Thu, 19 Dec 2019 17:11:00 +0530
-Message-ID: <cdd13dd0-6595-c11c-72b2-6a1d140c2bbc@ti.com>
-References: <20191209092147.22901-1-kishon@ti.com>
- <20191209092147.22901-4-kishon@ti.com>
- <20191216140729.GX24359@e119886-lin.cambridge.arm.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 02/15] remoteproc/omap: Add device tree support
+Date: Thu, 19 Dec 2019 13:54:17 +0200
+Message-ID: <5f3369f2-c8e2-f00c-e0cb-3757129b03a2@ti.com>
+References: <20191213125537.11509-1-t-kristo@ti.com>
+ <20191213125537.11509-3-t-kristo@ti.com> <20191217230141.GA16271@xps15>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191216140729.GX24359@e119886-lin.cambridge.arm.com>
+In-Reply-To: <20191217230141.GA16271@xps15>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Murray <andrew.murray@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On 16/12/19 7:37 pm, Andrew Murray wrote:
-> On Mon, Dec 09, 2019 at 02:51:37PM +0530, Kishon Vijay Abraham I wrote:
->> Add support to use custom read and write accessors. Platforms that
->> doesn't support half word or byte access or any other constraint
+On 18/12/2019 01:01, Mathieu Poirier wrote:
+> Hi Tero,
 > 
-> s/doesn't/don't/
-> 
->> while accessing registers can use this feature to populate custom
->> read and write accessors. These custom accessors are used for both
->> standard register access and configuration space register access.
-> 
-> You can put the following sentence underneath a --- as it's not needed
-> in the commit message (but may be helpful to reviewers).
-> 
->> This is in preparation for adding PCIe support in TI's J721E SoC which
->> uses Cadence PCIe core.
+> On Fri, Dec 13, 2019 at 02:55:24PM +0200, Tero Kristo wrote:
+>> From: Suman Anna <s-anna@ti.com>
 >>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> OMAP4+ SoCs support device tree boot only. The OMAP remoteproc
+>> driver is enhanced to support remoteproc devices created through
+>> Device Tree, support for legacy platform devices has been
+>> deprecated. The current DT support handles the IPU and DSP
+>> processor subsystems on OMAP4 and OMAP5 SoCs.
+>>
+>> The OMAP remoteproc driver relies on the ti-sysc, reset, and
+>> syscon layers for performing clock, reset and boot vector
+>> management (DSP remoteprocs only) of the devices, but some of
+>> these are limited only to the machine-specific layers
+>> in arch/arm. The dependency against control module API for boot
+>> vector management of the DSP remoteprocs has now been removed
+>> with added logic to parse the boot register from the DT node
+>> and program it appropriately directly within the driver.
+>>
+>> The OMAP remoteproc driver expects the firmware names to be
+>> provided via device tree entries (firmware-name.) These are used
+>> to load the proper firmware during boot of the remote processor.
+>>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> [t-kristo@ti.com: converted to use ti-sysc framework]
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 >> ---
->>  drivers/pci/controller/cadence/pcie-cadence.h | 99 +++++++++++++++++--
->>  1 file changed, 90 insertions(+), 9 deletions(-)
+>>   drivers/remoteproc/omap_remoteproc.c | 191 +++++++++++++++++++++++----
+>>   1 file changed, 168 insertions(+), 23 deletions(-)
 >>
->> diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
->> index a2b28b912ca4..d0d91c69fa1d 100644
->> --- a/drivers/pci/controller/cadence/pcie-cadence.h
->> +++ b/drivers/pci/controller/cadence/pcie-cadence.h
->> @@ -223,6 +223,11 @@ enum cdns_pcie_msg_routing {
->>  	MSG_ROUTING_GATHER,
->>  };
->>  
->> +struct cdns_pcie_ops {
->> +	u32	(*read)(void __iomem *addr, int size);
->> +	void	(*write)(void __iomem *addr, int size, u32 value);
+>> diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+>> index 6398194075aa..558634624590 100644
+>> --- a/drivers/remoteproc/omap_remoteproc.c
+>> +++ b/drivers/remoteproc/omap_remoteproc.c
+>> @@ -2,7 +2,7 @@
+>>   /*
+>>    * OMAP Remote Processor driver
+>>    *
+>> - * Copyright (C) 2011 Texas Instruments, Inc.
+>> + * Copyright (C) 2011-2019 Texas Instruments Incorporated - http://www.ti.com/
+>>    * Copyright (C) 2011 Google, Inc.
+>>    *
+>>    * Ohad Ben-Cohen <ohad@wizery.com>
+>> @@ -16,27 +16,53 @@
+>>   #include <linux/kernel.h>
+>>   #include <linux/module.h>
+>>   #include <linux/err.h>
+>> +#include <linux/of_device.h>
+>>   #include <linux/platform_device.h>
+>>   #include <linux/dma-mapping.h>
+>>   #include <linux/remoteproc.h>
+>>   #include <linux/mailbox_client.h>
+>>   #include <linux/omap-mailbox.h>
+>> -
+>> -#include <linux/platform_data/remoteproc-omap.h>
+>> +#include <linux/regmap.h>
+>> +#include <linux/mfd/syscon.h>
+>> +#include <linux/reset.h>
+>>   
+>>   #include "omap_remoteproc.h"
+>>   #include "remoteproc_internal.h"
+>>   
+>> +/**
+>> + * struct omap_rproc_boot_data - boot data structure for the DSP omap rprocs
+>> + * @syscon: regmap handle for the system control configuration module
+>> + * @boot_reg: boot register offset within the @syscon regmap
+>> + */
+>> +struct omap_rproc_boot_data {
+>> +	struct regmap *syscon;
+>> +	unsigned int boot_reg;
 >> +};
 >> +
->>  /**
->>   * struct cdns_pcie - private data for Cadence PCIe controller drivers
->>   * @reg_base: IO mapped register base
->> @@ -239,7 +244,7 @@ struct cdns_pcie {
->>  	int			phy_count;
->>  	struct phy		**phy;
->>  	struct device_link	**link;
->> -	const struct cdns_pcie_common_ops *ops;
-> 
-> What was cdns_pcie_common_ops? It's not defined in the current tree is it?
-
-Yeah, it's spurious change that has got merged.
-> 
->> +	const struct cdns_pcie_ops *ops;
->>  };
->>  
->>  /**
->> @@ -301,21 +306,47 @@ struct cdns_pcie_ep {
->>  /* Register access */
->>  static inline void cdns_pcie_writeb(struct cdns_pcie *pcie, u32 reg, u8 value)
->>  {
->> +	void __iomem *addr = pcie->reg_base + reg;
+>>   /**
+>>    * struct omap_rproc - omap remote processor state
+>>    * @mbox: mailbox channel handle
+>>    * @client: mailbox client to request the mailbox channel
+>> + * @boot_data: boot data structure for setting processor boot address
+>>    * @rproc: rproc handle
+>> + * @reset: reset handle
+>>    */
+>>   struct omap_rproc {
+>>   	struct mbox_chan *mbox;
+>>   	struct mbox_client client;
+>> +	struct omap_rproc_boot_data *boot_data;
+>>   	struct rproc *rproc;
+>> +	struct reset_control *reset;
+>> +};
 >> +
->> +	if (pcie->ops && pcie->ops->write) {
->> +		pcie->ops->write(addr, 0x1, value);
->> +		return;
+>> +/**
+>> + * struct omap_rproc_dev_data - device data for the omap remote processor
+>> + * @device_name: device name of the remote processor
+>> + * @has_bootreg: true if this remote processor has boot register
+>> + */
+>> +struct omap_rproc_dev_data {
+>> +	const char *device_name;
+>> +	bool has_bootreg;
+>>   };
+>>   
+>>   /**
+>> @@ -92,6 +118,21 @@ static void omap_rproc_kick(struct rproc *rproc, int vqid)
+>>   			ret);
+>>   }
+>>   
+>> +/**
+>> + * omap_rproc_write_dsp_boot_addr - set boot address for a DSP remote processor
+>> + * @rproc: handle of a remote processor
+>> + *
+>> + * Set boot address for a supported DSP remote processor.
+>> + */
+>> +static void omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
+>> +{
+>> +	struct omap_rproc *oproc = rproc->priv;
+>> +	struct omap_rproc_boot_data *bdata = oproc->boot_data;
+>> +	u32 offset = bdata->boot_reg;
+>> +
+>> +	regmap_write(bdata->syscon, offset, rproc->bootaddr);
+>> +}
+>> +
+>>   /*
+>>    * Power up the remote processor.
+>>    *
+>> @@ -103,13 +144,11 @@ static int omap_rproc_start(struct rproc *rproc)
+>>   {
+>>   	struct omap_rproc *oproc = rproc->priv;
+>>   	struct device *dev = rproc->dev.parent;
+>> -	struct platform_device *pdev = to_platform_device(dev);
+>> -	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
+>>   	int ret;
+>>   	struct mbox_client *client = &oproc->client;
+>>   
+>> -	if (pdata->set_bootaddr)
+>> -		pdata->set_bootaddr(rproc->bootaddr);
+>> +	if (oproc->boot_data)
+>> +		omap_rproc_write_dsp_boot_addr(rproc);
+>>   
+>>   	client->dev = dev;
+>>   	client->tx_done = NULL;
+>> @@ -117,7 +156,7 @@ static int omap_rproc_start(struct rproc *rproc)
+>>   	client->tx_block = false;
+>>   	client->knows_txdone = false;
+>>   
+>> -	oproc->mbox = omap_mbox_request_channel(client, pdata->mbox_name);
+>> +	oproc->mbox = mbox_request_channel(client, 0);
+>>   	if (IS_ERR(oproc->mbox)) {
+>>   		ret = -EBUSY;
+>>   		dev_err(dev, "mbox_request_channel failed: %ld\n",
+>> @@ -138,11 +177,7 @@ static int omap_rproc_start(struct rproc *rproc)
+>>   		goto put_mbox;
+>>   	}
+>>   
+>> -	ret = pdata->device_enable(pdev);
+>> -	if (ret) {
+>> -		dev_err(dev, "omap_device_enable failed: %d\n", ret);
+>> -		goto put_mbox;
+>> -	}
+>> +	reset_control_deassert(oproc->reset);
+>>   
+>>   	return 0;
+>>   
+>> @@ -154,15 +189,9 @@ static int omap_rproc_start(struct rproc *rproc)
+>>   /* power off the remote processor */
+>>   static int omap_rproc_stop(struct rproc *rproc)
+>>   {
+>> -	struct device *dev = rproc->dev.parent;
+>> -	struct platform_device *pdev = to_platform_device(dev);
+>> -	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
+>>   	struct omap_rproc *oproc = rproc->priv;
+>> -	int ret;
+>>   
+>> -	ret = pdata->device_shutdown(pdev);
+>> -	if (ret)
+>> -		return ret;
+>> +	reset_control_assert(oproc->reset);
+>>   
+>>   	mbox_free_channel(oproc->mbox);
+>>   
+>> @@ -175,12 +204,122 @@ static const struct rproc_ops omap_rproc_ops = {
+>>   	.kick		= omap_rproc_kick,
+>>   };
+>>   
+>> +static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
+>> +	.device_name	= "dsp",
+>> +	.has_bootreg	= true,
+>> +};
+>> +
+>> +static const struct omap_rproc_dev_data omap4_ipu_dev_data = {
+>> +	.device_name	= "ipu",
+>> +};
+>> +
+>> +static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
+>> +	.device_name	= "dsp",
+>> +	.has_bootreg	= true,
+>> +};
+>> +
+>> +static const struct omap_rproc_dev_data omap5_ipu_dev_data = {
+>> +	.device_name	= "ipu",
+>> +};
+>> +
+>> +static const struct of_device_id omap_rproc_of_match[] = {
+>> +	{
+>> +		.compatible     = "ti,omap4-dsp",
+>> +		.data           = &omap4_dsp_dev_data,
+>> +	},
+>> +	{
+>> +		.compatible     = "ti,omap4-ipu",
+>> +		.data           = &omap4_ipu_dev_data,
+>> +	},
+>> +	{
+>> +		.compatible     = "ti,omap5-dsp",
+>> +		.data           = &omap5_dsp_dev_data,
+>> +	},
+>> +	{
+>> +		.compatible     = "ti,omap5-ipu",
+>> +		.data           = &omap5_ipu_dev_data,
+>> +	},
+>> +	{
+>> +		/* end */
+>> +	},
+>> +};
+>> +MODULE_DEVICE_TABLE(of, omap_rproc_of_match);
+>> +
+>> +static const char *omap_rproc_get_firmware(struct platform_device *pdev)
+>> +{
+>> +	const char *fw_name;
+>> +	int ret;
+>> +
+>> +	ret = of_property_read_string(pdev->dev.of_node, "firmware-name",
+>> +				      &fw_name);
+>> +	if (ret)
+>> +		return ERR_PTR(ret);
+>> +
+>> +	return fw_name;
+>> +}
+>> +
+>> +static int omap_rproc_get_boot_data(struct platform_device *pdev,
+>> +				    struct rproc *rproc)
+>> +{
+>> +	struct device_node *np = pdev->dev.of_node;
+>> +	struct omap_rproc *oproc = rproc->priv;
+>> +	const struct omap_rproc_dev_data *data;
+>> +	int ret;
+>> +
+>> +	data = of_device_get_match_data(&pdev->dev);
+>> +	if (!data)
+>> +		return -ENODEV;
+>> +
+>> +	if (!data->has_bootreg)
+>> +		return 0;
+>> +
+>> +	oproc->boot_data = devm_kzalloc(&pdev->dev, sizeof(*oproc->boot_data),
+>> +					GFP_KERNEL);
+>> +	if (!oproc->boot_data)
+>> +		return -ENOMEM;
+>> +
+>> +	if (!of_property_read_bool(np, "ti,bootreg")) {
+>> +		dev_err(&pdev->dev, "ti,bootreg property is missing\n");
+>> +		return -EINVAL;
 >> +	}
 >> +
->>  	writeb(value, pcie->reg_base + reg);
+>> +	oproc->boot_data->syscon =
+>> +			syscon_regmap_lookup_by_phandle(np, "ti,bootreg");
+>> +	if (IS_ERR(oproc->boot_data->syscon)) {
+>> +		ret = PTR_ERR(oproc->boot_data->syscon);
+>> +		return ret;
+>> +	}
+>> +
+>> +	if (of_property_read_u32_index(np, "ti,bootreg", 1,
+>> +				       &oproc->boot_data->boot_reg)) {
+>> +		dev_err(&pdev->dev, "couldn't get the boot register\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>   static int omap_rproc_probe(struct platform_device *pdev)
+>>   {
+>> -	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
+>> +	struct device_node *np = pdev->dev.of_node;
+>>   	struct omap_rproc *oproc;
+>>   	struct rproc *rproc;
+>> +	const char *firmware;
+>>   	int ret;
+>> +	struct reset_control *reset;
+>> +
+>> +	if (!np) {
+>> +		dev_err(&pdev->dev, "only DT-based devices are supported\n");
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	reset = devm_reset_control_array_get_optional_exclusive(&pdev->dev);
+>> +	if (IS_ERR(reset))
+>> +		return PTR_ERR(reset);
 > 
-> Can you use 'addr' here instead of 'pcie->reg_base + reg'? (And similar for the
-> rest of them).
+> Definition of a reset is listed as "required" in the bindings but here it is
+> optional.  If this is really what you want then adding a comment to exlain your
+> choice is probably a good idea.
 
-Sure.
+Right, I think I updated the binding to require this but forgot to 
+update the driver for this part. Will fix this.
 
-Thanks
-Kishon
+-Tero
+
+> 
+>> +
+>> +	firmware = omap_rproc_get_firmware(pdev);
+>> +	if (IS_ERR(firmware))
+>> +		return PTR_ERR(firmware);
+>>   
+>>   	ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+>>   	if (ret) {
+>> @@ -188,16 +327,21 @@ static int omap_rproc_probe(struct platform_device *pdev)
+>>   		return ret;
+>>   	}
+>>   
+>> -	rproc = rproc_alloc(&pdev->dev, pdata->name, &omap_rproc_ops,
+>> -			    pdata->firmware, sizeof(*oproc));
+>> +	rproc = rproc_alloc(&pdev->dev, dev_name(&pdev->dev), &omap_rproc_ops,
+>> +			    firmware, sizeof(*oproc));
+>>   	if (!rproc)
+>>   		return -ENOMEM;
+>>   
+>>   	oproc = rproc->priv;
+>>   	oproc->rproc = rproc;
+>> +	oproc->reset = reset;
+>>   	/* All existing OMAP IPU and DSP processors have an MMU */
+>>   	rproc->has_iommu = true;
+>>   
+>> +	ret = omap_rproc_get_boot_data(pdev, rproc);
+>> +	if (ret)
+>> +		goto free_rproc;
+>> +
+>>   	platform_set_drvdata(pdev, rproc);
+>>   
+>>   	ret = rproc_add(rproc);
+>> @@ -226,6 +370,7 @@ static struct platform_driver omap_rproc_driver = {
+>>   	.remove = omap_rproc_remove,
+>>   	.driver = {
+>>   		.name = "omap-rproc",
+>> +		.of_match_table = omap_rproc_of_match,
+> 
+>                  .of_match_table = of_match_ptr(omap_rproc_of_match),
+> 
+> Thanks,
+> Mathieu
+> 
+>>   	},
+>>   };
+>>   
+>> -- 
+>> 2.17.1
+>>
+>> --
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
