@@ -1,35 +1,77 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 05/13] PCI: cadence: Add read and write accessors to
- perform only 32-bit accesses
-Date: Thu, 19 Dec 2019 13:03:28 +0100
-Message-ID: <CAK8P3a06XLSa-FHNGsN=b10JrddjbOKAvfU=iXdMa+0L43m5fA@mail.gmail.com>
-References: <20191209092147.22901-1-kishon@ti.com> <20191209092147.22901-6-kishon@ti.com>
- <20191216144932.GY24359@e119886-lin.cambridge.arm.com> <d1ee4579-a3da-6a73-3516-a6d264f80995@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 08/13] PCI: cadence: Use local management register to
+ configure Vendor ID
+Date: Thu, 19 Dec 2019 17:42:27 +0530
+Message-ID: <cdb15479-6cc4-e00f-34a6-6cf191179bf7@ti.com>
+References: <20191209092147.22901-1-kishon@ti.com>
+ <20191209092147.22901-9-kishon@ti.com>
+ <20191217124238.GE24359@e119886-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d1ee4579-a3da-6a73-3516-a6d264f80995@ti.com>
+In-Reply-To: <20191217124238.GE24359@e119886-lin.cambridge.arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Andrew Murray <andrew.murray@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, linux-pci <linux-pci@vger.kernel.org>, DTML <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Andrew Murray <andrew.murray@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tom Joseph <tjoseph@cadence.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 19, 2019 at 12:54 PM Kishon Vijay Abraham I <kishon@ti.com> wrote:
->
-> Hi Andrew,
->
-> On 16/12/19 8:19 pm, Andrew Murray wrote:
-> > On Mon, Dec 09, 2019 at 02:51:39PM +0530, Kishon Vijay Abraham I wrote:
-> >> Certain platforms like TI's J721E allow only 32-bit register accesses.
-> >
-> > When I first read this I thought you meant only 32-bit accesses are allowed
-> > and not other sizes (such as 64-bit). However the limitation you address
-> > here is that the J721E allows only 32-bit *aligned* register accesses.
->
-> It's both, it allows only 32-bit aligned accesses and the size should be
-> only 32 bits. That's why I always use "readl" in the APIs below.
++Tom
 
-In that case, can't you use the pci_generic_config_read32/write32
-functions with a cadence specific .map_bus() function?
+Hi,
 
-       Arnd
+On 17/12/19 6:12 pm, Andrew Murray wrote:
+> On Mon, Dec 09, 2019 at 02:51:42PM +0530, Kishon Vijay Abraham I wrote:
+>> PCI_VENDOR_ID in root port configuration space is read-only register
+>> and writing to it will have no effect. Use local management register to
+>> configure Vendor ID and Subsystem Vendor ID.
+> 
+> Is this a bug fix? Can you add a Fixes tag and make that clearer?
+
+I think this might have worked in Cadence platform? Tom?
+
+Thanks
+Kishon
+
+> 
+> Thanks,
+> 
+> Andrew Murray
+> 
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  drivers/pci/controller/cadence/pcie-cadence-host.c | 9 +++++++--
+>>  1 file changed, 7 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+>> index cf817be237af..afb2c96a6538 100644
+>> --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
+>> +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
+>> @@ -71,6 +71,7 @@ static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
+>>  {
+>>  	struct cdns_pcie *pcie = &rc->pcie;
+>>  	u32 value, ctrl;
+>> +	u32 id;
+>>  
+>>  	/*
+>>  	 * Set the root complex BAR configuration register:
+>> @@ -90,8 +91,12 @@ static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
+>>  	cdns_pcie_writel(pcie, CDNS_PCIE_LM_RC_BAR_CFG, value);
+>>  
+>>  	/* Set root port configuration space */
+>> -	if (rc->vendor_id != 0xffff)
+>> -		cdns_pcie_rp_writew(pcie, PCI_VENDOR_ID, rc->vendor_id);
+>> +	if (rc->vendor_id != 0xffff) {
+>> +		id = CDNS_PCIE_LM_ID_VENDOR(rc->vendor_id) |
+>> +			CDNS_PCIE_LM_ID_SUBSYS(rc->vendor_id);
+>> +		cdns_pcie_writel(pcie, CDNS_PCIE_LM_ID, id);
+>> +	}
+>> +
+>>  	if (rc->device_id != 0xffff)
+>>  		cdns_pcie_rp_writew(pcie, PCI_DEVICE_ID, rc->device_id);
+>>  
+>> -- 
+>> 2.17.1
+>>
