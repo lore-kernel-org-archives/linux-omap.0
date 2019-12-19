@@ -1,16 +1,16 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 05/13] PCI: cadence: Add read and write accessors to
- perform only 32-bit accesses
-Date: Thu, 19 Dec 2019 17:26:05 +0530
-Message-ID: <d1ee4579-a3da-6a73-3516-a6d264f80995@ti.com>
+Subject: Re: [PATCH 04/13] PCI: cadence: Add support to start link and verify
+ link status
+Date: Thu, 19 Dec 2019 17:31:04 +0530
+Message-ID: <16ffe86d-9061-1a9a-d536-561e20ecbdd7@ti.com>
 References: <20191209092147.22901-1-kishon@ti.com>
- <20191209092147.22901-6-kishon@ti.com>
- <20191216144932.GY24359@e119886-lin.cambridge.arm.com>
+ <20191209092147.22901-5-kishon@ti.com>
+ <20191217115826.GA24359@e119886-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191216144932.GY24359@e119886-lin.cambridge.arm.com>
+In-Reply-To: <20191217115826.GA24359@e119886-lin.cambridge.arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Murray <andrew.murray@arm.com>
@@ -19,74 +19,91 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Andrew,
 
-On 16/12/19 8:19 pm, Andrew Murray wrote:
-> On Mon, Dec 09, 2019 at 02:51:39PM +0530, Kishon Vijay Abraham I wrote:
->> Certain platforms like TI's J721E allow only 32-bit register accesses.
-> 
-> When I first read this I thought you meant only 32-bit accesses are allowed
-> and not other sizes (such as 64-bit). However the limitation you address
-> here is that the J721E allows only 32-bit *aligned* register accesses.
-
-It's both, it allows only 32-bit aligned accesses and the size should be
-only 32 bits. That's why I always use "readl" in the APIs below.
-> 
-> It would be helpful to make this clearer in the commit message.
-> 
-> You can also shorten the commit subject to 'PCI: cadence: Add read/write
-> accessors for 32-bit aligned accesses' or similar.
-> 
->> Add read and write accessors to perform only 32-bit accesses in order to
->> support platfroms like TI's J721E.
+On 17/12/19 5:28 pm, Andrew Murray wrote:
+> On Mon, Dec 09, 2019 at 02:51:38PM +0530, Kishon Vijay Abraham I wrote:
+>> Add cdns_pcie_ops to start link and verify link status. The registers
+>> to start link and to check link status is in Platform specific PCIe
+>> wrapper. Add support for platform specific drivers to add callback
+>> functions for the PCIe Cadence core to start link and verify link status.
 >>
 >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 >> ---
->>  drivers/pci/controller/cadence/pcie-cadence.c | 40 +++++++++++++++++++
->>  drivers/pci/controller/cadence/pcie-cadence.h |  2 +
->>  2 files changed, 42 insertions(+)
+>>  .../pci/controller/cadence/pcie-cadence-ep.c  |  8 ++++++
+>>  .../controller/cadence/pcie-cadence-host.c    | 28 +++++++++++++++++++
+>>  drivers/pci/controller/cadence/pcie-cadence.h | 23 +++++++++++++++
+>>  3 files changed, 59 insertions(+)
 >>
->> diff --git a/drivers/pci/controller/cadence/pcie-cadence.c b/drivers/pci/controller/cadence/pcie-cadence.c
->> index cd795f6fc1e2..de5b3b06f2d0 100644
->> --- a/drivers/pci/controller/cadence/pcie-cadence.c
->> +++ b/drivers/pci/controller/cadence/pcie-cadence.c
->> @@ -7,6 +7,46 @@
+>> diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+>> index 560f22b4d165..088394b6be04 100644
+>> --- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
+>> +++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+>> @@ -355,8 +355,10 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
+>>  {
+>>  	struct cdns_pcie_ep *ep = epc_get_drvdata(epc);
+>>  	struct cdns_pcie *pcie = &ep->pcie;
+>> +	struct device *dev = pcie->dev;
+>>  	struct pci_epf *epf;
+>>  	u32 cfg;
+>> +	int ret;
 >>  
->>  #include "pcie-cadence.h"
+>>  	/*
+>>  	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
+>> @@ -367,6 +369,12 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
+>>  		cfg |= BIT(epf->func_no);
+>>  	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
 >>  
->> +u32 cdns_pcie_read32(void __iomem *addr, int size)
-> 
-> Given there is already a cdns_pcie_readl in pcie-cadence.h it may help
-> to name this in a way that doesn't cause confusion. Here 32 is perhaps
-> being used to suggest the size of the actual read performed, the
-> maximum size of 'size' or the alignment.
-> 
-> 
->> +{
->> +	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
->> +	unsigned int offset = (unsigned long)addr & 0x3;
->> +	u32 val = readl(aligned_addr);
->> +
->> +	if (!IS_ALIGNED((uintptr_t)addr, size)) {
->> +		pr_err("Invalid Address in function:%s\n", __func__);
-> 
-> Would this be better as a BUG? Without a BUG this error could get ignored
-> and yet the device may not behave as expected.
-
-yeah.
-> 
-> 
->> +		return 0;
+>> +	ret = cdns_pcie_start_link(pcie, true);
+>> +	if (ret) {
+>> +		dev_err(dev, "Failed to start link\n");
+>> +		return ret;
 >> +	}
 >> +
->> +	if (size > 2)
->> +		return val;
+>>  	return 0;
+>>  }
+>>  
+>> diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+>> index ccf55e143e1d..0929554f5a81 100644
+>> --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
+>> +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
+>> @@ -3,6 +3,7 @@
+>>  // Cadence PCIe host controller driver.
+>>  // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
+>>  
+>> +#include <linux/delay.h>
+>>  #include <linux/kernel.h>
+>>  #include <linux/of_address.h>
+>>  #include <linux/of_pci.h>
+>> @@ -201,6 +202,23 @@ static int cdns_pcie_host_init(struct device *dev,
+>>  	return err;
+>>  }
+>>  
+>> +static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
+>> +{
+>> +	struct device *dev = pcie->dev;
+>> +	int retries;
+>> +
+>> +	/* Check if the link is up or not */
+>> +	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
+>> +		if (cdns_pcie_is_link_up(pcie)) {
+>> +			dev_info(dev, "Link up\n");
+>> +			return 0;
+>> +		}
+>> +		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
+>> +	}
+>> +
+>> +	return -ETIMEDOUT;
+>> +}
 > 
-> I think you make the assumption here that if size > 2 then it's 4. It could
-> be 3 (though unlikely) in which case you'd want to fall through to the next
-> line.
+> This patch looks fine, except this function (above) is identical to
+> dw_pcie_wait_for_link, advk_pcie_wait_for_link and nwl_wait_for_link. Even
+> the definitions of LINK_WAIT_USLEEP_xx are the same.
+> 
+> I don't see any justification to duplicating this again - can you consolidate
+> these functions to something that all controller drivers can use?
 
-This assumption is used elsewhere too (e.g drivers/pci/access.c). I
-generally don't prefer adding handlers for non-occurring error
-scenarios, but If you insist I can fix that.
+This involves reading a register, so this in entirety cannot be in a
+generic layer. We could add "ops" for checking the link status (in
+pci_ops?), but I'm not sure if that's really required.
 
 Thanks
 Kishon
