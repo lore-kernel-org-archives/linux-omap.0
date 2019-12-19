@@ -1,51 +1,122 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 05/13] PCI: cadence: Add read and write accessors to
- perform only 32-bit accesses
-Date: Thu, 19 Dec 2019 18:49:18 +0530
-Message-ID: <9b40e71a-c18c-a958-84fe-c5a126fe8272@ti.com>
-References: <20191209092147.22901-1-kishon@ti.com>
- <20191209092147.22901-6-kishon@ti.com>
- <20191216144932.GY24359@e119886-lin.cambridge.arm.com>
- <d1ee4579-a3da-6a73-3516-a6d264f80995@ti.com>
- <CAK8P3a06XLSa-FHNGsN=b10JrddjbOKAvfU=iXdMa+0L43m5fA@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 05/15] remoteproc/omap: Add the rproc ops .da_to_va()
+ implementation
+Date: Thu, 19 Dec 2019 15:18:54 +0200
+Message-ID: <5869498f-086c-cea4-edcf-1b75fb22cf22@ti.com>
+References: <20191213125537.11509-1-t-kristo@ti.com>
+ <20191213125537.11509-6-t-kristo@ti.com> <20191218003815.GC16271@xps15>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a06XLSa-FHNGsN=b10JrddjbOKAvfU=iXdMa+0L43m5fA@mail.gmail.com>
+In-Reply-To: <20191218003815.GC16271@xps15>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrew Murray <andrew.murray@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, linux-pci <linux-pci@vger.kernel.org>, DTML <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
-
-On 19/12/19 5:33 pm, Arnd Bergmann wrote:
-> On Thu, Dec 19, 2019 at 12:54 PM Kishon Vijay Abraham I <kishon@ti.com> wrote:
+On 18/12/2019 02:38, Mathieu Poirier wrote:
+> On Fri, Dec 13, 2019 at 02:55:27PM +0200, Tero Kristo wrote:
+>> From: Suman Anna <s-anna@ti.com>
 >>
->> Hi Andrew,
+>> An implementation for the rproc ops .da_to_va() has been added
+>> that provides the address translation between device addresses
+>> to kernel virtual addresses for internal RAMs present on that
+>> particular remote processor device. The implementation provides
+>> the translations based on the addresses parsed and stored during
+>> the probe.
 >>
->> On 16/12/19 8:19 pm, Andrew Murray wrote:
->>> On Mon, Dec 09, 2019 at 02:51:39PM +0530, Kishon Vijay Abraham I wrote:
->>>> Certain platforms like TI's J721E allow only 32-bit register accesses.
->>>
->>> When I first read this I thought you meant only 32-bit accesses are allowed
->>> and not other sizes (such as 64-bit). However the limitation you address
->>> here is that the J721E allows only 32-bit *aligned* register accesses.
+>> This ops gets invoked by the exported rproc_da_to_va() function
+>> and allows the remoteproc core's ELF loader to be able to load
+>> program data directly into the internal memories.
 >>
->> It's both, it allows only 32-bit aligned accesses and the size should be
->> only 32 bits. That's why I always use "readl" in the APIs below.
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   drivers/remoteproc/omap_remoteproc.c | 39 ++++++++++++++++++++++++++++
+>>   1 file changed, 39 insertions(+)
+>>
+>> diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+>> index 844703507a74..28f14e24b389 100644
+>> --- a/drivers/remoteproc/omap_remoteproc.c
+>> +++ b/drivers/remoteproc/omap_remoteproc.c
+>> @@ -232,10 +232,49 @@ static int omap_rproc_stop(struct rproc *rproc)
+>>   	return 0;
+>>   }
+>>   
+>> +/**
+>> + * omap_rproc_da_to_va() - internal memory translation helper
+>> + * @rproc: remote processor to apply the address translation for
+>> + * @da: device address to translate
+>> + * @len: length of the memory buffer
+>> + *
+>> + * Custom function implementing the rproc .da_to_va ops to provide address
+>> + * translation (device address to kernel virtual address) for internal RAMs
+>> + * present in a DSP or IPU device). The translated addresses can be used
+>> + * either by the remoteproc core for loading, or by any rpmsg bus drivers.
+>> + * Returns the translated virtual address in kernel memory space, or NULL
+>> + * in failure.
+>> + */
+>> +static void *omap_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
+>> +{
+>> +	struct omap_rproc *oproc = rproc->priv;
+>> +	int i;
+>> +	u32 offset;
+>> +
+>> +	if (len <= 0)
+>> +		return NULL;
+>> +
+>> +	if (!oproc->num_mems)
+>> +		return NULL;
+>> +
+>> +	for (i = 0; i < oproc->num_mems; i++) {
+>> +		if (da >= oproc->mem[i].dev_addr && da + len <=
 > 
-> In that case, can't you use the pci_generic_config_read32/write32
-> functions with a cadence specific .map_bus() function?
+> Shouldn't this be '<' rather than '<=' ?
 
-pci_generic_config_read32() is for reading configuration space registers
-only. The accessors I added here are for the controller IP configuration.
+No, I think <= is correct. You need to consider the initial byte in the 
+range also. Consider a simple case where you provide the exact da + len 
+corresponding to a specific memory range.
 
-For the configuration space access I use
-pci_generic_config_read32/write32()([PATCH 11/13] PCI: j721e: Add TI
-J721E PCIe driver).
+> 
+>> +		    oproc->mem[i].dev_addr +  oproc->mem[i].size) {
+> 
+> One space too many after the '+' .
 
-Thanks
-Kishon
+True, I wonder why checkpatch did not catch this.
+
+> 
+>> +			offset = da -  oproc->mem[i].dev_addr;
+> 
+> One space too many after then '-' .
+
+Same, will fix these two.
+
+-Tero
+
+> 
+>> +			/* __force to make sparse happy with type conversion */
+>> +			return (__force void *)(oproc->mem[i].cpu_addr +
+>> +						offset);
+>> +		}
+>> +	}
+>> +
+>> +	return NULL;
+>> +}
+>> +
+>>   static const struct rproc_ops omap_rproc_ops = {
+>>   	.start		= omap_rproc_start,
+>>   	.stop		= omap_rproc_stop,
+>>   	.kick		= omap_rproc_kick,
+>> +	.da_to_va	= omap_rproc_da_to_va,
+>>   };
+>>   
+>>   static const char * const ipu_mem_names[] = {
+>> -- 
+>> 2.17.1
+>>
+>> --
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
