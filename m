@@ -1,143 +1,258 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv3 05/15] remoteproc/omap: Add the rproc ops .da_to_va()
- implementation
-Date: Thu, 19 Dec 2019 20:34:20 -0600
-Message-ID: <bd76da62-c9ad-2284-cf4b-8b0f02ed3e66@ti.com>
+Subject: Re: [PATCHv3 04/15] remoteproc/omap: Add support to parse internal
+ memories from DT
+Date: Thu, 19 Dec 2019 20:15:29 -0600
+Message-ID: <c60ce8fd-1933-a1ad-5ceb-230d96f17126@ti.com>
 References: <20191213125537.11509-1-t-kristo@ti.com>
- <20191213125537.11509-6-t-kristo@ti.com> <20191218003815.GC16271@xps15>
- <5869498f-086c-cea4-edcf-1b75fb22cf22@ti.com>
- <CANLsYkz=ZV-AABXq2mSdwKkcdkQgFwStepteFnMBc4j=ahe4Dw@mail.gmail.com>
+ <20191213125537.11509-5-t-kristo@ti.com> <20191218002257.GB16271@xps15>
+ <021d0654-5e78-85cd-4737-c1eccc8c07ce@ti.com>
+ <CANLsYkxqA4jm3igF9hfppzPGx4fyvmc+5LTY8uMCYNvZBCJoSQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANLsYkz=ZV-AABXq2mSdwKkcdkQgFwStepteFnMBc4j=ahe4Dw@mail.gmail.com>
+In-Reply-To: <CANLsYkxqA4jm3igF9hfppzPGx4fyvmc+5LTY8uMCYNvZBCJoSQ@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Mathieu Poirier <mathieu.poirier@linaro.org>, Tero Kristo <t-kristo@ti.com>
 Cc: Bjorn Andersson <bjorn.andersson@linaro.org>, Ohad Ben-Cohen <ohad@wizery.com>, linux-remoteproc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/19/19 6:12 PM, Mathieu Poirier wrote:
-> On Thu, 19 Dec 2019 at 06:18, Tero Kristo <t-kristo@ti.com> wrote:
+On 12/19/19 11:37 AM, Mathieu Poirier wrote:
+> On Thu, 19 Dec 2019 at 05:31, Tero Kristo <t-kristo@ti.com> wrote:
 >>
->> On 18/12/2019 02:38, Mathieu Poirier wrote:
->>> On Fri, Dec 13, 2019 at 02:55:27PM +0200, Tero Kristo wrote:
+>> On 18/12/2019 02:22, Mathieu Poirier wrote:
+>>> On Fri, Dec 13, 2019 at 02:55:26PM +0200, Tero Kristo wrote:
 >>>> From: Suman Anna <s-anna@ti.com>
 >>>>
->>>> An implementation for the rproc ops .da_to_va() has been added
->>>> that provides the address translation between device addresses
->>>> to kernel virtual addresses for internal RAMs present on that
->>>> particular remote processor device. The implementation provides
->>>> the translations based on the addresses parsed and stored during
->>>> the probe.
+>>>> The OMAP remoteproc driver has been enhanced to parse and store
+>>>> the kernel mappings for different internal RAM memories that may
+>>>> be present within each remote processor IP subsystem. Different
+>>>> devices have varying memories present on current SoCs. The current
+>>>> support handles the L2RAM for all IPU devices on OMAP4+ SoCs. The
+>>>> DSPs on OMAP4/OMAP5 only have Unicaches and do not have any L1 or
+>>>> L2 RAM memories.
 >>>>
->>>> This ops gets invoked by the exported rproc_da_to_va() function
->>>> and allows the remoteproc core's ELF loader to be able to load
->>>> program data directly into the internal memories.
+>>>> IPUs are expected to have the L2RAM at a fixed device address of
+>>>> 0x20000000, based on the current limitations on Attribute MMU
+>>>> configurations.
+>>>>
+>>>> NOTE:
+>>>> The current logic doesn't handle the parsing of memories for DRA7
+>>>> remoteproc devices, and will be added alongside the DRA7 support.
 >>>>
 >>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>> [t-kristo: converted to parse mem names / device addresses from pdata]
 >>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 >>>> ---
->>>>   drivers/remoteproc/omap_remoteproc.c | 39 ++++++++++++++++++++++++++++
->>>>   1 file changed, 39 insertions(+)
+>>>>   drivers/remoteproc/omap_remoteproc.c | 86 ++++++++++++++++++++++++++++
+>>>>   1 file changed, 86 insertions(+)
 >>>>
 >>>> diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
->>>> index 844703507a74..28f14e24b389 100644
+>>>> index d80f5d7b5931..844703507a74 100644
 >>>> --- a/drivers/remoteproc/omap_remoteproc.c
 >>>> +++ b/drivers/remoteproc/omap_remoteproc.c
->>>> @@ -232,10 +232,49 @@ static int omap_rproc_stop(struct rproc *rproc)
+>>>> @@ -39,11 +39,27 @@ struct omap_rproc_boot_data {
+>>>>      unsigned int boot_reg;
+>>>>   };
+>>>>
+>>>> +/*
+
+Somehow a second trailing * got dropped by mistake here.
+
+>>>> + * struct omap_rproc_mem - internal memory structure
+>>>> + * @cpu_addr: MPU virtual address of the memory region
+>>>> + * @bus_addr: bus address used to access the memory region
+>>>> + * @dev_addr: device address of the memory region from DSP view
+>>>> + * @size: size of the memory region
+>>>> + */
+>>>> +struct omap_rproc_mem {
+>>>> +    void __iomem *cpu_addr;
+>>>> +    phys_addr_t bus_addr;
+>>>> +    u32 dev_addr;
+>>>> +    size_t size;
+>>>> +};
+>>>> +
+>>>>   /**
+>>>>    * struct omap_rproc - omap remote processor state
+>>>>    * @mbox: mailbox channel handle
+>>>>    * @client: mailbox client to request the mailbox channel
+>>>>    * @boot_data: boot data structure for setting processor boot address
+>>>> + * @mem: internal memory regions data
+>>>> + * @num_mems: number of internal memory regions
+>>>>    * @rproc: rproc handle
+>>>>    * @reset: reset handle
+>>>>    */
+>>>> @@ -51,6 +67,8 @@ struct omap_rproc {
+>>>>      struct mbox_chan *mbox;
+>>>>      struct mbox_client client;
+>>>>      struct omap_rproc_boot_data *boot_data;
+>>>> +    struct omap_rproc_mem *mem;
+>>>> +    int num_mems;
+>>>>      struct rproc *rproc;
+>>>>      struct reset_control *reset;
+>>>>   };
+>>>> @@ -59,10 +77,14 @@ struct omap_rproc {
+>>>>    * struct omap_rproc_dev_data - device data for the omap remote processor
+>>>>    * @device_name: device name of the remote processor
+>>>>    * @has_bootreg: true if this remote processor has boot register
+>>>> + * @mem_names: memory names for this remote processor
+>>>> + * @dev_addrs: device addresses corresponding to the memory names
+>>>>    */
+>>>>   struct omap_rproc_dev_data {
+>>>>      const char *device_name;
+>>>>      bool has_bootreg;
+>>>> +    const char * const *mem_names;
+>>>> +    const u32 *dev_addrs;
+>>>
+>>> Bunching these two in a new structure like omap_rproc_mem_data would clean
+>>> things up.  That way the two arrays in the next hunk get merged and there can't
+>>> be a difference in sizes, somthing that will sturdy the main loop in
+>>> omap_rproc_of_get_internal_memories() below.
+>>
+>> Will fix this.
+>>
+>>>
+>>>>   };
+>>>>
+>>>>   /**
+>>>> @@ -216,6 +238,14 @@ static const struct rproc_ops omap_rproc_ops = {
+>>>>      .kick           = omap_rproc_kick,
+>>>>   };
+>>>>
+>>>> +static const char * const ipu_mem_names[] = {
+>>>> +    "l2ram", NULL
+>>>> +};
+>>>> +
+>>>> +static const u32 ipu_dev_addrs[] = {
+>>>> +    0x20000000,
+>>>> +};
+>>>> +
+>>>>   static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
+>>>>      .device_name    = "dsp",
+>>>>      .has_bootreg    = true,
+>>>> @@ -223,6 +253,8 @@ static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
+>>>>
+>>>>   static const struct omap_rproc_dev_data omap4_ipu_dev_data = {
+>>>>      .device_name    = "ipu",
+>>>> +    .mem_names      = ipu_mem_names,
+>>>> +    .dev_addrs      = ipu_dev_addrs,
+>>>>   };
+>>>>
+>>>>   static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
+>>>> @@ -232,6 +264,8 @@ static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
+>>>>
+>>>>   static const struct omap_rproc_dev_data omap5_ipu_dev_data = {
+>>>>      .device_name    = "ipu",
+>>>> +    .mem_names      = ipu_mem_names,
+>>>> +    .dev_addrs      = ipu_dev_addrs,
+>>>>   };
+>>>>
+>>>>   static const struct of_device_id omap_rproc_of_match[] = {
+>>>> @@ -311,6 +345,54 @@ static int omap_rproc_get_boot_data(struct platform_device *pdev,
 >>>>      return 0;
 >>>>   }
 >>>>
->>>> +/**
->>>> + * omap_rproc_da_to_va() - internal memory translation helper
->>>> + * @rproc: remote processor to apply the address translation for
->>>> + * @da: device address to translate
->>>> + * @len: length of the memory buffer
->>>> + *
->>>> + * Custom function implementing the rproc .da_to_va ops to provide address
->>>> + * translation (device address to kernel virtual address) for internal RAMs
->>>> + * present in a DSP or IPU device). The translated addresses can be used
->>>> + * either by the remoteproc core for loading, or by any rpmsg bus drivers.
->>>> + * Returns the translated virtual address in kernel memory space, or NULL
->>>> + * in failure.
->>>> + */
->>>> +static void *omap_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
+>>>> +static int omap_rproc_of_get_internal_memories(struct platform_device *pdev,
+>>>> +                                           struct rproc *rproc)
 >>>> +{
 >>>> +    struct omap_rproc *oproc = rproc->priv;
+>>>> +    struct device *dev = &pdev->dev;
+>>>> +    const struct omap_rproc_dev_data *data;
+>>>> +    struct resource *res;
+>>>> +    int num_mems;
 >>>> +    int i;
->>>> +    u32 offset;
 >>>> +
->>>> +    if (len <= 0)
->>>> +            return NULL;
+>>>> +    data = of_device_get_match_data(&pdev->dev);
+>>>> +    if (!data)
+>>>> +            return -ENODEV;
 >>>> +
->>>> +    if (!oproc->num_mems)
->>>> +            return NULL;
+>>>> +    if (!data->mem_names)
+>>>> +            return 0;
 >>>> +
->>>> +    for (i = 0; i < oproc->num_mems; i++) {
->>>> +            if (da >= oproc->mem[i].dev_addr && da + len <=
+>>>> +    for (num_mems = 0; data->mem_names[num_mems]; num_mems++)
+>>>> +            ;
 >>>
->>> Shouldn't this be '<' rather than '<=' ?
+>>> Instead of doing this function of_property_count_elems_of_size() can be used on
+>>> the "reg" property.
 >>
->> No, I think <= is correct. You need to consider the initial byte in the
->> range also. Consider a simple case where you provide the exact da + len
->> corresponding to a specific memory range.
+>> Hmm right, but the problem is then we don't know if someone left out one
+>> of the memories in DT. We want to check the presence for all defined in
+>> the platform data.
+>>
 > 
-> For that specific case you are correct.  On the flip side if @da falls
-> somewhere after @mem[i].dev_addr, there is a possibility to clobber
-> the first byte of the next range if <= is used.
+> In my opinion (and to go along what I advocated in a comment on
+> another patch) everything should be dictated from the DT.  If an area
+> of reserved memory is missing in the DT then the infrastructure should
+> recognise it and refuse to move forward with initialisation.
 
-Not really, you will miss out on the last byte actually if you use just
-<. This is just address range check, any memcpy would actually end one
-byte before.
-
-Eg: 0x80000 of len 0x10000. I should perfectly be able to copy 0x1000
-bytes at 0x8f000.
+That's actually what the code does too. It is just different remoteprocs
+have different internal memories, and that array of names is actually
+retrieved here based on match data.
 
 regards
 Suman
 
-
 > 
-> Thanks,
+> Thanks
 > Mathieu
 > 
->>
 >>>
->>>> +                oproc->mem[i].dev_addr +  oproc->mem[i].size) {
->>>
->>> One space too many after the '+' .
+>>> In the loop below a check should be done to see if data->mem_data[i] (see above
+>>> comment) is valid before calling platform_get_resource_byname().  If not then
+>>> an error can be returned.
 >>
->> True, I wonder why checkpatch did not catch this.
->>
->>>
->>>> +                    offset = da -  oproc->mem[i].dev_addr;
->>>
->>> One space too many after then '-' .
->>
->> Same, will fix these two.
+>> Will add a check to it.
 >>
 >> -Tero
 >>
 >>>
->>>> +                    /* __force to make sparse happy with type conversion */
->>>> +                    return (__force void *)(oproc->mem[i].cpu_addr +
->>>> +                                            offset);
->>>> +            }
->>>> +    }
+>>> I'm running out of time for today - I will continue reviewing the other patches
+>>> tomorrow.
+>>>
 >>>> +
->>>> +    return NULL;
+>>>> +    oproc->mem = devm_kcalloc(dev, num_mems, sizeof(*oproc->mem),
+>>>> +                              GFP_KERNEL);
+>>>> +    if (!oproc->mem)
+>>>> +            return -ENOMEM;
+>>>> +
+>>>> +    for (i = 0; i < num_mems; i++) {
+>>>> +            res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+>>>> +                                               data->mem_names[i]);
+>>>> +            oproc->mem[i].cpu_addr = devm_ioremap_resource(dev, res);
+>>>> +            if (IS_ERR(oproc->mem[i].cpu_addr)) {
+>>>> +                    dev_err(dev, "failed to parse and map %s memory\n",
+>>>> +                            data->mem_names[i]);
+>>>> +                    return PTR_ERR(oproc->mem[i].cpu_addr);
+>>>> +            }
+>>>> +            oproc->mem[i].bus_addr = res->start;
+>>>> +            oproc->mem[i].dev_addr = data->dev_addrs[i];
+>>>> +            oproc->mem[i].size = resource_size(res);
+>>>> +
+>>>> +            dev_dbg(dev, "memory %8s: bus addr %pa size 0x%x va %p da 0x%x\n",
+>>>> +                    data->mem_names[i], &oproc->mem[i].bus_addr,
+>>>> +                    oproc->mem[i].size, oproc->mem[i].cpu_addr,
+>>>> +                    oproc->mem[i].dev_addr);
+>>>> +    }
+>>>> +    oproc->num_mems = num_mems;
+>>>> +
+>>>> +    return 0;
 >>>> +}
 >>>> +
->>>>   static const struct rproc_ops omap_rproc_ops = {
->>>>      .start          = omap_rproc_start,
->>>>      .stop           = omap_rproc_stop,
->>>>      .kick           = omap_rproc_kick,
->>>> +    .da_to_va       = omap_rproc_da_to_va,
->>>>   };
+>>>>   static int omap_rproc_probe(struct platform_device *pdev)
+>>>>   {
+>>>>      struct device_node *np = pdev->dev.of_node;
+>>>> @@ -350,6 +432,10 @@ static int omap_rproc_probe(struct platform_device *pdev)
+>>>>      /* All existing OMAP IPU and DSP processors have an MMU */
+>>>>      rproc->has_iommu = true;
 >>>>
->>>>   static const char * const ipu_mem_names[] = {
+>>>> +    ret = omap_rproc_of_get_internal_memories(pdev, rproc);
+>>>> +    if (ret)
+>>>> +            goto free_rproc;
+>>>> +
+>>>>      ret = omap_rproc_get_boot_data(pdev, rproc);
+>>>>      if (ret)
+>>>>              goto free_rproc;
 >>>> --
 >>>> 2.17.1
 >>>>
