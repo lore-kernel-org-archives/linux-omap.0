@@ -1,7 +1,7 @@
 From: Yangtao Li <tiny.windzz@gmail.com>
-Subject: [PATCH 7/9] memory: samsung: exynos5422-dmc: convert to devm_platform_ioremap_resource
-Date: Sun, 22 Dec 2019 18:50:32 +0000
-Message-ID: <20191222185034.4665-7-tiny.windzz@gmail.com>
+Subject: [PATCH 3/9] memory: mvebu-devbus: convert to devm_platform_ioremap_resource
+Date: Sun, 22 Dec 2019 18:50:28 +0000
+Message-ID: <20191222185034.4665-3-tiny.windzz@gmail.com>
 References: <20191222185034.4665-1-tiny.windzz@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191222185034.4665-1-tiny.windzz@gmail.com>
@@ -14,36 +14,30 @@ Use devm_platform_ioremap_resource() to simplify code.
 
 Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 ---
- drivers/memory/samsung/exynos5422-dmc.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/memory/mvebu-devbus.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/memory/samsung/exynos5422-dmc.c b/drivers/memory/samsung/exynos5422-dmc.c
-index 47dbf6d1789f..81a1b1d01683 100644
---- a/drivers/memory/samsung/exynos5422-dmc.c
-+++ b/drivers/memory/samsung/exynos5422-dmc.c
-@@ -1374,7 +1374,6 @@ static int exynos5_dmc_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
- 	struct exynos5_dmc *dmc;
+diff --git a/drivers/memory/mvebu-devbus.c b/drivers/memory/mvebu-devbus.c
+index 095f8a3b2cfc..886aea587276 100644
+--- a/drivers/memory/mvebu-devbus.c
++++ b/drivers/memory/mvebu-devbus.c
+@@ -267,7 +267,6 @@ static int mvebu_devbus_probe(struct platform_device *pdev)
+ 	struct devbus_read_params r;
+ 	struct devbus_write_params w;
+ 	struct devbus *devbus;
 -	struct resource *res;
- 	int irq[2];
+ 	struct clk *clk;
+ 	unsigned long rate;
+ 	int err;
+@@ -277,8 +276,7 @@ static int mvebu_devbus_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  
- 	dmc = devm_kzalloc(dev, sizeof(*dmc), GFP_KERNEL);
-@@ -1386,13 +1385,11 @@ static int exynos5_dmc_probe(struct platform_device *pdev)
- 	dmc->dev = dev;
- 	platform_set_drvdata(pdev, dmc);
- 
+ 	devbus->dev = dev;
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	dmc->base_drexi0 = devm_ioremap_resource(dev, res);
-+	dmc->base_drexi0 = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(dmc->base_drexi0))
- 		return PTR_ERR(dmc->base_drexi0);
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--	dmc->base_drexi1 = devm_ioremap_resource(dev, res);
-+	dmc->base_drexi1 = devm_platform_ioremap_resource(pdev, 1);
- 	if (IS_ERR(dmc->base_drexi1))
- 		return PTR_ERR(dmc->base_drexi1);
+-	devbus->base = devm_ioremap_resource(&pdev->dev, res);
++	devbus->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(devbus->base))
+ 		return PTR_ERR(devbus->base);
  
 -- 
 2.17.1
