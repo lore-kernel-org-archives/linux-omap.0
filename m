@@ -1,76 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: TI omap compile problem in 5.5-rc1? was Re: [PATCH] ARM:
- davinci: select CONFIG_RESET_CONTROLLER
-Date: Sat, 21 Dec 2019 17:20:55 +0100
-Message-ID: <20191221162055.GA28997@amd>
-References: <20191210195202.622734-1-arnd@arndb.de>
- <20191217104520.GA6812@amd>
- <20191217164640.GX35479@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv2] phy: cpcap-usb: Fix flakey host idling and enumerating of devices
+Date: Sun, 22 Dec 2019 10:00:19 -0800
+Message-ID: <20191222180019.55417-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191217164640.GX35479@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz, Sekhar Nori <nsekhar@ti.com>, stable@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Philipp Zabel <p.zabel@pengutronix.de>, David Lechner <david@lechnology.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Jacopo Mondi <jacopo@jmondi.org>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+We must let the USB host idle things properly before we switch to debug
+UART mode. Otherwise the USB host may never idle after disconnecting
+devices, and that causes the next enumeration to be flakey.
 
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Cc: Jacopo Mondi <jacopo@jmondi.org>
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Michael Scott <hashcode0f@gmail.com>
+Cc: NeKit <nekit1000@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Fixes: 6d6ce40f63af ("phy: cpcap-usb: Add CPCAP PMIC USB support")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
 
-Hi!
+Kishon, looks like the v1 patch sent in August got lost somewhere.
+Here's a resend update against your fixes branch.
 
-> > > Selecting RESET_CONTROLLER is actually required, otherwise we
-> > > can get a link failure in the clock driver:
-> > >=20
-> > > drivers/clk/davinci/psc.o: In function `__davinci_psc_register_clocks=
-':
-> > > psc.c:(.text+0x9a0): undefined reference to `devm_reset_controller_re=
-gister'
-> > > drivers/clk/davinci/psc-da850.o: In function `da850_psc0_init':
-> > > psc-da850.c:(.text+0x24): undefined reference to
-> > > `reset_controller_add_lookup'
-> >=20
-> > Does omap need similar handing in 5.5-rc1?
-> >=20
-> >   LD      .tmp_vmlinux1
-> >   drivers/soc/ti/omap_prm.o: In function `omap_prm_probe':
-> >   omap_prm.c:(.text+0x4d0): undefined reference to
-> >   `devm_reset_controller_register'
-> >   /data/fast/l/k/Makefile:1077: recipe for target 'vmlinux' failed
-> >   make[1]: *** [vmlinux] Error 1
-> >=20
-> > Enabling reset controller seems to help::
-> >=20
-> > Reset Controller Support (RESET_CONTROLLER) [Y/n/?] (NEW)
-> >   TI SYSCON Reset Driver (RESET_TI_SYSCON) [N/m/y/?] (NEW)
->=20
-> Yes see the patch Arnd recently posted to do that.
 
-Thanks for the hint and sorry for the noise.
+ drivers/phy/motorola/phy-cpcap-usb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---sm4nu43k4a2Rpi4c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl3+RmcACgkQMOfwapXb+vKm5gCdFEsAX+EXEf7Ut87c0ONSz54l
-qhkAn1USmYq8ChLyUnMRl1fbdwed6pTk
-=PjuJ
------END PGP SIGNATURE-----
-
---sm4nu43k4a2Rpi4c--
+diff --git a/drivers/phy/motorola/phy-cpcap-usb.c b/drivers/phy/motorola/phy-cpcap-usb.c
+--- a/drivers/phy/motorola/phy-cpcap-usb.c
++++ b/drivers/phy/motorola/phy-cpcap-usb.c
+@@ -283,13 +283,13 @@ static void cpcap_usb_detect(struct work_struct *work)
+ 		return;
+ 	}
+ 
++	cpcap_usb_try_musb_mailbox(ddata, MUSB_VBUS_OFF);
++
+ 	/* Default to debug UART mode */
+ 	error = cpcap_usb_set_uart_mode(ddata);
+ 	if (error)
+ 		goto out_err;
+ 
+-	cpcap_usb_try_musb_mailbox(ddata, MUSB_VBUS_OFF);
+-
+ 	dev_dbg(ddata->dev, "set UART mode\n");
+ 
+ 	return;
+-- 
+2.24.1
