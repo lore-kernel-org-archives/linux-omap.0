@@ -1,7 +1,7 @@
 From: Yangtao Li <tiny.windzz@gmail.com>
-Subject: [PATCH 9/9] memory: omap-gpmc: switch to platform_get_irq
-Date: Sun, 22 Dec 2019 18:50:34 +0000
-Message-ID: <20191222185034.4665-9-tiny.windzz@gmail.com>
+Subject: [PATCH 8/9] memory: mtk-smi: convert to devm_platform_ioremap_resource
+Date: Sun, 22 Dec 2019 18:50:33 +0000
+Message-ID: <20191222185034.4665-8-tiny.windzz@gmail.com>
 References: <20191222185034.4665-1-tiny.windzz@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191222185034.4665-1-tiny.windzz@gmail.com>
@@ -10,36 +10,62 @@ To: ssantosh@kernel.org, paul@crapouillou.net, matthias.bgg@gmail.com, rogerq@ti
 Cc: Yangtao Li <tiny.windzz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-platform_get_resource(pdev, IORESOURCE_IRQ) is not recommended for
-requesting IRQ's resources, as they can be not ready yet. Using
-platform_get_irq() instead is preferred for getting IRQ even if it
-was not retrieved earlier.
+Use devm_platform_ioremap_resource() to simplify code.
 
 Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 ---
- drivers/memory/omap-gpmc.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/memory/mtk-smi.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index eff26c1b1394..6dd19d168f75 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -2366,13 +2366,9 @@ static int gpmc_probe(struct platform_device *pdev)
- 	if (IS_ERR(gpmc_base))
- 		return PTR_ERR(gpmc_base);
+diff --git a/drivers/memory/mtk-smi.c b/drivers/memory/mtk-smi.c
+index a113e811faab..1cc5d94036a2 100644
+--- a/drivers/memory/mtk-smi.c
++++ b/drivers/memory/mtk-smi.c
+@@ -269,7 +269,6 @@ static const struct of_device_id mtk_smi_larb_of_ids[] = {
+ static int mtk_smi_larb_probe(struct platform_device *pdev)
+ {
+ 	struct mtk_smi_larb *larb;
+-	struct resource *res;
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *smi_node;
+ 	struct platform_device *smi_pdev;
+@@ -279,8 +278,7 @@ static int mtk_smi_larb_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  
--	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
--	if (!res) {
--		dev_err(&pdev->dev, "Failed to get resource: irq\n");
--		return -ENOENT;
--	}
--
--	gpmc->irq = res->start;
-+	gpmc->irq = platform_get_irq(pdev, 0);
-+	if (gpmc->irq < 0)
-+		return gpmc->irq;
+ 	larb->larb_gen = of_device_get_match_data(dev);
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	larb->base = devm_ioremap_resource(dev, res);
++	larb->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(larb->base))
+ 		return PTR_ERR(larb->base);
  
- 	gpmc_l3_clk = devm_clk_get(&pdev->dev, "fck");
- 	if (IS_ERR(gpmc_l3_clk)) {
+@@ -419,7 +417,6 @@ static int mtk_smi_common_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct mtk_smi *common;
+-	struct resource *res;
+ 	int ret;
+ 
+ 	common = devm_kzalloc(dev, sizeof(*common), GFP_KERNEL);
+@@ -453,8 +450,7 @@ static int mtk_smi_common_probe(struct platform_device *pdev)
+ 	 * base.
+ 	 */
+ 	if (common->plat->gen == MTK_SMI_GEN1) {
+-		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-		common->smi_ao_base = devm_ioremap_resource(dev, res);
++		common->smi_ao_base = devm_platform_ioremap_resource(pdev, 0);
+ 		if (IS_ERR(common->smi_ao_base))
+ 			return PTR_ERR(common->smi_ao_base);
+ 
+@@ -466,8 +462,7 @@ static int mtk_smi_common_probe(struct platform_device *pdev)
+ 		if (ret)
+ 			return ret;
+ 	} else {
+-		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-		common->base = devm_ioremap_resource(dev, res);
++		common->base = devm_platform_ioremap_resource(pdev, 0);
+ 		if (IS_ERR(common->base))
+ 			return PTR_ERR(common->base);
+ 	}
 -- 
 2.17.1
