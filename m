@@ -1,7 +1,7 @@
 From: Yangtao Li <tiny.windzz@gmail.com>
-Subject: [PATCH 6/9] memory: ti-aemif: convert to devm_platform_ioremap_resource
-Date: Sun, 22 Dec 2019 18:50:31 +0000
-Message-ID: <20191222185034.4665-6-tiny.windzz@gmail.com>
+Subject: [PATCH 9/9] memory: omap-gpmc: switch to platform_get_irq
+Date: Sun, 22 Dec 2019 18:50:34 +0000
+Message-ID: <20191222185034.4665-9-tiny.windzz@gmail.com>
 References: <20191222185034.4665-1-tiny.windzz@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191222185034.4665-1-tiny.windzz@gmail.com>
@@ -10,34 +10,36 @@ To: ssantosh@kernel.org, paul@crapouillou.net, matthias.bgg@gmail.com, rogerq@ti
 Cc: Yangtao Li <tiny.windzz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_platform_ioremap_resource() to simplify code.
+platform_get_resource(pdev, IORESOURCE_IRQ) is not recommended for
+requesting IRQ's resources, as they can be not ready yet. Using
+platform_get_irq() instead is preferred for getting IRQ even if it
+was not retrieved earlier.
 
 Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 ---
- drivers/memory/ti-aemif.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/memory/omap-gpmc.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/memory/ti-aemif.c b/drivers/memory/ti-aemif.c
-index db526dbf71ee..6524229f634a 100644
---- a/drivers/memory/ti-aemif.c
-+++ b/drivers/memory/ti-aemif.c
-@@ -328,7 +328,6 @@ static int aemif_probe(struct platform_device *pdev)
- {
- 	int i;
- 	int ret = -ENODEV;
--	struct resource *res;
- 	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
- 	struct device_node *child_np;
-@@ -362,8 +361,7 @@ static int aemif_probe(struct platform_device *pdev)
- 	else if (pdata)
- 		aemif->cs_offset = pdata->cs_offset;
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index eff26c1b1394..6dd19d168f75 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -2366,13 +2366,9 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	if (IS_ERR(gpmc_base))
+ 		return PTR_ERR(gpmc_base);
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	aemif->base = devm_ioremap_resource(dev, res);
-+	aemif->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(aemif->base)) {
- 		ret = PTR_ERR(aemif->base);
- 		goto error;
+-	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!res) {
+-		dev_err(&pdev->dev, "Failed to get resource: irq\n");
+-		return -ENOENT;
+-	}
+-
+-	gpmc->irq = res->start;
++	gpmc->irq = platform_get_irq(pdev, 0);
++	if (gpmc->irq < 0)
++		return gpmc->irq;
+ 
+ 	gpmc_l3_clk = devm_clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(gpmc_l3_clk)) {
 -- 
 2.17.1
