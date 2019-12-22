@@ -1,55 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCHv2] phy: cpcap-usb: Fix flakey host idling and enumerating of devices
-Date: Sun, 22 Dec 2019 10:00:19 -0800
-Message-ID: <20191222180019.55417-1-tony@atomide.com>
+Subject: [PATCH 3/3] phy: cpcap-usb: Drop extra write to usb2 register
+Date: Sun, 22 Dec 2019 10:17:04 -0800
+Message-ID: <20191222181704.61511-3-tony@atomide.com>
+References: <20191222181704.61511-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191222181704.61511-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Jacopo Mondi <jacopo@jmondi.org>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-We must let the USB host idle things properly before we switch to debug
-UART mode. Otherwise the USB host may never idle after disconnecting
-devices, and that causes the next enumeration to be flakey.
+We are currently writing the same register twice. Let's enable the USB
+PHY only at the end of the function.
 
-Cc: Jacopo Mondi <jacopo@jmondi.org>
-Cc: Marcel Partap <mpartap@gmx.net>
 Cc: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Michael Scott <hashcode0f@gmail.com>
-Cc: NeKit <nekit1000@gmail.com>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Sebastian Reichel <sre@kernel.org>
-Fixes: 6d6ce40f63af ("phy: cpcap-usb: Add CPCAP PMIC USB support")
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-
-Kishon, looks like the v1 patch sent in August got lost somewhere.
-Here's a resend update against your fixes branch.
-
-
- drivers/phy/motorola/phy-cpcap-usb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/phy/motorola/phy-cpcap-usb.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
 diff --git a/drivers/phy/motorola/phy-cpcap-usb.c b/drivers/phy/motorola/phy-cpcap-usb.c
 --- a/drivers/phy/motorola/phy-cpcap-usb.c
 +++ b/drivers/phy/motorola/phy-cpcap-usb.c
-@@ -283,13 +283,13 @@ static void cpcap_usb_detect(struct work_struct *work)
- 		return;
- 	}
- 
-+	cpcap_usb_try_musb_mailbox(ddata, MUSB_VBUS_OFF);
-+
- 	/* Default to debug UART mode */
- 	error = cpcap_usb_set_uart_mode(ddata);
+@@ -489,12 +489,6 @@ static int cpcap_usb_set_usb_mode(struct cpcap_phy_ddata *ddata)
  	if (error)
  		goto out_err;
  
--	cpcap_usb_try_musb_mailbox(ddata, MUSB_VBUS_OFF);
+-	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC2,
+-				   CPCAP_BIT_USBXCVREN,
+-				   CPCAP_BIT_USBXCVREN);
+-	if (error)
+-		goto out_err;
 -
- 	dev_dbg(ddata->dev, "set UART mode\n");
- 
- 	return;
+ 	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC3,
+ 				   CPCAP_BIT_PU_SPI |
+ 				   CPCAP_BIT_DMPD_SPI |
 -- 
 2.24.1
