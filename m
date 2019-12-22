@@ -1,7 +1,7 @@
 From: Yangtao Li <tiny.windzz@gmail.com>
-Subject: [PATCH 8/9] memory: mtk-smi: convert to devm_platform_ioremap_resource
-Date: Sun, 22 Dec 2019 18:50:33 +0000
-Message-ID: <20191222185034.4665-8-tiny.windzz@gmail.com>
+Subject: [PATCH 7/9] memory: samsung: exynos5422-dmc: convert to devm_platform_ioremap_resource
+Date: Sun, 22 Dec 2019 18:50:32 +0000
+Message-ID: <20191222185034.4665-7-tiny.windzz@gmail.com>
 References: <20191222185034.4665-1-tiny.windzz@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20191222185034.4665-1-tiny.windzz@gmail.com>
@@ -14,58 +14,36 @@ Use devm_platform_ioremap_resource() to simplify code.
 
 Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 ---
- drivers/memory/mtk-smi.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/memory/samsung/exynos5422-dmc.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/memory/mtk-smi.c b/drivers/memory/mtk-smi.c
-index a113e811faab..1cc5d94036a2 100644
---- a/drivers/memory/mtk-smi.c
-+++ b/drivers/memory/mtk-smi.c
-@@ -269,7 +269,6 @@ static const struct of_device_id mtk_smi_larb_of_ids[] = {
- static int mtk_smi_larb_probe(struct platform_device *pdev)
- {
- 	struct mtk_smi_larb *larb;
--	struct resource *res;
+diff --git a/drivers/memory/samsung/exynos5422-dmc.c b/drivers/memory/samsung/exynos5422-dmc.c
+index 47dbf6d1789f..81a1b1d01683 100644
+--- a/drivers/memory/samsung/exynos5422-dmc.c
++++ b/drivers/memory/samsung/exynos5422-dmc.c
+@@ -1374,7 +1374,6 @@ static int exynos5_dmc_probe(struct platform_device *pdev)
  	struct device *dev = &pdev->dev;
- 	struct device_node *smi_node;
- 	struct platform_device *smi_pdev;
-@@ -279,8 +278,7 @@ static int mtk_smi_larb_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+ 	struct device_node *np = dev->of_node;
+ 	struct exynos5_dmc *dmc;
+-	struct resource *res;
+ 	int irq[2];
  
- 	larb->larb_gen = of_device_get_match_data(dev);
+ 	dmc = devm_kzalloc(dev, sizeof(*dmc), GFP_KERNEL);
+@@ -1386,13 +1385,11 @@ static int exynos5_dmc_probe(struct platform_device *pdev)
+ 	dmc->dev = dev;
+ 	platform_set_drvdata(pdev, dmc);
+ 
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	larb->base = devm_ioremap_resource(dev, res);
-+	larb->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(larb->base))
- 		return PTR_ERR(larb->base);
+-	dmc->base_drexi0 = devm_ioremap_resource(dev, res);
++	dmc->base_drexi0 = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(dmc->base_drexi0))
+ 		return PTR_ERR(dmc->base_drexi0);
  
-@@ -419,7 +417,6 @@ static int mtk_smi_common_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct mtk_smi *common;
--	struct resource *res;
- 	int ret;
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+-	dmc->base_drexi1 = devm_ioremap_resource(dev, res);
++	dmc->base_drexi1 = devm_platform_ioremap_resource(pdev, 1);
+ 	if (IS_ERR(dmc->base_drexi1))
+ 		return PTR_ERR(dmc->base_drexi1);
  
- 	common = devm_kzalloc(dev, sizeof(*common), GFP_KERNEL);
-@@ -453,8 +450,7 @@ static int mtk_smi_common_probe(struct platform_device *pdev)
- 	 * base.
- 	 */
- 	if (common->plat->gen == MTK_SMI_GEN1) {
--		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--		common->smi_ao_base = devm_ioremap_resource(dev, res);
-+		common->smi_ao_base = devm_platform_ioremap_resource(pdev, 0);
- 		if (IS_ERR(common->smi_ao_base))
- 			return PTR_ERR(common->smi_ao_base);
- 
-@@ -466,8 +462,7 @@ static int mtk_smi_common_probe(struct platform_device *pdev)
- 		if (ret)
- 			return ret;
- 	} else {
--		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--		common->base = devm_ioremap_resource(dev, res);
-+		common->base = devm_platform_ioremap_resource(pdev, 0);
- 		if (IS_ERR(common->base))
- 			return PTR_ERR(common->base);
- 	}
 -- 
 2.17.1
