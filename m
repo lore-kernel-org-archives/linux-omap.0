@@ -1,16 +1,15 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH 10/14] dmaengine: ti: omap-dma: Pass sdma auxdata to
- driver and use it
-Date: Mon, 23 Dec 2019 13:16:38 +0530
-Message-ID: <20191223074638.GZ2536@vkoul-mobl>
+Subject: Re: [PATCH 11/14] dmaengine: ti: omap-dma: Allocate channels directly
+Date: Mon, 23 Dec 2019 13:17:04 +0530
+Message-ID: <20191223074704.GA2536@vkoul-mobl>
 References: <20191217001925.44558-1-tony@atomide.com>
- <20191217001925.44558-11-tony@atomide.com>
+ <20191217001925.44558-12-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191217001925.44558-11-tony@atomide.com>
+In-Reply-To: <20191217001925.44558-12-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,8 +24,8 @@ Cc: devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aa
 List-Id: linux-omap@vger.kernel.org
 
 On 16-12-19, 16:19, Tony Lindgren wrote:
-> We can now start passing sdma auxdata to the dmaengine driver to start
-> removing the platform based sdma init.
+> With the legacy IRQ handling gone, we can now start allocating channels
+> directly in the dmaengine driver for device tree based SoCs.
 
 Acked-by: Vinod Koul <vkoul@kernel.org>
 
