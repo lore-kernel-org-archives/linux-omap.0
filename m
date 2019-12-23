@@ -1,15 +1,17 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH 11/14] dmaengine: ti: omap-dma: Allocate channels directly
-Date: Mon, 23 Dec 2019 13:17:04 +0530
-Message-ID: <20191223074704.GA2536@vkoul-mobl>
+Subject: Re: [PATCH 12/14] dmaengine: ti: omap-dma: Use cpu notifier to block
+ idle for omap2
+Date: Mon, 23 Dec 2019 13:17:36 +0530
+Message-ID: <20191223074736.GB2536@vkoul-mobl>
 References: <20191217001925.44558-1-tony@atomide.com>
- <20191217001925.44558-12-tony@atomide.com>
+ <20191217001925.44558-13-tony@atomide.com>
+ <20191217002716.GT35479@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191217001925.44558-12-tony@atomide.com>
+In-Reply-To: <20191217002716.GT35479@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,9 +25,27 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Vinod Koul <vinod.koul@intel.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 16-12-19, 16:19, Tony Lindgren wrote:
-> With the legacy IRQ handling gone, we can now start allocating channels
-> directly in the dmaengine driver for device tree based SoCs.
+On 16-12-19, 16:27, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [191217 00:20]:
+> > diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
+> > --- a/drivers/dma/ti/omap-dma.c
+> > +++ b/drivers/dma/ti/omap-dma.c
+> > +	case CPU_CLUSTER_PM_ENTER:
+> > +		while (1) {
+> > +			lch = find_next_bit(od->lch_bitmap, od->lch_count,
+> > +					    lch + 1);
+> > +			if (lch >= od->lch_count)
+> > +				break;
+> > +			c = od->lch_map[lch];
+> > +			if (!c)
+> > +				continue;
+> > +			if (omap_dma_chan_read(c, CCR) & CCR_ENABLE) {
+> > +				pr_info("XXX %s: lch%i busy\n", __func__, lch);
+> > +				return NOTIFY_BAD;
+> 
+> Oops the pr_info line here can be dropped :)
+
+feel free to add my after after fixing :)
 
 Acked-by: Vinod Koul <vkoul@kernel.org>
 
