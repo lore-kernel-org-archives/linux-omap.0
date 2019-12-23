@@ -1,16 +1,16 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH 09/14] dmaengine: ti: omap-dma: Configure global priority
- register directly
-Date: Mon, 23 Dec 2019 13:14:16 +0530
-Message-ID: <20191223074416.GY2536@vkoul-mobl>
+Subject: Re: [PATCH 10/14] dmaengine: ti: omap-dma: Pass sdma auxdata to
+ driver and use it
+Date: Mon, 23 Dec 2019 13:16:38 +0530
+Message-ID: <20191223074638.GZ2536@vkoul-mobl>
 References: <20191217001925.44558-1-tony@atomide.com>
- <20191217001925.44558-10-tony@atomide.com>
+ <20191217001925.44558-11-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191217001925.44558-10-tony@atomide.com>
+In-Reply-To: <20191217001925.44558-11-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,8 +25,8 @@ Cc: devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aa
 List-Id: linux-omap@vger.kernel.org
 
 On 16-12-19, 16:19, Tony Lindgren wrote:
-> We can move the global priority register configuration to the dmaengine
-> driver and configure it based on the of_device_id match data.
+> We can now start passing sdma auxdata to the dmaengine driver to start
+> removing the platform based sdma init.
 
 Acked-by: Vinod Koul <vkoul@kernel.org>
 
