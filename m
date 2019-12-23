@@ -1,16 +1,16 @@
 From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH 08/14] dmaengine: ti: omap-dma: Add device tree match
- data and use it for cpu_pm
-Date: Mon, 23 Dec 2019 13:13:58 +0530
-Message-ID: <20191223074358.GX2536@vkoul-mobl>
+Subject: Re: [PATCH 09/14] dmaengine: ti: omap-dma: Configure global priority
+ register directly
+Date: Mon, 23 Dec 2019 13:14:16 +0530
+Message-ID: <20191223074416.GY2536@vkoul-mobl>
 References: <20191217001925.44558-1-tony@atomide.com>
- <20191217001925.44558-9-tony@atomide.com>
+ <20191217001925.44558-10-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20191217001925.44558-9-tony@atomide.com>
+In-Reply-To: <20191217001925.44558-10-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,20 +25,8 @@ Cc: devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aa
 List-Id: linux-omap@vger.kernel.org
 
 On 16-12-19, 16:19, Tony Lindgren wrote:
-> With old DMA code disabled for handling DMA requests for device tree based
-> SoCs, we can move omap3 specific context save and restore to the dmaengine
-> driver.
-> 
-> Let's do this by adding cpu_pm notifier handling to save and restore context,
-> and enable it based on device tree match data. This way we can use the match
-> data later to configure more SoC specific features later on too.
-> 
-> Note that we only clear the channels in use while the platform code also
-> clears reserved channels 0 and 1 on high-security SoCs. Based on testing
-> on n900, this is not needed though and the system idles just fine.
-> 
-> With the dmaengine driver handling context save and restore, we must now
-> remove the old custom calls for context save and restore.
+> We can move the global priority register configuration to the dmaengine
+> driver and configure it based on the of_device_id match data.
 
 Acked-by: Vinod Koul <vkoul@kernel.org>
 
