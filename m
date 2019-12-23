@@ -1,43 +1,68 @@
-From: Yangtao Li <tiny.windzz@gmail.com>
-Subject: [PATCH 3/9] memory: mvebu-devbus: convert to devm_platform_ioremap_resource
-Date: Sun, 22 Dec 2019 18:50:28 +0000
-Message-ID: <20191222185034.4665-3-tiny.windzz@gmail.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 9/9] memory: omap-gpmc: switch to platform_get_irq
+Date: Mon, 23 Dec 2019 09:25:20 +0200
+Message-ID: <7dc78b4c-d1a7-a990-669c-8d3ddbacee0d@ti.com>
 References: <20191222185034.4665-1-tiny.windzz@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191222185034.4665-1-tiny.windzz@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ssantosh@kernel.org, paul@crapouillou.net, matthias.bgg@gmail.com, rogerq@ti.com, tony@atomide.com, lukasz.luba@arm.com, kgene@kernel.org, krzk@kernel.org, thierry.reding@gmail.com, jonathanh@nvidia.com, allison@lohutok.net, tglx@linutronix.de, yong.wu@mediatek.com, jroedel@suse.de, evgreen@chromium.org, rfontana@redhat.com, digetx@gmail.com, pdeschrijver@nvidia.com, john@phrozen.org, alexios.zavras@intel.com, sboyd@kernel.org, kstewart@linuxfoundation.org, info@metux.net, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>
+ <20191222185034.4665-9-tiny.windzz@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20191222185034.4665-9-tiny.windzz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Yangtao Li <tiny.windzz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, paul-icTtO2rgO2OTuSrc4Mpeew@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, lukasz.luba-5wv7dgnIgG8@public.gmane.org, kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, allison-wcfNWazeolPR7s880joybQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, yong.wu-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, evgreen-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, rfontana-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, digetx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, john-Pj+rj9U5foFAfugRpC6u6w@public.gmane.org, alexios.zavras-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, info-EcKl7qYKIbxeoWH0uzbU5w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_platform_ioremap_resource() to simplify code.
 
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
----
- drivers/memory/mvebu-devbus.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+On 22/12/2019 20:50, Yangtao Li wrote:
+> platform_get_resource(pdev, IORESOURCE_IRQ) is not recommended for
+> requesting IRQ's resources, as they can be not ready yet. Using
+> platform_get_irq() instead is preferred for getting IRQ even if it
+> was not retrieved earlier.
+> 
+> Signed-off-by: Yangtao Li <tiny.windzz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-diff --git a/drivers/memory/mvebu-devbus.c b/drivers/memory/mvebu-devbus.c
-index 095f8a3b2cfc..886aea587276 100644
---- a/drivers/memory/mvebu-devbus.c
-+++ b/drivers/memory/mvebu-devbus.c
-@@ -267,7 +267,6 @@ static int mvebu_devbus_probe(struct platform_device *pdev)
- 	struct devbus_read_params r;
- 	struct devbus_write_params w;
- 	struct devbus *devbus;
--	struct resource *res;
- 	struct clk *clk;
- 	unsigned long rate;
- 	int err;
-@@ -277,8 +276,7 @@ static int mvebu_devbus_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	devbus->dev = dev;
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	devbus->base = devm_ioremap_resource(&pdev->dev, res);
-+	devbus->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(devbus->base))
- 		return PTR_ERR(devbus->base);
- 
+Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+
+> ---
+>   drivers/memory/omap-gpmc.c | 10 +++-------
+>   1 file changed, 3 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index eff26c1b1394..6dd19d168f75 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -2366,13 +2366,9 @@ static int gpmc_probe(struct platform_device *pdev)
+>   	if (IS_ERR(gpmc_base))
+>   		return PTR_ERR(gpmc_base);
+>   
+> -	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> -	if (!res) {
+> -		dev_err(&pdev->dev, "Failed to get resource: irq\n");
+> -		return -ENOENT;
+> -	}
+> -
+> -	gpmc->irq = res->start;
+> +	gpmc->irq = platform_get_irq(pdev, 0);
+> +	if (gpmc->irq < 0)
+> +		return gpmc->irq;
+>   
+>   	gpmc_l3_clk = devm_clk_get(&pdev->dev, "fck");
+>   	if (IS_ERR(gpmc_l3_clk)) {
+> 
+
 -- 
-2.17.1
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
