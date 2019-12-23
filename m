@@ -1,42 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] drm/omap: gem: Fix tearing with BO_TILED
-Date: Sat, 21 Dec 2019 08:41:41 -0800
-Message-ID: <20191221164141.GI35479@atomide.com>
-References: <20191221005711.47314-1-tony@atomide.com>
+From: Paul Cercueil <paul@crapouillou.net>
+Subject: Re: [PATCH 2/9] memory: jz4780_nemc: convert to
+ devm_platform_ioremap_resource
+Date: Mon, 23 Dec 2019 12:44:26 +0100
+Message-ID: <1577101466.3.0@crapouillou.net>
+References: <20191222185034.4665-1-tiny.windzz@gmail.com>
+        <20191222185034.4665-2-tiny.windzz@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20191221005711.47314-1-tony@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, "H . Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191222185034.4665-2-tiny.windzz@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yangtao Li <tiny.windzz@gmail.com>
+Cc: ssantosh@kernel.org, matthias.bgg@gmail.com, rogerq@ti.com, tony@atomide.com, lukasz.luba@arm.com, kgene@kernel.org, krzk@kernel.org, thierry.reding@gmail.com, jonathanh@nvidia.com, allison@lohutok.net, tglx@linutronix.de, yong.wu@mediatek.com, jroedel@suse.de, evgreen@chromium.org, rfontana@redhat.com, digetx@gmail.com, pdeschrijver@nvidia.com, john@phrozen.org, alexios.zavras@intel.com, sboyd@kernel.org, kstewart@linuxfoundation.org, info@metux.net, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [191220 16:57]:
-> Looking around what might affect BO_TILED, I noticed Matthijs had this
-> change in his earlier pyra tiler patches. The earlier patch "XXX omapdrm:
-> force tiled buffers to be pinned and page-aligned" has no commit log
-> though, so I'm not sure what other issues this might fix.
-..
-> Matthijs, do you have some more info to add to the description?
+Hi,
 
-Also, I'm wondering if this change makes sense alone without the pinning
-changes for a fix, or if also the pinning changes are needed.
 
-For reference, the original related patch(es) are available at [0] below.
+Le dim., d=E9c. 22, 2019 at 18:50, Yangtao Li <tiny.windzz@gmail.com> a=20
+=E9crit :
+> Use devm_platform_ioremap_resource() to simplify code.
+>=20
+> Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 
-Regards,
+Acked-by: Paul Cercueil <paul@crapouillou.net>
 
-Tony
+Cheers,
+-Paul
 
-[0] https://github.com/mvduin/linux/commit/70593563f531a7ac4a3f6ebed0fc98ef86742b12
+
+> ---
+>  drivers/memory/jz4780-nemc.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/memory/jz4780-nemc.c=20
+> b/drivers/memory/jz4780-nemc.c
+> index b232ed279fc3..857a9fa5cba5 100644
+> --- a/drivers/memory/jz4780-nemc.c
+> +++ b/drivers/memory/jz4780-nemc.c
+> @@ -269,7 +269,6 @@ static int jz4780_nemc_probe(struct=20
+> platform_device *pdev)
+>  {
+>  	struct device *dev =3D &pdev->dev;
+>  	struct jz4780_nemc *nemc;
+> -	struct resource *res;
+>  	struct device_node *child;
+>  	const __be32 *prop;
+>  	unsigned int bank;
+> @@ -287,8 +286,7 @@ static int jz4780_nemc_probe(struct=20
+> platform_device *pdev)
+>  	spin_lock_init(&nemc->lock);
+>  	nemc->dev =3D dev;
+>=20
+> -	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	nemc->base =3D devm_ioremap_resource(dev, res);
+> +	nemc->base =3D devm_platform_ioremap_resource(pdev, 0);
+>  	if (IS_ERR(nemc->base)) {
+>  		dev_err(dev, "failed to get I/O memory\n");
+>  		return PTR_ERR(nemc->base);
+> --
+> 2.17.1
+>=20
+
+=
