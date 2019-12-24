@@ -1,85 +1,86 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] bus: ti-sysc: Implement quirk handling for CLKDM_NOAUTO
-Date: Tue, 24 Dec 2019 09:52:42 +0200
-Message-ID: <e209a2ce-c26e-d689-48d1-7920a3052438@ti.com>
-References: <20191210161342.15142-1-tony@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 09/13] dt-bindings: PCI: Add host mode dt-bindings for
+ TI's J721E SoC
+Date: Tue, 24 Dec 2019 13:36:25 +0530
+Message-ID: <fc145cbc-88f2-5ccb-5c20-4be1ac81fe25@ti.com>
+References: <20191209092147.22901-1-kishon@ti.com>
+ <20191209092147.22901-10-kishon@ti.com> <20191219000841.GA4251@bogus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191210161342.15142-1-tony@atomide.com>
+In-Reply-To: <20191219000841.GA4251@bogus>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rob Herring <robh@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Murray <andrew.murray@arm.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Rob,
 
-
-On 10/12/2019 18:13, Tony Lindgren wrote:
-> For dra7 dcan and dwc3 instances we need to block clockdomain autoidle.
-> Let's do this with CLKDM_NOAUTO quirk flag and enable it for dcan and
-> dwc3.
+On 19/12/19 5:38 AM, Rob Herring wrote:
+> On Mon, Dec 09, 2019 at 02:51:43PM +0530, Kishon Vijay Abraham I wrote:
+>> Add host mode dt-bindings for TI's J721E SoC.
+>>
+>> Cc: Rob Herring <robh+dt@kernel.org>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  .../bindings/pci/ti,j721e-pci-host.yaml       | 161 ++++++++++++++++++
+>>  1 file changed, 161 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+>>
+>> diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+>> new file mode 100644
+>> index 000000000000..96184e1f419f
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+>> @@ -0,0 +1,161 @@
+>> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+>> +# Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
+>> +%YAML 1.2
+>> +---
+>> +$id: "http://devicetree.org/schemas/pci/ti,j721e-pci-host.yaml#"
+>> +$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+>> +
+>> +title: TI J721E PCI Host (PCIe Wrapper)
+>> +
+>> +maintainers:
+>> +  - Kishon Vijay Abraham I <kishon@ti.com>
 > 
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Roger Quadros <rogerq@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Roger Quadros <rogerq@ti.com>
-
-> ---
->   drivers/bus/ti-sysc.c                 | 10 ++++++++--
->   include/linux/platform_data/ti-sysc.h |  1 +
->   2 files changed, 9 insertions(+), 2 deletions(-)
+> There's now a PCI bus schema. Reference it here:
 > 
-> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-> --- a/drivers/bus/ti-sysc.c
-> +++ b/drivers/bus/ti-sysc.c
-> @@ -473,7 +473,7 @@ static void sysc_clkdm_deny_idle(struct sysc *ddata)
->   {
->   	struct ti_sysc_platform_data *pdata;
->   
-> -	if (ddata->legacy_mode)
-> +	if (ddata->legacy_mode || (ddata->cfg.quirks & SYSC_QUIRK_CLKDM_NOAUTO))
->   		return;
->   
->   	pdata = dev_get_platdata(ddata->dev);
-> @@ -485,7 +485,7 @@ static void sysc_clkdm_allow_idle(struct sysc *ddata)
->   {
->   	struct ti_sysc_platform_data *pdata;
->   
-> -	if (ddata->legacy_mode)
-> +	if (ddata->legacy_mode || (ddata->cfg.quirks & SYSC_QUIRK_CLKDM_NOAUTO))
->   		return;
->   
->   	pdata = dev_get_platdata(ddata->dev);
-> @@ -1245,6 +1245,12 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
->   	/* Quirks that need to be set based on detected module */
->   	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff,
->   		   SYSC_MODULE_QUIRK_AESS),
-> +	SYSC_QUIRK("dcan", 0x48480000, 0x20, -1, -1, 0xa3170504, 0xffffffff,
-> +		   SYSC_QUIRK_CLKDM_NOAUTO),
-> +	SYSC_QUIRK("dwc3", 0x48880000, 0, 0x10, -1, 0x500a0200, 0xffffffff,
-> +		   SYSC_QUIRK_CLKDM_NOAUTO),
-> +	SYSC_QUIRK("dwc3", 0x488c0000, 0, 0x10, -1, 0x500a0200, 0xffffffff,
-> +		   SYSC_QUIRK_CLKDM_NOAUTO),
->   	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
->   		   SYSC_MODULE_QUIRK_HDQ1W),
->   	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x0000000a, 0xffffffff,
-> diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
-> --- a/include/linux/platform_data/ti-sysc.h
-> +++ b/include/linux/platform_data/ti-sysc.h
-> @@ -49,6 +49,7 @@ struct sysc_regbits {
->   	s8 emufree_shift;
->   };
->   
-> +#define SYSC_QUIRK_CLKDM_NOAUTO		BIT(21)
->   #define SYSC_QUIRK_FORCE_MSTANDBY	BIT(20)
->   #define SYSC_MODULE_QUIRK_AESS		BIT(19)
->   #define SYSC_MODULE_QUIRK_SGX		BIT(18)
+> allOf:
+>   - $ref: "/schemas/pci/pci-bus.yaml#"
 > 
+>> +
+>> +properties:
+>> +  compatible:
+>> +      enum:
+>> +          - ti,j721e-pcie-host
+> 
+> Indentation.
+> 
+>> +
+>> +  reg:
+>> +    maxItems: 4
+>> +
+>> +  reg-names:
+>> +    items:
+>> +      - const: intd_cfg
+>> +      - const: user_cfg
+>> +      - const: reg
+>> +      - const: cfg
+>> +
+>> +  ti,syscon-pcie-ctrl:
+>> +    description: Phandle to the SYSCON entry required for configuring PCIe mode
+>> +                 and link speed.
+>> +    allOf:
+>> +      - $ref: /schemas/types.yaml#/definitions/phandle
+> 
+> You can drop the 'allOf' here if there aren't more constraints.
 
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Do you mean I don't have to include phandle schema here? I don't seem to
+be able to include $ref without allOf.
+
+Thanks
+Kishon
