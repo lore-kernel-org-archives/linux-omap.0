@@ -1,121 +1,32 @@
-From: Dmitry Osipenko <digetx@gmail.com>
-Subject: Re: [PATCH 4/9] memory: tegra: convert to
- devm_platform_ioremap_resource
-Date: Mon, 23 Dec 2019 18:42:36 +0300
-Message-ID: <04758814-8e22-79b9-8ed1-ac0c31762d21@gmail.com>
-References: <20191222185034.4665-1-tiny.windzz@gmail.com>
- <20191222185034.4665-4-tiny.windzz@gmail.com>
+From: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/3] clk: let init callback return an error code
+Date: Mon, 23 Dec 2019 18:59:47 -0800
+Message-ID: <20191224025948.41011206B7@mail.kernel.org>
+References: <20190924123954.31561-1-jbrunet@baylibre.com>
+ <20190924123954.31561-3-jbrunet@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191222185034.4665-4-tiny.windzz@gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yangtao Li <tiny.windzz@gmail.com>, ssantosh@kernel.org, paul@crapouillou.net, matthias.bgg@gmail.com, rogerq@ti.com, tony@atomide.com, lukasz.luba@arm.com, kgene@kernel.org, krzk@kernel.org, thierry.reding@gmail.com, jonathanh@nvidia.com, allison@lohutok.net, tglx@linutronix.de, yong.wu@mediatek.com, jroedel@suse.de, evgreen@chromium.org, rfontana@redhat.com, pdeschrijver@nvidia.com, john@phrozen.org, alexios.zavras@intel.com, sboyd@kernel.org, kstewart@linuxfoundation.org, info@metux.net, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20190924123954.31561-3-jbrunet-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Heiner Kallweit <hkallweit1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jerome Brunet <jbrunet-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-22.12.2019 21:50, Yangtao Li пишет:
-> Use devm_platform_ioremap_resource() to simplify code.
+Quoting Jerome Brunet (2019-09-24 05:39:53)
+> If the init callback is allowed to request resources, it needs a return
+> value to report the outcome of such a request.
 > 
-> Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+> Signed-off-by: Jerome Brunet <jbrunet-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/memory/tegra/mc.c           | 4 +---
->  drivers/memory/tegra/tegra124-emc.c | 4 +---
->  drivers/memory/tegra/tegra186.c     | 4 +---
->  drivers/memory/tegra/tegra20-emc.c  | 4 +---
->  4 files changed, 4 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/memory/tegra/mc.c b/drivers/memory/tegra/mc.c
-> index ec8403557ed4..71390d4ad809 100644
-> --- a/drivers/memory/tegra/mc.c
-> +++ b/drivers/memory/tegra/mc.c
-> @@ -593,7 +593,6 @@ static __maybe_unused irqreturn_t tegra20_mc_irq(int irq, void *data)
->  
->  static int tegra_mc_probe(struct platform_device *pdev)
->  {
-> -	struct resource *res;
->  	struct tegra_mc *mc;
->  	void *isr;
->  	u64 mask;
-> @@ -619,8 +618,7 @@ static int tegra_mc_probe(struct platform_device *pdev)
->  	/* length of MC tick in nanoseconds */
->  	mc->tick = 30;
->  
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	mc->regs = devm_ioremap_resource(&pdev->dev, res);
-> +	mc->regs = devm_platform_ioremap_resource(pdev, 0);
->  	if (IS_ERR(mc->regs))
->  		return PTR_ERR(mc->regs);
->  
-> diff --git a/drivers/memory/tegra/tegra124-emc.c b/drivers/memory/tegra/tegra124-emc.c
-> index 464f0ceaee63..2c73260654ba 100644
-> --- a/drivers/memory/tegra/tegra124-emc.c
-> +++ b/drivers/memory/tegra/tegra124-emc.c
-> @@ -1085,7 +1085,6 @@ static int tegra_emc_probe(struct platform_device *pdev)
->  	struct platform_device *mc;
->  	struct device_node *np;
->  	struct tegra_emc *emc;
-> -	struct resource *res;
->  	u32 ram_code;
->  	int err;
->  
-> @@ -1095,8 +1094,7 @@ static int tegra_emc_probe(struct platform_device *pdev)
->  
->  	emc->dev = &pdev->dev;
->  
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	emc->regs = devm_ioremap_resource(&pdev->dev, res);
-> +	emc->regs = devm_platform_ioremap_resource(pdev, 0);
->  	if (IS_ERR(emc->regs))
->  		return PTR_ERR(emc->regs);
->  
-> diff --git a/drivers/memory/tegra/tegra186.c b/drivers/memory/tegra/tegra186.c
-> index 441213a35930..226d2b16036d 100644
-> --- a/drivers/memory/tegra/tegra186.c
-> +++ b/drivers/memory/tegra/tegra186.c
-> @@ -534,7 +534,6 @@ static const struct tegra_mc_client tegra186_mc_clients[] = {
->  
->  static int tegra186_mc_probe(struct platform_device *pdev)
->  {
-> -	struct resource *res;
->  	struct tegra_mc *mc;
->  	unsigned int i;
->  	int err = 0;
-> @@ -543,8 +542,7 @@ static int tegra186_mc_probe(struct platform_device *pdev)
->  	if (!mc)
->  		return -ENOMEM;
->  
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	mc->regs = devm_ioremap_resource(&pdev->dev, res);
-> +	mc->regs = devm_platform_ioremap_resource(pdev, 0);
->  	if (IS_ERR(mc->regs))
->  		return PTR_ERR(mc->regs);
->  
-> diff --git a/drivers/memory/tegra/tegra20-emc.c b/drivers/memory/tegra/tegra20-emc.c
-> index 1b23b1c34476..d2efd0c658c0 100644
-> --- a/drivers/memory/tegra/tegra20-emc.c
-> +++ b/drivers/memory/tegra/tegra20-emc.c
-> @@ -482,7 +482,6 @@ static int tegra_emc_probe(struct platform_device *pdev)
->  {
->  	struct device_node *np;
->  	struct tegra_emc *emc;
-> -	struct resource *res;
->  	int irq, err;
->  
->  	/* driver has nothing to do in a case of memory timing absence */
-> @@ -518,8 +517,7 @@ static int tegra_emc_probe(struct platform_device *pdev)
->  	if (err)
->  		return err;
->  
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	emc->regs = devm_ioremap_resource(&pdev->dev, res);
-> +	emc->regs = devm_platform_ioremap_resource(pdev, 0);
->  	if (IS_ERR(emc->regs))
->  		return PTR_ERR(emc->regs);
->  
-> 
 
-Looks good, thanks!
-
-Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Applied to clk-next
