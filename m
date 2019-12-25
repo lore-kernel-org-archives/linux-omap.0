@@ -1,40 +1,59 @@
-From: =?UTF-8?Q?Andr=c3=a9_Hentschel?= <nerv@dawncrow.de>
+From: Adam Ford <aford173@gmail.com>
 Subject: Re: [PATCH] ARM: dts: Add omap3-echo
-Date: Wed, 25 Dec 2019 13:05:17 +0100
-Message-ID: <a8f64408-f581-e57d-0f5d-db42ff0a4288@dawncrow.de>
+Date: Wed, 25 Dec 2019 06:53:18 -0600
+Message-ID: <CAHCN7xKMnfo5reY+VSs_iCv_NXs-E12dFcRXonz6cNe1-huSPQ@mail.gmail.com>
 References: <20191224161005.28083-1-nerv@dawncrow.de>
  <20191224184503.GK35479@atomide.com>
+ <a8f64408-f581-e57d-0f5d-db42ff0a4288@dawncrow.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191224184503.GK35479@atomide.com>
-Content-Language: de-LU
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <a8f64408-f581-e57d-0f5d-db42ff0a4288@dawncrow.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?Q?Andr=C3=A9_Hentschel?= <nerv@dawncrow.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Am 24.12.19 um 19:45 schrieb Tony Lindgren:
-> * André Hentschel <nerv@dawncrow.de> [191224 16:11]:
->> This is the first generation Amazon Echo from 2016.
->> Audio support is not yet implemented.
-> 
-> OK looks good to me, just worried about one part:
-> 
->> +&sgx_module {
->> +	status = "disabled";
->> +};
-> 
-> We should have a separate am3703.dtsi or whatever the SoC model
-> disabling sgx if not there on the SoC. That way board specific
-> dts files can just include it without having to debug this issue
-> over and over.
-
-Thanks for the quick review in that time of the year!
-The sgx issue came up in newer kernels and I had to bisect it to 3b72fc895a2e57f70276b46f386f35d752adf555
-The device just wasn't booting without a message, so yes, we should make it easier for others to figure it out.
-SoC is DM3725 and only DM3730 has sgx support. And it's hard to say if the base is am37xx or omap36xx.
-But I see the reasons you picked am3703, so I would move everything from omap36xx.dtsi to am3703.dtsi except sgx?
-And then include am3703.dtsi in omap36xx.dtsi before sgx support?
-Or would it be better to have sgx support in a separate dtsi?
+T24gV2VkLCBEZWMgMjUsIDIwMTkgYXQgNjowNSBBTSBBbmRyw6kgSGVudHNjaGVsIDxuZXJ2QGRh
+d25jcm93LmRlPiB3cm90ZToKPgo+IEFtIDI0LjEyLjE5IHVtIDE5OjQ1IHNjaHJpZWIgVG9ueSBM
+aW5kZ3JlbjoKPiA+ICogQW5kcsOpIEhlbnRzY2hlbCA8bmVydkBkYXduY3Jvdy5kZT4gWzE5MTIy
+NCAxNjoxMV06Cj4gPj4gVGhpcyBpcyB0aGUgZmlyc3QgZ2VuZXJhdGlvbiBBbWF6b24gRWNobyBm
+cm9tIDIwMTYuCj4gPj4gQXVkaW8gc3VwcG9ydCBpcyBub3QgeWV0IGltcGxlbWVudGVkLgo+ID4K
+PiA+IE9LIGxvb2tzIGdvb2QgdG8gbWUsIGp1c3Qgd29ycmllZCBhYm91dCBvbmUgcGFydDoKPiA+
+Cj4gPj4gKyZzZ3hfbW9kdWxlIHsKPiA+PiArICAgIHN0YXR1cyA9ICJkaXNhYmxlZCI7Cj4gPj4g
+K307Cj4gPgo+ID4gV2Ugc2hvdWxkIGhhdmUgYSBzZXBhcmF0ZSBhbTM3MDMuZHRzaSBvciB3aGF0
+ZXZlciB0aGUgU29DIG1vZGVsCj4gPiBkaXNhYmxpbmcgc2d4IGlmIG5vdCB0aGVyZSBvbiB0aGUg
+U29DLiBUaGF0IHdheSBib2FyZCBzcGVjaWZpYwo+ID4gZHRzIGZpbGVzIGNhbiBqdXN0IGluY2x1
+ZGUgaXQgd2l0aG91dCBoYXZpbmcgdG8gZGVidWcgdGhpcyBpc3N1ZQo+ID4gb3ZlciBhbmQgb3Zl
+ci4KPgo+IFRoYW5rcyBmb3IgdGhlIHF1aWNrIHJldmlldyBpbiB0aGF0IHRpbWUgb2YgdGhlIHll
+YXIhCj4gVGhlIHNneCBpc3N1ZSBjYW1lIHVwIGluIG5ld2VyIGtlcm5lbHMgYW5kIEkgaGFkIHRv
+IGJpc2VjdCBpdCB0byAzYjcyZmM4OTVhMmU1N2Y3MDI3NmI0NmYzODZmMzVkNzUyYWRmNTU1Cj4g
+VGhlIGRldmljZSBqdXN0IHdhc24ndCBib290aW5nIHdpdGhvdXQgYSBtZXNzYWdlLCBzbyB5ZXMs
+IHdlIHNob3VsZCBtYWtlIGl0IGVhc2llciBmb3Igb3RoZXJzIHRvIGZpZ3VyZSBpdCBvdXQuCj4g
+U29DIGlzIERNMzcyNSBhbmQgb25seSBETTM3MzAgaGFzIHNneCBzdXBwb3J0LiBBbmQgaXQncyBo
+YXJkIHRvIHNheSBpZiB0aGUgYmFzZSBpcyBhbTM3eHggb3Igb21hcDM2eHguCj4gQnV0IEkgc2Vl
+IHRoZSByZWFzb25zIHlvdSBwaWNrZWQgYW0zNzAzLCBzbyBJIHdvdWxkIG1vdmUgZXZlcnl0aGlu
+ZyBmcm9tIG9tYXAzNnh4LmR0c2kgdG8gYW0zNzAzLmR0c2kgZXhjZXB0IHNneD8KCj4gQW5kIHRo
+ZW4gaW5jbHVkZSBhbTM3MDMuZHRzaSBpbiBvbWFwMzZ4eC5kdHNpIGJlZm9yZSBzZ3ggc3VwcG9y
+dD8KCkkgY2FuIHNlZSB2YWx1ZSBpbiBoYXZpbmcgYSAzNzAzIGJhc2UgYW5kIGluY2x1ZGluZyB0
+aGF0IGluIHRoZSAzNnh4CndpdGggU0dYIGFuZCBEU1Agbm9kZXMsIGJ1dCB3aHkgbm90IGp1cyBt
+YWtlIFNHWCBkaXNhYmxlZCBieSBkZWZhdWx0LgpUaG9zZSB3aG8gd2FudC9uZWVkIGl0IGNhbiBl
+bmFibGUgaXQgb24gYSBwZXItYm9hcmQgYmFzaXMuCj4gT3Igd291bGQgaXQgYmUgYmV0dGVyIHRv
+IGhhdmUgc2d4IHN1cHBvcnQgaW4gYSBzZXBhcmF0ZSBkdHNpPwoKSSBhbSBub3Qgc3VyZSBob3cg
+bXVjaCBEU1Agc3R1ZmYgaXMgaW4gdGhlcmUsIGJ1dCB0aGUgRE0zNzMwIGlzIHRoZQpBTTM3MDMg
+KyBEU1AgYW5kIDNELgoKYWRhbQo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KPiBsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAo+IGxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3Jn
+L21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
+bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
+YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
