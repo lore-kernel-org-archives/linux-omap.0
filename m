@@ -1,56 +1,62 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] ARM: dts: Add omap3-echo
-Date: Wed, 25 Dec 2019 18:01:33 +0100
-Message-ID: <60412339-53BF-4DC1-8AF6-4FB0E75D429C@goldelico.com>
-References: <20191224161005.28083-1-nerv@dawncrow.de>
- <20191224184503.GK35479@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191224184503.GK35479@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv2] phy: cpcap-usb: Fix flakey host idling and enumerating
+ of devices
+Date: Thu, 26 Dec 2019 11:45:31 +0100
+Message-ID: <20191226104531.GI4033@amd>
+References: <20191222180019.55417-1-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="sl5MdczEF/OU2Miu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20191222180019.55417-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, =?utf-8?Q?Andr=C3=A9_Hentschel?= <nerv@dawncrow.de>, linux@arm.linux.org.uk, webmaster@dawncrow.de, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Jacopo Mondi <jacopo@jmondi.org>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgo+IEFtIDI0LjEyLjIwMTkgdW0gMTk6NDUgc2NocmllYiBUb255IExpbmRncmVuIDx0b255
-QGF0b21pZGUuY29tPjoKPiAKPiAqIEFuZHLDqSBIZW50c2NoZWwgPG5lcnZAZGF3bmNyb3cuZGU+
-IFsxOTEyMjQgMTY6MTFdOgo+PiBUaGlzIGlzIHRoZSBmaXJzdCBnZW5lcmF0aW9uIEFtYXpvbiBF
-Y2hvIGZyb20gMjAxNi4KPj4gQXVkaW8gc3VwcG9ydCBpcyBub3QgeWV0IGltcGxlbWVudGVkLgo+
-IAo+IE9LIGxvb2tzIGdvb2QgdG8gbWUsIGp1c3Qgd29ycmllZCBhYm91dCBvbmUgcGFydDoKPiAK
-Pj4gKyZzZ3hfbW9kdWxlIHsKPj4gKwlzdGF0dXMgPSAiZGlzYWJsZWQiOwo+PiArfTsKPiAKPiBX
-ZSBzaG91bGQgaGF2ZSBhIHNlcGFyYXRlIGFtMzcwMy5kdHNpIG9yIHdoYXRldmVyIHRoZSBTb0Mg
-bW9kZWwKPiBkaXNhYmxpbmcgc2d4IGlmIG5vdCB0aGVyZSBvbiB0aGUgU29DLgoKSSB0aGluayB0
-aGUgYW0zNzAzIGlzIGEgZG0zNzMwIChvbWFwMzYzMCkgd2hlcmUgdGhlIFNHWCBhbmQgdGhlCkRT
-UCBoYXZlIG5vdCBwYXNzZWQgcHJvZHVjdGlvbiB0ZXN0IGFuZCBhcmUgImRpc2FibGVkIiBieSBl
-RnVzZXMuClRoaXMgaXMgYSBjb21tb24gcHJvY2VkdXJlIGluIHNpbGljb24gcHJvZHVjdGlvbiB0
-byBpbmNyZWFzZSB5aWVsZC4KClRoZXJlZm9yZSwgdGhlcmUgaXMgYSByZWdpc3RlciB3aGljaCBh
-bGxvd3MgdG8gZHluYW1pY2FsbHkgZGV0ZXJtaW5lCndoYXQgY29tcG9uZW50cyAoU0dYIGFuZCBE
-U1ApIGFyZSBhdmFpbGFibGUgb24gYSBzcGVjaWZpYyBTb0MgY2hpcC4KU2VlICJUYWJsZSAxLTYu
-IENoaXAgSWRlbnRpZmljYXRpb24iIGluIHRoZSBjb21tb24KIkFNL0RNMzd4IE11bHRpbWVkaWEg
-RGV2aWNlIFRSTSIuCgpTdWNoIGJpdHMgZXhpc3RzIGZvciBvbWFwMzR4eCBhbmQgZm9yIG9tYXAz
-Nnh4IChha2EgYW0zN3h4L2RtMzd4eCkuCgpUaGF0IHdheSB0aGVyZSBpcyBubyBuZWVkIHRvIGRp
-c2FibGUvZW5hYmxlIHNneCB0aHJvdWdoIGRldmljZSB0cmVlCnZhcmlhdGlvbnMgYW5kIGludHJv
-ZHVjaW5nIG1vcmUgY29tcGxleGl0eSBieSBpbnRyb2R1Y2luZyBtb3JlIGFuZCBtb3JlCkRUUyBm
-b3IgdmFyaWFudHMgKGFtMzcwMy5kdHNpLCBhbTM3MTUuZHRzaSwgZG0zNzIwLmR0c2ksIGRtMzcz
-MC5kdHNpPykuCgpCVFc6IHdoYXQgYWJvdXQgYSBib2FyZCB0aGF0IGlzL3dhcyBwcm9kdWNlZCBp
-biBlaXRoZXIgYW0zNzAzIG9yIGRtMzczMAp2YXJpYW50cz8gQ2FuIHRoZXkgc3RpbGwgc2hhcmUg
-YW4gb21hcDM2eHguZHRzaSBiYXNlZCBEVEI/CgpTbyBJTUhPIGlmIHRoZXJlIGlzIGFuIGlzc3Vl
-IHdpdGggc2d4IGVuYWJsZWQgb24gYW0zNzAzIGJ1dCBubyBTR1gKaGFyZHdhcmUgYXZhaWxhYmxl
-IG9uIGEgc3BlY2lmaWMgU29DLCB0aGUgc3lzYyBzZXR1cCBzaG91bGQgc29tZWhvdyByZWFkCnRo
-ZSBiaXRzIGFuZCBlZmZlY3RpdmVseSBkaXNhYmxlIGFsbCBTR1ggcmVsYXRlZCBzZXR1cCBpZiBp
-dCBpcyBub3QKYXZhaWxhYmxlIG9uIHRoZSBTb0MuIElmIEkgcmVtZW1iZXIgY29ycmVjdGx5LCBz
-b21lIG9sZGVyIGh3bW9kcyBkaWQKc3VjaCB0aGluZ3MgYnkgY2hlY2tpbmcgU29DIHZhcmlhbnQg
-Yml0cy4KCkJSIGFuZCB0aGFua3MsCk5pa29sYXVzCgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
-dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+
+--sl5MdczEF/OU2Miu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun 2019-12-22 10:00:19, Tony Lindgren wrote:
+> We must let the USB host idle things properly before we switch to debug
+> UART mode. Otherwise the USB host may never idle after disconnecting
+> devices, and that causes the next enumeration to be flakey.
+>=20
+> Cc: Jacopo Mondi <jacopo@jmondi.org>
+> Cc: Marcel Partap <mpartap@gmx.net>
+> Cc: Merlijn Wajer <merlijn@wizzup.org>
+> Cc: Michael Scott <hashcode0f@gmail.com>
+> Cc: NeKit <nekit1000@gmail.com>
+
+Acked-by: Pavel Machek <pavel@ucw.cz>
+
+> Cc: Sebastian Reichel <sre@kernel.org>
+> Fixes: 6d6ce40f63af ("phy: cpcap-usb: Add CPCAP PMIC USB support")
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+But it does not apply on top of 5.5-rc3 AFAICT.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--sl5MdczEF/OU2Miu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAl4Ej0sACgkQMOfwapXb+vIpXgCgpw8ow7BAI9AIa4DhiKn1Aloe
+6RIAn13zm1SNFtJWZ+ZLsyiIZou3MwFe
+=eChF
+-----END PGP SIGNATURE-----
+
+--sl5MdczEF/OU2Miu--
