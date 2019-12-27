@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 23/57] ARM: dts: am437x-gp/epos-evm: fix panel compatible
-Date: Fri, 27 Dec 2019 13:01:48 -0500
-Message-ID: <20191227180222.7076-23-sashal@kernel.org>
-References: <20191227180222.7076-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 08/25] ARM: dts: am437x-gp/epos-evm: fix panel compatible
+Date: Fri, 27 Dec 2019 13:15:32 -0500
+Message-ID: <20191227181549.8040-8-sashal@kernel.org>
+References: <20191227181549.8040-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20191227180222.7076-1-sashal@kernel.org>
+In-Reply-To: <20191227181549.8040-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
@@ -33,10 +33,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index afb8eb0a0a16..051823b7e5a1 100644
+index d2450ab0a380..3293484028ad 100644
 --- a/arch/arm/boot/dts/am437x-gp-evm.dts
 +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -83,7 +83,7 @@
+@@ -79,7 +79,7 @@
  		};
  
  	lcd0: display {
@@ -46,10 +46,10 @@ index afb8eb0a0a16..051823b7e5a1 100644
  
  		panel-timing {
 diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 081fa68b6f98..c4279b0b9f12 100644
+index 00707aac72fc..a74b09f17a1a 100644
 --- a/arch/arm/boot/dts/am43x-epos-evm.dts
 +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -45,7 +45,7 @@
+@@ -41,7 +41,7 @@
  	};
  
  	lcd0: display {
