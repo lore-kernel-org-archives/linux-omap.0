@@ -1,69 +1,23 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 1/3] phy: cpcap-usb: Prevent USB line glitches from
- waking up modem
-Date: Thu, 26 Dec 2019 11:47:45 +0100
-Message-ID: <20191226104745.GJ4033@amd>
-References: <20191222181704.61511-1-tony@atomide.com>
+From: Yong Wu <yong.wu@mediatek.com>
+Subject: Re: [PATCH 8/9] memory: mtk-smi: convert to
+ devm_platform_ioremap_resource
+Date: Fri, 27 Dec 2019 15:24:33 +0800
+Message-ID: <1577431473.32039.14.camel@mhfsdcap03>
+References: <20191222185034.4665-1-tiny.windzz@gmail.com>
+         <20191222185034.4665-8-tiny.windzz@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="n8884J15jRwcBTvu"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20191222181704.61511-1-tony@atomide.com>
+In-Reply-To: <20191222185034.4665-8-tiny.windzz@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sre@kernel.org>
+To: Yangtao Li <tiny.windzz@gmail.com>
+Cc: ssantosh@kernel.org, paul@crapouillou.net, matthias.bgg@gmail.com, rogerq@ti.com, tony@atomide.com, lukasz.luba@arm.com, kgene@kernel.org, krzk@kernel.org, thierry.reding@gmail.com, jonathanh@nvidia.com, allison@lohutok.net, tglx@linutronix.de, jroedel@suse.de, evgreen@chromium.org, rfontana@redhat.com, digetx@gmail.com, pdeschrijver@nvidia.com, john@phrozen.org, alexios.zavras@intel.com, sboyd@kernel.org, kstewart@linuxfoundation.org, info@metux.net, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---n8884J15jRwcBTvu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun 2019-12-22 10:17:02, Tony Lindgren wrote:
-> The micro-USB connector on Motorola Mapphone devices can be muxed between
-> the SoC and the mdm6600 modem. But even when used for the SoC, configuring
-> the PHY with ID pin grounded will wake up the modem from idle state. Looks
-> like the issue is probably caused by line glitches.
->=20
-> We can prevent the glitches by using a previously unknown mode of the
-> GPIO mux to prevent the USB lines from being connected to the moden while
-> configuring the USB PHY, and enable the USB lines after configuring the
-> PHY.
->=20
-> Note that this only prevents waking up mdm6600 as regular USB A-host mode,
-> and does not help when connected to a lapdock. The lapdock specific issue
-> still needs to be debugged separately.
->=20
-> Cc: Merlijn Wajer <merlijn@wizzup.org>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Nothing obviously wrong in the series.
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
-Patch 2/ does not apply on top of 5.5-rc3 AFAICT.
-
-Best regards,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---n8884J15jRwcBTvu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl4Ej9EACgkQMOfwapXb+vIVDwCgsLXA2R5ymkM+dKDCkoshG8JI
-nVIAoJQy8dACWRuOZq0suNiLYN2+KBgC
-=+Xku
------END PGP SIGNATURE-----
-
---n8884J15jRwcBTvu--
+T24gU3VuLCAyMDE5LTEyLTIyIGF0IDE4OjUwICswMDAwLCBZYW5ndGFvIExpIHdyb3RlOg0KPiBV
+c2UgZGV2bV9wbGF0Zm9ybV9pb3JlbWFwX3Jlc291cmNlKCkgdG8gc2ltcGxpZnkgY29kZS4NCj4g
+DQo+IFNpZ25lZC1vZmYtYnk6IFlhbmd0YW8gTGkgPHRpbnkud2luZHp6QGdtYWlsLmNvbT4NCj4g
+LS0tDQo+ICBkcml2ZXJzL21lbW9yeS9tdGstc21pLmMgfCAxMSArKystLS0tLS0tLQ0KPiAgMSBm
+aWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgOCBkZWxldGlvbnMoLSkNCg0KUmV2aWV3ZWQt
+Ynk6IFlvbmcgV3UgPHlvbmcud3VAbWVkaWF0ZWsuY29tPg0KDQo=
