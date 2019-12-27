@@ -1,63 +1,62 @@
-From: =?UTF-8?Q?Andr=c3=a9_Hentschel?= <nerv@dawncrow.de>
-Subject: Re: [PATCH] ARM: dts: Add omap3-echo
-Date: Fri, 27 Dec 2019 15:28:28 +0100
-Message-ID: <53e6cbbd-1094-cba2-4942-981502a738d4@dawncrow.de>
-References: <20191224161005.28083-1-nerv@dawncrow.de>
- <20191224184503.GK35479@atomide.com>
- <60412339-53BF-4DC1-8AF6-4FB0E75D429C@goldelico.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 077/187] ARM: dts: am437x-gp/epos-evm: fix panel compatible
+Date: Fri, 27 Dec 2019 12:39:05 -0500
+Message-ID: <20191227174055.4923-77-sashal@kernel.org>
+References: <20191227174055.4923-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <60412339-53BF-4DC1-8AF6-4FB0E75D429C@goldelico.com>
-Content-Language: de-LU
+In-Reply-To: <20191227174055.4923-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>
-Cc: linux@arm.linux.org.uk, robh+dt@kernel.org, mark.rutland@arm.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Am 25.12.19 um 18:01 schrieb H. Nikolaus Schaller:
-> I think the am3703 is a dm3730 (omap3630) where the SGX and the
-> DSP have not passed production test and are "disabled" by eFuses.
-> This is a common procedure in silicon production to increase yield.
-> 
-> Therefore, there is a register which allows to dynamically determine
-> what components (SGX and DSP) are available on a specific SoC chip.
-> See "Table 1-6. Chip Identification" in the common
-> "AM/DM37x Multimedia Device TRM".
-> 
-> Such bits exists for omap34xx and for omap36xx (aka am37xx/dm37xx).
-> 
-> That way there is no need to disable/enable sgx through device tree
-> variations and introducing more complexity by introducing more and more
-> DTS for variants (am3703.dtsi, am3715.dtsi, dm3720.dtsi, dm3730.dtsi?).
-> 
-> BTW: what about a board that is/was produced in either am3703 or dm3730
-> variants? Can they still share an omap36xx.dtsi based DTB?
-> 
-> So IMHO if there is an issue with sgx enabled on am3703 but no SGX
-> hardware available on a specific SoC, the sysc setup should somehow read
-> the bits and effectively disable all SGX related setup if it is not
-> available on the SoC. If I remember correctly, some older hwmods did
-> such things by checking SoC variant bits.
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-I like the idea, but I'm not in the position to vote for it and I don't
-understand the sysc code enough to implement that.
+[ Upstream commit c6b16761c6908d3dc167a0a566578b4b0b972905 ]
 
-Am 25.12.19 um 13:53 schrieb Adam Ford:
-> On Wed, Dec 25, 2019 at 6:05 AM André Hentschel <nerv@dawncrow.de> wrote:
->> And then include am3703.dtsi in omap36xx.dtsi before sgx support?
-> I can see value in having a 3703 base and including that in the 36xx
-> with SGX and DSP nodes, but why not jus make SGX disabled by default.
-> Those who want/need it can enable it on a per-board basis.
->> Or would it be better to have sgx support in a separate dtsi?
-> 
-> I am not sure how much DSP stuff is in there, but the DM3730 is the
-> AM3703 + DSP and 3D.
+The LCD panel on AM4 GP EVMs and ePOS boards seems to be
+osd070t1718-19ts. The current dts files say osd057T0559-34ts. Possibly
+the panel has changed since the early EVMs, or there has been a mistake
+with the panel type.
 
-For clarification this reduced table should help:
-     DM3730 | DM3725 | AM3715 | AM3703
-DSP    X    |   X    |        |    
-SGX    X    |        |   X    |    
+Update the DT files accordingly.
 
-Where X is "supported"
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index cae4500194fe..811c8cae315b 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -86,7 +86,7 @@
+ 		};
+ 
+ 	lcd0: display {
+-		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
++		compatible = "osddisplays,osd070t1718-19ts", "panel-dpi";
+ 		label = "lcd";
+ 
+ 		backlight = <&lcd_bl>;
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 95314121d111..078cb473fa7d 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -42,7 +42,7 @@
+ 	};
+ 
+ 	lcd0: display {
+-		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
++		compatible = "osddisplays,osd070t1718-19ts", "panel-dpi";
+ 		label = "lcd";
+ 
+ 		backlight = <&lcd_bl>;
+-- 
+2.20.1
