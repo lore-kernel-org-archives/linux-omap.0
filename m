@@ -1,62 +1,47 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 14/38] ARM: dts: am437x-gp/epos-evm: fix panel compatible
-Date: Fri, 27 Dec 2019 13:14:11 -0500
-Message-ID: <20191227181435.7644-14-sashal@kernel.org>
-References: <20191227181435.7644-1-sashal@kernel.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Droid 4 on 5.5-rc3
+Date: Sat, 28 Dec 2019 17:29:29 +0100
+Message-ID: <20191228162929.GA29269@duo.ucw.cz>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191227181435.7644-1-sashal@kernel.org>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz
 List-Id: linux-omap@vger.kernel.org
 
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-[ Upstream commit c6b16761c6908d3dc167a0a566578b4b0b972905 ]
+--pWyiEgJYm5f9v55/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The LCD panel on AM4 GP EVMs and ePOS boards seems to be
-osd070t1718-19ts. The current dts files say osd057T0559-34ts. Possibly
-the panel has changed since the early EVMs, or there has been a mistake
-with the panel type.
+Hi!
 
-Update the DT files accordingly.
+5.4-based kernel works ok on my droid 4.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/am437x-gp-evm.dts  | 2 +-
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+5.5-rc3 based kernel has problems; it reboots when I try to kexec it.
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 957840cc7b78..b55c094893c6 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -79,7 +79,7 @@
- 		};
- 
- 	lcd0: display {
--		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
-+		compatible = "osddisplays,osd070t1718-19ts", "panel-dpi";
- 		label = "lcd";
- 
- 		panel-timing {
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 9d35c3f07cad..21918807c9f6 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -41,7 +41,7 @@
- 	};
- 
- 	lcd0: display {
--		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
-+		compatible = "osddisplays,osd070t1718-19ts", "panel-dpi";
- 		label = "lcd";
- 
- 		panel-timing {
--- 
-2.20.1
+Vanilla 5.5-rc3 reboots, too.
+
+If you have any ideas, let me know.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--pWyiEgJYm5f9v55/
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCXgeC6QAKCRAw5/Bqldv6
+8netAJ0e4+NCpKv7UqXVvYN8fMGIhi8axwCggrO1rdpLc++EsqRd3qeIaCjWzrs=
+=X2f+
+-----END PGP SIGNATURE-----
+
+--pWyiEgJYm5f9v55/--
