@@ -1,98 +1,109 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v3 2/4] ARM: OMAP2+: Introduce check for OP-TEE in
- omap_secure_init()
-Date: Tue, 31 Dec 2019 12:02:41 +0530
-Message-ID: <b4773b91-9893-830d-7b1b-b63eb4077cf7@ti.com>
-References: <20191230185004.32279-1-afd@ti.com>
- <20191230185004.32279-3-afd@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] ARM: dts: Add omap3-echo
+Date: Tue, 31 Dec 2019 09:14:12 +0100
+Message-ID: <55E6481C-2137-4086-ACDF-5F7D86E41A21@goldelico.com>
+References: <20191224161005.28083-1-nerv@dawncrow.de> <20191224184503.GK35479@atomide.com> <60412339-53BF-4DC1-8AF6-4FB0E75D429C@goldelico.com> <53e6cbbd-1094-cba2-4942-981502a738d4@dawncrow.de> <20191230172948.GL35479@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191230185004.32279-3-afd@ti.com>
-Content-Language: en-US
+In-Reply-To: <20191230172948.GL35479@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?utf-8?Q?Andr=C3=A9_Hentschel?= <nerv@dawncrow.de>, Adam Ford <aford173@gmail.com>, linux@arm.linux.org.uk, robh+dt@kernel.org, mark.rutland@arm.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tony,
 
+> Am 30.12.2019 um 18:29 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> * Andr=C3=A9 Hentschel <nerv@dawncrow.de> [191227 14:29]:
+>> Am 25.12.19 um 18:01 schrieb H. Nikolaus Schaller:
+>>> I think the am3703 is a dm3730 (omap3630) where the SGX and the
+>>> DSP have not passed production test and are "disabled" by eFuses.
+>>> This is a common procedure in silicon production to increase yield.
+>>>=20
+>>> Therefore, there is a register which allows to dynamically determine
+>>> what components (SGX and DSP) are available on a specific SoC chip.
+>>> See "Table 1-6. Chip Identification" in the common
+>>> "AM/DM37x Multimedia Device TRM".
+>>>=20
+>>> Such bits exists for omap34xx and for omap36xx (aka am37xx/dm37xx).
+>>>=20
+>>> That way there is no need to disable/enable sgx through device tree
+>>> variations and introducing more complexity by introducing more and =
+more
+>>> DTS for variants (am3703.dtsi, am3715.dtsi, dm3720.dtsi, =
+dm3730.dtsi?).
+>>>=20
+>>> BTW: what about a board that is/was produced in either am3703 or =
+dm3730
+>>> variants? Can they still share an omap36xx.dtsi based DTB?
+>>>=20
+>>> So IMHO if there is an issue with sgx enabled on am3703 but no SGX
+>>> hardware available on a specific SoC, the sysc setup should somehow =
+read
+>>> the bits and effectively disable all SGX related setup if it is not
+>>> available on the SoC. If I remember correctly, some older hwmods did
+>>> such things by checking SoC variant bits.
+>>=20
+>> I like the idea, but I'm not in the position to vote for it and I =
+don't
+>> understand the sysc code enough to implement that.
+>=20
+> We can easily do both. So no worries, I can easily add SoC capabilites
+> support at some point.
+>=20
+>> Am 25.12.19 um 13:53 schrieb Adam Ford:
+>>> On Wed, Dec 25, 2019 at 6:05 AM Andr=C3=A9 Hentschel =
+<nerv@dawncrow.de> wrote:
+>>>> And then include am3703.dtsi in omap36xx.dtsi before sgx support?
+>>> I can see value in having a 3703 base and including that in the 36xx
+>>> with SGX and DSP nodes, but why not jus make SGX disabled by =
+default.
+>>> Those who want/need it can enable it on a per-board basis.
+>>>> Or would it be better to have sgx support in a separate dtsi?
+>>>=20
+>>> I am not sure how much DSP stuff is in there, but the DM3730 is the
+>>> AM3703 + DSP and 3D.
+>>=20
+>> For clarification this reduced table should help:
+>>     DM3730 | DM3725 | AM3715 | AM3703
+>> DSP    X    |   X    |        |   =20
+>> SGX    X    |        |   X    |   =20
+>>=20
+>> Where X is "supported"
+>=20
+> And let's also add minimal dm3725.dtsi, am3715.dtsi and am3703.dtsi
+> to make things simple.
 
-On 31/12/19 12:20 AM, Andrew F. Davis wrote:
-> This check and associated flag can be used to signal the presence
-> of OP-TEE on the platform. This can be used to determine which
-> SMC calls to make to perform secure operations.
-> 
-> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> ---
->  arch/arm/mach-omap2/omap-secure.c | 14 ++++++++++++++
->  arch/arm/mach-omap2/omap-secure.h |  3 +++
->  2 files changed, 17 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
-> index e936732cdc4f..39d8070aede6 100644
-> --- a/arch/arm/mach-omap2/omap-secure.c
-> +++ b/arch/arm/mach-omap2/omap-secure.c
-> @@ -12,6 +12,7 @@
->  #include <linux/init.h>
->  #include <linux/io.h>
->  #include <linux/memblock.h>
-> +#include <linux/of.h>
->  
->  #include <asm/cacheflush.h>
->  #include <asm/memblock.h>
-> @@ -20,6 +21,18 @@
->  
->  static phys_addr_t omap_secure_memblock_base;
->  
-> +bool optee_available;
-> +
-> +static void __init omap_optee_init_check(void)
-> +{
-> +	struct device_node *np;
-> +
-> +	np = of_find_node_by_path("/firmware/optee");
-> +	if (np && of_device_is_available(np))
+Well, is that "simple"?
 
-This doesn't guarantee that optee driver is probed successfully or firmware
-installed correctly. Isn't there a better way to detect? Doesn't tee core layer
-exposes anything?
+We also have to add omap3503, omap3515, omap3520, omap3530.dtsi.
+And probably am3351,2,4,6,7,8,9 variants with different capabilities
+(PRU, SGX, CAN, ZCZ ports to name some).
 
-Thanks and regards,
-Lokesh
+And to be correct, there should be a different "compatible".
 
-> +		optee_available = true;
-> +	of_node_put(np);
-> +}
-> +
->  /**
->   * omap_sec_dispatcher: Routine to dispatch low power secure
->   * service routines
-> @@ -166,4 +179,5 @@ u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag)
->  
->  void __init omap_secure_init(void)
->  {
-> +	omap_optee_init_check();
->  }
-> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-> index 9aeeb236a224..78a1c4f04bbe 100644
-> --- a/arch/arm/mach-omap2/omap-secure.h
-> +++ b/arch/arm/mach-omap2/omap-secure.h
-> @@ -10,6 +10,8 @@
->  #ifndef OMAP_ARCH_OMAP_SECURE_H
->  #define OMAP_ARCH_OMAP_SECURE_H
->  
-> +#include <linux/types.h>
-> +
->  /* Monitor error code */
->  #define  API_HAL_RET_VALUE_NS2S_CONVERSION_ERROR	0xFFFFFFFE
->  #define  API_HAL_RET_VALUE_SERVICE_UNKNWON		0xFFFFFFFF
-> @@ -72,6 +74,7 @@ extern u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
->  extern u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits);
->  extern u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag);
->  
-> +extern bool optee_available;
->  void omap_secure_init(void);
->  
->  #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
-> 
+Rob asked me when reviewing the pvrsgx bindings if the img,5xx variants
+can be autodetected to reduce bindings complexity.
+
+> The device tree is supposed to describe the
+> hardware, and in most cases the SoC version is fixed and need no
+> dynamic detection.
+
+There may be exactly the same board populated with either one since
+they are drop-in pin compatible. So this may proliferate to the
+board.dts files and u-boot can have to load different .dtb.
+
+>=20
+> Andr=C3=A9, can you please add those three dtsi files since you have =
+at
+> least one test case? :)
+>=20
+> Regards,
+>=20
+> Tony
+
+BR,
+Nikolaus
