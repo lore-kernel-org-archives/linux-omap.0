@@ -1,45 +1,103 @@
-From: =?UTF-8?Q?Andr=c3=a9_Hentschel?= <nerv@dawncrow.de>
-Subject: Re: [PATCH] ARM: dts: Add omap3-echo
-Date: Mon, 30 Dec 2019 21:22:15 +0100
-Message-ID: <56d6f5d9-1afb-9986-0c91-ba9b973f927e@dawncrow.de>
-References: <20191224161005.28083-1-nerv@dawncrow.de>
- <20191224184503.GK35479@atomide.com>
- <60412339-53BF-4DC1-8AF6-4FB0E75D429C@goldelico.com>
- <53e6cbbd-1094-cba2-4942-981502a738d4@dawncrow.de>
- <20191230172948.GL35479@atomide.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH v3 4/4] ARM: OMAP2+: sleep43xx: Call secure suspend/resume
+ handlers
+Date: Tue, 31 Dec 2019 11:50:47 +0530
+Message-ID: <a29d1e78-9736-ea93-8a53-4600f8f48cde@ti.com>
+References: <20191230185004.32279-1-afd@ti.com>
+ <20191230185004.32279-5-afd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20191230172948.GL35479@atomide.com>
-Content-Language: de-LU
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, "H. Nikolaus Schaller" <hns@goldelico.com>, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191230185004.32279-5-afd@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Andrew F. Davis" <afd@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-QW0gMzAuMTIuMTkgdW0gMTg6Mjkgc2NocmllYiBUb255IExpbmRncmVuOgo+ICogQW5kcsOpIEhl
-bnRzY2hlbCA8bmVydkBkYXduY3Jvdy5kZT4gWzE5MTIyNyAxNDoyOV06Cj4+IEZvciBjbGFyaWZp
-Y2F0aW9uIHRoaXMgcmVkdWNlZCB0YWJsZSBzaG91bGQgaGVscDoKPj4gICAgICBETTM3MzAgfCBE
-TTM3MjUgfCBBTTM3MTUgfCBBTTM3MDMKPj4gRFNQICAgIFggICAgfCAgIFggICAgfCAgICAgICAg
-fCAgICAKPj4gU0dYICAgIFggICAgfCAgICAgICAgfCAgIFggICAgfCAgICAKPj4KPj4gV2hlcmUg
-WCBpcyAic3VwcG9ydGVkIgo+IAo+IEFuZCBsZXQncyBhbHNvIGFkZCBtaW5pbWFsIGRtMzcyNS5k
-dHNpLCBhbTM3MTUuZHRzaSBhbmQgYW0zNzAzLmR0c2kKPiB0byBtYWtlIHRoaW5ncyBzaW1wbGUu
-IFRoZSBkZXZpY2UgdHJlZSBpcyBzdXBwb3NlZCB0byBkZXNjcmliZSB0aGUKPiBoYXJkd2FyZSwg
-YW5kIGluIG1vc3QgY2FzZXMgdGhlIFNvQyB2ZXJzaW9uIGlzIGZpeGVkIGFuZCBuZWVkIG5vCj4g
-ZHluYW1pYyBkZXRlY3Rpb24uCj4gCj4gQW5kcsOpLCBjYW4geW91IHBsZWFzZSBhZGQgdGhvc2Ug
-dGhyZWUgZHRzaSBmaWxlcyBzaW5jZSB5b3UgaGF2ZSBhdAo+IGxlYXN0IG9uZSB0ZXN0IGNhc2U/
-IDopCgpEb25lLCBidXQgSSdtIG5vdCBzdXJlIGhvdyB0byBoYW5kbGUgdGhlIERTUCBzdHVmZiwg
-c28gSSBvbmx5IHNlbnQgdGhlIFNHWCBjaGFuZ2VzIGFzIEkgdW5kZXJzdG9vZCB5b3Ugd2FudCB0
-aGVtIHRvIGJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
-ZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1hcm0ta2VybmVsCg==
+
+
+On 31/12/19 12:20 AM, Andrew F. Davis wrote:
+> During suspend CPU context may be lost in both non-secure and secure CPU
+> states. The kernel can handle saving and restoring the non-secure context
+> but must call into the secure side to allow it to save any context it may
+> lose. Add these calls here.
+> 
+> Note that on systems with OP-TEE available the suspend call is issued to
+> OP-TEE using the ARM SMCCC, but the resume call is always issued to the
+> ROM. This is because on waking from suspend the ROM is restored as the
+> secure monitor. It is this resume call that instructs the ROM to restore
+> OP-TEE, all subsequent calls will be handled by OP-TEE and should use the
+> ARM SMCCC.
+> 
+> Signed-off-by: Andrew F. Davis <afd@ti.com>
+> Acked-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap-secure.h |  3 +++
+>  arch/arm/mach-omap2/pm33xx-core.c | 17 +++++++++++++++++
+>  2 files changed, 20 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+> index 736e594365f4..ba8c486c0454 100644
+> --- a/arch/arm/mach-omap2/omap-secure.h
+> +++ b/arch/arm/mach-omap2/omap-secure.h
+> @@ -53,6 +53,9 @@
+>  #define OMAP4_PPA_L2_POR_INDEX		0x23
+>  #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
+>  
+> +#define AM43xx_PPA_SVC_PM_SUSPEND	0x71
+> +#define AM43xx_PPA_SVC_PM_RESUME	0x72
+> +
+>  /* Secure RX-51 PPA (Primary Protected Application) APIs */
+>  #define RX51_PPA_HWRNG			29
+>  #define RX51_PPA_L2_INVAL		40
+> diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
+> index f11442ed3eff..4a564f676ff9 100644
+> --- a/arch/arm/mach-omap2/pm33xx-core.c
+> +++ b/arch/arm/mach-omap2/pm33xx-core.c
+> @@ -28,6 +28,7 @@
+>  #include "prm33xx.h"
+>  #include "soc.h"
+>  #include "sram.h"
+> +#include "omap-secure.h"
+>  
+>  static struct powerdomain *cefuse_pwrdm, *gfx_pwrdm, *per_pwrdm, *mpu_pwrdm;
+>  static struct clockdomain *gfx_l4ls_clkdm;
+> @@ -166,6 +167,16 @@ static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long),
+>  {
+>  	int ret = 0;
+>  
+> +	/* Suspend secure side on HS devices */
+> +	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+> +		if (optee_available)
+> +			omap_smccc_smc(AM43xx_PPA_SVC_PM_SUSPEND, 0);
+> +		else
+> +			omap_secure_dispatcher(AM43xx_PPA_SVC_PM_SUSPEND,
+> +					       FLAG_START_CRITICAL,
+> +					       0, 0, 0, 0, 0);
+> +	}
+> +
+>  	amx3_pre_suspend_common();
+>  	scu_power_mode(scu_base, SCU_PM_POWEROFF);
+>  	ret = cpu_suspend(args, fn);
+> @@ -174,6 +185,12 @@ static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long),
+>  	if (!am43xx_check_off_mode_enable())
+>  		amx3_post_suspend_common();
+>  
+> +	/* Resume secure side on HS devices */
+> +	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+> +		omap_secure_dispatcher(AM43xx_PPA_SVC_PM_RESUME,
+> +				       FLAG_START_CRITICAL,
+> +				       0, 0, 0, 0, 0);
+
+Don't you need to check optee_available here?
+
+Thanks and regards,
+Lokesh
+
+> +
+>  	return ret;
+>  }
+>  
+> 
