@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: Droid 4 regression in 5.5-rc1, armsoc-soc tree
-Date: Thu, 2 Jan 2020 19:39:38 +0100
-Message-ID: <20200102183938.4kazwvk3ecgfwvy7@ucw.cz>
+Date: Thu, 2 Jan 2020 20:18:04 +0100
+Message-ID: <20200102191804.nhnpd7q2eh4ul5a5@ucw.cz>
 References: <20191228162929.GA29269@duo.ucw.cz>
  <20191228193622.GA13047@duo.ucw.cz>
  <20191230173507.GM35479@atomide.com>
@@ -19,8 +19,6 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, Marcel Partap <mpartap@gmx.net>, merlijn@wizzup.org, martin_rysavy@centrum.cz
 List-Id: linux-omap@vger.kernel.org
-
-Hi!
 
 > * Arnd Bergmann <arnd@arndb.de> [200102 14:48]:
 > > On Thu, Jan 2, 2020 at 3:06 PM Pavel Machek <pavel@ucw.cz> wrote:
@@ -52,12 +50,9 @@ Hi!
 > stuff missing from the device tree meaning an old dtb will likely
 > be incomplete for many devices.
 
-Aha, thanks for a hint!
+Aha, so it works ok when using matching kernel + dtb.
 
-Yes, due to the kexec setup, I was using old dtb (5.3-rc?) with new
-kernel...
-
-Let me try with matching kernel+dtb combination.
+Is 5.5 kernel with 5.3 dtb situation worth debugging?
 
 Best regards,
 								Pavel
