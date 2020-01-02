@@ -1,67 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Droid 4 regression in 5.5-rc1, armsoc-soc tree
-Date: Thu, 2 Jan 2020 11:25:40 -0800
-Message-ID: <20200102192540.GD16702@atomide.com>
-References: <20191228162929.GA29269@duo.ucw.cz>
- <20191228193622.GA13047@duo.ucw.cz>
- <20191230173507.GM35479@atomide.com>
- <20200102110025.GA29035@amd>
- <CAK8P3a2Ya+GZRRA_THZBVDq7SWO8UYoUPwW5fEyorCVjPnd1qA@mail.gmail.com>
- <20200102140609.7vsfwcjyvbbrmcjx@ucw.cz>
- <CAK8P3a1NU62zf8zJAMZq5KFNuvDdrf3dUcLU4HY83Q=oDC611w@mail.gmail.com>
- <20200102171140.GB16702@atomide.com>
- <20200102191804.nhnpd7q2eh4ul5a5@ucw.cz>
+Subject: Re: [PATCH v2 1/2] ARM: dts: Move interconnect target module for
+ omap3 sgx to separate dtsi files
+Date: Thu, 2 Jan 2020 11:33:59 -0800
+Message-ID: <20200102193359.GE16702@atomide.com>
+References: <20191230202037.28836-1-nerv@dawncrow.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20200102191804.nhnpd7q2eh4ul5a5@ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, Marcel Partap <mpartap@gmx.net>, merlijn@wizzup.org, martin_rysavy@centrum.cz
+In-Reply-To: <20191230202037.28836-1-nerv@dawncrow.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?utf-8?B?QW5kcsOp?= Hentschel <nerv@dawncrow.de>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [200102 19:18]:
-> > * Arnd Bergmann <arnd@arndb.de> [200102 14:48]:
-> > > On Thu, Jan 2, 2020 at 3:06 PM Pavel Machek <pavel@ucw.cz> wrote:
-> > > 
-> > > > # good: [ab818f0999dc73af3f966194d087e9f6650f939f] Merge tag
-> > > > # 'omap-for-v5.5/maintainers-signed' of
-> > > > # git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap into
-> > > > # arm/soc
-> > > > git bisect good ab818f0999dc73af3f966194d087e9f6650f939f
-> > > > # first bad commit: [38206c24ab09b4f4c2a57de5c1af0bb2e69cf5b6] Merge tag
-> > > > # 'armsoc-soc' of git://git.kernel.org/pub/scm/linux/kernel/git/soc/soc
-> > > >
-> > > > ...and am not sure how to interpret the result, or what to do next :(.
-> > > 
-> > > This means that either the bisection is unreliable (it might be 100%
-> > > reproducible or you mixed up good/bad once), or that the arm-soc
-> > > branch was indeed good by itself but had a conflict with some other
-> > > change that torvalds merged earlier.
-> > > 
-> > > I would suggest to go back to the list I had extracted in my previous
-> > > email and revert all the commits that I identify there, on top of
-> > > linux-5.5-rc4. If some commit is not easily reverted, skip that one
-> > > at first.
-> > > 
-> > > Ideally this gets you a working kernel based on -rc4, and then
-> > > you can bisect that to find which revert fixed it.
-> > 
-> > Also please check your dtb is up to date. We still have a lot of
-> > stuff missing from the device tree meaning an old dtb will likely
-> > be incomplete for many devices.
-> 
-> Aha, so it works ok when using matching kernel + dtb.
-
-OK good to hear.
-
-> Is 5.5 kernel with 5.3 dtb situation worth debugging?
-
-Well producing a warning based on something would be good. Not sure
-what the logic would be though, checking for some minimum dtb version
-required would have to be bumped until we have complete dts data.
-
-Regards,
-
-Tony
+KiBBbmRyw6kgSGVudHNjaGVsIDxuZXJ2QGRhd25jcm93LmRlPiBbMTkxMjMwIDIwOjIyXToKPiBP
+bmx5IGRtMzczMCBhbmQgYW0zNzE1IGNvbWUgd2l0aCBTR1ggc3VwcG9ydAoKQUZBSUsgZG0zNzMw
+IGlzIGp1c3QgYSBtYXJrZXRpbmcgbmFtZSBmb3IgYSBjYXRhbG9nIHZlcnNpb24gb2YKb21hcDM2
+MzAuIFNvIHVzaW5nIG9tYXAzNnh4LmR0c2kgaXMgY29ycmVjdCBhbmQgd2Ugc2hvdWxkIG5vdApj
+aGFuZ2UgdGhhdC4KCkNhbiB5b3UgcGxlYXNlIGp1c3QgYWRkIGEgbWluaW1hbCBkbTM3MjUuZHRz
+aSB0aGF0IHlvdXIgYm9hcmQgZHRzCmNhbiBpbmNsdWRlIGFuZCBhdm9pZCBkaXNhYmxpbmcgc2d4
+IGluIHRoZSBib2FyZCBzcGVjaWZpYyBmaWxlPwpUaGF0IGlzIGFzc3VtaW5nIHlvdSBoYXZlIGRt
+MzcyNSB3aXRoIGRzcCBhbmQgaXNwIGJ1dCBubyBzZ3guCgpZb3UgY2FuIHJlYWQgdGhlIGRldGVj
+dGVkIFNvQyB3aXRoOgoKIyBjYXQgL3N5cy9idXMvc29jL2RldmljZXMvc29jMC9tYWNoaW5lCgpU
+aGlzIGF2b2lkcyBzb21lYm9keSAocHJvYmFibHkgbWUgYWdhaW4pIHBhdGNoaW5nIGFsbCBvdmVy
+IHRoZQpib2FyZCBzcGVjaWZpYyBmaWxlcyB0cnlpbmcgdG8gZ3Vlc3Mgd2hpY2ggU29DIHRoZSBk
+ZXZpY2UgbWlnaHQKaGF2ZS4KClJlZ2FyZHMsCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
