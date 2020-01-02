@@ -1,40 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/2] ARM: dts: Move interconnect target module for
- omap3 sgx to separate dtsi files
-Date: Thu, 2 Jan 2020 11:33:59 -0800
-Message-ID: <20200102193359.GE16702@atomide.com>
-References: <20191230202037.28836-1-nerv@dawncrow.de>
+Subject: Re: [PATCH] ARM: dts: Add omap3-echo
+Date: Thu, 2 Jan 2020 11:51:08 -0800
+Message-ID: <20200102195108.GF16702@atomide.com>
+References: <20191224161005.28083-1-nerv@dawncrow.de>
+ <20191224184503.GK35479@atomide.com>
+ <60412339-53BF-4DC1-8AF6-4FB0E75D429C@goldelico.com>
+ <53e6cbbd-1094-cba2-4942-981502a738d4@dawncrow.de>
+ <20191230172948.GL35479@atomide.com>
+ <55E6481C-2137-4086-ACDF-5F7D86E41A21@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191230202037.28836-1-nerv@dawncrow.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?utf-8?B?QW5kcsOp?= Hentschel <nerv@dawncrow.de>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <55E6481C-2137-4086-ACDF-5F7D86E41A21@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?utf-8?B?QW5kcsOp?= Hentschel <nerv@dawncrow.de>, Adam Ford <aford173@gmail.com>, linux@arm.linux.org.uk, robh+dt@kernel.org, mark.rutland@arm.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBBbmRyw6kgSGVudHNjaGVsIDxuZXJ2QGRhd25jcm93LmRlPiBbMTkxMjMwIDIwOjIyXToKPiBP
-bmx5IGRtMzczMCBhbmQgYW0zNzE1IGNvbWUgd2l0aCBTR1ggc3VwcG9ydAoKQUZBSUsgZG0zNzMw
-IGlzIGp1c3QgYSBtYXJrZXRpbmcgbmFtZSBmb3IgYSBjYXRhbG9nIHZlcnNpb24gb2YKb21hcDM2
-MzAuIFNvIHVzaW5nIG9tYXAzNnh4LmR0c2kgaXMgY29ycmVjdCBhbmQgd2Ugc2hvdWxkIG5vdApj
-aGFuZ2UgdGhhdC4KCkNhbiB5b3UgcGxlYXNlIGp1c3QgYWRkIGEgbWluaW1hbCBkbTM3MjUuZHRz
-aSB0aGF0IHlvdXIgYm9hcmQgZHRzCmNhbiBpbmNsdWRlIGFuZCBhdm9pZCBkaXNhYmxpbmcgc2d4
-IGluIHRoZSBib2FyZCBzcGVjaWZpYyBmaWxlPwpUaGF0IGlzIGFzc3VtaW5nIHlvdSBoYXZlIGRt
-MzcyNSB3aXRoIGRzcCBhbmQgaXNwIGJ1dCBubyBzZ3guCgpZb3UgY2FuIHJlYWQgdGhlIGRldGVj
-dGVkIFNvQyB3aXRoOgoKIyBjYXQgL3N5cy9idXMvc29jL2RldmljZXMvc29jMC9tYWNoaW5lCgpU
-aGlzIGF2b2lkcyBzb21lYm9keSAocHJvYmFibHkgbWUgYWdhaW4pIHBhdGNoaW5nIGFsbCBvdmVy
-IHRoZQpib2FyZCBzcGVjaWZpYyBmaWxlcyB0cnlpbmcgdG8gZ3Vlc3Mgd2hpY2ggU29DIHRoZSBk
-ZXZpY2UgbWlnaHQKaGF2ZS4KClJlZ2FyZHMsCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
-aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
-ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+* H. Nikolaus Schaller <hns@goldelico.com> [191231 08:16]:
+> > Am 30.12.2019 um 18:29 schrieb Tony Lindgren <tony@atomide.com>:
+> > And let's also add minimal dm3725.dtsi, am3715.dtsi and am3703.dtsi
+> > to make things simple.
+> 
+> Well, is that "simple"?
+
+Well simple from "adding support for a new device in most case" point
+of view yes..
+
+> We also have to add omap3503, omap3515, omap3520, omap3530.dtsi.
+> And probably am3351,2,4,6,7,8,9 variants with different capabilities
+> (PRU, SGX, CAN, ZCZ ports to name some).
+> 
+> And to be correct, there should be a different "compatible".
+
+..and yes the number of permutations quickly gets out of control :)
+
+The SoC specific compatibles should be there though. So everybody,
+please keep adding them as we encounter the missing ones.
+
+Note that we don't seem to have much any feature detection for the
+newer TI parts. At least am4 and dra7 already rely on
+of_machine_is_compatible() checks for omap_hwmod_43xx_data.c and
+omap_hwmod_7xx_data.c.
+
+> Rob asked me when reviewing the pvrsgx bindings if the img,5xx variants
+> can be autodetected to reduce bindings complexity.
+
+Yes also dynamic detection is needed, and we do have that working
+for many SoCs. The use in ti-sysc driver is still missing though,
+and newer SoCs never had feature detection added.
+
+> > The device tree is supposed to describe the
+> > hardware, and in most cases the SoC version is fixed and need no
+> > dynamic detection.
+> 
+> There may be exactly the same board populated with either one since
+> they are drop-in pin compatible. So this may proliferate to the
+> board.dts files and u-boot can have to load different .dtb.
+
+Yeah. I'm afraid we're already depending for bootloader picking
+the right dtb for many cases, such as capes etc.
+
+Regards,
+
+Tony
