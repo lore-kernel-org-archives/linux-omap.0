@@ -1,10 +1,11 @@
 From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH v4 1/4] ARM: OMAP2+: Add omap_secure_init callback hook for secure initialization
-Date: Thu, 2 Jan 2020 16:19:40 -0500
-Message-ID: <20200102211943.20480-2-afd@ti.com>
+Subject: [PATCH v4 3/4] ARM: OMAP2+: Use ARM SMC Calling Convention when OP-TEE is available
+Date: Thu, 2 Jan 2020 16:19:42 -0500
+Message-ID: <20200102211943.20480-4-afd@ti.com>
 References: <20200102211943.20480-1-afd@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20200102211943.20480-1-afd@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -12,132 +13,133 @@ To: Tony Lindgren <tony@atomide.com>, Lokesh Vutla <lokeshvutla@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This can be used for detecting secure features or making early device
-init sequence changes based on device security type.
+On High-Security(HS) OMAP2+ class devices a couple actions must be
+performed from the ARM TrustZone during boot. These traditionally can be
+performed by calling into the secure ROM code resident in this secure
+world using legacy SMC calls. Optionally OP-TEE can replace this secure
+world functionality by replacing the ROM after boot. ARM recommends a
+standard calling convention is used for this interaction (SMC Calling
+Convention). We check for the presence of OP-TEE and use this type of
+call to perform the needed actions, falling back to the legacy OMAP ROM
+call if OP-TEE is not available.
 
 Signed-off-by: Andrew F. Davis <afd@ti.com>
 ---
- arch/arm/mach-omap2/io.c          | 11 +++++++++++
- arch/arm/mach-omap2/omap-secure.c |  4 ++++
+ arch/arm/mach-omap2/common.h      |  2 +-
+ arch/arm/mach-omap2/omap-secure.c | 27 +++++++++++++++++++++++++++
  arch/arm/mach-omap2/omap-secure.h |  2 ++
- 3 files changed, 17 insertions(+)
+ arch/arm/mach-omap2/omap-smc.S    |  6 +++---
+ 4 files changed, 33 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 349e48042982..f28047233665 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -51,6 +51,7 @@
- #include "prm33xx.h"
- #include "prm44xx.h"
- #include "opp2xxx.h"
-+#include "omap-secure.h"
- 
- /*
-  * omap_clk_soc_init: points to a function that does the SoC-specific
-@@ -430,6 +431,7 @@ void __init omap2420_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = omap2420_dt_clk_init;
- 	rate_table = omap2420_rate_table;
-+	omap_secure_init();
- }
- 
- void __init omap2420_init_late(void)
-@@ -454,6 +456,7 @@ void __init omap2430_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = omap2430_dt_clk_init;
- 	rate_table = omap2430_rate_table;
-+	omap_secure_init();
- }
- 
- void __init omap2430_init_late(void)
-@@ -481,6 +484,7 @@ void __init omap3_init_early(void)
- 	omap3xxx_clockdomains_init();
- 	omap3xxx_hwmod_init();
- 	omap_hwmod_init_postsetup();
-+	omap_secure_init();
- }
- 
- void __init omap3430_init_early(void)
-@@ -533,6 +537,7 @@ void __init ti814x_init_early(void)
- 	dm814x_hwmod_init();
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = dm814x_dt_clk_init;
-+	omap_secure_init();
- }
- 
- void __init ti816x_init_early(void)
-@@ -549,6 +554,7 @@ void __init ti816x_init_early(void)
- 	dm816x_hwmod_init();
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = dm816x_dt_clk_init;
-+	omap_secure_init();
- }
- #endif
- 
-@@ -566,6 +572,7 @@ void __init am33xx_init_early(void)
- 	am33xx_hwmod_init();
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = am33xx_dt_clk_init;
-+	omap_secure_init();
- }
- 
- void __init am33xx_init_late(void)
-@@ -589,6 +596,7 @@ void __init am43xx_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap_l2_cache_init();
- 	omap_clk_soc_init = am43xx_dt_clk_init;
-+	omap_secure_init();
- }
- 
- void __init am43xx_init_late(void)
-@@ -617,6 +625,7 @@ void __init omap4430_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap_l2_cache_init();
- 	omap_clk_soc_init = omap4xxx_dt_clk_init;
-+	omap_secure_init();
- }
- 
- void __init omap4430_init_late(void)
-@@ -643,6 +652,7 @@ void __init omap5_init_early(void)
- 	omap54xx_hwmod_init();
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = omap5xxx_dt_clk_init;
-+	omap_secure_init();
- }
- 
- void __init omap5_init_late(void)
-@@ -666,6 +676,7 @@ void __init dra7xx_init_early(void)
- 	dra7xx_hwmod_init();
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = dra7xx_dt_clk_init;
-+	omap_secure_init();
- }
- 
- void __init dra7xx_init_late(void)
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 223b37c48389..3b1fd8e7d705 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -255,7 +255,7 @@ extern void gic_dist_disable(void);
+ extern void gic_dist_enable(void);
+ extern bool gic_dist_disabled(void);
+ extern void gic_timer_retrigger(void);
+-extern void omap_smc1(u32 fn, u32 arg);
++extern void _omap_smc1(u32 fn, u32 arg);
+ extern void omap4_sar_ram_init(void);
+ extern void __iomem *omap4_get_sar_ram_base(void);
+ extern void omap4_mpuss_early_init(void);
 diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
-index 24298e47b9f1..e936732cdc4f 100644
+index 568646660081..d00e3c72e37d 100644
 --- a/arch/arm/mach-omap2/omap-secure.c
 +++ b/arch/arm/mach-omap2/omap-secure.c
-@@ -163,3 +163,7 @@ u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag)
- 				      NO_FLAG,
- 				      3, ptr, count, flag, 0);
- }
+@@ -8,6 +8,7 @@
+  * Copyright (C) 2013 Pali Rohár <pali.rohar@gmail.com>
+  */
+ 
++#include <linux/arm-smccc.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
+@@ -17,12 +18,17 @@
+ #include <asm/cacheflush.h>
+ #include <asm/memblock.h>
+ 
++#include "common.h"
+ #include "omap-secure.h"
+ 
+ static phys_addr_t omap_secure_memblock_base;
+ 
+ bool optee_available;
+ 
++#define OMAP_SIP_SMC_STD_CALL_VAL(func_num) \
++	ARM_SMCCC_CALL_VAL(ARM_SMCCC_STD_CALL, ARM_SMCCC_SMC_32, \
++	ARM_SMCCC_OWNER_SIP, (func_num))
 +
-+void __init omap_secure_init(void)
+ static void __init omap_optee_init_check(void)
+ {
+ 	struct device_node *np;
+@@ -71,6 +77,27 @@ u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs, u32 arg1, u32 arg2,
+ 	return ret;
+ }
+ 
++void omap_smccc_smc(u32 fn, u32 arg)
 +{
++	struct arm_smccc_res res;
++
++	arm_smccc_smc(OMAP_SIP_SMC_STD_CALL_VAL(fn), arg,
++		      0, 0, 0, 0, 0, 0, &res);
++	WARN(res.a0, "Secure function call 0x%08x failed\n", fn);
 +}
++
++void omap_smc1(u32 fn, u32 arg)
++{
++	/*
++	 * If this platform has OP-TEE installed we use ARM SMC calls
++	 * otherwise fall back to the OMAP ROM style calls.
++	 */
++	if (optee_available)
++		omap_smccc_smc(fn, arg);
++	else
++		_omap_smc1(fn, arg);
++}
++
+ /* Allocate the memory to save secure ram */
+ int __init omap_secure_ram_reserve_memblock(void)
+ {
 diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-index 20046e8f8ecb..9aeeb236a224 100644
+index 78a1c4f04bbe..736e594365f4 100644
 --- a/arch/arm/mach-omap2/omap-secure.h
 +++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -72,6 +72,8 @@ extern u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
- extern u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits);
- extern u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag);
+@@ -62,6 +62,8 @@
  
-+void omap_secure_init(void);
-+
- #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
- void set_cntfreq(void);
- #else
+ extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
+ 				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
++extern void omap_smccc_smc(u32 fn, u32 arg);
++extern void omap_smc1(u32 fn, u32 arg);
+ extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
+ extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32 pargs);
+ extern phys_addr_t omap_secure_ram_mempool_base(void);
+diff --git a/arch/arm/mach-omap2/omap-smc.S b/arch/arm/mach-omap2/omap-smc.S
+index fd2bcd91f4a1..d4832845a4e8 100644
+--- a/arch/arm/mach-omap2/omap-smc.S
++++ b/arch/arm/mach-omap2/omap-smc.S
+@@ -18,18 +18,18 @@
+  * the monitor API number. It uses few CPU registers
+  * internally and hence they need be backed up including
+  * link register "lr".
+- * Function signature : void omap_smc1(u32 fn, u32 arg)
++ * Function signature : void _omap_smc1(u32 fn, u32 arg)
+  */
+ 	.arch armv7-a
+ 	.arch_extension sec
+-ENTRY(omap_smc1)
++ENTRY(_omap_smc1)
+ 	stmfd   sp!, {r2-r12, lr}
+ 	mov	r12, r0
+ 	mov 	r0, r1
+ 	dsb
+ 	smc	#0
+ 	ldmfd   sp!, {r2-r12, pc}
+-ENDPROC(omap_smc1)
++ENDPROC(_omap_smc1)
+ 
+ /**
+  * u32 omap_smc2(u32 id, u32 falg, u32 pargs)
 -- 
 2.17.1
