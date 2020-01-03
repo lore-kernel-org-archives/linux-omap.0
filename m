@@ -1,114 +1,87 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] omapfb: reduce stack usage
-Date: Fri, 3 Jan 2020 13:50:40 +0100
-Message-ID: <f1c050c1-7ea8-e735-a552-e988ec3930ce@samsung.com>
-References: <CGME20191018163010epcas4p1a11973fbca0b3248dae6b5e87cdbf1f3@epcas4p1.samsung.com>
-        <20191018163004.23498-1-sudipm.mukherjee@gmail.com>
+From: Stefan Wahren <wahrenst@gmx.net>
+Subject: Re: Droid 4 regression in 5.5-rc1, armsoc-soc tree
+Date: Fri, 3 Jan 2020 16:11:27 +0100
+Message-ID: <4839ea34-ba1a-c127-46f9-c574d19f0c4f@gmx.net>
+References: <20191228162929.GA29269@duo.ucw.cz>
+ <20191228193622.GA13047@duo.ucw.cz> <20191230173507.GM35479@atomide.com>
+ <20200102110025.GA29035@amd>
+ <CAK8P3a2Ya+GZRRA_THZBVDq7SWO8UYoUPwW5fEyorCVjPnd1qA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191018163004.23498-1-sudipm.mukherjee@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAK8P3a2Ya+GZRRA_THZBVDq7SWO8UYoUPwW5fEyorCVjPnd1qA@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Ladislav Michl <ladis@linux-mips.org>, Joe Perches <joe@perches.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Marcel Partap <mpartap@gmx.net>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, merlijn@wizzup.org, kernel list <linux-kernel@vger.kernel.org>, martin_rysavy@centrum.cz, nekit1000@gmail.com, Sebastian Reichel <sre@kernel.org>, Olof Johansson <olof@lixom.net>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Pavel,
 
-On 10/18/19 6:30 PM, Sudip Mukherjee wrote:
-> The build of xtensa allmodconfig is giving a warning of:
-> In function 'dsi_dump_dsidev_irqs':
-> warning: the frame size of 1120 bytes is larger than 1024 bytes
-> 
-> Allocate the memory for 'struct dsi_irq_stats' dynamically instead
-> of assigning it in stack.
-> 
-> Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-> ---
->  drivers/video/fbdev/omap2/omapfb/dss/dsi.c | 24 ++++++++++++++----------
->  1 file changed, 14 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-> index d620376216e1..43402467bf40 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-> @@ -1536,22 +1536,25 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
->  {
->  	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
->  	unsigned long flags;
-> -	struct dsi_irq_stats stats;
-> +	struct dsi_irq_stats *stats;
->  
-> +	stats = kmalloc(sizeof(*stats), GFP_KERNEL);
-> +	if (!stats)
-> +		return;
->  	spin_lock_irqsave(&dsi->irq_stats_lock, flags);
->  
-> -	stats = dsi->irq_stats;
-> +	memcpy(stats, &dsi->irq_stats, sizeof(*stats));
+Am 02.01.20 um 12:49 schrieb Arnd Bergmann:
+> On Thu, Jan 2, 2020 at 12:00 PM Pavel Machek <pavel@ucw.cz> wrote:
+>> On Mon 2019-12-30 09:35:07, Tony Lindgren wrote:
+>>> * Pavel Machek <pavel@ucw.cz> [191228 19:37]:
+>>>> Hi!
+>>>>
+>>>>> 5.4-based kernel works ok on my droid 4.
+>>>>>
+>>>>> 5.5-rc3 based kernel has problems; it reboots when I try to kexec it.
+>>>>>
+>>>>> Vanilla 5.5-rc3 reboots, too.
+>>>>>
+>>>>> If you have any ideas, let me know.
+>>>> I managed to get partial serial dump. This should be 5.5-rc3: And then
+>>>> a bit better serial dump (below). But it is silent for few seconds,
+>>>> and then it restarts...
+>>> If spi or regulators have problems, nothing will really work..
+>> arm-soc merge seems to be responsible:
+>>
+>> bad 38206c24ab09b4f4c2a57de5c1af0bb2e69cf5b6 Merge tag 'armsoc-soc' of
+>> good d9e48dc2a71a836f17d1febbedb31470f957edb4 Merge tag
+>>
+>>                                                                         Pavel
+>>
+>> # bad: [738d2902773e30939a982c8df7a7f94293659810] Merge git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net
+>> # good: [219d54332a09e8d8741c1e1982f5eae56099de85] Linux 5.4
+>> git bisect start '738d2902773e' '219d54332a09'
+>> # bad: [46cf053efec6a3a5f343fead837777efe8252a46] Linux 5.5-rc3
+>> git bisect bad 46cf053efec6a3a5f343fead837777efe8252a46
+>> # bad: [e42617b825f8073569da76dc4510bfa019b1c35a] Linux 5.5-rc1
+>> git bisect bad e42617b825f8073569da76dc4510bfa019b1c35a
+>> # good: [9a3d7fd275be4559277667228902824165153c80] Merge tag 'driver-core-5.5-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
+>> git bisect good 9a3d7fd275be4559277667228902824165153c80
+>> # good: [0b4295b5e2b9b42f3f3096496fe4775b656c9ba6] io_uring: fix a typo in a comment
+>> git bisect good 0b4295b5e2b9b42f3f3096496fe4775b656c9ba6
+>> # good: [056df578c2dcac1e624254567f5df5ddaa223234] Merge tag 'arc-5.5-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc
+>> git bisect good 056df578c2dcac1e624254567f5df5ddaa223234
+>> # bad: [25cfb0c7de3f14e283a43dcd6de903657f9f98c7] Merge branch 'for-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gerg/m68knommu
+>> git bisect bad 25cfb0c7de3f14e283a43dcd6de903657f9f98c7
+>> # bad: [38206c24ab09b4f4c2a57de5c1af0bb2e69cf5b6] Merge tag 'armsoc-soc' of git://git.kernel.org/pub/scm/linux/kernel/git/soc/soc
+>> git bisect bad 38206c24ab09b4f4c2a57de5c1af0bb2e69cf5b6
+>> # good: [d9e48dc2a71a836f17d1febbedb31470f957edb4] Merge tag 'pwm/for-5.5-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/thierry.reding/linux-pwm
+>> git bisect good d9e48dc2a71a836f17d1febbedb31470f957edb4
+> In that branch, I see the following non-merge commits:
+>
+> ...
+> 781fa0a95424 ARM: bcm: Add support for BCM2711 SoC
+>
+unfortunately this patch breaks multiplatform support and might be
+affect you.
 
-"stats" copy is only needed for generating debugfs information.
+Please make sure this one is applied, while bisecting:
 
-We can probably reduce the stack usage and also simplify the driver
-by just accessing dsi->irq_stats directly before cleaning it
-(we would also need to extend coverage of spinlock but the code is
-debug only so this should not be a problem).
+59034b9d6af8 ("ARM: bcm: Add missing sentinel to bcm2711_compat[]")
 
-Care to try this approach?
+Sorry about this
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
-
->  	memset(&dsi->irq_stats, 0, sizeof(dsi->irq_stats));
->  	dsi->irq_stats.last_reset = jiffies;
->  
->  	spin_unlock_irqrestore(&dsi->irq_stats_lock, flags);
->  
->  	seq_printf(s, "period %u ms\n",
-> -			jiffies_to_msecs(jiffies - stats.last_reset));
-> +			jiffies_to_msecs(jiffies - stats->last_reset));
->  
-> -	seq_printf(s, "irqs %d\n", stats.irq_count);
-> +	seq_printf(s, "irqs %d\n", stats->irq_count);
->  #define PIS(x) \
-> -	seq_printf(s, "%-20s %10d\n", #x, stats.dsi_irqs[ffs(DSI_IRQ_##x)-1]);
-> +	seq_printf(s, "%-20s %10d\n", #x, stats->dsi_irqs[ffs(DSI_IRQ_##x)-1]);
->  
->  	seq_printf(s, "-- DSI%d interrupts --\n", dsi->module_id + 1);
->  	PIS(VC0);
-> @@ -1575,10 +1578,10 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
->  
->  #define PIS(x) \
->  	seq_printf(s, "%-20s %10d %10d %10d %10d\n", #x, \
-> -			stats.vc_irqs[0][ffs(DSI_VC_IRQ_##x)-1], \
-> -			stats.vc_irqs[1][ffs(DSI_VC_IRQ_##x)-1], \
-> -			stats.vc_irqs[2][ffs(DSI_VC_IRQ_##x)-1], \
-> -			stats.vc_irqs[3][ffs(DSI_VC_IRQ_##x)-1]);
-> +			stats->vc_irqs[0][ffs(DSI_VC_IRQ_##x)-1], \
-> +			stats->vc_irqs[1][ffs(DSI_VC_IRQ_##x)-1], \
-> +			stats->vc_irqs[2][ffs(DSI_VC_IRQ_##x)-1], \
-> +			stats->vc_irqs[3][ffs(DSI_VC_IRQ_##x)-1]);
->  
->  	seq_printf(s, "-- VC interrupts --\n");
->  	PIS(CS);
-> @@ -1594,7 +1597,7 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
->  
->  #define PIS(x) \
->  	seq_printf(s, "%-20s %10d\n", #x, \
-> -			stats.cio_irqs[ffs(DSI_CIO_IRQ_##x)-1]);
-> +			stats->cio_irqs[ffs(DSI_CIO_IRQ_##x)-1]);
->  
->  	seq_printf(s, "-- CIO interrupts --\n");
->  	PIS(ERRSYNCESC1);
-> @@ -1618,6 +1621,7 @@ static void dsi_dump_dsidev_irqs(struct platform_device *dsidev,
->  	PIS(ULPSACTIVENOT_ALL0);
->  	PIS(ULPSACTIVENOT_ALL1);
->  #undef PIS
-> +	kfree(stats);
->  }
->  
->  static void dsi1_dump_irqs(struct seq_file *s)
+Stefan
