@@ -1,62 +1,41 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v4 0/4] Use ARM SMC Calling Convention when OP-TEE is
- available
-Date: Fri, 3 Jan 2020 10:16:39 +0530
-Message-ID: <4d45ed64-c3f5-4074-d95a-dd52f355a22b@ti.com>
-References: <20200102211943.20480-1-afd@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [BISECTED, REGRESSION] OMAP3 onenand/DMA broken
+Date: Fri, 3 Jan 2020 10:17:26 +0200
+Message-ID: <20200103081726.GD15023@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20200102211943.20480-1-afd@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+When booting v5.4 (or v5.5-rc4) on N900, the console gets flooded with:
 
-On 03/01/20 2:49 AM, Andrew F. Davis wrote:
-> Hello all,
-> 
-> This is the reworked patch turned into a series to allow upstream kernels
-> to make use of OP-TEE on the OMAP2+ platform.
+[    8.335754] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.365753] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.395751] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.425750] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.455749] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.485748] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.515777] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.545776] omap2-onenand 1000000.onenand: timeout waiting for DMA
+[    8.575775] omap2-onenand 1000000.onenand: timeout waiting for DMA
 
-FWIW:
+making the system unusable.
 
-Reviewed-by: Lokesh Vutla <lokeshvutla@ti.com>
+Bisected to:
 
-Thanks and regards,
-Lokesh
+4689d35c765c696bdf0535486a990038b242a26b is the first bad commit
+commit 4689d35c765c696bdf0535486a990038b242a26b
+Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date:   Tue Jul 16 11:24:59 2019 +0300
 
-> 
-> Thanks,
-> Andrew
-> 
-> Changes from v1:
->  - Split into logical patches
->  - Check for OP-TEE in DT only once
->  - Check the OP-TEE node is "okay"
-> 
-> Changes from v2:
->  - Add HS patch using 'optee_available'
-> 
-> Changes from v3:
->  - Add comments as suggested by Tony and Lokesh
-> 
-> Andrew F. Davis (4):
->   ARM: OMAP2+: Add omap_secure_init callback hook for secure
->     initialization
->   ARM: OMAP2+: Introduce check for OP-TEE in omap_secure_init()
->   ARM: OMAP2+: Use ARM SMC Calling Convention when OP-TEE is available
->   ARM: OMAP2+: sleep43xx: Call secure suspend/resume handlers
-> 
->  arch/arm/mach-omap2/common.h      |  2 +-
->  arch/arm/mach-omap2/io.c          | 11 +++++++
->  arch/arm/mach-omap2/omap-secure.c | 50 +++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/omap-secure.h | 10 +++++++
->  arch/arm/mach-omap2/omap-smc.S    |  6 ++--
->  arch/arm/mach-omap2/pm33xx-core.c | 24 +++++++++++++++
->  6 files changed, 99 insertions(+), 4 deletions(-)
-> 
+    dmaengine: ti: omap-dma: Improved memcpy polling support
+
+The commit does not revert cleanly anymore. Any ideas how to fix this?
+
+A.
