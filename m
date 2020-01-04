@@ -1,87 +1,79 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] mtd: onenand: omap2: Pass correct flags for
- prep_dma_memcpy
-Date: Sat, 4 Jan 2020 09:46:23 +0100
-Message-ID: <9EB362B8-EA81-445C-9FD7-29ABB890100C@goldelico.com>
-References: <20200104073453.16077-1-peter.ujfalusi@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH] drm/omap: gem: Fix tearing with BO_TILED
+Date: Sat, 4 Jan 2020 05:52:11 +0100
+Message-ID: <20200104045211.GA10025@chinchilla>
+References: <20191221005711.47314-1-tony@atomide.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20200104073453.16077-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Vignesh Raghavendra <vigneshr@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kyungmin.park@samsung.com, linux-mtd@lists.infradead.org, Miquel Raynal <miquel.raynal@bootlin.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20191221005711.47314-1-tony@atomide.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "H . Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Dec 20, 2019 at 04:57:11PM -0800, Tony Lindgren wrote:
+> On my droid4 I noticed bad constant tearing on the LCD with stellarium in
+> landscape mode with xorg-video-omap rotated with xrandr --rotate right.
+> Every second or so update gets squeezed down in size to only the top half
+> of the LCD panel.
 
-> Am 04.01.2020 um 08:34 schrieb Peter Ujfalusi <peter.ujfalusi@ti.com>:
-> 
-> The commit converting the driver to DMAengine was missing the flags for
-> the memcpy prepare call.
-> It went unnoticed since the omap-dma drive was ignoring them.
+Odd, there's not really a good reason for rotation to have any effect on
+whether tearing happens or not.
 
-s/drive/driver/
-
-> 
-> Fixes: 3ed6a4d1de2c5 (" mtd: onenand: omap2: Convert to use dmaengine for memcp")
-> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-> Hi,
-> 
-> Aaro reported [1] a failure on omap2-onenand pointing to
-> 4689d35c765c696bdf0535486a990038b242a26b. It looks like the root cause is the
-> conversion of omap2-onenand to DMAengine which missed the flags.
-> 
-> Basically the client is waiting for a callback without asking for it. This
-> certainly causes timeout.
-> 
-> I have not tested the patch, but it should fix the issue.
-
-makes the gta04a5one.dts work again.
-
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
-
-BR and thanks!
-Nikolaus
-
-> 
-> [1] https://lore.kernel.org/lkml/20200103081726.GD15023@darkstar.musicnaut.iki.fi/
-> 
-> drivers/mtd/nand/onenand/omap2.c | 3 ++-
-> 1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mtd/nand/onenand/omap2.c b/drivers/mtd/nand/onenand/omap2.c
-> index edf94ee54ec7..71a632b815aa 100644
-> --- a/drivers/mtd/nand/onenand/omap2.c
-> +++ b/drivers/mtd/nand/onenand/omap2.c
-> @@ -328,7 +328,8 @@ static inline int omap2_onenand_dma_transfer(struct omap2_onenand *c,
-> 	struct dma_async_tx_descriptor *tx;
-> 	dma_cookie_t cookie;
-> 
-> -	tx = dmaengine_prep_dma_memcpy(c->dma_chan, dst, src, count, 0);
-> +	tx = dmaengine_prep_dma_memcpy(c->dma_chan, dst, src, count,
-> +				       DMA_CTRL_ACK | DMA_PREP_INTERRUPT);
-> 	if (!tx) {
-> 		dev_err(&c->pdev->dev, "Failed to prepare DMA memcpy\n");
-> 		return -EIO;
-> -- 
-> Peter
-> 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
+BTW, with "top half", I assume you mean the top of the screen (i.e.
+right side of the display), not the top of the display (i.e. left side
+of the screen) ?
 
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+> This issue does not happen with xrandr --rotate normal, or when HDMI
+> display is also connected.
+
+Ehhhh, mirroring onto HDMI fixes the problem?  Strange
+
+
+> Looking around what might affect BO_TILED, I noticed Matthijs had this
+> change in his earlier pyra tiler patches. The earlier patch "XXX omapdrm:
+> force tiled buffers to be pinned and page-aligned" has no commit log
+> though, so I'm not sure what other issues this might fix.
+
+This is just part of a hacky patch series to improve performance for
+userspace access to tiled buffers.  Page alignment has no effect by
+itself, but it's necessary to allow the tiled memory allocated by
+tiled_reserve_2d() to be mapped directly into userspace instead of using
+the really slow "usergart" mechanism.
+
+You can find the full patch series in github.com/mvduin/linux branch
+4.15/patch/tiler-fast (based on mainline 4.15-rc6):
+
+ae664249050b ARM: introduce pgprot_device()
+fc1e8ffd1334 drm: omapdrm: improve choice of memory type for tiled memory
+   these improve performance on omap5/dra7 by mapping tiled buffers as
+   "device" memory by default instead of the pointlessly slow "strongly
+   ordered" which is currently used as a workaround for the
+   incompatibility between TILER and the bizarre way the ARM Cortex-A15
+   implements loads from normal non-cacheable memory.
+
+3d4c98cc47dd XXX omapdrm: factor out _omap_gem_(un)pin
+70593563f531 XXX omapdrm: force tiled buffers to be pinned and page-aligned
+e061e454afd5 XXX omapdrm: fast userspace mapping of tiled buffers
+   these greatly improve performance of userspace access to tiled
+   buffers (on all devices that use tiler) at the expense of using more
+   tiler virtual memory.  note that tiler virtual memory is a less
+   scarce resource on omap5/dra7 where 2d and 1d mappings have separate
+   page tables than on omap4 where they share a page table.
+
+None of this should have any impact on tearing.
+
+
+Matthijs
