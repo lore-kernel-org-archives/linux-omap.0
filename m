@@ -1,7 +1,7 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v4 01/11] dt-bindings: sdhci-omap: Add properties for using external dma
-Date: Mon, 6 Jan 2020 16:31:23 +0530
-Message-ID: <20200106110133.13791-2-faiz_abbas@ti.com>
+Subject: [PATCH v4 02/11] mmc: sdhci: Factor out some operations set to their own functions
+Date: Mon, 6 Jan 2020 16:31:24 +0530
+Message-ID: <20200106110133.13791-3-faiz_abbas@ti.com>
 References: <20200106110133.13791-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,43 +13,164 @@ To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.ke
 Cc: kishon@ti.com, adrian.hunter@intel.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, tony@atomide.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Chunyan Zhang <zhang.chunyan@linaro.org>
+In preparation for adding external dma support, factor out data initialization,
+block info and mrq_done to their own functions.
 
-sdhci-omap can support both external dma controller via dmaengine
-framework as well as ADMA which standard SD host controller
-provides. Add binding documentation for these external dma properties.
-
-Signed-off-by: Chunyan Zhang <zhang.chunyan@linaro.org>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/devicetree/bindings/mmc/sdhci-omap.txt | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/mmc/host/sdhci.c | 96 +++++++++++++++++++++++-----------------
+ 1 file changed, 55 insertions(+), 41 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-index 72c4dec7e1db..97efb01617dd 100644
---- a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-+++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-@@ -15,6 +15,13 @@ Required properties:
- 		 "hs200_1_8v",
- - pinctrl-<n> : Pinctrl states as described in bindings/pinctrl/pinctrl-bindings.txt
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index 1b1c26da3fe0..f6999054abcf 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -1025,18 +1025,9 @@ static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+ 	}
+ }
  
-+Optional properties:
-+- dmas:		List of DMA specifiers with the controller specific format as described
-+		in the generic DMA client binding. A tx and rx specifier is required.
-+- dma-names:	List of DMA request names. These strings correspond 1:1 with the
-+		DMA specifiers listed in dmas. The string naming is to be "tx"
-+		and "rx" for TX and RX DMA requests, respectively.
+-static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_command *cmd)
++static void sdhci_initialize_data(struct sdhci_host *host,
++				  struct mmc_data *data)
+ {
+-	struct mmc_data *data = cmd->data;
+-
+-	host->data_timeout = 0;
+-
+-	if (sdhci_data_line_cmd(cmd))
+-		sdhci_set_timeout(host, cmd);
+-
+-	if (!data)
+-		return;
+-
+ 	WARN_ON(host->data);
+ 
+ 	/* Sanity checks */
+@@ -1048,6 +1039,36 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_command *cmd)
+ 	host->data_early = 0;
+ 	host->data->bytes_xfered = 0;
+ 
++}
 +
- Example:
- 	mmc1: mmc@4809c000 {
- 		compatible = "ti,dra7-sdhci";
-@@ -22,4 +29,6 @@ Example:
- 		ti,hwmods = "mmc1";
- 		bus-width = <4>;
- 		vmmc-supply = <&vmmc>; /* phandle to regulator node */
-+		dmas = <&sdma 61 &sdma 62>;
-+		dma-names = "tx", "rx";
- 	};
++static inline void sdhci_set_block_info(struct sdhci_host *host,
++					struct mmc_data *data)
++{
++
++	/* Set the DMA boundary value and block size */
++	sdhci_writew(host,
++		     SDHCI_MAKE_BLKSZ(host->sdma_boundary, host->data->blksz),
++		     SDHCI_BLOCK_SIZE);
++	/*
++	 * For Version 4.10 onwards, if v4 mode is enabled, 32-bit Block Count
++	 * can be supported, in that case 16-bit block count register must be 0.
++	 */
++	if (host->version >= SDHCI_SPEC_410 && host->v4_mode &&
++	    (host->quirks2 & SDHCI_QUIRK2_USE_32BIT_BLK_CNT)) {
++		if (sdhci_readw(host, SDHCI_BLOCK_COUNT))
++			sdhci_writew(host, 0, SDHCI_BLOCK_COUNT);
++		sdhci_writew(host, host->data->blocks, SDHCI_32BIT_BLK_CNT);
++	} else {
++		sdhci_writew(host, host->data->blocks, SDHCI_BLOCK_COUNT);
++	}
++}
++
++static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_command *cmd)
++{
++	struct mmc_data *data = cmd->data;
++
++	sdhci_initialize_data(host, data);
++
+ 	if (host->flags & (SDHCI_USE_SDMA | SDHCI_USE_ADMA)) {
+ 		struct scatterlist *sg;
+ 		unsigned int length_mask, offset_mask;
+@@ -1133,22 +1154,7 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_command *cmd)
+ 
+ 	sdhci_set_transfer_irqs(host);
+ 
+-	/* Set the DMA boundary value and block size */
+-	sdhci_writew(host, SDHCI_MAKE_BLKSZ(host->sdma_boundary, data->blksz),
+-		     SDHCI_BLOCK_SIZE);
+-
+-	/*
+-	 * For Version 4.10 onwards, if v4 mode is enabled, 32-bit Block Count
+-	 * can be supported, in that case 16-bit block count register must be 0.
+-	 */
+-	if (host->version >= SDHCI_SPEC_410 && host->v4_mode &&
+-	    (host->quirks2 & SDHCI_QUIRK2_USE_32BIT_BLK_CNT)) {
+-		if (sdhci_readw(host, SDHCI_BLOCK_COUNT))
+-			sdhci_writew(host, 0, SDHCI_BLOCK_COUNT);
+-		sdhci_writew(host, data->blocks, SDHCI_32BIT_BLK_CNT);
+-	} else {
+-		sdhci_writew(host, data->blocks, SDHCI_BLOCK_COUNT);
+-	}
++	sdhci_set_block_info(host, data);
+ }
+ 
+ static inline bool sdhci_auto_cmd12(struct sdhci_host *host,
+@@ -1245,22 +1251,10 @@ static bool sdhci_needs_reset(struct sdhci_host *host, struct mmc_request *mrq)
+ 		 (host->quirks & SDHCI_QUIRK_RESET_AFTER_REQUEST)));
+ }
+ 
+-static void __sdhci_finish_mrq(struct sdhci_host *host, struct mmc_request *mrq)
++static void sdhci_set_mrq_done(struct sdhci_host *host, struct mmc_request *mrq)
+ {
+ 	int i;
+ 
+-	if (host->cmd && host->cmd->mrq == mrq)
+-		host->cmd = NULL;
+-
+-	if (host->data_cmd && host->data_cmd->mrq == mrq)
+-		host->data_cmd = NULL;
+-
+-	if (host->data && host->data->mrq == mrq)
+-		host->data = NULL;
+-
+-	if (sdhci_needs_reset(host, mrq))
+-		host->pending_reset = true;
+-
+ 	for (i = 0; i < SDHCI_MAX_MRQS; i++) {
+ 		if (host->mrqs_done[i] == mrq) {
+ 			WARN_ON(1);
+@@ -1276,6 +1270,23 @@ static void __sdhci_finish_mrq(struct sdhci_host *host, struct mmc_request *mrq)
+ 	}
+ 
+ 	WARN_ON(i >= SDHCI_MAX_MRQS);
++}
++
++static void __sdhci_finish_mrq(struct sdhci_host *host, struct mmc_request *mrq)
++{
++	if (host->cmd && host->cmd->mrq == mrq)
++		host->cmd = NULL;
++
++	if (host->data_cmd && host->data_cmd->mrq == mrq)
++		host->data_cmd = NULL;
++
++	if (host->data && host->data->mrq == mrq)
++		host->data = NULL;
++
++	if (sdhci_needs_reset(host, mrq))
++		host->pending_reset = true;
++
++	sdhci_set_mrq_done(host, mrq);
+ 
+ 	sdhci_del_timer(host, mrq);
+ 
+@@ -1390,12 +1401,15 @@ void sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
+ 	}
+ 
+ 	host->cmd = cmd;
++	host->data_timeout = 0;
+ 	if (sdhci_data_line_cmd(cmd)) {
+ 		WARN_ON(host->data_cmd);
+ 		host->data_cmd = cmd;
++		sdhci_set_timeout(host, cmd);
+ 	}
+ 
+-	sdhci_prepare_data(host, cmd);
++	if (cmd->data)
++		sdhci_prepare_data(host, cmd);
+ 
+ 	sdhci_writel(host, cmd->arg, SDHCI_ARGUMENT);
+ 
 -- 
 2.19.2
