@@ -1,62 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] drm/omap: gem: Fix tearing with BO_TILED
-Date: Sun, 5 Jan 2020 12:37:04 -0800
-Message-ID: <20200105203704.GD5885@atomide.com>
-References: <20191221005711.47314-1-tony@atomide.com>
- <20191221164141.GI35479@atomide.com>
- <20200104050950.GA11429@chinchilla>
- <20200104055011.GA5885@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: LED backlight on Droid 4 and others
+Date: Mon, 6 Jan 2020 08:45:49 +0000
+Message-ID: <20200106084549.GA14821@dell>
+References: <20200105183202.GA17784@duo.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20200104055011.GA5885@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, "H . Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Matthijs van Duin <matthijsvanduin@gmail.com>
+In-Reply-To: <20200105183202.GA17784@duo.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz, agx@sigxcpu.org, daniel.thompson@linaro.org, jingoohan1@gmail.com, dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, jjhiblot@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Sun, 05 Jan 2020, Pavel Machek wrote:
 
-* Tony Lindgren <tony@atomide.com> [200104 05:51]:
+> Hi!
 > 
-> Just changing the alingment fixes the issue. Looks like the minimum
-> alignment we currently allow is 128, I think 512 was the minimum
-> that worked for me, so maybe the right fix would be to just change
-> the minimum to 512 with no specific need to use 4096 for now.
+> It would be good to get LED backlight to work in clean way for 5.6
+> kernel.
+> 
+> As far as I can see, these are neccessary (but not enough; it does not
+> work for me): lm3532 changes to register LED with of node, plus device
+> tree changes for droid 4, and these generic changes:
+> 
+> commit d457d0c97d6d55fe3e62633791ac05d289a37d2e
+> Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date:   Thu Oct 3 10:28:12 2019 +0200
+> 
+>     backlight: add led-backlight driver
+>     
+>     This patch adds a led-backlight driver (led_bl), which is similar to
+>     pwm_bl except the driver uses a LED class driver to adjust the
+>     brightness in the HW. Multiple LEDs can be used for a single backlight.
+>     
+>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>     Signed-off-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
+>     Acked-by: Pavel Machek <pavel@ucw.cz>
+>     Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
+> 
+> commit 44b7adbf0b07904e4198ae1d0a763917d1c68a23
+> Author: Jean-Jacques Hiblot <jjhiblot@ti.com>
+> Date:   Thu Oct 3 10:28:10 2019 +0200
+> 
+>     leds: Add managed API to get a LED from a device driver
+>     
+>     If the LED is acquired by a consumer device with devm_led_get(), it is
+>     automatically released when the device is detached.
+>     
+>     Signed-off-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
+>     Acked-by: Pavel Machek <pavel@ucw.cz>
+>     Signed-off-by: Pavel <pavel@ucw.cz>
+> 
+> commit 93b98c570d7f898063ab6204e1b3950a3335dd12
+> Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date:   Thu Oct 3 10:28:09 2019 +0200
+> 
+>     leds: Add of_led_get() and led_put()
+>     
+>     This patch adds basic support for a kernel driver to get a LED device.
+>     This will be used by the led-backlight driver.
+>     
+>     Only OF version is implemented for now, and the behavior is similar to
+>     PWM's of_pwm_get() and pwm_put().
+>     
+>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>     Signed-off-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
+>     Acked-by: Pavel Machek <pavel@ucw.cz>
+>     Signed-off-by: Pavel <pavel@ucw.cz>
+> 
+> [If you have an idea what else is needed, it would be welcome; it
+> works for me in development tree but not in tree I'd like to
+> upstream.]
+> 
+> Lee, would you be willing to take "backlight: add led-backlight
+> driver"? Would it help if I got "leds: Add managed API to get a LED
+> from a device driver" and "leds: Add of_led_get() and led_put()" into
+> for_next tree of the LED subsystem?
 
-So Matthijs and I chatted about this a bit on irc, and here's what
-we concluded so far:
+It looks like you have an open question from Tony on v10.
 
-1. We have at least three different alignment needs for tiler
+Is that patch orthogonal, or are there depend{ants,encies}?
 
-- Linux use of tiler aligned to 128 bytes
+> It is kind of important as, well, phone without screen looks pretty
+> much dead, and same issue hits Droid 4 and Librem 5 phones at least...
+> 
+> Best regards,
+> 									Pavel
 
-- SGX use of tiler aligned to 4096 bytes (or 512 bytes?)
 
-- Fast userspace mapping aligned to 4096 bytes
 
-2. The alignment need may need to be configured by the tiler consumer
-   in #1 above
-
-3. The alignment need for SGX seems to be based on SGX MMU page size
-
-4. The issue I'm seeing with stellarium on droid4 may be a stride
-   issue as about one out of 3 or 4 frames is OK and aligning to
-   512 also fixes the issue maybe because it happens to make
-   multiple frames align to 4096
-
-So let's wait on this patch until we have more info and know how
-the different alignments should be handled.
-
-Regards,
-
-Tony
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
