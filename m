@@ -1,98 +1,91 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: LED backlight on Droid 4 and others
-Date: Mon, 6 Jan 2020 08:45:49 +0000
-Message-ID: <20200106084549.GA14821@dell>
-References: <20200105183202.GA17784@duo.ucw.cz>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v4 00/11] Port am335x and am437x devices to sdhci-omap
+Date: Mon, 6 Jan 2020 16:31:22 +0530
+Message-ID: <20200106110133.13791-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20200105183202.GA17784@duo.ucw.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz, agx@sigxcpu.org, daniel.thompson@linaro.org, jingoohan1@gmail.com, dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, jjhiblot@ti.com
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: kishon@ti.com, adrian.hunter@intel.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, tony@atomide.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 05 Jan 2020, Pavel Machek wrote:
+The following add driver patches for porting TI's am335x and am437x devices to
+the sdhci-omap driver.
 
-> Hi!
-> 
-> It would be good to get LED backlight to work in clean way for 5.6
-> kernel.
-> 
-> As far as I can see, these are neccessary (but not enough; it does not
-> work for me): lm3532 changes to register LED with of node, plus device
-> tree changes for droid 4, and these generic changes:
-> 
-> commit d457d0c97d6d55fe3e62633791ac05d289a37d2e
-> Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Date:   Thu Oct 3 10:28:12 2019 +0200
-> 
->     backlight: add led-backlight driver
->     
->     This patch adds a led-backlight driver (led_bl), which is similar to
->     pwm_bl except the driver uses a LED class driver to adjust the
->     brightness in the HW. Multiple LEDs can be used for a single backlight.
->     
->     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->     Signed-off-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
->     Acked-by: Pavel Machek <pavel@ucw.cz>
->     Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
-> 
-> commit 44b7adbf0b07904e4198ae1d0a763917d1c68a23
-> Author: Jean-Jacques Hiblot <jjhiblot@ti.com>
-> Date:   Thu Oct 3 10:28:10 2019 +0200
-> 
->     leds: Add managed API to get a LED from a device driver
->     
->     If the LED is acquired by a consumer device with devm_led_get(), it is
->     automatically released when the device is detached.
->     
->     Signed-off-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
->     Acked-by: Pavel Machek <pavel@ucw.cz>
->     Signed-off-by: Pavel <pavel@ucw.cz>
-> 
-> commit 93b98c570d7f898063ab6204e1b3950a3335dd12
-> Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Date:   Thu Oct 3 10:28:09 2019 +0200
-> 
->     leds: Add of_led_get() and led_put()
->     
->     This patch adds basic support for a kernel driver to get a LED device.
->     This will be used by the led-backlight driver.
->     
->     Only OF version is implemented for now, and the behavior is similar to
->     PWM's of_pwm_get() and pwm_put().
->     
->     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->     Signed-off-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
->     Acked-by: Pavel Machek <pavel@ucw.cz>
->     Signed-off-by: Pavel <pavel@ucw.cz>
-> 
-> [If you have an idea what else is needed, it would be welcome; it
-> works for me in development tree but not in tree I'd like to
-> upstream.]
-> 
-> Lee, would you be willing to take "backlight: add led-backlight
-> driver"? Would it help if I got "leds: Add managed API to get a LED
-> from a device driver" and "leds: Add of_led_get() and led_put()" into
-> for_next tree of the LED subsystem?
+Patches 1-4 Add Support for external DMA to the sdhci driver.
 
-It looks like you have an open question from Tony on v10.
+Patches 5-7 refactor the sdhci_set_timeout() function and use it disable
+data timeout interrupt for erase commands
 
-Is that patch orthogonal, or are there depend{ants,encies}?
+Patches 8-9 port the ti,needs-special-reset property from omap_hsmmc driver.
 
-> It is kind of important as, well, phone without screen looks pretty
-> much dead, and same issue hits Droid 4 and Librem 5 phones at least...
-> 
-> Best regards,
-> 									Pavel
+Patches 10-11 add new compatibles for am335x and am43xx devices to the
+sdhci-omap driver.
 
+DT changes will be posted as a separate series.
 
+Tested on: am335x-evm, am335x-boneblack, am335x-bonegreen-wireless,
+am335x-sk, am335x-bone, am437x-idk, am43xx-gp-evm, am43xx-epos-evm.
+
+I need some help with testing all other am335x variants and SDIO cards.
+
+Here's a branch for testing: https://github.com/faizinator/linux/tree/sdhci-omap_v4_2
+
+RESEND ALERT: I sent these patches from a new computer yesterday but non
+of them appeared in any of the mailing lists. Apologies if you receive a
+duplicate series. Please ignore the previous one.
+
+v4:
+1. Made the factoring out of initialize_data, block_info and mrqs_done as a
+   separate patch
+2. Replaced the patch introducing the quirk to disable DTO during erase
+   operations to a set_timeout() callback in sdhci-omap
+3. Ported the ti,needs-special-reset property from omap_hsmmc to sdhci-omap.
+4. Minor style changes.
+
+v3:
+1. Dropped patch 1 because the tasklet was removed by Adrian in an
+   earlier series.
+2. Added dma bindings in sdhci-omap as optional properties.
+3. Rebased on top of latest mainline.
+
+v2:
+1. sdhci is using two bottom halves. One threaded_rq for card detect and a
+   tasklet for finishing mmc requests. Patch 1 removes the tasklet and
+   moves its function to the threaded_irq. This enables me to
+   terminate_sync() in sdhci_request_done()
+
+2. Factored out common code for between the normal adn external dma case
+
+3. Using existing API sdhci_data_timeout_irq for disabling DTO during
+   erase commands.
+
+4. Fixed subject line for dt-bindings patch.
+
+Chunyan Zhang (3):
+  dt-bindings: sdhci-omap: Add properties for using external dma
+  mmc: sdhci: add support for using external DMA devices
+  mmc: sdhci-omap: Add using external dma
+
+Faiz Abbas (8):
+  mmc: sdhci: Factor out some operations set to their own functions
+  mmc: sdhci: Convert sdhci_set_timeout_irq() to non-static
+  mmc: sdhci: Refactor sdhci_set_timeout()
+  mmc: sdhci-omap: Disable data timeout interrupt during erase
+  dt-bindings: sdhci-omap: Add documentation for ti,needs-special-reset
+    property
+  mmc: sdhci-omap: Add ti,needs-special-reset property
+  dt-bindings: sdhci-omap: Add am335x and am437x specific bindings
+  mmc: sdhci-omap: Add am335x and am437x specific compatibles
+
+ .../devicetree/bindings/mmc/sdhci-omap.txt    |  12 +
+ drivers/mmc/host/Kconfig                      |   4 +
+ drivers/mmc/host/sdhci-omap.c                 |  61 ++-
+ drivers/mmc/host/sdhci.c                      | 355 +++++++++++++++---
+ drivers/mmc/host/sdhci.h                      |  10 +
+ 5 files changed, 384 insertions(+), 58 deletions(-)
 
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.19.2
