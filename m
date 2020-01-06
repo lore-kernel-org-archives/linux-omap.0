@@ -1,38 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: dts: am335x-boneblack-common: fix memory size
-Date: Mon, 6 Jan 2020 13:05:09 -0800
-Message-ID: <20200106210509.GF5885@atomide.com>
-References: <20200106130909.7697-1-matwey@sai.msu.ru>
- <CAOCHtYgyN+qXXX1YeEcO+nvRFrAL1HAVVMvjfeJ5nvxVjtFKtg@mail.gmail.com>
- <CAJs94EbUL6o9sM+pwxwpqHVDkFqy7wFRirET-Vq3SNVd3grUsA@mail.gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH] clocksource: timer-ti-dm: Fix regression
+Date: Mon, 6 Jan 2020 13:07:32 -0800
+Message-ID: <CAOesGMiNbyUXwPFsG-ipTn-xfEs+A2hG8Q8MTcSLz5794GCv0g@mail.gmail.com>
+References: <20200106203700.21009-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJs94EbUL6o9sM+pwxwpqHVDkFqy7wFRirET-Vq3SNVd3grUsA@mail.gmail.com>
+In-Reply-To: <20200106203700.21009-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Cc: Robert Nelson <robertcnelson@gmail.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "open list:OMAP DEVICE TREE SUPPORT" <linux-omap@vger.kernel.org>, "open list:OMAP DEVICE TREE SUPPORT" <devicetree@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Yangtao Li <tiny.windzz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Matwey V. Kornilov <matwey@sai.msu.ru> [200106 20:48]:
-> пн, 6 янв. 2020 г. в 23:44, Robert Nelson <robertcnelson@gmail.com>:
-> >
-> > On Mon, Jan 6, 2020 at 7:10 AM Matwey V. Kornilov <matwey@sai.msu.ru> wrote:
-> > >
-> > > BeagleBone Black series is equipped with 512MB RAM
-> > > whereas only 256MB is included from am335x-bone-common.dtsi
-> >
-> > FYI: While all versions from the factory are 512MB, some 3rd parties
-> > offered 1GB reballing upgrades..
+On Mon, Jan 6, 2020 at 12:37 PM Tony Lindgren <tony@atomide.com> wrote:
+>
+> Clean-up commit 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to
+> platform_get_irq") caused a regression where we now try to access
+> uninitialized data for timer:
+>
+> drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
+> drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may be used
+> uninitialized in this function [-Wmaybe-uninitialized]
+>
+> On boot we now get:
+>
+> Unable to handle kernel NULL pointer dereference at virtual address
+> 00000004
+> ...
+> (omap_dm_timer_probe) from [<c061ac7c>] (platform_drv_probe+0x48/0x98)
+> (platform_drv_probe) from [<c0618c04>] (really_probe+0x1dc/0x348)
+> (really_probe) from [<c0618ef4>] (driver_probe_device+0x5c/0x160)
+>
+> Let's fix the issue by moving platform_get_irq to happen after timer has
+> been allocated.
+>
+> Fixes: 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to platform_get_irq")
+> Cc: Yangtao Li <tiny.windzz@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-So what's the conclusion, is it safe to bump the default size to
-512MB then?
+Acked-by: Olof Johansson <olof@lixom.net>
 
-The custom ones could use their own dts file if bootloader is not
-setting the RAM.
+> ---
+>
+> I did not notice simlar issue with other patches in the series, but
+> please do double check Yangtao.
 
-Regards,
+Yeah, this even seems to be caught at build (but our builds have been
+so noisy with warnings lately that they're hard to spot):
 
-Tony
+/build/drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
+/build/drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may
+be used uninitialized in this function [-Wmaybe-uninitialized]
+  798 |  timer->irq = platform_get_irq(pdev, 0);
+      |  ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+-Olof
