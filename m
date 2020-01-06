@@ -1,58 +1,39 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH] clocksource: timer-ti-dm: Fix regression
-Date: Mon, 6 Jan 2020 13:07:32 -0800
-Message-ID: <CAOesGMiNbyUXwPFsG-ipTn-xfEs+A2hG8Q8MTcSLz5794GCv0g@mail.gmail.com>
-References: <20200106203700.21009-1-tony@atomide.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v4 08/11] dt-bindings: sdhci-omap: Add documentation for
+ ti,needs-special-reset property
+Date: Mon, 6 Jan 2020 16:03:13 -0600
+Message-ID: <20200106220313.GA6822@bogus>
+References: <20200106110133.13791-1-faiz_abbas@ti.com>
+ <20200106110133.13791-9-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20200106203700.21009-1-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20200106110133.13791-9-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Yangtao Li <tiny.windzz@gmail.com>
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, kishon@ti.com, adrian.hunter@intel.com, mark.rutland@arm.com, ulf.hansson@linaro.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 6, 2020 at 12:37 PM Tony Lindgren <tony@atomide.com> wrote:
->
-> Clean-up commit 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to
-> platform_get_irq") caused a regression where we now try to access
-> uninitialized data for timer:
->
-> drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
-> drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may be used
-> uninitialized in this function [-Wmaybe-uninitialized]
->
-> On boot we now get:
->
-> Unable to handle kernel NULL pointer dereference at virtual address
-> 00000004
-> ...
-> (omap_dm_timer_probe) from [<c061ac7c>] (platform_drv_probe+0x48/0x98)
-> (platform_drv_probe) from [<c0618c04>] (really_probe+0x1dc/0x348)
-> (really_probe) from [<c0618ef4>] (driver_probe_device+0x5c/0x160)
->
-> Let's fix the issue by moving platform_get_irq to happen after timer has
-> been allocated.
->
-> Fixes: 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to platform_get_irq")
-> Cc: Yangtao Li <tiny.windzz@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Olof Johansson <olof@lixom.net>
-
+On Mon, Jan 06, 2020 at 04:31:30PM +0530, Faiz Abbas wrote:
+> Some controllers need a special software reset sequence. Document the
+> ti,needs-special-reset binding to indicate that a controller needs this.
+> 
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 > ---
->
-> I did not notice simlar issue with other patches in the series, but
-> please do double check Yangtao.
+>  Documentation/devicetree/bindings/mmc/sdhci-omap.txt | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+> index 97efb01617dd..0f5389c72bda 100644
+> --- a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+> +++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+> @@ -21,6 +21,7 @@ Optional properties:
+>  - dma-names:	List of DMA request names. These strings correspond 1:1 with the
+>  		DMA specifiers listed in dmas. The string naming is to be "tx"
+>  		and "rx" for TX and RX DMA requests, respectively.
+> +- ti,needs-special-reset: Requires a special softreset sequence
 
-Yeah, this even seems to be caught at build (but our builds have been
-so noisy with warnings lately that they're hard to spot):
+Why can't this be implied by the compatible string?
 
-/build/drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
-/build/drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may
-be used uninitialized in this function [-Wmaybe-uninitialized]
-  798 |  timer->irq = platform_get_irq(pdev, 0);
-      |  ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
--Olof
+Rob
