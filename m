@@ -1,110 +1,65 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH] drm/omap: gem: Fix tearing with BO_TILED
-Date: Mon, 6 Jan 2020 19:06:31 +0100
-Message-ID: <20200106180631.GA30670@chinchilla>
-References: <20191221005711.47314-1-tony@atomide.com>
- <20191221164141.GI35479@atomide.com>
- <20200104050950.GA11429@chinchilla>
- <20200104055011.GA5885@atomide.com>
- <20200105203704.GD5885@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2] mtd: onenand: omap2: Pass correct flags for prep_dma_memcpy
+Date: Tue, 7 Jan 2020 10:45:44 +0200
+Message-ID: <20200107084544.18547-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20200105203704.GD5885@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: "H . Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kyungmin.park@samsung.com, miquel.raynal@bootlin.com, aaro.koskinen@iki.fi, vigneshr@ti.com, hns@goldelico.com
+Cc: tony@atomide.com, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jan 05, 2020 at 12:37:04PM -0800, Tony Lindgren wrote:
-> - Linux use of tiler aligned to 128 bytes
+The commit converting the driver to DMAengine was missing the flags for
+the memcpy prepare call.
+It went unnoticed since the omap-dma driver was ignoring them.
 
-which is presumably a simplification of the alignment imposed by hardware:
--  64 bytes (64 pixels) for 8bpp
-- 128 bytes (64 pixels) for 16bpp
-- 128 bytes (32 pixels) for 32bpp
+Fixes: 3ed6a4d1de2c5 (" mtd: onenand: omap2: Convert to use dmaengine for memcp")
+Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+Hi,
 
+Changes since v1:
+- Typo fixed in the commit message
+- Added the Tested-by from Aaro and Nikolaus
 
-> - Fast userspace mapping aligned to 4096 bytes
+Aaro reported [1] a failure on omap2-onenand pointing to
+4689d35c765c696bdf0535486a990038b242a26b. It looks like the root cause is the
+conversion of omap2-onenand to DMAengine which missed the flags.
 
-Also for kernel mapping (vmap), e.g. for supporting a rotated fbdev
+Basically the client is waiting for a callback without asking for it. This
+certainly causes timeout.
 
+I have not tested the patch, but it should fix the issue.
 
-> 2. The alignment need may need to be configured by the tiler consumer
+[1] https://lore.kernel.org/lkml/20200103081726.GD15023@darkstar.musicnaut.iki.fi/
 
-I guess omap_gem_pin should check for the alignment requirement by
-iterating over all dma_buf attachments and intersecting their
-attach->dev->dma_parms.segment_boundary_mask or something like that?
-Since I feel like this is something more dma_buf exporters presumably
-need, is there no existing utility function for this?
+Regards,
+Peter
 
+ drivers/mtd/nand/onenand/omap2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Of course in principle it ought to be possible (modulo bugs and API
-restrictions) to use buffers that aren't aligned to MMU page size if
-either
+diff --git a/drivers/mtd/nand/onenand/omap2.c b/drivers/mtd/nand/onenand/omap2.c
+index edf94ee54ec7..71a632b815aa 100644
+--- a/drivers/mtd/nand/onenand/omap2.c
++++ b/drivers/mtd/nand/onenand/omap2.c
+@@ -328,7 +328,8 @@ static inline int omap2_onenand_dma_transfer(struct omap2_onenand *c,
+ 	struct dma_async_tx_descriptor *tx;
+ 	dma_cookie_t cookie;
+ 
+-	tx = dmaengine_prep_dma_memcpy(c->dma_chan, dst, src, count, 0);
++	tx = dmaengine_prep_dma_memcpy(c->dma_chan, dst, src, count,
++				       DMA_CTRL_ACK | DMA_PREP_INTERRUPT);
+ 	if (!tx) {
+ 		dev_err(&c->pdev->dev, "Failed to prepare DMA memcpy\n");
+ 		return -EIO;
+-- 
+Peter
 
-a. hardware is trusted to not read or touch data from unrelated buffers
-that share MMU pages, or
-
-b. buffers are only permitted to share MMU pages if they belong to the
-same security context (though this is something that could also be done
-in userspace: e.g. instead of allocating three separate 720-pixel wide
-buffers, each one page per line, allocate one buffer that's 720*3 pixels
-wide (2 pages per line) and use three slices thereof).
-
-
-> - SGX use of tiler aligned to 4096 bytes (or 512 bytes?)
-> 
-> ...
-> 
-> 3. The alignment need for SGX seems to be based on SGX MMU page size
-
-which is 4096 bytes apparently:
-
-#define SGX_MMU_PAGE_SHIFT	(12)
-#define SGX_MMU_PAGE_SIZE	(1U<<SGX_MMU_PAGE_SHIFT)
-
-or rather, this is the smallest page size it supports:
-#define SGX_MMU_PDE_PAGE_SIZE_4K	(0x00000000U)
-#define SGX_MMU_PDE_PAGE_SIZE_16K	(0x00000002U)
-#define SGX_MMU_PDE_PAGE_SIZE_64K	(0x00000004U)
-#define SGX_MMU_PDE_PAGE_SIZE_256K	(0x00000006U)
-#define SGX_MMU_PDE_PAGE_SIZE_1M	(0x00000008U)
-#define SGX_MMU_PDE_PAGE_SIZE_4M	(0x0000000AU)
-#define SGX_MMU_PDE_PAGE_SIZE_MASK	(0x0000000EU)
-
-
-> 4. The issue I'm seeing with stellarium on droid4 may be a stride
->    issue as about one out of 3 or 4 frames is OK and aligning to
->    512 also fixes the issue maybe because it happens to make
->    multiple frames align to 4096
-
-Yeah if your buffers are 960 pixels wide (assuming the droid4's screen
-is natively portrait) and 32bpp then 512-byte alignment suffices to
-automatically make them 4KB alignment.
-
-The most obvious thing I can think of that could do wrong is that it
-might contiguously map the pages that cover each line, which is what
-will happen if they use e.g. for_each_sg_page, but subsequently assume
-that the stride in sgx virtual memory is ALIGN( width * cpp, PAGE_SIZE )
-without taking the offset of the buffer inside the mapping into account.
-
-If each line is at most 4KB (i.e. 1024 pixels @ 32bpp) but each line
-straddles an MMU page boundary, then the result would be that the even
-lines of the frame are written to the top half of the buffer, causing it
-to be scaled to 50% vertically, while the odd lines are "lost" (written
-outside the buffer, either to a different buffer or unmapped tiler
-memory).  This sounds like what you described on irc?
-
-
-Matthijs
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
