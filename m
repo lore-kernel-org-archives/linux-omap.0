@@ -1,62 +1,106 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: gem: Fix tearing with BO_TILED
-Date: Tue, 7 Jan 2020 15:31:44 +0200
-Message-ID: <f6ce0a06-91c9-93dd-7b9e-91aeb2dd35fb@ti.com>
-References: <20191221005711.47314-1-tony@atomide.com>
- <20191221164141.GI35479@atomide.com> <20200104050950.GA11429@chinchilla>
- <20200104055011.GA5885@atomide.com> <20200105203704.GD5885@atomide.com>
- <6526b54b-a3c3-2873-2164-f9b96f11ad68@ti.com>
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: Re: [PATCHv4 06/14] remoteproc/omap: Initialize and assign reserved
+ memory node
+Date: Tue, 7 Jan 2020 08:37:52 -0500
+Message-ID: <f380b7a7-cef5-bf56-2344-49b83a15422e@ti.com>
+References: <20200102131845.12992-1-t-kristo@ti.com>
+ <20200102131845.12992-7-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <6526b54b-a3c3-2873-2164-f9b96f11ad68@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200102131845.12992-7-t-kristo@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, "H . Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Matthijs van Duin <matthijsvanduin@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, linux-omap@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDcvMDEvMjAyMCAxNTozMCwgVG9taSBWYWxrZWluZW4gd3JvdGU6Cj4gT24gMDUvMDEvMjAy
-MCAyMjozNywgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4gSGksCj4+Cj4+ICogVG9ueSBMaW5kZ3Jl
-biA8dG9ueUBhdG9taWRlLmNvbT4gWzIwMDEwNCAwNTo1MV06Cj4+Pgo+Pj4gSnVzdCBjaGFuZ2lu
-ZyB0aGUgYWxpbmdtZW50IGZpeGVzIHRoZSBpc3N1ZS4gTG9va3MgbGlrZSB0aGUgbWluaW11bQo+
-Pj4gYWxpZ25tZW50IHdlIGN1cnJlbnRseSBhbGxvdyBpcyAxMjgsIEkgdGhpbmsgNTEyIHdhcyB0
-aGUgbWluaW11bQo+Pj4gdGhhdCB3b3JrZWQgZm9yIG1lLCBzbyBtYXliZSB0aGUgcmlnaHQgZml4
-IHdvdWxkIGJlIHRvIGp1c3QgY2hhbmdlCj4+PiB0aGUgbWluaW11bSB0byA1MTIgd2l0aCBubyBz
-cGVjaWZpYyBuZWVkIHRvIHVzZSA0MDk2IGZvciBub3cuCj4+Cj4+IFNvIE1hdHRoaWpzIGFuZCBJ
-IGNoYXR0ZWQgYWJvdXQgdGhpcyBhIGJpdCBvbiBpcmMsIGFuZCBoZXJlJ3Mgd2hhdAo+PiB3ZSBj
-b25jbHVkZWQgc28gZmFyOgo+Pgo+PiAxLiBXZSBoYXZlIGF0IGxlYXN0IHRocmVlIGRpZmZlcmVu
-dCBhbGlnbm1lbnQgbmVlZHMgZm9yIHRpbGVyCj4+Cj4+IC0gTGludXggdXNlIG9mIHRpbGVyIGFs
-aWduZWQgdG8gMTI4IGJ5dGVzCj4+Cj4+IC0gU0dYIHVzZSBvZiB0aWxlciBhbGlnbmVkIHRvIDQw
-OTYgYnl0ZXMgKG9yIDUxMiBieXRlcz8pCj4+Cj4+IC0gRmFzdCB1c2Vyc3BhY2UgbWFwcGluZyBh
-bGlnbmVkIHRvIDQwOTYgYnl0ZXMKPj4KPj4gMi4gVGhlIGFsaWdubWVudCBuZWVkIG1heSBuZWVk
-IHRvIGJlIGNvbmZpZ3VyZWQgYnkgdGhlIHRpbGVyIGNvbnN1bWVyCj4+IMKgwqDCoCBpbiAjMSBh
-Ym92ZQo+Pgo+PiAzLiBUaGUgYWxpZ25tZW50IG5lZWQgZm9yIFNHWCBzZWVtcyB0byBiZSBiYXNl
-ZCBvbiBTR1ggTU1VIHBhZ2Ugc2l6ZQo+Pgo+PiA0LiBUaGUgaXNzdWUgSSdtIHNlZWluZyB3aXRo
-IHN0ZWxsYXJpdW0gb24gZHJvaWQ0IG1heSBiZSBhIHN0cmlkZQo+PiDCoMKgwqAgaXNzdWUgYXMg
-YWJvdXQgb25lIG91dCBvZiAzIG9yIDQgZnJhbWVzIGlzIE9LIGFuZCBhbGlnbmluZyB0bwo+PiDC
-oMKgwqAgNTEyIGFsc28gZml4ZXMgdGhlIGlzc3VlIG1heWJlIGJlY2F1c2UgaXQgaGFwcGVucyB0
-byBtYWtlCj4+IMKgwqDCoCBtdWx0aXBsZSBmcmFtZXMgYWxpZ24gdG8gNDA5Ngo+Pgo+PiBTbyBs
-ZXQncyB3YWl0IG9uIHRoaXMgcGF0Y2ggdW50aWwgd2UgaGF2ZSBtb3JlIGluZm8gYW5kIGtub3cg
-aG93Cj4+IHRoZSBkaWZmZXJlbnQgYWxpZ25tZW50cyBzaG91bGQgYmUgaGFuZGxlZC4KPiAKPiBJ
-IGRvbid0IGtub3cgaWYgdGhlc2UgYXJlIHJlbGF0ZWQgdG8gdGhlIGlzc3VlIHlvdSBoYXZlLCBh
-bmQgaXQncyBiZWVuIGEgd2hpbGUgc2luY2UgSSBsb29rZWQgYXQgCj4gVElMRVIsIGJ1dCB0d28g
-dGhvdWdodHMgYWZ0ZXIgbG9va2luZyBhdCB0aGUgdGhyZWFkOgo+IAo+IC0gSWYgdGhlIHVzZXJn
-YXJ0IGlzIG5vdCB1c2VkLCB0aGUgd2lkdGggb2YgZWFjaCBsaW5lIGhhcyB0byBiZSBleHBhbmRl
-ZCB0byBiZSBwYWdlIHNpemUgYWxpZ25lZCwgCj4gcmlnaHQ/IERvIHRoZSBwYXRjaGVzIGZyb20g
-TWF0dGhpanMgZG8gdGhpcz8KCkFuZCBpbW1lZGlhdGVseSBhZnRlciBwcmVzc2luZyAic2VuZCIs
-IEkgcmVhbGl6ZWQgdGhhdCBhbGlnbmluZyB0aGUgc3RhcnQgb2YgdGhlIGJ1ZmZlcnMgdG8gcGFn
-ZSAKc2l6ZSBhbHJlYWR5IGFjY29tcGxpc2hlcyB0aGlzLi4uCgogIFRvbWkKCi0tIApUZXhhcyBJ
-bnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4K
-WS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVs
-c2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
-LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
-Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On 1/2/20 8:18 AM, Tero Kristo wrote:
+> From: Suman Anna <s-anna@ti.com>
+> 
+> The reserved memory nodes are not assigned to platform devices by
+> default in the driver core to avoid the lookup for every platform
+> device and incur a penalty as the real users are expected to be
+> only a few devices.
+> 
+> OMAP remoteproc devices fall into the above category and the OMAP
+> remoteproc driver _requires_ specific CMA pools to be assigned
+> for each device at the moment to align on the location of the
+> vrings and vring buffers in the RTOS-side firmware images. So,
+
+
+Requires only at the moment due to firmware..
+
+This sounds like some firmware images hard-coded their vring addresses
+instead of getting them dynamically as they should and we are hacking
+around that on the kernel side by giving them the addresses they use as
+carveouts.
+
+Should we rather make use of the IOMMU attached to the DSP to map any
+kernel address to the DSP where the firmware expects it? Or better yet
+fixup the firmwares.
+
+DRAM carveouts should be a last resort used only for when hardware
+really requires it.
+
+Andrew
+
+
+> use the of_reserved_mem_device_init/release() API appropriately
+> to assign the corresponding reserved memory region to the OMAP
+> remoteproc device. Note that only one region per device is
+> allowed by the framework.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+> ---
+>  drivers/remoteproc/omap_remoteproc.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+> index 9ca337f18ac2..8a6dd742a8b1 100644
+> --- a/drivers/remoteproc/omap_remoteproc.c
+> +++ b/drivers/remoteproc/omap_remoteproc.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/module.h>
+>  #include <linux/err.h>
+>  #include <linux/of_device.h>
+> +#include <linux/of_reserved_mem.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/remoteproc.h>
+> @@ -480,14 +481,22 @@ static int omap_rproc_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		goto free_rproc;
+>  
+> +	ret = of_reserved_mem_device_init(&pdev->dev);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "device does not have specific CMA pool\n");
+> +		goto free_rproc;
+> +	}
+> +
+>  	platform_set_drvdata(pdev, rproc);
+>  
+>  	ret = rproc_add(rproc);
+>  	if (ret)
+> -		goto free_rproc;
+> +		goto release_mem;
+>  
+>  	return 0;
+>  
+> +release_mem:
+> +	of_reserved_mem_device_release(&pdev->dev);
+>  free_rproc:
+>  	rproc_free(rproc);
+>  	return ret;
+> @@ -499,6 +508,7 @@ static int omap_rproc_remove(struct platform_device *pdev)
+>  
+>  	rproc_del(rproc);
+>  	rproc_free(rproc);
+> +	of_reserved_mem_device_release(&pdev->dev);
+>  
+>  	return 0;
+>  }
+> 
