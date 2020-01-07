@@ -1,15 +1,16 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH] drm/omap: gem: Fix tearing with BO_TILED
-Date: Tue, 7 Jan 2020 15:30:24 +0200
-Message-ID: <6526b54b-a3c3-2873-2164-f9b96f11ad68@ti.com>
+Date: Tue, 7 Jan 2020 15:31:44 +0200
+Message-ID: <f6ce0a06-91c9-93dd-7b9e-91aeb2dd35fb@ti.com>
 References: <20191221005711.47314-1-tony@atomide.com>
  <20191221164141.GI35479@atomide.com> <20200104050950.GA11429@chinchilla>
  <20200104055011.GA5885@atomide.com> <20200105203704.GD5885@atomide.com>
+ <6526b54b-a3c3-2873-2164-f9b96f11ad68@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20200105203704.GD5885@atomide.com>
+In-Reply-To: <6526b54b-a3c3-2873-2164-f9b96f11ad68@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
@@ -23,54 +24,39 @@ Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, "H . Nikolaus Schaller" <hns@goldelico.com>, Merlijn Wajer <merlijn@wizzup.org>, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/01/2020 22:37, Tony Lindgren wrote:
-> Hi,
-> 
-> * Tony Lindgren <tony@atomide.com> [200104 05:51]:
->>
->> Just changing the alingment fixes the issue. Looks like the minimum
->> alignment we currently allow is 128, I think 512 was the minimum
->> that worked for me, so maybe the right fix would be to just change
->> the minimum to 512 with no specific need to use 4096 for now.
-> 
-> So Matthijs and I chatted about this a bit on irc, and here's what
-> we concluded so far:
-> 
-> 1. We have at least three different alignment needs for tiler
-> 
-> - Linux use of tiler aligned to 128 bytes
-> 
-> - SGX use of tiler aligned to 4096 bytes (or 512 bytes?)
-> 
-> - Fast userspace mapping aligned to 4096 bytes
-> 
-> 2. The alignment need may need to be configured by the tiler consumer
->     in #1 above
-> 
-> 3. The alignment need for SGX seems to be based on SGX MMU page size
-> 
-> 4. The issue I'm seeing with stellarium on droid4 may be a stride
->     issue as about one out of 3 or 4 frames is OK and aligning to
->     512 also fixes the issue maybe because it happens to make
->     multiple frames align to 4096
-> 
-> So let's wait on this patch until we have more info and know how
-> the different alignments should be handled.
-
-I don't know if these are related to the issue you have, and it's been a while since I looked at 
-TILER, but two thoughts after looking at the thread:
-
-- If the usergart is not used, the width of each line has to be expanded to be page size aligned, 
-right? Do the patches from Matthijs do this?
-
-- Afaik, there's no safe way to use TILER 2D buffers with other IPs. dmabuf exposes the buffers as 
-contiguous, i.e. including also the area outside the buffer itself (the TILER "stride"). The IPs 
-have no idea that they should not be touching the are outside the buffer itself. My experience with 
-this is with the capture drivers, and I don't know if the SGX driver deals with the buffers the same 
-way, though. If there's special TILER 2D support code in the SGX driver, then it might be safe.
-
-  Tomi
-
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+T24gMDcvMDEvMjAyMCAxNTozMCwgVG9taSBWYWxrZWluZW4gd3JvdGU6Cj4gT24gMDUvMDEvMjAy
+MCAyMjozNywgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4gSGksCj4+Cj4+ICogVG9ueSBMaW5kZ3Jl
+biA8dG9ueUBhdG9taWRlLmNvbT4gWzIwMDEwNCAwNTo1MV06Cj4+Pgo+Pj4gSnVzdCBjaGFuZ2lu
+ZyB0aGUgYWxpbmdtZW50IGZpeGVzIHRoZSBpc3N1ZS4gTG9va3MgbGlrZSB0aGUgbWluaW11bQo+
+Pj4gYWxpZ25tZW50IHdlIGN1cnJlbnRseSBhbGxvdyBpcyAxMjgsIEkgdGhpbmsgNTEyIHdhcyB0
+aGUgbWluaW11bQo+Pj4gdGhhdCB3b3JrZWQgZm9yIG1lLCBzbyBtYXliZSB0aGUgcmlnaHQgZml4
+IHdvdWxkIGJlIHRvIGp1c3QgY2hhbmdlCj4+PiB0aGUgbWluaW11bSB0byA1MTIgd2l0aCBubyBz
+cGVjaWZpYyBuZWVkIHRvIHVzZSA0MDk2IGZvciBub3cuCj4+Cj4+IFNvIE1hdHRoaWpzIGFuZCBJ
+IGNoYXR0ZWQgYWJvdXQgdGhpcyBhIGJpdCBvbiBpcmMsIGFuZCBoZXJlJ3Mgd2hhdAo+PiB3ZSBj
+b25jbHVkZWQgc28gZmFyOgo+Pgo+PiAxLiBXZSBoYXZlIGF0IGxlYXN0IHRocmVlIGRpZmZlcmVu
+dCBhbGlnbm1lbnQgbmVlZHMgZm9yIHRpbGVyCj4+Cj4+IC0gTGludXggdXNlIG9mIHRpbGVyIGFs
+aWduZWQgdG8gMTI4IGJ5dGVzCj4+Cj4+IC0gU0dYIHVzZSBvZiB0aWxlciBhbGlnbmVkIHRvIDQw
+OTYgYnl0ZXMgKG9yIDUxMiBieXRlcz8pCj4+Cj4+IC0gRmFzdCB1c2Vyc3BhY2UgbWFwcGluZyBh
+bGlnbmVkIHRvIDQwOTYgYnl0ZXMKPj4KPj4gMi4gVGhlIGFsaWdubWVudCBuZWVkIG1heSBuZWVk
+IHRvIGJlIGNvbmZpZ3VyZWQgYnkgdGhlIHRpbGVyIGNvbnN1bWVyCj4+IMKgwqDCoCBpbiAjMSBh
+Ym92ZQo+Pgo+PiAzLiBUaGUgYWxpZ25tZW50IG5lZWQgZm9yIFNHWCBzZWVtcyB0byBiZSBiYXNl
+ZCBvbiBTR1ggTU1VIHBhZ2Ugc2l6ZQo+Pgo+PiA0LiBUaGUgaXNzdWUgSSdtIHNlZWluZyB3aXRo
+IHN0ZWxsYXJpdW0gb24gZHJvaWQ0IG1heSBiZSBhIHN0cmlkZQo+PiDCoMKgwqAgaXNzdWUgYXMg
+YWJvdXQgb25lIG91dCBvZiAzIG9yIDQgZnJhbWVzIGlzIE9LIGFuZCBhbGlnbmluZyB0bwo+PiDC
+oMKgwqAgNTEyIGFsc28gZml4ZXMgdGhlIGlzc3VlIG1heWJlIGJlY2F1c2UgaXQgaGFwcGVucyB0
+byBtYWtlCj4+IMKgwqDCoCBtdWx0aXBsZSBmcmFtZXMgYWxpZ24gdG8gNDA5Ngo+Pgo+PiBTbyBs
+ZXQncyB3YWl0IG9uIHRoaXMgcGF0Y2ggdW50aWwgd2UgaGF2ZSBtb3JlIGluZm8gYW5kIGtub3cg
+aG93Cj4+IHRoZSBkaWZmZXJlbnQgYWxpZ25tZW50cyBzaG91bGQgYmUgaGFuZGxlZC4KPiAKPiBJ
+IGRvbid0IGtub3cgaWYgdGhlc2UgYXJlIHJlbGF0ZWQgdG8gdGhlIGlzc3VlIHlvdSBoYXZlLCBh
+bmQgaXQncyBiZWVuIGEgd2hpbGUgc2luY2UgSSBsb29rZWQgYXQgCj4gVElMRVIsIGJ1dCB0d28g
+dGhvdWdodHMgYWZ0ZXIgbG9va2luZyBhdCB0aGUgdGhyZWFkOgo+IAo+IC0gSWYgdGhlIHVzZXJn
+YXJ0IGlzIG5vdCB1c2VkLCB0aGUgd2lkdGggb2YgZWFjaCBsaW5lIGhhcyB0byBiZSBleHBhbmRl
+ZCB0byBiZSBwYWdlIHNpemUgYWxpZ25lZCwgCj4gcmlnaHQ/IERvIHRoZSBwYXRjaGVzIGZyb20g
+TWF0dGhpanMgZG8gdGhpcz8KCkFuZCBpbW1lZGlhdGVseSBhZnRlciBwcmVzc2luZyAic2VuZCIs
+IEkgcmVhbGl6ZWQgdGhhdCBhbGlnbmluZyB0aGUgc3RhcnQgb2YgdGhlIGJ1ZmZlcnMgdG8gcGFn
+ZSAKc2l6ZSBhbHJlYWR5IGFjY29tcGxpc2hlcyB0aGlzLi4uCgogIFRvbWkKCi0tIApUZXhhcyBJ
+bnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4K
+WS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVs
+c2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
