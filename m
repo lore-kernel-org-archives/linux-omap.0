@@ -1,83 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: motorola-cpcap: Do not hardcode SPI mode flags
-Date: Tue, 7 Jan 2020 10:37:06 -0800
-Message-ID: <20200107183706.GH5885@atomide.com>
-References: <20191204231931.21378-1-linus.walleij@linaro.org>
- <20191219170409.GH35479@atomide.com>
- <CACRpkdYm2b7G6dvmY5VCSSQCK6DMEYMYRqnoMpH6jaumkQL3Xg@mail.gmail.com>
- <20200107182400.GG5885@atomide.com>
+From: Frank Lee <tiny.windzz@gmail.com>
+Subject: Re: [PATCH] clocksource: timer-ti-dm: Fix regression
+Date: Wed, 8 Jan 2020 03:14:59 +0800
+Message-ID: <CAEExFWuQuTHNsjABpSBAa46NzftHS0+nLLG=qdEcaeatLZFLeQ@mail.gmail.com>
+References: <20200106203700.21009-1-tony@atomide.com>
+ <CAOesGMiNbyUXwPFsG-ipTn-xfEs+A2hG8Q8MTcSLz5794GCv0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20200107182400.GG5885@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Lee Jones <lee.jones@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAOesGMiNbyUXwPFsG-ipTn-xfEs+A2hG8Q8MTcSLz5794GCv0g@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [200107 18:24]:
-> * Linus Walleij <linus.walleij@linaro.org> [200107 09:58]:
-> > On Thu, Dec 19, 2019 at 6:04 PM Tony Lindgren <tony@atomide.com> wrote:
-> > 
-> > > * Linus Walleij <linus.walleij@linaro.org> [700101 00:00]:
-> > > > The current use of mode flags to us SPI_MODE_0 and
-> > > > SPI_CS_HIGH is fragile: it overwrites anything already
-> > > > assigned by the SPI core. Change it thusly:
-> > > >
-> > > > - Just |= the SPI_MODE_0 so we keep other flags
-> > > > - Assign ^= SPI_CS_HIGH since we might be active high
-> > > >   already, and that is usually the case with GPIOs used
-> > > >   for chip select, even if they are in practice active low.
-> > > >
-> > > > Add a comment clarifying why ^= SPI_CS_HIGH is the right
-> > > > choice here.
-> > >
-> > > Looks like this breaks booting for droid4 with a cpcap
-> > > PMIC, probably as regulators won't work. There's no GPIO
-> > > controller involved in this case for the chip select, the
-> > > pins are directly controlled by the spi-omap2-mcspi.c
-> > > driver.
-> > >
-> > > From the pin muxing setup we see there's a pull-down on
-> > > mcspi1_cs0 pin meaning it's active high:
-> > >
-> > > /* 0x4a100138 mcspi1_cs0.mcspi1_cs0 ae23 */
-> > > OMAP4_IOPAD(0x138, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> > >
-> > > My guess a similar issue is with similar patches for
-> > > all non-gpio spi controllers?
-> > >
-> > > Let me know if you want me to test some other changes,
-> > > or if this patch depends on some other changes.
-> > 
-> > So this must mean that something else is setting SPI_CS_HIGH
-> > for this driver, such as the device tree, right?
-> 
-> Hmm yes we have "spi-cs-high" property set in the dts.
-> 
-> But looking at drivers/spi/spi-omap2-mcspi.c, it also
-> provides an option to use a GPIO for chip select in
-> omap2_mcspi_setup(). That does not seem to be used though
-> based on a quick grep though.
-> 
-> > And the |= SPI_CS_HIGH assignment in the driver is just
-> > surplus and we should just delete this code instead.
-> > 
-> > Would that be right?
-> 
-> Sorry I don't know, maybe. If you have some test patch to
-> try I can easily test.
+On Tue, Jan 7, 2020 at 5:07 AM Olof Johansson <olof@lixom.net> wrote:
+>
+> On Mon, Jan 6, 2020 at 12:37 PM Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > Clean-up commit 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to
+> > platform_get_irq") caused a regression where we now try to access
+> > uninitialized data for timer:
+> >
+> > drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
+> > drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may be used
+> > uninitialized in this function [-Wmaybe-uninitialized]
+> >
+> > On boot we now get:
+> >
+> > Unable to handle kernel NULL pointer dereference at virtual address
+> > 00000004
+> > ...
+> > (omap_dm_timer_probe) from [<c061ac7c>] (platform_drv_probe+0x48/0x98)
+> > (platform_drv_probe) from [<c0618c04>] (really_probe+0x1dc/0x348)
+> > (really_probe) from [<c0618ef4>] (driver_probe_device+0x5c/0x160)
+> >
+> > Let's fix the issue by moving platform_get_irq to happen after timer has
+> > been allocated.
+> >
+> > Fixes: 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to platform_get_irq")
+> > Cc: Yangtao Li <tiny.windzz@gmail.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+>
+> Acked-by: Olof Johansson <olof@lixom.net>
 
-Oh sorry, I guess you're suggesting we drop SPI_CS_HIGH from
-drivers/mfd/motorola-cpcap.c, and not from spi-omap2-mcspi.c..
-Too much glög over the holidays probably :)
+Acked-by: Yangtao Li <tiny.windzz@gmail.com>
 
-Anyways, removing SPI_CS_HIGH motorola-cpcap.c also causes
-mounting MMC to fail looks like. I wonder if we're missing
-of_property_read_bool() for spi-cs-high in spi-omap2-mcspi.c?
+I am sorry. I will pay attention next time.
 
-Regards,
-
-Tony
+>
+> > ---
+> >
+> > I did not notice simlar issue with other patches in the series, but
+> > please do double check Yangtao.
+>
+> Yeah, this even seems to be caught at build (but our builds have been
+> so noisy with warnings lately that they're hard to spot):
+>
+> /build/drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
+> /build/drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may
+> be used uninitialized in this function [-Wmaybe-uninitialized]
+>   798 |  timer->irq = platform_get_irq(pdev, 0);
+>       |  ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+>
+>
+> -Olof
