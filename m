@@ -1,70 +1,68 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [RESEND PATCHv4 01/14] dt-bindings: remoteproc: Add OMAP
- remoteproc bindings
-Date: Tue, 7 Jan 2020 09:48:36 -0600
-Message-ID: <CAL_JsqJY8fzQ8=e=RHrtq1huucx6msqXJ+C6EcoaofBqRf9yLQ@mail.gmail.com>
-References: <20200102131845.12992-2-t-kristo@ti.com> <20200102132512.13248-1-t-kristo@ti.com>
- <20200103233855.GA19897@bogus> <358abb44-7724-4e25-6a3d-6939ec82386a@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few omap fixes for v5.5-rc cycle
+Date: Tue,  7 Jan 2020 09:29:41 -0800
+Message-ID: <pull-1578418121-413328@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <358abb44-7724-4e25-6a3d-6939ec82386a@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Bjorn Andersson <bjorn.andersson@linaro.org>, Ohad Ben-Cohen <ohad@wizery.com>, "open list:REMOTE PROCESSOR (REMOTEPROC) SUBSYSTEM" <linux-remoteproc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mathieu Poirier <mathieu.poirier@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Suman Anna <s-anna@ti.com>, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: soc@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 7, 2020 at 5:01 AM Tero Kristo <t-kristo@ti.com> wrote:
->
-> On 04/01/2020 01:38, Rob Herring wrote:
-> > On Thu, Jan 02, 2020 at 03:25:12PM +0200, Tero Kristo wrote:
-> >> From: Suman Anna <s-anna@ti.com>
-> >>
-> >> Add the device tree bindings document for the IPU and DSP
-> >> remote processor devices on OMAP4+ SoCs.
-> >>
-> >> Cc: Rob Herring <robh@kernel.org>
-> >> Cc: devicetree@vger.kernel.org
-> >> Signed-off-by: Suman Anna <s-anna@ti.com>
-> >> [t-kristo@ti.com: converted to schema]
-> >> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> >> ---
-> >> v4: added ti,bootreg-shift and ti,autosuspend-delay properties
-> >>
-> >>   .../remoteproc/ti,omap-remoteproc.yaml        | 329 ++++++++++++++++++
-> >>   1 file changed, 329 insertions(+)
-> >>   create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
+From: "Tony Lindgren" <tony@atomide.com>
 
+The following changes since commit e709ed70d122e94cb426b1e1f905829eae19a009:
 
-> >> +  reg:
-> >> +    description: |
-> >> +      Address space for any remoteproc memories present on
-> >> +      the SoC. Should contain an entry for each value in
-> >> +      'reg-names'. These are mandatory for all DSP and IPU
-> >> +      processors that have them (OMAP4/OMAP5 DSPs do not have
-> >> +      any RAMs)
-> >> +
-> >> +  reg-names:
-> >> +    description: |
-> >> +      Required names for each of the address spaces defined in
-> >> +      the 'reg' property. Should contain a string from among
-> >> +      the following names, each representing the corresponding
-> >> +      internal RAM memory region.
-> >
-> > The schema is more constrained than 'a string from among the following
-> > names'. 'l2ram' is the only valid 1st entry for example.
->
-> Right, I wasn't able to figure out a way to make the schema more
-> flexible, so I will just modify the description above.
+  bus: ti-sysc: Fix missing reset delay handling (2019-12-12 08:20:10 -0800)
 
-The goal is somewhat to not be flexible as we want the possible
-combinations defined. If it is a manageable number of combinations,
-just list them out under a 'oneOf'.
+are available in the Git repository at:
 
-Not encouraged, but it is possible to define any length and order of
-values (note 'items' is not a list here):
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/fixes-rc5
 
-items:
-  enum: [ ... ]
+for you to fetch changes up to 03729cfa0d543bc996bf959e762ec999afc8f3d2:
 
-Rob
+  soc: ti: wkup_m3_ipc: Fix race condition with rproc_boot (2019-12-17 15:18:36 -0800)
+
+----------------------------------------------------------------
+Fixes for omaps for v5.5-rc cycle
+
+Here are few fixes for v5.5-rc cycle:
+
+- Two corner case fixes related to ti-sysc driver clock issues
+
+- Fixes for am57xx dts for pcie gpios
+
+- Beagle-x15 regulator dts fix
+
+- Fix for wkup_m3_ipc driver race
+
+----------------------------------------------------------------
+Dave Gerlach (1):
+      soc: ti: wkup_m3_ipc: Fix race condition with rproc_boot
+
+Kishon Vijay Abraham I (3):
+      ARM: dts: am57xx-beagle-x15/am57xx-idk: Remove "gpios" for  endpoint dt nodes
+      ARM: dts: am571x-idk: Fix gpios property to have the correct  gpio number
+      ARM: dts: beagle-x15-common: Model 5V0 regulator
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Fix ti_sysc_find_one_clockdomain to check for to_clk_hw_omap
+      bus: ti-sysc: Fix iterating over clocks
+
+ arch/arm/boot/dts/am571x-idk.dts                |  6 +-----
+ arch/arm/boot/dts/am572x-idk-common.dtsi        |  4 ----
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 25 +++++++++++++++++++++----
+ arch/arm/mach-omap2/pdata-quirks.c              |  6 +++++-
+ drivers/bus/ti-sysc.c                           | 10 ++++++++--
+ drivers/soc/ti/wkup_m3_ipc.c                    |  4 ++--
+ 6 files changed, 37 insertions(+), 18 deletions(-)
