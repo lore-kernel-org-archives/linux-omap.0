@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few omap fixes for v5.5-rc cycle
-Date: Tue,  7 Jan 2020 09:29:41 -0800
-Message-ID: <pull-1578418121-413328@atomide.com>
+Subject: [GIT PULL 1/4] soc changes for omaps for v5.6
+Date: Tue,  7 Jan 2020 10:14:16 -0800
+Message-ID: <pull-1578420398-290837@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,48 +21,51 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit e709ed70d122e94cb426b1e1f905829eae19a009:
+The following changes since commit e42617b825f8073569da76dc4510bfa019b1c35a:
 
-  bus: ti-sysc: Fix missing reset delay handling (2019-12-12 08:20:10 -0800)
+  Linux 5.5-rc1 (2019-12-08 14:57:55 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.5/fixes-rc5
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.6/soc-signed
 
-for you to fetch changes up to 03729cfa0d543bc996bf959e762ec999afc8f3d2:
+for you to fetch changes up to 4601832f40501efc3c2fd264a5a69bd1ac17d520:
 
-  soc: ti: wkup_m3_ipc: Fix race condition with rproc_boot (2019-12-17 15:18:36 -0800)
+  ARM: OMAP2+: use separate IOMMU pdata to fix DRA7 IPU1 boot (2019-12-17 09:57:09 -0800)
 
 ----------------------------------------------------------------
-Fixes for omaps for v5.5-rc cycle
+SoC changes for omaps for v5.6 merge window
 
-Here are few fixes for v5.5-rc cycle:
+SoC related changes for omaps that mostly relate to making iommus
+to start probing with ti-sysc interconnect target module driver:
 
-- Two corner case fixes related to ti-sysc driver clock issues
+- Add missing lcdc clockdomain for am43xx
 
-- Fixes for am57xx dts for pcie gpios
+- Pass auxdata for reset control driver
 
-- Beagle-x15 regulator dts fix
+- Remove old pdata quirks for iommus
 
-- Fix for wkup_m3_ipc driver race
+- Add workaround for dra7 dsp mstandby errata
+
+- Convert iommu platform code to probe with ti-sysc
+
+- Use sperate iommu auxdata for ipu1
 
 ----------------------------------------------------------------
 Dave Gerlach (1):
-      soc: ti: wkup_m3_ipc: Fix race condition with rproc_boot
+      ARM: OMAP2+: am43xx: Add lcdc clockdomain
 
-Kishon Vijay Abraham I (3):
-      ARM: dts: am57xx-beagle-x15/am57xx-idk: Remove "gpios" for  endpoint dt nodes
-      ARM: dts: am571x-idk: Fix gpios property to have the correct  gpio number
-      ARM: dts: beagle-x15-common: Model 5V0 regulator
+Suman Anna (2):
+      ARM: OMAP2+: Add workaround for DRA7 DSP MStandby errata i879
+      ARM: OMAP2+: use separate IOMMU pdata to fix DRA7 IPU1 boot
 
-Tony Lindgren (2):
-      ARM: OMAP2+: Fix ti_sysc_find_one_clockdomain to check for to_clk_hw_omap
-      bus: ti-sysc: Fix iterating over clocks
+Tero Kristo (3):
+      ARM: OMAP2+: pdata-quirks: add PRM data for reset support
+      ARM: OMAP4+: remove pdata quirks for omap4+ iommus
+      ARM: OMAP2+: omap-iommu.c conversion to ti-sysc
 
- arch/arm/boot/dts/am571x-idk.dts                |  6 +-----
- arch/arm/boot/dts/am572x-idk-common.dtsi        |  4 ----
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 25 +++++++++++++++++++++----
- arch/arm/mach-omap2/pdata-quirks.c              |  6 +++++-
- drivers/bus/ti-sysc.c                           | 10 ++++++++--
- drivers/soc/ti/wkup_m3_ipc.c                    |  4 ++--
- 6 files changed, 37 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/clockdomains43xx_data.c |  10 +++
+ arch/arm/mach-omap2/omap-iommu.c            | 128 ++++++++++++++++++++++++----
+ arch/arm/mach-omap2/pdata-quirks.c          |  43 +++++++---
+ arch/arm/mach-omap2/prcm43xx.h              |   1 +
+ 4 files changed, 153 insertions(+), 29 deletions(-)
