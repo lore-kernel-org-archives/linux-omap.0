@@ -1,64 +1,89 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [BUG]: usb: dwc3: gadget: broken on OMAP5432
-Date: Wed, 8 Jan 2020 15:02:09 +0100
-Message-ID: <8E70227F-28DB-4C38-9EA4-FB5B0260C88F@goldelico.com>
-References: <703DD239-8E3B-405C-A531-FF7DEEED38DC@goldelico.com> <7daf64ba-7efb-e2f1-a449-f5f3791a3c8e@synopsys.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [RESEND PATCHv4 01/14] dt-bindings: remoteproc: Add OMAP
+ remoteproc bindings
+Date: Wed, 8 Jan 2020 10:49:21 -0600
+Message-ID: <f4ac066a-e5ee-f888-42bb-3f6d444747ee@ti.com>
+References: <20200102131845.12992-2-t-kristo@ti.com>
+ <20200102132512.13248-1-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7daf64ba-7efb-e2f1-a449-f5f3791a3c8e@synopsys.com>
+In-Reply-To: <20200102132512.13248-1-t-kristo@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tejas Joglekar <Tejas.Joglekar@synopsys.com>
-Cc: Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, "kernel@pyra-handheld.com" <kernel@pyra-handheld.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>, bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, linux-omap@vger.kernel.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Tero,
 
-> Am 08.01.2020 um 10:06 schrieb Tejas Joglekar <Tejas.Joglekar@synopsys.com>:
+On 1/2/20 7:25 AM, Tero Kristo wrote:
+> From: Suman Anna <s-anna@ti.com>
 > 
-> Hi,
-> On 1/8/2020 2:29 PM, H. Nikolaus Schaller wrote:
->> Hi,
->> I noticed that the usb ethernet gadget driver is broken since v5.5-rc2
->> and 5.4.4, but only for our OMAP5 board. Our OMAP3 boards work with
->> the same tree, kernel binary and user-space (Debian Stretch).
->> 
->> The symptom is that I can see the interface on the host PC being
->> enumerated and IP addresses etc. are set up. But a ping in either
->> direction fails/times out.
->> 
->> After inspecting diffs I found some changes in dwc3:gadget
->> and indeed omap3/twl4030 uses musb and omap5 uses dwc3.
->> 
->> Reverting
->> 
->> a7f7e61270f1 ("usb: dwc3: gadget: Fix logical condition");
->> 
->> on v5.5-rc makes it work again.
->> 
->> BTW: v4.19.90 works although it includes this logical condition fix.
->> So the real difference between v4.19 and v5.5 may be elsewhere in
->> newer kernels and only be revealed by the patch.
->> 
->> If important: my setup is running with USB2 cable and speed
->> only.
->> 
->> So please check this and other recent dwc3 patches for introducing
->> a stall of communication.
->> 
-> Another gadget driver issue was reported by Thinh after my fix, and he has submitted a patch for the same. You can refer the discussion https://patchwork.kernel.org/patch/11292087/.
-> Can you check if that patch works for you ?
+> Add the device tree bindings document for the IPU and DSP
+> remote processor devices on OMAP4+ SoCs.
+> 
+> Cc: Rob Herring <robh@kernel.org>
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> [t-kristo@ti.com: converted to schema]
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+> v4: added ti,bootreg-shift and ti,autosuspend-delay properties
 
-Yes, it does!
+You missed out on my v3 comment on the firmware-name on Example 2. Can
+you please address it when you post the next version?
 
-So you can add my
+> 
+>  .../remoteproc/ti,omap-remoteproc.yaml        | 329 ++++++++++++++++++
+>  1 file changed, 329 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
+> 
+> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
+> new file mode 100644
+> index 000000000000..f53d58efaae3
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
 
-Tested-By: H. Nikolaus Schaller <hns@goldelico.com>
+[snip]
 
-if possible (I can't reply to the original discussion).
+> +  - |+
+> +
+> +    //Example 2: OMAP5 IPU
+> +
+> +    /* IPU Reserved Memory node */
+> +    #include <dt-bindings/clock/omap5.h>
+> +    reserved-memory {
+> +        #address-cells = <2>;
+> +        #size-cells = <2>;
+> +
+> +        ipu_memory_region: ipu-memory@95800000 {
+> +            compatible = "shared-dma-pool";
+> +            reg = <0 0x95800000 0 0x3800000>;
+> +            reusable;
+> +        };
+> +    };
+> +
+> +    /* IPU node */
+> +    ocp {
+> +        #address-cells = <1>;
+> +        #size-cells = <1>;
+> +
+> +        ipu: ipu@55020000 {
+> +            compatible = "ti,omap5-ipu";
+> +            reg = <0x55020000 0x10000>;
+> +            reg-names = "l2ram";
+> +            iommus = <&mmu_ipu>;
+> +            mboxes = <&mailbox &mbox_ipu>;
+> +            memory-region = <&ipu_memory_region>;
+> +            ti,timers = <&timer3>, <&timer4>;
+> +            ti,watchdog-timers = <&timer9>, <&timer11>;
+> +            clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
+> +            resets = <&prm_core 2>;
+> +            firmware-name = "omap5-ipu-fw.xem";
+> +        };
+> +    };
 
-Would be nice if you can get it into 5.5-rc series and 5.4.y asap.
- 
-BR and thanks for the quick response and solution,
-Nikolaus Schaller
+regards
+Suman
