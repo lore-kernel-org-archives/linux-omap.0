@@ -1,87 +1,114 @@
 From: Baolin Wang <baolin.wang7@gmail.com>
-Subject: Re: [PATCH v4 02/11] mmc: sdhci: Factor out some operations set to
- their own functions
-Date: Wed, 8 Jan 2020 09:32:43 +0800
-Message-ID: <CADBw62pA3tub70Uvkz7_6HTqvpuvweroGJXScv5NdPcDViG0Dw@mail.gmail.com>
-References: <20200106110133.13791-1-faiz_abbas@ti.com> <20200106110133.13791-3-faiz_abbas@ti.com>
- <CADBw62qR5F8h4YbpWfU2UESeoR3zXzS=eePMvQHuT7NQE5hdSA@mail.gmail.com> <27fded85-d195-0a82-899a-bb6e727258dc@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH RESEND 1/3] hwspinlock: omap: Change to use devm_platform_ioremap_resource()
+Date: Wed,  8 Jan 2020 11:13:59 +0800
+Message-ID: <6c09c5034a7e68fdfc22d2cb5daa375bccb33a66.1578453062.git.baolin.wang7@gmail.com>
+References: <cover.1578453062.git.baolin.wang7@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <27fded85-d195-0a82-899a-bb6e727258dc@ti.com>
+In-Reply-To: <cover.1578453062.git.baolin.wang7@gmail.com>
+In-Reply-To: <cover.1578453062.git.baolin.wang7@gmail.com>
+References: <cover.1578453062.git.baolin.wang7@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, kishon@ti.com, Adrian Hunter <adrian.hunter@intel.com>, mark.rutland@arm.com, robh+dt@kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, tony@atomide.com
+To: ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: baolin.wang7@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Faiz,
+Use the new helper that wraps the calls to platform_get_resource()
+and devm_ioremap_resource() together, which can simpify the code.
+Meanwhile renaming the error label to make more sense after removing
+iounmap().
 
-On Tue, Jan 7, 2020 at 3:20 PM Faiz Abbas <faiz_abbas@ti.com> wrote:
->
-> Hi Baolin,
->
-> On 07/01/20 12:04 pm, Baolin Wang wrote:
-> > Hi Faiz,
-> >
-> > On Mon, Jan 6, 2020 at 7:01 PM Faiz Abbas <faiz_abbas@ti.com> wrote:
-> >>
-> >> In preparation for adding external dma support, factor out data initialization,
-> >> block info and mrq_done to their own functions.
-> >>
-> >> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-> >> ---
-> >>  drivers/mmc/host/sdhci.c | 96 +++++++++++++++++++++++-----------------
-> >>  1 file changed, 55 insertions(+), 41 deletions(-)
-> >>
-> >> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-> >> index 1b1c26da3fe0..f6999054abcf 100644
-> >> --- a/drivers/mmc/host/sdhci.c
-> >> +++ b/drivers/mmc/host/sdhci.c
-> >> @@ -1025,18 +1025,9 @@ static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
-> >>         }
-> >>  }
-> >>
-> >> -static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_command *cmd)
-> >> +static void sdhci_initialize_data(struct sdhci_host *host,
-> >> +                                 struct mmc_data *data)
-> >>  {
-> >> -       struct mmc_data *data = cmd->data;
-> >> -
-> >> -       host->data_timeout = 0;
-> >> -
-> >> -       if (sdhci_data_line_cmd(cmd))
-> >> -               sdhci_set_timeout(host, cmd);
-> >> -
-> >> -       if (!data)
-> >> -               return;
-> >> -
-> >>         WARN_ON(host->data);
-> >>
-> >>         /* Sanity checks */
-> >> @@ -1048,6 +1039,36 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_command *cmd)
-> >>         host->data_early = 0;
-> >>         host->data->bytes_xfered = 0;
-> >>
-> >
-> > Can you remove above redundant blank line?
-> Ok.
-> >
-> >> +}
-> >> +
-> >> +static inline void sdhci_set_block_info(struct sdhci_host *host,
-> >> +                                       struct mmc_data *data)
-> >> +{
-> >> +
-> >
-> > Ditto.
-> Ok.
-> >
-> > Otherwise, please add my tested tag if feel free.
-> >
-> > Tested-by: Baolin Wang <baolin.wang7@gmail.com>
->
-> Which platform did you test this on?
+Signed-off-by: Baolin Wang <baolin.wang7@gmail.com>
+---
+ drivers/hwspinlock/omap_hwspinlock.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-I tested on our Spreadtrum platform for the common sdhci driver
-modification, but our host controller can not support external DMA, so
-I can not help to test the external DMA.
+diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
+index 14e1a53..dbb1a4c 100644
+--- a/drivers/hwspinlock/omap_hwspinlock.c
++++ b/drivers/hwspinlock/omap_hwspinlock.c
+@@ -76,7 +76,6 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct hwspinlock_device *bank;
+ 	struct hwspinlock *hwlock;
+-	struct resource *res;
+ 	void __iomem *io_base;
+ 	int num_locks, i, ret;
+ 	/* Only a single hwspinlock block device is supported */
+@@ -85,13 +84,9 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	if (!node)
+ 		return -ENODEV;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+-	io_base = ioremap(res->start, resource_size(res));
+-	if (!io_base)
+-		return -ENOMEM;
++	io_base = devm_platform_ioremap_resource(pdev, 0);
++	if (IS_ERR(io_base))
++		return PTR_ERR(io_base);
+ 
+ 	/*
+ 	 * make sure the module is enabled and clocked before reading
+@@ -101,7 +96,7 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (ret < 0) {
+ 		pm_runtime_put_noidle(&pdev->dev);
+-		goto iounmap_base;
++		goto runtime_err;
+ 	}
+ 
+ 	/* Determine number of locks */
+@@ -114,12 +109,12 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	 */
+ 	ret = pm_runtime_put(&pdev->dev);
+ 	if (ret < 0)
+-		goto iounmap_base;
++		goto runtime_err;
+ 
+ 	/* one of the four lsb's must be set, and nothing else */
+ 	if (hweight_long(i & 0xf) != 1 || i > 8) {
+ 		ret = -EINVAL;
+-		goto iounmap_base;
++		goto runtime_err;
+ 	}
+ 
+ 	num_locks = i * 32; /* actual number of locks in this device */
+@@ -127,7 +122,7 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	bank = kzalloc(struct_size(bank, lock, num_locks), GFP_KERNEL);
+ 	if (!bank) {
+ 		ret = -ENOMEM;
+-		goto iounmap_base;
++		goto runtime_err;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, bank);
+@@ -147,16 +142,14 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 
+ reg_fail:
+ 	kfree(bank);
+-iounmap_base:
++runtime_err:
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(io_base);
+ 	return ret;
+ }
+ 
+ static int omap_hwspinlock_remove(struct platform_device *pdev)
+ {
+ 	struct hwspinlock_device *bank = platform_get_drvdata(pdev);
+-	void __iomem *io_base = bank->lock[0].priv - LOCK_BASE_OFFSET;
+ 	int ret;
+ 
+ 	ret = hwspin_lock_unregister(bank);
+@@ -166,7 +159,6 @@ static int omap_hwspinlock_remove(struct platform_device *pdev)
+ 	}
+ 
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(io_base);
+ 	kfree(bank);
+ 
+ 	return 0;
+-- 
+1.7.9.5
