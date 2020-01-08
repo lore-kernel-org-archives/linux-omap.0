@@ -1,63 +1,43 @@
-From: Baolin Wang <baolin.wang7@gmail.com>
-Subject: [PATCH RESEND 2/3] hwspinlock: omap: Use devm_kzalloc() to allocate memory
-Date: Wed,  8 Jan 2020 11:14:00 +0800
-Message-ID: <c066ad704c1a5fd52c3002cac80ddd59b3901b01.1578453062.git.baolin.wang7@gmail.com>
-References: <cover.1578453062.git.baolin.wang7@gmail.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [BUG]: usb: dwc3: gadget: broken on OMAP5432
+Date: Wed, 8 Jan 2020 09:59:44 +0100
+Message-ID: <703DD239-8E3B-405C-A531-FF7DEEED38DC@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1578453062.git.baolin.wang7@gmail.com>
-In-Reply-To: <cover.1578453062.git.baolin.wang7@gmail.com>
-References: <cover.1578453062.git.baolin.wang7@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: baolin.wang7@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tejas Joglekar <Tejas.Joglekar@synopsys.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_kzalloc() to allocate memory, which can simplify the error
-handling.
+Hi,
+I noticed that the usb ethernet gadget driver is broken since v5.5-rc2
+and 5.4.4, but only for our OMAP5 board. Our OMAP3 boards work with
+the same tree, kernel binary and user-space (Debian Stretch).
 
-Signed-off-by: Baolin Wang <baolin.wang7@gmail.com>
----
- drivers/hwspinlock/omap_hwspinlock.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+The symptom is that I can see the interface on the host PC being
+enumerated and IP addresses etc. are set up. But a ping in either
+direction fails/times out.
 
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index dbb1a4c..3b05560 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -119,7 +119,8 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 
- 	num_locks = i * 32; /* actual number of locks in this device */
- 
--	bank = kzalloc(struct_size(bank, lock, num_locks), GFP_KERNEL);
-+	bank = devm_kzalloc(&pdev->dev, struct_size(bank, lock, num_locks),
-+			    GFP_KERNEL);
- 	if (!bank) {
- 		ret = -ENOMEM;
- 		goto runtime_err;
-@@ -133,15 +134,13 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 	ret = hwspin_lock_register(bank, &pdev->dev, &omap_hwspinlock_ops,
- 						base_id, num_locks);
- 	if (ret)
--		goto reg_fail;
-+		goto runtime_err;
- 
- 	dev_dbg(&pdev->dev, "Registered %d locks with HwSpinlock core\n",
- 		num_locks);
- 
- 	return 0;
- 
--reg_fail:
--	kfree(bank);
- runtime_err:
- 	pm_runtime_disable(&pdev->dev);
- 	return ret;
-@@ -159,7 +158,6 @@ static int omap_hwspinlock_remove(struct platform_device *pdev)
- 	}
- 
- 	pm_runtime_disable(&pdev->dev);
--	kfree(bank);
- 
- 	return 0;
- }
--- 
-1.7.9.5
+After inspecting diffs I found some changes in dwc3:gadget
+and indeed omap3/twl4030 uses musb and omap5 uses dwc3.
+
+Reverting
+
+a7f7e61270f1 ("usb: dwc3: gadget: Fix logical condition");
+
+on v5.5-rc makes it work again.
+
+BTW: v4.19.90 works although it includes this logical condition fix.
+So the real difference between v4.19 and v5.5 may be elsewhere in
+newer kernels and only be revealed by the patch.
+
+If important: my setup is running with USB2 cable and speed
+only.
+
+So please check this and other recent dwc3 patches for introducing
+a stall of communication.
+
+BR and thanks,
+Nikolaus Schaller
