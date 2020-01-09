@@ -1,58 +1,49 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH] clocksource: timer-ti-dm: Fix regression
-Date: Thu, 9 Jan 2020 12:42:37 +0100
-Message-ID: <799dbdec-bfa2-e9d5-d541-b7ad7b04dd46@linaro.org>
-References: <20200106203700.21009-1-tony@atomide.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH] arm: dts: Move am33xx and am43xx mmc nodes to sdhci-omap
+ driver
+Date: Thu, 9 Jan 2020 19:28:29 +0530
+Message-ID: <ab908007-fd7d-9dd5-c822-f4058c793d7d@ti.com>
+References: <20200106111517.15158-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:36201 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728377AbgAILmm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jan 2020 06:42:42 -0500
-Received: by mail-wr1-f67.google.com with SMTP id z3so7073032wru.3
-        for <linux-omap@vger.kernel.org>; Thu, 09 Jan 2020 03:42:40 -0800 (PST)
-In-Reply-To: <20200106203700.21009-1-tony@atomide.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200106111517.15158-1-faiz_abbas@ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, "tony@atomide.com >> Tony Lindgren" <tony@atomide.com>
+Cc: mark.rutland@arm.com, robh+dt@kernel.org, bcousson@baylibre.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yangtao Li <tiny.windzz@gmail.com>
 
-On 06/01/2020 21:37, Tony Lindgren wrote:
-> Clean-up commit 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to
-> platform_get_irq") caused a regression where we now try to access
-> uninitialized data for timer:
+Hi,
+
+On 06/01/20 4:45 pm, Faiz Abbas wrote:
+> Move mmc nodes to be compatible with the sdhci-omap driver. The following
+> modifications are required for omap_hsmmc specific properties:
 > 
-> drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
-> drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may be used
-> uninitialized in this function [-Wmaybe-uninitialized]
+> ti,non-removable: convert to the generic mmc non-removable
+> ti,needs-special-reset:  co-opted into the sdhci-omap driver
+> ti,dual-volt: removed. Legacy property not used in am335x or am43xx
+> ti,needs-special-hs-handling: removed. Legacy property not used in am335x or am43xx
 > 
-> On boot we now get:
+> Also since the sdhci-omap driver does not support runtime PM, explicitly
+> disable the mmc3 instance in the dtsi.
 > 
-> Unable to handle kernel NULL pointer dereference at virtual address
-> 00000004
-> ...
-> (omap_dm_timer_probe) from [<c061ac7c>] (platform_drv_probe+0x48/0x98)
-> (platform_drv_probe) from [<c0618c04>] (really_probe+0x1dc/0x348)
-> (really_probe) from [<c0618ef4>] (driver_probe_device+0x5c/0x160)
-> 
-> Let's fix the issue by moving platform_get_irq to happen after timer has
-> been allocated.
-> 
-> Fixes: 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to platform_get_irq")
-> Cc: Yangtao Li <tiny.windzz@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 > ---
+> 
+> Driver modifications have been posted separately:
+> https://patchwork.kernel.org/project/linux-mmc/list/?series=224053
+> 
+> Tested on: am335x-evm, am335x-boneblack, am335x-sk, am335x-bone, am437x-idk,
+> am43xx-gp-evm, am43xx-epos-evm.
+> 
+> I need some help with testing all other am335x variants and SDIO cards.
+> 
+> Here's a branch for testing: https://github.com/faizinator/linux/tree/sdhci-omap_v4_2
+> 
 
-Applied, thanks.
+Tony, can you help test some of these boards?
 
-
-
--- 
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Thanks,
+Faiz
