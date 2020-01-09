@@ -1,236 +1,58 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 04/14] remoteproc/omap: Add support to parse internal
- memories from DT
-Date: Thu, 9 Jan 2020 11:12:07 +0200
-Message-ID: <aef3436a-4491-e900-97cf-ac0c57e032a3@ti.com>
-References: <20200102131845.12992-1-t-kristo@ti.com>
- <20200102131845.12992-5-t-kristo@ti.com>
- <b9690449-5edc-e8f0-2c26-5da6900e23e3@ti.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH] clocksource: timer-ti-dm: Fix regression
+Date: Thu, 9 Jan 2020 12:42:37 +0100
+Message-ID: <799dbdec-bfa2-e9d5-d541-b7ad7b04dd46@linaro.org>
+References: <20200106203700.21009-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:41664 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728565AbgAIJMO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jan 2020 04:12:14 -0500
-In-Reply-To: <b9690449-5edc-e8f0-2c26-5da6900e23e3@ti.com>
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:36201 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728377AbgAILmm (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jan 2020 06:42:42 -0500
+Received: by mail-wr1-f67.google.com with SMTP id z3so7073032wru.3
+        for <linux-omap@vger.kernel.org>; Thu, 09 Jan 2020 03:42:40 -0800 (PST)
+In-Reply-To: <20200106203700.21009-1-tony@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yangtao Li <tiny.windzz@gmail.com>
 
-On 08/01/2020 20:05, Suman Anna wrote:
-> Hi Tero,
+On 06/01/2020 21:37, Tony Lindgren wrote:
+> Clean-up commit 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to
+> platform_get_irq") caused a regression where we now try to access
+> uninitialized data for timer:
 > 
-> On 1/2/20 7:18 AM, Tero Kristo wrote:
->> From: Suman Anna <s-anna@ti.com>
->>
->> The OMAP remoteproc driver has been enhanced to parse and store
->> the kernel mappings for different internal RAM memories that may
->> be present within each remote processor IP subsystem. Different
->> devices have varying memories present on current SoCs. The current
->> support handles the L2RAM for all IPU devices on OMAP4+ SoCs. The
->> DSPs on OMAP4/OMAP5 only have Unicaches and do not have any L1 or
->> L2 RAM memories.
->>
->> IPUs are expected to have the L2RAM at a fixed device address of
->> 0x20000000, based on the current limitations on Attribute MMU
->> configurations.
->>
->> NOTE:
->> The current logic doesn't handle the parsing of memories for DRA7
->> remoteproc devices, and will be added alongside the DRA7 support.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> [t-kristo: converted to parse mem names / device addresses from pdata]
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->> v4:
->>    - moved device data mem definitions under single struct
->>
->>   drivers/remoteproc/omap_remoteproc.c | 89 ++++++++++++++++++++++++++++
->>   1 file changed, 89 insertions(+)
->>
->> diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
->> index 557c439571c1..e429b2296d7a 100644
->> --- a/drivers/remoteproc/omap_remoteproc.c
->> +++ b/drivers/remoteproc/omap_remoteproc.c
->> @@ -39,11 +39,27 @@ struct omap_rproc_boot_data {
->>   	unsigned int boot_reg;
->>   };
->>   
->> +/**
->> + * struct omap_rproc_mem - internal memory structure
->> + * @cpu_addr: MPU virtual address of the memory region
->> + * @bus_addr: bus address used to access the memory region
->> + * @dev_addr: device address of the memory region from DSP view
->> + * @size: size of the memory region
->> + */
->> +struct omap_rproc_mem {
->> +	void __iomem *cpu_addr;
->> +	phys_addr_t bus_addr;
->> +	u32 dev_addr;
->> +	size_t size;
->> +};
->> +
->>   /**
->>    * struct omap_rproc - omap remote processor state
->>    * @mbox: mailbox channel handle
->>    * @client: mailbox client to request the mailbox channel
->>    * @boot_data: boot data structure for setting processor boot address
->> + * @mem: internal memory regions data
->> + * @num_mems: number of internal memory regions
->>    * @rproc: rproc handle
->>    * @reset: reset handle
->>    */
->> @@ -51,16 +67,30 @@ struct omap_rproc {
->>   	struct mbox_chan *mbox;
->>   	struct mbox_client client;
->>   	struct omap_rproc_boot_data *boot_data;
->> +	struct omap_rproc_mem *mem;
->> +	int num_mems;
->>   	struct rproc *rproc;
->>   	struct reset_control *reset;
->>   };
->>   
->> +/**
->> + * struct omap_rproc_mem_data - memory definitions for an omap remote processor
->> + * @mem_name: name for this memory entry
->> + * @dev_addr: device address for the memory entry
->> + */
->> +struct omap_rproc_mem_data {
->> +	const char *name;
->> +	const u32 dev_addr;
->> +};
->> +
->>   /**
->>    * struct omap_rproc_dev_data - device data for the omap remote processor
->>    * @device_name: device name of the remote processor
->> + * @mems: memory definitions for this remote processor
->>    */
->>   struct omap_rproc_dev_data {
->>   	const char *device_name;
->> +	const struct omap_rproc_mem_data *mems;
->>   };
->>   
->>   /**
->> @@ -221,12 +251,18 @@ static const struct rproc_ops omap_rproc_ops = {
->>   	.kick		= omap_rproc_kick,
->>   };
->>   
->> +static const struct omap_rproc_mem_data ipu_mems[] = {
->> +	{ .name = "l2ram", .dev_addr = 0x20000000 },
->> +	{ },
->> +};
->> +
->>   static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
->>   	.device_name	= "dsp",
->>   };
->>   
->>   static const struct omap_rproc_dev_data omap4_ipu_dev_data = {
->>   	.device_name	= "ipu",
->> +	.mems		= ipu_mems,
->>   };
->>   
->>   static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
->> @@ -235,6 +271,7 @@ static const struct omap_rproc_dev_data omap5_dsp_dev_data = {
->>   
->>   static const struct omap_rproc_dev_data omap5_ipu_dev_data = {
->>   	.device_name	= "ipu",
->> +	.mems		= ipu_mems,
->>   };
->>   
->>   static const struct of_device_id omap_rproc_of_match[] = {
->> @@ -309,6 +346,54 @@ static int omap_rproc_get_boot_data(struct platform_device *pdev,
->>   	return 0;
->>   }
->>   
->> +static int omap_rproc_of_get_internal_memories(struct platform_device *pdev,
->> +					       struct rproc *rproc)
->> +{
->> +	struct omap_rproc *oproc = rproc->priv;
->> +	struct device *dev = &pdev->dev;
->> +	const struct omap_rproc_dev_data *data;
->> +	struct resource *res;
->> +	int num_mems;
->> +	int i;
->> +
->> +	data = of_device_get_match_data(&pdev->dev);
->> +	if (!data)
->> +		return -ENODEV;
->> +
->> +	if (!data->mems)
->> +		return 0;
->> +
->> +	for (num_mems = 0; data->mems[num_mems].name; num_mems++)
->> +		;
+> drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
+> drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may be used
+> uninitialized in this function [-Wmaybe-uninitialized]
 > 
-> Think you can restore back the ARRAY_SIZE here? Don't think you need the
-> sentinel in the names either.
+> On boot we now get:
+> 
+> Unable to handle kernel NULL pointer dereference at virtual address
+> 00000004
+> ...
+> (omap_dm_timer_probe) from [<c061ac7c>] (platform_drv_probe+0x48/0x98)
+> (platform_drv_probe) from [<c0618c04>] (really_probe+0x1dc/0x348)
+> (really_probe) from [<c0618ef4>] (driver_probe_device+0x5c/0x160)
+> 
+> Let's fix the issue by moving platform_get_irq to happen after timer has
+> been allocated.
+> 
+> Fixes: 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to platform_get_irq")
+> Cc: Yangtao Li <tiny.windzz@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
 
-Can't do that. There is nothing to use the ARRAY_SIZE against here. I 
-either need to have the ARRAY_SIZE embedded in the device data, or have 
-the sentinel. Having the sentinel is cleaner.
+Applied, thanks.
 
-> 
->> +
->> +	oproc->mem = devm_kcalloc(dev, num_mems, sizeof(*oproc->mem),
->> +				  GFP_KERNEL);
->> +	if (!oproc->mem)
->> +		return -ENOMEM;
->> +
->> +	for (i = 0; i < num_mems; i++) {
->> +		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
->> +						   data->mems[i].name);
->> +		oproc->mem[i].cpu_addr = devm_ioremap_resource(dev, res);
->> +		if (IS_ERR(oproc->mem[i].cpu_addr)) {
->> +			dev_err(dev, "failed to parse and map %s memory\n",
->> +				data->mems[i].name);
->> +			return PTR_ERR(oproc->mem[i].cpu_addr);
->> +		}
->> +		oproc->mem[i].bus_addr = res->start;
->> +		oproc->mem[i].dev_addr = data->mems[i].dev_addr;
->> +		oproc->mem[i].size = resource_size(res);
->> +
->> +		dev_dbg(dev, "memory %8s: bus addr %pa size 0x%x va %p da 0x%x\n",
-> 
-> Would appreciate if you can fix up to use %pK here.
 
-Ok, can change those.
 
--Tero
+-- 
+ <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
 
-> 
-> regards
-> Suman
-> 
->> +			data->mems[i].name, &oproc->mem[i].bus_addr,
->> +			oproc->mem[i].size, oproc->mem[i].cpu_addr,
->> +			oproc->mem[i].dev_addr);
->> +	}
->> +	oproc->num_mems = num_mems;
->> +
->> +	return 0;
->> +}
->> +
->>   static int omap_rproc_probe(struct platform_device *pdev)
->>   {
->>   	struct device_node *np = pdev->dev.of_node;
->> @@ -348,6 +433,10 @@ static int omap_rproc_probe(struct platform_device *pdev)
->>   	/* All existing OMAP IPU and DSP processors have an MMU */
->>   	rproc->has_iommu = true;
->>   
->> +	ret = omap_rproc_of_get_internal_memories(pdev, rproc);
->> +	if (ret)
->> +		goto free_rproc;
->> +
->>   	ret = omap_rproc_get_boot_data(pdev, rproc);
->>   	if (ret)
->>   		goto free_rproc;
->>
-> 
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
