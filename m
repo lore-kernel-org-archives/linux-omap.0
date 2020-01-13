@@ -1,45 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 0/4] Use ARM SMC Calling Convention when OP-TEE is
- available
-Date: Mon, 13 Jan 2020 10:05:58 -0800
-Message-ID: <20200113180558.GM5885@atomide.com>
-References: <20200102211943.20480-1-afd@ti.com>
+Subject: Re: [PATCH v3 2/2] ARM: dts: Add omap3-echo
+Date: Mon, 13 Jan 2020 10:15:42 -0800
+Message-ID: <20200113181542.GN5885@atomide.com>
+References: <20200102214304.8225-1-nerv@dawncrow.de>
+ <20200102214304.8225-2-nerv@dawncrow.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:50764 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:50776 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726878AbgAMSGB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 13 Jan 2020 13:06:01 -0500
+        id S1728680AbgAMSPq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 13 Jan 2020 13:15:46 -0500
 Content-Disposition: inline
-In-Reply-To: <20200102211943.20480-1-afd@ti.com>
+In-Reply-To: <20200102214304.8225-2-nerv@dawncrow.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?utf-8?B?QW5kcsOp?= Hentschel <nerv@dawncrow.de>
+Cc: linux@arm.linux.org.uk, robh+dt@kernel.org, mark.rutland@arm.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Andrew F. Davis <afd@ti.com> [200102 21:20]:
-> Hello all,
+* André Hentschel <nerv@dawncrow.de> [200102 21:44]:
+> This is the first generation Amazon Echo from 2016.
+> Audio support is not yet implemented.
 > 
-> This is the reworked patch turned into a series to allow upstream kernels
-> to make use of OP-TEE on the OMAP2+ platform.
+> Signed-off-by: André Hentschel <nerv@dawncrow.de>
+> ---
 > 
-> Thanks,
-> Andrew
-> 
-> Changes from v1:
->  - Split into logical patches
->  - Check for OP-TEE in DT only once
->  - Check the OP-TEE node is "okay"
-> 
-> Changes from v2:
->  - Add HS patch using 'optee_available'
-> 
-> Changes from v3:
->  - Add comments as suggested by Tony and Lokesh
+> v2: Don't disable sgx, as the previous patch changes dtsi files accordingly
+> v3: Include dm3725.dtsi
 
-Thanks applying into omap-for-v5.6/soc.
-
-Regards,
+Thanks applying both into omap-for-v5.6/dt.
 
 Tony
