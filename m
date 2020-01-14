@@ -1,116 +1,98 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "spi: spi-ti-qspi: support large flash devices" to the spi tree
-Date: Tue, 14 Jan 2020 16:09:25 +0000 (GMT)
-Message-ID: <applied-20200114124125.361429-2-jean.pihet@newoldbits.com>
-References: <20200114124125.361429-2-jean.pihet@newoldbits.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] ARM: dts: Configure omap5 AESS
+Date: Tue, 14 Jan 2020 17:37:40 +0100
+Message-ID: <52905C15-A2D1-4372-9781-D602D0B274B6@goldelico.com>
+References: <20200114150937.18304-1-tony@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from heliosphere.sirena.org.uk ([172.104.155.198]:37846 "EHLO
-        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729224AbgANQJd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2020 11:09:33 -0500
-In-Reply-To: <20200114124125.361429-2-jean.pihet@newoldbits.com>
+Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.50]:8014 "EHLO
+        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726195AbgANQhs (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2020 11:37:48 -0500
+In-Reply-To: <20200114150937.18304-1-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Arnout Vandecappelle <arnout.vandecappelle@essensium.com>, Conrad Ratschan <conrad.ratschan@rockwellcollins.com>, linux-omap@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Ryan Barnett <ryan.barnett@rockwellcollins.com>, Tony Lindgren <tony@atomide.com>, Vignesh Raghavendra <vigneshr@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, Matthijs van Duin <matthijsvanduin@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-The patch
+Hi Tony,
 
-   spi: spi-ti-qspi: support large flash devices
+> Am 14.01.2020 um 16:09 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> We are missing AESS for omap5. Looks like it's similar to what we have
+> for omap4, and this gets ti-sysc interconnect target module driver to
+> detect it properly.
+>=20
+> Note that we currently have no child device driver available for it.
 
-has been applied to the spi tree at
+What I have is a non-working and no more compiling driver originally =
+written by
+Peter Ujfalusi and reworked by Andrej Utkin. We did have it almost =
+running on
+v4.14 or so except problems with firmware versions and headers...
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-5.6
+There we used classical hwmods and I could revert them now to try your =
+new patches.
+Unfortunately, I could only compile-test your two patches but nothing =
+with AESS.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+We had tried to follow kernel API changes in the sound subsystem but =
+today it is
+not even compiling any more :(
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+So getting a working device driver is an even bigger task than SGX was.
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+>=20
+> Cc: H. Nikolaus Schaller <hns@goldelico.com>
+> Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>=20
+> Note that this depends on "[PATCH] clk: ti: omap5: Add missing AESS =
+clock".
+>=20
+> arch/arm/boot/dts/omap5-l4-abe.dtsi | 16 ++++++++++++++--
+> 1 file changed, 14 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/omap5-l4-abe.dtsi =
+b/arch/arm/boot/dts/omap5-l4-abe.dtsi
+> --- a/arch/arm/boot/dts/omap5-l4-abe.dtsi
+> +++ b/arch/arm/boot/dts/omap5-l4-abe.dtsi
+> @@ -426,8 +426,20 @@ target-module@c0000 {			/* =
+0x401c0000, ap 30 1e.0 */
+> 		};
+>=20
+> 		target-module@f1000 {			/* 0x401f1000, =
+ap 32 20.0 */
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+Here its may be good to have an "aess" label.
 
-Thanks,
-Mark
+> -			compatible =3D "ti,sysc";
+> -			status =3D "disabled";
+> +			compatible =3D "ti,sysc-omap4", "ti,sysc";
+> +			reg =3D <0xf1000 0x4>,
+> +			      <0xf1010 0x4>;
+> +			reg-names =3D "rev", "sysc";
+> +			ti,sysc-midle =3D <SYSC_IDLE_FORCE>,
+> +					<SYSC_IDLE_NO>,
+> +					<SYSC_IDLE_SMART>,
+> +					<SYSC_IDLE_SMART_WKUP>;
+> +			ti,sysc-sidle =3D <SYSC_IDLE_FORCE>,
+> +					<SYSC_IDLE_NO>,
+> +					<SYSC_IDLE_SMART>;
+> +			/* Domains (V, P, C): iva, abe_pwrdm, abe_clkdm =
+*/
+> +			clocks =3D <&abe_clkctrl OMAP5_AESS_CLKCTRL 0>;
+> +			clock-names =3D "fck";
+> 			#address-cells =3D <1>;
+> 			#size-cells =3D <1>;
+> 			ranges =3D <0x0 0xf1000 0x1000>,
+> --=20
+> 2.24.1
 
->From e97f491450805fe6cbfd482b97b5427b21dec575 Mon Sep 17 00:00:00 2001
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Date: Tue, 14 Jan 2020 13:41:24 +0100
-Subject: [PATCH] spi: spi-ti-qspi: support large flash devices
-
-The TI QSPI IP has limitations:
-- the MMIO region is 64MB in size
-- in non-MMIO mode, the transfer can handle 4096 words max.
-
-Add support for bigger devices.
-Use MMIO and DMA transfers below the 64MB boundary, use
-software generated transfers above.
-
-Signed-off-by: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Ryan Barnett <ryan.barnett@rockwellcollins.com>
-Cc: Conrad Ratschan <conrad.ratschan@rockwellcollins.com>
-Cc: Arnout Vandecappelle <arnout.vandecappelle@essensium.com>
-Link: https://lore.kernel.org/r/20200114124125.361429-2-jean.pihet@newoldbits.com
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/spi/spi-ti-qspi.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
-
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index ad2942b3d0a9..0334e2926998 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -525,6 +525,35 @@ static void ti_qspi_setup_mmap_read(struct spi_device *spi, u8 opcode,
- 		      QSPI_SPI_SETUP_REG(spi->chip_select));
- }
- 
-+static int ti_qspi_adjust_op_size(struct spi_mem *mem, struct spi_mem_op *op)
-+{
-+	struct ti_qspi *qspi = spi_controller_get_devdata(mem->spi->master);
-+	size_t max_len;
-+
-+	if (op->data.dir == SPI_MEM_DATA_IN) {
-+		if (op->addr.val < qspi->mmap_size) {
-+			/* Limit MMIO to the mmaped region */
-+			if (op->addr.val + op->data.nbytes > qspi->mmap_size) {
-+				max_len = qspi->mmap_size - op->addr.val;
-+				op->data.nbytes = min((size_t) op->data.nbytes,
-+						      max_len);
-+			}
-+		} else {
-+			/*
-+			 * Use fallback mode (SW generated transfers) above the
-+			 * mmaped region.
-+			 * Adjust size to comply with the QSPI max frame length.
-+			 */
-+			max_len = QSPI_FRAME;
-+			max_len -= 1 + op->addr.nbytes + op->dummy.nbytes;
-+			op->data.nbytes = min((size_t) op->data.nbytes,
-+					      max_len);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int ti_qspi_exec_mem_op(struct spi_mem *mem,
- 			       const struct spi_mem_op *op)
- {
-@@ -575,6 +604,7 @@ static int ti_qspi_exec_mem_op(struct spi_mem *mem,
- 
- static const struct spi_controller_mem_ops ti_qspi_mem_ops = {
- 	.exec_op = ti_qspi_exec_mem_op,
-+	.adjust_op_size = ti_qspi_adjust_op_size,
- };
- 
- static int ti_qspi_start_transfer_one(struct spi_master *master,
--- 
-2.20.1
+BR and thanks,
+Nikolaus=
