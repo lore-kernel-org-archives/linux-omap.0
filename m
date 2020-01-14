@@ -1,66 +1,152 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch v3 0/3] ARM: dts: am43x-vpfe/ov2659.patch
-Date: Tue, 14 Jan 2020 08:04:22 -0800
-Message-ID: <20200114160422.GQ5885@atomide.com>
-References: <20191211140720.10539-1-bparrot@ti.com>
- <20191212174123.GF35479@atomide.com>
- <c4ae58dc-3c81-f493-a665-6926baa0f04c@ti.com>
- <20191213152938.GK35479@atomide.com>
- <20200113165413.i6nbi2i7xyue4fti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20200113165413.i6nbi2i7xyue4fti@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: spi-ti-qspi: optimize byte-transfers" to the spi tree
+Date: Tue, 14 Jan 2020 16:09:25 +0000 (GMT)
+Message-ID: <applied-20200114124125.361429-3-jean.pihet@newoldbits.com>
+References: <20200114124125.361429-3-jean.pihet@newoldbits.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:37840 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728879AbgANQJc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2020 11:09:32 -0500
+In-Reply-To: <20200114124125.361429-3-jean.pihet@newoldbits.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Arnout Vandecappelle <arnout.vandecappelle@essensium.com>, Conrad Ratschan <conrad.ratschan@rockwellcollins.com>, linux-omap@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Ryan Barnett <ryan.barnett@rockwellcollins.com>, Tony Lindgren <tony@atomide.com>, Vignesh Raghavendra <vigneshr@ti.com>
 
-* Benoit Parrot <bparrot@ti.com> [200113 16:51]:
-> Tony Lindgren <tony@atomide.com> wrote on Fri [2019-Dec-13 07:29:38 -0800]:
-> > * Tero Kristo <t-kristo@ti.com> [191213 07:43]:
-> > > On 12/12/2019 19:41, Tony Lindgren wrote:
-> > > > * Benoit Parrot <bparrot@ti.com> [191211 06:04]:
-> > > > > This patch series adds the missing camera endpoint (ov2659) as well as
-> > > > > the required source clocks nodes for the sensor.
-> > > > > 
-> > > > > On the am437x-sk-evm the camera sensor is sourced from clkout1 but that
-> > > > > clock nodes/tree was removed as it was unsed at the time, we are
-> > > > > re-adding the needed clock nodes here.
-> > > > 
-> > > > Tero, it seems I can already pick this series?
-> > > 
-> > > I believe it is ready if you approve the clkout1 clock patch.
-> > 
-> > OK yeah looks fine.
-> > 
-> > > > Or ou want to queue the changes to am43xx-clocks.dtsi along with all
-> > > > your other clock patches?
-> > > 
-> > > Well, I have actually never queued any omap2+ dts patches myself, and I
-> > > don't think there would be too many of those coming for next merge either.
-> > 
-> > OK will queue this series then. For the other ones from Benoit
-> > looks like we need an immutable clock branch before I can apply
-> > anything.
-> 
-> Tony, Tero,
-> 
-> Are these merged anyware now?
-> I still don't see any of these on linux-next?
+The patch
 
-Tero any news on getting some immutable clock changes branch done?
-Looks like there are quite a few pending clock patches right now,
-probably best to set them all into a branch that I can also merge
-in.
+   spi: spi-ti-qspi: optimize byte-transfers
 
-> And by "these" I mean this one and both
->  ARM: dts: dra7: add vpe nodes
->  ARM: dts: dra7: add cal nodes
+has been applied to the spi tree at
 
-Yeah looks good to me other than the clock dependency.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-5.6
 
-Regards,
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-Tony
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From e7cc5cfbea4c9bd2c452cb81d0829e9259dd84d8 Mon Sep 17 00:00:00 2001
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Date: Tue, 14 Jan 2020 13:41:25 +0100
+Subject: [PATCH] spi: spi-ti-qspi: optimize byte-transfers
+
+Optimize the 8-bit based transfers, as used by the SPI flash
+devices, by reading the data registers by 32 and 128 bits when
+possible and copy the contents to the receive buffer.
+
+The speed improvement is 4.9x using quad read.
+
+Signed-off-by: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Ryan Barnett <ryan.barnett@rockwellcollins.com>
+Cc: Conrad Ratschan <conrad.ratschan@rockwellcollins.com>
+Cc: Arnout Vandecappelle <arnout.vandecappelle@essensium.com>
+Link: https://lore.kernel.org/r/20200114124125.361429-3-jean.pihet@newoldbits.com
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-ti-qspi.c | 54 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 51 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+index 0334e2926998..858fda8ac73e 100644
+--- a/drivers/spi/spi-ti-qspi.c
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -314,6 +314,8 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
+ {
+ 	int wlen;
+ 	unsigned int cmd;
++	u32 rx;
++	u8 rxlen, rx_wlen;
+ 	u8 *rxbuf;
+ 
+ 	rxbuf = t->rx_buf;
+@@ -336,14 +338,60 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
+ 		if (qspi_is_busy(qspi))
+ 			return -EBUSY;
+ 
++		switch (wlen) {
++		case 1:
++			/*
++			 * Optimize the 8-bit words transfers, as used by
++			 * the SPI flash devices.
++			 */
++			if (count >= QSPI_WLEN_MAX_BYTES) {
++				rxlen = QSPI_WLEN_MAX_BYTES;
++			} else {
++				rxlen = min(count, 4);
++			}
++			rx_wlen = rxlen << 3;
++			cmd &= ~QSPI_WLEN_MASK;
++			cmd |= QSPI_WLEN(rx_wlen);
++			break;
++		default:
++			rxlen = wlen;
++			break;
++		}
++
+ 		ti_qspi_write(qspi, cmd, QSPI_SPI_CMD_REG);
+ 		if (ti_qspi_poll_wc(qspi)) {
+ 			dev_err(qspi->dev, "read timed out\n");
+ 			return -ETIMEDOUT;
+ 		}
++
+ 		switch (wlen) {
+ 		case 1:
+-			*rxbuf = readb(qspi->base + QSPI_SPI_DATA_REG);
++			/*
++			 * Optimize the 8-bit words transfers, as used by
++			 * the SPI flash devices.
++			 */
++			if (count >= QSPI_WLEN_MAX_BYTES) {
++				u32 *rxp = (u32 *) rxbuf;
++				rx = readl(qspi->base + QSPI_SPI_DATA_REG_3);
++				*rxp++ = be32_to_cpu(rx);
++				rx = readl(qspi->base + QSPI_SPI_DATA_REG_2);
++				*rxp++ = be32_to_cpu(rx);
++				rx = readl(qspi->base + QSPI_SPI_DATA_REG_1);
++				*rxp++ = be32_to_cpu(rx);
++				rx = readl(qspi->base + QSPI_SPI_DATA_REG);
++				*rxp++ = be32_to_cpu(rx);
++			} else {
++				u8 *rxp = rxbuf;
++				rx = readl(qspi->base + QSPI_SPI_DATA_REG);
++				if (rx_wlen >= 8)
++					*rxp++ = rx >> (rx_wlen - 8);
++				if (rx_wlen >= 16)
++					*rxp++ = rx >> (rx_wlen - 16);
++				if (rx_wlen >= 24)
++					*rxp++ = rx >> (rx_wlen - 24);
++				if (rx_wlen >= 32)
++					*rxp++ = rx;
++			}
+ 			break;
+ 		case 2:
+ 			*((u16 *)rxbuf) = readw(qspi->base + QSPI_SPI_DATA_REG);
+@@ -352,8 +400,8 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
+ 			*((u32 *)rxbuf) = readl(qspi->base + QSPI_SPI_DATA_REG);
+ 			break;
+ 		}
+-		rxbuf += wlen;
+-		count -= wlen;
++		rxbuf += rxlen;
++		count -= rxlen;
+ 	}
+ 
+ 	return 0;
+-- 
+2.20.1
