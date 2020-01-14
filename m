@@ -1,116 +1,85 @@
 From: Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
-Subject: [PATCH 2/2] spi: spi-ti-qspi: optimize byte-transfers
-Date: Tue, 14 Jan 2020 13:41:25 +0100
-Message-ID: <20200114124125.361429-3-jean.pihet@newoldbits.com>
-References: <20200114124125.361429-1-jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/3] spi: spi-ti-qspi: support large flash devices
+Date: Tue, 14 Jan 2020 13:44:42 +0100
+Message-ID: <CAORVsuUdLgZWfKdk+VBhYBbxaQbmkgvmqdsR_YcK9WtiERsesA@mail.gmail.com>
+References: <20191211193954.747745-1-jean.pihet@newoldbits.com>
+ <20191211193954.747745-3-jean.pihet@newoldbits.com> <20191220130830.GH4790@sirena.org.uk>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20200114124125.361429-1-jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
+In-Reply-To: <20191220130830.GH4790-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
 Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Vignesh Raghavendra <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ryan Barnett <ryan.barnett-lFk7bPDcGtkY5TsXZYaR1UEOCMrvLtNR@public.gmane.org>, Conrad Ratschan <conrad.ratschan-lFk7bPDcGtkY5TsXZYaR1UEOCMrvLtNR@public.gmane.org>, Arnout Vandecappelle <arnout.vandecappelle-buIOx9BAs4sybS5Ee8rs3A@public.gmane.org>, Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Vignesh Raghavendra <vigneshr-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ryan Barnett <ryan.barnett-lFk7bPDcGtkY5TsXZYaR1UEOCMrvLtNR@public.gmane.org>, Conrad Ratschan <conrad.ratschan-lFk7bPDcGtkY5TsXZYaR1UEOCMrvLtNR@public.gmane.org>, Arnout Vandecappelle <arnout.vandecappelle-buIOx9BAs4sybS5Ee8rs3A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Optimize the 8-bit based transfers, as used by the SPI flash
-devices, by reading the data registers by 32 and 128 bits when
-possible and copy the contents to the receive buffer.
+Hi Mark,
 
-The speed improvement is 4.9x using quad read.
+On Fri, Dec 20, 2019 at 2:08 PM Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>
+> On Wed, Dec 11, 2019 at 08:39:53PM +0100, Jean Pihet wrote:
+>
+> > +                     if (op->addr.val + op->data.nbytes > qspi->mmap_s=
+ize) {
+> > +                             max_len =3D qspi->mmap_size - op->addr.va=
+l;
+> > +                             op->data.nbytes =3D min(op->data.nbytes, =
+max_len);
+> > +                     }
+>
+> This introduces a massive warning splat for me (just one warning but
+> it's very verbose):
+>
+>   CC      drivers/spi/spi-ti-qspi.o
+> In file included from drivers/spi/spi-ti-qspi.c:9:
+> drivers/spi/spi-ti-qspi.c: In function =E2=80=98ti_qspi_adjust_op_size=E2=
+=80=99:
+> ./include/linux/kernel.h:844:29: warning: comparison of distinct pointer =
+types lacks a cast
+>    (!!(sizeof((typeof(x) *)1 =3D=3D (typeof(y) *)1)))
+>                              ^~
+> ./include/linux/kernel.h:858:4: note: in expansion of macro =E2=80=98__ty=
+pecheck=E2=80=99
+>    (__typecheck(x, y) && __no_side_effects(x, y))
+>     ^~~~~~~~~~~
+> ./include/linux/kernel.h:868:24: note: in expansion of macro =E2=80=98__s=
+afe_cmp=E2=80=99
+>   __builtin_choose_expr(__safe_cmp(x, y), \
+>                         ^~~~~~~~~~
+> ./include/linux/kernel.h:877:19: note: in expansion of macro =E2=80=98__c=
+areful_cmp=E2=80=99
+>  #define min(x, y) __careful_cmp(x, y, <)
+>                    ^~~~~~~~~~~~~
+> drivers/spi/spi-ti-qspi.c:535:23: note: in expansion of macro =E2=80=98mi=
+n=E2=80=99
+>      op->data.nbytes =3D min(op->data.nbytes, max_len);
+>                        ^~~
+> ./include/linux/kernel.h:844:29: warning: comparison of distinct pointer =
+types lacks a cast
+>    (!!(sizeof((typeof(x) *)1 =3D=3D (typeof(y) *)1)))
+>                              ^~
+> ./include/linux/kernel.h:858:4: note: in expansion of macro =E2=80=98__ty=
+pecheck=E2=80=99
+>    (__typecheck(x, y) && __no_side_effects(x, y))
+>     ^~~~~~~~~~~
+> ./include/linux/kernel.h:868:24: note: in expansion of macro =E2=80=98__s=
+afe_cmp=E2=80=99
+>   __builtin_choose_expr(__safe_cmp(x, y), \
+>                         ^~~~~~~~~~
+> ./include/linux/kernel.h:877:19: note: in expansion of macro =E2=80=98__c=
+areful_cmp=E2=80=99
+>  #define min(x, y) __careful_cmp(x, y, <)
+>                    ^~~~~~~~~~~~~
+> drivers/spi/spi-ti-qspi.c:545:22: note: in expansion of macro =E2=80=98mi=
+n=E2=80=99
+>     op->data.nbytes =3D min(op->data.nbytes, max_len);
+>                       ^~~
+>
+> Using compilers from Debian stable.
 
-Signed-off-by: Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
-Cc: Ryan Barnett <ryan.barnett-lFk7bPDcGtkY5TsXZYaR1UEOCMrvLtNR@public.gmane.org>
-Cc: Conrad Ratschan <conrad.ratschan-lFk7bPDcGtkY5TsXZYaR1UEOCMrvLtNR@public.gmane.org>
-Cc: Arnout Vandecappelle <arnout.vandecappelle-buIOx9BAs4sybS5Ee8rs3A@public.gmane.org>
----
- drivers/spi/spi-ti-qspi.c | 54 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 51 insertions(+), 3 deletions(-)
+A new v3 release has been submitted, with the warnings fixed with
+CONFIG_COMPILE_TEST enabled.
 
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 0334e2926998..858fda8ac73e 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -314,6 +314,8 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
- {
- 	int wlen;
- 	unsigned int cmd;
-+	u32 rx;
-+	u8 rxlen, rx_wlen;
- 	u8 *rxbuf;
- 
- 	rxbuf = t->rx_buf;
-@@ -336,14 +338,60 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
- 		if (qspi_is_busy(qspi))
- 			return -EBUSY;
- 
-+		switch (wlen) {
-+		case 1:
-+			/*
-+			 * Optimize the 8-bit words transfers, as used by
-+			 * the SPI flash devices.
-+			 */
-+			if (count >= QSPI_WLEN_MAX_BYTES) {
-+				rxlen = QSPI_WLEN_MAX_BYTES;
-+			} else {
-+				rxlen = min(count, 4);
-+			}
-+			rx_wlen = rxlen << 3;
-+			cmd &= ~QSPI_WLEN_MASK;
-+			cmd |= QSPI_WLEN(rx_wlen);
-+			break;
-+		default:
-+			rxlen = wlen;
-+			break;
-+		}
-+
- 		ti_qspi_write(qspi, cmd, QSPI_SPI_CMD_REG);
- 		if (ti_qspi_poll_wc(qspi)) {
- 			dev_err(qspi->dev, "read timed out\n");
- 			return -ETIMEDOUT;
- 		}
-+
- 		switch (wlen) {
- 		case 1:
--			*rxbuf = readb(qspi->base + QSPI_SPI_DATA_REG);
-+			/*
-+			 * Optimize the 8-bit words transfers, as used by
-+			 * the SPI flash devices.
-+			 */
-+			if (count >= QSPI_WLEN_MAX_BYTES) {
-+				u32 *rxp = (u32 *) rxbuf;
-+				rx = readl(qspi->base + QSPI_SPI_DATA_REG_3);
-+				*rxp++ = be32_to_cpu(rx);
-+				rx = readl(qspi->base + QSPI_SPI_DATA_REG_2);
-+				*rxp++ = be32_to_cpu(rx);
-+				rx = readl(qspi->base + QSPI_SPI_DATA_REG_1);
-+				*rxp++ = be32_to_cpu(rx);
-+				rx = readl(qspi->base + QSPI_SPI_DATA_REG);
-+				*rxp++ = be32_to_cpu(rx);
-+			} else {
-+				u8 *rxp = rxbuf;
-+				rx = readl(qspi->base + QSPI_SPI_DATA_REG);
-+				if (rx_wlen >= 8)
-+					*rxp++ = rx >> (rx_wlen - 8);
-+				if (rx_wlen >= 16)
-+					*rxp++ = rx >> (rx_wlen - 16);
-+				if (rx_wlen >= 24)
-+					*rxp++ = rx >> (rx_wlen - 24);
-+				if (rx_wlen >= 32)
-+					*rxp++ = rx;
-+			}
- 			break;
- 		case 2:
- 			*((u16 *)rxbuf) = readw(qspi->base + QSPI_SPI_DATA_REG);
-@@ -352,8 +400,8 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
- 			*((u32 *)rxbuf) = readl(qspi->base + QSPI_SPI_DATA_REG);
- 			break;
- 		}
--		rxbuf += wlen;
--		count -= wlen;
-+		rxbuf += rxlen;
-+		count -= rxlen;
- 	}
- 
- 	return 0;
--- 
-2.24.1
+Thanks,
+Jean
