@@ -1,82 +1,75 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] clk: ti: omap5: Add missing AESS clock
-Date: Wed, 15 Jan 2020 10:56:08 +0200
-Message-ID: <23f9723b-cb9e-8737-92c5-4c20bed55cf5@ti.com>
-References: <20200114150607.18092-1-tony@atomide.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] OMAP: DSS2: remove non-zero check on variable r
+Date: Wed, 15 Jan 2020 16:42:40 +0100
+Message-ID: <6a3951c7-4b17-6371-24ab-17742aeaa464@samsung.com>
+References: <CGME20191204152851epcas5p413006712eafa500de3013c2ce8a3bc02@epcas5p4.samsung.com>
+        <20191204152847.1435188-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20200114150607.18092-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:33030 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728963AbgAOPmo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2020 10:42:44 -0500
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20200115154242euoutp02691bfe8290c8baa1dc885c1ab318e713~qGccl6DIi1726017260euoutp02S
+        for <linux-omap@vger.kernel.org>; Wed, 15 Jan 2020 15:42:42 +0000 (GMT)
+In-Reply-To: <20191204152847.1435188-1-colin.king@canonical.com>
 Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "H . Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
+On 12/4/19 4:28 PM, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> Variable r is being initialized to zero, so the check of a non-zero
+> rv is redundant and can be removed.
+> 
+> It appears that the previous case statements set r to be -EINVAL
+> and the "Fallthrough" comment afterwards suggested it was going
+> to fall through to this non-zero check but won't because of the
+> break statement. Remove the confusion by removing the Fallthrough
+> comment too.
+> 
+> Addresses-Coverity: ("Logically dead code")
+> Fixes: b39a982ddecf ("OMAP: DSS2: omapfb driver")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-On 14/01/2020 17.06, Tony Lindgren wrote:
-> Looks like we're missing AESS clock for omap5. This is similar to what
-> omap4 has.
+Patch queued for v5.6, thanks.
+ 
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
-Reviewed-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-
-> Cc: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> Cc: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
->  drivers/clk/ti/clk-54xx.c         | 15 +++++++++++++++
->  include/dt-bindings/clock/omap5.h |  1 +
->  2 files changed, 16 insertions(+)
+>  drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 4 ----
+>  1 file changed, 4 deletions(-)
 > 
-> diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
-> --- a/drivers/clk/ti/clk-54xx.c
-> +++ b/drivers/clk/ti/clk-54xx.c
-> @@ -35,6 +35,20 @@ static const struct omap_clkctrl_reg_data omap5_dsp_clkctrl_regs[] __initconst =
->  	{ 0 },
->  };
->  
-> +static const char * const omap5_aess_fclk_parents[] __initconst = {
-> +	"abe_clk",
-> +	NULL,
-> +};
-> +
-> +static const struct omap_clkctrl_div_data omap5_aess_fclk_data __initconst = {
-> +	.max_div = 2,
-> +};
-> +
-> +static const struct omap_clkctrl_bit_data omap5_aess_bit_data[] __initconst = {
-> +	{ 24, TI_CLK_DIVIDER, omap5_aess_fclk_parents, &omap5_aess_fclk_data },
-> +	{ 0 },
-> +};
-> +
->  static const char * const omap5_dmic_gfclk_parents[] __initconst = {
->  	"abe_cm:clk:0018:26",
->  	"pad_clks_ck",
-> @@ -122,6 +136,7 @@ static const struct omap_clkctrl_bit_data omap5_timer8_bit_data[] __initconst =
->  
->  static const struct omap_clkctrl_reg_data omap5_abe_clkctrl_regs[] __initconst = {
->  	{ OMAP5_L4_ABE_CLKCTRL, NULL, 0, "abe_iclk" },
-> +	{ OMAP5_AESS_CLKCTRL, omap5_aess_bit_data, CLKF_SW_SUP, "abe_cm:clk:0008:24" },
->  	{ OMAP5_MCPDM_CLKCTRL, NULL, CLKF_SW_SUP, "pad_clks_ck" },
->  	{ OMAP5_DMIC_CLKCTRL, omap5_dmic_bit_data, CLKF_SW_SUP, "abe_cm:clk:0018:24" },
->  	{ OMAP5_MCBSP1_CLKCTRL, omap5_mcbsp1_bit_data, CLKF_SW_SUP, "abe_cm:clk:0028:24" },
-> diff --git a/include/dt-bindings/clock/omap5.h b/include/dt-bindings/clock/omap5.h
-> --- a/include/dt-bindings/clock/omap5.h
-> +++ b/include/dt-bindings/clock/omap5.h
-> @@ -16,6 +16,7 @@
->  
->  /* abe clocks */
->  #define OMAP5_L4_ABE_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
-> +#define OMAP5_AESS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
->  #define OMAP5_MCPDM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
->  #define OMAP5_DMIC_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
->  #define OMAP5_MCBSP1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x48)
+> diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+> index 858c2c011d19..a2a2c1b205d9 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+> @@ -1154,16 +1154,12 @@ static int _setcolreg(struct fb_info *fbi, u_int regno, u_int red, u_int green,
+>  		   r = fbdev->ctrl->setcolreg(regno, red, green, blue,
+>  		   transp, update_hw_pal);
+>  		   */
+> -		/* Fallthrough */
+>  		r = -EINVAL;
+>  		break;
+>  	case OMAPFB_COLOR_RGB565:
+>  	case OMAPFB_COLOR_RGB444:
+>  	case OMAPFB_COLOR_RGB24P:
+>  	case OMAPFB_COLOR_RGB24U:
+> -		if (r != 0)
+> -			break;
+> -
+>  		if (regno < 16) {
+>  			u32 pal;
+>  			pal = ((red >> (16 - var->red.length)) <<
 > 
-
-- Péter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
