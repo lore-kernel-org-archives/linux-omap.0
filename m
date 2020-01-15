@@ -1,90 +1,58 @@
-From: Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 09/11] mmc: sdhci-omap: Add ti,needs-special-reset
- property
-Date: Wed, 15 Jan 2020 14:14:05 +0200
-Message-ID: <df86859f-de3b-4419-02be-870b29b13a7a@intel.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v4 11/11] mmc: sdhci-omap: Add am335x and am437x specific
+ compatibles
+Date: Wed, 15 Jan 2020 14:14:28 +0200
+Message-ID: <7714819c-f850-082e-6ab4-be1ab3b8a248@intel.com>
 References: <20200106110133.13791-1-faiz_abbas@ti.com>
- <20200106110133.13791-10-faiz_abbas@ti.com>
+ <20200106110133.13791-12-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20200106110133.13791-10-faiz_abbas-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20200106110133.13791-12-faiz_abbas@ti.com>
 Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kishon-l0cyMroinI0@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Sender: linux-mmc-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: kishon@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
 On 6/01/20 1:01 pm, Faiz Abbas wrote:
-> Some omap controllers need software to monitor a 0->1->0 for software
-> reset. Add a ti,needs-special-reset property to indicate this and use
-> the special_reset member to indicate when a controller needs this.
+> Add support for new compatible for TI's am335x and am437x devices.
 > 
-> Signed-off-by: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 
-Acked-by: Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Acked-by: Adrian Hunter <adrian.hunter@intel.com>
 
 > ---
->  drivers/mmc/host/sdhci-omap.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+>  drivers/mmc/host/sdhci-omap.c | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
 > 
 > diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-> index 1f05c8e98d62..34df30edd450 100644
+> index 34df30edd450..4d7026daa8cd 100644
 > --- a/drivers/mmc/host/sdhci-omap.c
 > +++ b/drivers/mmc/host/sdhci-omap.c
-> @@ -107,6 +107,7 @@ struct sdhci_omap_host {
->  	struct pinctrl		*pinctrl;
->  	struct pinctrl_state	**pinctrl_state;
->  	bool			is_tuning;
-> +	bool			special_reset;
+> @@ -919,6 +919,14 @@ static const struct sdhci_omap_data k2g_data = {
+>  	.offset = 0x200,
 >  };
 >  
->  static void sdhci_omap_start_clock(struct sdhci_omap_host *omap_host);
-> @@ -779,15 +780,35 @@ static void sdhci_omap_set_uhs_signaling(struct sdhci_host *host,
->  	sdhci_omap_start_clock(omap_host);
->  }
->  
-> +#define MMC_TIMEOUT_US		20000		/* 20000 micro Sec */
->  static void sdhci_omap_reset(struct sdhci_host *host, u8 mask)
->  {
->  	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
->  	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
-> +	unsigned long limit = MMC_TIMEOUT_US;
-> +	unsigned long i = 0;
->  
->  	/* Don't reset data lines during tuning operation */
->  	if (omap_host->is_tuning)
->  		mask &= ~SDHCI_RESET_DATA;
->  
-> +	if (omap_host->special_reset) {
-> +		sdhci_writeb(host, mask, SDHCI_SOFTWARE_RESET);
-> +		while ((!(sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask)) &&
-> +		       (i++ < limit))
-> +			udelay(1);
-> +		i = 0;
-> +		while ((sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask) &&
-> +		       (i++ < limit))
-> +			udelay(1);
+> +static const struct sdhci_omap_data am335_data = {
+> +	.offset = 0x200,
+> +};
 > +
-> +		if (sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask)
-> +			dev_err(mmc_dev(host->mmc),
-> +				"Timeout waiting on controller reset in %s\n",
-> +				__func__);
-> +		return;
-> +	}
+> +static const struct sdhci_omap_data am437_data = {
+> +	.offset = 0x200,
+> +};
 > +
->  	sdhci_reset(host, mask);
->  }
->  
-> @@ -1107,6 +1128,9 @@ static int sdhci_omap_probe(struct platform_device *pdev)
->  	if (!mmc_can_gpio_ro(mmc))
->  		mmc->caps2 |= MMC_CAP2_NO_WRITE_PROTECT;
->  
-> +	if (of_find_property(dev->of_node, "ti,needs-special-reset", NULL))
-> +		omap_host->special_reset = true;
-> +
->  	pltfm_host->clk = devm_clk_get(dev, "fck");
->  	if (IS_ERR(pltfm_host->clk)) {
->  		ret = PTR_ERR(pltfm_host->clk);
+>  static const struct sdhci_omap_data dra7_data = {
+>  	.offset = 0x200,
+>  	.flags	= SDHCI_OMAP_REQUIRE_IODELAY,
+> @@ -927,6 +935,8 @@ static const struct sdhci_omap_data dra7_data = {
+>  static const struct of_device_id omap_sdhci_match[] = {
+>  	{ .compatible = "ti,dra7-sdhci", .data = &dra7_data },
+>  	{ .compatible = "ti,k2g-sdhci", .data = &k2g_data },
+> +	{ .compatible = "ti,am335-sdhci", .data = &am335_data },
+> +	{ .compatible = "ti,am437-sdhci", .data = &am437_data },
+>  	{},
+>  };
+>  MODULE_DEVICE_TABLE(of, omap_sdhci_match);
 > 
