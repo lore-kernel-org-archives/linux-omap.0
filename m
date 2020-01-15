@@ -1,58 +1,70 @@
 From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH v4 11/11] mmc: sdhci-omap: Add am335x and am437x specific
- compatibles
-Date: Wed, 15 Jan 2020 14:14:28 +0200
-Message-ID: <7714819c-f850-082e-6ab4-be1ab3b8a248@intel.com>
+Subject: Re: [PATCH v4 07/11] mmc: sdhci-omap: Disable data timeout interrupt
+ during erase
+Date: Wed, 15 Jan 2020 14:05:51 +0200
+Message-ID: <ebec95f9-006f-2a13-05df-8b473e121d31@intel.com>
 References: <20200106110133.13791-1-faiz_abbas@ti.com>
- <20200106110133.13791-12-faiz_abbas@ti.com>
+ <20200106110133.13791-8-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20200106110133.13791-12-faiz_abbas@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:64416 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726165AbgAOMGs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 15 Jan 2020 07:06:48 -0500
+In-Reply-To: <20200106110133.13791-8-faiz_abbas@ti.com>
 Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Faiz Abbas <faiz_abbas@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
 Cc: kishon@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, tony@atomide.com
-List-Id: linux-omap@vger.kernel.org
 
 On 6/01/20 1:01 pm, Faiz Abbas wrote:
-> Add support for new compatible for TI's am335x and am437x devices.
+> Disable data timeout interrupt during an erase operation
 > 
 > Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 
 Acked-by: Adrian Hunter <adrian.hunter@intel.com>
 
 > ---
->  drivers/mmc/host/sdhci-omap.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
+>  drivers/mmc/host/sdhci-omap.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 > 
 > diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-> index 34df30edd450..4d7026daa8cd 100644
+> index 84d85aa743da..1f05c8e98d62 100644
 > --- a/drivers/mmc/host/sdhci-omap.c
 > +++ b/drivers/mmc/host/sdhci-omap.c
-> @@ -919,6 +919,14 @@ static const struct sdhci_omap_data k2g_data = {
->  	.offset = 0x200,
+> @@ -7,6 +7,7 @@
+>   */
+>  
+>  #include <linux/delay.h>
+> +#include <linux/mmc/mmc.h>
+>  #include <linux/mmc/slot-gpio.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+> @@ -827,6 +828,15 @@ static u32 sdhci_omap_irq(struct sdhci_host *host, u32 intmask)
+>  	return intmask;
+>  }
+>  
+> +static void sdhci_omap_set_timeout(struct sdhci_host *host,
+> +				   struct mmc_command *cmd)
+> +{
+> +	if (cmd->opcode == MMC_ERASE)
+> +		sdhci_set_data_timeout_irq(host, false);
+> +
+> +	__sdhci_set_timeout(host, cmd);
+> +}
+> +
+>  static struct sdhci_ops sdhci_omap_ops = {
+>  	.set_clock = sdhci_omap_set_clock,
+>  	.set_power = sdhci_omap_set_power,
+> @@ -838,6 +848,7 @@ static struct sdhci_ops sdhci_omap_ops = {
+>  	.reset = sdhci_omap_reset,
+>  	.set_uhs_signaling = sdhci_omap_set_uhs_signaling,
+>  	.irq = sdhci_omap_irq,
+> +	.set_timeout = sdhci_omap_set_timeout,
 >  };
 >  
-> +static const struct sdhci_omap_data am335_data = {
-> +	.offset = 0x200,
-> +};
-> +
-> +static const struct sdhci_omap_data am437_data = {
-> +	.offset = 0x200,
-> +};
-> +
->  static const struct sdhci_omap_data dra7_data = {
->  	.offset = 0x200,
->  	.flags	= SDHCI_OMAP_REQUIRE_IODELAY,
-> @@ -927,6 +935,8 @@ static const struct sdhci_omap_data dra7_data = {
->  static const struct of_device_id omap_sdhci_match[] = {
->  	{ .compatible = "ti,dra7-sdhci", .data = &dra7_data },
->  	{ .compatible = "ti,k2g-sdhci", .data = &k2g_data },
-> +	{ .compatible = "ti,am335-sdhci", .data = &am335_data },
-> +	{ .compatible = "ti,am437-sdhci", .data = &am437_data },
->  	{},
->  };
->  MODULE_DEVICE_TABLE(of, omap_sdhci_match);
+>  static int sdhci_omap_set_capabilities(struct sdhci_omap_host *omap_host)
 > 
