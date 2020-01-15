@@ -1,114 +1,54 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 08/14] remoteproc/omap: remove the platform_data header
-Date: Wed, 15 Jan 2020 14:58:46 +0200
-Message-ID: <4a5d7320-1950-4ea8-19ee-3d09caeb3f80@ti.com>
-References: <20200102131845.12992-1-t-kristo@ti.com>
- <20200102131845.12992-9-t-kristo@ti.com>
- <4391856a-d956-751e-6d38-02f8306bb691@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] ARM: dts: Configure omap5 AESS
+Date: Wed, 15 Jan 2020 13:49:52 +0100
+Message-ID: <5E0BF30D-2723-4724-89E1-449230758EE2@goldelico.com>
+References: <20200114150937.18304-1-tony@atomide.com> <52905C15-A2D1-4372-9781-D602D0B274B6@goldelico.com> <20200114164613.GR5885@atomide.com> <D51230C4-2642-4388-959F-313A3382AB99@goldelico.com> <20200114171634.GS5885@atomide.com> <632E66D6-47EF-44CF-BF02-B0F5A215D904@goldelico.com> <ACB71118-B121-4CF7-934D-A88654366E8F@goldelico.com> <20200114210039.GT5885@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:50432 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726440AbgAOM6u (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2020 07:58:50 -0500
-In-Reply-To: <4391856a-d956-751e-6d38-02f8306bb691@ti.com>
-Content-Language: en-US
+Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.52]:8555 "EHLO
+        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726483AbgAOMuB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2020 07:50:01 -0500
+In-Reply-To: <20200114210039.GT5885@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, Matthijs van Duin <matthijsvanduin@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-On 08/01/2020 21:44, Suman Anna wrote:
-> On 1/2/20 7:18 AM, Tero Kristo wrote:
->> The platform data header for OMAP remoteproc is no longer used for
->> anything post ti-sysc conversion, so just remove it completely.
-> 
-> Thanks for removing the header now altogether,
-> %s/ti-sysc/ti-sysc and DT/ to be more accurate.
-> 
-> With that,
-> Acked-by: Suman Anna <s-anna@ti.com>
 
-Ok, will change that.
+> Am 14.01.2020 um 22:00 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> * H. Nikolaus Schaller <hns@goldelico.com> [200114 18:40]:
+>> I have checked our tree and it is already built into a separate =
+module with
+>>=20
+>> sound/soc/ti/aess/omap-aess-core.c:	{ .compatible =3D =
+"ti,omap4-aess", },
+>>=20
+>> So
+>>=20
+>>> target-module@f1000 {			/* 0x401f1000, ap 32 =
+20.0 */
+>>> 	...
+>>> 	aess: aess {
+>>> 		compatible =3D "ti,omap4-aess";
+>>> 		status =3D "disabled";
+>>> 	};
+>>> };
+>>=20
+>> would be what we will need.
+>=20
+> OK good to hear.
 
--Tero
+I have cleaned up my working tree and added your patches and the one
+above (without status =3D "disabled" and could
+a) boot well
+b) see that the (non-working) aess driver module is loaded through child =
+node
 
-> 
-> regards
-> Suman
-> 
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->> v4:
->>    - new patch, to remove the platform data file completely compared to
->>      patches #8 / #9 in previous version of the series
->>
->>   include/linux/platform_data/remoteproc-omap.h | 51 -------------------
->>   1 file changed, 51 deletions(-)
->>   delete mode 100644 include/linux/platform_data/remoteproc-omap.h
->>
->> diff --git a/include/linux/platform_data/remoteproc-omap.h b/include/linux/platform_data/remoteproc-omap.h
->> deleted file mode 100644
->> index 7e3a16097672..000000000000
->> --- a/include/linux/platform_data/remoteproc-omap.h
->> +++ /dev/null
->> @@ -1,51 +0,0 @@
->> -/* SPDX-License-Identifier: GPL-2.0-only */
->> -/*
->> - * Remote Processor - omap-specific bits
->> - *
->> - * Copyright (C) 2011 Texas Instruments, Inc.
->> - * Copyright (C) 2011 Google, Inc.
->> - */
->> -
->> -#ifndef _PLAT_REMOTEPROC_H
->> -#define _PLAT_REMOTEPROC_H
->> -
->> -struct rproc_ops;
->> -struct platform_device;
->> -
->> -/*
->> - * struct omap_rproc_pdata - omap remoteproc's platform data
->> - * @name: the remoteproc's name
->> - * @oh_name: omap hwmod device
->> - * @oh_name_opt: optional, secondary omap hwmod device
->> - * @firmware: name of firmware file to load
->> - * @mbox_name: name of omap mailbox device to use with this rproc
->> - * @ops: start/stop rproc handlers
->> - * @device_enable: omap-specific handler for enabling a device
->> - * @device_shutdown: omap-specific handler for shutting down a device
->> - * @set_bootaddr: omap-specific handler for setting the rproc boot address
->> - */
->> -struct omap_rproc_pdata {
->> -	const char *name;
->> -	const char *oh_name;
->> -	const char *oh_name_opt;
->> -	const char *firmware;
->> -	const char *mbox_name;
->> -	const struct rproc_ops *ops;
->> -	int (*device_enable)(struct platform_device *pdev);
->> -	int (*device_shutdown)(struct platform_device *pdev);
->> -	void (*set_bootaddr)(u32);
->> -};
->> -
->> -#if defined(CONFIG_OMAP_REMOTEPROC) || defined(CONFIG_OMAP_REMOTEPROC_MODULE)
->> -
->> -void __init omap_rproc_reserve_cma(void);
->> -
->> -#else
->> -
->> -static inline void __init omap_rproc_reserve_cma(void)
->> -{
->> -}
->> -
->> -#endif
->> -
->> -#endif /* _PLAT_REMOTEPROC_H */
->>
-> 
+So you can add my Tested-by: Nikolaus Schaller <hns@goldelico.com>
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+BR and thanks,
+Nikolaus
