@@ -1,54 +1,63 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] ARM: dts: Configure omap5 AESS
-Date: Wed, 15 Jan 2020 13:49:52 +0100
-Message-ID: <5E0BF30D-2723-4724-89E1-449230758EE2@goldelico.com>
-References: <20200114150937.18304-1-tony@atomide.com> <52905C15-A2D1-4372-9781-D602D0B274B6@goldelico.com> <20200114164613.GR5885@atomide.com> <D51230C4-2642-4388-959F-313A3382AB99@goldelico.com> <20200114171634.GS5885@atomide.com> <632E66D6-47EF-44CF-BF02-B0F5A215D904@goldelico.com> <ACB71118-B121-4CF7-934D-A88654366E8F@goldelico.com> <20200114210039.GT5885@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.52]:8555 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726483AbgAOMuB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2020 07:50:01 -0500
-In-Reply-To: <20200114210039.GT5885@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v4 05/11] mmc: sdhci: Convert sdhci_set_timeout_irq() to
+ non-static
+Date: Wed, 15 Jan 2020 14:03:13 +0200
+Message-ID: <4c534ec1-d673-2875-1a44-b3f7fc400b35@intel.com>
+References: <20200106110133.13791-1-faiz_abbas@ti.com>
+ <20200106110133.13791-6-faiz_abbas@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200106110133.13791-6-faiz_abbas@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: kishon@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, Matthijs van Duin <matthijsvanduin@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>
 
+On 6/01/20 1:01 pm, Faiz Abbas wrote:
+> Export sdhci_set_timeout_irq() so that it is accessible from platform drivers.
+> 
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 
-> Am 14.01.2020 um 22:00 schrieb Tony Lindgren <tony@atomide.com>:
->=20
-> * H. Nikolaus Schaller <hns@goldelico.com> [200114 18:40]:
->> I have checked our tree and it is already built into a separate =
-module with
->>=20
->> sound/soc/ti/aess/omap-aess-core.c:	{ .compatible =3D =
-"ti,omap4-aess", },
->>=20
->> So
->>=20
->>> target-module@f1000 {			/* 0x401f1000, ap 32 =
-20.0 */
->>> 	...
->>> 	aess: aess {
->>> 		compatible =3D "ti,omap4-aess";
->>> 		status =3D "disabled";
->>> 	};
->>> };
->>=20
->> would be what we will need.
->=20
-> OK good to hear.
+Acked-by: Adrian Hunter <adrian.hunter@intel.com>
 
-I have cleaned up my working tree and added your patches and the one
-above (without status =3D "disabled" and could
-a) boot well
-b) see that the (non-working) aess driver module is loaded through child =
-node
-
-So you can add my Tested-by: Nikolaus Schaller <hns@goldelico.com>
-
-BR and thanks,
-Nikolaus
+> ---
+>  drivers/mmc/host/sdhci.c | 3 ++-
+>  drivers/mmc/host/sdhci.h | 1 +
+>  2 files changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+> index 8cc78c76bc3d..56f46bd7cdad 100644
+> --- a/drivers/mmc/host/sdhci.c
+> +++ b/drivers/mmc/host/sdhci.c
+> @@ -993,7 +993,7 @@ static void sdhci_set_transfer_irqs(struct sdhci_host *host)
+>  	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+>  }
+>  
+> -static void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
+> +void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
+>  {
+>  	if (enable)
+>  		host->ier |= SDHCI_INT_DATA_TIMEOUT;
+> @@ -1002,6 +1002,7 @@ static void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
+>  	sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+>  	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+>  }
+> +EXPORT_SYMBOL_GPL(sdhci_set_data_timeout_irq);
+>  
+>  static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+>  {
+> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
+> index 3166b3ecef89..928c6f35fcad 100644
+> --- a/drivers/mmc/host/sdhci.h
+> +++ b/drivers/mmc/host/sdhci.h
+> @@ -803,5 +803,6 @@ void sdhci_reset_tuning(struct sdhci_host *host);
+>  void sdhci_send_tuning(struct sdhci_host *host, u32 opcode);
+>  void sdhci_abort_tuning(struct sdhci_host *host, u32 opcode);
+>  void sdhci_switch_external_dma(struct sdhci_host *host, bool en);
+> +void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable);
+>  
+>  #endif /* __SDHCI_HW_H */
+> 
