@@ -1,94 +1,49 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH v4 06/11] mmc: sdhci: Refactor sdhci_set_timeout()
-Date: Wed, 15 Jan 2020 14:04:05 +0200
-Message-ID: <ccdb5a91-b090-a35a-2c41-5cde40866dad@intel.com>
-References: <20200106110133.13791-1-faiz_abbas@ti.com>
- <20200106110133.13791-7-faiz_abbas@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [PATCH] spi: spi-ti-qspi: fix warning
+Date: Wed, 15 Jan 2020 11:07:00 +0100
+Message-ID: <20200115100700.3357-1-jean.pihet@newoldbits.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20200106110133.13791-7-faiz_abbas@ti.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
-Cc: kishon@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, tony@atomide.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:41314 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729531AbgAOKHM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2020 05:07:12 -0500
+Received: by mail-wr1-f65.google.com with SMTP id c9so15118992wrw.8
+        for <linux-omap@vger.kernel.org>; Wed, 15 Jan 2020 02:07:11 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>, linux-omap@vger.kernel.org, linux-spi@vger.kernel.org, Ryan Barnett <ryan.barnett@rockwellcollins.com>, Conrad Ratschan <conrad.ratschan@rockwellcollins.com>, Arnout Vandecappelle <arnout.vandecappelle@essensium.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Jean Pihet <jean.pihet@newoldbits.com>
 
-On 6/01/20 1:01 pm, Faiz Abbas wrote:
-> Refactor sdhci_set_timeout() such that platform drivers can do some
-> functionality in a set_timeout() callback and then call
-> __sdhci_set_timeout() to complete the operation.
-> 
-> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+drivers/spi/spi-ti-qspi.c: In function ‘ti_qspi_start_transfer_one’:
+drivers/spi/spi-ti-qspi.c:392:8: warning: ‘rx_wlen’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  392 |     if (rx_wlen >= 32)
+      |        ^
+drivers/spi/spi-ti-qspi.c:318:12: note: ‘rx_wlen’ was declared here
+  318 |  u8 rxlen, rx_wlen;
+      |            ^~~~~~~
 
-Acked-by: Adrian Hunter <adrian.hunter@intel.com>
+The warning is a false positive; it is not thrown by all compiler versions, e.g.
+Red Hat Cross 9.2.1-1 but not Linaro GCC 7.5-2019.12.
 
-> ---
->  drivers/mmc/host/sdhci.c | 36 +++++++++++++++++++-----------------
->  drivers/mmc/host/sdhci.h |  1 +
->  2 files changed, 20 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-> index 56f46bd7cdad..adb3e8ccefb8 100644
-> --- a/drivers/mmc/host/sdhci.c
-> +++ b/drivers/mmc/host/sdhci.c
-> @@ -1004,27 +1004,29 @@ void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
->  }
->  EXPORT_SYMBOL_GPL(sdhci_set_data_timeout_irq);
->  
-> -static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
-> +void __sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
->  {
-> -	u8 count;
-> +	bool too_big = false;
-> +	u8 count = sdhci_calc_timeout(host, cmd, &too_big);
->  
-> -	if (host->ops->set_timeout) {
-> -		host->ops->set_timeout(host, cmd);
-> -	} else {
-> -		bool too_big = false;
-> -
-> -		count = sdhci_calc_timeout(host, cmd, &too_big);
-> +	if (too_big &&
-> +	    host->quirks2 & SDHCI_QUIRK2_DISABLE_HW_TIMEOUT) {
-> +		sdhci_calc_sw_timeout(host, cmd);
-> +		sdhci_set_data_timeout_irq(host, false);
-> +	} else if (!(host->ier & SDHCI_INT_DATA_TIMEOUT)) {
-> +		sdhci_set_data_timeout_irq(host, true);
-> +	}
->  
-> -		if (too_big &&
-> -		    host->quirks2 & SDHCI_QUIRK2_DISABLE_HW_TIMEOUT) {
-> -			sdhci_calc_sw_timeout(host, cmd);
-> -			sdhci_set_data_timeout_irq(host, false);
-> -		} else if (!(host->ier & SDHCI_INT_DATA_TIMEOUT)) {
-> -			sdhci_set_data_timeout_irq(host, true);
-> -		}
-> +	sdhci_writeb(host, count, SDHCI_TIMEOUT_CONTROL);
-> +}
-> +EXPORT_SYMBOL_GPL(__sdhci_set_timeout);
->  
-> -		sdhci_writeb(host, count, SDHCI_TIMEOUT_CONTROL);
-> -	}
-> +static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
-> +{
-> +	if (host->ops->set_timeout)
-> +		host->ops->set_timeout(host, cmd);
-> +	else
-> +		__sdhci_set_timeout(host, cmd);
->  }
->  
->  static void sdhci_initialize_data(struct sdhci_host *host,
-> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
-> index 928c6f35fcad..1fe230c2ed84 100644
-> --- a/drivers/mmc/host/sdhci.h
-> +++ b/drivers/mmc/host/sdhci.h
-> @@ -804,5 +804,6 @@ void sdhci_send_tuning(struct sdhci_host *host, u32 opcode);
->  void sdhci_abort_tuning(struct sdhci_host *host, u32 opcode);
->  void sdhci_switch_external_dma(struct sdhci_host *host, bool en);
->  void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable);
-> +void __sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd);
->  
->  #endif /* __SDHCI_HW_H */
-> 
+Signed-off-by: Jean Pihet <jean.pihet@newoldbits.com>
+---
+ drivers/spi/spi-ti-qspi.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+index 858fda8ac73e..366a3e5cca6b 100644
+--- a/drivers/spi/spi-ti-qspi.c
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -332,6 +332,7 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
+ 		break;
+ 	}
+ 	wlen = t->bits_per_word >> 3;	/* in bytes */
++	rx_wlen = wlen;
+ 
+ 	while (count) {
+ 		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n", cmd, qspi->dc);
+-- 
+2.24.1
