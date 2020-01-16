@@ -1,56 +1,51 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 086/671] clk: ti: fix refcount leak in ti_dt_clocks_register()
-Date: Thu, 16 Jan 2020 11:45:17 -0500
-Message-ID: <20200116165502.8838-86-sashal@kernel.org>
-References: <20200116165502.8838-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 261/671] ARM: OMAP2+: Fix potentially uninitialized return value for _setup_reset()
+Date: Thu, 16 Jan 2020 11:52:50 -0500
+Message-ID: <20200116165940.10720-144-sashal@kernel.org>
+References: <20200116165940.10720-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44018 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387439AbgAPQ5J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:57:09 -0500
-In-Reply-To: <20200116165502.8838-1-sashal@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200116165940.10720-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, Stephen Boyd <sboyd@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-From: Yangtao Li <tiny.windzz@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 2274d8001fbb5e1942fbcab5ad2eb15553b09ed2 ]
+[ Upstream commit 7f0d078667a494466991aa7133f49594f32ff6a2 ]
 
-The of_find_compatible_node() returns a node pointer with refcount
-incremented, but there is the lack of use of the of_node_put() when
-done. Add the missing of_node_put() to release the refcount.
+Commit 747834ab8347 ("ARM: OMAP2+: hwmod: revise hardreset behavior") made
+the call to _enable() conditional based on no oh->rst_lines_cnt. This
+caused the return value to be potentially uninitialized. Curiously we see
+no compiler warnings for this, probably as this gets inlined.
 
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Fixes: 5b385a45e001 ("clk: ti: add support for clkctrl aliases")
-Signed-off-by: Stephen Boyd <sboyd@kernel.org>
+We call _setup_reset() from _setup() and only _setup_postsetup() if the
+return value is zero. Currently the return value can be uninitialized for
+cases where oh->rst_lines_cnt is set and HWMOD_INIT_NO_RESET is not set.
+
+Fixes: 747834ab8347 ("ARM: OMAP2+: hwmod: revise hardreset behavior")
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/clk/ti/clk.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 27e0979b3158..0cc87c6ae91c 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -188,9 +188,13 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
- 			clkdev_add(&c->lk);
- 		} else {
- 			if (num_args && !has_clkctrl_data) {
--				if (of_find_compatible_node(NULL, NULL,
--							    "ti,clkctrl")) {
-+				struct device_node *np;
-+
-+				np = of_find_compatible_node(NULL, NULL,
-+							     "ti,clkctrl");
-+				if (np) {
- 					has_clkctrl_data = true;
-+					of_node_put(np);
- 				} else {
- 					clkctrl_nodes_missing = true;
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index ec3789ba17b8..a8269f0a87ce 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2430,7 +2430,7 @@ static void _setup_iclk_autoidle(struct omap_hwmod *oh)
+  */
+ static int _setup_reset(struct omap_hwmod *oh)
+ {
+-	int r;
++	int r = 0;
  
+ 	if (oh->_state != _HWMOD_STATE_INITIALIZED)
+ 		return -EINVAL;
 -- 
 2.20.1
