@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 104/251] ARM: OMAP2+: Fix potentially uninitialized return value for _setup_reset()
-Date: Thu, 16 Jan 2020 12:34:13 -0500
-Message-ID: <20200116173641.22137-64-sashal@kernel.org>
-References: <20200116173641.22137-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 065/174] ARM: OMAP2+: Fix potentially uninitialized return value for _setup_reset()
+Date: Thu, 16 Jan 2020 12:41:02 -0500
+Message-ID: <20200116174251.24326-65-sashal@kernel.org>
+References: <20200116174251.24326-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20200116173641.22137-1-sashal@kernel.org>
+In-Reply-To: <20200116174251.24326-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
@@ -35,10 +35,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index bfc74954540c..9421b78f869d 100644
+index 36706d32d656..1bc87c29467b 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2588,7 +2588,7 @@ static void _setup_iclk_autoidle(struct omap_hwmod *oh)
+@@ -2563,7 +2563,7 @@ static void _setup_iclk_autoidle(struct omap_hwmod *oh)
   */
  static int _setup_reset(struct omap_hwmod *oh)
  {
