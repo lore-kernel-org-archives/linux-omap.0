@@ -1,48 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/4] fix for omap sdma changes for v5.6
-Date: Thu, 16 Jan 2020 10:48:10 -0800
-Message-ID: <pull-1579200367-372444@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: Configure omap5 AESS
+Date: Thu, 16 Jan 2020 10:52:17 -0800
+Message-ID: <20200116185217.GU5885@atomide.com>
+References: <20200114150937.18304-1-tony@atomide.com>
+ <202001162346.4yVlrA8l%lkp@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:51288 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2436981AbgAPSsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 16 Jan 2020 13:48:45 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <202001162346.4yVlrA8l%lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: kbuild-all-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "H . Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: soc@kernel.org
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-From: "Tony Lindgren" <tony@atomide.com>
+* kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [200116 15:55]:
+> Hi Tony,
+> 
+> I love your patch! Yet something to improve:
+> 
+> [auto build test ERROR on robh/for-next]
+> [also build test ERROR on omap/for-next balbi-usb/next v5.5-rc6 next-20200115]
+> [if your patch is applied to the wrong git tree, please drop us a note to help
+> improve the system. BTW, we also suggest to use '--base' option to specify the
+> base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Tony-Lindgren/ARM-dts-Configure-omap5-AESS/20200115-114737
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git for-next
+> config: arm-defconfig (attached as .config)
+> compiler: arm-linux-gnueabi-gcc (GCC) 7.5.0
+> reproduce:
+>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         GCC_VERSION=7.5.0 make.cross ARCH=arm 
+> 
+> If you fix the issue, kindly add following tag
+> Reported-by: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> All errors (new ones prefixed by >>):
+> 
+> >> Error: arch/arm/boot/dts/omap5-l4-abe.dtsi:447.27-28 syntax error
+>    FATAL ERROR: Unable to parse input tree
 
-The following changes since commit 9fc85a7124b5ff9ec24ad391f9994f89ae611313:
+This patch has a dependency to a clock related patch as described in the
+original patch email so this error can be ignored.
 
-  Merge branch 'omap-for-v5.6/sdma' into omap-for-v5.6/ti-sysc-drop-pdata (2019-12-30 10:17:51 -0800)
+Regards,
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.6/sdma-fix-signed
-
-for you to fetch changes up to a25e29bd0fe9be33491b3816d2d7b1137d5eeaec:
-
-  Merge branch 'omap-for-v5.6/sdma' into omap-for-v5.6/ti-sysc-drop-pdata (2020-01-13 09:42:55 -0800)
-
-----------------------------------------------------------------
-Fix omap sdma handling for missing auxdata for v5.6 merge window
-
-Turns out I was overly optimistic about making platform data optional, and
-we still need it to pass various quirk flags. If the platform data is missing
-for whatever reason, we will currently try to access non-existing data later
-on.
-
-----------------------------------------------------------------
-Colin Ian King (1):
-      dmaengine: ti: omap-dma: don't allow a null od->plat pointer to be dereferenced
-
-Tony Lindgren (1):
-      Merge branch 'omap-for-v5.6/sdma' into omap-for-v5.6/ti-sysc-drop-pdata
-
- drivers/dma/ti/omap-dma.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Tony
