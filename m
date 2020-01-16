@@ -1,69 +1,102 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] clocksource: timer-ti-dm: Fix regression
-Date: Thu, 16 Jan 2020 09:16:09 +0530
-Message-ID: <3d6da16f-45e6-5acd-021c-bc87da99cdec@ti.com>
-References: <20200106203700.21009-1-tony@atomide.com>
- <CA+G9fYvRNiFK54oiGt9hYP=RTfazf2E7rmnnkwP+ELMUYtJ7bQ@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RESEND PATCHv4 01/14] dt-bindings: remoteproc: Add OMAP
+ remoteproc bindings
+Date: Thu, 16 Jan 2020 09:51:18 +0200
+Message-ID: <1d4597f7-9e28-8b16-7679-c8abd291346d@ti.com>
+References: <20200102131845.12992-2-t-kristo@ti.com>
+ <20200102132512.13248-1-t-kristo@ti.com>
+ <f4ac066a-e5ee-f888-42bb-3f6d444747ee@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+G9fYvRNiFK54oiGt9hYP=RTfazf2E7rmnnkwP+ELMUYtJ7bQ@mail.gmail.com>
+In-Reply-To: <f4ac066a-e5ee-f888-42bb-3f6d444747ee@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Naresh Kamboju <naresh.kamboju@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, open list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yangtao Li <tiny.windzz@gmail.com>
+To: Suman Anna <s-anna@ti.com>, bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, linux-omap@vger.kernel.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 11/01/20 11:58 am, Naresh Kamboju wrote:
-> On Tue, 7 Jan 2020 at 02:07, Tony Lindgren <tony@atomide.com> wrote:
->>
->> Clean-up commit 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to
->> platform_get_irq") caused a regression where we now try to access
->> uninitialized data for timer:
->>
->> drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
->> drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may be used
->> uninitialized in this function [-Wmaybe-uninitialized]
->>
->> On boot we now get:
->>
->> Unable to handle kernel NULL pointer dereference at virtual address
->> 00000004
->> ...
->> (omap_dm_timer_probe) from [<c061ac7c>] (platform_drv_probe+0x48/0x98)
->> (platform_drv_probe) from [<c0618c04>] (really_probe+0x1dc/0x348)
->> (really_probe) from [<c0618ef4>] (driver_probe_device+0x5c/0x160)
->>
->> Let's fix the issue by moving platform_get_irq to happen after timer has
->> been allocated.
->>
->> Fixes: 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to platform_get_irq")
+On 08/01/2020 18:49, Suman Anna wrote:
+> Hi Tero,
 > 
-> Thanks for fixing this issue.
-> I have noticed arm BeagleBoard-X15 boot failed on linux next tree
-> (5.5.0-rc5-next-20200110).
+> On 1/2/20 7:25 AM, Tero Kristo wrote:
+>> From: Suman Anna <s-anna@ti.com>
+>>
+>> Add the device tree bindings document for the IPU and DSP
+>> remote processor devices on OMAP4+ SoCs.
+>>
+>> Cc: Rob Herring <robh@kernel.org>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> [t-kristo@ti.com: converted to schema]
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>> v4: added ti,bootreg-shift and ti,autosuspend-delay properties
 > 
-> [    6.157822] 8<--- cut here ---
-> [    6.160911] Unable to handle kernel NULL pointer dereference at
-> virtual address 00000004
-> [    6.169120] pgd = 25d83e32
-> [    6.171903] [00000004] *pgd=80000080204003, *pmd=00000000
-> [    6.177358] Internal error: Oops: a06 [#1] SMP ARM
-> [    6.182179] Modules linked in:
-> [    6.185260] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-> 5.5.0-rc5-next-20200110 #1
-> [    6.192694] Hardware name: Generic DRA74X (Flattened Device Tree)
-> [    6.198832] PC is at omap_dm_timer_probe+0x48/0x310
+> You missed out on my v3 comment on the firmware-name on Example 2. Can
+> you please address it when you post the next version?
 
-Tony/Daniel,
+I don't think I missed it, but you never told what is the actual name to 
+use there. Firmware name generally does not matter, as user can provide 
+whatever he wants via DT now.
 
-This is still not in linux-next. Any idea when this will be pushed to 
-linux-next branch?
+-Tero
 
-- Keerthy
 > 
-> - Naresh
+>>
+>>   .../remoteproc/ti,omap-remoteproc.yaml        | 329 ++++++++++++++++++
+>>   1 file changed, 329 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
+>>
+>> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
+>> new file mode 100644
+>> index 000000000000..f53d58efaae3
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
 > 
+> [snip]
+> 
+>> +  - |+
+>> +
+>> +    //Example 2: OMAP5 IPU
+>> +
+>> +    /* IPU Reserved Memory node */
+>> +    #include <dt-bindings/clock/omap5.h>
+>> +    reserved-memory {
+>> +        #address-cells = <2>;
+>> +        #size-cells = <2>;
+>> +
+>> +        ipu_memory_region: ipu-memory@95800000 {
+>> +            compatible = "shared-dma-pool";
+>> +            reg = <0 0x95800000 0 0x3800000>;
+>> +            reusable;
+>> +        };
+>> +    };
+>> +
+>> +    /* IPU node */
+>> +    ocp {
+>> +        #address-cells = <1>;
+>> +        #size-cells = <1>;
+>> +
+>> +        ipu: ipu@55020000 {
+>> +            compatible = "ti,omap5-ipu";
+>> +            reg = <0x55020000 0x10000>;
+>> +            reg-names = "l2ram";
+>> +            iommus = <&mmu_ipu>;
+>> +            mboxes = <&mailbox &mbox_ipu>;
+>> +            memory-region = <&ipu_memory_region>;
+>> +            ti,timers = <&timer3>, <&timer4>;
+>> +            ti,watchdog-timers = <&timer9>, <&timer11>;
+>> +            clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
+>> +            resets = <&prm_core 2>;
+>> +            firmware-name = "omap5-ipu-fw.xem";
+>> +        };
+>> +    };
+> 
+> regards
+> Suman
+> 
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
