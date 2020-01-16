@@ -1,28 +1,36 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 03/14] remoteproc/omap: Add a sanity check for DSP boot address alignment
-Date: Thu, 16 Jan 2020 15:53:21 +0200
-Message-ID: <20200116135332.7819-4-t-kristo@ti.com>
+Subject: [PATCHv5 06/14] remoteproc/omap: Initialize and assign reserved memory node
+Date: Thu, 16 Jan 2020 15:53:24 +0200
+Message-ID: <20200116135332.7819-7-t-kristo@ti.com>
 References: <20200116135332.7819-1-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:60072 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728992AbgAPNyK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jan 2020 08:54:10 -0500
 In-Reply-To: <20200116135332.7819-1-t-kristo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, s-anna@ti.com, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The DSP remote processors on OMAP SoCs require a boot register to
-be programmed with a boot address, and this boot address needs to
-be on a 1KB boundary. The current code is simply masking the boot
-address appropriately without performing any sanity checks before
-releasing the resets. An unaligned boot address results in an
-undefined execution behavior and can result in various bus errors
-like MMU Faults or L3 NoC errors. Such errors are hard to debug and
-can be easily avoided by adding a sanity check for the alignment
-before booting a DSP remote processor.
+The reserved memory nodes are not assigned to platform devices by
+default in the driver core to avoid the lookup for every platform
+device and incur a penalty as the real users are expected to be
+only a few devices.
+
+OMAP remoteproc devices fall into the above category and the OMAP
+remoteproc driver _requires_ specific CMA pools to be assigned
+for each device at the moment to align on the location of the
+vrings and vring buffers in the RTOS-side firmware images. So,
+use the of_reserved_mem_device_init/release() API appropriately
+to assign the corresponding reserved memory region to the OMAP
+remoteproc device. Note that only one region per device is
+allowed by the framework.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
@@ -30,51 +38,53 @@ Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
 v5: no changes
 
- drivers/remoteproc/omap_remoteproc.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ drivers/remoteproc/omap_remoteproc.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 6c603c2cd895..2935a8edb3a6 100644
+index 0846839b2c97..194303b860b2 100644
 --- a/drivers/remoteproc/omap_remoteproc.c
 +++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -122,13 +122,22 @@ static void omap_rproc_kick(struct rproc *rproc, int vqid)
-  *
-  * Set boot address for a supported DSP remote processor.
-  */
--static void omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
-+static int omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
- {
-+	struct device *dev = rproc->dev.parent;
- 	struct omap_rproc *oproc = rproc->priv;
- 	struct omap_rproc_boot_data *bdata = oproc->boot_data;
- 	u32 offset = bdata->boot_reg;
+@@ -17,6 +17,7 @@
+ #include <linux/module.h>
+ #include <linux/err.h>
+ #include <linux/of_device.h>
++#include <linux/of_reserved_mem.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/remoteproc.h>
+@@ -480,14 +481,22 @@ static int omap_rproc_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto free_rproc;
  
-+	if (rproc->bootaddr & (SZ_1K - 1)) {
-+		dev_err(dev, "invalid boot address 0x%x, must be aligned on a 1KB boundary\n",
-+			rproc->bootaddr);
-+		return -EINVAL;
++	ret = of_reserved_mem_device_init(&pdev->dev);
++	if (ret) {
++		dev_err(&pdev->dev, "device does not have specific CMA pool\n");
++		goto free_rproc;
 +	}
 +
- 	regmap_write(bdata->syscon, offset, rproc->bootaddr);
-+
-+	return 0;
+ 	platform_set_drvdata(pdev, rproc);
+ 
+ 	ret = rproc_add(rproc);
+ 	if (ret)
+-		goto free_rproc;
++		goto release_mem;
+ 
+ 	return 0;
+ 
++release_mem:
++	of_reserved_mem_device_release(&pdev->dev);
+ free_rproc:
+ 	rproc_free(rproc);
+ 	return ret;
+@@ -499,6 +508,7 @@ static int omap_rproc_remove(struct platform_device *pdev)
+ 
+ 	rproc_del(rproc);
+ 	rproc_free(rproc);
++	of_reserved_mem_device_release(&pdev->dev);
+ 
+ 	return 0;
  }
- 
- /*
-@@ -145,8 +154,11 @@ static int omap_rproc_start(struct rproc *rproc)
- 	int ret;
- 	struct mbox_client *client = &oproc->client;
- 
--	if (oproc->boot_data)
--		omap_rproc_write_dsp_boot_addr(rproc);
-+	if (oproc->boot_data) {
-+		ret = omap_rproc_write_dsp_boot_addr(rproc);
-+		if (ret)
-+			return ret;
-+	}
- 
- 	client->dev = dev;
- 	client->tx_done = NULL;
 -- 
 2.17.1
 
