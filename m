@@ -1,105 +1,90 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v5 04/10] mmc: sdhci-omap: Add using external dma
-Date: Thu, 16 Jan 2020 16:21:48 +0530
-Message-ID: <20200116105154.7685-5-faiz_abbas@ti.com>
+Subject: [PATCH v5 06/10] mmc: sdhci: Refactor sdhci_set_timeout()
+Date: Thu, 16 Jan 2020 16:21:50 +0530
+Message-ID: <20200116105154.7685-7-faiz_abbas@ti.com>
 References: <20200116105154.7685-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:44828 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726928AbgAPKuv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jan 2020 05:50:51 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20200116105154.7685-1-faiz_abbas@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
 Cc: adrian.hunter@intel.com, kishon@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, faiz_abbas@ti.com, tony@atomide.com
+List-Id: linux-omap@vger.kernel.org
 
-From: Chunyan Zhang <zhang.chunyan@linaro.org>
+Refactor sdhci_set_timeout() such that platform drivers can do some
+functionality in a set_timeout() callback and then call
+__sdhci_set_timeout() to complete the operation.
 
-sdhci-omap can support both external dma controller via dmaengine framework
-as well as ADMA which standard SD host controller provides.
-
-Fixes by Faiz Abbas <fazi_abbas@ti.com>:
-1. Switch to DMA slave mode when using external DMA
-2. Add offset to mapbase
-
-Signed-off-by: Chunyan Zhang <zhang.chunyan@linaro.org>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 Acked-by: Adrian Hunter <adrian.hunter@intel.com>
 ---
- drivers/mmc/host/Kconfig      |  1 +
- drivers/mmc/host/sdhci-omap.c | 16 +++++++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ drivers/mmc/host/sdhci.c | 36 +++++++++++++++++++-----------------
+ drivers/mmc/host/sdhci.h |  1 +
+ 2 files changed, 20 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index adef971582a1..2c0d90b9383e 100644
---- a/drivers/mmc/host/Kconfig
-+++ b/drivers/mmc/host/Kconfig
-@@ -1010,6 +1010,7 @@ config MMC_SDHCI_OMAP
- 	depends on MMC_SDHCI_PLTFM && OF
- 	select THERMAL
- 	imply TI_SOC_THERMAL
-+	select MMC_SDHCI_EXTERNAL_DMA if DMA_ENGINE
- 	help
- 	  This selects the Secure Digital Host Controller Interface (SDHCI)
- 	  support present in TI's DRA7 SOCs. The controller supports
-diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-index 083e7e053c95..84d85aa743da 100644
---- a/drivers/mmc/host/sdhci-omap.c
-+++ b/drivers/mmc/host/sdhci-omap.c
-@@ -685,7 +685,11 @@ static int sdhci_omap_enable_dma(struct sdhci_host *host)
- 	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index 37561333fda4..104203addd70 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -1004,27 +1004,29 @@ void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
+ }
+ EXPORT_SYMBOL_GPL(sdhci_set_data_timeout_irq);
  
- 	reg = sdhci_omap_readl(omap_host, SDHCI_OMAP_CON);
--	reg |= CON_DMA_MASTER;
-+	reg &= ~CON_DMA_MASTER;
-+	/* Switch to DMA slave mode when using external DMA */
-+	if (!host->use_external_dma)
-+		reg |= CON_DMA_MASTER;
-+
- 	sdhci_omap_writel(omap_host, SDHCI_OMAP_CON, reg);
+-static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
++void __sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+ {
+-	u8 count;
++	bool too_big = false;
++	u8 count = sdhci_calc_timeout(host, cmd, &too_big);
  
- 	return 0;
-@@ -1037,6 +1041,7 @@ static int sdhci_omap_probe(struct platform_device *pdev)
- 	const struct of_device_id *match;
- 	struct sdhci_omap_data *data;
- 	const struct soc_device_attribute *soc;
-+	struct resource *regs;
+-	if (host->ops->set_timeout) {
+-		host->ops->set_timeout(host, cmd);
+-	} else {
+-		bool too_big = false;
+-
+-		count = sdhci_calc_timeout(host, cmd, &too_big);
++	if (too_big &&
++	    host->quirks2 & SDHCI_QUIRK2_DISABLE_HW_TIMEOUT) {
++		sdhci_calc_sw_timeout(host, cmd);
++		sdhci_set_data_timeout_irq(host, false);
++	} else if (!(host->ier & SDHCI_INT_DATA_TIMEOUT)) {
++		sdhci_set_data_timeout_irq(host, true);
++	}
  
- 	match = of_match_device(omap_sdhci_match, dev);
- 	if (!match)
-@@ -1049,6 +1054,10 @@ static int sdhci_omap_probe(struct platform_device *pdev)
- 	}
- 	offset = data->offset;
+-		if (too_big &&
+-		    host->quirks2 & SDHCI_QUIRK2_DISABLE_HW_TIMEOUT) {
+-			sdhci_calc_sw_timeout(host, cmd);
+-			sdhci_set_data_timeout_irq(host, false);
+-		} else if (!(host->ier & SDHCI_INT_DATA_TIMEOUT)) {
+-			sdhci_set_data_timeout_irq(host, true);
+-		}
++	sdhci_writeb(host, count, SDHCI_TIMEOUT_CONTROL);
++}
++EXPORT_SYMBOL_GPL(__sdhci_set_timeout);
  
-+	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!regs)
-+		return -ENXIO;
-+
- 	host = sdhci_pltfm_init(pdev, &sdhci_omap_pdata,
- 				sizeof(*omap_host));
- 	if (IS_ERR(host)) {
-@@ -1065,6 +1074,7 @@ static int sdhci_omap_probe(struct platform_device *pdev)
- 	omap_host->timing = MMC_TIMING_LEGACY;
- 	omap_host->flags = data->flags;
- 	host->ioaddr += offset;
-+	host->mapbase = regs->start + offset;
+-		sdhci_writeb(host, count, SDHCI_TIMEOUT_CONTROL);
+-	}
++static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
++{
++	if (host->ops->set_timeout)
++		host->ops->set_timeout(host, cmd);
++	else
++		__sdhci_set_timeout(host, cmd);
+ }
  
- 	mmc = host->mmc;
- 	sdhci_get_of_property(pdev);
-@@ -1134,6 +1144,10 @@ static int sdhci_omap_probe(struct platform_device *pdev)
- 	host->mmc_host_ops.execute_tuning = sdhci_omap_execute_tuning;
- 	host->mmc_host_ops.enable_sdio_irq = sdhci_omap_enable_sdio_irq;
+ static void sdhci_initialize_data(struct sdhci_host *host,
+diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
+index 928c6f35fcad..1fe230c2ed84 100644
+--- a/drivers/mmc/host/sdhci.h
++++ b/drivers/mmc/host/sdhci.h
+@@ -804,5 +804,6 @@ void sdhci_send_tuning(struct sdhci_host *host, u32 opcode);
+ void sdhci_abort_tuning(struct sdhci_host *host, u32 opcode);
+ void sdhci_switch_external_dma(struct sdhci_host *host, bool en);
+ void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable);
++void __sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd);
  
-+	/* Switch to external DMA only if there is the "dmas" property */
-+	if (of_find_property(dev->of_node, "dmas", NULL))
-+		sdhci_switch_external_dma(host, true);
-+
- 	ret = sdhci_setup_host(host);
- 	if (ret)
- 		goto err_put_sync;
+ #endif /* __SDHCI_HW_H */
 -- 
 2.19.2
