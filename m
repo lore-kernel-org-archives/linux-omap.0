@@ -1,102 +1,93 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RESEND PATCHv4 01/14] dt-bindings: remoteproc: Add OMAP
- remoteproc bindings
-Date: Thu, 16 Jan 2020 09:51:18 +0200
-Message-ID: <1d4597f7-9e28-8b16-7679-c8abd291346d@ti.com>
-References: <20200102131845.12992-2-t-kristo@ti.com>
- <20200102132512.13248-1-t-kristo@ti.com>
- <f4ac066a-e5ee-f888-42bb-3f6d444747ee@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v5 00/10] Port am335x and am437x devices to sdhci-omap
+Date: Thu, 16 Jan 2020 16:21:44 +0530
+Message-ID: <20200116105154.7685-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f4ac066a-e5ee-f888-42bb-3f6d444747ee@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, bjorn.andersson@linaro.org, ohad@wizery.com, linux-remoteproc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, mathieu.poirier@linaro.org, linux-omap@vger.kernel.org, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:33360 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726018AbgAPKul (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jan 2020 05:50:41 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: adrian.hunter@intel.com, kishon@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, faiz_abbas@ti.com, tony@atomide.com
 
-On 08/01/2020 18:49, Suman Anna wrote:
-> Hi Tero,
-> 
-> On 1/2/20 7:25 AM, Tero Kristo wrote:
->> From: Suman Anna <s-anna@ti.com>
->>
->> Add the device tree bindings document for the IPU and DSP
->> remote processor devices on OMAP4+ SoCs.
->>
->> Cc: Rob Herring <robh@kernel.org>
->> Cc: devicetree@vger.kernel.org
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> [t-kristo@ti.com: converted to schema]
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->> v4: added ti,bootreg-shift and ti,autosuspend-delay properties
-> 
-> You missed out on my v3 comment on the firmware-name on Example 2. Can
-> you please address it when you post the next version?
+The following add driver patches for porting TI's am335x and am437x devices to
+the sdhci-omap driver.
 
-I don't think I missed it, but you never told what is the actual name to 
-use there. Firmware name generally does not matter, as user can provide 
-whatever he wants via DT now.
+Patches 1-4 Add Support for external DMA to the sdhci driver.
 
--Tero
+Patches 5-7 refactor the sdhci_set_timeout() function and use it disable
+data timeout interrupt for erase commands
 
-> 
->>
->>   .../remoteproc/ti,omap-remoteproc.yaml        | 329 ++++++++++++++++++
->>   1 file changed, 329 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
->>
->> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
->> new file mode 100644
->> index 000000000000..f53d58efaae3
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
-> 
-> [snip]
-> 
->> +  - |+
->> +
->> +    //Example 2: OMAP5 IPU
->> +
->> +    /* IPU Reserved Memory node */
->> +    #include <dt-bindings/clock/omap5.h>
->> +    reserved-memory {
->> +        #address-cells = <2>;
->> +        #size-cells = <2>;
->> +
->> +        ipu_memory_region: ipu-memory@95800000 {
->> +            compatible = "shared-dma-pool";
->> +            reg = <0 0x95800000 0 0x3800000>;
->> +            reusable;
->> +        };
->> +    };
->> +
->> +    /* IPU node */
->> +    ocp {
->> +        #address-cells = <1>;
->> +        #size-cells = <1>;
->> +
->> +        ipu: ipu@55020000 {
->> +            compatible = "ti,omap5-ipu";
->> +            reg = <0x55020000 0x10000>;
->> +            reg-names = "l2ram";
->> +            iommus = <&mmu_ipu>;
->> +            mboxes = <&mailbox &mbox_ipu>;
->> +            memory-region = <&ipu_memory_region>;
->> +            ti,timers = <&timer3>, <&timer4>;
->> +            ti,watchdog-timers = <&timer9>, <&timer11>;
->> +            clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
->> +            resets = <&prm_core 2>;
->> +            firmware-name = "omap5-ipu-fw.xem";
->> +        };
->> +    };
-> 
-> regards
-> Suman
-> 
+Patches 8-9 add new compatibles for am335x and am43xx devices to the
+sdhci-omap driver.
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Patch 10 implements special reset required for am335x and am437x
+devices.
+
+DT changes will be posted as a separate series.
+
+Tested on: am335x-evm, am335x-boneblack, am335x-bonegreen-wireless,
+am335x-sk, am335x-bone, am437x-idk, am43xx-gp-evm, am43xx-epos-evm.
+
+v5:
+1. Patch 3 now uses the dma_submit_error() API instead of checking the
+   cookie on its own.
+2. Dropped the patch adding ti,needs-special-reset property to
+   sdhci-omap. Using a flag in the driver instead.
+3. Minor spacing changes.
+
+v4:
+1. Made the factoring out of initialize_data, block_info and mrqs_done as a
+   separate patch
+2. Replaced the patch introducing the quirk to disable DTO during erase
+   operations to a set_timeout() callback in sdhci-omap
+3. Ported the ti,needs-special-reset property from omap_hsmmc to sdhci-omap.
+4. Minor style changes.
+
+v3:
+1. Dropped patch 1 because the tasklet was removed by Adrian in an
+   earlier series.
+2. Added dma bindings in sdhci-omap as optional properties.
+3. Rebased on top of latest mainline.
+
+v2:
+1. sdhci is using two bottom halves. One threaded_rq for card detect and a
+   tasklet for finishing mmc requests. Patch 1 removes the tasklet and
+   moves its function to the threaded_irq. This enables me to
+   terminate_sync() in sdhci_request_done()
+
+2. Factored out common code for between the normal adn external dma case
+
+3. Using existing API sdhci_data_timeout_irq for disabling DTO during
+   erase commands.
+
+4. Fixed subject line for dt-bindings patch
+
+Chunyan Zhang (3):
+  dt-bindings: sdhci-omap: Add properties for using external dma
+  mmc: sdhci: add support for using external DMA devices
+  mmc: sdhci-omap: Add using external dma
+
+Faiz Abbas (7):
+  mmc: sdhci: Factor out some operations set to their own functions
+  mmc: sdhci: Convert sdhci_set_timeout_irq() to non-static
+  mmc: sdhci: Refactor sdhci_set_timeout()
+  mmc: sdhci-omap: Disable data timeout interrupt during erase
+  dt-bindings: sdhci-omap: Add am335x and am437x specific bindings
+  mmc: sdhci-omap: Add am335x and am437x specific compatibles
+  mmc: sdhci-omap: Add special reset capability
+
+ .../devicetree/bindings/mmc/sdhci-omap.txt    |  11 +
+ drivers/mmc/host/Kconfig                      |   4 +
+ drivers/mmc/host/sdhci-omap.c                 |  60 ++-
+ drivers/mmc/host/sdhci.c                      | 353 +++++++++++++++---
+ drivers/mmc/host/sdhci.h                      |  10 +
+ 5 files changed, 380 insertions(+), 58 deletions(-)
+
+-- 
+2.19.2
