@@ -1,75 +1,69 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] OMAP: DSS2: remove non-zero check on variable r
-Date: Wed, 15 Jan 2020 16:42:40 +0100
-Message-ID: <6a3951c7-4b17-6371-24ab-17742aeaa464@samsung.com>
-References: <CGME20191204152851epcas5p413006712eafa500de3013c2ce8a3bc02@epcas5p4.samsung.com>
-        <20191204152847.1435188-1-colin.king@canonical.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] clocksource: timer-ti-dm: Fix regression
+Date: Thu, 16 Jan 2020 09:16:09 +0530
+Message-ID: <3d6da16f-45e6-5acd-021c-bc87da99cdec@ti.com>
+References: <20200106203700.21009-1-tony@atomide.com>
+ <CA+G9fYvRNiFK54oiGt9hYP=RTfazf2E7rmnnkwP+ELMUYtJ7bQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:33030 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728963AbgAOPmo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2020 10:42:44 -0500
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20200115154242euoutp02691bfe8290c8baa1dc885c1ab318e713~qGccl6DIi1726017260euoutp02S
-        for <linux-omap@vger.kernel.org>; Wed, 15 Jan 2020 15:42:42 +0000 (GMT)
-In-Reply-To: <20191204152847.1435188-1-colin.king@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+G9fYvRNiFK54oiGt9hYP=RTfazf2E7rmnnkwP+ELMUYtJ7bQ@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Naresh Kamboju <naresh.kamboju@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, open list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yangtao Li <tiny.windzz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-On 12/4/19 4:28 PM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> Variable r is being initialized to zero, so the check of a non-zero
-> rv is redundant and can be removed.
-> 
-> It appears that the previous case statements set r to be -EINVAL
-> and the "Fallthrough" comment afterwards suggested it was going
-> to fall through to this non-zero check but won't because of the
-> break statement. Remove the confusion by removing the Fallthrough
-> comment too.
-> 
-> Addresses-Coverity: ("Logically dead code")
-> Fixes: b39a982ddecf ("OMAP: DSS2: omapfb driver")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Patch queued for v5.6, thanks.
- 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
-
-> ---
->  drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 4 ----
->  1 file changed, 4 deletions(-)
+On 11/01/20 11:58 am, Naresh Kamboju wrote:
+> On Tue, 7 Jan 2020 at 02:07, Tony Lindgren <tony@atomide.com> wrote:
+>>
+>> Clean-up commit 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to
+>> platform_get_irq") caused a regression where we now try to access
+>> uninitialized data for timer:
+>>
+>> drivers/clocksource/timer-ti-dm.c: In function 'omap_dm_timer_probe':
+>> drivers/clocksource/timer-ti-dm.c:798:13: warning: 'timer' may be used
+>> uninitialized in this function [-Wmaybe-uninitialized]
+>>
+>> On boot we now get:
+>>
+>> Unable to handle kernel NULL pointer dereference at virtual address
+>> 00000004
+>> ...
+>> (omap_dm_timer_probe) from [<c061ac7c>] (platform_drv_probe+0x48/0x98)
+>> (platform_drv_probe) from [<c0618c04>] (really_probe+0x1dc/0x348)
+>> (really_probe) from [<c0618ef4>] (driver_probe_device+0x5c/0x160)
+>>
+>> Let's fix the issue by moving platform_get_irq to happen after timer has
+>> been allocated.
+>>
+>> Fixes: 8c82723414d5 ("clocksource/drivers/timer-ti-dm: Switch to platform_get_irq")
 > 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-> index 858c2c011d19..a2a2c1b205d9 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-> @@ -1154,16 +1154,12 @@ static int _setcolreg(struct fb_info *fbi, u_int regno, u_int red, u_int green,
->  		   r = fbdev->ctrl->setcolreg(regno, red, green, blue,
->  		   transp, update_hw_pal);
->  		   */
-> -		/* Fallthrough */
->  		r = -EINVAL;
->  		break;
->  	case OMAPFB_COLOR_RGB565:
->  	case OMAPFB_COLOR_RGB444:
->  	case OMAPFB_COLOR_RGB24P:
->  	case OMAPFB_COLOR_RGB24U:
-> -		if (r != 0)
-> -			break;
-> -
->  		if (regno < 16) {
->  			u32 pal;
->  			pal = ((red >> (16 - var->red.length)) <<
+> Thanks for fixing this issue.
+> I have noticed arm BeagleBoard-X15 boot failed on linux next tree
+> (5.5.0-rc5-next-20200110).
+> 
+> [    6.157822] 8<--- cut here ---
+> [    6.160911] Unable to handle kernel NULL pointer dereference at
+> virtual address 00000004
+> [    6.169120] pgd = 25d83e32
+> [    6.171903] [00000004] *pgd=80000080204003, *pmd=00000000
+> [    6.177358] Internal error: Oops: a06 [#1] SMP ARM
+> [    6.182179] Modules linked in:
+> [    6.185260] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
+> 5.5.0-rc5-next-20200110 #1
+> [    6.192694] Hardware name: Generic DRA74X (Flattened Device Tree)
+> [    6.198832] PC is at omap_dm_timer_probe+0x48/0x310
+
+Tony/Daniel,
+
+This is still not in linux-next. Any idea when this will be pushed to 
+linux-next branch?
+
+- Keerthy
+> 
+> - Naresh
 > 
