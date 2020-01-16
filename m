@@ -1,58 +1,39 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v5 05/10] mmc: sdhci: Convert sdhci_set_timeout_irq() to non-static
-Date: Thu, 16 Jan 2020 16:21:49 +0530
-Message-ID: <20200116105154.7685-6-faiz_abbas@ti.com>
+Subject: [PATCH v5 08/10] dt-bindings: sdhci-omap: Add am335x and am437x specific bindings
+Date: Thu, 16 Jan 2020 16:21:52 +0530
+Message-ID: <20200116105154.7685-9-faiz_abbas@ti.com>
 References: <20200116105154.7685-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 In-Reply-To: <20200116105154.7685-1-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-mmc-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org
 Cc: adrian.hunter@intel.com, kishon@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, ulf.hansson@linaro.org, faiz_abbas@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Export sdhci_set_timeout_irq() so that it is accessible from platform drivers.
+Add binding for the TI's sdhci-omap controller present in am335x and
+am437x devices.
 
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-Acked-by: Adrian Hunter <adrian.hunter@intel.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- drivers/mmc/host/sdhci.c | 3 ++-
- drivers/mmc/host/sdhci.h | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/mmc/sdhci-omap.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-index 4d48129de5e4..37561333fda4 100644
---- a/drivers/mmc/host/sdhci.c
-+++ b/drivers/mmc/host/sdhci.c
-@@ -993,7 +993,7 @@ static void sdhci_set_transfer_irqs(struct sdhci_host *host)
- 	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
- }
- 
--static void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
-+void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
- {
- 	if (enable)
- 		host->ier |= SDHCI_INT_DATA_TIMEOUT;
-@@ -1002,6 +1002,7 @@ static void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
- 	sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
- 	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
- }
-+EXPORT_SYMBOL_GPL(sdhci_set_data_timeout_irq);
- 
- static void sdhci_set_timeout(struct sdhci_host *host, struct mmc_command *cmd)
- {
-diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
-index 3166b3ecef89..928c6f35fcad 100644
---- a/drivers/mmc/host/sdhci.h
-+++ b/drivers/mmc/host/sdhci.h
-@@ -803,5 +803,6 @@ void sdhci_reset_tuning(struct sdhci_host *host);
- void sdhci_send_tuning(struct sdhci_host *host, u32 opcode);
- void sdhci_abort_tuning(struct sdhci_host *host, u32 opcode);
- void sdhci_switch_external_dma(struct sdhci_host *host, bool en);
-+void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable);
- 
- #endif /* __SDHCI_HW_H */
+diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+index 97efb01617dd..aeb615ef672a 100644
+--- a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
++++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+@@ -7,6 +7,8 @@ For UHS devices which require tuning, the device tree should have a "cpu_thermal
+ Required properties:
+ - compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
+ 	      Should be "ti,k2g-sdhci" for K2G
++	      Should be "ti,am335-sdhci" for am335x controllers
++	      Should be "ti,am437-sdhci" for am437x controllers
+ - ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
+ 	     (Not required for K2G).
+ - pinctrl-names: Should be subset of "default", "hs", "sdr12", "sdr25", "sdr50",
 -- 
 2.19.2
