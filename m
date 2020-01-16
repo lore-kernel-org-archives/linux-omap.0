@@ -1,45 +1,48 @@
-From: lukasz.luba@arm.com
-Subject: [PATCH 4/4] drm/panfrost: Register to the Energy Model with devfreq device
-Date: Thu, 16 Jan 2020 15:20:32 +0000
-Message-ID: <20200116152032.11301-5-lukasz.luba@arm.com>
-References: <20200116152032.11301-1-lukasz.luba@arm.com>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <20200116152032.11301-1-lukasz.luba@arm.com>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com
-Cc: Morten.Rasmussen@arm.com, Dietmar.Eggemann@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, qperret@google.com, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.com, kernel@pengutronix.de, khilman@kernel.org, agross@kernel.org, bjorn.andersson@linaro.org, robh@kernel.org, matthias.bgg@gmail.com, steven.price@arm.com, tomeu.vizoso@collabora.com, alyssa.rosenzweig@collabora.com
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v5 00/10] Port am335x and am437x devices to sdhci-omap
+Date: Thu, 16 Jan 2020 16:37:30 +0100
+Message-ID: <CAPDyKFpaFgqRXbO-ezqVDqBM6MCbR884iz4oDCHvPvA5ML_D=A@mail.gmail.com>
+References: <20200116105154.7685-1-faiz_abbas@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200116105154.7685-1-faiz_abbas@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Kishon <kishon@ti.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Lukasz Luba <lukasz.luba@arm.com>
+On Thu, 16 Jan 2020 at 11:50, Faiz Abbas <faiz_abbas@ti.com> wrote:
+>
+> The following add driver patches for porting TI's am335x and am437x devices to
+> the sdhci-omap driver.
+>
+> Patches 1-4 Add Support for external DMA to the sdhci driver.
+>
+> Patches 5-7 refactor the sdhci_set_timeout() function and use it disable
+> data timeout interrupt for erase commands
+>
+> Patches 8-9 add new compatibles for am335x and am43xx devices to the
+> sdhci-omap driver.
+>
+> Patch 10 implements special reset required for am335x and am437x
+> devices.
+>
+> DT changes will be posted as a separate series.
+>
+> Tested on: am335x-evm, am335x-boneblack, am335x-bonegreen-wireless,
+> am335x-sk, am335x-bone, am437x-idk, am43xx-gp-evm, am43xx-epos-evm.
+>
+> v5:
+> 1. Patch 3 now uses the dma_submit_error() API instead of checking the
+>    cookie on its own.
+> 2. Dropped the patch adding ti,needs-special-reset property to
+>    sdhci-omap. Using a flag in the driver instead.
+> 3. Minor spacing changes.
 
-Let Panfrost devfreq device use the Energy Model (EM). The EM can be used
-in thermal subsystem (devfreq_cooling) for calculating the used power.
+Applied for next, thanks!
 
-Signed-off-by: Lukasz Luba <lukasz.luba@arm.com>
----
- drivers/gpu/drm/panfrost/panfrost_devfreq.c | 3 +++
- 1 file changed, 3 insertions(+)
+[...]
 
-diff --git a/drivers/gpu/drm/panfrost/panfrost_devfreq.c b/drivers/gpu/drm/panfrost/panfrost_devfreq.c
-index 413987038fbf..8771782f67c6 100644
---- a/drivers/gpu/drm/panfrost/panfrost_devfreq.c
-+++ b/drivers/gpu/drm/panfrost/panfrost_devfreq.c
-@@ -105,6 +105,8 @@ int panfrost_devfreq_init(struct panfrost_device *pfdev)
- 	}
- 	pfdev->devfreq.devfreq = devfreq;
- 
-+	dev_pm_opp_of_register_em(dev);
-+
- 	cooling = of_devfreq_cooling_register(dev->of_node, devfreq);
- 	if (IS_ERR(cooling))
- 		DRM_DEV_INFO(dev, "Failed to register cooling device\n");
-@@ -118,6 +120,7 @@ void panfrost_devfreq_fini(struct panfrost_device *pfdev)
- {
- 	if (pfdev->devfreq.cooling)
- 		devfreq_cooling_unregister(pfdev->devfreq.cooling);
-+	dev_pm_opp_of_unregister_em(&pfdev->pdev->dev);
- 	dev_pm_opp_of_remove_table(&pfdev->pdev->dev);
- }
- 
--- 
-2.17.1
+Kind regards
+Uffe
