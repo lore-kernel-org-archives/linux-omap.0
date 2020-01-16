@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/4]
-Date: Thu, 16 Jan 2020 10:48:13 -0800
-Message-ID: <pull-1579200367-372444@atomide.com-4>
+Subject: [GIT PULL 3/4] ti-sysc driver changes for omaps for v5.6
+Date: Thu, 16 Jan 2020 10:48:12 -0800
+Message-ID: <pull-1579200367-372444@atomide.com-3>
 References: <pull-1579200367-372444@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:51308 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:51300 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389814AbgAPSsr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 16 Jan 2020 13:48:47 -0500
+        id S2436988AbgAPSsq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 16 Jan 2020 13:48:46 -0500
 In-Reply-To: <pull-1579200367-372444@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,40 +19,35 @@ Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit bfe0237dd6c441f0ba531755ab24579eaee99be7:
+The following changes since commit e709ed70d122e94cb426b1e1f905829eae19a009:
 
-  ARM: dts: am335x-icev2: Add support for OSD9616P0899-10 at i2c0 (2019-12-12 09:35:02 -0800)
+  bus: ti-sysc: Fix missing reset delay handling (2019-12-12 08:20:10 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.6/dt-part2-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.6/ti-sysc-signed
 
-for you to fetch changes up to 6bcc319fc6192cb03f3db41f0e266b796b0e424f:
+for you to fetch changes up to 3f2c420596be57e74719bd09333d3b5efe90341d:
 
-  ARM: dts: Add omap3-echo (2020-01-13 10:11:40 -0800)
-
-----------------------------------------------------------------
-More dts changes for omaps for v5.6 merge window
-
-Add basic support for first generation Amazon omap3-echo. This got
-applied rather late as we discussed how to deal with SoC variants
-with some accelerators unaccessible, and eventually ended up setting
-up few more SoC specific dtsi files. Eventually we'll need to also
-detect the disabled accelerators on driver init, but more patching
-is needed for that.
+  bus: ti-sysc: Use PTR_ERR_OR_ZERO() to simplify code (2019-12-12 09:06:40 -0800)
 
 ----------------------------------------------------------------
-André Hentschel (2):
-      ARM: dts: Add dtsi files for AM3703, AM3715 and DM3725
-      ARM: dts: Add omap3-echo
+ti-sysc driver changes for omaps for v5.6 merge window
 
- arch/arm/boot/dts/Makefile       |   1 +
- arch/arm/boot/dts/am3703.dtsi    |  14 ++
- arch/arm/boot/dts/am3715.dtsi    |  10 +
- arch/arm/boot/dts/dm3725.dtsi    |  10 +
- arch/arm/boot/dts/omap3-echo.dts | 461 +++++++++++++++++++++++++++++++++++++++
- 5 files changed, 496 insertions(+)
- create mode 100644 arch/arm/boot/dts/am3703.dtsi
- create mode 100644 arch/arm/boot/dts/am3715.dtsi
- create mode 100644 arch/arm/boot/dts/dm3725.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-echo.dts
+Few changes to implement quirk handling for cases where we need to block
+clockdomain autoidle, drop old MMU specific quirks, and simplify the
+return code for sysc_init_resets().
+
+----------------------------------------------------------------
+Suman Anna (1):
+      bus: ti-sysc: Drop MMU quirks
+
+Tony Lindgren (1):
+      bus: ti-sysc: Implement quirk handling for CLKDM_NOAUTO
+
+zhengbin (1):
+      bus: ti-sysc: Use PTR_ERR_OR_ZERO() to simplify code
+
+ drivers/bus/ti-sysc.c                 | 18 +++++++++---------
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 2 files changed, 10 insertions(+), 9 deletions(-)
