@@ -1,51 +1,56 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH] ARM: dts: Configure omap5 AESS
-Date: Thu, 16 Jan 2020 10:52:17 -0800
-Message-ID: <20200116185217.GU5885@atomide.com>
+Date: Thu, 16 Jan 2020 10:52:46 -0800
+Message-ID: <20200116185246.GV5885@atomide.com>
 References: <20200114150937.18304-1-tony@atomide.com>
- <202001162346.4yVlrA8l%lkp@intel.com>
+ <52905C15-A2D1-4372-9781-D602D0B274B6@goldelico.com>
+ <20200114164613.GR5885@atomide.com>
+ <D51230C4-2642-4388-959F-313A3382AB99@goldelico.com>
+ <20200114171634.GS5885@atomide.com>
+ <632E66D6-47EF-44CF-BF02-B0F5A215D904@goldelico.com>
+ <ACB71118-B121-4CF7-934D-A88654366E8F@goldelico.com>
+ <20200114210039.GT5885@atomide.com>
+ <5E0BF30D-2723-4724-89E1-449230758EE2@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <202001162346.4yVlrA8l%lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <5E0BF30D-2723-4724-89E1-449230758EE2-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: kbuild-all-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "H . Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [200116 15:55]:
-> Hi Tony,
+* H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [200115 12:50]:
 > 
-> I love your patch! Yet something to improve:
+> > Am 14.01.2020 um 22:00 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+> > 
+> > * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [200114 18:40]:
+> >> I have checked our tree and it is already built into a separate module with
+> >> 
+> >> sound/soc/ti/aess/omap-aess-core.c:	{ .compatible = "ti,omap4-aess", },
+> >> 
+> >> So
+> >> 
+> >>> target-module@f1000 {			/* 0x401f1000, ap 32 20.0 */
+> >>> 	...
+> >>> 	aess: aess {
+> >>> 		compatible = "ti,omap4-aess";
+> >>> 		status = "disabled";
+> >>> 	};
+> >>> };
+> >> 
+> >> would be what we will need.
+> > 
+> > OK good to hear.
 > 
-> [auto build test ERROR on robh/for-next]
-> [also build test ERROR on omap/for-next balbi-usb/next v5.5-rc6 next-20200115]
-> [if your patch is applied to the wrong git tree, please drop us a note to help
-> improve the system. BTW, we also suggest to use '--base' option to specify the
-> base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
+> I have cleaned up my working tree and added your patches and the one
+> above (without status = "disabled" and could
+> a) boot well
+> b) see that the (non-working) aess driver module is loaded through child node
 > 
-> url:    https://github.com/0day-ci/linux/commits/Tony-Lindgren/ARM-dts-Configure-omap5-AESS/20200115-114737
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git for-next
-> config: arm-defconfig (attached as .config)
-> compiler: arm-linux-gnueabi-gcc (GCC) 7.5.0
-> reproduce:
->         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         GCC_VERSION=7.5.0 make.cross ARCH=arm 
-> 
-> If you fix the issue, kindly add following tag
-> Reported-by: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> All errors (new ones prefixed by >>):
-> 
-> >> Error: arch/arm/boot/dts/omap5-l4-abe.dtsi:447.27-28 syntax error
->    FATAL ERROR: Unable to parse input tree
+> So you can add my Tested-by: Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 
-This patch has a dependency to a clock related patch as described in the
-original patch email so this error can be ignored.
-
-Regards,
+OK good to hear, thanks for testing!
 
 Tony
