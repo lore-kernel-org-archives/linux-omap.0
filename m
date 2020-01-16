@@ -1,86 +1,55 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH AUTOSEL 4.19 535/671] ARM: dts: logicpd-som-lv: Fix i2c2 and i2c3 Pin mux
-Date: Thu, 16 Jan 2020 12:02:53 -0500
-Message-ID: <20200116170509.12787-272-sashal@kernel.org>
-References: <20200116170509.12787-1-sashal@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 2/4] soc changes for omap smc for v5.6
+Date: Thu, 16 Jan 2020 10:48:11 -0800
+Message-ID: <pull-1579200367-372444@atomide.com-2>
+References: <pull-1579200367-372444@atomide.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20200116170509.12787-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:51296 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389814AbgAPSsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 16 Jan 2020 13:48:45 -0500
+In-Reply-To: <pull-1579200367-372444@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: soc@kernel.org
+Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-From: Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Tony Lindgren" <tony@atomide.com>
 
-[ Upstream commit a932b77b4d1939ad173f18be87da409427fb705c ]
+The following changes since commit 4601832f40501efc3c2fd264a5a69bd1ac17d520:
 
-When the pinmux configuration was added, it was accidentally placed into
-the omap3_pmx_wkup node  when it should have been placed into the
-omap3_pmx_core.  This error was accidentally propagated to stable by
-me when I blindly requested the pull after seeing I2C issues without
-actually reviewing the content of the pinout.  Since the bootloader
-previously muxed these correctly in the past, was a hidden error.
+  ARM: OMAP2+: use separate IOMMU pdata to fix DRA7 IPU1 boot (2019-12-17 09:57:09 -0800)
 
-This patch moves the i2c2_pins and i2c3_pins to the correct node
-which should eliminate i2c bus errors and timeouts due to the fact
-the bootloader uses the save device tree that no longer properly
-assigns these pins.
+are available in the Git repository at:
 
-Fixes: 5fe3c0fa0d54 ("ARM: dts: Add pinmuxing for i2c2 and i2c3
-for LogicPD SOM-LV") #4.9+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.6/soc-smc-signed
 
-Signed-off-by: Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- arch/arm/boot/dts/logicpd-som-lv.dtsi | 26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+for you to fetch changes up to 8ab871f8bdfcca627802b6992e556fba5722a268:
 
-diff --git a/arch/arm/boot/dts/logicpd-som-lv.dtsi b/arch/arm/boot/dts/logicpd-som-lv.dtsi
-index 98b682a8080c..c5d54c4d3747 100644
---- a/arch/arm/boot/dts/logicpd-som-lv.dtsi
-+++ b/arch/arm/boot/dts/logicpd-som-lv.dtsi
-@@ -232,6 +232,20 @@
- 		>;
- 	};
- 
-+	i2c2_pins: pinmux_i2c2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21be, PIN_INPUT | MUX_MODE0)	/* i2c2_scl */
-+			OMAP3_CORE1_IOPAD(0x21c0, PIN_INPUT | MUX_MODE0)	/* i2c2_sda */
-+		>;
-+	};
-+
-+	i2c3_pins: pinmux_i2c3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT | MUX_MODE0)	/* i2c3_scl */
-+			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda */
-+		>;
-+	};
-+
- 	tsc2004_pins: pinmux_tsc2004_pins {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE4)	/* mcbsp4_dr.gpio_153 */
-@@ -253,18 +267,6 @@
- 			OMAP3_WKUP_IOPAD(0x2a0c, PIN_OUTPUT | MUX_MODE4)	/* sys_boot1.gpio_3 */
- 		>;
- 	};
--	i2c2_pins: pinmux_i2c2_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x21be, PIN_INPUT | MUX_MODE0)	/* i2c2_scl */
--			OMAP3_CORE1_IOPAD(0x21c0, PIN_INPUT | MUX_MODE0)	/* i2c2_sda */
--		>;
--	};
--	i2c3_pins: pinmux_i2c3_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT | MUX_MODE0)	/* i2c3_scl */
--			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda */
--		>;
--	};
- };
- 
- &omap3_pmx_core2 {
--- 
-2.20.1
+  ARM: OMAP2+: sleep43xx: Call secure suspend/resume handlers (2020-01-13 10:06:46 -0800)
+
+----------------------------------------------------------------
+SMC related changes for omaps for v5.6 merge window
+
+A series of changes to use optee SMC calls if optee is initialized by
+the bootloader. Based on the discussions on LAKML in mailing list thread
+"arm_smccc_smc as generic smc interface?" we don't want to add more quirk
+handling to arm_smccc_smc() and want to handle it locally instead.
+
+----------------------------------------------------------------
+Andrew F. Davis (4):
+      ARM: OMAP2+: Add omap_secure_init callback hook for secure initialization
+      ARM: OMAP2+: Introduce check for OP-TEE in omap_secure_init()
+      ARM: OMAP2+: Use ARM SMC Calling Convention when OP-TEE is available
+      ARM: OMAP2+: sleep43xx: Call secure suspend/resume handlers
+
+ arch/arm/mach-omap2/common.h      |  2 +-
+ arch/arm/mach-omap2/io.c          | 11 +++++++++
+ arch/arm/mach-omap2/omap-secure.c | 50 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap-secure.h | 10 ++++++++
+ arch/arm/mach-omap2/omap-smc.S    |  6 ++---
+ arch/arm/mach-omap2/pm33xx-core.c | 24 +++++++++++++++++++
+ 6 files changed, 99 insertions(+), 4 deletions(-)
