@@ -1,46 +1,83 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.4 160/205] ARM: dts: dra7: fix cpsw mdio fck clock
-Date: Thu, 16 Jan 2020 11:42:15 -0500
-Message-ID: <20200116164300.6705-160-sashal@kernel.org>
-References: <20200116164300.6705-1-sashal@kernel.org>
+From: Quentin Perret <qperret@google.com>
+Subject: Re: [PATCH 1/4] PM / EM: and devices to Energy Model
+Date: Fri, 17 Jan 2020 10:54:37 +0000
+Message-ID: <20200117105437.GA211774@google.com>
+References: <20200116152032.11301-1-lukasz.luba@arm.com>
+ <20200116152032.11301-2-lukasz.luba@arm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20200116152032.11301-2-lukasz.luba@arm.com>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: lukasz.luba@arm.com
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com, Morten.Rasmussen@arm.com, Dietmar.Eggemann@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+Hey Lukasz,
 
-[ Upstream commit 6af0a549c25e0d02366aa95507bfe3cad2f7b68b ]
+Still reading through this, but with small changes, this looks pretty
+good to me.
 
-The DRA7 CPSW MDIO functional clock (gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 0)
-is specified incorrectly, which is caused incorrect MDIO bus clock
-configuration MDCLK. The correct CPSW MDIO functional clock is
-gmac_main_clk (125MHz), which is the same as CPSW fck. Hence fix it.
+On Thursday 16 Jan 2020 at 15:20:29 (+0000), lukasz.luba@arm.com wrote:
+> +int em_register_perf_domain(struct device *dev, unsigned int nr_states,
+> +			struct em_data_callback *cb)
+>  {
+>  	unsigned long cap, prev_cap = 0;
+>  	struct em_perf_domain *pd;
+> -	int cpu, ret = 0;
+> +	struct em_device *em_dev;
+> +	cpumask_t *span = NULL;
+> +	int cpu, ret;
+>  
+> -	if (!span || !nr_states || !cb)
+> +	if (!dev || !nr_states || !cb || !cb->active_power)
 
-Fixes: 1faa415c9c6e ("ARM: dts: Add fck for cpsw mdio for omap variants")
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/dra7-l4.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Nit: you check !cb->active_power in em_create_pd() too I think, so only
+one of the two is needed.
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index 5cac2dd58241..c3954e34835b 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -3059,7 +3059,7 @@
- 
- 				davinci_mdio: mdio@1000 {
- 					compatible = "ti,cpsw-mdio","ti,davinci_mdio";
--					clocks = <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 0>;
-+					clocks = <&gmac_main_clk>;
- 					clock-names = "fck";
- 					#address-cells = <1>;
- 					#size-cells = <0>;
--- 
-2.20.1
+>  		return -EINVAL;
+>  
+> -	/*
+> -	 * Use a mutex to serialize the registration of performance domains and
+> -	 * let the driver-defined callback functions sleep.
+> -	 */
+>  	mutex_lock(&em_pd_mutex);
+>  
+> -	for_each_cpu(cpu, span) {
+> -		/* Make sure we don't register again an existing domain. */
+> -		if (READ_ONCE(per_cpu(em_data, cpu))) {
+> +	if (_is_cpu_device(dev)) {
+> +		span = kzalloc(cpumask_size(), GFP_KERNEL);
+> +		if (!span) {
+> +			mutex_unlock(&em_pd_mutex);
+> +			return -ENOMEM;
+> +		}
+> +
+> +		ret = dev_pm_opp_get_sharing_cpus(dev, span);
+> +		if (ret)
+> +			goto free_cpumask;
+
+That I think should be changed. This creates some dependency on PM_OPP
+for the EM framework. And in fact, the reason we came up with PM_EM was
+precisely to not depend on PM_OPP which was deemed too Arm-specific.
+
+Suggested alternative: have two registration functions like so:
+
+	int em_register_dev_pd(struct device *dev, unsigned int nr_states,
+			       struct em_data_callback *cb);
+	int em_register_cpu_pd(cpumask_t *span, unsigned int nr_states,
+			       struct em_data_callback *cb);
+
+where em_register_cpu_pd() does the CPU-specific work and then calls
+em_register_dev_pd() (instead of having that big if (_is_cpu_device(dev))
+as you currently have). Would that work ?
+
+Another possibility would be to query CPUFreq instead of PM_OPP to get
+the mask, but I'd need to look again at the driver registration path in
+CPUFreq to see if the policy masks have been populated when we enter
+PM_EM ... I am not sure if this is the case, but it's worth having a
+look too.
+
+Thanks,
+Quentin
