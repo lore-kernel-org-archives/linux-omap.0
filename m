@@ -1,50 +1,79 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2] clk: ti: dra7: fix parent for gmac_clkctrl
-Date: Fri, 17 Jan 2020 16:05:08 +0200
-Message-ID: <e1782af7-098e-4550-8c9c-9f90187df8f3@ti.com>
-References: <20191221110004.9951-1-grygorii.strashko@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [Patch v3 0/3] ARM: dts: am43x-vpfe/ov2659.patch
+Date: Fri, 17 Jan 2020 16:15:56 +0200
+Message-ID: <e72f8de3-fd30-a216-8e6e-934a05259ed6@ti.com>
+References: <20191211140720.10539-1-bparrot@ti.com>
+ <20191212174123.GF35479@atomide.com>
+ <c4ae58dc-3c81-f493-a665-6926baa0f04c@ti.com>
+ <20191213152938.GK35479@atomide.com> <20200113165413.i6nbi2i7xyue4fti@ti.com>
+ <20200114160422.GQ5885@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20191221110004.9951-1-grygorii.strashko@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20200114160422.GQ5885-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-clk-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Michael Turquette <mturquette@baylibre.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@kernel.org>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 21/12/2019 13:00, Grygorii Strashko wrote:
-> The parent clk for gmac clk ctrl has to be gmac_main_clk (125MHz) instead
-> of dpll_gmac_ck (1GHz). This is caused incorrect CPSW MDIO operation.
-> Hence, fix it.
+On 14/01/2020 18:04, Tony Lindgren wrote:
+> * Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org> [200113 16:51]:
+>> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote on Fri [2019-Dec-13 07:29:38 -0800]:
+>>> * Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [191213 07:43]:
+>>>> On 12/12/2019 19:41, Tony Lindgren wrote:
+>>>>> * Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org> [191211 06:04]:
+>>>>>> This patch series adds the missing camera endpoint (ov2659) as well as
+>>>>>> the required source clocks nodes for the sensor.
+>>>>>>
+>>>>>> On the am437x-sk-evm the camera sensor is sourced from clkout1 but that
+>>>>>> clock nodes/tree was removed as it was unsed at the time, we are
+>>>>>> re-adding the needed clock nodes here.
+>>>>>
+>>>>> Tero, it seems I can already pick this series?
+>>>>
+>>>> I believe it is ready if you approve the clkout1 clock patch.
+>>>
+>>> OK yeah looks fine.
+>>>
+>>>>> Or ou want to queue the changes to am43xx-clocks.dtsi along with all
+>>>>> your other clock patches?
+>>>>
+>>>> Well, I have actually never queued any omap2+ dts patches myself, and I
+>>>> don't think there would be too many of those coming for next merge either.
+>>>
+>>> OK will queue this series then. For the other ones from Benoit
+>>> looks like we need an immutable clock branch before I can apply
+>>> anything.
+>>
+>> Tony, Tero,
+>>
+>> Are these merged anyware now?
+>> I still don't see any of these on linux-next?
 > 
-> Fixes: dffa9051d546 ('clk: ti: dra7: add new clkctrl data')
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->   drivers/clk/ti/clk-7xx.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-> index 9dd6185a4b4e..66e4b2b9ec60 100644
-> --- a/drivers/clk/ti/clk-7xx.c
-> +++ b/drivers/clk/ti/clk-7xx.c
-> @@ -405,7 +405,7 @@ static const struct omap_clkctrl_bit_data dra7_gmac_bit_data[] __initconst = {
->   };
->   
->   static const struct omap_clkctrl_reg_data dra7_gmac_clkctrl_regs[] __initconst = {
-> -	{ DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "dpll_gmac_ck" },
-> +	{ DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "gmac_main_clk" },
+> Tero any news on getting some immutable clock changes branch done?
+> Looks like there are quite a few pending clock patches right now,
+> probably best to set them all into a branch that I can also merge
+> in.
 
-I think the gmac clk path is still somehow wrong after this change. This 
-only fixes it partially imo.
-
-Looking at TRM, gmac_main_clk is fed from dpll_gmac_x2_h12, but looking 
-at the existing clock data, gmac_main_clk comes out from 
-dpll_gmac_m2_ck. This potentially applies one extra divider to the path 
-which appears wrong. Can you take a look at fixing the DTS side for this 
-also?
+Working on that now, have been forced to prioritize work lately. I can 
+probably get the branch set-up on Monday and send a pull-req out 
+assuming it is not too late for 5.6 already.
 
 -Tero
+
+> 
+>> And by "these" I mean this one and both
+>>   ARM: dts: dra7: add vpe nodes
+>>   ARM: dts: dra7: add cal nodes
+> 
+> Yeah looks good to me other than the clock dependency.
+> 
+> Regards,
+> 
+> Tony
+> 
+
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
