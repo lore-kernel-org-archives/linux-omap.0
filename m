@@ -1,66 +1,83 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2] clk: ti: dra7: fix parent for gmac_clkctrl
-Date: Fri, 17 Jan 2020 16:49:08 +0200
-Message-ID: <b448c468-5216-f599-7add-cefaf4f557db@ti.com>
-References: <20191221110004.9951-1-grygorii.strashko@ti.com>
- <e1782af7-098e-4550-8c9c-9f90187df8f3@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: spi-ti-qspi: fix warning" to the spi tree
+Date: Fri, 17 Jan 2020 15:44:24 +0000 (GMT)
+Message-ID: <applied-20200115100700.3357-1-jean.pihet@newoldbits.com>
+References: <20200115100700.3357-1-jean.pihet@newoldbits.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:46918 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726827AbgAQOtT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jan 2020 09:49:19 -0500
-In-Reply-To: <e1782af7-098e-4550-8c9c-9f90187df8f3@ti.com>
-Content-Language: en-US
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:54166 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729281AbgAQPof (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jan 2020 10:44:35 -0500
+In-Reply-To: <20200115100700.3357-1-jean.pihet@newoldbits.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@kernel.org>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Arnout Vandecappelle <arnout.vandecappelle@essensium.com>, Conrad Ratschan <conrad.ratschan@rockwellcollins.com>, linux-omap@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Ryan Barnett <ryan.barnett@rockwellcollins.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Vignesh Raghavendra <vigneshr@ti.com>
 
+The patch
 
+   spi: spi-ti-qspi: fix warning
 
-On 17/01/2020 16:05, Tero Kristo wrote:
-> On 21/12/2019 13:00, Grygorii Strashko wrote:
->> The parent clk for gmac clk ctrl has to be gmac_main_clk (125MHz) instead
->> of dpll_gmac_ck (1GHz). This is caused incorrect CPSW MDIO operation.
->> Hence, fix it.
->>
->> Fixes: dffa9051d546 ('clk: ti: dra7: add new clkctrl data')
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>   drivers/clk/ti/clk-7xx.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
->> index 9dd6185a4b4e..66e4b2b9ec60 100644
->> --- a/drivers/clk/ti/clk-7xx.c
->> +++ b/drivers/clk/ti/clk-7xx.c
->> @@ -405,7 +405,7 @@ static const struct omap_clkctrl_bit_data dra7_gmac_bit_data[] __initconst = {
->>   };
->>   static const struct omap_clkctrl_reg_data dra7_gmac_clkctrl_regs[] __initconst = {
->> -    { DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "dpll_gmac_ck" },
->> +    { DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "gmac_main_clk" },
-> 
-> I think the gmac clk path is still somehow wrong after this change. This only fixes it partially imo.
-> 
-> Looking at TRM, gmac_main_clk is fed from dpll_gmac_x2_h12, 
+has been applied to the spi tree at
 
-No, it seems not.
-DPLL_GMAC.CLKOUT_M2 -> GMAC_250M_CLK -> 1/2 -> GMAC_MAIN_CLK
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-5.6
 
-http://www.ti.com/lit/ug/sprui30f/sprui30f.pdf
-3.6.3.12.1 DPLL_GMAC Overview
-Figure 3-41. CM_CORE_AON Overview (b)
-Figure 24-185. GMAC_SW Integration
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-but looking at the existing clock data, gmac_main_clk comes out from dpll_gmac_m2_ck. This potentially applies one extra divider to the path which appears wrong. Can you take a look at fixing the DTS side for this also?
-> 
-> -Tero
-> -- 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 6925212f328bf2abde0c8f0d037fddd36751d489 Mon Sep 17 00:00:00 2001
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Date: Wed, 15 Jan 2020 11:07:00 +0100
+Subject: [PATCH] spi: spi-ti-qspi: fix warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+drivers/spi/spi-ti-qspi.c: In function ‘ti_qspi_start_transfer_one’:
+drivers/spi/spi-ti-qspi.c:392:8: warning: ‘rx_wlen’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  392 |     if (rx_wlen >= 32)
+      |        ^
+drivers/spi/spi-ti-qspi.c:318:12: note: ‘rx_wlen’ was declared here
+  318 |  u8 rxlen, rx_wlen;
+      |            ^~~~~~~
+
+The warning is a false positive; it is not thrown by all compiler versions, e.g.
+Red Hat Cross 9.2.1-1 but not Linaro GCC 7.5-2019.12.
+
+Signed-off-by: Jean Pihet <jean.pihet@newoldbits.com>
+Link: https://lore.kernel.org/r/20200115100700.3357-1-jean.pihet@newoldbits.com
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-ti-qspi.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+index 858fda8ac73e..366a3e5cca6b 100644
+--- a/drivers/spi/spi-ti-qspi.c
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -332,6 +332,7 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t,
+ 		break;
+ 	}
+ 	wlen = t->bits_per_word >> 3;	/* in bytes */
++	rx_wlen = wlen;
+ 
+ 	while (count) {
+ 		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n", cmd, qspi->dc);
 -- 
-Best regards,
-grygorii
+2.20.1
