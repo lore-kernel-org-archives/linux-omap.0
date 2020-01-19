@@ -1,83 +1,35 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2] clk: ti: dra7: fix parent for gmac_clkctrl
-Date: Fri, 17 Jan 2020 17:47:01 +0200
-Message-ID: <6777c22e-51b6-582c-54ca-364e9094bed9@ti.com>
-References: <20191221110004.9951-1-grygorii.strashko@ti.com>
- <e1782af7-098e-4550-8c9c-9f90187df8f3@ti.com>
- <b448c468-5216-f599-7add-cefaf4f557db@ti.com>
+From: syzbot <syzbot+7b6206fb525c1f5ec3f8@syzkaller.appspotmail.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_ext_cleanup
+Date: Sun, 19 Jan 2020 01:35:01 -0800
+Message-ID: <00000000000095fe43059c7ae3f9@google.com>
+References: <000000000000e0ab4c059c79f014@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:53488 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728816AbgAQPrK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jan 2020 10:47:10 -0500
-In-Reply-To: <b448c468-5216-f599-7add-cefaf4f557db@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <000000000000e0ab4c059c79f014@google.com>
+Sender: netdev-owner@vger.kernel.org
+To: a@unstable.cc, andrew@lunn.ch, b.a.t.m.a.n@lists.open-mesh.org, coreteam@netfilter.org, davem@davemloft.net, florent.fourcot@wifirst.fr, fw@strlen.de, grygorii.strashko@ti.com, j-keerthy@ti.com, jeremy@azazel.net, johannes.berg@intel.com, kadlec@netfilter.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mareklindner@neomailbox.ch, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pablo@netfilter.org, sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Michael Turquette <mturquette@baylibre.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@kernel.org>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 17/01/2020 16:49, Grygorii Strashko wrote:
-> 
-> 
-> On 17/01/2020 16:05, Tero Kristo wrote:
->> On 21/12/2019 13:00, Grygorii Strashko wrote:
->>> The parent clk for gmac clk ctrl has to be gmac_main_clk (125MHz) 
->>> instead
->>> of dpll_gmac_ck (1GHz). This is caused incorrect CPSW MDIO operation.
->>> Hence, fix it.
->>>
->>> Fixes: dffa9051d546 ('clk: ti: dra7: add new clkctrl data')
->>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>> ---
->>>   drivers/clk/ti/clk-7xx.c | 2 +-
->>>   1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
->>> index 9dd6185a4b4e..66e4b2b9ec60 100644
->>> --- a/drivers/clk/ti/clk-7xx.c
->>> +++ b/drivers/clk/ti/clk-7xx.c
->>> @@ -405,7 +405,7 @@ static const struct omap_clkctrl_bit_data 
->>> dra7_gmac_bit_data[] __initconst = {
->>>   };
->>>   static const struct omap_clkctrl_reg_data dra7_gmac_clkctrl_regs[] 
->>> __initconst = {
->>> -    { DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, 
->>> "dpll_gmac_ck" },
->>> +    { DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, 
->>> "gmac_main_clk" },
->>
->> I think the gmac clk path is still somehow wrong after this change. 
->> This only fixes it partially imo.
->>
->> Looking at TRM, gmac_main_clk is fed from dpll_gmac_x2_h12, 
-> 
-> No, it seems not.
-> DPLL_GMAC.CLKOUT_M2 -> GMAC_250M_CLK -> 1/2 -> GMAC_MAIN_CLK
+syzbot has bisected this bug to:
 
-Hmm ok, yeah looking at the GMAC IP details shows how it actually goes, 
-I got confused with the clkdm mapping in 3.6.3.12.1. So no DT changes 
-needed after all and this patch alone is fine.
+commit 2f9b0d93a9d3ec64558537ab5d7cff820886afa4
+Author: Keerthy <j-keerthy@ti.com>
+Date:   Mon Jun 24 05:16:19 2019 +0000
 
--Tero
+    net: ethernet: ti: cpsw: Fix suspend/resume break
 
-> 
-> http://www.ti.com/lit/ug/sprui30f/sprui30f.pdf
-> 3.6.3.12.1 DPLL_GMAC Overview
-> Figure 3-41. CM_CORE_AON Overview (b)
-> Figure 24-185. GMAC_SW Integration
-> 
-> but looking at the existing clock data, gmac_main_clk comes out from 
-> dpll_gmac_m2_ck. This potentially applies one extra divider to the path 
-> which appears wrong. Can you take a look at fixing the DTS side for this 
-> also?
->>
->> -Tero
->> -- 
-> 
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17fcf959e00000
+start commit:   e02d9c4c Merge branch 'bnxt_en-fixes'
+git tree:       net
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=1402f959e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1002f959e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
+dashboard link: https://syzkaller.appspot.com/bug?extid=7b6206fb525c1f5ec3f8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16551cc9e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14a04966e00000
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Reported-by: syzbot+7b6206fb525c1f5ec3f8@syzkaller.appspotmail.com
+Fixes: 2f9b0d93a9d3 ("net: ethernet: ti: cpsw: Fix suspend/resume break")
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
