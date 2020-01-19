@@ -1,39 +1,24 @@
-From: Raag Jadav <raagjadav@gmail.com>
-Subject: [PATCH] ARM: dts: am43x-epos-evm: set data pin directions for spi0 and spi1
-Date: Sun, 19 Jan 2020 16:58:59 +0530
-Message-ID: <1579433339-10663-1-git-send-email-raagjadav@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Raag Jadav <raagjadav@gmail.com>
+From: Favor Desmond <contecindy5@gmail.com>
+Subject: HELLO
+Date: Sun, 19 Jan 2020 18:44:18 +0000
+Message-ID: <CAOfCPNxgSoAU_ns0j9jYL-ArKfcD=i8NkJvHsR4-OGvFBVDMZg__32157.9407712974$1579459474$gmane$org@mail.gmail.com>
+Reply-To: favordens@email.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-il1-f193.google.com ([209.85.166.193]:39261 "EHLO
+        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728682AbgASSoT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 19 Jan 2020 13:44:19 -0500
+Received: by mail-il1-f193.google.com with SMTP id x5so25495448ila.6
+        for <linux-omap@vger.kernel.org>; Sun, 19 Jan 2020 10:44:19 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Set d0 and d1 pin directions for spi0 and spi1 as per their pinmux.
-
-Signed-off-by: Raag Jadav <raagjadav@gmail.com>
----
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 078cb47..a6fbc08 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -848,6 +848,7 @@
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&spi0_pins_default>;
- 	pinctrl-1 = <&spi0_pins_sleep>;
-+	ti,pindir-d0-out-d1-in = <1>;
- };
- 
- &spi1 {
-@@ -855,6 +856,7 @@
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&spi1_pins_default>;
- 	pinctrl-1 = <&spi1_pins_sleep>;
-+	ti,pindir-d0-out-d1-in = <1>;
- };
- 
- &usb2_phy1 {
--- 
-2.7.4
+Hello Dear
+Greetings to you,I am Favor Desmond from Ivory coast currently living
+in  Togo Republic,I would like to know you more, so that i can tell
+you little amount myself and my photo, email address is
+favordens@email.com
+Thanks
+Favor
