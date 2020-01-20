@@ -1,52 +1,51 @@
-From: Quentin Perret <qperret@google.com>
+From: Dietmar Eggemann <dietmar.eggemann@arm.com>
 Subject: Re: [PATCH 1/4] PM / EM: and devices to Energy Model
-Date: Mon, 20 Jan 2020 15:09:18 +0000
-Message-ID: <20200120150918.GA164543@google.com>
+Date: Mon, 20 Jan 2020 16:11:21 +0100
+Message-ID: <d0b90b97-3604-d4f4-b873-3879a9221532@arm.com>
 References: <20200116152032.11301-1-lukasz.luba@arm.com>
  <20200116152032.11301-2-lukasz.luba@arm.com>
- <20200117105437.GA211774@google.com>
- <40587d98-0e8d-cbac-dbf5-d26501d47a8c@arm.com>
+ <17b77e0c-9455-0479-d37b-c57717c784c7@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <40587d98-0e8d-cbac-dbf5-d26501d47a8c@arm.com>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Lukasz Luba <lukasz.luba@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com, Morten.Rasmussen@arm.com, Dietmar.Eggemann@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.110.172]:33464 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726642AbgATPL3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 20 Jan 2020 10:11:29 -0500
+In-Reply-To: <17b77e0c-9455-0479-d37b-c57717c784c7@arm.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: lukasz.luba@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com
+Cc: Morten.Rasmussen@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, qperret@google.com, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.com, kernel@pengutronix.de, khilman@kernel.org, agross@kernel.org, bjorn.andersson@linaro.org, robh@kernel.org, matthias.bgg@gmail.com, steven.price@arm.com, tomeu.vizoso@collabora.com, alyssa.rosenzweig@collabora.com, airlied@linux.ie, daniel@ffw
 
-Hey Lukasz,
+On 20/01/2020 15:53, Dietmar Eggemann wrote:
+> On 16/01/2020 16:20, lukasz.luba@arm.com wrote:
+>> From: Lukasz Luba <lukasz.luba@arm.com>
 
-On Monday 20 Jan 2020 at 14:52:07 (+0000), Lukasz Luba wrote:
-> On 1/17/20 10:54 AM, Quentin Perret wrote:
-> > Suggested alternative: have two registration functions like so:
-> > 
-> > 	int em_register_dev_pd(struct device *dev, unsigned int nr_states,
-> > 			       struct em_data_callback *cb);
-> > 	int em_register_cpu_pd(cpumask_t *span, unsigned int nr_states,
-> > 			       struct em_data_callback *cb);
+[...]
+
+>> +enum em_type {
+>> +	EM_SIMPLE,
+>> +	EM_CPU,
+>> +};
 > 
-> Interesting, in the internal review Dietmar asked me to remove these two
-> functions. I had the same idea, which would simplify a bit the
-> registration and it does not need to check the dev->bus if it is CPU.
+> s/EM_SIMPLE/EM_DEV ?
 > 
-> Unfortunately, we would need also two function in drivers/opp/of.c:
-> dev_pm_opp_of_register_cpu_em(policy->cpus);
-> and
-> dev_pm_opp_of_register_dev_em(dev);
-> 
-> Thus, I have created only one registration function, which you can see
-> in this patch set.
+> Right now I only see energy models and _one_ specific type (the CPU EM).
+> So a tag 'is a CPU EM' would suffice. No need for EM_SIMPE ...
 
-Right, I can see how having a unified API would be appealing, but the
-OPP dependency is a nono, so we'll need to work around one way or
-another.
+Wait, you even have
 
-FWIW, I don't think having separate APIs for CPUs and other devices is
-that bad given that we already have entirely different frameworks to
-drive their respective frequencies. And the _cpu variants are basically
-just wrappers around the _dev ones, so not too bad either IMO :).
+struct em_device {
+        struct em_perf_domain *em_pd;
+        struct device *dev;
+        ...
+}
 
-Thanks,
-Quentin
+static bool _is_cpu_device(struct device *dev)
+
+Shouldn't this be enough to distinguish between EM and special CPU EM
+under the API? Even when required to use container_of() to get from
+em_perf_domain to device.
