@@ -1,34 +1,50 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: Re: [Patch v4 01/10] clk: ti: dra7: add cam clkctrl data
-Date: Tue, 21 Jan 2020 09:32:45 +0200
-Message-ID: <8fd606d3-0840-ae7c-247c-fce992500535@ti.com>
-References: <20191211140558.10407-1-bparrot@ti.com>
- <20191211140558.10407-2-bparrot@ti.com>
- <20191230195823.D48E1206CB@mail.kernel.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: add clkctrl data dra7 sgx
+Date: Tue, 21 Jan 2020 09:33:13 +0200
+Message-ID: <3d62b6f6-63ce-f009-84af-a177c7844d46@ti.com>
+References: <20191101162719.49781-1-tony@atomide.com>
+ <20200106031426.B1B6D21582@mail.kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20191230195823.D48E1206CB-+nuXSHJNwjE76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:41196 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725890AbgAUHdg (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2020 02:33:36 -0500
+In-Reply-To: <20200106031426.B1B6D21582@mail.kernel.org>
 Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@kernel.org>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Benoit Parrot <bparrot@ti.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Robert Nelson <robertcnelson@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 30/12/2019 21:58, Stephen Boyd wrote:
-> Quoting Benoit Parrot (2019-12-11 06:05:49)
->> Add clkctrl data for CAM domain.
+On 06/01/2020 05:14, Stephen Boyd wrote:
+> Quoting Tony Lindgren (2019-11-01 09:27:19)
+>> This is similar to what we have for omap5 except the gpu_cm address is
+>> different, the mux clocks have one more source option, and there's no
+>> divider clock.
 >>
->> Signed-off-by: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
->> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> Note that because of the current dts node name dependency for mapping to
+>> clock domain, we must still use "gpu-clkctrl@" naming instead of generic
+>> "clock@" naming for the node. And because of this, it's probably best to
+>> apply the dts node addition together along with the other clock changes.
+>>
+>> For accessing the GPU, we also need to configure the interconnect target
+>> module for GPU similar to what we have for omap5, I'll send that change
+>> separately.
+>>
+>> Cc: Benoit Parrot <bparrot@ti.com>
+>> Cc: "H. Nikolaus Schaller" <hns@goldelico.com>
+>> Cc: Robert Nelson <robertcnelson@gmail.com>
+>> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
 >> ---
 > 
-> Acked-by: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Acked-by: Stephen Boyd <sboyd@kernel.org>
 > 
 
-Queued this patch towards 5.6, thanks.
+Queued up towards 5.6, thanks.
 
 -Tero
 --
