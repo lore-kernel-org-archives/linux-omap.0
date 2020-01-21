@@ -1,90 +1,52 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: omap5: Add missing AESS clock
-Date: Tue, 21 Jan 2020 09:33:35 +0200
-Message-ID: <9bfd16c3-5f53-bf3a-d912-8e43e3f5bad3@ti.com>
-References: <20200114150607.18092-1-tony@atomide.com>
- <23f9723b-cb9e-8737-92c5-4c20bed55cf5@ti.com>
+Subject: Re: [PATCH v2] clk: ti: dra7: fix parent for gmac_clkctrl
+Date: Tue, 21 Jan 2020 09:34:00 +0200
+Message-ID: <df59b0b4-abc0-bab1-78d4-35518c295e06@ti.com>
+References: <20191221110004.9951-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <23f9723b-cb9e-8737-92c5-4c20bed55cf5@ti.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:56108 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725890AbgAUHeI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2020 02:34:08 -0500
+In-Reply-To: <20191221110004.9951-1-grygorii.strashko@ti.com>
 Content-Language: en-US
-Sender: linux-clk-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, "H . Nikolaus Schaller" <hns@goldelico.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Michael Turquette <mturquette@baylibre.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@kernel.org>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 15/01/2020 10:56, Peter Ujfalusi wrote:
+On 21/12/2019 13:00, Grygorii Strashko wrote:
+> The parent clk for gmac clk ctrl has to be gmac_main_clk (125MHz) instead
+> of dpll_gmac_ck (1GHz). This is caused incorrect CPSW MDIO operation.
+> Hence, fix it.
 > 
-> 
-> On 14/01/2020 17.06, Tony Lindgren wrote:
->> Looks like we're missing AESS clock for omap5. This is similar to what
->> omap4 has.
-> 
-> Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Fixes: dffa9051d546 ('clk: ti: dra7: add new clkctrl data')
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
 Queued up for 5.6, thanks.
 
 -Tero
 
+> ---
+>   drivers/clk/ti/clk-7xx.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
 > 
->> Cc: H. Nikolaus Schaller <hns@goldelico.com>
->> Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
->> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> ---
->>   drivers/clk/ti/clk-54xx.c         | 15 +++++++++++++++
->>   include/dt-bindings/clock/omap5.h |  1 +
->>   2 files changed, 16 insertions(+)
->>
->> diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
->> --- a/drivers/clk/ti/clk-54xx.c
->> +++ b/drivers/clk/ti/clk-54xx.c
->> @@ -35,6 +35,20 @@ static const struct omap_clkctrl_reg_data omap5_dsp_clkctrl_regs[] __initconst =
->>   	{ 0 },
->>   };
->>   
->> +static const char * const omap5_aess_fclk_parents[] __initconst = {
->> +	"abe_clk",
->> +	NULL,
->> +};
->> +
->> +static const struct omap_clkctrl_div_data omap5_aess_fclk_data __initconst = {
->> +	.max_div = 2,
->> +};
->> +
->> +static const struct omap_clkctrl_bit_data omap5_aess_bit_data[] __initconst = {
->> +	{ 24, TI_CLK_DIVIDER, omap5_aess_fclk_parents, &omap5_aess_fclk_data },
->> +	{ 0 },
->> +};
->> +
->>   static const char * const omap5_dmic_gfclk_parents[] __initconst = {
->>   	"abe_cm:clk:0018:26",
->>   	"pad_clks_ck",
->> @@ -122,6 +136,7 @@ static const struct omap_clkctrl_bit_data omap5_timer8_bit_data[] __initconst =
->>   
->>   static const struct omap_clkctrl_reg_data omap5_abe_clkctrl_regs[] __initconst = {
->>   	{ OMAP5_L4_ABE_CLKCTRL, NULL, 0, "abe_iclk" },
->> +	{ OMAP5_AESS_CLKCTRL, omap5_aess_bit_data, CLKF_SW_SUP, "abe_cm:clk:0008:24" },
->>   	{ OMAP5_MCPDM_CLKCTRL, NULL, CLKF_SW_SUP, "pad_clks_ck" },
->>   	{ OMAP5_DMIC_CLKCTRL, omap5_dmic_bit_data, CLKF_SW_SUP, "abe_cm:clk:0018:24" },
->>   	{ OMAP5_MCBSP1_CLKCTRL, omap5_mcbsp1_bit_data, CLKF_SW_SUP, "abe_cm:clk:0028:24" },
->> diff --git a/include/dt-bindings/clock/omap5.h b/include/dt-bindings/clock/omap5.h
->> --- a/include/dt-bindings/clock/omap5.h
->> +++ b/include/dt-bindings/clock/omap5.h
->> @@ -16,6 +16,7 @@
->>   
->>   /* abe clocks */
->>   #define OMAP5_L4_ABE_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
->> +#define OMAP5_AESS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
->>   #define OMAP5_MCPDM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
->>   #define OMAP5_DMIC_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
->>   #define OMAP5_MCBSP1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x48)
->>
-> 
-> - Péter
-> 
+> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+> index 9dd6185a4b4e..66e4b2b9ec60 100644
+> --- a/drivers/clk/ti/clk-7xx.c
+> +++ b/drivers/clk/ti/clk-7xx.c
+> @@ -405,7 +405,7 @@ static const struct omap_clkctrl_bit_data dra7_gmac_bit_data[] __initconst = {
+>   };
+>   
+>   static const struct omap_clkctrl_reg_data dra7_gmac_clkctrl_regs[] __initconst = {
+> -	{ DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "dpll_gmac_ck" },
+> +	{ DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "gmac_main_clk" },
+>   	{ 0 },
+>   };
+>   
 > 
 
 --
