@@ -1,64 +1,47 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap4-droid4: Enable hdq for droid4 ds250x
- 1-wire battery nvmem
-Date: Tue, 21 Jan 2020 10:17:17 +0100
-Message-ID: <20200121091717.GB6934@amd>
-References: <20200119195659.18273-1-tony@atomide.com>
+From: Quentin Perret <qperret@google.com>
+Subject: Re: [PATCH 1/4] PM / EM: and devices to Energy Model
+Date: Tue, 21 Jan 2020 09:31:58 +0000
+Message-ID: <20200121093158.GA154455@google.com>
+References: <20200116152032.11301-1-lukasz.luba@arm.com>
+ <20200116152032.11301-2-lukasz.luba@arm.com>
+ <20200117105437.GA211774@google.com>
+ <40587d98-0e8d-cbac-dbf5-d26501d47a8c@arm.com>
+ <20200120150918.GA164543@google.com>
+ <8332c4ac-2a7d-1e2d-76e9-7c979a666257@arm.com>
+ <b02da0ed-9e0b-36db-9813-daa334cbf2ba@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="1UWUbFP1cBYEclgG"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20200119195659.18273-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Merlijn Wajer <merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org>
+In-Reply-To: <b02da0ed-9e0b-36db-9813-daa334cbf2ba@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lukasz Luba <lukasz.luba@arm.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com, Morten.Rasmussen@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.
 List-Id: linux-omap@vger.kernel.org
 
+On Monday 20 Jan 2020 at 18:38:41 (+0000), Lukasz Luba wrote:
+> I think we could avoid this additional argument 'cpumask'. I have
+> checked the cpufreq_cpu_get function, which should do be good for this:
+> 
+> ---------->8-------------------------
+> static int _get_sharing_cpus(struct device *cpu_dev, struct cpumask *span)
+> {
+>         struct cpufreq_policy *policy;
+> 
+>         policy = cpufreq_cpu_get(cpu_dev->id);
+>         if (policy) {
+>                 cpumask_copy(span, policy->cpus);
 
---1UWUbFP1cBYEclgG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+That should be with 'policy->related_cpus', but yes if the policy
+cpumasks have been populated this approach is OK I think.
 
-On Sun 2020-01-19 11:56:59, Tony Lindgren wrote:
-> With "[PATCHv3] w1: omap-hdq: Simplify driver with PM runtime autosuspend"
-> we can read the droid4 battery information over 1-wire with this patch
-> with something like:
->=20
-> # modprobe omap_hdq
-> # hd /sys/bus/w1/devices/89-*/89-*/nvmem
-> ...
->=20
-> Unfortunately the format of the battery data seems to be Motorola specific
-> and is currently unusable for battery charger unless somebody figures out
-> what it means.
->=20
-> Note that currently keeping omap_hdq module loaded will cause extra power
-> consumption as it seems to scan devices periodically.
->=20
-> Cc: Merlijn Wajer <merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org>
+>                 cpufreq_cpu_put(policy);
+>                 return 0;
+>         } else {
+>                 return -EINVAL;
+>         }
+> }
+> --------------------------8<-------------------------------
 
-Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-
-Not for stable.
-								Pavel
-							=09
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---1UWUbFP1cBYEclgG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl4mwZ0ACgkQMOfwapXb+vJ8egCfc2gRU+lYJZzSLf95Se8s4H5n
-clkAoKfl7tnelxQQqiCtAsEFfmIAgowj
-=d6KS
------END PGP SIGNATURE-----
-
---1UWUbFP1cBYEclgG--
+Thanks,
+Quentin
