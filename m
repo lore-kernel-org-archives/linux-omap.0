@@ -1,90 +1,73 @@
-From: Lukasz Luba <lukasz.luba@arm.com>
-Subject: Re: [PATCH 1/4] PM / EM: and devices to Energy Model
-Date: Tue, 21 Jan 2020 10:49:19 +0000
-Message-ID: <5621c137-7057-1d5c-646a-95707105df25@arm.com>
-References: <20200116152032.11301-1-lukasz.luba@arm.com>
- <20200116152032.11301-2-lukasz.luba@arm.com>
- <17b77e0c-9455-0479-d37b-c57717c784c7@arm.com>
- <20200120152804.GB164543@google.com>
- <453034e5-f7b9-20f7-4e26-5d0d7164edd1@arm.com>
- <20200121100854.GB157387@google.com>
+From: Merlijn Wajer <merlijn@wizzup.org>
+Subject: Re: [PATCH 1/3] RFC: power: supply: cpcap-battery: Add helper for
+ rough capacity
+Date: Tue, 21 Jan 2020 11:42:39 +0100
+Message-ID: <db73a651-afc4-5c3d-0610-ccb13b8cc0d3@wizzup.org>
+References: <20200119201124.29620-1-tony@atomide.com>
+ <20200121095712.GC6934@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.110.172]:41480 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728792AbgAUKtc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 21 Jan 2020 05:49:32 -0500
-In-Reply-To: <20200121100854.GB157387@google.com>
-Content-Language: en-US
+Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:53712 "EHLO
+        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727255AbgAULDY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2020 06:03:24 -0500
+In-Reply-To: <20200121095712.GC6934@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Quentin Perret <qperret@google.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com, Morten.Rasmussen@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.
+To: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, "Arthur D." <spinal.by@gmail.com>
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3
+Content-Type: multipart/mixed; boundary="QYIawYk1VfQa3SBw84dG6nrEa5eQbJzu4"
 
+--QYIawYk1VfQa3SBw84dG6nrEa5eQbJzu4
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
-On 1/21/20 10:08 AM, Quentin Perret wrote:
-> On Monday 20 Jan 2020 at 16:20:49 (+0000), Lukasz Luba wrote:
->> On 1/20/20 3:28 PM, Quentin Perret wrote:
->>> Agreed, this looks a bit confusing. It should be trivial to make
->>> em_dev_get() (or whatever we end up calling it) work for CPUs too,
->>> though. And we could always have a em_cpu_get(int cpu) API that is a
->>> basically a wrapper around em_dev_get() for convenience.
+On 21/01/2020 10:57, Pavel Machek wrote:
+> Hi!
+>=20
+>> Get a rough battery charge estimate until we've seen a high or low
+>> battery level. After that we can use the coulomb counter to calculate
+>> the battery capacity.
 >>
->> The problem not only here is that we have a CPU index 'int cpu'
->> and if we ask for device like:
->>
->> struct device *dev = get_cpu_device(cpu);
->>
->> It might be not the same device that was used during the
->> registration, when we had i.e. 4 CPUs for the same policy:
->>
->> int cpu_id = cpumask_first(policy->cpus);
->> struct device *cpu_dev = get_cpu_device(cpu_id);
->> em_register_perf_domain(cpu_dev, nr_opp, &em_cb);
->>
->> That's why the em_cpu_get() is different than em_get_pd(), mainly by:
->> if (cpumask_test_cpu(cpu, em_span_cpus(em_pd)))
->>
->> It won't be simple wrapper, let me think how it could be handled
->> differently than it is now.
-> 
-> Right so I suppose the easiest solution would be to do the opposite of
-> my first suggestion. That is, make em_get_pd() call em_cpu_get() if the
-> device is a CPU device, or proceed to the PD list iteration for other
-> devices. And em_cpu_get() can remain as you originally suggested (that
-> is, iterate over the PDs and test the mask).
+>> Note that I should probably update this to support ocv-capacity-table
+>> before this makes sense to apply. With ocv-capacity-table we should be=
 
-Exactly, something like:
----------------------------->8-------------------------
-288 struct em_perf_domain *em_get_pd(struct device *dev)
-289 {
-290         struct em_device *em_dev;
-291
-292         if (IS_ERR_OR_NULL(dev))
-293                 return NULL;
-294
-295         if (_is_cpu_device(dev))
-296                 return em_cpu_get(dev->id);
-....
-------------------------8<-----------------------------
+>> able to estimate battery state as described in the documentation for
+>> Documentation/devicetree/bindings/power/supply/battery.txt.
+>=20
+> Maybe we should let userspace do that?
+>=20
+> https://github.com/pavelmachek/libbattery
 
-> 
-> That should ensure em_get_pd() always works, em_cpu_get() is still there
-> handy for the scheduler and such, and the two EM lookup functions (for
-> CPUs or for devices) are kept cleanly separated.
-> 
-> Thoughts ?
+Unless this gets integrated in UPower, My point of view is that
+userspace probably wants some uniform approach. Kernel interface
+definitely is one uniform interface that would also get picked up by UPow=
+er.
 
-Agree. Then we can have these two functions and em_get_pd() will also
-work fine.
+Cheers,
+Merlijn
 
-> 
-> Thanks,
-> Quentin
-> 
 
-Regards,
-Lukasz
+--QYIawYk1VfQa3SBw84dG6nrEa5eQbJzu4--
+
+--ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXibVnwAKCRAGN09rynK8
+WnHmAP0XzimrNifs/U3JxeJXPtmn/YMxwxvKMR86frWQOSJa9AEAg+x50PDiFZyk
+DAn8/PMcCeHP5Bf0GxdQs/L4m5o1kwg=
+=wO2z
+-----END PGP SIGNATURE-----
+
+--ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3--
