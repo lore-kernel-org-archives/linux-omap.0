@@ -1,93 +1,35 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] dt-bindings: clock: Move ti-dra7-atl.h to
- dt-bindigs/clock
-Date: Tue, 21 Jan 2020 09:32:01 +0200
-Message-ID: <bbb7386a-4f5d-6574-c971-0812f0272450@ti.com>
-References: <20191114101817.20831-1-peter.ujfalusi@ti.com>
+Subject: Re: [Patch v5 1/3] clk: ti: dra7: add vpe clkctrl data
+Date: Tue, 21 Jan 2020 09:32:25 +0200
+Message-ID: <33a9848a-04c4-6545-f477-d6510faceb51@ti.com>
+References: <20191211140810.10657-1-bparrot@ti.com>
+ <20191211140810.10657-2-bparrot@ti.com>
+ <20191230195812.0356A206CB@mail.kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20191114101817.20831-1-peter.ujfalusi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191230195812.0356A206CB@mail.kernel.org>
 Content-Language: en-US
-Sender: linux-clk-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, mturquette@baylibre.com, robh+dt@kernel.org
-Cc: sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, devicetree@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@kernel.org>, Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14/11/2019 12:18, Peter Ujfalusi wrote:
-> Most of the clock related dt-binding header files are located in
-> dt-bindings/clock folder. It would be good to keep all the similar
-> header files at a single location.
+On 30/12/2019 21:58, Stephen Boyd wrote:
+> Quoting Benoit Parrot (2019-12-11 06:08:08)
+>> Add clkctrl data for VPE.
+>>
+>> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>> Acked-by: Rob Herring <robh@kernel.org>
+>> ---
 > 
-> Suggested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Acked-by: Stephen Boyd <sboyd@kernel.org>
+> 
 
-Queued up towards 5.6, thanks.
+Queued this patch towards 5.6, thanks.
 
 -Tero
-
-> ---
->   Documentation/devicetree/bindings/clock/ti/dra7-atl.txt | 4 ++--
->   arch/arm/boot/dts/dra7-evm-common.dtsi                  | 2 +-
->   arch/arm/boot/dts/dra72-evm-common.dtsi                 | 2 +-
->   include/dt-bindings/{clk => clock}/ti-dra7-atl.h        | 0
->   4 files changed, 4 insertions(+), 4 deletions(-)
->   rename include/dt-bindings/{clk => clock}/ti-dra7-atl.h (100%)
-> 
-> diff --git a/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt b/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-> index 10f7047755f3..21c002d28b9b 100644
-> --- a/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-> +++ b/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-> @@ -43,7 +43,7 @@ Configuration of ATL instances:
->   	- aws : Audio word select signal selection
->   };
->   
-> -For valid word select signals, see the dt-bindings/clk/ti-dra7-atl.h include
-> +For valid word select signals, see the dt-bindings/clock/ti-dra7-atl.h include
->   file.
->   
->   Examples:
-> @@ -83,7 +83,7 @@ atl: atl@4843c000 {
->   	clock-names = "fck";
->   };
->   
-> -#include <dt-bindings/clk/ti-dra7-atl.h>
-> +#include <dt-bindings/clock/ti-dra7-atl.h>
->   
->   &atl {
->   
-> diff --git a/arch/arm/boot/dts/dra7-evm-common.dtsi b/arch/arm/boot/dts/dra7-evm-common.dtsi
-> index 82eeba8faef1..23244b5a9942 100644
-> --- a/arch/arm/boot/dts/dra7-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/dra7-evm-common.dtsi
-> @@ -4,7 +4,7 @@
->    */
->   
->   #include <dt-bindings/gpio/gpio.h>
-> -#include <dt-bindings/clk/ti-dra7-atl.h>
-> +#include <dt-bindings/clock/ti-dra7-atl.h>
->   #include <dt-bindings/input/input.h>
->   
->   / {
-> diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-> index 8641a3d7d8ad..9eabfd1502da 100644
-> --- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-> @@ -6,7 +6,7 @@
->   
->   #include "dra72x.dtsi"
->   #include <dt-bindings/gpio/gpio.h>
-> -#include <dt-bindings/clk/ti-dra7-atl.h>
-> +#include <dt-bindings/clock/ti-dra7-atl.h>
->   
->   / {
->   	compatible = "ti,dra72-evm", "ti,dra722", "ti,dra72", "ti,dra7";
-> diff --git a/include/dt-bindings/clk/ti-dra7-atl.h b/include/dt-bindings/clock/ti-dra7-atl.h
-> similarity index 100%
-> rename from include/dt-bindings/clk/ti-dra7-atl.h
-> rename to include/dt-bindings/clock/ti-dra7-atl.h
-> 
-
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
