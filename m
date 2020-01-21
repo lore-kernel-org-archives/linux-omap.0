@@ -1,80 +1,57 @@
-From: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Subject: Re: [PATCH 1/4] PM / EM: and devices to Energy Model
-Date: Tue, 21 Jan 2020 10:10:16 +0100
-Message-ID: <c9910c74-ab47-0c78-a1c7-4f3978e1dd09@arm.com>
-References: <20200116152032.11301-1-lukasz.luba@arm.com>
- <20200116152032.11301-2-lukasz.luba@arm.com>
- <20200117105437.GA211774@google.com>
- <40587d98-0e8d-cbac-dbf5-d26501d47a8c@arm.com>
- <20200120150918.GA164543@google.com>
- <8332c4ac-2a7d-1e2d-76e9-7c979a666257@arm.com>
- <b02da0ed-9e0b-36db-9813-daa334cbf2ba@arm.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: motorola-cpcap-mapphone: Configure calibration
+ interrupt
+Date: Tue, 21 Jan 2020 10:16:49 +0100
+Message-ID: <20200121091649.GA6934@amd>
+References: <20200119194501.17125-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b02da0ed-9e0b-36db-9813-daa334cbf2ba@arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lukasz Luba <lukasz.luba@arm.com>, Quentin Perret <qperret@google.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com, Morten.Rasmussen@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.com, kernel@pengutronix.de
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20200119194501.17125-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Merlijn Wajer <merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 20/01/2020 19:38, Lukasz Luba wrote:
-> 
-> 
-> On 1/20/20 6:27 PM, Dietmar Eggemann wrote:
->> On 20/01/2020 16:09, Quentin Perret wrote:
->>> Hey Lukasz,
->>>
->>> On Monday 20 Jan 2020 at 14:52:07 (+0000), Lukasz Luba wrote:
->>>> On 1/17/20 10:54 AM, Quentin Perret wrote:
 
-[...]
+--/04w6evG8XlLl3ft
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> It's true that we need the policy->cpus cpumask only for cpu devices and
->> we have it available when we call em_register_perf_domain()
->> [scmi-cpufreq.c driver] or the OPP wrapper dev_pm_opp_of_register_em()
->> [e.g. cpufreq-dt.c driver].
->>
->> And we shouldn't make EM code dependent on OPP.
->>
->> But can't we add 'struct cpumask *mask' as an additional argument to
->> both which can be set to NULL for (devfreq) devices?
->>
->> We can check in em_register_perf_domain() that we got a valid cpumask
->> for a cpu device and ignore it for (devfreq) devices.
->>
-> 
-> I think we could avoid this additional argument 'cpumask'. I have
-> checked the cpufreq_cpu_get function, which should do be good for this:
-> 
-> ---------->8-------------------------
-> static int _get_sharing_cpus(struct device *cpu_dev, struct cpumask *span)
-> {
->         struct cpufreq_policy *policy;
-> 
->         policy = cpufreq_cpu_get(cpu_dev->id);
->         if (policy) {
->                 cpumask_copy(span, policy->cpus);
->                 cpufreq_cpu_put(policy);
->                 return 0;
->         } else {
->                 return -EINVAL;
->         }
-> }
-> --------------------------8<-------------------------------
-> 
-> It would be a replacement for:
-> ret = dev_pm_opp_get_sharing_cpus(dev, span);
+On Sun 2020-01-19 11:45:01, Tony Lindgren wrote:
+> We added coulomb counter calibration support With commit 0cb90f071f73
+> ("power: supply: cpcap-battery: Add basic coulomb counter calibrate
+> support"), but we also need to configure the related interrupt.
+>=20
+> Without the interrupt calibration happens based on a timeout after two
+> seconds, with the interrupt the calibration just gets done a bit faster.
+>=20
+> Cc: Merlijn Wajer <merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org>
 
-True. But then we hard-code that a CPU device performance domain can
-only be a frequency domain (which is true today).
+Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 
-The task scheduler (build_perf_domains()) and thermal are already using
-cpufreq_cpu_get() to access the cpufreq policy. Now the EM framework
-would too for CPU devices. I assume that could work with a couple of
-adaptations in Documentation/power/energy-model.rst.
+Not for stable.
 
-BTW, there is a similar interface cpufreq_get_policy() in cpufreq.c
-which is used less often?
+									Pavel
+								=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--/04w6evG8XlLl3ft
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAl4mwYEACgkQMOfwapXb+vKqOgCgvto+aTKjcR8Gywm33f1WWaJ7
+p0QAoJuwuy2F8RuJIOhzUXq9BFuWSZqZ
+=Qn6E
+-----END PGP SIGNATURE-----
+
+--/04w6evG8XlLl3ft--
