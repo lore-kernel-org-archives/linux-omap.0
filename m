@@ -1,51 +1,91 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: add clkctrl data dra7 sgx
-Date: Tue, 21 Jan 2020 09:33:13 +0200
-Message-ID: <3d62b6f6-63ce-f009-84af-a177c7844d46@ti.com>
-References: <20191101162719.49781-1-tony@atomide.com>
- <20200106031426.B1B6D21582@mail.kernel.org>
+Subject: Re: [PATCH] clk: ti: omap5: Add missing AESS clock
+Date: Tue, 21 Jan 2020 09:33:35 +0200
+Message-ID: <9bfd16c3-5f53-bf3a-d912-8e43e3f5bad3@ti.com>
+References: <20200114150607.18092-1-tony@atomide.com>
+ <23f9723b-cb9e-8737-92c5-4c20bed55cf5@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:41196 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725890AbgAUHdg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2020 02:33:36 -0500
-In-Reply-To: <20200106031426.B1B6D21582@mail.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <23f9723b-cb9e-8737-92c5-4c20bed55cf5@ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-clk-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, "H . Nikolaus Schaller" <hns@goldelico.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@kernel.org>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Benoit Parrot <bparrot@ti.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Robert Nelson <robertcnelson@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 06/01/2020 05:14, Stephen Boyd wrote:
-> Quoting Tony Lindgren (2019-11-01 09:27:19)
->> This is similar to what we have for omap5 except the gpu_cm address is
->> different, the mux clocks have one more source option, and there's no
->> divider clock.
->>
->> Note that because of the current dts node name dependency for mapping to
->> clock domain, we must still use "gpu-clkctrl@" naming instead of generic
->> "clock@" naming for the node. And because of this, it's probably best to
->> apply the dts node addition together along with the other clock changes.
->>
->> For accessing the GPU, we also need to configure the interconnect target
->> module for GPU similar to what we have for omap5, I'll send that change
->> separately.
->>
->> Cc: Benoit Parrot <bparrot@ti.com>
->> Cc: "H. Nikolaus Schaller" <hns@goldelico.com>
->> Cc: Robert Nelson <robertcnelson@gmail.com>
->> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> ---
+On 15/01/2020 10:56, Peter Ujfalusi wrote:
 > 
-> Acked-by: Stephen Boyd <sboyd@kernel.org>
 > 
+> On 14/01/2020 17.06, Tony Lindgren wrote:
+>> Looks like we're missing AESS clock for omap5. This is similar to what
+>> omap4 has.
+> 
+> Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Queued up towards 5.6, thanks.
+Queued up for 5.6, thanks.
 
 -Tero
+
+> 
+>> Cc: H. Nikolaus Schaller <hns@goldelico.com>
+>> Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+>> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>   drivers/clk/ti/clk-54xx.c         | 15 +++++++++++++++
+>>   include/dt-bindings/clock/omap5.h |  1 +
+>>   2 files changed, 16 insertions(+)
+>>
+>> diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+>> --- a/drivers/clk/ti/clk-54xx.c
+>> +++ b/drivers/clk/ti/clk-54xx.c
+>> @@ -35,6 +35,20 @@ static const struct omap_clkctrl_reg_data omap5_dsp_clkctrl_regs[] __initconst =
+>>   	{ 0 },
+>>   };
+>>   
+>> +static const char * const omap5_aess_fclk_parents[] __initconst = {
+>> +	"abe_clk",
+>> +	NULL,
+>> +};
+>> +
+>> +static const struct omap_clkctrl_div_data omap5_aess_fclk_data __initconst = {
+>> +	.max_div = 2,
+>> +};
+>> +
+>> +static const struct omap_clkctrl_bit_data omap5_aess_bit_data[] __initconst = {
+>> +	{ 24, TI_CLK_DIVIDER, omap5_aess_fclk_parents, &omap5_aess_fclk_data },
+>> +	{ 0 },
+>> +};
+>> +
+>>   static const char * const omap5_dmic_gfclk_parents[] __initconst = {
+>>   	"abe_cm:clk:0018:26",
+>>   	"pad_clks_ck",
+>> @@ -122,6 +136,7 @@ static const struct omap_clkctrl_bit_data omap5_timer8_bit_data[] __initconst =
+>>   
+>>   static const struct omap_clkctrl_reg_data omap5_abe_clkctrl_regs[] __initconst = {
+>>   	{ OMAP5_L4_ABE_CLKCTRL, NULL, 0, "abe_iclk" },
+>> +	{ OMAP5_AESS_CLKCTRL, omap5_aess_bit_data, CLKF_SW_SUP, "abe_cm:clk:0008:24" },
+>>   	{ OMAP5_MCPDM_CLKCTRL, NULL, CLKF_SW_SUP, "pad_clks_ck" },
+>>   	{ OMAP5_DMIC_CLKCTRL, omap5_dmic_bit_data, CLKF_SW_SUP, "abe_cm:clk:0018:24" },
+>>   	{ OMAP5_MCBSP1_CLKCTRL, omap5_mcbsp1_bit_data, CLKF_SW_SUP, "abe_cm:clk:0028:24" },
+>> diff --git a/include/dt-bindings/clock/omap5.h b/include/dt-bindings/clock/omap5.h
+>> --- a/include/dt-bindings/clock/omap5.h
+>> +++ b/include/dt-bindings/clock/omap5.h
+>> @@ -16,6 +16,7 @@
+>>   
+>>   /* abe clocks */
+>>   #define OMAP5_L4_ABE_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
+>> +#define OMAP5_AESS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
+>>   #define OMAP5_MCPDM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
+>>   #define OMAP5_DMIC_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
+>>   #define OMAP5_MCBSP1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x48)
+>>
+> 
+> - Péter
+> 
+> 
+
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
