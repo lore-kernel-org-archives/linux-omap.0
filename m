@@ -1,73 +1,76 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
-Subject: Re: [PATCH 1/3] RFC: power: supply: cpcap-battery: Add helper for
- rough capacity
-Date: Tue, 21 Jan 2020 11:42:39 +0100
-Message-ID: <db73a651-afc4-5c3d-0610-ccb13b8cc0d3@wizzup.org>
-References: <20200119201124.29620-1-tony@atomide.com>
- <20200121095712.GC6934@amd>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 3/4] thermal: devfreq_cooling: Refactor code and switch
+ to use Energy Model
+Date: Tue, 21 Jan 2020 12:11:24 -0500
+Message-ID: <20200121121124.1a1f3175@gandalf.local.home>
+References: <20200116152032.11301-1-lukasz.luba@arm.com>
+        <20200116152032.11301-4-lukasz.luba@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:53712 "EHLO
-        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727255AbgAULDY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2020 06:03:24 -0500
-In-Reply-To: <20200121095712.GC6934@amd>
+Received: from mail.kernel.org ([198.145.29.99]:41048 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728829AbgAURLa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 21 Jan 2020 12:11:30 -0500
+In-Reply-To: <20200116152032.11301-4-lukasz.luba@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, "Arthur D." <spinal.by@gmail.com>
+To: lukasz.luba@arm.com
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com, Morten.Rasmussen@arm.com, Dietmar.Eggemann@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, qperret@google.com, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.c
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3
-Content-Type: multipart/mixed; boundary="QYIawYk1VfQa3SBw84dG6nrEa5eQbJzu4"
+On Thu, 16 Jan 2020 15:20:31 +0000
+lukasz.luba@arm.com wrote:
 
---QYIawYk1VfQa3SBw84dG6nrEa5eQbJzu4
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+> diff --git a/include/trace/events/thermal.h b/include/trace/events/thermal.h
+> index 135e5421f003..8a5f04888abd 100644
+> --- a/include/trace/events/thermal.h
+> +++ b/include/trace/events/thermal.h
+> @@ -153,31 +153,30 @@ TRACE_EVENT(thermal_power_cpu_limit,
+>  TRACE_EVENT(thermal_power_devfreq_get_power,
+>  	TP_PROTO(struct thermal_cooling_device *cdev,
+>  		 struct devfreq_dev_status *status, unsigned long freq,
+> -		u32 dynamic_power, u32 static_power, u32 power),
+> +		u32 power),
+>  
+> -	TP_ARGS(cdev, status,  freq, dynamic_power, static_power, power),
+> +	TP_ARGS(cdev, status,  freq, power),
+>  
+>  	TP_STRUCT__entry(
+>  		__string(type,         cdev->type    )
+>  		__field(unsigned long, freq          )
+> -		__field(u32,           load          )
+> -		__field(u32,           dynamic_power )
+> -		__field(u32,           static_power  )
+> +		__field(u32,           busy_time)
+> +		__field(u32,           total_time)
+>  		__field(u32,           power)
+>  	),
+>  
+>  	TP_fast_assign(
+>  		__assign_str(type, cdev->type);
+>  		__entry->freq = freq;
+> -		__entry->load = (100 * status->busy_time) / status->total_time;
+> -		__entry->dynamic_power = dynamic_power;
+> -		__entry->static_power = static_power;
+> +		__entry->busy_time = status->busy_time;
+> +		__entry->total_time = status->total_time;
+>  		__entry->power = power;
+>  	),
+>  
+> -	TP_printk("type=%s freq=%lu load=%u dynamic_power=%u static_power=%u power=%u",
+> +	TP_printk("type=%s freq=%lu load=%u power=%u",
+>  		__get_str(type), __entry->freq,
+> -		__entry->load, __entry->dynamic_power, __entry->static_power,
+> +		__entry->total_time == 0 ? 0 :
+> +			(100 * __entry->busy_time) / __entry->total_time,
+>  		__entry->power)
+>  );
+>  
 
-On 21/01/2020 10:57, Pavel Machek wrote:
-> Hi!
->=20
->> Get a rough battery charge estimate until we've seen a high or low
->> battery level. After that we can use the coulomb counter to calculate
->> the battery capacity.
->>
->> Note that I should probably update this to support ocv-capacity-table
->> before this makes sense to apply. With ocv-capacity-table we should be=
+Tracing updates look fine to me. Having the division on the output
+makes more sense.
 
->> able to estimate battery state as described in the documentation for
->> Documentation/devicetree/bindings/power/supply/battery.txt.
->=20
-> Maybe we should let userspace do that?
->=20
-> https://github.com/pavelmachek/libbattery
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org> # for tracing code
 
-Unless this gets integrated in UPower, My point of view is that
-userspace probably wants some uniform approach. Kernel interface
-definitely is one uniform interface that would also get picked up by UPow=
-er.
-
-Cheers,
-Merlijn
-
-
---QYIawYk1VfQa3SBw84dG6nrEa5eQbJzu4--
-
---ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXibVnwAKCRAGN09rynK8
-WnHmAP0XzimrNifs/U3JxeJXPtmn/YMxwxvKMR86frWQOSJa9AEAg+x50PDiFZyk
-DAn8/PMcCeHP5Bf0GxdQs/L4m5o1kwg=
-=wO2z
------END PGP SIGNATURE-----
-
---ZV0UXeggGjgy0vnUD6yFk2dAym4vahIL3--
+-- Steve
