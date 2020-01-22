@@ -1,56 +1,59 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix undefined reference to omap_secure_init
-Date: Wed, 22 Jan 2020 12:06:04 -0600
-Message-ID: <f183f31e-32ae-3e9e-96b4-a6f40984cd6e@ti.com>
-References: <20200122172017.4791-1-afd@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] mfd: syscon: Use a unique name with regmap_config
+Date: Wed, 22 Jan 2020 14:27:46 -0600
+Message-ID: <20200122202746.30703-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:44790 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725802AbgAVSJP (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jan 2020 13:09:15 -0500
-In-Reply-To: <20200122172017.4791-1-afd@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, David Lechner <david@lechnology.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Andrew
+The DT node full name is currently being used in regmap_config
+which in turn is used to create the regmap debugfs directories.
+This name however is not guaranteed to be unique and the regmap
+debugfs registration can fail in the cases where the syscon nodes
+have the same unit-address but are present in different DT node
+hierarchies. Replace this logic using the syscon reg resource
+address instead (inspired from logic used while creating platform
+devices) to ensure a unique name is given for each syscon.
 
-On 1/22/20 11:20 AM, Andrew F. Davis wrote:
-> omap_secure_init() is now called from all OMAP2+ platforms during their
-> init_early() call. This function is in omap-secure.o so include that
-> in the build for these platforms.
->
-> Fixes: db711893eac8 ("ARM: OMAP2+: Add omap_secure_init callback hook for secure initialization")
-> Reported-by: Dan Murphy <dmurphy@ti.com>
-> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> ---
->   arch/arm/mach-omap2/Makefile | 6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index f07cfda85156..e1135b9d67c6 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -16,11 +16,11 @@ hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
->   clock-common				= clock.o
->   secure-common				= omap-smc.o omap-secure.o
->   
-> -obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
-> +obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
->   obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
->   obj-$(CONFIG_ARCH_OMAP4) += $(hwmod-common) $(secure-common)
-> -obj-$(CONFIG_SOC_AM33XX) += $(hwmod-common)
-> -obj-$(CONFIG_SOC_OMAP5)	 += $(hwmod-common) $(secure-common)
-> +obj-$(CONFIG_SOC_AM33XX) += $(hwmod-common) $(secure-common)
-> +obj-$(CONFIG_SOC_OMAP5)  += $(hwmod-common) $(secure-common)
->   obj-$(CONFIG_SOC_AM43XX) += $(hwmod-common) $(secure-common)
->   obj-$(CONFIG_SOC_DRA7XX) += $(hwmod-common) $(secure-common)
->   
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+Hi Lee,
 
+I ran into this issue while trying to add multiple different instances
+of the same IP using the ti-sysc node hierarchy on OMAP.
 
-Tested-by: Dan Murphy <dmurphy@ti.com>
+Not sure if you prefer to consider this as a fix or as an improvement.
+So, haven't added a Fixes tag.
+
+regards
+Suman
+
+ drivers/mfd/syscon.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mfd/syscon.c b/drivers/mfd/syscon.c
+index e22197c832e8..8915b35eef4f 100644
+--- a/drivers/mfd/syscon.c
++++ b/drivers/mfd/syscon.c
+@@ -101,12 +101,13 @@ static struct syscon *of_syscon_register(struct device_node *np, bool check_clk)
+ 		}
+ 	}
+ 
+-	syscon_config.name = of_node_full_name(np);
++	syscon_config.name = kasprintf(GFP_KERNEL, "%pOFn@%llx", np, res.start);
+ 	syscon_config.reg_stride = reg_io_width;
+ 	syscon_config.val_bits = reg_io_width * 8;
+ 	syscon_config.max_register = resource_size(&res) - reg_io_width;
+ 
+ 	regmap = regmap_init_mmio(NULL, base, &syscon_config);
++	kfree(syscon_config.name);
+ 	if (IS_ERR(regmap)) {
+ 		pr_err("regmap init failed\n");
+ 		ret = PTR_ERR(regmap);
+-- 
+2.23.0
