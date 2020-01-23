@@ -1,33 +1,27 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] clk: ti: changes for 5.6
-Date: Thu, 23 Jan 2020 08:57:54 -0800
-Message-ID: <20200123165754.GA5885@atomide.com>
-References: <71d3d7dd-115a-4584-e3d7-e13e7ea7934e@ti.com>
- <20200122002311.405E7217F4@mail.kernel.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [Patch v4 00/10] ARM: dts: dra7: add cal nodes
+Date: Thu, 23 Jan 2020 09:17:37 -0800
+Message-ID: <20200123171737.GB5885@atomide.com>
+References: <20191211140558.10407-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20200122002311.405E7217F4@mail.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@kernel.org>
-Cc: Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-clk <linux-clk@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+In-Reply-To: <20191211140558.10407-1-bparrot-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Stephen Boyd <sboyd@kernel.org> [200122 00:24]:
-> Quoting Tero Kristo (2020-01-20 23:31:27)
-> > Hi Stephen,
-> > 
-> > Please pull these TI clock changes towards v5.6. Tony, the same branch 
-> > (for-5.6-ti-clk) can be considered immutable towards your DTS changes if 
-> > you wish to sync them with this.
-> 
-> Thanks. Pulled into clk-next
+* Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org> [191211 06:03]:
+> This patch series adds the needed clkctrl and ty-sysc nodes for CAL module.
+> It also adds support for the module in related dtsi and dts for DRA72,
+> DRA76 and AM654 SoC.
 
-OK. I've based the pending omap4 & 5 crypto accelerator changes on
-Tero's branch and pushed out omap-for-v5.6/ti-sysc-omap45-rng. Might
-be too late for v5.6, but we'll see.
+Applying these into omap-for-v5.6/ti-sysc-dt-cam on top of Tero's
+for-5.6-ti-clk branch. It might be too later for v5.6, but we'll
+see.
 
-Thanks,
+Regards,
 
 Tony
