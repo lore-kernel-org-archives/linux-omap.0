@@ -1,29 +1,22 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 15/20] ARM: omap2plus: Drop unneeded select of
- MIGHT_HAVE_CACHE_L2X0
-Date: Thu, 23 Jan 2020 08:09:35 -0800
-Message-ID: <20200123160935.GY5885@atomide.com>
-References: <20200121103413.1337-1-geert+renesas@glider.be>
- <20200121103722.1781-1-geert+renesas@glider.be>
- <20200121103722.1781-15-geert+renesas@glider.be>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am43x-epos-evm: set data pin directions for
+ spi0 and spi1
+Date: Thu, 23 Jan 2020 08:12:37 -0800
+Message-ID: <20200123161237.GZ5885@atomide.com>
+References: <1579433339-10663-1-git-send-email-raagjadav@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:52066 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726231AbgAWQJj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 23 Jan 2020 11:09:39 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20200121103722.1781-15-geert+renesas@glider.be>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1579433339-10663-1-git-send-email-raagjadav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Raag Jadav <raagjadav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@kernel.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Geert Uytterhoeven <geert+renesas@glider.be> [200121 10:38]:
-> Support for TI AM43x SoCs depends on ARCH_MULTI_V7, which selects
-> ARCH_MULTI_V6_V7.
-> As the latter selects MIGHT_HAVE_CACHE_L2X0, there is no need for
-> SOC_AM43XX to select MIGHT_HAVE_CACHE_L2X0.
+* Raag Jadav <raagjadav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [200119 11:30]:
+> Set d0 and d1 pin directions for spi0 and spi1 as per their pinmux.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Thanks applying into fixes.
+
+Tony
