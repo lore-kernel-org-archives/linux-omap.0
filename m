@@ -1,66 +1,43 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [Patch v4 09/10] arm64: dts: k3-am65-main Add CAL node
-Date: Fri, 24 Jan 2020 13:32:19 +0200
-Message-ID: <dd203eea-f467-07a0-c578-cc6eeb512032@ti.com>
-References: <20191211140558.10407-1-bparrot@ti.com>
- <20191211140558.10407-10-bparrot@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: dra7-evm: Rename evm_3v3 regulator to vsys_3v3
+Date: Fri, 24 Jan 2020 14:11:39 +0200
+Message-ID: <20200124121139.28657-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191211140558.10407-10-bparrot@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/12/2019 16:05, Benoit Parrot wrote:
-> Add CAL dtsi node for AM654 device. Including proper power-domains and
-> clock properties.
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+On the new schematics it is renamed and the same name is used on other
+dra7 boards.
 
-Queued this and patch #10 up for 5.6, thanks.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra7-evm.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
--Tero
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index de7f85efaa51..af06a55d1c5c 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -61,10 +61,10 @@ aic_dvdd: fixedregulator-aic_dvdd {
+ 		regulator-max-microvolt = <1800000>;
+ 	};
+ 
+-	evm_3v3: fixedregulator-evm3v3 {
++	vsys_3v3: fixedregulator-vsys3v3 {
+ 		/* Output of Cntlr A of TPS43351-Q1 on dra7-evm */
+ 		compatible = "regulator-fixed";
+-		regulator-name = "evm_3v3";
++		regulator-name = "vsys_3v3";
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
+ 		vin-supply = <&evm_12v0>;
+-- 
+Peter
 
-> ---
->   arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 22 ++++++++++++++++++++++
->   1 file changed, 22 insertions(+)
-> 
-> diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-> index efb24579922c..551adcefcc83 100644
-> --- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-> +++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-> @@ -624,4 +624,26 @@
->   		dma-coherent;
->   		interrupts = <GIC_SPI 355 IRQ_TYPE_EDGE_RISING>;
->   	};
-> +
-> +	cal: cal@6f03000 {
-> +		compatible = "ti,am654-cal";
-> +		reg = <0x0 0x06f03000 0x0 0x400>,
-> +		      <0x0 0x06f03800 0x0 0x40>;
-> +		reg-names = "cal_top",
-> +			    "cal_rx_core0";
-> +		interrupts = <GIC_SPI 152 IRQ_TYPE_LEVEL_HIGH>;
-> +		ti,camerrx-control = <&scm_conf 0x40c0>;
-> +		clock-names = "fck";
-> +		clocks = <&k3_clks 2 0>;
-> +		power-domains = <&k3_pds 2 TI_SCI_PD_EXCLUSIVE>;
-> +
-> +		ports {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			csi2_0: port@0 {
-> +				reg = <0>;
-> +			};
-> +		};
-> +	};
->   };
-> 
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
