@@ -1,36 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch v4 00/10] ARM: dts: dra7: add cal nodes
-Date: Thu, 23 Jan 2020 09:26:24 -0800
-Message-ID: <20200123172624.GE5885@atomide.com>
-References: <20191211140558.10407-1-bparrot@ti.com>
- <20200123171737.GB5885@atomide.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 22/33] bus: ti-sysc: Add module enable quirk for audio AESS
+Date: Thu, 23 Jan 2020 20:16:57 -0500
+Message-ID: <20200124011708.18232-22-sashal@kernel.org>
+References: <20200124011708.18232-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:52156 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727296AbgAWR02 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 23 Jan 2020 12:26:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20200123171737.GB5885@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20200124011708.18232-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [200123 17:18]:
-> * Benoit Parrot <bparrot@ti.com> [191211 06:03]:
-> > This patch series adds the needed clkctrl and ty-sysc nodes for CAL module.
-> > It also adds support for the module in related dtsi and dts for DRA72,
-> > DRA76 and AM654 SoC.
-> 
-> Applying these into omap-for-v5.6/ti-sysc-dt-cam on top of Tero's
-> for-5.6-ti-clk branch. It might be too later for v5.6, but we'll
-> see.
+From: Tony Lindgren <tony@atomide.com>
 
-Actually I'll leave out the k3-am65 dts changes as I don't see
-acks for those. Tero can pick up those later.
+[ Upstream commit 020003f763e24e4ed0bb3d8909f3940891536d5d ]
 
-Regards,
+We must set the autogating bit on enable for AESS (Audio Engine SubSystem)
+when probed with ti-sysc interconnect target module driver. Otherwise it
+won't idle properly.
 
-Tony
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/bus/ti-sysc.c                 | 14 +++++++++++++-
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index c072a7fe709c3..6dc9d460e3065 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1242,6 +1242,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 		   SYSC_QUIRK_SWSUP_SIDLE),
+ 
+ 	/* Quirks that need to be set based on detected module */
++	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff,
++		   SYSC_MODULE_QUIRK_AESS),
+ 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
+ 		   SYSC_MODULE_QUIRK_HDQ1W),
+ 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x0000000a, 0xffffffff,
+@@ -1270,7 +1272,6 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ #ifdef DEBUG
+ 	SYSC_QUIRK("adc", 0, 0, 0x10, -1, 0x47300001, 0xffffffff, 0),
+ 	SYSC_QUIRK("atl", 0, 0, -1, -1, 0x0a070100, 0xffffffff, 0),
+-	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff, 0),
+ 	SYSC_QUIRK("cm", 0, 0, -1, -1, 0x40000301, 0xffffffff, 0),
+ 	SYSC_QUIRK("control", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
+ 	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
+@@ -1402,6 +1403,14 @@ static void sysc_clk_enable_quirk_hdq1w(struct sysc *ddata)
+ 	sysc_write(ddata, offset, val);
+ }
+ 
++/* AESS (Audio Engine SubSystem) needs autogating set after enable */
++static void sysc_module_enable_quirk_aess(struct sysc *ddata)
++{
++	int offset = 0x7c;	/* AESS_AUTO_GATING_ENABLE */
++
++	sysc_write(ddata, offset, 1);
++}
++
+ /* I2C needs extra enable bit toggling for reset */
+ static void sysc_clk_quirk_i2c(struct sysc *ddata, bool enable)
+ {
+@@ -1484,6 +1493,9 @@ static void sysc_init_module_quirks(struct sysc *ddata)
+ 		return;
+ 	}
+ 
++	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_AESS)
++		ddata->module_enable_quirk = sysc_module_enable_quirk_aess;
++
+ 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_SGX)
+ 		ddata->module_enable_quirk = sysc_module_enable_quirk_sgx;
+ 
+diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+index b5b7a3423ca81..0b93804751444 100644
+--- a/include/linux/platform_data/ti-sysc.h
++++ b/include/linux/platform_data/ti-sysc.h
+@@ -49,6 +49,7 @@ struct sysc_regbits {
+ 	s8 emufree_shift;
+ };
+ 
++#define SYSC_MODULE_QUIRK_AESS		BIT(19)
+ #define SYSC_MODULE_QUIRK_SGX		BIT(18)
+ #define SYSC_MODULE_QUIRK_HDQ1W		BIT(17)
+ #define SYSC_MODULE_QUIRK_I2C		BIT(16)
+-- 
+2.20.1
