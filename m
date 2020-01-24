@@ -1,25 +1,15 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.4 010/107] ARM: dts: beagle-x15-common: Model 5V0
- regulator
-Date: Fri, 24 Jan 2020 09:16:40 -0500
-Message-ID: <20200124141817.28793-10-sashal@kernel.org>
-References: <20200124141817.28793-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 03/18] ARM: dts: beagle-x15-common: Model 5V0 regulator
+Date: Fri, 24 Jan 2020 09:21:42 -0500
+Message-ID: <20200124142157.30931-3-sashal@kernel.org>
+References: <20200124142157.30931-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane-mx.org@lists.infradead.org>
-In-Reply-To: <20200124141817.28793-1-sashal@kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane-mx.org@lists.infradead.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200124142157.30931-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Kishon Vijay Abraham I <kishon@ti.com>
@@ -39,10 +29,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 21 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-index 9a94c96b0350e..a813a0cf3ff39 100644
+index 78bee26361f15..552de167f95fe 100644
 --- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
 +++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-@@ -29,6 +29,27 @@
+@@ -27,6 +27,27 @@
  		reg = <0x0 0x80000000 0x0 0x80000000>;
  	};
  
