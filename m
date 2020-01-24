@@ -1,43 +1,78 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: dra7-evm: Rename evm_3v3 regulator to vsys_3v3
-Date: Fri, 24 Jan 2020 14:11:39 +0200
-Message-ID: <20200124121139.28657-1-peter.ujfalusi@ti.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 009/107] ARM: dts: am57xx-beagle-x15/am57xx-idk: Remove "gpios" for  endpoint dt nodes
+Date: Fri, 24 Jan 2020 09:16:39 -0500
+Message-ID: <20200124141817.28793-9-sashal@kernel.org>
+References: <20200124141817.28793-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200124141817.28793-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On the new schematics it is renamed and the same name is used on other
-dra7 boards.
+From: Kishon Vijay Abraham I <kishon@ti.com>
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+[ Upstream commit 81cc0877840f72210e809bbedd6346d686560fc1 ]
+
+PERST# line in the PCIE connector is driven by the host mode and not
+EP mode. The gpios property here is used for driving the PERST# line.
+Remove gpios property from all endpoint device tree nodes.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am571x-idk.dts                | 4 ----
+ arch/arm/boot/dts/am572x-idk-common.dtsi        | 4 ----
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 4 ----
+ 3 files changed, 12 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index de7f85efaa51..af06a55d1c5c 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -61,10 +61,10 @@ aic_dvdd: fixedregulator-aic_dvdd {
- 		regulator-max-microvolt = <1800000>;
- 	};
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index 0aaacea1d887b..975a6b1d3fc80 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -170,10 +170,6 @@
+ 	gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
+ };
  
--	evm_3v3: fixedregulator-evm3v3 {
-+	vsys_3v3: fixedregulator-vsys3v3 {
- 		/* Output of Cntlr A of TPS43351-Q1 on dra7-evm */
- 		compatible = "regulator-fixed";
--		regulator-name = "evm_3v3";
-+		regulator-name = "vsys_3v3";
- 		regulator-min-microvolt = <3300000>;
- 		regulator-max-microvolt = <3300000>;
- 		vin-supply = <&evm_12v0>;
+-&pcie1_ep {
+-	gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
+-};
+-
+ &mmc1 {
+ 	pinctrl-names = "default", "hs";
+ 	pinctrl-0 = <&mmc1_pins_default_no_clk_pu>;
+diff --git a/arch/arm/boot/dts/am572x-idk-common.dtsi b/arch/arm/boot/dts/am572x-idk-common.dtsi
+index a064f13b38802..ddf123620e962 100644
+--- a/arch/arm/boot/dts/am572x-idk-common.dtsi
++++ b/arch/arm/boot/dts/am572x-idk-common.dtsi
+@@ -147,10 +147,6 @@
+ 	gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
+ };
+ 
+-&pcie1_ep {
+-	gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
+-};
+-
+ &mailbox5 {
+ 	status = "okay";
+ 	mbox_ipu1_ipc3x: mbox_ipu1_ipc3x {
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+index bc76f1705c0f6..9a94c96b0350e 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+@@ -547,10 +547,6 @@
+ 	gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+ };
+ 
+-&pcie1_ep {
+-	gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+-};
+-
+ &mcasp3 {
+ 	#sound-dai-cells = <0>;
+ 	assigned-clocks = <&l4per2_clkctrl DRA7_L4PER2_MCASP3_CLKCTRL 24>;
 -- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.20.1
