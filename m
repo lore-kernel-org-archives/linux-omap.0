@@ -1,71 +1,44 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.4 10/33] bus: ti-sysc: Handle mstandby quirk and use it for musb
-Date: Thu, 23 Jan 2020 20:16:45 -0500
-Message-ID: <20200124011708.18232-10-sashal@kernel.org>
-References: <20200124011708.18232-1-sashal@kernel.org>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [Patch v4 00/10] ARM: dts: dra7: add cal nodes
+Date: Fri, 24 Jan 2020 09:21:56 +0200
+Message-ID: <668be3a7-d9be-6a2e-71ba-5631bf99dfae@ti.com>
+References: <20191211140558.10407-1-bparrot@ti.com>
+ <20200123171737.GB5885@atomide.com> <20200123172624.GE5885@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20200124011708.18232-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20200123172624.GE5885-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+On 23/01/2020 19:26, Tony Lindgren wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [200123 17:18]:
+>> * Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org> [191211 06:03]:
+>>> This patch series adds the needed clkctrl and ty-sysc nodes for CAL module.
+>>> It also adds support for the module in related dtsi and dts for DRA72,
+>>> DRA76 and AM654 SoC.
+>>
+>> Applying these into omap-for-v5.6/ti-sysc-dt-cam on top of Tero's
+>> for-5.6-ti-clk branch. It might be too later for v5.6, but we'll
+>> see.
+> 
+> Actually I'll leave out the k3-am65 dts changes as I don't see
+> acks for those. Tero can pick up those later.
+> 
+> Regards,
+> 
+> Tony
+> 
 
-[ Upstream commit 03856e928b0e1a1c274eece1dfe4330a362c37f3 ]
+Right, I think I also missed the cal clkctrl patch in this series. This 
+series is imho applying against too many different trees (three if I am 
+not mistaken) and should be split up to avoid confusion / not to get 
+lost in mailboxes.
 
-We need swsup quirks for sidle and mstandby for musb to work
-properly.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/bus/ti-sysc.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 34bd9bf4e68ab..087684e5e0941 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -917,6 +917,9 @@ set_midle:
- 		return -EINVAL;
- 	}
- 
-+	if (ddata->cfg.quirks & SYSC_QUIRK_SWSUP_MSTANDBY)
-+		best_mode = SYSC_IDLE_NO;
-+
- 	reg &= ~(SYSC_IDLE_MASK << regbits->midle_shift);
- 	reg |= best_mode << regbits->midle_shift;
- 	sysc_write(ddata, ddata->offsets[SYSC_SYSCONFIG], reg);
-@@ -978,6 +981,9 @@ static int sysc_disable_module(struct device *dev)
- 		return ret;
- 	}
- 
-+	if (ddata->cfg.quirks & SYSC_QUIRK_SWSUP_MSTANDBY)
-+		best_mode = SYSC_IDLE_FORCE;
-+
- 	reg &= ~(SYSC_IDLE_MASK << regbits->midle_shift);
- 	reg |= best_mode << regbits->midle_shift;
- 	sysc_write(ddata, ddata->offsets[SYSC_SYSCONFIG], reg);
-@@ -1251,6 +1257,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	SYSC_QUIRK("gpu", 0x50000000, 0x14, -1, -1, 0x00010201, 0xffffffff, 0),
- 	SYSC_QUIRK("gpu", 0x50000000, 0xfe00, 0xfe10, -1, 0x40000000 , 0xffffffff,
- 		   SYSC_MODULE_QUIRK_SGX),
-+	SYSC_QUIRK("usb_otg_hs", 0, 0x400, 0x404, 0x408, 0x00000050,
-+		   0xffffffff, SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
- 	SYSC_QUIRK("wdt", 0, 0, 0x10, 0x14, 0x502a0500, 0xfffff0f0,
- 		   SYSC_MODULE_QUIRK_WDT),
- 	/* Watchdog on am3 and am4 */
-@@ -1309,8 +1317,6 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	SYSC_QUIRK("usbhstll", 0, 0, 0x10, 0x14, 0x00000008, 0xffffffff, 0),
- 	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, 0x14, 0x50700100, 0xffffffff, 0),
- 	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, -1, 0x50700101, 0xffffffff, 0),
--	SYSC_QUIRK("usb_otg_hs", 0, 0x400, 0x404, 0x408, 0x00000050,
--		   0xffffffff, 0),
- 	SYSC_QUIRK("vfpe", 0, 0, 0x104, -1, 0x4d001200, 0xffffffff, 0),
- #endif
- };
--- 
-2.20.1
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
