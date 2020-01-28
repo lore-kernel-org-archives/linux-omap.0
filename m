@@ -1,46 +1,43 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: dra7: Add "dma-ranges" property to PCIe RC DT nodes
-Date: Tue, 28 Jan 2020 12:11:47 +0530
-Message-ID: <20200128064147.18276-1-kishon@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH] arm: dts: dra76x: Fix mmc3 max-frequency
+Date: Tue, 28 Jan 2020 19:17:59 +0530
+Message-ID: <20200128134759.21134-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:44534 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725852AbgA1Nq2 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jan 2020 08:46:28 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: vigneshr@ti.com, j-keerthy@ti.com, lokeshvutla@ti.com, mark.rutland@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
 
-'dma-ranges' in a PCI bridge node does correctly set dma masks for PCI
-devices not described in the DT. Certain DRA7 platforms (e.g., DRA76)
-has RAM above 32-bit boundary (accessible with LPAE config) though the
-PCIe bridge will be able to access only 32-bits. Add 'dma-ranges'
-property in PCIe RC DT nodes to indicate the host bridge can access
-only 32 bits.
+dra76x is not affected by i887 which requires mmc3 node to be limited to
+a max frequency of 64 MHz. Fix this by overwriting the correct value in
+the the dra76 specific dtsi.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Fixes: 895bd4b3e5ec ("ARM: dts: Add support for dra76-evm")
+Cc: stable@vger.kernel.org
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/dra76x.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 73e5011f531a..c5af7530be7c 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -184,6 +184,7 @@
- 				device_type = "pci";
- 				ranges = <0x81000000 0 0          0x03000 0 0x00010000
- 					  0x82000000 0 0x20013000 0x13000 0 0xffed000>;
-+				dma-ranges = <0x02000000 0x0 0x00000000 0x00000000 0x1 0x00000000>;
- 				bus-range = <0x00 0xff>;
- 				#interrupt-cells = <1>;
- 				num-lanes = <1>;
-@@ -238,6 +239,7 @@
- 				device_type = "pci";
- 				ranges = <0x81000000 0 0          0x03000 0 0x00010000
- 					  0x82000000 0 0x30013000 0x13000 0 0xffed000>;
-+				dma-ranges = <0x02000000 0x0 0x00000000 0x00000000 0x1 0x00000000>;
- 				bus-range = <0x00 0xff>;
- 				#interrupt-cells = <1>;
- 				num-lanes = <1>;
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+index cdcba3f561c4..9f6fbe4c1fee 100644
+--- a/arch/arm/boot/dts/dra76x.dtsi
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -86,3 +86,8 @@
+ &usb4_tm {
+ 	status = "disabled";
+ };
++
++&mmc3 {
++	/* dra76x is not affected by i887 */
++	max-frequency = <96000000>;
++};
 -- 
-2.17.1
+2.19.2
