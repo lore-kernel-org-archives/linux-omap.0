@@ -1,75 +1,46 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2] mfd: syscon: Use a unique name with regmap_config
-Date: Mon, 27 Jan 2020 18:27:19 -0600
-Message-ID: <448eeb87-9945-8a93-9231-6e2a22aa8342@ti.com>
-References: <20200127231208.1443-1-s-anna@ti.com>
- <217993e5-5e1d-79a1-7684-c6bb964379f0@lechnology.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: dra7: Add "dma-ranges" property to PCIe RC DT nodes
+Date: Tue, 28 Jan 2020 12:11:47 +0530
+Message-ID: <20200128064147.18276-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:56222 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725955AbgA1A2L (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jan 2020 19:28:11 -0500
-In-Reply-To: <217993e5-5e1d-79a1-7684-c6bb964379f0@lechnology.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: David Lechner <david@lechnology.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi David,
+'dma-ranges' in a PCI bridge node does correctly set dma masks for PCI
+devices not described in the DT. Certain DRA7 platforms (e.g., DRA76)
+has RAM above 32-bit boundary (accessible with LPAE config) though the
+PCIe bridge will be able to access only 32-bits. Add 'dma-ranges'
+property in PCIe RC DT nodes to indicate the host bridge can access
+only 32 bits.
 
-On 1/27/20 5:40 PM, David Lechner wrote:
-> On 1/27/20 5:12 PM, Suman Anna wrote:
->> The DT node full name is currently being used in regmap_config
->> which in turn is used to create the regmap debugfs directories.
->> This name however is not guaranteed to be unique and the regmap
->> debugfs registration can fail in the cases where the syscon nodes
->> have the same unit-address but are present in different DT node
->> hierarchies. Replace this logic using the syscon reg resource
->> address instead (inspired from logic used while creating platform
->> devices) to ensure a unique name is given for each syscon.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->> v2: Fix build warning reported by kbuild test bot
->> v1: https://patchwork.kernel.org/patch/11346363/
->>
->>   drivers/mfd/syscon.c | 4 +++-
->>   1 file changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/mfd/syscon.c b/drivers/mfd/syscon.c
->> index e22197c832e8..f0815d8e6e95 100644
->> --- a/drivers/mfd/syscon.c
->> +++ b/drivers/mfd/syscon.c
->> @@ -101,12 +101,14 @@ static struct syscon *of_syscon_register(struct
->> device_node *np, bool check_clk)
->>           }
->>       }
->>   -    syscon_config.name = of_node_full_name(np);
->> +    syscon_config.name = kasprintf(GFP_KERNEL, "%pOFn@%llx", np,
->> +                       (u64)res.start);
-> 
-> Would it make sense to also include the node name along with the
-> pointer address so that the name is still easily identifiable?
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra7.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-I haven't dropped the node name, it is still there, the pOFn part. I am
-only replacing the DT unit-address with the bus address, I haven't
-changed the name style either.
-
-regards
-Suman
-
-> 
->>       syscon_config.reg_stride = reg_io_width;
->>       syscon_config.val_bits = reg_io_width * 8;
->>       syscon_config.max_register = resource_size(&res) - reg_io_width;
->>         regmap = regmap_init_mmio(NULL, base, &syscon_config);
->> +    kfree(syscon_config.name);
->>       if (IS_ERR(regmap)) {
->>           pr_err("regmap init failed\n");
->>           ret = PTR_ERR(regmap);
->>
-> 
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 73e5011f531a..c5af7530be7c 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -184,6 +184,7 @@
+ 				device_type = "pci";
+ 				ranges = <0x81000000 0 0          0x03000 0 0x00010000
+ 					  0x82000000 0 0x20013000 0x13000 0 0xffed000>;
++				dma-ranges = <0x02000000 0x0 0x00000000 0x00000000 0x1 0x00000000>;
+ 				bus-range = <0x00 0xff>;
+ 				#interrupt-cells = <1>;
+ 				num-lanes = <1>;
+@@ -238,6 +239,7 @@
+ 				device_type = "pci";
+ 				ranges = <0x81000000 0 0          0x03000 0 0x00010000
+ 					  0x82000000 0 0x30013000 0x13000 0 0xffed000>;
++				dma-ranges = <0x02000000 0x0 0x00000000 0x00000000 0x1 0x00000000>;
+ 				bus-range = <0x00 0xff>;
+ 				#interrupt-cells = <1>;
+ 				num-lanes = <1>;
+-- 
+2.17.1
