@@ -1,69 +1,76 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/2] ARM: configs: Cleanup old Kconfig options
-Date: Mon, 3 Feb 2020 13:25:27 +0100
-Message-ID: <CAK8P3a3VxqKuPyoparMZQYNNic6K2QsuzHE2mHskBt56cjny=g@mail.gmail.com>
-References: <20200130195525.4525-1-krzk@kernel.org> <20200130195525.4525-2-krzk@kernel.org>
- <9f8a0a8e09893e7087d2212fb0eeb94a908b7be1.camel@perches.com> <CAJKOXPf5Mf4FCmtME5yJsBZeP8BkYJgcxkKzS2hd-gp-mq3nag@mail.gmail.com>
+From: Naresh Kamboju <naresh.kamboju@linaro.org>
+Subject: OF: ERROR: Bad of_node_put() on /ocp/interconnect
+Date: Mon, 3 Feb 2020 19:46:34 +0530
+Message-ID: <CA+G9fYvi8g=5MG4HzN0QPH+_LEX1xXo-m2xmbHRqdMJzaqBCFQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:56091 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727074AbgBCMZr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Feb 2020 07:25:47 -0500
-In-Reply-To: <CAJKOXPf5Mf4FCmtME5yJsBZeP8BkYJgcxkKzS2hd-gp-mq3nag@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, lkft-triage@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Joe Perches <joe@perches.com>, Russell King <linux@armlinux.org.uk>, Alexander Shiyan <shc_work@mail.ru>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Vladimir Zapolskiy <vz@mleia.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@st.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Avi Fishman <avifishman70@gmail.com>, Tomer Maimon <tmaimon>
 
-On Mon, Feb 3, 2020 at 12:53 PM Krzysztof Kozlowski <krzk@kernel.org> wrote:
->
-> On Thu, 30 Jan 2020 at 23:06, Joe Perches <joe@perches.com> wrote:
-> >
-> > On Thu, 2020-01-30 at 20:55 +0100, Krzysztof Kozlowski wrote:
-> > > CONFIG_MMC_BLOCK_BOUNCE is gone since commit c3dccb74be28 ("mmc: core:
-> > > Delete bounce buffer Kconfig option").
-> > >
-> > > CONFIG_LBDAF is gone since commit 72deb455b5ec ("block: remove
-> > > CONFIG_LBDAF").
-> > >
-> > > CONFIG_IOSCHED_DEADLINE and CONFIG_IOSCHED_CFQ are gone since
-> > > commit f382fb0bcef4 ("block: remove legacy IO schedulers").
-> > >
-> > > The IOSCHED_DEADLINE was replaced by MQ_IOSCHED_DEADLINE and it will be
-> > > now enabled by default (along with MQ_IOSCHED_KYBER).
-> > >
-> > > The IOSCHED_BFQ seems to replace IOSCHED_CFQ so select it in configs
-> > > previously choosing the latter.
-> > >
-> > > CONFIG_CROSS_COMPILE is gone since commit f1089c92da79 ("kbuild: remove
-> > > CONFIG_CROSS_COMPILE support").
+The following error/warning noticed on beagleboard x15 running linux
+next 5.5.0-next-20200203.
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+metadata:
+  git branch: master
+  git repo: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+  git commit: cee5a42837d4a6c4189f06f7bf355b97a24c3c93
+  git describe: next-20200203
+  make_kernelversion: 5.5.0
+  kernel-config:
+http://snapshots.linaro.org/openembedded/lkft/lkft/sumo/am57xx-evm/lkft/linux-next/694/config
 
-> > Hi Krzysztof.
-> >
-> > There seems there are a lot more of these unused CONFIG_<foo>
-> > symbols in various defconfigs. (just for arm and treewide below)
 
-Feel free to pick any of these symbols and send patches for those.
-No need to do it one symbol at a time, but please group them like
-Krzysztof has done.
+[    0.000000] OF: ERROR: Bad of_node_put() on
+/ocp/interconnect@4a000000/segment@0/target-module@8000/cm_core@0/l4per-cm@1700/l4per-clkctrl@28
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W
+  5.5.0-next-20200203 #1
+[    0.000000] Hardware name: Generic DRA74X (Flattened Device Tree)
+[    0.000000] Backtrace:
+[    0.000000] [<c040fac4>] (dump_backtrace) from [<c040fdf8>]
+(show_stack+0x20/0x24)
+[    0.000000]  r7:c23f2e68 r6:00000000 r5:600000d3 r4:c23f2e68
+[    0.000000] [<c040fdd8>] (show_stack) from [<c14144d0>]
+(dump_stack+0xe8/0x114)
+[    0.000000] [<c14143e8>] (dump_stack) from [<c112b7cc>]
+(of_node_release+0xb4/0xcc)
+[    0.000000]  r10:efca9a44 r9:00000001 r8:00000000 r7:00000000
+r6:c23d2350 r5:efca9a44
+[    0.000000]  r4:efca9a70 r3:be2d277f
+[    0.000000] [<c112b718>] (of_node_release) from [<c1419c28>]
+(kobject_put+0x11c/0x23c)
+[    0.000000]  r5:c2422cb8 r4:efca9a70
+[    0.000000] [<c1419b0c>] (kobject_put) from [<c112aa98>]
+(of_node_put+0x24/0x28)
+[    0.000000]  r7:e98f7980 r6:c2201ef4 r5:00000000 r4:e98f7940
+[    0.000000] [<c112aa74>] (of_node_put) from [<c20474a0>]
+(of_clk_init+0x1a4/0x248)
+[    0.000000] [<c20472fc>] (of_clk_init) from [<c20140dc>]
+(omap_clk_init+0x4c/0x68)
+[    0.000000]  r10:efc8b8c0 r9:c2433054 r8:00000000 r7:c2208700
+r6:00000066 r5:c20dab64
+[    0.000000]  r4:c2434500
+[    0.000000] [<c2014090>] (omap_clk_init) from [<c2014afc>]
+(omap4_sync32k_timer_init+0x18/0x3c)
+[    0.000000]  r5:c20dab64 r4:c2433000
+[    0.000000] [<c2014ae4>] (omap4_sync32k_timer_init) from
+[<c2014de8>] (omap5_realtime_timer_init+0x1c/0x258)
+[    0.000000] [<c2014dcc>] (omap5_realtime_timer_init) from
+[<c2005954>] (time_init+0x30/0x44)
+[    0.000000]  r9:c2433054 r8:00000000 r7:c2208700 r6:00000066
+r5:c20dab64 r4:c2433000
+[    0.000000] [<c2005924>] (time_init) from [<c20012dc>]
+(start_kernel+0x590/0x720)
+[    0.000000] [<c2000d4c>] (start_kernel) from [<00000000>] (0x0)
+[    0.000000]  r10:30c5387d r9:412fc0f2 r8:8ffdc000 r7:00000000
+r6:30c0387d r5:00000000
+[    0.000000]  r4:c2000330
 
-> Nice finding! The trickier point is to nicely remove them because:
-> 1. The easiest is 'savedefconfig' but then some valuable options might
-> disappear (like recently happened with DEBUG_FS),
-> 2. They could be removed in automated way with a script. However in
-> such case what about replacements? If some symbol was replaced with
-> other (or just renamed), maybe we should enable the other one to
-> restore the desired functionality?
-> 3. Or maybe let's don't care about keeping defconfigs stable and just
-> clean them up automatically.
+full test log,
+https://lkft.validation.linaro.org/scheduler/job/1158386#L3677
 
-I don't see a good way to do it automatically. It would be good to check
-that we don't remove Kconfig symbols that are still used in defconfig
-files without changing those files as well. Cleaning up afterwards also
-works, but this always requires manual inspection for each symbol.
-
-     Arnd
+-- 
+Linaro LKFT
+https://lkft.linaro.org
