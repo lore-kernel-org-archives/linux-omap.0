@@ -1,28 +1,105 @@
-From: Vignesh Raghavendra <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/2] spi: spi-omap2-mcspi: Add DMA support for AM65x
-Date: Tue, 4 Feb 2020 18:18:14 +0530
-Message-ID: <20200204124816.16735-1-vigneshr@ti.com>
+From: Vignesh Raghavendra <vigneshr@ti.com>
+Subject: [PATCH 1/2] spi: spi-omap2-mcspi: Handle DMA size restriction on AM65x
+Date: Tue, 4 Feb 2020 18:18:15 +0530
+Message-ID: <20200204124816.16735-2-vigneshr@ti.com>
+References: <20200204124816.16735-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Vignesh Raghavendra <vigneshr-l0cyMroinI0@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20200204124816.16735-1-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series adds DMA support for McSPI on AM65x.
-First patch addresses a limitationn on AM65x where transfers have to be
-<4K per DMA request and second patch handles possible EPROBE_DEFER when
-requesting DMA channels
+On AM654, McSPI can only support 4K - 1 bytes per transfer when DMA is
+enabled. Therefore populate master->max_transfer_size callback to
+inform client drivers of this restriction when DMA channels are
+available.
 
-Vignesh Raghavendra (2):
-  spi: spi-omap2-mcspi: Handle DMA size restriction on AM65x
-  spi: spi-omap2-mcspi: Support probe deferral for DMA channels
+Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+---
+ drivers/spi/spi-omap2-mcspi.c                 | 26 +++++++++++++++++++
+ include/linux/platform_data/spi-omap2-mcspi.h |  1 +
+ 2 files changed, 27 insertions(+)
 
- drivers/spi/spi-omap2-mcspi.c                 | 103 +++++++++++-------
- include/linux/platform_data/spi-omap2-mcspi.h |   1 +
- 2 files changed, 65 insertions(+), 39 deletions(-)
-
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 7e2292c11d12..e9bc9cf984d6 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -130,6 +130,7 @@ struct omap2_mcspi {
+ 	int			fifo_depth;
+ 	bool			slave_aborted;
+ 	unsigned int		pin_dir:1;
++	size_t			max_xfer_len;
+ };
+ 
+ struct omap2_mcspi_cs {
+@@ -1305,6 +1306,18 @@ static bool omap2_mcspi_can_dma(struct spi_master *master,
+ 	return (xfer->len >= DMA_MIN_BYTES);
+ }
+ 
++static size_t omap2_mcspi_max_xfer_size(struct spi_device *spi)
++{
++	struct omap2_mcspi *mcspi = spi_master_get_devdata(spi->master);
++	struct omap2_mcspi_dma *mcspi_dma =
++		&mcspi->dma_channels[spi->chip_select];
++
++	if (mcspi->max_xfer_len && mcspi_dma->dma_rx)
++		return mcspi->max_xfer_len;
++
++	return SIZE_MAX;
++}
++
+ static int omap2_mcspi_controller_setup(struct omap2_mcspi *mcspi)
+ {
+ 	struct spi_master	*master = mcspi->master;
+@@ -1373,6 +1386,11 @@ static struct omap2_mcspi_platform_config omap4_pdata = {
+ 	.regs_offset = OMAP4_MCSPI_REG_OFFSET,
+ };
+ 
++static struct omap2_mcspi_platform_config am654_pdata = {
++	.regs_offset = OMAP4_MCSPI_REG_OFFSET,
++	.max_xfer_len = SZ_4K - 1,
++};
++
+ static const struct of_device_id omap_mcspi_of_match[] = {
+ 	{
+ 		.compatible = "ti,omap2-mcspi",
+@@ -1382,6 +1400,10 @@ static const struct of_device_id omap_mcspi_of_match[] = {
+ 		.compatible = "ti,omap4-mcspi",
+ 		.data = &omap4_pdata,
+ 	},
++	{
++		.compatible = "ti,am654-mcspi",
++		.data = &am654_pdata,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, omap_mcspi_of_match);
+@@ -1439,6 +1461,10 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 		mcspi->pin_dir = pdata->pin_dir;
+ 	}
+ 	regs_offset = pdata->regs_offset;
++	if (pdata->max_xfer_len) {
++		mcspi->max_xfer_len = pdata->max_xfer_len;
++		master->max_transfer_size = omap2_mcspi_max_xfer_size;
++	}
+ 
+ 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	mcspi->base = devm_ioremap_resource(&pdev->dev, r);
+diff --git a/include/linux/platform_data/spi-omap2-mcspi.h b/include/linux/platform_data/spi-omap2-mcspi.h
+index 0bf9fddb8306..3b400b1919a9 100644
+--- a/include/linux/platform_data/spi-omap2-mcspi.h
++++ b/include/linux/platform_data/spi-omap2-mcspi.h
+@@ -11,6 +11,7 @@ struct omap2_mcspi_platform_config {
+ 	unsigned short	num_cs;
+ 	unsigned int regs_offset;
+ 	unsigned int pin_dir:1;
++	size_t max_xfer_len;
+ };
+ 
+ struct omap2_mcspi_device_config {
 -- 
 2.25.0
