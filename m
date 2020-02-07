@@ -1,193 +1,140 @@
-From: Quentin Perret <qperret@google.com>
-Subject: Re: [PATCH v2 1/4] PM / EM: add devices to Energy Model
-Date: Fri, 7 Feb 2020 12:04:30 +0000
-Message-ID: <20200207120430.GA242912@google.com>
-References: <20200206134640.11367-1-lukasz.luba@arm.com>
- <20200206134640.11367-2-lukasz.luba@arm.com>
+From: Merlijn Wajer <merlijn@wizzup.org>
+Subject: Nokia N900 on 5.4 and 5.5
+Date: Fri, 7 Feb 2020 15:54:14 +0100
+Message-ID: <79b91017-b52a-8aff-4b9c-913ae655f7bf@wizzup.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="lBuyN4AWvJL8LwRL2KCIwlOtHXHmt034X"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:51452 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726857AbgBGMEi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 7 Feb 2020 07:04:38 -0500
-Received: by mail-wm1-f65.google.com with SMTP id t23so2341306wmi.1
-        for <linux-omap@vger.kernel.org>; Fri, 07 Feb 2020 04:04:36 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20200206134640.11367-2-lukasz.luba@arm.com>
+Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:32796 "EHLO
+        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726674AbgBGOxL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 7 Feb 2020 09:53:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lukasz.luba@arm.com
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-imx@nxp.com, Morten.Rasmussen@arm.com, Dietmar.Eggemann@arm.com, Chris.Redpath@arm.com, ionela.voinescu@arm.com, javi.merino@arm.com, cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com, daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Arthur D." <spinal.by@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-On Thursday 06 Feb 2020 at 13:46:37 (+0000), lukasz.luba@arm.com wrote:
->  2. Core APIs
-> @@ -70,14 +72,16 @@ CONFIG_ENERGY_MODEL must be enabled to use the EM framework.
->  Drivers are expected to register performance domains into the EM framework by
->  calling the following API::
->  
-> -  int em_register_perf_domain(cpumask_t *span, unsigned int nr_states,
-> -			      struct em_data_callback *cb);
-> +  int em_register_perf_domain(struct device *dev, unsigned int nr_states,
-> +		struct em_data_callback *cb, cpumask_t *cpus);
->  
-> -Drivers must specify the CPUs of the performance domains using the cpumask
-> +Drivers must specify the device pointer of the performance domains as first
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--lBuyN4AWvJL8LwRL2KCIwlOtHXHmt034X
+Content-Type: multipart/mixed; boundary="m8BCXAro0qvsecVFpTRxgrKKj0TRLcljU"
 
-I find this sentence a little odd no?
+--m8BCXAro0qvsecVFpTRxgrKKj0TRLcljU
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
->  argument, and provide a callback function returning <frequency, power> tuples
-> -for each capacity state. The callback function provided by the driver is free
-> +for each performance state. The callback function provided by the driver is free
->  to fetch data from any relevant location (DT, firmware, ...), and by any mean
-> -deemed necessary. See Section 3. for an example of driver implementing this
-> +deemed necessary. For other devices than CPUs the last argumant must be set to
+Hi,
 
-s/argumant/argument
+I've tried to build 5.4.18 and 5.5.2 for the Nokia N900, using
+omap2plus_defconfig. Using appended DTB, like so:
 
-> +NULL. Only for CPUfreq drivers it is obligatory to specify the cpumask.
+$ cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-n900.dtb > zImage.dtb
+$ mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n
+zImage -d zImage.dtb uImage
 
-Please note that as of today nothing mandates the caller to be a CPUFreq
-driver -- it could be anything in theory. I'd say 'only for CPU devices'
-instead.
+But they both fail to boot for me - the device resets almost instantly:
 
-<snip>
-> @@ -24,51 +27,65 @@ struct em_cap_state {
->  
->  /**
->   * em_perf_domain - Performance domain
-> - * @table:		List of capacity states, in ascending order
-> - * @nr_cap_states:	Number of capacity states
-> - * @cpus:		Cpumask covering the CPUs of the domain
-> + * @table:		List of performance states, in ascending order
-> + * @nr_perf_states:	Number of performance states
-> + * @priv:		In case of EM for CPU device it is a Cpumask
-> + *			covering the CPUs of the domain
+> data abort
+>=20
+>     MAYBE you should read doc/README.arm-unaligned-accesses
+>=20
+> pc : [<8000c878>]          lr : [<80008160>]
+> sp : 803c46c8  ip : 003a1870     fp : 003a1848
+> r10: 803ba890  r9 : 00caa42c     r8 : 80000100
+> r7 : 000007a3  r6 : 803a9878     r5 : 80000100  r4 : 80008000
+> r3 : 00004e6c  r2 : 00019fa8     r1 : 803a9878  r0 : 00000000
+> Flags: nZcv  IRQs off  FIQs on  Mode SVC_32
+> Resetting CPU ...
+>=20
+> resetting ...
 
-Could you turn @priv back into 'unsigned long priv[0];' and keep the
-allocation as it is today ? That is, append the cpumask to the struct.
+Full log below. I tried the same with "-Os" instead of "-O2" ; to no avai=
+l.
 
-This empty pointer for non-CPU devices is just wasted space, and pointer
-chasing isn't good for your caches. Given that you pre-allocate the pd
-in em_create_pd() you could just have a special case for CPUs there I
-suppose. And _is_cpu_em() will have to check the bus like you did in v1.
+Any clue what could be up?
 
->   *
-> - * A "performance domain" represents a group of CPUs whose performance is
-> - * scaled together. All CPUs of a performance domain must have the same
-> - * micro-architecture. Performance domains often have a 1-to-1 mapping with
-> - * CPUFreq policies.
-> + * In case of CPU device, a "performance domain" represents a group of CPUs
-> + * whose performance is scaled together. All CPUs of a performance domain
-> + * must have the same micro-architecture. Performance domains often have
-> + * a 1-to-1 mapping with CPUFreq policies.
-> + * In case of other devices the 'priv' field is unused.
->   */
->  struct em_perf_domain {
-> -	struct em_cap_state *table;
-> -	int nr_cap_states;
-> -	unsigned long cpus[0];
-> +	struct em_perf_state *table;
-> +	int nr_perf_states;
-> +	void *priv;
->  };
+Cheers,
+Merlijn
 
-<snip>
->  struct em_data_callback {
->  	/**
-> -	 * active_power() - Provide power at the next capacity state of a CPU
-> -	 * @power	: Active power at the capacity state in mW (modified)
-> -	 * @freq	: Frequency at the capacity state in kHz (modified)
-> -	 * @cpu		: CPU for which we do this operation
-> +	 * active_power() - Provide power at the next performance state of a
-> +	 *		    device
-> +	 * @power	: Active power at the performance state in mW (modified)
-> +	 * @freq	: Frequency at the performance state in kHz (modified)
-> +	 * @dev		: Device for which we do this operation (can be a CPU)
->  	 *
-> -	 * active_power() must find the lowest capacity state of 'cpu' above
-> +	 * active_power() must find the lowest performance state of 'dev' above
->  	 * 'freq' and update 'power' and 'freq' to the matching active power
->  	 * and frequency.
->  	 *
-> -	 * The power is the one of a single CPU in the domain, expressed in
-> -	 * milli-watts. It is expected to fit in the [0, EM_CPU_MAX_POWER]
-> -	 * range.
-> +	 * In case of CPUs, the power is the one of a single CPU in the domain,
-> +	 * expressed in milli-watts. It is expected to fit in the
-> +	 * [0, EM_MAX_POWER] range.
->  	 *
->  	 * Return 0 on success.
->  	 */
-> -	int (*active_power)(unsigned long *power, unsigned long *freq, int cpu);
-> +	int (*active_power)(unsigned long *power, unsigned long *freq,
-> +			    struct device *dev);
+[1]
+> NOLO X-Loader (v1.4.14, Jun  3 2010)
+> Secondary image size 109384
+> Booting secondary
+> [   0.002] Nokia OMAP Loader v1.4.14 (Jun  3 2010) running on Nokia N90=
+0 F5 (RX-51)
+> [   0.014] I2C v3.12
+> [   0.033] System DMA v4.0
+> [   0.036] OneNAND device ID 0040, version ID 0121 (256 MiB, 66 MHz)
+> [   0.071]   OneNAND blocks unlocked in 28040 us
+> [   0.075]   Flash id: ec4021
+> [   0.094] Partition table successfully read
+> [   0.102] TWL4030 PWR ISR: 40
+> [   0.105] Reset reason: por
+> [   0.108] McSPI v2.1
+> [   0.111] LP5523 found at I2C bus 2, address 0x32
+> [   0.122] SMB138C: Not loading driver (version reg. 0x4b)
+> [   0.128] BQ24150 (rev. 3) found on I2C bus 1, address 0x6b
+> [   0.134] SSI version 1.0
+> [   0.148] Battery voltage 3.780 V, BSI: 971
+> [   0.164] Initializing LCD panel
+> [   0.167]   Detecting LCD panel moscow
+> [   0.171]     Panel ID: 108d77
+> [   0.174]   Detected LCD panel: acx565akm
+> [   0.178] DISPC: version 3.0
+> [   0.183]   LCD pixel clock 24000 kHz
+> [   0.214]   Logo drawn in 5 ms (11700 kB/s)
+> [   0.345]   =EF=BF=BDber-cool backlight fade-in took 9 ms
+> [   0.352] Initializing USB
+> [   0.360]   No USB host detected
+> [   0.363] Loading kernel image info
+> Loading kernel (1961 kB)... done in 71 ms (27535 kB/s)
+> [   0.443] Loading initfs image info
+> [   0.447] Total bootup time 450 ms
+> [   0.451] Serial console disabled
+>=20
+>=20
+> U-Boot 2013.04 (Apr 20 2013 - 11:00:56)
+>=20
+> OMAP3530-HS ES3.1, CPU-OPP2, L3-165MHz, Max CPU Clock 600 MHz
+> Nokia RX-51 + LPDDR/OneNAND
+> I2C:   ready
+> DRAM:  256 MiB
+> MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
+> Using default environment
+>=20
+> In:    vga
+> Out:   vga
+> Err:   vga
+> data abort
+>=20
+>     MAYBE you should read doc/README.arm-unaligned-accesses
+>=20
+> pc : [<8000c878>]          lr : [<80008160>]
+> sp : 803c46c8  ip : 003a1870     fp : 003a1848
+> r10: 803ba890  r9 : 00caa42c     r8 : 80000100
+> r7 : 000007a3  r6 : 803a9878     r5 : 80000100  r4 : 80008000
+> r3 : 00004e6c  r2 : 00019fa8     r1 : 803a9878  r0 : 00000000
+> Flags: nZcv  IRQs off  FIQs on  Mode SVC_32
+> Resetting CPU ...
+>=20
+> resetting ...
 
-Given that you've made explicit in the doc of struct em_perf_state that
-'power' can be a 'total' value (static + dynamic), this could be renamed
-I suppose.
 
-<snip>
->  /**
->   * em_cpu_get() - Return the performance domain for a CPU
->   * @cpu : CPU to find the performance domain for
->   *
-> - * Return: the performance domain to which 'cpu' belongs, or NULL if it doesn't
-> + * Returns the performance domain to which 'cpu' belongs, or NULL if it doesn't
->   * exist.
->   */
->  struct em_perf_domain *em_cpu_get(int cpu)
->  {
-> -	return READ_ONCE(per_cpu(em_data, cpu));
+--m8BCXAro0qvsecVFpTRxgrKKj0TRLcljU--
 
-Since CPU perf domains are guaranteed to never go away, it'd be safe to
-keep that per-CPU variable and avoid the locking and list manipulation
-below. No strong opinion, though.
+--lBuyN4AWvJL8LwRL2KCIwlOtHXHmt034X
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> +	struct em_device *em_dev;
-> +
-> +	mutex_lock(&em_pd_mutex);
-> +
-> +	if (list_empty(&em_pd_dev_list))
-> +		goto unlock;
-> +
-> +	list_for_each_entry(em_dev, &em_pd_dev_list, em_dev_list) {
-> +		if (!_is_cpu_em(em_dev->em_pd))
-> +			continue;
-> +
-> +		if (cpumask_test_cpu(cpu, em_span_cpus(em_dev->em_pd))) {
-> +			mutex_unlock(&em_pd_mutex);
-> +			return em_dev->em_pd;
-> +		}
-> +	}
-> +
-> +unlock:
-> +	mutex_unlock(&em_pd_mutex);
-> +	return NULL;
->  }
->  EXPORT_SYMBOL_GPL(em_cpu_get);
+-----BEGIN PGP SIGNATURE-----
 
-<snip>
->  /**
-> - * em_register_perf_domain() - Register the Energy Model of a performance domain
-> - * @span	: Mask of CPUs in the performance domain
-> - * @nr_states	: Number of capacity states to register
-> + * em_register_perf_domain() - Register the Energy Model (EM) of a performance
-> + *		domain for the device
-> + * @dev		: Device for which the EM is to register
-> + * @nr_states	: Number of performance states to register
->   * @cb		: Callback functions providing the data of the Energy Model
-> + * @cpus	: Pointer to cpumask_t, which in case of a CPU device is
-> + *		obligatory. It can be taken from i.e. 'policy->cpus'. For other
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXj16FgAKCRAGN09rynK8
+WkwCAQD5KnlpBt8UjjsjguGrW5Dk0T0K2u/PjEiyFtjAl19wzwEA3PgR0o98lSYI
+U3qyE8YX6rlqOLvYvCJ9K2p1ZMwhyg8=
+=IxhY
+-----END PGP SIGNATURE-----
 
-It should be policy->related_cpus actually (or 'real_cpus' even) -- PM_EM
-ignores hotplug ATM. Perhaps we should document that somewhere ...
-
-> + *		type of devices this should be set to NULL.
->   *
->   * Create Energy Model tables for a performance domain using the callbacks
->   * defined in cb.
-> @@ -196,63 +361,129 @@ EXPORT_SYMBOL_GPL(em_cpu_get);
-
-Thanks,
-Quentin
+--lBuyN4AWvJL8LwRL2KCIwlOtHXHmt034X--
