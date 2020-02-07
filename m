@@ -1,68 +1,34 @@
-From: "Arthur D." <spinal.by@gmail.com>
-Subject: Re: Nokia N900 on 5.4 and 5.5
-Date: Fri, 07 Feb 2020 23:20:33 +0300
-Message-ID: <op.0fmv4jevhxa7s4@supervisor.net28>
-References: <79b91017-b52a-8aff-4b9c-913ae655f7bf@wizzup.org>
- <185CD173-C13C-4D56-B3DE-9A8D7784963C@goldelico.com>
- <20200207163623.GA64767@atomide.com>
- <da14d6bb-f241-2dd4-8e94-886217a40ed7@wizzup.org>
- <20200207165344.GB64767@atomide.com> <20200207170149.GC64767@atomide.com>
+From: "Mr. Theophilus Odadudu" <cristinamedina0010@gmail.com>
+Subject: LETTER OF INQUIRY
+Date: Fri, 7 Feb 2020 15:44:08 -0500
+Message-ID: <CAPNvSTj-8q7w5QPmnH26+_3xCKjEWyE+9xcb8QyQs9Xie+iYgg__2403.47930682532$1581108261$gmane$org@mail.gmail.com>
+Reply-To: auch197722@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:38081 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726916AbgBGUUi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 7 Feb 2020 15:20:38 -0500
-Received: by mail-wr1-f68.google.com with SMTP id y17so400309wrh.5
-        for <linux-omap@vger.kernel.org>; Fri, 07 Feb 2020 12:20:36 -0800 (PST)
-In-Reply-To: <20200207170149.GC64767@atomide.com>
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:41528 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727005AbgBGUoJ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 7 Feb 2020 15:44:09 -0500
+Received: by mail-ot1-f67.google.com with SMTP id r27so583826otc.8
+        for <linux-omap@vger.kernel.org>; Fri, 07 Feb 2020 12:44:09 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>, Tony Lindgren <tony@atomide.com>
-Cc: Kees Cook <keescook@chromium.org>, Nicolas Pitre <nico@fluxnic.net>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Hi.
+Good Day,
 
-I was able to build linux-5.5 and run it on N900 with no problems.
-Even WiFi works, mmc0 is in place too. It seems you're doing something
-wrong.
+I work as a clerk in a Bank here in Nigeria, I have a very
+confidential Business Proposition for you. There is a said amount of
+money floating in the bank unclaimed, belonging to the bank Foreign
+customer who die with his family in the Ethiopian Airline crash of
+March 11, 2019.
 
-Were you able to build linux-5.1 with your scripts and run it on the
-phone? I mean the pure linux-5.1 without configs and changes done
-in https://github.com/maemo-leste/n9xx-linux.
+I seek your good collaboration to move the fund for our benefit. we
+have agreed that 40% be yours once you help claim.
 
-BTW, I didn't find STACKPROTECTOR_PER_TASK option to be enabled in
-omap2plus_defconfig.
+Do get back to with 1) Your Full Name: (2) Residential Address: (3)
+Phone, Mobile  (4) Scan Copy of Your ID. to apply for claims of the
+funds.
 
---
-Best regards, Spinal
-
-> * Tony Lindgren <tony@atomide.com> [200207 16:54]:
->> * Merlijn Wajer <merlijn@wizzup.org> [200207 16:47]:
->> > On 07/02/2020 17:36, Tony Lindgren wrote:
->> > >
->> > > Looks like there's a regression in general for appended dtb booting  
->> that
->> > > was caused by commit 9f671e58159a ("security: Create "kernel  
->> hardening"
->> > > config area"). With that change we now get STACKPROTECTOR_PER_TASK
->> > > selected by default with Kconfig.
->> > >
->> > > Merlijn, care to try to disable STACKPROTECTOR_PER_TASK in your
->> > > .config to see if that helps?
->> >
->> > Yes, this makes the kernel boot.
->>
->> OK good to hear. My guess is that having STACKPROTECTOR_PER_TASK
->> selected causes changes to include/generated/asm-offsets.h that
->> appended dtb booting does not like. But let's see what others
->> think.
->
-> I don't think this is an issue of CONFIG_STACKPROTECTOR + CONFIG_SMP
-> booted on UP machine as it only happens with appended dtb it seems.
->
-> Regards,
->
-> Tony
+Regards
+Theophilus Odadudu
