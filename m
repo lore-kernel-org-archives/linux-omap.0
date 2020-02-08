@@ -1,86 +1,80 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Merlijn Wajer <merlijn@wizzup.org>
 Subject: Re: N900: Remove mmc1 "safety feature"? (was: Re: mmc0 on Nokia N900
  on Linux 5.4.18)
-Date: Sat, 8 Feb 2020 23:06:21 +0100
-Message-ID: <20200208220621.GA18161@amd>
+Date: Sat, 8 Feb 2020 23:19:21 +0100
+Message-ID: <d2d6d6ac-c964-ac48-1616-6f1826219385@wizzup.org>
 References: <5362c659-120f-5247-aaa5-7916229300bc@wizzup.org>
  <20200208190448.GA12984@amd>
  <270f27c9-afd6-171d-7dce-fe1d71dd8f9a@wizzup.org>
  <1eac0db3-17ce-8ebd-4997-8b1c282126e4@wizzup.org>
+ <20200208220621.GA18161@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="jLHmlPIu9h81t0BdY2BMDmVxA6tXOD9av"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from jabberwock.ucw.cz ([46.255.230.98]:35322 "EHLO
-        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727073AbgBHWGY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 8 Feb 2020 17:06:24 -0500
-Content-Disposition: inline
-In-Reply-To: <1eac0db3-17ce-8ebd-4997-8b1c282126e4@wizzup.org>
+Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:48620 "EHLO
+        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727496AbgBHWSP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 8 Feb 2020 17:18:15 -0500
+In-Reply-To: <20200208220621.GA18161@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>
+To: Pavel Machek <pavel@ucw.cz>
 Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Arthur D." <spinal.by@gmail.com>
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--jLHmlPIu9h81t0BdY2BMDmVxA6tXOD9av
+Content-Type: multipart/mixed; boundary="k6TovdkgINGYxvNV5ShblLx8c2h3zRpCn"
 
---7JfCtLOvnd9MIVvH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--k6TovdkgINGYxvNV5ShblLx8c2h3zRpCn
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-GB
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Hi,
 
-> >>> When booting Linux 5.4.18 with omap2plus_defconfig, I no longer get a
-> >>> /dev/mmcblk0 device - the one corresponding to my microSD card, where
-> >>> u-boot also loads the kernel from.
-> >>>
-> >>> This also likely seems to be a regression, but I haven't tried to hunt
-> >>> it down yet.
-> >>>
-> >>> Kernel log attached, below.
-> >>
-> >> Do you have back cover attached? That's common trap...
-> >=20
-> > Right.
-> >=20
-> > No, I did not, since I have the serial pins connected to my PC, and the
-> > whole device is mounted on a piece of hardware for that. I thought that
-> > we fixed the problem where we require the cover to be on...
+On 08/02/2020 23:06, Pavel Machek wrote:
+
 >=20
-> Indeed, this was the problem.
+> It is very bad for debugging, agreed.
 >=20
-> Is there really a reason to have this in the DTS? I have a hard time
-> imagining a use case for not showing SD card to users or developers
-> simply because the casing is open. If anything, this sounds like it
-> should be a userspace thing.
+> It makes sense for regular usage: when user removes back cover, system
+> unmounts the u-SD card, so that it is ready for user to remove
+> it. Note that we do _not_ have "remove the card safely" button in the
+> UI; back cover serves that purpose.
+>=20
+> That said... for Leste just keep the patch. And maybe apply that one
+> to shutdown system when battery is low :-).
 
-It is very bad for debugging, agreed.
+So how does this currently happen, the unmounting? Does the mmc1 card
+just disappear from /dev/ without any safe unmount? I don't understand
+how the current setup can work from a userspace point of view.
 
-It makes sense for regular usage: when user removes back cover, system
-unmounts the u-SD card, so that it is ready for user to remove
-it. Note that we do _not_ have "remove the card safely" button in the
-UI; back cover serves that purpose.
+Userspace could react on kernel events that tell it the cover is open,
+but I assume the kernel doesn't just decide to nuke the node from /dev/,
+so in that case the current DTS setup still doesn't make sense, right?
 
-That said... for Leste just keep the patch. And maybe apply that one
-to shutdown system when battery is low :-).
+What am I missing? Could you describe how this would work in a 'real
+life' scenario?
 
-Best regards,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Cheers,
+Merlijn
 
---7JfCtLOvnd9MIVvH
+
+--k6TovdkgINGYxvNV5ShblLx8c2h3zRpCn--
+
+--jLHmlPIu9h81t0BdY2BMDmVxA6tXOD9av
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAl4/MN0ACgkQMOfwapXb+vLG9gCcCgw98bdpSGt6Lt+wOpVdgsix
-T0gAniy8DQwWuV1Xa7LWSr+hgwuy5Tvh
-=92ey
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXj8z6QAKCRAGN09rynK8
+WuziAP0SwvVdh/Z7tgvpoBXyxHAT1E7CV/MOjrIedhMAabstDQEAzs6f8nvEyCS6
+Wyhin9C1NgCHqlweOhA9IwBIN9zFvgI=
+=YL55
 -----END PGP SIGNATURE-----
 
---7JfCtLOvnd9MIVvH--
+--jLHmlPIu9h81t0BdY2BMDmVxA6tXOD9av--
