@@ -1,117 +1,78 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
-Subject: Re: N900: Remove mmc1 "safety feature"? (was: Re: mmc0 on Nokia N900
- on Linux 5.4.18)
-Date: Sun, 9 Feb 2020 09:11:49 +0100
-Message-ID: <14cbf6a2-c438-3f92-08c7-ee0a2784db9f@wizzup.org>
-References: <5362c659-120f-5247-aaa5-7916229300bc@wizzup.org>
- <20200208190448.GA12984@amd>
- <270f27c9-afd6-171d-7dce-fe1d71dd8f9a@wizzup.org>
- <1eac0db3-17ce-8ebd-4997-8b1c282126e4@wizzup.org>
- <20200208220621.GA18161@amd>
- <d2d6d6ac-c964-ac48-1616-6f1826219385@wizzup.org>
- <op.0fpbjlbwhxa7s4@supervisor.net28>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 2/2] ARM: configs: Cleanup old Kconfig options
+Date: Sun, 9 Feb 2020 03:44:22 -0800
+Message-ID: <20200209114422.as5xpytakhaa3vur@localhost>
+References: <20200130195525.4525-1-krzk@kernel.org>
+ <20200130195525.4525-2-krzk@kernel.org>
+ <9f8a0a8e09893e7087d2212fb0eeb94a908b7be1.camel@perches.com>
+ <CAJKOXPf5Mf4FCmtME5yJsBZeP8BkYJgcxkKzS2hd-gp-mq3nag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="FTWHKiY98fexUfkq6wE34RROqeasvi97A"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:53500 "EHLO
-        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725900AbgBIIKn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 9 Feb 2020 03:10:43 -0500
-In-Reply-To: <op.0fpbjlbwhxa7s4@supervisor.net28>
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:37631 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726378AbgBILv6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 9 Feb 2020 06:51:58 -0500
+Received: by mail-lj1-f195.google.com with SMTP id v17so3973268ljg.4
+        for <linux-omap@vger.kernel.org>; Sun, 09 Feb 2020 03:51:57 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <CAJKOXPf5Mf4FCmtME5yJsBZeP8BkYJgcxkKzS2hd-gp-mq3nag@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Arthur D." <spinal.by@gmail.com>, Pavel Machek <pavel@ucw.cz>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Joe Perches <joe@perches.com>, Russell King <linux@armlinux.org.uk>, Alexander Shiyan <shc_work@mail.ru>, Uwe Kleine-K??nig <u.kleine-koenig@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Vladimir Zapolskiy <vz@mleia.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@st.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Avi Fishman <avifishman70@gmail.com>, Tomer Maimon <tmaimon77@gmail.com>, Tali
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---FTWHKiY98fexUfkq6wE34RROqeasvi97A
-Content-Type: multipart/mixed; boundary="RuoGXgEQ0tgXcepA9j5F8VDneE8Lr1p8X"
+On Mon, Feb 03, 2020 at 12:52:45PM +0100, Krzysztof Kozlowski wrote:
+> On Thu, 30 Jan 2020 at 23:06, Joe Perches <joe@perches.com> wrote:
+> >
+> > On Thu, 2020-01-30 at 20:55 +0100, Krzysztof Kozlowski wrote:
+> > > CONFIG_MMC_BLOCK_BOUNCE is gone since commit c3dccb74be28 ("mmc: core:
+> > > Delete bounce buffer Kconfig option").
+> > >
+> > > CONFIG_LBDAF is gone since commit 72deb455b5ec ("block: remove
+> > > CONFIG_LBDAF").
+> > >
+> > > CONFIG_IOSCHED_DEADLINE and CONFIG_IOSCHED_CFQ are gone since
+> > > commit f382fb0bcef4 ("block: remove legacy IO schedulers").
+> > >
+> > > The IOSCHED_DEADLINE was replaced by MQ_IOSCHED_DEADLINE and it will be
+> > > now enabled by default (along with MQ_IOSCHED_KYBER).
+> > >
+> > > The IOSCHED_BFQ seems to replace IOSCHED_CFQ so select it in configs
+> > > previously choosing the latter.
+> > >
+> > > CONFIG_CROSS_COMPILE is gone since commit f1089c92da79 ("kbuild: remove
+> > > CONFIG_CROSS_COMPILE support").
+> >
+> > Hi Krzysztof.
+> >
+> > There seems there are a lot more of these unused CONFIG_<foo>
+> > symbols in various defconfigs. (just for arm and treewide below)
+> >
+> > ARM defconfigs:
+> 
+> Hi Joe,
+> 
+> Nice finding! The trickier point is to nicely remove them because:
+> 1. The easiest is 'savedefconfig' but then some valuable options might
+> disappear (like recently happened with DEBUG_FS),
 
---RuoGXgEQ0tgXcepA9j5F8VDneE8Lr1p8X
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+Note that while they disappear from the defconfig, they were already not part
+of the build. So kernels have been built without them for a while. It's a good
+way to surface the problem, but it's pretty clear that trees fall in the forest
+here all the time and nobody is noticing.
 
-Hi,
+> 2. They could be removed in automated way with a script. However in
+> such case what about replacements? If some symbol was replaced with
+> other (or just renamed), maybe we should enable the other one to
+> restore the desired functionality?
+> 3. Or maybe let's don't care about keeping defconfigs stable and just
+> clean them up automatically.
 
-On 09/02/2020 04:48, Arthur D. wrote:
-> I suppose the real life scenario would be:
->=20
-> 0. The OS runs on eMMC.
-> 1. The user opens his phone back cover and inserts MicroSD card.
-> 2. Kernel doesn't try to access the card until the cover is closed.
-
-This kinda makes sense - but assume the card is already in there, and
-the user wants to swap them? Then it doesn't help.
-
-
-> It seems wise to me: we don't want to damage user's data or hardware.
-> Accessing data on unstable medium can't be considered safe.
-> While the cover is open and user just inserted the microsd card everyth=
-ing
-> can happen - the phone can be dropped, may be unstable contact to micro=
-sd
-> while the user interacting it, etc.
-
-Maybe I am just used to the microsd port being exposed, but I have no
-other ARM device that doesn't have the microsd slot easily exposed. Many
-phones, cables, development boards, and they all just allow me to insert
-a microSD card, and it'll work. Clearly the manufacturers didn't have a
-similar worry there.
-
-> It seems to be inconvenient for us, while we run OS mostly from microsd=
-=2E
-> But removing such behaviour from the kernel completely doesn't seem to
-> be a good idea generally. Vanilla kernel shouldn't be dedicated for
-> debugging purposes or edge cases (like running only from external MMC).=
-
-> Running from embedded MMC should be common for most users in perspectiv=
-e.
->=20
-> If I remember correctly, if the microsd is already mounted and the back=
-
-> cover is open, nothing bad happens. It continues to work. You can unmou=
-nt
-> the card and remove it safely. But you are not going to see the new car=
-d
-> insertion detected until you close the cover.
-
-I think the last paragraph might actually be key, because when you said
-that, my initial reaction was: "aha! that makes some sense".
-
-Still not sure if it warrants the hassle it currently is. And as it
-stands, we also disable this feature in Maemo Leste, so we clearly
-decided we don't want it either. ;-)
-
-> I'm not sure about the last paragraph. Please correct me if I'm wrong a=
-bout
-> how it actually works.
-
-OK.
-
-If we don't want to remove this, can we at least somehow have a runtime
-warning? I spent quite some time searching my dmesg, trying to figure
-out why I couldn't even see the mmc interface that I needed.
-
-Cheers,
-Merlijn
+Churning defconfigs is just noise, and a source of annoying needless
+conflicts when people do it at the same time. If an option is no longer
+in-tree, it doesn't do any harm. But it makes sense to clean up every
+now and then like the original patch here.
 
 
---RuoGXgEQ0tgXcepA9j5F8VDneE8Lr1p8X--
-
---FTWHKiY98fexUfkq6wE34RROqeasvi97A
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXj++xQAKCRAGN09rynK8
-WsGJAQD1Xg/R/rVJbMv2qfXyBbtyHHhEQ2qXAfRjkVxkqAZtyAD/T4cHhO5TJnxj
-IC3Z7TjQylRcSff5VsFLv8i4Zy+YzQs=
-=wwxU
------END PGP SIGNATURE-----
-
---FTWHKiY98fexUfkq6wE34RROqeasvi97A--
+-Olof
