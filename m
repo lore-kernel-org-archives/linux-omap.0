@@ -1,46 +1,50 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: N900: Remove mmc1 "safety feature"? (was: Re: mmc0 on Nokia N900
- on Linux 5.4.18)
-Date: Mon, 10 Feb 2020 21:45:20 +0200
-Message-ID: <20200210194520.GD14939@darkstar.musicnaut.iki.fi>
-References: <5362c659-120f-5247-aaa5-7916229300bc@wizzup.org>
- <20200208190448.GA12984@amd>
- <270f27c9-afd6-171d-7dce-fe1d71dd8f9a@wizzup.org>
- <1eac0db3-17ce-8ebd-4997-8b1c282126e4@wizzup.org>
- <20200208220621.GA18161@amd>
- <d2d6d6ac-c964-ac48-1616-6f1826219385@wizzup.org>
- <op.0fpbjlbwhxa7s4@supervisor.net28>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: am437x-idk-evm: Fix incorrect OPP node names
+Date: Mon, 10 Feb 2020 15:04:23 -0600
+Message-ID: <20200210210423.22424-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fgw22-4.mail.saunalahti.fi ([62.142.5.109]:22703 "EHLO
-        fgw22-4.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727690AbgBJTpY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 10 Feb 2020 14:45:24 -0500
-Content-Disposition: inline
-In-Reply-To: <op.0fpbjlbwhxa7s4@supervisor.net28>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Arthur D." <spinal.by@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
-Hi,
+The commit 337c6c9a69af ("ARM: dts: am437x-idk-evm: Disable
+OPP50 for MPU") adjusts couple of OPP nodes defined in the
+common am4372.dtsi file, but used outdated node names. This
+results in these getting treated as new OPP nodes with missing
+properties.
 
-On Sun, Feb 09, 2020 at 06:48:47AM +0300, Arthur D. wrote:
-> I suppose the real life scenario would be:
-> 
-> 0. The OS runs on eMMC.
-> 1. The user opens his phone back cover and inserts MicroSD card.
-> 2. Kernel doesn't try to access the card until the cover is closed.
-> 
-> It seems wise to me: we don't want to damage user's data or hardware.
-> Accessing data on unstable medium can't be considered safe.
-> While the cover is open and user just inserted the microsd card everything
-> can happen - the phone can be dropped, may be unstable contact to microsd
-> while the user interacting it, etc.
+Fix this properly by using the correct node names as updated in
+commit b9cb2ba71848 ("ARM: dts: Use - instead of @ for DT OPP
+entries for TI SoCs").
 
-If the cover is open, you should also avoid writing to flash or eMMC,
-as the battery may get removed easily, and the end result can be bad.
+Reported-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Fixes: 337c6c9a69af ("ARM: dts: am437x-idk-evm: Disable OPP50 for MPU")
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am437x-idk-evm.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-A.
+diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
+index f3ced6df0c9b..9f66f96d09c9 100644
+--- a/arch/arm/boot/dts/am437x-idk-evm.dts
++++ b/arch/arm/boot/dts/am437x-idk-evm.dts
+@@ -526,11 +526,11 @@
+ 	 * Supply voltage supervisor on board will not allow opp50 so
+ 	 * disable it and set opp100 as suspend OPP.
+ 	 */
+-	opp50@300000000 {
++	opp50-300000000 {
+ 		status = "disabled";
+ 	};
+ 
+-	opp100@600000000 {
++	opp100-600000000 {
+ 		opp-suspend;
+ 	};
+ };
+-- 
+2.23.0
