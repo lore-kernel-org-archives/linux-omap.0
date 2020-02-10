@@ -1,61 +1,46 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
 Subject: Re: N900: Remove mmc1 "safety feature"? (was: Re: mmc0 on Nokia N900
  on Linux 5.4.18)
-Date: Mon, 10 Feb 2020 21:27:14 +0200
-Message-ID: <20200210192714.GC14939@darkstar.musicnaut.iki.fi>
+Date: Mon, 10 Feb 2020 21:45:20 +0200
+Message-ID: <20200210194520.GD14939@darkstar.musicnaut.iki.fi>
 References: <5362c659-120f-5247-aaa5-7916229300bc@wizzup.org>
  <20200208190448.GA12984@amd>
  <270f27c9-afd6-171d-7dce-fe1d71dd8f9a@wizzup.org>
  <1eac0db3-17ce-8ebd-4997-8b1c282126e4@wizzup.org>
  <20200208220621.GA18161@amd>
  <d2d6d6ac-c964-ac48-1616-6f1826219385@wizzup.org>
+ <op.0fpbjlbwhxa7s4@supervisor.net28>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fgw21-4.mail.saunalahti.fi ([62.142.5.108]:25977 "EHLO
-        fgw21-4.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727003AbgBJTnU (ORCPT
+Received: from fgw22-4.mail.saunalahti.fi ([62.142.5.109]:22703 "EHLO
+        fgw22-4.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727690AbgBJTpY (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 10 Feb 2020 14:43:20 -0500
+        Mon, 10 Feb 2020 14:45:24 -0500
 Content-Disposition: inline
-In-Reply-To: <d2d6d6ac-c964-ac48-1616-6f1826219385@wizzup.org>
+In-Reply-To: <op.0fpbjlbwhxa7s4@supervisor.net28>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Arthur D." <spinal.by@gmail.com>
+To: "Arthur D." <spinal.by@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
 Hi,
 
-On Sat, Feb 08, 2020 at 11:19:21PM +0100, Merlijn Wajer wrote:
-> On 08/02/2020 23:06, Pavel Machek wrote:
-> > It is very bad for debugging, agreed.
-> > 
-> > It makes sense for regular usage: when user removes back cover, system
-> > unmounts the u-SD card, so that it is ready for user to remove
-> > it. Note that we do _not_ have "remove the card safely" button in the
-> > UI; back cover serves that purpose.
-> > 
-> > That said... for Leste just keep the patch. And maybe apply that one
-> > to shutdown system when battery is low :-).
+On Sun, Feb 09, 2020 at 06:48:47AM +0300, Arthur D. wrote:
+> I suppose the real life scenario would be:
 > 
-> So how does this currently happen, the unmounting? Does the mmc1 card
-> just disappear from /dev/ without any safe unmount? I don't understand
-> how the current setup can work from a userspace point of view.
+> 0. The OS runs on eMMC.
+> 1. The user opens his phone back cover and inserts MicroSD card.
+> 2. Kernel doesn't try to access the card until the cover is closed.
 > 
-> Userspace could react on kernel events that tell it the cover is open,
-> but I assume the kernel doesn't just decide to nuke the node from /dev/,
-> so in that case the current DTS setup still doesn't make sense, right?
-> 
-> What am I missing? Could you describe how this would work in a 'real
-> life' scenario?
+> It seems wise to me: we don't want to damage user's data or hardware.
+> Accessing data on unstable medium can't be considered safe.
+> While the cover is open and user just inserted the microsd card everything
+> can happen - the phone can be dropped, may be unstable contact to microsd
+> while the user interacting it, etc.
 
-I don't think it can work with the current mainline kernel.
-
-I recall the original Nokia kernel used the GPIO for "cover switch"
-instead of card detect, and it was visible in sysfs, and this allowed
-userspace to react on cover removal.. In the mainline kernel we have
-this for older Nokia devices (770, N8x0), but not for N900. Still it
-wouldn't help much for "safe unmount" as the unmount can take quite a
-while, and user may remove the card too early.
+If the cover is open, you should also avoid writing to flash or eMMC,
+as the battery may get removed easily, and the end result can be bad.
 
 A.
