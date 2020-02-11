@@ -1,162 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ASoC: ti: Allocate dais dynamically for TDM and audio graph card
-Date: Tue, 11 Feb 2020 09:16:45 -0800
-Message-ID: <20200211171645.41990-1-tony@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/3] ARM: dts: am437x-gp/epos-evm: drop unused panel
+ timings
+Date: Tue, 11 Feb 2020 19:22:14 +0200
+Message-ID: <d7e51d54-ffb3-2792-8bdb-73fc627fd675@ti.com>
+References: <20191211165331.GC43123@atomide.com>
+ <45dae8f7-2f5e-6948-5a05-dc8a09ace1fa@ti.com>
+ <20191212203550.GB4892@pendragon.ideasonboard.com>
+ <add3d8af-6977-68e6-fb77-2fa748c4714a@ti.com>
+ <b39e52f1-3e73-5f26-6206-0956cf482631@ti.com>
+ <20200211110712.GB28355@pendragon.ideasonboard.com>
+ <3b4d10c6-7cb2-af53-3a39-31eef441bfdd@ti.com>
+ <98da360f-880b-af56-b285-4d9b39f8a342@wizzup.org>
+ <20200211160524.GE64767@atomide.com>
+ <87b1111e-af06-1e2a-8baa-c3f9a15f1874@ti.com>
+ <20200211162719.GF64767@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:54736 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727954AbgBKRQ5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 11 Feb 2020 12:16:57 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20200211162719.GF64767-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Merlijn Wajer <merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, "Arthur D ." <spinal.by@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Reichel <sre@kernel.org>
 
-We can have multiple connections on a single McBSP instance configured
-with audio graph card when using TDM (Time Division Multiplexing). Let's
-allow that by configuring dais dynamically.
+On 11/02/2020 18:27, Tony Lindgren wrote:
 
-See Documentation/devicetree/bindings/sound/audio-graph-card.txt and
-Documentation/devicetree/bindings/graph.txt for more details for
-multiple endpoints.
+>> We are still missing DSI command mode support, and moving it to the common DRM model.
+> 
+> Nope, DSI command mode support has been working just fine for
+> a while now :) And Sebastian has a WIP git tree of the common DRM
 
-I've tested this with droid4 where cpcap pmic and modem voice are both
-both wired to mcbsp3. I've also tested this on droid4 both with and
-without the pending modem audio codec driver that is waiting for n_gsm
-serdev dependencies to clear.
+Indeed... It had been going on for so long that now my mind is stuck at dsi-command-mode-not-yet-in =).
 
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Arthur D. <spinal.by@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- sound/soc/ti/omap-mcbsp-priv.h |  2 +
- sound/soc/ti/omap-mcbsp.c      | 76 ++++++++++++++++++++++++----------
- 2 files changed, 55 insertions(+), 23 deletions(-)
+> model changes for it. I don't think we have devices with DSI
+> command mode working for omapfb but not for omapdrm?
 
-diff --git a/sound/soc/ti/omap-mcbsp-priv.h b/sound/soc/ti/omap-mcbsp-priv.h
---- a/sound/soc/ti/omap-mcbsp-priv.h
-+++ b/sound/soc/ti/omap-mcbsp-priv.h
-@@ -262,6 +262,8 @@ struct omap_mcbsp {
- 	struct omap_mcbsp_platform_data *pdata;
- 	struct omap_mcbsp_st_data *st_data;
- 	struct omap_mcbsp_reg_cfg cfg_regs;
-+	struct snd_soc_dai_driver *dais;
-+	int dai_count;
- 	struct snd_dmaengine_dai_dma_data dma_data[2];
- 	unsigned int dma_req[2];
- 	int dma_op_mode;
-diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
---- a/sound/soc/ti/omap-mcbsp.c
-+++ b/sound/soc/ti/omap-mcbsp.c
-@@ -14,6 +14,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/of_graph.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
- #include <sound/pcm_params.h>
-@@ -1304,23 +1305,53 @@ static int omap_mcbsp_remove(struct snd_soc_dai *dai)
- 	return 0;
- }
- 
--static struct snd_soc_dai_driver omap_mcbsp_dai = {
--	.probe = omap_mcbsp_probe,
--	.remove = omap_mcbsp_remove,
--	.playback = {
--		.channels_min = 1,
--		.channels_max = 16,
--		.rates = OMAP_MCBSP_RATES,
--		.formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S32_LE,
--	},
--	.capture = {
--		.channels_min = 1,
--		.channels_max = 16,
--		.rates = OMAP_MCBSP_RATES,
--		.formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S32_LE,
--	},
--	.ops = &mcbsp_dai_ops,
--};
-+static int omap_mcbsp_init_dais(struct omap_mcbsp *mcbsp)
-+{
-+	struct device_node *np = mcbsp->dev->of_node;
-+	int i;
-+
-+	if (np)
-+		mcbsp->dai_count = of_graph_get_endpoint_count(np);
-+
-+	if (!mcbsp->dai_count)
-+		mcbsp->dai_count = 1;
-+
-+	mcbsp->dais = devm_kcalloc(mcbsp->dev, mcbsp->dai_count,
-+				   sizeof(*mcbsp->dais), GFP_KERNEL);
-+	if (!mcbsp->dais)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < mcbsp->dai_count; i++) {
-+		struct snd_soc_dai_driver *dai = &mcbsp->dais[i];
-+
-+		dai->name = devm_kasprintf(mcbsp->dev, GFP_KERNEL, "%s-dai%i",
-+					   dev_name(mcbsp->dev), i);
-+
-+		if (i == 0) {
-+			dai->probe = omap_mcbsp_probe;
-+			dai->remove = omap_mcbsp_remove;
-+			dai->ops = &mcbsp_dai_ops;
-+		}
-+		dai->playback.channels_min = 1;
-+		dai->playback.channels_max = 16;
-+		dai->playback.rates = OMAP_MCBSP_RATES;
-+		if (mcbsp->pdata->reg_size == 2)
-+			dai->playback.formats = SNDRV_PCM_FMTBIT_S16_LE;
-+		else
-+			dai->playback.formats = SNDRV_PCM_FMTBIT_S16_LE |
-+						SNDRV_PCM_FMTBIT_S32_LE;
-+		dai->capture.channels_min = 1;
-+		dai->capture.channels_max = 16;
-+		dai->capture.rates = OMAP_MCBSP_RATES;
-+		if (mcbsp->pdata->reg_size == 2)
-+			dai->capture.formats = SNDRV_PCM_FMTBIT_S16_LE;
-+		else
-+			dai->capture.formats = SNDRV_PCM_FMTBIT_S16_LE |
-+					       SNDRV_PCM_FMTBIT_S32_LE;
-+	}
-+
-+	return 0;
-+}
- 
- static const struct snd_soc_component_driver omap_mcbsp_component = {
- 	.name		= "omap-mcbsp",
-@@ -1409,18 +1440,17 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
- 	mcbsp->dev = &pdev->dev;
- 	platform_set_drvdata(pdev, mcbsp);
- 
--	ret = omap_mcbsp_init(pdev);
-+	ret = omap_mcbsp_init_dais(mcbsp);
- 	if (ret)
- 		return ret;
- 
--	if (mcbsp->pdata->reg_size == 2) {
--		omap_mcbsp_dai.playback.formats = SNDRV_PCM_FMTBIT_S16_LE;
--		omap_mcbsp_dai.capture.formats = SNDRV_PCM_FMTBIT_S16_LE;
--	}
-+	ret = omap_mcbsp_init(pdev);
-+	if (ret)
-+		return ret;
- 
- 	ret = devm_snd_soc_register_component(&pdev->dev,
- 					      &omap_mcbsp_component,
--					      &omap_mcbsp_dai, 1);
-+					      mcbsp->dais, mcbsp->dai_count);
- 	if (ret)
- 		return ret;
- 
+Yes, I think that is true.
+
+> What got missed for v5.6-rc1 is the LCD backlight patch though,
+> I think the only issue there is default-brightness vs more common
+> default-brightness-value usage if you have any input to that.
+
+At least for some boards a power supply is needed, and I think there was no conclusion on who should 
+enable that. It didn't seem to fit in anywhere...
+
+But need to check on the latest status. I wasn't following that work closely, as JJ was working on it.
+
+  Tomi
+
 -- 
-2.25.0
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
