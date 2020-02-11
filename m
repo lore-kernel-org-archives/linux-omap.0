@@ -1,76 +1,66 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] ARM: dts: dra7xx-clocks: Fixup IPU1 mux clock parent source
-Date: Tue, 11 Feb 2020 09:51:03 -0600
-Message-ID: <20200211155103.23973-1-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] ARM: dts: am437x-gp/epos-evm: drop unused panel
+ timings
+Date: Tue, 11 Feb 2020 08:05:24 -0800
+Message-ID: <20200211160524.GE64767@atomide.com>
+References: <20191114093950.4101-3-tomi.valkeinen@ti.com>
+ <20191202130459.GH4929@pendragon.ideasonboard.com>
+ <20191211165331.GC43123@atomide.com>
+ <45dae8f7-2f5e-6948-5a05-dc8a09ace1fa@ti.com>
+ <20191212203550.GB4892@pendragon.ideasonboard.com>
+ <add3d8af-6977-68e6-fb77-2fa748c4714a@ti.com>
+ <b39e52f1-3e73-5f26-6206-0956cf482631@ti.com>
+ <20200211110712.GB28355@pendragon.ideasonboard.com>
+ <3b4d10c6-7cb2-af53-3a39-31eef441bfdd@ti.com>
+ <98da360f-880b-af56-b285-4d9b39f8a342@wizzup.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:52454 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727838AbgBKPvT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Feb 2020 10:51:19 -0500
+Received: from muru.com ([72.249.23.125]:54650 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728102AbgBKQF2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 11 Feb 2020 11:05:28 -0500
+Content-Disposition: inline
+In-Reply-To: <98da360f-880b-af56-b285-4d9b39f8a342@wizzup.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
+To: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-The IPU1 functional clock is the output of a mux clock (represented
-by ipu1_gfclk_mux previously) and the clock source for this has been
-updated to be sourced from dpll_core_h22x2_ck in commit 39879c7d963e
-("ARM: dts: dra7xx-clocks: Source IPU1 functional clock from CORE DPLL").
-ipu1_gfclk_mux is an obsolete clock now with the clkctrl conversion,
-and this clock source parenting is lost during the new clkctrl layout
-conversion.
+* Merlijn Wajer <merlijn@wizzup.org> [200211 12:54]:
+> Hi,
+> 
+> On 11/02/2020 12:08, Tomi Valkeinen wrote:
+> > On 11/02/2020 13:07, Laurent Pinchart wrote:
+> > 
+> >>> Hopefully soon (in five years? =) we can say that omapdrm supports all
+> >>> the boards, and we can deprecate omapfb.
+> >>
+> >> I'd love to send a patch to remove omapfb, but I'll let you do the
+> >> honours :-)
+> > 
+> > Not before we add DSI support to omapdrm...
 
-Remove this stale clock and fix up the clock source for this mux
-clock using the latest equivalent clkctrl clock. This restores the
-previous logic and ensures that the IPU1 continues to run at the
-same frequency of IPU2 and independent of the ABE DPLL.
+Hmm do your mean RFBI? The DSI support we already have :)
 
-Fixes: b5f8ffbb6fad ("ARM: dts: dra7: convert to use new clkctrl layout")
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
-Hi Tony,
+> This is probably known, but for devices that would like use PowerVR SGX,
+> there sometimes is only userspace available that works with omap(l)fb,
+> and not with DRM. The Nokia N900 is such an example.
+> 
+> There might be a newer release of (closed) userspace coming for the
+> aging device(s), but as it stands, I don't think it's possible to do 3D
+> with PowerVR SGX on omapdrm currently.
+> 
+> But I might be wrong...
 
-Patch on top of 5.6-rc1. Appreciate it if you can include it for the 5.6-rc
-cycle.
+Yes SGX is a bottleneck currently for omap3 users. And I think
+RFBI is blocking n8x0 from moving to omapdrm and finally leaving
+drivers/video/fbdev/omap2 behind.
 
-regards
-Suman
+With those blockers fixed, I'd also be happy to just get rid of
+drivers/video/fbdev/omap2 as there should be no reason to
+keep using it.
 
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+Regards,
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 55cef4cac5f1..dc0a93bccbf1 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -796,16 +796,6 @@
- 		clock-div = <1>;
- 	};
- 
--	ipu1_gfclk_mux: ipu1_gfclk_mux@520 {
--		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&dpll_abe_m2x2_ck>, <&dpll_core_h22x2_ck>;
--		ti,bit-shift = <24>;
--		reg = <0x0520>;
--		assigned-clocks = <&ipu1_gfclk_mux>;
--		assigned-clock-parents = <&dpll_core_h22x2_ck>;
--	};
--
- 	dummy_ck: dummy_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
-@@ -1564,6 +1554,8 @@
- 			compatible = "ti,clkctrl";
- 			reg = <0x20 0x4>;
- 			#clock-cells = <2>;
-+			assigned-clocks = <&ipu1_clkctrl DRA7_IPU1_MMU_IPU1_CLKCTRL 24>;
-+			assigned-clock-parents = <&dpll_core_h22x2_ck>;
- 		};
- 
- 		ipu_clkctrl: ipu-clkctrl@50 {
--- 
-2.23.0
+Tony
