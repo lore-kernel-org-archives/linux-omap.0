@@ -1,366 +1,76 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv6 RESEND 01/14] dt-bindings: remoteproc: Add OMAP remoteproc bindings
-Date: Tue, 11 Feb 2020 17:33:13 +0200
-Message-ID: <20200211153313.24072-1-t-kristo@ti.com>
-References: <20200211152125.23819-2-t-kristo@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] ARM: dts: dra7xx-clocks: Fixup IPU1 mux clock parent source
+Date: Tue, 11 Feb 2020 09:51:03 -0600
+Message-ID: <20200211155103.23973-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20200211152125.23819-2-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, afd-l0cyMroinI0@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathieu.poirier-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:52454 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727838AbgBKPvT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Feb 2020 10:51:19 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+The IPU1 functional clock is the output of a mux clock (represented
+by ipu1_gfclk_mux previously) and the clock source for this has been
+updated to be sourced from dpll_core_h22x2_ck in commit 39879c7d963e
+("ARM: dts: dra7xx-clocks: Source IPU1 functional clock from CORE DPLL").
+ipu1_gfclk_mux is an obsolete clock now with the clkctrl conversion,
+and this clock source parenting is lost during the new clkctrl layout
+conversion.
 
-Add the device tree bindings document for the IPU and DSP
-remote processor devices on OMAP4+ SoCs.
+Remove this stale clock and fix up the clock source for this mux
+clock using the latest equivalent clkctrl clock. This restores the
+previous logic and ensures that the IPU1 continues to run at the
+same frequency of IPU2 and independent of the ABE DPLL.
 
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-[t-kristo-l0cyMroinI0@public.gmane.org: converted to schema]
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Fixes: b5f8ffbb6fad ("ARM: dts: dra7: convert to use new clkctrl layout")
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
-Quick resend. Missed adding Rob+DT list in CC, git is too clever to get rid of
-CC fields automatically...
+Hi Tony,
 
-v6: made memory-regions property optional
+Patch on top of 5.6-rc1. Appreciate it if you can include it for the 5.6-rc
+cycle.
 
- .../remoteproc/ti,omap-remoteproc.yaml        | 321 ++++++++++++++++++
- 1 file changed, 321 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
+regards
+Suman
 
-diff --git a/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
-new file mode 100644
-index 000000000000..6ad5de899911
---- /dev/null
-+++ b/Documentation/devicetree/bindings/remoteproc/ti,omap-remoteproc.yaml
-@@ -0,0 +1,321 @@
-+# SPDX-License-Identifier: (GPL-2.0-only or BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/remoteproc/ti,omap-remoteproc.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: OMAP4+ Remoteproc Devices
-+
-+maintainers:
-+  - Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-+
-+description:
-+  The OMAP family of SoCs usually have one or more slave processor sub-systems
-+  that are used to offload some of the processor-intensive tasks, or to manage
-+  other hardware accelerators, for achieving various system level goals.
-+
-+  The processor cores in the sub-system are usually behind an IOMMU, and may
-+  contain additional sub-modules like Internal RAM and/or ROMs, L1 and/or L2
-+  caches, an Interrupt Controller, a Cache Controller etc.
-+
-+  The OMAP SoCs usually have a DSP processor sub-system and/or an IPU processor
-+  sub-system. The DSP processor sub-system can contain any of the TI's C64x,
-+  C66x or C67x family of DSP cores as the main execution unit. The IPU processor
-+  sub-system usually contains either a Dual-Core Cortex-M3 or Dual-Core
-+  Cortex-M4 processors.
-+
-+  Each remote processor sub-system is represented as a single DT node. Each node
-+  has a number of required or optional properties that enable the OS running on
-+  the host processor (MPU) to perform the device management of the remote
-+  processor and to communicate with the remote processor. The various properties
-+  can be classified as constant or variable. The constant properties are
-+  dictated by the SoC and does not change from one board to another having the
-+  same SoC. Examples of constant properties include 'iommus', 'reg'. The
-+  variable properties are dictated by the system integration aspects such as
-+  memory on the board, or configuration used within the corresponding firmware
-+  image. Examples of variable properties include 'mboxes', 'memory-region',
-+  'timers', 'watchdog-timers' etc.
-+
-+properties:
-+  compatible:
-+    enum:
-+      - ti,omap4-dsp
-+      - ti,omap5-dsp
-+      - ti,dra7-dsp
-+      - ti,omap4-ipu
-+      - ti,omap5-ipu
-+      - ti,dra7-ipu
-+
-+  iommus:
-+    minItems: 1
-+    maxItems: 2
-+    description: |
-+      phandles to OMAP IOMMU nodes, that need to be programmed
-+      for this remote processor to access any external RAM memory or
-+      other peripheral device address spaces. This property usually
-+      has only a single phandle. Multiple phandles are used only in
-+      cases where the sub-system has different ports for different
-+      sub-modules within the processor sub-system (eg: DRA7 DSPs),
-+      and need the same programming in both the MMUs.
-+
-+  mboxes:
-+    minItems: 1
-+    maxItems: 2
-+    description: |
-+      OMAP Mailbox specifier denoting the sub-mailbox, to be used for
-+      communication with the remote processor. The specifier format is
-+      as per the bindings,
-+      Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-+      This property should match with the sub-mailbox node used in
-+      the firmware image.
-+
-+  clocks:
-+    description: |
-+      Main functional clock for the remote processor
-+
-+  resets:
-+    description: |
-+      Reset handles for the remote processor
-+
-+  firmware-name:
-+    description: |
-+      Default name of the firmware to load to the remote processor.
-+
-+# Optional properties:
-+# --------------------
-+# Some of these properties are mandatory on some SoCs, and some are optional
-+# depending on the configuration of the firmware image to be executed on the
-+# remote processor. The conditions are mentioned for each property.
-+#
-+# The following are the optional properties:
-+
-+  memory-region:
-+    $ref: /schemas/types.yaml#/definitions/phandle
-+    description: |
-+      phandle to the reserved memory node to be associated
-+      with the remoteproc device. The reserved memory node
-+      can be a CMA memory node, and should be defined as
-+      per the bindings,
-+      Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-+
-+  reg:
-+    description: |
-+      Address space for any remoteproc memories present on
-+      the SoC. Should contain an entry for each value in
-+      'reg-names'. These are mandatory for all DSP and IPU
-+      processors that have them (OMAP4/OMAP5 DSPs do not have
-+      any RAMs)
-+
-+  reg-names:
-+    description: |
-+      Required names for each of the address spaces defined in
-+      the 'reg' property. Expects the names from the following
-+      list, in the specified order, each representing the corresponding
-+      internal RAM memory region.
-+    minItems: 1
-+    maxItems: 3
-+    items:
-+      - const: l2ram
-+      - const: l1pram
-+      - const: l1dram
-+
-+  ti,bootreg:
-+    $ref: /schemas/types.yaml#/definitions/phandle-array
-+    description: |
-+      Should be a triple of the phandle to the System Control
-+      Configuration region that contains the boot address
-+      register, the register offset of the boot address
-+      register within the System Control module, and the bit
-+      shift within the register. This property is required for
-+      all the DSP instances on OMAP4, OMAP5 and DRA7xx SoCs.
-+
-+  ti,autosuspend-delay-ms:
-+    description: |
-+      Custom autosuspend delay for the remoteproc in milliseconds.
-+
-+  ti,timers:
-+    $ref: /schemas/types.yaml#/definitions/phandle-array
-+    description: |
-+      One or more phandles to OMAP DMTimer nodes, that serve
-+      as System/Tick timers for the OS running on the remote
-+      processors. This will usually be a single timer if the
-+      processor sub-system is running in SMP mode, or one per
-+      core in the processor sub-system. This can also be used
-+      to reserve specific timers to be dedicated to the
-+      remote processors.
-+
-+      This property is mandatory on remote processors requiring
-+      external tick wakeup, and to support Power Management
-+      features. The timers to be used should match with the
-+      timers used in the firmware image.
-+
-+  ti,watchdog-timers:
-+    $ref: /schemas/types.yaml#/definitions/phandle-array
-+    description: |
-+      One or more phandles to OMAP DMTimer nodes, used to
-+      serve as Watchdog timers for the processor cores. This
-+      will usually be one per executing processor core, even
-+      if the processor sub-system is running a SMP OS.
-+
-+      The timers to be used should match with the watchdog
-+      timers used in the firmware image.
-+
-+if:
-+  properties:
-+    compatible:
-+      enum:
-+        - ti,dra7-dsp
-+then:
-+  properties:
-+    reg:
-+      minItems: 3
-+      maxItems: 3
-+  required:
-+    - reg
-+    - reg-names
-+    - ti,bootreg
-+
-+else:
-+  if:
-+    properties:
-+      compatible:
-+        enum:
-+          - ti,omap4-ipu
-+          - ti,omap5-ipu
-+          - ti,dra7-ipu
-+  then:
-+    properties:
-+      reg:
-+        minItems: 1
-+        maxItems: 1
-+      ti,bootreg: false
-+    required:
-+      - reg
-+      - reg-names
-+
-+  else:
-+    properties:
-+      reg: false
-+    required:
-+      - ti,bootreg
-+
-+required:
-+  - compatible
-+  - iommus
-+  - mboxes
-+  - clocks
-+  - resets
-+  - firmware-name
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+
-+    //Example 1: OMAP4 DSP
-+
-+    /* DSP Reserved Memory node */
-+    #include <dt-bindings/clock/omap4.h>
-+    reserved-memory {
-+        #address-cells = <1>;
-+        #size-cells = <1>;
-+
-+        dsp_memory_region: dsp-memory@98000000 {
-+            compatible = "shared-dma-pool";
-+            reg = <0x98000000 0x800000>;
-+            reusable;
-+        };
-+    };
-+
-+    /* DSP node */
-+    ocp {
-+        dsp: dsp {
-+            compatible = "ti,omap4-dsp";
-+            ti,bootreg = <&scm_conf 0x304 0>;
-+            iommus = <&mmu_dsp>;
-+            mboxes = <&mailbox &mbox_dsp>;
-+            memory-region = <&dsp_memory_region>;
-+            ti,timers = <&timer5>;
-+            ti,watchdog-timers = <&timer6>;
-+            clocks = <&tesla_clkctrl OMAP4_DSP_CLKCTRL 0>;
-+            resets = <&prm_tesla 0>, <&prm_tesla 1>;
-+            firmware-name = "omap4-dsp-fw.xe64T";
-+        };
-+    };
-+
-+  - |+
-+
-+    //Example 2: OMAP5 IPU
-+
-+    /* IPU Reserved Memory node */
-+    #include <dt-bindings/clock/omap5.h>
-+    reserved-memory {
-+        #address-cells = <2>;
-+        #size-cells = <2>;
-+
-+        ipu_memory_region: ipu-memory@95800000 {
-+            compatible = "shared-dma-pool";
-+            reg = <0 0x95800000 0 0x3800000>;
-+            reusable;
-+        };
-+    };
-+
-+    /* IPU node */
-+    ocp {
-+        #address-cells = <1>;
-+        #size-cells = <1>;
-+
-+        ipu: ipu@55020000 {
-+            compatible = "ti,omap5-ipu";
-+            reg = <0x55020000 0x10000>;
-+            reg-names = "l2ram";
-+            iommus = <&mmu_ipu>;
-+            mboxes = <&mailbox &mbox_ipu>;
-+            memory-region = <&ipu_memory_region>;
-+            ti,timers = <&timer3>, <&timer4>;
-+            ti,watchdog-timers = <&timer9>, <&timer11>;
-+            clocks = <&ipu_clkctrl OMAP5_MMU_IPU_CLKCTRL 0>;
-+            resets = <&prm_core 2>;
-+            firmware-name = "omap5-ipu-fw.xem";
-+        };
-+    };
-+
-+  - |+
-+
-+    //Example 3: DRA7xx/AM57xx DSP
-+
-+    /* DSP1 Reserved Memory node */
-+    #include <dt-bindings/clock/dra7.h>
-+    reserved-memory {
-+        #address-cells = <2>;
-+        #size-cells = <2>;
-+
-+        dsp1_memory_region: dsp1-memory@99000000 {
-+            compatible = "shared-dma-pool";
-+            reg = <0x0 0x99000000 0x0 0x4000000>;
-+            reusable;
-+        };
-+    };
-+
-+    /* DSP1 node */
-+    ocp {
-+        #address-cells = <1>;
-+        #size-cells = <1>;
-+
-+        dsp1: dsp@40800000 {
-+            compatible = "ti,dra7-dsp";
-+            reg = <0x40800000 0x48000>,
-+                  <0x40e00000 0x8000>,
-+                  <0x40f00000 0x8000>;
-+            reg-names = "l2ram", "l1pram", "l1dram";
-+            ti,bootreg = <&scm_conf 0x55c 0>;
-+            iommus = <&mmu0_dsp1>, <&mmu1_dsp1>;
-+            mboxes = <&mailbox5 &mbox_dsp1_ipc3x>;
-+            memory-region = <&dsp1_memory_region>;
-+            ti,timers = <&timer5>;
-+            ti,watchdog-timers = <&timer10>;
-+            resets = <&prm_dsp1 0>;
-+            clocks = <&dsp1_clkctrl DRA7_DSP1_MMU0_DSP1_CLKCTRL 0>;
-+            firmware-name = "dra7-dsp1-fw.xe66";
-+        };
-+    };
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 55cef4cac5f1..dc0a93bccbf1 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -796,16 +796,6 @@
+ 		clock-div = <1>;
+ 	};
+ 
+-	ipu1_gfclk_mux: ipu1_gfclk_mux@520 {
+-		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&dpll_abe_m2x2_ck>, <&dpll_core_h22x2_ck>;
+-		ti,bit-shift = <24>;
+-		reg = <0x0520>;
+-		assigned-clocks = <&ipu1_gfclk_mux>;
+-		assigned-clock-parents = <&dpll_core_h22x2_ck>;
+-	};
+-
+ 	dummy_ck: dummy_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-clock";
+@@ -1564,6 +1554,8 @@
+ 			compatible = "ti,clkctrl";
+ 			reg = <0x20 0x4>;
+ 			#clock-cells = <2>;
++			assigned-clocks = <&ipu1_clkctrl DRA7_IPU1_MMU_IPU1_CLKCTRL 24>;
++			assigned-clock-parents = <&dpll_core_h22x2_ck>;
+ 		};
+ 
+ 		ipu_clkctrl: ipu-clkctrl@50 {
 -- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.23.0
