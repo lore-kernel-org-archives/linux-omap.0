@@ -1,150 +1,91 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [RFC PATCH 06/14] mtd: rawnand: ams-delta: Push inversion handling to gpiolib
-Date: Wed, 12 Feb 2020 01:39:21 +0100
-Message-ID: <20200212003929.6682-7-jmkrzyszt@gmail.com>
+Subject: [RFC PATCH 07/14] mtd: rawnand: ams-delta: Don't hardcode read/write pulse widths
+Date: Wed, 12 Feb 2020 01:39:22 +0100
+Message-ID: <20200212003929.6682-8-jmkrzyszt@gmail.com>
 References: <20200212003929.6682-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:43386 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728070AbgBLAkX (ORCPT
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:45511 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728130AbgBLAkX (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Feb 2020 19:40:23 -0500
-Received: by mail-lf1-f65.google.com with SMTP id 9so257836lfq.10
-        for <linux-omap@vger.kernel.org>; Tue, 11 Feb 2020 16:40:21 -0800 (PST)
+Received: by mail-lf1-f66.google.com with SMTP id 203so248778lfa.12
+        for <linux-omap@vger.kernel.org>; Tue, 11 Feb 2020 16:40:22 -0800 (PST)
 In-Reply-To: <20200212003929.6682-1-jmkrzyszt@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>
 Cc: Vignesh Raghavendra <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-Let platforms take care of declaring correct GPIO pin polarity so we
-can just ask a GPIO line to be asserted or deasserted and gpiolib deals
-with the rest depending on how the platform is configured.
-
-Inspired by similar changes to regulator drivers by Linus Walleij
-<linus.walleij@linaro.org>, thanks!
+Instead of forcing Amstrad Delta specific read/write pulse widths, use
+variables initialised from respective fields of chip SDR timings.
 
 Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c | 12 ++++++++----
- drivers/mtd/nand/raw/ams-delta.c      | 22 +++++++++++-----------
- 2 files changed, 19 insertions(+), 15 deletions(-)
+ drivers/mtd/nand/raw/ams-delta.c | 29 +++++++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index f4d2ef97099e..8d32894ecd2e 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -341,10 +341,14 @@ static struct gpiod_lookup_table ams_delta_nand_gpio_table = {
- 	.table = {
- 		GPIO_LOOKUP(OMAP_GPIO_LABEL, AMS_DELTA_GPIO_PIN_NAND_RB, "rdy",
- 			    0),
--		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NCE, "nce", 0),
--		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NRE, "nre", 0),
--		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NWP, "nwp", 0),
--		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NWE, "nwe", 0),
-+		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NCE, "nce",
-+			    GPIO_ACTIVE_LOW),
-+		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NRE, "nre",
-+			    GPIO_ACTIVE_LOW),
-+		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NWP, "nwp",
-+			    GPIO_ACTIVE_LOW),
-+		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_NWE, "nwe",
-+			    GPIO_ACTIVE_LOW),
- 		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_ALE, "ale", 0),
- 		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_NAND_CLE, "cle", 0),
- 		GPIO_LOOKUP_IDX(OMAP_MPUIO_LABEL, 0, "data", 0, 0),
 diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index fb96f6a3b0b3..c7aeb940accd 100644
+index c7aeb940accd..11689218d23a 100644
 --- a/drivers/mtd/nand/raw/ams-delta.c
 +++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -44,9 +44,9 @@ struct ams_delta_nand {
+@@ -40,12 +40,14 @@ struct ams_delta_nand {
+ 	struct gpio_desc	*gpiod_cle;
+ 	struct gpio_descs	*data_gpiods;
+ 	bool			data_in;
++	unsigned int		tRP;
++	unsigned int		tWP;
+ };
  
  static void ams_delta_write_commit(struct ams_delta_nand *priv)
  {
--	gpiod_set_value(priv->gpiod_nwe, 0);
--	ndelay(40);
  	gpiod_set_value(priv->gpiod_nwe, 1);
-+	ndelay(40);
-+	gpiod_set_value(priv->gpiod_nwe, 0);
+-	ndelay(40);
++	ndelay(priv->tWP);
+ 	gpiod_set_value(priv->gpiod_nwe, 0);
  }
  
- static void ams_delta_io_write(struct ams_delta_nand *priv, u8 byte)
-@@ -81,13 +81,13 @@ static u8 ams_delta_io_read(struct ams_delta_nand *priv)
- 	struct gpio_descs *data_gpiods = priv->data_gpiods;
+@@ -82,7 +84,7 @@ static u8 ams_delta_io_read(struct ams_delta_nand *priv)
  	DECLARE_BITMAP(values, BITS_PER_TYPE(res)) = { 0, };
  
--	gpiod_set_value(priv->gpiod_nre, 0);
-+	gpiod_set_value(priv->gpiod_nre, 1);
- 	ndelay(40);
+ 	gpiod_set_value(priv->gpiod_nre, 1);
+-	ndelay(40);
++	ndelay(priv->tRP);
  
  	gpiod_get_raw_array_value(data_gpiods->ndescs, data_gpiods->desc,
  				  data_gpiods->info, values);
- 
--	gpiod_set_value(priv->gpiod_nre, 1);
-+	gpiod_set_value(priv->gpiod_nre, 0);
- 
- 	res = values[0];
- 	return res;
-@@ -129,7 +129,7 @@ static void ams_delta_read_buf(struct ams_delta_nand *priv, u8 *buf, int len)
- 
- static void ams_delta_ctrl_cs(struct ams_delta_nand *priv, bool assert)
- {
--	gpiod_set_value(priv->gpiod_nce, assert ? 0 : 1);
-+	gpiod_set_value(priv->gpiod_nce, assert);
+@@ -187,8 +189,31 @@ static int ams_delta_exec_op(struct nand_chip *this,
+ 	return ret;
  }
  
- static int ams_delta_exec_op(struct nand_chip *this,
-@@ -237,28 +237,28 @@ static int ams_delta_init(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, priv);
++static int ams_delta_setup_data_interface(struct nand_chip *this, int csline,
++					  const struct nand_data_interface *cf)
++{
++	struct ams_delta_nand *priv = nand_get_controller_data(this);
++	const struct nand_sdr_timings *sdr = nand_get_sdr_timings(cf);
++	struct device *dev = &nand_to_mtd(this)->dev;
++
++	if (IS_ERR(sdr))
++		return PTR_ERR(sdr);
++
++	if (csline == NAND_DATA_IFACE_CHECK_ONLY)
++		return 0;
++
++	priv->tRP = DIV_ROUND_UP(sdr->tRP_min, 1000);
++	dev_dbg(dev, "using %u ns read pulse width\n", priv->tRP);
++
++	priv->tWP = DIV_ROUND_UP(sdr->tWP_min, 1000);
++	dev_dbg(dev, "using %u ns write pulse width\n", priv->tWP);
++
++	return 0;
++}
++
+ static const struct nand_controller_ops ams_delta_ops = {
+ 	.exec_op = ams_delta_exec_op,
++	.setup_data_interface = ams_delta_setup_data_interface,
+ };
  
- 	/* Set chip enabled but write protected */
--	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_LOW);
-+	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
- 	if (IS_ERR(priv->gpiod_nwp)) {
- 		err = PTR_ERR(priv->gpiod_nwp);
- 		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
- 		return err;
- 	}
- 
--	priv->gpiod_nce = devm_gpiod_get(&pdev->dev, "nce", GPIOD_OUT_HIGH);
-+	priv->gpiod_nce = devm_gpiod_get(&pdev->dev, "nce", GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->gpiod_nce)) {
- 		err = PTR_ERR(priv->gpiod_nce);
- 		dev_err(&pdev->dev, "NCE GPIO request failed (%d)\n", err);
- 		return err;
- 	}
- 
--	priv->gpiod_nre = devm_gpiod_get(&pdev->dev, "nre", GPIOD_OUT_HIGH);
-+	priv->gpiod_nre = devm_gpiod_get(&pdev->dev, "nre", GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->gpiod_nre)) {
- 		err = PTR_ERR(priv->gpiod_nre);
- 		dev_err(&pdev->dev, "NRE GPIO request failed (%d)\n", err);
- 		return err;
- 	}
- 
--	priv->gpiod_nwe = devm_gpiod_get(&pdev->dev, "nwe", GPIOD_OUT_HIGH);
-+	priv->gpiod_nwe = devm_gpiod_get(&pdev->dev, "nwe", GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->gpiod_nwe)) {
- 		err = PTR_ERR(priv->gpiod_nwe);
- 		dev_err(&pdev->dev, "NWE GPIO request failed (%d)\n", err);
-@@ -303,7 +303,7 @@ static int ams_delta_init(struct platform_device *pdev)
- 	 * chip detection/initialization.
- 	 */
- 	/* Release write protection */
--	gpiod_set_value(priv->gpiod_nwp, 1);
-+	gpiod_set_value(priv->gpiod_nwp, 0);
- 
- 	/* Scan to find existence of the device */
- 	err = nand_scan(this, 1);
-@@ -332,7 +332,7 @@ static int ams_delta_cleanup(struct platform_device *pdev)
- 	struct mtd_info *mtd = nand_to_mtd(&priv->nand_chip);
- 
- 	/* Apply write protection */
--	gpiod_set_value(priv->gpiod_nwp, 0);
-+	gpiod_set_value(priv->gpiod_nwp, 1);
- 
- 	/* Unregister device */
- 	nand_release(mtd_to_nand(mtd));
+ /*
 -- 
 2.24.1
