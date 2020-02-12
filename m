@@ -1,87 +1,123 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
-Subject: Re: N900: Remove mmc1 "safety feature"? (was: Re: mmc0 on Nokia N900
- on Linux 5.4.18)
-Date: Wed, 12 Feb 2020 14:02:53 +0100
-Message-ID: <8d0ecfcd-f9a7-9563-8a39-9793cfbeb893@wizzup.org>
-References: <5362c659-120f-5247-aaa5-7916229300bc@wizzup.org>
- <20200208190448.GA12984@amd>
- <270f27c9-afd6-171d-7dce-fe1d71dd8f9a@wizzup.org>
- <1eac0db3-17ce-8ebd-4997-8b1c282126e4@wizzup.org>
- <20200208220621.GA18161@amd>
- <d2d6d6ac-c964-ac48-1616-6f1826219385@wizzup.org>
- <20200210192714.GC14939@darkstar.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ASoC: ti: Allocate dais dynamically for TDM and audio
+ graph card
+Date: Wed, 12 Feb 2020 06:35:43 -0800
+Message-ID: <20200212143543.GI64767@atomide.com>
+References: <20200211171645.41990-1-tony@atomide.com>
+ <cd46c6ec-80e3-332f-4922-e58a3acbfc61@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:35656 "EHLO
-        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726728AbgBLNBr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2020 08:01:47 -0500
-In-Reply-To: <20200210192714.GC14939@darkstar.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cd46c6ec-80e3-332f-4922-e58a3acbfc61@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, "Arthur D ." <spinal.by@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Arthur D." <spinal.by@gmail.com>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF
-Content-Type: multipart/mixed; boundary="tj7PTIHMz0kSw1F5mQnlKG4GkV5IkLXXM"
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [200212 08:02]:
+> 
+> 
+> On 11/02/2020 19.16, Tony Lindgren wrote:
+> > We can have multiple connections on a single McBSP instance configured
+> > with audio graph card when using TDM (Time Division Multiplexing). Let's
+> > allow that by configuring dais dynamically.
+> 
+> It is still one DAI...
+> If you have multiple codec connected to the same I2S lines, but the
+> codecs communicate within different time slots, you still have one DAI
+> on the CPU side, but multiple codecs (codec DAIs) with different TDM slot.
 
---tj7PTIHMz0kSw1F5mQnlKG4GkV5IkLXXM
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+OK so subject should say "dodec DAIs" then I guess?
 
-Hi,
+> > See Documentation/devicetree/bindings/sound/audio-graph-card.txt and
+> > Documentation/devicetree/bindings/graph.txt for more details for
+> > multiple endpoints.
+> 
+> See the example for 'Multi DAI with DPCM' in audio-graph-card.txt
+> The PCM3168a have 2 DAIs: playback and capture, but you can have
+> multiple endpoints within a DAI.
 
-On 10/02/2020 20:27, Aaro Koskinen wrote:
+Yes this should follow the audio-graph-card.txt example. We end up with
+mcbsp3 dts node as below on droid4:
 
->>
->> So how does this currently happen, the unmounting? Does the mmc1 card
->> just disappear from /dev/ without any safe unmount? I don't understand=
+&mcbsp3 {
+        #sound-dai-cells = <0>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&mcbsp3_pins>;
+        status = "okay";
 
->> how the current setup can work from a userspace point of view.
->>
->> Userspace could react on kernel events that tell it the cover is open,=
+        ports {
+                mcbsp3_port: port@0 {
+                        #address-cells = <1>;
+                        #size-cells = <0>;
 
->> but I assume the kernel doesn't just decide to nuke the node from /dev=
-/,
->> so in that case the current DTS setup still doesn't make sense, right?=
+                        cpu_dai3: endpoint@0 {
+                                reg = <0>;
+                                dai-format = "dsp_a";
+                                frame-master = <&cpcap_audio_codec1>;
+                                bitclock-master = <&cpcap_audio_codec1>;
+                                remote-endpoint = <&cpcap_audio_codec1>;
+                        };
 
->>
->> What am I missing? Could you describe how this would work in a 'real
->> life' scenario?
->=20
-> I don't think it can work with the current mainline kernel.
->=20
-> I recall the original Nokia kernel used the GPIO for "cover switch"
-> instead of card detect, and it was visible in sysfs, and this allowed
-> userspace to react on cover removal.. In the mainline kernel we have
-> this for older Nokia devices (770, N8x0), but not for N900. Still it
-> wouldn't help much for "safe unmount" as the unmount can take quite a
-> while, and user may remove the card too early.
+                        cpu_dai_mdm: endpoint@1 {
+                                reg = <1>;
+                                dai-format = "dsp_a";
+                                frame-master = <&cpcap_audio_codec1>;
+                                bitclock-master = <&cpcap_audio_codec1>;
+                                remote-endpoint = <&mot_mdm6600_audio_codec0>;
+                        };
+                };
+        };
+};
 
-Shall I send in a patch removing this check from the device tree, then?
+That is pretty much the same as the 'Multi DAI with DPCM' example, with
+dne dai, and multiple endpoints. I think we still have just one port
+for one i2s transport on the mcbsp :)
 
-Cheers,
-Merlijn
+Does the above look as what you would expect based on the binding?
 
+> > I've tested this with droid4 where cpcap pmic and modem voice are both
+> > both wired to mcbsp3. I've also tested this on droid4 both with and
+> > without the pending modem audio codec driver that is waiting for n_gsm
+> > serdev dependencies to clear.
+> 
+> What this patch you effectively just creating dummy-dais on top of the
+> real McBSP DAI.
 
---tj7PTIHMz0kSw1F5mQnlKG4GkV5IkLXXM--
+Yes I think this is needed for snd-soc-audio-graph-card, and this allows
+configuring whatever is needed for the i2s slot. But maybe you have some
+better way of doing it in mind?
 
---PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> You also rename the DAIs, which might break ams-delta.
 
------BEGIN PGP SIGNATURE-----
+Oops, that's not good. So should we just keep the old naming if there's
+only one endpoint?
 
-iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXkP3fgAKCRAGN09rynK8
-WqgfAP0bN1WmVycWlDJT9UdXWe/IX6I5vKQaR/tD2RgHxnNIpwD/Xc7EIEfp63Hn
-OsH47u7x4D1ILg7DFgElQMDWxFM9xw8=
-=mxtC
------END PGP SIGNATURE-----
+> We still have legacy support in
+> omap-twl4030.c
+> omap3pandora.c
+> osk5912.c
+> rx51.c
+> 
+> which will break with the renamed DAI. On the other hand I think the
+> legacy support can be dropped from them.
 
---PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF--
+I'm not sure what all that would take.
+
+> I know it was discussed, but can not find the mail:
+> Can you brief again on the audio connection?
+
+Below is a link to a mailing list thread where Sebastian describes
+the audio connection:
+
+https://lkml.org/lkml/2018/3/28/881
+
+> Do you have branch with working code?
+
+Yeah I have slightly older set of the patches in my droid4-pending-v5.5
+kernel.org git branch with voice calls working.
+
+Regards,
+
+Tony
