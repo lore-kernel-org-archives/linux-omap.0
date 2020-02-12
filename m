@@ -1,84 +1,78 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: LED backlight on Droid 4 and others
-Date: Wed, 12 Feb 2020 21:16:38 +0100
-Message-ID: <20200212201638.GB20085@amd>
-References: <20200105183202.GA17784@duo.ucw.cz>
- <20200106084549.GA14821@dell>
- <20200211172900.GH64767@atomide.com>
+From: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Subject: Re: [PATCH 02/18] ARM: replace setup_irq() by request_irq()
+Date: Thu, 13 Feb 2020 00:27:16 +0100
+Message-ID: <20200213002716.99258cfd73002fdd4bbd17d9@gmail.com>
+References: <cover.1581478323.git.afzal.mohd.ma@gmail.com>
+        <da7d11b6cf808ea95e2d852a2e8cbca3fde28b6f.1581478324.git.afzal.mohd.ma@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="QKdGvSO+nmPlgiQ/"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from jabberwock.ucw.cz ([46.255.230.98]:46908 "EHLO
-        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727548AbgBLUQk (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2020 15:16:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20200211172900.GH64767@atomide.com>
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:50649 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727117AbgBLX1Y (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2020 18:27:24 -0500
+In-Reply-To: <da7d11b6cf808ea95e2d852a2e8cbca3fde28b6f.1581478324.git.afzal.mohd.ma@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Lee Jones <lee.jones@linaro.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz, agx@sigxcpu.org, daniel.thompson@linaro.org, jingoohan1@gmail.com, dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, jjhiblot@ti.com, tony@atomide.com
-
-
---QKdGvSO+nmPlgiQ/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To: afzal mohammed <afzal.mohd.ma@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Krzysztof Halasa <khalasa@piap.pl>, Russell King <linux@armlinux.org.uk>, Hartley Sweeten <hsweeten@visionengravers.com>, Lubomir Rintel <lkundrak@v3.sk>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Arnd Bergmann <arnd@arnd>
 
 Hi!
 
-> > > It would be good to get LED backlight to work in clean way for 5.6
-> > > kernel.
-> ...
-> > > [If you have an idea what else is needed, it would be welcome; it
-> > > works for me in development tree but not in tree I'd like to
-> > > upstream.]
-> > >=20
-> > > Lee, would you be willing to take "backlight: add led-backlight
-> > > driver"? Would it help if I got "leds: Add managed API to get a LED
-> > > from a device driver" and "leds: Add of_led_get() and led_put()" into
-> > > for_next tree of the LED subsystem?
-> >=20
-> > It looks like you have an open question from Tony on v10.
-> >=20
-> > Is that patch orthogonal, or are there depend{ants,encies}?
->=20
-> Uhh looks like we messed up a bit with integration. Now droid4
-> LCD backlight can no longer be enabled at all manually in v5.6-rc1
-> without the "add led-backlight driver" patch.. Should we just
-> merge it to fix it rather than start scrambling with other
-> temporary hacks?
+On Wed, 12 Feb 2020 13:32:43 +0530
+afzal mohammed <afzal.mohd.ma@gmail.com> wrote:
 
-We should just merge the "add led-backlight driver". Everything should
-be ready for it. I'm sorry if I broke something working, I was not
-aware it worked at all.
+> request_irq() is preferred over setup_irq(). Existing callers of
+> setup_irq() reached mostly via 'init_IRQ()' & 'time_init()', while
+> memory allocators are ready by 'mm_init()'.
+> 
+> Per tglx[1], setup_irq() existed in olden days when allocators were not
+> ready by the time early interrupts were initialized.
+> 
+> Hence replace setup_irq() by request_irq().
+> 
+> Seldom remove_irq() usage has been observed coupled with setup_irq(),
+> wherever that has been found, it too has been replaced by free_irq().
+> 
+> [1] https://lkml.kernel.org/r/alpine.DEB.2.20.1710191609480.1971@nanos
+> 
+> Signed-off-by: afzal mohammed <afzal.mohd.ma@gmail.com>
 
-Unfortunately, this is backlight code, not LED, so I can't just merge it.
+For the EP93xx part:
+Tested-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Acked-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
 
-> I don't care if we use "default-brightness", or if we use
-> "default-brightness-level". The binding merged says now
-> "default-brightness", so let's go with that one. That's what
-> other LED drivers are using too.
+> diff --git a/arch/arm/mach-ep93xx/timer-ep93xx.c b/arch/arm/mach-ep93xx/timer-ep93xx.c
+> index de998830f534..0335f3b93340 100644
+> --- a/arch/arm/mach-ep93xx/timer-ep93xx.c
+> +++ b/arch/arm/mach-ep93xx/timer-ep93xx.c
+> @@ -117,13 +117,6 @@ static irqreturn_t ep93xx_timer_interrupt(int irq, void *dev_id)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static struct irqaction ep93xx_timer_irq = {
+> -	.name		= "ep93xx timer",
+> -	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
+> -	.handler	= ep93xx_timer_interrupt,
+> -	.dev_id		= &ep93xx_clockevent,
+> -};
+> -
+>  void __init ep93xx_timer_init(void)
+>  {
+>  	/* Enable and register clocksource and sched_clock on timer 4 */
+> @@ -136,7 +129,10 @@ void __init ep93xx_timer_init(void)
+>  			     EP93XX_TIMER4_RATE);
+>  
+>  	/* Set up clockevent on timer 3 */
+> -	setup_irq(IRQ_EP93XX_TIMER3, &ep93xx_timer_irq);
+> +	if (request_irq(IRQ_EP93XX_TIMER3, ep93xx_timer_interrupt,
+> +			IRQF_TIMER | IRQF_IRQPOLL, "ep93xx timer",
+> +			&ep93xx_clockevent))
+> +		pr_err("request_irq() on %s failed\n", "ep93xx timer");
+>  	clockevents_config_and_register(&ep93xx_clockevent,
+>  					EP93XX_TIMER123_RATE,
+>  					1,
 
-No opinion on that.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---QKdGvSO+nmPlgiQ/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl5EXSYACgkQMOfwapXb+vICqQCfdtyPBlJKQO90lCtkFWlVhCoQ
-XaAAoILSfdQrM5bUUqiTeghX0xqVkkHp
-=vMQC
------END PGP SIGNATURE-----
-
---QKdGvSO+nmPlgiQ/--
+-- 
+Alexander Sverdlin.
