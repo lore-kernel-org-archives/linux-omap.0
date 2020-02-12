@@ -1,478 +1,131 @@
-From: afzal mohammed <afzal.mohd.ma@gmail.com>
-Subject: [PATCH 02/18] ARM: replace setup_irq() by request_irq()
-Date: Wed, 12 Feb 2020 13:32:43 +0530
-Message-ID: <da7d11b6cf808ea95e2d852a2e8cbca3fde28b6f.1581478324.git.afzal.mohd.ma@gmail.com>
-References: <cover.1581478323.git.afzal.mohd.ma@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: ti: Allocate dais dynamically for
+ TDM and audio graph card
+Date: Wed, 12 Feb 2020 10:02:01 +0200
+Message-ID: <cd46c6ec-80e3-332f-4922-e58a3acbfc61@ti.com>
+References: <20200211171645.41990-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:43815 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728268AbgBLICr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2020 03:02:47 -0500
-Content-Disposition: inline
-In-Reply-To: <cover.1581478323.git.afzal.mohd.ma@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20200211171645.41990-1-tony@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
+To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
+Cc: alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Merlijn Wajer <merlijn@wizzup.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, "Arthur D ." <spinal.by@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Krzysztof Halasa <khalasa@piap.pl>, Russell King <linux@armlinux.org.uk>, Hartley Sweeten <hsweeten@visionengravers.com>, Alexander Sverdlin <alexander.sverdlin@gmail.com>, Lubomir Rintel <lkundrak@v3.sk>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Arnd Bergmann <arnd@arndb.de>, Enrico Weigelt <info@metux.net>
 
-request_irq() is preferred over setup_irq(). Existing callers of
-setup_irq() reached mostly via 'init_IRQ()' & 'time_init()', while
-memory allocators are ready by 'mm_init()'.
-
-Per tglx[1], setup_irq() existed in olden days when allocators were not
-ready by the time early interrupts were initialized.
-
-Hence replace setup_irq() by request_irq().
-
-Seldom remove_irq() usage has been observed coupled with setup_irq(),
-wherever that has been found, it too has been replaced by free_irq().
-
-[1] https://lkml.kernel.org/r/alpine.DEB.2.20.1710191609480.1971@nanos
-
-Signed-off-by: afzal mohammed <afzal.mohd.ma@gmail.com>
----
-
-Since cc'ing cover letter to all maintainers/reviewers would be too
-many, refer for cover letter,
- https://lkml.kernel.org/r/cover.1581478323.git.afzal.mohd.ma@gmail.com
-
- arch/arm/mach-cns3xxx/core.c             | 10 +++-------
- arch/arm/mach-ebsa110/core.c             | 10 +++-------
- arch/arm/mach-ep93xx/timer-ep93xx.c      | 12 ++++--------
- arch/arm/mach-footbridge/dc21285-timer.c | 11 +++--------
- arch/arm/mach-footbridge/isa-irq.c       |  8 ++------
- arch/arm/mach-footbridge/isa-timer.c     | 11 +++--------
- arch/arm/mach-iop32x/time.c              | 12 ++++--------
- arch/arm/mach-mmp/time.c                 | 11 +++--------
- arch/arm/mach-omap1/pm.c                 | 22 +++++++++++++---------
- arch/arm/mach-omap1/time.c               | 10 +++-------
- arch/arm/mach-omap1/timer32k.c           | 10 +++-------
- arch/arm/mach-omap2/timer.c              | 11 +++--------
- arch/arm/mach-rpc/time.c                 |  8 ++------
- arch/arm/mach-spear/time.c               |  9 ++-------
- arch/arm/plat-orion/time.c               | 10 +++-------
- 15 files changed, 54 insertions(+), 111 deletions(-)
-
-diff --git a/arch/arm/mach-cns3xxx/core.c b/arch/arm/mach-cns3xxx/core.c
-index 1d61a7701c11..2e8d0062ea72 100644
---- a/arch/arm/mach-cns3xxx/core.c
-+++ b/arch/arm/mach-cns3xxx/core.c
-@@ -189,12 +189,6 @@ static irqreturn_t cns3xxx_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction cns3xxx_timer_irq = {
--	.name		= "timer",
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.handler	= cns3xxx_timer_interrupt,
--};
--
- /*
-  * Set up the clock source and clock events devices
-  */
-@@ -245,7 +239,9 @@ static void __init __cns3xxx_timer_init(unsigned int timer_irq)
- 	writel(val, cns3xxx_tmr1 + TIMER1_2_CONTROL_OFFSET);
- 
- 	/* Make irqs happen for the system timer */
--	setup_irq(timer_irq, &cns3xxx_timer_irq);
-+	if (request_irq(timer_irq, cns3xxx_timer_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "timer", NULL))
-+		pr_err("request_irq() on %s failed\n", "timer");
- 
- 	cns3xxx_clockevents_init(timer_irq);
- }
-diff --git a/arch/arm/mach-ebsa110/core.c b/arch/arm/mach-ebsa110/core.c
-index da2ff4f61d6b..cf79aa7637fc 100644
---- a/arch/arm/mach-ebsa110/core.c
-+++ b/arch/arm/mach-ebsa110/core.c
-@@ -201,12 +201,6 @@ ebsa110_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction ebsa110_timer_irq = {
--	.name		= "EBSA110 Timer Tick",
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.handler	= ebsa110_timer_interrupt,
--};
--
- /*
-  * Set up timer interrupt.
-  */
-@@ -221,7 +215,9 @@ void __init ebsa110_timer_init(void)
- 	__raw_writeb(COUNT & 0xff, PIT_T1);
- 	__raw_writeb(COUNT >> 8, PIT_T1);
- 
--	setup_irq(IRQ_EBSA110_TIMER0, &ebsa110_timer_irq);
-+	if (request_irq(IRQ_EBSA110_TIMER0, ebsa110_timer_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "EBSA110 Timer Tick", NULL))
-+		pr_err("request_irq() on %s failed\n", "EBSA110 Timer Tick");
- }
- 
- static struct plat_serial8250_port serial_platform_data[] = {
-diff --git a/arch/arm/mach-ep93xx/timer-ep93xx.c b/arch/arm/mach-ep93xx/timer-ep93xx.c
-index de998830f534..0335f3b93340 100644
---- a/arch/arm/mach-ep93xx/timer-ep93xx.c
-+++ b/arch/arm/mach-ep93xx/timer-ep93xx.c
-@@ -117,13 +117,6 @@ static irqreturn_t ep93xx_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction ep93xx_timer_irq = {
--	.name		= "ep93xx timer",
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.handler	= ep93xx_timer_interrupt,
--	.dev_id		= &ep93xx_clockevent,
--};
--
- void __init ep93xx_timer_init(void)
- {
- 	/* Enable and register clocksource and sched_clock on timer 4 */
-@@ -136,7 +129,10 @@ void __init ep93xx_timer_init(void)
- 			     EP93XX_TIMER4_RATE);
- 
- 	/* Set up clockevent on timer 3 */
--	setup_irq(IRQ_EP93XX_TIMER3, &ep93xx_timer_irq);
-+	if (request_irq(IRQ_EP93XX_TIMER3, ep93xx_timer_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "ep93xx timer",
-+			&ep93xx_clockevent))
-+		pr_err("request_irq() on %s failed\n", "ep93xx timer");
- 	clockevents_config_and_register(&ep93xx_clockevent,
- 					EP93XX_TIMER123_RATE,
- 					1,
-diff --git a/arch/arm/mach-footbridge/dc21285-timer.c b/arch/arm/mach-footbridge/dc21285-timer.c
-index f76212d2dbf1..151b8a76896f 100644
---- a/arch/arm/mach-footbridge/dc21285-timer.c
-+++ b/arch/arm/mach-footbridge/dc21285-timer.c
-@@ -101,13 +101,6 @@ static irqreturn_t timer1_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction footbridge_timer_irq = {
--	.name		= "dc21285_timer1",
--	.handler	= timer1_interrupt,
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.dev_id		= &ckevt_dc21285,
--};
--
- /*
-  * Set up timer interrupt.
-  */
-@@ -118,7 +111,9 @@ void __init footbridge_timer_init(void)
- 
- 	clocksource_register_hz(&cksrc_dc21285, rate);
- 
--	setup_irq(ce->irq, &footbridge_timer_irq);
-+	if (request_irq(ce->irq, timer1_interrupt, IRQF_TIMER | IRQF_IRQPOLL,
-+			"dc21285_timer1", &ckevt_dc21285))
-+		pr_err("request_irq() on %s failed\n", "dc21285_timer1");
- 
- 	ce->cpumask = cpumask_of(smp_processor_id());
- 	clockevents_config_and_register(ce, rate, 0x4, 0xffffff);
-diff --git a/arch/arm/mach-footbridge/isa-irq.c b/arch/arm/mach-footbridge/isa-irq.c
-index 88a553932c33..85f1c3cad83e 100644
---- a/arch/arm/mach-footbridge/isa-irq.c
-+++ b/arch/arm/mach-footbridge/isa-irq.c
-@@ -96,11 +96,6 @@ static void isa_irq_handler(struct irq_desc *desc)
- 	generic_handle_irq(isa_irq);
- }
- 
--static struct irqaction irq_cascade = {
--	.handler = no_action,
--	.name = "cascade",
--};
--
- static struct resource pic1_resource = {
- 	.name	= "pic1",
- 	.start	= 0x20,
-@@ -160,7 +155,8 @@ void __init isa_init_irq(unsigned int host_irq)
- 
- 		request_resource(&ioport_resource, &pic1_resource);
- 		request_resource(&ioport_resource, &pic2_resource);
--		setup_irq(IRQ_ISA_CASCADE, &irq_cascade);
-+		if (request_irq(IRQ_ISA_CASCADE, no_action, 0, "cascade", NULL))
-+			pr_err("request_irq() on %s failed\n", "cascade");
- 
- 		irq_set_chained_handler(host_irq, isa_irq_handler);
- 
-diff --git a/arch/arm/mach-footbridge/isa-timer.c b/arch/arm/mach-footbridge/isa-timer.c
-index 82f45591fb2c..3c1aed290fde 100644
---- a/arch/arm/mach-footbridge/isa-timer.c
-+++ b/arch/arm/mach-footbridge/isa-timer.c
-@@ -25,17 +25,12 @@ static irqreturn_t pit_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction pit_timer_irq = {
--	.name		= "pit",
--	.handler	= pit_timer_interrupt,
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.dev_id		= &i8253_clockevent,
--};
--
- void __init isa_timer_init(void)
- {
- 	clocksource_i8253_init();
- 
--	setup_irq(i8253_clockevent.irq, &pit_timer_irq);
-+	if (request_irq(i8253_clockevent.irq, pit_timer_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "pit", &i8253_clockevent))
-+		pr_err("request_irq() on %s failed\n", "pit");
- 	clockevent_i8253_init(false);
- }
-diff --git a/arch/arm/mach-iop32x/time.c b/arch/arm/mach-iop32x/time.c
-index 18a4df5c1baa..241637fcffff 100644
---- a/arch/arm/mach-iop32x/time.c
-+++ b/arch/arm/mach-iop32x/time.c
-@@ -137,13 +137,6 @@ iop_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction iop_timer_irq = {
--	.name		= "IOP Timer Tick",
--	.handler	= iop_timer_interrupt,
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.dev_id		= &iop_clockevent,
--};
--
- static unsigned long iop_tick_rate;
- unsigned long get_iop_tick_rate(void)
- {
-@@ -168,7 +161,10 @@ void __init iop_init_time(unsigned long tick_rate)
- 	 */
- 	write_tmr0(timer_ctl & ~IOP_TMR_EN);
- 	write_tisr(1);
--	setup_irq(IRQ_IOP32X_TIMER0, &iop_timer_irq);
-+	if (request_irq(IRQ_IOP32X_TIMER0, iop_timer_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "IOP Timer Tick",
-+			&iop_clockevent))
-+		pr_err("request_irq() on %s failed\n", "IOP Timer Tick");
- 	iop_clockevent.cpumask = cpumask_of(0);
- 	clockevents_config_and_register(&iop_clockevent, tick_rate,
- 					0xf, 0xfffffffe);
-diff --git a/arch/arm/mach-mmp/time.c b/arch/arm/mach-mmp/time.c
-index c65cfc1ad99b..a5f157b4b981 100644
---- a/arch/arm/mach-mmp/time.c
-+++ b/arch/arm/mach-mmp/time.c
-@@ -175,13 +175,6 @@ static void __init timer_config(void)
- 	__raw_writel(0x2, mmp_timer_base + TMR_CER);
- }
- 
--static struct irqaction timer_irq = {
--	.name		= "timer",
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.handler	= timer_interrupt,
--	.dev_id		= &ckevt,
--};
--
- void __init mmp_timer_init(int irq, unsigned long rate)
- {
- 	timer_config();
-@@ -190,7 +183,9 @@ void __init mmp_timer_init(int irq, unsigned long rate)
- 
- 	ckevt.cpumask = cpumask_of(0);
- 
--	setup_irq(irq, &timer_irq);
-+	if (request_irq(irq, timer_interrupt, IRQF_TIMER | IRQF_IRQPOLL,
-+			"timer", &ckevt))
-+		pr_err("request_irq() on %s failed\n", "timer");
- 
- 	clocksource_register_hz(&cksrc, rate);
- 	clockevents_config_and_register(&ckevt, rate, MIN_DELTA, MAX_DELTA);
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index d068958d6f8a..ae03fae5b75d 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -596,11 +596,6 @@ static irqreturn_t omap_wakeup_interrupt(int irq, void *dev)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction omap_wakeup_irq = {
--	.name		= "peripheral wakeup",
--	.handler	= omap_wakeup_interrupt
--};
--
- 
- 
- static const struct platform_suspend_ops omap_pm_ops = {
-@@ -655,10 +650,19 @@ static int __init omap_pm_init(void)
- 
- 	arm_pm_idle = omap1_pm_idle;
- 
--	if (cpu_is_omap7xx())
--		setup_irq(INT_7XX_WAKE_UP_REQ, &omap_wakeup_irq);
--	else if (cpu_is_omap16xx())
--		setup_irq(INT_1610_WAKE_UP_REQ, &omap_wakeup_irq);
-+	if (cpu_is_omap7xx()) {
-+		if (request_irq(INT_7XX_WAKE_UP_REQ, omap_wakeup_interrupt, 0,
-+				"peripheral wakeup", NULL)) {
-+			pr_err("request_irq() on %s failed\n",
-+			       "peripheral wakeup");
-+		}
-+	} else if (cpu_is_omap16xx()) {
-+		if (request_irq(INT_1610_WAKE_UP_REQ, omap_wakeup_interrupt, 0,
-+				"peripheral wakeup", NULL)) {
-+			pr_err("request_irq() on %s failed\n",
-+			       "peripheral wakeup");
-+		}
-+	}
- 
- 	/* Program new power ramp-up time
- 	 * (0 for most boards since we don't lower voltage when in deep sleep)
-diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-index 524977a31a49..da5685013e2c 100644
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -155,15 +155,11 @@ static irqreturn_t omap_mpu_timer1_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction omap_mpu_timer1_irq = {
--	.name		= "mpu_timer1",
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.handler	= omap_mpu_timer1_interrupt,
--};
--
- static __init void omap_init_mpu_timer(unsigned long rate)
- {
--	setup_irq(INT_TIMER1, &omap_mpu_timer1_irq);
-+	if (request_irq(INT_TIMER1, omap_mpu_timer1_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "mpu_timer1", NULL))
-+		pr_err("request_irq() on %s failed\n", "mpu_timer1");
- 	omap_mpu_timer_start(0, (rate / HZ) - 1, 1);
- 
- 	clockevent_mpu_timer1.cpumask = cpumask_of(0);
-diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
-index 0ae6c52a7d70..e6bf8b48b7bb 100644
---- a/arch/arm/mach-omap1/timer32k.c
-+++ b/arch/arm/mach-omap1/timer32k.c
-@@ -148,15 +148,11 @@ static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction omap_32k_timer_irq = {
--	.name		= "32KHz timer",
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.handler	= omap_32k_timer_interrupt,
--};
--
- static __init void omap_init_32k_timer(void)
- {
--	setup_irq(INT_OS_TIMER, &omap_32k_timer_irq);
-+	if (request_irq(INT_OS_TIMER, omap_32k_timer_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "32KHz timer", NULL))
-+		pr_err("request_irq() on %s failed\n", "32KHz timer");
- 
- 	clockevent_32k_timer.cpumask = cpumask_of(0);
- 	clockevents_config_and_register(&clockevent_32k_timer,
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 0d0a731cb476..e60f1fdc4a60 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -91,12 +91,6 @@ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction omap2_gp_timer_irq = {
--	.name		= "gp_timer",
--	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
--	.handler	= omap2_gp_timer_interrupt,
--};
--
- static int omap2_gp_timer_set_next_event(unsigned long cycles,
- 					 struct clock_event_device *evt)
- {
-@@ -382,8 +376,9 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- 				     &clockevent_gpt.name, OMAP_TIMER_POSTED);
- 	BUG_ON(res);
- 
--	omap2_gp_timer_irq.dev_id = &clkev;
--	setup_irq(clkev.irq, &omap2_gp_timer_irq);
-+	if (request_irq(clkev.irq, omap2_gp_timer_interrupt,
-+			IRQF_TIMER | IRQF_IRQPOLL, "gp_timer", &clkev))
-+		pr_err("request_irq() on %s failed\n", "gp_timer");
- 
- 	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
- 
-diff --git a/arch/arm/mach-rpc/time.c b/arch/arm/mach-rpc/time.c
-index 1d750152b160..14460c84aca4 100644
---- a/arch/arm/mach-rpc/time.c
-+++ b/arch/arm/mach-rpc/time.c
-@@ -85,11 +85,6 @@ ioc_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction ioc_timer_irq = {
--	.name		= "timer",
--	.handler	= ioc_timer_interrupt
--};
--
- /*
-  * Set up timer interrupt.
-  */
-@@ -97,5 +92,6 @@ void __init ioc_timer_init(void)
- {
- 	WARN_ON(clocksource_register_hz(&ioctime_clocksource, RPC_CLOCK_FREQ));
- 	ioctime_init();
--	setup_irq(IRQ_TIMER0, &ioc_timer_irq);
-+	if (request_irq(IRQ_TIMER0, ioc_timer_interrupt, 0, "timer", NULL))
-+		pr_err("request_irq() on %s failed\n", "timer");
- }
-diff --git a/arch/arm/mach-spear/time.c b/arch/arm/mach-spear/time.c
-index 289e036c9c30..92b2850eeb4f 100644
---- a/arch/arm/mach-spear/time.c
-+++ b/arch/arm/mach-spear/time.c
-@@ -181,12 +181,6 @@ static irqreturn_t spear_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction spear_timer_irq = {
--	.name = "timer",
--	.flags = IRQF_TIMER,
--	.handler = spear_timer_interrupt
--};
--
- static void __init spear_clockevent_init(int irq)
- {
- 	u32 tick_rate;
-@@ -201,7 +195,8 @@ static void __init spear_clockevent_init(int irq)
- 
- 	clockevents_config_and_register(&clkevt, tick_rate, 3, 0xfff0);
- 
--	setup_irq(irq, &spear_timer_irq);
-+	if (request_irq(irq, spear_timer_interrupt, IRQF_TIMER, "timer", NULL))
-+		pr_err("request_irq() on %s failed\n", "timer");
- }
- 
- static const struct of_device_id timer_of_match[] __initconst = {
-diff --git a/arch/arm/plat-orion/time.c b/arch/arm/plat-orion/time.c
-index ffb93db68e9c..877ded7c8b28 100644
---- a/arch/arm/plat-orion/time.c
-+++ b/arch/arm/plat-orion/time.c
-@@ -177,12 +177,6 @@ static irqreturn_t orion_timer_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct irqaction orion_timer_irq = {
--	.name		= "orion_tick",
--	.flags		= IRQF_TIMER,
--	.handler	= orion_timer_interrupt
--};
--
- void __init
- orion_time_set_base(void __iomem *_timer_base)
- {
-@@ -236,7 +230,9 @@ orion_time_init(void __iomem *_bridge_base, u32 _bridge_timer1_clr_mask,
- 	/*
- 	 * Setup clockevent timer (interrupt-driven).
- 	 */
--	setup_irq(irq, &orion_timer_irq);
-+	if (request_irq(irq, orion_timer_interrupt, IRQF_TIMER, "orion_tick",
-+			NULL))
-+		pr_err("request_irq() on %s failed\n", "orion_tick");
- 	orion_clkevt.cpumask = cpumask_of(0);
- 	clockevents_config_and_register(&orion_clkevt, tclk, 1, 0xfffffffe);
- }
--- 
-2.24.1
+CgpPbiAxMS8wMi8yMDIwIDE5LjE2LCBUb255IExpbmRncmVuIHdyb3RlOgo+IFdlIGNhbiBoYXZl
+IG11bHRpcGxlIGNvbm5lY3Rpb25zIG9uIGEgc2luZ2xlIE1jQlNQIGluc3RhbmNlIGNvbmZpZ3Vy
+ZWQKPiB3aXRoIGF1ZGlvIGdyYXBoIGNhcmQgd2hlbiB1c2luZyBURE0gKFRpbWUgRGl2aXNpb24g
+TXVsdGlwbGV4aW5nKS4gTGV0J3MKPiBhbGxvdyB0aGF0IGJ5IGNvbmZpZ3VyaW5nIGRhaXMgZHlu
+YW1pY2FsbHkuCgpJdCBpcyBzdGlsbCBvbmUgREFJLi4uCklmIHlvdSBoYXZlIG11bHRpcGxlIGNv
+ZGVjIGNvbm5lY3RlZCB0byB0aGUgc2FtZSBJMlMgbGluZXMsIGJ1dCB0aGUKY29kZWNzIGNvbW11
+bmljYXRlIHdpdGhpbiBkaWZmZXJlbnQgdGltZSBzbG90cywgeW91IHN0aWxsIGhhdmUgb25lIERB
+SQpvbiB0aGUgQ1BVIHNpZGUsIGJ1dCBtdWx0aXBsZSBjb2RlY3MgKGNvZGVjIERBSXMpIHdpdGgg
+ZGlmZmVyZW50IFRETSBzbG90LgoKPiBTZWUgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRp
+bmdzL3NvdW5kL2F1ZGlvLWdyYXBoLWNhcmQudHh0IGFuZAo+IERvY3VtZW50YXRpb24vZGV2aWNl
+dHJlZS9iaW5kaW5ncy9ncmFwaC50eHQgZm9yIG1vcmUgZGV0YWlscyBmb3IKPiBtdWx0aXBsZSBl
+bmRwb2ludHMuCgpTZWUgdGhlIGV4YW1wbGUgZm9yICdNdWx0aSBEQUkgd2l0aCBEUENNJyBpbiBh
+dWRpby1ncmFwaC1jYXJkLnR4dApUaGUgUENNMzE2OGEgaGF2ZSAyIERBSXM6IHBsYXliYWNrIGFu
+ZCBjYXB0dXJlLCBidXQgeW91IGNhbiBoYXZlCm11bHRpcGxlIGVuZHBvaW50cyB3aXRoaW4gYSBE
+QUkuCgo+IEkndmUgdGVzdGVkIHRoaXMgd2l0aCBkcm9pZDQgd2hlcmUgY3BjYXAgcG1pYyBhbmQg
+bW9kZW0gdm9pY2UgYXJlIGJvdGgKPiBib3RoIHdpcmVkIHRvIG1jYnNwMy4gSSd2ZSBhbHNvIHRl
+c3RlZCB0aGlzIG9uIGRyb2lkNCBib3RoIHdpdGggYW5kCj4gd2l0aG91dCB0aGUgcGVuZGluZyBt
+b2RlbSBhdWRpbyBjb2RlYyBkcml2ZXIgdGhhdCBpcyB3YWl0aW5nIGZvciBuX2dzbQo+IHNlcmRl
+diBkZXBlbmRlbmNpZXMgdG8gY2xlYXIuCgpXaGF0IHRoaXMgcGF0Y2ggeW91IGVmZmVjdGl2ZWx5
+IGp1c3QgY3JlYXRpbmcgZHVtbXktZGFpcyBvbiB0b3Agb2YgdGhlCnJlYWwgTWNCU1AgREFJLgpZ
+b3UgYWxzbyByZW5hbWUgdGhlIERBSXMsIHdoaWNoIG1pZ2h0IGJyZWFrIGFtcy1kZWx0YS4KCldl
+IHN0aWxsIGhhdmUgbGVnYWN5IHN1cHBvcnQgaW4Kb21hcC10d2w0MDMwLmMKb21hcDNwYW5kb3Jh
+LmMKb3NrNTkxMi5jCnJ4NTEuYwoKd2hpY2ggd2lsbCBicmVhayB3aXRoIHRoZSByZW5hbWVkIERB
+SS4gT24gdGhlIG90aGVyIGhhbmQgSSB0aGluayB0aGUKbGVnYWN5IHN1cHBvcnQgY2FuIGJlIGRy
+b3BwZWQgZnJvbSB0aGVtLgoKSSBrbm93IGl0IHdhcyBkaXNjdXNzZWQsIGJ1dCBjYW4gbm90IGZp
+bmQgdGhlIG1haWw6CkNhbiB5b3UgYnJpZWYgYWdhaW4gb24gdGhlIGF1ZGlvIGNvbm5lY3Rpb24/
+CkRvIHlvdSBoYXZlIGJyYW5jaCB3aXRoIHdvcmtpbmcgY29kZT8KCi0gUMOpdGVyCgo+IENjOiBB
+YXJvIEtvc2tpbmVuIDxhYXJvLmtvc2tpbmVuQGlraS5maT4KPiBDYzogQXJ0aHVyIEQuIDxzcGlu
+YWwuYnlAZ21haWwuY29tPgo+IENjOiBKYXJra28gTmlrdWxhIDxqYXJra28ubmlrdWxhQGJpdG1l
+ci5jb20+Cj4gQ2M6IE1lcmxpam4gV2FqZXIgPG1lcmxpam5Ad2l6enVwLm9yZz4KPiBDYzogUGF2
+ZWwgTWFjaGVrIDxwYXZlbEB1Y3cuY3o+Cj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
+bHVzaUB0aS5jb20+Cj4gQ2M6IFNlYmFzdGlhbiBSZWljaGVsIDxzcmVAa2VybmVsLm9yZz4KPiBT
+aWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgo+IC0tLQo+ICBz
+b3VuZC9zb2MvdGkvb21hcC1tY2JzcC1wcml2LmggfCAgMiArCj4gIHNvdW5kL3NvYy90aS9vbWFw
+LW1jYnNwLmMgICAgICB8IDc2ICsrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0KPiAg
+MiBmaWxlcyBjaGFuZ2VkLCA1NSBpbnNlcnRpb25zKCspLCAyMyBkZWxldGlvbnMoLSkKPiAKPiBk
+aWZmIC0tZ2l0IGEvc291bmQvc29jL3RpL29tYXAtbWNic3AtcHJpdi5oIGIvc291bmQvc29jL3Rp
+L29tYXAtbWNic3AtcHJpdi5oCj4gLS0tIGEvc291bmQvc29jL3RpL29tYXAtbWNic3AtcHJpdi5o
+Cj4gKysrIGIvc291bmQvc29jL3RpL29tYXAtbWNic3AtcHJpdi5oCj4gQEAgLTI2Miw2ICsyNjIs
+OCBAQCBzdHJ1Y3Qgb21hcF9tY2JzcCB7Cj4gIAlzdHJ1Y3Qgb21hcF9tY2JzcF9wbGF0Zm9ybV9k
+YXRhICpwZGF0YTsKPiAgCXN0cnVjdCBvbWFwX21jYnNwX3N0X2RhdGEgKnN0X2RhdGE7Cj4gIAlz
+dHJ1Y3Qgb21hcF9tY2JzcF9yZWdfY2ZnIGNmZ19yZWdzOwo+ICsJc3RydWN0IHNuZF9zb2NfZGFp
+X2RyaXZlciAqZGFpczsKPiArCWludCBkYWlfY291bnQ7Cj4gIAlzdHJ1Y3Qgc25kX2RtYWVuZ2lu
+ZV9kYWlfZG1hX2RhdGEgZG1hX2RhdGFbMl07Cj4gIAl1bnNpZ25lZCBpbnQgZG1hX3JlcVsyXTsK
+PiAgCWludCBkbWFfb3BfbW9kZTsKPiBkaWZmIC0tZ2l0IGEvc291bmQvc29jL3RpL29tYXAtbWNi
+c3AuYyBiL3NvdW5kL3NvYy90aS9vbWFwLW1jYnNwLmMKPiAtLS0gYS9zb3VuZC9zb2MvdGkvb21h
+cC1tY2JzcC5jCj4gKysrIGIvc291bmQvc29jL3RpL29tYXAtbWNic3AuYwo+IEBAIC0xNCw2ICsx
+NCw3IEBACj4gICNpbmNsdWRlIDxsaW51eC9wbV9ydW50aW1lLmg+Cj4gICNpbmNsdWRlIDxsaW51
+eC9vZi5oPgo+ICAjaW5jbHVkZSA8bGludXgvb2ZfZGV2aWNlLmg+Cj4gKyNpbmNsdWRlIDxsaW51
+eC9vZl9ncmFwaC5oPgo+ICAjaW5jbHVkZSA8c291bmQvY29yZS5oPgo+ICAjaW5jbHVkZSA8c291
+bmQvcGNtLmg+Cj4gICNpbmNsdWRlIDxzb3VuZC9wY21fcGFyYW1zLmg+Cj4gQEAgLTEzMDQsMjMg
+KzEzMDUsNTMgQEAgc3RhdGljIGludCBvbWFwX21jYnNwX3JlbW92ZShzdHJ1Y3Qgc25kX3NvY19k
+YWkgKmRhaSkKPiAgCXJldHVybiAwOwo+ICB9Cj4gIAo+IC1zdGF0aWMgc3RydWN0IHNuZF9zb2Nf
+ZGFpX2RyaXZlciBvbWFwX21jYnNwX2RhaSA9IHsKPiAtCS5wcm9iZSA9IG9tYXBfbWNic3BfcHJv
+YmUsCj4gLQkucmVtb3ZlID0gb21hcF9tY2JzcF9yZW1vdmUsCj4gLQkucGxheWJhY2sgPSB7Cj4g
+LQkJLmNoYW5uZWxzX21pbiA9IDEsCj4gLQkJLmNoYW5uZWxzX21heCA9IDE2LAo+IC0JCS5yYXRl
+cyA9IE9NQVBfTUNCU1BfUkFURVMsCj4gLQkJLmZvcm1hdHMgPSBTTkRSVl9QQ01fRk1UQklUX1Mx
+Nl9MRSB8IFNORFJWX1BDTV9GTVRCSVRfUzMyX0xFLAo+IC0JfSwKPiAtCS5jYXB0dXJlID0gewo+
+IC0JCS5jaGFubmVsc19taW4gPSAxLAo+IC0JCS5jaGFubmVsc19tYXggPSAxNiwKPiAtCQkucmF0
+ZXMgPSBPTUFQX01DQlNQX1JBVEVTLAo+IC0JCS5mb3JtYXRzID0gU05EUlZfUENNX0ZNVEJJVF9T
+MTZfTEUgfCBTTkRSVl9QQ01fRk1UQklUX1MzMl9MRSwKPiAtCX0sCj4gLQkub3BzID0gJm1jYnNw
+X2RhaV9vcHMsCj4gLX07Cj4gK3N0YXRpYyBpbnQgb21hcF9tY2JzcF9pbml0X2RhaXMoc3RydWN0
+IG9tYXBfbWNic3AgKm1jYnNwKQo+ICt7Cj4gKwlzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wID0gbWNi
+c3AtPmRldi0+b2Zfbm9kZTsKPiArCWludCBpOwo+ICsKPiArCWlmIChucCkKPiArCQltY2JzcC0+
+ZGFpX2NvdW50ID0gb2ZfZ3JhcGhfZ2V0X2VuZHBvaW50X2NvdW50KG5wKTsKPiArCj4gKwlpZiAo
+IW1jYnNwLT5kYWlfY291bnQpCj4gKwkJbWNic3AtPmRhaV9jb3VudCA9IDE7Cj4gKwo+ICsJbWNi
+c3AtPmRhaXMgPSBkZXZtX2tjYWxsb2MobWNic3AtPmRldiwgbWNic3AtPmRhaV9jb3VudCwKPiAr
+CQkJCSAgIHNpemVvZigqbWNic3AtPmRhaXMpLCBHRlBfS0VSTkVMKTsKPiArCWlmICghbWNic3At
+PmRhaXMpCj4gKwkJcmV0dXJuIC1FTk9NRU07Cj4gKwo+ICsJZm9yIChpID0gMDsgaSA8IG1jYnNw
+LT5kYWlfY291bnQ7IGkrKykgewo+ICsJCXN0cnVjdCBzbmRfc29jX2RhaV9kcml2ZXIgKmRhaSA9
+ICZtY2JzcC0+ZGFpc1tpXTsKPiArCj4gKwkJZGFpLT5uYW1lID0gZGV2bV9rYXNwcmludGYobWNi
+c3AtPmRldiwgR0ZQX0tFUk5FTCwgIiVzLWRhaSVpIiwKPiArCQkJCQkgICBkZXZfbmFtZShtY2Jz
+cC0+ZGV2KSwgaSk7Cj4gKwo+ICsJCWlmIChpID09IDApIHsKPiArCQkJZGFpLT5wcm9iZSA9IG9t
+YXBfbWNic3BfcHJvYmU7Cj4gKwkJCWRhaS0+cmVtb3ZlID0gb21hcF9tY2JzcF9yZW1vdmU7Cj4g
+KwkJCWRhaS0+b3BzID0gJm1jYnNwX2RhaV9vcHM7Cj4gKwkJfQo+ICsJCWRhaS0+cGxheWJhY2su
+Y2hhbm5lbHNfbWluID0gMTsKPiArCQlkYWktPnBsYXliYWNrLmNoYW5uZWxzX21heCA9IDE2Owo+
+ICsJCWRhaS0+cGxheWJhY2sucmF0ZXMgPSBPTUFQX01DQlNQX1JBVEVTOwo+ICsJCWlmIChtY2Jz
+cC0+cGRhdGEtPnJlZ19zaXplID09IDIpCj4gKwkJCWRhaS0+cGxheWJhY2suZm9ybWF0cyA9IFNO
+RFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+ICsJCWVsc2UKPiArCQkJZGFpLT5wbGF5YmFjay5mb3Jt
+YXRzID0gU05EUlZfUENNX0ZNVEJJVF9TMTZfTEUgfAo+ICsJCQkJCQlTTkRSVl9QQ01fRk1UQklU
+X1MzMl9MRTsKPiArCQlkYWktPmNhcHR1cmUuY2hhbm5lbHNfbWluID0gMTsKPiArCQlkYWktPmNh
+cHR1cmUuY2hhbm5lbHNfbWF4ID0gMTY7Cj4gKwkJZGFpLT5jYXB0dXJlLnJhdGVzID0gT01BUF9N
+Q0JTUF9SQVRFUzsKPiArCQlpZiAobWNic3AtPnBkYXRhLT5yZWdfc2l6ZSA9PSAyKQo+ICsJCQlk
+YWktPmNhcHR1cmUuZm9ybWF0cyA9IFNORFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+ICsJCWVsc2UK
+PiArCQkJZGFpLT5jYXB0dXJlLmZvcm1hdHMgPSBTTkRSVl9QQ01fRk1UQklUX1MxNl9MRSB8Cj4g
+KwkJCQkJICAgICAgIFNORFJWX1BDTV9GTVRCSVRfUzMyX0xFOwo+ICsJfQo+ICsKPiArCXJldHVy
+biAwOwo+ICt9Cj4gIAo+ICBzdGF0aWMgY29uc3Qgc3RydWN0IHNuZF9zb2NfY29tcG9uZW50X2Ry
+aXZlciBvbWFwX21jYnNwX2NvbXBvbmVudCA9IHsKPiAgCS5uYW1lCQk9ICJvbWFwLW1jYnNwIiwK
+PiBAQCAtMTQwOSwxOCArMTQ0MCwxNyBAQCBzdGF0aWMgaW50IGFzb2NfbWNic3BfcHJvYmUoc3Ry
+dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgCW1jYnNwLT5kZXYgPSAmcGRldi0+ZGV2Owo+
+ICAJcGxhdGZvcm1fc2V0X2RydmRhdGEocGRldiwgbWNic3ApOwo+ICAKPiAtCXJldCA9IG9tYXBf
+bWNic3BfaW5pdChwZGV2KTsKPiArCXJldCA9IG9tYXBfbWNic3BfaW5pdF9kYWlzKG1jYnNwKTsK
+PiAgCWlmIChyZXQpCj4gIAkJcmV0dXJuIHJldDsKPiAgCj4gLQlpZiAobWNic3AtPnBkYXRhLT5y
+ZWdfc2l6ZSA9PSAyKSB7Cj4gLQkJb21hcF9tY2JzcF9kYWkucGxheWJhY2suZm9ybWF0cyA9IFNO
+RFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+IC0JCW9tYXBfbWNic3BfZGFpLmNhcHR1cmUuZm9ybWF0
+cyA9IFNORFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+IC0JfQo+ICsJcmV0ID0gb21hcF9tY2JzcF9p
+bml0KHBkZXYpOwo+ICsJaWYgKHJldCkKPiArCQlyZXR1cm4gcmV0Owo+ICAKPiAgCXJldCA9IGRl
+dm1fc25kX3NvY19yZWdpc3Rlcl9jb21wb25lbnQoJnBkZXYtPmRldiwKPiAgCQkJCQkgICAgICAm
+b21hcF9tY2JzcF9jb21wb25lbnQsCj4gLQkJCQkJICAgICAgJm9tYXBfbWNic3BfZGFpLCAxKTsK
+PiArCQkJCQkgICAgICBtY2JzcC0+ZGFpcywgbWNic3AtPmRhaV9jb3VudCk7Cj4gIAlpZiAocmV0
+KQo+ICAJCXJldHVybiByZXQ7Cj4gIAo+IAoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwg
+UG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAw
+NjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFs
+c2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwczovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
