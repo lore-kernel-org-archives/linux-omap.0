@@ -1,131 +1,71 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: ti: Allocate dais dynamically for
- TDM and audio graph card
-Date: Wed, 12 Feb 2020 10:02:01 +0200
-Message-ID: <cd46c6ec-80e3-332f-4922-e58a3acbfc61@ti.com>
-References: <20200211171645.41990-1-tony@atomide.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 02/18] ARM: replace setup_irq() by request_irq()
+Date: Wed, 12 Feb 2020 13:40:44 +0530
+Message-ID: <20200212081044.lsw6to5kmzl22ywc@vireshk-i7>
+References: <cover.1581478323.git.afzal.mohd.ma@gmail.com>
+ <da7d11b6cf808ea95e2d852a2e8cbca3fde28b6f.1581478324.git.afzal.mohd.ma@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20200211171645.41990-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Merlijn Wajer <merlijn@wizzup.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, "Arthur D ." <spinal.by@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:45246 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728287AbgBLIKr (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2020 03:10:47 -0500
+Received: by mail-pl1-f193.google.com with SMTP id b22so651534pls.12
+        for <linux-omap@vger.kernel.org>; Wed, 12 Feb 2020 00:10:47 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <da7d11b6cf808ea95e2d852a2e8cbca3fde28b6f.1581478324.git.afzal.mohd.ma@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: afzal mohammed <afzal.mohd.ma@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Krzysztof Halasa <khalasa@piap.pl>, Russell King <linux@armlinux.org.uk>, Hartley Sweeten <hsweeten@visionengravers.com>, Alexander Sverdlin <alexander.sverdlin@gmail.com>, Lubomir Rintel <lkundrak@v3.sk>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@bootlin.com>, Allison Randal <allison@lohutok.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thomas
 
-CgpPbiAxMS8wMi8yMDIwIDE5LjE2LCBUb255IExpbmRncmVuIHdyb3RlOgo+IFdlIGNhbiBoYXZl
-IG11bHRpcGxlIGNvbm5lY3Rpb25zIG9uIGEgc2luZ2xlIE1jQlNQIGluc3RhbmNlIGNvbmZpZ3Vy
-ZWQKPiB3aXRoIGF1ZGlvIGdyYXBoIGNhcmQgd2hlbiB1c2luZyBURE0gKFRpbWUgRGl2aXNpb24g
-TXVsdGlwbGV4aW5nKS4gTGV0J3MKPiBhbGxvdyB0aGF0IGJ5IGNvbmZpZ3VyaW5nIGRhaXMgZHlu
-YW1pY2FsbHkuCgpJdCBpcyBzdGlsbCBvbmUgREFJLi4uCklmIHlvdSBoYXZlIG11bHRpcGxlIGNv
-ZGVjIGNvbm5lY3RlZCB0byB0aGUgc2FtZSBJMlMgbGluZXMsIGJ1dCB0aGUKY29kZWNzIGNvbW11
-bmljYXRlIHdpdGhpbiBkaWZmZXJlbnQgdGltZSBzbG90cywgeW91IHN0aWxsIGhhdmUgb25lIERB
-SQpvbiB0aGUgQ1BVIHNpZGUsIGJ1dCBtdWx0aXBsZSBjb2RlY3MgKGNvZGVjIERBSXMpIHdpdGgg
-ZGlmZmVyZW50IFRETSBzbG90LgoKPiBTZWUgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRp
-bmdzL3NvdW5kL2F1ZGlvLWdyYXBoLWNhcmQudHh0IGFuZAo+IERvY3VtZW50YXRpb24vZGV2aWNl
-dHJlZS9iaW5kaW5ncy9ncmFwaC50eHQgZm9yIG1vcmUgZGV0YWlscyBmb3IKPiBtdWx0aXBsZSBl
-bmRwb2ludHMuCgpTZWUgdGhlIGV4YW1wbGUgZm9yICdNdWx0aSBEQUkgd2l0aCBEUENNJyBpbiBh
-dWRpby1ncmFwaC1jYXJkLnR4dApUaGUgUENNMzE2OGEgaGF2ZSAyIERBSXM6IHBsYXliYWNrIGFu
-ZCBjYXB0dXJlLCBidXQgeW91IGNhbiBoYXZlCm11bHRpcGxlIGVuZHBvaW50cyB3aXRoaW4gYSBE
-QUkuCgo+IEkndmUgdGVzdGVkIHRoaXMgd2l0aCBkcm9pZDQgd2hlcmUgY3BjYXAgcG1pYyBhbmQg
-bW9kZW0gdm9pY2UgYXJlIGJvdGgKPiBib3RoIHdpcmVkIHRvIG1jYnNwMy4gSSd2ZSBhbHNvIHRl
-c3RlZCB0aGlzIG9uIGRyb2lkNCBib3RoIHdpdGggYW5kCj4gd2l0aG91dCB0aGUgcGVuZGluZyBt
-b2RlbSBhdWRpbyBjb2RlYyBkcml2ZXIgdGhhdCBpcyB3YWl0aW5nIGZvciBuX2dzbQo+IHNlcmRl
-diBkZXBlbmRlbmNpZXMgdG8gY2xlYXIuCgpXaGF0IHRoaXMgcGF0Y2ggeW91IGVmZmVjdGl2ZWx5
-IGp1c3QgY3JlYXRpbmcgZHVtbXktZGFpcyBvbiB0b3Agb2YgdGhlCnJlYWwgTWNCU1AgREFJLgpZ
-b3UgYWxzbyByZW5hbWUgdGhlIERBSXMsIHdoaWNoIG1pZ2h0IGJyZWFrIGFtcy1kZWx0YS4KCldl
-IHN0aWxsIGhhdmUgbGVnYWN5IHN1cHBvcnQgaW4Kb21hcC10d2w0MDMwLmMKb21hcDNwYW5kb3Jh
-LmMKb3NrNTkxMi5jCnJ4NTEuYwoKd2hpY2ggd2lsbCBicmVhayB3aXRoIHRoZSByZW5hbWVkIERB
-SS4gT24gdGhlIG90aGVyIGhhbmQgSSB0aGluayB0aGUKbGVnYWN5IHN1cHBvcnQgY2FuIGJlIGRy
-b3BwZWQgZnJvbSB0aGVtLgoKSSBrbm93IGl0IHdhcyBkaXNjdXNzZWQsIGJ1dCBjYW4gbm90IGZp
-bmQgdGhlIG1haWw6CkNhbiB5b3UgYnJpZWYgYWdhaW4gb24gdGhlIGF1ZGlvIGNvbm5lY3Rpb24/
-CkRvIHlvdSBoYXZlIGJyYW5jaCB3aXRoIHdvcmtpbmcgY29kZT8KCi0gUMOpdGVyCgo+IENjOiBB
-YXJvIEtvc2tpbmVuIDxhYXJvLmtvc2tpbmVuQGlraS5maT4KPiBDYzogQXJ0aHVyIEQuIDxzcGlu
-YWwuYnlAZ21haWwuY29tPgo+IENjOiBKYXJra28gTmlrdWxhIDxqYXJra28ubmlrdWxhQGJpdG1l
-ci5jb20+Cj4gQ2M6IE1lcmxpam4gV2FqZXIgPG1lcmxpam5Ad2l6enVwLm9yZz4KPiBDYzogUGF2
-ZWwgTWFjaGVrIDxwYXZlbEB1Y3cuY3o+Cj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
-bHVzaUB0aS5jb20+Cj4gQ2M6IFNlYmFzdGlhbiBSZWljaGVsIDxzcmVAa2VybmVsLm9yZz4KPiBT
-aWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgo+IC0tLQo+ICBz
-b3VuZC9zb2MvdGkvb21hcC1tY2JzcC1wcml2LmggfCAgMiArCj4gIHNvdW5kL3NvYy90aS9vbWFw
-LW1jYnNwLmMgICAgICB8IDc2ICsrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0KPiAg
-MiBmaWxlcyBjaGFuZ2VkLCA1NSBpbnNlcnRpb25zKCspLCAyMyBkZWxldGlvbnMoLSkKPiAKPiBk
-aWZmIC0tZ2l0IGEvc291bmQvc29jL3RpL29tYXAtbWNic3AtcHJpdi5oIGIvc291bmQvc29jL3Rp
-L29tYXAtbWNic3AtcHJpdi5oCj4gLS0tIGEvc291bmQvc29jL3RpL29tYXAtbWNic3AtcHJpdi5o
-Cj4gKysrIGIvc291bmQvc29jL3RpL29tYXAtbWNic3AtcHJpdi5oCj4gQEAgLTI2Miw2ICsyNjIs
-OCBAQCBzdHJ1Y3Qgb21hcF9tY2JzcCB7Cj4gIAlzdHJ1Y3Qgb21hcF9tY2JzcF9wbGF0Zm9ybV9k
-YXRhICpwZGF0YTsKPiAgCXN0cnVjdCBvbWFwX21jYnNwX3N0X2RhdGEgKnN0X2RhdGE7Cj4gIAlz
-dHJ1Y3Qgb21hcF9tY2JzcF9yZWdfY2ZnIGNmZ19yZWdzOwo+ICsJc3RydWN0IHNuZF9zb2NfZGFp
-X2RyaXZlciAqZGFpczsKPiArCWludCBkYWlfY291bnQ7Cj4gIAlzdHJ1Y3Qgc25kX2RtYWVuZ2lu
-ZV9kYWlfZG1hX2RhdGEgZG1hX2RhdGFbMl07Cj4gIAl1bnNpZ25lZCBpbnQgZG1hX3JlcVsyXTsK
-PiAgCWludCBkbWFfb3BfbW9kZTsKPiBkaWZmIC0tZ2l0IGEvc291bmQvc29jL3RpL29tYXAtbWNi
-c3AuYyBiL3NvdW5kL3NvYy90aS9vbWFwLW1jYnNwLmMKPiAtLS0gYS9zb3VuZC9zb2MvdGkvb21h
-cC1tY2JzcC5jCj4gKysrIGIvc291bmQvc29jL3RpL29tYXAtbWNic3AuYwo+IEBAIC0xNCw2ICsx
-NCw3IEBACj4gICNpbmNsdWRlIDxsaW51eC9wbV9ydW50aW1lLmg+Cj4gICNpbmNsdWRlIDxsaW51
-eC9vZi5oPgo+ICAjaW5jbHVkZSA8bGludXgvb2ZfZGV2aWNlLmg+Cj4gKyNpbmNsdWRlIDxsaW51
-eC9vZl9ncmFwaC5oPgo+ICAjaW5jbHVkZSA8c291bmQvY29yZS5oPgo+ICAjaW5jbHVkZSA8c291
-bmQvcGNtLmg+Cj4gICNpbmNsdWRlIDxzb3VuZC9wY21fcGFyYW1zLmg+Cj4gQEAgLTEzMDQsMjMg
-KzEzMDUsNTMgQEAgc3RhdGljIGludCBvbWFwX21jYnNwX3JlbW92ZShzdHJ1Y3Qgc25kX3NvY19k
-YWkgKmRhaSkKPiAgCXJldHVybiAwOwo+ICB9Cj4gIAo+IC1zdGF0aWMgc3RydWN0IHNuZF9zb2Nf
-ZGFpX2RyaXZlciBvbWFwX21jYnNwX2RhaSA9IHsKPiAtCS5wcm9iZSA9IG9tYXBfbWNic3BfcHJv
-YmUsCj4gLQkucmVtb3ZlID0gb21hcF9tY2JzcF9yZW1vdmUsCj4gLQkucGxheWJhY2sgPSB7Cj4g
-LQkJLmNoYW5uZWxzX21pbiA9IDEsCj4gLQkJLmNoYW5uZWxzX21heCA9IDE2LAo+IC0JCS5yYXRl
-cyA9IE9NQVBfTUNCU1BfUkFURVMsCj4gLQkJLmZvcm1hdHMgPSBTTkRSVl9QQ01fRk1UQklUX1Mx
-Nl9MRSB8IFNORFJWX1BDTV9GTVRCSVRfUzMyX0xFLAo+IC0JfSwKPiAtCS5jYXB0dXJlID0gewo+
-IC0JCS5jaGFubmVsc19taW4gPSAxLAo+IC0JCS5jaGFubmVsc19tYXggPSAxNiwKPiAtCQkucmF0
-ZXMgPSBPTUFQX01DQlNQX1JBVEVTLAo+IC0JCS5mb3JtYXRzID0gU05EUlZfUENNX0ZNVEJJVF9T
-MTZfTEUgfCBTTkRSVl9QQ01fRk1UQklUX1MzMl9MRSwKPiAtCX0sCj4gLQkub3BzID0gJm1jYnNw
-X2RhaV9vcHMsCj4gLX07Cj4gK3N0YXRpYyBpbnQgb21hcF9tY2JzcF9pbml0X2RhaXMoc3RydWN0
-IG9tYXBfbWNic3AgKm1jYnNwKQo+ICt7Cj4gKwlzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wID0gbWNi
-c3AtPmRldi0+b2Zfbm9kZTsKPiArCWludCBpOwo+ICsKPiArCWlmIChucCkKPiArCQltY2JzcC0+
-ZGFpX2NvdW50ID0gb2ZfZ3JhcGhfZ2V0X2VuZHBvaW50X2NvdW50KG5wKTsKPiArCj4gKwlpZiAo
-IW1jYnNwLT5kYWlfY291bnQpCj4gKwkJbWNic3AtPmRhaV9jb3VudCA9IDE7Cj4gKwo+ICsJbWNi
-c3AtPmRhaXMgPSBkZXZtX2tjYWxsb2MobWNic3AtPmRldiwgbWNic3AtPmRhaV9jb3VudCwKPiAr
-CQkJCSAgIHNpemVvZigqbWNic3AtPmRhaXMpLCBHRlBfS0VSTkVMKTsKPiArCWlmICghbWNic3At
-PmRhaXMpCj4gKwkJcmV0dXJuIC1FTk9NRU07Cj4gKwo+ICsJZm9yIChpID0gMDsgaSA8IG1jYnNw
-LT5kYWlfY291bnQ7IGkrKykgewo+ICsJCXN0cnVjdCBzbmRfc29jX2RhaV9kcml2ZXIgKmRhaSA9
-ICZtY2JzcC0+ZGFpc1tpXTsKPiArCj4gKwkJZGFpLT5uYW1lID0gZGV2bV9rYXNwcmludGYobWNi
-c3AtPmRldiwgR0ZQX0tFUk5FTCwgIiVzLWRhaSVpIiwKPiArCQkJCQkgICBkZXZfbmFtZShtY2Jz
-cC0+ZGV2KSwgaSk7Cj4gKwo+ICsJCWlmIChpID09IDApIHsKPiArCQkJZGFpLT5wcm9iZSA9IG9t
-YXBfbWNic3BfcHJvYmU7Cj4gKwkJCWRhaS0+cmVtb3ZlID0gb21hcF9tY2JzcF9yZW1vdmU7Cj4g
-KwkJCWRhaS0+b3BzID0gJm1jYnNwX2RhaV9vcHM7Cj4gKwkJfQo+ICsJCWRhaS0+cGxheWJhY2su
-Y2hhbm5lbHNfbWluID0gMTsKPiArCQlkYWktPnBsYXliYWNrLmNoYW5uZWxzX21heCA9IDE2Owo+
-ICsJCWRhaS0+cGxheWJhY2sucmF0ZXMgPSBPTUFQX01DQlNQX1JBVEVTOwo+ICsJCWlmIChtY2Jz
-cC0+cGRhdGEtPnJlZ19zaXplID09IDIpCj4gKwkJCWRhaS0+cGxheWJhY2suZm9ybWF0cyA9IFNO
-RFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+ICsJCWVsc2UKPiArCQkJZGFpLT5wbGF5YmFjay5mb3Jt
-YXRzID0gU05EUlZfUENNX0ZNVEJJVF9TMTZfTEUgfAo+ICsJCQkJCQlTTkRSVl9QQ01fRk1UQklU
-X1MzMl9MRTsKPiArCQlkYWktPmNhcHR1cmUuY2hhbm5lbHNfbWluID0gMTsKPiArCQlkYWktPmNh
-cHR1cmUuY2hhbm5lbHNfbWF4ID0gMTY7Cj4gKwkJZGFpLT5jYXB0dXJlLnJhdGVzID0gT01BUF9N
-Q0JTUF9SQVRFUzsKPiArCQlpZiAobWNic3AtPnBkYXRhLT5yZWdfc2l6ZSA9PSAyKQo+ICsJCQlk
-YWktPmNhcHR1cmUuZm9ybWF0cyA9IFNORFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+ICsJCWVsc2UK
-PiArCQkJZGFpLT5jYXB0dXJlLmZvcm1hdHMgPSBTTkRSVl9QQ01fRk1UQklUX1MxNl9MRSB8Cj4g
-KwkJCQkJICAgICAgIFNORFJWX1BDTV9GTVRCSVRfUzMyX0xFOwo+ICsJfQo+ICsKPiArCXJldHVy
-biAwOwo+ICt9Cj4gIAo+ICBzdGF0aWMgY29uc3Qgc3RydWN0IHNuZF9zb2NfY29tcG9uZW50X2Ry
-aXZlciBvbWFwX21jYnNwX2NvbXBvbmVudCA9IHsKPiAgCS5uYW1lCQk9ICJvbWFwLW1jYnNwIiwK
-PiBAQCAtMTQwOSwxOCArMTQ0MCwxNyBAQCBzdGF0aWMgaW50IGFzb2NfbWNic3BfcHJvYmUoc3Ry
-dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgCW1jYnNwLT5kZXYgPSAmcGRldi0+ZGV2Owo+
-ICAJcGxhdGZvcm1fc2V0X2RydmRhdGEocGRldiwgbWNic3ApOwo+ICAKPiAtCXJldCA9IG9tYXBf
-bWNic3BfaW5pdChwZGV2KTsKPiArCXJldCA9IG9tYXBfbWNic3BfaW5pdF9kYWlzKG1jYnNwKTsK
-PiAgCWlmIChyZXQpCj4gIAkJcmV0dXJuIHJldDsKPiAgCj4gLQlpZiAobWNic3AtPnBkYXRhLT5y
-ZWdfc2l6ZSA9PSAyKSB7Cj4gLQkJb21hcF9tY2JzcF9kYWkucGxheWJhY2suZm9ybWF0cyA9IFNO
-RFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+IC0JCW9tYXBfbWNic3BfZGFpLmNhcHR1cmUuZm9ybWF0
-cyA9IFNORFJWX1BDTV9GTVRCSVRfUzE2X0xFOwo+IC0JfQo+ICsJcmV0ID0gb21hcF9tY2JzcF9p
-bml0KHBkZXYpOwo+ICsJaWYgKHJldCkKPiArCQlyZXR1cm4gcmV0Owo+ICAKPiAgCXJldCA9IGRl
-dm1fc25kX3NvY19yZWdpc3Rlcl9jb21wb25lbnQoJnBkZXYtPmRldiwKPiAgCQkJCQkgICAgICAm
-b21hcF9tY2JzcF9jb21wb25lbnQsCj4gLQkJCQkJICAgICAgJm9tYXBfbWNic3BfZGFpLCAxKTsK
-PiArCQkJCQkgICAgICBtY2JzcC0+ZGFpcywgbWNic3AtPmRhaV9jb3VudCk7Cj4gIAlpZiAocmV0
-KQo+ICAJCXJldHVybiByZXQ7Cj4gIAo+IAoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwg
-UG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAw
-NjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFs
-c2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwczovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+On 12-02-20, 13:32, afzal mohammed wrote:
+> request_irq() is preferred over setup_irq(). Existing callers of
+> setup_irq() reached mostly via 'init_IRQ()' & 'time_init()', while
+> memory allocators are ready by 'mm_init()'.
+> 
+> Per tglx[1], setup_irq() existed in olden days when allocators were not
+> ready by the time early interrupts were initialized.
+> 
+> Hence replace setup_irq() by request_irq().
+> 
+> Seldom remove_irq() usage has been observed coupled with setup_irq(),
+> wherever that has been found, it too has been replaced by free_irq().
+> 
+> [1] https://lkml.kernel.org/r/alpine.DEB.2.20.1710191609480.1971@nanos
+> 
+> Signed-off-by: afzal mohammed <afzal.mohd.ma@gmail.com>
+> ---
+>  arch/arm/mach-spear/time.c               |  9 ++-------
+>
+> diff --git a/arch/arm/mach-spear/time.c b/arch/arm/mach-spear/time.c
+> index 289e036c9c30..92b2850eeb4f 100644
+> --- a/arch/arm/mach-spear/time.c
+> +++ b/arch/arm/mach-spear/time.c
+> @@ -181,12 +181,6 @@ static irqreturn_t spear_timer_interrupt(int irq, void *dev_id)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static struct irqaction spear_timer_irq = {
+> -	.name = "timer",
+> -	.flags = IRQF_TIMER,
+> -	.handler = spear_timer_interrupt
+> -};
+> -
+>  static void __init spear_clockevent_init(int irq)
+>  {
+>  	u32 tick_rate;
+> @@ -201,7 +195,8 @@ static void __init spear_clockevent_init(int irq)
+>  
+>  	clockevents_config_and_register(&clkevt, tick_rate, 3, 0xfff0);
+>  
+> -	setup_irq(irq, &spear_timer_irq);
+> +	if (request_irq(irq, spear_timer_interrupt, IRQF_TIMER, "timer", NULL))
+> +		pr_err("request_irq() on %s failed\n", "timer");
+>  }
+
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+
+-- 
+viresh
