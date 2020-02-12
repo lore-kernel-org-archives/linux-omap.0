@@ -1,221 +1,87 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: cpcap: Implement set_tdm_slot for voice call
- support
-Date: Wed, 12 Feb 2020 11:17:32 +0200
-Message-ID: <ae2b7d9e-d05e-54ac-4f18-27cc8c4e81a0@ti.com>
-References: <20200211181005.54008-1-tony@atomide.com>
+From: Merlijn Wajer <merlijn@wizzup.org>
+Subject: Re: N900: Remove mmc1 "safety feature"? (was: Re: mmc0 on Nokia N900
+ on Linux 5.4.18)
+Date: Wed, 12 Feb 2020 14:02:53 +0100
+Message-ID: <8d0ecfcd-f9a7-9563-8a39-9793cfbeb893@wizzup.org>
+References: <5362c659-120f-5247-aaa5-7916229300bc@wizzup.org>
+ <20200208190448.GA12984@amd>
+ <270f27c9-afd6-171d-7dce-fe1d71dd8f9a@wizzup.org>
+ <1eac0db3-17ce-8ebd-4997-8b1c282126e4@wizzup.org>
+ <20200208220621.GA18161@amd>
+ <d2d6d6ac-c964-ac48-1616-6f1826219385@wizzup.org>
+ <20200210192714.GC14939@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:46900 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728150AbgBLJSV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2020 04:18:21 -0500
-In-Reply-To: <20200211181005.54008-1-tony@atomide.com>
-Content-Language: en-US
+Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:35656 "EHLO
+        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726728AbgBLNBr (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2020 08:01:47 -0500
+In-Reply-To: <20200210192714.GC14939@darkstar.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Arthur D ." <spinal.by@gmail.com>, Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Arthur D." <spinal.by@gmail.com>
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF
+Content-Type: multipart/mixed; boundary="tj7PTIHMz0kSw1F5mQnlKG4GkV5IkLXXM"
+
+--tj7PTIHMz0kSw1F5mQnlKG4GkV5IkLXXM
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On 10/02/2020 20:27, Aaro Koskinen wrote:
+
+>>
+>> So how does this currently happen, the unmounting? Does the mmc1 card
+>> just disappear from /dev/ without any safe unmount? I don't understand=
+
+>> how the current setup can work from a userspace point of view.
+>>
+>> Userspace could react on kernel events that tell it the cover is open,=
+
+>> but I assume the kernel doesn't just decide to nuke the node from /dev=
+/,
+>> so in that case the current DTS setup still doesn't make sense, right?=
+
+>>
+>> What am I missing? Could you describe how this would work in a 'real
+>> life' scenario?
+>=20
+> I don't think it can work with the current mainline kernel.
+>=20
+> I recall the original Nokia kernel used the GPIO for "cover switch"
+> instead of card detect, and it was visible in sysfs, and this allowed
+> userspace to react on cover removal.. In the mainline kernel we have
+> this for older Nokia devices (770, N8x0), but not for N900. Still it
+> wouldn't help much for "safe unmount" as the unmount can take quite a
+> while, and user may remove the card too early.
+
+Shall I send in a patch removing this check from the device tree, then?
+
+Cheers,
+Merlijn
 
 
+--tj7PTIHMz0kSw1F5mQnlKG4GkV5IkLXXM--
 
-On 11/02/2020 20.10, Tony Lindgren wrote:
-> For using cpcap for voice calls, we need to route audio directly from
-> the modem to cpcap for TDM (Time Division Multiplexing). The voice call
-> is direct data between the modem and cpcap with no CPU involvment. In
-> this mode, the cpcap related audio mixer controls work for the speaker
-> selection and volume though.
-> 
-> To do this, we need to implement standard snd_soc_dai_set_tdm_slot()
-> for cpcap. Then the modem codec driver can use snd_soc_dai_set_sysclk(),
-> snd_soc_dai_set_fmt(), and snd_soc_dai_set_tdm_slot() to configure a
-> voice call.
-> 
-> Let's add cpcap_voice_set_tdm_slot() for this, and cpcap_voice_call()
-> helper to configure the additional registers needed for voice call.
-> 
-> Let's also clear CPCAP_REG_VAUDIOC on init in case we have the bit for
-> CPCAP_BIT_VAUDIO_MODE0 set on init.
-> 
-> Cc: Arthur D. <spinal.by@gmail.com>
-> Cc: Merlijn Wajer <merlijn@wizzup.org>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  sound/soc/codecs/cpcap.c | 123 +++++++++++++++++++++++++++++++++++++++
->  1 file changed, 123 insertions(+)
-> 
-> diff --git a/sound/soc/codecs/cpcap.c b/sound/soc/codecs/cpcap.c
-> --- a/sound/soc/codecs/cpcap.c
-> +++ b/sound/soc/codecs/cpcap.c
-> @@ -16,6 +16,14 @@
->  #include <sound/soc.h>
->  #include <sound/tlv.h>
->  
-> +/* Register 512 CPCAP_REG_VAUDIOC --- Audio Regulator and Bias Voltage */
-> +#define CPCAP_BIT_AUDIO_LOW_PWR           6
-> +#define CPCAP_BIT_AUD_LOWPWR_SPEED        5
-> +#define CPCAP_BIT_VAUDIOPRISTBY           4
-> +#define CPCAP_BIT_VAUDIO_MODE1            2
-> +#define CPCAP_BIT_VAUDIO_MODE0            1
-> +#define CPCAP_BIT_V_AUDIO_EN              0
-> +
->  /* Register 513 CPCAP_REG_CC     --- CODEC */
->  #define CPCAP_BIT_CDC_CLK2                15
->  #define CPCAP_BIT_CDC_CLK1                14
-> @@ -221,6 +229,7 @@ struct cpcap_reg_info {
->  };
->  
->  static const struct cpcap_reg_info cpcap_default_regs[] = {
-> +	{ CPCAP_REG_VAUDIOC, 0x003F, 0x0000 },
->  	{ CPCAP_REG_CC, 0xFFFF, 0x0000 },
->  	{ CPCAP_REG_CC, 0xFFFF, 0x0000 },
->  	{ CPCAP_REG_CDI, 0xBFFF, 0x0000 },
-> @@ -1370,6 +1379,119 @@ static int cpcap_voice_set_dai_fmt(struct snd_soc_dai *codec_dai,
->  	return 0;
->  }
->  
-> +/*
-> + * Configure codec for voice call if requested.
-> + *
-> + * We can configure most with snd_soc_dai_set_sysclk(), snd_soc_dai_set_fmt()
-> + * and snd_soc_dai_set_tdm_slot(). This function configures the rest of the
-> + * cpcap related hardware as CPU is not involved in the voice call.
-> + */
-> +static int cpcap_voice_call(struct cpcap_audio *cpcap, struct snd_soc_dai *dai,
-> +			    bool voice_call)
-> +{
-> +	int mask, err;
-> +
-> +	/* Modem to codec VAUDIO_MODE1 */
-> +	mask = BIT(CPCAP_BIT_VAUDIO_MODE1);
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_VAUDIOC,
-> +				 mask, voice_call ? mask : 0);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Clear MIC1_MUX for call */
-> +	mask = BIT(CPCAP_BIT_MIC1_MUX);
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_TXI,
-> +				 mask, voice_call ? 0 : mask);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Set MIC2_MUX for call */
-> +	mask = BIT(CPCAP_BIT_MB_ON1L) | BIT(CPCAP_BIT_MB_ON1R) |
-> +		BIT(CPCAP_BIT_MIC2_MUX) | BIT(CPCAP_BIT_MIC2_PGA_EN);
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_TXI,
-> +				 mask, voice_call ? mask : 0);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Enable LDSP for call */
-> +	mask = BIT(CPCAP_BIT_A2_LDSP_L_EN) | BIT(CPCAP_BIT_A2_LDSP_R_EN);
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_RXOA,
-> +				 mask, voice_call ? mask : 0);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Enable CPCAP_BIT_PGA_CDC_EN for call */
-> +	mask = BIT(CPCAP_BIT_PGA_CDC_EN);
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_RXCOA,
-> +				 mask, voice_call ? mask : 0);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Unmute voice for call */
-> +	if (dai) {
-> +		err = snd_soc_dai_digital_mute(dai, !voice_call,
-> +					       SNDRV_PCM_STREAM_PLAYBACK);
-> +		if (err)
-> +			return err;
-> +	}
-> +
-> +	/* Set modem to codec mic CDC and HPF for call */
-> +	mask = BIT(CPCAP_BIT_MIC2_CDC_EN) | BIT(CPCAP_BIT_CDC_EN_RX) |
-> +	       BIT(CPCAP_BIT_AUDOHPF_1) | BIT(CPCAP_BIT_AUDOHPF_0) |
-> +	       BIT(CPCAP_BIT_AUDIHPF_1) | BIT(CPCAP_BIT_AUDIHPF_0);
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_CC,
-> +				 mask, voice_call ? mask : 0);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Enable modem to codec CDC for call*/
-> +	mask = BIT(CPCAP_BIT_CDC_CLK_EN);
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_CDI,
-> +				 mask, voice_call ? mask : 0);
-> +
-> +	return err;
-> +}
-> +
-> +static int cpcap_voice_set_tdm_slot(struct snd_soc_dai *dai,
-> +				    unsigned int tx_mask, unsigned int rx_mask,
-> +				    int slots, int slot_width)
-> +{
-> +	struct snd_soc_component *component = dai->component;
-> +	struct cpcap_audio *cpcap = snd_soc_component_get_drvdata(component);
-> +	int err, ts_mask, mask;
-> +	bool voice_call;
-> +
-> +	/*
-> +	 * Primitive test for voice call, probably needs more checks
-> +	 * later on for 16-bit calls detected, Bluetooth headset etc.
-> +	 */
-> +	if (tx_mask == 0 && rx_mask == 1 && slot_width == 8)
-> +		voice_call = true;
-> +	else
-> +		voice_call = false;
+--PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-You only have voice call if only rx slot0 is in use?
-If you record mono on the voice DAI, then rx_mask is also 1, no?
+-----BEGIN PGP SIGNATURE-----
 
-> +
-> +	ts_mask = 0x7 << CPCAP_BIT_MIC2_TIMESLOT0;
-> +	ts_mask |= 0x7 << CPCAP_BIT_MIC1_RX_TIMESLOT0;
-> +
-> +	mask = (tx_mask & 0x7) << CPCAP_BIT_MIC2_TIMESLOT0;
-> +	mask |= (rx_mask & 0x7) << CPCAP_BIT_MIC1_RX_TIMESLOT0;
-> +
-> +	err = regmap_update_bits(cpcap->regmap, CPCAP_REG_CDI,
-> +				 ts_mask, mask);
-> +	if (err)
-> +		return err;
-> +
-> +	err = cpcap_set_samprate(cpcap, CPCAP_DAI_VOICE, slot_width * 1000);
-> +	if (err)
-> +		return err;
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXkP3fgAKCRAGN09rynK8
+WqgfAP0bN1WmVycWlDJT9UdXWe/IX6I5vKQaR/tD2RgHxnNIpwD/Xc7EIEfp63Hn
+OsH47u7x4D1ILg7DFgElQMDWxFM9xw8=
+=mxtC
+-----END PGP SIGNATURE-----
 
-You will also set the sampling rate for voice in
-cpcap_voice_hw_params(), but that is for normal playback/capture, right?
-
-> +
-> +	err = cpcap_voice_call(cpcap, dai, voice_call);
-> +	if (err)
-> +		return err;
-
-It feels like that these should be done via DAPM with codec to codec route?
-
-> +
-> +	return 0;
-> +}
-> +
->  static int cpcap_voice_set_mute(struct snd_soc_dai *dai, int mute)
->  {
->  	struct snd_soc_component *component = dai->component;
-> @@ -1391,6 +1513,7 @@ static const struct snd_soc_dai_ops cpcap_dai_voice_ops = {
->  	.hw_params	= cpcap_voice_hw_params,
->  	.set_sysclk	= cpcap_voice_set_dai_sysclk,
->  	.set_fmt	= cpcap_voice_set_dai_fmt,
-> +	.set_tdm_slot	= cpcap_voice_set_tdm_slot,
->  	.digital_mute	= cpcap_voice_set_mute,
->  };
->  
-> 
-
-- Péter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--PdQqh9EYD6JFCTHmHDJgejyoUTdPq8lQF--
