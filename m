@@ -1,70 +1,178 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] mfd: omap-usb-tll: Replace zero-length array with
- flexible-array member
-Date: Wed, 12 Feb 2020 17:56:42 -0600
-Message-ID: <20200212235642.GA19206@embeddedor.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([50.116.127.1]:24100 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729256AbgBMARA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 12 Feb 2020 19:17:00 -0500
-Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id 32FF67279C
-        for <linux-omap@vger.kernel.org>; Wed, 12 Feb 2020 17:56:46 -0600 (CST)
-Content-Disposition: inline
+Return-Path: <SRS0=XYAA=4B=vger.kernel.org=linux-omap-owner@kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37E80C352A3
+	for <linux-omap@archiver.kernel.org>; Thu, 13 Feb 2020 05:36:05 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id 05044206DB
+	for <linux-omap@archiver.kernel.org>; Thu, 13 Feb 2020 05:36:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="tELsaSdz"
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S1726098AbgBMFgE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 13 Feb 2020 00:36:04 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:56280 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726087AbgBMFgE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2020 00:36:04 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01D5ZPhp070488;
+        Wed, 12 Feb 2020 23:35:25 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1581572125;
+        bh=R8BtIqX9wdHmKDQa8Ygxjd+tmtMlRwRolDE5ahGByNw=;
+        h=From:To:CC:Subject:Date;
+        b=tELsaSdzuKv1Y+xcJah9+tLHyVKuleoxnmA6W8/OT68C+vcE9klFY8JCUcIJafRiT
+         o9HfnT0HEMb8Y1BmwjuBIZ0PSPyH2e9Bh81WcPLcmOhV+TzZHB4UlH0dFmwBvqJKfB
+         Ry7dWFU8mmXyGjaJer23bpXtEmQgOff0ZgIGVSAA=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01D5ZPWT029583
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 12 Feb 2020 23:35:25 -0600
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Wed, 12
+ Feb 2020 23:35:25 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
+ Frontend Transport; Wed, 12 Feb 2020 23:35:25 -0600
+Received: from legion.dal.design.ti.com (legion.dal.design.ti.com [128.247.22.53])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01D5ZPGP029755;
+        Wed, 12 Feb 2020 23:35:25 -0600
+Received: from localhost (irmo.dhcp.ti.com [128.247.58.153])
+        by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id 01D5ZO308765;
+        Wed, 12 Feb 2020 23:35:24 -0600 (CST)
+From:   Suman Anna <s-anna@ti.com>
+To:     Tony Lindgren <tony@atomide.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+CC:     <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Keerthy <j-keerthy@ti.com>,
+        Ladislav Michl <ladis@linux-mips.org>,
+        Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH] clocksource: timer-ti-dm: Drop bogus omap_dm_timer_of_set_source()
+Date:   Wed, 12 Feb 2020 23:35:04 -0600
+Message-ID: <20200213053504.22638-1-s-anna@ti.com>
+X-Mailer: git-send-email 2.23.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Precedence: bulk
+List-ID: <linux-omap.vger.kernel.org>
+X-Mailing-List: linux-omap@vger.kernel.org
 
-The current codebase makes use of the zero-length array language
-extension to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+The function omap_dm_timer_of_set_source() was originally added in
+commit 31a7448f4fa8a ("ARM: OMAP: dmtimer: Add clock source from DT"),
+and is designed to set a clock source from DT using the clocks property
+of a timer node. This design choice is okay for clk provider nodes but
+otherwise is a bad design as typically the clocks property is used to
+specify the functional clocks for a device, and not its parents.
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
+The timer nodes now all define a timer functional clock after the
+conversion to ti-sysc and the new clkctrl layout, and this results
+in an attempt to set the same functional clock as its parent when a
+consumer driver attempts to acquire any of these timers in the
+omap_dm_timer_prepare() function. This was masked and worked around
+in commit 983a5a43ec25 ("clocksource: timer-ti-dm: Fix pwm dmtimer
+usage of fck reparenting"). Fix all of this by simply dropping the
+entire function.
 
-By making use of the mechanism above, we will get a compiler warning
-in case the flexible array does not occur last in the structure, which
-will help us prevent some kind of undefined behavior bugs from being
-inadvertently introduced[3] to the codebase from now on.
+Any DT configuration of clock sources should be achieved using
+assigned-clocks and assigned-clock-parents properties provided
+by the Common Clock Framework.
 
-Also, notice that, dynamic memory allocations won't be affected by
-this change:
-
-"Flexible array members have incomplete type, and so the sizeof operator
-may not be applied. As a quirk of the original implementation of
-zero-length arrays, sizeof evaluates to zero."[1]
-
-This issue was found with the help of Coccinelle.
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Neil Armstrong <narmstrong@baylibre.com>
+Cc: H. Nikolaus Schaller <hns@goldelico.com>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/mfd/omap-usb-tll.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Tony,
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 265f5e350e1c..1cf259a48966 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -99,7 +99,7 @@
- struct usbtll_omap {
- 	void __iomem	*base;
- 	int		nch;		/* num. of channels */
--	struct clk	*ch_clk[0];	/* must be the last member */
-+	struct clk	*ch_clk[];	/* must be the last member */
- };
+Do you have the history of why the 32 KHz source is set as parent during
+prepare? One of the current side-affects of this patch is that now instead
+of bailing out, the 32 KHz source is set, and consumers will still need
+to select their appropriate parent. Dropping that call should actually
+allow us to select the parents in the consumer nodes in dts files using
+the assigned-clocks and assigned-clock-parents properties. I prefer to
+drop it if you do not foresee any issues. For now, I do not anticipate
+any issues with omap-pwm-dmtimer with this patch.
+
+regards
+Suman
+
+ drivers/clocksource/timer-ti-dm.c | 33 +------------------------------
+ 1 file changed, 1 insertion(+), 32 deletions(-)
+
+diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
+index 269a994d6a99..d8637a60a7eb 100644
+--- a/drivers/clocksource/timer-ti-dm.c
++++ b/drivers/clocksource/timer-ti-dm.c
+@@ -138,35 +138,6 @@ static int omap_dm_timer_reset(struct omap_dm_timer *timer)
+ 	return 0;
+ }
  
- /*-------------------------------------------------------------------------*/
+-static int omap_dm_timer_of_set_source(struct omap_dm_timer *timer)
+-{
+-	int ret;
+-	struct clk *parent;
+-
+-	/*
+-	 * FIXME: OMAP1 devices do not use the clock framework for dmtimers so
+-	 * do not call clk_get() for these devices.
+-	 */
+-	if (!timer->fclk)
+-		return -ENODEV;
+-
+-	parent = clk_get(&timer->pdev->dev, NULL);
+-	if (IS_ERR(parent))
+-		return -ENODEV;
+-
+-	/* Bail out if both clocks point to fck */
+-	if (clk_is_match(parent, timer->fclk))
+-		return 0;
+-
+-	ret = clk_set_parent(timer->fclk, parent);
+-	if (ret < 0)
+-		pr_err("%s: failed to set parent\n", __func__);
+-
+-	clk_put(parent);
+-
+-	return ret;
+-}
+-
+ static int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ {
+ 	int ret;
+@@ -276,9 +247,7 @@ static int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+ 	__omap_dm_timer_enable_posted(timer);
+ 	omap_dm_timer_disable(timer);
+ 
+-	rc = omap_dm_timer_of_set_source(timer);
+-	if (rc == -ENODEV)
+-		return omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
++	rc = omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+ 
+ 	return rc;
+ }
 -- 
 2.23.0
+
