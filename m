@@ -2,94 +2,233 @@ Return-Path: <SRS0=+U9p=4C=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB21EC3B199
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 13:01:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E90BC2BA83
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 13:04:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 744A32168B
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 13:01:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=wizzup.org header.i=@wizzup.org header.b="J+8f2YqS"
+	by mail.kernel.org (Postfix) with ESMTP id 09D0C222C4
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 13:04:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581685473;
+	bh=Whpmh17W3kSxzCbioGOu19PQoaptQmnJO000zV6cl/s=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=upKlfWxwDvu7lWhUHtejfM/qIvxcj+9sgCTzGMpr1Ssu4GGjLoVTFI5yKVqNwJMBW
+	 zVadQjUiRRGaqTqN+gGYkHrmR4C4KHx+0U/R/K+u6ZtAXdqhIrOySPosoQWxdptWPO
+	 BnkyhxbQxVpyUZH7bopjCFpU7eZeKg1tcHs1O0Hw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729080AbgBNNBG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 08:01:06 -0500
-Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:59454 "EHLO
-        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727970AbgBNNBD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2020 08:01:03 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=wizzup.org;
-         s=mail; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:Cc:
-        To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=Q9PRBzzMe+a3dzAzMxrx0xT2y1fZevZ8aQZ/OjHoBN8=; b=J+8f2YqS5b9SXJ+ctf75ziQntm
-        IDqPGFfoH6VLBLfEb78RBz7itd9w+j6Doe5sUOpKFvlB/Ir38fY7Y125Nrrk8maCGT1xGRphJXyOT
-        Ka6W94g+va9bmC0V9S+PajK41qIUQjnVm08bAsXDlA/AfuJTlN5a4zCPhbaWGmW4W+VcTRgOsQm7j
-        JLo7t4JTOVZhLpHe16q+E6O6M6fwYsEc2CJtLbWqsXWI2SgZhqVTaYTzTjHJRVCRuolNLpcNbpRjq
-        KaGBvOF7t6dbOgAZmkZsFeM9kQOXOOze0iTpOD+fs28Tin+gMPGNfwRM2i/PdRf9UNaGcyo9VTKcM
-        oA9d1m7Q==;
-Received: from kgpe-d16.fritz.box ([192.168.178.22])
-        by hetgrotebos.org with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <merlijn@wizzup.org>)
-        id 1j2aaS-0002df-Ny; Fri, 14 Feb 2020 13:00:52 +0000
-From:   Merlijn Wajer <merlijn@wizzup.org>
-To:     merlijn@wizzup.org
-Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Mattias Jacobsson <2pi@mok.nu>,
-        "Darren Hart (VMware)" <dvhart@infradead.org>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
-Subject: [RFC PATCH 0/2] Add SW_MACHINE_COVER key
-Date:   Fri, 14 Feb 2020 14:02:46 +0100
-Message-Id: <20200214130249.6845-1-merlijn@wizzup.org>
-X-Mailer: git-send-email 2.23.0
+        id S1728336AbgBNNEc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 08:04:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44390 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726191AbgBNNEc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 14 Feb 2020 08:04:32 -0500
+Received: from earth.universe (dyndsl-095-033-170-229.ewe-ip-backbone.de [95.33.170.229])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 021942168B;
+        Fri, 14 Feb 2020 13:04:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1581685471;
+        bh=Whpmh17W3kSxzCbioGOu19PQoaptQmnJO000zV6cl/s=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=PlL/l3Z7kdOoZpVyGq4Roudbx0tJgxPrPX2KIHigFeXx4RIrrrT+QNcPyJFJjicgb
+         qxc27FG+O+7IGNWpHE0t33kVWRXs4y3BEylH+Lsal/AqdD/0i59RTOC4sTKBI9292O
+         X0ddPyfqq3ku12pGk9j3YuYrLx9AJfVNmaYFZ4T0=
+Received: by earth.universe (Postfix, from userid 1000)
+        id A5A543C0C83; Fri, 14 Feb 2020 14:04:28 +0100 (CET)
+Date:   Fri, 14 Feb 2020 14:04:28 +0100
+From:   Sebastian Reichel <sre@kernel.org>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        "Arthur D ." <spinal.by@gmail.com>,
+        Jarkko Nikula <jarkko.nikula@bitmer.com>,
+        Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ASoC: ti: Allocate dais dynamically for TDM and audio
+ graph card
+Message-ID: <20200214130428.gkhmr55ptmi2bh2x@earth.universe>
+References: <20200211171645.41990-1-tony@atomide.com>
+ <cd46c6ec-80e3-332f-4922-e58a3acbfc61@ti.com>
+ <20200212143543.GI64767@atomide.com>
+ <20200214003452.xuadnylj2udqyljs@earth.universe>
+ <20200214013454.GX64767@atomide.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="grqobqlnl2f7lvmu"
+Content-Disposition: inline
+In-Reply-To: <20200214013454.GX64767@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This series adds the SW_MACHINE_COVER key, and changes the Nokia N900 dts to
-expose the key via gpio-keys.
 
-Before, this gpio was used as card detect GPIO, causing the card not to show up
-if the phone was booted without cover, see this thread on linux-omap:
+--grqobqlnl2f7lvmu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-    N900: Remove mmc1 "safety feature"? (was: Re: mmc0 on Nokia N900 on Linux 5.4.18)
+Hi,
 
-Since there is no realistic use for using this gpio as card detect, instead
-expose it to userspace via gpio-keys. There are no event type for machine covers
-yet, so add that first.
+On Thu, Feb 13, 2020 at 05:34:54PM -0800, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@kernel.org> [200214 00:35]:
+> > On Wed, Feb 12, 2020 at 06:35:43AM -0800, Tony Lindgren wrote:
+> > > Yes this should follow the audio-graph-card.txt example. We end up wi=
+th
+> > > mcbsp3 dts node as below on droid4:
+> > >=20
+> > > &mcbsp3 {
+> > >         #sound-dai-cells =3D <0>;
+> > >         pinctrl-names =3D "default";
+> > >         pinctrl-0 =3D <&mcbsp3_pins>;
+> > >         status =3D "okay";
+> > >=20
+> > >         ports {
+> > >                 mcbsp3_port: port@0 {
+> > >                         #address-cells =3D <1>;
+> > >                         #size-cells =3D <0>;
+> > >=20
+> > >                         cpu_dai3: endpoint@0 {
+> >=20
+> > cpu_dai3_cpcap
+> >=20
+> > >                                 reg =3D <0>;
+> > >                                 dai-format =3D "dsp_a";
+> > >                                 frame-master =3D <&cpcap_audio_codec1=
+>;
+> > >                                 bitclock-master =3D <&cpcap_audio_cod=
+ec1>;
+> > >                                 remote-endpoint =3D <&cpcap_audio_cod=
+ec1>;
+> > >                         };
+> > >=20
+> > >                         cpu_dai_mdm: endpoint@1 {
+> >=20
+> > cpu_dai3_mdm
+>=20
+> OK
+>=20
+> > >                                 reg =3D <1>;
+> > >                                 dai-format =3D "dsp_a";
+> > >                                 frame-master =3D <&cpcap_audio_codec1=
+>;
+> > >                                 bitclock-master =3D <&cpcap_audio_cod=
+ec1>;
+> > >                                 remote-endpoint =3D <&mot_mdm6600_aud=
+io_codec0>;
+> > >                         };
+> > >                 };
+> > >         };
+> > > };
+> > >=20
+> > > That is pretty much the same as the 'Multi DAI with DPCM' example, wi=
+th
+> > > dne dai, and multiple endpoints. I think we still have just one port
+> > > for one i2s transport on the mcbsp :)
+> > >=20
+> > > Does the above look as what you would expect based on the binding?
+> >=20
+> > I haven't had a look at this for quite some time. I suppose the
+> > cpcap voice DAI and the modem will also have two endpoints? So
+> > once the BT support is added it will looks like this [simplified]?
+>=20
+> Well it will be even simpler, no need for extra endpoints at
+> the codecs, see below.
+> =20
+> > &mcbsp3 {
+> >     ports {
+> >         port@0 {
+> >             cpu_dai3_cpcap: endpoint@0 {};
+> >             cpu_dai3_modem: endpoint@1 {};
+> >             cpu_dai3_bt: endpoint@2 {};
+> >         };
+> >     };
+> > };
+>=20
+> But yes, bluetooth would be just added as above under mcbsp3.
+>=20
+[...]
+>
+> Then the modem codec looks like this:
+>=20
+> mot_mdm6600_audio: audio-codec {
+> 	#address-cells =3D <1>;
+> 	#size-cells =3D <0>;
+> 	#sound-dai-cells =3D <1>;
+>=20
+> 	port@0 {
+> 		mot_mdm6600_audio_codec0: endpoint {
+> 			remote-endpoint =3D <&cpu_dai_mdm>;
+> 		};
+> 	};
+> };
+>=20
+> > &bluetooth {
+> >     ports {
+> >         port@0 {
+> >             bt_dai_cpu: endpoint@0 {};
+> >             bt_dai_modem: endpoint@1 {};
+> >             bt_dai_cpcap: endpoint@2 {};
+> >         };
+> >     };
+> > };
+>=20
+> And bluetooth would be similar to cpcap_audio and mot_mdm6600_audio
+> above.
 
-The key should be 1 when the cover is closed, and 0 when the cover is open.
+My understanding is, that CPU is not involved for calls (except for
+setting up cpcap registers correctly). Basically McBSP3 should
+remain idle for a call and data goes directly from modem to cpcap.
+The same should work for modem <-> BT, except that CPCAP seems to
+always provide the clock. That would imply a direct link between
+modem and codec / BT?
 
-Starting the Nokia N900 with the cover removed, putting the cover in place:
+> My guess is that only cpcap registers and clock rate needs to be
+> changed for bluetooth audio BTW, so if somebody havs a bluetooth
+> headset just do the following in Android:
+>=20
+> # cpcaprw --all > /tmp/before
+> configure bluetooth headset for audio in android and start
+> playing some music or make a phone call
+> ...
+> # cpcaprw --all > /tmp/after
+> stop playing music or phone call
+> ...
+> diff -u /tmp/before /tmp/after
+>=20
+> The registers will be different for a bluetooth phone call and
+> playing music.
 
-    Event: time 1581684523.415296, type 5 (EV_SW), code 16 (?), value 1
+I can provider register values once I find some time.
 
-Removing the cover again, exposing mmc1 and the battery:
+-- Sebastian
 
-    Event: time 1581684529.413706, type 5 (EV_SW), code 16 (?), value 0
+--grqobqlnl2f7lvmu
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Merlijn Wajer (2):
-  Input: add `SW_MACHINE_COVER`
-  ARM: dts: n900: remove mmc1 card detect gpio
+-----BEGIN PGP SIGNATURE-----
 
- arch/arm/boot/dts/omap3-n900.dts       | 12 ++++++++----
- include/linux/mod_devicetable.h        |  2 +-
- include/uapi/linux/input-event-codes.h |  3 ++-
- 3 files changed, 11 insertions(+), 6 deletions(-)
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl5GmtMACgkQ2O7X88g7
++poqlxAAoWvnDgIQ89tEJ3QSMvEfczJKLhj/o5/V9vMZaFmtaPu/FfV1uSgVl62E
+u7yH8XYBz/SFzkspyURXuBR0BVN8HYqgIDT7sMGfF56SqWR31aUgEPQP2W1SVZeR
+W7x2NcPDRBpRciEqiwEWWp7ikRd5XWvDOwFL6moH1fNhHK3ckznQzC4AAg1FvAdv
+9YYdYfq+HV+TXGlGZHS8NV0+a+jzVUDrHY4FN/WaHBFnfoPMzZXicdtWv5gYcS8A
+5Iq1Rm28VX/r0aOsk6UaPOeKkynjHfueQhPHnlao5SRsaA4dLJG4OXIkJdbLs0xw
+Bt9AumrNmMpfMh5l4jmNezh+EBHARY0pgnzptPga/cdaCjIFMBwsSVHtkJmNT5Z1
+iXujx+GP838sqdnKE141bo2fePlZ6cn4qY5kWsN4jf8BkxNKexP8Qz8UVc3820rn
+WFhzRdDVLJLBZga464CWaYAdUxnv52TcfmDyETUeGs4CQVcM5a3s00Xn+U70cFvd
+oz4TD7OsXcyrhQgisbrUpQ3rhLVr4zzn2Bj9/3jOodJezPXp/TJSaWnZsEwRH3jg
+tyCsODn49aYuJEc6lGLwH8edtbJyU0eApVzQ5XCA3pwmcRZzA34sefpYyw791kdM
+8H0dpVRfaBxg8VBFhb437qUMAukYjN9rj8MuzPi/rdDrCOKopZ0=
+=s63e
+-----END PGP SIGNATURE-----
 
--- 
-2.23.0
-
+--grqobqlnl2f7lvmu--
