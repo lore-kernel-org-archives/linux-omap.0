@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5332C2BA83
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:10:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C5BDC3B1B1
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:10:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 79B4B2168B
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:10:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C785C2168B
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581703856;
-	bh=umkV5fwuqprToRUAnQrW6cSjJXWD2Elo4G15T2wuuk0=;
+	s=default; t=1581703857;
+	bh=PQOkeAtDCq+cjqGZA9ta64157BXnd9PeZOgV32vNY80=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Uybq8Nwq+wzU0Jk84xhaAjd/K+WmQGcz907IDt2tG40IOACz96s5lGFNLACeAVi69
-	 RhVjgFO6W5BKjywoRCN8x7QneAp57O/kzaPkO9BIYhj2RtZyt84j/uJrMqibKQstMk
-	 wt7teccn7A3mdrMMbfPszVHydOK7NjvF185TP+cA=
+	b=tm4N3f0agGcrqXeBveVnC2HgEYRKmKbs12gn6T7OJRS4412/kMj5ITlxwWfyloKn2
+	 +OCQOsip/MWk7Ihng57ZBporXFjtjwEZZVxFzwwu8OxmCaW4RP5Eyb3iRSoSj5WYyh
+	 TyqxP2M+9DuteFAQK2YKjZ19C7xNbW6yQ2jJZMuQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393067AbgBNSKr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 13:10:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32992 "EHLO mail.kernel.org"
+        id S2403917AbgBNSK5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 13:10:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32910 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731306AbgBNPxk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:53:40 -0500
+        id S1730866AbgBNPxh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:53:37 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CFECA2468F;
-        Fri, 14 Feb 2020 15:53:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6CB2824686;
+        Fri, 14 Feb 2020 15:53:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695619;
-        bh=umkV5fwuqprToRUAnQrW6cSjJXWD2Elo4G15T2wuuk0=;
+        s=default; t=1581695617;
+        bh=PQOkeAtDCq+cjqGZA9ta64157BXnd9PeZOgV32vNY80=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ualH+9EKmxPq9hC6vZdDtIAemCOgG9U6zjVU6kUllZuX0MjQLGW82zX8tQpkTRIes
-         YpeBv8fqP8F0k/YTToXTELXHGyWxbKUkJ1RMJML+hCOvUdgi+UfzL3er4I64qyZbmw
-         Y/euPdSrpRKu+ocqkX3TfWGs+Vz4v3C5PtpCxE5w=
+        b=uQWCRfvBEtzOI+Fuax8+z5ke8jGEcJ7/olaBOeZzGgUPkDCkdUqhceewNRSbqCNT+
+         va48EFwswRhlNnBgmT9jEZ91ERbOqCJt6uQeElwkFAjybU98iYmR9uZkh0yIL+IyTu
+         ebkje0kjz7TtRG80VmvkCQXo1z+y0SBf9ADVl438=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>,
+Cc:     Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org
-Subject: [PATCH AUTOSEL 5.5 219/542] ARM: OMAP2+: use separate IOMMU pdata to fix DRA7 IPU1 boot
-Date:   Fri, 14 Feb 2020 10:43:31 -0500
-Message-Id: <20200214154854.6746-219-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 217/542] ARM: OMAP2+: pdata-quirks: add PRM data for reset support
+Date:   Fri, 14 Feb 2020 10:43:29 -0500
+Message-Id: <20200214154854.6746-217-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
 References: <20200214154854.6746-1-sashal@kernel.org>
@@ -58,93 +58,55 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
 
-[ Upstream commit 4601832f40501efc3c2fd264a5a69bd1ac17d520 ]
+[ Upstream commit 8de44fb70659a5bc0c53a443e6129ea1bf00fd8b ]
 
-The IPU1 MMU has been using common IOMMU pdata quirks defined and
-used by all IPU IOMMU devices on OMAP4 and beyond. Separate out the
-pdata for IPU1 MMU with the additional .set_pwrdm_constraint ops
-plugged in, so that the IPU1 power domain can be restricted to ON
-state during the boot and active period of the IPU1 remote processor.
-This eliminates the pre-conditions for the IPU1 boot issue as
-described in commit afe518400bdb ("iommu/omap: fix boot issue on
-remoteprocs with AMMU/Unicache").
+The parent clockdomain for reset must be in force wakeup mode, otherwise
+the reset may never complete. Add pdata quirks for this purpose for PRM
+driver.
 
-NOTE:
-1. RET is not a valid target power domain state on DRA7 platforms,
-   and IPU power domain is normally programmed for OFF. The IPU1
-   still fails to boot though, and an unclearable l3_noc error is
-   thrown currently on 4.14 kernel without this fix. This behavior
-   is slightly different from previous 4.9 LTS kernel.
-2. The fix is currently applied only to IPU1 on DRA7xx SoC, as the
-   other affected processors on OMAP4/OMAP5/DRA7 are in domains
-   that are not entering RET. IPU2 on DRA7 is in CORE power domain
-   which is only programmed for ON power state. The fix can be easily
-   scaled if these domains do hit RET in the future.
-3. The issue was not seen on current DRA7 platforms if any of the
-   DSP remote processors were booted and using one of the GPTimers
-   5, 6, 7 or 8 on previous 4.9 LTS kernel. This was due to the
-   errata fix for i874 implemented in commit 1cbabcb9807e ("ARM:
-   DRA7: clockdomain: Implement timer workaround for errata i874")
-   which keeps the IPU1 power domain from entering RET when the
-   timers are active. But the timer workaround did not make any
-   difference on 4.14 kernel, and an l3_noc error was seen still
-   without this fix.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/pdata-quirks.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ arch/arm/mach-omap2/pdata-quirks.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 7a79bcc02a11b..c3be1db9685cd 100644
+index e95c224ffc4d8..7a79bcc02a11b 100644
 --- a/arch/arm/mach-omap2/pdata-quirks.c
 +++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -43,6 +43,17 @@ struct pdata_init {
- static struct of_dev_auxdata omap_auxdata_lookup[];
- static struct twl4030_gpio_platform_data twl_gpio_auxdata;
+@@ -23,6 +23,7 @@
+ #include <linux/platform_data/ti-sysc.h>
+ #include <linux/platform_data/wkup_m3.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
++#include <linux/platform_data/ti-prm.h>
  
-+#if IS_ENABLED(CONFIG_OMAP_IOMMU)
-+int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
-+				    u8 *pwrst);
-+#else
-+static inline int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev,
-+						  bool request, u8 *pwrst)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_MACH_NOKIA_N8X0
- static void __init omap2420_n8x0_legacy_init(void)
- {
-@@ -286,6 +297,10 @@ static void __init omap5_uevm_legacy_init(void)
- #endif
+ #include "clockdomain.h"
+ #include "common.h"
+@@ -412,6 +413,12 @@ void omap_pcs_legacy_init(int irq, void (*rearm)(void))
+ 	pcs_pdata.rearm = rearm;
+ }
  
- #ifdef CONFIG_SOC_DRA7XX
-+static struct iommu_platform_data dra7_ipu1_dsp_iommu_pdata = {
-+	.set_pwrdm_constraint = omap_iommu_set_pwrdm_constraint,
++static struct ti_prm_platform_data ti_prm_pdata = {
++	.clkdm_deny_idle = clkdm_deny_idle,
++	.clkdm_allow_idle = clkdm_allow_idle,
++	.clkdm_lookup = clkdm_lookup,
 +};
 +
- static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc1;
- static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc2;
- static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc3;
-@@ -517,6 +532,12 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
- 		       &dra7_hsmmc_data_mmc2),
- 	OF_DEV_AUXDATA("ti,dra7-hsmmc", 0x480ad000, "480ad000.mmc",
- 		       &dra7_hsmmc_data_mmc3),
-+	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x40d01000, "40d01000.mmu",
-+		       &dra7_ipu1_dsp_iommu_pdata),
-+	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x41501000, "41501000.mmu",
-+		       &dra7_ipu1_dsp_iommu_pdata),
-+	OF_DEV_AUXDATA("ti,dra7-iommu", 0x58882000, "58882000.mmu",
-+		       &dra7_ipu1_dsp_iommu_pdata),
- #endif
+ /*
+  * GPIOs for TWL are initialized by the I2C bus and need custom
+  * handing until DSS has device tree bindings.
+@@ -514,6 +521,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
  	/* Common auxdata */
  	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
+ 	OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
++	OF_DEV_AUXDATA("ti,omap-prm-inst", 0, NULL, &ti_prm_pdata),
+ 	{ /* sentinel */ },
+ };
+ 
 -- 
 2.20.1
 
