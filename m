@@ -2,91 +2,76 @@ Return-Path: <SRS0=+U9p=4C=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BB0C2BA83
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F57FC2BA83
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:23:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F134B2168B
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:18:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581704317;
-	bh=bnoGaRoBD2hyStehWg8KD7v12K1AJXgloD4rRnFFQ/c=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=tPy8vYGYZYhHetytzDJHLDQZr27LAJ4xB/ngnS9iSXOuSzWnzWxkWjqCvqr9S9L1U
-	 7HLBO48iDhZPD75qJNc8N2gv/abRWuHAr6l43g998n6ltVlX6LFMn1pWxZ/3ZEr9do
-	 KSzhVorjzzWt+Qwj+yw7R0TI42qwzfYoXvJnBGs4=
+	by mail.kernel.org (Postfix) with ESMTP id 455872086A
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 18:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404900AbgBNSSg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 13:18:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55138 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730584AbgBNPup (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:50:45 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DB56024650;
-        Fri, 14 Feb 2020 15:50:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695444;
-        bh=bnoGaRoBD2hyStehWg8KD7v12K1AJXgloD4rRnFFQ/c=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mHwKwiJUNv+7gk51nsD6A0KiE7lexBwEQdUtLhz+H03m+DUWGFZOv/+YhF/+cH32t
-         JgzSIKUYH2ahwf9Sn27WcoHM+80SVSkd4QDgQZcUZVcaDTQ6nD8IbAMRsC15pyofUr
-         5bhYXDTKBSKHZrY+WmYnJJ7OIwtoFGZUuBEzvQt8=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
-        Tero Kristo <t-kristo@ti.com>, Sasha Levin <sashal@kernel.org>,
-        linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 085/542] clk: ti: dra7: fix parent for gmac_clkctrl
-Date:   Fri, 14 Feb 2020 10:41:17 -0500
-Message-Id: <20200214154854.6746-85-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
-References: <20200214154854.6746-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S2405237AbgBNSXU convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 13:23:20 -0500
+Received: from coyote.holtmann.net ([212.227.132.17]:57282 "EHLO
+        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390047AbgBNSXP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2020 13:23:15 -0500
+Received: from marcel-macbook.fritz.box (p4FEFC5A7.dip0.t-ipconnect.de [79.239.197.167])
+        by mail.holtmann.org (Postfix) with ESMTPSA id 1A29FCECEA;
+        Fri, 14 Feb 2020 19:32:37 +0100 (CET)
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 13.0 \(3608.60.0.2.5\))
+Subject: Re: Droid 4 WiFi firmware loading error
+From:   Marcel Holtmann <marcel@holtmann.org>
+In-Reply-To: <20200214174548.GC64767@atomide.com>
+Date:   Fri, 14 Feb 2020 19:23:12 +0100
+Cc:     Sebastian Reichel <sre@kernel.org>,
+        "Arthur D." <spinal.by@gmail.com>,
+        Bluez mailing list <linux-bluetooth@vger.kernel.org>,
+        linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <3D50CC42-1201-4067-ACDE-E9B9F0DC5653@holtmann.org>
+References: <20200211232425.GE16391@atomide.com>
+ <op.0fu85owhhxa7s4@supervisor.net28> <20200212150722.GF16391@atomide.com>
+ <20200212162131.GI16391@atomide.com> <op.0fwkyxvihxa7s4@supervisor.net28>
+ <20200213041112.GL16391@atomide.com> <op.0fw0oas5hxa7s4@supervisor.net28>
+ <20200213161157.GN16391@atomide.com> <op.0fx4hozhhxa7s4@supervisor.net28>
+ <20200214161100.b7aqb6wwsrxmx4ab@earth.universe>
+ <20200214174548.GC64767@atomide.com>
+To:     Tony Lindgren <tony@atomide.com>
+X-Mailer: Apple Mail (2.3608.60.0.2.5)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+Hi Tony,
 
-[ Upstream commit 69e300283796dae7e8c2e6acdabcd31336c0c93e ]
+>> WTF :(
+>> 
+>> Right now the BT driver and the WiFi driver are no aware of
+>> each other. Actually the kernel is not even aware, that both
+>> drivers are using the same chip. Unfortunately this will be
+>> tricky to solve properly. Since a system may have two WiLink
+>> devices, the only solution coming to my mind would be adding
+>> a link from the BT device to the WiFi device in device tree.
+>> Additionally we would need something in the WiLink driver to
+>> check if driver has been initialized properly for a given DT
+>> node.
+> 
+> Yeah exactly.. I think the best way would be to export something
+> like wlcore_register_bt/wlcore_unregister_bt.. And then have
+> wlcore_register_bt return -EAGAIN until wlcore is up.
 
-The parent clk for gmac clk ctrl has to be gmac_main_clk (125MHz) instead
-of dpll_gmac_ck (1GHz). This is caused incorrect CPSW MDIO operation.
-Hence, fix it.
+actually NO.
 
-Fixes: dffa9051d546 ('clk: ti: dra7: add new clkctrl data')
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/clk/ti/clk-7xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+We have rejected this many times for all hardware manufacturers. Please fix the firmware instead.
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 5f46782cebeb2..b656ba2abcf7e 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -405,7 +405,7 @@ static const struct omap_clkctrl_bit_data dra7_gmac_bit_data[] __initconst = {
- };
- 
- static const struct omap_clkctrl_reg_data dra7_gmac_clkctrl_regs[] __initconst = {
--	{ DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "dpll_gmac_ck" },
-+	{ DRA7_GMAC_GMAC_CLKCTRL, dra7_gmac_bit_data, CLKF_SW_SUP, "gmac_main_clk" },
- 	{ 0 },
- };
- 
--- 
-2.20.1
+Regards
+
+Marcel
 
