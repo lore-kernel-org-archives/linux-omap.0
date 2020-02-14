@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1ABAC3B1A6
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:22:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 319BBC3B1A1
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:26:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C79624673
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:22:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03A3324650
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:26:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581700937;
-	bh=0AGS+MlQMepeARnJsKYIBXgbmtmIqDDXRQy0zLTy+2Q=;
+	s=default; t=1581701185;
+	bh=S8L5RthTJ+fg8I4Qt4oWmfh6Upifu+P+RmgF9/5QYys=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YGwddwQ4wLQFyJmPnhlywr5s5sb0jqSXCdj1W/dxe35QV+v3cLypbma3zuLMjRBKI
-	 ymMajGBPcg9dFPnAOiyeYg8bouZ35j33h0VUS6jJ51Fa3iATTHoJwgfE/LqOj2+oYv
-	 t8Fxn0GsJLPsojYMMRbLaud6SaA6kwtDFC8X8qFg=
+	b=bl8R+g+Pkjm2Hw9K0abaxBFudykmmeG9gLBCDWJ+FE04rtMNvUgEHIrXqb4r2H5jF
+	 YsT06Mu8Hq9UdMXPSQ6ZyPd5/gInKvp5GZFHhxZpHFCWXOixP/8duryaWKrfQ34J7K
+	 /VgEN5Sthu5MTBW6ckEmE5E9gllqhbYClePNZSVg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391418AbgBNRWK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:22:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35272 "EHLO mail.kernel.org"
+        id S2391600AbgBNR0T (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 12:26:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60658 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390454AbgBNQKD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:10:03 -0500
+        id S2391007AbgBNQIi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:08:38 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9B9B724650;
-        Fri, 14 Feb 2020 16:10:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7021B222C2;
+        Fri, 14 Feb 2020 16:08:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696602;
-        bh=0AGS+MlQMepeARnJsKYIBXgbmtmIqDDXRQy0zLTy+2Q=;
+        s=default; t=1581696517;
+        bh=S8L5RthTJ+fg8I4Qt4oWmfh6Upifu+P+RmgF9/5QYys=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=iDjuYum31+mnFTHFC7UYKJhi3BzZJJOrtDcY562ThKjNO8UiXMWR8KjPohaa8HeoQ
-         iq8qKFnwOOWY49bYR7OLdTQaqX8YqObdwBdAy2nGJfza61U5BsDcpIP4SDhRkO/5ip
-         VFB84W1pWM+khZMpxQGNtAd97+kERtV6/FMNaGyk=
+        b=jfZAXyTQSQzwXV/Bg3jo2G9atIUAMhs4fXP5X140ut0X2PBAPSqgAqRMqcmskj5U+
+         i8OpNEzhgLkB0fDjuf8cyVSPVmzwo0P3kVEg0C3n5TYn/X28VREskQOFIAqbrqEiS1
+         YUs/pNgMY21f2vq9CybDm+gwiY419pKV7CgxJPdE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Tero Kristo <t-kristo@ti.com>, Benoit Parrot <bparrot@ti.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 387/459] ARM: dts: am43xx: add support for clkout1 clock
-Date:   Fri, 14 Feb 2020 11:00:37 -0500
-Message-Id: <20200214160149.11681-387-sashal@kernel.org>
+Cc:     Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
+        Bin Liu <b-liu@ti.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org,
+        linux-omap@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 318/459] usb: musb: omap2430: Get rid of musb .set_vbus for omap2430 glue
+Date:   Fri, 14 Feb 2020 10:59:28 -0500
+Message-Id: <20200214160149.11681-318-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
 References: <20200214160149.11681-1-sashal@kernel.org>
@@ -59,99 +60,54 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 01053dadb79d63b65f7b353e68b4b6ccf4effedb ]
+[ Upstream commit 91b6dec32e5c25fbdbb564d1e5af23764ec17ef1 ]
 
-clkout1 clock node and its generation tree was missing. Add this based
-on the data on TRM and PRCM functional spec.
+We currently have musb_set_vbus() called from two different paths. Mostly
+it gets called from the USB PHY via omap_musb_set_mailbox(), but in some
+cases it can get also called from musb_stage0_irq() rather via .set_vbus:
 
-commit 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes") effectively
-reverted this commit 8010f13a40d3 ("ARM: dts: am43xx: add support for
-clkout1 clock") which is needed for the ov2659 camera sensor clock
-definition hence it is being re-applied here.
+(musb_set_host [musb_hdrc])
+(omap2430_musb_set_vbus [omap2430])
+(musb_stage0_irq [musb_hdrc])
+(musb_interrupt [musb_hdrc])
+(omap2430_musb_interrupt [omap2430])
 
-Note that because of the current dts node name dependency for mapping to
-clock domain, we must still use "clkout1-*ck" naming instead of generic
-"clock@" naming for the node. And because of this, it's probably best to
-apply the dts node addition together along with the other clock changes.
+This is racy and will not work with introducing generic helper functions
+for musb_set_host() and musb_set_peripheral(). We want to get rid of the
+busy loops in favor of usleep_range().
 
-Fixes: 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes")
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Tested-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Let's just get rid of .set_vbus for omap2430 glue layer and let the PHY
+code handle VBUS with musb_set_vbus(). Note that in the follow-up patch
+we can completely remove omap2430_musb_set_vbus(), but let's do it in a
+separate patch as this change may actually turn out to be needed as a
+fix.
+
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Bin Liu <b-liu@ti.com>
+Link: https://lore.kernel.org/r/20200115132547.364-5-b-liu@ti.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am43xx-clocks.dtsi | 54 ++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ drivers/usb/musb/omap2430.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-index 091356f2a8c16..c726cd8dbdf1b 100644
---- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-@@ -704,6 +704,60 @@
- 		ti,bit-shift = <8>;
- 		reg = <0x2a48>;
- 	};
-+
-+	clkout1_osc_div_ck: clkout1-osc-div-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&sys_clkin_ck>;
-+		ti,bit-shift = <20>;
-+		ti,max-div = <4>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_src2_mux_ck: clkout1-src2-mux-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&clk_rc32k_ck>, <&sysclk_div>, <&dpll_ddr_m2_ck>,
-+			 <&dpll_per_m2_ck>, <&dpll_disp_m2_ck>,
-+			 <&dpll_mpu_m2_ck>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_src2_pre_div_ck: clkout1-src2-pre-div-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&clkout1_src2_mux_ck>;
-+		ti,bit-shift = <4>;
-+		ti,max-div = <8>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_src2_post_div_ck: clkout1-src2-post-div-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&clkout1_src2_pre_div_ck>;
-+		ti,bit-shift = <8>;
-+		ti,max-div = <32>;
-+		ti,index-power-of-two;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_mux_ck: clkout1-mux-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&clkout1_osc_div_ck>, <&clk_rc32k_ck>,
-+			 <&clkout1_src2_post_div_ck>, <&dpll_extdev_m2_ck>;
-+		ti,bit-shift = <16>;
-+		reg = <0x4100>;
-+	};
-+
-+	clkout1_ck: clkout1-ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&clkout1_mux_ck>;
-+		ti,bit-shift = <23>;
-+		reg = <0x4100>;
-+	};
- };
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index a3d2fef677468..5c93226e0e20a 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -361,8 +361,6 @@ static const struct musb_platform_ops omap2430_ops = {
+ 	.init		= omap2430_musb_init,
+ 	.exit		= omap2430_musb_exit,
  
- &prcm {
+-	.set_vbus	= omap2430_musb_set_vbus,
+-
+ 	.enable		= omap2430_musb_enable,
+ 	.disable	= omap2430_musb_disable,
+ 
 -- 
 2.20.1
 
