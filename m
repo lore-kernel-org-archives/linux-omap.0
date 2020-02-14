@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E3B3C3B1A2
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 16:15:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98D6CC3B19F
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 16:38:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D252D246E0
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 16:15:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 626FF217F4
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 16:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581696929;
-	bh=vI7lV6bJSwFrfUSOqObJPGooulJ3EqcRpdA8ruW/WNQ=;
+	s=default; t=1581698318;
+	bh=q9B2fCZrysqb+v5XGLZAltzC00DdcE0gKtCJ9/GgzYQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=SvDRwk/tnP1V9KIUaYpehN341kc5D/GWJ8mJd4+5DoZaPSMg95IxAiMi2c84LQ+ON
-	 T0/sRQ+HG/RflZmhnX5MCndio9pFgDZ1dQoqgij47CoS8H/ikWMPyL9DSMxcPK5Hhi
-	 FMc7Gq2xSmsKc2eVPM7iDM1s+UN18P8z2N5thpw8=
+	b=nep4v9XbfIDL/bOHUNNhlHU2xn5ekF2gdsXgg2lSF7X3Wyrv23/ewxhj1XHU7HtBL
+	 GJALeNozjXlDtXrpzOK/ViR0h7/i0wT6ggBwkNUMViQqzzvBx4yJJa+nbFCT9H99uc
+	 iey/LsmPUYzXs/Dt/7ffqj7GS6hzsbd8/oRP0u2M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404140AbgBNQP2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 11:15:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45674 "EHLO mail.kernel.org"
+        id S2389380AbgBNQi3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:38:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404136AbgBNQP2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:15:28 -0500
+        id S2405626AbgBNQX3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:23:29 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D2681246F3;
-        Fri, 14 Feb 2020 16:15:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1A1F72477B;
+        Fri, 14 Feb 2020 16:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696927;
-        bh=vI7lV6bJSwFrfUSOqObJPGooulJ3EqcRpdA8ruW/WNQ=;
+        s=default; t=1581697409;
+        bh=q9B2fCZrysqb+v5XGLZAltzC00DdcE0gKtCJ9/GgzYQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cMPxhrj8NY85LPLC4l4DLAPQHb9uMyWl0vSgAO5crIXq6pPMB0XcdKjqedshTiE/6
-         dcNBFY3dwqannM9/EyADlbwGZPV3BiZCKv+aOjhdqtIln2rxq6QPKPl3fWo70r9nmw
-         Uujyv1UCUtscbRdJa8gJ6AXAwkQWrnUC8wBknH04=
+        b=VBynMS1XR8dfIvMpyOCboDtNlxvWPTfpfAL504tvVl9x+Pm48Oil+RsqA1fk2krxd
+         8vPFo2ICEvZZry9LgRcPQp1kKOdyR/sQ8c35KerIhL5ujehPUDBY2ntf6Uq6ORDcmr
+         bNQtHZJznO5ASaRvPRXhAbaAExbqcVa5gVAfjDM4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
@@ -45,12 +45,12 @@ Cc:     Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org,
         linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 174/252] usb: musb: omap2430: Get rid of musb .set_vbus for omap2430 glue
-Date:   Fri, 14 Feb 2020 11:10:29 -0500
-Message-Id: <20200214161147.15842-174-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 101/141] usb: musb: omap2430: Get rid of musb .set_vbus for omap2430 glue
+Date:   Fri, 14 Feb 2020 11:20:41 -0500
+Message-Id: <20200214162122.19794-101-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214161147.15842-1-sashal@kernel.org>
-References: <20200214161147.15842-1-sashal@kernel.org>
+In-Reply-To: <20200214162122.19794-1-sashal@kernel.org>
+References: <20200214162122.19794-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -96,10 +96,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 deletions(-)
 
 diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index b1dd81fb5f55e..24e622c056383 100644
+index e8be8e39ab8fb..457ad33f4caa8 100644
 --- a/drivers/usb/musb/omap2430.c
 +++ b/drivers/usb/musb/omap2430.c
-@@ -361,8 +361,6 @@ static const struct musb_platform_ops omap2430_ops = {
+@@ -388,8 +388,6 @@ static const struct musb_platform_ops omap2430_ops = {
  	.init		= omap2430_musb_init,
  	.exit		= omap2430_musb_exit,
  
