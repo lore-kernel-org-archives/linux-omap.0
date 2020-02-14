@@ -2,119 +2,156 @@ Return-Path: <SRS0=+U9p=4C=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98945C2BA83
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:45:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 249EDC3B1AF
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:52:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7BDF222314
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:45:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F37C8206D7
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:52:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581702773;
+	bh=0AGS+MlQMepeARnJsKYIBXgbmtmIqDDXRQy0zLTy+2Q=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=ETX4MWmFCKzBoXCiTGLrkPyIncLH9gCvGW9iMPCV8T+Po5KPgC1iSmJ+VqySyBfJ/
+	 10/Hb8iF+tn80xZgSePLUjN9VxmHOmzIqkzNzHbN/1iHSzO+iOiIeLw2Q0SczuJMq7
+	 8uLkM8+kr8po2E5YquYbXh0yBoyOq+mHqPA/zMrc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389822AbgBNRpx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:45:53 -0500
-Received: from muru.com ([72.249.23.125]:55312 "EHLO muru.com"
+        id S2388786AbgBNRws (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 12:52:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389513AbgBNRpw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 14 Feb 2020 12:45:52 -0500
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 4AF4780E7;
-        Fri, 14 Feb 2020 17:46:35 +0000 (UTC)
-Date:   Fri, 14 Feb 2020 09:45:48 -0800
-From:   Tony Lindgren <tony@atomide.com>
-To:     Sebastian Reichel <sre@kernel.org>
-Cc:     "Arthur D." <spinal.by@gmail.com>, linux-bluetooth@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org
-Subject: Re: Droid 4 WiFi firmware loading error
-Message-ID: <20200214174548.GC64767@atomide.com>
-References: <20200211232425.GE16391@atomide.com>
- <op.0fu85owhhxa7s4@supervisor.net28>
- <20200212150722.GF16391@atomide.com>
- <20200212162131.GI16391@atomide.com>
- <op.0fwkyxvihxa7s4@supervisor.net28>
- <20200213041112.GL16391@atomide.com>
- <op.0fw0oas5hxa7s4@supervisor.net28>
- <20200213161157.GN16391@atomide.com>
- <op.0fx4hozhhxa7s4@supervisor.net28>
- <20200214161100.b7aqb6wwsrxmx4ab@earth.universe>
+        id S2388606AbgBNP6b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:58:31 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 17BDC22314;
+        Fri, 14 Feb 2020 15:58:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1581695911;
+        bh=0AGS+MlQMepeARnJsKYIBXgbmtmIqDDXRQy0zLTy+2Q=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=0i8m1m3Epasid4UBYWjGkUrEkJk6NLoU3L8ELRRBKC/P3x121ThCu2/pEq/QjT4Ow
+         O7W7KnDPj/EKbGFm3AgPz7EgCsLEnE7BNoFI8bhRPalxsBVMBG+og5cDhEvT1pr8Az
+         qzGeAN9rQuvEUnfmcJz1B4uSM5Fs+tc0CGXL43MU=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Tero Kristo <t-kristo@ti.com>, Benoit Parrot <bparrot@ti.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.5 450/542] ARM: dts: am43xx: add support for clkout1 clock
+Date:   Fri, 14 Feb 2020 10:47:22 -0500
+Message-Id: <20200214154854.6746-450-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
+References: <20200214154854.6746-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200214161100.b7aqb6wwsrxmx4ab@earth.universe>
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [200214 17:20]:
-> Hi,
-> 
-> WTF :(
-> 
-> Right now the BT driver and the WiFi driver are no aware of
-> each other. Actually the kernel is not even aware, that both
-> drivers are using the same chip. Unfortunately this will be
-> tricky to solve properly. Since a system may have two WiLink
-> devices, the only solution coming to my mind would be adding
-> a link from the BT device to the WiFi device in device tree.
-> Additionally we would need something in the WiLink driver to
-> check if driver has been initialized properly for a given DT
-> node.
+From: Tero Kristo <t-kristo@ti.com>
 
-Yeah exactly.. I think the best way would be to export something
-like wlcore_register_bt/wlcore_unregister_bt.. And then have
-wlcore_register_bt return -EAGAIN until wlcore is up.
+[ Upstream commit 01053dadb79d63b65f7b353e68b4b6ccf4effedb ]
 
-> On Fri, Feb 14, 2020 at 12:54:50AM +0300, Arthur D. wrote:
-> > Hello.
-> > 
-> > Some users have reported that they have issues with WiFi firmware
-> > loading on Droid 4. The fragment of dmesg for the issue follows
-> > at the bottom of this mail.
-> > 
-> > With the help of Tony Lindgren I have found that the root of the
-> > issue was Bluetooth firmware loaded before WiFi driver (wlcore).
-> > 
-> > Now we need to change the kernel to make it load Bluetooth firmware
-> > only after WiFi firmware is loaded. So the bug will not be triggered.
-> > 
-> > Any ideas on how it should be done?
-> > 
-> > P.S. When I do "rmmod hci_uart" on Droid 4 device, I get something
-> > like endless loop of error reporting from kernel. The fragment of
-> > dmesg can be downloaded from https://dropmefiles.com/wCPMF
-> > I'm not sure where to report this one.
+clkout1 clock node and its generation tree was missing. Add this based
+on the data on TRM and PRCM functional spec.
 
-Yup I've seen rmmod hci_uart produce kernel oops, but I just tried
-to reproduce it again on v5.5 and it just took a long time to rmmod
-with no oops.
+commit 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes") effectively
+reverted this commit 8010f13a40d3 ("ARM: dts: am43xx: add support for
+clkout1 clock") which is needed for the ov2659 camera sensor clock
+definition hence it is being re-applied here.
 
-Regards,
+Note that because of the current dts node name dependency for mapping to
+clock domain, we must still use "clkout1-*ck" naming instead of generic
+"clock@" naming for the node. And because of this, it's probably best to
+apply the dts node addition together along with the other clock changes.
 
-Tony
+Fixes: 664ae1ab2536 ("ARM: dts: am43xx: add clkctrl nodes")
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Tested-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 54 ++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
-8< ---------------
-# dmesg -C; modprobe hci_uart; sleep 5; rmmod hci_uart; dmesg -c
-[  616.926422] Bluetooth: HCI UART driver ver 2.3
-[  616.926422] Bluetooth: HCI UART protocol H4 registered
-[  616.926422] Bluetooth: HCI UART protocol BCSP registered
-[  616.926513] Bluetooth: HCI UART protocol LL registered
-[  616.926635] Bluetooth: HCI UART protocol Three-wire (H5) registered
-[  616.927185] Bluetooth: HCI UART protocol Broadcom registered
-[  616.927764] hci-ti serial1-0: GPIO lookup for consumer enable
-[  616.927764] hci-ti serial1-0: using device tree for GPIO lookup
-[  616.927856] of_get_named_gpiod_flags: parsed 'enable-gpios' property of node '/ocp/interconnect@48000000/segment@0/target-module@6e000/serial@0/bluetooth[0]' - status (0)
-[  616.927886] gpio gpiochip6: Persistence not supported for GPIO 14
-[  624.002838] Bluetooth: hci0: command 0xff05 tx timeout
-[  632.572662] Bluetooth: hci0: send command failed
-[  632.572814] Bluetooth: hci0: download firmware failed, retrying...
-[  634.722991] Bluetooth: hci0: command 0x1001 tx timeout
-[  642.812652] Bluetooth: hci0: Reading TI version information failed (-110)
-[  642.812652] Bluetooth: hci0: download firmware failed, retrying...
-[  644.962707] Bluetooth: hci0: command 0x1001 tx timeout
-[  653.043151] Bluetooth: hci0: Reading TI version information failed (-110)
-[  653.043182] Bluetooth: hci0: download firmware failed, retrying...
-[  655.203582] Bluetooth: hci0: command 0x1001 tx timeout
-[  663.294372] Bluetooth: hci0: Reading TI version information failed (-110)
-[  663.294464] Bluetooth: hci0: download firmware failed, retrying...
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index 091356f2a8c16..c726cd8dbdf1b 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -704,6 +704,60 @@
+ 		ti,bit-shift = <8>;
+ 		reg = <0x2a48>;
+ 	};
++
++	clkout1_osc_div_ck: clkout1-osc-div-ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&sys_clkin_ck>;
++		ti,bit-shift = <20>;
++		ti,max-div = <4>;
++		reg = <0x4100>;
++	};
++
++	clkout1_src2_mux_ck: clkout1-src2-mux-ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&clk_rc32k_ck>, <&sysclk_div>, <&dpll_ddr_m2_ck>,
++			 <&dpll_per_m2_ck>, <&dpll_disp_m2_ck>,
++			 <&dpll_mpu_m2_ck>;
++		reg = <0x4100>;
++	};
++
++	clkout1_src2_pre_div_ck: clkout1-src2-pre-div-ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&clkout1_src2_mux_ck>;
++		ti,bit-shift = <4>;
++		ti,max-div = <8>;
++		reg = <0x4100>;
++	};
++
++	clkout1_src2_post_div_ck: clkout1-src2-post-div-ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&clkout1_src2_pre_div_ck>;
++		ti,bit-shift = <8>;
++		ti,max-div = <32>;
++		ti,index-power-of-two;
++		reg = <0x4100>;
++	};
++
++	clkout1_mux_ck: clkout1-mux-ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&clkout1_osc_div_ck>, <&clk_rc32k_ck>,
++			 <&clkout1_src2_post_div_ck>, <&dpll_extdev_m2_ck>;
++		ti,bit-shift = <16>;
++		reg = <0x4100>;
++	};
++
++	clkout1_ck: clkout1-ck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&clkout1_mux_ck>;
++		ti,bit-shift = <23>;
++		reg = <0x4100>;
++	};
+ };
+ 
+ &prcm {
+-- 
+2.20.1
+
