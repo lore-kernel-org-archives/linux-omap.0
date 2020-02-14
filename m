@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 319BBC3B1A1
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:26:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0C9AC3B1A6
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:35:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03A3324650
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:26:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE9062168B
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 17:35:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581701185;
-	bh=S8L5RthTJ+fg8I4Qt4oWmfh6Upifu+P+RmgF9/5QYys=;
+	s=default; t=1581701712;
+	bh=V1uCnsEmX49LJ2ydtXkP/swSg4Sx68+/0ijzYCeDjIM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=bl8R+g+Pkjm2Hw9K0abaxBFudykmmeG9gLBCDWJ+FE04rtMNvUgEHIrXqb4r2H5jF
-	 YsT06Mu8Hq9UdMXPSQ6ZyPd5/gInKvp5GZFHhxZpHFCWXOixP/8duryaWKrfQ34J7K
-	 /VgEN5Sthu5MTBW6ckEmE5E9gllqhbYClePNZSVg=
+	b=E4MEoDVKKuDPLgkRjq93E4nDMx9gge5qxeE9rlyOMsTzxNwvNldi8xACE7JOWSJkz
+	 RP6WFAJEQGUOT2ssRAZX5DxkOLIsVylj270OQGkwwjhDFoxFzRN3+4yThyD0xxtcL5
+	 3R/M5Xp0yXGGjv8xtJXrKR4NO38W1NqUX6a3f/iA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391600AbgBNR0T (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:26:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60658 "EHLO mail.kernel.org"
+        id S2390284AbgBNQGB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 11:06:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391007AbgBNQIi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:08:38 -0500
+        id S2390278AbgBNQGB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:06:01 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7021B222C2;
-        Fri, 14 Feb 2020 16:08:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 602442187F;
+        Fri, 14 Feb 2020 16:05:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581696517;
-        bh=S8L5RthTJ+fg8I4Qt4oWmfh6Upifu+P+RmgF9/5QYys=;
+        s=default; t=1581696360;
+        bh=V1uCnsEmX49LJ2ydtXkP/swSg4Sx68+/0ijzYCeDjIM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=jfZAXyTQSQzwXV/Bg3jo2G9atIUAMhs4fXP5X140ut0X2PBAPSqgAqRMqcmskj5U+
-         i8OpNEzhgLkB0fDjuf8cyVSPVmzwo0P3kVEg0C3n5TYn/X28VREskQOFIAqbrqEiS1
-         YUs/pNgMY21f2vq9CybDm+gwiY419pKV7CgxJPdE=
+        b=Pu5AHOCpzxDcEIXZ7P/AUfbLNPucTwmA/mLlEyYNJF84JjFZ26xLezj7fy+HcAEdX
+         iPbKEkFAg7+PAJq1sFmsJ0XZ2XxNjiKDcVUWrP1j8gUL3lbsTpDUOSaZUYCPLUm1Dj
+         WC+FqkONfWHlhS6dBpqIEyIH9paT2p5ipFTVyRAk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
-        Bin Liu <b-liu@ti.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 318/459] usb: musb: omap2430: Get rid of musb .set_vbus for omap2430 glue
-Date:   Fri, 14 Feb 2020 10:59:28 -0500
-Message-Id: <20200214160149.11681-318-sashal@kernel.org>
+Cc:     Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH AUTOSEL 5.4 192/459] ARM: OMAP2+: use separate IOMMU pdata to fix DRA7 IPU1 boot
+Date:   Fri, 14 Feb 2020 10:57:22 -0500
+Message-Id: <20200214160149.11681-192-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200214160149.11681-1-sashal@kernel.org>
 References: <20200214160149.11681-1-sashal@kernel.org>
@@ -60,54 +58,93 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Suman Anna <s-anna@ti.com>
 
-[ Upstream commit 91b6dec32e5c25fbdbb564d1e5af23764ec17ef1 ]
+[ Upstream commit 4601832f40501efc3c2fd264a5a69bd1ac17d520 ]
 
-We currently have musb_set_vbus() called from two different paths. Mostly
-it gets called from the USB PHY via omap_musb_set_mailbox(), but in some
-cases it can get also called from musb_stage0_irq() rather via .set_vbus:
+The IPU1 MMU has been using common IOMMU pdata quirks defined and
+used by all IPU IOMMU devices on OMAP4 and beyond. Separate out the
+pdata for IPU1 MMU with the additional .set_pwrdm_constraint ops
+plugged in, so that the IPU1 power domain can be restricted to ON
+state during the boot and active period of the IPU1 remote processor.
+This eliminates the pre-conditions for the IPU1 boot issue as
+described in commit afe518400bdb ("iommu/omap: fix boot issue on
+remoteprocs with AMMU/Unicache").
 
-(musb_set_host [musb_hdrc])
-(omap2430_musb_set_vbus [omap2430])
-(musb_stage0_irq [musb_hdrc])
-(musb_interrupt [musb_hdrc])
-(omap2430_musb_interrupt [omap2430])
+NOTE:
+1. RET is not a valid target power domain state on DRA7 platforms,
+   and IPU power domain is normally programmed for OFF. The IPU1
+   still fails to boot though, and an unclearable l3_noc error is
+   thrown currently on 4.14 kernel without this fix. This behavior
+   is slightly different from previous 4.9 LTS kernel.
+2. The fix is currently applied only to IPU1 on DRA7xx SoC, as the
+   other affected processors on OMAP4/OMAP5/DRA7 are in domains
+   that are not entering RET. IPU2 on DRA7 is in CORE power domain
+   which is only programmed for ON power state. The fix can be easily
+   scaled if these domains do hit RET in the future.
+3. The issue was not seen on current DRA7 platforms if any of the
+   DSP remote processors were booted and using one of the GPTimers
+   5, 6, 7 or 8 on previous 4.9 LTS kernel. This was due to the
+   errata fix for i874 implemented in commit 1cbabcb9807e ("ARM:
+   DRA7: clockdomain: Implement timer workaround for errata i874")
+   which keeps the IPU1 power domain from entering RET when the
+   timers are active. But the timer workaround did not make any
+   difference on 4.14 kernel, and an l3_noc error was seen still
+   without this fix.
 
-This is racy and will not work with introducing generic helper functions
-for musb_set_host() and musb_set_peripheral(). We want to get rid of the
-busy loops in favor of usleep_range().
-
-Let's just get rid of .set_vbus for omap2430 glue layer and let the PHY
-code handle VBUS with musb_set_vbus(). Note that in the follow-up patch
-we can completely remove omap2430_musb_set_vbus(), but let's do it in a
-separate patch as this change may actually turn out to be needed as a
-fix.
-
-Reported-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Bin Liu <b-liu@ti.com>
-Link: https://lore.kernel.org/r/20200115132547.364-5-b-liu@ti.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/usb/musb/omap2430.c | 2 --
- 1 file changed, 2 deletions(-)
+ arch/arm/mach-omap2/pdata-quirks.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index a3d2fef677468..5c93226e0e20a 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -361,8 +361,6 @@ static const struct musb_platform_ops omap2430_ops = {
- 	.init		= omap2430_musb_init,
- 	.exit		= omap2430_musb_exit,
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 2657752b90670..e13dcc0083a05 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -45,6 +45,17 @@ struct pdata_init {
+ static struct of_dev_auxdata omap_auxdata_lookup[];
+ static struct twl4030_gpio_platform_data twl_gpio_auxdata;
  
--	.set_vbus	= omap2430_musb_set_vbus,
--
- 	.enable		= omap2430_musb_enable,
- 	.disable	= omap2430_musb_disable,
++#if IS_ENABLED(CONFIG_OMAP_IOMMU)
++int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev, bool request,
++				    u8 *pwrst);
++#else
++static inline int omap_iommu_set_pwrdm_constraint(struct platform_device *pdev,
++						  bool request, u8 *pwrst)
++{
++	return 0;
++}
++#endif
++
+ #ifdef CONFIG_MACH_NOKIA_N8X0
+ static void __init omap2420_n8x0_legacy_init(void)
+ {
+@@ -337,6 +348,10 @@ static void __init omap5_uevm_legacy_init(void)
+ #endif
  
+ #ifdef CONFIG_SOC_DRA7XX
++static struct iommu_platform_data dra7_ipu1_dsp_iommu_pdata = {
++	.set_pwrdm_constraint = omap_iommu_set_pwrdm_constraint,
++};
++
+ static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc1;
+ static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc2;
+ static struct omap_hsmmc_platform_data dra7_hsmmc_data_mmc3;
+@@ -568,6 +583,12 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
+ 		       &dra7_hsmmc_data_mmc2),
+ 	OF_DEV_AUXDATA("ti,dra7-hsmmc", 0x480ad000, "480ad000.mmc",
+ 		       &dra7_hsmmc_data_mmc3),
++	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x40d01000, "40d01000.mmu",
++		       &dra7_ipu1_dsp_iommu_pdata),
++	OF_DEV_AUXDATA("ti,dra7-dsp-iommu", 0x41501000, "41501000.mmu",
++		       &dra7_ipu1_dsp_iommu_pdata),
++	OF_DEV_AUXDATA("ti,dra7-iommu", 0x58882000, "58882000.mmu",
++		       &dra7_ipu1_dsp_iommu_pdata),
+ #endif
+ 	/* Common auxdata */
+ 	OF_DEV_AUXDATA("ti,sysc", 0, NULL, &ti_sysc_pdata),
 -- 
 2.20.1
 
