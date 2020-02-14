@@ -2,99 +2,103 @@ Return-Path: <SRS0=+U9p=4C=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F563C2BA83
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 12:49:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A3CC3B199
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 13:01:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 41FA622314
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 12:49:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581684564;
-	bh=I2z+me8ZlJdPuu+TxgkV8Mr9SKlKNdQE81Zf4qtmN5E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=z8Dc3pE7/b6JKVLf30/+5QSXgT0hkbkkM1s/37ql5aithKqZuLmfSHn7BJnjdG4Jk
-	 seT1Vxk51fEC8a2MmAg4sv+3PxybEVcVxhSkgFtRw5FxbZ8nuUXFdR3YfRRVBatCG7
-	 i3KGTvvf9u9tbRI1BHhNxAALmYbuZDIRXb8CU65c=
+	by mail.kernel.org (Postfix) with ESMTP id 5E0A2222C2
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Feb 2020 13:01:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=wizzup.org header.i=@wizzup.org header.b="nQGPPlyK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728557AbgBNMtX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Feb 2020 07:49:23 -0500
-Received: from foss.arm.com ([217.140.110.172]:60950 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728062AbgBNMtX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 14 Feb 2020 07:49:23 -0500
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9BF1E1FB;
-        Fri, 14 Feb 2020 04:49:22 -0800 (PST)
-Received: from localhost (unknown [10.37.6.21])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1E29E3F68F;
-        Fri, 14 Feb 2020 04:49:21 -0800 (PST)
-Date:   Fri, 14 Feb 2020 12:49:20 +0000
-From:   Mark Brown <broonie@kernel.org>
-To:     Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc:     Tony Lindgren <tony@atomide.com>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        "Arthur D ." <spinal.by@gmail.com>,
-        Jarkko Nikula <jarkko.nikula@bitmer.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] ASoC: ti: Allocate dais dynamically for TDM and audio
- graph card
-Message-ID: <20200214124920.GH4827@sirena.org.uk>
-References: <20200211171645.41990-1-tony@atomide.com>
- <cd46c6ec-80e3-332f-4922-e58a3acbfc61@ti.com>
- <20200212143543.GI64767@atomide.com>
- <346dfd2b-23f8-87e0-6f45-27a5099b1066@ti.com>
+        id S1728895AbgBNNBG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Feb 2020 08:01:06 -0500
+Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:59470 "EHLO
+        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728036AbgBNNBF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2020 08:01:05 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=wizzup.org;
+         s=mail; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=J/V7zkHQUUcwpBuxtuCDV4YxrtNB7KF4oGNQiKpJiEw=; b=nQGPPlyKanYjWB0RIjUWLuigHo
+        dAooLceMvbxlBtLfNCvFCN6J5Pf79Wdb+eF/QgO+SpITbvqY8a6OIF02ie3nIrV9BJcDwPJ8kXQCx
+        IC9lpsCXixEfELHoxeHHhxL2CgMB9d3StJKTNFGLF8LRsyhka8S+REvV/xJBobBh3NiTEc4gnybOS
+        gUbZuBkL7qLPuxoL1V5qVCw3e+wIL/PfWkDcSBH12QYFz4wl8o3CNTvAkSluwIKP7o3b8d9Itieve
+        m94MBywHCUiNv0ybq0pKJjsj6Zh4VkPV/vf9fx/UIkZObc7wvYgGsBpPk0k1m5gnC7KvFZoZDjT8A
+        hI3gnZzQ==;
+Received: from kgpe-d16.fritz.box ([192.168.178.22])
+        by hetgrotebos.org with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <merlijn@wizzup.org>)
+        id 1j2aaY-0002df-8z; Fri, 14 Feb 2020 13:00:58 +0000
+From:   Merlijn Wajer <merlijn@wizzup.org>
+To:     merlijn@wizzup.org
+Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Mattias Jacobsson <2pi@mok.nu>,
+        "Darren Hart (VMware)" <dvhart@infradead.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+Subject: [RFC PATCH 1/2] Input: add `SW_MACHINE_COVER`
+Date:   Fri, 14 Feb 2020 14:02:47 +0100
+Message-Id: <20200214130249.6845-2-merlijn@wizzup.org>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20200214130249.6845-1-merlijn@wizzup.org>
+References: <20200214130249.6845-1-merlijn@wizzup.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="bpVaumkpfGNUagdU"
-Content-Disposition: inline
-In-Reply-To: <346dfd2b-23f8-87e0-6f45-27a5099b1066@ti.com>
-X-Cookie: Shipping not included.
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+This event code represents the state of a removable cover of a device.
+Value 1 means that the cover is open or removed, value 0 means that the
+cover is closed.
 
---bpVaumkpfGNUagdU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This can be used to preempt users removing a removable mmc card or even
+the battery, allowing userspace to attempt to safely unmount a card.
+---
+ include/linux/mod_devicetable.h        | 2 +-
+ include/uapi/linux/input-event-codes.h | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-On Fri, Feb 14, 2020 at 02:41:30PM +0200, Peter Ujfalusi wrote:
-> On 12/02/2020 16.35, Tony Lindgren wrote:
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index 448621c32e4d..4c692cb3cc1d 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -299,7 +299,7 @@ struct pcmcia_device_id {
+ #define INPUT_DEVICE_ID_LED_MAX		0x0f
+ #define INPUT_DEVICE_ID_SND_MAX		0x07
+ #define INPUT_DEVICE_ID_FF_MAX		0x7f
+-#define INPUT_DEVICE_ID_SW_MAX		0x0f
++#define INPUT_DEVICE_ID_SW_MAX		0x10
+ #define INPUT_DEVICE_ID_PROP_MAX	0x1f
+ 
+ #define INPUT_DEVICE_ID_MATCH_BUS	1
+diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+index 64cee116928e..318a6387cdfb 100644
+--- a/include/uapi/linux/input-event-codes.h
++++ b/include/uapi/linux/input-event-codes.h
+@@ -807,7 +807,8 @@
+ #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
+ #define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
+ #define SW_PEN_INSERTED		0x0f  /* set = pen inserted */
+-#define SW_MAX			0x0f
++#define SW_MACHINE_COVER	 0x10 /* set = cover closed */
++#define SW_MAX			0x10
+ #define SW_CNT			(SW_MAX+1)
+ 
+ /*
+-- 
+2.23.0
 
-> > Oops, that's not good. So should we just keep the old naming if there's
-> > only one endpoint?
-
-> That's an option, yes, if we really need extra dummy McBSP DAIs at all,
-> again, let's hear from Morimoto-san or Mark.
-
-We really shouldn't need dummy DAIs at all I think, if we do it feels
-like there's a problem.  It's quite possible that there is actually a
-problem here though...
-
---bpVaumkpfGNUagdU
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAl5Gl08ACgkQJNaLcl1U
-h9AGSgf/WC1rD+oEYoImv2NX+F1kZLeDZ1n+50cMMhVxzUM8Wc/oD6BZAF7BSo5I
-Pd0iBQQd9PStwHOvnWEdTzohUmiK/7iRVPKYYYpv47/9g4v4tT7BDe7tNRNolBGR
-xYV/sJiD+U0DlpSUOYuwd4xxQVLAcEXUp7SSjvHAoYEiJlZ055K1opwl3avKwYR0
-7d2vQr0nQrc9wD49QxxD9fGMhv/o+sVx6rpkayuiOpcE3QRxSJIgxnVdPwlKSjxU
-YIe91JG0GI4BGwWy3fi21D4tiMNLIPrwubI91PuPhBFaUkJVSW+8njfpLK+SrHrJ
-uaRh/PD/nMhNE7bNAr7JbguqB70QRA==
-=s0ru
------END PGP SIGNATURE-----
-
---bpVaumkpfGNUagdU--
