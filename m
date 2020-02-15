@@ -2,106 +2,102 @@ Return-Path: <SRS0=o++W=4D=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC1AC71150
-	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 17:00:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC993C352A3
+	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 19:59:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9197217F4
-	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 17:00:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=wizzup.org header.i=@wizzup.org header.b="i3pOjcr0"
+	by mail.kernel.org (Postfix) with ESMTP id A233A2072D
+	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 19:59:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726137AbgBORAe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 15 Feb 2020 12:00:34 -0500
-Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:45178 "EHLO
-        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726209AbgBORAe (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 15 Feb 2020 12:00:34 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=wizzup.org;
-         s=mail; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=xuSqKQckl8muEwKshU/FzUtts9aWAxkpxm3IlAs7oE0=; b=i3pOjcr07cSYOV1hufyJQR5jBO
-        qSSk62inBHZ1/2kXDe1fQDwqRaFLJjuecxX/PR5NaaEraMc2KcGTiHKfYc6ORw4xPDTZv0pBSawnl
-        mETCSN56iH0aKVUguFcI6+T3Vc+wNqGOFU+AI1K3x96M43uX7lhy5zrQ0f2sEa6wufOQnYu5mUbXg
-        x6/gZVYOlsk/UJhlhaf9uYuwRujJGr01+IK4EAfJnpBKc8I4Azziy94WRtNY0ACljEkHOU5jox/uK
-        CTJyfb1evVRnV95CeRflGw02/rglMf2Q+NZuqjKmu6hu4yTrxVg+EAf8Og+o9SbgvBlOW+CctTOUP
-        7LB2oAjw==;
-Received: from kgpe-d16.fritz.box ([192.168.178.22])
-        by hetgrotebos.org with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <merlijn@wizzup.org>)
-        id 1j30ni-00037p-CU; Sat, 15 Feb 2020 17:00:18 +0000
-From:   Merlijn Wajer <merlijn@wizzup.org>
-Cc:     Merlijn Wajer <merlijn@wizzup.org>,
-        Sebastian Reichel <sebastian.reichel@collabora.com>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        "Darren Hart (VMware)" <dvhart@infradead.org>,
-        Mattias Jacobsson <2pi@mok.nu>, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-input@vger.kernel.org
-Subject: [PATCH 1/2] Input: add `SW_MACHINE_COVER`
-Date:   Sat, 15 Feb 2020 18:02:14 +0100
-Message-Id: <20200215170216.14397-2-merlijn@wizzup.org>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20200215170216.14397-1-merlijn@wizzup.org>
-References: <20200215170216.14397-1-merlijn@wizzup.org>
+        id S1726275AbgBOT7w (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 15 Feb 2020 14:59:52 -0500
+Received: from jabberwock.ucw.cz ([46.255.230.98]:50846 "EHLO
+        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726273AbgBOT7w (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 15 Feb 2020 14:59:52 -0500
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 8981B1C1CBB; Sat, 15 Feb 2020 20:59:50 +0100 (CET)
+Date:   Sat, 15 Feb 2020 20:59:49 +0100
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com,
+        mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz
+Subject: Re: 5.6-rc0.95: /dev/motmdm no longer there
+Message-ID: <20200215195949.GB10344@amd>
+References: <20200209213422.GA3009@amd>
+ <20200209213717.GD64767@atomide.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="GID0FwUMdk1T2AWN"
+Content-Disposition: inline
+In-Reply-To: <20200209213717.GD64767@atomide.com>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This event code represents the state of a removable cover of a device.
-Value 0 means that the cover is open or removed, value 1 means that the
-cover is closed.
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
----
- include/linux/mod_devicetable.h        | 2 +-
- include/uapi/linux/input-event-codes.h | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+--GID0FwUMdk1T2AWN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 448621c32e4d..4c692cb3cc1d 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -299,7 +299,7 @@ struct pcmcia_device_id {
- #define INPUT_DEVICE_ID_LED_MAX		0x0f
- #define INPUT_DEVICE_ID_SND_MAX		0x07
- #define INPUT_DEVICE_ID_FF_MAX		0x7f
--#define INPUT_DEVICE_ID_SW_MAX		0x0f
-+#define INPUT_DEVICE_ID_SW_MAX		0x10
- #define INPUT_DEVICE_ID_PROP_MAX	0x1f
- 
- #define INPUT_DEVICE_ID_MATCH_BUS	1
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index 64cee116928e..68f8ad8377a1 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -807,7 +807,8 @@
- #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
- #define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
- #define SW_PEN_INSERTED		0x0f  /* set = pen inserted */
--#define SW_MAX			0x0f
-+#define SW_MACHINE_COVER	0x10 /* set = cover closed */
-+#define SW_MAX			0x10
- #define SW_CNT			(SW_MAX+1)
- 
- /*
--- 
-2.23.0
+Hi!
 
+> > 5.6-rc0.95 -- based on:
+> >=20
+> > commit fdfa3a6778b194974df77b384cc71eb2e503639a
+> > Merge: 291abfea4746 e0a514259378
+> > Author: Linus Torvalds <torvalds@linux-foundation.org>
+> > Date:   Sat Feb 8 17:24:41 2020 -0800
+> >=20
+> >     Merge tag 'scsi-misc' of
+> >     git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi
+> >=20
+> >=20
+> > /dev/motmdm* is not there for me. Unfortunately,
+> > drivers/mfd/motorola-mdm.c is not mainline, so I can't just try with
+> > the mainline....
+> >=20
+> > Does it work for you?
+> >=20
+> > I have ... rather a lot of warnings in dmesg :-(. /dev/ttyUSB4 works
+> > ok for me.
+> >=20
+> > Can I somehow help get /dev/motmdmX upstream?
+>=20
+> Heh yeah actually I'm cleaning up those patches right now :)
+>=20
+> Meanwhile, try droid4-pending-v5.5 branch or pick the related
+> patches from there.
+
+Thanks, that branch works fine for me. I guess I should try to get my
+Droid into state where it can be used as a primary phone.
+
+Best regards,
+
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--GID0FwUMdk1T2AWN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAl5ITbUACgkQMOfwapXb+vIKOACgn6mIIDmlx9TU0KIt9aeaHQ3b
+TLkAniPVNkucHHFfsaAAyssKqsyoP2/Y
+=E/d4
+-----END PGP SIGNATURE-----
+
+--GID0FwUMdk1T2AWN--
