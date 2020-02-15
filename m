@@ -2,60 +2,57 @@ Return-Path: <SRS0=o++W=4D=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE895C2BA83
-	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 17:00:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3377FC2BA83
+	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 17:00:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 985A02083B
-	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 17:00:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04A392083B
+	for <linux-omap@archiver.kernel.org>; Sat, 15 Feb 2020 17:00:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=wizzup.org header.i=@wizzup.org header.b="ONIshqSG"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=wizzup.org header.i=@wizzup.org header.b="TvJ04IHT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726428AbgBORAe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1726338AbgBORAe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Sat, 15 Feb 2020 12:00:34 -0500
-Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:45180 "EHLO
+Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:45182 "EHLO
         hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726143AbgBORAe (ORCPT
+        with ESMTP id S1726211AbgBORAe (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Sat, 15 Feb 2020 12:00:34 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=wizzup.org;
-         s=mail; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+         s=mail; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:Cc:
+        To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=5mloNwlHrXdn4IwVWhbhGXhiCRauDyoDgJnxMxS8A3Y=; b=ONIshqSGcrrUtCYNbDJGk63TWb
-        FSLz2TT8D24qgDUtIGDPmVXp9BxfwjjprtJXuZZPOL+4uSrSFWijbiHMao5rScoEfvNkI631I8w6S
-        +eQtNwMg0WfBM9nTe1V9V1IkE/l9MFObWuiVtJfZpMMVMdzQT78Znc/QaavJd38moOGzyIZy4PJUM
-        +SzifJhAL4Vy78nBHWuFYDwSWmAFokD7K7Bt4wArYXWZt83viyKbe5gnu59dwks1Adla/Nkv1lZCk
-        Dc+4JlmVOOZCFd+ZjLeNcqmQJZ/8CVD0an2XxZPdMRxaEYPxir0xaDpRXVI6seNnLwKpHZejhKoBd
-        7sX48b7w==;
+        bh=/bYhlTgZjq7g++rSKDUPsBEdeWE9dMvdESyFshU2+TM=; b=TvJ04IHTnQv9XjQOpFH0kBkboF
+        UK6G36vzXOufs78oN4e2AUFWWvy3+DX6O+1aqxvlgl/J4+Ycs8FDPvpScOy31PUeeAXfmrDrHrLey
+        jKR+Sa9EGaL933GOTkmzdj2T6RL+BsLFjY/FB/J/Fhfz9cJA54bqUy98nRNWcwne+5IQ52BcsGF73
+        x4VT31q1uYMebxjQyzDmxWLApF9ABxS41rUIeX3unU7KrbNRuBbylThqT79yM0QJFMWqeI+uNO4Ot
+        8l5qYFlueJfy4Tx0PjBNHM14WlJFN3HKLyjSTsVRcO6B5R//O5OBWc6OZTVOkWXps+ohDkDuu8JA2
+        3rKPY4GA==;
 Received: from kgpe-d16.fritz.box ([192.168.178.22])
         by hetgrotebos.org with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.93)
         (envelope-from <merlijn@wizzup.org>)
-        id 1j30nj-00037p-C4; Sat, 15 Feb 2020 17:00:19 +0000
+        id 1j30nh-00037p-DQ; Sat, 15 Feb 2020 17:00:17 +0000
 From:   Merlijn Wajer <merlijn@wizzup.org>
 Cc:     Merlijn Wajer <merlijn@wizzup.org>,
-        Sebastian Reichel <sebastian.reichel@collabora.com>,
         =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
         Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Mattias Jacobsson <2pi@mok.nu>,
         "Darren Hart (VMware)" <dvhart@infradead.org>,
+        Mattias Jacobsson <2pi@mok.nu>,
+        Sebastian Reichel <sebastian.reichel@collabora.com>,
         linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
-Subject: [PATCH 2/2] ARM: dts: n900: remove mmc1 card detect gpio
-Date:   Sat, 15 Feb 2020 18:02:15 +0100
-Message-Id: <20200215170216.14397-3-merlijn@wizzup.org>
+Subject: [PATCH 0/2] Add SW_MACHINE_COVER key
+Date:   Sat, 15 Feb 2020 18:02:13 +0100
+Message-Id: <20200215170216.14397-1-merlijn@wizzup.org>
 X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20200215170216.14397-1-merlijn@wizzup.org>
-References: <20200215170216.14397-1-merlijn@wizzup.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 To:     unlisted-recipients:; (no To-header on input)
@@ -64,54 +61,37 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Instead, expose the key via the input framework, as SW_MACHINE_COVER
+this series adds the sw_machine_cover key, and changes the nokia n900 dts to
+expose the key via gpio-keys.
 
-The chip-detect GPIO is actually detecting if the cover is closed.
-Technically it's possible to use the SD card with open cover. The
-only downside is risk of battery falling out and user being able
-to physically remove the card.
+before, this gpio was used as card detect gpio, causing the card not to show up
+if the phone was booted without cover, see this thread on linux-omap:
 
-The behaviour of SD card not being available when the device is
-open is unexpected and creates more problems than it solves. There
-is a high chance, that more people accidently break their rootfs
-by opening the case without physically removing the card.
+    n900: remove mmc1 "safety feature"? (was: re: mmc0 on nokia n900 on linux 5.4.18)
 
-Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
----
- arch/arm/boot/dts/omap3-n900.dts | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+since there is no realistic use for using this gpio as card detect, instead
+expose it to userspace via gpio-keys. there are no event type for machine covers
+yet, so add that first.
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 7028a7cb2849..ed773e1609a5 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -108,6 +108,14 @@
- 			linux,code = <SW_FRONT_PROXIMITY>;
- 			linux,can-disable;
- 		};
-+
-+		machine_cover {
-+			label = "Machine Cover";
-+			gpios = <&gpio6 0 GPIO_ACTIVE_LOW>; /* 160 */
-+			linux,input-type = <EV_SW>;
-+			linux,code = <SW_MACHINE_COVER>;
-+			linux,can-disable;
-+		};
- 	};
- 
- 	isp1707: isp1707 {
-@@ -805,10 +813,6 @@
- 	pinctrl-0 = <&mmc1_pins>;
- 	vmmc-supply = <&vmmc1>;
- 	bus-width = <4>;
--	/* For debugging, it is often good idea to remove this GPIO.
--	   It means you can remove back cover (to reboot by removing
--	   battery) and still use the MMC card. */
--	cd-gpios = <&gpio6 0 GPIO_ACTIVE_LOW>; /* 160 */
- };
- 
- /* most boards use vaux3, only some old versions use vmmc2 instead */
+the key should be 1 when the cover is closed, and 0 when the cover is open.
+
+starting the nokia n900 with the cover removed, putting the cover in place:
+
+    event: time 1581684523.415296, type 5 (ev_sw), code 16 (?), value 1
+
+removing the cover again, exposing mmc1 and the battery:
+
+    event: time 1581684529.413706, type 5 (ev_sw), code 16 (?), value 0
+
+Merlijn Wajer (2):
+  Input: add `SW_MACHINE_COVER`
+  ARM: dts: n900: remove mmc1 card detect gpio
+
+ arch/arm/boot/dts/omap3-n900.dts       | 12 ++++++++----
+ include/linux/mod_devicetable.h        |  2 +-
+ include/uapi/linux/input-event-codes.h |  3 ++-
+ 3 files changed, 11 insertions(+), 6 deletions(-)
+
 -- 
 2.23.0
 
