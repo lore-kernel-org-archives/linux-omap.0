@@ -2,391 +2,327 @@ Return-Path: <SRS0=rl2H=4I=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63E2AC11D00
-	for <linux-omap@archiver.kernel.org>; Thu, 20 Feb 2020 08:30:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70FD0C11D07
+	for <linux-omap@archiver.kernel.org>; Thu, 20 Feb 2020 14:08:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 396EB208C4
-	for <linux-omap@archiver.kernel.org>; Thu, 20 Feb 2020 08:30:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37C3F24654
+	for <linux-omap@archiver.kernel.org>; Thu, 20 Feb 2020 14:08:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Jv5sVVdT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726764AbgBTIaC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Feb 2020 03:30:02 -0500
-Received: from honk.sigxcpu.org ([24.134.29.49]:46392 "EHLO honk.sigxcpu.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726679AbgBTIaC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 20 Feb 2020 03:30:02 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by honk.sigxcpu.org (Postfix) with ESMTP id C8BE0FB03;
-        Thu, 20 Feb 2020 09:29:59 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at honk.sigxcpu.org
-Received: from honk.sigxcpu.org ([127.0.0.1])
-        by localhost (honk.sigxcpu.org [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id zMjbSs77NzEe; Thu, 20 Feb 2020 09:29:57 +0100 (CET)
-Received: by bogon.sigxcpu.org (Postfix, from userid 1000)
-        id 7B4B5405C2; Thu, 20 Feb 2020 09:29:56 +0100 (CET)
-Date:   Thu, 20 Feb 2020 09:29:56 +0100
-From:   Guido =?iso-8859-1?Q?G=FCnther?= <agx@sigxcpu.org>
-To:     Pavel Machek <pavel@ucw.cz>
-Cc:     Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com,
-        mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz,
-        daniel.thompson@linaro.org, jingoohan1@gmail.com,
-        dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com,
-        jjhiblot@ti.com
-Subject: Re: [PATCH] backlight: add led-backlight driver
-Message-ID: <20200220082956.GA3383@bogon.m.sigxcpu.org>
-References: <20200219191412.GA15905@amd>
+        id S1727761AbgBTOIc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Feb 2020 09:08:32 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:44446 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728042AbgBTOIc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Feb 2020 09:08:32 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01KE7J0D048608;
+        Thu, 20 Feb 2020 08:07:19 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1582207639;
+        bh=57Udr//2K9Cc8/sUWnFCWsbhzUyakzeFYjICEp4Kpb4=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=Jv5sVVdTcICqp+DVb+CytSE02ZhkqByElBlMXmx/BjIsIPjOmKLfmXNeid0wwaiBc
+         KUdZL511M0H0VlLHfGCGaDxJqi30djHAjz8SGBod34T3o5gN9aA0+tSy9FDTzdj5MS
+         AGkDA8AoKr8YPs/tCvqq+f0bIaN5aOEnmOWVEGgE=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01KE7JT8128850
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 20 Feb 2020 08:07:19 -0600
+Received: from DFLE112.ent.ti.com (10.64.6.33) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Thu, 20
+ Feb 2020 08:07:18 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
+ Frontend Transport; Thu, 20 Feb 2020 08:07:18 -0600
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01KE7E7C072937;
+        Thu, 20 Feb 2020 08:07:15 -0600
+Subject: Re: [PATCH] ASoC: ti: Allocate dais dynamically for TDM and audio
+ graph card
+To:     Tony Lindgren <tony@atomide.com>
+CC:     Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, <alsa-devel@alsa-project.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        "Arthur D ." <spinal.by@gmail.com>,
+        Jarkko Nikula <jarkko.nikula@bitmer.com>,
+        Merlijn Wajer <merlijn@wizzup.org>,
+        Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+References: <20200211171645.41990-1-tony@atomide.com>
+ <cd46c6ec-80e3-332f-4922-e58a3acbfc61@ti.com>
+ <20200212143543.GI64767@atomide.com>
+ <346dfd2b-23f8-87e0-6f45-27a5099b1066@ti.com>
+ <20200214170322.GZ64767@atomide.com>
+ <d9a43fcb-ed0f-5cd5-7e22-58924d571d17@ti.com>
+ <20200217231001.GC35972@atomide.com>
+ <5402eba8-4f84-0973-e11b-6ab2667ada85@ti.com>
+ <20200218152833.GH35972@atomide.com>
+From:   Peter Ujfalusi <peter.ujfalusi@ti.com>
+Message-ID: <40a803e2-6a08-2c73-0312-666441716daa@ti.com>
+Date:   Thu, 20 Feb 2020 16:07:25 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20200218152833.GH35972@atomide.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200219191412.GA15905@amd>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
-On Wed, Feb 19, 2020 at 08:14:12PM +0100, Pavel Machek wrote:
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> 
-> This patch adds a led-backlight driver (led_bl), which is similar to
-> pwm_bl except the driver uses a LED class driver to adjust the
-> brightness in the HW. Multiple LEDs can be used for a single backlight.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Signed-off-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
-> Acked-by: Lee Jones <lee.jones@linaro.org>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-Tested-by: Guido Günther <agx@sigxcpu.org>
-
-Cheers,
- -- Guido
-
-> ---
->  drivers/video/backlight/Kconfig  |   7 ++
->  drivers/video/backlight/Makefile |   1 +
->  drivers/video/backlight/led_bl.c | 260 +++++++++++++++++++++++++++++++++++++++
->  3 files changed, 268 insertions(+)
->  create mode 100644 drivers/video/backlight/led_bl.c
-> 
-> Hi!
-> 
-> Here's the version of the driver I have. AFAICT
-> default-brightness-level handling is ok, so does not need to be
-> changed.
-> 
-> Lee, it would be easiest for me if you could apply it to your tree and
-> push, but given enough time I can push it to Linus, too.
-> 
-> Thanks,
-> 								Pavel
-> 
-> diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
-> index 403707a3e503..0093bbd0d326 100644
-> --- a/drivers/video/backlight/Kconfig
-> +++ b/drivers/video/backlight/Kconfig
-> @@ -456,6 +456,13 @@ config BACKLIGHT_RAVE_SP
->  	help
->  	  Support for backlight control on RAVE SP device.
->  
-> +config BACKLIGHT_LED
-> +	tristate "Generic LED based Backlight Driver"
-> +	depends on LEDS_CLASS && OF
-> +	help
-> +	  If you have a LCD backlight adjustable by LED class driver, say Y
-> +	  to enable this driver.
-> +
->  endif # BACKLIGHT_CLASS_DEVICE
->  
->  endmenu
-> diff --git a/drivers/video/backlight/Makefile b/drivers/video/backlight/Makefile
-> index 6f8777037c37..0c1a1524627a 100644
-> --- a/drivers/video/backlight/Makefile
-> +++ b/drivers/video/backlight/Makefile
-> @@ -57,3 +57,4 @@ obj-$(CONFIG_BACKLIGHT_TPS65217)	+= tps65217_bl.o
->  obj-$(CONFIG_BACKLIGHT_WM831X)		+= wm831x_bl.o
->  obj-$(CONFIG_BACKLIGHT_ARCXCNN) 	+= arcxcnn_bl.o
->  obj-$(CONFIG_BACKLIGHT_RAVE_SP)		+= rave-sp-backlight.o
-> +obj-$(CONFIG_BACKLIGHT_LED)		+= led_bl.o
-> diff --git a/drivers/video/backlight/led_bl.c b/drivers/video/backlight/led_bl.c
-> new file mode 100644
-> index 000000000000..3f66549997c8
-> --- /dev/null
-> +++ b/drivers/video/backlight/led_bl.c
-> @@ -0,0 +1,260 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright (C) 2015-2019 Texas Instruments Incorporated -  http://www.ti.com/
-> + * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> + *
-> + * Based on pwm_bl.c
-> + */
-> +
-> +#include <linux/backlight.h>
-> +#include <linux/leds.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +
-> +struct led_bl_data {
-> +	struct device		*dev;
-> +	struct backlight_device	*bl_dev;
-> +	struct led_classdev	**leds;
-> +	bool			enabled;
-> +	int			nb_leds;
-> +	unsigned int		*levels;
-> +	unsigned int		default_brightness;
-> +	unsigned int		max_brightness;
-> +};
-> +
-> +static void led_bl_set_brightness(struct led_bl_data *priv, int level)
-> +{
-> +	int i;
-> +	int bkl_brightness;
-> +
-> +	if (priv->levels)
-> +		bkl_brightness = priv->levels[level];
-> +	else
-> +		bkl_brightness = level;
-> +
-> +	for (i = 0; i < priv->nb_leds; i++)
-> +		led_set_brightness(priv->leds[i], bkl_brightness);
-> +
-> +	priv->enabled = true;
-> +}
-> +
-> +static void led_bl_power_off(struct led_bl_data *priv)
-> +{
-> +	int i;
-> +
-> +	if (!priv->enabled)
-> +		return;
-> +
-> +	for (i = 0; i < priv->nb_leds; i++)
-> +		led_set_brightness(priv->leds[i], LED_OFF);
-> +
-> +	priv->enabled = false;
-> +}
-> +
-> +static int led_bl_update_status(struct backlight_device *bl)
-> +{
-> +	struct led_bl_data *priv = bl_get_data(bl);
-> +	int brightness = bl->props.brightness;
-> +
-> +	if (bl->props.power != FB_BLANK_UNBLANK ||
-> +	    bl->props.fb_blank != FB_BLANK_UNBLANK ||
-> +	    bl->props.state & BL_CORE_FBBLANK)
-> +		brightness = 0;
-> +
-> +	if (brightness > 0)
-> +		led_bl_set_brightness(priv, brightness);
-> +	else
-> +		led_bl_power_off(priv);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct backlight_ops led_bl_ops = {
-> +	.update_status	= led_bl_update_status,
-> +};
-> +
-> +static int led_bl_get_leds(struct device *dev,
-> +			   struct led_bl_data *priv)
-> +{
-> +	int i, nb_leds, ret;
-> +	struct device_node *node = dev->of_node;
-> +	struct led_classdev **leds;
-> +	unsigned int max_brightness;
-> +	unsigned int default_brightness;
-> +
-> +	ret = of_count_phandle_with_args(node, "leds", NULL);
-> +	if (ret < 0) {
-> +		dev_err(dev, "Unable to get led count\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	nb_leds = ret;
-> +	if (nb_leds < 1) {
-> +		dev_err(dev, "At least one LED must be specified!\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	leds = devm_kzalloc(dev, sizeof(struct led_classdev *) * nb_leds,
-> +			    GFP_KERNEL);
-> +	if (!leds)
-> +		return -ENOMEM;
-> +
-> +	for (i = 0; i < nb_leds; i++) {
-> +		leds[i] = devm_of_led_get(dev, i);
-> +		if (IS_ERR(leds[i]))
-> +			return PTR_ERR(leds[i]);
-> +	}
-> +
-> +	/* check that the LEDs all have the same brightness range */
-> +	max_brightness = leds[0]->max_brightness;
-> +	for (i = 1; i < nb_leds; i++) {
-> +		if (max_brightness != leds[i]->max_brightness) {
-> +			dev_err(dev, "LEDs must have identical ranges\n");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	/* get the default brightness from the first LED from the list */
-> +	default_brightness = leds[0]->brightness;
-> +
-> +	priv->nb_leds = nb_leds;
-> +	priv->leds = leds;
-> +	priv->max_brightness = max_brightness;
-> +	priv->default_brightness = default_brightness;
-> +
-> +	return 0;
-> +}
-> +
-> +static int led_bl_parse_levels(struct device *dev,
-> +			   struct led_bl_data *priv)
-> +{
-> +	struct device_node *node = dev->of_node;
-> +	int num_levels;
-> +	u32 value;
-> +	int ret;
-> +
-> +	if (!node)
-> +		return -ENODEV;
-> +
-> +	num_levels = of_property_count_u32_elems(node, "brightness-levels");
-> +	if (num_levels > 1) {
-> +		int i;
-> +		unsigned int db;
-> +		u32 *levels = NULL;
-> +
-> +		levels = devm_kzalloc(dev, sizeof(u32) * num_levels,
-> +				      GFP_KERNEL);
-> +		if (!levels)
-> +			return -ENOMEM;
-> +
-> +		ret = of_property_read_u32_array(node, "brightness-levels",
-> +						levels,
-> +						num_levels);
-> +		if (ret < 0)
-> +			return ret;
-> +
-> +		/*
-> +		 * Try to map actual LED brightness to backlight brightness
-> +		 * level
-> +		 */
-> +		db = priv->default_brightness;
-> +		for (i = 0 ; i < num_levels; i++) {
-> +			if ((i && db > levels[i-1]) && db <= levels[i])
-> +				break;
-> +		}
-> +		priv->default_brightness = i;
-> +		priv->max_brightness = num_levels - 1;
-> +		priv->levels = levels;
-> +	} else if (num_levels >= 0)
-> +		dev_warn(dev, "Not enough levels defined\n");
-> +
-> +	ret = of_property_read_u32(node, "default-brightness-level", &value);
-> +	if (!ret && value <= priv->max_brightness)
-> +		priv->default_brightness = value;
-> +	else if (!ret  && value > priv->max_brightness)
-> +		dev_warn(dev, "Invalid default brightness. Ignoring it\n");
-> +
-> +	return 0;
-> +}
-> +
-> +static int led_bl_probe(struct platform_device *pdev)
-> +{
-> +	struct backlight_properties props;
-> +	struct led_bl_data *priv;
-> +	int ret, i;
-> +
-> +	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, priv);
-> +
-> +	priv->dev = &pdev->dev;
-> +
-> +	ret = led_bl_get_leds(&pdev->dev, priv);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = led_bl_parse_levels(&pdev->dev, priv);
-> +	if (ret < 0) {
-> +		dev_err(&pdev->dev, "Failed to parse DT data\n");
-> +		return ret;
-> +	}
-> +
-> +	memset(&props, 0, sizeof(struct backlight_properties));
-> +	props.type = BACKLIGHT_RAW;
-> +	props.max_brightness = priv->max_brightness;
-> +	props.brightness = priv->default_brightness;
-> +	props.power = (priv->default_brightness > 0) ? FB_BLANK_POWERDOWN :
-> +		      FB_BLANK_UNBLANK;
-> +	priv->bl_dev = backlight_device_register(dev_name(&pdev->dev),
-> +			&pdev->dev, priv, &led_bl_ops, &props);
-> +	if (IS_ERR(priv->bl_dev)) {
-> +		dev_err(&pdev->dev, "Failed to register backlight\n");
-> +		return PTR_ERR(priv->bl_dev);
-> +	}
-> +
-> +	for (i = 0; i < priv->nb_leds; i++)
-> +		led_sysfs_disable(priv->leds[i]);
-> +
-> +	backlight_update_status(priv->bl_dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int led_bl_remove(struct platform_device *pdev)
-> +{
-> +	struct led_bl_data *priv = platform_get_drvdata(pdev);
-> +	struct backlight_device *bl = priv->bl_dev;
-> +	int i;
-> +
-> +	backlight_device_unregister(bl);
-> +
-> +	led_bl_power_off(priv);
-> +	for (i = 0; i < priv->nb_leds; i++)
-> +		led_sysfs_enable(priv->leds[i]);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id led_bl_of_match[] = {
-> +	{ .compatible = "led-backlight" },
-> +	{ }
-> +};
-> +
-> +MODULE_DEVICE_TABLE(of, led_bl_of_match);
-> +
-> +static struct platform_driver led_bl_driver = {
-> +	.driver		= {
-> +		.name		= "led-backlight",
-> +		.of_match_table	= of_match_ptr(led_bl_of_match),
-> +	},
-> +	.probe		= led_bl_probe,
-> +	.remove		= led_bl_remove,
-> +};
-> +
-> +module_platform_driver(led_bl_driver);
-> +
-> +MODULE_DESCRIPTION("LED based Backlight Driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:led-backlight");
-> -- 
-> 2.11.0
 
 
+On 18/02/2020 17.28, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [200218 12:44]:
+>> Hi Tony,
+>>
+>> On 18/02/2020 1.10, Tony Lindgren wrote:
+>>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [200217 12:10]:
+>>>> On 14/02/2020 19.03, Tony Lindgren wrote:
+>>>>> But right now in droid4 voice call case mcbsp is just the i2s transport,
+>>>>> and everything happens betwee the modem and the cpcap pmic.
+>>>>
+>>>> Iow you don't need McBSP DAI at all. If you would have added the dummy
+>>>> codec to McBSP !3 and use that, it would work in a same way, or to DMIC
+>>>> or McPDM...
+>>>>
+>>>> The McBSP ops are NULL for the dummy dai, so McBSP is turned off.
+>>>
+>>> Hmm yeah I don't know if the cpcap codec on the same mcbsp needs
+>>> mcbsp for voice call.
+>>>
+>>> According to Sebastian sounds like mcbsp can be idle at that point.
+>>>
+>>> But what about capture of voice call at the mcbsp from the
+>>> TDM slot? In that case mcbsp would be active.
+>>
+>> Sure, but with the dummy dai it won't....
+> 
+> Right. I'm not attached to the dummy dai, but looks like currently
+> snd-soc-audio-graph-card won't work without it.
+
+The generic cards will link up a dummy dai/codec when it is needed by DPMC.
+
+> And we potentially
+> do need a place to configure TDM slot specific stuff for mcbsp.
+
+Yes, but you still have one port and one endpoint should not change the
+configuration which is already in used for the other endpoint.
+
+>> If I understand correctly the HW setup:
+>> McBSP2 -> CPCAP_hifi (only playback)
+>>
+>> CPCAP_voice is the i2s clock master.
+>> McBSP3, CPCAP_voice, MDM6600 and WL1285 are all connected together via
+>> i2s lines.
+>>
+>> In case of Voice call with analog mic/speaker only CPCAP_voice and
+>> MDM6600 is used.
+>> In case of Voice call with BT only MDM6600 and WL1285 is used (but
+>> CPCAP_voice must provide the clocks?)
+> 
+> Yes my guess is cpcap voice is the clock master in that case.
+> It should show up from the cpcap register dump from Android with
+> audio playing to a bluetooth headset.
+
+OK.
+
+>> In case you would have any algorithm running on OMAP4 for the calls,
+>> then you will have McBSP3 inserted and used between MDM6600 and
+>> CPAC_voice/WL1285.
+>> Similarly, if you would like to tap in and record the data from the bus
+>> you will have McBSP3 enabled.
+>>
+>> The simplest use cases you want to support:
+>> A. McBSP3 <-> CPCAP_voice (playback/capture)
+>> B. MDM6600 <-> CPCAP_voice (handset mic/speaker voice call)
+>> C. MDM6600 <-> WL1285 (BT voice call)
+>> D. McBSP3 <-> BT (VoIP?)
+>>
+>> I would not bother with recording the call as you would need tom
+>> reconfigure the McBSP playback pin (is it even possible) as input to
+>> OMAP4, I think..
+> 
+> Oh, I think there are Android apps to do that though.. Never tried
+> if they work on droid4. But if they do, doing a register dump of
+> mcbsp3 would show up how it's configured.
+
+I don't see how you could record the data from the line which is
+connected to McBSP_DX pin (the pin is output).
+
+But I might be missing something.
+
+>> B/C is codec2codec, McBSP3 is not involved at all.
+>> A/D is when McBSP3 is used only.
+>>
+>> Imho this can be represented as
+>> McBSP2: 1 port
+>> 	1.1: to CPCAP_hifi
+>>
+>> McBSP3: 1 port, 2 endpoint
+>> 	2.1: to CPCAP_voice
+>> 	2.2: to WL1285
+>> CPCAP: 2 ports
+>> 	hifi:	3.1: to McBSP2
+>> 	voice:	4.1: to McBSP3
+>> 		4.2: to MDM6600
+>> MDM6600: 2 ports
+>> 	5.1: to CPAC_voice
+>> 	5.2: to WL1285
+>> WL1285: 2 ports
+>> 	6.1: to McBSP3
+>> 	6.2: to MDM6600
+>>
+>> The machine driver should switch between the graph links based on the
+>> use case for the interconnected devices:
+>> A: 2.2 <-> 4.1
+>> B: 4.2 <-> 5.1
+>> C: 6.2 <-> 5.1
+>> D: 2.2 <-> 6.1
+> 
+> OK
+> 
+>> Can a generic card provide such a functionality?
+> 
+> I think the link for the patches you posted is patching the
+> snd-soc-audio-graph-card already?
+
+Yes it does, but the functionality is there via custom machine drivers.
+What I afraid is that such a complex wiring as the Droid4 have it might
+be not possible to use a generic - fits everything - driver without
+making it a customized one ;)
+
+Otho, if the only thing is the machine level DAPM switching and linking
+the paths then it might be relatively straight forward to extend the
+simple-card family.
+
+>> In case of B/C you should not have a running stream imho.
+>> In all cases CPCAP_voice should be able to run the clocks on i2s, even
+>> if it is not used by the audio setup.
+>> Not sure if you can just turn Wl1285 as master, but it is possible that
+>> it is master, but silent when it is not used?
+> 
+> Yeah, no idea.. But that's easy to configure in the dts based on
+> the graph bindings :)
+
+Yep, indeed.
+
+>> I'm not sure if we should span out dummy dais for endpoints within a
+>> port. Imho the port _is_ the dai. Different endpoints might use
+>> different TDM slots on the port (or the same slot, which makes them
+>> exclusive).
+> 
+> Right. So right now it seems that for snd-soc-audio-graph-card
+> needs the dummy dai, but it's unclear what would need to be
+> changed to not use a dummy dai for mcbsp.
+
+Since simple-card family can and will connect up dummy dai/codec when
+needed based on the setup, I would look at that and make it do so.
+
+> The dts snippets I posted earlier do follow the graph bindings
+> as far as I know. But just to confirm, do you see any need to
+> move things around there?
+
+It also states that a port is a physical port which can have multiple
+endpoints. But multiple endpoint != DAI. port == dai.
+
+>>>>>>>> I know it was discussed, but can not find the mail:
+>>>>>>>> Can you brief again on the audio connection?
+>>>>>>>
+>>>>>>> Below is a link to a mailing list thread where Sebastian describes
+>>>>>>> the audio connection:
+>>>>>>>
+>>>>>>> https://lkml.org/lkml/2018/3/28/881
+>>>>>>
+>>>>>> Thanks!
+>>>>>>  
+>>>>>>>> Do you have branch with working code?
+>>>>>>>
+>>>>>>> Yeah I have slightly older set of the patches in my droid4-pending-v5.5
+>>>>>>> kernel.org git branch with voice calls working.
+>>>>>>
+>>>>>> I think I should put my droid4 out and try to get it working...
+>>>>>> Do you have a link for dummies to follow to get started? ;)
+>>>>>
+>>>>> Probably the easiest one to use right now is the Maemo-leste devuan based
+>>>>> test image using v5.5 kernel + modem and audio patches:
+>>>>>
+>>>>> https://leste.maemo.org/Motorola_Droid_4
+>>>>>
+>>>>> Just use a decent speed micro-sd card rated "a1" for example.
+>>>>
+>>>> Cool. Now I can dual boot the droid4 :D
+>>>> I needed to rewrite the /etc/shadow to get a known root password so I
+>>>> can log in.
+>>>
+>>> Not sure if you mean password for the droid4-kexecboot or the
+>>> Linux distro you installed..
+>>
+>> It was for the maemo-leste.
+>> Bringing up Gentoo will be a bit harder as I don't have wifi stuff in my
+>> reference image...
+> 
+> Gentoo cool :)
+> 
+> I've had good luck with just plain alpine armv7 edge, the package
+> updates work very fast for a slow system. The musl stuff requires
+> running stellarium with 3d acceleration in a minimal devuan or
+> whatever chroot environment though for stellarium etc..
+
+I see, I might go via the lazy route and take buildroot ;)
+
+>>> But for droid4-kexecboot, you
+>>> can configure it to automatically download new kernels over wlan.
+>>> There's some info on the machine specific password and how to
+>>> configure wlan in the droid4-kexecboot buildroot commits here:
+>>>
+>>> https://github.com/tmlind/buildroot/commits/droid4-kexecboot-2017.11
+>>>
+>>>> Wifi is up, so in theory I can scp kernel/dtb to /boot/boot/ and update
+>>>> the /boot/boot/boot.cfg to boot my kernel, right?
+>>>
+>>> Yeah you can update kernels and modules over wlan from the distro(s)
+>>> you have configured, and also from droid4-kexecboot as above.
+>>
+>> I need to try droid4-kexecboot's wifi support then.
+> 
+> Yeah you need to configure wpa_supplicant.conf and wlan.conf or
+> whatever it was called. And make sure you have copied the old
+> stock v3.0.8 kernel wlan modules and firmware as mentioned in
+> the droid4-kexecboot git readme and install files.
+
+OK.
+
+> Oh, and also read about the flags you need to use for mkfs.ext4 if
+> doing mkfs.ext4 on a PC, the old v3.0.8 kernel won't understand
+> all the new flags if you want a partition to be readable for the
+> droid4-kexecboot bootloader. And also the all the old Android
+> distros currently still stuck with the ancient v3.0.8 kernel :p
+
+I see, thanks for the warning!
+
+> 
+> Regards,
+> 
+> Tony
+> 
+
+- PÃ©ter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
