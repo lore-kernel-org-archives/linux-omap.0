@@ -7,52 +7,53 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9248DC35647
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:21:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 929B9C35646
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:21:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5CA9120722
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:21:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B1F224653
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:21:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="raxD0kVN"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="vVDfkZu1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728396AbgBUKUL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Feb 2020 05:20:11 -0500
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:33006 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728707AbgBUKUL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 05:20:11 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKA0G028937;
-        Fri, 21 Feb 2020 04:20:10 -0600
+        id S1728730AbgBUKUE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Feb 2020 05:20:04 -0500
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:41446 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726989AbgBUKUC (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 05:20:02 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LAK1H4042234;
+        Fri, 21 Feb 2020 04:20:01 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1582280410;
-        bh=bm8mnyvMbZnnZFUj5tJ0Z20kcnQI989kGHo9J2gkbmc=;
+        s=ti-com-17Q1; t=1582280401;
+        bh=yhWPyaiQQbUeFKeTn7mzKmaaYnOqKxf1G3uRWb5q4N8=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=raxD0kVN0SQzy94ycZWLlgRKom2YPL5cqY9hzWpDQfpby45RhPnaHxW5LcPf0i8lc
-         Np3DNRDCFNIUvH0eyxGASEEc1B23Lz8/woPoOU5C9kZeIETZtn+kNvClXZRXCYhOKY
-         z1cQ0OMXQBlGnyqtQM/SAwoPLzKoqpqsaAmB526s=
-Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKAQJ104641;
-        Fri, 21 Feb 2020 04:20:10 -0600
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+        b=vVDfkZu1u7LAZbo/lXcyq1iUwjwUCE/meLHpQ0Z0VmwK8tTnh/RnHfvVtSs+wQaps
+         cRBHzU76/EG3bnk0BPeqnr0Lb+ZyZklnSDrtMUe0X1YUMFw3inXaoC2vi9v8DLIIFJ
+         4IxsxJpbJa1e4oU4AIh3JFlDrv92go7mR5Nl9Hi0=
+Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01LAK1DI115903
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 21 Feb 2020 04:20:01 -0600
+Received: from DFLE115.ent.ti.com (10.64.6.36) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Fri, 21
- Feb 2020 04:20:09 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ Feb 2020 04:20:00 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Fri, 21 Feb 2020 04:20:09 -0600
+ Frontend Transport; Fri, 21 Feb 2020 04:19:59 -0600
 Received: from sokoban.bb.dnainternet.fi (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAJnwu034983;
-        Fri, 21 Feb 2020 04:20:07 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAJnwq034983;
+        Fri, 21 Feb 2020 04:19:58 -0600
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <bjorn.andersson@linaro.org>, <ohad@wizery.com>,
         <linux-remoteproc@vger.kernel.org>, <afd@ti.com>, <s-anna@ti.com>
 CC:     <linux-kernel@vger.kernel.org>, <mathieu.poirier@linaro.org>,
         <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 07/15] remoteproc/omap: Add support for DRA7xx remote processors
-Date:   Fri, 21 Feb 2020 12:19:28 +0200
-Message-ID: <20200221101936.16833-8-t-kristo@ti.com>
+Subject: [PATCHv7 03/15] remoteproc/omap: Add a sanity check for DSP boot address alignment
+Date:   Fri, 21 Feb 2020 12:19:24 +0200
+Message-ID: <20200221101936.16833-4-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200221101936.16833-1-t-kristo@ti.com>
 References: <20200221101936.16833-1-t-kristo@ti.com>
@@ -66,150 +67,72 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-DRA7xx/AM57xx SoCs have two IPU and up to two DSP processor subsystems
-for offloading different computation algorithms. The IPU processor
-subsystem contains dual-core ARM Cortex-M4 processors, and is very
-similar to those on OMAP5. The DSP processor subsystem is based on
-the TI's standard TMS320C66x DSP CorePac core.
-
-Support has been added to the OMAP remoteproc driver through new
-DRA7xx specific compatibles for properly probing and booting all
-the different processor subsystem instances on DRA7xx/AM57xx
-SoCs - IPU1, IPU2, DSP1 & DSP2. A build dependency with SOC_DRA7XX
-is added to enable the driver to be built in DRA7xx-only configuration.
-
-The DSP boot address programming needed enhancement for DRA7xx as the
-boot register fields are different on DRA7 compared to OMAP4 and OMAP5
-SoCs. The register on DRA7xx contains additional fields within the
-register and the boot address bit-field is right-shifted by 10 bits.
-The internal memory parsing logic has also been updated to compute
-the device addresses for the L2 RAM for DSP devices using relative
-addressing logic, and to parse two additional RAMs at L1 level - L1P
-and L1D. This allows the remoteproc driver to support loading into
-these regions for a small subset of firmware images requiring as
-such. The most common usage would be to use the L1 programmable
-RAMs as L1 Caches.
-
-The firmware lookup logic also has to be adjusted for DRA7xx as
-there are (can be) more than one instance of both the IPU and DSP
-remote processors for the first time in OMAP4+ SoCs.
+The DSP remote processors on OMAP SoCs require a boot register to
+be programmed with a boot address, and this boot address needs to
+be on a 1KB boundary. The current code is simply masking the boot
+address appropriately without performing any sanity checks before
+releasing the resets. An unaligned boot address results in an
+undefined execution behavior and can result in various bus errors
+like MMU Faults or L3 NoC errors. Such errors are hard to debug and
+can be easily avoided by adding a sanity check for the alignment
+before booting a DSP remote processor.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
-[t-kristo@ti.com: moved address translation quirks to pdata]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
- drivers/remoteproc/Kconfig           |  2 +-
- drivers/remoteproc/omap_remoteproc.c | 38 +++++++++++++++++++++++++++-
- 2 files changed, 38 insertions(+), 2 deletions(-)
+v7:
+  - minor kerneldoc update (added return value details for
+    omap_rproc_write_dsp_boot_addr)
 
-diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index de3862c15fcc..b52abc2268cc 100644
---- a/drivers/remoteproc/Kconfig
-+++ b/drivers/remoteproc/Kconfig
-@@ -35,7 +35,7 @@ config MTK_SCP
- 
- config OMAP_REMOTEPROC
- 	tristate "OMAP remoteproc support"
--	depends on ARCH_OMAP4 || SOC_OMAP5
-+	depends on ARCH_OMAP4 || SOC_OMAP5 || SOC_DRA7XX
- 	depends on OMAP_IOMMU
- 	select MAILBOX
- 	select OMAP2PLUS_MBOX
+ drivers/remoteproc/omap_remoteproc.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
+
 diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 872cd0df342b..8c3dc0edae95 100644
+index d47d5ded651a..64b559caadff 100644
 --- a/drivers/remoteproc/omap_remoteproc.c
 +++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -34,10 +34,13 @@
-  * struct omap_rproc_boot_data - boot data structure for the DSP omap rprocs
-  * @syscon: regmap handle for the system control configuration module
-  * @boot_reg: boot register offset within the @syscon regmap
-+ * @boot_reg_shift: bit-field shift required for the boot address value in
-+ *		    @boot_reg
+@@ -121,14 +121,25 @@ static void omap_rproc_kick(struct rproc *rproc, int vqid)
+  * @rproc: handle of a remote processor
+  *
+  * Set boot address for a supported DSP remote processor.
++ *
++ * Return: 0 on success, or -EINVAL if boot address is not aligned properly
   */
- struct omap_rproc_boot_data {
- 	struct regmap *syscon;
- 	unsigned int boot_reg;
-+	unsigned int boot_reg_shift;
- };
- 
- /**
-@@ -161,6 +164,8 @@ static int omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
+-static void omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
++static int omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
+ {
++	struct device *dev = rproc->dev.parent;
  	struct omap_rproc *oproc = rproc->priv;
  	struct omap_rproc_boot_data *bdata = oproc->boot_data;
  	u32 offset = bdata->boot_reg;
-+	u32 value;
-+	u32 mask;
  
- 	if (rproc->bootaddr & (SZ_1K - 1)) {
- 		dev_err(dev, "invalid boot address 0x%x, must be aligned on a 1KB boundary\n",
-@@ -168,7 +173,10 @@ static int omap_rproc_write_dsp_boot_addr(struct rproc *rproc)
- 		return -EINVAL;
- 	}
- 
--	regmap_write(bdata->syscon, offset, rproc->bootaddr);
-+	value = rproc->bootaddr >> bdata->boot_reg_shift;
-+	mask = ~(SZ_1K - 1) >> bdata->boot_reg_shift;
++	if (rproc->bootaddr & (SZ_1K - 1)) {
++		dev_err(dev, "invalid boot address 0x%x, must be aligned on a 1KB boundary\n",
++			rproc->bootaddr);
++		return -EINVAL;
++	}
 +
-+	regmap_update_bits(bdata->syscon, offset, mask, value);
- 
- 	return 0;
- }
-@@ -299,6 +307,13 @@ static const struct omap_rproc_mem_data ipu_mems[] = {
- 	{ },
- };
- 
-+static const struct omap_rproc_mem_data dra7_dsp_mems[] = {
-+	{ .name = "l2ram", .dev_addr = 0x800000 },
-+	{ .name = "l1pram", .dev_addr = 0xe00000 },
-+	{ .name = "l1dram", .dev_addr = 0xf00000 },
-+	{ },
-+};
+ 	regmap_write(bdata->syscon, offset, rproc->bootaddr);
 +
- static const struct omap_rproc_dev_data omap4_dsp_dev_data = {
- 	.device_name	= "dsp",
- };
-@@ -317,6 +332,16 @@ static const struct omap_rproc_dev_data omap5_ipu_dev_data = {
- 	.mems		= ipu_mems,
- };
- 
-+static const struct omap_rproc_dev_data dra7_dsp_dev_data = {
-+	.device_name	= "dsp",
-+	.mems		= dra7_dsp_mems,
-+};
-+
-+static const struct omap_rproc_dev_data dra7_ipu_dev_data = {
-+	.device_name	= "ipu",
-+	.mems		= ipu_mems,
-+};
-+
- static const struct of_device_id omap_rproc_of_match[] = {
- 	{
- 		.compatible     = "ti,omap4-dsp",
-@@ -334,6 +359,14 @@ static const struct of_device_id omap_rproc_of_match[] = {
- 		.compatible     = "ti,omap5-ipu",
- 		.data           = &omap5_ipu_dev_data,
- 	},
-+	{
-+		.compatible     = "ti,dra7-dsp",
-+		.data           = &dra7_dsp_dev_data,
-+	},
-+	{
-+		.compatible     = "ti,dra7-ipu",
-+		.data           = &dra7_ipu_dev_data,
-+	},
- 	{
- 		/* end */
- 	},
-@@ -386,6 +419,9 @@ static int omap_rproc_get_boot_data(struct platform_device *pdev,
- 		return -EINVAL;
- 	}
- 
-+	of_property_read_u32_index(np, "ti,bootreg", 2,
-+				   &oproc->boot_data->boot_reg_shift);
-+
- 	return 0;
++	return 0;
  }
  
+ /*
+@@ -145,8 +156,11 @@ static int omap_rproc_start(struct rproc *rproc)
+ 	int ret;
+ 	struct mbox_client *client = &oproc->client;
+ 
+-	if (oproc->boot_data)
+-		omap_rproc_write_dsp_boot_addr(rproc);
++	if (oproc->boot_data) {
++		ret = omap_rproc_write_dsp_boot_addr(rproc);
++		if (ret)
++			return ret;
++	}
+ 
+ 	client->dev = dev;
+ 	client->tx_done = NULL;
 -- 
 2.17.1
 
