@@ -2,400 +2,383 @@ Return-Path: <SRS0=uMh/=4J=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 740CCC35646
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:22:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E050C35647
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 11:39:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B558207FD
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:22:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 230E4222C4
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 11:39:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="H4RALgAU"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="pEYMtsuu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728301AbgBUKWw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Feb 2020 05:22:52 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:60446 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728913AbgBUKU3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 05:20:29 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKRoV015337;
-        Fri, 21 Feb 2020 04:20:27 -0600
+        id S1726934AbgBULjb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Feb 2020 06:39:31 -0500
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:40420 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726395AbgBULjb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 06:39:31 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LBdPmA047298;
+        Fri, 21 Feb 2020 05:39:25 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1582280427;
-        bh=brIXEsBJHkl6bj0QRvYe4iAWWIKJnC9l05gPSt4wVNg=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=H4RALgAUqX98HsMguY6cCT4YPdKwBz5g7R3+n5l3c0rOB1fUriw07bJA4D4/XUWKw
-         Iqgbbds6kZ2lWqPVqwXeg0JkXXWdY8y6hu1NzrA8TYCSTJjsPERW7RSWQ1XNq4I9KA
-         4JHjysaxn3CPlf5BVOOVwi0TZ65KfknotMZXOtgc=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKRG6105071;
-        Fri, 21 Feb 2020 04:20:27 -0600
-Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        s=ti-com-17Q1; t=1582285165;
+        bh=Wp9yZZ7soOUUEPSzWV6+OWbcx9kzM0BEUtBdRi3sqcU=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=pEYMtsuu6fctx/WUdWq/MixgG1HeRH5zs946P69VH0RkZRejLZ04z7pjcQhNPlJNi
+         JkuxOxbgHy5kTwamc2Z7UAwOCvOYscXUe3ekWqLYtlJTbbYZAiwsQ9zAk1RzHbf5LY
+         NjS8w+pkMmi0z302tP8OfNaX4MF94H2YuaSR9vA0=
+Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01LBdPME097363
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 21 Feb 2020 05:39:25 -0600
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Fri, 21
- Feb 2020 04:20:26 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+ Feb 2020 05:39:25 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Fri, 21 Feb 2020 04:20:26 -0600
-Received: from sokoban.bb.dnainternet.fi (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAJnx3034983;
-        Fri, 21 Feb 2020 04:20:24 -0600
-From:   Tero Kristo <t-kristo@ti.com>
-To:     <bjorn.andersson@linaro.org>, <ohad@wizery.com>,
-        <linux-remoteproc@vger.kernel.org>, <afd@ti.com>, <s-anna@ti.com>
-CC:     <linux-kernel@vger.kernel.org>, <mathieu.poirier@linaro.org>,
-        <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 14/15] remoteproc/omap: Add watchdog functionality for remote processors
-Date:   Fri, 21 Feb 2020 12:19:35 +0200
-Message-ID: <20200221101936.16833-15-t-kristo@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200221101936.16833-1-t-kristo@ti.com>
-References: <20200221101936.16833-1-t-kristo@ti.com>
+ Frontend Transport; Fri, 21 Feb 2020 05:39:25 -0600
+Received: from [10.24.69.159] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LBdMA9075782;
+        Fri, 21 Feb 2020 05:39:23 -0600
+Subject: Re: [PATCH] PCI: dwc: pci-dra7xx: Fix MSI IRQ handling
+To:     Vignesh Raghavendra <vigneshr@ti.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC:     Andrew Murray <andrew.murray@arm.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        <linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20200124163650.4457-1-vigneshr@ti.com>
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+Message-ID: <abdd33fa-be45-9d2e-bf27-91e8c02be6ae@ti.com>
+Date:   Fri, 21 Feb 2020 17:13:04 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.2
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20200124163650.4457-1-vigneshr@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
 
-Remote processors can be stuck in a loop, and may not be recoverable
-if they do not have a built-in watchdog. The watchdog implementation
-for OMAP remote processors uses external gptimers that can be used
-to interrupt both the Linux host as well as the remote processor.
+On 24/01/20 10:06 pm, Vignesh Raghavendra wrote:
+> Due an issue with PCIe wrapper around DWC PCIe IP on dra7xx, driver
+> needs to ensure that there are no pending MSI IRQ vector set (i.e
+> PCIE_MSI_INTR0_STATUS reads 0 at least once) before exiting IRQ handler.
+> Else, the dra7xx PCIe wrapper will not register new MSI IRQs even though
+> PCIE_MSI_INTR0_STATUS shows IRQs are pending.
+> 
+> Therefore its no longer possible to use default IRQ handler provided by
+> DWC library. So, add irqchip implementation inside pci-dra7xx.c and
+> install new MSI IRQ handler to handle above errata.
+> 
+> This fixes a bug, where PCIe wifi cards with 4 DMA queues like Intel
+> 8260 used to throw following error and stall during ping/iperf3 tests.
+> 
+> [   97.776310] iwlwifi 0000:01:00.0: Queue 9 stuck for 2500 ms.
+> 
+> Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+> ---
+> Based on discussions here: https://www.spinics.net/lists/linux-pci/msg70462.html
 
-Each remote processor is responsible for refreshing the timer during
-normal behavior - during OS task scheduling or entering the idle loop
-properly. During a watchdog condition (executing a tight loop causing
-no scheduling), the host processor gets interrupts and schedules a
-recovery for the corresponding remote processor. The remote processor
-may also get interrupted to be able to print a back trace.
+This also fixed an issue I observed in NVMe card.
 
-A menuconfig option has also been added to enable/disable the Watchdog
-functionality, with the default as disabled.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
-v7:
-  - minor kerneldoc updates
-
- drivers/remoteproc/Kconfig           |  12 +++
- drivers/remoteproc/omap_remoteproc.c | 153 ++++++++++++++++++++++++---
- 2 files changed, 153 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index b52abc2268cc..5f33358eb2f1 100644
---- a/drivers/remoteproc/Kconfig
-+++ b/drivers/remoteproc/Kconfig
-@@ -52,6 +52,18 @@ config OMAP_REMOTEPROC
- 	  It's safe to say N here if you're not interested in multimedia
- 	  offloading or just want a bare minimum kernel.
- 
-+config OMAP_REMOTEPROC_WATCHDOG
-+	bool "OMAP remoteproc watchdog timer"
-+	depends on OMAP_REMOTEPROC
-+	default n
-+	help
-+	  Say Y here to enable watchdog timer for remote processors.
-+
-+	  This option controls the watchdog functionality for the remote
-+	  processors in OMAP. Dedicated OMAP DMTimers are used by the remote
-+	  processors and triggers the timer interrupt upon a watchdog
-+	  detection.
-+
- config WKUP_M3_RPROC
- 	tristate "AMx3xx Wakeup M3 remoteproc support"
- 	depends on SOC_AM33XX || SOC_AM43XX
-diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 7dcb5da0d940..bae01a9f8afc 100644
---- a/drivers/remoteproc/omap_remoteproc.c
-+++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/dma-mapping.h>
-+#include <linux/interrupt.h>
- #include <linux/remoteproc.h>
- #include <linux/mailbox_client.h>
- #include <linux/omap-iommu.h>
-@@ -72,10 +73,12 @@ struct omap_rproc_mem {
-  * struct omap_rproc_timer - data structure for a timer used by a omap rproc
-  * @odt: timer pointer
-  * @timer_ops: OMAP dmtimer ops for @odt timer
-+ * @irq: timer irq
-  */
- struct omap_rproc_timer {
- 	struct omap_dm_timer *odt;
- 	const struct omap_dm_timer_ops *timer_ops;
-+	int irq;
- };
- 
- /**
-@@ -86,6 +89,7 @@ struct omap_rproc_timer {
-  * @mem: internal memory regions data
-  * @num_mems: number of internal memory regions
-  * @num_timers: number of rproc timer(s)
-+ * @num_wd_timers: number of rproc watchdog timers
-  * @timers: timer(s) info used by rproc
-  * @autosuspend_delay: auto-suspend delay value to be used for runtime pm
-  * @need_resume: if true a resume is needed in the system resume callback
-@@ -102,6 +106,7 @@ struct omap_rproc {
- 	struct omap_rproc_mem *mem;
- 	int num_mems;
- 	int num_timers;
-+	int num_wd_timers;
- 	struct omap_rproc_timer *timers;
- 	int autosuspend_delay;
- 	bool need_resume;
-@@ -219,6 +224,79 @@ static inline int omap_rproc_release_timer(struct omap_rproc_timer *timer)
- 	return timer->timer_ops->free(timer->odt);
- }
- 
-+/**
-+ * omap_rproc_get_timer_irq() - get the irq for a timer
-+ * @timer: handle to a OMAP rproc timer
-+ *
-+ * This function is used to get the irq associated with a watchdog timer. The
-+ * function is called by the OMAP remoteproc driver to register a interrupt
-+ * handler to handle watchdog events on the remote processor.
-+ *
-+ * Return: irq id on success, otherwise a failure as returned by DMTimer ops
-+ */
-+static inline int omap_rproc_get_timer_irq(struct omap_rproc_timer *timer)
-+{
-+	return timer->timer_ops->get_irq(timer->odt);
-+}
-+
-+/**
-+ * omap_rproc_ack_timer_irq() - acknowledge a timer irq
-+ * @timer: handle to a OMAP rproc timer
-+ *
-+ * This function is used to clear the irq associated with a watchdog timer. The
-+ * The function is called by the OMAP remoteproc upon a watchdog event on the
-+ * remote processor to clear the interrupt status of the watchdog timer.
-+ */
-+static inline void omap_rproc_ack_timer_irq(struct omap_rproc_timer *timer)
-+{
-+	timer->timer_ops->write_status(timer->odt, OMAP_TIMER_INT_OVERFLOW);
-+}
-+
-+/**
-+ * omap_rproc_watchdog_isr() - Watchdog ISR handler for remoteproc device
-+ * @irq: IRQ number associated with a watchdog timer
-+ * @data: IRQ handler data
-+ *
-+ * This ISR routine executes the required necessary low-level code to
-+ * acknowledge a watchdog timer interrupt. There can be multiple watchdog
-+ * timers associated with a rproc (like IPUs which have 2 watchdog timers,
-+ * one per Cortex M3/M4 core), so a lookup has to be performed to identify
-+ * the timer to acknowledge its interrupt.
-+ *
-+ * The function also invokes rproc_report_crash to report the watchdog event
-+ * to the remoteproc driver core, to trigger a recovery.
-+ *
-+ * Return: IRQ_HANDLED on success, otherwise IRQ_NONE
-+ */
-+static irqreturn_t omap_rproc_watchdog_isr(int irq, void *data)
-+{
-+	struct rproc *rproc = data;
-+	struct omap_rproc *oproc = rproc->priv;
-+	struct device *dev = rproc->dev.parent;
-+	struct omap_rproc_timer *timers = oproc->timers;
-+	struct omap_rproc_timer *wd_timer = NULL;
-+	int num_timers = oproc->num_timers + oproc->num_wd_timers;
-+	int i;
-+
-+	for (i = oproc->num_timers; i < num_timers; i++) {
-+		if (timers[i].irq > 0 && irq == timers[i].irq) {
-+			wd_timer = &timers[i];
-+			break;
-+		}
-+	}
-+
-+	if (!wd_timer) {
-+		dev_err(dev, "invalid timer\n");
-+		return IRQ_NONE;
-+	}
-+
-+	omap_rproc_ack_timer_irq(wd_timer);
-+
-+	rproc_report_crash(rproc, RPROC_WATCHDOG);
-+
-+	return IRQ_HANDLED;
-+}
-+
- /**
-  * omap_rproc_enable_timers() - enable the timers for a remoteproc
-  * @rproc: handle of a remote processor
-@@ -242,19 +320,26 @@ static int omap_rproc_enable_timers(struct rproc *rproc, bool configure)
- 	struct omap_rproc_timer *timers = oproc->timers;
- 	struct device *dev = rproc->dev.parent;
- 	struct device_node *np = NULL;
-+	int num_timers = oproc->num_timers + oproc->num_wd_timers;
- 
--	if (!oproc->num_timers)
-+	if (!num_timers)
- 		return 0;
- 
- 	if (!configure)
- 		goto start_timers;
- 
--	for (i = 0; i < oproc->num_timers; i++) {
--		np = of_parse_phandle(dev->of_node, "ti,timers", i);
-+	for (i = 0; i < num_timers; i++) {
-+		if (i < oproc->num_timers)
-+			np = of_parse_phandle(dev->of_node, "ti,timers", i);
-+		else
-+			np = of_parse_phandle(dev->of_node,
-+					      "ti,watchdog-timers",
-+					      (i - oproc->num_timers));
- 		if (!np) {
- 			ret = -ENXIO;
- 			dev_err(dev, "device node lookup for timer at index %d failed: %d\n",
--				i, ret);
-+				i < oproc->num_timers ? i :
-+				i - oproc->num_timers, ret);
- 			goto free_timers;
- 		}
- 
-@@ -277,12 +362,14 @@ static int omap_rproc_enable_timers(struct rproc *rproc, bool configure)
- 		if (!timer_ops || !timer_ops->request_by_node ||
- 		    !timer_ops->set_source || !timer_ops->set_load ||
- 		    !timer_ops->free || !timer_ops->start ||
--		    !timer_ops->stop) {
-+		    !timer_ops->stop || !timer_ops->get_irq ||
-+		    !timer_ops->write_status) {
- 			ret = -EINVAL;
- 			dev_err(dev, "device does not have required timer ops\n");
- 			goto put_node;
- 		}
- 
-+		timers[i].irq = -1;
- 		timers[i].timer_ops = timer_ops;
- 		ret = omap_rproc_request_timer(dev, np, &timers[i]);
- 		if (ret) {
-@@ -291,10 +378,33 @@ static int omap_rproc_enable_timers(struct rproc *rproc, bool configure)
- 			goto put_node;
- 		}
- 		of_node_put(np);
-+
-+		if (i >= oproc->num_timers) {
-+			timers[i].irq = omap_rproc_get_timer_irq(&timers[i]);
-+			if (timers[i].irq < 0) {
-+				dev_err(dev, "get_irq for timer %p failed: %d\n",
-+					np, timers[i].irq);
-+				ret = -EBUSY;
-+				goto free_timers;
-+			}
-+
-+			ret = request_irq(timers[i].irq,
-+					  omap_rproc_watchdog_isr, IRQF_SHARED,
-+					  "rproc-wdt", rproc);
-+			if (ret) {
-+				dev_err(dev, "error requesting irq for timer %p\n",
-+					np);
-+				omap_rproc_release_timer(&timers[i]);
-+				timers[i].odt = NULL;
-+				timers[i].timer_ops = NULL;
-+				timers[i].irq = -1;
-+				goto free_timers;
-+			}
-+		}
- 	}
- 
- start_timers:
--	for (i = 0; i < oproc->num_timers; i++) {
-+	for (i = 0; i < num_timers; i++) {
- 		ret = omap_rproc_start_timer(&timers[i]);
- 		if (ret) {
- 			dev_err(dev, "start timer %p failed failed: %d\n", np,
-@@ -316,9 +426,12 @@ static int omap_rproc_enable_timers(struct rproc *rproc, bool configure)
- 		of_node_put(np);
- free_timers:
- 	while (i--) {
-+		if (i >= oproc->num_timers)
-+			free_irq(timers[i].irq, rproc);
- 		omap_rproc_release_timer(&timers[i]);
- 		timers[i].odt = NULL;
- 		timers[i].timer_ops = NULL;
-+		timers[i].irq = -1;
- 	}
- 
- 	return ret;
-@@ -341,16 +454,20 @@ static int omap_rproc_disable_timers(struct rproc *rproc, bool configure)
- 	int i;
- 	struct omap_rproc *oproc = rproc->priv;
- 	struct omap_rproc_timer *timers = oproc->timers;
-+	int num_timers = oproc->num_timers + oproc->num_wd_timers;
- 
--	if (!oproc->num_timers)
-+	if (!num_timers)
- 		return 0;
- 
--	for (i = 0; i < oproc->num_timers; i++) {
-+	for (i = 0; i < num_timers; i++) {
- 		omap_rproc_stop_timer(&timers[i]);
- 		if (configure) {
-+			if (i >= oproc->num_timers)
-+				free_irq(timers[i].irq, rproc);
- 			omap_rproc_release_timer(&timers[i]);
- 			timers[i].odt = NULL;
- 			timers[i].timer_ops = NULL;
-+			timers[i].irq = -1;
- 		}
- 	}
- 
-@@ -1097,6 +1214,7 @@ static int omap_rproc_probe(struct platform_device *pdev)
- 	struct omap_rproc *oproc;
- 	struct rproc *rproc;
- 	const char *firmware;
-+	int num_timers;
- 	int ret;
- 	struct reset_control *reset;
- 
-@@ -1149,8 +1267,19 @@ static int omap_rproc_probe(struct platform_device *pdev)
- 		oproc->num_timers = 0;
- 	}
- 
--	if (oproc->num_timers) {
--		oproc->timers = devm_kcalloc(&pdev->dev, oproc->num_timers,
-+#ifdef CONFIG_OMAP_REMOTEPROC_WATCHDOG
-+	oproc->num_wd_timers =
-+		of_count_phandle_with_args(np, "ti,watchdog-timers", NULL);
-+	if (oproc->num_wd_timers <= 0) {
-+		dev_dbg(&pdev->dev, "device does not have watchdog timers, status = %d\n",
-+			oproc->num_wd_timers);
-+		oproc->num_wd_timers = 0;
-+	}
-+#endif
-+
-+	if (oproc->num_timers || oproc->num_wd_timers) {
-+		num_timers = oproc->num_timers + oproc->num_wd_timers;
-+		oproc->timers = devm_kcalloc(&pdev->dev, num_timers,
- 					     sizeof(*oproc->timers),
- 					     GFP_KERNEL);
- 		if (!oproc->timers) {
-@@ -1158,8 +1287,8 @@ static int omap_rproc_probe(struct platform_device *pdev)
- 			goto free_rproc;
- 		}
- 
--		dev_dbg(&pdev->dev, "device has %d tick timers\n",
--			oproc->num_timers);
-+		dev_dbg(&pdev->dev, "device has %d tick timers and %d watchdog timers\n",
-+			oproc->num_timers, oproc->num_wd_timers);
- 	}
- 
- 	init_completion(&oproc->pm_comp);
--- 
-2.17.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+FWIW:
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+> 
+>  drivers/pci/controller/dwc/pci-dra7xx.c | 227 ++++++++++++++++++++----
+>  1 file changed, 189 insertions(+), 38 deletions(-)
+> 
+> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+> index 9bf7fa99b103..07f242539ce9 100644
+> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+> @@ -215,10 +215,6 @@ static int dra7xx_pcie_host_init(struct pcie_port *pp)
+>  	return 0;
+>  }
+>  
+> -static const struct dw_pcie_host_ops dra7xx_pcie_host_ops = {
+> -	.host_init = dra7xx_pcie_host_init,
+> -};
+> -
+>  static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
+>  				irq_hw_number_t hwirq)
+>  {
+> @@ -233,43 +229,69 @@ static const struct irq_domain_ops intx_domain_ops = {
+>  	.xlate = pci_irqd_intx_xlate,
+>  };
+>  
+> -static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+> +static int dra7xx_pcie_handle_msi_irq(struct pcie_port *pp)
+>  {
+>  	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+> -	struct device *dev = pci->dev;
+> -	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
+> -	struct device_node *node = dev->of_node;
+> -	struct device_node *pcie_intc_node =  of_get_next_child(node, NULL);
+> -
+> -	if (!pcie_intc_node) {
+> -		dev_err(dev, "No PCIe Intc node found\n");
+> -		return -ENODEV;
+> -	}
+> -
+> -	dra7xx->irq_domain = irq_domain_add_linear(pcie_intc_node, PCI_NUM_INTX,
+> -						   &intx_domain_ops, pp);
+> -	of_node_put(pcie_intc_node);
+> -	if (!dra7xx->irq_domain) {
+> -		dev_err(dev, "Failed to get a INTx IRQ domain\n");
+> -		return -ENODEV;
+> +	int i, pos, irq;
+> +	unsigned long val;
+> +	u32 status, num_ctrls;
+> +	int ret = 0;
+> +
+> +	num_ctrls = pp->num_vectors / MAX_MSI_IRQS_PER_CTRL;
+> +
+> +	for (i = 0; i < num_ctrls; i++) {
+> +		status = dw_pcie_readl_dbi(pci, PCIE_MSI_INTR0_STATUS +
+> +					   (i * MSI_REG_CTRL_BLOCK_SIZE));
+> +		if (!status)
+> +			continue;
+> +
+> +		ret = 1;
+> +		val = status;
+> +		pos = 0;
+> +		while ((pos = find_next_bit(&val, MAX_MSI_IRQS_PER_CTRL,
+> +					    pos)) != MAX_MSI_IRQS_PER_CTRL) {
+> +			irq = irq_find_mapping(pp->irq_domain,
+> +					       (i * MAX_MSI_IRQS_PER_CTRL) +
+> +					       pos);
+> +			generic_handle_irq(irq);
+> +			pos++;
+> +		}
+>  	}
+>  
+> -	return 0;
+> +	return ret;
+>  }
+>  
+> -static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+> +static void dra7xx_pcie_msi_irq_handler(struct irq_desc *desc)
+>  {
+> -	struct dra7xx_pcie *dra7xx = arg;
+> -	struct dw_pcie *pci = dra7xx->pci;
+> -	struct pcie_port *pp = &pci->pp;
+> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+> +	struct dra7xx_pcie *dra7xx;
+> +	struct dw_pcie *pci;
+> +	struct pcie_port *pp;
+>  	unsigned long reg;
+>  	u32 virq, bit;
+> +	int count = 0;
+> +
+> +	chained_irq_enter(chip, desc);
+> +
+> +	pp = irq_desc_get_handler_data(desc);
+> +	pci = to_dw_pcie_from_pp(pp);
+> +	dra7xx = to_dra7xx_pcie(pci);
+>  
+>  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
+> +	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
+>  
+>  	switch (reg) {
+>  	case MSI:
+> -		dw_handle_msi_irq(pp);
+> +		/**
+> +		 * Need to make sure all MSI status bits read 0 before
+> +		 * exiting. Else, new MSI IRQs are not registered by the
+> +		 * wrapper. Have an upperbound for the loop and exit the
+> +		 * IRQ in case of IRQ flood to avoid locking up system
+> +		 * in interrupt context.
+> +		 */
+> +		while (dra7xx_pcie_handle_msi_irq(pp) && count < 1000)
+> +			count++;
+> +
+>  		break;
+>  	case INTA:
+>  	case INTB:
+> @@ -283,9 +305,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  		break;
+>  	}
+>  
+> -	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
+> -
+> -	return IRQ_HANDLED;
+> +	chained_irq_exit(chip, desc);
+>  }
+>  
+>  static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+> @@ -347,6 +367,145 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+> +{
+> +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+> +	struct device *dev = pci->dev;
+> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
+> +	struct device_node *node = dev->of_node;
+> +	struct device_node *pcie_intc_node =  of_get_next_child(node, NULL);
+> +
+> +	if (!pcie_intc_node) {
+> +		dev_err(dev, "No PCIe Intc node found\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	irq_set_chained_handler_and_data(pp->irq, dra7xx_pcie_msi_irq_handler,
+> +					 pp);
+> +	dra7xx->irq_domain = irq_domain_add_linear(pcie_intc_node, PCI_NUM_INTX,
+> +						   &intx_domain_ops, pp);
+> +	of_node_put(pcie_intc_node);
+> +	if (!dra7xx->irq_domain) {
+> +		dev_err(dev, "Failed to get a INTx IRQ domain\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void dra7xx_pcie_setup_msi_msg(struct irq_data *d, struct msi_msg *msg)
+> +{
+> +	struct pcie_port *pp = irq_data_get_irq_chip_data(d);
+> +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+> +	u64 msi_target;
+> +
+> +	msi_target = (u64)pp->msi_data;
+> +
+> +	msg->address_lo = lower_32_bits(msi_target);
+> +	msg->address_hi = upper_32_bits(msi_target);
+> +
+> +	msg->data = d->hwirq;
+> +
+> +	dev_dbg(pci->dev, "msi#%d address_hi %#x address_lo %#x\n",
+> +		(int)d->hwirq, msg->address_hi, msg->address_lo);
+> +}
+> +
+> +static int dra7xx_pcie_msi_set_affinity(struct irq_data *d,
+> +					const struct cpumask *mask,
+> +					bool force)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+> +static void dra7xx_pcie_bottom_mask(struct irq_data *d)
+> +{
+> +	struct pcie_port *pp = irq_data_get_irq_chip_data(d);
+> +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+> +	unsigned int res, bit, ctrl;
+> +	unsigned long flags;
+> +
+> +	raw_spin_lock_irqsave(&pp->lock, flags);
+> +
+> +	ctrl = d->hwirq / MAX_MSI_IRQS_PER_CTRL;
+> +	res = ctrl * MSI_REG_CTRL_BLOCK_SIZE;
+> +	bit = d->hwirq % MAX_MSI_IRQS_PER_CTRL;
+> +
+> +	pp->irq_mask[ctrl] |= BIT(bit);
+> +	dw_pcie_writel_dbi(pci, PCIE_MSI_INTR0_MASK + res,
+> +			   pp->irq_mask[ctrl]);
+> +
+> +	raw_spin_unlock_irqrestore(&pp->lock, flags);
+> +}
+> +
+> +static void dra7xx_pcie_bottom_unmask(struct irq_data *d)
+> +{
+> +	struct pcie_port *pp = irq_data_get_irq_chip_data(d);
+> +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+> +	unsigned int res, bit, ctrl;
+> +	unsigned long flags;
+> +
+> +	raw_spin_lock_irqsave(&pp->lock, flags);
+> +
+> +	ctrl = d->hwirq / MAX_MSI_IRQS_PER_CTRL;
+> +	res = ctrl * MSI_REG_CTRL_BLOCK_SIZE;
+> +	bit = d->hwirq % MAX_MSI_IRQS_PER_CTRL;
+> +
+> +	pp->irq_mask[ctrl] &= ~BIT(bit);
+> +	dw_pcie_writel_dbi(pci, PCIE_MSI_INTR0_MASK + res,
+> +			   pp->irq_mask[ctrl]);
+> +
+> +	raw_spin_unlock_irqrestore(&pp->lock, flags);
+> +}
+> +
+> +static void dra7xx_pcie_bottom_ack(struct irq_data *d)
+> +{
+> +	struct pcie_port *pp  = irq_data_get_irq_chip_data(d);
+> +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+> +	unsigned int res, bit, ctrl;
+> +
+> +	ctrl = d->hwirq / MAX_MSI_IRQS_PER_CTRL;
+> +	res = ctrl * MSI_REG_CTRL_BLOCK_SIZE;
+> +	bit = d->hwirq % MAX_MSI_IRQS_PER_CTRL;
+> +
+> +	dw_pcie_writel_dbi(pci, PCIE_MSI_INTR0_STATUS + res, BIT(bit));
+> +}
+> +
+> +static struct irq_chip dra7xx_pci_msi_bottom_irq_chip = {
+> +	.name = "DRA7XX-PCI-MSI",
+> +	.irq_ack = dra7xx_pcie_bottom_ack,
+> +	.irq_compose_msi_msg = dra7xx_pcie_setup_msi_msg,
+> +	.irq_set_affinity = dra7xx_pcie_msi_set_affinity,
+> +	.irq_mask = dra7xx_pcie_bottom_mask,
+> +	.irq_unmask = dra7xx_pcie_bottom_unmask,
+> +};
+> +
+> +static int dra7xx_pcie_msi_host_init(struct pcie_port *pp)
+> +{
+> +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+> +	u32 ctrl, num_ctrls;
+> +
+> +	pp->msi_irq_chip = &dra7xx_pci_msi_bottom_irq_chip;
+> +
+> +	num_ctrls = pp->num_vectors / MAX_MSI_IRQS_PER_CTRL;
+> +	/* Initialize IRQ Status array */
+> +	for (ctrl = 0; ctrl < num_ctrls; ctrl++) {
+> +		pp->irq_mask[ctrl] = ~0;
+> +		dw_pcie_writel_dbi(pci, PCIE_MSI_INTR0_MASK +
+> +				    (ctrl * MSI_REG_CTRL_BLOCK_SIZE),
+> +				    pp->irq_mask[ctrl]);
+> +		dw_pcie_writel_dbi(pci, PCIE_MSI_INTR0_ENABLE +
+> +				    (ctrl * MSI_REG_CTRL_BLOCK_SIZE),
+> +				    ~0);
+> +	}
+> +
+> +	return dw_pcie_allocate_domains(pp);
+> +}
+> +
+> +static const struct dw_pcie_host_ops dra7xx_pcie_host_ops = {
+> +	.host_init = dra7xx_pcie_host_init,
+> +	.msi_host_init = dra7xx_pcie_msi_host_init,
+> +};
+> +
+>  static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
+>  {
+>  	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+> @@ -467,14 +626,6 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+>  		return pp->irq;
+>  	}
+>  
+> -	ret = devm_request_irq(dev, pp->irq, dra7xx_pcie_msi_irq_handler,
+> -			       IRQF_SHARED | IRQF_NO_THREAD,
+> -			       "dra7-pcie-msi",	dra7xx);
+> -	if (ret) {
+> -		dev_err(dev, "failed to request irq\n");
+> -		return ret;
+> -	}
+> -
+>  	ret = dra7xx_pcie_init_irq_domain(pp);
+>  	if (ret < 0)
+>  		return ret;
+> 
