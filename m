@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B8E5C35667
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B23EEC3566C
 	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 19:53:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 13899207FD
+	by mail.kernel.org (Postfix) with ESMTP id 8EE1B207FD
 	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 19:53:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728178AbgBUTxS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Feb 2020 14:53:18 -0500
-Received: from muru.com ([72.249.23.125]:56890 "EHLO muru.com"
+        id S1727635AbgBUTxM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Feb 2020 14:53:12 -0500
+Received: from muru.com ([72.249.23.125]:56862 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728019AbgBUTxQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 21 Feb 2020 14:53:16 -0500
+        id S1726160AbgBUTxM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 21 Feb 2020 14:53:12 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 603EA81C2;
-        Fri, 21 Feb 2020 19:53:59 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id F18108161;
+        Fri, 21 Feb 2020 19:53:54 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -34,9 +34,9 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Adam Ford <aford173@gmail.com>,
         =?UTF-8?q?Andr=C3=A9=20Hentschel?= <nerv@dawncrow.de>,
         "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 4/7] bus: ti-sysc: Consider non-existing registers too when matching quirks
-Date:   Fri, 21 Feb 2020 11:52:53 -0800
-Message-Id: <20200221195256.54016-5-tony@atomide.com>
+Subject: [PATCH 2/7] bus: ti-sysc: Rename clk related quirks to pre_reset and post_reset quirks
+Date:   Fri, 21 Feb 2020 11:52:51 -0800
+Message-Id: <20200221195256.54016-3-tony@atomide.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200221195256.54016-1-tony@atomide.com>
 References: <20200221195256.54016-1-tony@atomide.com>
@@ -47,221 +47,111 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We are currently setting -1 for non-existing sysconfig related registers
-for quirks, but setting -ENODEV elsewhere. And for matching the quirks,
-we're now just ignoring the non-existing registers. This will cause issues
-with misdetecting DSS registers as the hardware revision numbers can have
-duplicates.
+The clk_disable_quirk and clk_enable_quirk should really be called
+pre_reset_quirk and post_reset_quirk to avoid confusion like we had
+with hdq1w reset.
 
-To avoid this, let's standardize on using -ENODEV also for the quirks
-instead of -1. That way we can always just test for a match without adding
-any more complicated logic.
+Let's also rename the related functions so the code is easier to follow.
+Note that we also have reset_done_quirk that is needed in some cases
+after checking the separate register for reset done bit.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 120 ++++++++++++++++++++----------------------
- 1 file changed, 57 insertions(+), 63 deletions(-)
+ drivers/bus/ti-sysc.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -1216,16 +1216,16 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_QUIRK_LEGACY_IDLE | SYSC_QUIRK_OPT_CLKS_IN_RESET),
- 	SYSC_QUIRK("sham", 0, 0x100, 0x110, 0x114, 0x40000c03, 0xffffffff,
- 		   SYSC_QUIRK_LEGACY_IDLE),
--	SYSC_QUIRK("smartreflex", 0, -1, 0x24, -1, 0x00000000, 0xffffffff,
-+	SYSC_QUIRK("smartreflex", 0, -ENODEV, 0x24, -ENODEV, 0x00000000, 0xffffffff,
- 		   SYSC_QUIRK_LEGACY_IDLE),
--	SYSC_QUIRK("smartreflex", 0, -1, 0x38, -1, 0x00000000, 0xffffffff,
-+	SYSC_QUIRK("smartreflex", 0, -ENODEV, 0x38, -ENODEV, 0x00000000, 0xffffffff,
- 		   SYSC_QUIRK_LEGACY_IDLE),
- 	SYSC_QUIRK("timer", 0, 0, 0x10, 0x14, 0x00000015, 0xffffffff,
- 		   0),
- 	/* Some timers on omap4 and later */
--	SYSC_QUIRK("timer", 0, 0, 0x10, -1, 0x50002100, 0xffffffff,
-+	SYSC_QUIRK("timer", 0, 0, 0x10, -ENODEV, 0x50002100, 0xffffffff,
- 		   0),
--	SYSC_QUIRK("timer", 0, 0, 0x10, -1, 0x4fff1301, 0xffff00ff,
-+	SYSC_QUIRK("timer", 0, 0, 0x10, -ENODEV, 0x4fff1301, 0xffff00ff,
- 		   0),
- 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x00000046, 0xffffffff,
- 		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
-@@ -1238,18 +1238,18 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
+@@ -70,8 +70,8 @@ static const char * const clock_names[SYSC_MAX_CLOCKS] = {
+  * @child_needs_resume: runtime resume needed for child on resume from suspend
+  * @disable_on_idle: status flag used for disabling modules with resets
+  * @idle_work: work structure used to perform delayed idle on a module
+- * @clk_enable_quirk: module specific clock enable quirk
+- * @clk_disable_quirk: module specific clock disable quirk
++ * @pre_reset_quirk: module specific pre-reset quirk
++ * @post_reset_quirk: module specific post-reset quirk
+  * @reset_done_quirk: module specific reset done quirk
+  * @module_enable_quirk: module specific enable quirk
+  * @module_disable_quirk: module specific disable quirk
+@@ -97,8 +97,8 @@ struct sysc {
+ 	unsigned int needs_resume:1;
+ 	unsigned int child_needs_resume:1;
+ 	struct delayed_work idle_work;
+-	void (*clk_enable_quirk)(struct sysc *sysc);
+-	void (*clk_disable_quirk)(struct sysc *sysc);
++	void (*pre_reset_quirk)(struct sysc *sysc);
++	void (*post_reset_quirk)(struct sysc *sysc);
+ 	void (*reset_done_quirk)(struct sysc *sysc);
+ 	void (*module_enable_quirk)(struct sysc *sysc);
+ 	void (*module_disable_quirk)(struct sysc *sysc);
+@@ -1418,7 +1418,7 @@ static void sysc_module_enable_quirk_aess(struct sysc *ddata)
+ 	sysc_write(ddata, offset, 1);
+ }
  
- 	/* Quirks that need to be set based on the module address */
--	SYSC_QUIRK("mcpdm", 0x40132000, 0, 0x10, -1, 0x50000800, 0xffffffff,
-+	SYSC_QUIRK("mcpdm", 0x40132000, 0, 0x10, -ENODEV, 0x50000800, 0xffffffff,
- 		   SYSC_QUIRK_EXT_OPT_CLOCK | SYSC_QUIRK_NO_RESET_ON_INIT |
- 		   SYSC_QUIRK_SWSUP_SIDLE),
+-/* I2C needs extra enable bit toggling for reset */
++/* I2C needs to be disabled for reset */
+ static void sysc_clk_quirk_i2c(struct sysc *ddata, bool enable)
+ {
+ 	int offset;
+@@ -1439,14 +1439,14 @@ static void sysc_clk_quirk_i2c(struct sysc *ddata, bool enable)
+ 	sysc_write(ddata, offset, val);
+ }
  
- 	/* Quirks that need to be set based on detected module */
--	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff,
-+	SYSC_QUIRK("aess", 0, 0, 0x10, -ENODEV, 0x40000000, 0xffffffff,
- 		   SYSC_MODULE_QUIRK_AESS),
--	SYSC_QUIRK("dcan", 0x48480000, 0x20, -1, -1, 0xa3170504, 0xffffffff,
-+	SYSC_QUIRK("dcan", 0x48480000, 0x20, -ENODEV, -ENODEV, 0xa3170504, 0xffffffff,
- 		   SYSC_QUIRK_CLKDM_NOAUTO),
--	SYSC_QUIRK("dwc3", 0x48880000, 0, 0x10, -1, 0x500a0200, 0xffffffff,
-+	SYSC_QUIRK("dwc3", 0x48880000, 0, 0x10, -ENODEV, 0x500a0200, 0xffffffff,
- 		   SYSC_QUIRK_CLKDM_NOAUTO),
--	SYSC_QUIRK("dwc3", 0x488c0000, 0, 0x10, -1, 0x500a0200, 0xffffffff,
-+	SYSC_QUIRK("dwc3", 0x488c0000, 0, 0x10, -ENODEV, 0x500a0200, 0xffffffff,
- 		   SYSC_QUIRK_CLKDM_NOAUTO),
- 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
- 		   SYSC_MODULE_QUIRK_HDQ1W),
-@@ -1263,12 +1263,12 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_MODULE_QUIRK_I2C),
- 	SYSC_QUIRK("i2c", 0, 0, 0x10, 0x90, 0x5040000a, 0xfffff0f0,
- 		   SYSC_MODULE_QUIRK_I2C),
--	SYSC_QUIRK("gpu", 0x50000000, 0x14, -1, -1, 0x00010201, 0xffffffff, 0),
--	SYSC_QUIRK("gpu", 0x50000000, 0xfe00, 0xfe10, -1, 0x40000000 , 0xffffffff,
-+	SYSC_QUIRK("gpu", 0x50000000, 0x14, -ENODEV, -ENODEV, 0x00010201, 0xffffffff, 0),
-+	SYSC_QUIRK("gpu", 0x50000000, 0xfe00, 0xfe10, -ENODEV, 0x40000000 , 0xffffffff,
- 		   SYSC_MODULE_QUIRK_SGX),
- 	SYSC_QUIRK("usb_otg_hs", 0, 0x400, 0x404, 0x408, 0x00000050,
- 		   0xffffffff, SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
--	SYSC_QUIRK("usb_otg_hs", 0, 0, 0x10, -1, 0x4ea2080d, 0xffffffff,
-+	SYSC_QUIRK("usb_otg_hs", 0, 0, 0x10, -ENODEV, 0x4ea2080d, 0xffffffff,
- 		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
- 	SYSC_QUIRK("wdt", 0, 0, 0x10, 0x14, 0x502a0500, 0xfffff0f0,
- 		   SYSC_MODULE_QUIRK_WDT),
-@@ -1277,57 +1277,57 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_MODULE_QUIRK_WDT | SYSC_QUIRK_SWSUP_SIDLE),
+-static void sysc_clk_enable_quirk_i2c(struct sysc *ddata)
++static void sysc_pre_reset_quirk_i2c(struct sysc *ddata)
+ {
+-	sysc_clk_quirk_i2c(ddata, true);
++	sysc_clk_quirk_i2c(ddata, false);
+ }
  
- #ifdef DEBUG
--	SYSC_QUIRK("adc", 0, 0, 0x10, -1, 0x47300001, 0xffffffff, 0),
--	SYSC_QUIRK("atl", 0, 0, -1, -1, 0x0a070100, 0xffffffff, 0),
--	SYSC_QUIRK("cm", 0, 0, -1, -1, 0x40000301, 0xffffffff, 0),
--	SYSC_QUIRK("control", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
-+	SYSC_QUIRK("adc", 0, 0, 0x10, -ENODEV, 0x47300001, 0xffffffff, 0),
-+	SYSC_QUIRK("atl", 0, 0, -ENODEV, -ENODEV, 0x0a070100, 0xffffffff, 0),
-+	SYSC_QUIRK("cm", 0, 0, -ENODEV, -ENODEV, 0x40000301, 0xffffffff, 0),
-+	SYSC_QUIRK("control", 0, 0, 0x10, -ENODEV, 0x40000900, 0xffffffff, 0),
- 	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
- 		   0xffff00f0, 0),
--	SYSC_QUIRK("dcan", 0, 0x20, -1, -1, 0xa3170504, 0xffffffff, 0),
--	SYSC_QUIRK("dcan", 0, 0x20, -1, -1, 0x4edb1902, 0xffffffff, 0),
--	SYSC_QUIRK("dmic", 0, 0, 0x10, -1, 0x50010000, 0xffffffff, 0),
--	SYSC_QUIRK("dwc3", 0, 0, 0x10, -1, 0x500a0200, 0xffffffff, 0),
-+	SYSC_QUIRK("dcan", 0, 0x20, -ENODEV, -ENODEV, 0xa3170504, 0xffffffff, 0),
-+	SYSC_QUIRK("dcan", 0, 0x20, -ENODEV, -ENODEV, 0x4edb1902, 0xffffffff, 0),
-+	SYSC_QUIRK("dmic", 0, 0, 0x10, -ENODEV, 0x50010000, 0xffffffff, 0),
-+	SYSC_QUIRK("dwc3", 0, 0, 0x10, -ENODEV, 0x500a0200, 0xffffffff, 0),
- 	SYSC_QUIRK("d2d", 0x4a0b6000, 0, 0x10, 0x14, 0x00000010, 0xffffffff, 0),
- 	SYSC_QUIRK("d2d", 0x4a0cd000, 0, 0x10, 0x14, 0x00000010, 0xffffffff, 0),
--	SYSC_QUIRK("epwmss", 0, 0, 0x4, -1, 0x47400001, 0xffffffff, 0),
--	SYSC_QUIRK("gpu", 0, 0x1fc00, 0x1fc10, -1, 0, 0, 0),
--	SYSC_QUIRK("gpu", 0, 0xfe00, 0xfe10, -1, 0x40000000 , 0xffffffff, 0),
-+	SYSC_QUIRK("epwmss", 0, 0, 0x4, -ENODEV, 0x47400001, 0xffffffff, 0),
-+	SYSC_QUIRK("gpu", 0, 0x1fc00, 0x1fc10, -ENODEV, 0, 0, 0),
-+	SYSC_QUIRK("gpu", 0, 0xfe00, 0xfe10, -ENODEV, 0x40000000 , 0xffffffff, 0),
- 	SYSC_QUIRK("hsi", 0, 0, 0x10, 0x14, 0x50043101, 0xffffffff, 0),
--	SYSC_QUIRK("iss", 0, 0, 0x10, -1, 0x40000101, 0xffffffff, 0),
--	SYSC_QUIRK("lcdc", 0, 0, 0x54, -1, 0x4f201000, 0xffffffff, 0),
--	SYSC_QUIRK("mcasp", 0, 0, 0x4, -1, 0x44306302, 0xffffffff, 0),
--	SYSC_QUIRK("mcasp", 0, 0, 0x4, -1, 0x44307b02, 0xffffffff, 0),
--	SYSC_QUIRK("mcbsp", 0, -1, 0x8c, -1, 0, 0, 0),
--	SYSC_QUIRK("mcspi", 0, 0, 0x10, -1, 0x40300a0b, 0xffff00ff, 0),
-+	SYSC_QUIRK("iss", 0, 0, 0x10, -ENODEV, 0x40000101, 0xffffffff, 0),
-+	SYSC_QUIRK("lcdc", 0, 0, 0x54, -ENODEV, 0x4f201000, 0xffffffff, 0),
-+	SYSC_QUIRK("mcasp", 0, 0, 0x4, -ENODEV, 0x44306302, 0xffffffff, 0),
-+	SYSC_QUIRK("mcasp", 0, 0, 0x4, -ENODEV, 0x44307b02, 0xffffffff, 0),
-+	SYSC_QUIRK("mcbsp", 0, -ENODEV, 0x8c, -ENODEV, 0, 0, 0),
-+	SYSC_QUIRK("mcspi", 0, 0, 0x10, -ENODEV, 0x40300a0b, 0xffff00ff, 0),
- 	SYSC_QUIRK("mcspi", 0, 0, 0x110, 0x114, 0x40300a0b, 0xffffffff, 0),
--	SYSC_QUIRK("mailbox", 0, 0, 0x10, -1, 0x00000400, 0xffffffff, 0),
--	SYSC_QUIRK("m3", 0, 0, -1, -1, 0x5f580105, 0x0fff0f00, 0),
-+	SYSC_QUIRK("mailbox", 0, 0, 0x10, -ENODEV, 0x00000400, 0xffffffff, 0),
-+	SYSC_QUIRK("m3", 0, 0, -ENODEV, -ENODEV, 0x5f580105, 0x0fff0f00, 0),
- 	SYSC_QUIRK("ocp2scp", 0, 0, 0x10, 0x14, 0x50060005, 0xfffffff0, 0),
--	SYSC_QUIRK("ocp2scp", 0, 0, -1, -1, 0x50060007, 0xffffffff, 0),
--	SYSC_QUIRK("padconf", 0, 0, 0x10, -1, 0x4fff0800, 0xffffffff, 0),
--	SYSC_QUIRK("padconf", 0, 0, -1, -1, 0x40001100, 0xffffffff, 0),
--	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x40000100, 0xffffffff, 0),
--	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x00004102, 0xffffffff, 0),
--	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x40000400, 0xffffffff, 0),
--	SYSC_QUIRK("scm", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
--	SYSC_QUIRK("scm", 0, 0, -1, -1, 0x4e8b0100, 0xffffffff, 0),
--	SYSC_QUIRK("scm", 0, 0, -1, -1, 0x4f000100, 0xffffffff, 0),
--	SYSC_QUIRK("scm", 0, 0, -1, -1, 0x40000900, 0xffffffff, 0),
--	SYSC_QUIRK("scrm", 0, 0, -1, -1, 0x00000010, 0xffffffff, 0),
--	SYSC_QUIRK("sdio", 0, 0, 0x10, -1, 0x40202301, 0xffff0ff0, 0),
-+	SYSC_QUIRK("ocp2scp", 0, 0, -ENODEV, -ENODEV, 0x50060007, 0xffffffff, 0),
-+	SYSC_QUIRK("padconf", 0, 0, 0x10, -ENODEV, 0x4fff0800, 0xffffffff, 0),
-+	SYSC_QUIRK("padconf", 0, 0, -ENODEV, -ENODEV, 0x40001100, 0xffffffff, 0),
-+	SYSC_QUIRK("prcm", 0, 0, -ENODEV, -ENODEV, 0x40000100, 0xffffffff, 0),
-+	SYSC_QUIRK("prcm", 0, 0, -ENODEV, -ENODEV, 0x00004102, 0xffffffff, 0),
-+	SYSC_QUIRK("prcm", 0, 0, -ENODEV, -ENODEV, 0x40000400, 0xffffffff, 0),
-+	SYSC_QUIRK("scm", 0, 0, 0x10, -ENODEV, 0x40000900, 0xffffffff, 0),
-+	SYSC_QUIRK("scm", 0, 0, -ENODEV, -ENODEV, 0x4e8b0100, 0xffffffff, 0),
-+	SYSC_QUIRK("scm", 0, 0, -ENODEV, -ENODEV, 0x4f000100, 0xffffffff, 0),
-+	SYSC_QUIRK("scm", 0, 0, -ENODEV, -ENODEV, 0x40000900, 0xffffffff, 0),
-+	SYSC_QUIRK("scrm", 0, 0, -ENODEV, -ENODEV, 0x00000010, 0xffffffff, 0),
-+	SYSC_QUIRK("sdio", 0, 0, 0x10, -ENODEV, 0x40202301, 0xffff0ff0, 0),
- 	SYSC_QUIRK("sdio", 0, 0x2fc, 0x110, 0x114, 0x31010000, 0xffffffff, 0),
- 	SYSC_QUIRK("sdma", 0, 0, 0x2c, 0x28, 0x00010900, 0xffffffff, 0),
--	SYSC_QUIRK("slimbus", 0, 0, 0x10, -1, 0x40000902, 0xffffffff, 0),
--	SYSC_QUIRK("slimbus", 0, 0, 0x10, -1, 0x40002903, 0xffffffff, 0),
--	SYSC_QUIRK("spinlock", 0, 0, 0x10, -1, 0x50020000, 0xffffffff, 0),
--	SYSC_QUIRK("rng", 0, 0x1fe0, 0x1fe4, -1, 0x00000020, 0xffffffff, 0),
--	SYSC_QUIRK("rtc", 0, 0x74, 0x78, -1, 0x4eb01908, 0xffff00f0, 0),
--	SYSC_QUIRK("timer32k", 0, 0, 0x4, -1, 0x00000060, 0xffffffff, 0),
-+	SYSC_QUIRK("slimbus", 0, 0, 0x10, -ENODEV, 0x40000902, 0xffffffff, 0),
-+	SYSC_QUIRK("slimbus", 0, 0, 0x10, -ENODEV, 0x40002903, 0xffffffff, 0),
-+	SYSC_QUIRK("spinlock", 0, 0, 0x10, -ENODEV, 0x50020000, 0xffffffff, 0),
-+	SYSC_QUIRK("rng", 0, 0x1fe0, 0x1fe4, -ENODEV, 0x00000020, 0xffffffff, 0),
-+	SYSC_QUIRK("rtc", 0, 0x74, 0x78, -ENODEV, 0x4eb01908, 0xffff00f0, 0),
-+	SYSC_QUIRK("timer32k", 0, 0, 0x4, -ENODEV, 0x00000060, 0xffffffff, 0),
- 	SYSC_QUIRK("usbhstll", 0, 0, 0x10, 0x14, 0x00000004, 0xffffffff, 0),
- 	SYSC_QUIRK("usbhstll", 0, 0, 0x10, 0x14, 0x00000008, 0xffffffff, 0),
- 	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, 0x14, 0x50700100, 0xffffffff, 0),
--	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, -1, 0x50700101, 0xffffffff, 0),
--	SYSC_QUIRK("vfpe", 0, 0, 0x104, -1, 0x4d001200, 0xffffffff, 0),
-+	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, -ENODEV, 0x50700101, 0xffffffff, 0),
-+	SYSC_QUIRK("vfpe", 0, 0, 0x104, -ENODEV, 0x4d001200, 0xffffffff, 0),
- #endif
- };
+-static void sysc_clk_disable_quirk_i2c(struct sysc *ddata)
++static void sysc_post_reset_quirk_i2c(struct sysc *ddata)
+ {
+-	sysc_clk_quirk_i2c(ddata, false);
++	sysc_clk_quirk_i2c(ddata, true);
+ }
  
-@@ -1349,16 +1349,13 @@ static void sysc_init_early_quirks(struct sysc *ddata)
- 		if (q->base != ddata->module_pa)
- 			continue;
+ /* 36xx SGX needs a quirk for to bypass OCP IPG interrupt logic */
+@@ -1488,14 +1488,14 @@ static void sysc_init_module_quirks(struct sysc *ddata)
+ 		return;
  
--		if (q->rev_offset >= 0 &&
--		    q->rev_offset != ddata->offsets[SYSC_REVISION])
-+		if (q->rev_offset != ddata->offsets[SYSC_REVISION])
- 			continue;
+ 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_HDQ1W) {
+-		ddata->clk_disable_quirk = sysc_pre_reset_quirk_hdq1w;
++		ddata->pre_reset_quirk = sysc_pre_reset_quirk_hdq1w;
  
--		if (q->sysc_offset >= 0 &&
--		    q->sysc_offset != ddata->offsets[SYSC_SYSCONFIG])
-+		if (q->sysc_offset != ddata->offsets[SYSC_SYSCONFIG])
- 			continue;
+ 		return;
+ 	}
  
--		if (q->syss_offset >= 0 &&
--		    q->syss_offset != ddata->offsets[SYSC_SYSSTATUS])
-+		if (q->syss_offset != ddata->offsets[SYSC_SYSSTATUS])
- 			continue;
+ 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_I2C) {
+-		ddata->clk_enable_quirk = sysc_clk_enable_quirk_i2c;
+-		ddata->clk_disable_quirk = sysc_clk_disable_quirk_i2c;
++		ddata->pre_reset_quirk = sysc_pre_reset_quirk_i2c;
++		ddata->post_reset_quirk = sysc_post_reset_quirk_i2c;
  
- 		ddata->name = q->name;
-@@ -1378,16 +1375,13 @@ static void sysc_init_revision_quirks(struct sysc *ddata)
- 		if (q->base && q->base != ddata->module_pa)
- 			continue;
+ 		return;
+ 	}
+@@ -1583,8 +1583,8 @@ static int sysc_reset(struct sysc *ddata)
+ 	else
+ 		syss_done = ddata->cfg.syss_mask;
  
--		if (q->rev_offset >= 0 &&
--		    q->rev_offset != ddata->offsets[SYSC_REVISION])
-+		if (q->rev_offset != ddata->offsets[SYSC_REVISION])
- 			continue;
+-	if (ddata->clk_disable_quirk)
+-		ddata->clk_disable_quirk(ddata);
++	if (ddata->pre_reset_quirk)
++		ddata->pre_reset_quirk(ddata);
  
--		if (q->sysc_offset >= 0 &&
--		    q->sysc_offset != ddata->offsets[SYSC_SYSCONFIG])
-+		if (q->sysc_offset != ddata->offsets[SYSC_SYSCONFIG])
- 			continue;
+ 	sysc_val = sysc_read_sysconfig(ddata);
+ 	sysc_val |= sysc_mask;
+@@ -1594,8 +1594,8 @@ static int sysc_reset(struct sysc *ddata)
+ 		usleep_range(ddata->cfg.srst_udelay,
+ 			     ddata->cfg.srst_udelay * 2);
  
--		if (q->syss_offset >= 0 &&
--		    q->syss_offset != ddata->offsets[SYSC_SYSSTATUS])
-+		if (q->syss_offset != ddata->offsets[SYSC_SYSSTATUS])
- 			continue;
+-	if (ddata->clk_enable_quirk)
+-		ddata->clk_enable_quirk(ddata);
++	if (ddata->post_reset_quirk)
++		ddata->post_reset_quirk(ddata);
  
- 		if (q->revision == ddata->revision ||
+ 	/* Poll on reset status */
+ 	if (syss_offset >= 0) {
 -- 
 2.25.1
