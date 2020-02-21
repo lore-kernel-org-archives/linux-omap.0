@@ -2,25 +2,25 @@ Return-Path: <SRS0=uMh/=4J=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E0D5C35661
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 19:53:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0BE3C35666
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 19:53:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B52C20722
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 19:53:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F2A524673
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 19:53:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726707AbgBUTxH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Feb 2020 14:53:07 -0500
-Received: from muru.com ([72.249.23.125]:56834 "EHLO muru.com"
+        id S1727553AbgBUTxJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Feb 2020 14:53:09 -0500
+Received: from muru.com ([72.249.23.125]:56856 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726160AbgBUTxH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 21 Feb 2020 14:53:07 -0500
+        id S1726160AbgBUTxJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 21 Feb 2020 14:53:09 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id EB03B807E;
-        Fri, 21 Feb 2020 19:53:50 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id ECDED814A;
+        Fri, 21 Feb 2020 19:53:52 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -34,47 +34,49 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Adam Ford <aford173@gmail.com>,
         =?UTF-8?q?Andr=C3=A9=20Hentschel?= <nerv@dawncrow.de>,
         "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 0/7] ti-sysc driver fix for hdq1w and few improvments
-Date:   Fri, 21 Feb 2020 11:52:49 -0800
-Message-Id: <20200221195256.54016-1-tony@atomide.com>
+Subject: [PATCH 1/7] bus: ti-sysc: Fix 1-wire reset quirk
+Date:   Fri, 21 Feb 2020 11:52:50 -0800
+Message-Id: <20200221195256.54016-2-tony@atomide.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200221195256.54016-1-tony@atomide.com>
+References: <20200221195256.54016-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi all,
+Because of the i2c quirk we have the reset quirks named in a confusing
+way. Let's fix the 1-wire quirk accordinlyg. Then let's switch to using
+better naming later on.
 
-Here are some ti-sysc interconnect target module driver fixes and
-improvments.
+Fixes: 4e23be473e30 ("bus: ti-sysc: Add support for module specific reset quirks")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-There's a fix for 1-wire reset, the rest can wait for v5.7 merge
-window.
-
-Regards,
-
-Tony
-
-
-
-Tony Lindgren (7):
-  bus: ti-sysc: Fix 1-wire reset quirk
-  bus: ti-sysc: Rename clk related quirks to pre_reset and post_reset
-    quirks
-  ti-sysc: Improve reset to work with modules with no sysconfig
-  bus: ti-sysc: Consider non-existing registers too when matching quirks
-  bus: ti-sysc: Don't warn about legacy property for nested ti-sysc
-    devices
-  bus: ti-sysc: Implement SoC revision handling
-  bus: ti-sysc: Handle module unlock quirk needed for some RTC
-
- arch/arm/mach-omap2/pdata-quirks.c    |   6 +
- drivers/bus/ti-sysc.c                 | 430 ++++++++++++++++++++------
- include/linux/platform_data/ti-sysc.h |   2 +
- 3 files changed, 348 insertions(+), 90 deletions(-)
-
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1400,7 +1400,7 @@ static void sysc_init_revision_quirks(struct sysc *ddata)
+ }
+ 
+ /* 1-wire needs module's internal clocks enabled for reset */
+-static void sysc_clk_enable_quirk_hdq1w(struct sysc *ddata)
++static void sysc_pre_reset_quirk_hdq1w(struct sysc *ddata)
+ {
+ 	int offset = 0x0c;	/* HDQ_CTRL_STATUS */
+ 	u16 val;
+@@ -1488,7 +1488,7 @@ static void sysc_init_module_quirks(struct sysc *ddata)
+ 		return;
+ 
+ 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_HDQ1W) {
+-		ddata->clk_enable_quirk = sysc_clk_enable_quirk_hdq1w;
++		ddata->clk_disable_quirk = sysc_pre_reset_quirk_hdq1w;
+ 
+ 		return;
+ 	}
 -- 
 2.25.1
