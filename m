@@ -7,53 +7,52 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F0DAC35646
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89AC0C3564C
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3239D20659
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C52E24676
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="k79OBegH"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="J7hyiMSR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728980AbgBUKUn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Feb 2020 05:20:43 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:60414 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728984AbgBUKUa (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 05:20:30 -0500
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKU9B088515;
-        Fri, 21 Feb 2020 04:20:30 -0600
+        id S1728955AbgBUKU1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Feb 2020 05:20:27 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:60442 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728662AbgBUKU0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 05:20:26 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKPXA015331;
+        Fri, 21 Feb 2020 04:20:25 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1582280430;
-        bh=9hQpRF+WNH9kqEblHdwsFt1IgL/qTFvA8C+BXiHOSts=;
+        s=ti-com-17Q1; t=1582280425;
+        bh=wU0Sn6p1yeWaT25K+IJYioMb+UBf+BNiCCl361jxH5Y=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=k79OBegHMkqbDtNfusfYQjL4S4WOa5zyaGJgbkeqP788JEaZ+2xVsElJlzzdTqbSl
-         dyiI51lA8juPG33MB4MEum8hcGGxfeKcoJmGMJytJq6ofvWmdYL8fPTj+YUu2qEN/4
-         AFOEcYLOA4F2WYwxFj80309Vw7BRRsxt4MmywoQI=
-Received: from DLEE110.ent.ti.com (dlee110.ent.ti.com [157.170.170.21])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01LAKT8L004895
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 21 Feb 2020 04:20:30 -0600
-Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
+        b=J7hyiMSRLkPyy4P4iiPF813IuZku/PpT5pSLfNljWOnSIprmIRllK6N3Lm5OTXU0r
+         s+5cky59RXCtilDbKpaQvj2XAUbH1xwL3BBq6iqKMomPkkaIvpI4v/CkakSAExQrFr
+         edbkUTGyKw/YiEKZlcgC6KpJslglkZI2VrJGjuSg=
+Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKPxd104994;
+        Fri, 21 Feb 2020 04:20:25 -0600
+Received: from DFLE115.ent.ti.com (10.64.6.36) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Fri, 21
- Feb 2020 04:20:28 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+ Feb 2020 04:20:24 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Fri, 21 Feb 2020 04:20:28 -0600
+ Frontend Transport; Fri, 21 Feb 2020 04:20:24 -0600
 Received: from sokoban.bb.dnainternet.fi (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAJnx4034983;
-        Fri, 21 Feb 2020 04:20:26 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAJnx2034983;
+        Fri, 21 Feb 2020 04:20:22 -0600
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <bjorn.andersson@linaro.org>, <ohad@wizery.com>,
         <linux-remoteproc@vger.kernel.org>, <afd@ti.com>, <s-anna@ti.com>
 CC:     <linux-kernel@vger.kernel.org>, <mathieu.poirier@linaro.org>,
         <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 15/15] remoteproc/omap: Switch to SPDX license identifiers
-Date:   Fri, 21 Feb 2020 12:19:36 +0200
-Message-ID: <20200221101936.16833-16-t-kristo@ti.com>
+Subject: [PATCHv7 13/15] remoteproc/omap: Report device exceptions and trigger recovery
+Date:   Fri, 21 Feb 2020 12:19:34 +0200
+Message-ID: <20200221101936.16833-14-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200221101936.16833-1-t-kristo@ti.com>
 References: <20200221101936.16833-1-t-kristo@ti.com>
@@ -67,56 +66,42 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-Use the appropriate SPDX license identifiers in various OMAP remoteproc
-source files and drop the previous boilerplate license text.
+The OMAP remote processors send a special mailbox message
+(RP_MBOX_CRASH) when they crash and detect an internal device
+exception.
 
+Add support to the mailbox handling function upon detection of
+this special message to report this crash to the remoteproc core.
+The remoteproc core can trigger a recovery using the prevailing
+recovery mechanism, already in use for MMU Fault recovery.
+
+Co-developed-by: Subramaniam Chanderashekarapuram <subramaniam.ca@ti.com>
+Signed-off-by: Subramaniam Chanderashekarapuram <subramaniam.ca@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
- drivers/remoteproc/omap_remoteproc.h | 27 +--------------------------
- 1 file changed, 1 insertion(+), 26 deletions(-)
+ drivers/remoteproc/omap_remoteproc.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/remoteproc/omap_remoteproc.h b/drivers/remoteproc/omap_remoteproc.h
-index 13f17d9135c0..828e13256c02 100644
---- a/drivers/remoteproc/omap_remoteproc.h
-+++ b/drivers/remoteproc/omap_remoteproc.h
-@@ -1,35 +1,10 @@
-+/* SPDX-License-Identifier: BSD-3-Clause */
- /*
-  * Remote processor messaging
-  *
-  * Copyright (C) 2011-2020 Texas Instruments, Inc.
-  * Copyright (C) 2011 Google, Inc.
-  * All rights reserved.
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- * * Redistributions of source code must retain the above copyright
-- *   notice, this list of conditions and the following disclaimer.
-- * * Redistributions in binary form must reproduce the above copyright
-- *   notice, this list of conditions and the following disclaimer in
-- *   the documentation and/or other materials provided with the
-- *   distribution.
-- * * Neither the name Texas Instruments nor the names of its
-- *   contributors may be used to endorse or promote products derived
-- *   from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  */
+diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+index 1ac270df4d66..7dcb5da0d940 100644
+--- a/drivers/remoteproc/omap_remoteproc.c
++++ b/drivers/remoteproc/omap_remoteproc.c
+@@ -383,8 +383,12 @@ static void omap_rproc_mbox_callback(struct mbox_client *client, void *data)
  
- #ifndef _OMAP_RPMSG_H
+ 	switch (msg) {
+ 	case RP_MBOX_CRASH:
+-		/* just log this for now. later, we'll also do recovery */
++		/*
++		 * remoteproc detected an exception, notify the rproc core.
++		 * The remoteproc core will handle the recovery.
++		 */
+ 		dev_err(dev, "omap rproc %s crashed\n", name);
++		rproc_report_crash(oproc->rproc, RPROC_FATAL_ERROR);
+ 		break;
+ 	case RP_MBOX_ECHO_REPLY:
+ 		dev_info(dev, "received echo reply from %s\n", name);
 -- 
 2.17.1
 
