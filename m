@@ -7,53 +7,52 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96468C35646
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87EDDC35647
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E9F224650
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EB5E2467A
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Feb 2020 10:20:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="GO2F9HFB"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="wTXNkEOp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728941AbgBUKU0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Feb 2020 05:20:26 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:60438 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728924AbgBUKUY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 05:20:24 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKNVo015325;
-        Fri, 21 Feb 2020 04:20:23 -0600
+        id S1728994AbgBUKUb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Feb 2020 05:20:31 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:60412 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728983AbgBUKUa (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2020 05:20:30 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKTiD088511;
+        Fri, 21 Feb 2020 04:20:29 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1582280423;
-        bh=94pf8MJOEI5lUWMdnD33HTUx8TsrZDnn1rWS02X5YE0=;
+        s=ti-com-17Q1; t=1582280429;
+        bh=2pWA9it0Oo3uFpj5kWmPmhTIBaICa315y9ozwepEgKk=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=GO2F9HFBtdkPYUBMmWDY78oq3x9p18yK1si+O3FQi4TXr19MiCwRNbv/Ceg6nXjmz
-         bqdoLnk2Q0mtI4HynRTC15U6NhKlAozitiGIG+8RJuCJDHLMxhqZWnPeBVgsUOpNHf
-         OYwKc6HTakqVjDsN+vm3ZZAtfQXlFVBMNgiJZJMY=
-Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01LAKNcV116550
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 21 Feb 2020 04:20:23 -0600
-Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+        b=wTXNkEOpbtrGuSQRFCPzb3OVfV0avlKZ9WiTSG5dbAsmRsGzeS334X04ijRq51VoZ
+         aczRG6KuAzChPy/qfYovYesQBCFefCQlUwQ9ai8yQ21LY2OUlAdzhr/OplCB6ITAtF
+         Ty9Sdhaieqc9YePLuzxu+dDxjCInfHpHWZ54Zwnw=
+Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAKTkL105147;
+        Fri, 21 Feb 2020 04:20:29 -0600
+Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Fri, 21
- Feb 2020 04:20:22 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ Feb 2020 04:20:29 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Fri, 21 Feb 2020 04:20:22 -0600
+ Frontend Transport; Fri, 21 Feb 2020 04:20:29 -0600
 Received: from sokoban.bb.dnainternet.fi (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAJnwt034983;
-        Fri, 21 Feb 2020 04:20:05 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01LAJnww034983;
+        Fri, 21 Feb 2020 04:20:12 -0600
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <bjorn.andersson@linaro.org>, <ohad@wizery.com>,
         <linux-remoteproc@vger.kernel.org>, <afd@ti.com>, <s-anna@ti.com>
 CC:     <linux-kernel@vger.kernel.org>, <mathieu.poirier@linaro.org>,
         <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 06/15] remoteproc/omap: Initialize and assign reserved memory node
-Date:   Fri, 21 Feb 2020 12:19:27 +0200
-Message-ID: <20200221101936.16833-7-t-kristo@ti.com>
+Subject: [PATCHv7 09/15] remoteproc/omap: Check for undefined mailbox messages
+Date:   Fri, 21 Feb 2020 12:19:30 +0200
+Message-ID: <20200221101936.16833-10-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200221101936.16833-1-t-kristo@ti.com>
 References: <20200221101936.16833-1-t-kristo@ti.com>
@@ -67,72 +66,64 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The reserved memory nodes are not assigned to platform devices by
-default in the driver core to avoid the lookup for every platform
-device and incur a penalty as the real users are expected to be
-only a few devices.
+Add some checks in the mailbox callback function to limit
+any processing in the mailbox callback function to only
+certain currently valid messages, and drop all the remaining
+messages. A debug message is added to print any such invalid
+messages when the appropriate trace control is enabled.
 
-OMAP remoteproc devices fall into the above category and the OMAP
-remoteproc driver _requires_ specific CMA pools to be assigned
-for each device at the moment to align on the location of the
-vrings and vring buffers in the RTOS-side firmware images. So,
-use the of_reserved_mem_device_init/release() API appropriately
-to assign the corresponding reserved memory region to the OMAP
-remoteproc device. Note that only one region per device is
-allowed by the framework.
-
+Co-developed-by: Subramaniam Chanderashekarapuram <subramaniam.ca@ti.com>
+Signed-off-by: Subramaniam Chanderashekarapuram <subramaniam.ca@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
- drivers/remoteproc/omap_remoteproc.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/remoteproc/omap_remoteproc.c | 6 ++++++
+ drivers/remoteproc/omap_remoteproc.h | 7 +++++++
+ 2 files changed, 13 insertions(+)
 
 diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 89084dd919ba..872cd0df342b 100644
+index 8c3dc0edae95..5d6f32974aa3 100644
 --- a/drivers/remoteproc/omap_remoteproc.c
 +++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/err.h>
- #include <linux/of_device.h>
-+#include <linux/of_reserved_mem.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/remoteproc.h>
-@@ -483,14 +484,23 @@ static int omap_rproc_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto free_rproc;
+@@ -130,6 +130,12 @@ static void omap_rproc_mbox_callback(struct mbox_client *client, void *data)
+ 		dev_info(dev, "received echo reply from %s\n", name);
+ 		break;
+ 	default:
++		if (msg >= RP_MBOX_READY && msg < RP_MBOX_END_MSG)
++			return;
++		if (msg > oproc->rproc->max_notifyid) {
++			dev_dbg(dev, "dropping unknown message 0x%x", msg);
++			return;
++		}
+ 		/* msg contains the index of the triggered vring */
+ 		if (rproc_vq_interrupt(oproc->rproc, msg) == IRQ_NONE)
+ 			dev_dbg(dev, "no message was found in vqid %d\n", msg);
+diff --git a/drivers/remoteproc/omap_remoteproc.h b/drivers/remoteproc/omap_remoteproc.h
+index f6d2036d383d..72f656c93caa 100644
+--- a/drivers/remoteproc/omap_remoteproc.h
++++ b/drivers/remoteproc/omap_remoteproc.h
+@@ -56,6 +56,12 @@
+  *
+  * @RP_MBOX_ABORT_REQUEST: a "please crash" request, used for testing the
+  * recovery mechanism (to some extent).
++ *
++ * Introduce new message definitions if any here.
++ *
++ * @RP_MBOX_END_MSG: Indicates end of known/defined messages from remote core
++ * This should be the last definition.
++ *
+  */
+ enum omap_rp_mbox_messages {
+ 	RP_MBOX_READY		= 0xFFFFFF00,
+@@ -64,6 +70,7 @@ enum omap_rp_mbox_messages {
+ 	RP_MBOX_ECHO_REQUEST	= 0xFFFFFF03,
+ 	RP_MBOX_ECHO_REPLY	= 0xFFFFFF04,
+ 	RP_MBOX_ABORT_REQUEST	= 0xFFFFFF05,
++	RP_MBOX_END_MSG		= 0xFFFFFF06,
+ };
  
-+	ret = of_reserved_mem_device_init(&pdev->dev);
-+	if (ret) {
-+		dev_warn(&pdev->dev, "device does not have specific CMA pool.\n");
-+		dev_warn(&pdev->dev, "Typically this should be provided,\n");
-+		dev_warn(&pdev->dev, "only omit if you know what you are doing.\n");
-+	}
-+
- 	platform_set_drvdata(pdev, rproc);
- 
- 	ret = rproc_add(rproc);
- 	if (ret)
--		goto free_rproc;
-+		goto release_mem;
- 
- 	return 0;
- 
-+release_mem:
-+	of_reserved_mem_device_release(&pdev->dev);
- free_rproc:
- 	rproc_free(rproc);
- 	return ret;
-@@ -502,6 +512,7 @@ static int omap_rproc_remove(struct platform_device *pdev)
- 
- 	rproc_del(rproc);
- 	rproc_free(rproc);
-+	of_reserved_mem_device_release(&pdev->dev);
- 
- 	return 0;
- }
+ #endif /* _OMAP_RPMSG_H */
 -- 
 2.17.1
 
