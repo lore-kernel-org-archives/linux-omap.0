@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5F1EC38BFA
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77000C38BFA
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C645420CC7
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51DC521D7E
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728054AbgBXVKu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 16:10:50 -0500
-Received: from muru.com ([72.249.23.125]:57336 "EHLO muru.com"
+        id S1728025AbgBXVKq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 16:10:46 -0500
+Received: from muru.com ([72.249.23.125]:57306 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727459AbgBXVKu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 24 Feb 2020 16:10:50 -0500
+        id S1727703AbgBXVKp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 24 Feb 2020 16:10:45 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id F3E3B8030;
-        Mon, 24 Feb 2020 21:11:33 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id ECA8C81B7;
+        Mon, 24 Feb 2020 21:11:28 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -29,9 +29,9 @@ Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>,
         Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 23/23] ARM: OMAP2+: Drop legacy platform data for am437x DSS
-Date:   Mon, 24 Feb 2020 13:09:59 -0800
-Message-Id: <20200224210959.56146-24-tony@atomide.com>
+Subject: [PATCH 20/23] ARM: dts: Move am437x dss to the interconnect target module in l4
+Date:   Mon, 24 Feb 2020 13:09:56 -0800
+Message-Id: <20200224210959.56146-21-tony@atomide.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200224210959.56146-1-tony@atomide.com>
 References: <20200224210959.56146-1-tony@atomide.com>
@@ -42,13 +42,13 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with ti-sysc interconnect driver and dts
-data. Let's drop the related platform data and custom ti,hwmods
-dts property.
+On am437x, the display subsystem (DSS) is on l4. We already have
+the interconnect target module for it, so let's just move dss
+there.
 
-As we're just dropping data, and the early platform data init
-is based on the custom ti,hwmods property, we want to drop both
-the platform data and ti,hwmods property in a single patch.
+To do that, we need to adjust the module addresses for the ranges,
+and use the ranges already added earlier based on reading the l4
+interconnect instance AP registers.
 
 Cc: Jyri Sarha <jsarha@ti.com>
 Cc: Keerthy <j-keerthy@ti.com>
@@ -56,153 +56,96 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am437x-l4.dtsi           |   2 -
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 101 ---------------------
- 2 files changed, 103 deletions(-)
+ arch/arm/boot/dts/am4372.dtsi    | 32 -----------------------------
+ arch/arm/boot/dts/am437x-l4.dtsi | 35 ++++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+), 32 deletions(-)
 
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -394,38 +394,6 @@ qspi: spi@0 {
+ 			};
+ 		};
+ 
+-		dss: dss@4832a000 {
+-			compatible = "ti,omap3-dss";
+-			reg = <0x4832a000 0x200>;
+-			status = "disabled";
+-			ti,hwmods = "dss_core";
+-			clocks = <&disp_clk>;
+-			clock-names = "fck";
+-			#address-cells = <1>;
+-			#size-cells = <1>;
+-			ranges;
+-
+-			dispc: dispc@4832a400 {
+-				compatible = "ti,omap3-dispc";
+-				reg = <0x4832a400 0x400>;
+-				interrupts = <GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
+-				ti,hwmods = "dss_dispc";
+-				clocks = <&disp_clk>;
+-				clock-names = "fck";
+-
+-				max-memory-bandwidth = <230000000>;
+-			};
+-
+-			rfbi: rfbi@4832a800 {
+-				compatible = "ti,omap3-rfbi";
+-				reg = <0x4832a800 0x100>;
+-				ti,hwmods = "dss_rfbi";
+-				clocks = <&disp_clk>;
+-				clock-names = "fck";
+-				status = "disabled";
+-			};
+-		};
+-
+ 		ocmcram: sram@40300000 {
+ 			compatible = "mmio-sram";
+ 			reg = <0x40300000 0x40000>; /* 256k */
 diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
 --- a/arch/arm/boot/dts/am437x-l4.dtsi
 +++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -2117,7 +2117,6 @@ vpfe1: vpfe@0 {
+@@ -2135,6 +2135,41 @@ target-module@2a000 {			/* 0x4832a000, ap 88 3c.0 */
+ 				 <0x00000800 0x0002a800 0x00000400>,
+ 				 <0x00000c00 0x0002ac00 0x00000400>,
+ 				 <0x00001000 0x0002b000 0x00001000>;
++
++			dss: dss@0 {
++				compatible = "ti,omap3-dss";
++				reg = <0 0x200>;
++				status = "disabled";
++				clocks = <&disp_clk>;
++				clock-names = "fck";
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0x00000000 0x00000000 0x00000400>,
++					 <0x00000400 0x00000400 0x00000400>,
++					 <0x00000800 0x00000800 0x00000400>,
++					 <0x00000c00 0x00000c00 0x00000400>,
++					 <0x00001000 0x00001000 0x00001000>;
++
++				dispc: dispc@4000 {
++					compatible = "ti,omap3-dispc";
++					reg = <0x400 0x400>;
++					interrupts = <GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
++					ti,hwmods = "dss_dispc";
++					clocks = <&disp_clk>;
++					clock-names = "fck";
++
++					max-memory-bandwidth = <230000000>;
++				};
++
++				rfbi: rfbi@800 {
++					compatible = "ti,omap3-rfbi";
++					reg = <0x800 0x100>;
++					ti,hwmods = "dss_rfbi";
++					clocks = <&disp_clk>;
++					clock-names = "fck";
++					status = "disabled";
++				};
++			};
+ 		};
  
- 		target-module@2a000 {			/* 0x4832a000, ap 88 3c.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "dss_core";
- 			reg = <0x2a000 0x4>,
- 			      <0x2a010 0x4>,
- 			      <0x2a014 0x4>;
-@@ -2152,7 +2151,6 @@ dss: dss@0 {
- 
- 				target-module@400 {
- 					compatible = "ti,sysc-omap2", "ti,sysc";
--					ti,hwmods = "dss_dispc";
- 					reg = <0x400 0x4>,
- 					      <0x410 0x4>,
- 					      <0x414 0x4>;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -156,75 +156,6 @@ static struct omap_hwmod am43xx_usb_otg_ss1_hwmod = {
- 	},
- };
- 
--/* dss */
--
--static struct omap_hwmod am43xx_dss_core_hwmod = {
--	.name		= "dss_core",
--	.class		= &omap2_dss_hwmod_class,
--	.clkdm_name	= "dss_clkdm",
--	.main_clk	= "disp_clk",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
--		},
--	},
--};
--
--/* dispc */
--
--static struct omap_dss_dispc_dev_attr am43xx_dss_dispc_dev_attr = {
--	.manager_count		= 1,
--	.has_framedonetv_irq	= 0
--};
--
--static struct omap_hwmod_class_sysconfig am43xx_dispc_sysc = {
--	.rev_offs	= 0x0000,
--	.sysc_offs	= 0x0010,
--	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SOFTRESET |
--			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
--			   SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_MIDLEMODE),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
--	.sysc_fields	= &omap_hwmod_sysc_type1,
--};
--
--static struct omap_hwmod_class am43xx_dispc_hwmod_class = {
--	.name	= "dispc",
--	.sysc	= &am43xx_dispc_sysc,
--};
--
--static struct omap_hwmod am43xx_dss_dispc_hwmod = {
--	.name		= "dss_dispc",
--	.class		= &am43xx_dispc_hwmod_class,
--	.clkdm_name	= "dss_clkdm",
--	.main_clk	= "disp_clk",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
--		},
--	},
--	.dev_attr	= &am43xx_dss_dispc_dev_attr,
--	.parent_hwmod	= &am43xx_dss_core_hwmod,
--};
--
--/* rfbi */
--
--static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
--	.name		= "dss_rfbi",
--	.class		= &omap2_rfbi_hwmod_class,
--	.clkdm_name	= "dss_clkdm",
--	.main_clk	= "disp_clk",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
--		},
--	},
--	.parent_hwmod	= &am43xx_dss_core_hwmod,
--};
--
--
- /* Interfaces */
- static struct omap_hwmod_ocp_if am43xx_l3_main__emif = {
- 	.master		= &am33xx_l3_main_hwmod,
-@@ -310,34 +241,6 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__usbotgss1 = {
- 	.user           = OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--static struct omap_hwmod_ocp_if am43xx_dss__l3_main = {
--	.master		= &am43xx_dss_core_hwmod,
--	.slave		= &am33xx_l3_main_hwmod,
--	.clk		= "l3_gclk",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--static struct omap_hwmod_ocp_if am43xx_l4_ls__dss = {
--	.master		= &am33xx_l4_ls_hwmod,
--	.slave		= &am43xx_dss_core_hwmod,
--	.clk		= "l4ls_gclk",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_dispc = {
--	.master		= &am33xx_l4_ls_hwmod,
--	.slave		= &am43xx_dss_dispc_hwmod,
--	.clk		= "l4ls_gclk",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
--	.master		= &am33xx_l4_ls_hwmod,
--	.slave		= &am43xx_dss_rfbi_hwmod,
--	.clk		= "l4ls_gclk",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_wkup__synctimer,
- 	&am43xx_l3_main__pruss,
-@@ -368,10 +271,6 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l3_main__ocmc,
- 	&am43xx_l3_s__usbotgss0,
- 	&am43xx_l3_s__usbotgss1,
--	&am43xx_dss__l3_main,
--	&am43xx_l4_ls__dss,
--	&am43xx_l4_ls__dss_dispc,
--	&am43xx_l4_ls__dss_rfbi,
- 	NULL,
- };
- 
+ 		target-module@3d000 {			/* 0x4833d000, ap 102 6e.0 */
 -- 
 2.25.1
