@@ -4,26 +4,26 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF3AAC38BFF
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71F63C38C09
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C37C924672
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 524EB24672
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728495AbgBXXVk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1728500AbgBXXVk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 24 Feb 2020 18:21:40 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59882 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59872 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728500AbgBXXVj (ORCPT
+        with ESMTP id S1728474AbgBXXVj (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:39 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 60692293A5E
+        with ESMTPSA id 73756293A63
 Received: by earth.universe (Postfix, from userid 1000)
-        id 0FC113C0C97; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
+        id 251F03C0C9B; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 20/56] drm/omap: dsi: drop unused get_te()
-Date:   Tue, 25 Feb 2020 00:20:50 +0100
-Message-Id: <20200224232126.3385250-21-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 24/56] drm/omap: panel-dsi-cm: use bulk regulator API
+Date:   Tue, 25 Feb 2020 00:20:54 +0100
+Message-Id: <20200224232126.3385250-25-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,58 +47,132 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The get_te() callback is not used, so we can drop the
-custom API.
+Use bulk regulator API to simplify the code. This also switches
+from _optional variant to normal variant, which will provide a
+dummy regulator (i.e. if some always-enabled regulator is not
+described in DT).
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 13 -------------
- drivers/gpu/drm/omapdrm/dss/omapdss.h           |  1 -
- 2 files changed, 14 deletions(-)
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 65 ++++++-------------
+ 1 file changed, 21 insertions(+), 44 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 59b8fc71c974..e4b24c67c45d 100644
+index 199eac88a777..8ad407a4072e 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -919,18 +919,6 @@ static int dsicm_enable_te(struct omap_dss_device *dssdev, bool enable)
+@@ -32,6 +32,8 @@
+ #define DCS_GET_ID2		0xdb
+ #define DCS_GET_ID3		0xdc
+ 
++#define DCS_REGULATOR_SUPPLY_NUM 2
++
+ struct panel_drv_data {
+ 	struct mipi_dsi_device *dsi;
+ 
+@@ -54,8 +56,7 @@ struct panel_drv_data {
+ 	struct gpio_desc *reset_gpio;
+ 	struct gpio_desc *ext_te_gpio;
+ 
+-	struct regulator *vpnl;
+-	struct regulator *vddi;
++	struct regulator_bulk_data supplies[DCS_REGULATOR_SUPPLY_NUM];
+ 
+ 	bool use_dsi_backlight;
+ 
+@@ -557,28 +558,16 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 		.lp_clk_max = 10000000,
+ 	};
+ 
+-	if (ddata->vpnl) {
+-		r = regulator_enable(ddata->vpnl);
+-		if (r) {
+-			dev_err(&ddata->dsi->dev,
+-				"failed to enable VPNL: %d\n", r);
+-			return r;
+-		}
+-	}
+-
+-	if (ddata->vddi) {
+-		r = regulator_enable(ddata->vddi);
+-		if (r) {
+-			dev_err(&ddata->dsi->dev,
+-				"failed to enable VDDI: %d\n", r);
+-			goto err_vpnl;
+-		}
++	r = regulator_bulk_enable(DCS_REGULATOR_SUPPLY_NUM, ddata->supplies);
++	if (r) {
++		dev_err(&ddata->dsi->dev, "failed to enable supplies: %d\n", r);
++		return r;
+ 	}
+ 
+ 	r = src->ops->dsi.set_config(src, &dsi_config);
+ 	if (r) {
+ 		dev_err(&ddata->dsi->dev, "failed to configure DSI\n");
+-		goto err_vddi;
++		goto err_regulators;
+ 	}
+ 
+ 	src->ops->enable(src);
+@@ -637,12 +626,10 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 	dsicm_hw_reset(ddata);
+ 
+ 	src->ops->dsi.disable(src, true, false);
+-err_vddi:
+-	if (ddata->vddi)
+-		regulator_disable(ddata->vddi);
+-err_vpnl:
+-	if (ddata->vpnl)
+-		regulator_disable(ddata->vpnl);
++err_regulators:
++	r = regulator_bulk_disable(DCS_REGULATOR_SUPPLY_NUM, ddata->supplies);
++	if (r)
++		dev_err(&ddata->dsi->dev, "failed to disable supplies: %d\n", r);
+ 
  	return r;
  }
+@@ -666,10 +653,9 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
  
--static int dsicm_get_te(struct omap_dss_device *dssdev)
--{
--	struct panel_drv_data *ddata = to_panel_data(dssdev);
--	int r;
+ 	src->ops->dsi.disable(src, true, false);
+ 
+-	if (ddata->vddi)
+-		regulator_disable(ddata->vddi);
+-	if (ddata->vpnl)
+-		regulator_disable(ddata->vpnl);
++	r = regulator_bulk_disable(DCS_REGULATOR_SUPPLY_NUM, ddata->supplies);
++	if (r)
++		dev_err(&ddata->dsi->dev, "failed to disable supplies: %d\n", r);
+ 
+ 	ddata->enabled = false;
+ }
+@@ -973,21 +959,12 @@ static int dsicm_probe_of(struct mipi_dsi_device *dsi)
+ 	ddata->height_mm = 0;
+ 	of_property_read_u32(node, "height-mm", &ddata->height_mm);
+ 
+-	ddata->vpnl = devm_regulator_get_optional(&dsi->dev, "vpnl");
+-	if (IS_ERR(ddata->vpnl)) {
+-		err = PTR_ERR(ddata->vpnl);
+-		if (err == -EPROBE_DEFER)
+-			return err;
+-		ddata->vpnl = NULL;
+-	}
 -
--	mutex_lock(&ddata->lock);
--	r = ddata->te_enabled;
--	mutex_unlock(&ddata->lock);
--
--	return r;
--}
--
- static void dsicm_ulps_work(struct work_struct *work)
- {
- 	struct panel_drv_data *ddata = container_of(work, struct panel_drv_data,
-@@ -1002,7 +990,6 @@ static const struct omap_dss_driver dsicm_dss_driver = {
- 	.sync		= dsicm_sync,
+-	ddata->vddi = devm_regulator_get_optional(&dsi->dev, "vddi");
+-	if (IS_ERR(ddata->vddi)) {
+-		err = PTR_ERR(ddata->vddi);
+-		if (err == -EPROBE_DEFER)
+-			return err;
+-		ddata->vddi = NULL;
+-	}
++	ddata->supplies[0].supply = "vpnl";
++	ddata->supplies[1].supply = "vddi";
++	err = devm_regulator_bulk_get(&dsi->dev, DCS_REGULATOR_SUPPLY_NUM,
++				      ddata->supplies);
++	if (err)
++		return err;
  
- 	.enable_te	= dsicm_enable_te,
--	.get_te		= dsicm_get_te,
- };
- 
- static int dsicm_probe_of(struct mipi_dsi_device *dsi)
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 54f362cc5223..a1e78ba665d8 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -387,7 +387,6 @@ struct omap_dss_driver {
- 	int (*sync)(struct omap_dss_device *dssdev);
- 
- 	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
--	int (*get_te)(struct omap_dss_device *dssdev);
- };
- 
- struct dss_device *omapdss_get_dss(void);
+ 	backlight = of_parse_phandle(node, "backlight", 0);
+ 	if (backlight) {
 -- 
 2.25.0
 
