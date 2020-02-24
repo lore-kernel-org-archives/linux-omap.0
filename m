@@ -2,28 +2,28 @@ Return-Path: <SRS0=6eJi=4M=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C90C38C09
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AD6CC38C09
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F0B4722527
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6197722527
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728497AbgBXXVl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 18:21:41 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59820 "EHLO
+        id S1728488AbgBXXVj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 18:21:39 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59838 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728470AbgBXXVk (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:40 -0500
+        with ESMTP id S1728495AbgBXXVj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:39 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 87C9C293A7B
+        with ESMTPSA id 44055293982
 Received: by earth.universe (Postfix, from userid 1000)
-        id 40A833C0CA0; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
+        id E59D13C0C92; Tue, 25 Feb 2020 00:21:30 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 29/56] drm/omap: dsi: untangle ulps ops from enable/disable
-Date:   Tue, 25 Feb 2020 00:20:59 +0100
-Message-Id: <20200224232126.3385250-30-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 15/56] drm/omap: panel-dsi-cm: use DSI helpers
+Date:   Tue, 25 Feb 2020 00:20:45 +0100
+Message-Id: <20200224232126.3385250-16-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,154 +47,226 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Create a custom function pointer for ULPS and use it instead of
-reusing disable/enable functions for ULPS mode switch. This allows
-us to use the common disable/enable functions pointers for DSI.
+After converting the driver to mipi_dsi_device we can use the generic
+message helpers to simplify the driver a lot.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   |  8 ++--
- drivers/gpu/drm/omapdrm/dss/dsi.c             | 38 ++++++++++++++-----
- drivers/gpu/drm/omapdrm/dss/omapdss.h         |  5 +--
- 3 files changed, 34 insertions(+), 17 deletions(-)
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 126 +++---------------
+ 1 file changed, 18 insertions(+), 108 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 42a4a69b03fd..239a48910db7 100644
+index c34daecb1de5..4a4a55135494 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -233,7 +233,7 @@ static int dsicm_enter_ulps(struct panel_drv_data *ddata)
+@@ -138,62 +138,22 @@ static void hw_guard_wait(struct panel_drv_data *ddata)
+ 
+ static int dsicm_dcs_read_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 *data)
+ {
+-	struct mipi_dsi_device *dsi = ddata->dsi;
+-	const struct mipi_dsi_msg msg = {
+-		.channel = ddata->channel,
+-		.type = MIPI_DSI_DCS_READ,
+-		.tx_len = 1,
+-		.tx_buf = &dcs_cmd,
+-		.rx_len = 1,
+-		.rx_buf = data
+-	};
+-
+-	return dsi->host->ops->transfer(dsi->host, &msg);
+-}
+-
+-static int dsicm_dcs_write_0(struct panel_drv_data *ddata, u8 dcs_cmd)
+-{
+-	struct mipi_dsi_device *dsi = ddata->dsi;
+-	const struct mipi_dsi_msg msg = {
+-		.channel = ddata->channel,
+-		.type = MIPI_DSI_DCS_SHORT_WRITE,
+-		.tx_buf = &dcs_cmd,
+-		.tx_len = 1,
+-	};
+-
+-	return dsi->host->ops->transfer(dsi->host, &msg);
++	return mipi_dsi_dcs_read(ddata->dsi, dcs_cmd, data, 1);
+ }
+ 
+ static int dsicm_dcs_write_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 param)
+ {
+-	struct mipi_dsi_device *dsi = ddata->dsi;
+-	const u8 buf[] = { dcs_cmd, param };
+-	const struct mipi_dsi_msg msg = {
+-		.channel = ddata->channel,
+-		.type = MIPI_DSI_DCS_SHORT_WRITE_PARAM,
+-		.tx_buf = &buf,
+-		.tx_len = 2,
+-	};
+-
+-	return dsi->host->ops->transfer(dsi->host, &msg);
++	return mipi_dsi_dcs_write(ddata->dsi, dcs_cmd, &param, 1);
+ }
+ 
+ static int dsicm_sleep_in(struct panel_drv_data *ddata)
+ 
+ {
+-	struct mipi_dsi_device *dsi = ddata->dsi;
+ 	int r;
+-	const u8 cmd = MIPI_DCS_ENTER_SLEEP_MODE;
+-	const struct mipi_dsi_msg msg = {
+-		.channel = ddata->channel,
+-		.type = MIPI_DSI_DCS_SHORT_WRITE,
+-		.tx_buf = &cmd,
+-		.tx_len = 1,
+-	};
+ 
+ 	hw_guard_wait(ddata);
+ 
+-	r = dsi->host->ops->transfer(dsi->host, &msg);
++	r = mipi_dsi_dcs_enter_sleep_mode(ddata->dsi);
+ 	if (r)
+ 		return r;
+ 
+@@ -210,7 +170,7 @@ static int dsicm_sleep_out(struct panel_drv_data *ddata)
+ 
+ 	hw_guard_wait(ddata);
+ 
+-	r = dsicm_dcs_write_0(ddata, MIPI_DCS_EXIT_SLEEP_MODE);
++	r = mipi_dsi_dcs_exit_sleep_mode(ddata->dsi);
+ 	if (r)
+ 		return r;
+ 
+@@ -248,46 +208,15 @@ static int dsicm_set_update_window(struct panel_drv_data *ddata,
+ 	u16 y1 = y;
+ 	u16 y2 = y + h - 1;
+ 
+-	const u8 paramX[] = {
+-		MIPI_DCS_SET_COLUMN_ADDRESS,
+-		(x1 >> 8) & 0xff,
+-		(x1 >> 0) & 0xff,
+-		(x2 >> 8) & 0xff,
+-		(x2 >> 0) & 0xff,
+-	};
+-
+-	const struct mipi_dsi_msg msgX = {
+-		.channel = ddata->channel,
+-		.type = MIPI_DSI_GENERIC_LONG_WRITE,
+-		.tx_buf = paramX,
+-		.tx_len = 5,
+-	};
+-
+-	const u8 paramY[] = {
+-		MIPI_DCS_SET_PAGE_ADDRESS,
+-		(y1 >> 8) & 0xff,
+-		(y1 >> 0) & 0xff,
+-		(y2 >> 8) & 0xff,
+-		(y2 >> 0) & 0xff,
+-	};
+-
+-	const struct mipi_dsi_msg msgY = {
+-		.channel = ddata->channel,
+-		.type = MIPI_DSI_GENERIC_LONG_WRITE,
+-		.tx_buf = paramY,
+-		.tx_len = 5,
+-	};
+-
+-
+-	r = dsi->host->ops->transfer(dsi->host, &msgX);
+-	if (r)
++	r = mipi_dsi_dcs_set_column_address(dsi, x1, x2);
++	if (r < 0)
+ 		return r;
+ 
+-	r = dsi->host->ops->transfer(dsi->host, &msgY);
+-	if (r)
++	r = mipi_dsi_dcs_set_page_address(dsi, y1, y2);
++	if (r < 0)
+ 		return r;
+ 
+-	return r;
++	return 0;
+ }
+ 
+ static void dsicm_queue_ulps_work(struct panel_drv_data *ddata)
+@@ -681,12 +610,11 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
  	if (r)
  		goto err;
  
--	src->ops->dsi.disable(src, false, true);
-+	src->ops->dsi.ulps(src, true);
- 
- 	ddata->ulps_enabled = true;
- 
-@@ -258,7 +258,7 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
- 	if (!ddata->ulps_enabled)
- 		return 0;
- 
--	src->ops->enable(src);
-+	src->ops->dsi.ulps(src, false);
- 	ddata->dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
- 
- 	r = _dsicm_enable_te(ddata, ddata->te_enabled);
-@@ -586,7 +586,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 
- 	dsicm_hw_reset(ddata);
- 
--	src->ops->dsi.disable(src, true, false);
-+	src->ops->disable(src);
- err_regulators:
- 	r = regulator_bulk_disable(DCS_REGULATOR_SUPPLY_NUM, ddata->supplies);
+-	r = dsicm_dcs_write_1(ddata, MIPI_DCS_SET_PIXEL_FORMAT,
+-		MIPI_DCS_PIXEL_FMT_24BIT);
++	r = mipi_dsi_dcs_set_pixel_format(ddata->dsi, MIPI_DCS_PIXEL_FMT_24BIT);
  	if (r)
-@@ -612,7 +612,7 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
- 		dsicm_hw_reset(ddata);
- 	}
+ 		goto err;
  
--	src->ops->dsi.disable(src, true, false);
-+	src->ops->disable(src);
- 
- 	r = regulator_bulk_disable(DCS_REGULATOR_SUPPLY_NUM, ddata->supplies);
+-	r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_DISPLAY_ON);
++	r = mipi_dsi_dcs_set_display_on(ddata->dsi);
  	if (r)
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index ce45021c99ce..684d52079e89 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -4062,13 +4062,10 @@ static void dsi_display_uninit_dsi(struct dsi_data *dsi, bool disconnect_lanes,
- 	}
- }
+ 		goto err;
  
--static void dsi_display_enable(struct omap_dss_device *dssdev)
-+static void dsi_display_ulps_enable(struct dsi_data *dsi)
+@@ -732,7 +660,7 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
+ 
+ 	src->ops->dsi.disable_video_output(src, ddata->channel);
+ 
+-	r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_DISPLAY_OFF);
++	r = mipi_dsi_dcs_set_display_off(ddata->dsi);
+ 	if (!r)
+ 		r = dsicm_sleep_in(ddata);
+ 
+@@ -950,12 +878,13 @@ static int dsicm_sync(struct omap_dss_device *dssdev)
+ static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
  {
--	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	struct omap_dss_device *src = ddata->src;
++	struct mipi_dsi_device *dsi = ddata->dsi;
  	int r;
  
--	DSSDBG("dsi_display_enable\n");
--
- 	WARN_ON(!dsi_bus_is_locked(dsi));
+ 	if (enable)
+-		r = dsicm_dcs_write_1(ddata, MIPI_DCS_SET_TEAR_ON, 0);
++		r = mipi_dsi_dcs_set_tear_on(dsi, MIPI_DSI_DCS_TEAR_MODE_VBLANK);
+ 	else
+-		r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_TEAR_OFF);
++		r = mipi_dsi_dcs_set_tear_off(dsi);
  
- 	mutex_lock(&dsi->lock);
-@@ -4091,16 +4088,19 @@ static void dsi_display_enable(struct omap_dss_device *dssdev)
- 	dsi_runtime_put(dsi);
- err_get_dsi:
- 	mutex_unlock(&dsi->lock);
--	DSSDBG("dsi_display_enable FAILED\n");
-+	DSSDBG("dsi_display_ulps_enable FAILED\n");
+ 	if (!ddata->ext_te_gpio)
+ 		src->ops->dsi.enable_te(src, enable);
+@@ -1021,19 +950,7 @@ static int dsicm_set_max_rx_packet_size(struct omap_dss_device *dssdev,
+ 	struct panel_drv_data *ddata = to_panel_data(dssdev);
+ 	struct mipi_dsi_device *dsi = ddata->dsi;
+ 
+-	const u8 buf[] = {
+-		size & 0xff,
+-		size >> 8 & 0xff,
+-	};
+-
+-	const struct mipi_dsi_msg msg = {
+-		.channel = ddata->channel,
+-		.type = MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE,
+-		.tx_buf = buf,
+-		.tx_len = 2,
+-	};
+-
+-	return dsi->host->ops->transfer(dsi->host, &msg);
++	return mipi_dsi_set_maximum_return_packet_size(dsi, size);
  }
  
--static void dsi_display_disable(struct omap_dss_device *dssdev,
--		bool disconnect_lanes, bool enter_ulps)
-+static void dsi_display_enable(struct omap_dss_device *dssdev)
- {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
-+	DSSDBG("dsi_display_enable\n");
-+	dsi_display_ulps_enable(dsi);
-+}
+ static int dsicm_memory_read(struct omap_dss_device *dssdev,
+@@ -1083,17 +1000,10 @@ static int dsicm_memory_read(struct omap_dss_device *dssdev,
  
--	DSSDBG("dsi_display_disable\n");
--
-+static void dsi_display_ulps_disable(struct dsi_data *dsi,
-+		bool disconnect_lanes, bool enter_ulps)
-+{
- 	WARN_ON(!dsi_bus_is_locked(dsi));
+ 	while (buf_used < size) {
+ 		u8 dcs_cmd = first ? 0x2e : 0x3e;
+-		const struct mipi_dsi_msg msg = {
+-			.channel = ddata->channel,
+-			.type = MIPI_DSI_DCS_READ,
+-			.tx_buf = &dcs_cmd,
+-			.tx_len = 1,
+-			.rx_buf = buf + buf_used,
+-			.rx_len = size - buf_used,
+-		};
+ 		first = 0;
  
- 	mutex_lock(&dsi->lock);
-@@ -4117,6 +4117,23 @@ static void dsi_display_disable(struct omap_dss_device *dssdev,
- 	mutex_unlock(&dsi->lock);
- }
- 
-+static void dsi_display_disable(struct omap_dss_device *dssdev)
-+{
-+	struct dsi_data *dsi = to_dsi_data(dssdev);
-+	DSSDBG("dsi_display_disable\n");
-+	dsi_display_ulps_disable(dsi, true, false);
-+}
-+
-+static void dsi_ulps(struct omap_dss_device *dssdev, bool enable)
-+{
-+	struct dsi_data *dsi = to_dsi_data(dssdev);
-+	DSSDBG("dsi_ulps\n");
-+	if (enable)
-+		dsi_display_ulps_disable(dsi, false, true);
-+	else
-+		dsi_display_ulps_enable(dsi);
-+}
-+
- static int dsi_enable_te(struct dsi_data *dsi, bool enable)
- {
- 	dsi->te_enabled = enable;
-@@ -4818,9 +4835,10 @@ static const struct omap_dss_device_ops dsi_ops = {
- 	.connect = dsi_connect,
- 	.disconnect = dsi_disconnect,
- 	.enable = dsi_display_enable,
-+	.disable = dsi_display_disable,
- 
- 	.dsi = {
--		.disable = dsi_display_disable,
-+		.ulps = dsi_ulps,
- 
- 		.set_config = dsi_set_config,
- 
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 8ff99c00c708..484bdb01871f 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -280,10 +280,9 @@ struct omap_dss_writeback_info {
- };
- 
- struct omapdss_dsi_ops {
--	void (*disable)(struct omap_dss_device *dssdev, bool disconnect_lanes,
--			bool enter_ulps);
--
- 	/* bus configuration */
-+	void (*ulps)(struct omap_dss_device *dssdev, bool enable);
-+
- 	int (*set_config)(struct omap_dss_device *dssdev,
- 			const struct omap_dss_dsi_config *cfg);
- 
+-		r = dsi->host->ops->transfer(dsi->host, &msg);
++		r = mipi_dsi_dcs_read(dsi, dcs_cmd,
++				      buf + buf_used, size - buf_used);
+ 		if (r < 0) {
+ 			dev_err(dssdev->dev, "read error\n");
+ 			goto err3;
 -- 
 2.25.0
 
