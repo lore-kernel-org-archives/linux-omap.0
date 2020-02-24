@@ -4,26 +4,26 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA071C38C09
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E064CC38C13
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 985CF20732
+	by mail.kernel.org (Postfix) with ESMTP id BA8A9227BF
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727957AbgBXXVq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 18:21:46 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59858 "EHLO
+        id S1728546AbgBXXVp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 18:21:45 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:60170 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728534AbgBXXVo (ORCPT
+        with ESMTP id S1727957AbgBXXVo (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:44 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 5CDEA293F3F
+        with ESMTPSA id 95495293E9B
 Received: by earth.universe (Postfix, from userid 1000)
-        id BB14A3C0CB6; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
+        id A62F93C0CB2; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 51/56] drm/omap: drop DSS ops_flags
-Date:   Tue, 25 Feb 2020 00:21:21 +0100
-Message-Id: <20200224232126.3385250-52-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 47/56] drm/omap: remove unused omap_connector
+Date:   Tue, 25 Feb 2020 00:21:17 +0100
+Message-Id: <20200224232126.3385250-48-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,54 +47,265 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The omapdss device's ops_flags field is no longer
-used and can be dropped.
+Remove unused code. Connectors are now created via drm_bridge_connector_init()
+and no longer OMAP specific.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/gpu/drm/omapdrm/dss/omapdss.h | 9 ---------
- drivers/gpu/drm/omapdrm/dss/venc.c    | 1 -
- 2 files changed, 10 deletions(-)
+ drivers/gpu/drm/omapdrm/Makefile         |   1 -
+ drivers/gpu/drm/omapdrm/omap_connector.c | 128 -----------------------
+ drivers/gpu/drm/omapdrm/omap_connector.h |  28 -----
+ drivers/gpu/drm/omapdrm/omap_drv.c       |  19 ++--
+ drivers/gpu/drm/omapdrm/omap_drv.h       |   1 -
+ drivers/gpu/drm/omapdrm/omap_encoder.c   |  11 --
+ 6 files changed, 6 insertions(+), 182 deletions(-)
+ delete mode 100644 drivers/gpu/drm/omapdrm/omap_connector.c
+ delete mode 100644 drivers/gpu/drm/omapdrm/omap_connector.h
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 03498f0ed6c2..0ee042228c96 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -278,14 +278,6 @@ struct omap_dss_device_ops {
- 	const struct omapdss_dsi_ops dsi;
- };
- 
--/**
-- * enum omap_dss_device_ops_flag - Indicates which device ops are supported
-- * @OMAP_DSS_DEVICE_OP_MODES: The device supports reading modes
+diff --git a/drivers/gpu/drm/omapdrm/Makefile b/drivers/gpu/drm/omapdrm/Makefile
+index 66a73eae6f7c..2a404e045b78 100644
+--- a/drivers/gpu/drm/omapdrm/Makefile
++++ b/drivers/gpu/drm/omapdrm/Makefile
+@@ -12,7 +12,6 @@ omapdrm-y := omap_drv.o \
+ 	omap_crtc.o \
+ 	omap_plane.o \
+ 	omap_encoder.o \
+-	omap_connector.o \
+ 	omap_fb.o \
+ 	omap_gem.o \
+ 	omap_gem_dmabuf.o \
+diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
+deleted file mode 100644
+index db6becd345a0..000000000000
+--- a/drivers/gpu/drm/omapdrm/omap_connector.c
++++ /dev/null
+@@ -1,128 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+- * Author: Rob Clark <rob@ti.com>
 - */
--enum omap_dss_device_ops_flag {
--	OMAP_DSS_DEVICE_OP_MODES = BIT(3),
+-
+-#include <drm/drm_atomic_helper.h>
+-#include <drm/drm_crtc.h>
+-#include <drm/drm_probe_helper.h>
+-
+-#include "omap_drv.h"
+-
+-/*
+- * connector funcs
+- */
+-
+-#define to_omap_connector(x) container_of(x, struct omap_connector, base)
+-
+-struct omap_connector {
+-	struct drm_connector base;
+-	struct omap_dss_device *output;
 -};
 -
- struct omap_dss_device {
- 	struct device *dev;
+-static enum drm_connector_status omap_connector_detect(
+-		struct drm_connector *connector, bool force)
+-{
+-	return connector_status_connected;
+-}
+-
+-static void omap_connector_destroy(struct drm_connector *connector)
+-{
+-	struct omap_connector *omap_connector = to_omap_connector(connector);
+-
+-	DBG("%s", connector->name);
+-
+-	drm_connector_unregister(connector);
+-	drm_connector_cleanup(connector);
+-
+-	omapdss_device_put(omap_connector->output);
+-
+-	kfree(omap_connector);
+-}
+-
+-static int omap_connector_get_modes(struct drm_connector *connector)
+-{
+-	DBG("%s", connector->name);
+-
+-	/* We can't retrieve modes. The KMS core will add the default modes. */
+-	return 0;
+-}
+-
+-enum drm_mode_status omap_connector_mode_fixup(struct omap_dss_device *dssdev,
+-					const struct drm_display_mode *mode,
+-					struct drm_display_mode *adjusted_mode)
+-{
+-	return MODE_OK;
+-}
+-
+-static enum drm_mode_status omap_connector_mode_valid(struct drm_connector *connector,
+-				 struct drm_display_mode *mode)
+-{
+-	struct omap_connector *omap_connector = to_omap_connector(connector);
+-	struct drm_display_mode new_mode = { { 0 } };
+-	enum drm_mode_status status;
+-
+-	status = omap_connector_mode_fixup(omap_connector->output, mode,
+-					   &new_mode);
+-	if (status != MODE_OK)
+-		goto done;
+-
+-	/* Check if vrefresh is still valid. */
+-	if (drm_mode_vrefresh(mode) != drm_mode_vrefresh(&new_mode))
+-		status = MODE_NOCLOCK;
+-
+-done:
+-	DBG("connector: mode %s: " DRM_MODE_FMT,
+-			(status == MODE_OK) ? "valid" : "invalid",
+-			DRM_MODE_ARG(mode));
+-
+-	return status;
+-}
+-
+-static const struct drm_connector_funcs omap_connector_funcs = {
+-	.reset = drm_atomic_helper_connector_reset,
+-	.detect = omap_connector_detect,
+-	.fill_modes = drm_helper_probe_single_connector_modes,
+-	.destroy = omap_connector_destroy,
+-	.atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
+-	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
+-};
+-
+-static const struct drm_connector_helper_funcs omap_connector_helper_funcs = {
+-	.get_modes = omap_connector_get_modes,
+-	.mode_valid = omap_connector_mode_valid,
+-};
+-
+-/* initialize connector */
+-struct drm_connector *omap_connector_init(struct drm_device *dev,
+-					  struct omap_dss_device *output,
+-					  struct drm_encoder *encoder)
+-{
+-	struct drm_connector *connector = NULL;
+-	struct omap_connector *omap_connector;
+-
+-	DBG("%s", output->name);
+-
+-	omap_connector = kzalloc(sizeof(*omap_connector), GFP_KERNEL);
+-	if (!omap_connector)
+-		goto fail;
+-
+-	omap_connector->output = omapdss_device_get(output);
+-
+-	connector = &omap_connector->base;
+-	connector->interlace_allowed = 1;
+-	connector->doublescan_allowed = 0;
+-
+-	drm_connector_init(dev, connector, &omap_connector_funcs,
+-			   DRM_MODE_CONNECTOR_DSI);
+-	drm_connector_helper_add(connector, &omap_connector_helper_funcs);
+-
+-	return connector;
+-
+-fail:
+-	if (connector)
+-		omap_connector_destroy(connector);
+-
+-	return NULL;
+-}
+diff --git a/drivers/gpu/drm/omapdrm/omap_connector.h b/drivers/gpu/drm/omapdrm/omap_connector.h
+deleted file mode 100644
+index 0ecd4f1655b7..000000000000
+--- a/drivers/gpu/drm/omapdrm/omap_connector.h
++++ /dev/null
+@@ -1,28 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * omap_connector.h -- OMAP DRM Connector
+- *
+- * Copyright (C) 2011 Texas Instruments
+- * Author: Rob Clark <rob@ti.com>
+- */
+-
+-#ifndef __OMAPDRM_CONNECTOR_H__
+-#define __OMAPDRM_CONNECTOR_H__
+-
+-#include <linux/types.h>
+-
+-enum drm_mode_status;
+-
+-struct drm_connector;
+-struct drm_device;
+-struct drm_encoder;
+-struct omap_dss_device;
+-
+-struct drm_connector *omap_connector_init(struct drm_device *dev,
+-					  struct omap_dss_device *output,
+-					  struct drm_encoder *encoder);
+-enum drm_mode_status omap_connector_mode_fixup(struct omap_dss_device *dssdev,
+-					const struct drm_display_mode *mode,
+-					struct drm_display_mode *adjusted_mode);
+-
+-#endif /* __OMAPDRM_CONNECTOR_H__ */
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index c47e63e94a2e..4c2095067544 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -330,19 +330,12 @@ static int omap_modeset_init(struct drm_device *dev)
+ 		struct drm_encoder *encoder = pipe->encoder;
+ 		struct drm_crtc *crtc;
  
-@@ -314,7 +306,6 @@ struct omap_dss_device {
- 	const char *name;
+-		if (pipe->output->next) {
+-			pipe->connector = omap_connector_init(dev, pipe->output,
+-							      encoder);
+-			if (!pipe->connector)
+-				return -ENOMEM;
+-		} else {
+-			pipe->connector = drm_bridge_connector_init(dev, encoder);
+-			if (IS_ERR(pipe->connector)) {
+-				dev_err(priv->dev,
+-					"unable to create bridge connector for %s\n",
+-					pipe->output->name);
+-				return PTR_ERR(pipe->connector);
+-			}
++		pipe->connector = drm_bridge_connector_init(dev, encoder);
++		if (IS_ERR(pipe->connector)) {
++			dev_err(priv->dev,
++				"unable to create bridge connector for %s\n",
++				pipe->output->name);
++			return PTR_ERR(pipe->connector);
+ 		}
  
- 	const struct omap_dss_device_ops *ops;
--	unsigned long ops_flags;
- 	u32 bus_flags;
+ 		drm_connector_attach_encoder(pipe->connector, encoder);
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
+index 7c4b66efcaa7..80acd872ac38 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.h
++++ b/drivers/gpu/drm/omapdrm/omap_drv.h
+@@ -16,7 +16,6 @@
+ #include <drm/drm_gem.h>
+ #include <drm/omap_drm.h>
  
- 	/* OMAP DSS output specific fields */
-diff --git a/drivers/gpu/drm/omapdrm/dss/venc.c b/drivers/gpu/drm/omapdrm/dss/venc.c
-index 766553bb2f87..96e5d2944452 100644
---- a/drivers/gpu/drm/omapdrm/dss/venc.c
-+++ b/drivers/gpu/drm/omapdrm/dss/venc.c
-@@ -774,7 +774,6 @@ static int venc_init_output(struct venc_device *venc)
- 	out->dispc_channel = OMAP_DSS_CHANNEL_DIGIT;
- 	out->owner = THIS_MODULE;
- 	out->of_port = 0;
--	out->ops_flags = OMAP_DSS_DEVICE_OP_MODES;
+-#include "omap_connector.h"
+ #include "omap_crtc.h"
+ #include "omap_encoder.h"
+ #include "omap_fb.h"
+diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
+index abb3821de8b8..610c5a2f2771 100644
+--- a/drivers/gpu/drm/omapdrm/omap_encoder.c
++++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
+@@ -139,17 +139,6 @@ static int omap_encoder_atomic_check(struct drm_encoder *encoder,
+ 				     struct drm_crtc_state *crtc_state,
+ 				     struct drm_connector_state *conn_state)
+ {
+-	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
+-	enum drm_mode_status status;
+-
+-	status = omap_connector_mode_fixup(omap_encoder->output,
+-					   &crtc_state->mode,
+-					   &crtc_state->adjusted_mode);
+-	if (status != MODE_OK) {
+-		dev_err(encoder->dev->dev, "invalid timings: %d\n", status);
+-		return -EINVAL;
+-	}
+-
+ 	return 0;
+ }
  
- 	r = omapdss_device_init_output(out, &venc->bridge);
- 	if (r < 0) {
 -- 
 2.25.0
 
