@@ -4,26 +4,26 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5408FC38C09
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF3AAC38BFF
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32DCC2465D
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C37C924672
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728510AbgBXXVk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1728495AbgBXXVk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 24 Feb 2020 18:21:40 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59844 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59882 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728497AbgBXXVj (ORCPT
+        with ESMTP id S1728500AbgBXXVj (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:39 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 4EADC293996
+        with ESMTPSA id 60692293A5E
 Received: by earth.universe (Postfix, from userid 1000)
-        id EBE733C0C93; Tue, 25 Feb 2020 00:21:30 +0100 (CET)
+        id 0FC113C0C97; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 16/56] drm/omap: dsi: request VC via mipi_dsi_attach
-Date:   Tue, 25 Feb 2020 00:20:46 +0100
-Message-Id: <20200224232126.3385250-17-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 20/56] drm/omap: dsi: drop unused get_te()
+Date:   Tue, 25 Feb 2020 00:20:50 +0100
+Message-Id: <20200224232126.3385250-21-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,191 +47,58 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Drop custom request_vc/release_vc callbacks by using the
-generic mipi_dsi_attach/mipi_dsi_detach functions.
+The get_te() callback is not used, so we can drop the
+custom API.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 24 +++++---
- drivers/gpu/drm/omapdrm/dss/dsi.c             | 61 ++++++++-----------
- drivers/gpu/drm/omapdrm/dss/omapdss.h         |  3 -
- 3 files changed, 41 insertions(+), 47 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 13 -------------
+ drivers/gpu/drm/omapdrm/dss/omapdss.h           |  1 -
+ 2 files changed, 14 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 4a4a55135494..b3688a8ca3cf 100644
+index 59b8fc71c974..e4b24c67c45d 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -693,14 +693,6 @@ static int dsicm_connect(struct omap_dss_device *src,
- 			 struct omap_dss_device *dst)
- {
- 	struct panel_drv_data *ddata = to_panel_data(dst);
--	struct device *dev = &ddata->dsi->dev;
+@@ -919,18 +919,6 @@ static int dsicm_enable_te(struct omap_dss_device *dssdev, bool enable)
+ 	return r;
+ }
+ 
+-static int dsicm_get_te(struct omap_dss_device *dssdev)
+-{
+-	struct panel_drv_data *ddata = to_panel_data(dssdev);
 -	int r;
 -
--	r = src->ops->dsi.request_vc(src, ddata->channel);
--	if (r) {
--		dev_err(dev, "failed to get virtual channel\n");
--		return r;
--	}
- 
- 	ddata->src = src;
- 	return 0;
-@@ -711,7 +703,6 @@ static void dsicm_disconnect(struct omap_dss_device *src,
- {
- 	struct panel_drv_data *ddata = to_panel_data(dst);
- 
--	src->ops->dsi.release_vc(src, ddata->channel);
- 	ddata->src = NULL;
- }
- 
-@@ -1278,8 +1269,21 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
- 		goto err_bl;
- 	}
- 
-+	dsi->lanes = 3;
-+	dsi->format = MIPI_DSI_FMT_RGB888;
-+	dsi->mode_flags = MIPI_DSI_CLOCK_NON_CONTINUOUS |
-+			  MIPI_DSI_MODE_EOT_PACKET;
-+	dsi->hs_rate = 300000000;
-+	dsi->lp_rate = 10000000;
-+
-+	r = mipi_dsi_attach(dsi);
-+	if (r < 0)
-+		goto err_dsi_attach;
-+
- 	return 0;
- 
-+err_dsi_attach:
-+	sysfs_remove_group(&dsi->dev.kobj, &dsicm_attr_group);
- err_bl:
- 	destroy_workqueue(ddata->workqueue);
- err_reg:
-@@ -1296,6 +1300,8 @@ static int __exit dsicm_remove(struct mipi_dsi_device *dsi)
- 
- 	dev_dbg(&dsi->dev, "remove\n");
- 
-+	mipi_dsi_detach(dsi);
-+
- 	omapdss_device_unregister(dssdev);
- 
- 	if (omapdss_device_is_enabled(dssdev))
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 3e6a57e00456..64407f4651af 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -349,7 +349,7 @@ struct dsi_data {
- 
- 	struct {
- 		enum dsi_vc_source source;
--		struct omap_dss_device *dssdev;
-+		struct mipi_dsi_device *dest;
- 		enum fifo_size tx_fifo_size;
- 		enum fifo_size rx_fifo_size;
- 	} vc[4];
-@@ -4690,32 +4690,6 @@ static enum omap_channel dsi_get_channel(struct dsi_data *dsi)
- 	}
- }
- 
--static int dsi_request_vc(struct omap_dss_device *dssdev, int channel)
--{
--	struct dsi_data *dsi = to_dsi_data(dssdev);
+-	mutex_lock(&ddata->lock);
+-	r = ddata->te_enabled;
+-	mutex_unlock(&ddata->lock);
 -
--	if (channel < 0 || channel > 3)
--		return -EINVAL;
--
--	if (dsi->vc[channel].dssdev) {
--		DSSERR("cannot get VC for display %s", dssdev->name);
--		return -EBUSY;
--	}
--
--	dsi->vc[channel].dssdev = dssdev;
--	return 0;
+-	return r;
 -}
 -
--static void dsi_release_vc(struct omap_dss_device *dssdev, int channel)
--{
--	struct dsi_data *dsi = to_dsi_data(dssdev);
--
--	if ((channel >= 0 && channel <= 3) &&
--		dsi->vc[channel].dssdev == dssdev) {
--		dsi->vc[channel].dssdev = NULL;
--	}
--}
--
- static ssize_t omap_dsi_host_transfer(struct mipi_dsi_host *host,
- 				      const struct mipi_dsi_msg *msg)
+ static void dsicm_ulps_work(struct work_struct *work)
  {
-@@ -4792,23 +4766,40 @@ static const struct omap_dss_device_ops dsi_ops = {
- 		.update = dsi_update,
+ 	struct panel_drv_data *ddata = container_of(work, struct panel_drv_data,
+@@ -1002,7 +990,6 @@ static const struct omap_dss_driver dsicm_dss_driver = {
+ 	.sync		= dsicm_sync,
  
- 		.enable_te = dsi_enable_te,
--
--		.request_vc = dsi_request_vc,
--		.release_vc = dsi_release_vc,
- 	},
+ 	.enable_te	= dsicm_enable_te,
+-	.get_te		= dsicm_get_te,
  };
  
- int omap_dsi_host_attach(struct mipi_dsi_host *host,
--			 struct mipi_dsi_device *dsi)
-+			 struct mipi_dsi_device *client)
- {
--	/* TODO: convert driver from custom binding method to this one */
-+	struct dsi_data *dsi = host_to_omap(host);
-+	unsigned int channel = client->channel;
-+
-+	if (channel > 3)
-+		return -EINVAL;
-+
-+	if (dsi->vc[channel].dest) {
-+		DSSERR("cannot get VC for display %s", dev_name(&client->dev));
-+		return -EBUSY;
-+	}
-+
-+	dsi->vc[channel].dest = client;
- 	return 0;
- }
- 
- int omap_dsi_host_detach(struct mipi_dsi_host *host,
--			 struct mipi_dsi_device *dsi)
-+			 struct mipi_dsi_device *client)
- {
--	/* TODO: convert driver from custom binding method to this one */
-+	struct dsi_data *dsi = host_to_omap(host);
-+	unsigned int channel = client->channel;
-+
-+	if (channel > 3)
-+		return -EINVAL;
-+
-+	if (dsi->vc[channel].dest != client)
-+		return -EINVAL;
-+
-+	dsi->vc[channel].dest = NULL;
- 	return 0;
- }
- 
-@@ -5267,7 +5258,7 @@ static int dsi_probe(struct platform_device *pdev)
- 	/* DSI VCs initialization */
- 	for (i = 0; i < ARRAY_SIZE(dsi->vc); i++) {
- 		dsi->vc[i].source = DSI_VC_SOURCE_L4;
--		dsi->vc[i].dssdev = NULL;
-+		dsi->vc[i].dest = NULL;
- 	}
- 
- 	r = dsi_get_clocks(dsi);
+ static int dsicm_probe_of(struct mipi_dsi_device *dsi)
 diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index da395a5e7257..b946b90ce01b 100644
+index 54f362cc5223..a1e78ba665d8 100644
 --- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
 +++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -300,9 +300,6 @@ struct omapdss_dsi_ops {
- 	int (*enable_video_output)(struct omap_dss_device *dssdev, int channel);
- 	void (*disable_video_output)(struct omap_dss_device *dssdev,
- 			int channel);
--
--	int (*request_vc)(struct omap_dss_device *dssdev, int channel);
--	void (*release_vc)(struct omap_dss_device *dssdev, int channel);
+@@ -387,7 +387,6 @@ struct omap_dss_driver {
+ 	int (*sync)(struct omap_dss_device *dssdev);
+ 
+ 	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
+-	int (*get_te)(struct omap_dss_device *dssdev);
  };
  
- struct omap_dss_device_ops {
+ struct dss_device *omapdss_get_dss(void);
 -- 
 2.25.0
 
