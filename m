@@ -4,26 +4,26 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABF6FC38C13
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E30ABC38C1B
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8ACFE20732
+	by mail.kernel.org (Postfix) with ESMTP id BBB4622525
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728534AbgBXXVq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 18:21:46 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59820 "EHLO
+        id S1728542AbgBXXVp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 18:21:45 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59906 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728532AbgBXXVo (ORCPT
+        with ESMTP id S1728547AbgBXXVo (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:44 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 5B4C0293F3E
+        with ESMTPSA id 63B622935C9
 Received: by earth.universe (Postfix, from userid 1000)
-        id CD4BD3C0CBB; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
+        id B08363C0CB4; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 54/56] ARM: omap2plus_defconfig: Update for moved DSI command mode panel
-Date:   Tue, 25 Feb 2020 00:21:24 +0100
-Message-Id: <20200224232126.3385250-55-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 49/56] drm/omap: drop unused DSS next pointer
+Date:   Tue, 25 Feb 2020 00:21:19 +0100
+Message-Id: <20200224232126.3385250-50-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,28 +47,116 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The DSI command mode panel is no longer specific
-to OMAP and thus the config option has been renamed
-slightly.
+Since all encoders and panels are using the bridge API now,
+we next pointer is no longer useful and can be dropped.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/omapdrm/dss/base.c     |  2 +-
+ drivers/gpu/drm/omapdrm/dss/omapdss.h  |  1 -
+ drivers/gpu/drm/omapdrm/dss/output.c   | 13 +------------
+ drivers/gpu/drm/omapdrm/omap_encoder.c |  4 ----
+ 4 files changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index b9698e217aa7..31ac2315f47c 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -350,7 +350,7 @@ CONFIG_DRM_OMAP=m
- CONFIG_OMAP5_DSS_HDMI=y
- CONFIG_OMAP2_DSS_SDI=y
- CONFIG_OMAP2_DSS_DSI=y
--CONFIG_DRM_OMAP_PANEL_DSI_CM=m
-+CONFIG_DRM_PANEL_DSI_CM=m
- CONFIG_DRM_TILCDC=m
- CONFIG_DRM_PANEL_SIMPLE=m
- CONFIG_DRM_DISPLAY_CONNECTOR=m
+diff --git a/drivers/gpu/drm/omapdrm/dss/base.c b/drivers/gpu/drm/omapdrm/dss/base.c
+index c2791305c332..d62713b241d2 100644
+--- a/drivers/gpu/drm/omapdrm/dss/base.c
++++ b/drivers/gpu/drm/omapdrm/dss/base.c
+@@ -135,7 +135,7 @@ struct omap_dss_device *omapdss_device_next_output(struct omap_dss_device *from)
+ 			goto done;
+ 		}
+ 
+-		if (dssdev->id && (dssdev->next || dssdev->bridge))
++		if (dssdev->id && (dssdev->bridge))
+ 			goto done;
+ 	}
+ 
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+index 325a89d802e2..03498f0ed6c2 100644
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
++++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+@@ -292,7 +292,6 @@ struct omap_dss_device {
+ 	struct module *owner;
+ 
+ 	struct dss_device *dss;
+-	struct omap_dss_device *next;
+ 	struct drm_bridge *bridge;
+ 	struct drm_bridge *next_bridge;
+ 	struct drm_panel *panel;
+diff --git a/drivers/gpu/drm/omapdrm/dss/output.c b/drivers/gpu/drm/omapdrm/dss/output.c
+index ce21c798cca6..40cb353572f6 100644
+--- a/drivers/gpu/drm/omapdrm/dss/output.c
++++ b/drivers/gpu/drm/omapdrm/dss/output.c
+@@ -30,7 +30,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 		return 0;
+ 	}
+ 
+-	out->next = omapdss_find_device_by_node(remote_node);
+ 	out->bridge = of_drm_find_bridge(remote_node);
+ 	out->panel = of_drm_find_panel(remote_node);
+ 	if (IS_ERR(out->panel))
+@@ -38,12 +37,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 
+ 	of_node_put(remote_node);
+ 
+-	if (out->next && out->type != out->next->type) {
+-		dev_err(out->dev, "output type and display type don't match\n");
+-		ret = -EINVAL;
+-		goto error;
+-	}
+-
+ 	if (out->panel) {
+ 		struct drm_bridge *bridge;
+ 
+@@ -69,7 +62,7 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 		out->bridge = local_bridge;
+ 	}
+ 
+-	if (!out->next && !out->bridge) {
++	if (!out->bridge) {
+ 		ret = -EPROBE_DEFER;
+ 		goto error;
+ 	}
+@@ -78,7 +71,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 
+ error:
+ 	omapdss_device_cleanup_output(out);
+-	out->next = NULL;
+ 	return ret;
+ }
+ EXPORT_SYMBOL(omapdss_device_init_output);
+@@ -88,9 +80,6 @@ void omapdss_device_cleanup_output(struct omap_dss_device *out)
+ 	if (out->bridge && out->panel)
+ 		drm_panel_bridge_remove(out->next_bridge ?
+ 					out->next_bridge : out->bridge);
+-
+-	if (out->next)
+-		omapdss_device_put(out->next);
+ }
+ EXPORT_SYMBOL(omapdss_device_cleanup_output);
+ 
+diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
+index 610c5a2f2771..5f5fa01240a7 100644
+--- a/drivers/gpu/drm/omapdrm/omap_encoder.c
++++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
+@@ -75,7 +75,6 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
+ {
+ 	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
+ 	struct omap_dss_device *output = omap_encoder->output;
+-	struct omap_dss_device *dssdev;
+ 	struct drm_device *dev = encoder->dev;
+ 	struct drm_connector *connector;
+ 	struct drm_bridge *bridge;
+@@ -98,9 +97,6 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
+ 	 *
+ 	 * A better solution is to use DRM's bus-flags through the whole driver.
+ 	 */
+-	for (dssdev = output; dssdev; dssdev = dssdev->next)
+-		omap_encoder_update_videomode_flags(&vm, dssdev->bus_flags);
+-
+ 	for (bridge = output->bridge; bridge;
+ 	     bridge = drm_bridge_get_next_bridge(bridge)) {
+ 		if (!bridge->timings)
 -- 
 2.25.0
 
