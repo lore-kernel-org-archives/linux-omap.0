@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9911C11D3D
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:28:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 395D8C34031
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:28:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BC12122464
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:28:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 188BB222D9
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:28:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727957AbgBXX2b (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1728314AbgBXX2b (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 24 Feb 2020 18:28:31 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60468 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:60484 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728221AbgBXX2b (ORCPT
+        with ESMTP id S1728226AbgBXX2b (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:28:31 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id DEE2F263AE1
+        with ESMTPSA id 0AA66283B8F
 Received: by earth.universe (Postfix, from userid 1000)
-        id AC2BA3C0CB3; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
+        id 477833C0CA1; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 48/56] drm/omap: simplify omap_display_id
-Date:   Tue, 25 Feb 2020 00:21:18 +0100
-Message-Id: <20200224232126.3385250-49-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 30/56] drm/dsi: add MIPI_DSI_MODE_ULPS_IDLE
+Date:   Tue, 25 Feb 2020 00:21:00 +0100
+Message-Id: <20200224232126.3385250-31-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,34 +47,33 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We no longer need to check for the DSS API, since all encoders,
-panels and connectors have been converted to the bridge API.
+DSI command mode panels are self-refreshing displays, that
+can be updated very rarely for static images. For this kind
+of scenario some panels support, that the DSI bus switches
+into ULPS mode until the panel needs to be refreshed.
+
+This is problematic on some panels, so introduce a flag to
+signal the DSI host implementation that the panel allows
+going into ULPS mode.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/gpu/drm/omapdrm/omap_drv.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ include/drm/drm_mipi_dsi.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index 4c2095067544..3a1982e7aa98 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -206,14 +206,7 @@ static int omap_display_id(struct omap_dss_device *output)
- {
- 	struct device_node *node = NULL;
+diff --git a/include/drm/drm_mipi_dsi.h b/include/drm/drm_mipi_dsi.h
+index 360e6377e84b..f36f89c14b4a 100644
+--- a/include/drm/drm_mipi_dsi.h
++++ b/include/drm/drm_mipi_dsi.h
+@@ -132,6 +132,8 @@ struct mipi_dsi_host *of_find_mipi_dsi_host_by_node(struct device_node *node);
+ #define MIPI_DSI_CLOCK_NON_CONTINUOUS	BIT(10)
+ /* transmit data in low power */
+ #define MIPI_DSI_MODE_LPM		BIT(11)
++/* allow going into ULPS mode while command mode panel is not updated */
++#define MIPI_DSI_MODE_ULPS_IDLE		BIT(12)
  
--	if (output->next) {
--		struct omap_dss_device *display = output;
--
--		while (display->next)
--			display = display->next;
--
--		node = display->dev->of_node;
--	} else if (output->bridge) {
-+	if (output->bridge) {
- 		struct drm_bridge *bridge = output->bridge;
- 
- 		while (drm_bridge_get_next_bridge(bridge))
+ enum mipi_dsi_pixel_format {
+ 	MIPI_DSI_FMT_RGB888,
 -- 
 2.25.0
 
