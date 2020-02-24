@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8573AC38C1B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD337C11D30
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5216722525
+	by mail.kernel.org (Postfix) with ESMTP id ADFFD20732
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728515AbgBXXVs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 18:21:48 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60110 "EHLO
+        id S1728511AbgBXXVj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 18:21:39 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59858 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728523AbgBXXVm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:42 -0500
+        with ESMTP id S1728480AbgBXXVi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:38 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 3F0132935D4
+        with ESMTPSA id 212E729361D
 Received: by earth.universe (Postfix, from userid 1000)
-        id 5E3E03C0CA5; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
+        id B74AF3C0C8A; Tue, 25 Feb 2020 00:21:30 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 34/56] drm/omap: dsi: drop custom panel capability support
-Date:   Tue, 25 Feb 2020 00:21:04 +0100
-Message-Id: <20200224232126.3385250-35-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 07/56] drm/omap: dsi: add generic transfer function
+Date:   Tue, 25 Feb 2020 00:20:37 +0100
+Message-Id: <20200224232126.3385250-8-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,132 +47,102 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Due to previous changes the DSI encoder gets the capabilities
-via DSI client's mode_flags and no longer needs the omapdss
-specific caps. The core code now checks if the DSI encoder
-is actually configured into command mode instead of just checking
-the panel capabilities.
+This prepares the driver for becoming a mipi_dsi_host implementation,
+which provides a generic transfer function instead of all kind of
+different read/write functions. The implementation will become more
+elegant after unexporting the specific functions in the following
+patches.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c |  3 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c               |  8 ++++++++
- drivers/gpu/drm/omapdrm/dss/omapdss.h           |  8 +-------
- drivers/gpu/drm/omapdrm/omap_crtc.c             | 17 ++++++++---------
- 4 files changed, 17 insertions(+), 19 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c     | 52 +++++++++++++++++++++++++++
+ drivers/gpu/drm/omapdrm/dss/omapdss.h |  3 ++
+ 2 files changed, 55 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 6f559c1b0bf6..30be9e4ab908 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -602,9 +602,6 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
- 	dssdev->of_port = 0;
- 	dssdev->ops_flags = OMAP_DSS_DEVICE_OP_MODES;
- 
--	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
--		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
--
- 	omapdss_display_init(dssdev);
- 	omapdss_device_register(dssdev);
- 
 diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index b0e796f90fca..42f995da21a5 100644
+index f01e0476296d..84e2eb0b51d7 100644
 --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
 +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -4732,6 +4732,13 @@ static bool dsi_vm_calc(struct dsi_data *dsi,
- 			dsi_vm_calc_pll_cb, ctx);
+@@ -4836,6 +4836,56 @@ static void dsi_release_vc(struct omap_dss_device *dssdev, int channel)
+ 	}
  }
  
-+static bool dsi_is_video_mode(struct omap_dss_device *dssdev)
++static ssize_t omap_dsi_transfer(struct omap_dss_device *dssdev,
++				 const struct mipi_dsi_msg *msg)
 +{
-+	struct dsi_data *dsi = to_dsi_data(dssdev);
++	/*
++	 * no_sync can be used to optimize performance by sending
++	 * e.g. column and page information without syncing in
++	 * between. It's not absolutley required, so postpone this
++	 * feature for now.
++	 */
++	bool no_sync = false;
++	u16 val;
 +
-+	return (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE);
++	switch (msg->type) {
++	case MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM:
++	case MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM:
++	case MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM:
++	case MIPI_DSI_GENERIC_LONG_WRITE:
++		if (no_sync)
++			return dsi_vc_generic_write_nosync(dssdev, msg->channel,
++				                      msg->tx_buf, msg->tx_len);
++		else
++			return dsi_vc_generic_write(dssdev, msg->channel,
++						    msg->tx_buf, msg->tx_len);
++	case MIPI_DSI_DCS_SHORT_WRITE:
++	case MIPI_DSI_DCS_SHORT_WRITE_PARAM:
++	case MIPI_DSI_DCS_LONG_WRITE:
++		if (no_sync)
++			return dsi_vc_dcs_write_nosync(dssdev, msg->channel,
++						      msg->tx_buf, msg->tx_len);
++		else
++			return dsi_vc_dcs_write(dssdev, msg->channel,
++						msg->tx_buf, msg->tx_len);
++	case MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM:
++	case MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM:
++	case MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM:
++		return dsi_vc_generic_read(dssdev, msg->channel, msg->tx_buf,
++				msg->tx_len, msg->rx_buf, msg->rx_len);
++	case MIPI_DSI_DCS_READ:
++		return dsi_vc_dcs_read(dssdev, msg->channel,
++				((u8*) msg->tx_buf)[0],
++				msg->rx_buf, msg->rx_len);
++	case MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE:
++		val = le16_to_cpu(*((__le16*) msg->tx_buf));
++		return dsi_vc_set_max_rx_packet_size(dssdev, msg->channel, val);
++	case MIPI_DSI_NULL_PACKET:
++		return dsi_vc_send_null(to_dsi_data(dssdev), msg->channel);
++	}
++
++	return -EINVAL;
 +}
-+
- static int dsi_set_config(struct omap_dss_device *dssdev,
- 		const struct omap_dss_dsi_config *config)
+ 
+ static int dsi_get_clocks(struct dsi_data *dsi)
  {
-@@ -4951,6 +4958,7 @@ static const struct omap_dss_device_ops dsi_ops = {
- 		.disable_video_output = dsi_disable_video_output,
+@@ -4890,6 +4940,8 @@ static const struct omap_dss_device_ops dsi_ops = {
+ 		.set_vc_id = dsi_set_vc_id,
+ 		.release_vc = dsi_release_vc,
  
- 		.update = dsi_update_all,
-+		.is_video_mode = dsi_is_video_mode,
- 	},
- };
- 
++		.transfer = omap_dsi_transfer,
++
+ 		.dcs_write = dsi_vc_dcs_write,
+ 		.dcs_write_nosync = dsi_vc_dcs_write_nosync,
+ 		.dcs_read = dsi_vc_dcs_read,
 diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index d7081086c2b1..430e915d2759 100644
+index b909b3a8c835..ea7bf0970677 100644
 --- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
 +++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -122,11 +122,6 @@ enum omap_dss_dsi_mode {
- 	OMAP_DSS_DSI_VIDEO_MODE,
- };
+@@ -307,6 +307,9 @@ struct omapdss_dsi_ops {
+ 	void (*release_vc)(struct omap_dss_device *dssdev, int channel);
  
--enum omap_display_caps {
--	OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE	= 1 << 0,
--	OMAP_DSS_DISPLAY_CAP_TEAR_ELIM		= 1 << 1,
--};
--
- enum omap_dss_display_state {
- 	OMAP_DSS_DISPLAY_DISABLED = 0,
- 	OMAP_DSS_DISPLAY_ACTIVE,
-@@ -281,6 +276,7 @@ struct omap_dss_writeback_info {
- 
- struct omapdss_dsi_ops {
- 	int (*update)(struct omap_dss_device *dssdev);
-+	bool (*is_video_mode)(struct omap_dss_device *dssdev);
- 
- 	/* legacy API used by omapdss panels */
- 	int (*set_config)(struct omap_dss_device *dssdev,
-@@ -353,8 +349,6 @@ struct omap_dss_device {
- 	unsigned long ops_flags;
- 	u32 bus_flags;
- 
--	enum omap_display_caps caps;
--
- 	enum omap_dss_display_state state;
- 
- 	/* OMAP DSS output specific fields */
-diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index c924d77207fb..af62f6075602 100644
---- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-+++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -495,8 +495,7 @@ static enum drm_mode_status omap_crtc_mode_valid(struct drm_crtc *crtc,
- 	 * valid DISPC mode. DSI will calculate and configure the
- 	 * proper DISPC mode later.
- 	 */
--	if (omap_crtc->pipe->output->next == NULL ||
--	    omap_crtc->pipe->output->next->type != OMAP_DISPLAY_TYPE_DSI) {
-+	if (omap_crtc->pipe->output->type != OMAP_DISPLAY_TYPE_DSI) {
- 		r = priv->dispc_ops->mgr_check_timings(priv->dispc,
- 						       omap_crtc->channel,
- 						       &vm);
-@@ -548,17 +547,17 @@ static void omap_crtc_mode_set_nofb(struct drm_crtc *crtc)
- static bool omap_crtc_is_manually_updated(struct drm_crtc *crtc)
- {
- 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
--	struct omap_dss_device *display = omap_crtc->pipe->output->next;
-+	struct omap_dss_device *dssdev = omap_crtc->pipe->output;
- 
--	if (!display)
-+	if (dssdev->type != OMAP_DISPLAY_TYPE_DSI ||
-+	    !dssdev->ops->dsi.is_video_mode)
- 		return false;
- 
--	if (display->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
--		DBG("detected manually updated display!");
--		return true;
--	}
-+	if (dssdev->ops->dsi.is_video_mode(dssdev))
-+		return false;
- 
--	return false;
-+	DBG("detected manually updated display!");
-+	return true;
- }
- 
- static int omap_crtc_atomic_check(struct drm_crtc *crtc,
+ 	/* data transfer */
++	ssize_t (*transfer)(struct omap_dss_device *dssdev,
++			const struct mipi_dsi_msg *msg);
++
+ 	int (*dcs_write)(struct omap_dss_device *dssdev, int channel,
+ 			const u8 *data, int len);
+ 	int (*dcs_write_nosync)(struct omap_dss_device *dssdev, int channel,
 -- 
 2.25.0
 
