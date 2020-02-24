@@ -2,114 +2,230 @@ Return-Path: <SRS0=6eJi=4M=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AB97C11D3A
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCDBBC11D3A
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:22:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55D3F20732
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 949F02176D
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:22:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="qG1/srkw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728274AbgBXXVu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 18:21:50 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59906 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728494AbgBXXVi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:38 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: sre)
-        with ESMTPSA id 37B3729365D
-Received: by earth.universe (Postfix, from userid 1000)
-        id C3E043C0C8C; Tue, 25 Feb 2020 00:21:30 +0100 (CET)
-From:   Sebastian Reichel <sebastian.reichel@collabora.com>
-To:     Sebastian Reichel <sre@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc:     Tony Lindgren <tony@atomide.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, kernel@collabora.com,
-        Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 09/56] drm/omap: dsi: unexport specific data transfer functions
-Date:   Tue, 25 Feb 2020 00:20:39 +0100
-Message-Id: <20200224232126.3385250-10-sebastian.reichel@collabora.com>
-X-Mailer: git-send-email 2.25.0
-In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
-References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
+        id S1728572AbgBXXWG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 18:22:06 -0500
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:53440 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728423AbgBXXWF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:22:05 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01ONLxv8102922;
+        Mon, 24 Feb 2020 17:21:59 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1582586519;
+        bh=vay2LoEaC3QocU8ZaOGWOzTWKhalWfYPbKQHNAgB/Ng=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=qG1/srkwsrG6iml94j23LvjlTX1IBu2wBbcWS8N+DAPN+gqrQiiBvWx/33YYQnUWU
+         F1Oupz+9/yR54f0tHY99960nlcJBb6ljBwHmhMxxeTMWVDJ8ozXHqbeE7pi6d/QK4z
+         wLQBwcYNeJaD0Xt/LUBSufzAoyTIY5feGkoQitW8=
+Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01ONLx8u109527
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 24 Feb 2020 17:21:59 -0600
+Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Mon, 24
+ Feb 2020 17:21:59 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
+ Frontend Transport; Mon, 24 Feb 2020 17:21:59 -0600
+Received: from lelv0597.itg.ti.com (lelv0597.itg.ti.com [10.181.64.32])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01ONLxcu060845;
+        Mon, 24 Feb 2020 17:21:59 -0600
+Received: from localhost (irmo.dhcp.ti.com [128.247.58.153])
+        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 01ONLx2W021241;
+        Mon, 24 Feb 2020 17:21:59 -0600
+From:   Suman Anna <s-anna@ti.com>
+To:     Tony Lindgren <tony@atomide.com>
+CC:     Tero Kristo <t-kristo@ti.com>, Roger Quadros <rogerq@ti.com>,
+        <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, Suman Anna <s-anna@ti.com>
+Subject: [PATCH 2/3] ARM: OMAP2+: Drop legacy platform data for OMAP4 DSP
+Date:   Mon, 24 Feb 2020 17:21:51 -0600
+Message-ID: <20200224232152.25562-3-s-anna@ti.com>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20200224232152.25562-1-s-anna@ti.com>
+References: <20200224232152.25562-1-s-anna@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-After converting all DSI drivers, unexport the specific transfer
-functions.
+The OMAP4 DSP hwmod is used in DT, but the DT node is not
+probing any real driver. The DSP device-tree node shall be
+updated as per the new OMAP remoteproc bindings with the
+underneath MMU device relying on the ti-sysc infrastructure.
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Drop the legacy hwmod data for the DSP device along with the
+custom ti,hwmods property. They have to be dropped together
+since the early platform data init code is based on the custom
+ti,hwmods property.
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c     | 12 ------------
- drivers/gpu/drm/omapdrm/dss/omapdss.h | 20 --------------------
- 2 files changed, 32 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi               |  1 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 76 ----------------------
+ 2 files changed, 77 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 84e2eb0b51d7..0990777a42f7 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -4941,18 +4941,6 @@ static const struct omap_dss_device_ops dsi_ops = {
- 		.release_vc = dsi_release_vc,
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 9a87440d0b9d..48b97f818a68 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -108,7 +108,6 @@
  
- 		.transfer = omap_dsi_transfer,
--
--		.dcs_write = dsi_vc_dcs_write,
--		.dcs_write_nosync = dsi_vc_dcs_write_nosync,
--		.dcs_read = dsi_vc_dcs_read,
--
--		.gen_write = dsi_vc_generic_write,
--		.gen_write_nosync = dsi_vc_generic_write_nosync,
--		.gen_read = dsi_vc_generic_read,
--
--		.bta_sync = dsi_vc_send_bta_sync,
--
--		.set_max_rx_packet_size = dsi_vc_set_max_rx_packet_size,
+ 		dsp {
+ 			compatible = "ti,omap3-c64";
+-			ti,hwmods = "dsp";
+ 		};
+ 
+ 		iva {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index b7c51ea8c9a6..1d4359a43cab 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -355,37 +355,6 @@ static struct omap_hwmod omap44xx_debugss_hwmod = {
  	},
  };
  
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index ea7bf0970677..787e102eb068 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -309,26 +309,6 @@ struct omapdss_dsi_ops {
- 	/* data transfer */
- 	ssize_t (*transfer)(struct omap_dss_device *dssdev,
- 			const struct mipi_dsi_msg *msg);
+-/*
+- * 'dsp' class
+- * dsp sub-system
+- */
 -
--	int (*dcs_write)(struct omap_dss_device *dssdev, int channel,
--			const u8 *data, int len);
--	int (*dcs_write_nosync)(struct omap_dss_device *dssdev, int channel,
--			const u8 *data, int len);
--	int (*dcs_read)(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
--			u8 *data, int len);
+-static struct omap_hwmod_class omap44xx_dsp_hwmod_class = {
+-	.name	= "dsp",
+-};
 -
--	int (*gen_write)(struct omap_dss_device *dssdev, int channel,
--			const u8 *data, int len);
--	int (*gen_write_nosync)(struct omap_dss_device *dssdev, int channel,
--			const u8 *data, int len);
--	int (*gen_read)(struct omap_dss_device *dssdev, int channel,
--			const u8 *reqdata, int reqlen,
--			u8 *data, int len);
+-/* dsp */
+-static struct omap_hwmod_rst_info omap44xx_dsp_resets[] = {
+-	{ .name = "dsp", .rst_shift = 0 },
+-};
 -
--	int (*bta_sync)(struct omap_dss_device *dssdev, int channel);
+-static struct omap_hwmod omap44xx_dsp_hwmod = {
+-	.name		= "dsp",
+-	.class		= &omap44xx_dsp_hwmod_class,
+-	.clkdm_name	= "tesla_clkdm",
+-	.rst_lines	= omap44xx_dsp_resets,
+-	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
+-	.main_clk	= "dpll_iva_m4x2_ck",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
+-			.rstctrl_offs = OMAP4_RM_TESLA_RSTCTRL_OFFSET,
+-			.context_offs = OMAP4_RM_TESLA_TESLA_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+-		},
+-	},
+-};
 -
--	int (*set_max_rx_packet_size)(struct omap_dss_device *dssdev,
--			int channel, u16 plen);
+ /*
+  * 'dss' class
+  * display sub-system
+@@ -1236,14 +1205,6 @@ static struct omap_hwmod_ocp_if omap44xx_ocp_wp_noc__l3_instr = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
- struct omap_dss_device_ops {
+-/* dsp -> l3_main_1 */
+-static struct omap_hwmod_ocp_if omap44xx_dsp__l3_main_1 = {
+-	.master		= &omap44xx_dsp_hwmod,
+-	.slave		= &omap44xx_l3_main_1_hwmod,
+-	.clk		= "l3_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* dss -> l3_main_1 */
+ static struct omap_hwmod_ocp_if omap44xx_dss__l3_main_1 = {
+ 	.master		= &omap44xx_dss_hwmod,
+@@ -1364,14 +1325,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_3 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* dsp -> l4_abe */
+-static struct omap_hwmod_ocp_if omap44xx_dsp__l4_abe = {
+-	.master		= &omap44xx_dsp_hwmod,
+-	.slave		= &omap44xx_l4_abe_hwmod,
+-	.clk		= "ocp_abe_iclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main_1 -> l4_abe */
+ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l4_abe = {
+ 	.master		= &omap44xx_l3_main_1_hwmod,
+@@ -1476,30 +1429,6 @@ static struct omap_hwmod_ocp_if omap44xx_l3_instr__debugss = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* dsp -> iva */
+-static struct omap_hwmod_ocp_if omap44xx_dsp__iva = {
+-	.master		= &omap44xx_dsp_hwmod,
+-	.slave		= &omap44xx_iva_hwmod,
+-	.clk		= "dpll_iva_m5x2_ck",
+-	.user		= OCP_USER_DSP,
+-};
+-
+-/* dsp -> sl2if */
+-static struct omap_hwmod_ocp_if __maybe_unused omap44xx_dsp__sl2if = {
+-	.master		= &omap44xx_dsp_hwmod,
+-	.slave		= &omap44xx_sl2if_hwmod,
+-	.clk		= "dpll_iva_m5x2_ck",
+-	.user		= OCP_USER_DSP,
+-};
+-
+-/* l4_cfg -> dsp */
+-static struct omap_hwmod_ocp_if omap44xx_l4_cfg__dsp = {
+-	.master		= &omap44xx_l4_cfg_hwmod,
+-	.slave		= &omap44xx_dsp_hwmod,
+-	.clk		= "l4_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main_2 -> dss */
+ static struct omap_hwmod_ocp_if omap44xx_l3_main_2__dss = {
+ 	.master		= &omap44xx_l3_main_2_hwmod,
+@@ -1762,7 +1691,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_iva__l3_instr,
+ 	&omap44xx_l3_main_3__l3_instr,
+ 	&omap44xx_ocp_wp_noc__l3_instr,
+-	&omap44xx_dsp__l3_main_1,
+ 	&omap44xx_dss__l3_main_1,
+ 	&omap44xx_l3_main_2__l3_main_1,
+ 	&omap44xx_l4_cfg__l3_main_1,
+@@ -1778,7 +1706,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_l3_main_1__l3_main_3,
+ 	&omap44xx_l3_main_2__l3_main_3,
+ 	&omap44xx_l4_cfg__l3_main_3,
+-	&omap44xx_dsp__l4_abe,
+ 	&omap44xx_l3_main_1__l4_abe,
+ 	&omap44xx_mpu__l4_abe,
+ 	&omap44xx_l3_main_1__l4_cfg,
+@@ -1792,9 +1719,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_l4_wkup__ctrl_module_wkup,
+ 	&omap44xx_l4_wkup__ctrl_module_pad_wkup,
+ 	&omap44xx_l3_instr__debugss,
+-	&omap44xx_dsp__iva,
+-	/* &omap44xx_dsp__sl2if, */
+-	&omap44xx_l4_cfg__dsp,
+ 	&omap44xx_l3_main_2__dss,
+ 	&omap44xx_l4_per__dss,
+ 	&omap44xx_l3_main_2__dss_dispc,
 -- 
-2.25.0
+2.23.0
 
