@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3E9CC38C02
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66988C38BFF
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C36FB24676
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46B4F22527
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728221AbgBXXVj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1728480AbgBXXVj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 24 Feb 2020 18:21:39 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59826 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59872 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728474AbgBXXVh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:37 -0500
+        with ESMTP id S1728482AbgBXXVi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:38 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id F30EF293606
+        with ESMTPSA id 2666A29361E
 Received: by earth.universe (Postfix, from userid 1000)
-        id D92C13C0C90; Tue, 25 Feb 2020 00:21:30 +0100 (CET)
+        id BD83F3C0C8B; Tue, 25 Feb 2020 00:21:30 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 13/56] drm/omap: dsi: switch dsi_vc_send_long/short to mipi_dsi_msg
-Date:   Tue, 25 Feb 2020 00:20:43 +0100
-Message-Id: <20200224232126.3385250-14-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 08/56] drm/omap: panel-dsi-cm: convert to transfer API
+Date:   Tue, 25 Feb 2020 00:20:38 +0100
+Message-Id: <20200224232126.3385250-9-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,208 +47,224 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Simplify the DSI encoder by using mipi_dsi_msg for
-dsi_vc_send_long and dsi_vc_send_short. Further improvements
-require cleaning up the channel allocation code first.
+This converts the panel-dsi-cm driver to use the transfer
+API instead of specific functions, so that the specific
+functions can be unexported and squashed into the generic
+transfer function.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c | 92 +++++++++++++++----------------
- 1 file changed, 45 insertions(+), 47 deletions(-)
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 133 +++++++++++++-----
+ 1 file changed, 96 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 9b5b078beb6d..4899bfa2d76f 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -2599,30 +2599,36 @@ static inline void dsi_vc_write_long_payload(struct dsi_data *dsi, int channel,
- 	dsi_write_reg(dsi, DSI_VC_LONG_PACKET_PAYLOAD(channel), val);
- }
- 
--static int dsi_vc_send_long(struct dsi_data *dsi, int channel, u8 data_type,
--			    const u8 *data, u16 len, u8 ecc)
-+static int dsi_vc_send_long(struct dsi_data *dsi,
-+			    const struct mipi_dsi_msg *msg)
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index e6ebfc35243e..92f510a771fe 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -140,45 +140,61 @@ static void hw_guard_wait(struct panel_drv_data *ddata)
+ static int dsicm_dcs_read_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 *data)
  {
-+	struct mipi_dsi_packet pkg;
- 	/*u32 val; */
- 	int i;
- 	const u8 *p;
- 	int r = 0;
- 	u8 b1, b2, b3, b4;
- 
-+	r = mipi_dsi_create_packet(&pkg, msg);
-+	if (r < 0)
-+		return r;
-+
- 	if (dsi->debug_write)
--		DSSDBG("dsi_vc_send_long, %d bytes\n", len);
-+		DSSDBG("dsi_vc_send_long, %d bytes\n", msg->tx_len);
- 
- 	/* len + header */
--	if (dsi->vc[channel].tx_fifo_size * 32 * 4 < len + 4) {
-+	if (dsi->vc[msg->channel].tx_fifo_size * 32 * 4 < msg->tx_len + 4) {
- 		DSSERR("unable to send long packet: packet too long.\n");
- 		return -EINVAL;
- 	}
- 
--	dsi_vc_config_source(dsi, channel, DSI_VC_SOURCE_L4);
-+	dsi_vc_config_source(dsi, msg->channel, DSI_VC_SOURCE_L4);
- 
--	dsi_vc_write_long_header(dsi, channel, data_type, len, ecc);
-+	dsi_vc_write_long_header(dsi, msg->channel, msg->type, msg->tx_len,
-+				 pkg.header[3]);
- 
--	p = data;
--	for (i = 0; i < len >> 2; i++) {
-+	p = msg->tx_buf;
-+	for (i = 0; i < msg->tx_len >> 2; i++) {
- 		if (dsi->debug_write)
- 			DSSDBG("\tsending full packet %d\n", i);
- 
-@@ -2631,10 +2637,10 @@ static int dsi_vc_send_long(struct dsi_data *dsi, int channel, u8 data_type,
- 		b3 = *p++;
- 		b4 = *p++;
- 
--		dsi_vc_write_long_payload(dsi, channel, b1, b2, b3, b4);
-+		dsi_vc_write_long_payload(dsi, msg->channel, b1, b2, b3, b4);
- 	}
- 
--	i = len % 4;
-+	i = msg->tx_len % 4;
- 	if (i) {
- 		b1 = 0; b2 = 0; b3 = 0;
- 
-@@ -2656,64 +2662,64 @@ static int dsi_vc_send_long(struct dsi_data *dsi, int channel, u8 data_type,
- 			break;
- 		}
- 
--		dsi_vc_write_long_payload(dsi, channel, b1, b2, b3, 0);
-+		dsi_vc_write_long_payload(dsi, msg->channel, b1, b2, b3, 0);
- 	}
- 
- 	return r;
- }
- 
--static int dsi_vc_send_short(struct dsi_data *dsi, int channel, u8 data_type,
--			     u16 data, u8 ecc)
-+static int dsi_vc_send_short(struct dsi_data *dsi,
-+			     const struct mipi_dsi_msg *msg)
- {
-+	struct mipi_dsi_packet pkg;
- 	u32 r;
--	u8 data_id;
-+
-+	r = mipi_dsi_create_packet(&pkg, msg);
-+	if (r < 0)
-+		return r;
- 
- 	WARN_ON(!dsi_bus_is_locked(dsi));
- 
- 	if (dsi->debug_write)
- 		DSSDBG("dsi_vc_send_short(ch%d, dt %#x, b1 %#x, b2 %#x)\n",
--				channel,
--				data_type, data & 0xff, (data >> 8) & 0xff);
-+				msg->channel,
-+				msg->type, pkg.header[1], pkg.header[2]);
- 
--	dsi_vc_config_source(dsi, channel, DSI_VC_SOURCE_L4);
-+	dsi_vc_config_source(dsi, msg->channel, DSI_VC_SOURCE_L4);
- 
--	if (FLD_GET(dsi_read_reg(dsi, DSI_VC_CTRL(channel)), 16, 16)) {
-+	if (FLD_GET(dsi_read_reg(dsi, DSI_VC_CTRL(msg->channel)), 16, 16)) {
- 		DSSERR("ERROR FIFO FULL, aborting transfer\n");
- 		return -EINVAL;
- 	}
- 
--	data_id = data_type | channel << 6;
+ 	struct omap_dss_device *src = ddata->src;
+-	int r;
+-	u8 buf[1];
 -
--	r = (data_id << 0) | (data << 8) | (ecc << 24);
-+	r = pkg.header[3] << 24 | pkg.header[2] << 16 | pkg.header[1] << 8 |
-+	    pkg.header[0];
- 
--	dsi_write_reg(dsi, DSI_VC_SHORT_PACKET_HEADER(channel), r);
-+	dsi_write_reg(dsi, DSI_VC_SHORT_PACKET_HEADER(msg->channel), r);
- 
- 	return 0;
- }
- 
- static int dsi_vc_send_null(struct dsi_data *dsi, int channel)
- {
--	return dsi_vc_send_long(dsi, channel, MIPI_DSI_NULL_PACKET, NULL, 0, 0);
-+	const struct mipi_dsi_msg msg = {
-+		.channel = channel,
-+		.type = MIPI_DSI_NULL_PACKET,
-+	};
-+
-+	return dsi_vc_send_long(dsi, &msg);
- }
- 
- static int dsi_vc_write_common(struct omap_dss_device *dssdev,
- 			       const struct mipi_dsi_msg *msg)
- {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
--	struct mipi_dsi_packet packet;
- 	int r;
- 
--	r = mipi_dsi_create_packet(&packet, msg);
+-	r = src->ops->dsi.dcs_read(src, ddata->channel, dcs_cmd, buf, 1);
+-
 -	if (r < 0)
 -		return r;
 -
--	if (mipi_dsi_packet_format_is_short(msg->type)) {
--		u16 data = packet.header[1] | (packet.header[2] << 8);
--		r = dsi_vc_send_short(dsi, msg->channel, msg->type, data, 0);
--	} else {
--		r = dsi_vc_send_long(dsi, msg->channel, msg->type,
--						   msg->tx_buf, msg->tx_len, 0);
--	}
-+	if (mipi_dsi_packet_format_is_short(msg->type))
-+		r = dsi_vc_send_short(dsi, msg);
-+	else
-+		r = dsi_vc_send_long(dsi, msg);
+-	*data = buf[0];
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_READ,
++		.tx_len = 1,
++		.tx_buf = &dcs_cmd,
++		.rx_len = 1,
++		.rx_buf = data
++	};
  
- 	if (r < 0)
- 		return r;
-@@ -2853,10 +2859,10 @@ static int dsi_vc_dcs_read(struct omap_dss_device *dssdev,
- 			   const struct mipi_dsi_msg *msg)
+-	return 0;
++	return src->ops->dsi.transfer(src, &msg);
+ }
+ 
+ static int dsicm_dcs_write_0(struct panel_drv_data *ddata, u8 dcs_cmd)
  {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
-+	u8 cmd = ((u8*) msg->tx_buf)[0];
+ 	struct omap_dss_device *src = ddata->src;
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_SHORT_WRITE,
++		.tx_buf = &dcs_cmd,
++		.tx_len = 1,
++	};
+ 
+-	return src->ops->dsi.dcs_write(src, ddata->channel, &dcs_cmd, 1);
++	return src->ops->dsi.transfer(src, &msg);
+ }
+ 
+ static int dsicm_dcs_write_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 param)
+ {
+ 	struct omap_dss_device *src = ddata->src;
+-	u8 buf[2] = { dcs_cmd, param };
++	const u8 buf[] = { dcs_cmd, param };
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_SHORT_WRITE_PARAM,
++		.tx_buf = &buf,
++		.tx_len = 2,
++	};
+ 
+-	return src->ops->dsi.dcs_write(src, ddata->channel, buf, 2);
++	return src->ops->dsi.transfer(src, &msg);
+ }
+ 
+ static int dsicm_sleep_in(struct panel_drv_data *ddata)
+ 
+ {
+ 	struct omap_dss_device *src = ddata->src;
+-	u8 cmd;
  	int r;
--	u8 dcs_cmd = ((u8*) msg->tx_buf)[0];
++	const u8 cmd = MIPI_DCS_ENTER_SLEEP_MODE;
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_SHORT_WRITE,
++		.tx_buf = &cmd,
++		.tx_len = 1,
++	};
  
--	r = dsi_vc_send_short(dsi, msg->channel, MIPI_DSI_DCS_READ, dcs_cmd, 0);
-+	r = dsi_vc_send_short(dsi, msg);
+ 	hw_guard_wait(ddata);
+ 
+-	cmd = MIPI_DCS_ENTER_SLEEP_MODE;
+-	r = src->ops->dsi.dcs_write_nosync(src, ddata->channel, &cmd, 1);
++	r = src->ops->dsi.transfer(src, &msg);
  	if (r)
- 		goto err;
+ 		return r;
  
-@@ -2877,7 +2883,7 @@ static int dsi_vc_dcs_read(struct omap_dss_device *dssdev,
- 	return 0;
- err:
- 	DSSERR("dsi_vc_dcs_read(ch %d, cmd 0x%02x) failed\n",
--		msg->channel, dcs_cmd);
-+		msg->channel, cmd);
+@@ -233,28 +249,44 @@ static int dsicm_set_update_window(struct panel_drv_data *ddata,
+ 	u16 y1 = y;
+ 	u16 y2 = y + h - 1;
+ 
+-	u8 buf[5];
+-	buf[0] = MIPI_DCS_SET_COLUMN_ADDRESS;
+-	buf[1] = (x1 >> 8) & 0xff;
+-	buf[2] = (x1 >> 0) & 0xff;
+-	buf[3] = (x2 >> 8) & 0xff;
+-	buf[4] = (x2 >> 0) & 0xff;
++	const u8 paramX[] = {
++		MIPI_DCS_SET_COLUMN_ADDRESS,
++		(x1 >> 8) & 0xff,
++		(x1 >> 0) & 0xff,
++		(x2 >> 8) & 0xff,
++		(x2 >> 0) & 0xff,
++	};
+ 
+-	r = src->ops->dsi.dcs_write_nosync(src, ddata->channel, buf, sizeof(buf));
+-	if (r)
+-		return r;
++	const struct mipi_dsi_msg msgX = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_GENERIC_LONG_WRITE,
++		.tx_buf = paramX,
++		.tx_len = 5,
++	};
+ 
+-	buf[0] = MIPI_DCS_SET_PAGE_ADDRESS;
+-	buf[1] = (y1 >> 8) & 0xff;
+-	buf[2] = (y1 >> 0) & 0xff;
+-	buf[3] = (y2 >> 8) & 0xff;
+-	buf[4] = (y2 >> 0) & 0xff;
++	const u8 paramY[] = {
++		MIPI_DCS_SET_PAGE_ADDRESS,
++		(y1 >> 8) & 0xff,
++		(y1 >> 0) & 0xff,
++		(y2 >> 8) & 0xff,
++		(y2 >> 0) & 0xff,
++	};
+ 
+-	r = src->ops->dsi.dcs_write_nosync(src, ddata->channel, buf, sizeof(buf));
++	const struct mipi_dsi_msg msgY = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_GENERIC_LONG_WRITE,
++		.tx_buf = paramY,
++		.tx_len = 5,
++	};
++
++
++	r = src->ops->dsi.transfer(src, &msgX);
+ 	if (r)
+ 		return r;
+ 
+-	src->ops->dsi.bta_sync(src, ddata->channel);
++	r = src->ops->dsi.transfer(src, &msgY);
++	if (r)
++		return r;
+ 
+ 	return r;
+ }
+@@ -991,6 +1023,27 @@ static int dsicm_get_te(struct omap_dss_device *dssdev)
  	return r;
  }
  
-@@ -2885,17 +2891,9 @@ static int dsi_vc_generic_read(struct omap_dss_device *dssdev,
- 			       const struct mipi_dsi_msg *msg)
- {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
--	struct mipi_dsi_packet packet;
--	u16 data;
- 	int r;
++static int dsicm_set_max_rx_packet_size(struct omap_dss_device *dssdev,
++                                        u16 size)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *src = ddata->src;
++
++	const u8 buf[] = {
++		size & 0xff,
++		size >> 8 & 0xff,
++	};
++
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE,
++		.tx_buf = buf,
++		.tx_len = 2,
++	};
++
++	return src->ops->dsi.transfer(src, &msg);
++}
++
+ static int dsicm_memory_read(struct omap_dss_device *dssdev,
+ 		void *buf, size_t size,
+ 		u16 x, u16 y, u16 w, u16 h)
+@@ -1031,17 +1084,23 @@ static int dsicm_memory_read(struct omap_dss_device *dssdev,
  
--	r = mipi_dsi_create_packet(&packet, msg);
--	if (r < 0)
--		goto err;
--
--	data = packet.header[1] | (packet.header[2] << 8);
--
--	r = dsi_vc_send_short(dsi, msg->channel, msg->type, data, 0);
-+	r = dsi_vc_send_short(dsi, msg);
+ 	dsicm_set_update_window(ddata, x, y, w, h);
+ 
+-	r = src->ops->dsi.set_max_rx_packet_size(src, ddata->channel, plen);
++	r = dsicm_set_max_rx_packet_size(dssdev, plen);
  	if (r)
- 		goto err;
+ 		goto err2;
  
+ 	while (buf_used < size) {
+ 		u8 dcs_cmd = first ? 0x2e : 0x3e;
++		const struct mipi_dsi_msg msg = {
++			.channel = ddata->channel,
++			.type = MIPI_DSI_DCS_READ,
++			.tx_buf = &dcs_cmd,
++			.tx_len = 1,
++			.rx_buf = buf + buf_used,
++			.rx_len = size - buf_used,
++		};
+ 		first = 0;
+ 
+-		r = src->ops->dsi.dcs_read(src, ddata->channel, dcs_cmd,
+-				buf + buf_used, size - buf_used);
+-
++		r = src->ops->dsi.transfer(src, &msg);
+ 		if (r < 0) {
+ 			dev_err(dssdev->dev, "read error\n");
+ 			goto err3;
+@@ -1065,7 +1124,7 @@ static int dsicm_memory_read(struct omap_dss_device *dssdev,
+ 	r = buf_used;
+ 
+ err3:
+-	src->ops->dsi.set_max_rx_packet_size(src, ddata->channel, 1);
++	dsicm_set_max_rx_packet_size(dssdev, 1);
+ err2:
+ 	src->ops->dsi.bus_unlock(src);
+ err1:
 -- 
 2.25.0
 
