@@ -2,28 +2,28 @@ Return-Path: <SRS0=6eJi=4M=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	UNPARSEABLE_RELAY,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A2DEC11D30
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7A82C11D30
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5858120732
+	by mail.kernel.org (Postfix) with ESMTP id 960EC20732
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:21:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728506AbgBXXVt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1728522AbgBXXVt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 24 Feb 2020 18:21:49 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59844 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59928 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728522AbgBXXVm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:42 -0500
+        with ESMTP id S1728501AbgBXXVj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:21:39 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 4FE23293E8C
+        with ESMTPSA id 4E9E629398E
 Received: by earth.universe (Postfix, from userid 1000)
-        id 6B7CA3C0CA7; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
+        id F03FC3C0C94; Tue, 25 Feb 2020 00:21:30 +0100 (CET)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -34,9 +34,9 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 36/56] drm/omap: drop omapdss-boot-init
-Date:   Tue, 25 Feb 2020 00:21:06 +0100
-Message-Id: <20200224232126.3385250-37-sebastian.reichel@collabora.com>
+Subject: [PATCHv2 17/56] drm/omap: panel-dsi-cm: drop hardcoded VC
+Date:   Tue, 25 Feb 2020 00:20:47 +0100
+Message-Id: <20200224232126.3385250-18-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.25.0
 In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
 References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
@@ -47,265 +47,107 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The table of compatible values needed to be prefixed with "omapdss,"
-is empty, so all of this code is doing nothing now. Let's drop it.
+Use dsi->channel everywhere, which originates from DT.
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/dss/Kconfig           |   3 -
- drivers/gpu/drm/omapdrm/dss/Makefile          |   2 -
- .../gpu/drm/omapdrm/dss/omapdss-boot-init.c   | 219 ------------------
- 3 files changed, 224 deletions(-)
- delete mode 100644 drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 20 +++++++------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
-index 90e2dd522896..9ac60c24787b 100644
---- a/drivers/gpu/drm/omapdrm/dss/Kconfig
-+++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
-@@ -1,7 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
--config OMAP2_DSS_INIT
--	bool
--
- config OMAP_DSS_BASE
- 	tristate
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index b3688a8ca3cf..9a2ccec27f7e 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -27,9 +27,6 @@
  
-diff --git a/drivers/gpu/drm/omapdrm/dss/Makefile b/drivers/gpu/drm/omapdrm/dss/Makefile
-index f967e6948f2e..811966cd7468 100644
---- a/drivers/gpu/drm/omapdrm/dss/Makefile
-+++ b/drivers/gpu/drm/omapdrm/dss/Makefile
-@@ -1,6 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--obj-$(CONFIG_OMAP2_DSS_INIT) += omapdss-boot-init.o
--
- obj-$(CONFIG_OMAP_DSS_BASE) += omapdss-base.o
- omapdss-base-y := base.o display.o output.o
+ #include "../dss/omapdss.h"
  
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c b/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
-deleted file mode 100644
-index c849927ff185..000000000000
---- a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
-+++ /dev/null
-@@ -1,219 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-- * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-- */
+-/* DSI Virtual channel. Hardcoded for now. */
+-#define TCH 0
 -
--/*
-- * As omapdss panel drivers are omapdss specific, but we want to define the
-- * DT-data in generic manner, we convert the compatible strings of the panel and
-- * encoder nodes from "panel-foo" to "omapdss,panel-foo". This way we can have
-- * both correct DT data and omapdss specific drivers.
-- *
-- * When we get generic panel drivers to the kernel, this file will be removed.
-- */
+ #define DCS_READ_NUM_ERRORS	0x05
+ #define DCS_BRIGHTNESS		0x51
+ #define DCS_CTRL_DISPLAY	0x53
+@@ -73,7 +70,6 @@ struct panel_drv_data {
+ 	bool te_enabled;
+ 
+ 	atomic_t do_update;
+-	int channel;
+ 
+ 	struct delayed_work te_timeout_work;
+ 
+@@ -274,7 +270,7 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
+ 		return 0;
+ 
+ 	src->ops->enable(src);
+-	src->ops->dsi.enable_hs(src, ddata->channel, true);
++	src->ops->dsi.enable_hs(src, ddata->dsi->channel, true);
+ 
+ 	r = _dsicm_enable_te(ddata, true);
+ 	if (r) {
+@@ -591,7 +587,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 
+ 	dsicm_hw_reset(ddata);
+ 
+-	src->ops->dsi.enable_hs(src, ddata->channel, false);
++	src->ops->dsi.enable_hs(src, ddata->dsi->channel, false);
+ 
+ 	r = dsicm_sleep_out(ddata);
+ 	if (r)
+@@ -622,7 +618,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 	if (r)
+ 		goto err;
+ 
+-	r = src->ops->dsi.enable_video_output(src, ddata->channel);
++	r = src->ops->dsi.enable_video_output(src, ddata->dsi->channel);
+ 	if (r)
+ 		goto err;
+ 
+@@ -634,7 +630,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 		ddata->intro_printed = true;
+ 	}
+ 
+-	src->ops->dsi.enable_hs(src, ddata->channel, true);
++	src->ops->dsi.enable_hs(src, ddata->dsi->channel, true);
+ 
+ 	return 0;
+ err:
+@@ -658,7 +654,7 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
+ 	struct omap_dss_device *src = ddata->src;
+ 	int r;
+ 
+-	src->ops->dsi.disable_video_output(src, ddata->channel);
++	src->ops->dsi.disable_video_output(src, ddata->dsi->channel);
+ 
+ 	r = mipi_dsi_dcs_set_display_off(ddata->dsi);
+ 	if (!r)
+@@ -777,7 +773,7 @@ static irqreturn_t dsicm_te_isr(int irq, void *data)
+ 	if (old) {
+ 		cancel_delayed_work(&ddata->te_timeout_work);
+ 
+-		r = src->ops->dsi.update(src, ddata->channel, dsicm_framedone_cb,
++		r = src->ops->dsi.update(src, ddata->dsi->channel, dsicm_framedone_cb,
+ 				ddata);
+ 		if (r)
+ 			goto err;
+@@ -834,7 +830,7 @@ static int dsicm_update(struct omap_dss_device *dssdev,
+ 				msecs_to_jiffies(250));
+ 		atomic_set(&ddata->do_update, 1);
+ 	} else {
+-		r = src->ops->dsi.update(src, ddata->channel, dsicm_framedone_cb,
++		r = src->ops->dsi.update(src, ddata->dsi->channel, dsicm_framedone_cb,
+ 				ddata);
+ 		if (r)
+ 			goto err;
+@@ -1110,8 +1106,6 @@ static int dsicm_probe_of(struct mipi_dsi_device *dsi)
+ 	struct display_timing timing;
+ 	int err;
+ 
+-	ddata->channel = TCH;
 -
--#include <linux/kernel.h>
--#include <linux/of.h>
--#include <linux/of_graph.h>
--#include <linux/slab.h>
--#include <linux/list.h>
--
--static struct list_head dss_conv_list __initdata;
--
--static const char prefix[] __initconst = "omapdss,";
--
--struct dss_conv_node {
--	struct list_head list;
--	struct device_node *node;
--	bool root;
--};
--
--static int __init omapdss_count_strings(const struct property *prop)
--{
--	const char *p = prop->value;
--	int l = 0, total = 0;
--	int i;
--
--	for (i = 0; total < prop->length; total += l, p += l, i++)
--		l = strlen(p) + 1;
--
--	return i;
--}
--
--static void __init omapdss_update_prop(struct device_node *node, char *compat,
--	int len)
--{
--	struct property *prop;
--
--	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
--	if (!prop)
--		return;
--
--	prop->name = "compatible";
--	prop->value = compat;
--	prop->length = len;
--
--	of_update_property(node, prop);
--}
--
--static void __init omapdss_prefix_strcpy(char *dst, int dst_len,
--	const char *src, int src_len)
--{
--	size_t total = 0;
--
--	while (total < src_len) {
--		size_t l = strlen(src) + 1;
--
--		strcpy(dst, prefix);
--		dst += strlen(prefix);
--
--		strcpy(dst, src);
--		dst += l;
--
--		src += l;
--		total += l;
--	}
--}
--
--/* prepend compatible property strings with "omapdss," */
--static void __init omapdss_omapify_node(struct device_node *node)
--{
--	struct property *prop;
--	char *new_compat;
--	int num_strs;
--	int new_len;
--
--	prop = of_find_property(node, "compatible", NULL);
--
--	if (!prop || !prop->value)
--		return;
--
--	if (strnlen(prop->value, prop->length) >= prop->length)
--		return;
--
--	/* is it already prefixed? */
--	if (strncmp(prefix, prop->value, strlen(prefix)) == 0)
--		return;
--
--	num_strs = omapdss_count_strings(prop);
--
--	new_len = prop->length + strlen(prefix) * num_strs;
--	new_compat = kmalloc(new_len, GFP_KERNEL);
--
--	omapdss_prefix_strcpy(new_compat, new_len, prop->value, prop->length);
--
--	omapdss_update_prop(node, new_compat, new_len);
--}
--
--static void __init omapdss_add_to_list(struct device_node *node, bool root)
--{
--	struct dss_conv_node *n = kmalloc(sizeof(*n), GFP_KERNEL);
--	if (n) {
--		n->node = node;
--		n->root = root;
--		list_add(&n->list, &dss_conv_list);
--	}
--}
--
--static bool __init omapdss_list_contains(const struct device_node *node)
--{
--	struct dss_conv_node *n;
--
--	list_for_each_entry(n, &dss_conv_list, list) {
--		if (n->node == node)
--			return true;
--	}
--
--	return false;
--}
--
--static void __init omapdss_walk_device(struct device_node *node, bool root)
--{
--	struct device_node *n;
--
--	omapdss_add_to_list(node, root);
--
--	/*
--	 * of_graph_get_remote_port_parent() prints an error if there is no
--	 * port/ports node. To avoid that, check first that there's the node.
--	 */
--	n = of_get_child_by_name(node, "ports");
--	if (!n)
--		n = of_get_child_by_name(node, "port");
--	if (!n)
--		return;
--
--	of_node_put(n);
--
--	n = NULL;
--	while ((n = of_graph_get_next_endpoint(node, n)) != NULL) {
--		struct device_node *pn;
--
--		pn = of_graph_get_remote_port_parent(n);
--
--		if (!pn)
--			continue;
--
--		if (!of_device_is_available(pn) || omapdss_list_contains(pn)) {
--			of_node_put(pn);
--			continue;
--		}
--
--		omapdss_walk_device(pn, false);
--	}
--}
--
--static const struct of_device_id omapdss_of_match[] __initconst = {
--	{ .compatible = "ti,omap2-dss", },
--	{ .compatible = "ti,omap3-dss", },
--	{ .compatible = "ti,omap4-dss", },
--	{ .compatible = "ti,omap5-dss", },
--	{ .compatible = "ti,dra7-dss", },
--	{},
--};
--
--static const struct of_device_id omapdss_of_fixups_whitelist[] __initconst = {
--	{},
--};
--
--static int __init omapdss_boot_init(void)
--{
--	struct device_node *dss, *child;
--
--	INIT_LIST_HEAD(&dss_conv_list);
--
--	dss = of_find_matching_node(NULL, omapdss_of_match);
--
--	if (dss == NULL || !of_device_is_available(dss))
--		goto put_node;
--
--	omapdss_walk_device(dss, true);
--
--	for_each_available_child_of_node(dss, child) {
--		if (!of_find_property(child, "compatible", NULL))
--			continue;
--
--		omapdss_walk_device(child, true);
--	}
--
--	while (!list_empty(&dss_conv_list)) {
--		struct dss_conv_node *n;
--
--		n = list_first_entry(&dss_conv_list, struct dss_conv_node,
--			list);
--
--		if (of_match_node(omapdss_of_fixups_whitelist, n->node))
--			omapdss_omapify_node(n->node);
--
--		list_del(&n->list);
--		of_node_put(n->node);
--		kfree(n);
--	}
--
--put_node:
--	of_node_put(dss);
--	return 0;
--}
--
--subsys_initcall(omapdss_boot_init);
+ 	ddata->reset_gpio = devm_gpiod_get(&dsi->dev, "reset", GPIOD_OUT_LOW);
+ 	if (IS_ERR(ddata->reset_gpio)) {
+ 		err = PTR_ERR(ddata->reset_gpio);
 -- 
 2.25.0
 
