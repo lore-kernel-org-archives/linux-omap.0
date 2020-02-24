@@ -2,157 +2,250 @@ Return-Path: <SRS0=6eJi=4M=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A536CC35DE1
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:28:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FAFEC35DE6
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:31:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8416C21556
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:28:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D25F02176D
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 23:31:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1582587076;
+	bh=yyoIq9r3JJzdd087q+xbmylNb3EvsNWuyyYgC181N0Y=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=j3fXJii4SVCiHRSNk5biDr+BDoswPqcThDiDFh5U9JOUN43PJeUXZFFilYSBspzgq
+	 IOK241ZkTF1d4Rl4ndQPlVZ2N37taQ3Rzaw0LnwAWltXdeWFyHxnsyz2dSbX+gZNTF
+	 ThI7lBbxlzge0gAKzb2cqZnt9eY0VIagfRWQWYNQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728221AbgBXX2e (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 18:28:34 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60560 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728454AbgBXX2d (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2020 18:28:33 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: sre)
-        with ESMTPSA id 8120D29360F
+        id S1728010AbgBXXbQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 18:31:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56816 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727843AbgBXXbQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 24 Feb 2020 18:31:16 -0500
+Received: from earth.universe (unknown [185.62.205.105])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 81D1420732;
+        Mon, 24 Feb 2020 23:31:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1582587074;
+        bh=yyoIq9r3JJzdd087q+xbmylNb3EvsNWuyyYgC181N0Y=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=lZ7dEbmgnyrf7AGyLL+C5vvM/f+nR6bGrL6GrfGWA2UWETaDVMMcHbqJbRBhO68XQ
+         SysGILhpBVtNwzdTVL0VyfUgpabApQqZGTSqFRkUyokwwkakOmfQZ+3hF5+C+YbvDx
+         fzuxcceQjaoE7kkUhzAH5UwQywAh4f1Eut8KlDwg=
 Received: by earth.universe (Postfix, from userid 1000)
-        id 297AD3C0C9C; Tue, 25 Feb 2020 00:21:31 +0100 (CET)
-From:   Sebastian Reichel <sebastian.reichel@collabora.com>
-To:     Sebastian Reichel <sre@kernel.org>,
+        id 0EF153C0C82; Tue, 25 Feb 2020 00:31:12 +0100 (CET)
+Date:   Tue, 25 Feb 2020 00:31:11 +0100
+From:   Sebastian Reichel <sre@kernel.org>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     linux-omap@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>,
+        Dave Gerlach <d-gerlach@ti.com>,
+        Faiz Abbas <faiz_abbas@ti.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
+        Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, Jyri Sarha <jsarha@ti.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc:     Tony Lindgren <tony@atomide.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, kernel@collabora.com,
-        Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 25/56] drm/omap: dsi: lp/hs switching support for transfer()
-Date:   Tue, 25 Feb 2020 00:20:55 +0100
-Message-Id: <20200224232126.3385250-26-sebastian.reichel@collabora.com>
-X-Mailer: git-send-email 2.25.0
-In-Reply-To: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
-References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
+Subject: Re: [PATCH 1/3] drm/omap: Prepare DSS for probing without legacy
+ platform data
+Message-ID: <20200224233111.gkctx27usfxj2wgz@earth.universe>
+References: <20200224191230.30972-1-tony@atomide.com>
+ <20200224191230.30972-2-tony@atomide.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gmvioj7yfxkg2crl"
+Content-Disposition: inline
+In-Reply-To: <20200224191230.30972-2-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Integrate low-power / high-speed bus switching into transfer
-function and drop the omapdrm specific enable_hs() callback.
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
----
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c |  6 +++---
- drivers/gpu/drm/omapdrm/dss/dsi.c               | 13 +++++++++++--
- drivers/gpu/drm/omapdrm/dss/omapdss.h           |  2 --
- 3 files changed, 14 insertions(+), 7 deletions(-)
+--gmvioj7yfxkg2crl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 8ad407a4072e..79ac1f6b375a 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -269,7 +269,7 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
- 		return 0;
- 
- 	src->ops->enable(src);
--	src->ops->dsi.enable_hs(src, ddata->dsi->channel, true);
-+	ddata->dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
- 
- 	r = _dsicm_enable_te(ddata, true);
- 	if (r) {
-@@ -574,7 +574,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 
- 	dsicm_hw_reset(ddata);
- 
--	src->ops->dsi.enable_hs(src, ddata->dsi->channel, false);
-+	ddata->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
- 
- 	r = dsicm_sleep_out(ddata);
- 	if (r)
-@@ -617,7 +617,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 		ddata->intro_printed = true;
- 	}
- 
--	src->ops->dsi.enable_hs(src, ddata->dsi->channel, true);
-+	ddata->dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
- 
- 	return 0;
- err:
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 6c625b6d6d6b..15298ebb9d69 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -45,6 +45,9 @@ struct dsi_reg { u16 module; u16 idx; };
- 
- #define DSI_REG(mod, idx)		((const struct dsi_reg) { mod, idx })
- 
-+/* returns true iff both arguments logically differs */
-+#define NEQV(a, b) (!(a) ^ !(b))
-+
- /* DSI Protocol Engine */
- 
- #define DSI_PROTO			0
-@@ -329,6 +332,7 @@ struct dsi_data {
- 	int irq;
- 
- 	bool is_enabled;
-+	bool in_lp_mode;
- 
- 	struct clk *dss_clk;
- 	struct regmap *syscon;
-@@ -2431,6 +2435,8 @@ static void dsi_vc_enable_hs(struct omap_dss_device *dssdev, int channel,
- 	/* start the DDR clock by sending a NULL packet */
- 	if (dsi->vm_timings.ddr_clk_always_on && enable)
- 		dsi_vc_send_null(dsi, channel);
-+
-+	dsi->in_lp_mode = !enable;
- }
- 
- static void dsi_vc_flush_long_data(struct dsi_data *dsi, int channel)
-@@ -4697,6 +4703,11 @@ static ssize_t omap_dsi_host_transfer(struct mipi_dsi_host *host,
- 	struct dsi_data *dsi = host_to_omap(host);
- 	struct omap_dss_device *dssdev = &dsi->output;
- 
-+	if (NEQV(msg->flags & MIPI_DSI_MSG_USE_LPM, dsi->in_lp_mode)) {
-+		dsi_vc_enable_hs(dssdev, msg->channel,
-+				 !(msg->flags & MIPI_DSI_MSG_USE_LPM));
-+	}
-+
- 	switch (msg->type) {
- 	case MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM:
- 	case MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM:
-@@ -4757,8 +4768,6 @@ static const struct omap_dss_device_ops dsi_ops = {
- 
- 		.disable = dsi_display_disable,
- 
--		.enable_hs = dsi_vc_enable_hs,
--
- 		.set_config = dsi_set_config,
- 
- 		.enable_video_output = dsi_enable_video_output,
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 2c6c32240e20..355aa235c23c 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -287,8 +287,6 @@ struct omapdss_dsi_ops {
- 	int (*set_config)(struct omap_dss_device *dssdev,
- 			const struct omap_dss_dsi_config *cfg);
- 
--	void (*enable_hs)(struct omap_dss_device *dssdev, int channel,
--			bool enable);
- 	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
- 
- 	int (*update)(struct omap_dss_device *dssdev, int channel,
--- 
-2.25.0
+Hi,
 
+On Mon, Feb 24, 2020 at 11:12:28AM -0800, Tony Lindgren wrote:
+> In order to probe display subsystem (DSS) components with ti-sysc
+> interconnect target module without legacy platform data and using
+> devicetree, we need to update dss probing a bit.
+>=20
+> In the device tree, we will be defining the data also for the interconnect
+> target modules as DSS really is a private interconnect. There is some
+> information about that in 4460 TRM in "Figure 10-3. DSS Integration" for
+> example where it mentions "32-bit interconnect (SLX)".
+>=20
+> The changes we need to make are:
+>=20
+> 1. Parse also device tree subnodes for the compatible property fixup
+>=20
+> 2. Update the component code to consider device tree subnodes
+>=20
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: Jyri Sarha <jsarha@ti.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>=20
+> This is needed for dropping DSS platform data that I'll be posting
+> seprately. If this looks OK, can you guys please test and ack?
+>=20
+> ---
+
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+
+FWIW, I dropped omapdss-boot-init.c in my patch series updating DSI
+code to use common panel infrastructure, so this will conflict.
+
+-- Sebastian
+
+>  drivers/gpu/drm/omapdrm/dss/dss.c             | 25 ++++++++++++++++---
+>  .../gpu/drm/omapdrm/dss/omapdss-boot-init.c   | 25 +++++++++++++------
+>  2 files changed, 39 insertions(+), 11 deletions(-)
+>=20
+> diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c b/drivers/gpu/drm/omapdrm/=
+dss/dss.c
+> --- a/drivers/gpu/drm/omapdrm/dss/dss.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/dss.c
+> @@ -1339,9 +1339,15 @@ static int dss_component_compare(struct device *de=
+v, void *data)
+>  	return dev =3D=3D child;
+>  }
+> =20
+> +struct dss_component_match_data {
+> +	struct device *dev;
+> +	struct component_match **match;
+> +};
+> +
+>  static int dss_add_child_component(struct device *dev, void *data)
+>  {
+> -	struct component_match **match =3D data;
+> +	struct dss_component_match_data *cmatch =3D data;
+> +	struct component_match **match =3D cmatch->match;
+> =20
+>  	/*
+>  	 * HACK
+> @@ -1352,7 +1358,17 @@ static int dss_add_child_component(struct device *=
+dev, void *data)
+>  	if (strstr(dev_name(dev), "rfbi"))
+>  		return 0;
+> =20
+> -	component_match_add(dev->parent, match, dss_component_compare, dev);
+> +	/*
+> +	 * Handle possible interconnect target modules defined within the DSS.
+> +	 * The DSS components can be children of an interconnect target module
+> +	 * after the device tree has been updated for the module data.
+> +	 * See also omapdss_boot_init() for compatible fixup.
+> +	 */
+> +	if (strstr(dev_name(dev), "target-module"))
+> +		return device_for_each_child(dev, cmatch,
+> +					     dss_add_child_component);
+> +
+> +	component_match_add(cmatch->dev, match, dss_component_compare, dev);
+> =20
+>  	return 0;
+>  }
+> @@ -1395,6 +1411,7 @@ static int dss_probe_hardware(struct dss_device *ds=
+s)
+>  static int dss_probe(struct platform_device *pdev)
+>  {
+>  	const struct soc_device_attribute *soc;
+> +	struct dss_component_match_data cmatch;
+>  	struct component_match *match =3D NULL;
+>  	struct resource *dss_mem;
+>  	struct dss_device *dss;
+> @@ -1472,7 +1489,9 @@ static int dss_probe(struct platform_device *pdev)
+> =20
+>  	omapdss_gather_components(&pdev->dev);
+> =20
+> -	device_for_each_child(&pdev->dev, &match, dss_add_child_component);
+> +	cmatch.dev =3D &pdev->dev;
+> +	cmatch.match =3D &match;
+> +	device_for_each_child(&pdev->dev, &cmatch, dss_add_child_component);
+> =20
+>  	r =3D component_master_add_with_match(&pdev->dev, &dss_component_ops, m=
+atch);
+>  	if (r)
+> diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c b/drivers/gp=
+u/drm/omapdrm/dss/omapdss-boot-init.c
+> --- a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
+> @@ -183,9 +183,24 @@ static const struct of_device_id omapdss_of_fixups_w=
+hitelist[] __initconst =3D {
+>  	{},
+>  };
+> =20
+> +static void __init omapdss_find_children(struct device_node *np)
+> +{
+> +	struct device_node *child;
+> +
+> +	for_each_available_child_of_node(np, child) {
+> +		if (!of_find_property(child, "compatible", NULL))
+> +			continue;
+> +
+> +		omapdss_walk_device(child, true);
+> +
+> +		if (of_device_is_compatible(child, "ti,sysc"))
+> +			omapdss_find_children(child);
+> +	}
+> +}
+> +
+>  static int __init omapdss_boot_init(void)
+>  {
+> -	struct device_node *dss, *child;
+> +	struct device_node *dss;
+> =20
+>  	INIT_LIST_HEAD(&dss_conv_list);
+> =20
+> @@ -195,13 +210,7 @@ static int __init omapdss_boot_init(void)
+>  		return 0;
+> =20
+>  	omapdss_walk_device(dss, true);
+> -
+> -	for_each_available_child_of_node(dss, child) {
+> -		if (!of_find_property(child, "compatible", NULL))
+> -			continue;
+> -
+> -		omapdss_walk_device(child, true);
+> -	}
+> +	omapdss_find_children(dss);
+> =20
+>  	while (!list_empty(&dss_conv_list)) {
+>  		struct dss_conv_node *n;
+> --=20
+> 2.25.1
+
+--gmvioj7yfxkg2crl
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl5UXLkACgkQ2O7X88g7
++pqvHQ/+MVhgl1M4zDe/OMecKEJF4uCdkdG91ptiFdPBBV8SSRY5jY8dopPpRYGg
+kzElUh1NCOZa9bIrK1Qi679UeR0gXpgiepSBoHe/I692eU3k6qKYodnmU9ov3Q+o
+Nzwa58BI7RAajMKD/YoosJDwpLQGelvYXeFwPIqCLVGSxYryobRjnvtY4njMtbse
+TJiDDNwLM6U4UADQKcI4MJtggdAn4u5U5yi0xZssI9U+eycLequvYn3yRLjngY0e
+1km/CLhcUt/OKUgjQmpOS9rSirCpEsGTJsAeDmfq2enfP7ZgGJQ7d2ODcofmZpSV
+6Njh5A0wu82y8rit714t0s3lG71wUN0NE/M2PW6E59D4+QQ4839JHO+gA4eqrqob
+auMxA6MWmvp549+m1K+HmrIEPL/8G5K0Rm9AB8e+eaQEurRlyzCG1GtliUUlrLRn
+1f82RrbAS1Uho6CjveVABFLqXBQ3WqMltaCE/rjlVY5mjoVpCltB3P1aSrcprDw3
+NWnjGnzTO32ODYiB3psQmEqxoPKlcYDMBC6ErSgULf1H1Zdq27Mjf1+XatYvfSGN
+tynLqDIwinYuZ9qHoER68UASq6QsYs7FI71VPC7TY+hilRggQOyblWyTvOJ6MOc4
+T00iFoLdEBGFszLiK6ae8Mqc0TUaApQNBt67M7IoQmoPdGHTAsI=
+=qcVF
+-----END PGP SIGNATURE-----
+
+--gmvioj7yfxkg2crl--
