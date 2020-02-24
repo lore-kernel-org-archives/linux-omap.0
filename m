@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FD2DC38BF0
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BDA7C38BE2
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3FF3621D7E
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C78624649
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Feb 2020 21:10:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727910AbgBXVKa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Feb 2020 16:10:30 -0500
-Received: from muru.com ([72.249.23.125]:57234 "EHLO muru.com"
+        id S1727895AbgBXVKd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Feb 2020 16:10:33 -0500
+Received: from muru.com ([72.249.23.125]:57244 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727822AbgBXVKa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 24 Feb 2020 16:10:30 -0500
+        id S1727755AbgBXVKd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 24 Feb 2020 16:10:33 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id AB4758162;
-        Mon, 24 Feb 2020 21:11:14 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 4175F81B7;
+        Mon, 24 Feb 2020 21:11:16 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -28,9 +28,9 @@ Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>,
         Keerthy <j-keerthy@ti.com>, Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 13/23] ARM: dts: Configure interconnect target module for omap5 dsi2
-Date:   Mon, 24 Feb 2020 13:09:49 -0800
-Message-Id: <20200224210959.56146-14-tony@atomide.com>
+Subject: [PATCH 14/23] ARM: dts: Configure interconnect target module for omap5 hdmi
+Date:   Mon, 24 Feb 2020 13:09:50 -0800
+Message-Id: <20200224210959.56146-15-tony@atomide.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200224210959.56146-1-tony@atomide.com>
 References: <20200224210959.56146-1-tony@atomide.com>
@@ -51,59 +51,64 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap5.dtsi | 41 +++++++++++++++++++++++++-----------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi | 45 +++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
 --- a/arch/arm/boot/dts/omap5.dtsi
 +++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -409,18 +409,35 @@ dsi1: encoder@0 {
+@@ -440,21 +440,38 @@ dsi2: encoder@0 {
  					};
  				};
  
--				dsi2: encoder@9000 {
--					compatible = "ti,omap5-dsi";
--					reg = <0x9000 0x200>,
--					      <0x9200 0x40>,
--					      <0x9300 0x40>;
--					reg-names = "proto", "phy", "pll";
--					interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
+-				hdmi: encoder@40000 {
+-					compatible = "ti,omap5-hdmi";
+-					reg = <0x40000 0x200>,
+-					      <0x40200 0x80>,
+-					      <0x40300 0x80>,
+-					      <0x60000 0x19000>;
+-					reg-names = "wp", "pll", "phy", "core";
+-					interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
 -					status = "disabled";
--					ti,hwmods = "dss_dsi2";
--					clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 8>,
--						 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 10>;
--					clock-names = "fck", "sys_clk";
-+				target-module@9000 {
-+					compatible = "ti,sysc-omap2", "ti,sysc";
-+					reg = <0x9000 0x4>,
-+					      <0x9010 0x4>,
-+					      <0x9014 0x4>;
-+					reg-names = "rev", "sysc", "syss";
+-					ti,hwmods = "dss_hdmi";
++				target-module@40000 {
++					compatible = "ti,sysc-omap4", "ti,sysc";
++					reg = <0x40000 0x4>,
++					      <0x40010 0x4>;
++					reg-names = "rev", "sysc";
 +					ti,sysc-sidle = <SYSC_IDLE_FORCE>,
 +							<SYSC_IDLE_NO>,
-+							<SYSC_IDLE_SMART>;
-+					ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-+							 SYSC_OMAP2_ENAWAKEUP |
-+							 SYSC_OMAP2_SOFTRESET |
-+							 SYSC_OMAP2_AUTOIDLE)>;
-+					ti,syss-mask = <1>;
++							<SYSC_IDLE_SMART>,
++							<SYSC_IDLE_SMART_WKUP>;
++					ti,sysc-mask = <(SYSC_OMAP4_SOFTRESET)>;
+ 					clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 9>,
+-						 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 10>;
+-					clock-names = "fck", "sys_clk";
+-					dmas = <&sdma 76>;
+-					dma-names = "audio_tx";
++						 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 8>;
++					clock-names = "fck", "dss_clk";
 +					#address-cells = <1>;
 +					#size-cells = <1>;
-+					ranges = <0 0x9000 0x1000>;
++					ranges = <0 0x40000 0x40000>;
 +
-+					dsi2: encoder@0 {
-+						compatible = "ti,omap5-dsi";
++					hdmi: encoder@0 {
++						compatible = "ti,omap5-hdmi";
 +						reg = <0 0x200>,
-+						      <0x200 0x40>,
-+						      <0x300 0x40>;
-+						reg-names = "proto", "phy", "pll";
-+						interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
++						      <0x200 0x80>,
++						      <0x300 0x80>,
++						      <0x20000 0x19000>;
++						reg-names = "wp", "pll", "phy", "core";
++						interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
 +						status = "disabled";
-+						clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 8>;
-+						clock-names = "fck";
++						clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 9>,
++							 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 10>;
++						clock-names = "fck", "sys_clk";
++						dmas = <&sdma 76>;
++						dma-names = "audio_tx";
 +					};
  				};
- 
- 				hdmi: encoder@40000 {
+ 			};
+ 		};
 -- 
 2.25.1
