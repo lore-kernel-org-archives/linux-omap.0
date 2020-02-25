@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E633C35E0E
-	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B05BAC35E15
+	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6D5621744
-	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D80221744
+	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Ut9PFhHN"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="TWV6MWJQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729765AbgBYUq7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 25 Feb 2020 15:46:59 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:47388 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728847AbgBYUq6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2020 15:46:58 -0500
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01PKkuW6117213;
-        Tue, 25 Feb 2020 14:46:56 -0600
+        id S1730134AbgBYUrf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 25 Feb 2020 15:47:35 -0500
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:46450 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729694AbgBYUq7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2020 15:46:59 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01PKkvEU029877;
+        Tue, 25 Feb 2020 14:46:57 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1582663616;
-        bh=IBcnW0j8YJKkAvVMwDo1qdY20Qq2L6G9BlQ+7hZpKMA=;
+        s=ti-com-17Q1; t=1582663617;
+        bh=dr8lrN2jSIfBtxZt3TIJ7e4JnRag5Dwzk0e2nmGK6KA=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=Ut9PFhHNrfXtWVws7xzEdhlSQmIm014xhwQVfdKLX92zKA2yielA+dVgRqDp04ewg
-         YsP2Ue4TGECxXswKEBqSD1HADMJH6cacFOcKGKTuJ4tLvTt/UGYk7HOKv9lBTrO2Xq
-         IqvX2D9wzO3WpNsAk9A1uLevI6t+01ihiB2qMs8k=
+        b=TWV6MWJQRLxUm03AnCLejNMfY9Sctn0qgVqGVMCQFq0ry7YYC2ioFG+NNmV12x858
+         mPnoZXuBSXc3cgUuztNHJpfa1xnjLbB+N70Mwehd8eyo4QKSW8DNq6bkWbPQYpcSUo
+         Bk+x8RJnElA7etfYuZ/Nw9lBQoSC2zPCO2ZNfOGs=
 Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01PKkugm022016
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01PKkv2s017979
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 25 Feb 2020 14:46:56 -0600
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE109.ent.ti.com
+        Tue, 25 Feb 2020 14:46:57 -0600
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE109.ent.ti.com
  (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Tue, 25
  Feb 2020 14:46:56 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
  Frontend Transport; Tue, 25 Feb 2020 14:46:56 -0600
 Received: from fllv0103.dal.design.ti.com (fllv0103.dal.design.ti.com [10.247.120.73])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01PKktZj108197;
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01PKkucp108213;
         Tue, 25 Feb 2020 14:46:56 -0600
 Received: from localhost (irmo.dhcp.ti.com [128.247.58.153])
-        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 01PKktGK025460;
-        Tue, 25 Feb 2020 14:46:55 -0600
+        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 01PKkuL4025491;
+        Tue, 25 Feb 2020 14:46:56 -0600
 From:   Suman Anna <s-anna@ti.com>
 To:     Tony Lindgren <tony@atomide.com>
 CC:     Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>,
         <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>, Suman Anna <s-anna@ti.com>
-Subject: [PATCH 01/12] dt-bindings: bus: ti-sysc: Add support for PRUSS SYSC type
-Date:   Tue, 25 Feb 2020 14:46:38 -0600
-Message-ID: <20200225204649.28220-2-s-anna@ti.com>
+Subject: [PATCH 11/12] ARM: dts: am437x-sk: Enable PRU-ICSS interconnect node
+Date:   Tue, 25 Feb 2020 14:46:48 -0600
+Message-ID: <20200225204649.28220-12-s-anna@ti.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20200225204649.28220-1-s-anna@ti.com>
 References: <20200225204649.28220-1-s-anna@ti.com>
@@ -69,47 +69,28 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Roger Quadros <rogerq@ti.com>
+The AM437x SK EVM board uses a AM437x SoC that supports two PRU-ICSS
+instances. The PRU-ICSS target module node was left in disabled state
+in the base am4372.dtsi file. Enable the PRU-ICSS target module node
+on this board.
 
-The PRUSS module has a SYSCFG which is unique. The SYSCFG
-has two additional unique fields called STANDBY_INIT and
-SUB_MWAIT in addition to regular IDLE_MODE and STANDBY_MODE
-fields. Add the bindings for this new sysc type.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- Documentation/devicetree/bindings/bus/ti-sysc.txt | 1 +
- include/dt-bindings/bus/ti-sysc.h                 | 4 ++++
- 2 files changed, 5 insertions(+)
+ arch/arm/boot/dts/am437x-sk-evm.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/bus/ti-sysc.txt b/Documentation/devicetree/bindings/bus/ti-sysc.txt
-index 233eb8294204..c984143d08d2 100644
---- a/Documentation/devicetree/bindings/bus/ti-sysc.txt
-+++ b/Documentation/devicetree/bindings/bus/ti-sysc.txt
-@@ -38,6 +38,7 @@ Required standard properties:
- 		"ti,sysc-dra7-mcasp"
- 		"ti,sysc-usb-host-fs"
- 		"ti,sysc-dra7-mcan"
-+		"ti,sysc-pruss"
- 
- - reg		shall have register areas implemented for the interconnect
- 		target module in question such as revision, sysc and syss
-diff --git a/include/dt-bindings/bus/ti-sysc.h b/include/dt-bindings/bus/ti-sysc.h
-index babd08a1d226..76b07826ed05 100644
---- a/include/dt-bindings/bus/ti-sysc.h
-+++ b/include/dt-bindings/bus/ti-sysc.h
-@@ -18,6 +18,10 @@
- 
- #define SYSC_DRA7_MCAN_ENAWAKEUP	(1 << 4)
- 
-+/* PRUSS sysc found on AM33xx/AM43xx/AM57xx */
-+#define SYSC_PRUSS_SUB_MWAIT		(1 << 5)
-+#define SYSC_PRUSS_STANDBY_INIT		(1 << 4)
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 25222497f828..9fafb01e0521 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -910,3 +910,7 @@
+ 		};
+ 	};
+ };
 +
- /* SYSCONFIG STANDBYMODE/MIDLEMODE/SIDLEMODE supported by hardware */
- #define SYSC_IDLE_FORCE			0
- #define SYSC_IDLE_NO			1
++&pruss_tm {
++	status = "okay";
++};
 -- 
 2.23.0
 
