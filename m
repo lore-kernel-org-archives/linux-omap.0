@@ -2,201 +2,141 @@ Return-Path: <SRS0=WqGX=4N=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 001C5C35E0E
-	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6884C4BA00
+	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 22:34:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C668421744
-	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ETpzN5aN"
+	by mail.kernel.org (Postfix) with ESMTP id A1C592176D
+	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 22:34:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730187AbgBYUrq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 25 Feb 2020 15:47:46 -0500
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:42472 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728787AbgBYUq6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2020 15:46:58 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01PKkuX0088220;
-        Tue, 25 Feb 2020 14:46:56 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1582663616;
-        bh=o8slxYM1QhLjUyeJve1zrqkh0SfEPrjIONEDdLMtEtY=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=ETpzN5aNlJb91JG3rJ83qwTjvnmS6HjP86Ysjh+avhnshRDwzHOLJYySjHXT/KeZA
-         BttMRiGar7i0/+POUaClveFLVKMteiq1pN5IQfCh+2+gh53z6ZWeSnmkik87cCFQwH
-         0FYZq2oWk8T1Zaj4K8+DlzDUmW6Yfx3JJk2UZN/Y=
-Received: from DLEE104.ent.ti.com (dlee104.ent.ti.com [157.170.170.34])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01PKku4x033119;
-        Tue, 25 Feb 2020 14:46:56 -0600
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Tue, 25
- Feb 2020 14:46:56 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Tue, 25 Feb 2020 14:46:56 -0600
-Received: from fllv0103.dal.design.ti.com (fllv0103.dal.design.ti.com [10.247.120.73])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01PKkucW059192;
-        Tue, 25 Feb 2020 14:46:56 -0600
-Received: from localhost (irmo.dhcp.ti.com [128.247.58.153])
-        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 01PKkumV025473;
-        Tue, 25 Feb 2020 14:46:56 -0600
-From:   Suman Anna <s-anna@ti.com>
-To:     Tony Lindgren <tony@atomide.com>
-CC:     Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>,
-        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, Suman Anna <s-anna@ti.com>
-Subject: [PATCH 05/12] ARM: dts: dra7: Add PRU-ICSS interconnect target-module nodes
-Date:   Tue, 25 Feb 2020 14:46:42 -0600
-Message-ID: <20200225204649.28220-6-s-anna@ti.com>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20200225204649.28220-1-s-anna@ti.com>
-References: <20200225204649.28220-1-s-anna@ti.com>
+        id S1726827AbgBYWef (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 25 Feb 2020 17:34:35 -0500
+Received: from muru.com ([72.249.23.125]:57552 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726421AbgBYWef (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 25 Feb 2020 17:34:35 -0500
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 69221810E;
+        Tue, 25 Feb 2020 22:35:18 +0000 (UTC)
+Date:   Tue, 25 Feb 2020 14:34:30 -0800
+From:   Tony Lindgren <tony@atomide.com>
+To:     Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Merlijn Wajer <merlijn@wizzup.org>, ruleh <ruleh@gmx.de>
+Subject: Re: [PATCH] drm/omap: Fix drm_handle_vblank() handling for command
+ mode panels
+Message-ID: <20200225223430.GJ37466@atomide.com>
+References: <20200225183733.50875-1-tony@atomide.com>
+ <20200225195258.GI37466@atomide.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200225195258.GI37466@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The AM57xx family of SoCs contains two identical PRU-ICSS instances
-that have a very unique SYSC register. The IPs do not have any
-PRCM reset lines unlike those on AM33xx/AM437x SoCs. Add the PRUSS
-interconnect target-module nodes with all the required properties.
+* Tony Lindgren <tony@atomide.com> [200225 19:53]:
+> * Tony Lindgren <tony@atomide.com> [200225 18:38]:
+> > Only lightly tested so far, please test. Also, I'm not sure if we
+> > should get the id from somewhere for drm_handle_vblank() instead of
+> > just using 0?
+> 
+> Also looks like we can now get WARN_ON(omap_crtc->pending)
+> in omap_crtc_arm_event(), so obviously some changes are
+> needed.
 
-Each of the PRUSS devices themselves shall be added as child nodes
-to the corresponding interconnect node in the future. The PRU-ICSS
-instances are only available on AM57xx family of SoCs and are not
-supported on DRA7xx family of SoCs in general, so the target module
-nodes are added in a separate dtsi file. This new dtsi file is
-included in all the AM57xx SoC dtsi files, so the nodes are
-automatically inherited and enabled on all AM57xx boards.
+Below is an updated version that just returns early for
+omap_crtc_arm_event() for manual update display if already
+armed.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/am57-pruss.dtsi | 50 +++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am5718.dtsi     |  1 +
- arch/arm/boot/dts/am5728.dtsi     |  1 +
- arch/arm/boot/dts/am5748.dtsi     |  1 +
- arch/arm/boot/dts/dra7.dtsi       |  2 +-
- 5 files changed, 54 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/boot/dts/am57-pruss.dtsi
+I'm now also passing the id from the interrupt handler, maybe
+it's available somewhere locally but I just did not notice.
 
-diff --git a/arch/arm/boot/dts/am57-pruss.dtsi b/arch/arm/boot/dts/am57-pruss.dtsi
-new file mode 100644
-index 000000000000..b1c583dee10b
---- /dev/null
-+++ b/arch/arm/boot/dts/am57-pruss.dtsi
-@@ -0,0 +1,50 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (C) 2020 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Common PRUSS data for TI AM57xx platforms
-+ */
+Regards,
+
+Tony
+
+8< -----------------------
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index d0bc9614588f9..515b5c1520b98 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -325,23 +325,21 @@ void omap_crtc_vblank_irq(struct drm_crtc *crtc)
+ 	DBG("%s: apply done", omap_crtc->name);
+ }
+ 
+-void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus)
++void omap_crtc_framedone_irq(struct drm_crtc *crtc, int id, uint32_t irqstatus)
+ {
++	struct omap_crtc_state *omap_state = to_omap_crtc_state(crtc->state);
+ 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
+ 
+ 	if (!omap_crtc->framedone_handler)
+ 		return;
+ 
+-	omap_crtc->framedone_handler(omap_crtc->framedone_handler_data);
+-
+-	spin_lock(&crtc->dev->event_lock);
+-	/* Send the vblank event if one has been requested. */
+-	if (omap_crtc->event) {
+-		drm_crtc_send_vblank_event(crtc, omap_crtc->event);
+-		omap_crtc->event = NULL;
++	if (omap_state->manually_updated) {
++		drm_handle_vblank(dev, id);
++		omap_crtc_vblank_irq(crtc);
+ 	}
+-	omap_crtc->pending = false;
+-	spin_unlock(&crtc->dev->event_lock);
 +
-+&ocp {
-+	pruss1_tm: target-module@4b226000 {
-+		compatible = "ti,sysc-pruss", "ti,sysc";
-+		reg = <0x4b226000 0x4>,
-+		      <0x4b226004 0x4>;
-+		reg-names = "rev", "sysc";
-+		ti,sysc-mask = <(SYSC_PRUSS_STANDBY_INIT |
-+				 SYSC_PRUSS_SUB_MWAIT)>;
-+		ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>,
-+				<SYSC_IDLE_SMART>;
-+		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>,
-+				<SYSC_IDLE_SMART>;
-+		/* Domains (P, C): coreaon_pwrdm, l4per2_clkdm */
-+		clocks = <&l4per2_clkctrl DRA7_L4PER2_PRUSS1_CLKCTRL 0>;
-+		clock-names = "fck";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0x00000000 0x4b200000 0x80000>;
-+	};
++	omap_crtc->framedone_handler(omap_crtc->framedone_handler_data);
+ 
+ 	/* Wake up omap_atomic_complete. */
+ 	wake_up(&omap_crtc->pending_wait);
+@@ -439,8 +437,12 @@ static void omap_crtc_destroy(struct drm_crtc *crtc)
+ 
+ static void omap_crtc_arm_event(struct drm_crtc *crtc)
+ {
++	struct omap_crtc_state *omap_crtc_state = to_omap_crtc_state(crtc->state);
+ 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
+ 
++	if (omap_crtc->pending && omap_crtc_state->manually_updated)
++		return;
 +
-+	pruss2_tm: target-module@4b2a6000 {
-+		compatible = "ti,sysc-pruss", "ti,sysc";
-+		reg = <0x4b2a6000 0x4>,
-+		      <0x4b2a6004 0x4>;
-+		reg-names = "rev", "sysc";
-+		ti,sysc-mask = <(SYSC_PRUSS_STANDBY_INIT |
-+				 SYSC_PRUSS_SUB_MWAIT)>;
-+		ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>,
-+				<SYSC_IDLE_SMART>;
-+		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>,
-+				<SYSC_IDLE_SMART>;
-+		/* Domains (P, C): coreaon_pwrdm, l4per2_clkdm */
-+		clocks = <&l4per2_clkctrl DRA7_L4PER2_PRUSS2_CLKCTRL 0>;
-+		clock-names = "fck";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0x00000000 0x4b280000 0x80000>;
-+	};
-+};
-diff --git a/arch/arm/boot/dts/am5718.dtsi b/arch/arm/boot/dts/am5718.dtsi
-index d51007c3e8c4..a80c2e3eee2e 100644
---- a/arch/arm/boot/dts/am5718.dtsi
-+++ b/arch/arm/boot/dts/am5718.dtsi
-@@ -4,6 +4,7 @@
-  */
+ 	WARN_ON(omap_crtc->pending);
+ 	omap_crtc->pending = true;
  
- #include "dra72x.dtsi"
-+#include "am57-pruss.dtsi"
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.h b/drivers/gpu/drm/omapdrm/omap_crtc.h
+index 2fd57751ae2b1..9221f8ef2e87f 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.h
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.h
+@@ -30,7 +30,7 @@ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
+ int omap_crtc_wait_pending(struct drm_crtc *crtc);
+ void omap_crtc_error_irq(struct drm_crtc *crtc, u32 irqstatus);
+ void omap_crtc_vblank_irq(struct drm_crtc *crtc);
+-void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus);
++void omap_crtc_framedone_irq(struct drm_crtc *crtc, int id, uint32_t irqstatus);
+ void omap_crtc_flush(struct drm_crtc *crtc);
  
- / {
- 	compatible = "ti,am5718", "ti,dra7";
-diff --git a/arch/arm/boot/dts/am5728.dtsi b/arch/arm/boot/dts/am5728.dtsi
-index 82e5427ef6a9..9a3810f5adcc 100644
---- a/arch/arm/boot/dts/am5728.dtsi
-+++ b/arch/arm/boot/dts/am5728.dtsi
-@@ -4,6 +4,7 @@
-  */
+ #endif /* __OMAPDRM_CRTC_H__ */
+diff --git a/drivers/gpu/drm/omapdrm/omap_irq.c b/drivers/gpu/drm/omapdrm/omap_irq.c
+index 382bcdc72ac06..068ea4fdf445c 100644
+--- a/drivers/gpu/drm/omapdrm/omap_irq.c
++++ b/drivers/gpu/drm/omapdrm/omap_irq.c
+@@ -232,7 +232,7 @@ static irqreturn_t omap_irq_handler(int irq, void *arg)
+ 			omap_crtc_error_irq(crtc, irqstatus);
  
- #include "dra74x.dtsi"
-+#include "am57-pruss.dtsi"
+ 		if (irqstatus & priv->dispc_ops->mgr_get_framedone_irq(priv->dispc, channel))
+-			omap_crtc_framedone_irq(crtc, irqstatus);
++			omap_crtc_framedone_irq(crtc, id, irqstatus);
+ 	}
  
- / {
- 	compatible = "ti,am5728", "ti,dra7";
-diff --git a/arch/arm/boot/dts/am5748.dtsi b/arch/arm/boot/dts/am5748.dtsi
-index 5e129759d04a..2b65317b1513 100644
---- a/arch/arm/boot/dts/am5748.dtsi
-+++ b/arch/arm/boot/dts/am5748.dtsi
-@@ -4,6 +4,7 @@
-  */
- 
- #include "dra76x.dtsi"
-+#include "am57-pruss.dtsi"
- 
- / {
- 	compatible = "ti,am5748", "ti,dra762", "ti,dra7";
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index d78b684e7fca..f2e44c0dcd1e 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -143,7 +143,7 @@
- 	 * the moment, just use a fake OCP bus entry to represent the whole bus
- 	 * hierarchy.
- 	 */
--	ocp {
-+	ocp: ocp {
- 		compatible = "ti,dra7-l3-noc", "simple-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--- 
-2.23.0
-
+ 	omap_irq_ocp_error_handler(dev, irqstatus);
