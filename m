@@ -2,62 +2,63 @@ Return-Path: <SRS0=WqGX=4N=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39153C35E0E
-	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CF95C35E0E
+	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 11ECF21744
-	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AC0721744
+	for <linux-omap@archiver.kernel.org>; Tue, 25 Feb 2020 20:47:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="UpGn66A5"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="cJHecR48"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729856AbgBYUrB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 25 Feb 2020 15:47:01 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:39070 "EHLO
+        id S1729992AbgBYUrN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 25 Feb 2020 15:47:13 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:39068 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727624AbgBYUrA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2020 15:47:00 -0500
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01PKku1t045195;
+        with ESMTP id S1729760AbgBYUq7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2020 15:46:59 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01PKku4t045220;
         Tue, 25 Feb 2020 14:46:56 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
         s=ti-com-17Q1; t=1582663616;
-        bh=lNwU/RHe20uc+Ql3HoJ9YcG2yowB2BOx4vCd6rGr60w=;
-        h=From:To:CC:Subject:Date;
-        b=UpGn66A59zgXpr4bjI5bViF8+DrVDaf12Y6K04o6xq6xH4vVxmHUYTBCAbY2fAML+
-         tR39s/pstbp+XZk9h8CP3R1tRATkQ4Q5W9q1vw0WiER6ECeifBZTwyoGpIdmgHWvIR
-         HlbHL7UnmdL+tIX99S/dfEKs1DOkOOfb+/FjVqjY=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01PKku7d022011
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        bh=jt1b9+pwL+VDoUt+ggAPbWiuUp8lXp87zn9gGt4fxns=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=cJHecR48TlOvrVp2VeMcycRAUwnsTqtysXr5o9fMTR3uiZRzE65hWiFiDyYCBRXUB
+         O43JwZe8S0sPW7OaVWXtgATyDGZPv1+e19CXugldpUTnEc/qZDAY8a2Hgbg+0uD63r
+         P39TroCRmzB5/km9Bm5fooy245IvR71Bs0mwjEvc=
+Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01PKkuQd033125;
         Tue, 25 Feb 2020 14:46:56 -0600
-Received: from DFLE115.ent.ti.com (10.64.6.36) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Tue, 25
  Feb 2020 14:46:56 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Tue, 25 Feb 2020 14:46:55 -0600
+ Frontend Transport; Tue, 25 Feb 2020 14:46:56 -0600
 Received: from fllv0103.dal.design.ti.com (fllv0103.dal.design.ti.com [10.247.120.73])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01PKktIp059180;
-        Tue, 25 Feb 2020 14:46:55 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01PKkuSa094912;
+        Tue, 25 Feb 2020 14:46:56 -0600
 Received: from localhost (irmo.dhcp.ti.com [128.247.58.153])
-        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 01PKktVd025457;
-        Tue, 25 Feb 2020 14:46:55 -0600
+        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 01PKkuVK025482;
+        Tue, 25 Feb 2020 14:46:56 -0600
 From:   Suman Anna <s-anna@ti.com>
 To:     Tony Lindgren <tony@atomide.com>
 CC:     Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>,
         <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>, Suman Anna <s-anna@ti.com>
-Subject: [PATCH 00/12] ti-sysc support for PRUSS
-Date:   Tue, 25 Feb 2020 14:46:37 -0600
-Message-ID: <20200225204649.28220-1-s-anna@ti.com>
+Subject: [PATCH 08/12] ARM: dts: am335x-evmsk: Enable PRU-ICSS interconnect node
+Date:   Tue, 25 Feb 2020 14:46:45 -0600
+Message-ID: <20200225204649.28220-9-s-anna@ti.com>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20200225204649.28220-1-s-anna@ti.com>
+References: <20200225204649.28220-1-s-anna@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -67,99 +68,27 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Tony,
+The PRU-ICSS target module node was left in disabled state in the
+base am33xx-l4.dtsi file. PRU-ICSS is supported on the AM335x SK
+EVM board, so enable this node to support PRUSS on this board.
 
-The following series adds the ti-sysc support for the PRUSS IP present
-on some AM33xx, AM437x and AM57xx SoCs. This series is a revamped and
-more complete version of the previous attempt [1] made last year and
-includes support for AM33xx and AM437x now that the reset dependencies
-are fully upstream. The OCP master ports are not enabled by default
-now, and the ti-sysc bus driver only handles the important quirk needed
-for suspend/resume on AM33xx and AM437x SoCs.
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ arch/arm/boot/dts/am335x-evmsk.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-The series includes patches for both the ti-sysc bindings and the bus
-driver, along with all the DTS nodes. Patches are based on 5.6-rc1. The
-dts nodes can be added added independently of the corresponding hwmod
-cleanup [2]. This forms the foundation before the rest of the PRUSS
-platform drivers can be added. Please consider the series for 5.7, and
-I can post the PRUSS platform driver and/or PRUSS INTC driver for 5.8.
-
-The integration of the IP is different on different SoC families, and
-following are some differences:
- 1. AM33xx and AM437x SoCs need a PRCM reset line to be deasserted as well
-    to be able to access any PRUSS registers.
- 2. AM437x has two PRUSS instances, with the smaller PRU-ICSS0 connected
-    through the larger PRU-ICSS1. There is only a single interconnect target
-    node added. AM57xx has no reset lines,
-    and only requires the module to be enabled.
- 3. AM57xx has two identical instances, but do not require any reset lines.
- 4. PRUSS is present only on some SoCs on each SoC family:
-      - AM3356 and above SoCs on AM335x family
-      - AM4376 and above SoCs on AM437x family
-      - AM57xx SoCs only; not supported on DRA7xx SoCs.
-
-The sanity testing can be done by turning on the power through the sysfs for
-now. These will be taken care of automatically when the PRUSS platform driver
-will invoke the pm_runtime_get_sync() and put_sync() as the PRUSS nodes will
-be children of the ti-sysc interconnect nodes.
- 1. AM335x
-      echo on > /sys/bus/platform/devices/4a326000.target-module/power/control
- 2. AM437x
-      echo on > /sys/bus/platform/devices/54426000.target-module/power/control
- 3. AM57xx
-      echo on > /sys/bus/platform/devices/4b226000.target-module/power/control
-      echo on > /sys/bus/platform/devices/4b2a6000.target-module/power/control
-
-Here are the version numbers from the CFG sub-module on these IPs that are
-used for the ti-sysc quirks:
- AM335x			: 0x47000000 
- AM437x PRUSS1		: 0x47000200
- AM437x PRUSS0  	: 0x47010100
- AM57xx PRUSS0 & PRUSS1	: 0x47000201
-
-regards
-Suman
-
-[1] https://patchwork.kernel.org/cover/10796015/
-[2] https://patchwork.kernel.org/cover/11402083/
-
-Roger Quadros (1):
-  dt-bindings: bus: ti-sysc: Add support for PRUSS SYSC type
-
-Suman Anna (11):
-  bus: ti-sysc: Add support for PRUSS SYSC type
-  ARM: dts: AM33xx-l4: Update PRUSS interconnect target-module node
-  ARM: dts: AM4372: Add the PRU-ICSS interconnect target-module node
-  ARM: dts: dra7: Add PRU-ICSS interconnect target-module nodes
-  ARM: dts: am335x-bone-common: Enable PRU-ICSS interconnect node
-  ARM: dts: am335x-evm: Enable PRU-ICSS interconnect node
-  ARM: dts: am335x-evmsk: Enable PRU-ICSS interconnect node
-  ARM: dts: am335x-icev2: Enable PRU-ICSS interconnect node
-  ARM: dts: am437x-gp-evm: Enable PRU-ICSS interconnect node
-  ARM: dts: am437x-sk: Enable PRU-ICSS interconnect node
-  ARM: dts: am437x-idk: Enable PRU-ICSS interconnect node
-
- .../devicetree/bindings/bus/ti-sysc.txt       |  1 +
- arch/arm/boot/dts/am335x-bone-common.dtsi     |  4 ++
- arch/arm/boot/dts/am335x-evm.dts              |  4 ++
- arch/arm/boot/dts/am335x-evmsk.dts            |  4 ++
- arch/arm/boot/dts/am335x-icev2.dts            |  4 ++
- arch/arm/boot/dts/am33xx-l4.dtsi              | 21 ++++++--
- arch/arm/boot/dts/am4372.dtsi                 | 23 +++++++++
- arch/arm/boot/dts/am437x-gp-evm.dts           |  4 ++
- arch/arm/boot/dts/am437x-idk-evm.dts          |  4 ++
- arch/arm/boot/dts/am437x-sk-evm.dts           |  4 ++
- arch/arm/boot/dts/am57-pruss.dtsi             | 50 +++++++++++++++++++
- arch/arm/boot/dts/am5718.dtsi                 |  1 +
- arch/arm/boot/dts/am5728.dtsi                 |  1 +
- arch/arm/boot/dts/am5748.dtsi                 |  1 +
- arch/arm/boot/dts/dra7.dtsi                   |  2 +-
- drivers/bus/ti-sysc.c                         | 27 ++++++++++
- include/dt-bindings/bus/ti-sysc.h             |  4 ++
- include/linux/platform_data/ti-sysc.h         |  2 +
- 18 files changed, 157 insertions(+), 4 deletions(-)
- create mode 100644 arch/arm/boot/dts/am57-pruss.dtsi
-
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 32f515a295ee..f0dd66649877 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -717,3 +717,7 @@
+ 	clocks = <&clk_32768_ck>, <&clk_24mhz_clkctrl AM3_CLK_24MHZ_CLKDIV32K_CLKCTRL 0>;
+ 	clock-names = "ext-clk", "int-clk";
+ };
++
++&pruss_tm {
++	status = "okay";
++};
 -- 
 2.23.0
 
