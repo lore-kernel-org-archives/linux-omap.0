@@ -5,47 +5,47 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BC5C3F2D1
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Feb 2020 09:55:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D60F8C3F2D2
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Feb 2020 09:55:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E1E16246A8
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Feb 2020 09:55:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEA28246A2
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Feb 2020 09:55:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="mdZGSXcT"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="p9UybdfU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726793AbgB1JzA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Feb 2020 04:55:00 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:47636 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726440AbgB1JzA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2020 04:55:00 -0500
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01S9sjFl118338;
-        Fri, 28 Feb 2020 03:54:45 -0600
+        id S1726740AbgB1JzL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Feb 2020 04:55:11 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:34190 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726940AbgB1JzK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2020 04:55:10 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 01S9sxU7043763;
+        Fri, 28 Feb 2020 03:54:59 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1582883685;
-        bh=nCfJ7gq59b6fMw9yLraYegIW8rAh45KRsQksbPtVU0A=;
+        s=ti-com-17Q1; t=1582883700;
+        bh=Pjufu2eGrt7Aaby9tzI02Biy3FURAMOPpklyQUL5Lno=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=mdZGSXcTYM2t2cB6ldzXnzxX9wr0PNYEH4fLIM6hdOC01R/B+YXRaH94ppbtvKKiI
-         Y6ForDiwRNtssA0E10w1bvRIk/d/NwyOau8Oe52qlhFNKqSMOESkTwXI9gvz7Xnxn7
-         PufpiGqq8IR3SxaLL6X8EgeSTdtebVvx4OW2wGzo=
-Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01S9sjDM042119
+        b=p9UybdfUJpsHnrHC12RIgNjD4llfN/8j0TvUExAvGbV+1HGa8NJZMZr/t2JXtgGeK
+         dsZ153SLHnjCAsu22v3JgPfyaxBAvD4gZphRdtvmi49xSprq/xGV0TCmmfGHUpsGJ4
+         SZ32v+QSEs4sBe7is7OksqD3fZWiMM3kDLGynDD0=
+Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 01S9sxGN016181
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 28 Feb 2020 03:54:45 -0600
-Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE106.ent.ti.com
- (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 28 Feb 2020 03:54:59 -0600
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Fri, 28
- Feb 2020 03:54:45 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ Feb 2020 03:54:59 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Fri, 28 Feb 2020 03:54:45 -0600
+ Frontend Transport; Fri, 28 Feb 2020 03:54:59 -0600
 Received: from uda0131933.dhcp.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01S9sbB4125348;
-        Fri, 28 Feb 2020 03:54:42 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 01S9sbB8125348;
+        Fri, 28 Feb 2020 03:54:56 -0600
 From:   Lokesh Vutla <lokeshvutla@ti.com>
 To:     Tony Lindgren <tony@atomide.com>,
         Daniel Lezcano <daniel.lezcano@linaro.org>,
@@ -57,9 +57,9 @@ CC:     Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
         <u.kleine-koenig@pengutronix.de>, <linux-pwm@vger.kernel.org>,
         Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>,
         Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH v2 1/5] clocksource: timer-ti-dm: Convert to SPDX identifier
-Date:   Fri, 28 Feb 2020 15:23:42 +0530
-Message-ID: <20200228095346.32177-2-lokeshvutla@ti.com>
+Subject: [PATCH v2 5/5] clocksource: timer-ti-dm: Enable autoreload in set_pwm
+Date:   Fri, 28 Feb 2020 15:23:46 +0530
+Message-ID: <20200228095346.32177-6-lokeshvutla@ti.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20200228095346.32177-1-lokeshvutla@ti.com>
 References: <20200228095346.32177-1-lokeshvutla@ti.com>
@@ -72,47 +72,124 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Use SPDX-License-Identifier instead of a verbose license text.
+dm timer ops set_load() api allows to configure the load value and to
+set the auto reload feature. But auto reload feature is independent of
+load value and should be part of configuring pwm. This way pwm can be
+disabled by disabling auto reload feature using set_pwm() so that the
+current pwm cycle will be completed. Else pwm disabling causes the
+cycle to be stopped abruptly.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 ---
- drivers/clocksource/timer-ti-dm.c | 19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+ drivers/clocksource/timer-ti-dm.c          | 16 +++++-----------
+ drivers/pwm/pwm-omap-dmtimer.c             |  8 +++++---
+ include/linux/platform_data/dmtimer-omap.h |  5 ++---
+ 3 files changed, 12 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
-index d8637a60a7eb..bf132d321ecc 100644
+index b776ad3ee924..ba1c2adab88f 100644
 --- a/drivers/clocksource/timer-ti-dm.c
 +++ b/drivers/clocksource/timer-ti-dm.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0+
- /*
-  * linux/arch/arm/plat-omap/dmtimer.c
-  *
-@@ -15,24 +16,6 @@
-  *
-  * Copyright (C) 2009 Texas Instruments
-  * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation; either version 2 of the License, or (at your
-- * option) any later version.
-- *
-- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- * You should have received a copy of the  GNU General Public License along
-- * with this program; if not, write  to the Free Software Foundation, Inc.,
-- * 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+@@ -527,21 +527,13 @@ static int omap_dm_timer_stop(struct omap_dm_timer *timer)
+ 	return 0;
+ }
  
- #include <linux/clk.h>
+-static int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
++static int omap_dm_timer_set_load(struct omap_dm_timer *timer,
+ 				  unsigned int load)
+ {
+-	u32 l;
+-
+ 	if (unlikely(!timer))
+ 		return -EINVAL;
+ 
+ 	omap_dm_timer_enable(timer);
+-	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
+-	if (autoreload)
+-		l |= OMAP_TIMER_CTRL_AR;
+-	else
+-		l &= ~OMAP_TIMER_CTRL_AR;
+-	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
+ 	omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
+ 
+ 	omap_dm_timer_disable(timer);
+@@ -570,7 +562,7 @@ static int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
+ }
+ 
+ static int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
+-				 int toggle, int trigger)
++				 int toggle, int trigger, int autoreload)
+ {
+ 	u32 l;
+ 
+@@ -580,12 +572,14 @@ static int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
+ 	omap_dm_timer_enable(timer);
+ 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
+ 	l &= ~(OMAP_TIMER_CTRL_GPOCFG | OMAP_TIMER_CTRL_SCPWM |
+-	       OMAP_TIMER_CTRL_PT | (0x03 << 10));
++	       OMAP_TIMER_CTRL_PT | (0x03 << 10) | OMAP_TIMER_CTRL_AR);
+ 	if (def_on)
+ 		l |= OMAP_TIMER_CTRL_SCPWM;
+ 	if (toggle)
+ 		l |= OMAP_TIMER_CTRL_PT;
+ 	l |= trigger << 10;
++	if (autoreload)
++		l |= OMAP_TIMER_CTRL_AR;
+ 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
+ 
+ 	omap_dm_timer_disable(timer);
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index 88a3c5690fea..9e4378dc6897 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -183,7 +183,7 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
+ 	if (timer_active)
+ 		omap->pdata->stop(omap->dm_timer);
+ 
+-	omap->pdata->set_load(omap->dm_timer, true, load_value);
++	omap->pdata->set_load(omap->dm_timer, load_value);
+ 	omap->pdata->set_match(omap->dm_timer, true, match_value);
+ 
+ 	dev_dbg(chip->dev, "load value: %#08x (%d), match value: %#08x (%d)\n",
+@@ -192,7 +192,8 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
+ 	omap->pdata->set_pwm(omap->dm_timer,
+ 			      pwm_get_polarity(pwm) == PWM_POLARITY_INVERSED,
+ 			      true,
+-			      PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++			      PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE,
++			      true);
+ 
+ 	/* If config was called while timer was running it must be reenabled. */
+ 	if (timer_active)
+@@ -222,7 +223,8 @@ static int pwm_omap_dmtimer_set_polarity(struct pwm_chip *chip,
+ 	omap->pdata->set_pwm(omap->dm_timer,
+ 			      polarity == PWM_POLARITY_INVERSED,
+ 			      true,
+-			      PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++			      PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE,
++			      true);
+ 	mutex_unlock(&omap->mutex);
+ 
+ 	return 0;
+diff --git a/include/linux/platform_data/dmtimer-omap.h b/include/linux/platform_data/dmtimer-omap.h
+index 3173b7b6ff6f..95d852aef130 100644
+--- a/include/linux/platform_data/dmtimer-omap.h
++++ b/include/linux/platform_data/dmtimer-omap.h
+@@ -30,12 +30,11 @@ struct omap_dm_timer_ops {
+ 	int	(*stop)(struct omap_dm_timer *timer);
+ 	int	(*set_source)(struct omap_dm_timer *timer, int source);
+ 
+-	int	(*set_load)(struct omap_dm_timer *timer, int autoreload,
+-			    unsigned int value);
++	int	(*set_load)(struct omap_dm_timer *timer, unsigned int value);
+ 	int	(*set_match)(struct omap_dm_timer *timer, int enable,
+ 			     unsigned int match);
+ 	int	(*set_pwm)(struct omap_dm_timer *timer, int def_on,
+-			   int toggle, int trigger);
++			   int toggle, int trigger, int autoreload);
+ 	int	(*get_pwm_status)(struct omap_dm_timer *timer);
+ 	int	(*set_prescaler)(struct omap_dm_timer *timer, int prescaler);
+ 
 -- 
 2.23.0
 
