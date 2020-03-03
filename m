@@ -2,87 +2,93 @@ Return-Path: <SRS0=QUO0=4U=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD19C3F2D9
-	for <linux-omap@archiver.kernel.org>; Tue,  3 Mar 2020 22:15:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC024C3F2C6
+	for <linux-omap@archiver.kernel.org>; Tue,  3 Mar 2020 22:40:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB6B02166E
-	for <linux-omap@archiver.kernel.org>; Tue,  3 Mar 2020 22:15:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97252208C3
+	for <linux-omap@archiver.kernel.org>; Tue,  3 Mar 2020 22:40:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1583275218;
+	bh=Zat+QL2EK9KhHS8AhAv49+8JsoJc6Ef+wcQ9Q6byCWI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=MU3g505GpPEe9getNM4suKEpHkys9R/6eG7QICQhw399e10OBvwbo+QuHVd9zqMMy
+	 sD+eGd5znkQgZbq5F7PMVXgr9PyOwlLSPRSeJ4C56qs4VIVZblBCGMneKiagaBxrox
+	 djYbMP4kKetNxE+sSop1ozXaJ+VRW779oQ6QJLRs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727823AbgCCWPw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 3 Mar 2020 17:15:52 -0500
-Received: from muru.com ([72.249.23.125]:58722 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727769AbgCCWPw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 3 Mar 2020 17:15:52 -0500
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 5DAF381BD;
-        Tue,  3 Mar 2020 22:16:37 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 13/14] ARM: dts: Configure interconnect target module for dra7 tptc1
-Date:   Tue,  3 Mar 2020 14:15:27 -0800
-Message-Id: <20200303221528.49099-14-tony@atomide.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200303221528.49099-1-tony@atomide.com>
-References: <20200303221528.49099-1-tony@atomide.com>
+        id S1727429AbgCCWkS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 3 Mar 2020 17:40:18 -0500
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:40629 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726747AbgCCWkR (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2020 17:40:17 -0500
+Received: by mail-oi1-f194.google.com with SMTP id j80so57773oih.7;
+        Tue, 03 Mar 2020 14:40:16 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=BqQd81PxAorJe3DrcyYS0OjbqqCAv2eTRW7X1U9wEb0=;
+        b=lrSRooupdwoviV9rGvjj/NYDE8E3Uu8TMAyzyrcixaEyw1WcgkCnZImy5XH2067lZd
+         FdjayrkCVPdPVjTcg93Udy92fB9IgS08RxhB+6ts0ZN3JGo+AcV7WWeKfB7MjImRUpzV
+         QihiE6lkr0q0Iwd0EC/Vu/ZPWBHsdXzzF1Vde/bqLRyvOwv2AMZf4QEpG1bf/k+s1eJv
+         l7Bruxsx/kw+t1OI9j/2IQqTB3fqpkdDTDTOWlfhHxP7Dfpm6JZ9D1Rfk5mvkuJpos3J
+         IXAhXk8E/as68YlmX5eOG4iyCxI1LNWlQ2Aa6DoRHx3aGkz1IbMJBZ2N2JQkSVWbfAUH
+         5mag==
+X-Gm-Message-State: ANhLgQ0ijXKRMSGVC1IYldNUllCePQBRyRoK+s11k+NSjkmqkVnhzTrR
+        hB7HJtCNZTOWi8+H3nE3+g==
+X-Google-Smtp-Source: ADFU+vvr+K/q3LLOjA4PSsa3d6cNVzDbNdbXQcAvWmfJnwY3zuI0TCoJfLaefQAtE4lFsIxCgCk4bA==
+X-Received: by 2002:aca:2104:: with SMTP id 4mr554313oiz.127.1583275215922;
+        Tue, 03 Mar 2020 14:40:15 -0800 (PST)
+Received: from rob-hp-laptop (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id g7sm8388947otk.17.2020.03.03.14.40.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Mar 2020 14:40:15 -0800 (PST)
+Received: (nullmailer pid 22805 invoked by uid 1000);
+        Tue, 03 Mar 2020 22:40:14 -0000
+Date:   Tue, 3 Mar 2020 16:40:14 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Suman Anna <s-anna@ti.com>
+Cc:     Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>,
+        Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v2 1/5] dt-bindings: bus: ti-sysc: Add support for PRUSS
+ SYSC type
+Message-ID: <20200303224014.GA22749@bogus>
+References: <20200227222837.7329-1-s-anna@ti.com>
+ <20200227222837.7329-2-s-anna@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200227222837.7329-2-s-anna@ti.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with device tree only configuration using
-ti-sysc interconnect target module driver. Let's configure the
-module, but keep the legacy "ti,hwmods" peroperty to avoid new boot
-time warnings. The legacy property will be removed in later patches
-together with the legacy platform data.
+On Thu, 27 Feb 2020 16:28:33 -0600, Suman Anna wrote:
+> From: Roger Quadros <rogerq@ti.com>
+> 
+> The PRUSS module has a SYSCFG which is unique. The SYSCFG
+> has two additional unique fields called STANDBY_INIT and
+> SUB_MWAIT in addition to regular IDLE_MODE and STANDBY_MODE
+> fields. Add the bindings for this new sysc type.
+> 
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+> v2: No changes
+> 
+>  Documentation/devicetree/bindings/bus/ti-sysc.txt | 1 +
+>  include/dt-bindings/bus/ti-sysc.h                 | 4 ++++
+>  2 files changed, 5 insertions(+)
+> 
 
-Let's also correct the custom node name to use generic node name dma.
-
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/dra7.dtsi | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -384,12 +384,23 @@ edma_tptc0: dma@0 {
- 			};
- 		};
- 
--		edma_tptc1: tptc@43500000 {
--			compatible = "ti,edma3-tptc";
-+		target-module@43500000 {
-+			compatible = "ti,sysc-omap4", "ti,sysc";
- 			ti,hwmods = "tptc1";
--			reg =	<0x43500000 0x100000>;
--			interrupts = <GIC_SPI 371 IRQ_TYPE_LEVEL_HIGH>;
--			interrupt-names = "edma3_tcerrint";
-+			reg = <0x43500000 0x4>;
-+			reg-names = "rev";
-+			clocks = <&l3main1_clkctrl DRA7_L3MAIN1_TPTC1_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x43500000 0x100000>;
-+
-+			edma_tptc1: dma@0 {
-+				compatible = "ti,edma3-tptc";
-+				reg = <0 0x100000>;
-+				interrupts = <GIC_SPI 371 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "edma3_tcerrint";
-+			};
- 		};
- 
- 		dmm@4e000000 {
--- 
-2.25.1
+Acked-by: Rob Herring <robh@kernel.org>
