@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8868CC3F2D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2C72C3F2D8
 	for <linux-omap@archiver.kernel.org>; Thu,  5 Mar 2020 08:28:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 60CFC21556
+	by mail.kernel.org (Postfix) with ESMTP id CCCEB21556
 	for <linux-omap@archiver.kernel.org>; Thu,  5 Mar 2020 08:28:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="yBUkiR9W"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="eUm3JVa5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726618AbgCEI2m (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Mar 2020 03:28:42 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:59922 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725844AbgCEI2l (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2020 03:28:41 -0500
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0258SSrM101747;
-        Thu, 5 Mar 2020 02:28:28 -0600
+        id S1726282AbgCEI2g (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Mar 2020 03:28:36 -0500
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:39676 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726177AbgCEI2d (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2020 03:28:33 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0258SHEJ044019;
+        Thu, 5 Mar 2020 02:28:17 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1583396908;
-        bh=edi2MIqND5xz9BvsrPOuYHZCtiCCHZeaCHrOXHheyBM=;
+        s=ti-com-17Q1; t=1583396897;
+        bh=nCfJ7gq59b6fMw9yLraYegIW8rAh45KRsQksbPtVU0A=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=yBUkiR9WYj+lPHAgQsS9eb5OivjTdusPyxLC79Kj0JYVL68A+bjoEnwSm4yRf/lDq
-         /NQdsWtJ3LYIOt/WeXhSiKNfw2ecFzEZRekGZu1nINBEGJB9LESpL+ZhMjvB5VJVA7
-         ZQ6eaMFf6QTIPOcCYjkO+DLGHPTmu3zskT8JD/4w=
-Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0258SRIn009399
+        b=eUm3JVa5KAcRZXOFlyX25d+gI67mFPjZRInDqpnmR9PMOfJP7b3Sqwvunwn932LkN
+         zp+mgLwLCvm0XFCldkCLIAggqaIpQQXLTw5s+UxKAE3tetLaRFaDAhuGgNtTFNrXNk
+         o/QfTTIvNjZ1McBHYaaytU9kCZYVqtUkViMa/sO4=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0258SHKb099292
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Mar 2020 02:28:27 -0600
-Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Mar 2020 02:28:17 -0600
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Thu, 5 Mar
- 2020 02:28:27 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 02:28:16 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Thu, 5 Mar 2020 02:28:27 -0600
+ Frontend Transport; Thu, 5 Mar 2020 02:28:17 -0600
 Received: from uda0131933.dhcp.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0258S9kV067014;
-        Thu, 5 Mar 2020 02:28:24 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0258S9kS067014;
+        Thu, 5 Mar 2020 02:28:13 -0600
 From:   Lokesh Vutla <lokeshvutla@ti.com>
 To:     Tony Lindgren <tony@atomide.com>,
         Daniel Lezcano <daniel.lezcano@linaro.org>,
@@ -56,11 +56,10 @@ CC:     Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
         <u.kleine-koenig@pengutronix.de>, <linux-pwm@vger.kernel.org>,
         Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>,
-        Lokesh Vutla <lokeshvutla@ti.com>,
-        Tony Lindgren <tony@atomide.com>
-Subject: [PATCH v3 4/6] clocksource: timer-ti-dm: Do not update counter on updating the period
-Date:   Thu, 5 Mar 2020 13:57:13 +0530
-Message-ID: <20200305082715.15861-5-lokeshvutla@ti.com>
+        Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH v3 1/6] clocksource: timer-ti-dm: Convert to SPDX identifier
+Date:   Thu, 5 Mar 2020 13:57:10 +0530
+Message-ID: <20200305082715.15861-2-lokeshvutla@ti.com>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20200305082715.15861-1-lokeshvutla@ti.com>
 References: <20200305082715.15861-1-lokeshvutla@ti.com>
@@ -73,34 +72,47 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Write to trigger register(OMAP_TIMER_TRIGGER_REG) will load the value
-in Load register(OMAP_TIMER_LOAD_REG) into Counter register
-(OMAP_TIMER_COUNTER_REG).
+Use SPDX-License-Identifier instead of a verbose license text.
 
-omap_dm_timer_set_load() writes into trigger register every time load
-register is updated. When timer is configured in pwm mode, this causes
-disruption in current pwm cycle, which is not expected especially when
-pwm is used as PPS signal for synchronized PTP clocks. So do not write
-into trigger register on updating the period.
-
-Tested-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 ---
- drivers/clocksource/timer-ti-dm.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/clocksource/timer-ti-dm.c | 19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
 diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
-index e6b6123ec567..8f6d477d2078 100644
+index d8637a60a7eb..bf132d321ecc 100644
 --- a/drivers/clocksource/timer-ti-dm.c
 +++ b/drivers/clocksource/timer-ti-dm.c
-@@ -548,7 +548,6 @@ static int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0+
+ /*
+  * linux/arch/arm/plat-omap/dmtimer.c
+  *
+@@ -15,24 +16,6 @@
+  *
+  * Copyright (C) 2009 Texas Instruments
+  * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
+- *
+- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- * You should have received a copy of the  GNU General Public License along
+- * with this program; if not, write  to the Free Software Foundation, Inc.,
+- * 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_TRIGGER_REG, 0);
- 	omap_dm_timer_disable(timer);
- 	return 0;
- }
+ #include <linux/clk.h>
 -- 
 2.23.0
 
