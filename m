@@ -1,109 +1,160 @@
-Return-Path: <SRS0=FBvQ=4X=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=Dg18=4Z=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A889C10DCE
-	for <linux-omap@archiver.kernel.org>; Fri,  6 Mar 2020 19:23:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1E66C10DCE
+	for <linux-omap@archiver.kernel.org>; Sun,  8 Mar 2020 19:20:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 39FD720675
-	for <linux-omap@archiver.kernel.org>; Fri,  6 Mar 2020 19:23:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE641206D5
+	for <linux-omap@archiver.kernel.org>; Sun,  8 Mar 2020 19:20:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KuTzOrLQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbgCFTXr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 6 Mar 2020 14:23:47 -0500
-Received: from muru.com ([72.249.23.125]:59268 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725873AbgCFTXr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 6 Mar 2020 14:23:47 -0500
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id E22DC8027;
-        Fri,  6 Mar 2020 19:24:31 +0000 (UTC)
-Date:   Fri, 6 Mar 2020 11:23:43 -0800
-From:   Tony Lindgren <tony@atomide.com>
-To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc:     linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org,
-        Arthur Demchenkov <spinal.by@gmail.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Sebastian Reichel <sre@kernel.org>, ruleh <ruleh@gmx.de>
-Subject: Re: [PATCH 3/3] Input: omap4-keypad - check state again for lost
- key-up interrupts
-Message-ID: <20200306192343.GN37466@atomide.com>
-References: <20200228171223.11444-1-tony@atomide.com>
- <20200228171223.11444-4-tony@atomide.com>
- <20200306191021.GH217608@dtor-ws>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200306191021.GH217608@dtor-ws>
+        id S1726322AbgCHTUo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 8 Mar 2020 15:20:44 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:43827 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726292AbgCHTUo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 8 Mar 2020 15:20:44 -0400
+Received: by mail-wr1-f66.google.com with SMTP id v9so8395668wrf.10;
+        Sun, 08 Mar 2020 12:20:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=qALcG3CGuBaboVD1Vu6sKa7UNKTJMIZmbr5ctcnIjvQ=;
+        b=KuTzOrLQIYKb2aSSDndfU+R4OkG8+39CunsygU0n4TfXkT3rs607w8JdEwc7EkhXsh
+         SUI5U4xuqaM9u2kio3yF8L+iH80FaSzYKojyVif5EOGrwXyEC0Gkbe8H9x+6I9uVWaUI
+         RT/td7r6E8m4X97pUhBUDriTf1zOhmskFBfaaLvSXV09uCRoeWeGCxvzjDVCvADrX0m4
+         OGajyiizFLDGpLeKePswPh2ZPdrG2VOjhvLszoQZn4RX7Ym4zRLpiXb393YGlng3qaUl
+         NNvgvs6yjZUeroVVwUj2aJvhGwQCRM6pQEpwXfS1MoFKGf14J3Kxm6LJzSHPh6b6Dsqc
+         HcAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=qALcG3CGuBaboVD1Vu6sKa7UNKTJMIZmbr5ctcnIjvQ=;
+        b=sg/JXf+KfmImKXo5DzZnUEwJbgMHkwVBwlCxFmJrQu6qKTwd6zcdwwSzms6N1AR86d
+         7XxBFArRTkP++/lbi2PfrhzdGnA5A8MvW/XivXsiREDgfA+QdOAXzghYMsuoXxPw4QhM
+         RrJ6taRqva78EObGHG8Y3gaKPLVl0jMWrhL8GxURTWF/CfFDXzzIIJxNVqzVxzXlW5Dv
+         cXbkQPPA5bhbftZ3sfdDjjsTp/V8rlr23PKeKwwSnxJffsde8/f8ZDjv0ikEYBq9DGLD
+         qNFbT+RLJKpl1iRzGx9P+S920+KSZHay+zDYYpoVxz0nv6UJAzTGkLPP33yqwKxNqhZ1
+         lN+A==
+X-Gm-Message-State: ANhLgQ3OI0qcKFk+kp9WD9s2tAKpT+TCBx+cvxIZLmOJEEOPs4I+fdBf
+        HG5w2NWhOaG7z/ZF95s7mZk=
+X-Google-Smtp-Source: ADFU+vv3rcWG5MMYWXUHe4T6UqDBb1TBfzXy2V9IGq5bFXchWpdP6YGsyWHg0RWNUP8FI7gV+0nbcA==
+X-Received: by 2002:adf:e98f:: with SMTP id h15mr16675277wrm.263.1583695241942;
+        Sun, 08 Mar 2020 12:20:41 -0700 (PDT)
+Received: from supervisor.net28 ([46.53.253.27])
+        by smtp.gmail.com with ESMTPSA id f127sm23281865wma.4.2020.03.08.12.20.20
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 08 Mar 2020 12:20:41 -0700 (PDT)
+From:   Arthur Demchenkov <spinal.by@gmail.com>
+Cc:     Arthur Demchenkov <spinal.by@gmail.com>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Boris Brezillon <bbrezillon@kernel.org>,
+        Ladislav Michl <ladis@linux-mips.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] ARM: OMAP: DTS: N900: fix onenand timings
+Date:   Sun,  8 Mar 2020 22:19:33 +0300
+Message-Id: <20200308191934.8263-1-spinal.by@gmail.com>
+X-Mailer: git-send-email 2.11.0
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com> [200306 19:11]:
-> On Fri, Feb 28, 2020 at 09:12:23AM -0800, Tony Lindgren wrote:
-> > We only have partial errata i689 implemented with Commit 6c3516fed7b6
-> > ("Input: omap-keypad - fix keyboard debounce configuration"). We are
-> > still missing the check for lost key-up interrupts as described in the
-> > omap4 silicon errata documentation as Errata ID i689 "1.32 Keyboard Key
-> > Up Event Can Be Missed":
-> > 
-> > "When a key is released for a time shorter than the debounce time,
-> >  in-between 2 key press (KP1 and KP2), the keyboard state machine will go
-> >  to idle mode and will never detect the key release (after KP1, and also
-> >  after KP2), and thus will never generate a new IRQ indicating the key
-> >  release."
-> > 
-> > Let's check the keyboard state with delayed_work after each event. And
-> > if the problem state is detect, let's clear all events.
-> > 
-> > Cc: Arthur Demchenkov <spinal.by@gmail.com>
-> > Cc: Merlijn Wajer <merlijn@wizzup.org>
-> > Cc: Pavel Machek <pavel@ucw.cz>
-> > Cc: Sebastian Reichel <sre@kernel.org>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  drivers/input/keyboard/omap4-keypad.c | 56 ++++++++++++++++++++++++---
-> >  1 file changed, 50 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-> > --- a/drivers/input/keyboard/omap4-keypad.c
-> > +++ b/drivers/input/keyboard/omap4-keypad.c
-> > @@ -71,6 +71,8 @@ struct omap4_keypad {
-> >  	void __iomem *base;
-> >  	bool irq_wake_enabled;
-> >  	unsigned int irq;
-> > +	struct delayed_work key_work;
-> > +	struct mutex lock;		/* for key scan */
-> 
-> I think having threaded interrupt and delayed work together defeats the
-> purpose of having threaded interrupt. If you want to add a delay before
-> repeating scan I think you can add it directly in
-> omap4_keypad_irq_thread_fn(). Or is there a concern that we will not
-> rely quickly enough on additional key presses? It is unclear to me if
-> additional key press within the debounce time will result in additional
-> interrupt.
+Commit a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+started using DT specified timings for GPMC, and as a result the
+OneNAND stopped working on N900 as we had wrong values in the DT.
+Fix by updating the values to bootloader timings that have been tested
+to be working on Nokia N900 with OneNAND manufacturers: Samsung,
+Numonyx.
 
-Well if we wait in threaded interrupt, we won't see a new interrupt.
-So yes, an additional key press will still produce an interrupt.
+Fixes: a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+Signed-off-by: Arthur Demchenkov <spinal.by@gmail.com>
+---
+ arch/arm/boot/dts/omap3-n900.dts | 44 +++++++++++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 16 deletions(-)
 
-After a key press has been detected, we need to set a timer that checks
-the keyboard controller state after it has idled. Then check for a
-potentially stuck state, and clear all down events if the state is
-idle with keys down.
-
-I don't think we can really use runtime PM autosuspend delay here as we
-already keep the device enabled with clock autogated so there's nothing
-to do. If we now added runtime PM calls, we'd end up in mode with
-clocks completely disabled. Maybe some tinkering of usage counts in
-the interrupt handler would allow using PM runtime though :)
-
-Regards,
-
-Tony
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index c3c6d7d04a76..4089d97405c9 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -854,34 +854,46 @@
+ 		compatible = "ti,omap2-onenand";
+ 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
+ 
++		/*
++		 * These timings are based on CONFIG_OMAP_GPMC_DEBUG=y reported
++		 * bootloader set values when booted with v5.1
++		 * (OneNAND Manufacturer: Samsung):
++		 *
++		 *   cs0 GPMC_CS_CONFIG1: 0xfb001202
++		 *   cs0 GPMC_CS_CONFIG2: 0x00111100
++		 *   cs0 GPMC_CS_CONFIG3: 0x00020200
++		 *   cs0 GPMC_CS_CONFIG4: 0x11001102
++		 *   cs0 GPMC_CS_CONFIG5: 0x03101616
++		 *   cs0 GPMC_CS_CONFIG6: 0x90060000
++		 */
+ 		gpmc,sync-read;
+ 		gpmc,sync-write;
+ 		gpmc,burst-length = <16>;
+ 		gpmc,burst-read;
+ 		gpmc,burst-wrap;
+ 		gpmc,burst-write;
+-		gpmc,device-width = <2>; /* GPMC_DEVWIDTH_16BIT */
+-		gpmc,mux-add-data = <2>; /* GPMC_MUX_AD */
++		gpmc,device-width = <2>;
++		gpmc,mux-add-data = <2>;
+ 		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <87>;
+-		gpmc,cs-wr-off-ns = <87>;
++		gpmc,cs-rd-off-ns = <102>;
++		gpmc,cs-wr-off-ns = <102>;
+ 		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-		gpmc,oe-on-ns = <15>;
+-		gpmc,oe-off-ns = <87>;
++		gpmc,adv-rd-off-ns = <12>;
++		gpmc,adv-wr-off-ns = <12>;
++		gpmc,oe-on-ns = <12>;
++		gpmc,oe-off-ns = <102>;
+ 		gpmc,we-on-ns = <0>;
+-		gpmc,we-off-ns = <87>;
+-		gpmc,rd-cycle-ns = <112>;
+-		gpmc,wr-cycle-ns = <112>;
+-		gpmc,access-ns = <81>;
+-		gpmc,page-burst-access-ns = <15>;
++		gpmc,we-off-ns = <102>;
++		gpmc,rd-cycle-ns = <132>;
++		gpmc,wr-cycle-ns = <132>;
++		gpmc,access-ns = <96>;
++		gpmc,page-burst-access-ns = <18>;
+ 		gpmc,bus-turnaround-ns = <0>;
+ 		gpmc,cycle2cycle-delay-ns = <0>;
+ 		gpmc,wait-monitoring-ns = <0>;
+-		gpmc,clk-activation-ns = <5>;
+-		gpmc,wr-data-mux-bus-ns = <30>;
+-		gpmc,wr-access-ns = <81>;
++		gpmc,clk-activation-ns = <6>;
++		gpmc,wr-data-mux-bus-ns = <36>;
++		gpmc,wr-access-ns = <96>;
+ 		gpmc,sync-clk-ps = <15000>;
+ 
+ 		/*
+-- 
+2.11.0
 
