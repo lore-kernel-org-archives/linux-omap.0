@@ -2,90 +2,166 @@ Return-Path: <SRS0=rpJk=42=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CAC6C10F28
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:27:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A11FC10F27
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:43:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 232152072A
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:27:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D752520727
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:43:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="S1Hf96q/"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Yt3uC7cs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726446AbgCIJ1B (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Mar 2020 05:27:01 -0400
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:35685 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725962AbgCIJ1B (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2020 05:27:01 -0400
-Received: by mail-lf1-f65.google.com with SMTP id g4so736572lfh.2
-        for <linux-omap@vger.kernel.org>; Mon, 09 Mar 2020 02:26:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=A7hpoWHApTHmqExHIYzq5O430jcgRqsiEYj9yFZNI6Y=;
-        b=S1Hf96q/jJI6OJXfsNbutrIjMbckiMiq1f7Sq26bp4QiWaocZHyYfKFs854No9aXk+
-         RqNOMNQHz2Iwh2Ci1ViY609WbKxjDFojaPMMKOfx2mLxK/m63ieeuNOQ4LLBN76smUnu
-         G9KDZktjtqLjbje9fDnypDwyVdr1Pys6eURXyoXdl8yKAbxYu8PmPyLSCjxHgnfR5P+w
-         PUcv9paYoG2jaPQ2/gGeSTXpYG/2SzsDTieQQyZ7VWRJ4jqXLHW2papjn3CUUkTwPb1U
-         EIRfLvzY2nSqvEpYxTfadHxYsm+hpo3w/G+5DYta47quYp4G6WNG5kdJcoL0chjURFnj
-         /9UQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=A7hpoWHApTHmqExHIYzq5O430jcgRqsiEYj9yFZNI6Y=;
-        b=L/4uEIn2zDXKsW3BQHiV5lQyVHiICsKNFZ2Q9D9lBEJduOOnOjFjtXEhQw7PAOG0+p
-         1x6Ft6tXKx7U80Adb7oslwOE9EXnnifTtdikskcwKNp1+BM3Y5H+8DRgTBVWBTIULrJ8
-         Bu5W2Ao+oEpUX+qmyAFXoD3k+uayUSJ2EUPHp/fpOmbxB7uwxrbM9MIWE273DYcAml+s
-         o7fy5WehRyQAgB53Drtueok9dw72H86Xw+u/WvNUDTo2pnA1EmkQEjQ45kWGRnsG4v8y
-         6bbN6PgW5d9zGQQyMFHekPFtmGTd8ldjzWEaE8ZtLqFUXX7GNEOmZq4pLebJnqF08R6j
-         jZYw==
-X-Gm-Message-State: ANhLgQ1vLWKIUoUFaLs74d1WxfkJsk1GHU53iZisLefQH44unitzVEI/
-        v+UFvyjmn5XiWjGWLmROaG6eyMaZOGeUanYWdbu/yw==
-X-Google-Smtp-Source: ADFU+vu2ArJMW5D9CnzwG4xq4wa06pcfnLZNUFzSCPQ35LVPrel7wpiZ22Ayswzj/Ovduv9p6f5tdPhOI0bceskI8RQ=
-X-Received: by 2002:ac2:5f50:: with SMTP id 16mr8883801lfz.194.1583746018865;
- Mon, 09 Mar 2020 02:26:58 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200304225433.37336-1-tony@atomide.com>
-In-Reply-To: <20200304225433.37336-1-tony@atomide.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Mon, 9 Mar 2020 10:26:47 +0100
-Message-ID: <CACRpkdYL5mZ7i6bEF0b_CUXaG-jHKz4KnSXsBNfs_9M054U3vQ@mail.gmail.com>
-Subject: Re: [PATCH 0/3] Block idle in gpio-omap with cpu_pm
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Dave Gerlach <d-gerlach@ti.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Keerthy <j-keerthy@ti.com>,
-        Ladislav Michl <ladis@linux-mips.org>,
+        id S1726389AbgCIJnl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Mar 2020 05:43:41 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:43046 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725962AbgCIJnl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2020 05:43:41 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0299hQi3050123;
+        Mon, 9 Mar 2020 04:43:26 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1583747006;
+        bh=RzlZesRpFJqS5mJhJut0NkSOELlsfKSMiUyjJ8TsFEc=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=Yt3uC7csFiagxt6uf3UP+yZDR/6dzb6qTY1gjp9YIsfRn7pkJmn2Y0c91Y+24gbdD
+         RNskelBfK//xg3/y4hfTAeUubV6WlzKJJC+z6jWuJfKvUJyH9P/i3K3f5O5Lr5viGE
+         amIoYITMXbruK0ayWo+/DSiveJkkP32spU5njSmI=
+Received: from DFLE102.ent.ti.com (dfle102.ent.ti.com [10.64.6.23])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0299hQi5019087
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 9 Mar 2020 04:43:26 -0500
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Mon, 9 Mar
+ 2020 04:43:26 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
+ Frontend Transport; Mon, 9 Mar 2020 04:43:26 -0500
+Received: from [192.168.2.14] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0299hN6X114936;
+        Mon, 9 Mar 2020 04:43:23 -0500
+Subject: Re: [PATCH] ARM: OMAP: DTS: N900: fix onenand timings
+To:     Arthur Demchenkov <spinal.by@gmail.com>
+CC:     =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
         Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Tero Kristo <t-kristo@ti.com>
-Content-Type: text/plain; charset="UTF-8"
+        Boris Brezillon <bbrezillon@kernel.org>,
+        Ladislav Michl <ladis@linux-mips.org>,
+        <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20200308191934.8263-1-spinal.by@gmail.com>
+From:   Roger Quadros <rogerq@ti.com>
+Message-ID: <abd076bf-20aa-c981-bf4f-7bdf10ec58d1@ti.com>
+Date:   Mon, 9 Mar 2020 11:43:22 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
+MIME-Version: 1.0
+In-Reply-To: <20200308191934.8263-1-spinal.by@gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Mar 4, 2020 at 11:54 PM Tony Lindgren <tony@atomide.com> wrote:
 
-> As discussed earlier, here's a series to use cpu_pm to block deeper SoC
-> idle states if a gpio interrupt is pending.
 
-As you requested I queued these on an immutable branch
-based on v5.6-rc1:
-https://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git/log/?h=ib-omap-block-idle
+On 08/03/2020 21:19, Arthur Demchenkov wrote:
+> Commit a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+> started using DT specified timings for GPMC, and as a result the
+> OneNAND stopped working on N900 as we had wrong values in the DT.
+> Fix by updating the values to bootloader timings that have been tested
+> to be working on Nokia N900 with OneNAND manufacturers: Samsung,
+> Numonyx.
+> 
+> Fixes: a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+> Signed-off-by: Arthur Demchenkov <spinal.by@gmail.com>
 
-And merged into gpio-devel for v5.7.
+Reviewed-by: Roger Quadros <rogerq@ti.com>
 
-Yours,
-Linus Walleij
+> ---
+>   arch/arm/boot/dts/omap3-n900.dts | 44 +++++++++++++++++++++++++---------------
+>   1 file changed, 28 insertions(+), 16 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index c3c6d7d04a76..4089d97405c9 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -854,34 +854,46 @@
+>   		compatible = "ti,omap2-onenand";
+>   		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
+>   
+> +		/*
+> +		 * These timings are based on CONFIG_OMAP_GPMC_DEBUG=y reported
+> +		 * bootloader set values when booted with v5.1
+> +		 * (OneNAND Manufacturer: Samsung):
+> +		 *
+> +		 *   cs0 GPMC_CS_CONFIG1: 0xfb001202
+> +		 *   cs0 GPMC_CS_CONFIG2: 0x00111100
+> +		 *   cs0 GPMC_CS_CONFIG3: 0x00020200
+> +		 *   cs0 GPMC_CS_CONFIG4: 0x11001102
+> +		 *   cs0 GPMC_CS_CONFIG5: 0x03101616
+> +		 *   cs0 GPMC_CS_CONFIG6: 0x90060000
+> +		 */
+>   		gpmc,sync-read;
+>   		gpmc,sync-write;
+>   		gpmc,burst-length = <16>;
+>   		gpmc,burst-read;
+>   		gpmc,burst-wrap;
+>   		gpmc,burst-write;
+> -		gpmc,device-width = <2>; /* GPMC_DEVWIDTH_16BIT */
+> -		gpmc,mux-add-data = <2>; /* GPMC_MUX_AD */
+> +		gpmc,device-width = <2>;
+> +		gpmc,mux-add-data = <2>;
+>   		gpmc,cs-on-ns = <0>;
+> -		gpmc,cs-rd-off-ns = <87>;
+> -		gpmc,cs-wr-off-ns = <87>;
+> +		gpmc,cs-rd-off-ns = <102>;
+> +		gpmc,cs-wr-off-ns = <102>;
+>   		gpmc,adv-on-ns = <0>;
+> -		gpmc,adv-rd-off-ns = <10>;
+> -		gpmc,adv-wr-off-ns = <10>;
+> -		gpmc,oe-on-ns = <15>;
+> -		gpmc,oe-off-ns = <87>;
+> +		gpmc,adv-rd-off-ns = <12>;
+> +		gpmc,adv-wr-off-ns = <12>;
+> +		gpmc,oe-on-ns = <12>;
+> +		gpmc,oe-off-ns = <102>;
+>   		gpmc,we-on-ns = <0>;
+> -		gpmc,we-off-ns = <87>;
+> -		gpmc,rd-cycle-ns = <112>;
+> -		gpmc,wr-cycle-ns = <112>;
+> -		gpmc,access-ns = <81>;
+> -		gpmc,page-burst-access-ns = <15>;
+> +		gpmc,we-off-ns = <102>;
+> +		gpmc,rd-cycle-ns = <132>;
+> +		gpmc,wr-cycle-ns = <132>;
+> +		gpmc,access-ns = <96>;
+> +		gpmc,page-burst-access-ns = <18>;
+>   		gpmc,bus-turnaround-ns = <0>;
+>   		gpmc,cycle2cycle-delay-ns = <0>;
+>   		gpmc,wait-monitoring-ns = <0>;
+> -		gpmc,clk-activation-ns = <5>;
+> -		gpmc,wr-data-mux-bus-ns = <30>;
+> -		gpmc,wr-access-ns = <81>;
+> +		gpmc,clk-activation-ns = <6>;
+> +		gpmc,wr-data-mux-bus-ns = <36>;
+> +		gpmc,wr-access-ns = <96>;
+>   		gpmc,sync-clk-ps = <15000>;
+>   
+>   		/*
+> 
+
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
