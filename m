@@ -2,166 +2,111 @@ Return-Path: <SRS0=rpJk=42=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A11FC10F27
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04F8DC10F27
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 12:30:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D752520727
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:43:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Yt3uC7cs"
+	by mail.kernel.org (Postfix) with ESMTP id CD87E20866
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 12:30:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1583757007;
+	bh=diq25L1IPlx433ZM3VoDc5SJPfrMcgY8a1nf8LbuVPk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=y5MWH/B2ZafCQYce66lSJYwoOO2fR5GQnUMqoXis6qxbpiCLLnznp9fLECbFfcSll
+	 Bcl7mTqfHEo8dWbEhqSTRvCI9WhmhfYJZoVy5fA5hSFWLSP73tEh9b3QSVVh/vxSde
+	 7ZBHBetMCpM9Imrm42NAy8WB5SIpNqdr1d5FolUc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726389AbgCIJnl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Mar 2020 05:43:41 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:43046 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725962AbgCIJnl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2020 05:43:41 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0299hQi3050123;
-        Mon, 9 Mar 2020 04:43:26 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1583747006;
-        bh=RzlZesRpFJqS5mJhJut0NkSOELlsfKSMiUyjJ8TsFEc=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=Yt3uC7csFiagxt6uf3UP+yZDR/6dzb6qTY1gjp9YIsfRn7pkJmn2Y0c91Y+24gbdD
-         RNskelBfK//xg3/y4hfTAeUubV6WlzKJJC+z6jWuJfKvUJyH9P/i3K3f5O5Lr5viGE
-         amIoYITMXbruK0ayWo+/DSiveJkkP32spU5njSmI=
-Received: from DFLE102.ent.ti.com (dfle102.ent.ti.com [10.64.6.23])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0299hQi5019087
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 9 Mar 2020 04:43:26 -0500
-Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE102.ent.ti.com
- (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Mon, 9 Mar
- 2020 04:43:26 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
- (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Mon, 9 Mar 2020 04:43:26 -0500
-Received: from [192.168.2.14] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0299hN6X114936;
-        Mon, 9 Mar 2020 04:43:23 -0500
-Subject: Re: [PATCH] ARM: OMAP: DTS: N900: fix onenand timings
-To:     Arthur Demchenkov <spinal.by@gmail.com>
-CC:     =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Boris Brezillon <bbrezillon@kernel.org>,
-        Ladislav Michl <ladis@linux-mips.org>,
-        <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-References: <20200308191934.8263-1-spinal.by@gmail.com>
-From:   Roger Quadros <rogerq@ti.com>
-Message-ID: <abd076bf-20aa-c981-bf4f-7bdf10ec58d1@ti.com>
-Date:   Mon, 9 Mar 2020 11:43:22 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+        id S1726464AbgCIMaH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Mar 2020 08:30:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52162 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726368AbgCIMaH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 9 Mar 2020 08:30:07 -0400
+Received: from earth.universe (dyndsl-095-033-170-219.ewe-ip-backbone.de [95.33.170.219])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 83EA02072A;
+        Mon,  9 Mar 2020 12:30:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1583757006;
+        bh=diq25L1IPlx433ZM3VoDc5SJPfrMcgY8a1nf8LbuVPk=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=y11VkzV4imOBaLXieqJLXLqJyBpp8d3exizNybEUy/71PcBs+5HBbLVQ7LHhqQVo1
+         axJkhGWGL45ws/yvks/CkQ2muH41PHWRXnZbFdHIMei2VIbZfG4fdh5PFtWFl0rICo
+         ZCLF/27wogqmRkos2xg99GZ8weKkUqKlTGhD7puM=
+Received: by earth.universe (Postfix, from userid 1000)
+        id 6652D3C0C82; Mon,  9 Mar 2020 13:30:02 +0100 (CET)
+Date:   Mon, 9 Mar 2020 13:30:02 +0100
+From:   Sebastian Reichel <sre@kernel.org>
+To:     Lokesh Vutla <lokeshvutla@ti.com>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org,
+        Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2 4/6] pwm: omap-dmtimer: Fix pwm disabling sequence
+Message-ID: <20200309123002.dy3jqqcm2us4ygpo@earth.universe>
+References: <20200228095651.32464-1-lokeshvutla@ti.com>
+ <20200228095651.32464-5-lokeshvutla@ti.com>
+ <20200306181443.GJ37466@atomide.com>
+ <9129d4fe-a17e-2fa6-764c-6a746fa5096d@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20200308191934.8263-1-spinal.by@gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="eosgsryqn2a77iww"
+Content-Disposition: inline
+In-Reply-To: <9129d4fe-a17e-2fa6-764c-6a746fa5096d@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 
+--eosgsryqn2a77iww
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 08/03/2020 21:19, Arthur Demchenkov wrote:
-> Commit a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
-> started using DT specified timings for GPMC, and as a result the
-> OneNAND stopped working on N900 as we had wrong values in the DT.
-> Fix by updating the values to bootloader timings that have been tested
-> to be working on Nokia N900 with OneNAND manufacturers: Samsung,
-> Numonyx.
-> 
-> Fixes: a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
-> Signed-off-by: Arthur Demchenkov <spinal.by@gmail.com>
+Hi,
 
-Reviewed-by: Roger Quadros <rogerq@ti.com>
+On Mon, Mar 09, 2020 at 10:21:59AM +0530, Lokesh Vutla wrote:
+> > [0] https://git.collabora.com/cgit/user/sre/rumble-test.git/plain/rumbl=
+e-test.c
+>=20
+> This is redirecting to collabora.com. Is this code available in github or=
+ some
+> public repo?
+>=20
+> Thanks and regards,
+> Lokesh
 
-> ---
->   arch/arm/boot/dts/omap3-n900.dts | 44 +++++++++++++++++++++++++---------------
->   1 file changed, 28 insertions(+), 16 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index c3c6d7d04a76..4089d97405c9 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -854,34 +854,46 @@
->   		compatible = "ti,omap2-onenand";
->   		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
->   
-> +		/*
-> +		 * These timings are based on CONFIG_OMAP_GPMC_DEBUG=y reported
-> +		 * bootloader set values when booted with v5.1
-> +		 * (OneNAND Manufacturer: Samsung):
-> +		 *
-> +		 *   cs0 GPMC_CS_CONFIG1: 0xfb001202
-> +		 *   cs0 GPMC_CS_CONFIG2: 0x00111100
-> +		 *   cs0 GPMC_CS_CONFIG3: 0x00020200
-> +		 *   cs0 GPMC_CS_CONFIG4: 0x11001102
-> +		 *   cs0 GPMC_CS_CONFIG5: 0x03101616
-> +		 *   cs0 GPMC_CS_CONFIG6: 0x90060000
-> +		 */
->   		gpmc,sync-read;
->   		gpmc,sync-write;
->   		gpmc,burst-length = <16>;
->   		gpmc,burst-read;
->   		gpmc,burst-wrap;
->   		gpmc,burst-write;
-> -		gpmc,device-width = <2>; /* GPMC_DEVWIDTH_16BIT */
-> -		gpmc,mux-add-data = <2>; /* GPMC_MUX_AD */
-> +		gpmc,device-width = <2>;
-> +		gpmc,mux-add-data = <2>;
->   		gpmc,cs-on-ns = <0>;
-> -		gpmc,cs-rd-off-ns = <87>;
-> -		gpmc,cs-wr-off-ns = <87>;
-> +		gpmc,cs-rd-off-ns = <102>;
-> +		gpmc,cs-wr-off-ns = <102>;
->   		gpmc,adv-on-ns = <0>;
-> -		gpmc,adv-rd-off-ns = <10>;
-> -		gpmc,adv-wr-off-ns = <10>;
-> -		gpmc,oe-on-ns = <15>;
-> -		gpmc,oe-off-ns = <87>;
-> +		gpmc,adv-rd-off-ns = <12>;
-> +		gpmc,adv-wr-off-ns = <12>;
-> +		gpmc,oe-on-ns = <12>;
-> +		gpmc,oe-off-ns = <102>;
->   		gpmc,we-on-ns = <0>;
-> -		gpmc,we-off-ns = <87>;
-> -		gpmc,rd-cycle-ns = <112>;
-> -		gpmc,wr-cycle-ns = <112>;
-> -		gpmc,access-ns = <81>;
-> -		gpmc,page-burst-access-ns = <15>;
-> +		gpmc,we-off-ns = <102>;
-> +		gpmc,rd-cycle-ns = <132>;
-> +		gpmc,wr-cycle-ns = <132>;
-> +		gpmc,access-ns = <96>;
-> +		gpmc,page-burst-access-ns = <18>;
->   		gpmc,bus-turnaround-ns = <0>;
->   		gpmc,cycle2cycle-delay-ns = <0>;
->   		gpmc,wait-monitoring-ns = <0>;
-> -		gpmc,clk-activation-ns = <5>;
-> -		gpmc,wr-data-mux-bus-ns = <30>;
-> -		gpmc,wr-access-ns = <81>;
-> +		gpmc,clk-activation-ns = <6>;
-> +		gpmc,wr-data-mux-bus-ns = <36>;
-> +		gpmc,wr-access-ns = <96>;
->   		gpmc,sync-clk-ps = <15000>;
->   
->   		/*
-> 
+Sorry, we migrated to gitlab under different domain. I pushed it
+here now: https://github.com/sre/rumble-test
 
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+-- Sebastian
+
+--eosgsryqn2a77iww
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl5mNrIACgkQ2O7X88g7
++ppmFRAAmZJVN7L3IfK3pDbnpFFcwSlwwZC88ezxxQML6+PgbESuKJ/ku3Y1JQ6T
+FYJzl25NvaMjPWKKXrPhMhd08J3nY08OerY/R6g6jJ3YktXuDN93EScwlOQ4Lifq
++lW7gB8GLh23ddSdVuzoPv55/8/rAsBGpwj1MFLddSJvtSC6KDKqd+ZO1+/W5kK5
+d+6ZtPrLTEwBC7jC4swzTRYGKWgqTitulTloq9snCMoa7lerisacaplmv0L7G3Mp
+MhnLhyrYvw9p5X8JK6Is+BkMctlTgMaq75jXZ5tj+YMY17+9tAOyfdzQnmeJVsUq
+hZjcyqHWCX3HWYQdjQONG/4Yxrgz64mlyYARzm9hoREPdvLpUyRtGpDlJtHDw6u6
+8XkAeIdVn6FKbm+WT2dTDGju4W7GN4kUs9VvF4enwVX4clYO2VMvtOIkP9BSWZUZ
+6ODkheoCultJGLEmTnnO+b86cclhPb3c/S2qqnZz3K4jH7kJH+V5CGc057R/FDKC
+NeREUSbYo0dIujnEq3i0+NmsTaEkB5a47Z2+gfKrvkbM3uRXzKsBmunGnoy1BHxh
+rLjLn+BdqAHAgx2OsU3UVWi34It7Av7mzdoRohJEleXUPmT6SRHmR6PpNM0yicM/
+qyJ6gCH51Q4lwEQ2ro24fyc2V3w0TK/BFat2M0WC3w3z0FnMWOQ=
+=MhfD
+-----END PGP SIGNATURE-----
+
+--eosgsryqn2a77iww--
