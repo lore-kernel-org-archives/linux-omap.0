@@ -2,148 +2,174 @@ Return-Path: <SRS0=rpJk=42=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4396C10F25
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 04:53:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 720CEC10F29
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:26:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B3BDF20665
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 04:53:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 317C020727
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Mar 2020 09:26:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="GRlmZKSZ"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=wizzup.org header.i=@wizzup.org header.b="UulzMP83"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726402AbgCIExG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Mar 2020 00:53:06 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:48268 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725811AbgCIExG (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2020 00:53:06 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0294qvxj077105;
-        Sun, 8 Mar 2020 23:52:57 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1583729577;
-        bh=19GEtNMqbK7WwV7Ny6Ssf+Ax9DfoQ90Ggv3gqxaS+eE=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=GRlmZKSZUc1pqJDE/KxnuKjd4pauy6qi9sKNfWMMlnbkezgXoNDPgtgIBRW8VK8aP
-         cac3T7/UrjaFl14g3A8+cOl/ok9R2UP7N/0hT1306T+47bCkV1wlmFufj0uqcXCZtX
-         aRBk9wYjFV2HtTYyrsHiaUcov5As9RT5SsBDnW1E=
-Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0294qvNG108367
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Sun, 8 Mar 2020 23:52:57 -0500
-Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE114.ent.ti.com
- (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Sun, 8 Mar
- 2020 23:52:57 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Sun, 8 Mar 2020 23:52:57 -0500
-Received: from [10.24.69.20] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0294qsnq052533;
-        Sun, 8 Mar 2020 23:52:54 -0500
-Subject: Re: [PATCH v2 4/6] pwm: omap-dmtimer: Fix pwm disabling sequence
-To:     Tony Lindgren <tony@atomide.com>
-CC:     Thierry Reding <thierry.reding@gmail.com>,
-        =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>,
-        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-pwm@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>,
-        Sebastian Reichel <sre@kernel.org>
-References: <20200228095651.32464-1-lokeshvutla@ti.com>
- <20200228095651.32464-5-lokeshvutla@ti.com>
- <20200306181443.GJ37466@atomide.com>
-From:   Lokesh Vutla <lokeshvutla@ti.com>
-Message-ID: <9129d4fe-a17e-2fa6-764c-6a746fa5096d@ti.com>
-Date:   Mon, 9 Mar 2020 10:21:59 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        id S1726384AbgCIJ04 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Mar 2020 05:26:56 -0400
+Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:33692 "EHLO
+        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1725962AbgCIJ04 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2020 05:26:56 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=wizzup.org;
+         s=mail; h=Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:
+        References:Cc:To:Subject:Sender:Reply-To:Content-Transfer-Encoding:Content-ID
+        :Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:
+        Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe
+        :List-Post:List-Owner:List-Archive;
+        bh=fIVon3h9f3VT2VgP7U2W8j7v6BQ+6FRBz8WbEWgA5f0=; b=UulzMP83Gxn3oThKf+cPceaenD
+        IEaTdtDtJJ7d7cxu6SCPdNCgXS5f4NrSIBhMpCSyYv3iMS+6hIGiDRQ8+SJ63EsA0fLCxkLjJGQBb
+        xkNqik2BS/3kuvlC1/RB7q0U0xaQNWA1KY/ZPPM7Q7WTxHCDHH69ChSp7xb1NicFOWD03G0RGDUGw
+        GPAgUsxOqsjaX3CUogGejVKBaSi9HWGsS+C99YeOUz5yAK6bMK/u/G8JLaJRdMyMk4RjmOPuKE0cb
+        ZVnCsZzK4nmWxablnr5bU5EYzhJq975JllE3VBGwQg0JNL4IM4HL/BUeD12mB3jBvI1OLYCa4rkR6
+        HWPWKQRw==;
+Received: from deepwater.fritz.box ([192.168.178.25] helo=[0.0.0.0])
+        by hetgrotebos.org with esmtpsa  (TLS1.3) tls TLS_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <merlijn@wizzup.org>)
+        id 1jBEgW-0004tF-QI; Mon, 09 Mar 2020 09:26:52 +0000
+Subject: Re: [PATCH] ARM: OMAP: DTS: N900: fix onenand timings
+To:     Arthur Demchenkov <spinal.by@gmail.com>
+Cc:     =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Roger Quadros <rogerq@ti.com>,
+        Boris Brezillon <bbrezillon@kernel.org>,
+        Ladislav Michl <ladis@linux-mips.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20200308191934.8263-1-spinal.by@gmail.com>
+From:   Merlijn Wajer <merlijn@wizzup.org>
+Autocrypt: addr=merlijn@wizzup.org; prefer-encrypt=mutual; keydata=
+ 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
+ /XslHw==
+Message-ID: <f0a12ac7-e000-c93d-a968-8b3c12d3b511@wizzup.org>
+Date:   Mon, 9 Mar 2020 10:28:04 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.5.0
 MIME-Version: 1.0
-In-Reply-To: <20200306181443.GJ37466@atomide.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+In-Reply-To: <20200308191934.8263-1-spinal.by@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="89FUibisooYehOM2bm82Wp5Y68muB12Tn"
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Tony,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--89FUibisooYehOM2bm82Wp5Y68muB12Tn
+Content-Type: multipart/mixed; boundary="0qRes5NXoQIYhXut7s2ImVk6Zn1z2wB5I"
 
-On 06/03/20 11:44 PM, Tony Lindgren wrote:
-> * Lokesh Vutla <lokeshvutla@ti.com> [200228 09:58]:
->> pwm_omap_dmtimer_disable() calls .stop callback which abruptly stops the
->> timer counter. This doesn't complete the current pwm cycle and
->> immediately disables the pwm. Instead disable the auto reload
->> functionality which allows to complete the current pwm cycle and then
->> disables the timer.
->>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> ---
->>  drivers/pwm/pwm-omap-dmtimer.c | 10 +++++++++-
->>  1 file changed, 9 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
->> index bc338619232d..89b3c25d02b8 100644
->> --- a/drivers/pwm/pwm-omap-dmtimer.c
->> +++ b/drivers/pwm/pwm-omap-dmtimer.c
->> @@ -93,8 +93,16 @@ static void pwm_omap_dmtimer_disable(struct pwm_chip *chip,
->>  {
->>  	struct pwm_omap_dmtimer_chip *omap = to_pwm_omap_dmtimer_chip(chip);
->>  
->> +	/*
->> +	 * Disable auto reload so that the current cycle gets completed and
->> +	 * then the counter stops.
->> +	 */
->>  	mutex_lock(&omap->mutex);
->> -	omap->pdata->stop(omap->dm_timer);
->> +	omap->pdata->set_pwm(omap->dm_timer,
->> +			     pwm_get_polarity(pwm) == PWM_POLARITY_INVERSED,
->> +			     true, OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE,
->> +			     false);
->> +
->>  	mutex_unlock(&omap->mutex);
->>  }
-> 
-> I'm seeing an issue with this patch where after use something is
-> left on and power consumption stays higher by about 30 mW after
-> use.
+--0qRes5NXoQIYhXut7s2ImVk6Zn1z2wB5I
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
-Interesting...What is the PWM period and duty cycle in the test case?
-Can you dump the following registers before and after disabling:
-- TLDR
-- TMAR
-- TCLR
+Hi,
 
-> 
-> I can reproduce this easily on droid4 with Sebastian's rumble-test
-> app[0]. After use, I sometimes also hear the vibrator keep chirping
-> quietly, so there seems to be some pwm still happening after disable :)
+On 08/03/2020 20:19, Arthur Demchenkov wrote:
+> Commit a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+> started using DT specified timings for GPMC, and as a result the
+> OneNAND stopped working on N900 as we had wrong values in the DT.
+> Fix by updating the values to bootloader timings that have been tested
+> to be working on Nokia N900 with OneNAND manufacturers: Samsung,
+> Numonyx.
+>=20
+> Fixes: a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+> Signed-off-by: Arthur Demchenkov <spinal.by@gmail.com>
 
-hmm..The line clearly goes down on the scope after the current pwm duty cycle is
-done and never comes back.
+I've successfully tested this on my Nokia N900, so feel free to add:
 
-> 
-> Reloading modules for pwm-vibra and pwm-omap-dmtimer make the power
-> consumption go back down again.
-> 
-> If you have a scope set up, maybe check the lines are quiet after
-> disable after this patch?
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> [0] https://git.collabora.com/cgit/user/sre/rumble-test.git/plain/rumble-test.c
+Tested-by: Merlijn Wajer <merlijn@wizzup.org>
 
-This is redirecting to collabora.com. Is this code available in github or some
-public repo?
+Cheers,
+Merlijn
 
-Thanks and regards,
-Lokesh
+
+--0qRes5NXoQIYhXut7s2ImVk6Zn1z2wB5I--
+
+--89FUibisooYehOM2bm82Wp5Y68muB12Tn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCXmYMJAAKCRAGN09rynK8
+WjhWAP0fmRRrOy3l/A4IM/RKRDmYRuZs2Ss3MvuKAz/YKtVPCwEA/kS8rdPA5SKd
+sIrRMgRf0+TjgB8DMrbv6LynGqPWmA4=
+=FQSk
+-----END PGP SIGNATURE-----
+
+--89FUibisooYehOM2bm82Wp5Y68muB12Tn--
