@@ -7,23 +7,22 @@ X-Spam-Status: No, score=-11.8 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88552C18E5B
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A28FC18E5A
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 654852253D
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6946020727
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726752AbgCJSct (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Mar 2020 14:32:49 -0400
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:46585 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727071AbgCJSct (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2020 14:32:49 -0400
-X-Originating-IP: 91.224.148.103
+        id S1726283AbgCJScz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Mar 2020 14:32:55 -0400
+Received: from relay12.mail.gandi.net ([217.70.178.232]:37349 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727071AbgCJScy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2020 14:32:54 -0400
 Received: from localhost.localdomain (unknown [91.224.148.103])
         (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id B308C240005;
-        Tue, 10 Mar 2020 18:32:46 +0000 (UTC)
+        by relay12.mail.gandi.net (Postfix) with ESMTPSA id 3867A200008;
+        Tue, 10 Mar 2020 18:32:52 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         Miquel Raynal <miquel.raynal@bootlin.com>,
@@ -33,26 +32,24 @@ Cc:     Vignesh Raghavendra <vigneshr@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org
-Subject: Re: [RFC PATCH 08/14] mtd: rawnand: ams-delta: Make read pulses optional
-Date:   Tue, 10 Mar 2020 19:32:45 +0100
-Message-Id: <20200310183246.19401-1-miquel.raynal@bootlin.com>
+Subject: Re: [RFC PATCH 07/14] mtd: rawnand: ams-delta: Don't hardcode read/write pulse widths
+Date:   Tue, 10 Mar 2020 19:32:51 +0100
+Message-Id: <20200310183251.19464-1-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200212003929.6682-9-jmkrzyszt@gmail.com>
+In-Reply-To: <20200212003929.6682-8-jmkrzyszt@gmail.com>
 References: 
 MIME-Version: 1.0
 X-linux-mtd-patch-notification: thanks
-X-linux-mtd-patch-commit: 586a746b326c35d2c0b2773dba61ffa1d4818711
+X-linux-mtd-patch-commit: ccada49b050f44df9499859f09b822b8aebc3a4d
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 2020-02-12 at 00:39:23 UTC, Janusz Krzysztofik wrote:
-> Allow platforms to omit NRE pin from device configuration by requesting
-> that pin as optional.  In that case, also don't apply read pulse width
-> from chip SDR timings.  There should be no need for further code
-> adjustments as gpiolib can handle NULL GPIO descriptor pointers.
+On Wed, 2020-02-12 at 00:39:22 UTC, Janusz Krzysztofik wrote:
+> Instead of forcing Amstrad Delta specific read/write pulse widths, use
+> variables initialised from respective fields of chip SDR timings.
 > 
 > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
