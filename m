@@ -4,24 +4,23 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EAF9C33C84
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D07AC18E5A
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 13A61227BF
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3020C22525
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727631AbgCJSfW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Mar 2020 14:35:22 -0400
-Received: from muru.com ([72.249.23.125]:59638 "EHLO muru.com"
+        id S1727332AbgCJSfV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Mar 2020 14:35:21 -0400
+Received: from muru.com ([72.249.23.125]:59622 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727556AbgCJSfW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 10 Mar 2020 14:35:22 -0400
+        id S1726977AbgCJSfU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 10 Mar 2020 14:35:20 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 3061781CA;
-        Tue, 10 Mar 2020 18:36:07 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 60378812F;
+        Tue, 10 Mar 2020 18:36:05 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -33,9 +32,9 @@ Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Michael Turquette <mturquette@baylibre.com>,
         Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>,
         linux-clk@vger.kernel.org
-Subject: [PATCH 07/10] ARM: dts: Configure interconnect target module for dm814x tptc2
-Date:   Tue, 10 Mar 2020 11:35:01 -0700
-Message-Id: <20200310183504.65358-8-tony@atomide.com>
+Subject: [PATCH 06/10] ARM: dts: Configure interconnect target module for dm814x tptc1
+Date:   Tue, 10 Mar 2020 11:35:00 -0700
+Message-Id: <20200310183504.65358-7-tony@atomide.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200310183504.65358-1-tony@atomide.com>
 References: <20200310183504.65358-1-tony@atomide.com>
@@ -64,39 +63,39 @@ Signed-off-by: Tony Lindgren <tony@atomide.com>
 diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
 --- a/arch/arm/boot/dts/dm814x.dtsi
 +++ b/arch/arm/boot/dts/dm814x.dtsi
-@@ -597,12 +597,28 @@ edma_tptc1: dma@0 {
+@@ -573,12 +573,28 @@ edma_tptc0: dma@0 {
  			};
  		};
  
--		edma_tptc2: tptc@49a00000 {
+-		edma_tptc1: tptc@49900000 {
 -			compatible = "ti,edma3-tptc";
-+		target-module@49a00000 {
++		target-module@49900000 {
 +			compatible = "ti,sysc-omap4", "ti,sysc";
- 			ti,hwmods = "tptc2";
--			reg =	<0x49a00000 0x100000>;
--			interrupts = <114>;
+ 			ti,hwmods = "tptc1";
+-			reg =	<0x49900000 0x100000>;
+-			interrupts = <113>;
 -			interrupt-names = "edma3_tcerrint";
-+			reg = <0x49a00000 0x4>,
-+			      <0x49a00010 0x4>;
++			reg = <0x49900000 0x4>,
++			      <0x49900010 0x4>;
 +			reg-names = "rev", "sysc";
 +			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
 +			ti,sysc-midle = <SYSC_IDLE_FORCE>;
 +			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
 +					<SYSC_IDLE_SMART>;
-+			clocks = <&alwon_clkctrl DM814_TPTC2_CLKCTRL 0>;
++			clocks = <&alwon_clkctrl DM814_TPTC1_CLKCTRL 0>;
 +			clock-names = "fck";
 +			#address-cells = <1>;
 +			#size-cells = <1>;
-+			ranges = <0x0 0x49a00000 0x100000>;
++			ranges = <0x0 0x49900000 0x100000>;
 +
-+			edma_tptc2: dma@0 {
++			edma_tptc1: dma@0 {
 +				compatible = "ti,edma3-tptc";
 +				reg = <0 0x100000>;
-+				interrupts = <114>;
++				interrupts = <113>;
 +				interrupt-names = "edma3_tcerrint";
 +			};
  		};
  
- 		edma_tptc3: tptc@49b00000 {
+ 		edma_tptc2: tptc@49a00000 {
 -- 
 2.25.1
