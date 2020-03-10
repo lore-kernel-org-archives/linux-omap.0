@@ -2,294 +2,171 @@ Return-Path: <SRS0=sshs=43=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA8A0C2BB57
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76B38C2BBDE
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C93B220727
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48BE2208C3
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:35:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bg8ZawhR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727556AbgCJSf1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Mar 2020 14:35:27 -0400
-Received: from muru.com ([72.249.23.125]:59660 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727350AbgCJSf0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 10 Mar 2020 14:35:26 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id BAF0F810A;
-        Tue, 10 Mar 2020 18:36:10 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org,
-        Brian Hutchinson <b.hutchman@gmail.com>,
-        Graeme Smecher <gsmecher@threespeedlogic.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>,
-        linux-clk@vger.kernel.org
-Subject: [PATCH 09/10] ARM: dts: Configure interconnect target module for ti816x edma
-Date:   Tue, 10 Mar 2020 11:35:03 -0700
-Message-Id: <20200310183504.65358-10-tony@atomide.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200310183504.65358-1-tony@atomide.com>
-References: <20200310183504.65358-1-tony@atomide.com>
+        id S1727123AbgCJSfe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Mar 2020 14:35:34 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:39839 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726445AbgCJSfe (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2020 14:35:34 -0400
+Received: by mail-wm1-f65.google.com with SMTP id f7so2532433wml.4;
+        Tue, 10 Mar 2020 11:35:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=cc:references:subject:to:date:mime-version
+         :content-transfer-encoding:from:message-id:in-reply-to:user-agent;
+        bh=BP8KnDE8ksYCCumYnD6izjx91RGlwtA9mIE7DSiBL1w=;
+        b=Bg8ZawhRAWb9/nGH048hQA604p6+W20zVf5tI3COe1V243ocG8dA8tnxRv5rR6xhip
+         WX9APX2WsHXkIF+wZXQ3MUa6hvfwzavQhIVqK6khKECIeFT+5zdxqtaFMm7SggqsnB84
+         x1IZJenYvb5IoHeS2G0LONgboYOT2D1Sqry/kXMC4ygvPHZ+uSJamPvAUVwhQvSxE14n
+         ayrKrZkJo7DmiobGYSYkSN82Mb6jbh+nBB76g3GqhVCMI6obl/HaOWiaKSDho6UBrhVo
+         kk9aiRj1jiwC/E0L6zsvb3NztgtX441tQZmVSWMMfDz3/eGLUxcUSTYKU9eFnOLA/Suu
+         nr0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:cc:references:subject:to:date:mime-version
+         :content-transfer-encoding:from:message-id:in-reply-to:user-agent;
+        bh=BP8KnDE8ksYCCumYnD6izjx91RGlwtA9mIE7DSiBL1w=;
+        b=B6vgFg6WGHBzFE8FvV0p0x+CYmpd2mKnBY8UpdJVfQG1ZttNcVTcwct9noeTita+EN
+         gDIHw7p2469mpyfXLjZuOqEbh8kNvzR8D0Wbnt+Qgsy0f/Acr9b6QgroEHPi79n4Oprp
+         gfw0bYibiAXwB3QN5bA4sImxQe2ikp3Zp8Nxr+rg4w0v69eemRLjcxdYwECdP2iZq/T8
+         yrMCjW1GBCOSvZRreMoyd2TTF6sxnSVgFF4r68oIY7FVI/cJuhgAXhj4eQx0nwHAfqVx
+         rhIE5AWil3HbwEZHJqMyvvDqH6+7AfPZzCjX7GGZJ7U8SEVcTo/98iazKEg0MjC37HXP
+         V3gw==
+X-Gm-Message-State: ANhLgQ3Kz3VhaCgNqUTTY/27L1vjxnveKd/x7ZacuB7pnDFWTb0Ee71g
+        kKWXSbIAyID7n33KP6QkPuM=
+X-Google-Smtp-Source: ADFU+vtkAttgBxC+gWI3jxWrwynpcJEbtSVVBNY5g2ZLqt52dDSILslqqjPkQRXE8Rb93jiPxuEyqA==
+X-Received: by 2002:a1c:59c6:: with SMTP id n189mr3349605wmb.178.1583865332015;
+        Tue, 10 Mar 2020 11:35:32 -0700 (PDT)
+Received: from supervisor.net28 ([46.53.253.27])
+        by smtp.gmail.com with ESMTPSA id x24sm4939861wmc.36.2020.03.10.11.35.30
+        (version=TLS1 cipher=AES128-SHA bits=128/128);
+        Tue, 10 Mar 2020 11:35:30 -0700 (PDT)
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Cc:     "Pavel Machek" <pavel@ucw.cz>,
+        "Merlijn Wajer" <merlijn@wizzup.org>,
+        "Sebastian Reichel" <sre@kernel.org>, linux-pm@vger.kernel.org,
+        linux-omap@vger.kernel.org
+References: <20200119201124.29620-1-tony@atomide.com>
+ <20200121095712.GC6934@amd> <db73a651-afc4-5c3d-0610-ccb13b8cc0d3@wizzup.org>
+ <20200121222547.GA17712@duo.ucw.cz> <20200123160257.GX5885@atomide.com>
+ <op.0g8ykrhnhxa7s4@supervisor.net28> <20200310153951.GR37466@atomide.com>
+Subject: Re: [PATCH 1/3] RFC: power: supply: cpcap-battery: Add helper for
+ rough capacity
+To:     "Tony Lindgren" <tony@atomide.com>
+Date:   Tue, 10 Mar 2020 21:35:29 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+From:   "Arthur D." <spinal.by@gmail.com>
+Message-ID: <op.0g90lfcdhxa7s4@supervisor.net28>
+In-Reply-To: <20200310153951.GR37466@atomide.com>
+User-Agent: Opera Mail/12.16 (Linux)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with device tree only configuration using
-ti-sysc interconnect target module driver. Let's configure edma for
-dm816x similar to what we have for dm814x.
+Hi.
 
-Let's initially keep the legacy "ti,hwmods" peroperty, it will be
-removed for all ti81xx in a later patch.
+>> 1) RFC: power: supply: cpcap-battery: Add helper for rough capacity
+>>
+>> CPCAP_CAP(POWER_SUPPLY_CAPACITY_LEVEL_FULL, 4200000 - 18000, 100)
+>>
+>> This line seems wrong, because Droid4 full battery is 4.35V, not 4.2V.
+>
+> Hmm yeah this is now configurable and defaults to 4.2V so we
+> should use the confgured value. The reason we default to 4.2V
+> now is because we suspect that if left connected to the charger
+> at higher than 4.2V the battery ages faster.
 
-Note that as we now also start using the clkctrl clock binding on
-dm816x, the board specific dts files must also have compatible
-"ti,dm816". This is needed for the clkctrl clocks to probe properly,
-so any out of tree dts files may need to be updated accordingly.
+1. How to configure this value? I tried:
+echo 4350000 > /sys/class/power_supply/battery/constant_charge_voltage
 
-Cc: Brian Hutchinson <b.hutchman@gmail.com>
-Cc: Graeme Smecher <gsmecher@threespeedlogic.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/dm816x.dtsi | 153 ++++++++++++++++++++++++++++++----
- 1 file changed, 135 insertions(+), 18 deletions(-)
+...but it didn't change the fully charged battery voltage.
 
-diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -4,6 +4,8 @@
-  * kind, whether express or implied.
-  */
- 
-+#include <dt-bindings/bus/ti-sysc.h>
-+#include <dt-bindings/clock/dm816.h>
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/pinctrl/omap.h>
- 
-@@ -138,13 +140,128 @@ scrm_clockdomains: clockdomains {
- 			};
- 		};
- 
--		edma: edma@49000000 {
--			compatible = "ti,edma3";
--			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2", "tptc3";
--			reg =   <0x49000000 0x10000>,
--			        <0x44e10f90 0x40>;
--			interrupts = <12 13 14>;
--			#dma-cells = <1>;
-+		target-module@49000000 {
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "tpcc";
-+			reg = <0x49000000 0x4>;
-+			reg-names = "rev";
-+			clocks = <&alwon_clkctrl DM816_TPCC_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x49000000 0x10000>;
-+
-+			edma: dma@0 {
-+				compatible = "ti,edma3-tpcc";
-+				reg = <0 0x10000>;
-+				reg-names = "edma3_cc";
-+				interrupts = <12 13 14>;
-+				interrupt-names = "edma3_ccint", "edma3_mperr",
-+						  "edma3_ccerrint";
-+				dma-requests = <64>;
-+				#dma-cells = <2>;
-+
-+				ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
-+					   <&edma_tptc2 3>, <&edma_tptc3 0>;
-+
-+				ti,edma-memcpy-channels = <20 21>;
-+			};
-+		};
-+
-+		target-module@49800000 {
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "tptc0";
-+			reg = <0x49800000 0x4>,
-+			      <0x49800010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&alwon_clkctrl DM816_TPTC0_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x49800000 0x100000>;
-+
-+			edma_tptc0: dma@0 {
-+				compatible = "ti,edma3-tptc";
-+				reg = <0 0x100000>;
-+				interrupts = <112>;
-+				interrupt-names = "edma3_tcerrint";
-+			};
-+		};
-+
-+		target-module@49900000 {
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "tptc1";
-+			reg = <0x49900000 0x4>,
-+			      <0x49900010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&alwon_clkctrl DM816_TPTC1_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x49900000 0x100000>;
-+
-+			edma_tptc1: dma@0 {
-+				compatible = "ti,edma3-tptc";
-+				reg = <0 0x100000>;
-+				interrupts = <113>;
-+				interrupt-names = "edma3_tcerrint";
-+			};
-+		};
-+
-+		target-module@49a00000 {
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "tptc2";
-+			reg = <0x49a00000 0x4>,
-+			      <0x49a00010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&alwon_clkctrl DM816_TPTC2_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x49a00000 0x100000>;
-+
-+			edma_tptc2: dma@0 {
-+				compatible = "ti,edma3-tptc";
-+				reg = <0 0x100000>;
-+				interrupts = <114>;
-+				interrupt-names = "edma3_tcerrint";
-+			};
-+		};
-+
-+		target-module@49b00000 {
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "tptc3";
-+			reg = <0x49b00000 0x4>,
-+			      <0x49b00010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&alwon_clkctrl DM816_TPTC3_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x49b00000 0x100000>;
-+
-+			edma_tptc3: dma@0 {
-+				compatible = "ti,edma3-tptc";
-+				reg = <0 0x100000>;
-+				interrupts = <115>;
-+				interrupt-names = "edma3_tcerrint";
-+			};
- 		};
- 
- 		elm: elm@48080000 {
-@@ -185,7 +302,7 @@ gpmc: gpmc@50000000 {
- 			#address-cells = <2>;
- 			#size-cells = <1>;
- 			interrupts = <100>;
--			dmas = <&edma 52>;
-+			dmas = <&edma 52 0>;
- 			dma-names = "rxtx";
- 			gpmc,num-cs = <6>;
- 			gpmc,num-waitpins = <2>;
-@@ -202,7 +319,7 @@ i2c1: i2c@48028000 {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			interrupts = <70>;
--			dmas = <&edma 58 &edma 59>;
-+			dmas = <&edma 58 0 &edma 59 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -213,7 +330,7 @@ i2c2: i2c@4802a000 {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			interrupts = <71>;
--			dmas = <&edma 60 &edma 61>;
-+			dmas = <&edma 60 0 &edma 61 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -311,10 +428,10 @@ mcspi1: spi@48030000 {
- 			interrupts = <65>;
- 			ti,spi-num-cs = <4>;
- 			ti,hwmods = "mcspi1";
--			dmas = <&edma 16 &edma 17
--				&edma 18 &edma 19
--				&edma 20 &edma 21
--				&edma 22 &edma 23>;
-+			dmas = <&edma 16 0 &edma 17 0
-+				&edma 18 0 &edma 19 0
-+				&edma 20 0 &edma 21 0
-+				&edma 22 0 &edma 23 0>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1",
- 				    "tx2", "rx2", "tx3", "rx3";
- 		};
-@@ -324,7 +441,7 @@ mmc1: mmc@48060000 {
- 			reg = <0x48060000 0x11000>;
- 			ti,hwmods = "mmc1";
- 			interrupts = <64>;
--			dmas = <&edma 24 &edma 25>;
-+			dmas = <&edma 24 0 &edma 25 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -392,7 +509,7 @@ uart1: uart@48020000 {
- 			reg = <0x48020000 0x2000>;
- 			clock-frequency = <48000000>;
- 			interrupts = <72>;
--			dmas = <&edma 26 &edma 27>;
-+			dmas = <&edma 26 0 &edma 27 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -402,7 +519,7 @@ uart2: uart@48022000 {
- 			reg = <0x48022000 0x2000>;
- 			clock-frequency = <48000000>;
- 			interrupts = <73>;
--			dmas = <&edma 28 &edma 29>;
-+			dmas = <&edma 28 0 &edma 29 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -412,7 +529,7 @@ uart3: uart@48024000 {
- 			reg = <0x48024000 0x2000>;
- 			clock-frequency = <48000000>;
- 			interrupts = <74>;
--			dmas = <&edma 30 &edma 31>;
-+			dmas = <&edma 30 0 &edma 31 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
--- 
-2.25.1
+2. If the value is configurable, it probably shouldn't be hardcoded like
+this in the code:
+PCAP_CAP(POWER_SUPPLY_CAPACITY_LEVEL_FULL, 4200000 - 18000, 100)
+
+>> I think the kernel should return  -ENODATA
+>> for capacity values until the battery is "calibrated". By "calibration"
+>> I mean having high and low counter_uah values initialized with the data
+>> collected when the battery went a full charge or discharge cycle (from
+>> empty to full or vice versa).
+>
+> Yes I like this idea. That leaves out the need for poor estimates
+> in the kernel.
+>
+> I guess we should have the following new properties:
+>
+> POWER_SUPPLY_PROP_CHARGE_COUNTER_FULL
+> POWER_SUPPLY_PROP_CHARGE_COUNTER_EMPTY
+>
+> And these would be 0 on boot and then userspace can
+> update these based on battery data.
+
+My idea is to only have one extra property which will store the delta of
+counter values for full and empty battery states. In this case, it's going
+to be more accurate than allowing the userspace to store/restore both full
+and empty counters.
+
+Some users may have a dual boot setup. In this case restoring full & empty
+counters after reboot can make the kernel to report wrong battery
+percentage
+values.
+
+Let's imagine the following situation:
+
+1. The user charges the battery to the full state and discharges it to be
+almost depleted, so the kernel has "calibrated" values for counter_full and
+counter_empty.
+2. The user decides to reboot to another OS. Let's assume he has a fully
+charged battery before doing the reboot.
+For example the kernel provides the following values:
+POWER_SUPPLY_PROP_CHARGE_COUNTER_FULL = -250000
+POWER_SUPPLY_PROP_CHARGE_COUNTER_EMPTY = 950000
+/sys/class/power_supply/battery/charge_counter = -250000
+A daemon saves these values to a permanent storage.
+3. The user boots another OS, works there for a while, the battery charge
+becomes 50%.
+4. The user reboots back to our system, we restore the values:
+POWER_SUPPLY_PROP_CHARGE_COUNTER_FULL <- -250000
+POWER_SUPPLY_PROP_CHARGE_COUNTER_EMPTY <- 950000
+5. /sys/class/power_supply/battery/charge_counter is initialized to 0 or
+-250000, it doesn't matter, because in both cases we will get the wrong
+battery percentage. We should report 50%, remember? In any case it can't
+be calculated to this value.
+
+And here's how I suggest it to be implemented:
+1. Same as above
+2. Same as above, except the kernel provides a single value that the user
+should store between reboots (it's the delta I mentioned above):
+POWER_SUPPLY_PROP_CHARGE_FULL = 1200000
+3. Same as above
+4. The user reboots back to our system, we restore the value:
+POWER_SUPPLY_PROP_CHARGE_FULL <- 1200000
+5. The kernel reports -ENODATA as battery capacity value until the battery
+goes to a reference point (fully charged or almost discharged state).
+When the battery is fully charged or discharged, the kernel can immediately
+calculate the opposite counter value. And no matter what was the initial
+value of /sys/class/power_supply/battery/charge_counter when the system
+booted.
+
+Of course, the value of the delta will not be constant, it should be
+recalculated over time. The good news is that this value will be changed
+slowly over time. That is, it can vary from 2% to 10% per year.
+
+--
+Best regards, Spinal
