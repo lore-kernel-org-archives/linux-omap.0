@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-11.8 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8798FC18E5B
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0680C10F27
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6234E208C3
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 998A5208C3
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Mar 2020 18:32:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726545AbgCJScP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Mar 2020 14:32:15 -0400
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:56795 "EHLO
+        id S1726604AbgCJScV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Mar 2020 14:32:21 -0400
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:38929 "EHLO
         relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726604AbgCJScP (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2020 14:32:15 -0400
+        with ESMTP id S1727112AbgCJScU (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2020 14:32:20 -0400
 X-Originating-IP: 91.224.148.103
 Received: from localhost.localdomain (unknown [91.224.148.103])
         (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id AFABDE0004;
-        Tue, 10 Mar 2020 18:32:11 +0000 (UTC)
+        by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 59EF3E0004;
+        Tue, 10 Mar 2020 18:32:18 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         Miquel Raynal <miquel.raynal@bootlin.com>,
@@ -33,23 +33,30 @@ Cc:     Vignesh Raghavendra <vigneshr@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org
-Subject: Re: [RFC PATCH 14/14] mtd: rawnand: ams-delta: Rename structures and functions to gpio_nand*
-Date:   Tue, 10 Mar 2020 19:32:10 +0100
-Message-Id: <20200310183210.19025-1-miquel.raynal@bootlin.com>
+Subject: Re: [RFC PATCH 13/14] mtd: rawnand: ams-delta: Make the driver custom I/O ready
+Date:   Tue, 10 Mar 2020 19:32:17 +0100
+Message-Id: <20200310183217.19087-1-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200212003929.6682-15-jmkrzyszt@gmail.com>
+In-Reply-To: <20200212003929.6682-14-jmkrzyszt@gmail.com>
 References: 
 MIME-Version: 1.0
 X-linux-mtd-patch-notification: thanks
-X-linux-mtd-patch-commit: 8225139b2f50120e118971a705fa0ab79c14e74e
+X-linux-mtd-patch-commit: f789426780b4d3db466e23904bcbd2c3dec06841
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 2020-02-12 at 00:39:29 UTC, Janusz Krzysztofik wrote:
-> Another step in preparation for merging the driver with "gpio-nand".
+On Wed, 2020-02-12 at 00:39:28 UTC, Janusz Krzysztofik wrote:
+> In order to be merged with "gpio-nand", the driver must support custom
+> (non-GPIO) I/O accessors.
+> 
+> Allow platforms to omit data GPIO port as well as NWE pin info from
+> device setup.  For the driver to still work on such platform, custom
+> I/O accessors as well as a custom probe function which initialises the
+> driver private structure with those accessors must be added to the
+> driver.
 > 
 > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
