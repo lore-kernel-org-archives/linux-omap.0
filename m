@@ -1,4 +1,4 @@
-Return-Path: <SRS0=dvY7=44=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=RBLH=45=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -6,158 +6,195 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00438C18E5A
-	for <linux-omap@archiver.kernel.org>; Wed, 11 Mar 2020 14:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06BB2C0044D
+	for <linux-omap@archiver.kernel.org>; Thu, 12 Mar 2020 00:58:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CF72523A52
-	for <linux-omap@archiver.kernel.org>; Wed, 11 Mar 2020 14:23:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01722206F7
+	for <linux-omap@archiver.kernel.org>; Thu, 12 Mar 2020 00:58:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729559AbgCKOXG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 11 Mar 2020 10:23:06 -0400
-Received: from muru.com ([72.249.23.125]:59766 "EHLO muru.com"
+        id S2387480AbgCLA6y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 11 Mar 2020 20:58:54 -0400
+Received: from muru.com ([72.249.23.125]:59826 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729531AbgCKOXG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 11 Mar 2020 10:23:06 -0400
+        id S2387411AbgCLA6x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 11 Mar 2020 20:58:53 -0400
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id C9D0E80CD;
-        Wed, 11 Mar 2020 14:23:50 +0000 (UTC)
-Date:   Wed, 11 Mar 2020 07:23:01 -0700
+        by muru.com (Postfix) with ESMTPS id 4E4C780CD;
+        Thu, 12 Mar 2020 00:59:38 +0000 (UTC)
+Date:   Wed, 11 Mar 2020 17:58:49 -0700
 From:   Tony Lindgren <tony@atomide.com>
-To:     "Arthur D." <spinal.by@gmail.com>
-Cc:     Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>,
-        Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/3] RFC: power: supply: cpcap-battery: Add helper for
- rough capacity
-Message-ID: <20200311142301.GV37466@atomide.com>
-References: <20200119201124.29620-1-tony@atomide.com>
- <20200121095712.GC6934@amd>
- <db73a651-afc4-5c3d-0610-ccb13b8cc0d3@wizzup.org>
- <20200121222547.GA17712@duo.ucw.cz>
- <20200123160257.GX5885@atomide.com>
- <op.0g8ykrhnhxa7s4@supervisor.net28>
- <20200310153951.GR37466@atomide.com>
- <op.0g90lfcdhxa7s4@supervisor.net28>
+To:     Lokesh Vutla <lokeshvutla@ti.com>
+Cc:     Thierry Reding <thierry.reding@gmail.com>,
+        Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org,
+        Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>,
+        Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2 4/6] pwm: omap-dmtimer: Fix pwm disabling sequence
+Message-ID: <20200312005849.GY37466@atomide.com>
+References: <20200228095651.32464-1-lokeshvutla@ti.com>
+ <20200228095651.32464-5-lokeshvutla@ti.com>
+ <20200306181443.GJ37466@atomide.com>
+ <9129d4fe-a17e-2fa6-764c-6a746fa5096d@ti.com>
+ <20200309180123.GP37466@atomide.com>
+ <666dbb7a-db98-d16a-ee73-27d353d2a317@ti.com>
+ <20200310155242.GT37466@atomide.com>
+ <296e28b7-7925-5dfa-ce5a-c0b2a2f1c2e0@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <op.0g90lfcdhxa7s4@supervisor.net28>
+In-Reply-To: <296e28b7-7925-5dfa-ce5a-c0b2a2f1c2e0@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Arthur D. <spinal.by@gmail.com> [200310 18:36]:
-> Hi.
+* Lokesh Vutla <lokeshvutla@ti.com> [200311 04:14]:
 > 
-> > > 1) RFC: power: supply: cpcap-battery: Add helper for rough capacity
-> > > 
-> > > CPCAP_CAP(POWER_SUPPLY_CAPACITY_LEVEL_FULL, 4200000 - 18000, 100)
-> > > 
-> > > This line seems wrong, because Droid4 full battery is 4.35V, not 4.2V.
+> 
+> On 10/03/20 9:22 PM, Tony Lindgren wrote:
+> > * Lokesh Vutla <lokeshvutla@ti.com> [200310 07:06]:
+> >> Hi Tony,
+> >>
+> >> [...snip...]
+> >>
+> >>>>>>  
+> >>>>>> +	/*
+> >>>>>> +	 * Disable auto reload so that the current cycle gets completed and
+> >>>>>> +	 * then the counter stops.
+> >>>>>> +	 */
+> >>>>>>  	mutex_lock(&omap->mutex);
+> >>>>>> -	omap->pdata->stop(omap->dm_timer);
+> >>>>>> +	omap->pdata->set_pwm(omap->dm_timer,
+> >>>>>> +			     pwm_get_polarity(pwm) == PWM_POLARITY_INVERSED,
+> >>>>>> +			     true, OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE,
+> >>>>>> +			     false);
+> >>>>>> +
+> >>>>>>  	mutex_unlock(&omap->mutex);
+> >>>>>>  }
+> >>>>>
+> >>>>> I'm seeing an issue with this patch where after use something is
+> >>>>> left on and power consumption stays higher by about 30 mW after
+> >>>>> use.
+> >>>>
+> >>>> Interesting...What is the PWM period and duty cycle in the test case?
+> >>>> Can you dump the following registers before and after disabling:
+> >>>> - TLDR
+> >>>> - TMAR
+> >>>> - TCLR
+> >>>
+> >>> Here's the state dumped before and after in omap_dm_timer_set_pwm():
+> >>>
+> >>> omap_timer 4803e000.timer: XXX set_pwm before: tldr: fffffeb8 tmar: fffffffe tclr: 00000040
+> >>> omap_timer 4803e000.timer: XXX set_pwm after: tldr: fffffeb8 tmar: fffffffe tclr: 00001842
+> >>> omap_timer 4013e000.timer: XXX set_pwm before: tldr: fffffeb8 tmar: fffffffe tclr: 00000040
+> >>> omap_timer 4013e000.timer: XXX set_pwm after: tldr: fffffeb8 tmar: fffffffe tclr: 00001842
+> >>> omap_timer 4013e000.timer: XXX set_pwm before: tldr: fffffeb8 tmar: fffffffe tclr: 00001843
+> >>> omap_timer 4013e000.timer: XXX set_pwm after: tldr: fffffeb8 tmar: fffffffe tclr: 00001841
+> >>> omap_timer 4803e000.timer: XXX set_pwm before: tldr: fffffeb8 tmar: fffffffe tclr: 00001843
+> >>> omap_timer 4803e000.timer: XXX set_pwm after: tldr: fffffeb8 tmar: fffffffe tclr: 00001841
+> >>>
+> >>
+> >> Looking at the registers:
+> >> period = 327 *(1000/clk_freq in MHz) ns
+> >> duty_cycle =  perioid.
+> >>
+> >> I did simulate this behavior on BeagleBoneBlack on timer7. PWM is going down
+> >> after disabling.
+> >>
+> >>> So looks like the start bit is still enabled after use?
+> >>
+> >> Right, that is expected. The start bit gets disabled automatically once the pwm
+> >> period completes. This is because auto reload bit is off. That's the main idea
+> >> of this patch so that PWM period is completed after disabling, else PWM is
+> >> stopped abruptly.
 > > 
-> > Hmm yeah this is now configurable and defaults to 4.2V so we
-> > should use the confgured value. The reason we default to 4.2V
-> > now is because we suspect that if left connected to the charger
-> > at higher than 4.2V the battery ages faster.
-> 
-> 1. How to configure this value? I tried:
-> echo 4350000 > /sys/class/power_supply/battery/constant_charge_voltage
-> 
-> ...but it didn't change the fully charged battery voltage.
-
-If you really want to use it, first enable it for the battery in
-/sys/class/power/supply/usb to allow it, then also enable it for the
-charger in /sys/class/power/supply/usb to actually use it.
-
-But as discussed earlier, it really seems the battery ages faster at
-the higher charge rates. Especially if left connected to the charger
-for longer times as also seen with Android earlier.
-
-> 2. If the value is configurable, it probably shouldn't be hardcoded like
-> this in the code:
-> PCAP_CAP(POWER_SUPPLY_CAPACITY_LEVEL_FULL, 4200000 - 18000, 100)
-
-Right, we should now use the configured voltage :)
-
-> > > I think the kernel should return  -ENODATA
-> > > for capacity values until the battery is "calibrated". By "calibration"
-> > > I mean having high and low counter_uah values initialized with the data
-> > > collected when the battery went a full charge or discharge cycle (from
-> > > empty to full or vice versa).
+> > OK
 > > 
-> > Yes I like this idea. That leaves out the need for poor estimates
-> > in the kernel.
+> >> Not sure why it is not happening in your case. If you think it is not needed, I
+> >> can drop this patch and add a limitation saying that PWM gets disabled
+> >> immediately without completing the current cycle.
 > > 
-> > I guess we should have the following new properties:
-> > 
-> > POWER_SUPPLY_PROP_CHARGE_COUNTER_FULL
-> > POWER_SUPPLY_PROP_CHARGE_COUNTER_EMPTY
-> > 
-> > And these would be 0 on boot and then userspace can
-> > update these based on battery data.
+> > Could it be that we now have the cpu_pm notifier restore something
+> > invalid after exiting idle that restarts the counter?
 > 
-> My idea is to only have one extra property which will store the delta of
-> counter values for full and empty battery states. In this case, it's going
-> to be more accurate than allowing the userspace to store/restore both full
-> and empty counters.
+> If that's the case, mis behavior should have happened without this patch as well.
 
-Hmm OK. Sounds like you might have some patches coming then?
+Hmm but without this patch we stop the timer so enable bit is
+cleared before we ever save context. I think now we can have
+enable bit still on, save the context, and keep restoring the
+enable bit that never has a chance to clear if we do this at
+a fast enough rate.
 
-> Some users may have a dual boot setup. In this case restoring full & empty
-> counters after reboot can make the kernel to report wrong battery
-> percentage
-> values.
+> Is it possible for you to dump the registers when you are observing higher power
+> consumption after the use?
 
-Yeah no idea how that is handled. Also changing the battery can cause
-issues with this. I was expecting the 1-wire EEPROM to contain some
-battery specific data like a serial number, but it seems this data is
-the same for all the same type batteries.
+Well they seem to be the same as in the dump above, here are the regs
+dumped after use with chirping happening:
 
-> Let's imagine the following situation:
-> 
-> 1. The user charges the battery to the full state and discharges it to be
-> almost depleted, so the kernel has "calibrated" values for counter_full and
-> counter_empty.
-> 2. The user decides to reboot to another OS. Let's assume he has a fully
-> charged battery before doing the reboot.
-> For example the kernel provides the following values:
-> POWER_SUPPLY_PROP_CHARGE_COUNTER_FULL = -250000
-> POWER_SUPPLY_PROP_CHARGE_COUNTER_EMPTY = 950000
-> /sys/class/power_supply/battery/charge_counter = -250000
-> A daemon saves these values to a permanent storage.
-> 3. The user boots another OS, works there for a while, the battery charge
-> becomes 50%.
-> 4. The user reboots back to our system, we restore the values:
-> POWER_SUPPLY_PROP_CHARGE_COUNTER_FULL <- -250000
-> POWER_SUPPLY_PROP_CHARGE_COUNTER_EMPTY <- 950000
-> 5. /sys/class/power_supply/battery/charge_counter is initialized to 0 or
-> -250000, it doesn't matter, because in both cases we will get the wrong
-> battery percentage. We should report 50%, remember? In any case it can't
-> be calculated to this value.
+$ sudo rwmem 0x4803e000+0x60
+0x4803e000 = 0x4fff1301
+0x4803e004 = 0000000000
+0x4803e008 = 0000000000
+0x4803e00c = 0000000000
+0x4803e010 = 0x0000000c
+0x4803e014 = 0000000000
+0x4803e018 = 0000000000
+0x4803e01c = 0000000000
+0x4803e020 = 0000000000
+0x4803e024 = 0x00000003
+0x4803e028 = 0000000000
+0x4803e02c = 0000000000
+0x4803e030 = 0000000000
+0x4803e034 = 0000000000
+0x4803e038 = 0x00001841
+0x4803e03c = 0x00000402
+0x4803e040 = 0xfffffeb8
+0x4803e044 = 0xffffffff
+0x4803e048 = 0000000000
+0x4803e04c = 0xfffffffe
+0x4803e050 = 0000000000
+0x4803e054 = 0000000000
+0x4803e058 = 0000000000
+0x4803e05c = 0000000000
 
-Maybe some charge counter offset limit can be used to validate
-the saved data in the userspace before updating values for kernel?
+$ sudo rwmem 0x4013e000+0x60
+0x4013e000 = 0x4fff0301
+0x4013e004 = 0000000000
+0x4013e008 = 0000000000
+0x4013e00c = 0000000000
+0x4013e010 = 0000000000
+0x4013e014 = 0000000000
+0x4013e018 = 0000000000
+0x4013e01c = 0000000000
+0x4013e020 = 0000000000
+0x4013e024 = 0x00000003
+0x4013e028 = 0000000000
+0x4013e02c = 0000000000
+0x4013e030 = 0000000000
+0x4013e034 = 0000000000
+0x4013e038 = 0x00001841
+0x4013e03c = 0x00000407
+0x4013e040 = 0xfffffeb8
+0x4013e044 = 0xffffffff
+0x4013e048 = 0000000000
+0x4013e04c = 0xfffffffe
+0x4013e050 = 0000000000
+0x4013e054 = 0000000000
+0x4013e058 = 0000000000
+0x4013e05c = 0000000000
 
-> And here's how I suggest it to be implemented:
-> 1. Same as above
-> 2. Same as above, except the kernel provides a single value that the user
-> should store between reboots (it's the delta I mentioned above):
-> POWER_SUPPLY_PROP_CHARGE_FULL = 1200000
-> 3. Same as above
-> 4. The user reboots back to our system, we restore the value:
-> POWER_SUPPLY_PROP_CHARGE_FULL <- 1200000
-> 5. The kernel reports -ENODATA as battery capacity value until the battery
-> goes to a reference point (fully charged or almost discharged state).
-> When the battery is fully charged or discharged, the kernel can immediately
-> calculate the opposite counter value. And no matter what was the initial
-> value of /sys/class/power_supply/battery/charge_counter when the system
-> booted.
-> 
-> Of course, the value of the delta will not be constant, it should be
-> recalculated over time. The good news is that this value will be changed
-> slowly over time. That is, it can vary from 2% to 10% per year.
+So looks like the enable bit is never cleared now.
 
-Sounds good to me :)
+> However, I see an issue with the patch itself as pm_runtime is not disabled
+> after the pwm is stopped. Not sure how that could be nullified with this approach.
+
+Hmm yeah not sure what could be used to clear things
+when the current cycle is completed unless there's
+some interrupt for it.
+
+Regards,
 
 Tony
+
