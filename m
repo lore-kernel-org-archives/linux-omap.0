@@ -6,27 +6,27 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25028C5ACBF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6955AC5ACC2
 	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 02:29:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 08327205ED
+	by mail.kernel.org (Postfix) with ESMTP id 48C0220665
 	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 02:29:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727671AbgCOC31 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1727632AbgCOC31 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Sat, 14 Mar 2020 22:29:27 -0400
-Received: from muru.com ([72.249.23.125]:60442 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:60438 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727632AbgCOC30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S1727665AbgCOC30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Sat, 14 Mar 2020 22:29:26 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 7439D8211;
-        Sat, 14 Mar 2020 21:44:20 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 2C709827D;
+        Sat, 14 Mar 2020 21:44:21 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 4/7] ARM: omap2plus_defconfig: Enable more droid4 devices as loadable modules
-Date:   Sat, 14 Mar 2020 14:43:25 -0700
-Message-Id: <20200314214328.13342-4-tony@atomide.com>
+Subject: [PATCH 5/7] ARM: omap2plus_defconfig: Enable McPDM optional PMIC clock as modules
+Date:   Sat, 14 Mar 2020 14:43:26 -0700
+Message-Id: <20200314214328.13342-5-tony@atomide.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200314214328.13342-1-tony@atomide.com>
 References: <20200314214328.13342-1-tony@atomide.com>
@@ -37,11 +37,9 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Enable more droid4 devices as loadable modules:
-
-- We have an isl29028 proximity sensor
-
-- Battery has an EEPROM that can be read with w1_ds250x
+The McPDM module is only usable on hardware where it's module clock
+is wired to the PMIC. Let's enable the optional PMIC module clocks
+for this so boards can use McPDM.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
@@ -51,21 +49,14 @@ Signed-off-by: Tony Lindgren <tony@atomide.com>
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -283,6 +283,7 @@ CONFIG_GPIO_PALMAS=y
- CONFIG_GPIO_TWL4030=y
- CONFIG_W1=m
- CONFIG_HDQ_MASTER_OMAP=m
-+CONFIG_W1_SLAVE_DS250X=m
- CONFIG_POWER_AVS=y
- CONFIG_POWER_RESET=y
- CONFIG_POWER_RESET_GPIO=y
-@@ -504,6 +505,7 @@ CONFIG_IIO_SW_TRIGGER=m
- CONFIG_IIO_ST_ACCEL_3AXIS=m
- CONFIG_CPCAP_ADC=m
- CONFIG_TI_AM335X_ADC=m
-+CONFIG_SENSORS_ISL29028=m
- CONFIG_BMP280=m
- CONFIG_PWM=y
- CONFIG_PWM_OMAP_DMTIMER=m
+@@ -488,6 +488,8 @@ CONFIG_RTC_DRV_PALMAS=m
+ CONFIG_RTC_DRV_OMAP=m
+ CONFIG_RTC_DRV_CPCAP=m
+ CONFIG_DMADEVICES=y
++CONFIG_CLK_TWL6040=m
++CONFIG_COMMON_CLK_PALMAS=m
+ CONFIG_OMAP_IOMMU=y
+ CONFIG_REMOTEPROC=y
+ CONFIG_OMAP_REMOTEPROC=m
 -- 
 2.25.1
