@@ -4,36 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C8BC4CECE
-	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 01:44:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C24E8C0044D
+	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 02:29:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C2E42071B
-	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 01:44:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EB04205C9
+	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 02:29:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726879AbgCOBo0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 14 Mar 2020 21:44:26 -0400
-Received: from muru.com ([72.249.23.125]:60428 "EHLO muru.com"
+        id S1726635AbgCOC30 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 14 Mar 2020 22:29:26 -0400
+Received: from muru.com ([72.249.23.125]:60446 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726738AbgCOBo0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 14 Mar 2020 21:44:26 -0400
+        id S1727693AbgCOC30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 14 Mar 2020 22:29:26 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 16C308167;
-        Sat, 14 Mar 2020 20:55:53 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id C84168202;
+        Sat, 14 Mar 2020 21:44:19 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
-Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, maemo-leste@lists.dyne.org,
-        Arthur Demchenkov <spinal.by@gmail.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH] ARM: dts: omap4-droid4: Fix lost touchscreen interrupts
-Date:   Sat, 14 Mar 2020 13:55:05 -0700
-Message-Id: <20200314205505.44953-1-tony@atomide.com>
+Cc:     linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 3/7] ARM: omap2plus_defconfig: Enable zram as loadable modules
+Date:   Sat, 14 Mar 2020 14:43:24 -0700
+Message-Id: <20200314214328.13342-3-tony@atomide.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200314214328.13342-1-tony@atomide.com>
+References: <20200314214328.13342-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
@@ -41,42 +37,34 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Looks like we can have the maxtouch touchscreen stop producing interrupts
-if an edge interrupt is lost. This can happen easily when the SoC idles as
-the gpio controller may not see any state for an edge interrupt if it
-is briefly triggered when the system is idle.
+Enable zram as loadable modules. This allows mounting some part of
+memory as swap on low memory devices.
 
-Also it looks like maxtouch stops sending any further interrupts if the
-interrupt is not handled. And we do have several cases of maxtouch already
-configured with a level interrupt, so let's do that.
-
-With level interrupt the gpio controller has the interrupt state visible
-after idle. Note that eventually we will probably also be using the
-Linux generic wakeirq configured for the controller, but that cannot be
-done until the maxtouch driver supports runtime PM.
-
-Cc: maemo-leste@lists.dyne.org
-Cc: Arthur Demchenkov <spinal.by@gmail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/motorola-mapphone-common.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/configs/omap2plus_defconfig | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/motorola-mapphone-common.dtsi b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
---- a/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-+++ b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-@@ -429,7 +429,7 @@ touchscreen@4a {
- 		reset-gpios = <&gpio6 13 GPIO_ACTIVE_HIGH>; /* gpio173 */
- 
- 		/* gpio_183 with sys_nirq2 pad as wakeup */
--		interrupts-extended = <&gpio6 23 IRQ_TYPE_EDGE_FALLING>,
-+		interrupts-extended = <&gpio6 23 IRQ_TYPE_LEVEL_LOW>,
- 				      <&omap4_pmx_core 0x160>;
- 		interrupt-names = "irq", "wakeup";
- 		wakeup-source;
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -78,6 +78,8 @@ CONFIG_MODULE_SRCVERSION_ALL=y
+ CONFIG_PARTITION_ADVANCED=y
+ CONFIG_BINFMT_MISC=y
+ CONFIG_CMA=y
++CONFIG_ZSMALLOC=m
++CONFIG_PGTABLE_MAPPING=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+@@ -150,6 +152,8 @@ CONFIG_MTD_NAND_OMAP2=y
+ CONFIG_MTD_NAND_OMAP_BCH=y
+ CONFIG_MTD_SPI_NOR=m
+ CONFIG_MTD_UBI=y
++CONFIG_ZRAM=m
++CONFIG_ZRAM_WRITEBACK=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=16384
 -- 
 2.25.1
