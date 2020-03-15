@@ -2,59 +2,84 @@ Return-Path: <SRS0=yxN7=5A=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9E12C5ACD3
-	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 02:29:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE3C4C4CECE
+	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 05:49:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AB8C7205C9
-	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 02:29:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B778720724
+	for <linux-omap@archiver.kernel.org>; Sun, 15 Mar 2020 05:49:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727693AbgCOC32 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 14 Mar 2020 22:29:28 -0400
-Received: from muru.com ([72.249.23.125]:60450 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727695AbgCOC31 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 14 Mar 2020 22:29:27 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id CE9E2836C;
-        Sat, 14 Mar 2020 21:44:21 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 6/7] ARM: omap2plus_defconfig: Enable ina2xx_adc as a loadable module
-Date:   Sat, 14 Mar 2020 14:43:27 -0700
-Message-Id: <20200314214328.13342-6-tony@atomide.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200314214328.13342-1-tony@atomide.com>
-References: <20200314214328.13342-1-tony@atomide.com>
+        id S1727108AbgCOFtF convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 15 Mar 2020 01:49:05 -0400
+Received: from mail-io1-f69.google.com ([209.85.166.69]:50659 "EHLO
+        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727109AbgCOFtF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 15 Mar 2020 01:49:05 -0400
+Received: by mail-io1-f69.google.com with SMTP id d16so9486246iop.17
+        for <linux-omap@vger.kernel.org>; Sat, 14 Mar 2020 22:49:02 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to:content-transfer-encoding;
+        bh=FJOATGVgF+RB8AvqptT57xQBCVKN+MlPkIh/jxrUb5Y=;
+        b=cCkuJLibb1gKcUa9X/ZuIDXp2ChBjVxMQ2AIQbKRRiiRKdJnq8jSPgtFqrOnH9s7Jd
+         FyUYwCt25WfF8s8arWC7UoF7NmyDy8vvkKiQfSuTueI+ABCtmozTjcKhjToJZxNzgtGP
+         /gSI7ZoiT1GPkvf8+NQCcgESHqzy6tOsXvnWYpCb3L7x0AkyfrLdE72cs8/trMn/ZhZa
+         bh8xPQbnxX6SnFxDBNcsAnZSGYE31MVaO5mmbt53zcb+V9MopWm8i99+x4qNivMCP3uE
+         emlkqMxg/b+F4rllLOZmVckcN/IEyR0D3Wh95BdWjfgBN70D4plP0madNibq8xZZPTef
+         0t+g==
+X-Gm-Message-State: ANhLgQ3FnMeofQ0JDk01QOz0EJRBg8KoN6JrajKpwQ7dknQO93ClII6V
+        5KAkWrfEryOhAQryN5+0iNBf3gBeQCQJMfFhQ24fVYk1fXHB
+X-Google-Smtp-Source: ADFU+vtjWrHuYWHmtJ+7R/F21gT5LEveKjWUsRf8UObsGMOlzh5S+x+bzsUNrMqUqBppbPPWer/sA+tMDrmnP8e3gzLvu8ysJS2P
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a92:5e14:: with SMTP id s20mr101812ilb.101.1584251342473;
+ Sat, 14 Mar 2020 22:49:02 -0700 (PDT)
+Date:   Sat, 14 Mar 2020 22:49:02 -0700
+In-Reply-To: <000000000000e0ab4c059c79f014@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000080d06405a0de4277@google.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_ext_cleanup
+From:   syzbot <syzbot+7b6206fb525c1f5ec3f8@syzkaller.appspotmail.com>
+To:     a@unstable.cc, andrew@lunn.ch, b.a.t.m.a.n@lists.open-mesh.org,
+        coreteam@netfilter.org, davem@davemloft.net,
+        florent.fourcot@wifirst.fr, fw@strlen.de, grygorii.strashko@ti.com,
+        j-keerthy@ti.com, jeremy@azazel.net, johannes.berg@intel.com,
+        kadlec@blackhole.kfki.hu, kadlec@netfilter.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        mareklindner@neomailbox.ch, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Some devices have ina2xx_adc on i2c for measuring power consumption
-and can nowadays just read the output via IIO.
+syzbot suspects this bug was fixed by commit:
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
+commit 32c72165dbd0e246e69d16a3ad348a4851afd415
+Author: Kadlecsik József <kadlec@blackhole.kfki.hu>
+Date:   Sun Jan 19 21:06:49 2020 +0000
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -506,6 +506,7 @@ CONFIG_IIO_SW_DEVICE=m
- CONFIG_IIO_SW_TRIGGER=m
- CONFIG_IIO_ST_ACCEL_3AXIS=m
- CONFIG_CPCAP_ADC=m
-+CONFIG_INA2XX_ADC=m
- CONFIG_TI_AM335X_ADC=m
- CONFIG_SENSORS_ISL29028=m
- CONFIG_BMP280=m
--- 
-2.25.1
+    netfilter: ipset: use bitmap infrastructure completely
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=122e7c1de00000
+start commit:   d5d359b0 Merge branch 'for-linus' of git://git.kernel.org/..
+git tree:       upstream
+kernel config:  https://syzkaller.appspot.com/x/.config?x=cf8e288883e40aba
+dashboard link: https://syzkaller.appspot.com/bug?extid=7b6206fb525c1f5ec3f8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15909f21e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=141a1611e00000
+
+If the result looks correct, please mark the bug fixed by replying with:
+
+#syz fix: netfilter: ipset: use bitmap infrastructure completely
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
