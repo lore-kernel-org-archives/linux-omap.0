@@ -6,41 +6,41 @@ X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE45BC0044D
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 13:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F9DC18E5B
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 13:26:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A519E2071C
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 13:26:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20D9520663
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 13:26:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731255AbgCPN0u (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1731025AbgCPN0u (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 16 Mar 2020 09:26:50 -0400
-Received: from mga18.intel.com ([134.134.136.126]:31217 "EHLO mga18.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:27296 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731025AbgCPN0t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 16 Mar 2020 09:26:49 -0400
-IronPort-SDR: 1Obh3DS+w+VMrLMsAJYVXwbnuI6P53zzkUU+7wlK5pbWNZw6k+P0ohul4Y3YKb26WFQFPQ/rTI
- LX06civY3mtQ==
+        id S1731234AbgCPN0u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 16 Mar 2020 09:26:50 -0400
+IronPort-SDR: 8M2pXAUUs+2CLyjV4tFtr820/wuOm8ZwSzsc4AMHAjpEP71I39EQU6Uad0ruCh1xT7LAD7WGrE
+ CjEQl2L1J1Fg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2020 06:26:48 -0700
-IronPort-SDR: nu+BBwr5MFsa0cXKAL2fcqwGmVbVzApnQw38CfmgoSpbZ65yE5dabV6HfBtfbfxGIA8OxEwh7A
- PMhCog1ZmkrQ==
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2020 06:26:49 -0700
+IronPort-SDR: FFqXo5TF/9EWT5ycDFUjD94uCIU/vGYVmV4epI+S7vwusZQV1qNHv+nBr76fI9MpSqtL44e+O/
+ VqWnOEDk7SLw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.70,560,1574150400"; 
-   d="scan'208";a="237951611"
+   d="scan'208";a="233164040"
 Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga008.jf.intel.com with ESMTP; 16 Mar 2020 06:26:47 -0700
+  by orsmga007.jf.intel.com with ESMTP; 16 Mar 2020 06:26:47 -0700
 Received: from kbuild by lkp-server01 with local (Exim 4.89)
         (envelope-from <lkp@intel.com>)
-        id 1jDplW-000577-KA; Mon, 16 Mar 2020 21:26:46 +0800
-Date:   Mon, 16 Mar 2020 21:25:55 +0800
+        id 1jDplW-000570-FG; Mon, 16 Mar 2020 21:26:46 +0800
+Date:   Mon, 16 Mar 2020 21:25:51 +0800
 From:   kbuild test robot <lkp@intel.com>
 To:     Felipe Balbi <balbi@kernel.org>
 Cc:     linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: [balbi-usb:testing/next] BUILD SUCCESS
- 4a5dbd9009570d3b23fd1392c4d178bfe3538d2c
-Message-ID: <5e6f7e63.y3tswdCdcrV+uZY6%lkp@intel.com>
+Subject: [balbi-usb:testing/fixes] BUILD SUCCESS
+ 8e11a977c8eb02aa06604b11cfb4e43eb8287537
+Message-ID: <5e6f7e5f.oPUL0wusm4ukMqOi%lkp@intel.com>
 User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -50,8 +50,8 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/next
-branch HEAD: 4a5dbd9009570d3b23fd1392c4d178bfe3538d2c  dt-bindings: usb: add documentation for aspeed usb-vhub
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/fixes
+branch HEAD: 8e11a977c8eb02aa06604b11cfb4e43eb8287537  usb: dwc2: Silence warning about supplies during deferred probe
 
 elapsed time: 485m
 
@@ -99,12 +99,12 @@ m68k                          multi_defconfig
 m68k                           sun3_defconfig
 arc                                 defconfig
 arc                              allyesconfig
+powerpc                             defconfig
 powerpc                       ppc64_defconfig
+powerpc                          rhel-kconfig
 microblaze                      mmu_defconfig
 microblaze                    nommu_defconfig
 powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                          rhel-kconfig
 mips                           32r2_defconfig
 mips                         64r6el_defconfig
 mips                             allmodconfig
@@ -112,15 +112,15 @@ mips                              allnoconfig
 mips                      fuloong2e_defconfig
 mips                      malta_kvm_defconfig
 parisc                            allnoconfig
-parisc                generic-64bit_defconfig
-parisc                generic-32bit_defconfig
 parisc                           allyesconfig
-riscv                randconfig-a001-20200316
+parisc                generic-32bit_defconfig
+parisc                generic-64bit_defconfig
 alpha                randconfig-a001-20200316
-nds32                randconfig-a001-20200316
 m68k                 randconfig-a001-20200316
-parisc               randconfig-a001-20200316
 mips                 randconfig-a001-20200316
+nds32                randconfig-a001-20200316
+parisc               randconfig-a001-20200316
+riscv                randconfig-a001-20200316
 h8300                randconfig-a001-20200316
 sparc64              randconfig-a001-20200316
 c6x                  randconfig-a001-20200316
@@ -166,12 +166,12 @@ riscv                             allnoconfig
 riscv                            allyesconfig
 riscv                               defconfig
 riscv                          rv32_defconfig
-s390                       zfcpdump_defconfig
-s390                          debug_defconfig
-s390                              allnoconfig
-s390                             allmodconfig
 s390                             alldefconfig
+s390                             allmodconfig
+s390                              allnoconfig
+s390                          debug_defconfig
 s390                                defconfig
+s390                       zfcpdump_defconfig
 sh                               allmodconfig
 sh                                allnoconfig
 sh                          rsk7269_defconfig
