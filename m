@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF4AC18E5B
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 02:37:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17104C10DCE
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 02:39:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B769F2073C
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 02:37:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE7DC20658
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 02:39:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584326240;
-	bh=bnIZ+VDJdYnoXNs28ppMqKW5Lgz6HtETtN+RlPx/diQ=;
+	s=default; t=1584326371;
+	bh=Yif/MN9EuU1cH8MxcNoZmPCJ/pA6Q1Lff4fYJ2Nk1PA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=iA8mPaQwNuyU1aZ3Qn+iPeHV0kLL20AI2btsrlFoOH9mDuC+D8ZQJ/kxDtVdutezO
-	 9FbMMha0zFjmCAu4ImNtR2N4BUUt3uSbwwfvKQFcFjK2lkGjqUId1GlDWIIy/TcfIs
-	 gRtOphUzfGI+tdSpph4wuHWuAxQGZf8bS6DxKHKQ=
+	b=cdbmjYd/QRClOVghaBSXnmLdQzDjLcAzp7HqlQOkdOM7nbqSMJiz2pDyU/XyFFP5f
+	 CkGusyj1nm5VII8FLZCNlfXooQbBootlT51TmkUqjuASWxLmo1Q7pTFmDB6/F69FKX
+	 fNhipG4kjdljClrb3WB5eClK9P/DypGrn0pAAg5M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730084AbgCPChP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 15 Mar 2020 22:37:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39852 "EHLO mail.kernel.org"
+        id S1730398AbgCPCj1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 15 Mar 2020 22:39:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730155AbgCPCfZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 15 Mar 2020 22:35:25 -0400
+        id S1729849AbgCPCe1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 15 Mar 2020 22:34:27 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 051EA20739;
-        Mon, 16 Mar 2020 02:35:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E38A1206EB;
+        Mon, 16 Mar 2020 02:34:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584326124;
-        bh=bnIZ+VDJdYnoXNs28ppMqKW5Lgz6HtETtN+RlPx/diQ=;
+        s=default; t=1584326066;
+        bh=Yif/MN9EuU1cH8MxcNoZmPCJ/pA6Q1Lff4fYJ2Nk1PA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kC9rhE/Cd4ayPgmuAM4GZblJXwGXjL7Vsys9U/RFU17e8zSdxO3efgilmJAc2PJfz
-         7BzGNTnYOAvDEVjIxfJONx7gFPaAR88X8f6L8qXsZU1GU8Q2hCujEuB+5LUl8OOh1I
-         hSrNhzEjMLgO6Rp4q430poBuTHS/AsdXpB6bxILE=
+        b=uxtak+0n2aLcbxqhEQqdlsyqoRB9SXrGpv18tGW0myJdYC/sPP4UVksY1AXPVzPur
+         UfN2nMMh5nSpRwEkUETFMfBulxWy7Qb/Xn6vMOSW9LXulVCuTXWgXS8K0ZkxiXVtCt
+         5vKaZelV9DldzcbSbpd+ViMTeGPwj1lIkzi3UzFQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 04/15] ARM: dts: dra7: Add "dma-ranges" property to PCIe RC DT nodes
-Date:   Sun, 15 Mar 2020 22:35:08 -0400
-Message-Id: <20200316023519.2050-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 13/35] ARM: dts: dra7: Add "dma-ranges" property to PCIe RC DT nodes
+Date:   Sun, 15 Mar 2020 22:33:49 -0400
+Message-Id: <20200316023411.1263-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200316023519.2050-1-sashal@kernel.org>
-References: <20200316023519.2050-1-sashal@kernel.org>
+In-Reply-To: <20200316023411.1263-1-sashal@kernel.org>
+References: <20200316023411.1263-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -78,10 +78,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index fec965009b9fc..a40a7af85d020 100644
+index 953f0ffce2a90..6481d2b7d6b6f 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -302,6 +302,7 @@
+@@ -184,6 +184,7 @@
  				device_type = "pci";
  				ranges = <0x81000000 0 0          0x03000 0 0x00010000
  					  0x82000000 0 0x20013000 0x13000 0 0xffed000>;
@@ -89,7 +89,7 @@ index fec965009b9fc..a40a7af85d020 100644
  				bus-range = <0x00 0xff>;
  				#interrupt-cells = <1>;
  				num-lanes = <1>;
-@@ -356,6 +357,7 @@
+@@ -238,6 +239,7 @@
  				device_type = "pci";
  				ranges = <0x81000000 0 0          0x03000 0 0x00010000
  					  0x82000000 0 0x30013000 0x13000 0 0xffed000>;
