@@ -6,37 +6,37 @@ X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 118B7C18E5B
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 18:28:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8C60C2BB1D
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 18:28:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D40B8206C0
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 18:28:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8A4D20719
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Mar 2020 18:28:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584383294;
-	bh=3ny6nLBhWMN7Tnbc3yjHh9vkkA88GrNLNX04LRSKado=;
+	s=default; t=1584383317;
+	bh=mSIcRXbQR93F5mXG6L77T9yTvkpVt+N3gWe1Hs4i1r8=;
 	h=In-Reply-To:References:Subject:From:Cc:To:Date:List-ID:From;
-	b=VpLDUkh4nRquzrB1g0puXKjXfKOtifdNgkpOL/VAljwnTpM1PEcgf9TwGW2WbTK4Y
-	 K5P5l38dPdfrBDqoOrUK1OZ8ro656gu+4g6EvRBMFacAs9R5GVqRBnnVGODi4XnmL9
-	 BjdNzIPRFuezISmhohz1pUmxwjdhLX6Mx2ev+eAw=
+	b=0z+Z9u2ZDNMBEZlCTO8qBaCKsLFeHXyKePjmVkeAOOy2E4c8m+A1L1l8lNLY1fMTu
+	 C5twYhQB06qQskf1CmC4Z69VFWCshwYzt4Y7EE/8DROrtQqNL7duIGClW58262y1WL
+	 gOa/rw+1Ul+/FXt7B3Pm+1NP7d68ar4r/JS513OU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732361AbgCPS2O (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 16 Mar 2020 14:28:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57654 "EHLO mail.kernel.org"
+        id S1732360AbgCPS2h (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 16 Mar 2020 14:28:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58030 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732313AbgCPS2O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 16 Mar 2020 14:28:14 -0400
+        id S1732266AbgCPS2h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 16 Mar 2020 14:28:37 -0400
 Received: from kernel.org (unknown [104.132.0.74])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 726BA20409;
-        Mon, 16 Mar 2020 18:28:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7DD3620409;
+        Mon, 16 Mar 2020 18:28:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584383293;
-        bh=3ny6nLBhWMN7Tnbc3yjHh9vkkA88GrNLNX04LRSKado=;
+        s=default; t=1584383316;
+        bh=mSIcRXbQR93F5mXG6L77T9yTvkpVt+N3gWe1Hs4i1r8=;
         h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
-        b=uLett0y7mrWX7f1IWoybiokeUIYQBKweyEDDsE5m1xWD328QgX0wzEK9bjq18vVTV
-         P1uzQXLRpz9ZWJ7zIro+ccO+YdKzQmbnLh43iC6/bmSs1eNtq+HDJ1pk7XDXmm8ord
-         K+LKAPT7w/nrweTI/VccgeJ4kIiqdeek0hO6ULcA=
+        b=lMnXH/3ZzggPbtxMb+l9j6nT9+iwx7dhmcjP12rFmgnDWcku1D7JVym6u/ruk6J70
+         jwq1gEGmYXFAiPz4/ULUZQ0Kzc/KWpFzQbijdEHU8XgLV/+w/p2IIkan0TPhI8/Qvd
+         tzi7CoO0JMQpkvDCy+AJUbuWnk532d8smDISP87g=
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
@@ -49,8 +49,8 @@ Cc:     devicetree@vger.kernel.org, linux-clk@vger.kernel.org,
 To:     Michael Turquette <mturquette@baylibre.com>,
         Stephen Boyd <sboyd@codeaurora.org>,
         Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
-Date:   Mon, 16 Mar 2020 11:28:12 -0700
-Message-ID: <158438329273.88485.9465537092249993831@swboyd.mtv.corp.google.com>
+Date:   Mon, 16 Mar 2020 11:28:35 -0700
+Message-ID: <158438331569.88485.562432552826260475@swboyd.mtv.corp.google.com>
 User-Agent: alot/0.9
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
@@ -80,6 +80,5 @@ Quoting Tero Kristo (2020-03-16 07:48:30)
 > Sure,
 >=20
 > Acked-by: Tero Kristo <t-kristo@ti.com>
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/=
-Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+Woops, hit send too fast. Thanks! Picked it into clk-fixes.
