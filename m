@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1834CC43332
-	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 16:58:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8AEBC4332B
+	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 16:58:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E21A6207FC
-	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 16:58:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB5232071C
+	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 16:58:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="pp4bH7qN"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="zQk/nrjQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728468AbgCSQ6O (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 Mar 2020 12:58:14 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:59990 "EHLO
+        id S1728559AbgCSQ6U (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 Mar 2020 12:58:20 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:60010 "EHLO
         lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728454AbgCSQ6N (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2020 12:58:13 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 02JGw8RM033856;
-        Thu, 19 Mar 2020 11:58:08 -0500
+        with ESMTP id S1728454AbgCSQ6Q (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2020 12:58:16 -0400
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 02JGwCSr033878;
+        Thu, 19 Mar 2020 11:58:12 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1584637088;
-        bh=NC3leWhnM/4NIc8QyBQa2tN7YReyUOftwpbx33+WJHM=;
+        s=ti-com-17Q1; t=1584637092;
+        bh=VDL4bQPEF3OLQcAhE+BrvsJYUbu3alZiaqyJxwQK41U=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=pp4bH7qNUPjAQ2umBXokEMG1pbjO1Zopd0aY7O206uBofF0lOUzncDbCSzQdQg2I5
-         sv56KoX05Mt0lTqhv6gxc5FRgoFOyXvy43BoXI91AKvnka2TVsAGEyz76SygIkml+6
-         Kew6Lp3caZPH5RBOxBeWDwzD5HBa6E/YF4+JYqwQ=
-Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 02JGw8Sd018372
+        b=zQk/nrjQlBW4i6rcJfuIdFSqqN+D2MSYDQTMdY2CjSJyF1a6c0xFJ02dPrrAD0VVP
+         wdOpAK0wb9Wqn/EmLE48ppLAEz9V2vPguX27dIINXqa9Qq4jaUKxIcB/2nu6dMkmAE
+         BmATSslwYA8Ue4DzM8X503MO8a1uASbUYbTXenbI=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 02JGwCMN058483
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 19 Mar 2020 11:58:08 -0500
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 19 Mar 2020 11:58:12 -0500
+Received: from DFLE106.ent.ti.com (10.64.6.27) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Thu, 19
- Mar 2020 11:58:08 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ Mar 2020 11:58:12 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Thu, 19 Mar 2020 11:58:07 -0500
+ Frontend Transport; Thu, 19 Mar 2020 11:58:12 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 02JGw7so111215;
-        Thu, 19 Mar 2020 11:58:07 -0500
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 02JGwBFZ111342;
+        Thu, 19 Mar 2020 11:58:11 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
 To:     "David S . Miller" <davem@davemloft.net>,
         Richard Cochran <richardcochran@gmail.com>,
@@ -56,9 +56,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>,
         netdev <netdev@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 01/10] net: ethernet: ti: cpts: use dev_yy() api for logs
-Date:   Thu, 19 Mar 2020 18:57:53 +0200
-Message-ID: <20200319165802.30898-2-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 03/10] net: ethernet: ti: cpts: move tc mult update in cpts_fifo_read()
+Date:   Thu, 19 Mar 2020 18:57:55 +0200
+Message-ID: <20200319165802.30898-4-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200319165802.30898-1-grygorii.strashko@ti.com>
 References: <20200319165802.30898-1-grygorii.strashko@ti.com>
@@ -70,64 +70,61 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Use dev_yy() API instead of pr_yy() for log outputs.
+Now CPTS driver .adjfreq() generates request to read CPTS current time
+(CPTS_EV_PUSH) with intention to process all pending event using previous
+frequency adjustment values before switching to the new ones. So
+CPTS_EV_PUSH works as a marker to switch to the new frequency adjustment
+values. Current code assumes that all job is done in .adjfreq(), but after
+enabling IRQ this will not be true any more.
+
+Hence save new frequency adjustment values (mult) and perform actual freq
+adjustment in cpts_fifo_read() immediately after CPTS_EV_PUSH is received.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpts.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/ti/cpts.c | 8 ++++++--
+ drivers/net/ethernet/ti/cpts.h | 1 +
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 729ce09dded9..f07b40504e5b 100644
+index 6a1844cd23ff..e6a8ccae711c 100644
 --- a/drivers/net/ethernet/ti/cpts.c
 +++ b/drivers/net/ethernet/ti/cpts.c
-@@ -71,7 +71,7 @@ static int cpts_purge_events(struct cpts *cpts)
- 	}
- 
- 	if (removed)
--		pr_debug("cpts: event pool cleaned up %d\n", removed);
-+		dev_dbg(cpts->dev, "cpts: event pool cleaned up %d\n", removed);
- 	return removed ? 0 : -1;
- }
- 
-@@ -150,7 +150,7 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
+@@ -165,6 +165,10 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
+ 		case CPTS_EV_PUSH:
+ 			WRITE_ONCE(cpts->cur_timestamp, lo);
+ 			timecounter_read(&cpts->tc);
++			if (cpts->mult_new) {
++				cpts->cc.mult = cpts->mult_new;
++				cpts->mult_new = 0;
++			}
  			break;
+ 		case CPTS_EV_TX:
+ 			if (cpts_match_tx_ts(cpts, event)) {
+@@ -228,9 +232,9 @@ static int cpts_ptp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
  
- 		if (list_empty(&cpts->pool) && cpts_purge_events(cpts)) {
--			pr_err("cpts: event pool empty\n");
-+			dev_info(cpts->dev, "cpts: event pool empty\n");
- 			return -1;
- 		}
+ 	spin_lock_irqsave(&cpts->lock, flags);
  
-@@ -178,7 +178,7 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
- 		case CPTS_EV_HW:
- 			break;
- 		default:
--			pr_err("cpts: unknown event type\n");
-+			dev_err(cpts->dev, "cpts: unknown event type\n");
- 			break;
- 		}
- 		if (type == match)
-@@ -196,7 +196,7 @@ static u64 cpts_systim_read(const struct cyclecounter *cc)
+-	cpts_update_cur_time(cpts, CPTS_EV_PUSH);
++	cpts->mult_new = neg_adj ? mult - diff : mult + diff;
  
- 	cpts_write32(cpts, TS_PUSH, ts_push);
- 	if (cpts_fifo_read(cpts, CPTS_EV_PUSH))
--		pr_err("cpts: unable to obtain a time stamp\n");
-+		dev_err(cpts->dev, "cpts: unable to obtain a time stamp\n");
+-	cpts->cc.mult = neg_adj ? mult - diff : mult + diff;
++	cpts_update_cur_time(cpts, CPTS_EV_PUSH);
  
- 	list_for_each_safe(this, next, &cpts->events) {
- 		event = list_entry(this, struct cpts_event, list);
-@@ -307,8 +307,8 @@ static long cpts_overflow_check(struct ptp_clock_info *ptp)
- 	}
  	spin_unlock_irqrestore(&cpts->lock, flags);
  
--	pr_debug("cpts overflow check at %lld.%09ld\n",
--		 (long long)ts.tv_sec, ts.tv_nsec);
-+	dev_dbg(cpts->dev, "cpts overflow check at %lld.%09ld\n",
-+		(long long)ts.tv_sec, ts.tv_nsec);
- 	return (long)delay;
- }
+diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
+index 32ecd1ce4d3b..421630049ee7 100644
+--- a/drivers/net/ethernet/ti/cpts.h
++++ b/drivers/net/ethernet/ti/cpts.h
+@@ -116,6 +116,7 @@ struct cpts {
+ 	unsigned long ov_check_period;
+ 	struct sk_buff_head txq;
+ 	u64 cur_timestamp;
++	u32 mult_new;
+ };
  
+ void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
 -- 
 2.17.1
 
