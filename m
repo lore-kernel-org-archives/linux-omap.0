@@ -5,56 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CCF0C4332E
-	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 11:03:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62444C4332E
+	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 11:03:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D1D820724
-	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 11:03:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E65C20757
+	for <linux-omap@archiver.kernel.org>; Thu, 19 Mar 2020 11:03:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="FYCnM1Qy"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Tsx/MyeA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727034AbgCSLD0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 Mar 2020 07:03:26 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:47472 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727223AbgCSLDZ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2020 07:03:25 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 02JB3LXg003256;
-        Thu, 19 Mar 2020 06:03:21 -0500
+        id S1727279AbgCSLDb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 Mar 2020 07:03:31 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:55660 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727223AbgCSLD3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2020 07:03:29 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 02JB3QI0032653;
+        Thu, 19 Mar 2020 06:03:26 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1584615801;
-        bh=SXgdJstQj1jyi3scyBiJmZMrMb2AZm0RiU0veOvrszY=;
+        s=ti-com-17Q1; t=1584615806;
+        bh=bKJkju/NsG2s52w8qCFCWHyX4xUE7IcnVIc4MfdyTSo=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=FYCnM1QyYaoUkwhfny9FtpnK0ZCD1wLo+S/DC7VaRymHz2mYzdIecd8XETYqz6/Ik
-         MfuQuDomhhb0UsgF8IrL0c3pmr4csoXTp9hLJtIwYXx6MTEnl81w2JDWTVOYPEJlIL
-         kLxYKPFwCy//NNDB4yTqHKoBQHnOlsYcFghlbxIc=
-Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 02JB3L1T011038
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 19 Mar 2020 06:03:21 -0500
-Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+        b=Tsx/MyeABMyVBYoq1LUXdkdg/CJiAM2A2SCHU1bhlE0EnBZJO/FXuyjxXcktYe55P
+         oY3jIcHn4b6jwGoFiMMqO/vU5PWz1LG4cAlxjUFP8hS3NQz0rF8+Rbl9JxXjs/zs1I
+         XWTv4zMC4Z6HzkyAA/7EVCzqzhHcpI34QQ+svRS4=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 02JB3Q2o038919;
+        Thu, 19 Mar 2020 06:03:26 -0500
+Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Thu, 19
- Mar 2020 06:03:21 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ Mar 2020 06:03:25 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Thu, 19 Mar 2020 06:03:21 -0500
+ Frontend Transport; Thu, 19 Mar 2020 06:03:25 -0500
 Received: from a0132425.dhcp.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 02JB3C7o119908;
-        Thu, 19 Mar 2020 06:03:19 -0500
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 02JB3C7q119908;
+        Thu, 19 Mar 2020 06:03:24 -0500
 From:   Vignesh Raghavendra <vigneshr@ti.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Jiri Slaby <jslaby@suse.com>
 CC:     Vignesh Raghavendra <vigneshr@ti.com>,
         <linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>
-Subject: [PATCH 3/6] serial: 8250: 8250_omap: Move locking out from __dma_rx_do_complete()
-Date:   Thu, 19 Mar 2020 16:33:41 +0530
-Message-ID: <20200319110344.21348-4-vigneshr@ti.com>
+Subject: [PATCH 5/6] serial: 8250: 8250_omap: Work around errata causing spurious IRQs with DMA
+Date:   Thu, 19 Mar 2020 16:33:43 +0530
+Message-ID: <20200319110344.21348-6-vigneshr@ti.com>
 X-Mailer: git-send-email 2.25.2
 In-Reply-To: <20200319110344.21348-1-vigneshr@ti.com>
 References: <20200319110344.21348-1-vigneshr@ti.com>
@@ -67,74 +66,33 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+As per Advisory 27 of AM437x Silicon errata document, Spurious UART
+interrupts may occur when DMA mode (FCR.DMA_MODE) is enabled. The
+Interrupt Controller flags that a UART interrupt has occurred; however,
+the associated IT_PENDING bit remains set to 1, indicating that no
+interrupt is pending. Acknowledge the spurious interrupts for every
+occurrence as workaround.
 
-Caller functions of __dma_rx_do_complete() already hold rx_dma_lock.
-Therefore move locking out of the function to avoid need to release and
-reacquire lock.
+Errata is applicable to all TI SoCs with this IP.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
 ---
- drivers/tty/serial/8250/8250_omap.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/tty/serial/8250/8250_omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index be2b7d374e60..aef0535b62a4 100644
+index 207759dfbff2..92508aaa961c 100644
 --- a/drivers/tty/serial/8250/8250_omap.c
 +++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -736,22 +736,19 @@ static void omap_8250_unthrottle(struct uart_port *port)
- #ifdef CONFIG_SERIAL_8250_DMA
- static int omap_8250_rx_dma(struct uart_8250_port *p);
- 
-+/* Must be called while priv->rx_dma_lock is held */
- static void __dma_rx_do_complete(struct uart_8250_port *p)
- {
--	struct omap8250_priv	*priv = p->port.private_data;
- 	struct uart_8250_dma    *dma = p->dma;
- 	struct tty_port         *tty_port = &p->port.state->port;
- 	struct dma_chan		*rxchan = dma->rxchan;
- 	dma_cookie_t		cookie;
- 	struct dma_tx_state     state;
- 	int                     count;
--	unsigned long		flags;
- 	int			ret;
- 
--	spin_lock_irqsave(&priv->rx_dma_lock, flags);
--
- 	if (!dma->rx_running)
--		goto unlock;
-+		goto out;
- 
- 	cookie = dma->rx_cookie;
- 	dma->rx_running = 0;
-@@ -777,13 +774,12 @@ static void __dma_rx_do_complete(struct uart_8250_port *p)
- 		}
+@@ -1051,7 +1051,7 @@ static int omap_8250_dma_handle_irq(struct uart_port *port)
+ 	iir = serial_port_in(port, UART_IIR);
+ 	if (iir & UART_IIR_NO_INT) {
+ 		serial8250_rpm_put(up);
+-		return 0;
++		return IRQ_HANDLED;
  	}
- 	if (!count)
--		goto unlock;
-+		goto out;
- 	ret = tty_insert_flip_string(tty_port, dma->rx_buf, count);
  
- 	p->port.icount.rx += ret;
- 	p->port.icount.buf_overrun += count - ret;
--unlock:
--	spin_unlock_irqrestore(&priv->rx_dma_lock, flags);
-+out:
- 
- 	tty_flip_buffer_push(tty_port);
- }
-@@ -836,9 +832,8 @@ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
- 		if (WARN_ON_ONCE(ret))
- 			priv->rx_dma_broken = true;
- 	}
--	spin_unlock_irqrestore(&priv->rx_dma_lock, flags);
--
- 	__dma_rx_do_complete(p);
-+	spin_unlock_irqrestore(&priv->rx_dma_lock, flags);
- }
- 
- static int omap_8250_rx_dma(struct uart_8250_port *p)
+ 	spin_lock_irqsave(&port->lock, flags);
 -- 
 2.25.2
 
