@@ -1,75 +1,56 @@
-Return-Path: <SRS0=2jSD=5I=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=9peH=5J=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F59C3F2CD
-	for <linux-omap@archiver.kernel.org>; Mon, 23 Mar 2020 13:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C8AFC54FCF
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Mar 2020 04:17:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9733320781
-	for <linux-omap@archiver.kernel.org>; Mon, 23 Mar 2020 13:50:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7062A20724
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Mar 2020 04:17:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728446AbgCWNug (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 23 Mar 2020 09:50:36 -0400
-Received: from foss.arm.com ([217.140.110.172]:49328 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728384AbgCWNug (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 23 Mar 2020 09:50:36 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C7DB61FB;
-        Mon, 23 Mar 2020 06:50:35 -0700 (PDT)
-Received: from [10.37.12.102] (unknown [10.37.12.102])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 855B83F52E;
-        Mon, 23 Mar 2020 06:50:25 -0700 (PDT)
-Subject: Re: [PATCH v5 5/5] drm/panfrost: Register devfreq cooling and attempt
- to add Energy Model
-To:     Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
-Cc:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        linux-imx@nxp.com, Morten.Rasmussen@arm.com,
-        Dietmar.Eggemann@arm.com, javi.merino@arm.com,
-        cw00.choi@samsung.com, b.zolnierkie@samsung.com, rjw@rjwysocki.net,
-        sudeep.holla@arm.com, viresh.kumar@linaro.org, nm@ti.com,
-        sboyd@kernel.org, rui.zhang@intel.com, amit.kucheria@verdurent.com,
-        daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org,
-        juri.lelli@redhat.com, vincent.guittot@linaro.org,
-        rostedt@goodmis.org, qperret@google.com, bsegall@google.com,
-        mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de,
-        festevam@gmail.com, kernel@pengutronix.de, khilman@kernel.org,
-        agross@kernel.org, bjorn.andersson@linaro.org, robh@kernel.org,
-        matthias.bgg@gmail.com, steven.price@arm.com,
-        tomeu.vizoso@collabora.com, airlied@linux.ie, daniel@ffwll.ch,
-        liviu.dudau@arm.com, lorenzo.pieralisi@arm.com,
-        patrick.bellasi@matbug.net, orjan.eide@arm.com,
-        rdunlap@infradead.org, mka@chromium.org
-References: <20200318114548.19916-1-lukasz.luba@arm.com>
- <20200318114548.19916-6-lukasz.luba@arm.com> <20200318131114.GA1812@kevin>
-From:   Lukasz Luba <lukasz.luba@arm.com>
-Message-ID: <4bc1cf2f-e5ea-6265-d685-167d7a92da56@arm.com>
-Date:   Mon, 23 Mar 2020 13:50:23 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
-MIME-Version: 1.0
-In-Reply-To: <20200318131114.GA1812@kevin>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
+        id S1725923AbgCXERG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Mar 2020 00:17:06 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:56058 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726162AbgCXERF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2020 00:17:05 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id CCD25157141E6;
+        Mon, 23 Mar 2020 21:17:04 -0700 (PDT)
+Date:   Mon, 23 Mar 2020 21:17:03 -0700 (PDT)
+Message-Id: <20200323.211703.1079926018361499605.davem@davemloft.net>
+To:     grygorii.strashko@ti.com
+Cc:     richardcochran@gmail.com, lokeshvutla@ti.com, tony@atomide.com,
+        nsekhar@ti.com, m-karicheri2@ti.com, netdev@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next v3 00/11] net: ethernet: ti: cpts: add irq and
+ HW_TS_PUSH events
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200320194244.4703-1-grygorii.strashko@ti.com>
+References: <20200320194244.4703-1-grygorii.strashko@ti.com>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 23 Mar 2020 21:17:05 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Fri, 20 Mar 2020 21:42:33 +0200
 
+> Dependency:
+>  ff7cf1822b93 kthread: mark timer used by delayed kthread works as IRQ safe
+>  which was merged in -next, but has to be back-ported for testing with earlier
+>  versions
 
-On 3/18/20 1:11 PM, Alyssa Rosenzweig wrote:
-> Reviewed-by: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
-
-Thank you Alyssa for the review.
-
-Regards,
-Lukasz
+I don't see this commit in my net-next tree so I cannot merge this.
