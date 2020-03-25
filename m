@@ -2,96 +2,65 @@ Return-Path: <SRS0=1+OQ=5K=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA69C43331
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Mar 2020 13:05:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 531C4C2D0E7
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Mar 2020 21:37:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 47A6720772
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Mar 2020 13:05:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="psIrfeSL"
+	by mail.kernel.org (Postfix) with ESMTP id 3625F2070A
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Mar 2020 21:37:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727281AbgCYNFS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 25 Mar 2020 09:05:18 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:38382 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727279AbgCYNFS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2020 09:05:18 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 02PD58NM025698;
-        Wed, 25 Mar 2020 08:05:08 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1585141508;
-        bh=SKo1jMXvIPtz2kluS5OnUJdiSqHGqvgB4wc+l8O6gRI=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=psIrfeSLjY/HJJfYq15POSmP8ELApy3hN4+mrG7ybtlNtvUGSFUPPbqo8q5b9Xwup
-         m1T3Q1w9MFLr9tO8pwt49heM47JGMcbm4IAUVojbkAv3tIi8cMNb6nMwMLgZDdLQI8
-         SNvp1ExNGnxtUVr+hxX6O6VO21OSDuUi2GNU38Lc=
-Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 02PD58bB086952
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 25 Mar 2020 08:05:08 -0500
-Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Wed, 25
- Mar 2020 08:05:08 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE101.ent.ti.com
- (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Wed, 25 Mar 2020 08:05:08 -0500
-Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 02PD553q119986;
-        Wed, 25 Mar 2020 08:05:06 -0500
-Subject: Re: [PATCHv2 07/56] drm/omap: dsi: add generic transfer function
-To:     Sebastian Reichel <sebastian.reichel@collabora.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC:     Tony Lindgren <tony@atomide.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Rob Herring <robh@kernel.org>, <linux-omap@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <kernel@collabora.com>
-References: <20200224232126.3385250-1-sebastian.reichel@collabora.com>
- <20200224232126.3385250-8-sebastian.reichel@collabora.com>
-From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <95c2010e-abb8-68f8-ea8d-d44ecf26380a@ti.com>
-Date:   Wed, 25 Mar 2020 15:05:05 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
-MIME-Version: 1.0
-In-Reply-To: <20200224232126.3385250-8-sebastian.reichel@collabora.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+        id S1727547AbgCYVhz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 25 Mar 2020 17:37:55 -0400
+Received: from fgw20-4.mail.saunalahti.fi ([62.142.5.107]:46142 "EHLO
+        fgw20-4.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727525AbgCYVhy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 25 Mar 2020 17:37:54 -0400
+Received: from localhost.localdomain (85-76-97-57-nat.elisa-mobile.fi [85.76.97.57])
+        by fgw20.mail.saunalahti.fi (Halon) with ESMTP
+        id a3e2473a-6ede-11ea-826c-005056bd6ce9;
+        Wed, 25 Mar 2020 23:21:50 +0200 (EET)
+From:   Aaro Koskinen <aaro.koskinen@iki.fi>
+To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] ARM: DTS: OMAP3: disable RNG on N950/N9
+Date:   Wed, 25 Mar 2020 23:21:49 +0200
+Message-Id: <20200325212149.27547-1-aaro.koskinen@iki.fi>
+X-Mailer: git-send-email 2.17.0
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 25/02/2020 01:20, Sebastian Reichel wrote:
-> This prepares the driver for becoming a mipi_dsi_host implementation,
-> which provides a generic transfer function instead of all kind of
-> different read/write functions. The implementation will become more
-> elegant after unexporting the specific functions in the following
-> patches.
-> 
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-> ---
->   drivers/gpu/drm/omapdrm/dss/dsi.c     | 52 +++++++++++++++++++++++++++
->   drivers/gpu/drm/omapdrm/dss/omapdss.h |  3 ++
->   2 files changed, 55 insertions(+)
+Like on N900, we cannot access RNG directly on N950/N9. Mark it disabled in
+the DTS to allow kernel to boot.
 
-With the white-space issues Laurent reported fixed:
+Fixes: 308607e5545f ("ARM: dts: Configure omap3 rng")
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
-  Tomi
-
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index a075b63f3087..11d41e86f814 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -341,6 +341,11 @@
+ 	status = "disabled";
+ };
+ 
++/* RNG not directly accessible on N950/N9. */
++&rng_target {
++	status = "disabled";
++};
++
+ &usb_otg_hs {
+ 	interface-type = <0>;
+ 	usb-phy = <&usb2_phy>;
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.17.0
+
