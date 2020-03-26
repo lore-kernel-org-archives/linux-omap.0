@@ -2,99 +2,131 @@ Return-Path: <SRS0=62F8=5L=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 580A8C43331
-	for <linux-omap@archiver.kernel.org>; Thu, 26 Mar 2020 14:29:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FAFC43331
+	for <linux-omap@archiver.kernel.org>; Thu, 26 Mar 2020 15:28:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2750A20714
-	for <linux-omap@archiver.kernel.org>; Thu, 26 Mar 2020 14:29:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADB7A20748
+	for <linux-omap@archiver.kernel.org>; Thu, 26 Mar 2020 15:28:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FoT/5Osj"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="WzKBzPq5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727868AbgCZO3y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 26 Mar 2020 10:29:54 -0400
-Received: from mail-pj1-f66.google.com ([209.85.216.66]:39917 "EHLO
-        mail-pj1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727798AbgCZO3y (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2020 10:29:54 -0400
-Received: by mail-pj1-f66.google.com with SMTP id z3so1962692pjr.4;
-        Thu, 26 Mar 2020 07:29:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=+cg7/vNMMOsNUi/4m6oa2Zr/yCuH8pUcG9soKF+ye0M=;
-        b=FoT/5OsjuwqF3LGtq0NGlSwiQiABbGVpz1Ubm9nz4qpYemVxoyU4+5p0au6CvFEv0T
-         dP8lM+AQo/UDkSm6tro+/zfh4REKRahYDjFf0o0EKCHV+gPUOXHlwvuLf4UKdzFz7wCF
-         a/R3GcnhjpygHHNkBHi/COsruloz5Hh9Y78/7hOwHdhmlyMiCEdwJd1/cSyZsE6j4ZLy
-         Q91EJE0byzw2JZF4bwrL7xsKJfofrA00BLPpwk8pjFRh2kWOnxBpX1kIT8rC3R+9R0qQ
-         e9nzP20yGNCWeBlHfYaR32OXK7hXGIHqVjyfSb/wOjUCrvRuMC66R/UQTTIw4oFWS/Fd
-         pmUg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=+cg7/vNMMOsNUi/4m6oa2Zr/yCuH8pUcG9soKF+ye0M=;
-        b=HyPdxfBAT+hBDzVG8dr3YUT6lcprTerFJLBv+P+aqB+q3tN6PkN5q5zCgDKjXu+AaE
-         HR3z3POeLOyjGEov+gcRR0jec4NeghdSjJYDdtIj1qpa3UjGZRYzLLJXRzDtAvj3lwcc
-         tkhZRX8mS2nyXCMDTFc/CS4N9MOa6ACU+j1YzNS7S8jEtKuG3/KT2EeKZoslMpgL7aoA
-         2hnjKXtTBfchx8NShf3QjRmjXZeng4vGaqC/VCkJc6K3yLc+5sMbdaRAqHO9QVM2l89x
-         qse17px1mjnjAX/fVOENpk5AEXl9jnGGEJX5YiJJuRbFp4pv+/hNFrT2bWagqyqE3B1z
-         2yhQ==
-X-Gm-Message-State: ANhLgQ1u8yQKuy8zu0kU/y+wQa+pU00eAQ/75j15YCMoeGNxkFVrR6k+
-        pmxzyw7RCQrdFsx/lnUmESgOvo8x
-X-Google-Smtp-Source: ADFU+vvRPcavRwefyV3uIlhwFkQ82uJPgQ9Vv20Y60NzXTHS14gVTEZYA21QnYrQoHK2iqHkp0XMHw==
-X-Received: by 2002:a17:90a:fb47:: with SMTP id iq7mr256650pjb.191.1585232992872;
-        Thu, 26 Mar 2020 07:29:52 -0700 (PDT)
-Received: from localhost (c-73-241-114-122.hsd1.ca.comcast.net. [73.241.114.122])
-        by smtp.gmail.com with ESMTPSA id e187sm1827120pfe.50.2020.03.26.07.29.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Mar 2020 07:29:52 -0700 (PDT)
-Date:   Thu, 26 Mar 2020 07:29:50 -0700
-From:   Richard Cochran <richardcochran@gmail.com>
-To:     Grygorii Strashko <grygorii.strashko@ti.com>
-Cc:     "David S . Miller" <davem@davemloft.net>,
-        Lokesh Vutla <lokeshvutla@ti.com>,
-        Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>,
-        Murali Karicheri <m-karicheri2@ti.com>,
-        netdev <netdev@vger.kernel.org>, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next v3 06/11] net: ethernet: ti: cpts: move tx
- timestamp processing to ptp worker only
-Message-ID: <20200326142950.GE20841@localhost>
-References: <20200320194244.4703-1-grygorii.strashko@ti.com>
- <20200320194244.4703-7-grygorii.strashko@ti.com>
+        id S1728531AbgCZP24 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 26 Mar 2020 11:28:56 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:51626 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728479AbgCZP2z (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2020 11:28:55 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 02QFSpZ1077498;
+        Thu, 26 Mar 2020 10:28:51 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1585236531;
+        bh=KaXzgZRMHuOhjbAAQamjPiN1/h7tkGtzd9HYl/NPv84=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=WzKBzPq5BIEMcPIl/sz2eDp+dindhIqLnLHFWicvE1dmeemDrpgdT7Jwi3iekYw39
+         ccaMXwFDAKMoM0YgfhVBcVhVXgrsjH7AP9W+rKehkOufft37xcf8iHsZJPmwK5EfXy
+         Q/IZNkHIEGsbTlbW+UWk+ZdK3Fi+LxRjSmY4DBl0=
+Received: from DFLE106.ent.ti.com (dfle106.ent.ti.com [10.64.6.27])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 02QFSpDK009076
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 26 Mar 2020 10:28:51 -0500
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Thu, 26
+ Mar 2020 10:28:50 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
+ Frontend Transport; Thu, 26 Mar 2020 10:28:50 -0500
+Received: from [10.250.132.187] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 02QFSkbQ096295;
+        Thu, 26 Mar 2020 10:28:47 -0500
+Subject: Re: [PATCH] PCI: dwc: pci-dra7xx: Fix MSI IRQ handling
+To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Andrew Murray <andrew.murray@arm.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        <linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20200124163650.4457-1-vigneshr@ti.com>
+ <20200324150520.GA1174@e121166-lin.cambridge.arm.com>
+From:   Vignesh Raghavendra <vigneshr@ti.com>
+Message-ID: <42024104-deb0-42e1-5e77-6ca7df822963@ti.com>
+Date:   Thu, 26 Mar 2020 20:58:46 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200320194244.4703-7-grygorii.strashko@ti.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20200324150520.GA1174@e121166-lin.cambridge.arm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Mar 20, 2020 at 09:42:39PM +0200, Grygorii Strashko wrote:
-> Now the tx timestamp processing happens from different contexts - softirq
-> and thread/PTP worker. Enabling IRQ will add one more hard_irq context.
-> This makes over all defered TX timestamp processing and locking
-> overcomplicated. Move tx timestamp processing to PTP worker always instead.
-> 
-> napi_rx->cpts_tx_timestamp
->  if ptp_packet then
->     push to txq
->     ptp_schedule_worker()
-> 
-> do_aux_work->cpts_overflow_check
->  cpts_process_events()
 
-Since cpts_overflow_check() is performing new functions, consider
-renaming it to match.
 
-Thanks,
-Richard
+On 24/03/20 8:35 pm, Lorenzo Pieralisi wrote:
+[...]
+>> -static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>> +static void dra7xx_pcie_msi_irq_handler(struct irq_desc *desc)
+>>  {
+>> -	struct dra7xx_pcie *dra7xx = arg;
+>> -	struct dw_pcie *pci = dra7xx->pci;
+>> -	struct pcie_port *pp = &pci->pp;
+>> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+>> +	struct dra7xx_pcie *dra7xx;
+>> +	struct dw_pcie *pci;
+>> +	struct pcie_port *pp;
+>>  	unsigned long reg;
+>>  	u32 virq, bit;
+>> +	int count = 0;
+>> +
+>> +	chained_irq_enter(chip, desc);
+>> +
+>> +	pp = irq_desc_get_handler_data(desc);
+>> +	pci = to_dw_pcie_from_pp(pp);
+>> +	dra7xx = to_dra7xx_pcie(pci);
+>>  
+>>  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
+>> +	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
+>>  
+>>  	switch (reg) {
+>>  	case MSI:
+>> -		dw_handle_msi_irq(pp);
+>> +		/**
+>> +		 * Need to make sure all MSI status bits read 0 before
+>> +		 * exiting. Else, new MSI IRQs are not registered by the
+>> +		 * wrapper. Have an upperbound for the loop and exit the
+>> +		 * IRQ in case of IRQ flood to avoid locking up system
+>> +		 * in interrupt context.
+>> +		 */
+>> +		while (dra7xx_pcie_handle_msi_irq(pp) && count < 1000)
+>> +			count++;
+> 
+> Apologies for the delay in replying.
+> 
+> Do you really need to call the function in a loop ? Can't the loop
+> be written inside the function ? It is not going to be any nicer
+> but I think it would make code easier to follow. Also, don't know
+> if you want to print a warning to signal a count overrun.
+> 
+> I don't like this code at all but at least it is self-contained
+> so we may get it in this cycle.
+> 
+
+I have posted v3 with loop moved inside dra7xx_pcie_handle_msi_irq() and
+also added dev_warn on overrun. Thanks!
+
+Regard
+Vignesh
+
+[...]
 
