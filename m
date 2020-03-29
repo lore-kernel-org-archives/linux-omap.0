@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B899C2D0ED
-	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 17:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA8A2C2D0EF
+	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 17:39:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B47920842
-	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 17:39:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A9002078B
+	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 17:39:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="aBU9+f3s"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="MuR7VUjp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728353AbgC2RjC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 29 Mar 2020 13:39:02 -0400
-Received: from mo4-p04-ob.smtp.rzone.de ([85.215.255.120]:35487 "EHLO
+        id S1728468AbgC2Rik (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 29 Mar 2020 13:38:40 -0400
+Received: from mo4-p04-ob.smtp.rzone.de ([85.215.255.120]:8321 "EHLO
         mo4-p04-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728426AbgC2Rik (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 29 Mar 2020 13:38:40 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1585503518;
+        with ESMTP id S1728258AbgC2Rij (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 29 Mar 2020 13:38:39 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1585503517;
         s=strato-dkim-0002; d=goldelico.com;
         h=References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
         X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=Snu2lfs5+eWozVmWM7qfzq3eVbADpaPGPxUvfNGf0AI=;
-        b=aBU9+f3scs4X5CmzTVrREU3CXK/G/2+q3P+xKpJwAuX6dNmTgaD+xvY8f/ufRlDNE2
-        KltZj7U5PX9m3i274nXw1TrHQMxe0qWcUjjsLTYX0iNXHkq98clnayxqeNhC/WAPu6Jd
-        G2FWpp2q5xa1oprbhZ7YqAdYOESx79JpcaJcgTlRe9bgwEM0UTAhmVDtf3hRGLyGqX6H
-        Zwkf3cfIDQp2WLoc2U29Qv/U79DqL4DD7+VUiZs/bTmwkTIiFX0FxUYZ3JBSIJ8IoPV+
-        dtBQPhRpxHkfLBpFauApAt5dCH8YvJrjZr5xznCmYaMGt4GWJ+Aetx532v2OuO2Zt804
-        k2Qg==
+        bh=rqANm04pE1KQf5F40TrJl3kMNAdz2dL493kE5AqgxPc=;
+        b=MuR7VUjpnsza0i9p8jWuyPg7fL9Tl34rUiJcA4pIbTMHQZa9HOXMkOq4o3aZnJSjPz
+        6R6KHSitqrTQM5Vu1lZmlT/zw/ulPS44xd+XaEH1bahwY5vNDSXTUx38TD4vY37KAqdQ
+        X7hPR9aMmPdzYiA0L0kSU4dAiuy5YLq1euMfPndsVNeqc8juq5/d8iy4VB8Mpas4SJAY
+        xXUifdAacPxAxuPUmXS7uL6133oELrh0wLXGUgbrPhs3c/dlksPZ32fPs1cC4GAhkv+o
+        sIBj0Xc+Kwz3nGZT3+ShcBOUqoQpWR5FwubQeGb6K/RyR8euc1iram9UI+QjecXQhR+1
+        d91A==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o12DNOsPj0pDz2rsNxxv"
 X-RZG-CLASS-ID: mo00
 Received: from iMac.fritz.box
         by smtp.strato.de (RZmta 46.2.1 DYNA|AUTH)
-        with ESMTPSA id m02241w2THcUBMn
+        with ESMTPSA id m02241w2THcSBMl
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
         (Client did not present a certificate);
-        Sun, 29 Mar 2020 19:38:30 +0200 (CEST)
+        Sun, 29 Mar 2020 19:38:28 +0200 (CEST)
 From:   "H. Nikolaus Schaller" <hns@goldelico.com>
 To:     David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>,
         Rob Herring <robh+dt@kernel.org>,
@@ -56,9 +56,9 @@ Cc:     Philipp Rossak <embed3d@gmail.com>,
         openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org,
         kernel@pyra-handheld.com, linux-mips@vger.kernel.org,
         "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v5 5/8] ARM: DTS: omap36xx: add sgx gpu child node
-Date:   Sun, 29 Mar 2020 19:38:23 +0200
-Message-Id: <d58f648e68c3446c7f7a71ce50db46c752b68d9c.1585503505.git.hns@goldelico.com>
+Subject: [PATCH v5 3/8] ARM: DTS: am3517: add sgx gpu child node
+Date:   Sun, 29 Mar 2020 19:38:21 +0200
+Message-Id: <defec319176fec632c64b37fab6733167a218e02.1585503505.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1585503505.git.hns@goldelico.com>
 References: <cover.1585503505.git.hns@goldelico.com>
@@ -71,32 +71,31 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 and add interrupt.
 
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # GTA04, BeagleBoard XM
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap36xx.dtsi | 9 +++++----
+ arch/arm/boot/dts/am3517.dtsi | 9 +++++----
  1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 71f3c8f1f924..b308dbb3b1bb 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -211,10 +211,11 @@ sgx_module: target-module@50000000 {
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+index e0b5a00e2078..3fce56a646d1 100644
+--- a/arch/arm/boot/dts/am3517.dtsi
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -138,10 +138,11 @@ sgx_module: target-module@50000000 {
  			#size-cells = <1>;
- 			ranges = <0 0x50000000 0x2000000>;
+ 			ranges = <0 0x50000000 0x4000>;
  
 -			/*
 -			 * Closed source PowerVR driver, no child device
 -			 * binding or driver in mainline
 -			 */
 +			gpu: gpu@0 {
-+				compatible = "ti,omap3-sgx530-125", "img,sgx530-125", "img,sgx530";
-+				reg = <0x0 0x10000>;	/* 64kB */
++				compatible = "ti,am3517-sgx530-125", "img,sgx530-125", "img,sgx530";
++				reg = <0x0 0x4000>;
 +				interrupts = <21>;
 +			};
  		};
  	};
- 
+ };
 -- 
 2.25.1
 
