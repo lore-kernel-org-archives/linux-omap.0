@@ -1,101 +1,191 @@
-Return-Path: <SRS0=X7qX=5N=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=bjuo=5O=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C764CC2D0E8
-	for <linux-omap@archiver.kernel.org>; Sat, 28 Mar 2020 07:32:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70C99C43331
+	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 15:10:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9AE0320714
-	for <linux-omap@archiver.kernel.org>; Sat, 28 Mar 2020 07:32:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9689B206F6
+	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 15:10:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jl9qdfm3"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="ohinpD16"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726197AbgC1Hc6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 28 Mar 2020 03:32:58 -0400
-Received: from mail-pl1-f193.google.com ([209.85.214.193]:44271 "EHLO
-        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725372AbgC1Hc5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 28 Mar 2020 03:32:57 -0400
-Received: by mail-pl1-f193.google.com with SMTP id h11so4392377plr.11;
-        Sat, 28 Mar 2020 00:32:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=+lojOXOS3R1T9zdX8YSaUVNPC+Uk4217Q9UeUwGqUmA=;
-        b=jl9qdfm3jYBUJpt5JTOg0fpX+frk2U8CDB7NHla700eqbFzeaU5ddRrnkF9ulMws0I
-         c9g6XZd+U1YMZF9/3LdLKd5v8wOHCvTpOK+41v0dC3rQjbl2zkCOwiKzOqyresW/3Mhq
-         BcOd0bkAnUi+Zs7kVOtOgih+P95QQehDeut+bVNmK8w/pAqzhJa2/sY/cLipp5Rtomn+
-         y0jJ0Kfcg23Own5fnZnDcgXrP0oJy8MDqN1sdD4UE300VgF+beh9dCTKovy8+8QPgJF7
-         tM2KC+Uqrh6IJRCMsJf7pzvSFnZ37F703JjyJuB4ywUQrA0N8cjQpQZ/4AufrBOA8und
-         kRiA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=+lojOXOS3R1T9zdX8YSaUVNPC+Uk4217Q9UeUwGqUmA=;
-        b=LmvbnGAlNDuMYFNySrwUmk0uxaqmUv49/BwweWRxwmsT8ZPRAG+3SBgqVjXpZIFaqb
-         HoBCm7B7pW0MdQonNxGrQoL5xT9jBz84pbfYKlvBBdJd89AA0le8liiLImr4JgNhBJQG
-         q6WeX0myYrfzNeXV7HMFXf95wGk9iLdBiZHaTatg7CW0OcFpJxR+sKcuIfa5Un6aCA7L
-         kekuX/G5QhZVbp+lO+wJtfssFfuM8ooCctubvzbZEYeDxg4+5N0euIBZK19lhcI0tUSF
-         BQ0iFsArpkM4n4e9KCNsyC8i+87FBiwEbfsybkvJUU6p6gOUSFgRi/uhgkfRWtQmkOQF
-         Wbuw==
-X-Gm-Message-State: ANhLgQ0ug1tS/tTgyZaJLmvcBQnjaHH4qLyQqSklC4EJHgk8smQLVP5E
-        N5HJ9L62TBH/HnF1l/raEe0=
-X-Google-Smtp-Source: ADFU+vvZAKeuGMHdxTRxMDuAgPAhSOtHeclFmaO/lZBPjDGm3MtGtV8wn85/n9JVZFDDDkLW/Z1SiA==
-X-Received: by 2002:a17:90b:4906:: with SMTP id kr6mr3699363pjb.13.1585380776339;
-        Sat, 28 Mar 2020 00:32:56 -0700 (PDT)
-Received: from localhost ([49.205.220.152])
-        by smtp.gmail.com with ESMTPSA id 132sm5624219pfc.183.2020.03.28.00.32.55
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Sat, 28 Mar 2020 00:32:55 -0700 (PDT)
-Date:   Sat, 28 Mar 2020 13:02:53 +0530
-From:   afzal mohammed <afzal.mohd.ma@gmail.com>
-To:     Brian Cain <bcain@codeaurora.org>
-Cc:     'Thomas Gleixner' <tglx@linutronix.de>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, x86@kernel.org,
-        linux-sh@vger.kernel.org, linux-s390@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-parisc@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-ia64@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-c6x-dev@linux-c6x.org, linux-omap@vger.kernel.org,
-        linux-alpha@vger.kernel.org
-Subject: Re: [PATCH 0/6] Kill setup_irq()
-Message-ID: <20200328073253.GA5250@afzalpc>
-References: <20200321174303.GA7930@afzalpc>
- <cover.1585320721.git.afzal.mohd.ma@gmail.com>
- <059b01d604ab$637355b0$2a5a0110$@codeaurora.org>
-MIME-Version: 1.0
+        id S1727816AbgC2PKI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 29 Mar 2020 11:10:08 -0400
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.218]:13997 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727729AbgC2PKH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 29 Mar 2020 11:10:07 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1585494606;
+        s=strato-dkim-0002; d=goldelico.com;
+        h=To:Cc:Message-Id:Date:Subject:From:X-RZG-CLASS-ID:X-RZG-AUTH:From:
+        Subject:Sender;
+        bh=s9z5WMgFJ0O3EBetgeyB74TczZ+CT+5YgZe3Zc8q8KQ=;
+        b=ohinpD16cV/I7TZW6tpaCy32clUht3QiAfKX/KlVXljBAxeLpQgEhprlRX3gi/KVEi
+        0Zb8VADdmxJC9srzwI4RPK0qMxTr2E7BQESpzkyfu12z9JCMjYBDK5Xgj9j7jH1Omnh5
+        7nwKcXUvKVa6R5QK1Jm/Nzo6FLfALBEErpe+xgqymqTCR+mdux6sYBLSitr/Kgxw8vAW
+        4tB2IM6rsactqHEjFs3/No9Vgh0fUwAs15hIDA1cK4HsZOU97wZR1x0nVuLx9mIr6LGj
+        vazP5XcQ9icELzBNJDtka3uPbsb6kwlxSaY8AggNGN9yLpDyg2mQDjdJ8Z/2i9kauGCP
+        xM+w==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj4Qpw9iZeHmMiw43sRNQ="
+X-RZG-CLASS-ID: mo00
+Received: from imac.fritz.box
+        by smtp.strato.de (RZmta 46.2.1 DYNA|AUTH)
+        with ESMTPSA id m02241w2TEw1B4O
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+        (Client did not present a certificate);
+        Sun, 29 Mar 2020 16:58:01 +0200 (CEST)
+From:   "H. Nikolaus Schaller" <hns@goldelico.com>
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <059b01d604ab$637355b0$2a5a0110$@codeaurora.org>
-User-Agent: Mutt/1.9.3 (2018-01-21)
+Content-Transfer-Encoding: quoted-printable
+Subject: PVR/SGX DDK 1.17 on JZ4780/CI20
+Date:   Sun, 29 Mar 2020 16:58:00 +0200
+Message-Id: <BDD81F92-79F3-4B48-B21B-705AE435AF4B@goldelico.com>
+Cc:     Discussions about the Letux Kernel <letux-kernel@openphoenux.org>,
+        MIPS Creator CI20 Development 
+        <mips-creator-ci20-dev@googlegroups.com>,
+        linux-omap <linux-omap@vger.kernel.org>
+To:     OpenPVRSGX Linux Driver Group <openpvrsgx-devgroup@letux.org>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+X-Mailer: Apple Mail (2.3124)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Brian,
+Hi,
+I have managed to fix some minor issues of the DDK 1.17 source tree =
+provided by
+Texas Instruments (thanks!) which still contains sgx_jz4780 kernel =
+module code.
 
-On Fri, Mar 27, 2020 at 09:48:38PM -0500, Brian Cain wrote:
+Attached are first results which show that the driver module can now be =
+successfully
+built and loaded on the CI20 board.
 
-> > Note 2: hexagon final image creation fails even w/o my patch
+Next complexity is that there is no MIPS build of the DDK 1.17 =
+user-space libs and tools.
+So I have installed the ti443x version which seems to support SGX540.
 
-> 	What's the nature of the failure in "Note 2"?
+I have started to experiment with "qemu-arm-static pvrsrvctl" but it =
+reports missing
+ARM libraries which is of course to be expected on a MIPS setup...
 
-drivers/base/firmware_loader/main.o: In function `fw_is_builtin_firmware':
-/devel/src/kernel6/drivers/base/firmware_loader/main.c:132:(.text+0xc8): relocation truncated to fit: R_HEX_16_X against symbol `__start_builtin_fw' defined in .modinfo section in .tmp_vmlinux1
-Makefile:1077: recipe for target 'vmlinux' failed
-make: *** [vmlinux] Error 1
+But if we can make that work somehow it opens a new way to support other =
+SoC as
+well: A83, Poulsbo etc. by forward-porting their SoC specific drivers we =
+have in some
+1.14 trees to 1.17. Or alternatively by developing a really generic =
+pvrsrvkm that becomes
+SoC-independent.
 
-[ i had deleted the toolchain earlier, since you asked, download again &
-checked ]
+Code hasn't been pushed to the project git repo since it is does not =
+have a linear
+history. I plan to push a new rebased release (including these fixes) =
+with v5.7-rc1.
 
-Regards
-afzal
+BR,
+Nikolaus
+
+
+root@letux:~# cat /etc/debian_version=20
+9.12
+root@letux:~# uname -a
+Linux letux 5.6.0-rc7-letux-l400+ #2356 SMP PREEMPT Sun Mar 29 14:43:33 =
+CEST 2020 mips GNU/Linux
+root@letux:~# modprobe pvrsrvkm_jz4780_sgx540_120
+[ 1485.329869] pvrsrvkm 13040000.gpu: Enabling quirks 00000000
+[ 1485.353477] [drm] Initialized pvr 1.17.4948957 20110701 for =
+13040000.gpu on minor 1
+root@letux:~# lsmod
+Module                  Size  Used by
+pvrsrvkm_jz4780_sgx540_120   338691  0
+g_ether                 5373  0
+usb_f_rndis            17648  1 g_ether
+u_ether                13532  2 g_ether,usb_f_rndis
+libcomposite           48008  2 g_ether,usb_f_rndis
+configfs               32565  3 usb_f_rndis,libcomposite
+dw_hdmi_jz4780          2103  0
+ingenic_drm             9582  0
+dw_hdmi                27893  1 dw_hdmi_jz4780
+drm_kms_helper        195676  3 ingenic_drm,dw_hdmi
+syscopyarea             2754  1 drm_kms_helper
+sysfillrect             3338  1 drm_kms_helper
+sysimgblt               2140  1 drm_kms_helper
+fb_sys_fops             1803  1 drm_kms_helper
+drm                   485544  5 =
+ingenic_drm,pvrsrvkm_jz4780_sgx540_120,dw_hdmi,drm_kms_helper
+gpio_ir_recv            2798  0
+gpio_keys               9881  0
+dm9000                 18156  0
+rtc_pcf8563             7287  1
+nvmem_jz4780_efuse      3248  0
+mii                     7162  1 dm9000
+drm_panel_orientation_quirks      942  1 drm
+ipv6                  410154  24
+autofs4                26479  9
+root@letux:~# ls -l /proc/pvr/
+total 0
+-r--r--r-- 1 root root 0 Mar 29 14:17 nodes
+-r--r--r-- 1 root root 0 Mar 29 14:17 queue
+-r--r--r-- 1 root root 0 Mar 29 14:17 version
+root@letux:~# cat /proc/pvr/*    =20
+Registered nodes
+Addr     Type     Class    Index Ref pvDev     Size Res
+e4186696 ?7       3D          0   1  da3ed53d    0  4ea4f1a1
+Command Queues
+Queue    CmdPtr      Pid Command Size DevInd  DSC  SSC  #Data ...
+Version SGX_DDK sgxddk 1.17@4948957 (release) omap_sgx
+System Version String: None
+root@letux:~# ls -l /dev/dri
+total 0
+crw-rw---- 1 root video 226,   0 Nov  3  2016 card0
+crw-rw---- 1 root video 226,   1 Mar 29 14:15 card1
+crw-rw---- 1 root video 226, 128 Mar 29 14:15 renderD128
+root@letux:~# cat /proc/cpuinfo=20
+system type             : JZ4780
+machine                 : img,ci20
+processor               : 0
+cpu model               : Ingenic XBurst V4.15  FPU V0.0
+BogoMIPS                : 1196.85
+wait instruction        : yes
+microsecond timers      : no
+tlb_entries             : 32
+extra interrupt vector  : yes
+hardware watchpoint     : yes, count: 1, address/irw mask: [0x0fff]
+isa                     : mips1 mips2 mips32r1 mips32r2
+ASEs implemented        :
+shadow register sets    : 1
+kscratch registers      : 0
+package                 : 0
+core                    : 0
+VCED exceptions         : not available
+VCEI exceptions         : not available
+
+processor               : 1
+cpu model               : Ingenic XBurst V4.15  FPU V0.0
+BogoMIPS                : 1202.58
+wait instruction        : yes
+microsecond timers      : no
+tlb_entries             : 32
+extra interrupt vector  : yes
+hardware watchpoint     : yes, count: 1, address/irw mask: [0x0fff]
+isa                     : mips1 mips2 mips32r1 mips32r2
+ASEs implemented        :
+shadow register sets    : 1
+kscratch registers      : 0
+package                 : 0
+core                    : 1
+VCED exceptions         : not available
+VCEI exceptions         : not available
+
+root@letux:~# qemu-arm-static /usr/bin/pvrsrvctl --start --no-module
+/lib/ld-linux-armhf.so.3: No such file or directory
+root@letux:~#=20
+
+
+
