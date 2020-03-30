@@ -1,83 +1,53 @@
-Return-Path: <SRS0=bjuo=5O=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=38gG=5P=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.5 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,PRICE_CATALOG,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 912A5C43331
-	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 20:33:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BC39C43331
+	for <linux-omap@archiver.kernel.org>; Mon, 30 Mar 2020 05:46:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5988120781
-	for <linux-omap@archiver.kernel.org>; Sun, 29 Mar 2020 20:33:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=agner.ch header.i=@agner.ch header.b="yHWrWNpJ"
+	by mail.kernel.org (Postfix) with ESMTP id 18B26206F6
+	for <linux-omap@archiver.kernel.org>; Mon, 30 Mar 2020 05:46:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727903AbgC2UdS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 29 Mar 2020 16:33:18 -0400
-Received: from mail.kmu-office.ch ([178.209.48.109]:37406 "EHLO
-        mail.kmu-office.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727370AbgC2UdS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 29 Mar 2020 16:33:18 -0400
-Received: from zyt.lan (unknown [IPv6:2a02:169:3df5::564])
-        by mail.kmu-office.ch (Postfix) with ESMTPSA id 31BFD5C0208;
-        Sun, 29 Mar 2020 22:33:17 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=agner.ch; s=dkim;
-        t=1585513997;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:
-         content-transfer-encoding:content-transfer-encoding:in-reply-to:
-         references; bh=WMqksSgxVOthWzaH63j2MuQI5jeE8U6IXhHfj4YbpXI=;
-        b=yHWrWNpJUOPcgE+eGxUW0uIkdkKgg+ZAMnJpyS+wLPZ3FC6LWIVx+8d5ANApGyLOvsbMd/
-        JrGNWDN2sbHPxUoxIhppR4cQ3MfIpdLT1lyeJEU25HGo+crkf35tMj5gHqIbSoFke3kPOP
-        6rh5HcfsftSGTs4wV7BrK906IpepgB0=
-From:   Stefan Agner <stefan@agner.ch>
-To:     tony@atomide.com
-Cc:     linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        clang-built-linux@googlegroups.com, Stefan Agner <stefan@agner.ch>
-Subject: [PATCH] ARM: OMAP2+: drop unnecessary adrl
-Date:   Sun, 29 Mar 2020 22:33:14 +0200
-Message-Id: <5a6807f19fd69f2de6622c794639cc5d70b9563a.1585513949.git.stefan@agner.ch>
-X-Mailer: git-send-email 2.25.1
+        id S1728707AbgC3Fqp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 30 Mar 2020 01:46:45 -0400
+Received: from host201-96-61-217.static.arubacloud.com ([217.61.96.201]:54782
+        "EHLO mail.undorthemoure.gq" rhost-flags-OK-FAIL-OK-OK)
+        by vger.kernel.org with ESMTP id S1728489AbgC3Fqp (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 30 Mar 2020 01:46:45 -0400
+X-Greylist: delayed 4824 seconds by postgrey-1.27 at vger.kernel.org; Mon, 30 Mar 2020 01:46:45 EDT
+Received: by mail.undorthemoure.gq (Postfix, from userid 48)
+        id B5D5DDD6FA; Mon, 30 Mar 2020 00:10:17 -0400 (EDT)
+To:     linux-omap@vger.kernel.org
+Subject: Request for catalog and price list
+X-PHP-Originating-Script: 0:dageds.php
+From:   Julian Smith <juliansmith2014@mail.ru>
+Reply-To: juliansmith2014@outlook.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spam: Yes
+Content-Type:   text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <20200330041017.B5D5DDD6FA@mail.undorthemoure.gq>
+Date:   Mon, 30 Mar 2020 00:10:17 -0400 (EDT)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The adrl instruction has been introduced with commit dd31394779aa ("ARM:
-omap3: Thumb-2 compatibility for sleep34xx.S"), back when this assembly
-file was considerably longer. Today adr seems to have enough reach, even
-when inserting about 60 instructions between the use site and the label.
-Replace adrl with conventional adr instruction.
+Hello friend,
 
-This allows to build this file using Clang's integrated assembler (which
-does not support the adrl pseudo instruction).
+This is Julian Smith and i am purchasing manager from Sinara Group Co.,LTD in Russia.
+We are glad to know about your company from the web and we are interested in your products.
+Could you kindly send us your Latest catalog and price list for our trial order.
 
-Link: https://github.com/ClangBuiltLinux/linux/issues/430
-Signed-off-by: Stefan Agner <stefan@agner.ch>
----
- arch/arm/mach-omap2/sleep34xx.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks and Best Regards,
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index ac1324c6453b..c4e97d35c310 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -72,7 +72,7 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	/* Setup so that we will disable and enable l2 */
- 	mov	r1, #0x1
--	adrl	r3, l2dis_3630_offset	@ may be too distant for plain adr
-+	adr	r3, l2dis_3630_offset
- 	ldr	r2, [r3]		@ value for offset
- 	str	r1, [r2, r3]		@ write to l2dis_3630
- 	ldmfd	sp!, {pc}	@ restore regs and return
--- 
-2.25.1
+Ms. Julian Smith
+Purchasing Manager
+Sinara Group Co.,LTD
+
 
