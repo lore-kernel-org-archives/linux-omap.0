@@ -1,213 +1,178 @@
-Return-Path: <SRS0=M9Oc=5X=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=CUPX=5Z=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18310C2BB54
-	for <linux-omap@archiver.kernel.org>; Tue,  7 Apr 2020 09:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86981C2BBFD
+	for <linux-omap@archiver.kernel.org>; Thu,  9 Apr 2020 12:15:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E49BF20719
-	for <linux-omap@archiver.kernel.org>; Tue,  7 Apr 2020 09:33:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5556320A8B
+	for <linux-omap@archiver.kernel.org>; Thu,  9 Apr 2020 12:15:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1586434507;
+	bh=rb5Md3zmf06y7cA4k7nEUfslEQ4Wr/PeZLhfvGB4ogo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=Psgp6oX4O0e1k5bnYiOD13usTYx1vNru38zsXt+x3pWwR+4r23B0GdXd7Ms+sZqqt
+	 orcyURRvLO7QgeM06zv/xO27ktelD+vk6PBvgE5L6BU4sKz1whaEhPJPMONr8yDHZt
+	 /nGZaJKXWK8RjQfWPopANCgdpQVo88oFmJ/S7rbE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728077AbgDGJdJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 7 Apr 2020 05:33:09 -0400
-Received: from foss.arm.com ([217.140.110.172]:54020 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726716AbgDGJdJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 7 Apr 2020 05:33:09 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1A29930E;
-        Tue,  7 Apr 2020 02:33:08 -0700 (PDT)
-Received: from [10.37.12.4] (unknown [10.37.12.4])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E5A483F73D;
-        Tue,  7 Apr 2020 02:32:57 -0700 (PDT)
-Subject: Re: [PATCH v5 1/5] PM / EM: add devices to Energy Model
-To:     Daniel Lezcano <daniel.lezcano@linaro.org>,
-        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        linux-imx@nxp.com
-Cc:     Morten.Rasmussen@arm.com, Dietmar.Eggemann@arm.com,
-        javi.merino@arm.com, cw00.choi@samsung.com,
-        b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com,
-        viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org,
-        rui.zhang@intel.com, amit.kucheria@verdurent.com, mingo@redhat.com,
-        peterz@infradead.org, juri.lelli@redhat.com,
-        vincent.guittot@linaro.org, rostedt@goodmis.org,
-        qperret@google.com, bsegall@google.com, mgorman@suse.de,
-        shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.com,
-        kernel@pengutronix.de, khilman@kernel.org, agross@kernel.org,
-        bjorn.andersson@linaro.org, robh@kernel.org,
-        matthias.bgg@gmail.com, steven.price@arm.com,
-        tomeu.vizoso@collabora.com, alyssa.rosenzweig@collabora.com,
-        airlied@linux.ie, daniel@ffwll.ch, liviu.dudau@arm.com,
-        lorenzo.pieralisi@arm.com, patrick.bellasi@matbug.net,
-        orjan.eide@arm.com, rdunlap@infradead.org, mka@chromium.org
-References: <20200318114548.19916-1-lukasz.luba@arm.com>
- <20200318114548.19916-2-lukasz.luba@arm.com>
- <09b680a5-a118-8c6e-0ae1-03ab5f10c573@linaro.org>
- <cb7f670a-a04f-ba6f-1486-0421f3cce2e9@arm.com>
- <6b980e2a-c15c-0718-14b8-e8aa7510c832@linaro.org>
- <2a70b4ed-f18f-c1e6-1e8c-e4747807f276@arm.com>
- <4cee98ce-62a6-7448-a99c-3a1af6c87cf4@linaro.org>
-From:   Lukasz Luba <lukasz.luba@arm.com>
-Message-ID: <6c2fcd42-5245-ff45-1852-0f2ec800517f@arm.com>
-Date:   Tue, 7 Apr 2020 10:32:55 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        id S1726582AbgDIMPC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 9 Apr 2020 08:15:02 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:46250 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725971AbgDIMPC (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2020 08:15:02 -0400
+Received: by mail-ed1-f68.google.com with SMTP id dk4so1561741edb.13;
+        Thu, 09 Apr 2020 05:15:01 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=gYvBs+A4oEEcIMW3rEpNzM655tFmA/5YHjSipVpMudE=;
+        b=KNpAMrlizzkRUjdtArRcZnepHKNbBBN3N29ICe8f+8u6zOuwzgheP2XUgCe+44NkIR
+         mQLi0LbDma0eJfXyOWBKcbI2n8ancJall5BX2XkJNVRNNTKMoc9a5b/UIpi2u5H8OdAL
+         wApHdYZ1LSSr/6trI/dFG30x/Qyr6p7NIUqAv1DOYTzLuPrY0sPMLn94+uwoMPyEWaBW
+         iVEgmf1Qbe3qa84zsIAGGS/pv73wUuLRlgOQEiKqf0CFJrzUUWOVeXsAEFJhh97kXPyr
+         GZyGrCIrhxxiIcOrNhwBEE1X+Y+gwd4BQvdD7blpBMPJQIY5Zp2FVyy0J6fa9RShslsv
+         euOw==
+X-Gm-Message-State: AGi0PuZNdCjWjEQGXtYtDzyb1AFiyKSVK99JM7iY3Sjepioh9ROim5x1
+        yUJDf1ERp7TF+bavcIpO8i0=
+X-Google-Smtp-Source: APiQypJUJiiLoo3HAf51vgJTKYVBHwPZEVH7hjM1r+1VFWyM0ypQpU23tWpSatmkBm3yArwlL/zmtg==
+X-Received: by 2002:a17:906:66c1:: with SMTP id k1mr11490807ejp.208.1586434500891;
+        Thu, 09 Apr 2020 05:15:00 -0700 (PDT)
+Received: from kozik-lap ([194.230.155.125])
+        by smtp.googlemail.com with ESMTPSA id m1sm532752ejr.81.2020.04.09.05.14.58
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 09 Apr 2020 05:14:59 -0700 (PDT)
+Date:   Thu, 9 Apr 2020 14:14:56 +0200
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     Oleksandr Suvorov <oleksandr.suvorov@toradex.com>
+Cc:     devicetree@vger.kernel.org, Paul Barker <pbarker@konsulko.com>,
+        Marcel Ziswiler <marcel.ziswiler@toradex.com>,
+        Igor Opaniuk <igor.opaniuk@toradex.com>,
+        Philippe Schenker <philippe.schenker@toradex.com>,
+        Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        David Lechner <david@lechnology.com>,
+        Fabio Estevam <festevam@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Jisheng Zhang <Jisheng.Zhang@synaptics.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Maxime Ripard <mripard@kernel.org>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Peter Rosin <peda@axentia.se>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Sekhar Nori <nsekhar@ti.com>, Shawn Guo <shawnguo@kernel.org>,
+        Stefan Agner <stefan@agner.ch>,
+        Tony Lindgren <tony@atomide.com>,
+        linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-rockchip@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: Re: [RFC PATCH v2 6/6] arm: dts: pwm: replace flag 0 with PWM_NOFLAGS
+Message-ID: <20200409121456.GB802@kozik-lap>
+References: <20200405192246.3741784-1-oleksandr.suvorov@toradex.com>
+ <20200405192246.3741784-7-oleksandr.suvorov@toradex.com>
 MIME-Version: 1.0
-In-Reply-To: <4cee98ce-62a6-7448-a99c-3a1af6c87cf4@linaro.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20200405192246.3741784-7-oleksandr.suvorov@toradex.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-
-
-On 4/6/20 10:17 PM, Daniel Lezcano wrote:
-> On 06/04/2020 18:07, Lukasz Luba wrote:
->>
->>
->> On 4/6/20 3:58 PM, Daniel Lezcano wrote:
->>>
->>> Hi Lukasz,
->>>
->>>
->>> On 06/04/2020 15:29, Lukasz Luba wrote:
->>>> Hi Daniel,
->>>>
->>>> Thank you for the review.
->>>>
->>>> On 4/3/20 5:05 PM, Daniel Lezcano wrote:
->>>>>
->>>>> Hi Lukasz,
->>>>>
->>>>>
->>>>> On 18/03/2020 12:45, Lukasz Luba wrote:
->>>>>> Add support of other devices into the Energy Model framework not only
->>>>>> the
->>>>>> CPUs. Change the interface to be more unified which can handle other
->>>>>> devices as well.
->>>>>
->>>>> thanks for taking care of that. Overall I like the changes in this
->>>>> patch
->>>>> but it hard to review in details because the patch is too big :/
->>>>>
->>>>> Could you split this patch into smaller ones?
->>>>>
->>>>> eg. (at your convenience)
->>>>>
->>>>>     - One patch renaming s/cap/perf/
->>>>>
->>>>>     - One patch adding a new function:
->>>>>
->>>>>        em_dev_register_perf_domain(struct device *dev,
->>>>>                   unsigned int nr_states,
->>>>>                   struct em_data_callback *cb);
->>>>>
->>>>>       (+ EXPORT_SYMBOL_GPL)
->>>>>
->>>>>        And em_register_perf_domain() using it.
->>>>>
->>>>>     - One converting the em_register_perf_domain() user to
->>>>>       em_dev_register_perf_domain
->>>>>
->>>>>     - One adding the different new 'em' functions
->>>>>
->>>>>     - And finally one removing em_register_perf_domain().
->>>>
->>>> I agree and will do the split. I could also break the dependencies
->>>> for future easier merge.
->>>>
->>>>>
->>>>>
->>>>>> Acked-by: Quentin Perret <qperret@google.com>
->>>>>> Signed-off-by: Lukasz Luba <lukasz.luba@arm.com>
->>>>>> ---
->>>>>
->>>>> [ ... ]
->>>>>
->>>>>>     2. Core APIs
->>>>>> @@ -70,14 +72,16 @@ CONFIG_ENERGY_MODEL must be enabled to use the EM
->>>>>> framework.
->>>>>>     Drivers are expected to register performance domains into the EM
->>>>>> framework by
->>>>>>     calling the following API::
->>>>>>     -  int em_register_perf_domain(cpumask_t *span, unsigned int
->>>>>> nr_states,
->>>>>> -                  struct em_data_callback *cb);
->>>>>> +  int em_register_perf_domain(struct device *dev, unsigned int
->>>>>> nr_states,
->>>>>> +        struct em_data_callback *cb, cpumask_t *cpus);
->>>>>
->>>>> Isn't possible to get rid of this cpumask by using
->>>>> cpufreq_cpu_get() which returns the cpufreq's policy and from their get
->>>>> the related cpus ?
->>>>
->>>> We had similar thoughts with Quentin and I've checked this.
->>>
->>> Yeah, I suspected you already think about that :)
->>>
->>>> Unfortunately, if the policy is a 'new policy' [1] it gets
->>>> allocated and passed into cpufreq driver ->init(policy) [2].
->>>> Then that policy is set into per_cpu pointer for each related_cpu [3]:
->>>>
->>>> for_each_cpu(j, policy->related_cpus)
->>>>       per_cpu(cpufreq_cpu_data, j) = policy;
->>>>
->>>>    Thus, any calls of functions (i.e. cpufreq_cpu_get()) which try to
->>>> take this ptr before [3] won't work.
->>>>
->>>> We are trying to register EM from cpufreq_driver->init(policy) and the
->>>> per_cpu policy is likely to be not populated at that phase.
->>>
->>> What is the problem of registering at the end of the cpufreq_online ?
->>
->> We want to enable driver developers to choose one of two options for the
->> registration of Energy Model:
->> 1. a simple one via dev_pm_opp_of_register_em(), which uses default
->>     callback function calculating power based on: voltage, freq
->>     and DT entry 'dynamic-power-coefficient' for each OPP
->> 2. a more sophisticated, when driver provides callback function, which
->>    will be called from EM for each OPP to ask for related power;
->>    This interface could also be used by devices which relay not only
->>    on one source of 'voltage', i.e. manipulate body bias or have
->>    other controlling voltage for gates in the new 3D transistors. They
->>    might provide custom callback function in their cpufreq driver.
->>    This is used i.e. in cpufreq drivers which use firmware to get power,
->>    like scmi-cpufreq.c;
->>
->> To meet this requirement the registration of EM is moved into cpufreq
->> drivers, not in the framework i.e cpufreq_online(). If we could limit
->> the support for only option 1. then we could move the registration
->> call into cpufreq framework and clean the cpufreq drivers.
+On Sun, Apr 05, 2020 at 10:22:46PM +0300, Oleksandr Suvorov wrote:
+> The raw value '0' in the 3rd cell of the "pwms" property means there are
+> no flags to be set.
 > 
-> I'm not sure to get your point but I think a series setting the scene by
-> moving the dev_pm_opp_of_register_em() to cpufreq_online() and remove
-> the cpumask may make sense.
-
-Some of the cpufreq drivers don't use dev_pm_opp_of_register_em() but 
-instead em_register_perf_domain() with their em_data_callback [1].
-It is because of point 2. described above. The dev_pm_opp_of_register_em
-won't work for them, so it's not a good candidate to cover all use cases
-in the framework.
-
+> This patch converts '0' value into PWM_NOFLAGS.
 > 
-> Can you send the split version of patch 1/5 as a series without the
-> other changes ? So we can focus on first ?
+> Signed-off-by: Oleksandr Suvorov <oleksandr.suvorov@toradex.com>
+> ---
+> 
+> Changes in v2:
+> - remove the driver part of patchset as dangerous and senseless.
+> - use PWM_NOFLAGS instead of PWM_POLARITY_NORMAL to avoid possible
+>   conflict with enum pwm_polarity in <linux/pwm.h>. Also, this name
+>   reflects the sense of this value more precisely.
+> 
+>  arch/arm/boot/dts/am335x-cm-t335.dts               | 2 +-
+>  arch/arm/boot/dts/am335x-evm.dts                   | 2 +-
+>  arch/arm/boot/dts/am3517-evm.dts                   | 2 +-
+>  arch/arm/boot/dts/at91-dvk_su60_somc_lcm.dtsi      | 2 +-
+>  arch/arm/boot/dts/at91-kizbox2-common.dtsi         | 6 +++---
+>  arch/arm/boot/dts/at91-kizbox3_common.dtsi         | 8 ++++----
+>  arch/arm/boot/dts/at91-kizboxmini-common.dtsi      | 6 +++---
+>  arch/arm/boot/dts/at91-nattis-2-natte-2.dts        | 2 +-
+>  arch/arm/boot/dts/at91-sama5d4_ma5d4evk.dts        | 2 +-
+>  arch/arm/boot/dts/at91sam9n12ek.dts                | 2 +-
+>  arch/arm/boot/dts/at91sam9x5dm.dtsi                | 2 +-
+>  arch/arm/boot/dts/berlin2cd-google-chromecast.dts  | 4 ++--
+>  arch/arm/boot/dts/da850-evm.dts                    | 2 +-
+>  arch/arm/boot/dts/da850-lego-ev3.dts               | 4 ++--
+>  arch/arm/boot/dts/exynos4412-midas.dtsi            | 2 +-
+>  arch/arm/boot/dts/exynos4412-odroidu3.dts          | 2 +-
+>  arch/arm/boot/dts/exynos5250-snow-common.dtsi      | 2 +-
+>  arch/arm/boot/dts/exynos5410-odroidxu.dts          | 2 +-
+>  arch/arm/boot/dts/exynos5420-peach-pit.dts         | 2 +-
+>  arch/arm/boot/dts/exynos5422-odroidhc1.dts         | 2 +-
+>  arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi | 2 +-
+>  arch/arm/boot/dts/exynos5422-odroidxu4.dts         | 2 +-
+>  arch/arm/boot/dts/exynos54xx-odroidxu-leds.dtsi    | 4 ++--
+>  arch/arm/boot/dts/exynos5800-peach-pi.dts          | 2 +-
+>  arch/arm/boot/dts/imx53-tx53-x13x.dts              | 5 +++--
+>  arch/arm/boot/dts/imx6dl-tx6dl-comtft.dts          | 2 +-
+>  arch/arm/boot/dts/imx6q-display5.dtsi              | 2 +-
+>  arch/arm/boot/dts/imx6q-tx6q-1010-comtft.dts       | 2 +-
+>  arch/arm/boot/dts/imx6q-tx6q-1020-comtft.dts       | 2 +-
+>  arch/arm/boot/dts/imx6qdl-tx6-lvds.dtsi            | 4 ++--
+>  arch/arm/boot/dts/imx7-colibri.dtsi                | 4 +++-
+>  arch/arm/boot/dts/imx7d-nitrogen7.dts              | 3 ++-
+>  arch/arm/boot/dts/imx7d-pico.dtsi                  | 3 ++-
+>  arch/arm/boot/dts/imx7d-sdb.dts                    | 3 ++-
+>  arch/arm/boot/dts/imx7ulp-evk.dts                  | 3 ++-
+>  arch/arm/boot/dts/iwg20d-q7-common.dtsi            | 2 +-
+>  arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi   | 2 +-
+>  arch/arm/boot/dts/meson8b-ec100.dts                | 4 ++--
+>  arch/arm/boot/dts/meson8b-mxq.dts                  | 4 ++--
+>  arch/arm/boot/dts/meson8b-odroidc1.dts             | 4 ++--
+>  arch/arm/boot/dts/motorola-mapphone-common.dtsi    | 3 ++-
+>  arch/arm/boot/dts/omap3-gta04.dtsi                 | 2 +-
+>  arch/arm/boot/dts/omap3-n900.dts                   | 2 +-
+>  arch/arm/boot/dts/rk3288-veyron-edp.dtsi           | 2 +-
+>  arch/arm/boot/dts/rk3288-veyron.dtsi               | 2 +-
+>  arch/arm/boot/dts/rv1108-evb.dts                   | 2 +-
+>  arch/arm/boot/dts/s3c6410-mini6410.dts             | 2 +-
+>  arch/arm/boot/dts/s5pv210-aries.dtsi               | 2 +-
+>  arch/arm/boot/dts/s5pv210-smdkv210.dts             | 2 +-
 
-Sure, I will only split patch 1/5 as you suggested and send v6.
-Thank you for your time and help.
 
-Regards,
-Lukasz
+I understand you are going to push it through arm-soc, so:
+For Exynos/S3C/S5P:
+Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
 
-[1] 
-https://elixir.bootlin.com/linux/latest/source/drivers/cpufreq/scmi-cpufreq.c#L203
+Otherwise if you expect individual maintainers to pick it up, please
+split per architecture.
+
+Best regards,
+Krzysztof
