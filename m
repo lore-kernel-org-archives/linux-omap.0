@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A72C2BB85
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBD42C2BB85
+	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9E7020775
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC16F206F9
+	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="mfdqffzQ"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="SrwbUbdC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2894997AbgDOIrr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 15 Apr 2020 04:47:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42076 "EHLO
+        id S2895033AbgDOIrx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 15 Apr 2020 04:47:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2895030AbgDOIr1 (ORCPT
+        by vger.kernel.org with ESMTP id S2895028AbgDOIr1 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
         Wed, 15 Apr 2020 04:47:27 -0400
-Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::11])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABD65C061A0E;
-        Wed, 15 Apr 2020 01:47:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1586940445;
+Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::7])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D623AC061A0C;
+        Wed, 15 Apr 2020 01:47:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1586940444;
         s=strato-dkim-0002; d=goldelico.com;
         h=References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
         X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=fsIHgrJ2055pXXkZWP5JYdd7EoHmHevxMLsBqOhoJOE=;
-        b=mfdqffzQq8aZqvWK6ya+VIbZ0K9XGhd4X9HSzVvQ7g1i2csW0ctyTLDBHYp8I3GgWb
-        qrdjDfijCuZ9ANUzm5d/Hr8P51v2i08ODjBtKYFLPZQaXwQMVNaiTA0MhKwgln6m/UrT
-        FUGCCBXeVnDuD5VhCOevqMuJMjFTnbb3MC5t0axX39NFghXAV2fqN0g/4LRK1V0h+dWq
-        GBEUPv8jSInX/9+uDvbFtuCRF9DbquTZHM3Xo4NiNq8aNpKTR+Xv9SK4PBww6Xd5P08n
-        JorLDBnmEtJuIOhS2R95z4H4+6rC5xvv9tPu18cT8PiezblztcaPKLbrlIVT9U1eh+Or
-        6+wg==
+        bh=NojKpJsr295KKzeE6Kfg0J7/g3gnxL5pXSLXeEqbQIE=;
+        b=SrwbUbdC8esLCmZKrChaDGfBHXjiHxMIDzUGSwUHSGx+b4tn/15g0pm/Pw1LnfO+55
+        2aDCqb4Xz1NqesKyA0hTUJt3yWaH13dZjwxavRXAEPtAPlWRclZQMedD2QiR42u5cuRt
+        4Lcim19SJjmA+KyGupF0POOb9oPcbG6MeeRJKabhEJ/ZGNBTSXTTTjaGZ8M7w0Bk5L69
+        zjp60yXihALmGV3SyyhwQhFC99qsbCoP5jpmThj35sVm5yfXLk4yWQ+pX2xA8fwl2WEw
+        S/mn3vGrJxlrF7GhNnfFnGzuEuJBF2t/PxC5d6CAbOcFlwDO48ybZY4ZM3MW70uU/kU8
+        /sWQ==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1OAA2UNf2M7O2CKN9ej"
 X-RZG-CLASS-ID: mo00
 Received: from iMac.fritz.box
         by smtp.strato.de (RZmta 46.4.0 DYNA|AUTH)
-        with ESMTPSA id 6028a2w3F8ZT0Ix
+        with ESMTPSA id 6028a2w3F8ZS0Iv
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
         (Client did not present a certificate);
-        Wed, 15 Apr 2020 10:35:29 +0200 (CEST)
+        Wed, 15 Apr 2020 10:35:28 +0200 (CEST)
 From:   "H. Nikolaus Schaller" <hns@goldelico.com>
 To:     David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>,
         Rob Herring <robh+dt@kernel.org>,
@@ -66,9 +66,9 @@ Cc:     Philipp Rossak <embed3d@gmail.com>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org,
         "H . Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v6 11/12] ARM: dts: sun8i: a83t: add sgx gpu child node
-Date:   Wed, 15 Apr 2020 10:35:18 +0200
-Message-Id: <acc240eb8ccc2040dd90577f2e4bf429434583a1.1586939718.git.hns@goldelico.com>
+Subject: [PATCH v6 09/12] ARM: dts: sun6i: a31: add sgx gpu child node
+Date:   Wed, 15 Apr 2020 10:35:16 +0200
+Message-Id: <65bf7033dfedf303387d2e5882c6ce672832a9c8.1586939718.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1586939718.git.hns@goldelico.com>
 References: <cover.1586939718.git.hns@goldelico.com>
@@ -93,20 +93,20 @@ complete and was already verifyed by loading the kernelmodule successful.
 Signed-off-by: Philipp Rossak <embed3d@gmail.com>
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/sun8i-a83t.dtsi | 11 +++++++++++
+ arch/arm/boot/dts/sun6i-a31.dtsi | 11 +++++++++++
  1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
-index 655404d6d3a3..bfb900622bf6 100644
---- a/arch/arm/boot/dts/sun8i-a83t.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
-@@ -1192,6 +1192,17 @@ ths: thermal-sensor@1f04000 {
- 			nvmem-cell-names = "calibration";
- 			#thermal-sensor-cells = <1>;
+diff --git a/arch/arm/boot/dts/sun6i-a31.dtsi b/arch/arm/boot/dts/sun6i-a31.dtsi
+index f3425a66fc0a..933a825bf460 100644
+--- a/arch/arm/boot/dts/sun6i-a31.dtsi
++++ b/arch/arm/boot/dts/sun6i-a31.dtsi
+@@ -1417,5 +1417,16 @@ p2wi: i2c@1f03400 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
  		};
 +
 +		gpu: gpu@1c400000 {
-+			compatible = "allwinner,sun8i-a83t-sgx544-115",
++			compatible = "allwinner,sun8i-a31-sgx544-115",
 +				     "img,sgx544-115", "img,sgx544";
 +			reg = <0x01c40000 0x10000>;
 +			/*
@@ -116,8 +116,7 @@ index 655404d6d3a3..bfb900622bf6 100644
 +			 */
 +		};
  	};
- 
- 	thermal-zones {
+ };
 -- 
 2.25.1
 
