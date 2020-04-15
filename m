@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2AEEC3815B
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A5F1C2BB85
+	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A27B4206F9
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B1D9206F9
+	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="lx5AZHoS"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="o7ukuLz9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2895031AbgDOIr1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 15 Apr 2020 04:47:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42058 "EHLO
+        id S2895037AbgDOIra (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 15 Apr 2020 04:47:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2895009AbgDOIrX (ORCPT
+        by vger.kernel.org with ESMTP id S2895026AbgDOIrY (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 15 Apr 2020 04:47:23 -0400
-Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::7])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E0B2C061A0C;
+        Wed, 15 Apr 2020 04:47:24 -0400
+Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65B21C061A0E;
         Wed, 15 Apr 2020 01:47:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1586940441;
         s=strato-dkim-0002; d=goldelico.com;
         h=References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
         X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=iwq6f4uxoyZcQOQDzwMpNIO6Xy6nAFRtGvlqeQKWcIs=;
-        b=lx5AZHoSkbByJ5HkXzowf0ozO8w6saKKVeioMMysFFtV8aamIb8xjnhg34SA5tQeMw
-        7k1QywTj5rZdAxkPYmoSOVH07cfQEvoHiH7bCYowRM1MTcpZVOp1C4++9P4lX71VouM+
-        kQZLpXQaQaCSV7ot2T9Zz5hOp2ZE78HdNU5xu8wr3i/i5utrm+6v/W3CFeGNCz9MqhG5
-        bQ1mlUvak/ncPu4FDMql1x4Hxxjgd0RdZxqUONKcOtfaqM4jcORZDQdHQx8809+CPFA8
-        w2p6p6aNLeQtsOf+9M1y2sSq2LcCvfl/GTPizazRNb4fEHyUgCmL5ar6hCGWmmwARcGG
-        TGUw==
+        bh=6++awsC9MQ9UWUKEnojY9Xy95sI3Ppl7eM2gLntDGuI=;
+        b=o7ukuLz9EHLhwERjjgs9jCRXeIOnEX+Kje+jM9ZN+JGunR4MLTeAMRO+k9SVjActJk
+        FRxHvrivmqKIkyh+nzU311GU7uEeLU4R2E5avHiZex0S8c8Zc3N2n+5gfwIVfXXOsyi4
+        SDeOdaMAZay+MAePKM4dKNk8S3Vy+M9dp75fO+8GCM6FGXDrjjcB6TdBLimWMYNO4R3C
+        IzxjKAWGz2q7IKtpmnXU+lRfRj9I781tvMI11r5KoaESk2WC50XADIBHWIMmwUP66Qbu
+        5iJSsX6mQ6vlXAdDAgqHEIR4b8BIY/cytulUusPk9PV+My3VM9VRl0KvYA41y0IBwwn1
+        ipxQ==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1OAA2UNf2M7O2CKN9ej"
 X-RZG-CLASS-ID: mo00
 Received: from iMac.fritz.box
         by smtp.strato.de (RZmta 46.4.0 DYNA|AUTH)
-        with ESMTPSA id 6028a2w3F8ZS0Iw
+        with ESMTPSA id 6028a2w3F8ZP0Ir
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
         (Client did not present a certificate);
-        Wed, 15 Apr 2020 10:35:28 +0200 (CEST)
+        Wed, 15 Apr 2020 10:35:25 +0200 (CEST)
 From:   "H. Nikolaus Schaller" <hns@goldelico.com>
 To:     David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>,
         Rob Herring <robh+dt@kernel.org>,
@@ -65,10 +65,10 @@ Cc:     Philipp Rossak <embed3d@gmail.com>,
         kernel@pyra-handheld.com, linux-mips@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org,
-        "H . Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v6 10/12] ARM: dts: sun6i: a31s: add sgx gpu child node
-Date:   Wed, 15 Apr 2020 10:35:17 +0200
-Message-Id: <fed0dc035c2e7cfe068588d7b5232924d2960ab1.1586939718.git.hns@goldelico.com>
+        "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v6 06/12] ARM: DTS: omap4: add sgx gpu child node
+Date:   Wed, 15 Apr 2020 10:35:13 +0200
+Message-Id: <dc8ff147e82d9b7862f0122801d30600a80f314c.1586939718.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1586939718.git.hns@goldelico.com>
 References: <cover.1586939718.git.hns@goldelico.com>
@@ -79,40 +79,70 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Philipp Rossak <embed3d@gmail.com>
+and add interrupt.
 
-We are adding the devicetree binding for the PVR-SGX-544-115 gpu.
+Since omap4420/30/60 and omap4470 come with different SGX variants
+we need to introduce a new omap4470.dtsi. If an omap4470 board
+does not want to use SGX it is no problem to still include
+omap4460.dtsi.
 
-This driver is currently under development in the openpvrsgx-devgroup.
-Right now the full binding is not figured out, so we provide here a
-placeholder. It will be completed as soon as there is a demo available.
-
-The currently used binding that is used during development is more
-complete and was already verifyed by loading the kernelmodule successful.
-
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # PandaBoard ES
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/sun6i-a31s.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi   | 11 ++++++-----
+ arch/arm/boot/dts/omap4470.dts | 15 +++++++++++++++
+ 2 files changed, 21 insertions(+), 5 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4470.dts
 
-diff --git a/arch/arm/boot/dts/sun6i-a31s.dtsi b/arch/arm/boot/dts/sun6i-a31s.dtsi
-index 97e2c51d0aea..669770d2934a 100644
---- a/arch/arm/boot/dts/sun6i-a31s.dtsi
-+++ b/arch/arm/boot/dts/sun6i-a31s.dtsi
-@@ -59,3 +59,13 @@ &pio {
- &tcon0 {
- 	compatible = "allwinner,sun6i-a31s-tcon";
- };
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 763bdea8c829..15ff3d7146af 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -389,7 +389,7 @@ abb_iva: regulator-abb-iva {
+ 			status = "disabled";
+ 		};
+ 
+-		target-module@56000000 {
++		sgx_module: target-module@56000000 {
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			reg = <0x5600fe00 0x4>,
+ 			      <0x5600fe10 0x4>;
+@@ -408,10 +408,11 @@ target-module@56000000 {
+ 			#size-cells = <1>;
+ 			ranges = <0 0x56000000 0x2000000>;
+ 
+-			/*
+-			 * Closed source PowerVR driver, no child device
+-			 * binding or driver in mainline
+-			 */
++			gpu: gpu@0 {
++				compatible = "ti,omap4-sgx540-120", "img,sgx540-120", "img,sgx540";
++				reg = <0x0 0x2000000>;	/* 32MB */
++				interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
++			};
+ 		};
+ 
+ 		/*
+diff --git a/arch/arm/boot/dts/omap4470.dts b/arch/arm/boot/dts/omap4470.dts
+new file mode 100644
+index 000000000000..f29c581300bf
+--- /dev/null
++++ b/arch/arm/boot/dts/omap4470.dts
+@@ -0,0 +1,15 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Device Tree Source for OMAP4470 SoC
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++#include "omap4460.dtsi"
 +
-+&gpu {
-+	compatible = "allwinner,sun8i-a31s-sgx544-115",
-+		     "img,sgx544-115", "img,sgx544";
-+	/*
-+	 * This node is currently a placeholder for the gpu.
-+	 * This will be completed when a full demonstration
-+	 * of the openpvrsgx driver is available for this board.
-+	 */
++&sgx {
++	compatible = "ti,omap4470-sgx544-112", "img,sgx544-112", "img,sgx544";
 +};
 -- 
 2.25.1
