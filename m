@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C5CAC3815B
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A01D3C38A2C
+	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BC032078A
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F53A206F9
+	for <linux-omap@archiver.kernel.org>; Wed, 15 Apr 2020 08:47:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="e1qur3Kh"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="fhxyR8NQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2894994AbgDOIrp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 15 Apr 2020 04:47:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42084 "EHLO
+        id S2895000AbgDOIrs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 15 Apr 2020 04:47:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2894985AbgDOIr3 (ORCPT
+        by vger.kernel.org with ESMTP id S2895029AbgDOIr1 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 15 Apr 2020 04:47:29 -0400
-Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::7])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EC5CC061A10;
-        Wed, 15 Apr 2020 01:47:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1586940447;
+        Wed, 15 Apr 2020 04:47:27 -0400
+Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABDBEC061A0F;
+        Wed, 15 Apr 2020 01:47:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1586940444;
         s=strato-dkim-0002; d=goldelico.com;
         h=References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
         X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=1Ik0W52h1P3DqsEKervnuYBLHYDwAO17lsngt7yWHqw=;
-        b=e1qur3KhWwi4pnoDGGm7wu6tpU6BR8hs87DCJzEtsB0khGAGAkOdL8uRkAsModki+g
-        UsAjm2pZIjxmGSUzFPjC0AD7Jc77muZ7Nyl454n0JbiYUV6rL+nYWiqJVLP9AStfay/T
-        KE7MjLQpEP2u5g8b2pyJQOW7PGrr25tT7cPQJisMq7qebNBGjpF7ECMfrOB+zwzGy3nx
-        wUDwHQ5mq7JDzvrliMx3B298wl8AsI1EBi068eFGkQnzUT7XZ/FbzuIXcOC+ImMnYzZ6
-        WNfb2mAMQ0xf6ZKIqLUDZ8/IEgRdqvuJAgMRF90wA6+FFnQvkV0dOusuRjIT7p5BmD4l
-        KyvA==
+        bh=dI0VDCpAYn4kjTlYFF4mkRzHkNsrf7BBn1IDt/EnVco=;
+        b=fhxyR8NQ+rV6nK7QGZ2A5DG3a5IK36BhwQkVkkraDgdVQkcWSGt/Utnx5WgKhFz1TX
+        shHtx3wHwwBRepEThJv3CYGth8GudY19PX6fL0gizalw2I+NytfQNQNkuPHvLFdRbz0n
+        JRePSQiz40OQcrd5+yTmraftOIwNMguPspr9Vld4WzNg6A5rlCA+OnvNS0wLXI/izUXL
+        etysD3fXlDvsMiXUB3ys2cKRsV2RxWoHF5Bu4IzK/koTLBQ8iKEAu900006hkAchPhVv
+        icFG3qLUwvyGGv51IBuAKt7kwatPAxFrHUhQ0PMZ1ObzEOMVABEQUSbzfiE+a5aZBn57
+        3uUA==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1OAA2UNf2M7O2CKN9ej"
 X-RZG-CLASS-ID: mo00
 Received: from iMac.fritz.box
         by smtp.strato.de (RZmta 46.4.0 DYNA|AUTH)
-        with ESMTPSA id 6028a2w3F8ZU0Iy
+        with ESMTPSA id 6028a2w3F8ZR0Iu
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
         (Client did not present a certificate);
-        Wed, 15 Apr 2020 10:35:30 +0200 (CEST)
+        Wed, 15 Apr 2020 10:35:27 +0200 (CEST)
 From:   "H. Nikolaus Schaller" <hns@goldelico.com>
 To:     David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>,
         Rob Herring <robh+dt@kernel.org>,
@@ -65,11 +65,11 @@ Cc:     Philipp Rossak <embed3d@gmail.com>,
         kernel@pyra-handheld.com, linux-mips@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Paul Boddie <paul@boddie.org.uk>
-Subject: [PATCH v6 12/12] MIPS: DTS: jz4780: add sgx gpu node
-Date:   Wed, 15 Apr 2020 10:35:19 +0200
-Message-Id: <2ee64babb11f79fe4a03b7bad6c94fbbe0ce4b64.1586939718.git.hns@goldelico.com>
+        Jonathan Bakker <xc-racer2@live.ca>,
+        "H . Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v6 08/12] arm: dts: s5pv210: Add G3D node
+Date:   Wed, 15 Apr 2020 10:35:15 +0200
+Message-Id: <b6733f80546bf3e6b3799f716b9c8e0f407de03d.1586939718.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1586939718.git.hns@goldelico.com>
 References: <cover.1586939718.git.hns@goldelico.com>
@@ -80,41 +80,42 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-and add interrupt and clocks.
+From: Jonathan Bakker <xc-racer2@live.ca>
 
-Tested to build for CI20 board and load a driver.
-Setup can not yet be fully tested since there is no working
-HDMI driver for jz4780.
+to add support for SGX540 GPU.
 
-Suggested-by: Paul Boddie <paul@boddie.org.uk>
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # CI20.
+Signed-off-by: Jonathan Bakker <xc-racer2@live.ca>
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/mips/boot/dts/ingenic/jz4780.dtsi | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/boot/dts/s5pv210.dtsi | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/arch/mips/boot/dts/ingenic/jz4780.dtsi b/arch/mips/boot/dts/ingenic/jz4780.dtsi
-index bb89653d16a3..883fe2c4c9e1 100644
---- a/arch/mips/boot/dts/ingenic/jz4780.dtsi
-+++ b/arch/mips/boot/dts/ingenic/jz4780.dtsi
-@@ -357,6 +357,17 @@ i2c4: i2c@10054000 {
- 		status = "disabled";
- 	};
+diff --git a/arch/arm/boot/dts/s5pv210.dtsi b/arch/arm/boot/dts/s5pv210.dtsi
+index 2ad642f51fd9..e7fc709c0cca 100644
+--- a/arch/arm/boot/dts/s5pv210.dtsi
++++ b/arch/arm/boot/dts/s5pv210.dtsi
+@@ -512,6 +512,21 @@ vic3: interrupt-controller@f2300000 {
+ 			#interrupt-cells = <1>;
+ 		};
  
-+	gpu: gpu@13040000 {
-+		compatible = "ingenic,jz4780-sgx540-130", "img,sgx540-130", "img,sgx540";
-+		reg = <0x13040000 0x4000>;
++		g3d: g3d@f3000000 {
++			compatible = "samsung,s5pv210-sgx540-120";
++			reg = <0xf3000000 0x10000>;
++			interrupt-parent = <&vic2>;
++			interrupts = <10>;
++			clock-names = "sclk";
++			clocks = <&clocks CLK_G3D>;
 +
-+		clocks = <&cgu JZ4780_CLK_GPU>;
-+		clock-names = "gpu";
++			power-domains = <&pd S5PV210_PD_G3D>;
 +
-+		interrupt-parent = <&intc>;
-+		interrupts = <63>;
-+	};
++			assigned-clocks = <&clocks MOUT_G3D>, <&clocks DOUT_G3D>;
++			assigned-clock-rates = <0>, <66700000>;
++			assigned-clock-parents = <&clocks MOUT_MPLL>;
++		};
 +
- 	nemc: nemc@13410000 {
- 		compatible = "ingenic,jz4780-nemc";
- 		reg = <0x13410000 0x10000>;
+ 		fimd: fimd@f8000000 {
+ 			compatible = "samsung,s5pv210-fimd";
+ 			interrupt-parent = <&vic2>;
 -- 
 2.25.1
 
