@@ -2,784 +2,132 @@ Return-Path: <SRS0=0/1+=6A=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A860C2BB85
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Apr 2020 15:03:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE1DC2BB55
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Apr 2020 16:07:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E2AF206D9
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Apr 2020 15:03:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9F752223F
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Apr 2020 16:07:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="eis488nn"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BzwXd/+X"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394889AbgDPPDq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Apr 2020 11:03:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42340 "EHLO
+        id S1728534AbgDPQHE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Apr 2020 12:07:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1730395AbgDPPDo (ORCPT
+        by vger.kernel.org with ESMTP id S1727936AbgDPQHC (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 16 Apr 2020 11:03:44 -0400
-Received: from mo6-p01-ob.smtp.rzone.de (mo6-p01-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5301::7])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73B41C061A0C;
-        Thu, 16 Apr 2020 08:03:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1587049420;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=Pi+VQYbtPnq+pyUA10wnTfuvzyyV3GV2cUaBYZeEw90=;
-        b=eis488nn4LBqo0s/tc/9E7cjMz9Ck/KfNBrfE7VS7jWMRHbLgV+0jOkNi7f/ZyndN6
-        luh4qH+P54/NRyjtrHXWK8lZE9Id/cqQnJnORyCm0R8PIlIYwZx8IrvQZa74gxV6e03G
-        r1pkzTwqHQ9zKcsHlw7aHLvWpDi3u6/qi1D184mFIEnCmu91yXCPU3vyGSSwS2Z5QHBp
-        7w758lVX7LmqdMeIxrCYrUPvkLa/jKyxhUbp1LUTSCrQ7dGwC/HTWKTGJW1lycL3CicA
-        LGS6aB3L4a7Xglz0D2nUbKTrn4GPFwQHDisIXyw0IJl5582xEA1Qs2FtFRAxibpzxNl5
-        8JhQ==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj4Qpw9iZeHmAuw4XvCA=="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 46.4.0 DYNA|AUTH)
-        with ESMTPSA id 6028a2w3GF2T7JE
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Thu, 16 Apr 2020 17:02:29 +0200 (CEST)
-Subject: Re: [PATCHv3] w1: omap-hdq: Simplify driver with PM runtime autosuspend
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=utf-8
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <20191217004048.46298-1-tony@atomide.com>
-Date:   Thu, 16 Apr 2020 17:02:28 +0200
-Cc:     Evgeniy Polyakov <zbr@ioremap.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        Adam Ford <aford173@gmail.com>,
-        "Andrew F . Davis" <afd@ti.com>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        Vignesh R <vigneshr@ti.com>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <7B8C7DD9-095B-48FC-9642-695D07B79E97@goldelico.com>
-References: <20191217004048.46298-1-tony@atomide.com>
-To:     Tony Lindgren <tony@atomide.com>
-X-Mailer: Apple Mail (2.3124)
+        Thu, 16 Apr 2020 12:07:02 -0400
+Received: from mail-lj1-x243.google.com (mail-lj1-x243.google.com [IPv6:2a00:1450:4864:20::243])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1600DC061A0C;
+        Thu, 16 Apr 2020 09:07:01 -0700 (PDT)
+Received: by mail-lj1-x243.google.com with SMTP id y4so8403017ljn.7;
+        Thu, 16 Apr 2020 09:07:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=LbJR4G88FU2SJNDVd7+mZPSSYRkRlcccCmXj//WrJbc=;
+        b=BzwXd/+X5wHFpqbjKYBI+DM1PTiB+plm7L1MKs0YDQVU0gNK7K0SU5ic11WGDlnNDv
+         pSMw+EEoB4GZ//KOhpHfb4zxktf01lNSZLICSqirSCxe3jdnX+/wBpszQvIbhFCo5fjc
+         2eKr778KFbc6v4N6TxrU3zC2bGU3OGxR9fpMq/vz4xrndKEx8pTK1QyYJsdyNf3ZAt+R
+         sMaD531bmASpI8hN6IJkY01MBlPgfUXvn22IHb/XPDIHLrAnPDywzjVNf/qhofLi9Bfw
+         lKNkD9M5O1fUlS37dFEHBFAtnDPOtgozHzQ3ZheJtE8uF7H+7+6HUhxUfbDyFW9oyXWx
+         Zk9g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to:user-agent;
+        bh=LbJR4G88FU2SJNDVd7+mZPSSYRkRlcccCmXj//WrJbc=;
+        b=oKCUmmBrvNlTmpF7dXnSbTZKKHE01AAlZnJR+Y9ebUQ4sK/TRqnv+77xUdzT4fhEhH
+         HDCbvaV03/ZVYvQ0uz+754UZNUCazIZ+AoIErxRPrwANoAChzpW+XOyMan/LXGWDR8v+
+         XBVkGDFCpbZdzsXa22nljLxkNftOq4Wja0onuQtn6q4WEVRRHdBJx8dyF/AmUT/9Slcv
+         2XL2k4x6khjDCi/KipQ8E6eSAaviGUxcuLc0w09Y16KImlw5X+v45hGW2+eFXcq8F/a/
+         SVLesO9lW/+gSimpBwQmbwEZ5FGiQ/E3jCmldrzSPgt7mf/KgM2HjnwrvLfR0CebjTJr
+         0urg==
+X-Gm-Message-State: AGi0PuZUVsjkfDxONxBV0baPVOOuop1rjxTmGt1c55b2L1y1uyzIYoWF
+        He1bj6cWMZ6X9pMijL+9eJk=
+X-Google-Smtp-Source: APiQypLfL2DZlKS1XN9ILdmvxgaYQy9VYpTiflmdlmdRTwsMFFbwwuQm1KYi6SXRea5lUpEX8q00bA==
+X-Received: by 2002:a2e:9f08:: with SMTP id u8mr6797750ljk.103.1587053219333;
+        Thu, 16 Apr 2020 09:06:59 -0700 (PDT)
+Received: from x1 (i59F66838.versanet.de. [89.246.104.56])
+        by smtp.gmail.com with ESMTPSA id z23sm14116438ljz.52.2020.04.16.09.06.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Apr 2020 09:06:58 -0700 (PDT)
+Date:   Thu, 16 Apr 2020 18:07:38 +0200
+From:   Drew Fustini <drew@pdp7.com>
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Robert Nelson <robertcnelson@gmail.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+        Jason Kridner <jkridner@beagleboard.org>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        Kent Gibson <warthog618@gmail.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: gpio-omap: add support gpiolib bias (pull-up/down) flags?
+Message-ID: <20200416160738.GA2511@x1>
+References: <CACRpkdaPoMGZ7jGh6j4dYexx+qCcoMQ37vS7kbpf=3TtcA9zQQ@mail.gmail.com>
+ <CAEf4M_B_sxOiKFnEVUrx00RE2MaMA98LpijNhp0EVY11eRAXHg@mail.gmail.com>
+ <CAD6h2NT840zMfwaJatfKzai8QjZEQmF5v0xgE+9ngSJJ+Qy+6g@mail.gmail.com>
+ <20200413123921.GA32586@x1>
+ <578a51c3-9cb4-91f9-4735-c512bf75553c@ti.com>
+ <CAOCHtYg=rM_zP6Wr3bWKfvGpeK7sXLj6GLN3DXSh8JgfqDTcCA@mail.gmail.com>
+ <db5e49dc-41b4-2ba5-87b3-f345749d7984@ti.com>
+ <CAOCHtYgNH-OUWdKgKLr7U8Zy2OZb=P9Rpsv4mFii+VwU7h-vGA@mail.gmail.com>
+ <20200415233712.GA16167@x1>
+ <CACRpkda_upTeRn7xT9LuAkVKAf8LxUmQJJbVWhOoq+4zyoxfsw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACRpkda_upTeRn7xT9LuAkVKAf8LxUmQJJbVWhOoq+4zyoxfsw@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Tony,
-it looks as if something with this patch is broken on GTA04. For v5.6 =
-and v5.7-rc1.
 
-HDQ battery access times out after ca. 15 seconds and I get temperature =
-of -273.1=C2=B0C...
+On Thu, Apr 16, 2020 at 02:03:43PM +0200, Linus Walleij wrote:
+> On Thu, Apr 16, 2020 at 1:36 AM Drew Fustini <drew@pdp7.com> wrote:
+> 
+> > Is there no way for gpio-omap to call into the pinctrl-single backend to
+> > set the bias bits (PULLUDEN and PULLTYPESEL) in pad control registers?
+> 
+> Mostly a Tony question I think, but the single pinconf_ops call
+> pcs_pinconf_set() which is pretty straight-forward.
+> 
+> Have you tried modifying omap_gpio_set_config() so that
+> it accepts these configs and just calls down to
+> gpiochip_generic_config() for anything that is not debounce?
+> 
+> Yours,
+> Linus Walleij
 
-Reverting this patch and everything is ok again.
+I did add the plumbing to gpio-omap to call pinctrl_gpio_set_config()
+when PIN_CONFIG_BIAS_* is set.  I added lots of debug printing to
+pinctrl and determined that the problem was that
+pinctrl_get_device_gpio_range() would fail.  This seems to be the result
+of there being no gpio-ranges property define in the device tree.  This
+makes sense as currently there is no interaction between gpio and
+pinctrl subsystems when running on the TI AM3358.
 
-What is "ti,mode" about? Do we have that (indirectly) in gta04.dtsi?
-Or does this patch need some CONFIGs we do not happen to have?
+Another issue seems to be that the AM3358 device tree is using
+compatible of "pinctrl-single" [0] and the pinctrl-single binding
+documentation states this means no pinconf is possible (as opposed to
+compatible of "pinconf-single").
 
-BR and thanks,
-Nikolaus
+I did try switching to "pinconf-single" but it failed to boot
+successfully.  I need to troubleshoot more to figure out why that is.
+But I am uncertain if "pinconf-single" should in theory work for AM3358.
 
-root@letux:~# time cat /sys/class/power_supply/bq27000-battery/uevent
-POWER_SUPPLY_NAME=3Dbq27000-battery
-POWER_SUPPLY_STATUS=3DDischarging
-POWER_SUPPLY_PRESENT=3D1
-POWER_SUPPLY_VOLTAGE_NOW=3D0
-POWER_SUPPLY_CURRENT_NOW=3D0
-POWER_SUPPLY_CAPACITY=3D0
-POWER_SUPPLY_CAPACITY_LEVEL=3DNormal
-POWER_SUPPLY_TEMP=3D-2731
-POWER_SUPPLY_TIME_TO_EMPTY_NOW=3D0
-POWER_SUPPLY_TIME_TO_EMPTY_AVG=3D0
-POWER_SUPPLY_TIME_TO_FULL_NOW=3D0
-POWER_SUPPLY_TECHNOLOGY=3DLi-ion
-POWER_SUPPLY_CHARGE_FULL=3D0
-POWER_SUPPLY_CHARGE_NOW=3D0
-POWER_SUPPLY_CHARGE_FULL_DESIGN=3D0
-POWER_SUPPLY_CYCLE_COUNT=3D0
-POWER_SUPPLY_ENERGY_NOW=3D0
-POWER_SUPPLY_POWER_AVG=3D0
-POWER_SUPPLY_HEALTH=3DGood
-POWER_SUPPLY_MANUFACTURER=3DTexas Instruments
+Thanks,
+Drew
 
-real    0m15.761s
-user    0m0.001s
-sys     0m0.025s
-root@letux:~#=20
-root@letux:~# dmesg|fgrep -i hdq
-[   20.252136] omap_hdq 480b2000.1w: OMAP HDQ Hardware Rev 0.5. Driver =
-in Interrupt mode
-root@letux:~#
-
-> Am 17.12.2019 um 01:40 schrieb Tony Lindgren <tony@atomide.com>:
->=20
-> We've had generic code handling module sysconfig and OCP reset =
-registers
-> for omap variants for many years now and all the drivers really needs =
-to
-> do is just call runtime PM functions.
->=20
-> Looks like the omap-hdq driver got only partially updated over the =
-years
-> to use runtime PM, and still has lots of custom PM code left.
->=20
-> We can replace all the custom code for sysconfig, OCP reset, and PM =
-with
-> just a few lines of runtime PM autosuspend code.
->=20
-> In order to set the device mode properly when pm_runtime_get_sync() is
-> called during probe, we need to also move parsing of "ti,mode" to =
-happen
-> earlier before we call pm_runtime_enable().
->=20
-> Since we now disable interrupts lazily in omap_hdq_runtime_suspend(), =
-we
-> must remove the call to hdq_disable_interrupt() in =
-omap_w1_read_byte().
-> And we must clear irqstatus calling wait_event_timeout() on it, so =
-let's
-> add hdq_reset_irqstatus() for that.
->=20
-> Note that the earlier driver specific usage count limit of four seems
-> completely artificial and should not be an issue in normal use.
->=20
-> Cc: Adam Ford <aford173@gmail.com>
-> Cc: Andrew F. Davis <afd@ti.com>
-> Cc: Andreas Kemnade <andreas@kemnade.info>
-> Cc: H. Nikolaus Schaller <hns@goldelico.com>
-> Cc: Vignesh R <vigneshr@ti.com>
-> Tested-by: Andreas Kemnade <andreas@kemnade.info> # gta04
-> Tested-by: Adam Ford <aford173@gmail.com> #logicpd-torpedo-37xx-devkit
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->=20
-> Changes since v2:
->=20
-> - Added hdq_reset_irqstatus() and fixed up the calls so ti,mode =3D =
-"1w"
->  works
->=20
-> - Kept earlier Tested-by from Adam and Andreas as the =
-hdq_reset_irqstatus()
->  fix only affected "1w" mode and not "hdq" mode
->=20
-> Changes since v1:
->=20
-> - Drop call to hdq_disable_interrupt() as we now disable interrupts
->  lazily un runtime_suspend
->=20
-> - Parse "ti,mode" earlier before first pm_runtime_get_sync() so the
->  mode gets set properly also during the probe
->=20
->=20
-> drivers/w1/masters/omap_hdq.c | 348 +++++++++++-----------------------
-> 1 file changed, 113 insertions(+), 235 deletions(-)
->=20
-> diff --git a/drivers/w1/masters/omap_hdq.c =
-b/drivers/w1/masters/omap_hdq.c
-> --- a/drivers/w1/masters/omap_hdq.c
-> +++ b/drivers/w1/masters/omap_hdq.c
-> @@ -38,12 +38,6 @@
-> #define OMAP_HDQ_INT_STATUS_TXCOMPLETE		BIT(2)
-> #define OMAP_HDQ_INT_STATUS_RXCOMPLETE		BIT(1)
-> #define OMAP_HDQ_INT_STATUS_TIMEOUT		BIT(0)
-> -#define OMAP_HDQ_SYSCONFIG			0x14
-> -#define OMAP_HDQ_SYSCONFIG_SOFTRESET		BIT(1)
-> -#define OMAP_HDQ_SYSCONFIG_AUTOIDLE		BIT(0)
-> -#define OMAP_HDQ_SYSCONFIG_NOIDLE		0x0
-> -#define OMAP_HDQ_SYSSTATUS			0x18
-> -#define OMAP_HDQ_SYSSTATUS_RESETDONE		BIT(0)
->=20
-> #define OMAP_HDQ_FLAG_CLEAR			0
-> #define OMAP_HDQ_FLAG_SET			1
-> @@ -62,17 +56,9 @@ struct hdq_data {
-> 	void __iomem		*hdq_base;
-> 	/* lock status update */
-> 	struct  mutex		hdq_mutex;
-> -	int			hdq_usecount;
-> 	u8			hdq_irqstatus;
-> 	/* device lock */
-> 	spinlock_t		hdq_spinlock;
-> -	/*
-> -	 * Used to control the call to omap_hdq_get and omap_hdq_put.
-> -	 * HDQ Protocol: Write the CMD|REG_address first, followed by
-> -	 * the data wrire or read.
-> -	 */
-> -	int			init_trans;
-> -	int                     rrw;
-> 	/* mode: 0-HDQ 1-W1 */
-> 	int                     mode;
->=20
-> @@ -99,15 +85,6 @@ static inline u8 hdq_reg_merge(struct hdq_data =
-*hdq_data, u32 offset,
-> 	return new_val;
-> }
->=20
-> -static void hdq_disable_interrupt(struct hdq_data *hdq_data, u32 =
-offset,
-> -				  u32 mask)
-> -{
-> -	u32 ie;
-> -
-> -	ie =3D readl(hdq_data->hdq_base + offset);
-> -	writel(ie & mask, hdq_data->hdq_base + offset);
-> -}
-> -
-> /*
->  * Wait for one or more bits in flag change.
->  * HDQ_FLAG_SET: wait until any bit in the flag is set.
-> @@ -142,22 +119,24 @@ static int hdq_wait_for_flag(struct hdq_data =
-*hdq_data, u32 offset,
-> 	return ret;
-> }
->=20
-> +/* Clear saved irqstatus after using an interrupt */
-> +static void hdq_reset_irqstatus(struct hdq_data *hdq_data)
-> +{
-> +	unsigned long irqflags;
-> +
-> +	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
-> +	hdq_data->hdq_irqstatus =3D 0;
-> +	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
-> +}
-> +
-> /* write out a byte and fill *status with HDQ_INT_STATUS */
-> static int hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 =
-*status)
-> {
-> 	int ret;
-> 	u8 tmp_status;
-> -	unsigned long irqflags;
->=20
-> 	*status =3D 0;
->=20
-> -	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
-> -	/* clear interrupt flags via a dummy read */
-> -	hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-> -	/* ISR loads it with new INT_STATUS */
-> -	hdq_data->hdq_irqstatus =3D 0;
-> -	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
-> -
-> 	hdq_reg_out(hdq_data, OMAP_HDQ_TX_DATA, val);
->=20
-> 	/* set the GO bit */
-> @@ -191,6 +170,7 @@ static int hdq_write_byte(struct hdq_data =
-*hdq_data, u8 val, u8 *status)
-> 	}
->=20
-> out:
-> +	hdq_reset_irqstatus(hdq_data);
-> 	return ret;
-> }
->=20
-> @@ -237,47 +217,11 @@ static void omap_w1_search_bus(void *_hdq, =
-struct w1_master *master_dev,
-> 	slave_found(master_dev, id);
-> }
->=20
-> -static int _omap_hdq_reset(struct hdq_data *hdq_data)
-> -{
-> -	int ret;
-> -	u8 tmp_status;
-> -
-> -	hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG,
-> -		    OMAP_HDQ_SYSCONFIG_SOFTRESET);
-> -	/*
-> -	 * Select HDQ/1W mode & enable clocks.
-> -	 * It is observed that INT flags can't be cleared via a read and =
-GO/INIT
-> -	 * won't return to zero if interrupt is disabled. So we always =
-enable
-> -	 * interrupt.
-> -	 */
-> -	hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
-> -		OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
-> -		OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-> -
-> -	/* wait for reset to complete */
-> -	ret =3D hdq_wait_for_flag(hdq_data, OMAP_HDQ_SYSSTATUS,
-> -		OMAP_HDQ_SYSSTATUS_RESETDONE, OMAP_HDQ_FLAG_SET, =
-&tmp_status);
-> -	if (ret)
-> -		dev_dbg(hdq_data->dev, "timeout waiting HDQ reset, %x",
-> -				tmp_status);
-> -	else {
-> -		hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
-> -			OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
-> -			OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK |
-> -			hdq_data->mode);
-> -		hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG,
-> -			OMAP_HDQ_SYSCONFIG_AUTOIDLE);
-> -	}
-> -
-> -	return ret;
-> -}
-> -
-> /* Issue break pulse to the device */
-> static int omap_hdq_break(struct hdq_data *hdq_data)
-> {
-> 	int ret =3D 0;
-> 	u8 tmp_status;
-> -	unsigned long irqflags;
->=20
-> 	ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> 	if (ret < 0) {
-> @@ -286,13 +230,6 @@ static int omap_hdq_break(struct hdq_data =
-*hdq_data)
-> 		goto rtn;
-> 	}
->=20
-> -	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
-> -	/* clear interrupt flags via a dummy read */
-> -	hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-> -	/* ISR loads it with new INT_STATUS */
-> -	hdq_data->hdq_irqstatus =3D 0;
-> -	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
-> -
-> 	/* set the INIT and GO bit */
-> 	hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS,
-> 		OMAP_HDQ_CTRL_STATUS_INITIALIZATION | =
-OMAP_HDQ_CTRL_STATUS_GO,
-> @@ -341,6 +278,7 @@ static int omap_hdq_break(struct hdq_data =
-*hdq_data)
-> 			" return to zero, %x", tmp_status);
->=20
-> out:
-> +	hdq_reset_irqstatus(hdq_data);
-> 	mutex_unlock(&hdq_data->hdq_mutex);
-> rtn:
-> 	return ret;
-> @@ -357,7 +295,7 @@ static int hdq_read_byte(struct hdq_data =
-*hdq_data, u8 *val)
-> 		goto rtn;
-> 	}
->=20
-> -	if (!hdq_data->hdq_usecount) {
-> +	if (pm_runtime_suspended(hdq_data->dev)) {
-> 		ret =3D -EINVAL;
-> 		goto out;
-> 	}
-> @@ -388,86 +326,13 @@ static int hdq_read_byte(struct hdq_data =
-*hdq_data, u8 *val)
-> 	/* the data is ready. Read it in! */
-> 	*val =3D hdq_reg_in(hdq_data, OMAP_HDQ_RX_DATA);
-> out:
-> +	hdq_reset_irqstatus(hdq_data);
-> 	mutex_unlock(&hdq_data->hdq_mutex);
-> rtn:
-> 	return ret;
->=20
-> }
->=20
-> -/* Enable clocks and set the controller to HDQ/1W mode */
-> -static int omap_hdq_get(struct hdq_data *hdq_data)
-> -{
-> -	int ret =3D 0;
-> -
-> -	ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> -	if (ret < 0) {
-> -		ret =3D -EINTR;
-> -		goto rtn;
-> -	}
-> -
-> -	if (OMAP_HDQ_MAX_USER =3D=3D hdq_data->hdq_usecount) {
-> -		dev_dbg(hdq_data->dev, "attempt to exceed the max use =
-count");
-> -		ret =3D -EINVAL;
-> -		goto out;
-> -	} else {
-> -		hdq_data->hdq_usecount++;
-> -		try_module_get(THIS_MODULE);
-> -		if (1 =3D=3D hdq_data->hdq_usecount) {
-> -
-> -			pm_runtime_get_sync(hdq_data->dev);
-> -
-> -			/* make sure HDQ/1W is out of reset */
-> -			if (!(hdq_reg_in(hdq_data, OMAP_HDQ_SYSSTATUS) &
-> -				OMAP_HDQ_SYSSTATUS_RESETDONE)) {
-> -				ret =3D _omap_hdq_reset(hdq_data);
-> -				if (ret)
-> -					/* back up the count */
-> -					hdq_data->hdq_usecount--;
-> -			} else {
-> -				/* select HDQ/1W mode & enable clocks */
-> -				hdq_reg_out(hdq_data, =
-OMAP_HDQ_CTRL_STATUS,
-> -					OMAP_HDQ_CTRL_STATUS_CLOCKENABLE =
-|
-> -					=
-OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK |
-> -					hdq_data->mode);
-> -				hdq_reg_out(hdq_data, =
-OMAP_HDQ_SYSCONFIG,
-> -					OMAP_HDQ_SYSCONFIG_NOIDLE);
-> -				hdq_reg_in(hdq_data, =
-OMAP_HDQ_INT_STATUS);
-> -			}
-> -		}
-> -	}
-> -
-> -out:
-> -	mutex_unlock(&hdq_data->hdq_mutex);
-> -rtn:
-> -	return ret;
-> -}
-> -
-> -/* Disable clocks to the module */
-> -static int omap_hdq_put(struct hdq_data *hdq_data)
-> -{
-> -	int ret =3D 0;
-> -
-> -	ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> -	if (ret < 0)
-> -		return -EINTR;
-> -
-> -	hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG,
-> -		    OMAP_HDQ_SYSCONFIG_AUTOIDLE);
-> -	if (0 =3D=3D hdq_data->hdq_usecount) {
-> -		dev_dbg(hdq_data->dev, "attempt to decrement use count"
-> -			" when it is zero");
-> -		ret =3D -EINVAL;
-> -	} else {
-> -		hdq_data->hdq_usecount--;
-> -		module_put(THIS_MODULE);
-> -		if (0 =3D=3D hdq_data->hdq_usecount)
-> -			pm_runtime_put_sync(hdq_data->dev);
-> -	}
-> -	mutex_unlock(&hdq_data->hdq_mutex);
-> -
-> -	return ret;
-> -}
-> -
-> /*
->  * W1 triplet callback function - used for searching ROM addresses.
->  * Registered only when controller is in 1-wire mode.
-> @@ -482,7 +347,12 @@ static u8 omap_w1_triplet(void *_hdq, u8 bdir)
-> 		  OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK;
-> 	u8 mask =3D ctrl | OMAP_HDQ_CTRL_STATUS_DIR;
->=20
-> -	omap_hdq_get(_hdq);
-> +	err =3D pm_runtime_get_sync(hdq_data->dev);
-> +	if (err < 0) {
-> +		pm_runtime_put_noidle(hdq_data->dev);
-> +
-> +		return err;
-> +	}
->=20
-> 	err =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> 	if (err < 0) {
-> @@ -490,7 +360,6 @@ static u8 omap_w1_triplet(void *_hdq, u8 bdir)
-> 		goto rtn;
-> 	}
->=20
-> -	hdq_data->hdq_irqstatus =3D 0;
-> 	/* read id_bit */
-> 	hdq_reg_merge(_hdq, OMAP_HDQ_CTRL_STATUS,
-> 		      ctrl | OMAP_HDQ_CTRL_STATUS_DIR, mask);
-> @@ -504,7 +373,9 @@ static u8 omap_w1_triplet(void *_hdq, u8 bdir)
-> 	}
-> 	id_bit =3D (hdq_reg_in(_hdq, OMAP_HDQ_RX_DATA) & 0x01);
->=20
-> -	hdq_data->hdq_irqstatus =3D 0;
-> +	/* Must clear irqstatus for another RXCOMPLETE interrupt */
-> +	hdq_reset_irqstatus(hdq_data);
-> +
-> 	/* read comp_bit */
-> 	hdq_reg_merge(_hdq, OMAP_HDQ_CTRL_STATUS,
-> 		      ctrl | OMAP_HDQ_CTRL_STATUS_DIR, mask);
-> @@ -547,18 +418,33 @@ static u8 omap_w1_triplet(void *_hdq, u8 bdir)
-> 		      OMAP_HDQ_CTRL_STATUS_SINGLE);
->=20
-> out:
-> +	hdq_reset_irqstatus(hdq_data);
-> 	mutex_unlock(&hdq_data->hdq_mutex);
-> rtn:
-> -	omap_hdq_put(_hdq);
-> +	pm_runtime_mark_last_busy(hdq_data->dev);
-> +	pm_runtime_put_autosuspend(hdq_data->dev);
-> +
-> 	return ret;
-> }
->=20
-> /* reset callback */
-> static u8 omap_w1_reset_bus(void *_hdq)
-> {
-> -	omap_hdq_get(_hdq);
-> -	omap_hdq_break(_hdq);
-> -	omap_hdq_put(_hdq);
-> +	struct hdq_data *hdq_data =3D _hdq;
-> +	int err;
-> +
-> +	err =3D pm_runtime_get_sync(hdq_data->dev);
-> +	if (err < 0) {
-> +		pm_runtime_put_noidle(hdq_data->dev);
-> +
-> +		return err;
-> +	}
-> +
-> +	omap_hdq_break(hdq_data);
-> +
-> +	pm_runtime_mark_last_busy(hdq_data->dev);
-> +	pm_runtime_put_autosuspend(hdq_data->dev);
-> +
-> 	return 0;
-> }
->=20
-> @@ -569,37 +455,19 @@ static u8 omap_w1_read_byte(void *_hdq)
-> 	u8 val =3D 0;
-> 	int ret;
->=20
-> -	/* First write to initialize the transfer */
-> -	if (hdq_data->init_trans =3D=3D 0)
-> -		omap_hdq_get(hdq_data);
-> +	ret =3D pm_runtime_get_sync(hdq_data->dev);
-> +	if (ret < 0) {
-> +		pm_runtime_put_noidle(hdq_data->dev);
->=20
-> -	ret =3D hdq_read_byte(hdq_data, &val);
-> -	if (ret) {
-> -		ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> -		if (ret < 0) {
-> -			dev_dbg(hdq_data->dev, "Could not acquire =
-mutex\n");
-> -			return -EINTR;
-> -		}
-> -		hdq_data->init_trans =3D 0;
-> -		mutex_unlock(&hdq_data->hdq_mutex);
-> -		omap_hdq_put(hdq_data);
-> 		return -1;
-> 	}
->=20
-> -	hdq_disable_interrupt(hdq_data, OMAP_HDQ_CTRL_STATUS,
-> -			      ~OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-> +	ret =3D hdq_read_byte(hdq_data, &val);
-> +	if (ret)
-> +		ret =3D -1;
->=20
-> -	/* Write followed by a read, release the module */
-> -	if (hdq_data->init_trans) {
-> -		ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> -		if (ret < 0) {
-> -			dev_dbg(hdq_data->dev, "Could not acquire =
-mutex\n");
-> -			return -EINTR;
-> -		}
-> -		hdq_data->init_trans =3D 0;
-> -		mutex_unlock(&hdq_data->hdq_mutex);
-> -		omap_hdq_put(hdq_data);
-> -	}
-> +	pm_runtime_mark_last_busy(hdq_data->dev);
-> +	pm_runtime_put_autosuspend(hdq_data->dev);
->=20
-> 	return val;
-> }
-> @@ -611,9 +479,12 @@ static void omap_w1_write_byte(void *_hdq, u8 =
-byte)
-> 	int ret;
-> 	u8 status;
->=20
-> -	/* First write to initialize the transfer */
-> -	if (hdq_data->init_trans =3D=3D 0)
-> -		omap_hdq_get(hdq_data);
-> +	ret =3D pm_runtime_get_sync(hdq_data->dev);
-> +	if (ret < 0) {
-> +		pm_runtime_put_noidle(hdq_data->dev);
-> +
-> +		return;
-> +	}
->=20
-> 	/*
-> 	 * We need to reset the slave before
-> @@ -623,31 +494,15 @@ static void omap_w1_write_byte(void *_hdq, u8 =
-byte)
-> 	if (byte =3D=3D W1_SKIP_ROM)
-> 		omap_hdq_break(hdq_data);
->=20
-> -	ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> -	if (ret < 0) {
-> -		dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-> -		return;
-> -	}
-> -	hdq_data->init_trans++;
-> -	mutex_unlock(&hdq_data->hdq_mutex);
-> -
-> 	ret =3D hdq_write_byte(hdq_data, byte, &status);
-> 	if (ret < 0) {
-> 		dev_dbg(hdq_data->dev, "TX failure:Ctrl status %x\n", =
-status);
-> -		return;
-> +		goto out_err;
-> 	}
->=20
-> -	/* Second write, data transferred. Release the module */
-> -	if (hdq_data->init_trans > 1) {
-> -		omap_hdq_put(hdq_data);
-> -		ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> -		if (ret < 0) {
-> -			dev_dbg(hdq_data->dev, "Could not acquire =
-mutex\n");
-> -			return;
-> -		}
-> -		hdq_data->init_trans =3D 0;
-> -		mutex_unlock(&hdq_data->hdq_mutex);
-> -	}
-> +out_err:
-> +	pm_runtime_mark_last_busy(hdq_data->dev);
-> +	pm_runtime_put_autosuspend(hdq_data->dev);
-> }
->=20
-> static struct w1_bus_master omap_w1_master =3D {
-> @@ -656,6 +511,35 @@ static struct w1_bus_master omap_w1_master =3D {
-> 	.reset_bus	=3D omap_w1_reset_bus,
-> };
->=20
-> +static int __maybe_unused omap_hdq_runtime_suspend(struct device =
-*dev)
-> +{
-> +	struct hdq_data *hdq_data =3D dev_get_drvdata(dev);
-> +
-> +	hdq_reg_out(hdq_data, 0, hdq_data->mode);
-> +	hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __maybe_unused omap_hdq_runtime_resume(struct device *dev)
-> +{
-> +	struct hdq_data *hdq_data =3D dev_get_drvdata(dev);
-> +
-> +	/* select HDQ/1W mode & enable clocks */
-> +	hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
-> +		    OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
-> +		    OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK |
-> +		    hdq_data->mode);
-> +	hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops omap_hdq_pm_ops =3D {
-> +	SET_RUNTIME_PM_OPS(omap_hdq_runtime_suspend,
-> +			   omap_hdq_runtime_resume, NULL)
-> +};
-> +
-> static int omap_hdq_probe(struct platform_device *pdev)
-> {
-> 	struct device *dev =3D &pdev->dev;
-> @@ -677,23 +561,27 @@ static int omap_hdq_probe(struct platform_device =
-*pdev)
-> 	if (IS_ERR(hdq_data->hdq_base))
-> 		return PTR_ERR(hdq_data->hdq_base);
->=20
-> -	hdq_data->hdq_usecount =3D 0;
-> -	hdq_data->rrw =3D 0;
-> 	mutex_init(&hdq_data->hdq_mutex);
->=20
-> +	ret =3D of_property_read_string(pdev->dev.of_node, "ti,mode", =
-&mode);
-> +	if (ret < 0 || !strcmp(mode, "hdq")) {
-> +		hdq_data->mode =3D 0;
-> +		omap_w1_master.search =3D omap_w1_search_bus;
-> +	} else {
-> +		hdq_data->mode =3D 1;
-> +		omap_w1_master.triplet =3D omap_w1_triplet;
-> +	}
-> +
-> 	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_use_autosuspend(&pdev->dev);
-> +	pm_runtime_set_autosuspend_delay(&pdev->dev, 300);
-> 	ret =3D pm_runtime_get_sync(&pdev->dev);
-> 	if (ret < 0) {
-> +		pm_runtime_put_noidle(&pdev->dev);
-> 		dev_dbg(&pdev->dev, "pm_runtime_get_sync failed\n");
-> 		goto err_w1;
-> 	}
->=20
-> -	ret =3D _omap_hdq_reset(hdq_data);
-> -	if (ret) {
-> -		dev_dbg(&pdev->dev, "reset failed\n");
-> -		goto err_irq;
-> -	}
-> -
-> 	rev =3D hdq_reg_in(hdq_data, OMAP_HDQ_REVISION);
-> 	dev_info(&pdev->dev, "OMAP HDQ Hardware Rev %c.%c. Driver in %s =
-mode\n",
-> 		(rev >> 4) + '0', (rev & 0x0f) + '0', "Interrupt");
-> @@ -715,16 +603,8 @@ static int omap_hdq_probe(struct platform_device =
-*pdev)
->=20
-> 	omap_hdq_break(hdq_data);
->=20
-> -	pm_runtime_put_sync(&pdev->dev);
-> -
-> -	ret =3D of_property_read_string(pdev->dev.of_node, "ti,mode", =
-&mode);
-> -	if (ret < 0 || !strcmp(mode, "hdq")) {
-> -		hdq_data->mode =3D 0;
-> -		omap_w1_master.search =3D omap_w1_search_bus;
-> -	} else {
-> -		hdq_data->mode =3D 1;
-> -		omap_w1_master.triplet =3D omap_w1_triplet;
-> -	}
-> +	pm_runtime_mark_last_busy(&pdev->dev);
-> +	pm_runtime_put_autosuspend(&pdev->dev);
->=20
-> 	omap_w1_master.data =3D hdq_data;
->=20
-> @@ -739,6 +619,7 @@ static int omap_hdq_probe(struct platform_device =
-*pdev)
-> err_irq:
-> 	pm_runtime_put_sync(&pdev->dev);
-> err_w1:
-> +	pm_runtime_dont_use_autosuspend(&pdev->dev);
-> 	pm_runtime_disable(&pdev->dev);
->=20
-> 	return ret;
-> @@ -746,23 +627,19 @@ static int omap_hdq_probe(struct platform_device =
-*pdev)
->=20
-> static int omap_hdq_remove(struct platform_device *pdev)
-> {
-> -	struct hdq_data *hdq_data =3D platform_get_drvdata(pdev);
-> +	int active;
->=20
-> -	mutex_lock(&hdq_data->hdq_mutex);
-> -
-> -	if (hdq_data->hdq_usecount) {
-> -		dev_dbg(&pdev->dev, "removed when use count is not =
-zero\n");
-> -		mutex_unlock(&hdq_data->hdq_mutex);
-> -		return -EBUSY;
-> -	}
-> +	active =3D pm_runtime_get_sync(&pdev->dev);
-> +	if (active < 0)
-> +		pm_runtime_put_noidle(&pdev->dev);
->=20
-> -	mutex_unlock(&hdq_data->hdq_mutex);
-> +	w1_remove_master_device(&omap_w1_master);
->=20
-> -	/* remove module dependency */
-> +	pm_runtime_dont_use_autosuspend(&pdev->dev);
-> +	if (active >=3D 0)
-> +		pm_runtime_put_sync(&pdev->dev);
-> 	pm_runtime_disable(&pdev->dev);
->=20
-> -	w1_remove_master_device(&omap_w1_master);
-> -
-> 	return 0;
-> }
->=20
-> @@ -779,6 +656,7 @@ static struct platform_driver omap_hdq_driver =3D =
-{
-> 	.driver =3D {
-> 		.name =3D	"omap_hdq",
-> 		.of_match_table =3D omap_hdq_dt_ids,
-> +		.pm =3D &omap_hdq_pm_ops,
-> 	},
-> };
-> module_platform_driver(omap_hdq_driver);
-> --=20
-> 2.24.1
-
+[0] https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/am33xx-l4.dtsi#L279
