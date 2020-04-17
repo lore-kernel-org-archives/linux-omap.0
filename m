@@ -2,591 +2,399 @@ Return-Path: <SRS0=+Rou=6B=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4508C38A2C
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 16:56:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2D19C2BB1D
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 21:04:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C896222202
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 16:56:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0014D20780
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 21:04:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="Um70ukBe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728025AbgDQQzl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Apr 2020 12:55:41 -0400
-Received: from muru.com ([72.249.23.125]:50032 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728014AbgDQQzk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 17 Apr 2020 12:55:40 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 4E9D78161;
-        Fri, 17 Apr 2020 16:56:23 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Keerthy <j-keerthy@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>,
-        Tero Kristo <t-kristo@ti.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        id S1726590AbgDQVEF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Apr 2020 17:04:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40106 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726093AbgDQVEE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2020 17:04:04 -0400
+Received: from mo6-p01-ob.smtp.rzone.de (mo6-p01-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5301::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9C33C061A0C;
+        Fri, 17 Apr 2020 14:04:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1587157441;
+        s=strato-dkim-0002; d=goldelico.com;
+        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
+        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
+        bh=j1rZtNYCOuJ71ejCqEXPl4BLBezVcKcNenOU4xma8mA=;
+        b=Um70ukBeyFFmTHByFTZt5NNNpXTktXkR2StjA2XWIIAF4xVXm98YI/Kb7gxq+EXaVE
+        o3eU/R/IUcjo9HBOVhvyQ+lq0T8EU8Gykr6MoOSlCgWbnwHm2dJak2keZwHFyRruKbJd
+        WgXtNPQw+MMm17zg1/BROf/pLPEAD3C4wxzBUBaNdsw0V3qQp5ig4Tjz9GnrUVv74Qgk
+        4P7nG4F+edmzGo8pAPDtKk991m5M/MDw9vnEKU/icAQX2nQVS9ESsAUWfRAQh7dCx/1+
+        v5MalUYG2FfDqTgFPJSce7moKNIoBXp82yCQ5uPi453FwyQD5M0vUiKg+wIzmfIS2YMb
+        K+VA==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj7wpz8NMGH/PgwDWjbQ=="
+X-RZG-CLASS-ID: mo00
+Received: from imac.fritz.box
+        by smtp.strato.de (RZmta 46.5.0 DYNA|AUTH)
+        with ESMTPSA id g06d2dw3HL3n589
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+        (Client did not present a certificate);
+        Fri, 17 Apr 2020 23:03:49 +0200 (CEST)
+Subject: Re: [PATCHv3] w1: omap-hdq: Simplify driver with PM runtime autosuspend
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+From:   "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <20200417150721.GL37466@atomide.com>
+Date:   Fri, 17 Apr 2020 23:03:48 +0200
+Cc:     Andreas Kemnade <andreas@kemnade.info>,
+        Evgeniy Polyakov <zbr@ioremap.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-omap <linux-omap@vger.kernel.org>,
         Adam Ford <aford173@gmail.com>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: [PATCH 02/14] clocksource/drivers/timer-ti-dm: Add clockevent and clocksource support
-Date:   Fri, 17 Apr 2020 09:55:07 -0700
-Message-Id: <20200417165519.4979-3-tony@atomide.com>
-X-Mailer: git-send-email 2.26.1
-In-Reply-To: <20200417165519.4979-1-tony@atomide.com>
-References: <20200417165519.4979-1-tony@atomide.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        "Andrew F . Davis" <afd@ti.com>, Vignesh R <vigneshr@ti.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <8E062482-5D5D-4837-9980-D6C708DD24D4@goldelico.com>
+References: <20191217004048.46298-1-tony@atomide.com> <7B8C7DD9-095B-48FC-9642-695D07B79E97@goldelico.com> <20200416184638.GI37466@atomide.com> <3197C3F0-DEB9-4221-AFBD-4F2A08C84C4C@goldelico.com> <20200417164340.3d9043d1@aktux> <6430AF54-849E-456B-8DB0-B4478BBDB78D@goldelico.com> <20200417150721.GL37466@atomide.com>
+To:     Tony Lindgren <tony@atomide.com>
+X-Mailer: Apple Mail (2.3124)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can move the TI dmtimer clockevent and clocksource to live under
-drivers/clocksource if we rely only on the clock framework, and handle
-the module configuration directly in the clocksource driver.
+Hi Tony,
 
-This removes the early dependency with system timers to the interconnect
-related code, and we can probe pretty much everything else later on at
-the module_init level.
+> Am 17.04.2020 um 17:07 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> * H. Nikolaus Schaller <hns@goldelico.com> [200417 14:53]:
+>>=20
+>>> Am 17.04.2020 um 16:43 schrieb Andreas Kemnade =
+<andreas@kemnade.info>:
+>>>=20
+>>> On Fri, 17 Apr 2020 16:22:47 +0200
+>>> "H. Nikolaus Schaller" <hns@goldelico.com> wrote:
+>>>=20
+>>>>> Am 16.04.2020 um 20:46 schrieb Tony Lindgren <tony@atomide.com>:
+>>>>> Care to check if changing pm_runtime_set_autosuspend_delay value
+>>>>> to -1 in probe makes the issue go away? Or change it manually
+>>>>> to -1 via sysfs.
+>>>>>=20
+>>>>> If that helps, likely we have a missing pm_runtime_get_sync()
+>>>>> somewhere in the driver. =20
+>>>>=20
+>>>> Yes, it does! It suffices to set it to -1 for one readout.
+>>>> Aything else I can test?
+>=20
+> You could sprinkle dev_info(dev, "%s\n", __func__) to the
+> omap_hdq_runtime_suspend() and omap_hdq_runtime_resume()
+> functions.
 
-Let's first add a new driver for timer-ti-dm-systimer based on existing
-arch/arm/mach-omap2/timer.c. Then let's start moving SoCs to probe with
-device tree data while still keeping the old timer.c. And eventually we
-can just drop the old timer.c.
+I have done it incl. adding dev_info to hdq_read_byte(). It
+looks as if the read attempts already time out during boot,
+but after omap_hdq_runtime_resume(). And omap_hdq_runtime_resume()
+is done well after the last one. This looks ok.
 
-Note the boards can optionally configure the timer source clock in using
-assigned-clock-parents.
+echo -1 >autosuspend_delay_ms
 
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- .../devicetree/bindings/timer/ti,timer.txt    |   2 +
- drivers/clocksource/Makefile                  |   1 +
- drivers/clocksource/timer-ti-dm-systimer.c    | 468 ++++++++++++++++++
- include/clocksource/timer-ti-dm.h             |   1 +
- 4 files changed, 472 insertions(+)
- create mode 100644 drivers/clocksource/timer-ti-dm-systimer.c
+Does omap_hdq_runtime_resume() once.
 
-diff --git a/Documentation/devicetree/bindings/timer/ti,timer.txt b/Documentation/devicetree/bindings/timer/ti,timer.txt
---- a/Documentation/devicetree/bindings/timer/ti,timer.txt
-+++ b/Documentation/devicetree/bindings/timer/ti,timer.txt
-@@ -14,6 +14,8 @@ Required properties:
- 			ti,omap5430-timer (applicable to OMAP543x devices)
- 			ti,am335x-timer	(applicable to AM335x devices)
- 			ti,am335x-timer-1ms (applicable to AM335x devices)
-+			ti,dmtimer-clockevent (when used as for clockevent)
-+			ti,dmtimer-clocksource (when used as for clocksource)
- 
- - reg:			Contains timer register address range (base address and
- 			length).
-diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
---- a/drivers/clocksource/Makefile
-+++ b/drivers/clocksource/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_CLKSRC_MMIO)	+= mmio.o
- obj-$(CONFIG_DAVINCI_TIMER)	+= timer-davinci.o
- obj-$(CONFIG_DIGICOLOR_TIMER)	+= timer-digicolor.o
- obj-$(CONFIG_OMAP_DM_TIMER)	+= timer-ti-dm.o
-+obj-$(CONFIG_OMAP_DM_TIMER)	+= timer-ti-dm-systimer.o
- obj-$(CONFIG_DW_APB_TIMER)	+= dw_apb_timer.o
- obj-$(CONFIG_DW_APB_TIMER_OF)	+= dw_apb_timer_of.o
- obj-$(CONFIG_FTTMR010_TIMER)	+= timer-fttmr010.o
-diff --git a/drivers/clocksource/timer-ti-dm-systimer.c b/drivers/clocksource/timer-ti-dm-systimer.c
-new file mode 100644
---- /dev/null
-+++ b/drivers/clocksource/timer-ti-dm-systimer.c
-@@ -0,0 +1,468 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+#include <linux/clk.h>
-+#include <linux/clocksource.h>
-+#include <linux/clockchips.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/iopoll.h>
-+#include <linux/err.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/of_irq.h>
-+#include <linux/sched_clock.h>
-+
-+#include <linux/clk/clk-conf.h>
-+
-+#include <clocksource/timer-ti-dm.h>
-+#include <dt-bindings/bus/ti-sysc.h>
-+
-+/* For type1, set SYSC_OMAP2_CLOCKACTIVITY for fck off on idle, l4 clock on */
-+#define DMTIMER_TYPE1_ENABLE	((1 << 9) | (SYSC_IDLE_SMART << 3) | \
-+				 SYSC_OMAP2_ENAWAKEUP | SYSC_OMAP2_AUTOIDLE)
-+
-+#define DMTIMER_TYPE2_ENABLE	(SYSC_IDLE_SMART_WKUP << 2)
-+#define DMTIMER_RESET_WAIT	100000
-+
-+struct dmtimer_clockevent {
-+	struct clock_event_device dev;
-+	struct omap_dm_timer timer;
-+};
-+
-+struct dmtimer_clocksource {
-+	struct clocksource dev;
-+	struct omap_dm_timer timer;
-+	unsigned int loadval;
-+};
-+
-+static int dmtimer_systimer_type1_reset(struct omap_dm_timer *timer)
-+{
-+	void __iomem *syss = timer->io_base + OMAP_TIMER_V1_SYS_STAT_OFFSET;
-+	int ret;
-+	u32 l;
-+
-+	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG, 0x06, 0);
-+	ret = readl_poll_timeout_atomic(syss, l, l & BIT(0), 100,
-+					DMTIMER_RESET_WAIT);
-+
-+	return ret;
-+}
-+
-+/* Note we must use io_base instead of func_base for type2 OCP regs */
-+static int dmtimer_systimer_type2_reset(struct omap_dm_timer *timer)
-+{
-+	void __iomem *sysc = timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET;
-+	u32 l;
-+
-+	return readl_poll_timeout_atomic(sysc, l, !(l & BIT(0)), 100,
-+					 DMTIMER_RESET_WAIT);
-+}
-+
-+static int dmtimer_systimer_reset(struct omap_dm_timer *timer)
-+{
-+	int ret;
-+
-+	if (timer->revision == 1)
-+		ret = dmtimer_systimer_type1_reset(timer);
-+	else
-+		ret = dmtimer_systimer_type2_reset(timer);
-+	if (ret < 0) {
-+		pr_err("%s failed with %i\n", __func__, ret);
-+
-+		return ret;
-+	}
-+
-+	timer->posted = 0;
-+
-+	return 0;
-+}
-+
-+/* Interface clocks are only available on some SoCs variants */
-+static int __init dmtimer_systimer_init_clock(struct omap_dm_timer *timer,
-+					      struct device_node *np,
-+					      struct clk **clk,
-+					      const char *name)
-+{
-+	struct clk *clock;
-+	int error;
-+
-+	clock = of_clk_get_by_name(np, name);
-+	if ((PTR_ERR(clock) == -EINVAL) && !strncmp(name, "ick", 3))
-+		return 0;
-+	else if (IS_ERR(clock))
-+		return PTR_ERR(clock);
-+
-+	error = clk_prepare_enable(clock);
-+	if (error)
-+		return error;
-+
-+	*clk = clock;
-+
-+	return 0;
-+}
-+
-+static void dmtimer_systimer_enable(struct omap_dm_timer *timer)
-+{
-+	void __iomem *sysc = timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET;
-+	u32 val;
-+
-+	if (timer->revision == 1)
-+		val = DMTIMER_TYPE1_ENABLE;
-+	else
-+		val = DMTIMER_TYPE2_ENABLE;
-+
-+	writel_relaxed(val, sysc);
-+}
-+
-+static void dmtimer_systimer_disable(struct omap_dm_timer *timer)
-+{
-+	void __iomem *sysc = timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET;
-+
-+	writel_relaxed(0, sysc);
-+}
-+
-+static int __init dmtimer_systimer_tag_disabled(struct device_node *np)
-+{
-+	struct property *prop;
-+
-+	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
-+	if (!prop)
-+		return -ENOMEM;
-+
-+	prop->name = "status";
-+	prop->value = "disabled";
-+	prop->length = strlen(prop->value);
-+
-+	return of_add_property(np, prop);
-+}
-+
-+static int __init dmtimer_systimer_init(struct omap_dm_timer *timer,
-+					struct device_node *np)
-+{
-+	int error;
-+
-+	if (!of_device_is_compatible(np->parent, "ti,sysc"))
-+		return -EINVAL;
-+
-+	/*
-+	 * Enable optional assigned-clock-parents configured at the timer
-+	 * node level. For regular device drivers, this is done automatically
-+	 * by bus related code such as platform_drv_probe().
-+	 */
-+	error = of_clk_set_defaults(np, false);
-+	if (error < 0)
-+		pr_err("%s: clock source init failed: %i\n", __func__, error);
-+
-+	/* For ti-sysc, we have timer clocks at the parent module level */
-+	error = dmtimer_systimer_init_clock(timer, np->parent,
-+					    &timer->fclk, "fck");
-+	if (error)
-+		return error;
-+
-+	timer->rate = clk_get_rate(timer->fclk);
-+
-+	error = dmtimer_systimer_init_clock(timer, np->parent,
-+					    &timer->iclk, "ick");
-+	if (error)
-+		return error;
-+
-+	__omap_dm_timer_init_regs(timer);
-+	dmtimer_systimer_enable(timer);
-+	dmtimer_systimer_reset(timer);
-+	pr_debug("dmtimer rev %08x sysc %08x\n", readl_relaxed(timer->io_base),
-+		 readl_relaxed(timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET));
-+
-+	if (of_find_property(np, "ti,timer-alwon", NULL))
-+		timer->capability |= OMAP_TIMER_ALWON;
-+
-+	/* Tag parent interconnect target module disabled for ti-sysc */
-+	error = dmtimer_systimer_tag_disabled(np->parent);
-+	if (error)
-+		pr_err("%s: failed to set %pOF disabled: %i\n",
-+		       __func__, np, error);
-+
-+	return 0;
-+}
-+
-+/* Clockevent */
-+static struct dmtimer_clockevent *
-+to_dmtimer_clockevent(struct clock_event_device *clockevent)
-+{
-+	return container_of(clockevent, struct dmtimer_clockevent, dev);
-+}
-+
-+static struct omap_dm_timer *
-+clockevent_to_dm_timer(struct clock_event_device *evt)
-+{
-+	struct dmtimer_clockevent *dmtce = to_dmtimer_clockevent(evt);
-+
-+	return &dmtce->timer;
-+}
-+
-+static irqreturn_t dmtimer_clockevent_interrupt(int irq, void *data)
-+{
-+	struct dmtimer_clockevent *dmtce = data;
-+
-+	__omap_dm_timer_write_status(&dmtce->timer, OMAP_TIMER_INT_OVERFLOW);
-+	dmtce->dev.event_handler(&dmtce->dev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static struct irqaction dmtimer_clockevent_irq = {
-+	.name		= "gp_timer",
-+	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
-+	.handler	= dmtimer_clockevent_interrupt,
-+};
-+
-+static int dmtimer_set_next_event(unsigned long cycles,
-+				  struct clock_event_device *evt)
-+{
-+	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
-+
-+	__omap_dm_timer_load_start(timer, OMAP_TIMER_CTRL_ST,
-+				   0xffffffff - cycles, OMAP_TIMER_POSTED);
-+
-+	return 0;
-+}
-+
-+static int dmtimer_clockevent_shutdown(struct clock_event_device *evt)
-+{
-+	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
-+
-+	__omap_dm_timer_stop(timer, OMAP_TIMER_POSTED, timer->rate);
-+
-+	return 0;
-+}
-+
-+static int dmtimer_set_periodic(struct clock_event_device *evt)
-+{
-+	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
-+	u32 period;
-+
-+	__omap_dm_timer_stop(timer, OMAP_TIMER_POSTED, timer->rate);
-+
-+	period = timer->rate / HZ;
-+	period -= 1;
-+	/* Looks like we need to first set the load value separately */
-+	__omap_dm_timer_write(timer, OMAP_TIMER_LOAD_REG, 0xffffffff - period,
-+			      OMAP_TIMER_POSTED);
-+	__omap_dm_timer_load_start(timer,
-+				   OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
-+				   0xffffffff - period, OMAP_TIMER_POSTED);
-+	return 0;
-+}
-+
-+static void omap_clockevent_idle(struct clock_event_device *evt)
-+{
-+	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
-+
-+	dmtimer_systimer_disable(timer);
-+}
-+
-+static void omap_clockevent_unidle(struct clock_event_device *evt)
-+{
-+	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
-+
-+	dmtimer_systimer_enable(timer);
-+	__omap_dm_timer_int_enable(timer, OMAP_TIMER_INT_OVERFLOW);
-+}
-+
-+static int __init dmtimer_clockevent_init(struct device_node *np)
-+{
-+	struct dmtimer_clockevent *clkevt;
-+	struct clock_event_device *evt;
-+	struct omap_dm_timer *timer;
-+	int error;
-+	u32 pa;
-+
-+	clkevt = kzalloc(sizeof(*clkevt), GFP_KERNEL | __GFP_NOFAIL);
-+	if (!clkevt)
-+		return -ENOMEM;
-+
-+	timer = &clkevt->timer;
-+	evt = &clkevt->dev;
-+
-+	evt->features = CLOCK_EVT_FEAT_PERIODIC |
-+			CLOCK_EVT_FEAT_ONESHOT;
-+	evt->rating = 300;
-+	evt->set_next_event = dmtimer_set_next_event;
-+	evt->set_state_shutdown = dmtimer_clockevent_shutdown;
-+	evt->set_state_periodic = dmtimer_set_periodic;
-+	evt->set_state_oneshot = dmtimer_clockevent_shutdown;
-+	evt->tick_resume = dmtimer_clockevent_shutdown;
-+	evt->cpumask = cpu_possible_mask;
-+	evt->irq = timer->irq;
-+
-+	timer->irq = irq_of_parse_and_map(np, 0);
-+	if (!timer->irq) {
-+		error = -ENXIO;
-+		goto err_out_free;
-+	}
-+
-+	timer->io_base = of_iomap(np, 0);
-+	if (!timer->io_base) {
-+		error = -ENXIO;
-+		goto err_out_free;
-+	}
-+
-+	error = dmtimer_systimer_init(timer, np);
-+	if (error)
-+		goto err_out_unmap;
-+
-+	/*
-+	 * For clock-event timers we never read the timer counter and
-+	 * so we are not impacted by errata i103 and i767. Therefore,
-+	 * we can safely ignore this errata for clock-event timers.
-+	 */
-+	__omap_dm_timer_override_errata(timer, OMAP_TIMER_ERRATA_I103_I767);
-+
-+	dmtimer_clockevent_irq.dev_id = clkevt;
-+	setup_irq(timer->irq, &dmtimer_clockevent_irq);
-+
-+	__omap_dm_timer_int_enable(timer, OMAP_TIMER_INT_OVERFLOW);
-+
-+	pa = of_translate_address(np, of_get_address(np, 0, NULL, NULL));
-+	pr_info("TI gptimer clockevent: %stimer@%08x at %lu Hz\n",
-+		timer->capability & OMAP_TIMER_ALWON ? "always-on " : "",
-+		pa, timer->rate);
-+
-+	clockevents_config_and_register(evt, timer->rate,
-+					3, /* Timer internal resynch latency */
-+					0xffffffff);
-+
-+	if (of_device_is_compatible(np, "ti,am33xx") ||
-+	    of_device_is_compatible(np, "ti,am43")) {
-+		evt->suspend = omap_clockevent_idle;
-+		evt->resume = omap_clockevent_unidle;
-+	}
-+
-+	return 0;
-+
-+err_out_unmap:
-+	iounmap(timer->io_base);
-+err_out_free:
-+	kfree(clkevt);
-+
-+	return error;
-+}
-+
-+/* Clocksource */
-+static struct dmtimer_clocksource *
-+to_dmtimer_clocksource(struct clocksource *cs)
-+{
-+	return container_of(cs, struct dmtimer_clocksource, dev);
-+}
-+
-+static struct omap_dm_timer *
-+clocksource_to_dmtimer(struct clocksource *cs)
-+{
-+	struct dmtimer_clocksource *clksrc = to_dmtimer_clocksource(cs);
-+
-+	return &clksrc->timer;
-+}
-+
-+static u64 dmtimer_clocksource_read_cycles(struct clocksource *cs)
-+{
-+	struct omap_dm_timer *timer = clocksource_to_dmtimer(cs);
-+
-+	return (u64)__omap_dm_timer_read_counter(timer,
-+						 OMAP_TIMER_NONPOSTED);
-+}
-+
-+static void __iomem *dmtimer_sched_clock_counter;
-+
-+static u64 notrace dmtimer_read_sched_clock(void)
-+{
-+	return readl_relaxed(dmtimer_sched_clock_counter);
-+}
-+
-+static void dmtimer_clocksource_suspend(struct clocksource *cs)
-+{
-+	struct dmtimer_clocksource *clksrc = to_dmtimer_clocksource(cs);
-+	struct omap_dm_timer *timer = &clksrc->timer;
-+
-+	clksrc->loadval =
-+		__omap_dm_timer_read_counter(timer, OMAP_TIMER_NONPOSTED);
-+	dmtimer_systimer_disable(timer);
-+}
-+
-+static void dmtimer_clocksource_resume(struct clocksource *cs)
-+{
-+	struct dmtimer_clocksource *clksrc = to_dmtimer_clocksource(cs);
-+	struct omap_dm_timer *timer = &clksrc->timer;
-+
-+	dmtimer_systimer_enable(timer);
-+	__omap_dm_timer_load_start(timer,
-+				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR,
-+				   clksrc->loadval,
-+				   OMAP_TIMER_NONPOSTED);
-+}
-+
-+static int __init dmtimer_clocksource_init(struct device_node *np)
-+{
-+	struct dmtimer_clocksource *clksrc;
-+	struct omap_dm_timer *timer;
-+	struct clocksource *dev;
-+	int error;
-+	u32 pa;
-+
-+	clksrc = kzalloc(sizeof(*clksrc), GFP_KERNEL | __GFP_NOFAIL);
-+	if (!clksrc)
-+		return -ENOMEM;
-+
-+	timer = &clksrc->timer;
-+	dev = &clksrc->dev;
-+
-+	timer->io_base = of_iomap(np, 0);
-+	if (!timer->io_base) {
-+		pr_err("%s: could not iomap\n", __func__);
-+		return -ENODEV;
-+	}
-+
-+	error = dmtimer_systimer_init(timer, np);
-+	if (error)
-+		goto err_out_unmap;
-+
-+	dev->name = "dmtimer";
-+	dev->rating = 300;
-+	dev->read = dmtimer_clocksource_read_cycles;
-+	dev->mask = CLOCKSOURCE_MASK(32);
-+	dev->flags = CLOCK_SOURCE_IS_CONTINUOUS;
-+
-+	if (of_device_is_compatible(np, "ti,am33xx") ||
-+	    of_device_is_compatible(np, "ti,am43")) {
-+		dev->suspend = dmtimer_clocksource_suspend;
-+		dev->resume = dmtimer_clocksource_resume;
-+	}
-+
-+	__omap_dm_timer_load_start(timer,
-+				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0,
-+				   OMAP_TIMER_NONPOSTED);
-+
-+	pa = of_translate_address(np, of_get_address(np, 0, NULL, NULL));
-+	pr_info("TI gptimer clocksource: %stimer@%08x %lu at Hz\n",
-+		timer->capability & OMAP_TIMER_ALWON ?
-+		"always-on " : "", pa, timer->rate);
-+
-+	if (!dmtimer_sched_clock_counter) {
-+		/* Mask out write pending bits for raw OMAP_TIMER_COUNTER_REG */
-+		dmtimer_sched_clock_counter =
-+			timer->func_base + (OMAP_TIMER_COUNTER_REG & 0xff);
-+		sched_clock_register(dmtimer_read_sched_clock, 32, timer->rate);
-+	}
-+
-+	if (clocksource_register_hz(dev, timer->rate))
-+		pr_err("Could not register clocksource %pOF\n", np);
-+
-+	return 0;
-+
-+err_out_unmap:
-+	iounmap(timer->io_base);
-+
-+	return -ENODEV;
-+}
-+
-+TIMER_OF_DECLARE(dmtimer_clockevent, "ti,dmtimer-clockevent",
-+		 dmtimer_clockevent_init);
-+TIMER_OF_DECLARE(dmtimer_clocksource, "ti,dmtimer-clocksource",
-+		 dmtimer_clocksource_init);
-diff --git a/include/clocksource/timer-ti-dm.h b/include/clocksource/timer-ti-dm.h
---- a/include/clocksource/timer-ti-dm.h
-+++ b/include/clocksource/timer-ti-dm.h
-@@ -97,6 +97,7 @@ struct omap_dm_timer {
- 	int id;
- 	int irq;
- 	struct clk *fclk;
-+	struct clk *iclk;
- 
- 	void __iomem	*io_base;
- 	void __iomem	*irq_stat;	/* TISR/IRQSTATUS interrupt status */
--- 
-2.26.1
+To me it looks as if reading hqd too quickly after =
+omap_hdq_runtime_resume()
+may be part of the problem, although it is 0.4 seconds between [   =
+18.355163]
+and [   18.745269]. So I am not sure about my interpretation.
+
+A different attempt for interpretation may be that trying to read the
+slave triggers omap_hdq_runtime_resume() just before doing the
+first hdq_read_byte().
+
+This may be different context from separating these steps into different
+processes/threads (echo + cat).
+
+I.e.
+
+[   18.355163] omap_hdq 480b2000.1w: omap_hdq_runtime_resume
+[   18.432403] omap_hdq 480b2000.1w: OMAP HDQ Hardware Rev 0.5. Driver =
+in Interrupt mode
+[   18.745269] omap_hdq 480b2000.1w: hdq_read_byte
+
+somehow differs from
+
+root@letux:~# echo -1 =
+>/sys/bus/platform/drivers/omap_hdq/480b2000.1w/power/autosuspend_delay_ms=
+
+[  544.714904] omap_hdq 480b2000.1w: omap_hdq_runtime_resume
+root@letux:~# time cat /sys/class/power_supply/bq27000-battery/uevent
+[  551.704498] omap_hdq 480b2000.1w: hdq_read_byte
+
+BR,
+Nikolaus
+
+
+root@letux:~# dmesg|fgrep hdq
+[   18.355163] omap_hdq 480b2000.1w: omap_hdq_runtime_resume
+[   18.432403] omap_hdq 480b2000.1w: OMAP HDQ Hardware Rev 0.5. Driver =
+in Interrupt mode
+[   18.745269] omap_hdq 480b2000.1w: hdq_read_byte
+[   19.163055] omap_hdq 480b2000.1w: hdq_read_byte
+[   19.583099] omap_hdq 480b2000.1w: hdq_read_byte
+[   20.003051] omap_hdq 480b2000.1w: hdq_read_byte
+[   20.422973] omap_hdq 480b2000.1w: hdq_read_byte
+[   20.843109] omap_hdq 480b2000.1w: hdq_read_byte
+[   21.262908] omap_hdq 480b2000.1w: hdq_read_byte
+[   21.682922] omap_hdq 480b2000.1w: hdq_read_byte
+[   22.103149] omap_hdq 480b2000.1w: hdq_read_byte
+[   22.523040] omap_hdq 480b2000.1w: hdq_read_byte
+[   22.963012] omap_hdq 480b2000.1w: hdq_read_byte
+[   23.390197] omap_hdq 480b2000.1w: hdq_read_byte
+[   23.812988] omap_hdq 480b2000.1w: hdq_read_byte
+[   24.232971] omap_hdq 480b2000.1w: hdq_read_byte
+[   24.653167] omap_hdq 480b2000.1w: hdq_read_byte
+[   25.073028] omap_hdq 480b2000.1w: hdq_read_byte
+[   25.493011] omap_hdq 480b2000.1w: hdq_read_byte
+[   25.923095] omap_hdq 480b2000.1w: hdq_read_byte
+[   26.133392] omap_hdq 480b2000.1w: hdq_read_byte
+[   26.553009] omap_hdq 480b2000.1w: hdq_read_byte
+[   26.973083] omap_hdq 480b2000.1w: hdq_read_byte
+[   27.393035] omap_hdq 480b2000.1w: hdq_read_byte
+[   27.813354] omap_hdq 480b2000.1w: hdq_read_byte
+[   28.233367] omap_hdq 480b2000.1w: hdq_read_byte
+[   28.673309] omap_hdq 480b2000.1w: hdq_read_byte
+[   29.093322] omap_hdq 480b2000.1w: hdq_read_byte
+[   29.513366] omap_hdq 480b2000.1w: hdq_read_byte
+[   29.948089] omap_hdq 480b2000.1w: hdq_read_byte
+[   30.403076] omap_hdq 480b2000.1w: hdq_read_byte
+[   30.823303] omap_hdq 480b2000.1w: hdq_read_byte
+[   31.243408] omap_hdq 480b2000.1w: hdq_read_byte
+[   31.663085] omap_hdq 480b2000.1w: hdq_read_byte
+[   32.083312] omap_hdq 480b2000.1w: hdq_read_byte
+[   32.503326] omap_hdq 480b2000.1w: hdq_read_byte
+[   32.923309] omap_hdq 480b2000.1w: hdq_read_byte
+[   33.343353] omap_hdq 480b2000.1w: hdq_read_byte
+[   33.763305] omap_hdq 480b2000.1w: hdq_read_byte
+[   33.814392] Modules linked in: wl18xx wlcore mac80211 cfg80211 =
+libarc4 omapdrm cmac bnep panel_tpo_td028ttec1 pps_gpio =
+snd_soc_simple_card snd_soc_simple_card_utils pps_core simple_bridge =
+wwan_on_off snd_soc_omap_twl4030 snd_soc_w2cbw003_bt snd_soc_gtm601 =
+display_connector generic_adc_battery pwm_bl pwm_omap_dmtimer =
+omap_aes_driver crypto_engine omap_crypto wlcore_sdio omap3_isp =
+videobuf2_dma_contig omap_sham videobuf2_memops videobuf2_v4l2 =
+bq27xxx_battery_hdq bq27xxx_battery videobuf2_common omap2430 omap_hdq =
+bmp280_spi snd_soc_omap_mcbsp snd_soc_ti_sdma ov9655 bmp280_i2c =
+v4l2_fwnode bmp280 bmg160_i2c bmg160_core at24 tsc2007 videodev =
+leds_tca6507 mc bno055 bmc150_magn_i2c bmc150_accel_i2c bmc150_magn =
+bmc150_accel_core industrialio_triggered_buffer snd_soc_si47xx kfifo_buf =
+phy_twl4030_usb musb_hdrc twl4030_pwrbutton twl4030_vibra =
+snd_soc_twl4030 hci_uart btbcm twl4030_charger twl4030_madc industrialio =
+input_polldev gnss_sirf bluetooth gnss ecdh_generic ecc ehci_omap =
+omapdss omapdss_base
+[   34.363281] omap_hdq 480b2000.1w: hdq_read_byte
+[   34.783142] omap_hdq 480b2000.1w: hdq_read_byte
+[   35.203124] omap_hdq 480b2000.1w: hdq_read_byte
+[   35.623382] omap_hdq 480b2000.1w: hdq_read_byte
+[   36.043273] omap_hdq 480b2000.1w: hdq_read_byte
+[   36.463317] omap_hdq 480b2000.1w: hdq_read_byte
+[   36.883392] omap_hdq 480b2000.1w: hdq_read_byte
+[   37.303314] omap_hdq 480b2000.1w: hdq_read_byte
+[   37.723327] omap_hdq 480b2000.1w: hdq_read_byte
+[   38.143341] omap_hdq 480b2000.1w: hdq_read_byte
+[   38.563323] omap_hdq 480b2000.1w: hdq_read_byte
+[   38.983306] omap_hdq 480b2000.1w: hdq_read_byte
+[   39.403350] omap_hdq 480b2000.1w: hdq_read_byte
+[   39.823303] omap_hdq 480b2000.1w: hdq_read_byte
+[   40.243347] omap_hdq 480b2000.1w: hdq_read_byte
+[   40.663299] omap_hdq 480b2000.1w: hdq_read_byte
+[   41.083374] omap_hdq 480b2000.1w: hdq_read_byte
+[   41.503295] omap_hdq 480b2000.1w: hdq_read_byte
+[   41.923400] omap_hdq 480b2000.1w: hdq_read_byte
+[   42.343292] omap_hdq 480b2000.1w: hdq_read_byte
+[   42.763305] omap_hdq 480b2000.1w: hdq_read_byte
+[   43.183319] omap_hdq 480b2000.1w: hdq_read_byte
+[   43.603332] omap_hdq 480b2000.1w: hdq_read_byte
+[   44.188964] omap_hdq 480b2000.1w: omap_hdq_runtime_suspend
+root@letux:~# time cat /sys/class/power_supply/bq27000-battery/uevent
+[  383.654083] omap_hdq 480b2000.1w: omap_hdq_runtime_resume
+[  383.868103] omap_hdq 480b2000.1w: hdq_read_byte
+[  384.288055] omap_hdq 480b2000.1w: hdq_read_byte
+[  384.708129] omap_hdq 480b2000.1w: hdq_read_byte
+[  385.128173] omap_hdq 480b2000.1w: hdq_read_byte
+[  385.548156] omap_hdq 480b2000.1w: hdq_read_byte
+[  385.968139] omap_hdq 480b2000.1w: hdq_read_byte
+[  385.973052] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.200683] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.215606] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.223358] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.241729] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.251129] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.260986] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.272460] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.281402] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.286865] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.510711] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.526153] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.533905] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.551818] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.561065] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.570922] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.582641] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.591339] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.602508] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.610900] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.620941] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.632476] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.641387] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.652709] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.660949] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.671051] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.680908] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.691986] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.701324] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.709045] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.720886] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.731872] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.741424] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.749053] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.761413] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.768798] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.780853] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.791839] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.801635] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.808746] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.820831] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.828124] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.840362] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.847534] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.859680] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.866882] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.882263] omap_hdq 480b2000.1w: hdq_read_byte
+POWER_SUPPLY_NAME=3Dbq27000-battery
+POWER_SUPPLY_STATUS=3DDischarging
+POWER_SUPPLY_PRE[  386.897064] omap_hdq 480b2000.1w: hdq_read_byte
+SENT=3D1
+POWER_SUPPLY_VOLTAGE_NOW=3D4017000
+POWER_SUPPLY_CURRENT_NOW=3D226873
+POWER_SUPPLY_CAPACITY=3D83
+POWER_SUPPL[  386.911407] omap_hdq 480b2000.1w: hdq_read_byte
+Y_CAPACITY_LEVEL=3DNormal
+POWER_SUPPLY_TEMP=3D-2731
+POWER_SUPPLY_T[  386.922393] omap_hdq 480b2000.1w: hdq_read_byte
+IME_TO_EMPTY_NOW=3D900
+POWER_SUPPLY_TIME_TO_EMPTY_AVG=3D10860
+POWER_SUPPLY_TECHNOLOGY=3DLi-ion
+POWER_SUPPLY_CHARGE_FULL=3D858138
+POW[  386.937408] omap_hdq 480b2000.1w: hdq_read_byte
+ER_SUPPLY_CHARGE_NOW=3D716806
+POWER_SUPPLY_CHARGE_FULL_DESIGN=3D1233792
+POWER_SUPPLY_CYCLE_COUNT=3D80
+POWER_SUPPLY_[  386.951812] omap_hdq 480b2000.1w: hdq_read_byte
+ENERGY_NOW=3D2718520
+POWER_SUPPLY_POWER_AVG=3D900820
+POWER_SUPPLY_HEALTH=3DGood
+POWER_SUPPLY_MANUFACTURER=3DTexas Instruments
+
+real[  386.968322] omap_hdq 480b2000.1w: hdq_read_byte
+        0m3.267s
+user    0m0.002s
+sys     0m0.230s
+[  386.981445] omap_hdq 480b2000.1w: hdq_read_byte
+[  386.991394] omap_hdq 480b2000.1w: hdq_read_byte
+root@letux:~# [  387.001861] omap_hdq 480b2000.1w: hdq_read_byte
+[  387.012512] omap_hdq 480b2000.1w: hdq_read_byte
+[  387.020996] omap_hdq 480b2000.1w: hdq_read_byte
+[  387.378234] omap_hdq 480b2000.1w: omap_hdq_runtime_suspend
+
+root@letux:~#=20
+root@letux:~# echo -1 =
+>/sys/bus/platform/drivers/omap_hdq/480b2000.1w/power/autosuspend_delay_ms=
+
+[  544.714904] omap_hdq 480b2000.1w: omap_hdq_runtime_resume
+root@letux:~# time cat /sys/class/power_supply/bq27000-battery/uevent
+[  551.704498] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.711944] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.727844] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.735015] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.748260] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.755432] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.768615] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.775787] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.788604] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.795776] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.808715] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.815887] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.828735] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.839477] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.849578] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.859802] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.869720] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.879913] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.889739] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.899780] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.909667] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.919677] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.929748] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.939727] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.949768] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.959716] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.969787] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.979888] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.987060] omap_hdq 480b2000.1w: hdq_read_byte
+[  551.999176] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.007049] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.019042] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.026977] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.039184] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.046844] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.058288] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.065521] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.078613] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.085815] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.098785] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.106170] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.118682] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.126037] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.138702] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.146667] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.159271] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.166900] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.181365] omap_hdq 480b2000.1w: hdq_read_byte
+POWER_SUPPLY_NAME=3Dbq27000-battery
+POWER_SUPPLY_STATUS=3DDischarging
+POWER_SUPPLY_PRESENT=3D1
+POWER_S[  552.199462] omap_hdq 480b2000.1w: hdq_read_byte
+UPPLY_VOLTAGE_NOW=3D4012000
+POWER_SUPPLY_CURRENT_NOW=3D220447
+POWE[  552.210998] omap_hdq 480b2000.1w: hdq_read_byte
+R_SUPPLY_CAPACITY=3D82
+POWER_SUPPLY_CAPACITY_LEVEL=3DNormal
+POWER_SUPPLY_TEMP=3D289
+POWER_SUPPLY_TIME_TO_EMPTY_NOW=3D11580
+POWER_SUPPLY_TIME_TO_EMPT[  552.227203] omap_hdq 480b2000.1w: =
+hdq_read_byte
+Y_AVG=3D11040
+POWER_SUPPLY_TECHNOLOGY=3DLi-ion
+POWER_SUPPLY_CHARGE_FULL=3D858138
+POWER_SUPPLY_CHARGE_NOW=3D706660
+PO[  552.241851] omap_hdq 480b2000.1w: hdq_read_byte
+WER_SUPPLY_CHARGE_FULL_DESIGN=3D1233792
+POWER_SUPPLY_CYCLE_COUNT=3D80
+POWER_SUPPLY_ENERGY_NOW=3D2680560
+POWER_SUPPLY_POWER_AVG=3D8760[  552.257995] omap_hdq 480b2000.1w: =
+hdq_read_byte
+00
+POWER_SUPPLY_HEALTH=3DGood
+POWER_SUPPLY_MANUFACTURER=3DTexas In[  552.269348] omap_hdq 480b2000.1w: =
+hdq_read_byte
+struments
+
+real    0m0.510s
+user    0m0.001s
+sys     0m0.192s
+root@letux:~# [  552.286468] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.294067] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.305786] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.317443] omap_hdq 480b2000.1w: hdq_read_byte
+[  552.324645] omap_hdq 480b2000.1w: hdq_read_byte
+
