@@ -2,42 +2,43 @@ Return-Path: <SRS0=+Rou=6B=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B904C38A2B
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 16:56:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4508C38A2C
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 16:56:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3530A2223D
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 16:56:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C896222202
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Apr 2020 16:56:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728212AbgDQQz4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Apr 2020 12:55:56 -0400
-Received: from muru.com ([72.249.23.125]:50130 "EHLO muru.com"
+        id S1728025AbgDQQzl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Apr 2020 12:55:41 -0400
+Received: from muru.com ([72.249.23.125]:50032 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728195AbgDQQzz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 17 Apr 2020 12:55:55 -0400
+        id S1728014AbgDQQzk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 17 Apr 2020 12:55:40 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 040878161;
-        Fri, 17 Apr 2020 16:56:38 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 4E9D78161;
+        Fri, 17 Apr 2020 16:56:23 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
-Cc:     linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
         Keerthy <j-keerthy@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>,
         Tero Kristo <t-kristo@ti.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
         "H. Nikolaus Schaller" <hns@goldelico.com>,
         Aaro Koskinen <aaro.koskinen@iki.fi>,
         Adam Ford <aford173@gmail.com>,
         Andreas Kemnade <andreas@kemnade.info>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
         Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 07/14] ARM: dts: Configure system timers for am437x
-Date:   Fri, 17 Apr 2020 09:55:12 -0700
-Message-Id: <20200417165519.4979-8-tony@atomide.com>
+        Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Subject: [PATCH 02/14] clocksource/drivers/timer-ti-dm: Add clockevent and clocksource support
+Date:   Fri, 17 Apr 2020 09:55:07 -0700
+Message-Id: <20200417165519.4979-3-tony@atomide.com>
 X-Mailer: git-send-email 2.26.1
 In-Reply-To: <20200417165519.4979-1-tony@atomide.com>
 References: <20200417165519.4979-1-tony@atomide.com>
@@ -48,279 +49,544 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now init system timers using the dmtimer and 32k counter
-based on only devicetree data and drivers/clocksource timers.
-Let's configure the clocksource and clockevent, and drop the old
-unused platform data.
+We can move the TI dmtimer clockevent and clocksource to live under
+drivers/clocksource if we rely only on the clock framework, and handle
+the module configuration directly in the clocksource driver.
 
-As we're just dropping platform data, and the early platform data
-init is based on the custom ti,hwmods property, we want to drop
-both the platform data and ti,hwmods property in a single patch.
+This removes the early dependency with system timers to the interconnect
+related code, and we can probe pretty much everything else later on at
+the module_init level.
 
-Since the dmtimer can use both 32k clock and system clock as the
-source, let's also configure the SoC specific default values. The
-board specific dts files can reconfigure these with assigned-clocks
-and assigned-clock-parents as needed.
+Let's first add a new driver for timer-ti-dm-systimer based on existing
+arch/arm/mach-omap2/timer.c. Then let's start moving SoCs to probe with
+device tree data while still keeping the old timer.c. And eventually we
+can just drop the old timer.c.
 
-Cc: devicetree@vger.kernel.org
+Note the boards can optionally configure the timer source clock in using
+assigned-clock-parents.
+
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: Keerthy <j-keerthy@ti.com>
 Cc: Lokesh Vutla <lokeshvutla@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am4372.dtsi                 | 12 ++++
- arch/arm/boot/dts/am437x-l4.dtsi              |  3 -
- arch/arm/mach-omap2/board-generic.c           |  2 +-
- .../omap_hwmod_33xx_43xx_common_data.h        |  2 -
- .../omap_hwmod_33xx_43xx_interconnect_data.c  |  8 ---
- .../omap_hwmod_33xx_43xx_ipblock_data.c       | 60 -------------------
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c    | 45 --------------
- 7 files changed, 13 insertions(+), 119 deletions(-)
+ .../devicetree/bindings/timer/ti,timer.txt    |   2 +
+ drivers/clocksource/Makefile                  |   1 +
+ drivers/clocksource/timer-ti-dm-systimer.c    | 468 ++++++++++++++++++
+ include/clocksource/timer-ti-dm.h             |   1 +
+ 4 files changed, 472 insertions(+)
+ create mode 100644 drivers/clocksource/timer-ti-dm-systimer.c
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -553,3 +553,15 @@ prm_device: prm@4000 {
- 		#reset-cells = <1>;
- 	};
- };
+diff --git a/Documentation/devicetree/bindings/timer/ti,timer.txt b/Documentation/devicetree/bindings/timer/ti,timer.txt
+--- a/Documentation/devicetree/bindings/timer/ti,timer.txt
++++ b/Documentation/devicetree/bindings/timer/ti,timer.txt
+@@ -14,6 +14,8 @@ Required properties:
+ 			ti,omap5430-timer (applicable to OMAP543x devices)
+ 			ti,am335x-timer	(applicable to AM335x devices)
+ 			ti,am335x-timer-1ms (applicable to AM335x devices)
++			ti,dmtimer-clockevent (when used as for clockevent)
++			ti,dmtimer-clocksource (when used as for clocksource)
+ 
+ - reg:			Contains timer register address range (base address and
+ 			length).
+diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
+--- a/drivers/clocksource/Makefile
++++ b/drivers/clocksource/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_CLKSRC_MMIO)	+= mmio.o
+ obj-$(CONFIG_DAVINCI_TIMER)	+= timer-davinci.o
+ obj-$(CONFIG_DIGICOLOR_TIMER)	+= timer-digicolor.o
+ obj-$(CONFIG_OMAP_DM_TIMER)	+= timer-ti-dm.o
++obj-$(CONFIG_OMAP_DM_TIMER)	+= timer-ti-dm-systimer.o
+ obj-$(CONFIG_DW_APB_TIMER)	+= dw_apb_timer.o
+ obj-$(CONFIG_DW_APB_TIMER_OF)	+= dw_apb_timer_of.o
+ obj-$(CONFIG_FTTMR010_TIMER)	+= timer-fttmr010.o
+diff --git a/drivers/clocksource/timer-ti-dm-systimer.c b/drivers/clocksource/timer-ti-dm-systimer.c
+new file mode 100644
+--- /dev/null
++++ b/drivers/clocksource/timer-ti-dm-systimer.c
+@@ -0,0 +1,468 @@
++// SPDX-License-Identifier: GPL-2.0+
++#include <linux/clk.h>
++#include <linux/clocksource.h>
++#include <linux/clockchips.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/iopoll.h>
++#include <linux/err.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/of_irq.h>
++#include <linux/sched_clock.h>
 +
-+&timer1 {
-+	compatible = "ti,dmtimer-clocksource";
-+	assigned-clocks = <&timer1_fck>;
-+	assigned-clock-parents = <&sys_clkin_ck>;
++#include <linux/clk/clk-conf.h>
++
++#include <clocksource/timer-ti-dm.h>
++#include <dt-bindings/bus/ti-sysc.h>
++
++/* For type1, set SYSC_OMAP2_CLOCKACTIVITY for fck off on idle, l4 clock on */
++#define DMTIMER_TYPE1_ENABLE	((1 << 9) | (SYSC_IDLE_SMART << 3) | \
++				 SYSC_OMAP2_ENAWAKEUP | SYSC_OMAP2_AUTOIDLE)
++
++#define DMTIMER_TYPE2_ENABLE	(SYSC_IDLE_SMART_WKUP << 2)
++#define DMTIMER_RESET_WAIT	100000
++
++struct dmtimer_clockevent {
++	struct clock_event_device dev;
++	struct omap_dm_timer timer;
 +};
 +
-+&timer2 {
-+	compatible = "ti,dmtimer-clockevent";
-+	assigned-clocks = <&timer2_fck>;
-+	assigned-clock-parents = <&sys_clkin_ck>;
++struct dmtimer_clocksource {
++	struct clocksource dev;
++	struct omap_dm_timer timer;
++	unsigned int loadval;
 +};
-diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
---- a/arch/arm/boot/dts/am437x-l4.dtsi
-+++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -330,7 +330,6 @@ scm_clockdomains: clockdomains {
++
++static int dmtimer_systimer_type1_reset(struct omap_dm_timer *timer)
++{
++	void __iomem *syss = timer->io_base + OMAP_TIMER_V1_SYS_STAT_OFFSET;
++	int ret;
++	u32 l;
++
++	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG, 0x06, 0);
++	ret = readl_poll_timeout_atomic(syss, l, l & BIT(0), 100,
++					DMTIMER_RESET_WAIT);
++
++	return ret;
++}
++
++/* Note we must use io_base instead of func_base for type2 OCP regs */
++static int dmtimer_systimer_type2_reset(struct omap_dm_timer *timer)
++{
++	void __iomem *sysc = timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET;
++	u32 l;
++
++	return readl_poll_timeout_atomic(sysc, l, !(l & BIT(0)), 100,
++					 DMTIMER_RESET_WAIT);
++}
++
++static int dmtimer_systimer_reset(struct omap_dm_timer *timer)
++{
++	int ret;
++
++	if (timer->revision == 1)
++		ret = dmtimer_systimer_type1_reset(timer);
++	else
++		ret = dmtimer_systimer_type2_reset(timer);
++	if (ret < 0) {
++		pr_err("%s failed with %i\n", __func__, ret);
++
++		return ret;
++	}
++
++	timer->posted = 0;
++
++	return 0;
++}
++
++/* Interface clocks are only available on some SoCs variants */
++static int __init dmtimer_systimer_init_clock(struct omap_dm_timer *timer,
++					      struct device_node *np,
++					      struct clk **clk,
++					      const char *name)
++{
++	struct clk *clock;
++	int error;
++
++	clock = of_clk_get_by_name(np, name);
++	if ((PTR_ERR(clock) == -EINVAL) && !strncmp(name, "ick", 3))
++		return 0;
++	else if (IS_ERR(clock))
++		return PTR_ERR(clock);
++
++	error = clk_prepare_enable(clock);
++	if (error)
++		return error;
++
++	*clk = clock;
++
++	return 0;
++}
++
++static void dmtimer_systimer_enable(struct omap_dm_timer *timer)
++{
++	void __iomem *sysc = timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET;
++	u32 val;
++
++	if (timer->revision == 1)
++		val = DMTIMER_TYPE1_ENABLE;
++	else
++		val = DMTIMER_TYPE2_ENABLE;
++
++	writel_relaxed(val, sysc);
++}
++
++static void dmtimer_systimer_disable(struct omap_dm_timer *timer)
++{
++	void __iomem *sysc = timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET;
++
++	writel_relaxed(0, sysc);
++}
++
++static int __init dmtimer_systimer_tag_disabled(struct device_node *np)
++{
++	struct property *prop;
++
++	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
++	if (!prop)
++		return -ENOMEM;
++
++	prop->name = "status";
++	prop->value = "disabled";
++	prop->length = strlen(prop->value);
++
++	return of_add_property(np, prop);
++}
++
++static int __init dmtimer_systimer_init(struct omap_dm_timer *timer,
++					struct device_node *np)
++{
++	int error;
++
++	if (!of_device_is_compatible(np->parent, "ti,sysc"))
++		return -EINVAL;
++
++	/*
++	 * Enable optional assigned-clock-parents configured at the timer
++	 * node level. For regular device drivers, this is done automatically
++	 * by bus related code such as platform_drv_probe().
++	 */
++	error = of_clk_set_defaults(np, false);
++	if (error < 0)
++		pr_err("%s: clock source init failed: %i\n", __func__, error);
++
++	/* For ti-sysc, we have timer clocks at the parent module level */
++	error = dmtimer_systimer_init_clock(timer, np->parent,
++					    &timer->fclk, "fck");
++	if (error)
++		return error;
++
++	timer->rate = clk_get_rate(timer->fclk);
++
++	error = dmtimer_systimer_init_clock(timer, np->parent,
++					    &timer->iclk, "ick");
++	if (error)
++		return error;
++
++	__omap_dm_timer_init_regs(timer);
++	dmtimer_systimer_enable(timer);
++	dmtimer_systimer_reset(timer);
++	pr_debug("dmtimer rev %08x sysc %08x\n", readl_relaxed(timer->io_base),
++		 readl_relaxed(timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET));
++
++	if (of_find_property(np, "ti,timer-alwon", NULL))
++		timer->capability |= OMAP_TIMER_ALWON;
++
++	/* Tag parent interconnect target module disabled for ti-sysc */
++	error = dmtimer_systimer_tag_disabled(np->parent);
++	if (error)
++		pr_err("%s: failed to set %pOF disabled: %i\n",
++		       __func__, np, error);
++
++	return 0;
++}
++
++/* Clockevent */
++static struct dmtimer_clockevent *
++to_dmtimer_clockevent(struct clock_event_device *clockevent)
++{
++	return container_of(clockevent, struct dmtimer_clockevent, dev);
++}
++
++static struct omap_dm_timer *
++clockevent_to_dm_timer(struct clock_event_device *evt)
++{
++	struct dmtimer_clockevent *dmtce = to_dmtimer_clockevent(evt);
++
++	return &dmtce->timer;
++}
++
++static irqreturn_t dmtimer_clockevent_interrupt(int irq, void *data)
++{
++	struct dmtimer_clockevent *dmtce = data;
++
++	__omap_dm_timer_write_status(&dmtce->timer, OMAP_TIMER_INT_OVERFLOW);
++	dmtce->dev.event_handler(&dmtce->dev);
++
++	return IRQ_HANDLED;
++}
++
++static struct irqaction dmtimer_clockevent_irq = {
++	.name		= "gp_timer",
++	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
++	.handler	= dmtimer_clockevent_interrupt,
++};
++
++static int dmtimer_set_next_event(unsigned long cycles,
++				  struct clock_event_device *evt)
++{
++	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
++
++	__omap_dm_timer_load_start(timer, OMAP_TIMER_CTRL_ST,
++				   0xffffffff - cycles, OMAP_TIMER_POSTED);
++
++	return 0;
++}
++
++static int dmtimer_clockevent_shutdown(struct clock_event_device *evt)
++{
++	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
++
++	__omap_dm_timer_stop(timer, OMAP_TIMER_POSTED, timer->rate);
++
++	return 0;
++}
++
++static int dmtimer_set_periodic(struct clock_event_device *evt)
++{
++	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
++	u32 period;
++
++	__omap_dm_timer_stop(timer, OMAP_TIMER_POSTED, timer->rate);
++
++	period = timer->rate / HZ;
++	period -= 1;
++	/* Looks like we need to first set the load value separately */
++	__omap_dm_timer_write(timer, OMAP_TIMER_LOAD_REG, 0xffffffff - period,
++			      OMAP_TIMER_POSTED);
++	__omap_dm_timer_load_start(timer,
++				   OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
++				   0xffffffff - period, OMAP_TIMER_POSTED);
++	return 0;
++}
++
++static void omap_clockevent_idle(struct clock_event_device *evt)
++{
++	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
++
++	dmtimer_systimer_disable(timer);
++}
++
++static void omap_clockevent_unidle(struct clock_event_device *evt)
++{
++	struct omap_dm_timer *timer = clockevent_to_dm_timer(evt);
++
++	dmtimer_systimer_enable(timer);
++	__omap_dm_timer_int_enable(timer, OMAP_TIMER_INT_OVERFLOW);
++}
++
++static int __init dmtimer_clockevent_init(struct device_node *np)
++{
++	struct dmtimer_clockevent *clkevt;
++	struct clock_event_device *evt;
++	struct omap_dm_timer *timer;
++	int error;
++	u32 pa;
++
++	clkevt = kzalloc(sizeof(*clkevt), GFP_KERNEL | __GFP_NOFAIL);
++	if (!clkevt)
++		return -ENOMEM;
++
++	timer = &clkevt->timer;
++	evt = &clkevt->dev;
++
++	evt->features = CLOCK_EVT_FEAT_PERIODIC |
++			CLOCK_EVT_FEAT_ONESHOT;
++	evt->rating = 300;
++	evt->set_next_event = dmtimer_set_next_event;
++	evt->set_state_shutdown = dmtimer_clockevent_shutdown;
++	evt->set_state_periodic = dmtimer_set_periodic;
++	evt->set_state_oneshot = dmtimer_clockevent_shutdown;
++	evt->tick_resume = dmtimer_clockevent_shutdown;
++	evt->cpumask = cpu_possible_mask;
++	evt->irq = timer->irq;
++
++	timer->irq = irq_of_parse_and_map(np, 0);
++	if (!timer->irq) {
++		error = -ENXIO;
++		goto err_out_free;
++	}
++
++	timer->io_base = of_iomap(np, 0);
++	if (!timer->io_base) {
++		error = -ENXIO;
++		goto err_out_free;
++	}
++
++	error = dmtimer_systimer_init(timer, np);
++	if (error)
++		goto err_out_unmap;
++
++	/*
++	 * For clock-event timers we never read the timer counter and
++	 * so we are not impacted by errata i103 and i767. Therefore,
++	 * we can safely ignore this errata for clock-event timers.
++	 */
++	__omap_dm_timer_override_errata(timer, OMAP_TIMER_ERRATA_I103_I767);
++
++	dmtimer_clockevent_irq.dev_id = clkevt;
++	setup_irq(timer->irq, &dmtimer_clockevent_irq);
++
++	__omap_dm_timer_int_enable(timer, OMAP_TIMER_INT_OVERFLOW);
++
++	pa = of_translate_address(np, of_get_address(np, 0, NULL, NULL));
++	pr_info("TI gptimer clockevent: %stimer@%08x at %lu Hz\n",
++		timer->capability & OMAP_TIMER_ALWON ? "always-on " : "",
++		pa, timer->rate);
++
++	clockevents_config_and_register(evt, timer->rate,
++					3, /* Timer internal resynch latency */
++					0xffffffff);
++
++	if (of_device_is_compatible(np, "ti,am33xx") ||
++	    of_device_is_compatible(np, "ti,am43")) {
++		evt->suspend = omap_clockevent_idle;
++		evt->resume = omap_clockevent_unidle;
++	}
++
++	return 0;
++
++err_out_unmap:
++	iounmap(timer->io_base);
++err_out_free:
++	kfree(clkevt);
++
++	return error;
++}
++
++/* Clocksource */
++static struct dmtimer_clocksource *
++to_dmtimer_clocksource(struct clocksource *cs)
++{
++	return container_of(cs, struct dmtimer_clocksource, dev);
++}
++
++static struct omap_dm_timer *
++clocksource_to_dmtimer(struct clocksource *cs)
++{
++	struct dmtimer_clocksource *clksrc = to_dmtimer_clocksource(cs);
++
++	return &clksrc->timer;
++}
++
++static u64 dmtimer_clocksource_read_cycles(struct clocksource *cs)
++{
++	struct omap_dm_timer *timer = clocksource_to_dmtimer(cs);
++
++	return (u64)__omap_dm_timer_read_counter(timer,
++						 OMAP_TIMER_NONPOSTED);
++}
++
++static void __iomem *dmtimer_sched_clock_counter;
++
++static u64 notrace dmtimer_read_sched_clock(void)
++{
++	return readl_relaxed(dmtimer_sched_clock_counter);
++}
++
++static void dmtimer_clocksource_suspend(struct clocksource *cs)
++{
++	struct dmtimer_clocksource *clksrc = to_dmtimer_clocksource(cs);
++	struct omap_dm_timer *timer = &clksrc->timer;
++
++	clksrc->loadval =
++		__omap_dm_timer_read_counter(timer, OMAP_TIMER_NONPOSTED);
++	dmtimer_systimer_disable(timer);
++}
++
++static void dmtimer_clocksource_resume(struct clocksource *cs)
++{
++	struct dmtimer_clocksource *clksrc = to_dmtimer_clocksource(cs);
++	struct omap_dm_timer *timer = &clksrc->timer;
++
++	dmtimer_systimer_enable(timer);
++	__omap_dm_timer_load_start(timer,
++				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR,
++				   clksrc->loadval,
++				   OMAP_TIMER_NONPOSTED);
++}
++
++static int __init dmtimer_clocksource_init(struct device_node *np)
++{
++	struct dmtimer_clocksource *clksrc;
++	struct omap_dm_timer *timer;
++	struct clocksource *dev;
++	int error;
++	u32 pa;
++
++	clksrc = kzalloc(sizeof(*clksrc), GFP_KERNEL | __GFP_NOFAIL);
++	if (!clksrc)
++		return -ENOMEM;
++
++	timer = &clksrc->timer;
++	dev = &clksrc->dev;
++
++	timer->io_base = of_iomap(np, 0);
++	if (!timer->io_base) {
++		pr_err("%s: could not iomap\n", __func__);
++		return -ENODEV;
++	}
++
++	error = dmtimer_systimer_init(timer, np);
++	if (error)
++		goto err_out_unmap;
++
++	dev->name = "dmtimer";
++	dev->rating = 300;
++	dev->read = dmtimer_clocksource_read_cycles;
++	dev->mask = CLOCKSOURCE_MASK(32);
++	dev->flags = CLOCK_SOURCE_IS_CONTINUOUS;
++
++	if (of_device_is_compatible(np, "ti,am33xx") ||
++	    of_device_is_compatible(np, "ti,am43")) {
++		dev->suspend = dmtimer_clocksource_suspend;
++		dev->resume = dmtimer_clocksource_resume;
++	}
++
++	__omap_dm_timer_load_start(timer,
++				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0,
++				   OMAP_TIMER_NONPOSTED);
++
++	pa = of_translate_address(np, of_get_address(np, 0, NULL, NULL));
++	pr_info("TI gptimer clocksource: %stimer@%08x %lu at Hz\n",
++		timer->capability & OMAP_TIMER_ALWON ?
++		"always-on " : "", pa, timer->rate);
++
++	if (!dmtimer_sched_clock_counter) {
++		/* Mask out write pending bits for raw OMAP_TIMER_COUNTER_REG */
++		dmtimer_sched_clock_counter =
++			timer->func_base + (OMAP_TIMER_COUNTER_REG & 0xff);
++		sched_clock_register(dmtimer_read_sched_clock, 32, timer->rate);
++	}
++
++	if (clocksource_register_hz(dev, timer->rate))
++		pr_err("Could not register clocksource %pOF\n", np);
++
++	return 0;
++
++err_out_unmap:
++	iounmap(timer->io_base);
++
++	return -ENODEV;
++}
++
++TIMER_OF_DECLARE(dmtimer_clockevent, "ti,dmtimer-clockevent",
++		 dmtimer_clockevent_init);
++TIMER_OF_DECLARE(dmtimer_clocksource, "ti,dmtimer-clocksource",
++		 dmtimer_clocksource_init);
+diff --git a/include/clocksource/timer-ti-dm.h b/include/clocksource/timer-ti-dm.h
+--- a/include/clocksource/timer-ti-dm.h
++++ b/include/clocksource/timer-ti-dm.h
+@@ -97,6 +97,7 @@ struct omap_dm_timer {
+ 	int id;
+ 	int irq;
+ 	struct clk *fclk;
++	struct clk *iclk;
  
- 		target-module@31000 {			/* 0x44e31000, ap 24 40.0 */
- 			compatible = "ti,sysc-omap2-timer", "ti,sysc";
--			ti,hwmods = "timer1";
- 			reg = <0x31000 0x4>,
- 			      <0x31010 0x4>,
- 			      <0x31014 0x4>;
-@@ -450,7 +449,6 @@ target-module@40000 {			/* 0x44e40000, ap 36 68.0 */
- 
- 		target-module@86000 {			/* 0x44e86000, ap 40 70.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "counter_32k";
- 			reg = <0x86000 0x4>,
- 			      <0x86004 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -870,7 +868,6 @@ mcasp1: mcasp@0 {
- 
- 		target-module@40000 {			/* 0x48040000, ap 18 1e.0 */
- 			compatible = "ti,sysc-omap4-timer", "ti,sysc";
--			ti,hwmods = "timer2";
- 			reg = <0x40000 0x4>,
- 			      <0x40010 0x4>,
- 			      <0x40014 0x4>;
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -308,7 +308,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
- 	.init_late	= am43xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
--	.init_time	= omap3_gptimer_timer_init,
-+	.init_time	= omap_init_time_of,
- 	.dt_compat	= am43_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-@@ -44,8 +44,6 @@ extern struct omap_hwmod am33xx_smartreflex0_hwmod;
- extern struct omap_hwmod am33xx_smartreflex1_hwmod;
- extern struct omap_hwmod am33xx_gpmc_hwmod;
- extern struct omap_hwmod am33xx_rtc_hwmod;
--extern struct omap_hwmod am33xx_timer1_hwmod;
--extern struct omap_hwmod am33xx_timer2_hwmod;
- 
- extern struct omap_hwmod_class am33xx_emif_hwmod_class;
- extern struct omap_hwmod_class am33xx_l4_hwmod_class;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-@@ -106,14 +106,6 @@ struct omap_hwmod_ocp_if am33xx_l3_s__gpmc = {
- 	.user		= OCP_USER_MPU,
- };
- 
--/* l4 per -> timer2 */
--struct omap_hwmod_ocp_if am33xx_l4_ls__timer2 = {
--	.master		= &am33xx_l4_ls_hwmod,
--	.slave		= &am33xx_timer2_hwmod,
--	.clk		= "l4ls_gclk",
--	.user		= OCP_USER_MPU,
--};
--
- /* l3 main -> ocmc */
- struct omap_hwmod_ocp_if am33xx_l3_main__ocmc = {
- 	.master		= &am33xx_l3_main_hwmod,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -307,64 +307,6 @@ struct omap_hwmod am33xx_rtc_hwmod = {
- 	},
- };
- 
--/* 'timer 2-7' class */
--static struct omap_hwmod_class_sysconfig am33xx_timer_sysc = {
--	.rev_offs	= 0x0000,
--	.sysc_offs	= 0x0010,
--	.syss_offs	= 0x0014,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
--			  SYSC_HAS_RESET_STATUS,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			  SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type2,
--};
--
--struct omap_hwmod_class am33xx_timer_hwmod_class = {
--	.name		= "timer",
--	.sysc		= &am33xx_timer_sysc,
--};
--
--/* timer1 1ms */
--static struct omap_hwmod_class_sysconfig am33xx_timer1ms_sysc = {
--	.rev_offs	= 0x0000,
--	.sysc_offs	= 0x0010,
--	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
--			SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE |
--			SYSS_HAS_RESET_STATUS),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
--	.sysc_fields	= &omap_hwmod_sysc_type1,
--};
--
--static struct omap_hwmod_class am33xx_timer1ms_hwmod_class = {
--	.name		= "timer",
--	.sysc		= &am33xx_timer1ms_sysc,
--};
--
--struct omap_hwmod am33xx_timer1_hwmod = {
--	.name		= "timer1",
--	.class		= &am33xx_timer1ms_hwmod_class,
--	.clkdm_name	= "l4_wkup_clkdm",
--	.main_clk	= "timer1_fck",
--	.prcm		= {
--		.omap4	= {
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
--struct omap_hwmod am33xx_timer2_hwmod = {
--	.name		= "timer2",
--	.class		= &am33xx_timer_hwmod_class,
--	.clkdm_name	= "l4ls_clkdm",
--	.main_clk	= "timer2_fck",
--	.prcm		= {
--		.omap4	= {
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
- static void omap_hwmod_am33xx_clkctrl(void)
- {
- 	CLKCTRL(am33xx_smartreflex0_hwmod,
-@@ -397,12 +339,10 @@ void omap_hwmod_am33xx_reg(void)
- 
- static void omap_hwmod_am43xx_clkctrl(void)
- {
--	CLKCTRL(am33xx_timer2_hwmod, AM43XX_CM_PER_TIMER2_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex0_hwmod,
- 		AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex1_hwmod,
- 		AM43XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET);
--	CLKCTRL(am33xx_timer1_hwmod, AM43XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_rtc_hwmod, AM43XX_CM_RTC_RTC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_gpmc_hwmod, AM43XX_CM_PER_GPMC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_ls_hwmod, AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET);
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -85,34 +85,6 @@ static struct omap_hwmod am43xx_control_hwmod = {
- 	},
- };
- 
--static struct omap_hwmod_class_sysconfig am43xx_synctimer_sysc = {
--	.rev_offs	= 0x0,
--	.sysc_offs	= 0x4,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO),
--	.sysc_fields	= &omap_hwmod_sysc_type1,
--};
--
--static struct omap_hwmod_class am43xx_synctimer_hwmod_class = {
--	.name	= "synctimer",
--	.sysc	= &am43xx_synctimer_sysc,
--};
--
--static struct omap_hwmod am43xx_synctimer_hwmod = {
--	.name		= "counter_32k",
--	.class		= &am43xx_synctimer_hwmod_class,
--	.clkdm_name	= "l4_wkup_aon_clkdm",
--	.flags		= HWMOD_SWSUP_SIDLE,
--	.main_clk	= "synctimer_32kclk",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = AM43XX_CM_WKUP_SYNCTIMER_CLKCTRL_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
--		},
--	},
--};
--
--
- static struct omap_hwmod_class_sysconfig am43xx_usb_otg_ss_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
-@@ -206,20 +178,6 @@ static struct omap_hwmod_ocp_if am43xx_l4_wkup__control = {
- 	.user		= OCP_USER_MPU,
- };
- 
--static struct omap_hwmod_ocp_if am43xx_l4_wkup__timer1 = {
--	.master		= &am33xx_l4_wkup_hwmod,
--	.slave		= &am33xx_timer1_hwmod,
--	.clk		= "sys_clkin_ck",
--	.user		= OCP_USER_MPU,
--};
--
--static struct omap_hwmod_ocp_if am33xx_l4_wkup__synctimer = {
--	.master		= &am33xx_l4_wkup_hwmod,
--	.slave		= &am43xx_synctimer_hwmod,
--	.clk		= "sys_clkin_ck",
--	.user		= OCP_USER_MPU,
--};
--
- static struct omap_hwmod_ocp_if am43xx_l3_s__usbotgss0 = {
- 	.master         = &am33xx_l3_s_hwmod,
- 	.slave          = &am43xx_usb_otg_ss0_hwmod,
-@@ -235,7 +193,6 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__usbotgss1 = {
- };
- 
- static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
--	&am33xx_l4_wkup__synctimer,
- 	&am33xx_mpu__l3_main,
- 	&am33xx_mpu__prcm,
- 	&am33xx_l3_s__l4_ls,
-@@ -252,8 +209,6 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am43xx_l4_wkup__control,
- 	&am43xx_l4_wkup__smartreflex0,
- 	&am43xx_l4_wkup__smartreflex1,
--	&am43xx_l4_wkup__timer1,
--	&am33xx_l4_ls__timer2,
- 	&am33xx_l3_s__gpmc,
- 	&am33xx_l3_main__ocmc,
- 	&am43xx_l3_s__usbotgss0,
+ 	void __iomem	*io_base;
+ 	void __iomem	*irq_stat;	/* TISR/IRQSTATUS interrupt status */
 -- 
 2.26.1
