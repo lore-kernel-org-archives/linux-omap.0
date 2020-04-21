@@ -6,43 +6,47 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D9FEC54FD0
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 16:33:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDB67C54FCC
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 16:34:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 077A32070B
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 16:33:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4E3720735
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 16:34:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726303AbgDUQc7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 21 Apr 2020 12:32:59 -0400
-Received: from muru.com ([72.249.23.125]:50614 "EHLO muru.com"
+        id S1726063AbgDUQeP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 21 Apr 2020 12:34:15 -0400
+Received: from muru.com ([72.249.23.125]:50624 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725987AbgDUQc7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 21 Apr 2020 12:32:59 -0400
+        id S1725987AbgDUQeP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 21 Apr 2020 12:34:15 -0400
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 6DF388081;
-        Tue, 21 Apr 2020 16:33:46 +0000 (UTC)
-Date:   Tue, 21 Apr 2020 09:32:55 -0700
+        by muru.com (Postfix) with ESMTPS id B14EA8081;
+        Tue, 21 Apr 2020 16:35:00 +0000 (UTC)
+Date:   Tue, 21 Apr 2020 09:34:09 -0700
 From:   Tony Lindgren <tony@atomide.com>
-To:     Faiz Abbas <faiz_abbas@ti.com>
-Cc:     linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org, mark.rutland@arm.com,
-        robh+dt@kernel.org, bcousson@baylibre.com
-Subject: Re: [PATCH] ARM: dts: am574x-idk: Disable m_can node
-Message-ID: <20200421163255.GV37466@atomide.com>
-References: <20200401090858.18523-1-faiz_abbas@ti.com>
+To:     Kishon Vijay Abraham I <kishon@ti.com>
+Cc:     =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        stable@kernel.org
+Subject: Re: [PATCH] ARM: dts: dra7: Fix bus_dma_limit for PCIe
+Message-ID: <20200421163409.GW37466@atomide.com>
+References: <20200417064340.17527-1-kishon@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200401090858.18523-1-faiz_abbas@ti.com>
+In-Reply-To: <20200417064340.17527-1-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Faiz Abbas <faiz_abbas@ti.com> [200401 02:09]:
-> Since commit bcbb63b80284 ("ARM: dts: dra7: Separate AM57 dtsi files"),
-> the m_can node was inherited from dra76x.dtsi but the IP is not
-> connected on the idk board. Disable the node to reflect this.
+* Kishon Vijay Abraham I <kishon@ti.com> [200416 23:44]:
+> Even though commit cfb5d65f2595 ("ARM: dts: dra7: Add bus_dma_limit
+> for L3 bus") added bus_dma_limit for L3 bus, the PCIe controller
+> gets incorrect value of bus_dma_limit.
+> 
+> Fix it by adding empty dma-ranges property to axi@0 and axi@1
+> (parent device tree node of PCIe controller).
 
 Applying into fixes thanks.
 
