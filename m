@@ -2,151 +2,203 @@ Return-Path: <SRS0=Pap7=6F=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED6A7C54FCC
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 18:13:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3410C54FCC
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 18:17:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 692E7206D4
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 18:13:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9223D20663
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Apr 2020 18:17:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="M2eFPR91"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mQnQ0MOZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726012AbgDUSNt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 21 Apr 2020 14:13:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55148 "EHLO
+        id S1725963AbgDUSRw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 21 Apr 2020 14:17:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725963AbgDUSNs (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2020 14:13:48 -0400
-Received: from mo6-p02-ob.smtp.rzone.de (mo6-p02-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5302::10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E651AC0610D5;
-        Tue, 21 Apr 2020 11:13:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1587492826;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=k1WX4cUqtiApT75DRAINIjIc6nKu2ha9Txwb3LzKu4k=;
-        b=M2eFPR91fHIYUBEZaW2RUIQ1xy3IvUva7gc39isg9NcwT9CrPfpMV2m8wjCAV2+xyP
-        mlmMklGiMkqOgtUwSCQmYg9nZtO20wY9XeCEkC8w9k52sFdqt9dWxOo6QGrLEdL2OMg5
-        I8SBZtCxrnX/dR8Wnz1yfBIdHlH2+p20QY3qgLGG575MH0vQvcVjjz6twtF5PnXKFqiF
-        wiIn5OBgmjGmCGKpWDM5JzQovc+uY3oygswy9K4/hcIkaRIyigbd7kjDQSqjsbJuBGkh
-        7JeKB2t13TLyCRJ2p2TriT0fM+y+h90p3BlR7X5jHLXmADu2oWYArnNGv77ZjFoF+jUG
-        97yg==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj4Qpw9iZeHmAiw43oXkQ="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 46.5.0 DYNA|AUTH)
-        with ESMTPSA id g06d2dw3LIDdJlX
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Tue, 21 Apr 2020 20:13:39 +0200 (CEST)
-Subject: Re: [PATCHv3] w1: omap-hdq: Simplify driver with PM runtime autosuspend
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=utf-8
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <20200421180220.GB37466@atomide.com>
-Date:   Tue, 21 Apr 2020 20:13:39 +0200
-Cc:     Andreas Kemnade <andreas@kemnade.info>,
-        Evgeniy Polyakov <zbr@ioremap.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        with ESMTP id S1725870AbgDUSRv (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2020 14:17:51 -0400
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ABFAC0610D5;
+        Tue, 21 Apr 2020 11:17:51 -0700 (PDT)
+Received: by mail-wr1-x441.google.com with SMTP id d17so17560130wrg.11;
+        Tue, 21 Apr 2020 11:17:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=d+6jESbCvom8boV1Iz569w6jKc+CILAkX582DGmlOlo=;
+        b=mQnQ0MOZb5HAjIp/13NpjEXuDIO7U9B4is6pfGQDxq3kJQmaqO0qZliXaA+crLKeiv
+         hZ3fyzWaKTi36Gji2yKwBR5Vuoh7wNGQKsSW2PGuaHEzamk3jATQ5Mt3rc0+ARve6/Ka
+         t2hiL07+7kcG0iuaoGdIG/QfV9bHL6Jc/LmjqRSWP4GdNMmv11FKpfmquznU0nbxGz91
+         4BYH4vGjLXZ5TXMWuE8L/jSK2LjiRTAYSzVAb8Rn8BdTFnMKWr/YoAcdUZXx/7bA8Ees
+         av41L8pcXPoQK52trQrU347Ym30hgRHNP1koZumWJRnO3DlgTwXFzI5dAN3ui8PL6Sze
+         ki/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=d+6jESbCvom8boV1Iz569w6jKc+CILAkX582DGmlOlo=;
+        b=fqVB9IeQwechWtHUUsv1L+rwbqWlT2vgJwUODl8S6a6A/JgMlyySBDDi0E2g+eWQXe
+         0AIvQvQwhA9SkoyvYqVPIuhue97zRteUvI8ABJMKeE6R6w4xjcf1WvJzgS5QosBfQT8U
+         GSofYYbuIZA7TmGrd1U4ignJrOYWW23/+7sROhDAagQWlnYFUqtJh4PKavALI+1P1MPr
+         dDMS3B5G4wKCE+ocj3F5r6tnb2GNiLQWCLQvFlxtzxM6s+c+cYs5Mr1Dy3i22i22Ght0
+         o8juYwZuYUMB4PzySs0V93nJ4QSiDWP+cOUynJYl+jPIRTsBUGjs8TC3OpQuuNKTvtpu
+         mXKg==
+X-Gm-Message-State: AGi0PuYyThQ5ZUpDuYEBQWiq9ZVMASQYsNcpV8m70OL7TGXnz2JIUB0d
+        Wkxfy5416j2LHBA9Fy5oAXmGn4FJ
+X-Google-Smtp-Source: APiQypIxTRtDUCBScSJRt+j/IVmGwz+hgVch8UpwbARQGIcr29Ekhok/1Q6jgx61gq3YOJYzbqHd4w==
+X-Received: by 2002:adf:decb:: with SMTP id i11mr24292487wrn.140.1587493068988;
+        Tue, 21 Apr 2020 11:17:48 -0700 (PDT)
+Received: from ?IPv6:2a02:810d:340:2e50:b4a9:f772:3340:fbf9? ([2a02:810d:340:2e50:b4a9:f772:3340:fbf9])
+        by smtp.gmail.com with ESMTPSA id p5sm5580060wrg.49.2020.04.21.11.17.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 21 Apr 2020 11:17:48 -0700 (PDT)
+Subject: Re: [PATCH v6 00/12] ARM/MIPS: DTS: add child nodes describing the
+ PVRSGX GPU present in some OMAP SoC and JZ4780 (and many more)
+To:     Maxime Ripard <maxime@cerno.tech>
+Cc:     "H. Nikolaus Schaller" <hns@goldelico.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Ralf Baechle <ralf@linux-mips.org>,
+        Paul Burton <paulburton@kernel.org>,
+        James Hogan <jhogan@kernel.org>, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "open list:DRM PANEL DRIVERS" <dri-devel@lists.freedesktop.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-omap <linux-omap@vger.kernel.org>,
-        Adam Ford <aford173@gmail.com>,
-        "Andrew F . Davis" <afd@ti.com>, Vignesh R <vigneshr@ti.com>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <70F19A6E-7B36-4873-9364-F284A14EE3A0@goldelico.com>
-References: <7B8C7DD9-095B-48FC-9642-695D07B79E97@goldelico.com> <20200416184638.GI37466@atomide.com> <3197C3F0-DEB9-4221-AFBD-4F2A08C84C4C@goldelico.com> <20200417164340.3d9043d1@aktux> <6430AF54-849E-456B-8DB0-B4478BBDB78D@goldelico.com> <20200417150721.GL37466@atomide.com> <8E062482-5D5D-4837-9980-D6C708DD24D4@goldelico.com> <20200420150802.GR37466@atomide.com> <D1A77603-11FB-407F-B480-82C57E742C51@goldelico.com> <20200421085336.32cf8ffe@aktux> <20200421180220.GB37466@atomide.com>
-To:     Tony Lindgren <tony@atomide.com>
-X-Mailer: Apple Mail (2.3124)
+        OpenPVRSGX Linux Driver Group <openpvrsgx-devgroup@letux.org>,
+        Discussions about the Letux Kernel 
+        <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com,
+        linux-mips@vger.kernel.org,
+        arm-soc <linux-arm-kernel@lists.infradead.org>,
+        linux-samsung-soc@vger.kernel.org
+References: <cover.1586939718.git.hns@goldelico.com>
+ <20200415101008.zxzxca2vlfsefpdv@gilmour.lan>
+ <2E3401F1-A106-4396-8FE6-51CAB72926A4@goldelico.com>
+ <20200415130233.rgn7xrtwqicptke2@gilmour.lan>
+ <C589D06E-435E-4316-AD0A-8498325039E3@goldelico.com>
+ <10969e64-fe1f-d692-4984-4ba916bd2161@gmail.com>
+ <20200420073842.nx4xb3zqvu23arkc@gilmour.lan>
+ <b5a06c19-7a3e-bcb8-5ae3-76901b9c6c35@gmail.com>
+ <20200421112129.zjmkmzo3aftksgka@gilmour.lan>
+From:   Philipp Rossak <embed3d@gmail.com>
+Message-ID: <5749af21-e707-c998-c83b-50c48867c9e8@gmail.com>
+Date:   Tue, 21 Apr 2020 18:42:17 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
+MIME-Version: 1.0
+In-Reply-To: <20200421112129.zjmkmzo3aftksgka@gilmour.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi,
 
-> Am 21.04.2020 um 20:02 schrieb Tony Lindgren <tony@atomide.com>:
->=20
-> * Andreas Kemnade <andreas@kemnade.info> [200421 06:54]:
->> On Mon, 20 Apr 2020 23:11:18 +0200
->> "H. Nikolaus Schaller" <hns@goldelico.com> wrote:
->>> The only maybe important observation was when I disabled all
->>> kernel modules except *hdq*.ko and *bq27*.ko. Then I did only
->>> get an emergency shell so that it is quite similar to the
->>> scenario Andreas has tested. With this setup it did work.
->>>=20
->> So I guess without idling uarts?
->>=20
->>> I then tried to reenable other kernel modules but the result
->>> wasn't convincing that it gives a reliable result.
->>>=20
->>> So I have still no clear indication when the problem occurs and
->>> when not.
->>>=20
->> Hmm, last summer I had problems even without that patch reading
->> temperature while doing umts transfers. Maybe there are some
->> connections,
->> maybe not. For that scenario we might have emc issues, thermal =
-problems
->> or a real kernel problem.
->=20
-> I have confimed here that logicpd torpedo devkit with battery
-> works just fine while entering off mode during idle. I can see
-> the temperature just fine with:
->=20
-> # cat /sys/class/power_supply/bq27000-battery/uevent
-> POWER_SUPPLY_NAME=3Dbq27000-battery
-> POWER_SUPPLY_STATUS=3DCharging
-> POWER_SUPPLY_PRESENT=3D1
-> POWER_SUPPLY_VOLTAGE_NOW=3D3829000
-> POWER_SUPPLY_CURRENT_NOW=3D-592084
-> POWER_SUPPLY_CAPACITY_LEVEL=3DNormal
-> POWER_SUPPLY_TEMP=3D306
-> POWER_SUPPLY_TECHNOLOGY=3DLi-ion
-> POWER_SUPPLY_CHARGE_FULL_DESIGN=3D2056320
-> POWER_SUPPLY_CYCLE_COUNT=3D0
-> POWER_SUPPLY_POWER_AVG=3D0
-> POWER_SUPPLY_MANUFACTURER=3DTexas Instruments
->=20
-> This is 37xx though, maybe you have 35xx and there's some errata
-> that we're not handling?
+On 21.04.20 13:21, Maxime Ripard wrote:
+> Hi,
+> 
+> On Tue, Apr 21, 2020 at 11:57:33AM +0200, Philipp Rossak wrote:
+>> On 20.04.20 09:38, Maxime Ripard wrote:
+>>> Hi,
+>>>
+>>> On Fri, Apr 17, 2020 at 02:09:06PM +0200, Philipp Rossak wrote:
+>>>>>> I'm a bit skeptical on that one since it doesn't even list the
+>>>>>> interrupts connected to the GPU that the binding mandates.
+>>>>>
+>>>>> I think he left it out for a future update.
+>>>>> But best he comments himself.
+>>>>
+>>>> I'm currently working on those bindings. They are now 90% done, but they are
+>>>> not finished till now. Currently there is some mainline support missing to
+>>>> add the full binding. The A83T and also the A31/A31s have a GPU Power Off
+>>>> Gating Register in the R_PRCM module, that is not supported right now in
+>>>> Mainline. The Register need to be written when the GPU is powered on and
+>>>> off.
+>>>>
+>>>> @Maxime: I totally agree on your point that a demo needs to be provided
+>>>> before the related DTS patches should be provided. That's the reason why I
+>>>> added the gpu placeholder patches.
+>>>> Do you have an idea how a driver for the R_PRCM stuff can look like? I'm not
+>>>> that experienced with the clock driver framework.
+>>>
+>>> It looks like a power-domain to me, so you'd rather plug that into the genpd
+>>> framework.
+>>
+>> I had a look on genpd and I'm not really sure if that fits.
+>>
+>> It is basically some bit that verify that the clocks should be enabled or
+>> disabled.
+> 
+> No, it can do much more than that. It's a framework to control the SoCs power
+> domains, so clocks might be a part of it, but most of the time it's going to be
+> about powering up a particular device.
+> 
+So I think I've found now the right piece of documentation and a driver 
+that implements something similar [1].
 
-No, it is dm3730 on three different units I have tried.
+So I will write a similar driver like linked above that only sets the 
+right bits for A83T and A31/A31s.
+Do you think this is the right approach?
 
-> I'm only seeing "2.7. HDQTM/1-Wire=C2=AE Communication Constraints"
-> for external pull-up resitor in 34xx errata at [0].
->=20
-> I wonder if wrong external pull could cause flakyeness after
-> enabling the hdq module?
+>> I think this is better placed somewhere in the clocking framework.
+>> I see there more similarities to the gating stuff.
+>> Do you think it is suitable to implement it like the clock gating?
+> 
+> I'm really not sure what makes you think that this should be modelled as a
+> clock?
+> 
 
-I have checked and we have 10 kOhm pullup to 1.8 V and a 470 Ohm
-series resistor.
+Looks like I looked in the wrong place and got some information that are 
+not suitable for this.
 
->=20
-> If nothing else helps, you could try to block idle for hdq
-> module, but I have a feeling that's a workaround for something
-> else.
+>>>> The big question is right now how to proceed with the A83T and A31s patches.
+>>>> I see there three options, which one do you prefer?:
+>>>>
+>>>> 1. Provide now placeholder patches and send new patches, if everything is
+>>>> clear and other things are mainlined
+>>>> 2. Provide now patches as complete as possible and provide later patches to
+>>>> complete them when the R_PRCM things are mainlined
+>>>> 3. Leave them out, till the related work is mainlined and the bindings are
+>>>> final.
+>>>
+>>> Like I said, the DT *has* to be backward-compatible, so for any DT patch that
+>>> you are asking to be merged, you should be prepared to support it indefinitely
+>>> and be able to run from it, and you won't be able to change the bindings later
+>>> on.
+>>
+>> I agree on your points. But is this also suitable to drivers that are
+>> currently off tree and might be merged in one or two years?
+> 
+> This is what we done for the Mali. The devicetree binding was first done for the
+> out-of-tree driver, and then lima/panfrost reused it.
+> 
+> The key thing here is to have enough confidence about how the hardware works so
+> that you can accurately describe it.
 
-Well, what helps is reverting the patch and using the old driver
-(which did work for several years). So I would not assume that
-there is a hardware influence. It seems to be something the new
-driver is doing differently.
+Ok thanks! So I will resend my patches when the work got a more mature 
+state and we know enough about the Hardware.
 
-I need more time to understand and trace this issue on what it
-depends... It may depend on the sequence some other modules are
-loaded and what the user-space (udevd) is doing in the meantime.
+Cheers,
+Philipp
 
->=20
-> Regards,
->=20
-> Tony
->=20
-> [0] =
-https://www.ti.com/pdfs/wtbu/SWPZ009A_OMAP4430_Errata_Public_vA.pdf
->=20
 
-BR and thanks,
-Nikolaus
-
+[1]: 
+https://elixir.bootlin.com/linux/latest/source/drivers/soc/amlogic/meson-gx-pwrc-vpu.c
