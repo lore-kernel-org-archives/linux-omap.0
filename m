@@ -5,46 +5,46 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 998B3C5518A
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 20:14:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB658C55185
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 20:14:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 70345214AF
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 20:14:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF8FB20882
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 20:14:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="IRp3NZ5+"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="m9jP4wlw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727009AbgDVUOL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 22 Apr 2020 16:14:11 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:45442 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726109AbgDVUOK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2020 16:14:10 -0400
+        id S1726512AbgDVUOI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 22 Apr 2020 16:14:08 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:46242 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726109AbgDVUOH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2020 16:14:07 -0400
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03MKE5EA066948;
-        Wed, 22 Apr 2020 15:14:05 -0500
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03MKDuKk067894;
+        Wed, 22 Apr 2020 15:13:56 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1587586445;
-        bh=EobPuUYa4yhwwo8CjMb08fT7mp5vL7a+KqjjG21JZv8=;
+        s=ti-com-17Q1; t=1587586436;
+        bh=XETdDW+BFqwczPO7EtMDfniVOGUB1DJz3eSIuu2yWl0=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=IRp3NZ5+soBtdUCaSUkKdBesLmH2lRAZJskPU4fVuVfwwWyg/6DTslcsLXHLE5rGd
-         i9PqidSta1KWUav/kGg7mfIav7pTUrd6xxlewU1gO+OMzNjIhqEBu2iFuqIxOAzyvB
-         +4zLNKtVHi4cTdXsXLDohDMCMcfISgQo7NWAWHVg=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03MKE53M086527;
-        Wed, 22 Apr 2020 15:14:05 -0500
-Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 22
- Apr 2020 15:14:05 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE107.ent.ti.com
- (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3 via
- Frontend Transport; Wed, 22 Apr 2020 15:14:05 -0500
+        b=m9jP4wlwo1I+Pp9gxRQrC0rw77yVf5uV9saK24adp7/6dehyvhKG7ZQpvTunx/y+g
+         eY1GZpWtzkBBP0QL/HSOvQOsB1uvLSTpAZBjTRl3+r7lSyAJX5JuIrqP8a6jWMcClD
+         zam/uXxqY3e0myUUSY3L1dM1V88dS7cnxV/gkYq4=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03MKDuIR085988;
+        Wed, 22 Apr 2020 15:13:56 -0500
+Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Wed, 22
+ Apr 2020 15:13:56 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 22 Apr 2020 15:13:56 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03MKE4jj062851;
-        Wed, 22 Apr 2020 15:14:05 -0500
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03MKDtx6062093;
+        Wed, 22 Apr 2020 15:13:56 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
 To:     Richard Cochran <richardcochran@gmail.com>,
         Lokesh Vutla <lokeshvutla@ti.com>,
@@ -55,9 +55,9 @@ CC:     <netdev@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
         Murali Karicheri <m-karicheri2@ti.com>,
         <linux-omap@vger.kernel.org>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v4 10/10] net: ethernet: ti: cpsw: enable cpts irq
-Date:   Wed, 22 Apr 2020 23:12:54 +0300
-Message-ID: <20200422201254.15232-11-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v4 08/10] net: ethernet: ti: cpts: add irq support
+Date:   Wed, 22 Apr 2020 23:12:52 +0300
+Message-ID: <20200422201254.15232-9-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200422201254.15232-1-grygorii.strashko@ti.com>
 References: <20200422201254.15232-1-grygorii.strashko@ti.com>
@@ -69,138 +69,150 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The CPSW misc IRQ need be enabled for CPTS event_pend IRQs processing. This
-patch adds corresponding support to CPSW driver.
+Add CPTS IRQ support, but do not enable it. By default, the CPTS driver
+will continue working using polling mode which is required for CPTS to
+continue working on platforms other than CPSW, like Keystone 2.
+
+The CPTS IRQ support is required to enable support for HW_TS_PUSH events.
+The CPSW CPTS IRQ and HW_TS_PUSH events support will be enabled in follow
+up patches.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Acked-by: Richard Cochran <richardcochran@gmail.com>
 ---
- drivers/net/ethernet/ti/cpsw.c      | 21 +++++++++++++++++++++
- drivers/net/ethernet/ti/cpsw_new.c  | 20 ++++++++++++++++++++
- drivers/net/ethernet/ti/cpsw_priv.c | 12 ++++++++++++
- drivers/net/ethernet/ti/cpsw_priv.h |  2 ++
- 4 files changed, 55 insertions(+)
+ drivers/net/ethernet/ti/cpts.c | 22 +++++++++++++++++++++-
+ drivers/net/ethernet/ti/cpts.h | 16 ++++++++++++++++
+ 2 files changed, 37 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index c2c5bf87da01..09f98fa2fb4e 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1569,6 +1569,12 @@ static int cpsw_probe(struct platform_device *pdev)
- 		return irq;
- 	cpsw->irqs_table[1] = irq;
+diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+index 8db9efdf1708..19fbea7275f8 100644
+--- a/drivers/net/ethernet/ti/cpts.c
++++ b/drivers/net/ethernet/ti/cpts.c
+@@ -99,6 +99,7 @@ static void cpts_purge_txq(struct cpts *cpts)
+  */
+ static int cpts_fifo_read(struct cpts *cpts, int match)
+ {
++	bool need_schedule = false;
+ 	struct cpts_event *event;
+ 	unsigned long flags;
+ 	int i, type = -1;
+@@ -131,6 +132,8 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
+ 				cpts->cc.mult = cpts->mult_new;
+ 				cpts->mult_new = 0;
+ 			}
++			if (!cpts->irq_poll)
++				complete(&cpts->ts_push_complete);
+ 			break;
+ 		case CPTS_EV_TX:
+ 		case CPTS_EV_RX:
+@@ -139,6 +142,7 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
  
-+	/* get misc irq*/
-+	irq = platform_get_irq(pdev, 3);
-+	if (irq <= 0)
-+		return irq;
-+	cpsw->misc_irq = irq;
-+
- 	/*
- 	 * This may be required here for child devices.
- 	 */
-@@ -1703,6 +1709,21 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_unregister_netdev_ret;
- 	}
+ 			list_del_init(&event->list);
+ 			list_add_tail(&event->list, &cpts->events);
++			need_schedule = true;
+ 			break;
+ 		case CPTS_EV_ROLL:
+ 		case CPTS_EV_HALF:
+@@ -154,9 +158,17 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
  
-+	if (!cpsw->cpts)
-+		goto skip_cpts;
-+
-+	ret = devm_request_irq(&pdev->dev, cpsw->misc_irq, cpsw_misc_interrupt,
-+			       0, dev_name(&pdev->dev), cpsw);
-+	if (ret < 0) {
-+		dev_err(dev, "error attaching misc irq (%d)\n", ret);
-+		goto clean_unregister_netdev_ret;
-+	}
-+
-+	/* Enable misc CPTS evnt_pend IRQ */
-+	cpts_set_irqpoll(cpsw->cpts, false);
-+	writel(0x10, &cpsw->wr_regs->misc_en);
-+
-+skip_cpts:
- 	cpsw_notice(priv, probe,
- 		    "initialized device (regs %pa, irq %d, pool size %d)\n",
- 		    &ss_res->start, cpsw->irqs_table[0], descs_pool_size);
-diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index 9209e613257d..33c8dd686206 100644
---- a/drivers/net/ethernet/ti/cpsw_new.c
-+++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -1896,6 +1896,11 @@ static int cpsw_probe(struct platform_device *pdev)
- 		return irq;
- 	cpsw->irqs_table[1] = irq;
+ 	spin_unlock_irqrestore(&cpts->lock, flags);
  
-+	irq = platform_get_irq_byname(pdev, "misc");
-+	if (irq <= 0)
-+		return irq;
-+	cpsw->misc_irq = irq;
++	if (!cpts->irq_poll && need_schedule)
++		ptp_schedule_worker(cpts->clock, 0);
 +
- 	platform_set_drvdata(pdev, cpsw);
- 	/* This may be required here for child devices. */
- 	pm_runtime_enable(dev);
-@@ -1975,6 +1980,21 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_unregister_netdev;
- 	}
- 
-+	if (!cpsw->cpts)
-+		goto skip_cpts;
-+
-+	ret = devm_request_irq(dev, cpsw->misc_irq, cpsw_misc_interrupt,
-+			       0, dev_name(&pdev->dev), cpsw);
-+	if (ret < 0) {
-+		dev_err(dev, "error attaching misc irq (%d)\n", ret);
-+		goto clean_unregister_netdev;
-+	}
-+
-+	/* Enable misc CPTS evnt_pend IRQ */
-+	cpts_set_irqpoll(cpsw->cpts, false);
-+	writel(0x10, &cpsw->wr_regs->misc_en);
-+
-+skip_cpts:
- 	ret = cpsw_register_notifiers(cpsw);
- 	if (ret)
- 		goto clean_unregister_netdev;
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
-index 099208927400..9d098c802c6d 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.c
-+++ b/drivers/net/ethernet/ti/cpsw_priv.c
-@@ -114,6 +114,18 @@ irqreturn_t cpsw_rx_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
+ 	return type == match ? 0 : -1;
  }
  
-+irqreturn_t cpsw_misc_interrupt(int irq, void *dev_id)
++void cpts_misc_interrupt(struct cpts *cpts)
 +{
-+	struct cpsw_common *cpsw = dev_id;
-+
-+	writel(0, &cpsw->wr_regs->misc_en);
-+	cpdma_ctlr_eoi(cpsw->dma, CPDMA_EOI_MISC);
-+	cpts_misc_interrupt(cpsw->cpts);
-+	writel(0x10, &cpsw->wr_regs->misc_en);
-+
-+	return IRQ_HANDLED;
++	cpts_fifo_read(cpts, -1);
 +}
 +
- int cpsw_tx_mq_poll(struct napi_struct *napi_tx, int budget)
+ static u64 cpts_systim_read(const struct cyclecounter *cc)
  {
- 	struct cpsw_common	*cpsw = napi_to_cpsw(napi_tx);
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
-index b8d7b924ee3d..bf4e179b4ca4 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.h
-+++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -350,6 +350,7 @@ struct cpsw_common {
- 	bool				rx_irq_disabled;
- 	bool				tx_irq_disabled;
- 	u32 irqs_table[IRQ_NUM];
-+	int misc_irq;
- 	struct cpts			*cpts;
- 	struct devlink *devlink;
- 	int				rx_ch_num, tx_ch_num;
-@@ -442,6 +443,7 @@ int cpsw_run_xdp(struct cpsw_priv *priv, int ch, struct xdp_buff *xdp,
- 		 struct page *page, int port);
- irqreturn_t cpsw_tx_interrupt(int irq, void *dev_id);
- irqreturn_t cpsw_rx_interrupt(int irq, void *dev_id);
-+irqreturn_t cpsw_misc_interrupt(int irq, void *dev_id);
- int cpsw_tx_mq_poll(struct napi_struct *napi_tx, int budget);
- int cpsw_tx_poll(struct napi_struct *napi_tx, int budget);
- int cpsw_rx_mq_poll(struct napi_struct *napi_rx, int budget);
+ 	struct cpts *cpts = container_of(cc, struct cpts, cc);
+@@ -169,6 +181,8 @@ static void cpts_update_cur_time(struct cpts *cpts, int match,
+ {
+ 	unsigned long flags;
+ 
++	reinit_completion(&cpts->ts_push_complete);
++
+ 	/* use spin_lock_irqsave() here as it has to run very fast */
+ 	spin_lock_irqsave(&cpts->lock, flags);
+ 	ptp_read_system_prets(sts);
+@@ -177,8 +191,12 @@ static void cpts_update_cur_time(struct cpts *cpts, int match,
+ 	ptp_read_system_postts(sts);
+ 	spin_unlock_irqrestore(&cpts->lock, flags);
+ 
+-	if (cpts_fifo_read(cpts, match) && match != -1)
++	if (cpts->irq_poll && cpts_fifo_read(cpts, match) && match != -1)
+ 		dev_err(cpts->dev, "cpts: unable to obtain a time stamp\n");
++
++	if (!cpts->irq_poll &&
++	    !wait_for_completion_timeout(&cpts->ts_push_complete, HZ))
++		dev_err(cpts->dev, "cpts: obtain a time stamp timeout\n");
+ }
+ 
+ /* PTP clock operations */
+@@ -708,8 +726,10 @@ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
+ 
+ 	cpts->dev = dev;
+ 	cpts->reg = (struct cpsw_cpts __iomem *)regs;
++	cpts->irq_poll = true;
+ 	spin_lock_init(&cpts->lock);
+ 	mutex_init(&cpts->ptp_clk_mutex);
++	init_completion(&cpts->ts_push_complete);
+ 
+ 	ret = cpts_of_parse(cpts, node);
+ 	if (ret)
+diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
+index f16e14d67f5f..473d0622e861 100644
+--- a/drivers/net/ethernet/ti/cpts.h
++++ b/drivers/net/ethernet/ti/cpts.h
+@@ -118,6 +118,8 @@ struct cpts {
+ 	u64 cur_timestamp;
+ 	u32 mult_new;
+ 	struct mutex ptp_clk_mutex; /* sync PTP interface and worker */
++	bool irq_poll;
++	struct completion	ts_push_complete;
+ };
+ 
+ void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
+@@ -127,6 +129,7 @@ void cpts_unregister(struct cpts *cpts);
+ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
+ 			 struct device_node *node);
+ void cpts_release(struct cpts *cpts);
++void cpts_misc_interrupt(struct cpts *cpts);
+ 
+ static inline bool cpts_can_timestamp(struct cpts *cpts, struct sk_buff *skb)
+ {
+@@ -138,6 +141,11 @@ static inline bool cpts_can_timestamp(struct cpts *cpts, struct sk_buff *skb)
+ 	return true;
+ }
+ 
++static inline void cpts_set_irqpoll(struct cpts *cpts, bool en)
++{
++	cpts->irq_poll = en;
++}
++
+ #else
+ struct cpts;
+ 
+@@ -173,6 +181,14 @@ static inline bool cpts_can_timestamp(struct cpts *cpts, struct sk_buff *skb)
+ {
+ 	return false;
+ }
++
++static inline void cpts_misc_interrupt(struct cpts *cpts)
++{
++}
++
++static inline void cpts_set_irqpoll(struct cpts *cpts, bool en)
++{
++}
+ #endif
+ 
+ 
 -- 
 2.17.1
 
