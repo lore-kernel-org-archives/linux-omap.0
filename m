@@ -2,217 +2,197 @@ Return-Path: <SRS0=gcW2=6G=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB658C55185
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 20:14:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5716AC54FCB
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 21:12:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF8FB20882
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 20:14:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 981482077D
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Apr 2020 21:12:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="m9jP4wlw"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="f8/p86/p"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726512AbgDVUOI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 22 Apr 2020 16:14:08 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:46242 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726109AbgDVUOH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2020 16:14:07 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03MKDuKk067894;
-        Wed, 22 Apr 2020 15:13:56 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1587586436;
-        bh=XETdDW+BFqwczPO7EtMDfniVOGUB1DJz3eSIuu2yWl0=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=m9jP4wlwo1I+Pp9gxRQrC0rw77yVf5uV9saK24adp7/6dehyvhKG7ZQpvTunx/y+g
-         eY1GZpWtzkBBP0QL/HSOvQOsB1uvLSTpAZBjTRl3+r7lSyAJX5JuIrqP8a6jWMcClD
-         zam/uXxqY3e0myUUSY3L1dM1V88dS7cnxV/gkYq4=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03MKDuIR085988;
-        Wed, 22 Apr 2020 15:13:56 -0500
-Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1847.3; Wed, 22
- Apr 2020 15:13:56 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 22 Apr 2020 15:13:56 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03MKDtx6062093;
-        Wed, 22 Apr 2020 15:13:56 -0500
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-To:     Richard Cochran <richardcochran@gmail.com>,
-        Lokesh Vutla <lokeshvutla@ti.com>,
-        Tony Lindgren <tony@atomide.com>,
-        "David S. Miller" <davem@davemloft.net>
-CC:     <netdev@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
-        <linux-kernel@vger.kernel.org>,
-        Murali Karicheri <m-karicheri2@ti.com>,
-        <linux-omap@vger.kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v4 08/10] net: ethernet: ti: cpts: add irq support
-Date:   Wed, 22 Apr 2020 23:12:52 +0300
-Message-ID: <20200422201254.15232-9-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200422201254.15232-1-grygorii.strashko@ti.com>
-References: <20200422201254.15232-1-grygorii.strashko@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+        id S1726431AbgDVVM0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 22 Apr 2020 17:12:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51898 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726421AbgDVVMZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2020 17:12:25 -0400
+Received: from mo6-p01-ob.smtp.rzone.de (mo6-p01-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5301::9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E6B7C03C1A9;
+        Wed, 22 Apr 2020 14:12:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1587589941;
+        s=strato-dkim-0002; d=goldelico.com;
+        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
+        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
+        bh=bQAgadQgOVbS4DuKshH2v+YQnNnb7kL7V3XzA7l6NS4=;
+        b=f8/p86/psnan71ptAKB8sm6uDtakdvSg5Msf2w8C3R5RBmfvw7iGAlAjdhUyC79Qyh
+        Qx93IvYlkAzddb24UjuiINUrQGECHHOYzM2fsFVq+ws5VDBVarEJOvigz/WdBF8NkNCK
+        63VKyvpQ9FNIRCJR8dNsOL9kCbtrH/69nAPzGDXwdk4ZdZjAQbLAZPRScCrCOmiEkbAy
+        9Y2gSeS5sWpkQiY6DtNNWkb8OyTfH1AyDp5chFZh2p9sBaApes/L9G7ixJwoq1asU6AK
+        BJGKcwgPoSpIIHvJPaZFtMkUhX9KOIHAtG80Cw5nUhYBMus8feGDwvKf7xj4oYLMaOu5
+        LixQ==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj4Qpw9iZeHmMiw43tskc="
+X-RZG-CLASS-ID: mo00
+Received: from mbp-13-nikolaus.fritz.box
+        by smtp.strato.de (RZmta 46.6.2 DYNA|AUTH)
+        with ESMTPSA id R0acebw3MLCI3zq
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+        (Client did not present a certificate);
+        Wed, 22 Apr 2020 23:12:18 +0200 (CEST)
+Subject: Re: [PATCH v6 00/12] ARM/MIPS: DTS: add child nodes describing the PVRSGX GPU present in some OMAP SoC and JZ4780 (and many more)
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+From:   "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <20200422193328.GD37466@atomide.com>
+Date:   Wed, 22 Apr 2020 23:12:26 +0200
+Cc:     Paul Cercueil <paul@crapouillou.net>,
+        Maxime Ripard <maxime@cerno.tech>,
+        Jonathan Bakker <xc-racer2@live.ca>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
+        Ralf Baechle <ralf@linux-mips.org>,
+        Paul Burton <paulburton@kernel.org>,
+        James Hogan <jhogan@kernel.org>, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>,
+        OpenPVRSGX Linux Driver Group <openpvrsgx-devgroup@letux.org>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <266D5048-8339-433F-B66D-CAAB1C2CB1A2@goldelico.com>
+References: <20200421112129.zjmkmzo3aftksgka@gilmour.lan> <20200421141543.GU37466@atomide.com> <D9D4D057-A73D-485F-898D-5C05E89C16B7@goldelico.com> <20200422065859.quy6ane5v7vsy5tf@gilmour.lan> <1AA57A0C-48E6-49BB-BB9A-2AAFFB371BCD@goldelico.com> <20200422151328.2oyqz7gqkbunmd6o@gilmour.lan> <07923B6C-4CCD-4B81-A98F-E19C43412A89@goldelico.com> <MC879Q.XY9S0U9R35681@crapouillou.net> <D90A610B-1F26-4AD4-843A-60EB4E410377@goldelico.com> <a1fd55a3-23dd-aa0c-35dd-6956ff4baa1c@gmail.com> <20200422193328.GD37466@atomide.com>
+To:     Tony Lindgren <tony@atomide.com>,
+        Philipp Rossak <embed3d@gmail.com>
+X-Mailer: Apple Mail (2.3124)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add CPTS IRQ support, but do not enable it. By default, the CPTS driver
-will continue working using polling mode which is required for CPTS to
-continue working on platforms other than CPSW, like Keystone 2.
+Hi Tony and Philip,
 
-The CPTS IRQ support is required to enable support for HW_TS_PUSH events.
-The CPSW CPTS IRQ and HW_TS_PUSH events support will be enabled in follow
-up patches.
+> Am 22.04.2020 um 21:33 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> * Philipp Rossak <embed3d@gmail.com> [200422 19:05]:
+>> A few years back, I did a big research on the PowerVR GPUs. Back then =
+I
+>> found an interesting TI datasheet. I forgot about this till I have =
+seen the
+>> right buzz words. Sorry that I remembered it that late.
+>>=20
+>> Back then I came to the conclusion that all PowerVR GPU's have in =
+general 3
+>> Clocks.
+>>=20
+>> A system clock, a memory clock and a core clock. [1].
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Acked-by: Richard Cochran <richardcochran@gmail.com>
----
- drivers/net/ethernet/ti/cpts.c | 22 +++++++++++++++++++++-
- drivers/net/ethernet/ti/cpts.h | 16 ++++++++++++++++
- 2 files changed, 37 insertions(+), 1 deletion(-)
+Great!  This is an excerpt of the am335x TRM.
+I may have seen this information in the past but also forgot about it.
 
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 8db9efdf1708..19fbea7275f8 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -99,6 +99,7 @@ static void cpts_purge_txq(struct cpts *cpts)
-  */
- static int cpts_fifo_read(struct cpts *cpts, int match)
- {
-+	bool need_schedule = false;
- 	struct cpts_event *event;
- 	unsigned long flags;
- 	int i, type = -1;
-@@ -131,6 +132,8 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
- 				cpts->cc.mult = cpts->mult_new;
- 				cpts->mult_new = 0;
- 			}
-+			if (!cpts->irq_poll)
-+				complete(&cpts->ts_push_complete);
- 			break;
- 		case CPTS_EV_TX:
- 		case CPTS_EV_RX:
-@@ -139,6 +142,7 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
- 
- 			list_del_init(&event->list);
- 			list_add_tail(&event->list, &cpts->events);
-+			need_schedule = true;
- 			break;
- 		case CPTS_EV_ROLL:
- 		case CPTS_EV_HALF:
-@@ -154,9 +158,17 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
- 
- 	spin_unlock_irqrestore(&cpts->lock, flags);
- 
-+	if (!cpts->irq_poll && need_schedule)
-+		ptp_schedule_worker(cpts->clock, 0);
-+
- 	return type == match ? 0 : -1;
- }
- 
-+void cpts_misc_interrupt(struct cpts *cpts)
-+{
-+	cpts_fifo_read(cpts, -1);
-+}
-+
- static u64 cpts_systim_read(const struct cyclecounter *cc)
- {
- 	struct cpts *cpts = container_of(cc, struct cpts, cc);
-@@ -169,6 +181,8 @@ static void cpts_update_cur_time(struct cpts *cpts, int match,
- {
- 	unsigned long flags;
- 
-+	reinit_completion(&cpts->ts_push_complete);
-+
- 	/* use spin_lock_irqsave() here as it has to run very fast */
- 	spin_lock_irqsave(&cpts->lock, flags);
- 	ptp_read_system_prets(sts);
-@@ -177,8 +191,12 @@ static void cpts_update_cur_time(struct cpts *cpts, int match,
- 	ptp_read_system_postts(sts);
- 	spin_unlock_irqrestore(&cpts->lock, flags);
- 
--	if (cpts_fifo_read(cpts, match) && match != -1)
-+	if (cpts->irq_poll && cpts_fifo_read(cpts, match) && match != -1)
- 		dev_err(cpts->dev, "cpts: unable to obtain a time stamp\n");
-+
-+	if (!cpts->irq_poll &&
-+	    !wait_for_completion_timeout(&cpts->ts_push_complete, HZ))
-+		dev_err(cpts->dev, "cpts: obtain a time stamp timeout\n");
- }
- 
- /* PTP clock operations */
-@@ -708,8 +726,10 @@ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
- 
- 	cpts->dev = dev;
- 	cpts->reg = (struct cpsw_cpts __iomem *)regs;
-+	cpts->irq_poll = true;
- 	spin_lock_init(&cpts->lock);
- 	mutex_init(&cpts->ptp_clk_mutex);
-+	init_completion(&cpts->ts_push_complete);
- 
- 	ret = cpts_of_parse(cpts, node);
- 	if (ret)
-diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
-index f16e14d67f5f..473d0622e861 100644
---- a/drivers/net/ethernet/ti/cpts.h
-+++ b/drivers/net/ethernet/ti/cpts.h
-@@ -118,6 +118,8 @@ struct cpts {
- 	u64 cur_timestamp;
- 	u32 mult_new;
- 	struct mutex ptp_clk_mutex; /* sync PTP interface and worker */
-+	bool irq_poll;
-+	struct completion	ts_push_complete;
- };
- 
- void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
-@@ -127,6 +129,7 @@ void cpts_unregister(struct cpts *cpts);
- struct cpts *cpts_create(struct device *dev, void __iomem *regs,
- 			 struct device_node *node);
- void cpts_release(struct cpts *cpts);
-+void cpts_misc_interrupt(struct cpts *cpts);
- 
- static inline bool cpts_can_timestamp(struct cpts *cpts, struct sk_buff *skb)
- {
-@@ -138,6 +141,11 @@ static inline bool cpts_can_timestamp(struct cpts *cpts, struct sk_buff *skb)
- 	return true;
- }
- 
-+static inline void cpts_set_irqpoll(struct cpts *cpts, bool en)
-+{
-+	cpts->irq_poll = en;
-+}
-+
- #else
- struct cpts;
- 
-@@ -173,6 +181,14 @@ static inline bool cpts_can_timestamp(struct cpts *cpts, struct sk_buff *skb)
- {
- 	return false;
- }
-+
-+static inline void cpts_misc_interrupt(struct cpts *cpts)
-+{
-+}
-+
-+static inline void cpts_set_irqpoll(struct cpts *cpts, bool en)
-+{
-+}
- #endif
- 
- 
--- 
-2.17.1
+Indeed, it seems to change a lot of our thinking.
+
+>=20
+> Hmm I'm not sure if those names are sgx or SoC specific.
+
+It depends. Here is some quick research:
+
+the am335x lists:
+  THALIAIRQ, SYSCLK & MEMCLK (connected in parallel), CORECLK
+
+The omap3530 TRM has different information. It names them
+  SGX_FCLK, SGX_ICLK, SGX_RST and SGX_IRQ
+  but this is likely a TI nomenclature defined by the PRCM wrapper.
+
+DM3730 and OMAP4 and TRM tells the same.
+
+The OMAP5 TRM is interestingly different. It has:
+  GPU_ICLK, GPU_FCLK1, GPU_FCLK2, GPU_RST and GPU_IRQ.
+  Really surprising is that the PRCM outputs are called
+    GPU_L3_GICLK, GPU_CORE_GCLK and GPU_HYS_GCLK.
+
+  I.e. the same "HYD" as we have seen in the A31. It seems to
+  be a feature of the sgx544 to have two functional clocks and
+  one being called "HYD".
+
+Now I know why it didn't play a role so far. Because the omap5
+wrapper hides this detail from the sgx implementation.
+
+Next I checked the AM572x TRM:
+ it has also a hyd_clk, a core_clk, sys_clk, some reset and a gpu_irq
+
+The DRA7xx TRM does the same as AM57xx.
+
+So the "hyd" clock seems to be a second functional clock
+with unknown function in some SGX variants. It seems to be
+something different from the "memclock" of the am335x but may
+be the same.
+
+>=20
+> Anyways, the sgx clocks for omap variants are already handled
+> by the ti-sysc module as "fck" and "ick" so nothing to do there.
+
+Which brings back the question if this complexity and not well
+defined clocks of the SGX core should really be part of the bindings
+any why we have to care about...
+
+What is the benefit of modeling at this level of pretend accuracy?
+
+>=20
+>> The hyd_clk at sunxi devices seems to be the system clock.
+>>=20
+>> With those additional information it should be very easy to get a =
+proper
+>> binding.
+>=20
+> It would be best to find the clock(s) name used in the sgx docs
+> to avoid using SoC specific naming :)
+
+If there were specific SGX docs describing the VHDL signal names :)
+
+>=20
+> But yeah "sysclk" "memclk" and "coreclk" seem just fine for
+> me for the optional clocks if that works for other SoCs.
+
+Well, if the other SoC would follow the PRCM/sysc approach
+the omap uses, all these clocks would be part of the wrapper
+and can be named and numbered as it best fits to the SoC
+data sheet and clock control registers.
+
+>=20
+> Regards,
+>=20
+> Tony
+>=20
+>> [1]: =
+https://github.com/embed-3d/PVRSGX_hwdoc/blob/master/sources/pdfs/Spruh73c=
+_chapter_SGX_Graphics_Accelerator.pdf
+
+So a compromise could be to
+
+* define
+
+  clock-names:
+    items:
+      - const: core
+      - const: mem
+      - const: sys
+      - const: hyd
+
+* make clocks optional (for omap or others wanting to use a wrapper =
+driver)
+* DTs can request the same clock providers for core and hyd or mem if =
+that fits best
+* the driver must enable all 4 clocks if they exists
+
+BR and thanks,
+Nikolaus
 
