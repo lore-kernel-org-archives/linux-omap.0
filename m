@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EA8EC55199
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Apr 2020 20:35:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63BD8C5519C
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Apr 2020 20:35:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A8DA2098B
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Apr 2020 20:35:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 372B62098B
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Apr 2020 20:35:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="DDOZBUUm"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="iEbBFP37"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726349AbgDXUe7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Apr 2020 16:34:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44472 "EHLO
+        id S1726336AbgDXUe6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Apr 2020 16:34:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726027AbgDXUe6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2020 16:34:58 -0400
-Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::9])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26E7CC09B04B;
-        Fri, 24 Apr 2020 13:34:57 -0700 (PDT)
+        with ESMTP id S1726303AbgDXUe5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2020 16:34:57 -0400
+Received: from mo6-p04-ob.smtp.rzone.de (mo6-p04-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5304::4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70413C09B049;
+        Fri, 24 Apr 2020 13:34:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1587760495;
         s=strato-dkim-0002; d=goldelico.com;
         h=References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
         X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=ubyj6QBRQud1cbAX2EjR3JplhPcJYItQUiuhSubiYX8=;
-        b=DDOZBUUm0U2YoxPoUDinCCeGILyPde3k0dRI/VR/Lj0cbPKam8qhvJXZR/9ht2k1QE
-        aev0AILzxv39/8CgFG2b15CY4EnIz4hg+7zePLUtubYkXc0CSZtbgJ7u9mxOM+lFSeIZ
-        3x72YjERHqiem0a2nzJMuk5VBpDK6rg1aRI1+YAqdMmI03Q0szwbCAgGc3Q8YyMn9/M7
-        G6E4b+r5dETqlFblukT1T3D5IhYnRhvu88zeMpjHzD4FHAqFH1b9vDMBKQLT8mK8O+A6
-        m1INIdkeikkLebcdU28aY1Q9djDxvLF1Uaxx+bHo72mYpLfxAMnp4pXtQxQWqAf24FUA
-        VM3Q==
+        bh=NojKpJsr295KKzeE6Kfg0J7/g3gnxL5pXSLXeEqbQIE=;
+        b=iEbBFP37xXYNsIXksXI9lDadPgt/zvqh6xfy9tWdqzuEVGdswhG7PPYvBSo9QvOBKk
+        E4dxNTthGHtyZlSJHspjnHW/i1bIFb9ee3j5oi99ydZNK5LEwGrVedznzWsst+nVlprG
+        fiYCSKfVxyx2MPVIKcmv6XsOP8as6qBDDvmDU2xh4Bhrb2SLs484IlGRTSIdYxt07eHf
+        eL4BEtt+fF5yGFemQrwPmUuKnICmwPP1TT52wYRU801DaNvEOew1PZ/hvoROXs6zNWIY
+        PdZ14WsW2nC43a8hdstHVErg6yu3VcJTBjZrdFHZXuz9I/M6HjD8Qf7nHY1iCJ5tbdoo
+        b43w==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1mfYzBGHXH6GK44R2FE"
 X-RZG-CLASS-ID: mo00
 Received: from iMac.fritz.box
         by smtp.strato.de (RZmta 46.6.2 DYNA|AUTH)
-        with ESMTPSA id R0acebw3OKYREVK
+        with ESMTPSA id R0acebw3OKYOEVH
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
         (Client did not present a certificate);
-        Fri, 24 Apr 2020 22:34:27 +0200 (CEST)
+        Fri, 24 Apr 2020 22:34:24 +0200 (CEST)
 From:   "H. Nikolaus Schaller" <hns@goldelico.com>
 To:     David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>,
         Rob Herring <robh+dt@kernel.org>,
@@ -65,11 +65,10 @@ Cc:     Jonathan Bakker <xc-racer2@live.ca>,
         kernel@pyra-handheld.com, linux-mips@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Paul Boddie <paul@boddie.org.uk>
-Subject: [PATCH v7 12/12] MIPS: DTS: jz4780: add sgx gpu node
-Date:   Fri, 24 Apr 2020 22:34:15 +0200
-Message-Id: <00a8fc80f7d8191cccda7a23387d1df762587358.1587760454.git.hns@goldelico.com>
+        "H . Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v7 09/12] ARM: dts: sun6i: a31: add sgx gpu child node
+Date:   Fri, 24 Apr 2020 22:34:12 +0200
+Message-Id: <47740d708e00632735a8c1957109ca349029c716.1587760454.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1587760454.git.hns@goldelico.com>
 References: <cover.1587760454.git.hns@goldelico.com>
@@ -80,40 +79,44 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-and add interrupt and clocks.
+From: Philipp Rossak <embed3d@gmail.com>
 
-Tested to build for CI20 board and load a driver.
-Setup can not yet be fully tested since there is no working
-HDMI driver for jz4780.
+We are adding the devicetree binding for the PVR-SGX-544-115 gpu.
 
-Suggested-by: Paul Boddie <paul@boddie.org.uk>
+This driver is currently under development in the openpvrsgx-devgroup.
+Right now the full binding is not figured out, so we provide here a
+placeholder. It will be completed as soon as there is a demo available.
+
+The currently used binding that is used during development is more
+complete and was already verifyed by loading the kernelmodule successful.
+
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/mips/boot/dts/ingenic/jz4780.dtsi | 11 +++++++++++
+ arch/arm/boot/dts/sun6i-a31.dtsi | 11 +++++++++++
  1 file changed, 11 insertions(+)
 
-diff --git a/arch/mips/boot/dts/ingenic/jz4780.dtsi b/arch/mips/boot/dts/ingenic/jz4780.dtsi
-index bb89653d16a3..92b91aec7993 100644
---- a/arch/mips/boot/dts/ingenic/jz4780.dtsi
-+++ b/arch/mips/boot/dts/ingenic/jz4780.dtsi
-@@ -357,6 +357,17 @@ i2c4: i2c@10054000 {
- 		status = "disabled";
+diff --git a/arch/arm/boot/dts/sun6i-a31.dtsi b/arch/arm/boot/dts/sun6i-a31.dtsi
+index f3425a66fc0a..933a825bf460 100644
+--- a/arch/arm/boot/dts/sun6i-a31.dtsi
++++ b/arch/arm/boot/dts/sun6i-a31.dtsi
+@@ -1417,5 +1417,16 @@ p2wi: i2c@1f03400 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 		};
++
++		gpu: gpu@1c400000 {
++			compatible = "allwinner,sun8i-a31-sgx544-115",
++				     "img,sgx544-115", "img,sgx544";
++			reg = <0x01c40000 0x10000>;
++			/*
++			 * This node is currently a placeholder for the gpu.
++			 * This will be completed when a full demonstration
++			 * of the openpvrsgx driver is available for this board.
++			 */
++		};
  	};
- 
-+	gpu: gpu@13040000 {
-+		compatible = "ingenic,jz4780-sgx540-130", "img,sgx540-130", "img,sgx540";
-+		reg = <0x13040000 0x4000>;
-+
-+		clocks = <&cgu JZ4780_CLK_GPU>;
-+		clock-names = "core";
-+
-+		interrupt-parent = <&intc>;
-+		interrupts = <63>;
-+	};
-+
- 	nemc: nemc@13410000 {
- 		compatible = "ingenic,jz4780-nemc";
- 		reg = <0x13410000 0x10000>;
+ };
 -- 
 2.25.1
 
