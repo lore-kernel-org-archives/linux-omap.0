@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA20C54FD0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A466AC55194
 	for <linux-omap@archiver.kernel.org>; Fri, 24 Apr 2020 15:13:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2326320706
+	by mail.kernel.org (Postfix) with ESMTP id 85B9820706
 	for <linux-omap@archiver.kernel.org>; Fri, 24 Apr 2020 15:13:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="gGVeTpdW"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="M6ajpNPQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728135AbgDXPNS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1727021AbgDXPNS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Fri, 24 Apr 2020 11:13:18 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:54160 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727021AbgDXPNS (ORCPT
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:50450 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727966AbgDXPNS (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2020 11:13:18 -0400
 Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03OFDA9o102845;
-        Fri, 24 Apr 2020 10:13:10 -0500
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03OFDDLS051947;
+        Fri, 24 Apr 2020 10:13:13 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1587741190;
-        bh=KAv/NOSEEid2PYdnpesj7PdvOx6Am2Ciq3f7sfekSKs=;
+        s=ti-com-17Q1; t=1587741193;
+        bh=tvrGp1br/B2N2WfSE01TfYRxsjwdfzzCSMi9JUtw558=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=gGVeTpdWJnBxvrfwM/1smUY0ronzFNyp5ZwwERBXTYh/oMOrEMRzQ3xM9Rp6zDFT3
-         1Ibayow1DUxV9wys/NthvVlnDaCfe1V6SXf2IkPcNY2F3mOGsdHGNaufeT8/Y0d/Op
-         piS3AztBmhzK4xNy/GMcHScY5zeaUrtzdT+32SUY=
-Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03OFD5iH100116
+        b=M6ajpNPQ3trSMedJ0NE1zyrc5sR07ZflVCCw+H9yIGLTAuIdpPdNYaByFFUuQOS5l
+         M83WXM9A4cHpB8ou3cbVfM0m7ZyzUJ+8wj7cCVTtJRS18LSNmZaaqym/yxFSyA/Kdp
+         lyAxo0RlGoNVE1UxJtJrizm5AzSO351l1tmmmtcg=
+Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03OFDDJl100221
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 24 Apr 2020 10:13:05 -0500
-Received: from DFLE113.ent.ti.com (10.64.6.34) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 24 Apr 2020 10:13:13 -0500
+Received: from DFLE106.ent.ti.com (10.64.6.27) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 24
- Apr 2020 10:13:05 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+ Apr 2020 10:13:12 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 24 Apr 2020 10:13:05 -0500
+ Frontend Transport; Fri, 24 Apr 2020 10:13:12 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03OFCu7D122378;
-        Fri, 24 Apr 2020 10:13:04 -0500
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03OFCu7I122378;
+        Fri, 24 Apr 2020 10:13:11 -0500
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <linux-omap@vger.kernel.org>, <tony@atomide.com>
 CC:     <s-anna@ti.com>, <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH 05/17] ARM: dts: DRA72x: Add aliases for rproc nodes
-Date:   Fri, 24 Apr 2020 18:12:32 +0300
-Message-ID: <20200424151244.3225-6-t-kristo@ti.com>
+Subject: [PATCH 10/17] ARM: dts: dra72-evm: Add CMA pools and enable IPUs & DSP1 rprocs
+Date:   Fri, 24 Apr 2020 18:12:37 +0300
+Message-ID: <20200424151244.3225-11-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200424151244.3225-1-t-kristo@ti.com>
 References: <20200424151244.3225-1-t-kristo@ti.com>
@@ -65,38 +65,86 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-Add aliases for all the 3 remote processor nodes common to
-all DRA72x/DRA71x/AM571x/AM570x boards. The aliases uses the
-stem "rproc", and are defined in the order of the most common
-processors on the DRA72x family. The ids are same as DRA74x
-except for the missing DSP2.
+The CMA reserved memory nodes have been added for both the IPUs and the
+DSP1 remoteproc devices on DRA72 EVM board. These nodes are assigned to
+the respective rproc device nodes, and both the IPUs and the DSP1 remote
+processors are enabled for this board.
 
-The aliases can be overridden, if needed, in the respective
-derivative board dts files.
+The current CMA pools and sizes are defined statically for each device.
+The addresses chosen are the same as the respective processors on the
+DRA7 EVM board to maintain firmware compatibility between the two boards.
+The CMA pools and sizes are defined using 64-bit values to support LPAE.
+The starting addresses are fixed to meet current dependencies on the
+remote processor firmwares, and this will go away when the remote-side
+code has been improved to gather this information runtime during its
+initialization.
+
+An associated pair of the rproc node and its CMA node can be disabled
+later on if there is no use-case defined to use that remote processor.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/dra72x.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/dra72-evm.dts | 42 +++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
-index da334489b18f..ae23ec14e8fa 100644
---- a/arch/arm/boot/dts/dra72x.dtsi
-+++ b/arch/arm/boot/dts/dra72x.dtsi
-@@ -10,6 +10,12 @@
- / {
- 	compatible = "ti,dra722", "ti,dra72", "ti,dra7";
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 9adb77585ef1..951152fe206a 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -12,6 +12,33 @@
+ 		reg = <0x0 0x80000000 0x0 0x40000000>; /* 1024 MB */
+ 	};
  
-+	aliases {
-+		rproc0 = &ipu1;
-+		rproc1 = &ipu2;
-+		rproc2 = &dsp1;
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		ipu2_memory_region: ipu2-memory@95800000 {
++			compatible = "shared-dma-pool";
++			reg = <0x0 0x95800000 0x0 0x3800000>;
++			reusable;
++			status = "okay";
++		};
++
++		dsp1_memory_region: dsp1-memory@99000000 {
++			compatible = "shared-dma-pool";
++			reg = <0x0 0x99000000 0x0 0x4000000>;
++			reusable;
++			status = "okay";
++		};
++
++		ipu1_memory_region: ipu1-memory@9d000000 {
++			compatible = "shared-dma-pool";
++			reg = <0x0 0x9d000000 0x0 0x2000000>;
++			reusable;
++			status = "okay";
++		};
 +	};
 +
- 	pmu {
- 		compatible = "arm,cortex-a15-pmu";
- 		interrupt-parent = <&wakeupgen>;
+ 	evm_1v8_sw: fixedregulator-evm_1v8 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "evm_1v8";
+@@ -78,3 +105,18 @@
+ 	pinctrl-3 = <&mmc2_pins_hs200 &mmc2_iodelay_hs200_rev10_conf>;
+ 	vmmc-supply = <&evm_1v8_sw>;
+ };
++
++&ipu2 {
++	status = "okay";
++	memory-region = <&ipu2_memory_region>;
++};
++
++&ipu1 {
++	status = "okay";
++	memory-region = <&ipu1_memory_region>;
++};
++
++&dsp1 {
++	status = "okay";
++	memory-region = <&dsp1_memory_region>;
++};
 -- 
 2.17.1
 
