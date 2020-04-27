@@ -2,111 +2,152 @@ Return-Path: <SRS0=TG3F=6L=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5DD4C54FCB
-	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 15:39:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B0DDC5519D
+	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 15:46:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6EFEC206B6
-	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 15:39:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b="rGNlRJBO"
+	by mail.kernel.org (Postfix) with ESMTP id 59AE62064C
+	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 15:46:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1588002385;
+	bh=4WKuEEu6AV9S5LHgPyiAwgQEIkDIj7vq5rk7Tvuxgio=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=H0jfZhCbP16+WhmOm3ZlXYJGNBv8YGVpKuRZvSQhoOy5/uyyrQcNmdXNwG9P4jor4
+	 K7Ae2uFIJvzfQHNvSxXOFDabBEYSKY5IyCycmwE07z0lXJIF8waxM28JFNJsaZnYT3
+	 E0MgrEq2SPODXSbp0PkMSYlm00FBZd4W6ZmbJSKQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727010AbgD0Pjt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 27 Apr 2020 11:39:49 -0400
-Received: from vern.gendns.com ([98.142.107.122]:52338 "EHLO vern.gendns.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726539AbgD0Pjt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 27 Apr 2020 11:39:49 -0400
-X-Greylist: delayed 1376 seconds by postgrey-1.27 at vger.kernel.org; Mon, 27 Apr 2020 11:39:48 EDT
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=lechnology.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=QHcTOnBrhJ/2TSsv8KnCgPSUCn9klev6fyOnjkLTQHA=; b=rGNlRJBO+DFlpwE/cFAxf47YpC
-        Crudz6L19IvS2rmXE+NPnZV34i3SJpslbDIeXTiScO+gJERn4bj222hhlo2ZVeX9Xqp/yb+tC0RsD
-        KtpRaC036DJlVOpt/oYYGoEF66ZRG8cWD+TmjJOfVDQlhLgDmYgY2vRSJlK685kXl8LKJde/Ha8ov
-        LmoAKhxoesIDGNVN/awVBG+NVetaRoML1GwZMKq7Nc5K6HPu4JKaRSFRNf7TPzNr3KWIKMY9Ogk19
-        UB7AwK3EzDO6iNGqncyGcgqcicsbKXS+Fe/YzYqkDZQXyDPiz2dMDm2FINNvf8NNb9N3nMH71VZP/
-        MWpjIcYQ==;
-Received: from 108-198-5-147.lightspeed.okcbok.sbcglobal.net ([108.198.5.147]:52234 helo=[192.168.0.134])
-        by vern.gendns.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.93)
-        (envelope-from <david@lechnology.com>)
-        id 1jT5V4-0007tU-5Z; Mon, 27 Apr 2020 11:16:50 -0400
-Subject: Re: [PATCH net-next] drivers: net: davinci_mdio: fix potential NULL
- dereference in davinci_mdio_probe()
-To:     Wei Yongjun <weiyongjun1@huawei.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Andrew Lunn <andrew@lunn.ch>
-Cc:     linux-omap@vger.kernel.org, netdev@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-References: <20200427094032.181184-1-weiyongjun1@huawei.com>
-From:   David Lechner <david@lechnology.com>
-Message-ID: <d2c55de2-01f0-b123-dee6-5fc74b8b67da@lechnology.com>
-Date:   Mon, 27 Apr 2020 10:16:47 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
+        id S1727807AbgD0PqY convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 27 Apr 2020 11:46:24 -0400
+Received: from mail-ej1-f68.google.com ([209.85.218.68]:42580 "EHLO
+        mail-ej1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726539AbgD0PqY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2020 11:46:24 -0400
+Received: by mail-ej1-f68.google.com with SMTP id pg17so14477745ejb.9;
+        Mon, 27 Apr 2020 08:46:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=vN8ZtTEMOm40Zgoqr2j2go1H/JlhYwioxL2VoPsyXMo=;
+        b=cTxh2TAcHuZX30NEGByeXRxLV/yCkaoG+WLOckufPxWBnuYBAhDbkhQ5M8GynJgIwu
+         dgIWjI21OAwfJjP4dN9FRBTZgHoZORDAXNUBEhxskYf5SLItKg/f/uDyrB3PtNv/Uavu
+         Yj0foPRbTyYUMxvBL+UiLKZkXGrINEFS46KZUCQE3rbfcX8vsLrkQb3vlM+1agiuFJ8C
+         dLx3f3/fY4GW2vZlR4USC9jaY/eNjnA/cfrB+4047NZpqmHViB6338VM6e5E2o8hEMNI
+         8pfW2pN13ATQCjqxcGOpeOb6dYJpaWeBR3xMYdC3r4wqaUBH+/d3n7GgSSXgoRcSHWCn
+         EeBA==
+X-Gm-Message-State: AGi0PuZ0/uWdnyqjT+DE+fTlNibCpkq1PLiGM0pX4hTjt2jYIXseadgb
+        CeAiosruEjlY9RrY8US9wYQ=
+X-Google-Smtp-Source: APiQypJaGHIqdott9ULGc1vIvIC2hB4wMVjvSOJwybdeeq2XFdtUhgVC8YxEO2xmFZWEXRWg3+ZkRg==
+X-Received: by 2002:a17:906:3713:: with SMTP id d19mr19332049ejc.111.1588002380871;
+        Mon, 27 Apr 2020 08:46:20 -0700 (PDT)
+Received: from pi3 ([194.230.155.237])
+        by smtp.googlemail.com with ESMTPSA id v14sm1947180edx.67.2020.04.27.08.46.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Apr 2020 08:46:20 -0700 (PDT)
+Date:   Mon, 27 Apr 2020 17:46:17 +0200
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     Jonathan Bakker <xc-racer2@live.ca>
+Cc:     Paul Cercueil <paul@crapouillou.net>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Ralf Baechle <ralf@linux-mips.org>,
+        Paul Burton <paulburton@kernel.org>,
+        James Hogan <jhogan@kernel.org>, Kukjin Kim <kgene@kernel.org>,
+        Maxime Ripard <mripard@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Philipp Rossak <embed3d@gmail.com>,
+        dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        openpvrsgx-devgroup@letux.org, letux-kernel@openphoenux.org,
+        kernel@pyra-handheld.com, linux-mips@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH v7 08/12] arm: dts: s5pv210: Add node for SGX 540
+Message-ID: <20200427154617.GA1798@pi3>
+References: <cover.1587760454.git.hns@goldelico.com>
+ <3fd18c747426e15fd1f3500b9c4adce2db9ddd0c.1587760454.git.hns@goldelico.com>
+ <NYBE9Q.YH08US7A7DC3@crapouillou.net>
+ <BN6PR04MB0660A180D2069848E5C03D7EA3AE0@BN6PR04MB0660.namprd04.prod.outlook.com>
 MIME-Version: 1.0
-In-Reply-To: <20200427094032.181184-1-weiyongjun1@huawei.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - vern.gendns.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - lechnology.com
-X-Get-Message-Sender-Via: vern.gendns.com: authenticated_id: davidmain+lechnology.com/only user confirmed/virtual account not confirmed
-X-Authenticated-Sender: vern.gendns.com: davidmain@lechnology.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <BN6PR04MB0660A180D2069848E5C03D7EA3AE0@BN6PR04MB0660.namprd04.prod.outlook.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 4/27/20 4:40 AM, Wei Yongjun wrote:
-> platform_get_resource() may fail and return NULL, so we should
-> better check it's return value to avoid a NULL pointer dereference
-> a bit later in the code.
+On Sun, Apr 26, 2020 at 07:57:12AM -0700, Jonathan Bakker wrote:
+> Hi Paul,
 > 
-> This is detected by Coccinelle semantic patch.
-> 
-> @@
-> expression pdev, res, n, t, e, e1, e2;
-> @@
-> 
-> res = \(platform_get_resource\|platform_get_resource_byname\)(pdev, t, n);
-> + if (!res)
-> +   return -EINVAL;
-> ... when != res == NULL
-> e = devm_ioremap(e1, res->start, e2);
-> 
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-> ---
->   drivers/net/ethernet/ti/davinci_mdio.c | 2 ++
->   1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-> index 38b7f6d35759..702fdc393da0 100644
-> --- a/drivers/net/ethernet/ti/davinci_mdio.c
-> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-> @@ -397,6 +397,8 @@ static int davinci_mdio_probe(struct platform_device *pdev)
->   	data->dev = dev;
->   
->   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!res)
-> +		return -EINVAL;
->   	data->regs = devm_ioremap(dev, res->start, resource_size(res));
->   	if (!data->regs)
->   		return -ENOMEM;
-> 
+> On 2020-04-26 5:56 a.m., Paul Cercueil wrote:
+> > 
+> > 
+> > Le ven. 24 avril 2020 à 22:34, H. Nikolaus Schaller <hns@goldelico.com> a écrit :
+> >> From: Jonathan Bakker <xc-racer2@live.ca>
+> >>
+> >> All s5pv210 devices have a PowerVR SGX 540 (revision 120) attached.
+> >>
+> >> There is no external regulator for it so it can be enabled by default.
+> >>
+> >> Signed-off-by: Jonathan Bakker <xc-racer2@live.ca>
+> >> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> >> ---
+> >>  arch/arm/boot/dts/s5pv210.dtsi | 13 +++++++++++++
+> >>  1 file changed, 13 insertions(+)
+> >>
+> >> diff --git a/arch/arm/boot/dts/s5pv210.dtsi b/arch/arm/boot/dts/s5pv210.dtsi
+> >> index 2ad642f51fd9..abbdda205c1b 100644
+> >> --- a/arch/arm/boot/dts/s5pv210.dtsi
+> >> +++ b/arch/arm/boot/dts/s5pv210.dtsi
+> >> @@ -512,6 +512,19 @@ vic3: interrupt-controller@f2300000 {
+> >>              #interrupt-cells = <1>;
+> >>          };
+> >>
+> >> +        gpu: gpu@f3000000 {
+> >> +            compatible = "samsung,s5pv210-sgx540-120";
 
-Could we use devm_platform_ioremap_resource() instead?
+This should not pass the bindings check because you missed last
+compatibles.
+
+> >> +            reg = <0xf3000000 0x10000>;
+> >> +            interrupt-parent = <&vic2>;
+> >> +            interrupts = <10>;
+> >> +            clock-names = "core";
+> >> +            clocks = <&clocks CLK_G3D>;
+> >> +
+> >> +            assigned-clocks = <&clocks MOUT_G3D>, <&clocks DOUT_G3D>;
+> >> +            assigned-clock-rates = <0>, <66700000>;
+> >> +            assigned-clock-parents = <&clocks MOUT_MPLL>;
+> > 
+> > What are these clocks for, and why are they reparented / reclocked?
+> > 
+> > Shouldn't they be passed to 'clocks' as well?
+> > 
+> > -Paul
+> > 
+> 
+> The G3D clock system can have multiple parents, and for stable operation
+> it's recommended to use the MPLL clock as the parent (which in turn
+> is actually a mux as well).  MOUT_G3D is simply the mux for CLK_G3D
+> (SGX core clock), DOUT_G3D is the divider.  DOUT_G3D could equally be CLK_G3D
+> (and probably should be, for readability) as CLK_G3D is simply the gate and
+> DOUT_G3D is the divider for it.
+
+Good point, it should be CLK_G3D instead of DOUT.  Can you fix this as
+well?
+
+Best regards,
+Krzysztof
