@@ -2,87 +2,121 @@ Return-Path: <SRS0=TG3F=6L=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2974C54FD0
-	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 11:09:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A553AC54FD0
+	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 12:00:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DE1A2063A
-	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 11:09:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 776EB20656
+	for <linux-omap@archiver.kernel.org>; Mon, 27 Apr 2020 12:00:10 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Nc8/sb21"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726755AbgD0LJe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 27 Apr 2020 07:09:34 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:43044 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726604AbgD0LJe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 27 Apr 2020 07:09:34 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id B77BD70DE93E6557A0F7;
-        Mon, 27 Apr 2020 19:09:30 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 27 Apr 2020 19:09:24 +0800
-From:   Wei Yongjun <weiyongjun1@huawei.com>
-To:     Kishon Vijay Abraham I <kishon@ti.com>,
+        id S1726604AbgD0MAJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 27 Apr 2020 08:00:09 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:36584 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726390AbgD0MAJ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2020 08:00:09 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03RBxt0v019547;
+        Mon, 27 Apr 2020 06:59:55 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1587988795;
+        bh=RwPjkU/TyfREYNsw2qSGE+qMLI6pHP6PnOkaxRCDa30=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=Nc8/sb21qBfvB8mhQ3Xchs+GxOJYcyZFYIWsUVCGRYo7xkpQ5UggxmXpQ0U18mbEo
+         352rdyibSt2YgZf/8PV1rmN8ZNB37FRqqwOvvhq4c/KS3hvLgBUxTtCWowXhXaO3kN
+         vvBWDEJhstuSUbxj8bBThSn5RQ6CdW1gg4pjoEmk=
+Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03RBxtKS094040;
+        Mon, 27 Apr 2020 06:59:55 -0500
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE107.ent.ti.com
+ (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 27
+ Apr 2020 06:59:55 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Mon, 27 Apr 2020 06:59:55 -0500
+Received: from [10.250.151.94] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03RBxppD012048;
+        Mon, 27 Apr 2020 06:59:52 -0500
+Subject: Re: [PATCH -next] PCI: dwc: pci-dra7xx: Fix potential NULL
+ dereference in dra7xx_pcie_probe()
+To:     Wei Yongjun <weiyongjun1@huawei.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Rob Herring <robh@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>
-CC:     Wei Yongjun <weiyongjun1@huawei.com>, <linux-omap@vger.kernel.org>,
-        <linux-pci@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
-Subject: [PATCH -next] PCI: dwc: pci-dra7xx: Fix potential NULL dereference in dra7xx_pcie_probe()
-Date:   Mon, 27 Apr 2020 11:10:44 +0000
-Message-ID: <20200427111044.162618-1-weiyongjun1@huawei.com>
-X-Mailer: git-send-email 2.20.1
+CC:     <linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <kernel-janitors@vger.kernel.org>
+References: <20200427111044.162618-1-weiyongjun1@huawei.com>
+From:   Vignesh Raghavendra <vigneshr@ti.com>
+Message-ID: <cad871c8-0915-9dda-2c61-30dfb5504d23@ti.com>
+Date:   Mon, 27 Apr 2020 17:29:50 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
 MIME-Version: 1.0
-Content-Type:   text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-X-Originating-IP: [10.175.113.25]
-X-CFilter-Loop: Reflected
+In-Reply-To: <20200427111044.162618-1-weiyongjun1@huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-platform_get_resource() may fail and return NULL, so we should
-better check it's return value to avoid a NULL pointer dereference
-a bit later in the code.
+Hi,
 
-This is detected by Coccinelle semantic patch.
+On 27/04/20 4:40 pm, Wei Yongjun wrote:
+> platform_get_resource() may fail and return NULL, so we should
+> better check it's return value to avoid a NULL pointer dereference
+> a bit later in the code.
+> 
+> This is detected by Coccinelle semantic patch.
+> 
+> @@
+> expression pdev, res, n, t, e, e1, e2;
+> @@
+> 
+> res = \(platform_get_resource\|platform_get_resource_byname\)(pdev, t, n);
+> + if (!res)
+> +   return -EINVAL;
+> ... when != res == NULL
+> e = devm_ioremap(e1, res->start, e2);
+> 
+> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+> ---
+>  drivers/pci/controller/dwc/pci-dra7xx.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+> index 3b0e58f2de58..7a3d12f7e7d9 100644
+> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+> @@ -878,6 +878,9 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
+> +	if (!res)
+> +		return -EINVAL;
+> +
+>  	base = devm_ioremap(dev, res->start, resource_size(res));
 
-@@
-expression pdev, res, n, t, e, e1, e2;
-@@
+I don't see why this should be devm_ioremap(). It should also have been
+devm_ioremap_resource() which does the NULL check.
 
-res = \(platform_get_resource\|platform_get_resource_byname\)(pdev, t, n);
-+ if (!res)
-+   return -EINVAL;
-... when != res == NULL
-e = devm_ioremap(e1, res->start, e2);
+Alternately, how about using devm_platform_ioremap_resource_byname()?
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
----
- drivers/pci/controller/dwc/pci-dra7xx.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index 3b0e58f2de58..7a3d12f7e7d9 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -878,6 +878,9 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	}
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
-+	if (!res)
-+		return -EINVAL;
-+
- 	base = devm_ioremap(dev, res->start, resource_size(res));
- 	if (!base)
- 		return -ENOMEM;
-
-
-
-
-
+>  	if (!base)
+>  		return -ENOMEM;
+> 
+> 
+> 
+> 
+> 
