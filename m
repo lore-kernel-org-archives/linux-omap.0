@@ -2,81 +2,61 @@ Return-Path: <SRS0=+eaT=6N=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 026F5C83000
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 22:07:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30994C83004
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 22:21:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4F5820757
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 22:07:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18A08214AF
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 22:21:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727117AbgD2WHU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 29 Apr 2020 18:07:20 -0400
-Received: from muru.com ([72.249.23.125]:52124 "EHLO muru.com"
+        id S1726858AbgD2WVq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 29 Apr 2020 18:21:46 -0400
+Received: from muru.com ([72.249.23.125]:52136 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726481AbgD2WHU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 29 Apr 2020 18:07:20 -0400
+        id S1726481AbgD2WVq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 29 Apr 2020 18:21:46 -0400
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id B2F93810A;
-        Wed, 29 Apr 2020 22:08:07 +0000 (UTC)
-Date:   Wed, 29 Apr 2020 15:07:14 -0700
+        by muru.com (Postfix) with ESMTPS id 43682810A;
+        Wed, 29 Apr 2020 22:22:34 +0000 (UTC)
+Date:   Wed, 29 Apr 2020 15:21:42 -0700
 From:   Tony Lindgren <tony@atomide.com>
 To:     Tero Kristo <t-kristo@ti.com>
-Cc:     linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 1/8] ARM: dts: omap4: fix node names for the l4_cm
- clkctrl nodes
-Message-ID: <20200429220714.GV37466@atomide.com>
-References: <20200429143002.5050-1-t-kristo@ti.com>
- <20200429143002.5050-2-t-kristo@ti.com>
+Cc:     linux-clk@vger.kernel.org, sboyd@kernel.org,
+        mturquette@baylibre.com, linux-omap@vger.kernel.org
+Subject: Re: [PATCH 0/3] clk: ti: couple of fixes towards 5.8
+Message-ID: <20200429222142.GW37466@atomide.com>
+References: <20200429131341.4697-1-t-kristo@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200429143002.5050-2-t-kristo@ti.com>
+In-Reply-To: <20200429131341.4697-1-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [200429 14:31]:
-> The node name for these should be clk instead of clock. Otherwise the
-> clock driver won't be able to map the parent/child relationships
-> properly, and large number of clocks end up in orphaned state.
+* Tero Kristo <t-kristo@ti.com> [200429 13:14]:
+> Hi,
 > 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  arch/arm/boot/dts/omap44xx-clocks.dtsi | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> The issues fixed by these patches have been around for a while, so they
+> can be picked up for 5.8.
 > 
-> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-> index 532868591107..b82b1ca0e557 100644
-> --- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-> @@ -1279,13 +1279,13 @@
->  		#size-cells = <1>;
->  		ranges = <0 0x1400 0x200>;
->  
-> -		l4_per_clkctrl: clock@20 {
-> +		l4_per_clkctrl: clk@20 {
->  			compatible = "ti,clkctrl-l4-per", "ti,clkctrl";
->  			reg = <0x20 0x144>;
->  			#clock-cells = <2>;
->  		};
->  
-> -		l4_secure_clkctrl: clock@1a0 {
-> +		l4_secure_clkctrl: clk@1a0 {
->  			compatible = "ti,clkctrl-l4-secure", "ti,clkctrl";
->  			reg = <0x1a0 0x3c>;
->  			#clock-cells = <2>;
+> Patch #1 fixes a memory leak within composite clock registration, which
+> is only visible on platforms actually using composite clocks;
+> omap4/omap5.
 
-Heh this is no longer needed since commit 6c3090520554
-("clk: ti: clkctrl: Fix hidden dependency to node name")
-that added support for using the compatible name :)
+OK great thanks for chasing that one down.
 
-Maybe you are using some older tree? Or else there's
-still something wrong somewhere.
+> Last two patches fix parenting of the l4-secure clocks for omap4/omap5,
+> which was apparenly missed when the clkctrl data for these domains was
+> created.
 
-Regards,
+Oops sorry about that. Looks like I totally missed adding the source
+clocks for those.
 
-Tony
+For the whole series:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
