@@ -7,40 +7,39 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 108C1C83007
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 21:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBF34C8300F
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 21:55:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E0E0E20757
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 21:55:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA1CF20757
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 21:55:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727879AbgD2VyT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 29 Apr 2020 17:54:19 -0400
-Received: from muru.com ([72.249.23.125]:51876 "EHLO muru.com"
+        id S1727840AbgD2VyN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 29 Apr 2020 17:54:13 -0400
+Received: from muru.com ([72.249.23.125]:51804 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727871AbgD2VyS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 29 Apr 2020 17:54:18 -0400
+        id S1727822AbgD2VyM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 29 Apr 2020 17:54:12 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 0B508819C;
-        Wed, 29 Apr 2020 21:55:05 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id AC13E81AC;
+        Wed, 29 Apr 2020 21:54:58 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     Daniel Lezcano <daniel.lezcano@linaro.org>,
         Thomas Gleixner <tglx@linutronix.de>
 Cc:     linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>,
-        Lokesh Vutla <lokeshvutla@ti.com>,
-        Tero Kristo <t-kristo@ti.com>,
+        linux-arm-kernel@lists.infradead.org,
         "H. Nikolaus Schaller" <hns@goldelico.com>,
         Aaro Koskinen <aaro.koskinen@iki.fi>,
         Adam Ford <aford173@gmail.com>,
         Andreas Kemnade <andreas@kemnade.info>,
         Brian Hutchinson <b.hutchman@gmail.com>,
         Graeme Smecher <gsmecher@threespeedlogic.com>,
+        Keerthy <j-keerthy@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>,
         Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: [PATCH 05/15] bus: ti-sysc: Ignore timer12 on secure omap3
-Date:   Wed, 29 Apr 2020 14:53:52 -0700
-Message-Id: <20200429215402.18125-6-tony@atomide.com>
+        Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>,
+        devicetree@vger.kernel.org, linux-clk@vger.kernel.org
+Subject: [PATCH 02/15] dt-bindings: timer: add ti,dmtimer compatible for for system timers
+Date:   Wed, 29 Apr 2020 14:53:49 -0700
+Message-Id: <20200429215402.18125-3-tony@atomide.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200429215402.18125-1-tony@atomide.com>
 References: <20200429215402.18125-1-tony@atomide.com>
@@ -51,39 +50,30 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Some early omap3 boards use timer12 for system timer, but for secure
-SoCs like on n900 it's not accessible. Likely we will be configuring
-unavailable devices for other SoCs too based on runtime SoC detection,
-so let's use a switch to start with.
+The TI dual-mode timer can be used for both clocksource and clockevent
+system timers. We need a way to specify which dual-mode timers are
+reserved for system timers as there are multiple instances available
+that may require a board specific configuration.
 
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
+Let's add a generic compatible "ti,dmtimer" that TIMER_OF_DECLARE can
+use as suggested by Daniel Lezcano <daniel.lezcano@linaro.org>.
+
+Suggested-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/devicetree/bindings/timer/ti,timer.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -2744,6 +2744,17 @@ static int sysc_init_soc(struct sysc *ddata)
- 	if (match && match->data)
- 		sysc_soc->soc = (int)match->data;
+diff --git a/Documentation/devicetree/bindings/timer/ti,timer.txt b/Documentation/devicetree/bindings/timer/ti,timer.txt
+--- a/Documentation/devicetree/bindings/timer/ti,timer.txt
++++ b/Documentation/devicetree/bindings/timer/ti,timer.txt
+@@ -14,6 +14,7 @@ Required properties:
+ 			ti,omap5430-timer (applicable to OMAP543x devices)
+ 			ti,am335x-timer	(applicable to AM335x devices)
+ 			ti,am335x-timer-1ms (applicable to AM335x devices)
++			ti,dmtimer (applicable to system timers)
  
-+	/* Ignore devices that are not available on HS and EMU SoCs */
-+	if (!sysc_soc->general_purpose) {
-+		switch (sysc_soc->soc) {
-+		case SOC_3430 ... SOC_3630:
-+			sysc_add_disabled(0x48304000);	/* timer12 */
-+			break;
-+		default:
-+			break;
-+		};
-+	}
-+
- 	match = soc_device_match(sysc_soc_feat_match);
- 	if (!match)
- 		return 0;
+ - reg:			Contains timer register address range (base address and
+ 			length).
 -- 
 2.26.2
