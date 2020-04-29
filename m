@@ -2,60 +2,57 @@ Return-Path: <SRS0=+eaT=6N=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3364FC83004
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 13:13:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A92DC83000
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 14:30:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DF6921D92
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 13:13:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D0BE2074A
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 14:30:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="I6a7yLDm"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="LmE0x1yO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726701AbgD2NN4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 29 Apr 2020 09:13:56 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:37842 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726741AbgD2NN4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2020 09:13:56 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03TDDpGH011386;
-        Wed, 29 Apr 2020 08:13:51 -0500
+        id S1726554AbgD2OaP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 29 Apr 2020 10:30:15 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:53896 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726526AbgD2OaP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2020 10:30:15 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03TEU8h7098671;
+        Wed, 29 Apr 2020 09:30:08 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1588166031;
-        bh=fZ/iP6cnEiTuHev/VJT7sUmLIKv6ebhl7+OZwef0YBs=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=I6a7yLDmtjH3Usg6oLpmhE3EbHkuO/cGffeEuuZEzdvROvTxA5SOpwtSVyNQTHu9d
-         UboKdKl2vxKGnzWCLMWXylEZ5OPVBE9GaPkY/8yvmlP9Mk9VuL9NDvzX+1sHpIpfJn
-         Ty3IHgHhcmNpSiq+hTKiDYObCA7y5B3gpfxs5ydA=
-Received: from DLEE111.ent.ti.com (dlee111.ent.ti.com [157.170.170.22])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03TDDpkY062992
+        s=ti-com-17Q1; t=1588170608;
+        bh=JwlsaJWuzGCyraQxOVq9vKJeCHiryLyE+lp1nBBs1EM=;
+        h=From:To:CC:Subject:Date;
+        b=LmE0x1yO/su7aFnXF9e4BrYy/MeGveo+LCzDo04CYpbYsj5RSsnSMaSkDRf+nLjVh
+         MAA1e3w4V3McFDkKjexJDOTW7nhQGygylJ0eUTjrDMjVWWTf/U8v0/BDqYkOzxbKYD
+         U6r/VmGhxl9E5bwIl9iYY6+RkEIrKXck1khFDdzY=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03TEU7hP125135
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 29 Apr 2020 08:13:51 -0500
-Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+        Wed, 29 Apr 2020 09:30:08 -0500
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 29
- Apr 2020 08:13:50 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ Apr 2020 09:30:07 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 29 Apr 2020 08:13:50 -0500
+ Frontend Transport; Wed, 29 Apr 2020 09:30:07 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03TDDjrp113387;
-        Wed, 29 Apr 2020 08:13:49 -0500
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03TEU54k010784;
+        Wed, 29 Apr 2020 09:30:06 -0500
 From:   Tero Kristo <t-kristo@ti.com>
-To:     <linux-clk@vger.kernel.org>, <sboyd@kernel.org>,
-        <mturquette@baylibre.com>
-CC:     <linux-omap@vger.kernel.org>, <tony@atomide.com>
-Subject: [PATCH 2/3] clk: ti: omap4: Add proper parent clocks for l4-secure clocks
-Date:   Wed, 29 Apr 2020 16:13:40 +0300
-Message-ID: <20200429131341.4697-3-t-kristo@ti.com>
+To:     <linux-omap@vger.kernel.org>, <tony@atomide.com>
+CC:     <linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH 0/8] ARM: omap4/5: crypto support fixes
+Date:   Wed, 29 Apr 2020 17:29:54 +0300
+Message-ID: <20200429143002.5050-1-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200429131341.4697-1-t-kristo@ti.com>
-References: <20200429131341.4697-1-t-kristo@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
@@ -64,42 +61,23 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-L4 secure clocks do not have their parents set currently, which ends
-them up to the orphan clock list. Fix this by adding either l3 or l4
-clock as their parent.
+Hi,
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/clk/ti/clk-44xx.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+This series fixes a couple of crypto data bugs for omap4/5. It also adds
+support for crypto accelerators for omap5; the data for these is just
+basically copied over from omap4.
 
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index 312a20f8ec0e..a38c92153979 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -606,13 +606,13 @@ static const struct omap_clkctrl_reg_data omap4_l4_per_clkctrl_regs[] __initcons
- 
- static const struct
- omap_clkctrl_reg_data omap4_l4_secure_clkctrl_regs[] __initconst = {
--	{ OMAP4_AES1_CLKCTRL, NULL, CLKF_SW_SUP, "" },
--	{ OMAP4_AES2_CLKCTRL, NULL, CLKF_SW_SUP, "" },
--	{ OMAP4_DES3DES_CLKCTRL, NULL, CLKF_SW_SUP, "" },
--	{ OMAP4_PKA_CLKCTRL, NULL, CLKF_SW_SUP, "" },
--	{ OMAP4_RNG_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "" },
--	{ OMAP4_SHA2MD5_CLKCTRL, NULL, CLKF_SW_SUP, "" },
--	{ OMAP4_CRYPTODMA_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "" },
-+	{ OMAP4_AES1_CLKCTRL, NULL, CLKF_SW_SUP, "l3_div_ck" },
-+	{ OMAP4_AES2_CLKCTRL, NULL, CLKF_SW_SUP, "l3_div_ck" },
-+	{ OMAP4_DES3DES_CLKCTRL, NULL, CLKF_SW_SUP, "l4_div_ck" },
-+	{ OMAP4_PKA_CLKCTRL, NULL, CLKF_SW_SUP, "l4_div_ck" },
-+	{ OMAP4_RNG_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "l4_div_ck" },
-+	{ OMAP4_SHA2MD5_CLKCTRL, NULL, CLKF_SW_SUP, "l3_div_ck" },
-+	{ OMAP4_CRYPTODMA_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "l3_div_ck" },
- 	{ 0 },
- };
- 
--- 
-2.17.1
+OMAP5 currently appears to be running out of available DMA channels,
+SPI/MMC are allocating a huge number of channels permanently in boot and
+there are only 32 of them available in total. To mitigate the issue
+partly, I have left the DES node disabled by default to save two
+channels, if someone needs DES support, it can be easily enabled.
+However, it might be useful to actually disable some of the SPI/MMC
+nodes to save on the number of channels and to avoid running into any
+problems.
+
+-Tero
+
 
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
