@@ -4,55 +4,55 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 900ECC8300A
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 13:13:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 174F3C83006
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 13:13:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61C782184D
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 13:13:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E420221775
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 13:13:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="c9l0EAKn"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="FgOMJVze"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726516AbgD2NNx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 29 Apr 2020 09:13:53 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:36702 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726701AbgD2NNx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2020 09:13:53 -0400
+        id S1726746AbgD2NN4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 29 Apr 2020 09:13:56 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:45766 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726701AbgD2NN4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2020 09:13:56 -0400
 Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03TDDnPE034740;
-        Wed, 29 Apr 2020 08:13:49 -0500
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03TDDqaO079285;
+        Wed, 29 Apr 2020 08:13:52 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1588166029;
-        bh=ZN7iZAJyvfzJP1JBKU1mzjHIIJF2SniIJwWvjhJa3Eo=;
+        s=ti-com-17Q1; t=1588166032;
+        bh=WAwJPUEsvRIGbauTlzB4xBlvt1ziGLojSfqmSIjh9wI=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=c9l0EAKnSeat26slHOLDT+UzYQ5+xXJEs1xp1fMlCSDhuctS6Rotv5/8ZQbgH9/hQ
-         zWjcMXnyUl45oOdvqp6Y3qDrlgADNWDa4Cy7Zjwc94A1uTm+s+KDr7/scgjqV/q3Z5
-         mcKVav32xG0zgr/PNQ+fxCG9GRjFnouWV1OrwMOU=
-Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03TDDnm9071440
+        b=FgOMJVzeHlZW+CuzVvYZoaOQhizLe9JIB67W0ciczcDLSXvqS9pSYRC5pCpPrZuVv
+         q/gpzuxn0AeFBIaGsLkMoG9as186s5mJrttyX01psUz0MMauxs9nubyZAc0sMbVQLl
+         wkkU8ISEQ4+xZaBb7Tk+EUQrZM03n9Dbn1+/SP+U=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03TDDq2i071512
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 29 Apr 2020 08:13:49 -0500
-Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+        Wed, 29 Apr 2020 08:13:52 -0500
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 29
- Apr 2020 08:13:49 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE102.ent.ti.com
- (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+ Apr 2020 08:13:52 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 29 Apr 2020 08:13:49 -0500
+ Frontend Transport; Wed, 29 Apr 2020 08:13:52 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03TDDjro113387;
-        Wed, 29 Apr 2020 08:13:47 -0500
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03TDDjrq113387;
+        Wed, 29 Apr 2020 08:13:51 -0500
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <linux-clk@vger.kernel.org>, <sboyd@kernel.org>,
         <mturquette@baylibre.com>
 CC:     <linux-omap@vger.kernel.org>, <tony@atomide.com>
-Subject: [PATCH 1/3] clk: ti: composite: fix memory leak
-Date:   Wed, 29 Apr 2020 16:13:39 +0300
-Message-ID: <20200429131341.4697-2-t-kristo@ti.com>
+Subject: [PATCH 3/3] clk: ti: omap5: Add proper parent clocks for l4-secure clocks
+Date:   Wed, 29 Apr 2020 16:13:41 +0300
+Message-ID: <20200429131341.4697-4-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200429131341.4697-1-t-kristo@ti.com>
 References: <20200429131341.4697-1-t-kristo@ti.com>
@@ -64,27 +64,39 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The parent_names is never released for a component clock definition,
-causing some memory leak. Fix by releasing it once it is no longer
-needed.
+L4 secure clocks do not have their parents set currently, which ends
+them up to the orphan clock list. Fix this by adding either l3 or l4
+clock as their parent.
 
-Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/composite.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/clk/ti/clk-54xx.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index 6a89936ba03a..eaa43575cfa5 100644
---- a/drivers/clk/ti/composite.c
-+++ b/drivers/clk/ti/composite.c
-@@ -196,6 +196,7 @@ static void __init _register_composite(void *user,
- 		if (!cclk->comp_clks[i])
- 			continue;
- 		list_del(&cclk->comp_clks[i]->link);
-+		kfree(cclk->comp_clks[i]->parent_names);
- 		kfree(cclk->comp_clks[i]);
- 	}
+diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+index 92bf2dda95b9..8694bc9f5fc7 100644
+--- a/drivers/clk/ti/clk-54xx.c
++++ b/drivers/clk/ti/clk-54xx.c
+@@ -303,13 +303,13 @@ static const struct omap_clkctrl_reg_data omap5_l4per_clkctrl_regs[] __initconst
+ 
+ static const struct
+ omap_clkctrl_reg_data omap5_l4_secure_clkctrl_regs[] __initconst = {
+-	{ OMAP5_AES1_CLKCTRL, NULL, CLKF_HW_SUP, "" },
+-	{ OMAP5_AES2_CLKCTRL, NULL, CLKF_HW_SUP, "" },
+-	{ OMAP5_DES3DES_CLKCTRL, NULL, CLKF_HW_SUP, "" },
+-	{ OMAP5_FPKA_CLKCTRL, NULL, CLKF_SW_SUP, "" },
+-	{ OMAP5_RNG_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "" },
+-	{ OMAP5_SHA2MD5_CLKCTRL, NULL, CLKF_HW_SUP, "" },
+-	{ OMAP5_DMA_CRYPTO_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "" },
++	{ OMAP5_AES1_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
++	{ OMAP5_AES2_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
++	{ OMAP5_DES3DES_CLKCTRL, NULL, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_FPKA_CLKCTRL, NULL, CLKF_SW_SUP, "l4_root_clk_div" },
++	{ OMAP5_RNG_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "l4_root_clk_div" },
++	{ OMAP5_SHA2MD5_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
++	{ OMAP5_DMA_CRYPTO_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "l3_iclk_div" },
+ 	{ 0 },
+ };
  
 -- 
 2.17.1
