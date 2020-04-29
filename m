@@ -4,57 +4,58 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 281F3C83000
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 14:30:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC8F1C83000
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 14:42:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F33462074A
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 14:30:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 872E221D80
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Apr 2020 14:42:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hFFJ0mkf"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="DtkHvJq9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726773AbgD2Oa3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 29 Apr 2020 10:30:29 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:53956 "EHLO
+        id S1726599AbgD2Om2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 29 Apr 2020 10:42:28 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:55316 "EHLO
         lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726741AbgD2Oa3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2020 10:30:29 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03TEUPJW098764;
-        Wed, 29 Apr 2020 09:30:25 -0500
+        with ESMTP id S1726519AbgD2Om2 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2020 10:42:28 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03TEgN85101676;
+        Wed, 29 Apr 2020 09:42:23 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1588170625;
-        bh=Rr3yRU7e+WZwUMxKj3OhbM3FhcVrnhefKHLL5Wt8jQQ=;
+        s=ti-com-17Q1; t=1588171343;
+        bh=zZFduS8gFGnDWsW8M2oqT5mnD6om2vMq4XFrDQ8AF8M=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=hFFJ0mkfIwiXeKCKyJHSOfghox4x95BF+ivhTL2/d47rnKZBjxJMvvCxcKFscvO+3
-         mzqUDGfVDIZRIa/g+kyPlNaCPTd2xxtscaoPSXP8K0s2nAPE9jceM1d7nV+zTHz1hG
-         5HwmrjOyHDVcOXk1xuz3JL7cLgj5yAvQGJ+OhuSc=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03TEUPeB062979
+        b=DtkHvJq95Z2UvOv1FlleDr3iIGHFNAhfiA+B30YL/3L4zF7GNS+LF7LCVTf7PKYLK
+         uqOuV2WnTMU3Mw1fFJoilQG5TAOxvqBmFCqk2rEBVt+GEeDhR1VXOvyCeoFmSiqUwy
+         /uSu1MWjwwmPTXX+mY4XhaHyCXJhOZPaeJnw9GEE=
+Received: from DFLE101.ent.ti.com (dfle101.ent.ti.com [10.64.6.22])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 03TEgNYt012435
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 29 Apr 2020 09:30:25 -0500
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+        Wed, 29 Apr 2020 09:42:23 -0500
+Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE101.ent.ti.com
+ (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 29
- Apr 2020 09:30:10 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+ Apr 2020 09:42:23 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 29 Apr 2020 09:30:10 -0500
+ Frontend Transport; Wed, 29 Apr 2020 09:42:23 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03TEU54m010784;
-        Wed, 29 Apr 2020 09:30:09 -0500
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03TEgHjN103561;
+        Wed, 29 Apr 2020 09:42:21 -0500
 From:   Tero Kristo <t-kristo@ti.com>
-To:     <linux-omap@vger.kernel.org>, <tony@atomide.com>
-CC:     <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH 2/8] ARM: dts: omap5: fix node names for the l4_cm clkctrl nodes
-Date:   Wed, 29 Apr 2020 17:29:56 +0300
-Message-ID: <20200429143002.5050-3-t-kristo@ti.com>
+To:     <herbert@gondor.apana.org.au>, <davem@davemloft.net>,
+        <linux-crypto@vger.kernel.org>
+CC:     <linux-omap@vger.kernel.org>
+Subject: [PATCH 3/6] crypto: omap-crypto: fix userspace copied buffer access
+Date:   Wed, 29 Apr 2020 17:42:02 +0300
+Message-ID: <20200429144205.5291-4-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200429143002.5050-1-t-kristo@ti.com>
-References: <20200429143002.5050-1-t-kristo@ti.com>
+In-Reply-To: <20200429144205.5291-1-t-kristo@ti.com>
+References: <20200429144205.5291-1-t-kristo@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
@@ -63,35 +64,37 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The node name for these should be clk instead of clock. Otherwise the
-clock driver won't be able to map the parent/child relationships
-properly, and large number of clocks end up in orphaned state.
+In case buffers are copied from userspace, directly accessing the page
+will most likely fail because it hasn't been mapped into the kernel
+memory space. Fix the issue by forcing a kmap / kunmap within the
+cleanup functionality.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap54xx-clocks.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/crypto/omap-crypto.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-index 42f2c447727d..746048813a12 100644
---- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-@@ -1125,13 +1125,13 @@
- 		#size-cells = <1>;
- 		ranges = <0 0x1000 0x200>;
+diff --git a/drivers/crypto/omap-crypto.c b/drivers/crypto/omap-crypto.c
+index cc88b7362bc2..cbc5a4151c3c 100644
+--- a/drivers/crypto/omap-crypto.c
++++ b/drivers/crypto/omap-crypto.c
+@@ -178,11 +178,14 @@ static void omap_crypto_copy_data(struct scatterlist *src,
+ 		amt = min(src->length - srco, dst->length - dsto);
+ 		amt = min(len, amt);
  
--		l4per_clkctrl: clock@20 {
-+		l4per_clkctrl: clk@20 {
- 			compatible = "ti,clkctrl-l4per", "ti,clkctrl";
- 			reg = <0x20 0x15c>;
- 			#clock-cells = <2>;
- 		};
+-		srcb = sg_virt(src) + srco;
+-		dstb = sg_virt(dst) + dsto;
++		srcb = kmap_atomic(sg_page(src)) + srco + src->offset;
++		dstb = kmap_atomic(sg_page(dst)) + dsto + dst->offset;
  
--		l4sec_clkctrl: clock@1a0 {
-+		l4sec_clkctrl: clk@1a0 {
- 			compatible = "ti,clkctrl-l4sec", "ti,clkctrl";
- 			reg = <0x1a0 0x3c>;
- 			#clock-cells = <2>;
+ 		memcpy(dstb, srcb, amt);
+ 
++		kunmap_atomic(srcb);
++		kunmap_atomic(dstb);
++
+ 		srco += amt;
+ 		dsto += amt;
+ 		len -= amt;
 -- 
 2.17.1
 
