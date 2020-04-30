@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 756C8C4724C
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:02:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3DE9C4724C
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:07:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 489A02063A
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:02:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BBE22206D9
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:07:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588255376;
-	bh=ZeQ+nsfG34bCl5uEds18kIJEKqqdj1c0qRK1uyLut8M=;
+	s=default; t=1588255655;
+	bh=QHdbclAjkFXrPIVSdW4YTECwXnQaBy0SXyVNNk1TTZs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=tetjiZ5Lg/IHCL3QtvqdR3IWXGZZ4ei06oaU9WCm2pej5IldF/K+HrjBB2Viba7iu
-	 e/OI6Ka2ADOED6o1TSARhGZFy5aMNoF1GIRnQnOpkxHusfKVznE7X9mfdwZUQ1ZGYU
-	 RlLjsLKXkygFvunQBMQYrCKWSpySebEzCBck+eZE=
+	b=fm6toJOgOIyZHTPvPKAMfIyeWxTh01yzXONx9K0M/yzNth7/0ZNwbMbs+YIIBiAGP
+	 LKv4jjRp63FfPCh4U7hqVEDfMP5NGeadc1RWa+fPjfk15dmJyOGDfN3uPO1frh46Hb
+	 JcZUggdmG0o4zhk3CEljob9c7GF3JlwR9CvIldJ8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729231AbgD3OCz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 30 Apr 2020 10:02:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35382 "EHLO mail.kernel.org"
+        id S1728453AbgD3Nwi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 30 Apr 2020 09:52:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728747AbgD3Nxg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 30 Apr 2020 09:53:36 -0400
+        id S1727054AbgD3Nwh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 30 Apr 2020 09:52:37 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AF37E24959;
-        Thu, 30 Apr 2020 13:53:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C157820870;
+        Thu, 30 Apr 2020 13:52:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588254815;
-        bh=ZeQ+nsfG34bCl5uEds18kIJEKqqdj1c0qRK1uyLut8M=;
+        s=default; t=1588254756;
+        bh=QHdbclAjkFXrPIVSdW4YTECwXnQaBy0SXyVNNk1TTZs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=CkloH/vru3NPp6yh0HeYo8YWd6sxIKafNuAb6wx6tBjEqFgo5rRnjHA5SoIlVivI9
-         U+Q2pYwKd+3adiVm77awOi8W3SbZsr9a0GaqVjRp6vPfTdGHj1kHo8ia6s5Tx8ktwJ
-         4c48vy/1fwUqqby81ybTufjVa2c63KmP47mK05bg=
+        b=D4vYjEcMOpiI7zY02oJNYmd5ucOk2LHm5gz3jo4L1Nm58oIF25JY3PA5GA/kCCa+H
+         7SmYDEJvnfe70NH0+fGxzlp2qkpRrsiK/5AsbSXRkxNbZ0jPP03cFiyXEeaiDgvVdb
+         beEOL8PXiVJXNFDUOp+tfOZJOFgVOj3ehZCbsHSE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
@@ -45,12 +45,12 @@ Cc:     Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
         Felipe Balbi <balbi@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org,
         linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 08/30] usb: dwc3: gadget: Do link recovery for SS and SSP
-Date:   Thu, 30 Apr 2020 09:53:03 -0400
-Message-Id: <20200430135325.20762-8-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 15/57] usb: dwc3: gadget: Do link recovery for SS and SSP
+Date:   Thu, 30 Apr 2020 09:51:36 -0400
+Message-Id: <20200430135218.20372-15-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200430135325.20762-1-sashal@kernel.org>
-References: <20200430135325.20762-1-sashal@kernel.org>
+In-Reply-To: <20200430135218.20372-1-sashal@kernel.org>
+References: <20200430135218.20372-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -80,10 +80,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 50d2481041c85..99f6a5aa01095 100644
+index 77c50d43df03b..3d30dec42c81a 100644
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
-@@ -1577,7 +1577,6 @@ static int __dwc3_gadget_wakeup(struct dwc3 *dwc)
+@@ -1725,7 +1725,6 @@ static int __dwc3_gadget_wakeup(struct dwc3 *dwc)
  	u32			reg;
  
  	u8			link_state;
@@ -91,7 +91,7 @@ index 50d2481041c85..99f6a5aa01095 100644
  
  	/*
  	 * According to the Databook Remote wakeup request should
-@@ -1587,16 +1586,13 @@ static int __dwc3_gadget_wakeup(struct dwc3 *dwc)
+@@ -1735,16 +1734,13 @@ static int __dwc3_gadget_wakeup(struct dwc3 *dwc)
  	 */
  	reg = dwc3_readl(dwc->regs, DWC3_DSTS);
  
