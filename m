@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5982C47253
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:07:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9D61C28CBC
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83E94206D9
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:07:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA1992063A
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:11:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588255656;
-	bh=SO3BYQowliBmPRGXfww4Fy5vRaMnVv1Bl6d1cIXTCDI=;
+	s=default; t=1588255914;
+	bh=xgLQmrYQLaqzEq2YE5Jd2f4XvD6+UY39LmbWTDJ6BCs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Wscqlz9QmjfPME0OzIeRvCE/CgxZIhZ3wunGMw/F9ItrNL+szlXCVYwe/SHdlBbdT
-	 9C8ya9wZjVuC80NQIxWBQnXN7hXw3rEqwUHAEgHWlM0MocxpA/iEbl7JLkX0gNoo6c
-	 b+jkfaYDG2VRoQayDAv7qSdZiISE/KtKn/1cRZbs=
+	b=PY4GaLjvd+4kogVM7BtHqagGctCl5aoTMTVtGDu24kg4yDJ5wtsGL3A5sIw9kd1sN
+	 H200GJ1YoWKG7h44HrwCtpCnNPT+hqA11ZeTVAay/7+lX+E3mMNl19Cb6LLTP/zpDZ
+	 nASkCKI2xn0V21oQHZ7KMxjzFuH3VcPO2X3Gh6EI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728441AbgD3Nwh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 30 Apr 2020 09:52:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33818 "EHLO mail.kernel.org"
+        id S1727986AbgD3NvQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 30 Apr 2020 09:51:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728436AbgD3Nwg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 30 Apr 2020 09:52:36 -0400
+        id S1727972AbgD3NvQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 30 Apr 2020 09:51:16 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9426824955;
-        Thu, 30 Apr 2020 13:52:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 907192082E;
+        Thu, 30 Apr 2020 13:51:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588254755;
-        bh=SO3BYQowliBmPRGXfww4Fy5vRaMnVv1Bl6d1cIXTCDI=;
+        s=default; t=1588254675;
+        bh=xgLQmrYQLaqzEq2YE5Jd2f4XvD6+UY39LmbWTDJ6BCs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=E43Cq7zAlfLI+qzPOY0YyS4NRNGU7hE2RLIxYtkeKkxQMhVcG3pV9xvRik9aeRX6f
-         ZV8hRnnNlQV1bKT6MKoqtJx5OYrK6OW42kbwWz9YzoLukNsoTG45+ne8kVEQSFoHsc
-         BRb80jW4QOKhb/tu7vBBrCZM5b1tEmpzI1C2n634=
+        b=NIYmexUOrWijR53/qFeIIwMKkKSxjc3tGorxfasMYiNRpFyaPLb/lBcNYexgFURoM
+         T+EhZGqacu+p/RDTb0nfvOB1DSHjajzUJB1WWLPVlY5pL1S7tJK4FVsFITNvMFbEZI
+         Ii7XjKDLY8KzxCCVNngW7B2drO4cJfbTE82Mfqzc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
@@ -45,12 +45,12 @@ Cc:     Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
         Felipe Balbi <balbi@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org,
         linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 14/57] usb: dwc3: gadget: Properly set maxpacket limit
-Date:   Thu, 30 Apr 2020 09:51:35 -0400
-Message-Id: <20200430135218.20372-14-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 27/79] usb: dwc3: gadget: Properly set maxpacket limit
+Date:   Thu, 30 Apr 2020 09:49:51 -0400
+Message-Id: <20200430135043.19851-27-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200430135218.20372-1-sashal@kernel.org>
-References: <20200430135218.20372-1-sashal@kernel.org>
+In-Reply-To: <20200430135043.19851-1-sashal@kernel.org>
+References: <20200430135043.19851-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -108,10 +108,10 @@ index 3ecc69c5b150f..ce4acbf7fef90 100644
  #define DWC3_GEVNTSIZ_INTMASK		BIT(31)
  #define DWC3_GEVNTSIZ_SIZE(n)		((n) & 0xffff)
 diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 18251efd216d3..77c50d43df03b 100644
+index 9460d42f86757..1e68c90a83781 100644
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
-@@ -2224,7 +2224,6 @@ static int dwc3_gadget_init_in_endpoint(struct dwc3_ep *dep)
+@@ -2227,7 +2227,6 @@ static int dwc3_gadget_init_in_endpoint(struct dwc3_ep *dep)
  {
  	struct dwc3 *dwc = dep->dwc;
  	int mdwidth;
@@ -119,7 +119,7 @@ index 18251efd216d3..77c50d43df03b 100644
  	int size;
  
  	mdwidth = DWC3_MDWIDTH(dwc->hwparams.hwparams0);
-@@ -2240,17 +2239,17 @@ static int dwc3_gadget_init_in_endpoint(struct dwc3_ep *dep)
+@@ -2243,17 +2242,17 @@ static int dwc3_gadget_init_in_endpoint(struct dwc3_ep *dep)
  	/* FIFO Depth is in MDWDITH bytes. Multiply */
  	size *= mdwidth;
  
@@ -146,7 +146,7 @@ index 18251efd216d3..77c50d43df03b 100644
  
  	usb_ep_set_maxpacket_limit(&dep->endpoint, size);
  
-@@ -2268,8 +2267,39 @@ static int dwc3_gadget_init_in_endpoint(struct dwc3_ep *dep)
+@@ -2271,8 +2270,39 @@ static int dwc3_gadget_init_in_endpoint(struct dwc3_ep *dep)
  static int dwc3_gadget_init_out_endpoint(struct dwc3_ep *dep)
  {
  	struct dwc3 *dwc = dep->dwc;
