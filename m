@@ -2,90 +2,143 @@ Return-Path: <SRS0=CFzJ=6O=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E2C2C83009
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 08:36:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EF91C4724C
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:00:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 70B1E20838
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 08:36:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="aXTJZnUc"
+	by mail.kernel.org (Postfix) with ESMTP id EC02724956
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:00:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1588255251;
+	bh=YlQS0JWm1kZ1bcJMVHBPFuI7i/sHKcm81FIe/NwSwj0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=an0uH6Q8JABSgxqpo84itJPqIdrdzZo1z+DNBunXWEdN6wz+AkU3jdFKrXRE8q4Ns
+	 SM5/HbO2Wwb0h4a1redye4zjGCq9fohu1P8caj6124G6bfIToDjxBOaI7MEfu+rhup
+	 R0U87q3bJRlYz2nQmQH6tpL+dSV2nw3kY6DLtIcg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726683AbgD3Igx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 30 Apr 2020 04:36:53 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:48808 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726420AbgD3Igw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2020 04:36:52 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 03U8anKh094449;
-        Thu, 30 Apr 2020 03:36:49 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1588235809;
-        bh=VYueZm5CvboGryMIxPqzyx8mLmX3qjIlZueWkp9+pss=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=aXTJZnUcOWKiJHI+oQ3XlMBQOlJQe1QqtAa0zQgrppcUHYPzPQVZSBWeK7qP2GpHR
-         svnD4zerDYjBbnoGsYkshxfV6bkaHzLaCwnqMXuob9k1G9pbL9m6COGlfq3Lr1ZM+j
-         039jrH6F1hlQeFGKSimHKRTuLNb2lVAi3FFMApwU=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03U8anYr076754;
-        Thu, 30 Apr 2020 03:36:49 -0500
-Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 30
- Apr 2020 03:36:49 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 30 Apr 2020 03:36:49 -0500
-Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 03U8agEo073623;
-        Thu, 30 Apr 2020 03:36:47 -0500
-From:   Tero Kristo <t-kristo@ti.com>
-To:     <linux-clk@vger.kernel.org>, <sboyd@kernel.org>,
-        <mturquette@baylibre.com>
-CC:     <tony@atomide.com>, <linux-omap@vger.kernel.org>
-Subject: [PATCH 3/3] clk: ti: dra7xx: fix RNG clock parent
-Date:   Thu, 30 Apr 2020 11:36:40 +0300
-Message-ID: <20200430083640.8621-4-t-kristo@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200430083640.8621-1-t-kristo@ti.com>
-References: <20200430083640.8621-1-t-kristo@ti.com>
+        id S1729066AbgD3OAp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 30 Apr 2020 10:00:45 -0400
+Received: from mail-oi1-f193.google.com ([209.85.167.193]:35035 "EHLO
+        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729397AbgD3OAn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2020 10:00:43 -0400
+Received: by mail-oi1-f193.google.com with SMTP id o7so5292733oif.2;
+        Thu, 30 Apr 2020 07:00:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=4SqKDcgFBHx1L7Er/7o6lUHlh3wWzthDwvJZwo5hrJU=;
+        b=QyHss8qcgQyLccmUxMGK7EApLeAiW3/3iykKdJiIOU3pytBtLQreG1zD8jJ/osRaD1
+         OWi7ggHOWxUnCKRUStcWiCp3YU2h4RLn+K/afjcbEAwT0BoPDqfXOI/GqIfeC542vLS4
+         hFNDlBn2oe/4WqL9tEk8xWMn1qMxKYECNJMjIHPmKsj9l7JnLiHJ/8DEdZOPxYHctfjh
+         NW1jlrZzQJAmt5XHzD6WXnICdzRdU+XU8uCdXJju0eQgZNJGbNxRJiZjLozars3rVELi
+         Hr1qn+7431iZ5bRbzjdaZVrFoE9uROl4/S2hzHbzjllvm4lfb7veQyczd+Shv9MmnrY9
+         XTgQ==
+X-Gm-Message-State: AGi0PuaPA9FSTj3JLI/HqpvsxzbRoFDsDSrtYwsxW3pw74BYgtOH6h+F
+        UV+4l2aVqGYNdyrkKtBJlg==
+X-Google-Smtp-Source: APiQypK+NEro6nmq5Ju0kr11u0dYdZk562OwLmfEc6Rdsg37blDy9Pox4kBxZ7K1FWgojRgFDGj0HA==
+X-Received: by 2002:aca:d684:: with SMTP id n126mr1810974oig.173.1588255242401;
+        Thu, 30 Apr 2020 07:00:42 -0700 (PDT)
+Received: from rob-hp-laptop (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id h137sm2698oib.33.2020.04.30.07.00.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 30 Apr 2020 07:00:41 -0700 (PDT)
+Received: (nullmailer pid 20979 invoked by uid 1000);
+        Thu, 30 Apr 2020 14:00:40 -0000
+Date:   Thu, 30 Apr 2020 09:00:40 -0500
+From:   Rob Herring <robh@kernel.org>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>,
+        Lokesh Vutla <lokeshvutla@ti.com>,
+        Tero Kristo <t-kristo@ti.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Adam Ford <aford173@gmail.com>,
+        Andreas Kemnade <andreas@kemnade.info>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Subject: Re: [PATCH 02/14] clocksource/drivers/timer-ti-dm: Add clockevent
+ and clocksource support
+Message-ID: <20200430140040.GA8363@bogus>
+References: <20200417165519.4979-1-tony@atomide.com>
+ <20200417165519.4979-3-tony@atomide.com>
+ <62be90e2-7dbe-410d-4171-c0ad0cddc7a3@linaro.org>
+ <20200427143144.GQ37466@atomide.com>
+ <29f39839-b3ed-cac3-1dea-c137286320b1@linaro.org>
+ <20200427152329.GR37466@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200427152329.GR37466@atomide.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-RNG is sourced from L4 clock. Add info for this for proper parenting of
-the clock.
+On Mon, Apr 27, 2020 at 08:23:29AM -0700, Tony Lindgren wrote:
+> * Daniel Lezcano <daniel.lezcano@linaro.org> [200427 15:03]:
+> > On 27/04/2020 16:31, Tony Lindgren wrote:
+> > > Hi,
+> > > 
+> > > * Daniel Lezcano <daniel.lezcano@linaro.org> [200427 09:19]:
+> > >> On 17/04/2020 18:55, Tony Lindgren wrote:
+> > >>> --- a/Documentation/devicetree/bindings/timer/ti,timer.txt
+> > >>> +++ b/Documentation/devicetree/bindings/timer/ti,timer.txt
+> > >>> @@ -14,6 +14,8 @@ Required properties:
+> > >>>  			ti,omap5430-timer (applicable to OMAP543x devices)
+> > >>>  			ti,am335x-timer	(applicable to AM335x devices)
+> > >>>  			ti,am335x-timer-1ms (applicable to AM335x devices)
+> > >>> +			ti,dmtimer-clockevent (when used as for clockevent)
+> > >>> +			ti,dmtimer-clocksource (when used as for clocksource)
+> > >>
+> > >> Please, submit a separate patch for this.
+> > >>
+> > >> Before you resend as is, this will be nacked as clocksource / clockevent
+> > >> is not a hardware description but a Linux thing.
+> > >>
+> > >> Finding a way to characterize that from the DT is an endless discussion
+> > >> since years, so I suggest to use a single property for the timer eg
+> > >> <ti,dmtimer> and initialize the clocksource and the clockevent in the
+> > >> driver.
+> > > 
+> > > Hmm good point. We still need to specify which timer is a clocksource
+> > > and which one a clockevent somehow.
+> > > 
+> > > Maybe we could have a generic properties like the clock framework such as:
+> > > 
+> > > assigned-system-clocksource
+> > > assigned-system-clockevent
+> > 
+> > I think that will be the same problem :/
+> 
+> Seems like other SoCs have the same issue too with multiple timers
+> to configure.
+> 
+> > Is it possible to check the interrupt for the clockevent ? A timer node
+> > with the interrrupt is the clockevent, without it is a clocksource.
+> 
+> OK let's try that. So the configuration would become then:
+> 
+> compatible = "ti,dmtimer;	/* reserved for system timers */
+> /delete-property/interrupts;	/* ok so it's a clocksource */
+> /delete-property/interrupts-extended;
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/clk/ti/clk-7xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+That's not really what was meant.
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 146d1d67c732..bf8fced40e42 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -644,7 +644,7 @@ static const struct omap_clkctrl_reg_data dra7_l4sec_clkctrl_regs[] __initconst
- 	{ DRA7_L4SEC_AES1_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
- 	{ DRA7_L4SEC_AES2_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
- 	{ DRA7_L4SEC_DES_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
--	{ DRA7_L4SEC_RNG_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "" },
-+	{ DRA7_L4SEC_RNG_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "l4_root_clk_div" },
- 	{ DRA7_L4SEC_SHAM_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
- 	{ 0 },
- };
--- 
-2.17.1
+Let's say you have N timers. Either every timer is exactly the same and 
+the OS can just assign them however it wants or there is some difference 
+in the h/w making certain timer better for certain functions. Describe 
+that difference. It could be clock rate, number of counter bits, always 
+on, secure mode access only, has or doesn't have output compare or input 
+capture, etc.
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Rob
