@@ -2,92 +2,157 @@ Return-Path: <SRS0=CFzJ=6O=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49147C4724C
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:13:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52F5AC47247
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 15:31:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FAB22076D
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:13:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588255997;
-	bh=2S1FFwLlLxdFqit01Fd6EhlCpN6yg+s+wXPuB7KRNn4=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=pPAygdDmBuK9R7gDvN4X5qBVlJDzkDv3VwmRR2NJHIztPCc3N31WoetMB9u5cGk8y
-	 Ga/SphoTSQ+Iir/A27ddIGbSj25f7XqsjcGN6OEDMb4ZFohv+KEiseg2MNYz6IDenL
-	 YdJx3+nsr8W8+V6p/epFGXV/scXsoSMitBr2Hpjg=
+	by mail.kernel.org (Postfix) with ESMTP id 3765C2076D
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 15:31:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726781AbgD3Nuq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 30 Apr 2020 09:50:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58254 "EHLO mail.kernel.org"
+        id S1726781AbgD3PbY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 30 Apr 2020 11:31:24 -0400
+Received: from muru.com ([72.249.23.125]:52176 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726770AbgD3Nuq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 30 Apr 2020 09:50:46 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 195B920774;
-        Thu, 30 Apr 2020 13:50:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588254646;
-        bh=2S1FFwLlLxdFqit01Fd6EhlCpN6yg+s+wXPuB7KRNn4=;
-        h=From:To:Cc:Subject:Date:From;
-        b=kLhbRl26lw1Z/P+DYHCiDnSDJrSETSE+1xlBtTuhMPFMUcPsUttJSyjNp4zvO3Dng
-         oY1M20VK1P5RyPWWT7970wzG6X6fMfp0Us+Op47Cc0VpDzp0ZbLPHB8bVRiVNsTA0W
-         CNqA78hjG+XazcT9ZAFg/8ilgQv9h1JDvcvYawBk=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>,
-        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH AUTOSEL 5.6 01/79] ARM: dts: OMAP3: disable RNG on N950/N9
-Date:   Thu, 30 Apr 2020 09:49:25 -0400
-Message-Id: <20200430135043.19851-1-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
+        id S1726468AbgD3PbY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 30 Apr 2020 11:31:24 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 3B5B18123;
+        Thu, 30 Apr 2020 15:32:10 +0000 (UTC)
+Date:   Thu, 30 Apr 2020 08:31:19 -0700
+From:   Tony Lindgren <tony@atomide.com>
+To:     Rob Herring <robh@kernel.org>
+Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>,
+        Lokesh Vutla <lokeshvutla@ti.com>,
+        Tero Kristo <t-kristo@ti.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Adam Ford <aford173@gmail.com>,
+        Andreas Kemnade <andreas@kemnade.info>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Subject: Re: [PATCH 02/14] clocksource/drivers/timer-ti-dm: Add clockevent
+ and clocksource support
+Message-ID: <20200430153119.GX37466@atomide.com>
+References: <20200417165519.4979-1-tony@atomide.com>
+ <20200417165519.4979-3-tony@atomide.com>
+ <62be90e2-7dbe-410d-4171-c0ad0cddc7a3@linaro.org>
+ <20200427143144.GQ37466@atomide.com>
+ <29f39839-b3ed-cac3-1dea-c137286320b1@linaro.org>
+ <20200427152329.GR37466@atomide.com>
+ <20200430140040.GA8363@bogus>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200430140040.GA8363@bogus>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+* Rob Herring <robh@kernel.org> [200430 14:01]:
+> On Mon, Apr 27, 2020 at 08:23:29AM -0700, Tony Lindgren wrote:
+> > * Daniel Lezcano <daniel.lezcano@linaro.org> [200427 15:03]:
+> > > On 27/04/2020 16:31, Tony Lindgren wrote:
+> > > > Hi,
+> > > > 
+> > > > * Daniel Lezcano <daniel.lezcano@linaro.org> [200427 09:19]:
+> > > >> On 17/04/2020 18:55, Tony Lindgren wrote:
+> > > >>> --- a/Documentation/devicetree/bindings/timer/ti,timer.txt
+> > > >>> +++ b/Documentation/devicetree/bindings/timer/ti,timer.txt
+> > > >>> @@ -14,6 +14,8 @@ Required properties:
+> > > >>>  			ti,omap5430-timer (applicable to OMAP543x devices)
+> > > >>>  			ti,am335x-timer	(applicable to AM335x devices)
+> > > >>>  			ti,am335x-timer-1ms (applicable to AM335x devices)
+> > > >>> +			ti,dmtimer-clockevent (when used as for clockevent)
+> > > >>> +			ti,dmtimer-clocksource (when used as for clocksource)
+> > > >>
+> > > >> Please, submit a separate patch for this.
+> > > >>
+> > > >> Before you resend as is, this will be nacked as clocksource / clockevent
+> > > >> is not a hardware description but a Linux thing.
+> > > >>
+> > > >> Finding a way to characterize that from the DT is an endless discussion
+> > > >> since years, so I suggest to use a single property for the timer eg
+> > > >> <ti,dmtimer> and initialize the clocksource and the clockevent in the
+> > > >> driver.
+> > > > 
+> > > > Hmm good point. We still need to specify which timer is a clocksource
+> > > > and which one a clockevent somehow.
+> > > > 
+> > > > Maybe we could have a generic properties like the clock framework such as:
+> > > > 
+> > > > assigned-system-clocksource
+> > > > assigned-system-clockevent
+> > > 
+> > > I think that will be the same problem :/
+> > 
+> > Seems like other SoCs have the same issue too with multiple timers
+> > to configure.
+> > 
+> > > Is it possible to check the interrupt for the clockevent ? A timer node
+> > > with the interrrupt is the clockevent, without it is a clocksource.
+> > 
+> > OK let's try that. So the configuration would become then:
+> > 
+> > compatible = "ti,dmtimer;	/* reserved for system timers */
+> > /delete-property/interrupts;	/* ok so it's a clocksource */
+> > /delete-property/interrupts-extended;
+> 
+> That's not really what was meant.
 
-[ Upstream commit 07bdc492cff6f555538df95e9812fe72e16d154a ]
+OK, so let's figure out something better then.
 
-Like on N900, we cannot access RNG directly on N950/N9. Mark it disabled in
-the DTS to allow kernel to boot.
+> Let's say you have N timers. Either every timer is exactly the same and 
+> the OS can just assign them however it wants or there is some difference 
+> in the h/w making certain timer better for certain functions. Describe 
+> that difference. It could be clock rate, number of counter bits, always 
+> on, secure mode access only, has or doesn't have output compare or input 
+> capture, etc.
 
-Fixes: 308607e5545f ("ARM: dts: Configure omap3 rng")
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+Hmm. Trying to detect this automatically will get messy. For example,
+we have few omap3 boards with the following options that also need to
+consider if the separate 32KiHz counter is available:
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index a075b63f3087d..11d41e86f814d 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -341,6 +341,11 @@
- 	status = "disabled";
- };
- 
-+/* RNG not directly accessible on N950/N9. */
-+&rng_target {
-+	status = "disabled";
-+};
-+
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
--- 
-2.20.1
+1. The best case scenario
+
+ti,omap-counter32k clocksource
+ti,sysc-omap2-timer ti,timer-alwon clockevent (timer1)
+
+2. Boards relying on internal clock with unusable 32k counter
+
+ti,sysc-omap2-timer ti,timer-alwon clocksource (timer12)
+ti,sysc-omap2-timer clockevent (typically gpt2)
+
+In the second case, the 32k counter is unusable, and timer1
+is unusable with the external 32k always on clock. But timer1
+can be used with the system clock just fine for other purposes.
+So ideally we would not tag timer1 as disabled :)
+
+For the second case, we could remove ti,timer-alwon property
+for timer1, and tag the 32k counter as disabled as the source
+clock is unreliable. Then somewhere in the code we would need
+to check if ti,omap-counter32k is availabe, then check if
+timer1 is always-on, then use timer12 if not a secure device
+like n900.
+
+If the board wants to use the system clock as the source for
+a higher resolution with assigned-clock-parents, then we'd need
+to ignore the always-on property and not use the 32k counter as
+the clocksource. Basically to somehow figure out that a higher
+resolution configuration is preferred over a
+low-power configuration.
+
+So what's your take on just adding the generic properties for
+assigned-system-clocksource and clockevent?
+
+Regards,
+
+Tony
 
