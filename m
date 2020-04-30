@@ -2,26 +2,26 @@ Return-Path: <SRS0=CFzJ=6O=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28909C47254
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 17:46:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2DA9C47247
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 17:46:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A4E320836
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 17:46:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A659520873
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 17:46:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726635AbgD3RqZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 30 Apr 2020 13:46:25 -0400
-Received: from muru.com ([72.249.23.125]:52274 "EHLO muru.com"
+        id S1726841AbgD3Rqf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 30 Apr 2020 13:46:35 -0400
+Received: from muru.com ([72.249.23.125]:52338 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726272AbgD3RqY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 30 Apr 2020 13:46:24 -0400
+        id S1726812AbgD3Rqe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 30 Apr 2020 13:46:34 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id F14B28139;
-        Thu, 30 Apr 2020 17:47:08 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 0E2F18139;
+        Thu, 30 Apr 2020 17:47:19 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Johan Hovold <johan@kernel.org>, Rob Herring <robh@kernel.org>
@@ -33,9 +33,9 @@ Cc:     Alan Cox <gnomes@lxorguk.ukuu.org.uk>,
         Sebastian Reichel <sre@kernel.org>,
         linux-serial@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH 1/6] tty: n_gsm: Add support for serdev drivers
-Date:   Thu, 30 Apr 2020 10:46:10 -0700
-Message-Id: <20200430174615.41185-2-tony@atomide.com>
+Subject: [PATCH 5/6] gnss: motmdm: Add support for Motorola Mapphone MDM6600 modem
+Date:   Thu, 30 Apr 2020 10:46:14 -0700
+Message-Id: <20200430174615.41185-6-tony@atomide.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200430174615.41185-1-tony@atomide.com>
 References: <20200430174615.41185-1-tony@atomide.com>
@@ -46,649 +46,482 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can make use of serdev drivers to do simple device drivers for
-TS 27.010 chanels, and we can handle vendor specific protocols on top
-of TS 27.010 with serdev drivers.
+Motorola is using a custom TS 27.010 based serial port line discipline
+for various devices on the modem. These devices can be accessed on
+dedicated channels using Linux kernel serdev-ngsm driver.
 
-So far this has been tested with Motorola droid4 where there is a custom
-packet numbering protocol on top of TS 27.010 for the MDM6600 modem.
+For the GNSS on these devices, we need to kick the GNSS device at a
+desired rate. Otherwise the GNSS device stops sending data after a
+few minutes. The rate we poll data defaults to 1000 ms, and can be
+specified with a module option rate_ms between 1 to 16 seconds.
 
-I initially though about adding the serdev support into a separate file,
-but that will take some refactoring of n_gsm.c. And I'd like to have
-things working first. Then later on we might want to consider splitting
-n_gsm.c into three pieces for core, tty and serdev parts. And then maybe
-the serdev related parts can be just moved to live under something like
-drivers/tty/serdev/protocol/ngsm.c.
+Note that AGPS with xtra2.bin is not yet supported, so getting a fix
+can take quite a while. And a recent gpsd is needed to parse the
+$GNGNS output, and to properly handle the /dev/gnss0 character device.
+I've confirmed it works properly with gpsd-3.20.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/tty/n_gsm.c        | 428 +++++++++++++++++++++++++++++++++++++
- include/linux/serdev-gsm.h | 152 +++++++++++++
- 2 files changed, 580 insertions(+)
- create mode 100644 include/linux/serdev-gsm.h
+ drivers/gnss/Kconfig  |   8 +
+ drivers/gnss/Makefile |   3 +
+ drivers/gnss/motmdm.c | 419 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 430 insertions(+)
+ create mode 100644 drivers/gnss/motmdm.c
 
-diff --git a/drivers/tty/n_gsm.c b/drivers/tty/n_gsm.c
---- a/drivers/tty/n_gsm.c
-+++ b/drivers/tty/n_gsm.c
-@@ -39,6 +39,7 @@
- #include <linux/file.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-+#include <linux/serdev.h>
- #include <linux/timer.h>
- #include <linux/tty_flip.h>
- #include <linux/tty_driver.h>
-@@ -50,6 +51,7 @@
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
- #include <linux/gsmmux.h>
-+#include <linux/serdev-gsm.h>
+diff --git a/drivers/gnss/Kconfig b/drivers/gnss/Kconfig
+--- a/drivers/gnss/Kconfig
++++ b/drivers/gnss/Kconfig
+@@ -13,6 +13,14 @@ menuconfig GNSS
  
- static int debug;
- module_param(debug, int, 0600);
-@@ -150,6 +152,7 @@ struct gsm_dlci {
- 	/* Data handling callback */
- 	void (*data)(struct gsm_dlci *dlci, const u8 *data, int len);
- 	void (*prev_data)(struct gsm_dlci *dlci, const u8 *data, int len);
-+	struct gsm_serdev_dlci *ops; /* serdev dlci ops, if used */
- 	struct net_device *net; /* network interface, if created */
- };
+ if GNSS
  
-@@ -198,6 +201,7 @@ enum gsm_mux_state {
-  */
- 
- struct gsm_mux {
-+	struct gsm_serdev *gsd;		/* Serial device bus data */
- 	struct tty_struct *tty;		/* The tty our ldisc is bound to */
- 	spinlock_t lock;
- 	struct mutex mutex;
-@@ -2346,6 +2350,430 @@ static int gsm_config(struct gsm_mux *gsm, struct gsm_config *c)
- 	return 0;
- }
- 
-+#ifdef CONFIG_SERIAL_DEV_BUS
++config GNSS_MOTMDM
++	tristate "Motorola Modem TS 27.010 serdev GNSS receiver support"
++	depends on SERIAL_DEV_N_GSM
++	---help---
++	  Say Y here if you have a Motorola modem using TS 27.010 line
++	  discipline for GNSS such as a Motorola Mapphone series device
++	  like Droid 4.
 +
-+/**
-+ * gsm_serdev_get_config - read ts 27.010 config
-+ * @gsd:	serdev-gsm instance
-+ * @c:		ts 27.010 config data
+ config GNSS_SERIAL
+ 	tristate
+ 
+diff --git a/drivers/gnss/Makefile b/drivers/gnss/Makefile
+--- a/drivers/gnss/Makefile
++++ b/drivers/gnss/Makefile
+@@ -6,6 +6,9 @@
+ obj-$(CONFIG_GNSS)			+= gnss.o
+ gnss-y := core.o
+ 
++obj-$(CONFIG_GNSS_MOTMDM)		+= gnss-motmdm.o
++gnss-motmdm-y := motmdm.o
++
+ obj-$(CONFIG_GNSS_SERIAL)		+= gnss-serial.o
+ gnss-serial-y := serial.o
+ 
+diff --git a/drivers/gnss/motmdm.c b/drivers/gnss/motmdm.c
+new file mode 100644
+--- /dev/null
++++ b/drivers/gnss/motmdm.c
+@@ -0,0 +1,419 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Motorola Modem TS 27.010 serdev GNSS driver
 + *
-+ * See gsm_copy_config_values() for more information.
++ * Copyright (C) 2018 - 2020 Tony Lindgren <tony@atomide.com>
++ *
++ * Based on drivers/gnss/sirf.c driver example:
++ * Copyright (C) 2018 Johan Hovold <johan@kernel.org>
 + */
-+int gsm_serdev_get_config(struct gsm_serdev *gsd, struct gsm_config *c)
++
++#include <linux/errno.h>
++#include <linux/gnss.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/serdev-gsm.h>
++#include <linux/slab.h>
++
++#define MOTMDM_GNSS_TIMEOUT	1000
++#define MOTMDM_GNSS_RATE	1000
++
++/*
++ * Motorola MDM GNSS device communicates over a dedicated TS 27.010 channel
++ * using custom data packets. The packets look like AT commands embedded into
++ * a Motorola invented packet using format like "U1234AT+MPDSTART=0,1,100,0".
++ * But it's not an AT compatible serial interface, it's a packet interface
++ * using AT like commands.
++ */
++#define MOTMDM_GNSS_HEADER_LEN	5				/* U1234 */
++#define MOTMDM_GNSS_RESP_LEN	(MOTMDM_GNSS_HEADER_LEN + 4)	/* U1234+MPD */
++#define MOTMDM_GNSS_DATA_LEN	(MOTMDM_GNSS_RESP_LEN + 1)	/* U1234~+MPD */
++#define MOTMDM_GNSS_STATUS_LEN	(MOTMDM_GNSS_DATA_LEN + 7)	/* STATUS= */
++#define MOTMDM_GNSS_NMEA_LEN	(MOTMDM_GNSS_DATA_LEN + 8)	/* NMEA=NN, */
++
++enum motmdm_gnss_status {
++	MOTMDM_GNSS_UNKNOWN,
++	MOTMDM_GNSS_INITIALIZED,
++	MOTMDM_GNSS_DATA_OR_TIMEOUT,
++	MOTMDM_GNSS_STARTED,
++	MOTMDM_GNSS_STOPPED,
++};
++
++struct motmdm_gnss_data {
++	struct gnss_device *gdev;
++	struct device *modem;
++	struct gsm_serdev_dlci dlci;
++	struct delayed_work restart_work;
++	struct mutex mutex;	/* For modem commands */
++	ktime_t last_update;
++	int status;
++	unsigned char *buf;
++	size_t len;
++	wait_queue_head_t read_queue;
++	unsigned int parsed:1;
++};
++
++static unsigned int rate_ms = MOTMDM_GNSS_RATE;
++module_param(rate_ms, uint, 0644);
++MODULE_PARM_DESC(rate_ms, "GNSS refresh rate between 1000 and 16000 ms (default 1000 ms)");
++
++/*
++ * Note that multiple commands can be sent in series with responses coming
++ * out-of-order. For GNSS, we don't need to care about the out-of-order
++ * responses, and can assume we have at most one command active at a time.
++ * For the commands, can use just a jiffies base packet ID and let the modem
++ * sort out the ID conflicts with the modem's unsolicited message ID
++ * numbering.
++ */
++int motmdm_gnss_send_command(struct motmdm_gnss_data *ddata,
++			     const u8 *buf, int len)
 +{
-+	struct gsm_mux *gsm;
++	struct gnss_device *gdev = ddata->gdev;
++	const int timeout_ms = 1000;
++	unsigned char cmd[128];
++	int ret, cmdlen;
 +
-+	if (!gsd || !gsd->gsm)
-+		return -ENODEV;
-+
-+	gsm = gsd->gsm;
-+
-+	if (!c)
++	cmdlen = len + 5 + 1;
++	if (cmdlen > 128)
 +		return -EINVAL;
 +
-+	gsm_copy_config_values(gsm, c);
++	mutex_lock(&ddata->mutex);
++	memset(ddata->buf, 0, ddata->len);
++	ddata->parsed = false;
++	snprintf(cmd, cmdlen, "U%04li%s", jiffies % 10000, buf);
++	ret = serdev_ngsm_write(ddata->modem, &ddata->dlci, cmd, cmdlen);
++	if (ret < 0)
++		goto out_unlock;
++
++	ret = wait_event_timeout(ddata->read_queue, ddata->parsed,
++				 msecs_to_jiffies(timeout_ms));
++	if (ret == 0) {
++		ret = -ETIMEDOUT;
++		goto out_unlock;
++	} else if (ret < 0) {
++		goto out_unlock;
++	}
++
++	if (!strstr(ddata->buf, ":OK")) {
++		dev_err(&gdev->dev, "command %s error %s\n",
++			cmd, ddata->buf);
++		ret = -EPIPE;
++	}
++
++	ret = len;
++
++out_unlock:
++	mutex_unlock(&ddata->mutex);
++
++	return ret;
++}
++
++/*
++ * Android uses AT+MPDSTART=0,1,100,0 which starts GNSS for a while,
++ * and then GNSS needs to be kicked with an AT command based on a
++ * status message.
++ */
++static void motmdm_gnss_restart(struct work_struct *work)
++{
++	struct motmdm_gnss_data *ddata =
++		container_of(work, struct motmdm_gnss_data,
++			     restart_work.work);
++	struct gnss_device *gdev = ddata->gdev;
++	const unsigned char *cmd = "AT+MPDSTART=0,1,100,0";
++	int error;
++
++	ddata->last_update = ktime_get();
++
++	error = motmdm_gnss_send_command(ddata, cmd, strlen(cmd));
++	if (error < 0) {
++		/* Timeouts can happen, don't warn and try again */
++		if (error != -ETIMEDOUT)
++			dev_warn(&gdev->dev, "%s: could not start: %i\n",
++				 __func__, error);
++
++		schedule_delayed_work(&ddata->restart_work,
++				      msecs_to_jiffies(MOTMDM_GNSS_RATE));
++
++		return;
++	}
++}
++
++static void motmdm_gnss_start(struct gnss_device *gdev, int delay_ms)
++{
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
++	ktime_t now, next, delta;
++	int next_ms;
++
++	now = ktime_get();
++	next = ktime_add_ms(ddata->last_update, delay_ms);
++	delta = ktime_sub(next, now);
++	next_ms = ktime_to_ms(delta);
++
++	if (next_ms < 0)
++		next_ms = 0;
++	if (next_ms > delay_ms)
++		next_ms = delay_ms;
++
++	schedule_delayed_work(&ddata->restart_work, msecs_to_jiffies(next_ms));
++}
++
++static int motmdm_gnss_stop(struct gnss_device *gdev)
++{
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
++	const unsigned char *cmd = "AT+MPDSTOP";
++
++	cancel_delayed_work_sync(&ddata->restart_work);
++
++	return motmdm_gnss_send_command(ddata, cmd, strlen(cmd));
++}
++
++static int motmdm_gnss_init(struct gnss_device *gdev)
++{
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
++	const unsigned char *cmd = "AT+MPDINIT=1";
++	int error;
++
++	error = motmdm_gnss_send_command(ddata, cmd, strlen(cmd));
++	if (error < 0)
++		return error;
++
++	motmdm_gnss_start(gdev, 0);
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(gsm_serdev_get_config);
 +
-+/**
-+ * gsm_serdev_set_config - set ts 27.010 config
-+ * @gsd:	serdev-gsm instance
-+ * @c:		ts 27.010 config data
-+ *
-+ * See gsm_config() for more information.
-+ */
-+int gsm_serdev_set_config(struct gsm_serdev *gsd, struct gsm_config *c)
++static int motmdm_gnss_finish(struct gnss_device *gdev)
 +{
-+	struct gsm_mux *gsm;
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
++	const unsigned char *cmd = "AT+MPDINIT=0";
++	int error;
 +
-+	if (!gsd || !gsd->serdev || !gsd->gsm)
-+		return -ENODEV;
++	error = motmdm_gnss_stop(gdev);
++	if (error < 0)
++		return error;
 +
-+	gsm = gsd->gsm;
-+
-+	if (!c)
-+		return -EINVAL;
-+
-+	return gsm_config(gsm, c);
-+}
-+EXPORT_SYMBOL_GPL(gsm_serdev_set_config);
-+
-+static struct gsm_dlci *gsd_dlci_get(struct gsm_serdev *gsd, int line,
-+				     bool allocate)
-+{
-+	struct gsm_mux *gsm;
-+	struct gsm_dlci *dlci;
-+
-+	if (!gsd || !gsd->gsm)
-+		return ERR_PTR(-ENODEV);
-+
-+	gsm = gsd->gsm;
-+
-+	if (line < 1 || line >= 63)
-+		return ERR_PTR(-EINVAL);
-+
-+	mutex_lock(&gsm->mutex);
-+
-+	if (gsm->dlci[line]) {
-+		dlci = gsm->dlci[line];
-+		goto unlock;
-+	} else if (!allocate) {
-+		dlci = ERR_PTR(-ENODEV);
-+		goto unlock;
-+	}
-+
-+	dlci = gsm_dlci_alloc(gsm, line);
-+	if (!dlci) {
-+		gsm = ERR_PTR(-ENOMEM);
-+		goto unlock;
-+	}
-+
-+	gsm->dlci[line] = dlci;
-+
-+unlock:
-+	mutex_unlock(&gsm->mutex);
-+
-+	return dlci;
++	return motmdm_gnss_send_command(ddata, cmd, strlen(cmd));
 +}
 +
-+static int gsd_dlci_receive_buf(struct gsm_dlci *dlci,
-+				const unsigned char *buf,
-+				size_t len)
++static int motmdm_gnss_receive_data(struct gsm_serdev_dlci *dlci,
++				    const unsigned char *buf,
++				    size_t len)
 +{
-+	struct tty_port *port;
++	struct gnss_device *gdev = dlci->drvdata;
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
++	const unsigned char *msg;
++	size_t msglen;
++	int error = 0;
 +
-+	port = &dlci->port;
-+	tty_insert_flip_string(port, buf, len);
-+	tty_flip_buffer_push(port);
++	if (len <= MOTMDM_GNSS_RESP_LEN)
++		return 0;
++
++	/* Handle U1234+MPD style command response */
++	if (buf[MOTMDM_GNSS_HEADER_LEN] != '~') {
++		msg = buf + MOTMDM_GNSS_RESP_LEN;
++		strncpy(ddata->buf, msg, len - MOTMDM_GNSS_RESP_LEN);
++		ddata->parsed = true;
++		wake_up(&ddata->read_queue);
++
++		return len;
++	}
++
++	if (len <= MOTMDM_GNSS_DATA_LEN)
++		return 0;
++
++	/* Handle U1234~+MPD style unsolicted message */
++	switch (buf[MOTMDM_GNSS_DATA_LEN]) {
++	case 'N':	/* UNNNN~+MPDNMEA=NN, */
++		msg = buf + MOTMDM_GNSS_NMEA_LEN;
++		msglen = len - MOTMDM_GNSS_NMEA_LEN;
++
++		/*
++		 * Firmware bug: Strip out extra duplicate line break always
++		 * in the data
++		 */
++		msglen--;
++
++		/*
++		 * Firmware bug: Strip out extra data based on an
++		 * earlier line break in the data
++		 */
++		if (msg[msglen - 5 - 1] == 0x0a)
++			msglen -= 5;
++
++		error = gnss_insert_raw(gdev, msg, msglen);
++		break;
++	case 'S':	/* UNNNN~+MPDSTATUS=N,NN */
++		msg = buf + MOTMDM_GNSS_STATUS_LEN;
++		msglen = len - MOTMDM_GNSS_STATUS_LEN;
++
++		switch (msg[0]) {
++		case '1':
++			ddata->status = MOTMDM_GNSS_INITIALIZED;
++			break;
++		case '2':
++			ddata->status = MOTMDM_GNSS_DATA_OR_TIMEOUT;
++			if (rate_ms < MOTMDM_GNSS_RATE)
++				rate_ms = MOTMDM_GNSS_RATE;
++			if (rate_ms > 16 * MOTMDM_GNSS_RATE)
++				rate_ms = 16 * MOTMDM_GNSS_RATE;
++			motmdm_gnss_start(gdev, rate_ms);
++			break;
++		case '3':
++			ddata->status = MOTMDM_GNSS_STARTED;
++			break;
++		case '4':
++			ddata->status = MOTMDM_GNSS_STOPPED;
++			break;
++		default:
++			ddata->status = MOTMDM_GNSS_UNKNOWN;
++			break;
++		}
++		break;
++	case 'X':	/* UNNNN~+MPDXREQ=N for updated xtra2.bin needed */
++	default:
++		break;
++	}
 +
 +	return len;
 +}
 +
-+static void gsd_dlci_data(struct gsm_dlci *dlci, const u8 *buf, int len)
++static int motmdm_gnss_open(struct gnss_device *gdev)
 +{
-+	struct gsm_mux *gsm = dlci->gsm;
-+	struct gsm_serdev *gsd = gsm->gsd;
-+
-+	if (!gsd || !dlci->ops)
-+		return;
-+
-+	switch (dlci->adaption) {
-+	case 0:
-+	case 1:
-+		if (dlci->ops->receive_buf)
-+			dlci->ops->receive_buf(dlci->ops, buf, len);
-+		else
-+			gsd_dlci_receive_buf(dlci, buf, len);
-+		break;
-+	default:
-+		pr_warn("dlci%i adaption %i not yet implemented\n",
-+			dlci->addr, dlci->adaption);
-+		break;
-+	}
-+}
-+
-+/**
-+ * gsm_serdev_write - write data to a ts 27.010 channel
-+ * @gsd:	serdev-gsm instance
-+ * @ops:	channel ops
-+ * @buf:	write buffer
-+ * @len:	buffer length
-+ */
-+int gsm_serdev_write(struct gsm_serdev *gsd, struct gsm_serdev_dlci *ops,
-+		     const u8 *buf, int len)
-+{
-+	struct gsm_mux *gsm;
-+	struct gsm_dlci *dlci;
-+	struct gsm_msg *msg;
-+	int h, size, total_size = 0;
-+	u8 *dp;
-+
-+	if (!gsd || !gsd->gsm)
-+		return -ENODEV;
-+
-+	gsm = gsd->gsm;
-+
-+	dlci = gsd_dlci_get(gsd, ops->line, false);
-+	if (IS_ERR(dlci))
-+		return PTR_ERR(dlci);
-+
-+	h = dlci->adaption - 1;
-+
-+	if (len > gsm->mtu)
-+		len = gsm->mtu;
-+
-+	size = len + h;
-+
-+	msg = gsm_data_alloc(gsm, dlci->addr, size, gsm->ftype);
-+	if (!msg)
-+		return -ENOMEM;
-+
-+	dp = msg->data;
-+	switch (dlci->adaption) {
-+	case 1:
-+		break;
-+	case 2:
-+		*dp++ = gsm_encode_modem(dlci);
-+		break;
-+	}
-+	memcpy(dp, buf, len);
-+	gsm_data_queue(dlci, msg);
-+	total_size += size;
-+
-+	return total_size;
-+}
-+EXPORT_SYMBOL_GPL(gsm_serdev_write);
-+
-+/**
-+ * gsm_serdev_data_kick - indicate more data can be transmitted
-+ * @gsd:	serdev-gsm instance
-+ *
-+ * See gsm_data_kick() for more information.
-+ */
-+void gsm_serdev_data_kick(struct gsm_serdev *gsd)
-+{
-+	struct gsm_mux *gsm;
-+	unsigned long flags;
-+
-+	if (!gsd || !gsd->gsm)
-+		return;
-+
-+	gsm = gsd->gsm;
-+
-+	spin_lock_irqsave(&gsm->tx_lock, flags);
-+	gsm_data_kick(gsm);
-+	spin_unlock_irqrestore(&gsm->tx_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(gsm_serdev_data_kick);
-+
-+/**
-+ * gsm_serdev_register_dlci - register a ts 27.010 channel
-+ * @gsd:	serdev-gsm instance
-+ * @ops:	channel ops
-+ */
-+int gsm_serdev_register_dlci(struct gsm_serdev *gsd,
-+			     struct gsm_serdev_dlci *ops)
-+{
-+	struct gsm_dlci *dlci;
-+	struct gsm_mux *gsm;
-+	int retries;
-+
-+	if (!gsd || !gsd->gsm || !gsd->serdev)
-+		return -ENODEV;
-+
-+	gsm = gsd->gsm;
-+
-+	if (!ops || !ops->line)
-+		return -EINVAL;
-+
-+	dlci = gsd_dlci_get(gsd, ops->line, true);
-+	if (IS_ERR(dlci))
-+		return PTR_ERR(dlci);
-+
-+	if (dlci->state == DLCI_OPENING || dlci->state == DLCI_OPEN ||
-+	    dlci->state == DLCI_CLOSING)
-+		return -EBUSY;
-+
-+	mutex_lock(&dlci->mutex);
-+	dlci->ops = ops;
-+	dlci->modem_rx = 0;
-+	dlci->prev_data = dlci->data;
-+	dlci->data = gsd_dlci_data;
-+	mutex_unlock(&dlci->mutex);
-+
-+	gsm_dlci_begin_open(dlci);
-+
-+	/*
-+	 * Allow some time for dlci to move to DLCI_OPEN state. Otherwise
-+	 * the serdev consumer driver can start sending data too early during
-+	 * the setup, and the response will be missed by gms_queue() if we
-+	 * still have DLCI_CLOSED state.
-+	 */
-+	for (retries = 10; retries > 0; retries--) {
-+		if (dlci->state == DLCI_OPEN)
-+			break;
-+		msleep(100);
-+	}
-+
-+	if (!retries)
-+		dev_dbg(&gsd->serdev->dev, "dlci%i not currently active\n",
-+			dlci->addr);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(gsm_serdev_register_dlci);
-+
-+/**
-+ * gsm_serdev_unregister_dlci - unregister a ts 27.010 channel
-+ * @gsd:	serdev-gsm instance
-+ * @ops:	channel ops
-+ */
-+void gsm_serdev_unregister_dlci(struct gsm_serdev *gsd,
-+				struct gsm_serdev_dlci *ops)
-+{
-+	struct gsm_mux *gsm;
-+	struct gsm_dlci *dlci;
-+
-+	if (!gsd || !gsd->gsm || !gsd->serdev)
-+		return;
-+
-+	gsm = gsd->gsm;
-+
-+	if (!ops || !ops->line)
-+		return;
-+
-+	dlci = gsd_dlci_get(gsd, ops->line, false);
-+	if (IS_ERR(dlci))
-+		return;
-+
-+	mutex_lock(&dlci->mutex);
-+	gsm_destroy_network(dlci);
-+	dlci->data = dlci->prev_data;
-+	dlci->ops = NULL;
-+	mutex_unlock(&dlci->mutex);
-+
-+	gsm_dlci_begin_close(dlci);
-+}
-+EXPORT_SYMBOL_GPL(gsm_serdev_unregister_dlci);
-+
-+static int gsm_serdev_output(struct gsm_mux *gsm, u8 *data, int len)
-+{
-+	struct serdev_device *serdev = gsm->gsd->serdev;
-+
-+	if (gsm->gsd->output)
-+		return gsm->gsd->output(gsm->gsd, data, len);
-+	else
-+		return serdev_device_write_buf(serdev, data, len);
-+}
-+
-+static int gsd_receive_buf(struct serdev_device *serdev, const u8 *data,
-+			   size_t count)
-+{
-+	struct gsm_serdev *gsd = serdev_device_get_drvdata(serdev);
-+	struct gsm_mux *gsm;
-+	const unsigned char *dp;
-+	int i;
-+
-+	if (WARN_ON(!gsd))
-+		return 0;
-+
-+	gsm = gsd->gsm;
-+
-+	if (debug & 4)
-+		print_hex_dump_bytes("gsd_receive_buf: ",
-+				     DUMP_PREFIX_OFFSET,
-+				     data, count);
-+
-+	for (i = count, dp = data; i; i--, dp++)
-+		gsm->receive(gsm, *dp);
-+
-+	return count;
-+}
-+
-+static void gsd_write_wakeup(struct serdev_device *serdev)
-+{
-+	serdev_device_write_wakeup(serdev);
-+}
-+
-+static struct serdev_device_ops gsd_client_ops = {
-+	.receive_buf = gsd_receive_buf,
-+	.write_wakeup = gsd_write_wakeup,
-+};
-+
-+int gsm_serdev_register_tty_port(struct gsm_serdev *gsd, int line)
-+{
-+	struct gsm_serdev_dlci *ops;
-+	unsigned int base;
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
++	struct gsm_serdev_dlci *dlci = &ddata->dlci;
 +	int error;
 +
-+	if (line < 1)
-+		return -EINVAL;
++	dlci->drvdata = gdev;
++	dlci->receive_buf = motmdm_gnss_receive_data;
 +
-+	ops = kzalloc(sizeof(*ops), GFP_KERNEL);
-+	if (!ops)
-+		return -ENOMEM;
-+
-+	ops->line = line;
-+
-+	error = gsm_serdev_register_dlci(gsd, ops);
-+	if (error) {
-+		kfree(ops);
-+
++	error = serdev_ngsm_register_dlci(ddata->modem, dlci);
++	if (error)
 +		return error;
-+	}
 +
-+	base = mux_num_to_base(gsd->gsm);
-+	tty_register_device(gsm_tty_driver, base + ops->line, NULL);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(gsm_serdev_register_tty_port);
-+
-+void gsm_serdev_unregister_tty_port(struct gsm_serdev *gsd, int line)
-+{
-+	struct gsm_dlci *dlci;
-+	unsigned int base;
-+
-+	if (line < 1)
-+		return;
-+
-+	dlci = gsd_dlci_get(gsd, line, false);
-+	if (IS_ERR(dlci))
-+		return;
-+
-+	base = mux_num_to_base(gsd->gsm);
-+	tty_unregister_device(gsm_tty_driver, base + line);
-+	gsm_serdev_unregister_dlci(gsd, dlci->ops);
-+	kfree(dlci->ops);
-+}
-+EXPORT_SYMBOL_GPL(gsm_serdev_unregister_tty_port);
-+
-+int gsm_serdev_register_device(struct gsm_serdev *gsd)
-+{
-+	struct gsm_mux *gsm;
-+	int error;
-+
-+	if (WARN(!gsd || !gsd->serdev || !gsd->output,
-+		 "serdev and output must be initialized\n"))
-+		return -EINVAL;
-+
-+	serdev_device_set_client_ops(gsd->serdev, &gsd_client_ops);
-+
-+	gsm = gsm_alloc_mux();
-+	if (!gsm)
-+		return -ENOMEM;
-+
-+	gsm->encoding = 1;
-+	gsm->tty = NULL;
-+	gsm->gsd = gsd;
-+	gsm->output = gsm_serdev_output;
-+	gsd->gsm = gsm;
-+	mux_get(gsd->gsm);
-+
-+	error = gsm_activate_mux(gsd->gsm);
++	error = motmdm_gnss_init(gdev);
 +	if (error) {
-+		gsm_cleanup_mux(gsd->gsm);
-+		mux_put(gsd->gsm);
++		serdev_ngsm_unregister_dlci(ddata->modem, dlci);
 +
 +		return error;
 +	}
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(gsm_serdev_register_device);
 +
-+void gsm_serdev_unregister_device(struct gsm_serdev *gsd)
++static void motmdm_gnss_close(struct gnss_device *gdev)
 +{
-+	gsm_cleanup_mux(gsd->gsm);
-+	mux_put(gsd->gsm);
-+	gsd->gsm = NULL;
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
++	struct gsm_serdev_dlci *dlci = &ddata->dlci;
++	int error;
++
++	dlci->receive_buf = NULL;
++	error = motmdm_gnss_finish(gdev);
++	if (error < 0)
++		dev_warn(&gdev->dev, "%s: close failed: %i\n",
++			 __func__, error);
++
++	serdev_ngsm_unregister_dlci(ddata->modem, dlci);
 +}
-+EXPORT_SYMBOL_GPL(gsm_serdev_unregister_device);
 +
-+#endif	/* CONFIG_SERIAL_DEV_BUS */
++static int motmdm_gnss_write_raw(struct gnss_device *gdev,
++				 const unsigned char *buf,
++				 size_t count)
++{
++	struct motmdm_gnss_data *ddata = gnss_get_drvdata(gdev);
 +
- /**
-  *	gsmld_output		-	write to link
-  *	@gsm: our mux
-diff --git a/include/linux/serdev-gsm.h b/include/linux/serdev-gsm.h
-new file mode 100644
---- /dev/null
-+++ b/include/linux/serdev-gsm.h
-@@ -0,0 +1,152 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
++	return serdev_ngsm_write(ddata->modem, &ddata->dlci, buf, count);
++}
 +
-+#ifndef _LINUX_SERDEV_GSM_H
-+#define _LINUX_SERDEV_GSM_H
-+
-+#include <linux/device.h>
-+#include <linux/serdev.h>
-+#include <linux/types.h>
-+
-+struct gsm_serdev_dlci;
-+struct gsm_config;
-+
-+/**
-+ * struct gsm_serdev - serdev-gsm instance
-+ * @serdev:		serdev instance
-+ * @gsm:		ts 27.010 n_gsm instance
-+ * @drvdata:		serdev-gsm consumer driver data
-+ * @output:		read data from ts 27.010 channel
-+ *
-+ * Currently only serdev and output must be initialized, the rest are
-+ * are initialized by gsm_serdev_register_dlci().
-+ */
-+struct gsm_serdev {
-+	struct serdev_device *serdev;
-+	struct gsm_mux *gsm;
-+	void *drvdata;
-+	int (*output)(struct gsm_serdev *gsd, u8 *data, int len);
++static const struct gnss_operations motmdm_gnss_ops = {
++	.open		= motmdm_gnss_open,
++	.close		= motmdm_gnss_close,
++	.write_raw	= motmdm_gnss_write_raw,
 +};
 +
-+/**
-+ * struct gsm_serdev_dlci - serdev-gsm ts 27.010 channel data
-+ * @line:		ts 27.010 channel, control channel 0 is not available
-+ * @receive_buf:	function to handle data received for the channel
-+ * @drvdata:		dlci specific consumer driver data
-+ */
-+struct gsm_serdev_dlci {
-+	int line;
-+	int (*receive_buf)(struct gsm_serdev_dlci *ops,
-+			   const unsigned char *buf,
-+			   size_t len);
-+	void *drvdata;
++static int motmdm_gnss_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct motmdm_gnss_data *ddata;
++	struct gnss_device *gdev;
++	u32 line;
++	int ret;
++
++	ddata = devm_kzalloc(dev, sizeof(*ddata), GFP_KERNEL);
++	if (!ddata)
++		return -ENOMEM;
++
++	ret = of_property_read_u32(dev->of_node, "reg", &line);
++	if (ret)
++		return ret;
++
++	if (!line)
++		return -EINVAL;
++
++	ddata->dlci.line = line;
++	ddata->modem = dev->parent;
++	ddata->len = PAGE_SIZE;
++	mutex_init(&ddata->mutex);
++	INIT_DELAYED_WORK(&ddata->restart_work, motmdm_gnss_restart);
++	init_waitqueue_head(&ddata->read_queue);
++
++	ddata->buf = devm_kzalloc(dev, ddata->len, GFP_KERNEL);
++	if (!ddata->buf)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, ddata);
++
++	gdev = gnss_allocate_device(dev);
++	if (!gdev)
++		return -ENOMEM;
++
++	gdev->type = GNSS_TYPE_NMEA;
++	gdev->ops = &motmdm_gnss_ops;
++	gnss_set_drvdata(gdev, ddata);
++	ddata->gdev = gdev;
++
++	ret = gnss_register_device(gdev);
++	if (ret)
++		goto err_put_device;
++
++	return 0;
++
++err_put_device:
++	gnss_put_device(ddata->gdev);
++
++	return ret;
++}
++
++static int motmdm_gnss_remove(struct platform_device *pdev)
++{
++	struct motmdm_gnss_data *data = platform_get_drvdata(pdev);
++
++	gnss_deregister_device(data->gdev);
++	gnss_put_device(data->gdev);
++
++	return 0;
 +};
 +
-+#if IS_ENABLED(CONFIG_N_GSM) && IS_ENABLED(CONFIG_SERIAL_DEV_BUS)
++#ifdef CONFIG_OF
++static const struct of_device_id motmdm_gnss_of_match[] = {
++	{ .compatible = "motorola,mapphone-mdm6600-gnss" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, motmdm_gnss_of_match);
++#endif
 +
-+extern int gsm_serdev_register_device(struct gsm_serdev *gsd);
-+extern void gsm_serdev_unregister_device(struct gsm_serdev *gsd);
-+extern int gsm_serdev_register_tty_port(struct gsm_serdev *gsd, int line);
-+extern void gsm_serdev_unregister_tty_port(struct gsm_serdev *gsd, int line);
++static struct platform_driver motmdm_gnss_driver = {
++	.driver	= {
++		.name		= "gnss-mot-mdm6600",
++		.of_match_table	= of_match_ptr(motmdm_gnss_of_match),
++	},
++	.probe	= motmdm_gnss_probe,
++	.remove	= motmdm_gnss_remove,
++};
++module_platform_driver(motmdm_gnss_driver);
 +
-+static inline void *gsm_serdev_get_drvdata(struct device *dev)
-+{
-+	struct serdev_device *serdev = to_serdev_device(dev);
-+	struct gsm_serdev *gsd = serdev_device_get_drvdata(serdev);
-+
-+	if (gsd)
-+		return gsd->drvdata;
-+
-+	return NULL;
-+}
-+
-+static inline void gsm_serdev_set_drvdata(struct device *dev, void *drvdata)
-+{
-+	struct serdev_device *serdev = to_serdev_device(dev);
-+	struct gsm_serdev *gsd = serdev_device_get_drvdata(serdev);
-+
-+	if (gsd)
-+		gsd->drvdata = drvdata;
-+}
-+
-+extern int gsm_serdev_get_config(struct gsm_serdev *gsd, struct gsm_config *c);
-+extern int gsm_serdev_set_config(struct gsm_serdev *gsd, struct gsm_config *c);
-+extern int
-+gsm_serdev_register_dlci(struct gsm_serdev *gsd, struct gsm_serdev_dlci *ops);
-+extern void
-+gsm_serdev_unregister_dlci(struct gsm_serdev *gsd, struct gsm_serdev_dlci *ops);
-+extern int gsm_serdev_write(struct gsm_serdev *gsd, struct gsm_serdev_dlci *ops,
-+			    const u8 *buf, int len);
-+extern void gsm_serdev_data_kick(struct gsm_serdev *gsd);
-+
-+#else	/* CONFIG_SERIAL_DEV_BUS */
-+
-+static inline
-+int gsm_serdev_register_device(struct gsm_serdev *gsd)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline void gsm_serdev_unregister_device(struct gsm_serdev *gsd)
-+{
-+}
-+
-+static inline int
-+gsm_serdev_register_tty_port(struct gsm_serdev *gsd, int line)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline
-+void gsm_serdev_unregister_tty_port(struct gsm_serdev *gsd, int line)
-+{
-+}
-+
-+static inline void *gsm_serdev_get_drvdata(struct device *dev)
-+{
-+	return NULL;
-+}
-+
-+static inline
-+void gsm_serdev_set_drvdata(struct device *dev, void *drvdata)
-+{
-+}
-+
-+static inline
-+int gsm_serdev_get_config(struct gsm_serdev *gsd, struct gsm_config *c)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline
-+int gsm_serdev_set_config(struct gsm_serdev *gsd, struct gsm_config *c)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline
-+int gsm_serdev_register_dlci(struct gsm_serdev *gsd,
-+			     struct gsm_serdev_dlci *ops)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline
-+void gsm_serdev_unregister_dlci(struct gsm_serdev *gsd,
-+				struct gsm_serdev_dlci *ops)
-+{
-+}
-+
-+static inline
-+int gsm_serdev_write(struct gsm_serdev *gsd, struct gsm_serdev_dlci *ops,
-+		     const u8 *buf, int len)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline
-+void gsm_serdev_data_kick(struct gsm_serdev *gsd)
-+{
-+}
-+
-+#endif	/* CONFIG_N_GSM && CONFIG_SERIAL_DEV_BUS */
-+#endif	/* _LINUX_SERDEV_GSM_H */
++MODULE_AUTHOR("Tony Lindgren <tony@atomide.com>");
++MODULE_DESCRIPTION("Motorola Mapphone MDM6600 GNSS receiver driver");
++MODULE_LICENSE("GPL v2");
 -- 
 2.26.2
