@@ -4,53 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EA69C4724C
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:11:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49147C4724C
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:13:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5A002063A
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:11:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FAB22076D
+	for <linux-omap@archiver.kernel.org>; Thu, 30 Apr 2020 14:13:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588255915;
-	bh=usM7Jccak5exTEtTBEd6z2nFf26bUS/b4ELKv0lkYeU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=EEZgWiiis2loSJ/hfvGmVJl81YToJH3P0WsDIVtv4cUjfm7c2O5PBTb2m3m1Jd4xi
-	 42gRQeNlC5m7W37YTB7HoYOE+76pF9EzhzSbstt9Rj4JNOxvqGSSMTp2Bpf20ZIFdH
-	 rLp6N8owahHDIow2ZGoOD12nj96XdOR9R476o9DE=
+	s=default; t=1588255997;
+	bh=2S1FFwLlLxdFqit01Fd6EhlCpN6yg+s+wXPuB7KRNn4=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=pPAygdDmBuK9R7gDvN4X5qBVlJDzkDv3VwmRR2NJHIztPCc3N31WoetMB9u5cGk8y
+	 Ga/SphoTSQ+Iir/A27ddIGbSj25f7XqsjcGN6OEDMb4ZFohv+KEiseg2MNYz6IDenL
+	 YdJx3+nsr8W8+V6p/epFGXV/scXsoSMitBr2Hpjg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729567AbgD3OLy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 30 Apr 2020 10:11:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59394 "EHLO mail.kernel.org"
+        id S1726781AbgD3Nuq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 30 Apr 2020 09:50:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727982AbgD3NvR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 30 Apr 2020 09:51:17 -0400
+        id S1726770AbgD3Nuq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 30 Apr 2020 09:50:46 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BBEDF20774;
-        Thu, 30 Apr 2020 13:51:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 195B920774;
+        Thu, 30 Apr 2020 13:50:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588254676;
-        bh=usM7Jccak5exTEtTBEd6z2nFf26bUS/b4ELKv0lkYeU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MnDmBZPU7KOlVzJgz3bw4vJ2WlygTypmRj2TWLAxY6aaXXsMLrJfPmDFBTXCoJzGu
-         lorX7F3pSF2vI3GOQ9hyuv9dXDsY0chqPkAjCptx8G9/TxZE+78Mzy9DYmVq28bsC+
-         q05+UK5+3t5kqzr49n3LG3jjx4d7mJ2dM3rwNNSs=
+        s=default; t=1588254646;
+        bh=2S1FFwLlLxdFqit01Fd6EhlCpN6yg+s+wXPuB7KRNn4=;
+        h=From:To:Cc:Subject:Date:From;
+        b=kLhbRl26lw1Z/P+DYHCiDnSDJrSETSE+1xlBtTuhMPFMUcPsUttJSyjNp4zvO3Dng
+         oY1M20VK1P5RyPWWT7970wzG6X6fMfp0Us+Op47Cc0VpDzp0ZbLPHB8bVRiVNsTA0W
+         CNqA78hjG+XazcT9ZAFg/8ilgQv9h1JDvcvYawBk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
-        Thinh Nguyen <thinhn@synopsys.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 28/79] usb: dwc3: gadget: Do link recovery for SS and SSP
-Date:   Thu, 30 Apr 2020 09:49:52 -0400
-Message-Id: <20200430135043.19851-28-sashal@kernel.org>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Tony Lindgren <tony@atomide.com>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH AUTOSEL 5.6 01/79] ARM: dts: OMAP3: disable RNG on N950/N9
+Date:   Thu, 30 Apr 2020 09:49:25 -0400
+Message-Id: <20200430135043.19851-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200430135043.19851-1-sashal@kernel.org>
-References: <20200430135043.19851-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,56 +57,37 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Thinh Nguyen <Thinh.Nguyen@synopsys.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-[ Upstream commit d0550cd20e52558ecf6847a0f96ebd5d944c17e4 ]
+[ Upstream commit 07bdc492cff6f555538df95e9812fe72e16d154a ]
 
-The controller always supports link recovery for device in SS and SSP.
-Remove the speed limit check. Also, when the device is in RESUME or
-RESET state, it means the controller received the resume/reset request.
-The driver must send the link recovery to acknowledge the request. They
-are valid states for the driver to send link recovery.
+Like on N900, we cannot access RNG directly on N950/N9. Mark it disabled in
+the DTS to allow kernel to boot.
 
-Fixes: 72246da40f37 ("usb: Introduce DesignWare USB3 DRD Driver")
-Fixes: ee5cd41c9117 ("usb: dwc3: Update speed checks for SuperSpeedPlus")
-Signed-off-by: Thinh Nguyen <thinhn@synopsys.com>
-Signed-off-by: Felipe Balbi <balbi@kernel.org>
+Fixes: 308607e5545f ("ARM: dts: Configure omap3 rng")
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/usb/dwc3/gadget.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 1e68c90a83781..bc1cf6d0412a3 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -1728,7 +1728,6 @@ static int __dwc3_gadget_wakeup(struct dwc3 *dwc)
- 	u32			reg;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index a075b63f3087d..11d41e86f814d 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -341,6 +341,11 @@
+ 	status = "disabled";
+ };
  
- 	u8			link_state;
--	u8			speed;
- 
- 	/*
- 	 * According to the Databook Remote wakeup request should
-@@ -1738,16 +1737,13 @@ static int __dwc3_gadget_wakeup(struct dwc3 *dwc)
- 	 */
- 	reg = dwc3_readl(dwc->regs, DWC3_DSTS);
- 
--	speed = reg & DWC3_DSTS_CONNECTSPD;
--	if ((speed == DWC3_DSTS_SUPERSPEED) ||
--	    (speed == DWC3_DSTS_SUPERSPEED_PLUS))
--		return 0;
--
- 	link_state = DWC3_DSTS_USBLNKST(reg);
- 
- 	switch (link_state) {
-+	case DWC3_LINK_STATE_RESET:
- 	case DWC3_LINK_STATE_RX_DET:	/* in HS, means Early Suspend */
- 	case DWC3_LINK_STATE_U3:	/* in HS, means SUSPEND */
-+	case DWC3_LINK_STATE_RESUME:
- 		break;
- 	default:
- 		return -EINVAL;
++/* RNG not directly accessible on N950/N9. */
++&rng_target {
++	status = "disabled";
++};
++
+ &usb_otg_hs {
+ 	interface-type = <0>;
+ 	usb-phy = <&usb2_phy>;
 -- 
 2.20.1
 
