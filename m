@@ -2,25 +2,25 @@ Return-Path: <SRS0=0+oN=6P=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E884CC35280
-	for <linux-omap@archiver.kernel.org>; Fri,  1 May 2020 20:44:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BC05C47256
+	for <linux-omap@archiver.kernel.org>; Fri,  1 May 2020 20:45:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1337208DB
-	for <linux-omap@archiver.kernel.org>; Fri,  1 May 2020 20:44:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5454F216FD
+	for <linux-omap@archiver.kernel.org>; Fri,  1 May 2020 20:45:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726336AbgEAUoa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 1 May 2020 16:44:30 -0400
-Received: from jabberwock.ucw.cz ([46.255.230.98]:58026 "EHLO
+        id S1726384AbgEAUpV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 1 May 2020 16:45:21 -0400
+Received: from jabberwock.ucw.cz ([46.255.230.98]:58106 "EHLO
         jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726045AbgEAUo3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2020 16:44:29 -0400
+        with ESMTP id S1726272AbgEAUpU (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2020 16:45:20 -0400
 Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
-        id A7B421C020C; Fri,  1 May 2020 22:44:27 +0200 (CEST)
-Date:   Fri, 1 May 2020 22:44:26 +0200
+        id E316E1C020C; Fri,  1 May 2020 22:45:18 +0200 (CEST)
+Date:   Fri, 1 May 2020 22:45:18 +0200
 From:   Pavel Machek <pavel@denx.de>
 To:     Tony Lindgren <tony@atomide.com>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -32,15 +32,16 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Sebastian Reichel <sre@kernel.org>,
         linux-serial@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH 3/6] serdev: ngsm: Add generic serdev-ngsm driver
-Message-ID: <20200501204426.GE6043@duo.ucw.cz>
+Subject: Re: [PATCH 4/6] dt-bindings: gnss: Add binding for Motorola Mapphone
+ MDM6600 GNSS
+Message-ID: <20200501204518.GF6043@duo.ucw.cz>
 References: <20200430174615.41185-1-tony@atomide.com>
- <20200430174615.41185-4-tony@atomide.com>
+ <20200430174615.41185-5-tony@atomide.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XuV1QlJbYrcVoo+x"
+        protocol="application/pgp-signature"; boundary="7mxbaLlpDEyR1+x6"
 Content-Disposition: inline
-In-Reply-To: <20200430174615.41185-4-tony@atomide.com>
+In-Reply-To: <20200430174615.41185-5-tony@atomide.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
@@ -48,72 +49,34 @@ List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 
---XuV1QlJbYrcVoo+x
+--7mxbaLlpDEyR1+x6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Thu 2020-04-30 10:46:13, Tony Lindgren wrote:
+> Add a binding document for Motorola Mapphone MDM6600 GNSS driver that
+> can be used with phones such as droid4.
 
-> We can have a generic serdev-ngsm driver bring up the TS 27.010 line
-> discipline on the selected serial ports based on device tree data.
->=20
-> And we can now do standard Linux device driver for the dedicated
-> TS 27.010 channels for devices like GNSS and ALSA found on modems.
+-> Droid 4.
 
-
-> +++ b/drivers/tty/serdev/Kconfig
-> @@ -22,4 +22,14 @@ config SERIAL_DEV_CTRL_TTYPORT
->  	depends on SERIAL_DEV_BUS !=3D m
->  	default y
-> =20
-> +config SERIAL_DEV_N_GSM
-> +	tristate "Serial device TS 27.010 support"
-> +	help
-> +	  Select this if you want to use the TS 27.010 with a serial port with
-> +	  devices such as modems and GNSS devices.
-> +
-> +	  If unsure, say N.
-> +	depends on N_GSM
-> +	depends on SERIAL_DEV_CTRL_TTYPORT
-
-Normally, depends go after "tristate" and before "help" text. I did
-not realize this is valid code.
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
 Reviewed-by: Pavel Machek <pavel@ucw.cz>
-
-> +/*
-> + * Configure SoC 8250 device for 700 ms autosuspend delay, Values around=
- 600 ms
-> + * and shorter cause spurious wake-up events at least on droid 4. Also k=
-eep the
-
-droid->Droid?
-
-> +static const struct serdev_ngsm_cfg motmdm_cfg =3D {
-> +	.gsm =3D &adaption1,
-> +	.init_retry_quirk =3D true,
-> +	.needs_usb_phy =3D true,
-> +	.aggressive_pm =3D true,
-
-Umm. These are unsigned int:1, not bools, so =3D 1 would be expected
-here.
-
-Best regards,
 									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---XuV1QlJbYrcVoo+x
+--7mxbaLlpDEyR1+x6
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCXqyKKgAKCRAw5/Bqldv6
-8txjAJwJqTaTuqG5Df56zqF3mOwZR010dQCfTuwd4x9yo8cT/TgAEsR2HsAJpIE=
-=3ue9
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCXqyKXgAKCRAw5/Bqldv6
+8pUAAJ9VCXdeP12jHU/+L3hENJu3XqbIxgCfapGMsM9emO71ihgPyX7MZurxz8s=
+=GZcg
 -----END PGP SIGNATURE-----
 
---XuV1QlJbYrcVoo+x--
+--7mxbaLlpDEyR1+x6--
