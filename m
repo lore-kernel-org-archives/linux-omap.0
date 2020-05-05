@@ -6,41 +6,41 @@ X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 329EDC47254
-	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 17:05:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1699FC47254
+	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 17:05:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12097206CC
-	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 17:05:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE363206CC
+	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 17:05:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729310AbgEERFW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 May 2020 13:05:22 -0400
-Received: from mga17.intel.com ([192.55.52.151]:21203 "EHLO mga17.intel.com"
+        id S1730472AbgEERF1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 May 2020 13:05:27 -0400
+Received: from mga07.intel.com ([134.134.136.100]:6453 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729720AbgEERFW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 5 May 2020 13:05:22 -0400
-IronPort-SDR: sr6rfyEwTT9Ii9lThJce+dJUZrE619W2rQmJ/ONCrj78G6t8/m5+v1B6j/tyu30/yLyoZx9fiT
- ry+XUC37nTEQ==
+        id S1729553AbgEERF1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 5 May 2020 13:05:27 -0400
+IronPort-SDR: 8M2b2bLS4bXA0rwx6eLF6dsX7ptv+btUcwuJjJs078QAnNmWbPskzmHyHXwhZQAazSjGQt9yhb
+ 8IuSqJZ6hxZA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2020 10:05:21 -0700
-IronPort-SDR: 0Uuxu7OyQ5no92cTM5zVKXWjHtZBAJgk8L7zWOJBGl3zcTH93UD1TLJW4g10SOU0LOoix2+TbO
- sJpO971uoYrg==
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2020 10:05:25 -0700
+IronPort-SDR: 1atqr9zx4WRojGDpLPRwIB7HCcXi3ikkjMSQmKKK93sRDNYtZdp7gWjHmbs7eVr9KzZnyPTPbe
+ TFSk0KtRpk3g==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,356,1583222400"; 
-   d="scan'208";a="248628478"
+   d="scan'208";a="338724582"
 Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga007.jf.intel.com with ESMTP; 05 May 2020 10:05:18 -0700
+  by orsmga001.jf.intel.com with ESMTP; 05 May 2020 10:05:24 -0700
 Received: from kbuild by lkp-server01 with local (Exim 4.89)
         (envelope-from <lkp@intel.com>)
-        id 1jW10P-000EUd-ER; Wed, 06 May 2020 01:05:17 +0800
-Date:   Wed, 06 May 2020 01:04:28 +0800
+        id 1jW10V-000F0q-9a; Wed, 06 May 2020 01:05:23 +0800
+Date:   Wed, 06 May 2020 01:04:25 +0800
 From:   kbuild test robot <lkp@intel.com>
 To:     Felipe Balbi <balbi@kernel.org>
 Cc:     linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: [balbi-usb:testing/next] BUILD SUCCESS
- f7ac582effc6ee416eb51e0c3e55836aaf7231ac
-Message-ID: <5eb19c9c.l82ycMOaAtYCVJG/%lkp@intel.com>
+Subject: [balbi-usb:testing/fixes] BUILD SUCCESS
+ 3c1b14c147ebadd4f7ca3b519202dc5d580b971d
+Message-ID: <5eb19c99.dsf02UcAxtjKk4TS%lkp@intel.com>
 User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -50,17 +50,23 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/next
-branch HEAD: f7ac582effc6ee416eb51e0c3e55836aaf7231ac  usb: dwc3: gadget: WARN on no-resource status
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/fixes
+branch HEAD: 3c1b14c147ebadd4f7ca3b519202dc5d580b971d  usb: gadget: legacy: fix redundant initialization warnings
 
 elapsed time: 480m
 
-configs tested: 200
+configs tested: 222
 configs skipped: 0
 
 The following configs have been built successfully.
 More configs may be tested in the coming days.
 
+arm64                            allyesconfig
+arm                              allyesconfig
+arm64                            allmodconfig
+arm                              allmodconfig
+arm64                             allnoconfig
+arm                               allnoconfig
 arm                           efm32_defconfig
 arm                         at91_dt_defconfig
 arm                        shmobile_defconfig
@@ -69,13 +75,11 @@ arm                          exynos_defconfig
 arm                        multi_v5_defconfig
 arm                           sunxi_defconfig
 arm                        multi_v7_defconfig
-arm64                            allyesconfig
-arm                              allyesconfig
-arm64                            allmodconfig
-arm                              allmodconfig
-arm64                             allnoconfig
-arm                               allnoconfig
 sparc                            allyesconfig
+parisc                generic-32bit_defconfig
+mips                             allmodconfig
+xtensa                       common_defconfig
+m68k                           sun3_defconfig
 um                                  defconfig
 mips                       capcella_defconfig
 i386                              allnoconfig
@@ -94,7 +98,6 @@ ia64                             alldefconfig
 m68k                       m5475evb_defconfig
 m68k                             allmodconfig
 m68k                       bvme6000_defconfig
-m68k                           sun3_defconfig
 m68k                          multi_defconfig
 nios2                         3c120_defconfig
 nios2                         10m50_defconfig
@@ -110,7 +113,6 @@ h8300                       h8s-sim_defconfig
 h8300                     edosk2674_defconfig
 xtensa                          iss_defconfig
 h8300                    h8300h-sim_defconfig
-xtensa                       common_defconfig
 arc                                 defconfig
 arc                              allyesconfig
 microblaze                      mmu_defconfig
@@ -122,7 +124,6 @@ mips                             allyesconfig
 mips                         64r6el_defconfig
 mips                              allnoconfig
 mips                           32r2_defconfig
-mips                             allmodconfig
 mips                malta_kvm_guest_defconfig
 mips                         tb0287_defconfig
 mips                           ip32_defconfig
@@ -132,7 +133,6 @@ mips                          ath79_defconfig
 mips                        bcm63xx_defconfig
 parisc                            allnoconfig
 parisc                generic-64bit_defconfig
-parisc                generic-32bit_defconfig
 parisc                           allyesconfig
 parisc                           allmodconfig
 powerpc                  mpc866_ads_defconfig
@@ -163,16 +163,28 @@ xtensa               randconfig-a001-20200505
 sh                   randconfig-a001-20200505
 openrisc             randconfig-a001-20200505
 csky                 randconfig-a001-20200505
-xtensa               randconfig-a001-20200503
-sh                   randconfig-a001-20200503
-openrisc             randconfig-a001-20200503
-csky                 randconfig-a001-20200503
+s390                 randconfig-a001-20200430
+xtensa               randconfig-a001-20200430
+csky                 randconfig-a001-20200430
+openrisc             randconfig-a001-20200430
+sh                   randconfig-a001-20200430
+x86_64               randconfig-a003-20200505
+x86_64               randconfig-a001-20200505
+i386                 randconfig-a001-20200505
+i386                 randconfig-a003-20200505
+i386                 randconfig-a002-20200505
 i386                 randconfig-b003-20200503
 x86_64               randconfig-b002-20200503
 i386                 randconfig-b001-20200503
 x86_64               randconfig-b003-20200503
 x86_64               randconfig-b001-20200503
 i386                 randconfig-b002-20200503
+i386                 randconfig-b003-20200505
+x86_64               randconfig-b002-20200505
+i386                 randconfig-b001-20200505
+x86_64               randconfig-b001-20200505
+x86_64               randconfig-b003-20200505
+i386                 randconfig-b002-20200505
 x86_64               randconfig-c002-20200502
 i386                 randconfig-c002-20200502
 i386                 randconfig-c001-20200502
@@ -189,6 +201,16 @@ i386                 randconfig-d001-20200505
 x86_64               randconfig-d003-20200505
 x86_64               randconfig-d002-20200505
 i386                 randconfig-d002-20200505
+x86_64               randconfig-d001-20200503
+i386                 randconfig-d003-20200503
+x86_64               randconfig-d003-20200503
+i386                 randconfig-d001-20200503
+x86_64               randconfig-d002-20200503
+i386                 randconfig-d002-20200503
+i386                 randconfig-d003-20200502
+i386                 randconfig-d001-20200502
+x86_64               randconfig-d002-20200502
+i386                 randconfig-d002-20200502
 i386                 randconfig-e003-20200505
 x86_64               randconfig-e002-20200505
 x86_64               randconfig-e003-20200505
@@ -205,11 +227,11 @@ i386                 randconfig-f003-20200503
 x86_64               randconfig-f002-20200503
 i386                 randconfig-f001-20200503
 i386                 randconfig-f002-20200503
-x86_64               randconfig-a003-20200505
-x86_64               randconfig-a001-20200505
-i386                 randconfig-a001-20200505
-i386                 randconfig-a003-20200505
-i386                 randconfig-a002-20200505
+i386                 randconfig-f003-20200505
+x86_64               randconfig-f001-20200505
+x86_64               randconfig-f003-20200505
+i386                 randconfig-f001-20200505
+i386                 randconfig-f002-20200505
 i386                 randconfig-g003-20200505
 i386                 randconfig-g002-20200505
 i386                 randconfig-g001-20200505
