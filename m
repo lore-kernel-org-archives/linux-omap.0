@@ -2,96 +2,109 @@ Return-Path: <SRS0=ZgCm=6T=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 419BCC47254
-	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 14:30:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B834C47254
+	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 15:08:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1006C206A5
-	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 14:30:24 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Vz5o8n1c"
+	by mail.kernel.org (Postfix) with ESMTP id 1D2B921841
+	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 15:08:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729366AbgEEOaX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 May 2020 10:30:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51450 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727785AbgEEOaX (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2020 10:30:23 -0400
-Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0367FC061A0F;
-        Tue,  5 May 2020 07:30:23 -0700 (PDT)
-Received: by mail-pf1-x443.google.com with SMTP id r14so968320pfg.2;
-        Tue, 05 May 2020 07:30:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=/8ydx1OQ+D7IiH04ZB0o6wh3QFLRJGOF1BFo03aMjE0=;
-        b=Vz5o8n1cIrMmoGP44Q46Zmp0HCKTGVL6iSF8j/jpP+jsAwG2FzRJOfqClcI3JFfmIL
-         VVD5IleJMQZXj13SdtF2r6cI0s13BqDa5RMBeC/I162mPJrW54BKbV9HSfCLMcDexZij
-         LeTo1mFhwp6asz6sKuuLUX8UP5WPTN6N6PkU3EFJkGN98n0Gi+xTTKLopwxSdxr+vOKE
-         HxBhiq8nV6SAvixOSrpMVtSDIaWDat6asa/2G7DxMbBy745Rv0Ccvfvgg8BbrPhKOLh7
-         OpPX+31VkVkC/LVUqL+18lYlS13egiSbwNvHYLzf6mYkRTlATOOT4keTyrvbgMmIQaDc
-         zHFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=/8ydx1OQ+D7IiH04ZB0o6wh3QFLRJGOF1BFo03aMjE0=;
-        b=ThCEkcKctZuc+6cH5uRIuraFDwi2kiqmB6gHh6/hybUc5tA+8DLvt9BvDlS/FC2vBt
-         I7xPi+NiC/knWXOE13YlzYHd8zYGGKYguPuF+R0jXqUZks2SklpBpMwWIHy9oJJ+LOtG
-         ThEXSfQHo5nagX1ibeN32+IBwi07RrlzdZ364kPLEtD/bUiz7G1MdfOppLAVQSI6/EXZ
-         sj05IUCjLleS0XRWWheDQf3s7+uMfwQbZxZX0GabjvvgGD4DJRTYVtkgLT4OGYmnQdvP
-         Cl1WtohgH0ZgnJi8bHSpOIx0UOZ4DP1gm29oBDdYFU44KKnw9oQ6x9FvebubDWNO+vvO
-         v6+A==
-X-Gm-Message-State: AGi0PubX7sEJS2nNhh5f3iFB5mQ7PXVrSDBW5Gu9qcFlYM1uGA0BvOO0
-        RDEmRYwXLSERv/6f3I3z7vY=
-X-Google-Smtp-Source: APiQypJ9VDBm38O+rpfRbbRf4g5lKVbtUGdAU5GjiMUuycn6ou/4sv+IOjnuV2xTcLQTRwBKy1xcWQ==
-X-Received: by 2002:a62:6385:: with SMTP id x127mr3582714pfb.276.1588689022537;
-        Tue, 05 May 2020 07:30:22 -0700 (PDT)
-Received: from localhost ([49.207.51.154])
-        by smtp.gmail.com with ESMTPSA id j2sm2304373pfb.73.2020.05.05.07.30.18
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 05 May 2020 07:30:19 -0700 (PDT)
-Date:   Tue, 5 May 2020 20:00:17 +0530
-From:   afzal mohammed <afzal.mohd.ma@gmail.com>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Kevin Hilman <khilman@kernel.org>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ARM: omap1: fix irq setup
-Message-ID: <20200505143017.GA5263@afzalpc>
-References: <20200505141400.767312-1-arnd@arndb.de>
+        id S1730052AbgEEPIF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 May 2020 11:08:05 -0400
+Received: from mout.kundenserver.de ([212.227.126.134]:47293 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729571AbgEEPIF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2020 11:08:05 -0400
+Received: from mail-qk1-f172.google.com ([209.85.222.172]) by
+ mrelayeu.kundenserver.de (mreue010 [212.227.15.129]) with ESMTPSA (Nemesis)
+ id 1MPXta-1jjp3o3yQk-00Mbmc; Tue, 05 May 2020 17:08:03 +0200
+Received: by mail-qk1-f172.google.com with SMTP id b6so2556130qkh.11;
+        Tue, 05 May 2020 08:08:02 -0700 (PDT)
+X-Gm-Message-State: AGi0PuaHRj7c61J2D3gee3do4LzrNLt4GBcAIWegL+1BigBEQUl2due+
+        GcqPt9fFRM4+CimTZRfxik9eBUWm6dA7l1nVNeE=
+X-Google-Smtp-Source: APiQypLiOT+7IwI9rxENX6COgKMKWkszRH1A8ioRyBipPnDvFINtZDeTAFba6U/nOjaK75OsthpNiD3Px61PZ644fKk=
+X-Received: by 2002:a37:b543:: with SMTP id e64mr3963064qkf.394.1588691281639;
+ Tue, 05 May 2020 08:08:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200505141400.767312-1-arnd@arndb.de>
-User-Agent: Mutt/1.9.3 (2018-01-21)
+References: <20200505140407.373983-1-arnd@arndb.de> <CANpmjNNw6M9Gqj6WGTHH4Cegu8roTVu5x6Vqs_tCBxX3gPwL4A@mail.gmail.com>
+In-Reply-To: <CANpmjNNw6M9Gqj6WGTHH4Cegu8roTVu5x6Vqs_tCBxX3gPwL4A@mail.gmail.com>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Tue, 5 May 2020 17:07:45 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a01jV71_EzaCkaZgG51vnJ+x1c192dZ9efEKTawF6noDQ@mail.gmail.com>
+Message-ID: <CAK8P3a01jV71_EzaCkaZgG51vnJ+x1c192dZ9efEKTawF6noDQ@mail.gmail.com>
+Subject: Re: [PATCH] omapfb: don't annotate dss_conv_list as __initdata
+To:     Marco Elver <elver@google.com>
+Cc:     Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Allison Randal <allison@lohutok.net>,
+        Alexios Zavras <alexios.zavras@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Enrico Weigelt <info@metux.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        clang-built-linux <clang-built-linux@googlegroups.com>,
+        Will Deacon <will@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:RIhLFUld2n1YiAdQx3NtguCuLNbWfAjWzdULgSVJ5EkvYCX0P0A
+ /ydrh3vQeelhJZMTtC0rRnKepQFiX/3yetcgIw3mylemQxxnxGs6EhQ5o23zoW97Slg2EAr
+ K+EGgiaOZUFbitGLUwyqlRMF5aLRmO6pmBduK+3XlRdMjgQjlF6QFXlVvGnMjoe1TgT6X84
+ Vn5UtkRkeJm6QqfHhlwOQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:fkGi9xr/u8Y=:vfZhLEmKFMMmAFrPB+I6BB
+ hO5W1PdOmgFomDohsdIyUp7MlshNUx+No36igSz3cUPnZkS0mOp89nxBzEjfmLnXc7oawsAKW
+ N0CIr4iU8y1LBYE4KsSsctE4VcevKg+fPK3hnhljuD+22Dvl1v6B8Arf8cuiYAT8KcoMATF9j
+ OW5flkXe3q8joTEfWZ4AWLZz5xJ0f/62iOAspK1vtj8MrtF8rMOflyWXHuplaLhmGbNJgayPz
+ 4R/CaPH65UQ1f39v0FTuQOB3hu/pjBNmkjS7CeeCqXLbuG7J7q+TAZZU1VJvXPDYdCwNIQ7E0
+ gnI72b/39dNkD1XSavInHhF4zYYBQJUJ/Lve0cYc7pZcPDIbXvCTZAAaG2GOpQnJg0dH9s3CL
+ vHzD2nY2LrC/ySYdVQ0coeSwtbIgMBQ7bw2L0AJu0+41iDrHHO/Wh70oIE9muRovBw+lk6+N9
+ Sf/6BalDyGQcu8cjFbI9EF3KZXh7mRBilbg+p+TZi9C5YvYKqd6kkQVXDFJPskbCmvndSr8gc
+ qK9XKTqcr494J2wOGb+fyS1AtP3PgXffOYA/AAZJ4AliaHaeYRhlZ7G2RYMjM2fqAAYJTD/ca
+ QGZownEJr5wVS89TNCY9yiiNgcr3YZZB74qpEdVXKtoDmEmWnb/rzMujPb5h/aIDwAyAwCwNY
+ rIgqgiFoDZwijX99bFgwimOR6KR8mBzZ7A63SHqOK+QaftQr9eEsJCXVzJTPEuz87CqmN1H46
+ GcXp/aZvM7y7EzLV4MUgj3TEFokGCz+7ahLqDo2MD2E5QiXAxPtsKIMPG9m7oc6PCS/qTyTAA
+ zRhoczbjmaS0uNhRilGBbH96Lf2xIBFzboBLNr0/sBm6h7B6g8=
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, May 5, 2020 at 4:12 PM 'Marco Elver' via Clang Built Linux
+<clang-built-linux@googlegroups.com> wrote:
+> On Tue, 5 May 2020 at 16:04, Arnd Bergmann <arnd@arndb.de> wrote:
+> > With the kcsan changes, __read_once_size() is not inlined, but
+> > clang can decide to emit a version that hardcodes the address, which
+> > in turn triggers a warning for dss_conv_list being __initdata but
+> > __read_once_size() not being __init:
+> >
+> > WARNING: modpost: vmlinux.o(.text+0x6e4d7a): Section mismatch in
+> > reference from the function __read_once_size() to the variable
+> > .init.data:dss_conv_list
+> > The function __read_once_size() references
+> > the variable __initdata dss_conv_list.
+> > This is often because __read_once_size lacks a __initdata
+> > annotation or the annotation of dss_conv_list is wrong.
+> >
+> > This is clearly a false positive warning, but it's hard to tell
+> > who is to blame for it. Work around it by removing the __initdata
+> > annotation, wasting the space of two pointers in return for getting
+> > rid of the warning.
+> >
+> > Fixes: dfd402a4c4ba ("kcsan: Add Kernel Concurrency Sanitizer infrastructure")
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+> [+Cc Will]
+>
+> I think Will is working on a series that completely overhauls
+> READ_ONCE/WRITE_ONCE, also getting rid of __read_once_size() in the
+> process, which would make this patch redundant. If we can live with
+> this warning until the new READ_ONCE/WRITE_ONCE gets merged, we can
+> probably keep things as-is for now.
 
-On Tue, May 05, 2020 at 04:13:48PM +0200, Arnd Bergmann wrote:
+Ok, let's drop this one for now.
 
-> A recent cleanup introduced a bug on any omap1 machine that has
-> no wakeup IRQ, i.e. omap15xx:
-
-> Move this code into a separate function to deal with it cleanly.
-> 
-> Fixes: b75ca5217743 ("ARM: OMAP: replace setup_irq() by request_irq()")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-Sorry for the mistake and thanks for the fix,
-
-Acked-by: afzal mohammed <afzal.mohd.ma@gmail.com>
-
-Regards
-afzal
+        Arnd
