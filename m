@@ -2,85 +2,60 @@ Return-Path: <SRS0=ZgCm=6T=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FB9C47254
-	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 15:12:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C46D7C47254
+	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 15:40:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8F74207DD
-	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 15:12:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6218206B9
+	for <linux-omap@archiver.kernel.org>; Tue,  5 May 2020 15:40:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729521AbgEEPMc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 May 2020 11:12:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58042 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729332AbgEEPMc (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2020 11:12:32 -0400
-X-Greylist: delayed 301 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 May 2020 08:12:31 PDT
-Received: from andre.telenet-ops.be (andre.telenet-ops.be [IPv6:2a02:1800:120:4::f00:15])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AB40C061A0F
-        for <linux-omap@vger.kernel.org>; Tue,  5 May 2020 08:12:31 -0700 (PDT)
-Received: from ramsan ([IPv6:2a02:1810:ac12:ed60:bd97:8453:3b10:1832])
-        by andre.telenet-ops.be with bizsmtp
-        id b37U2200X3VwRR30137UPJ; Tue, 05 May 2020 17:07:28 +0200
-Received: from rox.of.borg ([192.168.97.57])
-        by ramsan with esmtp (Exim 4.90_1)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1jVzAO-00028X-5l; Tue, 05 May 2020 17:07:28 +0200
-Received: from geert by rox.of.borg with local (Exim 4.90_1)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1jVzAO-0000Qz-0c; Tue, 05 May 2020 17:07:28 +0200
-From:   Geert Uytterhoeven <geert+renesas@glider.be>
-List-Id: <soc.lore.kernel.org>
-To:     soc@kernel.org
+        id S1729398AbgEEPkB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 May 2020 11:40:01 -0400
+Received: from muru.com ([72.249.23.125]:52872 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729317AbgEEPkA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 5 May 2020 11:40:00 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id E842080A5;
+        Tue,  5 May 2020 15:40:48 +0000 (UTC)
+Date:   Tue, 5 May 2020 08:39:57 -0700
+From:   Tony Lindgren <tony@atomide.com>
+To:     afzal mohammed <afzal.mohd.ma@gmail.com>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@kernel.org>,
-        Olof Johansson <olof@lixom.net>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Subject: [PATCH v2 12/15] ARM: omap2plus: Drop unneeded select of MIGHT_HAVE_CACHE_L2X0
-Date:   Tue,  5 May 2020 17:07:19 +0200
-Message-Id: <20200505150722.1575-13-geert+renesas@glider.be>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200505150722.1575-1-geert+renesas@glider.be>
-References: <20200505150722.1575-1-geert+renesas@glider.be>
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ARM: omap1: fix irq setup
+Message-ID: <20200505153957.GK37466@atomide.com>
+References: <20200505141400.767312-1-arnd@arndb.de>
+ <20200505143017.GA5263@afzalpc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200505143017.GA5263@afzalpc>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Support for TI AM43x SoCs depends on ARCH_MULTI_V7, which selects
-ARCH_MULTI_V6_V7.
-As the latter selects MIGHT_HAVE_CACHE_L2X0, there is no need for
-SOC_AM43XX to select MIGHT_HAVE_CACHE_L2X0.
+* afzal mohammed <afzal.mohd.ma@gmail.com> [200505 14:31]:
+> Hi,
+> 
+> On Tue, May 05, 2020 at 04:13:48PM +0200, Arnd Bergmann wrote:
+> 
+> > A recent cleanup introduced a bug on any omap1 machine that has
+> > no wakeup IRQ, i.e. omap15xx:
+> 
+> > Move this code into a separate function to deal with it cleanly.
+> > 
+> > Fixes: b75ca5217743 ("ARM: OMAP: replace setup_irq() by request_irq()")
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> Sorry for the mistake and thanks for the fix,
+> 
+> Acked-by: afzal mohammed <afzal.mohd.ma@gmail.com>
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Acked-by: Tony Lindgren <tony@atomide.com>
----
-v2:
-  - Add Acked-by.
----
- arch/arm/mach-omap2/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index dca7d06c0b938619..ea23205bf70f4df6 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -66,7 +66,6 @@ config SOC_AM43XX
- 	select ARCH_OMAP2PLUS
- 	select ARM_GIC
- 	select MACH_OMAP_GENERIC
--	select MIGHT_HAVE_CACHE_L2X0
- 	select HAVE_ARM_SCU
- 	select GENERIC_CLOCKEVENTS_BROADCAST
- 	select HAVE_ARM_TWD
--- 
-2.17.1
-
