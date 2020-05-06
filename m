@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 589F1C28CBC
-	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 15:15:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 491E6C4725A
+	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 15:15:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A7C12080D
-	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 15:15:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25C842186A
+	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 15:15:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="v/QD2fBb"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="IH/chraK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729097AbgEFPPC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 6 May 2020 11:15:02 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:37088 "EHLO
+        id S1729344AbgEFPOu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 6 May 2020 11:14:50 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:37044 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728972AbgEFPPC (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2020 11:15:02 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 046FEoGT005154;
-        Wed, 6 May 2020 10:14:50 -0500
+        with ESMTP id S1729239AbgEFPOu (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2020 11:14:50 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 046FEcgN005097;
+        Wed, 6 May 2020 10:14:38 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1588778090;
-        bh=4Sxi02H9RpRJe5ickAsHEIaYUb+VzvWXaGZ7c+DHSbE=;
+        s=ti-com-17Q1; t=1588778078;
+        bh=eBc8a0MLbmJPxtpYDORl+QAfug4Aj3yhXJs3ACP9m5Y=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=v/QD2fBbvN9qPGLPeGN9ZtpDMqy8BTB1x0smt0UJMj86b1cGVFbF45nvGyvXGis1P
-         pu6yK8kJIfJE3T6+VPoYagGvSWDy3RKIMP6hjqrQYNtEilAPrhUtnyRG9KlNxpotxm
-         9OPjfLDw6D7CyHq8gseMNVA2QeBDXMPGKfxOGFuM=
-Received: from DFLE107.ent.ti.com (dfle107.ent.ti.com [10.64.6.28])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 046FEokX058758
+        b=IH/chraKtVLEw2FnsSy4Muzx6y4zosbClMykEBmyyNW9V+14NVpF87imZkXupPJry
+         YH8KT97+m2wzU17kySmw7DYavqWF9W8oTSOtbakzq82+3GDThnG/huedo+KDqP+MzX
+         JHH++jfmLE+BrkziTQ1GfyiWxcPVMt1AIywJ/kVw=
+Received: from DLEE100.ent.ti.com (dlee100.ent.ti.com [157.170.170.30])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 046FEcJH118722
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 6 May 2020 10:14:50 -0500
-Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE107.ent.ti.com
- (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+        Wed, 6 May 2020 10:14:38 -0500
+Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE100.ent.ti.com
+ (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 6 May
- 2020 10:14:49 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
- (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 10:14:38 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 6 May 2020 10:14:49 -0500
+ Frontend Transport; Wed, 6 May 2020 10:14:38 -0500
 Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 046FEUgA119457;
-        Wed, 6 May 2020 10:14:46 -0500
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 046FEUg7119457;
+        Wed, 6 May 2020 10:14:35 -0500
 From:   Kishon Vijay Abraham I <kishon@ti.com>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Rob Herring <robh+dt@kernel.org>,
@@ -55,9 +55,9 @@ CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>, <kishon@ti.com>
-Subject: [PATCH v4 04/14] PCI: cadence: Add support to start link and verify link status
-Date:   Wed, 6 May 2020 20:44:19 +0530
-Message-ID: <20200506151429.12255-5-kishon@ti.com>
+Subject: [PATCH v4 01/14] PCI: cadence: Fix cdns_pcie_{host|ep}_setup() error path
+Date:   Wed, 6 May 2020 20:44:16 +0530
+Message-ID: <20200506151429.12255-2-kishon@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200506151429.12255-1-kishon@ti.com>
 References: <20200506151429.12255-1-kishon@ti.com>
@@ -69,154 +69,89 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add cdns_pcie_ops to start link and verify link status. The registers
-to start link and to check link status is in Platform specific PCIe
-wrapper. Add support for platform specific drivers to add callback
-functions for the PCIe Cadence core to start link and verify link status.
+commit bd22885aa188 ("PCI: cadence: Refactor driver to use as a core
+library") while refactoring the Cadence PCIe driver to be used as
+library, removed pm_runtime_get_sync() from cdns_pcie_ep_setup()
+and cdns_pcie_host_setup() but missed to remove the corresponding
+pm_runtime_put_sync() in the error path. Fix it here.
 
+Fixes: bd22885aa188 ("PCI: cadence: Refactor driver to use as a core library")
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../pci/controller/cadence/pcie-cadence-ep.c  |  8 +++++
- .../controller/cadence/pcie-cadence-host.c    | 28 +++++++++++++++++
- drivers/pci/controller/cadence/pcie-cadence.h | 30 +++++++++++++++++++
- 3 files changed, 66 insertions(+)
+ drivers/pci/controller/cadence/pcie-cadence-ep.c   | 9 ++-------
+ drivers/pci/controller/cadence/pcie-cadence-host.c | 6 +-----
+ 2 files changed, 3 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-index 1fdae37843ef..14021d760482 100644
+index 1c173dad67d1..1fdae37843ef 100644
 --- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
 +++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-@@ -354,8 +354,10 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- {
- 	struct cdns_pcie_ep *ep = epc_get_drvdata(epc);
- 	struct cdns_pcie *pcie = &ep->pcie;
-+	struct device *dev = pcie->dev;
- 	struct pci_epf *epf;
- 	u32 cfg;
-+	int ret;
+@@ -8,7 +8,6 @@
+ #include <linux/of.h>
+ #include <linux/pci-epc.h>
+ #include <linux/platform_device.h>
+-#include <linux/pm_runtime.h>
+ #include <linux/sizes.h>
  
- 	/*
- 	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
-@@ -366,6 +368,12 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- 		cfg |= BIT(epf->func_no);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
+ #include "pcie-cadence.h"
+@@ -440,8 +439,7 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
+ 	epc = devm_pci_epc_create(dev, &cdns_pcie_epc_ops);
+ 	if (IS_ERR(epc)) {
+ 		dev_err(dev, "failed to create epc device\n");
+-		ret = PTR_ERR(epc);
+-		goto err_init;
++		return PTR_ERR(epc);
+ 	}
  
-+	ret = cdns_pcie_start_link(pcie);
-+	if (ret) {
-+		dev_err(dev, "Failed to start link\n");
+ 	epc_set_drvdata(epc, ep);
+@@ -453,7 +451,7 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
+ 			       resource_size(pcie->mem_res));
+ 	if (ret < 0) {
+ 		dev_err(dev, "failed to initialize the memory space\n");
+-		goto err_init;
 +		return ret;
-+	}
-+
- 	return 0;
- }
+ 	}
  
+ 	ep->irq_cpu_addr = pci_epc_mem_alloc_addr(epc, &ep->irq_phys_addr,
+@@ -472,8 +470,5 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
+  free_epc_mem:
+ 	pci_epc_mem_exit(epc);
+ 
+- err_init:
+-	pm_runtime_put_sync(dev);
+-
+ 	return ret;
+ }
 diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 465607202bb5..a60b9627cfbf 100644
+index 31e67c9c88cf..465607202bb5 100644
 --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
 +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -3,6 +3,7 @@
- // Cadence PCIe host controller driver.
- // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
- 
-+#include <linux/delay.h>
- #include <linux/kernel.h>
+@@ -7,7 +7,6 @@
  #include <linux/of_address.h>
  #include <linux/of_pci.h>
-@@ -197,6 +198,23 @@ static int cdns_pcie_host_init(struct device *dev,
- 	return err;
- }
+ #include <linux/platform_device.h>
+-#include <linux/pm_runtime.h>
  
-+static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
-+{
-+	struct device *dev = pcie->dev;
-+	int retries;
-+
-+	/* Check if the link is up or not */
-+	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-+		if (cdns_pcie_link_up(pcie)) {
-+			dev_info(dev, "Link up\n");
-+			return 0;
-+		}
-+		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
-+	}
-+
-+	return -ETIMEDOUT;
-+}
-+
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- {
- 	struct device *dev = rc->pcie.dev;
-@@ -256,6 +274,16 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+ #include "pcie-cadence.h"
  
- 	pcie->mem_res = res;
+@@ -259,7 +258,7 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
  
-+	ret = cdns_pcie_start_link(pcie);
-+	if (ret) {
-+		dev_err(dev, "Failed to start link\n");
-+		return ret;
-+	}
-+
-+	ret = cdns_pcie_host_wait_for_link(pcie);
-+	if (ret)
-+		dev_dbg(dev, "PCIe link never came up\n");
-+
  	ret = cdns_pcie_host_init(dev, &resources, rc);
  	if (ret)
- 		return ret;
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index 70b6b25153e8..a6c4816b68c0 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -10,6 +10,11 @@
- #include <linux/pci.h>
- #include <linux/phy/phy.h>
+-		goto err_init;
++		return ret;
  
-+/* Parameters for the waiting for link up routine */
-+#define LINK_WAIT_MAX_RETRIES	10
-+#define LINK_WAIT_USLEEP_MIN	90000
-+#define LINK_WAIT_USLEEP_MAX	100000
-+
- /*
-  * Local Management Registers
-  */
-@@ -226,6 +231,9 @@ enum cdns_pcie_msg_routing {
- struct cdns_pcie_ops {
- 	u32	(*read)(void __iomem *addr, int size);
- 	void	(*write)(void __iomem *addr, int size, u32 value);
-+	int	(*start_link)(struct cdns_pcie *pcie);
-+	void	(*stop_link)(struct cdns_pcie *pcie);
-+	bool	(*link_up)(struct cdns_pcie *pcie);
- };
+ 	list_splice_init(&resources, &bridge->windows);
+ 	bridge->dev.parent = dev;
+@@ -277,8 +276,5 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+  err_host_probe:
+ 	pci_free_resource_list(&resources);
  
- /**
-@@ -445,6 +453,28 @@ static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
- 	return readl(addr);
+- err_init:
+-	pm_runtime_put_sync(dev);
+-
+ 	return ret;
  }
- 
-+static inline int cdns_pcie_start_link(struct cdns_pcie *pcie)
-+{
-+	if (pcie->ops->start_link)
-+		return pcie->ops->start_link(pcie);
-+
-+	return 0;
-+}
-+
-+static inline void cdns_pcie_stop_link(struct cdns_pcie *pcie)
-+{
-+	if (pcie->ops->stop_link)
-+		pcie->ops->stop_link(pcie);
-+}
-+
-+static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
-+{
-+	if (pcie->ops->link_up)
-+		return pcie->ops->link_up(pcie);
-+
-+	return true;
-+}
-+
- #ifdef CONFIG_PCIE_CADENCE_HOST
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
- #else
 -- 
 2.17.1
 
