@@ -2,218 +2,135 @@ Return-Path: <SRS0=JFcU=6U=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96BE6C4725A
-	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 15:16:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC6EAC4724C
+	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 18:58:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 723222080D
-	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 15:16:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B14F420708
+	for <linux-omap@archiver.kernel.org>; Wed,  6 May 2020 18:58:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="TejQ/aLo"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="ENs11Z2E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729251AbgEFPPY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 6 May 2020 11:15:24 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:33132 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729212AbgEFPPY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2020 11:15:24 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 046FF2Vn065363;
-        Wed, 6 May 2020 10:15:02 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1588778102;
-        bh=cy3H7a71qLj8n7c0hh94+aNcS7Q/r5jCLJaSzp7nawo=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=TejQ/aLoXbP2DHnl2VCvNiKdAIzFNmYPlRbBo3842/RvyJQUExOdwi+x+KDoB1G7X
-         g4E+IarLfBvoVAIwMNqec2WtF46/taQr3oOrzywRcJzxk040GG4IHPIxC91KP4pwNL
-         SHtAiCkg35uQ0G1N+CGp63u28dmx29xwKWwWNtI4=
-Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 046FF27D119415
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 6 May 2020 10:15:02 -0500
-Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE106.ent.ti.com
- (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 6 May
- 2020 10:15:01 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 6 May 2020 10:15:01 -0500
-Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 046FEUgD119457;
-        Wed, 6 May 2020 10:14:58 -0500
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Arnd Bergmann <arnd@arndb.de>, Tom Joseph <tjoseph@cadence.com>
-CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <kishon@ti.com>
-Subject: [PATCH v4 07/14] PCI: cadence: Add new *ops* for CPU addr fixup
-Date:   Wed, 6 May 2020 20:44:22 +0530
-Message-ID: <20200506151429.12255-8-kishon@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200506151429.12255-1-kishon@ti.com>
-References: <20200506151429.12255-1-kishon@ti.com>
+        id S1730472AbgEFS6I (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 6 May 2020 14:58:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35922 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730442AbgEFS6H (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2020 14:58:07 -0400
+Received: from mail-lf1-x141.google.com (mail-lf1-x141.google.com [IPv6:2a00:1450:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44A69C061BD3
+        for <linux-omap@vger.kernel.org>; Wed,  6 May 2020 11:58:07 -0700 (PDT)
+Received: by mail-lf1-x141.google.com with SMTP id j14so2266224lfg.9
+        for <linux-omap@vger.kernel.org>; Wed, 06 May 2020 11:58:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=2hhU7YC1mHWJXOQCa9/YtvMX0AvTF/51BQ11Lkp2if0=;
+        b=ENs11Z2E6PTphR/O7XEptV9DrkitQZwLiWGfUE3J1NThoeRLPWDK4tDps5BoTcWit1
+         zxwc6iaDbar5hppPTNmyGg+DQIeMEcKomHQdFBhyU8VETMfHL8W2a1Jd5FtPT4MSFPlx
+         pW5uAwDfiblCrXtvPdUyMV5XllzXhrrMlu3/oW6uuJTz36qgimok4gbXBH4xnjVurcCX
+         lcUe+U7g7T87tsCxaKgUy1ztqhvZkOlPI1dRGORUz42KQ/uPPuoOll0V3+DBw/rjO1OW
+         I1Q/zUwoATalGf6bzwzmulWBAfKNsUBbxb1ZM1A5ACSkMtfwmtHD9gRLESdsOugAfng+
+         xmww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=2hhU7YC1mHWJXOQCa9/YtvMX0AvTF/51BQ11Lkp2if0=;
+        b=bmTR+o8irUDv+tAdmxFLCCJ2mfpVLUUhywG1OCdnFox75TwNcbog0BI74frMMEBVcf
+         L69Qgc8jF1zRj+tiI5xHHOmky1M/KYthWbHqqDf+Y8V8rabDRWz6Vy+VAQ7JEemymetZ
+         Uo1IILrhPtW0HUI68vDmpLAwBhX6dyNIkWq5lUqFq22SCY+tpiTWTi6TbnpHUSRhOkdB
+         tLJtAH7y/ozoeVt/n3BpnBkqCH0BUsG/64GjyJjnIxa9iU8FEXfBxs3T/4kqBdUEKAHa
+         v89FDGiIwoYTRj3qk1H3Vdyjd977M8ZdWJ0cz2HMPys9Nn8XzbU+HUAainuuN9a2XIaP
+         extw==
+X-Gm-Message-State: AGi0PuaFbeifakJRF7ohGI8IqBBk0RTCTwNM7zlAgHOxqR0MMSJxruoa
+        Lm2sKoAh42rcV1ojwews4/Ex1qSOXqJkxIue2ANA+w==
+X-Google-Smtp-Source: APiQypK2/BS9DNLQgUdve0DnZIP+ggCdF8l9P6mtknH7uy4q8+KLPietCh0cyMKc+/gJFltqkIhzsPf/UxXxP4Q5v8I=
+X-Received: by 2002:a19:40d2:: with SMTP id n201mr6168784lfa.82.1588791485423;
+ Wed, 06 May 2020 11:58:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+References: <1480357509-28074-1-git-send-email-johan@kernel.org> <1480357509-28074-12-git-send-email-johan@kernel.org>
+In-Reply-To: <1480357509-28074-12-git-send-email-johan@kernel.org>
+From:   Naresh Kamboju <naresh.kamboju@linaro.org>
+Date:   Thu, 7 May 2020 00:27:53 +0530
+Message-ID: <CA+G9fYvBjUVkVhtRHVm6xXcKe2+tZN4rGdB9FzmpcfpaLhY1+g@mail.gmail.com>
+Subject: Re: [PATCH net 11/16] net: ethernet: marvell: mvneta: fix fixed-link
+ phydev leaks
+To:     Johan Hovold <johan@kernel.org>,
+        linux- stable <stable@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Sasha Levin <sashal@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Vince Bridgers <vbridger@opensource.altera.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Fugang Duan <fugang.duan@nxp.com>,
+        Pantelis Antoniou <pantelis.antoniou@gmail.com>,
+        Vitaly Bordug <vbordug@ru.mvista.com>,
+        Claudiu Manoil <claudiu.manoil@freescale.com>,
+        Li Yang <leoli@freescale.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Felix Fietkau <nbd@openwrt.org>,
+        John Crispin <blogic@openwrt.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars Persson <lars.persson@axis.com>,
+        Mugunthan V N <mugunthanvnm@ti.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Vivien Didelot <vivien.didelot@savoirfairelinux.com>,
+        Netdev <netdev@vger.kernel.org>,
+        nios2-dev@lists.rocketboards.org,
+        open list <linux-kernel@vger.kernel.org>,
+        linuxppc-dev@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>, lkft-triage@lists.linaro.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Cadence driver uses "mem" memory resource to obtain the offset of
-configuration space address region, memory space address region and
-message space address region. The obtained offset is used to program
-the Address Translation Unit (ATU). However certain platforms like TI's
-J721E SoC require the absolute address to be programmed in the ATU and not
-just the offset.
+On Tue, 29 Nov 2016 at 00:00, Johan Hovold <johan@kernel.org> wrote:
+>
+> Make sure to deregister and free any fixed-link PHY registered using
+> of_phy_register_fixed_link() on probe errors and on driver unbind.
+>
+> Fixes: 83895bedeee6 ("net: mvneta: add support for fixed links")
+> Signed-off-by: Johan Hovold <johan@kernel.org>
+> ---
+>  drivers/net/ethernet/marvell/mvneta.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/net/ethernet/marvell/mvneta.c b/drivers/net/ethernet/marvell/mvneta.c
+> index 0c0a45af950f..707bc4680b9b 100644
+> --- a/drivers/net/ethernet/marvell/mvneta.c
+> +++ b/drivers/net/ethernet/marvell/mvneta.c
+> @@ -4191,6 +4191,8 @@ static int mvneta_probe(struct platform_device *pdev)
+>         clk_disable_unprepare(pp->clk);
+>  err_put_phy_node:
+>         of_node_put(phy_node);
+> +       if (of_phy_is_fixed_link(dn))
+> +               of_phy_deregister_fixed_link(dn);
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- .../pci/controller/cadence/pcie-cadence-host.c    | 15 ++++-----------
- .../pci/controller/cadence/pcie-cadence-plat.c    | 13 +++++++++++++
- drivers/pci/controller/cadence/pcie-cadence.c     |  8 ++++++--
- drivers/pci/controller/cadence/pcie-cadence.h     |  1 +
- 4 files changed, 24 insertions(+), 13 deletions(-)
+While building kernel Image for arm architecture on stable-rc 4.4 branch
+the following build error found.
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 6c84520318a7..7c220671e66f 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -104,15 +104,14 @@ static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
- static int cdns_pcie_host_init_address_translation(struct cdns_pcie_rc *rc)
- {
- 	struct cdns_pcie *pcie = &rc->pcie;
--	struct resource *mem_res = pcie->mem_res;
- 	struct resource *bus_range = rc->bus_range;
- 	struct resource *cfg_res = rc->cfg_res;
- 	struct device *dev = pcie->dev;
- 	struct device_node *np = dev->of_node;
- 	struct of_pci_range_parser parser;
-+	u64 cpu_addr = cfg_res->start;
- 	struct of_pci_range range;
- 	u32 addr0, addr1, desc1;
--	u64 cpu_addr;
- 	int r, err;
- 
- 	/*
-@@ -125,7 +124,9 @@ static int cdns_pcie_host_init_address_translation(struct cdns_pcie_rc *rc)
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_PCI_ADDR1(0), addr1);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_DESC1(0), desc1);
- 
--	cpu_addr = cfg_res->start - mem_res->start;
-+	if (pcie->ops->cpu_addr_fixup)
-+		cpu_addr = pcie->ops->cpu_addr_fixup(pcie, cpu_addr);
-+
- 	addr0 = CDNS_PCIE_AT_OB_REGION_CPU_ADDR0_NBITS(12) |
- 		(lower_32_bits(cpu_addr) & GENMASK(31, 8));
- 	addr1 = upper_32_bits(cpu_addr);
-@@ -266,14 +267,6 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- 	}
- 	rc->cfg_res = res;
- 
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mem");
--	if (!res) {
--		dev_err(dev, "missing \"mem\"\n");
--		return -EINVAL;
--	}
--
--	pcie->mem_res = res;
--
- 	ret = cdns_pcie_start_link(pcie);
- 	if (ret) {
- 		dev_err(dev, "Failed to start link\n");
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-plat.c b/drivers/pci/controller/cadence/pcie-cadence-plat.c
-index f5c6bf6dfcb8..6f5f07b3eed1 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-plat.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-plat.c
-@@ -13,6 +13,8 @@
- #include <linux/of_device.h>
- #include "pcie-cadence.h"
- 
-+#define CDNS_PLAT_CPU_TO_BUS_ADDR	0x0FFFFFFF
-+
- /**
-  * struct cdns_plat_pcie - private data for this PCIe platform driver
-  * @pcie: Cadence PCIe controller
-@@ -30,6 +32,15 @@ struct cdns_plat_pcie_of_data {
- 
- static const struct of_device_id cdns_plat_pcie_of_match[];
- 
-+static u64 cdns_plat_cpu_addr_fixup(struct cdns_pcie *pcie, u64 cpu_addr)
-+{
-+	return cpu_addr & CDNS_PLAT_CPU_TO_BUS_ADDR;
-+}
-+
-+static const struct cdns_pcie_ops cdns_plat_ops = {
-+	.cpu_addr_fixup = cdns_plat_cpu_addr_fixup,
-+};
-+
- static int cdns_plat_pcie_probe(struct platform_device *pdev)
- {
- 	const struct cdns_plat_pcie_of_data *data;
-@@ -66,6 +77,7 @@ static int cdns_plat_pcie_probe(struct platform_device *pdev)
- 
- 		rc = pci_host_bridge_priv(bridge);
- 		rc->pcie.dev = dev;
-+		rc->pcie.ops = &cdns_plat_ops;
- 		cdns_plat_pcie->pcie = &rc->pcie;
- 		cdns_plat_pcie->is_rc = is_rc;
- 
-@@ -93,6 +105,7 @@ static int cdns_plat_pcie_probe(struct platform_device *pdev)
- 			return -ENOMEM;
- 
- 		ep->pcie.dev = dev;
-+		ep->pcie.ops = &cdns_plat_ops;
- 		cdns_plat_pcie->pcie = &ep->pcie;
- 		cdns_plat_pcie->is_rc = is_rc;
- 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.c b/drivers/pci/controller/cadence/pcie-cadence.c
-index 874b7fa93577..29d32019145c 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence.c
-@@ -113,7 +113,9 @@ void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 fn,
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_DESC1(r), desc1);
- 
- 	/* Set the CPU address */
--	cpu_addr -= pcie->mem_res->start;
-+	if (pcie->ops->cpu_addr_fixup)
-+		cpu_addr = pcie->ops->cpu_addr_fixup(pcie, cpu_addr);
-+
- 	addr0 = CDNS_PCIE_AT_OB_REGION_CPU_ADDR0_NBITS(nbits) |
- 		(lower_32_bits(cpu_addr) & GENMASK(31, 8));
- 	addr1 = upper_32_bits(cpu_addr);
-@@ -140,7 +142,9 @@ void cdns_pcie_set_outbound_region_for_normal_msg(struct cdns_pcie *pcie, u8 fn,
- 	}
- 
- 	/* Set the CPU address */
--	cpu_addr -= pcie->mem_res->start;
-+	if (pcie->ops->cpu_addr_fixup)
-+		cpu_addr = pcie->ops->cpu_addr_fixup(pcie, cpu_addr);
-+
- 	addr0 = CDNS_PCIE_AT_OB_REGION_CPU_ADDR0_NBITS(17) |
- 		(lower_32_bits(cpu_addr) & GENMASK(31, 8));
- 	addr1 = upper_32_bits(cpu_addr);
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index 03c21ce4c9e9..16a6b0ee547c 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -234,6 +234,7 @@ struct cdns_pcie_ops {
- 	int	(*start_link)(struct cdns_pcie *pcie);
- 	void	(*stop_link)(struct cdns_pcie *pcie);
- 	bool	(*link_up)(struct cdns_pcie *pcie);
-+	u64     (*cpu_addr_fixup)(struct cdns_pcie *pcie, u64 cpu_addr);
- };
- 
- /**
--- 
-2.17.1
+drivers/net/ethernet/marvell/mvneta.c:3442:3: error: implicit
+declaration of function 'of_phy_deregister_fixed_link'; did you mean
+'of_phy_register_fixed_link'? [-Werror=implicit-function-declaration]
+|    of_phy_deregister_fixed_link(dn);
+|    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|    of_phy_register_fixed_link
 
+ref:
+https://gitlab.com/Linaro/lkft/kernel-runs/-/jobs/541374729
+
+- Naresh
