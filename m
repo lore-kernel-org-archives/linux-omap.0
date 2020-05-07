@@ -4,24 +4,23 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D60F2C54E4B
-	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:23:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB9DFC38A24
+	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:23:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0EB621473
-	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:23:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0E152184D
+	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727959AbgEGRXo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 May 2020 13:23:44 -0400
-Received: from muru.com ([72.249.23.125]:53138 "EHLO muru.com"
+        id S1728102AbgEGRXx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 May 2020 13:23:53 -0400
+Received: from muru.com ([72.249.23.125]:53194 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726074AbgEGRXn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 7 May 2020 13:23:43 -0400
+        id S1728070AbgEGRXt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 7 May 2020 13:23:49 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 7F55C810D;
-        Thu,  7 May 2020 17:24:29 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 226C3822F;
+        Thu,  7 May 2020 17:24:37 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     Daniel Lezcano <daniel.lezcano@linaro.org>,
         Thomas Gleixner <tglx@linutronix.de>
@@ -39,9 +38,9 @@ Cc:     linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
         Michael Turquette <mturquette@baylibre.com>,
         Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org,
         linux-clk@vger.kernel.org
-Subject: [PATCH 01/14] clocksource/drivers/timer-ti-32k: Add support for initializing directly
-Date:   Thu,  7 May 2020 10:23:17 -0700
-Message-Id: <20200507172330.18679-2-tony@atomide.com>
+Subject: [PATCH 04/14] bus: ti-sysc: Ignore timer12 on secure omap3
+Date:   Thu,  7 May 2020 10:23:20 -0700
+Message-Id: <20200507172330.18679-5-tony@atomide.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200507172330.18679-1-tony@atomide.com>
 References: <20200507172330.18679-1-tony@atomide.com>
@@ -52,114 +51,41 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Let's allow probing the 32k counter directly based on devicetree data to
-prepare for dropping the related legacy platform code. Let's only do this
-if the parent node is compatible with ti-sysc to make sure we have the
-related devicetree data available.
+Some early omap3 boards use timer12 for system timer, but for secure
+SoCs like on n900 it's not accessible. Likely we will be configuring
+unavailable devices for other SoCs too based on runtime SoC detection,
+so let's use a switch to start with.
 
-Let's also show the 32k counter information before registering the
-clocksource, now we see it after the clocksource information which is a
-bit confusing.
-
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: Keerthy <j-keerthy@ti.com>
 Cc: Lokesh Vutla <lokeshvutla@ti.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/clocksource/timer-ti-32k.c | 48 +++++++++++++++++++++++++++++-
- 1 file changed, 47 insertions(+), 1 deletion(-)
+ drivers/bus/ti-sysc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
---- a/drivers/clocksource/timer-ti-32k.c
-+++ b/drivers/clocksource/timer-ti-32k.c
-@@ -24,6 +24,7 @@
-  * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
-  */
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -2744,6 +2744,17 @@ static int sysc_init_soc(struct sysc *ddata)
+ 	if (match && match->data)
+ 		sysc_soc->soc = (int)match->data;
  
-+#include <linux/clk.h>
- #include <linux/init.h>
- #include <linux/time.h>
- #include <linux/sched_clock.h>
-@@ -76,6 +77,49 @@ static u64 notrace omap_32k_read_sched_clock(void)
- 	return ti_32k_read_cycles(&ti_32k_timer.cs);
- }
- 
-+static void __init ti_32k_timer_enable_clock(struct device_node *np,
-+					     const char *name)
-+{
-+	struct clk *clock;
-+	int error;
-+
-+	clock = of_clk_get_by_name(np->parent, name);
-+	if (IS_ERR(clock)) {
-+		/* Only some SoCs have a separate interface clock */
-+		if (PTR_ERR(clock) == -EINVAL && !strncmp("ick", name, 3))
-+			return;
-+
-+		pr_warn("%s: could not get clock %s %li\n",
-+			__func__, name, PTR_ERR(clock));
-+		return;
++	/* Ignore devices that are not available on HS and EMU SoCs */
++	if (!sysc_soc->general_purpose) {
++		switch (sysc_soc->soc) {
++		case SOC_3430 ... SOC_3630:
++			sysc_add_disabled(0x48304000);	/* timer12 */
++			break;
++		default:
++			break;
++		};
 +	}
 +
-+	error = clk_prepare_enable(clock);
-+	if (error) {
-+		pr_warn("%s: could not enable %s: %i\n",
-+			__func__, name, error);
-+		return;
-+	}
-+}
-+
-+static void __init ti_32k_timer_module_init(struct device_node *np,
-+					    void __iomem *base)
-+{
-+	void __iomem *sysc = base + 4;
-+
-+	if (!of_device_is_compatible(np->parent, "ti,sysc"))
-+		return;
-+
-+	ti_32k_timer_enable_clock(np, "fck");
-+	ti_32k_timer_enable_clock(np, "ick");
-+
-+	/*
-+	 * Force idle module as wkup domain is active with MPU.
-+	 * No need to tag the module disabled for ti-sysc probe.
-+	 */
-+	writel_relaxed(0, sysc);
-+}
-+
- static int __init ti_32k_timer_init(struct device_node *np)
- {
- 	int ret;
-@@ -90,6 +134,7 @@ static int __init ti_32k_timer_init(struct device_node *np)
- 		ti_32k_timer.cs.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
- 
- 	ti_32k_timer.counter = ti_32k_timer.base;
-+	ti_32k_timer_module_init(np, ti_32k_timer.base);
- 
- 	/*
- 	 * 32k sync Counter IP register offsets vary between the highlander
-@@ -104,6 +149,8 @@ static int __init ti_32k_timer_init(struct device_node *np)
- 	else
- 		ti_32k_timer.counter += OMAP2_32KSYNCNT_CR_OFF_LOW;
- 
-+	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
-+
- 	ret = clocksource_register_hz(&ti_32k_timer.cs, 32768);
- 	if (ret) {
- 		pr_err("32k_counter: can't register clocksource\n");
-@@ -111,7 +158,6 @@ static int __init ti_32k_timer_init(struct device_node *np)
- 	}
- 
- 	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
--	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
- 
- 	return 0;
- }
+ 	match = soc_device_match(sysc_soc_feat_match);
+ 	if (!match)
+ 		return 0;
 -- 
 2.26.2
