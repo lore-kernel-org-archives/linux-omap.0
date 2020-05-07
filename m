@@ -2,93 +2,86 @@ Return-Path: <SRS0=Ouqd=6V=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21117C54E8B
-	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:24:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4CB2C47257
+	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:35:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8BE820A8B
-	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:24:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D73B20735
+	for <linux-omap@archiver.kernel.org>; Thu,  7 May 2020 17:35:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728110AbgEGRXy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 May 2020 13:23:54 -0400
-Received: from muru.com ([72.249.23.125]:53228 "EHLO muru.com"
+        id S1728198AbgEGRfl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 May 2020 13:35:41 -0400
+Received: from muru.com ([72.249.23.125]:53456 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727972AbgEGRXv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 7 May 2020 13:23:51 -0400
+        id S1726393AbgEGRfk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 7 May 2020 13:35:40 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 5B87F80CD;
-        Thu,  7 May 2020 17:24:39 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id B9CBE80CD;
+        Thu,  7 May 2020 17:36:29 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
-To:     Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>
-Cc:     linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+List-Id: <soc.lore.kernel.org>
+To:     soc@kernel.org
+Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Keerthy <j-keerthy@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>,
-        Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Adam Ford <aford173@gmail.com>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        Brian Hutchinson <b.hutchman@gmail.com>,
-        Graeme Smecher <gsmecher@threespeedlogic.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: [PATCH 05/14] ARM: OMAP2+: Add omap_init_time_of()
-Date:   Thu,  7 May 2020 10:23:21 -0700
-Message-Id: <20200507172330.18679-6-tony@atomide.com>
+        "Tony Lindgren" <tony@atomide.com>
+Subject: [GIT PULL] Fixes for omaps for v5.7-rc cycle
+Date:   Thu,  7 May 2020 10:35:26 -0700
+Message-Id: <pull-1588872844-804667@atomide.com>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200507172330.18679-1-tony@atomide.com>
-References: <20200507172330.18679-1-tony@atomide.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This allows us to move the SoCs to probe system timers one SoC
-at at time. As arch/arm/mach-omap2/timer.c will be eventually gone,
-let's just add omap_init_time_of() to board-generic.c directly.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-generic.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+The following changes since commit 8f3d9f354286745c751374f5f1fcafee6b3f3136:
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -12,6 +12,7 @@
- #include <linux/of_irq.h>
- #include <linux/of_platform.h>
- #include <linux/irqdomain.h>
-+#include <linux/clocksource.h>
- 
- #include <asm/setup.h>
- #include <asm/mach/arch.h>
-@@ -31,6 +32,13 @@ static void __init __maybe_unused omap_generic_init(void)
- 	omap_soc_device_init();
- }
- 
-+/* Clocks are needed early, see drivers/clocksource for the rest */
-+void __init __maybe_unused omap_init_time_of(void)
-+{
-+	omap_clk_init();
-+	timer_probe();
-+}
-+
- #ifdef CONFIG_SOC_OMAP2420
- static const char *const omap242x_boards_compat[] __initconst = {
- 	"ti,omap2420",
--- 
-2.26.2
+  Linux 5.7-rc1 (2020-04-12 12:35:55 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.6/fixes-rc4
+
+for you to fetch changes up to 738b150ecefbffb6e55cfa8a3b66a844f777d8fb:
+
+  ARM: dts: omap4-droid4: Fix occasional lost wakeirq for uart1 (2020-05-05 10:19:39 -0700)
+
+----------------------------------------------------------------
+Fixes for omaps for v5.6-rc cycle
+
+Few device tree fixes for various devices:
+
+- A regression fix for non-existing can device on am534x-idk
+
+- Fix missing dma-ranges for dra7 pcie
+
+- Fix flakey wlan on droid4 where some devices would not connect
+  at all because of internal pull being used with an external pull
+
+- Fix occasional missed wake-up events on droid4 modem uart
+
+----------------------------------------------------------------
+Faiz Abbas (1):
+      ARM: dts: am574x-idk: Disable m_can node
+
+Kishon Vijay Abraham I (1):
+      ARM: dts: dra7: Fix bus_dma_limit for PCIe
+
+Tony Lindgren (3):
+      Merge branch 'fixes-v5.7' into fixes
+      ARM: dts: omap4-droid4: Fix flakey wlan by disabling internal pull for gpio
+      ARM: dts: omap4-droid4: Fix occasional lost wakeirq for uart1
+
+ arch/arm/boot/dts/am574x-idk.dts                |  4 +++
+ arch/arm/boot/dts/dra7.dtsi                     |  4 +--
+ arch/arm/boot/dts/motorola-mapphone-common.dtsi | 43 +++++++++++++++++++++++--
+ arch/arm/boot/dts/omap3-n950-n9.dtsi            |  5 +++
+ 4 files changed, 51 insertions(+), 5 deletions(-)
