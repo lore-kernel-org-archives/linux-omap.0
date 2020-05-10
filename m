@@ -1,107 +1,78 @@
-Return-Path: <SRS0=ccPU=6X=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=EeRb=6Y=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 325CFC28CBC
-	for <linux-omap@archiver.kernel.org>; Sat,  9 May 2020 19:36:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0492C38A2A
+	for <linux-omap@archiver.kernel.org>; Sun, 10 May 2020 15:37:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 184F2214D8
-	for <linux-omap@archiver.kernel.org>; Sat,  9 May 2020 19:36:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEB9920736
+	for <linux-omap@archiver.kernel.org>; Sun, 10 May 2020 15:37:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728065AbgEITgR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 9 May 2020 15:36:17 -0400
-Received: from jabberwock.ucw.cz ([46.255.230.98]:53810 "EHLO
-        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727938AbgEITgR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 9 May 2020 15:36:17 -0400
-Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
-        id 5742B1C025E; Sat,  9 May 2020 21:36:15 +0200 (CEST)
-Date:   Sat, 9 May 2020 21:36:14 +0200
-From:   Pavel Machek <pavel@ucw.cz>
+        id S1726955AbgEJPhK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 10 May 2020 11:37:10 -0400
+Received: from mga18.intel.com ([134.134.136.126]:43697 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726104AbgEJPhJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 10 May 2020 11:37:09 -0400
+IronPort-SDR: EyYUUMTcGpDYIcKsYWE1/FfCgUOtD3sJYEWizRKOmZ1B6BtQo+4oOu7oBX/72mZ+2dxNSEkX4s
+ ZHbGMtDhc2pQ==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 May 2020 08:37:09 -0700
+IronPort-SDR: /HpAhIVKa+oMLgdw/57Jx1OGpuXmJLiIh56T2t8nRbrLM7dLmNh7I01uUkAiTVhap+cwZOWghe
+ tyglLwAVq/mA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,376,1583222400"; 
+   d="scan'208";a="250279950"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga007.jf.intel.com with ESMTP; 10 May 2020 08:37:08 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1jXo0p-000DwH-Kh; Sun, 10 May 2020 23:37:07 +0800
+Date:   Sun, 10 May 2020 23:36:58 +0800
+From:   kbuild test robot <lkp@intel.com>
 To:     Tony Lindgren <tony@atomide.com>
-Cc:     kernel list <linux-kernel@vger.kernel.org>,
-        linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com,
-        mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz
-Subject: Re: ofono for d4: less hcked and more working version was Re: USB
- networking news, ofono for d4: less hacked version
-Message-ID: <20200509193614.GA16530@amd>
-References: <20200506101125.GA7490@amd>
- <20200506144338.GT37466@atomide.com>
- <20200506230525.GA22354@amd>
- <20200507140732.GU37466@atomide.com>
- <20200508100211.GA19646@amd>
- <20200509143111.GC37466@atomide.com>
+Cc:     kbuild-all@lists.01.org, linux-omap@vger.kernel.org,
+        Pavel Machek <pavel@ucw.cz>
+Subject: [RFC PATCH omap] gnss: motmdm: motmdm_gnss_send_command() can be
+ static
+Message-ID: <20200510153658.GA87187@7c31f038ab56>
+References: <202005102338.fOZzLJuj%lkp@intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200509143111.GC37466@atomide.com>
-User-Agent: Mutt/1.5.23 (2014-03-12)
+In-Reply-To: <202005102338.fOZzLJuj%lkp@intel.com>
+X-Patchwork-Hint: ignore
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 
---sdtB3X0nJg68CQEu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fixes: ae348e86a0ab ("gnss: motmdm: Add support for Motorola Mapphone MDM6600 modem")
+Signed-off-by: kbuild test robot <lkp@intel.com>
+---
+ motmdm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On Sat 2020-05-09 07:31:11, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [200508 10:03]:
-> > I pushed new version of ofono: I'm still not sure about those incoming
-> > sms (but _some_ sms are received). Rest should be better.
->=20
-> Please check that you have applied commit 738b150ecefb ("ARM: dts:
-> omap4-droid4: Fix occasional lost wakeirq for uart1"), otherwise incoming
-> SMS may not always show up, and GPS can stop producing data.
-
-Thanks for support. But problem is not that SMS fails to come. Problem
-is that it comes over and over and over again. It takes few minutes.
-
-Now it is 20:40, and I got:
-
-{MessageManager} [/motmdm_1] IncomingMessage Vazeny zakazniku, bylo
-Vam vygenerovane nasledujici jednorazove heslo pro pristup do
-samoobsluhy: 947xxx ({ LocalSentTime =3D 2020-05-09T20:38:38+0200,
-SentTime =3D 2020-05-09T20:38:38+0200, Sender =3D Tescomobile })
-
-I believe that I'll get it again in half an hour or something. Then I
-reboot to stock rom, and will receive it for one final time. (Unless
-my last hack worked.).
-
-Hmm, hour has passed, and no message. Interesting. Maybe I finally got
-it right?
-
-> Hmm for ofono motchat, why not handle the U0000 part directly in motchat
-> and use just a timestamp based ID there?
-
-Yes, that's possible future improvement :-). I plan to get it to work,
-first...
-
-Best regards,
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---sdtB3X0nJg68CQEu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAl63Bi4ACgkQMOfwapXb+vKuFwCfeeq2Ghuj7d8OiS8QCGIebVTC
-vTYAoI+iKMGp3mq4s+0qmVdMIR3m2vd2
-=FKO9
------END PGP SIGNATURE-----
-
---sdtB3X0nJg68CQEu--
+diff --git a/drivers/gnss/motmdm.c b/drivers/gnss/motmdm.c
+index da1d44bed899d..49d4580ae3eae 100644
+--- a/drivers/gnss/motmdm.c
++++ b/drivers/gnss/motmdm.c
+@@ -68,8 +68,8 @@ MODULE_PARM_DESC(rate_ms, "GNSS refresh rate between 1000 and 16000 ms (default
+  * sort out the ID conflicts with the modem's unsolicited message ID
+  * numbering.
+  */
+-int motmdm_gnss_send_command(struct motmdm_gnss_data *ddata,
+-			     const u8 *buf, int len)
++static int motmdm_gnss_send_command(struct motmdm_gnss_data *ddata,
++				    const u8 *buf, int len)
+ {
+ 	struct gnss_device *gdev = ddata->gdev;
+ 	const int timeout_ms = 1000;
