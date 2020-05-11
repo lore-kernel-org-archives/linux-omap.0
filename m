@@ -2,87 +2,105 @@ Return-Path: <SRS0=kMz3=6Z=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5D1CC54E4B
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:22:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B75A4C54E4B
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:46:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FA962082E
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:22:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9481320735
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:46:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="KTJtUy+x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729645AbgEKLWQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 11 May 2020 07:22:16 -0400
-Received: from foss.arm.com ([217.140.110.172]:57800 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725993AbgEKLWQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 11 May 2020 07:22:16 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8F28F101E;
-        Mon, 11 May 2020 04:22:15 -0700 (PDT)
-Received: from e123648.arm.com (unknown [10.37.12.83])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 506FB3F305;
-        Mon, 11 May 2020 04:22:05 -0700 (PDT)
-From:   Lukasz Luba <lukasz.luba@arm.com>
-To:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        id S1728531AbgEKLqc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 11 May 2020 07:46:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42084 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726068AbgEKLqb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 11 May 2020 07:46:31 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F2B5C05BD0A
+        for <linux-omap@vger.kernel.org>; Mon, 11 May 2020 04:46:30 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id w19so4086761wmc.1
+        for <linux-omap@vger.kernel.org>; Mon, 11 May 2020 04:46:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=8HihaMjBho7yHhoZ4dXDWrBXozE3xr0NvWok/3IgXso=;
+        b=KTJtUy+xvCilgtfASvMVkrHFxJGWQd6oQfRtMj53UFUDKm0GLZdcKmysVquVdcGnNQ
+         GnLnowb53q2mnDekrftfm5idSn2La4Hwi3EQlRIr2/x9kLZEGljvyDzDJ/tH/iPMhCm1
+         Br1Mj0mQ+w2yON0HQ2T8K1qFr/JqndsQWJkbeeocTf/p+tdDaBtBm97H2lzKg+T6eaZa
+         e1c0Mmv7ay3WSrdGzzxq+HftjVHi1YFqLO/rTY4o27q48B7uXHJnRU8plAj3pMPpDMjc
+         48oZp2j9ep2hx9TCcvQ4njLDs5w+TaPPZM4SJGoDmaM0Jh1BZ2wDTD7I2hrixnS3uVeE
+         pxUw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=8HihaMjBho7yHhoZ4dXDWrBXozE3xr0NvWok/3IgXso=;
+        b=GOTAzGEbEop9FtA/Epaoe1TBCziv3zvZ/A16WM8jv3371Z7nquZJZRp3URnMvsOyiJ
+         G7uYyXU5ffADt3KxPxCHQu82rOQeX8wmYeEOQTrweEb6nZO9Ci4gMv70yUDwu/jOFgar
+         6CBwYOjhBhWCBqIIv4+DvgIXctYMsMaAJ0R2dFWHEzXjDxojNQVNHmO6ZWG/UXemYPOP
+         tSHJ///bFHdLHf2l7hyDo0iRGT7cUjXtsmhWrwP6PFzfmfLTY9SCd0QG/7ebWimWod8o
+         fZLz25MC7Dt6GKxUdj3XwXT5/eVaWwwJrd0yjBnLHA20wY6xTVVI8043Cmwaq2KnQ7wJ
+         91Uw==
+X-Gm-Message-State: AGi0PuYvDTSBaenWEWHcWLaaP0oyJs/OAdwVb+x2Yooy6Ld7TInHpopz
+        j4d09Cc96F0s645UIN5nDVxb/g==
+X-Google-Smtp-Source: APiQypK+52M5jh5tMkIap1YctDwL5nM0Q2YdPkE9mtpXjfSY9F6Whlp3f9IAQU+9uwYyfn1ELFgsiA==
+X-Received: by 2002:a7b:ce89:: with SMTP id q9mr33216701wmj.185.1589197588860;
+        Mon, 11 May 2020 04:46:28 -0700 (PDT)
+Received: from google.com ([2a00:79e0:d:110:d6cc:2030:37c1:9964])
+        by smtp.gmail.com with ESMTPSA id w18sm17682226wro.33.2020.05.11.04.46.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 May 2020 04:46:28 -0700 (PDT)
+Date:   Mon, 11 May 2020 12:46:24 +0100
+From:   Quentin Perret <qperret@google.com>
+To:     Lukasz Luba <lukasz.luba@arm.com>
+Cc:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
         linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        linux-imx@nxp.com
-Cc:     Dietmar.Eggemann@arm.com, cw00.choi@samsung.com,
+        linux-imx@nxp.com, Dietmar.Eggemann@arm.com, cw00.choi@samsung.com,
         b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com,
         viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org,
         rui.zhang@intel.com, amit.kucheria@verdurent.com,
         daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org,
         juri.lelli@redhat.com, vincent.guittot@linaro.org,
-        rostedt@goodmis.org, qperret@google.com, bsegall@google.com,
-        mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de,
-        festevam@gmail.com, kernel@pengutronix.de, khilman@kernel.org,
-        agross@kernel.org, bjorn.andersson@linaro.org, robh@kernel.org,
+        rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
+        shawnguo@kernel.org, s.hauer@pengutronix.de, festevam@gmail.com,
+        kernel@pengutronix.de, khilman@kernel.org, agross@kernel.org,
+        bjorn.andersson@linaro.org, robh@kernel.org,
         matthias.bgg@gmail.com, steven.price@arm.com,
         tomeu.vizoso@collabora.com, alyssa.rosenzweig@collabora.com,
         airlied@linux.ie, daniel@ffwll.ch, liviu.dudau@arm.com,
-        lorenzo.pieralisi@arm.com, lukasz.luba@arm.com,
-        patrick.bellasi@matbug.net, orjan.eide@arm.com,
-        rdunlap@infradead.org, mka@chromium.org
-Subject: [PATCH v7 15/15] drm/panfrost: Register devfreq cooling and attempt to add Energy Model
-Date:   Mon, 11 May 2020 12:19:12 +0100
-Message-Id: <20200511111912.3001-16-lukasz.luba@arm.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200511111912.3001-1-lukasz.luba@arm.com>
+        lorenzo.pieralisi@arm.com, patrick.bellasi@matbug.net,
+        orjan.eide@arm.com, rdunlap@infradead.org, mka@chromium.org
+Subject: Re: [PATCH v7 01/15] PM / EM: change naming convention from
+ 'capacity' to 'performance'
+Message-ID: <20200511114624.GA11091@google.com>
 References: <20200511111912.3001-1-lukasz.luba@arm.com>
+ <20200511111912.3001-2-lukasz.luba@arm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200511111912.3001-2-lukasz.luba@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Register devfreq cooling device and attempt to register Energy Model. This
-will add the devfreq device to the Energy Model framework. It will create
-a dedicated and unified data structures used i.e. in thermal framework.
-The last NULL parameter indicates that the power model is simplified and
-created based on DT 'dynamic-power-coefficient', voltage and frequency.
+On Monday 11 May 2020 at 12:18:58 (+0100), Lukasz Luba wrote:
+> The Energy Model uses concept of performance domain and capacity states in
+> order to calculate power used by CPUs. Change naming convention from
+> capacity to performance state would enable wider usage in future, e.g.
+> upcoming support for other devices other than CPUs.
+> 
+> Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Signed-off-by: Lukasz Luba <lukasz.luba@arm.com>
 
-Reviewed-by: Steven Price <steven.price@arm.com>
-Reviewed-by: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
-Signed-off-by: Lukasz Luba <lukasz.luba@arm.com>
----
- drivers/gpu/drm/panfrost/panfrost_devfreq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/panfrost/panfrost_devfreq.c b/drivers/gpu/drm/panfrost/panfrost_devfreq.c
-index 413987038fbf..8759a73db153 100644
---- a/drivers/gpu/drm/panfrost/panfrost_devfreq.c
-+++ b/drivers/gpu/drm/panfrost/panfrost_devfreq.c
-@@ -105,7 +105,7 @@ int panfrost_devfreq_init(struct panfrost_device *pfdev)
- 	}
- 	pfdev->devfreq.devfreq = devfreq;
- 
--	cooling = of_devfreq_cooling_register(dev->of_node, devfreq);
-+	cooling = devfreq_cooling_em_register(devfreq, NULL);
- 	if (IS_ERR(cooling))
- 		DRM_DEV_INFO(dev, "Failed to register cooling device\n");
- 	else
--- 
-2.17.1
-
+Acked-by: Quentin Perret <qperret@google.com>
