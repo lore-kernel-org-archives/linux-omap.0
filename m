@@ -5,54 +5,54 @@ X-Spam-Level:
 X-Spam-Status: No, score=-10.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3D92C54E9B
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD67C54E9A
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82DBA20722
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D2F620722
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="pJlWQBC3"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="k7SqLLlC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729343AbgEKLTp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 11 May 2020 07:19:45 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:52260 "EHLO
+        id S1729305AbgEKLTm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 11 May 2020 07:19:42 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:52254 "EHLO
         lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725993AbgEKLTp (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2020 07:19:45 -0400
+        with ESMTP id S1729260AbgEKLTk (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2020 07:19:40 -0400
 Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJVnV099257;
-        Mon, 11 May 2020 06:19:31 -0500
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJSah099239;
+        Mon, 11 May 2020 06:19:28 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1589195971;
-        bh=ri+/lIeSNOTM3l+FNff6gZorR0Kh5OVSvczQZBkHThk=;
+        s=ti-com-17Q1; t=1589195968;
+        bh=D+FkBTnlxhFt8rwKSbgbew41pOYqmQRAEPiRqzTmXOQ=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=pJlWQBC3ot8g9xhpGhEnu3og5oqL4LlV9uztEhEJL2Ew0OhKIA2lVSDWt39SLs2Vv
-         0c95mXTYeR9N2DPExC9UdHNg1sTog5w/UYF8A8L8p2/l7E9Mhyenfwgqa9RG6MieVi
-         9zTvrQK0msADjHXiKOgiDeXQD8sjAIwsW5RMYURo=
-Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04BBJVJx003452
+        b=k7SqLLlClB8ZEFDGzF/pEUjn9BCGo8CrPPLntbI3b+zIRIG5Y5f+HFEkqF/iHxxmM
+         rptNWFqR9e5RqifD7oSS0UxIFqrIPgD+VXAzz9u9Uz7HBCgqRoZbashL7sLX+DNUEF
+         u59A9G19vHup5sEpc5STyVYuRMfsE9RvYj5S1cvQ=
+Received: from DLEE104.ent.ti.com (dlee104.ent.ti.com [157.170.170.34])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04BBJSUk003413
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 11 May 2020 06:19:31 -0500
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 11 May 2020 06:19:28 -0500
+Received: from DLEE104.ent.ti.com (157.170.170.34) by DLEE104.ent.ti.com
+ (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 11
- May 2020 06:19:31 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ May 2020 06:19:28 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE104.ent.ti.com
+ (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 11 May 2020 06:19:31 -0500
+ Frontend Transport; Mon, 11 May 2020 06:19:28 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJKOa004306;
-        Mon, 11 May 2020 06:19:30 -0500
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJKOY004306;
+        Mon, 11 May 2020 06:19:27 -0500
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <herbert@gondor.apana.org.au>, <davem@davemloft.net>,
         <linux-crypto@vger.kernel.org>
 CC:     <linux-omap@vger.kernel.org>
-Subject: [PATCHv2 6/7] crypto: omap-aes: prevent unregistering algorithms twice
-Date:   Mon, 11 May 2020 14:19:12 +0300
-Message-ID: <20200511111913.26541-7-t-kristo@ti.com>
+Subject: [PATCHv2 4/7] crypto: omap-sham: huge buffer access fixes
+Date:   Mon, 11 May 2020 14:19:10 +0300
+Message-ID: <20200511111913.26541-5-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200511111913.26541-1-t-kristo@ti.com>
 References: <20200511111913.26541-1-t-kristo@ti.com>
@@ -64,40 +64,46 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Most of the OMAP family SoCs contain two instances for AES core, which
-causes the remove callbacks to be also done twice when driver is
-removed. Fix the algorithm unregister callbacks to take into account the
-number of algorithms still registered to avoid removing these twice.
+The ctx internal buffer can only hold buflen amount of data, don't try
+to copy over more than that. Also, initialize the context sg pointer
+if we only have data in the context internal buffer, this can happen
+when closing a hash with certain data amounts.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/crypto/omap-aes.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/crypto/omap-sham.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index 824ddf2a66ff..b5aff20c5900 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -1269,13 +1269,17 @@ static int omap_aes_remove(struct platform_device *pdev)
- 	spin_unlock(&list_lock);
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index 0c837bbd8f0c..9823d7dfca9c 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -751,8 +751,15 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
+ 	int offset = rctx->offset;
+ 	int bufcnt = rctx->bufcnt;
  
- 	for (i = dd->pdata->algs_info_size - 1; i >= 0; i--)
--		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--)
-+		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--) {
- 			crypto_unregister_skcipher(
- 					&dd->pdata->algs_info[i].algs_list[j]);
-+			dd->pdata->algs_info[i].registered--;
+-	if (!sg || !sg->length || !nbytes)
++	if (!sg || !sg->length || !nbytes) {
++		if (bufcnt) {
++			sg_init_table(rctx->sgl, 1);
++			sg_set_buf(rctx->sgl, rctx->dd->xmit_buf, bufcnt);
++			rctx->sg = rctx->sgl;
 +		}
- 
--	for (i = dd->pdata->aead_algs_info->size - 1; i >= 0; i--) {
-+	for (i = dd->pdata->aead_algs_info->registered - 1; i >= 0; i--) {
- 		aalg = &dd->pdata->aead_algs_info->algs_list[i];
- 		crypto_unregister_aead(aalg);
-+		dd->pdata->aead_algs_info->registered--;
 +
- 	}
+ 		return 0;
++	}
  
- 	crypto_engine_exit(dd->engine);
+ 	new_len = nbytes;
+ 
+@@ -896,7 +903,7 @@ static int omap_sham_prepare_request(struct ahash_request *req, bool update)
+ 	if (hash_later < 0)
+ 		hash_later = 0;
+ 
+-	if (hash_later) {
++	if (hash_later && hash_later <= rctx->buflen) {
+ 		scatterwalk_map_and_copy(rctx->buffer,
+ 					 req->src,
+ 					 req->nbytes - hash_later,
 -- 
 2.17.1
 
