@@ -2,233 +2,93 @@ Return-Path: <SRS0=kMz3=6Z=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF801C47255
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 554BDC54E8F
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEF8B20722
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 348D020722
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="mHsWzWs7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726068AbgEKLTe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 11 May 2020 07:19:34 -0400
-Received: from foss.arm.com ([217.140.110.172]:56914 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725993AbgEKLTd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 11 May 2020 07:19:33 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4D1251FB;
-        Mon, 11 May 2020 04:19:32 -0700 (PDT)
-Received: from e123648.arm.com (unknown [10.37.12.83])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id F2E713F305;
-        Mon, 11 May 2020 04:19:21 -0700 (PDT)
-From:   Lukasz Luba <lukasz.luba@arm.com>
-To:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        linux-imx@nxp.com
-Cc:     Dietmar.Eggemann@arm.com, cw00.choi@samsung.com,
-        b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com,
-        viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org,
-        rui.zhang@intel.com, amit.kucheria@verdurent.com,
-        daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org,
-        juri.lelli@redhat.com, vincent.guittot@linaro.org,
-        rostedt@goodmis.org, qperret@google.com, bsegall@google.com,
-        mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de,
-        festevam@gmail.com, kernel@pengutronix.de, khilman@kernel.org,
-        agross@kernel.org, bjorn.andersson@linaro.org, robh@kernel.org,
-        matthias.bgg@gmail.com, steven.price@arm.com,
-        tomeu.vizoso@collabora.com, alyssa.rosenzweig@collabora.com,
-        airlied@linux.ie, daniel@ffwll.ch, liviu.dudau@arm.com,
-        lorenzo.pieralisi@arm.com, lukasz.luba@arm.com,
-        patrick.bellasi@matbug.net, orjan.eide@arm.com,
-        rdunlap@infradead.org, mka@chromium.org
-Subject: [PATCH v7 00/15] Add support for devices in the Energy Model
-Date:   Mon, 11 May 2020 12:18:57 +0100
-Message-Id: <20200511111912.3001-1-lukasz.luba@arm.com>
+        id S1729163AbgEKLTi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 11 May 2020 07:19:38 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:52250 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726438AbgEKLTh (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2020 07:19:37 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJOXN099223;
+        Mon, 11 May 2020 06:19:24 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1589195964;
+        bh=r/Z289ziuLekskSoAOTc4KuAcsPT8zHSmf/vDtvcIms=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=mHsWzWs7Lk5GIGNMwXZ5PH7M5+jB7PLtYLpnf1nld2OKxJt1HfivDE1xKHUrodikk
+         WzgkTXdNhTXP4rinHohAN7KKPV5YVbMi0JG5lD8Yq8oXdO+bkE6GxBRRjoaJov85K5
+         R+2sabiR5cQenorn4PFkL3UZdL8fVsJZ2z5JV9Ck=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04BBJOOZ061628
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 11 May 2020 06:19:24 -0500
+Received: from DFLE112.ent.ti.com (10.64.6.33) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 11
+ May 2020 06:19:23 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Mon, 11 May 2020 06:19:23 -0500
+Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJKOV004306;
+        Mon, 11 May 2020 06:19:22 -0500
+From:   Tero Kristo <t-kristo@ti.com>
+To:     <herbert@gondor.apana.org.au>, <davem@davemloft.net>,
+        <linux-crypto@vger.kernel.org>
+CC:     <linux-omap@vger.kernel.org>
+Subject: [PATCHv2 1/7] crypto: omap-aes: avoid spamming console with self tests
+Date:   Mon, 11 May 2020 14:19:07 +0300
+Message-ID: <20200511111913.26541-2-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200511111913.26541-1-t-kristo@ti.com>
+References: <20200511111913.26541-1-t-kristo@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi all,
+Running the self test suite for omap-aes with extra tests enabled causes
+huge spam with the tag message wrong indicators. With self tests, this
+is fine as there are some tests that purposedly pass bad data to the
+driver. Also, returning -EBADMSG from the driver is enough, so remove the
+dev_err message completely.
 
-This patch set introduces support for devices in the Energy Model (EM)
-framework. It will unify the power model for thermal subsystem. It will
-make simpler to add support for new devices willing to use more
-advanced features (like Intelligent Power Allocation). Now it should
-require less knowledge and effort for driver developer to add e.g.
-GPU driver with simple energy model. A more sophisticated energy model
-in the thermal framework is also possible, driver needs to provide
-a dedicated callback function. More information can be found in the
-updated documentation file.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/crypto/omap-aes-gcm.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-First 7 patches are refactoring Energy Model framework to add support
-of other devices that CPUs. They change:
-- naming convention from 'capacity' to 'performance' state,
-- API arguments adding device pointer and not rely only on cpumask,
-- change naming when 'cpu' was used, now it's a 'device'
-- internal structure to maintain registered devices
-- update users to the new API
-Patch 8 updates OPP framework helper function to be more generic, not
-CPU specific.
-Patches 9-14 change devfreq cooling, dropping part of old power model and
-adding registration with Energy Model via exported GPL function.
-The last path is a simple change for Panfrost GPU driver.
-
-The patch set is based on linux-next tag next-20200508.
-
-Changes:
-v7:
-- all the EM changes are for patch 4/10 from v6
--- added em_perf_domain structure into struct device in order to simplify
-  code (suggested by Daniel)
--- removed kref, em_pd, debug_dir from em_device (suggested by Daniel)
--- refactored code and removed unsed functions
--- refactored checking if EM exists for a CPU and deleted em_cpus_pd_exist()
--- simplified em_pd_get() and em_cpu_get()
--- removed em_debug_type_show()
--- removed a few unused debug prints
--- changed debug dir name in order to remove em_debug_type_show() and
-  em_debug_dev_show() functions
--- removed em_dev_list and em_device since it is now possible to use
-  struct device and rely on it
-- thermal: split patch 9/10 from v6 as requested by Daniel and created 6 new:
--- patch v7 9/15 with only tracing change - exactly the same code so I keep
-   'Reviewed-by # for tracing code' from Steven Rostedt
--- patch 10/15 and 11/14 takes more consistent state of devfreq device
--- patch 12/15 which adds Energy Model register/unregister functions
--- patch 13/15 which uses the new Energy Model
--- patch 14/15 adjusts headers license into the SPDX
-v6 [6]:
-- split patch 1/5 from v5 into smaller patches as requested by Daniel
-  and dropped ACK from Quentin which was in the old there
-- added function em_dev_register_perf_domain as suggested by Daniel, which
-  would help transition into the new API
-- changed 'cs' (capacity state) in different places into 'ps' (performance state),
-  since now there are many smaller patches (previously skipped because
-  of too big size of the patch with main features and left to do later)
-- changed cpumask_equal() to cpumask_intersects() when checking if 'cpus' coming
-  as an argument to registration function might overlap with already known;
-  this shouldn't be an issue when cpufreq policy is OK, but a check doesn't harm
-- added Reviewed-by from Alyssa into Panfrost related patch
-- dropped Matthias patch with PM QoS from the series since it's in the next now
-v5 [5]:
-- devfreq cooling: rebased on top of pending patch introducing PM QoS limits
-- devfreq cooling: added Matthias's patch to make this series build check pass
-- devfreq cooling: removed OPP disable code and switched to PM QoS
-- devfreq cooling: since thermal code always used a pointer to devfreq_dev_status,
-  switched to work on a local copy and avoid potential race when either busy_time or
-  total_time could change in the background
-- devfreq cooling: added _normalize_load() and handle all scenarios when
-  busy_time and total_time could have odd values (even raw counters)
-- Energy Model patch 2/4: removed prints from cpufreq drivers and added print inside
-  dev_pm_opp_of_register_em()
-- update patch 2/4 description to better reflect upcoming changes
-- collected ACK from Quentin for patch 1/4 and Reviewed-by from Steven for 4/4
-v4 [4]:
-- devfreq cooling: added two new registration functions, which will take care
-  of registering EM for the device and simplify drivers code
-  (suggested by Robin and Rob)
-- Energy Model: changed unregistering code, added kref to track usage, added
-  code freeing tables, added helper function
-- added return value to function dev_pm_opp_of_register_em() and updated
-  CPUFreq drivers code, added debug prints in case of failure
-- updated comments in devfreq cooling removing statement that only
-  simple_ondemand devfreq governor is supported to work with power extentions
-- fixed spelling in the documentation (reported by Randy)
-v3 [3]:
-- added back the cpumask 'cpus' in the em_perf_domain due potential cache misses
-- removed _is_cpu_em() since there is no need for it
-- changed function name from em_pd_energy() to em_cpu_energy(), which is
-  optimized for usage from the scheduler making some assumptions and not
-  validating arguments to speed-up, there is a comment stressing that it should
-  be used only for CPUs em_perf_domain
-- changed em_get_pd() to em_pd_get() which is now aligned with em_cpu_get()
-  naming
-- Energy Model: add code which checks if the EM is already registered for the
-  devfreq device
-- extended comment in em_cpu_get() describing the need for this function
-- fixed build warning reported on x86 by kbuild test robot in devfreq_cooling.c
-- updated documentation in the energy-model.rst
-- changed print messages from 'energy_model' to 'EM'
-- changed dev_warn to dev_dbg, should calm down test scripts in case the
-  platform has OPPs less efficient in the OPP table (some of them are there for
-  cooling reasons, we shouldn't warn in this case, debug info is enough)
-v2 [2]:
-- changed EM API em_register_perf_domain() adding cpumask_t pointer
-  as last argument (which was discussed with Dietmar and Quentin)
-- removed dependency on PM_OPP, thanks to the cpumask_t argument
-- removed enum em_type and em->type dependent code
-- em_get_pd() can handle CPU device as well as devfreq device
-- updated EM documentation
-- in devfreq cooling added code which prevents from race condition with
-  devfreq governors which are trying to use OPPs while thermal is in the middle
-  of disabling them.
-- in devfreq cooling added code which updates state of the devfreq device to
-  avoid working on stale data when governor has not updated it for a long time
-- in devfreq cooling added backward compatibility frequency table for drivers
-  which did not provide EM
-- added Steven's Reviewed-by to trace code in thermal
-- added another CPUFreq driver which needs to be updated to the new API
-The v1 can be found here [1].
-
-Regards,
-Lukasz Luba
-
-[1] https://lkml.org/lkml/2020/1/16/619
-[2] https://lkml.org/lkml/2020/2/6/377
-[3] https://lkml.org/lkml/2020/2/21/1910
-[4] https://lkml.org/lkml/2020/3/9/471
-[5] https://lkml.org/lkml/2020/3/18/351
-[6] https://lkml.org/lkml/2020/4/10/108
-
-
-Lukasz Luba (15):
-  PM / EM: change naming convention from 'capacity' to 'performance'
-  PM / EM: introduce em_dev_register_perf_domain function
-  PM / EM: update callback structure and add device pointer
-  PM / EM: add support for other devices than CPUs in Energy Model
-  PM / EM: remove em_register_perf_domain
-  PM / EM: change name of em_pd_energy to em_cpu_energy
-  Documentation: power: update Energy Model description
-  OPP: refactor dev_pm_opp_of_register_em() and update related drivers
-  thermal: devfreq_cooling: change tracing function and arguments
-  thermal: devfreq_cooling: get device load and frequency directly
-  thermal: devfreq_cooling: work on a copy of device status
-  thermal: devfreq_cooling: add new registration functions with Energy
-    Model
-  thermal: devfreq_cooling: remove old power model and use EM
-  thermal: devfreq_cooling: update license to use SPDX
-  drm/panfrost: Register devfreq cooling and attempt to add Energy Model
-
- Documentation/power/energy-model.rst        | 135 ++++---
- drivers/cpufreq/cpufreq-dt.c                |   2 +-
- drivers/cpufreq/imx6q-cpufreq.c             |   2 +-
- drivers/cpufreq/mediatek-cpufreq.c          |   2 +-
- drivers/cpufreq/omap-cpufreq.c              |   2 +-
- drivers/cpufreq/qcom-cpufreq-hw.c           |   2 +-
- drivers/cpufreq/scmi-cpufreq.c              |  11 +-
- drivers/cpufreq/scpi-cpufreq.c              |   2 +-
- drivers/cpufreq/vexpress-spc-cpufreq.c      |   2 +-
- drivers/gpu/drm/panfrost/panfrost_devfreq.c |   2 +-
- drivers/opp/of.c                            |  76 ++--
- drivers/thermal/cpufreq_cooling.c           |  12 +-
- drivers/thermal/devfreq_cooling.c           | 426 ++++++++++----------
- include/linux/devfreq_cooling.h             |  51 ++-
- include/linux/device.h                      |   5 +
- include/linux/energy_model.h                | 148 ++++---
- include/linux/pm_opp.h                      |  15 +-
- include/trace/events/thermal.h              |  19 +-
- kernel/power/energy_model.c                 | 283 ++++++++-----
- kernel/sched/fair.c                         |   2 +-
- kernel/sched/topology.c                     |  20 +-
- 21 files changed, 692 insertions(+), 527 deletions(-)
-
+diff --git a/drivers/crypto/omap-aes-gcm.c b/drivers/crypto/omap-aes-gcm.c
+index 32dc00dc570b..9f937bdc53a7 100644
+--- a/drivers/crypto/omap-aes-gcm.c
++++ b/drivers/crypto/omap-aes-gcm.c
+@@ -77,7 +77,6 @@ static void omap_aes_gcm_done_task(struct omap_aes_dev *dd)
+ 		tag = (u8 *)rctx->auth_tag;
+ 		for (i = 0; i < dd->authsize; i++) {
+ 			if (tag[i]) {
+-				dev_err(dd->dev, "GCM decryption: Tag Message is wrong\n");
+ 				ret = -EBADMSG;
+ 			}
+ 		}
 -- 
 2.17.1
 
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
