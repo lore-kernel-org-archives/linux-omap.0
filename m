@@ -2,78 +2,492 @@ Return-Path: <SRS0=kMz3=6Z=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C751C54E8E
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ADB1C54E4B
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BE5520722
-	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:43 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="MKYHEgW5"
+	by mail.kernel.org (Postfix) with ESMTP id 5A1672082E
+	for <linux-omap@archiver.kernel.org>; Mon, 11 May 2020 11:19:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729304AbgEKLTm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 11 May 2020 07:19:42 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:52256 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729264AbgEKLTk (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2020 07:19:40 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJMsq099218;
-        Mon, 11 May 2020 06:19:22 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1589195962;
-        bh=8Yqex108W/YEVd8v7+4W/b3nDUCqYAUv+6/1luZSKk8=;
-        h=From:To:CC:Subject:Date;
-        b=MKYHEgW5xnw/5yCYhettgxacMp+ySeGPYCn8WV+IoTSi5ZbbdynIAW3bunH6ORme0
-         5lLj5xAVHlPDEXqOLKacmotQRBXRRSkTxRkvxyXhVhVY4yYvihcxQ26lnf2vYipF8K
-         TYqaqseqqhjrndv+aUx2gAoqCxJzRig4AX60/mJc=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04BBJMRb061614
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 11 May 2020 06:19:22 -0500
-Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 11
- May 2020 06:19:22 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 11 May 2020 06:19:22 -0500
-Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04BBJKOU004306;
-        Mon, 11 May 2020 06:19:21 -0500
-From:   Tero Kristo <t-kristo@ti.com>
-To:     <herbert@gondor.apana.org.au>, <davem@davemloft.net>,
-        <linux-crypto@vger.kernel.org>
-CC:     <linux-omap@vger.kernel.org>
-Subject: [PATCHv2 0/7] crypto: omap: sha/aes fixes
-Date:   Mon, 11 May 2020 14:19:06 +0300
-Message-ID: <20200511111913.26541-1-t-kristo@ti.com>
+        id S1729333AbgEKLTt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 11 May 2020 07:19:49 -0400
+Received: from foss.arm.com ([217.140.110.172]:56968 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729396AbgEKLTs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 11 May 2020 07:19:48 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 558DA101E;
+        Mon, 11 May 2020 04:19:47 -0700 (PDT)
+Received: from e123648.arm.com (unknown [10.37.12.83])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 65EAE3F305;
+        Mon, 11 May 2020 04:19:36 -0700 (PDT)
+From:   Lukasz Luba <lukasz.luba@arm.com>
+To:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+        linux-imx@nxp.com
+Cc:     Dietmar.Eggemann@arm.com, cw00.choi@samsung.com,
+        b.zolnierkie@samsung.com, rjw@rjwysocki.net, sudeep.holla@arm.com,
+        viresh.kumar@linaro.org, nm@ti.com, sboyd@kernel.org,
+        rui.zhang@intel.com, amit.kucheria@verdurent.com,
+        daniel.lezcano@linaro.org, mingo@redhat.com, peterz@infradead.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        rostedt@goodmis.org, qperret@google.com, bsegall@google.com,
+        mgorman@suse.de, shawnguo@kernel.org, s.hauer@pengutronix.de,
+        festevam@gmail.com, kernel@pengutronix.de, khilman@kernel.org,
+        agross@kernel.org, bjorn.andersson@linaro.org, robh@kernel.org,
+        matthias.bgg@gmail.com, steven.price@arm.com,
+        tomeu.vizoso@collabora.com, alyssa.rosenzweig@collabora.com,
+        airlied@linux.ie, daniel@ffwll.ch, liviu.dudau@arm.com,
+        lorenzo.pieralisi@arm.com, lukasz.luba@arm.com,
+        patrick.bellasi@matbug.net, orjan.eide@arm.com,
+        rdunlap@infradead.org, mka@chromium.org
+Subject: [PATCH v7 01/15] PM / EM: change naming convention from 'capacity' to 'performance'
+Date:   Mon, 11 May 2020 12:18:58 +0100
+Message-Id: <20200511111912.3001-2-lukasz.luba@arm.com>
 X-Mailer: git-send-email 2.17.1
-MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+In-Reply-To: <20200511111912.3001-1-lukasz.luba@arm.com>
+References: <20200511111912.3001-1-lukasz.luba@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+The Energy Model uses concept of performance domain and capacity states in
+order to calculate power used by CPUs. Change naming convention from
+capacity to performance state would enable wider usage in future, e.g.
+upcoming support for other devices other than CPUs.
 
-Compared to v1 [1], added dcache flush handling in patch #3, and added a
-new patch #7 which fixes SHA multi-accelerator core support. It doubles
-the performance of raw SHA acceleration on devices where two cores are
-available (like DRA7.) Will follow with platform code fixes once the
-driver change is accepted.
+Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Lukasz Luba <lukasz.luba@arm.com>
+---
+ drivers/thermal/cpufreq_cooling.c | 12 ++---
+ include/linux/energy_model.h      | 86 +++++++++++++++++--------------
+ kernel/power/energy_model.c       | 44 ++++++++--------
+ kernel/sched/topology.c           | 20 +++----
+ 4 files changed, 84 insertions(+), 78 deletions(-)
 
--Tero
+diff --git a/drivers/thermal/cpufreq_cooling.c b/drivers/thermal/cpufreq_cooling.c
+index e297e135c031..ad8971e26538 100644
+--- a/drivers/thermal/cpufreq_cooling.c
++++ b/drivers/thermal/cpufreq_cooling.c
+@@ -333,18 +333,18 @@ static inline bool em_is_sane(struct cpufreq_cooling_device *cpufreq_cdev,
+ 		return false;
+ 
+ 	policy = cpufreq_cdev->policy;
+-	if (!cpumask_equal(policy->related_cpus, to_cpumask(em->cpus))) {
++	if (!cpumask_equal(policy->related_cpus, em_span_cpus(em))) {
+ 		pr_err("The span of pd %*pbl is misaligned with cpufreq policy %*pbl\n",
+-			cpumask_pr_args(to_cpumask(em->cpus)),
++			cpumask_pr_args(em_span_cpus(em)),
+ 			cpumask_pr_args(policy->related_cpus));
+ 		return false;
+ 	}
+ 
+ 	nr_levels = cpufreq_cdev->max_level + 1;
+-	if (em->nr_cap_states != nr_levels) {
+-		pr_err("The number of cap states in pd %*pbl (%u) doesn't match the number of cooling levels (%u)\n",
+-			cpumask_pr_args(to_cpumask(em->cpus)),
+-			em->nr_cap_states, nr_levels);
++	if (em_pd_nr_perf_states(em) != nr_levels) {
++		pr_err("The number of performance states in pd %*pbl (%u) doesn't match the number of cooling levels (%u)\n",
++			cpumask_pr_args(em_span_cpus(em)),
++			em_pd_nr_perf_states(em), nr_levels);
+ 		return false;
+ 	}
+ 
+diff --git a/include/linux/energy_model.h b/include/linux/energy_model.h
+index ade6486a3382..fe336a9eb5d4 100644
+--- a/include/linux/energy_model.h
++++ b/include/linux/energy_model.h
+@@ -10,13 +10,13 @@
+ #include <linux/types.h>
+ 
+ /**
+- * em_cap_state - Capacity state of a performance domain
++ * em_perf_state - Performance state of a performance domain
+  * @frequency:	The CPU frequency in KHz, for consistency with CPUFreq
+  * @power:	The power consumed by 1 CPU at this level, in milli-watts
+  * @cost:	The cost coefficient associated with this level, used during
+  *		energy calculation. Equal to: power * max_frequency / frequency
+  */
+-struct em_cap_state {
++struct em_perf_state {
+ 	unsigned long frequency;
+ 	unsigned long power;
+ 	unsigned long cost;
+@@ -24,8 +24,8 @@ struct em_cap_state {
+ 
+ /**
+  * em_perf_domain - Performance domain
+- * @table:		List of capacity states, in ascending order
+- * @nr_cap_states:	Number of capacity states
++ * @table:		List of performance states, in ascending order
++ * @nr_perf_states:	Number of performance states
+  * @cpus:		Cpumask covering the CPUs of the domain
+  *
+  * A "performance domain" represents a group of CPUs whose performance is
+@@ -34,22 +34,27 @@ struct em_cap_state {
+  * CPUFreq policies.
+  */
+ struct em_perf_domain {
+-	struct em_cap_state *table;
+-	int nr_cap_states;
++	struct em_perf_state *table;
++	int nr_perf_states;
+ 	unsigned long cpus[];
+ };
+ 
++#define em_span_cpus(em) (to_cpumask((em)->cpus))
++
+ #ifdef CONFIG_ENERGY_MODEL
+ #define EM_CPU_MAX_POWER 0xFFFF
+ 
+ struct em_data_callback {
+ 	/**
+-	 * active_power() - Provide power at the next capacity state of a CPU
+-	 * @power	: Active power at the capacity state in mW (modified)
+-	 * @freq	: Frequency at the capacity state in kHz (modified)
++	 * active_power() - Provide power at the next performance state of
++	 *		a CPU
++	 * @power	: Active power at the performance state in mW
++	 *		(modified)
++	 * @freq	: Frequency at the performance state in kHz
++	 *		(modified)
+ 	 * @cpu		: CPU for which we do this operation
+ 	 *
+-	 * active_power() must find the lowest capacity state of 'cpu' above
++	 * active_power() must find the lowest performance state of 'cpu' above
+ 	 * 'freq' and update 'power' and 'freq' to the matching active power
+ 	 * and frequency.
+ 	 *
+@@ -80,46 +85,46 @@ static inline unsigned long em_pd_energy(struct em_perf_domain *pd,
+ 				unsigned long max_util, unsigned long sum_util)
+ {
+ 	unsigned long freq, scale_cpu;
+-	struct em_cap_state *cs;
++	struct em_perf_state *ps;
+ 	int i, cpu;
+ 
+ 	/*
+-	 * In order to predict the capacity state, map the utilization of the
+-	 * most utilized CPU of the performance domain to a requested frequency,
+-	 * like schedutil.
++	 * In order to predict the performance state, map the utilization of
++	 * the most utilized CPU of the performance domain to a requested
++	 * frequency, like schedutil.
+ 	 */
+ 	cpu = cpumask_first(to_cpumask(pd->cpus));
+ 	scale_cpu = arch_scale_cpu_capacity(cpu);
+-	cs = &pd->table[pd->nr_cap_states - 1];
+-	freq = map_util_freq(max_util, cs->frequency, scale_cpu);
++	ps = &pd->table[pd->nr_perf_states - 1];
++	freq = map_util_freq(max_util, ps->frequency, scale_cpu);
+ 
+ 	/*
+-	 * Find the lowest capacity state of the Energy Model above the
++	 * Find the lowest performance state of the Energy Model above the
+ 	 * requested frequency.
+ 	 */
+-	for (i = 0; i < pd->nr_cap_states; i++) {
+-		cs = &pd->table[i];
+-		if (cs->frequency >= freq)
++	for (i = 0; i < pd->nr_perf_states; i++) {
++		ps = &pd->table[i];
++		if (ps->frequency >= freq)
+ 			break;
+ 	}
+ 
+ 	/*
+-	 * The capacity of a CPU in the domain at that capacity state (cs)
++	 * The capacity of a CPU in the domain at the performance state (ps)
+ 	 * can be computed as:
+ 	 *
+-	 *             cs->freq * scale_cpu
+-	 *   cs->cap = --------------------                          (1)
++	 *             ps->freq * scale_cpu
++	 *   ps->cap = --------------------                          (1)
+ 	 *                 cpu_max_freq
+ 	 *
+ 	 * So, ignoring the costs of idle states (which are not available in
+-	 * the EM), the energy consumed by this CPU at that capacity state is
+-	 * estimated as:
++	 * the EM), the energy consumed by this CPU at that performance state
++	 * is estimated as:
+ 	 *
+-	 *             cs->power * cpu_util
++	 *             ps->power * cpu_util
+ 	 *   cpu_nrg = --------------------                          (2)
+-	 *                   cs->cap
++	 *                   ps->cap
+ 	 *
+-	 * since 'cpu_util / cs->cap' represents its percentage of busy time.
++	 * since 'cpu_util / ps->cap' represents its percentage of busy time.
+ 	 *
+ 	 *   NOTE: Although the result of this computation actually is in
+ 	 *         units of power, it can be manipulated as an energy value
+@@ -129,34 +134,35 @@ static inline unsigned long em_pd_energy(struct em_perf_domain *pd,
+ 	 * By injecting (1) in (2), 'cpu_nrg' can be re-expressed as a product
+ 	 * of two terms:
+ 	 *
+-	 *             cs->power * cpu_max_freq   cpu_util
++	 *             ps->power * cpu_max_freq   cpu_util
+ 	 *   cpu_nrg = ------------------------ * ---------          (3)
+-	 *                    cs->freq            scale_cpu
++	 *                    ps->freq            scale_cpu
+ 	 *
+-	 * The first term is static, and is stored in the em_cap_state struct
+-	 * as 'cs->cost'.
++	 * The first term is static, and is stored in the em_perf_state struct
++	 * as 'ps->cost'.
+ 	 *
+ 	 * Since all CPUs of the domain have the same micro-architecture, they
+-	 * share the same 'cs->cost', and the same CPU capacity. Hence, the
++	 * share the same 'ps->cost', and the same CPU capacity. Hence, the
+ 	 * total energy of the domain (which is the simple sum of the energy of
+ 	 * all of its CPUs) can be factorized as:
+ 	 *
+-	 *            cs->cost * \Sum cpu_util
++	 *            ps->cost * \Sum cpu_util
+ 	 *   pd_nrg = ------------------------                       (4)
+ 	 *                  scale_cpu
+ 	 */
+-	return cs->cost * sum_util / scale_cpu;
++	return ps->cost * sum_util / scale_cpu;
+ }
+ 
+ /**
+- * em_pd_nr_cap_states() - Get the number of capacity states of a perf. domain
++ * em_pd_nr_perf_states() - Get the number of performance states of a perf.
++ *				domain
+  * @pd		: performance domain for which this must be done
+  *
+- * Return: the number of capacity states in the performance domain table
++ * Return: the number of performance states in the performance domain table
+  */
+-static inline int em_pd_nr_cap_states(struct em_perf_domain *pd)
++static inline int em_pd_nr_perf_states(struct em_perf_domain *pd)
+ {
+-	return pd->nr_cap_states;
++	return pd->nr_perf_states;
+ }
+ 
+ #else
+@@ -177,7 +183,7 @@ static inline unsigned long em_pd_energy(struct em_perf_domain *pd,
+ {
+ 	return 0;
+ }
+-static inline int em_pd_nr_cap_states(struct em_perf_domain *pd)
++static inline int em_pd_nr_perf_states(struct em_perf_domain *pd)
+ {
+ 	return 0;
+ }
+diff --git a/kernel/power/energy_model.c b/kernel/power/energy_model.c
+index 0a9326f5f421..9892d548a0fa 100644
+--- a/kernel/power/energy_model.c
++++ b/kernel/power/energy_model.c
+@@ -27,18 +27,18 @@ static DEFINE_MUTEX(em_pd_mutex);
+ #ifdef CONFIG_DEBUG_FS
+ static struct dentry *rootdir;
+ 
+-static void em_debug_create_cs(struct em_cap_state *cs, struct dentry *pd)
++static void em_debug_create_ps(struct em_perf_state *ps, struct dentry *pd)
+ {
+ 	struct dentry *d;
+ 	char name[24];
+ 
+-	snprintf(name, sizeof(name), "cs:%lu", cs->frequency);
++	snprintf(name, sizeof(name), "ps:%lu", ps->frequency);
+ 
+-	/* Create per-cs directory */
++	/* Create per-ps directory */
+ 	d = debugfs_create_dir(name, pd);
+-	debugfs_create_ulong("frequency", 0444, d, &cs->frequency);
+-	debugfs_create_ulong("power", 0444, d, &cs->power);
+-	debugfs_create_ulong("cost", 0444, d, &cs->cost);
++	debugfs_create_ulong("frequency", 0444, d, &ps->frequency);
++	debugfs_create_ulong("power", 0444, d, &ps->power);
++	debugfs_create_ulong("cost", 0444, d, &ps->cost);
+ }
+ 
+ static int em_debug_cpus_show(struct seq_file *s, void *unused)
+@@ -62,9 +62,9 @@ static void em_debug_create_pd(struct em_perf_domain *pd, int cpu)
+ 
+ 	debugfs_create_file("cpus", 0444, d, pd->cpus, &em_debug_cpus_fops);
+ 
+-	/* Create a sub-directory for each capacity state */
+-	for (i = 0; i < pd->nr_cap_states; i++)
+-		em_debug_create_cs(&pd->table[i], d);
++	/* Create a sub-directory for each performance state */
++	for (i = 0; i < pd->nr_perf_states; i++)
++		em_debug_create_ps(&pd->table[i], d);
+ }
+ 
+ static int __init em_debug_init(void)
+@@ -84,7 +84,7 @@ static struct em_perf_domain *em_create_pd(cpumask_t *span, int nr_states,
+ 	unsigned long opp_eff, prev_opp_eff = ULONG_MAX;
+ 	unsigned long power, freq, prev_freq = 0;
+ 	int i, ret, cpu = cpumask_first(span);
+-	struct em_cap_state *table;
++	struct em_perf_state *table;
+ 	struct em_perf_domain *pd;
+ 	u64 fmax;
+ 
+@@ -99,26 +99,26 @@ static struct em_perf_domain *em_create_pd(cpumask_t *span, int nr_states,
+ 	if (!table)
+ 		goto free_pd;
+ 
+-	/* Build the list of capacity states for this performance domain */
++	/* Build the list of performance states for this performance domain */
+ 	for (i = 0, freq = 0; i < nr_states; i++, freq++) {
+ 		/*
+ 		 * active_power() is a driver callback which ceils 'freq' to
+-		 * lowest capacity state of 'cpu' above 'freq' and updates
++		 * lowest performance state of 'cpu' above 'freq' and updates
+ 		 * 'power' and 'freq' accordingly.
+ 		 */
+ 		ret = cb->active_power(&power, &freq, cpu);
+ 		if (ret) {
+-			pr_err("pd%d: invalid cap. state: %d\n", cpu, ret);
+-			goto free_cs_table;
++			pr_err("pd%d: invalid perf. state: %d\n", cpu, ret);
++			goto free_ps_table;
+ 		}
+ 
+ 		/*
+ 		 * We expect the driver callback to increase the frequency for
+-		 * higher capacity states.
++		 * higher performance states.
+ 		 */
+ 		if (freq <= prev_freq) {
+ 			pr_err("pd%d: non-increasing freq: %lu\n", cpu, freq);
+-			goto free_cs_table;
++			goto free_ps_table;
+ 		}
+ 
+ 		/*
+@@ -127,7 +127,7 @@ static struct em_perf_domain *em_create_pd(cpumask_t *span, int nr_states,
+ 		 */
+ 		if (!power || power > EM_CPU_MAX_POWER) {
+ 			pr_err("pd%d: invalid power: %lu\n", cpu, power);
+-			goto free_cs_table;
++			goto free_ps_table;
+ 		}
+ 
+ 		table[i].power = power;
+@@ -141,12 +141,12 @@ static struct em_perf_domain *em_create_pd(cpumask_t *span, int nr_states,
+ 		 */
+ 		opp_eff = freq / power;
+ 		if (opp_eff >= prev_opp_eff)
+-			pr_warn("pd%d: hertz/watts ratio non-monotonically decreasing: em_cap_state %d >= em_cap_state%d\n",
++			pr_warn("pd%d: hertz/watts ratio non-monotonically decreasing: em_perf_state %d >= em_perf_state%d\n",
+ 					cpu, i, i - 1);
+ 		prev_opp_eff = opp_eff;
+ 	}
+ 
+-	/* Compute the cost of each capacity_state. */
++	/* Compute the cost of each performance state. */
+ 	fmax = (u64) table[nr_states - 1].frequency;
+ 	for (i = 0; i < nr_states; i++) {
+ 		table[i].cost = div64_u64(fmax * table[i].power,
+@@ -154,14 +154,14 @@ static struct em_perf_domain *em_create_pd(cpumask_t *span, int nr_states,
+ 	}
+ 
+ 	pd->table = table;
+-	pd->nr_cap_states = nr_states;
++	pd->nr_perf_states = nr_states;
+ 	cpumask_copy(to_cpumask(pd->cpus), span);
+ 
+ 	em_debug_create_pd(pd, cpu);
+ 
+ 	return pd;
+ 
+-free_cs_table:
++free_ps_table:
+ 	kfree(table);
+ free_pd:
+ 	kfree(pd);
+@@ -185,7 +185,7 @@ EXPORT_SYMBOL_GPL(em_cpu_get);
+ /**
+  * em_register_perf_domain() - Register the Energy Model of a performance domain
+  * @span	: Mask of CPUs in the performance domain
+- * @nr_states	: Number of capacity states to register
++ * @nr_states	: Number of performance states to register
+  * @cb		: Callback functions providing the data of the Energy Model
+  *
+  * Create Energy Model tables for a performance domain using the callbacks
+diff --git a/kernel/sched/topology.c b/kernel/sched/topology.c
+index ba81187bb7af..2f91d3126365 100644
+--- a/kernel/sched/topology.c
++++ b/kernel/sched/topology.c
+@@ -272,10 +272,10 @@ static void perf_domain_debug(const struct cpumask *cpu_map,
+ 	printk(KERN_DEBUG "root_domain %*pbl:", cpumask_pr_args(cpu_map));
+ 
+ 	while (pd) {
+-		printk(KERN_CONT " pd%d:{ cpus=%*pbl nr_cstate=%d }",
++		printk(KERN_CONT " pd%d:{ cpus=%*pbl nr_pstate=%d }",
+ 				cpumask_first(perf_domain_span(pd)),
+ 				cpumask_pr_args(perf_domain_span(pd)),
+-				em_pd_nr_cap_states(pd->em_pd));
++				em_pd_nr_perf_states(pd->em_pd));
+ 		pd = pd->next;
+ 	}
+ 
+@@ -313,26 +313,26 @@ static void sched_energy_set(bool has_eas)
+  *
+  * The complexity of the Energy Model is defined as:
+  *
+- *              C = nr_pd * (nr_cpus + nr_cs)
++ *              C = nr_pd * (nr_cpus + nr_ps)
+  *
+  * with parameters defined as:
+  *  - nr_pd:    the number of performance domains
+  *  - nr_cpus:  the number of CPUs
+- *  - nr_cs:    the sum of the number of capacity states of all performance
++ *  - nr_ps:    the sum of the number of performance states of all performance
+  *              domains (for example, on a system with 2 performance domains,
+- *              with 10 capacity states each, nr_cs = 2 * 10 = 20).
++ *              with 10 performance states each, nr_ps = 2 * 10 = 20).
+  *
+  * It is generally not a good idea to use such a model in the wake-up path on
+  * very complex platforms because of the associated scheduling overheads. The
+  * arbitrary constraint below prevents that. It makes EAS usable up to 16 CPUs
+- * with per-CPU DVFS and less than 8 capacity states each, for example.
++ * with per-CPU DVFS and less than 8 performance states each, for example.
+  */
+ #define EM_MAX_COMPLEXITY 2048
+ 
+ extern struct cpufreq_governor schedutil_gov;
+ static bool build_perf_domains(const struct cpumask *cpu_map)
+ {
+-	int i, nr_pd = 0, nr_cs = 0, nr_cpus = cpumask_weight(cpu_map);
++	int i, nr_pd = 0, nr_ps = 0, nr_cpus = cpumask_weight(cpu_map);
+ 	struct perf_domain *pd = NULL, *tmp;
+ 	int cpu = cpumask_first(cpu_map);
+ 	struct root_domain *rd = cpu_rq(cpu)->rd;
+@@ -384,15 +384,15 @@ static bool build_perf_domains(const struct cpumask *cpu_map)
+ 		pd = tmp;
+ 
+ 		/*
+-		 * Count performance domains and capacity states for the
++		 * Count performance domains and performance states for the
+ 		 * complexity check.
+ 		 */
+ 		nr_pd++;
+-		nr_cs += em_pd_nr_cap_states(pd->em_pd);
++		nr_ps += em_pd_nr_perf_states(pd->em_pd);
+ 	}
+ 
+ 	/* Bail out if the Energy Model complexity is too high. */
+-	if (nr_pd * (nr_cs + nr_cpus) > EM_MAX_COMPLEXITY) {
++	if (nr_pd * (nr_ps + nr_cpus) > EM_MAX_COMPLEXITY) {
+ 		WARN(1, "rd %*pbl: Failed to start EAS, EM complexity is too high\n",
+ 						cpumask_pr_args(cpu_map));
+ 		goto free;
+-- 
+2.17.1
 
-[1] https://www.spinics.net/lists/linux-crypto/msg47372.html
-
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
