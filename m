@@ -2,69 +2,108 @@ Return-Path: <SRS0=x2NB=62=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A2CDC54E4A
-	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:46:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE269C54E8D
+	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:51:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D2DC206CC
-	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:46:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98EA020730
+	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:51:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="e4ZjHqle"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729408AbgELNqv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 12 May 2020 09:46:51 -0400
-Received: from muru.com ([72.249.23.125]:53968 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725923AbgELNqv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 12 May 2020 09:46:51 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id A3F128047;
-        Tue, 12 May 2020 13:47:40 +0000 (UTC)
-Date:   Tue, 12 May 2020 06:46:48 -0700
-From:   Tony Lindgren <tony@atomide.com>
-To:     Felipe Balbi <balbi@kernel.org>
-Cc:     linux-omap@vger.kernel.org
+        id S1726891AbgELNvO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 May 2020 09:51:14 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:33926 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725923AbgELNvN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2020 09:51:13 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04CDpAOj085255;
+        Tue, 12 May 2020 08:51:10 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1589291471;
+        bh=kP7p2udPs8yOE4gXyX2ZtUgV2UoVuhXvsL9m5Cjw0ps=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=e4ZjHqlewHQN0FJQ/2qPeZg7UliGEZo3sCBquZFhlbzqTGrkasAodL7T1qT14bH+x
+         p10xSbrOspu/k7ooU7IZy0Sb6XsircDJ1ZqLEPf6HGkH5h4yjB3DbBXxoNtrubwcS2
+         2H4JLZYAXfWYgSXFEEy+KB4Fjra8Nec0umNbArTQ=
+Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04CDpAO3005921
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 12 May 2020 08:51:10 -0500
+Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 12
+ May 2020 08:51:10 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Tue, 12 May 2020 08:51:10 -0500
+Received: from [10.250.52.63] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04CDpAsX098266;
+        Tue, 12 May 2020 08:51:10 -0500
 Subject: Re: BBB with v5.7-rc5
-Message-ID: <20200512134648.GD37466@atomide.com>
-References: <87k11h4df0.fsf@kernel.org>
- <87eerp46h5.fsf@kernel.org>
+To:     Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@kernel.org>
+CC:     <linux-omap@vger.kernel.org>
+References: <87k11h4df0.fsf@kernel.org> <87eerp46h5.fsf@kernel.org>
+ <20200512134648.GD37466@atomide.com>
+From:   Dan Murphy <dmurphy@ti.com>
+Message-ID: <586c35cf-80f1-6922-a46b-a6fce312e83c@ti.com>
+Date:   Tue, 12 May 2020 08:41:41 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87eerp46h5.fsf@kernel.org>
+In-Reply-To: <20200512134648.GD37466@atomide.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Felipe
 
-* Felipe Balbi <balbi@kernel.org> [200512 13:41]:
+On 5/12/20 8:46 AM, Tony Lindgren wrote:
 > Hi,
-> 
-> Felipe Balbi <balbi@kernel.org> writes:
-> > what's the trick to get BBB to boot recent kernels nowadays? :-p
-> >
-> > I'm using omap2plus_defconfig without CPSW (doesn't link otherwise) with
-> > GCC 10.1.0 (I'll try an older version shortly). Cmdline is the usual
-> 
-> same result with 9.2. Nothing from low level debug either.
+>
+> * Felipe Balbi <balbi@kernel.org> [200512 13:41]:
+>> Hi,
+>>
+>> Felipe Balbi <balbi@kernel.org> writes:
+>>> what's the trick to get BBB to boot recent kernels nowadays? :-p
+>>>
+>>> I'm using omap2plus_defconfig without CPSW (doesn't link otherwise) with
+>>> GCC 10.1.0 (I'll try an older version shortly). Cmdline is the usual
+>> same result with 9.2. Nothing from low level debug either.
+> Maybe check you have a current dtb file? The older dtb files may not
+> have all the needed data.
 
-Maybe check you have a current dtb file? The older dtb files may not
-have all the needed data.
+I have been using the latest uBoot, DTBs and kernel with no issue 
+(except CPSW).
 
-Also you probably want to add "earlycon" to your your kernel cmdline
-and then you have early output from CONFIG_SERIAL_EARLYCON=y as long
-as there's a chosen entry for the device uart. So no need to enable
-DEBUG_LL in most cases.
+I have booted the BBB and a BBG.  9.2 gcc compiler
 
-There's "[PATCH net v4] net: ethernet: ti: Remove TI_CPTS_MOD workaround"
-being discussed too for the cpsw regression.
+> Also you probably want to add "earlycon" to your your kernel cmdline
+> and then you have early output from CONFIG_SERIAL_EARLYCON=y as long
+> as there's a chosen entry for the device uart. So no need to enable
+> DEBUG_LL in most cases.
+>
+> There's "[PATCH net v4] net: ethernet: ti: Remove TI_CPTS_MOD workaround"
+> being discussed too for the cpsw regression.
 
-Regards,
+This is a build dependency issue.
 
-Tony
+Dan
 
-
-
+> Regards,
+>
+> Tony
+>
+>
+>
