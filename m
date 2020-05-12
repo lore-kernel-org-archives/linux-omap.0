@@ -2,115 +2,104 @@ Return-Path: <SRS0=x2NB=62=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE18C54E4A
-	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:40:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B7AEC54E8D
+	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:43:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53582206F5
-	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:40:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589290814;
-	bh=Pp1+s7RQ5rG8lY+v9K4jMvguVWgg1aIN5RkE+DwswEc=;
-	h=From:To:Subject:In-Reply-To:References:Date:List-ID:From;
-	b=pgc84DtFREbQhVJL/1IgiGryHwGP6wz/XUFmCCFjBp2BC+s/g3jaMIUhw3JbiygRn
-	 /ahIbW3qtUISfhtFYXveZVPIHQ8E5VlGqKNGZqmixr5hkh1k48do7YdBilj5Y0PfVB
-	 UPECR/DXT5WSz4cK2lwIj/4r2C8A65xE0qbwhOlQ=
+	by mail.kernel.org (Postfix) with ESMTP id 04A41206B7
+	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 13:43:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727859AbgELNkN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 12 May 2020 09:40:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58752 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727783AbgELNkN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2020 09:40:13 -0400
-Received: from mail-lj1-x232.google.com (mail-lj1-x232.google.com [IPv6:2a00:1450:4864:20::232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6534C061A0C
-        for <linux-omap@vger.kernel.org>; Tue, 12 May 2020 06:40:12 -0700 (PDT)
-Received: by mail-lj1-x232.google.com with SMTP id a21so13658257ljj.11
-        for <linux-omap@vger.kernel.org>; Tue, 12 May 2020 06:40:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:to:subject:in-reply-to:references:date:message-id
-         :mime-version;
-        bh=Pp1+s7RQ5rG8lY+v9K4jMvguVWgg1aIN5RkE+DwswEc=;
-        b=N22OoGtlhpGWtcLQ/0KkDG42g9u3knwLq1ysGrc5E1jwvHDqwmfheeLOnOtbR8rlky
-         hDaHSWVmugcxRKfSpJ5YsOtxYzLW54HNHGpdz611Q8rqG9t/fPFSfE/tvQyT7Sfq1ZSi
-         csfhGnovFYhI3j7c/WrYhiC1AiiDBXFK3xYvI7cd1c/4zZw7p+G3CYC+PyNugoNDbuTI
-         FvYto0BlpX/ZerPafocwEA9ElzYBO+cdHppyEWi46OMjFYB6BKP7JPdyU2kDyByJaxNL
-         TSF1tMEuQ/wRpOBUBol4hXkxIblO1oTRQGw8GMjxiEEaIr9DFRg8VzCgp63E1Fr8+FiF
-         ES6g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:subject:in-reply-to:references
-         :date:message-id:mime-version;
-        bh=Pp1+s7RQ5rG8lY+v9K4jMvguVWgg1aIN5RkE+DwswEc=;
-        b=Y/D5Ky8Hh2h2vCkpapLfEbD4rZi0snq1HQF/84lxJ/C8iQ7p/3P/6HWBSnOk8omw6n
-         zlkj7RABdqsf9Hj7PQyVkKVxqLprqjWlWyJGvJSxFMc4I0yGmgMv3mj4Mv/Qojn3gMg0
-         53ejJycXiMQaeGAvHApXCO+t7019/XGsxFqBrj4mXGCKL4JheySXEwl9M4sPMpQWMXIa
-         g/saAOfm+gobD5BnFqm5Xx7DQP/aNCLPrbCT1vdWThq2bRfbAkjJ4/VWhxV6L0PVH0Ul
-         aECEAFie0ehGzpet4z1q6bipdX/gHr1sOUMitkxvNymJiNQcqB82PCmegejJLs2SYlX7
-         Oz8w==
-X-Gm-Message-State: AOAM533mbsYskOTNNh2IJ1exu4AVtSyO8RkDL7Hio8OtjZjYkMM3opuJ
-        kESCK7UNM9wLDoSZywOjtpPJMzuGAWQ=
-X-Google-Smtp-Source: ABdhPJygnuUfP3AqRdEt3f3LbzrFqpyjkI6P2lMv5ZSqQsXoxYAC3dAsORVRiAneM35SkAruG/PnSw==
-X-Received: by 2002:a2e:584a:: with SMTP id x10mr3773902ljd.181.1589290811059;
-        Tue, 12 May 2020 06:40:11 -0700 (PDT)
-Received: from saruman (91-155-214-58.elisa-laajakaista.fi. [91.155.214.58])
-        by smtp.gmail.com with ESMTPSA id c2sm12916459ljk.97.2020.05.12.06.40.10
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 12 May 2020 06:40:10 -0700 (PDT)
-From:   Felipe Balbi <balbi@kernel.org>
-To:     linux-omap@vger.kernel.org
-Subject: Re: BBB with v5.7-rc5
-In-Reply-To: <87k11h4df0.fsf@kernel.org>
-References: <87k11h4df0.fsf@kernel.org>
-Date:   Tue, 12 May 2020 16:40:06 +0300
-Message-ID: <87eerp46h5.fsf@kernel.org>
+        id S1729519AbgELNne (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 May 2020 09:43:34 -0400
+Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:28277 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729570AbgELNnd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2020 09:43:33 -0400
+Received: from localhost.localdomain ([93.22.148.175])
+        by mwinf5d15 with ME
+        id dpjT2200B3nHaxZ03pjT5r; Tue, 12 May 2020 15:43:31 +0200
+X-ME-Helo: localhost.localdomain
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Tue, 12 May 2020 15:43:31 +0200
+X-ME-IP: 93.22.148.175
+From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To:     peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com,
+        lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz,
+        tiwai@suse.com, linux-omap@vger.kernel.org
+Cc:     alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] ASoC: ti: omap-mcbsp: Fix an error handling path in 'asoc_mcbsp_probe()'
+Date:   Tue, 12 May 2020 15:43:25 +0200
+Message-Id: <20200512134325.252073-1-christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+If an error occurs after the call to 'omap_mcbsp_init()', the reference to
+'mcbsp->fclk' must be decremented, as already done in the remove function.
 
-Hi,
+This can be achieved easily by using the devm_ variant of 'clk_get()'
+when the reference is taken in 'omap_mcbsp_init()'
 
-Felipe Balbi <balbi@kernel.org> writes:
-> what's the trick to get BBB to boot recent kernels nowadays? :-p
->
-> I'm using omap2plus_defconfig without CPSW (doesn't link otherwise) with
-> GCC 10.1.0 (I'll try an older version shortly). Cmdline is the usual
+This fixes the leak in the probe and has the side effect to simplify both
+the error handling path of 'omap_mcbsp_init()' and the remove function.
 
-same result with 9.2. Nothing from low level debug either.
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+I've not been able to identify the when the issue has been introduced, so
+no Fixes: tag.
+---
+ sound/soc/ti/omap-mcbsp.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-=2D-=20
-balbi
+diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
+index 0348963f4df7..6c83b9888467 100644
+--- a/sound/soc/ti/omap-mcbsp.c
++++ b/sound/soc/ti/omap-mcbsp.c
+@@ -686,7 +686,7 @@ static int omap_mcbsp_init(struct platform_device *pdev)
+ 	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
+ 						SNDRV_PCM_STREAM_CAPTURE);
+ 
+-	mcbsp->fclk = clk_get(&pdev->dev, "fck");
++	mcbsp->fclk = devm_clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(mcbsp->fclk)) {
+ 		ret = PTR_ERR(mcbsp->fclk);
+ 		dev_err(mcbsp->dev, "unable to get fck: %d\n", ret);
+@@ -711,7 +711,7 @@ static int omap_mcbsp_init(struct platform_device *pdev)
+ 		if (ret) {
+ 			dev_err(mcbsp->dev,
+ 				"Unable to create additional controls\n");
+-			goto err_thres;
++			return ret;
+ 		}
+ 	}
+ 
+@@ -724,8 +724,6 @@ static int omap_mcbsp_init(struct platform_device *pdev)
+ err_st:
+ 	if (mcbsp->pdata->buffer_size)
+ 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
+-err_thres:
+-	clk_put(mcbsp->fclk);
+ 	return ret;
+ }
+ 
+@@ -1442,8 +1440,6 @@ static int asoc_mcbsp_remove(struct platform_device *pdev)
+ 
+ 	omap_mcbsp_st_cleanup(pdev);
+ 
+-	clk_put(mcbsp->fclk);
+-
+ 	return 0;
+ }
+ 
+-- 
+2.25.1
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAl66pzYACgkQzL64meEa
-mQaOfA/+MpMlAzhLvVFdWBMniJu1tHtK7RmPWGnk8UzmcOgUGYYdVRTmvRp6zTXA
-paNAFS/9GEsP0n+3QLSbRyn4vZhk4Z30JR/dEOH6BZ3mCuYxgex6cieaSWnFdhF6
-MiC4qv830FHSXFoV06u+rZuZU4P0k5UqHJ3MrZjZSNgVpV3+j3r0x5yFvH+wJOak
-wmJf6AbHbQqpbX2Ws72GEhO3nWSBKbBgryNKbHv4PvTnAgnJqEqK+5EHvE/gEEFM
-oegf6sCu+dCtqKXafilB2tvcDLLnCcJs3PmrCnl1sTOC2AnZDAOSdJMXKmazrw7x
-CZ9/Q2P8vL4987lFzUnCTIYLUjEdTnCVj14Hvs+GNDwfrm+sel+KB7unQGopww5l
-aieX1Oe78s9Je2xarC8r1N6ZHcC53NJWKFhoF2y1BPaPgb6yJOLfvJniVWeVCpWv
-QmCSE6q6JyAtOI25TWNNq1llSKRVzn+jDllAeomvlw/fRBz4UaTAfrMqpGVS4nHt
-WiZObxXIypW/4BaVuA2+LHB2vmVy81AJti45B+NF4PqRL8EXVYUfHr35pjXhdWyI
-aNVe5Wvgnp6zyKuAH87xbdAm3fk6t7l/R9SsuBX1L0xKvblHEtLpFMTHcC6etEei
-vJjmEQgdmr6XJRLqt1y7iTdgTlRw+qP9Lv0W2eCa90dc/AxD7p4=
-=BvFJ
------END PGP SIGNATURE-----
---=-=-=--
