@@ -2,91 +2,92 @@ Return-Path: <SRS0=x2NB=62=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F7F5CA90AF
-	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 16:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B4E8CA90AF
+	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 19:35:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2003120722
-	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 16:45:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589301918;
-	bh=PoU1PDlU8EtoqlFaKH81yByCt0mWPcBR7YxQuQ0TaeM=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:List-ID:From;
-	b=uRhtoQJz9+qpGrze5ug8APDBJyU+l//8qrA7u8yp74LuGkDkKP4VcZdSOQkxPmciT
-	 FKi/kASlbRUmpLekVSwVSQJhix1hoTZ0aymRiOpJjWiWXZUWJxRgES60l3yDOlnXsG
-	 VEqRnqcNSydv8z++F3brkJcsnAiPSNgwBMAEx5vg=
+	by mail.kernel.org (Postfix) with ESMTP id 1642E20731
+	for <linux-omap@archiver.kernel.org>; Tue, 12 May 2020 19:35:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728684AbgELQpR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 12 May 2020 12:45:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42224 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725554AbgELQpR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 12 May 2020 12:45:17 -0400
-Received: from localhost (fw-tnat.cambridge.arm.com [217.140.96.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 62A0C20714;
-        Tue, 12 May 2020 16:45:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1589301916;
-        bh=PoU1PDlU8EtoqlFaKH81yByCt0mWPcBR7YxQuQ0TaeM=;
-        h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-        b=NSaEkz8h2XIJ8DYvcW+GtWUn+dfGp8KHikaeRgwfWw+GuNqwXRCGo6uvX1n1qdaqj
-         aYvwlYOaCdchKoByZK89nXSFA9Wi7EWCZlE5VFn2ZNoopKxEtc22z07QIf+mzobT+t
-         x8doeUp+oESQWVCEq76ZJzNwrZT0rFcvBzelPO+s=
-Date:   Tue, 12 May 2020 17:45:14 +0100
-From:   Mark Brown <broonie@kernel.org>
-To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        lgirdwood@gmail.com, linux-omap@vger.kernel.org, perex@perex.cz,
-        tiwai@suse.com, jarkko.nikula@bitmer.com, peter.ujfalusi@ti.com
-Cc:     alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-In-Reply-To: <20200512134325.252073-1-christophe.jaillet@wanadoo.fr>
-References: <20200512134325.252073-1-christophe.jaillet@wanadoo.fr>
-Subject: Re: [PATCH] ASoC: ti: omap-mcbsp: Fix an error handling path in 'asoc_mcbsp_probe()'
-Message-Id: <158930188456.55827.1765769472470838223.b4-ty@kernel.org>
+        id S1727825AbgELTfO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 May 2020 15:35:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57524 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725554AbgELTfN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2020 15:35:13 -0400
+Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9868C061A0C;
+        Tue, 12 May 2020 12:35:13 -0700 (PDT)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477:9e51:a893:b0fe:602a])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 118B412832C6C;
+        Tue, 12 May 2020 12:35:13 -0700 (PDT)
+Date:   Tue, 12 May 2020 12:35:12 -0700 (PDT)
+Message-Id: <20200512.123512.1831107664735178245.davem@davemloft.net>
+To:     grygorii.strashko@ti.com
+Cc:     arnd@arndb.de, netdev@vger.kernel.org, tony@atomide.com,
+        linux@armlinux.org.uk, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, clay@daemons.net, dmurphy@ti.com
+Subject: Re: [PATCH net v4] net: ethernet: ti: Remove TI_CPTS_MOD workaround
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200512100230.17752-1-grygorii.strashko@ti.com>
+References: <20200512100230.17752-1-grygorii.strashko@ti.com>
+X-Mailer: Mew version 6.8 on Emacs 26.3
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Tue, 12 May 2020 12:35:13 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, 12 May 2020 15:43:25 +0200, Christophe JAILLET wrote:
-> If an error occurs after the call to 'omap_mcbsp_init()', the reference to
-> 'mcbsp->fclk' must be decremented, as already done in the remove function.
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Tue, 12 May 2020 13:02:30 +0300
+
+> From: Clay McClure <clay@daemons.net>
 > 
-> This can be achieved easily by using the devm_ variant of 'clk_get()'
-> when the reference is taken in 'omap_mcbsp_init()'
+> My recent commit b6d49cab44b5 ("net: Make PTP-specific drivers depend on
+> PTP_1588_CLOCK") exposes a missing dependency in defconfigs that select
+> TI_CPTS without selecting PTP_1588_CLOCK, leading to linker errors of the
+> form:
 > 
-> This fixes the leak in the probe and has the side effect to simplify both
-> the error handling path of 'omap_mcbsp_init()' and the remove function.
+> drivers/net/ethernet/ti/cpsw.o: in function `cpsw_ndo_stop':
+> cpsw.c:(.text+0x680): undefined reference to `cpts_unregister'
+>  ...
+> 
+> That's because TI_CPTS_MOD (which is the symbol gating the _compilation_ of
+> cpts.c) now depends on PTP_1588_CLOCK, and so is not enabled in these
+> configurations, but TI_CPTS (which is the symbol gating _calls_ to the cpts
+> functions) _is_ enabled. So we end up compiling calls to functions that
+> don't exist, resulting in the linker errors.
+> 
+> This patch fixes build errors and restores previous behavior by:
+>  - ensure PTP_1588_CLOCK=y in TI specific configs and CPTS will be built
+>  - remove TI_CPTS_MOD and, instead, add dependencies from CPTS in
+>    TI_CPSW/TI_KEYSTONE_NETCP/TI_CPSW_SWITCHDEV as below:
+> 
+>    config TI_CPSW_SWITCHDEV
+>    ...
+>     depends on TI_CPTS || !TI_CPTS
+> 
+>    which will ensure proper dependencies PTP_1588_CLOCK -> TI_CPTS ->
+> TI_CPSW/TI_KEYSTONE_NETCP/TI_CPSW_SWITCHDEV and build type selection.
+> 
+> Note. For NFS boot + CPTS all of above configs have to be built-in.
+> 
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Dan Murphy <dmurphy@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Fixes: b6d49cab44b5 ("net: Make PTP-specific drivers depend on PTP_1588_CLOCK")
+> Reported-by: kbuild test robot <lkp@intel.com>
+> Signed-off-by: Clay McClure <clay@daemons.net>
+> [grygorii.strashko@ti.com: rewording, add deps cpsw/netcp from cpts, drop IS_REACHABLE]
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Applied to
-
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-5.8
-
-Thanks!
-
-[1/1] ASoC: ti: omap-mcbsp: Fix an error handling path in 'asoc_mcbsp_probe()'
-      commit: 03990fd58d2b7c8f7d53e514ba9b8749fac260f9
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
+Applied, thanks.
