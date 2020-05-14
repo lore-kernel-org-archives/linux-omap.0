@@ -2,138 +2,77 @@ Return-Path: <SRS0=mZi+=64=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F666C433E0
-	for <linux-omap@archiver.kernel.org>; Thu, 14 May 2020 12:08:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 921E0C433DF
+	for <linux-omap@archiver.kernel.org>; Thu, 14 May 2020 15:09:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16359206A5
-	for <linux-omap@archiver.kernel.org>; Thu, 14 May 2020 12:08:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589458088;
-	bh=UF/VnezEC+QAECQdns2mbUPUeUusrohIsEbjolTtKGY=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:List-ID:From;
-	b=IoQPLhWAZYqIv579MBVOXPFBplWppwHOC5CUW0rOSwUm8eftIs30ZMVY5WYx3CMD/
-	 WEmVr4FtBYv5M9vx81XG86o6qyBogvmurQJkl1tZ1XVrfo2r+n4kYLjIEJSJrIjirX
-	 z7TMMGBnsK9peyreMjweDZS1mQsk7uyHExGAFBIg=
+	by mail.kernel.org (Postfix) with ESMTP id 7AD2C205CB
+	for <linux-omap@archiver.kernel.org>; Thu, 14 May 2020 15:09:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726551AbgENMIH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 14 May 2020 08:08:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41516 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726160AbgENMIH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 14 May 2020 08:08:07 -0400
-Received: from mail-lj1-x242.google.com (mail-lj1-x242.google.com [IPv6:2a00:1450:4864:20::242])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B37E4C061A0C;
-        Thu, 14 May 2020 05:08:06 -0700 (PDT)
-Received: by mail-lj1-x242.google.com with SMTP id o14so3235629ljp.4;
-        Thu, 14 May 2020 05:08:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:to:cc:subject:in-reply-to:references:date:message-id
-         :mime-version;
-        bh=HphVN9u3TV6BviQzt/umkwQtzpxi5UcU1Mf0gllp8Vk=;
-        b=o3ZR5G2s4nxIjCabyx+JSkZjADm79QtGz023z4SJRJAUZKAJvF/MJX9dwBQqxSNd4G
-         iC0tzqEGuZhqlRAzm6i1pjYAZvEib78WOJExF6bxZXc03nuHBiZrAlj2KCsh2uegun1d
-         NH+he/6AIAJuUcVo3URuLJDjzM1CvZkdI1l4CADv4pyWTkCWIvI0weGTfXuDiToUJjNq
-         YWH/T1SLG3iPCOl4Xv34lkoss0net2ae9qkEkT62C5kKOskbA4Vl4tP2L5LHmf7BQMal
-         37azLP4OCOoIBIdwVTvbrfG9ECZMEcgVhu0efPuxcDQljefTb7P5lPO/HyVfCxHfDTXc
-         HgBA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:cc:subject:in-reply-to:references
-         :date:message-id:mime-version;
-        bh=HphVN9u3TV6BviQzt/umkwQtzpxi5UcU1Mf0gllp8Vk=;
-        b=bWeoF6TOenZPkzOfTL+r2YHtRJcr1u8GncUq1E+cykQi5lSaImq/ViQTpU5cyo8RUV
-         x2Vp1MWHRTxryeI6Z4TyHTYpzU30r993OwFnzLzRS6RkZgUrREJGmNNMdZxEGsqmf/vI
-         MnvvzwTN0j3ulluABD+5tnSwaWDA+K3wFpdiN0/273jzbCdmyrmsWSsRPd6ItcC8Umd4
-         RB9o24KiiM6E141yAEf5MDNDNH/6cErbzVlDlnzP/x4gDj8qXFdxyyObdmZrqDuwkCCO
-         yKJwCvitRl5QvJoMeLASoK3Ce5O+POVMoQ5n9UHhQGpsYSivqS+J8+lR7u2E1l/2Gnh2
-         9L2Q==
-X-Gm-Message-State: AOAM531AGq2xJ+pTpvOwZxSEVQKWTMhwrIY7PPxK7xPPmpOKnvL1OtVv
-        AKBFiXrl61tss6XWZnLwFo3+JR8heZFcDA==
-X-Google-Smtp-Source: ABdhPJxtTXACcgqGhgi1Jn8nqYlYioaIyVOPdS6I10pw9pjBPcxH6bViadvuQnT/elD69/S0YpDGIw==
-X-Received: by 2002:a2e:958b:: with SMTP id w11mr2501963ljh.262.1589458084964;
-        Thu, 14 May 2020 05:08:04 -0700 (PDT)
-Received: from saruman (91-155-214-58.elisa-laajakaista.fi. [91.155.214.58])
-        by smtp.gmail.com with ESMTPSA id x11sm1722890lfe.6.2020.05.14.05.08.03
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 14 May 2020 05:08:04 -0700 (PDT)
-From:   Felipe Balbi <balbi@kernel.org>
-To:     kbuild test robot <lkp@intel.com>,
-        Thinh Nguyen <Thinh.Nguyen@synopsys.com>
-Cc:     kbuild-all@lists.01.org, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: Re: [balbi-usb:testing/next 78/89] drivers/usb/dwc3/gadget.c:2842:7: error: implicit declaration of function 'DWC3_VER_IS_WITHIN'
-In-Reply-To: <202005141935.h1fCzDvE%lkp@intel.com>
-References: <202005141935.h1fCzDvE%lkp@intel.com>
-Date:   Thu, 14 May 2020 15:08:00 +0300
-Message-ID: <871rnm4t3z.fsf@kernel.org>
+        id S1727927AbgENPJp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 14 May 2020 11:09:45 -0400
+Received: from muru.com ([72.249.23.125]:54474 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726240AbgENPJp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 14 May 2020 11:09:45 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 8C18B80C0;
+        Thu, 14 May 2020 15:10:33 +0000 (UTC)
+Date:   Thu, 14 May 2020 08:09:41 -0700
+From:   Tony Lindgren <tony@atomide.com>
+To:     Tero Kristo <t-kristo@ti.com>
+Cc:     linux-omap@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Suman Anna <s-anna@ti.com>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/6] dt-bindings: omap: Update PRM binding for genpd
+Message-ID: <20200514150941.GN37466@atomide.com>
+References: <20200512203852.29499-1-tony@atomide.com>
+ <20200512203852.29499-2-tony@atomide.com>
+ <352b8c4d-1233-e208-63ce-c116632546a9@ti.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <352b8c4d-1233-e208-63ce-c116632546a9@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+* Tero Kristo <t-kristo@ti.com> [200514 07:40]:
+> On 12/05/2020 23:38, Tony Lindgren wrote:
+> > The PRM (Power and Reset Module) has registers to enable and disable
+> > power domains, so let's update the binding for that.
+> > 
+> > Cc: devicetree@vger.kernel.org
+> > Cc: Rob Herring <robh@kernel.org>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >   Documentation/devicetree/bindings/arm/omap/prm-inst.txt | 4 ++++
+> >   1 file changed, 4 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> > --- a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> > +++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> > @@ -18,12 +18,16 @@ Required properties:
+> >   		(base address and length)
+> >   Optional properties:
+> > +- #power-domain-cells:	Should be 0 if the PRM instance is a power domain.
+> >   - #reset-cells:	Should be 1 if the PRM instance in question supports resets.
+> > +- clocks: Functional and interface clocks managed by the power domain
+> > +- clock-names: Names for the clocks using "fck" and "ick" naming
+> 
+> Whats the purpose of the clocks for PRM? It looks like you are using this
+> with ABE domain on omap4/omap5, but why is this needed?
 
-kbuild test robot <lkp@intel.com> writes:
+Hmm good point, seems to be just confusion at my end on what should
+handle the clocks for the interconnect instances. We can just leave
+out the clocks here probably.
 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git tes=
-ting/next
-> head:   405a813dbc9e261f9a025386c04f0d133996995e
-> commit: 1a31a103ce6e5a49c4c04e0709a0da431bcbadd4 [78/89] usb: dwc3: gadge=
-t: Use SET_EP_PRIME for NoStream
-> config: parisc-allyesconfig (attached as .config)
-> compiler: hppa-linux-gcc (GCC) 9.3.0
-> reproduce:
->         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbi=
-n/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         git checkout 1a31a103ce6e5a49c4c04e0709a0da431bcbadd4
->         # save the attached .config to linux build tree
->         COMPILER_INSTALL_PATH=3D$HOME/0day GCC_VERSION=3D9.3.0 make.cross=
- ARCH=3Dparisc=20
->
-> If you fix the issue, kindly add following tag as appropriate
-> Reported-by: kbuild test robot <lkp@intel.com>
->
-> Note: the balbi-usb/testing/next HEAD 405a813dbc9e261f9a025386c04f0d13399=
-6995e builds fine.
->       It only hurts bisectibility.
->
-> All errors (new ones prefixed by >>, old ones prefixed by <<):
+Regards,
 
-Thanks, I've reordered the commits to avoid this problem.
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAl69NKAACgkQzL64meEa
-mQbmWhAAtQj2BGqs+9OA/oi+YI3arHjJfVjnbAiP7QAnlwvSVbDHRFkRjXgOWOZL
-GcgQhFWl1AvVu2sslFP2nRgzE8l+phHmASr/yzclC69Xu7gDEeTPUZ/nvuIB46CL
-FinMCOLmI1PeZpaZRhO63ynkzO3PCjGa5z4xWytc81PIZpe+kWeKLwpnadA+k0Yq
-p5AIKFsYmdRB+Oxh3bqV75xn2aeKJOQprhpop5doqsxQCyp4LH748Gn+sv1u3iPp
-M/6/p7sM1IWdzKyvHZSQRx/1veNhioY2418mRat/kbmu31alEoc16toDm3K6dJmE
-hUN/ZepeSbyrMlkSbixUsP3t97vdMk9qVuQJqm47s8EgXcexMj3SITrrYSygtl/l
-TANMTD2lKiedFzOdsBJn5yxH3kz8w71ydLuIR4ab55TTGs1kCs0sbodJXU+rqbEH
-fU+15kxlBGAYdyjVLe2OIZbCY72eItrcNPuwIRSVKId7JCNnbkQaOiklTvQ5TlKw
-zYVHjCMSQopqSJlDbqalr1vn8vkhsGUfM5t2H10+HWuJwSF8fzcDdjP7BJpAxOzG
-kbDXWXf/ihw9/tpZwioHxVboPbO4YRUUFDSnRmgN37Kkr3SmTNOW4CzNPGQvtm17
-QWp83SIpXuUxVIUVeZgLWCTBmXYq90IlNQnynTV0br52vk9Oed0=
-=qM5W
------END PGP SIGNATURE-----
---=-=-=--
+Tony
