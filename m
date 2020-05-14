@@ -1,89 +1,99 @@
-Return-Path: <SRS0=QTYI=63=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=mZi+=64=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6096CC433E1
-	for <linux-omap@archiver.kernel.org>; Wed, 13 May 2020 19:27:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1369FC433E1
+	for <linux-omap@archiver.kernel.org>; Thu, 14 May 2020 07:37:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A0DB2065C
-	for <linux-omap@archiver.kernel.org>; Wed, 13 May 2020 19:27:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E966F206C0
+	for <linux-omap@archiver.kernel.org>; Thu, 14 May 2020 07:37:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="cpS3n/GT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390662AbgEMT1S (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 13 May 2020 15:27:18 -0400
-Received: from jabberwock.ucw.cz ([46.255.230.98]:37904 "EHLO
-        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390206AbgEMT1S (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2020 15:27:18 -0400
-Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
-        id C195A1C026E; Wed, 13 May 2020 21:27:16 +0200 (CEST)
-Date:   Wed, 13 May 2020 21:27:16 +0200
-From:   Pavel Machek <pavel@denx.de>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Johan Hovold <johan@kernel.org>, Rob Herring <robh@kernel.org>,
-        Alan Cox <gnomes@lxorguk.ukuu.org.uk>,
-        Lee Jones <lee.jones@linaro.org>, Jiri Slaby <jslaby@suse.cz>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Peter Hurley <peter@hurleysoftware.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-serial@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH 6/6] ARM: dts: omap4-droid4: Configure modem for
- serdev-ngsm
-Message-ID: <20200513192716.GB20994@duo.ucw.cz>
-References: <20200512214713.40501-1-tony@atomide.com>
- <20200512214713.40501-7-tony@atomide.com>
+        id S1725911AbgENHh2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 14 May 2020 03:37:28 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:60010 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725886AbgENHh0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2020 03:37:26 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04E7bKZV054213;
+        Thu, 14 May 2020 02:37:20 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1589441841;
+        bh=QGXAZUOwvDino56G8IWDdQ/NYT0jQ6NRH5b71pGNvrc=;
+        h=From:To:CC:Subject:Date;
+        b=cpS3n/GTSD1sKVTClUxFGXySVg4Fa/sMcsnTMldfYMfIpCPT2mDjZeB2SAYmLxHl0
+         8DhFnfb66dYVlVkapr8lZ6Zudp+4OOQPnR7mNidJHU+brlDVLmCkJsJYF3l0CM+Nxp
+         UN13c9NS5lN8KTC2YICC/UmU/BCX7xd9l4EW4W3I=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04E7bKIH002543
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 14 May 2020 02:37:20 -0500
+Received: from DLEE106.ent.ti.com (157.170.170.36) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 14
+ May 2020 02:37:20 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Thu, 14 May 2020 02:37:20 -0500
+Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04E7bIm6009731;
+        Thu, 14 May 2020 02:37:19 -0500
+From:   Tero Kristo <t-kristo@ti.com>
+To:     <ssantosh@kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+CC:     <linux-omap@vger.kernel.org>, <tony@atomide.com>, <s-anna@ti.com>
+Subject: [PATCH 1/1] soc: ti: omap-prm: use atomic iopoll instead of sleeping one
+Date:   Thu, 14 May 2020 10:37:18 +0300
+Message-ID: <20200514073718.17690-1-t-kristo@ti.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kXdP64Ggrk/fb43R"
-Content-Disposition: inline
-In-Reply-To: <20200512214713.40501-7-tony@atomide.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+The reset handling APIs for omap-prm can be invoked PM runtime which
+runs in atomic context. For this to work properly, switch to atomic
+iopoll version instead of the current which can sleep. Otherwise,
+this throws a "BUG: scheduling while atomic" warning. Issue is seen
+rather easily when CONFIG_PREEMPT is enabled.
 
---kXdP64Ggrk/fb43R
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/soc/ti/omap_prm.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-On Tue 2020-05-12 14:47:13, Tony Lindgren wrote:
-> Let's enable the TS 27.010 /dev/gsmmux* interfaces via Linux n_gsm that
-> can be used for voice calls and SMS with commands using a custom Motorola
-> format.
->=20
-> And let's also enable the kernel GNSS driver via serdev-ngsm that uses a
-> dedicated TS 27.010 channel.
->=20
-> Note that voice call audio mixer is not supported yet.
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+index 96c6f777519c..c9b3f9ebf0bb 100644
+--- a/drivers/soc/ti/omap_prm.c
++++ b/drivers/soc/ti/omap_prm.c
+@@ -256,10 +256,10 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
+ 		goto exit;
+ 
+ 	/* wait for the status to be set */
+-	ret = readl_relaxed_poll_timeout(reset->prm->base +
+-					 reset->prm->data->rstst,
+-					 v, v & BIT(st_bit), 1,
+-					 OMAP_RESET_MAX_WAIT);
++	ret = readl_relaxed_poll_timeout_atomic(reset->prm->base +
++						 reset->prm->data->rstst,
++						 v, v & BIT(st_bit), 1,
++						 OMAP_RESET_MAX_WAIT);
+ 	if (ret)
+ 		pr_err("%s: timedout waiting for %s:%lu\n", __func__,
+ 		       reset->prm->data->name, id);
+-- 
+2.17.1
 
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
-
-Best regards,
-                                                                Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---kXdP64Ggrk/fb43R
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCXrxKFAAKCRAw5/Bqldv6
-8inPAJ0aV3C5kMif1WPGg8RRI+KpmCL94gCfcrDwy628UP3GlXtFzIE8VBW/xwU=
-=ycpJ
------END PGP SIGNATURE-----
-
---kXdP64Ggrk/fb43R--
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
