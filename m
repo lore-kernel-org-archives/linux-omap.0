@@ -2,137 +2,165 @@ Return-Path: <SRS0=rVcZ=7A=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E24C433DF
-	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 10:19:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27DEDC433E0
+	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 11:14:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9264B20709
-	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 10:19:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07F5220829
+	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 11:14:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kwbsIAt3"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="mtgETvu6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726180AbgERKTr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 18 May 2020 06:19:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46860 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726127AbgERKTq (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2020 06:19:46 -0400
-Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B5C4C061A0C
-        for <linux-omap@vger.kernel.org>; Mon, 18 May 2020 03:19:46 -0700 (PDT)
-Received: by mail-il1-x142.google.com with SMTP id j3so9240163ilk.11
-        for <linux-omap@vger.kernel.org>; Mon, 18 May 2020 03:19:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=rLmkVzPobBYXUrEoEhYdcYB2lEJTqIjnOOM8GJfPDkI=;
-        b=kwbsIAt3F3ezeg2SRqlpVsNfcffi5AyMNJxuryVkrQiV8uBVzR6oaBE+IKn2prlrIb
-         DYiUqqtJSOdDi4V8ewLUG6EUwn47MktAel4cm1emT16ym6baB0oeAJamLaaGoWqjR6Ub
-         o6xhdzNBwl3sqFkiBycGD3KcPX1a+U9bD9Jc9kf/yo8nBw98mmLwvGOUz584SggCtF6v
-         Rp9Lt4dvE3gdygPiLs81tRXjMF0Nd2VErEfAPZqOTGgIYFzOkUl05RIevr2DhIGOpg5Y
-         DilaUDqIce0hzDwZp3TJ4BSQ2AWpvF49+acia2dBRTogf5kxvP4u/tk1+xOd2EWu31Yn
-         jaVg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=rLmkVzPobBYXUrEoEhYdcYB2lEJTqIjnOOM8GJfPDkI=;
-        b=adQWVdgBahekKbeYzPEwC0+J2aJAKi2fhXuxZ78R2J3AgmpslQ8Jyb7836vFB0IUg1
-         GczXJQSmstMlY4Z9cM30UmjB13T5ByEvSBruS+p7kcJPaNFM4LmvsFqmccNA5luEweSP
-         b9q9d9gNPBrAwywQJJ4AuQVqv7vsZOUt4/Vd3iIPZd6EZZhsJaLcVeotdsmj3VG+8Oyi
-         CN1gYu1sst2ZkqUEwl8KxFN1z2+Zgpk+rNmHWI2ZR3zxuEJzGDP0LgEt14z3frVmCGFf
-         DSg6Rfr8IHEPySh6KidZ3rZiijvBJWk7TF2RqM/rpzS+axnJZo2akHdV94NOI+qGDcca
-         K9UQ==
-X-Gm-Message-State: AOAM531is1VwCOO82GlGbZkPt2STifMbWvrPSm2uv7z2jUusVrgsIQZV
-        NwZCWfLjFCYde1FWH57kwV+GvVxOXAmVS2h6mGQ=
-X-Google-Smtp-Source: ABdhPJx6SwawAEPuoI5Pnz0uEWR8lat5l+EzLBN2MJ90FNUtkzXY8xz2mOLDrL5CXgiMiAnr8VfJuiNa6jNLhUt1Vao=
-X-Received: by 2002:a92:3d8c:: with SMTP id k12mr14558160ilf.65.1589797185305;
- Mon, 18 May 2020 03:19:45 -0700 (PDT)
+        id S1726958AbgERLOb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 18 May 2020 07:14:31 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:52658 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726895AbgERLOb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2020 07:14:31 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04IBEFVH058603;
+        Mon, 18 May 2020 06:14:15 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1589800455;
+        bh=E7fcJxnUqqFrAQDBSAN/iBT0XuTjX3npLA0yWrc9VYA=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=mtgETvu6xqx3g7gfJLdVqm1+VQxFSci/CZr7ghnLfM5jbF57diyHocidjdlY0XpDs
+         ageZWmXJBKi/pV9jV4RAXbZFMSy3wisTEkU8lHZ+J0GveB/JosKnSo7yGqQESvylEO
+         9J79gg99a+NMw+xDCkX5cK43m33pBBulP942fNtI=
+Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04IBEF6l123119
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 18 May 2020 06:14:15 -0500
+Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 18
+ May 2020 06:14:14 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Mon, 18 May 2020 06:14:14 -0500
+Received: from [10.250.233.85] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04IBEBg0114342;
+        Mon, 18 May 2020 06:14:11 -0500
+Subject: Re: [PATCH v4 00/14] Add PCIe support to TI's J721E SoC
+To:     Bjorn Helgaas <bhelgaas@google.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>, Tom Joseph <tjoseph@cadence.com>
+CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20200506151429.12255-1-kishon@ti.com>
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+Message-ID: <35f10b75-8235-7ea2-866f-dfb81fc8e485@ti.com>
+Date:   Mon, 18 May 2020 16:44:10 +0530
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-References: <CAHCN7x+PAsFBhKyUUdbW2_diZ9PX=-Keb=UtXbkUVv1Mp1eujQ@mail.gmail.com>
- <fedbed5e-8365-85ab-9b81-2ec25ffa64b4@ti.com>
-In-Reply-To: <fedbed5e-8365-85ab-9b81-2ec25ffa64b4@ti.com>
-From:   Adam Ford <aford173@gmail.com>
-Date:   Mon, 18 May 2020 05:19:32 -0500
-Message-ID: <CAHCN7x+E3YrRFerzOHKOQHfx67g=ANESuopskKpZHX5qBx_fHQ@mail.gmail.com>
-Subject: Re: AM3517 MUSB and CPPI
-To:     Sekhar Nori <nsekhar@ti.com>
-Cc:     Linux-OMAP <linux-omap@vger.kernel.org>,
-        Tero Kristo <t-kristo@ti.com>,
-        Tony Lindgren <tony@atomide.com>, "Liu, Bin" <b-liu@ti.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20200506151429.12255-1-kishon@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, May 18, 2020 at 12:35 AM Sekhar Nori <nsekhar@ti.com> wrote:
->
-> + Bin who maintains MUSB controller support
->
-> On 5/18/20 8:17 AM, Adam Ford wrote:
-> > From what I can tell, the MUSB controller on the AM3517 hasn't worked
-> > in a very long time.
+Hi Lorenzo, RobH
 
-Thanks for adding Bin.
+On 5/6/2020 8:44 PM, Kishon Vijay Abraham I wrote:
+> TI's J721E SoC uses Cadence PCIe core to implement both RC mode
+> and EP mode.
+> 
+> The high level features are:
+>   *) Supports Legacy, MSI and MSI-X interrupt
+>   *) Supports upto GEN4 speed mode
+>   *) Supports SR-IOV
+>   *) Supports multiple physical function
+>   *) Ability to route all transactions via SMMU
+> 
+> This patch series
+>   *) Add support in Cadence PCIe core to be used for TI's J721E SoC
+>   *) Add a driver for J721E PCIe wrapper
 
-I can post of code patches as an RFC if interested.  They don't work
-any better, but they don't work any worse either.
+Do you have any other comments on this series? I'm hoping this gets merged for 5.8.
 
-I have modifications to the am35x glue to support cppi41, cppi41 to
-support am35, and updates to the device tree to point the musb
-controller to the am35 glue with additions for cppi41 references and
-some additional clocks.
+Thanks
+Kishon
 
-adam
-
-> >
-> > I have been going through the TRM for the AM3517, and I am convinced
-> > the device tree for the OTG port is wrong, but I am struggling to fix
-> > it.
-> >
-> > From what I can see the USB OTG Port support the CPPI 4.1 DMA
-> > controller, but the CPPI 4.1 only appears to support the
-> > DA850/OMAP-L138 and the AM335x family.
-> >
-> > It appears as if the AM35xx is a bit closer in behavior to the AM335x
-> > than the L138, but I was hoping either Tony, Tero or someone from TI
-> > might have a suggestion.
-> >
-> > The compatible flag need to be something like "compatible =
-> > "ti,am35xx-musb" and not omap3, because OMAP3 doesn't support the CPPI
-> > 4.1 DMA controller and the AM3517 does.
-> >
-> > Secondly, we need to update a couple of the tables in the cppi driver
-> > to support the am3517, and lastly, the device tree node needs to
-> > support the CPPI driver.
-> >
-> > It looks like the DA850/L138 makes the CPPI driver a sub-node of the
-> > OTG port, while the am335x has it as a separate node from the USB
-> > controller.
-> >
-> > From what I can tell on the AM3517, the CPPI DMA node should be a
-> > sub-node of the OTG.
-> >
-> > What I am struggling with now is the register offsets for controller,
-> > scheduler and queue manager.
-> > On both DA850 the 335x, there is an explicit table entry showing the
-> > offset of DMAREVID, which tells the DMA revision ID.  I cannot find a
-> > corresponding register for the AM3517, yet the AM3517
-> >
-> > FWICT, the scheduler is offset 0x2000 with respect to the OTG
-> > controller, and the Queue Manager register is at 0ffset 0x4000, both
-> > with respect to the OTG base address.  Unfortunately, I am not finding
-> > the offset for the CDMA controller itself.
-> >
-> > Can someone tell me what it should be?  I am guessing it would be near
-> > the 0x1000 offset, but it's a pure guess.
-> >
-> > adam
-> >
->
+> 
+> v1 of the series can be found @ [1]
+> v2 of the series can be found @ [2]
+> v3 of the series can be found @ [5]
+> 
+> Changes from v3:
+> 1) Changed the order of files in MAINTAINTERS file to fix Joe's comments
+> 2) Fixed indentation and added Reviewed-by: Rob Herring <robh@kernel.org>
+> 3) Cleaned up computing msix_tbl
+> 4) Fixed RobH's comment on J721E driver
+> 
+> Changes from v2:
+> 1) Converting Cadence binding to YAML schema was done as a 
+>    separate series [3] & [4]. [3] is merged and [4] is
+>    pending.
+> 2) Included MSI-X support in this series
+> 3) Added link down interrupt handling (only error message)
+> 4) Rebased to latest 5.7-rc1
+> 5) Adapted TI J721E binding to [3] & [4] 
+> 
+> Changes from v1:
+> 1) Added DT schemas cdns-pcie-host.yaml, cdns-pcie-ep.yaml and
+>    cdns-pcie.yaml for Cadence PCIe core and included it in
+>    TI's PCIe DT schema.
+> 2) Added cpu_addr_fixup() for Cadence Platform driver.
+> 3) Fixed subject/description/renamed functions as commented by
+>    Andrew Murray.
+> 
+> [1] -> http://lore.kernel.org/r/20191209092147.22901-1-kishon@ti.com
+> [2] -> http://lore.kernel.org/r/20200106102058.19183-1-kishon@ti.com
+> [3] -> http://lore.kernel.org/r/20200305103017.16706-1-kishon@ti.com
+> [4] -> http://lore.kernel.org/r/20200417114322.31111-1-kishon@ti.com
+> [5] -> http://lore.kernel.org/r/20200417125753.13021-1-kishon@ti.com
+> 
+> Alan Douglas (1):
+>   PCI: cadence: Add MSI-X support to Endpoint driver
+> 
+> Kishon Vijay Abraham I (13):
+>   PCI: cadence: Fix cdns_pcie_{host|ep}_setup() error path
+>   linux/kernel.h: Add PTR_ALIGN_DOWN macro
+>   PCI: cadence: Add support to use custom read and write accessors
+>   PCI: cadence: Add support to start link and verify link status
+>   PCI: cadence: Add read/write accessors to perform only 32-bit accesses
+>   PCI: cadence: Allow pci_host_bridge to have custom pci_ops
+>   PCI: cadence: Add new *ops* for CPU addr fixup
+>   PCI: cadence: Fix updating Vendor ID and Subsystem Vendor ID register
+>   dt-bindings: PCI: Add host mode dt-bindings for TI's J721E SoC
+>   dt-bindings: PCI: Add EP mode dt-bindings for TI's J721E SoC
+>   PCI: j721e: Add TI J721E PCIe driver
+>   misc: pci_endpoint_test: Add J721E in pci_device_id table
+>   MAINTAINERS: Add Kishon Vijay Abraham I for TI J721E SoC PCIe
+> 
+>  .../bindings/pci/ti,j721e-pci-ep.yaml         |  89 ++++
+>  .../bindings/pci/ti,j721e-pci-host.yaml       | 113 ++++
+>  MAINTAINERS                                   |   4 +-
+>  drivers/misc/pci_endpoint_test.c              |   9 +
+>  drivers/pci/controller/cadence/Kconfig        |  23 +
+>  drivers/pci/controller/cadence/Makefile       |   1 +
+>  drivers/pci/controller/cadence/pci-j721e.c    | 492 ++++++++++++++++++
+>  .../pci/controller/cadence/pcie-cadence-ep.c  | 125 ++++-
+>  .../controller/cadence/pcie-cadence-host.c    |  59 ++-
+>  .../controller/cadence/pcie-cadence-plat.c    |  13 +
+>  drivers/pci/controller/cadence/pcie-cadence.c |  48 +-
+>  drivers/pci/controller/cadence/pcie-cadence.h | 158 +++++-
+>  include/linux/kernel.h                        |   1 +
+>  13 files changed, 1093 insertions(+), 42 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+>  create mode 100644 Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+>  create mode 100644 drivers/pci/controller/cadence/pci-j721e.c
+> 
