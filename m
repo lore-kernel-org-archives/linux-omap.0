@@ -2,76 +2,77 @@ Return-Path: <SRS0=rVcZ=7A=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55BC0C433E0
-	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 03:55:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C695C433E0
+	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 03:58:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24D3B205CB
-	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 03:55:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79262207E8
+	for <linux-omap@archiver.kernel.org>; Mon, 18 May 2020 03:58:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726823AbgERDzd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 17 May 2020 23:55:33 -0400
-Received: from smtprelay0007.hostedemail.com ([216.40.44.7]:47420 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726680AbgERDzd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 17 May 2020 23:55:33 -0400
-Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay04.hostedemail.com (Postfix) with ESMTP id 73227180A733A;
-        Mon, 18 May 2020 03:55:32 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: elbow17_131843f5ffd49
-X-Filterd-Recvd-Size: 1675
-Received: from XPS-9350.home (unknown [47.151.136.130])
-        (Authenticated sender: joe@perches.com)
-        by omf06.hostedemail.com (Postfix) with ESMTPA;
-        Mon, 18 May 2020 03:55:31 +0000 (UTC)
-Message-ID: <b8a08623cc0f858e0f961240a0cf610d32c6816d.camel@perches.com>
-Subject: Re: [PATCH] clk/ti/adpll: Add a NULL check for devm_kasprintf()
-From:   Joe Perches <joe@perches.com>
-To:     Xu Wang <vulab@iscas.ac.cn>, t-kristo@ti.com,
-        mturquette@baylibre.com, sboyd@kernel.org,
+        id S1726700AbgERD6Q (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 17 May 2020 23:58:16 -0400
+Received: from smtp23.cstnet.cn ([159.226.251.23]:59494 "EHLO cstnet.cn"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726675AbgERD6P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 17 May 2020 23:58:15 -0400
+X-Greylist: delayed 425 seconds by postgrey-1.27 at vger.kernel.org; Sun, 17 May 2020 23:54:18 EDT
+Received: from localhost.localdomain (unknown [159.226.5.100])
+        by APP-03 (Coremail) with SMTP id rQCowABnSCE0BcJeMpsbAg--.55868S3;
+        Mon, 18 May 2020 11:47:01 +0800 (CST)
+From:   Xu Wang <vulab@iscas.ac.cn>
+To:     t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org,
         linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
 Cc:     linux-kernel@vger.kernel.org
-Date:   Sun, 17 May 2020 20:55:30 -0700
-In-Reply-To: <1589773618-3658-1-git-send-email-vulab@iscas.ac.cn>
-References: <1589773618-3658-1-git-send-email-vulab@iscas.ac.cn>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.36.1-2 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] clk/ti/adpll: Add a NULL check for devm_kasprintf()
+Date:   Mon, 18 May 2020 03:46:58 +0000
+Message-Id: <1589773618-3658-1-git-send-email-vulab@iscas.ac.cn>
+X-Mailer: git-send-email 2.7.4
+X-CM-TRANSID: rQCowABnSCE0BcJeMpsbAg--.55868S3
+X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
+        VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUYn7k0a2IF6FyUM7kC6x804xWl14x267AK
+        xVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wAFIxvE14AKwVWUJVWUGw
+        A2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20xvE14v26ryj
+        6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j6r4UJwA2z4x0Y4vEx4A2jsIE14v26r
+        4UJVWxJr1l84ACjcxK6I8E87Iv6xkF7I0E14v26F4UJVW0owAS0I0E0xvYzxvE52x082IY
+        62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7V
+        C2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JMxkI
+        ecxEwVAFwVW8GwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c
+        02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_JF0_
+        Jw1lIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7
+        CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26cxKx2IYs7xG6rW3Jr0E3s1lIxAIcVC2z280aVAF
+        wI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVWUJVW8JbIYCTnIWIevJa73UjIFyTuYvj
+        xUxjjgDUUUU
+X-Originating-IP: [159.226.5.100]
+X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiCwETA1z4jSkDjQABsV
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, 2020-05-18 at 03:46 +0000, Xu Wang wrote:
-> devm_kasprintf() may fail, so we should better add a NULL check
-> and propagate an error on failure.
+devm_kasprintf() may fail, so we should better add a NULL check
+and propagate an error on failure.
 
-You didn't compile this.
+Signed-off-by: Xu Wang <vulab@iscas.ac.cn>
+---
+ drivers/clk/ti/adpll.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-All the return values of this function are already checked.
-
-> Signed-off-by: Xu Wang <vulab@iscas.ac.cn>
-> ---
->  drivers/clk/ti/adpll.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
-> index bb2f283..f18a672 100644
-> --- a/drivers/clk/ti/adpll.c
-> +++ b/drivers/clk/ti/adpll.c
-> @@ -196,6 +196,8 @@ static const char *ti_adpll_clk_get_name(struct ti_adpll_data *d,
->  	} else {
->  		name = devm_kasprintf(d->dev, GFP_KERNEL, "%08lx.adpll.%s",
->  				      d->pa, postfix);
-> +		if (!name)
-> +			return -ENOMEM;
->  	}
->  
->  	return name;
+diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
+index bb2f283..f18a672 100644
+--- a/drivers/clk/ti/adpll.c
++++ b/drivers/clk/ti/adpll.c
+@@ -196,6 +196,8 @@ static const char *ti_adpll_clk_get_name(struct ti_adpll_data *d,
+ 	} else {
+ 		name = devm_kasprintf(d->dev, GFP_KERNEL, "%08lx.adpll.%s",
+ 				      d->pa, postfix);
++		if (!name)
++			return -ENOMEM;
+ 	}
+ 
+ 	return name;
+-- 
+2.7.4
 
