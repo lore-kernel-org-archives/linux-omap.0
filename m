@@ -2,90 +2,72 @@ Return-Path: <SRS0=tvBc=7C=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD5AC433DF
-	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:06:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2874BC433E2
+	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:13:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88F6B2084C
-	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:06:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590008774;
-	bh=w5pgScQC9IMxAcxRg9tT1fSHc8dCAfMnzhfj/cz82FY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=ksQ4OlXKKj0FI8vlJrCZrt5STsIpc/YPeYqrzo0oKavT++OQYTZPHU9fR2ewjcCyT
-	 xWTyJsmdpc31wdj8Bx8J+nyL3lh9whlHxDfosodK163QiggrcUHYFlpj32SShEovHe
-	 bzVre5eCBt+ZXuAEZFqoKu5n3bXFtiR9FX988kZQ=
+	by mail.kernel.org (Postfix) with ESMTP id 0CDF820873
+	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:13:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728019AbgETVGK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 20 May 2020 17:06:10 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:35071 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727083AbgETVGJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2020 17:06:09 -0400
-Received: by mail-io1-f68.google.com with SMTP id 79so4958610iou.2;
-        Wed, 20 May 2020 14:06:09 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=09WBBiNg8+91WX/1ofp/cbQVZYmY4/wJ7S0gDVoiaZk=;
-        b=fRvpHPjLpveR7b3o/g6KER6z2RT8mpKX+WGNVXPwldKJpm9pSYq5qmmAayHiZAtHk9
-         SsuKs0tyy2tj+p6QK9hp4D+3ovZf8Qy3ap4pn2rLEI+UVlCjSiaazbbkNNhOlSWzMp1h
-         +JgEbYezLHZ07ZimTJcu/TLSb9sX6WHMZ8tnylb0wHppVvIOkCJaucnrEQ+h1aUcEfH2
-         NhfGqpib7KUC0HtNzSFnqSELeCg75pfh0z6mRJJFqjx6Zu57y/TEEutGcNMlg6kbjxly
-         Wy49RBdawLMRBH2LxMqgSGdJSYYTH2YT1nkGargr5LmoPbCHGRX8Rlk03feS8h2V3keM
-         i6Tw==
-X-Gm-Message-State: AOAM532TuZbSA9Ftvw/BwMVo6R0+NraRzrmqyOecmLWniPINdv7Uw/tN
-        x24wyjyx9WlxuEQdMZO4Y3JdMVg=
-X-Google-Smtp-Source: ABdhPJzagkFCHWiZjW5SLGpSt8Lquwvefwmka684NQTnQdAmOG8QYT+tbPEiButaZUh++R9xb/u2hg==
-X-Received: by 2002:a02:c00e:: with SMTP id y14mr938022jai.15.1590008767247;
-        Wed, 20 May 2020 14:06:07 -0700 (PDT)
-Received: from xps15 ([64.188.179.252])
-        by smtp.gmail.com with ESMTPSA id t18sm1953577ili.24.2020.05.20.14.06.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 May 2020 14:06:06 -0700 (PDT)
-Received: (nullmailer pid 583652 invoked by uid 1000);
-        Wed, 20 May 2020 21:06:05 -0000
-Date:   Wed, 20 May 2020 15:06:05 -0600
-From:   Rob Herring <robh@kernel.org>
-To:     Kishon Vijay Abraham I <kishon@ti.com>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org,
-        Tom Joseph <tjoseph@cadence.com>, devicetree@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 04/14] PCI: cadence: Add support to start link and
- verify link status
-Message-ID: <20200520210605.GA583572@bogus>
-References: <20200506151429.12255-1-kishon@ti.com>
- <20200506151429.12255-5-kishon@ti.com>
+        id S1727947AbgETVNq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 20 May 2020 17:13:46 -0400
+Received: from muru.com ([72.249.23.125]:55306 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727018AbgETVNp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 20 May 2020 17:13:45 -0400
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 279DF819C;
+        Wed, 20 May 2020 21:14:34 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     linux-omap@vger.kernel.org
+Cc:     "Andrew F . Davis" <afd@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>
+Subject: [PATCH 1/6] dt-bindings: omap: Update PRM binding for genpd
+Date:   Wed, 20 May 2020 14:13:29 -0700
+Message-Id: <20200520211334.61814-2-tony@atomide.com>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200520211334.61814-1-tony@atomide.com>
+References: <20200520211334.61814-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200506151429.12255-5-kishon@ti.com>
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 6 May 2020 20:44:19 +0530, Kishon Vijay Abraham I wrote:
-> Add cdns_pcie_ops to start link and verify link status. The registers
-> to start link and to check link status is in Platform specific PCIe
-> wrapper. Add support for platform specific drivers to add callback
-> functions for the PCIe Cadence core to start link and verify link status.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  .../pci/controller/cadence/pcie-cadence-ep.c  |  8 +++++
->  .../controller/cadence/pcie-cadence-host.c    | 28 +++++++++++++++++
->  drivers/pci/controller/cadence/pcie-cadence.h | 30 +++++++++++++++++++
->  3 files changed, 66 insertions(+)
-> 
+The PRM (Power and Reset Module) has registers to enable and disable
+power domains, so let's update the binding for that.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org
+Cc: Rob Herring <robh@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ Documentation/devicetree/bindings/arm/omap/prm-inst.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+--- a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
++++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+@@ -18,6 +18,7 @@ Required properties:
+ 		(base address and length)
+ 
+ Optional properties:
++- #power-domain-cells:	Should be 0 if the PRM instance is a power domain.
+ - #reset-cells:	Should be 1 if the PRM instance in question supports resets.
+ 
+ Example:
+@@ -25,5 +26,6 @@ Example:
+ prm_dsp2: prm@1b00 {
+ 	compatible = "ti,dra7-prm-inst", "ti,omap-prm-inst";
+ 	reg = <0x1b00 0x40>;
++	#power-domain-cells = <0>;
+ 	#reset-cells = <1>;
+ };
+-- 
+2.26.2
