@@ -2,94 +2,104 @@ Return-Path: <SRS0=tvBc=7C=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 576C4C433DF
-	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:14:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAE2DC433DF
+	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:34:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33E082084C
-	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:14:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B691B207F9
+	for <linux-omap@archiver.kernel.org>; Wed, 20 May 2020 21:34:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1590010481;
+	bh=mZYBmYFSzuwIdlPqL5PrWyK4KZrx/AOhM8HEAkhiG2c=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=b+xhuUofUjTXNSBwjFBz8mXrlAQNaN66vkalxwNFNNPyjvVlEB8SQjoWWMB8RjkQ5
+	 l32xA8yYnFDMYAhPgx++Uw1FrPfHOdrdC6FlPCjtM+36qgSYXZmGhS4F3M6pwSb+du
+	 ZjWWrVaRjdydoLldp7PwoCub9ClLN4qyrlrE6vLw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728364AbgETVNo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 20 May 2020 17:13:44 -0400
-Received: from muru.com ([72.249.23.125]:55296 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727947AbgETVNo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 20 May 2020 17:13:44 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id BE94B8108;
-        Wed, 20 May 2020 21:14:32 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     "Andrew F . Davis" <afd@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCHv2 0/6] Add initial genpd support for omap PRM driver
-Date:   Wed, 20 May 2020 14:13:28 -0700
-Message-Id: <20200520211334.61814-1-tony@atomide.com>
-X-Mailer: git-send-email 2.26.2
+        id S1728140AbgETVei (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 20 May 2020 17:34:38 -0400
+Received: from mail-il1-f196.google.com ([209.85.166.196]:45493 "EHLO
+        mail-il1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726892AbgETVei (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2020 17:34:38 -0400
+Received: by mail-il1-f196.google.com with SMTP id b15so4829925ilq.12;
+        Wed, 20 May 2020 14:34:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=2/eHyYzBahdn3qW8t/qbKdgzArvvt9PLcDPFzWfN7iw=;
+        b=Y09C3B1cckuQqTCBYDEb64L/znn52kjYwWudOrafnSJBlubrOIGJ2fNMALM1oiigMM
+         DLd5PImrhRX8jCFC6lghu1oQ4ymL1Fty3fooUvMbdy6RHAlXcSGO5Jxyts9/Q1bBSSFV
+         impvfSnc4WNY+rrxdzoavrGnkqT041/yJa0IGP/vl85EXB1/tKVl4uN+i9T0nT4vaAwB
+         yE+vrp3TWWuvia6/YZmlGlZ/INMF+cD0hsjnYjT2a/ndPJSULDsgKkLbErvTqI+FoupK
+         Mu6rxzPQeFoUdx2ryluJ4q8P4ONDnrSDYdzZ/wN0920ucRAbz5IKWmDKRCLxCZCHWk25
+         y6rA==
+X-Gm-Message-State: AOAM531cwNZhk2O4pKHCO0gZg0whfeu1pKEtqr9ao/gsplaGrbG/W9EF
+        V1CFF/v+Nh03N7DAbwCuqg==
+X-Google-Smtp-Source: ABdhPJzKftdjlLVMTI+ImBLO4uTp+xrXfJIyzLp9JRWBEvw9KfywvQPPZEg7GO8i9fwFyIbrHDhAZA==
+X-Received: by 2002:a05:6e02:92d:: with SMTP id o13mr5836790ilt.142.1590010477107;
+        Wed, 20 May 2020 14:34:37 -0700 (PDT)
+Received: from xps15 ([64.188.179.252])
+        by smtp.gmail.com with ESMTPSA id a20sm1642056iot.17.2020.05.20.14.34.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 20 May 2020 14:34:36 -0700 (PDT)
+Received: (nullmailer pid 633250 invoked by uid 1000);
+        Wed, 20 May 2020 21:34:35 -0000
+Date:   Wed, 20 May 2020 15:34:34 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Kishon Vijay Abraham I <kishon@ti.com>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-pci@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v4 07/14] PCI: cadence: Add new *ops* for CPU addr fixup
+Message-ID: <20200520213434.GA583923@bogus>
+References: <20200506151429.12255-1-kishon@ti.com>
+ <20200506151429.12255-8-kishon@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200506151429.12255-8-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi all,
+On Wed, May 06, 2020 at 08:44:22PM +0530, Kishon Vijay Abraham I wrote:
+> Cadence driver uses "mem" memory resource to obtain the offset of
+> configuration space address region, memory space address region and
+> message space address region. The obtained offset is used to program
+> the Address Translation Unit (ATU). However certain platforms like TI's
+> J721E SoC require the absolute address to be programmed in the ATU and not
+> just the offset.
 
-Heris v2 set of patches to add genpd support to the PRM (Power and Reset
-Module) driver.
+Once again, Cadence host binding is broken (or at least the example is). 
+The 'mem' region shouldn't even exist. It is overlapping the config 
+space and 'ranges':
 
-Initially we just add one hardware accelerator power domain for sgx,
-and one interconnect instance for l4_abe. The rest of the SoC specific
-domain data is probably best added one SoC at a time based on generated
-data.
+            reg = <0x0 0xfb000000  0x0 0x01000000>,
+                  <0x0 0x41000000  0x0 0x00001000>,
+                  <0x0 0x40000000  0x0 0x04000000>;
+            reg-names = "reg", "cfg", "mem";
 
-Regards,
-
-Tony
-
-
-Changes since v1:
-
-- Dropped clocks from the binding and prm driver as there's no need
-  for them as pointed out by Tero
-
-- Add checking for domain transition bit in pwrstst register as
-  pointed out by Tero
-
-- Add omap_prm_domain_show_state() for CONFIG_DEBUG
+            ranges = <0x02000000 0x0 0x42000000  0x0 0x42000000  0x0 0x1000000>,
+                     <0x01000000 0x0 0x43000000  0x0 0x43000000  0x0 0x0010000>;
 
 
-Tony Lindgren (6):
-  dt-bindings: omap: Update PRM binding for genpd
-  soc: ti: omap-prm: Add basic power domain support
-  soc: ti: omap-prm: Configure sgx power domain for am3 and am4
-  soc: ti: omap-prm: Configure omap4 and 5 l4_abe power domain
-  ARM: dts: Configure am3 and am4 sgx for genpd and drop platform data
-  ARM: dts: Configure omap4 and 5 l4_abe for genpd and drop platform
-    data
+16M of registers looks a bit odd. I guess it doesn't matter 
+unless you have a 32-bit platform and care about your virtual 
+space. Probably should have been 3 regions for LM, RP, and AT looking 
+at the driver.
 
- .../devicetree/bindings/arm/omap/prm-inst.txt |   2 +
- arch/arm/boot/dts/am33xx.dtsi                 |   2 +
- arch/arm/boot/dts/am4372.dtsi                 |   2 +
- arch/arm/boot/dts/omap4-l4-abe.dtsi           |   6 +-
- arch/arm/boot/dts/omap4.dtsi                  |   6 +
- arch/arm/boot/dts/omap5-l4-abe.dtsi           |   6 +-
- arch/arm/boot/dts/omap5.dtsi                  |   6 +
- arch/arm/mach-omap2/Kconfig                   |   1 +
- .../omap_hwmod_33xx_43xx_interconnect_data.c  |  16 -
- .../omap_hwmod_33xx_43xx_ipblock_data.c       |  40 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |   2 -
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c    |   2 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  33 --
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c    |  31 --
- drivers/soc/ti/omap_prm.c                     | 281 +++++++++++++++++-
- 15 files changed, 305 insertions(+), 131 deletions(-)
+Whatever outbound address translation you need should be based on 
+'ranges'.
 
--- 
-2.26.2
+Rob
