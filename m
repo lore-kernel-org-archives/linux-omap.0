@@ -2,209 +2,109 @@ Return-Path: <SRS0=1hos=7E=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34436C433E6
-	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 03:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F461C433E0
+	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 09:17:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 068E1207E8
-	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 03:38:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="brmyW4Il"
+	by mail.kernel.org (Postfix) with ESMTP id 2F13720885
+	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 09:17:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1590139057;
+	bh=HNMgBFDJToK3zbjWXKcZnffRZmJKX11EfdxrUJQVZ+k=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=LEfj+EQnr8adNFzXY2IlHsniKqc8HPGllr3NniALzAl1Dzjlpn11o8YoSTzdUcF9v
+	 fT8GFL2QGSP2wh0t7S892wSAIkQ4JOZqgYy9ZObF3lPRXFZqTSYMdFy3N7s8XEb/1M
+	 ZlXIIdBt19XEiAqrSOvJO21IWhQbigiBge9V+FKs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727836AbgEVDhG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 21 May 2020 23:37:06 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:50048 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727975AbgEVDhF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2020 23:37:05 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 04M3aoUG038225;
-        Thu, 21 May 2020 22:36:50 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1590118610;
-        bh=mKUVBx4Ow9SOnmVTpj1Ps0KC2GgOff1eIWcMic3aVOs=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=brmyW4IlzpYTofng0vBdc1stx/uvjtaWe3iQbivnK0UB+qo7mPRBkqyUANQJUbAmy
-         OtX6wlU2KTN8E3bGH8iUCcIZr+mkE/Sn/5FUrpvJcRVPuNUWVMGQ7IPoNeucjhtPT9
-         b7/Vu1VzdCH1DEb+tPzWznKi8nDYWfu8YtWNss90=
-Received: from DLEE104.ent.ti.com (dlee104.ent.ti.com [157.170.170.34])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 04M3aoXd026457
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 21 May 2020 22:36:50 -0500
-Received: from DLEE115.ent.ti.com (157.170.170.26) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 21
- May 2020 22:36:49 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 21 May 2020 22:36:49 -0500
-Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 04M3aYbx062596;
-        Thu, 21 May 2020 22:36:46 -0500
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-To:     Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>
-CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v5 03/14] PCI: cadence: Convert all r/w accessors to perform only 32-bit accesses
-Date:   Fri, 22 May 2020 09:06:20 +0530
-Message-ID: <20200522033631.32574-4-kishon@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200522033631.32574-1-kishon@ti.com>
-References: <20200522033631.32574-1-kishon@ti.com>
+        id S1729582AbgEVJRg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 22 May 2020 05:17:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36600 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728068AbgEVJRf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 22 May 2020 05:17:35 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9800F206B6;
+        Fri, 22 May 2020 09:17:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1590139054;
+        bh=HNMgBFDJToK3zbjWXKcZnffRZmJKX11EfdxrUJQVZ+k=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ALXMmxWNVRdAjNCssSQVc/aCyaMykegZCH1zG2CEyzJQngkhsO1Y29uPu1QJsKqUk
+         Va1x7rbuVZTiy8uA6On9aCxlWqVvBJ0TCtd76m0uBBkp3mw0sDp3eX1C9M1thT8Kqz
+         59gCS+p+GCEM4CESC9xYJ51C2Ps59hFla3XZTOe8=
+Date:   Fri, 22 May 2020 11:17:31 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Johan Hovold <johan@kernel.org>, Rob Herring <robh@kernel.org>,
+        Alan Cox <gnomes@lxorguk.ukuu.org.uk>,
+        Lee Jones <lee.jones@linaro.org>, Jiri Slaby <jslaby@suse.cz>,
+        Merlijn Wajer <merlijn@wizzup.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Peter Hurley <peter@hurleysoftware.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        linux-serial@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCHv8 0/6] n_gsm serdev support and GNSS driver for droid4
+Message-ID: <20200522091731.GA1203588@kroah.com>
+References: <20200512214713.40501-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200512214713.40501-1-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Certain platforms like TI's J721E using Cadence PCIe IP can perform only
-32-bit accesses for reading or writing to Cadence registers. Convert all
-read and write accesses to 32-bit in Cadence PCIe driver in preparation
-for adding PCIe support in TI's J721E SoC.
+On Tue, May 12, 2020 at 02:47:07PM -0700, Tony Lindgren wrote:
+> Hi all,
+> 
+> Here's the updated set of these patches fixed up for Johan's and
+> Pavel's earlier comments.
+> 
+> This series does the following:
+> 
+> 1. Adds functions to n_gsm.c for serdev-ngsm.c driver to use
+> 
+> 2. Adds a generic serdev-ngsm.c driver that brings up the TS 27.010
+>    TTY ports configured in devicetree with help of n_gsm.c
+> 
+> 3. Allows the use of standard Linux device drivers for dedicated
+>    TS 27.010 channels for devices like GNSS and ALSA found on some
+>    modems for example
+> 
+> 4. Adds a gnss-motmdm consumer driver for the GNSS device found on
+>    the Motorola Mapphone MDM6600 modem on devices like droid4
+> 
+> I've placed the serdev-ngsm.c under drivers/tty/serdev as it still
+> seems to make most sense with no better places available. It's no
+> longer an MFD driver as it really does not need to care what channel
+> specific consumer drivers might be configured for the generic driver.
+> Now serdev-ngsm just uses of_platform_populate() to probe whatever
+> child nodes it might find.
+> 
+> I'm not attached having the driver in drivers/tty/serdev. I just
+> don't have any better locations in mind. So using Johan's earlier
+> i2c example, the drivers/tty/serdev/serdev-ngsm.c driver is now a
+> generic protocol and bus driver, so it's getting closer to the
+> the drivers/i2c/busses analogy maybe :) Please do suggest better
+> locations other than MFD and misc if you have better ideas.
+> 
+> Now without the chardev support, the /dev/gsmtty* using apps need
+> to use "U1234AT+CFUN?" format for the packets. The advantage is
+> less kernel code, and we keep the existing /dev/gsmtty* interface.
+> 
+> If we still really need the custom chardev support, that can now
+> be added as needed with the channel specific consumer driver(s),
+> but looks like this won't be needed based on Pavel's ofono work.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/controller/cadence/pcie-cadence.h | 71 ++++++++++++++-----
- 1 file changed, 53 insertions(+), 18 deletions(-)
+Johan and Rob, any objection/review of this series?
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index bc49c22e48a9..737e9561092b 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -319,50 +319,88 @@ struct cdns_pcie_ep {
- 
- 
- /* Register access */
--static inline void cdns_pcie_writeb(struct cdns_pcie *pcie, u32 reg, u8 value)
-+static inline void cdns_pcie_writel(struct cdns_pcie *pcie, u32 reg, u32 value)
- {
--	writeb(value, pcie->reg_base + reg);
-+	writel(value, pcie->reg_base + reg);
- }
- 
--static inline void cdns_pcie_writew(struct cdns_pcie *pcie, u32 reg, u16 value)
-+static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
- {
--	writew(value, pcie->reg_base + reg);
-+	return readl(pcie->reg_base + reg);
- }
- 
--static inline void cdns_pcie_writel(struct cdns_pcie *pcie, u32 reg, u32 value)
-+static inline u32 cdns_pcie_read_sz(void __iomem *addr, int size)
- {
--	writel(value, pcie->reg_base + reg);
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 val = readl(aligned_addr);
-+
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		WARN(1, "Address %p and size %d are not aligned\n", addr, size);
-+		return 0;
-+	}
-+
-+	if (size > 2)
-+		return val;
-+
-+	return (val >> (8 * offset)) & ((1 << (size * 8)) - 1);
- }
- 
--static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
-+static inline void cdns_pcie_write_sz(void __iomem *addr, int size, u32 value)
- {
--	return readl(pcie->reg_base + reg);
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 mask;
-+	u32 val;
-+
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		WARN(1, "Address %p and size %d are not aligned\n", addr, size);
-+		return;
-+	}
-+
-+	if (size > 2) {
-+		writel(value, addr);
-+		return;
-+	}
-+
-+	mask = ~(((1 << (size * 8)) - 1) << (offset * 8));
-+	val = readl(aligned_addr) & mask;
-+	val |= value << (offset * 8);
-+	writel(val, aligned_addr);
- }
- 
- /* Root Port register access */
- static inline void cdns_pcie_rp_writeb(struct cdns_pcie *pcie,
- 				       u32 reg, u8 value)
- {
--	writeb(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x1, value);
- }
- 
- static inline void cdns_pcie_rp_writew(struct cdns_pcie *pcie,
- 				       u32 reg, u16 value)
- {
--	writew(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x2, value);
- }
- 
- /* Endpoint Function register access */
- static inline void cdns_pcie_ep_fn_writeb(struct cdns_pcie *pcie, u8 fn,
- 					  u32 reg, u8 value)
- {
--	writeb(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x1, value);
- }
- 
- static inline void cdns_pcie_ep_fn_writew(struct cdns_pcie *pcie, u8 fn,
- 					  u32 reg, u16 value)
- {
--	writew(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x2, value);
- }
- 
- static inline void cdns_pcie_ep_fn_writel(struct cdns_pcie *pcie, u8 fn,
-@@ -371,14 +409,11 @@ static inline void cdns_pcie_ep_fn_writel(struct cdns_pcie *pcie, u8 fn,
- 	writel(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
- }
- 
--static inline u8 cdns_pcie_ep_fn_readb(struct cdns_pcie *pcie, u8 fn, u32 reg)
--{
--	return readb(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
--}
--
- static inline u16 cdns_pcie_ep_fn_readw(struct cdns_pcie *pcie, u8 fn, u32 reg)
- {
--	return readw(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
-+
-+	return cdns_pcie_read_sz(addr, 0x2);
- }
- 
- static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
--- 
-2.17.1
+thanks,
 
+greg k-h
