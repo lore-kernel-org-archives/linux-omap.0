@@ -2,85 +2,96 @@ Return-Path: <SRS0=1hos=7E=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E5ADC433DF
-	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 13:13:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DECCC433E0
+	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 14:51:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1CCD920723
-	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 13:13:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6359B221FF
+	for <linux-omap@archiver.kernel.org>; Fri, 22 May 2020 14:51:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1590159073;
+	bh=J2jIe6HbveuMkncJ1bisbe9ib21+twXrpFHhdmfVG6s=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=L1xX9xUyhMgpOUMXsRAQ3rTmNj1KQ1/wts2TUorP9O6YzM1ZBAAIW89/q0T1+0v4F
+	 8bDy4K1z1JN6Xy0qxKQ3WdyceVzzsc8BVSlZBNtjlHbcESw3p84/uj6H7Fu1Mjlns5
+	 JrVjMS/jJV2OBhG+8D2t6B1qnx1c3txkc5ejPRvo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729763AbgEVNNL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 22 May 2020 09:13:11 -0400
-Received: from helcar.hmeau.com ([216.24.177.18]:39262 "EHLO fornost.hmeau.com"
+        id S1730932AbgEVOvM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 22 May 2020 10:51:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729334AbgEVNNL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 22 May 2020 09:13:11 -0400
-Received: from gwarestrin.arnor.me.apana.org.au ([192.168.0.7])
-        by fornost.hmeau.com with smtp (Exim 4.92 #5 (Debian))
-        id 1jc7Tj-0007Pz-B1; Fri, 22 May 2020 23:12:48 +1000
-Received: by gwarestrin.arnor.me.apana.org.au (sSMTP sendmail emulation); Fri, 22 May 2020 23:12:47 +1000
-Date:   Fri, 22 May 2020 23:12:47 +1000
-From:   Herbert Xu <herbert@gondor.apana.org.au>
-To:     Tero Kristo <t-kristo@ti.com>
-Cc:     davem@davemloft.net, linux-crypto@vger.kernel.org,
-        linux-omap@vger.kernel.org, Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCHv2 3/7] crypto: omap-crypto: fix userspace copied buffer
- access
-Message-ID: <20200522131247.GA27255@gondor.apana.org.au>
-References: <20200511111913.26541-1-t-kristo@ti.com>
- <20200511111913.26541-4-t-kristo@ti.com>
+        id S1730929AbgEVOvM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 22 May 2020 10:51:12 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E4F1C22259;
+        Fri, 22 May 2020 14:51:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1590159071;
+        bh=J2jIe6HbveuMkncJ1bisbe9ib21+twXrpFHhdmfVG6s=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=y4H7DK6uNwoa92K9UzjeUJl+qxCWRcy9yHPoVWAZz3I3NM2r7EwuoyBzgSwGl8vdW
+         RSU/FJU+7oFO/9Fb03jw+GFlbkDwoEDsiZW2132jSjCyO48nhZxPdOFYsjT9aAZ3g6
+         2Dpl5SKNIhAZqTNnFMWG4iXejyBPBkFapV98I5PU=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 24/32] clk: ti: am33xx: fix RTC clock parent
+Date:   Fri, 22 May 2020 10:50:36 -0400
+Message-Id: <20200522145044.434677-24-sashal@kernel.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200522145044.434677-1-sashal@kernel.org>
+References: <20200522145044.434677-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200511111913.26541-4-t-kristo@ti.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, May 11, 2020 at 02:19:09PM +0300, Tero Kristo wrote:
-> In case buffers are copied from userspace, directly accessing the page
-> will most likely fail because it hasn't been mapped into the kernel
-> memory space. Fix the issue by forcing a kmap / kunmap within the
-> cleanup functionality.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  drivers/crypto/omap-crypto.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/crypto/omap-crypto.c b/drivers/crypto/omap-crypto.c
-> index cc88b7362bc2..31bdb1d76d11 100644
-> --- a/drivers/crypto/omap-crypto.c
-> +++ b/drivers/crypto/omap-crypto.c
-> @@ -178,11 +178,16 @@ static void omap_crypto_copy_data(struct scatterlist *src,
->  		amt = min(src->length - srco, dst->length - dsto);
->  		amt = min(len, amt);
->  
-> -		srcb = sg_virt(src) + srco;
-> -		dstb = sg_virt(dst) + dsto;
-> +		srcb = kmap_atomic(sg_page(src)) + srco + src->offset;
-> +		dstb = kmap_atomic(sg_page(dst)) + dsto + dst->offset;
->  
->  		memcpy(dstb, srcb, amt);
->  
-> +		flush_dcache_page(sg_page(dst));
+From: Tero Kristo <t-kristo@ti.com>
 
-You need to check !PageSlab as it's illegal to call it on a kernel
-page.  Also you should be using flush_kernel_dcache_page.  scatterwalk
-uses flush_dcache_page only because when it was created the other
-function didn't exist.
+[ Upstream commit dc6dbd51009fc412729c307161f442c0a08618f4 ]
 
-Would it be possible to use the sg_miter interface to do the copy?
-In fact your function could possibly be added to lib/scatterlist.c
-as it seems to be quite generic.
+Right now, trying to use RTC purely with the ti-sysc / clkctrl framework
+fails to enable the RTC module properly. Based on experimentation, this
+appears to be because RTC is sourced from the clkdiv32k optional clock.
+TRM is not very clear on this topic, but fix the RTC to use the proper
+source clock nevertheless.
 
-Thanks,
+Reported-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Link: https://lkml.kernel.org/r/20200424152301.4018-1-t-kristo@ti.com
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/clk/ti/clk-33xx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
+index a360d3109555..73f567d8022f 100644
+--- a/drivers/clk/ti/clk-33xx.c
++++ b/drivers/clk/ti/clk-33xx.c
+@@ -212,7 +212,7 @@ static const struct omap_clkctrl_reg_data am3_mpu_clkctrl_regs[] __initconst = {
+ };
+ 
+ static const struct omap_clkctrl_reg_data am3_l4_rtc_clkctrl_regs[] __initconst = {
+-	{ AM3_L4_RTC_RTC_CLKCTRL, NULL, CLKF_SW_SUP, "clk_32768_ck" },
++	{ AM3_L4_RTC_RTC_CLKCTRL, NULL, CLKF_SW_SUP, "clk-24mhz-clkctrl:0000:0" },
+ 	{ 0 },
+ };
+ 
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.25.1
+
