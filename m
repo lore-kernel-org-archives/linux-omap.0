@@ -2,85 +2,82 @@ Return-Path: <SRS0=VBw6=7F=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA26FC433DF
-	for <linux-omap@archiver.kernel.org>; Sat, 23 May 2020 17:09:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82043C433E0
+	for <linux-omap@archiver.kernel.org>; Sat, 23 May 2020 17:33:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B448620738
-	for <linux-omap@archiver.kernel.org>; Sat, 23 May 2020 17:09:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 568ED20679
+	for <linux-omap@archiver.kernel.org>; Sat, 23 May 2020 17:33:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="CWnFiLjq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388051AbgEWRJa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 23 May 2020 13:09:30 -0400
-Received: from foss.arm.com ([217.140.110.172]:53006 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388017AbgEWRJP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 23 May 2020 13:09:15 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id BCA93139F;
-        Sat, 23 May 2020 10:09:14 -0700 (PDT)
-Received: from usa.arm.com (e103737-lin.cambridge.arm.com [10.1.197.49])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id BB0CC3F305;
-        Sat, 23 May 2020 10:09:13 -0700 (PDT)
-From:   Sudeep Holla <sudeep.holla@arm.com>
-To:     linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc:     Sudeep Holla <sudeep.holla@arm.com>, Arnd Bergmann <arnd@arndb.de>,
+        id S1728169AbgEWRdN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 23 May 2020 13:33:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51488 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727123AbgEWRdM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 23 May 2020 13:33:12 -0400
+Received: from mo6-p01-ob.smtp.rzone.de (mo6-p01-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5301::11])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1942C05BD43;
+        Sat, 23 May 2020 10:33:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1590255190;
+        s=strato-dkim-0002; d=goldelico.com;
+        h=Message-Id:Date:Subject:Cc:To:From:X-RZG-CLASS-ID:X-RZG-AUTH:From:
+        Subject:Sender;
+        bh=GMAFg4Iya6Ifjur2kiGXLgqc7VRC8A3T4g1LmlEgMKI=;
+        b=CWnFiLjq6I6mUfSDh2Z0n0Pru/uDkdeVOpSZcyrLyTP41RyLXSU+kU62sA0v0hxa2K
+        ijGJacG4kCYerAu8M5B0aVwdALuP+2SVI6hsfsfIOSxRFuIk340qIo7gfN4Mm4P+HSGG
+        kAtpOkepp0t9QFJJB2nioAHMvjezkynKUyn+cR54fIZpuXEq8Mio1hMMIcZuBF5eAPYm
+        wRUMJlcN7FZggIXk1yPkz9GAUUCtgHWqxUcDBAKoQv2gTTk/1DP3ZqJY+T8GU5Esk9IA
+        4WDN8QJHO8VbyU33L9Ut75H2mp0IZDWk1nriQNX6UyHkrzB+ZHIfRJFmifbgkmzyf7D2
+        yG7Q==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o19MtK65S+//9m1YB9g="
+X-RZG-CLASS-ID: mo00
+Received: from iMac.fritz.box
+        by smtp.strato.de (RZmta 46.7.0 AUTH)
+        with ESMTPSA id D0a7c0w4NHWwFaa
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
+        (Client did not present a certificate);
+        Sat, 23 May 2020 19:32:58 +0200 (CEST)
+From:   "H. Nikolaus Schaller" <hns@goldelico.com>
+To:     Evgeniy Polyakov <zbr@ioremap.net>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Subject: [PATCH 7/8] ARM: OMAP2: Switch to use DEVICE_ATTR_RO()
-Date:   Sat, 23 May 2020 18:08:58 +0100
-Message-Id: <20200523170859.50003-8-sudeep.holla@arm.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200523170859.50003-1-sudeep.holla@arm.com>
-References: <20200523170859.50003-1-sudeep.holla@arm.com>
+        YueHaibing <yuehaibing@huawei.com>,
+        Tony Lindgren <tony@atomide.com>
+Cc:     linux-kernel@vger.kernel.org, kernel@pyra-handheld.com,
+        letux-kernel@openphoenux.org, linux-omap@vger.kernel.org
+Subject: [PATCH 0/4] w1: omap: fix some regressions/bugs (some were introduced in v5.6 but some are older)
+Date:   Sat, 23 May 2020 19:32:53 +0200
+Message-Id: <cover.1590255176.git.hns@goldelico.com>
+X-Mailer: git-send-email 2.26.2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Move device attributes to DEVICE_ATTR_RO() as that would make things
-a lot more "obvious" what is happening over the existing __ATTR usage.
+This series fixes:
+* some dev_dbg are missing an explicit \n
+* wrong return value if battery is removed and no hdq response
+* problems with resetting interrupt flags too early leading to timeouts and wrong values
+* print error if interrupt flags get mixed up
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
----
- arch/arm/mach-omap2/id.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 188ea5258c99..37ac2d103548 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -775,15 +775,13 @@ static const char * __init omap_get_family(void)
- 		return kasprintf(GFP_KERNEL, "Unknown");
- }
- 
--static ssize_t omap_get_type(struct device *dev,
--					struct device_attribute *attr,
--					char *buf)
-+static ssize_t
-+type_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	return sprintf(buf, "%s\n", omap_types[omap_type()]);
- }
- 
--static struct device_attribute omap_soc_attr =
--	__ATTR(type,  S_IRUGO, omap_get_type,  NULL);
-+static DEVICE_ATTR_RO(type);
- 
- void __init omap_soc_device_init(void)
- {
-@@ -806,6 +804,6 @@ void __init omap_soc_device_init(void)
- 	}
- 
- 	parent = soc_device_to_device(soc_dev);
--	device_create_file(parent, &omap_soc_attr);
-+	device_create_file(parent, &dev_attr_type);
- }
- #endif /* CONFIG_SOC_BUS */
+H. Nikolaus Schaller (4):
+  w1: omap-hdq: cleanup to add missing newline for some dev_dbg
+  w1: omap-hdq: fix return value to be -1 if there is a timeout
+  w1: omap-hdq: fix interrupt handling which did show spurious timeouts
+  w1: omap-hdq: print dev_err if irq flags are not cleared
+
+ drivers/w1/masters/omap_hdq.c | 82 ++++++++++++++++++++++++-----------
+ 1 file changed, 56 insertions(+), 26 deletions(-)
+
 -- 
-2.17.1
+2.26.2
 
