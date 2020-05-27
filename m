@@ -2,65 +2,77 @@ Return-Path: <SRS0=8HE1=7J=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E689C433E1
-	for <linux-omap@archiver.kernel.org>; Wed, 27 May 2020 02:20:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C410FC433E0
+	for <linux-omap@archiver.kernel.org>; Wed, 27 May 2020 03:24:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 281D620873
-	for <linux-omap@archiver.kernel.org>; Wed, 27 May 2020 02:20:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C9D52084C
+	for <linux-omap@archiver.kernel.org>; Wed, 27 May 2020 03:24:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1590549868;
+	bh=xYPHnnrRhsLn9sZ3SSA7OE+hqxopPK2JBfv9aPHeWkI=;
+	h=In-Reply-To:References:Subject:From:Cc:To:Date:List-ID:From;
+	b=taymyzfu4go87x/J2hnEeApP4tpr5zUNeuyIpCcz9iX9ac65UCLFK8O9RVdzwFrQQ
+	 E5iynp+h1nEYdRqHeJvlnBV8u+a9UkeziAEYBKyJLiKF1rd9zOWPxmfBOA0zSy0iyk
+	 WsW1TJBcuiVPZv8ipstJpJwPYXLlOFAsD4Bxvx44=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726064AbgE0CUH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 May 2020 22:20:07 -0400
-Received: from helcar.hmeau.com ([216.24.177.18]:57830 "EHLO fornost.hmeau.com"
+        id S1728447AbgE0DY2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 May 2020 23:24:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725836AbgE0CUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 May 2020 22:20:07 -0400
-Received: from gwarestrin.arnor.me.apana.org.au ([192.168.0.7])
-        by fornost.hmeau.com with smtp (Exim 4.92 #5 (Debian))
-        id 1jdlfk-0000q5-5C; Wed, 27 May 2020 12:20:01 +1000
-Received: by gwarestrin.arnor.me.apana.org.au (sSMTP sendmail emulation); Wed, 27 May 2020 12:20:00 +1000
-Date:   Wed, 27 May 2020 12:20:00 +1000
-From:   Herbert Xu <herbert@gondor.apana.org.au>
-To:     Tero Kristo <t-kristo@ti.com>
-Cc:     davem@davemloft.net, linux-crypto@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCHv3 3/7] crypto: omap-crypto: fix userspace copied buffer
- access
-Message-ID: <20200527022000.GB27873@gondor.apana.org.au>
-References: <20200522131247.GA27255@gondor.apana.org.au>
- <20200526142104.7362-1-t-kristo@ti.com>
+        id S1725893AbgE0DY1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 May 2020 23:24:27 -0400
+Received: from kernel.org (unknown [104.132.0.74])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6D755207D8;
+        Wed, 27 May 2020 03:24:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1590549867;
+        bh=xYPHnnrRhsLn9sZ3SSA7OE+hqxopPK2JBfv9aPHeWkI=;
+        h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
+        b=PGF1YVS4wQfBEfV15V+/C9Y1daqRDUjiJkgo7AzcH/bo178mTn/gp7X2IEBPI1lNT
+         zXQpBgz4ZCMmE3wFntUau9MAc3jItylF6xud96ly5L4BRBSn5ELrdGuYjpc0kXFZcV
+         d1rTPyNnXOlu3DtsEwEeDQ8KArx2n9zlO+pl+ne4=
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200526142104.7362-1-t-kristo@ti.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20200417073523.42520-1-yanaijie@huawei.com>
+References: <20200417073523.42520-1-yanaijie@huawei.com>
+Subject: Re: [PATCH] clk: ti: dra7: remove two unused symbols
+From:   Stephen Boyd <sboyd@kernel.org>
+Cc:     Jason Yan <yanaijie@huawei.com>, Hulk Robot <hulkci@huawei.com>
+To:     Jason Yan <yanaijie@huawei.com>, linux-clk@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        mturquette@baylibre.com, t-kristo@ti.com, tony@atomide.com
+Date:   Tue, 26 May 2020 20:24:26 -0700
+Message-ID: <159054986673.88029.8385566623273988523@swboyd.mtv.corp.google.com>
+User-Agent: alot/0.9
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, May 26, 2020 at 05:21:04PM +0300, Tero Kristo wrote:
-> In case buffers are copied from userspace, directly accessing the page
-> will most likely fail because it hasn't been mapped into the kernel
-> memory space. Fix the issue by forcing a kmap / kunmap within the
-> cleanup functionality.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Quoting Jason Yan (2020-04-17 00:35:23)
+> Fix the following gcc warning:
+>=20
+> drivers/clk/ti/clk-7xx.c:320:43: warning: \u2018dra7_gpu_sys_clk_data\u20=
+19
+> defined but not used [-Wunused-const-variable=3D]
+>  static const struct omap_clkctrl_div_data dra7_gpu_sys_clk_data
+> __initconst =3D {
+>                                            ^~~~~~~~~~~~~~~~~~~~~
+> drivers/clk/ti/clk-7xx.c:315:27: warning: \u2018dra7_gpu_sys_clk_parents\=
+u2019
+> defined but not used [-Wunused-const-variable=3D]
+>  static const char * const dra7_gpu_sys_clk_parents[] __initconst =3D {
+>                            ^~~~~~~~~~~~~~~~~~~~~~~~
+>=20
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Signed-off-by: Jason Yan <yanaijie@huawei.com>
 > ---
-> v3:
->   - Added PageSlab() check to the cache flushing portion, and changed
->     the used flush API to be flush_kernel_dcache_page()
-> 
->  drivers/crypto/omap-crypto.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
 
-Please resubmit the whole series.
-
-Thanks,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Applied to clk-next
