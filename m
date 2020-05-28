@@ -2,101 +2,109 @@ Return-Path: <SRS0=FXi4=7K=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8EC1C433E0
-	for <linux-omap@archiver.kernel.org>; Thu, 28 May 2020 20:38:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B99C433E0
+	for <linux-omap@archiver.kernel.org>; Thu, 28 May 2020 22:20:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E2F42073B
-	for <linux-omap@archiver.kernel.org>; Thu, 28 May 2020 20:38:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E66592071A
+	for <linux-omap@archiver.kernel.org>; Thu, 28 May 2020 22:20:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1590704438;
+	bh=gILXXRtvqSncq0mCCj8kjzwNxR2trvvwP4Z3q4foa10=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=L/XAcf+8xVPyssPJArqVEBTthfFpH8GnseP6VwiAEv49gQ2RTb68W4BXeIT+k7+Gn
+	 mlq6+kKyP1e+oYlFeXxZaacI/gQLpzoI9+VVox6xiIkh8neFlUw3pZrPTp8BrWyOuB
+	 thePZ9TWOyH9PBnfhKnxpLbhiDl8cBgPEGZLlUFE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407237AbgE1UiQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 28 May 2020 16:38:16 -0400
-Received: from muru.com ([72.249.23.125]:56084 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2407218AbgE1UiP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 28 May 2020 16:38:15 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 8EE1580BF;
-        Thu, 28 May 2020 20:39:03 +0000 (UTC)
-Date:   Thu, 28 May 2020 13:38:10 -0700
-From:   Tony Lindgren <tony@atomide.com>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        arm-soc <arm@kernel.org>, Rob Herring <robh@kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Lokesh Vutla <lokeshvutla@ti.com>, Keerthy <j-keerthy@ti.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Tero Kristo <t-kristo@ti.com>, Olof Johansson <olof@lixom.net>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        afzal mohammed <afzal.mohd.ma@gmail.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH] ARM: omap2: drop broken broadcast timer hack
-Message-ID: <20200528203810.GQ37466@atomide.com>
-References: <20200528091923.2951100-1-arnd@arndb.de>
- <20200528134621.GN37466@atomide.com>
- <20200528135057.GO37466@atomide.com>
- <20200528155759.GP37466@atomide.com>
- <34e8fb61-b452-529b-b2c6-3849b2395096@oracle.com>
- <CAK8P3a0AaH+pAdhu7jzEAGC-bECgmz7w=D8PN6NOUjj2kxevkg@mail.gmail.com>
+        id S2436956AbgE1WU2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 28 May 2020 18:20:28 -0400
+Received: from mail-io1-f66.google.com ([209.85.166.66]:43436 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2436902AbgE1WUX (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2020 18:20:23 -0400
+Received: by mail-io1-f66.google.com with SMTP id h10so197890iob.10;
+        Thu, 28 May 2020 15:20:22 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=V1pVNRBWzHZ1G6jffgYB9BbYesxXCexItPOb/g+HRwk=;
+        b=rqHhrMh13t6cZ8yJFpoi9AQLJbqrhIGCSiAtIzY3TSGsJbzGWvs6PM9aENGygzSvjG
+         0b2kprJIvS7K+yfx93J4XBMMKMdH9LJ9MpUztDDtCWZ+jquuVI6AJi5j1LSCvzIP9hvH
+         0qwXyGyY2iHNbMw7C1OR29xRYlNav4SXEZFGjq+GwiTHZ/E1PYN2yl0FxAGEzguSrwEs
+         goDSrCfhHbU9QR7YfRiWbxplxFeYib6utIrQa5G3iDKf/QYh3cEcyLNnuPbZYBsZRLHn
+         JDtbkD1akCl8BgGALQaDk/cQZI0erqEzi38McK0Jo65r1dIrnILZQzUh1UDlteBw/R9F
+         umJQ==
+X-Gm-Message-State: AOAM53052nP0n3KPwBwhlyQ8uLNyCcI/Qr93L0mGmIWN0s5AYsNxcVCo
+        pNZI9XyU04uPsW7pL7tD+g==
+X-Google-Smtp-Source: ABdhPJwj8PCtzTwAhMry0miLqUZxr77A1fRZS29Pm/8O3Pm0xpLEjyn2R+dRN+D30uJ90Rg4+GEwtA==
+X-Received: by 2002:a5e:d903:: with SMTP id n3mr3603677iop.93.1590704422191;
+        Thu, 28 May 2020 15:20:22 -0700 (PDT)
+Received: from xps15 ([64.188.179.252])
+        by smtp.gmail.com with ESMTPSA id q6sm3787197ilj.72.2020.05.28.15.20.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 28 May 2020 15:20:21 -0700 (PDT)
+Received: (nullmailer pid 785342 invoked by uid 1000);
+        Thu, 28 May 2020 22:20:20 -0000
+Date:   Thu, 28 May 2020 16:20:20 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     linux-omap@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH 1/6] dt-bindings: omap: Update PRM binding for genpd
+Message-ID: <20200528222020.GA783133@bogus>
+References: <20200520211334.61814-1-tony@atomide.com>
+ <20200520211334.61814-2-tony@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAK8P3a0AaH+pAdhu7jzEAGC-bECgmz7w=D8PN6NOUjj2kxevkg@mail.gmail.com>
+In-Reply-To: <20200520211334.61814-2-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [200528 20:35]:
-> On Thu, May 28, 2020 at 6:18 PM <santosh.shilimkar@oracle.com> wrote:
-> > On 5/28/20 8:57 AM, Tony Lindgren wrote:
-> > > * Tony Lindgren <tony@atomide.com> [200528 13:51]:
-> > >> * Tony Lindgren <tony@atomide.com> [200528 13:47]:
-> > >>> * Arnd Bergmann <arnd@arndb.de> [200528 09:20]:
-> > >>>> The OMAP4 timer code had a special hack for using the broadcast timer
-> > >>>> without SMP. Since the dmtimer is now gone, this also needs to be dropped
-> > >>>> to avoid a link failure for non-SMP AM43xx configurations:
-> > >>>>
-> > >>>> kernel/time/tick-broadcast.o: in function `tick_device_uses_broadcast':
-> > >>>> tick-broadcast.c:(.text+0x130): undefined reference to `tick_broadcast'
-> > >>>
-> > >>> Hmm this sounds like a regression though. Isn't this needed for using
-> > >>> the ARM local timers on non-SMP SoC, so a separate timer from dmtimer?
-> > >>>
-> > >>> I've probably removed something accidentally to cause this.
-> > >>
-> > >> Sounds like arch/arm/mach-omap2/Makefile change needs to be removed
-> > >> to always still build in timer.o. And probably timer.c needs back
-> > >> the ifdef for CONFIG_SOC_HAS_REALTIME_COUNTER.
-> > >>
-> > >> I'll take a look today.
-> > >
-> > > I've sent a patch along those lines as:
-> > >
-> > > [PATCH] ARM: OMAP2+: Fix regression for using local timer on non-SMP SoCs
-> > >
-> > > A link for the patch at [0] below.
-> > >
-> > CPU local timers not being in always ON power domain use to be the
-> > reason on early version of the SOCs but later SOC moved the CPU local
-> > timer also in always on domain. Probably AM43xx does loose local timer
-> > on CPU PD in low power so yes broadcast would be needed with dmtimer
-> > help.
-> >
-> > >
-> > > [0] https://lore.kernel.org/linux-omap/20200528155453.8585-1-tony@atomide.com/T/#u
-> > >
-> > This should restore it.
+On Wed, May 20, 2020 at 02:13:29PM -0700, Tony Lindgren wrote:
+> The PRM (Power and Reset Module) has registers to enable and disable
+> power domains, so let's update the binding for that.
+
+multiple domains? Then why 0 cells?
+
 > 
-> Should I apply the fix directly to the arm/soc branch that has the
-> other changes then?
+> Cc: devicetree@vger.kernel.org
+> Cc: Rob Herring <robh@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  Documentation/devicetree/bindings/arm/omap/prm-inst.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> --- a/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/prm-inst.txt
+> @@ -18,6 +18,7 @@ Required properties:
+>  		(base address and length)
+>  
+>  Optional properties:
+> +- #power-domain-cells:	Should be 0 if the PRM instance is a power domain.
 
-Sure please do, that saves a single-fix pull request.
+...power domain provider.
 
-Regards,
-
-Tony
+>  - #reset-cells:	Should be 1 if the PRM instance in question supports resets.
+>  
+>  Example:
+> @@ -25,5 +26,6 @@ Example:
+>  prm_dsp2: prm@1b00 {
+>  	compatible = "ti,dra7-prm-inst", "ti,omap-prm-inst";
+>  	reg = <0x1b00 0x40>;
+> +	#power-domain-cells = <0>;
+>  	#reset-cells = <1>;
+>  };
+> -- 
+> 2.26.2
