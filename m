@@ -2,59 +2,133 @@ Return-Path: <SRS0=JveC=7L=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AFBDC433E0
-	for <linux-omap@archiver.kernel.org>; Fri, 29 May 2020 18:01:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 895C6C433E1
+	for <linux-omap@archiver.kernel.org>; Fri, 29 May 2020 20:17:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 327812074D
-	for <linux-omap@archiver.kernel.org>; Fri, 29 May 2020 18:01:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D9242074D
+	for <linux-omap@archiver.kernel.org>; Fri, 29 May 2020 20:17:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725821AbgE2SB0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 29 May 2020 14:01:26 -0400
-Received: from muru.com ([72.249.23.125]:56226 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725808AbgE2SB0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 29 May 2020 14:01:26 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 8826F8030;
-        Fri, 29 May 2020 18:02:16 +0000 (UTC)
-Date:   Fri, 29 May 2020 11:01:23 -0700
-From:   Tony Lindgren <tony@atomide.com>
-To:     Sudeep Holla <sudeep.holla@arm.com>
-Cc:     linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCH 8/8] ARM: OMAP2: Use custom soc attribute group instead
- of device_create_file
-Message-ID: <20200529180123.GV37466@atomide.com>
-References: <20200523170859.50003-1-sudeep.holla@arm.com>
- <20200523170859.50003-9-sudeep.holla@arm.com>
+        id S1728084AbgE2URO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 29 May 2020 16:17:14 -0400
+Received: from mout.kundenserver.de ([212.227.126.131]:40363 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726878AbgE2URN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 29 May 2020 16:17:13 -0400
+Received: from threadripper.lan ([149.172.98.151]) by mrelayeu.kundenserver.de
+ (mreue012 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1MW9zm-1jUDqv0gJu-00XYHs; Fri, 29 May 2020 22:17:03 +0200
+From:   Arnd Bergmann <arnd@arndb.de>
+List-Id: <soc.lore.kernel.org>
+To:     soc@kernel.org, Tony Lindgren <tony@atomide.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc:     Olof Johansson <olof@lixom.net>, Stefan Agner <stefan@agner.ch>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] ARM: omap2: fix omap5_realtime_timer_init definition
+Date:   Fri, 29 May 2020 22:16:45 +0200
+Message-Id: <20200529201701.521933-1-arnd@arndb.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200523170859.50003-9-sudeep.holla@arm.com>
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:ut68jkWxMSIDqAasDiMgUP+u+uDANBHpvLSMe6e4VwoMh+BBJ1H
+ 6Kxz2dmuXAjOQIIkVylBW6gkceAiNHOa1Q/0HTxAtd0fF/P6JL5BotRHd7vQUzfsgcuQq0a
+ jBiMg7G0mw9wVJT+vTVsJOhCEmr9XTWf9ZBe1jzmtR5A6AHrD9w5zhB+g/KISb7ZVB8nvP8
+ XcGA37J8aG+/Xfk6TpDfw==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:RV+VlsD9mj0=:39W2qi7gLz+rPUcP8FiYu0
+ dIY5zhEyc2SD7tgBgRTvqfUCkKQ1CnYi8w2pstLLUg5NTxb7tmZBiKid4hqudW2MFUmlccFAt
+ NwAz00C7oPqiAr6n3CGsHG0oLlRE5xfNmG5nZUwZekAk+pWVeMFxbmEX7fPVf5aDyY/eQAQNG
+ z2V9lgwCHGJq5ZCbcJSjjjtZdxxn26ToRMu1GLJYEOLBMhyHmF9XNsHRwYQTasTuDtyo+E3py
+ 1CVFY6ka3gZH/munkTb2gCVViIXFAil09LfbYpo0IfDCCG+zfyHUZkwUzU8bDC4h+hBfszw3q
+ 2r+HndlWYOc+1M06N8hEbTDi6D1ESWqak18RxsTh81k2te507wbGg9UOtPm/Zo/vwR2vTG4Qv
+ ohrgOjS/pcX/DkyIgkOZM+WnAqfJI8AKnQhXSnn6g3yq9XfEjnGjX0MiJCtKhwIA1ECiJuW73
+ riXterVEddNJrM7B03jtoqVxsJLk/lbGlm3bk3mYXSqpzFyw/drBksv4OJpoxfAoHNXmfYAT0
+ 0ocv1S8mkJTkcdyvqcmo8+IzTZzFo8rVFIkAOnKrxXX9L7SHusVrZIlhiUc5sNbhIGywnj9Xf
+ RxTqqfIaZ1oKH/raHd9pdAIgs4S0aNJFBXOgSoFfOWyTsm1zUeia9+mcWBhIt8PanyLnSZDt/
+ DyME012+dNBR5w1Kz8HIkcCRo+jxI8FMfO7s4nPez3Ssz5Fjkfjw812TkgTYdojcubf7PDasF
+ HQAT9VZychqXF6poAMAzms3Gmq5my/P+/OpS6ibTh8AF0iAU/SYs3+6yNnT09UiY9tjaBAuFt
+ WCguLiMJT77gtQUt/uc0WpEDfRAahJ8u57UWcU49SaoVkUvfmQ=
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Sudeep Holla <sudeep.holla@arm.com> [200523 17:10]:
-> Commit c31e73121f4c ("base: soc: Handle custom soc information sysfs
-> entries") introduced custom soc attribute group in soc_device_attribute
-> structure but there are no users treewide. While trying to understand
-> the motivation and tried to use it, it was found lot of existing custom
-> attributes can moved to use it instead of device_create_file.
-> 
-> Though most of these never remove/cleanup the custom attribute as they
-> never call soc_device_unregister, using these custom attribute group
-> eliminate the need for any cleanup as the driver infrastructure will
-> take care of that.
-> 
-> Let us remove device_create_file and start using the custom attribute
-> group in soc_device_attribute.
+There is one more regression introduced by the last build fix:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+arch/arm/mach-omap2/timer.c:170:6: error: attribute declaration must precede definition [-Werror,-Wignored-attributes]
+void __init omap5_realtime_timer_init(void)
+     ^
+arch/arm/mach-omap2/common.h:118:20: note: previous definition is here
+static inline void omap5_realtime_timer_init(void)
+                   ^
+arch/arm/mach-omap2/timer.c:170:13: error: redefinition of 'omap5_realtime_timer_init'
+void __init omap5_realtime_timer_init(void)
+            ^
+arch/arm/mach-omap2/common.h:118:20: note: previous definition is here
+static inline void omap5_realtime_timer_init(void)
+
+Address this by removing the now obsolete #ifdefs in that file and
+just building the entire file based on the flag that controls the
+omap5_realtime_timer_init function declaration.
+
+Fixes: d86ad463d670 ("ARM: OMAP2+: Fix regression for using local timer on non-SMP SoCs")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+If this looks ok, I'd apply it directly on top again for the merge window.
+---
+ arch/arm/mach-omap2/Makefile |  6 +++---
+ arch/arm/mach-omap2/timer.c  | 10 ----------
+ 2 files changed, 3 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 40898b1fd7da..732e614c56b2 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -46,9 +46,9 @@ obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-common) $(smp-y) sleep44xx.o
+ obj-$(CONFIG_SOC_AM43XX)		+= $(omap-4-5-common)
+ obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-4-5-common) $(smp-y) sleep44xx.o
+ 
+-omap5-dra7-common			=  timer.o
+-obj-$(CONFIG_SOC_OMAP5)			+= $(omap5-dra7-common)
+-obj-$(CONFIG_SOC_DRA7XX)		+= $(omap5-dra7-common)
++omap5-dra7-common-$(CONFIG_SOC_HAS_REALTIME_COUNTER) =  timer.o
++obj-$(CONFIG_SOC_OMAP5)			+= $(omap5-dra7-common-y)
++obj-$(CONFIG_SOC_DRA7XX)		+= $(omap5-dra7-common-y)
+ 
+ # Functions loaded to SRAM
+ obj-$(CONFIG_SOC_OMAP2420)		+= sram242x.o
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index c1737e737a94..620ba69c8f11 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -39,8 +39,6 @@
+ #define INCREMENTER_DENUMERATOR_RELOAD_OFFSET		0x14
+ #define NUMERATOR_DENUMERATOR_MASK			0xfffff000
+ 
+-#ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
+-
+ static unsigned long arch_timer_freq;
+ 
+ void set_cntfreq(void)
+@@ -159,14 +157,6 @@ static void __init realtime_counter_init(void)
+ 	iounmap(base);
+ }
+ 
+-#else
+-
+-static inline void realtime_counter_init(void)
+-{
+-}
+-
+-#endif	/* CONFIG_SOC_HAS_REALTIME_COUNTER */
+-
+ void __init omap5_realtime_timer_init(void)
+ {
+ 	omap_clk_init();
+-- 
+2.26.2
+
