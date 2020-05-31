@@ -4,23 +4,24 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0CD9C433DF
-	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E6CC433E1
+	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F7CD206A1
-	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81ECF207BB
+	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728382AbgEaTkS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 31 May 2020 15:40:18 -0400
-Received: from muru.com ([72.249.23.125]:56430 "EHLO muru.com"
+        id S1728359AbgEaTkP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 31 May 2020 15:40:15 -0400
+Received: from muru.com ([72.249.23.125]:56398 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728374AbgEaTkQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 31 May 2020 15:40:16 -0400
+        id S1725991AbgEaTkO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 31 May 2020 15:40:14 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 3060481C2;
-        Sun, 31 May 2020 19:41:06 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 0AAE2813D;
+        Sun, 31 May 2020 19:41:01 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -35,9 +36,9 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>,
         dri-devel@lists.freedesktop.org
-Subject: [PATCH 4/5] bus: ti-sysc: Fix uninitialized framedonetv_irq
-Date:   Sun, 31 May 2020 12:39:40 -0700
-Message-Id: <20200531193941.13179-5-tony@atomide.com>
+Subject: [PATCH 2/5] bus: ti-sysc: Use optional clocks on for enable and wait for softreset bit
+Date:   Sun, 31 May 2020 12:39:38 -0700
+Message-Id: <20200531193941.13179-3-tony@atomide.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200531193941.13179-1-tony@atomide.com>
 References: <20200531193941.13179-1-tony@atomide.com>
@@ -48,37 +49,149 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We are currently only setting the framedonetv_irq disabled for the SoCs
-that don't have it. But we are never setting it enabled for the SoCs that
-have it. Let's initialized it to true by default.
+Some modules reset automatically when idled, and when re-enabled, we must
+wait for the automatic OCP softreset to complete. And if optional clocks
+are configured, we need to keep the clocks on while waiting for the reset
+to complete.
+
+Let's fix the issue by moving the OCP softreset code to a separate
+function sysc_wait_softreset(), and call it also from sysc_enable_module()
+with the optional clocks enabled.
+
+This is based on what we're already doing for legacy platform data booting
+in _enable_sysc().
 
 Fixes: 7324a7a0d5e2 ("bus: ti-sysc: Implement display subsystem reset quirk")
+Reported-by: Faiz Abbas <faiz_abbas@ti.com>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/bus/ti-sysc.c | 81 ++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 61 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -1553,7 +1553,7 @@ static u32 sysc_quirk_dispc(struct sysc *ddata, int dispc_offset,
- 	bool lcd_en, digit_en, lcd2_en = false, lcd3_en = false;
- 	const int lcd_en_mask = BIT(0), digit_en_mask = BIT(1);
- 	int manager_count;
--	bool framedonetv_irq;
-+	bool framedonetv_irq = true;
- 	u32 val, irq_mask = 0;
+@@ -221,6 +221,36 @@ static u32 sysc_read_sysstatus(struct sysc *ddata)
+ 	return sysc_read(ddata, offset);
+ }
  
- 	switch (sysc_soc->soc) {
-@@ -1570,6 +1570,7 @@ static u32 sysc_quirk_dispc(struct sysc *ddata, int dispc_offset,
- 		break;
- 	case SOC_AM4:
- 		manager_count = 1;
-+		framedonetv_irq = false;
- 		break;
- 	case SOC_UNKNOWN:
- 	default:
++/* Poll on reset status */
++static int sysc_wait_softreset(struct sysc *ddata)
++{
++	u32 sysc_mask, syss_done, rstval;
++	int sysc_offset, syss_offset, error = 0;
++
++	sysc_offset = ddata->offsets[SYSC_SYSCONFIG];
++	syss_offset = ddata->offsets[SYSC_SYSSTATUS];
++	sysc_mask = BIT(ddata->cap->regbits->srst_shift);
++
++	if (ddata->cfg.quirks & SYSS_QUIRK_RESETDONE_INVERTED)
++		syss_done = 0;
++	else
++		syss_done = ddata->cfg.syss_mask;
++
++	if (syss_offset >= 0) {
++		error = readx_poll_timeout(sysc_read_sysstatus, ddata, rstval,
++					   (rstval & ddata->cfg.syss_mask) ==
++					   syss_done,
++					   100, MAX_MODULE_SOFTRESET_WAIT);
++
++	} else if (ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS) {
++		error = readx_poll_timeout(sysc_read_sysconfig, ddata, rstval,
++					   !(rstval & sysc_mask),
++					   100, MAX_MODULE_SOFTRESET_WAIT);
++	}
++
++	return error;
++}
++
+ static int sysc_add_named_clock_from_child(struct sysc *ddata,
+ 					   const char *name,
+ 					   const char *optfck_name)
+@@ -925,8 +955,34 @@ static int sysc_enable_module(struct device *dev)
+ 	struct sysc *ddata;
+ 	const struct sysc_regbits *regbits;
+ 	u32 reg, idlemodes, best_mode;
++	int error;
+ 
+ 	ddata = dev_get_drvdata(dev);
++
++	/*
++	 * Some modules like DSS reset automatically on idle. Enable optional
++	 * reset clocks and wait for OCP softreset to complete.
++	 */
++	if (ddata->cfg.quirks & SYSC_QUIRK_OPT_CLKS_IN_RESET) {
++		error = sysc_enable_opt_clocks(ddata);
++		if (error) {
++			dev_err(ddata->dev,
++				"Optional clocks failed for enable: %i\n",
++				error);
++			return error;
++		}
++	}
++	error = sysc_wait_softreset(ddata);
++	if (error)
++		dev_warn(ddata->dev, "OCP softreset timed out\n");
++	if (ddata->cfg.quirks & SYSC_QUIRK_OPT_CLKS_IN_RESET)
++		sysc_disable_opt_clocks(ddata);
++
++	/*
++	 * Some subsystem private interconnects, like DSS top level module,
++	 * need only the automatic OCP softreset handling with no sysconfig
++	 * register bits to configure.
++	 */
+ 	if (ddata->offsets[SYSC_SYSCONFIG] == -ENODEV)
+ 		return 0;
+ 
+@@ -1828,11 +1884,10 @@ static int sysc_legacy_init(struct sysc *ddata)
+  */
+ static int sysc_reset(struct sysc *ddata)
+ {
+-	int sysc_offset, syss_offset, sysc_val, rstval, error = 0;
+-	u32 sysc_mask, syss_done;
++	int sysc_offset, sysc_val, error;
++	u32 sysc_mask;
+ 
+ 	sysc_offset = ddata->offsets[SYSC_SYSCONFIG];
+-	syss_offset = ddata->offsets[SYSC_SYSSTATUS];
+ 
+ 	if (ddata->legacy_mode ||
+ 	    ddata->cap->regbits->srst_shift < 0 ||
+@@ -1841,11 +1896,6 @@ static int sysc_reset(struct sysc *ddata)
+ 
+ 	sysc_mask = BIT(ddata->cap->regbits->srst_shift);
+ 
+-	if (ddata->cfg.quirks & SYSS_QUIRK_RESETDONE_INVERTED)
+-		syss_done = 0;
+-	else
+-		syss_done = ddata->cfg.syss_mask;
+-
+ 	if (ddata->pre_reset_quirk)
+ 		ddata->pre_reset_quirk(ddata);
+ 
+@@ -1862,18 +1912,9 @@ static int sysc_reset(struct sysc *ddata)
+ 	if (ddata->post_reset_quirk)
+ 		ddata->post_reset_quirk(ddata);
+ 
+-	/* Poll on reset status */
+-	if (syss_offset >= 0) {
+-		error = readx_poll_timeout(sysc_read_sysstatus, ddata, rstval,
+-					   (rstval & ddata->cfg.syss_mask) ==
+-					   syss_done,
+-					   100, MAX_MODULE_SOFTRESET_WAIT);
+-
+-	} else if (ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS) {
+-		error = readx_poll_timeout(sysc_read_sysconfig, ddata, rstval,
+-					   !(rstval & sysc_mask),
+-					   100, MAX_MODULE_SOFTRESET_WAIT);
+-	}
++	error = sysc_wait_softreset(ddata);
++	if (error)
++		dev_warn(ddata->dev, "OCP softreset timed out\n");
+ 
+ 	if (ddata->reset_done_quirk)
+ 		ddata->reset_done_quirk(ddata);
 -- 
 2.26.2
