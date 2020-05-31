@@ -6,21 +6,21 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02A71C433DF
-	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35241C433E0
+	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D778720723
-	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 113A6206A1
+	for <linux-omap@archiver.kernel.org>; Sun, 31 May 2020 19:40:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728402AbgEaTkY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 31 May 2020 15:40:24 -0400
-Received: from muru.com ([72.249.23.125]:56440 "EHLO muru.com"
+        id S1726081AbgEaTk2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 31 May 2020 15:40:28 -0400
+Received: from muru.com ([72.249.23.125]:56414 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726081AbgEaTkS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 31 May 2020 15:40:18 -0400
+        id S1728355AbgEaTkO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 31 May 2020 15:40:14 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 0121B81DD;
-        Sun, 31 May 2020 19:41:07 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 6B22E814F;
+        Sun, 31 May 2020 19:41:04 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -35,9 +35,9 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>,
         dri-devel@lists.freedesktop.org
-Subject: [PATCH 5/5] ARM: OMAP2+: Fix legacy mode dss_reset
-Date:   Sun, 31 May 2020 12:39:41 -0700
-Message-Id: <20200531193941.13179-6-tony@atomide.com>
+Subject: [PATCH 3/5] bus: ti-sysc: Ignore clockactivity unless specified as a quirk
+Date:   Sun, 31 May 2020 12:39:39 -0700
+Message-Id: <20200531193941.13179-4-tony@atomide.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200531193941.13179-1-tony@atomide.com>
 References: <20200531193941.13179-1-tony@atomide.com>
@@ -48,30 +48,38 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We must check for "dss_core" instead of "dss" to avoid also matching
-also "dss_dispc". This only matters for the mixed case of data
-configured in device tree but with legacy booting ti,hwmods property
-still enabled.
+We must ignore the clockactivity bit for most modules and not set it
+unless specified for the module with SYSC_QUIRK_USE_CLOCKACT. Otherwise
+the interface clock can be automatically gated constantly causing
+unexpected performance issues.
 
-Fixes: 8b30919a4e3c ("ARM: OMAP2+: Handle reset quirks for dynamically allocated modules")
+Fixes: ae9ae12e9daa ("bus: ti-sysc: Handle clockactivity for enable and disable")
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/bus/ti-sysc.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3489,7 +3489,7 @@ static const struct omap_hwmod_reset dra7_reset_quirks[] = {
- };
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -989,10 +989,13 @@ static int sysc_enable_module(struct device *dev)
+ 	regbits = ddata->cap->regbits;
+ 	reg = sysc_read(ddata, ddata->offsets[SYSC_SYSCONFIG]);
  
- static const struct omap_hwmod_reset omap_reset_quirks[] = {
--	{ .match = "dss", .len = 3, .reset = omap_dss_reset, },
-+	{ .match = "dss_core", .len = 8, .reset = omap_dss_reset, },
- 	{ .match = "hdq1w", .len = 5, .reset = omap_hdq1w_reset, },
- 	{ .match = "i2c", .len = 3, .reset = omap_i2c_reset, },
- 	{ .match = "wd_timer", .len = 8, .reset = omap2_wd_timer_reset, },
+-	/* Set CLOCKACTIVITY, we only use it for ick */
++	/*
++	 * Set CLOCKACTIVITY, we only use it for ick. And we only configure it
++	 * based on the SYSC_QUIRK_USE_CLOCKACT flag, not based on the hardware
++	 * capabilities. See the old HWMOD_SET_DEFAULT_CLOCKACT flag.
++	 */
+ 	if (regbits->clkact_shift >= 0 &&
+-	    (ddata->cfg.quirks & SYSC_QUIRK_USE_CLOCKACT ||
+-	     ddata->cfg.sysc_val & BIT(regbits->clkact_shift)))
++	    (ddata->cfg.quirks & SYSC_QUIRK_USE_CLOCKACT))
+ 		reg |= SYSC_CLOCACT_ICK << regbits->clkact_shift;
+ 
+ 	/* Set SIDLE mode */
 -- 
 2.26.2
