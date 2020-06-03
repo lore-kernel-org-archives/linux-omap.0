@@ -1,173 +1,109 @@
-Return-Path: <SRS0=LP1p=7P=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=4oA3=7Q=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB064C433DF
-	for <linux-omap@archiver.kernel.org>; Tue,  2 Jun 2020 18:55:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEB13C433E0
+	for <linux-omap@archiver.kernel.org>; Wed,  3 Jun 2020 12:34:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F4B52065C
-	for <linux-omap@archiver.kernel.org>; Tue,  2 Jun 2020 18:55:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BED4B207D5
+	for <linux-omap@archiver.kernel.org>; Wed,  3 Jun 2020 12:34:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="XEMFGjwT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726842AbgFBSzV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 2 Jun 2020 14:55:21 -0400
-Received: from muru.com ([72.249.23.125]:56784 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726139AbgFBSzU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 2 Jun 2020 14:55:20 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 5EB0680C5;
-        Tue,  2 Jun 2020 18:56:09 +0000 (UTC)
-Date:   Tue, 2 Jun 2020 11:55:15 -0700
-From:   Tony Lindgren <tony@atomide.com>
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     Johan Hovold <johan@kernel.org>,
-        Peter Hurley <peter@hurleysoftware.com>,
+        id S1725881AbgFCMeJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 3 Jun 2020 08:34:09 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:45994 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725859AbgFCMeI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2020 08:34:08 -0400
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 053CXlW0106513;
+        Wed, 3 Jun 2020 07:33:47 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1591187627;
+        bh=M1WLgsB/SXIxgPgMCUsfddSCaUg3DosSo3K0GUtPR8k=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=XEMFGjwTtPlC2aXThydcOTlnENH3ZAIUrOvPwGB7xWpkvHHm3XMJqa0lvQwCbCJ/F
+         LbFchZFF8h0TImyM/WdSZQHH+i0QBJVPRh/5KVDKbr/bVA/5n5rZvdCuLyTuxwDUck
+         0KcquY5GMJNVdi46O9eFCoRth4rLgt9XqlKW2/N4=
+Received: from DFLE103.ent.ti.com (dfle103.ent.ti.com [10.64.6.24])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 053CXlqF115353
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 3 Jun 2020 07:33:47 -0500
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 3 Jun
+ 2020 07:33:47 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 3 Jun 2020 07:33:47 -0500
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 053CXhNO005965;
+        Wed, 3 Jun 2020 07:33:44 -0500
+Subject: Re: [PATCH 1/5] drm/omap: Fix suspend resume regression after
+ platform data removal
+To:     Tony Lindgren <tony@atomide.com>, <linux-omap@vger.kernel.org>
+CC:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
+        Faiz Abbas <faiz_abbas@ti.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        "open list:SERIAL DRIVERS" <linux-serial@vger.kernel.org>,
-        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Sebastian Reichel <sre@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH] serial: 8250_port: Fix imprecise external abort for
- mctrl if inactive
-Message-ID: <20200602185515.GF37466@atomide.com>
-References: <20200602001813.30459-1-tony@atomide.com>
- <20200602080811.GI19480@localhost>
- <CAHp75Vfi5nDgwT10J_EKYn90vGuiL1hyfre+t_w_OFREFY-Tqg@mail.gmail.com>
- <20200602133659.GD37466@atomide.com>
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
+        Tero Kristo <t-kristo@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <dri-devel@lists.freedesktop.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20200531193941.13179-1-tony@atomide.com>
+ <20200531193941.13179-2-tony@atomide.com>
+From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <16ba1808-5c7f-573d-8dd0-c80cac2f476e@ti.com>
+Date:   Wed, 3 Jun 2020 15:33:43 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200602133659.GD37466@atomide.com>
+In-Reply-To: <20200531193941.13179-2-tony@atomide.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [200602 13:38]:
-> * Andy Shevchenko <andy.shevchenko@gmail.com> [200602 08:33]:
-> Now that we can detach and reattach the kernel serial console,
-> there should not be any need for pm_runtime_irq_safe() anymore :)
+Hi Tony,
 
-Below is a hastily tested RFC patch to remove pm_runtime_irq_safe()
-for 8250_omap.c that seems to work for idle use case :)
+On 31/05/2020 22:39, Tony Lindgren wrote:
+> When booting without legacy platform data, we no longer have omap_device
+> calling PM runtime suspend for us on suspend. This causes the driver
+> context not be saved as we have no suspend and resume functions defined.
+> 
+> Let's fix the issue by switching over to use UNIVERSAL_DEV_PM_OPS as it
+> will call the existing PM runtime suspend functions on suspend.
 
-> And the UART wake-up from deeper idle states can only happen with
-> help of external hardware like GPIO controller or pinctrl controller.
+I don't think we can use UNIVERSAL_DEV_PM_OPS, as we can't disable DSS modules in any order, but 
+things have to be shut down in orderly manner.
 
-It does not yet include the check for configured wakeirq though.
-And omap-serial.c needs a similar patch or maybe we can attempt
-to just drop it this time as 8250_omap.c should be used nowadays.
-Or just drop PM from omap-serial.c if it can't be dropped.
+omapdrm hasn't relied on omap_device calling runtime suspend for us (I didn't know it does that). We 
+have system suspend hooks in omap_drv.c:
 
-Andy, is the change below the only remaining blocker now for
-your serial PM runtime changes?
+SIMPLE_DEV_PM_OPS(omapdrm_pm_ops, omap_drm_suspend, omap_drm_resume)
 
-Regards,
+omap_drm_suspend() is supposed to turn off the displays, which then cause dispc_runtime_put (and 
+other runtime_puts) to be called, which result in dispc_runtime_suspend (and other runtime PM suspends).
 
-Tony
+So... For some reason that's no longer happening? I need to try to find a board with which 
+suspend/resume works (without DSS)...
 
-8< -------------------------------
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -123,6 +123,7 @@ struct omap8250_priv {
- 	spinlock_t rx_dma_lock;
- 	bool rx_dma_broken;
- 	bool throttled;
-+	unsigned int active:1;
- };
- 
- struct omap8250_dma_params {
-@@ -598,9 +599,13 @@ static irqreturn_t omap8250_irq(int irq, void *dev_id)
- {
- 	struct uart_port *port = dev_id;
- 	struct uart_8250_port *up = up_to_u8250p(port);
-+	struct omap8250_priv *priv = up->port.private_data;
- 	unsigned int iir;
- 	int ret;
- 
-+	if (!priv->active)
-+		return IRQ_NONE;
-+
- #ifdef CONFIG_SERIAL_8250_DMA
- 	if (up->dma) {
- 		ret = omap_8250_dma_handle_irq(port);
-@@ -608,10 +613,10 @@ static irqreturn_t omap8250_irq(int irq, void *dev_id)
- 	}
- #endif
- 
--	serial8250_rpm_get(up);
- 	iir = serial_port_in(port, UART_IIR);
- 	ret = serial8250_handle_irq(port, iir);
--	serial8250_rpm_put(up);
-+
-+	pm_runtime_mark_last_busy(port->dev);
- 
- 	return IRQ_RETVAL(ret);
- }
-@@ -1110,13 +1115,9 @@ static int omap_8250_dma_handle_irq(struct uart_port *port)
- 	unsigned long flags;
- 	u8 iir;
- 
--	serial8250_rpm_get(up);
--
- 	iir = serial_port_in(port, UART_IIR);
--	if (iir & UART_IIR_NO_INT) {
--		serial8250_rpm_put(up);
-+	if (iir & UART_IIR_NO_INT)
- 		return IRQ_HANDLED;
--	}
- 
- 	spin_lock_irqsave(&port->lock, flags);
- 
-@@ -1144,7 +1145,7 @@ static int omap_8250_dma_handle_irq(struct uart_port *port)
- 	}
- 
- 	uart_unlock_and_check_sysrq(port, flags);
--	serial8250_rpm_put(up);
-+
- 	return 1;
- }
- 
-@@ -1329,11 +1330,10 @@ static int omap8250_probe(struct platform_device *pdev)
- 	if (!of_get_available_child_count(pdev->dev.of_node))
- 		pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
- 
--	pm_runtime_irq_safe(&pdev->dev);
--
- 	pm_runtime_get_sync(&pdev->dev);
- 
- 	omap_serial_fill_features_erratas(&up, priv);
-+	priv->active = pm_runtime_enabled(&pdev->dev);
- 	up.port.handle_irq = omap8250_no_handle_irq;
- 	priv->rx_trigger = RX_TRIGGER;
- 	priv->tx_trigger = TX_TRIGGER;
-@@ -1517,6 +1517,8 @@ static int omap8250_runtime_suspend(struct device *dev)
- 	if (!priv)
- 		return 0;
- 
-+	priv->active = 0;
-+
- 	up = serial8250_get_port(priv->line);
- 	/*
- 	 * When using 'no_console_suspend', the console UART must not be
-@@ -1575,6 +1577,8 @@ static int omap8250_runtime_resume(struct device *dev)
- 
- 	pinctrl_pm_select_default_state(dev);
- 
-+	priv->active = 1;
-+
- 	return 0;
- }
- #endif
+  Tomi
+
 -- 
-2.26.2
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
