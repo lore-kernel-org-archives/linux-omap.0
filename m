@@ -2,73 +2,92 @@ Return-Path: <SRS0=Ij9V=7S=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84BA1C433E0
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Jun 2020 17:45:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7DC9C433E1
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Jun 2020 22:13:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FF1C207ED
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Jun 2020 17:45:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 775F2206DB
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Jun 2020 22:13:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="yiwIMii5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727885AbgFERpj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 5 Jun 2020 13:45:39 -0400
-Received: from 46-22-124-5.ip.axbyte.se ([46.22.124.5]:14712 "EHLO
-        mail01.ohdata.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726964AbgFERpi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2020 13:45:38 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by mail01.ohdata.se (Postfix) with ESMTP id 22B8411947;
-        Fri,  5 Jun 2020 19:23:12 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at mail01.ohdata.se
-Received: from mail01.ohdata.se ([127.0.0.1])
-        by localhost (mail01.ohdata.se [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id aKYjnco2swyn; Fri,  5 Jun 2020 19:23:03 +0200 (CEST)
-Received: from webmail.ohdata.se (unknown [10.0.38.61])
-        (using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mail01.ohdata.se (Postfix) with ESMTPSA id AD5E95DE8;
-        Fri,  5 Jun 2020 19:23:03 +0200 (CEST)
+        id S1728199AbgFEWNy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 5 Jun 2020 18:13:54 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:56534 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728157AbgFEWNy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2020 18:13:54 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 055MDq9F083614;
+        Fri, 5 Jun 2020 17:13:52 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1591395232;
+        bh=bfbj0ZmfHj4Nq5JyfXLL6/Je6X3wkUQXXHeCX4U1k54=;
+        h=From:To:CC:Subject:Date;
+        b=yiwIMii5VPM+zgba3v4wuTz0d0b+yVixNyk4bxJJP/vch6mOp7kHGBLjs11IPPW49
+         Mjqb1DJi8CRLVfeMKYJvDH8o6XY9jZ4SgVeA5vdTM5B9Xf+ftFBBpOa2BgvptDMTcC
+         /U6lCNUd9x3QeuJ0DXTLFX2AMjeGeJg4OOWl0YLc=
+Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 055MDqkM019134;
+        Fri, 5 Jun 2020 17:13:52 -0500
+Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 5 Jun
+ 2020 17:13:52 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Fri, 5 Jun 2020 17:13:52 -0500
+Received: from lelv0597.itg.ti.com (lelv0597.itg.ti.com [10.181.64.32])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 055MDq8q120069;
+        Fri, 5 Jun 2020 17:13:52 -0500
+Received: from localhost ([10.250.70.56])
+        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 055MDqZ3005494;
+        Fri, 5 Jun 2020 17:13:52 -0500
+From:   Suman Anna <s-anna@ti.com>
+To:     Tony Lindgren <tony@atomide.com>
+CC:     Tero Kristo <t-kristo@ti.com>, <linux-omap@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Suman Anna <s-anna@ti.com>
+Subject: [PATCH 0/2] DRA7 timer/mailbox dts fixes
+Date:   Fri, 5 Jun 2020 17:13:45 -0500
+Message-ID: <20200605221347.15735-1-s-anna@ti.com>
+X-Mailer: git-send-email 2.26.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
 Content-Transfer-Encoding: 8bit
-Date:   Fri, 05 Jun 2020 19:49:23 +0200
-From:   Oskar Holmlund <info@ohdata.se>
-To:     linux-omap@vger.kernel.org
-Cc:     tony@atomide.com, bcousson@baylibre.com
-Subject: PATCH: ARM: am33xx.dtsi USB ranges length
-Organization: OH Data
-Message-ID: <d22deb609cf4678d569928f4a48cb409@ohdata.se>
-X-Sender: info@ohdata.se
-User-Agent: Roundcube Webmail/1.3.6
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-AM335x TRM: Table 2-1 defines USBSS - USB Queue Manager in memory region
-0x4740 0000 to 0x4740 7FFF.
+Hi Tony,
 
-Diff created from am33xx.dtsi commit 
-e20ef23dd6937c38df2cfddf15270668153c8177
+The following 2 patches are couple of minor fixes that clean up
+couple of commits from the "ARM: dts: dra7/am57xx: remoteproc
+support" series [1]. Please pick these for the 5.8-rc fixes.
 
-Signed-off-by: Oskar Holmlund <oskar@ohdata.se>
---- arch/arm/boot/dts/am33xx.dtsi.orig	2020-06-05 18:58:39.720383275 
-+0200
-+++ arch/arm/boot/dts/am33xx.dtsi	2020-06-05 19:01:32.974619980 +0200
-@@ -347,7 +347,7 @@
-  			clock-names = "fck";
-  			#address-cells = <1>;
-  			#size-cells = <1>;
--			ranges = <0x0 0x47400000 0x5000>;
-+			ranges = <0x0 0x47400000 0x8000>;
+The issues look to be result of incorrect rebase-conflict resolution
+of the downstream TI patches based on 5.4 kernel.
 
-  			usb0_phy: usb-phy@1300 {
-  				compatible = "ti,am335x-usb-phy";
+regards
+Suman
+
+[1] https://patchwork.kernel.org/cover/11508091/
+
+Suman Anna (2):
+  ARM: dts: dra7: Fix timer nodes properly for timer_sys_ck clocks
+  ARM: dts: dra7-evm-common: Fix duplicate mailbox nodes
+
+ arch/arm/boot/dts/dra7-evm-common.dtsi | 20 ---------------
+ arch/arm/boot/dts/dra7-l4.dtsi         | 34 ++++++++++++--------------
+ 2 files changed, 16 insertions(+), 38 deletions(-)
 
 -- 
-Bästa Hälsningar
-Oskar Holmlund
-Tel 070-3220292
+2.26.0
+
