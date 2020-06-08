@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F07AC433DF
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:28:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86445C433DF
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:39:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C6B6207FB
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:28:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55732207ED
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:39:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591662494;
-	bh=HDdW0MJUTbfnO2m1+2iJ3oY3VCGxouDs0bFCj228V14=;
+	s=default; t=1591663173;
+	bh=4mLUq8oF0+XPpJ0iLZPuz7kue4ub17LRH+eWo4UMPF0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TJt6rWmeru5GFa+TrxJuMOzHrIJM70aej0lBEpZTz/LL3asGoiOYTgVu+gS9e15pQ
-	 OmA4ETM/0o+/+97Z1FCVaB1ki73Rrvzb27ArAeI0TTfUSu7xLv2EgD8iZChvcRKUVA
-	 vTPc2xXphRtkdTHwY5QpFDVm2VRgKEJXUfwiiHv8=
+	b=ub8tU/ao0EkbzgYeFg9xU4PHvivoOJQfid+KYS0XJoOit/LXKpuPfjzR4dpqtBq3A
+	 29tZmiPdadYosel02qIDcWAEeHytqhK7PkrPaSZ4IZJVZqgzWL9qVTh9roQKFB65oZ
+	 xGEhN57UuFHCAwOxaxHmfV9uqSQljySdxoQOMWRY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730262AbgFIA2H (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Jun 2020 20:28:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37914 "EHLO mail.kernel.org"
+        id S1729287AbgFHXNU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Jun 2020 19:13:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32990 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729029AbgFHXQd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:16:33 -0400
+        id S1728574AbgFHXNS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:13:18 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7DBA320801;
-        Mon,  8 Jun 2020 23:16:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B999D20897;
+        Mon,  8 Jun 2020 23:13:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591658192;
-        bh=HDdW0MJUTbfnO2m1+2iJ3oY3VCGxouDs0bFCj228V14=;
+        s=default; t=1591657997;
+        bh=4mLUq8oF0+XPpJ0iLZPuz7kue4ub17LRH+eWo4UMPF0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fetSKYARyY5K1G7B9kIQTXpruLbS7rF6pypWv8r3Qj7P7s3SqTs7S7oiQSMHtPuMn
-         Do1Y43pDfZniDYisxIMHI94ya7rN99bp1FbHvzj5K7PJ4/d20nFHrkkYBQseCWpqvF
-         qsZnneOmPszl9l9CgDbzjRXiKMTJ9ZOXtAnAtoRY=
+        b=nKL/EiZUPH8/ebEd7MGVPP97hGF/Q0wzpJfMQT6bWNIxbyLy/4qcz3YhmkSEX/fxG
+         Vq8Yvv+Kg1n+Wa39vgBgHdC3CJ2W8kkBXIoViIU8Fu4QJXeNybJsVC3BBW2qIboZwH
+         Cpp1aosWhg+YNw2AEn86ZhgVaA1hMJeOVFND1G3o=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
-        "David S . Miller" <davem@davemloft.net>,
+Cc:     Tero Kristo <t-kristo@ti.com>,
+        Naresh Kamboju <naresh.kamboju@linaro.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Stephen Boyd <sboyd@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-omap@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 213/606] net: ethernet: ti: cpsw: fix ASSERT_RTNL() warning during suspend
-Date:   Mon,  8 Jun 2020 19:05:38 -0400
-Message-Id: <20200608231211.3363633-213-sashal@kernel.org>
+        linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.6 055/606] clk: ti: clkctrl: Fix Bad of_node_put within clkctrl_get_name
+Date:   Mon,  8 Jun 2020 19:03:00 -0400
+Message-Id: <20200608231211.3363633-55-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200608231211.3363633-1-sashal@kernel.org>
 References: <20200608231211.3363633-1-sashal@kernel.org>
@@ -59,50 +61,41 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
 
-[ Upstream commit 4c64b83d03f4aafcdf710caad994cbc855802e74 ]
+commit e1f9e0d28ff025564dfdb1001a7839b4af5db2e2 upstream.
 
-vlan_for_each() are required to be called with rtnl_lock taken, otherwise
-ASSERT_RTNL() warning will be triggered - which happens now during System
-resume from suspend:
-  cpsw_suspend()
-  |- cpsw_ndo_stop()
-    |- __hw_addr_ref_unsync_dev()
-      |- cpsw_purge_all_mc()
-         |- vlan_for_each()
-            |- ASSERT_RTNL();
+clkctrl_get_name incorrectly calls of_node_put when it is not really
+doing of_node_get. This causes a boot time warning later on:
 
-Hence, fix it by surrounding cpsw_ndo_stop() by rtnl_lock/unlock() calls.
+[    0.000000] OF: ERROR: Bad of_node_put() on /ocp/interconnect@4a000000/segmen
+t@0/target-module@5000/cm_core_aon@0/ipu-cm@500/ipu1-clkctrl@20
 
-Fixes: 15180eca569b ("net: ethernet: ti: cpsw: fix vlan mcast")
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Fix by dropping the of_node_put from the function.
+
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Fixes: 6c3090520554 ("clk: ti: clkctrl: Fix hidden dependency to node name")
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Link: https://lkml.kernel.org/r/20200424124725.9895-1-t-kristo@ti.com
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/ti/cpsw.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/clk/ti/clkctrl.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 6ae4a72e6f43..5577ff0b7663 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1752,11 +1752,15 @@ static int cpsw_suspend(struct device *dev)
- 	struct cpsw_common *cpsw = dev_get_drvdata(dev);
- 	int i;
+diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
+index 062266034d84..9019624e37bc 100644
+--- a/drivers/clk/ti/clkctrl.c
++++ b/drivers/clk/ti/clkctrl.c
+@@ -461,7 +461,6 @@ static char * __init clkctrl_get_name(struct device_node *np)
+ 			return name;
+ 		}
+ 	}
+-	of_node_put(np);
  
-+	rtnl_lock();
-+
- 	for (i = 0; i < cpsw->data.slaves; i++)
- 		if (cpsw->slaves[i].ndev)
- 			if (netif_running(cpsw->slaves[i].ndev))
- 				cpsw_ndo_stop(cpsw->slaves[i].ndev);
- 
-+	rtnl_unlock();
-+
- 	/* Select sleep pin state */
- 	pinctrl_pm_select_sleep_state(dev);
- 
+ 	return NULL;
+ }
 -- 
 2.25.1
 
