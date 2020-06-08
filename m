@@ -1,189 +1,107 @@
-Return-Path: <SRS0=gipN=7V=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=OPrM=7W=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 999F6C433DF
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Jun 2020 20:22:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACBDBC433E1
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:07:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C86A20760
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Jun 2020 20:22:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=beagleboard-org.20150623.gappssmtp.com header.i=@beagleboard-org.20150623.gappssmtp.com header.b="UtE69PEo"
+	by mail.kernel.org (Postfix) with ESMTP id 7EA092072F
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:07:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1591661258;
+	bh=Ua04pMjpye9PITZFvdpeHXmH7tJJFLNH+IV3ssmzsA0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=zLZxVtmqbo76/GR23vY2OEUXITZt/Ux9aSY0tUm+3pi12JmNR/iBdf0clnpdmYbWm
+	 MMkYvCoLQGVp1C/Kr0gqwzl14sgGt+IFuilUas7WHTZqAiWjaqn8bDTwVp+FGc4IGW
+	 DKMT+fLNh0pCMxwG2nNQtXpaBECpMGHwpPED11RA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726522AbgFHUW2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Jun 2020 16:22:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40504 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726415AbgFHUW1 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2020 16:22:27 -0400
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14818C08C5C2
-        for <linux-omap@vger.kernel.org>; Mon,  8 Jun 2020 13:22:26 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id f7so19815858ejq.6
-        for <linux-omap@vger.kernel.org>; Mon, 08 Jun 2020 13:22:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=beagleboard-org.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=2bbf4a1UpigisBAK2scf+0MAbTS1jtQ5thxgbXn5iII=;
-        b=UtE69PEocIqXale+O5z1dt7hCUfipw35RURcr81URaaT0RjVVIojdcFSt4Isdwx+Cm
-         tVhYz+A9SKZctDXuoR6uh/o1Vw+PyIXZL//lTC6nzyMqExU/qD3HM1r+DKBRMeYio2uD
-         /5YM93DP/VIfhRy1B7pv6oAJMVqb+LSOvNwhXALg4xKDAAmTPvu0xf15AhGPoI2ELatF
-         Y5xirjlD+Q1j2FwjC6UDwvnlb+uU1ohxkgfRqyVz+kPeuMIOzlnvhjFvWATqK9+tWS4c
-         HbVi/J4vIzcutDVZKQtUn2oenUB3Ms+XqnrJk5hQejX4zMBIP5tuF2FSdVaF+nSO143l
-         6dhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=2bbf4a1UpigisBAK2scf+0MAbTS1jtQ5thxgbXn5iII=;
-        b=ItF0xSa4GYTdKZwuag/ydx1i8jK6w0nWtu7AEvDQb+jG1MD8uKrtCuWT9kryunbWqE
-         iPF2jy6M3QVCgrjQYSWFrSm7/do6PQXezGbI9Zo+SzLf//y6QPPh735ku3V9CfHcI4fW
-         U6SHRDV5diSjbcpYlT7n0j0b0mwoC1ZdNk0GZTWHSfC24Q10BEqFmK5PzRH/Qy0b27rF
-         MAZQdIpzWUut8wO0jVJEx0GgYz9a5y+/O+2yIrYBmp5MA8B3yL+V65ojKoNxaLq0gWHP
-         rIOXxzYAd7jpEc7HB0SxX/TUtAjglblB4npZjsqi1c8MydxoPL9oPRpm+u9L47Z6hTMw
-         CReQ==
-X-Gm-Message-State: AOAM5308Hk31AF/MQRV9/WJcwaQzFghRFI68Y1d7PRmVcxdVKlPFzAYz
-        OnTxVw2QFqAeUJoPnCFSdxz/JA==
-X-Google-Smtp-Source: ABdhPJykZZ5/Yc2dgDuZJziecWXDP22O8wM1hJgEmfMMEzoTiF4K430NTmxCMt5BABW4AmkmUao8DA==
-X-Received: by 2002:a17:906:7746:: with SMTP id o6mr23190899ejn.75.1591647744631;
-        Mon, 08 Jun 2020 13:22:24 -0700 (PDT)
-Received: from x1 ([2001:16b8:5c5c:ea01:10b2:73c:bda4:56d6])
-        by smtp.gmail.com with ESMTPSA id s2sm11502840ejm.50.2020.06.08.13.22.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Jun 2020 13:22:20 -0700 (PDT)
-Date:   Mon, 8 Jun 2020 22:22:18 +0200
-From:   Drew Fustini <drew@beagleboard.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Haojian Zhuang <haojian.zhuang@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-omap@vger.kernel.org
-Subject: Re: pinctrl-single: num_maps in generic pinconf support?
-Message-ID: <20200608202218.GA2891935@x1>
-References: <20200526122133.GA1454440@x1>
- <20200527165122.GL37466@atomide.com>
- <20200527221915.GA2963339@x1>
- <20200527224108.GM37466@atomide.com>
- <20200528125323.GA3074222@x1>
- <20200529174037.GT37466@atomide.com>
- <20200608180543.GA2825296@x1>
+        id S2387879AbgFIAH1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Jun 2020 20:07:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44752 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731051AbgFHXUx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:20:53 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5F97220814;
+        Mon,  8 Jun 2020 23:20:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1591658453;
+        bh=Ua04pMjpye9PITZFvdpeHXmH7tJJFLNH+IV3ssmzsA0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=uvfMxuIvVimOjumBveAQCbl1shCH9ZzTDhOfJTcL8fSSMzy78lzuEnnsl/Wz9mMis
+         wdYvDpwl/NQOOAHx/hFVLlvxl8xA5DZdjUE/NL0caIRbEF2k3lF+x1/k0QTVbwGYMA
+         xqlRGDOdFWp1+Qr3Cj4C3N8qYngAaNv/lG/Q0NeE=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Wei Yongjun <weiyongjun1@huawei.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 094/175] drivers: net: davinci_mdio: fix potential NULL dereference in davinci_mdio_probe()
+Date:   Mon,  8 Jun 2020 19:17:27 -0400
+Message-Id: <20200608231848.3366970-94-sashal@kernel.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200608231848.3366970-1-sashal@kernel.org>
+References: <20200608231848.3366970-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200608180543.GA2825296@x1>
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Jun 08, 2020 at 08:05:43PM +0200, Drew Fustini wrote:
-> On Fri, May 29, 2020 at 10:40:37AM -0700, Tony Lindgren wrote:
-> > * Drew Fustini <drew@beagleboard.org> [200528 12:54]:
-> > > Would you be able to describe what you think AM33XX_PADCONF would look
-> > > like if the mux and conf are seperated?
-> > 
-> > Yes it would just slightly change, see your example below.
-> > 
-> > > Is there an example you know of for another SoC?
-> > 
-> > I think the other driver already keep the padconf and mux separate.
-> > 
-> > So not sure where all #pinctrl-cells could be used. It would make
-> > pinctrl-single.c a bit nicer though, and probably would make it
-> > easier to implement further features.
-> > 
-> > Some hardware may need it to have #pinctrl-cells = <3> if GPIO
-> > features are there too, ideally pinctrl-single would not even
-> > care but just work for what is configured for the hardware.
-> > 
-> > > Currently, the macro takes dir and mux:
-> > > 
-> > > include/dt-bindings/pinctrl/omap.h:
-> > > #define AM33XX_PADCONF(pa, dir, mux) OMAP_IOPAD_OFFSET((pa), 0x0800) ((dir) | (mux))
-> > 
-> > So after fixing up pinctrl-single.c, and changing the SoC dts
-> > to have #pinctrl-cells = <2> instead of <1>, the macro would
-> > then need to be:
-> > 
-> > #define AM33XX_PADCONF(pa, dir, mux) OMAP_IOPAD_OFFSET((pa), 0x0800) (dir), (mux))
-> > 
-> > > For example, in arch/arm/boot/dts/am335x-bone-common.dtsi:
-> > > AM33XX_PADCONF(AM335X_PIN_I2C0_SDA, PIN_INPUT_PULLUP, MUX_MODE0)
-> > 
-> > Yeah so no change needed for the use.
-> > 
-> > > I think it might be more accurate to rename 'dir' to 'conf'.
-> > 
-> > Sure makes sense to rename it in the macro.
-> > 
-> > Regards,
-> > 
-> > Tony
-> 
-> Tony - would this be how the macro would need to be changed?
-> 
-> diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
-> index 625718042413..2d2a8c737822 100644
-> --- a/include/dt-bindings/pinctrl/omap.h
-> +++ b/include/dt-bindings/pinctrl/omap.h
-> @@ -65,7 +65,7 @@
->  #define DM814X_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
->  #define DM816X_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
->  #define AM33XX_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
-> -#define AM33XX_PADCONF(pa, dir, mux)   OMAP_IOPAD_OFFSET((pa), 0x0800) ((dir) | (mux))
-> +#define AM33XX_PADCONF(pa, conf, mux)  OMAP_IOPAD_OFFSET((pa), 0x0800) (conf) (mux)
-> 
->  /*
->   * Macros to allow using the offset from the padconf physical address
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-I've been looking at pinctrl-single.c further and now I am wondering if
-it makes sense to modify pcs_parse_one_pinctrl_entry() or create a new
-function.  Currently it does:
+[ Upstream commit e00edb4efbbc07425441a3be2aa87abaf5800d96 ]
 
-1020                 /* Index plus one value cell */
-1021                 offset = pinctrl_spec.args[0];
-1022                 vals[found].reg = pcs->base + offset;
-1023                 vals[found].val = pinctrl_spec.args[1];
+platform_get_resource() may fail and return NULL, so we should
+better check it's return value to avoid a NULL pointer dereference
+since devm_ioremap() does not check input parameters for null.
 
-I believe it will need something similar to what is done in
-pcs_parse_bits_in_pinctrl_entry():
+This is detected by Coccinelle semantic patch.
 
-1136                 /* Index plus two value cells */
-1137                 offset = pinctrl_spec.args[0];
-1138                 val = pinctrl_spec.args[1];
-1139                 mask = pinctrl_spec.args[2];
+@@
+expression pdev, res, n, t, e, e1, e2;
+@@
 
-So using #pinctrl-cells = <2> would require would require:
+res = \(platform_get_resource\|platform_get_resource_byname\)(pdev, t, n);
++ if (!res)
++   return -EINVAL;
+... when != res == NULL
+e = devm_ioremap(e1, res->start, e2);
 
-offset = pinctrl_spec.args[0];
-vals[found].reg = pcs->base + offset;
-vals[found].conf = pinctrl_spec.args[1];
-vals[found].mux = pinctrl_spec.args[2];
+Fixes: 03f66f067560 ("net: ethernet: ti: davinci_mdio: use devm_ioremap()")
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-However, the type of vals:
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 38b7f6d35759..702fdc393da0 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -397,6 +397,8 @@ static int davinci_mdio_probe(struct platform_device *pdev)
+ 	data->dev = dev;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -EINVAL;
+ 	data->regs = devm_ioremap(dev, res->start, resource_size(res));
+ 	if (!data->regs)
+ 		return -ENOMEM;
+-- 
+2.25.1
 
-struct pcs_func_vals {
-	void __iomem *reg;
-	unsigned val;
-	unsigned mask;
-};
-
-represents the combined mux + conf value in the register, so I think
-pcs_conf_vals would need to used:
-
-struct pcs_conf_vals {
-	enum pin_config_param param;
-	unsigned val;
-	unsigned enable;
-	unsigned disable;
-	unsigned mask;
-};
-
-Thoughts?
-
-thanks,
-drew
