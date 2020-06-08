@@ -4,52 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA5D6C433E0
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68256C433E1
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:55:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B52220737
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:41:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AFFC20774
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Jun 2020 00:55:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591663263;
-	bh=48qnSUMvAgXFcboFXXCk/yFfLm1NqUTMU6M6I9i+qZo=;
+	s=default; t=1591664102;
+	bh=Ua04pMjpye9PITZFvdpeHXmH7tJJFLNH+IV3ssmzsA0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NTxcFOWYVTEBXk/5UGiOS1qrinp+rZ+Hzu7+7xzVKgFFvYHr9tzB2jEdtbZIEhU0r
-	 2gBoVBdQOiSI6VvZ1pQCkLtVaHluP8dclBJGsa3lFIx1/i61a/x8BkikC96jYKk0c4
-	 yy1FYoIqiD/G9NKh/C6rbtj6i12vUA8TFglJ4c5k=
+	b=hr4QjjIS4Kw9nuPK+UEUQx/4i4eAof8xOI7k/bKYe7eWRQCfft/R4GSgNXVA8VC0f
+	 GEybHryw1t+3yswIgj1UUcjWpyZSMzg3xLXzruPQIoBtIdr1KJZJzJ8CO3fj4070Hz
+	 N1lWMDJrZKsrIB6zrmWJaopwONDu2dbWkS2Q33jA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733237AbgFIAlC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Jun 2020 20:41:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60504 "EHLO mail.kernel.org"
+        id S1728566AbgFIAym (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Jun 2020 20:54:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728336AbgFHXMt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:12:49 -0400
+        id S1726970AbgFHXJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:09:31 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 67AAA212CC;
-        Mon,  8 Jun 2020 23:12:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BAA94208B8;
+        Mon,  8 Jun 2020 23:09:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591657969;
-        bh=48qnSUMvAgXFcboFXXCk/yFfLm1NqUTMU6M6I9i+qZo=;
+        s=default; t=1591657770;
+        bh=Ua04pMjpye9PITZFvdpeHXmH7tJJFLNH+IV3ssmzsA0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cbS24Kgd+8thAY+pjsjvUWqBShwCbZjDYTmI3d+YRwpUIYp+zQ94rqdi+0f91oGYo
-         5x4lQcvdtLRHaLV5xZ3T663b3ZbfhJgsYPx4KpnLj3uY5cpLvPiJDrcprmXfX4Gao+
-         bM3t879eFRR2zsKStDIxytTc8peZgw0AaombTM20=
+        b=KTzcm84WpsKqitHrQ1vBbGILl8PTvX4kQcMz+3k+pDP3uoFHoZY22S6+lbsJmyW7n
+         emu+57FMPgthyLKNwdU1kzc09QhmUkuChu+6+pvNObsVXSPEux9WHa/luFMch/BRCf
+         o8b3jU/48/GEpEzSP0LF6/iObKQ0dppmthzuzO/k=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Kishon Vijay Abraham I <kishon@ti.com>, stable@kernel.org,
-        Tony Lindgren <tony@atomide.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 032/606] ARM: dts: dra7: Fix bus_dma_limit for PCIe
-Date:   Mon,  8 Jun 2020 19:02:37 -0400
-Message-Id: <20200608231211.3363633-32-sashal@kernel.org>
+Cc:     Wei Yongjun <weiyongjun1@huawei.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.7 154/274] drivers: net: davinci_mdio: fix potential NULL dereference in davinci_mdio_probe()
+Date:   Mon,  8 Jun 2020 19:04:07 -0400
+Message-Id: <20200608230607.3361041-154-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200608231211.3363633-1-sashal@kernel.org>
-References: <20200608231211.3363633-1-sashal@kernel.org>
+In-Reply-To: <20200608230607.3361041-1-sashal@kernel.org>
+References: <20200608230607.3361041-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -59,61 +60,48 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Kishon Vijay Abraham I <kishon@ti.com>
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-commit 90d4d3f4ea45370d482fa609dbae4d2281b4074f upstream.
+[ Upstream commit e00edb4efbbc07425441a3be2aa87abaf5800d96 ]
 
-Even though commit cfb5d65f2595 ("ARM: dts: dra7: Add bus_dma_limit
-for L3 bus") added bus_dma_limit for L3 bus, the PCIe controller
-gets incorrect value of bus_dma_limit.
+platform_get_resource() may fail and return NULL, so we should
+better check it's return value to avoid a NULL pointer dereference
+since devm_ioremap() does not check input parameters for null.
 
-Fix it by adding empty dma-ranges property to axi@0 and axi@1
-(parent device tree node of PCIe controller).
+This is detected by Coccinelle semantic patch.
 
-Cc: stable@kernel.org
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+@@
+expression pdev, res, n, t, e, e1, e2;
+@@
+
+res = \(platform_get_resource\|platform_get_resource_byname\)(pdev, t, n);
++ if (!res)
++   return -EINVAL;
+... when != res == NULL
+e = devm_ioremap(e1, res->start, e2);
+
+Fixes: 03f66f067560 ("net: ethernet: ti: davinci_mdio: use devm_ioremap()")
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/dra7.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/davinci_mdio.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 5f5ee16f07a3..a341511f014c 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -172,6 +172,7 @@ axi@0 {
- 			#address-cells = <1>;
- 			ranges = <0x51000000 0x51000000 0x3000
- 				  0x0	     0x20000000 0x10000000>;
-+			dma-ranges;
- 			/**
- 			 * To enable PCI endpoint mode, disable the pcie1_rc
- 			 * node and enable pcie1_ep mode.
-@@ -185,7 +186,6 @@ pcie1_rc: pcie@51000000 {
- 				device_type = "pci";
- 				ranges = <0x81000000 0 0          0x03000 0 0x00010000
- 					  0x82000000 0 0x20013000 0x13000 0 0xffed000>;
--				dma-ranges = <0x02000000 0x0 0x00000000 0x00000000 0x1 0x00000000>;
- 				bus-range = <0x00 0xff>;
- 				#interrupt-cells = <1>;
- 				num-lanes = <1>;
-@@ -230,6 +230,7 @@ axi@1 {
- 			#address-cells = <1>;
- 			ranges = <0x51800000 0x51800000 0x3000
- 				  0x0	     0x30000000 0x10000000>;
-+			dma-ranges;
- 			status = "disabled";
- 			pcie2_rc: pcie@51800000 {
- 				reg = <0x51800000 0x2000>, <0x51802000 0x14c>, <0x1000 0x2000>;
-@@ -240,7 +241,6 @@ pcie2_rc: pcie@51800000 {
- 				device_type = "pci";
- 				ranges = <0x81000000 0 0          0x03000 0 0x00010000
- 					  0x82000000 0 0x30013000 0x13000 0 0xffed000>;
--				dma-ranges = <0x02000000 0x0 0x00000000 0x00000000 0x1 0x00000000>;
- 				bus-range = <0x00 0xff>;
- 				#interrupt-cells = <1>;
- 				num-lanes = <1>;
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 38b7f6d35759..702fdc393da0 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -397,6 +397,8 @@ static int davinci_mdio_probe(struct platform_device *pdev)
+ 	data->dev = dev;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -EINVAL;
+ 	data->regs = devm_ioremap(dev, res->start, resource_size(res));
+ 	if (!data->regs)
+ 		return -ENOMEM;
 -- 
 2.25.1
 
