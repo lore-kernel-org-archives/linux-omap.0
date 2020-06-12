@@ -2,115 +2,65 @@ Return-Path: <SRS0=KS1d=7Z=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 054E0C433DF
-	for <linux-omap@archiver.kernel.org>; Fri, 12 Jun 2020 12:53:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05E0EC433DF
+	for <linux-omap@archiver.kernel.org>; Fri, 12 Jun 2020 17:19:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6FFD20801
-	for <linux-omap@archiver.kernel.org>; Fri, 12 Jun 2020 12:53:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=wizzup.org header.i=@wizzup.org header.b="n9xCzWBI"
+	by mail.kernel.org (Postfix) with ESMTP id D9E8920836
+	for <linux-omap@archiver.kernel.org>; Fri, 12 Jun 2020 17:19:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726357AbgFLMxd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 12 Jun 2020 08:53:33 -0400
-Received: from a80-127-99-228.adsl.xs4all.nl ([80.127.99.228]:52328 "EHLO
-        hetgrotebos.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726085AbgFLMxd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2020 08:53:33 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=wizzup.org;
-         s=mail; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=88k7VznXwntBsfIcECn4Bn66c20yCtluMZj15PpGTT0=; b=n9xCzWBIjUliFxUGk9LFXu+0OI
-        YO+hTAV3pbeJOqx1E/J+t+QR/aWWrM53GxZxn3vwpM++pNQs5gCRAFEfTujU2Y4TEjWU97pC7g8U3
-        75yXadbinIQ1SPyWdfFvnsDoU7SHKI4+HjsjwBPWwjvW1PVxj5eX7drsIz9HnNqrpE110LacAH23M
-        rrfrO8QhRQZmJC8zk2Kq63OHtFJpT8Ve7QOgmmFVcpIjOAncP1IYqEbinpBoGpLtCkl8NuJvs6o+T
-        8oegnvJ0UHmAT7+g+R4GWPxAkrQYv35/vtiZr5/NzhQDM2DGyxT/+3DCSl/sPI2Fp4sTy5KVwmFEP
-        aQLgaIVA==;
-Received: from kgpe-d16.fritz.box ([192.168.178.62])
-        by hetgrotebos.org with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <merlijn@wizzup.org>)
-        id 1jjjBF-0007uZ-7z; Fri, 12 Jun 2020 12:53:09 +0000
-From:   Merlijn Wajer <merlijn@wizzup.org>
-Cc:     pavel@ucw.cz, Merlijn Wajer <merlijn@wizzup.org>,
-        Sebastian Reichel <sebastian.reichel@collabora.com>,
-        Tony Lindgren <tony@atomide.com>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Borislav Petkov <bp@suse.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mattias Jacobsson <2pi@mok.nu>,
-        Mark Gross <mgross@linux.intel.com>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        linux-omap@vger.kernel.org (open list:OMAP DEVICE TREE SUPPORT),
-        devicetree@vger.kernel.org (open list:OMAP DEVICE TREE SUPPORT),
-        linux-kernel@vger.kernel.org (open list),
-        linux-input@vger.kernel.org (open list:INPUT (KEYBOARD, MOUSE, JOYSTICK
-        , TOUCHSCREEN)...)
-Subject: [PATCH 1/2] Input: add `SW_MACHINE_COVER`
-Date:   Fri, 12 Jun 2020 14:53:58 +0200
-Message-Id: <20200612125402.18393-2-merlijn@wizzup.org>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200612125402.18393-1-merlijn@wizzup.org>
-References: <20200612125402.18393-1-merlijn@wizzup.org>
+        id S1726272AbgFLRTw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 12 Jun 2020 13:19:52 -0400
+Received: from muru.com ([72.249.23.125]:57780 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726219AbgFLRTw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 12 Jun 2020 13:19:52 -0400
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 4ECA080CC;
+        Fri, 12 Jun 2020 17:20:44 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     linux-omap@vger.kernel.org
+Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCH] ARM: dts: Fix duovero smsc interrupt for suspend
+Date:   Fri, 12 Jun 2020 10:19:50 -0700
+Message-Id: <20200612171950.59110-1-tony@atomide.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This event code represents the state of a removable cover of a device.
-Value 0 means that the cover is open or removed, value 1 means that the
-cover is closed.
+While testing the recent suspend and resume regressions I noticed that
+duovero can still end up losing edge gpio interrupts on runtime
+suspend. This causes NFSroot easily stopping working after resume on
+duovero.
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
+Let's fix the issue by using gpio level interrupts for smsc as then
+the gpio interrupt state is seen by the gpio controller on resume.
+
+Fixes: 731b409878a3 ("ARM: dts: Configure duovero for to allow core retention during idle")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- include/linux/mod_devicetable.h        | 2 +-
- include/uapi/linux/input-event-codes.h | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap4-duovero-parlor.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 0754b8d71262..8a84f11bf124 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -318,7 +318,7 @@ struct pcmcia_device_id {
- #define INPUT_DEVICE_ID_LED_MAX		0x0f
- #define INPUT_DEVICE_ID_SND_MAX		0x07
- #define INPUT_DEVICE_ID_FF_MAX		0x7f
--#define INPUT_DEVICE_ID_SW_MAX		0x0f
-+#define INPUT_DEVICE_ID_SW_MAX		0x10
- #define INPUT_DEVICE_ID_PROP_MAX	0x1f
+diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+--- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
++++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+@@ -139,7 +139,7 @@ &gpmc {
+ 	ethernet@gpmc {
+ 		reg = <5 0 0xff>;
+ 		interrupt-parent = <&gpio2>;
+-		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;	/* gpio_44 */
++		interrupts = <12 IRQ_TYPE_LEVEL_LOW>;		/* gpio_44 */
  
- #define INPUT_DEVICE_ID_MATCH_BUS	1
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index b6a835d37826..0c2e27d28e0a 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -888,7 +888,8 @@
- #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
- #define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
- #define SW_PEN_INSERTED		0x0f  /* set = pen inserted */
--#define SW_MAX			0x0f
-+#define SW_MACHINE_COVER	0x10  /* set = cover closed */
-+#define SW_MAX			0x10
- #define SW_CNT			(SW_MAX+1)
+ 		phy-mode = "mii";
  
- /*
 -- 
-2.24.1
-
+2.27.0
