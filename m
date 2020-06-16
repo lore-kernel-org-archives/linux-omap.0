@@ -1,155 +1,174 @@
-Return-Path: <SRS0=uQKf=74=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=0Sp1=75=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B410C433DF
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Jun 2020 23:09:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FBC0C433E0
+	for <linux-omap@archiver.kernel.org>; Tue, 16 Jun 2020 08:32:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14B7420644
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Jun 2020 23:09:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6036320767
+	for <linux-omap@archiver.kernel.org>; Tue, 16 Jun 2020 08:32:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=beagleboard-org.20150623.gappssmtp.com header.i=@beagleboard-org.20150623.gappssmtp.com header.b="Zt2quLEt"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="yzgs82Ty"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726452AbgFOXJM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 15 Jun 2020 19:09:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33718 "EHLO
+        id S1727988AbgFPIcH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 16 Jun 2020 04:32:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725960AbgFOXJL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2020 19:09:11 -0400
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECE39C061A0E
-        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2020 16:09:10 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id t21so12795764edr.12
-        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2020 16:09:10 -0700 (PDT)
+        with ESMTP id S1728038AbgFPIcH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2020 04:32:07 -0400
+Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8125C05BD43
+        for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2020 01:32:06 -0700 (PDT)
+Received: by mail-lj1-x244.google.com with SMTP id 9so22504255ljc.8
+        for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2020 01:32:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=beagleboard-org.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
-        bh=bk2DDWTpTttEWYCFILNhZOQEi6YabfV1fIkqBtWhOns=;
-        b=Zt2quLEt6Rzgpd3ABJyk5Dv1lu4fAk1DvHGdpwL3SFFOs9Qk6qzedOiJ/Bth9dZp+v
-         CiW1CpJjQFQKcUwIz1CsQ9OFM76GnkFyU30MGvQjGYf8awHgm9g5iKqEYqCeVZPMwln/
-         smRONrkAB7Mp5upc5nDnI/tegEBiRN/4qbRnxqNf/uZjibGVyNx+Xh1Ak+KFTIFeWQqE
-         Z5w1PZyL4BqUO1JkkhPRSk0P4J4Iqx9XdEnHiVHBchiEAeId7E7IqpUYPs+XGNBVyxom
-         RI+CuUjP65ijuqZZBkQYAcs+NFArj+AyyF6VZhTXO8ZhiKYsOmFingCJqwBNWaEprUX+
-         gNeg==
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=sQ4U7wvoNlcpjuMW/4KAQuHPsQCChERlSO2SrjCLc4A=;
+        b=yzgs82TyqjiolbSZa0hACzF4gN7GCdrUZ3PkJIwNsxrwGymEWug+COKC95YBk6TI0K
+         2Y0WbWcE0rB11ecpIHasmBOEfu2LHU1jVxms4CkS6c1YBhHphAVGDqxKnQPW4PBBc7hb
+         LMdJwAntiTOBJmW2XA6P3lnRabzZ3UT3E9uy8o/U1SwZ5oitYwRLHc5WSAN8DB/8WxGH
+         VrB15nm/FvXI/F5bPdrN/KsIQp6inbymvEpyLN7rdC7zEFqzsH+Jxw7zBeSbaDF9hj4Z
+         jaXPYaexNoE0Z92Ldpp3NqRRd9Su8ihOkFK3xJAvMTKv498p1DzKxsLxehhJydEQaZ+i
+         fWig==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition;
-        bh=bk2DDWTpTttEWYCFILNhZOQEi6YabfV1fIkqBtWhOns=;
-        b=MAS+RspMePbxf2QcXptA/BPuwS75TOR9CCdyBj5U5UJ0yq1lqY2fFlwXhPiswKBOue
-         hiigdV7jdSjcCR4xrMgbLVZnCHg4VI1STP2JimlL6woMIgcyiprByP5c4HUY4nWcpiqL
-         jW8Pc59nCGjTbIwYaAN0yFumTBH7rJswoZQ70LL+sr/5dr+xhdTLpfeHaH9WBVXQ/EeF
-         PcI0atuLF/Op/O5W9JdKoWmzW5O8b9DtEGJKaJKVDCovR87el5jkzJ6zfoNh5GzWjrAb
-         bHjgsSgp7p02yz9tdjyAf6OF3LlOkheD46qJMSA8akK6OjmHVagLpKYWfCIYzaSh22XQ
-         45Vg==
-X-Gm-Message-State: AOAM531NvuUN6xnT3uR7rBqwlfNJe6X+vV1YqQLz/G3zfpkUfmqgV5zI
-        x+5H7FLszqha1K0/1RpGoUum3A==
-X-Google-Smtp-Source: ABdhPJw2bio2JVkVlIv9HMdE2+eGA5HFn/MxL3qWyHUmKoSCo8XsWpuZK9EaVElFXOgF2lpQzPonQA==
-X-Received: by 2002:a05:6402:3c2:: with SMTP id t2mr71683edw.361.1592262549666;
-        Mon, 15 Jun 2020 16:09:09 -0700 (PDT)
-Received: from x1 ([2001:16b8:5c49:af01:5c06:6064:338b:4004])
-        by smtp.gmail.com with ESMTPSA id q25sm9770461ejz.93.2020.06.15.16.09.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Jun 2020 16:09:09 -0700 (PDT)
-Date:   Tue, 16 Jun 2020 01:09:06 +0200
-From:   Drew Fustini <drew@beagleboard.org>
-To:     Tony Lindgren <tony@atomide.com>,
-        Haojian Zhuang <haojian.zhuang@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-omap@vger.kernel.org
-Cc:     Jason Kridner <jkridner@beagleboard.org>,
-        Robert Nelson <robertcnelson@gmail.com>
-Subject: [RFC PATCH] pinctrl-single: parse #pinctrl-cells = 2
-Message-ID: <20200615230906.GA3967771@x1>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=sQ4U7wvoNlcpjuMW/4KAQuHPsQCChERlSO2SrjCLc4A=;
+        b=PVHcPOhgsVWqBnI4NE4YLmUNe9fNycXdLAetOZ/QiQkEy496AoaGonR4Xu47TboBhA
+         L10/3w1ckrOsoAMldsqNj6tpp7KzICiZxwZkSkIbTwNqVMeEwxAnNwzkH802UgIWa/T/
+         jl32Rke+D1tsdLzaDHW5LH/zTSPMJZdfkFdb5R/AS0uR5vFc53W2IhA1YYd2FmDDh4BS
+         VqX6yp099o3tihk0tB9R9clsXMssOquvrV5Q7Tmj/dUpC8xM0+94QzF0EMW9y+gPx/TQ
+         zrNu9gfKgIV3NpqlmghOgtAPpcTj3vFPpDHrEjpz5Jg9dmmw+vN6+BgzJXLNulZXFsfi
+         q3sA==
+X-Gm-Message-State: AOAM530a7f0cCG8DWslKSGUFpani+YEYeay6C8XeF+sAVA1rjUtH+jrC
+        Pp2Oq7e8NrIlcBQllex8dyj60z9C08C1K+5pemLGPo545eA=
+X-Google-Smtp-Source: ABdhPJzDjr7Vp4IVSdnf58s8G/HEW2ciu0txbLcKtPfjhvTLWtyM16wHBxujqgvNRbb533tvY8VqBYbmo4AT2CdyIOc=
+X-Received: by 2002:a2e:350a:: with SMTP id z10mr837916ljz.104.1592296325111;
+ Tue, 16 Jun 2020 01:32:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20200608125143.GA2789203@x1>
+In-Reply-To: <20200608125143.GA2789203@x1>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Tue, 16 Jun 2020 10:31:54 +0200
+Message-ID: <CACRpkdZupnetd29aehw4HF3isGgRHbqxWZuTkPBusm_EmvjZ4g@mail.gmail.com>
+Subject: Re: [PATCH v2] pinctrl-single: fix pcs_parse_pinconf() return value
+To:     Drew Fustini <drew@beagleboard.org>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Jason Kridner <jkridner@beagleboard.org>,
+        Robert Nelson <robertcnelson@beagleboard.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-These changes are based on feedback from Tony [1] concerning changing
-pinctrl-single to be able to handle pinctrl-cells = 2 for for the 
-"pinctrl-single,pins" property.
+On Mon, Jun 8, 2020 at 2:51 PM Drew Fustini <drew@beagleboard.org> wrote:
 
-AM33XX_PADCONF macro is modified to keep pin conf and pin mux seperate.
+> This patch causes pcs_parse_pinconf() to return -ENOTSUPP when no
+> pinctrl_map is added.  The current behavior is to return 0 when
+> !PCS_HAS_PINCONF or !nconfs.  Thus pcs_parse_one_pinctrl_entry()
+> incorrectly assumes that a map was added and sets num_maps = 2.
+>
+> Analysis:
+> =========
+> The function pcs_parse_one_pinctrl_entry() calls pcs_parse_pinconf()
+> if PCS_HAS_PINCONF is enabled.  The function pcs_parse_pinconf()
+> returns 0 to indicate there was no error and num_maps is then set to 2:
+>
+>  980 static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
+>  981                                                 struct device_node *np,
+>  982                                                 struct pinctrl_map **map,
+>  983                                                 unsigned *num_maps,
+>  984                                                 const char **pgnames)
+>  985 {
+> <snip>
+> 1053         (*map)->type = PIN_MAP_TYPE_MUX_GROUP;
+> 1054         (*map)->data.mux.group = np->name;
+> 1055         (*map)->data.mux.function = np->name;
+> 1056
+> 1057         if (PCS_HAS_PINCONF && function) {
+> 1058                 res = pcs_parse_pinconf(pcs, np, function, map);
+> 1059                 if (res)
+> 1060                         goto free_pingroups;
+> 1061                 *num_maps = 2;
+> 1062         } else {
+> 1063                 *num_maps = 1;
+> 1064         }
+>
+> However, pcs_parse_pinconf() will also return 0 if !PCS_HAS_PINCONF or
+> !nconfs.  I believe these conditions should indicate that no map was
+> added by returning -ENOTSUPP. Otherwise pcs_parse_one_pinctrl_entry()
+> will set num_maps = 2 even though no maps were successfully added, as
+> it does not reach "m++" on line 940:
+>
+>  895 static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
+>  896                              struct pcs_function *func,
+>  897                              struct pinctrl_map **map)
+>  898
+>  899 {
+>  900         struct pinctrl_map *m = *map;
+> <snip>
+>  917         /* If pinconf isn't supported, don't parse properties in below. */
+>  918         if (!PCS_HAS_PINCONF)
+>  919                 return 0;
+>  920
+>  921         /* cacluate how much properties are supported in current node */
+>  922         for (i = 0; i < ARRAY_SIZE(prop2); i++) {
+>  923                 if (of_find_property(np, prop2[i].name, NULL))
+>  924                         nconfs++;
+>  925         }
+>  926         for (i = 0; i < ARRAY_SIZE(prop4); i++) {
+>  927                 if (of_find_property(np, prop4[i].name, NULL))
+>  928                         nconfs++;
+>  929         }
+>  930         if (!nconfs)
+>  919                 return 0;
+>  932
+>  933         func->conf = devm_kcalloc(pcs->dev,
+>  934                                   nconfs, sizeof(struct pcs_conf_vals),
+>  935                                   GFP_KERNEL);
+>  936         if (!func->conf)
+>  937                 return -ENOMEM;
+>  938         func->nconfs = nconfs;
+>  939         conf = &(func->conf[0]);
+>  940         m++;
+>
+> This situtation will cause a boot failure [0] on the BeagleBone Black
+> (AM3358) when am33xx_pinmux node in arch/arm/boot/dts/am33xx-l4.dtsi
+> has compatible = "pinconf-single" instead of "pinctrl-single".
+>
+> The patch fixes this issue by returning -ENOSUPP when !PCS_HAS_PINCONF
+> or !nconfs, so that pcs_parse_one_pinctrl_entry() will know that no
+> map was added.
+>
+> Logic is also added to pcs_parse_one_pinctrl_entry() to distinguish
+> between -ENOSUPP and other errors.  In the case of -ENOSUPP, num_maps
+> is set to 1 as it is valid for pinconf to be enabled and a given pin
+> group to not any pinconf properties.
+>
+> [0] https://lore.kernel.org/linux-omap/20200529175544.GA3766151@x1/
+>
+> Fixes: 9dddb4df90d1 ("pinctrl: single: support generic pinconf")
+> Signed-off-by: Drew Fustini <drew@beagleboard.org>
 
-If "pinctrl-single,pins" has 3 arguments (offset, conf, mux) then
-pcs_parse_one_pinctrl_entry() does an OR operation on to get the
-value to store in the register.
+Patch applied as non-critical (for-next) fix.
 
-[1] https://lore.kernel.org/linux-omap/20200609180404.GR37466@atomide.com/#t
+If there is no hurry let's merge it this way with lots of testing
+along the way.
 
-Signed-off-by: Drew Fustini <drew@beagleboard.org>
----
- arch/arm/boot/dts/am33xx-l4.dtsi   |  4 ++--
- drivers/pinctrl/pinctrl-single.c   | 14 ++++++++++++--
- include/dt-bindings/pinctrl/omap.h |  2 +-
- 3 files changed, 15 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-index 340ea331e54d..0b0439b53a0e 100644
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -288,9 +288,9 @@ scm: scm@0 {
- 				ranges = <0 0 0x2000>;
- 
- 				am33xx_pinmux: pinmux@800 {
--					compatible = "pinctrl-single";
-+					compatible = "pinconf-single";
- 					reg = <0x800 0x238>;
--					#pinctrl-cells = <1>;
-+					#pinctrl-cells = <2>;
- 					pinctrl-single,register-width = <32>;
- 					pinctrl-single,function-mask = <0x7f>;
- 				};
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 02f677eb1d53..080083b8b5be 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1017,11 +1017,21 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 			break;
- 		}
- 
--		/* Index plus one value cell */
- 		offset = pinctrl_spec.args[0];
- 		vals[found].reg = pcs->base + offset;
--		vals[found].val = pinctrl_spec.args[1];
- 
-+		pr_info("%s: args_count=%d offset=0x%x", __func__,
-+				pinctrl_spec.args_count, offset);
-+		pr_info("%s: args[1]=0x%x", __func__, pinctrl_spec.args[1]);
-+
-+		if (pinctrl_spec.args_count == 2) {
-+			vals[found].val = pinctrl_spec.args[1];
-+		} else if (pinctrl_spec.args_count == 3) {
-+			pr_info("%s: args[2]=0x%x", __func__, pinctrl_spec.args[2]);
-+			vals[found].val = (pinctrl_spec.args[1] | pinctrl_spec.args[2]);
-+		}
-+
-+		pr_info("%s: vals[%d].val=0x%x", __func__, found, vals[found].val);
- 		dev_dbg(pcs->dev, "%pOFn index: 0x%x value: 0x%x\n",
- 			pinctrl_spec.np, offset, pinctrl_spec.args[1]);
- 
-diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
-index 625718042413..2d2a8c737822 100644
---- a/include/dt-bindings/pinctrl/omap.h
-+++ b/include/dt-bindings/pinctrl/omap.h
-@@ -65,7 +65,7 @@
- #define DM814X_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
- #define DM816X_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
- #define AM33XX_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
--#define AM33XX_PADCONF(pa, dir, mux)	OMAP_IOPAD_OFFSET((pa), 0x0800) ((dir) | (mux))
-+#define AM33XX_PADCONF(pa, conf, mux)	OMAP_IOPAD_OFFSET((pa), 0x0800) (conf) (mux)
- 
- /*
-  * Macros to allow using the offset from the padconf physical address
--- 
-2.25.1
-
+Yours,
+Linus Walleij
