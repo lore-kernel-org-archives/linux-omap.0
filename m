@@ -2,113 +2,103 @@ Return-Path: <SRS0=LAuK=77=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66B2FC433E1
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 02:43:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7255C433E2
+	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 12:51:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 45D132193E
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 02:43:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592448233;
-	bh=EvwO6JCvwjH0ii7c8P2k9TCjFrLWsFBoTY+wiB+vL34=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ifcBzujiWvfpeY2b+vuqZHnwdzrKd0LbA/MKl1XIX4ZP/IFTWR0QCGrAQNEq3cOmh
-	 DbqYvCrQRw1+0eF7DoMHoJCYzsTavvPs4jcebui/Wx/TeiRO3bXWL0B77CFriCm46a
-	 60vmOh1OrLJPyesu/BuoHTPADbbrJli7u9xc508g=
+	by mail.kernel.org (Postfix) with ESMTP id C7193206F7
+	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 12:51:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=beagleboard-org.20150623.gappssmtp.com header.i=@beagleboard-org.20150623.gappssmtp.com header.b="s92ydCNN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730751AbgFRCni (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 17 Jun 2020 22:43:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39466 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728113AbgFRBLb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:11:31 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4F89320CC7;
-        Thu, 18 Jun 2020 01:11:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592442691;
-        bh=EvwO6JCvwjH0ii7c8P2k9TCjFrLWsFBoTY+wiB+vL34=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DmldXKW4DMAMOBkNiM0yLRctZ5uVCSwjTjeF1dz76nsmTlLav5rYuSy9IOb0z41Mg
-         TZ/H+ithTZPvUqiSL6CbFVXC0rkZYoSQDXMtxYezhC2/tzFYB+3DujYICLED2RcCJ6
-         9h52OqmrVzG7/sC4sZFrn12s116s1KDIF7L4HFuY=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        Amit Kucheria <amit.kucheria@linaro.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Sasha Levin <sashal@kernel.org>, linux-pm@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.7 156/388] thermal/drivers/ti-soc-thermal: Avoid dereferencing ERR_PTR
-Date:   Wed, 17 Jun 2020 21:04:13 -0400
-Message-Id: <20200618010805.600873-156-sashal@kernel.org>
+        id S1729932AbgFRMvf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 18 Jun 2020 08:51:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39996 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729893AbgFRMvd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2020 08:51:33 -0400
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1AF2C0613EE
+        for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2020 05:51:32 -0700 (PDT)
+Received: by mail-wr1-x444.google.com with SMTP id l11so5955802wru.0
+        for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2020 05:51:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=beagleboard-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=Bj6HAykfSXciPD/Bc+zws1F4Dix7NK9KOE5ziMSlP18=;
+        b=s92ydCNNUB8tBaQKFHde4jqHuN6R3JyXh0Nhc/3Txlz3PLg16gHdMvxkf9nm/Way1i
+         IE7qKAasmH7/Az0BAzvtq3Wsks+24nV/BS2+NF/XmhKz36t2pBn5d9mDERBAdK2cKVO4
+         XmpdPEXNkPDJdAmixppQgrBSPkKlLe/4a6ueUlC4KvoMHcjAfmwrusiaepK/fmjFdQgE
+         GpnmI8vOqTLlxolUIEFyLIUWO3+oZVRzviNhDgRC/iDdNmjhJPHNv75+OgZ6sbRYhiWE
+         dFCnNVj49d8/VUo6Xi3HoF8nHG33h7EODXuDug7DnsqqOOUTyYCd0beyqtE9SEB+C7sV
+         svEg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=Bj6HAykfSXciPD/Bc+zws1F4Dix7NK9KOE5ziMSlP18=;
+        b=il20D/85inaT0d0YvfRhNLNefi5+ohS8UObDCJ0ffpnfKy4+e5TvqKRFD2+rSWwZcm
+         V1tuYENIsUSRAZSlwDWc6j1zB8IoWOETS0JIOt6pY2W49f2elD0v3osRO9svFJPm50jM
+         sxvHPv0FOL/Pc1J0XOSlCxDjR65u4lRj1SafQ+0VuBFxxLeI7CwBE/YB55xdXECTKnx7
+         IZ8MLcVeo2BL/kLKMTLcbJL+QJ41FPfvTcs4tLfAwl7s3L+x0oWan25Kn9S+0emL0D5b
+         Gxc5ZXqnZ3C5IEIiyTjzY9d4QyV9VkDDEIdSquj/nBAYoalzM+ujMPDwheSQpybF38+p
+         TtMw==
+X-Gm-Message-State: AOAM533prmUlysE4LawLgMhVlc+r+he47jAAqLNuncQLflgGgfu3QfqP
+        UpmxlFBYOjxLKptTZww5OBZAAQ==
+X-Google-Smtp-Source: ABdhPJwC8zsRiXLYSbgOC9p59MOglG+3EnihCVEse/KhZppHDY52tveh0j6s0v6RHp6PmoAniAxHPA==
+X-Received: by 2002:adf:9163:: with SMTP id j90mr4376829wrj.65.1592484691632;
+        Thu, 18 Jun 2020 05:51:31 -0700 (PDT)
+Received: from localhost.localdomain (i59F66838.versanet.de. [89.246.104.56])
+        by smtp.gmail.com with ESMTPSA id v27sm3714151wrv.81.2020.06.18.05.51.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 18 Jun 2020 05:51:30 -0700 (PDT)
+From:   Drew Fustini <drew@beagleboard.org>
+To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        devicetree@vger.kernel.org,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Jason Kridner <jkridner@beagleboard.org>,
+        Robert Nelson <robertcnelson@gmail.com>
+Cc:     Drew Fustini <drew@beagleboard.org>
+Subject: [PATCH 0/3] pinctrl: single: support #pinctrl-cells = 2
+Date:   Thu, 18 Jun 2020 14:50:54 +0200
+Message-Id: <20200618125057.41252-1-drew@beagleboard.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200618010805.600873-1-sashal@kernel.org>
-References: <20200618010805.600873-1-sashal@kernel.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Currently, pinctrl-single only allows #pinctrl-cells = 1.
 
-[ Upstream commit 7440f518dad9d861d76c64956641eeddd3586f75 ]
+This series will allow pinctrl-single to also support #pinctrl-cells = 2
 
-On error the function ti_bandgap_get_sensor_data() returns the error
-code in ERR_PTR() but we only checked if the return value is NULL or
-not. And, so we can dereference an error code inside ERR_PTR.
-While at it, convert a check to IS_ERR_OR_NULL.
+If "pinctrl-single,pins" has 3 arguments (offset, conf, mux) then
+pcs_parse_one_pinctrl_entry() does an OR operation on to get the
+value to store in the register.
+    
+To take advantage of #pinctrl-cells = 2, the AM33XX_PADCONF macro in
+omap.h is modified to keep pin conf and pin mux values separate.
 
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Reviewed-by: Amit Kucheria <amit.kucheria@linaro.org>
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Link: https://lore.kernel.org/r/20200424161944.6044-1-sudipm.mukherjee@gmail.com
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Drew Fustini (3):
+  ARM: dts: change AM33XX_PADCONF macro separate conf and mux
+  ARM: dts: am33xx-l4: change #pinctrl-cells from 1 to 2
+  pinctrl: single: parse #pinctrl-cells = 2
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index d3e959d01606..85776db4bf34 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -169,7 +169,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
--	if (!data || IS_ERR(data))
-+	if (!IS_ERR_OR_NULL(data))
- 		data = ti_thermal_build_data(bgp, id);
- 
- 	if (!data)
-@@ -196,7 +196,7 @@ int ti_thermal_remove_sensor(struct ti_bandgap *bgp, int id)
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
--	if (data && data->ti_thermal) {
-+	if (!IS_ERR_OR_NULL(data) && data->ti_thermal) {
- 		if (data->our_zone)
- 			thermal_zone_device_unregister(data->ti_thermal);
- 	}
-@@ -262,7 +262,7 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
--	if (data) {
-+	if (!IS_ERR_OR_NULL(data)) {
- 		cpufreq_cooling_unregister(data->cool_dev);
- 		if (data->policy)
- 			cpufreq_cpu_put(data->policy);
+ arch/arm/boot/dts/am33xx-l4.dtsi   |  2 +-
+ drivers/pinctrl/pinctrl-single.c   | 11 +++++++++--
+ include/dt-bindings/pinctrl/omap.h |  2 +-
+ 3 files changed, 11 insertions(+), 4 deletions(-)
+
 -- 
 2.25.1
 
