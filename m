@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 869AFC433E0
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 01:27:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DB31C433DF
+	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 01:37:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BEE2221F4
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 01:27:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BC4A2192A
+	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 01:37:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592443636;
-	bh=Vgwn97CeZulKG1yZXGJOHSsrUjdcOzy3sqVgKXATIwU=;
+	s=default; t=1592444245;
+	bh=4QSC8Ljfn6FxpVmcydTjb9LszvyA3+6lF5P6FG0NLQI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ykyRYs69mWVLPrwdOb4mIPtBLgqItU3tucBDHJZTyBQOLQDr9BMtrnskLC8YPsX5x
-	 aB0G6izBXYz78HAsKYhNMmr7Mp5wzLxA9ESFJJ4jKMJNshvBso8mf/2AE5w2Wbwdh/
-	 5TExunG46BBw3IdIANWCisu4pKIpeaPVI+obpxqw=
+	b=QGpbnyWf/bhy+x1bRorWnbnyQneQ64R5sQUEShQqtE70FXTT1qgbUHoGgWm59CNZ9
+	 lUh+yixJvGR1b7WkTPieVYUMu+mv7e/Yqo7HwHIBgP3UAaLi8cPkLmRHrLULbE9uMt
+	 YT6LZTytjw23+dGtq3R9fqvPDEdR6e1E1lt6MG3U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731818AbgFRB1P (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 17 Jun 2020 21:27:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35222 "EHLO mail.kernel.org"
+        id S1732819AbgFRBg7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 17 Jun 2020 21:36:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731815AbgFRB1N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:27:13 -0400
+        id S1732637AbgFRBav (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:30:51 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C8091221F4;
-        Thu, 18 Jun 2020 01:27:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8A3C7206DB;
+        Thu, 18 Jun 2020 01:30:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592443632;
-        bh=Vgwn97CeZulKG1yZXGJOHSsrUjdcOzy3sqVgKXATIwU=;
+        s=default; t=1592443851;
+        bh=4QSC8Ljfn6FxpVmcydTjb9LszvyA3+6lF5P6FG0NLQI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fWIjQuxzVfL9kiiII7cMYXuR0Ps1P20P7r9L9f6wNHkGbAcOzW/DtzjbRI7CAubjM
-         16QeU88FRqfh9DSdrushrfk7yboXjGlR5Yd1fg9Nlnu9u1eByh5r8Jvl/tJ7fuit/W
-         EaJ8lA0C7SrwrQ5d/gEFinoPrZlMek44tHMpuSFs=
+        b=zxLyCvA3WBYlMiVkWR4chlmFzOugfH5A1JJZcHDU2atfAsGJe7EBlT6fmQtxIfcFB
+         bY6VTf49/m3pgJp+qmG6bktBn2RDXtEWZwnn0EuoskazKX4Uo5iIKq0RRIdcotczfr
+         LdKe3DOQd0NL85bPP1q4hNnfi0y4FSJ6Br5bRzKU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tero Kristo <t-kristo@ti.com>,
@@ -46,12 +46,12 @@ Cc:     Tero Kristo <t-kristo@ti.com>,
         Stephen Boyd <sboyd@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         linux-clk@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 056/108] clk: ti: composite: fix memory leak
-Date:   Wed, 17 Jun 2020 21:25:08 -0400
-Message-Id: <20200618012600.608744-56-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 35/60] clk: ti: composite: fix memory leak
+Date:   Wed, 17 Jun 2020 21:29:39 -0400
+Message-Id: <20200618013004.610532-35-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200618012600.608744-1-sashal@kernel.org>
-References: <20200618012600.608744-1-sashal@kernel.org>
+In-Reply-To: <20200618013004.610532-1-sashal@kernel.org>
+References: <20200618013004.610532-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -80,10 +80,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index beea89463ca2..4ea5c08a1eb6 100644
+index dbef218fe5ec..14201c52b44b 100644
 --- a/drivers/clk/ti/composite.c
 +++ b/drivers/clk/ti/composite.c
-@@ -240,6 +240,7 @@ static void __init _register_composite(struct clk_hw *hw,
+@@ -228,6 +228,7 @@ static void __init _register_composite(struct clk_hw *hw,
  		if (!cclk->comp_clks[i])
  			continue;
  		list_del(&cclk->comp_clks[i]->link);
