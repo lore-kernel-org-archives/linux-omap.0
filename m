@@ -4,53 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6667C433DF
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 02:18:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5DAFC433E1
+	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 02:41:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97BEE2088E
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 02:18:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9BEF421927
+	for <linux-omap@archiver.kernel.org>; Thu, 18 Jun 2020 02:41:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592446728;
-	bh=lwzRwsrx3YiJQpfwmDmgLujx4GshtpM/4E4B9ChFbrU=;
+	s=default; t=1592448063;
+	bh=G3npwubaEKnd3PGv+uBeBKcI2zNcuNgQoVB37CCG5rs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=VmNqeAIgKRk7laH2fVyQVpu3oTzdBjsYFRiMGI4wRHcMjJJA5xUBI0KAoRL9WfYH5
-	 OdLfn9B9ck3QC3Q9rLs3tpwtYcg71mn+y9Itar1wYaQKZcH9L28FbqDk0SSzUd6usB
-	 aMcGO6kjAJl4+R1F8TG4RvdR7TZYOugaQWFbyLYk=
+	b=X9DyDdl2aZEJ/r/yDua8tLkgFqoOJy72OxHZlY7yj7DZ/vrx8unvdX2I/JnjPeRPz
+	 Qsms2kLrWhk7vMOfVSldha+ybjYBnOyUWF14DNwE2eGAmhnwc3WHqzalWnR1elWODp
+	 rchNjJ7OAJeUTmdenKUlM8z3cjeBMFMcXemqeoN4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730158AbgFRCSq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 17 Jun 2020 22:18:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51360 "EHLO mail.kernel.org"
+        id S1728933AbgFRBMc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 17 Jun 2020 21:12:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730147AbgFRBTc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:19:32 -0400
+        id S1728918AbgFRBMc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:12:32 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5C477221EB;
-        Thu, 18 Jun 2020 01:19:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EEDD020EDD;
+        Thu, 18 Jun 2020 01:12:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592443172;
-        bh=lwzRwsrx3YiJQpfwmDmgLujx4GshtpM/4E4B9ChFbrU=;
+        s=default; t=1592442751;
+        bh=G3npwubaEKnd3PGv+uBeBKcI2zNcuNgQoVB37CCG5rs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qoAsQ1m1vBgBx7VgYVPsOdx9J2BWhxLFYg5z2k5GH4bxZNk68SdQHVs4qkU5qr3wX
-         5vrtPiPdT1y5OdK+++PInHteyWnFNenjFzlD4kfj/2YOwBGSc08QoPnA/GjwZh5BAX
-         GPRC6SvzdT2xsIk8wzFaggxK5DXfX0+ymS8b9nsY=
+        b=N4g0EsoKLEgbgSAfzAp3MqeVdFts08JAjMcW5MwkkAdJE+/DARZPPFkxE+2zaNcJw
+         vAbqbLSbFpAkJ1PZYqlNYFB1CK0wWQr9fOI36T+JWg1ppUapxQebya1fJFCcyNkjbX
+         0PCHSlgS45AJQUxKzNSJP0Z1Yo90+Q+J8oCLJrVQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Peter Ujfalusi <peter.ujflausi@ti.com>,
-        Mark Brown <broonie@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, alsa-devel@alsa-project.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 136/266] ASoC: ti: omap-mcbsp: Fix an error handling path in 'asoc_mcbsp_probe()'
-Date:   Wed, 17 Jun 2020 21:14:21 -0400
-Message-Id: <20200618011631.604574-136-sashal@kernel.org>
+Cc:     Tero Kristo <t-kristo@ti.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.7 203/388] clk: ti: composite: fix memory leak
+Date:   Wed, 17 Jun 2020 21:05:00 -0400
+Message-Id: <20200618010805.600873-203-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200618011631.604574-1-sashal@kernel.org>
-References: <20200618011631.604574-1-sashal@kernel.org>
+In-Reply-To: <20200618010805.600873-1-sashal@kernel.org>
+References: <20200618010805.600873-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,67 +61,35 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+From: Tero Kristo <t-kristo@ti.com>
 
-[ Upstream commit 03990fd58d2b7c8f7d53e514ba9b8749fac260f9 ]
+[ Upstream commit c7c1cbbc9217ebb5601b88d138d4a5358548de9d ]
 
-If an error occurs after the call to 'omap_mcbsp_init()', the reference to
-'mcbsp->fclk' must be decremented, as already done in the remove function.
+The parent_names is never released for a component clock definition,
+causing some memory leak. Fix by releasing it once it is no longer
+needed.
 
-This can be achieved easily by using the devm_ variant of 'clk_get()'
-when the reference is taken in 'omap_mcbsp_init()'
-
-This fixes the leak in the probe and has the side effect to simplify both
-the error handling path of 'omap_mcbsp_init()' and the remove function.
-
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Acked-by: Peter Ujfalusi <peter.ujflausi@ti.com>
-Link: https://lore.kernel.org/r/20200512134325.252073-1-christophe.jaillet@wanadoo.fr
-Signed-off-by: Mark Brown <broonie@kernel.org>
+Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Link: https://lkml.kernel.org/r/20200429131341.4697-2-t-kristo@ti.com
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- sound/soc/ti/omap-mcbsp.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/clk/ti/composite.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
-index 26b503bbdb5f..3273b317fa3b 100644
---- a/sound/soc/ti/omap-mcbsp.c
-+++ b/sound/soc/ti/omap-mcbsp.c
-@@ -686,7 +686,7 @@ static int omap_mcbsp_init(struct platform_device *pdev)
- 	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
- 						SNDRV_PCM_STREAM_CAPTURE);
- 
--	mcbsp->fclk = clk_get(&pdev->dev, "fck");
-+	mcbsp->fclk = devm_clk_get(&pdev->dev, "fck");
- 	if (IS_ERR(mcbsp->fclk)) {
- 		ret = PTR_ERR(mcbsp->fclk);
- 		dev_err(mcbsp->dev, "unable to get fck: %d\n", ret);
-@@ -711,7 +711,7 @@ static int omap_mcbsp_init(struct platform_device *pdev)
- 		if (ret) {
- 			dev_err(mcbsp->dev,
- 				"Unable to create additional controls\n");
--			goto err_thres;
-+			return ret;
- 		}
+diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
+index 6a89936ba03a..eaa43575cfa5 100644
+--- a/drivers/clk/ti/composite.c
++++ b/drivers/clk/ti/composite.c
+@@ -196,6 +196,7 @@ static void __init _register_composite(void *user,
+ 		if (!cclk->comp_clks[i])
+ 			continue;
+ 		list_del(&cclk->comp_clks[i]->link);
++		kfree(cclk->comp_clks[i]->parent_names);
+ 		kfree(cclk->comp_clks[i]);
  	}
- 
-@@ -724,8 +724,6 @@ static int omap_mcbsp_init(struct platform_device *pdev)
- err_st:
- 	if (mcbsp->pdata->buffer_size)
- 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
--err_thres:
--	clk_put(mcbsp->fclk);
- 	return ret;
- }
- 
-@@ -1442,8 +1440,6 @@ static int asoc_mcbsp_remove(struct platform_device *pdev)
- 
- 	omap_mcbsp_st_cleanup(pdev);
- 
--	clk_put(mcbsp->fclk);
--
- 	return 0;
- }
  
 -- 
 2.25.1
