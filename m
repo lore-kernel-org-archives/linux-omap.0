@@ -2,60 +2,61 @@ Return-Path: <SRS0=zfJz=AA=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 982CBC433E0
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 09:07:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA30FC433E2
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 09:07:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 765DD20890
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 09:07:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8814520890
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 09:07:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=beagleboard-org.20150623.gappssmtp.com header.i=@beagleboard-org.20150623.gappssmtp.com header.b="P80z4dP1"
+	dkim=pass (2048-bit key) header.d=beagleboard-org.20150623.gappssmtp.com header.i=@beagleboard-org.20150623.gappssmtp.com header.b="UB/REUZq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731776AbgFSJHG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Jun 2020 05:07:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57596 "EHLO
+        id S1731874AbgFSJHZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 Jun 2020 05:07:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731779AbgFSJGx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2020 05:06:53 -0400
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C48FEC0613F0
-        for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2020 02:06:49 -0700 (PDT)
-Received: by mail-ej1-x643.google.com with SMTP id q19so9408980eja.7
-        for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2020 02:06:49 -0700 (PDT)
+        with ESMTP id S1731860AbgFSJG5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2020 05:06:57 -0400
+Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43CCDC061799
+        for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2020 02:06:55 -0700 (PDT)
+Received: by mail-ed1-x542.google.com with SMTP id o26so7044684edq.0
+        for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2020 02:06:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=beagleboard-org.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=HvGH7Pv4foao4L50irRdHfsqjrsvjQfU69J0IADDQqk=;
-        b=P80z4dP158kR74roWZEYDQTGhtpYz6jZRYW/KrObAPurFivXZAr0jRWDh4vGLGQlVP
-         BGoJN72IF1ztehvJlOH7VQ5lRuSEsczEAAdkVSTrMtvhFteZ6dncfBdUxz4pjtc/Dbp4
-         iwRulvaJGMhtYWLXNNhVhPYbglLZLC4oprRohBrrGqWAzNXkCUIl9bbmlCCP/gUukUEf
-         To9rjqcP1jeXGrI6Q2X7VrMWbWIOU2IMo68c3V/JrFPGLyUzP+vZJlFuc64eARetUsZk
-         FoQdlw3xxGAfH8nUlwlcD1xshgLsWakRySyu9qVdkyXg224zO3HRfHoI8KsTp0iDEVoB
-         Fh2g==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=+0u89dpmgvQy4plYwwslEmSBiru+bR25mmVExT9ZnYw=;
+        b=UB/REUZqGhSab2IhwMetGxClUkd/oH91Eb1YMtnqkqAxIYIsM5YWJ4a17MUa8/08et
+         0KoPGo9oOwe1emR2wQSQNrT5mDdb5rPGbQPYSjM7oAM0AmVr3nITPyO5xBU0y99uSaYS
+         GceF0JPmFhlA4OqkmdjhyRfE1guxkExlPCp0DWWvNnsOZnKJIUT+xfTjyP1zTVLFmjP2
+         dMylqWecptZAOuQnxr4pfUQnYY3XKand3fm9DpP1DYG41QiDNvEzeMJVk82vaFfE2K9D
+         qtb13ihfkOU5g1JKWZXaspFlc8GMvyr56s1ipcyGwqqbQPiOZwcx/nYfvYwyMjpAPLcZ
+         I8Jw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=HvGH7Pv4foao4L50irRdHfsqjrsvjQfU69J0IADDQqk=;
-        b=R0Ae92up7qqhUdjF+FwpJgjQXQaDHXbcwz8lq/aVMndoE6xKerqva+++WWXDjcWqJz
-         4F5FgJ5CxXgXR0wIhUxJ0Nhj6jj8O8eCrLL5LVtNGXbZ0ZukjG8R2CaaYjBvKVNIf9Q8
-         +C+jO+hT1XqWAFyj4fTvAAEICDSKyv6qdcoOWz7ybVqzRgZsWkLwmNhOlPTCYVaQgUOU
-         dxju2LeHNBWsBu7WyW7apbvvb7cS/K2a9XrNW17JfEadRzRMEMpt3O2ggR+bF4QXbTvx
-         qwSKqVUL1KKJu9PXz5QIhw6FDahhdfWNNjd2JY6rKgQeNeDGWoD7WajwwoLkPCl7/wEI
-         i6CA==
-X-Gm-Message-State: AOAM532qDXvZ3g38RGzSqHuXV9bkRi2JyOjEDe0+R5ZSUzwzhPYajAxb
-        jXvN87aIyiQNzsyZwLD77gksfZGSxAbsAsQv
-X-Google-Smtp-Source: ABdhPJzYJAW/a3AmTwbnULTmzoFTpukWQQAUa1C0VYxyzK6eiXdwk67c0W3bjz/BfvoRWLinvzdfAQ==
-X-Received: by 2002:a17:906:fc06:: with SMTP id ov6mr2795189ejb.184.1592557608029;
-        Fri, 19 Jun 2020 02:06:48 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=+0u89dpmgvQy4plYwwslEmSBiru+bR25mmVExT9ZnYw=;
+        b=bANKpP6vZEgCwWppKQS4ASVnDXsddIcjCQi0wJ1qXVEJxO4HcLZH+lLtH3AnORm5w6
+         9n7XfMmsBokMCdaOsEdsAAlmQQ7eECEk0S/gbvdlwvLVzVVJsCjdWVqCXLG/gqvyugnf
+         NYaHuBho4YTF2qENmsT63sXphUauNrsx99eQCCKnEuuUhi3nrj7uVScBEYI65Pm0466w
+         7J3cNIOU3J7yr9bEJfODsx/VuZ4wuaXP5DV/Eq8wqcPmgt2Xj+hiS4q9Oum3xnVF4Nkv
+         8jrCJmtAFep7CXN+kifUHxJ1/Uvhw5DPNRDujVe11wQEETrWNsybA+xscofZdHGXFFbs
+         ELtA==
+X-Gm-Message-State: AOAM530NkTh6vO34NZJuI/Yctk15snj3E2QPGNU3U9czNoMe1DLr9Qb8
+        4jHuwVwuIXa5CETJIVVnjR3hhQ==
+X-Google-Smtp-Source: ABdhPJy/3Bg56TEDS6v87nEXxy3icDzdDUs8cujpuQA8aXHR5JzzlkpBgh63TY4ie6qdHZydvU1qVg==
+X-Received: by 2002:aa7:d7ca:: with SMTP id e10mr2271039eds.45.1592557613971;
+        Fri, 19 Jun 2020 02:06:53 -0700 (PDT)
 Received: from localhost.localdomain ([2001:16b8:5c68:7901:5c06:6064:338b:4004])
-        by smtp.gmail.com with ESMTPSA id dm1sm4653650ejc.99.2020.06.19.02.06.46
+        by smtp.gmail.com with ESMTPSA id dm1sm4653650ejc.99.2020.06.19.02.06.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 19 Jun 2020 02:06:46 -0700 (PDT)
+        Fri, 19 Jun 2020 02:06:53 -0700 (PDT)
 From:   Drew Fustini <drew@beagleboard.org>
 To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
         linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -67,10 +68,12 @@ To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
         Jason Kridner <jkridner@beagleboard.org>,
         Robert Nelson <robertcnelson@gmail.com>
 Cc:     Drew Fustini <drew@beagleboard.org>
-Subject: [PATCH v2 0/3] pinctrl: single: support #pinctrl-cells = 2
-Date:   Fri, 19 Jun 2020 11:06:05 +0200
-Message-Id: <20200619090608.94948-1-drew@beagleboard.org>
+Subject: [PATCH v2 3/3] pinctrl: single: parse #pinctrl-cells = 2
+Date:   Fri, 19 Jun 2020 11:06:08 +0200
+Message-Id: <20200619090608.94948-4-drew@beagleboard.org>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200619090608.94948-1-drew@beagleboard.org>
+References: <20200619090608.94948-1-drew@beagleboard.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
@@ -78,32 +81,39 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Currently, pinctrl-single only allows #pinctrl-cells = 1.
-
-This series will allow pinctrl-single to also support #pinctrl-cells = 2
-
 If "pinctrl-single,pins" has 3 arguments (offset, conf, mux) then
 pcs_parse_one_pinctrl_entry() does an OR operation on to get the
 value to store in the register.
-    
-To take advantage of #pinctrl-cells = 2, the AM33XX_PADCONF macro in
-omap.h is modified to keep pin conf and pin mux values separate.
 
-v2 changes:
-- remove outer parentheses from AM33XX_PADCONF macro as it causes a
-  compile error in dtc.  I had added it per suggestion from checkpatch
-  about having parentheses around complex values.
+Signed-off-by: Drew Fustini <drew@beagleboard.org>
+---
+ drivers/pinctrl/pinctrl-single.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-Drew Fustini (3):
-  ARM: dts: change AM33XX_PADCONF macro separate conf and mux
-  ARM: dts: am33xx-l4: change #pinctrl-cells from 1 to 2
-  pinctrl: single: parse #pinctrl-cells = 2
-
- arch/arm/boot/dts/am33xx-l4.dtsi   |  2 +-
- drivers/pinctrl/pinctrl-single.c   | 11 +++++++++--
- include/dt-bindings/pinctrl/omap.h |  2 +-
- 3 files changed, 11 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 02f677eb1d53..e6d1cf25782c 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1017,10 +1017,17 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
+ 			break;
+ 		}
+ 
+-		/* Index plus one value cell */
+ 		offset = pinctrl_spec.args[0];
+ 		vals[found].reg = pcs->base + offset;
+-		vals[found].val = pinctrl_spec.args[1];
++
++		switch (pinctrl_spec.args_count) {
++		case 2:
++			vals[found].val = pinctrl_spec.args[1];
++			break;
++		case 3:
++			vals[found].val = (pinctrl_spec.args[1] | pinctrl_spec.args[2]);
++			break;
++		}
+ 
+ 		dev_dbg(pcs->dev, "%pOFn index: 0x%x value: 0x%x\n",
+ 			pinctrl_spec.np, offset, pinctrl_spec.args[1]);
 -- 
 2.25.1
 
