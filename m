@@ -2,100 +2,53 @@ Return-Path: <SRS0=zfJz=AA=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF09C433E0
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 10:44:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EF01C433DF
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 15:48:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41619207FC
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 10:44:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6303820809
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 15:48:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732526AbgFSKoL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Jun 2020 06:44:11 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6364 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1732715AbgFSKoE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 19 Jun 2020 06:44:04 -0400
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 57BF814173BCF5B8416D;
-        Fri, 19 Jun 2020 18:44:01 +0800 (CST)
-Received: from huawei.com (10.67.174.156) by DGGEMS409-HUB.china.huawei.com
- (10.3.19.209) with Microsoft SMTP Server id 14.3.487.0; Fri, 19 Jun 2020
- 18:43:52 +0800
-From:   Chen Tao <chentao107@huawei.com>
-To:     <paul@pwsan.com>, <tony@atomide.com>
-CC:     <linux@armlinux.org.uk>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <chentao107@huawei.com>
-Subject: [PATCH] ARM: OMAP2+: Fix possible memory leak in omap_hwmod_allocate_module
-Date:   Fri, 19 Jun 2020 18:42:40 +0800
-Message-ID: <20200619104240.55978-1-chentao107@huawei.com>
-X-Mailer: git-send-email 2.22.0
+        id S2405330AbgFSPsM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 Jun 2020 11:48:12 -0400
+Received: from utopia.booyaka.com ([74.50.51.50]:37698 "EHLO
+        utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2393431AbgFSPZc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2020 11:25:32 -0400
+X-Greylist: delayed 401 seconds by postgrey-1.27 at vger.kernel.org; Fri, 19 Jun 2020 11:25:32 EDT
+Received: (qmail 29577 invoked by uid 1019); 19 Jun 2020 15:18:50 -0000
+Received: from localhost (sendmail-bs@127.0.0.1)
+  by localhost with SMTP; 19 Jun 2020 15:18:50 -0000
+Date:   Fri, 19 Jun 2020 15:18:50 +0000 (UTC)
+From:   Paul Walmsley <paul@pwsan.com>
+To:     Chen Tao <chentao107@huawei.com>
+cc:     tony@atomide.com, linux@armlinux.org.uk,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ARM: OMAP2+: Fix possible memory leak in
+ omap_hwmod_allocate_module
+In-Reply-To: <20200619104240.55978-1-chentao107@huawei.com>
+Message-ID: <alpine.DEB.2.21.999.2006191518380.26224@utopia.booyaka.com>
+References: <20200619104240.55978-1-chentao107@huawei.com>
+User-Agent: Alpine 2.21.999 (DEB 260 2018-02-26)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.174.156]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Fix memory leak in omap_hwmod_allocate_module not freeing in
-handling error path.
+On Fri, 19 Jun 2020, Chen Tao wrote:
 
-Fixes: 8c87970543b17("ARM: OMAP2+: Add functions to allocate module data from device tree")
-Signed-off-by: Chen Tao <chentao107@huawei.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+> Fix memory leak in omap_hwmod_allocate_module not freeing in
+> handling error path.
+> 
+> Fixes: 8c87970543b17("ARM: OMAP2+: Add functions to allocate module data from device tree")
+> Signed-off-by: Chen Tao <chentao107@huawei.com>
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 82706af307de..d2667f28e68e 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3435,7 +3435,7 @@ static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
- 		regs = ioremap(data->module_pa,
- 			       data->module_size);
- 		if (!regs)
--			return -ENOMEM;
-+			goto out_free_sysc;
- 	}
- 
- 	/*
-@@ -3445,13 +3445,13 @@ static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
- 	if (oh->class->name && strcmp(oh->class->name, data->name)) {
- 		class = kmemdup(oh->class, sizeof(*oh->class), GFP_KERNEL);
- 		if (!class)
--			return -ENOMEM;
-+			goto out_unmap;
- 	}
- 
- 	if (list_empty(&oh->slave_ports)) {
- 		oi = kcalloc(1, sizeof(*oi), GFP_KERNEL);
- 		if (!oi)
--			return -ENOMEM;
-+			goto out_free_class;
- 
- 		/*
- 		 * Note that we assume interconnect interface clocks will be
-@@ -3478,6 +3478,14 @@ static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
- 	return 0;
-+
-+out_free_class:
-+	kfree(class);
-+out_unmap:
-+	iounmap();
-+out_free_sysc:
-+	kfree(sysc);
-+	return -ENOMEM;
- }
- 
- static const struct omap_hwmod_reset omap24xx_reset_quirks[] = {
--- 
-2.22.0
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
 
+- Paul
