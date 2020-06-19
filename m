@@ -2,160 +2,115 @@ Return-Path: <SRS0=zfJz=AA=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA706C433E0
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 07:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D545C433E1
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 09:07:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9086F207DD
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 07:56:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E872620890
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Jun 2020 09:06:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="eHZnI8Ku"
+	dkim=pass (2048-bit key) header.d=beagleboard-org.20150623.gappssmtp.com header.i=@beagleboard-org.20150623.gappssmtp.com header.b="X1XJo4xQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730880AbgFSH4K (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Jun 2020 03:56:10 -0400
-Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.51]:18240 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730725AbgFSH4H (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2020 03:56:07 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1592553364;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=18ONaUBQhht/14iks5F30BPfZhp33kyzoR1NlaCpUtw=;
-        b=eHZnI8KuNPtFLq6b8Td3hd1Q2Z87VovqOYD8HShmzhMIDw5F5mVCG0EZETdKZCH0Qx
-        h41Zssg3LPfVrFC/Ve8GYCjyvsOUR9kM+RPkX9ndAPIZ9fGkiYvgew7im+c+S+C87lH0
-        oyyM2xARfbWlaPAYfCYXwKkz6PM5xKcZGUTwxMamR/9pfaMaD+YK3RA/umEVzUhPUZt/
-        Bsj+bcJi8DTe11PW3K1W2N75l68m+6vbVwYGTXAYH3F0SJx3CB7+Jz/6te982vZE98XF
-        /jammrQI0BIBductWUUhG+UXb1PxTYFFujpBedSv+BF5dOumWZyFQK+Wa2x0+R25hNM5
-        88uw==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj5Qpw97WFDlWeXA4EzKk="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 46.10.4 DYNA|AUTH)
-        with ESMTPSA id j05c09w5J7tvSBL
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Fri, 19 Jun 2020 09:55:57 +0200 (CEST)
-Subject: Re: WL1271 on CM-T3730
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <807d19b0-842f-87b9-c9ba-dcbfd4e7b108@lysator.liu.se>
-Date:   Fri, 19 Jun 2020 09:55:57 +0200
-Cc:     linux-omap@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <AD238A83-22FC-458D-9180-F715AD6A5237@goldelico.com>
-References: <807d19b0-842f-87b9-c9ba-dcbfd4e7b108@lysator.liu.se>
-To:     Oskar Enoksson <enok@lysator.liu.se>
-X-Mailer: Apple Mail (2.3124)
+        id S1731869AbgFSJG6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 Jun 2020 05:06:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57606 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731783AbgFSJGx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2020 05:06:53 -0400
+Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ABE9C061795
+        for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2020 02:06:51 -0700 (PDT)
+Received: by mail-ej1-x644.google.com with SMTP id o15so9366186ejm.12
+        for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2020 02:06:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=beagleboard-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=5mEvzhD8ZDNfnKNW5KPSqhD16ebDefQ348OLXK7WNy4=;
+        b=X1XJo4xQqza5Gpmu5TS6+sFT/+90kfsxQwDVnSGPwQaL6hbFdH21IfK5LnIvWKmlTj
+         gaFsYadBj8FbAs0pNrTKRZlA2+66YP2SeubU9X26yVbBRXWPqGIEO4OICu2sRQ+9lY5e
+         EmZukeqFRzEyTIrBogjX7YxfkkdIGPAdOsFtIZG/LitU3ZAAJzNsjJN0pk79wYWA/Pc1
+         zGxL6jpw6nuzBg6Xo7s8ntORdfcO4qJ71Z2wnBSOYm4n3qiTtJbILegg5sR2/ArWTZpt
+         bBCGfw+hcBzTiosEQbvpF8Jo//TjbtthL0cHnwhvniO8Rva4MAeOcucbi5FK/wEdjmQN
+         sWKA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=5mEvzhD8ZDNfnKNW5KPSqhD16ebDefQ348OLXK7WNy4=;
+        b=MNohrZxnMfLxYH1M+KBvNSwY2HoZo8bul+MDQYZGiPWSLaVPFopqMdxUnD7S3Dsh12
+         cvP1FGPzxUnMFvw+y5pZ06uwcCrmgCuyooEQKoGuijVsxRliJ+bfkLRTsclyrrVc8yNH
+         qBi6Ba8wNeAgaciyQQP/IRtlXF9NF1OpGy14ukggzay4ZWszDu7bzzrKEVrtqRf7GMwg
+         YpQGQmapctdSG9/I1WeNBpEdNugKjXFzw7oc3Yn1ytfY33xk+T2u5CrkyFRB8XNgZpEm
+         33bjxmkSuxMgbCZJDJe0nzFxYk/XhNqlZzWeNgA9kc93uk0S5lQeDAWZlru4bP361nHT
+         52gQ==
+X-Gm-Message-State: AOAM533WTIbG6TSofm3CNXR8wy1Md1kOsl4vU4WcG3GPkzt0UFzxuGl9
+        QI8MdjXal76uR2JP8hXsmOM6jDj6WAzgLqsB
+X-Google-Smtp-Source: ABdhPJzO4kbHdFvwlDaJ4wJ4m/s3iIdkdw6eY8mxMyd30QFl7MlUDUx58T6KaBdKzzwhRHx6KyznLA==
+X-Received: by 2002:a17:907:35c2:: with SMTP id ap2mr2547627ejc.530.1592557609833;
+        Fri, 19 Jun 2020 02:06:49 -0700 (PDT)
+Received: from localhost.localdomain ([2001:16b8:5c68:7901:5c06:6064:338b:4004])
+        by smtp.gmail.com with ESMTPSA id dm1sm4653650ejc.99.2020.06.19.02.06.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 19 Jun 2020 02:06:48 -0700 (PDT)
+From:   Drew Fustini <drew@beagleboard.org>
+To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        devicetree@vger.kernel.org,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Jason Kridner <jkridner@beagleboard.org>,
+        Robert Nelson <robertcnelson@gmail.com>
+Cc:     Drew Fustini <drew@beagleboard.org>
+Subject: [PATCH v2 1/3] ARM: dts: change AM33XX_PADCONF macro separate conf and mux
+Date:   Fri, 19 Jun 2020 11:06:06 +0200
+Message-Id: <20200619090608.94948-2-drew@beagleboard.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200619090608.94948-1-drew@beagleboard.org>
+References: <20200619090608.94948-1-drew@beagleboard.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+AM33XX_PADCONF macro is modified to keep pin conf and pin mux separate.
 
-> Am 15.06.2020 um 23:04 schrieb Oskar Enoksson <enok@lysator.liu.se>:
->=20
-> Hello all, sorry to bother, I'm urgently in need of some help/hints.
->=20
-> I'm trying to make wifi work on an Compulab CM-T3730, an old OMAP3 =
-board with WL1271 Wifi chip connected to an mmc via SDIO.
+This requires #pinctrl-cells = 2 in am33xx-l4.dtsi
 
-I managed to boot the PandaBoard ES with v5.8-rc1 and there, the wl1271 =
-works.
+pinctrl-single.c but also be changed to support "pinctrl-single,pins"
+with 3 arguments (offset, conf, mux)
 
-So it may be an omap3 or board specific issue.
+Signed-off-by: Drew Fustini <drew@beagleboard.org>
+---
+v2 change:
+- remove outer parentheses from AM33XX_PADCONF macro as it causes a
+  compile error in dtc.  I had added it per suggestion from checkpatch
+  about having parentheses around complex values.
 
-BR,
-Nikolaus
+ include/dt-bindings/pinctrl/omap.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->=20
-> Everything works with the kernel supported by Texas Instruments 3.0.87 =
-but I need a newer kernel. There is a device tree file =
-omap3-cm-t3730.dts in the Linux mainline sourcees, but it doesn't work =
-for me, the Wifi chip is not detected on the SDIO bus. I'm using =
-mainline linux 5.6.18, but I also tried 4.14, 4.9 and 3.16 with similar =
-results.
->=20
-> What could be the problem?
->=20
-> When I boot I can see (by enabling various verbose printouts) that the =
-appropriate mmc is bound to the right driver omap_hsmmc, but no device =
-is detected on the SDIO bus. Some power pin messages look worrying but =
-maybe it's ok?:
->=20
-> [    4.584228] platform 480b4000.mmc: Retrying from deferred list
-> [    4.584808] bus: 'platform': driver_probe_device: matched device =
-480b4000.mmc with driver omap_hsmmc
-> [    4.584838] bus: 'platform': really_probe: probing driver =
-omap_hsmmc with device 480b4000.mmc
-> [    4.585083] omap_hsmmc 480b4000.mmc: no init pinctrl state
-> [    4.585144] omap_hsmmc 480b4000.mmc: no sleep pinctrl state
-> [    4.585174] omap_hsmmc 480b4000.mmc: no idle pinctrl state
-> [    4.585571] omap_hsmmc 480b4000.mmc: GPIO lookup for consumer wp
-> [    4.585571] omap_hsmmc 480b4000.mmc: using device tree for GPIO =
-lookup
-> [    4.585662] of_get_named_gpiod_flags: can't parse 'wp-gpios' =
-property of node '/ocp@68000000/mmc@480b4000[0]'
-> [    4.585723] of_get_named_gpiod_flags: can't parse 'wp-gpio' =
-property of node '/ocp@68000000/mmc@480b4000[0]'
-> [    4.585754] omap_hsmmc 480b4000.mmc: using lookup tables for GPIO =
-lookup
-> [    4.585784] omap_hsmmc 480b4000.mmc: No GPIO consumer wp found
-> [    4.586669] omap_hsmmc 480b4000.mmc: Looking up vmmc-supply from =
-device tree
-> [    4.587097] devices_kset: Moving 480b4000.mmc to end of list
-> [    4.587127] omap_hsmmc 480b4000.mmc: Linked as a consumer to =
-regulator.9
-> [    4.587158] omap_hsmmc 480b4000.mmc: Looking up vqmmc-supply from =
-device tree
-> [    4.587615] devices_kset: Moving 480b4000.mmc to end of list
-> [    4.587646] omap_hsmmc 480b4000.mmc: Linked as a consumer to =
-regulator.6
-> [    4.587677] omap_hsmmc 480b4000.mmc: Looking up pbias-supply from =
-device tree
-> [    4.587738] omap_hsmmc 480b4000.mmc: Looking up pbias-supply =
-property in node /ocp@68000000/mmc@480b4000 failed
-> [    4.587860] device: 'mmc1': device_add
-> [    4.613861] driver: 'omap_hsmmc': driver_bound: bound to device =
-'480b4000.mmc'
-> [    4.614105] bus: 'platform': really_probe: bound device =
-480b4000.mmc to driver omap_hsmmc
->=20
->=20
->=20
-> When I manually modprobe wlcore, then wlcore_sdio, then wl12xx, dmesg =
-shows:
->=20
-> [   49.467132] device class 'rfkill': registering
-> [   49.467376] device: 'rfkill': device_add
-> [   50.070983] device class 'ieee80211': registering
-> [   50.072143] Registering platform device 'regulatory.0'. Parent at =
-platform
-> [   50.072174] device: 'regulatory.0': device_add
-> [   50.072235] bus: 'platform': add device regulatory.0
-> [   50.072906] cfg80211: Loading compiled-in X.509 certificates for =
-regulatory database
-> [   50.173675] cfg80211: Loaded X.509 cert 'sforshee: =
-00b28ddf47aef9cea7'
-> [   54.470794] bus: 'sdio': add driver wl1271_sdio
-> [   59.017272] bus: 'platform': add driver wl12xx_driver
->=20
->=20
->=20
-> Still, no wlan0 interface visible with "ifconfig -a"
->=20
-> Is something wrong/missing in the devicetree? cap-sdio-irq? =
-mmc-pwrseq? Or is the pin configuration in the device tree wrong? Did =
-anyone ever try the device tree on a board with wl1271 wifi (it is =
-optional)? I don't even have a schematic so I can't double check the =
-pins.
->=20
-> Hints much appreciated!! Device tree file is attached (from mainline =
-kernel 5.6.18)
-> <omap3-cm-t3730.dts>
+diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
+index 625718042413..2d2a8c737822 100644
+--- a/include/dt-bindings/pinctrl/omap.h
++++ b/include/dt-bindings/pinctrl/omap.h
+@@ -65,7 +65,7 @@
+ #define DM814X_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define DM816X_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define AM33XX_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+-#define AM33XX_PADCONF(pa, dir, mux)	OMAP_IOPAD_OFFSET((pa), 0x0800) ((dir) | (mux))
++#define AM33XX_PADCONF(pa, conf, mux)	OMAP_IOPAD_OFFSET((pa), 0x0800) (conf) (mux)
+ 
+ /*
+  * Macros to allow using the offset from the padconf physical address
+-- 
+2.25.1
 
