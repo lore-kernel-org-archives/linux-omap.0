@@ -2,113 +2,115 @@ Return-Path: <SRS0=AUL9=AE=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E95FC433DF
-	for <linux-omap@archiver.kernel.org>; Tue, 23 Jun 2020 06:42:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BCECC433E1
+	for <linux-omap@archiver.kernel.org>; Tue, 23 Jun 2020 08:52:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E5BD20738
-	for <linux-omap@archiver.kernel.org>; Tue, 23 Jun 2020 06:42:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="foRDt1RJ"
+	by mail.kernel.org (Postfix) with ESMTP id 76D1120791
+	for <linux-omap@archiver.kernel.org>; Tue, 23 Jun 2020 08:52:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730540AbgFWGmD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 23 Jun 2020 02:42:03 -0400
-Received: from m43-7.mailgun.net ([69.72.43.7]:29072 "EHLO m43-7.mailgun.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730728AbgFWGmD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 23 Jun 2020 02:42:03 -0400
-DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
- s=smtp; t=1592894522; h=Content-Type: MIME-Version: Message-ID:
- In-Reply-To: Date: References: Subject: Cc: To: From: Sender;
- bh=N4/GpdSXrdvWiK6U8fh1EZiXdjYys4Gz3YS+KkT6+54=; b=foRDt1RJxuRv779+PXVe33J8vViNTIOy91hWv3nC64cZgQ4xZ9Y3xmr7b0a/CMUBbaBiXYTt
- eXp+AeuBGoKEvKT4ebMYbdUVewpDoj48BU8yVwo3grRQG9B83uGtoMvcZAYSN7oaxj/YKkZb
- QrYjXt+wz9GBXp/iGaqHDhX0VGE=
-X-Mailgun-Sending-Ip: 69.72.43.7
-X-Mailgun-Sid: WyIwZGJlNiIsICJsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZyIsICJiZTllNGEiXQ==
-Received: from smtp.codeaurora.org
- (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171]) by
- smtp-out-n16.prod.us-east-1.postgun.com with SMTP id
- 5ef1a439567385e8e7bdcdb6 (version=TLS1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Tue, 23 Jun 2020 06:42:01
- GMT
-Received: by smtp.codeaurora.org (Postfix, from userid 1001)
-        id 47C64C433C6; Tue, 23 Jun 2020 06:42:00 +0000 (UTC)
-Received: from potku.adurom.net (88-114-240-156.elisa-laajakaista.fi [88.114.240.156])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: kvalo)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 7F4F1C433C8;
-        Tue, 23 Jun 2020 06:41:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org 7F4F1C433C8
-Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
-Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; spf=none smtp.mailfrom=kvalo@codeaurora.org
-From:   Kalle Valo <kvalo@codeaurora.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Eyal Reizer <eyalr@ti.com>, Guy Mishol <guym@ti.com>,
-        linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/4] wlcore: Use spin_trylock in wlcore_irq_locked() for running the queue
-References: <20200617212505.62519-1-tony@atomide.com>
-        <20200617212505.62519-2-tony@atomide.com>
-        <875zbjgpbj.fsf@codeaurora.org> <20200622160628.GL37466@atomide.com>
-Date:   Tue, 23 Jun 2020 09:41:56 +0300
-In-Reply-To: <20200622160628.GL37466@atomide.com> (Tony Lindgren's message of
-        "Mon, 22 Jun 2020 09:06:28 -0700")
-Message-ID: <87wo3ye11n.fsf@codeaurora.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/24.5 (gnu/linux)
-MIME-Version: 1.0
-Content-Type: text/plain
+        id S1731849AbgFWIwW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 23 Jun 2020 04:52:22 -0400
+Received: from mail.loongson.cn ([114.242.206.163]:41228 "EHLO loongson.cn"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731691AbgFWIwV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 23 Jun 2020 04:52:21 -0400
+Received: from linux.localdomain (unknown [113.200.148.30])
+        by mail.loongson.cn (Coremail) with SMTP id AQAAf9Dxv2uFwvFecLBIAA--.12S6;
+        Tue, 23 Jun 2020 16:51:26 +0800 (CST)
+From:   Tiezhu Yang <yangtiezhu@loongson.cn>
+To:     Thomas Gleixner <tglx@linutronix.de>,
+        Jason Cooper <jason@lakedaemon.net>,
+        Marc Zyngier <maz@kernel.org>, Rob Herring <robh+dt@kernel.org>
+Cc:     Guo Ren <guoren@kernel.org>, Baruch Siach <baruch@tkos.co.il>,
+        Huacai Chen <chenhc@lemote.com>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mips@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-riscv@lists.infradead.org, linux-samsung-soc@vger.kernel.org,
+        Xuefeng Li <lixuefeng@loongson.cn>
+Subject: [PATCH 4/7] irqchip/loongson-pch-pic: Check return value of irq_domain_translate_twocell()
+Date:   Tue, 23 Jun 2020 16:51:13 +0800
+Message-Id: <1592902276-3969-5-git-send-email-yangtiezhu@loongson.cn>
+X-Mailer: git-send-email 2.1.0
+In-Reply-To: <1592902276-3969-1-git-send-email-yangtiezhu@loongson.cn>
+References: <1592902276-3969-1-git-send-email-yangtiezhu@loongson.cn>
+X-CM-TRANSID: AQAAf9Dxv2uFwvFecLBIAA--.12S6
+X-Coremail-Antispam: 1UD129KBjvJXoW7tF17JrW8tFWkAr1fXrW5Jrb_yoW8Xw1DpF
+        4UAwnFqr4DJFyUZw1xCws5Xry3Jw1ftFW7tayfKas3WrZ5J34qkF1UuFn5ur1rAF45JFy7
+        Zrs8KFWUuF13AFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUUPa14x267AKxVWrJVCq3wAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+        rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2048vs2IY020E87I2jVAFwI0_JF0E3s1l82xGYI
+        kIc2x26xkF7I0E14v26ryj6s0DM28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8wA2
+        z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr1j6F
+        4UJwA2z4x0Y4vEx4A2jsIE14v26F4UJVW0owA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE
+        3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2I
+        x0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJVW8
+        JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2
+        ka0xkIwI1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG
+        67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6rW5MI
+        IYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E
+        14v26r4UJVWxJr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r
+        4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJbIYCTnIWIevJa73UjIFyTuYvjfU
+        eXd1UUUUU
+X-CM-SenderInfo: p1dqw3xlh2x3gn0dqz5rrqw2lrqou0/
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Check the return value of irq_domain_translate_twocell() due to
+it may returns -EINVAL if failed and use variable fwspec for it,
+and then use a new variable parent_fwspec which is proper for
+irq_domain_alloc_irqs_parent().
 
-> * Kalle Valo <kvalo@codeaurora.org> [200622 14:15]:
->> Tony Lindgren <tony@atomide.com> writes:
->> 
->> > We need the spinlock to check if we need to run the queue. Let's use
->> > spin_trylock instead and always run the queue unless we know there's
->> > nothing to do.
->> 
->> Why? What's the problem you are solving here?
->
-> To simplify the flags and locking use between the threaded irq
-> and tx work.
->
-> While chasing an occasional hang with an idle wlan doing just a
-> periodic network scans, I noticed we can start simplifying the
-> locking between the threaded irq and tx work for the driver.
->
-> No luck so far figuring out what the occasional idle wlan hang is,
-> but I suspect we end up somewhere in a deadlock between tx work
-> and the threaded irq.
->
-> We currently have a collection of flags and locking between the
-> threaded irq and tx work:
->
-> - wl->flags bitops
-> - wl->mutex
-> - wl->wl_lock spinlock
->
-> The bitops flags do not need a spinlock around them, and
-> wlcore_irq() already holds the mutex calling wlcore_irq_locked().
-> And we only need the spinlock to see if we need to run the queue
-> or not.
->
-> So I think eventually we can remove most of the spinlock use in
-> favor of the mutex. I guess I could leave out the trylock changes
-> here if this is too many changes at once.
->
-> Or do you see some problem in general with this approach?
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+---
+ drivers/irqchip/irq-loongson-pch-pic.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-My only problem was lack of background information in the commit logs.
-Conditional locking is tricky and I didn't figure out why you are doing
-that and why it's safe to do. So if you could send v2 with the
-information above in the commit log I would be happy.
-
+diff --git a/drivers/irqchip/irq-loongson-pch-pic.c b/drivers/irqchip/irq-loongson-pch-pic.c
+index 2a05b93..016f32c 100644
+--- a/drivers/irqchip/irq-loongson-pch-pic.c
++++ b/drivers/irqchip/irq-loongson-pch-pic.c
+@@ -135,16 +135,19 @@ static int pch_pic_alloc(struct irq_domain *domain, unsigned int virq,
+ 	int err;
+ 	unsigned int type;
+ 	unsigned long hwirq;
+-	struct irq_fwspec fwspec;
++	struct irq_fwspec *fwspec = arg;
++	struct irq_fwspec parent_fwspec;
+ 	struct pch_pic *priv = domain->host_data;
+ 
+-	irq_domain_translate_twocell(domain, arg, &hwirq, &type);
++	err = irq_domain_translate_twocell(domain, fwspec, &hwirq, &type);
++	if (err)
++		return err;
+ 
+-	fwspec.fwnode = domain->parent->fwnode;
+-	fwspec.param_count = 1;
+-	fwspec.param[0] = hwirq + priv->ht_vec_base;
++	parent_fwspec.fwnode = domain->parent->fwnode;
++	parent_fwspec.param_count = 1;
++	parent_fwspec.param[0] = hwirq + priv->ht_vec_base;
+ 
+-	err = irq_domain_alloc_irqs_parent(domain, virq, 1, &fwspec);
++	err = irq_domain_alloc_irqs_parent(domain, virq, 1, &parent_fwspec);
+ 	if (err)
+ 		return err;
+ 
 -- 
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+2.1.0
+
