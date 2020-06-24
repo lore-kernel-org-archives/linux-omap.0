@@ -2,109 +2,186 @@ Return-Path: <SRS0=cAhh=AF=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1CCAC433DF
-	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 15:08:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD1CDC433E0
+	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 20:01:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A32B5206C0
-	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 15:08:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Dbjw8KGX"
+	by mail.kernel.org (Postfix) with ESMTP id B8388206C0
+	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 20:01:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404433AbgFXPID (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 24 Jun 2020 11:08:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56406 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390970AbgFXPHO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2020 11:07:14 -0400
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36BFAC061795
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2020 08:07:14 -0700 (PDT)
-Received: by mail-wm1-x342.google.com with SMTP id f18so2862182wml.3
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2020 08:07:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=g3Z/1Sd7KiUmvxa4jor9PLam8Q3K0QVIvvAftZ1YelI=;
-        b=Dbjw8KGXNnJR4/Cv9UY5wql6tvwgAVUE3t+Ql2V7uqKucZ/2lLic1lPgg7arybg/Zv
-         BPvQSpSjk+WFFTm6Ryjn5CCh5S44hDzHQealupKltEpkDgvluJwY4Vyyh1+bDYHsLFvR
-         XxeB3/USF+YNB0BiW+2J7WhBAPKe9YtuzvMBzMUN5NaIjjygKhjsdMOwmU1NEwTHTPVk
-         0Jo2DMHgKs557saxVmYCP4vImoVwz7KcSk9WdMgBLHj74Kyjb9GIOtjBuAtNQ9VIRtoD
-         V8K7Mx1uw2+Lt9rme1GVEtyg99f/y8opZ4jln0sKsUb/oiikPgu5OzLfhFqUCfbTBiNF
-         3qIg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=g3Z/1Sd7KiUmvxa4jor9PLam8Q3K0QVIvvAftZ1YelI=;
-        b=qsOz7V03lyYkxdIJl1cj7I73MZICSKfMBnLeXRprvouU3RRR+pNW0wqwskT8nbKCPP
-         zFJUg87niM9yKTVDUs0p0J0ZtkEs/snpRWlnJTcVKFLsct5JMbsOxXHQ0fRvHe1JNB6n
-         fngNIBVn+kstOGucW/ZZD5ny/s0WqFI9zF0tsQ1mngn6MPJJceU6qiH3n/tLTk91QOIR
-         EWowKxYG0uNPKwlMSDW6xIlBkMlZWMXZdVNRLmEQqAWtcN5AHhr8oGOynFnVDOWxjQaX
-         R/LuVh78LnkQzzb+Z6AUIo5tNvtuxu7HEJOPWGSAqM+EZavRATYt7Y0lfV79eH1mR464
-         cAzQ==
-X-Gm-Message-State: AOAM530MLFlvJMf8Gw7enprDJPC3CVGhLwFr1p/VZ92j+BKlsDVaUnYs
-        awTpuAog9AIhqy1/c7+aWlo9dQ==
-X-Google-Smtp-Source: ABdhPJzVLUwK2s/MOqSCAQcZkXnN+fggMvRKgafQCLwEIMyGzj3cCIhqWF3b0Km0Am8CCXEcMFz0HQ==
-X-Received: by 2002:a1c:4e1a:: with SMTP id g26mr29750762wmh.148.1593011232892;
-        Wed, 24 Jun 2020 08:07:12 -0700 (PDT)
-Received: from localhost.localdomain ([2.27.35.144])
-        by smtp.gmail.com with ESMTPSA id h14sm11543361wrt.36.2020.06.24.08.07.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Jun 2020 08:07:12 -0700 (PDT)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     lee.jones@linaro.org
-Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-        Kai Svahn <kai.svahn@nokia.com>, Syed Khasim <x0khasim@ti.com>,
-        linux-omap@vger.kernel.org
-Subject: [PATCH 01/10] mfd: twl4030-irq: Fix incorrect type in assignment warning
-Date:   Wed, 24 Jun 2020 16:06:55 +0100
-Message-Id: <20200624150704.2729736-2-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200624150704.2729736-1-lee.jones@linaro.org>
-References: <20200624150704.2729736-1-lee.jones@linaro.org>
+        id S2406262AbgFXUB6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 24 Jun 2020 16:01:58 -0400
+Received: from mga07.intel.com ([134.134.136.100]:41341 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2406182AbgFXUB5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 24 Jun 2020 16:01:57 -0400
+IronPort-SDR: f0pBm9Z5rNdZh1bgU45tbTcNTfl+q2p2VnVhi15K2jURfahLMiy1aPex4zjA1Pp9FJ1gRhYudK
+ s+do286uOLoQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9662"; a="209755404"
+X-IronPort-AV: E=Sophos;i="5.75,276,1589266800"; 
+   d="scan'208";a="209755404"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2020 13:01:53 -0700
+IronPort-SDR: 0tUeZFmvzZCuKLyxiaqDwhhGxdOqLoVvlUoib0WydBPMo8Mai5bbE0D+499sZx0h415+KYi4UG
+ fJYXH8MRgY9w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,276,1589266800"; 
+   d="scan'208";a="423487632"
+Received: from lkp-server01.sh.intel.com (HELO 538b5e3c8319) ([10.239.97.150])
+  by orsmga004.jf.intel.com with ESMTP; 24 Jun 2020 13:01:52 -0700
+Received: from kbuild by 538b5e3c8319 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1joBah-00017Y-KL; Wed, 24 Jun 2020 20:01:51 +0000
+Date:   Thu, 25 Jun 2020 04:01:29 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Felipe Balbi <balbi@kernel.org>
+Cc:     linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: [balbi-usb:testing/fixes] BUILD SUCCESS
+ cd37c6976f6a5b681a900e74ff9d15062855bf87
+Message-ID: <5ef3b119.Cio7Rer3DHlT5KOz%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Silences Sparse warning:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/fixes
+branch HEAD: cd37c6976f6a5b681a900e74ff9d15062855bf87  Revert "usb: dwc3: exynos: Add support for Exynos5422 suspend clk"
 
- drivers/mfd/twl4030-irq.c:485:26: warning: incorrect type in assignment (different base types)
- drivers/mfd/twl4030-irq.c:485:26:    expected unsigned int [usertype] word
- drivers/mfd/twl4030-irq.c:485:26:    got restricted __le32 [usertype]
+elapsed time: 723m
 
-Cc: <stable@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kai Svahn <kai.svahn@nokia.com>
-Cc: Syed Khasim <x0khasim@ti.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
+configs tested: 117
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+arm                                 defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+arm                               allnoconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm64                            allmodconfig
+arm64                             allnoconfig
+m68k                       m5208evb_defconfig
+sh                         microdev_defconfig
+arm                       cns3420vb_defconfig
+arc                            hsdk_defconfig
+m68k                        m5272c3_defconfig
+sh                           se7712_defconfig
+arm                   milbeaut_m10v_defconfig
+sparc64                          alldefconfig
+mips                   sb1250_swarm_defconfig
+powerpc                 mpc8272_ads_defconfig
+m68k                        mvme16x_defconfig
+csky                             allyesconfig
+sh                            shmin_defconfig
+sh                           sh2007_defconfig
+sh                        edosk7705_defconfig
+mips                        omega2p_defconfig
+arm                      footbridge_defconfig
+xtensa                       common_defconfig
+arm                          pxa910_defconfig
+mips                 decstation_r4k_defconfig
+i386                              allnoconfig
+i386                             allyesconfig
+i386                                defconfig
+i386                              debian-10.3
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                              allnoconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                              allnoconfig
+m68k                           sun3_defconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+nios2                            allyesconfig
+openrisc                            defconfig
+c6x                              allyesconfig
+c6x                               allnoconfig
+openrisc                         allyesconfig
+nds32                               defconfig
+nds32                             allnoconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+h8300                            allmodconfig
+xtensa                              defconfig
+arc                                 defconfig
+arc                              allyesconfig
+sh                               allmodconfig
+sh                                allnoconfig
+microblaze                        allnoconfig
+mips                             allyesconfig
+mips                              allnoconfig
+mips                             allmodconfig
+parisc                            allnoconfig
+parisc                              defconfig
+parisc                           allyesconfig
+parisc                           allmodconfig
+powerpc                             defconfig
+powerpc                          allyesconfig
+powerpc                          rhel-kconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a002-20200624
+i386                 randconfig-a006-20200624
+i386                 randconfig-a003-20200624
+i386                 randconfig-a001-20200624
+i386                 randconfig-a005-20200624
+i386                 randconfig-a004-20200624
+x86_64               randconfig-a004-20200624
+x86_64               randconfig-a002-20200624
+x86_64               randconfig-a003-20200624
+x86_64               randconfig-a005-20200624
+x86_64               randconfig-a001-20200624
+x86_64               randconfig-a006-20200624
+i386                 randconfig-a013-20200624
+i386                 randconfig-a016-20200624
+i386                 randconfig-a012-20200624
+i386                 randconfig-a014-20200624
+i386                 randconfig-a011-20200624
+i386                 randconfig-a015-20200624
+riscv                            allyesconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                            allmodconfig
+s390                             allyesconfig
+s390                              allnoconfig
+s390                             allmodconfig
+s390                                defconfig
+sparc                            allyesconfig
+sparc                               defconfig
+sparc64                             defconfig
+sparc64                           allnoconfig
+sparc64                          allyesconfig
+sparc64                          allmodconfig
+um                                allnoconfig
+um                               allyesconfig
+um                                  defconfig
+um                               allmodconfig
+x86_64                               rhel-7.6
+x86_64                    rhel-7.6-kselftests
+x86_64                               rhel-8.3
+x86_64                                  kexec
+x86_64                                   rhel
+x86_64                         rhel-7.2-clear
+x86_64                                    lkp
+x86_64                              fedora-25
+
 ---
- drivers/mfd/twl4030-irq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index 910a304b397ce..d05bc74daba32 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -477,7 +477,7 @@ static void twl4030_sih_bus_sync_unlock(struct irq_data *data)
- 
- 	if (agent->imr_change_pending) {
- 		union {
--			u32	word;
-+			__le32	word;
- 			u8	bytes[4];
- 		} imr;
- 
--- 
-2.25.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
