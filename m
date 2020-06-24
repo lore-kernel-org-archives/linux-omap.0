@@ -2,115 +2,112 @@ Return-Path: <SRS0=cAhh=AF=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05922C433E1
-	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 09:24:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36BA1C433E0
+	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 15:07:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E40352088E
-	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 09:24:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C60C206A5
+	for <linux-omap@archiver.kernel.org>; Wed, 24 Jun 2020 15:07:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="ZHnjSn2W"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388368AbgFXJYx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 24 Jun 2020 05:24:53 -0400
-Received: from mail.loongson.cn ([114.242.206.163]:34264 "EHLO loongson.cn"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728637AbgFXJYx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 24 Jun 2020 05:24:53 -0400
-Received: from [10.130.0.52] (unknown [113.200.148.30])
-        by mail.loongson.cn (Coremail) with SMTP id AQAAf9Dxn97KG_NesDFJAA--.736S3;
-        Wed, 24 Jun 2020 17:24:29 +0800 (CST)
-Subject: Re: [PATCH 1/7] irqchip: Fix potential resource leaks
-To:     Krzysztof Kozlowski <krzk@kernel.org>
-References: <1592902276-3969-1-git-send-email-yangtiezhu@loongson.cn>
- <1592902276-3969-2-git-send-email-yangtiezhu@loongson.cn>
- <CAJKOXPc9QuDp+FEogVamf7x+4JEUw78MSKqSPFpRcyTYZ7HSMA@mail.gmail.com>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        Jason Cooper <jason@lakedaemon.net>,
-        Marc Zyngier <maz@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Baruch Siach <baruch@tkos.co.il>,
-        Huacai Chen <chenhc@lemote.com>,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Kukjin Kim <kgene@kernel.org>,
-        Michal Simek <michal.simek@xilinx.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        devicetree@vger.kernel.org, linux-csky@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-riscv@lists.infradead.org,
-        "linux-samsung-soc@vger.kernel.org" 
-        <linux-samsung-soc@vger.kernel.org>,
-        Xuefeng Li <lixuefeng@loongson.cn>
-From:   Tiezhu Yang <yangtiezhu@loongson.cn>
-Message-ID: <678f8927-3560-e55b-956f-3e197c7e3244@loongson.cn>
-Date:   Wed, 24 Jun 2020 17:24:26 +0800
-User-Agent: Mozilla/5.0 (X11; Linux mips64; rv:45.0) Gecko/20100101
- Thunderbird/45.4.0
+        id S2404158AbgFXPHR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 24 Jun 2020 11:07:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56414 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404132AbgFXPHQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2020 11:07:16 -0400
+Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FCA8C061573
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2020 08:07:15 -0700 (PDT)
+Received: by mail-wm1-x341.google.com with SMTP id 17so2872973wmo.1
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2020 08:07:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=gtJAcvpHkuLRDrUsq1eY3z1bY+z7q8TiiXjibqyd6Ck=;
+        b=ZHnjSn2WorVvPlhnsW05PjkW49hRNPgq84FENEFtuoQWoLFoS5Koxe/dFywbKRMHXL
+         3TdXrKvSsAttDlfRMZtJGsuGsj/a+hJcx94EmcpOadjkOkkb+KaWqiOYgNy6L6Yx11WO
+         +baxZJlc03ZWuHtQboIEUm9C0m3an2F/wAOR3zMqIO+0e0yZcoFn/dKH/AZytJKBvXIf
+         kasqyP3fjB5JUNwQho/QWyRHJ3YJOyhWE3+Oe40vlAuTWYeoqbw7Ezbto0uUymTcO6fp
+         rAU9JBU5tdSYDQHnIyQdY1pyBRF0zOeb8P/DzpPmVAGVbd1L9Mlm8deCmJcpHyEmu7Vk
+         irqQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=gtJAcvpHkuLRDrUsq1eY3z1bY+z7q8TiiXjibqyd6Ck=;
+        b=qU/eeedyQOkPKq2uNzPSsY/J4HYzg8xv4+IPFg9X3OoSOWtbFsUbLm5RoJijfpTqoa
+         gDhNprSSbFzRRRq3ezrw/o5T54MRI3o2LYxsHp8mL1doNDWKKxiRIubodl/xvqxuY55W
+         nwve58JE7yX4zagQdlaUpLIyz2IQmHmFHzpU+0a5bfZ6AiAdUv5dObxOse3tGK0h8RMX
+         mtvIMz3opC36cXfWdIRqUnd1CX8YmRwoldzBZ3fxMeiGZS6aAgHx+uYl0Q1+P9nb2Rb4
+         rJqfSuHLWpKHf4Sn6VyY/HPExaforaRQ1vZwq36pC05xk99ONBNeUm4y1OBzftLkNJE9
+         CZlQ==
+X-Gm-Message-State: AOAM533IothjRqnrhxjfGiTbz3GMTELc4EhyM0xQQrks9mUDQNht4CUV
+        adwOehHKxzsAnqLrwj6fP4GcmQ==
+X-Google-Smtp-Source: ABdhPJxagKb1wXFKsg3BjteSAxqyibenBVKBU8QYTY4DNUpO9PPoz2ukw2LgHjBi8SkOZzRYlyySUA==
+X-Received: by 2002:a1c:e303:: with SMTP id a3mr12187899wmh.26.1593011234076;
+        Wed, 24 Jun 2020 08:07:14 -0700 (PDT)
+Received: from localhost.localdomain ([2.27.35.144])
+        by smtp.gmail.com with ESMTPSA id h14sm11543361wrt.36.2020.06.24.08.07.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Jun 2020 08:07:13 -0700 (PDT)
+From:   Lee Jones <lee.jones@linaro.org>
+To:     lee.jones@linaro.org
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+        Kai Svahn <kai.svahn@nokia.com>, Syed Khasim <x0khasim@ti.com>,
+        linux-omap@vger.kernel.org
+Subject: [PATCH 02/10] mfd: twl4030-irq: Fix cast to restricted __le32 warning
+Date:   Wed, 24 Jun 2020 16:06:56 +0100
+Message-Id: <20200624150704.2729736-3-lee.jones@linaro.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200624150704.2729736-1-lee.jones@linaro.org>
+References: <20200624150704.2729736-1-lee.jones@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <CAJKOXPc9QuDp+FEogVamf7x+4JEUw78MSKqSPFpRcyTYZ7HSMA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-CM-TRANSID: AQAAf9Dxn97KG_NesDFJAA--.736S3
-X-Coremail-Antispam: 1UD129KBjvJXoW7AF4UtF18Zr1UKw1fGw4fAFb_yoW8XF4kpF
-        4UJ39IvrWrCFW2kr43Cr1jyFy5Jwn3tay7K3yxA3sxXr98W3srGF4UA34kXrn7GryfGw12
-        9F4rXa45G3W5CFUanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDU0xBIdaVrnRJUUUB214x267AKxVW5JVWrJwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-        rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-        1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-        JVWxJr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv6xkF7I0E14v26r
-        xl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj
-        6xIIjxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWxJVW8Jr1lOx8S6xCaFVCjc4AY6r
-        1j6r4UM4x0Y48IcVAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628v
-        n2kIc2xKxwCYjI0SjxkI62AI1cAE67vIY487MxkIecxEwVAFwVW8uwCF04k20xvY0x0EwI
-        xGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480
-        Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_GFv_WrylIxkGc2Ij64vIr41lIxAIcVC0I7
-        IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k2
-        6cxKx2IYs7xG6rWUJVWrZr1UMIIF0xvEx4A2jsIE14v26r4UJVWxJr1lIxAIcVC2z280aV
-        CY1x0267AKxVW0oVCq3bIYCTnIWIevJa73UjIFyTuYvjfUOqXHDUUUU
-X-CM-SenderInfo: p1dqw3xlh2x3gn0dqz5rrqw2lrqou0/
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 06/24/2020 05:15 PM, Krzysztof Kozlowski wrote:
-> On Tue, 23 Jun 2020 at 10:51, Tiezhu Yang <yangtiezhu@loongson.cn> wrote:
->> There exists some potential resource leaks in the error path, fix them.
-> This should be split per driver and per bug (although mostly in driver
-> it's just one bug). Otherwise it is difficult to review, backport and
-> revert.
+Silences Sparse warning(s):
 
-Thanks for your suggestion, I have split it into a patch series [1],
-I will resend it some days later due to git send-email always failed.
+ drivers/mfd/twl4030-irq.c:573:40: warning: cast to restricted __le32
+ drivers/mfd/twl4030-irq.c:573:40: warning: cast to restricted __le32
+ drivers/mfd/twl4030-irq.c:573:40: warning: cast to restricted __le32
+ drivers/mfd/twl4030-irq.c:573:40: warning: cast to restricted __le32
+ drivers/mfd/twl4030-irq.c:573:40: warning: cast to restricted __le32
+ drivers/mfd/twl4030-irq.c:573:40: warning: cast to restricted __le32
 
-[1] https://lore.kernel.org/patchwork/cover/1263192/
+Cc: <stable@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kai Svahn <kai.svahn@nokia.com>
+Cc: Syed Khasim <x0khasim@ti.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/mfd/twl4030-irq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->
-> Best regards,
-> Krzysztof
->
->
->> Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
->> ---
->>   drivers/irqchip/irq-ath79-misc.c      |  3 +++
->>   drivers/irqchip/irq-csky-apb-intc.c   |  3 +++
->>   drivers/irqchip/irq-csky-mpintc.c     | 26 ++++++++++++++++++++------
->>   drivers/irqchip/irq-davinci-aintc.c   | 17 +++++++++++++----
->>   drivers/irqchip/irq-davinci-cp-intc.c | 17 ++++++++++++++---
->>   drivers/irqchip/irq-digicolor.c       |  4 ++++
->>   drivers/irqchip/irq-dw-apb-ictl.c     | 11 ++++++++---
->>   drivers/irqchip/irq-loongson-htvec.c  |  5 ++++-
->>   drivers/irqchip/irq-ls1x.c            |  4 +++-
->>   drivers/irqchip/irq-mscc-ocelot.c     |  6 ++++--
->>   drivers/irqchip/irq-nvic.c            |  2 ++
->>   drivers/irqchip/irq-omap-intc.c       |  4 +++-
->>   drivers/irqchip/irq-riscv-intc.c      |  1 +
->>   drivers/irqchip/irq-s3c24xx.c         | 20 +++++++++++++++-----
->>   drivers/irqchip/irq-xilinx-intc.c     |  1 +
->>   15 files changed, 98 insertions(+), 26 deletions(-)
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index d05bc74daba32..ab417438d1faa 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -561,7 +561,7 @@ static inline int sih_read_isr(const struct sih *sih)
+ 	int status;
+ 	union {
+ 		u8 bytes[4];
+-		u32 word;
++		__le32 word;
+ 	} isr;
+ 
+ 	/* FIXME need retry-on-error ... */
+-- 
+2.25.1
 
