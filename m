@@ -2,73 +2,66 @@ Return-Path: <SRS0=t7Cz=AG=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E95D2C433E0
-	for <linux-omap@archiver.kernel.org>; Thu, 25 Jun 2020 06:47:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29292C433E0
+	for <linux-omap@archiver.kernel.org>; Thu, 25 Jun 2020 12:43:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C592120773
-	for <linux-omap@archiver.kernel.org>; Thu, 25 Jun 2020 06:47:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="pGhwHR37"
+	by mail.kernel.org (Postfix) with ESMTP id 009842072E
+	for <linux-omap@archiver.kernel.org>; Thu, 25 Jun 2020 12:43:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1593089001;
+	bh=L8fU5fAz7pCpg4HnWH2xhwqLiRr2Tw/EYLrtbhRzhMk=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=TOCEJg/BoIlz8ZCaDoZgJMe4xkStKUbDyikyfvEglkaqNex4/ePvg8leQLioHtHhi
+	 LLW1IiL3phqSyTObMFcQkMKnvddgQ65hsRSwxQtnAZeeMpe9cIOXmLg4g9JURhbj1H
+	 EkbrO3r5jRgo5bRRClx3igefBoMIX2fRJmJ0FOH8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389501AbgFYGrK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 25 Jun 2020 02:47:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60154 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390159AbgFYGqe (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2020 02:46:34 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C8B0C061799
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2020 23:46:34 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id b6so4579158wrs.11
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2020 23:46:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=+TE9kOk1Eo+Xge5t3lOhgSjVuYsSynXXEjCl45jZ/BE=;
-        b=pGhwHR37tt09Kl/bFu1zOX6lNU6Dnj8LyCDuRPVubE+Z3M1gSrffbY1VbW9qfSaXiE
-         CNdyWz9lJ0fYj2v5+22h8s0YXCpzND9580Dayad1kycUDReg+D/IhrDU/NO5omUJyCSS
-         xU0riBAU+Vh4SJ/wHhIK/ZIpZTtQ5Onz2zI56sZxmVNSSRIV4b4DZ8c9HqWT7dlLN5sz
-         Y7Aq86j9bH3VV4sB9SdCoQ8+MSmCO8TU6TZDLq8+hT02COCOq7IXFrO0ZftW8FWes2gN
-         zulTt3y1vQ7kc9cNSnHlyPIHjPzBedtVnrUfpSSW0Y0qv6ls8pctACHJYSlHtWv6s8iz
-         bjvA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=+TE9kOk1Eo+Xge5t3lOhgSjVuYsSynXXEjCl45jZ/BE=;
-        b=KCesVQ/Ug5iVpimlpgoxaq38sAI18tjP7YZ7GsP8Zeda6S+nZ+m9ELr0rllgN/JWxG
-         /4+qbOnjWG4X10ALgaJZR0qEuEKL2MRSTjFPvOCyT/h2V8ECVQ6u6RxbvyBcOGhwrAQe
-         iKYZahbYVQZsp9PEhb/t/xRnjKM1Jzd7BCdu76HugG2D1SSenazCHmOzXxvLCOdYLUO5
-         uEyYqs2puSEB0fvMwMYgPGR5ixWL1Q0nhZt3gcFhvmUlMBJpOFX0viCADKCF6hFkQOMk
-         Mep/orP8aE1JG4WJj2FwpoXLmFABougdzaZkn9YltbHMofOGjmJv4neEUsXXuiSpLFjc
-         T0OQ==
-X-Gm-Message-State: AOAM531TurvunDP3kzkl+YbVUaNF7uHuD3DEGOzkj833UlpdrXYEAiDQ
-        hu0xvFKg/ndnHM83RqjBF2TFPA==
-X-Google-Smtp-Source: ABdhPJytxUMgGBVPUzM3IOR72zdB3gVcybqT84W3fTE4JkO2L+7Fo++7itDizMNwfNXl2gA3TPz5/A==
-X-Received: by 2002:adf:e749:: with SMTP id c9mr37817613wrn.25.1593067592886;
-        Wed, 24 Jun 2020 23:46:32 -0700 (PDT)
-Received: from localhost.localdomain ([2.27.35.144])
-        by smtp.gmail.com with ESMTPSA id c20sm27235363wrb.65.2020.06.24.23.46.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Jun 2020 23:46:32 -0700 (PDT)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     lee.jones@linaro.org
-Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-        Keshava Munegowda <keshava_mgowda@ti.com>,
-        Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
-Subject: [PATCH 06/10] mfd: omap-usb-host: Provide description for 'pdev' argument to .probe()
-Date:   Thu, 25 Jun 2020 07:46:15 +0100
-Message-Id: <20200625064619.2775707-7-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200625064619.2775707-1-lee.jones@linaro.org>
-References: <20200625064619.2775707-1-lee.jones@linaro.org>
+        id S2404765AbgFYMnU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 25 Jun 2020 08:43:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45714 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2404285AbgFYMnT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 25 Jun 2020 08:43:19 -0400
+Received: from localhost.localdomain (lfbn-nic-1-188-42.w2-15.abo.wanadoo.fr [2.15.37.42])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8631F206BE;
+        Thu, 25 Jun 2020 12:43:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1593088999;
+        bh=L8fU5fAz7pCpg4HnWH2xhwqLiRr2Tw/EYLrtbhRzhMk=;
+        h=From:To:Cc:Subject:Date:From;
+        b=uLKslSnGx7g/s55qBe761CpJrI854/NuYwG6EgQgXUG+Nia3TSmvkIajhlbPwVPwh
+         BDsI+JcTMOAdhdz7XuMWt2k9b9IKTRGM3fyMVcUKxd+ae7hr7JxbqM6DbbNQVMVdPc
+         DqzzoonHEA1JiqOmJTfhABgOdbjp7Np/KAAZTk3M=
+From:   Ard Biesheuvel <ardb@kernel.org>
+To:     linux-crypto@vger.kernel.org
+Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-amlogic@lists.infradead.org,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Corentin Labbe <clabbe.montjoie@gmail.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S. Miller" <davem@davemloft.net>,
+        Maxime Ripard <mripard@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Ayush Sawal <ayush.sawal@chelsio.com>,
+        Vinay Kumar Yadav <vinay.yadav@chelsio.com>,
+        Rohit Maheshwari <rohitm@chelsio.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Jamie Iles <jamie@jamieiles.com>,
+        Eric Biggers <ebiggers@google.com>
+Subject: [PATCH 00/12] crypto: permit asynchronous skciphers as driver fallbacks
+Date:   Thu, 25 Jun 2020 14:42:41 +0200
+Message-Id: <20200625124253.1906557-1-ardb@kernel.org>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
@@ -76,35 +69,83 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Kerneldoc syntax is used, but not complete.  Arg descriptions required.
+The drivers for crypto accelerators in drivers/crypto all implement skciphers
+of an asynchronous nature, given that they are backed by hardware DMA that
+completes asynchronously wrt the execution flow.
 
-Prevents warnings like:
+However, in many cases, any fallbacks they allocate are limited to the
+synchronous variety, which rules out the use of SIMD implementations of
+AES in ECB, CBC and XTS modes, given that they are usually built on top
+of the asynchronous SIMD helper, which queues requests for asynchronous
+completion if they are issued from a context that does not permit the use
+of the SIMD register file.
 
- drivers/mfd/omap-usb-host.c:531: warning: Function parameter or member 'pdev' not described in 'usbhs_omap_probe'
+This may result in sub-optimal AES implementations to be selected as
+fallbacks, or even less secure ones if the only synchronous alternative
+is table based, and therefore not time invariant.
 
-Cc: <stable@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/mfd/omap-usb-host.c | 2 ++
- 1 file changed, 2 insertions(+)
+So switch all these cases over to the asynchronous API, by moving the
+subrequest into the skcipher request context, and permitting it to
+complete asynchronously via the caller provided completion function.
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index f56cdf3149dc0..aca5a160c1b24 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -526,6 +526,8 @@ static const struct of_device_id usbhs_child_match_table[] = {
-  * usbhs_omap_probe - initialize TI-based HCDs
-  *
-  * Allocates basic resources for this USB host controller.
-+ *
-+ * @pdev: Pointer to this device's platform device structure
-  */
- static int usbhs_omap_probe(struct platform_device *pdev)
- {
+Patch #1 is not related, but touches the same driver as #2 so it is
+included anyway.
+
+Only OMAP was tested on actual hardware - the others are build tested only.
+
+Cc: Corentin Labbe <clabbe.montjoie@gmail.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Chen-Yu Tsai <wens@csie.org>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Ayush Sawal <ayush.sawal@chelsio.com>
+Cc: Vinay Kumar Yadav <vinay.yadav@chelsio.com>
+Cc: Rohit Maheshwari <rohitm@chelsio.com>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
+Cc: Fabio Estevam <festevam@gmail.com>
+Cc: NXP Linux Team <linux-imx@nxp.com>
+Cc: Jamie Iles <jamie@jamieiles.com>
+Cc: Eric Biggers <ebiggers@google.com>
+
+Ard Biesheuvel (12):
+  crypto: amlogic-gxl - default to build as module
+  crypto: amlogic-gxl - permit async skcipher as fallback
+  crypto: omap-aes - permit asynchronous skcipher as fallback
+  crypto: sun4i - permit asynchronous skcipher as fallback
+  crypto: sun8i-ce - permit asynchronous skcipher as fallback
+  crypto: sun8i-ss - permit asynchronous skcipher as fallback
+  crypto: ccp - permit asynchronous skcipher as fallback
+  crypto: chelsio - permit asynchronous skcipher as fallback
+  crypto: mxs-dcp - permit asynchronous skcipher as fallback
+  crypto: picoxcell - permit asynchronous skcipher as fallback
+  crypto: qce - permit asynchronous skcipher as fallback
+  crypto: sahara - permit asynchronous skcipher as fallback
+
+ drivers/crypto/allwinner/sun4i-ss/sun4i-ss-cipher.c | 46 +++++-----
+ drivers/crypto/allwinner/sun4i-ss/sun4i-ss.h        |  3 +-
+ drivers/crypto/allwinner/sun8i-ce/sun8i-ce-cipher.c | 41 ++++-----
+ drivers/crypto/allwinner/sun8i-ce/sun8i-ce.h        |  3 +-
+ drivers/crypto/allwinner/sun8i-ss/sun8i-ss-cipher.c | 39 ++++----
+ drivers/crypto/allwinner/sun8i-ss/sun8i-ss.h        |  3 +-
+ drivers/crypto/amlogic/Kconfig                      |  2 +-
+ drivers/crypto/amlogic/amlogic-gxl-cipher.c         | 27 +++---
+ drivers/crypto/amlogic/amlogic-gxl.h                |  3 +-
+ drivers/crypto/ccp/ccp-crypto-aes-xts.c             | 31 +++----
+ drivers/crypto/ccp/ccp-crypto.h                     |  4 +-
+ drivers/crypto/chelsio/chcr_algo.c                  | 57 +++++-------
+ drivers/crypto/chelsio/chcr_crypto.h                |  3 +-
+ drivers/crypto/mxs-dcp.c                            | 33 +++----
+ drivers/crypto/omap-aes.c                           | 35 ++++---
+ drivers/crypto/omap-aes.h                           |  3 +-
+ drivers/crypto/picoxcell_crypto.c                   | 34 ++++---
+ drivers/crypto/qce/cipher.h                         |  3 +-
+ drivers/crypto/qce/skcipher.c                       | 27 +++---
+ drivers/crypto/sahara.c                             | 96 +++++++++-----------
+ 20 files changed, 244 insertions(+), 249 deletions(-)
+
 -- 
-2.25.1
+2.27.0
 
