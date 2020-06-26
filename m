@@ -2,135 +2,77 @@ Return-Path: <SRS0=SgDd=AH=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 779FFC433DF
-	for <linux-omap@archiver.kernel.org>; Fri, 26 Jun 2020 10:36:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4359C433DF
+	for <linux-omap@archiver.kernel.org>; Fri, 26 Jun 2020 11:53:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 578C020775
-	for <linux-omap@archiver.kernel.org>; Fri, 26 Jun 2020 10:36:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61B272078D
+	for <linux-omap@archiver.kernel.org>; Fri, 26 Jun 2020 11:53:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Swm9GtN9"
+	dkim=pass (2048-bit key) header.d=xs4all.nl header.i=@xs4all.nl header.b="X6QH8aj5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727914AbgFZKg5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 26 Jun 2020 06:36:57 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:40738 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727900AbgFZKg5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2020 06:36:57 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 05QAarH1101439;
-        Fri, 26 Jun 2020 05:36:53 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1593167813;
-        bh=q9DoDRWRGSci4wX2xbYiQLL40B8/3652pTDNwd7KIE0=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=Swm9GtN9P1k/0h++Tyc4FbYNGXfuwI5AMNbGTJ5sWKJ/t90aYDhgu+/MBS1m5WauN
-         JDARMcf7iYjAlIjI7vieHQHZkSRG4sJ+Ztpdr5ygg/SSYOjuNOXnXvB/J4Nkud0PYe
-         BgvarobE75YUFCnxTxrsDdwYhM+M8wKONnr6CNuU=
-Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 05QAar1m015557
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 26 Jun 2020 05:36:53 -0500
-Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 26
- Jun 2020 05:36:53 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 26 Jun 2020 05:36:53 -0500
-Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 05QAapou032231;
-        Fri, 26 Jun 2020 05:36:51 -0500
-Subject: Re: AM335x: how to mux a pin for libgpiod to use?
-To:     Drew Fustini <drew@beagleboard.org>,
-        Tony Lindgren <tony@atomide.com>,
-        Haojian Zhuang <haojian.zhuang@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>
-CC:     Jason Kridner <jkridner@beagleboard.org>,
-        Robert Nelson <robertcnelson@gmail.com>
-References: <20200625231633.GA9012@x1>
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-Message-ID: <8d5ff801-62a1-935e-3746-e1c51817a3b6@ti.com>
-Date:   Fri, 26 Jun 2020 13:36:50 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        id S1727854AbgFZLxk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 26 Jun 2020 07:53:40 -0400
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35973 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726901AbgFZLxk (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 26 Jun 2020 07:53:40 -0400
+Received: from cust-b5b5937f ([IPv6:fc0c:c16d:66b8:757f:c639:739b:9d66:799d])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id omv4jNJEP0MRaomvKjN2nD; Fri, 26 Jun 2020 13:53:39 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=xs4all.nl; s=s1;
+        t=1593172419; bh=Bl7/tf6cZ6MfnMEA03awoe0xkqHwNxbrdk9dAWjJ7Mc=;
+        h=From:To:Subject:Date:Message-Id:MIME-Version:From:Subject;
+        b=X6QH8aj5MojZj5CzcUKe6ATIx1UrBuReB3gdrlvU4drPRlAI44J9wLajq2Aro1hNU
+         oxMmVX3BHer7KbpV8E77lb4rWel7OhG9UTcbuITHrR8AszJZtuf5IK2hMyr91FNkd8
+         4bPy+rRHLMkrow72hqZlAj+u+9TpVfmiSLHU5sLPvnr4BdHyRR5A93Jn1Aio3al7iz
+         yXJFSDrLZiDicW1i53syq1q3NwM7FUHjtuW83m9G07Axe+6PdsRFUtUgr/tyBmRrcV
+         LtczNPu3R16LMU2MoFEPgIfbLsoRcPCppzy4Y/Y/1cRMkv3OFjXoC29aas2vsBBX46
+         lQj4hw/kvuyQw==
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Cc:     linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 1/7] ov9640: update MODULE_DESCRIPTION
+Date:   Fri, 26 Jun 2020 13:53:15 +0200
+Message-Id: <20200626115321.1898798-2-hverkuil-cisco@xs4all.nl>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20200626115321.1898798-1-hverkuil-cisco@xs4all.nl>
+References: <20200626115321.1898798-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20200625231633.GA9012@x1>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfIzDGmm54NkO8W3SCVbUUAstiCA20EKfCwZIT0izPaF5iBHWGwmtdzwhRo5LIoLW+5JOnha/vYGpqq8JTMDB3rHvgpWRBbDJEWi4TF3qqvKYMNoW7rsF
+ TE5iKNNQzd6+65Nn5SerVPeYg5cf7m2hrGObdy+nT8hPM43LWW/1GPtTj4UzVGwegC7kIvfwlpxJ+IdtqWzXTNBaRYsOAvP9yZoDyAQFz8Ul7p4b4TrcEQs7
+ 5tCT3DbemiI8gky8cS1WhEcmGgeFFi8LmMRAX/Fort3HK1egz6TEENQFneV3R/ldlnyqlx0Z0omXc8OtsKLhgA==
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+Remove the confusing SoC Camera reference.
 
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+ drivers/media/i2c/ov9640.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 26/06/2020 02:22, Drew Fustini wrote:
-> I am trying to determine an upstream method to be able to mux an AM3358
-> pin to gpio and then allow that line to be used from the gpiod userspace
-> ABI.  A "pinctrl-single,pins" device tree property can easily define a
-> gpio mux for a given pin.  For example, the P9_14 pin on the BeagleBone
-> [0] can be set to gpio (mode 7) with this node:
-> 
-> P9_14_gpio_pin: pinmux_P9_14_gpio_pin {
-> 	pinctrl-single,pins = <
-> 	AM33XX_PADCONF(AM335X_PIN_GPMC_A2, PIN_INPUT_PULLDOWN, MUX_MODE7)
-> 	>;
-> };
-> 
-> GPMC_A2 is gpio1_18 per the AM3358 datasheet [1].  Normally, a node for
-> a driver, like gpio-keys, would have a gpio property that cause the
-> driver to claim the gpio line.  But, in that case, the line will not be
-> available to be used through the gpiod userspace ABI.
-> 
-> If no driver claims the gpio line, then I find that the pin mux in
-> "pinctrl-single,pins" does not get applied by the pinctrl-single driver.
-
-pinmux node can have default node by itself, like
-
-&am43xx_pinmux {
-	pinctrl-names = "default";
-	pinctrl-0 = <&cm_t43_led_pins>;
-
-> 
-> Thus, I can't figure out how to mux a pin to gpio and then use that gpio
-> line from userspace.  The natural question is why try access a gpio line
-> from userspace.  BeagleBone users do want this capability for prototyping
-> and I believe that is an accepted use case based on what Linus Walleij
-> wrote in "Using GPIO Lines in Linux" [2].
-> 
-> The kernel used in our BeagleBoard.org Debian images has an out-of-tree
-> driver [3] named gpio-of-helper will claim the gpio line but a hack [4]
-> allows the line to still be controlled through the gpiod userspace ABI.
-> This does not seem to be an acceptable upstream solution, so I am trying
-> to figure out what an upstream solution would look like.
-> 
-> Maybe one soltion would be to make pinctrl-single set the mux for any
-> "pinctrl-single,pins" properties regardless of whether a driver
-> references it or not.  Thus, the pin would be muxed to gpio by
-> pinctrl-single and libgpiod would be able to use the line as it was not
-> claimed by any driver.
-> 
-> I would very much appreciate any feedback.
-> 
-> Thanks,
-> Drew
-> 
-> [0] https://git.io/JfjYH
-> [1] http://www.ti.com/lit/ds/symlink/am3358.pdf
-> [2] Documentation/driver-api/gpio/using-gpio.rst
-> [3] https://git.io/JfjYf
-> [4] https://git.io/JfjYJ
-> 
-
+diff --git a/drivers/media/i2c/ov9640.c b/drivers/media/i2c/ov9640.c
+index 482609665305..3a21f51d9325 100644
+--- a/drivers/media/i2c/ov9640.c
++++ b/drivers/media/i2c/ov9640.c
+@@ -772,6 +772,6 @@ static struct i2c_driver ov9640_i2c_driver = {
+ 
+ module_i2c_driver(ov9640_i2c_driver);
+ 
+-MODULE_DESCRIPTION("SoC Camera driver for OmniVision OV96xx");
++MODULE_DESCRIPTION("OmniVision OV96xx CMOS Image Sensor driver");
+ MODULE_AUTHOR("Marek Vasut <marek.vasut@gmail.com>");
+ MODULE_LICENSE("GPL v2");
 -- 
-Best regards,
-grygorii
+2.27.0
+
