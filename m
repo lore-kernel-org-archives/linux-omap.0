@@ -5,25 +5,25 @@ X-Spam-Level:
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB05DC433E1
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 22:34:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19456C433E3
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 22:34:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3B452078D
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 22:34:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 036E420885
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 22:34:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727822AbgF2We5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1727817AbgF2We5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 29 Jun 2020 18:34:57 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53980 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:53942 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726989AbgF2We4 (ORCPT
+        with ESMTP id S1726756AbgF2We4 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2020 18:34:56 -0400
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id C430C2A137E
+        with ESMTPSA id AFBD22A134B
 Received: by jupiter.universe (Postfix, from userid 1000)
-        id C58C6480106; Tue, 30 Jun 2020 00:34:50 +0200 (CEST)
+        id C3430480105; Tue, 30 Jun 2020 00:34:50 +0200 (CEST)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>,
@@ -36,9 +36,9 @@ Cc:     Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>,
         dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
         linux-omap@vger.kernel.org, kernel@collabora.com,
         Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv1 4/4] ARM: dts: omap4-droid4: add panel orientation
-Date:   Tue, 30 Jun 2020 00:33:15 +0200
-Message-Id: <20200629223315.118256-5-sebastian.reichel@collabora.com>
+Subject: [PATCHv1 3/4] ARM: dts: omap4-droid4: add panel compatible
+Date:   Tue, 30 Jun 2020 00:33:14 +0200
+Message-Id: <20200629223315.118256-4-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200629223315.118256-1-sebastian.reichel@collabora.com>
 References: <20200629223315.118256-1-sebastian.reichel@collabora.com>
@@ -49,26 +49,28 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add information about panel orientation, so that the
-system boots into a properly rotated shell.
+Add Droid 4 specific compatible value in addition to the
+generic one, so that we have the ability to add panel
+specific quirks in the future.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- arch/arm/boot/dts/motorola-mapphone-common.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/motorola-mapphone-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/motorola-mapphone-common.dtsi b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-index 0e22fdfa42aa..e672e714fcbe 100644
+index 4ffe461c3808..0e22fdfa42aa 100644
 --- a/arch/arm/boot/dts/motorola-mapphone-common.dtsi
 +++ b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-@@ -218,6 +218,7 @@ lcd0: panel@0 {
+@@ -208,7 +208,7 @@ dsi1_out_ep: endpoint {
+ 	};
  
- 		width-mm = <50>;
- 		height-mm = <89>;
-+		rotation = <90>;
- 
- 		panel-timing {
- 			clock-frequency = <0>;		/* Calculated by dsi */
+ 	lcd0: panel@0 {
+-		compatible = "panel-dsi-cm";
++		compatible = "motorola,droid4-panel", "panel-dsi-cm";
+ 		reg = <0>;
+ 		label = "lcd0";
+ 		vddi-supply = <&lcd_regulator>;
 -- 
 2.27.0
 
