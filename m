@@ -2,83 +2,107 @@ Return-Path: <SRS0=sQ2K=AK=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5B6BC433E4
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 19:08:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF69C433E2
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 19:10:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82AE32067D
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 19:08:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="COU2zmBM"
+	by mail.kernel.org (Postfix) with ESMTP id D2764206E2
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 19:10:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728556AbgF2TH4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Jun 2020 15:07:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42564 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730829AbgF2THo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2020 15:07:44 -0400
-Received: from mail-io1-xd33.google.com (mail-io1-xd33.google.com [IPv6:2607:f8b0:4864:20::d33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14FBAC02E2EA;
-        Mon, 29 Jun 2020 07:19:44 -0700 (PDT)
-Received: by mail-io1-xd33.google.com with SMTP id y2so17350917ioy.3;
-        Mon, 29 Jun 2020 07:19:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=47yB/J2jJp/Hyiy9M1uWjEhRFrnBjwMwfE/nDbFPyRk=;
-        b=COU2zmBMOm8jAHhSa++Aeij+HAuixWLkN3X9fJ0pp3riGsqzqZL1CRUWjbssHufSb3
-         gGm8EG9uruuKCtRAbTeqEFPbpPwFVXlmWaEpomInYFEsUjIMTgs0/WtnBKCqIuTcfRcy
-         WzB8luRn2ZuiM0dmbKxEP9KHf+/40+l7aiGoL7EPsd0ni5TOtKvyaUfdpyktQrZeKXuv
-         8tQqybvpp+PfzvX0U0eu8bHUltSlu19P4defCduKZUGmn4OUKxeO8/MHvqDDtIrKg5EI
-         MqLQ88Ll1cYGe57lf/CAX8xNMpPYzaxwO0MlzNAq6KZpIK/vPAcDtF3bdoAHltthEuXb
-         kZyw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=47yB/J2jJp/Hyiy9M1uWjEhRFrnBjwMwfE/nDbFPyRk=;
-        b=f9r3KXQgYsxVaadQsYHxAx208E5S6WClXrMZIEbGlDmb3OTDb3Tm+V5cY2Tx6kfLaj
-         uAG9uiXeAVNZXSIINn4BT55s/Mzj3LqaZIARy668hcOd87P2wZWuArluzKwJlTbWPVVx
-         Q7Y4JZoRUSgpTOHf8C/rUIkrdxxv4sk9C+ejkhVALDv2T7+TLKD2rbVOlCXGS6x5+W1h
-         YCfUKzUqCwygXVSbuGDoIgJ4RMamRWSL0hvBLVejZlzAPE+7dmDN73g+uaR5exDQyT6R
-         Nj9V3Tg59i7TuP8swMUf49ZmnYNYaM6EVmOG9QplJW9jsMN6J+KHOmfoYFiZnkpvAtSW
-         hAmA==
-X-Gm-Message-State: AOAM531MxSgBNy/eWO+cq8LSAuleFJsbvZRqKE5SZqdqDQA2YRkwn1tN
-        UZeV0CBouO+OFdXuhrs/VcPAu/RltUZZvN3EpKGkjaGR
-X-Google-Smtp-Source: ABdhPJyC8hLzoJwSTAJ37OV6pmSucDMOB0wnAWTtZUr3eTh4i+eQjTnFBjIWQLJ5kNgYMsyBdON3CzqZ8fxg/7DhBJk=
-X-Received: by 2002:a6b:9355:: with SMTP id v82mr15996040iod.92.1593440382903;
- Mon, 29 Jun 2020 07:19:42 -0700 (PDT)
+        id S1729616AbgF2TKO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Jun 2020 15:10:14 -0400
+Received: from muru.com ([72.249.23.125]:59964 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726482AbgF2TKL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 29 Jun 2020 15:10:11 -0400
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id F1E3A81A3;
+        Mon, 29 Jun 2020 16:42:20 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Cc:     linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] gpio: omap: Add missing PM ops for suspend
+Date:   Mon, 29 Jun 2020 09:41:14 -0700
+Message-Id: <20200629164114.1186-1-tony@atomide.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-From:   Adam Ford <aford173@gmail.com>
-Date:   Mon, 29 Jun 2020 09:19:32 -0500
-Message-ID: <CAHCN7xJWL4_P4Dz04fSVPtSQJNVo-reW0SO7DqkMDhhBEVwsYg@mail.gmail.com>
-Subject: ti-soc-thermal fails on OMAP3
-To:     Linux-OMAP <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-I submitted a patch in November to enable idling of the bandgap on
-OMAP3, however it was never applied.  I spent some time over the
-weekend trying refresh my memory on what was going on and what's left
-to do so I could re-submit the patch after re-basing it.
-Unfortunately, I am getting some errors even before attempting to
-re-apply my patch.
+We've had the legacy platform code take care of suspend for us but
+this no longer is the case when probed without legacy mode with
+ti-sysc. We need to configure PM ops like standard Linux device
+drivers do.
 
-ti-soc-thermal: probe of 48002524.bandgap failed with error -22
+As we still have some SoCs booting also the legacy mode, we need to
+add omap_gpio_suspend() and omap_gpio_resume(), and check for the
+is_suspended flag to avoid legacy _od_suspend_noirq() calling them
+on an already suspended GPIO instance.
 
-I did some digging on this.  EINVAL (-22) is set  in ti-thermal-common
-in two places, and in both places it's trying either
-ti_bandgap_get_sensor_data or ti_thermal_build_data.
+Once we have no SoCs booting in legacy mode, we can just switch to
+using the standard PM ops with pm_runtime_force_suspend() and
+pm_runtime_force_resume().
 
-I haven't had time to bisect yet, but I will.  I was just hoping
-someone might have some ideas to save me some time.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/gpio/gpio-omap.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-thanks
-
-adam
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -60,6 +60,7 @@ struct gpio_bank {
+ 	struct clk *dbck;
+ 	struct notifier_block nb;
+ 	unsigned int is_suspended:1;
++	unsigned int needs_resume:1;
+ 	u32 mod_usage;
+ 	u32 irq_usage;
+ 	u32 dbck_enable_mask;
+@@ -1504,9 +1505,34 @@ static int __maybe_unused omap_gpio_runtime_resume(struct device *dev)
+ 	return 0;
+ }
+ 
++static int omap_gpio_suspend(struct device *dev)
++{
++	struct gpio_bank *bank = dev_get_drvdata(dev);
++
++	if (bank->is_suspended)
++		return 0;
++
++	bank->needs_resume = 1;
++
++	return omap_gpio_runtime_suspend(dev);
++}
++
++static int omap_gpio_resume(struct device *dev)
++{
++	struct gpio_bank *bank = dev_get_drvdata(dev);
++
++	if (!bank->needs_resume)
++		return 0;
++
++	bank->needs_resume = 0;
++
++	return omap_gpio_runtime_resume(dev);
++}
++
+ static const struct dev_pm_ops gpio_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(omap_gpio_runtime_suspend, omap_gpio_runtime_resume,
+ 									NULL)
++	SET_LATE_SYSTEM_SLEEP_PM_OPS(omap_gpio_suspend, omap_gpio_resume)
+ };
+ 
+ static struct platform_driver omap_gpio_driver = {
+-- 
+2.27.0
