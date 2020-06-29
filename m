@@ -2,152 +2,120 @@ Return-Path: <SRS0=sQ2K=AK=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB281C433E0
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:11:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 841B0C433E0
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:12:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6719206A1
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:11:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B4F1206A1
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:12:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="DuUNS0rI"
+	dkim=pass (2048-bit key) header.d=beagleboard-org.20150623.gappssmtp.com header.i=@beagleboard-org.20150623.gappssmtp.com header.b="PSx0WywE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387537AbgF2VLC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Jun 2020 17:11:02 -0400
-Received: from www.zeus03.de ([194.117.254.33]:59278 "EHLO mail.zeus03.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390539AbgF2VKf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 29 Jun 2020 17:10:35 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=simple; d=sang-engineering.com; h=
-        date:from:to:cc:subject:message-id:references:mime-version
-        :content-type:in-reply-to; s=k1; bh=1R5VbfyjnCD0CmpFWZBQGlSYfWm+
-        NoLCMYa6SRuHNZI=; b=DuUNS0rIyBlqryiO1lADl4AQ5JfcuOPcJDV2IVFGM+pG
-        BxMC/hkT5dkyCGF6Q1HTk4aJwCOLxenQqr8CAwZ8iWxCG9hxIYJYDosJU+dNoPJO
-        Wze1Y9QWn06Sop7cYVo1anfQUotBy+ag5oUFAmqaYsB6C/ClU4FdFIxQ5eTRYoo=
-Received: (qmail 2172219 invoked from network); 29 Jun 2020 23:10:30 +0200
-Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 29 Jun 2020 23:10:30 +0200
-X-UD-Smtp-Session: l3s3148p1@IvsbfT+pqsMgAwDPXwOPAI5mQFP60fXe
-Date:   Mon, 29 Jun 2020 23:10:27 +0200
-From:   Wolfram Sang <wsa+renesas@sang-engineering.com>
-To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Cc:     corbet@lwn.net, aaro.koskinen@iki.fi, tony@atomide.com,
-        linux@armlinux.org.uk, daniel@zonque.org, haojian.zhuang@gmail.com,
-        robert.jarzmik@free.fr, kgene@kernel.org, krzk@kernel.org,
-        dmitry.torokhov@gmail.com, lee.jones@linaro.org,
-        ulf.hansson@linaro.org, davem@davemloft.net, kuba@kernel.org,
-        b.zolnierkie@samsung.com, j.neuschaefer@gmx.net,
-        mchehab+samsung@kernel.org, gustavo@embeddedor.com,
-        gregkh@linuxfoundation.org, yanaijie@huawei.com,
-        daniel.vetter@ffwll.ch, rafael.j.wysocki@intel.com,
-        Julia.Lawall@inria.fr, linus.walleij@linaro.org,
-        viresh.kumar@linaro.org, arnd@arndb.de, jani.nikula@intel.com,
-        yuehaibing@huawei.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netdev@vger.kernel.org,
-        linux-parisc@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH] Remove handhelds.org links and email addresses
-Message-ID: <20200629211027.GA1481@kunai>
-References: <20200629203121.7892-1-grandmaster@al2klimov.de>
+        id S1730158AbgF2VMa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Jun 2020 17:12:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40928 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727009AbgF2S5o (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2020 14:57:44 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77469C00F804
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2020 05:29:03 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id a1so16347569ejg.12
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2020 05:29:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=beagleboard-org.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=nLPL88OfKWPjoDgMrUq7HX0bJ21PFQyFVAStT19x/30=;
+        b=PSx0WywEstp6kzCgrb2T780nS7vnNFzJS+U+DK53C0PhGN6LZvYDc2EFvOEAdEmhEj
+         RUqqwUYHPI+moJOm1Lu+qDnTY8k7w4i1ZmDLAcEGCt5/VfkthQIciG4scNhgkF7qBZsF
+         vapojTxZMy6hzLbJ19FtwmOG4LeFbtDfvu2hGXI5r15prpIVDn5Q6Ex36/ORxBC8HOMu
+         p8sNi03zdwEm4JKaNFhsJFwkK43/7a69OrK8KLs3I2Jj3FUWqdHQLOJ+ViEJxwPsy3tk
+         RJ+tPHTitdFJ/MPwm7Oci+jsb+VVt/S6RIkCjMGIh8K6vN3UA3j4206+/RBfGp3XCb1e
+         Wcrw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=nLPL88OfKWPjoDgMrUq7HX0bJ21PFQyFVAStT19x/30=;
+        b=GUljHLRFvnOs4k6/3uz8qwcEwSGeLEFInnpsQtS5rqcjLF/b7GPIOAGmGozt/t9SMx
+         wrYf5/fM+DfgfypRJTses1AvGzRgFhrEu6a+5mD8m7CjNf3+9O4iJ7Jsb26Gshj8xQq9
+         nKq5QecqhytBhewLRVgkRgEhrb1wr5620Arg8XtuMOwrpwSoCe5jC29IiPwN3BNJB3CV
+         pvuoRxE5MEGz4W3qCgQkJM20fdBuQe9agsxDJN454OXEM6Ak3hF9vkSQeJprpjlhEtBW
+         oc358H/PRHYdcQQKCwK33D1uKOefx2z3VC/xC3UzM2ObnCr2VUnMRXNHqJtdwjwzRBln
+         3TAA==
+X-Gm-Message-State: AOAM533FCxEBmD47tqdZk60L/7jViM/blhrHm4OD/mg0oj6ywNZVIaDW
+        cD2CJX9YEK9YCjdyt/R+f+agYg==
+X-Google-Smtp-Source: ABdhPJysnXFWJwpJ6uF9IEbsegahi3Y1+BUPbpahxlycTv66BVhVh2m/VMBwbtCgMcpWhDDWY9vklw==
+X-Received: by 2002:a17:906:fa15:: with SMTP id lo21mr14416147ejb.156.1593433742019;
+        Mon, 29 Jun 2020 05:29:02 -0700 (PDT)
+Received: from x1 (i59F66838.versanet.de. [89.246.104.56])
+        by smtp.gmail.com with ESMTPSA id a1sm18278094ejk.125.2020.06.29.05.29.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 29 Jun 2020 05:29:01 -0700 (PDT)
+Date:   Mon, 29 Jun 2020 14:28:58 +0200
+From:   Drew Fustini <drew@beagleboard.org>
+To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        devicetree@vger.kernel.org, bcousson@baylibre.com,
+        Jason Kridner <jkridner@beagleboard.org>,
+        Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH v3 0/3] pinctrl: single: support #pinctrl-cells = 2
+Message-ID: <20200629122858.GA506802@x1>
+References: <20200622172951.524306-1-drew@beagleboard.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200629203121.7892-1-grandmaster@al2klimov.de>
+In-Reply-To: <20200622172951.524306-1-drew@beagleboard.org>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On Mon, Jun 22, 2020 at 07:29:48PM +0200, Drew Fustini wrote:
+> Currently, pinctrl-single only allows #pinctrl-cells = 1.
+> 
+> This series will allow pinctrl-single to also support #pinctrl-cells = 2
+> 
+> If "pinctrl-single,pins" has 3 arguments (offset, conf, mux) then
+> pcs_parse_one_pinctrl_entry() does an OR operation on to get the
+> value to store in the register.
+>     
+> To take advantage of #pinctrl-cells = 2, the AM33XX_PADCONF macro in
+> omap.h is modified to keep pin conf and pin mux values separate.
+> 
+> change log:
+> - v3: change order of patches to make sure the pinctrl-single.c patch
+>   does not break anything without the dts patches
+> 
+> - v2: remove outer parentheses from AM33XX_PADCONF macro as it causes a
+>   compile error in dtc.  I had added it per suggestion from checkpatch
+>   about having parentheses around complex values.
+> 
+> Drew Fustini (3):
+>   pinctrl: single: parse #pinctrl-cells = 2
+>   ARM: dts: change AM33XX_PADCONF macro separate conf and mux
+>   ARM: dts: am33xx-l4: change #pinctrl-cells from 1 to 2
+> 
+>  arch/arm/boot/dts/am33xx-l4.dtsi   |  2 +-
+>  drivers/pinctrl/pinctrl-single.c   | 11 +++++++++--
+>  include/dt-bindings/pinctrl/omap.h |  2 +-
+>  3 files changed, 11 insertions(+), 4 deletions(-)
+> 
+> -- 
+> 2.25.1
+> 
 
---G4iJoqBmSsgzjUCe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Tony - do you think this series is useful as-is?
 
-Hi Alexander,
+Or do you want to see some usage of the seperate conf and mux values
+first?
 
-thanks for trying to fix this, yet I have some doubts.
-
-On Mon, Jun 29, 2020 at 10:31:21PM +0200, Alexander A. Klimov wrote:
-> Rationale:
-> https://lore.kernel.org/linux-doc/20200626110706.7b5d4a38@lwn.net/
-
-I think we need some text here. Clicking on a link to understand what a
-patch is about is not comfortable. You can add the link with a Link: tag
-for additional information.
-
-Removing stale email addresses may have some value, but removing...
-
->  Compaq's Bootldr + John Dorsey's patch for Assabet support
-> -(http://www.handhelds.org/Compaq/bootldr.html)
-
-... information like this is not good. 'Wayback machine' still has
-copies in case someone wants to look at where the infos came from.
-
-> - * Copyright 2004-2005  Phil Blundell <pb@handhelds.org>
-> + * Copyright 2004-2005  Phil Blundell
-
-This is an OK case in my book...
-
-
-> -MODULE_AUTHOR("Phil Blundell <pb@handhelds.org>");
-> +MODULE_AUTHOR("Phil Blundell");
-
-... same here ...
-
-> @@ -435,7 +435,6 @@
->                             case a PCI bridge (DEC chip 21152). The value of
->                             'pb' is now only initialized if a de4x5 chip is
->                             present.
-> -                           <france@handhelds.org>
-
-This is kind of a signature and should be kept IMO.
-
->   * 2001/07/23: <rmk@arm.linux.org.uk>
-> - *	- Hand merge version from handhelds.org CVS tree.  See patch
-> + *	- Hand merge version from CVS tree.  See patch
-
-That information may be useful.
-
-
->  /* SPDX-License-Identifier: GPL-2.0-only */
->  /* -*- linux-c -*-
-> - *
-> - * (C) 2003 zecke@handhelds.org
-
-Removing copyright is a bad idea.
-
-Probably some comment blocks are cruft meanwhile and can be removed as a
-whole. That can be discussed. But removing only the handhelds.org part
-makes most parts worse IMHO.
-
-Thanks and happy hacking,
-
-   Wolfram
-
-
---G4iJoqBmSsgzjUCe
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAl76WMAACgkQFA3kzBSg
-KbZgWA/+IxRkb15JXVvwYM1c4ReuUiEUrJ0KOI0M0XELe0YWelDrhgcOtSC0ozRT
-lTt8uizNNBK4bsRpoo+ghjZvNELOeMx+4VsVtMM+IoXXxIKha1jSJ1hqFDsBcCP0
-urAvhdaNyC+TWmEM2H98eb5JfdSxKxrzjIMs4tTBlZOBnu+wAoiDZv4mPf/y1bGv
-L33lwlFG6tkWpVX2veVNoTg04TG0LupAtXUyiI+Hnxt7srbugymQs0iwtd5sCt2R
-AG+BmuN5zmUS5cISCL6p1uXSxVRrs3FI02dwU7m5yvBfvHHSGVsx+f9wPpnpqNc8
-1I3oAR+Ct2K3lvu3uLBY2xDL4WbTmPobmzGLXbwB8ksPC/B1TV5LC/+TI2F+c+gk
-ROaTdQqzt4H0wfzNFOzYT8zGyZOoiPFro7jxCcH9CZjbkeDi19sJt7TQ6I1B0I9+
-bSTAb7s3yWhzUypFHzdR0PT97e8zeiK/xJUTbPkvv+JsDZZvPht423X7CYEUjaCo
-sPQ5UuDSfS4xT25PBabjhNeunmODzCE/+DrtbOSuM5AV63TOoVMB8zWBoJH17emH
-mRgD29xeEITWlq/fBWcPWIjgFDVanjDPYIW2/jnGqm7RLTaw703ajQSbD/7ELOAB
-84gr1NpIeJuhMnRnB11nHCJsUWnRqvl2rt7lretb/tFUB8LhGFE=
-=FQ9k
------END PGP SIGNATURE-----
-
---G4iJoqBmSsgzjUCe--
+thanks,
+drew
