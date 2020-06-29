@@ -2,63 +2,104 @@ Return-Path: <SRS0=sQ2K=AK=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D875EC433E2
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:25:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FEAC433DF
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:31:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0188214F1
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:25:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1C922073E
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:31:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1593466291;
+	bh=Da5rKfu7NcQEU4hEYHAI7KlFjFOHVdyUmJ9/xzsXQOE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=MTIiH9ktzXItzCAdkeUMN76Gnyx3o6ZjGsq56ILfjOeFXbMHwiiD6AyMWroQ+V2ve
+	 xRMm0ZJcgk6FmxPIEVLC5oV+lv2mSceXl+rIr0MIZYIRNxHxAXglmjir+r00M8aoJ4
+	 C4oQM2K+sGX1yv8g1we1kw8xE+VnnpJkWRp64D2g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729471AbgF2SuM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Jun 2020 14:50:12 -0400
-Received: from muru.com ([72.249.23.125]:59952 "EHLO muru.com"
+        id S1731813AbgF2Vbb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Jun 2020 17:31:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729466AbgF2SuL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 29 Jun 2020 14:50:11 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 4C2E981BC;
-        Mon, 29 Jun 2020 18:13:45 +0000 (UTC)
-Date:   Mon, 29 Jun 2020 11:12:50 -0700
-From:   Tony Lindgren <tony@atomide.com>
-To:     kernel test robot <lkp@intel.com>
-Cc:     Adam Ford <aford173@gmail.com>, linux-omap@vger.kernel.org,
-        kbuild-all@lists.01.org, aford@beaconembedded.com,
-        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Paul Walmsley <paul@pwsan.com>,
-        Russell King <linux@armlinux.org.uk>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ARM: dts: omap3: Migrate AES from hwmods to sysc-omap2
-Message-ID: <20200629181250.GY37466@atomide.com>
-References: <20200617105840.22138-1-aford173@gmail.com>
- <202006180107.6NIzI00f%lkp@intel.com>
+        id S1728803AbgF2SlR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 29 Jun 2020 14:41:17 -0400
+Received: from earth.universe (dyndsl-091-096-060-101.ewe-ip-backbone.de [91.96.60.101])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8AFBE23B9B;
+        Mon, 29 Jun 2020 11:42:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1593430924;
+        bh=Da5rKfu7NcQEU4hEYHAI7KlFjFOHVdyUmJ9/xzsXQOE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Wr28RRfMzBCTuyoQPSS2ea58UU/qydW6onAfi9dI5ECjWngYxtjjkCMfLblAdfP20
+         +HOQbwKVA4y9MVfdWHO5Gvh3z9GvCkG1Q/IhXtPoHjtNJZfzIDyEEU9+2iTrLwDcXA
+         pD+tYmRgaLOh2QEQtyuZyiCEXsvTH7M6MIUOTJqk=
+Received: by earth.universe (Postfix, from userid 1000)
+        id 56C873C08CD; Mon, 29 Jun 2020 13:42:02 +0200 (CEST)
+Date:   Mon, 29 Jun 2020 13:42:02 +0200
+From:   Sebastian Reichel <sre@kernel.org>
+To:     Dev Null <devnull@uvos.xyz>
+Cc:     linux-omap@vger.kernel.org
+Subject: Re: [bug report] Droid 4 cpcap rtc
+Message-ID: <20200629114202.7e5su5ny75mhqubw@earth.universe>
+References: <20200629002917.0a2045380a0fe022f852e067@uvos.xyz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="3xcadvlsseesphbu"
 Content-Disposition: inline
-In-Reply-To: <202006180107.6NIzI00f%lkp@intel.com>
+In-Reply-To: <20200629002917.0a2045380a0fe022f852e067@uvos.xyz>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* kernel test robot <lkp@intel.com> [200617 17:28]:
-> Hi Adam,
-> 
-> Thank you for the patch! Yet something to improve:
-> 
-> [auto build test ERROR on omap/for-next]
-> [cannot apply to balbi-usb/testing/next]
-> [if your patch is applied to the wrong git tree, please drop us a note to help
-> improve the system. BTW, we also suggest to use '--base' option to specify the
-> base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
 
-This applies to v5.8-rc1, so the error above can be ignored now.
+--3xcadvlsseesphbu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Applying patch into omap-for-v5.9/ti-sysc-drop-pdata.
+Hi,
 
-Thanks,
+On Mon, Jun 29, 2020 at 12:29:17AM +0200, Dev Null wrote:
+> 1. writing to the rtc via rtc-cpcap with hwclock appears to not work at all.
+> 	- see https://github.com/maemo-leste/bugtracker/issues/399
+> 	- hwclock: ioctl(RTC_SET_TIME) to /dev/rtc0 to set the time failed: Numerical result out of range
 
-Tony
+Looks like a regression introduced by "rtc: cpcap: set range",
+which landed in v5.7.
+
+> 2. do you by any chance know how the RGB -> RGWRBW pentile color
+> conversion happens on the droid 4? is this handled in hardware or
+> in software or in firmware somewere?
+
+The omapdrm RGB framebuffer is send to the DSI panel, which has its
+own local framebuffer to support panel self refresh. The panel
+controller does the format change transparently and does not offer
+any configuration options as far as I know.
+
+-- Sebastian
+
+--3xcadvlsseesphbu
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl75034ACgkQ2O7X88g7
++ppr9w//cg72ArLU2Eh7eIjm15WYHlbn4gUpRac9b2ixCdtZy1aa6GKSa/K0S5ur
+vXyJhmqJtaQbOJZFluKSwD6meuny+55aTcpmTN3PfGw4lEpKVG74IY0BVhe1RA/c
+/m3pSKToCP6VpwSvG24ptKsLI6aRX/hZZNn69g3yJGEySQr9Yp+Mw1l9nQc5u+yk
+2hMCUBK1PFrDHqnifK3G+6aXAsKsEgfYPEk/fGuiQGmf2/YCKSX8/Pf11JGrhZZv
+UFaw9MFy+7b1c2HBjJykbzTjc0tfBLX8lUac5cHJ6KTg3KPZCbIR7XBIWTnohFLc
+NLCTFhOVY22mCLcijMTSXYxZocvxUsXjZ8PCfJJMWvCx1EhnMQBHFVnCF4mizW6W
+G4ruHmgpR+itwiMh2YyF+xFyNX9fwd4NngLRAtWESsb3lSk35yuAfFnbYY7LQ+QF
+X6HMnCYlYMGskrzds0cnFHQNwfq+LAS2CxBW5OBg45sWGfl+Xm5N5eHhr7wuAuZH
+13jfdZKrc+XEKd0l3+m2A8hlyFiOqQ7dRWZDX+SR5vul/aR+EVU1UjW2naepmoCO
+feQ/P6gfLMr2l/b9shkrsX9/HQhW/HjLQ5LdH8b+UxcJs5AkNNST3buKKhhsFb90
+65naCWXdE9EJZwOZpZCWCAZQhTF2m/Wa20NS1nGF9KVDu6eI/38=
+=0cdk
+-----END PGP SIGNATURE-----
+
+--3xcadvlsseesphbu--
