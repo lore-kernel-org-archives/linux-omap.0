@@ -2,81 +2,124 @@ Return-Path: <SRS0=sQ2K=AK=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C023C433E0
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 20:42:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E78BFC433DF
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:08:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 87AD620663
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 20:42:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7C65206A1
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Jun 2020 21:08:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1593464914;
+	bh=f1aS4cZsNksB3LauE1ytRje/Ho2vh8OFZ9gcBrF7hoE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=2tXUNwIeYyYpga9hNN5M32MythE9jW90MKhHNSih6ld8zfnRJwCbjVrsMBP17aZAR
+	 BAkXBFhEjFSS7M/5CVndHywtTz6rNpaEwrwxSoftokWVrEkKePlmrLWQ9Pax0eZtkK
+	 6wvNg6d0dlcUBDH9KOR5yPYp7vU3VQsVHOxaXM6Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730073AbgF2Umb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Jun 2020 16:42:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43382 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731649AbgF2TOE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2020 15:14:04 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC09AC0068C6;
-        Mon, 29 Jun 2020 04:41:30 -0700 (PDT)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: sre)
-        with ESMTPSA id 3B2052A22FB
-Received: by jupiter.universe (Postfix, from userid 1000)
-        id F3F54480103; Mon, 29 Jun 2020 13:41:26 +0200 (CEST)
-From:   Sebastian Reichel <sebastian.reichel@collabora.com>
-To:     Sebastian Reichel <sre@kernel.org>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Dev Null <devnull@uvos.xyz>
-Cc:     Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-rtc@vger.kernel.org,
-        Sebastian Reichel <sebastian.reichel@collabora.com>,
-        "Sicelo A . Mhlongo" <absicsz@gmail.com>
-Subject: [PATCH] rtc: cpcap: fix range
-Date:   Mon, 29 Jun 2020 13:41:23 +0200
-Message-Id: <20200629114123.27956-1-sebastian.reichel@collabora.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200629002917.0a2045380a0fe022f852e067@uvos.xyz>
-References: <20200629002917.0a2045380a0fe022f852e067@uvos.xyz>
+        id S2390411AbgF2VI1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Jun 2020 17:08:27 -0400
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:38415 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390229AbgF2VIZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2020 17:08:25 -0400
+Received: by mail-ed1-f65.google.com with SMTP id n2so5209653edr.5;
+        Mon, 29 Jun 2020 14:08:22 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=WVzOc0zshIAzur/W9UldDSamNUZIg6bYwU7gViF4xjM=;
+        b=XUXYJW1YjmtF6PwxsLRs3RzxxVAxAPl7iKRiELCzxj0g2cn0itGuB0hAxZWMlVWLz9
+         mB/GxGKY1TNMXWRU3RyUPszljbezvgimuF6zmQ0AUbEHJuhn5+x1GZYaLrRDElgjbSS7
+         tr0XrGMtbul0eR19pifhTezdUkD5WSsa7vIzIGTgYm2mpC0vO3G70xoKufwmcU+2ps1k
+         7xV+f1JuuXwcGNa+V4U00pMduOQX/3MwZ5Qe+fxzAnl5SjnNtYGamDSIL8apuZ/WdfZB
+         FrgtdWnROwzVaJs8oBJco62GMCT7Gck1SN5QKUVSVVl1OdVPJVU/Ub29R1fKnBhFF6X0
+         T9vw==
+X-Gm-Message-State: AOAM531cBYxiOkNeTnLFpykwfPa4/2XJFJMFgqXxfIHsM/ztjxcTxXHk
+        eAS3ol0jBFkx/OeDL/YUclE=
+X-Google-Smtp-Source: ABdhPJz7uJ34zkR7UdIcDmO5eQD/05KE/U7ACuTf+SbkMdyaKDXIEt+RJAAp/9n0LB1FcwdSrdDevA==
+X-Received: by 2002:aa7:d6cc:: with SMTP id x12mr11487518edr.354.1593464901568;
+        Mon, 29 Jun 2020 14:08:21 -0700 (PDT)
+Received: from kozik-lap ([194.230.155.195])
+        by smtp.googlemail.com with ESMTPSA id q3sm736869eds.0.2020.06.29.14.08.19
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Mon, 29 Jun 2020 14:08:20 -0700 (PDT)
+Date:   Mon, 29 Jun 2020 23:08:17 +0200
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Cc:     corbet@lwn.net, aaro.koskinen@iki.fi, tony@atomide.com,
+        linux@armlinux.org.uk, daniel@zonque.org, haojian.zhuang@gmail.com,
+        robert.jarzmik@free.fr, kgene@kernel.org,
+        dmitry.torokhov@gmail.com, lee.jones@linaro.org,
+        wsa+renesas@sang-engineering.com, ulf.hansson@linaro.org,
+        davem@davemloft.net, kuba@kernel.org, b.zolnierkie@samsung.com,
+        j.neuschaefer@gmx.net, mchehab+samsung@kernel.org,
+        gustavo@embeddedor.com, gregkh@linuxfoundation.org,
+        yanaijie@huawei.com, daniel.vetter@ffwll.ch,
+        rafael.j.wysocki@intel.com, Julia.Lawall@inria.fr,
+        linus.walleij@linaro.org, viresh.kumar@linaro.org, arnd@arndb.de,
+        jani.nikula@intel.com, yuehaibing@huawei.com,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-mmc@vger.kernel.org, netdev@vger.kernel.org,
+        linux-parisc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH] Remove handhelds.org links and email addresses
+Message-ID: <20200629210817.GA32399@kozik-lap>
+References: <20200629203121.7892-1-grandmaster@al2klimov.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20200629203121.7892-1-grandmaster@al2klimov.de>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Unbreak CPCAP driver, which has one more bit in the day counter
-increasing the max. range from 2014 to 2058. The original commit
-introducing the range limit was obviously wrong, since the driver
-has only been written in 2017 (3 years after 14 bits would have
-run out).
+On Mon, Jun 29, 2020 at 10:31:21PM +0200, Alexander A. Klimov wrote:
+> Rationale:
+> https://lore.kernel.org/linux-doc/20200626110706.7b5d4a38@lwn.net/
+> 
+> Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
+> ---
+>  @Jon I thought about what I said and *no*, unfortunately I *can't* automate
+>  the detection of such as easy as the HTTPSifying. As you maybe see below
+>  cleaning up is even "harder".
+> 
+>  We have only 17 files and one domain here. Shall I split it up per subsystem
+>  or can we let it as is?
+> 
+>  Documentation/arm/sa1100/assabet.rst           |  2 --
+>  Documentation/arm/samsung-s3c24xx/h1940.rst    | 10 ----------
+>  Documentation/arm/samsung-s3c24xx/overview.rst |  3 +--
+>  Documentation/arm/samsung-s3c24xx/smdk2440.rst |  4 ----
+>  arch/arm/mach-omap1/Kconfig                    |  4 +---
+>  arch/arm/mach-pxa/h5000.c                      |  2 +-
+>  arch/arm/mach-s3c24xx/mach-h1940.c             |  2 --
+>  arch/arm/mach-s3c24xx/mach-n30.c               |  3 ---
+>  arch/arm/mach-s3c24xx/mach-rx3715.c            |  2 --
 
-Reported-by: Sicelo A. Mhlongo <absicsz@gmail.com>
-Reported-by: Dev Null <devnull@uvos.xyz>
-Fixes: d2377f8cc5a7 ("rtc: cpcap: set range")
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
----
- drivers/rtc/rtc-cpcap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+For s3c24xx, I am fine taking it through docs tree:
+Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
 
-diff --git a/drivers/rtc/rtc-cpcap.c b/drivers/rtc/rtc-cpcap.c
-index a603f1f21125..800667d73a6f 100644
---- a/drivers/rtc/rtc-cpcap.c
-+++ b/drivers/rtc/rtc-cpcap.c
-@@ -261,7 +261,7 @@ static int cpcap_rtc_probe(struct platform_device *pdev)
- 		return PTR_ERR(rtc->rtc_dev);
- 
- 	rtc->rtc_dev->ops = &cpcap_rtc_ops;
--	rtc->rtc_dev->range_max = (1 << 14) * SECS_PER_DAY - 1;
-+	rtc->rtc_dev->range_max = (timeu64_t) (DAY_MASK + 1) * SECS_PER_DAY - 1;
- 
- 	err = cpcap_get_vendor(dev, rtc->regmap, &rtc->vendor);
- 	if (err)
--- 
-2.27.0
+Otherwise, after splitting, I could take the s3c-24xx bits.
 
+Best regards,
+Krzysztof
+
+
+>  drivers/input/keyboard/gpio_keys.c             |  2 +-
+>  drivers/input/keyboard/jornada720_kbd.c        |  2 +-
+>  drivers/input/touchscreen/jornada720_ts.c      |  2 +-
+>  drivers/mfd/asic3.c                            |  2 +-
+>  drivers/mmc/host/renesas_sdhi_core.c           |  2 +-
+>  drivers/net/ethernet/dec/tulip/de4x5.c         |  1 -
+>  drivers/video/fbdev/sa1100fb.c                 |  2 +-
+>  include/linux/apm-emulation.h                  |  2 --
+>  17 files changed, 9 insertions(+), 38 deletions(-)
