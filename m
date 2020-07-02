@@ -2,132 +2,56 @@ Return-Path: <SRS0=KqvK=AN=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 695AAC433DF
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 14:49:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D305DC433E0
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 15:41:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A2EB206E2
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 14:49:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="rnd7ZVz1"
+	by mail.kernel.org (Postfix) with ESMTP id B877E20EDD
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 15:41:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729983AbgGBOtU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Jul 2020 10:49:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50186 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729968AbgGBOqo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2020 10:46:44 -0400
-Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D1AFC08C5DE
-        for <linux-omap@vger.kernel.org>; Thu,  2 Jul 2020 07:46:43 -0700 (PDT)
-Received: by mail-wm1-x341.google.com with SMTP id 17so28253107wmo.1
-        for <linux-omap@vger.kernel.org>; Thu, 02 Jul 2020 07:46:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=zCvEYr43bmvAI4c/u02EnPe5wklhcOBr52WpV3Wdhnc=;
-        b=rnd7ZVz1ZhbElscG9Bkyx7lA4/DyNELrmIlS9pFIxHeR0jZ64UUgjYI7/xmq7V/nBQ
-         ZjeYBcOXpxnMVFhStvkm3qSrrk39Vbmp5EY9GY7i2drA52md+rN3AH5t9d8r0TgeFZNz
-         tw/ORXRpXc9E6zjDPBTC35hNIHMr+7X2+Bt/wd9jC/lvPleiDxFGAMeKNMn6tZwOKAMw
-         +Fr6OtBOW8Ck2cXOQadIEhvAe9qMjojndUc9IB+nRn8EfKDQNJv3QpZ+jbkkt3DrMn/x
-         Qq4i23HE176PnzXDn8TVDQOGIPyiW8rEvw2ymMaPpVPUI/C+iiH4DcU3ekAl1SEKJ2/j
-         EL8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=zCvEYr43bmvAI4c/u02EnPe5wklhcOBr52WpV3Wdhnc=;
-        b=qEJLDrA/2u4xpwk9mXpz6pcaRixeY4IaN3lDwh2pKd2nb683FKiaooz5gCT5Y6EPn4
-         t3sI9Z+pueSOo6wpZjj1MF0Uqj5unS69JkIJuxqS8yWx3yUyRtPdMxEYA4yG20DG1Qlx
-         E6+mC7e+hSi0sa7ANOWFPKJeS2mSw/p3E1lcuV6LGEPEAf3mCoJBdG2gguoi1y1vdbge
-         9AnvwBMcMAfkpLNpi3eKikkqi83hriNqpgUgVpHCQtKiY+dGgflU+5ZeY3Nb8XU2bkAT
-         cjKWepnc0re96d53FSm5mUxfgq5t4kWwwuyLViCaq44f79iRfuV8rwE0uY4w5itW80hs
-         iohA==
-X-Gm-Message-State: AOAM532oFVnDm3QjBnEPuPDdXVmcGjRNGVSL86PPb2L7UnJo3aeoQf5E
-        4bIVoOetHi1oSffdDOHJTfOsgQ==
-X-Google-Smtp-Source: ABdhPJxTZlxUGKYXKggwnjvqFMcBCaf45y5q+liL9GM89JskjMNjlM3bEhXyNhYs3yNR7dMSBMPRZA==
-X-Received: by 2002:a1c:cc12:: with SMTP id h18mr30459205wmb.3.1593701202335;
-        Thu, 02 Jul 2020 07:46:42 -0700 (PDT)
-Received: from localhost.localdomain ([2.27.35.144])
-        by smtp.gmail.com with ESMTPSA id g14sm7002737wrw.83.2020.07.02.07.46.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Jul 2020 07:46:41 -0700 (PDT)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     gregkh@linuxfoundation.org
-Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org, Lee Jones <lee.jones@linaro.org>,
-        Felipe Balbi <balbi@kernel.org>,
-        Andrzej Siewior <bigeasy@linutronix.de>,
-        linux-omap@vger.kernel.org
-Subject: [PATCH 08/30] usb: dwc3: dwc3-omap: Do not read DMA status
-Date:   Thu,  2 Jul 2020 15:46:03 +0100
-Message-Id: <20200702144625.2533530-9-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200702144625.2533530-1-lee.jones@linaro.org>
-References: <20200702144625.2533530-1-lee.jones@linaro.org>
+        id S1728374AbgGBPlB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Jul 2020 11:41:01 -0400
+Received: from muru.com ([72.249.23.125]:60280 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726353AbgGBPlA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 2 Jul 2020 11:41:00 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id EE4FF8062;
+        Thu,  2 Jul 2020 15:41:51 +0000 (UTC)
+Date:   Thu, 2 Jul 2020 08:40:55 -0700
+From:   Tony Lindgren <tony@atomide.com>
+To:     kernel test robot <lkp@intel.com>
+Cc:     linux-omap@vger.kernel.org, kbuild-all@lists.01.org,
+        clang-built-linux@googlegroups.com,
+        "Andrew F . Davis" <afd@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH 3/6] soc: ti: omap-prm: Configure sgx power domain for
+ am3 and am4
+Message-ID: <20200702154055.GJ37466@atomide.com>
+References: <20200622164652.12054-4-tony@atomide.com>
+ <202006300345.RrpFuQqi%lkp@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <202006300345.RrpFuQqi%lkp@intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Commit af566a0be6e49 ("usb: dwc3: omap: get rid of dma_status") rendered
-reading DMA status from the H/W even more redundant.  The variable hasn't
-been read/used since 2016.  Remove the set but unused variable and the call
-which populates it.
+* kernel test robot <lkp@intel.com> [200629 19:24]:
+> >> drivers/soc/ti/omap_prm.c:98:21: warning: attribute declaration must precede definition [-Wignored-attributes]
+>    static const struct __maybe_unused omap_prm_domain_map omap_prm_noinact = {
 
-Fixes the following W=1 warning:
+Thanks no more need for __maybe_unused with these patches actually,
+so I'll just drop those from the series.
 
- drivers/usb/dwc3/dwc3-omap.c: In function ‘dwc3_omap_probe’:
- drivers/usb/dwc3/dwc3-omap.c:460:8: warning: variable ‘reg’ set but not used [-Wunused-but-set-variable]
- 460 | u32 reg;
- | ^~~
+Regards,
 
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/usb/dwc3/dwc3-omap.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
-
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 8c3de2d258bf7..11288a370828c 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
--/**
-+/*
-  * dwc3-omap.c - OMAP Specific Glue layer
-  *
-  * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
-@@ -457,8 +457,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	int			ret;
- 	int			irq;
- 
--	u32			reg;
--
- 	void __iomem		*base;
- 
- 	if (!node) {
-@@ -503,9 +501,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	dwc3_omap_map_offset(omap);
- 	dwc3_omap_set_utmi_mode(omap);
- 
--	/* check the DMA Status */
--	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
--
- 	ret = dwc3_omap_extcon_register(omap);
- 	if (ret < 0)
- 		goto err1;
--- 
-2.25.1
-
+Tony
