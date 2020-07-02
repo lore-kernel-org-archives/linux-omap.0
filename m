@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F67C433E1
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 15:45:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E85E4C433E0
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 15:45:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DD9C21548
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 15:45:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBF30214DB
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 15:45:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726298AbgGBPpo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Jul 2020 11:45:44 -0400
-Received: from muru.com ([72.249.23.125]:60334 "EHLO muru.com"
+        id S1726150AbgGBPp1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Jul 2020 11:45:27 -0400
+Received: from muru.com ([72.249.23.125]:60312 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726178AbgGBPp3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 2 Jul 2020 11:45:29 -0400
+        id S1726107AbgGBPpY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 2 Jul 2020 11:45:24 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 80B728062;
-        Thu,  2 Jul 2020 15:46:18 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 2F6D580B6;
+        Thu,  2 Jul 2020 15:46:14 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>,
@@ -29,9 +29,9 @@ Cc:     "Andrew F . Davis" <afd@ti.com>,
         Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH 5/6] ARM: dts: Configure am3 and am4 sgx for genpd and drop platform data
-Date:   Thu,  2 Jul 2020 08:45:12 -0700
-Message-Id: <20200702154513.31859-6-tony@atomide.com>
+Subject: [PATCH 2/6] soc: ti: omap-prm: Add basic power domain support
+Date:   Thu,  2 Jul 2020 08:45:09 -0700
+Message-Id: <20200702154513.31859-3-tony@atomide.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200702154513.31859-1-tony@atomide.com>
 References: <20200702154513.31859-1-tony@atomide.com>
@@ -42,190 +42,327 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can power off the SGX power domain when not in use when we configure
-it for genpd. And with that change, we can now also drop the old unused
-legacy platform data.
+The PRM controller has currently only support for resets while the power
+domains are still handled in the platform code.
+
+Let's add basic power domain support to enable and disable a PRM
+controlled power domain if configured in the devicetree. This can be
+used for various hardware accelerators, and interconnect instances.
+
+Further support can be added later on as needed for runtime configuration
+based on domain-idle-states.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi                 |  2 +
- arch/arm/boot/dts/am4372.dtsi                 |  2 +
- .../omap_hwmod_33xx_43xx_interconnect_data.c  | 16 --------
- .../omap_hwmod_33xx_43xx_ipblock_data.c       | 40 -------------------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  2 -
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c    |  2 -
- 6 files changed, 4 insertions(+), 60 deletions(-)
+ arch/arm/mach-omap2/Kconfig |   1 +
+ drivers/soc/ti/omap_prm.c   | 228 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 228 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -577,6 +577,7 @@ target-module@56000000 {
- 					<SYSC_IDLE_SMART>;
- 			clocks = <&gfx_l3_clkctrl AM3_GFX_L3_GFX_CLKCTRL 0>;
- 			clock-names = "fck";
-+			power-domains = <&prm_gfx>;
- 			resets = <&prm_gfx 0>;
- 			reset-names = "rstctrl";
- 			#address-cells = <1>;
-@@ -616,6 +617,7 @@ prm_device: prm@f00 {
- 	prm_gfx: prm@1100 {
- 		compatible = "ti,am3-prm-inst", "ti,omap-prm-inst";
- 		reg = <0x1100 0x100>;
-+		#power-domain-cells = <0>;
- 		#reset-cells = <1>;
- 	};
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -7,6 +7,7 @@ config ARCH_OMAP2
+ 	depends on ARCH_MULTI_V6
+ 	select ARCH_OMAP2PLUS
+ 	select CPU_V6
++	select PM_GENERIC_DOMAINS if PM
+ 	select SOC_HAS_OMAP2_SDRC
+ 
+ config ARCH_OMAP3
+diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+--- a/drivers/soc/ti/omap_prm.c
++++ b/drivers/soc/ti/omap_prm.c
+@@ -10,14 +10,39 @@
+ #include <linux/device.h>
+ #include <linux/io.h>
+ #include <linux/iopoll.h>
++#include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_domain.h>
+ #include <linux/reset-controller.h>
+ #include <linux/delay.h>
+ 
+ #include <linux/platform_data/ti-prm.h>
+ 
++enum omap_prm_domain_mode {
++	OMAP_PRMD_OFF,
++	OMAP_PRMD_RETENTION,
++	OMAP_PRMD_ON_INACTIVE,
++	OMAP_PRMD_ON_ACTIVE,
++};
++
++struct omap_prm_domain_map {
++	unsigned int usable_modes;	/* Mask of hardware supported modes */
++	unsigned long statechange:1;	/* Optional low-power state change */
++	unsigned long logicretstate:1;	/* Optional logic off mode */
++};
++
++struct omap_prm_domain {
++	struct device *dev;
++	struct omap_prm *prm;
++	struct generic_pm_domain pd;
++	u16 pwrstctrl;
++	u16 pwrstst;
++	const struct omap_prm_domain_map *cap;
++	u32 pwrstctrl_saved;
++};
++
+ struct omap_rst_map {
+ 	s8 rst;
+ 	s8 st;
+@@ -27,6 +52,9 @@ struct omap_prm_data {
+ 	u32 base;
+ 	const char *name;
+ 	const char *clkdm_name;
++	u16 pwrstctrl;
++	u16 pwrstst;
++	const struct omap_prm_domain_map *dmap;
+ 	u16 rstctrl;
+ 	u16 rstst;
+ 	const struct omap_rst_map *rstmap;
+@@ -36,6 +64,7 @@ struct omap_prm_data {
+ struct omap_prm {
+ 	const struct omap_prm_data *data;
+ 	void __iomem *base;
++	struct omap_prm_domain *prmd;
  };
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -516,6 +516,7 @@ target-module@56000000 {
- 					<SYSC_IDLE_SMART>;
- 			clocks = <&gfx_l3_clkctrl AM4_GFX_L3_GFX_CLKCTRL 0>;
- 			clock-names = "fck";
-+			power-domains = <&prm_gfx>;
- 			resets = <&prm_gfx 0>;
- 			reset-names = "rstctrl";
- 			#address-cells = <1>;
-@@ -532,6 +533,7 @@ &prcm {
- 	prm_gfx: prm@400 {
- 		compatible = "ti,am4-prm-inst", "ti,omap-prm-inst";
- 		reg = <0x400 0x100>;
-+		#power-domain-cells = <0>;
- 		#reset-cells = <1>;
- 	};
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-@@ -74,22 +74,6 @@ struct omap_hwmod_ocp_if am33xx_l3_s__l3_main = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ struct omap_reset_data {
+@@ -47,6 +76,7 @@ struct omap_reset_data {
+ 	struct device *dev;
  };
  
--/* gfx -> l3 main */
--struct omap_hwmod_ocp_if am33xx_gfx__l3_main = {
--	.master		= &am33xx_gfx_hwmod,
--	.slave		= &am33xx_l3_main_hwmod,
--	.clk		= "dpll_core_m4_ck",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* l3 main -> gfx */
--struct omap_hwmod_ocp_if am33xx_l3_main__gfx = {
--	.master		= &am33xx_l3_main_hwmod,
--	.slave		= &am33xx_gfx_hwmod,
--	.clk		= "dpll_core_m4_ck",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- /* l4 wkup -> rtc */
- struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc = {
- 	.master		= &am33xx_l4_wkup_hwmod,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -133,30 +133,6 @@ struct omap_hwmod_class am33xx_wkup_m3_hwmod_class = {
- 	.name		= "wkup_m3",
++#define genpd_to_prm_domain(gpd) container_of(gpd, struct omap_prm_domain, pd)
+ #define to_omap_reset_data(p) container_of((p), struct omap_reset_data, rcdev)
+ 
+ #define OMAP_MAX_RESETS		8
+@@ -58,6 +88,13 @@ struct omap_reset_data {
+ 
+ #define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
+ 
++#define PRM_STATE_MAX_WAIT	10000
++#define PRM_LOGICRETSTATE	BIT(2)
++#define PRM_LOWPOWERSTATECHANGE	BIT(4)
++#define PRM_POWERSTATE_MASK	OMAP_PRMD_ON_ACTIVE
++
++#define PRM_ST_INTRANSITION	BIT(20)
++
+ static const struct omap_rst_map rst_map_0[] = {
+ 	{ .rst = 0, .st = 0 },
+ 	{ .rst = -1 },
+@@ -151,6 +188,180 @@ static const struct of_device_id omap_prm_id_table[] = {
+ 	{ },
  };
  
--/* gfx */
--/* Pseudo hwmod for reset control purpose only */
--static struct omap_hwmod_class am33xx_gfx_hwmod_class = {
--	.name	= "gfx",
--};
--
--static struct omap_hwmod_rst_info am33xx_gfx_resets[] = {
--	{ .name = "gfx", .rst_shift = 0, .st_shift = 0},
--};
--
--struct omap_hwmod am33xx_gfx_hwmod = {
--	.name		= "gfx",
--	.class		= &am33xx_gfx_hwmod_class,
--	.clkdm_name	= "gfx_l3_clkdm",
--	.main_clk	= "gfx_fck_div_ck",
--	.prcm		= {
--		.omap4	= {
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--	.rst_lines	= am33xx_gfx_resets,
--	.rst_lines_cnt	= ARRAY_SIZE(am33xx_gfx_resets),
--};
--
- /*
-  * 'prcm' class
-  * power and reset manager (whole prcm infrastructure)
-@@ -319,22 +295,14 @@ static void omap_hwmod_am33xx_clkctrl(void)
- 	CLKCTRL(am33xx_l4_ls_hwmod, AM33XX_CM_PER_L4LS_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_wkup_hwmod, AM33XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l3_main_hwmod, AM33XX_CM_PER_L3_CLKCTRL_OFFSET);
--	CLKCTRL(am33xx_gfx_hwmod, AM33XX_CM_GFX_GFX_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_mpu_hwmod , AM33XX_CM_MPU_MPU_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l3_instr_hwmod , AM33XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_ocmcram_hwmod , AM33XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET);
- }
- 
--static void omap_hwmod_am33xx_rst(void)
--{
--	RSTCTRL(am33xx_gfx_hwmod, AM33XX_RM_GFX_RSTCTRL_OFFSET);
--	RSTST(am33xx_gfx_hwmod, AM33XX_RM_GFX_RSTST_OFFSET);
--}
--
- void omap_hwmod_am33xx_reg(void)
++#ifdef DEBUG
++static void omap_prm_domain_show_state(struct omap_prm_domain *prmd,
++				       const char *desc)
++{
++	dev_dbg(prmd->dev, "%s %s: %08x/%08x\n",
++		prmd->pd.name, desc,
++		readl_relaxed(prmd->prm->base + prmd->pwrstctrl),
++		readl_relaxed(prmd->prm->base + prmd->pwrstst));
++}
++#else
++static inline void omap_prm_domain_show_state(struct omap_prm_domain *prmd,
++					      const char *desc)
++{
++}
++#endif
++
++static int omap_prm_domain_power_on(struct generic_pm_domain *domain)
++{
++	struct omap_prm_domain *prmd;
++	int ret;
++	u32 v;
++
++	prmd = genpd_to_prm_domain(domain);
++	if (!prmd->cap)
++		return 0;
++
++	omap_prm_domain_show_state(prmd, "on: previous state");
++
++	if (prmd->pwrstctrl_saved)
++		v = prmd->pwrstctrl_saved;
++	else
++		v = readl_relaxed(prmd->prm->base + prmd->pwrstctrl);
++
++	writel_relaxed(v | OMAP_PRMD_ON_ACTIVE,
++		       prmd->prm->base + prmd->pwrstctrl);
++
++	/* wait for the transition bit to get cleared */
++	ret = readl_relaxed_poll_timeout(prmd->prm->base + prmd->pwrstst,
++					 v, !(v & PRM_ST_INTRANSITION), 1,
++					 PRM_STATE_MAX_WAIT);
++	if (ret)
++		dev_err(prmd->dev, "%s: %s timed out\n",
++			prmd->pd.name, __func__);
++
++	omap_prm_domain_show_state(prmd, "on: new state");
++
++	return ret;
++}
++
++/* No need to check for holes in the mask for the lowest mode */
++static int omap_prm_domain_find_lowest(struct omap_prm_domain *prmd)
++{
++	return __ffs(prmd->cap->usable_modes);
++}
++
++static int omap_prm_domain_power_off(struct generic_pm_domain *domain)
++{
++	struct omap_prm_domain *prmd;
++	int ret;
++	u32 v;
++
++	prmd = genpd_to_prm_domain(domain);
++	if (!prmd->cap)
++		return 0;
++
++	omap_prm_domain_show_state(prmd, "off: previous state");
++
++	v = readl_relaxed(prmd->prm->base + prmd->pwrstctrl);
++	prmd->pwrstctrl_saved = v;
++
++	v &= ~PRM_POWERSTATE_MASK;
++	v |= omap_prm_domain_find_lowest(prmd);
++
++	if (prmd->cap->statechange)
++		v |= PRM_LOWPOWERSTATECHANGE;
++	if (prmd->cap->logicretstate)
++		v &= ~PRM_LOGICRETSTATE;
++	else
++		v |= PRM_LOGICRETSTATE;
++
++	writel_relaxed(v, prmd->prm->base + prmd->pwrstctrl);
++
++	/* wait for the transition bit to get cleared */
++	ret = readl_relaxed_poll_timeout(prmd->prm->base + prmd->pwrstst,
++					 v, !(v & PRM_ST_INTRANSITION), 1,
++					 PRM_STATE_MAX_WAIT);
++	if (ret)
++		dev_warn(prmd->dev, "%s: %s timed out\n",
++			 __func__, prmd->pd.name);
++
++	omap_prm_domain_show_state(prmd, "off: new state");
++
++	return 0;
++}
++
++static int omap_prm_domain_attach_dev(struct generic_pm_domain *domain,
++				      struct device *dev)
++{
++	struct generic_pm_domain_data *genpd_data;
++	struct of_phandle_args pd_args;
++	struct omap_prm_domain *prmd;
++	struct device_node *np;
++	int ret;
++
++	prmd = genpd_to_prm_domain(domain);
++	np = dev->of_node;
++
++	ret = of_parse_phandle_with_args(np, "power-domains",
++					 "#power-domain-cells", 0, &pd_args);
++	if (ret < 0)
++		return ret;
++
++	if (pd_args.args_count != 0)
++		dev_warn(dev, "%s: unusupported #power-domain-cells: %i\n",
++			 prmd->pd.name, pd_args.args_count);
++
++	genpd_data = dev_gpd_data(dev);
++	genpd_data->data = NULL;
++
++	return 0;
++}
++
++static void omap_prm_domain_detach_dev(struct generic_pm_domain *domain,
++				       struct device *dev)
++{
++	struct generic_pm_domain_data *genpd_data;
++
++	genpd_data = dev_gpd_data(dev);
++	genpd_data->data = NULL;
++}
++
++static int omap_prm_domain_init(struct device *dev, struct omap_prm *prm)
++{
++	struct omap_prm_domain *prmd;
++	struct device_node *np = dev->of_node;
++	const struct omap_prm_data *data;
++	const char *name;
++	int error;
++
++	if (!of_find_property(dev->of_node, "#power-domain-cells", NULL))
++		return 0;
++
++	of_node_put(dev->of_node);
++
++	prmd = devm_kzalloc(dev, sizeof(*prmd), GFP_KERNEL);
++	if (!prmd)
++		return -ENOMEM;
++
++	data = prm->data;
++	name = devm_kasprintf(dev, GFP_KERNEL, "prm_%s",
++			      data->name);
++
++	prmd->dev = dev;
++	prmd->prm = prm;
++	prmd->cap = prmd->prm->data->dmap;
++	prmd->pwrstctrl = prmd->prm->data->pwrstctrl;
++	prmd->pwrstst = prmd->prm->data->pwrstst;
++
++	prmd->pd.name = name;
++	prmd->pd.power_on = omap_prm_domain_power_on;
++	prmd->pd.power_off = omap_prm_domain_power_off;
++	prmd->pd.attach_dev = omap_prm_domain_attach_dev;
++	prmd->pd.detach_dev = omap_prm_domain_detach_dev;
++
++	pm_genpd_init(&prmd->pd, NULL, true);
++	error = of_genpd_add_provider_simple(np, &prmd->pd);
++	if (error)
++		pm_genpd_remove(&prmd->pd);
++	else
++		prm->prmd = prmd;
++
++	return error;
++}
++
+ static bool _is_valid_reset(struct omap_reset_data *reset, unsigned long id)
  {
- 	omap_hwmod_am33xx_clkctrl();
--	omap_hwmod_am33xx_rst();
+ 	if (reset->mask & BIT(id))
+@@ -351,6 +562,7 @@ static int omap_prm_probe(struct platform_device *pdev)
+ 	const struct omap_prm_data *data;
+ 	struct omap_prm *prm;
+ 	const struct of_device_id *match;
++	int ret;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+@@ -378,7 +590,21 @@ static int omap_prm_probe(struct platform_device *pdev)
+ 	if (IS_ERR(prm->base))
+ 		return PTR_ERR(prm->base);
+ 
+-	return omap_prm_reset_init(pdev, prm);
++	ret = omap_prm_domain_init(&pdev->dev, prm);
++	if (ret)
++		return ret;
++
++	ret = omap_prm_reset_init(pdev, prm);
++	if (ret)
++		goto err_domain;
++
++	return 0;
++
++err_domain:
++	of_genpd_del_provider(pdev->dev.of_node);
++	pm_genpd_remove(&prm->prmd->pd);
++
++	return ret;
  }
  
- static void omap_hwmod_am43xx_clkctrl(void)
-@@ -348,20 +316,12 @@ static void omap_hwmod_am43xx_clkctrl(void)
- 	CLKCTRL(am33xx_l4_ls_hwmod, AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_wkup_hwmod, AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l3_main_hwmod, AM43XX_CM_PER_L3_CLKCTRL_OFFSET);
--	CLKCTRL(am33xx_gfx_hwmod, AM43XX_CM_GFX_GFX_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_mpu_hwmod , AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l3_instr_hwmod , AM43XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_ocmcram_hwmod , AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET);
- }
- 
--static void omap_hwmod_am43xx_rst(void)
--{
--	RSTCTRL(am33xx_gfx_hwmod, AM43XX_RM_GFX_RSTCTRL_OFFSET);
--	RSTST(am33xx_gfx_hwmod, AM43XX_RM_GFX_RSTST_OFFSET);
--}
--
- void omap_hwmod_am43xx_reg(void)
- {
- 	omap_hwmod_am43xx_clkctrl();
--	omap_hwmod_am43xx_rst();
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -274,10 +274,8 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l3_main__l4_hs,
- 	&am33xx_l3_main__l3_s,
- 	&am33xx_l3_main__l3_instr,
--	&am33xx_l3_main__gfx,
- 	&am33xx_l3_s__l3_main,
- 	&am33xx_wkup_m3__l4_wkup,
--	&am33xx_gfx__l3_main,
- 	&am33xx_l3_main__debugss,
- 	&am33xx_l4_wkup__wkup_m3,
- 	&am33xx_l4_wkup__control,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -200,11 +200,9 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am43xx_l3_main__l4_hs,
- 	&am33xx_l3_main__l3_s,
- 	&am33xx_l3_main__l3_instr,
--	&am33xx_l3_main__gfx,
- 	&am33xx_l3_s__l3_main,
- 	&am43xx_l3_main__emif,
- 	&am43xx_wkup_m3__l4_wkup,
--	&am33xx_gfx__l3_main,
- 	&am43xx_l4_wkup__wkup_m3,
- 	&am43xx_l4_wkup__control,
- 	&am43xx_l4_wkup__smartreflex0,
+ static struct platform_driver omap_prm_driver = {
 -- 
 2.27.0
