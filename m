@@ -3,25 +3,25 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4C56C433DF
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 19:02:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D0DBC433E0
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 19:11:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD06720702
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 19:02:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AA842073E
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 19:11:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726102AbgGBTCx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Jul 2020 15:02:53 -0400
-Received: from muru.com ([72.249.23.125]:60480 "EHLO muru.com"
+        id S1725954AbgGBTLV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Jul 2020 15:11:21 -0400
+Received: from muru.com ([72.249.23.125]:60502 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725847AbgGBTCx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 2 Jul 2020 15:02:53 -0400
+        id S1725937AbgGBTLV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 2 Jul 2020 15:11:21 -0400
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id F04448062;
-        Thu,  2 Jul 2020 19:03:44 +0000 (UTC)
-Date:   Thu, 2 Jul 2020 12:02:49 -0700
+        by muru.com (Postfix) with ESMTPS id 7543A8062;
+        Thu,  2 Jul 2020 19:12:13 +0000 (UTC)
+Date:   Thu, 2 Jul 2020 12:11:18 -0700
 From:   Tony Lindgren <tony@atomide.com>
 To:     Suman Anna <s-anna@ti.com>
 Cc:     linux-omap@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>,
@@ -35,32 +35,39 @@ Cc:     linux-omap@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Subject: Re: [PATCH 1/2] bus: ti-sysc: Fix wakeirq sleeping function called
  from invalid context
-Message-ID: <20200702190249.GO37466@atomide.com>
+Message-ID: <20200702191118.GP37466@atomide.com>
 References: <20200702174929.26506-1-tony@atomide.com>
  <434eff2e-bc7f-84ee-0980-769915cefffb@ti.com>
+ <20200702190249.GO37466@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <434eff2e-bc7f-84ee-0980-769915cefffb@ti.com>
+In-Reply-To: <20200702190249.GO37466@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [200702 18:01]:
-> Hi Tony,
+* Tony Lindgren <tony@atomide.com> [200702 19:03]:
+> * Suman Anna <s-anna@ti.com> [200702 18:01]:
+> > Hi Tony,
+> > 
+> > On 7/2/20 12:49 PM, Tony Lindgren wrote:
+> > > With CONFIG_DEBUG_ATOMIC_SLEEP enabled we can see the following with
+> > > wakeirqs and serial console idled:
+> > 
+> > Which devices are these? I have one patch from Tero fixing similar errors in
+> > OMAP IOMMU driver. Will post that either today or tomorrow.
 > 
-> On 7/2/20 12:49 PM, Tony Lindgren wrote:
-> > With CONFIG_DEBUG_ATOMIC_SLEEP enabled we can see the following with
-> > wakeirqs and serial console idled:
-> 
-> Which devices are these? I have one patch from Tero fixing similar errors in
-> OMAP IOMMU driver. Will post that either today or tomorrow.
+> I noticed this testing Andy Schevchenko's pending generic serial PM
+> patches. It happens on any omap variant with kernel serial console
+> detached and uart idled. Then just wait for the autosuspend timeout
+> to expire and type a character on the serial console :)
 
-I noticed this testing Andy Schevchenko's pending generic serial PM
-patches. It happens on any omap variant with kernel serial console
-detached and uart idled. Then just wait for the autosuspend timeout
-to expire and type a character on the serial console :)
+And BTW, Andy's series involves the removal of pm_runtime_irq_safe()
+from the serial drivers that we still have. So this won't trigger
+currently with the uart. But the issue could trigger with other
+drivers though.
 
 Regards,
 
