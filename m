@@ -1,96 +1,129 @@
-Return-Path: <SRS0=Stnz=AM=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=KqvK=AN=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0B24C433DF
-	for <linux-omap@archiver.kernel.org>; Wed,  1 Jul 2020 14:48:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCBFEC433DF
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 14:19:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91CE0206BE
-	for <linux-omap@archiver.kernel.org>; Wed,  1 Jul 2020 14:48:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB2AA20780
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jul 2020 14:19:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Sl2TTjzw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731606AbgGAOss (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 1 Jul 2020 10:48:48 -0400
-Received: from muru.com ([72.249.23.125]:60200 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726251AbgGAOsr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 1 Jul 2020 10:48:47 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 48F408063;
-        Wed,  1 Jul 2020 14:49:39 +0000 (UTC)
-Date:   Wed, 1 Jul 2020 07:48:43 -0700
-From:   Tony Lindgren <tony@atomide.com>
-To:     Drew Fustini <drew@beagleboard.org>
-Cc:     Rob Herring <robh+dt@kernel.org>, bcousson@baylibre.com,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Jason Kridner <jkridner@beagleboard.org>,
-        Robert Nelson <robertcnelson@gmail.com>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2] ARM: dts: am335x-pocketbeagle: set default mux for
- gpio pins
-Message-ID: <20200701144843.GI37466@atomide.com>
-References: <20200628152442.322593-1-drew@beagleboard.org>
- <20200629170358.GT37466@atomide.com>
- <20200630020102.GA45128@x1>
- <20200630182037.GF37466@atomide.com>
- <20200630213155.GA115731@x1>
- <20200630213423.GG37466@atomide.com>
- <20200630214231.GA116238@x1>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200630214231.GA116238@x1>
+        id S1729508AbgGBOTK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Jul 2020 10:19:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45880 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729493AbgGBOTK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2020 10:19:10 -0400
+Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A34B1C08C5DD
+        for <linux-omap@vger.kernel.org>; Thu,  2 Jul 2020 07:19:09 -0700 (PDT)
+Received: by mail-lj1-x244.google.com with SMTP id t25so27790716lji.12
+        for <linux-omap@vger.kernel.org>; Thu, 02 Jul 2020 07:19:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id;
+        bh=0P63yETtCZy7cAGoDgafSeN36XD6Q/8y9SUCJsklzIU=;
+        b=Sl2TTjzwSjlY2Q45XFnpjkZAYMSWda+yE40Vr4ZMzbf45WKugp/wqROPo3mVS70Qeh
+         6rrSJ522hSEUbMfdvCCnRIApBpzMMNQ7zosW95YMpgW6FAUBex6eVjXU/6UM7J7xz7ZC
+         vBvCn5BXRM86J8J4owX9S5qS8aHnWROah/VleW8+Y/YRVzQ41DDi68C4sIj8wTv9wtZg
+         vroEPWaLTy2fLdsmJykqeGqv63UmoGLiFU5K1rjyYDmxOWxyeXk1oDy7HILMu4/+iH4t
+         xh9BhxMVXq5jalPjRCbX0STd5QLJO1F/AnrsJSAbvoJj8Q1GZ0EmgsDBECPIrod/CTwt
+         TdmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=0P63yETtCZy7cAGoDgafSeN36XD6Q/8y9SUCJsklzIU=;
+        b=KJumyHEJ4GqI1lTMjUR0AQ6aOk1GsEmgQsppxFznvmgQAYeSCGZy7+UHwqb8ii2Ik7
+         Dvlu9ojJHJ1ARXXwMwhylS3OqEBTaScx3NMXd5fXAMtyQ1SuLrceUEjUzwXOVQvSY9a4
+         vYp17PZN6djg3Eg9Dce5aELfnoQ0rqFsDDs/Xpa0Mstxal7rSZkHSJcwTt8X6FLg4c1P
+         hWLuQTtMH+hFSOX43QgE3ih6NiZKTVKqOwGJDlxa7Oq5YgllyJWLIaJuIXVMrfSz4VY1
+         LweLh0TOU3eaLp4VAnKnPNX5Z+GO8dHR+u9HwvNLDQclobMAoB/5Uumrw71XD7gH1VCs
+         DFDg==
+X-Gm-Message-State: AOAM532cmu2bjU85t/ZqvvCcQO1WgH909+h97bCbIT1xgjCY8z5/pVj3
+        IWpVFVxxhk6waW+8mH7T4VMG+g==
+X-Google-Smtp-Source: ABdhPJxNW8aUC7P/8FBnpgDN16lffoUsadSz8mCqHx5zKjKr2rET0nDVNBdEJxLtRZb50m5Lq78rnQ==
+X-Received: by 2002:a2e:9744:: with SMTP id f4mr14295946ljj.367.1593699548019;
+        Thu, 02 Jul 2020 07:19:08 -0700 (PDT)
+Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
+        by smtp.gmail.com with ESMTPSA id v10sm692581ljg.113.2020.07.02.07.19.06
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 02 Jul 2020 07:19:07 -0700 (PDT)
+From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+To:     tglx@linutronix.de, jason@lakedaemon.net, maz@kernel.org,
+        s-anna@ti.com
+Cc:     grzegorz.jaszczyk@linaro.org, robh+dt@kernel.org,
+        lee.jones@linaro.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, david@lechnology.com,
+        wmills@ti.com
+Subject: [PATCHv3 0/6] Add TI PRUSS Local Interrupt Controller IRQChip driver
+Date:   Thu,  2 Jul 2020 16:17:53 +0200
+Message-Id: <1593699479-1445-1-git-send-email-grzegorz.jaszczyk@linaro.org>
+X-Mailer: git-send-email 2.7.4
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Drew Fustini <drew@beagleboard.org> [200630 21:43]:
-> On Tue, Jun 30, 2020 at 02:34:23PM -0700, Tony Lindgren wrote:
-> > * Drew Fustini <drew@beagleboard.org> [200630 21:32]:
-> > > On Tue, Jun 30, 2020 at 11:20:37AM -0700, Tony Lindgren wrote:
-> > ...
-> > > > > > Needing to change the dts does not sound good to me.. But maybe you mean
-> > > > > > this is needed until the gpio-omap and pinctrl-single patches are merged?
-> > > > >
-> > > > > I agree that I would like for userspace to be able to do run-time
-> > > > > changes.  However, I think something would need to be added to the
-> > > > > pinconf support in pinctrl-single for that to be possible.  There are
-> > > > > bias properties but non for receiver enable.
-> > > > > 
-> > > > > Does it seem sensible to add that?
-> > > > 
-> > > > Well let's see with Linus W says. To me it seems this might be a good
-> > > > reason to allow a sysfs interface to change the pinctrl if we don't
-> > > > have it yet? With the proper gpio line naming it should be quite simple
-> > > > to use too :)
-> > > 
-> > > I think if pinctrl-single allowed mux to be set through debugfs that
-> > > could be one solution to the use case of users prototyping with a
-> > > beaglebone.  Maybe that could be acceptable?
-> > 
-> > I think this should not depend on debugfs though, it should be a
-> > generic interface.
-> 
-> Ok, thanks.  I'm trying to imagine a solution as there no existing
-> pinctrl uAPI.  gpiod uAPI has gained some pinctrl functionality with
-> the work that Kent Gibson has been doing beyond just bias flags.
+Hi All,
 
-OK. Yeah sounds like in this case toggling pinctrl receiver enable
-should happen automatically with gpio changes.
+The following is a v3 version of the series [1][2] that adds an IRQChip
+driver for the local interrupt controller present within a Programmable
+Real-Time Unit and Industrial Communication Subsystem (PRU-ICSS) present on a
+number of TI SoCs including OMAP architecture based AM335x, AM437x, AM57xx SoCs,
+Keystone 2 architecture based 66AK2G SoCs, Davinci architecture based
+OMAP-L138/DA850 SoCs and the latest K3 architecture based AM65x and J721E SoCs.
+Please see the v1 cover-letter [1] for details about the features of this
+interrupt controller.  More details can be found in any of the supported SoC
+TRMs.  Eg: Chapter 30.1.6 of AM5728 TRM [3]
 
-> Do you think trying to plumb this through gpio-omap is a reasonable
-> approach?
+Please see the individual patches for exact changes in each patch, following are
+the main changes from v2:
+ - Convert dt-binding to YAML (patch #1).
+ - Address comments from Marc Zyngier regarding patch #2 and update following
+   patches due to those changes.
+ - Dropped the custom helper functions used for interrupt configuration outside
+   of irq driver [4]. Introduce new patch (patch 6) which uses xlate and irq
+   domain mapping functionality in order to map system event through 2 levels of
+   many-to-one mapping i.e.  events to channel mapping and channels to host
+   interrupts.
 
-I think any sysfs interface to update pinctrl settings should be
-generic to the pinctrl framework. But maybe making it work via gpio
-use would do the trick.
+[1] https://patchwork.kernel.org/cover/11034561/
+[2] https://patchwork.kernel.org/cover/11069749/
+[3] http://www.ti.com/lit/pdf/spruhz6
+[4] https://patchwork.kernel.org/patch/11069751/
 
-Regards,
+Best regards
+Grzegorz
 
-Tony
+David Lechner (1):
+  irqchip/irq-pruss-intc: Implement irq_{get,set}_irqchip_state ops
+
+Grzegorz Jaszczyk (1):
+  irqchip/irq-pruss-intc: Add event mapping support
+
+Suman Anna (4):
+  dt-bindings: irqchip: Add PRU-ICSS interrupt controller bindings
+  irqchip/irq-pruss-intc: Add a PRUSS irqchip driver for PRUSS
+    interrupts
+  irqchip/irq-pruss-intc: Add support for shared and invalid interrupts
+  irqchip/irq-pruss-intc: Add support for ICSSG INTC on K3 SoCs
+
+ .../interrupt-controller/ti,pruss-intc.yaml        | 135 ++++
+ drivers/irqchip/Kconfig                            |  10 +
+ drivers/irqchip/Makefile                           |   1 +
+ drivers/irqchip/irq-pruss-intc.c                   | 717 +++++++++++++++++++++
+ 4 files changed, 863 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml
+ create mode 100644 drivers/irqchip/irq-pruss-intc.c
+
+-- 
+2.7.4
+
