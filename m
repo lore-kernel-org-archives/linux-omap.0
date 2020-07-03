@@ -2,251 +2,193 @@ Return-Path: <SRS0=Gzz1=AO=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 372CFC433E3
-	for <linux-omap@archiver.kernel.org>; Fri,  3 Jul 2020 16:07:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E33A6C433E0
+	for <linux-omap@archiver.kernel.org>; Fri,  3 Jul 2020 17:04:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A62B2145D
-	for <linux-omap@archiver.kernel.org>; Fri,  3 Jul 2020 16:07:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C37A621531
+	for <linux-omap@archiver.kernel.org>; Fri,  3 Jul 2020 17:04:33 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="BsQbt2a2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbgGCQHq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 3 Jul 2020 12:07:46 -0400
-Received: from muru.com ([72.249.23.125]:60624 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726035AbgGCQHq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 3 Jul 2020 12:07:46 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 7F553807E;
-        Fri,  3 Jul 2020 16:08:37 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
-        Faiz Abbas <faiz_abbas@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP2+: Drop legacy platform data for am3 and am4 rtc
-Date:   Fri,  3 Jul 2020 09:07:30 -0700
-Message-Id: <20200703160731.53698-3-tony@atomide.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200703160731.53698-1-tony@atomide.com>
-References: <20200703160731.53698-1-tony@atomide.com>
+        id S1727015AbgGCREc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 3 Jul 2020 13:04:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38596 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726560AbgGCREb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jul 2020 13:04:31 -0400
+Received: from mail-qk1-x742.google.com (mail-qk1-x742.google.com [IPv6:2607:f8b0:4864:20::742])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0D0FC08C5DE
+        for <linux-omap@vger.kernel.org>; Fri,  3 Jul 2020 10:04:30 -0700 (PDT)
+Received: by mail-qk1-x742.google.com with SMTP id 80so29349111qko.7
+        for <linux-omap@vger.kernel.org>; Fri, 03 Jul 2020 10:04:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=kekVEpbIO7y7Zy2ic+9W88OAlfyvYXO9F0MmrWuPMes=;
+        b=BsQbt2a2KxuCsEJCULjMcy0w8Huw7ZYVidvCJLn4GTSqKIYQBX6EFxWqAmV5lJVFcK
+         fChr0d12IgjEhlw4a+1RR1RaVFZt4VLvv/E1QCHnzBwjTAH+BF/u4MvGn/Vv3gGvPRC1
+         5ooFYrDK/os5YIT5k11pbkxkHT4ZnJpwCMjErn5TT5Q9Tp0qBtyHp/APu8tMzc2s1yMi
+         3HLpyJoG8ilG0WYMKsS4sKriEHqjFU3yuJ5/KJnP8bBpcZwkQCSeWnX2a7YuALgxVbsT
+         omzWIn4rzPVxspWRXYzOP1X6ffdX13kMVji2FqbVOPmZEYdEzWcqLu5YsQjelTjLG0xy
+         e9uQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kekVEpbIO7y7Zy2ic+9W88OAlfyvYXO9F0MmrWuPMes=;
+        b=tqxQAVyUmTl2CKAxMyHm8+HRkQuwiV9ZeoB8cL7HPso2YectgTpPApnGGL/JmaGYSS
+         wFSGgHRq8CSVx9axrVaHzYiq8pJDWnDPGqZynWIiF+aROorB6J+8YzcGKWxtmpjU4QUb
+         WBhBQG7bt7ieCJ+gWe5H9uP/Ujo0RBswQkp8A940N07K9dll0BfXCFW0ncrUjfR0Mejw
+         eVuB7gsFJqS5zqgQFPdV/TZor/7e4SoEhJLyuoqmYy5LV2KQaq8k3rYB3Yy/An92N3vZ
+         yjVrtAIWcxqbu4P3l1TONugsWyz88sxs/PFOQ5hjIQ2l61qoriONnBSiTluFTPWxWxnq
+         NYWQ==
+X-Gm-Message-State: AOAM530XiDLJj2xx9d9+QrN7qdBpbzc90SPHkwsFCTkbKbySqEjbcGkE
+        /qs/OfkJ3q20Pz7oHHDiNn+2pZ52zeoNoi9McAYAQw==
+X-Google-Smtp-Source: ABdhPJxh/pON8HZYRKACgaenguZaBxueymNnPYNgshbUR2pBl+67NWCnbO7L0Sk9aTNbXWHiF93mGRGobhPj7u9WQ48=
+X-Received: by 2002:a37:64cd:: with SMTP id y196mr28956840qkb.303.1593795870000;
+ Fri, 03 Jul 2020 10:04:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <1593699479-1445-1-git-send-email-grzegorz.jaszczyk@linaro.org>
+ <1593699479-1445-5-git-send-email-grzegorz.jaszczyk@linaro.org> <658e3a8d3374eca91387932a9a246add@kernel.org>
+In-Reply-To: <658e3a8d3374eca91387932a9a246add@kernel.org>
+From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+Date:   Fri, 3 Jul 2020 19:04:18 +0200
+Message-ID: <CAMxfBF5oB9=qkA8G4jD=KPht+OmZdOaTpsoqvRE881da51S2AA@mail.gmail.com>
+Subject: Re: [PATCHv3 4/6] irqchip/irq-pruss-intc: Implement
+ irq_{get,set}_irqchip_state ops
+To:     Marc Zyngier <maz@kernel.org>
+Cc:     tglx@linutronix.de, jason@lakedaemon.net,
+        "Anna, Suman" <s-anna@ti.com>, robh+dt@kernel.org,
+        Lee Jones <lee.jones@linaro.org>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, david@lechnology.com,
+        "Mills, William" <wmills@ti.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with ti-sysc interconnect driver and dts
-data. Let's drop the related platform data and custom ti,hwmods
-dts property.
+On Thu, 2 Jul 2020 at 19:54, Marc Zyngier <maz@kernel.org> wrote:
+>
+> On 2020-07-02 15:17, Grzegorz Jaszczyk wrote:
+> > From: David Lechner <david@lechnology.com>
+> >
+> > This implements the irq_get_irqchip_state and irq_set_irqchip_state
+> > callbacks for the TI PRUSS INTC driver. The set callback can be used
+> > by drivers to "kick" a PRU by enabling a PRU system event.
+>
+> "enabling"? That'd be unmasking an interrupt, which isn't what this
+> does. "injecting", maybe?
 
-As we're just dropping data, and the early platform data init
-is based on the custom ti,hwmods property, we want to drop both
-the platform data and ti,hwmods property in a single patch.
+Yes "injecting" is much better.
 
-Note that we also must tag rtc as disabled on am43x-epos-evm as
-it's not accessible according to commit 4321dc8dff35 ("ARM: AM43XX:
-hwmod: Add rtc hwmod"). And we must keep RTC enabled for rtcwake
-to work now that we've removed the custom platfor code for
-re-enabling the RTC on suspend.
+>
+> >
+> > Example:
+> >      irq_set_irqchip_state(irq, IRQCHIP_STATE_PENDING, true);
+>
+> Nice example.
+>
+> What this example does explain is how you are actually going to kick
+> a PRU via this interface. For that to happen, you'd have to have on
+> the Linux side an interrupt that is actually routed to a PRU.
 
-Keerthy <j-keerthy@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/am33xx-l4.dtsi              |  1 -
- arch/arm/boot/dts/am437x-l4.dtsi              |  3 +-
- arch/arm/boot/dts/am43x-epos-evm.dts          |  4 ++
- .../omap_hwmod_33xx_43xx_common_data.h        |  2 -
- .../omap_hwmod_33xx_43xx_interconnect_data.c  |  8 ----
- .../omap_hwmod_33xx_43xx_ipblock_data.c       | 37 -------------------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  1 -
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c    |  8 ----
- 8 files changed, 5 insertions(+), 59 deletions(-)
+Correct.
 
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -413,7 +413,6 @@ target-module@39000 {			/* 0x44e39000, ap 33 02.0 */
- 
- 		target-module@3e000 {			/* 0x44e3e000, ap 35 60.0 */
- 			compatible = "ti,sysc-omap4-simple", "ti,sysc";
--			ti,hwmods = "rtc";
- 			reg = <0x3e074 0x4>,
- 			      <0x3e078 0x4>;
- 			reg-names = "rev", "sysc";
-diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
---- a/arch/arm/boot/dts/am437x-l4.dtsi
-+++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -409,9 +409,8 @@ target-module@39000 {			/* 0x44e39000, ap 32 02.0 */
- 			ranges = <0x0 0x39000 0x1000>;
- 		};
- 
--		target-module@3e000 {			/* 0x44e3e000, ap 34 60.0 */
-+		rtc_target: target-module@3e000 {	/* 0x44e3e000, ap 34 60.0 */
- 			compatible = "ti,sysc-omap4-simple", "ti,sysc";
--			ti,hwmods = "rtc";
- 			reg = <0x3e074 0x4>,
- 			      <0x3e078 0x4>;
- 			reg-names = "rev", "sysc";
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -833,6 +833,10 @@ &epwmss0 {
- 	status = "okay";
- };
- 
-+&rtc_target {
-+	status = "disabled";
-+};
-+
- &tscadc {
- 	status = "okay";
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-@@ -26,7 +26,6 @@ extern struct omap_hwmod_ocp_if am33xx_mpu__prcm;
- extern struct omap_hwmod_ocp_if am33xx_l3_s__l3_main;
- extern struct omap_hwmod_ocp_if am33xx_gfx__l3_main;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__gfx;
--extern struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc;
- extern struct omap_hwmod_ocp_if am33xx_l3_s__gpmc;
- extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer2;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__ocmc;
-@@ -43,7 +42,6 @@ extern struct omap_hwmod am33xx_ocmcram_hwmod;
- extern struct omap_hwmod am33xx_smartreflex0_hwmod;
- extern struct omap_hwmod am33xx_smartreflex1_hwmod;
- extern struct omap_hwmod am33xx_gpmc_hwmod;
--extern struct omap_hwmod am33xx_rtc_hwmod;
- 
- extern struct omap_hwmod_class am33xx_emif_hwmod_class;
- extern struct omap_hwmod_class am33xx_l4_hwmod_class;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-@@ -90,14 +90,6 @@ struct omap_hwmod_ocp_if am33xx_l3_main__gfx = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--/* l4 wkup -> rtc */
--struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc = {
--	.master		= &am33xx_l4_wkup_hwmod,
--	.slave		= &am33xx_rtc_hwmod,
--	.clk		= "clkdiv32k_ick",
--	.user		= OCP_USER_MPU,
--};
--
- /* l3s cfg -> gpmc */
- struct omap_hwmod_ocp_if am33xx_l3_s__gpmc = {
- 	.master		= &am33xx_l3_s_hwmod,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -26,7 +26,6 @@
- #define CLKCTRL(oh, clkctrl) ((oh).prcm.omap4.clkctrl_offs = (clkctrl))
- #define RSTCTRL(oh, rstctrl) ((oh).prcm.omap4.rstctrl_offs = (rstctrl))
- #define RSTST(oh, rstst) ((oh).prcm.omap4.rstst_offs = (rstst))
--#define PRCM_FLAGS(oh, flag) ((oh).prcm.omap4.flags = (flag))
- 
- /*
-  * 'l3' class
-@@ -274,47 +273,12 @@ struct omap_hwmod am33xx_gpmc_hwmod = {
- 	},
- };
- 
--
--/*
-- * 'rtc' class
-- * rtc subsystem
-- */
--static struct omap_hwmod_class_sysconfig am33xx_rtc_sysc = {
--	.rev_offs	= 0x0074,
--	.sysc_offs	= 0x0078,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO |
--			  SIDLE_SMART | SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type3,
--};
--
--static struct omap_hwmod_class am33xx_rtc_hwmod_class = {
--	.name		= "rtc",
--	.sysc		= &am33xx_rtc_sysc,
--	.unlock		= &omap_hwmod_rtc_unlock,
--	.lock		= &omap_hwmod_rtc_lock,
--};
--
--struct omap_hwmod am33xx_rtc_hwmod = {
--	.name		= "rtc",
--	.class		= &am33xx_rtc_hwmod_class,
--	.clkdm_name	= "l4_rtc_clkdm",
--	.main_clk	= "clk_32768_ck",
--	.prcm		= {
--		.omap4	= {
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
- static void omap_hwmod_am33xx_clkctrl(void)
- {
- 	CLKCTRL(am33xx_smartreflex0_hwmod,
- 		AM33XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex1_hwmod,
- 		AM33XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET);
--	CLKCTRL(am33xx_rtc_hwmod, AM33XX_CM_RTC_RTC_CLKCTRL_OFFSET);
--	PRCM_FLAGS(am33xx_rtc_hwmod, HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_gpmc_hwmod, AM33XX_CM_PER_GPMC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_ls_hwmod, AM33XX_CM_PER_L4LS_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_wkup_hwmod, AM33XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
-@@ -343,7 +307,6 @@ static void omap_hwmod_am43xx_clkctrl(void)
- 		AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex1_hwmod,
- 		AM43XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET);
--	CLKCTRL(am33xx_rtc_hwmod, AM43XX_CM_RTC_RTC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_gpmc_hwmod, AM43XX_CM_PER_GPMC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_ls_hwmod, AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_wkup_hwmod, AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -283,7 +283,6 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_wkup__control,
- 	&am33xx_l4_wkup__smartreflex0,
- 	&am33xx_l4_wkup__smartreflex1,
--	&am33xx_l4_wkup__rtc,
- 	&am33xx_l3_s__gpmc,
- 	&am33xx_l3_main__ocmc,
- 	NULL,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -216,11 +216,6 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	NULL,
- };
- 
--static struct omap_hwmod_ocp_if *am43xx_rtc_hwmod_ocp_ifs[] __initdata = {
--	&am33xx_l4_wkup__rtc,
--	NULL,
--};
--
- int __init am43xx_hwmod_init(void)
- {
- 	int ret;
-@@ -229,8 +224,5 @@ int __init am43xx_hwmod_init(void)
- 	omap_hwmod_init();
- 	ret = omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
- 
--	if (!ret && of_machine_is_compatible("ti,am4372"))
--		ret = omap_hwmod_register_links(am43xx_rtc_hwmod_ocp_ifs);
--
- 	return ret;
- }
--- 
-2.27.0
+> And from what I have understood of the previous patches, this can't
+> be the case. What didi I miss?
+
+The hwirq's handled by this driver are so called system events in
+PRUSS nomenclature. This driver is responsible for the entire mapping
+of those system events to PRUSS specific channels which are next
+mapped to host_irq (patch #6 https://lkml.org/lkml/2020/7/2/612).
+There are 8 host_irqs that are routed to the main cpu (running Linux)
+and they are called host_intr0..host_intr7 (were seen in previous
+patches of this series). But there are other "host_interrupts" that
+are routed not to the main CPU but to PRU cores and this driver is
+responsible for creating proper mapping (system
+event/channel/host_irq) for them, and allowing to kick PRU via the
+introduced interface.
+
+It is worth noting that the PRUSS is quite flexible and allows various
+things e.g.:
+- map any of 160/64 internal system events to any of the 20/10 channels
+- map any of the 20/10 channels to any of the 20/10 host interrupts.
+
+So e.g. it is possible to map e.g. system event 17 to the main CPU
+(through e.g. channel 1 which is the next map to e.g. host_intr0). Or
+(exclusively) map the same system event 17 to PRU core (through e.g.
+channel 1 which is the next map to PRU0).
+
+>
+> >
+> > Signed-off-by: David Lechner <david@lechnology.com>
+> > Signed-off-by: Suman Anna <s-anna@ti.com>
+> > Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+> > Reviewed-by: Lee Jones <lee.jones@linaro.org>
+> > ---
+> > v2->v3:
+> > - Get rid of unnecessary pruss_intc_check_write() and use
+> >   pruss_intc_write_reg directly.
+> > v1->v2:
+> > - https://patchwork.kernel.org/patch/11069769/
+> > ---
+> >  drivers/irqchip/irq-pruss-intc.c | 43
+> > ++++++++++++++++++++++++++++++++++++++--
+> >  1 file changed, 41 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/irqchip/irq-pruss-intc.c
+> > b/drivers/irqchip/irq-pruss-intc.c
+> > index 49c936f..19b3d38 100644
+> > --- a/drivers/irqchip/irq-pruss-intc.c
+> > +++ b/drivers/irqchip/irq-pruss-intc.c
+> > @@ -7,6 +7,7 @@
+> >   *   Suman Anna <s-anna@ti.com>
+> >   */
+> >
+> > +#include <linux/interrupt.h>
+> >  #include <linux/irq.h>
+> >  #include <linux/irqchip/chained_irq.h>
+> >  #include <linux/irqdomain.h>
+> > @@ -39,8 +40,7 @@
+> >  #define PRU_INTC_HIEISR              0x0034
+> >  #define PRU_INTC_HIDISR              0x0038
+> >  #define PRU_INTC_GPIR                0x0080
+> > -#define PRU_INTC_SRSR0               0x0200
+> > -#define PRU_INTC_SRSR1               0x0204
+> > +#define PRU_INTC_SRSR(x)     (0x0200 + (x) * 4)
+> >  #define PRU_INTC_SECR0               0x0280
+> >  #define PRU_INTC_SECR1               0x0284
+> >  #define PRU_INTC_ESR0                0x0300
+> > @@ -145,6 +145,43 @@ static void pruss_intc_irq_relres(struct irq_data
+> > *data)
+> >       module_put(THIS_MODULE);
+> >  }
+> >
+> > +static int pruss_intc_irq_get_irqchip_state(struct irq_data *data,
+> > +                                         enum irqchip_irq_state which,
+> > +                                         bool *state)
+> > +{
+> > +     struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
+> > +     u32 reg, mask, srsr;
+> > +
+> > +     if (which != IRQCHIP_STATE_PENDING)
+> > +             return -EINVAL;
+> > +
+> > +     reg = PRU_INTC_SRSR(data->hwirq / 32);
+>
+> I assume the register file scales as more interrupts are added in the
+> subsequent patch?
+>
+Yes, after I will move part of the next patch to patch #2 as you
+suggested it will stop being confusing.
+
+Thank you,
+Grzegorz
