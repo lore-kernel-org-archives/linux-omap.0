@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF8CC433E2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D57ABC433EC
 	for <linux-omap@archiver.kernel.org>; Tue,  7 Jul 2020 18:54:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51B2A206CD
+	by mail.kernel.org (Postfix) with ESMTP id BCF0F206CD
 	for <linux-omap@archiver.kernel.org>; Tue,  7 Jul 2020 18:54:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728191AbgGGSyr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 7 Jul 2020 14:54:47 -0400
-Received: from muru.com ([72.249.23.125]:32820 "EHLO muru.com"
+        id S1728594AbgGGSyt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 7 Jul 2020 14:54:49 -0400
+Received: from muru.com ([72.249.23.125]:32836 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728520AbgGGSyq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 7 Jul 2020 14:54:46 -0400
+        id S1728559AbgGGSyt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 7 Jul 2020 14:54:49 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id C179F814A;
-        Tue,  7 Jul 2020 18:55:38 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 0FFA78167;
+        Tue,  7 Jul 2020 18:55:41 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org,
         =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org
-Subject: [PATCH 2/6] ARM: OMAP2+: Drop legacy platform data for am335x dwc3
-Date:   Tue,  7 Jul 2020 11:54:35 -0700
-Message-Id: <20200707185439.18601-3-tony@atomide.com>
+Subject: [PATCH 5/6] ARM: OMAP2+: Drop legacy platform data for omap4 usb
+Date:   Tue,  7 Jul 2020 11:54:38 -0700
+Message-Id: <20200707185439.18601-6-tony@atomide.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200707185439.18601-1-tony@atomide.com>
 References: <20200707185439.18601-1-tony@atomide.com>
@@ -49,111 +49,259 @@ the platform data and ti,hwmods property in a single patch.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am437x-l4.dtsi           |  2 -
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 59 ----------------------
- 2 files changed, 61 deletions(-)
+ arch/arm/boot/dts/omap4-l4.dtsi            |   2 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 193 ---------------------
+ 2 files changed, 195 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
---- a/arch/arm/boot/dts/am437x-l4.dtsi
-+++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -2352,7 +2352,6 @@ target-module@4c000 {			/* 0x4834c000, ap 114 72.0 */
+diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
+--- a/arch/arm/boot/dts/omap4-l4.dtsi
++++ b/arch/arm/boot/dts/omap4-l4.dtsi
+@@ -240,7 +240,6 @@ target-module@5e000 {			/* 0x4a05e000, ap 80 68.0 */
  
- 		target-module@80000 {			/* 0x48380000, ap 123 42.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "usb_otg_ss0";
- 			reg = <0x80000 0x4>,
- 			      <0x80010 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -2433,7 +2432,6 @@ usb2_phy1: phy@8000 {
+ 		target-module@62000 {			/* 0x4a062000, ap 11 16.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+-			ti,hwmods = "usb_tll_hs";
+ 			reg = <0x62000 0x4>,
+ 			      <0x62010 0x4>,
+ 			      <0x62014 0x4>;
+@@ -268,7 +267,6 @@ usbhstll: usbhstll@0 {
  
- 		target-module@c0000 {			/* 0x483c0000, ap 127 7a.0 */
+ 		target-module@64000 {			/* 0x4a064000, ap 86 1e.0 */
  			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "usb_otg_ss1";
- 			reg = <0xc0000 0x4>,
- 			      <0xc0010 0x4>;
- 			reg-names = "rev", "sysc";
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -85,49 +85,6 @@ static struct omap_hwmod am43xx_control_hwmod = {
+-			ti,hwmods = "usb_host_hs";
+ 			reg = <0x64000 0x4>,
+ 			      <0x64010 0x4>,
+ 			      <0x64014 0x4>;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -639,154 +639,6 @@ static struct omap_hwmod omap44xx_sl2if_hwmod = {
  	},
  };
  
--static struct omap_hwmod_class_sysconfig am43xx_usb_otg_ss_sysc = {
+-/*
+- * 'usb_host_fs' class
+- * full-speed usb host controller
+- */
+-
+-/* The IP is not compliant to type1 / type2 scheme */
+-static struct omap_hwmod_class_sysconfig omap44xx_usb_host_fs_sysc = {
+-	.rev_offs	= 0x0000,
+-	.sysc_offs	= 0x0210,
+-	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
+-			   SYSC_HAS_SOFTRESET),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP),
+-	.sysc_fields	= &omap_hwmod_sysc_type_usb_host_fs,
+-};
+-
+-static struct omap_hwmod_class omap44xx_usb_host_fs_hwmod_class = {
+-	.name	= "usb_host_fs",
+-	.sysc	= &omap44xx_usb_host_fs_sysc,
+-};
+-
+-/* usb_host_fs */
+-static struct omap_hwmod omap44xx_usb_host_fs_hwmod = {
+-	.name		= "usb_host_fs",
+-	.class		= &omap44xx_usb_host_fs_hwmod_class,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.main_clk	= "usb_host_fs_fck",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = OMAP4_CM_L3INIT_USB_HOST_FS_CLKCTRL_OFFSET,
+-			.context_offs = OMAP4_RM_L3INIT_USB_HOST_FS_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+-
+-/*
+- * 'usb_host_hs' class
+- * high-speed multi-port usb host controller
+- */
+-
+-static struct omap_hwmod_class_sysconfig omap44xx_usb_host_hs_sysc = {
 -	.rev_offs	= 0x0000,
 -	.sysc_offs	= 0x0010,
--	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
--				SYSC_HAS_SIDLEMODE),
+-	.syss_offs	= 0x0014,
+-	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
+-			   SYSC_HAS_SOFTRESET | SYSC_HAS_RESET_STATUS),
 -	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--				SIDLE_SMART_WKUP | MSTANDBY_FORCE |
--				MSTANDBY_NO | MSTANDBY_SMART |
--				MSTANDBY_SMART_WKUP),
+-			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
+-			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
 -	.sysc_fields	= &omap_hwmod_sysc_type2,
 -};
 -
--static struct omap_hwmod_class am43xx_usb_otg_ss_hwmod_class = {
--	.name	= "usb_otg_ss",
--	.sysc	= &am43xx_usb_otg_ss_sysc,
+-static struct omap_hwmod_class omap44xx_usb_host_hs_hwmod_class = {
+-	.name	= "usb_host_hs",
+-	.sysc	= &omap44xx_usb_host_hs_sysc,
 -};
 -
--static struct omap_hwmod am43xx_usb_otg_ss0_hwmod = {
--	.name		= "usb_otg_ss0",
--	.class		= &am43xx_usb_otg_ss_hwmod_class,
--	.clkdm_name	= "l3s_clkdm",
--	.main_clk	= "l3s_gclk",
+-/* usb_host_hs */
+-static struct omap_hwmod omap44xx_usb_host_hs_hwmod = {
+-	.name		= "usb_host_hs",
+-	.class		= &omap44xx_usb_host_hs_hwmod_class,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.main_clk	= "usb_host_hs_fck",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs	= AM43XX_CM_PER_USB_OTG_SS0_CLKCTRL_OFFSET,
--			.modulemode	= MODULEMODE_SWCTRL,
+-			.clkctrl_offs = OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET,
+-			.context_offs = OMAP4_RM_L3INIT_USB_HOST_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+-		},
+-	},
+-
+-	/*
+-	 * Errata: USBHOST Configured In Smart-Idle Can Lead To a Deadlock
+-	 * id: i660
+-	 *
+-	 * Description:
+-	 * In the following configuration :
+-	 * - USBHOST module is set to smart-idle mode
+-	 * - PRCM asserts idle_req to the USBHOST module ( This typically
+-	 *   happens when the system is going to a low power mode : all ports
+-	 *   have been suspended, the master part of the USBHOST module has
+-	 *   entered the standby state, and SW has cut the functional clocks)
+-	 * - an USBHOST interrupt occurs before the module is able to answer
+-	 *   idle_ack, typically a remote wakeup IRQ.
+-	 * Then the USB HOST module will enter a deadlock situation where it
+-	 * is no more accessible nor functional.
+-	 *
+-	 * Workaround:
+-	 * Don't use smart idle; use only force idle, hence HWMOD_SWSUP_SIDLE
+-	 */
+-
+-	/*
+-	 * Errata: USB host EHCI may stall when entering smart-standby mode
+-	 * Id: i571
+-	 *
+-	 * Description:
+-	 * When the USBHOST module is set to smart-standby mode, and when it is
+-	 * ready to enter the standby state (i.e. all ports are suspended and
+-	 * all attached devices are in suspend mode), then it can wrongly assert
+-	 * the Mstandby signal too early while there are still some residual OCP
+-	 * transactions ongoing. If this condition occurs, the internal state
+-	 * machine may go to an undefined state and the USB link may be stuck
+-	 * upon the next resume.
+-	 *
+-	 * Workaround:
+-	 * Don't use smart standby; use only force standby,
+-	 * hence HWMOD_SWSUP_MSTANDBY
+-	 */
+-
+-	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+-};
+-
+-/*
+- * 'usb_tll_hs' class
+- * usb_tll_hs module is the adapter on the usb_host_hs ports
+- */
+-
+-static struct omap_hwmod_class_sysconfig omap44xx_usb_tll_hs_sysc = {
+-	.rev_offs	= 0x0000,
+-	.sysc_offs	= 0x0010,
+-	.syss_offs	= 0x0014,
+-	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
+-			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+-			   SYSC_HAS_AUTOIDLE),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+-	.sysc_fields	= &omap_hwmod_sysc_type1,
+-};
+-
+-static struct omap_hwmod_class omap44xx_usb_tll_hs_hwmod_class = {
+-	.name	= "usb_tll_hs",
+-	.sysc	= &omap44xx_usb_tll_hs_sysc,
+-};
+-
+-static struct omap_hwmod omap44xx_usb_tll_hs_hwmod = {
+-	.name		= "usb_tll_hs",
+-	.class		= &omap44xx_usb_tll_hs_hwmod_class,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.main_clk	= "usb_tll_hs_ick",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET,
+-			.context_offs = OMAP4_RM_L3INIT_USB_TLL_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
 -		},
 -	},
 -};
 -
--static struct omap_hwmod am43xx_usb_otg_ss1_hwmod = {
--	.name		= "usb_otg_ss1",
--	.class		= &am43xx_usb_otg_ss_hwmod_class,
--	.clkdm_name	= "l3s_clkdm",
--	.main_clk	= "l3s_gclk",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs	= AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET,
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
- /* Interfaces */
- static struct omap_hwmod_ocp_if am43xx_l3_main__emif = {
- 	.master		= &am33xx_l3_main_hwmod,
-@@ -178,20 +135,6 @@ static struct omap_hwmod_ocp_if am43xx_l4_wkup__control = {
- 	.user		= OCP_USER_MPU,
+ /*
+  * interfaces
+  */
+@@ -895,22 +747,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
--static struct omap_hwmod_ocp_if am43xx_l3_s__usbotgss0 = {
--	.master         = &am33xx_l3_s_hwmod,
--	.slave          = &am43xx_usb_otg_ss0_hwmod,
--	.clk            = "l3s_gclk",
--	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+-/* usb_host_fs -> l3_main_2 */
+-static struct omap_hwmod_ocp_if __maybe_unused omap44xx_usb_host_fs__l3_main_2 = {
+-	.master		= &omap44xx_usb_host_fs_hwmod,
+-	.slave		= &omap44xx_l3_main_2_hwmod,
+-	.clk		= "l3_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
--static struct omap_hwmod_ocp_if am43xx_l3_s__usbotgss1 = {
--	.master         = &am33xx_l3_s_hwmod,
--	.slave          = &am43xx_usb_otg_ss1_hwmod,
--	.clk            = "l3s_gclk",
--	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+-/* usb_host_hs -> l3_main_2 */
+-static struct omap_hwmod_ocp_if omap44xx_usb_host_hs__l3_main_2 = {
+-	.master		= &omap44xx_usb_host_hs_hwmod,
+-	.slave		= &omap44xx_l3_main_2_hwmod,
+-	.clk		= "l3_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
- static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_mpu__l3_main,
- 	&am33xx_mpu__prcm,
-@@ -211,8 +154,6 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am43xx_l4_wkup__smartreflex1,
- 	&am33xx_l3_s__gpmc,
- 	&am33xx_l3_main__ocmc,
--	&am43xx_l3_s__usbotgss0,
--	&am43xx_l3_s__usbotgss1,
+ /* l3_main_1 -> l3_main_3 */
+ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_3 = {
+ 	.master		= &omap44xx_l3_main_1_hwmod,
+@@ -1119,30 +955,6 @@ static struct omap_hwmod_ocp_if __maybe_unused omap44xx_l3_main_2__sl2if = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l4_cfg -> usb_host_fs */
+-static struct omap_hwmod_ocp_if __maybe_unused omap44xx_l4_cfg__usb_host_fs = {
+-	.master		= &omap44xx_l4_cfg_hwmod,
+-	.slave		= &omap44xx_usb_host_fs_hwmod,
+-	.clk		= "l4_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4_cfg -> usb_host_hs */
+-static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_host_hs = {
+-	.master		= &omap44xx_l4_cfg_hwmod,
+-	.slave		= &omap44xx_usb_host_hs_hwmod,
+-	.clk		= "l4_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4_cfg -> usb_tll_hs */
+-static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_tll_hs = {
+-	.master		= &omap44xx_l4_cfg_hwmod,
+-	.slave		= &omap44xx_usb_tll_hs_hwmod,
+-	.clk		= "l4_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* mpu -> emif1 */
+ static struct omap_hwmod_ocp_if omap44xx_mpu__emif1 = {
+ 	.master		= &omap44xx_mpu_hwmod,
+@@ -1173,8 +985,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_iva__l3_main_2,
+ 	&omap44xx_l3_main_1__l3_main_2,
+ 	&omap44xx_l4_cfg__l3_main_2,
+-	/* &omap44xx_usb_host_fs__l3_main_2, */
+-	&omap44xx_usb_host_hs__l3_main_2,
+ 	&omap44xx_l3_main_1__l3_main_3,
+ 	&omap44xx_l3_main_2__l3_main_3,
+ 	&omap44xx_l4_cfg__l3_main_3,
+@@ -1201,9 +1011,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_l4_wkup__prm,
+ 	&omap44xx_l4_wkup__scrm,
+ 	/* &omap44xx_l3_main_2__sl2if, */
+-	/* &omap44xx_l4_cfg__usb_host_fs, */
+-	&omap44xx_l4_cfg__usb_host_hs,
+-	&omap44xx_l4_cfg__usb_tll_hs,
+ 	&omap44xx_mpu__emif1,
+ 	&omap44xx_mpu__emif2,
  	NULL,
- };
- 
 -- 
 2.27.0
