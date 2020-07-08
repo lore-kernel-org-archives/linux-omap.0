@@ -2,181 +2,164 @@ Return-Path: <SRS0=RG6i=AT=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60280C433E0
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 10:47:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB545C433E1
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 18:51:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F05B2078C
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 10:47:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594205244;
-	bh=iri/PepGpXQz22ZI8HXioBgLrMkorexXAcPmHeVNvZY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=ZOiwy/bP7M+thN2VJH34o53JZrp1dw9TDiuCX4OvV9y3qC/ugJHaBqT3Grfkn/xyg
-	 V4MEPCYuN+qGN9OW51triHOVLkojSKeOqomWaomiFZJZHCaZY+WVsOSe9JKZamRa68
-	 0Mfvo8H5VUffE67DTDZ2Q7XVsDL5lLBIRLv7L1ig=
+	by mail.kernel.org (Postfix) with ESMTP id A43B5206E2
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 18:51:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="taJns0Jz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728486AbgGHKrX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jul 2020 06:47:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38578 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726586AbgGHKrX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 8 Jul 2020 06:47:23 -0400
-Received: from disco-boy.misterjones.org (disco-boy.misterjones.org [51.254.78.96])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 30BAF20772;
-        Wed,  8 Jul 2020 10:47:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594205242;
-        bh=iri/PepGpXQz22ZI8HXioBgLrMkorexXAcPmHeVNvZY=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=aYYCZK2GEHSnpkv7KzN+EX5MjRK9BtJ6qi/Bba1QuBKJ6iiL8CmELZ+CnTa21jWnn
-         6cDTa79gxnK95p2nB80/rO8rbZBJooPylDdt61NaWmwpa/iu64W0TTkDEpVJYaTWCI
-         DYiEGaOmV83nLapFAf+yDAthegKC1XJg9Mn1654I=
-Received: from disco-boy.misterjones.org ([51.254.78.96] helo=www.loen.fr)
-        by disco-boy.misterjones.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.92)
-        (envelope-from <maz@kernel.org>)
-        id 1jt7bk-00A3D1-LS; Wed, 08 Jul 2020 11:47:20 +0100
+        id S1726065AbgGHSvT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jul 2020 14:51:19 -0400
+Received: from lelv0142.ext.ti.com ([198.47.23.249]:41878 "EHLO
+        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726044AbgGHSvS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2020 14:51:18 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 068Ip801090673;
+        Wed, 8 Jul 2020 13:51:08 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1594234268;
+        bh=YsG/BJdDPnseIyIEYc1rtPIY9uAYMOtMWxEry2DdXs4=;
+        h=Subject:To:References:From:Date:In-Reply-To;
+        b=taJns0JzuccXHyzAK2SR9Ej7WBGaI1MX7nCOofGBZ7Ds9E/oksaVPkyqbaSB1iQtD
+         7GFt68NfPxF0R3YQXmxyy5pS58S651hIziKr6Uaim7ezh4cSgHgQ2APaY+AV5sXtMC
+         b3IjFq+mqtc3bdqDmuR/bfbpgvZlhpPLc4wpF428=
+Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 068Ip8fR066885
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 8 Jul 2020 13:51:08 -0500
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 8 Jul
+ 2020 13:51:08 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 8 Jul 2020 13:51:08 -0500
+Received: from [10.250.34.57] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 068Ip7MY049138;
+        Wed, 8 Jul 2020 13:51:07 -0500
+Subject: Re: [PATCH] Replace HTTP links with HTTPS ones: hardware spinlock
+ core
+To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>,
+        <ohad@wizery.com>, <bjorn.andersson@linaro.org>,
+        <baolin.wang7@gmail.com>, <linux-remoteproc@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>
+References: <20200708033634.62197-1-grandmaster@al2klimov.de>
+From:   Suman Anna <s-anna@ti.com>
+Message-ID: <d5b35655-ed7e-7a7c-c8ad-6fb4376af4fd@ti.com>
+Date:   Wed, 8 Jul 2020 13:51:07 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+In-Reply-To: <20200708033634.62197-1-grandmaster@al2klimov.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Date:   Wed, 08 Jul 2020 11:47:20 +0100
-From:   Marc Zyngier <maz@kernel.org>
-To:     Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-Cc:     tglx@linutronix.de, jason@lakedaemon.net,
-        "Anna, Suman" <s-anna@ti.com>, robh+dt@kernel.org,
-        Lee Jones <lee.jones@linaro.org>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, david@lechnology.com,
-        "Mills, William" <wmills@ti.com>, "Andrew F . Davis" <afd@ti.com>,
-        Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCHv3 2/6] irqchip/irq-pruss-intc: Add a PRUSS irqchip driver
- for PRUSS interrupts
-In-Reply-To: <CAMxfBF6Th+zKOmogA5phkh21tSUzutokCgU+pv0Eh-sDk=1Hbg@mail.gmail.com>
-References: <1593699479-1445-1-git-send-email-grzegorz.jaszczyk@linaro.org>
- <1593699479-1445-3-git-send-email-grzegorz.jaszczyk@linaro.org>
- <f0d3f3224a1b8fa2be668dd2b8d9d84e@kernel.org>
- <CAMxfBF6A9702-rBOo0jHtfn4Ds1_G+nWG4O9-urNqU00dFXeww@mail.gmail.com>
- <12db6d22c12369b6d64f410aa2434b03@kernel.org>
- <CAMxfBF7pbH1LLE4fJnnCPnrqnQ-tdO+_xfoN1VerJcQ-ZyYM9Q@mail.gmail.com>
- <53d39d8fbd63c6638dbf0584c7016ee0@kernel.org>
- <CAMxfBF6Th+zKOmogA5phkh21tSUzutokCgU+pv0Eh-sDk=1Hbg@mail.gmail.com>
-User-Agent: Roundcube Webmail/1.4.5
-Message-ID: <f11097c321b62e7f8ba904dc2907d4e0@kernel.org>
-X-Sender: maz@kernel.org
-X-SA-Exim-Connect-IP: 51.254.78.96
-X-SA-Exim-Rcpt-To: grzegorz.jaszczyk@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, s-anna@ti.com, robh+dt@kernel.org, lee.jones@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, david@lechnology.com, wmills@ti.com, afd@ti.com, rogerq@ti.com
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 2020-07-08 08:04, Grzegorz Jaszczyk wrote:
-> On Sun, 5 Jul 2020 at 22:45, Marc Zyngier <maz@kernel.org> wrote:
->> 
->> On 2020-07-05 14:26, Grzegorz Jaszczyk wrote:
->> > On Sat, 4 Jul 2020 at 11:39, Marc Zyngier <maz@kernel.org> wrote:
->> >>
->> >> On 2020-07-03 15:28, Grzegorz Jaszczyk wrote:
->> 
->> [...]
->> 
->> >> It still begs the question: if the HW can support both edge and level
->> >> triggered interrupts, why isn't the driver supporting this diversity?
->> >> I appreciate that your HW may only have level interrupts so far, but
->> >> what guarantees that this will forever be true? It would imply a
->> >> change
->> >> in the DT binding, which isn't desirable.
->> >
->> > Ok, I've got your point. I will try to come up with something later
->> > on. Probably extending interrupt-cells by one and passing interrupt
->> > type will be enough for now. Extending this driver to actually support
->> > it can be handled later if needed. Hope it works for you.
->> 
->> Writing a set_type callback to deal with this should be pretty easy.
->> Don't delay doing the right thing.
+On 7/7/20 10:36 PM, Alexander A. Klimov wrote:
+> Rationale:
+> Reduces attack surface on kernel devs opening the links for MITM
+> as HTTPS traffic is much harder to manipulate.
 > 
-> Ok.
+> Deterministic algorithm:
+> For each file:
+>    If not .svg:
+>      For each line:
+>        If doesn't contain `\bxmlns\b`:
+>          For each link, `\bhttp://[^# \t\r\n]*(?:\w|/)`:
+>            If both the HTTP and HTTPS versions
+>            return 200 OK and serve the same content:
+>              Replace HTTP with HTTPS.
 > 
->> 
->> [...]
->> 
->> >> >> > +             hwirq = hipir & GENMASK(9, 0);
->> >> >> > +             virq = irq_linear_revmap(intc->domain, hwirq);
->> >> >>
->> >> >> And this is where I worry. You seems to have a single irqdomain
->> >> >> for all the muxes. Are you guaranteed that you will have no
->> >> >> overlap between muxes? And please use irq_find_mapping(), as
->> >> >> I have top-secret plans to kill irq_linear_revmap().
->> >> >
->> >> > Regarding irq_find_mapping - sure.
->> >> >
->> >> > Regarding irqdomains:
->> >> > It is a single irqdomain since the hwirq (system event) can be mapped
->> >> > to different irq_host (muxes). Patch #6
->> >> > https://lkml.org/lkml/2020/7/2/616 implements and describes how input
->> >> > events can be mapped to some output host interrupts through 2 levels
->> >> > of many-to-one mapping i.e. events to channel mapping and channels to
->> >> > host interrupts. Mentioned implementation ensures that specific system
->> >> > event (hwirq) can be mapped through PRUSS specific channel into a
->> >> > single host interrupt.
->> >>
->> >> Patch #6 is a nightmare of its own, and I haven't fully groked it yet.
->> >> Also, this driver seems to totally ignore the 2-level routing. Where
->> >> is it set up? map/unmap in this driver do exactly *nothing*, so
->> >> something somewhere must set it up.
->> >
->> > The map/unmap is updated in patch #6 and it deals with those 2-level
->> > routing setup. Map is responsible for programming the Channel Map
->> > Registers (CMRx) and Host-Interrupt Map Registers (HMRx) basing on
->> > provided configuration from the one parsed in the xlate function.
->> > Unmap undo whatever was done on the map. More details can be found in
->> > patch #6.
->> >
->> > Maybe it would be better to squash patch #6 with this one so it would
->> > be less confusing. What is your advice?
->> 
->> So am I right in understanding that without patch #6, this driver does
->> exactly nothing? If so, it has been a waste of review time.
->> 
->> Please split patch #6 so that this driver does something useful
->> for Linux, without any of the PRU interrupt routing stuff. I want
->> to see a Linux-only driver that works and doesn't rely on any other
->> exotic feature.
->> 
+> Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
+
+Acked-by: Suman Anna <s-anna@ti.com>
+
+> ---
+>   Continuing my work started at 93431e0607e5.
+>   See also: git log --oneline '--author=Alexander A. Klimov <grandmaster@al2klimov.de>' v5.7..master
 > 
-> Patch #6 provides PRU specific 2-level routing setup. This step is
-> required and it is part of the entire patch-set. Theoretically routing
-> setup could be done by other platform driver (not irq one) or e.g. by
-> PRU firmware. In such case this driver would be functional without
-> patch #6 but I do not think it would be proper.
+>   If there are any URLs to be removed completely or at least not HTTPSified:
+>   Just clearly say so and I'll *undo my change*.
+>   See also: https://lkml.org/lkml/2020/6/27/64
+> 
+>   If there are any valid, but yet not changed URLs:
+>   See: https://lkml.org/lkml/2020/6/26/837
+> 
+>   If you apply the patch, please let me know.
+>   Rationale:
+>   I'd like not to submit patches much faster than you maintainers apply them.
+> 
+>   drivers/hwspinlock/hwspinlock_core.c     | 2 +-
+>   drivers/hwspinlock/hwspinlock_internal.h | 2 +-
+>   drivers/hwspinlock/omap_hwspinlock.c     | 2 +-
+>   include/linux/hwspinlock.h               | 2 +-
+>   4 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
+> index fd5f5c5a5244..09568b9246e1 100644
+> --- a/drivers/hwspinlock/hwspinlock_core.c
+> +++ b/drivers/hwspinlock/hwspinlock_core.c
+> @@ -2,7 +2,7 @@
+>   /*
+>    * Hardware spinlock framework
+>    *
+> - * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com
+> + * Copyright (C) 2010 Texas Instruments Incorporated - https://www.ti.com
+>    *
+>    * Contact: Ohad Ben-Cohen <ohad@wizery.com>
+>    */
+> diff --git a/drivers/hwspinlock/hwspinlock_internal.h b/drivers/hwspinlock/hwspinlock_internal.h
+> index 29892767bb7a..318e257bb4fb 100644
+> --- a/drivers/hwspinlock/hwspinlock_internal.h
+> +++ b/drivers/hwspinlock/hwspinlock_internal.h
+> @@ -2,7 +2,7 @@
+>   /*
+>    * Hardware spinlocks internal header
+>    *
+> - * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com
+> + * Copyright (C) 2010 Texas Instruments Incorporated - https://www.ti.com
+>    *
+>    * Contact: Ohad Ben-Cohen <ohad@wizery.com>
+>    */
+> diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
+> index 3b05560456ea..d4491588a49b 100644
+> --- a/drivers/hwspinlock/omap_hwspinlock.c
+> +++ b/drivers/hwspinlock/omap_hwspinlock.c
+> @@ -2,7 +2,7 @@
+>   /*
+>    * OMAP hardware spinlock driver
+>    *
+> - * Copyright (C) 2010-2015 Texas Instruments Incorporated - http://www.ti.com
+> + * Copyright (C) 2010-2015 Texas Instruments Incorporated - https://www.ti.com
+>    *
+>    * Contact: Simon Que <sque@ti.com>
+>    *          Hari Kanigeri <h-kanigeri2@ti.com>
+> diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
+> index bfe7c1f1ac6d..690810acea7f 100644
+> --- a/include/linux/hwspinlock.h
+> +++ b/include/linux/hwspinlock.h
+> @@ -2,7 +2,7 @@
+>   /*
+>    * Hardware spinlock public header
+>    *
+> - * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com
+> + * Copyright (C) 2010 Texas Instruments Incorporated - https://www.ti.com
+>    *
+>    * Contact: Ohad Ben-Cohen <ohad@wizery.com>
+>    */
+> 
 
-Then this whole driver is non-functional until the last patch that
-comes with the PRU-specific "value-add".
-
-[...]
-
-> I am open to any suggestion if there is a better way of handling
-> 2-level routing. I will also appreciate if you could elaborate about
-> issues that you see with patch #6.
-
-The two level routing has to be part of this (or another) irqchip
-driver (specially given that it appears to me like another set of
-crossbar). There should only be a *single* binding for all interrupts,
-including those targeting the PRU (you seem to have two).
-
-And the non-CPU interrupt code has to be in its own patch, because
-it is pretty borderline anyway (I'm still not completely convinced
-this is Linux's job).
-
-         N,
--- 
-Jazz is not dead. It just smells funny...
