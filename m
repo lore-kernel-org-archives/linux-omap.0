@@ -2,119 +2,96 @@ Return-Path: <SRS0=RG6i=AT=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A667FC433DF
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 07:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A34CC433E1
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 09:30:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DBA6220672
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 07:55:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D33322089D
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 09:30:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="MMWDtouL"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="HJahAXyB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726472AbgGHHz0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jul 2020 03:55:26 -0400
-Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.50]:26254 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726081AbgGHHz0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2020 03:55:26 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1594194923;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=JRCk12NmZPFZESJ1uogxI4JtqbrTpjAQcQz4oexmLF0=;
-        b=MMWDtouLzj82N0K+kzkCK/veJE3VxCEJ9GS0IFP4MHfS5UdqKRCVJT5Q+dDfTu2iYs
-        Ok/nZOTOB6ukFQyxk1jQGYDLB5gq0FsPGvSXoDzAUbGg/DN52wXQB6+5H/KZiwPLSEhC
-        +cLSnwvfQzHhdOY3xUQo/BZP6pOhXg9R+lsxPpGjlZsA0MhodLyAkKmIGum5Xf59VN4u
-        HuB7HBVoUU7rFjr9zWs61JArUVP/2msDrG12MOUVSxAhUqf6SiisJ17sGHIF6qtdFWDf
-        zY51ThJylc9NI0fVIF5sreuPIVF0J9mhgIZJp1h/EKcWKQU/BkxIBNpryAWGL56X+fa7
-        9jng==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj7wpz8NMGH/zrwDOv05g="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 46.10.5 DYNA|AUTH)
-        with ESMTPSA id V07054w687qIxIX
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Wed, 8 Jul 2020 09:52:18 +0200 (CEST)
-Subject: Re: OMAP5: inconsistency between target-module and dsi_of_data_omap5 / module_mipi_dsi_driver panel with omapdrm
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <ECE29C41-DFE5-4A50-9206-6FB3183824C3@goldelico.com>
-Date:   Wed, 8 Jul 2020 09:52:17 +0200
-Cc:     Linux-OMAP <linux-omap@vger.kernel.org>,
-        Discussions about the Letux Kernel 
-        <letux-kernel@openphoenux.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jyri Sarha <jsarha@ti.com>, kernel@pyra-handheld.com
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <6E0A9415-9AB5-48D9-9E61-12D20655D04D@goldelico.com>
-References: <F5C04FAF-0029-48F3-B0A6-5327CD911EA2@goldelico.com> <49725F81-E615-4101-81B3-0850F201D9E8@goldelico.com> <5F4C23B0-A82B-4F94-BD74-D04F6D798FC0@goldelico.com> <20200705142653.GQ37466@atomide.com> <20200705143614.GR37466@atomide.com> <E200E98D-A4F8-4270-B192-33733F4C7235@goldelico.com> <20200706143613.GS37466@atomide.com> <E4616E3C-2519-4421-BC75-87A5CA2BB9EF@goldelico.com> <20200707180115.GB5849@atomide.com> <ECE29C41-DFE5-4A50-9206-6FB3183824C3@goldelico.com>
-To:     Tony Lindgren <tony@atomide.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-X-Mailer: Apple Mail (2.3124)
+        id S1728156AbgGHJal (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jul 2020 05:30:41 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:58106 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726445AbgGHJal (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2020 05:30:41 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0689UVkr077802;
+        Wed, 8 Jul 2020 04:30:31 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1594200631;
+        bh=ZG1VUcH+6tOwwV7BnhCzX/gBAhx0Ee8zky2NKNJPpXQ=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=HJahAXyB6Z34ypn9y3jD+pIOIszCEcBFXiT4dOI4C47tZpeT4idB2dcYMSf+Pcm3X
+         rvC3YooTWdS92WgLE11+7NCWgNIDAn5oO29UMV4hunsoPtDFhwn047EPfVZ7w5k+q2
+         JXirucwvxnKF81rbsau43+Fbp22nnFtogulMNh+M=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0689UVG8021580;
+        Wed, 8 Jul 2020 04:30:31 -0500
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 8 Jul
+ 2020 04:30:30 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 8 Jul 2020 04:30:30 -0500
+Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0689UJEJ098512;
+        Wed, 8 Jul 2020 04:30:27 -0500
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+To:     Tom Joseph <tjoseph@cadence.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>
+CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH v6 02/14] linux/kernel.h: Add PTR_ALIGN_DOWN macro
+Date:   Wed, 8 Jul 2020 15:00:06 +0530
+Message-ID: <20200708093018.28474-3-kishon@ti.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200708093018.28474-1-kishon@ti.com>
+References: <20200708093018.28474-1-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi again,
+Add a macro for aligning down a pointer. This is useful to get an
+aligned register address when a device allows only word access and
+doesn't allow half word or byte access.
 
-> Am 07.07.2020 um 21:04 schrieb H. Nikolaus Schaller =
-<hns@goldelico.com>:
->=20
-> Hi Tony and Tomi,
->=20
->> Am 07.07.2020 um 20:01 schrieb Tony Lindgren <tony@atomide.com>:
->>=20
->> * H. Nikolaus Schaller <hns@goldelico.com> [200706 16:11]:
->>>> Am 06.07.2020 um 16:36 schrieb Tony Lindgren <tony@atomide.com>:
->>>> I think you should now be using just the generic panel with
->>>> drivers/gpu/drm/panel/panel-simple or some panel specific
->>>> driver for dsi.
->>>=20
->>> None of them supports the vendor specific MIPI commands of
->>> this panel.
->>>=20
->>> Therefore we have our own panel driver for years and try to
->>> keep pace with upstream changes.
->>=20
->> OK yeah would be good to have it upstream. It might see use
->> on some other platforms while waiting for the pyra dts files.
->=20
-> So if you think we can get the panel driver upstream without the
-> pyra dts files I am happy to submit something for review.
->=20
-> But I have to fix it first.
->=20
-> Maybe Tomi can comment about ideas what structural changes have
-> been done so that it got broken since v5.7-rc1. Then it becomes
-> easier to fix for me. Maybe there was some rework in omapdrm/dss
-> which needs some change in the driver.
->=20
-> And what I would need to know before I start to write new code is
-> if is possible to operate a video mipi dsi panel with driver from
-> gpu/drm/panel together with omapdrm (v5.7 and later).
->=20
-> If this is possible it should be quite easy to mix the
-> old omapdrm/display driver code with e.g.:
->=20
-> drivers/gpu/drm/panel/panel-orisetech-otm8009a.c
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ include/linux/kernel.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-I did a quick test on a 5.7.6 kernel with the sysc fixes as
-suggested by Tony.
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index 9b7a8d74a9d6..c3b361b5be54 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -34,6 +34,7 @@
+ #define ALIGN_DOWN(x, a)	__ALIGN_KERNEL((x) - ((a) - 1), (a))
+ #define __ALIGN_MASK(x, mask)	__ALIGN_KERNEL_MASK((x), (mask))
+ #define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
++#define PTR_ALIGN_DOWN(p, a)	((typeof(p))ALIGN_DOWN((unsigned long)(p), (a)))
+ #define IS_ALIGNED(x, a)		(((x) & ((typeof(x))(a) - 1)) == 0)
+ 
+ /* generic data direction definitions */
+-- 
+2.17.1
 
-Then I overwrote the compatible entry of our display to be
-orisetech,otm8009a and configured to build the otm8009a panel driver.
-
-The panel driver is loaded, but not probed (no call to otm8009a_probe).
-It is shown in /sys/bus/mipi-dsi/drivers (and lsmod) but not =
-/sys/bus/mipi-dsi/devices.
-
-So what should I try next?
-
-BR and thanks,
-Nikolaus=
