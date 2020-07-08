@@ -5,47 +5,46 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAA5DC433E6
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 09:31:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA510C433E7
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 09:31:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9F0F206C3
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 09:31:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96A9B2065D
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jul 2020 09:31:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="i/KslzbF"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Oe6hFCga"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728341AbgGHJaw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jul 2020 05:30:52 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:38926 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726445AbgGHJav (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2020 05:30:51 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0689UcY4109455;
-        Wed, 8 Jul 2020 04:30:38 -0500
+        id S1728520AbgGHJbT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jul 2020 05:31:19 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:59384 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728500AbgGHJbS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2020 05:31:18 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0689V6A7103164;
+        Wed, 8 Jul 2020 04:31:06 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1594200638;
-        bh=MZf42sPBwBopHgxh/3zJoW1MM7sBcf1j/itzNs7qpps=;
+        s=ti-com-17Q1; t=1594200666;
+        bh=V5CpAZikPgA7e0e1YLq+ICNB6YOXd57BoX2naroTU7k=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=i/KslzbFcr01l4BlPbqXIPHif/xZ8ESa/x4+fXWWCM1fm8F3lQubBu/oX/OyNZ8om
-         fJ+CkoyFFFYbVZB4dS4StrG8q2cH3KfhIt7C43cOFvuelbIOobzAebLDK7Kfhj6ML2
-         8SCskCRcKTSiMwwDQYRiscTsDIDiympzti4YV5ko=
-Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0689Uc0k043589
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 8 Jul 2020 04:30:38 -0500
-Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+        b=Oe6hFCgaQtUPtS5FLRHQ+PQ4PWnkP/G+Exq2ZlwVz0xavYYyh4cIb4E89y0HT7fon
+         VEeSfW/Lhc6OVSA5IrbwAUl9JjtRG0XffJtoa4xaeNvEXbkpHZ1uhC0o0+HwJlMYpL
+         pvJ2YNDw3GBg1MZR1SD+k4bNFxNCQ0PHLDa0kSBU=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0689V6VO022795;
+        Wed, 8 Jul 2020 04:31:06 -0500
+Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 8 Jul
- 2020 04:30:38 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 04:31:05 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 8 Jul 2020 04:30:38 -0500
+ Frontend Transport; Wed, 8 Jul 2020 04:31:05 -0500
 Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0689UJEL098512;
-        Wed, 8 Jul 2020 04:30:35 -0500
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0689UJES098512;
+        Wed, 8 Jul 2020 04:31:02 -0500
 From:   Kishon Vijay Abraham I <kishon@ti.com>
 To:     Tom Joseph <tjoseph@cadence.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
@@ -57,9 +56,9 @@ CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v6 04/14] PCI: cadence: Add support to start link and verify link status
-Date:   Wed, 8 Jul 2020 15:00:08 +0530
-Message-ID: <20200708093018.28474-5-kishon@ti.com>
+Subject: [PATCH v6 11/14] dt-bindings: PCI: Add EP mode dt-bindings for TI's J721E SoC
+Date:   Wed, 8 Jul 2020 15:00:15 +0530
+Message-ID: <20200708093018.28474-12-kishon@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200708093018.28474-1-kishon@ti.com>
 References: <20200708093018.28474-1-kishon@ti.com>
@@ -71,175 +70,110 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add cdns_pcie_ops to start link and verify link status. The registers
-to start link and to check link status is in Platform specific PCIe
-wrapper. Add support for platform specific drivers to add callback
-functions for the PCIe Cadence core to start link and verify link status.
+Add PCIe EP mode dt-bindings for TI's J721E SoC.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- .../pci/controller/cadence/pcie-cadence-ep.c  |  8 ++++
- .../controller/cadence/pcie-cadence-host.c    | 28 ++++++++++++++
- drivers/pci/controller/cadence/pcie-cadence.h | 37 ++++++++++++++++++-
- 3 files changed, 72 insertions(+), 1 deletion(-)
+ .../bindings/pci/ti,j721e-pci-ep.yaml         | 89 +++++++++++++++++++
+ 1 file changed, 89 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-index c6eb2db94680..034cb3cf726e 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-@@ -357,8 +357,10 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- {
- 	struct cdns_pcie_ep *ep = epc_get_drvdata(epc);
- 	struct cdns_pcie *pcie = &ep->pcie;
-+	struct device *dev = pcie->dev;
- 	struct pci_epf *epf;
- 	u32 cfg;
-+	int ret;
- 
- 	/*
- 	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
-@@ -369,6 +371,12 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- 		cfg |= BIT(epf->func_no);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
- 
-+	ret = cdns_pcie_start_link(pcie);
-+	if (ret) {
-+		dev_err(dev, "Failed to start link\n");
-+		return ret;
-+	}
+diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+new file mode 100644
+index 000000000000..c09d25b2c1b2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+@@ -0,0 +1,89 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++# Copyright (C) 2020 Texas Instruments Incorporated - http://www.ti.com/
++%YAML 1.2
++---
++$id: "http://devicetree.org/schemas/pci/ti,j721e-pci-ep.yaml#"
++$schema: "http://devicetree.org/meta-schemas/core.yaml#"
 +
- 	return 0;
- }
- 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 030e828bfd4c..de02fadc4809 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -3,6 +3,7 @@
- // Cadence PCIe host controller driver.
- // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
- 
-+#include <linux/delay.h>
- #include <linux/kernel.h>
- #include <linux/list_sort.h>
- #include <linux/of_address.h>
-@@ -419,6 +420,23 @@ static int cdns_pcie_host_init(struct device *dev,
- 	return err;
- }
- 
-+static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
-+{
-+	struct device *dev = pcie->dev;
-+	int retries;
++title: TI J721E PCI EP (PCIe Wrapper)
 +
-+	/* Check if the link is up or not */
-+	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-+		if (cdns_pcie_link_up(pcie)) {
-+			dev_info(dev, "Link up\n");
-+			return 0;
-+		}
-+		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
-+	}
++maintainers:
++  - Kishon Vijay Abraham I <kishon@ti.com>
 +
-+	return -ETIMEDOUT;
-+}
++allOf:
++  - $ref: "cdns-pcie-ep.yaml#"
 +
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- {
- 	struct device *dev = rc->pcie.dev;
-@@ -467,6 +485,16 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- 
- 	pcie->mem_res = res;
- 
-+	ret = cdns_pcie_start_link(pcie);
-+	if (ret) {
-+		dev_err(dev, "Failed to start link\n");
-+		return ret;
-+	}
++properties:
++  compatible:
++    enum:
++      - ti,j721e-pcie-ep
 +
-+	ret = cdns_pcie_host_wait_for_link(pcie);
-+	if (ret)
-+		dev_dbg(dev, "PCIe link never came up\n");
++  reg:
++    maxItems: 4
 +
- 	for (bar = RP_BAR0; bar <= RP_NO_BAR; bar++)
- 		rc->avail_ib_bar[bar] = true;
- 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index a45c11158f49..54e10caf2d4b 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -10,6 +10,11 @@
- #include <linux/pci.h>
- #include <linux/phy/phy.h>
- 
-+/* Parameters for the waiting for link up routine */
-+#define LINK_WAIT_MAX_RETRIES	10
-+#define LINK_WAIT_USLEEP_MIN	90000
-+#define LINK_WAIT_USLEEP_MAX	100000
++  reg-names:
++    items:
++      - const: intd_cfg
++      - const: user_cfg
++      - const: reg
++      - const: mem
 +
- /*
-  * Local Management Registers
-  */
-@@ -245,12 +250,20 @@ enum cdns_pcie_msg_routing {
- 	MSG_ROUTING_GATHER,
- };
- 
-+struct cdns_pcie_ops {
-+	int	(*start_link)(struct cdns_pcie *pcie);
-+	void	(*stop_link)(struct cdns_pcie *pcie);
-+	bool	(*link_up)(struct cdns_pcie *pcie);
-+};
++  ti,syscon-pcie-ctrl:
++    description: Phandle to the SYSCON entry required for configuring PCIe mode
++                 and link speed.
++    allOf:
++      - $ref: /schemas/types.yaml#/definitions/phandle
 +
- /**
-  * struct cdns_pcie - private data for Cadence PCIe controller drivers
-  * @reg_base: IO mapped register base
-  * @mem_res: start/end offsets in the physical system memory to map PCI accesses
-  * @is_rc: tell whether the PCIe controller mode is Root Complex or Endpoint.
-  * @bus: In Root Complex mode, the bus number
-+ * @ops: Platform specific ops to control various inputs from Cadence PCIe
-+ *       wrapper
-  */
- struct cdns_pcie {
- 	void __iomem		*reg_base;
-@@ -261,7 +274,7 @@ struct cdns_pcie {
- 	int			phy_count;
- 	struct phy		**phy;
- 	struct device_link	**link;
--	const struct cdns_pcie_common_ops *ops;
-+	const struct cdns_pcie_ops *ops;
- };
- 
- /**
-@@ -426,6 +439,28 @@ static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
- 	return readl(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
- }
- 
-+static inline int cdns_pcie_start_link(struct cdns_pcie *pcie)
-+{
-+	if (pcie->ops->start_link)
-+		return pcie->ops->start_link(pcie);
++  power-domains:
++    maxItems: 1
 +
-+	return 0;
-+}
++  clocks:
++    maxItems: 1
++    description: clock-specifier to represent input to the PCIe
 +
-+static inline void cdns_pcie_stop_link(struct cdns_pcie *pcie)
-+{
-+	if (pcie->ops->stop_link)
-+		pcie->ops->stop_link(pcie);
-+}
++  clock-names:
++    items:
++      - const: fck
 +
-+static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
-+{
-+	if (pcie->ops->link_up)
-+		return pcie->ops->link_up(pcie);
++  dma-coherent:
++    description: Indicates that the PCIe IP block can ensure the coherency
 +
-+	return true;
-+}
++required:
++  - compatible
++  - reg
++  - reg-names
++  - ti,syscon-pcie-ctrl
++  - max-link-speed
++  - num-lanes
++  - power-domains
++  - clocks
++  - clock-names
++  - cdns,max-outbound-regions
++  - dma-coherent
++  - max-functions
++  - phys
++  - phy-names
 +
- #ifdef CONFIG_PCIE_CADENCE_HOST
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
- #else
++examples:
++  - |
++    #include <dt-bindings/soc/ti,sci_pm_domain.h>
++
++     pcie0_ep: pcie-ep@d000000 {
++            compatible = "ti,j721e-pcie-ep";
++            reg = <0x00 0x02900000 0x00 0x1000>,
++                  <0x00 0x02907000 0x00 0x400>,
++                  <0x00 0x0d000000 0x00 0x00800000>,
++                  <0x00 0x10000000 0x00 0x08000000>;
++            reg-names = "intd_cfg", "user_cfg", "reg", "mem";
++            ti,syscon-pcie-ctrl = <&pcie0_ctrl>;
++            max-link-speed = <3>;
++            num-lanes = <2>;
++            power-domains = <&k3_pds 239 TI_SCI_PD_EXCLUSIVE>;
++            clocks = <&k3_clks 239 1>;
++            clock-names = "fck";
++            cdns,max-outbound-regions = <16>;
++            max-functions = /bits/ 8 <6>;
++            dma-coherent;
++            phys = <&serdes0_pcie_link>;
++            phy-names = "pcie-phy";
++    };
 -- 
 2.17.1
 
