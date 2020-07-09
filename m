@@ -7,56 +7,56 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8659DC433E1
-	for <linux-omap@archiver.kernel.org>; Thu,  9 Jul 2020 23:20:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C2E4C433E8
+	for <linux-omap@archiver.kernel.org>; Thu,  9 Jul 2020 23:20:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C2AD20772
-	for <linux-omap@archiver.kernel.org>; Thu,  9 Jul 2020 23:20:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05FAB2064B
+	for <linux-omap@archiver.kernel.org>; Thu,  9 Jul 2020 23:20:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="qsqkk/y7"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="xrAeqnR5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726446AbgGIXUO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 9 Jul 2020 19:20:14 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:47042 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726828AbgGIXUN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jul 2020 19:20:13 -0400
+        id S1726867AbgGIXUQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 9 Jul 2020 19:20:16 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:34598 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726848AbgGIXUP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jul 2020 19:20:15 -0400
 Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 069NK4r7038453;
-        Thu, 9 Jul 2020 18:20:04 -0500
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 069NK8hi053753;
+        Thu, 9 Jul 2020 18:20:08 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1594336804;
-        bh=c0U/6UXwkjm96QgVwEXr+Y99qTURmUnIxiiCuECGvik=;
+        s=ti-com-17Q1; t=1594336808;
+        bh=CyiHZQsfhTO5vLN7NiKzVMU247TNjDR4ol5AODJOUfg=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=qsqkk/y7uOV3in98PC1/xYuP038z7MhEE6m0wjq3v8BEqWU2xLPWJCFxWAwRW9dFt
-         YYqL44+lgodeAhBSV5bYznK9BSX3/77m5kX5nZWj/eaRBsbBEJVDAPsdmfc3YU1Utw
-         TpfhX3qYKdYOQ9nuf3uENGagEUoylp9qP5N4Ot8w=
-Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 069NK4Yo011912
+        b=xrAeqnR5nstmWpZGyl8R2kLPaRLti6sxwL19BxmncbPoV7WJ9rTaPx/FDtf7dOnSn
+         PVA6AVup20WR+YFJuKjsy0LZu1Mq6fLEofc3Xw66IIuE7KrgeT6kg6jhzgApIr0sPM
+         qgynQJY+Sx7z0zhp3SK30opSOTwSH1Z3GSynVgO4=
+Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 069NK82L012077
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 9 Jul 2020 18:20:04 -0500
-Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 9 Jul 2020 18:20:08 -0500
+Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 9 Jul
- 2020 18:20:04 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 18:20:08 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 9 Jul 2020 18:20:04 -0500
+ Frontend Transport; Thu, 9 Jul 2020 18:20:08 -0500
 Received: from fllv0103.dal.design.ti.com (fllv0103.dal.design.ti.com [10.247.120.73])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 069NK4B3119019;
-        Thu, 9 Jul 2020 18:20:04 -0500
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 069NK8HW096124;
+        Thu, 9 Jul 2020 18:20:08 -0500
 Received: from localhost ([10.250.34.57])
-        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 069NK3qT124367;
-        Thu, 9 Jul 2020 18:20:03 -0500
+        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 069NK8QA124469;
+        Thu, 9 Jul 2020 18:20:08 -0500
 From:   Suman Anna <s-anna@ti.com>
 To:     Tony Lindgren <tony@atomide.com>
 CC:     <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         Tero Kristo <t-kristo@ti.com>, Suman Anna <s-anna@ti.com>
-Subject: [PATCH 02/13] ARM: dts: omap5: Add timer_sys_ck clocks for timers
-Date:   Thu, 9 Jul 2020 18:19:43 -0500
-Message-ID: <20200709231954.1973-3-s-anna@ti.com>
+Subject: [PATCH 10/13] ARM: dts: omap5-uevm: Add CMA pools and enable IPU & DSP
+Date:   Thu, 9 Jul 2020 18:19:51 -0500
+Message-ID: <20200709231954.1973-11-s-anna@ti.com>
 X-Mailer: git-send-email 2.26.0
 In-Reply-To: <20200709231954.1973-1-s-anna@ti.com>
 References: <20200709231954.1973-1-s-anna@ti.com>
@@ -69,163 +69,70 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The commit d41e53040926 ("clk: ti: omap5: cleanup unnecessary clock
-aliases") has cleaned up all timer_sys_ck clock aliases and retained
-only the timer_32k_ck clock alias. The OMAP clocksource timer driver
-though still uses this clock alias when reconfiguring the parent
-clock source for the timer functional clocks, so add these clocks
-to all the timer nodes except for the always-on timers 1 and 12.
+The CMA reserved memory nodes have been added for the IPU and DSP
+remoteproc devices on the OMAP5 uEVM board. These nodes are assigned
+to the respective rproc device nodes, and both the IPU and DSP remote
+processors are enabled for this board.
 
-This is required by the OMAP remoteproc driver to successfully
-acquire a timer and configure the source clock to be driven from
-timer_sys_ck clock.
+The current CMA pools and sizes are defined statically for each device.
+The starting addresses are fixed to meet current dependencies on the
+remote processor firmwares, and will go away when the remote-side
+code has been improved to gather this information runtime during
+its initialization.
+
+An associated pair of the rproc node and its CMA node can be disabled
+later on if there is no use-case defined to use that remote processor.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/omap5-l4-abe.dtsi | 20 ++++++++++-------
- arch/arm/boot/dts/omap5-l4.dtsi     | 35 +++++++++++++++++------------
- 2 files changed, 33 insertions(+), 22 deletions(-)
+ arch/arm/boot/dts/omap5-uevm.dts | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-l4-abe.dtsi b/arch/arm/boot/dts/omap5-l4-abe.dtsi
-index bafd6adf9f45..25b7fce8de2d 100644
---- a/arch/arm/boot/dts/omap5-l4-abe.dtsi
-+++ b/arch/arm/boot/dts/omap5-l4-abe.dtsi
-@@ -298,8 +298,9 @@ timer5: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>,
- 				      <0x49038000 0x80>;
--				clocks = <&abe_clkctrl OMAP5_TIMER5_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&abe_clkctrl OMAP5_TIMER5_CLKCTRL 24>,
-+					 <&dss_syc_gfclk_div>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-dsp;
- 				ti,timer-pwm;
-@@ -329,8 +330,9 @@ timer6: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>,
- 				      <0x4903a000 0x80>;
--				clocks = <&abe_clkctrl OMAP5_TIMER6_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&abe_clkctrl OMAP5_TIMER6_CLKCTRL 24>,
-+					 <&dss_syc_gfclk_div>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-dsp;
- 				ti,timer-pwm;
-@@ -360,8 +362,9 @@ timer7: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>,
- 				      <0x4903c000 0x80>;
--				clocks = <&abe_clkctrl OMAP5_TIMER7_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&abe_clkctrl OMAP5_TIMER7_CLKCTRL 24>,
-+					 <&dss_syc_gfclk_div>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-dsp;
- 			};
-@@ -390,8 +393,9 @@ timer8: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>,
- 				      <0x4903e000 0x80>;
--				clocks = <&abe_clkctrl OMAP5_TIMER8_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&abe_clkctrl OMAP5_TIMER8_CLKCTRL 24>,
-+					 <&dss_syc_gfclk_div>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-dsp;
- 				ti,timer-pwm;
-diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
-index 5217805bf126..683394d1e4d6 100644
---- a/arch/arm/boot/dts/omap5-l4.dtsi
-+++ b/arch/arm/boot/dts/omap5-l4.dtsi
-@@ -1082,8 +1082,9 @@ target-module@32000 {			/* 0x48032000, ap 5 3e.0 */
- 			timer2: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>;
--				clocks = <&l4per_clkctrl OMAP5_TIMER2_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&l4per_clkctrl OMAP5_TIMER2_CLKCTRL 24>,
-+					 <&sys_clkin>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 		};
-@@ -1109,8 +1110,9 @@ target-module@34000 {			/* 0x48034000, ap 7 46.0 */
- 			timer3: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>;
--				clocks = <&l4per_clkctrl OMAP5_TIMER3_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&l4per_clkctrl OMAP5_TIMER3_CLKCTRL 24>,
-+					 <&sys_clkin>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 		};
-@@ -1136,8 +1138,9 @@ target-module@36000 {			/* 0x48036000, ap 9 4e.0 */
- 			timer4: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>;
--				clocks = <&l4per_clkctrl OMAP5_TIMER4_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&l4per_clkctrl OMAP5_TIMER4_CLKCTRL 24>,
-+					 <&sys_clkin>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 		};
-@@ -1163,8 +1166,9 @@ target-module@3e000 {			/* 0x4803e000, ap 11 56.0 */
- 			timer9: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>;
--				clocks = <&l4per_clkctrl OMAP5_TIMER9_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&l4per_clkctrl OMAP5_TIMER9_CLKCTRL 24>,
-+					 <&sys_clkin>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-pwm;
- 			};
-@@ -1730,8 +1734,9 @@ target-module@86000 {			/* 0x48086000, ap 41 5e.0 */
- 			timer10: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>;
--				clocks = <&l4per_clkctrl OMAP5_TIMER10_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&l4per_clkctrl OMAP5_TIMER10_CLKCTRL 24>,
-+					 <&sys_clkin>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-pwm;
- 			};
-@@ -1758,8 +1763,9 @@ target-module@88000 {			/* 0x48088000, ap 43 66.0 */
- 			timer11: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>;
--				clocks = <&l4per_clkctrl OMAP5_TIMER11_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&l4per_clkctrl OMAP5_TIMER11_CLKCTRL 24>,
-+					 <&sys_clkin>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-pwm;
- 			};
-@@ -2387,8 +2393,9 @@ timer1_target: target-module@8000 {	/* 0x4ae18000, ap 9 18.0 */
- 			timer1: timer@0 {
- 				compatible = "ti,omap5430-timer";
- 				reg = <0x0 0x80>;
--				clocks = <&wkupaon_clkctrl OMAP5_TIMER1_CLKCTRL 24>;
--				clock-names = "fck";
-+				clocks = <&wkupaon_clkctrl OMAP5_TIMER1_CLKCTRL 24>,
-+					 <&sys_clkin>;
-+				clock-names = "fck", "timer_sys_ck";
- 				interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
- 				ti,timer-alwon;
- 			};
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 9441e9a572ad..251885656697 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -15,6 +15,26 @@ memory@80000000 {
+ 		reg = <0 0x80000000 0 0x7f000000>; /* 2032 MB */
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		dsp_memory_region: dsp-memory@95000000 {
++			compatible = "shared-dma-pool";
++			reg = <0 0x95000000 0 0x800000>;
++			reusable;
++			status = "okay";
++		};
++
++		ipu_memory_region: ipu-memory@95800000 {
++			compatible = "shared-dma-pool";
++			reg = <0 0x95800000 0 0x3800000>;
++			reusable;
++			status = "okay";
++		};
++	};
++
+ 	aliases {
+ 		ethernet = &ethernet;
+ 	};
+@@ -198,3 +218,13 @@ ethernet: usbether@3 {
+ &wlcore {
+ 	compatible = "ti,wl1837";
+ };
++
++&dsp {
++	status = "okay";
++	memory-region = <&dsp_memory_region>;
++};
++
++&ipu {
++	status = "okay";
++	memory-region = <&ipu_memory_region>;
++};
 -- 
 2.26.0
 
