@@ -2,194 +2,158 @@ Return-Path: <SRS0=JBMh=AV=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81ED5C433E0
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Jul 2020 03:40:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28C0FC433E4
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Jul 2020 14:24:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 646B220767
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Jul 2020 03:40:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 032D82082E
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Jul 2020 14:24:03 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="q9QOI9/x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726581AbgGJDkw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 9 Jul 2020 23:40:52 -0400
-Received: from mga03.intel.com ([134.134.136.65]:12605 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726509AbgGJDkv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 9 Jul 2020 23:40:51 -0400
-IronPort-SDR: 9AGpKEsApofNRE72yZ0y+QfFpgto+MvuIwcHiH+r2Ci8nKfniheD2Fx6frbAOLCtXXa0URUUQz
- F8JWF08EDLZw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9677"; a="148134691"
-X-IronPort-AV: E=Sophos;i="5.75,334,1589266800"; 
-   d="scan'208";a="148134691"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2020 20:40:50 -0700
-IronPort-SDR: W5o4jXi7DNh6igZu6MYsy9UklhwKSOi/TJ1u/3Hxpc1nP4LTq5YhT3VNu39s+3XVJ5IhomzpSu
- MRdkr8OuVZ5Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,334,1589266800"; 
-   d="scan'208";a="484038611"
-Received: from lkp-server02.sh.intel.com (HELO d197edaadf32) ([10.239.97.151])
-  by fmsmga006.fm.intel.com with ESMTP; 09 Jul 2020 20:40:49 -0700
-Received: from kbuild by d197edaadf32 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1jtju4-00002j-OA; Fri, 10 Jul 2020 03:40:48 +0000
-Date:   Fri, 10 Jul 2020 11:40:21 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Felipe Balbi <balbi@kernel.org>
-Cc:     linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: [balbi-usb:testing/fixes] BUILD SUCCESS
- 8778eb0927ddcd3f431805c37b78fa56481aeed9
-Message-ID: <5f07e325.mM6Q2bIAlbjG6bCk%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1727083AbgGJOYB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 10 Jul 2020 10:24:01 -0400
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:55171 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728525AbgGJOYA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2020 10:24:00 -0400
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20200710142357euoutp01751fa531420bf327fc7e5f0f4cc472b3~gajOK5o463218432184euoutp01b
+        for <linux-omap@vger.kernel.org>; Fri, 10 Jul 2020 14:23:57 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20200710142357euoutp01751fa531420bf327fc7e5f0f4cc472b3~gajOK5o463218432184euoutp01b
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+        s=mail20170921; t=1594391037;
+        bh=+Qvo0XwtXckoH/AUrFmMc7w7gy5RtXKGS7/7n/Ctqy8=;
+        h=From:Subject:To:Cc:Date:In-Reply-To:References:From;
+        b=q9QOI9/xIZY3AZ3d1s8UDhZUOn1yDZJunSKkoK4dusx/D8NzLPTAwiI3k2w7u3vJF
+         3JRFflqueC1LkhARejrA1uTZytOPULgsWOpbbq76tQw5uZxlAg83M92zFDwavwuDKs
+         gLDTD9E4M3YIwIencTOpsnLhbv7D4ahBv/1vn6uo=
+Received: from eusmges3new.samsung.com (unknown [203.254.199.245]) by
+        eucas1p1.samsung.com (KnoxPortal) with ESMTP id
+        20200710142357eucas1p1f51947db6ba1918ff5e55ed8f63493bf~gajN7olP_0594905949eucas1p1c;
+        Fri, 10 Jul 2020 14:23:57 +0000 (GMT)
+Received: from eucas1p1.samsung.com ( [182.198.249.206]) by
+        eusmges3new.samsung.com (EUCPMTA) with SMTP id 0D.DE.06318.DF9780F5; Fri, 10
+        Jul 2020 15:23:57 +0100 (BST)
+Received: from eusmtrp1.samsung.com (unknown [182.198.249.138]) by
+        eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
+        20200710142357eucas1p1908fe8cf542f43520d448a62bad52192~gajNjMH9Y0592905929eucas1p1c;
+        Fri, 10 Jul 2020 14:23:57 +0000 (GMT)
+Received: from eusmgms1.samsung.com (unknown [182.198.249.179]) by
+        eusmtrp1.samsung.com (KnoxPortal) with ESMTP id
+        20200710142357eusmtrp14ad7bd0285374a5f1465db4533739ced~gajNiiE8j1135411354eusmtrp1d;
+        Fri, 10 Jul 2020 14:23:57 +0000 (GMT)
+X-AuditID: cbfec7f5-371ff700000018ae-47-5f0879fd93b4
+Received: from eusmtip1.samsung.com ( [203.254.199.221]) by
+        eusmgms1.samsung.com (EUCPMTA) with SMTP id 5E.D1.06314.CF9780F5; Fri, 10
+        Jul 2020 15:23:56 +0100 (BST)
+Received: from [106.120.51.71] (unknown [106.120.51.71]) by
+        eusmtip1.samsung.com (KnoxPortal) with ESMTPA id
+        20200710142356eusmtip11d7318b84521021556174f0b106a8445~gajNKh3d10397803978eusmtip1J;
+        Fri, 10 Jul 2020 14:23:56 +0000 (GMT)
+From:   Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] omapfb: dss: Fix max fclk divider for omap36xx
+To:     Adam Ford <aford173@gmail.com>
+Cc:     linux-fbdev@vger.kernel.org, stable@vger.kernel.org,
+        Dave Airlie <airlied@gmail.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Message-ID: <e7bb19a5-774c-63c3-058f-1977d29cd94c@samsung.com>
+Date:   Fri, 10 Jul 2020 16:23:56 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+        Thunderbird/60.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20200630182636.439015-1-aford173@gmail.com>
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrIKsWRmVeSWpSXmKPExsWy7djPc7p/KzniDVoWSVrcuX2a2eLE9UVM
+        Fle+vmezONH3gdXi8q45bBazl/SzWDxf+IPZYsHGR4wW6+ffYnPg9Ng56y67x/3u40wex29s
+        Z/L4vEkugCWKyyYlNSezLLVI3y6BK+Pa5jOMBd+5K87PeMrcwHiHs4uRk0NCwESi/XQ7axcj
+        F4eQwApGiaV7ZkE5Xxglrh9dwg7hfAZyPr5jhWlZ9vUbVGI5o8SjvesZIZy3jBJPfrSzg1Sx
+        CVhJTGxfxQhiCws4S9zu6AGzRQSUJO6e+QvWwCzQxCTxfV8D2FheATuJ43fvsYDYLAKqEveX
+        LARrEBWIkPj04DBUjaDEyZlPwGo4BSwl1q87wgRiMwuIS9x6Mh/KlpfY/nYOM8gCCYFd7BIL
+        fvUDXcQB5LhI9L+whXhBWOLV8S3sELaMxOnJPSwQ9esYJf52vIBq3s4osXzyPzaIKmuJO+d+
+        sYEMYhbQlFi/Sx8i7Chx7dRWZoj5fBI33gpC3MAnMWnbdKgwr0RHmxBEtZrEhmUb2GDWdu1c
+        yTyBUWkWks9mIflmFpJvZiHsXcDIsopRPLW0ODc9tdg4L7Vcrzgxt7g0L10vOT93EyMwIZ3+
+        d/zrDsZ9f5IOMQpwMCrx8C5I5IgXYk0sK67MPcQowcGsJMLrdPZ0nBBvSmJlVWpRfnxRaU5q
+        8SFGaQ4WJXFe40UvY4UE0hNLUrNTUwtSi2CyTBycUg2M3qePLBBZXhlhtE4ra0Mbu6HzsyP/
+        K0WexItOOnD6i7jR3effZ23TN2jnztoXYX7uVP07jf6GXwIT/X4u0OCpuyqyo2Dx7aozvatj
+        7or4/LyW/ebgR7uPzxuZrwq5i5avvx03lfO2wYxlZesvzf4n/fPQZJZbCW7TOU8mtE1hmnjt
+        7I2vZmd+PVRiKc5INNRiLipOBABMxWzDRAMAAA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrEIsWRmVeSWpSXmKPExsVy+t/xu7p/KzniDXaLWNy5fZrZ4sT1RUwW
+        V76+Z7M40feB1eLyrjlsFrOX9LNYPF/4g9liwcZHjBbr599ic+D02DnrLrvH/e7jTB7Hb2xn
+        8vi8SS6AJUrPpii/tCRVISO/uMRWKdrQwkjP0NJCz8jEUs/Q2DzWyshUSd/OJiU1J7MstUjf
+        LkEv49rmM4wF37krzs94ytzAeIezi5GTQ0LARGLZ12/sXYxcHEICSxklXh7tYeti5ABKyEgc
+        X18GUSMs8edaFxtEzWtGiR0rHzKBJNgErCQmtq9iBLGFBZwlbnf0gNkiAkoSd8/8ZQRpYBZo
+        YpLYsX8zVHcPo0RT/z6wKl4BO4njd++xgNgsAqoS95csBIuLCkRIHN4xC6pGUOLkzCdgNZwC
+        lhLr1x0B28wsoC7xZ94lZghbXOLWk/lQcXmJ7W/nME9gFJqFpH0WkpZZSFpmIWlZwMiyilEk
+        tbQ4Nz232FCvODG3uDQvXS85P3cTIzD+th37uXkH46WNwYcYBTgYlXh4FyRyxAuxJpYVV+Ye
+        YpTgYFYS4XU6ezpOiDclsbIqtSg/vqg0J7X4EKMp0HMTmaVEk/OBqSGvJN7Q1NDcwtLQ3Njc
+        2MxCSZy3Q+BgjJBAemJJanZqakFqEUwfEwenVAOjhrRSax/bk6rWB4fP2Lm4S+6zzZ4cq/BC
+        K883LyGR21vea6OpkG3EfeMO3eenT1UtcX7/9+V/7cjvTwpmNiVUNfYv3xO/IVPjenT7+ai9
+        Mpr6wt8qOZTd3v/4ZFtiIe92QGr+E/8F098v4HD+FXd8zVueJIV8w+WPJ/RG+/xUCTS6PvOo
+        v6kSS3FGoqEWc1FxIgDDaxKK1QIAAA==
+X-CMS-MailID: 20200710142357eucas1p1908fe8cf542f43520d448a62bad52192
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20200630182652eucas1p1ce5e07b065127e32ab734f4447c2f735
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20200630182652eucas1p1ce5e07b065127e32ab734f4447c2f735
+References: <CGME20200630182652eucas1p1ce5e07b065127e32ab734f4447c2f735@eucas1p1.samsung.com>
+        <20200630182636.439015-1-aford173@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/fixes
-branch HEAD: 8778eb0927ddcd3f431805c37b78fa56481aeed9  usb: gadget: function: fix missing spinlock in f_uac1_legacy
 
-elapsed time: 721m
+On 6/30/20 8:26 PM, Adam Ford wrote:
+> The drm/omap driver was fixed to correct an issue where using a
+> divider of 32 breaks the DSS despite the TRM stating 32 is a valid
+> number.  Through experimentation, it appears that 31 works, and
+> it is consistent with the value used by the drm/omap driver.
+> 
+> This patch fixes the divider for fbdev driver instead of the drm.
+> 
+> Fixes: f76ee892a99e ("omapfb: copy omapdss & displays for omapfb")
+> 
+> Cc: <stable@vger.kernel.org> #4.9+
+> Signed-off-by: Adam Ford <aford173@gmail.com>
 
-configs tested: 125
-configs skipped: 8
+Applied to drm-misc-next tree, thanks.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+(I marked patch as applicable to stable 4.5+ while merging)
 
-arm                                 defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm                               allnoconfig
-arm64                            allyesconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-arm64                               defconfig
-mips                         rt305x_defconfig
-sh                                  defconfig
-nios2                            alldefconfig
-m68k                         apollo_defconfig
-mips                        omega2p_defconfig
-powerpc                     mpc512x_defconfig
-s390                          debug_defconfig
-csky                             allyesconfig
-m68k                          amiga_defconfig
-powerpc                     ep8248e_defconfig
-arm                   milbeaut_m10v_defconfig
-mips                       rbtx49xx_defconfig
-arm                        spear6xx_defconfig
-m68k                       m5249evb_defconfig
-arm                        multi_v7_defconfig
-powerpc                       holly_defconfig
-x86_64                              defconfig
-arm                         ebsa110_defconfig
-ia64                                defconfig
-csky                                defconfig
-powerpc                      tqm8xx_defconfig
-powerpc                      ep88xc_defconfig
-arm                         at91_dt_defconfig
-m68k                          hp300_defconfig
-powerpc                  mpc866_ads_defconfig
-powerpc64                           defconfig
-um                             i386_defconfig
-openrisc                         allyesconfig
-sh                        edosk7705_defconfig
-m68k                          atari_defconfig
-sh                             espt_defconfig
-i386                              allnoconfig
-i386                             allyesconfig
-i386                                defconfig
-i386                              debian-10.3
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                              allnoconfig
-m68k                           sun3_defconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-nios2                            allyesconfig
-openrisc                            defconfig
-c6x                              allyesconfig
-c6x                               allnoconfig
-nds32                               defconfig
-nds32                             allnoconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-h8300                            allmodconfig
-xtensa                              defconfig
-arc                                 defconfig
-arc                              allyesconfig
-sh                               allmodconfig
-sh                                allnoconfig
-microblaze                        allnoconfig
-mips                             allyesconfig
-mips                              allnoconfig
-mips                             allmodconfig
-parisc                            allnoconfig
-parisc                              defconfig
-parisc                           allyesconfig
-parisc                           allmodconfig
-powerpc                             defconfig
-powerpc                          allyesconfig
-powerpc                          rhel-kconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-i386                 randconfig-a002-20200709
-i386                 randconfig-a001-20200709
-i386                 randconfig-a006-20200709
-i386                 randconfig-a005-20200709
-i386                 randconfig-a004-20200709
-i386                 randconfig-a003-20200709
-x86_64               randconfig-a012-20200709
-x86_64               randconfig-a016-20200709
-x86_64               randconfig-a011-20200709
-x86_64               randconfig-a014-20200709
-x86_64               randconfig-a013-20200709
-x86_64               randconfig-a015-20200709
-i386                 randconfig-a011-20200709
-i386                 randconfig-a015-20200709
-i386                 randconfig-a014-20200709
-i386                 randconfig-a016-20200709
-i386                 randconfig-a012-20200709
-i386                 randconfig-a013-20200709
-riscv                            allyesconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                            allmodconfig
-s390                             allyesconfig
-s390                              allnoconfig
-s390                             allmodconfig
-s390                                defconfig
-sparc                            allyesconfig
-sparc                               defconfig
-sparc64                             defconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                          allmodconfig
-um                                allnoconfig
-um                                  defconfig
-um                               allyesconfig
-um                               allmodconfig
-x86_64                               rhel-7.6
-x86_64                    rhel-7.6-kselftests
-x86_64                               rhel-8.3
-x86_64                                  kexec
-x86_64                                   rhel
-x86_64                         rhel-7.2-clear
-x86_64                                    lkp
-x86_64                              fedora-25
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+> ---
+> Linux 4.4 will need a similar patch, but it doesn't apply cleanly.
+> 
+> The DRM version of this same fix is:
+> e2c4ed148cf3 ("drm/omap: fix max fclk divider for omap36xx")
+> 
+> 
+> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> index 7252d22dd117..bfc5c4c5a26a 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> @@ -833,7 +833,7 @@ static const struct dss_features omap34xx_dss_feats = {
+>  };
+>  
+>  static const struct dss_features omap3630_dss_feats = {
+> -	.fck_div_max		=	32,
+> +	.fck_div_max		=	31,
+>  	.dss_fck_multiplier	=	1,
+>  	.parent_clk_name	=	"dpll4_ck",
+>  	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
+> 
