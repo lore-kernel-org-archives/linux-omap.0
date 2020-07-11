@@ -2,72 +2,311 @@ Return-Path: <SRS0=74QS=AW=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2C8CC433E0
-	for <linux-omap@archiver.kernel.org>; Sat, 11 Jul 2020 03:34:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3DCC433E3
+	for <linux-omap@archiver.kernel.org>; Sat, 11 Jul 2020 13:58:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1B1F207BC
-	for <linux-omap@archiver.kernel.org>; Sat, 11 Jul 2020 03:34:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="e7OiUGfa"
+	by mail.kernel.org (Postfix) with ESMTP id DD8EC20786
+	for <linux-omap@archiver.kernel.org>; Sat, 11 Jul 2020 13:58:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726588AbgGKDeK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Jul 2020 23:34:10 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:25644 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726707AbgGKDeJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2020 23:34:09 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1594438449;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:content-type:content-type;
-        bh=rkxV9wGrbaQjvlwNa9bpSRvCBx9BwmI9mcVo23t8Au0=;
-        b=e7OiUGfaJZO8OFgtgbDyFz2BQj7h+eAk4I/yf8tEw/PtwFdQhUswvKLih/3QflmY1wwTs5
-        ZlbJCekjPLpJTFoOJUXv0RX7oGavHcdPybkG1Y1BVMb476FoiQuyH+bEOcynbOrhZv7qu9
-        Bx9qiNa/QCAP6CXkF56KZR8glFKGjGs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-328-keMQNT7LN7WgirSVBUnglg-1; Fri, 10 Jul 2020 23:34:05 -0400
-X-MC-Unique: keMQNT7LN7WgirSVBUnglg-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 75AD28015F7;
-        Sat, 11 Jul 2020 03:34:03 +0000 (UTC)
-Received: from dhcp-128-65.nay.redhat.com (ovpn-12-95.pek2.redhat.com [10.72.12.95])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 6699D5C240;
-        Sat, 11 Jul 2020 03:34:00 +0000 (UTC)
-Date:   Sat, 11 Jul 2020 11:33:56 +0800
-From:   Dave Young <dyoung@redhat.com>
-To:     Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Jarkko Nikula <jarkko.nikula@bitmer.com>,
-        alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Subject: omap-mcbsp 49022000.mcbsp: TX Buffer Overflow!
-Message-ID: <20200711033356.GA164619@dhcp-128-65.nay.redhat.com>
+        id S1728276AbgGKN6Q (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 11 Jul 2020 09:58:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727004AbgGKN6P (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 11 Jul 2020 09:58:15 -0400
+Received: from smtp.al2klimov.de (smtp.al2klimov.de [IPv6:2a01:4f8:c0c:1465::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F0A7C08C5DD;
+        Sat, 11 Jul 2020 06:58:15 -0700 (PDT)
+Received: from authenticated-user (PRIMARY_HOSTNAME [PUBLIC_IP])
+        by smtp.al2klimov.de (Postfix) with ESMTPA id 2845FBC0CA;
+        Sat, 11 Jul 2020 13:58:10 +0000 (UTC)
+From:   "Alexander A. Klimov" <grandmaster@al2klimov.de>
+To:     balbi@kernel.org, gregkh@linuxfoundation.org,
+        linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org
+Cc:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Subject: [PATCH] usb: dwc3: Replace HTTP links with HTTPS ones
+Date:   Sat, 11 Jul 2020 15:58:04 +0200
+Message-Id: <20200711135804.19735-1-grandmaster@al2klimov.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Content-Transfer-Encoding: 8bit
+X-Spamd-Bar: +++++
+Authentication-Results: smtp.al2klimov.de;
+        auth=pass smtp.auth=aklimov@al2klimov.de smtp.mailfrom=grandmaster@al2klimov.de
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Rationale:
+Reduces attack surface on kernel devs opening the links for MITM
+as HTTPS traffic is much harder to manipulate.
 
-I'm trying to use g_audio on my Nokia N900 with mainline kernel. Seems
-it does not work.  No sound when I play from a laptop, and also see a
-lot of error like below:
-[ 4729.557647] omap-mcbsp 49022000.mcbsp: TX Buffer Overflow!
-...
+Deterministic algorithm:
+For each file:
+  If not .svg:
+    For each line:
+      If doesn't contain `\bxmlns\b`:
+        For each link, `\bhttp://[^# \t\r\n]*(?:\w|/)`:
+	  If neither `\bgnu\.org/license`, nor `\bmozilla\.org/MPL\b`:
+            If both the HTTP and HTTPS versions
+            return 200 OK and serve the same content:
+              Replace HTTP with HTTPS.
+
+Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
+---
+ Continuing my work started at 93431e0607e5.
+ See also: git log --oneline '--author=Alexander A. Klimov <grandmaster@al2klimov.de>' v5.7..master
+ (Actually letting a shell for loop submit all this stuff for me.)
+
+ If there are any URLs to be removed completely or at least not just HTTPSified:
+ Just clearly say so and I'll *undo my change*.
+ See also: https://lkml.org/lkml/2020/6/27/64
+
+ If there are any valid, but yet not changed URLs:
+ See: https://lkml.org/lkml/2020/6/26/837
+
+ If you apply the patch, please let me know.
+
+ Sorry again to all maintainers who complained about subject lines.
+ Now I realized that you want an actually perfect prefixes,
+ not just subsystem ones.
+ I tried my best...
+ And yes, *I could* (at least half-)automate it.
+ Impossible is nothing! :)
 
 
-Is this a know issue?
+ drivers/usb/dwc3/core.c           | 2 +-
+ drivers/usb/dwc3/core.h           | 2 +-
+ drivers/usb/dwc3/debug.h          | 2 +-
+ drivers/usb/dwc3/debugfs.c        | 2 +-
+ drivers/usb/dwc3/drd.c            | 2 +-
+ drivers/usb/dwc3/dwc3-keystone.c  | 2 +-
+ drivers/usb/dwc3/dwc3-of-simple.c | 2 +-
+ drivers/usb/dwc3/dwc3-omap.c      | 2 +-
+ drivers/usb/dwc3/dwc3-pci.c       | 2 +-
+ drivers/usb/dwc3/ep0.c            | 2 +-
+ drivers/usb/dwc3/gadget.c         | 2 +-
+ drivers/usb/dwc3/gadget.h         | 2 +-
+ drivers/usb/dwc3/host.c           | 2 +-
+ drivers/usb/dwc3/io.h             | 2 +-
+ drivers/usb/dwc3/trace.c          | 2 +-
+ drivers/usb/dwc3/trace.h          | 2 +-
+ 16 files changed, 16 insertions(+), 16 deletions(-)
 
-Thanks
-Dave
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 25c686a752b0..422aea24afcd 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -2,7 +2,7 @@
+ /**
+  * core.c - DesignWare USB3 DRD Controller Core file
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 013f42a2b5dc..2f04b3e42bf1 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -2,7 +2,7 @@
+ /*
+  * core.h - DesignWare USB3 DRD Core Header
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/debug.h b/drivers/usb/dwc3/debug.h
+index d8f600e0e88f..3d16dac4e5cc 100644
+--- a/drivers/usb/dwc3/debug.h
++++ b/drivers/usb/dwc3/debug.h
+@@ -2,7 +2,7 @@
+ /**
+  * debug.h - DesignWare USB3 DRD Controller Debug Header
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+index 6d9de334e46a..4abee42841ee 100644
+--- a/drivers/usb/dwc3/debugfs.c
++++ b/drivers/usb/dwc3/debugfs.c
+@@ -2,7 +2,7 @@
+ /**
+  * debugfs.c - DesignWare USB3 DRD Controller DebugFS file
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/drd.c b/drivers/usb/dwc3/drd.c
+index 2e483448d695..eff05ca41d6d 100644
+--- a/drivers/usb/dwc3/drd.c
++++ b/drivers/usb/dwc3/drd.c
+@@ -2,7 +2,7 @@
+ /**
+  * drd.c - DesignWare USB3 DRD Controller Dual-role support
+  *
+- * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2017 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Roger Quadros <rogerq@ti.com>
+  */
+diff --git a/drivers/usb/dwc3/dwc3-keystone.c b/drivers/usb/dwc3/dwc3-keystone.c
+index 6505f7bd69e2..9a99253d5ba3 100644
+--- a/drivers/usb/dwc3/dwc3-keystone.c
++++ b/drivers/usb/dwc3/dwc3-keystone.c
+@@ -2,7 +2,7 @@
+ /**
+  * dwc3-keystone.c - Keystone Specific Glue layer
+  *
+- * Copyright (C) 2010-2013 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2013 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Author: WingMan Kwok <w-kwok2@ti.com>
+  */
+diff --git a/drivers/usb/dwc3/dwc3-of-simple.c b/drivers/usb/dwc3/dwc3-of-simple.c
+index 8852fbfdead4..37e9faf8c75a 100644
+--- a/drivers/usb/dwc3/dwc3-of-simple.c
++++ b/drivers/usb/dwc3/dwc3-of-simple.c
+@@ -2,7 +2,7 @@
+ /**
+  * dwc3-of-simple.c - OF glue layer for simple integrations
+  *
+- * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (c) 2015 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Author: Felipe Balbi <balbi@ti.com>
+  *
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 8c3de2d258bf..98d2693a7fdd 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -2,7 +2,7 @@
+ /**
+  * dwc3-omap.c - OMAP Specific Glue layer
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 96c05b121fac..519302b34154 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -2,7 +2,7 @@
+ /**
+  * dwc3-pci.c - PCI Specific glue layer
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+index 6dee4dabc0a4..198f9e4aaf52 100644
+--- a/drivers/usb/dwc3/ep0.c
++++ b/drivers/usb/dwc3/ep0.c
+@@ -2,7 +2,7 @@
+ /*
+  * ep0.c - DesignWare USB3 DRD Controller Endpoint 0 Handling
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 80c3ef134e41..afce2f8988a7 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2,7 +2,7 @@
+ /*
+  * gadget.c - DesignWare USB3 DRD Controller Gadget Framework Link
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/gadget.h b/drivers/usb/dwc3/gadget.h
+index 24dca3872022..42907dd89212 100644
+--- a/drivers/usb/dwc3/gadget.h
++++ b/drivers/usb/dwc3/gadget.h
+@@ -2,7 +2,7 @@
+ /*
+  * gadget.h - DesignWare USB3 DRD Gadget Header
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+index bef1c1ac2067..e195176580de 100644
+--- a/drivers/usb/dwc3/host.c
++++ b/drivers/usb/dwc3/host.c
+@@ -2,7 +2,7 @@
+ /*
+  * host.c - DesignWare USB3 DRD Controller Host Glue
+  *
+- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  */
+diff --git a/drivers/usb/dwc3/io.h b/drivers/usb/dwc3/io.h
+index 9bbe5d4bf076..76b73b116862 100644
+--- a/drivers/usb/dwc3/io.h
++++ b/drivers/usb/dwc3/io.h
+@@ -2,7 +2,7 @@
+ /**
+  * io.h - DesignWare USB3 DRD IO Header
+  *
+- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2010-2011 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Authors: Felipe Balbi <balbi@ti.com>,
+  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+diff --git a/drivers/usb/dwc3/trace.c b/drivers/usb/dwc3/trace.c
+index f8886f3f3c9e..1b45a9723eeb 100644
+--- a/drivers/usb/dwc3/trace.c
++++ b/drivers/usb/dwc3/trace.c
+@@ -2,7 +2,7 @@
+ /**
+  * trace.c - DesignWare USB3 DRD Controller Trace Support
+  *
+- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2014 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Author: Felipe Balbi <balbi@ti.com>
+  */
+diff --git a/drivers/usb/dwc3/trace.h b/drivers/usb/dwc3/trace.h
+index 4c4fc6c41d9b..da1be01637c8 100644
+--- a/drivers/usb/dwc3/trace.h
++++ b/drivers/usb/dwc3/trace.h
+@@ -2,7 +2,7 @@
+ /**
+  * trace.h - DesignWare USB3 DRD Controller Trace Support
+  *
+- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2014 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Author: Felipe Balbi <balbi@ti.com>
+  */
+-- 
+2.27.0
 
