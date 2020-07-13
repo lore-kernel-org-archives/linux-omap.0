@@ -2,265 +2,181 @@ Return-Path: <SRS0=HJjW=AY=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 258E3C433FE
-	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 11:03:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E049FC433E2
+	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 14:50:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 023AB207F9
-	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 11:03:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD38720791
+	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 14:50:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="OK0K3qEZ"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="QiHDfDTG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729635AbgGMLCL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 13 Jul 2020 07:02:11 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:48004 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729594AbgGMLCL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2020 07:02:11 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 06DB1vAR093286;
-        Mon, 13 Jul 2020 06:01:57 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1594638117;
-        bh=fkBtp+U4H+Rsz2F0H88TEXPb+zBTcNhWs4srHjBvzA4=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=OK0K3qEZNGzaSDMR50dsPoXJco4CcxR/hWjr0TZmsh1MaKkmWmhS3ihKncTyFMZRY
-         uvDN0LY5n9lJCzqgUUiG1BBfQWf579IA8kfPP6szPLvbiDG+vZUYD8WpTIwkshJQdG
-         aGd4igiHHI65zjZ6omo6okAieBFKa12W7f4B3xpY=
-Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 06DB1vF3108455
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 13 Jul 2020 06:01:57 -0500
-Received: from DFLE112.ent.ti.com (10.64.6.33) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 13
- Jul 2020 06:01:57 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 13 Jul 2020 06:01:57 -0500
-Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 06DB1gVd031460;
-        Mon, 13 Jul 2020 06:01:54 -0500
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-To:     Tom Joseph <tjoseph@cadence.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Arnd Bergmann <arnd@arndb.de>
-CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v7 03/14] PCI: cadence: Convert all r/w accessors to perform only 32-bit accesses
-Date:   Mon, 13 Jul 2020 16:31:30 +0530
-Message-ID: <20200713110141.13156-4-kishon@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200713110141.13156-1-kishon@ti.com>
-References: <20200713110141.13156-1-kishon@ti.com>
+        id S1730294AbgGMOu2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 13 Jul 2020 10:50:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32826 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730211AbgGMOt5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2020 10:49:57 -0400
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4100DC061755
+        for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2020 07:49:57 -0700 (PDT)
+Received: by mail-wr1-x443.google.com with SMTP id k6so16866320wrn.3
+        for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2020 07:49:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=MGVkPRp/+I1joXVdv6caEP06X1PF0rNG8kbo7/M1JBk=;
+        b=QiHDfDTGlAj/YS7C4u7kOc9JwEFDw3G0oGclidDhkGG3zqi1U3reU5/sFhI47sYphg
+         HeiZUEn/8P25l8ozcJNgk5z6bsdiI5c07DjWLBg3+bY/4kLVz2Q32r9LNafPsNTobcQS
+         qkH5Tm1h8TN6RDaCWLJT4g0EX6g+c1CeY4vDz8SsfIPEXVAwMrje1zKdA1KWa5H882OL
+         SZ1FPlR19YfURzt9hxk5H7HI8ywDaJ31gFsUOPmNz7070R9N6rjz0rom3oYN//QTvb+l
+         YmXn4Dpd0zghrInn3FZCpnIZl93yJoeIcYXPsxF9WdG+1WSYAZxAXJm+ILAFRi3bECqk
+         v7Wg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=MGVkPRp/+I1joXVdv6caEP06X1PF0rNG8kbo7/M1JBk=;
+        b=SkasxhkkUj6MS7bNHLO6+gOwAXZfbiIYcxreZMnRD0F7JyLFY1Al3/2ZSvTN+s3xkB
+         oH4zbrI34+wHe8DaGlRCTS5mmwiYzeojaQ/5432eO9s/8BUwxJPWkwC3eoHNnwFDR/8W
+         m+uut/zxNtxd/k6fwCft1J4pTpZJO+tj6g9eAWOIdJ8ca3bE5j3tXpmv8LfWAPH90pKU
+         8ED29D1hWwYqCkMi9qS+Nw1G9UUjUPoIOOtEgrN+UWN7DpRuLiPgfrnCQx2BxQbx03Ez
+         Ab7lsYLCEGqhNJYsGwWMCPccNLhpvr5Dg9MjEf9h5lN1YmHUKoEIH2rdfFm1iLQniBtR
+         rAhQ==
+X-Gm-Message-State: AOAM533kI2yZvAqwyM8cUtaWcXVDFmwIm+6Mhl1TmOqroKQICtW7/JR1
+        V8X+inek+lACY6OmxoQbpnq9MAiCV6M=
+X-Google-Smtp-Source: ABdhPJx9Drg7tITXelXrTGkjdiA4cztDP4a+w06kMhyQ79IF54jdT4nucp1hYkuJYWkR3yVfSNeQhA==
+X-Received: by 2002:a5d:6a90:: with SMTP id s16mr78126603wru.8.1594651796017;
+        Mon, 13 Jul 2020 07:49:56 -0700 (PDT)
+Received: from localhost.localdomain ([2.31.163.6])
+        by smtp.gmail.com with ESMTPSA id o29sm26207756wra.5.2020.07.13.07.49.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 13 Jul 2020 07:49:55 -0700 (PDT)
+From:   Lee Jones <lee.jones@linaro.org>
+To:     linus.walleij@linaro.org
+Cc:     linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        Lee Jones <lee.jones@linaro.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        linux-omap@vger.kernel.org
+Subject: [PATCH 21/25] pinctrl: pinctrl-single: Fix struct/function documentation blocks
+Date:   Mon, 13 Jul 2020 15:49:26 +0100
+Message-Id: <20200713144930.1034632-22-lee.jones@linaro.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200713144930.1034632-1-lee.jones@linaro.org>
+References: <20200713144930.1034632-1-lee.jones@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Certain platforms like TI's J721E using Cadence PCIe IP can perform only
-32-bit accesses for reading or writing to Cadence registers. Convert all
-read and write accesses to 32-bit in Cadence PCIe driver in preparation
-for adding PCIe support in TI's J721E SoC.
+Add some missing attributes/parameter descriptions, remove other
+superfluous ones, add struct header titles and fix misspellings.
 
-Also add spin lock to disable interrupts while modifying PCI_STATUS
-register while raising legacy interrupt since PCI_STATUS is accessible
-by both remote RC and EP and time between read and write should be
-minimized.
+Fixes the following W=1 kernel build warning(s):
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+ drivers/pinctrl/pinctrl-single.c:50: warning: Function parameter or member 'mask' not described in 'pcs_func_vals'
+ drivers/pinctrl/pinctrl-single.c:97: warning: Function parameter or member 'conf' not described in 'pcs_function'
+ drivers/pinctrl/pinctrl-single.c:97: warning: Function parameter or member 'nconfs' not described in 'pcs_function'
+ drivers/pinctrl/pinctrl-single.c:659: warning: Function parameter or member 'pin_pos' not described in 'pcs_add_pin'
+ drivers/pinctrl/pinctrl-single.c:985: warning: Excess function parameter 'pctldev' description in 'pcs_parse_one_pinctrl_entry'
+ drivers/pinctrl/pinctrl-single.c:1357: warning: Cannot understand  * @reg:        virtual address of interrupt register
+ drivers/pinctrl/pinctrl-single.c:1377: warning: Function parameter or member 'pcs_soc' not described in 'pcs_irq_set'
+ drivers/pinctrl/pinctrl-single.c:1377: warning: Function parameter or member 'irq' not described in 'pcs_irq_set'
+ drivers/pinctrl/pinctrl-single.c:1377: warning: Function parameter or member 'enable' not described in 'pcs_irq_set'
+ drivers/pinctrl/pinctrl-single.c:1458: warning: Function parameter or member 'pcs_soc' not described in 'pcs_irq_handle'
+ drivers/pinctrl/pinctrl-single.c:1458: warning: Excess function parameter 'pcs_irq' description in 'pcs_irq_handle'
+ drivers/pinctrl/pinctrl-single.c:1506: warning: Excess function parameter 'irq' description in 'pcs_irq_chain_handler'
+
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- .../pci/controller/cadence/pcie-cadence-ep.c  |  4 +
- drivers/pci/controller/cadence/pcie-cadence.h | 76 ++++++++++++++-----
- 2 files changed, 62 insertions(+), 18 deletions(-)
+ drivers/pinctrl/pinctrl-single.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-index 4a829ccff7d0..c6eb2db94680 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-@@ -228,6 +228,7 @@ static void cdns_pcie_ep_assert_intx(struct cdns_pcie_ep *ep, u8 fn,
- 				     u8 intx, bool is_asserted)
- {
- 	struct cdns_pcie *pcie = &ep->pcie;
-+	unsigned long flags;
- 	u32 offset;
- 	u16 status;
- 	u8 msg_code;
-@@ -252,11 +253,13 @@ static void cdns_pcie_ep_assert_intx(struct cdns_pcie_ep *ep, u8 fn,
- 		msg_code = MSG_CODE_DEASSERT_INTA + intx;
- 	}
- 
-+	spin_lock_irqsave(&ep->lock, flags);
- 	status = cdns_pcie_ep_fn_readw(pcie, fn, PCI_STATUS);
- 	if (((status & PCI_STATUS_INTERRUPT) != 0) ^ (ep->irq_pending != 0)) {
- 		status ^= PCI_STATUS_INTERRUPT;
- 		cdns_pcie_ep_fn_writew(pcie, fn, PCI_STATUS, status);
- 	}
-+	spin_unlock_irqrestore(&ep->lock, flags);
- 
- 	offset = CDNS_PCIE_NORMAL_MSG_ROUTING(MSG_ROUTING_LOCAL) |
- 		 CDNS_PCIE_NORMAL_MSG_CODE(msg_code) |
-@@ -464,6 +467,7 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
- 	ep->irq_pci_addr = CDNS_PCIE_EP_IRQ_PCI_ADDR_NONE;
- 	/* Reserve region 0 for IRQs */
- 	set_bit(0, &ep->ob_region_map);
-+	spin_lock_init(&ep->lock);
- 
- 	return 0;
- 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index bc49c22e48a9..a45c11158f49 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -304,6 +304,9 @@ struct cdns_pcie_rc {
-  * @irq_pci_fn: the latest PCI function that has updated the mapping of
-  *		the MSI/legacy IRQ dedicated outbound region.
-  * @irq_pending: bitmask of asserted legacy IRQs.
-+ * @lock: spin lock to disable interrupts while modifying PCIe controller
-+ *        registers fields (RMW) accessible by both remote RC and EP to
-+ *        minimize time between read and write
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index e6d1cf25782ce..542578d0bda2d 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -42,6 +42,7 @@
+  * struct pcs_func_vals - mux function register offset and value pair
+  * @reg:	register virtual address
+  * @val:	register value
++ * @mask:	mask
   */
- struct cdns_pcie_ep {
- 	struct cdns_pcie	pcie;
-@@ -315,54 +318,94 @@ struct cdns_pcie_ep {
- 	u64			irq_pci_addr;
- 	u8			irq_pci_fn;
- 	u8			irq_pending;
-+	/* protect writing to PCI_STATUS while raising legacy interrupts */
-+	spinlock_t		lock;
- };
+ struct pcs_func_vals {
+ 	void __iomem *reg;
+@@ -83,6 +84,8 @@ struct pcs_conf_type {
+  * @nvals:	number of entries in vals array
+  * @pgnames:	array of pingroup names the function uses
+  * @npgnames:	number of pingroup names the function uses
++ * @conf:	array of pin configurations
++ * @nconfs:	number of pin configurations available
+  * @node:	list node
+  */
+ struct pcs_function {
+@@ -653,6 +656,7 @@ static const struct pinconf_ops pcs_pinconf_ops = {
+  * pcs_add_pin() - add a pin to the static per controller pin array
+  * @pcs: pcs driver instance
+  * @offset: register offset from base
++ * @pin_pos: unused
+  */
+ static int pcs_add_pin(struct pcs_device *pcs, unsigned offset,
+ 		unsigned pin_pos)
+@@ -959,7 +963,6 @@ static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
  
- 
- /* Register access */
--static inline void cdns_pcie_writeb(struct cdns_pcie *pcie, u32 reg, u8 value)
-+static inline void cdns_pcie_writel(struct cdns_pcie *pcie, u32 reg, u32 value)
- {
--	writeb(value, pcie->reg_base + reg);
-+	writel(value, pcie->reg_base + reg);
+ /**
+  * pcs_parse_one_pinctrl_entry() - parses a device tree mux entry
+- * @pctldev: pin controller device
+  * @pcs: pinctrl driver instance
+  * @np: device node of the mux entry
+  * @map: map entry
+@@ -1353,7 +1356,9 @@ static int pcs_add_gpio_func(struct device_node *node, struct pcs_device *pcs)
+ 	}
+ 	return ret;
  }
++
+ /**
++ * struct pcs_interrupt
+  * @reg:	virtual address of interrupt register
+  * @hwirq:	hardware irq number
+  * @irq:	virtual irq number
+@@ -1368,6 +1373,9 @@ struct pcs_interrupt {
  
--static inline void cdns_pcie_writew(struct cdns_pcie *pcie, u32 reg, u16 value)
-+static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
- {
--	writew(value, pcie->reg_base + reg);
-+	return readl(pcie->reg_base + reg);
- }
+ /**
+  * pcs_irq_set() - enables or disables an interrupt
++ * @pcs_soc: SoC specific settings
++ * @irq: interrupt
++ * @enable: enable or disable the interrupt
+  *
+  * Note that this currently assumes one interrupt per pinctrl
+  * register that is typically used for wake-up events.
+@@ -1448,7 +1456,7 @@ static int pcs_irq_set_wake(struct irq_data *d, unsigned int state)
  
--static inline void cdns_pcie_writel(struct cdns_pcie *pcie, u32 reg, u32 value)
-+static inline u32 cdns_pcie_read_sz(void __iomem *addr, int size)
- {
--	writel(value, pcie->reg_base + reg);
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 val = readl(aligned_addr);
-+
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		WARN(1, "Address %p and size %d are not aligned\n", addr, size);
-+		return 0;
-+	}
-+
-+	if (size > 2)
-+		return val;
-+
-+	return (val >> (8 * offset)) & ((1 << (size * 8)) - 1);
- }
+ /**
+  * pcs_irq_handle() - common interrupt handler
+- * @pcs_irq: interrupt data
++ * @pcs_soc: SoC specific settings
+  *
+  * Note that this currently assumes we have one interrupt bit per
+  * mux register. This interrupt is typically used for wake-up events.
+@@ -1496,7 +1504,6 @@ static irqreturn_t pcs_irq_handler(int irq, void *d)
  
--static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
-+static inline void cdns_pcie_write_sz(void __iomem *addr, int size, u32 value)
- {
--	return readl(pcie->reg_base + reg);
-+	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
-+	unsigned int offset = (unsigned long)addr & 0x3;
-+	u32 mask;
-+	u32 val;
-+
-+	if (!IS_ALIGNED((uintptr_t)addr, size)) {
-+		WARN(1, "Address %p and size %d are not aligned\n", addr, size);
-+		return;
-+	}
-+
-+	if (size > 2) {
-+		writel(value, addr);
-+		return;
-+	}
-+
-+	mask = ~(((1 << (size * 8)) - 1) << (offset * 8));
-+	val = readl(aligned_addr) & mask;
-+	val |= value << (offset * 8);
-+	writel(val, aligned_addr);
- }
- 
- /* Root Port register access */
- static inline void cdns_pcie_rp_writeb(struct cdns_pcie *pcie,
- 				       u32 reg, u8 value)
- {
--	writeb(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x1, value);
- }
- 
- static inline void cdns_pcie_rp_writew(struct cdns_pcie *pcie,
- 				       u32 reg, u16 value)
- {
--	writew(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x2, value);
- }
- 
- /* Endpoint Function register access */
- static inline void cdns_pcie_ep_fn_writeb(struct cdns_pcie *pcie, u8 fn,
- 					  u32 reg, u8 value)
- {
--	writeb(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x1, value);
- }
- 
- static inline void cdns_pcie_ep_fn_writew(struct cdns_pcie *pcie, u8 fn,
- 					  u32 reg, u16 value)
- {
--	writew(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
-+
-+	cdns_pcie_write_sz(addr, 0x2, value);
- }
- 
- static inline void cdns_pcie_ep_fn_writel(struct cdns_pcie *pcie, u8 fn,
-@@ -371,14 +414,11 @@ static inline void cdns_pcie_ep_fn_writel(struct cdns_pcie *pcie, u8 fn,
- 	writel(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
- }
- 
--static inline u8 cdns_pcie_ep_fn_readb(struct cdns_pcie *pcie, u8 fn, u32 reg)
--{
--	return readb(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
--}
--
- static inline u16 cdns_pcie_ep_fn_readw(struct cdns_pcie *pcie, u8 fn, u32 reg)
- {
--	return readw(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
-+	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
-+
-+	return cdns_pcie_read_sz(addr, 0x2);
- }
- 
- static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
+ /**
+  * pcs_irq_handle() - handler for the dedicated chained interrupt case
+- * @irq: interrupt
+  * @desc: interrupt descriptor
+  *
+  * Use this if you have a separate interrupt for each
 -- 
-2.17.1
+2.25.1
 
