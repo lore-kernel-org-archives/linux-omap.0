@@ -8,45 +8,45 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD777C433E8
-	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 11:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAC85C43458
+	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 11:02:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB5D720773
-	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 11:02:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A684A2077D
+	for <linux-omap@archiver.kernel.org>; Mon, 13 Jul 2020 11:02:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="JHuzuEhY"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="q8HrSlPo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729581AbgGMLCD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 13 Jul 2020 07:02:03 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:46858 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727035AbgGMLCC (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2020 07:02:02 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 06DB1oaq071457;
-        Mon, 13 Jul 2020 06:01:50 -0500
+        id S1729712AbgGMLC2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 13 Jul 2020 07:02:28 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:38274 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729637AbgGMLC0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2020 07:02:26 -0400
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 06DB2GBQ056006;
+        Mon, 13 Jul 2020 06:02:16 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1594638110;
-        bh=4dHzHIcoVceEkhB6z/897N9X5pO/7Q0JzeAzNl+vty8=;
+        s=ti-com-17Q1; t=1594638136;
+        bh=oDHixXQpSiTZez44a8+8lE4nJpgDYDjM303UR0TQSis=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=JHuzuEhYNd6k3qTxkHgF0NAYPpw43TTtqQlBu5UzVdPZQqsGERTySnr0POTNx/i/r
-         ZzRduNsmF0vl+kEi8AcqLYtLp78emlCGHMb9vwcLhpx+zsLLeTjiUElWuYBXVFlgJ8
-         14UHisfIr37IQ1HFV5N8w3LZhX0PDUDjlXGZZ/e0=
-Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 06DB1oIJ008983
+        b=q8HrSlPoGJ/sffUmOMgL+pDWEmXVsiOsdJ9wvTtMXf0oLNpP4ytncyWr8iKmdLCh0
+         0DNTDHkTvFZ+0XsmTNOKCE+BldVTWGf2TBixLFdzrfPSKIG6g9mjbzc6bf5MomrRqn
+         Qe9STWgeFb0cm0RMB8LsnZqmx6xWhaoRNHHa1h5w=
+Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 06DB2GT7023159
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 13 Jul 2020 06:01:50 -0500
-Received: from DLEE104.ent.ti.com (157.170.170.34) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 13 Jul 2020 06:02:16 -0500
+Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 13
- Jul 2020 06:01:49 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
+ Jul 2020 06:02:16 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 13 Jul 2020 06:01:49 -0500
+ Frontend Transport; Mon, 13 Jul 2020 06:02:16 -0500
 Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 06DB1gVb031460;
-        Mon, 13 Jul 2020 06:01:46 -0500
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 06DB1gVi031460;
+        Mon, 13 Jul 2020 06:02:12 -0500
 From:   Kishon Vijay Abraham I <kishon@ti.com>
 To:     Tom Joseph <tjoseph@cadence.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
@@ -58,9 +58,9 @@ CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v7 01/14] PCI: cadence: Fix cdns_pcie_{host|ep}_setup() error path
-Date:   Mon, 13 Jul 2020 16:31:28 +0530
-Message-ID: <20200713110141.13156-2-kishon@ti.com>
+Subject: [PATCH v7 08/14] PCI: cadence: Fix updating Vendor ID and Subsystem Vendor ID register
+Date:   Mon, 13 Jul 2020 16:31:35 +0530
+Message-ID: <20200713110141.13156-9-kishon@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200713110141.13156-1-kishon@ti.com>
 References: <20200713110141.13156-1-kishon@ti.com>
@@ -72,90 +72,47 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-commit bd22885aa188 ("PCI: cadence: Refactor driver to use as a core
-library") while refactoring the Cadence PCIe driver to be used as
-library, removed pm_runtime_get_sync() from cdns_pcie_ep_setup()
-and cdns_pcie_host_setup() but missed to remove the corresponding
-pm_runtime_put_sync() in the error path. Fix it here.
+Commit 1b79c5284439 ("PCI: cadence: Add host driver for Cadence PCIe
+controller") in order to update Vendor ID, directly wrote to
+PCI_VENDOR_ID register. However PCI_VENDOR_ID in root port configuration
+space is read-only register and writing to it will have no effect.
+Use local management register to configure Vendor ID and Subsystem Vendor
+ID.
 
-Fixes: bd22885aa188 ("PCI: cadence: Refactor driver to use as a core library")
+Fixes: 1b79c5284439 ("PCI: cadence: Add host driver for Cadence PCIe controller")
 Reviewed-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/cadence/pcie-cadence-ep.c   | 9 ++-------
- drivers/pci/controller/cadence/pcie-cadence-host.c | 6 +-----
- 2 files changed, 3 insertions(+), 12 deletions(-)
+ drivers/pci/controller/cadence/pcie-cadence-host.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-index 1c15c8352125..4a829ccff7d0 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-@@ -8,7 +8,6 @@
- #include <linux/of.h>
- #include <linux/pci-epc.h>
- #include <linux/platform_device.h>
--#include <linux/pm_runtime.h>
- #include <linux/sizes.h>
- 
- #include "pcie-cadence.h"
-@@ -440,8 +439,7 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
- 	epc = devm_pci_epc_create(dev, &cdns_pcie_epc_ops);
- 	if (IS_ERR(epc)) {
- 		dev_err(dev, "failed to create epc device\n");
--		ret = PTR_ERR(epc);
--		goto err_init;
-+		return PTR_ERR(epc);
- 	}
- 
- 	epc_set_drvdata(epc, ep);
-@@ -453,7 +451,7 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
- 			       resource_size(pcie->mem_res), PAGE_SIZE);
- 	if (ret < 0) {
- 		dev_err(dev, "failed to initialize the memory space\n");
--		goto err_init;
-+		return ret;
- 	}
- 
- 	ep->irq_cpu_addr = pci_epc_mem_alloc_addr(epc, &ep->irq_phys_addr,
-@@ -472,8 +470,5 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
-  free_epc_mem:
- 	pci_epc_mem_exit(epc);
- 
-- err_init:
--	pm_runtime_put_sync(dev);
--
- 	return ret;
- }
 diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index f42a0acfce00..030e828bfd4c 100644
+index 10127ea71b83..8935f7a37e5a 100644
 --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
 +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -8,7 +8,6 @@
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
- #include <linux/platform_device.h>
--#include <linux/pm_runtime.h>
+@@ -82,6 +82,7 @@ static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
+ {
+ 	struct cdns_pcie *pcie = &rc->pcie;
+ 	u32 value, ctrl;
++	u32 id;
  
- #include "pcie-cadence.h"
+ 	/*
+ 	 * Set the root complex BAR configuration register:
+@@ -101,8 +102,12 @@ static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_RC_BAR_CFG, value);
  
-@@ -473,7 +472,7 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+ 	/* Set root port configuration space */
+-	if (rc->vendor_id != 0xffff)
+-		cdns_pcie_rp_writew(pcie, PCI_VENDOR_ID, rc->vendor_id);
++	if (rc->vendor_id != 0xffff) {
++		id = CDNS_PCIE_LM_ID_VENDOR(rc->vendor_id) |
++			CDNS_PCIE_LM_ID_SUBSYS(rc->vendor_id);
++		cdns_pcie_writel(pcie, CDNS_PCIE_LM_ID, id);
++	}
++
+ 	if (rc->device_id != 0xffff)
+ 		cdns_pcie_rp_writew(pcie, PCI_DEVICE_ID, rc->device_id);
  
- 	ret = cdns_pcie_host_init(dev, &resources, rc);
- 	if (ret)
--		goto err_init;
-+		return ret;
- 
- 	list_splice_init(&resources, &bridge->windows);
- 	bridge->dev.parent = dev;
-@@ -491,8 +490,5 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
-  err_host_probe:
- 	pci_free_resource_list(&resources);
- 
-- err_init:
--	pm_runtime_put_sync(dev);
--
- 	return ret;
- }
 -- 
 2.17.1
 
