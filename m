@@ -7,26 +7,23 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA72DC433F4
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Jul 2020 12:57:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89FF3C433EC
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Jul 2020 12:57:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B33722074B
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Jul 2020 12:57:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E48D2074B
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Jul 2020 12:57:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728271AbgGPM5p (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Jul 2020 08:57:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33360 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728893AbgGPM5m (ORCPT
+        id S1728901AbgGPM5n (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Jul 2020 08:57:43 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45306 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728260AbgGPM5m (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jul 2020 08:57:42 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E89F7C08C5CE;
-        Thu, 16 Jul 2020 05:57:41 -0700 (PDT)
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: sre)
-        with ESMTPSA id 32A1E2A55F8
+        with ESMTPSA id 3D8AC2A56F3
 Received: by jupiter.universe (Postfix, from userid 1000)
-        id C54D0480102; Thu, 16 Jul 2020 14:57:37 +0200 (CEST)
+        id C48F84800F8; Thu, 16 Jul 2020 14:57:37 +0200 (CEST)
 From:   Sebastian Reichel <sebastian.reichel@collabora.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>,
@@ -38,10 +35,11 @@ Cc:     Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>,
         Rob Herring <robh+dt@kernel.org>,
         dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
         linux-omap@vger.kernel.org, kernel@collabora.com,
-        Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv2 2/4] ARM: dts: omap: add channel to DSI panels
-Date:   Thu, 16 Jul 2020 14:57:31 +0200
-Message-Id: <20200716125733.83654-3-sebastian.reichel@collabora.com>
+        Sebastian Reichel <sebastian.reichel@collabora.com>,
+        Rob Herring <robh@kernel.org>
+Subject: [PATCHv2 1/4] dt-bindings: display: panel-dsi-cm: convert to YAML
+Date:   Thu, 16 Jul 2020 14:57:30 +0200
+Message-Id: <20200716125733.83654-2-sebastian.reichel@collabora.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200716125733.83654-1-sebastian.reichel@collabora.com>
 References: <20200716125733.83654-1-sebastian.reichel@collabora.com>
@@ -52,139 +50,146 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The standard binding for DSI requires that the channel number
-of the panel is encoded in DT. This adds the channel number in
-all OMAP3-5 boards in preparation for using common infrastructure.
+Convert panel-dsi-cm bindings to YAML and add
+missing properties while at it.
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- arch/arm/boot/dts/motorola-mapphone-common.dtsi | 3 ++-
- arch/arm/boot/dts/omap3-n950.dts                | 3 ++-
- arch/arm/boot/dts/omap3.dtsi                    | 3 +++
- arch/arm/boot/dts/omap4-sdp.dts                 | 6 ++++--
- arch/arm/boot/dts/omap4.dtsi                    | 6 ++++++
- arch/arm/boot/dts/omap5.dtsi                    | 6 ++++++
- 6 files changed, 23 insertions(+), 4 deletions(-)
+ .../bindings/display/panel/panel-dsi-cm.txt   | 29 -------
+ .../bindings/display/panel/panel-dsi-cm.yaml  | 86 +++++++++++++++++++
+ 2 files changed, 86 insertions(+), 29 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/display/panel/panel-dsi-cm.txt
+ create mode 100644 Documentation/devicetree/bindings/display/panel/panel-dsi-cm.yaml
 
-diff --git a/arch/arm/boot/dts/motorola-mapphone-common.dtsi b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-index 06fbffa81636..4ffe461c3808 100644
---- a/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-+++ b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-@@ -207,8 +207,9 @@ dsi1_out_ep: endpoint {
- 		};
- 	};
- 
--	lcd0: display {
-+	lcd0: panel@0 {
- 		compatible = "panel-dsi-cm";
-+		reg = <0>;
- 		label = "lcd0";
- 		vddi-supply = <&lcd_regulator>;
- 		reset-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;	/* gpio101 */
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 31d47a1fad84..80cf4e1177da 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -225,8 +225,9 @@ dsi_out_ep: endpoint {
- 		};
- 	};
- 
--	lcd0: display {
-+	lcd0: panel@0 {
- 		compatible = "nokia,himalaya", "panel-dsi-cm";
-+		reg = <0>;
- 		label = "lcd0";
- 
- 		pinctrl-names = "default";
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 1296d0643943..0ebbb6c11f04 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -898,6 +898,9 @@ dsi: encoder@4804fc00 {
- 				ti,hwmods = "dss_dsi1";
- 				clocks = <&dss1_alwon_fck>, <&dss2_alwon_fck>;
- 				clock-names = "fck", "sys_clk";
+diff --git a/Documentation/devicetree/bindings/display/panel/panel-dsi-cm.txt b/Documentation/devicetree/bindings/display/panel/panel-dsi-cm.txt
+deleted file mode 100644
+index dce48eb9db57..000000000000
+--- a/Documentation/devicetree/bindings/display/panel/panel-dsi-cm.txt
++++ /dev/null
+@@ -1,29 +0,0 @@
+-Generic MIPI DSI Command Mode Panel
+-===================================
+-
+-Required properties:
+-- compatible: "panel-dsi-cm"
+-
+-Optional properties:
+-- label: a symbolic name for the panel
+-- reset-gpios: panel reset gpio
+-- te-gpios: panel TE gpio
+-
+-Required nodes:
+-- Video port for DSI input
+-
+-Example
+--------
+-
+-lcd0: display {
+-	compatible = "tpo,taal", "panel-dsi-cm";
+-	label = "lcd0";
+-
+-	reset-gpios = <&gpio4 6 GPIO_ACTIVE_HIGH>;
+-
+-	port {
+-		lcd0_in: endpoint {
+-			remote-endpoint = <&dsi1_out_ep>;
+-		};
+-	};
+-};
+diff --git a/Documentation/devicetree/bindings/display/panel/panel-dsi-cm.yaml b/Documentation/devicetree/bindings/display/panel/panel-dsi-cm.yaml
+new file mode 100644
+index 000000000000..d766c949c622
+--- /dev/null
++++ b/Documentation/devicetree/bindings/display/panel/panel-dsi-cm.yaml
+@@ -0,0 +1,86 @@
++# SPDX-License-Identifier: (GPL-2.0-only or BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/display/panel/panel-dsi-cm.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 			};
- 
- 			rfbi: encoder@48050800 {
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 91480ac1f328..8a8307517dab 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -662,8 +662,9 @@ dsi1_out_ep: endpoint {
- 		};
- 	};
- 
--	lcd0: display {
-+	lcd0: panel@0 {
- 		compatible = "tpo,taal", "panel-dsi-cm";
-+		reg = <0>;
- 		label = "lcd0";
- 
- 		reset-gpios = <&gpio4 6 GPIO_ACTIVE_HIGH>;	/* 102 */
-@@ -687,8 +688,9 @@ dsi2_out_ep: endpoint {
- 		};
- 	};
- 
--	lcd1: display {
-+	lcd1: panel@0 {
- 		compatible = "tpo,taal", "panel-dsi-cm";
-+		reg = <0>;
- 		label = "lcd1";
- 
- 		reset-gpios = <&gpio4 8 GPIO_ACTIVE_HIGH>;	/* 104 */
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 4400f5f8e099..c5b426616443 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -551,6 +551,9 @@ dsi1: encoder@0 {
- 						clocks = <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 8>,
- 							 <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 10>;
- 						clock-names = "fck", "sys_clk";
++title: DSI command mode panels
 +
-+						#address-cells = <1>;
-+						#size-cells = <0>;
- 					};
- 				};
- 
-@@ -583,6 +586,9 @@ dsi2: encoder@0 {
- 						clocks = <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 8>,
- 						         <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 10>;
- 						clock-names = "fck", "sys_clk";
++maintainers:
++  - Tomi Valkeinen <tomi.valkeinen@ti.com>
++  - Sebastian Reichel <sre@kernel.org>
 +
-+						#address-cells = <1>;
-+						#size-cells = <0>;
- 					};
- 				};
- 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index fb889c5b00c9..0855c0a4050f 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -491,6 +491,9 @@ dsi1: encoder@0 {
- 						status = "disabled";
- 						clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 8>;
- 						clock-names = "fck";
++description: |
++  This binding file is a collection of the DSI panels that
++  are usually driven in command mode. If no backlight is
++  referenced via the optional backlight property, the DSI
++  panel is assumed to have native backlight support.
++  The panel may use an OF graph binding for the association
++  to the display, or it may be a direct child node of the
++  display.
 +
-+						#address-cells = <1>;
-+						#size-cells = <0>;
- 					};
- 				};
- 
-@@ -522,6 +525,9 @@ dsi2: encoder@0 {
- 						status = "disabled";
- 						clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 8>;
- 						clock-names = "fck";
++allOf:
++  - $ref: panel-common.yaml#
 +
-+						#address-cells = <1>;
-+						#size-cells = <0>;
- 					};
- 				};
- 
++properties:
++
++  compatible:
++    items:
++      - enum:
++        - motorola,droid4-panel        # Panel from Motorola Droid4 phone
++        - nokia,himalaya               # Panel from Nokia N950 phone
++        - tpo,taal                     # Panel from OMAP4 SDP board
++      - const: panel-dsi-cm            # Generic DSI command mode panel compatible fallback
++
++  reg:
++    maxItems: 1
++    description: DSI virtual channel
++
++  vddi-supply:
++    description:
++      Display panels require power to be supplied. While several panels need
++      more than one power supply with panel-specific constraints governing the
++      order and timings of the power supplies, in many cases a single power
++      supply is sufficient, either because the panel has a single power rail, or
++      because all its power rails can be driven by the same supply. In that case
++      the vddi-supply property specifies the supply powering the panel as a
++      phandle to a regulator.
++
++  vpnl-supply:
++    description:
++      When the display panel needs a second power supply, this property can be
++      used in addition to vddi-supply. Both supplies will be enabled at the
++      same time before the panel is being accessed.
++
++  width-mm: true
++  height-mm: true
++  label: true
++  rotation: true
++  panel-timing: true
++  port: true
++  reset-gpios: true
++  te-gpios: true
++  backlight: true
++
++additionalProperties: false
++
++required:
++  - compatible
++  - reg
++
++examples:
++  - |
++    #include <dt-bindings/gpio/gpio.h>
++
++    dsi-controller {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        panel@0 {
++            compatible = "tpo,taal", "panel-dsi-cm";
++            reg = <0>;
++            reset-gpios = <&gpio4 6 GPIO_ACTIVE_HIGH>;
++        };
++    };
++
++...
 -- 
 2.27.0
 
