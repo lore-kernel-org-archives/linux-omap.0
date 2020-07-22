@@ -2,113 +2,243 @@ Return-Path: <SRS0=zoW1=BB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7440DC433E7
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 08:51:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1479C433EB
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 11:03:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FEF820787
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 08:51:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86E072080D
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 11:03:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lcLf9txT"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="JaQinJvV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731107AbgGVIvF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 22 Jul 2020 04:51:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55704 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728911AbgGVIvF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2020 04:51:05 -0400
-Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com [IPv6:2607:f8b0:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3ECC1C0619DC;
-        Wed, 22 Jul 2020 01:51:05 -0700 (PDT)
-Received: by mail-pf1-x441.google.com with SMTP id z3so812407pfn.12;
-        Wed, 22 Jul 2020 01:51:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=e3OT5w6u3rxG/3iZ+MykAHqpmEMoLtEmtYfcFs2OdbA=;
-        b=lcLf9txTrjt7hKVxP5gHCuyjkEz9RmBIC+LvPgKzvRZtnViz4NLCU3lgBmESF6zSjc
-         twIU4avgtOsb4uzfw/cV1b45Ua8JmLeshTj82RnoEUUjxtLgNRG6aMLi3AAfOwptrda4
-         G9mAphyqrGUDorRoYnQYEsm3QHhGkO3u1bnmADdhMeik3sp4FMM5jzojAEjucUmeErg/
-         euMtXXkvYwV7auGAhJ9WPNDR0Wzcv/XFJ+tPA5rXnKgiyd8iv9wR157pAL+f/s7g5u2A
-         p1E+0QX5TAM7MeInLS5d0nuLTtJkOgAyg/jds9ZS/+P6aTfL33oMH6DMytNz6FztY0/2
-         AizA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=e3OT5w6u3rxG/3iZ+MykAHqpmEMoLtEmtYfcFs2OdbA=;
-        b=cb5fZJEwW9fnvcPWrn8hHfxwG+MicK1m8zdj225DIvDQKh6r8kNb+ptEgKS6LZnAks
-         GU66ydJAhk+FsnDAsH/eT5aiGg1I/Z+x+dsy86PMHoPj9Uj0V+BvVsWy8doDicWG2YSF
-         cIQxcXNCDKNakd2Eso9YcFDsfEAjh7ay1q5eQNXohVLEfmWh94asHJS2Wd+6jvycqXrR
-         JGrptZE1ee9WX3CTXcv7auqOh/xIYtk91K7+1o9Rz84z+FLWzNJXWCyEVwCdgCjagaOP
-         1ZpbcEm9rHV/1CHN4G/Hvx1QbqDUw0hErCoUUppzYy6ZD/foz+MN8Shr33XBVC/p8QSh
-         vg/w==
-X-Gm-Message-State: AOAM5310DpcC5rThI4W4LDhMw2hRKmBidf6AV8KbUHfZWweuGp6t4zVy
-        Vp9Z61Di6u1edf2437r8u4w6N1fAcc50g7sBGag=
-X-Google-Smtp-Source: ABdhPJwk8TMBoOfP/mmDUdNAvHRR4uQdqWvutrkzEuwfNgqWTzOS/6FZqp9RGt9Ld4mrxIwr7V5Ox0PodZaH1uJk7tI=
-X-Received: by 2002:a62:7657:: with SMTP id r84mr26903497pfc.130.1595407864704;
- Wed, 22 Jul 2020 01:51:04 -0700 (PDT)
+        id S1731884AbgGVLDw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 22 Jul 2020 07:03:52 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:49468 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730263AbgGVLDw (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2020 07:03:52 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 06MB3gT6052674;
+        Wed, 22 Jul 2020 06:03:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1595415822;
+        bh=++1ql1atP6N5vtUd9sM9rfc/cMcGq5bqboq1YOd6EZ4=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=JaQinJvVCdm1qCCEricpYzgWkdS3ZD/FUyyOKrz5MCb0dXDDOlPqoEGkWdASkbjpN
+         iyTn5bgSbP40597tfS50/qcRRYICOouoPF37JYXQWIIvjHJmPl/4mU+QmN+pzdPVWw
+         P95xbtdOOaPAb/HlHGDIsSH9D6B9dhG/eGJ2c/Qs=
+Received: from DFLE107.ent.ti.com (dfle107.ent.ti.com [10.64.6.28])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 06MB3gZ3051739;
+        Wed, 22 Jul 2020 06:03:42 -0500
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 22
+ Jul 2020 06:03:41 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 22 Jul 2020 06:03:41 -0500
+Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 06MB3IFd078616;
+        Wed, 22 Jul 2020 06:03:38 -0500
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+To:     Tom Joseph <tjoseph@cadence.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>
+CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH v8 05/15] PCI: cadence: Add support to start link and verify link status
+Date:   Wed, 22 Jul 2020 16:33:07 +0530
+Message-ID: <20200722110317.4744-6-kishon@ti.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200722110317.4744-1-kishon@ti.com>
+References: <20200722110317.4744-1-kishon@ti.com>
 MIME-Version: 1.0
-References: <20200721222851.2075891-1-drew@beagleboard.org> <CAHp75Vd35n0=hB-K3WjUXD3HPNt6F=MHNafNY55NGfb5ahvLSA@mail.gmail.com>
-In-Reply-To: <CAHp75Vd35n0=hB-K3WjUXD3HPNt6F=MHNafNY55NGfb5ahvLSA@mail.gmail.com>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Wed, 22 Jul 2020 11:50:50 +0300
-Message-ID: <CAHp75VeXiir4BYFTd3YrseExnLPg4MfD69koTkqf4_TKp7dsBQ@mail.gmail.com>
-Subject: Re: [PATCH v4] pinctrl: core: print gpio in pins debugfs file
-To:     Drew Fustini <drew@beagleboard.org>
-Cc:     Tony Lindgren <tony@atomide.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Jason Kridner <jkridner@beagleboard.org>,
-        Robert Nelson <robertcnelson@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Jul 22, 2020 at 11:48 AM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Wed, Jul 22, 2020 at 1:29 AM Drew Fustini <drew@beagleboard.org> wrote:
-> >
-> > If there is a gpio range mapping for the pin, then print out the gpio
-> > chip and line index for the pin in the debugfs 'pins' file with the
-> > format: "[line-index]:[gpio-label]"
-> >
-> > Here is an example output on the BeagleBoard.org PocketBeagle (AM3358):
-> > /sys/kernel/debug/pinctrl/44e10800.pinmux-pinctrl-single/pins
-> >
-> > pin 25 (PIN25) 25:gpio-32-63 44e10864 00000037 pinctrl-single
-> > pin 26 (PIN26) 26:gpio-32-63 44e10868 00000037 pinctrl-single
-> > pin 27 (PIN27) 27:gpio-32-63 44e1086c 00000037 pinctrl-single
-> > pin 28 (PIN28) 0:N/A 44e10870 00000036 pinctrl-single
-> > pin 29 (PIN29) 0:N/A 44e10874 00000006 pinctrl-single
+Add cdns_pcie_ops to start link and verify link status. The registers
+to start link and to check link status is in Platform specific PCIe
+wrapper. Add support for platform specific drivers to add callback
+functions for the PCIe Cadence core to start link and verify link status.
 
-Though one more nit, I have just realized, perhaps '0:?' would be
-better, because GPIO library uses '?' in cases of unknown labels or
-so.
-I guess no need to resend (but if you wish you may do, with my tag
-included) and we may wait for Linus and Bart to comment.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ .../pci/controller/cadence/pcie-cadence-ep.c  |  8 ++++
+ .../controller/cadence/pcie-cadence-host.c    | 28 ++++++++++++++
+ drivers/pci/controller/cadence/pcie-cadence.h | 37 ++++++++++++++++++-
+ 3 files changed, 72 insertions(+), 1 deletion(-)
 
-> > pin 30 (PIN30) 28:gpio-32-63 44e10878 00000027 pinctrl-single
-> > pin 31 (PIN31) 29:gpio-32-63 44e1087c 00000037 pinctrl-single
-> > pin 32 (PIN32) 30:gpio-32-63 44e10880 00000037 pinctrl-single
-> > pin 33 (PIN33) 31:gpio-32-63 44e10884 00000037 pinctrl-single
-> > pin 34 (PIN34) 0:gpio-64-95 44e10888 00000037 pinctrl-single
-> > pin 35 (PIN35) 1:gpio-64-95 44e1088c 00000037 pinctrl-single
-> >
->
-> This variant looks good enough to me, thanks! FWIW,
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-
-
+diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+index c6eb2db94680..034cb3cf726e 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
++++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+@@ -357,8 +357,10 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
+ {
+ 	struct cdns_pcie_ep *ep = epc_get_drvdata(epc);
+ 	struct cdns_pcie *pcie = &ep->pcie;
++	struct device *dev = pcie->dev;
+ 	struct pci_epf *epf;
+ 	u32 cfg;
++	int ret;
+ 
+ 	/*
+ 	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
+@@ -369,6 +371,12 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
+ 		cfg |= BIT(epf->func_no);
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
+ 
++	ret = cdns_pcie_start_link(pcie);
++	if (ret) {
++		dev_err(dev, "Failed to start link\n");
++		return ret;
++	}
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+index 030e828bfd4c..de02fadc4809 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence-host.c
++++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
+@@ -3,6 +3,7 @@
+ // Cadence PCIe host controller driver.
+ // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
+ 
++#include <linux/delay.h>
+ #include <linux/kernel.h>
+ #include <linux/list_sort.h>
+ #include <linux/of_address.h>
+@@ -419,6 +420,23 @@ static int cdns_pcie_host_init(struct device *dev,
+ 	return err;
+ }
+ 
++static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
++{
++	struct device *dev = pcie->dev;
++	int retries;
++
++	/* Check if the link is up or not */
++	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
++		if (cdns_pcie_link_up(pcie)) {
++			dev_info(dev, "Link up\n");
++			return 0;
++		}
++		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
++	}
++
++	return -ETIMEDOUT;
++}
++
+ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+ {
+ 	struct device *dev = rc->pcie.dev;
+@@ -467,6 +485,16 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+ 
+ 	pcie->mem_res = res;
+ 
++	ret = cdns_pcie_start_link(pcie);
++	if (ret) {
++		dev_err(dev, "Failed to start link\n");
++		return ret;
++	}
++
++	ret = cdns_pcie_host_wait_for_link(pcie);
++	if (ret)
++		dev_dbg(dev, "PCIe link never came up\n");
++
+ 	for (bar = RP_BAR0; bar <= RP_NO_BAR; bar++)
+ 		rc->avail_ib_bar[bar] = true;
+ 
+diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
+index 736b07274981..36c493fa4fde 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence.h
++++ b/drivers/pci/controller/cadence/pcie-cadence.h
+@@ -10,6 +10,11 @@
+ #include <linux/pci.h>
+ #include <linux/phy/phy.h>
+ 
++/* Parameters for the waiting for link up routine */
++#define LINK_WAIT_MAX_RETRIES	10
++#define LINK_WAIT_USLEEP_MIN	90000
++#define LINK_WAIT_USLEEP_MAX	100000
++
+ /*
+  * Local Management Registers
+  */
+@@ -245,12 +250,20 @@ enum cdns_pcie_msg_routing {
+ 	MSG_ROUTING_GATHER,
+ };
+ 
++struct cdns_pcie_ops {
++	int	(*start_link)(struct cdns_pcie *pcie);
++	void	(*stop_link)(struct cdns_pcie *pcie);
++	bool	(*link_up)(struct cdns_pcie *pcie);
++};
++
+ /**
+  * struct cdns_pcie - private data for Cadence PCIe controller drivers
+  * @reg_base: IO mapped register base
+  * @mem_res: start/end offsets in the physical system memory to map PCI accesses
+  * @is_rc: tell whether the PCIe controller mode is Root Complex or Endpoint.
+  * @bus: In Root Complex mode, the bus number
++ * @ops: Platform specific ops to control various inputs from Cadence PCIe
++ *       wrapper
+  */
+ struct cdns_pcie {
+ 	void __iomem		*reg_base;
+@@ -261,7 +274,7 @@ struct cdns_pcie {
+ 	int			phy_count;
+ 	struct phy		**phy;
+ 	struct device_link	**link;
+-	const struct cdns_pcie_common_ops *ops;
++	const struct cdns_pcie_ops *ops;
+ };
+ 
+ /**
+@@ -426,6 +439,28 @@ static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
+ 	return readl(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
+ }
+ 
++static inline int cdns_pcie_start_link(struct cdns_pcie *pcie)
++{
++	if (pcie->ops->start_link)
++		return pcie->ops->start_link(pcie);
++
++	return 0;
++}
++
++static inline void cdns_pcie_stop_link(struct cdns_pcie *pcie)
++{
++	if (pcie->ops->stop_link)
++		pcie->ops->stop_link(pcie);
++}
++
++static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
++{
++	if (pcie->ops->link_up)
++		return pcie->ops->link_up(pcie);
++
++	return true;
++}
++
+ #ifdef CONFIG_PCIE_CADENCE_HOST
+ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
+ #else
 -- 
-With Best Regards,
-Andy Shevchenko
+2.17.1
+
