@@ -2,294 +2,160 @@ Return-Path: <SRS0=zoW1=BB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,
+	BODY_QUOTE_MALF_MSGID,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D42EC433DF
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 01:43:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E90A9C433E4
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 06:54:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E73A2073A
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 01:43:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B83C2206C1
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 06:54:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="yO7hs+Vt"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="IsAoqvXN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731610AbgGVBn1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 21 Jul 2020 21:43:27 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:50012 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731589AbgGVBn1 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2020 21:43:27 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 06M1hARJ045527;
-        Tue, 21 Jul 2020 20:43:10 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1595382190;
-        bh=B08ry5EPahEkQU6a73bFRal2kPrHm2LELDqynb1QMFc=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=yO7hs+VtUGB9D6an0gGnq2Amwbw4UcnzZuOTdy4iQgjkrSB9um3GNO86JnVXOBBRB
-         FZeL7deC4ei2qxg4uaQ4lve3lyrveVOVjtC1VF3+n+B2SJmS34q2Kfu9W0sKOt4FnJ
-         XJniWcUi3pl+In25ZXLwzeSS5lRKVOh+Ngm6+X4E=
-Received: from DLEE111.ent.ti.com (dlee111.ent.ti.com [157.170.170.22])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 06M1hAug063098
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 21 Jul 2020 20:43:10 -0500
-Received: from DLEE115.ent.ti.com (157.170.170.26) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 21
- Jul 2020 20:43:10 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 21 Jul 2020 20:43:09 -0500
-Received: from [10.250.233.85] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 06M1h6XW007282;
-        Tue, 21 Jul 2020 20:43:07 -0500
-Subject: Re: [PATCH v7 03/14] PCI: cadence: Convert all r/w accessors to
- perform only 32-bit accesses
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-CC:     Tom Joseph <tjoseph@cadence.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-References: <20200713110141.13156-1-kishon@ti.com>
- <20200713110141.13156-4-kishon@ti.com>
- <20200721154919.GA6840@e121166-lin.cambridge.arm.com>
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-Message-ID: <ee11fab6-48c8-b379-d7d5-1d5d8133bb9b@ti.com>
-Date:   Wed, 22 Jul 2020 07:13:05 +0530
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1729864AbgGVGye (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 22 Jul 2020 02:54:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37686 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728624AbgGVGyd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2020 02:54:33 -0400
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EF8AC0619DC
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2020 23:54:33 -0700 (PDT)
+Received: by mail-wr1-x443.google.com with SMTP id f7so779487wrw.1
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2020 23:54:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=ocBmwtCFiYWP9YFIU9y/qGa4fpuschond1lKiBqRad4=;
+        b=IsAoqvXNG2/0xQHeu18hvZcm6DuJpizwx+JDHvWFU2JKIN2MpdQDmUQ+uu2ylHccoI
+         rJdblvsBWP/F5sJjt+ptjDC26ZfdRZDhCbl5/c7eJo7gg6xVok0/gXRFbA6bGdlsK+YI
+         yJF7m5VWJY+VT/8DasrqeqIwKreZRj2FwcpU2EIGQhCBBj21Cfm4ZQvK9V/QIAM4kUiz
+         3WH0GrgLYsyCQQsfK9ZHsB3flBg2QcBZFllL884AZaxPmRmmuNwrn++/k3q19c/wIQZS
+         +dSOwzNYmZB0Zawp3c3EYJPI9lVSmHeieq1TmcZpLjVjfJr9v8pU6KcmPjcreQ9qD0LE
+         mNxw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=ocBmwtCFiYWP9YFIU9y/qGa4fpuschond1lKiBqRad4=;
+        b=IR7JIi/1TNN7uHtARhKZyzn32x5NaMdpFU1pLM7eE70DFtBKLVWfn0QOIiFhQKhJyk
+         Ga3/af/yYth1zwvOlfKVy7givhgJw8EVwvb8Ia+yyQVZ9gU3O62OxTvaGPzE2pvTkifY
+         lz2gw4fDzrTL0aOg50jQeya/q1w0nzcb7dZk+9EyE2EcS6YafnoNaL+Y7Y5jv8dDIWRk
+         fB8WsRjpSDco+U2cvFTmelVqno8+MrVR9Cwyt/RTc+hQ3YOGNHG8EVMvcvP0arjuYq56
+         6QWMUxcGh7Z1b6SxKlfPdMv7MeZZaqSsMfLhy7weeSV62V7aWaaUulAZeMgDgHd5nAbA
+         jJIg==
+X-Gm-Message-State: AOAM533PyptD++UsMJzQLENqDlxr2hT4/xsyA3KZvxQ8Ci11SA6DNzxj
+        J9wPqtFKBqA4/frAJeWVjTOJbQ==
+X-Google-Smtp-Source: ABdhPJyo10m2wQJAJRAjVOGmLFVQEnAPrhWt00A+y6ezpxtZSlEAclgSzZxiLt39v1L/xOQWpCQkGg==
+X-Received: by 2002:adf:a3d0:: with SMTP id m16mr28162290wrb.232.1595400871982;
+        Tue, 21 Jul 2020 23:54:31 -0700 (PDT)
+Received: from dell ([2.27.167.94])
+        by smtp.gmail.com with ESMTPSA id h14sm39439532wrt.36.2020.07.21.23.54.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Jul 2020 23:54:31 -0700 (PDT)
+Date:   Wed, 22 Jul 2020 07:54:29 +0100
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Rob Herring <robh@kernel.org>
+Cc:     "Alexander A. Klimov" <grandmaster@al2klimov.de>,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        robh+dt@kernel.org, tony@atomide.com, devicetree@vger.kernel.org
+Subject: Re: [PATCH for v5.9] mfd: Replace HTTP links with HTTPS ones
+Message-ID: <20200722065429.GI621928@dell>
+References: <20200719195613.61458-1-grandmaster@al2klimov.de>
+ <20200721161028.GA389086@bogus>
 MIME-Version: 1.0
-In-Reply-To: <20200721154919.GA6840@e121166-lin.cambridge.arm.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200721161028.GA389086@bogus>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Lorenzo,
+On Tue, 21 Jul 2020, Rob Herring wrote:
 
-On 7/21/2020 9:19 PM, Lorenzo Pieralisi wrote:
-> On Mon, Jul 13, 2020 at 04:31:30PM +0530, Kishon Vijay Abraham I wrote:
->> Certain platforms like TI's J721E using Cadence PCIe IP can perform only
->> 32-bit accesses for reading or writing to Cadence registers. Convert all
->> read and write accesses to 32-bit in Cadence PCIe driver in preparation
->> for adding PCIe support in TI's J721E SoC.
->>
->> Also add spin lock to disable interrupts while modifying PCI_STATUS
->> register while raising legacy interrupt since PCI_STATUS is accessible
->> by both remote RC and EP and time between read and write should be
->> minimized.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  .../pci/controller/cadence/pcie-cadence-ep.c  |  4 +
->>  drivers/pci/controller/cadence/pcie-cadence.h | 76 ++++++++++++++-----
->>  2 files changed, 62 insertions(+), 18 deletions(-)
->>
->> diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
->> index 4a829ccff7d0..c6eb2db94680 100644
->> --- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
->> +++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
->> @@ -228,6 +228,7 @@ static void cdns_pcie_ep_assert_intx(struct cdns_pcie_ep *ep, u8 fn,
->>  				     u8 intx, bool is_asserted)
->>  {
->>  	struct cdns_pcie *pcie = &ep->pcie;
->> +	unsigned long flags;
->>  	u32 offset;
->>  	u16 status;
->>  	u8 msg_code;
->> @@ -252,11 +253,13 @@ static void cdns_pcie_ep_assert_intx(struct cdns_pcie_ep *ep, u8 fn,
->>  		msg_code = MSG_CODE_DEASSERT_INTA + intx;
->>  	}
->>  
->> +	spin_lock_irqsave(&ep->lock, flags);
->>  	status = cdns_pcie_ep_fn_readw(pcie, fn, PCI_STATUS);
->>  	if (((status & PCI_STATUS_INTERRUPT) != 0) ^ (ep->irq_pending != 0)) {
->>  		status ^= PCI_STATUS_INTERRUPT;
->>  		cdns_pcie_ep_fn_writew(pcie, fn, PCI_STATUS, status);
->>  	}
->> +	spin_unlock_irqrestore(&ep->lock, flags);
->>  
->>  	offset = CDNS_PCIE_NORMAL_MSG_ROUTING(MSG_ROUTING_LOCAL) |
->>  		 CDNS_PCIE_NORMAL_MSG_CODE(msg_code) |
->> @@ -464,6 +467,7 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
->>  	ep->irq_pci_addr = CDNS_PCIE_EP_IRQ_PCI_ADDR_NONE;
->>  	/* Reserve region 0 for IRQs */
->>  	set_bit(0, &ep->ob_region_map);
->> +	spin_lock_init(&ep->lock);
->>  
->>  	return 0;
->>  
->> diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
->> index bc49c22e48a9..a45c11158f49 100644
->> --- a/drivers/pci/controller/cadence/pcie-cadence.h
->> +++ b/drivers/pci/controller/cadence/pcie-cadence.h
->> @@ -304,6 +304,9 @@ struct cdns_pcie_rc {
->>   * @irq_pci_fn: the latest PCI function that has updated the mapping of
->>   *		the MSI/legacy IRQ dedicated outbound region.
->>   * @irq_pending: bitmask of asserted legacy IRQs.
->> + * @lock: spin lock to disable interrupts while modifying PCIe controller
->> + *        registers fields (RMW) accessible by both remote RC and EP to
->> + *        minimize time between read and write
->>   */
->>  struct cdns_pcie_ep {
->>  	struct cdns_pcie	pcie;
->> @@ -315,54 +318,94 @@ struct cdns_pcie_ep {
->>  	u64			irq_pci_addr;
->>  	u8			irq_pci_fn;
->>  	u8			irq_pending;
->> +	/* protect writing to PCI_STATUS while raising legacy interrupts */
->> +	spinlock_t		lock;
->>  };
->>  
->>  
->>  /* Register access */
->> -static inline void cdns_pcie_writeb(struct cdns_pcie *pcie, u32 reg, u8 value)
->> +static inline void cdns_pcie_writel(struct cdns_pcie *pcie, u32 reg, u32 value)
->>  {
->> -	writeb(value, pcie->reg_base + reg);
->> +	writel(value, pcie->reg_base + reg);
->>  }
->>  
->> -static inline void cdns_pcie_writew(struct cdns_pcie *pcie, u32 reg, u16 value)
->> +static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
->>  {
->> -	writew(value, pcie->reg_base + reg);
->> +	return readl(pcie->reg_base + reg);
->>  }
->>  
->> -static inline void cdns_pcie_writel(struct cdns_pcie *pcie, u32 reg, u32 value)
->> +static inline u32 cdns_pcie_read_sz(void __iomem *addr, int size)
->>  {
->> -	writel(value, pcie->reg_base + reg);
->> +	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
->> +	unsigned int offset = (unsigned long)addr & 0x3;
->> +	u32 val = readl(aligned_addr);
->> +
->> +	if (!IS_ALIGNED((uintptr_t)addr, size)) {
->> +		WARN(1, "Address %p and size %d are not aligned\n", addr, size);
-> 
-> This is overkill - please consider a less severe logging (eg pr_warn()).
-> 
-> https://www.kernel.org/doc/html/latest/process/deprecated.html
+> On Sun, 19 Jul 2020 21:56:13 +0200, Alexander A. Klimov wrote:
+> > Rationale:
+> > Reduces attack surface on kernel devs opening the links for MITM
+> > as HTTPS traffic is much harder to manipulate.
+> > 
+> > Deterministic algorithm:
+> > For each file:
+> >   If not .svg:
+> >     For each line:
+> >       If doesn't contain `\bxmlns\b`:
+> >         For each link, `\bhttp://[^# \t\r\n]*(?:\w|/)`:
+> > 	  If neither `\bgnu\.org/license`, nor `\bmozilla\.org/MPL\b`:
+> >             If both the HTTP and HTTPS versions
+> >             return 200 OK and serve the same content:
+> >               Replace HTTP with HTTPS.
+> > 
+> > Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
+> > ---
+> >  Continuing my work started at 93431e0607e5.
+> >  See also: git log --oneline '--author=Alexander A. Klimov <grandmaster@al2klimov.de>' v5.7..master
+> >  (Actually letting a shell for loop submit all this stuff for me.)
 
-Sure, I'll resend after changing this.
-> 
-> Same below. I can make these changes before applying but the series
-> does not apply to v5.8-rc1, please rebase it and I will apply then.
+I'm guessing something went wrong with your submission, as Rob's reply
+is the first time I saw this patch.  Did your bot send it to me?
 
-Looks like one more patch I have to include in this series [1].
+You really should be fully reviewing anything that gets sent to the
+MLs.  "Sorry, I didn't send it, my bot did" is not an acceptable
+excuse for inadequacies.
 
-Thanks
-Kishon
+> >  If there are any URLs to be removed completely
+> >  or at least not (just) HTTPSified:
+> >  Just clearly say so and I'll *undo my change*.
+> >  See also: https://lkml.org/lkml/2020/6/27/64
+> > 
+> >  If there are any valid, but yet not changed URLs:
+> >  See: https://lkml.org/lkml/2020/6/26/837
+> > 
+> >  If you apply the patch, please let me know.
+> > 
+> >  Sorry again to all maintainers who complained about subject lines.
+> >  Now I realized that you want an actually perfect prefixes,
+> >  not just subsystem ones.
+> >  I tried my best...
+> >  And yes, *I could* (at least half-)automate it.
+> >  Impossible is nothing! :)
+> > 
+> > 
+> >  Documentation/devicetree/bindings/mfd/twl-family.txt | 2 +-
+> >  drivers/mfd/hi6421-pmic-core.c                       | 2 +-
+> >  drivers/mfd/lp873x.c                                 | 2 +-
+> >  drivers/mfd/lp87565.c                                | 2 +-
+> >  drivers/mfd/omap-usb-host.c                          | 2 +-
+> >  drivers/mfd/omap-usb-tll.c                           | 2 +-
+> >  drivers/mfd/smsc-ece1099.c                           | 2 +-
+> >  drivers/mfd/ti_am335x_tscadc.c                       | 2 +-
+> >  drivers/mfd/tps65086.c                               | 2 +-
+> >  drivers/mfd/tps65217.c                               | 2 +-
+> >  drivers/mfd/tps65218.c                               | 2 +-
+> >  drivers/mfd/tps65912-core.c                          | 2 +-
+> >  drivers/mfd/tps65912-i2c.c                           | 2 +-
+> >  drivers/mfd/tps65912-spi.c                           | 2 +-
+> >  include/linux/mfd/hi6421-pmic.h                      | 2 +-
+> >  include/linux/mfd/lp873x.h                           | 2 +-
+> >  include/linux/mfd/lp87565.h                          | 2 +-
+> >  include/linux/mfd/ti_am335x_tscadc.h                 | 2 +-
+> >  include/linux/mfd/tps65086.h                         | 2 +-
+> >  include/linux/mfd/tps65217.h                         | 2 +-
+> >  include/linux/mfd/tps65218.h                         | 2 +-
+> >  include/linux/mfd/tps65912.h                         | 2 +-
+> >  22 files changed, 22 insertions(+), 22 deletions(-)
+> > 
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
 
-[1] -> http://lore.kernel.org/r/20200521080153.5902-1-kishon@ti.com
-> 
-> Thanks,
-> Lorenzo
-> 
->> +		return 0;
->> +	}
->> +
->> +	if (size > 2)
->> +		return val;
->> +
->> +	return (val >> (8 * offset)) & ((1 << (size * 8)) - 1);
->>  }
->>  
->> -static inline u32 cdns_pcie_readl(struct cdns_pcie *pcie, u32 reg)
->> +static inline void cdns_pcie_write_sz(void __iomem *addr, int size, u32 value)
->>  {
->> -	return readl(pcie->reg_base + reg);
->> +	void __iomem *aligned_addr = PTR_ALIGN_DOWN(addr, 0x4);
->> +	unsigned int offset = (unsigned long)addr & 0x3;
->> +	u32 mask;
->> +	u32 val;
->> +
->> +	if (!IS_ALIGNED((uintptr_t)addr, size)) {
->> +		WARN(1, "Address %p and size %d are not aligned\n", addr, size);
->> +		return;
->> +	}
->> +
->> +	if (size > 2) {
->> +		writel(value, addr);
->> +		return;
->> +	}
->> +
->> +	mask = ~(((1 << (size * 8)) - 1) << (offset * 8));
->> +	val = readl(aligned_addr) & mask;
->> +	val |= value << (offset * 8);
->> +	writel(val, aligned_addr);
->>  }
->>  
->>  /* Root Port register access */
->>  static inline void cdns_pcie_rp_writeb(struct cdns_pcie *pcie,
->>  				       u32 reg, u8 value)
->>  {
->> -	writeb(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
->> +	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
->> +
->> +	cdns_pcie_write_sz(addr, 0x1, value);
->>  }
->>  
->>  static inline void cdns_pcie_rp_writew(struct cdns_pcie *pcie,
->>  				       u32 reg, u16 value)
->>  {
->> -	writew(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
->> +	void __iomem *addr = pcie->reg_base + CDNS_PCIE_RP_BASE + reg;
->> +
->> +	cdns_pcie_write_sz(addr, 0x2, value);
->>  }
->>  
->>  /* Endpoint Function register access */
->>  static inline void cdns_pcie_ep_fn_writeb(struct cdns_pcie *pcie, u8 fn,
->>  					  u32 reg, u8 value)
->>  {
->> -	writeb(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
->> +	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
->> +
->> +	cdns_pcie_write_sz(addr, 0x1, value);
->>  }
->>  
->>  static inline void cdns_pcie_ep_fn_writew(struct cdns_pcie *pcie, u8 fn,
->>  					  u32 reg, u16 value)
->>  {
->> -	writew(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
->> +	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
->> +
->> +	cdns_pcie_write_sz(addr, 0x2, value);
->>  }
->>  
->>  static inline void cdns_pcie_ep_fn_writel(struct cdns_pcie *pcie, u8 fn,
->> @@ -371,14 +414,11 @@ static inline void cdns_pcie_ep_fn_writel(struct cdns_pcie *pcie, u8 fn,
->>  	writel(value, pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
->>  }
->>  
->> -static inline u8 cdns_pcie_ep_fn_readb(struct cdns_pcie *pcie, u8 fn, u32 reg)
->> -{
->> -	return readb(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
->> -}
->> -
->>  static inline u16 cdns_pcie_ep_fn_readw(struct cdns_pcie *pcie, u8 fn, u32 reg)
->>  {
->> -	return readw(pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg);
->> +	void __iomem *addr = pcie->reg_base + CDNS_PCIE_EP_FUNC_BASE(fn) + reg;
->> +
->> +	return cdns_pcie_read_sz(addr, 0x2);
->>  }
->>  
->>  static inline u32 cdns_pcie_ep_fn_readl(struct cdns_pcie *pcie, u8 fn, u32 reg)
->> -- 
->> 2.17.1
->>
+-- 
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
