@@ -2,675 +2,482 @@ Return-Path: <SRS0=zoW1=BB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F2CDC433F7
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 11:04:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB46CC433E3
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 11:45:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15996207DD
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 11:04:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="OSjIfHJA"
+	by mail.kernel.org (Postfix) with ESMTP id 877A620729
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Jul 2020 11:45:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729064AbgGVLEa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 22 Jul 2020 07:04:30 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:56310 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732253AbgGVLE0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2020 07:04:26 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 06MB4Dm6072677;
-        Wed, 22 Jul 2020 06:04:13 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1595415853;
-        bh=pz2ZkZnfHSOAwUkyzFhUQlueXJ8vgNHb79RVBMXMd3Q=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=OSjIfHJARHfSdnsqO/jaFdpDC4rXDM1xdmpoL17Uu1qMzCbVYNoOZljFGRwkVu6E2
-         JOhjdGoFO3joUMNzWQxdioDWSsr5Uk237FXVSn2SGvOBOAG1tOXty4XywAx/se7x5J
-         goI5FeKARQZfc7vWSyXEhrQYMS6PU9JbJ/cMzKt4=
-Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 06MB4DYo007038
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 22 Jul 2020 06:04:13 -0500
-Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 22
- Jul 2020 06:04:12 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 22 Jul 2020 06:04:12 -0500
-Received: from a0393678ub.india.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 06MB3IFl078616;
-        Wed, 22 Jul 2020 06:04:09 -0500
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-To:     Tom Joseph <tjoseph@cadence.com>,
+        id S1731072AbgGVLpQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 22 Jul 2020 07:45:16 -0400
+Received: from foss.arm.com ([217.140.110.172]:55140 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730561AbgGVLpO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 22 Jul 2020 07:45:14 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DF33931B;
+        Wed, 22 Jul 2020 04:45:12 -0700 (PDT)
+Received: from e121166-lin.cambridge.arm.com (e121166-lin.cambridge.arm.com [10.1.196.255])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 705983F66F;
+        Wed, 22 Jul 2020 04:45:11 -0700 (PDT)
+Date:   Wed, 22 Jul 2020 12:45:05 +0100
+From:   Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc:     Tom Joseph <tjoseph@cadence.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Arnd Bergmann <arnd@arndb.de>
-CC:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v8 13/15] PCI: j721e: Add TI J721E PCIe driver
-Date:   Wed, 22 Jul 2020 16:33:15 +0530
-Message-ID: <20200722110317.4744-14-kishon@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200722110317.4744-1-kishon@ti.com>
+        Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-pci@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v8 01/15] PCI: cadence: Use "dma-ranges" instead of
+ "cdns,no-bar-match-nbits" property
+Message-ID: <20200722114505.GA22270@e121166-lin.cambridge.arm.com>
 References: <20200722110317.4744-1-kishon@ti.com>
+ <20200722110317.4744-2-kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200722110317.4744-2-kishon@ti.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add support for PCIe controller in J721E SoC. The controller uses the
-Cadence PCIe core programmed by pcie-cadence*.c. The PCIe controller
-will work in both host mode and device mode.
-Some of the features of the controller are:
-  *) Supports both RC mode and EP mode
-  *) Supports MSI and MSI-X support
-  *) Supports upto GEN3 speed mode
-  *) Supports SR-IOV capability
-  *) Ability to route all transactions via SMMU (support will be added
-     in a later patch).
+On Wed, Jul 22, 2020 at 04:33:03PM +0530, Kishon Vijay Abraham I wrote:
+> Cadence PCIe core driver (host mode) uses "cdns,no-bar-match-nbits"
+> property to configure the number of bits passed through from PCIe
+> address to internal address in Inbound Address Translation register.
+> This only used the NO MATCH BAR.
+> 
+> However standard PCI dt-binding already defines "dma-ranges" to
+> describe the address ranges accessible by PCIe controller. Add support
+> in Cadence PCIe host driver to parse dma-ranges and configure the
+> inbound regions for BAR0, BAR1 and NO MATCH BAR. Cadence IP specifies
+> maximum size for BAR0 as 256GB, maximum size for BAR1 as 2 GB.
+> 
+> This adds support to take the next biggest region in "dma-ranges" and
+> find the smallest BAR that each of the regions fit in and if there is
+> no BAR big enough to hold the region, split the region to see if it can
+> be fitted using multiple BARs.
+> 
+> "dma-ranges" of J721E will be
+> dma-ranges = <0x02000000 0x0 0x0 0x0 0x0 0x10000 0x0>;
+> Since there is no BAR which can hold 2^48 size, NO_MATCH_BAR will be
+> used here.
+> 
+> Legacy device tree binding compatibility is maintained by retaining
+> support for "cdns,no-bar-match-nbits".
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+> Changes from [1]
+> 1) Use list_sort() for sorting the address ranges by size
+> 2) Clear CDNS_PCIE_LM_RC_BAR_CFG register before configuring them
+> 
+> [1] -> http://lore.kernel.org/r/20200521080153.5902-1-kishon@ti.com
+>  .../controller/cadence/pcie-cadence-host.c    | 251 +++++++++++++++++-
+>  drivers/pci/controller/cadence/pcie-cadence.h |  28 +-
+>  2 files changed, 262 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+> index 8c2543f28ba0..f42a0acfce00 100644
+> --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
+> +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/controller/cadence/Kconfig        |  23 +
- drivers/pci/controller/cadence/Makefile       |   1 +
- drivers/pci/controller/cadence/pci-j721e.c    | 493 ++++++++++++++++++
- .../controller/cadence/pcie-cadence-host.c    |   4 +-
- drivers/pci/controller/cadence/pcie-cadence.h |   8 +
- 5 files changed, 527 insertions(+), 2 deletions(-)
- create mode 100644 drivers/pci/controller/cadence/pci-j721e.c
+Hi Rob,
 
-diff --git a/drivers/pci/controller/cadence/Kconfig b/drivers/pci/controller/cadence/Kconfig
-index b76b3cf55ce5..5d30564190e1 100644
---- a/drivers/pci/controller/cadence/Kconfig
-+++ b/drivers/pci/controller/cadence/Kconfig
-@@ -42,4 +42,27 @@ config PCIE_CADENCE_PLAT_EP
- 	  endpoint mode. This PCIe controller may be embedded into many
- 	  different vendors SoCs.
- 
-+config PCI_J721E
-+	bool
-+
-+config PCI_J721E_HOST
-+	bool "TI J721E PCIe platform host controller"
-+	depends on OF
-+	select PCIE_CADENCE_HOST
-+	select PCI_J721E
-+	help
-+	  Say Y here if you want to support the TI J721E PCIe platform
-+	  controller in host mode. TI J721E PCIe controller uses Cadence PCIe
-+	  core.
-+
-+config PCI_J721E_EP
-+	bool "TI J721E PCIe platform endpoint controller"
-+	depends on OF
-+	depends on PCI_ENDPOINT
-+	select PCIE_CADENCE_EP
-+	select PCI_J721E
-+	help
-+	  Say Y here if you want to support the TI J721E PCIe platform
-+	  controller in endpoint mode. TI J721E PCIe controller uses Cadence PCIe
-+	  core.
- endmenu
-diff --git a/drivers/pci/controller/cadence/Makefile b/drivers/pci/controller/cadence/Makefile
-index 232a3f20876a..9bac5fb2f13d 100644
---- a/drivers/pci/controller/cadence/Makefile
-+++ b/drivers/pci/controller/cadence/Makefile
-@@ -3,3 +3,4 @@ obj-$(CONFIG_PCIE_CADENCE) += pcie-cadence.o
- obj-$(CONFIG_PCIE_CADENCE_HOST) += pcie-cadence-host.o
- obj-$(CONFIG_PCIE_CADENCE_EP) += pcie-cadence-ep.o
- obj-$(CONFIG_PCIE_CADENCE_PLAT) += pcie-cadence-plat.o
-+obj-$(CONFIG_PCI_J721E) += pci-j721e.o
-diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
-new file mode 100644
-index 000000000000..23ad8fa699c4
---- /dev/null
-+++ b/drivers/pci/controller/cadence/pci-j721e.c
-@@ -0,0 +1,493 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/**
-+ * pci-j721e - PCIe controller driver for TI's J721E SoCs
-+ *
-+ * Copyright (C) 2020 Texas Instruments Incorporated - http://www.ti.com
-+ * Author: Kishon Vijay Abraham I <kishon@ti.com>
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/io.h>
-+#include <linux/irqchip/chained_irq.h>
-+#include <linux/irqdomain.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/of_device.h>
-+#include <linux/of_irq.h>
-+#include <linux/pci.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/regmap.h>
-+
-+#include "../../pci.h"
-+#include "pcie-cadence.h"
-+
-+#define ENABLE_REG_SYS_2	0x108
-+#define STATUS_REG_SYS_2	0x508
-+#define STATUS_CLR_REG_SYS_2	0x708
-+#define LINK_DOWN		BIT(1)
-+
-+#define J721E_PCIE_USER_CMD_STATUS	0x4
-+#define LINK_TRAINING_ENABLE		BIT(0)
-+
-+#define J721E_PCIE_USER_LINKSTATUS	0x14
-+#define LINK_STATUS			GENMASK(1, 0)
-+
-+enum link_status {
-+	NO_RECEIVERS_DETECTED,
-+	LINK_TRAINING_IN_PROGRESS,
-+	LINK_UP_DL_IN_PROGRESS,
-+	LINK_UP_DL_COMPLETED,
-+};
-+
-+#define J721E_MODE_RC			BIT(7)
-+#define LANE_COUNT_MASK			BIT(8)
-+#define LANE_COUNT(n)			((n) << 8)
-+
-+#define GENERATION_SEL_MASK		GENMASK(1, 0)
-+
-+#define MAX_LANES			2
-+
-+struct j721e_pcie {
-+	struct device		*dev;
-+	u32			mode;
-+	u32			num_lanes;
-+	struct cdns_pcie	*cdns_pcie;
-+	void __iomem		*user_cfg_base;
-+	void __iomem		*intd_cfg_base;
-+};
-+
-+enum j721e_pcie_mode {
-+	PCI_MODE_RC,
-+	PCI_MODE_EP,
-+};
-+
-+struct j721e_pcie_data {
-+	enum j721e_pcie_mode	mode;
-+};
-+
-+static inline u32 j721e_pcie_user_readl(struct j721e_pcie *pcie, u32 offset)
-+{
-+	return readl(pcie->user_cfg_base + offset);
-+}
-+
-+static inline void j721e_pcie_user_writel(struct j721e_pcie *pcie, u32 offset,
-+					  u32 value)
-+{
-+	writel(value, pcie->user_cfg_base + offset);
-+}
-+
-+static inline u32 j721e_pcie_intd_readl(struct j721e_pcie *pcie, u32 offset)
-+{
-+	return readl(pcie->intd_cfg_base + offset);
-+}
-+
-+static inline void j721e_pcie_intd_writel(struct j721e_pcie *pcie, u32 offset,
-+					  u32 value)
-+{
-+	writel(value, pcie->intd_cfg_base + offset);
-+}
-+
-+static irqreturn_t j721e_pcie_link_irq_handler(int irq, void *priv)
-+{
-+	struct j721e_pcie *pcie = priv;
-+	struct device *dev = pcie->dev;
-+	u32 reg;
-+
-+	reg = j721e_pcie_intd_readl(pcie, STATUS_REG_SYS_2);
-+	if (!(reg & LINK_DOWN))
-+		return IRQ_NONE;
-+
-+	dev_err(dev, "LINK DOWN!\n");
-+
-+	j721e_pcie_intd_writel(pcie, STATUS_CLR_REG_SYS_2, LINK_DOWN);
-+	return IRQ_HANDLED;
-+}
-+
-+static void j721e_pcie_config_link_irq(struct j721e_pcie *pcie)
-+{
-+	u32 reg;
-+
-+	reg = j721e_pcie_intd_readl(pcie, ENABLE_REG_SYS_2);
-+	reg |= LINK_DOWN;
-+	j721e_pcie_intd_writel(pcie, ENABLE_REG_SYS_2, reg);
-+}
-+
-+static int j721e_pcie_start_link(struct cdns_pcie *cdns_pcie)
-+{
-+	struct j721e_pcie *pcie = dev_get_drvdata(cdns_pcie->dev);
-+	u32 reg;
-+
-+	reg = j721e_pcie_user_readl(pcie, J721E_PCIE_USER_CMD_STATUS);
-+	reg |= LINK_TRAINING_ENABLE;
-+	j721e_pcie_user_writel(pcie, J721E_PCIE_USER_CMD_STATUS, reg);
-+
-+	return 0;
-+}
-+
-+static void j721e_pcie_stop_link(struct cdns_pcie *cdns_pcie)
-+{
-+	struct j721e_pcie *pcie = dev_get_drvdata(cdns_pcie->dev);
-+	u32 reg;
-+
-+	reg = j721e_pcie_user_readl(pcie, J721E_PCIE_USER_CMD_STATUS);
-+	reg &= ~LINK_TRAINING_ENABLE;
-+	j721e_pcie_user_writel(pcie, J721E_PCIE_USER_CMD_STATUS, reg);
-+}
-+
-+static bool j721e_pcie_link_up(struct cdns_pcie *cdns_pcie)
-+{
-+	struct j721e_pcie *pcie = dev_get_drvdata(cdns_pcie->dev);
-+	u32 reg;
-+
-+	reg = j721e_pcie_user_readl(pcie, J721E_PCIE_USER_LINKSTATUS);
-+	reg &= LINK_STATUS;
-+	if (reg == LINK_UP_DL_COMPLETED)
-+		return true;
-+
-+	return false;
-+}
-+
-+static const struct cdns_pcie_ops j721e_pcie_ops = {
-+	.start_link = j721e_pcie_start_link,
-+	.stop_link = j721e_pcie_stop_link,
-+	.link_up = j721e_pcie_link_up,
-+};
-+
-+static int j721e_pcie_set_mode(struct j721e_pcie *pcie, struct regmap *syscon)
-+{
-+	struct device *dev = pcie->dev;
-+	u32 mask = J721E_MODE_RC;
-+	u32 mode = pcie->mode;
-+	u32 val = 0;
-+	int ret = 0;
-+
-+	if (mode == PCI_MODE_RC)
-+		val = J721E_MODE_RC;
-+
-+	ret = regmap_update_bits(syscon, 0, mask, val);
-+	if (ret)
-+		dev_err(dev, "failed to set pcie mode\n");
-+
-+	return ret;
-+}
-+
-+static int j721e_pcie_set_link_speed(struct j721e_pcie *pcie,
-+				     struct regmap *syscon)
-+{
-+	struct device *dev = pcie->dev;
-+	struct device_node *np = dev->of_node;
-+	int link_speed;
-+	u32 val = 0;
-+	int ret;
-+
-+	link_speed = of_pci_get_max_link_speed(np);
-+	if (link_speed < 2)
-+		link_speed = 2;
-+
-+	val = link_speed - 1;
-+	ret = regmap_update_bits(syscon, 0, GENERATION_SEL_MASK, val);
-+	if (ret)
-+		dev_err(dev, "failed to set link speed\n");
-+
-+	return ret;
-+}
-+
-+static int j721e_pcie_set_lane_count(struct j721e_pcie *pcie,
-+				     struct regmap *syscon)
-+{
-+	struct device *dev = pcie->dev;
-+	u32 lanes = pcie->num_lanes;
-+	u32 val = 0;
-+	int ret;
-+
-+	val = LANE_COUNT(lanes - 1);
-+	ret = regmap_update_bits(syscon, 0, LANE_COUNT_MASK, val);
-+	if (ret)
-+		dev_err(dev, "failed to set link count\n");
-+
-+	return ret;
-+}
-+
-+static int j721e_pcie_ctrl_init(struct j721e_pcie *pcie)
-+{
-+	struct device *dev = pcie->dev;
-+	struct device_node *node = dev->of_node;
-+	struct regmap *syscon;
-+	int ret;
-+
-+	syscon = syscon_regmap_lookup_by_phandle(node, "ti,syscon-pcie-ctrl");
-+	if (IS_ERR(syscon)) {
-+		dev_err(dev, "Unable to get ti,syscon-pcie-ctrl regmap\n");
-+		return PTR_ERR(syscon);
-+	}
-+
-+	ret = j721e_pcie_set_mode(pcie, syscon);
-+	if (ret < 0) {
-+		dev_err(dev, "Failed to set pci mode\n");
-+		return ret;
-+	}
-+
-+	ret = j721e_pcie_set_link_speed(pcie, syscon);
-+	if (ret < 0) {
-+		dev_err(dev, "Failed to set link speed\n");
-+		return ret;
-+	}
-+
-+	ret = j721e_pcie_set_lane_count(pcie, syscon);
-+	if (ret < 0) {
-+		dev_err(dev, "Failed to set num-lanes\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cdns_ti_pcie_config_read(struct pci_bus *bus, unsigned int devfn,
-+				    int where, int size, u32 *value)
-+{
-+	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
-+	struct cdns_pcie_rc *rc = pci_host_bridge_priv(bridge);
-+	unsigned int busn = bus->number;
-+
-+	if (busn == rc->bus_range->start)
-+		return pci_generic_config_read32(bus, devfn, where, size,
-+						 value);
-+
-+	return pci_generic_config_read(bus, devfn, where, size, value);
-+}
-+
-+static int cdns_ti_pcie_config_write(struct pci_bus *bus, unsigned int devfn,
-+				     int where, int size, u32 value)
-+{
-+	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
-+	struct cdns_pcie_rc *rc = pci_host_bridge_priv(bridge);
-+	unsigned int busn = bus->number;
-+
-+	if (busn == rc->bus_range->start)
-+		return pci_generic_config_write32(bus, devfn, where, size,
-+						  value);
-+
-+	return pci_generic_config_write(bus, devfn, where, size, value);
-+}
-+
-+static struct pci_ops cdns_ti_pcie_host_ops = {
-+	.map_bus	= cdns_pci_map_bus,
-+	.read		= cdns_ti_pcie_config_read,
-+	.write		= cdns_ti_pcie_config_write,
-+};
-+
-+static const struct j721e_pcie_data j721e_pcie_rc_data = {
-+	.mode = PCI_MODE_RC,
-+};
-+
-+static const struct j721e_pcie_data j721e_pcie_ep_data = {
-+	.mode = PCI_MODE_EP,
-+};
-+
-+static const struct of_device_id of_j721e_pcie_match[] = {
-+	{
-+		.compatible = "ti,j721e-pcie-host",
-+		.data = &j721e_pcie_rc_data,
-+	},
-+	{
-+		.compatible = "ti,j721e-pcie-ep",
-+		.data = &j721e_pcie_ep_data,
-+	},
-+	{},
-+};
-+
-+static int j721e_pcie_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct device_node *node = dev->of_node;
-+	struct pci_host_bridge *bridge;
-+	struct j721e_pcie_data *data;
-+	struct cdns_pcie *cdns_pcie;
-+	struct j721e_pcie *pcie;
-+	struct cdns_pcie_rc *rc;
-+	struct cdns_pcie_ep *ep;
-+	struct gpio_desc *gpiod;
-+	void __iomem *base;
-+	u32 num_lanes;
-+	u32 mode;
-+	int ret;
-+	int irq;
-+
-+	data = (struct j721e_pcie_data *)of_device_get_match_data(dev);
-+	if (!data)
-+		return -EINVAL;
-+
-+	mode = (u32)data->mode;
-+
-+	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
-+	if (!pcie)
-+		return -ENOMEM;
-+
-+	pcie->dev = dev;
-+	pcie->mode = mode;
-+
-+	base = devm_platform_ioremap_resource_byname(pdev, "intd_cfg");
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
-+	pcie->intd_cfg_base = base;
-+
-+	base = devm_platform_ioremap_resource_byname(pdev, "user_cfg");
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
-+	pcie->user_cfg_base = base;
-+
-+	ret = of_property_read_u32(node, "num-lanes", &num_lanes);
-+	if (ret || num_lanes > MAX_LANES)
-+		num_lanes = 1;
-+	pcie->num_lanes = num_lanes;
-+
-+	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(48)))
-+		return -EINVAL;
-+
-+	irq = platform_get_irq_byname(pdev, "link_state");
-+	if (irq < 0)
-+		return irq;
-+
-+	dev_set_drvdata(dev, pcie);
-+	pm_runtime_enable(dev);
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0) {
-+		dev_err(dev, "pm_runtime_get_sync failed\n");
-+		goto err_get_sync;
-+	}
-+
-+	ret = j721e_pcie_ctrl_init(pcie);
-+	if (ret < 0) {
-+		dev_err(dev, "pm_runtime_get_sync failed\n");
-+		goto err_get_sync;
-+	}
-+
-+	ret = devm_request_irq(dev, irq, j721e_pcie_link_irq_handler, 0,
-+			       "j721e-pcie-link-down-irq", pcie);
-+	if (ret < 0) {
-+		dev_err(dev, "failed to request link state IRQ %d\n", irq);
-+		goto err_get_sync;
-+	}
-+
-+	j721e_pcie_config_link_irq(pcie);
-+
-+	switch (mode) {
-+	case PCI_MODE_RC:
-+		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_HOST)) {
-+			ret = -ENODEV;
-+			goto err_get_sync;
-+		}
-+
-+		bridge = devm_pci_alloc_host_bridge(dev, sizeof(*rc));
-+		if (!bridge) {
-+			ret = -ENOMEM;
-+			goto err_get_sync;
-+		}
-+
-+		bridge->ops = &cdns_ti_pcie_host_ops;
-+		rc = pci_host_bridge_priv(bridge);
-+
-+		cdns_pcie = &rc->pcie;
-+		cdns_pcie->dev = dev;
-+		cdns_pcie->ops = &j721e_pcie_ops;
-+		pcie->cdns_pcie = cdns_pcie;
-+
-+		gpiod = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
-+		if (IS_ERR(gpiod)) {
-+			ret = PTR_ERR(gpiod);
-+			if (ret != -EPROBE_DEFER)
-+				dev_err(dev, "Failed to get reset GPIO\n");
-+			goto err_get_sync;
-+		}
-+
-+		ret = cdns_pcie_init_phy(dev, cdns_pcie);
-+		if (ret) {
-+			dev_err(dev, "Failed to init phy\n");
-+			goto err_get_sync;
-+		}
-+
-+		/*
-+		 * "Power Sequencing and Reset Signal Timings" table in
-+		 * PCI EXPRESS CARD ELECTROMECHANICAL SPECIFICATION, REV. 3.0
-+		 * indicates PERST# should be deasserted after minimum of 100us
-+		 * once REFCLK is stable. The REFCLK to the connector in RC
-+		 * mode is selected while enabling the PHY. So deassert PERST#
-+		 * after 100 us.
-+		 */
-+		if (gpiod) {
-+			usleep_range(100, 200);
-+			gpiod_set_value_cansleep(gpiod, 1);
-+		}
-+
-+		ret = cdns_pcie_host_setup(rc);
-+		if (ret < 0)
-+			goto err_pcie_setup;
-+
-+		break;
-+	case PCI_MODE_EP:
-+		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_EP)) {
-+			ret = -ENODEV;
-+			goto err_get_sync;
-+		}
-+
-+		ep = devm_kzalloc(dev, sizeof(*ep), GFP_KERNEL);
-+		if (!ep) {
-+			ret = -ENOMEM;
-+			goto err_get_sync;
-+		}
-+
-+		cdns_pcie = &ep->pcie;
-+		cdns_pcie->dev = dev;
-+		cdns_pcie->ops = &j721e_pcie_ops;
-+		pcie->cdns_pcie = cdns_pcie;
-+
-+		ret = cdns_pcie_init_phy(dev, cdns_pcie);
-+		if (ret) {
-+			dev_err(dev, "Failed to init phy\n");
-+			goto err_get_sync;
-+		}
-+
-+		ret = cdns_pcie_ep_setup(ep);
-+		if (ret < 0)
-+			goto err_pcie_setup;
-+
-+		break;
-+	default:
-+		dev_err(dev, "INVALID device type %d\n", mode);
-+	}
-+
-+	return 0;
-+
-+err_pcie_setup:
-+	cdns_pcie_disable_phy(cdns_pcie);
-+
-+err_get_sync:
-+	pm_runtime_put(dev);
-+	pm_runtime_disable(dev);
-+
-+	return ret;
-+}
-+
-+static int j721e_pcie_remove(struct platform_device *pdev)
-+{
-+	struct j721e_pcie *pcie = platform_get_drvdata(pdev);
-+	struct cdns_pcie *cdns_pcie = pcie->cdns_pcie;
-+	struct device *dev = &pdev->dev;
-+
-+	cdns_pcie_disable_phy(cdns_pcie);
-+	pm_runtime_put(dev);
-+	pm_runtime_disable(dev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver j721e_pcie_driver = {
-+	.probe  = j721e_pcie_probe,
-+	.remove = j721e_pcie_remove,
-+	.driver = {
-+		.name	= "j721e-pcie",
-+		.of_match_table = of_j721e_pcie_match,
-+		.suppress_bind_attrs = true,
-+	},
-+};
-+builtin_platform_driver(j721e_pcie_driver);
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 8935f7a37e5a..ba157278fb0f 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -23,8 +23,8 @@ static u8 bar_aperture_mask[] = {
- 	[RP_BAR1] = 0xF,
- };
- 
--static void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
--				      int where)
-+void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
-+			       int where)
- {
- 	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
- 	struct cdns_pcie_rc *rc = pci_host_bridge_priv(bridge);
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index dd910a1c30fb..655a6b4d4964 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -475,11 +475,19 @@ static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
- 
- #ifdef CONFIG_PCIE_CADENCE_HOST
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
-+void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
-+			       int where);
- #else
- static inline int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- {
- 	return 0;
- }
-+
-+static void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
-+				      int where)
-+{
-+	return NULL;
-+}
- #endif
- 
- #ifdef CONFIG_PCIE_CADENCE_EP
--- 
-2.17.1
+are you OK with this patch ? It was now made part of this series,
+which I would like to pull if that's OK with you.
 
+Thanks,
+Lorenzo
+
+> @@ -4,6 +4,7 @@
+>  // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
+>  
+>  #include <linux/kernel.h>
+> +#include <linux/list_sort.h>
+>  #include <linux/of_address.h>
+>  #include <linux/of_pci.h>
+>  #include <linux/platform_device.h>
+> @@ -11,6 +12,17 @@
+>  
+>  #include "pcie-cadence.h"
+>  
+> +static u64 bar_max_size[] = {
+> +	[RP_BAR0] = _ULL(128 * SZ_2G),
+> +	[RP_BAR1] = SZ_2G,
+> +	[RP_NO_BAR] = _BITULL(63),
+> +};
+> +
+> +static u8 bar_aperture_mask[] = {
+> +	[RP_BAR0] = 0x1F,
+> +	[RP_BAR1] = 0xF,
+> +};
+> +
+>  static void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+>  				      int where)
+>  {
+> @@ -101,6 +113,217 @@ static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
+>  	return 0;
+>  }
+>  
+> +static int cdns_pcie_host_bar_ib_config(struct cdns_pcie_rc *rc,
+> +					enum cdns_pcie_rp_bar bar,
+> +					u64 cpu_addr, u64 size,
+> +					unsigned long flags)
+> +{
+> +	struct cdns_pcie *pcie = &rc->pcie;
+> +	u32 addr0, addr1, aperture, value;
+> +
+> +	if (!rc->avail_ib_bar[bar])
+> +		return -EBUSY;
+> +
+> +	rc->avail_ib_bar[bar] = false;
+> +
+> +	aperture = ilog2(size);
+> +	addr0 = CDNS_PCIE_AT_IB_RP_BAR_ADDR0_NBITS(aperture) |
+> +		(lower_32_bits(cpu_addr) & GENMASK(31, 8));
+> +	addr1 = upper_32_bits(cpu_addr);
+> +	cdns_pcie_writel(pcie, CDNS_PCIE_AT_IB_RP_BAR_ADDR0(bar), addr0);
+> +	cdns_pcie_writel(pcie, CDNS_PCIE_AT_IB_RP_BAR_ADDR1(bar), addr1);
+> +
+> +	if (bar == RP_NO_BAR)
+> +		return 0;
+> +
+> +	value = cdns_pcie_readl(pcie, CDNS_PCIE_LM_RC_BAR_CFG);
+> +	value &= ~(LM_RC_BAR_CFG_CTRL_MEM_64BITS(bar) |
+> +		   LM_RC_BAR_CFG_CTRL_PREF_MEM_64BITS(bar) |
+> +		   LM_RC_BAR_CFG_CTRL_MEM_32BITS(bar) |
+> +		   LM_RC_BAR_CFG_CTRL_PREF_MEM_32BITS(bar) |
+> +		   LM_RC_BAR_CFG_APERTURE(bar, bar_aperture_mask[bar] + 2));
+> +	if (size + cpu_addr >= SZ_4G) {
+> +		if (!(flags & IORESOURCE_PREFETCH))
+> +			value |= LM_RC_BAR_CFG_CTRL_MEM_64BITS(bar);
+> +		value |= LM_RC_BAR_CFG_CTRL_PREF_MEM_64BITS(bar);
+> +	} else {
+> +		if (!(flags & IORESOURCE_PREFETCH))
+> +			value |= LM_RC_BAR_CFG_CTRL_MEM_32BITS(bar);
+> +		value |= LM_RC_BAR_CFG_CTRL_PREF_MEM_32BITS(bar);
+> +	}
+> +
+> +	value |= LM_RC_BAR_CFG_APERTURE(bar, aperture);
+> +	cdns_pcie_writel(pcie, CDNS_PCIE_LM_RC_BAR_CFG, value);
+> +
+> +	return 0;
+> +}
+> +
+> +static enum cdns_pcie_rp_bar
+> +cdns_pcie_host_find_min_bar(struct cdns_pcie_rc *rc, u64 size)
+> +{
+> +	enum cdns_pcie_rp_bar bar, sel_bar;
+> +
+> +	sel_bar = RP_BAR_UNDEFINED;
+> +	for (bar = RP_BAR0; bar <= RP_NO_BAR; bar++) {
+> +		if (!rc->avail_ib_bar[bar])
+> +			continue;
+> +
+> +		if (size <= bar_max_size[bar]) {
+> +			if (sel_bar == RP_BAR_UNDEFINED) {
+> +				sel_bar = bar;
+> +				continue;
+> +			}
+> +
+> +			if (bar_max_size[bar] < bar_max_size[sel_bar])
+> +				sel_bar = bar;
+> +		}
+> +	}
+> +
+> +	return sel_bar;
+> +}
+> +
+> +static enum cdns_pcie_rp_bar
+> +cdns_pcie_host_find_max_bar(struct cdns_pcie_rc *rc, u64 size)
+> +{
+> +	enum cdns_pcie_rp_bar bar, sel_bar;
+> +
+> +	sel_bar = RP_BAR_UNDEFINED;
+> +	for (bar = RP_BAR0; bar <= RP_NO_BAR; bar++) {
+> +		if (!rc->avail_ib_bar[bar])
+> +			continue;
+> +
+> +		if (size >= bar_max_size[bar]) {
+> +			if (sel_bar == RP_BAR_UNDEFINED) {
+> +				sel_bar = bar;
+> +				continue;
+> +			}
+> +
+> +			if (bar_max_size[bar] > bar_max_size[sel_bar])
+> +				sel_bar = bar;
+> +		}
+> +	}
+> +
+> +	return sel_bar;
+> +}
+> +
+> +static int cdns_pcie_host_bar_config(struct cdns_pcie_rc *rc,
+> +				     struct resource_entry *entry)
+> +{
+> +	u64 cpu_addr, pci_addr, size, winsize;
+> +	struct cdns_pcie *pcie = &rc->pcie;
+> +	struct device *dev = pcie->dev;
+> +	enum cdns_pcie_rp_bar bar;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	cpu_addr = entry->res->start;
+> +	pci_addr = entry->res->start - entry->offset;
+> +	flags = entry->res->flags;
+> +	size = resource_size(entry->res);
+> +
+> +	if (entry->offset) {
+> +		dev_err(dev, "PCI addr: %llx must be equal to CPU addr: %llx\n",
+> +			pci_addr, cpu_addr);
+> +		return -EINVAL;
+> +	}
+> +
+> +	while (size > 0) {
+> +		/*
+> +		 * Try to find a minimum BAR whose size is greater than
+> +		 * or equal to the remaining resource_entry size. This will
+> +		 * fail if the size of each of the available BARs is less than
+> +		 * the remaining resource_entry size.
+> +		 * If a minimum BAR is found, IB ATU will be configured and
+> +		 * exited.
+> +		 */
+> +		bar = cdns_pcie_host_find_min_bar(rc, size);
+> +		if (bar != RP_BAR_UNDEFINED) {
+> +			ret = cdns_pcie_host_bar_ib_config(rc, bar, cpu_addr,
+> +							   size, flags);
+> +			if (ret)
+> +				dev_err(dev, "IB BAR: %d config failed\n", bar);
+> +			return ret;
+> +		}
+> +
+> +		/*
+> +		 * If the control reaches here, it would mean the remaining
+> +		 * resource_entry size cannot be fitted in a single BAR. So we
+> +		 * find a maximum BAR whose size is less than or equal to the
+> +		 * remaining resource_entry size and split the resource entry
+> +		 * so that part of resource entry is fitted inside the maximum
+> +		 * BAR. The remaining size would be fitted during the next
+> +		 * iteration of the loop.
+> +		 * If a maximum BAR is not found, there is no way we can fit
+> +		 * this resource_entry, so we error out.
+> +		 */
+> +		bar = cdns_pcie_host_find_max_bar(rc, size);
+> +		if (bar == RP_BAR_UNDEFINED) {
+> +			dev_err(dev, "No free BAR to map cpu_addr %llx\n",
+> +				cpu_addr);
+> +			return -EINVAL;
+> +		}
+> +
+> +		winsize = bar_max_size[bar];
+> +		ret = cdns_pcie_host_bar_ib_config(rc, bar, cpu_addr, winsize,
+> +						   flags);
+> +		if (ret) {
+> +			dev_err(dev, "IB BAR: %d config failed\n", bar);
+> +			return ret;
+> +		}
+> +
+> +		size -= winsize;
+> +		cpu_addr += winsize;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int cdns_pcie_host_dma_ranges_cmp(void *priv, struct list_head *a, struct list_head *b)
+> +{
+> +	struct resource_entry *entry1, *entry2;
+> +
+> +        entry1 = container_of(a, struct resource_entry, node);
+> +        entry2 = container_of(b, struct resource_entry, node);
+> +
+> +        return resource_size(entry2->res) - resource_size(entry1->res);
+> +}
+> +
+> +static int cdns_pcie_host_map_dma_ranges(struct cdns_pcie_rc *rc)
+> +{
+> +	struct cdns_pcie *pcie = &rc->pcie;
+> +	struct device *dev = pcie->dev;
+> +	struct device_node *np = dev->of_node;
+> +	struct pci_host_bridge *bridge;
+> +	struct resource_entry *entry;
+> +	u32 no_bar_nbits = 32;
+> +	int err;
+> +
+> +	bridge = pci_host_bridge_from_priv(rc);
+> +	if (!bridge)
+> +		return -ENOMEM;
+> +
+> +	if (list_empty(&bridge->dma_ranges)) {
+> +		of_property_read_u32(np, "cdns,no-bar-match-nbits",
+> +				     &no_bar_nbits);
+> +		err = cdns_pcie_host_bar_ib_config(rc, RP_NO_BAR, 0x0,
+> +						   (u64)1 << no_bar_nbits, 0);
+> +		if (err)
+> +			dev_err(dev, "IB BAR: %d config failed\n", RP_NO_BAR);
+> +		return err;
+> +	}
+> +
+> +	list_sort(NULL, &bridge->dma_ranges, cdns_pcie_host_dma_ranges_cmp);
+> +
+> +	resource_list_for_each_entry(entry, &bridge->dma_ranges) {
+> +		err = cdns_pcie_host_bar_config(rc, entry);
+> +		if (err)
+> +			dev_err(dev, "Fail to configure IB using dma-ranges\n");
+> +		return err;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int cdns_pcie_host_init_address_translation(struct cdns_pcie_rc *rc)
+>  {
+>  	struct cdns_pcie *pcie = &rc->pcie;
+> @@ -154,16 +377,9 @@ static int cdns_pcie_host_init_address_translation(struct cdns_pcie_rc *rc)
+>  		r++;
+>  	}
+>  
+> -	/*
+> -	 * Set Root Port no BAR match Inbound Translation registers:
+> -	 * needed for MSI and DMA.
+> -	 * Root Port BAR0 and BAR1 are disabled, hence no need to set their
+> -	 * inbound translation registers.
+> -	 */
+> -	addr0 = CDNS_PCIE_AT_IB_RP_BAR_ADDR0_NBITS(rc->no_bar_nbits);
+> -	addr1 = 0;
+> -	cdns_pcie_writel(pcie, CDNS_PCIE_AT_IB_RP_BAR_ADDR0(RP_NO_BAR), addr0);
+> -	cdns_pcie_writel(pcie, CDNS_PCIE_AT_IB_RP_BAR_ADDR1(RP_NO_BAR), addr1);
+> +	err = cdns_pcie_host_map_dma_ranges(rc);
+> +	if (err)
+> +		return err;
+>  
+>  	return 0;
+>  }
+> @@ -173,10 +389,16 @@ static int cdns_pcie_host_init(struct device *dev,
+>  			       struct cdns_pcie_rc *rc)
+>  {
+>  	struct resource *bus_range = NULL;
+> +	struct pci_host_bridge *bridge;
+>  	int err;
+>  
+> +	bridge = pci_host_bridge_from_priv(rc);
+> +	if (!bridge)
+> +		return -ENOMEM;
+> +
+>  	/* Parse our PCI ranges and request their resources */
+> -	err = pci_parse_request_of_pci_ranges(dev, resources, NULL, &bus_range);
+> +	err = pci_parse_request_of_pci_ranges(dev, resources,
+> +					      &bridge->dma_ranges, &bus_range);
+>  	if (err)
+>  		return err;
+>  
+> @@ -205,6 +427,7 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+>  	struct device_node *np = dev->of_node;
+>  	struct pci_host_bridge *bridge;
+>  	struct list_head resources;
+> +	enum cdns_pcie_rp_bar bar;
+>  	struct cdns_pcie *pcie;
+>  	struct resource *res;
+>  	int ret;
+> @@ -216,9 +439,6 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+>  	pcie = &rc->pcie;
+>  	pcie->is_rc = true;
+>  
+> -	rc->no_bar_nbits = 32;
+> -	of_property_read_u32(np, "cdns,no-bar-match-nbits", &rc->no_bar_nbits);
+> -
+>  	rc->vendor_id = 0xffff;
+>  	of_property_read_u32(np, "vendor-id", &rc->vendor_id);
+>  
+> @@ -248,6 +468,9 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+>  
+>  	pcie->mem_res = res;
+>  
+> +	for (bar = RP_BAR0; bar <= RP_NO_BAR; bar++)
+> +		rc->avail_ib_bar[bar] = true;
+> +
+>  	ret = cdns_pcie_host_init(dev, &resources, rc);
+>  	if (ret)
+>  		goto err_init;
+> diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
+> index df14ad002fe9..bc49c22e48a9 100644
+> --- a/drivers/pci/controller/cadence/pcie-cadence.h
+> +++ b/drivers/pci/controller/cadence/pcie-cadence.h
+> @@ -87,6 +87,20 @@
+>  #define  CDNS_PCIE_LM_BAR_CFG_CTRL_MEM_64BITS		0x6
+>  #define  CDNS_PCIE_LM_BAR_CFG_CTRL_PREFETCH_MEM_64BITS	0x7
+>  
+> +#define LM_RC_BAR_CFG_CTRL_DISABLED(bar)		\
+> +		(CDNS_PCIE_LM_BAR_CFG_CTRL_DISABLED << (((bar) * 8) + 6))
+> +#define LM_RC_BAR_CFG_CTRL_IO_32BITS(bar)		\
+> +		(CDNS_PCIE_LM_BAR_CFG_CTRL_IO_32BITS << (((bar) * 8) + 6))
+> +#define LM_RC_BAR_CFG_CTRL_MEM_32BITS(bar)		\
+> +		(CDNS_PCIE_LM_BAR_CFG_CTRL_MEM_32BITS << (((bar) * 8) + 6))
+> +#define LM_RC_BAR_CFG_CTRL_PREF_MEM_32BITS(bar)	\
+> +	(CDNS_PCIE_LM_BAR_CFG_CTRL_PREFETCH_MEM_32BITS << (((bar) * 8) + 6))
+> +#define LM_RC_BAR_CFG_CTRL_MEM_64BITS(bar)		\
+> +		(CDNS_PCIE_LM_BAR_CFG_CTRL_MEM_64BITS << (((bar) * 8) + 6))
+> +#define LM_RC_BAR_CFG_CTRL_PREF_MEM_64BITS(bar)	\
+> +	(CDNS_PCIE_LM_BAR_CFG_CTRL_PREFETCH_MEM_64BITS << (((bar) * 8) + 6))
+> +#define LM_RC_BAR_CFG_APERTURE(bar, aperture)		\
+> +					(((aperture) - 2) << ((bar) * 8))
+>  
+>  /*
+>   * Endpoint Function Registers (PCI configuration space for endpoint functions)
+> @@ -170,11 +184,19 @@
+>  #define CDNS_PCIE_AT_LINKDOWN (CDNS_PCIE_AT_BASE + 0x0824)
+>  
+>  enum cdns_pcie_rp_bar {
+> +	RP_BAR_UNDEFINED = -1,
+>  	RP_BAR0,
+>  	RP_BAR1,
+>  	RP_NO_BAR
+>  };
+>  
+> +#define CDNS_PCIE_RP_MAX_IB	0x3
+> +
+> +struct cdns_pcie_rp_ib_bar {
+> +	u64 size;
+> +	bool free;
+> +};
+> +
+>  /* Endpoint Function BAR Inbound PCIe to AXI Address Translation Register */
+>  #define CDNS_PCIE_AT_IB_EP_FUNC_BAR_ADDR0(fn, bar) \
+>  	(CDNS_PCIE_AT_BASE + 0x0840 + (fn) * 0x0040 + (bar) * 0x0008)
+> @@ -251,19 +273,19 @@ struct cdns_pcie {
+>   * @bus_range: first/last buses behind the PCIe host controller
+>   * @cfg_base: IO mapped window to access the PCI configuration space of a
+>   *            single function at a time
+> - * @no_bar_nbits: Number of bits to keep for inbound (PCIe -> CPU) address
+> - *                translation (nbits sets into the "no BAR match" register)
+>   * @vendor_id: PCI vendor ID
+>   * @device_id: PCI device ID
+> + * @avail_ib_bar: Satus of RP_BAR0, RP_BAR1 and	RP_NO_BAR if it's free or
+> + *                available
+>   */
+>  struct cdns_pcie_rc {
+>  	struct cdns_pcie	pcie;
+>  	struct resource		*cfg_res;
+>  	struct resource		*bus_range;
+>  	void __iomem		*cfg_base;
+> -	u32			no_bar_nbits;
+>  	u32			vendor_id;
+>  	u32			device_id;
+> +	bool			avail_ib_bar[CDNS_PCIE_RP_MAX_IB];
+>  };
+>  
+>  /**
+> -- 
+> 2.17.1
+> 
