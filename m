@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 264ADC433EC
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:24:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B508C433FB
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:24:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08D182070B
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:24:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6739A2086A
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:24:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595615061;
-	bh=JIGBWZIBvi5jU1T/ZEWKVBLow+csPIMk/JB4+fyhpps=;
+	s=default; t=1595615069;
+	bh=RYyMMVgWEW5lCfaf1U/r/2g9DqYwNBNdPlUu9TPs1gE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=pjptmDs5GflEH8tQqRPtaq+OHF5kf58C2wTLQiwiyXWWNA2kvgJUpkJPIPeXBN3uj
-	 luSTI+biVnSJEkY3KabsbJ5QCVqnJHpsbIzAYqhYg72InS5lFMEPJyL3Pb/74gwDyW
-	 vcdhXptuXnC0B7GKSEwUcGF8d071Cs+nvBnG5WiY=
+	b=19du92S50slI2Ss+61PY8AGZrToJRs1H+UDL4z7Zhoe8jW+WHjsVMN9BrpzlT9JC4
+	 bOrhvF6k6eJ0HmbbwLJKEQ8CkJRSp1YZ3oYtLL8a4SXhD6CKdhHGD8QiX95AnNl4kG
+	 AwaXb0sqHbKl8xMm38duXlw16/LLbQo5eUdOuWKg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726835AbgGXSYU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 14:24:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60986 "EHLO mail.kernel.org"
+        id S1726891AbgGXSYZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 14:24:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725822AbgGXSYU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 24 Jul 2020 14:24:20 -0400
+        id S1725822AbgGXSYZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 24 Jul 2020 14:24:25 -0400
 Received: from kozik-lap.mshome.net (unknown [194.230.155.213])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 89DC72073E;
-        Fri, 24 Jul 2020 18:24:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4D42A206F6;
+        Fri, 24 Jul 2020 18:24:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595615059;
-        bh=JIGBWZIBvi5jU1T/ZEWKVBLow+csPIMk/JB4+fyhpps=;
+        s=default; t=1595615064;
+        bh=RYyMMVgWEW5lCfaf1U/r/2g9DqYwNBNdPlUu9TPs1gE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hkvJdpvi2wx3XSLbaKuQFzDjPpwam5Ln60vt6Lc9qLhVDUUhHzcBrVD7vqMhAFcTI
-         NBMiTeG2mhggpn9YNbktP8MEJe3wj8uUAfO7N2LZl9ai2tFbyvzf/asGWhd0mYnZ1e
-         gwl5FjgnDBPiXfXp5ULwRpB1A42xEzeff+hQZEJg=
+        b=qGalTqKQdG9AB0+FVyM/3wXLT5iBamCBhy9/dVYN8uAw+n7wXaldq22/Swb0GrnUv
+         g+opoNOZnYA0AAex3pQK4LmItDWwWPjGtozqtpkbXimlucvwGuAxIm3qAs3BrqbUHz
+         vJl8m47EPrzIBthvU/MS+EkFyou+yGlrrrOIcpMs=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Florian Fainelli <f.fainelli@gmail.com>,
         Ray Jui <rjui@broadcom.com>,
@@ -57,9 +57,9 @@ To:     Florian Fainelli <f.fainelli@gmail.com>,
         linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
         linux-pm@vger.kernel.org
 Cc:     Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 02/16] memory: mvebu-devbus: Add missing braces to all arms of if statement
-Date:   Fri, 24 Jul 2020 20:23:14 +0200
-Message-Id: <20200724182328.3348-3-krzk@kernel.org>
+Subject: [PATCH 03/16] memory: mvebu-devbus: Align with open parenthesis
+Date:   Fri, 24 Jul 2020 20:23:15 +0200
+Message-Id: <20200724182328.3348-4-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200724182328.3348-1-krzk@kernel.org>
 References: <20200724182328.3348-1-krzk@kernel.org>
@@ -68,33 +68,66 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add missing braces to all arms of if statement to align with coding
-convention.
+The line continuation contained spaces but still failed to properly
+align with open parenthesis.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- drivers/memory/mvebu-devbus.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/memory/mvebu-devbus.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/memory/mvebu-devbus.c b/drivers/memory/mvebu-devbus.c
-index 886aea587276..76efc653dc7e 100644
+index 76efc653dc7e..8450638e8670 100644
 --- a/drivers/memory/mvebu-devbus.c
 +++ b/drivers/memory/mvebu-devbus.c
-@@ -124,11 +124,11 @@ static int devbus_get_timing_params(struct devbus *devbus,
- 	 * The bus width is encoded into the register as 0 for 8 bits,
- 	 * and 1 for 16 bits, so we do the necessary conversion here.
- 	 */
--	if (r->bus_width == 8)
-+	if (r->bus_width == 8) {
- 		r->bus_width = 0;
--	else if (r->bus_width == 16)
-+	} else if (r->bus_width == 16) {
- 		r->bus_width = 1;
--	else {
-+	} else {
- 		dev_err(devbus->dev, "invalid bus width %d\n", r->bus_width);
- 		return -EINVAL;
+@@ -134,22 +134,22 @@ static int devbus_get_timing_params(struct devbus *devbus,
  	}
+ 
+ 	err = get_timing_param_ps(devbus, node, "devbus,badr-skew-ps",
+-				 &r->badr_skew);
++				  &r->badr_skew);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	err = get_timing_param_ps(devbus, node, "devbus,turn-off-ps",
+-				 &r->turn_off);
++				  &r->turn_off);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	err = get_timing_param_ps(devbus, node, "devbus,acc-first-ps",
+-				 &r->acc_first);
++				  &r->acc_first);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	err = get_timing_param_ps(devbus, node, "devbus,acc-next-ps",
+-				 &r->acc_next);
++				  &r->acc_next);
+ 	if (err < 0)
+ 		return err;
+ 
+@@ -175,17 +175,17 @@ static int devbus_get_timing_params(struct devbus *devbus,
+ 	}
+ 
+ 	err = get_timing_param_ps(devbus, node, "devbus,ale-wr-ps",
+-				 &w->ale_wr);
++				  &w->ale_wr);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	err = get_timing_param_ps(devbus, node, "devbus,wr-low-ps",
+-				 &w->wr_low);
++				  &w->wr_low);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	err = get_timing_param_ps(devbus, node, "devbus,wr-high-ps",
+-				 &w->wr_high);
++				  &w->wr_high);
+ 	if (err < 0)
+ 		return err;
+ 
 -- 
 2.17.1
 
