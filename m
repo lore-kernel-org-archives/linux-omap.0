@@ -2,41 +2,41 @@ Return-Path: <SRS0=v6vd=BD=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69761C433E3
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 13:45:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CCC8C433E5
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 13:51:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 517D0206D8
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 13:45:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4817820714
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 13:51:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726607AbgGXNp4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 09:45:56 -0400
-Received: from mout.kundenserver.de ([212.227.126.135]:41219 "EHLO
+        id S1726567AbgGXNvY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 09:51:24 -0400
+Received: from mout.kundenserver.de ([212.227.17.24]:60513 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726235AbgGXNp4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2020 09:45:56 -0400
-Received: from mail-qv1-f46.google.com ([209.85.219.46]) by
- mrelayeu.kundenserver.de (mreue010 [212.227.15.129]) with ESMTPSA (Nemesis)
- id 1MIdS1-1k4imt21Lh-00EaUk; Fri, 24 Jul 2020 15:45:54 +0200
-Received: by mail-qv1-f46.google.com with SMTP id y11so1156506qvl.4;
-        Fri, 24 Jul 2020 06:45:54 -0700 (PDT)
-X-Gm-Message-State: AOAM530KOvLES40vz+Mtlbj1P8O/qulL2EQTSP6ecmbnfgk04I68s9fc
-        YIxh7YfjmOAuLJVkAlzzjUcKRhgC3qCcZQ7uHKE=
-X-Google-Smtp-Source: ABdhPJyEqdZ1Ds6rBzMmh7FhmiJq043DLd+gXjlj19IcD1ElA3GGqGC9iWVYViBP8To1mNjzEbIjhOKDCmec66ErY0E=
-X-Received: by 2002:a0c:f802:: with SMTP id r2mr9798584qvn.197.1595598353111;
- Fri, 24 Jul 2020 06:45:53 -0700 (PDT)
+        with ESMTP id S1726326AbgGXNvY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2020 09:51:24 -0400
+Received: from mail-qk1-f173.google.com ([209.85.222.173]) by
+ mrelayeu.kundenserver.de (mreue109 [212.227.15.145]) with ESMTPSA (Nemesis)
+ id 1MMXYH-1kHJdd0H4B-00Jcus; Fri, 24 Jul 2020 15:51:22 +0200
+Received: by mail-qk1-f173.google.com with SMTP id l23so8665291qkk.0;
+        Fri, 24 Jul 2020 06:51:21 -0700 (PDT)
+X-Gm-Message-State: AOAM532LD8Ig3/gFZ7hE+WwRTfGWCAJkfuPgKmX+zKtvUYXork1IdoPM
+        x0yoKEosS+9RIBuz9unmaBMmLBCIhuOHL9CzpqU=
+X-Google-Smtp-Source: ABdhPJxjGVar32Mo4zyo7czqW6vHPwVJvr9ZZ1aqSE80mAP36DQF09IVdxgsaflYW8FpBItG+23osrBEpNeTs3oF6bs=
+X-Received: by 2002:a05:620a:1654:: with SMTP id c20mr10549815qko.138.1595598680633;
+ Fri, 24 Jul 2020 06:51:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200724074038.5597-1-krzk@kernel.org> <20200724074038.5597-6-krzk@kernel.org>
-In-Reply-To: <20200724074038.5597-6-krzk@kernel.org>
+References: <20200724074038.5597-1-krzk@kernel.org>
+In-Reply-To: <20200724074038.5597-1-krzk@kernel.org>
 From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Fri, 24 Jul 2020 15:45:37 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a0h3dMRH_wuGX5dZ5znnx+EHJKYwQeZ9aB7cFGudo6vmw@mail.gmail.com>
-Message-ID: <CAK8P3a0h3dMRH_wuGX5dZ5znnx+EHJKYwQeZ9aB7cFGudo6vmw@mail.gmail.com>
-Subject: Re: [PATCH v2 05/29] memory: jz4780-nemc: Do not enable by default on
- every compile test
+Date:   Fri, 24 Jul 2020 15:51:04 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a2EAm=pxkU-AiucgDQyoMEGFOGqQBkVacWjoT7O9-PHkA@mail.gmail.com>
+Message-ID: <CAK8P3a2EAm=pxkU-AiucgDQyoMEGFOGqQBkVacWjoT7O9-PHkA@mail.gmail.com>
+Subject: Re: [PATCH v2 00/29] *memory: Cleanup, improve and compile test
+ memory drivers
 To:     Krzysztof Kozlowski <krzk@kernel.org>
 Cc:     Olof Johansson <olof@lixom.net>,
         Markus Mayer <mmayer@broadcom.com>,
@@ -61,25 +61,25 @@ Cc:     Olof Johansson <olof@lixom.net>,
         Andrew Morton <akpm@linux-foundation.org>,
         Linus Torvalds <torvalds@linux-foundation.org>
 Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:soHCVb3seYD56gHy/0SdQglapEtOH69xvweH3No/Ge7qobhcnyA
- QyP5hC+SvP4JLRYULNtEV08zE5B1rpsfVd1ZJyfamzHbRY7to3c6MHQuHMfGoft5MfoPTz/
- FwBdNnv91f8FpuqM4WKd8sJGH/7PIf76Gu5ZxWu3PgsaiN503W4HB66u97KTr7ZYCe3KYBf
- glBFGLHLMpXRgCoCnC78w==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:MC6hDKZPP8c=:lxsAByWiIwd7nLKBlXwA2h
- u2L1lzJkH1z9AbhW9pNwd1V9yjGEo9SoklbUN5xRi2eb+mF3bXUbtkhTUkrWs0fykQ7HrOnUH
- TG66nx+giyGuWwd0QSuK8pCbz7BDXpPM71bsGc97d8wqOEaYzxbbHdUGOoUShGZWT7M4Ciq7R
- P++efFKFNYIz4K+4lE3SjaepHtCGiy4GTWA5Mt4mUWzSHIpvOQ91vhkspZEnzHIsdRDl8JCm3
- 1c5JJH5le2ZRKx2x++lpcl9vI4CLfYIXY8JiQlB8dTGXkajbkj4QqYmtg7V5jOIqrtmJqOFS+
- 67MmBf9gSyWBn5iBoNCzZGCKZXqbQx5RSCIXO2z/I8ObHFww6+J+x/yMufpuELQ5K3wAoeK1T
- slpd+VmZid7iGYoUGf8D3fkKQH5g3VngNTlyFO1BtbtWODy/SeNQXcgdPUJC1sCiR00i+D/X5
- Ua3y3d9e9qMEDisPUYdUQCnMU/ZezBQ3ldnzLdl+C6bDfw+OobNbAiqSXcmaje7MbJ/Lybmuj
- NyiMqFVXDwlANDkgwZ3qBFTEE0JXBN/5rEkDDUABWUDzptopAbRoXcI4n3/J0I1m9n4/SxYAK
- ya0YyN+RLn77vh7tJz12q90LYzklq8WvD9lj3PTGvNaBiBl3/y7v8EYJozIEMKXo5sHGr985q
- B/u4wpIywaNsOcDFRKb+5+IH0s+/++b+Ug7aROataTg1RZjyGdNEieVg5AJAMXfgu+S3CBveh
- EFoNj0hIx++LxEguptHMNbGhTBkDJL8ZQJrNouyjy9m0/xEz5GGShjRHFVvcDMflrckox3znY
- /dZCBZx75JL4k7Lz45dZxW2pmZiRGX9MRD5cfnj88CWh4+bsW7uakVeONvAOJIMsQCq3Vqvme
- we7wzDEM2cCEuX0tCGjeDJxgy3FRB47XGrtV8jtmc9fNXs2FWwLFXv2iFMTv39wal32HyNNkn
- d8CTHC084LO5H7Gn9jtnAbyXxrC31y1pMIvN4/pxalvayw9lgEyZJ
+X-Provags-ID: V03:K1:h51Bmr1YHWGzwbAcnkPPXOC7mTatte8E3oICeOrVD0Zn7jFR5fq
+ wLQRyHhkEnG1tNZyehnPejPrRp66/DYwgv/1aROiZjUiiUrAH0AxkD21kOsBnhNzcb+TC2I
+ CKxaxack11yO1xF35x3hN4cCH/kFUZ+ByqC0aUNRwBa8GHfzEbPTrZT7e+MvqYTXVvgp+8m
+ aALgZgv2a//NSTOUJVuxA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:7t60lDTIdmw=:sEwCTV+kQVemdBbngfGotN
+ eSagtz54ty7m6n+reBGgGZ4x+XanhdadHZzz8NuL26Bky9qbCJ7ZWq7/tmTrqJvOITg0+3wfX
+ qEMiuciIYJ1rFkf6wCbvPrNdy7pDbZ3dkdjfkFAGDjyGCyBkbIYVzn4vhFoWjGyWMWsCJ4KoT
+ hD7vsMJHSli5gpmCgcms7C2SODw/gtucKK2X+m/GbCm/erEZqzs04rw5W9bH69OLiNjivNSCR
+ DmtyrYuCZpxLn0/tCj/Rr5N0AwNpzFaQh/Q0vA1X5FogAyPDWog2KwKAgLtXAipqgtSpwabKF
+ 86q0MqLYDGXq82PPUnoP3RTnxmXk99JFBIYqrXDrVYHm3tPTXHGWtXUwlZtc+Jq2tdLnMAqC8
+ 8UoeM3BmONMNDYbiKcuywOij5JQQNqaPFeiHqIeYwyM/dy1AK6MGAoqXAIwfkTBV6Qcr7ZmGq
+ ulvx0n85to0zkjnkswzrgui0pieFl3auYyris34g+XR7ui9OJGlIwGzf4sijdlGOvUv06WQtc
+ GtLGxPcd++lvYha++vMhAhTEmdb2wGo3MhxSHz2F5NzaDGA0W151TprBLRomXyv36G5AFhSlV
+ pRYFIPsroUbiRRedibZ3e0RBD3Xt7NcWEk0HXwR3fqgtzhPaM8o7KTxiobkGl7NxGjecHZNMq
+ Dm6nmAbzqkvN6ZWF7QUAt9YUW3kMNY7PTsE7oyXjI4wn3yqabKSbM39QS6BQ9EAl7W3A7FEZt
+ IHmpUfmoHPjb9SKeWZq8nOUCuZ2D+6NAi6HayAVzveLpyU1o72OrOftmQHXeWjYpr57GtG5Lt
+ fWlxmRffwogbmRHoWoAxxWa1iHam7bKP5Sh/cAst/2evP7s746901DQ/+syzTo3JrySeIrQ72
+ iaMhnZklTYzx05FD6K8T2xZ0vzlrs/60O2vpY7hpoPN2+X6H1hdZ1b9zFiuIURYc9VApN8GuF
+ H/H4vFBWxaHzmYBLu+OnOsdExDStmsGyO0tSSLiL3Y0+AWS7QDL/w
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -87,25 +87,37 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 On Fri, Jul 24, 2020 at 9:41 AM Krzysztof Kozlowski <krzk@kernel.org> wrote:
 >
-> When compile testing, enable the driver by default only on MIPS
-> architecture.
->
-> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
->
-> ---
+> Dear All,
 >
 > Changes since v1:
-> 1. New patch
- @@ -141,7 +141,7 @@ config FSL_IFC
+> 1. Few new patches,
+> 2. Please see individual logs (per patch).
 >
->  config JZ4780_NEMC
->         bool "Ingenic JZ4780 SoC NEMC driver"
-> -       default y
-> +       default y if MIPS
->         depends on MIPS || COMPILE_TEST
+>
+> The drivers/memory directory contains generic code (of_memory.c) and a
+> bunch of drivers.  Changes to generic code were coming usually through
+> different trees with the driver code.
+>
+> Over last days, memory drivers grew in numbers but not necessarily in
+> quality.  They lacked compile testing and code cleanup.  Also lacked
+> maintainer.
+>
+> I would be happy to take care about this part.
+>
+> If there are no objections, I will collect the patches and push them
+> through arm-soc maintainers.
+>
+> Driver-specific changes in the patchset were only compile-tested. Tests
+> are welcome. The generic code was tested on ARMv7 Exynos based boards
+> with a exynos5422-dmc memory controller driver.
 
+Looks all good. Can you send a pull request for the patches that you don't
+expect to need testing for, while you still wait for more feedback on the
+others?
 
-Actually I think this should be 'default MACH_INGENIC',
-and probably also 'depends on MACH_INGENIC || COMPILE_TEST'.
+As the merge window (and my vacation) is getting closer, I would like to
+have most of the patches for v5.9 queued up.
+
+       Arnd
 
      Arnd
