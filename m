@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBC8CC4346B
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:43:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6AB1C43457
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:41:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE7EF2074F
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:43:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8ADBC20748
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:41:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595576630;
-	bh=01DVBx+cUJU2MUx86mEXbPPRcD1lVtSvl6DAEX/P6uE=;
+	s=default; t=1595576509;
+	bh=CxLPvsXneuHKMA+oKmRHQgODnfZL3rxyv+X2/YTG+sI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=C1gj12J3Nmg0nzwx1PhbvGsFJjT9ssanFQLx61DzLWMDJZ+HgoMy+voKqrxsiC8zY
-	 hPpUm5KZkHtnIXncldQL62CZThfcILWj7u5YFN2dM3xDzohIQOFBn9YUgoT1n9JH+b
-	 UedNCHjxTRRAXRJ03hADfq/5goYv8CN6XKYw3kR8=
+	b=MESJ2G0Od8R7VCP4brnfV2133gwHlcgLALcRqdq3z3DbcYB9sV01UqC8mejsRpELL
+	 7Re2KoKNREIfm/MhL0hhO3X+8QfCccVkHLwVbFMFPWpZFpRXOjQMpXF09slD6aD5q1
+	 Winb5AQ231XHR9MlOkFcHRlKDfFG7E0CSTZ38PEc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728209AbgGXHnd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 03:43:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37848 "EHLO mail.kernel.org"
+        id S1727861AbgGXHlq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 03:41:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727886AbgGXHnb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 24 Jul 2020 03:43:31 -0400
+        id S1726998AbgGXHlp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 24 Jul 2020 03:41:45 -0400
 Received: from kozik-lap.mshome.net (unknown [194.230.155.213])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0FD5720786;
-        Fri, 24 Jul 2020 07:43:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8EC9320748;
+        Fri, 24 Jul 2020 07:41:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595576611;
-        bh=01DVBx+cUJU2MUx86mEXbPPRcD1lVtSvl6DAEX/P6uE=;
+        s=default; t=1595576504;
+        bh=CxLPvsXneuHKMA+oKmRHQgODnfZL3rxyv+X2/YTG+sI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lU+ri9XTeXV7fdDhxC3z7c5crNIvFy/Om3bddXaemL8BaUIDVVuX9FV6jrqSXkBWR
-         ErCM6ROOyf8AQp9eff/vfdrUX6AZ3oLt20pPHW84/j52XGmZkRf4N+7T5vd23jUQIG
-         gv0egVrlDdHC8WMUScaOHw/vG3Ki388NlnpxjqgY=
+        b=wF+yB4h69pcE7re6UlZY50v+jBsFA62ePOTESygemAPhYRxAOIorhMB1IFrjBz554
+         pRwr6Y9ZWptWVybXUjn1PGb+OoTcNd3hb9m9imRANPd+NoabRTJ88n9TXz6KsIcYuv
+         dgqCiqdh6c5RHZhXnW0T9QXazj3AwXEUTiZKNZhQ=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         Markus Mayer <mmayer@broadcom.com>,
@@ -57,9 +57,9 @@ To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v2 29/29] memory: samsung: exynos-srom: Describe the Kconfig entry
-Date:   Fri, 24 Jul 2020 09:40:38 +0200
-Message-Id: <20200724074038.5597-30-krzk@kernel.org>
+Subject: [PATCH v2 07/29] memory: of: Remove unused headers
+Date:   Fri, 24 Jul 2020 09:40:16 +0200
+Message-Id: <20200724074038.5597-8-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200724074038.5597-1-krzk@kernel.org>
 References: <20200724074038.5597-1-krzk@kernel.org>
@@ -68,35 +68,26 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Write short description about the Exynos SROM controller driver.
+The of_memory.c does not use platform_device nor linked list.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-
 ---
+ drivers/memory/of_memory.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Changes since v1:
-1. New patch
----
- drivers/memory/samsung/Kconfig | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/memory/samsung/Kconfig b/drivers/memory/samsung/Kconfig
-index 20a8406ce786..8e240f078afc 100644
---- a/drivers/memory/samsung/Kconfig
-+++ b/drivers/memory/samsung/Kconfig
-@@ -23,5 +23,12 @@ config EXYNOS5422_DMC
- config EXYNOS_SROM
- 	bool "Exynos SROM controller driver" if COMPILE_TEST
- 	depends on (ARM && ARCH_EXYNOS) || (COMPILE_TEST && HAS_IOMEM)
-+	help
-+	  This adds driver for Samsung Exynos SoC SROM controller.  The driver
-+	  in basic operation mode only saves and restores SROM registers
-+	  during suspend.  If however appropriate device tree configuration
-+	  is provided, the driver enables support for external memory
-+	  or external devices.
-+	  If unsure, say Y on devices with Samsung Exynos SocS.
+diff --git a/drivers/memory/of_memory.c b/drivers/memory/of_memory.c
+index 71f26eac7350..cfcb91eeccfb 100644
+--- a/drivers/memory/of_memory.c
++++ b/drivers/memory/of_memory.c
+@@ -7,8 +7,6 @@
+  */
  
- endif
+ #include <linux/device.h>
+-#include <linux/platform_device.h>
+-#include <linux/list.h>
+ #include <linux/of.h>
+ #include <linux/gfp.h>
+ #include <linux/export.h>
 -- 
 2.17.1
 
