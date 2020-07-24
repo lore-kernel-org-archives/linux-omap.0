@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C15FC43464
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:24:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32FCBC433E1
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:25:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DB3720737
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:24:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11519207FC
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:25:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595615093;
-	bh=Vl/dugxAyzjWbfR0Cyd+BAILFtMv+EqLyvmIFi2Uc4M=;
+	s=default; t=1595615107;
+	bh=PG6DFq6DFhp0c0tCQjZwNqORmsdKI/6YANJJI3rKHkY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=HhTvJKMJZmT3x1yxIDH3bSix6PVoWSiwRyiFjHAnQ4JvdvlzoAsspQkLKqMLEasDt
-	 G0a40RJADjGktcJaS9T0oS9UhSnJgIrmFIU33LJyCP2wR0LRfimMFNP39cMkQobuqc
-	 zOFaJZAfwje45DA+mJyhMkM9ZxwVoBpA/HTceESE=
+	b=kd0UcPBd3p0EQy+BN+FnAS2ss8MarGo9aWAXY6LWyXOgoK6RdFFHRoQVKTas272rR
+	 eC8VbpcjhVqJZ653SR+/lSdRPPchyBBgbjcdJUjzP58kjAZn5Mks3AlePaIHv5nsaw
+	 mrRCV/Nzs4I9X6HXzkhvt413rtgiGmcEsHGETo7M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727794AbgGXSYw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 14:24:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33762 "EHLO mail.kernel.org"
+        id S1727826AbgGXSZD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 14:25:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727089AbgGXSYw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 24 Jul 2020 14:24:52 -0400
+        id S1727096AbgGXSZB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 24 Jul 2020 14:25:01 -0400
 Received: from kozik-lap.mshome.net (unknown [194.230.155.213])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D11B720771;
-        Fri, 24 Jul 2020 18:24:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 28D7C20737;
+        Fri, 24 Jul 2020 18:24:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595615092;
-        bh=Vl/dugxAyzjWbfR0Cyd+BAILFtMv+EqLyvmIFi2Uc4M=;
+        s=default; t=1595615101;
+        bh=PG6DFq6DFhp0c0tCQjZwNqORmsdKI/6YANJJI3rKHkY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=zMf6q4K/a55Nf4iNIM966rSC9Xi3o8hA6YX2Xs50eYlq/F+w2qj/EACT9fsCo9OMG
-         ja96IRCrULjLUbfYtRZvfaSPsU+wpzsBeuF/8BJ61VYnkJJAJU8HAi3KpNNzc1vLUD
-         It+Y/GUs9l+OBdQchlBgYDo5ZoXT1aTREYE64PlE=
+        b=BTpG2kxB2ql+0y+QbmJdItyS5XIiGXiPGTDT7ZSIMLEQgU4tY/6XfasLm7bIoFBAD
+         XVgXe53chcTcl3PlPI4qUlKBGyea8J4iWoEbAVu5WXkj8Vefcva6i5kNgLPG7T7Cuf
+         PmcUAAqUIUVKUqr1dCr+uXSbb4UhPFkyErwdRF60=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Florian Fainelli <f.fainelli@gmail.com>,
         Ray Jui <rjui@broadcom.com>,
@@ -57,9 +57,9 @@ To:     Florian Fainelli <f.fainelli@gmail.com>,
         linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
         linux-pm@vger.kernel.org
 Cc:     Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 09/16] memory: omap-gpmc: Fix language typo
-Date:   Fri, 24 Jul 2020 20:23:21 +0200
-Message-Id: <20200724182328.3348-10-krzk@kernel.org>
+Subject: [PATCH 11/16] memory: brcmstb_dpfe: Fix language typo
+Date:   Fri, 24 Jul 2020 20:23:23 +0200
+Message-Id: <20200724182328.3348-12-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200724182328.3348-1-krzk@kernel.org>
 References: <20200724182328.3348-1-krzk@kernel.org>
@@ -68,26 +68,26 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Fix arbitary -> arbitrary.
+Fix firwmare -> firmware.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- drivers/memory/omap-gpmc.c | 2 +-
+ drivers/memory/brcmstb_dpfe.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 414bfb481266..76a9c700cbd5 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -2126,7 +2126,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 	gpmc_cs_disable_mem(cs);
- 
- 	/*
--	 * FIXME: gpmc_cs_request() will map the CS to an arbitary
-+	 * FIXME: gpmc_cs_request() will map the CS to an arbitrary
- 	 * location in the gpmc address space. When booting with
- 	 * device-tree we want the NOR flash to be mapped to the
- 	 * location specified in the device-tree blob. So remap the
+diff --git a/drivers/memory/brcmstb_dpfe.c b/drivers/memory/brcmstb_dpfe.c
+index 604f0e3fb112..60e8633b1175 100644
+--- a/drivers/memory/brcmstb_dpfe.c
++++ b/drivers/memory/brcmstb_dpfe.c
+@@ -23,7 +23,7 @@
+  *     - BE kernel + LE firmware image
+  *     - BE kernel + BE firmware image
+  *
+- * The DPCU always runs in big endian mode. The firwmare image, however, can
++ * The DPCU always runs in big endian mode. The firmware image, however, can
+  * be in either format. Also, communication between host CPU and DCPU is
+  * always in little endian.
+  */
 -- 
 2.17.1
 
