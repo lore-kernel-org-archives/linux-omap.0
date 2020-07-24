@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D33DAC433ED
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25CC1C433E5
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3F5420714
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE9A92074A
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595599814;
-	bh=0U2p7jxuBC/i7LXy7LE3mQ+tadCdW3sMx7yTiYdL9f4=;
+	s=default; t=1595599841;
+	bh=Ikn/dz97teqAbHq7RqtBzGI3CUO214sqPtkE1E+iPqs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=XlCmZH13vyM4/OLS0MQquoluVkIwXoaVwKu3QZDuiCE54DKy9x6qrMbEoX7YL8yH4
-	 PK17DwZzmlOTD+tUxmGvtY0Bt2dTzr3G6XzH4A9E4DTFsyuK7XHLQ5tjU4XDYProDe
-	 orU0/ho/zI77mtCTqobXxqT93uPNKhtIojCoxMZI=
+	b=RuJWYDXPYsCATd9HGmyab2BjV5obojtvJGoS1McZh33Nts0/Vpzj9Sow9JRyZkhEv
+	 /xlldHUEjpKVwFa+V/4lPH4Kt6+4S3yQhXy5CZFbfP2nzivhyj8e9fnL10JecJ8jJh
+	 cEh+td7io7ekt1OJ8YJkc1k3q58gtcU26MnLYjm4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726807AbgGXOKK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 10:10:10 -0400
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:33243 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726366AbgGXOKK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2020 10:10:10 -0400
-Received: by mail-wm1-f68.google.com with SMTP id f18so25494wmc.0;
-        Fri, 24 Jul 2020 07:10:08 -0700 (PDT)
+        id S1726535AbgGXOKi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 10:10:38 -0400
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:35414 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726366AbgGXOKh (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2020 10:10:37 -0400
+Received: by mail-wm1-f66.google.com with SMTP id 184so8405475wmb.0;
+        Fri, 24 Jul 2020 07:10:35 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=aPHm37IZRgA/amT3EPPehfRSaWXic6JYRk5gRysDkoc=;
-        b=VE1I+84IID54wCSau/K5PjmqM/82zRvZwfXU4lcvL7LK9uMX7YkTugT1BC0MnNwWCT
-         xUdWkdWeXE2vqQWaX13FTGsio1XV/daMQCLTL//RKBUmMxCJunE+4bshqe+orsxikq+Y
-         WJGksu4aIeDNYkWJMkxiOZls5bFxd9AgV1o13f7d7fgUt8x9Quok7xC5G6YaBpr1O7VP
-         qdB4Op+S3USKuREJ2ggtXzVeWZZ/GHPMSMCdpFrHV1PTIgf4mw+IzGs0GajhyuzoHKUx
-         gTFCCn46We1QJucAHM37MRFZhqoT3UwM4jowCmrB73n5KD3i5rssBUt3asOzqE190eCv
-         0Qag==
-X-Gm-Message-State: AOAM530z0LxQciSwiic31FjMIfLQKrXyNfnxoQwaKcG4VMCeR79Obgho
-        fUgDpSDXhyZyG+4itpEY+co=
-X-Google-Smtp-Source: ABdhPJxfB0bPNVbscbBvv9JuuBbV8/5DemmExvuD4yLm15XS6dENBt0gY4DQecjXWS/RnEAQqovpFQ==
-X-Received: by 2002:a7b:ce02:: with SMTP id m2mr8651192wmc.96.1595599807908;
-        Fri, 24 Jul 2020 07:10:07 -0700 (PDT)
+        bh=276139G/CdcXhZVD9Y4DWugGrS0aG9By0pl1cf1Sa6c=;
+        b=f7lLbuL9Xu9LLo/ZKE5HMwZ27CbPxY6kdOTYni3Q7wQs02oYyPRNxQGbY/lujbNSLk
+         y7NzE9l2rnwmunmVy8WnX+eJkG/cPblMQ3+bhWk4uMuD5HYxX53yiugjV39j6OrsHsic
+         Lo5j42aWdB/yQJwJcvlcxR1dYy5FzhICVAV85zQu/4/oiPxxEOa0l4aOZcHLBmN1uBJv
+         Dhm9KaBYPDKiKMD6APO4KcNZ3kEfDGYXsc1hlz+1Foi84s5e4YB3E15LFGyHHI+bLXJ8
+         ps1h5/Tp+kkv0XwLeVWjR6pB77iy8CYkLXBSc+EijWU1clIhbhrrWrHbvFDZ7kCcRMre
+         y/rA==
+X-Gm-Message-State: AOAM533PziQRDwI6oSuVZYKhCKXsYH0cqSLueOf3eVbMhND92ZIoX/jh
+        m9IueJ7kWTphYkinThFeoWQ=
+X-Google-Smtp-Source: ABdhPJyH6358VvC3N2HtFylVixHPf6jUG/wGoHSCH2ncpHt80BXLb7dYgFVpDFw9/9ogV3TbmOaSSQ==
+X-Received: by 2002:a1c:4c16:: with SMTP id z22mr8750342wmf.103.1595599835312;
+        Fri, 24 Jul 2020 07:10:35 -0700 (PDT)
 Received: from kozik-lap ([194.230.155.213])
-        by smtp.googlemail.com with ESMTPSA id z15sm681061wrn.89.2020.07.24.07.10.05
+        by smtp.googlemail.com with ESMTPSA id 78sm7674001wma.31.2020.07.24.07.10.33
         (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 24 Jul 2020 07:10:07 -0700 (PDT)
-Date:   Fri, 24 Jul 2020 16:10:04 +0200
+        Fri, 24 Jul 2020 07:10:34 -0700 (PDT)
+Date:   Fri, 24 Jul 2020 16:10:30 +0200
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         Markus Mayer <mmayer@broadcom.com>,
@@ -67,42 +67,33 @@ To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH v2 04/29] memory: ti-aemif: Rename SS to SSTROBE to avoid
- name conflicts
-Message-ID: <20200724141004.GB14851@kozik-lap>
+Subject: Re: [PATCH v2 11/29] memory: emif-asm-offsets: Add GPLv2 SPDX
+ license header
+Message-ID: <20200724141030.GC14851@kozik-lap>
 References: <20200724074038.5597-1-krzk@kernel.org>
- <20200724074038.5597-5-krzk@kernel.org>
+ <20200724074038.5597-12-krzk@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20200724074038.5597-5-krzk@kernel.org>
+In-Reply-To: <20200724074038.5597-12-krzk@kernel.org>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Jul 24, 2020 at 09:40:13AM +0200, Krzysztof Kozlowski wrote:
-> SS conflicts with compile test build on i386:
-> 
->     drivers/memory/ti-aemif.c:40:0: warning: "SS" redefined
->     In file included from arch/x86/include/uapi/asm/ptrace.h:6:0,
->                      from arch/x86/include/asm/ptrace.h:7,
->                      from arch/x86/include/asm/math_emu.h:5,
->                      from arch/x86/include/asm/processor.h:13,
->                      from include/linux/mutex.h:19,
->                      from include/linux/notifier.h:14,
->                      from include/linux/clk.h:14,
->                      from drivers/memory/ti-aemif.c:12:
->     arch/x86/include/uapi/asm/ptrace-abi.h:23:0: note: this is the location of the previous definition
->      #define SS   16
-> 
-> Use more descriptive name (SSTROBE) to avoid the conflict.
+On Fri, Jul 24, 2020 at 09:40:20AM +0200, Krzysztof Kozlowski wrote:
+> Add GPLv2 license header and remove GPL boiler plate text.
 > 
 > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+> 
 > ---
->  drivers/memory/ti-aemif.c | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
+> 
+> Changes since v1:
+> 1. Use "GPL-2.0" instead of "GPL-2.0-only". It's shorter.
+> ---
+>  drivers/memory/emif-asm-offsets.c | 10 +---------
+>  1 file changed, 1 insertion(+), 9 deletions(-)
 > 
 
 Applied (and part of pull request to arm-soc).
