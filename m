@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78D45C433E4
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:42:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39647C433FB
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:42:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FCA020771
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:42:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12DFF20768
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 07:42:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595576540;
-	bh=ee2yfevvxPNZT07hkWmEVih9tVXRSdr7zWFQlfrcYn8=;
+	s=default; t=1595576545;
+	bh=F8/rcj75C8QDyRhC1fqjTttvRAlPLacLZsrsJfSBM8k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Fatic+dSQaUVAc5BlBDwM71acBy/oasU7fLHNmxeZRn5X5EA46Qe9Bw8Jy+eMLOf4
-	 I0pRPsBrEbtwDO8TUu8a08392+NqDrMgKG0cPYzu7+fxXgb++6KS3L9Wp1FA57O9Fi
-	 CEKFRIb6G8BxuYCNU+LWNl4MMvUozAQHGqDAfwk8=
+	b=NfibHq29mFpVGLLal5pm6wWWZu2MaLzYxIcGNdGUA3HD+vtJu8atGpz0dKsJTJkP4
+	 On8oiPk2jV0bESwY7xAV41i8zeghxYWZZmuHm63eHxdQBSziVUaoRYBdLjTdpHyUuZ
+	 XvQowJngkultt0vIHfDwdhnyhruus3EBvjBE2DLc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728008AbgGXHmT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 03:42:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35948 "EHLO mail.kernel.org"
+        id S1728028AbgGXHmY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 03:42:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727784AbgGXHmT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 24 Jul 2020 03:42:19 -0400
+        id S1726617AbgGXHmY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 24 Jul 2020 03:42:24 -0400
 Received: from kozik-lap.mshome.net (unknown [194.230.155.213])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 89E6820767;
-        Fri, 24 Jul 2020 07:42:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4A90820786;
+        Fri, 24 Jul 2020 07:42:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595576538;
-        bh=ee2yfevvxPNZT07hkWmEVih9tVXRSdr7zWFQlfrcYn8=;
+        s=default; t=1595576543;
+        bh=F8/rcj75C8QDyRhC1fqjTttvRAlPLacLZsrsJfSBM8k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=sYYsdG/bbAjpHsuIPpA/70pSp49oPPnWLCXgkIjUUwHhnx2s03cTAD2aZUzKzZCCb
-         Cgk0CYgzDMmNlsBFIYDZzzj3a6eG722h1qP1YmGmL6WQSg3wGndbTyXhaRhfzBNrQL
-         HogSSCQJTin69uZGosAljLWzCyacxzknNeFxTAYU=
+        b=sUF5n11mVJXCaxP4/pSPjd9EKKC/66XC4eBvN2akUNK7acTNqGbkk+NOzeUtHzVSq
+         n/JP6us12cXRmdHpnmFWyg24OcGln0CARZBDGH+KSCaghM6t707lLsLPZnb60VmRqD
+         FN4TmVxLjo/xpDWjhXk/HD09x7SGWG5NgELTtXiA=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         Markus Mayer <mmayer@broadcom.com>,
@@ -57,9 +57,9 @@ To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v2 14/29] memory: emif: Silence platform_get_irq() error in driver
-Date:   Fri, 24 Jul 2020 09:40:23 +0200
-Message-Id: <20200724074038.5597-15-krzk@kernel.org>
+Subject: [PATCH v2 15/29] memory: ti-emif-pm: Fix cast to iomem pointer
+Date:   Fri, 24 Jul 2020 09:40:24 +0200
+Message-Id: <20200724074038.5597-16-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200724074038.5597-1-krzk@kernel.org>
 References: <20200724074038.5597-1-krzk@kernel.org>
@@ -68,31 +68,30 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The platform_get_irq() already prints error message so there is no need
-to do it again in the driver.
+Cast pointer to iomem memory properly to fix sparse warning:
+
+    drivers/memory/ti-emif-pm.c:251:38: warning: incorrect type in argument 1 (different address spaces)
+    drivers/memory/ti-emif-pm.c:251:38:    expected void const volatile [noderef] __iomem *addr
+    drivers/memory/ti-emif-pm.c:251:38:    got void *
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- drivers/memory/emif.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/memory/ti-emif-pm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-index 1241a87081f8..1bf0656d5e9a 100644
---- a/drivers/memory/emif.c
-+++ b/drivers/memory/emif.c
-@@ -1561,11 +1561,8 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
- 		goto error;
+diff --git a/drivers/memory/ti-emif-pm.c b/drivers/memory/ti-emif-pm.c
+index 9c90f815ad3a..6c747c1e98cb 100644
+--- a/drivers/memory/ti-emif-pm.c
++++ b/drivers/memory/ti-emif-pm.c
+@@ -248,7 +248,7 @@ MODULE_DEVICE_TABLE(of, ti_emif_of_match);
+ static int ti_emif_resume(struct device *dev)
+ {
+ 	unsigned long tmp =
+-			__raw_readl((void *)emif_instance->ti_emif_sram_virt);
++			__raw_readl((void __iomem *)emif_instance->ti_emif_sram_virt);
  
- 	irq = platform_get_irq(pdev, 0);
--	if (irq < 0) {
--		dev_err(emif->dev, "%s: error getting IRQ resource - %d\n",
--			__func__, irq);
-+	if (irq < 0)
- 		goto error;
--	}
- 
- 	emif_onetime_settings(emif);
- 	emif_debugfs_init(emif);
+ 	/*
+ 	 * Check to see if what we are copying is already present in the
 -- 
 2.17.1
 
