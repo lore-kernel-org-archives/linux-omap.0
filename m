@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39C53C433EC
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 448F4C4346D
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:25:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15223207FC
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:25:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28FF3206F0
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 18:25:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595615112;
-	bh=6vmXqSqcb3PPEIvuDeW52+V74jJx/+EfORuTXaAQGRE=;
+	s=default; t=1595615121;
+	bh=ZHssgXFw9tdp7kd/8wRKNVCbGynFMRozJTxl7pkD+Og=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NH7zzph5/r17S7x7C/O9Z4rNEjEo/+VKoDhpvGoP0i7lneaGvHFCPzU/nmRm5XemO
-	 QvxHvYQqlvJUGxmt30Hf1YaHUoPQ1gUdb8dNf2rjvLUJlCTl5i4wsPdMN85BG0NERO
-	 zbxn0HInlQCbY0sDl2H99KBZ6qn4qoQoOOHShDpk=
+	b=cRTYlBy6B0GwI9fmDE1VvAYUGnOLGEpEPS1qwvT9a6V+SKYpaCYyAG8XE00JUnVe1
+	 9K+2dUQ3uIM4kmJWtYxZZYaKJRdwkvObDOorg+fiw1wif8UV9ZpOAZNulQ5Xd99j1l
+	 L0kU+LI1sy8qoaDtuzkbSfA9aB9NzK65ShK8cud8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727833AbgGXSY6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 14:24:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33882 "EHLO mail.kernel.org"
+        id S1727904AbgGXSZR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 14:25:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727826AbgGXSY4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 24 Jul 2020 14:24:56 -0400
+        id S1726892AbgGXSZQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 24 Jul 2020 14:25:16 -0400
 Received: from kozik-lap.mshome.net (unknown [194.230.155.213])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7448A207FC;
-        Fri, 24 Jul 2020 18:24:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 01060208E4;
+        Fri, 24 Jul 2020 18:25:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595615096;
-        bh=6vmXqSqcb3PPEIvuDeW52+V74jJx/+EfORuTXaAQGRE=;
+        s=default; t=1595615115;
+        bh=ZHssgXFw9tdp7kd/8wRKNVCbGynFMRozJTxl7pkD+Og=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=OXkhhR7G6pSAwL8sE1LkECQ/6F8GRsV/gAnihb6EZG6tkqzuMSPCcqSzp2BtAg08A
-         e8uf0NN94A+Nx0yxyK+dOGAewXfhy/90dy/VAn6o9cGAeP3luuZ9mhUc+HeQlaFS5B
-         PI3prAVts3n0s5zpMcT+CrLEwKpHUDZhIDlKiOm8=
+        b=JjhYGXA27XLYt9lyspm8gFo+X/D5qtiSf7WzpvxzFrV94+N5wXza9uH45nrCfIiDr
+         hD7GrGNueoWRlGmxHVyJSwqUSJ+IWqojSDFuVggp6ARyZJgh0oUB8IvOl0xunJfYCP
+         yWj39eImA4yZWVOA5EvMwGxKEMJL5eXwG1G4X+gw=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Florian Fainelli <f.fainelli@gmail.com>,
         Ray Jui <rjui@broadcom.com>,
@@ -57,9 +57,9 @@ To:     Florian Fainelli <f.fainelli@gmail.com>,
         linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
         linux-pm@vger.kernel.org
 Cc:     Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 10/16] memory: omap-gpmc: Consistently use !res for NULL checks
-Date:   Fri, 24 Jul 2020 20:23:22 +0200
-Message-Id: <20200724182328.3348-11-krzk@kernel.org>
+Subject: [PATCH 14/16] memory: pl172: Enclose macro argument usage in parenthesis
+Date:   Fri, 24 Jul 2020 20:23:26 +0200
+Message-Id: <20200724182328.3348-15-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200724182328.3348-1-krzk@kernel.org>
 References: <20200724182328.3348-1-krzk@kernel.org>
@@ -68,27 +68,50 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver already uses 'if (!res)' pattern in the probe function so be
-consistent.
+Macros arguments should be enclosed by parenthesis for safety.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- drivers/memory/omap-gpmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/memory/pl172.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 76a9c700cbd5..ce0e7e2d7cff 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -2393,7 +2393,7 @@ static int gpmc_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, gpmc);
+diff --git a/drivers/memory/pl172.c b/drivers/memory/pl172.c
+index 084891eb29cc..575fadbffa30 100644
+--- a/drivers/memory/pl172.c
++++ b/drivers/memory/pl172.c
+@@ -21,7 +21,7 @@
+ #include <linux/of_platform.h>
+ #include <linux/time.h>
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (res == NULL)
-+	if (!res)
- 		return -ENOENT;
+-#define MPMC_STATIC_CFG(n)		(0x200 + 0x20 * n)
++#define MPMC_STATIC_CFG(n)		(0x200 + 0x20 * (n))
+ #define  MPMC_STATIC_CFG_MW_8BIT	0x0
+ #define  MPMC_STATIC_CFG_MW_16BIT	0x1
+ #define  MPMC_STATIC_CFG_MW_32BIT	0x2
+@@ -31,17 +31,17 @@
+ #define  MPMC_STATIC_CFG_EW		BIT(8)
+ #define  MPMC_STATIC_CFG_B		BIT(19)
+ #define  MPMC_STATIC_CFG_P		BIT(20)
+-#define MPMC_STATIC_WAIT_WEN(n)		(0x204 + 0x20 * n)
++#define MPMC_STATIC_WAIT_WEN(n)		(0x204 + 0x20 * (n))
+ #define  MPMC_STATIC_WAIT_WEN_MAX	0x0f
+-#define MPMC_STATIC_WAIT_OEN(n)		(0x208 + 0x20 * n)
++#define MPMC_STATIC_WAIT_OEN(n)		(0x208 + 0x20 * (n))
+ #define  MPMC_STATIC_WAIT_OEN_MAX	0x0f
+-#define MPMC_STATIC_WAIT_RD(n)		(0x20c + 0x20 * n)
++#define MPMC_STATIC_WAIT_RD(n)		(0x20c + 0x20 * (n))
+ #define  MPMC_STATIC_WAIT_RD_MAX	0x1f
+-#define MPMC_STATIC_WAIT_PAGE(n)	(0x210 + 0x20 * n)
++#define MPMC_STATIC_WAIT_PAGE(n)	(0x210 + 0x20 * (n))
+ #define  MPMC_STATIC_WAIT_PAGE_MAX	0x1f
+-#define MPMC_STATIC_WAIT_WR(n)		(0x214 + 0x20 * n)
++#define MPMC_STATIC_WAIT_WR(n)		(0x214 + 0x20 * (n))
+ #define  MPMC_STATIC_WAIT_WR_MAX	0x1f
+-#define MPMC_STATIC_WAIT_TURN(n)	(0x218 + 0x20 * n)
++#define MPMC_STATIC_WAIT_TURN(n)	(0x218 + 0x20 * (n))
+ #define  MPMC_STATIC_WAIT_TURN_MAX	0x0f
  
- 	gpmc_base = devm_ioremap_resource(&pdev->dev, res);
+ /* Maximum number of static chip selects */
 -- 
 2.17.1
 
