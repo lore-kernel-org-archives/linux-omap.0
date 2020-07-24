@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25CC1C433E5
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF3FFC433E8
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE9A92074A
-	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F55620674
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Jul 2020 14:10:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595599841;
-	bh=Ikn/dz97teqAbHq7RqtBzGI3CUO214sqPtkE1E+iPqs=;
+	s=default; t=1595599855;
+	bh=eAMAghf17yOLMIsjTswIZn2ojtxesAGcaaebK/cGCGQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=RuJWYDXPYsCATd9HGmyab2BjV5obojtvJGoS1McZh33Nts0/Vpzj9Sow9JRyZkhEv
-	 /xlldHUEjpKVwFa+V/4lPH4Kt6+4S3yQhXy5CZFbfP2nzivhyj8e9fnL10JecJ8jJh
-	 cEh+td7io7ekt1OJ8YJkc1k3q58gtcU26MnLYjm4=
+	b=aG1PBH8bvHA9t/LVM5KOx/KsZLrkj/YkPRKeODrYYRs68i/DpzX4XOgq4YVwI68Bx
+	 TCfL6xeko3wMfjPwts3+ZJOLclo7VfPonPbG6YGLux64aMj/3SC6BgaiaEwI/OG0O/
+	 aOWssLnBewbY4l7bfeAhyuW1ptgNDWw/KIrYIG6Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726535AbgGXOKi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 24 Jul 2020 10:10:38 -0400
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:35414 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726366AbgGXOKh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2020 10:10:37 -0400
-Received: by mail-wm1-f66.google.com with SMTP id 184so8405475wmb.0;
-        Fri, 24 Jul 2020 07:10:35 -0700 (PDT)
+        id S1726962AbgGXOKz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Jul 2020 10:10:55 -0400
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:39896 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726503AbgGXOKy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2020 10:10:54 -0400
+Received: by mail-wr1-f68.google.com with SMTP id q5so8448135wru.6;
+        Fri, 24 Jul 2020 07:10:53 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=276139G/CdcXhZVD9Y4DWugGrS0aG9By0pl1cf1Sa6c=;
-        b=f7lLbuL9Xu9LLo/ZKE5HMwZ27CbPxY6kdOTYni3Q7wQs02oYyPRNxQGbY/lujbNSLk
-         y7NzE9l2rnwmunmVy8WnX+eJkG/cPblMQ3+bhWk4uMuD5HYxX53yiugjV39j6OrsHsic
-         Lo5j42aWdB/yQJwJcvlcxR1dYy5FzhICVAV85zQu/4/oiPxxEOa0l4aOZcHLBmN1uBJv
-         Dhm9KaBYPDKiKMD6APO4KcNZ3kEfDGYXsc1hlz+1Foi84s5e4YB3E15LFGyHHI+bLXJ8
-         ps1h5/Tp+kkv0XwLeVWjR6pB77iy8CYkLXBSc+EijWU1clIhbhrrWrHbvFDZ7kCcRMre
-         y/rA==
-X-Gm-Message-State: AOAM533PziQRDwI6oSuVZYKhCKXsYH0cqSLueOf3eVbMhND92ZIoX/jh
-        m9IueJ7kWTphYkinThFeoWQ=
-X-Google-Smtp-Source: ABdhPJyH6358VvC3N2HtFylVixHPf6jUG/wGoHSCH2ncpHt80BXLb7dYgFVpDFw9/9ogV3TbmOaSSQ==
-X-Received: by 2002:a1c:4c16:: with SMTP id z22mr8750342wmf.103.1595599835312;
-        Fri, 24 Jul 2020 07:10:35 -0700 (PDT)
+        bh=ImFzmFIKK2H2nANXLXd3qxiApcEikV7VM9V9o6SJtnk=;
+        b=fJ0BT0GqvFrx/8ZA8+zrJ0I14lk17LoNZoS0WFgj1m3V0iHlklOfUZAVN2/R9jGpy0
+         NNYJ6ohjKWcCmWtCCvK3SoW4+4YiJUNxZz6J3fxMSIbC8y0kK2cF97N2wcC8L46+jsoE
+         bqxvyrRFYALa9CFodNHZ1QIb/kpTj2Q87pUcjmOzn1lGHuAe0xlEk0O7dF9DZ4rNG5my
+         uHDm2lW32m7FNP2daNUhrafhItQMC58YbNXV/MS2FAXgCI1mbeZLViGIzgK+qRzzFCyC
+         IPO5gajon1n8Cq9N/wj4UU81cSiO3jToajJmkDXRhx2kUdhGbc6P/JYo5YWdJJfEqDjI
+         BCaw==
+X-Gm-Message-State: AOAM5300P/lQB1NRhFm1vyBDAA1gK39YDy77L569Nco2/Yoi2W2DLqnO
+        SHbeKYhhF4KOe4f3381rYHE=
+X-Google-Smtp-Source: ABdhPJwnBVOwUfzxAP/bVrE3rgtnqO3Qtmb3o6jbq4oG5/rcbWYkcM90AMtLUkNyJ01GAbEXmxrCXg==
+X-Received: by 2002:adf:f785:: with SMTP id q5mr7903553wrp.298.1595599852416;
+        Fri, 24 Jul 2020 07:10:52 -0700 (PDT)
 Received: from kozik-lap ([194.230.155.213])
-        by smtp.googlemail.com with ESMTPSA id 78sm7674001wma.31.2020.07.24.07.10.33
+        by smtp.googlemail.com with ESMTPSA id t2sm7829924wmb.25.2020.07.24.07.10.50
         (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 24 Jul 2020 07:10:34 -0700 (PDT)
-Date:   Fri, 24 Jul 2020 16:10:30 +0200
+        Fri, 24 Jul 2020 07:10:51 -0700 (PDT)
+Date:   Fri, 24 Jul 2020 16:10:48 +0200
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         Markus Mayer <mmayer@broadcom.com>,
@@ -67,33 +67,30 @@ To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH v2 11/29] memory: emif-asm-offsets: Add GPLv2 SPDX
- license header
-Message-ID: <20200724141030.GC14851@kozik-lap>
+Subject: Re: [PATCH v2 12/29] memory: emif: Put constant in comparison on the
+ right side
+Message-ID: <20200724141048.GD14851@kozik-lap>
 References: <20200724074038.5597-1-krzk@kernel.org>
- <20200724074038.5597-12-krzk@kernel.org>
+ <20200724074038.5597-13-krzk@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20200724074038.5597-12-krzk@kernel.org>
+In-Reply-To: <20200724074038.5597-13-krzk@kernel.org>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Jul 24, 2020 at 09:40:20AM +0200, Krzysztof Kozlowski wrote:
-> Add GPLv2 license header and remove GPL boiler plate text.
+On Fri, Jul 24, 2020 at 09:40:21AM +0200, Krzysztof Kozlowski wrote:
+> Fixes checkpatch warning:
+> 
+>     WARNING: Comparisons should place the constant on the right side of the test
 > 
 > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-> 
 > ---
-> 
-> Changes since v1:
-> 1. Use "GPL-2.0" instead of "GPL-2.0-only". It's shorter.
-> ---
->  drivers/memory/emif-asm-offsets.c | 10 +---------
->  1 file changed, 1 insertion(+), 9 deletions(-)
+>  drivers/memory/emif.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 
 Applied (and part of pull request to arm-soc).
