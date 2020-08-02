@@ -4,43 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2F55C433E5
-	for <linux-omap@archiver.kernel.org>; Sun,  2 Aug 2020 14:26:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59238C43459
+	for <linux-omap@archiver.kernel.org>; Sun,  2 Aug 2020 14:26:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C862C20759
-	for <linux-omap@archiver.kernel.org>; Sun,  2 Aug 2020 14:26:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4202920759
+	for <linux-omap@archiver.kernel.org>; Sun,  2 Aug 2020 14:26:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726477AbgHBO0S (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 2 Aug 2020 10:26:18 -0400
-Received: from mail-lf1-f67.google.com ([209.85.167.67]:43493 "EHLO
+        id S1726523AbgHBO0V (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 2 Aug 2020 10:26:21 -0400
+Received: from mail-lf1-f67.google.com ([209.85.167.67]:36759 "EHLO
         mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726432AbgHBO0R (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 2 Aug 2020 10:26:17 -0400
-Received: by mail-lf1-f67.google.com with SMTP id b11so19158041lfe.10;
-        Sun, 02 Aug 2020 07:26:15 -0700 (PDT)
+        with ESMTP id S1726300AbgHBO0U (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 2 Aug 2020 10:26:20 -0400
+Received: by mail-lf1-f67.google.com with SMTP id c15so1838480lfi.3;
+        Sun, 02 Aug 2020 07:26:18 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=VHFVVkyvJ26w5l6BjSHc4G0RPe7rT9aQTvdBpCkShCw=;
-        b=DpSdxJDKQDA4zhZpCwNktRNQDpVBxFKgUXYmeOGwytCiXqND4+iD0xE0r3yA3pnBY/
-         b4xfo1os9LlUvFb6HXBqYsVNdhk+h1BA4rDRuO0xDS3+FF8U85vvPHv+yqcRYxYRcEZX
-         VXeQuRZXsPjfIh3bFyjVFtRpZoEa4YM8BPlLsl99ppPK9aHwivjJZxuEKh0FoYN9KNf/
-         g5p9xTLQuhgAHYoqZCYw545G1OI6Co9YYk6ia4SGCaTgCgMYO0x84XGjIaH+2d78RR0J
-         nHB0QA+spRIxrrDLxxS5IhJQNx1I3RjhkEKIf/Yj4KU6fdAqHI8nZmTYSicg+9amfxbg
-         00UQ==
-X-Gm-Message-State: AOAM531yiCa8D6oCEgxkP/Ks1naaPvIxvm2vqv2XDnBy7WnhAE9QNOy1
-        ApYBaBfvQzpb5ET4Kif1uoo=
-X-Google-Smtp-Source: ABdhPJxe9uClF4yn8tZcunRWtxDlWuh9tR86znz+TOBPok/VIIe5Df/vBtq17m7kMyjbPjEFliar6Q==
-X-Received: by 2002:ac2:5933:: with SMTP id v19mr6202139lfi.94.1596378374688;
-        Sun, 02 Aug 2020 07:26:14 -0700 (PDT)
+        bh=/S75/rZPVtT/la0J520uvq4mcrCeNFGU2um+3tul+rI=;
+        b=eGYxKagEb+QN5Q7HCeGhnyhJKXIWmSd8RBVimVWipR+irMxje/N7qFbEo9bJg1Wjfr
+         /73rkoJLOwd6N5dnh3ZampC3gj12TE0GCc70OOJocJCMMdtceSvoWa2clFkVtfz42tfc
+         NVTbE3gDGn7bsADcEQq84BzSGxMRIHt9HfI+r2PzD42AqbYnIjjZfJbcHwXQnHr2aqu1
+         nV218QolJDfI8X1OyUZ1XhjebAyle3QGdgOg4XslQkNGxWl7gSMjpGEVoWy61YEdBC7i
+         e2/D2KSAFJiWtMIQqnOqpX6L3lLESHhiZ0Qjf+B9NExEmrDzEU/1KuhGueyXTVODCXmW
+         FQtw==
+X-Gm-Message-State: AOAM531OOYSQb6OEx2x8ckJJvP4MZ5XEzBRGm3PyMlBahdSl5ewxwwXr
+        XEM3Bp1fOAkrCKSRINjS+H4=
+X-Google-Smtp-Source: ABdhPJzNpdAF9CCzGfP8sG9ncd25/FPuC6g6AByGverT5oAgx7TlVWh8xE/g3DI5YXBMEkYyIP2c8Q==
+X-Received: by 2002:a19:189:: with SMTP id 131mr6399805lfb.128.1596378377807;
+        Sun, 02 Aug 2020 07:26:17 -0700 (PDT)
 Received: from workstation.lan ([95.155.85.46])
-        by smtp.gmail.com with ESMTPSA id 193sm4214136lfa.90.2020.08.02.07.26.13
+        by smtp.gmail.com with ESMTPSA id 193sm4214136lfa.90.2020.08.02.07.26.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 02 Aug 2020 07:26:14 -0700 (PDT)
+        Sun, 02 Aug 2020 07:26:17 -0700 (PDT)
 From:   =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>
 To:     Bjorn Helgaas <bhelgaas@google.com>
 Cc:     Jingoo Han <jingoohan1@gmail.com>, Kukjin Kim <kgene@kernel.org>,
@@ -68,9 +68,9 @@ Cc:     Jingoo Han <jingoohan1@gmail.com>, Kukjin Kim <kgene@kernel.org>,
         linux-pci@vger.kernel.org, linux-rockchip@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
         rfi@lists.rocketboards.org
-Subject: [PATCH 07/10] PCI: altera-msi: Remove dev_err() when handing an error from platform_get_irq()
-Date:   Sun,  2 Aug 2020 14:25:59 +0000
-Message-Id: <20200802142601.1635926-8-kw@linux.com>
+Subject: [PATCH 09/10] PCI: rockchip: Remove dev_err() when handing an error from platform_get_irq()
+Date:   Sun,  2 Aug 2020 14:26:01 +0000
+Message-Id: <20200802142601.1635926-10-kw@linux.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200802142601.1635926-1-kw@linux.com>
 References: <20200802142601.1635926-1-kw@linux.com>
@@ -89,27 +89,60 @@ appropriate error message in case of a failure.
 
 This change is as per suggestion from Coccinelle:
 
-  drivers/pci/controller/pcie-altera-msi.c:259:2-9: line 259 is
+  drivers/pci/controller/pcie-rockchip-host.c:553:2-9: line 553 is
+  redundant because platform_get_irq() already prints an error
+
+  drivers/pci/controller/pcie-rockchip-host.c:566:2-9: line 566 is
+  redundant because platform_get_irq() already prints an error
+
+  drivers/pci/controller/pcie-rockchip-host.c:576:2-9: line 576 is
   redundant because platform_get_irq() already prints an error
 
 Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Krzysztof Wilczyński <kw@linux.com>
 ---
- drivers/pci/controller/pcie-altera-msi.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/pci/controller/pcie-rockchip-host.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/pci/controller/pcie-altera-msi.c b/drivers/pci/controller/pcie-altera-msi.c
-index 16d938920ca5..bec666eda1eb 100644
---- a/drivers/pci/controller/pcie-altera-msi.c
-+++ b/drivers/pci/controller/pcie-altera-msi.c
-@@ -256,7 +256,6 @@ static int altera_msi_probe(struct platform_device *pdev)
+diff --git a/drivers/pci/controller/pcie-rockchip-host.c b/drivers/pci/controller/pcie-rockchip-host.c
+index 94af6f5828a3..eebe05ab354f 100644
+--- a/drivers/pci/controller/pcie-rockchip-host.c
++++ b/drivers/pci/controller/pcie-rockchip-host.c
+@@ -549,10 +549,8 @@ static int rockchip_pcie_setup_irq(struct rockchip_pcie *rockchip)
+ 	struct platform_device *pdev = to_platform_device(dev);
  
- 	msi->irq = platform_get_irq(pdev, 0);
- 	if (msi->irq < 0) {
--		dev_err(&pdev->dev, "failed to map IRQ: %d\n", msi->irq);
- 		ret = msi->irq;
- 		goto err;
+ 	irq = platform_get_irq_byname(pdev, "sys");
+-	if (irq < 0) {
+-		dev_err(dev, "missing sys IRQ resource\n");
++	if (irq < 0)
+ 		return irq;
+-	}
+ 
+ 	err = devm_request_irq(dev, irq, rockchip_pcie_subsys_irq_handler,
+ 			       IRQF_SHARED, "pcie-sys", rockchip);
+@@ -562,20 +560,16 @@ static int rockchip_pcie_setup_irq(struct rockchip_pcie *rockchip)
  	}
+ 
+ 	irq = platform_get_irq_byname(pdev, "legacy");
+-	if (irq < 0) {
+-		dev_err(dev, "missing legacy IRQ resource\n");
++	if (irq < 0)
+ 		return irq;
+-	}
+ 
+ 	irq_set_chained_handler_and_data(irq,
+ 					 rockchip_pcie_legacy_int_handler,
+ 					 rockchip);
+ 
+ 	irq = platform_get_irq_byname(pdev, "client");
+-	if (irq < 0) {
+-		dev_err(dev, "missing client IRQ resource\n");
++	if (irq < 0)
+ 		return irq;
+-	}
+ 
+ 	err = devm_request_irq(dev, irq, rockchip_pcie_client_irq_handler,
+ 			       IRQF_SHARED, "pcie-client", rockchip);
 -- 
 2.27.0
 
