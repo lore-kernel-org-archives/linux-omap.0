@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CA46C433EB
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37C9AC433E1
+	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AC9322CAF
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 480B522BED
+	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596488493;
-	bh=8Irn/YdkHb2QXNwssXPmCIL8uhGjYFUfAiI3OQQsIhI=;
+	s=default; t=1596488495;
+	bh=tGYCG0e77ndqGgL23907MXptEeFxFV8RF+KXXVG+2Q0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1JJc7f8mpKl6LJddm+bjG3WReGVFcvvf0DMaRPD1ByKXO2H1W8IyEw5OdSzI/hyf5
-	 B4tsi7Q/bwC71dbUH4bzbFzcdDnoQ+fnAkISA6M2Plm/5b+xZ9VhRIjxFC2NqBsG33
-	 DnTKz0FYj5ydUte9Gml+bh3e3j2114AuQpwbU/cY=
+	b=m3p5B2HqPa8N1VU4W6oNQFb2FUaat4FAdlUOAx1gbsw6A/9zmtgrmenhI2vY8xUN8
+	 kd9QKVhf/qNcAY9xpctmEOde4mzFBLrSYcnoeW20DI9/RmpLdd8841CS6YoMBGCYoA
+	 VPpw0WLdnQsuOSJ7VINvugU178aN/c+4U0WG5S94=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729348AbgHCVB3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 3 Aug 2020 17:01:29 -0400
-Received: from mail-io1-f66.google.com ([209.85.166.66]:38423 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729344AbgHCVB1 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2020 17:01:27 -0400
-Received: by mail-io1-f66.google.com with SMTP id l1so39991437ioh.5;
-        Mon, 03 Aug 2020 14:01:26 -0700 (PDT)
+        id S1729364AbgHCVBe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 3 Aug 2020 17:01:34 -0400
+Received: from mail-il1-f196.google.com ([209.85.166.196]:44506 "EHLO
+        mail-il1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728889AbgHCVBc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2020 17:01:32 -0400
+Received: by mail-il1-f196.google.com with SMTP id j9so28944215ilc.11;
+        Mon, 03 Aug 2020 14:01:31 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ijQ8ATU40Ukxf+vdFPpN/cTBNWQIy8LHFEwNkXuS7vE=;
-        b=TtA3D50HOWjGSOYcI0fLq7MAUnDBSi++nGASm4Aoh/xGbxG+Nth6WBRpCcWzR9SZpJ
-         zXFkOFhdk5CglhnIbRVhmHVnrTacwOWTsbwSRutc8x0VmJKmquUL+Gsix5cdpmcsFwQz
-         k0+kaJQSrIPorGnuaRYv9orYBj9W0AYPkcJe7trNLYw/agEG2PAuWh4BjPBgOjPjVSg8
-         Pwsc5AphA4aWpxRoxYG36XEP47a81vesf02tunJ5SNy+qKfpGxOeW++4gDyBA4TwHmyB
-         Eq121ULzAvJ6cWj5psaqF7VRaLKEH/0fSCEaHlmY4VaVJYSKZO/gmO4qxftZGmUIOTff
-         TY3w==
-X-Gm-Message-State: AOAM532GpYjM3KbWCmeSb05lEiLzZCNVZwWkvEuYlBu6FitDnYc5T/Gp
-        YmOiADsJm8DwexS5xjTDBQ==
-X-Google-Smtp-Source: ABdhPJwDDB+OwHWjJuTy7sDEknkVzY4VCrs5f0YZ1QmljRmggfDq+USGhZLjxDletIoYITtztOCGKA==
-X-Received: by 2002:a05:6638:2482:: with SMTP id x2mr1801792jat.55.1596488486266;
-        Mon, 03 Aug 2020 14:01:26 -0700 (PDT)
+        bh=EQL3A7dHzz+gC5njEctrBiMEIqtA+XjXrb2o208g3Ks=;
+        b=F7YBgQRbZju55J1lslO3ZYYUq/hG4N8wTHAwZU2uIZn8/wbItJEPFW7cgXc/wG+XfX
+         h0WHNqI1RTLpyW656CwcisHE7Q+Q4x8mW2n84ZwgibfSrfEBeh6zm2gmmWlakCDUtgEx
+         avkG/p9QCgev92l5nTcWtt14O1h+Elp5VWTer/gNDWmJQlxbloZGCMUvdStxhzeqXlpS
+         LSjbamKWn3SX7BPFb8J11Gzdtulr3dRD/Qp0FqS50o17Sqf7h5MtlxvR1BWPEFbhy8cp
+         PyoI8WMbk9WKubwvcXdA1h7tHii6zExHwmSoD9wS9iFe7js/PGcKdtTMbtf+5I5DxpEU
+         1XCg==
+X-Gm-Message-State: AOAM533sflnPRlLher4tSnqpk1k4OBCcobnTMHudfrIOl+9Q6YddgPbV
+        fiUxMbrLl0V74dU6/sv1wQ==
+X-Google-Smtp-Source: ABdhPJzftW92R17dfbV7F93wEn6AsKYKgSXK+D8yX+DoZOz9nVGWzXcp3oJtQO05/bk7IoPLrTUNQg==
+X-Received: by 2002:a92:d7cb:: with SMTP id g11mr1303449ilq.89.1596488491153;
+        Mon, 03 Aug 2020 14:01:31 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.252])
-        by smtp.googlemail.com with ESMTPSA id r6sm9292280iod.7.2020.08.03.14.01.24
+        by smtp.googlemail.com with ESMTPSA id r6sm9292280iod.7.2020.08.03.14.01.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Aug 2020 14:01:25 -0700 (PDT)
+        Mon, 03 Aug 2020 14:01:30 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
@@ -81,9 +81,9 @@ Cc:     Binghui Wang <wangbinghui@hisilicon.com>,
         Thierry Reding <thierry.reding@gmail.com>,
         Xiaowei Song <songxiaowei@hisilicon.com>,
         Yue Wang <yue.wang@Amlogic.com>
-Subject: [RFC 03/27] PCI: dwc: Allow overriding bridge pci_ops
-Date:   Mon,  3 Aug 2020 15:00:52 -0600
-Message-Id: <20200803210116.3132633-4-robh@kernel.org>
+Subject: [RFC 05/27] PCI: dwc: al: Use pci_ops for child config space accessors
+Date:   Mon,  3 Aug 2020 15:00:54 -0600
+Message-Id: <20200803210116.3132633-6-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200803210116.3132633-1-robh@kernel.org>
 References: <20200803210116.3132633-1-robh@kernel.org>
@@ -94,81 +94,119 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-In preparation to allow drivers to set their own root and child pci_ops
-instead of using the DWC specific config space ops, we need to make
-the pci_host_bridge pointer available and move setting the bridge->ops
-and bridge->child_ops pointer to before the .host_init() hook.
+Now that DWC drivers can setup their own pci_ops for the root and child
+buses, convert the Amazon driver to use the standard pci_ops for child
+bus config accesses.
 
-Cc: Jingoo Han <jingoohan1@gmail.com>
-Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+Cc: Jonathan Chocron <jonnyc@amazon.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/pci/controller/dwc/pcie-designware-host.c | 15 ++++++++++-----
- drivers/pci/controller/dwc/pcie-designware.h      |  1 +
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/pci/controller/dwc/pcie-al.c | 63 ++++++----------------------
+ 1 file changed, 13 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
-index 6232aefbbdb4..7cd8c9528d4c 100644
---- a/drivers/pci/controller/dwc/pcie-designware-host.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-@@ -344,6 +344,8 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 	if (!bridge)
- 		return -ENOMEM;
+diff --git a/drivers/pci/controller/dwc/pcie-al.c b/drivers/pci/controller/dwc/pcie-al.c
+index 270868f3859a..5c5763f14485 100644
+--- a/drivers/pci/controller/dwc/pcie-al.c
++++ b/drivers/pci/controller/dwc/pcie-al.c
+@@ -222,14 +222,15 @@ static inline void al_pcie_target_bus_set(struct al_pcie *pcie,
+ 				  reg);
+ }
  
-+	pp->bridge = bridge;
-+
- 	ret = pci_parse_request_of_pci_ranges(dev, &bridge->windows,
- 					      &bridge->dma_ranges, NULL);
- 	if (ret)
-@@ -450,6 +452,10 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 		}
+-static void __iomem *al_pcie_conf_addr_map(struct al_pcie *pcie,
+-					   unsigned int busnr,
+-					   unsigned int devfn)
++static void __iomem *al_pcie_conf_addr_map_bus(struct pci_bus *bus,
++					       unsigned int devfn, int where)
+ {
++	struct pcie_port *pp = bus->sysdata;
++	struct al_pcie *pcie = to_al_pcie(to_dw_pcie_from_pp(pp));
++	unsigned int busnr = bus->number;
+ 	struct al_pcie_target_bus_cfg *target_bus_cfg = &pcie->target_bus_cfg;
+ 	unsigned int busnr_ecam = busnr & target_bus_cfg->ecam_mask;
+ 	unsigned int busnr_reg = busnr & target_bus_cfg->reg_mask;
+-	struct pcie_port *pp = &pcie->pci->pp;
+ 	void __iomem *pci_base_addr;
+ 
+ 	pci_base_addr = (void __iomem *)((uintptr_t)pp->va_cfg0_base +
+@@ -245,52 +246,14 @@ static void __iomem *al_pcie_conf_addr_map(struct al_pcie *pcie,
+ 				       target_bus_cfg->reg_mask);
  	}
  
-+	/* Set default bus ops */
-+	bridge->ops = &dw_pcie_ops;
-+	bridge->child_ops = &dw_pcie_ops;
+-	return pci_base_addr;
+-}
+-
+-static int al_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+-				 unsigned int devfn, int where, int size,
+-				 u32 *val)
+-{
+-	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+-	struct al_pcie *pcie = to_al_pcie(pci);
+-	unsigned int busnr = bus->number;
+-	void __iomem *pci_addr;
+-	int rc;
+-
+-	pci_addr = al_pcie_conf_addr_map(pcie, busnr, devfn);
+-
+-	rc = dw_pcie_read(pci_addr + where, size, val);
+-
+-	dev_dbg(pci->dev, "%d-byte config read from %04x:%02x:%02x.%d offset 0x%x (pci_addr: 0x%px) - val:0x%x\n",
+-		size, pci_domain_nr(bus), bus->number,
+-		PCI_SLOT(devfn), PCI_FUNC(devfn), where,
+-		(pci_addr + where), *val);
+-
+-	return rc;
++	return pci_base_addr + where;
+ }
+ 
+-static int al_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+-				 unsigned int devfn, int where, int size,
+-				 u32 val)
+-{
+-	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+-	struct al_pcie *pcie = to_al_pcie(pci);
+-	unsigned int busnr = bus->number;
+-	void __iomem *pci_addr;
+-	int rc;
+-
+-	pci_addr = al_pcie_conf_addr_map(pcie, busnr, devfn);
+-
+-	rc = dw_pcie_write(pci_addr + where, size, val);
+-
+-	dev_dbg(pci->dev, "%d-byte config write to %04x:%02x:%02x.%d offset 0x%x (pci_addr: 0x%px) - val:0x%x\n",
+-		size, pci_domain_nr(bus), bus->number,
+-		PCI_SLOT(devfn), PCI_FUNC(devfn), where,
+-		(pci_addr + where), val);
+-
+-	return rc;
+-}
++static struct pci_ops al_child_pci_ops = {
++	.map_bus = al_pcie_conf_addr_map_bus,
++	.read = pci_generic_config_read,
++	.write = pci_generic_config_write,
++};
+ 
+ static void al_pcie_config_prepare(struct al_pcie *pcie)
+ {
+@@ -344,6 +307,8 @@ static int al_pcie_host_init(struct pcie_port *pp)
+ 	struct al_pcie *pcie = to_al_pcie(pci);
+ 	int rc;
+ 
++	pp->bridge->child_ops = &al_child_pci_ops;
 +
- 	if (pp->ops->host_init) {
- 		ret = pp->ops->host_init(pp);
- 		if (ret)
-@@ -461,7 +467,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 	bridge->dev.parent = dev;
- 	bridge->sysdata = pp;
- 	bridge->busnr = pp->root_bus_nr;
--	bridge->ops = &dw_pcie_ops;
- 	bridge->map_irq = of_irq_parse_and_map_pci;
- 	bridge->swizzle_irq = pci_common_swizzle;
+ 	rc = al_pcie_rev_id_get(pcie, &pcie->controller_rev_id);
+ 	if (rc)
+ 		return rc;
+@@ -358,8 +323,6 @@ static int al_pcie_host_init(struct pcie_port *pp)
+ }
  
-@@ -667,11 +672,11 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
- 	dw_pcie_writel_dbi(pci, PCI_COMMAND, val);
- 
- 	/*
--	 * If the platform provides ->rd_other_conf, it means the platform
--	 * uses its own address translation component rather than ATU, so
--	 * we should not program the ATU here.
-+	 * If the platform provides its own child bus config accesses, it means
-+	 * the platform uses its own address translation component rather than
-+	 * ATU, so we should not program the ATU here.
- 	 */
--	if (!pp->ops->rd_other_conf) {
-+	if (pp->bridge->child_ops == &dw_pcie_ops && !pp->ops->rd_other_conf) {
- 		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX0,
- 					  PCIE_ATU_TYPE_MEM, pp->mem_base,
- 					  pp->mem_bus_addr, pp->mem_size);
-diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index 656e00f8fbeb..bad3cddab28e 100644
---- a/drivers/pci/controller/dwc/pcie-designware.h
-+++ b/drivers/pci/controller/dwc/pcie-designware.h
-@@ -201,6 +201,7 @@ struct pcie_port {
- 	u32			num_vectors;
- 	u32			irq_mask[MAX_MSI_CTRLS];
- 	struct pci_bus		*root_bus;
-+	struct pci_host_bridge  *bridge;
- 	raw_spinlock_t		lock;
- 	DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
+ static const struct dw_pcie_host_ops al_pcie_host_ops = {
+-	.rd_other_conf = al_pcie_rd_other_conf,
+-	.wr_other_conf = al_pcie_wr_other_conf,
+ 	.host_init = al_pcie_host_init,
  };
+ 
 -- 
 2.25.1
 
