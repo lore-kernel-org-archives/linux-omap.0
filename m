@@ -5,49 +5,49 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FCDCC43464
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68006C4345B
+	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EFB122C9F
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7762122BED
+	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:01:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596488515;
-	bh=dzn5wjcpfX9d4fVfOncIIjXn4ZCfKD1OYNl6hzfH8T8=;
+	s=default; t=1596488500;
+	bh=eVYlUTEUws6RuTLgOd1AvurezPBdddTt0ZEERZZ1G68=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1iTOms1Q0dJi3c0KsiZr4VYGjrKUoA3VdtQ8qLF26SJIV9haNazfImRfG0EHtXtiT
-	 7PDW80RwGQbX3eQwRRsZGq5pXycyXuE0KnXU2Fgqucp6eAKQzI5pjj+n91vP4AnyEk
-	 wIuI8WkqL7wE/GdqOoGr7+xMHJB+5T0nSdvg2EIA=
+	b=hiit4T8Fbe9J+DYlDTxcFybReUi1xVk7MAHnRyUqSa5RoljuKx64vhc7CYvr3nJoV
+	 ZMwoS/bS0O8kShrKoG+WNFWxfPGjGlsP0WPAqd5JY1z45KzncIySs339ToAbFqCrxP
+	 bF0t7l8g2ZZnFuwEa8B2wGwd1UMXZwtrnEWvmdpk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729372AbgHCVBx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 3 Aug 2020 17:01:53 -0400
-Received: from mail-il1-f194.google.com ([209.85.166.194]:32872 "EHLO
-        mail-il1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729064AbgHCVBx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2020 17:01:53 -0400
-Received: by mail-il1-f194.google.com with SMTP id p16so21556272ile.0;
-        Mon, 03 Aug 2020 14:01:52 -0700 (PDT)
+        id S1728786AbgHCVBj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 3 Aug 2020 17:01:39 -0400
+Received: from mail-io1-f65.google.com ([209.85.166.65]:45700 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729370AbgHCVBi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2020 17:01:38 -0400
+Received: by mail-io1-f65.google.com with SMTP id u126so2717262iod.12;
+        Mon, 03 Aug 2020 14:01:37 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=saXc7GUoDkesF20I7UFsdi9hPtbZ6gcBdE2OHbCMpCA=;
-        b=AeuRLWSgFcKQKmcANc4PQpwnG/FfjVS5DBAAZmtpNLJ2Lz2mTjil0TYg78nbYTcf1c
-         PBCRbI4wkh8CDQuvRQm5vwU8KNy0g6Uvw4ajb9GgJoRdiRN/z3d9q/wyw81CxC2PJAXe
-         6SKg4I2awpPeU669tvQW6/jZLaqzDfO+zI4A93vQ+K9p6ZEYrIqL+A8U94ixzGxfzlo4
-         /qeF5z0Ql/truWgtft41t+ZIBYK5nplUtDy7vp2LIvMU5nuS15h/RlyNkkldqP9JeYzz
-         RpMSJe2VRJXZZ12AH9RaJHGxuU19CQpdnJpD73M707LV5fh56ep5wqVnAFT1PGCipylL
-         6k9A==
-X-Gm-Message-State: AOAM530kyD9aBgA8kgPBFWtk/Ymwuoeg79HyUu+VzQWFbDeM8HCSGCYv
-        h1+P37VmaH7SCDdNkxDlRA==
-X-Google-Smtp-Source: ABdhPJyvv0uRK79mfofQnWPAX/lrUkNhl98uSGAQALtBwC5yCmLzPHG/gk1AEvK1d658EgveC+qAIg==
-X-Received: by 2002:a92:d1ce:: with SMTP id u14mr1318029ilg.270.1596488511699;
-        Mon, 03 Aug 2020 14:01:51 -0700 (PDT)
+        bh=qfEvf5H5JZ3RCT8OcWDqKEAE854FjnIcjQahQFy60ZU=;
+        b=ERSly5GkwWXYFvfxneAsDkwNhQgKm/cv6Qa9KURKeQacv7ptH1yGplFUYjHsTfLjl+
+         4EIBd34LkyV8Y2IcPZhsQYo+WRs7oNhY9u72xMhDrr8WNotB0XDDZXOODB7P1nMnMqhR
+         Zdf1kqqp9UjcCtKDAQo37AacHl64/w/m7F+MPREjFXBMZwdzYsCB3JV+De3o/UTj+bIi
+         +IQTgPzoEcbSlUdXCEJ/+R2Fqe5rf/OHNmNx66SGkPmomaHFWThW2Fi7o0SaConG/cai
+         PuRJl2roJRdNK7abqq+P6f3l05JsLhfnym9vVigyEeftkvr38MQOfivvdZMmrwcK260W
+         bNcA==
+X-Gm-Message-State: AOAM5313zTPMxSYsr3hEAKJH5QEzzY0U8NvzEj717IpxM4dOH9/8UmKn
+        zvA9jNS1CLl4L13sq+HWjA==
+X-Google-Smtp-Source: ABdhPJxVu37JrAtNyU3mWLs6CsBaCHUNz0/4V4wrWC42BJDmf56FSirpVGwbFUOMHezq7H+x89bQUQ==
+X-Received: by 2002:a6b:9008:: with SMTP id s8mr1803377iod.132.1596488497604;
+        Mon, 03 Aug 2020 14:01:37 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.252])
-        by smtp.googlemail.com with ESMTPSA id r6sm9292280iod.7.2020.08.03.14.01.47
+        by smtp.googlemail.com with ESMTPSA id r6sm9292280iod.7.2020.08.03.14.01.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Aug 2020 14:01:51 -0700 (PDT)
+        Mon, 03 Aug 2020 14:01:37 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
@@ -81,9 +81,9 @@ Cc:     Binghui Wang <wangbinghui@hisilicon.com>,
         Thierry Reding <thierry.reding@gmail.com>,
         Xiaowei Song <songxiaowei@hisilicon.com>,
         Yue Wang <yue.wang@Amlogic.com>
-Subject: [RFC 13/27] PCI: dwc: Use generic config accessors
-Date:   Mon,  3 Aug 2020 15:01:02 -0600
-Message-Id: <20200803210116.3132633-14-robh@kernel.org>
+Subject: [RFC 08/27] PCI: dwc: meson: Use pci_ops for root config space accessors
+Date:   Mon,  3 Aug 2020 15:00:57 -0600
+Message-Id: <20200803210116.3132633-9-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200803210116.3132633-1-robh@kernel.org>
 References: <20200803210116.3132633-1-robh@kernel.org>
@@ -94,216 +94,81 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Now that all the platforms with custom config access handling define
-their own pci_ops, let's split the default config accessors to use
-different pci_ops for root and child buses. With this, we can use the
-generic config accessors. The child bus accesses mainly require a
-.map_bus() hook to reconfigure the iATU on each config space access.
+Now that DWC drivers can setup their own pci_ops for the root and child
+buses, convert the Amlogic meson driver to use the standard pci_ops for
+root bus config accesses.
 
-BTW, if there are only 2 viewports which means config space and I/O
-accesses are mutually exclusive because the iATU window is shared,
-how are accesses serialized? That seems broken...
+FIXME: child bus accessors
 
-Cc: Jingoo Han <jingoohan1@gmail.com>
-Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+Cc: Yue Wang <yue.wang@Amlogic.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Kevin Hilman <khilman@baylibre.com>
+Cc: linux-amlogic@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- .../pci/controller/dwc/pcie-designware-host.c | 120 ++++++------------
- 1 file changed, 42 insertions(+), 78 deletions(-)
+ drivers/pci/controller/dwc/pci-meson.c | 23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
-index 6e9f106e8e05..e9778f8ee955 100644
---- a/drivers/pci/controller/dwc/pcie-designware-host.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-@@ -20,24 +20,7 @@
- #include "pcie-designware.h"
+diff --git a/drivers/pci/controller/dwc/pci-meson.c b/drivers/pci/controller/dwc/pci-meson.c
+index ca59ba9e0ecd..54ce3369d963 100644
+--- a/drivers/pci/controller/dwc/pci-meson.c
++++ b/drivers/pci/controller/dwc/pci-meson.c
+@@ -383,13 +383,12 @@ static void meson_pcie_enable_interrupts(struct meson_pcie *mp)
+ 		dw_pcie_msi_init(&mp->pci.pp);
+ }
  
- static struct pci_ops dw_pcie_ops;
--
--static int dw_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
--			       u32 *val)
+-static int meson_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+-				  u32 *val)
++static int meson_pcie_rd_own_conf(struct pci_bus *bus, u32 devfn,
++				  int where, int size, u32 *val)
+ {
+-	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+ 	int ret;
+ 
+-	ret = dw_pcie_read(pci->dbi_base + where, size, val);
++	ret = pci_generic_config_read(bus, devfn, where, size, val);
+ 	if (ret != PCIBIOS_SUCCESSFUL)
+ 		return ret;
+ 
+@@ -410,13 +409,11 @@ static int meson_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+ 	return PCIBIOS_SUCCESSFUL;
+ }
+ 
+-static int meson_pcie_wr_own_conf(struct pcie_port *pp, int where,
+-				  int size, u32 val)
 -{
--	struct dw_pcie *pci;
+-	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 -
--	pci = to_dw_pcie_from_pp(pp);
--	return dw_pcie_read(pci->dbi_base + where, size, val);
--}
--
--static int dw_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
--			       u32 val)
--{
--	struct dw_pcie *pci;
--
--	pci = to_dw_pcie_from_pp(pp);
 -	return dw_pcie_write(pci->dbi_base + where, size, val);
 -}
-+static struct pci_ops dw_child_pcie_ops;
- 
- static void dw_msi_ack_irq(struct irq_data *d)
- {
-@@ -448,7 +431,7 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 
- 	/* Set default bus ops */
- 	bridge->ops = &dw_pcie_ops;
--	bridge->child_ops = &dw_pcie_ops;
-+	bridge->child_ops = &dw_child_pcie_ops;
- 
- 	if (pp->ops->host_init) {
- 		ret = pp->ops->host_init(pp);
-@@ -498,14 +481,14 @@ void dw_pcie_host_deinit(struct pcie_port *pp)
- }
- EXPORT_SYMBOL_GPL(dw_pcie_host_deinit);
- 
--static int dw_pcie_access_other_conf(struct pcie_port *pp, struct pci_bus *bus,
--				     u32 devfn, int where, int size, u32 *val,
--				     bool write)
-+static void __iomem *dw_pcie_other_conf_map_bus(struct pci_bus *bus,
-+						unsigned int devfn, int where)
- {
--	int ret, type;
-+	int type;
- 	u32 busdev, cfg_size;
- 	u64 cpu_addr;
- 	void __iomem *va_cfg_base;
-+	struct pcie_port *pp = bus->sysdata;
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
- 
- 	busdev = PCIE_ATU_BUS(bus->number) | PCIE_ATU_DEV(PCI_SLOT(devfn)) |
-@@ -526,79 +509,59 @@ static int dw_pcie_access_other_conf(struct pcie_port *pp, struct pci_bus *bus,
- 	dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
- 				  type, cpu_addr,
- 				  busdev, cfg_size);
--	if (write)
--		ret = dw_pcie_write(va_cfg_base + where, size, *val);
--	else
--		ret = dw_pcie_read(va_cfg_base + where, size, val);
- 
--	if (pci->num_viewport <= 2)
--		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
--					  PCIE_ATU_TYPE_IO, pp->io_base,
--					  pp->io_bus_addr, pp->io_size);
--
--	return ret;
--}
--
--static int dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
--				 u32 devfn, int where, int size, u32 *val)
--{
--	return dw_pcie_access_other_conf(pp, bus, devfn, where, size, val,
--					 false);
-+	return va_cfg_base + where;
- }
- 
--static int dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
--				 u32 devfn, int where, int size, u32 val)
--{
--	return dw_pcie_access_other_conf(pp, bus, devfn, where, size, &val,
--					 true);
--}
--
--static int dw_pcie_valid_device(struct pcie_port *pp, struct pci_bus *bus,
--				int dev)
-+static int dw_pcie_rd_other_conf(struct pci_bus *bus, unsigned int devfn,
-+				 int where, int size, u32 *val)
- {
-+	int ret;
-+	struct pcie_port *pp = bus->sysdata;
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
- 
--	/* If there is no link, then there is no device */
--	if (bus->number != pp->root_bus_nr) {
--		if (!dw_pcie_link_up(pci))
--			return 0;
--	}
-+	ret = pci_generic_config_read(bus, devfn, where, size, val);
- 
--	/* Access only one slot on each root port */
--	if (bus->number == pp->root_bus_nr && dev > 0)
--		return 0;
-+	if (!ret && pci->num_viewport <= 2)
-+		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
-+					  PCIE_ATU_TYPE_IO, pp->io_base,
-+					  pp->io_bus_addr, pp->io_size);
- 
--	return 1;
-+	return ret;
- }
- 
--static int dw_pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
--			   int size, u32 *val)
-+static int dw_pcie_wr_other_conf(struct pci_bus *bus, unsigned int devfn,
-+				 int where, int size, u32 val)
- {
-+	int ret;
- 	struct pcie_port *pp = bus->sysdata;
-+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
- 
--	if (!dw_pcie_valid_device(pp, bus, PCI_SLOT(devfn))) {
--		*val = 0xffffffff;
--		return PCIBIOS_DEVICE_NOT_FOUND;
--	}
-+	ret = pci_generic_config_write(bus, devfn, where, size, val);
- 
--	if (bus->number == pp->root_bus_nr)
--		return dw_pcie_rd_own_conf(pp, where, size, val);
-+	if (!ret && pci->num_viewport <= 2)
-+		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
-+					  PCIE_ATU_TYPE_IO, pp->io_base,
-+					  pp->io_bus_addr, pp->io_size);
- 
--	return dw_pcie_rd_other_conf(pp, bus, devfn, where, size, val);
-+	return ret;
- }
- 
--static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
--			   int where, int size, u32 val)
-+static struct pci_ops dw_child_pcie_ops = {
-+	.map_bus = dw_pcie_other_conf_map_bus,
-+	.read = dw_pcie_rd_other_conf,
-+	.write = dw_pcie_wr_other_conf,
-+};
-+
-+void __iomem *dw_pcie_own_conf_map_bus(struct pci_bus *bus, unsigned int devfn, int where)
- {
- 	struct pcie_port *pp = bus->sysdata;
-+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
- 
--	if (!dw_pcie_valid_device(pp, bus, PCI_SLOT(devfn)))
--		return PCIBIOS_DEVICE_NOT_FOUND;
--
--	if (bus->number == pp->root_bus_nr)
--		return dw_pcie_wr_own_conf(pp, where, size, val);
-+	if (PCI_SLOT(devfn) > 0)
-+		return NULL;
- 
--	return dw_pcie_wr_other_conf(pp, bus, devfn, where, size, val);
-+	return pci->dbi_base + where;
- }
- 
- void __iomem *dw_pcie_own_conf_map_bus(struct pci_bus *bus, unsigned int devfn, int where)
-@@ -613,8 +576,9 @@ void __iomem *dw_pcie_own_conf_map_bus(struct pci_bus *bus, unsigned int devfn,
- }
- 
- static struct pci_ops dw_pcie_ops = {
--	.read = dw_pcie_rd_conf,
--	.write = dw_pcie_wr_conf,
++static struct pci_ops meson_pci_ops = {
 +	.map_bus = dw_pcie_own_conf_map_bus,
-+	.read = pci_generic_config_read,
++	.read = meson_pcie_rd_own_conf,
 +	.write = pci_generic_config_write,
++};
+ 
+ static int meson_pcie_link_up(struct dw_pcie *pci)
+ {
+@@ -463,6 +460,8 @@ static int meson_pcie_host_init(struct pcie_port *pp)
+ 	struct meson_pcie *mp = to_meson_pcie(pci);
+ 	int ret;
+ 
++	pp->bridge->ops = &meson_pci_ops;
++
+ 	ret = meson_pcie_establish_link(mp);
+ 	if (ret)
+ 		return ret;
+@@ -473,8 +472,6 @@ static int meson_pcie_host_init(struct pcie_port *pp)
+ }
+ 
+ static const struct dw_pcie_host_ops meson_pcie_host_ops = {
+-	.rd_own_conf = meson_pcie_rd_own_conf,
+-	.wr_own_conf = meson_pcie_wr_own_conf,
+ 	.host_init = meson_pcie_host_init,
  };
  
- void dw_pcie_setup_rc(struct pcie_port *pp)
-@@ -673,7 +637,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
- 	 * the platform uses its own address translation component rather than
- 	 * ATU, so we should not program the ATU here.
- 	 */
--	if (pp->bridge->child_ops == &dw_pcie_ops && !pp->ops->rd_other_conf) {
-+	if (pp->bridge->child_ops == &dw_child_pcie_ops) {
- 		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX0,
- 					  PCIE_ATU_TYPE_MEM, pp->mem_base,
- 					  pp->mem_bus_addr, pp->mem_size);
 -- 
 2.25.1
 
