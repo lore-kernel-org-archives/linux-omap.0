@@ -1,169 +1,116 @@
-Return-Path: <SRS0=q+og=BN=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=+e0o=BO=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F26C433E8
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:02:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED998C433E1
+	for <linux-omap@archiver.kernel.org>; Tue,  4 Aug 2020 10:53:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 550FE22C9F
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Aug 2020 21:02:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596488545;
-	bh=gBOfUsjbGL4kYFEyaSqt2m8t5ikvGwxCI9sj2xgePf0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=1TfU0RNknWQQz5Zu4wBCCnTEuswidmNquGLaAa8xkdTi8/dSvX0RygfqwdjTdCo/R
-	 ysjrzpt275NkYgPZgv0HFC9xBJigWUGaB83ImUUtkce6VR3GP0Qw7Xf/sLHLAF5RDV
-	 9O2kAYolBKmrq3JHftXID2u7h3EuvcJWw5/sHn1c=
+	by mail.kernel.org (Postfix) with ESMTP id DDB79206D7
+	for <linux-omap@archiver.kernel.org>; Tue,  4 Aug 2020 10:53:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="SqQd/ZVz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729464AbgHCVCY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 3 Aug 2020 17:02:24 -0400
-Received: from mail-io1-f65.google.com ([209.85.166.65]:33153 "EHLO
-        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729103AbgHCVCW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2020 17:02:22 -0400
-Received: by mail-io1-f65.google.com with SMTP id g14so2509436iom.0;
-        Mon, 03 Aug 2020 14:02:22 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=bEN9vVsE3mU2Nyqo3uVsRwOE6mBebuJzlr8xG6a6d4M=;
-        b=gvlZ85rNLI4mgSE7YxG4Q0KiemuST2J48lyVHCiY+PD/HkVNhJJeVF9iNU9j+8IQmA
-         m7RZlm8jqvU/xvqtd9qXD3jCxIEGFPXJ215cUFJZfmk7q85O+SWGeLcYhRozUKOQB20E
-         3lypsIO/PIMIq6wFTTqsMH8smaBVIeAccdeOcp1p34QjkYuYMDjxMW/QhzyQ/aFpV+zs
-         BcIdQWmrsFL08Tj8HKJ5T9IntAeb0VAgtM72j92rAc0ek4lZBlfUIR4zVOJT0xudrgrI
-         ggu+PN1ng44B7cXiAICRF/sdUdyK8LwW5IllpxmaZ/yMl3XwfymoyW80U2tB3qWjQViJ
-         6Fow==
-X-Gm-Message-State: AOAM532rDbMpmjaGbpD+D13MkBENq9zkSYqmBgywDILaw+rD5kp1SKuA
-        HVVY1x77VoWi1WEwiT7ong==
-X-Google-Smtp-Source: ABdhPJzc5blExyVY0xBSjialU7rbyHIo6WdVKug3iv8C/bQYaB+qRckTphLyP0HPoPp/7SDACilwzg==
-X-Received: by 2002:a02:a584:: with SMTP id b4mr1758886jam.68.1596488541762;
-        Mon, 03 Aug 2020 14:02:21 -0700 (PDT)
-Received: from xps15.herring.priv ([64.188.179.252])
-        by smtp.googlemail.com with ESMTPSA id r6sm9292280iod.7.2020.08.03.14.02.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Aug 2020 14:02:21 -0700 (PDT)
-From:   Rob Herring <robh@kernel.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc:     Binghui Wang <wangbinghui@hisilicon.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Fabio Estevam <festevam@gmail.com>,
-        Jesper Nilsson <jesper.nilsson@axis.com>,
-        Jonathan Chocron <jonnyc@amazon.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
-        linux-amlogic@lists.infradead.org, linux-arm-kernel@axis.com,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-tegra@vger.kernel.org, Lucas Stach <l.stach@pengutronix.de>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Murali Karicheri <m-karicheri2@ti.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Pratyush Anand <pratyush.anand@gmail.com>,
-        Richard Zhu <hongxing.zhu@nxp.com>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Stanimir Varbanov <svarbanov@mm-sol.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Xiaowei Song <songxiaowei@hisilicon.com>,
-        Yue Wang <yue.wang@Amlogic.com>
-Subject: [RFC 23/27] PCI: dwc/meson: Drop unnecessary RC config space initialization
-Date:   Mon,  3 Aug 2020 15:01:12 -0600
-Message-Id: <20200803210116.3132633-24-robh@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200803210116.3132633-1-robh@kernel.org>
-References: <20200803210116.3132633-1-robh@kernel.org>
+        id S1729856AbgHDKxR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 4 Aug 2020 06:53:17 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:49354 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729385AbgHDKxR (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2020 06:53:17 -0400
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 074AqhDO042528;
+        Tue, 4 Aug 2020 05:52:43 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1596538363;
+        bh=uQ6uxpNiZLjJQRFzCMp3WoZnRXMhwKvSfyOXHQtKZdM=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=SqQd/ZVzprUjNAWwBMTgs61R8Zl7ON7vns2piEKwU5vctP/m1qVN1D+OR5m3H0+hU
+         P1jZ6qRJQceBYnoVri49CeRarEqEJnpVYdrwhJsomE/brzXvdEb/DOGtFDxGvHw6FV
+         9Iys7+6Dqb0SPrZmPsJjbQd5r9tSDUeF6imm5M5U=
+Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 074AqhKH047438
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 4 Aug 2020 05:52:43 -0500
+Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 4 Aug
+ 2020 05:52:43 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Tue, 4 Aug 2020 05:52:43 -0500
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 074Aqe1e080855;
+        Tue, 4 Aug 2020 05:52:40 -0500
+Subject: Re: [PATCHv2 0/4] Subject: panel-dsi-cm: update bindings
+To:     Sebastian Reichel <sebastian.reichel@collabora.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Sam Ravnborg <sam@ravnborg.org>,
+        Tony Lindgren <tony@atomide.com>
+CC:     Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, <kernel@collabora.com>
+References: <20200716125733.83654-1-sebastian.reichel@collabora.com>
+From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <7f414246-3a7b-a6f6-fff3-7ca883d52103@ti.com>
+Date:   Tue, 4 Aug 2020 13:52:39 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200716125733.83654-1-sebastian.reichel@collabora.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The common Designware init already initializes the RC PCI_COMMAND, BAR0
-and BAR1 registers.
+Hi Sebastian,
 
-The only difference here is the common code sets SERR. If clearing SERR
-is what's desired, then the Meson driver should do that instead.
+On 16/07/2020 15:57, Sebastian Reichel wrote:
+> The cleanup series for omapdrm's DSI code got too big. Reviewing
+> this is not fun and the same goes for keeping track of the change
+> requests. Let's do the cleanup in smaller steps instead. This is
+> the first batch, which updates the binding (txt -> yaml) and
+> modifies the DT slightly.
+> 
+> Changes since PATCHv1 [0]:
+> 
+> PATCHv1..PATCHv2:
+>  * Update binding as suggested by Sam
+>   * Remove 'port' from required list
+>   * Drop 'lanes' and 'port' from example ('lanes' is a port property
+>     used by OMAP's DSI controller)
+>   * Drop the label from example
+>   * Add '...' at end of file
+>  * Fix , in patch description from patch 2
+>  * Apply Reviewed-by tags
+> 
+> [0] https://lore.kernel.org/dri-devel/20200629223315.118256-1-sebastian.reichel@collabora.com/
+> 
+> -- Sebastian
+> 
+> Sebastian Reichel (4):
+>   dt-bindings: display: panel-dsi-cm: convert to YAML
+>   ARM: dts: omap: add channel to DSI panels
+>   ARM: dts: omap4-droid4: add panel compatible
+>   ARM: dts: omap4-droid4: add panel orientation
 
-Cc: Yue Wang <yue.wang@Amlogic.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Kevin Hilman <khilman@baylibre.com>
-Cc: linux-pci@vger.kernel.org
-Cc: linux-amlogic@lists.infradead.org
-Cc: linux-arm-kernel@lists.infradead.org
-Signed-off-by: Rob Herring <robh@kernel.org>
----
- drivers/pci/controller/dwc/pci-meson.c | 20 --------------------
- 1 file changed, 20 deletions(-)
+For the series:
 
-diff --git a/drivers/pci/controller/dwc/pci-meson.c b/drivers/pci/controller/dwc/pci-meson.c
-index cbde683d107f..d1cfc65f0a69 100644
---- a/drivers/pci/controller/dwc/pci-meson.c
-+++ b/drivers/pci/controller/dwc/pci-meson.c
-@@ -34,15 +34,6 @@
- #define NUM_OF_LANES_X1			BIT(8)
- #define DIRECT_SPEED_CHANGE		BIT(17)
- 
--#define TYPE1_HDR_OFFSET		0x0
--#define PCIE_STATUS_COMMAND		(TYPE1_HDR_OFFSET + 0x04)
--#define PCI_IO_EN			BIT(0)
--#define PCI_MEM_SPACE_EN		BIT(1)
--#define PCI_BUS_MASTER_EN		BIT(2)
--
--#define PCIE_BASE_ADDR0			(TYPE1_HDR_OFFSET + 0x10)
--#define PCIE_BASE_ADDR1			(TYPE1_HDR_OFFSET + 0x14)
--
- #define PCIE_CAP_OFFSET			0x70
- #define PCIE_DEV_CTRL_DEV_STUS		(PCIE_CAP_OFFSET + 0x08)
- #define PCIE_CAP_MAX_PAYLOAD_MASK	GENMASK(7, 5)
-@@ -303,9 +294,6 @@ static void meson_pcie_init_dw(struct meson_pcie *mp)
- 	val = meson_elb_readl(mp, PCIE_GEN2_CTRL_OFF);
- 	val |= NUM_OF_LANES_X1 | DIRECT_SPEED_CHANGE;
- 	meson_elb_writel(mp, val, PCIE_GEN2_CTRL_OFF);
--
--	meson_elb_writel(mp, 0x0, PCIE_BASE_ADDR0);
--	meson_elb_writel(mp, 0x0, PCIE_BASE_ADDR1);
- }
- 
- static int meson_size_to_payload(struct meson_pcie *mp, int size)
-@@ -353,13 +341,6 @@ static void meson_set_max_rd_req_size(struct meson_pcie *mp, int size)
- 	meson_elb_writel(mp, val, PCIE_DEV_CTRL_DEV_STUS);
- }
- 
--static inline void meson_enable_memory_space(struct meson_pcie *mp)
--{
--	/* Set the RC Bus Master, Memory Space and I/O Space enables */
--	meson_elb_writel(mp, PCI_IO_EN | PCI_MEM_SPACE_EN | PCI_BUS_MASTER_EN,
--			 PCIE_STATUS_COMMAND);
--}
--
- static int meson_pcie_establish_link(struct meson_pcie *mp)
- {
- 	struct dw_pcie *pci = &mp->pci;
-@@ -370,7 +351,6 @@ static int meson_pcie_establish_link(struct meson_pcie *mp)
- 	meson_set_max_rd_req_size(mp, MAX_READ_REQ_SIZE);
- 
- 	dw_pcie_setup_rc(pp);
--	meson_enable_memory_space(mp);
- 
- 	meson_pcie_assert_reset(mp);
- 
+Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+ Tomi
+
 -- 
-2.25.1
-
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
