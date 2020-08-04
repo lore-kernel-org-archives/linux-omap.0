@@ -2,63 +2,77 @@ Return-Path: <SRS0=+e0o=BO=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88EEDC433E0
-	for <linux-omap@archiver.kernel.org>; Tue,  4 Aug 2020 12:28:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE65C433DF
+	for <linux-omap@archiver.kernel.org>; Tue,  4 Aug 2020 12:43:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6483922CB2
-	for <linux-omap@archiver.kernel.org>; Tue,  4 Aug 2020 12:28:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3D132067D
+	for <linux-omap@archiver.kernel.org>; Tue,  4 Aug 2020 12:43:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hj7/DHXK"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="m37UpEgf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725854AbgHDM25 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 4 Aug 2020 08:28:57 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:53614 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726027AbgHDM24 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2020 08:28:56 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 074CDuMw074502;
-        Tue, 4 Aug 2020 07:13:56 -0500
+        id S1726070AbgHDMnd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 4 Aug 2020 08:43:33 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:34188 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726210AbgHDMnb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2020 08:43:31 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 074Ch8LF070948;
+        Tue, 4 Aug 2020 07:43:08 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1596543236;
-        bh=JOfyqeir6ARFogRylpwG98UmFIW6NsPI8sn/W2c7nS8=;
+        s=ti-com-17Q1; t=1596544988;
+        bh=Fguzuuu0jRu6YBNlvQybzi5mD4qlGAz2PdswFsHHyMA=;
         h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=hj7/DHXKrmzVI+81eoPWOx67pkrZ07i6xAfDurwE2vytkUnzGK9jL7UoZikxWfHHy
-         671kzWzaLfE/0ARN2opsVHNIFrItvNQT9x7iomlTKSBWOLYEupGF0elk7zWidN6o8O
-         mIX2RO/ePMFWeY1riI1da0xC3RFvJg7/0UbNrJZQ=
-Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 074CDuTT086662
+        b=m37UpEgfU1I/whlh7Zii3qGIKsWhO0ZYnz88BR82Cmb8HSM1ofZkF35mMwPn14G7G
+         wI4cMb+0AXxH7l6hqtkI/th8GJzSv6YfCSX4o/iyFuBb9PC87FWZajCWK7qZwdBrlD
+         lAqxYG7U9jvL8q/HsFeQTfN2AJQizeD4fuxziofE=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 074Ch8Ym105674
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 4 Aug 2020 07:13:56 -0500
-Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 4 Aug 2020 07:43:08 -0500
+Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 4 Aug
- 2020 07:13:55 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 07:43:07 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 4 Aug 2020 07:13:55 -0500
+ Frontend Transport; Tue, 4 Aug 2020 07:43:07 -0500
 Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 074CDsOf094163;
-        Tue, 4 Aug 2020 07:13:54 -0500
-Subject: Re: [REGRESSION] omapdrm/N900 display broken
-To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 074Ch5R6003946;
+        Tue, 4 Aug 2020 07:43:06 -0500
+Subject: Re: module_mipi_dsi_driver panel with omapdrm?
+To:     "H. Nikolaus Schaller" <hns@goldelico.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC:     Tony Lindgren <tony@atomide.com>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-References: <20200728181412.GA49617@darkstar.musicnaut.iki.fi>
+CC:     Tony Lindgren <tony@atomide.com>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        Jyri Sarha <jsarha@ti.com>, <kernel@pyra-handheld.com>,
+        Discussions about the Letux Kernel 
+        <letux-kernel@openphoenux.org>, David Shah <dave@ds0.me>,
+        Sebastian Reichel <sebastian.reichel@collabora.com>
+References: <5F4C23B0-A82B-4F94-BD74-D04F6D798FC0@goldelico.com>
+ <20200705142653.GQ37466@atomide.com> <20200705143614.GR37466@atomide.com>
+ <E200E98D-A4F8-4270-B192-33733F4C7235@goldelico.com>
+ <20200706143613.GS37466@atomide.com>
+ <E4616E3C-2519-4421-BC75-87A5CA2BB9EF@goldelico.com>
+ <20200707180115.GB5849@atomide.com>
+ <ECE29C41-DFE5-4A50-9206-6FB3183824C3@goldelico.com>
+ <6E0A9415-9AB5-48D9-9E61-12D20655D04D@goldelico.com>
+ <EE54FB82-C18E-4B81-AB38-E9453A32406B@goldelico.com>
+ <20200724012411.GJ21353@pendragon.ideasonboard.com>
+ <7023EB05-DC29-4D42-84C8-F0D14B50467D@goldelico.com>
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <660b2fe1-343d-b83e-11d2-5a5eb530b83f@ti.com>
-Date:   Tue, 4 Aug 2020 15:13:53 +0300
+Message-ID: <e4caecb9-59d9-942c-0996-5906617d2604@ti.com>
+Date:   Tue, 4 Aug 2020 15:43:05 +0300
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.10.0
 MIME-Version: 1.0
-In-Reply-To: <20200728181412.GA49617@darkstar.musicnaut.iki.fi>
+In-Reply-To: <7023EB05-DC29-4D42-84C8-F0D14B50467D@goldelico.com>
 Content-Type: text/plain; charset="utf-8"
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -68,74 +82,53 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 28/07/2020 21:14, Aaro Koskinen wrote:
-> Hi,
+On 01/08/2020 16:43, H. Nikolaus Schaller wrote:
+
+> Fortunately David did fix the broken "reboot" for OMAP5 (when using timer8).
+> Now I could run an unattended bisect session for the MIPI DSI panel driver
+> to find as the first bad commit:
 > 
-> Looks like N900 display support has broken after v5.6.
-> 
-> When using v5.7, or the current mainline (v5.8-rc7), the boot hangs at:
-> 
-> [    6.269500] omapdss_dss 48050000.dss: 48050000.dss supply vdda_video not found, using dummy regulator
-> [    6.321685] DSS: OMAP DSS rev 2.0
-> [    6.328002] omapdss_dss 48050000.dss: bound 48050400.dispc (ops dispc_component_ops)
-> [    6.336364] omapdss_dss 48050000.dss: bound 48050c00.encoder (ops venc_component_ops)
-> [    6.345153] omapdrm omapdrm.0: DMM not available, disable DMM support
-> [    6.352447] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
-> 
-> with a blank display.
-> 
-> I tried to bisect this, and the first commit that breaks the display is:
-> 
-> 2f004792adadcf017fde50339b432a26039fff0c is the first bad commit
-> commit 2f004792adadcf017fde50339b432a26039fff0c
+> commit e7e67d9a2f1dd2f938adcc219b3769f5cc3f0df7
 > Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:   Wed Feb 26 13:24:57 2020 +0200
+> Date:   Wed Feb 26 13:24:59 2020 +0200
 > 
->     drm/omap: venc: Register a drm_bridge
+>    drm/omap: Switch the HDMI and VENC outputs to drm_bridge
 > 
-> This commit does not yet hang the kernel, but the display is blank and
-> the probe fails:
+> This was merged through v5.7-rc1. The problem persists since then up
+> to v5.8-rc7 and likely also to v5.9.
 > 
-> [    6.290100] omapdss_dss 48050000.dss: 48050000.dss supply vdda_video not foun
-> d, using dummy regulator
-> [    6.342346] DSS: OMAP DSS rev 2.0
-> [    6.348663] omapdss_dss 48050000.dss: bound 48050400.dispc (ops dispc_component_ops)
-> [    6.357025] omapdss_dss 48050000.dss: bound 48050c00.encoder (ops venc_component_ops)
-> [    6.365814] omapdrm omapdrm.0: DMM not available, disable DMM support
-> [    6.372863] omapdrm omapdrm.0: omap_modeset_init failed: ret=-22
-> [    6.414611] omapdrm: probe of omapdrm.0 failed with error -22
-
-Afaics, this is caused by the patch doing
-
-	if (!venc->output.next_bridge)
-
-instead of
-
-	if (venc->output.next_bridge)
-
-Fixing that removes the error on beagle xm, but for some reason I don't see TV-out as a DRM output
-(but HDMI output works).
-
-> The hang seems to start with this commit:
+> What I guess from the change hunks is that this is the critical one:
 > 
-> commit 8bef8a6d5da81b909a190822b96805a47348146f (HEAD -> master)
-> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:   Wed Feb 26 13:25:10 2020 +0200
+> diff --git a/drivers/gpu/drm/omapdrm/dss/output.c b/drivers/gpu/drm/omapdrm/dss/output.c
+> index 9ba7cc8539a1..ce21c798cca6 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/output.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/output.c
+> @@ -60,6 +60,11 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+>  	}
+>  
+>  	if (local_bridge) {
+> +		if (!out->bridge) {
+> +			ret = -EPROBE_DEFER;
+> +			goto error;
+> +		}
+> +
+>  		out->next_bridge = out->bridge;
+>  		out->bridge = local_bridge;
+>  	}
 > 
->     drm/omap: sdi: Register a drm_bridge
+> Since I have not seen a reference to an omap DSI bridge driver in upstream kernels
+> I would assume that out->bridge is NULL and therefore probing is deferred forever
+> and the old MIPI DSI driver (which is still there) is no longer operational.
 > 
-> Confusingly, some of the commits between these two commits do provide a
-> working display, e.g. 13d2d52f59c0c79398d9c9e2ea3d661a0e5b6bbc ("drm/omap:
-> sdi: Sort includes alphabetically") works...
+> This is consistent with that our (old omapdrm) panel driver is no longer probed.
 
-The venc issue is fixed in "Switch the HDMI and VENC outputs to drm_bridge", which is a few commits
-after the "venc: Register a drm_bridge".
+What happens? Do you get any displays? Or no displays at all? Do you get an error print?
 
-So I'm guessing SDI works until "sdi: Register a drm_bridge", but as omapdrm doesn't probe, you get
-no displays.
+As Sebastian said, this shouldn't prevent DSI from probing. I don't see anything in the commit that
+might affect DSI.
 
-Can you try to pinpoint a bit where the hang happens? Maybe add DRM/omapdrm debug prints, or perhaps
-sysrq works and it shows a lock that's in deadlock.
+Does the board have other display outputs? HDMI? If yes, could you try with HDMI disabled, e.g. set
+its status to "disabled" in the .dts.
 
  Tomi
 
