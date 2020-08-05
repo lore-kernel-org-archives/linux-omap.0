@@ -1,43 +1,60 @@
-Return-Path: <SRS0=Icmk=BP=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=3hw0=BQ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5AC0C433E0
-	for <linux-omap@archiver.kernel.org>; Wed,  5 Aug 2020 19:57:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B06A1C433DF
+	for <linux-omap@archiver.kernel.org>; Thu,  6 Aug 2020 00:09:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B15672076E
-	for <linux-omap@archiver.kernel.org>; Wed,  5 Aug 2020 19:57:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CAB122CAE
+	for <linux-omap@archiver.kernel.org>; Thu,  6 Aug 2020 00:09:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="sWPzE31G"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727996AbgHET5R (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 5 Aug 2020 15:57:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45426 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727986AbgHEQoI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2020 12:44:08 -0400
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD5F2C061A32
-        for <linux-omap@vger.kernel.org>; Wed,  5 Aug 2020 04:34:19 -0700 (PDT)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: sre)
-        with ESMTPSA id 0C683296D13
-Received: by earth.universe (Postfix, from userid 1000)
-        id 200B43C0C80; Wed,  5 Aug 2020 13:28:31 +0200 (CEST)
-Date:   Wed, 5 Aug 2020 13:28:31 +0200
-From:   Sebastian Reichel <sebastian.reichel@collabora.com>
-To:     "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        id S1725969AbgHFAJg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 5 Aug 2020 20:09:36 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:47106 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725779AbgHFAJg (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2020 20:09:36 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 075C8WYJ052997;
+        Wed, 5 Aug 2020 07:08:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1596629312;
+        bh=bYN9YMMfBLPwBNbNiYnHPFmJhdJUzDpSUVoYpTUh52w=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=sWPzE31G5P5hKsv4rPXlmqJQQKC22yKVKcccDOeadD4omqWsXpF2dUqmKrdFtNGTH
+         kGY5VBA2rk24Uhq1tnu6rSYDUEgOJz8w1IwVoEyyZvnPv/Qj4trMrJTb+L6nDnl1l6
+         V8bHHuk3s6t6Dw8ZfPEoB722KezljuhKEou0moQc=
+Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 075C8W7u095378
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 5 Aug 2020 07:08:32 -0500
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 5 Aug
+ 2020 07:08:32 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 5 Aug 2020 07:08:32 -0500
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 075C8Tt9037679;
+        Wed, 5 Aug 2020 07:08:30 -0500
+Subject: Re: module_mipi_dsi_driver panel with omapdrm?
+To:     "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Sebastian Reichel <sebastian.reichel@collabora.com>
+CC:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tony Lindgren <tony@atomide.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
         Linux-OMAP <linux-omap@vger.kernel.org>,
-        Jyri Sarha <jsarha@ti.com>, kernel@pyra-handheld.com,
+        Jyri Sarha <jsarha@ti.com>, <kernel@pyra-handheld.com>,
         Discussions about the Letux Kernel 
         <letux-kernel@openphoenux.org>, David Shah <dave@ds0.me>
-Subject: Re: module_mipi_dsi_driver panel with omapdrm?
-Message-ID: <20200805112831.akufm5wxkwqehiff@earth.universe>
 References: <20200706143613.GS37466@atomide.com>
  <E4616E3C-2519-4421-BC75-87A5CA2BB9EF@goldelico.com>
  <20200707180115.GB5849@atomide.com>
@@ -48,52 +65,55 @@ References: <20200706143613.GS37466@atomide.com>
  <7023EB05-DC29-4D42-84C8-F0D14B50467D@goldelico.com>
  <20200801232259.hitcfosiq6f2i57y@earth.universe>
  <4F1BD997-B791-4570-92B9-552C9BFF1350@goldelico.com>
+ <20200805112831.akufm5wxkwqehiff@earth.universe>
+ <0DDD1D3E-4F63-44B4-91CA-1B5B853837BC@goldelico.com>
+From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <64416676-a2ea-f11e-4d07-51a3efb55cdd@ti.com>
+Date:   Wed, 5 Aug 2020 15:08:29 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="a37zflkawikvjlp7"
-Content-Disposition: inline
-In-Reply-To: <4F1BD997-B791-4570-92B9-552C9BFF1350@goldelico.com>
+In-Reply-To: <0DDD1D3E-4F63-44B4-91CA-1B5B853837BC@goldelico.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On 05/08/2020 14:49, H. Nikolaus Schaller wrote:
+> Hi,
+> 
+>> Am 05.08.2020 um 13:28 schrieb Sebastian Reichel <sebastian.reichel@collabora.com>:
+>>
+>> Hi,
+>>
+>> On Wed, Aug 05, 2020 at 11:19:20AM +0200, H. Nikolaus Schaller wrote:
+>>> What I do not yet understand is how Laurent's patch should be able
+>>> to break it.
+>>
+>> omapdrm will not probe successfully if any DT enabled component
+>> does not probe correctly. Since the patch you identified touched
+>> HDMI and VENC and you are probably using HDMI, I suggest looking
+>> there first.
+> 
+> Yes, that is a very good explanation.
+> 
+> Maybe there is a subtle change in how the HDMI connector has to be defined
+> which is missing in our (private) DTB. Maybe the OMAP5-uEVM DTS gives a hint.
+> 
+> A quick check shows last hdmi specific change for omap5-board-common or uevm
+> was in 2017 but I may have missed something.
+> 
+> There are 715a5a978733f0 and 671ab615bd507f which arrived in v5.7-rc1 as well
+> and are related to hdmi clocks. So this may be (or not) and influencing factor.
 
---a37zflkawikvjlp7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+HDMI should "just work", and has been tested. But maybe there's some conflict with HDMI and DSI.
 
-Hi,
+ Tomi
 
-On Wed, Aug 05, 2020 at 11:19:20AM +0200, H. Nikolaus Schaller wrote:
-> What I do not yet understand is how Laurent's patch should be able
-> to break it.
-
-omapdrm will not probe successfully if any DT enabled component
-does not probe correctly. Since the patch you identified touched
-HDMI and VENC and you are probably using HDMI, I suggest looking
-there first.
-
--- Sebastian
-
---a37zflkawikvjlp7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl8ql9wACgkQ2O7X88g7
-+pqeDRAAnqk/I1N3UtFVhKyYwGdjweNLWWlDvUQwEVEnQYTLMDEvqBv1k+Ueu3HF
-8gCY53VYX4yWmaJABE31gneKOIaaMlSweNDFAeUbyQVdJg3y+k6jupi6+Jdmek6H
-+6LSf6kUyQkftiEoolmZ+cDFuWjAuR2MTv2JePqraKJfEnZ/xDv9YhvbI1hz0SSt
-2k7XpZ+09n9XG1/UZ8eeOWSqfgWwi0Gyv6N2ZESYLJ+zPwKMZH5fGaUSiiJi8sMG
-tkmHq8YCHdzeWhpJSrIR7PIb8MPldZvcLFzKaRdbfOx+2p9FAJy2QNUNbfBT6RUZ
-Rj4zVvLxFmfz+hIg2gPGruEiS0iWn7vYIlsYRKIGtBXYeYqU+hjHQ9Yv9N7PauQj
-wsJiLzKqunHHrmYGdkg+Sog5WvVAjrW1rM6X75BIgOhfjmrFba0tLriTc9uYgMTV
-gf/Z2BzSxzSqfdvT0D1StjP51tm6pvnGGDZH6Bjne0ORzoJ/3mEWnhaPYwUFQVIM
-XcYHBjdaMTPK/mU/kSUF4wnGGa1BdC45GIIc4wW2mUi7HPN0FoCbr4UE59WGlaVm
-9jhzRyIj0U1nNUC3X2CyrWW63Oeq/xHyYO3duh+d2G4iIbmHZZYylSthHjKnPSSk
-8bMkTRCIpdTroYXDQAOArqc+hL3kx9wNaDBySpebEPdy2ZcQcXE=
-=2Ypw
------END PGP SIGNATURE-----
-
---a37zflkawikvjlp7--
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
