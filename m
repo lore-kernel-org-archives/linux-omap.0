@@ -1,117 +1,96 @@
-Return-Path: <SRS0=OryN=BR=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=Oj0R=BS=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBEABC433E0
-	for <linux-omap@archiver.kernel.org>; Fri,  7 Aug 2020 06:54:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0569C433DF
+	for <linux-omap@archiver.kernel.org>; Sat,  8 Aug 2020 10:03:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C754420866
-	for <linux-omap@archiver.kernel.org>; Fri,  7 Aug 2020 06:54:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6072C2075D
+	for <linux-omap@archiver.kernel.org>; Sat,  8 Aug 2020 10:03:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="q1F/m2xv"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=ds0.me header.i=@ds0.me header.b="IElf/tL2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725845AbgHGGyS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:54:18 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:33368 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725805AbgHGGyS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2020 02:54:18 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0776rnW2127527;
-        Fri, 7 Aug 2020 01:53:49 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1596783229;
-        bh=H8Fcq9JgY7I574mXCNx2xPhMfMGPrsM0PbRE3Vkkm0Q=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=q1F/m2xvdjOtiiyR4Zb9Any9X9vOPPVYxbvRIc1sv1N/QS75VEHZUImAwKAJcD9j/
-         LWCKetZcfNVxv+zTis8ibVG99ju/LgLFH71o05FACqx2tN6JA4UKahjEYChPwJ1Zoc
-         FESj1pdZf+fNz67lrIv+lY/Yvrce7GUaCfd3/K4I=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0776rncO092793;
-        Fri, 7 Aug 2020 01:53:49 -0500
-Received: from DFLE113.ent.ti.com (10.64.6.34) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 7 Aug
- 2020 01:53:49 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 7 Aug 2020 01:53:49 -0500
-Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0776rlnG100098;
-        Fri, 7 Aug 2020 01:53:47 -0500
-Subject: Re: [Letux-kernel] module_mipi_dsi_driver panel with omapdrm?
-To:     David Shah <dave@ds0.me>,
-        Discussions about the Letux Kernel 
-        <letux-kernel@openphoenux.org>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.com>
-CC:     Linux-OMAP <linux-omap@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jyri Sarha <jsarha@ti.com>, <kernel@pyra-handheld.com>
-References: <20200706143613.GS37466@atomide.com>
- <E4616E3C-2519-4421-BC75-87A5CA2BB9EF@goldelico.com>
- <20200707180115.GB5849@atomide.com>
- <ECE29C41-DFE5-4A50-9206-6FB3183824C3@goldelico.com>
- <6E0A9415-9AB5-48D9-9E61-12D20655D04D@goldelico.com>
- <EE54FB82-C18E-4B81-AB38-E9453A32406B@goldelico.com>
- <20200724012411.GJ21353@pendragon.ideasonboard.com>
- <7023EB05-DC29-4D42-84C8-F0D14B50467D@goldelico.com>
- <20200801232259.hitcfosiq6f2i57y@earth.universe>
- <4F1BD997-B791-4570-92B9-552C9BFF1350@goldelico.com>
- <20200805112831.akufm5wxkwqehiff@earth.universe>
- <0DDD1D3E-4F63-44B4-91CA-1B5B853837BC@goldelico.com>
- <64416676-a2ea-f11e-4d07-51a3efb55cdd@ti.com>
- <7ef4e081c1a0db81fd98f9e94afc6228a9b68703.camel@ds0.me>
- <1ec9febeb685c7fa866b14b0a4c2a5026f0a3461.camel@ds0.me>
- <63501267004c35bd1dc6971cb9cddda07c967303.camel@ds0.me>
-From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <8c46fc9f-833e-bdf6-3702-20cccc8145c7@ti.com>
-Date:   Fri, 7 Aug 2020 09:53:46 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1726252AbgHHKDS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 8 Aug 2020 06:03:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55964 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726190AbgHHKDS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 8 Aug 2020 06:03:18 -0400
+Received: from ds0.me (ds0.me [IPv6:2602:ffc5::f9bc:b4ce])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 637BAC061756
+        for <linux-omap@vger.kernel.org>; Sat,  8 Aug 2020 03:03:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=ds0.me; s=mail;
+        h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:To:From; bh=9rm62jKdMOX2BycAqq8nJnYpDutiVhxvToh7SPsYLxo=;
+        b=IElf/tL2t30N7TB/JovD7lNzq1lNcpd3vHr17OvI91Mc2a6m/TCzwEYJN04OG8fQ8xVY8WK21vHrbnZ4dVYWE+/PEnEYBwvH6Wkt6HAOLRdaySQrbQi5dGSqXAzLsDIX17p9tQFMoHh6LadhpC2pwmQ12WMZjCBz/QjBZ2GeTpE=;
+Received: from 97e0b068.skybroadband.com ([151.224.176.104] helo=localhost.localdomain)
+        by ds0.me with esmtpa (Exim 4.84_2)
+        (envelope-from <dave@ds0.me>)
+        id 1k4Lgw-0006FR-Tm; Sat, 08 Aug 2020 06:03:07 -0400
+From:   David Shah <dave@ds0.me>
+To:     letux-kernel@openphoenux.org, kernel@pyra-handheld.com,
+        linux-omap@vger.kernel.org, tony@atomide.com
+Subject: [PATCH] omap5: Fix reboot DPLL lock failure when using ABE TIMERs
+Date:   Sat,  8 Aug 2020 11:02:50 +0100
+Message-Id: <20200808100250.35076-1-dave@ds0.me>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-In-Reply-To: <63501267004c35bd1dc6971cb9cddda07c967303.camel@ds0.me>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi David,
+Having the ABE DPLL ref and bypass muxes set to different inputs was
+causing the DPLL not to lock  when TIMER8 was used, as it is in the Pyra
+for the backlight.
 
-On 06/08/2020 21:44, David Shah wrote:
-> Following a bit of testing, the DSI issues are fixed by 
-> https://github.com/daveshah1/pyra-kernel-devel/commit/3161275854a0f2cd44a55b8eb039bd201f894486
->  (I will prepare a proper patch set shortly). This makes the display
-> work with HDMI disabled.
+This patch fixes this by setting abe_dpll_bypass_clk_mux to sys_32k_ck
+in omap5xxx_dt_clk_init.
 
-Good catch, looks like a correct fix.
+A similar patch may also be needed for OMAP44xx which has similar code
+in omap4xxx_dt_clk_init, but I have not added this as I have no hardware
+to test on.
 
-> There also seems to be a race condition between the hdmi0 connector
-> and tpd12s015 "encoder". This results in the tpd12s015 permanently
-> returning EPROBE_DEFER and the display subsystem never successfully
-> probing.
-> 
-> Reversing the order of the encoder and connector in the device tree
-> (omap5-board-common.dtsi) makes the display work again with HDMI
-> enabled; as does adding some printks to the display-connector driver.
+Signed-off-by: David Shah <dave@ds0.me>
+---
+ drivers/clk/ti/clk-54xx.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-Ok, interesting... I was trying to boot up my omap5 uevm, but it halts during the boot, last print
-being "palmas 0-0048: Irq flag is 0x00000008".
-
-I'll try some other boards which have similar HDMI setup to see if I can reproduce.
-
- Tomi
-
+diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+index a4c5be533fbf..0a998e0e7d3b 100644
+--- a/drivers/clk/ti/clk-54xx.c
++++ b/drivers/clk/ti/clk-54xx.c
+@@ -617,7 +617,7 @@ static struct ti_dt_clk omap54xx_clks[] = {
+ int __init omap5xxx_dt_clk_init(void)
+ {
+ 	int rc;
+-	struct clk *abe_dpll_ref, *abe_dpll, *sys_32k_ck, *usb_dpll;
++	struct clk *abe_dpll_ref, *abe_dpll, *abe_dpll_byp, *sys_32k_ck, *usb_dpll;
+ 
+ 	ti_dt_clocks_register(omap54xx_clks);
+ 
+@@ -628,6 +628,16 @@ int __init omap5xxx_dt_clk_init(void)
+ 	abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_clk_mux");
+ 	sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
+ 	rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
++
++	/* 
++	 * This must also be set to sys_32k_ck to match or
++	 * the ABE DPLL will not lock on a warm reboot when
++	 * ABE timers are used.
++	*/
++	abe_dpll_byp = clk_get_sys(NULL, "abe_dpll_bypass_clk_mux");
++	if (!rc)
++		rc = clk_set_parent(abe_dpll_byp, sys_32k_ck);
++
+ 	abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
+ 	if (!rc)
+ 		rc = clk_set_rate(abe_dpll, OMAP5_DPLL_ABE_DEFFREQ);
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.27.0
+
