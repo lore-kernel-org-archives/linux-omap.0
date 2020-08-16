@@ -2,204 +2,194 @@ Return-Path: <SRS0=by2e=B2=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 880E2C433DF
-	for <linux-omap@archiver.kernel.org>; Sun, 16 Aug 2020 11:25:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C90E7C433E1
+	for <linux-omap@archiver.kernel.org>; Sun, 16 Aug 2020 17:13:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FB8420760
-	for <linux-omap@archiver.kernel.org>; Sun, 16 Aug 2020 11:25:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54C4020829
+	for <linux-omap@archiver.kernel.org>; Sun, 16 Aug 2020 17:13:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="Cs7/UimI"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=ds0.me header.i=@ds0.me header.b="VUBXZeDp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728913AbgHPLZK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 16 Aug 2020 07:25:10 -0400
-Received: from mo4-p01-ob.smtp.rzone.de ([81.169.146.165]:25156 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726971AbgHPLZG (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2020 07:25:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1597577098;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=RbaWvxLbZYhYmRBCvlGb2AaBi8Bxa6oAcs3HYd06/Tg=;
-        b=Cs7/UimIFpUJ8Hq52jhqHC+AnEq12/ZzGYR9o84LHdw3yscOrEn1RZ7f2tQqvk57Qv
-        OT9KQeh4TnE1mllNy2eTLiBW8zGZXBkG9jtrE2SPCBbYBxgPPRk7uyPBivz2CC4pyxz1
-        tjnLYhJEayGMVA4VQ2MGzOJhO9bCyF4zGQBo1mvAFBryUyhUiae7L8FWLLTVleBwuVNm
-        97JN0IdMYDm5JsqF2jJv+a5+3SX7xMqaUI8uTooFwTPuLSVqp/wIY8xtHMrxOeZo7JLf
-        ECAdKXnCmZ0M1cTl4llVma4OTH9b73+6Oa2Pc2Lu6iArh8qyl071Mm+HQGXx3uwLyIUb
-        f9mQ==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj7wpz8NMGHPrpwDOpoA=="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 46.10.5 DYNA|AUTH)
-        with ESMTPSA id V07054w7GBOmJJG
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Sun, 16 Aug 2020 13:24:48 +0200 (CEST)
-Subject: Re: [Letux-kernel] module_mipi_dsi_driver panel with omapdrm?
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <63501267004c35bd1dc6971cb9cddda07c967303.camel@ds0.me>
-Date:   Sun, 16 Aug 2020 13:24:47 +0200
-Cc:     Discussions about the Letux Kernel <letux-kernel@openphoenux.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.com>,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jyri Sarha <jsarha@ti.com>, kernel@pyra-handheld.com
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <83C454BF-F443-4C8F-904E-D6745A01A296@goldelico.com>
-References: <20200706143613.GS37466@atomide.com> <E4616E3C-2519-4421-BC75-87A5CA2BB9EF@goldelico.com> <20200707180115.GB5849@atomide.com> <ECE29C41-DFE5-4A50-9206-6FB3183824C3@goldelico.com> <6E0A9415-9AB5-48D9-9E61-12D20655D04D@goldelico.com> <EE54FB82-C18E-4B81-AB38-E9453A32406B@goldelico.com> <20200724012411.GJ21353@pendragon.ideasonboard.com> <7023EB05-DC29-4D42-84C8-F0D14B50467D@goldelico.com> <20200801232259.hitcfosiq6f2i57y@earth.universe> <4F1BD997-B791-4570-92B9-552C9BFF1350@goldelico.com> <20200805112831.akufm5wxkwqehiff@earth.universe> <0DDD1D3E-4F63-44B4-91CA-1B5B853837BC@goldelico.com> <64416676-a2ea-f11e-4d07-51a3efb55cdd@ti.com> <7ef4e081c1a0db81fd98f9e94afc6228a9b68703.camel@ds0.me> <1ec9febeb685c7fa866b14b0a4c2a5026f0a3461.camel@ds0.me> <63501267004c35bd1dc6971cb9cddda07c967303.camel@ds0.me>
-To:     David Shah <dave@ds0.me>
-X-Mailer: Apple Mail (2.3124)
+        id S1728306AbgHPRNl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 16 Aug 2020 13:13:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54054 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726699AbgHPRNk (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2020 13:13:40 -0400
+Received: from ds0.me (ds0.me [IPv6:2602:ffc5::f9bc:b4ce])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4355EC061786
+        for <linux-omap@vger.kernel.org>; Sun, 16 Aug 2020 10:13:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=ds0.me; s=mail;
+        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:To:From:Subject:Message-ID; bh=ULZWULeDqVkBMK8uPtVrFR4fQlAwJHmiLEMeNqeCm+0=;
+        b=VUBXZeDpTKlizHIZO+v3Ts+t1Dnp3XtHzQpdDwkUPvH0VncdV/rq6g1PuM370/ElyWhHL4lTZ+caiumy8MouRAcjKVtIHgIPMBnJdiq8U92zrVj1mVvGN7lBtQy4V8iB+PvN7zvw+rDZy3z5tL+NJsz8UZgM1e8mL1xP5PTzhm4=;
+Received: from 97e0b068.skybroadband.com ([151.224.176.104] helo=archlinux)
+        by ds0.me with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.84_2)
+        (envelope-from <dave@ds0.me>)
+        id 1k7MDm-0005Vd-5D; Sun, 16 Aug 2020 13:13:26 -0400
+Message-ID: <30eba639cefaa30718fad38a1dbc53c7475e40dd.camel@ds0.me>
+Subject: Re: [Letux-kernel] Lockup inside omap4_prminst_read_inst_reg on
+ OMAP5 uEVM
+From:   David Shah <dave@ds0.me>
+To:     Discussions about the Letux Kernel <letux-kernel@openphoenux.org>,
+        kernel@pyra-handheld.com, Linux-OMAP <linux-omap@vger.kernel.org>
+Date:   Sun, 16 Aug 2020 18:13:19 +0100
+In-Reply-To: <b407c35a2017dd348c7fd94eee1386246ffba857.camel@ds0.me>
+References: <115bcd43a5d01f2df26b58ffcd7e1a9f9e551c83.camel@ds0.me>
+         <b407c35a2017dd348c7fd94eee1386246ffba857.camel@ds0.me>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.36.5 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi David,
+It seems like 'CSWR' idle may never have actually worked properly on
+the OMAP5...
 
-> Am 06.08.2020 um 20:44 schrieb David Shah <dave@ds0.me>:
->=20
-> Following a bit of testing, the DSI issues are fixed by=20
-> =
-https://github.com/daveshah1/pyra-kernel-devel/commit/3161275854a0f2cd44a5=
-5b8eb039bd201f894486
-> (I will prepare a proper patch set shortly). This makes the display
-> work with HDMI disabled.
+As an experiment, I took the old TI 3.8.y GLSDK kernel,
+commit 2c871a879dbb4234232126f7075468d5bf0a50e3 and made the following
+changes:
 
-yes, it makes the LCD work (tested so far on 5.8-rc7).
-But even with HDMI enabled.
+ - Enabling CONFIG_CPU_IDLE as this was not in omap2plus_defconfig back
+then
+ - Disabling all the kernel debugging related config, as these seem to
+significantly reduce the frequency of lockups
+ - OSWR idle disabled, as this is known broken
+ - Some small patches to get it working with gcc9, none of which
+touched any power management or idle code.
 
->=20
-> There also seems to be a race condition between the hdmi0 connector
-> and tpd12s015 "encoder". This results in the tpd12s015 permanently
-> returning EPROBE_DEFER and the display subsystem never successfully
-> probing.
+And I saw lockups with an almost identical frequency to 5.6 and 5.7
+with a similar config; and the same pipeline stalled error reported by
+CCS when connecting over JTAG. The only difference is the reported PC
+was a read instruction inside sched_clock rather
+than omap4_prminst_read_inst_reg.
 
->=20
-> Reversing the order of the encoder and connector in the device tree
-> (omap5-board-common.dtsi) makes the display work again with HDMI
-> enabled; as does adding some printks to the display-connector driver.
+Would be interested to know if there is a backstory here? Could it be
+related to the bugs that stopped OSWR from working? Is there a glsdk
+kernel version that I missed where CSWR on the OMAP5 actually works
+reliably.
 
-I didn't have to disable or reverse the order. Maybe the speed of the SD
-card also has an influcence...
+If anyone wants to try reproducing this; the most important settings
+are:
 
-So I'll backport it to all our affected Letux kernels until it is =
-merged/fixed
-upstream.
+ - CONFIG_CPU_IDLE=y
+ - All kernel debugging settings disabled
+ - CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
 
-Then we can work on debugging/testing a module_mipi_dsi_driver based =
-panel
-drivers as soon as Sebastian's new patches become available.
+This will usually result in a lockup while idle at a login prompt
+within a few hours with no other hardware connected. A lockup usually
+occurs sooner (within 30 minutes) repeatedly wget'ing a 100MB test file
+in a loop.
 
-BR and thanks,
-Nikolaus
+Best
 
->=20
-> On Thu, 2020-08-06 at 17:04 +0100, David Shah wrote:
->> Sorry, my error. I forgot the Pyra is LPAE and therefore using 64-bit
->> physical addresses.
->>=20
->> The start is indeed a correct physical address, 0x58005000, but off
->> by
->> 0x1000 from what the DSI driver is expecting.
->>=20
->> On Thu, 2020-08-06 at 16:50 +0100, David Shah wrote:
->>> I had a moment to give letux-5.7.y a test on the Pyra hardware.
->>>=20
->>> I notice an error in dmesg:
->>>=20
->>> DSI: omapdss DSI error: unsupported DSI module
->>>=20
->>> which comes from this code (with a small patch added by me):
->>>=20
->>> 	d =3D dsi->data->modules;
->>> 	while (d->address !=3D 0 && d->address !=3D dsi_mem->start)
->>> 		d++;
->>>=20
->>> 	if (d->address =3D=3D 0) {
->>> 		DSSERR("unsupported DSI module (start: %08x)\n",
->>> dsi_mem->start);
->>> 		return -ENODEV;
->>> 	}
->>>=20
->>> "start" here is c0b3ba5c - a kernel virtual address - which
->>> definitely
->>> doesn't seem right as it would never match.=20
->>>=20
->>> Not sure my kernel-fu is quite up to tracking this down yet, but I
->>> will
->>> keep trying to trace out what is happening.
->>>=20
->>> Best
->>>=20
->>> Davidg
->>>=20
->>> On Wed, 2020-08-05 at 15:08 +0300, Tomi Valkeinen wrote:
->>>> On 05/08/2020 14:49, H. Nikolaus Schaller wrote:
->>>>> Hi,
->>>>>=20
->>>>>> Am 05.08.2020 um 13:28 schrieb Sebastian Reichel <
->>>>>> sebastian.reichel@collabora.com>:
->>>>>>=20
->>>>>> Hi,
->>>>>>=20
->>>>>> On Wed, Aug 05, 2020 at 11:19:20AM +0200, H. Nikolaus
->>>>>> Schaller
->>>>>> wrote:
->>>>>>> What I do not yet understand is how Laurent's patch should
->>>>>>> be
->>>>>>> able
->>>>>>> to break it.
->>>>>>=20
->>>>>> omapdrm will not probe successfully if any DT enabled
->>>>>> component
->>>>>> does not probe correctly. Since the patch you identified
->>>>>> touched
->>>>>> HDMI and VENC and you are probably using HDMI, I suggest
->>>>>> looking
->>>>>> there first.
->>>>>=20
->>>>> Yes, that is a very good explanation.
->>>>>=20
->>>>> Maybe there is a subtle change in how the HDMI connector has to
->>>>> be
->>>>> defined
->>>>> which is missing in our (private) DTB. Maybe the OMAP5-uEVM DTS
->>>>> gives a hint.
->>>>>=20
->>>>> A quick check shows last hdmi specific change for omap5-board-
->>>>> common or uevm
->>>>> was in 2017 but I may have missed something.
->>>>>=20
->>>>> There are 715a5a978733f0 and 671ab615bd507f which arrived in
->>>>> v5.7-
->>>>> rc1 as well
->>>>> and are related to hdmi clocks. So this may be (or not) and
->>>>> influencing factor.
->>>>=20
->>>> HDMI should "just work", and has been tested. But maybe there's
->>>> some
->>>> conflict with HDMI and DSI.
->>>>=20
->>>> Tomi
->>>>=20
->>>=20
->>> _______________________________________________
->>> https://projects.goldelico.com/p/gta04-kernel/
->>> Letux-kernel mailing list
->>> Letux-kernel@openphoenux.org
->>> http://lists.goldelico.com/mailman/listinfo.cgi/letux-kernel
->>=20
->> _______________________________________________
->> Kernel mailing list
->> Kernel@pyra-handheld.com
->> http://pyra-handheld.com/cgi-bin/mailman/listinfo/kernel
->=20
+David
+
+On Sat, 2020-08-01 at 21:57 +0100, David Shah wrote:
+> A tiny bit more information, if anyone has any more ideas.
+> 
+> I can confirm that this happened once with the device idle, and no
+> networking connection.
+> 
+> Based on the information I have been able to extract, the call stack
+> does
+> seem to involve omap4_enter_lowpower but I can't be certain.
+> 
+> The main JTAG access I have is to be able to read out what seems to
+> be
+> kernel virtual memory via the other, non-locked-up but WFI, core. I
+> attempted to add some tracing via writing a value to a global
+> variable
+> inside the problem function and then flushing the D$, but the delay
+> this
+> adds (or the cache flush itself) seems to stop the lockup from
+> occuring
+> most of the time. It did lock up once with this added, but then
+> reading
+> out that area of memory failed, possibly because the locked up core
+> was
+> confusing the cache coherency magic inside the cores.
+> 
+> Since that lock-up I added 20 NOPs after the cache flush, to try and
+> make
+> sure the cache flush really does work, and with those added it does
+> not
+> lock up at all.
+> 
+> Is there a better way to take advantage of this ability to read out
+> memory for debugging?
+> 
+> Best
+> 
+> David
+> 
+> 
+> On Sun, 2020-07-26 at 18:59 +0100, David Shah wrote:
+> > Hi all,
+> > 
+> > I am looking into random lockups - significantly rarer than once a
+> > day
+> > in typical usage, various patterns like lots of bursty network
+> > traffic
+> > increase frequency - that affect both the uEVM and the Pyra (also
+> > OMAP5432 based) on newer kernels (currently testing with 5.6 but I
+> > have
+> > seen lockups with 5.7 too).
+> > 
+> > Currently I'm working with the uEVM as it is a bit easier to
+> > connect
+> > the JTAG adapter. I managed to get a lockup with the JTAG attached,
+> > and
+> > unfortunately the processor is badly locked up enough (presumably a
+> > stuck memory bus?) that JTAG isn't able to get a register dump or
+> > stacktrace. But I do get the following error which at least gives a
+> > PC: 
+> > 
+> > CortexA15_0: Trouble Halting Target CPU: (Error -1323 @ 0xC0223E0C)
+> > Device failed to enter debug/halt mode because pipeline is stalled.
+> > Power-cycle the board. If error persists, confirm configuration
+> > and/or
+> > try more reliable JTAG settings (e.g. lower TCLK). (Emulation
+> > package
+> > 9.2.0.00002) 
+> > 
+> > The second core is just sitting at WFI, don't think there is
+> > anything
+> > suspicious about that.
+> > 
+> > Looking at the kernel disassembly this is the actual register read
+> > (ldr
+> > r0, [r1]) part of omap4_prminst_read_inst_reg.
+> > 
+> > My best guess is that it is trying to read from a register that
+> > doesn't
+> > exist or isn't responding due to the current power configuration,
+> > but I
+> > wonder if anyone has seen this before or has any more clues on how
+> > to
+> > debug this? It's a shame that I can't seem to see what r1 is or get
+> > a
+> > backtrace. It looks like it might be possible to set some kind of
+> > timeout on the interconnect, has anyone tried something like that
+> > to
+> > debug this kind of issue?
+> > 
+> > Best
+> > 
+> > David Shah
+> > 
+> > 
+> 
+> _______________________________________________
+> https://projects.goldelico.com/p/gta04-kernel/
+> Letux-kernel mailing list
+> Letux-kernel@openphoenux.org
+> http://lists.goldelico.com/mailman/listinfo.cgi/letux-kernel
 
