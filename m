@@ -7,48 +7,50 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6CA4C433E1
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 18:28:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BE7BC433E4
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 18:32:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8440D20738
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 18:28:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 544A22063A
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 18:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597688920;
-	bh=v2OMfKFCgf6E9GjrAHGZn7aVSe17HMAe+d9TeVSkkk8=;
+	s=default; t=1597689132;
+	bh=wa7oY2t8tvMGxU50OpBSuE0QpJDH6XI6s+CMCRBTMOw=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=v9Kz+wM/R9O4JAcZcbzH++ABbm69T/UBnMaD6yLXQY70Zl6RQoqoNMlh05kw0/PTF
-	 lOxKLUmPrqtYg7kMjB3obfavGJUsQqgcMj2FBRATES3OaYL7awXuYJewR+zDpZl/Sl
-	 s7W+mHy0qwZKjwLNA1ayJ0/yUdQvV/8jkHEdcdNA=
+	b=bwlSwGR/o9iAMW/cKEoSK/uBZH8RiU5l2eAcDCCZ2W4eNc0w319QHZ0C5fDY3LHiV
+	 1gqqicD70eBpoHsy3mwWAm2+hC/SrivrNYR/atut4to6JUKs4Y2LxCqr2YyPqs+gE3
+	 3JOviLmm5Vsnmvs1txPAuT4hUGpZK7Uyqry49WM4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390559AbgHQS2G (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 Aug 2020 14:28:06 -0400
-Received: from mail-ej1-f42.google.com ([209.85.218.42]:46672 "EHLO
-        mail-ej1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390989AbgHQS1n (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 14:27:43 -0400
-Received: by mail-ej1-f42.google.com with SMTP id p24so18905820ejf.13;
-        Mon, 17 Aug 2020 11:27:42 -0700 (PDT)
+        id S2391117AbgHQScI convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 17 Aug 2020 14:32:08 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:45388 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391005AbgHQSby (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 14:31:54 -0400
+Received: by mail-ed1-f68.google.com with SMTP id di22so13086971edb.12;
+        Mon, 17 Aug 2020 11:31:52 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=In/lRzRecPXlJCsCXOUKVII8Zjza+KgDgAZ3qlg6NBY=;
-        b=BiNY0ojzti9yNUev2nTtLyzk6JZBBxmgIw+89KBTyFJPtrX4kouSN9kpSTK7LkIxw2
-         j9Pz/Kg8ccOg85UkfG1JklsNWKqwEDcH9s8+uPDlQJOZHK167K1pIqFzxB2EIaHNnu/7
-         Izz4hP5YEr1K9D+smmSYDxyTr1LGSLPOCTNxeCT0GSo8fk8BhNySaDqd11UjPliaEV+W
-         W4NvxcEExhA5BhevjU8msrwXKn20Fqx8SARrPe//BecWqABRKi3H5j+Dru1/PmLoX+kN
-         dSYZGIbBYfxJJYyNJPxhrShNpqExYZzTAA/3lu70IktG29rcgmR3OSnN9XkFPUqMdKKr
-         xmxg==
-X-Gm-Message-State: AOAM530o9Q1Rio42tofLoq3ofktyTaDx9pf01Fb89irFHehNi0hx584A
-        lUqKIcjqFLpdj7UPrbvfa+g=
-X-Google-Smtp-Source: ABdhPJzlp7hrM7e8yK6q4U5Xo1UPtQg4hALTTyDbMtxYuqmsunf77TyReaLSnblPdWrAoapQvk48kw==
-X-Received: by 2002:a17:906:54d3:: with SMTP id c19mr17313272ejp.408.1597688861304;
-        Mon, 17 Aug 2020 11:27:41 -0700 (PDT)
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=hBUcN4OkcyXAP5E6a2eouoPSQBhcXpldM+aQp0PGfhg=;
+        b=Wxw0reRYJZkCVPfAowO4O4pAFXEBNn7QFVUeipNpad9I99gIC0menVzRUcLV4NulTp
+         lJgjGpEvREs2R2FNytWyihWdtFxW/yLa55QGdM5q3zIBKojJWNlwoUDlY6U29xR7pg75
+         2nNjkn8igKWGTXZkfZYzqUMalmO2X4UQlZg8OTFGP+PpI4nq0yaERCzjpcrQq2Td48k6
+         G66tACCRKyItIx+vxGSEKIz0NkmPTfQ0vAUgYKRGrCntmKWDQJ+SDUheZI/Naz3L09B1
+         rlW60ZohwVke53fuWOKV7FLYe93FL63IN5Hi6FVxs125ShQqMzIUoNw1ENE8qTlnOEYK
+         eGZA==
+X-Gm-Message-State: AOAM532Ji+LccBPqYSP3I7RgmSIC9K2abp0VBV/uPG7I/sZj0MUIGNrn
+        ieMlbUJBWdB652RYci9g42LxzYpJxeFhKhKb
+X-Google-Smtp-Source: ABdhPJwJFBPzF7Ip4mHFHwCJ7i6D0iGFtLdNnjjZFvxi/KEFgJtC4lqELj6xSQmWu9o+PqLjXrbWlQ==
+X-Received: by 2002:a05:6402:3196:: with SMTP id di22mr15802828edb.193.1597689112098;
+        Mon, 17 Aug 2020 11:31:52 -0700 (PDT)
 Received: from kozik-lap ([194.230.155.216])
-        by smtp.googlemail.com with ESMTPSA id p12sm13037482edt.27.2020.08.17.11.27.38
+        by smtp.googlemail.com with ESMTPSA id lc10sm14962158ejb.22.2020.08.17.11.31.50
         (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 17 Aug 2020 11:27:40 -0700 (PDT)
-Date:   Mon, 17 Aug 2020 20:27:36 +0200
+        Mon, 17 Aug 2020 11:31:51 -0700 (PDT)
+Date:   Mon, 17 Aug 2020 20:31:48 +0200
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         Markus Mayer <mmayer@broadcom.com>,
@@ -67,32 +69,47 @@ To:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [RFT v2 01/29] memory: omap-gpmc: Remove unneeded
- asm/mach-types.h inclusion
-Message-ID: <20200817182736.GA3464@kozik-lap>
+Subject: Re: [RFT v2 02/29] memory: omap-gpmc: Remove unused file-scope
+ phys_base and mem_size
+Message-ID: <20200817183148.GB3464@kozik-lap>
 References: <20200724074038.5597-1-krzk@kernel.org>
- <20200724074038.5597-2-krzk@kernel.org>
+ <20200724074038.5597-3-krzk@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20200724074038.5597-2-krzk@kernel.org>
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20200724074038.5597-3-krzk@kernel.org>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Jul 24, 2020 at 09:40:10AM +0200, Krzysztof Kozlowski wrote:
-> The driver does not use macros from asm/mach-types.h (neither MACH_TYPE
-> nor machine_is_xxx()).  Removal of this include allows compile testing
-> on non-ARM architectures which lack this header.
+On Fri, Jul 24, 2020 at 09:40:11AM +0200, Krzysztof Kozlowski wrote:
+> The file-scope variables phys_base and mem_size are assigned in
+> gpmc_probe() but never read.
+> 
+> This fixes build error when compile testing on x86_64 architecture:
+> 
+>     drivers/memory/omap-gpmc.c:246:24: error: conflicting types for ‘phys_base’
+>      static resource_size_t phys_base, mem_size;
+>     In file included from arch/x86/include/asm/page.h:12:0,
+>                      from arch/x86/include/asm/thread_info.h:12,
+>                      from include/linux/thread_info.h:38,
+>                      from arch/x86/include/asm/preempt.h:7,
+>                      from include/linux/preempt.h:78,
+>                      from include/linux/spinlock.h:51,
+>                      from include/linux/irq.h:14,
+>                      from drivers/memory/omap-gpmc.c:12:
+>     arch/x86/include/asm/page_64.h:12:22: note: previous declaration of ‘phys_base’ was here
+>      extern unsigned long phys_base;
 > 
 > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 > ---
->  drivers/memory/omap-gpmc.c | 2 --
+>  drivers/memory/omap-gpmc.c | 4 ----
+>  1 file changed, 4 deletions(-)
 
 Applied to drivers/memory tree.
 
 Best regards,
 Krzysztof
-
