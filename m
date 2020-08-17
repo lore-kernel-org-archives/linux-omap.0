@@ -2,106 +2,118 @@ Return-Path: <SRS0=Bddr=B3=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 786FBC433DF
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 19:40:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 225EFC433E1
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 20:03:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 554562072D
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 19:40:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E677C204EC
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 20:03:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="GQM5vTa3"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sn2+pfvH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388283AbgHQTkh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 Aug 2020 15:40:37 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:40396 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729742AbgHQPZg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 11:25:36 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 07HFBOO6039814;
-        Mon, 17 Aug 2020 15:25:24 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=cjzdpdXq2OFDNjLcmDZq/8KMYSFbgoAYkIaLS/N63v8=;
- b=GQM5vTa3KX4tNW/94eDAc8RWkTJHAjkLps3epQpWFplyMpUccegmu+Y6TwGgGz7aUlEX
- b8S349zkTNIvIsueSXYeK4TbV6IDqZt4gYL3bQytMpRLGt7WM7AVvuIzhD3rSXzD9jOE
- 2fGAUYfealh2XYUl+m+DIVr3ojg3BUZD5GUuXfgDcNFJfRsKOULaZA4357ufHsYk4pTY
- muKIY0LMCLSAj0FGbFbKyNEoN6vgdIhK+FA1N1d9MOTrQkG5CChucs/wOlw2U9tV6iZG
- N5QHttGne1azWqbxNmQTDCXH96uVXRWjx1NyuZ7qt+GHDl+pbUJXkFiOlv9ws9ozRa6U UQ== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 32x7nm7ghs-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 17 Aug 2020 15:25:24 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 07HFEQJZ133060;
-        Mon, 17 Aug 2020 15:25:23 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by userp3020.oracle.com with ESMTP id 32xsfqp2e0-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 17 Aug 2020 15:25:23 +0000
-Received: from abhmp0020.oracle.com (abhmp0020.oracle.com [141.146.116.26])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 07HFPLAl022596;
-        Mon, 17 Aug 2020 15:25:21 GMT
-Received: from [10.74.111.253] (/10.74.111.253)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Mon, 17 Aug 2020 08:25:21 -0700
-Subject: Re: [PATCHv4 0/6] Add initial genpd support for omap PRM driver
-To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-        Santosh Shilimkar <ssantosh@kernel.org>
-Cc:     "Andrew F . Davis" <afd@ti.com>, Suman Anna <s-anna@ti.com>,
-        Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-References: <20200702154513.31859-1-tony@atomide.com>
- <20200817065300.GD2994@atomide.com>
-From:   santosh.shilimkar@oracle.com
-Organization: Oracle Corporation
-Message-ID: <f52bc6c2-1256-a3ca-fede-1d3ab441ef9f@oracle.com>
-Date:   Mon, 17 Aug 2020 08:25:18 -0700
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
- Gecko/20100101 Thunderbird/68.9.0
+        id S1729472AbgHQUDD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 17 Aug 2020 16:03:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48372 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729534AbgHQUCr (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 16:02:47 -0400
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99311C06134A;
+        Mon, 17 Aug 2020 13:02:39 -0700 (PDT)
+Received: by mail-io1-xd42.google.com with SMTP id u126so18794573iod.12;
+        Mon, 17 Aug 2020 13:02:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WwUrycf48TYkmEUsmwdsPhuJLiR8sk6wFEPhan5oRwY=;
+        b=sn2+pfvHDOajFSskAm9Fxm/qqS/xvSKDRlv+Nr+am6Zd0sVSR6cX7LVWLoDov8ber3
+         ce5nnc1y1Sl5ZemoRcLc074zh71xINuWQLLNszSbXYlsgJgJ38RkM2hGgvFJwOGXYpsZ
+         o5dvorhKPsFoQl+XtP0CCdb6evXVON9IYxqcnIEktO6LXfErwy5ZNcqK++1SQWA3KNP4
+         VSD2WV68j34nl7stIi0clDmhgjh/GipeiGa3AVpZQWj3AwkW7TFube9OeZ221ELOQLtH
+         c2kjOVqgPbtpcwo4g1Aa/BQQgxzvrHsfrWeqUulbwUQaLcOuLUS7mSBNAAEhAqBCdkcv
+         hguQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WwUrycf48TYkmEUsmwdsPhuJLiR8sk6wFEPhan5oRwY=;
+        b=kkK1G22yzevA0EJg2pyjmGTRLpOfebJObOYRvOXlo1UJ5Dd+nQLWMOq0hfTM3GqDzT
+         oIEAjxQYq28A/5BC7qa+Vg95HREKO+SXETSyy9XTyIp1S3WQdp8sI/xl+ZV1YHUdAjFv
+         PQ3c3xFrw+YzsWg6yEXxrMVCCJ3/5j3DqR7mNQsbnCnEvAVCyqXCx9guoYV/63ZyXzIq
+         oOkyIykGfM/YFy2CYoo4oOLIYob3rP8r8Bj9Jsqoe9wKlbE5iFDJ5sRePDiHGDmtnW5R
+         ZRFUx6nVq/pcogNsQo+G2zxyE1x/SyPVTH/jHAbn0uo4/81V1fVufmTGavpPiKF3COan
+         NnYQ==
+X-Gm-Message-State: AOAM531BopSGU6L5Gg215yFjkNEEfdp9lmMYr+v47Dryf2jL7+8sZ1F/
+        NGHknxicYi5LJDusgY5Sf5ySBWRa70I7Hs2rB/o=
+X-Google-Smtp-Source: ABdhPJzj+6X2ku5vJmBvnez2/FVa+qVYD9yvkbDWWfWNDJmGlYW6tYwx9XRCr4Kkh/o15zvNhmsVrj/7A7T0TUym9xE=
+X-Received: by 2002:a6b:e002:: with SMTP id z2mr13402090iog.178.1597694558727;
+ Mon, 17 Aug 2020 13:02:38 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20200817065300.GD2994@atomide.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9716 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxlogscore=999
- spamscore=0 suspectscore=0 mlxscore=0 phishscore=0 bulkscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2008170117
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9716 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 spamscore=0
- impostorscore=0 priorityscore=1501 adultscore=0 mlxscore=0 mlxlogscore=999
- lowpriorityscore=0 bulkscore=0 phishscore=0 malwarescore=0 clxscore=1011
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2008170117
+References: <20200817133931.11785-1-aford173@gmail.com> <20200817215953.59607c11@aktux>
+In-Reply-To: <20200817215953.59607c11@aktux>
+From:   Adam Ford <aford173@gmail.com>
+Date:   Mon, 17 Aug 2020 15:02:27 -0500
+Message-ID: <CAHCN7x+2trMJPmg1xA_j2EUfxqtZX0da-pyzvpiZE4GanVNf4Q@mail.gmail.com>
+Subject: Re: [PATCH V2] ARM: dts: omap3: Add cpu trips and cooling map for
+ omap34/36 families
+To:     Andreas Kemnade <andreas@kemnade.info>
+Cc:     Linux-OMAP <linux-omap@vger.kernel.org>,
+        Adam Ford-BE <aford@beaconembedded.com>,
+        =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 8/16/20 11:53 PM, Tony Lindgren wrote:
-> Hi Santosh,
-> 
-> * Tony Lindgren <tony@atomide.com> [200702 18:46]:
->> Hi all,
->>
->> Here's v4 set of patches to add genpd support to the PRM (Power and Reset
->> Module) driver.
->>
->> Initially we just add one hardware accelerator power domain for sgx,
->> and one interconnect instance for l4_abe. The rest of the SoC specific
->> domain data is probably best added one SoC at a time based on generated
->> data.
-> 
-> Care to ack some of these patches? I'd like to get this into Linux next
-> for v5.10 :)
-> 
-Sure,
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+On Mon, Aug 17, 2020 at 2:59 PM Andreas Kemnade <andreas@kemnade.info> wrote:
+>
+> On Mon, 17 Aug 2020 08:39:31 -0500
+> Adam Ford <aford173@gmail.com> wrote:
+>
+> > The OMAP3530, OMAP3630, and DM3730 all show thresholds of 90C and 105C
+> > depending on commercial or industrial temperature ratings.
+> >
+> > This patch expands the thermal information to include the limits of 90
+> > and 105C for alert and critical.  It sets the coolings-cells for the
+> > 34xx and 36xx CPU's which both point to omap3-cpu-thermal.dtsi.
+> >
+> > For boards who never use industrial temperatures, these can be
+> > changed on their respective device trees with something like:
+> >
+> > &cpu_alert0 {
+> >       temperature = <85000>; /* millicelsius */
+> > };
+> >
+> > &cpu_crit {
+> >       temperature = <90000>; /* millicelsius */
+> > };
+> >
+> > OMAP3_THERMAL will need to be enabled.  It is off by default.
+> >
+> hmm, I think the patch for idling core when OMAP3_THERMAL is enabled
+> got stuck somewhere. It still seems not to work. Shouldn't that patch
+> be applied first?
+
+I rebased the idle stuff, and now I get errors, so I haven't pushed it
+yet.  I put a note that OMAP3_THERMAL is off by default, but this
+patch would at least get the framing in there.  I know at least two of
+us that use 1GHZ processors which are not supposed to run at that
+speed above 90MHz, so the idea was to tolerate the higher current for
+now, and when the idle stuff works, we'll enable the OMAP3_THERMAL by
+default.
+
+adam
+>
+> Regards,
+> Andreas
