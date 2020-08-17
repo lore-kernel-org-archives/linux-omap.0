@@ -8,55 +8,55 @@ X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB482C433DF
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 08:35:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1C68C433E1
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 08:35:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 838542072D
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 08:35:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDE512072D
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 08:35:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gulnIYNf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fgRJUvQ3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727850AbgHQIfu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:35:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54224 "EHLO
+        id S1726987AbgHQIf4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:35:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727001AbgHQIfn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 04:35:43 -0400
+        with ESMTP id S1727959AbgHQIfx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 04:35:53 -0400
 Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com [IPv6:2607:f8b0:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3F7AC061388;
-        Mon, 17 Aug 2020 01:35:42 -0700 (PDT)
-Received: by mail-pl1-x643.google.com with SMTP id k13so7132165plk.13;
-        Mon, 17 Aug 2020 01:35:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83129C061388;
+        Mon, 17 Aug 2020 01:35:53 -0700 (PDT)
+Received: by mail-pl1-x643.google.com with SMTP id u10so7146225plr.7;
+        Mon, 17 Aug 2020 01:35:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=jhwHA9iT6gG9p11YNGvMfQK3PrAipcXrN5ECqFQlHWA=;
-        b=gulnIYNfT0Y3CUDDfpjFjMeTf1Vv4n2l9IELuyJwpgh/sK6hHAB9WSl4g1yK+dN++o
-         niutqyw7Mv7WRnHhuP22dgamV6479B8guvy56zDjbSVfSsbQwpGDZb+B117fGn+dvabP
-         0Jp6eR0JwsH1EHtBoUf1a0JE0x0Z01+H0kSMahkxo75Vu6CVg+CYUE24ehpKXvEuGlLS
-         ufpqKFXZMNhIwLB1bPwGtxn8gQD2J2deloI2HP/mKeQLgwF+LspuhdRE4EDZsLtNzQ81
-         +wSfasi/h8GuN8f48tx8G0hp44NQTWzT4nejdhxLYmHMEvc/7DdCD3oQwYN9ZLcArqSU
-         LZsg==
+        bh=PEGr9s6HGNxR8mzsZcOi/x3TsiaJrj80ASltnmxTvts=;
+        b=fgRJUvQ3c3dalXzfHwldW9gKnPepaFA36zwdwrOZRVqh2L6fA7py884ow8ug8OqjqD
+         IXYG9u/RrsV/s3xQ+UtY82VEU38rTrg+lft/fF/mpTS54rK52fJcjKB0l0ghXLKb4LCO
+         9sPEQaWI0f8zNAJKjS03gBFwlFydMubz7ANuiB7h4WQRIYodmWW+08YmTS71hS2rp8Yn
+         x1rwTpfTLlJTc0/0g1OvBEG/3Aj/fMkhVmbWXG6++VzeLX3NB6j0OXsItgc0qt47e86T
+         9G75ApMOq/zQD0jYL1rAMJXvsAFKLzTt7c6zwSqIuun1oDe3PY9LC24MvWdX0yidyK9d
+         7KOQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=jhwHA9iT6gG9p11YNGvMfQK3PrAipcXrN5ECqFQlHWA=;
-        b=pWEArk775/zlkNtsXC2gF9WtbtEt0JEFRcbbTfPdbuDStbhqTjEOP/z7fR6KeyM7qa
-         keN0R9u+tXRg+HnxwPAYIx3obIulRLuBf3HUd1vRwK6DMMrWg/NsvQQbFVPGXTp1aypm
-         B+pa2uSXEyj8RAaVfM+MKLizmBqkl0bmFt8X7Ij/JOoVLUBabnrjhTLUDW06S6ghclXm
-         wV1P9kldeLSJPGbsJj/iYfqyxdOsEwDJfCQFSLks265AgPRlgChQz38BtAnKl03ZaBKK
-         5SKIL2hWx8PE3eN/XN1qifiFHVa+7qpqlaRR8qXgPqsH62fZ9kQL1er/EBMH5n+bPa4P
-         /BMg==
-X-Gm-Message-State: AOAM531QF6x33ByINvgI3kQ0knXGA6KY0R4/xBzOQubK8ElGtPmUI+zW
-        3kVrHNEQNn4/fpzmNIfNeSAJsGZIja03Aw==
-X-Google-Smtp-Source: ABdhPJy9zElavpxqpBa2OrUYgtVBBx6wLtQaG23S5v8ec764n5rq7zXO2QFHjt/Y25P4vXHVCORDUQ==
-X-Received: by 2002:a17:90a:ff92:: with SMTP id hf18mr11858868pjb.107.1597653342408;
-        Mon, 17 Aug 2020 01:35:42 -0700 (PDT)
+        bh=PEGr9s6HGNxR8mzsZcOi/x3TsiaJrj80ASltnmxTvts=;
+        b=TvDqkug+VMz3jZfn3vDZsZ492FulXD0J9EL6VWa1P4FP6WmWQYlaTGyTvwQ2ekhDae
+         mx4fs4ApEeWcYHkJceLuzdjrmAnmri4lIzPlKSXdzKfmpvXJzplaLpxSGlishY+ovPX9
+         5FFNPIWJzr2uYD2s2y+XFc0AVkB9Nf7bL3grbp8oDHk7nptoXuMRoqncTGtd2lnxVnHA
+         dFHwI2v/XlHwLxIych0L2EoPQMileNqJI0m2TtHecayz0YkEI0eO+6O6WbMNG/7XblZl
+         B2RKrfSuaAUocPsEn7ZByDwG7VHWpdXIAGbDaV2hnxa/Hhu0iakk1dHAoUaw4DlOlrXj
+         oFWQ==
+X-Gm-Message-State: AOAM532QR0FUc4frhtCOV4iRm06YpDcSf2DJtKGwzOl0A901G58OP6aY
+        XXcBPzSUDkLOyvF3Q004EVk=
+X-Google-Smtp-Source: ABdhPJxHHjf2l9lVu7pUt2dTiicTOD/n6pAnbvbGFIvNk9geL9SzW87cnZs77W7gkbYWLQTahXgzUQ==
+X-Received: by 2002:a17:902:9a09:: with SMTP id v9mr10140335plp.331.1597653351613;
+        Mon, 17 Aug 2020 01:35:51 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id h5sm18434068pfq.146.2020.08.17.01.35.37
+        by smtp.gmail.com with ESMTPSA id h5sm18434068pfq.146.2020.08.17.01.35.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:35:41 -0700 (PDT)
+        Mon, 17 Aug 2020 01:35:51 -0700 (PDT)
 From:   Allen Pais <allen.lkml@gmail.com>
 To:     ludovic.desroches@microchip.com, ulf.hansson@linaro.org,
         manuel.lauss@gmail.com, mirq-linux@rere.qmqm.pl,
@@ -67,9 +67,9 @@ Cc:     keescook@chromium.org, inux-mmc@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 04/10] mmc: dw_mmc: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 14:05:02 +0530
-Message-Id: <20200817083508.22657-5-allen.lkml@gmail.com>
+Subject: [PATCH 06/10] mmc: renesas: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 14:05:04 +0530
+Message-Id: <20200817083508.22657-7-allen.lkml@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817083508.22657-1-allen.lkml@gmail.com>
 References: <20200817083508.22657-1-allen.lkml@gmail.com>
@@ -86,34 +86,112 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- drivers/mmc/host/dw_mmc.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/renesas_sdhi.h               |  1 +
+ drivers/mmc/host/renesas_sdhi_core.c          |  2 ++
+ drivers/mmc/host/renesas_sdhi_internal_dmac.c | 20 +++++++++----------
+ drivers/mmc/host/renesas_sdhi_sys_dmac.c      |  9 ++++-----
+ 4 files changed, 17 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/mmc/host/dw_mmc.c b/drivers/mmc/host/dw_mmc.c
-index 35ae5737c622..574e5a7a697c 100644
---- a/drivers/mmc/host/dw_mmc.c
-+++ b/drivers/mmc/host/dw_mmc.c
-@@ -1952,9 +1952,9 @@ static bool dw_mci_clear_pending_data_complete(struct dw_mci *host)
+diff --git a/drivers/mmc/host/renesas_sdhi.h b/drivers/mmc/host/renesas_sdhi.h
+index 14c64caefc64..79a86bccc0ec 100644
+--- a/drivers/mmc/host/renesas_sdhi.h
++++ b/drivers/mmc/host/renesas_sdhi.h
+@@ -48,6 +48,7 @@ struct tmio_mmc_dma {
+ };
+ 
+ struct renesas_sdhi {
++	struct platform_device *pdev;
+ 	struct clk *clk;
+ 	struct clk *clk_cd;
+ 	struct tmio_mmc_data mmc_data;
+diff --git a/drivers/mmc/host/renesas_sdhi_core.c b/drivers/mmc/host/renesas_sdhi_core.c
+index 15e21894bd44..4a9319743eb6 100644
+--- a/drivers/mmc/host/renesas_sdhi_core.c
++++ b/drivers/mmc/host/renesas_sdhi_core.c
+@@ -975,6 +975,8 @@ int renesas_sdhi_probe(struct platform_device *pdev,
+ 			goto eirq;
+ 	}
+ 
++	priv->pdev = pdev;
++
+ 	dev_info(&pdev->dev, "%s base at %pa, max clock rate %u MHz\n",
+ 		 mmc_hostname(host->mmc), &res->start, host->mmc->f_max / 1000000);
+ 
+diff --git a/drivers/mmc/host/renesas_sdhi_internal_dmac.c b/drivers/mmc/host/renesas_sdhi_internal_dmac.c
+index 32ab991544ef..3d8866581043 100644
+--- a/drivers/mmc/host/renesas_sdhi_internal_dmac.c
++++ b/drivers/mmc/host/renesas_sdhi_internal_dmac.c
+@@ -218,9 +218,9 @@ renesas_sdhi_internal_dmac_start_dma(struct tmio_mmc_host *host,
+ 	renesas_sdhi_internal_dmac_enable_dma(host, false);
+ }
+ 
+-static void renesas_sdhi_internal_dmac_issue_tasklet_fn(unsigned long arg)
++static void renesas_sdhi_internal_dmac_issue_tasklet_fn(struct tasklet_struct *t)
+ {
+-	struct tmio_mmc_host *host = (struct tmio_mmc_host *)arg;
++	struct tmio_mmc_host *host = from_tasklet(host, t, dma_issue);
+ 
+ 	tmio_mmc_enable_mmc_irqs(host, TMIO_STAT_DATAEND);
+ 
+@@ -255,9 +255,11 @@ static bool renesas_sdhi_internal_dmac_complete(struct tmio_mmc_host *host)
  	return true;
  }
  
--static void dw_mci_tasklet_func(unsigned long priv)
-+static void dw_mci_tasklet_func(struct tasklet_struct *t)
+-static void renesas_sdhi_internal_dmac_complete_tasklet_fn(unsigned long arg)
++static void renesas_sdhi_internal_dmac_complete_tasklet_fn(struct tasklet_struct *t)
  {
--	struct dw_mci *host = (struct dw_mci *)priv;
-+	struct dw_mci *host = from_tasklet(host, t, tasklet);
- 	struct mmc_data	*data;
- 	struct mmc_command *cmd;
- 	struct mmc_request *mrq;
-@@ -3312,7 +3312,7 @@ int dw_mci_probe(struct dw_mci *host)
- 	else
- 		host->fifo_reg = host->regs + DATA_240A_OFFSET;
+-	struct tmio_mmc_host *host = (struct tmio_mmc_host *)arg;
++	struct renesas_sdhi *priv = from_tasklet(priv, t,
++						 dma_priv.dma_complete);
++	struct tmio_mmc_host *host = platform_get_drvdata(priv->pdev);
  
--	tasklet_init(&host->tasklet, dw_mci_tasklet_func, (unsigned long)host);
-+	tasklet_setup(&host->tasklet, dw_mci_tasklet_func);
- 	ret = devm_request_irq(host->dev, host->irq, dw_mci_interrupt,
- 			       host->irq_flags, "dw-mci", host);
- 	if (ret)
+ 	spin_lock_irq(&host->lock);
+ 	if (!renesas_sdhi_internal_dmac_complete(host))
+@@ -289,12 +291,10 @@ renesas_sdhi_internal_dmac_request_dma(struct tmio_mmc_host *host,
+ 	/* Each value is set to non-zero to assume "enabling" each DMA */
+ 	host->chan_rx = host->chan_tx = (void *)0xdeadbeaf;
+ 
+-	tasklet_init(&priv->dma_priv.dma_complete,
+-		     renesas_sdhi_internal_dmac_complete_tasklet_fn,
+-		     (unsigned long)host);
+-	tasklet_init(&host->dma_issue,
+-		     renesas_sdhi_internal_dmac_issue_tasklet_fn,
+-		     (unsigned long)host);
++	tasklet_setup(&priv->dma_priv.dma_complete,
++		     renesas_sdhi_internal_dmac_complete_tasklet_fn);
++	tasklet_setup(&host->dma_issue,
++		     renesas_sdhi_internal_dmac_issue_tasklet_fn);
+ }
+ 
+ static void
+diff --git a/drivers/mmc/host/renesas_sdhi_sys_dmac.c b/drivers/mmc/host/renesas_sdhi_sys_dmac.c
+index 13ff023fbee9..cd638e638db6 100644
+--- a/drivers/mmc/host/renesas_sdhi_sys_dmac.c
++++ b/drivers/mmc/host/renesas_sdhi_sys_dmac.c
+@@ -310,9 +310,9 @@ static void renesas_sdhi_sys_dmac_start_dma(struct tmio_mmc_host *host,
+ 	}
+ }
+ 
+-static void renesas_sdhi_sys_dmac_issue_tasklet_fn(unsigned long priv)
++static void renesas_sdhi_sys_dmac_issue_tasklet_fn(struct tasklet_struct *t)
+ {
+-	struct tmio_mmc_host *host = (struct tmio_mmc_host *)priv;
++	struct tmio_mmc_host *host = from_tasklet(host, t, dma_issue);
+ 	struct dma_chan *chan = NULL;
+ 
+ 	spin_lock_irq(&host->lock);
+@@ -399,9 +399,8 @@ static void renesas_sdhi_sys_dmac_request_dma(struct tmio_mmc_host *host,
+ 			goto ebouncebuf;
+ 
+ 		init_completion(&priv->dma_priv.dma_dataend);
+-		tasklet_init(&host->dma_issue,
+-			     renesas_sdhi_sys_dmac_issue_tasklet_fn,
+-			     (unsigned long)host);
++		tasklet_setup(&host->dma_issue,
++			     renesas_sdhi_sys_dmac_issue_tasklet_fn);
+ 	}
+ 
+ 	renesas_sdhi_sys_dmac_enable_dma(host, true);
 -- 
 2.17.1
 
