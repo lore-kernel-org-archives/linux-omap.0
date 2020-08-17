@@ -5,57 +5,57 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2777C433E3
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 13:41:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D37C433E1
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 13:42:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1AB2204FD
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 13:41:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8DBFF20786
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 13:42:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="wzldr36Y"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="UQ/wTmkn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728651AbgHQNly (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 Aug 2020 09:41:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45264 "EHLO
+        id S1728726AbgHQNmE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 17 Aug 2020 09:42:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728636AbgHQNlh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 09:41:37 -0400
+        with ESMTP id S1728672AbgHQNll (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 09:41:41 -0400
 Received: from mail-lj1-x242.google.com (mail-lj1-x242.google.com [IPv6:2a00:1450:4864:20::242])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8177FC061349
-        for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2020 06:41:00 -0700 (PDT)
-Received: by mail-lj1-x242.google.com with SMTP id i10so17526123ljn.2
-        for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2020 06:41:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC111C06134F
+        for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2020 06:41:03 -0700 (PDT)
+Received: by mail-lj1-x242.google.com with SMTP id m22so17494477ljj.5
+        for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2020 06:41:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=LEzfLtgpOaMr9BZOKDE9VwILcSfLxB9dYWDMk9PYE6E=;
-        b=wzldr36YfCFHnuJj0eZdAQh7O82da8ru2uwlm5Jztd0+/UQs5kmiuX4RN8qXZ5ISfA
-         OQJ7aJsfp+2qxF/LDingmfanbPvvRYdHYoiYR2eUWB9mdzhEjYuBknkwlntG+J+JLheq
-         Fk58ihnKe1E2CuK0R2KbS8jPdO7XbxOqsucW5OpJEvYAPpVoVRdGx/zj0ipaC/IcF2Oc
-         AnWEFcQkaDxJFA9wuTxPtBBz+ZShzLC3p3Fj3wxx7Jpnw921A9GnIvAmwHITMmxfZ4I9
-         jOmFxS1drNKYn+YBEdcVHMNNihKbIGPLVBgK+43UadKeZEqbCP3lPcIlaHJqinKez9fA
-         evbw==
+        bh=frzL2DLHwYvpLbcVF+BQ0a2PY0Hd2ua7rlCrnnnS4iw=;
+        b=UQ/wTmknQMhog1wmIO5rJfA79XJvlXor2LAoB70HRnID+sphf9o9+m7gJg3flV1w5O
+         uzF9+23Tp5eh1yYLY8A9bXI2HDhC4hZ+GMvRNPyjC8ZEKWR1ejvT1UjpKv0YE6yVPvRj
+         khZ/XsvmZkULDjFzlKm9uvxBy6PTfVk3NtYGAy/SnbiwDPMyIoG+CkqodY4aBhvBbUN6
+         XtZJkdxNE95L+s2E+dOGSeVXfgXQR4NlVEvdD23dCam8seLxHMDh2heb5+Cq5c6/ak8i
+         agWfUJ68D55vR1uU9TYOd8WM0beZfd+Jxrv8GEwZAfqyspwoT900Fhslzksxg/S+IcjT
+         XSSg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=LEzfLtgpOaMr9BZOKDE9VwILcSfLxB9dYWDMk9PYE6E=;
-        b=E2j/kAIliGQHAPEBmmmzXz62apQ82IQzxWYoaCLIrUAqpTcxj38Ox5JLVOO1thwudo
-         R5+xasIVXbt0YoKvi94jdCeW8WIcSUy+kWRMei7PQol4ZkpSkEsQtcHC2AIbcqvyOS9E
-         H2iT5CsnNlZXhF3oMORv1fbgGBXe+D5+XJkc6rTQH8D+Xwv6zPbSUfO81TceFpXjl7x5
-         pcTcjv57M7f9fA3DcF5wC+Hjc26nMYiNHCZIQAgPlYU85oTG/POUkvq7SRAsxc8QHQTY
-         EGVYFMqjUjK3GhDqa3bSEhiOG55KCvKaeMoMKgvP+VoaZ1ju6ZyXQLy3Ztf8AHu7EYh1
-         olbQ==
-X-Gm-Message-State: AOAM5321QdZYON5cZUBCIHI+c0Z1qlCAf9aoEisX8wc+3F9IVW21fedK
-        cho+QbWv9U800CQf9UMmrTxJ/w==
-X-Google-Smtp-Source: ABdhPJwTN8X9mU+NpaHzd414/e/35u+5H0aSg0yjp7vVPcmFhJd2JxCxJFOKKx4mVQ2nXmufiFPUkw==
-X-Received: by 2002:a2e:7813:: with SMTP id t19mr6874572ljc.255.1597671657357;
-        Mon, 17 Aug 2020 06:40:57 -0700 (PDT)
+        bh=frzL2DLHwYvpLbcVF+BQ0a2PY0Hd2ua7rlCrnnnS4iw=;
+        b=dDezYew9mbDDtHO9wgDolV4tHDWzNxekxk7lax/AVZeXHpRWFmPpXRC7QhiRWtMnSA
+         KscNMVaUEHLiHLmK4UEoeUjWVJrH1iJfKvhHl5uAc1FXXnmqhGsBCzqL5WQDo19FK1TK
+         Gi+PAa60jneqlQmKrgXWqBL8fSuX3UZcMVRojFf3o/IHJtTogxY+rq4jUfsHlXKqvlid
+         0QRg7chf90v17hyhGyb1D2FWkjBRjdeLlb9Cp9s2nSME1QwP9tOYK45nzwxJo9BhZCHo
+         XLasQ8A+5bipNkhtkm1jJG840jInpuIGP2SR93UsybGEoeZZSTCyZdZB8cPPwmTiqk1X
+         sKpQ==
+X-Gm-Message-State: AOAM5305hJtPk6OwjxI7kydOhtrp5f6wehEqVF8I9POID6sWGF20y/3D
+        jO+K/0LX4P9ZASwEbdg+R9oUbQ==
+X-Google-Smtp-Source: ABdhPJy4aaiF8qOICfByVONC0MVmCClxwRzY87w1wPh5D4T/z2ObxWuZzRUVuY6Nc3XgSrGHfxcUCA==
+X-Received: by 2002:a2e:3609:: with SMTP id d9mr7131951lja.106.1597671661262;
+        Mon, 17 Aug 2020 06:41:01 -0700 (PDT)
 Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
-        by smtp.gmail.com with ESMTPSA id g22sm3443791lja.29.2020.08.17.06.40.56
+        by smtp.gmail.com with ESMTPSA id g22sm3443791lja.29.2020.08.17.06.41.00
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 17 Aug 2020 06:40:56 -0700 (PDT)
+        Mon, 17 Aug 2020 06:41:00 -0700 (PDT)
 From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 To:     tglx@linutronix.de, jason@lakedaemon.net, maz@kernel.org,
         s-anna@ti.com
@@ -64,9 +64,9 @@ Cc:     grzegorz.jaszczyk@linaro.org, robh+dt@kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, david@lechnology.com,
         praneeth@ti.com
-Subject: [PATCH v5 3/5] irqchip/irq-pruss-intc: Add logic for handling reserved interrupts
-Date:   Mon, 17 Aug 2020 15:40:11 +0200
-Message-Id: <1597671613-20879-4-git-send-email-grzegorz.jaszczyk@linaro.org>
+Subject: [PATCH v5 5/5] irqchip/irq-pruss-intc: Add support for ICSSG INTC on K3 SoCs
+Date:   Mon, 17 Aug 2020 15:40:13 +0200
+Message-Id: <1597671613-20879-6-git-send-email-grzegorz.jaszczyk@linaro.org>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1597671613-20879-1-git-send-email-grzegorz.jaszczyk@linaro.org>
 References: <1597671613-20879-1-git-send-email-grzegorz.jaszczyk@linaro.org>
@@ -77,116 +77,79 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The PRUSS INTC has a fixed number of output interrupt lines that are
-connected to a number of processors or other PRUSS instances or other
-devices (like DMA) on the SoC. The output interrupt lines 2 through 9
-are usually connected to the main Arm host processor and are referred
-to as host interrupts 0 through 7 from ARM/MPU perspective.
+The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
+commonly called ICSSG. The PRUSS INTC present within the ICSSG supports
+more System Events (160 vs 64), more Interrupt Channels and Host Interrupts
+(20 vs 10) compared to the previous generation PRUSS INTC instances. The
+first 2 and the last 10 of these host interrupt lines are used by the
+PRU and other auxiliary cores and sub-modules within the ICSSG, with 8
+host interrupts connected to MPU. The host interrupts 5, 6, 7 are also
+connected to the other ICSSG instances within the SoC and can be
+partitioned as per system integration through the board dts files.
 
-All of these 8 host interrupts are not always exclusively connected
-to the Arm interrupt controller. Some SoCs have some interrupt lines
-not connected to the Arm interrupt controller at all, while a few others
-have the interrupt lines connected to multiple processors in which they
-need to be partitioned as per SoC integration needs. For example, AM437x
-and 66AK2G SoCs have 2 PRUSS instances each and have the host interrupt 5
-connected to the other PRUSS, while AM335x has host interrupt 0 shared
-between MPU and TSC_ADC and host interrupts 6 & 7 shared between MPU and
-a DMA controller.
-
-Add logic to the PRUSS INTC driver to ignore both these shared and
-invalid interrupts.
+Enhance the PRUSS INTC driver to add support for this ICSSG INTC
+instance.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 ---
 v4->v5:
-- Rename: s/invalid_intr/irqs_reserved/
+- Rename: s/num_host_intrs/num_host_events/ regarding to change
+  introduced in patch #2.
 v3->v4:
-- Due to changes in DT bindings which converts irqs-reserved
-  property from uint8-array to bitmask requested by Rob introduce
-  relevant changes in the driver.
-- Merge the irqs-reserved and irqs-shared to one property since they
-  can be handled by one logic (relevant change was introduced to DT
-  binding).
-- Update commit message.
+- Move generic part to "irqchip/irq-pruss-intc: Add a PRUSS irqchip
+  driver for PRUSS interrupts" patch and leave only platform related
+  code.
 v2->v3:
-- Extra checks for (intc->irqs[i]) in error/remove path was moved from
-  "irqchip/irq-pruss-intc: Add a PRUSS irqchip driver for PRUSS
-  interrupts" to this patch
+- Change patch order: use it directly after "irqchip/irq-pruss-intc:
+  Implement irq_{get,set}_irqchip_state ops" and before new
+  "irqchip/irq-pruss-intc: Add event mapping support" in order to reduce
+  diff.
 v1->v2:
-- https://patchwork.kernel.org/patch/11069757/
+- https://patchwork.kernel.org/patch/11069773/
 ---
- drivers/irqchip/irq-pruss-intc.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ drivers/irqchip/Kconfig          | 2 +-
+ drivers/irqchip/irq-pruss-intc.c | 9 +++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+index a112a76..7fe4e30 100644
+--- a/drivers/irqchip/Kconfig
++++ b/drivers/irqchip/Kconfig
+@@ -495,7 +495,7 @@ config TI_SCI_INTA_IRQCHIP
+ 
+ config TI_PRUSS_INTC
+ 	tristate "TI PRU-ICSS Interrupt Controller"
+-	depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM43XX || SOC_DRA7XX || ARCH_KEYSTONE
++	depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM43XX || SOC_DRA7XX || ARCH_KEYSTONE || ARCH_K3
+ 	select IRQ_DOMAIN
+ 	help
+ 	   This enables support for the PRU-ICSS Local Interrupt Controller
 diff --git a/drivers/irqchip/irq-pruss-intc.c b/drivers/irqchip/irq-pruss-intc.c
-index 461e81e..1a72591 100644
+index 15f0407..9e540af 100644
 --- a/drivers/irqchip/irq-pruss-intc.c
 +++ b/drivers/irqchip/irq-pruss-intc.c
-@@ -477,7 +477,7 @@ static int pruss_intc_probe(struct platform_device *pdev)
- 	struct pruss_intc *intc;
- 	struct pruss_host_irq_data *host_data[MAX_NUM_HOST_IRQS] = { NULL };
- 	int i, irq, ret;
--	u8 max_system_events;
-+	u8 max_system_events, irqs_reserved = 0;
+@@ -622,11 +622,20 @@ static const struct pruss_intc_match_data pruss_intc_data = {
+ 	.num_host_events = 10,
+ };
  
- 	data = of_device_get_match_data(dev);
- 	if (!data)
-@@ -497,6 +497,16 @@ static int pruss_intc_probe(struct platform_device *pdev)
- 	if (IS_ERR(intc->base))
- 		return PTR_ERR(intc->base);
- 
-+	ret = of_property_read_u8(dev->of_node, "ti,irqs-reserved",
-+				  &irqs_reserved);
++static const struct pruss_intc_match_data icssg_intc_data = {
++	.num_system_events = 160,
++	.num_host_events = 20,
++};
 +
-+	/*
-+	 * The irqs-reserved is used only for some SoC's therefore not having
-+	 * this property is still valid
-+	 */
-+	if (ret < 0 && ret != -EINVAL)
-+		return ret;
-+
- 	pruss_intc_init(intc);
- 
- 	mutex_init(&intc->lock);
-@@ -507,6 +517,9 @@ static int pruss_intc_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < MAX_NUM_HOST_IRQS; i++) {
-+		if (irqs_reserved & BIT(i))
-+			continue;
-+
- 		irq = platform_get_irq_byname(pdev, irq_names[i]);
- 		if (irq <= 0) {
- 			ret = (irq == 0) ? -EINVAL : irq;
-@@ -532,8 +545,11 @@ static int pruss_intc_probe(struct platform_device *pdev)
- 	return 0;
- 
- fail_irq:
--	while (--i >= 0)
--		irq_set_chained_handler_and_data(intc->irqs[i], NULL, NULL);
-+	while (--i >= 0) {
-+		if (intc->irqs[i])
-+			irq_set_chained_handler_and_data(intc->irqs[i], NULL,
-+							 NULL);
-+	}
- 
- 	irq_domain_remove(intc->domain);
- 
-@@ -547,8 +563,11 @@ static int pruss_intc_remove(struct platform_device *pdev)
- 	unsigned int hwirq;
- 	int i;
- 
--	for (i = 0; i < MAX_NUM_HOST_IRQS; i++)
--		irq_set_chained_handler_and_data(intc->irqs[i], NULL, NULL);
-+	for (i = 0; i < MAX_NUM_HOST_IRQS; i++) {
-+		if (intc->irqs[i])
-+			irq_set_chained_handler_and_data(intc->irqs[i], NULL,
-+							 NULL);
-+	}
- 
- 	for (hwirq = 0; hwirq < max_system_events; hwirq++)
- 		irq_dispose_mapping(irq_find_mapping(intc->domain, hwirq));
+ static const struct of_device_id pruss_intc_of_match[] = {
+ 	{
+ 		.compatible = "ti,pruss-intc",
+ 		.data = &pruss_intc_data,
+ 	},
++	{
++		.compatible = "ti,icssg-intc",
++		.data = &icssg_intc_data,
++	},
+ 	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
 -- 
 2.7.4
 
