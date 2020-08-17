@@ -2,119 +2,146 @@ Return-Path: <SRS0=Bddr=B3=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DFFCC433DF
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 08:36:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF74C433E1
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 09:24:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A16D2072D
-	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 08:36:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PX4S+d8S"
+	by mail.kernel.org (Postfix) with ESMTP id D754E2080D
+	for <linux-omap@archiver.kernel.org>; Mon, 17 Aug 2020 09:24:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727880AbgHQIfv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:35:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54242 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726987AbgHQIfs (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2020 04:35:48 -0400
-Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78A0DC061389;
-        Mon, 17 Aug 2020 01:35:47 -0700 (PDT)
-Received: by mail-pl1-x644.google.com with SMTP id t10so7139120plz.10;
-        Mon, 17 Aug 2020 01:35:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=IwFOYY367ULZT1BN2OrQmrKwLru5AbIHU/lvBoUtbvI=;
-        b=PX4S+d8SSzqmcDvaTTsGyA2ivQ3CN5X25wDtmjJVfFwuC6bz5NXD3ayhO28oMCUbDO
-         MUqFNlrjccbTVa7mJEjGjRjoKHHDjjb+sFzt4o1G4Hxsvv/AqTP3OMgAhUaz79u9aB8Z
-         Gr79ENBofDZokJfNqjT+lmbmlNmUlR0ZZOw12uQXnw0fGlYkn7xD9QZjZ6NsGUHKSfRa
-         cyMpT73GX9xDM53F+/nqaSYDLHmLabAJJ7rTdp+WL2aSNwO1f0GfwwpZGiV0oxAVM8EW
-         4pYtF71te6SFr2uNpao8D98UE3ueunxEu56vEUuGDYzn0sUPXGemS9DgUSWJ/i3hQEbT
-         /DXw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=IwFOYY367ULZT1BN2OrQmrKwLru5AbIHU/lvBoUtbvI=;
-        b=WZV/dXv6jMmVOboHg/i2QVS3gAwsiPwXzdH6PeRpRRmSbfmz1fs+pcgz8+6oxhS0wp
-         Ku2EMcYvhjLZacXyS2JbnPQPSD/4K9ilcE7Sw8n7B435WAbtKRPRibDYWVXNuzR6Rv51
-         Ui46qSLP2J8suFQu80g9n59eB9g+WQYvBWy7cLITMRNvS7dT54+FFouVxVNN5we5+VCT
-         a9viKxez1B/QOh9ul5Sj4OGCanEEsjYO2WuCsH1xx/M63B/FHvNpYRSdu9t8jugUfrbm
-         8PVlFN97vxhIClgwtE1GuKJN5OXZ3A27fNcAa20x4c7v4kjW1u4ttCkVIK3fXdTtp5Ch
-         ZHLw==
-X-Gm-Message-State: AOAM530sP4QySvBE6fvAYt7EnPuDog4UnZKr43JvMXh3+W0PluHgVi24
-        jPkbeuPCe2IBAypeAZI8BMc=
-X-Google-Smtp-Source: ABdhPJzuuZWms7RUMkI6+RPWhuqqeB3lLRfxRvIP7v4EbXz/ZUmf08sunStIEL/0sx81A2cvBjvJvw==
-X-Received: by 2002:a17:902:441:: with SMTP id 59mr10581843ple.282.1597653347062;
-        Mon, 17 Aug 2020 01:35:47 -0700 (PDT)
-Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id h5sm18434068pfq.146.2020.08.17.01.35.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:35:46 -0700 (PDT)
-From:   Allen Pais <allen.lkml@gmail.com>
-To:     ludovic.desroches@microchip.com, ulf.hansson@linaro.org,
-        manuel.lauss@gmail.com, mirq-linux@rere.qmqm.pl,
-        jh80.chung@samsung.com, oakad@yahoo.com,
-        yamada.masahiro@socionext.com, brucechang@via.com.tw,
-        HaraldWelte@viatech.com
-Cc:     keescook@chromium.org, inux-mmc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, Allen Pais <allen.lkml@gmail.com>,
-        Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 05/10] mmc: omap: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 14:05:03 +0530
-Message-Id: <20200817083508.22657-6-allen.lkml@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200817083508.22657-1-allen.lkml@gmail.com>
-References: <20200817083508.22657-1-allen.lkml@gmail.com>
+        id S1728223AbgHQJYg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 17 Aug 2020 05:24:36 -0400
+Received: from muru.com ([72.249.23.125]:40478 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726381AbgHQJYf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 17 Aug 2020 05:24:35 -0400
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 57A5680A3;
+        Mon, 17 Aug 2020 09:24:34 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Cc:     linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] clocksource/drivers/timer-ti-dm: Do reset before enable
+Date:   Mon, 17 Aug 2020 12:24:28 +0300
+Message-Id: <20200817092428.6176-1-tony@atomide.com>
+X-Mailer: git-send-email 2.28.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-In preparation for unconditionally passing the
-struct tasklet_struct pointer to all tasklet
-callbacks, switch to using the new tasklet_setup()
-and from_tasklet() to pass the tasklet pointer explicitly.
+Commit 6cfcd5563b4f ("clocksource/drivers/timer-ti-dm: Fix suspend and
+resume for am3 and am4") exposed a new issue for type2 dual mode timers
+on at least omap5 where the clockevent will stop when the SoC starts
+entering idle states during the boot.
 
-Signed-off-by: Romain Perier <romain.perier@gmail.com>
-Signed-off-by: Allen Pais <allen.lkml@gmail.com>
+Turns out we are wrongly first enabling the system timer and then
+resetting it, while we must also re-enable it after reset. The current
+sequence leaves the timer module in a partially initialized state. This
+issue went unnoticed earlier with ti-sysc driver reconfiguring the timer
+module until we fixed the issue of ti-sysc reconfiguring system timers.
+
+Let's fix the issue by calling dmtimer_systimer_enable() from reset for
+both type1 and type2 timers, and switch the order of reset and enable in
+dmtimer_systimer_setup(). Let's also move dmtimer_systimer_enable() and
+dmtimer_systimer_disable() to do this without adding forward declarations.
+
+Fixes: 6cfcd5563b4f ("clocksource/drivers/timer-ti-dm: Fix suspend and resume for am3 and am4")
+Reported-by: H. Nikolaus Schaller" <hns@goldelico.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mmc/host/omap.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/clocksource/timer-ti-dm-systimer.c | 44 +++++++++++-----------
+ 1 file changed, 23 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 33d7af7c7762..9852263cef4d 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -878,9 +878,9 @@ static void mmc_omap_cover_timer(struct timer_list *t)
- 	tasklet_schedule(&slot->cover_tasklet);
+diff --git a/drivers/clocksource/timer-ti-dm-systimer.c b/drivers/clocksource/timer-ti-dm-systimer.c
+--- a/drivers/clocksource/timer-ti-dm-systimer.c
++++ b/drivers/clocksource/timer-ti-dm-systimer.c
+@@ -69,12 +69,33 @@ static bool dmtimer_systimer_revision1(struct dmtimer_systimer *t)
+ 	return !(tidr >> 16);
  }
  
--static void mmc_omap_cover_handler(unsigned long param)
-+static void mmc_omap_cover_handler(struct tasklet_struct *t)
++static void dmtimer_systimer_enable(struct dmtimer_systimer *t)
++{
++	u32 val;
++
++	if (dmtimer_systimer_revision1(t))
++		val = DMTIMER_TYPE1_ENABLE;
++	else
++		val = DMTIMER_TYPE2_ENABLE;
++
++	writel_relaxed(val, t->base + t->sysc);
++}
++
++static void dmtimer_systimer_disable(struct dmtimer_systimer *t)
++{
++	if (!dmtimer_systimer_revision1(t))
++		return;
++
++	writel_relaxed(DMTIMER_TYPE1_DISABLE, t->base + t->sysc);
++}
++
+ static int __init dmtimer_systimer_type1_reset(struct dmtimer_systimer *t)
  {
--	struct mmc_omap_slot *slot = (struct mmc_omap_slot *)param;
-+	struct mmc_omap_slot *slot = from_tasklet(slot, t, cover_tasklet);
- 	int cover_open = mmc_omap_cover_is_open(slot);
+ 	void __iomem *syss = t->base + OMAP_TIMER_V1_SYS_STAT_OFFSET;
+ 	int ret;
+ 	u32 l;
  
- 	mmc_detect_change(slot->mmc, 0);
-@@ -1269,8 +1269,7 @@ static int mmc_omap_new_slot(struct mmc_omap_host *host, int id)
++	dmtimer_systimer_enable(t);
+ 	writel_relaxed(BIT(1) | BIT(2), t->base + t->ifctrl);
+ 	ret = readl_poll_timeout_atomic(syss, l, l & BIT(0), 100,
+ 					DMTIMER_RESET_WAIT);
+@@ -88,6 +109,7 @@ static int __init dmtimer_systimer_type2_reset(struct dmtimer_systimer *t)
+ 	void __iomem *sysc = t->base + t->sysc;
+ 	u32 l;
  
- 	if (slot->pdata->get_cover_state != NULL) {
- 		timer_setup(&slot->cover_timer, mmc_omap_cover_timer, 0);
--		tasklet_init(&slot->cover_tasklet, mmc_omap_cover_handler,
--			     (unsigned long)slot);
-+		tasklet_setup(&slot->cover_tasklet, mmc_omap_cover_handler);
- 	}
++	dmtimer_systimer_enable(t);
+ 	l = readl_relaxed(sysc);
+ 	l |= BIT(0);
+ 	writel_relaxed(l, sysc);
+@@ -336,26 +358,6 @@ static int __init dmtimer_systimer_init_clock(struct dmtimer_systimer *t,
+ 	return 0;
+ }
  
- 	r = mmc_add_host(mmc);
+-static void dmtimer_systimer_enable(struct dmtimer_systimer *t)
+-{
+-	u32 val;
+-
+-	if (dmtimer_systimer_revision1(t))
+-		val = DMTIMER_TYPE1_ENABLE;
+-	else
+-		val = DMTIMER_TYPE2_ENABLE;
+-
+-	writel_relaxed(val, t->base + t->sysc);
+-}
+-
+-static void dmtimer_systimer_disable(struct dmtimer_systimer *t)
+-{
+-	if (!dmtimer_systimer_revision1(t))
+-		return;
+-
+-	writel_relaxed(DMTIMER_TYPE1_DISABLE, t->base + t->sysc);
+-}
+-
+ static int __init dmtimer_systimer_setup(struct device_node *np,
+ 					 struct dmtimer_systimer *t)
+ {
+@@ -409,8 +411,8 @@ static int __init dmtimer_systimer_setup(struct device_node *np,
+ 	t->wakeup = regbase + _OMAP_TIMER_WAKEUP_EN_OFFSET;
+ 	t->ifctrl = regbase + _OMAP_TIMER_IF_CTRL_OFFSET;
+ 
+-	dmtimer_systimer_enable(t);
+ 	dmtimer_systimer_reset(t);
++	dmtimer_systimer_enable(t);
+ 	pr_debug("dmtimer rev %08x sysc %08x\n", readl_relaxed(t->base),
+ 		 readl_relaxed(t->base + t->sysc));
+ 
 -- 
-2.17.1
-
+2.28.0
