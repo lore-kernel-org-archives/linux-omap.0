@@ -2,52 +2,52 @@ Return-Path: <SRS0=m/Cn=B7=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCFABC433EB
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC442C433E3
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA204221E2
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB2B520714
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597982199;
-	bh=TS7iKYkbbOUokSNrF+FW1kc3ey057PVvVIuTIXEMRQQ=;
+	s=default; t=1597982205;
+	bh=ne8AlhncT0eiuLDHjtCHqUt0Zl/WZefn3kr4UHS1ZCs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=DjIRKmbmsVSS9wkPPA+hwsq2uM9MhjMXul5wlHIJSNKUAW/GbWRvw8H1Hs48dKQDY
-	 5zZQl7ktLHhQZKTvoVvwjCFRXhp/7F3YPvr52eC0ObH3UDY0Z+vI7OxrzneBla3g9D
-	 /3hHhcXT4yHGkjP4qjrngYPgfHAK0VC5cTVEdd+c=
+	b=1/VtLzxbUe9wxUtPyOlZPJyNxACZTO5yhbWO2eRtuv9zyj+g/i1Barlcs0ASMjWuB
+	 RoZjF+3becaTMBMuwQ5SF0p3cpXeeJsWxx6dR0iyTo/+SvVtyb7KlLBFFddniLjawk
+	 QslCUih2ZPOyk0MV5Hysg8+ASSxNYc0MQijLCyAY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728046AbgHUD4g (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Aug 2020 23:56:36 -0400
-Received: from mail-il1-f194.google.com ([209.85.166.194]:37040 "EHLO
-        mail-il1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726975AbgHUD4c (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:56:32 -0400
-Received: by mail-il1-f194.google.com with SMTP id v2so342340ilq.4;
-        Thu, 20 Aug 2020 20:56:31 -0700 (PDT)
+        id S1728053AbgHUD4i (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Aug 2020 23:56:38 -0400
+Received: from mail-io1-f66.google.com ([209.85.166.66]:37231 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727791AbgHUD4h (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:56:37 -0400
+Received: by mail-io1-f66.google.com with SMTP id b16so484576ioj.4;
+        Thu, 20 Aug 2020 20:56:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=rxlIWP5s8Q0eZi3EvYbo0258HR6L8rBsGw9E+WBQLQE=;
-        b=HnySkvNBU/Hg2T6M9KqOYjFgeRztpk6RoSNRzP4ktM8qlYz0dKJUq9l6O+xC9YdfYl
-         jg/NOPEJUa/htKM46xw+dXRfwMKukRz2ZLue/i5GY+txtNHA/awxWSoALXrBEzHVXypd
-         mZeB/PQJUbiFhPzo5mNmmGgH6zTPM6A9WmGvw27W9aHpD+K5lJI8XwW8MPgvCmCLcQxT
-         yXK8deZEhB/YbpHI9+U0QzKMPA0yFW2zlMNke8ta2S5aNnwmDcOJNd//5Xr0yIQAEGsB
-         XDX2ggTA0M1k1QV52OJxYgU1u62t2S6FAhvhPbS25YeRyQSKz6qsaHVihdoaCTMIayOo
-         axHg==
-X-Gm-Message-State: AOAM5331OJaKO3eba0EzXdc9ycZz7y80MtPapgxk5hIcSuT06kEIKLir
-        s+oj94vpyLWzowdIldm+Kw==
-X-Google-Smtp-Source: ABdhPJwbGI9aHlju4p44HOztNYkvAORMbfv59GH0OOd/zH7h5ig35dQDgCJgHsilkLRRWaU7TgypFw==
-X-Received: by 2002:a92:79ca:: with SMTP id u193mr950065ilc.185.1597982191043;
-        Thu, 20 Aug 2020 20:56:31 -0700 (PDT)
+        bh=XnNKAqnUjN1d+iRAazU+IyknAUrI93QopWNUW3GBtYU=;
+        b=FLN0NM03b2yX2lx/S1RYV48Lo9pJlBYhzVntqVSlanZoXMlrb1/BSiHxs4KT1JZXub
+         qZpAKPSZd0he8i0IS2ZRzIMVJHVZuKeWGzSXyXWrQ/ySLgJsMGLHaccDr1vruA9NNsFe
+         z68Hg9vTGj3rFeUG53nP9aKblLAsliasLw0ssi3Rt/1Gk7kBNwBk/FaedpRuiw7x52yG
+         LNcAkQ2mRdjGSw/akRdxQKw4L9XGzy9bFLzcBXhAd6wXYsVdZw2ELBGrumCiX84vD5eu
+         vApcpD/m15yHx1hs6UdzETQKhHxRPPSOnrklYCKhO7qPRvRBWncpM5NS4enbygFVCSNA
+         i1mw==
+X-Gm-Message-State: AOAM532EcyuZ+0ne4NAzXnuHT2FRiWmpIq05hZ684EP/say3F6o+nkMc
+        L41MBdnbbgxmo/LqfTauelH0nSzLnQ==
+X-Google-Smtp-Source: ABdhPJxPpL1HBEw5J8dDBY93Hs+NL1K9mj9gCD0oWmg6OAV5ux8hwc5CFjZikXwoAoAuwpAiqoM2TQ==
+X-Received: by 2002:a6b:1454:: with SMTP id 81mr919882iou.50.1597982195816;
+        Thu, 20 Aug 2020 20:56:35 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.249])
-        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.56.28
+        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.56.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 20:56:30 -0700 (PDT)
+        Thu, 20 Aug 2020 20:56:35 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -87,9 +87,9 @@ Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v2 31/40] PCI: dwc/tegra: Use common Designware port logic register definitions
-Date:   Thu, 20 Aug 2020 21:54:11 -0600
-Message-Id: <20200821035420.380495-32-robh@kernel.org>
+Subject: [PATCH v2 33/40] PCI: dwc: Make ATU accessors private
+Date:   Thu, 20 Aug 2020 21:54:13 -0600
+Message-Id: <20200821035420.380495-34-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200821035420.380495-1-robh@kernel.org>
 References: <20200821035420.380495-1-robh@kernel.org>
@@ -100,140 +100,91 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The Tegra driver has its own defines for common Designware Port Logic
-registers. Convert it to use the standard register definitions.
+The ATU registers are only accessed in pcie-designware.c and can be private
+to it.
 
 Cc: Jingoo Han <jingoohan1@gmail.com>
 Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Jonathan Hunter <jonathanh@nvidia.com>
-Cc: linux-tegra@vger.kernel.org
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/pci/controller/dwc/pcie-designware.h |  6 +++
- drivers/pci/controller/dwc/pcie-tegra194.c   | 56 ++++++++------------
- 2 files changed, 28 insertions(+), 34 deletions(-)
+ drivers/pci/controller/dwc/pcie-designware.c | 12 ++++++------
+ drivers/pci/controller/dwc/pcie-designware.h | 12 ------------
+ 2 files changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index 40c3766df096..73c119437fee 100644
---- a/drivers/pci/controller/dwc/pcie-designware.h
-+++ b/drivers/pci/controller/dwc/pcie-designware.h
-@@ -32,7 +32,13 @@
- /* Synopsys-specific PCIe configuration registers */
- #define PCIE_PORT_AFR			0x70C
- #define PORT_AFR_N_FTS_MASK		GENMASK(15, 8)
-+#define PORT_AFR_N_FTS(n)		FIELD_PREP(PORT_AFR_N_FTS_MASK, n)
- #define PORT_AFR_CC_N_FTS_MASK		GENMASK(23, 16)
-+#define PORT_AFR_ENTER_ASPM		BIT(30)
-+#define PORT_AFR_L0S_ENTRANCE_LAT_SHIFT	24
-+#define PORT_AFR_L0S_ENTRANCE_LAT_MASK	GENMASK(26, 24)
-+#define PORT_AFR_L1_ENTRANCE_LAT_SHIFT	27
-+#define PORT_AFR_L1_ENTRANCE_LAT_MASK	GENMASK(29, 27)
- 
- #define PCIE_PORT_LINK_CONTROL		0x710
- #define PORT_LINK_DLL_LINK_EN		BIT(5)
-diff --git a/drivers/pci/controller/dwc/pcie-tegra194.c b/drivers/pci/controller/dwc/pcie-tegra194.c
-index a5dce56b3b7a..f121ac25d418 100644
---- a/drivers/pci/controller/dwc/pcie-tegra194.c
-+++ b/drivers/pci/controller/dwc/pcie-tegra194.c
-@@ -183,19 +183,7 @@
- #define EVENT_COUNTER_GROUP_SEL_SHIFT	24
- #define EVENT_COUNTER_GROUP_5		0x5
- 
--#define PORT_LOGIC_ACK_F_ASPM_CTRL			0x70C
--#define ENTER_ASPM					BIT(30)
--#define L0S_ENTRANCE_LAT_SHIFT				24
--#define L0S_ENTRANCE_LAT_MASK				GENMASK(26, 24)
--#define L1_ENTRANCE_LAT_SHIFT				27
--#define L1_ENTRANCE_LAT_MASK				GENMASK(29, 27)
--#define N_FTS_SHIFT					8
--#define N_FTS_MASK					GENMASK(7, 0)
- #define N_FTS_VAL					52
--
--#define PORT_LOGIC_GEN2_CTRL				0x80C
--#define PORT_LOGIC_GEN2_CTRL_DIRECT_SPEED_CHANGE	BIT(17)
--#define FTS_MASK					GENMASK(7, 0)
- #define FTS_VAL						52
- 
- #define PORT_LOGIC_MSI_CTRL_INT_0_EN		0x828
-@@ -401,9 +389,9 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
- 			val |= APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N;
- 			appl_writel(pcie, val, APPL_CAR_RESET_OVRD);
- 
--			val = dw_pcie_readl_dbi(pci, PORT_LOGIC_GEN2_CTRL);
--			val |= PORT_LOGIC_GEN2_CTRL_DIRECT_SPEED_CHANGE;
--			dw_pcie_writel_dbi(pci, PORT_LOGIC_GEN2_CTRL, val);
-+			val = dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
-+			val |= PORT_LOGIC_SPEED_CHANGE;
-+			dw_pcie_writel_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL, val);
- 		}
- 	}
- 
-@@ -694,11 +682,11 @@ static void init_host_aspm(struct tegra_pcie_dw *pcie)
- 	dw_pcie_writel_dbi(pci, pcie->cfg_link_cap_l1sub, val);
- 
- 	/* Program L0s and L1 entrance latencies */
--	val = dw_pcie_readl_dbi(pci, PORT_LOGIC_ACK_F_ASPM_CTRL);
--	val &= ~L0S_ENTRANCE_LAT_MASK;
--	val |= (pcie->aspm_l0s_enter_lat << L0S_ENTRANCE_LAT_SHIFT);
--	val |= ENTER_ASPM;
--	dw_pcie_writel_dbi(pci, PORT_LOGIC_ACK_F_ASPM_CTRL, val);
-+	val = dw_pcie_readl_dbi(pci, PCIE_PORT_AFR);
-+	val &= ~PORT_AFR_L0S_ENTRANCE_LAT_MASK;
-+	val |= (pcie->aspm_l0s_enter_lat << PORT_AFR_L0S_ENTRANCE_LAT_SHIFT);
-+	val |= PORT_AFR_ENTER_ASPM;
-+	dw_pcie_writel_dbi(pci, PCIE_PORT_AFR, val);
+diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
+index b2739b96659f..b0a030661860 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.c
++++ b/drivers/pci/controller/dwc/pcie-designware.c
+@@ -180,31 +180,31 @@ void dw_pcie_write_dbi2(struct dw_pcie *pci, u32 reg, size_t size, u32 val)
+ 		dev_err(pci->dev, "write DBI address failed\n");
  }
  
- static int init_debugfs(struct tegra_pcie_dw *pcie)
-@@ -895,15 +883,15 @@ static void tegra_pcie_prepare_host(struct pcie_port *pp)
- 	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, 0);
+-u32 dw_pcie_read_atu(struct dw_pcie *pci, u32 reg, size_t size)
++static u32 dw_pcie_readl_atu(struct dw_pcie *pci, u32 reg)
+ {
+ 	int ret;
+ 	u32 val;
  
- 	/* Configure FTS */
--	val = dw_pcie_readl_dbi(pci, PORT_LOGIC_ACK_F_ASPM_CTRL);
--	val &= ~(N_FTS_MASK << N_FTS_SHIFT);
--	val |= N_FTS_VAL << N_FTS_SHIFT;
--	dw_pcie_writel_dbi(pci, PORT_LOGIC_ACK_F_ASPM_CTRL, val);
-+	val = dw_pcie_readl_dbi(pci, PCIE_PORT_AFR);
-+	val &= ~PORT_AFR_N_FTS_MASK;
-+	val |= PORT_AFR_N_FTS(N_FTS_VAL);
-+	dw_pcie_writel_dbi(pci, PCIE_PORT_AFR, val);
+ 	if (pci->ops->read_dbi)
+-		return pci->ops->read_dbi(pci, pci->atu_base, reg, size);
++		return pci->ops->read_dbi(pci, pci->atu_base, reg, 4);
  
--	val = dw_pcie_readl_dbi(pci, PORT_LOGIC_GEN2_CTRL);
--	val &= ~FTS_MASK;
-+	val = dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
-+	val &= ~PORT_LOGIC_N_FTS_MASK;
- 	val |= FTS_VAL;
--	dw_pcie_writel_dbi(pci, PORT_LOGIC_GEN2_CTRL, val);
-+	dw_pcie_writel_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL, val);
+-	ret = dw_pcie_read(pci->atu_base + reg, size, &val);
++	ret = dw_pcie_read(pci->atu_base + reg, 4, &val);
+ 	if (ret)
+ 		dev_err(pci->dev, "Read ATU address failed\n");
  
- 	/* Enable as 0xFFFF0001 response for CRS */
- 	val = dw_pcie_readl_dbi(pci, PORT_LOGIC_AMBA_ERROR_RESPONSE_DEFAULT);
-@@ -1820,15 +1808,15 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
- 	dw_pcie_writel_dbi(pci, GEN3_RELATED_OFF, val);
+ 	return val;
+ }
  
- 	/* Configure N_FTS & FTS */
--	val = dw_pcie_readl_dbi(pci, PORT_LOGIC_ACK_F_ASPM_CTRL);
--	val &= ~(N_FTS_MASK << N_FTS_SHIFT);
--	val |= N_FTS_VAL << N_FTS_SHIFT;
--	dw_pcie_writel_dbi(pci, PORT_LOGIC_ACK_F_ASPM_CTRL, val);
-+	val = dw_pcie_readl_dbi(pci, PCIE_PORT_AFR);
-+	val &= ~PORT_AFR_N_FTS_MASK;
-+	val |= PORT_AFR_N_FTS(FTS_VAL);
-+	dw_pcie_writel_dbi(pci, PCIE_PORT_AFR, val);
+-void dw_pcie_write_atu(struct dw_pcie *pci, u32 reg, size_t size, u32 val)
++static void dw_pcie_writel_atu(struct dw_pcie *pci, u32 reg, u32 val)
+ {
+ 	int ret;
  
--	val = dw_pcie_readl_dbi(pci, PORT_LOGIC_GEN2_CTRL);
--	val &= ~FTS_MASK;
-+	val = dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
-+	val &= ~PORT_LOGIC_N_FTS_MASK;
- 	val |= FTS_VAL;
--	dw_pcie_writel_dbi(pci, PORT_LOGIC_GEN2_CTRL, val);
-+	dw_pcie_writel_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL, val);
+ 	if (pci->ops->write_dbi) {
+-		pci->ops->write_dbi(pci, pci->atu_base, reg, size, val);
++		pci->ops->write_dbi(pci, pci->atu_base, reg, 4, val);
+ 		return;
+ 	}
  
- 	/* Configure Max Speed from DT */
- 	if (pcie->max_speed && pcie->max_speed != -EINVAL) {
+-	ret = dw_pcie_write(pci->atu_base + reg, size, val);
++	ret = dw_pcie_write(pci->atu_base + reg, 4, val);
+ 	if (ret)
+ 		dev_err(pci->dev, "Write ATU address failed\n");
+ }
+diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
+index c3178c8694eb..f4b871e3d73f 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.h
++++ b/drivers/pci/controller/dwc/pcie-designware.h
+@@ -268,8 +268,6 @@ int dw_pcie_write(void __iomem *addr, int size, u32 val);
+ u32 dw_pcie_read_dbi(struct dw_pcie *pci, u32 reg, size_t size);
+ void dw_pcie_write_dbi(struct dw_pcie *pci, u32 reg, size_t size, u32 val);
+ void dw_pcie_write_dbi2(struct dw_pcie *pci, u32 reg, size_t size, u32 val);
+-u32 dw_pcie_read_atu(struct dw_pcie *pci, u32 reg, size_t size);
+-void dw_pcie_write_atu(struct dw_pcie *pci, u32 reg, size_t size, u32 val);
+ int dw_pcie_link_up(struct dw_pcie *pci);
+ void dw_pcie_upconfig_setup(struct dw_pcie *pci);
+ void dw_pcie_link_set_max_speed(struct dw_pcie *pci, u32 link_gen);
+@@ -319,16 +317,6 @@ static inline void dw_pcie_writel_dbi2(struct dw_pcie *pci, u32 reg, u32 val)
+ 	dw_pcie_write_dbi2(pci, reg, 0x4, val);
+ }
+ 
+-static inline void dw_pcie_writel_atu(struct dw_pcie *pci, u32 reg, u32 val)
+-{
+-	dw_pcie_write_atu(pci, reg, 0x4, val);
+-}
+-
+-static inline u32 dw_pcie_readl_atu(struct dw_pcie *pci, u32 reg)
+-{
+-	return dw_pcie_read_atu(pci, reg, 0x4);
+-}
+-
+ static inline void dw_pcie_dbi_ro_wr_en(struct dw_pcie *pci)
+ {
+ 	u32 reg;
 -- 
 2.25.1
 
