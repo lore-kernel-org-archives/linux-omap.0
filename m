@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B4EC433E1
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 16:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C49C8C433DF
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 16:48:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFE342072D
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 16:42:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A022A20732
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 16:48:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598028144;
-	bh=cfdCNrxxqiPmksM9a9a3500KiB2de5Nz5QodaXsb7FM=;
+	s=default; t=1598028539;
+	bh=aSdNx2qWrmIsmiVue+fhidxS8tAnmctRUSuR3fZdmdM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=JTJYI8m9y6qnjqkjI2iI5hVPuDxPGK9aEy2kixR1LK8guRPxJW3kbEX8uNXASSpas
-	 erK57njrW75TWOvhH/L/SLGRmELPbGVJb3v8uZSy+mMlwdtU4lNKK3/MAVqpL0EIjp
-	 c3sHVkgfeJBowr4VyL/oh8gaE3kMQCLTVtWGsm80=
+	b=wwQlJ62X3keiH/+ZvWMOqfXWdMY2hYcYJmMkWChlPTB6gZCQtudse4AwvPhSz90X6
+	 esoB8XI81VIyeGHPZCmJ0rs3CUfFJ90GBgajrJYT/Ih34n0PUgxrPehYXk7E8imCOO
+	 AOBaikYBdKASNkSwGcSwKb2gssBzLbltseS0CqIA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728453AbgHUQk1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Aug 2020 12:40:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51668 "EHLO mail.kernel.org"
+        id S1728714AbgHUQsb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Aug 2020 12:48:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51510 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728404AbgHUQUq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 21 Aug 2020 12:20:46 -0400
+        id S1728361AbgHUQUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 21 Aug 2020 12:20:07 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C3C1B22D04;
-        Fri, 21 Aug 2020 16:19:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A289022BED;
+        Fri, 21 Aug 2020 16:19:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598026799;
-        bh=cfdCNrxxqiPmksM9a9a3500KiB2de5Nz5QodaXsb7FM=;
+        s=default; t=1598026762;
+        bh=aSdNx2qWrmIsmiVue+fhidxS8tAnmctRUSuR3fZdmdM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=1u62T43t7cy65XOW2v7xXxBCn6MxIK18faQ6uf9P0cHDatB4sBlpCIApK86kp8DJd
-         YS/3zBkHxvLLhD5kN2lb44D98guzXVlFTSX0beJkFOptt/iaGIDRIzfgTRRY09Hgr2
-         IGWAU34gmCjzx9Ow7DShCf3tsVfxf224RHgnVZzA=
+        b=Uy9BDwAgZrv/px/1b56r49Y28ZznrSDOoh8x9bjb7SDfx2LC+8AB4UoBo0c7D9ryJ
+         bFl72mcOvn4FPhUTj6dy7O2Z8HTkHJijHERXnSiV6tNXjiKHnL9P8jg7Wurg2IUkOl
+         zkQg25iztxGtLXlceS10exJcCDI39F+LzT4uGiLs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Aditya Pakki <pakki001@umn.edu>, kjlu@umn.edu, wu000273@umn.edu,
@@ -52,12 +52,12 @@ Cc:     Aditya Pakki <pakki001@umn.edu>, kjlu@umn.edu, wu000273@umn.edu,
         Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: [PATCH AUTOSEL 4.9 15/26] omapfb: fix multiple reference count leaks due to pm_runtime_get_sync
-Date:   Fri, 21 Aug 2020 12:19:26 -0400
-Message-Id: <20200821161938.349246-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 18/30] omapfb: fix multiple reference count leaks due to pm_runtime_get_sync
+Date:   Fri, 21 Aug 2020 12:18:45 -0400
+Message-Id: <20200821161857.348955-18-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200821161938.349246-1-sashal@kernel.org>
-References: <20200821161938.349246-1-sashal@kernel.org>
+In-Reply-To: <20200821161857.348955-1-sashal@kernel.org>
+References: <20200821161857.348955-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -153,7 +153,7 @@ index 48c6500c24e1f..91879f9d38a7f 100644
  
  void dss_runtime_put(void)
 diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
-index 156a254705ea5..ab64bf0215e82 100644
+index ec78d61bc5512..e2d571ca8590a 100644
 --- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
 +++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
 @@ -50,9 +50,10 @@ static int hdmi_runtime_get(void)
@@ -170,7 +170,7 @@ index 156a254705ea5..ab64bf0215e82 100644
  	return 0;
  }
 diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
-index 4da36bcab9779..c6efaca3235a8 100644
+index 2e2fcc3d6d4f7..13f3a5ce55294 100644
 --- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
 +++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
 @@ -54,9 +54,10 @@ static int hdmi_runtime_get(void)
