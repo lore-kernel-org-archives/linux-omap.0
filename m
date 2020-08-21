@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8CD1C433E8
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F660C433EB
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6DD821744
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6834C20855
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597982158;
-	bh=REcoMS4JGTg3AU+ePV9ELkKsX+LsT2j6+Obk/UhK52A=;
+	s=default; t=1597982153;
+	bh=sheKxZO10dupyLs0se3KLifZ9bknhPY/DvvCIixcOsI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=E5pg9rEHdwoY/RxKZBdBPzS05JhSFjJxF7fC/PYyN3pWHwZab7+cH5czMjzcEXCD8
-	 wtJO0lsA1XohBiQ2SkDrtWo+n9AxUuj2FRpOIB4OD8DTFY37Gj6XXo4hbXyd1DfwZt
-	 +EJe3kn6tRmEntZBxdNH0LcqkwNDRZDh/IahJr9U=
+	b=vgdpx/9UVU2xTQlDn1Zou8+NpW+14uTyDmgq6FI+FGoYc6apWbBC0gxIdWGTTp1fY
+	 7CPGX6oY9eglmkDcVmmgagsoy0IFftPTFL53DU4wH1AGPF/uaed2/Rk6WRMJnYHC4y
+	 /W8ZvgQuOj3D5ejiWOFKUn0dk8ige2ayJsAWMMP0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727106AbgHUDz6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Aug 2020 23:55:58 -0400
-Received: from mail-io1-f67.google.com ([209.85.166.67]:34045 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727845AbgHUDz4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:55:56 -0400
-Received: by mail-io1-f67.google.com with SMTP id q75so487770iod.1;
-        Thu, 20 Aug 2020 20:55:55 -0700 (PDT)
+        id S1727969AbgHUDzw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Aug 2020 23:55:52 -0400
+Received: from mail-io1-f65.google.com ([209.85.166.65]:34032 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727977AbgHUDzr (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:55:47 -0400
+Received: by mail-io1-f65.google.com with SMTP id q75so487549iod.1;
+        Thu, 20 Aug 2020 20:55:46 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=1SzKekjf6fRGgLEC8a7Q0N4huYSGdxsop7/CqILDTfo=;
-        b=n6B3EDPxP0YV6Mcp6xnpT4zsSsGeeXxUm68RA5OO6uBmalyRrgEZennjl28Fg9k6UE
-         YWAv3eXzVxREgEk4+7hLuPsoFmdLN7H1tir2F3PK/23y5Ht6Nuk9QNx7tshzeTiqDxye
-         J1VqPtOVFYL3IolYXqGaFWbdNTz9OXdpvKNpUrkCL8vTW46GN7KT5mA7Af4yeTQDhFrs
-         98Nye+dL1Kvx6afSc+xL6J62KESPHRrnnZ/LhTcByHb2DOLYhwH6zrDqf9Mm01jRJSaK
-         lueXR2pCjY4RxWGwYJXpw5D7A+zhJUWyXv2w9bba/mMlwbZeboswx8+rljUYElbytKnQ
-         dQhw==
-X-Gm-Message-State: AOAM531Kgmkyj+R1VQwfIoBYYMm8UAkNQ5q2yrtsq2/TFSs58m+IoQAm
-        eAJzJd+6boeI+srU/C/Q5Q==
-X-Google-Smtp-Source: ABdhPJxpMTeiMlYRVgyTNiC9a7PyE7DHTrmOsJRe09lztrnsaJ5bD8KQoQujvIa/rDSeytaaTwHavg==
-X-Received: by 2002:a05:6638:25d3:: with SMTP id u19mr821718jat.103.1597982155028;
-        Thu, 20 Aug 2020 20:55:55 -0700 (PDT)
+        bh=kumZHZjUFIvX3SHWpXpEUET8g4KV80WJmK3nUIgHIRs=;
+        b=HxDmadhYeFajdPlFRXn2/qt/K7VIXZGAiT4WNvrpnvZ8Trt++qgoQ2153ahtIu79dQ
+         bYWIzy6qNEJxCjyKg2nwut1EFa/rapIv9ZMUsVsFl7CkChWwhdWsPo5N1elDGWq7QiiX
+         LF7xokQUQF0HN+LzO9yvLZxTG3W4RkVVe2b26NI/TT7GntlWx1WBZDPlqs+ztzKtvrMQ
+         IW8D3oAY2wAMKsV+NsdHCMhDpZdt8ChlayGKOqlA8qawxnRgTEH9W/i9pK62zuAorEZ0
+         6XKY5Nu1m8nptGSwAZfhgSHxVjUkDJFORMTW63hxTUVDMk7kXXof4qWogjVEcGVuWiO1
+         uA1Q==
+X-Gm-Message-State: AOAM531k33gg70FRzq3ebbjqNOhe3yXebba+URIGpOPoyS4UDmHLESV5
+        bGFh2kFYDxyceV08Bj0v0w==
+X-Google-Smtp-Source: ABdhPJxRKUtV0n+dK2NRfpXEvZsHGODGBsP7rLd+TFntUVfJ0RA8JVZq7czdDNbyUGCiMPAKKGQyTA==
+X-Received: by 2002:a05:6638:22c7:: with SMTP id j7mr840801jat.77.1597982145790;
+        Thu, 20 Aug 2020 20:55:45 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.249])
-        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.49
+        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 20:55:54 -0700 (PDT)
+        Thu, 20 Aug 2020 20:55:45 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -87,9 +87,9 @@ Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v2 22/40] PCI: dwc/imx6: Remove duplicate define PCIE_LINK_WIDTH_SPEED_CONTROL
-Date:   Thu, 20 Aug 2020 21:54:02 -0600
-Message-Id: <20200821035420.380495-23-robh@kernel.org>
+Subject: [PATCH v2 20/40] PCI: dwc/keystone: Drop duplicated 'num-viewport'
+Date:   Thu, 20 Aug 2020 21:54:00 -0600
+Message-Id: <20200821035420.380495-21-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200821035420.380495-1-robh@kernel.org>
 References: <20200821035420.380495-1-robh@kernel.org>
@@ -100,36 +100,69 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-PCIE_LINK_WIDTH_SPEED_CONTROL is already defined in pcie-designware.h,
-so remove it from the i.MX6 driver.
+The DWC core driver already parses and stores the 'num-viewport' DT
+property, so there is no need for the Keystone driver to store it.
 
-Cc: Richard Zhu <hongxing.zhu@nxp.com>
-Cc: Lucas Stach <l.stach@pengutronix.de>
+Cc: Murali Karicheri <m-karicheri2@ti.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Shawn Guo <shawnguo@kernel.org>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
-Cc: Fabio Estevam <festevam@gmail.com>
-Cc: NXP Linux Team <linux-imx@nxp.com>
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/pci/controller/dwc/pci-imx6.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pci-imx6.c b/drivers/pci/controller/dwc/pci-imx6.c
-index 68a09680e728..2b075a468104 100644
---- a/drivers/pci/controller/dwc/pci-imx6.c
-+++ b/drivers/pci/controller/dwc/pci-imx6.c
-@@ -116,8 +116,6 @@ struct imx6_pcie {
- #define PCIE_PHY_STAT (PL_OFFSET + 0x110)
- #define PCIE_PHY_STAT_ACK		BIT(16)
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index 983069a4a561..0fe792f6c253 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -123,7 +123,6 @@ struct keystone_pcie {
  
--#define PCIE_LINK_WIDTH_SPEED_CONTROL	0x80C
+ 	int			msi_host_irq;
+ 	int			num_lanes;
+-	u32			num_viewport;
+ 	struct phy		**phy;
+ 	struct device_link	**link;
+ 	struct			device_node *msi_intc_np;
+@@ -397,9 +396,9 @@ static void ks_pcie_clear_dbi_mode(struct keystone_pcie *ks_pcie)
+ static void ks_pcie_setup_rc_app_regs(struct keystone_pcie *ks_pcie)
+ {
+ 	u32 val;
+-	u32 num_viewport = ks_pcie->num_viewport;
+ 	struct dw_pcie *pci = ks_pcie->pci;
+ 	struct pcie_port *pp = &pci->pp;
++	u32 num_viewport = pci->num_viewport;
+ 	u64 start, end;
+ 	struct resource *mem;
+ 	int i;
+@@ -1199,7 +1198,6 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	unsigned int version;
+ 	void __iomem *base;
+-	u32 num_viewport;
+ 	struct phy **phy;
+ 	int link_speed;
+ 	u32 num_lanes;
+@@ -1349,12 +1347,6 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 			goto err_get_sync;
+ 		}
+ 
+-		ret = of_property_read_u32(np, "num-viewport", &num_viewport);
+-		if (ret < 0) {
+-			dev_err(dev, "unable to read *num-viewport* property\n");
+-			goto err_get_sync;
+-		}
 -
- /* PHY registers (not memory-mapped) */
- #define PCIE_PHY_ATEOVRD			0x10
- #define  PCIE_PHY_ATEOVRD_EN			BIT(2)
+ 		/*
+ 		 * "Power Sequencing and Reset Signal Timings" table in
+ 		 * PCI EXPRESS CARD ELECTROMECHANICAL SPECIFICATION, REV. 2.0
+@@ -1368,7 +1360,6 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 			gpiod_set_value_cansleep(gpiod, 1);
+ 		}
+ 
+-		ks_pcie->num_viewport = num_viewport;
+ 		pci->pp.ops = host_ops;
+ 		ret = ks_pcie_add_pcie_port(ks_pcie, pdev);
+ 		if (ret < 0)
 -- 
 2.25.1
 
