@@ -2,114 +2,208 @@ Return-Path: <SRS0=m/Cn=B7=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA5EC433E5
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 14:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B4EC433E1
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 16:42:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35F042086A
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 14:45:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="GmKcGM6U"
+	by mail.kernel.org (Postfix) with ESMTP id AFE342072D
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 16:42:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1598028144;
+	bh=cfdCNrxxqiPmksM9a9a3500KiB2de5Nz5QodaXsb7FM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=JTJYI8m9y6qnjqkjI2iI5hVPuDxPGK9aEy2kixR1LK8guRPxJW3kbEX8uNXASSpas
+	 erK57njrW75TWOvhH/L/SLGRmELPbGVJb3v8uZSy+mMlwdtU4lNKK3/MAVqpL0EIjp
+	 c3sHVkgfeJBowr4VyL/oh8gaE3kMQCLTVtWGsm80=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728023AbgHUOpW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Aug 2020 10:45:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46718 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727976AbgHUOoi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Aug 2020 10:44:38 -0400
-Received: from mail-lf1-x142.google.com (mail-lf1-x142.google.com [IPv6:2a00:1450:4864:20::142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B55F8C061574
-        for <linux-omap@vger.kernel.org>; Fri, 21 Aug 2020 07:44:37 -0700 (PDT)
-Received: by mail-lf1-x142.google.com with SMTP id x64so93361lff.0
-        for <linux-omap@vger.kernel.org>; Fri, 21 Aug 2020 07:44:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=dCxd2Q4l5lkrNLliGFJQWYHxizvRKPbrS09MX/RoHLM=;
-        b=GmKcGM6UHhTOSrzyGoon8fimsUsJsoCmfRi2IX7drBYlygMYxMH+UN27VCNCU1t3AG
-         C6uS7uOwqapSy69YRq29pHHahyG3Z+49HchV+3KC25FAyTZasPEnxRLa1PdHVU0WJ0Gq
-         mm25ZZImCfybEp8lRAcrSSJ5lEoxK9ctEzOKnJirmpymflqtczwRXdrIlNPawPiSb30n
-         OGdx7u9DWqzbahDTGzZdXsXrvGScFStGCRT/0+COD3hX8YlG3C3msC8Us3RoQYrROPCY
-         Ked5yYkGMsOAXVN/IFfl8JrXSg5XwrYlEXFQV6Cxcg2VnqycEwfx5+61IBjaOG1Fyhvm
-         Z0QQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=dCxd2Q4l5lkrNLliGFJQWYHxizvRKPbrS09MX/RoHLM=;
-        b=ba+AzIOzNalh5sPjEADr8AAvgEQt4sckEqGV3LrPnnAEump1QKQcjHTUOBhX/VqUij
-         J6Jgbt1DUk41A5NOCmrH0rzpT4Gx9jTyiqGtfYrd1BJRHCSQic8R30y6Ln8sWEo5vNwM
-         51AIa9bc0i+OmiwVe+QBqDToExIQDRIAfVBOCG1XLqjQ0o0gI2NLLpevHpElq1V+5KVS
-         X9JQ3te2LLpyYKgjsVJbu5TFFRHKy+08Ij0dogPJYLZBdVaEPxcTw5stpA8cS4vpNN8d
-         nNmD42tSHKMJL3wnOjRh5QThohCOvgm2u6WP6n9QKZfhqhcorhSmo7SGNWMNpa154BFJ
-         MCpQ==
-X-Gm-Message-State: AOAM533fCHgkiSAMcDlEd5/qC92egMtybqrjsPJTGh9OptMoCCahOjEM
-        vLU8lbwr7qVYz3sdJe4HRPQURA==
-X-Google-Smtp-Source: ABdhPJy+O9TCor1YYjDT1vPpSOc3rLR+SybCootz5q6qINXbs623zAq/NPoBXcSDtFn6O6eD3oRHSQ==
-X-Received: by 2002:ac2:4881:: with SMTP id x1mr1621731lfc.162.1598021075745;
-        Fri, 21 Aug 2020 07:44:35 -0700 (PDT)
-Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
-        by smtp.gmail.com with ESMTPSA id u10sm425301lfo.39.2020.08.21.07.44.34
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 21 Aug 2020 07:44:35 -0700 (PDT)
-From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-To:     ssantosh@kernel.org, s-anna@ti.com
-Cc:     grzegorz.jaszczyk@linaro.org, santosh.shilimkar@oracle.com,
-        robh+dt@kernel.org, lee.jones@linaro.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        praneeth@ti.com, tony@atomide.com
-Subject: [PATCH v2 7/7] soc: ti: pruss: Enable support for ICSSG subsystems on K3 J721E SoCs
-Date:   Fri, 21 Aug 2020 16:42:44 +0200
-Message-Id: <1598020964-29877-8-git-send-email-grzegorz.jaszczyk@linaro.org>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1598020964-29877-1-git-send-email-grzegorz.jaszczyk@linaro.org>
-References: <1598020964-29877-1-git-send-email-grzegorz.jaszczyk@linaro.org>
+        id S1728453AbgHUQk1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Aug 2020 12:40:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51668 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728404AbgHUQUq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 21 Aug 2020 12:20:46 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id C3C1B22D04;
+        Fri, 21 Aug 2020 16:19:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1598026799;
+        bh=cfdCNrxxqiPmksM9a9a3500KiB2de5Nz5QodaXsb7FM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=1u62T43t7cy65XOW2v7xXxBCn6MxIK18faQ6uf9P0cHDatB4sBlpCIApK86kp8DJd
+         YS/3zBkHxvLLhD5kN2lb44D98guzXVlFTSX0beJkFOptt/iaGIDRIzfgTRRY09Hgr2
+         IGWAU34gmCjzx9Ow7DShCf3tsVfxf224RHgnVZzA=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Aditya Pakki <pakki001@umn.edu>, kjlu@umn.edu, wu000273@umn.edu,
+        Allison Randal <allison@lohutok.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Enrico Weigelt <info@metux.net>,
+        "Andrew F. Davis" <afd@ti.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Alexios Zavras <alexios.zavras@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        YueHaibing <yuehaibing@huawei.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+Subject: [PATCH AUTOSEL 4.9 15/26] omapfb: fix multiple reference count leaks due to pm_runtime_get_sync
+Date:   Fri, 21 Aug 2020 12:19:26 -0400
+Message-Id: <20200821161938.349246-15-sashal@kernel.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200821161938.349246-1-sashal@kernel.org>
+References: <20200821161938.349246-1-sashal@kernel.org>
+MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: Aditya Pakki <pakki001@umn.edu>
 
-The K3 J721E family of SoCs have a revised version of the PRU-ICSS (ICSSG)
-processor subsystem present on K3 AM65x SoCs. These SoCs contain typically
-two ICSSG instances named ICSSG0 and ICSSG1. The two ICSSGs are identical
-to each other for the most part with minor SoC integration differences and
-capabilities. The ICSSG1 supports slightly enhanced features like SGMII
-mode Ethernet, while the ICSSG0 instance is limited to MII mode only.
+[ Upstream commit 78c2ce9bde70be5be7e3615a2ae7024ed8173087 ]
 
-There is no change in the Interrupt Controller w.r.t AM65x. All other
-integration aspects are very similar to the ICSSGs on AM65x SoCs.
+On calling pm_runtime_get_sync() the reference count of the device
+is incremented. In case of failure, decrement the
+reference count before returning the error.
 
-The existing pruss platform driver has been updated to support these new
-ICSSG instances through new J721E specific compatibles.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+Cc: kjlu@umn.edu
+Cc: wu000273@umn.edu
+Cc: Allison Randal <allison@lohutok.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Enrico Weigelt <info@metux.net>
+cc: "Andrew F. Davis" <afd@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Alexios Zavras <alexios.zavras@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: YueHaibing <yuehaibing@huawei.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Link: https://patchwork.freedesktop.org/patch/msgid/20200614030528.128064-1-pakki001@umn.edu
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
-v1->v2:
- - New patch which was not present in v1.
----
- drivers/soc/ti/pruss.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/fbdev/omap2/omapfb/dss/dispc.c | 7 +++++--
+ drivers/video/fbdev/omap2/omapfb/dss/dsi.c   | 7 +++++--
+ drivers/video/fbdev/omap2/omapfb/dss/dss.c   | 7 +++++--
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c | 5 +++--
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c | 5 +++--
+ drivers/video/fbdev/omap2/omapfb/dss/venc.c  | 7 +++++--
+ 6 files changed, 26 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/soc/ti/pruss.c b/drivers/soc/ti/pruss.c
-index ccc9783..37df543 100644
---- a/drivers/soc/ti/pruss.c
-+++ b/drivers/soc/ti/pruss.c
-@@ -164,6 +164,7 @@ static const struct of_device_id pruss_of_match[] = {
- 	{ .compatible = "ti,am5728-pruss" },
- 	{ .compatible = "ti,k2g-pruss" },
- 	{ .compatible = "ti,am654-icssg" },
-+	{ .compatible = "ti,j721e-icssg" },
- 	{},
- };
- MODULE_DEVICE_TABLE(of, pruss_of_match);
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
+index 7a75dfda98457..00f5a54aaf9b7 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
+@@ -531,8 +531,11 @@ int dispc_runtime_get(void)
+ 	DSSDBG("dispc_runtime_get\n");
+ 
+ 	r = pm_runtime_get_sync(&dispc.pdev->dev);
+-	WARN_ON(r < 0);
+-	return r < 0 ? r : 0;
++	if (WARN_ON(r < 0)) {
++		pm_runtime_put_sync(&dispc.pdev->dev);
++		return r;
++	}
++	return 0;
+ }
+ EXPORT_SYMBOL(dispc_runtime_get);
+ 
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
+index 30d49f3800b33..2bfd9063cdfc3 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
+@@ -1148,8 +1148,11 @@ static int dsi_runtime_get(struct platform_device *dsidev)
+ 	DSSDBG("dsi_runtime_get\n");
+ 
+ 	r = pm_runtime_get_sync(&dsi->pdev->dev);
+-	WARN_ON(r < 0);
+-	return r < 0 ? r : 0;
++	if (WARN_ON(r < 0)) {
++		pm_runtime_put_sync(&dsi->pdev->dev);
++		return r;
++	}
++	return 0;
+ }
+ 
+ static void dsi_runtime_put(struct platform_device *dsidev)
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+index 48c6500c24e1f..91879f9d38a7f 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+@@ -778,8 +778,11 @@ int dss_runtime_get(void)
+ 	DSSDBG("dss_runtime_get\n");
+ 
+ 	r = pm_runtime_get_sync(&dss.pdev->dev);
+-	WARN_ON(r < 0);
+-	return r < 0 ? r : 0;
++	if (WARN_ON(r < 0)) {
++		pm_runtime_put_sync(&dss.pdev->dev);
++		return r;
++	}
++	return 0;
+ }
+ 
+ void dss_runtime_put(void)
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
+index 156a254705ea5..ab64bf0215e82 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
+@@ -50,9 +50,10 @@ static int hdmi_runtime_get(void)
+ 	DSSDBG("hdmi_runtime_get\n");
+ 
+ 	r = pm_runtime_get_sync(&hdmi.pdev->dev);
+-	WARN_ON(r < 0);
+-	if (r < 0)
++	if (WARN_ON(r < 0)) {
++		pm_runtime_put_sync(&hdmi.pdev->dev);
+ 		return r;
++	}
+ 
+ 	return 0;
+ }
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
+index 4da36bcab9779..c6efaca3235a8 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
+@@ -54,9 +54,10 @@ static int hdmi_runtime_get(void)
+ 	DSSDBG("hdmi_runtime_get\n");
+ 
+ 	r = pm_runtime_get_sync(&hdmi.pdev->dev);
+-	WARN_ON(r < 0);
+-	if (r < 0)
++	if (WARN_ON(r < 0)) {
++		pm_runtime_put_sync(&hdmi.pdev->dev);
+ 		return r;
++	}
+ 
+ 	return 0;
+ }
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/venc.c b/drivers/video/fbdev/omap2/omapfb/dss/venc.c
+index 392464da12e41..96714b4596d2d 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/venc.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/venc.c
+@@ -402,8 +402,11 @@ static int venc_runtime_get(void)
+ 	DSSDBG("venc_runtime_get\n");
+ 
+ 	r = pm_runtime_get_sync(&venc.pdev->dev);
+-	WARN_ON(r < 0);
+-	return r < 0 ? r : 0;
++	if (WARN_ON(r < 0)) {
++		pm_runtime_put_sync(&venc.pdev->dev);
++		return r;
++	}
++	return 0;
+ }
+ 
+ static void venc_runtime_put(void)
 -- 
-2.7.4
+2.25.1
 
