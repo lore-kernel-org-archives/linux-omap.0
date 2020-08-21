@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87258C433E5
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:57:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4576AC433EB
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:57:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 68A8120714
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:57:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 225F9208E4
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:57:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597982220;
-	bh=6HAMoAK96PfrcI/Pwp8ZJmOWHtOeufutMpJCXX1xxcA=;
+	s=default; t=1597982221;
+	bh=cawIRPOanM4q3RIhd6+vc2sIs/Til8o0Yl6KJ7cE2uA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=VaXqfZpHUYEAOvWbGvEAxJrd41jA1JzhztHiTEyOQRw3Fhg5Z8WMUcjN6EVBkKno8
-	 VOzbQ+Xc/GEBLsNf1Ie3tw8pccl2mLL2d1pk3s01AL8VgHYFwPRJGX6R78rjfTrJAT
-	 kKmcRVUYuQLig3zO9p1+THSAAMtfzPVBJaak8+II=
+	b=B5Bg1bWBREP3VRqkEJ9uDuDUHkMt7AidVxufQ3Epa0fvnFxRoQEawdoXLA7ZInvXs
+	 bhunqfTwBtxaed8ah7slyaoW1wfEQok6F7FoIUOIvInYjOmDqMEzDurhwAMVv7DBaA
+	 6uSr9tFB5b7+8xkQZ+ZW0JvJAD+pBD9p4biZRFjY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728070AbgHUD4z (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Aug 2020 23:56:55 -0400
-Received: from mail-io1-f65.google.com ([209.85.166.65]:40645 "EHLO
+        id S1727939AbgHUD47 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Aug 2020 23:56:59 -0400
+Received: from mail-io1-f65.google.com ([209.85.166.65]:37259 "EHLO
         mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727066AbgHUD4v (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:56:51 -0400
-Received: by mail-io1-f65.google.com with SMTP id b17so473964ion.7;
-        Thu, 20 Aug 2020 20:56:50 -0700 (PDT)
+        with ESMTP id S1727807AbgHUD46 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:56:58 -0400
+Received: by mail-io1-f65.google.com with SMTP id b16so485080ioj.4;
+        Thu, 20 Aug 2020 20:56:57 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=wCTy6HIJ0siuoHKEt9Jh+dIb5CfTt4PsBCEo/LAgIko=;
-        b=bBpK6RHH/BilT5575kb8qgza9KTBvGs3P9jlIEcQDi1FlZrfzhzfEjd4a5qfbBwK4J
-         pjnGfr/lF+BJ68GipQqT9680ZgZClQ2P9AzLsgPpnMmiACIBCTSX6O48fSHCk+HSmZAQ
-         d3J2Y0sd3vuCHPYVA3XnXXN7o4KqhTCtqD+DX3B+FDKNZ/6a5ZlP1Xvd2Oqt4VsMWP/h
-         zhmCqzLKgu4CZomH5kGBvJ58tY8mDP7Ps7wTQYWxprp1pR3ZSM6hBm8VRjHL49s8wSlZ
-         3Rafn+171xGftQMAc0g62nZ2CpeZgkcH+iwO+PeJgb5XMHXWfIuqF4+zrU0Du3NPNMxY
-         9dtQ==
-X-Gm-Message-State: AOAM533VuCijUqfyGDUlNTkTgPuwmSffpqhnDh0yVD/NzXHUyY9RMu3C
-        h1ZBo0xTokZamr95E/0Y1Q==
-X-Google-Smtp-Source: ABdhPJyVQS4lKmzqeroBIofceYh0j4/zV6pM1lp4Q23N44EPxrVFx8K/P5ZHYh9Xho/IbnSww4WCyw==
-X-Received: by 2002:a05:6638:1393:: with SMTP id w19mr823225jad.113.1597982209493;
-        Thu, 20 Aug 2020 20:56:49 -0700 (PDT)
+        bh=9/YPThWKebuepD09jEOhLOS7SrW7ksPYY3UHELax/QU=;
+        b=d1qJeTUtDUyEYXJ3St92Tp8URiCGPgf3NhXE1psc1WG8XNZ3+0ROmkjWxRWxvK6q+k
+         CXrM9hd4k1dBXUncHhPPB3d5eodNKy+Cmv525A1aQLEsi80uNX+VYDEdsRCv8dqNcfxw
+         03WM6RRhPF7qmxUXR9E3Q6/FaDVaSBP3vjNIA6iwB4WfLVLWU0pKZEdqliLfMzr5AyO1
+         4IHe5pfca+oky+T4pF1Q6X7e2rmZc0/3KEeVviaX91b3sxw9JVREhUeQb8VCJLqc6otW
+         UhUHJQTarVqTKz4CRV/ZOAnmqzL4f/74U8Ra0qFR2RHywspbKOEPbiWtZbWA/TP9gt4n
+         rmGQ==
+X-Gm-Message-State: AOAM532qxeNRuBBheL2y3JpwvtMEup2brvdSUpkMWVzc2/cgJxwIMbde
+        D+rPMjifHHikTQq1HOGTRA==
+X-Google-Smtp-Source: ABdhPJwTwqsPsKVkMoMEXHOo2cKMWdbZxZdy/oInmh65Y7ywfHBijNwvFaSB2WL1YEbhA5nsNJVKOg==
+X-Received: by 2002:a05:6638:1690:: with SMTP id f16mr859543jat.91.1597982216882;
+        Thu, 20 Aug 2020 20:56:56 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.249])
-        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.56.46
+        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.56.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 20:56:48 -0700 (PDT)
+        Thu, 20 Aug 2020 20:56:56 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -87,9 +87,9 @@ Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v2 37/40] PCI: dwc/intel-gw: Move getting PCI_CAP_ID_EXP offset to intel_pcie_link_setup()
-Date:   Thu, 20 Aug 2020 21:54:17 -0600
-Message-Id: <20200821035420.380495-38-robh@kernel.org>
+Subject: [PATCH v2 40/40] PCI: dwc: Use DBI accessors
+Date:   Thu, 20 Aug 2020 21:54:20 -0600
+Message-Id: <20200821035420.380495-41-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200821035420.380495-1-robh@kernel.org>
 References: <20200821035420.380495-1-robh@kernel.org>
@@ -100,64 +100,77 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The PCI_CAP_ID_EXP offset is only needed by intel_pcie_link_setup(), so
-let's retrieve it there and avoid storing the offset.
+Convert the remaining cases of register accesses using dbi_base rather
+than dw_pcie_(read|write)[bwl]_dbi accessors.
 
-Cc: Dilip Kota <eswara.kota@linux.intel.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Pratyush Anand <pratyush.anand@gmail.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Jonathan Hunter <jonathanh@nvidia.com>
+Cc: linux-tegra@vger.kernel.org
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/pci/controller/dwc/pcie-intel-gw.c | 15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ drivers/pci/controller/dwc/pcie-spear13xx.c |  8 ++++----
+ drivers/pci/controller/dwc/pcie-tegra194.c  | 10 ++++------
+ 2 files changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-intel-gw.c b/drivers/pci/controller/dwc/pcie-intel-gw.c
-index 6b102197a1b6..807e1fa1bd6f 100644
---- a/drivers/pci/controller/dwc/pcie-intel-gw.c
-+++ b/drivers/pci/controller/dwc/pcie-intel-gw.c
-@@ -72,7 +72,6 @@ struct intel_pcie_port {
- 	struct clk		*core_clk;
- 	struct reset_control	*core_rst;
- 	struct phy		*phy;
--	u8			pcie_cap_ofst;
- };
+diff --git a/drivers/pci/controller/dwc/pcie-spear13xx.c b/drivers/pci/controller/dwc/pcie-spear13xx.c
+index 0d8d0fe87f27..e348225f651f 100644
+--- a/drivers/pci/controller/dwc/pcie-spear13xx.c
++++ b/drivers/pci/controller/dwc/pcie-spear13xx.c
+@@ -86,12 +86,12 @@ static int spear13xx_pcie_establish_link(struct spear13xx_pcie *spear13xx_pcie)
+ 	 * default value in capability register is 512 bytes. So force
+ 	 * it to 128 here.
+ 	 */
+-	dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, &val);
++	val = dw_pcie_readw_dbi(pci, exp_cap_off + PCI_EXP_DEVCTL);
+ 	val &= ~PCI_EXP_DEVCTL_READRQ;
+-	dw_pcie_write(pci->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, val);
++	dw_pcie_writew_dbi(pci, exp_cap_off + PCI_EXP_DEVCTL, val);
  
- static void pcie_update_bits(void __iomem *base, u32 ofs, u32 mask, u32 val)
-@@ -132,7 +131,7 @@ static void intel_pcie_ltssm_disable(struct intel_pcie_port *lpp)
- static void intel_pcie_link_setup(struct intel_pcie_port *lpp)
- {
- 	u32 val;
--	u8 offset = lpp->pcie_cap_ofst;
-+	u8 offset = dw_pcie_find_capability(&lpp->pci, PCI_CAP_ID_EXP);
+-	dw_pcie_write(pci->dbi_base + PCI_VENDOR_ID, 2, 0x104A);
+-	dw_pcie_write(pci->dbi_base + PCI_DEVICE_ID, 2, 0xCD80);
++	dw_pcie_writew_dbi(pci, PCI_VENDOR_ID, 0x104A);
++	dw_pcie_writew_dbi(pci, PCI_DEVICE_ID, 0xCD80);
  
- 	val = pcie_rc_cfg_rd(lpp, offset + PCI_EXP_LNKCAP);
- 	lpp->max_width = FIELD_GET(PCI_EXP_LNKCAP_MLW, val);
-@@ -328,7 +327,6 @@ static void intel_pcie_turn_off(struct intel_pcie_port *lpp)
+ 	/* enable ltssm */
+ 	writel(DEVICE_TYPE_RC | (1 << MISCTRL_EN_ID)
+diff --git a/drivers/pci/controller/dwc/pcie-tegra194.c b/drivers/pci/controller/dwc/pcie-tegra194.c
+index 1560c449757d..aa511ec0d800 100644
+--- a/drivers/pci/controller/dwc/pcie-tegra194.c
++++ b/drivers/pci/controller/dwc/pcie-tegra194.c
+@@ -816,26 +816,24 @@ static void config_gen3_gen4_eq_presets(struct tegra_pcie_dw *pcie)
  
- static int intel_pcie_host_setup(struct intel_pcie_port *lpp)
- {
--	struct device *dev = lpp->pci.dev;
- 	int ret;
+ 	/* Program init preset */
+ 	for (i = 0; i < pcie->num_lanes; i++) {
+-		dw_pcie_read(pci->dbi_base + CAP_SPCIE_CAP_OFF
+-				 + (i * 2), 2, &val);
++		val = dw_pcie_readw_dbi(pci, CAP_SPCIE_CAP_OFF + (i * 2));
+ 		val &= ~CAP_SPCIE_CAP_OFF_DSP_TX_PRESET0_MASK;
+ 		val |= GEN3_GEN4_EQ_PRESET_INIT;
+ 		val &= ~CAP_SPCIE_CAP_OFF_USP_TX_PRESET0_MASK;
+ 		val |= (GEN3_GEN4_EQ_PRESET_INIT <<
+ 			   CAP_SPCIE_CAP_OFF_USP_TX_PRESET0_SHIFT);
+-		dw_pcie_write(pci->dbi_base + CAP_SPCIE_CAP_OFF
+-				 + (i * 2), 2, val);
++		dw_pcie_writew_dbi(pci, CAP_SPCIE_CAP_OFF + (i * 2), val);
  
- 	intel_pcie_core_rst_assert(lpp);
-@@ -346,17 +344,6 @@ static int intel_pcie_host_setup(struct intel_pcie_port *lpp)
- 		goto clk_err;
+ 		offset = dw_pcie_find_ext_capability(pci,
+ 						     PCI_EXT_CAP_ID_PL_16GT) +
+ 				PCI_PL_16GT_LE_CTRL;
+-		dw_pcie_read(pci->dbi_base + offset + i, 1, &val);
++		val = dw_pcie_readb_dbi(pci, offset + i);
+ 		val &= ~PCI_PL_16GT_LE_CTRL_DSP_TX_PRESET_MASK;
+ 		val |= GEN3_GEN4_EQ_PRESET_INIT;
+ 		val &= ~PCI_PL_16GT_LE_CTRL_USP_TX_PRESET_MASK;
+ 		val |= (GEN3_GEN4_EQ_PRESET_INIT <<
+ 			PCI_PL_16GT_LE_CTRL_USP_TX_PRESET_SHIFT);
+-		dw_pcie_write(pci->dbi_base + offset + i, 1, val);
++		dw_pcie_writeb_dbi(pci, offset + i, val);
  	}
  
--	if (!lpp->pcie_cap_ofst) {
--		ret = dw_pcie_find_capability(&lpp->pci, PCI_CAP_ID_EXP);
--		if (!ret) {
--			ret = -ENXIO;
--			dev_err(dev, "Invalid PCIe capability offset\n");
--			goto app_init_err;
--		}
--
--		lpp->pcie_cap_ofst = ret;
--	}
--
- 	intel_pcie_rc_setup(lpp);
- 	ret = intel_pcie_app_logic_setup(lpp);
- 	if (ret)
+ 	val = dw_pcie_readl_dbi(pci, GEN3_RELATED_OFF);
 -- 
 2.25.1
 
