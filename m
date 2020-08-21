@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 073D5C433E1
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C737C433EA
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD5AC208E4
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F06DF20714
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597982151;
-	bh=YT+Zrfo7bHDkhGgsb3aLov6ZeEMd+4Xl7022f0StaX8=;
+	s=default; t=1597982163;
+	bh=VsYbCLPp7B/2DHnokMUaZqRxqnquxiKMR9ajCyrVt3Q=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=HEwjVJn3pZWOX5d2PW9mIi9iq5l2RagKh1Be1jLvRvqirRJ5d8XjZr3aOPiBwtKUG
-	 4hNMsNjrGgw6k+EsFoOKU/Fa/LxUFZvUagRHwzO5bes5JVh3FmAiGzTGYtzI10RuUe
-	 iz2lsJpe74iP+dTTYQqmQYfFItFCmMXcUbg1TQKU=
+	b=EqRRAfR3rkFH1FNK56VXyByjQHzDo94a1hkh+QzzvagnBYKt14y/NLwVApTwEKlZq
+	 trNKUseIX2nJa2xntSCwG7044iiSO/JP/ykmsokjwFAJYDG3dY5lwBfQCTrzHW2ie7
+	 2FKcQc5kvqy0OJSqkgHO9nHE9SrfdOl8IIctCjss=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727995AbgHUDzq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Aug 2020 23:55:46 -0400
-Received: from mail-io1-f67.google.com ([209.85.166.67]:39187 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727969AbgHUDzg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:55:36 -0400
-Received: by mail-io1-f67.google.com with SMTP id z17so472143ioi.6;
-        Thu, 20 Aug 2020 20:55:35 -0700 (PDT)
+        id S1727906AbgHUD4C (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Aug 2020 23:56:02 -0400
+Received: from mail-il1-f193.google.com ([209.85.166.193]:38804 "EHLO
+        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727845AbgHUD4B (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:56:01 -0400
+Received: by mail-il1-f193.google.com with SMTP id 77so338595ilc.5;
+        Thu, 20 Aug 2020 20:56:00 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=pKpGw8g9D5lHlv+L/0NA+T2uMSN3NzGKbKBvpN5Q0n8=;
-        b=f94QpEQ+HfIPhd7j++Hsnx+WgrNxWfsA/OWOY1ak4PPUyEXY9lF4EuGu90WBzH1Q+5
-         TEGMrKA/tw3T2GbWHgPNj1LuAtsOzMejCShkeApjdJsAWdh5BUrIoxeTeme6Z0a49xi1
-         GMpMSqdxvPWvKdl6ZXixI7agV8Qk29izD2PQA24N0AtSEVOkeUeAcetAUCQSmja0qqnO
-         7QGtvqyQzWOoq76/14v8juQlqUsZrM5t7kqOmCmsp3QtehsHxaDKFVtTMlj/LGPqa+jp
-         xi+YSnioZ1i7fuGwz9jHDFh8cQ/tlTRasN7nakLsnDlExaFNb9H28dFe4ExLQW+L0O1T
-         O3sw==
-X-Gm-Message-State: AOAM5320EklHljuBzh6su6Phbq8WQ7tPHyUyZTx6BPvFdLqfjPJId3K6
-        IJEZ4gq88iW5mJBMnPYcgA==
-X-Google-Smtp-Source: ABdhPJzgDa9u0O0PJtKD/ofc2cFRYs9BPDlw6P3AZyp/m2IdJb2DAE7XQ/zQT2je6A6aqXleqjKPAQ==
-X-Received: by 2002:a05:6638:1356:: with SMTP id u22mr993038jad.110.1597982135158;
-        Thu, 20 Aug 2020 20:55:35 -0700 (PDT)
+        bh=uu4tpLpSWlZgPNlTgALarmZOQ965fdEPoxw3GPbhQMY=;
+        b=ZS0aolaOSj63dw9zWmqUM8dAmdnR125FofvrIRVoO11HpZf7hMYQ3+9D3t1rUeAYm6
+         RxiNcJWPRd4Rm11hXBql846z/+iHFZhtzVJZgNT5C7sYARyCnQMYj2KM+PYGQSWyxNAj
+         bs6OzqipuJRVxUrUq/lDKLcuwJ0hOWzREMGVZJxUaA1S2LuNKGlaUGcU9GqfKptXaWWW
+         yVkyIu8s5pCwKraxESZoHzLj9mMnySjzm7psxKAscC8cBtgalqva/30IIJpRvPxTEVHF
+         ykZ0HORL8zKEKBY4sJOKew15YZwpm6J4lHxd6UctVbPIPCREfQQdIdCTPtBXfxy9r5Sh
+         thWA==
+X-Gm-Message-State: AOAM530Mqa87c4/YQvmjAOEPv2LiuY8Bh7eQ5nclXgYuoTWp95Bs9svO
+        CgxCJD+5uRrfOFYkKFBUHw==
+X-Google-Smtp-Source: ABdhPJzZNZOWZm6KD7ItWV2xaPG0DqxpYvEl6L0qi9rFaLP6Bl6ngDqvWZqxYrl0EKniHIjOc3szPw==
+X-Received: by 2002:a92:b05:: with SMTP id b5mr1008672ilf.14.1597982160472;
+        Thu, 20 Aug 2020 20:56:00 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.249])
-        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.31
+        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 20:55:34 -0700 (PDT)
+        Thu, 20 Aug 2020 20:55:59 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -87,9 +87,9 @@ Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v2 18/40] PCI: dwc: Remove storing of PCI resources
-Date:   Thu, 20 Aug 2020 21:53:58 -0600
-Message-Id: <20200821035420.380495-19-robh@kernel.org>
+Subject: [PATCH v2 23/40] PCI: dwc: Add a 'num_lanes' field to struct dw_pcie
+Date:   Thu, 20 Aug 2020 21:54:03 -0600
+Message-Id: <20200821035420.380495-24-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200821035420.380495-1-robh@kernel.org>
 References: <20200821035420.380495-1-robh@kernel.org>
@@ -100,153 +100,84 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The PCI bridge resources are stored in pci_host_bridge.windows, so
-there's no need to store them in a DWC specific struct. There's also no
-need to parse the resources and store them a 2nd time as they are mainly
-used for one time setup of iATU windows.
+Add a 'num_lanes' field to allow drivers to provide a the number of lanes
+if not in DT or using a custom DT property. A driver can provide a
+non-zero value which is used if the DT doesn't have a 'num-lanes'
+property.
 
-Cc: Murali Karicheri <m-karicheri2@ti.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jonathan Chocron <jonnyc@amazon.com>
 Cc: Jingoo Han <jingoohan1@gmail.com>
 Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/pci/controller/dwc/pci-keystone.c     |  8 ++++--
- drivers/pci/controller/dwc/pcie-al.c          |  7 ++---
- .../pci/controller/dwc/pcie-designware-host.c | 27 +++++++------------
- drivers/pci/controller/dwc/pcie-designware.h  |  6 -----
- 4 files changed, 19 insertions(+), 29 deletions(-)
+ drivers/pci/controller/dwc/pcie-designware.c | 13 ++++++-------
+ drivers/pci/controller/dwc/pcie-designware.h |  1 +
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index fd000384fd2a..d306914a1f93 100644
---- a/drivers/pci/controller/dwc/pci-keystone.c
-+++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -400,10 +400,14 @@ static void ks_pcie_setup_rc_app_regs(struct keystone_pcie *ks_pcie)
- 	u32 num_viewport = ks_pcie->num_viewport;
- 	struct dw_pcie *pci = ks_pcie->pci;
- 	struct pcie_port *pp = &pci->pp;
--	u64 start = pp->mem->start;
--	u64 end = pp->mem->end;
-+	u64 start, end;
-+	struct resource *mem;
- 	int i;
+diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
+index b723e0cc41fb..14ac87fa21a2 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.c
++++ b/drivers/pci/controller/dwc/pcie-designware.c
+@@ -548,7 +548,6 @@ void dw_pcie_setup(struct dw_pcie *pci)
+ {
+ 	int ret;
+ 	u32 val;
+-	u32 lanes;
+ 	struct device *dev = pci->dev;
+ 	struct device_node *np = dev->of_node;
  
-+	mem = resource_list_first_type(&pp->bridge->windows, IORESOURCE_MEM)->res;
-+	start = mem->start;
-+	end = mem->end;
-+
- 	/* Disable BARs for inbound access */
- 	ks_pcie_set_dbi_mode(ks_pcie);
- 	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, 0);
-diff --git a/drivers/pci/controller/dwc/pcie-al.c b/drivers/pci/controller/dwc/pcie-al.c
-index 59e33d3a8380..f973fbca90cf 100644
---- a/drivers/pci/controller/dwc/pcie-al.c
-+++ b/drivers/pci/controller/dwc/pcie-al.c
-@@ -260,6 +260,7 @@ static void al_pcie_config_prepare(struct al_pcie *pcie)
- 	u8 secondary_bus;
- 	u32 cfg_control;
- 	u32 reg;
-+	struct resource *bus = resource_list_first_type(&pp->bridge->windows, IORESOURCE_BUS)->res;
+@@ -562,16 +561,16 @@ void dw_pcie_setup(struct dw_pcie *pci)
+ 		"enabled" : "disabled");
  
- 	target_bus_cfg = &pcie->target_bus_cfg;
  
-@@ -273,13 +274,13 @@ static void al_pcie_config_prepare(struct al_pcie *pcie)
- 	target_bus_cfg->ecam_mask = ecam_bus_mask;
- 	/* This portion is taken from the cfg_target_bus reg */
- 	target_bus_cfg->reg_mask = ~target_bus_cfg->ecam_mask;
--	target_bus_cfg->reg_val = pp->busn->start & target_bus_cfg->reg_mask;
-+	target_bus_cfg->reg_val = bus->start & target_bus_cfg->reg_mask;
- 
- 	al_pcie_target_bus_set(pcie, target_bus_cfg->reg_val,
- 			       target_bus_cfg->reg_mask);
- 
--	secondary_bus = pp->busn->start + 1;
--	subordinate_bus = pp->busn->end;
-+	secondary_bus = bus->start + 1;
-+	subordinate_bus = bus->end;
- 
- 	/* Set the valid values of secondary and subordinate buses */
- 	cfg_control_offset = AXI_BASE_OFFSET + pcie->reg_offsets.ob_ctrl +
-diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
-index 0f348b951ec3..1e42345922d5 100644
---- a/drivers/pci/controller/dwc/pcie-designware-host.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-@@ -326,17 +326,9 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 	resource_list_for_each_entry(win, &bridge->windows) {
- 		switch (resource_type(win->res)) {
- 		case IORESOURCE_IO:
--			pp->io = win->res;
--			pp->io->name = "I/O";
--			pp->io_size = resource_size(pp->io);
--			pp->io_bus_addr = pp->io->start - win->offset;
--			pp->io_base = pci_pio_to_address(pp->io->start);
--			break;
--		case IORESOURCE_MEM:
--			pp->mem = win->res;
--			pp->mem->name = "MEM";
--			pp->mem_size = resource_size(pp->mem);
--			pp->mem_bus_addr = pp->mem->start - win->offset;
-+			pp->io_size = resource_size(win->res);
-+			pp->io_bus_addr = win->res->start - win->offset;
-+			pp->io_base = pci_pio_to_address(win->res->start);
- 			break;
- 		case 0:
- 			pp->cfg = win->res;
-@@ -345,9 +337,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 			pp->cfg0_base = pp->cfg->start;
- 			pp->cfg1_base = pp->cfg->start + pp->cfg0_size;
- 			break;
--		case IORESOURCE_BUS:
--			pp->busn = win->res;
--			break;
- 		}
+-	ret = of_property_read_u32(np, "num-lanes", &lanes);
+-	if (ret) {
+-		dev_dbg(pci->dev, "property num-lanes isn't found\n");
++	ret = of_property_read_u32(np, "num-lanes", &pci->num_lanes);
++	if (!pci->num_lanes) {
++		dev_dbg(pci->dev, "Using h/w default number of lanes\n");
+ 		return;
  	}
  
-@@ -361,8 +350,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 		}
+ 	/* Set the number of lanes */
+ 	val = dw_pcie_readl_dbi(pci, PCIE_PORT_LINK_CONTROL);
+ 	val &= ~PORT_LINK_MODE_MASK;
+-	switch (lanes) {
++	switch (pci->num_lanes) {
+ 	case 1:
+ 		val |= PORT_LINK_MODE_1_LANES;
+ 		break;
+@@ -585,7 +584,7 @@ void dw_pcie_setup(struct dw_pcie *pci)
+ 		val |= PORT_LINK_MODE_8_LANES;
+ 		break;
+ 	default:
+-		dev_err(pci->dev, "num-lanes %u: invalid value\n", lanes);
++		dev_err(pci->dev, "num-lanes %u: invalid value\n", pci->num_lanes);
+ 		return;
  	}
- 
--	pp->mem_base = pp->mem->start;
--
- 	if (!pp->va_cfg0_base) {
- 		pp->va_cfg0_base = devm_pci_remap_cfgspace(dev,
- 					pp->cfg0_base, pp->cfg0_size);
-@@ -601,9 +588,13 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
- 	 * ATU, so we should not program the ATU here.
- 	 */
- 	if (pp->bridge->child_ops == &dw_child_pcie_ops) {
-+		struct resource_entry *entry =
-+			resource_list_first_type(&pp->bridge->windows, IORESOURCE_MEM);
-+
- 		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX0,
--					  PCIE_ATU_TYPE_MEM, pp->mem_base,
--					  pp->mem_bus_addr, pp->mem_size);
-+					  PCIE_ATU_TYPE_MEM, entry->res->start,
-+					  entry->res->start - entry->offset,
-+					  resource_size(entry->res));
- 		if (pci->num_viewport > 2)
- 			dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX2,
- 						  PCIE_ATU_TYPE_IO, pp->io_base,
+ 	dw_pcie_writel_dbi(pci, PCIE_PORT_LINK_CONTROL, val);
+@@ -593,7 +592,7 @@ void dw_pcie_setup(struct dw_pcie *pci)
+ 	/* Set link width speed control register */
+ 	val = dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
+ 	val &= ~PORT_LOGIC_LINK_WIDTH_MASK;
+-	switch (lanes) {
++	switch (pci->num_lanes) {
+ 	case 1:
+ 		val |= PORT_LOGIC_LINK_WIDTH_1_LANES;
+ 		break;
 diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index 78243909d2c5..50225bf6a2b5 100644
+index 7cc322f8596c..43d3729101c3 100644
 --- a/drivers/pci/controller/dwc/pcie-designware.h
 +++ b/drivers/pci/controller/dwc/pcie-designware.h
-@@ -175,13 +175,7 @@ struct pcie_port {
- 	resource_size_t		io_base;
- 	phys_addr_t		io_bus_addr;
- 	u32			io_size;
--	u64			mem_base;
--	phys_addr_t		mem_bus_addr;
--	u32			mem_size;
- 	struct resource		*cfg;
--	struct resource		*io;
--	struct resource		*mem;
--	struct resource		*busn;
- 	int			irq;
- 	const struct dw_pcie_host_ops *ops;
- 	int			msi_irq;
+@@ -246,6 +246,7 @@ struct dw_pcie {
+ 	struct dw_pcie_ep	ep;
+ 	const struct dw_pcie_ops *ops;
+ 	unsigned int		version;
++	int			num_lanes;
+ };
+ 
+ #define to_dw_pcie_from_pp(port) container_of((port), struct dw_pcie, pp)
 -- 
 2.25.1
 
