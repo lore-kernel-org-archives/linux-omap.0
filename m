@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CC69C433EB
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAE69C433EA
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A2BF20714
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6ECE208C7
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597982145;
-	bh=WN/jiU/DAihQz/5q4rAUNyCxXDBHM8w0ZG8aqyAfbkA=;
+	s=default; t=1597982146;
+	bh=796MpZCmSjTTxx8+PZkvYzsj2hqfMCeYr+onCfkrtyk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Gj9+Mzs0mmTjZCFNhHgaTcC22HgcWTyAsgsGYa1Si2AN37NuKCG843KBkRkbmIoHR
-	 K/b9TwMJ++D4lYRHSpvKu08QgtDOmv+pCONblA1swtXO8XNsF+PNXU4Wa+v9c9WpiA
-	 mSW0NLW/AKmqY6u51zAsYN2Hift7Sw38CKIlmFsM=
+	b=E4bAnLoCVXDVgs9SLSaPkNYznKHxOKRy7+41xWztS2IX588+oWVmafkJSpY03aP0f
+	 S3yg8VK7nKJVpLnFKkY1D8wtCUE46C27nslSwcnsqsvWXZhSgDf5Te0GhhNB5rMEmM
+	 8xqrJ/LFrwBS8cfz2QCG4UyhSYgZ3yrm7ZSpYI08=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727982AbgHUDzm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Aug 2020 23:55:42 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:36520 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727780AbgHUDzc (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:55:32 -0400
-Received: by mail-io1-f68.google.com with SMTP id t15so483525iob.3;
-        Thu, 20 Aug 2020 20:55:31 -0700 (PDT)
+        id S1727898AbgHUDzp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Aug 2020 23:55:45 -0400
+Received: from mail-il1-f193.google.com ([209.85.166.193]:36985 "EHLO
+        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727977AbgHUDzn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:55:43 -0400
+Received: by mail-il1-f193.google.com with SMTP id v2so341296ilq.4;
+        Thu, 20 Aug 2020 20:55:40 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=eFXUpgtvn+rwMzgxFaofhzgT1ZGHQN0vFhCrA/SPcm0=;
-        b=t8F5UOE8Al852FXiT/4yrOQEdAZz2OaPTncJITnuDx6ilkdZWlFk5VmXzF1u9brXY2
-         oyeplWQtZDpcAm2JDDzg8YxE+9ghjaYziVDOaNbw5Bpkvdi0059piWfd3Fhc5nq2RuLY
-         zexZrkrZvSzurkX9jEG6b2yVi+P7r2EFyS3dvTIZSFc7RS5EuAvx0FmkRa3M7na0jcXT
-         oVaLv6DG3I5e43J9HAqyBdMLgPS2ZUBjgiEjxcU24AvalUkuvGAxxfk3/lpS8BLYWCP+
-         ylZal9vZWq3D2w5rsDEtBNqP5U3PkBNkzdbl4HH+uXm/OX/LAOFQpFOI1/rb8Cg1RDXp
-         f/CA==
-X-Gm-Message-State: AOAM531mAUWvZE2HYRaq1jCN9H02c4h/j5p6yxgzIn8WpfsNYWuIsgmE
-        6zmT3PLFCzJep1jFeaf85w==
-X-Google-Smtp-Source: ABdhPJz9Cz36+anjfd85YKbaf2q062W+zrGMwvr+OxCyKKkArm368LLNcvPDR62l3V/N8uzBXYzXxw==
-X-Received: by 2002:a05:6602:13d3:: with SMTP id o19mr929935iov.32.1597982131299;
-        Thu, 20 Aug 2020 20:55:31 -0700 (PDT)
+        bh=bXG25ws/U2dFzSa8lenT9wsjfRYOe4p4E3p8TazUipk=;
+        b=hnWredGF/dQCwSHLuNpXYw9y/hBAobbyI6aHS2HE4geW8ypv2/DomFEp8FK63ZNx+W
+         bKX3BAPVF3TDB9g3Isw5mkkeuYt+xX1rTKBpUS0ZmIRaBwDMQb6HyJ2PmR3yDzXLjMMW
+         WeFWQBLkq+vnI2UUFeUAPx+aTDvvmIOyJVHi2XB+z+eUR/AFdTU5bqnSCBzEb0U+A9d6
+         uKH/7jeHn8TTxU5iuuTRj69NFu6Ny37rooMJsfbOZ4qKZXkcn/mKd1Uvrf2OvZIkH7qP
+         MKaha9qwRKXfDV9BYTnzAchGf64BlLM2G7Zu7803FfZcrhuRXNzG2Del3zXFDF9Yz6Kb
+         L5Fw==
+X-Gm-Message-State: AOAM530P00AC0otCM/fqm8fHlSl9qCBbhP+ZHI2LEImBBumLp9mNwjVc
+        1FmWdfwWKXjdmUrlIWDr2w==
+X-Google-Smtp-Source: ABdhPJyPe0dr4IHnAhl6FtaJqFQnHw5NBMTrbn3z8oh2Lsfgv2Dr4ChvLuAoznSpFjg6tMWAOIEZlw==
+X-Received: by 2002:a92:6901:: with SMTP id e1mr1002002ilc.209.1597982140468;
+        Thu, 20 Aug 2020 20:55:40 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.249])
-        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.26
+        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 20:55:30 -0700 (PDT)
+        Thu, 20 Aug 2020 20:55:39 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -87,9 +87,9 @@ Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v2 17/40] PCI: dwc: Remove root_bus pointer
-Date:   Thu, 20 Aug 2020 21:53:57 -0600
-Message-Id: <20200821035420.380495-18-robh@kernel.org>
+Subject: [PATCH v2 19/40] PCI: dwc: Simplify config space handling
+Date:   Thu, 20 Aug 2020 21:53:59 -0600
+Message-Id: <20200821035420.380495-20-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200821035420.380495-1-robh@kernel.org>
 References: <20200821035420.380495-1-robh@kernel.org>
@@ -100,67 +100,181 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The pci_host_bridge struct already has a pointer to its pci_bus, so
-let's convert the one user to use the bridge struct and remove the
-private 'root_bus' pointer.
+The config space is divided in half for type 0 and type 1 accesses, but
+this is pointless as there's only one iATU window which is
+reconfigured on each access.
 
-Cc: Jingoo Han <jingoohan1@gmail.com>
-Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+The only platform doing something custom is TI Keystone (surprise!).
+It does its own mapping of the config space to avoid spliting the
+config space and never actually uses va_cfg1_base as it has its own
+config space accessors. With the splitting removed, Keystone can use the
+default mapping of config space.
+
+Cc: Murali Karicheri <m-karicheri2@ti.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Jonathan Hunter <jonathanh@nvidia.com>
-Cc: linux-tegra@vger.kernel.org
+Cc: Jingoo Han <jingoohan1@gmail.com>
+Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/pci/controller/dwc/pcie-designware-host.c | 4 ++--
- drivers/pci/controller/dwc/pcie-designware.h      | 1 -
- drivers/pci/controller/dwc/pcie-tegra194.c        | 4 ++--
- 3 files changed, 4 insertions(+), 5 deletions(-)
+v2:
+ - Fix passing cfg0_base in dw_pcie_other_conf_map_bus
+---
+ drivers/pci/controller/dwc/pci-keystone.c     |  8 ---
+ .../pci/controller/dwc/pcie-designware-host.c | 63 ++++++-------------
+ drivers/pci/controller/dwc/pcie-designware.h  |  4 --
+ 3 files changed, 20 insertions(+), 55 deletions(-)
 
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index d306914a1f93..983069a4a561 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -873,16 +873,8 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+ 	struct dw_pcie *pci = ks_pcie->pci;
+ 	struct pcie_port *pp = &pci->pp;
+ 	struct device *dev = &pdev->dev;
+-	struct resource *res;
+ 	int ret;
+ 
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
+-	pp->va_cfg0_base = devm_pci_remap_cfg_resource(dev, res);
+-	if (IS_ERR(pp->va_cfg0_base))
+-		return PTR_ERR(pp->va_cfg0_base);
+-
+-	pp->va_cfg1_base = pp->va_cfg0_base;
+-
+ 	ret = dw_pcie_host_init(pp);
+ 	if (ret) {
+ 		dev_err(dev, "failed to initialize host\n");
 diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
-index 42b13a7a7383..0f348b951ec3 100644
+index 1e42345922d5..06f6cbefeb95 100644
 --- a/drivers/pci/controller/dwc/pcie-designware-host.c
 +++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-@@ -448,8 +448,8 @@ EXPORT_SYMBOL_GPL(dw_pcie_host_init);
+@@ -308,10 +308,8 @@ int dw_pcie_host_init(struct pcie_port *pp)
  
- void dw_pcie_host_deinit(struct pcie_port *pp)
- {
--	pci_stop_root_bus(pp->root_bus);
--	pci_remove_root_bus(pp->root_bus);
-+	pci_stop_root_bus(pp->bridge->bus);
-+	pci_remove_root_bus(pp->bridge->bus);
- 	if (pci_msi_enabled() && !pp->ops->msi_host_init)
- 		dw_pcie_free_msi(pp);
- }
-diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index 6cd61892f24f..78243909d2c5 100644
---- a/drivers/pci/controller/dwc/pcie-designware.h
-+++ b/drivers/pci/controller/dwc/pcie-designware.h
-@@ -192,7 +192,6 @@ struct pcie_port {
- 	struct irq_chip		*msi_irq_chip;
- 	u32			num_vectors;
- 	u32			irq_mask[MAX_MSI_CTRLS];
--	struct pci_bus		*root_bus;
- 	struct pci_host_bridge  *bridge;
- 	raw_spinlock_t		lock;
- 	DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
-diff --git a/drivers/pci/controller/dwc/pcie-tegra194.c b/drivers/pci/controller/dwc/pcie-tegra194.c
-index b723c9f3ece4..a5dce56b3b7a 100644
---- a/drivers/pci/controller/dwc/pcie-tegra194.c
-+++ b/drivers/pci/controller/dwc/pcie-tegra194.c
-@@ -1264,9 +1264,9 @@ static void tegra_pcie_downstream_dev_to_D0(struct tegra_pcie_dw *pcie)
- 	 * 5.2 Link State Power Management (Page #428).
- 	 */
- 
--	list_for_each_entry(child, &pp->root_bus->children, node) {
-+	list_for_each_entry(child, &pp->bridge->bus->children, node) {
- 		/* Bring downstream devices to D0 if they are not already in */
--		if (child->parent == pp->root_bus) {
-+		if (child->parent == pp->bridge->bus) {
- 			root_bus = child;
+ 	cfg_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
+ 	if (cfg_res) {
+-		pp->cfg0_size = resource_size(cfg_res) >> 1;
+-		pp->cfg1_size = resource_size(cfg_res) >> 1;
++		pp->cfg0_size = resource_size(cfg_res);
+ 		pp->cfg0_base = cfg_res->start;
+-		pp->cfg1_base = cfg_res->start + pp->cfg0_size;
+ 	} else if (!pp->va_cfg0_base) {
+ 		dev_err(dev, "Missing *config* reg space\n");
+ 	}
+@@ -331,25 +329,22 @@ int dw_pcie_host_init(struct pcie_port *pp)
+ 			pp->io_base = pci_pio_to_address(win->res->start);
+ 			break;
+ 		case 0:
+-			pp->cfg = win->res;
+-			pp->cfg0_size = resource_size(pp->cfg) >> 1;
+-			pp->cfg1_size = resource_size(pp->cfg) >> 1;
+-			pp->cfg0_base = pp->cfg->start;
+-			pp->cfg1_base = pp->cfg->start + pp->cfg0_size;
++			dev_err(dev, "Missing *config* reg space\n");
++			pp->cfg0_size = resource_size(win->res);
++			pp->cfg0_base = win->res->start;
++			if (!pci->dbi_base) {
++				pci->dbi_base = devm_pci_remap_cfgspace(dev,
++								pp->cfg0_base,
++								pp->cfg0_size);
++				if (!pci->dbi_base) {
++					dev_err(dev, "Error with ioremap\n");
++					return -ENOMEM;
++				}
++			}
  			break;
  		}
+ 	}
+ 
+-	if (!pci->dbi_base) {
+-		pci->dbi_base = devm_pci_remap_cfgspace(dev,
+-						pp->cfg->start,
+-						resource_size(pp->cfg));
+-		if (!pci->dbi_base) {
+-			dev_err(dev, "Error with ioremap\n");
+-			return -ENOMEM;
+-		}
+-	}
+-
+ 	if (!pp->va_cfg0_base) {
+ 		pp->va_cfg0_base = devm_pci_remap_cfgspace(dev,
+ 					pp->cfg0_base, pp->cfg0_size);
+@@ -359,16 +354,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
+ 		}
+ 	}
+ 
+-	if (!pp->va_cfg1_base) {
+-		pp->va_cfg1_base = devm_pci_remap_cfgspace(dev,
+-						pp->cfg1_base,
+-						pp->cfg1_size);
+-		if (!pp->va_cfg1_base) {
+-			dev_err(dev, "Error with ioremap\n");
+-			return -ENOMEM;
+-		}
+-	}
+-
+ 	ret = of_property_read_u32(np, "num-viewport", &pci->num_viewport);
+ 	if (ret)
+ 		pci->num_viewport = 2;
+@@ -446,32 +431,24 @@ static void __iomem *dw_pcie_other_conf_map_bus(struct pci_bus *bus,
+ 						unsigned int devfn, int where)
+ {
+ 	int type;
+-	u32 busdev, cfg_size;
+-	u64 cpu_addr;
+-	void __iomem *va_cfg_base;
++	u32 busdev;
+ 	struct pcie_port *pp = bus->sysdata;
+ 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+ 
+ 	busdev = PCIE_ATU_BUS(bus->number) | PCIE_ATU_DEV(PCI_SLOT(devfn)) |
+ 		 PCIE_ATU_FUNC(PCI_FUNC(devfn));
+ 
+-	if (pci_is_root_bus(bus->parent)) {
++	if (pci_is_root_bus(bus->parent))
+ 		type = PCIE_ATU_TYPE_CFG0;
+-		cpu_addr = pp->cfg0_base;
+-		cfg_size = pp->cfg0_size;
+-		va_cfg_base = pp->va_cfg0_base;
+-	} else {
++	else
+ 		type = PCIE_ATU_TYPE_CFG1;
+-		cpu_addr = pp->cfg1_base;
+-		cfg_size = pp->cfg1_size;
+-		va_cfg_base = pp->va_cfg1_base;
+-	}
++
+ 
+ 	dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX1,
+-				  type, cpu_addr,
+-				  busdev, cfg_size);
++				  type, pp->cfg0_base,
++				  busdev, pp->cfg0_size);
+ 
+-	return va_cfg_base + where;
++	return pp->va_cfg0_base + where;
+ }
+ 
+ static int dw_pcie_rd_other_conf(struct pci_bus *bus, unsigned int devfn,
+diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
+index 50225bf6a2b5..7cc322f8596c 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.h
++++ b/drivers/pci/controller/dwc/pcie-designware.h
+@@ -169,13 +169,9 @@ struct pcie_port {
+ 	u64			cfg0_base;
+ 	void __iomem		*va_cfg0_base;
+ 	u32			cfg0_size;
+-	u64			cfg1_base;
+-	void __iomem		*va_cfg1_base;
+-	u32			cfg1_size;
+ 	resource_size_t		io_base;
+ 	phys_addr_t		io_bus_addr;
+ 	u32			io_size;
+-	struct resource		*cfg;
+ 	int			irq;
+ 	const struct dw_pcie_host_ops *ops;
+ 	int			msi_irq;
 -- 
 2.25.1
 
