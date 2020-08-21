@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45E18C433E1
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3446CC433E8
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27F8F2177B
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11F4220714
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:55:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597982132;
-	bh=avlYQYDa43gq3HW+8hxTeqVnB2TX3Li25wEwXpt3SIw=;
+	s=default; t=1597982143;
+	bh=ImRUZx6HF2aQBQ+1jT9HtjVvrFZJFWf7HAtjs4n2naM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=yeNb1bippYn7ixxIRh1Dp1Yp0bLFpnb37peb67MtIqsbi7CiijlSodYEnDhbLDnlD
-	 2L+/OMlmyl6FzgmY84FpzKQ9z5EE9YpzZ+paQWExPqeEiR2TZhXKY1PVY+Up/gYSHc
-	 4tPtba6dQm66pnXOvO/tpRwzHJpAEofbzduEhCQU=
+	b=ARvgbYlPuPh0RAabO3gIk9WhWecft9khbmNvtAwYxh5ND1OAGVUHDMOPR1FpmRssm
+	 HF3t12UNxGiH9NDJoyz1ODzfE4eUM8VIXI+/e348VMITduOgZF2gdBR8PZiux0mBrO
+	 jamBg6GmejW+jc57BvrJM4QAUI5V9JUUt/XY7PdE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727968AbgHUDza (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Aug 2020 23:55:30 -0400
-Received: from mail-il1-f193.google.com ([209.85.166.193]:38770 "EHLO
-        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727780AbgHUDz2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:55:28 -0400
-Received: by mail-il1-f193.google.com with SMTP id 77so337944ilc.5;
-        Thu, 20 Aug 2020 20:55:27 -0700 (PDT)
+        id S1727975AbgHUDzh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Aug 2020 23:55:37 -0400
+Received: from mail-il1-f195.google.com ([209.85.166.195]:35122 "EHLO
+        mail-il1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727955AbgHUDzZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:55:25 -0400
+Received: by mail-il1-f195.google.com with SMTP id q14so348596ilm.2;
+        Thu, 20 Aug 2020 20:55:24 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=xcT/tBt5hzVcOFIbbxsACp+IaB0FfUbF9lTytCWuySo=;
-        b=Yrzvlp2Vi/+cSl2cg2rcd2F7Syq+hqnAeE0eQZQbNJVIOsPEayJcH2Y6hY5iAgKWaK
-         rl35vRuYTMcttHeg4kJmZnhemDKZyyJ6cj4Tq9C+/HaES3vZLdNBirg4/JutOrRnVFHy
-         FYxYfDWnxDJ7wOSMVd7jy/BdUDmC540EpSIEvzcu61O914nTmdZKFQRLoMSDmo+BHQ5f
-         aVo0TS1zbZgRdCCY3mnkJ5LJi9gdgNm0PEIDvF8hTYQnzVcj1IXvTbHC//oJbsANunev
-         xUwHD11ciK+YB9dWcpq/XwUHhD3feLg4g/c0xBCAUUS5gLOZkhTnhioFudpSwgNGsLm0
-         j0nA==
-X-Gm-Message-State: AOAM531DSVGrZoExLdVC86ZTJe7eY8F76KsAr0Cb83th1vCsPn6TYW2y
-        d1BobwEbixrmxDM7+jRKJg==
-X-Google-Smtp-Source: ABdhPJwb+JNqT15FRuhKwW2bKzsNM7yeAHD0rWW3xkgvROAQ42nkfFVQ2Kjlc+K/WmlwAfYFGPHgyA==
-X-Received: by 2002:a92:6a0c:: with SMTP id f12mr952021ilc.213.1597982126498;
-        Thu, 20 Aug 2020 20:55:26 -0700 (PDT)
+        bh=0qdov0F91JWjBX0RDvms+7RoXkdqALpZh74Eq1hAWng=;
+        b=MURMi4WvW1yjixnVPs3ndqs9KksVRtp/OhdtbZLIY2qvXBLrnW8HGY0AG3JrjTwJF8
+         DfmkPf67X9UnHaYQSU5Rq6mpkNOHBTPkF+loAbupfVq9W5Sa1gYfxoNY3vxUPw5ekT6w
+         r9eegYr4aXRQsSEHzWvXbCdkWxkpw9m86QgGQevObnG57bQ0fBrd6WZMYDSL+gEGFQP2
+         Y2tdpYc4YTawZLXm6o+3+2BvM9/CQdaniGHq06b3KrJz2692wp0oRD+rX3sMhqE0g0xe
+         7+q0Xlq11tTxxhR0Dzm1BGZ1IjgoVCLghHiuoZ5pAwlQ2VJz+2t/ki1Pw7BsvMDR/h2I
+         CX3Q==
+X-Gm-Message-State: AOAM532+lQcgOath9TB/RD93FWHzVl5bcqfoDEXP7xpjzGUOoz2qxZDc
+        W1XOHmgEazspz6Au6LMHtA==
+X-Google-Smtp-Source: ABdhPJxWfa3WQm5y8iByx2YiSDizCP8lwHMdCpOAAyhD1GwWnlqkAP+HsAEkjue1fkD8tbEL/F4XFg==
+X-Received: by 2002:a92:dd85:: with SMTP id g5mr1026111iln.210.1597982124146;
+        Thu, 20 Aug 2020 20:55:24 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.249])
-        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.24
+        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.55.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 20:55:25 -0700 (PDT)
+        Thu, 20 Aug 2020 20:55:23 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -87,9 +87,9 @@ Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v2 16/40] PCI: dwc: Convert to use pci_host_probe()
-Date:   Thu, 20 Aug 2020 21:53:56 -0600
-Message-Id: <20200821035420.380495-17-robh@kernel.org>
+Subject: [PATCH v2 15/40] PCI: dwc: keystone: Convert .scan_bus() callback to use add_bus
+Date:   Thu, 20 Aug 2020 21:53:55 -0600
+Message-Id: <20200821035420.380495-16-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200821035420.380495-1-robh@kernel.org>
 References: <20200821035420.380495-1-robh@kernel.org>
@@ -100,70 +100,68 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Now that there are no more .scan_bus() callbacks, we can remove it and just
-use pci_host_probe().
+TI keystone is the only Designware driver using .scan_bus(). This
+function pointer is the only thing preventing the Designware driver from
+using pci_host_probe(). Let's use the pci_ops.add_bus hook instead.
 
-Cc: Jingoo Han <jingoohan1@gmail.com>
-Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+Cc: Murali Karicheri <m-karicheri2@ti.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- .../pci/controller/dwc/pcie-designware-host.c | 21 +++----------------
- drivers/pci/controller/dwc/pcie-designware.h  |  1 -
- 2 files changed, 3 insertions(+), 19 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
-index 07791b4ebaa7..42b13a7a7383 100644
---- a/drivers/pci/controller/dwc/pcie-designware-host.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-@@ -300,7 +300,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 	struct device_node *np = dev->of_node;
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct resource_entry *win;
--	struct pci_bus *child;
- 	struct pci_host_bridge *bridge;
- 	struct resource *cfg_res;
- 	int ret;
-@@ -436,23 +435,9 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 
- 	bridge->sysdata = pp;
- 
--	ret = pci_scan_root_bus_bridge(bridge);
--	if (ret)
--		goto err_free_msi;
--
--	pp->root_bus = bridge->bus;
--
--	if (pp->ops->scan_bus)
--		pp->ops->scan_bus(pp);
--
--	pci_bus_size_bridges(pp->root_bus);
--	pci_bus_assign_resources(pp->root_bus);
--
--	list_for_each_entry(child, &pp->root_bus->children, node)
--		pcie_bus_configure_settings(child);
--
--	pci_bus_add_devices(pp->root_bus);
--	return 0;
-+	ret = pci_host_probe(bridge);
-+	if (!ret)
-+		return 0;
- 
- err_free_msi:
- 	if (pci_msi_enabled() && !pp->ops->msi_host_init)
-diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index 4ed59b051b2b..6cd61892f24f 100644
---- a/drivers/pci/controller/dwc/pcie-designware.h
-+++ b/drivers/pci/controller/dwc/pcie-designware.h
-@@ -161,7 +161,6 @@ enum dw_pcie_device_mode {
- 
- struct dw_pcie_host_ops {
- 	int (*host_init)(struct pcie_port *pp);
--	void (*scan_bus)(struct pcie_port *pp);
- 	void (*set_num_vectors)(struct pcie_port *pp);
- 	int (*msi_host_init)(struct pcie_port *pp);
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index 2b0906e1e0d3..fd000384fd2a 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -454,15 +454,19 @@ static struct pci_ops ks_child_pcie_ops = {
  };
+ 
+ /**
+- * ks_pcie_v3_65_scan_bus() - keystone scan_bus post initialization
++ * ks_pcie_v3_65_add_bus() - keystone add_bus post initialization
+  *
+  * This sets BAR0 to enable inbound access for MSI_IRQ register
+  */
+-static void ks_pcie_v3_65_scan_bus(struct pcie_port *pp)
++static int ks_pcie_v3_65_add_bus(struct pci_bus *bus)
+ {
++	struct pcie_port *pp = bus->sysdata;
+ 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+ 	struct keystone_pcie *ks_pcie = to_keystone_pcie(pci);
+ 
++	if (!pci_is_root_bus(bus))
++		return 0;
++
+ 	/* Configure and set up BAR0 */
+ 	ks_pcie_set_dbi_mode(ks_pcie);
+ 
+@@ -477,12 +481,15 @@ static void ks_pcie_v3_65_scan_bus(struct pcie_port *pp)
+ 	  * be sufficient.  Use physical address to avoid any conflicts.
+ 	  */
+ 	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, ks_pcie->app.start);
++
++	return 0;
+ }
+ 
+ static struct pci_ops ks_pcie_ops = {
+ 	.map_bus = dw_pcie_own_conf_map_bus,
+ 	.read = pci_generic_config_read,
+ 	.write = pci_generic_config_write,
++	.add_bus = ks_pcie_v3_65_add_bus,
+ };
+ 
+ /**
+@@ -842,7 +849,6 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
+ static const struct dw_pcie_host_ops ks_pcie_host_ops = {
+ 	.host_init = ks_pcie_host_init,
+ 	.msi_host_init = ks_pcie_msi_host_init,
+-	.scan_bus = ks_pcie_v3_65_scan_bus,
+ };
+ 
+ static const struct dw_pcie_host_ops ks_pcie_am654_host_ops = {
 -- 
 2.25.1
 
