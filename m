@@ -2,52 +2,52 @@ Return-Path: <SRS0=m/Cn=B7=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 792B9C433DF
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78EAEC433E4
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59D8922B43
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58343221E2
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Aug 2020 03:56:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597982194;
-	bh=kQgUCRoaBmlallU2geKkgPQRIBrjApCt8Ra5lha+BUA=;
+	s=default; t=1597982197;
+	bh=d/e+XmW3TjGuoNo+ijAQCttvKXrLoSQng4xUPLxF3qw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=SFSeqqG5r4TccxJM5gqTIoPzEzNy1qLejD9Ep331xN+8Fa54SQruy9pMTNGbUnUVh
-	 kJf7oBCQMgN00PYxNn7VxA/xw2/TcJvgf9liyFipAjid5rMZ5rx/FDIJAYw8fn/m1W
-	 hc2EK3Aw8NDvMQooBUH+0s9IjRENZMG2PmQYi/hA=
+	b=2M43xTGO2WrPjS/WZV6Ujy0DMqNsxCFHytdsZEcs0SNoWSi8CbCRRREUsBIC5jAOY
+	 ojKT2c+TGkQQjcvzr2bT5PEUvfL5NDrJPDQ/pSPy0D+cUN+1iMs1S1gA7QO1vafekq
+	 /hejLyK9jBaAFFe/8mANM8SKOKP1Ym8eW1dgtUkY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727075AbgHUD4c (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Aug 2020 23:56:32 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:39267 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727082AbgHUD4a (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:56:30 -0400
-Received: by mail-io1-f68.google.com with SMTP id z17so473493ioi.6;
-        Thu, 20 Aug 2020 20:56:28 -0700 (PDT)
+        id S1728047AbgHUD4g (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Aug 2020 23:56:36 -0400
+Received: from mail-il1-f194.google.com ([209.85.166.194]:44971 "EHLO
+        mail-il1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727082AbgHUD4f (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2020 23:56:35 -0400
+Received: by mail-il1-f194.google.com with SMTP id j9so321479ilc.11;
+        Thu, 20 Aug 2020 20:56:33 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=qBhQHSRC5b7EjXLe1wtIsk2mRWkusWFFlluCqZMlR3s=;
-        b=n5DzGYJNeEG+RgU23YQHXIfx037E6/EkBEj85zJk0Z5sJtnPJspGgH6xfa3mLUybno
-         UtXo1uWC/ZmLGcB3nuaVf/g+IDQ3vv6qFxKZDrSS48WXrYCzkB9BEvSsE61yky6ci+Gc
-         +aILEfQrcesVCry5yikbDbCsk+3evfU6gowGDAkIiVeGjmka4FAfzkHZRgoEx4+bJtF8
-         JaAqVWBOkGj7Zz72xte0+Nm8s+1hP2QhItRsPsdD2dm0E3D/aQerr3CSTZQPKUe9BOKG
-         C2aGIJfQv7TYhBR1FGtuw+z42NW2vXxOrPiR4EKq7hy+4D3UETwCFezWBeqkL2/7FHx1
-         xSWw==
-X-Gm-Message-State: AOAM531qOY/DrYHQxcB5sbRZ+2XKMjUkPkXa36Kar+QvtISgbarkxnSQ
-        4n4Rw/h0ty/Zs87J+p415g==
-X-Google-Smtp-Source: ABdhPJyWAiaexmdeVEgzO5iZxSuqRD4JaSKu7ZG07XYDvC9mxMC+ZPTsXVXlnNGxxM2MFiKu9NmqRQ==
-X-Received: by 2002:a6b:e517:: with SMTP id y23mr896790ioc.190.1597982188440;
-        Thu, 20 Aug 2020 20:56:28 -0700 (PDT)
+        bh=AfxIdt959NXaODT/XtFkfeDPzE0A42F3V0bVD6SSbnw=;
+        b=YrmrDkgN653KaL3Wk5MUMYzKkdOJ/Vb/BbehmwWv5x4r7mW0JWGQcsvUKgzGEh0TeF
+         ow8wFOsv3178gZ4Kypd5DB96BKLJdKQmcyKDYaIURKS3r+A/QHbqglFj18U8kPSRYZ7n
+         DTOmQR3X4fRuSWABLm36aXJe9Y0VAoug5WwaYLG7rNUi7Ve7Oo7hAGUq40ZRCnRveHjZ
+         Ddk9Hhgw6n3NpNTrROD49lH1penUkYPY2YWrBKBzErwsh5A7JDIESlbKhZ7eYInPNi+L
+         tM8R15ZtqiScU5GVFHxurLhHI1Gu8/l4WRjiMCpstZCumWhg2VWQ2jwE+ApZN43OsqOP
+         Byhg==
+X-Gm-Message-State: AOAM5327T/EOXiVupWDxS9/8/53cyxkiXQxy2+2rFB65uURdAluuptZC
+        hTlMHiMgXJ2ydrH8WNTrwg==
+X-Google-Smtp-Source: ABdhPJwIZRy5y8U2oZCmoEan4JCLiYFHYKY7Mdb+uGDu2bXq6IpofYkmhrk+pIkkQsc8nrWPFFtHUQ==
+X-Received: by 2002:a05:6e02:14c2:: with SMTP id o2mr1030464ilk.54.1597982193525;
+        Thu, 20 Aug 2020 20:56:33 -0700 (PDT)
 Received: from xps15.herring.priv ([64.188.179.249])
-        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.56.25
+        by smtp.googlemail.com with ESMTPSA id 79sm413923ilc.9.2020.08.20.20.56.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 20:56:27 -0700 (PDT)
+        Thu, 20 Aug 2020 20:56:32 -0700 (PDT)
 From:   Rob Herring <robh@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -87,9 +87,9 @@ Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: [PATCH v2 30/40] PCI: dwc: Remove hardcoded PCI_CAP_ID_EXP offset
-Date:   Thu, 20 Aug 2020 21:54:10 -0600
-Message-Id: <20200821035420.380495-31-robh@kernel.org>
+Subject: [PATCH v2 32/40] PCI: dwc: Remove read_dbi2 code
+Date:   Thu, 20 Aug 2020 21:54:12 -0600
+Message-Id: <20200821035420.380495-33-robh@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200821035420.380495-1-robh@kernel.org>
 References: <20200821035420.380495-1-robh@kernel.org>
@@ -100,108 +100,111 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-While the Designware controller appears to hard code the PCI_CAP_ID_EXP
-capability register at 0x70, there's no need to hard code this in the
-driver as it is discoverable.
+The DBI2 appears to be write-only and there's no read accesses in the code
+anyways, so let's remove all the read_dbi2 related code.
 
-Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Murali Karicheri <m-karicheri2@ti.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Murali Karicheri <m-karicheri2@ti.com>
-Cc: Pratyush Anand <pratyush.anand@gmail.com>
-Cc: linux-omap@vger.kernel.org
+Cc: Jingoo Han <jingoohan1@gmail.com>
+Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/pci/controller/dwc/pci-dra7xx.c     |  4 +---
- drivers/pci/controller/dwc/pci-keystone.c   | 11 +++++------
- drivers/pci/controller/dwc/pcie-spear13xx.c |  4 +---
- 3 files changed, 7 insertions(+), 12 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c    | 13 -------------
+ drivers/pci/controller/dwc/pcie-designware.c | 15 ---------------
+ drivers/pci/controller/dwc/pcie-designware.h |  8 --------
+ 3 files changed, 36 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index dc387724cf08..d42e0664f378 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -73,8 +73,6 @@
- #define	LINK_UP						BIT(16)
- #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
- 
--#define EXP_CAP_ID_OFFSET				0x70
--
- #define	PCIECTRL_TI_CONF_INTX_ASSERT			0x0124
- #define	PCIECTRL_TI_CONF_INTX_DEASSERT			0x0128
- 
-@@ -142,7 +140,7 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
- 	struct device *dev = pci->dev;
- 	u32 reg;
--	u32 exp_cap_off = EXP_CAP_ID_OFFSET;
-+	u32 exp_cap_off = dw_pcie_find_capability(pci, PCI_CAP_ID_EXP);
- 
- 	if (dw_pcie_link_up(pci)) {
- 		dev_err(dev, "link is already up\n");
 diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index 0fe792f6c253..39a5a72de340 100644
+index 39a5a72de340..5fe36da0b7c6 100644
 --- a/drivers/pci/controller/dwc/pci-keystone.c
 +++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -96,8 +96,6 @@
- #define LEG_EP				0x1
- #define RC				0x2
+@@ -881,18 +881,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+ 	return 0;
+ }
  
--#define EXP_CAP_ID_OFFSET		0x70
+-static u32 ks_pcie_am654_read_dbi2(struct dw_pcie *pci, void __iomem *base,
+-				   u32 reg, size_t size)
+-{
+-	struct keystone_pcie *ks_pcie = to_keystone_pcie(pci);
+-	u32 val;
 -
- #define KS_PCIE_SYSCLOCKOUTEN		BIT(0)
- 
- #define AM654_PCIE_DEV_TYPE_MASK	0x3
-@@ -1125,22 +1123,23 @@ static int ks_pcie_am654_set_mode(struct device *dev,
- static void ks_pcie_set_link_speed(struct dw_pcie *pci, int link_speed)
+-	ks_pcie_set_dbi_mode(ks_pcie);
+-	dw_pcie_read(base + reg, size, &val);
+-	ks_pcie_clear_dbi_mode(ks_pcie);
+-	return val;
+-}
+-
+ static void ks_pcie_am654_write_dbi2(struct dw_pcie *pci, void __iomem *base,
+ 				     u32 reg, size_t size, u32 val)
  {
- 	u32 val;
-+	u32 offset = dw_pcie_find_capability(pci, PCI_CAP_ID_EXP);
+@@ -907,7 +895,6 @@ static const struct dw_pcie_ops ks_pcie_dw_pcie_ops = {
+ 	.start_link = ks_pcie_start_link,
+ 	.stop_link = ks_pcie_stop_link,
+ 	.link_up = ks_pcie_link_up,
+-	.read_dbi2 = ks_pcie_am654_read_dbi2,
+ 	.write_dbi2 = ks_pcie_am654_write_dbi2,
+ };
  
- 	dw_pcie_dbi_ro_wr_en(pci);
+diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
+index ed5dadcbcb45..b2739b96659f 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.c
++++ b/drivers/pci/controller/dwc/pcie-designware.c
+@@ -166,21 +166,6 @@ void dw_pcie_write_dbi(struct dw_pcie *pci, u32 reg, size_t size, u32 val)
+ }
+ EXPORT_SYMBOL_GPL(dw_pcie_write_dbi);
  
--	val = dw_pcie_readl_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCAP);
-+	val = dw_pcie_readl_dbi(pci, offset + PCI_EXP_LNKCAP);
- 	if ((val & PCI_EXP_LNKCAP_SLS) != link_speed) {
- 		val &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 		val |= link_speed;
--		dw_pcie_writel_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCAP,
-+		dw_pcie_writel_dbi(pci, offset + PCI_EXP_LNKCAP,
- 				   val);
- 	}
- 
--	val = dw_pcie_readl_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCTL2);
-+	val = dw_pcie_readl_dbi(pci, offset + PCI_EXP_LNKCTL2);
- 	if ((val & PCI_EXP_LNKCAP_SLS) != link_speed) {
- 		val &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 		val |= link_speed;
--		dw_pcie_writel_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCTL2,
-+		dw_pcie_writel_dbi(pci, offset + PCI_EXP_LNKCTL2,
- 				   val);
- 	}
- 
-diff --git a/drivers/pci/controller/dwc/pcie-spear13xx.c b/drivers/pci/controller/dwc/pcie-spear13xx.c
-index 62846562da0b..056c94541a22 100644
---- a/drivers/pci/controller/dwc/pcie-spear13xx.c
-+++ b/drivers/pci/controller/dwc/pcie-spear13xx.c
-@@ -65,8 +65,6 @@ struct pcie_app_reg {
- /* CR6 */
- #define MSI_CTRL_INT				(1 << 26)
- 
--#define EXP_CAP_ID_OFFSET			0x70
+-u32 dw_pcie_read_dbi2(struct dw_pcie *pci, u32 reg, size_t size)
+-{
+-	int ret;
+-	u32 val;
 -
- #define to_spear13xx_pcie(x)	dev_get_drvdata((x)->dev)
+-	if (pci->ops->read_dbi2)
+-		return pci->ops->read_dbi2(pci, pci->dbi_base2, reg, size);
+-
+-	ret = dw_pcie_read(pci->dbi_base2 + reg, size, &val);
+-	if (ret)
+-		dev_err(pci->dev, "read DBI address failed\n");
+-
+-	return val;
+-}
+-
+ void dw_pcie_write_dbi2(struct dw_pcie *pci, u32 reg, size_t size, u32 val)
+ {
+ 	int ret;
+diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
+index 73c119437fee..c3178c8694eb 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.h
++++ b/drivers/pci/controller/dwc/pcie-designware.h
+@@ -232,8 +232,6 @@ struct dw_pcie_ops {
+ 			    size_t size);
+ 	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+ 			     size_t size, u32 val);
+-	u32     (*read_dbi2)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+-			     size_t size);
+ 	void    (*write_dbi2)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+ 			      size_t size, u32 val);
+ 	int	(*link_up)(struct dw_pcie *pcie);
+@@ -269,7 +267,6 @@ int dw_pcie_write(void __iomem *addr, int size, u32 val);
  
- static int spear13xx_pcie_establish_link(struct spear13xx_pcie *spear13xx_pcie)
-@@ -75,7 +73,7 @@ static int spear13xx_pcie_establish_link(struct spear13xx_pcie *spear13xx_pcie)
- 	struct pcie_port *pp = &pci->pp;
- 	struct pcie_app_reg *app_reg = spear13xx_pcie->app_base;
- 	u32 val;
--	u32 exp_cap_off = EXP_CAP_ID_OFFSET;
-+	u32 exp_cap_off = dw_pcie_find_capability(pci, PCI_CAP_ID_EXP);
+ u32 dw_pcie_read_dbi(struct dw_pcie *pci, u32 reg, size_t size);
+ void dw_pcie_write_dbi(struct dw_pcie *pci, u32 reg, size_t size, u32 val);
+-u32 dw_pcie_read_dbi2(struct dw_pcie *pci, u32 reg, size_t size);
+ void dw_pcie_write_dbi2(struct dw_pcie *pci, u32 reg, size_t size, u32 val);
+ u32 dw_pcie_read_atu(struct dw_pcie *pci, u32 reg, size_t size);
+ void dw_pcie_write_atu(struct dw_pcie *pci, u32 reg, size_t size, u32 val);
+@@ -322,11 +319,6 @@ static inline void dw_pcie_writel_dbi2(struct dw_pcie *pci, u32 reg, u32 val)
+ 	dw_pcie_write_dbi2(pci, reg, 0x4, val);
+ }
  
- 	if (dw_pcie_link_up(pci)) {
- 		dev_err(pci->dev, "link already up\n");
+-static inline u32 dw_pcie_readl_dbi2(struct dw_pcie *pci, u32 reg)
+-{
+-	return dw_pcie_read_dbi2(pci, reg, 0x4);
+-}
+-
+ static inline void dw_pcie_writel_atu(struct dw_pcie *pci, u32 reg, u32 val)
+ {
+ 	dw_pcie_write_atu(pci, reg, 0x4, val);
 -- 
 2.25.1
 
