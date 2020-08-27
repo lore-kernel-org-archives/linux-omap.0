@@ -2,107 +2,71 @@ Return-Path: <SRS0=2M7l=CF=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23120C433DF
-	for <linux-omap@archiver.kernel.org>; Thu, 27 Aug 2020 14:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A23C8C433E1
+	for <linux-omap@archiver.kernel.org>; Thu, 27 Aug 2020 16:17:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8E1222B4E
-	for <linux-omap@archiver.kernel.org>; Thu, 27 Aug 2020 14:52:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598539980;
-	bh=OAiLtfAb4I76VHxhecyBMvxa5Sj4TQUpOrQcXz3549I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=nT1SLLfNml6JnzEJGtUXw/GTnmooYk1pp6NWVvSCWhkRsxsUTooMopcWWVPDRSze2
-	 SDmVhIgZxPSzg38CCRbYNGwcy5aiuJOM8deIaSZihjJWUhQEKkdALjakcJf74Tw6lF
-	 vAhd7tg5XURIesLbwAWQFA4Vyq4+TAHrgXiosUy4=
+	by mail.kernel.org (Postfix) with ESMTP id 7DBF12177B
+	for <linux-omap@archiver.kernel.org>; Thu, 27 Aug 2020 16:17:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727933AbgH0Owp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 27 Aug 2020 10:52:45 -0400
-Received: from mail-ej1-f67.google.com ([209.85.218.67]:41532 "EHLO
-        mail-ej1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728005AbgH0NWY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2020 09:22:24 -0400
-Received: by mail-ej1-f67.google.com with SMTP id b17so7613944ejq.8;
-        Thu, 27 Aug 2020 06:21:58 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=9cQD7wAgJiQgJMdSQQKLTlBAdfqypodW7qJTxcpDRmw=;
-        b=gVQhTuMDb4/MGUgwUuEdPgqUUvHx3fDXYxX4h4xZ1S1pLjTiLx+11I+eJKvcmRX2CX
-         U/QwBOx/84oAu478QHGuTf2Eb0pCIQw5e4Wh5PWH4yTQoYHgwcYsNWB8EnKEXT0wFioq
-         dszpiT+4U+ZosjTqSqf7t9bl9lQnR0GmtVa8ucoiRxW4KPhkmvIOzbA+c9XFsm094H0y
-         purubijExH77Vt8Yt3m/i8zvY+1+SRchDlltD+hbg3GvahCmcgyg8rDC6eQ6qFHoTFb3
-         9Ew+zBnOIi7/m1Mx4N1MMTj2xMFx7faEZxBXv5QZzAfYdmyO+0+KYvYn2t79fN2S0I/Y
-         lAog==
-X-Gm-Message-State: AOAM532nvk5l6bbB1qgQlQ3MlJu2Z8v6EDGJiySSiK5OPyWYw8woEvFb
-        5NeGtbnCB0Q3rTZrPPOCVKY=
-X-Google-Smtp-Source: ABdhPJwazJ2g/jt884NVPC8RDwVYh0aN8Mt2Z0KMMHwsD/fNTetgub13Tlz0b0/r9jsl8CYZHPsumQ==
-X-Received: by 2002:a17:906:69d5:: with SMTP id g21mr20033703ejs.461.1598534517518;
-        Thu, 27 Aug 2020 06:21:57 -0700 (PDT)
-Received: from kozik-lap ([194.230.155.216])
-        by smtp.googlemail.com with ESMTPSA id qk7sm1927426ejb.17.2020.08.27.06.21.56
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 27 Aug 2020 06:21:56 -0700 (PDT)
-Date:   Thu, 27 Aug 2020 15:21:54 +0200
-From:   Krzysztof Kozlowski <krzk@kernel.org>
-To:     YueHaibing <yuehaibing@huawei.com>
-Cc:     rogerq@ti.com, tony@atomide.com, ladis@linux-mips.org,
-        bbrezillon@kernel.org, peter.ujfalusi@ti.com,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] memory: omap-gpmc: Fix build error without CONFIG_OF
-Message-ID: <20200827132154.GB4384@kozik-lap>
-References: <20200826125919.22172-1-yuehaibing@huawei.com>
- <20200827125316.20780-1-yuehaibing@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20200827125316.20780-1-yuehaibing@huawei.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+        id S1727821AbgH0QRZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 27 Aug 2020 12:17:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46744 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727003AbgH0QRM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2020 12:17:12 -0400
+Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A84DC061264;
+        Thu, 27 Aug 2020 09:16:51 -0700 (PDT)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 253F6127EB110;
+        Thu, 27 Aug 2020 09:00:04 -0700 (PDT)
+Date:   Thu, 27 Aug 2020 09:16:49 -0700 (PDT)
+Message-Id: <20200827.091649.638150315608329579.davem@davemloft.net>
+To:     m-karicheri2@ti.com
+Cc:     kuba@kernel.org, grygorii.strashko@ti.com, nsekhar@ti.com,
+        linux-omap@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v4] net: ethernet: ti: cpsw_new: fix error handling
+ in cpsw_ndo_vlan_rx_kill_vid()
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200827143839.32327-1-m-karicheri2@ti.com>
+References: <20200827143839.32327-1-m-karicheri2@ti.com>
+X-Mailer: Mew version 6.8 on Emacs 26.3
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 27 Aug 2020 09:00:04 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Aug 27, 2020 at 08:53:16PM +0800, YueHaibing wrote:
-> If CONFIG_OF is n, gcc fails:
-> 
-> drivers/memory/omap-gpmc.o: In function `gpmc_omap_onenand_set_timings':
-> omap-gpmc.c:(.text+0x2a88): undefined reference to `gpmc_read_settings_dt'
-> 
-> Add gpmc_read_settings_dt() helper function, which zero the gpmc_settings
-> so the caller doesn't proceed with random/invalid settings.
-> 
-> Fixes: a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
-> v3: zero gpmc_settings
-> v2: add gpmc_read_settings_dt() stub
-> ---
->  drivers/memory/omap-gpmc.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index cd9e80748591..e026b4cd3612 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -2310,6 +2310,10 @@ static void gpmc_probe_dt_children(struct platform_device *pdev)
->  	}
->  }
->  #else
-> +void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
-> +{
-> +	memset(p, 0, sizeof(struct gpmc_settings));
+From: Murali Karicheri <m-karicheri2@ti.com>
+Date: Thu, 27 Aug 2020 10:38:39 -0400
 
-sizeof(*p) but if patch is otherwise ok (got review/ack) then I can fix
-it while applying.
+> This patch fixes a bunch of issues in cpsw_ndo_vlan_rx_kill_vid()
+> 
+>  - pm_runtime_get_sync() returns non zero value. This results in
+>    non zero value return to caller which will be interpreted as error.
+>    So overwrite ret with zero.
+>  - If VID matches with port VLAN VID, then set error code.
+>  - Currently when VLAN interface is deleted, all of the VLAN mc addresses
+>    are removed from ALE table, however the return values from ale function
+>    calls are not checked. These functions can return error code -ENOENT.
+>    But that shouldn't happen in a normal case. So add error print to
+>    catch the situations so that these can be investigated and addressed.
+>    return zero in these cases as these are not real error case, but only
+>    serve to catch ALE table update related issues and help address the
+>    same in the driver.
+> 
+> Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
+> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
 
-If there is resend, please fix it as well.
-
-Best regards,
-Krzysztof
-
+Applied and queued up for -stable, thanks.
