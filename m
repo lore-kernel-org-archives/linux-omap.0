@@ -2,101 +2,101 @@ Return-Path: <SRS0=d3H3=CH=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98E1CC433E7
-	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 09:41:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EAC6C433E2
+	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 22:11:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D3A42068E
-	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 09:41:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598694073;
-	bh=MQoFz3cO6qn2Ot7E8t6E9HrOy47NGq2Kvr7IiaaZoT8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=MbnwPe73Ts82KvFCR9QBbEb4kC0QkptkEi88psCKVF8SdYiW9UlqPWTon+nB+u9V7
-	 X6uqWwv+DVVuvOu1/9aoUptDNFEDhlt3bh3M7kjCxe+wAw6IYNdE7Cqf+VSuEP2AG+
-	 16mqi0EagWmlOv5wWx/VfTWPniX/vl56R0L5j2zg=
+	by mail.kernel.org (Postfix) with ESMTP id DB4132076D
+	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 22:11:33 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Jm/9upNx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727885AbgH2Jks (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 29 Aug 2020 05:40:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36582 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727863AbgH2Jkq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 29 Aug 2020 05:40:46 -0400
-Received: from localhost.localdomain (unknown [194.230.155.216])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BAC7A20665;
-        Sat, 29 Aug 2020 09:40:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598694046;
-        bh=MQoFz3cO6qn2Ot7E8t6E9HrOy47NGq2Kvr7IiaaZoT8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=j+jGrufD5/IAL2nOnGF9Jt5P4Cmb1Mml8paxEv8j5qShPx4onoD3ZuydZfyq9BVZ6
-         +Vt38tAekbYoWs7k3XfRFbr9HTJOLZy3I2c2vqxlheYEZANYzF+o9tS3nEeuDl/MDt
-         Yg28kqrHpDmSbOOVuPs/jhbPXixmII6HfnjrTL/c=
-From:   Krzysztof Kozlowski <krzk@kernel.org>
-To:     Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Joel Stanley <joel@jms.id.au>,
-        Andrew Jeffery <andrew@aj.id.au>,
-        Jason Cooper <jason@lakedaemon.net>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Stefan Agner <stefan@agner.ch>, linux-gpio@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org
-Cc:     Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH 3/6] ARM: dts: am335x: lxm: Fix PCA9539 GPIO expander properties
-Date:   Sat, 29 Aug 2020 11:40:21 +0200
-Message-Id: <20200829094024.31842-3-krzk@kernel.org>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200829094024.31842-1-krzk@kernel.org>
-References: <20200829094024.31842-1-krzk@kernel.org>
+        id S1728478AbgH2WL3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 29 Aug 2020 18:11:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39266 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728063AbgH2WLQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 29 Aug 2020 18:11:16 -0400
+Received: from mail-lf1-x141.google.com (mail-lf1-x141.google.com [IPv6:2a00:1450:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A6A7C061575;
+        Sat, 29 Aug 2020 15:11:16 -0700 (PDT)
+Received: by mail-lf1-x141.google.com with SMTP id j15so1531995lfg.7;
+        Sat, 29 Aug 2020 15:11:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=T+EGcDME8OsL++fl1T4qVOn72QV5xXHDdtJ+n1uKIFQ=;
+        b=Jm/9upNxlWiHnFELXSdsLWscOzni8nCgG3Lg6i9xvCFJC+yn6ckrsYri70QPrdDTIN
+         aQ55ju53E2BRfYpM40gW6J7nvHBG46INBgO0c+9e0Sm8Tz/IhTLGhPAH29kbF/z0mTWN
+         ulPXqzt+njH8RHkrBPy9j1h4hqmrCshwQJnpBNmZ7rxCCTKM/W9TTKeLRgLeeQ8rpFrq
+         u+QsaR2dKP1ACXkEPi2O0BMbUR0gsF3Zwv6UD0hGa1Ff6w6JGDTTJjtSc3WwKWgC2KSC
+         NnSTmWqW1oLzEC0SKUDaRmRWmL2gEK2CwCW8d9UB6NashxHqcikEk9NlKKbzsKBJHnBz
+         H7kg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=T+EGcDME8OsL++fl1T4qVOn72QV5xXHDdtJ+n1uKIFQ=;
+        b=gqtjMw9XAIHtWud0oRN4T+rrgo7EteIvC9766A4oYPHH85O8shchGf6mGOnb6FNVeh
+         RkYmq3Sf7+VaWOjicA0JpJWAUrwQdUHfEQhNMhUlrvrgI3wINre+kOgfnywNXtHilDke
+         LyHxk2BQ/t/EM39aDjQJLkeUS/nLiX/LXbxHvxOLGhcoQVQEFfG5a1vvdAcT0KPT7JFp
+         d3buxRFiHzMu4Q9sTvPsU4Auv5puxK+qbC6k1dzQjSsBaqN+Ydc64wmC4uOxsgOk9vDg
+         NeJaDkjkzFYrZyGO96vsYDIZfrTVggDD+uT2+YaUFr0rupveHCrkfNoqQXw6p3nANhbW
+         okdw==
+X-Gm-Message-State: AOAM530a+Ahym0Gp4lfalktcm2B3WFib54xsF4u1Dyfbz3FEVoHKjGo1
+        ogWHTlAlK65isgGfTjuSlbUbId9EsMc=
+X-Google-Smtp-Source: ABdhPJwBA2BZvU2D2PIFB8ugQPxHGSAe34/lKbYMGdrfOfZDDMQwyKn0TjUy2r0PuaX1cOsbrI+C8g==
+X-Received: by 2002:ac2:5382:: with SMTP id g2mr356236lfh.140.1598739072880;
+        Sat, 29 Aug 2020 15:11:12 -0700 (PDT)
+Received: from localhost.localdomain (h-82-196-111-59.NA.cust.bahnhof.se. [82.196.111.59])
+        by smtp.gmail.com with ESMTPSA id 4sm697546ljq.92.2020.08.29.15.11.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 29 Aug 2020 15:11:12 -0700 (PDT)
+From:   Rikard Falkeborn <rikard.falkeborn@gmail.com>
+To:     Mark Brown <broonie@kernel.org>
+Cc:     Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org,
+        Rikard Falkeborn <rikard.falkeborn@gmail.com>,
+        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Subject: [PATCH 0/8] regulator/tps*: Constify static regulator ops
+Date:   Sun, 30 Aug 2020 00:10:56 +0200
+Message-Id: <20200829221104.20870-1-rikard.falkeborn@gmail.com>
+X-Mailer: git-send-email 2.28.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The PCA9539 GPIO expander requires GPIO controller properties to operate
-properly.
+Constify static instances of struct regulator_ops to allow the compiler
+to put them in read-only memory. Patches are independent. Compile-tested
+only.
 
-Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
----
- arch/arm/boot/dts/am335x-lxm.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+Rikard Falkeborn (8):
+  regulator: tps51632: Constify tps51632_dcdc_ops
+  regulator: tps6105x: Constify tps6105x_regulator_ops
+  regulator: tps62360: Constify tps62360_dcdc_ops
+  regulator: tps65086: Constify static regulator_ops
+  regulator: tps65090: constify static regulator_ops
+  regulator: tps6586x: Constify static regulator_ops
+  regulator: tps65912: Constify static regulator_ops
+  regulator: tps65910: Constify static regulator_ops
 
-diff --git a/arch/arm/boot/dts/am335x-lxm.dts b/arch/arm/boot/dts/am335x-lxm.dts
-index cd55f11260ea..0f078465297a 100644
---- a/arch/arm/boot/dts/am335x-lxm.dts
-+++ b/arch/arm/boot/dts/am335x-lxm.dts
-@@ -160,11 +160,15 @@
- 	serial_config1: serial_config1@20 {
- 		compatible = "nxp,pca9539";
- 		reg = <0x20>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
- 	};
- 
- 	serial_config2: serial_config2@21 {
- 		compatible = "nxp,pca9539";
- 		reg = <0x21>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
- 	};
- 
- 	tps: tps@2d {
+ drivers/regulator/tps51632-regulator.c |  2 +-
+ drivers/regulator/tps6105x-regulator.c |  2 +-
+ drivers/regulator/tps62360-regulator.c |  2 +-
+ drivers/regulator/tps65086-regulator.c |  4 ++--
+ drivers/regulator/tps65090-regulator.c |  8 ++++----
+ drivers/regulator/tps6586x-regulator.c |  8 ++++----
+ drivers/regulator/tps65910-regulator.c | 10 +++++-----
+ drivers/regulator/tps65912-regulator.c |  4 ++--
+ 8 files changed, 20 insertions(+), 20 deletions(-)
+
 -- 
-2.17.1
+2.28.0
 
