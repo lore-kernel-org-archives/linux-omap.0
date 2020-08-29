@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19060C433E6
-	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 09:41:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98E1CC433E7
+	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 09:41:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECB2320BED
-	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 09:41:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D3A42068E
+	for <linux-omap@archiver.kernel.org>; Sat, 29 Aug 2020 09:41:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598694065;
-	bh=kImBBmuhu/2Fp4wOJCBofByIbokLDzO/4iErCHq10JA=;
+	s=default; t=1598694073;
+	bh=MQoFz3cO6qn2Ot7E8t6E9HrOy47NGq2Kvr7IiaaZoT8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=H1T1ANoLvIPoKv0izL9PQW/Ym4Os7sdns8FprUPebsuRIBlQuj84fKhrif04vrLVo
-	 CF7zGqTA9FOmwoDG8u/uFzMvSDumj+BHRUSACd4pe8uO0O9FUgZL9pLy7EuzqJfthi
-	 ZwgXi39oOsw7eHpH4s3fj/OkjnufYTuehPGk3P1g=
+	b=MbnwPe73Ts82KvFCR9QBbEb4kC0QkptkEi88psCKVF8SdYiW9UlqPWTon+nB+u9V7
+	 X6uqWwv+DVVuvOu1/9aoUptDNFEDhlt3bh3M7kjCxe+wAw6IYNdE7Cqf+VSuEP2AG+
+	 16mqi0EagWmlOv5wWx/VfTWPniX/vl56R0L5j2zg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727997AbgH2JlE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 29 Aug 2020 05:41:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36950 "EHLO mail.kernel.org"
+        id S1727885AbgH2Jks (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 29 Aug 2020 05:40:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727987AbgH2JlB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 29 Aug 2020 05:41:01 -0400
+        id S1727863AbgH2Jkq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 29 Aug 2020 05:40:46 -0400
 Received: from localhost.localdomain (unknown [194.230.155.216])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 67C5E2068E;
-        Sat, 29 Aug 2020 09:40:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BAC7A20665;
+        Sat, 29 Aug 2020 09:40:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598694060;
-        bh=kImBBmuhu/2Fp4wOJCBofByIbokLDzO/4iErCHq10JA=;
+        s=default; t=1598694046;
+        bh=MQoFz3cO6qn2Ot7E8t6E9HrOy47NGq2Kvr7IiaaZoT8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Og97O8+86G+Z64ojsr/NDHzye0kFUDvcNaAPHHrLCe68HBYQO2pBRo5vVHgT38dEk
-         3h5+1yGLUEGIyGZMWH8lv8XDq2RTXIJKGvX5w5YQ+4svk5/0KKOZR2Zvq79o1qehMl
-         gLX/QS9udz8jWjADY+O10zvNCjjbF5W2ReJkJNhA=
+        b=j+jGrufD5/IAL2nOnGF9Jt5P4Cmb1Mml8paxEv8j5qShPx4onoD3ZuydZfyq9BVZ6
+         +Vt38tAekbYoWs7k3XfRFbr9HTJOLZy3I2c2vqxlheYEZANYzF+o9tS3nEeuDl/MDt
+         Yg28kqrHpDmSbOOVuPs/jhbPXixmII6HfnjrTL/c=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
@@ -58,9 +58,9 @@ To:     Linus Walleij <linus.walleij@linaro.org>,
         linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-aspeed@lists.ozlabs.org
 Cc:     Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH 6/6] ARM: dts: vf: Fix PCA95xx GPIO expander properties on ZII CFU1
-Date:   Sat, 29 Aug 2020 11:40:24 +0200
-Message-Id: <20200829094024.31842-6-krzk@kernel.org>
+Subject: [PATCH 3/6] ARM: dts: am335x: lxm: Fix PCA9539 GPIO expander properties
+Date:   Sat, 29 Aug 2020 11:40:21 +0200
+Message-Id: <20200829094024.31842-3-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200829094024.31842-1-krzk@kernel.org>
 References: <20200829094024.31842-1-krzk@kernel.org>
@@ -69,26 +69,34 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The PCA95xx GPIO expander requires GPIO controller properties to operate
+The PCA9539 GPIO expander requires GPIO controller properties to operate
 properly.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- arch/arm/boot/dts/vf610-zii-cfu1.dts | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/am335x-lxm.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/vf610-zii-cfu1.dts b/arch/arm/boot/dts/vf610-zii-cfu1.dts
-index 64e0e9509226..e76a7ebd5dc9 100644
---- a/arch/arm/boot/dts/vf610-zii-cfu1.dts
-+++ b/arch/arm/boot/dts/vf610-zii-cfu1.dts
-@@ -226,6 +226,7 @@
- 		compatible = "nxp,pca9554";
- 		reg = <0x22>;
- 		gpio-controller;
+diff --git a/arch/arm/boot/dts/am335x-lxm.dts b/arch/arm/boot/dts/am335x-lxm.dts
+index cd55f11260ea..0f078465297a 100644
+--- a/arch/arm/boot/dts/am335x-lxm.dts
++++ b/arch/arm/boot/dts/am335x-lxm.dts
+@@ -160,11 +160,15 @@
+ 	serial_config1: serial_config1@20 {
+ 		compatible = "nxp,pca9539";
+ 		reg = <0x20>;
++		gpio-controller;
 +		#gpio-cells = <2>;
  	};
  
- 	lm75@48 {
+ 	serial_config2: serial_config2@21 {
+ 		compatible = "nxp,pca9539";
+ 		reg = <0x21>;
++		gpio-controller;
++		#gpio-cells = <2>;
+ 	};
+ 
+ 	tps: tps@2d {
 -- 
 2.17.1
 
