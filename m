@@ -1,111 +1,99 @@
-Return-Path: <SRS0=f1XC=CK=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=ENkJ=CL=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6924C433E2
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Sep 2020 14:51:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3809CC43461
+	for <linux-omap@archiver.kernel.org>; Wed,  2 Sep 2020 15:30:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9018F206EB
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Sep 2020 14:51:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1722C20826
+	for <linux-omap@archiver.kernel.org>; Wed,  2 Sep 2020 15:30:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598971881;
-	bh=yqmMFIpZEbRaW5ShU6QJoTFWzap3EWFgiYQp3JYn0pc=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:List-ID:From;
-	b=oa3LqJSqw2mDzE2nBfAD48BO3lmXPu2TV2PBoVUR8tPPRpztG5no7PWt/5jrxcyUg
-	 9lGFTX7fdSGBj3GuIUqdU5LRCemzemLqxEswjaCreAxMHJdhljAkd2pMU0VMaSW/eC
-	 Kbj0k4ieOMcoB4qbcxNsNTj+JZs7FfRoNTF3d0qs=
+	s=default; t=1599060608;
+	bh=7VArxsirM7MWSSuesMf8ry8JGHAwP+ti3mTL7EnExKM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=xNj3C66pnDCveOuFfqws8e9QgnMzZiiBc9bQ9en+hLbSm4G7Boewaccwacj4D5hS5
+	 R0KXnh8VujMuk0gt2zaE2L223ZI/RVqEpkrTudrDVU+T7kLyj1xIlOmLn0dKBOsprm
+	 Lz45/mzzVVp214FD72h/2VOqzDPqC6kdtqMYyjbc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728758AbgIAOvU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Sep 2020 10:51:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37286 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728755AbgIAOvS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 1 Sep 2020 10:51:18 -0400
-Received: from localhost (fw-tnat.cambridge.arm.com [217.140.96.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 82B6D2078B;
-        Tue,  1 Sep 2020 14:51:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598971878;
-        bh=yqmMFIpZEbRaW5ShU6QJoTFWzap3EWFgiYQp3JYn0pc=;
-        h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-        b=Xt1B/YItZAkINRQXe+/atByGgbv97z7vWjumtGawq9UZa0QIS/H71DObD7qXix9V8
-         5rkoPihkw7M0HNHHXI2ZrUQzo2t2txOMA7XvEAvGjuuz5KoB/7zhiQufBC6lwAIjT4
-         7M2bDv5SCl2sFTQheqc9xyAIG+V1vz633wC2edLU=
-Date:   Tue, 01 Sep 2020 15:50:38 +0100
-From:   Mark Brown <broonie@kernel.org>
-To:     Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Cc:     Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>
-In-Reply-To: <20200829221104.20870-1-rikard.falkeborn@gmail.com>
-References: <20200829221104.20870-1-rikard.falkeborn@gmail.com>
-Subject: Re: [PATCH 0/8] regulator/tps*: Constify static regulator ops
-Message-Id: <159897183313.47900.16357469471615056811.b4-ty@kernel.org>
+        id S1728305AbgIBPaF convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 2 Sep 2020 11:30:05 -0400
+Received: from mail-ej1-f65.google.com ([209.85.218.65]:41311 "EHLO
+        mail-ej1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727894AbgIBP3j (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 2 Sep 2020 11:29:39 -0400
+Received: by mail-ej1-f65.google.com with SMTP id lo4so7240817ejb.8;
+        Wed, 02 Sep 2020 08:29:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=ehqFNeLfYlTgzhjXsHjpxPHQB/qAgGP+bEZCpgojj5E=;
+        b=IkRqLdZBkNQ4pFkAZ2mhpLhO+gCpJ0bTqpJyf3XivXYTCuj1I2TOlX99pVs5H9jaN8
+         e9zyhwIyzh72MHaqSZ7g/gwNMliFBvYbEW7RWzVGwWEygyMSSJqwZbCWctGufcTK3oAq
+         oVIhpWSgTsONk3msd31Mb/Xfj1FXYETcKh0aPkdeS4e2KNdO3K2qo26iDTTj9H8xEzz0
+         wWkmnOLEAu1G9kOMJAgY6hPzv4/tlpVHBCeUFQMIKerJfNHn/2M2Hw8UP8f22bjHalqW
+         ijt1N+XKwOu9lWdOUQ1bsiutwuM5jtBpRsf+/KR2D655LWryIHRocfQ5iBuHn/GTYz8G
+         wHnA==
+X-Gm-Message-State: AOAM532Iqly3V4TLI7D1AXXa/i0ZMvmwk40ZaOo39cqDqV48Sdn5DqRp
+        rDBHGZ+UmpkTEDGS3rTRplamOk4gmQnBrQ==
+X-Google-Smtp-Source: ABdhPJwUN0BtGTTfUP4Xy44jcruznJYTW75f8W7prpQVrUstD60vT1TKImhOHy/NbwctTiBfW/3HTg==
+X-Received: by 2002:a17:907:270f:: with SMTP id w15mr562515ejk.141.1599060575101;
+        Wed, 02 Sep 2020 08:29:35 -0700 (PDT)
+Received: from kozik-lap ([194.230.155.106])
+        by smtp.googlemail.com with ESMTPSA id r15sm4351182edv.94.2020.09.02.08.29.34
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 02 Sep 2020 08:29:34 -0700 (PDT)
+Date:   Wed, 2 Sep 2020 17:29:32 +0200
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     YueHaibing <yuehaibing@huawei.com>
+Cc:     rogerq@ti.com, tony@atomide.com, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 -next] memory: omap-gpmc: Fix -Wunused-function
+ warnings
+Message-ID: <20200902152932.GA20369@kozik-lap>
+References: <20200901035642.22772-1-yuehaibing@huawei.com>
+ <20200901112832.3084-1-yuehaibing@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20200901112832.3084-1-yuehaibing@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sun, 30 Aug 2020 00:10:56 +0200, Rikard Falkeborn wrote:
-> Constify static instances of struct regulator_ops to allow the compiler
-> to put them in read-only memory. Patches are independent. Compile-tested
-> only.
+On Tue, Sep 01, 2020 at 07:28:32PM +0800, YueHaibing wrote:
+> If CONFIG_OF is not set, make W=1 warns:
 > 
-> Rikard Falkeborn (8):
->   regulator: tps51632: Constify tps51632_dcdc_ops
->   regulator: tps6105x: Constify tps6105x_regulator_ops
->   regulator: tps62360: Constify tps62360_dcdc_ops
->   regulator: tps65086: Constify static regulator_ops
->   regulator: tps65090: constify static regulator_ops
->   regulator: tps6586x: Constify static regulator_ops
->   regulator: tps65912: Constify static regulator_ops
->   regulator: tps65910: Constify static regulator_ops
+> drivers/memory/omap-gpmc.c:987:12: warning: ‘gpmc_cs_remap’ defined but not used [-Wunused-function]
+>  static int gpmc_cs_remap(int cs, u32 base)
+>             ^~~~~~~~~~~~~
+> drivers/memory/omap-gpmc.c:926:20: warning: ‘gpmc_cs_get_name’ defined but not used [-Wunused-function]
+>  static const char *gpmc_cs_get_name(int cs)
+>                     ^~~~~~~~~~~~~~~~
+> drivers/memory/omap-gpmc.c:919:13: warning: ‘gpmc_cs_set_name’ defined but not used [-Wunused-function]
+>  static void gpmc_cs_set_name(int cs, const char *name)
+>              ^~~~~~~~~~~~~~~~
+> Move them to #ifdef CONFIG_OF block to fix this.
 > 
-> [...]
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+> v3: move the functions to #ifdef block
+> v2: update commit log
+> ---
+>  drivers/memory/omap-gpmc.c | 114 ++++++++++++++++++-------------------
 
-Applied to
+Thanks, applied.
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-next
+Best regards,
+Krzysztof
 
-Thanks!
-
-[1/8] regulator: tps51632: Constify tps51632_dcdc_ops
-      commit: dcb97c10f967c2cfea4c6316f026bc4a4a165f1e
-[2/8] regulator: tps6105x: Constify tps6105x_regulator_ops
-      commit: 55c81934e7040c1e0c26b72ee752203ccf190b51
-[3/8] regulator: tps62360: Constify tps62360_dcdc_ops
-      commit: 01167e88e9372f9748e94a7322b0d43ccb980d9f
-[4/8] regulator: tps65086: Constify static regulator_ops
-      commit: 2e6d9db83ac7c65b986d3037620dc735dee7383f
-[5/8] regulator: tps65090: constify static regulator_ops
-      commit: 7d844ac3b5a8a97ae4a05d9f545346a4fca77cea
-[6/8] regulator: tps6586x: Constify static regulator_ops
-      commit: 25c8044502ca9fb684fe7a0612985069e27e01eb
-[7/8] regulator: tps65912: Constify static regulator_ops
-      commit: e92b8ef87a8a4a95056d6b5852bd4b5288f34540
-[8/8] regulator: tps65910: Constify static regulator_ops
-      commit: 385d41d7edbc37d6b30197672b744021ce3baccf
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
