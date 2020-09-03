@@ -7,33 +7,31 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,
 	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96952C433E9
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Sep 2020 15:19:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 596EFC433E9
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Sep 2020 15:20:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7308C20786
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Sep 2020 15:19:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 304C520578
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Sep 2020 15:20:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729035AbgICPTt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Sep 2020 11:19:49 -0400
-Received: from muru.com ([72.249.23.125]:41910 "EHLO muru.com"
+        id S1728688AbgICPU3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Sep 2020 11:20:29 -0400
+Received: from muru.com ([72.249.23.125]:41904 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728517AbgICL1B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S1728514AbgICL1B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Thu, 3 Sep 2020 07:27:01 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id EAB3380FC;
-        Thu,  3 Sep 2020 11:26:51 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 5F6DE80F1;
+        Thu,  3 Sep 2020 11:26:50 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 List-Id: <soc.lore.kernel.org>
 To:     soc@kernel.org
 Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         "Tony Lindgren" <tony@atomide.com>
-Subject: [GIT PULL 2/3] Drop legacy platform data for omaps for v5.10
-Date:   Thu,  3 Sep 2020 14:26:41 +0300
-Message-Id: <pull-1599132307-761202@atomide.com-2>
+Subject: [GIT PULL 1/3] SoC changes for omaps for v5.10
+Date:   Thu,  3 Sep 2020 14:26:40 +0300
+Message-Id: <pull-1599132307-761202@atomide.com>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <pull-1599132307-761202@atomide.com>
-References: <pull-1599132307-761202@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -50,55 +48,74 @@ The following changes since commit 9123e3a74ec7b934a4a099e98af6a61c2f80bbf5:
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.10/ti-sysc-drop-pdata-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.10/soc-signed
 
-for you to fetch changes up to 0d7ce5c5c4e6418c1bb1d7c5ee94de815fdc3041:
+for you to fetch changes up to 501e69b028a47e20cb0d842e267fc5aa5e5230aa:
 
-  Merge branch 'omap-for-v5.10/prm-genpd' into omap-for-v5.10/ti-sysc-drop-pdata (2020-09-03 12:06:18 +0300)
-
-----------------------------------------------------------------
-Add initial genpd support for omaps to drop more platform data
-
-We now drop legacy platform data for RTC on am3, am4 and dra7.
-And we add initial genpd support for PRM (Power and Reset Manager)
-and use it to drop legacy platform data for am3 sgx and omap4/5
-l4_abe interconnect instance.
+  Merge branch 'omap-for-v5.10/omap1' into omap-for-v5.10/soc (2020-09-03 11:50:37 +0300)
 
 ----------------------------------------------------------------
-Tony Lindgren (10):
-      dt-bindings: omap: Update PRM binding for genpd
-      soc: ti: omap-prm: Add basic power domain support
-      soc: ti: omap-prm: Configure sgx power domain for am3 and am4
-      soc: ti: omap-prm: Configure omap4 and 5 l4_abe power domain
-      ARM: dts: Configure am3 and am4 sgx for genpd and drop platform data
-      ARM: dts: Configure omap4 and 5 l4_abe for genpd and drop platform data
-      soc: ti: pm33xx: Simplify RTC usage to prepare to drop platform data
-      ARM: OMAP2+: Drop legacy platform data for am3 and am4 rtc
-      ARM: OMAP2+: Drop legacy platform data for dra7 rtcss
-      Merge branch 'omap-for-v5.10/prm-genpd' into omap-for-v5.10/ti-sysc-drop-pdata
+SoC changes for omaps for v5.10
 
- .../devicetree/bindings/arm/omap/prm-inst.txt      |   2 +
- arch/arm/boot/dts/am33xx-l4.dtsi                   |   1 -
- arch/arm/boot/dts/am33xx.dtsi                      |   2 +
- arch/arm/boot/dts/am4372.dtsi                      |   2 +
- arch/arm/boot/dts/am437x-l4.dtsi                   |   3 +-
- arch/arm/boot/dts/am43x-epos-evm.dts               |   4 +
- arch/arm/boot/dts/dra7-l4.dtsi                     |   1 -
- arch/arm/boot/dts/omap4-l4-abe.dtsi                |   6 +-
- arch/arm/boot/dts/omap4.dtsi                       |   6 +
- arch/arm/boot/dts/omap5-l4-abe.dtsi                |   6 +-
- arch/arm/boot/dts/omap5.dtsi                       |   6 +
- arch/arm/mach-omap2/Kconfig                        |   1 +
- .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |   2 -
- .../omap_hwmod_33xx_43xx_interconnect_data.c       |  24 --
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  77 ------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |   3 -
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  10 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  33 ---
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  31 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  44 ----
- arch/arm/mach-omap2/pm33xx-core.c                  |  25 --
- drivers/soc/ti/omap_prm.c                          | 274 ++++++++++++++++++++-
- drivers/soc/ti/pm33xx.c                            |  47 +++-
- include/linux/platform_data/pm33xx.h               |   3 -
- 24 files changed, 345 insertions(+), 268 deletions(-)
+Few changes to replace HTTP links with HTTPS, and a change to
+delete a duplicate word for omap1 mux.h comments.
+
+----------------------------------------------------------------
+Alexander A. Klimov (5):
+      ARM: OMAP2+: PRM: Replace HTTP links with HTTPS ones
+      ARM: OMAP2+: Replace HTTP links with HTTPS ones
+      ARM: OMAP2+: hwmod: Replace HTTP links with HTTPS ones
+      ARM: OMAP2+: pm33xx-core: Replace HTTP links with HTTPS ones
+      ARM: OMAP2+: Replace HTTP links with HTTPS ones
+
+Randy Dunlap (1):
+      arm: mach-omap1: mux.h: delete duplicate word
+
+Tony Lindgren (1):
+      Merge branch 'omap-for-v5.10/omap1' into omap-for-v5.10/soc
+
+ arch/arm/mach-omap1/include/mach/mux.h        | 2 +-
+ arch/arm/mach-omap2/am33xx.h                  | 2 +-
+ arch/arm/mach-omap2/board-generic.c           | 2 +-
+ arch/arm/mach-omap2/clockdomains33xx_data.c   | 2 +-
+ arch/arm/mach-omap2/clockdomains81xx_data.c   | 2 +-
+ arch/arm/mach-omap2/cm-regbits-33xx.h         | 2 +-
+ arch/arm/mach-omap2/cm-regbits-54xx.h         | 2 +-
+ arch/arm/mach-omap2/cm-regbits-7xx.h          | 2 +-
+ arch/arm/mach-omap2/cm1_54xx.h                | 2 +-
+ arch/arm/mach-omap2/cm1_7xx.h                 | 2 +-
+ arch/arm/mach-omap2/cm2_54xx.h                | 2 +-
+ arch/arm/mach-omap2/cm2_7xx.h                 | 2 +-
+ arch/arm/mach-omap2/cm33xx.c                  | 2 +-
+ arch/arm/mach-omap2/cm33xx.h                  | 2 +-
+ arch/arm/mach-omap2/cm81xx.h                  | 2 +-
+ arch/arm/mach-omap2/display.c                 | 2 +-
+ arch/arm/mach-omap2/dma.c                     | 2 +-
+ arch/arm/mach-omap2/l3_2xxx.h                 | 2 +-
+ arch/arm/mach-omap2/l3_3xxx.h                 | 2 +-
+ arch/arm/mach-omap2/l4_2xxx.h                 | 2 +-
+ arch/arm/mach-omap2/omap-iommu.c              | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c    | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c     | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c    | 2 +-
+ arch/arm/mach-omap2/omap_opp_data.h           | 2 +-
+ arch/arm/mach-omap2/omap_phy_internal.c       | 2 +-
+ arch/arm/mach-omap2/opp3xxx_data.c            | 2 +-
+ arch/arm/mach-omap2/opp4xxx_data.c            | 2 +-
+ arch/arm/mach-omap2/pm33xx-core.c             | 2 +-
+ arch/arm/mach-omap2/powerdomains33xx_data.c   | 2 +-
+ arch/arm/mach-omap2/prcm43xx.h                | 2 +-
+ arch/arm/mach-omap2/prcm_mpu54xx.h            | 2 +-
+ arch/arm/mach-omap2/prcm_mpu7xx.h             | 2 +-
+ arch/arm/mach-omap2/prm-regbits-33xx.h        | 2 +-
+ arch/arm/mach-omap2/prm33xx.c                 | 2 +-
+ arch/arm/mach-omap2/prm33xx.h                 | 2 +-
+ arch/arm/mach-omap2/prm54xx.h                 | 2 +-
+ arch/arm/mach-omap2/prm7xx.h                  | 2 +-
+ arch/arm/mach-omap2/scrm54xx.h                | 2 +-
+ arch/arm/mach-omap2/sleep33xx.S               | 2 +-
+ arch/arm/mach-omap2/sleep43xx.S               | 2 +-
+ arch/arm/mach-omap2/ti81xx.h                  | 2 +-
+ arch/arm/mach-omap2/voltagedomains54xx_data.c | 2 +-
+ 44 files changed, 44 insertions(+), 44 deletions(-)
