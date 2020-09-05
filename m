@@ -1,149 +1,76 @@
-Return-Path: <SRS0=jc3N=CN=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=BumZ=CO=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAEC7C433E2
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Sep 2020 23:11:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 463BEC43461
+	for <linux-omap@archiver.kernel.org>; Sat,  5 Sep 2020 00:10:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 974D9208FE
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Sep 2020 23:11:01 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="VkdztE0y"
+	by mail.kernel.org (Postfix) with ESMTP id F365C2098B
+	for <linux-omap@archiver.kernel.org>; Sat,  5 Sep 2020 00:10:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599264601;
+	bh=P/6uRSKbc276FtT+BF2FCS1nLO3Isxb5xURf1YHtXCA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=d5XfRbtg2gMyeCK4vGXygAZVoG3UFR4ACd6oPSryk/gMRJucxYhRyQLbRJ27vYY9z
+	 dUlbk1ah5pIkqSN25phKR85BFGZbita5wmT9cFa/aD+o1iNFVl2NQ0BxaLtI+XxbTo
+	 Bb5bSrcyrBObyV0WLolMkjgF63jRTWZMOCzH2tuw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728301AbgIDXJ7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 4 Sep 2020 19:09:59 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:53122 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728202AbgIDXJ6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2020 19:09:58 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 084N9sBr003099;
-        Fri, 4 Sep 2020 18:09:54 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599260995;
-        bh=CTccfIY63VWBUNi2zgWrsuMJEQPMenQAMQYVYCKi1o4=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=VkdztE0yiLiNFIcdTJb3FpeGnFkPhVvO0y6DALtrXVui7Ek+zV3MlAc1WofKA6Lz+
-         +gjXYr9p5DGTKoaHJNSig14APO5jimz6OdUPye7XJu/49GwWTlu8Z1kiBZYhYblXxx
-         zaNTO1JelV9jzTAlJZt7/WZ7w+n8nm6KUpnEbMRw=
-Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 084N9s6J090740
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 4 Sep 2020 18:09:54 -0500
-Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 4 Sep
- 2020 18:09:54 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 4 Sep 2020 18:09:54 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 084N9rfF062310;
-        Fri, 4 Sep 2020 18:09:54 -0500
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
+        id S1726406AbgIEAKA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 4 Sep 2020 20:10:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57988 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726208AbgIEAKA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 4 Sep 2020 20:10:00 -0400
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5BDD6208FE;
+        Sat,  5 Sep 2020 00:09:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599264599;
+        bh=P/6uRSKbc276FtT+BF2FCS1nLO3Isxb5xURf1YHtXCA=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=kotxlg9gdljRKVFnlVGjSRirPUAw0VjAM2+kv2MMbw7NNr/KRAGbQ/qP+LxCx8jf1
+         EBl9Y+/ANHoA6CJTtV9q8wa6gtmq3MFnyQ6/ipRCZVC3LuV2dFHY4kakkmdSPYk0Dd
+         Q1p085pqITMVNoaOs7qqLD7DJwzHC4K0FBYxhSZI=
+Date:   Fri, 4 Sep 2020 17:09:57 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Grygorii Strashko <grygorii.strashko@ti.com>
+Cc:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
         Vignesh Raghavendra <vigneshr@ti.com>,
-        Murali Karicheri <m-karicheri2@ti.com>
-CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 3/9] net: ethernet: ti: cpsw: use dev_id for ale configuration
-Date:   Sat, 5 Sep 2020 02:09:18 +0300
-Message-ID: <20200904230924.9971-4-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200904230924.9971-1-grygorii.strashko@ti.com>
+        Murali Karicheri <m-karicheri2@ti.com>,
+        Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH net-next 8/9] net: ethernet: ti: ale: switch to use
+ tables for vlan entry description
+Message-ID: <20200904170957.11a8068d@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20200904230924.9971-9-grygorii.strashko@ti.com>
 References: <20200904230924.9971-1-grygorii.strashko@ti.com>
+        <20200904230924.9971-9-grygorii.strashko@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The previous patch has introduced possibility to select CPSW ALE by using
-ALE dev_id identifier. Switch TI cpsw driver to use dev_id="cpsw" and
-perform clean up by removing "ale_entries" configuration code.
+On Sat, 5 Sep 2020 02:09:23 +0300 Grygorii Strashko wrote:
+> The ALE VLAN entries are too much differ between different TI CPSW ALE
+> versions. So, handling them using flags, defines and get/set functions
+> became over-complicated.
+> 
+> This patch introduces tables to describe the ALE VLAN entries fields, which
+> are different between TI CPSW ALE versions, and new get/set access
+> functions. It also allows to detect incorrect access to not available ALL
+> entry fields.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c      | 6 ------
- drivers/net/ethernet/ti/cpsw_new.c  | 1 -
- drivers/net/ethernet/ti/cpsw_priv.c | 2 +-
- drivers/net/ethernet/ti/cpsw_priv.h | 2 --
- 4 files changed, 1 insertion(+), 10 deletions(-)
+When building with W=1 C=1:
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 9b17bbbe102f..be5481e542bf 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1278,12 +1278,6 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 	}
- 	data->channels = prop;
- 
--	if (of_property_read_u32(node, "ale_entries", &prop)) {
--		dev_err(&pdev->dev, "Missing ale_entries property in the DT.\n");
--		return -EINVAL;
--	}
--	data->ale_entries = prop;
--
- 	if (of_property_read_u32(node, "bd_ram_size", &prop)) {
- 		dev_err(&pdev->dev, "Missing bd_ram_size property in the DT.\n");
- 		return -EINVAL;
-diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index 1247d35d42ef..cb77e9c26de6 100644
---- a/drivers/net/ethernet/ti/cpsw_new.c
-+++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -1228,7 +1228,6 @@ static int cpsw_probe_dt(struct cpsw_common *cpsw)
- 
- 	data->active_slave = 0;
- 	data->channels = CPSW_MAX_QUEUES;
--	data->ale_entries = CPSW_ALE_NUM_ENTRIES;
- 	data->dual_emac = true;
- 	data->bd_ram_size = CPSW_BD_RAM_SIZE;
- 	data->mac_control = 0;
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
-index 482a1a451e43..51cc29f39038 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.c
-+++ b/drivers/net/ethernet/ti/cpsw_priv.c
-@@ -500,8 +500,8 @@ int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
- 
- 	ale_params.dev			= dev;
- 	ale_params.ale_ageout		= ale_ageout;
--	ale_params.ale_entries		= data->ale_entries;
- 	ale_params.ale_ports		= CPSW_ALE_PORTS_NUM;
-+	ale_params.dev_id		= "cpsw";
- 
- 	cpsw->ale = cpsw_ale_create(&ale_params);
- 	if (IS_ERR(cpsw->ale)) {
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
-index bf4e179b4ca4..7b7f3596b20d 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.h
-+++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -117,7 +117,6 @@ do {								\
- #define CPSW_MAX_QUEUES		8
- #define CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT 256
- #define CPSW_ALE_AGEOUT_DEFAULT		10 /* sec */
--#define CPSW_ALE_NUM_ENTRIES		1024
- #define CPSW_FIFO_QUEUE_TYPE_SHIFT	16
- #define CPSW_FIFO_SHAPE_EN_SHIFT	16
- #define CPSW_FIFO_RATE_EN_SHIFT		20
-@@ -294,7 +293,6 @@ struct cpsw_platform_data {
- 	u32	channels;	/* number of cpdma channels (symmetric) */
- 	u32	slaves;		/* number of slave cpgmac ports */
- 	u32	active_slave;/* time stamping, ethtool and SIOCGMIIPHY slave */
--	u32	ale_entries;	/* ale table size */
- 	u32	bd_ram_size;	/*buffer descriptor ram size */
- 	u32	mac_control;	/* Mac control register */
- 	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
--- 
-2.17.1
-
+drivers/net/ethernet/ti/cpsw_ale.c:179:28: warning: symbol 'vlan_entry_cpsw' was not declared. Should it be static?
+drivers/net/ethernet/ti/cpsw_ale.c:187:28: warning: symbol 'vlan_entry_nu' was not declared. Should it be static?
+drivers/net/ethernet/ti/cpsw_ale.c:63: warning: Function parameter or member 'num_bits' not described in 'ale_entry_fld'
