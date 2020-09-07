@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ABF3C43461
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 20:22:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 729F8C433E2
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 20:22:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F90821D1A
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 20:22:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23B1521D40
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 20:22:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="LR+7ANqs"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="mG0m9VDA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729186AbgIGUWC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Sep 2020 16:22:02 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:50898 "EHLO
+        id S1730274AbgIGUWP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Sep 2020 16:22:15 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:50918 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730173AbgIGUWB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 16:22:01 -0400
+        with ESMTP id S1730261AbgIGUWP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 16:22:15 -0400
 Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 087KLwGR036304;
-        Mon, 7 Sep 2020 15:21:58 -0500
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 087KMCMT036338;
+        Mon, 7 Sep 2020 15:22:12 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599510118;
-        bh=Wcn5F6ZFfH+qQl5imFM6aOi17YdmT6HR6wxZrLWBhdQ=;
+        s=ti-com-17Q1; t=1599510132;
+        bh=QU39mscjtPHjuuKEj11p2GA7hSHd5TgWJ0hXRoHNo28=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=LR+7ANqsIzcm1LcaKKYRXkkEafdevzsJK3qIb8CYr4Ekhy3HOYdhf50yZ8Ud4fq/U
-         JUunQCZvjd8uXYKjZfuIohjlxKWX7F/deDOvgeYu4ZM3x1Pnen6I1DuUGWXD7vRv7o
-         cwSGx/cS/kurN0WEO6huLgHnDBLIbRjiQuwb987A=
+        b=mG0m9VDAz31i0ZbCKd2NNbv7d3UcotdLLNcoZPW4kGRLkoVtK3apMhkvHi0sH/+7w
+         xrucWHIBh7lTBNnbvNcMc/cQf0rwl1b2Ch1Se8aIpbF4MAGwECWxx9HLevIz81Aujp
+         1LrM5zcLdkC8Dv5x8bYmjWqFsA4OT6DIEE1ZUa/8=
 Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 087KLwL9085036
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 087KMCwJ085929
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 7 Sep 2020 15:21:58 -0500
-Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE115.ent.ti.com
+        Mon, 7 Sep 2020 15:22:12 -0500
+Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE115.ent.ti.com
  (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 7 Sep
- 2020 15:21:57 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE101.ent.ti.com
- (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 15:22:11 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 7 Sep 2020 15:21:57 -0500
+ Frontend Transport; Mon, 7 Sep 2020 15:22:11 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087KLuZQ053209;
-        Mon, 7 Sep 2020 15:21:57 -0500
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087KMAcb054519;
+        Mon, 7 Sep 2020 15:22:11 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
 To:     Tony Lindgren <tony@atomide.com>
 CC:     <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
@@ -53,9 +53,9 @@ CC:     <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         Murali Karicheri <m-karicheri2@ti.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH next 4/6] ARM: dts: dra7x-evm: switch to new cpsw switch drv
-Date:   Mon, 7 Sep 2020 23:21:23 +0300
-Message-ID: <20200907202125.22943-5-grygorii.strashko@ti.com>
+Subject: [PATCH next 6/6] ARM: dts: dra7: drop legacy cpsw dt node
+Date:   Mon, 7 Sep 2020 23:21:25 +0300
+Message-ID: <20200907202125.22943-7-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200907202125.22943-1-grygorii.strashko@ti.com>
 References: <20200907202125.22943-1-grygorii.strashko@ti.com>
@@ -67,214 +67,95 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Switch all TI DRA7x boards to use new cpsw switch driver. Those boards
-configured in dual_mac mode by default. Hence, dual_mac mode has been
-preserved the same way between legacy and new driver it's safe to switch
-drivers.
+All dra7/am57 boards converted to use new driver, so drop legacy
+cpsw dt node.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts          | 13 ++++++-------
- arch/arm/boot/dts/dra71-evm.dts         | 14 +++++++-------
- arch/arm/boot/dts/dra72-evm-common.dtsi |  4 ----
- arch/arm/boot/dts/dra72-evm-revc.dts    | 14 +++++++-------
- arch/arm/boot/dts/dra72-evm.dts         | 13 +++++++++----
- arch/arm/boot/dts/dra76-evm.dts         | 14 ++++++--------
- 6 files changed, 35 insertions(+), 37 deletions(-)
+ arch/arm/boot/dts/dra7-l4.dtsi | 54 ----------------------------------
+ arch/arm/boot/dts/dra7.dtsi    |  4 +--
+ 2 files changed, 2 insertions(+), 56 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index a952d934fcf2..051aac4e95b7 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -537,24 +537,23 @@
- 	ti,no-idle-on-init;
- };
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index 27a6a83cc60c..703ba6a26272 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -3038,60 +3038,6 @@
+ 			 */
+ 			ti,no-idle;
  
--&mac {
-+&mac_sw {
- 	status = "okay";
--	dual_emac;
- };
- 
--&cpsw_emac0 {
-+&cpsw_port1 {
- 	phy-handle = <&ethphy0>;
- 	phy-mode = "rgmii";
--	dual_emac_res_vlan = <1>;
-+	ti,dual-emac-pvid = <1>;
- };
- 
--&cpsw_emac1 {
-+&cpsw_port2 {
- 	phy-handle = <&ethphy1>;
- 	phy-mode = "rgmii";
--	dual_emac_res_vlan = <2>;
-+	ti,dual-emac-pvid = <2>;
- };
- 
--&davinci_mdio {
-+&davinci_mdio_sw {
- 	ethphy0: ethernet-phy@2 {
- 		reg = <2>;
- 	};
-diff --git a/arch/arm/boot/dts/dra71-evm.dts b/arch/arm/boot/dts/dra71-evm.dts
-index 10da51bee42f..cad58f733bd6 100644
---- a/arch/arm/boot/dts/dra71-evm.dts
-+++ b/arch/arm/boot/dts/dra71-evm.dts
-@@ -219,26 +219,26 @@
- 	vqmmc-supply = <&evm_1v8_sw>;
- };
- 
--&mac {
-+&mac_sw {
- 	mode-gpios = <&pcf_gpio_21 4 GPIO_ACTIVE_LOW>,
- 		     <&pcf_hdmi 9 GPIO_ACTIVE_LOW>,	/* P11 */
- 		     <&pcf_hdmi 10 GPIO_ACTIVE_LOW>;	/* P12 */
--	dual_emac;
-+	status = "okay";
- };
- 
--&cpsw_emac0 {
-+&cpsw_port1 {
- 	phy-handle = <&dp83867_0>;
- 	phy-mode = "rgmii-id";
--	dual_emac_res_vlan = <1>;
-+	ti,dual-emac-pvid = <1>;
- };
- 
--&cpsw_emac1 {
-+&cpsw_port2 {
- 	phy-handle = <&dp83867_1>;
- 	phy-mode = "rgmii-id";
--	dual_emac_res_vlan = <2>;
-+	ti,dual-emac-pvid = <2>;
- };
- 
--&davinci_mdio {
-+&davinci_mdio_sw {
- 	dp83867_0: ethernet-phy@2 {
- 		reg = <2>;
- 		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_25_NS>;
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index 9273a7d6fa29..8d0d960107fb 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -462,10 +462,6 @@
- 	};
- };
- 
--&mac {
--	status = "okay";
--};
+-			mac: ethernet@0 {
+-				compatible = "ti,dra7-cpsw","ti,cpsw";
+-				clocks = <&gmac_main_clk>, <&gmac_clkctrl DRA7_GMAC_GMAC_CLKCTRL 25>;
+-				clock-names = "fck", "cpts";
+-				cpdma_channels = <8>;
+-				ale_entries = <1024>;
+-				bd_ram_size = <0x2000>;
+-				mac_control = <0x20>;
+-				slaves = <2>;
+-				active_slave = <0>;
+-				cpts_clock_mult = <0x784CFE14>;
+-				cpts_clock_shift = <29>;
+-				reg = <0x0 0x1000
+-				       0x1200 0x2e00>;
+-				#address-cells = <1>;
+-				#size-cells = <1>;
 -
- &dcan1 {
- 	status = "ok";
- 	pinctrl-names = "default", "sleep", "active";
-diff --git a/arch/arm/boot/dts/dra72-evm-revc.dts b/arch/arm/boot/dts/dra72-evm-revc.dts
-index 54dab0f212d1..f242b937f88c 100644
---- a/arch/arm/boot/dts/dra72-evm-revc.dts
-+++ b/arch/arm/boot/dts/dra72-evm-revc.dts
-@@ -77,26 +77,26 @@
- 	interrupts = <30 IRQ_TYPE_EDGE_FALLING>;
- };
- 
--&mac {
-+&mac_sw {
- 	mode-gpios = <&pcf_gpio_21 4 GPIO_ACTIVE_LOW>,
- 		     <&pcf_hdmi 9 GPIO_ACTIVE_LOW>,	/* P11 */
- 		     <&pcf_hdmi 10 GPIO_ACTIVE_LOW>;	/* P12 */
--	dual_emac;
-+	status = "okay";
- };
- 
--&cpsw_emac0 {
-+&cpsw_port1 {
- 	phy-handle = <&dp83867_0>;
- 	phy-mode = "rgmii-id";
--	dual_emac_res_vlan = <1>;
-+	ti,dual-emac-pvid = <1>;
- };
- 
--&cpsw_emac1 {
-+&cpsw_port2 {
- 	phy-handle = <&dp83867_1>;
- 	phy-mode = "rgmii-id";
--	dual_emac_res_vlan = <2>;
-+	ti,dual-emac-pvid = <2>;
- };
- 
--&davinci_mdio {
-+&davinci_mdio_sw {
- 	dp83867_0: ethernet-phy@2 {
- 		reg = <2>;
- 		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_25_NS>;
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 6ea9936f7d9c..5f62f92eb96c 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -69,17 +69,22 @@
- 	interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
- };
- 
--&mac {
--	slaves = <1>;
-+&mac_sw {
- 	mode-gpios = <&pcf_gpio_21 4 GPIO_ACTIVE_HIGH>;
-+	status = "okay";
- };
- 
--&cpsw_emac0 {
-+&cpsw_port1 {
- 	phy-handle = <&ethphy0>;
- 	phy-mode = "rgmii";
-+	ti,dual-emac-pvid = <1>;
-+};
-+
-+&cpsw_port2 {
-+	status = "disabled";
- };
- 
--&davinci_mdio {
-+&davinci_mdio_sw {
- 	ethphy0: ethernet-phy@3 {
- 		reg = <3>;
- 	};
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 803981cc762e..34f655be4fb4 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -475,25 +475,23 @@
- 	status = "disabled";
- };
- 
--&mac {
-+&mac_sw {
- 	status = "okay";
+-				/*
+-				 * rx_thresh_pend
+-				 * rx_pend
+-				 * tx_pend
+-				 * misc_pend
+-				 */
+-				interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
+-					     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
+-					     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
+-					     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
+-				ranges = <0 0 0x4000>;
+-				syscon = <&scm_conf>;
+-				status = "disabled";
 -
--	dual_emac;
- };
- 
--&cpsw_emac0 {
-+&cpsw_port1 {
- 	phy-handle = <&dp83867_0>;
- 	phy-mode = "rgmii-id";
--	dual_emac_res_vlan = <1>;
-+	ti,dual-emac-pvid = <1>;
- };
- 
--&cpsw_emac1 {
-+&cpsw_port2 {
- 	phy-handle = <&dp83867_1>;
- 	phy-mode = "rgmii-id";
--	dual_emac_res_vlan = <2>;
-+	ti,dual-emac-pvid = <2>;
- };
- 
--&davinci_mdio {
-+&davinci_mdio_sw {
- 	dp83867_0: ethernet-phy@2 {
- 		reg = <2>;
- 		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_25_NS>;
+-				davinci_mdio: mdio@1000 {
+-					compatible = "ti,cpsw-mdio","ti,davinci_mdio";
+-					clocks = <&gmac_main_clk>;
+-					clock-names = "fck";
+-					#address-cells = <1>;
+-					#size-cells = <0>;
+-					bus_freq = <1000000>;
+-					reg = <0x1000 0x100>;
+-				};
+-
+-				cpsw_emac0: slave@200 {
+-					/* Filled in by U-Boot */
+-					mac-address = [ 00 00 00 00 00 00 ];
+-					phys = <&phy_gmii_sel 1>;
+-				};
+-
+-				cpsw_emac1: slave@300 {
+-					/* Filled in by U-Boot */
+-					mac-address = [ 00 00 00 00 00 00 ];
+-					phys = <&phy_gmii_sel 2>;
+-				};
+-			};
+-
+ 			mac_sw: switch@0 {
+ 				compatible = "ti,dra7-cpsw-switch","ti,cpsw-switch";
+ 				reg = <0x0 0x4000>;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index cca6b123856f..4e1bbc0198eb 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -37,8 +37,8 @@
+ 		serial7 = &uart8;
+ 		serial8 = &uart9;
+ 		serial9 = &uart10;
+-		ethernet0 = &cpsw_emac0;
+-		ethernet1 = &cpsw_emac1;
++		ethernet0 = &cpsw_port1;
++		ethernet1 = &cpsw_port2;
+ 		d_can0 = &dcan1;
+ 		d_can1 = &dcan2;
+ 		spi0 = &qspi;
 -- 
 2.17.1
 
