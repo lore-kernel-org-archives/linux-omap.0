@@ -2,65 +2,61 @@ Return-Path: <SRS0=EwIw=CQ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35632C43461
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D625C43461
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 20:21:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F2DCC20757
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:29:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 142A921556
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 20:21:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="uTk/+NJ2"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ierPQQxr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730315AbgIGQ2G (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Sep 2020 12:28:06 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:55838 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729907AbgIGOcx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 10:32:53 -0400
+        id S1729280AbgIGUVk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Sep 2020 16:21:40 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:43564 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729757AbgIGUVi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 16:21:38 -0400
 Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 087EW19q113953;
-        Mon, 7 Sep 2020 09:32:01 -0500
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 087KLYuZ016372;
+        Mon, 7 Sep 2020 15:21:34 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599489121;
-        bh=MrJ8oniUAvkpJjFUq2IygbIoO9wyGKNWBqzzRnaJdfQ=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=uTk/+NJ2x0OKWkJuUuziM8OUrVHTH2oIuF2/o06X6MLgm0OM6BR9XoRWvx3paa1up
-         P63yF8MMJN1LPUkAj5YI1aZy0+EC14Xrx2hYeQ2fOosFwZ9SEAaJPryhcjq9tpmP9t
-         tn6Q/xajwjj8T99Ro9C2Y2PR+n1TXhaUr4yoU5Ww=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 087EW1pY066922
+        s=ti-com-17Q1; t=1599510094;
+        bh=HElTGPfHN8eqJ8L/c6Hjkkfa9XQnaNhJXi0kU+nLVsc=;
+        h=From:To:CC:Subject:Date;
+        b=ierPQQxr6MlcDKvfJ1SCKLooiKxwZ5bYAW2xVp79KCBZb0wrZ6Tbb1eCzCeJKCH+y
+         2Vo7K6WmTUn60s6NCiUz+013HGyltTlQ2LQs4qEsn+Dkh/Y+YGJWUe7hsiEIyrXlbu
+         lpYorSvDbpzYkXCbNF0tJHL5La0obNZTDl4nK8X4=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 087KLYib049308
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 7 Sep 2020 09:32:01 -0500
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 7 Sep 2020 15:21:34 -0500
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 7 Sep
- 2020 09:32:00 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 15:21:34 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 7 Sep 2020 09:32:00 -0500
+ Frontend Transport; Mon, 7 Sep 2020 15:21:33 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087EW08r106572;
-        Mon, 7 Sep 2020 09:32:00 -0500
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087KLWog127219;
+        Mon, 7 Sep 2020 15:21:33 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
-To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
+To:     Tony Lindgren <tony@atomide.com>
+CC:     <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Sekhar Nori <nsekhar@ti.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
-        Murali Karicheri <m-karicheri2@ti.com>
-CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
+        Murali Karicheri <m-karicheri2@ti.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 9/9] net: ethernet: ti: ale: add support for multi port k3 cpsw versions
-Date:   Mon, 7 Sep 2020 17:31:43 +0300
-Message-ID: <20200907143143.13735-10-grygorii.strashko@ti.com>
+Subject: [PATCH next 0/6] ARM: dts: am57xx/dra7x: switch to new cpsw switch drv
+Date:   Mon, 7 Sep 2020 23:21:19 +0300
+Message-ID: <20200907202125.22943-1-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200907143143.13735-1-grygorii.strashko@ti.com>
-References: <20200907143143.13735-1-grygorii.strashko@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
@@ -69,49 +65,45 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The TI J721E (CPSW9g) ALE version is similar, in general, to Sitara AM3/4/5
-CPSW ALE, but has more extended functions and different ALE VLAN entry
-format.
+Hi Tony,
 
-This patch adds support for for multi port TI J721E (CPSW9g) ALE variant.
+Since Kernel v5.5 commits:
+ 111cf1ab4da3 ("net: ethernet: ti: introduce cpsw switchdev based driver part 2 - switch")
+ ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
+the new CPSW driver with switchdev support has been introduced and one
+am571x-idk board was converted to use it. And since that time (Nov 2019) no
+significant issues were reported for the new CPSW driver.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpsw_ale.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Therefore it's time to switch all am57xx/dra7x boards to use new cpsw switch
+driver. Those boards have 1 or 2 Ext. port wired and configured in dual_mac mode
+by default. The dual_mac mode has been preserved the same way between
+legacy and new driver it's safe to switch drivers.
 
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 0dd0c3329dee..a6a455c32628 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -191,6 +191,14 @@ static const struct ale_entry_fld vlan_entry_nu[ALE_ENT_VID_LAST] = {
- 	ALE_ENTRY_FLD(ALE_ENT_VID_REG_MCAST_IDX, 44, 3),
- };
- 
-+/* K3 j721e/j7200 cpsw9g/5g, am64x cpsw3g  */
-+static const struct ale_entry_fld vlan_entry_k3_cpswxg[] = {
-+	ALE_ENTRY_FLD_DYN_MSK_SIZE(ALE_ENT_VID_MEMBER_LIST, 0),
-+	ALE_ENTRY_FLD_DYN_MSK_SIZE(ALE_ENT_VID_UNREG_MCAST_MSK, 12),
-+	ALE_ENTRY_FLD_DYN_MSK_SIZE(ALE_ENT_VID_FORCE_UNTAGGED_MSK, 24),
-+	ALE_ENTRY_FLD_DYN_MSK_SIZE(ALE_ENT_VID_REG_MCAST_MSK, 36),
-+};
-+
- DEFINE_ALE_FIELD(entry_type,		60,	2)
- DEFINE_ALE_FIELD(vlan_id,		48,	12)
- DEFINE_ALE_FIELD(mcast_state,		62,	2)
-@@ -1213,6 +1221,12 @@ static const struct cpsw_ale_dev_id cpsw_ale_id_match[] = {
- 		.nu_switch_ale = true,
- 		.vlan_entry_tbl = vlan_entry_nu,
- 	},
-+	{
-+		.dev_id = "j721e-cpswxg",
-+		.features = CPSW_ALE_F_STATUS_REG | CPSW_ALE_F_HW_AUTOAGING,
-+		.major_ver_mask = 0x7,
-+		.vlan_entry_tbl = vlan_entry_k3_cpswxg,
-+	},
- 	{ },
- };
- 
+Grygorii Strashko (6):
+  ARM: dts: am5729: beagleboneai: switch to new cpsw switch drv
+  ARM: dts: am57xx-idk: switch to new cpsw switch drv
+  ARM: dts: beagle-x15: switch to new cpsw switch drv
+  ARM: dts: dra7x-evm: switch to new cpsw switch drv
+  ARM: dts: am57xx-cl-som-am57x: switch to new cpsw switch drv
+  ARM: dts: dra7: drop legacy cpsw dt node
+
+ arch/arm/boot/dts/am571x-idk.dts              | 27 ----------
+ arch/arm/boot/dts/am5729-beagleboneai.dts     | 14 +++--
+ arch/arm/boot/dts/am572x-idk.dts              |  5 --
+ arch/arm/boot/dts/am574x-idk.dts              |  5 --
+ .../boot/dts/am57xx-beagle-x15-common.dtsi    | 13 +++--
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts     | 13 +++--
+ arch/arm/boot/dts/am57xx-idk-common.dtsi      | 14 +++--
+ arch/arm/boot/dts/dra7-evm.dts                | 13 +++--
+ arch/arm/boot/dts/dra7-l4.dtsi                | 54 -------------------
+ arch/arm/boot/dts/dra7.dtsi                   |  4 +-
+ arch/arm/boot/dts/dra71-evm.dts               | 14 ++---
+ arch/arm/boot/dts/dra72-evm-common.dtsi       |  4 --
+ arch/arm/boot/dts/dra72-evm-revc.dts          | 14 ++---
+ arch/arm/boot/dts/dra72-evm.dts               | 13 +++--
+ arch/arm/boot/dts/dra76-evm.dts               | 14 +++--
+ 15 files changed, 67 insertions(+), 154 deletions(-)
+
 -- 
 2.17.1
 
