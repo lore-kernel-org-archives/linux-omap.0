@@ -2,94 +2,129 @@ Return-Path: <SRS0=EwIw=CQ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9850EC43461
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:12:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C980EC43461
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:25:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C3D62177B
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:12:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9600E206E7
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:25:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="v5W+SMP/"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="KVHDvHWs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730318AbgIGQKV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Sep 2020 12:10:21 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:39414 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729916AbgIGOd1 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 10:33:27 -0400
+        id S1729917AbgIGOdN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Sep 2020 10:33:13 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:58938 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729899AbgIGOb5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 10:31:57 -0400
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 087EXOUX079209;
-        Mon, 7 Sep 2020 09:33:24 -0500
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 087EVkVB057797;
+        Mon, 7 Sep 2020 09:31:46 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599489204;
-        bh=KCPnGV1i/mXb3dwVsRcfzbm3+yvLIM1pM8h2rceZWm4=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=v5W+SMP/ll1uyPqrH7gdBF4EFtvlq87kJLQ2ypsZqIFeP+2a3giWkZuWe7JUi60SE
-         Mi3/0tXELvzSlDLYJ49yQOV5r0EDi7RdDunMKs6JCYsbbSmuIk8uG3+S4VuU2q+PLl
-         fZVUoX5ufMMAY7QYgdGnLs1UcUiG3/qBdmQ86FRM=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087EXOZc004527;
-        Mon, 7 Sep 2020 09:33:24 -0500
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+        s=ti-com-17Q1; t=1599489106;
+        bh=tX8DK8xZjn8fqh86L7Vc1gKvxU7j7mDqVA7MKwRMSnM=;
+        h=From:To:CC:Subject:Date;
+        b=KVHDvHWsseW/2QRvni5kjIwubEp/e3Rs55VtSVWkoE8GsWl7waLCt8C++GL6sXahq
+         11vfKE/l6teCGpkq828m5YrInsc3/iqqB65WnPHDbwQwYYraSsZ18xSgR3EC7P+j8x
+         wvmNbFymuKRx7XfeXmuoKmFabp4xfNbjUMT7fuRE=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087EVkwC001279;
+        Mon, 7 Sep 2020 09:31:46 -0500
+Received: from DLEE106.ent.ti.com (157.170.170.36) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 7 Sep
- 2020 09:33:24 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 09:31:46 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 7 Sep 2020 09:33:24 -0500
-Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087EXMIG052342;
-        Mon, 7 Sep 2020 09:33:22 -0500
-Subject: Re: [PATCH net-next 9/9] net: ethernet: ti: ale: add support for
- multi port k3 cpsw versions
-To:     Jakub Kicinski <kuba@kernel.org>
-CC:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Murali Karicheri <m-karicheri2@ti.com>,
-        Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>
-References: <20200904230924.9971-1-grygorii.strashko@ti.com>
- <20200904230924.9971-10-grygorii.strashko@ti.com>
- <20200904171022.63f103fa@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ Frontend Transport; Mon, 7 Sep 2020 09:31:46 -0500
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087EVjuB048383;
+        Mon, 7 Sep 2020 09:31:46 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
-Message-ID: <282d021a-976f-df42-6e20-4af8d6812a19@ti.com>
-Date:   Mon, 7 Sep 2020 17:33:21 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Murali Karicheri <m-karicheri2@ti.com>
+CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 0/9] net: ethernet: ti: ale: add static configuration 
+Date:   Mon, 7 Sep 2020 17:31:34 +0300
+Message-ID: <20200907143143.13735-1-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-In-Reply-To: <20200904171022.63f103fa@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Jakub,
+Hi All,
 
-On 05/09/2020 03:10, Jakub Kicinski wrote:
-> On Sat, 5 Sep 2020 02:09:24 +0300 Grygorii Strashko wrote:
->> The TI J721E (CPSW9g) ALE version is similar, in general, to Sitara AM3/4/5
->> CPSW ALE, but has more extended functions and different ALE VLAN entry
->> format.
->>
->> This patch adds support for for multi port TI J721E (CPSW9g) ALE variant.
-> 
-> and:
-> 
-> drivers/net/ethernet/ti/cpsw_ale.c:195:28: warning: symbol 'vlan_entry_k3_cpswxg' was not declared. Should it be static?
-> 
+As existing, as newly introduced CPSW ALE versions have differences in 
+supported features and ALE table formats. Especially it's actual for the
+recent AM65x/J721E/J7200 and future AM64x SoCs, which supports more
+features like: auto-aging, classifiers, Link aggregation, additional HW
+filtering, etc.
 
-Thank you for your report, I've posted v2.
-I've had to install latest sparse version (0.6.2) manually to make it work properly.
+The existing ALE configuration interface is not practical in terms of 
+adding new features and requires consumers to program a lot static
+parameters. And any attempt to add new features will case endless adding
+and maintaining different combination of flags and options. Because CPSW
+ALE configuration is static and fixed for SoC (or set of SoC), It is
+reasonable to add support for static ALE configurations inside ALE module.
+
+This series introduces static ALE configuration table for different ALE 
+variants and provides option for consumers to select required ALE
+configuration by providing ALE const char *dev_id identifier (Patch 2).
+And all existing driver have been switched to use new approach (Patches 3-6).
+
+After this ALE HW auto-ageing feature can be enabled for AM65x CPSW ALE 
+variant (Patch 7).
+
+Finally, Patches 8-9 introduces tables to describe the ALE VLAN entries 
+fields as the ALE VLAN entries are too much differ between different TI
+CPSW ALE versions. So, handling them using flags, defines and get/set
+functions are became over-complicated.
+
+Patch 1 - is preparation patch
+
+Changes in v2:
+- fixed sparse warnings
+
+v1:https://lore.kernel.org/patchwork/cover/1301048/
+
+Grygorii Strashko (9):
+  net: ethernet: ti: ale: add cpsw_ale_get_num_entries api
+  net: ethernet: ti: ale: add static configuration
+  net: ethernet: ti: cpsw: use dev_id for ale configuration
+  net: netcp: ethss: use dev_id for ale configuration
+  net: ethernet: ti: am65-cpsw: use dev_id for ale configuration
+  net: ethernet: ti: ale: make usage of ale dev_id mandatory
+  net: ethernet: ti: am65-cpsw: enable hw auto ageing
+  net: ethernet: ti: ale: switch to use tables for vlan entry
+    description
+  net: ethernet: ti: ale: add support for multi port k3 cpsw versions
+
+ drivers/net/ethernet/ti/am65-cpsw-ethtool.c |  10 +-
+ drivers/net/ethernet/ti/am65-cpsw-nuss.c    |  16 +-
+ drivers/net/ethernet/ti/am65-cpsw-nuss.h    |   1 +
+ drivers/net/ethernet/ti/cpsw.c              |   6 -
+ drivers/net/ethernet/ti/cpsw_ale.c          | 421 ++++++++++++++++----
+ drivers/net/ethernet/ti/cpsw_ale.h          |   7 +
+ drivers/net/ethernet/ti/cpsw_ethtool.c      |   3 +-
+ drivers/net/ethernet/ti/cpsw_new.c          |   1 -
+ drivers/net/ethernet/ti/cpsw_priv.c         |   2 +-
+ drivers/net/ethernet/ti/cpsw_priv.h         |   2 -
+ drivers/net/ethernet/ti/netcp_ethss.c       |  18 +-
+ 11 files changed, 388 insertions(+), 99 deletions(-)
 
 -- 
-Best regards,
-grygorii
+2.17.1
+
