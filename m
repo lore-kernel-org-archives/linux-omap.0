@@ -8,51 +8,51 @@ X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B10C2D0E1
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 805F3C43461
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F423521556
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E64421556
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="OK4DSsR8"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="jmp9cug1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727924AbgIGI0K (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Sep 2020 04:26:10 -0400
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:41054 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727943AbgIGI0I (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 04:26:08 -0400
+        id S1727943AbgIGI0L (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Sep 2020 04:26:11 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:41822 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728225AbgIGI0J (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 04:26:09 -0400
 Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q44B020255;
-        Mon, 7 Sep 2020 03:26:04 -0500
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q7kW092459;
+        Mon, 7 Sep 2020 03:26:07 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599467164;
-        bh=pkx2SrCRUB6MBIJBbgIJ0ZtAu8m9uIBL0QuzR64GiNI=;
+        s=ti-com-17Q1; t=1599467167;
+        bh=+9IVZ6g+HmgWB90pOJtgDqW8uGH1+adNPd3FFT+Rh0U=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=OK4DSsR86L7w75icpyFIqLJE1ITazBi9TsgJL7eYrQlIzxTviMspQ7sO0XBQj1skC
-         6AAP0MkaxqK0WOWCFVJREyfx79LqbrmyDRvBsw3vYkzM1m9dLhZlvCDsuZ1r93+66P
-         VoCYpc0Q3Y+simGgTAu8l33FIBsfLUsa5Y3PjQ2Y=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0878Q4uS075601
+        b=jmp9cug1TXFaExrVzoA8GibrmHxGhGO6PDRXzZmQWP/a10zzNq0nyIC1qkKJDYr8a
+         LngztxCStsnrrrV0U5fs0EivX4VD7qR08+J73OCofECif2Zp2FgBsgICb1QluoMrRf
+         q16vRUyYCIVTDTva08g6JZmUKrt2ORGtp9Ygxdhw=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0878Q6L3075747
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 7 Sep 2020 03:26:04 -0500
-Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 7 Sep 2020 03:26:07 -0500
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 7 Sep
- 2020 03:26:04 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 03:26:06 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 7 Sep 2020 03:26:04 -0500
+ Frontend Transport; Mon, 7 Sep 2020 03:26:06 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q1YH087957;
-        Mon, 7 Sep 2020 03:26:03 -0500
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q1YJ087957;
+        Mon, 7 Sep 2020 03:26:05 -0500
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <linux-clk@vger.kernel.org>, <sboyd@kernel.org>
 CC:     <linux-omap@vger.kernel.org>
-Subject: [PATCH 1/3] clk: ti: autoidle: add checks against NULL pointer reference
-Date:   Mon, 7 Sep 2020 11:25:58 +0300
-Message-ID: <20200907082600.454-2-t-kristo@ti.com>
+Subject: [PATCH 3/3] clk: ti: dra7: add missing clkctrl register for SHA2 instance
+Date:   Mon, 7 Sep 2020 11:26:00 +0300
+Message-ID: <20200907082600.454-4-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200907082600.454-1-t-kristo@ti.com>
 References: <20200907082600.454-1-t-kristo@ti.com>
@@ -64,47 +64,39 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The clk pointer passed to omap2_clk_(deny|allow)_idle can be NULL, so
-add checks for this.
+DRA7 SoC has two SHA instances. Add the clkctrl entry for the second
+one.
 
-Reported-by: Dan Murphy <dmurphy@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/autoidle.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/clk/ti/clk-7xx.c         | 1 +
+ include/dt-bindings/clock/dra7.h | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-index 1cae226759dd..f6f8a409f148 100644
---- a/drivers/clk/ti/autoidle.c
-+++ b/drivers/clk/ti/autoidle.c
-@@ -82,7 +82,12 @@ static int _omap2_clk_allow_idle(struct clk_hw_omap *clk)
-  */
- int omap2_clk_deny_idle(struct clk *clk)
- {
--	struct clk_hw *hw = __clk_get_hw(clk);
-+	struct clk_hw *hw;
-+
-+	if (!clk)
-+		return -EINVAL;
-+
-+	hw = __clk_get_hw(clk);
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index b4cf578a69e1..4e27f88062e7 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -637,6 +637,7 @@ static const struct omap_clkctrl_reg_data dra7_l4sec_clkctrl_regs[] __initconst
+ 	{ DRA7_L4SEC_DES_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
+ 	{ DRA7_L4SEC_RNG_CLKCTRL, NULL, CLKF_HW_SUP | CLKF_SOC_NONSEC, "l4_root_clk_div" },
+ 	{ DRA7_L4SEC_SHAM_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
++	{ DRA7_L4SEC_SHAM2_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
+ 	{ 0 },
+ };
  
- 	if (omap2_clk_is_hw_omap(hw)) {
- 		struct clk_hw_omap *c = to_clk_hw_omap(hw);
-@@ -101,7 +106,12 @@ int omap2_clk_deny_idle(struct clk *clk)
-  */
- int omap2_clk_allow_idle(struct clk *clk)
- {
--	struct clk_hw *hw = __clk_get_hw(clk);
-+	struct clk_hw *hw;
-+
-+	if (!clk)
-+		return -EINVAL;
-+
-+	hw = __clk_get_hw(clk);
+diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
+index 8cec5a1e1806..5ec4137231e3 100644
+--- a/include/dt-bindings/clock/dra7.h
++++ b/include/dt-bindings/clock/dra7.h
+@@ -332,6 +332,7 @@
+ #define DRA7_L4SEC_DES_CLKCTRL	DRA7_L4SEC_CLKCTRL_INDEX(0x1b0)
+ #define DRA7_L4SEC_RNG_CLKCTRL	DRA7_L4SEC_CLKCTRL_INDEX(0x1c0)
+ #define DRA7_L4SEC_SHAM_CLKCTRL	DRA7_L4SEC_CLKCTRL_INDEX(0x1c8)
++#define DRA7_L4SEC_SHAM2_CLKCTRL DRA7_L4SEC_CLKCTRL_INDEX(0x1f8)
  
- 	if (omap2_clk_is_hw_omap(hw)) {
- 		struct clk_hw_omap *c = to_clk_hw_omap(hw);
+ /* l4per2 clocks */
+ #define DRA7_L4PER2_CLKCTRL_OFFSET	0xc
 -- 
 2.17.1
 
