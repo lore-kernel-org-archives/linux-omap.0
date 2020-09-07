@@ -2,58 +2,56 @@ Return-Path: <SRS0=EwIw=CQ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 394C4C433E2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF42C2D0A8
 	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9341215A4
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AB8D215A4
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="v9jKfWkX"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="oZq/LbKl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728229AbgIGI0J (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Sep 2020 04:26:09 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:50496 "EHLO
+        id S1728228AbgIGI0K (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Sep 2020 04:26:10 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:50490 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728228AbgIGI0I (ORCPT
+        with ESMTP id S1727924AbgIGI0I (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 04:26:08 -0400
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q54O112939;
-        Mon, 7 Sep 2020 03:26:05 -0500
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q3Ur112929;
+        Mon, 7 Sep 2020 03:26:03 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599467165;
-        bh=JO7OKgDaN+fZ3BCVh4Ju70jui8PDyidf++ThttHB6+4=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=v9jKfWkXLQceXMYDcp36vdIWT21i2WPZ/NVCTsZ89NiLsfhiDd91JlV4DIiXBUbWd
-         t9IYKuExsxUpidlGngaS0ZMQ6NjfS7mcbdZctEJFmWotIdUfQVONy/ex/3YsK4KbCf
-         fTPH6LIUql6H+FWqq3dkZlTcsUWJuvzJSPLoY2JI=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q5pL129666;
-        Mon, 7 Sep 2020 03:26:05 -0500
-Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+        s=ti-com-17Q1; t=1599467163;
+        bh=o9xLQ9kZ5NZ6zB6xnUENqkDvTXvkT4Xdgxf6lIKPoUU=;
+        h=From:To:CC:Subject:Date;
+        b=oZq/LbKlXFdFJtOY+LM5GAWhsn0ul90FlFB5PwbpOVnbsySu9N0K3+xJBaT197jrq
+         eGKOx8APew3HfJcBPnmpe1c0fgp6cazyYXOwstLOPZFvqn7NiY4cLImpPFymFka/gY
+         hTouFxuaXDBD6C0Bwqly80XBtkzsrAJ7tY+kn45c=
+Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q2An128861;
+        Mon, 7 Sep 2020 03:26:03 -0500
+Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 7 Sep
- 2020 03:26:05 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 03:26:02 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE101.ent.ti.com
+ (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 7 Sep 2020 03:26:05 -0500
+ Frontend Transport; Mon, 7 Sep 2020 03:26:02 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q1YI087957;
-        Mon, 7 Sep 2020 03:26:04 -0500
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q1YG087957;
+        Mon, 7 Sep 2020 03:26:01 -0500
 From:   Tero Kristo <t-kristo@ti.com>
 To:     <linux-clk@vger.kernel.org>, <sboyd@kernel.org>
 CC:     <linux-omap@vger.kernel.org>
-Subject: [PATCH 2/3] clk: ti: clockdomain: fix static checker warning
-Date:   Mon, 7 Sep 2020 11:25:59 +0300
-Message-ID: <20200907082600.454-3-t-kristo@ti.com>
+Subject: [PATCH 0/3] clk: ti: minor fixes and add sha2 instance for dra7
+Date:   Mon, 7 Sep 2020 11:25:57 +0300
+Message-ID: <20200907082600.454-1-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200907082600.454-1-t-kristo@ti.com>
-References: <20200907082600.454-1-t-kristo@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
@@ -62,31 +60,26 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Fix a memory leak induced by not calling clk_put after doing of_clk_get.
+Hi,
 
-Reported-by: Dan Murphy <dmurphy@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+This series adds a couple of minor static checker fixes and new data
+entry for second instance of SHA accelerator on dra7 SoC.
+
+-Tero
+
 ---
- drivers/clk/ti/clockdomain.c | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
-index ee56306f79d5..700b7f44f671 100644
---- a/drivers/clk/ti/clockdomain.c
-+++ b/drivers/clk/ti/clockdomain.c
-@@ -148,10 +148,12 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
- 		if (!omap2_clk_is_hw_omap(clk_hw)) {
- 			pr_warn("can't setup clkdm for basic clk %s\n",
- 				__clk_get_name(clk));
-+			clk_put(clk);
- 			continue;
- 		}
- 		to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
- 		omap2_init_clk_clkdm(clk_hw);
-+		clk_put(clk);
- 	}
- }
- 
+Tero Kristo (3):
+  clk: ti: autoidle: add checks against NULL pointer reference
+  clk: ti: clockdomain: fix static checker warning
+  clk: ti: dra7: add missing clkctrl register for SHA2 instance
+
+ drivers/clk/ti/autoidle.c        | 14 ++++++++++++--
+ drivers/clk/ti/clk-7xx.c         |  1 +
+ drivers/clk/ti/clockdomain.c     |  2 ++
+ include/dt-bindings/clock/dra7.h |  1 +
+ 4 files changed, 16 insertions(+), 2 deletions(-)
+
 -- 
 2.17.1
 
