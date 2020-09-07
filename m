@@ -5,55 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 499BCC2BB84
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 07:56:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 394C4C433E2
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 063D4215A4
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 07:56:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9341215A4
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 08:26:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="I+ql2TXp"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="v9jKfWkX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727940AbgIGH4j (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Sep 2020 03:56:39 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:60000 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727933AbgIGH4b (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 03:56:31 -0400
+        id S1728229AbgIGI0J (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Sep 2020 04:26:09 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:50496 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728228AbgIGI0I (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 04:26:08 -0400
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0877uREW040328;
-        Mon, 7 Sep 2020 02:56:27 -0500
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q54O112939;
+        Mon, 7 Sep 2020 03:26:05 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599465387;
-        bh=+X+OdHMRSBJDgTQJn3KQpINmLrT5Nf4eky2VlZ3tD7w=;
-        h=From:To:CC:Subject:Date;
-        b=I+ql2TXpNNqaIkRhw3ixdUf7GysxnbY8h7PlW5FMsJQ1xIaHIfRAre+TSBCWhLic3
-         /rR6sNinrEhywfuKXTwXO+YAGV0FkDHltsPKuij5atloVASoYUB71Xo5pfrf26Y+QX
-         AWRC02Cu+vYqIE4naIyFQz7BpfEFObuwX4/yrL9w=
-Received: from DLEE104.ent.ti.com (dlee104.ent.ti.com [157.170.170.34])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0877uROH080744;
-        Mon, 7 Sep 2020 02:56:27 -0500
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
+        s=ti-com-17Q1; t=1599467165;
+        bh=JO7OKgDaN+fZ3BCVh4Ju70jui8PDyidf++ThttHB6+4=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=v9jKfWkXLQceXMYDcp36vdIWT21i2WPZ/NVCTsZ89NiLsfhiDd91JlV4DIiXBUbWd
+         t9IYKuExsxUpidlGngaS0ZMQ6NjfS7mcbdZctEJFmWotIdUfQVONy/ex/3YsK4KbCf
+         fTPH6LIUql6H+FWqq3dkZlTcsUWJuvzJSPLoY2JI=
+Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q5pL129666;
+        Mon, 7 Sep 2020 03:26:05 -0500
+Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 7 Sep
- 2020 02:56:26 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 03:26:05 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE107.ent.ti.com
+ (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 7 Sep 2020 02:56:26 -0500
+ Frontend Transport; Mon, 7 Sep 2020 03:26:05 -0500
 Received: from sokoban.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0877uPAY054757;
-        Mon, 7 Sep 2020 02:56:25 -0500
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0878Q1YI087957;
+        Mon, 7 Sep 2020 03:26:04 -0500
 From:   Tero Kristo <t-kristo@ti.com>
-To:     <herbert@gondor.apana.org.au>, <davem@davemloft.net>,
-        <linux-crypto@vger.kernel.org>
+To:     <linux-clk@vger.kernel.org>, <sboyd@kernel.org>
 CC:     <linux-omap@vger.kernel.org>
-Subject: [PATCH] crypto: omap-sham: fix digcnt register handling with export/import
-Date:   Mon, 7 Sep 2020 10:56:24 +0300
-Message-ID: <20200907075624.32379-1-t-kristo@ti.com>
+Subject: [PATCH 2/3] clk: ti: clockdomain: fix static checker warning
+Date:   Mon, 7 Sep 2020 11:25:59 +0300
+Message-ID: <20200907082600.454-3-t-kristo@ti.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200907082600.454-1-t-kristo@ti.com>
+References: <20200907082600.454-1-t-kristo@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
@@ -62,31 +62,31 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Running export/import for hashes in peculiar order (mostly done by
-openssl) can mess up the internal book keeping of the OMAP SHA core.
-Fix by forcibly writing the correct DIGCNT back to hardware. This issue
-was noticed while transitioning to openssl 1.1 support.
+Fix a memory leak induced by not calling clk_put after doing of_clk_get.
 
-Fixes: 0d373d603202 ("crypto: omap-sham - Add OMAP4/AM33XX SHAM Support")
+Reported-by: Dan Murphy <dmurphy@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/crypto/omap-sham.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/clk/ti/clockdomain.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index b2b930a1fb04..a3b38d2c92e7 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -460,6 +460,9 @@ static void omap_sham_write_ctrl_omap4(struct omap_sham_dev *dd, size_t length,
- 	struct omap_sham_reqctx *ctx = ahash_request_ctx(dd->req);
- 	u32 val, mask;
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
+index ee56306f79d5..700b7f44f671 100644
+--- a/drivers/clk/ti/clockdomain.c
++++ b/drivers/clk/ti/clockdomain.c
+@@ -148,10 +148,12 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
+ 		if (!omap2_clk_is_hw_omap(clk_hw)) {
+ 			pr_warn("can't setup clkdm for basic clk %s\n",
+ 				__clk_get_name(clk));
++			clk_put(clk);
+ 			continue;
+ 		}
+ 		to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
+ 		omap2_init_clk_clkdm(clk_hw);
++		clk_put(clk);
+ 	}
+ }
  
-+	if (likely(ctx->digcnt))
-+		omap_sham_write(dd, SHA_REG_DIGCNT(dd), ctx->digcnt);
-+
- 	/*
- 	 * Setting ALGO_CONST only for the first iteration and
- 	 * CLOSE_HASH only for the last one. Note that flags mode bits
 -- 
 2.17.1
 
