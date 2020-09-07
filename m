@@ -2,250 +2,109 @@ Return-Path: <SRS0=EwIw=CQ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19DFAC433E2
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 14:33:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3483C43461
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:01:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA8CF20714
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 14:33:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D8FD2080A
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Sep 2020 16:01:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="QbABM8cR"
+	dkim=pass (2048-bit key) header.d=st.com header.i=@st.com header.b="qfXjG9Bj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729922AbgIGOdS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Sep 2020 10:33:18 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:58960 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729819AbgIGOcy (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 10:32:54 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 087EVvim057833;
-        Mon, 7 Sep 2020 09:31:57 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599489118;
-        bh=HrZ4Mx/oHWVRRLQAVP1FDSf+iiLcOYDsomSCa4jZahw=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=QbABM8cROcn773eu8TUcXC5IF1fjXWQ8a3xr7D5zW2TKj4dpWJqFvOI3LTW2mJQb8
-         Kpn+dN8B9EHQP5pCJEWf0mYyfYiZ1zAUYhJdJMfRXcjQoNLeoqlxpaDQ3rOnplcFRg
-         K7H9+FdqkZFgv36AoB7IWKVmAy7ke/f3GEa3byEI=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087EVvPp001448;
-        Mon, 7 Sep 2020 09:31:57 -0500
-Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 7 Sep
- 2020 09:31:57 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 7 Sep 2020 09:31:57 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 087EVu2I048692;
-        Mon, 7 Sep 2020 09:31:57 -0500
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Murali Karicheri <m-karicheri2@ti.com>
-CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 7/9] net: ethernet: ti: am65-cpsw: enable hw auto ageing
-Date:   Mon, 7 Sep 2020 17:31:41 +0300
-Message-ID: <20200907143143.13735-8-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200907143143.13735-1-grygorii.strashko@ti.com>
-References: <20200907143143.13735-1-grygorii.strashko@ti.com>
+        id S1730278AbgIGQBZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Sep 2020 12:01:25 -0400
+Received: from mx07-00178001.pphosted.com ([185.132.182.106]:24968 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730175AbgIGQAy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2020 12:00:54 -0400
+Received: from pps.filterd (m0046037.ppops.net [127.0.0.1])
+        by mx07-00178001.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 087FwmWY007780;
+        Mon, 7 Sep 2020 18:00:41 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=st.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=STMicroelectronics;
+ bh=5hJXgMmfM7j2x45Htgd+XTxABN7i6bZcNnBR7TltiQc=;
+ b=qfXjG9BjlvQUBOqflF5p7z3776fBAB+qsPwWEZdiK0zDCeI4eZlhV+vIE30OMOhK6nKH
+ v5Br7aHHIf03skfADKd+dUjh8REcY+xHif2Z00oSIxnDDVakh5MqoguroyyTy1B3ewfq
+ LBb0FF5ojDUpzkXbtm7SbS5yU8IZ7DUF5CxuqcVHsLHSy2uOuzlIo/45KbMxJpFkf+xm
+ wJlgRlpSV8g6A/amCIf0niKXL+LA9S25AnAnNyB+A90AaWWIndeFprq6Egb60U4XndZB
+ DdB8W7GqnqBkDQMRAV9rhj1PWtDhSXtoUoGo4pUEag+zFJhethRBN9fkK12MqlIak0PR Mw== 
+Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
+        by mx07-00178001.pphosted.com with ESMTP id 33c0eujvvw-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 07 Sep 2020 18:00:41 +0200
+Received: from euls16034.sgp.st.com (euls16034.sgp.st.com [10.75.44.20])
+        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id C336F10002A;
+        Mon,  7 Sep 2020 18:00:40 +0200 (CEST)
+Received: from Webmail-eu.st.com (gpxdag3node5.st.com [10.75.127.72])
+        by euls16034.sgp.st.com (STMicroelectronics) with ESMTP id 8526B212132;
+        Mon,  7 Sep 2020 18:00:40 +0200 (CEST)
+Received: from lmecxl0995.lme.st.com (10.75.127.46) by GPXDAG3NODE5.st.com
+ (10.75.127.72) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 7 Sep
+ 2020 18:00:39 +0200
+Subject: Re: [balbi-usb:testing/next 29/33] drivers/usb/dwc2/drd.c:83:37:
+ error: 'struct dwc2_hsotg' has no member named 'test_mode'
+To:     Felipe Balbi <balbi@kernel.org>, kernel test robot <lkp@intel.com>
+CC:     "kbuild-all@lists.01.org" <kbuild-all@lists.01.org>,
+        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+References: <202009072101.xr4ImAoy%lkp@intel.com> <877dt5ofhf.fsf@kernel.org>
+From:   Amelie DELAUNAY <amelie.delaunay@st.com>
+Message-ID: <8ede307b-ccd1-21eb-fcab-826f8939c695@st.com>
+Date:   Mon, 7 Sep 2020 18:00:39 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+In-Reply-To: <877dt5ofhf.fsf@kernel.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.75.127.46]
+X-ClientProxiedBy: SFHDAG3NODE3.st.com (10.75.127.9) To GPXDAG3NODE5.st.com
+ (10.75.127.72)
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-09-07_10:2020-09-07,2020-09-07 signatures=0
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The AM65x ALE supports HW auto-ageing which can be enabled by programming
-ageing interval in ALE_AGING_TIMER register. For this CPSW fck_clk
-frequency has to be know by ALE.
+Hi Felipe,
 
-This patch extends cpsw_ale_params with bus_freq field and enables ALE HW
-auto ageing for AM65x CPSW2G ALE version.
+On 9/7/20 3:58 PM, Felipe Balbi wrote:
+> kernel test robot <lkp@intel.com> writes:
+>> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git testing/next
+>> head:   c9bb389c50ce07f0e4e105eb84f5541916bea8e8
+>> commit: 0e9bd6770c25a3dbd9cb1c9fc132b9e4a65da7cd [29/33] usb: dwc2: override PHY input signals with usb role switch support
+>> config: arm64-randconfig-s031-20200907 (attached as .config)
+>> compiler: aarch64-linux-gcc (GCC) 9.3.0
+>> reproduce:
+>>          wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>>          chmod +x ~/bin/make.cross
+>>          # apt-get install sparse
+>>          # sparse version: v0.6.2-191-g10164920-dirty
+>>          git checkout 0e9bd6770c25a3dbd9cb1c9fc132b9e4a65da7cd
+>>          # save the attached .config to linux build tree
+>>          COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-9.3.0 make.cross C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' ARCH=arm64
+>>
+>> If you fix the issue, kindly add following tag as appropriate
+>> Reported-by: kernel test robot <lkp@intel.com>
+>>
+>> All errors (new ones prefixed by >>):
+>>
+>>     drivers/usb/dwc2/drd.c: In function 'dwc2_drd_role_sw_set':
+>>>> drivers/usb/dwc2/drd.c:83:37: error: 'struct dwc2_hsotg' has no member named 'test_mode'
+>>        83 |   if (role == USB_ROLE_NONE && hsotg->test_mode) {
+>>           |                                     ^~
+> 
+> patch dropped now. Amelie, can you send a fixed up version?
+> 
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/am65-cpsw-nuss.c | 13 +++++
- drivers/net/ethernet/ti/am65-cpsw-nuss.h |  1 +
- drivers/net/ethernet/ti/cpsw_ale.c       | 61 +++++++++++++++++++++---
- drivers/net/ethernet/ti/cpsw_ale.h       |  1 +
- 4 files changed, 70 insertions(+), 6 deletions(-)
+This issue is already fixed in v5: 
+https://lore.kernel.org/patchwork/project/lkml/list/?series=455508
 
-diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.c b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-index bec47e794359..501d676fd88b 100644
---- a/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-+++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-@@ -5,6 +5,7 @@
-  *
-  */
- 
-+#include <linux/clk.h>
- #include <linux/etherdevice.h>
- #include <linux/if_vlan.h>
- #include <linux/interrupt.h>
-@@ -2038,6 +2039,7 @@ static int am65_cpsw_nuss_probe(struct platform_device *pdev)
- 	struct am65_cpsw_common *common;
- 	struct device_node *node;
- 	struct resource *res;
-+	struct clk *clk;
- 	int ret, i;
- 
- 	common = devm_kzalloc(dev, sizeof(struct am65_cpsw_common), GFP_KERNEL);
-@@ -2086,6 +2088,16 @@ static int am65_cpsw_nuss_probe(struct platform_device *pdev)
- 	if (!common->ports)
- 		return -ENOMEM;
- 
-+	clk = devm_clk_get(dev, "fck");
-+	if (IS_ERR(clk)) {
-+		ret = PTR_ERR(clk);
-+
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(dev, "error getting fck clock %d\n", ret);
-+		return ret;
-+	}
-+	common->bus_freq = clk_get_rate(clk);
-+
- 	pm_runtime_enable(dev);
- 	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0) {
-@@ -2134,6 +2146,7 @@ static int am65_cpsw_nuss_probe(struct platform_device *pdev)
- 	ale_params.ale_ports = common->port_num + 1;
- 	ale_params.ale_regs = common->cpsw_base + AM65_CPSW_NU_ALE_BASE;
- 	ale_params.dev_id = "am65x-cpsw2g";
-+	ale_params.bus_freq = common->bus_freq;
- 
- 	common->ale = cpsw_ale_create(&ale_params);
- 	if (IS_ERR(common->ale)) {
-diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.h b/drivers/net/ethernet/ti/am65-cpsw-nuss.h
-index 94f666ea0e53..993e1d4d3222 100644
---- a/drivers/net/ethernet/ti/am65-cpsw-nuss.h
-+++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.h
-@@ -106,6 +106,7 @@ struct am65_cpsw_common {
- 
- 	u32			nuss_ver;
- 	u32			cpsw_ver;
-+	unsigned long		bus_freq;
- 	bool			pf_p0_rx_ptype_rrobin;
- 	struct am65_cpts	*cpts;
- 	int			est_enabled;
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 524920a4bff0..7b54e9911b1e 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -32,6 +32,7 @@
- #define ALE_STATUS		0x04
- #define ALE_CONTROL		0x08
- #define ALE_PRESCALE		0x10
-+#define ALE_AGING_TIMER		0x14
- #define ALE_UNKNOWNVLAN		0x18
- #define ALE_TABLE_CONTROL	0x20
- #define ALE_TABLE		0x34
-@@ -46,6 +47,9 @@
- 
- #define AM65_CPSW_ALE_THREAD_DEF_REG 0x134
- 
-+/* ALE_AGING_TIMER */
-+#define ALE_AGING_TIMER_MASK	GENMASK(23, 0)
-+
- enum {
- 	CPSW_ALE_F_STATUS_REG = BIT(0), /* Status register present */
- 	CPSW_ALE_F_HW_AUTOAGING = BIT(1), /* HW auto aging */
-@@ -982,21 +986,66 @@ static void cpsw_ale_timer(struct timer_list *t)
- 	}
- }
- 
-+static void cpsw_ale_hw_aging_timer_start(struct cpsw_ale *ale)
-+{
-+	u32 aging_timer;
-+
-+	aging_timer = ale->params.bus_freq / 1000000;
-+	aging_timer *= ale->params.ale_ageout;
-+
-+	if (aging_timer & ~ALE_AGING_TIMER_MASK) {
-+		aging_timer = ALE_AGING_TIMER_MASK;
-+		dev_warn(ale->params.dev,
-+			 "ALE aging timer overflow, set to max\n");
-+	}
-+
-+	writel(aging_timer, ale->params.ale_regs + ALE_AGING_TIMER);
-+}
-+
-+static void cpsw_ale_hw_aging_timer_stop(struct cpsw_ale *ale)
-+{
-+	writel(0, ale->params.ale_regs + ALE_AGING_TIMER);
-+}
-+
-+static void cpsw_ale_aging_start(struct cpsw_ale *ale)
-+{
-+	if (!ale->params.ale_ageout)
-+		return;
-+
-+	if (ale->features & CPSW_ALE_F_HW_AUTOAGING) {
-+		cpsw_ale_hw_aging_timer_start(ale);
-+		return;
-+	}
-+
-+	timer_setup(&ale->timer, cpsw_ale_timer, 0);
-+	ale->timer.expires = jiffies + ale->ageout;
-+	add_timer(&ale->timer);
-+}
-+
-+static void cpsw_ale_aging_stop(struct cpsw_ale *ale)
-+{
-+	if (!ale->params.ale_ageout)
-+		return;
-+
-+	if (ale->features & CPSW_ALE_F_HW_AUTOAGING) {
-+		cpsw_ale_hw_aging_timer_stop(ale);
-+		return;
-+	}
-+
-+	del_timer_sync(&ale->timer);
-+}
-+
- void cpsw_ale_start(struct cpsw_ale *ale)
- {
- 	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 1);
- 	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
- 
--	timer_setup(&ale->timer, cpsw_ale_timer, 0);
--	if (ale->ageout) {
--		ale->timer.expires = jiffies + ale->ageout;
--		add_timer(&ale->timer);
--	}
-+	cpsw_ale_aging_start(ale);
- }
- 
- void cpsw_ale_stop(struct cpsw_ale *ale)
- {
--	del_timer_sync(&ale->timer);
-+	cpsw_ale_aging_stop(ale);
- 	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
- 	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
- }
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
-index 27b30802b384..9c6da58183c9 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.h
-+++ b/drivers/net/ethernet/ti/cpsw_ale.h
-@@ -25,6 +25,7 @@ struct cpsw_ale_params {
- 	 */
- 	u32			major_ver_mask;
- 	const char		*dev_id;
-+	unsigned long		bus_freq;
- };
- 
- struct cpsw_ale {
--- 
-2.17.1
-
+Could you apply this version of the patchset ?
