@@ -2,106 +2,76 @@ Return-Path: <SRS0=SDee=CS=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A6A8C433E2
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Sep 2020 16:55:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB32C433E2
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Sep 2020 17:03:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D430B206A5
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Sep 2020 16:55:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="d8nUc8Or"
+	by mail.kernel.org (Postfix) with ESMTP id 31C202166E
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Sep 2020 17:03:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730699AbgIIQzR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 9 Sep 2020 12:55:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50770 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726399AbgIIPwc (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2020 11:52:32 -0400
-Received: from mo6-p00-ob.smtp.rzone.de (mo6-p00-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5300::7])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB3B3C061235
-        for <linux-omap@vger.kernel.org>; Wed,  9 Sep 2020 07:49:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1599662337;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:Message-Id:Cc:Date:From:Subject:X-RZG-CLASS-ID:X-RZG-AUTH:From:
-        Subject:Sender;
-        bh=0TWhVQQ6kTjdx3JXPPJ4REw5JTueYxcrmXN64iUCU+A=;
-        b=d8nUc8Or+PGmz91haJi6JZsAySaKNr0FXy0dp8nQpSeU/bT0fuEus7F1+ErJAZO3e4
-        M97JXBl9NnLfGMlgaGn+e4HGN/QdvbkTBNn1p6GOQAF/r9FFnwhwg7XkvO9NwZFvyMy8
-        0W2wLmdXReLMVJB/xZ1GLXF9Ky/VV1S24V0tUEYXTiRJgwDB7dJ55WexCQpYyYanruJb
-        gW8bSaqxB82v4ONusmr5LxmUXUKkk4Smvsc1bXE0sPXUI77Ldy261J4+aRQ1FgDeJ5dB
-        dZNOAuTPIbryfd0GxJXC0qMdvoKDKA7bgvvu70yvDPhiPyeN7MnY/Qzir7B0GCVFPSO9
-        0c+Q==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj4Qpw9iZeHmAgw4nsUA=="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 46.10.7 DYNA|AUTH)
-        with ESMTPSA id n03b0dw89EcnZgI
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Wed, 9 Sep 2020 16:38:49 +0200 (CEST)
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: osd3358 and "poweroff"
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-Date:   Wed, 9 Sep 2020 16:38:49 +0200
-Cc:     Tony Lindgren <tony@atomide.com>,
-        Linux-OMAP <linux-omap@vger.kernel.org>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <0A81C17C-873C-4C40-8D5C-9A7065C1304D@goldelico.com>
-To:     "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
-X-Mailer: Apple Mail (2.3124)
+        id S1730294AbgIIRDo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 9 Sep 2020 13:03:44 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11759 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1730349AbgIIPq3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 9 Sep 2020 11:46:29 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id CEF1D1ADD43EFCF8CF07;
+        Wed,  9 Sep 2020 21:44:58 +0800 (CST)
+Received: from localhost (10.174.179.108) by DGGEMS410-HUB.china.huawei.com
+ (10.3.19.210) with Microsoft SMTP Server id 14.3.487.0; Wed, 9 Sep 2020
+ 21:44:49 +0800
+From:   YueHaibing <yuehaibing@huawei.com>
+To:     <edubezval@gmail.com>, <j-keerthy@ti.com>, <rui.zhang@intel.com>,
+        <daniel.lezcano@linaro.org>, <amitk@kernel.org>,
+        <sudipm.mukherjee@gmail.com>
+CC:     <linux-pm@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] thermal: ti-soc-thermal: Remove unused function ti_thermal_get_temp()
+Date:   Wed, 9 Sep 2020 21:44:48 +0800
+Message-ID: <20200909134448.30344-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
+MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.174.179.108]
+X-CFilter-Loop: Reflected
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
-I have a custom board based on osd3358 and a little trouble getting the
-"poweroff" command work as expected.
+commit b263b473bf62 ("thermal: ti-soc-thermal: Remove redundant code")
+left behind this, remove it.
 
-The device tree is almost the same as am335x-pocketbeagle.dts and I am =
-running a v5.9-rc4 kernel.
-Therefore,
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-&rtc {
-	system-power-controller;
-};
-
-is defined.
-
-The board is powered through USB (haven't tried other options).
-
-"poweroff" results in:
-
-...
-[info] Hardware Clock updated to Wed Sep  9 14:31:56 UTC 2020.
-[ ok ] Deactivating swap...done.
-[  200.324307] EXT4-fs (mmcblk1p2): re-mounted. Opts: (null)
-[info] Will now halt.
-[  202.548073] reboot: Power down
-
-After that, the gpio-led showing cpu activity trigger goes off for a =
-moment
-but after that it is flickering as if there is still CPU activity with =
-some
-1 second modulation.
-
-Pressing the reset button immediately reboots.
-
-So this means that "poweroff" does not shut down the PMIC and the =
-processor
-is still idling.
-
-Pressing the power button for 10 seconds does a forced shutdown and the
-reset button is without significance.
-
-And hints how to make "poweroff" work are welcome.
-
-BR and thanks,
-Nikolaus Schaller
-
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 2ce4b19f312a..93b28c7ce83d 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -106,14 +106,6 @@ static inline int __ti_thermal_get_temp(void *devdata, int *temp)
+ 	return ret;
+ }
+ 
+-static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
+-				      int *temp)
+-{
+-	struct ti_thermal_data *data = thermal->devdata;
+-
+-	return __ti_thermal_get_temp(data, temp);
+-}
+-
+ static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
+ {
+ 	struct ti_thermal_data *data = p;
+-- 
+2.17.1
 
 
