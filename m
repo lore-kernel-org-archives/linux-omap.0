@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A88D1C07548
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:00:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05465C433E2
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:00:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 553D021D40
+	by mail.kernel.org (Postfix) with ESMTP id A260F20BED
 	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:00:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1599760845;
-	bh=4N+AVz1iFewUv22C1sZLRU1oZ3vPM6n5YgLdZX5yJcs=;
+	bh=sVRW+Q4w/VIyVW+IR4tgq66N90jKOapREO5ueA+lxUY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TUApOlCtU3kau9nuyEs9RLkovCSG/9VbvcJRP+GOh1mQcUytKePbnI3KtWPtDEb/S
-	 Q0zNmWnF8sf1tSVdDdNjtgrgSEZMkA+nkHMCZ1GIPKN3Dp8rKgDd3eLoVwXcDJm3kX
-	 x6lfY86kcVXsFH6Uwny86S3909e1uO1M0zifNHFg=
+	b=lRx0zUufJKvc3dUdYy93t2ltQ2/DRNg/X5PttAojipDy0rC3x85tyzSWJ0PhcvzcT
+	 tlY2Fl81THYlE/q4HiGUY2irXPyFVHzRN8MLwxPlz2KfJX3SyICLVFF2eie/VsbN0l
+	 2O7sfZ5CkOKWByJcj8FMPxJ8MpM4z4LHaj2h9+7E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726534AbgIJSAA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Sep 2020 14:00:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36904 "EHLO mail.kernel.org"
+        id S1726811AbgIJSAG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Sep 2020 14:00:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726805AbgIJR7V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 10 Sep 2020 13:59:21 -0400
+        id S1726810AbgIJR7f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 10 Sep 2020 13:59:35 -0400
 Received: from localhost.localdomain (unknown [194.230.155.174])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AFB6120C09;
-        Thu, 10 Sep 2020 17:59:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D445321941;
+        Thu, 10 Sep 2020 17:59:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599760760;
-        bh=4N+AVz1iFewUv22C1sZLRU1oZ3vPM6n5YgLdZX5yJcs=;
+        s=default; t=1599760773;
+        bh=sVRW+Q4w/VIyVW+IR4tgq66N90jKOapREO5ueA+lxUY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=N9Q8v8rYJEGYTGOGYdjCjPtkPabMqxu9+jIF3945v1aI8f8LKhOUot2QegtJ+jYFD
-         4nGGpy3v3t1Da+kE5INyAPk2VWb2YuDZkg0/DcceHwbDtT6sQwhm8ObmtjOEmxmjBu
-         76bSjuzPwQzWPUYVTdBieRSM7tdXbX7qQJ8oM3U0=
+        b=RlLw5ByX3ZKejd0FSAPRcb/sptlwDMbv3pnc30QdCjyyemYupiY9GHyouBea+Qx5R
+         UBsF6wKAVN2QrTZ+xXEvYUhqmVcuRktpPL7W2x/ZxjCqGZar5JWqPYMKu98G9rsm19
+         NNcg2sGpQWxJddkZHrVwSMoUAS7FabFEb4T0S5Wc=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
@@ -66,9 +66,9 @@ To:     Linus Walleij <linus.walleij@linaro.org>,
         linux-aspeed@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
         linux-renesas-soc@vger.kernel.org
 Cc:     Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v2 13/15] ARM: dts: dove: fix PCA95xx GPIO expander properties on A510
-Date:   Thu, 10 Sep 2020 19:57:31 +0200
-Message-Id: <20200910175733.11046-14-krzk@kernel.org>
+Subject: [PATCH v2 15/15] ARM: dts: imx6q: align GPIO hog names with dtschema
+Date:   Thu, 10 Sep 2020 19:57:33 +0200
+Message-Id: <20200910175733.11046-16-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200910175733.11046-1-krzk@kernel.org>
 References: <20200910175733.11046-1-krzk@kernel.org>
@@ -77,26 +77,145 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The PCA95xx GPIO expander requires GPIO controller properties to operate
-properly.
+dtschema for pca95xx expects GPIO hogs to end with 'hog' prefix.  While
+touching the hogs, fix indentation (spaces -> tabs).
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- arch/arm/boot/dts/dove-sbc-a510.dts | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/imx6q-b450v3.dts  | 14 +++++++-------
+ arch/arm/boot/dts/imx6q-b650v3.dts  | 12 ++++++------
+ arch/arm/boot/dts/imx6q-b850v3.dts  |  4 ++--
+ arch/arm/boot/dts/imx6q-bx50v3.dtsi | 12 ++++++------
+ 4 files changed, 21 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dove-sbc-a510.dts b/arch/arm/boot/dts/dove-sbc-a510.dts
-index 2bb85a9b7614..df021f9b0117 100644
---- a/arch/arm/boot/dts/dove-sbc-a510.dts
-+++ b/arch/arm/boot/dts/dove-sbc-a510.dts
-@@ -143,6 +143,7 @@
- 	gpio_ext: gpio@20 {
- 		compatible = "nxp,pca9555";
- 		reg = <0x20>;
-+		gpio-controller;
- 		#gpio-cells = <2>;
- 	};
+diff --git a/arch/arm/boot/dts/imx6q-b450v3.dts b/arch/arm/boot/dts/imx6q-b450v3.dts
+index fb0980190aa0..604f2420370f 100644
+--- a/arch/arm/boot/dts/imx6q-b450v3.dts
++++ b/arch/arm/boot/dts/imx6q-b450v3.dts
+@@ -84,19 +84,19 @@
  };
+ 
+ &pca9539 {
+-	P04 {
++	P04-hog {
+ 		gpio-hog;
+ 		gpios = <4 0>;
+ 		output-low;
+ 		line-name = "PCA9539-P04";
+ 	};
+ 
+-        P07 {
+-                gpio-hog;
+-                gpios = <7 0>;
+-                output-low;
+-                line-name = "PCA9539-P07";
+-        };
++	P07-hog {
++		gpio-hog;
++		gpios = <7 0>;
++		output-low;
++		line-name = "PCA9539-P07";
++	};
+ };
+ 
+ &pci_root {
+diff --git a/arch/arm/boot/dts/imx6q-b650v3.dts b/arch/arm/boot/dts/imx6q-b650v3.dts
+index 8f762d9c5ae9..56d2aeb1900c 100644
+--- a/arch/arm/boot/dts/imx6q-b650v3.dts
++++ b/arch/arm/boot/dts/imx6q-b650v3.dts
+@@ -84,12 +84,12 @@
+ };
+ 
+ &pca9539 {
+-        P07 {
+-                gpio-hog;
+-                gpios = <7 0>;
+-                output-low;
+-                line-name = "PCA9539-P07";
+-        };
++	P07-hog {
++		gpio-hog;
++		gpios = <7 0>;
++		output-low;
++		line-name = "PCA9539-P07";
++	};
+ };
+ 
+ &usbphy1 {
+diff --git a/arch/arm/boot/dts/imx6q-b850v3.dts b/arch/arm/boot/dts/imx6q-b850v3.dts
+index 1ea64ecf4291..3d6b757bf325 100644
+--- a/arch/arm/boot/dts/imx6q-b850v3.dts
++++ b/arch/arm/boot/dts/imx6q-b850v3.dts
+@@ -199,14 +199,14 @@
+ };
+ 
+ &pca9539 {
+-	P10 {
++	P10-hog {
+ 		gpio-hog;
+ 		gpios = <8 0>;
+ 		output-low;
+ 		line-name = "PCA9539-P10";
+ 	};
+ 
+-	P11 {
++	P11-hog {
+ 		gpio-hog;
+ 		gpios = <9 0>;
+ 		output-low;
+diff --git a/arch/arm/boot/dts/imx6q-bx50v3.dtsi b/arch/arm/boot/dts/imx6q-bx50v3.dtsi
+index 02812e6cb302..2a98cc657595 100644
+--- a/arch/arm/boot/dts/imx6q-bx50v3.dtsi
++++ b/arch/arm/boot/dts/imx6q-bx50v3.dtsi
+@@ -248,42 +248,42 @@
+ 				interrupt-parent = <&gpio2>;
+ 				interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
+ 
+-				P12 {
++				P12-hog {
+ 					gpio-hog;
+ 					gpios = <10 0>;
+ 					output-low;
+ 					line-name = "PCA9539-P12";
+ 				};
+ 
+-				P13 {
++				P13-hog {
+ 					gpio-hog;
+ 					gpios = <11 0>;
+ 					output-low;
+ 					line-name = "PCA9539-P13";
+ 				};
+ 
+-				P14 {
++				P14-hog {
+ 					gpio-hog;
+ 					gpios = <12 0>;
+ 					output-low;
+ 					line-name = "PCA9539-P14";
+ 				};
+ 
+-				P15 {
++				P15-hog {
+ 					gpio-hog;
+ 					gpios = <13 0>;
+ 					output-low;
+ 					line-name = "PCA9539-P15";
+ 				};
+ 
+-				P16 {
++				P16-hog {
+ 					gpio-hog;
+ 					gpios = <14 0>;
+ 					output-low;
+ 					line-name = "PCA9539-P16";
+ 				};
+ 
+-				P17 {
++				P17-hog {
+ 					gpio-hog;
+ 					gpios = <15 0>;
+ 					output-low;
 -- 
 2.17.1
 
