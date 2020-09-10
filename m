@@ -2,61 +2,58 @@ Return-Path: <SRS0=uib+=CT=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 790C1C2D0A7
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 20:46:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ADF9C43461
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 20:53:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 398D5214F1
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 20:46:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1D49214F1
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 20:53:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="EX2tKOu+"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="undEP0rs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727032AbgIJUq4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Sep 2020 16:46:56 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:47074 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725912AbgIJU2b (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 16:28:31 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 08AKSBY1116314;
-        Thu, 10 Sep 2020 15:28:11 -0500
+        id S1727113AbgIJUxI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Sep 2020 16:53:08 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:59268 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726722AbgIJUwn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 16:52:43 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 08AKqcEd034925;
+        Thu, 10 Sep 2020 15:52:38 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599769691;
-        bh=eDlxiD4utOxmohtB0yYYTyyb5XD4NhElIrrN1FYYUBU=;
+        s=ti-com-17Q1; t=1599771158;
+        bh=t7k46oT9pdpc2te28RZVzUBs6yLYoN9qqxmc9rN0uSU=;
         h=From:To:CC:Subject:Date;
-        b=EX2tKOu+lo1kJgjmHo12debzuGEFZkjm3gHrrZ0Gb0o2HBj/y4OYsfmhgZ5qz7Se2
-         /3c2DraF4BTmF6wo9YXc1mtFZgCrmzuc2tPBYF+NcEBp5X9EAfEbCXXzDX8+ot5mEA
-         1p27XNgnUlQ4TuFOPlhqrCRKJ7XvWpnmyzAARAh0=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 08AKSBDM112441
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 10 Sep 2020 15:28:11 -0500
-Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        b=undEP0rsph6DlL2R+xPaLD+9BEhykMfEuAMAd6MROCbwOSHDWlrrnxbB2P5w7PM7S
+         NYHBw2TKvjWRWN7pRFQzEzdgP4qtgc5lGZeobOXAJ3oND4Gwv90iwbMjpGviciHhTO
+         NfwwqW5fkZ9i0gdky4FFT9Fu/kM0rtmzQm1Evst4=
+Received: from DLEE111.ent.ti.com (dlee111.ent.ti.com [157.170.170.22])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08AKqc5J089725;
+        Thu, 10 Sep 2020 15:52:38 -0500
+Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 10
- Sep 2020 15:28:11 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ Sep 2020 15:52:38 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 10 Sep 2020 15:28:11 -0500
+ Frontend Transport; Thu, 10 Sep 2020 15:52:38 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08AKSAvk065653;
-        Thu, 10 Sep 2020 15:28:10 -0500
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08AKqbEN070224;
+        Thu, 10 Sep 2020 15:52:37 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
 To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Murali Karicheri <m-karicheri2@ti.com>
-CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>
+CC:     <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v3 0/9] net: ethernet: ti: ale: add static configuration 
-Date:   Thu, 10 Sep 2020 23:27:58 +0300
-Message-ID: <20200910202807.17473-1-grygorii.strashko@ti.com>
+Subject: [PATCH] net: ethernet: ti: cpsw_new: fix suspend/resume
+Date:   Thu, 10 Sep 2020 23:52:29 +0300
+Message-ID: <20200910205229.21288-1-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
 Content-Type: text/plain
@@ -66,70 +63,89 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi All,
+Add missed suspend/resume callbacks to properly restore networking after
+suspend/resume cycle.
 
-As existing, as newly introduced CPSW ALE versions have differences in 
-supported features and ALE table formats. Especially it's actual for the
-recent AM65x/J721E/J7200 and future AM64x SoCs, which supports more
-features like: auto-aging, classifiers, Link aggregation, additional HW
-filtering, etc.
+Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw_new.c | 53 ++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-The existing ALE configuration interface is not practical in terms of 
-adding new features and requires consumers to program a lot static
-parameters. And any attempt to add new features will case endless adding
-and maintaining different combination of flags and options. Because CPSW
-ALE configuration is static and fixed for SoC (or set of SoC), It is
-reasonable to add support for static ALE configurations inside ALE module.
-
-This series introduces static ALE configuration table for different ALE 
-variants and provides option for consumers to select required ALE
-configuration by providing ALE const char *dev_id identifier (Patch 2).
-And all existing driver have been switched to use new approach (Patches 3-6).
-
-After this ALE HW auto-ageing feature can be enabled for AM65x CPSW ALE 
-variant (Patch 7).
-
-Finally, Patches 8-9 introduces tables to describe the ALE VLAN entries 
-fields as the ALE VLAN entries are too much differ between different TI
-CPSW ALE versions. So, handling them using flags, defines and get/set
-functions are became over-complicated.
-
-Patch 1 - is preparation patch
-
-Changes in v3:
-- fixed comment for Patch 2
-
-Changes in v2:
-- fixed sparse warnings
-
-v2: https://lore.kernel.org/patchwork/cover/1301684/
-v1: https://lore.kernel.org/patchwork/cover/1301048/
-
-Grygorii Strashko (9):
-  net: ethernet: ti: ale: add cpsw_ale_get_num_entries api
-  net: ethernet: ti: ale: add static configuration
-  net: ethernet: ti: cpsw: use dev_id for ale configuration
-  net: netcp: ethss: use dev_id for ale configuration
-  net: ethernet: ti: am65-cpsw: use dev_id for ale configuration
-  net: ethernet: ti: ale: make usage of ale dev_id mandatory
-  net: ethernet: ti: am65-cpsw: enable hw auto ageing
-  net: ethernet: ti: ale: switch to use tables for vlan entry
-    description
-  net: ethernet: ti: ale: add support for multi port k3 cpsw versions
-
- drivers/net/ethernet/ti/am65-cpsw-ethtool.c |  10 +-
- drivers/net/ethernet/ti/am65-cpsw-nuss.c    |  16 +-
- drivers/net/ethernet/ti/am65-cpsw-nuss.h    |   1 +
- drivers/net/ethernet/ti/cpsw.c              |   6 -
- drivers/net/ethernet/ti/cpsw_ale.c          | 421 ++++++++++++++++----
- drivers/net/ethernet/ti/cpsw_ale.h          |   7 +
- drivers/net/ethernet/ti/cpsw_ethtool.c      |   3 +-
- drivers/net/ethernet/ti/cpsw_new.c          |   1 -
- drivers/net/ethernet/ti/cpsw_priv.c         |   2 +-
- drivers/net/ethernet/ti/cpsw_priv.h         |   2 -
- drivers/net/ethernet/ti/netcp_ethss.c       |  18 +-
- 11 files changed, 388 insertions(+), 99 deletions(-)
-
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index 8ed78577cded..15672d0a4de6 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -17,6 +17,7 @@
+ #include <linux/phy.h>
+ #include <linux/phy/phy.h>
+ #include <linux/delay.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/of.h>
+@@ -2070,9 +2071,61 @@ static int cpsw_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int __maybe_unused cpsw_suspend(struct device *dev)
++{
++	struct cpsw_common *cpsw = dev_get_drvdata(dev);
++	int i;
++
++	rtnl_lock();
++
++	for (i = 0; i < cpsw->data.slaves; i++) {
++		struct net_device *ndev = cpsw->slaves[i].ndev;
++
++		if (!(ndev && netif_running(ndev)))
++			continue;
++
++		cpsw_ndo_stop(ndev);
++	}
++
++	rtnl_unlock();
++
++	/* Select sleep pin state */
++	pinctrl_pm_select_sleep_state(dev);
++
++	return 0;
++}
++
++static int __maybe_unused cpsw_resume(struct device *dev)
++{
++	struct cpsw_common *cpsw = dev_get_drvdata(dev);
++	int i;
++
++	/* Select default pin state */
++	pinctrl_pm_select_default_state(dev);
++
++	/* shut up ASSERT_RTNL() warning in netif_set_real_num_tx/rx_queues */
++	rtnl_lock();
++
++	for (i = 0; i < cpsw->data.slaves; i++) {
++		struct net_device *ndev = cpsw->slaves[i].ndev;
++
++		if (!(ndev && netif_running(ndev)))
++			continue;
++
++		cpsw_ndo_open(ndev);
++	}
++
++	rtnl_unlock();
++
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(cpsw_pm_ops, cpsw_suspend, cpsw_resume);
++
+ static struct platform_driver cpsw_driver = {
+ 	.driver = {
+ 		.name	 = "cpsw-switch",
++		.pm	 = &cpsw_pm_ops,
+ 		.of_match_table = cpsw_of_mtable,
+ 	},
+ 	.probe = cpsw_probe,
 -- 
 2.17.1
 
