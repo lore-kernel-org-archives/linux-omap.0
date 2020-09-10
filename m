@@ -2,116 +2,148 @@ Return-Path: <SRS0=uib+=CT=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32444C43461
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 19:49:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77893C43461
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 20:29:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB3AA21D91
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 19:49:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E77E221E2
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 20:29:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="WVt7qUC3"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="WK2RMtn/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725866AbgIJTtA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Sep 2020 15:49:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49724 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726683AbgIJTsw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 15:48:52 -0400
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE625C061757;
-        Thu, 10 Sep 2020 12:48:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=kemnade.info; s=20180802; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=2c66nEBP3DnG4HoyZXJPOlNFvLsRVtjflHnzpM04Cds=; b=WVt7qUC3KvQkSyJfCLY4neNlzG
-        5roByh4wUvdqv/vQ1V2RMcthBqRUdn+vthIURckBn8mMTPbtkU1y84Uxtzb+Kum2q/NTBRrJ4sPOu
-        mAuqdWRs3XovrKECyu+zzODbwxAkJsqvkYslQ+rhNBQOrYsV3zeQSqRtAIX71GfJ2p2U=;
-Received: from p200300ccff0e43001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff0e:4300:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1kGSYb-0007Sl-NR; Thu, 10 Sep 2020 21:48:34 +0200
-Date:   Thu, 10 Sep 2020 21:48:32 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     Adam Ford <aford173@gmail.com>
-Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
-        linux-pm@vger.kernel.org, Adam Ford-BE <aford@beaconembedded.com>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        kernel test robot <lkp@intel.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>,
-        Amit Kucheria <amitk@kernel.org>,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        arm-soc <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH V2 1/2] thermal: ti-soc-thermal: Enable addition power
- management
-Message-ID: <20200910214832.0041b3aa@aktux>
-In-Reply-To: <CAHCN7xLUrh7xr0pr5Bz0unWQXGkiKDK88hZKx7WXGyr2RBWTVg@mail.gmail.com>
-References: <20200819125925.2119434-1-aford173@gmail.com>
-        <20200910200152.72cc5d9f@aktux>
-        <4770327e-84fb-0543-097c-6525d762a01f@linaro.org>
-        <CAHCN7xLUrh7xr0pr5Bz0unWQXGkiKDK88hZKx7WXGyr2RBWTVg@mail.gmail.com>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+        id S1726919AbgIJU3F (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Sep 2020 16:29:05 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:55636 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726694AbgIJU2g (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 16:28:36 -0400
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 08AKSRxM028076;
+        Thu, 10 Sep 2020 15:28:27 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1599769707;
+        bh=zRevarR8bBHB46h6T67QBWgaS+xUykO9TW3TMcjN6qY=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=WK2RMtn/I1fUdc34/9rKlg4LNt+3Zn8GX04yT3Cwy7NDYttFxxdKX+Jz+5Jy440hN
+         wrsmhRiaXcRfcQgtYXoWfQPVLSsGRXysH5qekcKVKP3pDFw2dDoNKZt5BeUv8neiTb
+         8OqNkfzyAaQAew5GSTBhfPkSu1s57svJOgon2/vY=
+Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 08AKSRcm112820
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 10 Sep 2020 15:28:27 -0500
+Received: from DFLE106.ent.ti.com (10.64.6.27) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 10
+ Sep 2020 15:28:27 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Thu, 10 Sep 2020 15:28:27 -0500
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08AKSPec066019;
+        Thu, 10 Sep 2020 15:28:26 -0500
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Murali Karicheri <m-karicheri2@ti.com>
+CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH net-next v3 3/9] net: ethernet: ti: cpsw: use dev_id for ale configuration
+Date:   Thu, 10 Sep 2020 23:28:01 +0300
+Message-ID: <20200910202807.17473-4-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200910202807.17473-1-grygorii.strashko@ti.com>
+References: <20200910202807.17473-1-grygorii.strashko@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 10 Sep 2020 14:33:13 -0500
-Adam Ford <aford173@gmail.com> wrote:
+The previous patch has introduced possibility to select CPSW ALE by using
+ALE dev_id identifier. Switch TI cpsw driver to use dev_id="cpsw" and
+perform clean up by removing "ale_entries" configuration code.
 
-> On Thu, Sep 10, 2020 at 2:14 PM Daniel Lezcano <daniel.lezcano@linaro.org>
-> wrote:
-> 
-> > On 10/09/2020 20:01, Andreas Kemnade wrote:  
-> > > On Wed, 19 Aug 2020 07:59:23 -0500
-> > > Adam Ford <aford173@gmail.com> wrote:
-> > >  
-> > >> The bandgap sensor can be idled when the processor is too, but it
-> > >> isn't currently being done, so the power consumption of OMAP3
-> > >> boards can elevated if the bangap sensor is enabled.
-> > >>
-> > >> This patch attempts to use some additional power management
-> > >> to idle the clock to the bandgap when not needed.
-> > >>
-> > >> Signed-off-by: Adam Ford <aford173@gmail.com>
-> > >> Reported-by: kernel test robot <lkp@intel.com>
-> > >> ---
-> > >> V2: Fix issue where variable stating the suspend mode isn't being
-> > >>     properly set and cleared.
-> > >>  
-> > > hmm, it is not in linux-next. Can we expect that for v5.10?  
-> >
-> > The reason I did not pick this patch is because lkp reported an error on
-> > it.
-> >
-> > https://marc.info/?l=linux-pm&m=159788472017308&w=2
-> >
-> >
-> >  
-> That error message shows it's trying to be built with 'sh' cross compiler,
-> but should be build with an ARM.
-> 
-> I can run a manual test of the patch against a different branch if
-> necessary, but I had built and tested it, so I know it worked at one time.
-> 
-hmm, what about compile-testing without CONFIG_PM_SLEEP?
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c      | 6 ------
+ drivers/net/ethernet/ti/cpsw_new.c  | 1 -
+ drivers/net/ethernet/ti/cpsw_priv.c | 2 +-
+ drivers/net/ethernet/ti/cpsw_priv.h | 2 --
+ 4 files changed, 1 insertion(+), 10 deletions(-)
 
-The function definition is guarded by that.
-So it is not a sh-specific problem.
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 4a65edc5a375..9b425f184f3c 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1278,12 +1278,6 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 	}
+ 	data->channels = prop;
+ 
+-	if (of_property_read_u32(node, "ale_entries", &prop)) {
+-		dev_err(&pdev->dev, "Missing ale_entries property in the DT.\n");
+-		return -EINVAL;
+-	}
+-	data->ale_entries = prop;
+-
+ 	if (of_property_read_u32(node, "bd_ram_size", &prop)) {
+ 		dev_err(&pdev->dev, "Missing bd_ram_size property in the DT.\n");
+ 		return -EINVAL;
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index 8ed78577cded..a3528c5c823f 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -1243,7 +1243,6 @@ static int cpsw_probe_dt(struct cpsw_common *cpsw)
+ 
+ 	data->active_slave = 0;
+ 	data->channels = CPSW_MAX_QUEUES;
+-	data->ale_entries = CPSW_ALE_NUM_ENTRIES;
+ 	data->dual_emac = true;
+ 	data->bd_ram_size = CPSW_BD_RAM_SIZE;
+ 	data->mac_control = 0;
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
+index 482a1a451e43..51cc29f39038 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
++++ b/drivers/net/ethernet/ti/cpsw_priv.c
+@@ -500,8 +500,8 @@ int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
+ 
+ 	ale_params.dev			= dev;
+ 	ale_params.ale_ageout		= ale_ageout;
+-	ale_params.ale_entries		= data->ale_entries;
+ 	ale_params.ale_ports		= CPSW_ALE_PORTS_NUM;
++	ale_params.dev_id		= "cpsw";
+ 
+ 	cpsw->ale = cpsw_ale_create(&ale_params);
+ 	if (IS_ERR(cpsw->ale)) {
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
+index bf4e179b4ca4..7b7f3596b20d 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.h
++++ b/drivers/net/ethernet/ti/cpsw_priv.h
+@@ -117,7 +117,6 @@ do {								\
+ #define CPSW_MAX_QUEUES		8
+ #define CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT 256
+ #define CPSW_ALE_AGEOUT_DEFAULT		10 /* sec */
+-#define CPSW_ALE_NUM_ENTRIES		1024
+ #define CPSW_FIFO_QUEUE_TYPE_SHIFT	16
+ #define CPSW_FIFO_SHAPE_EN_SHIFT	16
+ #define CPSW_FIFO_RATE_EN_SHIFT		20
+@@ -294,7 +293,6 @@ struct cpsw_platform_data {
+ 	u32	channels;	/* number of cpdma channels (symmetric) */
+ 	u32	slaves;		/* number of slave cpgmac ports */
+ 	u32	active_slave;/* time stamping, ethtool and SIOCGMIIPHY slave */
+-	u32	ale_entries;	/* ale table size */
+ 	u32	bd_ram_size;	/*buffer descriptor ram size */
+ 	u32	mac_control;	/* Mac control register */
+ 	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
+-- 
+2.17.1
 
-Regards,
-Andreas
