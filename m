@@ -5,47 +5,48 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5683C2D0A7
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 22:25:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2F61C43461
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 22:25:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5D5620BED
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 22:25:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BA16206F4
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 22:25:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ARaadTmH"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Ejgtl18y"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725861AbgIJWZn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Sep 2020 18:25:43 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:44930 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725853AbgIJWZi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 18:25:38 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 08AMPTYa060954;
-        Thu, 10 Sep 2020 17:25:29 -0500
+        id S1725769AbgIJWZx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Sep 2020 18:25:53 -0400
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:41464 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725868AbgIJWZq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 18:25:46 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 08AMPiAM090190;
+        Thu, 10 Sep 2020 17:25:44 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1599776729;
-        bh=RU6iRBwYdm7JUjH8AtSM6SAyPPgcRbgfP628viV/sAs=;
+        s=ti-com-17Q1; t=1599776744;
+        bh=gD11JyVdwWaHLo3Ml11eQLz7gFzw5VXQ8yRD/2vidE4=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=ARaadTmHG4oSAOuFnNnGK5brNB7rTHZuZo0FeRe6TUnMR63ffW/cp0/Vf9Bks4Zrr
-         ZtFS8J7opPs8Qb9QdUMMCAXE35SW4bMa7dHG7+eIHl7429u8DshV7pI+ZR+9Y6LPEO
-         E3PCOLDwXPxrECdMTnzFRc6b7ecKAn5RgW8W8utU=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 08AMPTK3028070
+        b=Ejgtl18ysksbw3s01cEeE+pITUeihYnS4w5v4uTkaxP+6cCK+jFBpBRyd+qF/RdxO
+         jdG9NvxIxeoZqSHUGHyU3ISW4ZOeIYdoDtHw9QNLyf3KOG3dGRJi3YohJQ2xWNH/VQ
+         PsdCJGmddYoWiGzFv5qTkFm0WI6lW2mNFrdURVc4=
+Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 08AMPiGL088296
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 10 Sep 2020 17:25:29 -0500
-Received: from DLEE104.ent.ti.com (157.170.170.34) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 10 Sep 2020 17:25:44 -0500
+Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 10
- Sep 2020 17:25:29 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
+ Sep 2020 17:25:43 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 10 Sep 2020 17:25:29 -0500
+ Frontend Transport; Thu, 10 Sep 2020 17:25:43 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08AMPS04017696;
-        Thu, 10 Sep 2020 17:25:28 -0500
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08AMPgiP121612;
+        Thu, 10 Sep 2020 17:25:43 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
 To:     Tony Lindgren <tony@atomide.com>
 CC:     <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
@@ -53,9 +54,9 @@ CC:     <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         Murali Karicheri <m-karicheri2@ti.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH next 1/3] ARM: dts: am437x-l4: add dt node for new cpsw switchdev driver
-Date:   Fri, 11 Sep 2020 01:25:16 +0300
-Message-ID: <20200910222518.32486-2-grygorii.strashko@ti.com>
+Subject: [PATCH next 3/3] ARM: dts: am437x-l4: drop legacy cpsw dt node
+Date:   Fri, 11 Sep 2020 01:25:18 +0300
+Message-ID: <20200910222518.32486-4-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200910222518.32486-1-grygorii.strashko@ti.com>
 References: <20200910222518.32486-1-grygorii.strashko@ti.com>
@@ -67,78 +68,76 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add DT node for the new cpsw switchdev based driver.
+All am437x boards have been converted to use new driver, so drop legacy
+cpsw dt node.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- arch/arm/boot/dts/am437x-l4.dtsi | 54 ++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ arch/arm/boot/dts/am437x-l4.dtsi | 51 --------------------------------
+ 1 file changed, 51 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
-index 3d393fe252c6..e702e9576115 100644
+index e702e9576115..d82a6eeaf1b3 100644
 --- a/arch/arm/boot/dts/am437x-l4.dtsi
 +++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -571,6 +571,60 @@
- 					phys = <&phy_gmii_sel 2 0>;
- 				};
- 			};
-+
-+			mac_sw: switch@0 {
-+				compatible = "ti,am4372-cpsw","ti,cpsw-switch";
-+				reg = <0x0 0x4000>;
-+				ranges = <0 0 0x4000>;
-+				clocks = <&cpsw_125mhz_gclk>, <&dpll_clksel_mac_clk>;
-+				clock-names = "fck", "50mclk";
-+				assigned-clocks = <&dpll_clksel_mac_clk>;
-+				assigned-clock-rates = <50000000>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				syscon = <&scm_conf>;
-+				status = "disabled";
-+
-+				interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH
-+					      GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH
-+					      GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH
-+					      GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "rx_thresh", "rx", "tx", "misc";
-+
-+				ethernet-ports {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+
-+					cpsw_port1: port@1 {
-+						reg = <1>;
-+						label = "port1";
-+						mac-address = [ 00 00 00 00 00 00 ];
-+						phys = <&phy_gmii_sel 1 0>;
-+					};
-+
-+					cpsw_port2: port@2 {
-+						reg = <2>;
-+						label = "port2";
-+						mac-address = [ 00 00 00 00 00 00 ];
-+						phys = <&phy_gmii_sel 2 0>;
-+					};
-+				};
-+
-+				davinci_mdio_sw: mdio@1000 {
-+					compatible = "ti,am4372-mdio", "ti,cpsw-mdio","ti,davinci_mdio";
-+					clocks = <&cpsw_125mhz_gclk>;
-+					clock-names = "fck";
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					bus_freq = <1000000>;
-+					reg = <0x1000 0x100>;
-+				};
-+
-+				cpts {
-+					clocks = <&cpsw_cpts_rft_clk>;
-+					clock-names = "cpts";
-+				};
-+			};
- 		};
+@@ -521,57 +521,6 @@
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x100000 0x8000>;
  
- 		target-module@200000 {			/* 0x4a200000, ap 7 02.0 */
+-			mac: ethernet@0 {
+-				compatible = "ti,am4372-cpsw","ti,cpsw";
+-				reg = <0x0 0x800
+-				       0x1200 0x100>;
+-				interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH
+-					      GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH
+-					      GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH
+-					      GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
+-				#address-cells = <1>;
+-				#size-cells = <1>;
+-				clocks = <&cpsw_125mhz_gclk>, <&cpsw_cpts_rft_clk>,
+-					 <&dpll_clksel_mac_clk>;
+-				clock-names = "fck", "cpts", "50mclk";
+-				assigned-clocks = <&dpll_clksel_mac_clk>;
+-				assigned-clock-rates = <50000000>;
+-				status = "disabled";
+-				cpdma_channels = <8>;
+-				ale_entries = <1024>;
+-				bd_ram_size = <0x2000>;
+-				mac_control = <0x20>;
+-				slaves = <2>;
+-				active_slave = <0>;
+-				cpts_clock_mult = <0x80000000>;
+-				cpts_clock_shift = <29>;
+-				ranges = <0 0 0x8000>;
+-				syscon = <&scm_conf>;
+-
+-				davinci_mdio: mdio@1000 {
+-					compatible = "ti,am4372-mdio","ti,cpsw-mdio","ti,davinci_mdio";
+-					reg = <0x1000 0x100>;
+-					clocks = <&cpsw_125mhz_clkctrl AM4_CPSW_125MHZ_CPGMAC0_CLKCTRL 0>;
+-					clock-names = "fck";
+-					#address-cells = <1>;
+-					#size-cells = <0>;
+-					bus_freq = <1000000>;
+-					status = "disabled";
+-				};
+-
+-				cpsw_emac0: slave@200 {
+-					/* Filled in by U-Boot */
+-					mac-address = [ 00 00 00 00 00 00 ];
+-					phys = <&phy_gmii_sel 1 0>;
+-				};
+-
+-				cpsw_emac1: slave@300 {
+-					/* Filled in by U-Boot */
+-					mac-address = [ 00 00 00 00 00 00 ];
+-					phys = <&phy_gmii_sel 2 0>;
+-				};
+-			};
+-
+ 			mac_sw: switch@0 {
+ 				compatible = "ti,am4372-cpsw","ti,cpsw-switch";
+ 				reg = <0x0 0x4000>;
 -- 
 2.17.1
 
