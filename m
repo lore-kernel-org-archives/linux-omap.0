@@ -2,63 +2,57 @@ Return-Path: <SRS0=uib+=CT=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4D15C43461
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:55:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D8C5C43461
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 19:14:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 742F0214F1
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:55:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599764113;
-	bh=XhMR0se3B2M3cCm4dG7gM2H1njurlMTbkC88FGhIKJs=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=oF7sUo4nYDRQttAkJ8lq8e2hmcd+mnLGcG+BfF3Rk+sFEf8W7xKC6lXXP07pBvXhg
-	 YZlnlHjTVkRjka9HNIzovlRFWzaASsnrX0hR6i5lcu/1yf69Mme02JdA9sFklnnjtk
-	 igpD/nfu9YJoucs/jH0y2vNJ0zt8V/Jv6FXVcrQY=
+	by mail.kernel.org (Postfix) with ESMTP id C3E58214F1
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 19:14:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="yl4BPTxd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726898AbgIJSzD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Sep 2020 14:55:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60144 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726539AbgIJSyJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 10 Sep 2020 14:54:09 -0400
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4BA8921D92;
-        Thu, 10 Sep 2020 18:54:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599764045;
-        bh=XhMR0se3B2M3cCm4dG7gM2H1njurlMTbkC88FGhIKJs=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=NWf2TTe71JDTV5fTFH3pnw3HOYxZ5ivZJJsDunUt35gp25A4mNzl407I2iacg6Psi
-         Budl9qFpHKWvZJLdEln1WkpXuBpI3tCHQdwvnqxK5EHBixzH8JD2FeS50pKl/BJZ9Q
-         oW6NJfp9FaoUigAD/y/1aDn9KN/rWfhNcmsuNGLQ=
-Received: by mail-ed1-f42.google.com with SMTP id ay8so7391618edb.8;
-        Thu, 10 Sep 2020 11:54:05 -0700 (PDT)
-X-Gm-Message-State: AOAM530PpEiF4gd8hIQjezXCsXKEU4jDKO+O2s24KIZK0hCqdcKi6WP6
-        lRd0yze+KWFNX6QGZfOtGdAIUkCUMP64yFo52DA=
-X-Google-Smtp-Source: ABdhPJzxOkwjKIRJe1J7RhPZI8K0aJEHMtzOqR5F+V93515rBHAjgLIuO18iiQn+8UTlJNwgheXSwAxcmyXoMHMFYBk=
-X-Received: by 2002:a05:6402:180a:: with SMTP id g10mr10672940edy.18.1599764043844;
- Thu, 10 Sep 2020 11:54:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200910175733.11046-1-krzk@kernel.org> <20200910175733.11046-2-krzk@kernel.org>
- <20200910182814.veviax3n377undkv@akan>
-In-Reply-To: <20200910182814.veviax3n377undkv@akan>
-From:   Krzysztof Kozlowski <krzk@kernel.org>
-Date:   Thu, 10 Sep 2020 20:53:52 +0200
-X-Gmail-Original-Message-ID: <CAJKOXPdQJz7aLu4sjds46SiZwxvB-VMBR=stjpUme+8iEo+d-w@mail.gmail.com>
-Message-ID: <CAJKOXPdQJz7aLu4sjds46SiZwxvB-VMBR=stjpUme+8iEo+d-w@mail.gmail.com>
-Subject: Re: [PATCH v2 01/15] dt-bindings: gpio: convert bindings for NXP
- PCA953x family to dtschema
-To:     Nishanth Menon <nm@ti.com>
-Cc:     Linus Walleij <linus.walleij@linaro.org>,
+        id S1726821AbgIJTON (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Sep 2020 15:14:13 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:46390 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726848AbgIJTNy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 15:13:54 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 08AJD8rM024418;
+        Thu, 10 Sep 2020 14:13:08 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1599765188;
+        bh=wVHpXIuoo9L0dFhVi0aJ08O8whODuj4HNYWrOX4NFVw=;
+        h=Date:From:To:CC:Subject:References:In-Reply-To;
+        b=yl4BPTxdastirBjKVIUEbYlKhJVs+eC45YfSESLfNSGpRaj5H77Wldw4r+pESKZsA
+         GdjSwevWbvMm9fEk+EOkbjovsCE08XrltrwJ+zugtJRJRX9XUlJZ7oALrK6tDZdhKW
+         ZKzX5baYKc4I7S2SLccZUq0PnF4UKdn5S7ybT5/k=
+Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 08AJD8s5064725
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 10 Sep 2020 14:13:08 -0500
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 10
+ Sep 2020 14:13:07 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Thu, 10 Sep 2020 14:13:07 -0500
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08AJD5v2030041;
+        Thu, 10 Sep 2020 14:13:07 -0500
+Date:   Thu, 10 Sep 2020 14:13:05 -0500
+From:   Nishanth Menon <nm@ti.com>
+To:     Krzysztof Kozlowski <krzk@kernel.org>
+CC:     Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Rob Herring <robh+dt@kernel.org>,
-        =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
+        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>,
         Russell King <linux@armlinux.org.uk>,
         Jason Cooper <jason@lakedaemon.net>,
@@ -76,36 +70,63 @@ Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Magnus Damm <magnus.damm@gmail.com>,
         Tero Kristo <t-kristo@ti.com>,
         Michal Simek <michal.simek@xilinx.com>,
-        Guenter Roeck <linux@roeck-us.net>, devicetree@vger.kernel.org,
+        Guenter Roeck <linux@roeck-us.net>,
+        <devicetree@vger.kernel.org>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
-        linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-aspeed@lists.ozlabs.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH v2 01/15] dt-bindings: gpio: convert bindings for NXP
+ PCA953x family to dtschema
+Message-ID: <20200910191305.phjtijx2fhkhqavu@akan>
+References: <20200910175733.11046-1-krzk@kernel.org>
+ <20200910175733.11046-2-krzk@kernel.org>
+ <20200910182814.veviax3n377undkv@akan>
+ <CAJKOXPdQJz7aLu4sjds46SiZwxvB-VMBR=stjpUme+8iEo+d-w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <CAJKOXPdQJz7aLu4sjds46SiZwxvB-VMBR=stjpUme+8iEo+d-w@mail.gmail.com>
+User-Agent: NeoMutt/20171215
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 10 Sep 2020 at 20:28, Nishanth Menon <nm@ti.com> wrote:
->
-> On 19:57-20200910, Krzysztof Kozlowski wrote:
-> [...]
-> > +  wakeup-source:
-> > +    $ref: /schemas/types.yaml#/definitions/flag
-> > +
-> > +patternProperties:
-> > +  "^(hog-[0-9]+|.+-hog(-[0-9]+)?)$":
->
-> I wonder if "hog" is too generic and might clash with "something-hog" in
-> the future?
+On 20:53-20200910, Krzysztof Kozlowski wrote:
+> On Thu, 10 Sep 2020 at 20:28, Nishanth Menon <nm@ti.com> wrote:
+> >
+> > On 19:57-20200910, Krzysztof Kozlowski wrote:
+> > [...]
+> > > +  wakeup-source:
+> > > +    $ref: /schemas/types.yaml#/definitions/flag
+> > > +
+> > > +patternProperties:
+> > > +  "^(hog-[0-9]+|.+-hog(-[0-9]+)?)$":
+> >
+> > I wonder if "hog" is too generic and might clash with "something-hog" in
+> > the future?
+> 
+> This pattern is already used in
+> Documentation/devicetree/bindings/gpio/fsl-imx-gpio.yaml. It will
+> match only children and so far it did not find any other nodes in ARM
+> and ARM64 dts. I don't expect clashes. Also the question is then - if
+> one adds a child of GPIO expander named "foobar-hog" and it is not a
+> GPIO hog, then what is it?
 
-This pattern is already used in
-Documentation/devicetree/bindings/gpio/fsl-imx-gpio.yaml. It will
-match only children and so far it did not find any other nodes in ARM
-and ARM64 dts. I don't expect clashes. Also the question is then - if
-one adds a child of GPIO expander named "foobar-hog" and it is not a
-GPIO hog, then what is it?
+Probably a nitpick.. but then,.. I have'nt seen us depend on hierarchy
+for uniqueness of naming.. we choose for example "bus" no matter where
+in the hierarchy it falls in, as long it is a bus.. etc.. same argument
+holds good for properties as well.. "gpio-hog;" is kinda redundant if
+you think of it for a compatible that is already gpio ;)..
 
-Best regards,
-Krzysztof
+I did'nt mean to de-rail the discussion, but was curious what the DT
+maintainers think..
+
+-- 
+Regards,
+Nishanth Menon
+Key (0xDDB5849D1736249D) / Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
