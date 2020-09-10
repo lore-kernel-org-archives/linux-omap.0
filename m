@@ -2,85 +2,178 @@ Return-Path: <SRS0=uib+=CT=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=unavailable
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 479F7C433E2
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 447EBC43461
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:09:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE81D21941
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:03:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="nOiMmiMr"
+	by mail.kernel.org (Postfix) with ESMTP id E1BFC207EA
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:09:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599761385;
+	bh=cnme77ncydCGyn5yAaUYaAlKma6Mlrz2eobW02u1gNc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=waKGjqtonCxGxwzAsAHkbtABYQ06jq9o+85dJRmz8UR6jQEiiKOs5YNs7e/azAOog
+	 fsg+Rrs2bCLqVma88y01NHIBFWlmdej95bog/pUmmx5T7qLK9c+gWBtC+6XOfuF8fp
+	 VKoP5c+XdfqzWvPagU0axT+/7cqPDnZ9ZxhYNMiM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725951AbgIJSC5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Sep 2020 14:02:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33050 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725866AbgIJSCX (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 14:02:23 -0400
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77C3DC061573;
-        Thu, 10 Sep 2020 11:02:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=kemnade.info; s=20180802; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=bRi4N5vLxoScsFjTWSVX3rfTP6F8SdP0zUyXpfsqsa4=; b=nOiMmiMrtN83A2i9SuwjSG1xUA
-        X8hMVPZQ4xzv5VoomT9q25ADTLfgin9O8HmN8WR/S+aUD3FsTPzFlX7VmRi7MDXrsIovqurVvyrsR
-        Bg4Fq/SwBlGFByssTJ90CZAs0yqm352bw47JNEd5/hQZ9P9oKiDIOulsVYpOk1KH/OZ8=;
-Received: from p200300ccff0e43001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff0e:4300:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1kGQtN-0006Gq-DC; Thu, 10 Sep 2020 20:01:53 +0200
-Date:   Thu, 10 Sep 2020 20:01:52 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     Adam Ford <aford173@gmail.com>
-Cc:     linux-pm@vger.kernel.org, aford@beaconembedded.com,
-        hns@goldelico.com, kernel test robot <lkp@intel.com>,
+        id S1726931AbgIJSIk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Sep 2020 14:08:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36654 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726792AbgIJR7O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 10 Sep 2020 13:59:14 -0400
+Received: from localhost.localdomain (unknown [194.230.155.174])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 712A521D92;
+        Thu, 10 Sep 2020 17:59:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599760753;
+        bh=cnme77ncydCGyn5yAaUYaAlKma6Mlrz2eobW02u1gNc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=u/eABZ9F+q2oSujqAJjIRw8ViIgsQGgybCFx15PV5lua7Q9B5GJUPJLxb3bYeztBd
+         Ojde/RzdDa09Zdk69i0L/0S6UdsLYhED9ISPUM7rwK9npdivrHozn3/F9H/GTfmAPA
+         P5aBvwZu9lzvafuk+kRk6236Z3+JBHYvo3ZHAv5s=
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>,
         Russell King <linux@armlinux.org.uk>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Amit Kucheria <amitk@kernel.org>, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH V2 1/2] thermal: ti-soc-thermal: Enable addition power
- management
-Message-ID: <20200910200152.72cc5d9f@aktux>
-In-Reply-To: <20200819125925.2119434-1-aford173@gmail.com>
-References: <20200819125925.2119434-1-aford173@gmail.com>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Jason Cooper <jason@lakedaemon.net>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Guenter Roeck <linux@roeck-us.net>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org
+Cc:     Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH v2 12/15] ARM: dts: aspeed: align GPIO hog names with dtschema
+Date:   Thu, 10 Sep 2020 19:57:30 +0200
+Message-Id: <20200910175733.11046-13-krzk@kernel.org>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200910175733.11046-1-krzk@kernel.org>
+References: <20200910175733.11046-1-krzk@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 19 Aug 2020 07:59:23 -0500
-Adam Ford <aford173@gmail.com> wrote:
+dtschema for pca95xx expects GPIO hogs to end with 'hog' prefix.
 
-> The bandgap sensor can be idled when the processor is too, but it
-> isn't currently being done, so the power consumption of OMAP3
-> boards can elevated if the bangap sensor is enabled.
-> 
-> This patch attempts to use some additional power management
-> to idle the clock to the bandgap when not needed.
-> 
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-> Reported-by: kernel test robot <lkp@intel.com>
-> ---
-> V2: Fix issue where variable stating the suspend mode isn't being
->     properly set and cleared.
-> 
-hmm, it is not in linux-next. Can we expect that for v5.10?
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+---
+ arch/arm/boot/dts/aspeed-bmc-ibm-rainier.dts |  2 +-
+ arch/arm/boot/dts/aspeed-bmc-opp-mihawk.dts  | 16 ++++++++--------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-Regards,
-Andreas
+diff --git a/arch/arm/boot/dts/aspeed-bmc-ibm-rainier.dts b/arch/arm/boot/dts/aspeed-bmc-ibm-rainier.dts
+index 1fa233d2da26..0aa437486a0d 100644
+--- a/arch/arm/boot/dts/aspeed-bmc-ibm-rainier.dts
++++ b/arch/arm/boot/dts/aspeed-bmc-ibm-rainier.dts
+@@ -560,7 +560,7 @@
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+ 
+-		smbus0 {
++		smbus0-hog {
+ 			gpio-hog;
+ 			gpios = <4 GPIO_ACTIVE_HIGH>;
+ 			output-high;
+diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-mihawk.dts b/arch/arm/boot/dts/aspeed-bmc-opp-mihawk.dts
+index cb85168f6761..577c211c469e 100644
+--- a/arch/arm/boot/dts/aspeed-bmc-opp-mihawk.dts
++++ b/arch/arm/boot/dts/aspeed-bmc-opp-mihawk.dts
+@@ -827,7 +827,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus0 {
++				smbus0-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+@@ -852,7 +852,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus1 {
++				smbus1-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+@@ -900,7 +900,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus2 {
++				smbus2-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+@@ -925,7 +925,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus3 {
++				smbus3-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+@@ -992,7 +992,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus4 {
++				smbus4-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+@@ -1017,7 +1017,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus5 {
++				smbus5-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+@@ -1065,7 +1065,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus6 {
++				smbus6-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+@@ -1090,7 +1090,7 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 
+-				smbus7 {
++				smbus7-hog {
+ 					gpio-hog;
+ 					gpios = <4 GPIO_ACTIVE_HIGH>;
+ 					output-high;
+-- 
+2.17.1
+
