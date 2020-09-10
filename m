@@ -2,103 +2,101 @@ Return-Path: <SRS0=uib+=CT=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD43C43461
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 17:07:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A88D1C07548
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:00:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAA76208E4
-	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 17:07:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 553D021D40
+	for <linux-omap@archiver.kernel.org>; Thu, 10 Sep 2020 18:00:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599757676;
-	bh=rVSUGrl/ci5wdC0YiA/T8jpd4g8aFsLmhcG5E4dmCWw=;
-	h=Date:From:To:Subject:References:In-Reply-To:List-ID:From;
-	b=CvW25xVIKsbPqgqMYVKtuVl97bMlg8kVMCYp9m8QqkQzbd/w86wWotoI+kVydyxUq
-	 nxwoPBWSqmaYcS4nygIPJ3N8pIfNcI1xyLaRQQjDPqB7TTY6yFWQ0cQI4dw9+XzUtF
-	 Fg4a6TRjLa1PJUFKnSSDOwDr95nqkelYOavQUNtk=
+	s=default; t=1599760845;
+	bh=4N+AVz1iFewUv22C1sZLRU1oZ3vPM6n5YgLdZX5yJcs=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=TUApOlCtU3kau9nuyEs9RLkovCSG/9VbvcJRP+GOh1mQcUytKePbnI3KtWPtDEb/S
+	 Q0zNmWnF8sf1tSVdDdNjtgrgSEZMkA+nkHMCZ1GIPKN3Dp8rKgDd3eLoVwXcDJm3kX
+	 x6lfY86kcVXsFH6Uwny86S3909e1uO1M0zifNHFg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726984AbgIJRHr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Sep 2020 13:07:47 -0400
-Received: from mail-ej1-f66.google.com ([209.85.218.66]:40527 "EHLO
-        mail-ej1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726911AbgIJQyc (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2020 12:54:32 -0400
-Received: by mail-ej1-f66.google.com with SMTP id z22so9728574ejl.7;
-        Thu, 10 Sep 2020 09:54:17 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=z+RRvOyKYsSB07pFbec6LrWNZNZGtC9Skn84W6Crqbc=;
-        b=mFIRBviG67oPi7GvSQ7YoMkkKwQDBqGPStCwOgxWTo96mbmHDxixw8DSuAuu4tGF0f
-         YRk0s/D8aUvDLD7s8GZsB97DJ9KFxdWV2GCpVkE0026Hplo/KyvZkvnguomhF6uZ8BRv
-         +YxWpg85UQyCDieSLNNIt5UlfUAogNI4BXBTz+rQTyYbx6cnldg0F4S4ABZjXV3sANU9
-         jPv54qXwUiLhR1u14lgW6apJ9AX0KUHlNL/jdiuh2mSS+OEpa3zLXnPYvH4tUay7VcBo
-         LhkOgq/1sStz83zVtT3A5ahpJgtGD2gbPF7PbDS58BdbImACCS0gREdTrkRHw1eu2Aln
-         n0NA==
-X-Gm-Message-State: AOAM532hPN/V8y+ByBW1lmhbhDM49M81B9LgP9dJtfsHYFHOD8kt2xeV
-        H5lPMAgBG4k1KJgqfEbC4lU=
-X-Google-Smtp-Source: ABdhPJyj5xfspeBLG8ppW3CbSisewa6vNwOrvIyYECPfXCHzGxITo2vMAJd3CXmp+RnBY0Xa2JprUQ==
-X-Received: by 2002:a17:906:cf9b:: with SMTP id um27mr9876859ejb.66.1599756856544;
-        Thu, 10 Sep 2020 09:54:16 -0700 (PDT)
-Received: from kozik-lap ([194.230.155.174])
-        by smtp.googlemail.com with ESMTPSA id p20sm7917053eja.18.2020.09.10.09.54.14
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 10 Sep 2020 09:54:15 -0700 (PDT)
-Date:   Thu, 10 Sep 2020 18:54:12 +0200
+        id S1726534AbgIJSAA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Sep 2020 14:00:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36904 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726805AbgIJR7V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 10 Sep 2020 13:59:21 -0400
+Received: from localhost.localdomain (unknown [194.230.155.174])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id AFB6120C09;
+        Thu, 10 Sep 2020 17:59:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599760760;
+        bh=4N+AVz1iFewUv22C1sZLRU1oZ3vPM6n5YgLdZX5yJcs=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=N9Q8v8rYJEGYTGOGYdjCjPtkPabMqxu9+jIF3945v1aI8f8LKhOUot2QegtJ+jYFD
+         4nGGpy3v3t1Da+kE5INyAPk2VWb2YuDZkg0/DcceHwbDtT6sQwhm8ObmtjOEmxmjBu
+         76bSjuzPwQzWPUYVTdBieRSM7tdXbX7qQJ8oM3U0=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Rob Herring <robh+dt@kernel.org>,
-        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>,
-        Joel Stanley <joel@jms.id.au>,
-        Andrew Jeffery <andrew@aj.id.au>,
+        Russell King <linux@armlinux.org.uk>,
         Jason Cooper <jason@lakedaemon.net>,
         Andrew Lunn <andrew@lunn.ch>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
         Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>,
         Shawn Guo <shawnguo@kernel.org>,
         Sascha Hauer <s.hauer@pengutronix.de>,
         Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Stefan Agner <stefan@agner.ch>, linux-gpio@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org
-Subject: Re: [PATCH 1/6] dt-bindings: gpio: Convert bindings for NXP PCA953x
- family to dtschema
-Message-ID: <20200910165412.GB11510@kozik-lap>
-References: <20200829094024.31842-1-krzk@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20200829094024.31842-1-krzk@kernel.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+        NXP Linux Team <linux-imx@nxp.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Guenter Roeck <linux@roeck-us.net>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org
+Cc:     Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH v2 13/15] ARM: dts: dove: fix PCA95xx GPIO expander properties on A510
+Date:   Thu, 10 Sep 2020 19:57:31 +0200
+Message-Id: <20200910175733.11046-14-krzk@kernel.org>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200910175733.11046-1-krzk@kernel.org>
+References: <20200910175733.11046-1-krzk@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sat, Aug 29, 2020 at 11:40:19AM +0200, Krzysztof Kozlowski wrote:
-> Convert the NXP PCA953x family of GPIO expanders bindings to device tree
-> schema.
-> 
-> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-> ---
->  .../devicetree/bindings/gpio/gpio-pca953x.txt |  90 ------------
->  .../bindings/gpio/gpio-pca95xx.yaml           | 138 ++++++++++++++++++
->  .../devicetree/bindings/trivial-devices.yaml  |   4 -
->  3 files changed, 138 insertions(+), 94 deletions(-)
->  delete mode 100644 Documentation/devicetree/bindings/gpio/gpio-pca953x.txt
->  create mode 100644 Documentation/devicetree/bindings/gpio/gpio-pca95xx.yaml
->
+The PCA95xx GPIO expander requires GPIO controller properties to operate
+properly.
 
-I will resend the dt-bindings replacing unevaluated ->
-additionalProperties.
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+---
+ arch/arm/boot/dts/dove-sbc-a510.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
-Best regards,
-Krzysztof
+diff --git a/arch/arm/boot/dts/dove-sbc-a510.dts b/arch/arm/boot/dts/dove-sbc-a510.dts
+index 2bb85a9b7614..df021f9b0117 100644
+--- a/arch/arm/boot/dts/dove-sbc-a510.dts
++++ b/arch/arm/boot/dts/dove-sbc-a510.dts
+@@ -143,6 +143,7 @@
+ 	gpio_ext: gpio@20 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x20>;
++		gpio-controller;
+ 		#gpio-cells = <2>;
+ 	};
+ };
+-- 
+2.17.1
 
