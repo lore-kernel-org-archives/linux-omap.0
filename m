@@ -7,55 +7,55 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9A0AC2D0E3
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 00:57:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE7B2C2D0F6
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 00:57:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD29A21655
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 00:57:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B3F321655
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 00:57:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="WjZlN/Kd"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="bu9PMoyx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726184AbgIPA5s (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Sep 2020 20:57:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60124 "EHLO
+        id S1726297AbgIPA5t (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Sep 2020 20:57:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726196AbgIOLMz (ORCPT
+        with ESMTP id S1726129AbgIOLMz (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Sep 2020 07:12:55 -0400
-Received: from mail-lj1-x241.google.com (mail-lj1-x241.google.com [IPv6:2a00:1450:4864:20::241])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88CA9C061220
-        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2020 04:01:39 -0700 (PDT)
-Received: by mail-lj1-x241.google.com with SMTP id c2so2374829ljj.12
-        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2020 04:01:39 -0700 (PDT)
+Received: from mail-lf1-x141.google.com (mail-lf1-x141.google.com [IPv6:2a00:1450:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02B99C06121C
+        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2020 04:01:31 -0700 (PDT)
+Received: by mail-lf1-x141.google.com with SMTP id y17so2608577lfa.8
+        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2020 04:01:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=mc2gdazpP2I7bg6WRsLz8UwRyinpHdK0stSWn7q23gw=;
-        b=WjZlN/Kd9Jjxj+pMCooXrtqM/Mbi0szwmTXaJ7skiL/yJ5v/3ifkWd5b/hsdl5pPaq
-         JBv/2KOxLgfMry2/ioIZAV9/oRcP9+nkFJyAUzwBcbyaRSfazV9xJvJMJE5AuXtzGdTS
-         KNswQQrHg28VxTj2qkvyl/G1Kd56qkD9wzLZFuMfa8KhP2wREIPZ+pGNTxIyAPNP7JLC
-         SpaPsbtFbM0Y6pgCO0PPD6BACZHwiSIgMZusSUzrUSX8WhA/a3yGEVl+RYOUXdAQkqsG
-         vPmkFc/nLjlgLirmnrW/qNsLeX3NGpeNinQSLd2S7DF09oAg+p2dwGSBv38MguzYpYS3
-         h9+Q==
+        bh=0bFMdRSpPXTVw6FkASDzFuci7f9roVwhgsTsGiODYGg=;
+        b=bu9PMoyxQXeCQJXQTnO4uU92zugPEP+32GJTwTJGhFmLd0RKGN8bQMrRnrKu/zSoeW
+         GHnIGVzICEGX5Pcf0CeO2+Vx2PIVKlddZLpPH53MSxEf3QsDaWP9sxmMvToBFOJpJqXG
+         R3YHAgG2fzOpyA+PLcgFr5shCpOAsw7ncEZGKNcuLmrZ8IswbWdlBJDRYLAPLj/OKHTR
+         QGOISTSf5PVYJsjPvlHeeE7eNFI087vR7/7dGkIjI+4lO4+qRZYbVvDoH0baNiQRGZJH
+         l0oBFry2v5TM9hZWyFzXSFUNlc2QdW8s/A2tMXdKHLu8VVG0wIUW078NKWlFvKuaIHs5
+         PHNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=mc2gdazpP2I7bg6WRsLz8UwRyinpHdK0stSWn7q23gw=;
-        b=Pp02VWYihfOwYMOSIW+eMLWx/FzTn9r0DKZfBv9ZHf037GqbDlki030mTHQ2TKq0mJ
-         kgxhE/jwwprgh4ZX4ex/1cX2354XFyITD0HxUtzZrJSkwSQ7row9DQ918ulKueWbqtMe
-         S3pqHQz/3+buoXjW7mdBQPQoyF1yq1JokGCx9fxiSpyiUKh27lk0B5XwHjC7QtredOkF
-         pLx63yC7Qb4I0K1/01TSpK+0nUObjet6YWvSXQsfzBTsPz3jd9jwmZm0Zt7WOoJqbs47
-         FlrEAXQuHp+ejNgut/wHoV24Szk7NoqoFpguP9U3b3Zb8Cbv0dsk+9XBiRxLBX9/IucO
-         jcKQ==
-X-Gm-Message-State: AOAM5303uose6/9a1S6E7IIRzwBqvQ7WJIMXJKOL6+y5NxCE2t2tkdhv
-        wMIpgnICMK6i7asqtTblinBRBw==
-X-Google-Smtp-Source: ABdhPJxBkYyDeMqg+OlqkRJ0ZOsCdWm1KltQZ9+g3/C6bPryvTmE1Oviffi01zfdU/xTwMGiInoe6w==
-X-Received: by 2002:a2e:895a:: with SMTP id b26mr6623334ljk.468.1600167685701;
-        Tue, 15 Sep 2020 04:01:25 -0700 (PDT)
+        bh=0bFMdRSpPXTVw6FkASDzFuci7f9roVwhgsTsGiODYGg=;
+        b=RCHLp7xedDDeYNAHRHCeimS1Vrcd8zNMPYm13wKEFqZt+2UoYLrSP3Lw/db/sd2DbC
+         ObN53wd8vSEId/bmQ4VViHxNyVRh2M3bLJb8tjkL9qgg47yBRsG0IGNzbxjKBtLDDiv3
+         S2aLoyLCGIF3/stZsV0YPxof77EbgXHMuIFd6sHYjL0gSZn6milEMWsshf8uwc1BfAdI
+         ez8mIQw28VsmswdTDqoE1kWjzp6gSxc9UTxHiFviL17RmWXAt06qZC1vztcMJFyyyh4k
+         IvMkoFWl6RCXMUJVy+AwpUAdTk1yv4ImnKeBS2k8dyLCxVbKsTC8ljlcxNt4NuuIrpj+
+         SFYw==
+X-Gm-Message-State: AOAM532ltfOW9TgNaa3d5uPGbHoPjPD4jlKw1OmAtwljEbX1Z4itSh+9
+        c6KppXStM3CWpuioTtVkwjqS6A==
+X-Google-Smtp-Source: ABdhPJzp9MBZN/pyDF9GzMLHUJeD6RV5x2JiSkBUFmjYlSIsuOj7jjb30r36nAQxW4uhgqAt4m+WVg==
+X-Received: by 2002:a19:d95:: with SMTP id 143mr5883867lfn.4.1600167684008;
+        Tue, 15 Sep 2020 04:01:24 -0700 (PDT)
 Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
-        by smtp.gmail.com with ESMTPSA id n3sm4588916ljj.59.2020.09.15.04.01.24
+        by smtp.gmail.com with ESMTPSA id n3sm4588916ljj.59.2020.09.15.04.01.22
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 15 Sep 2020 04:01:25 -0700 (PDT)
+        Tue, 15 Sep 2020 04:01:23 -0700 (PDT)
 From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 To:     tglx@linutronix.de, jason@lakedaemon.net, maz@kernel.org,
         s-anna@ti.com
@@ -64,9 +64,9 @@ Cc:     grzegorz.jaszczyk@linaro.org, robh+dt@kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, david@lechnology.com,
         praneeth@ti.com
-Subject: [PATCH v6 5/5] irqchip/irq-pruss-intc: Add support for ICSSG INTC on K3 SoCs
-Date:   Tue, 15 Sep 2020 13:00:51 +0200
-Message-Id: <1600167651-20851-6-git-send-email-grzegorz.jaszczyk@linaro.org>
+Subject: [PATCH v6 4/5] irqchip/irq-pruss-intc: Implement irq_{get,set}_irqchip_state ops
+Date:   Tue, 15 Sep 2020 13:00:50 +0200
+Message-Id: <1600167651-20851-5-git-send-email-grzegorz.jaszczyk@linaro.org>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1600167651-20851-1-git-send-email-grzegorz.jaszczyk@linaro.org>
 References: <1600167651-20851-1-git-send-email-grzegorz.jaszczyk@linaro.org>
@@ -75,83 +75,97 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: David Lechner <david@lechnology.com>
 
-The K3 AM65x and J721E SoCs have the next generation of the PRU-ICSS IP,
-commonly called ICSSG. The PRUSS INTC present within the ICSSG supports
-more System Events (160 vs 64), more Interrupt Channels and Host Interrupts
-(20 vs 10) compared to the previous generation PRUSS INTC instances. The
-first 2 and the last 10 of these host interrupt lines are used by the
-PRU and other auxiliary cores and sub-modules within the ICSSG, with 8
-host interrupts connected to MPU. The host interrupts 5, 6, 7 are also
-connected to the other ICSSG instances within the SoC and can be
-partitioned as per system integration through the board dts files.
+This implements the irq_get_irqchip_state and irq_set_irqchip_state
+callbacks for the TI PRUSS INTC driver. The set callback can be used
+by drivers to "kick" a PRU by injecting a PRU system event.
 
-Enhance the PRUSS INTC driver to add support for this ICSSG INTC
-instance.
-
+Signed-off-by: David Lechner <david@lechnology.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+Reviewed-by: Lee Jones <lee.jones@linaro.org>
 ---
 v5->v6:
-- No change.
+- Drop example from the commit log
 v4->v5:
-- Rename: s/num_host_intrs/num_host_events/ regarding to change
-  introduced in patch #2.
+- No change.
 v3->v4:
-- Move generic part to "irqchip/irq-pruss-intc: Add a PRUSS irqchip
-  driver for PRUSS interrupts" patch and leave only platform related
-  code.
+- Update commit message
 v2->v3:
-- Change patch order: use it directly after "irqchip/irq-pruss-intc:
-  Implement irq_{get,set}_irqchip_state ops" and before new
-  "irqchip/irq-pruss-intc: Add event mapping support" in order to reduce
-  diff.
+- Get rid of unnecessary pruss_intc_check_write() and use
+  pruss_intc_write_reg directly.
 v1->v2:
-- https://patchwork.kernel.org/patch/11069773/
+- https://patchwork.kernel.org/patch/11069769/
 ---
- drivers/irqchip/Kconfig          | 2 +-
- drivers/irqchip/irq-pruss-intc.c | 9 +++++++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ drivers/irqchip/irq-pruss-intc.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index 733e59f..25c8944 100644
---- a/drivers/irqchip/Kconfig
-+++ b/drivers/irqchip/Kconfig
-@@ -495,7 +495,7 @@ config TI_SCI_INTA_IRQCHIP
- 
- config TI_PRUSS_INTC
- 	tristate "TI PRU-ICSS Interrupt Controller"
--	depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM43XX || SOC_DRA7XX || ARCH_KEYSTONE
-+	depends on ARCH_DAVINCI || SOC_AM33XX || SOC_AM43XX || SOC_DRA7XX || ARCH_KEYSTONE || ARCH_K3
- 	select IRQ_DOMAIN
- 	help
- 	  This enables support for the PRU-ICSS Local Interrupt Controller
 diff --git a/drivers/irqchip/irq-pruss-intc.c b/drivers/irqchip/irq-pruss-intc.c
-index 41c6271..4be501e 100644
+index 396dc55..41c6271 100644
 --- a/drivers/irqchip/irq-pruss-intc.c
 +++ b/drivers/irqchip/irq-pruss-intc.c
-@@ -628,11 +628,20 @@ static const struct pruss_intc_match_data pruss_intc_data = {
- 	.num_host_events = 10,
+@@ -12,6 +12,7 @@
+  * Copyright (C) 2019 David Lechner <david@lechnology.com>
+  */
+ 
++#include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/irqchip/chained_irq.h>
+ #include <linux/irqdomain.h>
+@@ -323,6 +324,43 @@ static void pruss_intc_irq_relres(struct irq_data *data)
+ 	module_put(THIS_MODULE);
+ }
+ 
++static int pruss_intc_irq_get_irqchip_state(struct irq_data *data,
++					    enum irqchip_irq_state which,
++					    bool *state)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++	u32 reg, mask, srsr;
++
++	if (which != IRQCHIP_STATE_PENDING)
++		return -EINVAL;
++
++	reg = PRU_INTC_SRSR(data->hwirq / 32);
++	mask = BIT(data->hwirq % 32);
++
++	srsr = pruss_intc_read_reg(intc, reg);
++
++	*state = !!(srsr & mask);
++
++	return 0;
++}
++
++static int pruss_intc_irq_set_irqchip_state(struct irq_data *data,
++					    enum irqchip_irq_state which,
++					    bool state)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++
++	if (which != IRQCHIP_STATE_PENDING)
++		return -EINVAL;
++
++	if (state)
++		pruss_intc_write_reg(intc, PRU_INTC_SISR, data->hwirq);
++	else
++		pruss_intc_write_reg(intc, PRU_INTC_SICR, data->hwirq);
++
++	return 0;
++}
++
+ static struct irq_chip pruss_irqchip = {
+ 	.name			= "pruss-intc",
+ 	.irq_ack		= pruss_intc_irq_ack,
+@@ -330,6 +368,8 @@ static struct irq_chip pruss_irqchip = {
+ 	.irq_unmask		= pruss_intc_irq_unmask,
+ 	.irq_request_resources	= pruss_intc_irq_reqres,
+ 	.irq_release_resources	= pruss_intc_irq_relres,
++	.irq_get_irqchip_state	= pruss_intc_irq_get_irqchip_state,
++	.irq_set_irqchip_state	= pruss_intc_irq_set_irqchip_state,
  };
  
-+static const struct pruss_intc_match_data icssg_intc_data = {
-+	.num_system_events = 160,
-+	.num_host_events = 20,
-+};
-+
- static const struct of_device_id pruss_intc_of_match[] = {
- 	{
- 		.compatible = "ti,pruss-intc",
- 		.data = &pruss_intc_data,
- 	},
-+	{
-+		.compatible = "ti,icssg-intc",
-+		.data = &icssg_intc_data,
-+	},
- 	{ /* sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
+ static int pruss_intc_validate_mapping(struct pruss_intc *intc, int event,
 -- 
 2.7.4
 
