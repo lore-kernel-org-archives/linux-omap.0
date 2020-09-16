@@ -2,170 +2,116 @@ Return-Path: <SRS0=ZcCZ=CZ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE7B2C2D0F6
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 00:57:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E4E8C433E2
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 06:15:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B3F321655
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 00:57:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="bu9PMoyx"
+	by mail.kernel.org (Postfix) with ESMTP id 53D03208E4
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 06:15:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1600236926;
+	bh=Uoxx6Q0D6/3fyJl+mVXesMXTRjWNbE7GlQeqQVl6X/k=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=fHDrz35gQ5S2uMYWrpoPq/g5oCOLNxu5yL1/k66NKgIDVipaTTm6G35zLV41bkEAA
+	 HolDSLtrXZxjY+BUGEmsrPm+3ZWjk8rd0sGaVnh62Utl1zHckijp4mVgkVkcJLSgXU
+	 kovq5b3oymhFc96N9SJCEOwu5qmcJm+MTkfLCMJY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726297AbgIPA5t (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Sep 2020 20:57:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60126 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726129AbgIOLMz (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Sep 2020 07:12:55 -0400
-Received: from mail-lf1-x141.google.com (mail-lf1-x141.google.com [IPv6:2a00:1450:4864:20::141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02B99C06121C
-        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2020 04:01:31 -0700 (PDT)
-Received: by mail-lf1-x141.google.com with SMTP id y17so2608577lfa.8
-        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2020 04:01:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=0bFMdRSpPXTVw6FkASDzFuci7f9roVwhgsTsGiODYGg=;
-        b=bu9PMoyxQXeCQJXQTnO4uU92zugPEP+32GJTwTJGhFmLd0RKGN8bQMrRnrKu/zSoeW
-         GHnIGVzICEGX5Pcf0CeO2+Vx2PIVKlddZLpPH53MSxEf3QsDaWP9sxmMvToBFOJpJqXG
-         R3YHAgG2fzOpyA+PLcgFr5shCpOAsw7ncEZGKNcuLmrZ8IswbWdlBJDRYLAPLj/OKHTR
-         QGOISTSf5PVYJsjPvlHeeE7eNFI087vR7/7dGkIjI+4lO4+qRZYbVvDoH0baNiQRGZJH
-         l0oBFry2v5TM9hZWyFzXSFUNlc2QdW8s/A2tMXdKHLu8VVG0wIUW078NKWlFvKuaIHs5
-         PHNw==
+        id S1726242AbgIPGPU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 16 Sep 2020 02:15:20 -0400
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:39462 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726172AbgIPGPS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 16 Sep 2020 02:15:18 -0400
+Received: by mail-wm1-f67.google.com with SMTP id b79so1627678wmb.4;
+        Tue, 15 Sep 2020 23:15:16 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=0bFMdRSpPXTVw6FkASDzFuci7f9roVwhgsTsGiODYGg=;
-        b=RCHLp7xedDDeYNAHRHCeimS1Vrcd8zNMPYm13wKEFqZt+2UoYLrSP3Lw/db/sd2DbC
-         ObN53wd8vSEId/bmQ4VViHxNyVRh2M3bLJb8tjkL9qgg47yBRsG0IGNzbxjKBtLDDiv3
-         S2aLoyLCGIF3/stZsV0YPxof77EbgXHMuIFd6sHYjL0gSZn6milEMWsshf8uwc1BfAdI
-         ez8mIQw28VsmswdTDqoE1kWjzp6gSxc9UTxHiFviL17RmWXAt06qZC1vztcMJFyyyh4k
-         IvMkoFWl6RCXMUJVy+AwpUAdTk1yv4ImnKeBS2k8dyLCxVbKsTC8ljlcxNt4NuuIrpj+
-         SFYw==
-X-Gm-Message-State: AOAM532ltfOW9TgNaa3d5uPGbHoPjPD4jlKw1OmAtwljEbX1Z4itSh+9
-        c6KppXStM3CWpuioTtVkwjqS6A==
-X-Google-Smtp-Source: ABdhPJzp9MBZN/pyDF9GzMLHUJeD6RV5x2JiSkBUFmjYlSIsuOj7jjb30r36nAQxW4uhgqAt4m+WVg==
-X-Received: by 2002:a19:d95:: with SMTP id 143mr5883867lfn.4.1600167684008;
-        Tue, 15 Sep 2020 04:01:24 -0700 (PDT)
-Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
-        by smtp.gmail.com with ESMTPSA id n3sm4588916ljj.59.2020.09.15.04.01.22
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 15 Sep 2020 04:01:23 -0700 (PDT)
-From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-To:     tglx@linutronix.de, jason@lakedaemon.net, maz@kernel.org,
-        s-anna@ti.com
-Cc:     grzegorz.jaszczyk@linaro.org, robh+dt@kernel.org,
-        lee.jones@linaro.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, david@lechnology.com,
-        praneeth@ti.com
-Subject: [PATCH v6 4/5] irqchip/irq-pruss-intc: Implement irq_{get,set}_irqchip_state ops
-Date:   Tue, 15 Sep 2020 13:00:50 +0200
-Message-Id: <1600167651-20851-5-git-send-email-grzegorz.jaszczyk@linaro.org>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1600167651-20851-1-git-send-email-grzegorz.jaszczyk@linaro.org>
-References: <1600167651-20851-1-git-send-email-grzegorz.jaszczyk@linaro.org>
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=1Uh7Ou5BUk6cJr1eeO8uTrFUHXPcK3jWLNCgC2OA24Q=;
+        b=iimM/rgA0sVbd2BUccvtCaS7S8lZwIZ7g2PlklMvADdLFem6OiWM1Cp8u574+7BbwY
+         SuZEVwd7epJNsDiJRE4+Jq1VKQJc9yrwdy0nCpNDLE3qBumZMKQGHyCLvEQq/GmJGGsn
+         lozDRkW7Lotntmdd7cNzedQTsHViXLvwODXKDobv18aWWxeqPYoh48hYp2hLFT8LGU4N
+         pnFMZ1tCbbmtAcrR45kBgT8VnPgzcULDPzWkXGrLHXGhH72tVQYcEuKf3ckL/FGM+RGC
+         4WLF+bKvDqb5ah5X8IjI6+nzJYaqjewQidr10BCM5H+fzQURWokGmPOeAUwiovp3wews
+         AY6w==
+X-Gm-Message-State: AOAM5315rbuqAsuieb5cut2/3K3WbfXNMeFrmbFiJ+iRqZT6D6JTixeY
+        SAiTwWdm09T9zz0g9+peMUE=
+X-Google-Smtp-Source: ABdhPJw7nNn+CFhmnzt169e4rqB2CZP7AUPFZ9UBjFZbfGui7iEULE8AHLZ3m9ra4r8Pv7DiLjNGnw==
+X-Received: by 2002:a7b:c92c:: with SMTP id h12mr2849155wml.121.1600236916238;
+        Tue, 15 Sep 2020 23:15:16 -0700 (PDT)
+Received: from kozik-lap ([194.230.155.124])
+        by smtp.googlemail.com with ESMTPSA id u126sm4022642wmu.9.2020.09.15.23.15.13
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 15 Sep 2020 23:15:15 -0700 (PDT)
+Date:   Wed, 16 Sep 2020 08:15:11 +0200
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Jason Cooper <jason@lakedaemon.net>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-aspeed <linux-aspeed@lists.ozlabs.org>,
+        "moderated list:ARM/Mediatek SoC support" 
+        <linux-mediatek@lists.infradead.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH v2 02/15] dt-bindings: gpio: convert bindings for Maxim
+ MAX732x family to dtschema
+Message-ID: <20200916061511.GA5719@kozik-lap>
+References: <20200910175733.11046-1-krzk@kernel.org>
+ <20200910175733.11046-3-krzk@kernel.org>
+ <CACRpkdZXu2J4z=1j-syxSbz2x-QiLeTBpwHSOVNfmZ31RgM6Ng@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZXu2J4z=1j-syxSbz2x-QiLeTBpwHSOVNfmZ31RgM6Ng@mail.gmail.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: David Lechner <david@lechnology.com>
+On Sat, Sep 12, 2020 at 11:58:22AM +0200, Linus Walleij wrote:
+> On Thu, Sep 10, 2020 at 7:58 PM Krzysztof Kozlowski <krzk@kernel.org> wrote:
+> 
+> > Convert the Maxim MAX732x family of GPIO expanders bindings to device
+> > tree schema by merging it with existing PCA95xx schema.  These are quite
+> > similar so merging reduces duplication.
+> >
+> > Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+> 
+> Can I just apply this one patch to the GPIO tree?
 
-This implements the irq_get_irqchip_state and irq_set_irqchip_state
-callbacks for the TI PRUSS INTC driver. The set callback can be used
-by drivers to "kick" a PRU by injecting a PRU system event.
+No, this requires the previous one (1/15) because it merges the max732x
+into pca95xx.
 
-Signed-off-by: David Lechner <david@lechnology.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-Reviewed-by: Lee Jones <lee.jones@linaro.org>
----
-v5->v6:
-- Drop example from the commit log
-v4->v5:
-- No change.
-v3->v4:
-- Update commit message
-v2->v3:
-- Get rid of unnecessary pruss_intc_check_write() and use
-  pruss_intc_write_reg directly.
-v1->v2:
-- https://patchwork.kernel.org/patch/11069769/
----
- drivers/irqchip/irq-pruss-intc.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+Although now Rob reviewed both so you can pick them up.
 
-diff --git a/drivers/irqchip/irq-pruss-intc.c b/drivers/irqchip/irq-pruss-intc.c
-index 396dc55..41c6271 100644
---- a/drivers/irqchip/irq-pruss-intc.c
-+++ b/drivers/irqchip/irq-pruss-intc.c
-@@ -12,6 +12,7 @@
-  * Copyright (C) 2019 David Lechner <david@lechnology.com>
-  */
- 
-+#include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/irqchip/chained_irq.h>
- #include <linux/irqdomain.h>
-@@ -323,6 +324,43 @@ static void pruss_intc_irq_relres(struct irq_data *data)
- 	module_put(THIS_MODULE);
- }
- 
-+static int pruss_intc_irq_get_irqchip_state(struct irq_data *data,
-+					    enum irqchip_irq_state which,
-+					    bool *state)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	u32 reg, mask, srsr;
-+
-+	if (which != IRQCHIP_STATE_PENDING)
-+		return -EINVAL;
-+
-+	reg = PRU_INTC_SRSR(data->hwirq / 32);
-+	mask = BIT(data->hwirq % 32);
-+
-+	srsr = pruss_intc_read_reg(intc, reg);
-+
-+	*state = !!(srsr & mask);
-+
-+	return 0;
-+}
-+
-+static int pruss_intc_irq_set_irqchip_state(struct irq_data *data,
-+					    enum irqchip_irq_state which,
-+					    bool state)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+
-+	if (which != IRQCHIP_STATE_PENDING)
-+		return -EINVAL;
-+
-+	if (state)
-+		pruss_intc_write_reg(intc, PRU_INTC_SISR, data->hwirq);
-+	else
-+		pruss_intc_write_reg(intc, PRU_INTC_SICR, data->hwirq);
-+
-+	return 0;
-+}
-+
- static struct irq_chip pruss_irqchip = {
- 	.name			= "pruss-intc",
- 	.irq_ack		= pruss_intc_irq_ack,
-@@ -330,6 +368,8 @@ static struct irq_chip pruss_irqchip = {
- 	.irq_unmask		= pruss_intc_irq_unmask,
- 	.irq_request_resources	= pruss_intc_irq_reqres,
- 	.irq_release_resources	= pruss_intc_irq_relres,
-+	.irq_get_irqchip_state	= pruss_intc_irq_get_irqchip_state,
-+	.irq_set_irqchip_state	= pruss_intc_irq_set_irqchip_state,
- };
- 
- static int pruss_intc_validate_mapping(struct pruss_intc *intc, int event,
--- 
-2.7.4
-
+Best regards,
+Krzysztof
