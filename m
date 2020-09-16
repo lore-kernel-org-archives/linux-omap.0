@@ -2,196 +2,179 @@ Return-Path: <SRS0=ZcCZ=CZ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A45BC43461
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 19:19:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6A97C433E2
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 20:21:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D434F20770
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 19:19:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7718E21973
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 20:21:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1600287692;
+	bh=wdAkw2TjM1udxEqqVOzxHnXaiuAOFMCD3JyJ0x6GXJI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=wtzfDUUn6sp1YkJFAIaok2m4Pb8svIajkv0blXhpTn0BTKbV42nHYd1MfNncL5xDT
+	 /CyZW392kjFawuV4JFrsSPC0dKQ7S/I4G6ax9bEBO0ll/ltoUawf2QtZjDSvGAl7XQ
+	 ZvfZxGP44ncu9tDlfKPn2wpNYgAw6zFT6OiE0las=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727365AbgIPTS0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 16 Sep 2020 15:18:26 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:12793 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727355AbgIPTRX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 16 Sep 2020 15:17:23 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id DDB546E93D4F92723607;
-        Wed, 16 Sep 2020 19:07:05 +0800 (CST)
-Received: from huawei.com (10.90.53.225) by DGGEMS410-HUB.china.huawei.com
- (10.3.19.210) with Microsoft SMTP Server id 14.3.487.0; Wed, 16 Sep 2020
- 19:07:01 +0800
-From:   Qilong Zhang <zhangqilong3@huawei.com>
-To:     <b.zolnierkie@samsung.com>
-CC:     <linux-omap@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH -next] dss:use devm_platform_ioremap_resource_byname
-Date:   Wed, 16 Sep 2020 19:13:53 +0800
-Message-ID: <20200916111353.105914-1-zhangqilong3@huawei.com>
-X-Mailer: git-send-email 2.26.0.106.g9fadedd
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.90.53.225]
-X-CFilter-Loop: Reflected
+        id S1727409AbgIPUV3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 16 Sep 2020 16:21:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43846 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727160AbgIPRau (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 16 Sep 2020 13:30:50 -0400
+Received: from kozik-lap.mshome.net (unknown [194.230.155.191])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1D3B922464;
+        Wed, 16 Sep 2020 15:58:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1600271894;
+        bh=wdAkw2TjM1udxEqqVOzxHnXaiuAOFMCD3JyJ0x6GXJI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=CEkiTIX+Fl0xgU9GaFowB3IBFoj0LdQvWJp6D/j5lf4NecsiG9e7rpukGJOxIsOGX
+         OiHfB2CHjp8UzjXsoU4dCoauEfCjSPEEzbwnAko1gQFeuf/NUQwGG6LcEcvfRUlBi8
+         pOcI/Xun6ff/784JHIbliYALEOTgbG6oNJuCy1EA=
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Jason Cooper <jason@lakedaemon.net>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org
+Cc:     Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH v3 05/15] arm64: dts: renesas: align GPIO hog names with dtschema
+Date:   Wed, 16 Sep 2020 17:57:05 +0200
+Message-Id: <20200916155715.21009-6-krzk@kernel.org>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200916155715.21009-1-krzk@kernel.org>
+References: <20200916155715.21009-1-krzk@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Use the devm_platform_ioremap_resource_byname() helper instead of
-calling platform_get_resource_byname() and devm_ioremap_resource()
-separately.
+The convention for node names is to use hyphens, not underscores.
+dtschema for pca95xx expects GPIO hogs to end with 'hog' prefix.
 
-Signed-off-by: Zhang Qilong <zhangqilong3@huawei.com>
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- .../video/fbdev/omap2/omapfb/dss/hdmi4_core.c | 10 +--------
- .../video/fbdev/omap2/omapfb/dss/hdmi5_core.c | 10 +--------
- .../video/fbdev/omap2/omapfb/dss/hdmi_phy.c   | 10 +--------
- .../video/fbdev/omap2/omapfb/dss/hdmi_pll.c   |  9 +-------
- .../video/fbdev/omap2/omapfb/dss/video-pll.c  | 21 +++----------------
- 5 files changed, 7 insertions(+), 53 deletions(-)
+ .../boot/dts/renesas/r8a77951-salvator-xs.dts      |  2 +-
+ .../boot/dts/renesas/r8a77965-salvator-xs.dts      |  2 +-
+ arch/arm64/boot/dts/renesas/ulcb-kf.dtsi           | 14 +++++++-------
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4_core.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4_core.c
-index 7ca1803bf161..726c190862d4 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4_core.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4_core.c
-@@ -875,15 +875,7 @@ void hdmi4_audio_stop(struct hdmi_core_data *core, struct hdmi_wp_data *wp)
+diff --git a/arch/arm64/boot/dts/renesas/r8a77951-salvator-xs.dts b/arch/arm64/boot/dts/renesas/r8a77951-salvator-xs.dts
+index cef9da4376a3..e5922329a4b8 100644
+--- a/arch/arm64/boot/dts/renesas/r8a77951-salvator-xs.dts
++++ b/arch/arm64/boot/dts/renesas/r8a77951-salvator-xs.dts
+@@ -118,7 +118,7 @@
+ };
  
- int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core)
- {
--	struct resource *res;
--
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "core");
--	if (!res) {
--		DSSERR("can't get CORE mem resource\n");
--		return -EINVAL;
--	}
--
--	core->base = devm_ioremap_resource(&pdev->dev, res);
-+	core->base = devm_platform_ioremap_resource_byname(pdev, "core");
- 	if (IS_ERR(core->base)) {
- 		DSSERR("can't ioremap CORE\n");
- 		return PTR_ERR(core->base);
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
-index 2f6ff14a48d9..eda29d3032e1 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
-@@ -887,15 +887,7 @@ int hdmi5_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
+ &pca9654 {
+-	pcie_sata_switch {
++	pcie-sata-switch-hog {
+ 		gpio-hog;
+ 		gpios = <7 GPIO_ACTIVE_HIGH>;
+ 		output-low; /* enable SATA by default */
+diff --git a/arch/arm64/boot/dts/renesas/r8a77965-salvator-xs.dts b/arch/arm64/boot/dts/renesas/r8a77965-salvator-xs.dts
+index 5cef64605464..d7e621101af7 100644
+--- a/arch/arm64/boot/dts/renesas/r8a77965-salvator-xs.dts
++++ b/arch/arm64/boot/dts/renesas/r8a77965-salvator-xs.dts
+@@ -55,7 +55,7 @@
+ };
  
- int hdmi5_core_init(struct platform_device *pdev, struct hdmi_core_data *core)
- {
--	struct resource *res;
--
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "core");
--	if (!res) {
--		DSSERR("can't get CORE IORESOURCE_MEM HDMI\n");
--		return -EINVAL;
--	}
--
--	core->base = devm_ioremap_resource(&pdev->dev, res);
-+	core->base = devm_platform_ioremap_resource_byname(pdev, "core");
- 	if (IS_ERR(core->base)) {
- 		DSSERR("can't ioremap HDMI core\n");
- 		return PTR_ERR(core->base);
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-index 9c645adba9e2..6fbfeb01b315 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-@@ -207,19 +207,11 @@ static const struct hdmi_phy_features *hdmi_phy_get_features(void)
+ &pca9654 {
+-	pcie_sata_switch {
++	pcie-sata-switch-hog {
+ 		gpio-hog;
+ 		gpios = <7 GPIO_ACTIVE_HIGH>;
+ 		output-low; /* enable SATA by default */
+diff --git a/arch/arm64/boot/dts/renesas/ulcb-kf.dtsi b/arch/arm64/boot/dts/renesas/ulcb-kf.dtsi
+index 202177706cde..e9ed2597f1c2 100644
+--- a/arch/arm64/boot/dts/renesas/ulcb-kf.dtsi
++++ b/arch/arm64/boot/dts/renesas/ulcb-kf.dtsi
+@@ -143,49 +143,49 @@
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
  
- int hdmi_phy_init(struct platform_device *pdev, struct hdmi_phy_data *phy)
- {
--	struct resource *res;
--
- 	phy_feat = hdmi_phy_get_features();
- 	if (!phy_feat)
- 		return -ENODEV;
+-		audio_out_off {
++		audio-out-off-hog {
+ 			gpio-hog;
+ 			gpios = <0 GPIO_ACTIVE_HIGH>; /* P00 */
+ 			output-high;
+ 			line-name = "Audio_Out_OFF";
+ 		};
  
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "phy");
--	if (!res) {
--		DSSERR("can't get PHY mem resource\n");
--		return -EINVAL;
--	}
--
--	phy->base = devm_ioremap_resource(&pdev->dev, res);
-+	phy->base = devm_platform_ioremap_resource_byname(pdev, "phy");
- 	if (IS_ERR(phy->base)) {
- 		DSSERR("can't ioremap TX PHY\n");
- 		return PTR_ERR(phy->base);
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-index 4991be031b0b..eb984d9999fe 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-@@ -220,17 +220,10 @@ int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll,
- 	struct hdmi_wp_data *wp)
- {
- 	int r;
--	struct resource *res;
+-		hub_pwen {
++		hub-pwen-hog {
+ 			gpio-hog;
+ 			gpios = <6 GPIO_ACTIVE_HIGH>;
+ 			output-high;
+ 			line-name = "HUB pwen";
+ 		};
  
- 	pll->wp = wp;
+-		hub_rst {
++		hub-rst-hog {
+ 			gpio-hog;
+ 			gpios = <7 GPIO_ACTIVE_HIGH>;
+ 			output-high;
+ 			line-name = "HUB rst";
+ 		};
  
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll");
--	if (!res) {
--		DSSERR("can't get PLL mem resource\n");
--		return -EINVAL;
--	}
--
--	pll->base = devm_ioremap_resource(&pdev->dev, res);
-+	pll->base = devm_platform_ioremap_resource_byname(pdev, "pll");
- 	if (IS_ERR(pll->base)) {
- 		DSSERR("can't ioremap PLLCTRL\n");
- 		return PTR_ERR(pll->base);
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/video-pll.c b/drivers/video/fbdev/omap2/omapfb/dss/video-pll.c
-index f45fe60b9e7d..bff03d920722 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/video-pll.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/video-pll.c
-@@ -129,7 +129,6 @@ struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
- 	const char * const clkctrl_name[] = { "pll1_clkctrl", "pll2_clkctrl" };
- 	const char * const clkin_name[] = { "video1_clk", "video2_clk" };
+-		otg_extlpn {
++		otg-extlpn-hog {
+ 			gpio-hog;
+ 			gpios = <9 GPIO_ACTIVE_HIGH>;
+ 			output-high;
+ 			line-name = "OTG EXTLPn";
+ 		};
  
--	struct resource *res;
- 	struct dss_video_pll *vpll;
- 	void __iomem *pll_base, *clkctrl_base;
- 	struct clk *clk;
-@@ -138,14 +137,7 @@ struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
+-		otg_offvbusn {
++		otg-offvbusn-hog {
+ 			gpio-hog;
+ 			gpios = <8 GPIO_ACTIVE_HIGH>;
+ 			output-low;
+ 			line-name = "OTG OFFVBUSn";
+ 		};
  
- 	/* PLL CONTROL */
+-		sd-wifi-mux {
++		sd-wifi-mux-hog {
+ 			gpio-hog;
+ 			gpios = <5 GPIO_ACTIVE_HIGH>;
+ 			output-low;	/* Connect WL1837 */
+ 			line-name = "SD WiFi mux";
+ 		};
  
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, reg_name[id]);
--	if (!res) {
--		dev_err(&pdev->dev,
--			"missing platform resource data for pll%d\n", id);
--		return ERR_PTR(-ENODEV);
--	}
--
--	pll_base = devm_ioremap_resource(&pdev->dev, res);
-+	pll_base = devm_platform_ioremap_resource_byname(pdev, reg_name[id]);
- 	if (IS_ERR(pll_base)) {
- 		dev_err(&pdev->dev, "failed to ioremap pll%d reg_name\n", id);
- 		return ERR_CAST(pll_base);
-@@ -153,15 +145,8 @@ struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
- 
- 	/* CLOCK CONTROL */
- 
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
--		clkctrl_name[id]);
--	if (!res) {
--		dev_err(&pdev->dev,
--			"missing platform resource data for pll%d\n", id);
--		return ERR_PTR(-ENODEV);
--	}
--
--	clkctrl_base = devm_ioremap_resource(&pdev->dev, res);
-+	clkctrl_base = devm_platform_ioremap_resource_byname(pdev,
-+					clkctrl_name[id]);
- 	if (IS_ERR(clkctrl_base)) {
- 		dev_err(&pdev->dev, "failed to ioremap pll%d clkctrl\n", id);
- 		return ERR_CAST(clkctrl_base);
+-		snd_rst {
++		snd-rst-hog {
+ 			gpio-hog;
+ 			gpios = <15 GPIO_ACTIVE_HIGH>; /* P17 */
+ 			output-high;
 -- 
 2.17.1
 
