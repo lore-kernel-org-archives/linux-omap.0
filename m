@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E10C43461
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 16:33:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A9BFC2BB84
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 17:24:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDBB720732
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 16:33:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 357CA223EA
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Sep 2020 17:24:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600274006;
-	bh=Ty18eFbR1LQ96gqxXM+8sE2Q1P8WRnMu4EObDZv2/zk=;
+	s=default; t=1600277053;
+	bh=z54NT2te4cQqCwvnxGuhIvp2W2PqIQwX8Rfrwo03n6k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Yoroi9i4yNvoJUKxb//FeZ82aA6n5gfn9WqRRlgJAat4nEudOG72qUN8WRkjZDKCJ
-	 +o59Ye3jD9afJ15UM297humQcqCfkcW6OtVBtAs//lmxnK6TR+6QNiDTXqFgKl0aab
-	 YmPy3G14wNL1LLk7hAnphoYboq654udJxjYsG9V8=
+	b=RdO87RwyonymBv2WF5oqHgvrtcdROuGDvRezS2aaPe5ZgQs+fzuoD4g8dXxg2AcsA
+	 I2UhmiJsmEoYIybUUivEZh7COleCFYs7PvoveapUPbx3+hLMAh1Tlsy6zeFIalJUSf
+	 azymxspJveed9oJuw6O3/dt7uHJDoXwGk1uMztaw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726581AbgIPQcr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 16 Sep 2020 12:32:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43080 "EHLO mail.kernel.org"
+        id S1726957AbgIPRXf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 16 Sep 2020 13:23:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726343AbgIPQbe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 16 Sep 2020 12:31:34 -0400
+        id S1726987AbgIPRWx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 16 Sep 2020 13:22:53 -0400
 Received: from kozik-lap.mshome.net (unknown [194.230.155.191])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E571022472;
-        Wed, 16 Sep 2020 15:58:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6614422470;
+        Wed, 16 Sep 2020 15:58:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600271901;
-        bh=Ty18eFbR1LQ96gqxXM+8sE2Q1P8WRnMu4EObDZv2/zk=;
+        s=default; t=1600271923;
+        bh=z54NT2te4cQqCwvnxGuhIvp2W2PqIQwX8Rfrwo03n6k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hcD1MRTTKLJUVNVTe1M/7hjIPTwl4PEdGwc3NKI5mW7umBw+PpdChTixDl/LPB3ZO
-         EyF6tdHwuE94pBwX9llb65GacZaR+ZzMafTewQzccZUQ8DMpU1Apm/fxMhxvLlHcxs
-         xWcx3ouuKgd6ZaZ9hM0Af5dMetJnlE/0JTGUazA4=
+        b=HK32OVkYHkBdJOofLkJ+eUoiFHxyVHCmMnup/A7LJvnMbmFRiwsgEMgYtwJqubXXq
+         JCspG3tYh6jh9B4NAgWMrK96wSIlk+dYeGSlk9dnzukQSbkIiOSIKR8DOI5Es5fyRl
+         4yJvpL+qxOp5+HXbERF/ET+85d6NF+YAf9Huy1sY=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
@@ -67,9 +67,9 @@ To:     Linus Walleij <linus.walleij@linaro.org>,
         linux-aspeed@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
         linux-renesas-soc@vger.kernel.org
 Cc:     Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v3 06/15] arm64: dts: ti: align GPIO hog names with dtschema
-Date:   Wed, 16 Sep 2020 17:57:06 +0200
-Message-Id: <20200916155715.21009-7-krzk@kernel.org>
+Subject: [PATCH v3 09/15] ARM: dts: am335x: t335: align GPIO hog names with dtschema
+Date:   Wed, 16 Sep 2020 17:57:09 +0200
+Message-Id: <20200916155715.21009-10-krzk@kernel.org>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200916155715.21009-1-krzk@kernel.org>
 References: <20200916155715.21009-1-krzk@kernel.org>
@@ -83,31 +83,29 @@ dtschema for pca95xx expects GPIO hogs to end with 'hog' prefix.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- arch/arm64/boot/dts/ti/k3-j721e-common-proc-board.dts | 4 ++--
+ arch/arm/boot/dts/am335x-sbc-t335.dts | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/boot/dts/ti/k3-j721e-common-proc-board.dts b/arch/arm64/boot/dts/ti/k3-j721e-common-proc-board.dts
-index 648267284582..456e7818b521 100644
---- a/arch/arm64/boot/dts/ti/k3-j721e-common-proc-board.dts
-+++ b/arch/arm64/boot/dts/ti/k3-j721e-common-proc-board.dts
-@@ -407,7 +407,7 @@
+diff --git a/arch/arm/boot/dts/am335x-sbc-t335.dts b/arch/arm/boot/dts/am335x-sbc-t335.dts
+index a3f6bc4072d9..81e4453687ba 100644
+--- a/arch/arm/boot/dts/am335x-sbc-t335.dts
++++ b/arch/arm/boot/dts/am335x-sbc-t335.dts
+@@ -155,13 +155,13 @@
  		gpio-controller;
  		#gpio-cells = <2>;
- 
--		p09 {
-+		p09-hog {
- 			/* P11 - MCASP/TRACE_MUX_S0 */
+ 		reg = <0x26>;
+-		dvi_ena {
++		dvi-ena-hog {
  			gpio-hog;
- 			gpios = <9 GPIO_ACTIVE_HIGH>;
-@@ -415,7 +415,7 @@
- 			line-name = "MCASP/TRACE_MUX_S0";
+ 			gpios = <13 GPIO_ACTIVE_HIGH>;
+ 			output-high;
+ 			line-name = "dvi-enable";
  		};
- 
--		p10 {
-+		p10-hog {
- 			/* P12 - MCASP/TRACE_MUX_S1 */
+-		lcd_ena {
++		lcd-ena-hog {
  			gpio-hog;
- 			gpios = <10 GPIO_ACTIVE_HIGH>;
+ 			gpios = <11 GPIO_ACTIVE_HIGH>;
+ 			output-high;
 -- 
 2.17.1
 
