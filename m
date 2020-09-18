@@ -2,101 +2,55 @@ Return-Path: <SRS0=4+tN=C3=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53D2FC43465
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 03:13:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C83CC43463
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 05:19:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F7C120678
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 03:13:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600398833;
-	bh=TbwRRcbFWiuMB8dfF8YlJolXDH48+LAChbI07sEfkpw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=bkW6zn0rTf1zwaEU6q8N53SB7XsnTyVfy84TPkoObNjO0G85H1t1+chuwLvfBPecK
-	 bqqH2JkS+gJzXYrsbgo+DXNuQiiOFdGgpMPABAZAza+CKlNb5vMZOKoYWDkymVQCR2
-	 Z7bfapKVHreMCHh6tZZ1HIyuRXAmjtRYXSYtiEHs=
+	by mail.kernel.org (Postfix) with ESMTP id 0990622208
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 05:19:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730640AbgIRDNo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 17 Sep 2020 23:13:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46538 "EHLO mail.kernel.org"
+        id S1726265AbgIRFTm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Sep 2020 01:19:42 -0400
+Received: from verein.lst.de ([213.95.11.211]:59129 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726546AbgIRCBx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 17 Sep 2020 22:01:53 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C6BD021973;
-        Fri, 18 Sep 2020 02:01:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600394512;
-        bh=TbwRRcbFWiuMB8dfF8YlJolXDH48+LAChbI07sEfkpw=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cjtqmMaMvz67F9mJQ/qrGrmcar9QdL8HRSfFiQO3zB1gIkfanYyNNWdE+m2HQadSY
-         CPVO1rDRzG4E7d2hh3FMWCyKFYFhGKL0L5C5p9Vi74zcfMXnANUwtYKq7XLmOjL6wR
-         yvfkbLOPRf22NStlS4bPb2REbXr0bwKpeecnjRI8=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Stephen Kitt <steve@sk2.org>, Tony Lindgren <tony@atomide.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 035/330] clk/ti/adpll: allocate room for terminating null
-Date:   Thu, 17 Sep 2020 21:56:15 -0400
-Message-Id: <20200918020110.2063155-35-sashal@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200918020110.2063155-1-sashal@kernel.org>
-References: <20200918020110.2063155-1-sashal@kernel.org>
+        id S1726222AbgIRFTm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 18 Sep 2020 01:19:42 -0400
+X-Greylist: delayed 548 seconds by postgrey-1.27 at vger.kernel.org; Fri, 18 Sep 2020 01:19:41 EDT
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id 9FD6A68B02; Fri, 18 Sep 2020 07:10:30 +0200 (CEST)
+Date:   Fri, 18 Sep 2020 07:10:30 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Russell King - ARM Linux admin <linux@armlinux.org.uk>
+Cc:     Christoph Hellwig <hch@lst.de>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Tony Lindgren <tony@atomide.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        iommu@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: [PATCH 3/4] ARM/dma-mapping: don't handle NULL devices in
+ dma-direct.h
+Message-ID: <20200918051030.GA21261@lst.de>
+References: <20200917173229.3311382-1-hch@lst.de> <20200917173229.3311382-4-hch@lst.de> <20200917185009.GB1559@shell.armlinux.org.uk>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200917185009.GB1559@shell.armlinux.org.uk>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Stephen Kitt <steve@sk2.org>
+On Thu, Sep 17, 2020 at 07:50:10PM +0100, Russell King - ARM Linux admin wrote:
+> On Thu, Sep 17, 2020 at 07:32:28PM +0200, Christoph Hellwig wrote:
+> > The DMA API removed support for not passing in a device a long time
+> > ago, so remove the NULL checks.
+> 
+> What happens with ISA devices?
 
-[ Upstream commit 7f6ac72946b88b89ee44c1c527aa8591ac5ffcbe ]
-
-The buffer allocated in ti_adpll_clk_get_name doesn't account for the
-terminating null. This patch switches to devm_kasprintf to avoid
-overflowing.
-
-Signed-off-by: Stephen Kitt <steve@sk2.org>
-Link: https://lkml.kernel.org/r/20191019140634.15596-1-steve@sk2.org
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Stephen Boyd <sboyd@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/clk/ti/adpll.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
-index fdfb90058504c..bb2f2836dab22 100644
---- a/drivers/clk/ti/adpll.c
-+++ b/drivers/clk/ti/adpll.c
-@@ -194,15 +194,8 @@ static const char *ti_adpll_clk_get_name(struct ti_adpll_data *d,
- 		if (err)
- 			return NULL;
- 	} else {
--		const char *base_name = "adpll";
--		char *buf;
--
--		buf = devm_kzalloc(d->dev, 8 + 1 + strlen(base_name) + 1 +
--				    strlen(postfix), GFP_KERNEL);
--		if (!buf)
--			return NULL;
--		sprintf(buf, "%08lx.%s.%s", d->pa, base_name, postfix);
--		name = buf;
-+		name = devm_kasprintf(d->dev, GFP_KERNEL, "%08lx.adpll.%s",
-+				      d->pa, postfix);
- 	}
- 
- 	return name;
--- 
-2.25.1
-
+For actual drivers they've been switched to struct isa_driver, which
+provides a struct device.  For some of the special case like the
+arch/arm/kernel/dma-isa.c we now use static struct device instances.
