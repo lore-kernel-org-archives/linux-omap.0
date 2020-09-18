@@ -2,97 +2,93 @@ Return-Path: <SRS0=4+tN=C3=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D45C43463
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 15:25:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B054C43463
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 15:59:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55B3F238D6
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 15:25:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E467D2388E
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 15:59:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="KUXR+Lfs"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="nVf4t0Al"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726234AbgIRPZH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Sep 2020 11:25:07 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:40318 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726126AbgIRPZH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2020 11:25:07 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 08IFP4hB024869;
-        Fri, 18 Sep 2020 10:25:04 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1600442704;
-        bh=Ri8n0vQ0JS3Rglyk98eSUKquY7zrHEoKeNa5GObXALA=;
-        h=To:CC:From:Subject:Date;
-        b=KUXR+LfsfhFKYEmIN71ooDwv93u5JJ6OhIdVfd5Lt7bwrnHF7NOugMretUQrIiNkN
-         jRyBCMvkkYQ45/y3TphUk4tz6XPT4cHDBF6iyspQT3HP4r0RFyh3bzKs3svhqjufIp
-         EosYY8SxCVp1oyvG8isqFqJ1aHzlQcZ7AjDlpOFs=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08IFP49N033455;
-        Fri, 18 Sep 2020 10:25:04 -0500
-Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 18
- Sep 2020 10:25:03 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 18 Sep 2020 10:25:03 -0500
-Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 08IFP2mx118678;
-        Fri, 18 Sep 2020 10:25:03 -0500
-To:     Linux-OMAP <linux-omap@vger.kernel.org>
-CC:     Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Slow booting on x15
-Message-ID: <ea02f57e-871d-cd16-4418-c1da4bbc4696@ti.com>
-Date:   Fri, 18 Sep 2020 18:25:02 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1726149AbgIRP7T (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Sep 2020 11:59:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41628 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726115AbgIRP7T (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2020 11:59:19 -0400
+Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [IPv6:2001:4b98:dc2:55:216:3eff:fef7:d647])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A362AC0613CE
+        for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2020 08:59:18 -0700 (PDT)
+Received: from pendragon.ideasonboard.com (62-78-145-57.bb.dnainternet.fi [62.78.145.57])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8561C2D7;
+        Fri, 18 Sep 2020 17:59:15 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1600444755;
+        bh=Wp/J1AEFQL2S412IUsaynd0vSfoQ2onok1jCCJ6gZQc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=nVf4t0Alwv4/dUdya3hjEQ3HEeLMxQHfpyryztLzKHggTWw1QxQlV4v4X4MOd4oUT
+         BOh5bthZeSwh3p0M5ILgMKuCGuJAdQag2GKA8Es8B1KL1O8dA1wVW7oIigXlPX85aj
+         EzlmffqL4Y+kDpRQ5ge+qtYreJFj3Fe/H4mknOvU=
+Date:   Fri, 18 Sep 2020 18:58:44 +0300
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc:     Linux-OMAP <linux-omap@vger.kernel.org>
+Subject: Re: Slow booting on x15
+Message-ID: <20200918155844.GH28436@pendragon.ideasonboard.com>
+References: <ea02f57e-871d-cd16-4418-c1da4bbc4696@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ea02f57e-871d-cd16-4418-c1da4bbc4696@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, Sep 18, 2020 at 06:25:02PM +0300, Tomi Valkeinen wrote:
+> Hi,
+> 
+> Has anyone noticed that booting would have slowed down in 5.8 and in 5.9-rcs? I'm booting x15 with
+> my custom config builder, which uses omap2plus_defconfig as a base. I see:
+> 
+> v5.7
+> [    0.597765] cpuidle: using governor menu
+> [    0.793198] No ATAGs?
+> 
+> [    9.654611] Run /sbin/init as init process
+> 
+> 5.8
+> [    0.616660] cpuidle: using governor menu
+> [    4.439856] No ATAGs?
+> 
+> [   15.484710] Run /sbin/init as init process
+> 
+> v5.9-rc5
+> [    0.706165] cpuidle: using governor menu
+> [    6.761812] No ATAGs?
+> 
+> [   19.522536] Run /sbin/init as init process
+> 
+> 
+> So v5.7 boots quickly, and init starts around 9.6 secs. 5.8 is much slower, and 5.9-rc5 even slower.
 
-Has anyone noticed that booting would have slowed down in 5.8 and in 5.9-rcs? I'm booting x15 with
-my custom config builder, which uses omap2plus_defconfig as a base. I see:
+I've tracked this down to device_link_add_missing_supplier_links()
+taking about 40+ms to run, for every device added to the system. Given
+the large number of devices, this adds up to 10s on v5.9-rc5, when
+called during the initial of_platform_populate().
 
-v5.7
-[    0.597765] cpuidle: using governor menu
-[    0.793198] No ATAGs?
+It doesn't seem there's a single culprit here (although I may have
+missed it), "just" lots of walks through the whole device tree that end
+up taking way too much time. I'm not planning to investigate this
+further at this point.
 
-[    9.654611] Run /sbin/init as init process
-
-5.8
-[    0.616660] cpuidle: using governor menu
-[    4.439856] No ATAGs?
-
-[   15.484710] Run /sbin/init as init process
-
-v5.9-rc5
-[    0.706165] cpuidle: using governor menu
-[    6.761812] No ATAGs?
-
-[   19.522536] Run /sbin/init as init process
-
-
-So v5.7 boots quickly, and init starts around 9.6 secs. 5.8 is much slower, and 5.9-rc5 even slower.
-
-My config builder enables all kinds of debug options, so possibly it could be just more debug
-features or such having been implemented, or enabled in omap2plus_defconfig...
-
- Tomi
+> My config builder enables all kinds of debug options, so possibly it could be just more debug
+> features or such having been implemented, or enabled in omap2plus_defconfig...
 
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Regards,
+
+Laurent Pinchart
