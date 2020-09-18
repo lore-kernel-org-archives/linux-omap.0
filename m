@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C3DEC43464
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 02:30:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0904C43465
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 02:40:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B34C21973
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 02:30:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A31C32311C
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Sep 2020 02:40:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600396250;
-	bh=FKSyQy8IhMrfV3uwxwj3FPEYU6o9g3jlh069ZrX5a10=;
+	s=default; t=1600396838;
+	bh=ygklLE7x3pSrEqwH+meJspWhHuinLS6HI8oRrCRgor0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=0wdZQeB62lsVPi8faDFA4G67BLmgpRvNtywuCfk09qtO0nyFCSTBV9K8dd5CU9BLy
-	 54ZYnEWHf6nmmMlo8aVctSLPJusW/wVsAowwn8xehrHLOuuBp5ZeZWbkLsAxykwwW4
-	 bb9JAjZtYQYHPxg0KVdOJkNleC5E5lQsNsV/0OuA=
+	b=tn3F4eYseDq4henUzyubtMZnPFl7sjKbIOslKU6bhTU2isjsHu2PyzRzk5vJaVn7v
+	 kABFFB9sVbHbUrHolIPuCq/MDQQ7Pydc5bXt+HVfISFiyTsAOetbdr7pXUvWke9MJO
+	 ejMOLnQiZIHlw+hSw7oT6bCejAQuOlgDL5VTRUEI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729095AbgIRCOc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 17 Sep 2020 22:14:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42668 "EHLO mail.kernel.org"
+        id S1729856AbgIRCkV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 17 Sep 2020 22:40:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728742AbgIRCOb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 17 Sep 2020 22:14:31 -0400
+        id S1728656AbgIRCLk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 17 Sep 2020 22:11:40 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5D39623A32;
-        Fri, 18 Sep 2020 02:14:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5FA43208DB;
+        Fri, 18 Sep 2020 02:11:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600395270;
-        bh=FKSyQy8IhMrfV3uwxwj3FPEYU6o9g3jlh069ZrX5a10=;
+        s=default; t=1600395094;
+        bh=ygklLE7x3pSrEqwH+meJspWhHuinLS6HI8oRrCRgor0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=w20e7/5AJLFPfEPHHH5IrvBOjTRvU7PLWCB24u88XpHWuFRLT2zMGH7IKBH4T0FYK
-         7UKeakkKutwAE2VJC38Ns+Qq294hi7olrSsIzZ80EKqC5TRno/4vqHkn9GdQcDFrPb
-         PAF43OZV2Y3KuR0N6F5qhfF5+ahq4fONcdPy6GZQ=
+        b=k1pUlPyWUJlUPM7rzD/8zAQlukNXF27rXjAArSG+kuI4c+lK1shkC7ysbaqGJpnNg
+         G34VhpA8mM2jIEp31gS2p2jSGVBn9GOaL4UETC1vkyzRqX2J1hJOlghDhIRO7ox+bF
+         xuO7nzDTw1USH+Yqeuil3Q9kGAf6kyLuJXA2GGLE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Yu Chen <chenyu56@huawei.com>,
@@ -45,12 +45,12 @@ Cc:     Yu Chen <chenyu56@huawei.com>,
         Felipe Balbi <balbi@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-usb@vger.kernel.org,
         linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 109/127] usb: dwc3: Increase timeout for CmdAct cleared by device controller
-Date:   Thu, 17 Sep 2020 22:12:02 -0400
-Message-Id: <20200918021220.2066485-109-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 175/206] usb: dwc3: Increase timeout for CmdAct cleared by device controller
+Date:   Thu, 17 Sep 2020 22:07:31 -0400
+Message-Id: <20200918020802.2065198-175-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200918021220.2066485-1-sashal@kernel.org>
-References: <20200918021220.2066485-1-sashal@kernel.org>
+In-Reply-To: <20200918020802.2065198-1-sashal@kernel.org>
+References: <20200918020802.2065198-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -93,10 +93,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 4149d751719e3..4a42368734644 100644
+index 7bf2573dd459e..37cc3fd7c3cad 100644
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
-@@ -276,7 +276,7 @@ int dwc3_send_gadget_ep_cmd(struct dwc3_ep *dep, unsigned cmd,
+@@ -270,7 +270,7 @@ int dwc3_send_gadget_ep_cmd(struct dwc3_ep *dep, unsigned cmd,
  {
  	const struct usb_endpoint_descriptor *desc = dep->endpoint.desc;
  	struct dwc3		*dwc = dep->dwc;
