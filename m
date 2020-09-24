@@ -7,74 +7,75 @@ X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66533C4363D
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 11:57:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C317C4741F
+	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 11:57:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D36042388A
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 11:57:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C14E5238A1
+	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 11:57:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=synopsys.com header.i=@synopsys.com header.b="M3OuE6U3";
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=synopsys.com header.i=@synopsys.com header.b="GuRkXg/K"
+	dkim=pass (2048-bit key) header.d=synopsys.com header.i=@synopsys.com header.b="Qw+DGSWh";
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=synopsys.com header.i=@synopsys.com header.b="NdE+qCbV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727484AbgIXL5n (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 24 Sep 2020 07:57:43 -0400
-Received: from smtprelay-out1.synopsys.com ([149.117.87.133]:43778 "EHLO
+        id S1727566AbgIXL5o (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 24 Sep 2020 07:57:44 -0400
+Received: from smtprelay-out1.synopsys.com ([149.117.87.133]:43776 "EHLO
         smtprelay-out1.synopsys.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727449AbgIXL5m (ORCPT
+        by vger.kernel.org with ESMTP id S1727428AbgIXL5m (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
         Thu, 24 Sep 2020 07:57:42 -0400
-Received: from mailhost.synopsys.com (us03-mailhost2.synopsys.com [10.4.17.18])
+X-Greylist: delayed 586 seconds by postgrey-1.27 at vger.kernel.org; Thu, 24 Sep 2020 07:57:41 EDT
+Received: from mailhost.synopsys.com (badc-mailhost1.synopsys.com [10.192.0.17])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtprelay-out1.synopsys.com (Postfix) with ESMTPS id A4911C06FE;
-        Thu, 24 Sep 2020 11:49:44 +0000 (UTC)
+        by smtprelay-out1.synopsys.com (Postfix) with ESMTPS id 7FB64C043E;
+        Thu, 24 Sep 2020 11:47:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=synopsys.com; s=mail;
-        t=1600948184; bh=014EpVGBfv2VMCkXzimL9jn4TRXp7tdrtfH67KofY/M=;
+        t=1600948074; bh=BWV6t/tL8bMKJCJqIt6yqTnWEX3xhX3f9RMEHZUPB7o=;
         h=From:To:CC:Subject:Date:References:In-Reply-To:From;
-        b=M3OuE6U3e5enSLN4NH2Eaw0JpQihbF+NWBFQQz1+NG2USKbAO4wa6OFOv5aoYjD+U
-         Z7HSU/9hh/cPYEpq+bb0f+qPwZumb8FnY4LCDqDOafoI2/lrK5Qguc9BXjKWnJRBL0
-         7ZR/NmFU2xfusXwMgLEieRGUwb0tWTKbokKkjY/vZ2IGui3Vmlld9fAQ0Ekw2HjOo4
-         ZaC7TcMXOM1vHawpTafG/jfBuVk48Ey2heglvjGr/4qboh3Fvj2QDSXecUHkGV6OOq
-         XdThqxKYQknLEkaV25aZoyYtE30TVFe0sp5OMClHRO7s+tp6TBfBNSAqeYxTmK4zjN
-         UXIxt03EXt+XQ==
+        b=Qw+DGSWhIs75aP7sO0RX2m4lfVQroQ2X5ebLaQXouBBeZvhSyJAuQx22qixZApS8k
+         wzPJ2D0glDa0mCJBoDDpUeJVKaOdu1iaPEaYFeJ1og8s/oXDlGFUbOCfBWSqGHJ7Jd
+         +xxOTj0cn6Rm1J2c2Oxv/+iqpJNEdTcA4VceA51P1MyG6NYdMxjxPEQp2ky+IIOd8D
+         1zdNfenaD/jSfZS5v96vH/dGjEDSkCGox1EQnSIba4xWH08ykbFFE1JC+rBeemt3gM
+         b8wZeox3DJD49i8ft1mVk4GzNKWOW0Yz2wDoziDhSVZILFTR74y3FGj61iPw4cXBDe
+         ncnqQ/ULyEyEQ==
 Received: from o365relay-in.synopsys.com (sv2-o365relay1.synopsys.com [10.202.1.137])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
         (No client certificate requested)
-        by mailhost.synopsys.com (Postfix) with ESMTPS id 204F9A0084;
-        Thu, 24 Sep 2020 11:49:40 +0000 (UTC)
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12lp2173.outbound.protection.outlook.com [104.47.55.173])
+        by mailhost.synopsys.com (Postfix) with ESMTPS id 7C335A0071;
+        Thu, 24 Sep 2020 11:47:47 +0000 (UTC)
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2101.outbound.protection.outlook.com [104.47.70.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (Client CN "mail.protection.outlook.com", Issuer "GlobalSign Organization Validation CA - SHA256 - G3" (verified OK))
-        by o365relay-in.synopsys.com (Postfix) with ESMTPS id 980C0400A1;
-        Thu, 24 Sep 2020 11:49:39 +0000 (UTC)
+        by o365relay-in.synopsys.com (Postfix) with ESMTPS id 5407C400A1;
+        Thu, 24 Sep 2020 11:47:43 +0000 (UTC)
 Authentication-Results: o365relay-in.synopsys.com; dmarc=pass (p=reject dis=none) header.from=synopsys.com
 Authentication-Results: o365relay-in.synopsys.com; spf=pass smtp.mailfrom=gustavo@synopsys.com
 Authentication-Results: o365relay-in.synopsys.com;
-        dkim=pass (1024-bit key; unprotected) header.d=synopsys.com header.i=@synopsys.com header.b="GuRkXg/K";
+        dkim=pass (1024-bit key; unprotected) header.d=synopsys.com header.i=@synopsys.com header.b="NdE+qCbV";
         dkim-atps=neutral
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=d2a8k5GRcsBPJa+GfKvgZNJwm4xOiw+L1cuhhkSBWqCjSVKdAEDZTnbYbJVEuW44NTjxUBs/G8qDpkvrqiePIM8WU+YZTAMxp4og0aTwas7Cw7NQg03e716EmSqPp0Jvexlef9Bqdtf8e2ymqtP2/KwPuW2Gaf7B16i3oNonVVLxthH3IKAsi+GUT9pTja/m//Q9HO7zF6QwwPlBhbwSIhaBQPyRnKpNSLCEq6E9Ubfox/4sJnj/rTtWpNujLFsTEy00FmDFrIdeqmTZZGijk0Ln7kXayydiMaKHowg+82HMONvMk5wv8s8wAGl4RtYbsOe9UIwRCGOWEnXyBAiQCA==
+ b=Y+fz9mY/WzUadHxReA+C+HNRkp/zViyf+gaJ+m+BhcFIzinfjxZzmRZaTdhD/xW9NYvQsiP0F6s0HxrLNIdy1+rtLKDEkNnqVvlzfcEATQdBjLeNRb4sSesqOyRBDI5mV/M9T+KC4lewz4NBFHzkSQh+uw9coe9LGTcFE/FuuVdyqZrsdVcNtxHOH4syxwwyo7VX6XoL60W+FkjVQCMYkaBHNvY18hu2pek6LTK3+OMrGmjMVt/zRVhwZzQuZP0bIq+EFAdkQT0uXHieQB49tBnXMN3fb6XreMn2P35BijX9dzEq8/h3REvhtoASI23H3HXTaGkk23QV+zM6XrWSpg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oAgH6oKaun2YXcf19pYj2u01WiTDFmoS0nIpoFu6Avc=;
- b=KJ++5lWaORMlAdcwIqoUu0uGWYVJqeoJ+znda0mKVSgPXNxAscQY9IwtFtnVYXcSX3nJZab0En3FrsY1Zx+LQU5Gg5F8f7KkmBBAa6wmlJdAsf+NzZxMSLa+YRkNZNM+MmFAT9KB2NNbHowrcL8WM6/LJmxIC/PVwqgW7htTSGVH7C5jXf9cTh/cKle1jXJMOsRXt3Hukw9uWmoqO9kRy49h3MzpRrDVY6HFvKsh4AKfp+cQvKZg3HNMGhESIlygfEYAGjBZnGnwuq5KtcSIuHssVDK8KGoaYeeBZ41TDjV84gYO1Ls86kM3cUE5PNVjs6x8QyvOw7/2vSXgvD/RQA==
+ bh=7eljf1+x3TgFEFeceehNM3RN2D/1jY11+QIaM4oYOdY=;
+ b=ATg63lX7oJMKti5yxTAgpEWX36VPdfzTmpJJiK4zOXP0mPZ4uXV0b/3tQBqIYWiHhdxIvZwdepS7lElQeYhk28Tlsdizi9vIoUZkz0pvLFbgVvlAwOEvYEeTUdd/0LDalumJkPrGAD9fnlyo++UZUL80c8fT+0e/h/80bCSuuzI5ECbvKKFvFdY7FxyTIKCT7PSnVBXTu8InyQeHfZYGadUBcqI+EjyXVWOPRvWEyZelgDkRYh3WY974soXt528Fe6E8SwDiQyxBhWgRToawecoMtDh1zsMIjoYOAorSEkvI1QSwIBs+T3gIURl6QznqJkbSd0p3M5llh2rabqJsDQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=synopsys.com; dmarc=pass action=none header.from=synopsys.com;
  dkim=pass header.d=synopsys.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=synopsys.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oAgH6oKaun2YXcf19pYj2u01WiTDFmoS0nIpoFu6Avc=;
- b=GuRkXg/K33j53Py6IR7tjmrktrmOBSbrHfUy2KmBzK1hv+VeNks2TSyZjT8qwomXM8Obx7yUPDUs+s2oTkiIsYOHDb0+7uhfsouRgrHZDS0/odq2+ZV7LjWbqcS/GA1Lxz7as5vzxUi3ntWc5uHEJkjiKGPo+eiVH+pVXw0R6qo=
+ bh=7eljf1+x3TgFEFeceehNM3RN2D/1jY11+QIaM4oYOdY=;
+ b=NdE+qCbVTC2bQIfztx8ZfMh9QAJmb6I5R3k8lfGZ4XmZ/SqappWhcDBtaTGF2z8636EOP4Fu3qyDjC7Zbv+Ya1zebiy07PtkV9eJqWloi9Zxdslkt1qf0f+jqfDbQX+SBYwCU7GR68d1ZQR1fssBuIpOMe8lZkIMbffU8jcZHq8=
 Received: from DM5PR12MB1276.namprd12.prod.outlook.com (2603:10b6:3:79::18) by
- DM6PR12MB4863.namprd12.prod.outlook.com (2603:10b6:5:1b9::18) with Microsoft
+ DM6PR12MB4044.namprd12.prod.outlook.com (2603:10b6:5:21d::17) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3391.19; Thu, 24 Sep 2020 11:49:38 +0000
+ 15.20.3412.22; Thu, 24 Sep 2020 11:47:41 +0000
 Received: from DM5PR12MB1276.namprd12.prod.outlook.com
  ([fe80::742c:dafa:9df7:4f4]) by DM5PR12MB1276.namprd12.prod.outlook.com
  ([fe80::742c:dafa:9df7:4f4%10]) with mapi id 15.20.3391.025; Thu, 24 Sep 2020
- 11:49:38 +0000
+ 11:47:41 +0000
 X-SNPS-Relay: synopsys.com
 From:   Gustavo Pimentel <Gustavo.Pimentel@synopsys.com>
 To:     Jisheng Zhang <Jisheng.Zhang@synaptics.com>,
@@ -120,28 +121,26 @@ CC:     "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
         "linux-arm-kernel@axis.com" <linux-arm-kernel@axis.com>,
         "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
         "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
-Subject: RE: [PATCH v2 4/5] PCI: dwc: Skip PCIE_MSI_INTR0* programming if MSI
- is disabled
-Thread-Topic: [PATCH v2 4/5] PCI: dwc: Skip PCIE_MSI_INTR0* programming if MSI
- is disabled
-Thread-Index: AQHWkmNpCpWGgFFQ3kqjKgJyOhD+pal3rLnQ
-Date:   Thu, 24 Sep 2020 11:49:38 +0000
-Message-ID: <DM5PR12MB1276EACBFE1EEECC23BA0E51DA390@DM5PR12MB1276.namprd12.prod.outlook.com>
+Subject: RE: [PATCH v2 2/5] PCI: dwc: Check alloc_page() return value
+Thread-Topic: [PATCH v2 2/5] PCI: dwc: Check alloc_page() return value
+Thread-Index: AQHWkmNVdfDcCP1yiU+UsZH88KvvBql3rAgw
+Date:   Thu, 24 Sep 2020 11:47:41 +0000
+Message-ID: <DM5PR12MB1276CA27BA879C8A80187CBFDA390@DM5PR12MB1276.namprd12.prod.outlook.com>
 References: <20200924190421.549cb8fc@xhacker.debian>
- <20200924190713.74e0afd6@xhacker.debian>
-In-Reply-To: <20200924190713.74e0afd6@xhacker.debian>
+ <20200924190623.3251c2ac@xhacker.debian>
+In-Reply-To: <20200924190623.3251c2ac@xhacker.debian>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
 x-dg-ref: =?us-ascii?Q?PG1ldGE+PGF0IG5tPSJib2R5LnR4dCIgcD0iYzpcdXNlcnNcZ3VzdGF2b1xh?=
  =?us-ascii?Q?cHBkYXRhXHJvYW1pbmdcMDlkODQ5YjYtMzJkMy00YTQwLTg1ZWUtNmI4NGJh?=
- =?us-ascii?Q?MjllMzViXG1zZ3NcbXNnLTA0NDQ4NzM3LWZlNWMtMTFlYS05OGNmLWY4OTRj?=
- =?us-ascii?Q?MjczODA0MlxhbWUtdGVzdFwwNDQ0ODczOS1mZTVjLTExZWEtOThjZi1mODk0?=
- =?us-ascii?Q?YzI3MzgwNDJib2R5LnR4dCIgc3o9IjExNTYiIHQ9IjEzMjQ1NDIxNzc2MDQy?=
- =?us-ascii?Q?MTQ0MSIgaD0iTnZGZHlidnhGaEdCNmVQalUrbUFnR1plL3JjPSIgaWQ9IiIg?=
- =?us-ascii?Q?Ymw9IjAiIGJvPSIxIiBjaT0iY0FBQUFFUkhVMVJTUlVGTkNnVUFBQlFKQUFC?=
- =?us-ascii?Q?QnRwekdhSkxXQVdmZ0QzcU1zdEpjWitBUGVveXkwbHdPQUFBQUFBQUFBQUFB?=
+ =?us-ascii?Q?MjllMzViXG1zZ3NcbXNnLWJkNzA5YmI2LWZlNWItMTFlYS05OGNmLWY4OTRj?=
+ =?us-ascii?Q?MjczODA0MlxhbWUtdGVzdFxiZDcwOWJiOC1mZTViLTExZWEtOThjZi1mODk0?=
+ =?us-ascii?Q?YzI3MzgwNDJib2R5LnR4dCIgc3o9IjExNjgiIHQ9IjEzMjQ1NDIxNjU3MjEx?=
+ =?us-ascii?Q?MzA2MiIgaD0iYjZLR2R2S3Z1ZXJkbFpuWDMrVVM0QU9EOW5ZPSIgaWQ9IiIg?=
+ =?us-ascii?Q?Ymw9IjAiIGJvPSIxIiBjaT0iY0FBQUFFUkhVMVJTUlVGTkNnVUFBQlFKQUFD?=
+ =?us-ascii?Q?bWtNaC9hSkxXQVlPcHlEQytXKzM4ZzZuSU1MNWI3ZndPQUFBQUFBQUFBQUFB?=
  =?us-ascii?Q?QUFBQUFBQUFBQUFBQUhBQUFBQ2tDQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB?=
  =?us-ascii?Q?QUVBQVFBQkFBQUFOclNWM2dBQUFBQUFBQUFBQUFBQUFKNEFBQUJtQUdrQWJn?=
  =?us-ascii?Q?QmhBRzRBWXdCbEFGOEFjQUJzQUdFQWJnQnVBR2tBYmdCbkFGOEFkd0JoQUhR?=
@@ -214,15 +213,15 @@ authentication-results: synaptics.com; dkim=none (message not signed)
  header.d=none;synaptics.com; dmarc=none action=none header.from=synopsys.com;
 x-originating-ip: [89.155.14.32]
 x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 2b278ab4-665d-41b9-786f-08d8607fea98
-x-ms-traffictypediagnostic: DM6PR12MB4863:
-x-microsoft-antispam-prvs: <DM6PR12MB48631D0452329D4B00C810D2DA390@DM6PR12MB4863.namprd12.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:663;
+x-ms-office365-filtering-correlation-id: b6f12d17-7a31-4295-69ae-08d8607fa4ce
+x-ms-traffictypediagnostic: DM6PR12MB4044:
+x-microsoft-antispam-prvs: <DM6PR12MB4044F8FAEB3F82D7622985CBDA390@DM6PR12MB4044.namprd12.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:2000;
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: QLItCaiEk/G/hgzseKDWS5q631mnHbjp23/2JeUH9fSakPR5voee7NY9PuC73VSpW/r7PporK3y8dVk/McTGIZFiWhqxfBVQYEWlQmayVmJ8D6gClZaQl3aWWt1HrWKqpO9EP1TWw11IQnTepasyd8DU86SBlgrntx6I7DqLujams0twEYmJlhm2cNZKcHHyr5+oupNY71XSTPDvrMc/aPKkPFqVJpXGkkE5Er+Won9KDuSIhiusFnBZQ0EmcjRUBudm5qoljwFNV5kycJiNNGCixKif2Ad/25Q8nrAGTiLJyoUjAKZXfHbf4ZhE/CMEqtg/utwmVYjt8UWF6zaIIzTQir9WaGYmDzpqeCsEpxXThbO/b0ooORF8fm6eFk6d
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM5PR12MB1276.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(39860400002)(396003)(136003)(376002)(346002)(366004)(54906003)(4326008)(186003)(8936002)(7406005)(53546011)(110136005)(83380400001)(316002)(7416002)(26005)(55016002)(2906002)(52536014)(8676002)(71200400001)(9686003)(33656002)(478600001)(66476007)(66556008)(66946007)(4744005)(6506007)(66446008)(64756008)(86362001)(7696005)(5660300002)(76116006)(921003);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata: +f8iavAzUWzHg3R7rjdfkXa4Hup2FDZQMbdtjqLeLgkLRsXa4aNjT0rKpiv+z3slzu3aEHKRCh9FoY30RSGGbkvU69Lzt2LxrSLw4NEjoftCIk0tktBIGA2/ApRDpDiY7z9aNBVWg0bw4kHv6GkIQGN4qeUiEb89aQqBo3HY24FmDmmn9p8P7hxlzF0kroml28lQaq5l1hyo90iYAngoyvp7b1gtLrnGa8HgYJs0F7feqKfv5DTazEGBiZ62zjcekXYcTbqk4twtN2HIOeQoSl6lo5FYKFWMNqwnSx2/ImCzL7sXcJqei94eZif3nxq8N9bt6scQ/uKcF2x4L0itD7XN6DeBAQSEV5vBic5h+laxxjbeHrDnF40l/j5CV2UU+PWJVg8nf4C1IOmdgRL/3Lsjjw87teO+5G3HlI4pqR+H2sFjNQsIxdbVZTvCgjCzw0baDB/KQtDeuOXu0m28MJhPwefNCCB+iUDViJ0bCkpWjTIpJaWOLYOU/NYY8K0hQ54KSMhJNl+nbI7mV/vAzPqs7bUhWPUjiNFods2lf4CFf21OA46OC7VjOE6wkP9AOu8FVNjtxocUQv7dEAfmGXnm3l0AtJ2/EygA/u3pQzMFDPKeTbCo+jsGUVRwPJR0SFPHTkn3a2UC5PY6k8HTbg==
+x-microsoft-antispam-message-info: 3U0P+nLP+YGhi/MPZpiyv6rNAZi14z1hoOxwFf+02KHEHiCaHS6LeWm9qzJEDILYkFQ+kHGzG+Y+PDvWNdwMIAmB1p5pyDar1JZjCWzUpjZvcSST6shWfR36DfrRWyjfNSZWmwm9Bsxe6Ykw5SnyVJ4qhu06G+staXYJrl7ziOkAie+/5qaUHk/qvbbIQDftdevyf5xVD7m5F3Ufjbxma471I1tlEAGgmJjanLP+gul8uG6yiRAv9hJ143FqPF0cwVPD/bhYr7f/tO92vnkGwvVL9bhDkDTxM9AYdE8/MFghmpwC/CO0W2UxL6VykIaFDOOnFye/oUbyDQmIGMfzWVS9IPcmmVNZBH4vapRx0iJgBPBmmiUOtGy3aQZTuYU7
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM5PR12MB1276.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(346002)(39860400002)(136003)(396003)(366004)(54906003)(186003)(33656002)(110136005)(64756008)(316002)(66446008)(8936002)(7416002)(478600001)(4326008)(52536014)(71200400001)(5660300002)(7406005)(8676002)(66556008)(66476007)(7696005)(76116006)(66946007)(2906002)(55016002)(53546011)(9686003)(6506007)(4744005)(26005)(86362001)(921003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: AiUuUWSeCqvLbEgDCy5LV0G1Yl/l9X1D3EOVACj8Dk+YU5BLr9hdB/KREpe4y/Icje5Uk5GbP6LOWywR3XWvBT+VCnunB3oFsNq9EU8mAyNK95rqirwGsjvISZOcip0VZO/2gR9S0eNheAmpC1PvJbkEry78H68lR+oOAHSGw6q4lLwPqwvQHzmUZt83wJQufqrHeXDa/EdPz8ogL2Vsa/HqTDi3ZxrhgRlLP7uT8z8W445F7YY9LT/7HpIAH3DbR3BcHMPjziHeCI385yuf/z5R89QnAYf1XMh7gIER8v2PXMYjhLltUkqo7ywW9bvQzdNKp0rQseTCQx1sx8Pg8zYKucZKJPYTTnBb0x3cPKabAsHJGYWkX/aK8pb7Q+w6bLEje81OGDA3kHCYghiEtlaOks4JDlEed+6ra0x5OupGFPFLvXBrRT9ts+d+FCuMb5qYk9OpCsUQFcrqQ57qGqper6cED7FEiHxMgwOHXygtomIFbgQJkdL1EwzdwcCuj/BiGr2ko9nClvtIoifer39E40H0HqFAjFqRykPsUy4OpailWkAgp2LvKE8T/P14w2Hub6Hc4DQvcrhLqYvcnFEOZfo5gPuvv/+ucRPOdtXTt98ClBd5JUciuF0B4WHy+l24YkrQswApaAhcyc3L+w==
 x-ms-exchange-transport-forked: True
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -230,43 +229,45 @@ MIME-Version: 1.0
 X-OriginatorOrg: synopsys.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
 X-MS-Exchange-CrossTenant-AuthSource: DM5PR12MB1276.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2b278ab4-665d-41b9-786f-08d8607fea98
-X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Sep 2020 11:49:38.3360
+X-MS-Exchange-CrossTenant-Network-Message-Id: b6f12d17-7a31-4295-69ae-08d8607fa4ce
+X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Sep 2020 11:47:41.3449
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: c33c9f88-1eb7-4099-9700-16013fd9e8aa
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: oPgHhAhGdrhBF/1g1b+ViKpGBj8KebGmQyluIPJnxR6cZMin4Kw64U1v2Ujn+DFfRz6SH3NalLCsG1AtNVWIIA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4863
+X-MS-Exchange-CrossTenant-userprincipalname: bJr4dzK9z+VfI/59cnzKnxmqrQOUWxwVFz2K5RVioY69yd/IXnFDCOpIMB5Jfh+EAFI8LOELYwwwIMwge6fnHg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4044
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Sep 24, 2020 at 12:7:13, Jisheng Zhang=20
+On Thu, Sep 24, 2020 at 12:6:23, Jisheng Zhang=20
 <Jisheng.Zhang@synaptics.com> wrote:
 
-> If MSI is disabled, there's no need to program PCIE_MSI_INTR0_MASK
-> and PCIE_MSI_INTR0_ENABLE registers.
+> We need to check alloc_page() succeed or not before continuing.
 >=20
 > Signed-off-by: Jisheng Zhang <Jisheng.Zhang@synaptics.com>
 > ---
->  drivers/pci/controller/dwc/pcie-designware-host.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/pci/controller/dwc/pcie-designware-host.c | 5 +++++
+>  1 file changed, 5 insertions(+)
 >=20
 > diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/=
 pci/controller/dwc/pcie-designware-host.c
-> index d2de8bc5db91..7a8adf597803 100644
+> index 0a19de946351..9e04e8ef3aa4 100644
 > --- a/drivers/pci/controller/dwc/pcie-designware-host.c
 > +++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-> @@ -641,7 +641,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
+> @@ -303,6 +303,11 @@ void dw_pcie_msi_init(struct pcie_port *pp)
+>  	u64 msi_target;
 > =20
->  	dw_pcie_setup(pci);
-> =20
-> -	if (!pp->ops->msi_host_init) {
-> +	if (pci_msi_enabled() && !pp->ops->msi_host_init) {
->  		num_ctrls =3D pp->num_vectors / MAX_MSI_IRQS_PER_CTRL;
-> =20
->  		/* Initialize IRQ Status array */
+>  	pp->msi_page =3D alloc_page(GFP_KERNEL);
+> +	if (!pp->msi_page) {
+> +		dev_err(dev, "Failed to alloc MSI page\n");
+> +		return;
+> +	}
+> +
+>  	pp->msi_data =3D dma_map_page(dev, pp->msi_page, 0, PAGE_SIZE,
+>  				    DMA_FROM_DEVICE);
+>  	if (dma_mapping_error(dev, pp->msi_data)) {
 > --=20
 > 2.28.0
 
