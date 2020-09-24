@@ -2,132 +2,202 @@ Return-Path: <SRS0=Pk86=DB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CF45C4363D
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 15:10:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C77BEC4346E
+	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 22:43:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE63C23787
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 15:10:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600960205;
-	bh=lxvxvDh7et7IVobCtrz56Q52iGZbqlrTQM/CVng6X4Q=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=AZbygSrjPHouyzkgQqdP9NsJS1p1x3C3G7q8EJgIU7I2C7knWHVwQ7x0iyy1eTe31
-	 UBXVR3KuFHbhNrDhoGmNVNWwTkWNE/AUbuA2SdL7tUkV01PA+B0X/+bEiFatgW7lNP
-	 GUiHDvumTX7kBGCwJDGQNIDLkLoBxh9m8JBPeqZ0=
+	by mail.kernel.org (Postfix) with ESMTP id 8259C21481
+	for <linux-omap@archiver.kernel.org>; Thu, 24 Sep 2020 22:43:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728285AbgIXPKF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 24 Sep 2020 11:10:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41364 "EHLO mail.kernel.org"
+        id S1726650AbgIXWn3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 24 Sep 2020 18:43:29 -0400
+Received: from mga06.intel.com ([134.134.136.31]:49798 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728164AbgIXPKF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 24 Sep 2020 11:10:05 -0400
-Received: from mail-ot1-f48.google.com (mail-ot1-f48.google.com [209.85.210.48])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 903BB2395C;
-        Thu, 24 Sep 2020 15:10:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600960204;
-        bh=lxvxvDh7et7IVobCtrz56Q52iGZbqlrTQM/CVng6X4Q=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=S8PYFnSlulVSQNvZcbzgPlSAE3e6XvCAP/gXbWv/l6OTrHmsZV1vd2R8tCTL1pjME
-         jvYzHyJ+uHF6/3wHCcdtUmZVY4KOgfT8luYMfc1bQa+gLc9/apj8dRpTGZ38oXl5Mc
-         BhNaM4Lk+oHu3z0ROTx/ertbLsY8t/IWycVbYems=
-Received: by mail-ot1-f48.google.com with SMTP id h17so3501956otr.1;
-        Thu, 24 Sep 2020 08:10:04 -0700 (PDT)
-X-Gm-Message-State: AOAM5310hQzJeXzYBW46KuiwPwIqw8ZBw3sP0nn0xjPEENJTuvZ14W60
-        FNTfxGy2qxTZHGcBtnOk/qi5PGR31YAOPLONCw==
-X-Google-Smtp-Source: ABdhPJwMchat2pQLge8wcFSpkGkBCj8mis/2HS/QU1ChRPhsN9PKhphqFrJ96w4VyUNymuDWakthVc91ABhLl2geoBk=
-X-Received: by 2002:a9d:6ada:: with SMTP id m26mr93595otq.192.1600960203773;
- Thu, 24 Sep 2020 08:10:03 -0700 (PDT)
+        id S1726448AbgIXWn2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 24 Sep 2020 18:43:28 -0400
+IronPort-SDR: 110aLQT/s3a/MvlOiKNiaJ04C7GLfaUF7FM1YIoARl5t9LZb9LA8kBeZ0rgHeUdV8UkxkNaOp5
+ ersoxchFdMDA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9754"; a="222957475"
+X-IronPort-AV: E=Sophos;i="5.77,299,1596524400"; 
+   d="scan'208";a="222957475"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2020 15:43:28 -0700
+IronPort-SDR: r6WtI3ZWVWtkhW+J6yFHctzWlDmm7ZEejZbpDuH/+Xr8/XF9R1hXx8ZcxcSFdWSyhFP8UsqHIG
+ 63gXLIAvhGUg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,299,1596524400"; 
+   d="scan'208";a="348018944"
+Received: from lkp-server01.sh.intel.com (HELO d1a6b931d9c6) ([10.239.97.150])
+  by FMSMGA003.fm.intel.com with ESMTP; 24 Sep 2020 15:43:26 -0700
+Received: from kbuild by d1a6b931d9c6 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1kLZxW-00009w-0h; Thu, 24 Sep 2020 22:43:26 +0000
+Date:   Fri, 25 Sep 2020 06:43:01 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Felipe Balbi <balbi@kernel.org>
+Cc:     linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: [balbi-usb:testing/next] BUILD SUCCESS
+ 1b28687a9c679499ddaa46dac6ca3660e46801c5
+Message-ID: <5f6d20f5.c/siK4iQCHRzQPcN%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-References: <20200923142607.10c89bd2@xhacker.debian> <CAMj1kXEyQGEu7=-kbDuTDW9_xXkmns1HM2dQMrLn=XL9W88vJw@mail.gmail.com>
- <CAL_JsqLkQ_NqrDDJZkm5ef-mf4_Vh0sW1DqQjitz-GzGBNbWhA@mail.gmail.com>
- <CAMj1kXH4aNZkST2QrKUDTPRPVq6Ybm0O0GLTwZiBrt-7hfYfVA@mail.gmail.com> <CAMj1kXH=N8KrZW=_mbyiU=svKfabr8YaqBoA8HSuNKWCDoGMGA@mail.gmail.com>
-In-Reply-To: <CAMj1kXH=N8KrZW=_mbyiU=svKfabr8YaqBoA8HSuNKWCDoGMGA@mail.gmail.com>
-From:   Rob Herring <robh@kernel.org>
-Date:   Thu, 24 Sep 2020 09:09:51 -0600
-X-Gmail-Original-Message-ID: <CAL_JsqKA+M3FQBDrTnfVHqqdbfoROjTWaH9m3EcCJJi=tgLGnw@mail.gmail.com>
-Message-ID: <CAL_JsqKA+M3FQBDrTnfVHqqdbfoROjTWaH9m3EcCJJi=tgLGnw@mail.gmail.com>
-Subject: Re: [PATCH] PCI: dwc: Move allocate and map page for msi out of dw_pcie_msi_init()
-To:     Ard Biesheuvel <ardb@kernel.org>
-Cc:     Jisheng Zhang <Jisheng.Zhang@synaptics.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
-        Thierry Reding <treding@nvidia.com>,
-        Vidya Sagar <vidyas@nvidia.com>,
-        PCI <linux-pci@vger.kernel.org>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Sep 24, 2020 at 8:33 AM Ard Biesheuvel <ardb@kernel.org> wrote:
->
-> On Thu, 24 Sep 2020 at 15:45, Ard Biesheuvel <ardb@kernel.org> wrote:
-> >
-> > On Thu, 24 Sep 2020 at 15:28, Rob Herring <robh@kernel.org> wrote:
-> > >
-> > > On Thu, Sep 24, 2020 at 5:00 AM Ard Biesheuvel <ardb@kernel.org> wrote:
-> > > >
-> > > > On Wed, 23 Sep 2020 at 08:28, Jisheng Zhang <Jisheng.Zhang@synaptics.com> wrote:
-> > > > >
-> > > > > Currently, dw_pcie_msi_init() allocates and maps page for msi, then
-> > > > > program the PCIE_MSI_ADDR_LO and PCIE_MSI_ADDR_HI. The Root Complex
-> > > > > may lose power during suspend-to-RAM, so when we resume, we want to
-> > > > > redo the latter but not the former. If designware based driver (for
-> > > > > example, pcie-tegra194.c) calls dw_pcie_msi_init() in resume path, the
-> > > > > previous msi page will be leaked.
-> > > > >
-> > > > > Move the allocate and map msi page from dw_pcie_msi_init() to
-> > > > > dw_pcie_host_init() to fix this problem.
-> > > > >
-> > > > > Fixes: 56e15a238d92 ("PCI: tegra: Add Tegra194 PCIe support")
-> > > > > Signed-off-by: Jisheng Zhang <Jisheng.Zhang@synaptics.com>
-> > > >
-> > > > Why do you allocate a page for this in the first place? Isn't
-> > > > PCIE_MSI_ADDR_HI:PCIE_MSI_ADDR_LO simply a magic DMA address that
-> > > > never gets forwarded across to the CPU side of the host bridge, and
-> > > > triggers a SPI instead, which gets handled by reading
-> > > > PCIE_MSI_INTR0_STATUS ?
-> > >
-> > > My question too after digging into this some more. I've asked the
-> > > question on the thread that further complicated all this changing from
-> > > virt_to_phys() to dma_map_page()[1].
-> > >
-> > > > Couldn't you just map the zero page instead?
-> > >
-> > > Why a page even? You could use PCIE_MSI_ADDR_LO address itself even.
-> > > Or just an address in the driver data which is what some other drivers
-> > > do.
-> > >
-> >
-> > PCIE_MSI_ADDR_LO itself could collide with an actual DRAM address if
-> > any translation is applied on inbound transactions. Using an actual
-> > DRAM address avoids that.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/next
+branch HEAD: 1b28687a9c679499ddaa46dac6ca3660e46801c5  usb: dwc3: gadget: Rename misleading function names
 
-Good point, and the inbound windows could be less than all DRAM if
-there's any restrictions. However, the DWC doesn't do any inbound
-setup (at least for platforms with iATU), so I guess the default is
-all traffic is forwarded.
+elapsed time: 724m
 
-> ... although the MSI doorbell register on the GIC, for instance, needs
-> to be DMA addressable as well, of course.
+configs tested: 130
+configs skipped: 3
 
-There's at least one DWC driver that has its own doorbell register
-too. I suppose there's a way for the host driver to retrieve the GIC
-address if configuration is needed. Doesn't seem to be needed on DWC
-given the above.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Rob
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+powerpc                    sam440ep_defconfig
+sh                      rts7751r2d1_defconfig
+powerpc                    klondike_defconfig
+arm                       imx_v6_v7_defconfig
+sh                        sh7757lcr_defconfig
+mips                  maltasmvp_eva_defconfig
+m68k                         apollo_defconfig
+mips                      bmips_stb_defconfig
+arc                     nsimosci_hs_defconfig
+i386                             alldefconfig
+arm                        mini2440_defconfig
+mips                         tb0226_defconfig
+m68k                           sun3_defconfig
+microblaze                          defconfig
+s390                                defconfig
+mips                         rt305x_defconfig
+arm                       mainstone_defconfig
+powerpc64                           defconfig
+xtensa                              defconfig
+m68k                        stmark2_defconfig
+sh                          rsk7264_defconfig
+arm                        neponset_defconfig
+powerpc                      makalu_defconfig
+powerpc                      cm5200_defconfig
+arm                           h5000_defconfig
+m68k                        mvme147_defconfig
+powerpc                     tqm8560_defconfig
+powerpc                     kmeter1_defconfig
+arc                      axs103_smp_defconfig
+powerpc                 linkstation_defconfig
+arm                     am200epdkit_defconfig
+ia64                      gensparse_defconfig
+powerpc                      pcm030_defconfig
+parisc                           alldefconfig
+mips                          malta_defconfig
+powerpc                     sbc8548_defconfig
+arc                             nps_defconfig
+h8300                    h8300h-sim_defconfig
+sh                           se7705_defconfig
+powerpc                    amigaone_defconfig
+arc                        nsim_700_defconfig
+c6x                              allyesconfig
+arm                         axm55xx_defconfig
+sh                          polaris_defconfig
+sh                ecovec24-romimage_defconfig
+csky                                defconfig
+sh                          lboxre2_defconfig
+nds32                             allnoconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a002-20200924
+i386                 randconfig-a006-20200924
+i386                 randconfig-a003-20200924
+i386                 randconfig-a004-20200924
+i386                 randconfig-a005-20200924
+i386                 randconfig-a001-20200924
+i386                 randconfig-a002-20200923
+i386                 randconfig-a006-20200923
+i386                 randconfig-a003-20200923
+i386                 randconfig-a004-20200923
+i386                 randconfig-a005-20200923
+i386                 randconfig-a001-20200923
+x86_64               randconfig-a011-20200923
+x86_64               randconfig-a013-20200923
+x86_64               randconfig-a014-20200923
+x86_64               randconfig-a015-20200923
+x86_64               randconfig-a012-20200923
+x86_64               randconfig-a016-20200923
+i386                 randconfig-a012-20200923
+i386                 randconfig-a014-20200923
+i386                 randconfig-a016-20200923
+i386                 randconfig-a013-20200923
+i386                 randconfig-a011-20200923
+i386                 randconfig-a015-20200923
+i386                 randconfig-a012-20200924
+i386                 randconfig-a014-20200924
+i386                 randconfig-a016-20200924
+i386                 randconfig-a013-20200924
+i386                 randconfig-a011-20200924
+i386                 randconfig-a015-20200924
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a006-20200923
+x86_64               randconfig-a005-20200923
+x86_64               randconfig-a003-20200923
+x86_64               randconfig-a004-20200923
+x86_64               randconfig-a002-20200923
+x86_64               randconfig-a001-20200923
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
