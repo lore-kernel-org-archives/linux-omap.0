@@ -2,75 +2,84 @@ Return-Path: <SRS0=hcVm=DE=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF52C47420
-	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B37DEC47426
+	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91247238E6
-	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 497EE2184D
+	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=rere.qmqm.pl header.i=@rere.qmqm.pl header.b="XPdjD72G"
+	dkim=pass (2048-bit key) header.d=rere.qmqm.pl header.i=@rere.qmqm.pl header.b="RrRIv+6g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728837AbgI0AFV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 26 Sep 2020 20:05:21 -0400
-Received: from rere.qmqm.pl ([91.227.64.183]:38268 "EHLO rere.qmqm.pl"
+        id S1728838AbgI0AFW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 26 Sep 2020 20:05:22 -0400
+Received: from rere.qmqm.pl ([91.227.64.183]:14783 "EHLO rere.qmqm.pl"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728721AbgI0AFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S1726587AbgI0AFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Sat, 26 Sep 2020 20:05:21 -0400
 Received: from remote.user (localhost [127.0.0.1])
-        by rere.qmqm.pl (Postfix) with ESMTPSA id 4BzQjt4TDrz18;
-        Sun, 27 Sep 2020 01:59:14 +0200 (CEST)
+        by rere.qmqm.pl (Postfix) with ESMTPSA id 4BzQjz0hnZzjx;
+        Sun, 27 Sep 2020 01:59:19 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rere.qmqm.pl; s=1;
-        t=1601164755; bh=6Q1GGhYyWmzwhfw8jITrYscApGCmc2Cd1j/by1Pc/8k=;
-        h=Date:From:Subject:To:Cc:From;
-        b=XPdjD72GMPqoq8n1/QRSDyxlUGqVfkdbrDwnLfNQE0HWyD3HRb3+VKiCtXHJtLgvz
-         5b3h+orqnxIUz/gzcRYeT+HJIubXiq7CbY1eBOsQDzr4ROqcCTGuq2IctvfVyYmgFj
-         Wvjx4MzOJxG+rmOLqACYg5FqbqXWyRl3GC2lStoFu6eEtWYdBtFBqfj6P8CrgZFIJ4
-         A4Fhl/eQZ83xbKqD7vxooWdBDYrc7jvUb6jOzzZPd5rkYMNr+FUpAcu6p3FzLs8JPa
-         81NVICvKoM4JRDH2/bqd0dR5yfteCjHi32BbWBbIsRTY1rR0bB/SqXU2G1OIQ51pAb
-         IyISkHhuFeGpQ==
+        t=1601164759; bh=NIuh/lK92fim30F3SinZhziQenIzdH4Nck3dt31fXrE=;
+        h=Date:In-Reply-To:References:From:Subject:To:Cc:From;
+        b=RrRIv+6gk0Efhi5EQN9GGcmgUhhzQv1fl6sXa5ScG85IunYRoBWjnIZp2EahVob20
+         ItnubAXLtcBrfANltJotam7JjvO2fiwD2R6XiR6Mzybw/hfvMIkBrw8Fkp8kTRP8f3
+         lhCn1aL72s5fQKGrFthn3yW1EdB8516eW7xqvzGh80dhKxmqRTuXVgJwSuxZazzRGa
+         JDREnKtchXrC4hJRrzprrHcVUVLD57Oj2r+GhMvnVIYs2/qMID079iVvaxll54S0jG
+         YrMMeXlh3UryN+Y1M5cVPHvC0dImZHVbAEy6p6U5L0clbTjuhcUPqIlPEYRo64XrcL
+         iJnDFQbSHgYig==
 X-Virus-Status: Clean
 X-Virus-Scanned: clamav-milter 0.102.4 at mail
-Date:   Sun, 27 Sep 2020 01:59:13 +0200
-Message-Id: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
+Date:   Sun, 27 Sep 2020 01:59:18 +0200
+Message-Id: <2843e1c8a4e469762559b92bf9c0107f67aa83f0.1601164493.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
+References: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
 From:   =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH 0/5] tps65910: cleanup regmap use
+Subject: [PATCH 5/5] mfd: tps65910: remove unused pointers
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-To:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Lee Jones <lee.jones@linaro.org>,
+To:     Lee Jones <lee.jones@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
         Liam Girdwood <lgirdwood@gmail.com>,
         Linus Walleij <linus.walleij@linaro.org>,
         Mark Brown <broonie@kernel.org>,
         Tony Lindgren <tony@atomide.com>
-Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+Cc:     linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
         linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-tps65910 was converted a long time ago to regmap. This series cleans up
-after the conversion by removing tps65910_reg_*() indirections and
-other unused fields in MFD structure.
+Client pointers in tps65910 data are not used in the drivers.
+Remove those fields.
 
-Michał Mirosław (5):
-  gpio: tps65910: use regmap accessors
-  regulator: tps65910: use regmap accessors
-  mfd: tps65911-comparator: use regmap accessors
-  mfd: tps65910: clean up after switching to regmap
-  mfd: tps65910: remove unused pointers
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+---
+ include/linux/mfd/tps65910.h | 5 -----
+ 1 file changed, 5 deletions(-)
 
- drivers/gpio/gpio-tps65910.c           |  12 +--
- drivers/mfd/tps65910.c                 |  16 ++--
- drivers/mfd/tps65911-comparator.c      |   4 +-
- drivers/regulator/tps65910-regulator.c | 125 +++++++++++++------------
- include/linux/mfd/tps65910.h           |  40 --------
- 5 files changed, 79 insertions(+), 118 deletions(-)
-
+diff --git a/include/linux/mfd/tps65910.h b/include/linux/mfd/tps65910.h
+index f7398d982f23..701925db75b3 100644
+--- a/include/linux/mfd/tps65910.h
++++ b/include/linux/mfd/tps65910.h
+@@ -890,11 +890,6 @@ struct tps65910 {
+ 	struct regmap *regmap;
+ 	unsigned long id;
+ 
+-	/* Client devices */
+-	struct tps65910_pmic *pmic;
+-	struct tps65910_rtc *rtc;
+-	struct tps65910_power *power;
+-
+ 	/* Device node parsed board data */
+ 	struct tps65910_board *of_plat_data;
+ 
 -- 
 2.20.1
 
