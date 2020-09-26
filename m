@@ -1,126 +1,91 @@
-Return-Path: <SRS0=8q6v=DC=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=hcVm=DE=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CDCDC4363D
-	for <linux-omap@archiver.kernel.org>; Fri, 25 Sep 2020 15:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86E4AC4741F
+	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 077C921D91
-	for <linux-omap@archiver.kernel.org>; Fri, 25 Sep 2020 15:48:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601048893;
-	bh=LZI3R7X8nN4CcB6MS3uhfC9n4b5Jqujs2f4JEI50j70=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=XXPrUPnmYg7kNG7+Apcmz9I2ZiNJaXElENJXU7GknRp9tz3mioC14V4+0efxFUVt5
-	 bTFzBZM3rmglDS0favzNU97sGePA//N2ChWnBhlJIE26fpPt1qtewSNCLp4s+aIiE9
-	 nvGA7QylfeWYDHIVXV28eCd5pd0RGKEJqBlwtGPQ=
+	by mail.kernel.org (Postfix) with ESMTP id 3CC962184D
+	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=rere.qmqm.pl header.i=@rere.qmqm.pl header.b="omVwFkZi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729002AbgIYPsM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 25 Sep 2020 11:48:12 -0400
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:42534 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728333AbgIYPsM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 25 Sep 2020 11:48:12 -0400
-Received: by mail-wr1-f68.google.com with SMTP id c18so4087588wrm.9;
-        Fri, 25 Sep 2020 08:48:10 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=7Qh5+ZRjYoXTfTyMdsphNx4+wbs2iln0Dg7bJktrLac=;
-        b=TVeaCTXCpTsuVU0OtUUElmJo/fpDul1xq0BoKSat8xsthvyVRg3tvKSo9BDvXekHGs
-         nVMqvWqW2vDFwcKum10rq+V2w4RGf0Cbu4GkgPDlQ70SCIrY75oW3A8tvEVZ72/uj+BR
-         4EbsAekEwNtwoAc1kWoEQOvx8Y6MK0luteQWvJdUqrb31OnLBXKf4kSf6ewiSu4+Ht9/
-         WRh3LafUlWtpbwAaotcanO4mWtDq5aA5KJbY/3zBTbP98+v8CpwfiTqnpkwdUuH9XqNZ
-         IYgvZ5oXua9CSn4kvt2ZeDcdMZ9AORrztspYXytjv/MZiKPE6Q6dhPOQRLB/HCw3fCTb
-         QYOA==
-X-Gm-Message-State: AOAM530jZ7cH+UMdZuiOzssXlOROiVnnPDzz/OVL+TIcaLz6izOfYlGs
-        F+7Qk5sFmybwRzI9dgKATms=
-X-Google-Smtp-Source: ABdhPJw0NxnpCAb54EdTsCUv1oA2JhAAx01jYuFmqouNOz5V/9GWfo7kcmF2Z8f+IMYVxGIHsAi2tA==
-X-Received: by 2002:adf:f082:: with SMTP id n2mr5158088wro.35.1601048889557;
-        Fri, 25 Sep 2020 08:48:09 -0700 (PDT)
-Received: from kozik-lap ([194.230.155.132])
-        by smtp.googlemail.com with ESMTPSA id k8sm3477035wma.16.2020.09.25.08.48.06
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 25 Sep 2020 08:48:08 -0700 (PDT)
-Date:   Fri, 25 Sep 2020 17:48:04 +0200
-From:   Krzysztof Kozlowski <krzk@kernel.org>
-To:     Linus Walleij <linus.walleij@linaro.org>
-Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Jason Cooper <jason@lakedaemon.net>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Joel Stanley <joel@jms.id.au>,
-        Andrew Jeffery <andrew@aj.id.au>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org, linux-mediatek@lists.infradead.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 01/15] dt-bindings: gpio: convert bindings for NXP
- PCA953x family to dtschema
-Message-ID: <20200925154804.GB16392@kozik-lap>
-References: <20200916155715.21009-1-krzk@kernel.org>
- <20200916155715.21009-2-krzk@kernel.org>
+        id S1728808AbgI0AFV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 26 Sep 2020 20:05:21 -0400
+Received: from rere.qmqm.pl ([91.227.64.183]:22724 "EHLO rere.qmqm.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728580AbgI0AFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 26 Sep 2020 20:05:21 -0400
+Received: from remote.user (localhost [127.0.0.1])
+        by rere.qmqm.pl (Postfix) with ESMTPSA id 4BzQjx5nYBzc8;
+        Sun, 27 Sep 2020 01:59:17 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rere.qmqm.pl; s=1;
+        t=1601164757; bh=uMRVWVBG1Z+A3OIeVUCDbEDNzEgxLJlsjWfFkOCe9zw=;
+        h=Date:In-Reply-To:References:From:Subject:To:Cc:From;
+        b=omVwFkZi3ZCahiHcVV3f4vO/nTr6+fvrDqyvW3Kr4aMX7ia0sk8/1osuWb/bK8PAw
+         YTW2xKt0SolJvtvurmGcPFSLb1OWNok5zfN/XYP3EsFhxY7uv24r5+1SG8Dj71qo4y
+         WSqvTa7JZRP18uOsSBHC9baTHQ26Zgh89ARSQf0Vv61IFahXdl8JFEckHBSVEYci87
+         tdIBtQGJN9MnFN3Ookc2LtDmCzVVE41Svxgw13YU3PfDMjvWCv+JxUXQI2znzAb/nE
+         fazs2E1j9LJsSMJ+FMJ71m3C+mqucsJnP8fvUTM6YMMyPI//x98U/sxr03l0YvU9O3
+         uLg4HxJDVsvdA==
+X-Virus-Status: Clean
+X-Virus-Scanned: clamav-milter 0.102.4 at mail
+Date:   Sun, 27 Sep 2020 01:59:17 +0200
+Message-Id: <3c37cdd9a0f23157e56ada0e2f15aa7370661ef4.1601164493.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
+References: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
+From:   =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Subject: [PATCH 3/5] mfd: tps65911-comparator: use regmap accessors
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20200916155715.21009-2-krzk@kernel.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To:     Lee Jones <lee.jones@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
+        Tony Lindgren <tony@atomide.com>
+Cc:     linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Sep 16, 2020 at 05:57:01PM +0200, Krzysztof Kozlowski wrote:
-> Convert the NXP PCA953x family of GPIO expanders bindings to device tree
-> schema.
-> 
-> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> 
-> ---
-> 
-> Changes since v2:
-> 1. Add Rob's review tag
-> 
-> Changes since v1:
-> 1. Use additionalProperties.
-> 2. Add wakeup-source.
-> 3. Add hogs.
-> 4. Extend example with hogs.
-> ---
->  .../devicetree/bindings/gpio/gpio-pca953x.txt |  90 ----------
->  .../bindings/gpio/gpio-pca95xx.yaml           | 166 ++++++++++++++++++
->  .../devicetree/bindings/trivial-devices.yaml  |   4 -
->  3 files changed, 166 insertions(+), 94 deletions(-)
->  delete mode 100644 Documentation/devicetree/bindings/gpio/gpio-pca953x.txt
->  create mode 100644 Documentation/devicetree/bindings/gpio/gpio-pca95xx.yaml
+Use regmap accessors directly for register manipulation - removing
+one layer of abstraction.
 
-Hi Linus,
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+---
+ drivers/mfd/tps65911-comparator.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The first two patches (bindings) have Rob's ack/review. Could you pick
-them via GPIO tree?
-
-Best regards,
-Krzysztof
+diff --git a/drivers/mfd/tps65911-comparator.c b/drivers/mfd/tps65911-comparator.c
+index 2334cd61c98d..8f4210075913 100644
+--- a/drivers/mfd/tps65911-comparator.c
++++ b/drivers/mfd/tps65911-comparator.c
+@@ -69,7 +69,7 @@ static int comp_threshold_set(struct tps65910 *tps65910, int id, int voltage)
+ 		return -EINVAL;
+ 
+ 	val = index << 1;
+-	ret = tps65910_reg_write(tps65910, tps_comp.reg, val);
++	ret = regmap_write(tps65910->regmap, tps_comp.reg, val);
+ 
+ 	return ret;
+ }
+@@ -80,7 +80,7 @@ static int comp_threshold_get(struct tps65910 *tps65910, int id)
+ 	unsigned int val;
+ 	int ret;
+ 
+-	ret = tps65910_reg_read(tps65910, tps_comp.reg, &val);
++	ret = regmap_read(tps65910->regmap, tps_comp.reg, &val);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+2.20.1
 
