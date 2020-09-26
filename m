@@ -7,79 +7,116 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B37DEC47426
-	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07E9CC47427
+	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 497EE2184D
+	by mail.kernel.org (Postfix) with ESMTP id C6C362184D
 	for <linux-omap@archiver.kernel.org>; Sun, 27 Sep 2020 00:05:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=rere.qmqm.pl header.i=@rere.qmqm.pl header.b="RrRIv+6g"
+	dkim=pass (2048-bit key) header.d=rere.qmqm.pl header.i=@rere.qmqm.pl header.b="NhkYopv9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728838AbgI0AFW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1728410AbgI0AFW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Sat, 26 Sep 2020 20:05:22 -0400
-Received: from rere.qmqm.pl ([91.227.64.183]:14783 "EHLO rere.qmqm.pl"
+Received: from rere.qmqm.pl ([91.227.64.183]:51711 "EHLO rere.qmqm.pl"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726587AbgI0AFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S1728724AbgI0AFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Sat, 26 Sep 2020 20:05:21 -0400
 Received: from remote.user (localhost [127.0.0.1])
-        by rere.qmqm.pl (Postfix) with ESMTPSA id 4BzQjz0hnZzjx;
-        Sun, 27 Sep 2020 01:59:19 +0200 (CEST)
+        by rere.qmqm.pl (Postfix) with ESMTPSA id 4BzQjv4blbzC4;
+        Sun, 27 Sep 2020 01:59:15 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rere.qmqm.pl; s=1;
-        t=1601164759; bh=NIuh/lK92fim30F3SinZhziQenIzdH4Nck3dt31fXrE=;
+        t=1601164755; bh=dgb3fryIR/h82S0ZIMI7wbAYSPc3yco4sMhX5KqPpwc=;
         h=Date:In-Reply-To:References:From:Subject:To:Cc:From;
-        b=RrRIv+6gk0Efhi5EQN9GGcmgUhhzQv1fl6sXa5ScG85IunYRoBWjnIZp2EahVob20
-         ItnubAXLtcBrfANltJotam7JjvO2fiwD2R6XiR6Mzybw/hfvMIkBrw8Fkp8kTRP8f3
-         lhCn1aL72s5fQKGrFthn3yW1EdB8516eW7xqvzGh80dhKxmqRTuXVgJwSuxZazzRGa
-         JDREnKtchXrC4hJRrzprrHcVUVLD57Oj2r+GhMvnVIYs2/qMID079iVvaxll54S0jG
-         YrMMeXlh3UryN+Y1M5cVPHvC0dImZHVbAEy6p6U5L0clbTjuhcUPqIlPEYRo64XrcL
-         iJnDFQbSHgYig==
+        b=NhkYopv9ND1jdmR/tAcCd4KO+bSuyrvpcIiGUGGwMwO1ZrWLFNd/eSmYjX4PHb7hG
+         sX19Gg3RjLv7CqRNEeRSzaJZs2zxoFpx6n+edFEF3ZrRpyeQRbJ65YQaQ0OK9rOGEQ
+         awllVz1yJTs//yRQ+/hvV5T+13l+ruxgdkPKk51qn2aotC60HAS3rZNBfPlXkU4u2S
+         ToHg4fsoebmpjDjTvrBSAIfLAQ5mbpFv9iWVQDqTFrZyPVnfu0RXMiRNxj7iSa9fIv
+         u43kcgxGEAEtl3O4zEeHdmEhuKEdDl0diel4JYNwue3FuwQCr91iOTZZuEIlbD7Kj2
+         WaVSTDoPC8S0w==
 X-Virus-Status: Clean
 X-Virus-Scanned: clamav-milter 0.102.4 at mail
-Date:   Sun, 27 Sep 2020 01:59:18 +0200
-Message-Id: <2843e1c8a4e469762559b92bf9c0107f67aa83f0.1601164493.git.mirq-linux@rere.qmqm.pl>
+Date:   Sun, 27 Sep 2020 01:59:15 +0200
+Message-Id: <e3a3979657babf716e5f4072e373637ce86ad7ff.1601164493.git.mirq-linux@rere.qmqm.pl>
 In-Reply-To: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
 References: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
 From:   =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH 5/5] mfd: tps65910: remove unused pointers
+Subject: [PATCH 1/5] gpio: tps65910: use regmap accessors
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-To:     Lee Jones <lee.jones@linaro.org>,
+To:     Linus Walleij <linus.walleij@linaro.org>,
         Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Lee Jones <lee.jones@linaro.org>,
         Liam Girdwood <lgirdwood@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
         Mark Brown <broonie@kernel.org>,
         Tony Lindgren <tony@atomide.com>
-Cc:     linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Client pointers in tps65910 data are not used in the drivers.
-Remove those fields.
+Use regmap accessors directly for register manipulation - removing one
+layer of abstraction.
 
 Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- include/linux/mfd/tps65910.h | 5 -----
- 1 file changed, 5 deletions(-)
+ drivers/gpio/gpio-tps65910.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/mfd/tps65910.h b/include/linux/mfd/tps65910.h
-index f7398d982f23..701925db75b3 100644
---- a/include/linux/mfd/tps65910.h
-+++ b/include/linux/mfd/tps65910.h
-@@ -890,11 +890,6 @@ struct tps65910 {
- 	struct regmap *regmap;
- 	unsigned long id;
+diff --git a/drivers/gpio/gpio-tps65910.c b/drivers/gpio/gpio-tps65910.c
+index 0c785b0fd161..0c0b445c75c0 100644
+--- a/drivers/gpio/gpio-tps65910.c
++++ b/drivers/gpio/gpio-tps65910.c
+@@ -28,7 +28,7 @@ static int tps65910_gpio_get(struct gpio_chip *gc, unsigned offset)
+ 	struct tps65910 *tps65910 = tps65910_gpio->tps65910;
+ 	unsigned int val;
  
--	/* Client devices */
--	struct tps65910_pmic *pmic;
--	struct tps65910_rtc *rtc;
--	struct tps65910_power *power;
--
- 	/* Device node parsed board data */
- 	struct tps65910_board *of_plat_data;
+-	tps65910_reg_read(tps65910, TPS65910_GPIO0 + offset, &val);
++	regmap_read(tps65910->regmap, TPS65910_GPIO0 + offset, &val);
  
+ 	if (val & GPIO_STS_MASK)
+ 		return 1;
+@@ -43,10 +43,10 @@ static void tps65910_gpio_set(struct gpio_chip *gc, unsigned offset,
+ 	struct tps65910 *tps65910 = tps65910_gpio->tps65910;
+ 
+ 	if (value)
+-		tps65910_reg_set_bits(tps65910, TPS65910_GPIO0 + offset,
++		regmap_set_bits(tps65910->regmap, TPS65910_GPIO0 + offset,
+ 						GPIO_SET_MASK);
+ 	else
+-		tps65910_reg_clear_bits(tps65910, TPS65910_GPIO0 + offset,
++		regmap_clear_bits(tps65910->regmap, TPS65910_GPIO0 + offset,
+ 						GPIO_SET_MASK);
+ }
+ 
+@@ -59,7 +59,7 @@ static int tps65910_gpio_output(struct gpio_chip *gc, unsigned offset,
+ 	/* Set the initial value */
+ 	tps65910_gpio_set(gc, offset, value);
+ 
+-	return tps65910_reg_set_bits(tps65910, TPS65910_GPIO0 + offset,
++	return regmap_set_bits(tps65910->regmap, TPS65910_GPIO0 + offset,
+ 						GPIO_CFG_MASK);
+ }
+ 
+@@ -68,7 +68,7 @@ static int tps65910_gpio_input(struct gpio_chip *gc, unsigned offset)
+ 	struct tps65910_gpio *tps65910_gpio = gpiochip_get_data(gc);
+ 	struct tps65910 *tps65910 = tps65910_gpio->tps65910;
+ 
+-	return tps65910_reg_clear_bits(tps65910, TPS65910_GPIO0 + offset,
++	return regmap_clear_bits(tps65910->regmap, TPS65910_GPIO0 + offset,
+ 						GPIO_CFG_MASK);
+ }
+ 
+@@ -157,7 +157,7 @@ static int tps65910_gpio_probe(struct platform_device *pdev)
+ 		if (!pdata->en_gpio_sleep[i])
+ 			continue;
+ 
+-		ret = tps65910_reg_set_bits(tps65910,
++		ret = regmap_set_bits(tps65910->regmap,
+ 			TPS65910_GPIO0 + i, GPIO_SLEEP_MASK);
+ 		if (ret < 0)
+ 			dev_warn(tps65910->dev,
 -- 
 2.20.1
 
