@@ -2,176 +2,154 @@ Return-Path: <SRS0=T0XR=DF=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C3CBC4346E
-	for <linux-omap@archiver.kernel.org>; Mon, 28 Sep 2020 03:03:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16A38C2D0A8
+	for <linux-omap@archiver.kernel.org>; Mon, 28 Sep 2020 10:19:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB13E23718
-	for <linux-omap@archiver.kernel.org>; Mon, 28 Sep 2020 03:03:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D185C21775
+	for <linux-omap@archiver.kernel.org>; Mon, 28 Sep 2020 10:19:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="pveUFeWD"
+	dkim=pass (2048-bit key) header.d=baylibre-com.20150623.gappssmtp.com header.i=@baylibre-com.20150623.gappssmtp.com header.b="MuZN73SU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726335AbgI1DDX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 27 Sep 2020 23:03:23 -0400
-Received: from mailout3.samsung.com ([203.254.224.33]:35720 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726597AbgI1DDW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 27 Sep 2020 23:03:22 -0400
-Received: from epcas1p1.samsung.com (unknown [182.195.41.45])
-        by mailout3.samsung.com (KnoxPortal) with ESMTP id 20200928030320epoutp03ffdd9130fc19db10ff2a2085c28e3030~403zqSGbV0948009480epoutp03v
-        for <linux-omap@vger.kernel.org>; Mon, 28 Sep 2020 03:03:20 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20200928030320epoutp03ffdd9130fc19db10ff2a2085c28e3030~403zqSGbV0948009480epoutp03v
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-        s=mail20170921; t=1601262201;
-        bh=+0hmY3a/XbyCzc+4wFl+/LAyCci8wsV3RJjUOrQ4q/4=;
-        h=Subject:To:From:Date:In-Reply-To:References:From;
-        b=pveUFeWD5NYPyiHBBz2Py3pme813sUnJcPVe6Z2HtwwpYeTCeLTQ4REl7YJ8TwTKK
-         4TFc/153Rs1zEqsZGSz5xz9R2I9YcAabLHL5pOC+9+ohr75UATQ0oSJxOy6TGGGDXl
-         ui/u9n/+u1zLGArmbtHTUr9d4XUhcpcGMRBuE6jQ=
-Received: from epsnrtp3.localdomain (unknown [182.195.42.164]) by
-        epcas1p4.samsung.com (KnoxPortal) with ESMTP id
-        20200928030320epcas1p45c4f4f7081368a3e8f88f9093f4c868d~403zCeryR1182011820epcas1p4e;
-        Mon, 28 Sep 2020 03:03:20 +0000 (GMT)
-Received: from epsmges1p4.samsung.com (unknown [182.195.40.158]) by
-        epsnrtp3.localdomain (Postfix) with ESMTP id 4C06lp0BBczMqYkk; Mon, 28 Sep
-        2020 03:03:18 +0000 (GMT)
-Received: from epcas1p1.samsung.com ( [182.195.41.45]) by
-        epsmges1p4.samsung.com (Symantec Messaging Gateway) with SMTP id
-        FE.A6.10463.572517F5; Mon, 28 Sep 2020 12:03:17 +0900 (KST)
-Received: from epsmtrp1.samsung.com (unknown [182.195.40.13]) by
-        epcas1p2.samsung.com (KnoxPortal) with ESMTPA id
-        20200928030316epcas1p2d44f922bde351e5d52d327b3a368abd2~403vzldTs0751407514epcas1p2_;
-        Mon, 28 Sep 2020 03:03:16 +0000 (GMT)
-Received: from epsmgms1p1new.samsung.com (unknown [182.195.42.41]) by
-        epsmtrp1.samsung.com (KnoxPortal) with ESMTP id
-        20200928030316epsmtrp101998be14eada6aa9c86ebc4bbcdddc5~403vywgsG1249412494epsmtrp1R;
-        Mon, 28 Sep 2020 03:03:16 +0000 (GMT)
-X-AuditID: b6c32a38-efbff700000028df-76-5f715275dc03
-Received: from epsmtip1.samsung.com ( [182.195.34.30]) by
-        epsmgms1p1new.samsung.com (Symantec Messaging Gateway) with SMTP id
-        21.4D.08604.472517F5; Mon, 28 Sep 2020 12:03:16 +0900 (KST)
-Received: from [10.113.221.102] (unknown [10.113.221.102]) by
-        epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-        20200928030316epsmtip1ce41ae93c7738b3b7e96bc2032626ea9~403vevuI92131221312epsmtip1M;
-        Mon, 28 Sep 2020 03:03:16 +0000 (GMT)
-Subject: Re: [PATCH 17/42] mfd: max77693: use PLATFORM_DEVID_NONE
-To:     Krzysztof Kozlowski <krzk@kernel.org>,
-        Lee Jones <lee.jones@linaro.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Milo Kim <milo.kim@ti.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Sangbeom Kim <sbkim73@samsung.com>,
-        Tony Lindgren <tony@atomide.com>,
-        patches@opensource.cirrus.com, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-rpi-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-From:   Chanwoo Choi <cw00.choi@samsung.com>
-Organization: Samsung Electronics
-Message-ID: <4a9d8a2f-defb-9f88-9211-fcf2cf985f28@samsung.com>
-Date:   Mon, 28 Sep 2020 12:16:22 +0900
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101
-        Thunderbird/59.0
+        id S1726603AbgI1KTe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 28 Sep 2020 06:19:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57804 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726600AbgI1KTe (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 28 Sep 2020 06:19:34 -0400
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B34DDC0613CF
+        for <linux-omap@vger.kernel.org>; Mon, 28 Sep 2020 03:19:33 -0700 (PDT)
+Received: by mail-ed1-x544.google.com with SMTP id j2so677192eds.9
+        for <linux-omap@vger.kernel.org>; Mon, 28 Sep 2020 03:19:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=HHY2LitkeyuKE1ueF79fzsqA8gZGVBNl2y26Vi+0G7w=;
+        b=MuZN73SUJay7gOjonPYwPI9p88HhEJpd6OklwrVJ1WYR7Pwg3gZE9S2iLwX2jUn0Yl
+         Ga2nhyy5CwTRuHevkTvvHwNuyZi7wBsh40p2iGbl0DfXPqVCAYev2seVzzj8i2Tqo0FJ
+         PB6kNQTqSXaZ9/GNQaYIRVmskHf3QQMm10kq36d6zAQuj8sHQwABeC75MDxRU7DxBCL1
+         PzbUYgSsIIwwTxmUp53/gz9dv7IAueiHR3deSivi95hhVzOO8KCEwKM+Sh+ObJWT0v5c
+         nfujMuHzcNTbNlTq4My3xZlXs3Y/HovWFpB8JCZoqk3S3Fagu5Fd+z1gj0omwF5q5oKD
+         0blg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=HHY2LitkeyuKE1ueF79fzsqA8gZGVBNl2y26Vi+0G7w=;
+        b=ga6WJ1qvlae3v15WERdISl6tkKIA8hEa3JsOKqW4RQVg11xEJXqyLVMv/Hmzn7LwTi
+         07JfKDFjthvrC+g7s9O5kqKjnAk98unbFTioCyGuG1dpHaYLDOSNy2JZ4Kii2q7VFFiO
+         YgvHHClr+rfvpg8ov5bdkM//vWQ4l4nRU8PqT/NCOCSJgTyInH2VLy5L9Di3PFU9rocZ
+         ufBqIzwCVqNu4aof3uKeucPojOFlS3hV9/EO5stRNlq2rn4FbX/FbDNTI8F86iamHaeY
+         OqoytFkWOIxpcKz7eYmwtPFZzdZTwHZnGB8PgzV0YZPN/jr/36j5iNhgaKgNVYovAZPC
+         ucDA==
+X-Gm-Message-State: AOAM533RoJ4Nr00GN/Rp2zPlVMHlBnbRzl0EeAg0Mr39rQqJgxmDF9Xv
+        ikWz8DnV4b/aO9P8CXwxZRN1AcWHOknghdYAhDvZMg==
+X-Google-Smtp-Source: ABdhPJz0fRfokckEsdMIHPWlQ+ZJ7Z2nVZUNqonyr5ezT7aGO4E5eOLmu124oJDJaz4YmyI3V+UIpB2m5eBGqhyy0lU=
+X-Received: by 2002:a05:6402:78b:: with SMTP id d11mr882112edy.341.1601288372214;
+ Mon, 28 Sep 2020 03:19:32 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20200921205016.20461-17-krzk@kernel.org>
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA01Te0zTVxjd7btkHT9bHnfEOejiNjE8CpRdmbARCPsF3GQaTMAstba/AFLa
-        0sLcxEwkysOBiHsgBQHlUQbIo5DyCFBWJAWZ60BljlnZJmOCUhALKoSxPjDjv5PvnHPP9303
-        H4PMLqF7MJKl6YRCKpRwaU4U7eAuH5+MA2kCf5MlGOWa6+ioMLuEhNoutVDRtcIhClo1X6cj
-        o7GVjqaWhwDSPJigols95TRUVlNEQcW/W4lLxn4SenjtVypSrzZTUGf7FTLSqtQ09HRBR0V/
-        l7bT0Fi9hYTMjdMA9Z0dIyPd7Wj0Qm8kfeiOryxfpOAVTZm4auomDW/9q5GK1y/54d0qEx3X
-        NOTT8HsTvTS8YuRTvL3mFH7veS3AS8o3AH6+owHg7aOZuOFuJwl/qtkRiyWk7E0ihGJC4UlI
-        RTJxsjQxlBtzUBAh4Af783x4e9B7XE+pMJUI5Ubui/WJSpZY98D1/FwoybCWYoVKJdcvbK9C
-        lpFOeCbJlOmhXEIulsj3yH2VwlRlhjTRVyRLDeH5+wfwrcIjKUlLhmPyBfoXZ1tvULNAB+0c
-        YDIgFgTzW9et2InBxroAHCxco9gINrYEoEq3zUGsADj/bxHlpePMUtmmow/ARfU4cDgWAGzU
-        vWvDHCwctpvVdpELpqbDus5zJBtBw7yh7uFde7Yz5gXvPH9gN7OwMJizaCDbMAXbCbvGp+3Y
-        FTsER7RnNjXb4EjptL0LJhYMTV9X2N8hY+5wcrqS5MBvws75crItGGI3mHD5Jx1wtB0Juwsv
-        bo7AgXOGDroDe8DZopxNnAl/GLlOc5jzAOzQ/UJ1EIFQV/uNNYFhTdgFW3r8HGUv2L12GTiC
-        X4Pm5QKqTQIxFszLYTskb8Fbf5hIDvw6rM7NpzkkOGz+R3gBeKm2TKbaMo1qyzSq/3OrAKUB
-        uBFyZWoioeTJg7b+tQbYL8QbdYHL84u+ekBiAD2ADDLXhfWxRC5gs8TCL08QCplAkSEhlHrA
-        t+66mOzhKpJZT0yaLuDxAwIDA1EQL5jP43HdWX9OegrYWKIwnUghCDmheOkjMZgeWaTwnet9
-        h0VPHmcV5zXXmip3bFyN0mZvb6p23c79rfqJ/tHKwO6TwzOY+Hif33ACEsW1sEpriiOz15ZP
-        3zeFjRYe8+PHrVa8P/hOZXinmwBlT/YMWgaOfmYcKy15xjygle8vfsWdc0iT1Tbx1Xenzccj
-        osvmpyyWwMMnwgPy+E7BVx7NRLRZnKPGZ5bWQ04aqnoEzdpnR10WjPF18YbvNQNv34zpqw/b
-        P/fioJ4Vpfauul+xMdE4HML5KEo121ukiOufngufjU7rfaNflLq7IOaxRtCQcvXUbRqn2lmc
-        ++PPLV09bNGdqtF9519tGutyi+cc8Uz8hDsy5MpM0zoX8KM/+DaBS1EmCXneZIVS+B+1SIvT
-        qgQAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrOIsWRmVeSWpSXmKPExsWy7bCSnG5JUGG8wamTuhbt75axW/Q2TWey
-        2DhjPavF2t6jLBa/3h1htzh/fgO7xf2vRxktNj2+xmpxedccNovZS/pZLCbeBkrMOL+PyeLF
-        2uusFst/rWOx2L55IbPFtlnL2Sw+v9/PavF05mY2i4srvjBZvFv9hNFib+tFZov9V7wsfh46
-        z+Qg7vHt6yQWj3lrqj1m3T/L5rHh0WpWjxWf9D12zrrL7rFpVSebx51re9g85p0M9Ni8pN7j
-        zo+ljB7T5/xn9OjbsorRY/Ppao/jN7YzeXzeJBcgEMVlk5Kak1mWWqRvl8CV8el4VsF79orW
-        DadYGxi3sHUxcnJICJhItHyaDWRzcQgJ7GaU2PX/ByNEQlJi2sWjzF2MHEC2sMThw8UQNW8Z
-        JQ6ducoEUiMs4Cix+d1ysGYRgdXsEm0/PrOAJIQEtjBKdFwwBbHZBLQk9r+4AbaNX0BR4uqP
-        x2ALeAXsJNo+HGcGsVkEVCV2XHoCZosKhEnsXPKYCaJGUOLkzCdgMzkFzCTuds8Dm8MsoC7x
-        Z94lZghbXOLWk/lMELa8xPa3c5gnMArNQtI+C0nLLCQts5C0LGBkWcUomVpQnJueW2xYYJiX
-        Wq5XnJhbXJqXrpecn7uJEZw2tDR3MG5f9UHvECMTB+MhRgkOZiURXt+cgngh3pTEyqrUovz4
-        otKc1OJDjNIcLErivDcKF8YJCaQnlqRmp6YWpBbBZJk4OKUamGan9QRxOz/w73H+pnuMky9A
-        ZcKOxqetHVHyM5WLVvDyHfBYcLozt/LylrVR+294magH9/IZiQRNMS7jCJkx17zDt8+tUMUs
-        K39P97/G2XNNHm/o/HNXOePs51RNzWczZ4lZr+KfLGd75kOR3I3LE9J4lz+Y1eLC4qO42eTv
-        OfFOT/e5XbXn2lgK118yvqHs+elDqvbEwiST2qalua3xT6dfsnr5o8/YaNHnaeV2HMbsVicN
-        y6fLaexY5X/pumHMh8zP32/L/b6SctiwRLxQVttZm0st+rn36k9731ZzXuh8dCpBbb3Y6d+/
-        m8ouXEq+EXjcpW2nsYzZ1OdXP+pqSjSVl5xS6/8o8CxZjy1TiaU4I9FQi7moOBEA56/FUIoD
-        AAA=
-X-CMS-MailID: 20200928030316epcas1p2d44f922bde351e5d52d327b3a368abd2
-X-Msg-Generator: CA
-Content-Type: text/plain; charset="utf-8"
-X-Sendblock-Type: SVC_REQ_APPROVE
-CMS-TYPE: 101P
-DLP-Filter: Pass
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20200921205214epcas1p4054943190340de651402db3560944385
-References: <20200921205016.20461-1-krzk@kernel.org>
-        <CGME20200921205214epcas1p4054943190340de651402db3560944385@epcas1p4.samsung.com>
-        <20200921205016.20461-17-krzk@kernel.org>
+References: <cover.1601164493.git.mirq-linux@rere.qmqm.pl> <e3a3979657babf716e5f4072e373637ce86ad7ff.1601164493.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <e3a3979657babf716e5f4072e373637ce86ad7ff.1601164493.git.mirq-linux@rere.qmqm.pl>
+From:   Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date:   Mon, 28 Sep 2020 12:19:21 +0200
+Message-ID: <CAMpxmJV5A3OkNNmVcc0AZ+gHo_G2h2D7QrNjc=vKH-6O4mOYhw@mail.gmail.com>
+Subject: Re: [PATCH 1/5] gpio: tps65910: use regmap accessors
+To:     =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
+        linux-gpio <linux-gpio@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 9/22/20 5:49 AM, Krzysztof Kozlowski wrote:
-> Use PLATFORM_DEVID_NONE define instead of "-1" value because:
->  - it brings some meaning,
->  - it might point attention why auto device ID was not used.
-> 
-> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+On Sun, Sep 27, 2020 at 1:59 AM Micha=C5=82 Miros=C5=82aw <mirq-linux@rere.=
+qmqm.pl> wrote:
+>
+> Use regmap accessors directly for register manipulation - removing one
+> layer of abstraction.
+>
+> Signed-off-by: Micha=C5=82 Miros=C5=82aw <mirq-linux@rere.qmqm.pl>
 > ---
->  drivers/mfd/max77693.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
-> index 596ed85cab3b..02fbdf0a66c3 100644
-> --- a/drivers/mfd/max77693.c
-> +++ b/drivers/mfd/max77693.c
-> @@ -274,7 +274,7 @@ static int max77693_i2c_probe(struct i2c_client *i2c,
->  
->  	pm_runtime_set_active(max77693->dev);
->  
-> -	ret = mfd_add_devices(max77693->dev, -1, max77693_devs,
-> +	ret = mfd_add_devices(max77693->dev, PLATFORM_DEVID_NONE, max77693_devs,
->  			      ARRAY_SIZE(max77693_devs), NULL, 0, NULL);
->  	if (ret < 0)
->  		goto err_mfd;
-> 
+>  drivers/gpio/gpio-tps65910.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/gpio/gpio-tps65910.c b/drivers/gpio/gpio-tps65910.c
+> index 0c785b0fd161..0c0b445c75c0 100644
+> --- a/drivers/gpio/gpio-tps65910.c
+> +++ b/drivers/gpio/gpio-tps65910.c
+> @@ -28,7 +28,7 @@ static int tps65910_gpio_get(struct gpio_chip *gc, unsi=
+gned offset)
+>         struct tps65910 *tps65910 =3D tps65910_gpio->tps65910;
+>         unsigned int val;
+>
+> -       tps65910_reg_read(tps65910, TPS65910_GPIO0 + offset, &val);
+> +       regmap_read(tps65910->regmap, TPS65910_GPIO0 + offset, &val);
+>
+>         if (val & GPIO_STS_MASK)
+>                 return 1;
+> @@ -43,10 +43,10 @@ static void tps65910_gpio_set(struct gpio_chip *gc, u=
+nsigned offset,
+>         struct tps65910 *tps65910 =3D tps65910_gpio->tps65910;
+>
+>         if (value)
+> -               tps65910_reg_set_bits(tps65910, TPS65910_GPIO0 + offset,
+> +               regmap_set_bits(tps65910->regmap, TPS65910_GPIO0 + offset=
+,
+>                                                 GPIO_SET_MASK);
+>         else
+> -               tps65910_reg_clear_bits(tps65910, TPS65910_GPIO0 + offset=
+,
+> +               regmap_clear_bits(tps65910->regmap, TPS65910_GPIO0 + offs=
+et,
+>                                                 GPIO_SET_MASK);
+>  }
+>
+> @@ -59,7 +59,7 @@ static int tps65910_gpio_output(struct gpio_chip *gc, u=
+nsigned offset,
+>         /* Set the initial value */
+>         tps65910_gpio_set(gc, offset, value);
+>
+> -       return tps65910_reg_set_bits(tps65910, TPS65910_GPIO0 + offset,
+> +       return regmap_set_bits(tps65910->regmap, TPS65910_GPIO0 + offset,
+>                                                 GPIO_CFG_MASK);
+>  }
+>
+> @@ -68,7 +68,7 @@ static int tps65910_gpio_input(struct gpio_chip *gc, un=
+signed offset)
+>         struct tps65910_gpio *tps65910_gpio =3D gpiochip_get_data(gc);
+>         struct tps65910 *tps65910 =3D tps65910_gpio->tps65910;
+>
+> -       return tps65910_reg_clear_bits(tps65910, TPS65910_GPIO0 + offset,
+> +       return regmap_clear_bits(tps65910->regmap, TPS65910_GPIO0 + offse=
+t,
+>                                                 GPIO_CFG_MASK);
+>  }
+>
+> @@ -157,7 +157,7 @@ static int tps65910_gpio_probe(struct platform_device=
+ *pdev)
+>                 if (!pdata->en_gpio_sleep[i])
+>                         continue;
+>
+> -               ret =3D tps65910_reg_set_bits(tps65910,
+> +               ret =3D regmap_set_bits(tps65910->regmap,
+>                         TPS65910_GPIO0 + i, GPIO_SLEEP_MASK);
+>                 if (ret < 0)
+>                         dev_warn(tps65910->dev,
+> --
+> 2.20.1
+>
 
-Acked-by: Chanwoo Choi <cw00.choi@samsung.com>
-
--- 
-Best Regards,
-Chanwoo Choi
-Samsung Electronics
+Acked-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
