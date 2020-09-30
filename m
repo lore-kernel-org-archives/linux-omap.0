@@ -7,29 +7,28 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C09FC4727F
-	for <linux-omap@archiver.kernel.org>; Wed, 30 Sep 2020 23:53:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DD08C4727F
+	for <linux-omap@archiver.kernel.org>; Wed, 30 Sep 2020 23:53:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14BD52145D
-	for <linux-omap@archiver.kernel.org>; Wed, 30 Sep 2020 23:53:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DB2D20780
+	for <linux-omap@archiver.kernel.org>; Wed, 30 Sep 2020 23:53:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730918AbgI3XxM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 30 Sep 2020 19:53:12 -0400
-Received: from mout.kundenserver.de ([212.227.126.135]:48629 "EHLO
+        id S1725800AbgI3Xx1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 30 Sep 2020 19:53:27 -0400
+Received: from mout.kundenserver.de ([212.227.126.135]:44831 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730548AbgI3XxM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2020 19:53:12 -0400
-X-Greylist: delayed 316 seconds by postgrey-1.27 at vger.kernel.org; Wed, 30 Sep 2020 19:53:10 EDT
+        with ESMTP id S1725372AbgI3Xx1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2020 19:53:27 -0400
 Received: from methusalix.internal.home.lespocky.de ([92.117.51.117]) by
- mrelayeu.kundenserver.de (mreue010 [212.227.15.167]) with ESMTPSA (Nemesis)
- id 1Mwfn8-1kdu1f2EiA-00yCgd; Thu, 01 Oct 2020 01:47:33 +0200
+ mrelayeu.kundenserver.de (mreue012 [212.227.15.167]) with ESMTPSA (Nemesis)
+ id 1MgRYd-1ku3qH3u3T-00hvd8; Thu, 01 Oct 2020 01:47:55 +0200
 Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
         by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.94)
         (envelope-from <alex@home.lespocky.de>)
-        id 1kNloo-0007ZJ-9x; Thu, 01 Oct 2020 01:47:31 +0200
-Received: (nullmailer pid 7752 invoked by uid 2001);
-        Wed, 30 Sep 2020 23:47:30 -0000
+        id 1kNlp9-0007aF-MT; Thu, 01 Oct 2020 01:47:52 +0200
+Received: (nullmailer pid 7817 invoked by uid 2001);
+        Wed, 30 Sep 2020 23:47:51 -0000
 From:   Alexander Dahl <post@lespocky.de>
 To:     linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
@@ -42,206 +41,69 @@ Cc:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
         Peter Ujfalusi <peter.ujfalusi@ti.com>,
         Jacek Anaszewski <jacek.anaszewski@gmail.com>,
         Alexander Dahl <post@lespocky.de>
-Subject: [PATCH v6 2/7] dt-bindings: leds: Convert pwm to yaml
-Date:   Thu,  1 Oct 2020 01:46:32 +0200
-Message-Id: <20200930234637.7573-3-post@lespocky.de>
+Subject: [PATCH v6 7/7] MIPS: DTS: img: Fix schema warnings for pwm-leds
+Date:   Thu,  1 Oct 2020 01:46:37 +0200
+Message-Id: <20200930234637.7573-8-post@lespocky.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200930234637.7573-1-post@lespocky.de>
 References: <20200930234637.7573-1-post@lespocky.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scan-Signature: 3e58d80bea5cd590cac74c0f13974345
-X-Provags-ID: V03:K1:hfrLk1T8O692sf7nZscqnW4Dj6gvVbgjOMm7r0YveLSarxy1RFM
- lX2vRgrZ1ZnfGVX2N0J7nPfxdWZnjEg9G1Rvwvs4kD+1x77Mv19tpU+MosAML9JaEKv9boW
- SEvUA49l5lJSWvpybP7CocnT9WT703aXxjbHO8dNSe54qawO5DYZywTeoSVAg9st7Culvfe
- bVuUMi5aEcCmLMxUB6DwQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:GrU+edsu/oE=:Y46q29C/Pk84LZS15zF+W7
- N+lZFgolO2IEUJ4iUs8hSF3eMH/7CtnBXir8zAuG46MNs357VzEf20X7ytH4BS/5oVu9UHjww
- gSMEn7kLjHdFrof8wQOuPhpJLzkYDI2Jmw/4wf+o0HFduXHdWDPRHgs39VmCCemP11VQ7uJ2j
- yuaa4lMhecVrGUJ07aNIM/mIDGpj85dVYXDQQG0NRB4JgtVwHJlHuC+aUoGMTArgFNNyKY7oS
- OhIA5UW0IIcY0BG9kHI7ldVAXM9NXJGngiRIcEuW+UcqoEqPl6Dei+V/ZSplLSrfuVDaPh6Bt
- 3VAAzKOHKuJxwEtfAWgEhKGmC7hoK+cf3ovHZxz2XcNUyp/RIdgDKnVvvnN0nwcKeh0SNRcjx
- 6lx6DObTITmV6CLCYmg3Jvs2NPfg1yILWLuKl9W5vng6g6qDCoFTYCDpOvAXuoLWNNtPLWI6u
- Iynn0d6+Gyu8CkgwYUjGMkJJvSY9oAvY/kOLHXj9bhxE7BSXV7YMlXknB+wiU7wzXKn7CPvOa
- NQ61BwNSmquc2uoTfsqFjBt2pwGCqDKDW367meRvUmQUM/4UJ2pZhbs6lF4ibqS2Q6Foy6HlK
- 4f10B8IuV8Vbd9MQ1wrJy5aFz3X0dLL6qEBIi4+AOFBXbnraazo0HIksGNpUKcz2ZNXQTrv4B
- U9qFJUqEPMQx8SAPC7/x6cnFixibBqN4BqqtfMHV8W/C2kXU5uLUnGEB7aHnrdegTclI/s+Mh
- YEEqzEY+8234LNEthuI7FbKNswom7LhcKu7h8DY6oEYPh6O+VUl69Ps59bNnxZp/+kIXTMCHN
- gYo5oqrRNf92E53wB4QHVewvB0s9Fe2ClujJrVm+LecoxC/ZzHdN91itRlCAkPpKi6r2SMz
+X-Scan-Signature: 47063c0bd3b0440d119657da58bc7562
+X-Provags-ID: V03:K1:0IUo1RRU7aAo8lMj4tzZs2tdPUuRWx/DVg9fWHk99XurY6GYSNC
+ hi0k4Y+6Rvd2A96ObtnJkZ9b7FaJC8oTKeQjrqDQoiAJi59zcVISDFtcTQC5r9ppEjXMxT5
+ 9JZqTtubXCNiBVhQw98FxKkqHLFjh1VvJjlQu5KTRSOTFE3yj4N8WYGh5qJoe9yvg0/N+ST
+ 0mF0lowsi3Ph4kHDEtMIg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:/ecUuY4q8Gc=:5pdPvjKLRtHGB+jyb6ogsm
+ mseida6O/rUXoquHbx//MvOs5Y3069W/7rUsraL6Q8VMaKRBaHaZ9YpMmWMvTvq7Iy/ZM+o1P
+ 3ug1TRVxllhD2Tf8UGFiH/2z5Jys0wgCL2GSzGszKKP3N1PNfig4vfq/nyvmChwF+JuMJ9cXi
+ Th6iZFSTqG3oNsx0attXL+8KxXvon3FZP4eQJmr8/Et5J51O75T5X0KRiIBRSjA4LJUgZb1Op
+ g/VsS4wSzaXKAdJof4lmMye/B0gN5CaIe+2gLLb3VkPuIObK9figRjq6Rj9Mdl/+Ok/sJG/YB
+ LLRR0lcEsdHllHueRexDH/OALqq0YIGwrqtVEGAlIrBFTNcSa8Tla3btFaOGKtzEVCL2d6ORl
+ gPTJ66cs+0DLQtFRKsN4yrKR5a3dK+uVX9/d/uoSSK9SQZjOmNPj3ThYCtJcehN5SvvfmSx2L
+ VxhfphV7Zs3o4iQTJ4PJzeqprgdkiAXlVU2x1clPQyGK36NcJv+QYf1F9jV8lISwkPuhnhBja
+ o4T03eH4tGYdIDQN+Ahe13cUIMfbzwJ3ZeE0prSRlgsk4Evdn17hiGjQlpkqHRRGSdxHCatZW
+ +hDGpSyzd0OmLDV5iuR0zipb8TfWbpH5qTZPuSdU+lFqpWj7O0Voom3reL9mudWxGaf7Q+kl+
+ jNf2QwLABuQSrWYMumMB/VYDcnGPy2+pDucow638wMe9uqLVIDFCR/0lnyR7vhFkiOyyGATJQ
+ E4bwN7rKHWjSY83PwK/1sawX7PAx17LdSbR0xxmq6pu4pnWOUVSSJK5BQ82GvuO7ZBILyTfur
+ l8ArD43Oi4k8MhDuYj7DkA4tfYESO+SfRmRfY98lwTkUG3Je2r2EAXUsKlUuk+kDbePtWiLgR
+ A1kGCdoGG2QarQQTjJ5jYuuAxhO1Qv1JpeThZd+cQh8SHDJAuj/10UMVWYp2LsP9UFk+tEp+X
+ PrOR5q7Ml2TqA+ghjTVnru/WeaZ/GJR5u6tvwZjqZXjUmJA5Kx1BMIJ4QgLuJVeJwhiKT6It3
+ O3eZkORudcdbpEPydJPUv2JXHfS6U5e3n4zKke+jXQWx
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The example was adapted in the following ways:
+The node names for devices using the pwm-leds driver follow a certain
+naming scheme (now).
 
-- make use of the now supported 'function' and 'color' properties
-- remove pwm nodes, those are documented elsewhere
-- tweake node names to be matched by new dtschema rules
-
-License was discussed with the original author.
-
-Suggested-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
 Signed-off-by: Alexander Dahl <post@lespocky.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
 
 Notes:
-    v5 -> v6:
-      * removed pwm nodes from example (Rob)
-      * renamed led-controller node in example (Rob)
-    
-    v4 -> v5:
-      * updated based on feedback by Rob Herring
-      * removed Acked-by
-    
-    v3 -> v4:
-      * added Cc to original author of the binding
-    
-    v2 -> v3:
-      * changed license identifier to recommended one
-      * added Acked-by
-    
-    v2:
-      * added this patch to series (Suggested-by: Jacek Anaszewski)
+    v6:
+      * added this patch to series
 
- .../devicetree/bindings/leds/leds-pwm.txt     | 50 -------------
- .../devicetree/bindings/leds/leds-pwm.yaml    | 70 +++++++++++++++++++
- 2 files changed, 70 insertions(+), 50 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.txt
- create mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.yaml
+ arch/mips/boot/dts/img/pistachio_marduk.dts | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-pwm.txt b/Documentation/devicetree/bindings/leds/leds-pwm.txt
-deleted file mode 100644
-index 6c6583c35f2f..000000000000
---- a/Documentation/devicetree/bindings/leds/leds-pwm.txt
-+++ /dev/null
-@@ -1,50 +0,0 @@
--LED connected to PWM
--
--Required properties:
--- compatible : should be "pwm-leds".
--
--Each LED is represented as a sub-node of the pwm-leds device.  Each
--node's name represents the name of the corresponding LED.
--
--LED sub-node properties:
--- pwms : PWM property to point to the PWM device (phandle)/port (id) and to
--  specify the period time to be used: <&phandle id period_ns>;
--- pwm-names : (optional) Name to be used by the PWM subsystem for the PWM device
--  For the pwms and pwm-names property please refer to:
--  Documentation/devicetree/bindings/pwm/pwm.txt
--- max-brightness : Maximum brightness possible for the LED
--- active-low : (optional) For PWMs where the LED is wired to supply
--  rather than ground.
--- label :  (optional)
--  see Documentation/devicetree/bindings/leds/common.txt
--- linux,default-trigger :  (optional)
--  see Documentation/devicetree/bindings/leds/common.txt
--
--Example:
--
--twl_pwm: pwm {
--	/* provides two PWMs (id 0, 1 for PWM1 and PWM2) */
--	compatible = "ti,twl6030-pwm";
--	#pwm-cells = <2>;
--};
--
--twl_pwmled: pwmled {
--	/* provides one PWM (id 0 for Charing indicator LED) */
--	compatible = "ti,twl6030-pwmled";
--	#pwm-cells = <2>;
--};
--
--pwmleds {
--	compatible = "pwm-leds";
--	kpad {
--		label = "omap4::keypad";
--		pwms = <&twl_pwm 0 7812500>;
--		max-brightness = <127>;
--	};
--
--	charging {
--		label = "omap4:green:chrg";
--		pwms = <&twl_pwmled 0 7812500>;
--		max-brightness = <255>;
--	};
--};
-diff --git a/Documentation/devicetree/bindings/leds/leds-pwm.yaml b/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-new file mode 100644
-index 000000000000..fe4d5fd25913
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-@@ -0,0 +1,70 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/leds/leds-pwm.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/arch/mips/boot/dts/img/pistachio_marduk.dts b/arch/mips/boot/dts/img/pistachio_marduk.dts
+index bf69da96dc8b..a8708783f04b 100644
+--- a/arch/mips/boot/dts/img/pistachio_marduk.dts
++++ b/arch/mips/boot/dts/img/pistachio_marduk.dts
+@@ -46,9 +46,10 @@
+ 		regulator-max-microvolt = <1800000>;
+ 	};
+ 
+-	leds {
++	led-controller {
+ 		compatible = "pwm-leds";
+-		heartbeat {
 +
-+title: LEDs connected to PWM
-+
-+maintainers:
-+  - Pavel Machek <pavel@ucw.cz>
-+
-+description:
-+  Each LED is represented as a sub-node of the pwm-leds device.  Each
-+  node's name represents the name of the corresponding LED.
-+
-+properties:
-+  compatible:
-+    const: pwm-leds
-+
-+patternProperties:
-+  "^led(-[0-9a-f]+)?$":
-+    type: object
-+
-+    $ref: common.yaml#
-+
-+    properties:
-+      pwms:
-+        maxItems: 1
-+
-+      pwm-names: true
-+
-+      max-brightness:
-+        description:
-+          Maximum brightness possible for the LED
-+        $ref: /schemas/types.yaml#/definitions/uint32
-+
-+      active-low:
-+        description:
-+          For PWMs where the LED is wired to supply rather than ground.
-+        type: boolean
-+
-+    required:
-+      - pwms
-+      - max-brightness
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+
-+    #include <dt-bindings/leds/common.h>
-+
-+    led-controller {
-+        compatible = "pwm-leds";
-+
-+        led-1 {
-+            label = "omap4::keypad";
-+            pwms = <&twl_pwm 0 7812500>;
-+            max-brightness = <127>;
-+        };
-+
-+        led-2 {
-+            color = <LED_COLOR_ID_GREEN>;
-+            function = LED_FUNCTION_CHARGING;
-+            pwms = <&twl_pwmled 0 7812500>;
-+            max-brightness = <255>;
-+        };
-+    };
-+
-+...
++		led-1 {
+ 			label = "marduk:red:heartbeat";
+ 			pwms = <&pwm 3 300000>;
+ 			max-brightness = <255>;
 -- 
 2.20.1
 
