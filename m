@@ -2,270 +2,94 @@ Return-Path: <SRS0=L0Mx=DJ=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A62DC35257
-	for <linux-omap@archiver.kernel.org>; Fri,  2 Oct 2020 23:04:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5F03C35257
+	for <linux-omap@archiver.kernel.org>; Fri,  2 Oct 2020 23:08:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40B2F2074B
-	for <linux-omap@archiver.kernel.org>; Fri,  2 Oct 2020 23:04:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A7B9207DE
+	for <linux-omap@archiver.kernel.org>; Fri,  2 Oct 2020 23:08:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1601680080;
+	bh=+IraDZ1X6TqbHjjccaG67Qpzn5eg7WC66k5owY+sfPk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=oryLcYP7+UX6FZJSJ3MGfpNAhvIgmebN/ez5RNN67Nc6sM0cj5Qx7PhcFLckm2Xfz
+	 uOAVosiGKtpKAyLc5APZcw+BJAhVuk0rgX9Eo4OoWvACNVNiR0cJnr+5LfPxVKYyeZ
+	 DSPYVhA9yKSOXgcE4Wnru/PtJkoL/McILSjJv4ZI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725536AbgJBXEt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 2 Oct 2020 19:04:49 -0400
-Received: from mga02.intel.com ([134.134.136.20]:31311 "EHLO mga02.intel.com"
+        id S1725497AbgJBXHz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 2 Oct 2020 19:07:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725283AbgJBXEq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 2 Oct 2020 19:04:46 -0400
-IronPort-SDR: ChWwIZr8yuNpa3v9JtX9teQL9qpGfdoaSPTOQwq4+q55hciu6nLYzZtD303uBxcXkwvFyIQuQ8
- zxeBo3omMyEg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9762"; a="150737100"
-X-IronPort-AV: E=Sophos;i="5.77,329,1596524400"; 
-   d="scan'208";a="150737100"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Oct 2020 16:04:45 -0700
-IronPort-SDR: C3b/j8lhnc1zdjGYdA6bzqtKP8r4yyrqiWh1jGI+jQxpTavSmzkpjq6Xg5fBuipIhoekpX0kl/
- Mdlx15RBbAPw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.77,329,1596524400"; 
-   d="scan'208";a="352503857"
-Received: from lkp-server02.sh.intel.com (HELO 404f47266ee4) ([10.239.97.151])
-  by orsmga007.jf.intel.com with ESMTP; 02 Oct 2020 16:04:43 -0700
-Received: from kbuild by 404f47266ee4 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1kOU6V-00008y-0h; Fri, 02 Oct 2020 23:04:43 +0000
-Date:   Sat, 03 Oct 2020 07:04:04 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Felipe Balbi <balbi@kernel.org>
-Cc:     linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: [balbi-usb:testing/next] BUILD SUCCESS WITH WARNING
- b2c586eb07efab982419f32b7c3bd96829bc8bcd
-Message-ID: <5f77b1e4.lgJe4jO3yNuNSL33%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1725283AbgJBXHz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 2 Oct 2020 19:07:55 -0400
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.7])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F9702074B;
+        Fri,  2 Oct 2020 23:07:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1601680074;
+        bh=+IraDZ1X6TqbHjjccaG67Qpzn5eg7WC66k5owY+sfPk=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=WqCwHA0OU8tECmLdNEjZTX+R5LPoKpeJuRad2dRF2Up111rDiFL2/MDMTORObXLQS
+         t4O4alGBsrw5rxIzkpjYhWN1oazLnwWNayGR75O/sP6TGByYWF0DjoHZj2hdzp9/fJ
+         hDaZOiaA5evREKfUVGK3h4ZwQbqodSrYtbBBlgJk=
+Date:   Fri, 2 Oct 2020 16:07:52 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Grygorii Strashko <grygorii.strashko@ti.com>
+Cc:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        Murali Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH net-next 0/8] net: ethernet: ti: am65-cpsw: add multi
+ port support in mac-only mode
+Message-ID: <20201002160752.1166cffe@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20201002160421.59363229@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+References: <20201001105258.2139-1-grygorii.strashko@ti.com>
+        <20201001160847.3b5d91f1@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <c758885c-6834-e689-2356-81291e4628e8@ti.com>
+        <20201002160421.59363229@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git  testing/next
-branch HEAD: b2c586eb07efab982419f32b7c3bd96829bc8bcd  usb: dwc2: Fix INTR OUT transfers in DDMA mode.
+On Fri, 2 Oct 2020 16:04:21 -0700 Jakub Kicinski wrote:
+> On Fri, 2 Oct 2020 12:56:43 +0300 Grygorii Strashko wrote:
+> > On 02/10/2020 02:08, Jakub Kicinski wrote:  
+> > > On Thu, 1 Oct 2020 13:52:50 +0300 Grygorii Strashko wrote:    
+> > >> This series adds multi-port support in mac-only mode (multi MAC mode) to TI
+> > >> AM65x CPSW driver in preparation for enabling support for multi-port devices,
+> > >> like Main CPSW0 on K3 J721E SoC or future CPSW3g on K3 AM64x SoC.
+> > >>
+> > >> The multi MAC mode is implemented by configuring every enabled port in "mac-only"
+> > >> mode (all ingress packets are sent only to the Host port and egress packets
+> > >> directed to target Ext. Port) and creating separate net_device for
+> > >> every enabled Ext. port.    
+> > > 
+> > > Do I get it right that you select the mode based on platform? Can the
+> > > other mode still be supported on these platforms?
+> > > 
+> > > Is this a transition to normal DSA mode where ports always have netdevs?  
+> >
+> > The idea here is to start in multi mac mode by default, as we still
+> > have pretty high demand for this. Then, and we are working on it, the
+> > switchdev mode is going to be introduces (not DSA). The switch
+> > between modes will happen by using devlink option - the approach is
+> > similar to what was used for Sitara CPSW cpsw_new.c driver [1].  
+> 
+> What's unclear from the patches is whether the default configuration
+> for already supported platforms will change?
+> 
+> All the patches sound like they are "in preparation for support of K3
+> J721E" etc. So this is just code restructuring with no user-visible
+> changes?
 
-Warning in current branch:
-
-drivers/usb/cdns3/gadget.c:509:7: warning: variable 'length' set but not used [-Wunused-but-set-variable]
-
-Warning ids grouped by kconfigs:
-
-gcc_recent_errors
-|-- arc-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- arm-allmodconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- arm-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- arm64-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- c6x-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- h8300-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- i386-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- m68k-allmodconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- m68k-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- mips-allmodconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- mips-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- parisc-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- riscv-allmodconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- riscv-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- s390-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-|-- sparc-allyesconfig
-|   `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-`-- xtensa-allyesconfig
-    `-- drivers-usb-cdns3-gadget.c:warning:variable-length-set-but-not-used
-
-elapsed time: 721m
-
-configs tested: 159
-configs skipped: 3
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm                       imx_v4_v5_defconfig
-powerpc                    klondike_defconfig
-mips                          malta_defconfig
-arc                        nsim_700_defconfig
-arm                          badge4_defconfig
-powerpc                  mpc885_ads_defconfig
-powerpc                 mpc834x_itx_defconfig
-powerpc                      ppc6xx_defconfig
-arm                         s3c2410_defconfig
-arm                           viper_defconfig
-um                           x86_64_defconfig
-powerpc                        warp_defconfig
-powerpc                         wii_defconfig
-mips                        nlm_xlr_defconfig
-mips                       lemote2f_defconfig
-arm                         lpc18xx_defconfig
-powerpc                      ep88xc_defconfig
-powerpc                      ppc64e_defconfig
-arm                   milbeaut_m10v_defconfig
-arm                          ep93xx_defconfig
-arm                         palmz72_defconfig
-riscv                    nommu_k210_defconfig
-sh                          rsk7203_defconfig
-arm                          gemini_defconfig
-powerpc                     rainier_defconfig
-m68k                       m5475evb_defconfig
-sh                   secureedge5410_defconfig
-arm                           tegra_defconfig
-sh                           se7619_defconfig
-mips                 decstation_r4k_defconfig
-s390                       zfcpdump_defconfig
-m68k                        m5307c3_defconfig
-sh                           se7724_defconfig
-um                             i386_defconfig
-arm                       multi_v4t_defconfig
-sh                        dreamcast_defconfig
-arm                            zeus_defconfig
-powerpc                     tqm8555_defconfig
-sh                           se7343_defconfig
-powerpc                        cell_defconfig
-m68k                        stmark2_defconfig
-arm                         axm55xx_defconfig
-powerpc                     tqm5200_defconfig
-mips                     loongson1b_defconfig
-sh                          sdk7786_defconfig
-arm                     am200epdkit_defconfig
-xtensa                generic_kc705_defconfig
-alpha                            alldefconfig
-powerpc                    mvme5100_defconfig
-sh                            titan_defconfig
-riscv                               defconfig
-powerpc                     mpc512x_defconfig
-arm                            lart_defconfig
-mips                           jazz_defconfig
-c6x                         dsk6455_defconfig
-arm                        mini2440_defconfig
-c6x                        evmc6474_defconfig
-arm                          imote2_defconfig
-sh                   sh7770_generic_defconfig
-sparc                       sparc32_defconfig
-mips                          ath25_defconfig
-powerpc                           allnoconfig
-arm                       omap2plus_defconfig
-sh                          rsk7264_defconfig
-mips                        bcm47xx_defconfig
-powerpc                 canyonlands_defconfig
-arm                        multi_v7_defconfig
-powerpc                 mpc832x_mds_defconfig
-sparc64                          alldefconfig
-mips                      pistachio_defconfig
-arm                        oxnas_v6_defconfig
-mips                        bcm63xx_defconfig
-arm                        spear6xx_defconfig
-powerpc                          g5_defconfig
-mips                         mpc30x_defconfig
-arm                  colibri_pxa270_defconfig
-m68k                           sun3_defconfig
-sh                          lboxre2_defconfig
-arm                    vt8500_v6_v7_defconfig
-c6x                        evmc6678_defconfig
-mips                  cavium_octeon_defconfig
-s390                          debug_defconfig
-sh                           se7751_defconfig
-arm                        mvebu_v7_defconfig
-arm                        vexpress_defconfig
-parisc                              defconfig
-mips                            ar7_defconfig
-arm                            dove_defconfig
-powerpc                     stx_gp3_defconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-c6x                              allyesconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                           allyesconfig
-s390                                defconfig
-s390                             allyesconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                                defconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-x86_64               randconfig-a004-20201002
-x86_64               randconfig-a001-20201002
-x86_64               randconfig-a002-20201002
-x86_64               randconfig-a005-20201002
-x86_64               randconfig-a003-20201002
-x86_64               randconfig-a006-20201002
-i386                 randconfig-a006-20201002
-i386                 randconfig-a005-20201002
-i386                 randconfig-a001-20201002
-i386                 randconfig-a004-20201002
-i386                 randconfig-a003-20201002
-i386                 randconfig-a002-20201002
-i386                 randconfig-a014-20201002
-i386                 randconfig-a013-20201002
-i386                 randconfig-a015-20201002
-i386                 randconfig-a016-20201002
-i386                 randconfig-a011-20201002
-i386                 randconfig-a012-20201002
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-x86_64                                   rhel
-x86_64                           allyesconfig
-x86_64                    rhel-7.6-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a012-20201002
-x86_64               randconfig-a015-20201002
-x86_64               randconfig-a014-20201002
-x86_64               randconfig-a013-20201002
-x86_64               randconfig-a011-20201002
-x86_64               randconfig-a016-20201002
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+Another way of putting the question perhaps would be - is num_ports
+always 1 for existing platforms?
