@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE45C4363A
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCC0DC47095
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A0F5C204EA
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A1A3021548
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728113AbgJEUgf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 5 Oct 2020 16:36:35 -0400
-Received: from mout.kundenserver.de ([217.72.192.75]:46925 "EHLO
+        id S1729882AbgJEUgp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 5 Oct 2020 16:36:45 -0400
+Received: from mout.kundenserver.de ([212.227.126.131]:33113 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729837AbgJEUgd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:33 -0400
+        with ESMTP id S1729830AbgJEUg0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:26 -0400
 Received: from methusalix.internal.home.lespocky.de ([92.117.55.152]) by
- mrelayeu.kundenserver.de (mreue108 [212.227.15.183]) with ESMTPSA (Nemesis)
- id 1M7JrG-1kK4681bhc-007kJO; Mon, 05 Oct 2020 22:36:00 +0200
+ mrelayeu.kundenserver.de (mreue011 [212.227.15.167]) with ESMTPSA (Nemesis)
+ id 1MJVY8-1k5oV82ZaK-00JqZm; Mon, 05 Oct 2020 22:35:46 +0200
 Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
         by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.94)
         (envelope-from <alex@home.lespocky.de>)
-        id 1kPXD9-0004X3-UD; Mon, 05 Oct 2020 22:35:56 +0200
-Received: (nullmailer pid 10395 invoked by uid 2001);
-        Mon, 05 Oct 2020 20:35:40 -0000
+        id 1kPXCw-0004VR-Ih; Mon, 05 Oct 2020 22:35:43 +0200
+Received: (nullmailer pid 10325 invoked by uid 2001);
+        Mon, 05 Oct 2020 20:35:37 -0000
 From:   Alexander Dahl <post@lespocky.de>
 To:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
         Rob Herring <robh+dt@kernel.org>
@@ -40,36 +40,34 @@ Cc:     Alexander Dahl <ada@thorsis.com>,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
         linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH v7 11/12] arm64: dts: meson: Fix schema warnings for pwm-leds
-Date:   Mon,  5 Oct 2020 22:34:50 +0200
-Message-Id: <20201005203451.9985-12-post@lespocky.de>
+        Lee Jones <lee.jones@linaro.org>,
+        Jeff LaBundy <jeff@labundy.com>
+Subject: [PATCH v7 03/12] dt-bindings: mfd: Fix schema warnings for pwm-leds
+Date:   Mon,  5 Oct 2020 22:34:42 +0200
+Message-Id: <20201005203451.9985-4-post@lespocky.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
 References: <20201005203451.9985-1-post@lespocky.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scan-Signature: 9f5b2199e4483c1fbb1603fea470fc05
-X-Provags-ID: V03:K1:A4oxbG+VP4keve1usN9ADR72uw0WccVPSSBWokgSTOYr4HO0wXU
- h4RFD7nLJIzovO2Gs4xcpY+0BKCCyDjL8Mjxgi3z2Qh1iU+WASkkhFmghKKTEFF9Q/f9rpM
- +4/nJcVli6ea+DZquPU/7SLA2oHuGw4PxnchPmtnsm62Gi6nxZo4lk2B3bw2RvLv0lA+h58
- 0lhR3dJRtVTCUoBXhvr9g==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:5ovu7SMkV4Q=:PH7u5YKYkwCKqj8o1agAGk
- rWTBchz6xUWT2uBSBXi4dbo0qLg3hNmYgVIEtS3KljJSK0tQ/ZLNwX0FwAf2o1n6GZV35GHDg
- Jev9Z/2ImNZJWCyjAGly9esRXyLPPGZnlTM+ucRmiyjGDBkdLS1RBRRWm5htpCycF2YDJKD0X
- a7HX+Te79Z9hJoLGOYvYCZcBQKJoVj9kdvnFiAmBUI/joN8vflOmZYlZxvBMaZTtiLpmQUN8X
- NUMVCZaJmNkNjn0GfnEnqR/BAfdulIS4Vbx9bwMIDHotBFwTY/SDyTCTgsWgHD6LSwfWEVFT0
- gMkGvSZPyPfnG0T/xmgRSHDEAcJclkHy5TjCSfKHvpki8FGS1IXA+ealzJ3oZ0FoHMtRyoGMD
- ycuGqk+TUjj1N8lV2KqzWDUEcDtwgPzg44iNfa17ioq0yCrwE0b6Hdzt+CgT2XNTJE3DWUaeu
- C6ZojrgnplPxhZkym+Kg1RhZTYmmkFevC3MXgq0CZ6leahy9wN7F7ahrVVLo7MGWQ5lvvGsC5
- XkeegLfcMAHcVIvcbPvjFy2lFzkylqe7lfcW1H2cVOArjikK0zTArJ1ycQa6XHL+1kERqjZGf
- HLPMbza2Pkdgk/pgtdPI5RWswwsxEfwPO/npXiIuM27iW66XnD43Lo7uWVpNgiDZ2o9dyKgrX
- H00a1LUmLwEaV6nBG+Gi5WnVff118/hBl7bNoRiipRWzQSJR4yAE/yYbkzkqgYJ8dRJ/L8D+A
- G3DHdcyiJ6iDDAMwrXygXjhlNm8BB1dHQVxyDpjin+Ybt5QkGqvLuawPQ/MOZ6aVSH366W1z3
- cpzBuPnSl/RVFuPEsY35bJ/23eZOxWq0BhWdwzPKCXcwJ7t67FnX1VKZ5E3TEhM+ZgiScVK
+X-Scan-Signature: 4b5898d038d1415590f3a2ccc7ce21d7
+X-Provags-ID: V03:K1:k0yiA9lyvy1/Zh9nh+0nofx8ISHoK3KZN7K2P4l768bFHrROa/O
+ pwi2OA9dDAAdh+gXmQmP0vr4EtnzAiNh8Yslnw1T1V0Vv6ZPhJK0C2tTp4DqxQtaG27Tk3c
+ +upi/Serv3087WaSsaFGKszSXwqNZvFniQ4W0uNIIk2AF92G48G515uvh/+htX+NW/+CPt4
+ qtZBZo5LXWC3MSeOPaJLw==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:pePHsAIg4/0=:6zFjBC1h9Q3yInlKRJzjXk
+ GRvZrKsohZbuA9PZAJudVE3v6m7OUshdmj9zF5H82bmBZ6rm1oqDBJPO1sPkw28NkEL7Et/OP
+ l9VImjVJlmYd2PN4bfc9xBqXJGMkW6FlGHBLUsIpVnOJBy8u2iC2s5uI+7Xqbp0zHXVBDWwE9
+ thoMmf+V5bDhbQGb8j3R6HeqZQaMsZAg6QQpTO+hJbg0gN2MCKrJAipp6eijGtF6dKk98Hv1G
+ GNqSYPtQsZlD5TD5Pk6IOHUrHVdyA8pT9BsKP9mZiXrMF6wgeplSktBEtRP7M2UA5NHN9KDSw
+ aEsjeb2R2KP6xmLezzBh0uTl3G8LhhXT0KLqH7w0YNHPA9rhhFH0MCOh8bh1W8dah9kuDUgI4
+ nR+ohcWZwuLboWOhglIY+5FT2iAyruZsyKP4PPNGkZm/lLAHqWAfb+ESTot3VxvyGeF7uK3zo
+ lzBVG6LXHL+aW7CTfP0vIWugjs1KNL69CXEiyUy+hgEOlodWTfH6ydFjmdmeYv6y0gvpYiSEZ
+ 7rSFQE/COJN9a0WKZWu+ROAlnp25ymEku+s9ngCETEe/rjHCYMeL2rDXrPdQ6mfAScdLnmTlL
+ XXxJ6j6SjIPbxPKIDfShc09LtV1+HbUZNX6+Kx9RxZgvi07hQZLPGL8n1mhWnQ0y8KKW52Rv/
+ 0B6D8lginTmCjvpHKXJbDPftBvI8BVDRe0ZD2IbC5Q3bMHtD3mNqTLQme3Bi3DZUZVvmgHegd
+ ykG/07og7yADofWR1hO1eu0TXw+Wgd37WDhn1fT6WhBQDqsnBys3bgH36T3OkCEYu77Ye8BZN
+ Skl5inys+DhbXebBsFzjz8XKe2/ilJeO/zANbw6fDkksuvrRHL5o0fP9kwPSQq2/4S5KnXr
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -78,86 +76,42 @@ The node names for devices using the pwm-leds driver follow a certain
 naming scheme (now).  Parent node name is not enforced, but recommended
 by DT project.
 
+  DTC     Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml
+  CHECK   Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml
+/home/alex/build/linux/Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml: pwmleds: 'panel' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+
 Signed-off-by: Alexander Dahl <post@lespocky.de>
-Reviewed-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
 
 Notes:
     v6 -> v7:
-      * added Reviewed-by
-      * added another explaining sentence to commit message
+      * added warning message to commit message (Krzysztof Kozlowski)
     
     v6:
       * added this patch to series
 
- .../arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts | 4 ++--
- arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts     | 4 ++--
- arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts          | 8 ++++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/devicetree/bindings/mfd/iqs62x.yaml | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts b/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts
-index 8bcdffdf55d0..adfc72500e66 100644
---- a/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts
-+++ b/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts
-@@ -42,10 +42,10 @@
- 		};
- 	};
+diff --git a/Documentation/devicetree/bindings/mfd/iqs62x.yaml b/Documentation/devicetree/bindings/mfd/iqs62x.yaml
+index 541b06d80e73..92dc48a8dfa7 100644
+--- a/Documentation/devicetree/bindings/mfd/iqs62x.yaml
++++ b/Documentation/devicetree/bindings/mfd/iqs62x.yaml
+@@ -90,10 +90,11 @@ examples:
+             };
+     };
  
--	pwmleds {
-+	led-controller {
- 		compatible = "pwm-leds";
+-    pwmleds {
++    led-controller {
+             compatible = "pwm-leds";
  
--		power {
-+		led-1 {
- 			label = "vim:red:power";
- 			pwms = <&pwm_AO_ab 1 7812500 0>;
- 			max-brightness = <255>;
-diff --git a/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts b/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts
-index bff8ec2c1c70..dcb435af4e0b 100644
---- a/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts
-+++ b/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts
-@@ -81,10 +81,10 @@
- 		};
- 	};
- 
--	pwmleds {
-+	led-controller {
- 		compatible = "pwm-leds";
- 
--		power {
-+		led-1 {
- 			label = "vim:red:power";
- 			pwms = <&pwm_AO_ab 1 7812500 0>;
- 			max-brightness = <255>;
-diff --git a/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts b/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts
-index 5ab139a34c01..039a8d0d1e9b 100644
---- a/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts
-+++ b/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts
-@@ -101,20 +101,20 @@
- 		};
- 	};
- 
--	leds {
-+	led-controller-1 {
- 		compatible = "gpio-leds";
- 
--		led-bluetooth {
-+		led-1 {
- 			label = "sei610:blue:bt";
- 			gpios = <&gpio GPIOC_7 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>;
- 			default-state = "off";
- 		};
- 	};
- 
--	pwmleds {
-+	led-controller-2 {
- 		compatible = "pwm-leds";
- 
--		power {
-+		led-2 {
- 			label = "sei610:red:power";
- 			pwms = <&pwm_AO_ab 0 30518 0>;
- 			max-brightness = <255>;
+-            panel {
++            led-1 {
++                    label = "panel";
+                     pwms = <&iqs620a_pwm 0 1000000>;
+                     max-brightness = <255>;
+             };
 -- 
 2.20.1
 
