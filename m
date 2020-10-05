@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0006C4727F
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF130C47427
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2379204EA
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82C8D20853
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729825AbgJEUgY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 5 Oct 2020 16:36:24 -0400
-Received: from mout.kundenserver.de ([217.72.192.75]:57977 "EHLO
+        id S1729843AbgJEUga (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 5 Oct 2020 16:36:30 -0400
+Received: from mout.kundenserver.de ([212.227.17.10]:51353 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725864AbgJEUgT (ORCPT
+        with ESMTP id S1729313AbgJEUgT (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:19 -0400
 Received: from methusalix.internal.home.lespocky.de ([92.117.55.152]) by
  mrelayeu.kundenserver.de (mreue106 [212.227.15.183]) with ESMTPSA (Nemesis)
- id 1N3sNa-1kYIcK2VtY-00zkKZ; Mon, 05 Oct 2020 22:35:44 +0200
+ id 1Md6AP-1kxlZ32Jsp-00aH1b; Mon, 05 Oct 2020 22:35:46 +0200
 Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
         by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.94)
         (envelope-from <alex@home.lespocky.de>)
-        id 1kPXCu-0004VK-1I; Mon, 05 Oct 2020 22:35:41 +0200
-Received: (nullmailer pid 10319 invoked by uid 2001);
-        Mon, 05 Oct 2020 20:35:37 -0000
+        id 1kPXCx-0004Vb-Sq; Mon, 05 Oct 2020 22:35:44 +0200
+Received: (nullmailer pid 10367 invoked by uid 2001);
+        Mon, 05 Oct 2020 20:35:39 -0000
 From:   Alexander Dahl <post@lespocky.de>
 To:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
         Rob Herring <robh+dt@kernel.org>
@@ -40,229 +40,179 @@ Cc:     Alexander Dahl <ada@thorsis.com>,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
         linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
         Russell King <linux@armlinux.org.uk>
-Subject: [PATCH v7 02/12] dt-bindings: leds: Convert pwm to yaml
-Date:   Mon,  5 Oct 2020 22:34:41 +0200
-Message-Id: <20201005203451.9985-3-post@lespocky.de>
+Subject: [PATCH v7 08/12] ARM: dts: imx: Fix schema warnings for pwm-leds
+Date:   Mon,  5 Oct 2020 22:34:47 +0200
+Message-Id: <20201005203451.9985-9-post@lespocky.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
 References: <20201005203451.9985-1-post@lespocky.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Scan-Signature: 3918240c492f27c9e5cce722baaeb3bb
-X-Provags-ID: V03:K1:uUbDr4x43FG38Zz0fjLwH2IQt4p0wE46E58Rl3s24Pb3SyqjwYB
- UDVp5EZgSrZjuqraSxM88IgkOS1Ry5WVuHbj5/fbgPc70b0+NSo5vbe1+8qFTb0MU/UsHHM
- CRcvI96gjEhTpEd2rde1sGu2rBB1opIhUL/Ck0pN+ddM/+BoRnCrX9Ns8suLjLgJjwugnIA
- SzkXJPUITAfqmhpktNYqA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:R4p8HGwMF6g=:OUKffrAsTKFVFJyvemQHaL
- MY1IiQrUSmx30hTmN/VkOpUMPlobmnENF0AyxdgXwByLywySaMxWR0Bjayn4ayndcTQoFmuQW
- TtERGNEwCal6h/1muEDy1e0HwbfqMvcW0iZ3yOVmCd2t1P+Ba2fGHZzxd54k1JwhklgNwF9Am
- 6nkxN396X1ThBM6RxJzBCB30wC5+3PA3L8HJJwNMuo6L+ue+dfw0Cc3XwYmecTXy3V+UFlA5h
- mmE92UQF+9DtphqVWgTI1T0RArhk+IWHS1PqACLCo2h8O4we+sx4HcxzTTKCCqhR0izDMcMB0
- TfE3aFyBYZgCWJv4DU1K8P7asS+FAlizD4Gmz77YyV7N5hzaLemrGywXkC4nfjwdzoHllqgR9
- vvim6YSTK3XHSC6e96YTKaCv/R+FqI2lPaetbKkyYxjNpamb6A0fBk/1V34PSx5VZ+9PXW6YI
- v7b52uH/7Lkl/5aSYxIOVvc75UA8DL9eV528QZe5XujM69a7L7XTO6ZYsWsGT1Fy5JpGXCbyu
- oaIIX9Wj2OFvxB9RFADoMkTsROiC8T1nP1vG329ll/PQx64E694Q9Srd/mmyyRgTusbMKQZg1
- KakbvTy9OF/ZaVPcYGYCnM2xU75rnzxP37nxWmOnGaQm8u9fkP49pijWZzuUeO9CNS/J+vDFG
- XpcvJt5Gma3/Di8ShKuE3pNfxwu9JsFkG4q6rNKx1S+T6KKBUUwXegowDABFbJRII3Sswlwqa
- 66wxOjqHpzgJHK6nXF2OOzPqNLNVWXv8YyN33OHwD0fEzsWUh/DohKbj/hU0O4EO6kADYSp4/
- 3/TDWkfWuxliYsbiIJGgG1llM5jbh0XtFecMU/mXjQteOIIjBqKD5QBeHyZk1MUc09NvkYB
+X-Scan-Signature: 68681318e863c9f5270c704b7be598c0
+X-Provags-ID: V03:K1:lWn/Muqkqh4PPb1qlIzjSTvDw1aTRx7hjYe/2nooxhQ/hIT1n06
+ kdYYros5syyoKmfYgkwMvoyStyjCTqgrQNKE0tQpi1NlqX4bCwN8glJUUmKX/FvR9a1CG07
+ m0Ikhogvv0C4eK98r+nJ5dvcEOWSKt50vAaxIyznza7kqWKhBEvuXIW+AwDshdD+5vAVRMC
+ gr0fKbKzGUfSO9WV/CedA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:q5iI14eylOg=:UvTYIYQig8trsx5KyLUhMc
+ z5VOu5BFYQTkckWR1rCDxGi1B39SaYDfKVZOT71HwLJd9CNg3WkN8BA2cY3tBnSYig+3MXSa7
+ YQfY8R9pYVnpD3JLjAzqbahwLZpWUx5+Guo6sz+R6yXUGCQI9aZsvFIIFxEzJo7rPkIk3Zzvv
+ /XSTT2c+rYAmQoj6DWazJEcuZvzCv4atkQHyd4mpiSofsIYdTrTrOqZ7HnmtPEHwcqK9DrYXS
+ 0y0B25+xTRmYsR3PrIVSiDFns+8ky28WUzAQKPH+sslbk0f4epAI33KLhbwNArOfVUUSJVCW0
+ p89rocq16MPmP2VC10vfr2PfHtl3cucdKX6nzmGKXqm/Zf8BMjzP7hoN0XzA93jAp7jC+ZmTS
+ N/5T62WUWVPYKtX5vC5WqiEQbBJM2IgyyIRq9cRV34/Gc2tKNfJrjOU349A+ikpwyu0tsgkWJ
+ BvYPD2zPLHEDQmmTQHuuRh3dpXiMDggqrNWlGwYq3z/EO2mKfEjKTm8ySHdQjQYZo8UbGhH4R
+ ICRG+k4HRDLkQetcr0WZfhp4KmcTRSsibJqPCWosIOeWu5AyyLHymXE7wLP9s7eJTuqfaB/lt
+ PWUk2S2qi3RztwuJZBo8ykF1DTY60G+E3jfAKx+DFbuDAefEm6sffclPSISGb6ykab/rOipCi
+ ev9H86atvLoVFslwP80qGZLWfHW3QJWRdOaBMJD+ZwHwcjMZ6spOv6llleYrncMGxBRxgv227
+ 3BazHS2RQgDiC3AcnulVeGv982eHNj1j904MSba87OSL0WzFtYjxeqXg2VfEMttIzCCBKD8rK
+ 2FjAGfFGQS7uFzyoy1IwfiFlomts9kTGGSdzrBAnBeIcx2EJMoyKytoTl8watUfEzMPjLKk
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The example was adapted in the following ways:
+The node names for devices using the pwm-leds driver follow a certain
+naming scheme (now).  Parent node name is not enforced, but recommended
+by DT project.
 
-- make use of the now supported 'function' and 'color' properties
-- remove pwm nodes, those are documented elsewhere
-- align node names to new dt schema rules and dt recommendations
+  DTC     arch/arm/boot/dts/imx53-ppd.dt.yaml
+  CHECK   arch/arm/boot/dts/imx53-ppd.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/imx53-ppd.dt.yaml: leds-brightness: 'alarm-brightness' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/imx6dl-cubox-i.dt.yaml
+  CHECK   arch/arm/boot/dts/imx6dl-cubox-i.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/imx6dl-cubox-i.dt.yaml: pwmleds: 'front' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dt.yaml
+  CHECK   arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dt.yaml: pwmleds: 'front' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/imx6dl-cubox-i-som-v15.dt.yaml
+  CHECK   arch/arm/boot/dts/imx6dl-cubox-i-som-v15.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/imx6dl-cubox-i-som-v15.dt.yaml: pwmleds: 'front' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/imx6sx-softing-vining-2000.dt.yaml
+  CHECK   arch/arm/boot/dts/imx6sx-softing-vining-2000.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/imx6sx-softing-vining-2000.dt.yaml: pwmleds: 'blue', 'green', 'red' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
 
-License was not explicitly set before.  The license set now is
-recommended by DT project.
-
-Suggested-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
 Signed-off-by: Alexander Dahl <post@lespocky.de>
-Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Russell King <linux@armlinux.org.uk>
 ---
 
 Notes:
-    NOTE: Due to license set/change this needs Acked-by or Signed-off-by from:
-      * Peter Ujfalusi
-      * Russell King
-    
-    That was discussed already with Peter (original author), still waiting
-    for Acked-by though …
-    
-    Changelog
-    ---------
     v6 -> v7:
-      * added Reviewed-by (Krzysztof Kozlowski)
-      * reworded commit message (suggested by Krzysztof)
-      * added Reviewed-by (Rob Herring)
-    
-    v5 -> v6:
-      * removed pwm nodes from example (Rob)
-      * renamed led-controller node in example (Rob)
-    
-    v4 -> v5:
-      * updated based on feedback by Rob Herring
-      * removed Acked-by
-    
-    v3 -> v4:
-      * added Cc to original author of the binding
-    
-    v2 -> v3:
-      * changed license identifier to recommended one
-      * added Acked-by
-    
-    v2:
-      * added this patch to series (Suggested-by: Jacek Anaszewski)
+      * split up patch (one per sub arch)
+      * added actual warnings to commit message
 
- .../devicetree/bindings/leds/leds-pwm.txt     | 50 -------------
- .../devicetree/bindings/leds/leds-pwm.yaml    | 70 +++++++++++++++++++
- 2 files changed, 70 insertions(+), 50 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.txt
- create mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.yaml
+ arch/arm/boot/dts/imx53-ppd.dts                  | 15 ++++++++-------
+ arch/arm/boot/dts/imx6qdl-cubox-i.dtsi           |  4 ++--
+ arch/arm/boot/dts/imx6sx-softing-vining-2000.dts |  8 ++++----
+ 3 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-pwm.txt b/Documentation/devicetree/bindings/leds/leds-pwm.txt
-deleted file mode 100644
-index 6c6583c35f2f..000000000000
---- a/Documentation/devicetree/bindings/leds/leds-pwm.txt
-+++ /dev/null
-@@ -1,50 +0,0 @@
--LED connected to PWM
--
--Required properties:
--- compatible : should be "pwm-leds".
--
--Each LED is represented as a sub-node of the pwm-leds device.  Each
--node's name represents the name of the corresponding LED.
--
--LED sub-node properties:
--- pwms : PWM property to point to the PWM device (phandle)/port (id) and to
--  specify the period time to be used: <&phandle id period_ns>;
--- pwm-names : (optional) Name to be used by the PWM subsystem for the PWM device
--  For the pwms and pwm-names property please refer to:
--  Documentation/devicetree/bindings/pwm/pwm.txt
--- max-brightness : Maximum brightness possible for the LED
--- active-low : (optional) For PWMs where the LED is wired to supply
--  rather than ground.
--- label :  (optional)
--  see Documentation/devicetree/bindings/leds/common.txt
--- linux,default-trigger :  (optional)
--  see Documentation/devicetree/bindings/leds/common.txt
--
--Example:
--
--twl_pwm: pwm {
--	/* provides two PWMs (id 0, 1 for PWM1 and PWM2) */
--	compatible = "ti,twl6030-pwm";
--	#pwm-cells = <2>;
--};
--
--twl_pwmled: pwmled {
--	/* provides one PWM (id 0 for Charing indicator LED) */
--	compatible = "ti,twl6030-pwmled";
--	#pwm-cells = <2>;
--};
--
--pwmleds {
--	compatible = "pwm-leds";
--	kpad {
--		label = "omap4::keypad";
--		pwms = <&twl_pwm 0 7812500>;
--		max-brightness = <127>;
--	};
--
--	charging {
--		label = "omap4:green:chrg";
--		pwms = <&twl_pwmled 0 7812500>;
--		max-brightness = <255>;
--	};
--};
-diff --git a/Documentation/devicetree/bindings/leds/leds-pwm.yaml b/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-new file mode 100644
-index 000000000000..fe4d5fd25913
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-@@ -0,0 +1,70 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/leds/leds-pwm.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: LEDs connected to PWM
-+
-+maintainers:
-+  - Pavel Machek <pavel@ucw.cz>
-+
-+description:
-+  Each LED is represented as a sub-node of the pwm-leds device.  Each
-+  node's name represents the name of the corresponding LED.
-+
-+properties:
-+  compatible:
-+    const: pwm-leds
-+
-+patternProperties:
-+  "^led(-[0-9a-f]+)?$":
-+    type: object
-+
-+    $ref: common.yaml#
-+
-+    properties:
-+      pwms:
-+        maxItems: 1
-+
-+      pwm-names: true
-+
-+      max-brightness:
-+        description:
-+          Maximum brightness possible for the LED
-+        $ref: /schemas/types.yaml#/definitions/uint32
-+
-+      active-low:
-+        description:
-+          For PWMs where the LED is wired to supply rather than ground.
-+        type: boolean
-+
-+    required:
-+      - pwms
-+      - max-brightness
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+
-+    #include <dt-bindings/leds/common.h>
-+
-+    led-controller {
-+        compatible = "pwm-leds";
-+
-+        led-1 {
-+            label = "omap4::keypad";
-+            pwms = <&twl_pwm 0 7812500>;
-+            max-brightness = <127>;
-+        };
-+
-+        led-2 {
-+            color = <LED_COLOR_ID_GREEN>;
-+            function = LED_FUNCTION_CHARGING;
-+            pwms = <&twl_pwmled 0 7812500>;
-+            max-brightness = <255>;
-+        };
-+    };
-+
-+...
+diff --git a/arch/arm/boot/dts/imx53-ppd.dts b/arch/arm/boot/dts/imx53-ppd.dts
+index f7dcdf96e5c0..b480614efb30 100644
+--- a/arch/arm/boot/dts/imx53-ppd.dts
++++ b/arch/arm/boot/dts/imx53-ppd.dts
+@@ -176,36 +176,37 @@
+ 		power-supply = <&reg_3v3_lcd>;
+ 	};
+ 
+-	leds-brightness {
++	led-controller-1 {
+ 		compatible = "pwm-leds";
+ 
+-		alarm-brightness {
++		led-1 {
++			label = "alarm-brightness";
+ 			pwms = <&pwm1 0 100000>;
+ 			max-brightness = <255>;
+ 		};
+ 	};
+ 
+-	leds {
++	led-controller-2 {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pinctrl_alarmled_pins>;
+ 
+-		alarm1 {
++		led-2 {
+ 			label = "alarm:red";
+ 			gpios = <&gpio7 3 GPIO_ACTIVE_HIGH>;
+ 		};
+ 
+-		alarm2 {
++		led-3 {
+ 			label = "alarm:yellow";
+ 			gpios = <&gpio7 7 GPIO_ACTIVE_HIGH>;
+ 		};
+ 
+-		alarm3 {
++		led-4 {
+ 			label = "alarm:blue";
+ 			gpios = <&gpio7 8 GPIO_ACTIVE_HIGH>;
+ 		};
+ 
+-		alarm4 {
++		led-5 {
+ 			label = "alarm:silenced";
+ 			gpios = <&gpio7 13 GPIO_ACTIVE_HIGH>;
+ 		};
+diff --git a/arch/arm/boot/dts/imx6qdl-cubox-i.dtsi b/arch/arm/boot/dts/imx6qdl-cubox-i.dtsi
+index 67042793b0ca..1e530d892b76 100644
+--- a/arch/arm/boot/dts/imx6qdl-cubox-i.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-cubox-i.dtsi
+@@ -55,12 +55,12 @@
+ 		pinctrl-0 = <&pinctrl_cubox_i_ir>;
+ 	};
+ 
+-	pwmleds {
++	led-controller {
+ 		compatible = "pwm-leds";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pinctrl_cubox_i_pwm1>;
+ 
+-		front {
++		led-1 {
+ 			active-low;
+ 			label = "imx6:red:front";
+ 			max-brightness = <248>;
+diff --git a/arch/arm/boot/dts/imx6sx-softing-vining-2000.dts b/arch/arm/boot/dts/imx6sx-softing-vining-2000.dts
+index d25e27d0315f..83bff1a129ec 100644
+--- a/arch/arm/boot/dts/imx6sx-softing-vining-2000.dts
++++ b/arch/arm/boot/dts/imx6sx-softing-vining-2000.dts
+@@ -40,22 +40,22 @@
+ 		regulator-max-microvolt = <3300000>;
+ 	};
+ 
+-	pwmleds {
++	led-controller {
+ 		compatible = "pwm-leds";
+ 
+-		red {
++		led-1 {
+ 			label = "red";
+ 			max-brightness = <255>;
+ 			pwms = <&pwm6 0 50000>;
+ 		};
+ 
+-		green {
++		led-2 {
+ 			label = "green";
+ 			max-brightness = <255>;
+ 			pwms = <&pwm2 0 50000>;
+ 		};
+ 
+-		blue {
++		led-3 {
+ 			label = "blue";
+ 			max-brightness = <255>;
+ 			pwms = <&pwm1 0 50000>;
 -- 
 2.20.1
 
