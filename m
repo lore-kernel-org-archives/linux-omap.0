@@ -2,32 +2,33 @@ Return-Path: <SRS0=TfIt=DM=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21E55C47426
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE45C4363A
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDD2220853
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0F5C204EA
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729847AbgJEUga (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 5 Oct 2020 16:36:30 -0400
-Received: from mout.kundenserver.de ([212.227.17.24]:49119 "EHLO
+        id S1728113AbgJEUgf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 5 Oct 2020 16:36:35 -0400
+Received: from mout.kundenserver.de ([217.72.192.75]:46925 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729288AbgJEUgT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:19 -0400
+        with ESMTP id S1729837AbgJEUgd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:33 -0400
 Received: from methusalix.internal.home.lespocky.de ([92.117.55.152]) by
- mrelayeu.kundenserver.de (mreue109 [212.227.15.183]) with ESMTPSA (Nemesis)
- id 1MuDPf-1kfhXm22Jx-00uZ5G; Mon, 05 Oct 2020 22:35:43 +0200
+ mrelayeu.kundenserver.de (mreue108 [212.227.15.183]) with ESMTPSA (Nemesis)
+ id 1M7JrG-1kK4681bhc-007kJO; Mon, 05 Oct 2020 22:36:00 +0200
 Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
         by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.94)
         (envelope-from <alex@home.lespocky.de>)
-        id 1kPXCp-0004VD-EM; Mon, 05 Oct 2020 22:35:39 +0200
-Received: (nullmailer pid 10292 invoked by uid 2001);
-        Mon, 05 Oct 2020 20:35:35 -0000
+        id 1kPXD9-0004X3-UD; Mon, 05 Oct 2020 22:35:56 +0200
+Received: (nullmailer pid 10395 invoked by uid 2001);
+        Mon, 05 Oct 2020 20:35:40 -0000
 From:   Alexander Dahl <post@lespocky.de>
 To:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
         Rob Herring <robh+dt@kernel.org>
@@ -38,165 +39,125 @@ Cc:     Alexander Dahl <ada@thorsis.com>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
-        linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org
-Subject: [PATCH v7 00/12] leds: pwm: Make automatic labels work
-Date:   Mon,  5 Oct 2020 22:34:39 +0200
-Message-Id: <20201005203451.9985-1-post@lespocky.de>
+        linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [PATCH v7 11/12] arm64: dts: meson: Fix schema warnings for pwm-leds
+Date:   Mon,  5 Oct 2020 22:34:50 +0200
+Message-Id: <20201005203451.9985-12-post@lespocky.de>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
+References: <20201005203451.9985-1-post@lespocky.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Scan-Signature: 6f2c0cc924172ae0d63df639c2daa6ee
-X-Provags-ID: V03:K1:a5ux3XXYZajhGPOMpe5UlfXuFD6MtM8x1SXx7hRmMI2VaktPYLL
- bpOXntySTtH+Ag/ngkdXTAXTFtj/AydJNiMmujznhs04XsefLrYEM0Hq7SgdjRpFEVvurTO
- RXLWs0ib8iJCApjU+vdotQ1A9uLwBzN3w6Nihr9LfAKMMbsI/Nbh/+0ZDNESTfsCZ86T6zN
- 0MMM0Xp2efP1KIMW3MpFw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:dDqMxTJ8D7M=:Rp8hRovn0iKwlz5TKLVy9k
- M3Yp0ahNKEJLy8xKp5zLtOssELWI0wmPV885fphX9f6nfEML3n6VJAFLPUQ6sNRZclA0c27A+
- JUMvVYROEX9PfxzJPaVyPsEhHvB8ysopfTvnOraak8dA2VPCkir5k71VLrcBtQJgBoxX4qqPp
- AuMgnvObgC1JBKW3d5MGI0COmotuKFHemsXWM7NY2zMPeWamshVdh/+INSiDi/2ewhV0F8cFA
- l2X8fhe05oCm5Wy4CFbZzxbwpdlDN/MhqIijKGMtWXjVbT1EQrYZ2Yybj90M78NTIVSswB31D
- kKAndesjQPA7/NTGGaFiGw8t7FU7pkAtKk9KVyQ4A/N05YNE94nSYGnjb8JlWavTodSFTzCnk
- mf3vTECMd1fLr0EGNZzTkQf4lQy+/8nbRGz7eZfJBHr2B35RlgFOxka1SrgCdr3btDdDu+VTe
- k2wlB9yJCW9F6zCzF7/AEm8v+B3BVj7sGItnB6feEfVWt/iijbZO20nGmWrqM/Wk+Qz0NybwE
- iELpxNkXnbSevyryNTMwYs319ut74MeinmJcCJhLYq9V5gJ/oYVw7dG8B52uJYuo8O/bWb3vT
- zIfbvx5odI5FPswZeKOTCaJu0IbofcIzE+/sf0YOdcpRS+fmwHKfZNDmbRmUQTNuKHu7In/qX
- 5JKpNBQa0h4ooda5cujKLG0AhJuLnpbpLkR/c4bGe4TcaxDinFTm9L/HtEZB8Igp9+RtCzw+p
- U9pc5v8itsKIIyRgkKjOlXOtYe6Qa4Vn+7w93dmMchSYjqcNCFifqNjbXwBAmv1SW7g+N3Xkg
- i6y8UcQOBkCFounHKzYL1eOBMEEqk0tq6WQ8FZ1G5SHv/z8OM4ZaQzPPwm9V1YnPqDKzOTj
+X-Scan-Signature: 9f5b2199e4483c1fbb1603fea470fc05
+X-Provags-ID: V03:K1:A4oxbG+VP4keve1usN9ADR72uw0WccVPSSBWokgSTOYr4HO0wXU
+ h4RFD7nLJIzovO2Gs4xcpY+0BKCCyDjL8Mjxgi3z2Qh1iU+WASkkhFmghKKTEFF9Q/f9rpM
+ +4/nJcVli6ea+DZquPU/7SLA2oHuGw4PxnchPmtnsm62Gi6nxZo4lk2B3bw2RvLv0lA+h58
+ 0lhR3dJRtVTCUoBXhvr9g==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:5ovu7SMkV4Q=:PH7u5YKYkwCKqj8o1agAGk
+ rWTBchz6xUWT2uBSBXi4dbo0qLg3hNmYgVIEtS3KljJSK0tQ/ZLNwX0FwAf2o1n6GZV35GHDg
+ Jev9Z/2ImNZJWCyjAGly9esRXyLPPGZnlTM+ucRmiyjGDBkdLS1RBRRWm5htpCycF2YDJKD0X
+ a7HX+Te79Z9hJoLGOYvYCZcBQKJoVj9kdvnFiAmBUI/joN8vflOmZYlZxvBMaZTtiLpmQUN8X
+ NUMVCZaJmNkNjn0GfnEnqR/BAfdulIS4Vbx9bwMIDHotBFwTY/SDyTCTgsWgHD6LSwfWEVFT0
+ gMkGvSZPyPfnG0T/xmgRSHDEAcJclkHy5TjCSfKHvpki8FGS1IXA+ealzJ3oZ0FoHMtRyoGMD
+ ycuGqk+TUjj1N8lV2KqzWDUEcDtwgPzg44iNfa17ioq0yCrwE0b6Hdzt+CgT2XNTJE3DWUaeu
+ C6ZojrgnplPxhZkym+Kg1RhZTYmmkFevC3MXgq0CZ6leahy9wN7F7ahrVVLo7MGWQ5lvvGsC5
+ XkeegLfcMAHcVIvcbPvjFy2lFzkylqe7lfcW1H2cVOArjikK0zTArJ1ycQa6XHL+1kERqjZGf
+ HLPMbza2Pkdgk/pgtdPI5RWswwsxEfwPO/npXiIuM27iW66XnD43Lo7uWVpNgiDZ2o9dyKgrX
+ H00a1LUmLwEaV6nBG+Gi5WnVff118/hBl7bNoRiipRWzQSJR4yAE/yYbkzkqgYJ8dRJ/L8D+A
+ G3DHdcyiJ6iDDAMwrXygXjhlNm8BB1dHQVxyDpjin+Ybt5QkGqvLuawPQ/MOZ6aVSH366W1z3
+ cpzBuPnSl/RVFuPEsY35bJ/23eZOxWq0BhWdwzPKCXcwJ7t67FnX1VKZ5E3TEhM+ZgiScVK
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hei hei,
+The node names for devices using the pwm-leds driver follow a certain
+naming scheme (now).  Parent node name is not enforced, but recommended
+by DT project.
 
-for leds-gpio you can use the properties 'function' and 'color' in the
-devicetree node and omit 'label', the label is constructed
-automatically.  This is a common feature supposed to be working for all
-LED drivers.  However it did not work until recently for the 'leds-pwm'
-driver.
+Signed-off-by: Alexander Dahl <post@lespocky.de>
+Reviewed-by: Neil Armstrong <narmstrong@baylibre.com>
+---
 
-This series removes the no more needed platform_data support from the
-leds-pwm driver, which was a precondition for the already applied patch
-actually making automatic naming work.
+Notes:
+    v6 -> v7:
+      * added Reviewed-by
+      * added another explaining sentence to commit message
+    
+    v6:
+      * added this patch to series
 
-The leds-pwm dt-bindings are converted and updated to reflect the
-possibility to use led function and color for naming now.
+ .../arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts | 4 ++--
+ arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts     | 4 ++--
+ arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts          | 8 ++++----
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-v7 of this series is basically collecting reviewed-by tags, split old
-patch 5/7 into per arm sub-arch changes for easier maintainer review,
-and rewording commit messages.  See each patch for a detailed changelog.
-
-For the bindings conversion it's now required to explicitly set a
-license.  Peter, Russel, could you please acknowledge that patch?
-
-Series changelog below …
-
-Greets
-Alex
-
-v7:
-- rebased series on recent pavel/for-next
-- split up arm dts patch by arm sub arch (suggested by Krzysztof Kozlowski)
-- added multiple Reviewed-by tags
-- slightly reworded commit messages (suggested by Krzysztof Kozlowski)
-- added actual dtbs_check warnings to commit messages
-- added Russell King to Cc for binding conversion patch (because license)
-
-v6:
-- rebased series on recent pavel/for-next
-- added Reviewed-by from Marek to patch 1
-- patch 2 from v5 was picked by Pavel and is already in his for-next
-  branch
-- previous patch 3/3 (now 2/7) was reworked based on feedback by Rob
-- added more dt patches fixing warnings after binding conversion to yaml
-
-v5:
-- replaced patch 1/3 by a new patch removing platform_data support for
-  the leds-pwm driver
-- little rewording of commit message in patch 2/3
-- updated patch 3/3 based on feedback by Rob Herring
-- added Marek Behún to Cc, because he also works on removing
-  platform_data support
-- rebased series on pavel/for-next
-
-v4:
-- added led-class patch handling fwnode passing differently (patch 1/3)
-- adapted leds-pwm patch to new led-class (patch 2/3)
-- contacted original author of leds-pwm dt binding on license issue
-  (patch 3/3)
-
-v3:
-- series rebased on v5.9-rc4
-- changed license of .yaml file to recommended one (patch 2/2)
-- added Acked-by to both patches
-
-v2:
-- series rebased on v5.9-rc3
-- added the dt-bindings update patch (2/2)
-
-v1:
-- based on v5.9-rc2
-- backport on v5.4.59 tested and working
-
-Cc: linux-leds@vger.kernel.org
-Cc: devicetree@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-samsung-soc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-stm32@st-md-mailman.stormreply.com
-Cc: linux-amlogic@lists.infradead.org
-Cc: linux-mips@vger.kernel.org
-
-Alexander Dahl (12):
-  leds: pwm: Remove platform_data support
-  dt-bindings: leds: Convert pwm to yaml
-  dt-bindings: mfd: Fix schema warnings for pwm-leds
-  ARM: dts: at91: smartkiz: Reference led node directly
-  ARM: dts: at91: Fix schema warnings for pwm-leds
-  ARM: dts: berlin: Fix schema warnings for pwm-leds
-  ARM: dts: exynos: Fix schema warnings for pwm-leds
-  ARM: dts: imx: Fix schema warnings for pwm-leds
-  ARM: dts: omap: Fix schema warnings for pwm-leds
-  ARM: dts: stm32: Fix schema warnings for pwm-leds
-  arm64: dts: meson: Fix schema warnings for pwm-leds
-  MIPS: DTS: img: Fix schema warnings for pwm-leds
-
- .../devicetree/bindings/leds/leds-pwm.txt     | 50 -------------
- .../devicetree/bindings/leds/leds-pwm.yaml    | 70 +++++++++++++++++++
- .../devicetree/bindings/mfd/iqs62x.yaml       |  5 +-
- arch/arm/boot/dts/at91-kizbox.dts             | 10 +--
- arch/arm/boot/dts/at91-kizbox2-common.dtsi    |  8 +--
- arch/arm/boot/dts/at91-kizbox3-hs.dts         | 16 ++---
- arch/arm/boot/dts/at91-kizbox3_common.dtsi    | 10 +--
- arch/arm/boot/dts/at91-kizboxmini-common.dtsi |  8 +--
- arch/arm/boot/dts/at91-smartkiz.dts           |  6 +-
- arch/arm/boot/dts/at91sam9m10g45ek.dts        | 10 +--
- arch/arm/boot/dts/at91sam9rlek.dts            | 10 +--
- .../boot/dts/berlin2cd-google-chromecast.dts  |  6 +-
- arch/arm/boot/dts/exynos5422-odroidhc1.dts    |  4 +-
- arch/arm/boot/dts/exynos5422-odroidxu4.dts    |  4 +-
- .../boot/dts/exynos54xx-odroidxu-leds.dtsi    | 11 +--
- arch/arm/boot/dts/imx53-ppd.dts               | 15 ++--
- arch/arm/boot/dts/imx6qdl-cubox-i.dtsi        |  4 +-
- .../boot/dts/imx6sx-softing-vining-2000.dts   |  8 +--
- arch/arm/boot/dts/omap3-beagle-xm.dts         | 10 +--
- arch/arm/boot/dts/omap3-overo-base.dtsi       |  4 +-
- arch/arm/boot/dts/omap4-kc1.dts               |  6 +-
- arch/arm/boot/dts/omap4-sdp.dts               | 26 +++----
- arch/arm/boot/dts/stm32mp157c-lxa-mc1.dts     | 12 ++--
- .../amlogic/meson-gxl-s905x-khadas-vim.dts    |  4 +-
- .../dts/amlogic/meson-gxm-khadas-vim2.dts     |  4 +-
- .../boot/dts/amlogic/meson-sm1-sei610.dts     |  8 +--
- arch/mips/boot/dts/img/pistachio_marduk.dts   |  5 +-
- drivers/leds/leds-pwm.c                       | 30 ++------
- 28 files changed, 184 insertions(+), 180 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.txt
- create mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.yaml
-
-
-base-commit: 4f69e17c87e90f9508f498fa4771a9b77db1174b
+diff --git a/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts b/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts
+index 8bcdffdf55d0..adfc72500e66 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts
++++ b/arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts
+@@ -42,10 +42,10 @@
+ 		};
+ 	};
+ 
+-	pwmleds {
++	led-controller {
+ 		compatible = "pwm-leds";
+ 
+-		power {
++		led-1 {
+ 			label = "vim:red:power";
+ 			pwms = <&pwm_AO_ab 1 7812500 0>;
+ 			max-brightness = <255>;
+diff --git a/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts b/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts
+index bff8ec2c1c70..dcb435af4e0b 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts
++++ b/arch/arm64/boot/dts/amlogic/meson-gxm-khadas-vim2.dts
+@@ -81,10 +81,10 @@
+ 		};
+ 	};
+ 
+-	pwmleds {
++	led-controller {
+ 		compatible = "pwm-leds";
+ 
+-		power {
++		led-1 {
+ 			label = "vim:red:power";
+ 			pwms = <&pwm_AO_ab 1 7812500 0>;
+ 			max-brightness = <255>;
+diff --git a/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts b/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts
+index 5ab139a34c01..039a8d0d1e9b 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts
++++ b/arch/arm64/boot/dts/amlogic/meson-sm1-sei610.dts
+@@ -101,20 +101,20 @@
+ 		};
+ 	};
+ 
+-	leds {
++	led-controller-1 {
+ 		compatible = "gpio-leds";
+ 
+-		led-bluetooth {
++		led-1 {
+ 			label = "sei610:blue:bt";
+ 			gpios = <&gpio GPIOC_7 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>;
+ 			default-state = "off";
+ 		};
+ 	};
+ 
+-	pwmleds {
++	led-controller-2 {
+ 		compatible = "pwm-leds";
+ 
+-		power {
++		led-2 {
+ 			label = "sei610:red:power";
+ 			pwms = <&pwm_AO_ab 0 30518 0>;
+ 			max-brightness = <255>;
 -- 
 2.20.1
 
