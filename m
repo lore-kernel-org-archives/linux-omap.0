@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BABC4742C
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8A70C47423
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:37:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E1B720853
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:37:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9516C21548
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:37:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729907AbgJEUhA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1729911AbgJEUhA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 5 Oct 2020 16:37:00 -0400
-Received: from mout.kundenserver.de ([217.72.192.74]:51187 "EHLO
+Received: from mout.kundenserver.de ([212.227.17.24]:37855 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729835AbgJEUge (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:34 -0400
+        with ESMTP id S1729231AbgJEUgY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:24 -0400
 Received: from methusalix.internal.home.lespocky.de ([92.117.55.152]) by
- mrelayeu.kundenserver.de (mreue107 [212.227.15.183]) with ESMTPSA (Nemesis)
- id 1MvrRB-1khLB50vep-00syjW; Mon, 05 Oct 2020 22:35:56 +0200
+ mrelayeu.kundenserver.de (mreue106 [212.227.15.183]) with ESMTPSA (Nemesis)
+ id 1Mf0uq-1krT710Xnu-00gc2C; Mon, 05 Oct 2020 22:35:49 +0200
 Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
         by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.94)
         (envelope-from <alex@home.lespocky.de>)
-        id 1kPXD7-0004Wl-3i; Mon, 05 Oct 2020 22:35:54 +0200
-Received: (nullmailer pid 10382 invoked by uid 2001);
-        Mon, 05 Oct 2020 20:35:40 -0000
+        id 1kPXD0-0004Vs-2D; Mon, 05 Oct 2020 22:35:47 +0200
+Received: (nullmailer pid 10299 invoked by uid 2001);
+        Mon, 05 Oct 2020 20:35:35 -0000
 From:   Alexander Dahl <post@lespocky.de>
 To:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
         Rob Herring <robh+dt@kernel.org>
@@ -40,295 +40,139 @@ Cc:     Alexander Dahl <ada@thorsis.com>,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
         linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>
-Subject: [PATCH v7 09/12] ARM: dts: omap: Fix schema warnings for pwm-leds
-Date:   Mon,  5 Oct 2020 22:34:48 +0200
-Message-Id: <20201005203451.9985-10-post@lespocky.de>
+        Denis Osterland-Heim <denis.osterland@diehl.com>,
+        =?UTF-8?q?Marek=20Beh=C3=BAn?= <marek.behun@nic.cz>
+Subject: [PATCH v7 01/12] leds: pwm: Remove platform_data support
+Date:   Mon,  5 Oct 2020 22:34:40 +0200
+Message-Id: <20201005203451.9985-2-post@lespocky.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
 References: <20201005203451.9985-1-post@lespocky.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Scan-Signature: 45ec6910c78ac02328d2d17c1d0778f0
-X-Provags-ID: V03:K1:tj7egiK6AuNaQWepjgZvHcM6M5lfa7UAR2P9ioUJ3RlNB4jyF7v
- evoYPhbCTvSeI8Op6s+vrsa+6ur+wHyp4SAMR3uXS+LOIsVmqJaZS9m1+Us1wtzVYWtjUUC
- 7i1EcRWIR2GkZMhYamcXIZK5SXykWa4MAkqS1rtXB9aUaHPUHjC3rVEmOwCvUVZgBtd1Y4C
- lfn3rw3Xxo1YAgCsLMWUg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:jvtlnEnNPm8=:+oNI0rux+CbT7gXthF0CTY
- CDGiyW24Ps0ErOL3NWnOFJjIJCl9wHWn8AvEGroxKmzE2v5lzMtwXiK3i7y2d/Y3/1Yz8l4Xy
- jy4tOMS2DUxviDSgY8WRVLHSWtk2lkPfDYzcSsC2Xma4wSwZG0HqjFWayp9WDn4RPKBQ0ERNn
- pUIqGhFjy4Sh0SkuQ7koPP4CKABIVtRTLUyXHg3jgeBF6cn+ONCKtFChkwgow2EzaCPURLv3p
- DYEebmgnQdCdkBs9R6BRIHGnvHltmQTCRw9Y3eXye5jdB/8ZwyWO6vGxVA938GxYxy51cYdEY
- qow6U4UbcrZYjKabnE8D+Ib8QLgB5+qbDPG9HCRpLxVLyU1qnDVFjMD3aHCJNtggCnfNedxmg
- PeRFrlUYJq8rwMto57vld4CnRVU+HkSso3wCALw+wOdxOesX5xJqZ+F6GCmJFzj2wruaWDr0Z
- V3l+8MZDIquZq0/jZMH474O1k1V3TvlvARnkX8JdAU5VoGvtvd2NH2vorbQOulEODBuf8fMwZ
- B1tu9LZ3OZgv258ZiWlrQuirX9nWpj0+/gZ6PnC/qxHCkq6fXTq2kZxKC6FrVAHjtszWKYqw5
- M298G3+f80uNabZjs8DGjWGDTjK1gmJR3AV0E3pUGSiKyMvTv6RhMLkqBWS3d8UelKe3JPFNw
- M9/g7wxuti2lihIa2kjeLUnUuJM2xZP6wEnDegOuyzgFc8k3RZVjBwHGgn1dTMnLWybvNx1iV
- dyW96cGwYYLiJRzvm7peWiZr5Hn6DxuutMyNYoG8LHIaz8uwAm8+VoOs26by+LHJe+QFpbtsO
- 9rn9nfnLt1OJLJxhJO4ZHk+CQp7uyGXEdEC5facXQ4rqxuGB4EXA8fcLSonblpkljvYH1x4
+X-Scan-Signature: 60b617cbd4bf9c2e08b69b262f748e48
+X-Provags-ID: V03:K1:F6CgTqFAM3Qqi3ZE0tnTBE4mNujqwFryfVD6rzRWENkVcmWDhRr
+ ou4O8IwayvYCgYv1NB2QHjUyKASNO7CpeAclu6bjzPbL58Yz1gjVaTbdDBLPyxkddbNmtuS
+ u/zezbz5ZKHIwKkOlUPALYQ/zqHv8QRZ0g1AFFM4I9nHeiA/U1S+TTqF/YMxJ9jyNM1FNbS
+ lbO7btq+DmlmbcWrsSohA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:dEdS/I+Xl2I=:PiLtBsHPvNdnKu/d/mxmsJ
+ rEdBMUdvRuwWDDKxyaDMAHPYxYM88Oedh0ZKhZCTBisht7o/bSAwwCmh5yLjH++jYj4GKdY7h
+ iKf9faeQjYQ8Ul4FLjZDsbZIstFJNoq8pwE7EckpgkTRHOVrrokkfm5tODmAzdlLvH34+xPJh
+ mXYvgsGtDDL2pCp03/03mON0DCWPhB8XG0B2w+LcGABS23CL035nuH2fHjD/Xe4YfBvLBaaGV
+ OsUZlv6HNVFtuUgrjhxmj4iwkoPovo/J3QCJ3651JqQUcbDtx6V1urdeVT7QyFvQ0IZsF+z54
+ /zUMHwh75CMpvTC9OWDjTLDWGYoXwCg6i4tsD4YZ6yTIRXSea9xId5KCg6Gs06SXX63UrrTbO
+ AZpMIvSUeqlk3KM1a9fxNa9vr2cV9HKYu/G584ctHMX803O3BHZL5qe7267p8pKo2HTpfnOpv
+ AvSbJMMgZ9LWEiTRg6XCaBS5pvXx6EwASb20FVKHtAX1sNf9dko+psaZplMFMh2r25Nn1LAQx
+ CuWxdse3MucWTkS3+d4Uws/qJ7L2thzCqLDJ/EjVWtA3LuLBLhXxAoTE2B7L3Vx929KdAv7AJ
+ lDtKP1Um9mgL0Jehee0bzE3MedQbE4oRQ3Fgg3bgbIyxVnvgm21DKOcXWFmkqqGTwsrvJuc1r
+ ZfGlonYTZeJIeu3YQqUy4gapBGXY0N24kLYZmeD/ygjyKgSyusCoz8l/Ymf3n85CCdzO0N4Ga
+ B3dHGs6BYAKGvKUYWYRaGPLF+l9pHvmSMgRx1RKA8i0KLNenqDT+W+t9hlBIW86kFKkRDIcKp
+ 7r7xrzNZi6L+vlKt/FWCmHM/PrxbfGJw1EMyW0qrs8fB7ujLAO/XY0VmcS9HjeU1LiAtIqw
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The node names for devices using the pwm-leds driver follow a certain
-naming scheme (now).  Parent node name is not enforced, but recommended
-by DT project.
-
-  DTC     arch/arm/boot/dts/omap3-beagle-xm.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-beagle-xm.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-beagle-xm.dt.yaml: pwmleds: 'pmu_stat' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-beagle-xm-ab.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-beagle-xm-ab.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-beagle-xm-ab.dt.yaml: pwmleds: 'pmu_stat' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-alto35.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-alto35.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-alto35.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-chestnut43.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-chestnut43.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-chestnut43.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-gallop43.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-gallop43.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-gallop43.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-palo35.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-palo35.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-palo35.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-palo43.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-palo43.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-palo43.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-alto35.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-alto35.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-alto35.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-chestnut43.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-chestnut43.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-chestnut43.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-gallop43.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-gallop43.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-gallop43.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-palo35.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-palo35.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-palo35.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-palo43.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-palo43.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-palo43.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-summit.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-summit.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-summit.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-tobi.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-tobi.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-tobi.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-storm-tobiduo.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-storm-tobiduo.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-summit.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-summit.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-summit.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-tobi.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-tobi.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-tobi.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap3-overo-tobiduo.dt.yaml
-  CHECK   arch/arm/boot/dts/omap3-overo-tobiduo.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap3-overo-tobiduo.dt.yaml: pwmleds: 'overo' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap4-kc1.dt.yaml
-  CHECK   arch/arm/boot/dts/omap4-kc1.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap4-kc1.dt.yaml: pwmleds: 'green', 'orange' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap4-sdp.dt.yaml
-  CHECK   arch/arm/boot/dts/omap4-sdp.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap4-sdp.dt.yaml: pwmleds: 'charging', 'kpad' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
-  DTC     arch/arm/boot/dts/omap4-sdp-es23plus.dt.yaml
-  CHECK   arch/arm/boot/dts/omap4-sdp-es23plus.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/omap4-sdp-es23plus.dt.yaml: pwmleds: 'charging', 'kpad' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+Since commit 141f15c66d94 ("leds: pwm: remove header") that platform
+interface is not usable from outside and there seems to be no in tree
+user anymore.  All in-tree users of the leds-pwm driver seem to use DT
+currently.  Getting rid of the old platform interface allows the
+leds-pwm driver to switch over from 'devm_led_classdev_register()' to
+'devm_led_classdev_register_ext()'.
 
 Signed-off-by: Alexander Dahl <post@lespocky.de>
+Cc: Denis Osterland-Heim <denis.osterland@diehl.com>
+Reviewed-by: Marek Behún <marek.behun@nic.cz>
 ---
 
 Notes:
     v6 -> v7:
-      * split up patch (one per sub arch)
-      * added actual warnings to commit message
+      * (no changes on this patch)
+    
+    v5 -> v6:
+      * added Reviewed-by from Marek
+      * minimal commit message rewording, because a later patch was
+        already applied
+    
+    v5:
+      * added this patch to series (replacing another patch with a not
+        working, different approach)
 
- arch/arm/boot/dts/omap3-beagle-xm.dts   | 10 +++++-----
- arch/arm/boot/dts/omap3-overo-base.dtsi |  4 ++--
- arch/arm/boot/dts/omap4-kc1.dts         |  6 +++---
- arch/arm/boot/dts/omap4-sdp.dts         | 26 +++++++++++++------------
- 4 files changed, 24 insertions(+), 22 deletions(-)
+ drivers/leds/leds-pwm.c | 30 +++++-------------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 05077f3c75cd..cbeab697b89f 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -34,26 +34,26 @@
- 		clock-frequency = <26000000>;
- 	};
+diff --git a/drivers/leds/leds-pwm.c b/drivers/leds/leds-pwm.c
+index 2a16ae0bf022..f53f9309ca6c 100644
+--- a/drivers/leds/leds-pwm.c
++++ b/drivers/leds/leds-pwm.c
+@@ -24,11 +24,6 @@ struct led_pwm {
+ 	unsigned int	max_brightness;
+ };
  
--	leds {
-+	led-controller-1 {
- 		compatible = "gpio-leds";
+-struct led_pwm_platform_data {
+-	int		num_leds;
+-	struct led_pwm	*leds;
+-};
+-
+ struct led_pwm_data {
+ 	struct led_classdev	cdev;
+ 	struct pwm_device	*pwm;
+@@ -60,6 +55,7 @@ static int led_pwm_set(struct led_classdev *led_cdev,
+ 	return pwm_apply_state(led_dat->pwm, &led_dat->pwmstate);
+ }
  
--		heartbeat {
-+		led-1 {
- 			label = "beagleboard::usr0";
- 			gpios = <&gpio5 22 GPIO_ACTIVE_HIGH>; /* 150 -> D6 LED */
- 			linux,default-trigger = "heartbeat";
- 		};
++__attribute__((nonnull))
+ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
+ 		       struct led_pwm *led, struct fwnode_handle *fwnode)
+ {
+@@ -73,10 +69,7 @@ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
+ 	led_data->cdev.max_brightness = led->max_brightness;
+ 	led_data->cdev.flags = LED_CORE_SUSPENDRESUME;
  
--		mmc {
-+		led-2 {
- 			label = "beagleboard::usr1";
- 			gpios = <&gpio5 21 GPIO_ACTIVE_HIGH>; /* 149 -> D7 LED */
- 			linux,default-trigger = "mmc0";
- 		};
- 	};
+-	if (fwnode)
+-		led_data->pwm = devm_fwnode_pwm_get(dev, fwnode, NULL);
+-	else
+-		led_data->pwm = devm_pwm_get(dev, led->name);
++	led_data->pwm = devm_fwnode_pwm_get(dev, fwnode, NULL);
+ 	if (IS_ERR(led_data->pwm))
+ 		return dev_err_probe(dev, PTR_ERR(led_data->pwm),
+ 				     "unable to request PWM for %s\n",
+@@ -139,15 +132,11 @@ static int led_pwm_create_fwnode(struct device *dev, struct led_pwm_priv *priv)
  
--	pwmleds {
-+	led-controller-2 {
- 		compatible = "pwm-leds";
+ static int led_pwm_probe(struct platform_device *pdev)
+ {
+-	struct led_pwm_platform_data *pdata = dev_get_platdata(&pdev->dev);
+ 	struct led_pwm_priv *priv;
+-	int count, i;
+ 	int ret = 0;
++	int count;
  
--		pmu_stat {
-+		led-3 {
- 			label = "beagleboard::pmu_stat";
- 			pwms = <&twl_pwmled 1 7812500>;
- 			max-brightness = <127>;
-diff --git a/arch/arm/boot/dts/omap3-overo-base.dtsi b/arch/arm/boot/dts/omap3-overo-base.dtsi
-index 971d3e250515..006a6d97231c 100644
---- a/arch/arm/boot/dts/omap3-overo-base.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
-@@ -14,10 +14,10 @@
- 		reg = <0 0>;
- 	};
+-	if (pdata)
+-		count = pdata->num_leds;
+-	else
+-		count = device_get_child_node_count(&pdev->dev);
++	count = device_get_child_node_count(&pdev->dev);
  
--	pwmleds {
-+	led-controller {
- 		compatible = "pwm-leds";
+ 	if (!count)
+ 		return -EINVAL;
+@@ -157,16 +146,7 @@ static int led_pwm_probe(struct platform_device *pdev)
+ 	if (!priv)
+ 		return -ENOMEM;
  
--		overo {
-+		led-1 {
- 			label = "overo:blue:COM";
- 			pwms = <&twl_pwmled 1 7812500>;
- 			max-brightness = <127>;
-diff --git a/arch/arm/boot/dts/omap4-kc1.dts b/arch/arm/boot/dts/omap4-kc1.dts
-index 31d856b58f8a..e59d17b25a1d 100644
---- a/arch/arm/boot/dts/omap4-kc1.dts
-+++ b/arch/arm/boot/dts/omap4-kc1.dts
-@@ -15,16 +15,16 @@
- 		reg = <0x80000000 0x20000000>; /* 512 MB */
- 	};
+-	if (pdata) {
+-		for (i = 0; i < count; i++) {
+-			ret = led_pwm_add(&pdev->dev, priv, &pdata->leds[i],
+-					  NULL);
+-			if (ret)
+-				break;
+-		}
+-	} else {
+-		ret = led_pwm_create_fwnode(&pdev->dev, priv);
+-	}
++	ret = led_pwm_create_fwnode(&pdev->dev, priv);
  
--	pwmleds {
-+	led-controller {
- 		compatible = "pwm-leds";
- 
--		green {
-+		led-1 {
- 			label = "green";
- 			pwms = <&twl_pwm 0 7812500>;
- 			max-brightness = <127>;
- 		};
- 
--		orange {
-+		led-2 {
- 			label = "orange";
- 			pwms = <&twl_pwm 1 7812500>;
- 			max-brightness = <127>;
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 79e7a41ecb7e..f5d7539a3668 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -45,58 +45,60 @@
- 		regulator-boot-on;
- 	};
- 
--	leds {
-+	led-controller-1 {
- 		compatible = "gpio-leds";
--		debug0 {
-+
-+		led-1 {
- 			label = "omap4:green:debug0";
- 			gpios = <&gpio2 29 GPIO_ACTIVE_HIGH>; /* 61 */
- 		};
- 
--		debug1 {
-+		led-2 {
- 			label = "omap4:green:debug1";
- 			gpios = <&gpio1 30 GPIO_ACTIVE_HIGH>; /* 30 */
- 		};
- 
--		debug2 {
-+		led-3 {
- 			label = "omap4:green:debug2";
- 			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>; /* 7 */
- 		};
- 
--		debug3 {
-+		led-4 {
- 			label = "omap4:green:debug3";
- 			gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>; /* 8 */
- 		};
- 
--		debug4 {
-+		led-5 {
- 			label = "omap4:green:debug4";
- 			gpios = <&gpio2 18 GPIO_ACTIVE_HIGH>; /* 50 */
- 		};
- 
--		user1 {
-+		led-6 {
- 			label = "omap4:blue:user";
- 			gpios = <&gpio6 9 GPIO_ACTIVE_HIGH>; /* 169 */
- 		};
- 
--		user2 {
-+		led-7 {
- 			label = "omap4:red:user";
- 			gpios = <&gpio6 10 GPIO_ACTIVE_HIGH>; /* 170 */
- 		};
- 
--		user3 {
-+		led-8 {
- 			label = "omap4:green:user";
- 			gpios = <&gpio5 11 GPIO_ACTIVE_HIGH>; /* 139 */
- 		};
- 	};
- 
--	pwmleds {
-+	led-controller-2 {
- 		compatible = "pwm-leds";
--		kpad {
-+
-+		led-9 {
- 			label = "omap4::keypad";
- 			pwms = <&twl_pwm 0 7812500>;
- 			max-brightness = <127>;
- 		};
- 
--		charging {
-+		led-10 {
- 			label = "omap4:green:chrg";
- 			pwms = <&twl_pwmled 0 7812500>;
- 			max-brightness = <255>;
+ 	if (ret)
+ 		return ret;
 -- 
 2.20.1
 
