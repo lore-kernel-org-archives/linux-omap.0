@@ -2,117 +2,110 @@ Return-Path: <SRS0=TfIt=DM=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8212C4363A
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 13:54:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FE81C4727E
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D18820774
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 13:54:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601906080;
-	bh=6LsC7yQVhoEHZsDE/rXUbncBFXJ46F9fpG0DVJ/8+LU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=QGziP36YETVdKOSQ4updBzTfSN+ki3InH20NUGmpKKTbYSjQygmEE0nwvf032us/L
-	 HJZIY5XKa8ME9oVsACUPJ5jdvuVB/2iuRUW+fAhg9MUXey1o12aypofwXhGWDhRCZD
-	 ixNXoO4GKIlFp2z0AtQdioIypFS1GFoUeYAoX/Ik=
+	by mail.kernel.org (Postfix) with ESMTP id 230BB21548
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726064AbgJENyj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 5 Oct 2020 09:54:39 -0400
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:44847 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725911AbgJENyj (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 09:54:39 -0400
-Received: by mail-ot1-f68.google.com with SMTP id a2so8629367otr.11;
-        Mon, 05 Oct 2020 06:54:37 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=ywT1ID75hKID+KWrvt8jbDCqAy1lsMMxjENEdx2Y1RY=;
-        b=V6wdXhTU8s6zmDWjxLEj0MacUFNdOWTRRGhViJTYug2OeeYLV+pFjXuPNCS+MCZ4Kn
-         hq6INTCT4WpChylWrvBhKDCoDeXHGIV6CMRV38fShfJuJXo1hXT9dEf+jkNL1S/ULQgT
-         gy/jYjG3xJIeNwTbueBPUWoAIhuMM22tLjD/W24fdc3Fq2l35VOO1klydEGbi8VMdOAQ
-         miul0dffTrJgxoUi1lR2FIYg3ZmxV2k+0gP1H8MNMxVtY2GmbvgVbrFS+4faRK3aizOQ
-         vYwKnR7ATRO5Ay0/3tE+HkFBbD5RSlFAVl55Gkl0j73QZKzghR9PwQ1HqqoyivVOGL6+
-         u/eg==
-X-Gm-Message-State: AOAM5307btv9zMTHXsxhtRPl2s9BSu/2ll7Ym//23ilbgNkI51hfHNlN
-        g3aV9NybHm6bvlmyGw7FBA==
-X-Google-Smtp-Source: ABdhPJy27lxmlMYfHdDW0sQLWWCljDxFmokHsIy9JCpxiH5FWa61WQb3hBS728MrEMCDCS4Vzx1c2A==
-X-Received: by 2002:a05:6830:30a8:: with SMTP id g8mr10929780ots.370.1601906077165;
-        Mon, 05 Oct 2020 06:54:37 -0700 (PDT)
-Received: from xps15 (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
-        by smtp.gmail.com with ESMTPSA id x18sm1477902otq.61.2020.10.05.06.54.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 05 Oct 2020 06:54:36 -0700 (PDT)
-Received: (nullmailer pid 86477 invoked by uid 1000);
-        Mon, 05 Oct 2020 13:54:35 -0000
-Date:   Mon, 5 Oct 2020 08:54:35 -0500
-From:   Rob Herring <robh@kernel.org>
-To:     Alexander Dahl <post@lespocky.de>
-Cc:     Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
-        linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
+        id S1729795AbgJEUgT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 5 Oct 2020 16:36:19 -0400
+Received: from mout.kundenserver.de ([212.227.17.24]:57027 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729231AbgJEUgS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:18 -0400
+Received: from methusalix.internal.home.lespocky.de ([92.117.55.152]) by
+ mrelayeu.kundenserver.de (mreue109 [212.227.15.183]) with ESMTPSA (Nemesis)
+ id 1N5VPg-1kRAoj34jS-016sx1; Mon, 05 Oct 2020 22:35:47 +0200
+Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
+        by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+        (Exim 4.94)
+        (envelope-from <alex@home.lespocky.de>)
+        id 1kPXCz-0004Vl-00; Mon, 05 Oct 2020 22:35:45 +0200
+Received: (nullmailer pid 10331 invoked by uid 2001);
+        Mon, 05 Oct 2020 20:35:37 -0000
+From:   Alexander Dahl <post@lespocky.de>
+To:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc:     Alexander Dahl <ada@thorsis.com>,
         Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-amlogic@lists.infradead.org,
-        Alexander Dahl <ada@thorsis.com>,
-        linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Alexander Dahl <post@lespocky.de>, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v6 2/7] dt-bindings: leds: Convert pwm to yaml
-Message-ID: <20201005135435.GA86443@bogus>
-References: <20200930234637.7573-1-post@lespocky.de>
- <20200930234637.7573-3-post@lespocky.de>
+        linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>
+Subject: [PATCH v7 04/12] ARM: dts: at91: smartkiz: Reference led node directly
+Date:   Mon,  5 Oct 2020 22:34:43 +0200
+Message-Id: <20201005203451.9985-5-post@lespocky.de>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
+References: <20201005203451.9985-1-post@lespocky.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200930234637.7573-3-post@lespocky.de>
+Content-Transfer-Encoding: 8bit
+X-Scan-Signature: 883e206fe91cc1c75a414c154095e545
+X-Provags-ID: V03:K1:5ZDmDCrnMLx3t8rF84LEdt0tTtR8Fz7PUe/C49eHIKrHHckpnKI
+ 5cF2sq0KusblA1UyT1LyDWK4Lx3bF2aGfk1iGUgsONivlyK4O/264pTjy+QcghGG2DeLQH1
+ NcN82XoGOPMsQsXJUt4vEYFcYLi+iiiCSJmwy/4vR1Kgc2x6lQRitMzLFvjv7+VfHbgGy8U
+ 6rpzJAtAU5CdOrFJ8KNpQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:6z4X9w84V2Y=:Bk5QOnfSm45rYOQ9PzKPFb
+ tRoe/FQgeDv8ozAY3XzzIgvx3Qau2hcSwYdJmzqUCpsdqETs4iHEPplJYXOc2FjzddjkxvM5X
+ WKRv6zShH7A6vROm3qL02gfuYHiPpqIPk4+GBiGixiySzCoeDras5b96TXcNw6iUgXtisgtaE
+ THcbqftbFfCHzilD2fy5mBRgouhoPtvXToaJrnKAltiLj2MOL3lKu+ChrhkbBP+GZDWQhQSsz
+ ivPU0NzehlAJVhcVh3u7eQsgX7tpd8RIxx6YAWI/mC4fALmtyfr3p/2+phofXbyzO1UvrGDrr
+ uQN2CrteXXfHnDFaEFY55sQ8+Ug33ofX9uB8EsQctv4l8BUk8afPVLzSRckd0fwiOX/ycfdti
+ RjXiPILw7fp0Ljo/MAUeDfljGJinYU7EvwLOmy4XTjH/uOieGBtGor1EDTPwetypMyJkVE+QW
+ 14X7JXL2wKrrUN7wROmvZajT282/Ywma09Bxuz7CGkx9jh12y7yT4+RMGeCzr2xHjbIvCqny4
+ X219GbiHDKvgzFlio1pmfPIzuwlZ4/mOBwCAXiCIFkBRYyXKL3tZ+6eTQyj2h0eTm/obw4L+n
+ W+uxFbme/925gxoOoC17Aj4BGZSfuZIp/ZcOvqKZDej4TpThQl9ACpW5RP/AbnVkSP77yJhe9
+ 8vgD2EAokOfTio92ICoJrgHBbmC23DSz3E0q16TCnNVrMVM7KlNhx479k6cXUO9pOj7HBE277
+ 9NYOObU322OrY5PYWu/cAyj5MmomAVxu/+jvX3UmiwnGrXfag17KHPevc61mVWoLGtOLXKbJy
+ yu+w9NadE7z2Yfgam0QeuxVW0hIHn3ZmN50+JUIPteo3I2NDQoihbc59+cqf9u5qj05HQr6
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 01 Oct 2020 01:46:32 +0200, Alexander Dahl wrote:
-> The example was adapted in the following ways:
-> 
-> - make use of the now supported 'function' and 'color' properties
-> - remove pwm nodes, those are documented elsewhere
-> - tweake node names to be matched by new dtschema rules
-> 
-> License was discussed with the original author.
-> 
-> Suggested-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-> Signed-off-by: Alexander Dahl <post@lespocky.de>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-> 
-> Notes:
->     v5 -> v6:
->       * removed pwm nodes from example (Rob)
->       * renamed led-controller node in example (Rob)
-> 
->     v4 -> v5:
->       * updated based on feedback by Rob Herring
->       * removed Acked-by
-> 
->     v3 -> v4:
->       * added Cc to original author of the binding
-> 
->     v2 -> v3:
->       * changed license identifier to recommended one
->       * added Acked-by
-> 
->     v2:
->       * added this patch to series (Suggested-by: Jacek Anaszewski)
-> 
->  .../devicetree/bindings/leds/leds-pwm.txt     | 50 -------------
->  .../devicetree/bindings/leds/leds-pwm.yaml    | 70 +++++++++++++++++++
->  2 files changed, 70 insertions(+), 50 deletions(-)
->  delete mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.txt
->  create mode 100644 Documentation/devicetree/bindings/leds/leds-pwm.yaml
-> 
+Do it the simple way like for the other kizbox boards.  This will allow
+renaming the led controller node name later without breaking things.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Alexander Dahl <post@lespocky.de>
+---
+
+Notes:
+    v6 -> v7:
+      * (no changes on this patch)
+    
+    v6:
+      * added this patch to series
+
+ arch/arm/boot/dts/at91-smartkiz.dts | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/at91-smartkiz.dts b/arch/arm/boot/dts/at91-smartkiz.dts
+index 106f23ba4a3b..b76a6b5ac464 100644
+--- a/arch/arm/boot/dts/at91-smartkiz.dts
++++ b/arch/arm/boot/dts/at91-smartkiz.dts
+@@ -84,10 +84,8 @@
+ 	status = "okay";
+ };
+ 
+-&leds {
+-	blue {
+-		status = "okay";
+-	};
++&led_blue {
++	status = "okay";
+ };
+ 
+ &adc0 {
+-- 
+2.20.1
+
