@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FE81C4727E
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96D6FC4727D
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 230BB21548
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D53F21582
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:36:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729795AbgJEUgT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 5 Oct 2020 16:36:19 -0400
-Received: from mout.kundenserver.de ([212.227.17.24]:57027 "EHLO
+        id S1729334AbgJEUgS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 5 Oct 2020 16:36:18 -0400
+Received: from mout.kundenserver.de ([212.227.17.10]:37513 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729231AbgJEUgS (ORCPT
+        with ESMTP id S1729312AbgJEUgS (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:36:18 -0400
 Received: from methusalix.internal.home.lespocky.de ([92.117.55.152]) by
- mrelayeu.kundenserver.de (mreue109 [212.227.15.183]) with ESMTPSA (Nemesis)
- id 1N5VPg-1kRAoj34jS-016sx1; Mon, 05 Oct 2020 22:35:47 +0200
+ mrelayeu.kundenserver.de (mreue107 [212.227.15.183]) with ESMTPSA (Nemesis)
+ id 1MQdMG-1k4AsY0Q3q-00Nkup; Mon, 05 Oct 2020 22:35:52 +0200
 Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
         by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.94)
         (envelope-from <alex@home.lespocky.de>)
-        id 1kPXCz-0004Vl-00; Mon, 05 Oct 2020 22:35:45 +0200
-Received: (nullmailer pid 10331 invoked by uid 2001);
-        Mon, 05 Oct 2020 20:35:37 -0000
+        id 1kPXD3-0004WI-Ea; Mon, 05 Oct 2020 22:35:50 +0200
+Received: (nullmailer pid 10358 invoked by uid 2001);
+        Mon, 05 Oct 2020 20:35:39 -0000
 From:   Alexander Dahl <post@lespocky.de>
 To:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
         Rob Herring <robh+dt@kernel.org>
@@ -40,72 +40,149 @@ Cc:     Alexander Dahl <ada@thorsis.com>,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
         linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>
-Subject: [PATCH v7 04/12] ARM: dts: at91: smartkiz: Reference led node directly
-Date:   Mon,  5 Oct 2020 22:34:43 +0200
-Message-Id: <20201005203451.9985-5-post@lespocky.de>
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH v7 07/12] ARM: dts: exynos: Fix schema warnings for pwm-leds
+Date:   Mon,  5 Oct 2020 22:34:46 +0200
+Message-Id: <20201005203451.9985-8-post@lespocky.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
 References: <20201005203451.9985-1-post@lespocky.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scan-Signature: 883e206fe91cc1c75a414c154095e545
-X-Provags-ID: V03:K1:5ZDmDCrnMLx3t8rF84LEdt0tTtR8Fz7PUe/C49eHIKrHHckpnKI
- 5cF2sq0KusblA1UyT1LyDWK4Lx3bF2aGfk1iGUgsONivlyK4O/264pTjy+QcghGG2DeLQH1
- NcN82XoGOPMsQsXJUt4vEYFcYLi+iiiCSJmwy/4vR1Kgc2x6lQRitMzLFvjv7+VfHbgGy8U
- 6rpzJAtAU5CdOrFJ8KNpQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:6z4X9w84V2Y=:Bk5QOnfSm45rYOQ9PzKPFb
- tRoe/FQgeDv8ozAY3XzzIgvx3Qau2hcSwYdJmzqUCpsdqETs4iHEPplJYXOc2FjzddjkxvM5X
- WKRv6zShH7A6vROm3qL02gfuYHiPpqIPk4+GBiGixiySzCoeDras5b96TXcNw6iUgXtisgtaE
- THcbqftbFfCHzilD2fy5mBRgouhoPtvXToaJrnKAltiLj2MOL3lKu+ChrhkbBP+GZDWQhQSsz
- ivPU0NzehlAJVhcVh3u7eQsgX7tpd8RIxx6YAWI/mC4fALmtyfr3p/2+phofXbyzO1UvrGDrr
- uQN2CrteXXfHnDFaEFY55sQ8+Ug33ofX9uB8EsQctv4l8BUk8afPVLzSRckd0fwiOX/ycfdti
- RjXiPILw7fp0Ljo/MAUeDfljGJinYU7EvwLOmy4XTjH/uOieGBtGor1EDTPwetypMyJkVE+QW
- 14X7JXL2wKrrUN7wROmvZajT282/Ywma09Bxuz7CGkx9jh12y7yT4+RMGeCzr2xHjbIvCqny4
- X219GbiHDKvgzFlio1pmfPIzuwlZ4/mOBwCAXiCIFkBRYyXKL3tZ+6eTQyj2h0eTm/obw4L+n
- W+uxFbme/925gxoOoC17Aj4BGZSfuZIp/ZcOvqKZDej4TpThQl9ACpW5RP/AbnVkSP77yJhe9
- 8vgD2EAokOfTio92ICoJrgHBbmC23DSz3E0q16TCnNVrMVM7KlNhx479k6cXUO9pOj7HBE277
- 9NYOObU322OrY5PYWu/cAyj5MmomAVxu/+jvX3UmiwnGrXfag17KHPevc61mVWoLGtOLXKbJy
- yu+w9NadE7z2Yfgam0QeuxVW0hIHn3ZmN50+JUIPteo3I2NDQoihbc59+cqf9u5qj05HQr6
+X-Scan-Signature: 5e9d40fdb1e6868c9688ce2d7506cedd
+X-Provags-ID: V03:K1:qAOppKaFOEEFvMLS4UbgIKeSIya5V0XEJXxPiPeBJFhM6VitkAL
+ Eps8BCWJUd1k/6O4szURKXFCNlVRs0I9wUfXCBvAlvaBwur5GSNFsV0K43loo2VLgCJ8MSn
+ t6Onhy0Gbzy8FeG1r0mkdmRB7fKoqHRENqlJgq5KG3E+s9endHkfqgrPHijVpOf0tB0pAnu
+ Z7B7fA86EnKFPQa55ILIg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:wa0B2A2jN5g=:FLebsajf/2pJOWMDJLdAc1
+ 8BZY7HyVsCG1NWzQS6u1dqAAi3C6/FN4YICYo36Tcr32bMmleopKPo+FvNG5TRh6Ypqx/ipvJ
+ RgFpFi+BB5Q7c6SqNI3SIfiOHJJYSV+GEANKKx76Zu/J1J70Gc6Ws4qzsglD7ENMJsYqViohR
+ VuuzWkZxxr+tzdV8x5kHDDxythG8L6CAnVJpA3X6/rGrKr+A6r0unJKLL9HUCasr3uABugj+c
+ /aq/O+lq89l90HwYCNXvUZDvqweNBE75LbRD5EDgHbfqm38ZPunu9GcNZl9saD9AV86Wzeawv
+ 6ksKAau02RPpJcmLd09cwdW6CiVnV594gAif9Q4Ccgsqi15tPLhH+c0KX6ZjxzGIsBMzfdwXB
+ NOhAI36tsuAuQcbBgGogUbKeJ5bbzZE1aRFz05goOW8Psllz/PbzNNIFIs4Ht/XgY7jHH8TYF
+ wqV3X2Iv5p8n5O5+9Nlc8zYqAhxIhLBuQ2O+0p+plb8VNShp26OlTrkw1e1kIoZYzluH1JuqR
+ aWyDQZi04vXdIHz+QO0WSFdFLHftY/sEKGGkwhViZXT6ggudbCM/CAhX08fdA3AO4JjfJIUnN
+ QfyWrwlcjyUyBD4QPlPdHrMvbP+1azbh0lADvP0sRbz0bITkOuLRILQI/uxZQI+jLtMga2465
+ yugeYi/ye89nl9ivzf5jjndmTmIo+6kFCgbRg3saHIZ8LV+Xzy4uSEWKxO8qn5iWBR6s6Ztrq
+ LzFugwz2OWfb/LSfVtZQrAgTMWI6X8sYl4uIL0GjaECDzkZlcJx9R8jm8cHdsRzoljNgYKTLl
+ C3IBokDLWMC+UuREltN+yMrHTaMVCrhipJe87I834KOvJFkzNSuy6eWYFSJcHUjzlQo6TNe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Do it the simple way like for the other kizbox boards.  This will allow
-renaming the led controller node name later without breaking things.
+The node names for devices using the pwm-leds driver follow a certain
+naming scheme (now).  Parent node name is not enforced, but recommended
+by DT project.
+
+  DTC     arch/arm/boot/dts/exynos5410-odroidxu.dt.yaml
+  CHECK   arch/arm/boot/dts/exynos5410-odroidxu.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/exynos5410-odroidxu.dt.yaml: pwmleds: 'blueled', 'greenled' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/exynos5422-odroidhc1.dt.yaml
+  CHECK   arch/arm/boot/dts/exynos5422-odroidhc1.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/exynos5422-odroidhc1.dt.yaml: pwmleds: 'blueled' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/exynos5422-odroidxu3.dt.yaml
+  CHECK   arch/arm/boot/dts/exynos5422-odroidxu3.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/exynos5422-odroidxu3.dt.yaml: pwmleds: 'blueled', 'greenled' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/exynos5422-odroidxu3-lite.dt.yaml
+  CHECK   arch/arm/boot/dts/exynos5422-odroidxu3-lite.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/exynos5422-odroidxu3-lite.dt.yaml: pwmleds: 'blueled', 'greenled' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+  DTC     arch/arm/boot/dts/exynos5422-odroidxu4.dt.yaml
+  CHECK   arch/arm/boot/dts/exynos5422-odroidxu4.dt.yaml
+/home/alex/build/linux/arch/arm/boot/dts/exynos5422-odroidxu4.dt.yaml: pwmleds: 'blueled' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
 
 Signed-off-by: Alexander Dahl <post@lespocky.de>
 ---
 
 Notes:
     v6 -> v7:
-      * (no changes on this patch)
-    
-    v6:
-      * added this patch to series
+      * split up patch (one per sub arch)
+      * added actual warnings to commit message
 
- arch/arm/boot/dts/at91-smartkiz.dts | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/exynos5422-odroidhc1.dts      |  4 ++--
+ arch/arm/boot/dts/exynos5422-odroidxu4.dts      |  4 ++--
+ arch/arm/boot/dts/exynos54xx-odroidxu-leds.dtsi | 11 ++++++-----
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/boot/dts/at91-smartkiz.dts b/arch/arm/boot/dts/at91-smartkiz.dts
-index 106f23ba4a3b..b76a6b5ac464 100644
---- a/arch/arm/boot/dts/at91-smartkiz.dts
-+++ b/arch/arm/boot/dts/at91-smartkiz.dts
-@@ -84,10 +84,8 @@
- 	status = "okay";
- };
+diff --git a/arch/arm/boot/dts/exynos5422-odroidhc1.dts b/arch/arm/boot/dts/exynos5422-odroidhc1.dts
+index 812659260278..20c222b33f98 100644
+--- a/arch/arm/boot/dts/exynos5422-odroidhc1.dts
++++ b/arch/arm/boot/dts/exynos5422-odroidhc1.dts
+@@ -15,10 +15,10 @@
+ 	compatible = "hardkernel,odroid-hc1", "samsung,exynos5800", \
+ 		     "samsung,exynos5";
  
--&leds {
--	blue {
--		status = "okay";
--	};
-+&led_blue {
-+	status = "okay";
- };
+-	pwmleds {
++	led-controller {
+ 		compatible = "pwm-leds";
  
- &adc0 {
+-		blueled {
++		led-1 {
+ 			label = "blue:heartbeat";
+ 			pwms = <&pwm 2 2000000 0>;
+ 			pwm-names = "pwm2";
+diff --git a/arch/arm/boot/dts/exynos5422-odroidxu4.dts b/arch/arm/boot/dts/exynos5422-odroidxu4.dts
+index 892d389d6d09..955065ee57a0 100644
+--- a/arch/arm/boot/dts/exynos5422-odroidxu4.dts
++++ b/arch/arm/boot/dts/exynos5422-odroidxu4.dts
+@@ -17,10 +17,10 @@
+ 	compatible = "hardkernel,odroid-xu4", "samsung,exynos5800", \
+ 		     "samsung,exynos5";
+ 
+-	pwmleds {
++	led-controller {
+ 		compatible = "pwm-leds";
+ 
+-		blueled {
++		led-1 {
+ 			label = "blue:heartbeat";
+ 			pwms = <&pwm 2 2000000 0>;
+ 			pwm-names = "pwm2";
+diff --git a/arch/arm/boot/dts/exynos54xx-odroidxu-leds.dtsi b/arch/arm/boot/dts/exynos54xx-odroidxu-leds.dtsi
+index 56acd832f0b3..2fc3e86dc5f7 100644
+--- a/arch/arm/boot/dts/exynos54xx-odroidxu-leds.dtsi
++++ b/arch/arm/boot/dts/exynos54xx-odroidxu-leds.dtsi
+@@ -11,10 +11,10 @@
+ #include <dt-bindings/gpio/gpio.h>
+ 
+ / {
+-	pwmleds {
++	led-controller-1 {
+ 		compatible = "pwm-leds";
+ 
+-		greenled {
++		led-1 {
+ 			label = "green:mmc0";
+ 			pwms = <&pwm 1 2000000 0>;
+ 			pwm-names = "pwm1";
+@@ -26,7 +26,7 @@
+ 			linux,default-trigger = "mmc0";
+ 		};
+ 
+-		blueled {
++		led-2 {
+ 			label = "blue:heartbeat";
+ 			pwms = <&pwm 2 2000000 0>;
+ 			pwm-names = "pwm2";
+@@ -35,9 +35,10 @@
+ 		};
+ 	};
+ 
+-	gpioleds {
++	led-controller-2 {
+ 		compatible = "gpio-leds";
+-		redled {
++
++		led-3 {
+ 			label = "red:microSD";
+ 			gpios = <&gpx2 3 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
 -- 
 2.20.1
 
