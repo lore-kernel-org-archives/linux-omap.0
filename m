@@ -1,142 +1,162 @@
-Return-Path: <SRS0=TfIt=DM=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=/ZRA=DN=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 200C3C4727E
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:37:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77E8CC4363D
+	for <linux-omap@archiver.kernel.org>; Tue,  6 Oct 2020 02:17:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D11FF2168B
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Oct 2020 20:37:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D33720874
+	for <linux-omap@archiver.kernel.org>; Tue,  6 Oct 2020 02:17:44 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=NETORG5796793.onmicrosoft.com header.i=@NETORG5796793.onmicrosoft.com header.b="eNFIMgmq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729316AbgJEUhd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 5 Oct 2020 16:37:33 -0400
-Received: from mout.kundenserver.de ([212.227.126.133]:46417 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729196AbgJEUh3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2020 16:37:29 -0400
-Received: from methusalix.internal.home.lespocky.de ([92.117.55.152]) by
- mrelayeu.kundenserver.de (mreue011 [212.227.15.167]) with ESMTPSA (Nemesis)
- id 1MUGuZ-1jyPZb1tMx-00REKR; Mon, 05 Oct 2020 22:36:00 +0200
-Received: from lemmy.internal.home.lespocky.de ([192.168.243.176] helo=lemmy.home.lespocky.de)
-        by methusalix.internal.home.lespocky.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-        (Exim 4.94)
-        (envelope-from <alex@home.lespocky.de>)
-        id 1kPXDC-0004XF-0c; Mon, 05 Oct 2020 22:35:58 +0200
-Received: (nullmailer pid 10388 invoked by uid 2001);
-        Mon, 05 Oct 2020 20:35:40 -0000
-From:   Alexander Dahl <post@lespocky.de>
-To:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc:     Alexander Dahl <ada@thorsis.com>,
+        id S1725917AbgJFCRk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 5 Oct 2020 22:17:40 -0400
+Received: from mail-dm6nam12on2049.outbound.protection.outlook.com ([40.107.243.49]:37344
+        "EHLO NAM12-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725870AbgJFCRk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 5 Oct 2020 22:17:40 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=D/h1BWTNuokU7YggvlMnVMq2m955hxdWbCPqWf2LsD7KrLaZvvnVIKl+P9dmiHtK/DJ6ES00//WFwpY/vMjYUG3IZslMEYEwY0k0Nw7uWcszSjid6Gu8WILxe1nFCVptuf85/IqLroZwFiTp+ppjfyr399EOYudkSWvhn80syI19Cb9JxBRMTBc2kO9fW859Q/e05rKmhYc/tnlGqgKHfS195RqyFxY9Do7dg4YtYLD1W8jpmLqb0y5arptJcN8F6ysWSbp+6BavLtZKyuGi0a/JM6cvRVldpGQzMbprStm//TQQK+KwbFZzOnSFcaoEdnuHp4W+coN6vwC8JGASUw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=wsgKR+uTTyEDf4YuDPnotldBpHzN9BpUWfW/G54U1YE=;
+ b=FjuQmlBqnTS1GD8mk2vtegtgqYV3qIW+Bb7uTLP2dI96BAluzxvbmLCZ81FxdpfHjk/m/Lk/y+ARrfKoYA3lRxBllImfiI5XtbHqV3PTSSYWyDYmjDpR8zT8zcCjI7Bfpz2TllBpgnbu+88FOB38uCe1ZWUdXVZf6m4gl1EuiYFIkoiUeSDn+a100uKq7SEpgIU6EtS6H4GmRDVjas0+icIFzj3OYFZ3my80mq7cBCRT83Hnona1GGL4oMhtsoDtNPZ7gkZvPreAHDdc0lr6x52LKrlWS4D5Ry5cc1JR4pQbmuC2ZdTITYAMrLYLDGyapkZO6YqjzomemtP7JXq/cw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=labundy.com; dmarc=pass action=none header.from=labundy.com;
+ dkim=pass header.d=labundy.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=NETORG5796793.onmicrosoft.com; s=selector1-NETORG5796793-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=wsgKR+uTTyEDf4YuDPnotldBpHzN9BpUWfW/G54U1YE=;
+ b=eNFIMgmqXXbaSCK/NyTw7LBI6PBX4/0P6kTqjt4uag0BQ7vaXkIDRjV8TM5lQx+V523x5KOjHLI5R/Wiht36U1p3OH6MmEao1AB2f5R7/pgsa3VIjE9lSRp2K8UaCUfcMURVALQh/Mx4uwmttDYKDCW/UGyN1kMQM4R8MHYHFWo=
+Authentication-Results: lespocky.de; dkim=none (message not signed)
+ header.d=none;lespocky.de; dmarc=none action=none header.from=labundy.com;
+Received: from SN6PR08MB5517.namprd08.prod.outlook.com (2603:10b6:805:fb::32)
+ by SN6PR08MB3856.namprd08.prod.outlook.com (2603:10b6:805:1e::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.32; Tue, 6 Oct
+ 2020 02:17:36 +0000
+Received: from SN6PR08MB5517.namprd08.prod.outlook.com
+ ([fe80::c989:9cea:baa6:8254]) by SN6PR08MB5517.namprd08.prod.outlook.com
+ ([fe80::c989:9cea:baa6:8254%7]) with mapi id 15.20.3433.044; Tue, 6 Oct 2020
+ 02:17:36 +0000
+Date:   Mon, 5 Oct 2020 21:17:29 -0500
+From:   Jeff LaBundy <jeff@labundy.com>
+To:     Alexander Dahl <post@lespocky.de>
+Cc:     Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Alexander Dahl <ada@thorsis.com>,
         Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Alexander Dahl <post@lespocky.de>, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
+        linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
         linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>
-Subject: [PATCH v7 10/12] ARM: dts: stm32: Fix schema warnings for pwm-leds
-Date:   Mon,  5 Oct 2020 22:34:49 +0200
-Message-Id: <20201005203451.9985-11-post@lespocky.de>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
+        Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v7 03/12] dt-bindings: mfd: Fix schema warnings for
+ pwm-leds
+Message-ID: <20201006021729.GA4822@labundy.com>
 References: <20201005203451.9985-1-post@lespocky.de>
+ <20201005203451.9985-4-post@lespocky.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201005203451.9985-4-post@lespocky.de>
+User-Agent: Mutt/1.5.24 (2015-08-30)
+X-Originating-IP: [136.49.227.119]
+X-ClientProxiedBy: DM5PR04CA0056.namprd04.prod.outlook.com
+ (2603:10b6:3:ef::18) To SN6PR08MB5517.namprd08.prod.outlook.com
+ (2603:10b6:805:fb::32)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scan-Signature: 5d1699e822705c24f051c25a2c63fb4e
-X-Provags-ID: V03:K1:6ZKlG0rDZ5U1HQ7ILaIQAQNhKsTXV0TSWVRTzdpESm8fmO/tqwD
- iK4rNm/LJgtYztQSGYN9mW2xOwWJqbOhPMTtcK0uMXIKykp/wPaXJdVtzJPD9fS68IFAo13
- m8pjTU++ifqTH58lQckSCePhpI7rOcl9djtxrldlZORvq75IKTz+HyXe6R1Ro14yadqgFaT
- yWxI/4fKVjFWSsSAD+Scw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:HfmFjwagyQ0=:h4dYDYwyiy8+d8FNw1Tme/
- r9lDpQaopjx5uAFoZpCL/Sfgflnwwqv7WCVOingGfgSngvmlV8afjKAsdcbXb1invDLOs/m4o
- FRTZ0gcC2VNPdbdZ6gNpvxbSVQFyKlAIoDJstuxvz7C9Xia1cZwKeZQzvbpMOex8Iftfxb+ri
- pvBb/pE0O1Iy2okCv/W4sRx1kFtwJN6Qj2BAFuilTCk9M74ttuKlqRC3pGDq3wb4MuRO5nOhM
- bCrgUYF1thmP0ZWnlJQvAuu+XAlvbrlf0xBPtNaDnrCOG0bj3OfYsUnVw7Pl3ItulFUgoGjwR
- bTN6k+2rYXcKHYWWx7JTQEEJAJZ/v10n6Idw7NqrbwHlN/kAWMssThoV7eL56F3fIW9gi6fJr
- 7oz7b5beUetnfvzz8GKLKxZ71DYKKnyzdV6gOVKi/wXHq1IgJr9GaC/02nJJboX3QtNo+z8SD
- XPd6uZGSiq/M7DU4xiAomk8WVT3O/+gxRhpr0lIWm5Q1lt5RF8GJU/7ySadWVWtFTAXHb7R9f
- cWmfIPSLFqWbwuj3hf0Zma1sC55eMQ5NEvJA/00bE8hRE+gTXzZBBFUgxhaLkJXT0KkHfGRw6
- xBiTtP7BsZza7AMHilLGg07Dbji5b19SqrKQET728usCQvFHGjyecAjd41SPv6TzidPqNyojd
- ipJphF2BvRdYxHWsKqS0zDJbdxVZPOFftntG20ilDgZG/L0HyN3VCxm1cDYiNK4utBnpkNbDl
- 6d046gXSkxPW0BHlPdD5I0LSChWLPT+BEu4NZchrs5hwMzCHmaA87WM/b0WmUp9zMYoAT2xtM
- FXPk2j6rpzJswBRN3vrEoGBNNux4O4JMoZ17KgGvguzn9fZ6HoQA1AHShUJEtC/9W/vwvpN
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from labundy.com (136.49.227.119) by DM5PR04CA0056.namprd04.prod.outlook.com (2603:10b6:3:ef::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.34 via Frontend Transport; Tue, 6 Oct 2020 02:17:35 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 42d59d84-e4bb-4172-853e-08d8699dfddf
+X-MS-TrafficTypeDiagnostic: SN6PR08MB3856:
+X-Microsoft-Antispam-PRVS: <SN6PR08MB3856E6365371B15C3BF3324FD30D0@SN6PR08MB3856.namprd08.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:2512;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: yyWpBj2mKGtt8BKZ+zMzO4L2kPZS3zA88g8PWH8LfuNPWKz1+wUeQxsHi+ym11FuTnhdbYKCwZJiAO7y48XSViARLIj6dhX1LI6MWHiUOVtHhH5M5axL5LXzG+AvNaBKwv/kP8E22B0WeqpOpfC/DsmWI6sy5dzISQnwfzQTUidHUAMepCOAtL6zOvlovhsl1SbgQvjd+F8sIu2EmE8tn4BTWoPjREwEFpUV2zBM81p7IXG2inaGgMBDU+4IX49NFAmRj742UuVwX2bUu/nnaitB1HpVzn/S1FZVwDsQuP1hOq4iRjwPY0XTtILyfVxV
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN6PR08MB5517.namprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(346002)(396003)(366004)(136003)(39830400003)(376002)(66556008)(7416002)(66476007)(66946007)(86362001)(54906003)(1076003)(36756003)(6666004)(5660300002)(2906002)(316002)(4326008)(8886007)(83380400001)(8676002)(2616005)(7696005)(55016002)(16526019)(186003)(6916009)(26005)(33656002)(8936002)(52116002)(956004)(478600001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: 1G4pMmpTRQhiz06Dk9nZXscYgIAY4eoGOeHpzrqRT6ls3Tqv6mCfPPv81RPhrIjxIXHbeSp2LqLWtFfO8I3ibA+TrJdDf682M08O5Gxhzb9vTaQob8oQsYffyv1IticXuPTP5RKhYun9VVEMzMTDF+hKP2f+QyMwuBGrenbBJIE8ipRAoF6GEeeijx0gCfIejQZCRvuDZApZcHXU/NCWvR4pq3mDhisGTU7rQiAgLmO2IQcZu6zlMKQR1ZPD8ltEloMiqCjq/iwWxP9d1RFZLr9/CHyp4RUchzpIXKtJr7RGixjDbO9WNr2QIcEjAPVQSXlqrcE+GJodeO0C+MwGxQ+YQLW3AEVV6ugT7oFs5bT+1+IX2df3ge46004vQonU0PB7rtJLY0/3ol785dRjROFfMt/1XDuxWqnSGo7Ll6GTz6RDNol6yBaR7ZPm4sE91VbA44N3PLZEB5cL9fTc850ZV/pzvg7lmvJ6fslOLHA8bw6qmE9F6tuxvUPDDA39nkX9HfH774quACmLhLzAKkUQv3YviZjOym6w4ugWx4qhyT+13lt10rhJMgZengDhlCS0JV/JBF0WFvIeh0cpoKgpHAzy35sd+vL07/El3l6DlvB5hpJRa3wxBfK+p3WhchFC22V2QUBOxOwvSgg9Zw==
+X-OriginatorOrg: labundy.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 42d59d84-e4bb-4172-853e-08d8699dfddf
+X-MS-Exchange-CrossTenant-AuthSource: SN6PR08MB5517.namprd08.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Oct 2020 02:17:36.5979
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 00b69d09-acab-4585-aca7-8fb7c6323e6f
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: k2tWd4LckH+4fBsoSEKuig9Vj7+GHsRT7FGleNnuRf6jwF2ylZKHh13YSzxXrchqoaOKV4GFRfFw1ruxLCd7Kg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR08MB3856
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The node names for devices using the pwm-leds driver follow a certain
-naming scheme (now).  Parent node name is not enforced, but recommended
-by DT project.
+Hi Alexander,
 
-  DTC     arch/arm/boot/dts/stm32mp157c-lxa-mc1.dt.yaml
-  CHECK   arch/arm/boot/dts/stm32mp157c-lxa-mc1.dt.yaml
-/home/alex/build/linux/arch/arm/boot/dts/stm32mp157c-lxa-mc1.dt.yaml: led-rgb: 'led-blue', 'led-green', 'led-red' do not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
-        From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+On Mon, Oct 05, 2020 at 10:34:42PM +0200, Alexander Dahl wrote:
+> The node names for devices using the pwm-leds driver follow a certain
+> naming scheme (now).  Parent node name is not enforced, but recommended
+> by DT project.
+> 
+>   DTC     Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml
+>   CHECK   Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml
+> /home/alex/build/linux/Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml: pwmleds: 'panel' does not match any of the regexes: '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'
+>         From schema: /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/leds-pwm.yaml
+> 
+> Signed-off-by: Alexander Dahl <post@lespocky.de>
+> ---
+> 
+> Notes:
+>     v6 -> v7:
+>       * added warning message to commit message (Krzysztof Kozlowski)
+>     
+>     v6:
+>       * added this patch to series
+> 
+>  Documentation/devicetree/bindings/mfd/iqs62x.yaml | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/iqs62x.yaml b/Documentation/devicetree/bindings/mfd/iqs62x.yaml
+> index 541b06d80e73..92dc48a8dfa7 100644
+> --- a/Documentation/devicetree/bindings/mfd/iqs62x.yaml
+> +++ b/Documentation/devicetree/bindings/mfd/iqs62x.yaml
+> @@ -90,10 +90,11 @@ examples:
+>              };
+>      };
+>  
+> -    pwmleds {
+> +    led-controller {
+>              compatible = "pwm-leds";
+>  
+> -            panel {
+> +            led-1 {
+> +                    label = "panel";
+>                      pwms = <&iqs620a_pwm 0 1000000>;
+>                      max-brightness = <255>;
+>              };
+> -- 
+> 2.20.1
+> 
 
-Signed-off-by: Alexander Dahl <post@lespocky.de>
----
+I like the consistency this brings. My only feedback is that in the other
+examples I found (common.yaml and leds-gpio.yaml), the children count off
+from 0 (e.g. led-0) instead of 1 as your series appears to.
 
-Notes:
-    v6 -> v7:
-      * split up patch (one per sub arch)
-      * added actual warnings to commit message
+That's not a huge deal; it simply seems more consistent to count from the
+first index allowed by the regex (0). The patch is still fine, and so:
 
- arch/arm/boot/dts/stm32mp157c-lxa-mc1.dts | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Acked-by: Jeff LaBundy <jeff@labundy.com>
 
-diff --git a/arch/arm/boot/dts/stm32mp157c-lxa-mc1.dts b/arch/arm/boot/dts/stm32mp157c-lxa-mc1.dts
-index 5700e6b700d3..25d548cb975b 100644
---- a/arch/arm/boot/dts/stm32mp157c-lxa-mc1.dts
-+++ b/arch/arm/boot/dts/stm32mp157c-lxa-mc1.dts
-@@ -36,34 +36,34 @@
- 		stdout-path = &uart4;
- 	};
- 
--	led-act {
-+	led-controller-1 {
- 		compatible = "gpio-leds";
- 
--		led-green {
-+		led-1 {
- 			label = "mc1:green:act";
- 			gpios = <&gpioa 13 GPIO_ACTIVE_LOW>;
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
- 
--	led-rgb {
-+	led-controller-2 {
- 		compatible = "pwm-leds";
- 
--		led-red {
-+		led-2 {
- 			label = "mc1:red:rgb";
- 			pwms = <&leds_pwm 1 1000000 0>;
- 			max-brightness = <255>;
- 			active-low;
- 		};
- 
--		led-green {
-+		led-3 {
- 			label = "mc1:green:rgb";
- 			pwms = <&leds_pwm 2 1000000 0>;
- 			max-brightness = <255>;
- 			active-low;
- 		};
- 
--		led-blue {
-+		led-4 {
- 			label = "mc1:blue:rgb";
- 			pwms = <&leds_pwm 3 1000000 0>;
- 			max-brightness = <255>;
--- 
-2.20.1
-
+Kind regards,
+Jeff LaBundy
