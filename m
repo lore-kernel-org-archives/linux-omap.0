@@ -2,119 +2,278 @@ Return-Path: <SRS0=5ioD=DO=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D58D1C4363D
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 12:06:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A990DC41604
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 16:41:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78F3420782
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 12:06:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="POOZLMCa"
+	by mail.kernel.org (Postfix) with ESMTP id 3F36F206FC
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 16:41:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1602088906;
+	bh=mGOh0Ko1iSI1S+bsIrPb6oqaVTbZDdqPtdLVpGicrDk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
+	b=QR8AnecKyvLD3Qcs3sTJ7oVbdrhgWYK9YUrUj5f9krLAkXci6AfcSMdnSVzRTnGiy
+	 njLQTw4lpbat5MYNoGgVbo9+0yTDIGoLW+J66QhUQMAWqzuNv5i6AVurKIOL08QWYY
+	 fG8UHDqDD+GSHRl10zq3HQBcPSELOVteyzZE3j2I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728037AbgJGMF7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 7 Oct 2020 08:05:59 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:59510 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726219AbgJGMF7 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2020 08:05:59 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 097C5dha011272;
-        Wed, 7 Oct 2020 07:05:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1602072339;
-        bh=98VxpOsUYCaLHzSjHudtgwbcFZvvbzH4YA/ReQeuaIQ=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=POOZLMCaAdDmhwazJDpq02bJQtFxVorGw2HSgdGM5IGFe99ZfwcQcAL7LJdXNmDbK
-         XVxa4QGqVSUq7KhmKaloNaQP0KJe0NniLDBQMYKC35WEVoe//atO8Fey91q+6SmBa+
-         d1pLrKIRLnl3FJMbTfha9SLLwcmogP6IQzJYeVzw=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 097C5dIe080798
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 7 Oct 2020 07:05:39 -0500
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 7 Oct
- 2020 07:05:39 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 7 Oct 2020 07:05:39 -0500
-Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 097C5LsU092391;
-        Wed, 7 Oct 2020 07:05:22 -0500
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Fix use of uninitialised pointer
-To:     Alex Dewar <alex.dewar90@gmail.com>
-CC:     Jarkko Nikula <jarkko.nikula@bitmer.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, <alsa-devel@alsa-project.org>,
-        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <20201004102535.325547-1-alex.dewar90@gmail.com>
-From:   Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <c2441186-c278-d84d-55c4-294ef01823a6@ti.com>
-Date:   Wed, 7 Oct 2020 15:05:42 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.1
+        id S1727278AbgJGQlp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 7 Oct 2020 12:41:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39116 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726138AbgJGQlp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 7 Oct 2020 12:41:45 -0400
+Received: from localhost (170.sub-72-107-125.myvzw.com [72.107.125.170])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E04222064E;
+        Wed,  7 Oct 2020 16:41:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1602088903;
+        bh=mGOh0Ko1iSI1S+bsIrPb6oqaVTbZDdqPtdLVpGicrDk=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=UIboQ+SLHDHnADiHZ9r8xEGDb5MTsrX5VJvgI1lEhVNRSiHMgbT/YyjJ8rR8n2vpc
+         6Rpi662wDqtu/zjMVir0lExqkUURABiYtAPexgKfKOjbiyjxErRBojnW0CFTkUmdQc
+         yp8ey6ZWeAtQcxzH9FataRYW3HzGuWyKDFWwzZg4=
+Date:   Wed, 7 Oct 2020 11:41:41 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Billy Araujo <billyaraujo@gmail.com>
+Cc:     linux-pci@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>,
+        linux-omap@vger.kernel.org
+Subject: Re: PCI IRQ assignment broken from 4.9 onwards (swizzle?)
+Message-ID: <20201007164141.GA3249809@bjorn-Precision-5520>
 MIME-Version: 1.0
-In-Reply-To: <20201004102535.325547-1-alex.dewar90@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAEt4U6V22Abudp1TRJ2SGkYH=2o+RFWa8nrGbKDoLFXcZJV7qA@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+[+cc Kishon, linux-omap (maybe this is dra7xx-related?)]
 
-
-On 04/10/2020 13.25, Alex Dewar wrote:
-> Commit 9c34d023dc35 ("ASoC: omap-mcbsp: Re-arrange files for core McBSP
-> and Sidetone function split"), in rearranging various files, also replaced
-> calls to platform_get_resource_by_name() + devm_ioremap_resource() with a
-> single call to devm_platform_ioremap_resource_byname(). However, the
-> struct resource is needed as we access its members so at present a null
-> pointer is dereferenced. Fix by doing things the old way.
+On Wed, Oct 07, 2020 at 10:56:33AM +0100, Billy Araujo wrote:
+> Hi,
 > 
-> Addresses-Coverity-ID: 1497530 ("Memory - illegal accesses")
-> Fixes: 9c34d023dc35 ("ASoC: omap-mcbsp: Re-arrange files for core McBSP and Sidetone function split")
-
-it is fixing:
-31e1fc4f11e2e ("ASoC: ti: omap-mcbsp: use
-devm_platform_ioremap_resource_byname")
-
-and we should just revert that commit.
-
-> Signed-off-by: Alex Dewar <alex.dewar90@gmail.com>
-> ---
->  sound/soc/ti/omap-mcbsp.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+> I have been testing a TI AM57xx board and a NXP iMX8 board with a GPIB
+> PCIe card.
 > 
-> diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
-> index 186cea91076f..6025b30bbe77 100644
-> --- a/sound/soc/ti/omap-mcbsp.c
-> +++ b/sound/soc/ti/omap-mcbsp.c
-> @@ -620,7 +620,11 @@ static int omap_mcbsp_init(struct platform_device *pdev)
->  	spin_lock_init(&mcbsp->lock);
->  	mcbsp->free = true;
->  
-> -	mcbsp->io_base = devm_platform_ioremap_resource_byname(pdev, "mpu");
-> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
-> +	if (!res)
-> +		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +
-> +	mcbsp->io_base = devm_ioremap_resource(&pdev->dev, res);
->  	if (IS_ERR(mcbsp->io_base))
->  		return PTR_ERR(mcbsp->io_base);
->  
+> TI board (Phytec): https://www.phytec.com/product/phycore-am57x/
+> NXP board (Variscite):
+> https://www.variscite.com/product/system-on-module-som/cortex-a53-krait/var-som-mx8m-mini-nxp-i-mx8m-mini/
 > 
+> The GPIB PCIe card has a Texas Instruments XIO2000(A)/XIO2200A PCI
+> Express-to-PCI Bridge.
+> 
+> Issue:
+> I have noticed is that on Linux kernel 4.9, the Linux PCI driver
+> assigns correctly an IRQ number:
+> 
+> Linux am5728-phycore-rdk 4.9.41-ga962b18-BSP-Yocto-TISDK-AM57xx-PD18.1.0
+> 02:00.0 Communication controller: National Instruments PCIe-GPIB (rev 02)
+>         Subsystem: National Instruments PCIe-GPIB
+>         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+> ParErr+ Stepping- SERR+ FastB2B- DisINTx-
+>         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+> >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Interrupt: pin A routed to IRQ 470
+> 
+> On a newer kernel (this case 4.19), PCI driver doesn't assign an IRQ number.
+> 
+> Linux am57xx-phycore-kit 4.19.79-g35d36cd54d #1 SMP PREEMPT Wed Sep 30
+> 14:04:18 UTC 2020 armv7l GNU/Linux
+> 02:00.0 Communication controller: National Instruments PCIe-GPIB (rev 02)
+>         Subsystem: National Instruments PCIe-GPIB
+>         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+> ParErr+ Stepping- SERR+ FastB2B- DisINTx-
+>         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+> >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Interrupt: pin A routed to IRQ 0
+> 
+> Same issue happened on the NXP board, so it seems Linux related. I
+> have tested kernels 4.14, 4.19 and 5.4.3.
+> 
+> The IRQ is important to get the legacy interrupts working.
+> 
+> Looking at the code there has been some refactoring of how PCI assigns
+> IRQ number when there is a chain of bridges. I am not too familiar
+> with how the code works but I wonder if this has affected how the PCI
+> assignment works.
+> 
+> Looking in setup-irq.c:
+> 
+> /* If this device is not on the primary bus, we need to figure out
+>    which interrupt pin it will come in on.   We know which slot it
+>    will come in on 'cos that slot is where the bridge is.   Each
+>    time the interrupt line passes through a PCI-PCI bridge we must
+>    apply the swizzle function.  */
+> 
+> Line 44: if (hbrg->swizzle_irq)
+> 
+> From my understanding, this "if" didn't exist in Linux kernel 4.9. If
+> swizzle function isn't assigned in the newer kernels it just stays as
+> 0.
+> 
+> This might be completely unrelated as I said I have no understanding
+> how this code is supposed to work.
+> 
+> What I ask is if anyone has experienced any issues similar to this in
+> these more recent kernel versions.
 
-- Péter
+Sorry for the issue, and thanks very much for the report.  Is it
+possible to test a current kernel, e.g., v5.8 or v5.9-rc8?
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+My guess is this is related to the PCI controller driver; would that
+be pci-dra7xx.c?
+
+> Debug output with the issue:
+> 
+> root@am57xx-phycore-kit:~# uname -a
+> Linux am57xx-phycore-kit 4.19.79-g35d36cd54d #1 SMP PREEMPT Wed Sep 30
+> 14:04:18 UTC 2020 armv7l GNU/Linux
+> 
+> root@am57xx-phycore-kit:~# lspci -vv
+> 00:00.0 PCI bridge: Texas Instruments Multicore DSP+ARM KeyStone II
+> SOC (rev 01) (prog-if 00 [Normal decode])
+>         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+> ParErr+ Stepping- SERR+ FastB2B- DisINTx+
+>         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Latency: 0, Cache Line Size: 64 bytes
+>         Interrupt: pin A routed to IRQ 180
+>         Region 0: Memory at 20100000 (64-bit, non-prefetchable) [size=1M]
+>         Bus: primary=00, secondary=01, subordinate=ff, sec-latency=0
+>         I/O behind bridge: None
+>         Memory behind bridge: 20200000-202fffff [size=1M]
+>         Prefetchable memory behind bridge: None
+>         Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=fast >TAbort-
+> <TAbort- <MAbort+ <SERR- <PERR-
+>         BridgeCtl: Parity+ SERR- NoISA- VGA- VGA16- MAbort- >Reset- FastB2B-
+>                 PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
+>         Capabilities: [40] Power Management version 3
+>                 Flags: PMEClk- DSI- D1+ D2- AuxCurrent=0mA
+> PME(D0+,D1+,D2-,D3hot+,D3cold-)
+>                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+>         Capabilities: [50] MSI: Enable+ Count=1/1 Maskable- 64bit+
+>                 Address: 00000000ae15b000  Data: 0000
+>         Capabilities: [70] Express (v2) Root Port (Slot-), MSI 00
+>                 DevCap: MaxPayload 256 bytes, PhantFunc 0
+>                         ExtTag- RBE+
+>                 DevCtl: CorrErr+ NonFatalErr+ FatalErr+ UnsupReq+
+>                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+>                         MaxPayload 128 bytes, MaxReadReq 512 bytes
+>                 DevSta: CorrErr- NonFatalErr- FatalErr- UnsupReq-
+> AuxPwr- TransPend-
+>                 LnkCap: Port #0, Speed 5GT/s, Width x2, ASPM L0s L1,
+> Exit Latency L0s <512ns, L1 <64us
+>                         ClockPM- Surprise- LLActRep+ BwNot+ ASPMOptComp+
+>                 LnkCtl: ASPM Disabled; RCB 128 bytes Disabled- CommClk-
+>                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+>                 LnkSta: Speed 2.5GT/s (downgraded), Width x1 (downgraded)
+>                         TrErr- Train- SlotClk+ DLActive+ BWMgmt- ABWMgmt-
+>                 RootCtl: ErrCorrectable- ErrNon-Fatal- ErrFatal-
+> PMEIntEna+ CRSVisible-
+>                 RootCap: CRSVisible-
+>                 RootSta: PME ReqID 0000, PMEStatus- PMEPending-
+>                 DevCap2: Completion Timeout: Range ABCD, TimeoutDis+,
+> LTR-, OBFF Not Supported ARIFwd-
+>                          AtomicOpsCap: Routing- 32bit- 64bit- 128bitCAS-
+>                 DevCtl2: Completion Timeout: 50us to 50ms,
+> TimeoutDis-, LTR-, OBFF Disabled ARIFwd-
+>                          AtomicOpsCtl: ReqEn- EgressBlck-
+>                 LnkCtl2: Target Link Speed: 5GT/s, EnterCompliance- SpeedDis-
+>                          Transmit Margin: Normal Operating Range,
+> EnterModifiedCompliance- ComplianceSOS-
+>                          Compliance De-emphasis: -6dB
+>                 LnkSta2: Current De-emphasis Level: -3.5dB,
+> EqualizationComplete-, EqualizationPhase1-
+>                          EqualizationPhase2-, EqualizationPhase3-,
+> LinkEqualizationRequest-
+>         Capabilities: [100 v2] Advanced Error Reporting
+>                 UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+>                 UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+>                 UESvrt: DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt-
+> UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
+>                 CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout-
+> AdvNonFatalErr-
+>                 CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout-
+> AdvNonFatalErr+
+>                 AERCap: First Error Pointer: 00, ECRCGenCap+
+> ECRCGenEn- ECRCChkCap+ ECRCChkEn-
+>                         MultHdrRecCap- MultHdrRecEn- TLPPfxPres- HdrLogCap-
+>                 HeaderLog: 00000000 00000000 00000000 00000000
+>                 RootCmd: CERptEn+ NFERptEn+ FERptEn+
+>                 RootSta: CERcvd- MultCERcvd- UERcvd- MultUERcvd-
+>                          FirstFatal- NonFatalMsg- FatalMsg- IntMsg 0
+>                 ErrorSrc: ERR_COR: 0000 ERR_FATAL/NONFATAL: 0000
+>         Kernel driver in use: pcieport
+> 
+> 01:00.0 PCI bridge: Texas Instruments XIO2000(A)/XIO2200A PCI
+> Express-to-PCI Bridge (rev 03) (prog-if 00 [Normal decode])
+>         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+> ParErr+ Stepping- SERR+ FastB2B- DisINTx-
+>         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Bus: primary=01, secondary=02, subordinate=02, sec-latency=0
+>         I/O behind bridge: None
+>         Memory behind bridge: 20200000-202fffff [size=1M]
+>         Prefetchable memory behind bridge: None
+>         Secondary status: 66MHz- FastB2B+ ParErr- DEVSEL=medium
+> >TAbort- <TAbort- <MAbort+ <SERR- <PERR-
+>         BridgeCtl: Parity+ SERR- NoISA- VGA- VGA16- MAbort+ >Reset- FastB2B+
+>                 PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
+>         Capabilities: [50] Power Management version 2
+>                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+>                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+>                 Bridge: PM- B3+
+>         Capabilities: [60] MSI: Enable- Count=1/16 Maskable- 64bit+
+>                 Address: 0000000000000000  Data: 0000
+>         Capabilities: [80] Subsystem: Device 0000:0000
+>         Capabilities: [90] Express (v1) PCI-Express to PCI/PCI-X Bridge, MSI 00
+>                 DevCap: MaxPayload 512 bytes, PhantFunc 0
+>                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE-
+> SlotPowerLimit 0.000W
+>                 DevCtl: CorrErr- NonFatalErr- FatalErr- UnsupReq-
+>                         RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop+ BrConfRtry-
+>                         MaxPayload 128 bytes, MaxReadReq 512 bytes
+>                 DevSta: CorrErr- NonFatalErr+ FatalErr- UnsupReq-
+> AuxPwr- TransPend-
+>                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1,
+> Exit Latency L0s <1us, L1 <16us
+>                         ClockPM- Surprise- LLActRep- BwNot- ASPMOptComp-
+>                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- CommClk-
+>                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+>                 LnkSta: Speed 2.5GT/s (ok), Width x1 (ok)
+>                         TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+>         Capabilities: [100 v1] Advanced Error Reporting
+>                 UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+>                 UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+>                 UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt-
+> UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
+>                 CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout-
+> AdvNonFatalErr-
+>                 CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout-
+> AdvNonFatalErr-
+>                 AERCap: First Error Pointer: 00, ECRCGenCap+
+> ECRCGenEn- ECRCChkCap+ ECRCChkEn-
+>                         MultHdrRecCap- MultHdrRecEn- TLPPfxPres- HdrLogCap-
+>                 HeaderLog: 00000000 00000000 00000000 00000000
+> 
+> 02:00.0 Communication controller: National Instruments PCIe-GPIB (rev 02)
+>         Subsystem: National Instruments PCIe-GPIB
+>         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+> ParErr+ Stepping- SERR+ FastB2B- DisINTx-
+>         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+> >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Interrupt: pin A routed to IRQ 0
+>         Region 0: Memory at 20204000 (32-bit, non-prefetchable)
+> [disabled] [size=2K]
+>         Region 1: Memory at 20200000 (32-bit, non-prefetchable)
+> [disabled] [size=16K]
