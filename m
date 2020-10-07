@@ -2,86 +2,119 @@ Return-Path: <SRS0=5ioD=DO=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BD19C4363D
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 10:09:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D58D1C4363D
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 12:06:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23B3220872
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 10:09:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78F3420782
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 12:06:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="POOZLMCa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728029AbgJGKJB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 7 Oct 2020 06:09:01 -0400
-Received: from mail.thorsis.com ([92.198.35.195]:35513 "EHLO mail.thorsis.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727996AbgJGKI6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 7 Oct 2020 06:08:58 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by mail.thorsis.com (Postfix) with ESMTP id 0C54D3579;
-        Wed,  7 Oct 2020 12:08:55 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at mail.thorsis.com
-Received: from mail.thorsis.com ([127.0.0.1])
-        by localhost (mail.thorsis.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id a5gx01CScUQn; Wed,  7 Oct 2020 12:08:54 +0200 (CEST)
-Received: by mail.thorsis.com (Postfix, from userid 109)
-        id D21B536BC; Wed,  7 Oct 2020 12:08:54 +0200 (CEST)
-From:   Alexander Dahl <ada@thorsis.com>
-To:     Pavel Machek <pavel@ucw.cz>
-Cc:     Alexander Dahl <post@lespocky.de>, Dan Murphy <dmurphy@ti.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-amlogic@lists.infradead.org, linux-mips@vger.kernel.org,
-        Lee Jones <lee.jones@linaro.org>,
-        Jeff LaBundy <jeff@labundy.com>
-Subject: Re: [PATCH v7 03/12] dt-bindings: mfd: Fix schema warnings for pwm-leds
-Date:   Wed, 07 Oct 2020 12:08:46 +0200
-Message-ID: <2640582.VKub60Wb7X@ada>
-In-Reply-To: <20201007100359.GC12224@duo.ucw.cz>
-References: <20201005203451.9985-1-post@lespocky.de> <20201005203451.9985-4-post@lespocky.de> <20201007100359.GC12224@duo.ucw.cz>
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        id S1728037AbgJGMF7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 7 Oct 2020 08:05:59 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:59510 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726219AbgJGMF7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2020 08:05:59 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 097C5dha011272;
+        Wed, 7 Oct 2020 07:05:39 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1602072339;
+        bh=98VxpOsUYCaLHzSjHudtgwbcFZvvbzH4YA/ReQeuaIQ=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=POOZLMCaAdDmhwazJDpq02bJQtFxVorGw2HSgdGM5IGFe99ZfwcQcAL7LJdXNmDbK
+         XVxa4QGqVSUq7KhmKaloNaQP0KJe0NniLDBQMYKC35WEVoe//atO8Fey91q+6SmBa+
+         d1pLrKIRLnl3FJMbTfha9SLLwcmogP6IQzJYeVzw=
+Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 097C5dIe080798
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 7 Oct 2020 07:05:39 -0500
+Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 7 Oct
+ 2020 07:05:39 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 7 Oct 2020 07:05:39 -0500
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 097C5LsU092391;
+        Wed, 7 Oct 2020 07:05:22 -0500
+Subject: Re: [PATCH] ASoC: omap-mcbsp: Fix use of uninitialised pointer
+To:     Alex Dewar <alex.dewar90@gmail.com>
+CC:     Jarkko Nikula <jarkko.nikula@bitmer.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, <alsa-devel@alsa-project.org>,
+        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+References: <20201004102535.325547-1-alex.dewar90@gmail.com>
+From:   Peter Ujfalusi <peter.ujfalusi@ti.com>
+Message-ID: <c2441186-c278-d84d-55c4-294ef01823a6@ti.com>
+Date:   Wed, 7 Oct 2020 15:05:42 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.3.1
+MIME-Version: 1.0
+In-Reply-To: <20201004102535.325547-1-alex.dewar90@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hei Pavel,
 
-Am Mittwoch, 7. Oktober 2020, 12:03:59 CEST schrieb Pavel Machek:
-> > The node names for devices using the pwm-leds driver follow a certain
-> > naming scheme (now).  Parent node name is not enforced, but recommended
-> > by DT project.
-> > 
-> >   DTC     Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml
-> >   CHECK   Documentation/devicetree/bindings/mfd/iqs62x.example.dt.yaml
-> > 
-> > /home/alex/build/linux/Documentation/devicetree/bindings/mfd/iqs62x.exampl
-> > e.dt.yaml: pwmleds: 'panel' does not match any of the regexes:
-> > '^led(-[0-9a-f]+)?$', 'pinctrl-[0-9]+'> 
-> >         From schema:
-> >         /home/alex/src/linux/leds/Documentation/devicetree/bindings/leds/
-> >         leds-pwm.yaml> 
-> > Signed-off-by: Alexander Dahl <post@lespocky.de>
+
+On 04/10/2020 13.25, Alex Dewar wrote:
+> Commit 9c34d023dc35 ("ASoC: omap-mcbsp: Re-arrange files for core McBSP
+> and Sidetone function split"), in rearranging various files, also replaced
+> calls to platform_get_resource_by_name() + devm_ioremap_resource() with a
+> single call to devm_platform_ioremap_resource_byname(). However, the
+> struct resource is needed as we access its members so at present a null
+> pointer is dereferenced. Fix by doing things the old way.
 > 
-> Okay, so I need Rob's ack here, I guess... and rest of the series is
-> not really for my tree.
+> Addresses-Coverity-ID: 1497530 ("Memory - illegal accesses")
+> Fixes: 9c34d023dc35 ("ASoC: omap-mcbsp: Re-arrange files for core McBSP and Sidetone function split")
 
-I think so, too.
+it is fixing:
+31e1fc4f11e2e ("ASoC: ti: omap-mcbsp: use
+devm_platform_ioremap_resource_byname")
 
-I saw you applied patch number 1, all the other patches are DT and from my 
-side those can wait for the Acks required and maybe I change the indexes again 
-and I'm fine resending all that after the 5.10 merge window.
+and we should just revert that commit.
 
-Thanks for applying the non-DT patches for leds subsystem, the rest will be 
-sorted out without hurry.
+> Signed-off-by: Alex Dewar <alex.dewar90@gmail.com>
+> ---
+>  sound/soc/ti/omap-mcbsp.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
+> index 186cea91076f..6025b30bbe77 100644
+> --- a/sound/soc/ti/omap-mcbsp.c
+> +++ b/sound/soc/ti/omap-mcbsp.c
+> @@ -620,7 +620,11 @@ static int omap_mcbsp_init(struct platform_device *pdev)
+>  	spin_lock_init(&mcbsp->lock);
+>  	mcbsp->free = true;
+>  
+> -	mcbsp->io_base = devm_platform_ioremap_resource_byname(pdev, "mpu");
+> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
+> +	if (!res)
+> +		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +
+> +	mcbsp->io_base = devm_ioremap_resource(&pdev->dev, res);
+>  	if (IS_ERR(mcbsp->io_base))
+>  		return PTR_ERR(mcbsp->io_base);
+>  
+> 
 
-Greets
-Alex
+- Péter
 
-
-
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
