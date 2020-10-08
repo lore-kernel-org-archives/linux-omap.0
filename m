@@ -1,99 +1,186 @@
-Return-Path: <SRS0=5ioD=DO=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=DilI=DP=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6DF0C41604
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 17:41:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10DA2C4363C
+	for <linux-omap@archiver.kernel.org>; Thu,  8 Oct 2020 05:33:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63DC920708
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Oct 2020 17:41:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602092483;
-	bh=S3w/2Qf+RVmyNYT6N8IqvumiKG87b5VylK+GElZvCDw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=D/3q5PS819VgNKwYr9fJFDNz3bY/ZU6PS5ZL3Mn7lPQt8N3y+GmZuXGl+cfJOTBVo
-	 je5OSBQO+wm3hbpYo1E41QzCfYs/mYkeWveevwB6mGeen8WoHo6L+WEbDM2Ej21uW0
-	 UI6i39M2lSZuuahfHHCg9qXX8HYp4+cRyS4G8OOs=
+	by mail.kernel.org (Postfix) with ESMTP id AFB2B2193E
+	for <linux-omap@archiver.kernel.org>; Thu,  8 Oct 2020 05:33:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="gGiVTnDK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728295AbgJGRlW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 7 Oct 2020 13:41:22 -0400
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:37505 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728275AbgJGRlW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2020 13:41:22 -0400
-Received: by mail-oi1-f195.google.com with SMTP id t77so3360435oie.4;
-        Wed, 07 Oct 2020 10:41:21 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=2tkejhV+QuFeIWOyFwduIfZWNAaS8WIxtLLItp9kA84=;
-        b=L151bja/s2zb73U7gBm/c3OSxCePybbayb9duBOIdWPXSMd9PZXNfsLbAarpMRRFi7
-         HN326jClVhXF8gHoLLNoLngjoiQwI/CQRddN8ANLocE3KLIFu97NootDe3/3JFNNa5wl
-         xKTYz365lpeP7KmosfwEBcZR1xjMRu099OW4r/2Vm+fspWWigea/AKJSOJ5KSeOJpTTK
-         2eivzL3VaUrFYPT+Pm77/El/DlyI8VehJEPTQzoZf/U9TLP/eNOf3MTQfKnYHUtOzDHq
-         auackWy8ANgrKWeEk71LGP+sHbwSJlb8mUElVm1T5Is4P2EWHFUqMTrBVOrvi0VfbpSM
-         p0jg==
-X-Gm-Message-State: AOAM530g+5Kinw0S7dtS9ancWXIjGM2p6GveLh+Nu6esSFajp2dfWrzy
-        aejGyFdSCPXrakSRyfsLzan6iYCDadHM
-X-Google-Smtp-Source: ABdhPJxy4/uInRR/gtoRZx5s94r1PKrLbTZqexPwokp6bMvw8z07Hv/IAIrmZFrzABmlkeIG7hXUGQ==
-X-Received: by 2002:aca:d17:: with SMTP id 23mr2722546oin.9.1602092481310;
-        Wed, 07 Oct 2020 10:41:21 -0700 (PDT)
-Received: from xps15 (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
-        by smtp.gmail.com with ESMTPSA id g7sm2027896otk.56.2020.10.07.10.41.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2020 10:41:20 -0700 (PDT)
-Received: (nullmailer pid 432483 invoked by uid 1000);
-        Wed, 07 Oct 2020 17:41:19 -0000
-Date:   Wed, 7 Oct 2020 12:41:19 -0500
-From:   Rob Herring <robh@kernel.org>
+        id S1726249AbgJHFdW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 8 Oct 2020 01:33:22 -0400
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:12999 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726148AbgJHFdW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2020 01:33:22 -0400
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f7ea4670000>; Wed, 07 Oct 2020 22:32:23 -0700
+Received: from [10.25.74.27] (172.20.13.39) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 8 Oct
+ 2020 05:32:58 +0000
+Subject: Re: [PATCH v2 0/5] PCI: dwc: improve msi handling
 To:     Jisheng Zhang <Jisheng.Zhang@synaptics.com>
-Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
+CC:     Kishon Vijay Abraham I <kishon@ti.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Jingoo Han <jingoohan1@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Richard Zhu <hongxing.zhu@nxp.com>,
+        Lucas Stach <l.stach@pengutronix.de>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        "Pengutronix Kernel Team" <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        "NXP Linux Team" <linux-imx@nxp.com>,
+        Yue Wang <yue.wang@Amlogic.com>,
+        "Kevin Hilman" <khilman@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Jesper Nilsson <jesper.nilsson@axis.com>,
         Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
-        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 2/2] PCI: dwc: Fix MSI page leakage in suspend/resume
-Message-ID: <20201007174119.GA376477@bogus>
-References: <20200930091205.792d6c7c@xhacker.debian>
- <20200930091449.50ae0caf@xhacker.debian>
+        Xiaowei Song <songxiaowei@hisilicon.com>,
+        Binghui Wang <wangbinghui@hisilicon.com>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stanimir Varbanov <svarbanov@mm-sol.com>,
+        Pratyush Anand <pratyush.anand@gmail.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        "Kunihiko Hayashi" <hayashi.kunihiko@socionext.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-samsung-soc@vger.kernel.org" 
+        <linux-samsung-soc@vger.kernel.org>,
+        "linux-amlogic@lists.infradead.org" 
+        <linux-amlogic@lists.infradead.org>,
+        "linux-arm-kernel@axis.com" <linux-arm-kernel@axis.com>,
+        "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+        "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+References: <20200924190421.549cb8fc@xhacker.debian>
+ <b977d9b4-cc98-e817-0d51-8f2c6ba1445d@nvidia.com>
+ <20201006143647.3f989340@xhacker.debian>
+From:   Vidya Sagar <vidyas@nvidia.com>
+Message-ID: <435c8cf8-8f4a-c491-4aca-3ec5b7abe49a@nvidia.com>
+Date:   Thu, 8 Oct 2020 11:02:54 +0530
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.2.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200930091449.50ae0caf@xhacker.debian>
+In-Reply-To: <20201006143647.3f989340@xhacker.debian>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [172.20.13.39]
+X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1602135143; bh=J4CEG7z41t4fftMpaxkaa5Era9zth5z8jjZg7k+ZCts=;
+        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
+         MIME-Version:In-Reply-To:Content-Type:Content-Language:
+         Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
+        b=gGiVTnDKnvH3IW3q8erfoIHhPlDmnbH2thdoY4rptWoPCwmwQxfo0RIcd6vK7za+a
+         qgXLjiuv+uk3BJx5tDpmSQbDqUWKoQT3pRifw4gmZgEkA3RCj+BkqAEyGD6U4bOMRW
+         7YyxCLCtjO6qbXeESHYlP9z93kG3O82AA69UQ3ntIr7k056NtyNn++sDetOOUG9on9
+         TLtrQofmOFFUqspaxJYSK34woIeLsROw+yztJ5/3W8Z0lg/zdHFQ7f3LuLDNI6K7bW
+         8eHbfb3P1ff5T55KfN3H8s00wH7Fd2T5ZOlcWCQii/0bU80nfxDTNlQkTNzGgPp5vF
+         Rmin14uLeUy0A==
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Sep 30, 2020 at 09:15:25AM +0800, Jisheng Zhang wrote:
-> Currently, dw_pcie_msi_init() allocates and maps page for msi, then
-> program the PCIE_MSI_ADDR_LO and PCIE_MSI_ADDR_HI. The Root Complex
-> may lose power during suspend-to-RAM, so when we resume, we want to
-> redo the latter but not the former. If designware based driver (for
-> example, pcie-tegra194.c) calls dw_pcie_msi_init() in resume path, the
-> msi page will be leaked.
-> 
-> As pointed out by Rob and Ard, there's no need to allocate a page for
-> the MSI address, we could use an address in the driver data.
-> 
-> To avoid map the MSI msg again during resume, we move the map MSI msg
-> from dw_pcie_msi_init() to dw_pcie_host_init().
-> 
-> Signed-off-by: Jisheng Zhang <Jisheng.Zhang@synaptics.com>
-> ---
->  drivers/pci/controller/dwc/pci-dra7xx.c       | 18 ++++++++++-
->  .../pci/controller/dwc/pcie-designware-host.c | 32 +++++++++----------
->  drivers/pci/controller/dwc/pcie-designware.h  |  2 +-
->  3 files changed, 34 insertions(+), 18 deletions(-)
 
-I'm working on some larger MSI clean-ups which should eliminate the 
-dra7xx addition, but this is good enough for now.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+On 10/6/2020 12:06 PM, Jisheng Zhang wrote:
+> External email: Use caution opening links or attachments
+> 
+> 
+> On Tue, 6 Oct 2020 11:56:34 +0530 Vidya Sagar wrote:
+> 
+>>
+>>
+>> Hi,
+> 
+> Hi,
+> 
+>> I would like to verify this series along with the other series "PCI:
+>> dwc: fix two MSI issues" on Tegra194. I tried to apply these series on
+>> both linux-next and Lorenzo's pci/dwc branches but there seem to be non
+>> trivial conflicts. Could you please tell me which branch I can use and
+>> apply these series cleanly?
+> 
+> This is a fix, so I thought the series would be picked up in v5.9, so the
+> series is patched against v5.9-rcN
+> 
+> could you please try v5 https://lkml.org/lkml/2020/9/29/2511 on v5.9-rc7?
+I tried this series on top of v5.9-rc7 and it worked as expected on 
+Tegra194 platform. Also, I couldn't cleanly apply the other series 'PCI: 
+dwc: fix two MSI issues' on top. Could you please rebase them?
+
+Thanks,
+Vidya Sagar
+> 
+> 
+> Thanks
+> 
+>> FWIW, I acknowledge that the existing code does leak MSI target page
+>> every time system goes through suspend-resume sequence on Tegra194.
+>>
+>> Thanks,
+>> Vidya Sagar
+>>
+>> On 9/24/2020 4:35 PM, Jisheng Zhang wrote:
+>>> External email: Use caution opening links or attachments
+>>>
+>>>
+>>> Improve the msi code:
+>>> 1. Add proper error handling.
+>>> 2. Move dw_pcie_msi_init() from each users to designware host to solve
+>>> msi page leakage in resume path.
+>>>
+>>> Since v1:
+>>>     - add proper error handling patches.
+>>>     - solve the msi page leakage by moving dw_pcie_msi_init() from each
+>>>       users to designware host
+>>>
+>>>
+>>> Jisheng Zhang (5):
+>>>     PCI: dwc: Call dma_unmap_page() before freeing the msi page
+>>>     PCI: dwc: Check alloc_page() return value
+>>>     PCI: dwc: Rename dw_pcie_free_msi to dw_pcie_msi_deinit
+>>>     PCI: dwc: Skip PCIE_MSI_INTR0* programming if MSI is disabled
+>>>     PCI: dwc: Move dw_pcie_msi_init() from each users to designware host
+>>>
+>>>    drivers/pci/controller/dwc/pci-dra7xx.c       |  1 +
+>>>    drivers/pci/controller/dwc/pci-exynos.c       |  2 -
+>>>    drivers/pci/controller/dwc/pci-imx6.c         |  3 --
+>>>    drivers/pci/controller/dwc/pci-meson.c        |  8 ----
+>>>    drivers/pci/controller/dwc/pcie-artpec6.c     | 10 -----
+>>>    .../pci/controller/dwc/pcie-designware-host.c | 43 +++++++++++++------
+>>>    .../pci/controller/dwc/pcie-designware-plat.c |  3 --
+>>>    drivers/pci/controller/dwc/pcie-designware.h  |  9 +++-
+>>>    drivers/pci/controller/dwc/pcie-histb.c       |  3 --
+>>>    drivers/pci/controller/dwc/pcie-kirin.c       |  3 --
+>>>    drivers/pci/controller/dwc/pcie-qcom.c        |  3 --
+>>>    drivers/pci/controller/dwc/pcie-spear13xx.c   |  1 -
+>>>    drivers/pci/controller/dwc/pcie-tegra194.c    |  2 -
+>>>    drivers/pci/controller/dwc/pcie-uniphier.c    |  9 +---
+>>>    14 files changed, 38 insertions(+), 62 deletions(-)
+>>>
+>>> --
+>>> 2.28.0
+>>>
+> 
