@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D20FC433DF
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Oct 2020 21:29:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8DE4C433DF
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Oct 2020 21:30:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9F652145D
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Oct 2020 21:29:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BEF621D6C
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Oct 2020 21:30:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b="lortp3tn"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b="COhBNwjV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729666AbgJLV35 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Oct 2020 17:29:57 -0400
-Received: from vern.gendns.com ([98.142.107.122]:50628 "EHLO vern.gendns.com"
+        id S1729791AbgJLVaA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 12 Oct 2020 17:30:00 -0400
+Received: from vern.gendns.com ([98.142.107.122]:50638 "EHLO vern.gendns.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726348AbgJLV35 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 12 Oct 2020 17:29:57 -0400
+        id S1729671AbgJLVaA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 12 Oct 2020 17:30:00 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=lechnology.com; s=default; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=7rBBN/24ZhuMqbfWasueMTRp1Qqx0RQ7dihft9yfRQE=; b=lortp3tnsp1Nv8DNDiUix3Zde1
-        b46950CeXEmamXK72O7Ns3lJEkaG5Ugic3HCv9TxK50O4a8oPrqjK0u79XT7PMvGku9q0kdSYbchH
-        sYdFOFzZtP2tplM2THc0PS6yDNALnJey44kCjABBuL5gOaP3hWNS9I4M5eJq/4klI9ScpkQtCXIwf
-        XzItm0OgIVKS8gIGVMc/E6rmobrRVOgNN8+AaKqk19ybqy61wFdXa+Vo+seajKqJIhkAKO7K4+Bj2
-        SgwX2pAFXTwEfIQ1gmtcqfA6L4XhB6kyHVrRLP/2cFtoPcopk7PyWB/txXMQPwl0bJNsdE0yrM8nR
-        8xhFFUmg==;
+        bh=gevjuBxhJ8qR+l5M7mQtJrL9Xg42LvdIKNWXno25LAw=; b=COhBNwjVZa1EsCz1toVP4Ob9lu
+        3saSyayXo16dXw0UwFcPudhkx6IzKhJTxV9nJ/sBXQoeNRqdjvjD2C1dm+78QL+qrwd8eOAaTauYz
+        uPHo6APDCBB13/TGtL0AqzGliePLSfeCQTEnhGMgWzCHAE4FmBj1rSGSecGemPxe0dREtAcI0G7C6
+        OO7hSP4wyQswPzoWtxp+9hPn0PJuSmL0mlwsc3VKdqu6U3lxIkhM81j3Zozsw1zbrpNkvRUg1IiV2
+        d1irhBKcsSLrAzFLpBzloC8Pyi48T/9lqORqo4e4Vxq7JgrNvyiJlYflowR866hSLSe5fNo/VT11e
+        v4469zmQ==;
 Received: from [2600:1700:4830:165f::19e] (port=52666 helo=freyr.lechnology.com)
         by vern.gendns.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
         (Exim 4.93)
         (envelope-from <david@lechnology.com>)
-        id 1kS57v-0004Ih-Sj; Mon, 12 Oct 2020 17:13:04 -0400
+        id 1kS57s-0004Ih-Tr; Mon, 12 Oct 2020 17:13:01 -0400
 From:   David Lechner <david@lechnology.com>
 To:     linux-omap@vger.kernel.org
 Cc:     David Lechner <david@lechnology.com>,
@@ -47,9 +47,9 @@ Cc:     David Lechner <david@lechnology.com>,
         Drew Fustini <drew@beagleboard.org>,
         Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 3/3] ARM: omap2plus_defconfig: Enable TI eQEP counter driver
-Date:   Mon, 12 Oct 2020 16:12:29 -0500
-Message-Id: <20201012211229.3282128-4-david@lechnology.com>
+Subject: [PATCH 1/3] ARM: dts: am33xx: Add nodes for eQEP
+Date:   Mon, 12 Oct 2020 16:12:27 -0500
+Message-Id: <20201012211229.3282128-2-david@lechnology.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201012211229.3282128-1-david@lechnology.com>
 References: <20201012211229.3282128-1-david@lechnology.com>
@@ -69,26 +69,66 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This enables the TI eQEP counter driver that is used by BeagleBone Blue.
+This adds new nodes for the Texas Instruments Enhanced Quadrature
+Encoder Pulse (eQEP) module in the PWM subsystem on AM33XX.
 
 Signed-off-by: David Lechner <david@lechnology.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/am33xx-l4.dtsi | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index fe383f5a92fb..71b1a8f4c241 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -524,6 +524,8 @@ CONFIG_PHY_DM816X_USB=m
- CONFIG_OMAP_USB2=m
- CONFIG_TI_PIPE3=y
- CONFIG_TWL4030_USB=m
-+CONFIG_COUNTER=m
-+CONFIG_TI_EQEP=m
- CONFIG_EXT2_FS=y
- CONFIG_EXT3_FS=y
- CONFIG_EXT4_FS_SECURITY=y
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+index b88d0caa4b2d..17910268df82 100644
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1924,6 +1924,15 @@ ecap0: ecap@100 {
+ 					status = "disabled";
+ 				};
+ 
++				eqep0: counter@180 {
++					compatible = "ti,am3352-eqep";
++					reg = <0x180 0x80>;
++					clocks = <&l4ls_gclk>;
++					clock-names = "sysclkout";
++					interrupts = <79>;
++					status = "disabled";
++				};
++
+ 				ehrpwm0: pwm@200 {
+ 					compatible = "ti,am3352-ehrpwm",
+ 						     "ti,am33xx-ehrpwm";
+@@ -1976,6 +1985,15 @@ ecap1: ecap@100 {
+ 					status = "disabled";
+ 				};
+ 
++				eqep1: counter@180 {
++					compatible = "ti,am3352-eqep";
++					reg = <0x180 0x80>;
++					clocks = <&l4ls_gclk>;
++					clock-names = "sysclkout";
++					interrupts = <88>;
++					status = "disabled";
++				};
++
+ 				ehrpwm1: pwm@200 {
+ 					compatible = "ti,am3352-ehrpwm",
+ 						     "ti,am33xx-ehrpwm";
+@@ -2028,6 +2046,15 @@ ecap2: ecap@100 {
+ 					status = "disabled";
+ 				};
+ 
++				eqep2: counter@180 {
++					compatible = "ti,am3352-eqep";
++					reg = <0x180 0x80>;
++					clocks = <&l4ls_gclk>;
++					clock-names = "sysclkout";
++					interrupts = <89>;
++					status = "disabled";
++				};
++
+ 				ehrpwm2: pwm@200 {
+ 					compatible = "ti,am3352-ehrpwm",
+ 						     "ti,am33xx-ehrpwm";
 -- 
 2.25.1
 
