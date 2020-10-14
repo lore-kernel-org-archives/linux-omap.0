@@ -1,134 +1,91 @@
-Return-Path: <SRS0=7vvd=DT=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=5dD+=DV=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8DE4C433DF
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Oct 2020 21:30:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0126C433E7
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 08:56:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BEF621D6C
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Oct 2020 21:30:01 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b="COhBNwjV"
+	by mail.kernel.org (Postfix) with ESMTP id 542A520878
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 08:56:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729791AbgJLVaA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Oct 2020 17:30:00 -0400
-Received: from vern.gendns.com ([98.142.107.122]:50638 "EHLO vern.gendns.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729671AbgJLVaA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 12 Oct 2020 17:30:00 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=lechnology.com; s=default; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=gevjuBxhJ8qR+l5M7mQtJrL9Xg42LvdIKNWXno25LAw=; b=COhBNwjVZa1EsCz1toVP4Ob9lu
-        3saSyayXo16dXw0UwFcPudhkx6IzKhJTxV9nJ/sBXQoeNRqdjvjD2C1dm+78QL+qrwd8eOAaTauYz
-        uPHo6APDCBB13/TGtL0AqzGliePLSfeCQTEnhGMgWzCHAE4FmBj1rSGSecGemPxe0dREtAcI0G7C6
-        OO7hSP4wyQswPzoWtxp+9hPn0PJuSmL0mlwsc3VKdqu6U3lxIkhM81j3Zozsw1zbrpNkvRUg1IiV2
-        d1irhBKcsSLrAzFLpBzloC8Pyi48T/9lqORqo4e4Vxq7JgrNvyiJlYflowR866hSLSe5fNo/VT11e
-        v4469zmQ==;
-Received: from [2600:1700:4830:165f::19e] (port=52666 helo=freyr.lechnology.com)
-        by vern.gendns.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.93)
-        (envelope-from <david@lechnology.com>)
-        id 1kS57s-0004Ih-Tr; Mon, 12 Oct 2020 17:13:01 -0400
-From:   David Lechner <david@lechnology.com>
-To:     linux-omap@vger.kernel.org
-Cc:     David Lechner <david@lechnology.com>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Robert Nelson <robertcnelson@gmail.com>,
-        Drew Fustini <drew@beagleboard.org>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 1/3] ARM: dts: am33xx: Add nodes for eQEP
-Date:   Mon, 12 Oct 2020 16:12:27 -0500
-Message-Id: <20201012211229.3282128-2-david@lechnology.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201012211229.3282128-1-david@lechnology.com>
-References: <20201012211229.3282128-1-david@lechnology.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - vern.gendns.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - lechnology.com
-X-Get-Message-Sender-Via: vern.gendns.com: authenticated_id: davidmain+lechnology.com/only user confirmed/virtual account not confirmed
-X-Authenticated-Sender: vern.gendns.com: davidmain@lechnology.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+        id S1726953AbgJNI4y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Oct 2020 04:56:54 -0400
+Received: from smtp25.cstnet.cn ([159.226.251.25]:54562 "EHLO cstnet.cn"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725970AbgJNI4y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 14 Oct 2020 04:56:54 -0400
+X-Greylist: delayed 440 seconds by postgrey-1.27 at vger.kernel.org; Wed, 14 Oct 2020 04:56:53 EDT
+Received: from localhost.localdomain (unknown [124.16.141.241])
+        by APP-05 (Coremail) with SMTP id zQCowACHjo6Su4ZfalFxAg--.31249S2;
+        Wed, 14 Oct 2020 16:49:24 +0800 (CST)
+From:   Xu Wang <vulab@iscas.ac.cn>
+To:     b.zolnierkie@samsung.com, pakki001@umn.edu, yuehaibing@huawei.com
+Cc:     linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] omapfb/dss: Remove redundant null check before clk_prepare_enable/clk_disable_unprepare
+Date:   Wed, 14 Oct 2020 08:49:20 +0000
+Message-Id: <20201014084920.25813-1-vulab@iscas.ac.cn>
+X-Mailer: git-send-email 2.17.1
+X-CM-TRANSID: zQCowACHjo6Su4ZfalFxAg--.31249S2
+X-Coremail-Antispam: 1UD129KBjvdXoWrZFy8CFyfJFWDAr15Kry3Jwb_yoWkXrX_C3
+        WDurZxGFZ0gw4Ik34ktws8ArZ7tFyvvFWrWr92v3yfKFy7Wry3ZrWDArsxA39rWF40yF4j
+        vwnFg3W8Ar1fCjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUb2xYjsxI4VW3JwAYFVCjjxCrM7AC8VAFwI0_Gr0_Xr1l1xkIjI8I
+        6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM2
+        8CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVW8JVW5JwA2z4x0Y4vE2Ix0
+        cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIE14v26F4UJVW0owA2z4x0Y4vEx4
+        A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IE
+        w4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMc
+        vjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwCY02Avz4vE14v_GFyl42xK82IY
+        c2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s
+        026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIYrxkI7VAKI48JMIIF
+        0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0x
+        vE42xK8VAvwI8IcIk0rVWrJr0_WFyUJwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E
+        87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxU4DGYDUUUU
+X-Originating-IP: [124.16.141.241]
+X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiAxAJA13qZbuZhgAAsv
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This adds new nodes for the Texas Instruments Enhanced Quadrature
-Encoder Pulse (eQEP) module in the PWM subsystem on AM33XX.
+Because clk_prepare_enable() and clk_disable_unprepare() already checked
+NULL clock parameter, so the additional checks are unnecessary, just
+remove them.
 
-Signed-off-by: David Lechner <david@lechnology.com>
+Signed-off-by: Xu Wang <vulab@iscas.ac.cn>
 ---
- arch/arm/boot/dts/am33xx-l4.dtsi | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ drivers/video/fbdev/omap2/omapfb/dss/venc.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-index b88d0caa4b2d..17910268df82 100644
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -1924,6 +1924,15 @@ ecap0: ecap@100 {
- 					status = "disabled";
- 				};
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/venc.c b/drivers/video/fbdev/omap2/omapfb/dss/venc.c
+index 0b0ad20afd63..8895fb8493d8 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/venc.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/venc.c
+@@ -890,8 +890,7 @@ static int venc_remove(struct platform_device *pdev)
  
-+				eqep0: counter@180 {
-+					compatible = "ti,am3352-eqep";
-+					reg = <0x180 0x80>;
-+					clocks = <&l4ls_gclk>;
-+					clock-names = "sysclkout";
-+					interrupts = <79>;
-+					status = "disabled";
-+				};
-+
- 				ehrpwm0: pwm@200 {
- 					compatible = "ti,am3352-ehrpwm",
- 						     "ti,am33xx-ehrpwm";
-@@ -1976,6 +1985,15 @@ ecap1: ecap@100 {
- 					status = "disabled";
- 				};
+ static int venc_runtime_suspend(struct device *dev)
+ {
+-	if (venc.tv_dac_clk)
+-		clk_disable_unprepare(venc.tv_dac_clk);
++	clk_disable_unprepare(venc.tv_dac_clk);
  
-+				eqep1: counter@180 {
-+					compatible = "ti,am3352-eqep";
-+					reg = <0x180 0x80>;
-+					clocks = <&l4ls_gclk>;
-+					clock-names = "sysclkout";
-+					interrupts = <88>;
-+					status = "disabled";
-+				};
-+
- 				ehrpwm1: pwm@200 {
- 					compatible = "ti,am3352-ehrpwm",
- 						     "ti,am33xx-ehrpwm";
-@@ -2028,6 +2046,15 @@ ecap2: ecap@100 {
- 					status = "disabled";
- 				};
+ 	dispc_runtime_put();
  
-+				eqep2: counter@180 {
-+					compatible = "ti,am3352-eqep";
-+					reg = <0x180 0x80>;
-+					clocks = <&l4ls_gclk>;
-+					clock-names = "sysclkout";
-+					interrupts = <89>;
-+					status = "disabled";
-+				};
-+
- 				ehrpwm2: pwm@200 {
- 					compatible = "ti,am3352-ehrpwm",
- 						     "ti,am33xx-ehrpwm";
+@@ -906,8 +905,7 @@ static int venc_runtime_resume(struct device *dev)
+ 	if (r < 0)
+ 		return r;
+ 
+-	if (venc.tv_dac_clk)
+-		clk_prepare_enable(venc.tv_dac_clk);
++	clk_prepare_enable(venc.tv_dac_clk);
+ 
+ 	return 0;
+ }
 -- 
-2.25.1
+2.17.1
 
