@@ -7,52 +7,55 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 211ECC433E7
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:19:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E433C433E7
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:19:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C40D821582
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:19:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3225D22201
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:19:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="B6rdNxcz";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="3nHhxyYv"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="gF49Zkiq";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="fNqQVvXm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388854AbgJNPTF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Oct 2020 11:19:05 -0400
-Received: from Galois.linutronix.de ([193.142.43.55]:59116 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731760AbgJNPSz (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2020 11:18:55 -0400
-Message-Id: <20201014145727.607191004@linutronix.de>
+        id S1731772AbgJNPSy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Oct 2020 11:18:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39110 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731756AbgJNPSx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2020 11:18:53 -0400
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FA7FC061755;
+        Wed, 14 Oct 2020 08:18:53 -0700 (PDT)
+Message-Id: <20201014145727.480325406@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1602688732;
+        s=2020; t=1602688731;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=Pe8CFmf0/CnRVhPeaGPKSnnUTmz8AJUU7taQJPbdbP8=;
-        b=B6rdNxczcOWWrcVbmjviVpJXMXqZ84hT2H0rQpIRoceWWrTcdA9FTUOaS7Fgw2L8fOdBdy
-        HbzzKYWq9V9msbsFIlokMHqCeUwUqtRMpTRWHwAcLqZZXvSqIgbUkJXvocA/0LR+CjU/B6
-        IRLn5B25hI6G7a81TURqxOWEIykDwHsXr0VEmlT//sz5ZprWnWexzaGB6ko6NdL96oRFVQ
-        +oExsQl/zMOtFkuZm2sj/8zelpvpkI/FS84sVW0h9kPI1zbDpua5qg7kw53q+PoEM8qAVk
-        QDWwnsdTTlNv0RMzHiN3Qp5v0N41mRmSf5MdVz/xFd9xU2BGBPWsfDn0Ax2+rA==
+        bh=MXv/cC90NGLd0gAyhvd77yXM/kdP4dV075keyekfnPQ=;
+        b=gF49ZkiqVA6Zkos7qV1tE5MFxGK11ffDoTX8KLBy8SNOMaDDNL7x1wO6IHJ/BNtFHcv5hT
+        0/nZJjx4SO39GW/Av+RNKSxFj0Z+OyQZCvENPKlDVZ6SuvPvYkZXPUsMOwJnK2/gfqJpij
+        qLCP2LF8pxRywYu2LrvQq2m8s2yZLCSuHR3/Ip1GNhoHFXiye3d0YNaxy7lizSusQjT2uq
+        6LiyrKiKsnaid2NtGbCoqc6Vhi+BWqhCq0Eme5taaIjVekbxV4iilOadB0ENaIDyyWvQgq
+        CKhL3GyL7KfZox86+OS14WawQaTkrspL7RbAG9T58uwOffIM0eJiZm6eV/xT9w==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1602688732;
+        s=2020e; t=1602688731;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=Pe8CFmf0/CnRVhPeaGPKSnnUTmz8AJUU7taQJPbdbP8=;
-        b=3nHhxyYvsMB0O08Xcs0F+wU3UaP3H2JXQDPF1e8+qyTK47yO7ho0Y1DtTJSapPBVeQTtaW
-        +ujbHldthT8mgxDQ==
-Date:   Wed, 14 Oct 2020 16:52:20 +0200
+        bh=MXv/cC90NGLd0gAyhvd77yXM/kdP4dV075keyekfnPQ=;
+        b=fNqQVvXmjajIS9K+Wb89Ddzsv1Zt+aXUZdLwSLQWFT29BfJ4Y16PSZJISiz9hVbWbvSoSo
+        v2uFFdzbh4ZpC7Bw==
+Date:   Wed, 14 Oct 2020 16:52:19 +0200
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         "Ahmed S. Darwish" <a.darwish@linutronix.de>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Mathias Nyman <mathias.nyman@intel.com>,
+        Johan Hovold <johan@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-usb@vger.kernel.org,
         Thomas Winischhofer <thomas@winischhofer.net>,
-        Johan Hovold <johan@kernel.org>,
+        Mathias Nyman <mathias.nyman@intel.com>,
         Valentina Manea <valentina.manea.m@gmail.com>,
         Shuah Khan <shuah@kernel.org>,
         Alan Stern <stern@rowland.harvard.edu>,
@@ -61,7 +64,7 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@kernel.org>,
         Duncan Sands <duncan.sands@free.fr>
-Subject: [patch 05/12] usb: xhci: Remove in_interrupt() checks
+Subject: [patch 04/12] USB: serial: digi_acceleport: Remove in_interrupt() usage
 References: <20201014145215.518912759@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -72,53 +75,46 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Ahmed S. Darwish <a.darwish@linutronix.de>
 
-The usage of in_interrupt() in drivers is phased out for various reasons.
+The usage of in_interrupt() in drivers is phased out and Linus clearly
+requested that code which changes behaviour depending on context should
+either be separated or the context be conveyed in an argument passed by the
+caller, which usually knows the context.
 
-xhci_set_hc_event_deq() has an !in_interrupt() check which is pointless
-because the function is only invoked from xhci_mem_init() which is clearly
-task context as it does GFP_KERNEL allocations. Remove it.
+The debug printk() in digi_write() prints in_interrupt() as context
+information. TTY writes happen always in preemptible task context and
+console writes can happen from almost any context, so in_interrupt() is not
+really helpful.
 
-xhci_urb_enqueue() prints a debug message if an URB is submitted after the
-underlying hardware was suspended. But that warning is only issued when
-in_interrupt() is true, which makes no sense. Simply return -ESHUTDOWN and
-be done with it.
+Aside of that issuing a printk() from a console->write() callback is not a
+really brilliant idea for obvious reasons.
+
+Remove the in_interrupt() printout and make the printk() depend on tty.
 
 Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mathias Nyman <mathias.nyman@intel.com>
+Cc: Johan Hovold <johan@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: linux-usb@vger.kernel.org
----
- drivers/usb/host/xhci-mem.c |    2 +-
- drivers/usb/host/xhci.c     |    6 ++----
- 2 files changed, 3 insertions(+), 5 deletions(-)
 
---- a/drivers/usb/host/xhci-mem.c
-+++ b/drivers/usb/host/xhci-mem.c
-@@ -2110,7 +2110,7 @@ static void xhci_set_hc_event_deq(struct
+---
+ drivers/usb/serial/digi_acceleport.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- a/drivers/usb/serial/digi_acceleport.c
++++ b/drivers/usb/serial/digi_acceleport.c
+@@ -911,9 +911,10 @@ static int digi_write(struct tty_struct
+ 	unsigned char *data = port->write_urb->transfer_buffer;
+ 	unsigned long flags = 0;
  
- 	deq = xhci_trb_virt_to_dma(xhci->event_ring->deq_seg,
- 			xhci->event_ring->dequeue);
--	if (deq == 0 && !in_interrupt())
-+	if (!deq)
- 		xhci_warn(xhci, "WARN something wrong with SW event ring "
- 				"dequeue ptr.\n");
- 	/* Update HC event ring dequeue pointer */
---- a/drivers/usb/host/xhci.c
-+++ b/drivers/usb/host/xhci.c
-@@ -1473,11 +1473,9 @@ static int xhci_urb_enqueue(struct usb_h
- 	ep_index = xhci_get_endpoint_index(&urb->ep->desc);
- 	ep_state = &xhci->devs[slot_id]->eps[ep_index].ep_state;
+-	dev_dbg(&port->dev,
+-		"digi_write: TOP: port=%d, count=%d, in_interrupt=%ld\n",
+-		priv->dp_port_num, count, in_interrupt());
++	if (tty) {
++		dev_dbg(&port->dev, "digi_write: TOP: port=%d, count=%d\n",
++			priv->dp_port_num, count);
++	}
  
--	if (!HCD_HW_ACCESSIBLE(hcd)) {
--		if (!in_interrupt())
--			xhci_dbg(xhci, "urb submitted during PCI suspend\n");
-+	if (!HCD_HW_ACCESSIBLE(hcd))
- 		return -ESHUTDOWN;
--	}
-+
- 	if (xhci->devs[slot_id]->flags & VDEV_PORT_ERROR) {
- 		xhci_dbg(xhci, "Can't queue urb, port error, link inactive\n");
- 		return -ENODEV;
+ 	/* copy user data (which can sleep) before getting spin lock */
+ 	count = min(count, port->bulk_out_size-2);
 
