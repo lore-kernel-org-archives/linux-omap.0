@@ -2,58 +2,59 @@ Return-Path: <SRS0=5dD+=DV=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD8C4C433E7
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:18:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7625C4363A
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:18:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 621082222A
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:18:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BE3422227
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Oct 2020 15:18:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Mkhg1oud";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="J4cIGbxk"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="k5Uvd0CH";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="OrT6mgTc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728756AbgJNPSs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Oct 2020 11:18:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39094 "EHLO
+        id S1731742AbgJNPSw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Oct 2020 11:18:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726596AbgJNPSs (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2020 11:18:48 -0400
+        with ESMTP id S1731731AbgJNPSu (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2020 11:18:50 -0400
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8475CC061755;
-        Wed, 14 Oct 2020 08:18:48 -0700 (PDT)
-Message-Id: <20201014145215.518912759@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA3E2C0613D2;
+        Wed, 14 Oct 2020 08:18:50 -0700 (PDT)
+Message-Id: <20201014145727.209520987@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1602688726;
+        s=2020; t=1602688729;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=Xqc0nGkuw0k9CjZpwvy2mNqALgS9zNAoil65HHXmBWw=;
-        b=Mkhg1oudooc1D7cLXeBlzAj7hV9tOJlOoUSWKfGCxcNRp6Akbl+i/CyTWi32vKAy7lg0HD
-        MpTNLo8j0c6EvQX5dPujKOlzMfsWpRC/IAGFbyB7J30kUlouGRQC6UxMvviMD1Xi9LI5Gc
-        /tUx+/iW5BkmL6l1c9DqG8PEMBYNYtnNrrLEc6+GyalxeR0rNtSyhrbWYjwHcPC/8G1wnD
-        CipGvLyocVhb8dITN9e/hA/hw4WxMuO9L+LWd7F5MTfY497KVJQTe6u+JI+03auxA5jaGZ
-        rWjukNONzdglu4DG3L22C67B3madfApoVOnOStsZF9GnCVFuDKsguAAGIFMFYw==
+         content-transfer-encoding:content-transfer-encoding:  references:references;
+        bh=j+vN9MgqREoIPGzBU7B1IaC3gna3kE7EN539Nh0ClUU=;
+        b=k5Uvd0CHm0zZyEwL+YuKNjNUOvaRu4R270eVkBILUGSOB7QRbX2osy1phwsfegSjghqyrW
+        sJWQY5reBOT1yyFMi1bGeG5Wu6vT7FKqS1iRXgKFN/Ba6r4wc64mBYG0+gj36pE45eSlJY
+        kNBxpmqbrmhYi6IiRdc3kOcf+pgTR92lCnMjReOKjdQ5w+fk/T7eTXOkzl+dLA6A3JUOyO
+        GwZNF/9lRzATa+y3TN2kH5+JHJnIixp3tE3SMBjM2+Jy+eA9tnRQdLCKxXXXCeq4Pep7sl
+        CHizp9HNv/SgRakHrfj+HJOkJlFablJugSEnDkzqqJkdfFLQI6t9kATI5TafEw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1602688726;
+        s=2020e; t=1602688729;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=Xqc0nGkuw0k9CjZpwvy2mNqALgS9zNAoil65HHXmBWw=;
-        b=J4cIGbxkYeb16Mx6vnpQGhkkmyjGQDefyDOdSDcFR6lkamlOV2UI4C4rPB+qkrPUWny9bY
-        +XT22bHmagnyoqAQ==
-Date:   Wed, 14 Oct 2020 16:52:15 +0200
+         content-transfer-encoding:content-transfer-encoding:  references:references;
+        bh=j+vN9MgqREoIPGzBU7B1IaC3gna3kE7EN539Nh0ClUU=;
+        b=OrT6mgTchqOnwodWRSOWnTUctuEN6qg/WU3nIlLDVaCTruOVTQIY5kwbMcQtZllOQS8XNQ
+        DAfGWB0ldz/F46CA==
+Date:   Wed, 14 Oct 2020 16:52:17 +0200
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
-        Thomas Winischhofer <thomas@winischhofer.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org,
         "Ahmed S. Darwish" <a.darwish@linutronix.de>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
         Johan Hovold <johan@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org,
+        Thomas Winischhofer <thomas@winischhofer.net>,
         Mathias Nyman <mathias.nyman@intel.com>,
         Valentina Manea <valentina.manea.m@gmail.com>,
         Shuah Khan <shuah@kernel.org>,
@@ -63,45 +64,70 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@kernel.org>,
         Duncan Sands <duncan.sands@free.fr>
-Subject: [patch 00/12] UBS: Cleanup in_interupt/in_irq/in_atomic() usage
+Subject: [patch 02/12] USB: serial: keyspan_pda: Replace in_interrupt() usage
+References: <20201014145215.518912759@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8-bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Rm9sa3MsCgppbiB0aGUgZGlzY3Vzc2lvbiBhYm91dCBwcmVlbXB0IGNvdW50IGNvbnNpc3RlbmN5
-IGFjY3Jvc3Mga2VybmVsIGNvbmZpZ3VyYXRpb25zOgoKICBodHRwczovL2xvcmUua2VybmVsLm9y
-Zy9yLzIwMjAwOTE0MjA0MjA5LjI1NjI2NjA5M0BsaW51dHJvbml4LmRlLwoKTGludXMgY2xlYXJs
-eSByZXF1ZXN0ZWQgdGhhdCBjb2RlIGluIGRyaXZlcnMgYW5kIGxpYnJhcmllcyB3aGljaCBjaGFu
-Z2VzCmJlaGF2aW91ciBiYXNlZCBvbiBleGVjdXRpb24gY29udGV4dCBzaG91bGQgZWl0aGVyIGJl
-IHNwbGl0IHVwIHNvIHRoYXQKZS5nLiB0YXNrIGNvbnRleHQgaW52b2NhdGlvbnMgYW5kIEJIIGlu
-dm9jYXRpb25zIGhhdmUgZGlmZmVyZW50IGludGVyZmFjZXMKb3IgaWYgdGhhdCdzIG5vdCBwb3Nz
-aWJsZSB0aGUgY29udGV4dCBpbmZvcm1hdGlvbiBoYXMgdG8gYmUgcHJvdmlkZWQgYnkgdGhlCmNh
-bGxlciB3aGljaCBrbm93cyBpbiB3aGljaCBjb250ZXh0IGl0IGlzIGV4ZWN1dGluZy4KClRoaXMg
-aW5jbHVkZXMgY29uZGl0aW9uYWwgbG9ja2luZywgYWxsb2NhdGlvbiBtb2RlIChHRlBfKikgZGVj
-aXNpb25zIGFuZAphdm9pZGFuY2Ugb2YgY29kZSBwYXRocyB3aGljaCBtaWdodCBzbGVlcC4KCklu
-IHRoZSBsb25nIHJ1biwgdXNhZ2Ugb2YgJ3ByZWVtcHRpYmxlLCBpbl8qaXJxIGV0Yy4nIHNob3Vs
-ZCBiZSBiYW5uZWQgZnJvbQpkcml2ZXIgY29kZSBjb21wbGV0ZWx5LgoKVGhlIHVzYWdlIG9mIHN1
-Y2ggY29uc3RydWN0cyBpbiBVU0IgaXMgcmF0aGVyIGxpbWl0ZWQuIE1vc3Qgb2YgaXQgaXMgaW4K
-ZGVidWcgY29kZSBhbmQgKG1pc2xlYWRpbmcpIGNvbW1lbnRzLiBCdXQgb2YgY291cnNlIHRoZXJl
-IGFyZSBhbHNvIGEgZmV3CmZldyBidWdzIGluY2x1ZGluZyBvbmUgdW5maXhhYmxlLgoKV2l0aCB0
-aGUgZm9sbG93aW5nIHNlcmllcyBhcHBsaWVkLCBVU0IgaXMgY2xlYW4uCgpUaGFua3MsCgoJdGds
-eAotLS0KIGF0bS91c2JhdG0uYyAgICAgICAgICAgICB8ICAgIDIgCiBjb3JlL2J1ZmZlci5jICAg
-ICAgICAgICAgfCAgICA2ICstCiBjb3JlL2hjZC1wY2kuYyAgICAgICAgICAgfCAgICA2ICstCiBj
-b3JlL2hjZC5jICAgICAgICAgICAgICAgfCAgIDIxICsrKystLS0tCiBjb3JlL2h1Yi5jICAgICAg
-ICAgICAgICAgfCAgICAzIC0KIGNvcmUvbWVzc2FnZS5jICAgICAgICAgICB8ICAgMzUgKysrKysr
-KysrLS0tLS0KIGNvcmUvdXNiLmMgICAgICAgICAgICAgICB8ICAgIDQgLQogZ2FkZ2V0L3VkYy9j
-b3JlLmMgICAgICAgIHwgICAgMiAKIGdhZGdldC91ZGMvZHVtbXlfaGNkLmMgICB8ICAgIDUgKy0K
-IGdhZGdldC91ZGMvcHhhMjd4X3VkYy5jICB8ICAgMTkgKysrKy0tLQogaG9zdC9laGNpLWZzbC5j
-ICAgICAgICAgIHwgICAgOSArLS0KIGhvc3QvZWhjaS1wbWNtc3AuYyAgICAgICB8ICAgMTUgKysr
-LS0tCiBob3N0L2lzcDEzNjIuaCAgICAgICAgICAgfCAgICA1ICstCiBob3N0L29oY2ktYXQ5MS5j
-ICAgICAgICAgfCAgIDExICsrKy0KIGhvc3Qvb2hjaS1vbWFwLmMgICAgICAgICB8ICAgIDcgKy0K
-IGhvc3Qvb2hjaS1weGEyN3guYyAgICAgICB8ICAgMTEgKystLQogaG9zdC9vaGNpLXMzYzI0MTAu
-YyAgICAgIHwgICAxMiArKy0tLQogaG9zdC94aGNpLW1lbS5jICAgICAgICAgIHwgICAgMiAKIGhv
-c3QveGhjaS5jICAgICAgICAgICAgICB8ICAgIDYgLS0KIG1pc2Mvc2lzdXNidmdhL0tjb25maWcg
-ICB8ICAgIDIgCiBzZXJpYWwvZGlnaV9hY2NlbGVwb3J0LmMgfCAgICA3ICstCiBzZXJpYWwva2V5
-c3Bhbl9wZGEuYyAgICAgfCAgMTEyICsrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tCiB1c2JpcC91c2JpcF9jb21tb24uYyAgICAgfCAgICA1IC0tCiAyMyBmaWxl
-cyBjaGFuZ2VkLCAxNTYgaW5zZXJ0aW9ucygrKSwgMTUxIGRlbGV0aW9ucygtKQo=
+keyspan_pda_write() uses in_interrupt() to check whether it is safe to
+invoke functions which might sleep.
+
+The usage of in_interrupt() in drivers is phased out and Linus clearly
+requested that code which changes behaviour depending on context should
+either be seperated or the context be conveyed in an argument passed by the
+caller, which usually knows the context.
+
+Aside of that it does not cover all contexts which cannot sleep,
+e.g. preempt disabled regions which cannot be reliably detected on all
+kernel configurations.
+
+With the current printk() implementation console->write() can be invoked
+from almost any context. The upcoming rework of the console core will
+provide thread context for console drivers which require to sleep.
+
+For now, restrict the room query which can sleep to tty writes which happen
+from preemptible task context.
+
+The usability for dmesg output is limited anyway because it's almost
+guaranteed to drop the 'LF' which is submitted after the dmesg line because
+the device supports only one transfer on flight. Same for any printk()
+which is coming in before the previous transfer has been done.
+
+This new restriction does not make it worse than before, but it makes the
+condition correct under all circumstances.
+
+Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Johan Hovold <johan@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org
+
+---
+ drivers/usb/serial/keyspan_pda.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+--- a/drivers/usb/serial/keyspan_pda.c
++++ b/drivers/usb/serial/keyspan_pda.c
+@@ -477,10 +477,12 @@ static int keyspan_pda_write(struct tty_
+ 
+ 	count = (count > port->bulk_out_size) ? port->bulk_out_size : count;
+ 
+-	/* Check if we might overrun the Tx buffer.   If so, ask the
+-	   device how much room it really has.  This is done only on
+-	   scheduler time, since usb_control_msg() sleeps. */
+-	if (count > priv->tx_room && !in_interrupt()) {
++	/*
++	 * Check if we might overrun the Tx buffer. If so, ask the device
++	 * how much room it really has. This can only be invoked for tty
++	 * usage because the console write can't sleep.
++	 */
++	if (count > priv->tx_room && tty) {
+ 		u8 *room;
+ 
+ 		room = kmalloc(1, GFP_KERNEL);
+
