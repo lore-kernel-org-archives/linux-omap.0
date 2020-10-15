@@ -2,103 +2,129 @@ Return-Path: <SRS0=R7rC=DW=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38A40C433DF
-	for <linux-omap@archiver.kernel.org>; Thu, 15 Oct 2020 23:21:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC2E8C433DF
+	for <linux-omap@archiver.kernel.org>; Thu, 15 Oct 2020 23:59:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D62F5207BC
-	for <linux-omap@archiver.kernel.org>; Thu, 15 Oct 2020 23:21:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C7C22074F
+	for <linux-omap@archiver.kernel.org>; Thu, 15 Oct 2020 23:59:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="JM3vw2PW"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="eqlEuNQh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389224AbgJOXUo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 15 Oct 2020 19:20:44 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:58720 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388601AbgJOXUF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2020 19:20:05 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09FNK2eS066305;
-        Thu, 15 Oct 2020 18:20:02 -0500
+        id S1732998AbgJOX7R (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 15 Oct 2020 19:59:17 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:51538 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732997AbgJOX7R (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2020 19:59:17 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09FNxC9e092032;
+        Thu, 15 Oct 2020 18:59:12 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1602804002;
-        bh=idzDZS3t19L8wRQZKa6Vh6pC95NRUb0c9lKcadtfYiI=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=JM3vw2PWm+Gyigg23VxTQQBJ2vK/s1bCi0SyuVOjnxSJO2Ees82z1vZuftHEbK9UF
-         Jcc7E4XGDjJXjkJdA7/Wt6iGOesXuRlYi64unZ8tID9WD95IT3Eb6azxZO/6PZbSCs
-         j27X/d1ClPyDLewg621KCEJYpOXfaCgP3+BLykaw=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09FNK2Pd128232
+        s=ti-com-17Q1; t=1602806352;
+        bh=Id8Jrt/UkZ0O6zrv4E9lbv+cNcpUGnm5eWOCH5ZsdDo=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=eqlEuNQhZ3UE3SiYMXEV9oo1AcVmH75XhM9Sts/ahmCOn864KGvWier4DO6O/n2oR
+         CQmXZTAHrwt2OfR1kIpkpXq5c1C7lQV3K+w8mkRIgX91CEx7DaegqsYnhgPi8EIGox
+         L17Dgw1J3xySBn+dRjA/aqzq1Z2pUnFiqCjDn0Ns=
+Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09FNxCV4039214
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 15 Oct 2020 18:20:02 -0500
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 15 Oct 2020 18:59:12 -0500
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 15
- Oct 2020 18:20:02 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+ Oct 2020 18:59:12 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 15 Oct 2020 18:20:02 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09FNK0MI093496;
-        Thu, 15 Oct 2020 18:20:01 -0500
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
+ Frontend Transport; Thu, 15 Oct 2020 18:59:12 -0500
+Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09FNx9cT028389;
+        Thu, 15 Oct 2020 18:59:09 -0500
+Subject: Re: [PATCH net-next v2 0/9] net: ethernet: ti: am65-cpsw: add multi
+ port support in mac-only mode
 To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
         Jakub Kicinski <kuba@kernel.org>,
         Vignesh Raghavendra <vigneshr@ti.com>
 CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
         <linux-omap@vger.kernel.org>,
-        Murali Karicheri <m-karicheri2@ti.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 6/9] net: ethernet: ti: am65-cpsw: keep active if cpts enabled
-Date:   Fri, 16 Oct 2020 02:19:10 +0300
-Message-ID: <20201015231913.30280-7-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20201015231913.30280-1-grygorii.strashko@ti.com>
+        Murali Karicheri <m-karicheri2@ti.com>
 References: <20201015231913.30280-1-grygorii.strashko@ti.com>
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+Message-ID: <eeb0db9f-9599-1619-cd7c-910e2f095e2a@ti.com>
+Date:   Fri, 16 Oct 2020 02:59:09 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20201015231913.30280-1-grygorii.strashko@ti.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Some K3 CPSW NUSS instances can lose context after PM runtime ON->OFF->ON
-transition depending on integration (including all submodules: CPTS, MDIO,
-etc), like J721E Main CPSW (CPSW9G).
 
-In case CPTS is enabled it's initialized during probe and does not expect
-to be reset. Hence, keep K3 CPSW active by forbidding PM runtime if CPTS is
-enabled.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/am65-cpsw-nuss.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+On 16/10/2020 02:19, Grygorii Strashko wrote:
+> Hi
+> 
+> This series adds multi-port support in mac-only mode (multi MAC mode) to TI
+> AM65x CPSW driver in preparation for enabling support for multi-port devices,
+> like Main CPSW0 on K3 J721E SoC or future CPSW3g on K3 AM64x SoC.
+> 
+> The multi MAC mode is implemented by configuring every enabled port in "mac-only"
+> mode (all ingress packets are sent only to the Host port and egress packets
+> directed to target Ext. Port) and creating separate net_device for
+> every enabled Ext. port.
+> 
+> This series does not affect on existing CPSW2g one Ext. Port devices and xmit
+> path changes are done only for multi-port devices by splitting xmit path for
+> one-port and multi-port devices.
+> 
+> Patches 1-3: Preparation patches to improve K3 CPSW configuration depending on DT
+> Patches 4-5: Fix VLAN offload for multi MAC mode
+> Patch 6: Fixes CPTS context lose issue during PM runtime transition
+> Patch 7: Fixes TX csum offload for multi MAC mode
+> Patches 8-9: add multi-port support to TI AM65x CPSW
+> 
+> changes in v2:
+> - patch 8: xmit path split for one-port and multi-port devices to avoid
+>    performance losses
+> - patch 9: fixed the case when Port 1 is disabled
+> - Patch 7: added fix for TX csum offload
+> 
+> v1: https://lore.kernel.org/patchwork/cover/1315766/
+> 
+> Grygorii Strashko (9):
+>    net: ethernet: ti: am65-cpsw: move ale selection in pdata
+>    net: ethernet: ti: am65-cpsw: move free desc queue mode selection in
+>      pdata
+>    net: ethernet: ti: am65-cpsw: use cppi5_desc_is_tdcm()
+>    net: ethernet: ti: cpsw_ale: add cpsw_ale_vlan_del_modify()
+>    net: ethernet: ti: am65-cpsw: fix vlan offload for multi mac mode
+>    net: ethernet: ti: am65-cpsw: keep active if cpts enabled
+>    net: ethernet: ti: am65-cpsw: fix tx csum offload for multi mac mode
+>    net: ethernet: ti: am65-cpsw: prepare xmit/rx path for multi-port
+>      devices in mac-only mode
+>    net: ethernet: ti: am65-cpsw: add multi port support in mac-only mode
+> 
+>   drivers/net/ethernet/ti/am65-cpsw-nuss.c | 327 +++++++++++++++--------
+>   drivers/net/ethernet/ti/am65-cpsw-nuss.h |   5 +
+>   drivers/net/ethernet/ti/cpsw_ale.c       |  41 ++-
+>   drivers/net/ethernet/ti/cpsw_ale.h       |   1 +
+>   drivers/net/ethernet/ti/cpsw_switchdev.c |   2 +-
+>   5 files changed, 251 insertions(+), 125 deletions(-)
+> 
 
-diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.c b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-index fecaf6b8270f..0bc0eec46709 100644
---- a/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-+++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-@@ -1727,6 +1727,13 @@ static int am65_cpsw_init_cpts(struct am65_cpsw_common *common)
- 		return ret;
- 	}
- 	common->cpts = cpts;
-+	/* Forbid PM runtime if CPTS is running.
-+	 * K3 CPSWxG modules may completely lose context during ON->OFF
-+	 * transitions depending on integration.
-+	 * AM65x/J721E MCU CPSW2G: false
-+	 * J721E MAIN_CPSW9G: true
-+	 */
-+	pm_runtime_forbid(dev);
- 
- 	return 0;
- }
+Sorry, missed "net-next is CLOSED" announcement
+
 -- 
-2.17.1
-
+Best regards,
+grygorii
