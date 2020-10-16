@@ -4,27 +4,27 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE9E2C43457
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 09:53:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5C85C433E7
+	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 09:53:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DE8C20FC3
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 09:53:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C54820848
+	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 09:53:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405485AbgJPJxg convert rfc822-to-8bit (ORCPT
+        id S2406427AbgJPJx7 convert rfc822-to-8bit (ORCPT
         <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 16 Oct 2020 05:53:36 -0400
-Received: from mx2.suse.de ([195.135.220.15]:42070 "EHLO mx2.suse.de"
+        Fri, 16 Oct 2020 05:53:59 -0400
+Received: from mx2.suse.de ([195.135.220.15]:42374 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2406400AbgJPJxg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 16 Oct 2020 05:53:36 -0400
+        id S2406424AbgJPJx6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 16 Oct 2020 05:53:58 -0400
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 1A87CACF1;
-        Fri, 16 Oct 2020 09:53:34 +0000 (UTC)
-Date:   Fri, 16 Oct 2020 11:53:31 +0200
+        by mx2.suse.de (Postfix) with ESMTP id 5F341AD0D;
+        Fri, 16 Oct 2020 09:53:57 +0000 (UTC)
+Date:   Fri, 16 Oct 2020 11:53:56 +0200
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     Xu Wang <vulab@iscas.ac.cn>
 Cc:     b.zolnierkie@samsung.com, pakki001@umn.edu, yuehaibing@huawei.com,
@@ -32,7 +32,7 @@ Cc:     b.zolnierkie@samsung.com, pakki001@umn.edu, yuehaibing@huawei.com,
         linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 Subject: Re: [PATCH] omapfb/dss: Remove redundant null check before
  clk_prepare_enable/clk_disable_unprepare
-Message-ID: <20201016115331.0dd4341e@linux-uq9g>
+Message-ID: <20201016115356.34c1620b@linux-uq9g>
 In-Reply-To: <20201015100827.1115fa9b@linux-uq9g>
 References: <20201014084920.25813-1-vulab@iscas.ac.cn>
         <20201015100827.1115fa9b@linux-uq9g>
