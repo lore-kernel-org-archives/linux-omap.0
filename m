@@ -7,85 +7,82 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C4D9C433DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA344C433E7
 	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 21:28:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 398ED218AC
+	by mail.kernel.org (Postfix) with ESMTP id 63B64214DB
 	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 21:28:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390506AbgJPV2d (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S2387948AbgJPV2d (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Fri, 16 Oct 2020 17:28:33 -0400
-Received: from asavdk4.altibox.net ([109.247.116.15]:38480 "EHLO
+Received: from asavdk4.altibox.net ([109.247.116.15]:38482 "EHLO
         asavdk4.altibox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387948AbgJPV2d (ORCPT
+        with ESMTP id S2388826AbgJPV2d (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2020 17:28:33 -0400
 Received: from ravnborg.org (unknown [188.228.123.71])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by asavdk4.altibox.net (Postfix) with ESMTPS id 2EDF380632;
-        Fri, 16 Oct 2020 23:20:51 +0200 (CEST)
-Date:   Fri, 16 Oct 2020 23:20:49 +0200
+        by asavdk4.altibox.net (Postfix) with ESMTPS id 1E10780615;
+        Fri, 16 Oct 2020 23:18:33 +0200 (CEST)
+Date:   Fri, 16 Oct 2020 23:18:31 +0200
 From:   Sam Ravnborg <sam@ravnborg.org>
 To:     Qinglang Miao <miaoqinglang@huawei.com>
 Cc:     Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
         linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH -next] omapfb: panel-sony-acx565akm: simplify the return
- expression of acx565akm_connect()
-Message-ID: <20201016212049.GH1496366@ravnborg.org>
-References: <20200921131052.92707-1-miaoqinglang@huawei.com>
+Subject: Re: [PATCH -next] omapfb: connector-analog-tv: simplify the return
+ expression of tvc_connect()
+Message-ID: <20201016211831.GF1496366@ravnborg.org>
+References: <20200921131049.92616-1-miaoqinglang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200921131052.92707-1-miaoqinglang@huawei.com>
+In-Reply-To: <20200921131049.92616-1-miaoqinglang@huawei.com>
 X-CMAE-Score: 0
 X-CMAE-Analysis: v=2.3 cv=fu7ymmwf c=1 sm=1 tr=0
         a=S6zTFyMACwkrwXSdXUNehg==:117 a=S6zTFyMACwkrwXSdXUNehg==:17
         a=kj9zAlcOel0A:10 a=i0EeH86SAAAA:8 a=e5mUnYsNAAAA:8
-        a=Y4obQtN_itIPxvlVp1MA:9 a=CjuIK1q_8ugA:10 a=Vxmtnl_E_bksehYqCbjh:22
+        a=ToXaz2Xm6MjKWDOX7ugA:9 a=CjuIK1q_8ugA:10 a=Vxmtnl_E_bksehYqCbjh:22
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Qinglang Miao
-
-On Mon, Sep 21, 2020 at 09:10:52PM +0800, Qinglang Miao wrote:
+On Mon, Sep 21, 2020 at 09:10:49PM +0800, Qinglang Miao wrote:
 > Simplify the return expression.
 > 
 > Signed-off-by: Qinglang Miao <miaoqinglang@huawei.com>
 
-Applied this and the following patch to drm-misc-next.
-Note: I did not touch the drm/* patches, I expect someone else to pick
-them up. As they are quite old maybe try to resend them.
+Thanks, applied to drm-misc-next.
 
 	Sam
-
 > ---
->  .../fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c     | 7 +------
+>  .../fbdev/omap2/omapfb/displays/connector-analog-tv.c      | 7 +------
 >  1 file changed, 1 insertion(+), 6 deletions(-)
 > 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-> index 1293515e4..8d8b5ff7d 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-> @@ -506,16 +506,11 @@ static int acx565akm_connect(struct omap_dss_device *dssdev)
+> diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
+> index 63bd13ba4..a9fd732f8 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
+> @@ -47,18 +47,13 @@ static int tvc_connect(struct omap_dss_device *dssdev)
 >  {
 >  	struct panel_drv_data *ddata = to_panel_data(dssdev);
 >  	struct omap_dss_device *in = ddata->in;
 > -	int r;
 >  
+>  	dev_dbg(ddata->dev, "connect\n");
+>  
 >  	if (omapdss_device_is_connected(dssdev))
 >  		return 0;
 >  
-> -	r = in->ops.sdi->connect(in, dssdev);
+> -	r = in->ops.atv->connect(in, dssdev);
 > -	if (r)
 > -		return r;
 > -
 > -	return 0;
-> +	return in->ops.sdi->connect(in, dssdev);
+> +	return in->ops.atv->connect(in, dssdev);
 >  }
 >  
->  static void acx565akm_disconnect(struct omap_dss_device *dssdev)
+>  static void tvc_disconnect(struct omap_dss_device *dssdev)
 > -- 
 > 2.23.0
 > 
