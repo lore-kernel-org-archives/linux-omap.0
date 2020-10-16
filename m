@@ -2,95 +2,66 @@ Return-Path: <SRS0=lZzc=DX=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0799C433E7
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 21:25:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22940C433DF
+	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 21:26:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6CB81214DB
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 21:25:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3BB2214DB
+	for <linux-omap@archiver.kernel.org>; Fri, 16 Oct 2020 21:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2411179AbgJPVZR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 16 Oct 2020 17:25:17 -0400
-Received: from asavdk4.altibox.net ([109.247.116.15]:37496 "EHLO
-        asavdk4.altibox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2411180AbgJPVXf (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2020 17:23:35 -0400
-X-Greylist: delayed 322 seconds by postgrey-1.27 at vger.kernel.org; Fri, 16 Oct 2020 17:23:34 EDT
-Received: from ravnborg.org (unknown [188.228.123.71])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by asavdk4.altibox.net (Postfix) with ESMTPS id B450780627;
-        Fri, 16 Oct 2020 23:18:08 +0200 (CEST)
-Date:   Fri, 16 Oct 2020 23:18:07 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Liu Shixin <liushixin2@huawei.com>
-Cc:     Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH -next] omapfb: simplify the return expression of
- panel_dpi_connect
-Message-ID: <20201016211807.GE1496366@ravnborg.org>
-References: <20200921082443.2591721-1-liushixin2@huawei.com>
+        id S2410260AbgJPV0N (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 16 Oct 2020 17:26:13 -0400
+Received: from mga18.intel.com ([134.134.136.126]:22820 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2411184AbgJPVZj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 16 Oct 2020 17:25:39 -0400
+IronPort-SDR: +JIoeyB8reOZzbwUCWhK9gGY+IGKMgCq3FSpYq9nu8oDmvMSlZ0+7E65qLH7YuNmtWFHR3O/1W
+ uPJ5hiAusMIg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9776"; a="154490440"
+X-IronPort-AV: E=Sophos;i="5.77,383,1596524400"; 
+   d="scan'208";a="154490440"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2020 14:25:36 -0700
+IronPort-SDR: pX/qUY3S8bWZDKRBtOEAJRbzXnolptBJFq6m1e3IBhPvtnGK6pQlQ/EBw3ljsp2oxP27bRoRgP
+ RIcAp4DbjRUg==
+X-IronPort-AV: E=Sophos;i="5.77,383,1596524400"; 
+   d="scan'208";a="315041967"
+Received: from jbrandeb-mobl4.amr.corp.intel.com (HELO localhost) ([10.209.117.85])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2020 14:25:36 -0700
+Date:   Fri, 16 Oct 2020 14:25:35 -0700
+From:   Jesse Brandeburg <jesse.brandeburg@intel.com>
+To:     Grygorii Strashko <grygorii.strashko@ti.com>
+Cc:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        Murali Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH net-next v2 0/9] net: ethernet: ti: am65-cpsw: add multi
+ port support in mac-only mode
+Message-ID: <20201016142535.0000390f@intel.com>
+In-Reply-To: <20201015231913.30280-1-grygorii.strashko@ti.com>
+References: <20201015231913.30280-1-grygorii.strashko@ti.com>
+X-Mailer: Claws Mail 3.12.0 (GTK+ 2.24.28; i686-w64-mingw32)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200921082443.2591721-1-liushixin2@huawei.com>
-X-CMAE-Score: 0
-X-CMAE-Analysis: v=2.3 cv=fu7ymmwf c=1 sm=1 tr=0
-        a=S6zTFyMACwkrwXSdXUNehg==:117 a=S6zTFyMACwkrwXSdXUNehg==:17
-        a=kj9zAlcOel0A:10 a=i0EeH86SAAAA:8 a=e5mUnYsNAAAA:8
-        a=aI8o0Y8hUY2JQlYkRfwA:9 a=CjuIK1q_8ugA:10 a=Vxmtnl_E_bksehYqCbjh:22
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Liu Shixin
+Grygorii Strashko wrote:
 
-On Mon, Sep 21, 2020 at 04:24:43PM +0800, Liu Shixin wrote:
-> Simplify the return expression.
+> Hi
 > 
-> Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+> This series adds multi-port support in mac-only mode (multi MAC mode) to TI
+> AM65x CPSW driver in preparation for enabling support for multi-port devices,
+> like Main CPSW0 on K3 J721E SoC or future CPSW3g on K3 AM64x SoC.
 
-Thanks.
-Applied this and the following two patches to drm-misc-next.
-They will appear in -next in a few weeks.
-
-	Sam
-
-> ---
->  drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c | 7 +------
->  1 file changed, 1 insertion(+), 6 deletions(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c
-> index 37c9f5bfaefe..ff3d1e8e1e7b 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c
-> @@ -37,16 +37,11 @@ static int panel_dpi_connect(struct omap_dss_device *dssdev)
->  {
->  	struct panel_drv_data *ddata = to_panel_data(dssdev);
->  	struct omap_dss_device *in = ddata->in;
-> -	int r;
->  
->  	if (omapdss_device_is_connected(dssdev))
->  		return 0;
->  
-> -	r = in->ops.dpi->connect(in, dssdev);
-> -	if (r)
-> -		return r;
-> -
-> -	return 0;
-> +	return in->ops.dpi->connect(in, dssdev);
->  }
->  
->  static void panel_dpi_disconnect(struct omap_dss_device *dssdev)
-> -- 
-> 2.25.1
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+For the series
+Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
