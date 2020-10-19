@@ -7,51 +7,50 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 436D0C41604
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:19:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 651C7C433DF
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:19:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E48B32225A
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:19:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECDBD22268
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:19:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="JKowC+xz";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="u21yGgK+"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="rbjY26Bx";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="4vh7Lo9B"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726439AbgJSKS7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 19 Oct 2020 06:18:59 -0400
-Received: from Galois.linutronix.de ([193.142.43.55]:58926 "EHLO
+        id S1729232AbgJSKSQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 19 Oct 2020 06:18:16 -0400
+Received: from Galois.linutronix.de ([193.142.43.55]:58876 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729074AbgJSKSR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2020 06:18:17 -0400
-Message-Id: <20201019101110.744172050@linutronix.de>
+        with ESMTP id S1729218AbgJSKSP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2020 06:18:15 -0400
+Message-Id: <20201019101110.530302737@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1603102695;
+        s=2020; t=1603102693;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=eU49tVESfPvybwx3L3Wh92XZvOJJ4zNGI0TkIeEUK1M=;
-        b=JKowC+xz19F02CLEO24JMjrb4u0kEcj+L8t99YbWx+w5UvTUx/WsjiX23lHjEfawj8L1Ai
-        MebzdHR9mnykV00sB05zLHuFW9/4veKDWkEkx9kzZPaz81vDGOIp1dnbjmBKpzlDo41RK0
-        rQdw6sMqR+l6kv313t8o5e9e2W0tlqh29gMfTPAV5RD0WA3MqD1E52hA7tRObbfCZaZpE8
-        2ZgdvQBM34e+Fvm3kh6wMfPTvxKazGLl/OF84W+pbbvB5RGCNTfqUorwbmPTrODOLv6ovg
-        U6DgzsG6ChAVATvkmPznkzqWwgVurjR4EtKfILDpR9kGCbSd4sv/8wgcljhzSw==
+        bh=nWQ+SrVLGuCyqRY5y8h3ERmOFe6RATVvmET6IvFN3Gk=;
+        b=rbjY26BxpHFf5pzKY+W8poVw7dZ2luD/gEIhZFETiCcscy2I5JgMVc1SJxswsS2Vc6ncDT
+        BacorRP7QKkKVsyP90S71atCfoj98+ppfff1konuUtSK9Y+IJHJ+SMp2tuXfrosTNlgz84
+        1c6TFj8Cu00la077WbK8RqAaweudQrh7S/DsRRPpcYx38lXmyjgWk7d+tZkjhUKpEL7Sdm
+        ud+vGbc3kXXBnWxWtr1o/2QnFYt44e4osSsF/ydBO1wh1x1NMK1WgYPLr14F5jcRRIL8kU
+        MznHHoiKyBEUSIziBvdVa+1hTF2hwu523STZiNWRWFWMOTF8XYnc77DhqreQHA==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1603102695;
+        s=2020e; t=1603102693;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=eU49tVESfPvybwx3L3Wh92XZvOJJ4zNGI0TkIeEUK1M=;
-        b=u21yGgK+RD0O07+cg6Izujgy+wcxtgbrdd1zA0ikisQUXWnsPqdAxfppXCH+m5pMKOnvD+
-        vbuZ3HsJP3oH0yCA==
-Date:   Mon, 19 Oct 2020 12:06:40 +0200
+        bh=nWQ+SrVLGuCyqRY5y8h3ERmOFe6RATVvmET6IvFN3Gk=;
+        b=4vh7Lo9BkFB9fjwdOV4BwIUadEs9cadEn44DOG7XZjGP0v7KkIrxqJrqOpicdvBYbJct+V
+        Ef9gTvWk6oETzYDA==
+Date:   Mon, 19 Oct 2020 12:06:38 +0200
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Felipe Balbi <balbi@kernel.org>,
+        Thomas Winischhofer <thomas@winischhofer.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-usb@vger.kernel.org,
-        Thomas Winischhofer <thomas@winischhofer.net>,
+        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
         Johan Hovold <johan@kernel.org>,
         Mathias Nyman <mathias.nyman@intel.com>,
         Valentina Manea <valentina.manea.m@gmail.com>,
@@ -60,10 +59,9 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-omap@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
         Krzysztof Kozlowski <krzk@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@kernel.org>,
         Duncan Sands <duncan.sands@free.fr>
-Subject: [patch V2 11/13] usb: gadget: udc: Remove in_interrupt()/in_irq()
- from comments
+Subject: [patch V2 09/13] USB: host: ehci-pmcmsp: Cleanup usb_hcd_msp_remove()
 References: <20201019100629.419020859@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -72,54 +70,36 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Ahmed S. Darwish <a.darwish@linutronix.de>
+usb_hcd_msp_remove() has a pdev argument which isn't used and the function
+is used only within this file.
 
-The usage of in_irq()/in_interrupt() in drivers is phased out for various
-reasons.
+Remove pdev and make usb_hcd_msp_remove() static.
 
-The context description for usb_gadget_giveback_request() is misleading as
-in_interupt() means: hard interrupt or soft interrupt or bottom half
-disabled regions. But it's also invoked from task context when endpoints
-are torn down. Remove it as it's more confusing than helpful.
-
-Replace also the in_irq() comment with plain text.
-
-Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org
-
 ---
- drivers/usb/gadget/udc/core.c      |    2 --
- drivers/usb/gadget/udc/dummy_hcd.c |    6 ++++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+V2: Split out from comments patch
+---
+ drivers/usb/host/ehci-pmcmsp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/usb/gadget/udc/core.c
-+++ b/drivers/usb/gadget/udc/core.c
-@@ -894,8 +894,6 @@ EXPORT_SYMBOL_GPL(usb_gadget_unmap_reque
-  * @ep: the endpoint to be used with with the request
-  * @req: the request being given back
-  *
-- * Context: in_interrupt()
-- *
-  * This is called by device controller drivers in order to return the
-  * completed request back to the gadget layer.
+--- a/drivers/usb/host/ehci-pmcmsp.c
++++ b/drivers/usb/host/ehci-pmcmsp.c
+@@ -236,7 +236,7 @@ int usb_hcd_msp_probe(const struct hc_dr
+  * may be called without controller electrically present
+  * may be called with controller, bus, and devices active
   */
---- a/drivers/usb/gadget/udc/dummy_hcd.c
-+++ b/drivers/usb/gadget/udc/dummy_hcd.c
-@@ -1754,8 +1754,10 @@ static int handle_control_request(struct
- 	return ret_val;
- }
- 
--/* drive both sides of the transfers; looks like irq handlers to
-- * both drivers except the callbacks aren't in_irq().
-+/*
-+ * Drive both sides of the transfers; looks like irq handlers to both
-+ * drivers except that the callbacks are invoked from soft interrupt
-+ * context.
-  */
- static void dummy_timer(struct timer_list *t)
+-void usb_hcd_msp_remove(struct usb_hcd *hcd, struct platform_device *dev)
++static void usb_hcd_msp_remove(struct usb_hcd *hcd)
  {
+ 	usb_remove_hcd(hcd);
+ 	iounmap(hcd->regs);
+@@ -309,7 +309,7 @@ static int ehci_hcd_msp_drv_remove(struc
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 
+-	usb_hcd_msp_remove(hcd, pdev);
++	usb_hcd_msp_remove(hcd);
+ 
+ 	/* free TWI GPIO USB_HOST_DEV pin */
+ 	gpio_free(MSP_PIN_USB0_HOST_DEV);
 
