@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C72ADC433E7
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:18:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F14F5C43457
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:18:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7727C22263
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:18:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C11222263
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 10:18:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="iwIXTF3e";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="2C+WiHFJ"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Ay5afY3n";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Bwy/LQ9S"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729186AbgJSKSK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 19 Oct 2020 06:18:10 -0400
-Received: from Galois.linutronix.de ([193.142.43.55]:58756 "EHLO
+        id S1729340AbgJSKSU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 19 Oct 2020 06:18:20 -0400
+Received: from Galois.linutronix.de ([193.142.43.55]:58742 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729074AbgJSKSJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2020 06:18:09 -0400
-Message-Id: <20201019101110.019266389@linutronix.de>
+        with ESMTP id S1729182AbgJSKSL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2020 06:18:11 -0400
+Message-Id: <20201019101110.240285929@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1603102686;
+        s=2020; t=1603102689;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=MXv/cC90NGLd0gAyhvd77yXM/kdP4dV075keyekfnPQ=;
-        b=iwIXTF3enn1fKti5Wyc96yx4QPfU+KLydyWLL0v9XCmX93au8n+PY7KafwO6IdMWfyujqV
-        uODhQfVFgnk8XBnleRHsnd93BKSgI1gKCozA4aXlXg8L+KUVbI9K1ugQ7bE7J5vtFv+kSC
-        uhkRoqqLG+BL/mfNGhNdQsiqYPGaF+qubBeaXj5TEZX96E7p5w18kzSbxLDWkNEKfHxk79
-        RlDbTflSduUm49CPm+yZnOaAY0Ne5qKTL18u2daxeMIA+rX1k/wm1kt1WWDuUNZxO5G/j/
-        OSvklQqcZ0OP4b9om2XFCeqkBPn8IAAe25qYyINN0Mpm0xrQh4Me68mqQogqMg==
+        bh=WngfxKCbiTKE9erlSaLbB4MmoQbLDSkUgvyXSrV+/VI=;
+        b=Ay5afY3nWqWdPkkzJsp41vh5O+dD2nd/0fG7RPbP5DUH92jHLqP6Kx+3E+AHYac364F9Mo
+        A2bpcoj3jwogNqL3dtlf2Szc3PgPAu6ewzrYCOYGLMss1il8aDMVLdwRhDvVduzPmijOUx
+        bYyr58hIlLaMiCjqfoG7PA5U4avgF10+lL9DkkA4pBxuqxXEV++cJrBhuREFpO56yA46XI
+        qaOv8WbByE5HGmV28mYtJpVk4afPWMXE2eXAgiOo7srHiNb4bX+BPVXnlTTKFTEJUEynxY
+        NEMYP+tMNTl6fRPX9Y3Stq50xgCoi3m8zzsXrAgZ8gDIX2ivJINECVsfzcWlQg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1603102686;
+        s=2020e; t=1603102689;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=MXv/cC90NGLd0gAyhvd77yXM/kdP4dV075keyekfnPQ=;
-        b=2C+WiHFJBXgPiWdy7C84FEdn66zJ0B0CnSRlJ3KIL25PgSmN+pU25mZ09jWn1ED1ug6tnA
-        GQ4nIpFut1OqP1BQ==
-Date:   Mon, 19 Oct 2020 12:06:33 +0200
+        bh=WngfxKCbiTKE9erlSaLbB4MmoQbLDSkUgvyXSrV+/VI=;
+        b=Bwy/LQ9S8g8N8l1iMRJCmuGn0XWiNGgBFATYWG6atDTGprcVSeTwnDFRmVJvB4kb9scCZ5
+        j72sHwPUxaQxxvAw==
+Date:   Mon, 19 Oct 2020 12:06:35 +0200
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         "Ahmed S. Darwish" <a.darwish@linutronix.de>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Johan Hovold <johan@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-usb@vger.kernel.org,
         Thomas Winischhofer <thomas@winischhofer.net>,
+        Johan Hovold <johan@kernel.org>,
         Mathias Nyman <mathias.nyman@intel.com>,
         Valentina Manea <valentina.manea.m@gmail.com>,
         Shuah Khan <shuah@kernel.org>,
@@ -61,7 +61,7 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@kernel.org>,
         Duncan Sands <duncan.sands@free.fr>
-Subject: [patch V2 04/13] USB: serial: digi_acceleport: Remove in_interrupt() usage
+Subject: [patch V2 06/13] usb: host: isp1362: Replace in_interrupt() usage
 References: <20201019100629.419020859@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -70,48 +70,47 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Ahmed S. Darwish <a.darwish@linutronix.de>
+isp1362_show_regs() is a debugging-only function, with no call sites. It
+prints the cached value of the HCuPINTENB register if in_interupt() is
+true, otherwise it reads the actual register content.
 
 The usage of in_interrupt() in drivers is phased out and Linus clearly
 requested that code which changes behaviour depending on context should
 either be separated or the context be conveyed in an argument passed by the
 caller, which usually knows the context.
 
-The debug printk() in digi_write() prints in_interrupt() as context
-information. TTY writes happen always in preemptible task context and
-console writes can happen from almost any context, so in_interrupt() is not
-really helpful.
-
-Aside of that issuing a printk() from a console->write() callback is not a
-really brilliant idea for obvious reasons.
-
-Remove the in_interrupt() printout and make the printk() depend on tty.
+Make the conditional based on a function argument.
 
 Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Johan Hovold <johan@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: linux-usb@vger.kernel.org
-
 ---
- drivers/usb/serial/digi_acceleport.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+V2: Fix silly typo
+---
+ drivers/usb/host/isp1362.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/drivers/usb/serial/digi_acceleport.c
-+++ b/drivers/usb/serial/digi_acceleport.c
-@@ -911,9 +911,10 @@ static int digi_write(struct tty_struct
- 	unsigned char *data = port->write_urb->transfer_buffer;
- 	unsigned long flags = 0;
+--- a/drivers/usb/host/isp1362.h
++++ b/drivers/usb/host/isp1362.h
+@@ -793,7 +793,8 @@ static void isp1362_write_fifo(struct is
+ 			ISP1362_REG_NO(ISP1362_REG_##r), isp1362_read_reg16(d, r));	\
+ }
  
--	dev_dbg(&port->dev,
--		"digi_write: TOP: port=%d, count=%d, in_interrupt=%ld\n",
--		priv->dp_port_num, count, in_interrupt());
-+	if (tty) {
-+		dev_dbg(&port->dev, "digi_write: TOP: port=%d, count=%d\n",
-+			priv->dp_port_num, count);
-+	}
+-static void __attribute__((__unused__)) isp1362_show_regs(struct isp1362_hcd *isp1362_hcd)
++static void __attribute__((__unused__))
++isp1362_show_regs(struct isp1362_hcd *isp1362_hcd, bool cached_inten)
+ {
+ 	isp1362_show_reg(isp1362_hcd, HCREVISION);
+ 	isp1362_show_reg(isp1362_hcd, HCCONTROL);
+@@ -815,7 +816,7 @@ static void __attribute__((__unused__))
+ 	isp1362_show_reg(isp1362_hcd, HCXFERCTR);
+ 	isp1362_show_reg(isp1362_hcd, HCuPINT);
  
- 	/* copy user data (which can sleep) before getting spin lock */
- 	count = min(count, port->bulk_out_size-2);
+-	if (in_interrupt())
++	if (cached_inten)
+ 		DBG(0, "%-12s[%02x]:     %04x\n", "HCuPINTENB",
+ 			 ISP1362_REG_NO(ISP1362_REG_HCuPINTENB), isp1362_hcd->irqenb);
+ 	else
 
