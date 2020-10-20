@@ -1,87 +1,81 @@
-Return-Path: <SRS0=yR1H=D2=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=tfVb=D3=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59BFEC433E7
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 16:28:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCEEAC433E7
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Oct 2020 12:01:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 115BC222EA
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Oct 2020 16:28:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8481A20770
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Oct 2020 12:01:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730642AbgJSQ2l (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 19 Oct 2020 12:28:41 -0400
-Received: from netrider.rowland.org ([192.131.102.5]:34811 "HELO
-        netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1730637AbgJSQ2l (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2020 12:28:41 -0400
-Received: (qmail 902215 invoked by uid 1000); 19 Oct 2020 12:28:40 -0400
-Date:   Mon, 19 Oct 2020 12:28:40 -0400
-From:   Alan Stern <stern@rowland.harvard.edu>
-To:     Thomas Gleixner <tglx@linutronix.de>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org,
-        Thomas Winischhofer <thomas@winischhofer.net>,
-        Johan Hovold <johan@kernel.org>,
-        Mathias Nyman <mathias.nyman@intel.com>,
-        Valentina Manea <valentina.manea.m@gmail.com>,
-        Shuah Khan <shuah@kernel.org>, linux-omap@vger.kernel.org,
-        Kukjin Kim <kgene@kernel.org>,
+        id S2404784AbgJTMBa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 20 Oct 2020 08:01:30 -0400
+Received: from mail.baikalelectronics.com ([87.245.175.226]:51980 "EHLO
+        mail.baikalelectronics.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394054AbgJTMA3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2020 08:00:29 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by mail.baikalelectronics.ru (Postfix) with ESMTP id 9C6998030867;
+        Tue, 20 Oct 2020 12:00:27 +0000 (UTC)
+X-Virus-Scanned: amavisd-new at baikalelectronics.ru
+Received: from mail.baikalelectronics.ru ([127.0.0.1])
+        by localhost (mail.baikalelectronics.ru [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id TCLyep8Xl6nO; Tue, 20 Oct 2020 15:00:27 +0300 (MSK)
+From:   Serge Semin <Sergey.Semin@baikalelectronics.ru>
+To:     Felipe Balbi <balbi@kernel.org>,
         Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@kernel.org>,
-        Duncan Sands <duncan.sands@free.fr>
-Subject: Re: [patch V2 12/13] usb: core: Replace in_interrupt() in comments
-Message-ID: <20201019162840.GD898631@rowland.harvard.edu>
-References: <20201019100629.419020859@linutronix.de>
- <20201019101110.851821025@linutronix.de>
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>
+CC:     Serge Semin <Sergey.Semin@baikalelectronics.ru>,
+        Serge Semin <fancer.lancer@gmail.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-usb@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>
+Subject: [PATCH 22/29] arm: dts: omap5: Harmonize DWC USB3 DT nodes name
+Date:   Tue, 20 Oct 2020 14:59:52 +0300
+Message-ID: <20201020115959.2658-23-Sergey.Semin@baikalelectronics.ru>
+In-Reply-To: <20201020115959.2658-1-Sergey.Semin@baikalelectronics.ru>
+References: <20201020115959.2658-1-Sergey.Semin@baikalelectronics.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201019101110.851821025@linutronix.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-ClientProxiedBy: MAIL.baikal.int (192.168.51.25) To mail (192.168.51.25)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Oct 19, 2020 at 12:06:41PM +0200, Thomas Gleixner wrote:
-> From: Ahmed S. Darwish <a.darwish@linutronix.de>
-> 
-> The usage of in_interrupt() in drivers is phased out for various reasons.
-> 
-> Various comments use !in_interrupt() to describe calling context for
-> functions which might sleep. That's wrong because the calling context has
-> to be preemptible task context, which is not what !in_interrupt()
-> describes.
-> 
-> Replace !in_interrupt() with more accurate plain text descriptions.
-> 
-> The comment for usb_hcd_poll_rh_status() is misleading as this function is
-> called from all kinds of contexts including preemptible task
-> context. Remove it as there is obviously no restriction.
-> 
-> Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-usb@vger.kernel.org
-> ---
-> V2: Fixup the comments according to review (Alan)
-> ---
->  drivers/usb/core/buffer.c  |    6 ++++--
->  drivers/usb/core/hcd-pci.c |    6 ++++--
->  drivers/usb/core/hcd.c     |   26 +++++++++++++++++---------
->  drivers/usb/core/hub.c     |    3 ++-
->  drivers/usb/core/message.c |   35 ++++++++++++++++++++++-------------
->  drivers/usb/core/usb.c     |    4 ++--
->  6 files changed, 51 insertions(+), 29 deletions(-)
+In accordance with the DWC USB3 bindings the corresponding node
+name is suppose to comply with the Generic USB HCD DT schema, which
+requires the USB nodes to have the name acceptable by the regexp:
+"^usb(@.*)?" . Make sure the "snps,dwc3"-compatible nodes are correctly
+named.
 
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+---
+ arch/arm/boot/dts/omap5-l4.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
+index f3d3a16b7c64..887b3359dd5a 100644
+--- a/arch/arm/boot/dts/omap5-l4.dtsi
++++ b/arch/arm/boot/dts/omap5-l4.dtsi
+@@ -194,7 +194,7 @@ usb3: omap_dwc3@0 {
+ 				#size-cells = <1>;
+ 				utmi-mode = <2>;
+ 				ranges = <0 0 0x20000>;
+-				dwc3: dwc3@10000 {
++				dwc3: usb@10000 {
+ 					compatible = "snps,dwc3";
+ 					reg = <0x10000 0x10000>;
+ 					interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>,
+-- 
+2.27.0
+
