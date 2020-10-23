@@ -1,63 +1,85 @@
-Return-Path: <SRS0=htJK=D4=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=xVuA=D6=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73DD2C5517A
-	for <linux-omap@archiver.kernel.org>; Wed, 21 Oct 2020 04:51:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F3AFC55179
+	for <linux-omap@archiver.kernel.org>; Fri, 23 Oct 2020 08:01:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2556922248
-	for <linux-omap@archiver.kernel.org>; Wed, 21 Oct 2020 04:51:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F4CF24631
+	for <linux-omap@archiver.kernel.org>; Fri, 23 Oct 2020 08:01:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2440264AbgJUEvy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 21 Oct 2020 00:51:54 -0400
-Received: from muru.com ([72.249.23.125]:46352 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2440263AbgJUEvy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 21 Oct 2020 00:51:54 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id C558880B0;
-        Wed, 21 Oct 2020 04:51:57 +0000 (UTC)
-Date:   Wed, 21 Oct 2020 07:51:45 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Sebastian Reichel <sre@kernel.org>
-Cc:     Dev Null <devnull@uvos.xyz>, linux-omap@vger.kernel.org,
-        linux-pm@vger.kernel.org
-Subject: Re: [PATCH 1/1] power: supply: cpcap-battery: improve handling of
- 3rd party and XT875 batteries.
-Message-ID: <20201021045145.GA5974@atomide.com>
-References: <20201020225312.b4ea29c9dc3ae00f23e39280@uvos.xyz>
- <20201020214126.tkf37xpehnpxli4a@earth.universe>
+        id S371525AbgJWIBJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 23 Oct 2020 04:01:09 -0400
+Received: from jabberwock.ucw.cz ([46.255.230.98]:37150 "EHLO
+        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S370556AbgJWIBI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2020 04:01:08 -0400
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id AE2791C0B77; Fri, 23 Oct 2020 10:01:05 +0200 (CEST)
+Date:   Fri, 23 Oct 2020 10:01:05 +0200
+From:   Pavel Machek <pavel@denx.de>
+To:     Thomas Gleixner <tglx@linutronix.de>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Winischhofer <thomas@winischhofer.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org,
+        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Johan Hovold <johan@kernel.org>,
+        Mathias Nyman <mathias.nyman@intel.com>,
+        Valentina Manea <valentina.manea.m@gmail.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        linux-omap@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@kernel.org>,
+        Duncan Sands <duncan.sands@free.fr>
+Subject: Re: [patch 00/12] UBS: Cleanup in_interupt/in_irq/in_atomic() usage
+Message-ID: <20201023080105.GA21737@duo.ucw.cz>
+References: <20201014145215.518912759@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
 Content-Disposition: inline
-In-Reply-To: <20201020214126.tkf37xpehnpxli4a@earth.universe>
+In-Reply-To: <20201014145215.518912759@linutronix.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
 
-* Sebastian Reichel <sre@kernel.org> [201020 21:41]:
-> The context of this patch is not available in cpcap-battery driver
-> from mainline. So this has dependencies on other patches, which
-> need to be submitted first. I currently do not have any pending
-> cpcap patches, but IIRC there was a big patchset which had to be
-> resubmitted.
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes this $subject patch as a split up series should be based on
-the mainline kernel, and not on the WIP battery capacity patches.
-I doubt there will be any severe rebase issues for the capacity
-patches.
 
-FYI, I'm slowly working on the battery capacity series but still
-need to decouple the battrery full status from charge current as
-that won't work for cases where we have CPU load :) We just need
-to set the status based on charger full interrupt.
+> The usage of such constructs in USB is rather limited. Most of it is in
+> debug code and (misleading) comments. But of course there are also a few
+> few bugs including one unfixable.
 
-Regards,
+The "UBS" typo in the subject got me confused for a while.
 
-Tony
+Best regards,
+									Pavel
+
+--=20
+http://www.livejournal.com/~pavelmachek
+
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCX5KNwQAKCRAw5/Bqldv6
+8g6WAJ0RsWU890W8aKyhaM0u5+J+pgoQDACdFG70EftfltJu1+ltFuMJ8UnKttM=
+=Xauw
+-----END PGP SIGNATURE-----
+
+--LQksG6bCIzRHxTLp--
