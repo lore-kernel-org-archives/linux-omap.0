@@ -2,26 +2,25 @@ Return-Path: <SRS0=mtBc=EB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2C9CC55178
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:01:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5498C55178
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:10:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A69E422404
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:01:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0F9822284
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:10:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1772373AbgJZK63 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 26 Oct 2020 06:58:29 -0400
-Received: from muru.com ([72.249.23.125]:46444 "EHLO muru.com"
+        id S1772840AbgJZLK5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:10:57 -0400
+Received: from muru.com ([72.249.23.125]:46486 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1771833AbgJZK63 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 26 Oct 2020 06:58:29 -0400
+        id S1772586AbgJZLK4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 26 Oct 2020 07:10:56 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id D72298196;
-        Mon, 26 Oct 2020 10:58:31 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id D0C3480AA;
+        Mon, 26 Oct 2020 11:10:57 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -32,46 +31,56 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Peter Ujfalusi <peter.ujfalusi@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
         Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 1/4] ARM: OMAP2+: Fix location for select PM_GENERIC_DOMAINS
-Date:   Mon, 26 Oct 2020 12:58:09 +0200
-Message-Id: <20201026105812.38418-2-tony@atomide.com>
+        linux-arm-kernel@lists.infradead.org,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org
+Subject: [PATCH 0/9] Genpd related code changes to drop am335x pdata
+Date:   Mon, 26 Oct 2020 13:10:40 +0200
+Message-Id: <20201026111049.54835-1-tony@atomide.com>
 X-Mailer: git-send-email 2.29.1
-In-Reply-To: <20201026105812.38418-1-tony@atomide.com>
-References: <20201026105812.38418-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-I accidentally misplaced select PM_GENERIC_DOMAINS, it should be
-selected for all the SoCs instead.
+Hi all,
 
-Fixes: 58cbff023bfa ("soc: ti: omap-prm: Add basic power domain support")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Here are the code related changes for v5.11 merge window to drop the
+remaining am335x platform data. I'll be posting the related device tree
+changes separately.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -7,7 +7,6 @@ config ARCH_OMAP2
- 	depends on ARCH_MULTI_V6
- 	select ARCH_OMAP2PLUS
- 	select CPU_V6
--	select PM_GENERIC_DOMAINS if PM
- 	select SOC_HAS_OMAP2_SDRC
- 
- config ARCH_OMAP3
-@@ -106,6 +105,7 @@ config ARCH_OMAP2PLUS
- 	select OMAP_DM_TIMER
- 	select OMAP_GPMC
- 	select PINCTRL
-+	select PM_GENERIC_DOMAINS if PM
- 	select RESET_CONTROLLER
- 	select SOC_BUS
- 	select TI_SYSC
+Regards,
+
+Tony
+
+
+Tero Kristo (1):
+  soc: ti: omap-prm: am3: add genpd support for remaining PRM instances
+
+Tony Lindgren (8):
+  ARM: OMAP2+: Check for inited flag
+  ARM: OMAP2+: Probe PRCM first to probe l4_wkup with simple-pm-bus
+  clk: ti: am33xx: Keep am3 l3 main clock always on for genpd
+  bus: ti-sysc: Support modules without control registers
+  bus: ti-sysc: Implement GPMC debug quirk to drop platform data
+  soc: ti: omap-prm: Add pm_clk for genpd
+  soc: ti: pm33xx: Enable basic PM runtime support for genpd
+  remoteproc/wkup_m3: Use reset control driver if available
+
+ arch/arm/mach-omap2/omap_hwmod.c      |  6 +++
+ arch/arm/mach-omap2/pdata-quirks.c    | 11 ++++
+ drivers/bus/ti-sysc.c                 | 17 +++++++
+ drivers/clk/ti/clk-33xx.c             |  2 +
+ drivers/remoteproc/wkup_m3_rproc.c    | 28 +++++++---
+ drivers/soc/ti/omap_prm.c             | 73 +++++++++++++++++++++++++--
+ drivers/soc/ti/pm33xx.c               | 17 ++++++-
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 8 files changed, 143 insertions(+), 12 deletions(-)
+
 -- 
 2.29.1
