@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2CC6C56201
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:23:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 459CBC5DF9D
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:23:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 914B52465E
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:23:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 162492465E
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:23:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1773330AbgJZLXB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 26 Oct 2020 07:23:01 -0400
-Received: from muru.com ([72.249.23.125]:46708 "EHLO muru.com"
+        id S1773542AbgJZLXC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:23:02 -0400
+Received: from muru.com ([72.249.23.125]:46718 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1422405AbgJZLW5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 26 Oct 2020 07:22:57 -0400
+        id S1773545AbgJZLXB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 26 Oct 2020 07:23:01 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 7572D80AA;
-        Mon, 26 Oct 2020 11:23:01 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id E8EF480AA;
+        Mon, 26 Oct 2020 11:23:04 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
         Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 11/18] ARM: OMAP2+: Drop legacy platform data for am3 instr
-Date:   Mon, 26 Oct 2020 13:22:15 +0200
-Message-Id: <20201026112222.56894-12-tony@atomide.com>
+Subject: [PATCH 13/18] ARM: dts: Use simple-pm-bus for genpd for am3 l4_wkup
+Date:   Mon, 26 Oct 2020 13:22:17 +0200
+Message-Id: <20201026112222.56894-14-tony@atomide.com>
 X-Mailer: git-send-email 2.29.1
 In-Reply-To: <20201026112222.56894-1-tony@atomide.com>
 References: <20201026112222.56894-1-tony@atomide.com>
@@ -40,73 +40,52 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with ti-sysc interconnect driver and dts
-data. Let's drop the related platform data and custom ti,hwmods
-dts property.
+We can now enable simple-pm-bus to use genpd.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi                 | 20 +++++++++++++------
- .../omap_hwmod_33xx_43xx_ipblock_data.c       |  1 -
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c    |  1 -
- 3 files changed, 14 insertions(+), 8 deletions(-)
+ arch/arm/boot/dts/am33xx-l4.dtsi | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -146,17 +146,25 @@ oppnitro-1000000000 {
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1,5 +1,8 @@
+ &l4_wkup {						/* 0x44c00000 */
+-	compatible = "ti,am33xx-l4-wkup", "simple-bus";
++	compatible = "ti,am33xx-l4-wkup", "simple-pm-bus";
++	power-domains = <&prm_wkup>;
++	clocks = <&l4_wkup_clkctrl AM3_L4_WKUP_L4_WKUP_CLKCTRL 0>;
++	clock-names = "fck";
+ 	reg = <0x44c00000 0x800>,
+ 	      <0x44c00800 0x800>,
+ 	      <0x44c01000 0x400>,
+@@ -12,7 +15,7 @@ &l4_wkup {						/* 0x44c00000 */
+ 		 <0x00200000 0x44e00000 0x100000>;	/* segment 2 */
  
- 	target-module@4b000000 {
- 		compatible = "ti,sysc-omap4-simple", "ti,sysc";
--		clocks = <&l3_aon_clkctrl AM3_L3_AON_DEBUGSS_CLKCTRL 0>;
-+		clocks = <&l3_clkctrl AM3_L3_L3_INSTR_CLKCTRL 0>;
- 		clock-names = "fck";
-+		ti,no-idle;
+ 	segment@0 {					/* 0x44c00000 */
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
  		#address-cells = <1>;
  		#size-cells = <1>;
- 		ranges = <0x0 0x4b000000 0x1000000>;
- 
--		pmu@0 {
--			compatible = "arm,cortex-a8-pmu";
--			interrupts = <3>;
--			reg = <0 0x1000000>;
--			ti,hwmods = "debugss";
-+		target-module@140000 {
-+			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			clocks = <&l3_aon_clkctrl AM3_L3_AON_DEBUGSS_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x140000 0xec0000>;
-+
-+			pmu@0 {
-+				compatible = "arm,cortex-a8-pmu";
-+				interrupts = <3>;
-+			};
- 		};
+ 		ranges = <0x00000000 0x00000000 0x000800>,	/* ap 0 */
+@@ -22,7 +25,7 @@ segment@0 {					/* 0x44c00000 */
  	};
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -246,7 +246,6 @@ static void omap_hwmod_am43xx_clkctrl(void)
- 	CLKCTRL(am33xx_l4_wkup_hwmod, AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l3_main_hwmod, AM43XX_CM_PER_L3_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_mpu_hwmod , AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET);
--	CLKCTRL(am33xx_l3_instr_hwmod , AM43XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_ocmcram_hwmod , AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET);
- }
+ 	segment@100000 {					/* 0x44d00000 */
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0x00000000 0x00100000 0x004000>,	/* ap 4 */
+@@ -54,7 +57,7 @@ wkup_m3: cpu@0 {
+ 	};
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -149,7 +149,6 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l3_s__l4_wkup,
- 	&am33xx_l3_main__l4_hs,
- 	&am33xx_l3_main__l3_s,
--	&am33xx_l3_main__l3_instr,
- 	&am33xx_l3_s__l3_main,
- 	&am33xx_l4_wkup__smartreflex0,
- 	&am33xx_l4_wkup__smartreflex1,
+ 	segment@200000 {					/* 0x44e00000 */
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0x00000000 0x00200000 0x002000>,	/* ap 8 */
 -- 
 2.29.1
