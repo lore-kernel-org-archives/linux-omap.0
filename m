@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C7A4C4363A
-	for <linux-omap@archiver.kernel.org>; Tue, 27 Oct 2020 00:00:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F251C55178
+	for <linux-omap@archiver.kernel.org>; Tue, 27 Oct 2020 00:01:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BE6120872
-	for <linux-omap@archiver.kernel.org>; Tue, 27 Oct 2020 00:00:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2DBD2151B
+	for <linux-omap@archiver.kernel.org>; Tue, 27 Oct 2020 00:01:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603756816;
-	bh=dgdOQo4/FKBPs4Z1dHGcO8315xhWMXUua4dpPXCH2uE=;
+	s=default; t=1603756879;
+	bh=PYSup8cJDclLG37QWwdOKGOB4WRiilxqiT29AB8MppQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=GwJfZGEFf+3efSkuiivpaLbFh9IeOZ9Loz/wkaMpE4xsgUoerIuJcVWmyHZoDaiBq
-	 SGC3q14rty9IGetq7h8ihF9W23sGg868SXB6LdGqTUBqAC0VlbGDlt2DOZNWbXGhL9
-	 sY4OWKnWwobEa/JOEXkz2zkozw8R/cs2BoaJBdTs=
+	b=mkWzIESKr9obSD9eMrhm+VmSCrsV+quG1AeQXiZWBIIbkw5wuDqkt8NJ1knDR+6Vn
+	 b4xG7u45VMAKo+7LjHwY+R3Y+PVWlX1/ncOnuGgK1+IGCQ2Gq2vCEDJispPN7V3YDg
+	 Ct8b0nq4uGTtRNAWuUvLtdl81J01eKYyu/GbF4AA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2436587AbgJ0AAP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 26 Oct 2020 20:00:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37024 "EHLO mail.kernel.org"
+        id S2437312AbgJ0ABS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 26 Oct 2020 20:01:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2436576AbgJZX4o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 26 Oct 2020 19:56:44 -0400
+        id S2411148AbgJZX43 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 26 Oct 2020 19:56:29 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D61AB22242;
-        Mon, 26 Oct 2020 23:56:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D29F820770;
+        Mon, 26 Oct 2020 23:56:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603756603;
-        bh=dgdOQo4/FKBPs4Z1dHGcO8315xhWMXUua4dpPXCH2uE=;
+        s=default; t=1603756588;
+        bh=PYSup8cJDclLG37QWwdOKGOB4WRiilxqiT29AB8MppQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Mw6XWS/RnrqStG7q5742HuYJaJXoqp6OB2+vlnrh1htdnygAbtmZHDkRaPBGa/qQG
-         WoSVO20gFht7lGSV6w/4gYdiYi6cK3vwaBTsF7NIm8PuW0PZKdT24oEd7EN5kq5Qxa
-         BgHTakt1skiRQpxCsDOZFRAonLiOoQRsQ2Nx3q0s=
+        b=ZDvBsAlfU1tmDtgGXAA3Eju5Oe32xLJv1b97EcoM65oGKyLjm8n/7dk5Ac4kY/ObU
+         +KLrOXbGT8zdacB9/t8Ev1cpFHBvEnjqTMbkE193rEn8sI2rdUOYvnsBHG8izWZsS/
+         MYE1h0jtfXolSFc8SatpbY5dZgt+UTYJD4eagFdI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Tony Lindgren <tony@atomide.com>,
-        Arthur Demchenkov <spinal.by@gmail.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Sebastian Reichel <sre@kernel.org>,
+Cc:     Tero Kristo <t-kristo@ti.com>, Dan Murphy <dmurphy@ti.com>,
+        Stephen Boyd <sboyd@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 72/80] ARM: dts: omap4: Fix sgx clock rate for 4430
-Date:   Mon, 26 Oct 2020 19:55:08 -0400
-Message-Id: <20201026235516.1025100-72-sashal@kernel.org>
+        linux-clk@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 60/80] clk: ti: clockdomain: fix static checker warning
+Date:   Mon, 26 Oct 2020 19:54:56 -0400
+Message-Id: <20201026235516.1025100-60-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201026235516.1025100-1-sashal@kernel.org>
 References: <20201026235516.1025100-1-sashal@kernel.org>
@@ -60,68 +58,38 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
 
-[ Upstream commit 19d3e9a0bdd57b90175f30390edeb06851f5f9f3 ]
+[ Upstream commit b7a7943fe291b983b104bcbd2f16e8e896f56590 ]
 
-We currently have a different clock rate for droid4 compared to the
-stock v3.0.8 based Android Linux kernel:
+Fix a memory leak induced by not calling clk_put after doing of_clk_get.
 
-# cat /sys/kernel/debug/clk/dpll_*_m7x2_ck/clk_rate
-266666667
-307200000
-# cat /sys/kernel/debug/clk/l3_gfx_cm:clk:0000:0/clk_rate
-307200000
-
-Let's fix this by configuring sgx to use 153.6 MHz instead of 307.2 MHz.
-Looks like also at least duover needs this change to avoid hangs, so
-let's apply it for all 4430.
-
-This helps a bit with thermal issues that seem to be related to memory
-corruption when using sgx. It seems that other driver related issues
-still remain though.
-
-Cc: Arthur Demchenkov <spinal.by@gmail.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Reported-by: Dan Murphy <dmurphy@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Link: https://lore.kernel.org/r/20200907082600.454-3-t-kristo@ti.com
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap4.dtsi    |  2 +-
- arch/arm/boot/dts/omap443x.dtsi | 10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/clk/ti/clockdomain.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index e5506ab669fc6..904852006b9b1 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -328,7 +328,7 @@ abb_iva: regulator-abb-iva {
- 			status = "disabled";
- 		};
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
+index 423a99b9f10c7..8d0dea188a284 100644
+--- a/drivers/clk/ti/clockdomain.c
++++ b/drivers/clk/ti/clockdomain.c
+@@ -146,10 +146,12 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
+ 		if (!omap2_clk_is_hw_omap(clk_hw)) {
+ 			pr_warn("can't setup clkdm for basic clk %s\n",
+ 				__clk_get_name(clk));
++			clk_put(clk);
+ 			continue;
+ 		}
+ 		to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
+ 		omap2_init_clk_clkdm(clk_hw);
++		clk_put(clk);
+ 	}
+ }
  
--		target-module@56000000 {
-+		sgx_module: target-module@56000000 {
- 			compatible = "ti,sysc-omap4", "ti,sysc";
- 			reg = <0x5600fe00 0x4>,
- 			      <0x5600fe10 0x4>;
-diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
-index cbcdcb4e7d1c2..86b9caf461dfa 100644
---- a/arch/arm/boot/dts/omap443x.dtsi
-+++ b/arch/arm/boot/dts/omap443x.dtsi
-@@ -74,3 +74,13 @@ &cpu_thermal {
- };
- 
- /include/ "omap443x-clocks.dtsi"
-+
-+/*
-+ * Use dpll_per for sgx at 153.6MHz like droid4 stock v3.0.8 Android kernel
-+ */
-+&sgx_module {
-+	assigned-clocks = <&l3_gfx_clkctrl OMAP4_GPU_CLKCTRL 24>,
-+			  <&dpll_per_m7x2_ck>;
-+	assigned-clock-rates = <0>, <153600000>;
-+	assigned-clock-parents = <&dpll_per_m7x2_ck>;
-+};
 -- 
 2.25.1
 
