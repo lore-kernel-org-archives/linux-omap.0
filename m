@@ -2,25 +2,26 @@ Return-Path: <SRS0=mtBc=EB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A58D3C4363A
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 10:58:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64FE1C4363A
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:00:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5CF6B21BE5
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 10:58:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2434E2225C
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:00:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1772277AbgJZK60 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 26 Oct 2020 06:58:26 -0400
-Received: from muru.com ([72.249.23.125]:46432 "EHLO muru.com"
+        id S1772509AbgJZLAA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:00:00 -0400
+Received: from muru.com ([72.249.23.125]:46462 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1772258AbgJZK60 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 26 Oct 2020 06:58:26 -0400
+        id S1772785AbgJZK6i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 26 Oct 2020 06:58:38 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id DA18480AA;
-        Mon, 26 Oct 2020 10:58:28 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id E00FB8196;
+        Mon, 26 Oct 2020 10:58:40 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -32,36 +33,48 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
         Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 0/4] Few ti-sysc related fixes
-Date:   Mon, 26 Oct 2020 12:58:08 +0200
-Message-Id: <20201026105812.38418-1-tony@atomide.com>
+Subject: [PATCH 4/4] bus: ti-sysc: Fix bogus resetdone warning for cpsw
+Date:   Mon, 26 Oct 2020 12:58:12 +0200
+Message-Id: <20201026105812.38418-5-tony@atomide.com>
 X-Mailer: git-send-email 2.29.1
+In-Reply-To: <20201026105812.38418-1-tony@atomide.com>
+References: <20201026105812.38418-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+The cpsw SOFT_RESET register is cleard when out of reset so let's
+add SYSS_QUIRK_RESETDONE_INVERTED flag for cpsw. Otherwise we will
+get bogus "OCP softreset timed out" warnings on boot.
 
-Here are few fixes for ti-sysc interconnect target module driver related
-issues.
+Fixes: d46f9fbec719 ("bus: ti-sysc: Use optional clocks on for enable and wait for softreset bit")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
-
-Tony
-
-
-Tony Lindgren (4):
-  ARM: OMAP2+: Fix location for select PM_GENERIC_DOMAINS
-  ARM: OMAP2+: Fix missing select PM_GENERIC_DOMAINS_OF
-  bus: ti-sysc: Fix reset status check for modules with quirks
-  bus: ti-sysc: Fix bogus resetdone warning for cpsw
-
- arch/arm/mach-omap2/Kconfig           |  3 ++-
- drivers/bus/ti-sysc.c                 | 28 ++++++++++++++++-----------
- include/linux/platform_data/ti-sysc.h |  1 +
- 3 files changed, 20 insertions(+), 12 deletions(-)
-
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1364,6 +1364,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 	/* Quirks that need to be set based on detected module */
+ 	SYSC_QUIRK("aess", 0, 0, 0x10, -ENODEV, 0x40000000, 0xffffffff,
+ 		   SYSC_MODULE_QUIRK_AESS),
++	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
++		   0xffff00f0, SYSS_QUIRK_RESETDONE_INVERTED),
+ 	SYSC_QUIRK("dcan", 0x48480000, 0x20, -ENODEV, -ENODEV, 0xa3170504, 0xffffffff,
+ 		   SYSC_QUIRK_CLKDM_NOAUTO),
+ 	SYSC_QUIRK("dss", 0x4832a000, 0, 0x10, 0x14, 0x00000020, 0xffffffff,
+@@ -1423,8 +1425,6 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 	SYSC_QUIRK("atl", 0, 0, -ENODEV, -ENODEV, 0x0a070100, 0xffffffff, 0),
+ 	SYSC_QUIRK("cm", 0, 0, -ENODEV, -ENODEV, 0x40000301, 0xffffffff, 0),
+ 	SYSC_QUIRK("control", 0, 0, 0x10, -ENODEV, 0x40000900, 0xffffffff, 0),
+-	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
+-		   0xffff00f0, 0),
+ 	SYSC_QUIRK("dcan", 0, 0x20, -ENODEV, -ENODEV, 0xa3170504, 0xffffffff, 0),
+ 	SYSC_QUIRK("dcan", 0, 0x20, -ENODEV, -ENODEV, 0x4edb1902, 0xffffffff, 0),
+ 	SYSC_QUIRK("dispc", 0x4832a400, 0, 0x10, 0x14, 0x00000030, 0xffffffff, 0),
 -- 
 2.29.1
