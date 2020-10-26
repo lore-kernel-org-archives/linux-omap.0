@@ -2,102 +2,91 @@ Return-Path: <SRS0=mtBc=EB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E794EC55178
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:12:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17250C2D0A3
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:22:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E9B022265
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:12:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8D662465A
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:22:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1773155AbgJZLLU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 26 Oct 2020 07:11:20 -0400
-Received: from muru.com ([72.249.23.125]:46568 "EHLO muru.com"
+        id S1768821AbgJZLWi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:22:38 -0400
+Received: from muru.com ([72.249.23.125]:46642 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1773149AbgJZLLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 26 Oct 2020 07:11:16 -0400
+        id S1422405AbgJZLWi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 26 Oct 2020 07:22:38 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 3C51D8196;
-        Mon, 26 Oct 2020 11:11:18 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 0571880AA;
+        Mon, 26 Oct 2020 11:22:41 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
-Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
-        Faiz Abbas <faiz_abbas@ti.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
-        Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org
-Subject: [PATCH 5/9] bus: ti-sysc: Implement GPMC debug quirk to drop platform data
-Date:   Mon, 26 Oct 2020 13:10:45 +0200
-Message-Id: <20201026111049.54835-6-tony@atomide.com>
+        Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/18] Drop remaining pdata for am335x and use genpd
+Date:   Mon, 26 Oct 2020 13:22:04 +0200
+Message-Id: <20201026112222.56894-1-tony@atomide.com>
 X-Mailer: git-send-email 2.29.1
-In-Reply-To: <20201026111049.54835-1-tony@atomide.com>
-References: <20201026111049.54835-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We need to enable no-reset-on-init quirk for GPMC if the config
-option for CONFIG_OMAP_GPMC_DEBUG is set. Otherwise the GPMC
-driver code is unable to show the bootloader configured timings.
+Hi all,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c                 | 10 ++++++++++
- include/linux/platform_data/ti-sysc.h |  1 +
- 2 files changed, 11 insertions(+)
+With the related driver changes, we can now drop the remaining platform
+data for am335x for v5.11 merge window and probe using device tree data
+and genpd instead.
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1382,6 +1382,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_QUIRK_CLKDM_NOAUTO),
- 	SYSC_QUIRK("dwc3", 0x488c0000, 0, 0x10, -ENODEV, 0x500a0200, 0xffffffff,
- 		   SYSC_QUIRK_CLKDM_NOAUTO),
-+	SYSC_QUIRK("gpmc", 0, 0, 0x10, 0x14, 0x00000060, 0xffffffff,
-+		   SYSC_QUIRK_GPMC_DEBUG),
- 	SYSC_QUIRK("hdmi", 0, 0, 0x10, -ENODEV, 0x50030200, 0xffffffff,
- 		   SYSC_QUIRK_OPT_CLKS_NEEDED),
- 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
-@@ -1815,6 +1817,14 @@ static void sysc_init_module_quirks(struct sysc *ddata)
- 		return;
- 	}
- 
-+#ifdef CONFIG_OMAP_GPMC_DEBUG
-+	if (ddata->cfg.quirks & SYSC_QUIRK_GPMC_DEBUG) {
-+		ddata->cfg.quirks |= SYSC_QUIRK_NO_RESET_ON_INIT;
-+
-+		return;
-+	}
-+#endif
-+
- 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_I2C) {
- 		ddata->pre_reset_quirk = sysc_pre_reset_quirk_i2c;
- 		ddata->post_reset_quirk = sysc_post_reset_quirk_i2c;
-diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
---- a/include/linux/platform_data/ti-sysc.h
-+++ b/include/linux/platform_data/ti-sysc.h
-@@ -50,6 +50,7 @@ struct sysc_regbits {
- 	s8 emufree_shift;
- };
- 
-+#define SYSC_QUIRK_GPMC_DEBUG		BIT(26)
- #define SYSC_MODULE_QUIRK_ENA_RESETDONE	BIT(25)
- #define SYSC_MODULE_QUIRK_PRUSS		BIT(24)
- #define SYSC_MODULE_QUIRK_DSS_RESET	BIT(23)
+Regards,
+
+Tony
+
+[1] https://lore.kernel.org/linux-omap/20201026105812.38418-1-tony@atomide.com/T/#t
+[2] https://lore.kernel.org/linux-omap/20201026111049.54835-1-tony@atomide.com/T/#t
+
+Tero Kristo (1):
+  ARM: dts: am33xx: add remaining PRM instances
+
+Tony Lindgren (17):
+  ARM: dts: Configure also interconnect clocks for am3 system timers
+  ARM: OMAP2+: Drop legacy platform data for am3 control module
+  ARM: dts: Configure RTC powerdomain for am3
+  ARM: dts: Configure interconnect target module for am3 wkup_m3
+  ARM: OMAP2+: Drop legacy platform data for am3 wkup_m3
+  ARM: OMAP2+: Drop legacy platform data for am3 and am4 gpmc
+  ARM: OMAP2+: Drop legacy platform data for am3 debugss
+  ARM: OMAP2+: Drop legacy platform data for am3 emif
+  ARM: OMAP2+: Drop legacy platform data for am3 ocmcram
+  ARM: OMAP2+: Drop legacy platform data for am3 instr
+  ARM: OMAP2+: Drop legacy platform data for am3 mpuss
+  ARM: dts: Use simple-pm-bus for genpd for am3 l4_wkup
+  ARM: dts: Use simple-pm-bus for genpd for am3 l4_fast
+  ARM: dts: Use simple-pm-bus for genpd for am3 l4_per
+  ARM: dts: Use simple-pm-bus for genpd for am3 l3
+  ARM: OMAP2+: Drop legacy remaining legacy platform data for am3
+  ARM: OMAP2+: Build hwmod related code as needed
+
+ arch/arm/boot/dts/am335x-nano.dts             |   1 -
+ arch/arm/boot/dts/am33xx-l4.dtsi              |  75 +++--
+ arch/arm/boot/dts/am33xx.dtsi                 | 185 +++++++----
+ arch/arm/boot/dts/am4372.dtsi                 |  49 ++-
+ arch/arm/mach-omap2/Kconfig                   |   9 +
+ arch/arm/mach-omap2/Makefile                  |  14 +-
+ arch/arm/mach-omap2/io.c                      |   2 -
+ .../omap_hwmod_33xx_43xx_common_data.h        |   2 -
+ .../omap_hwmod_33xx_43xx_interconnect_data.c  |   8 -
+ .../omap_hwmod_33xx_43xx_ipblock_data.c       |  36 ---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c    | 294 ------------------
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c    |   1 -
+ arch/arm/mach-omap2/pdata-quirks.c            |  12 +-
+ 13 files changed, 236 insertions(+), 452 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+
 -- 
 2.29.1
