@@ -2,26 +2,26 @@ Return-Path: <SRS0=mtBc=EB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47CF2C4363A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E794EC55178
 	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:12:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1668C22263
+	by mail.kernel.org (Postfix) with ESMTP id 9E9B022265
 	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:12:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1773231AbgJZLMM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 26 Oct 2020 07:12:12 -0400
-Received: from muru.com ([72.249.23.125]:46594 "EHLO muru.com"
+        id S1773155AbgJZLLU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:11:20 -0400
+Received: from muru.com ([72.249.23.125]:46568 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1773168AbgJZLLY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 26 Oct 2020 07:11:24 -0400
+        id S1773149AbgJZLLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 26 Oct 2020 07:11:16 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 5851E81A0;
-        Mon, 26 Oct 2020 11:11:26 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 3C51D8196;
+        Mon, 26 Oct 2020 11:11:18 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -33,15 +33,15 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
         Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
-        Santosh Shilimkar <ssantosh@kernel.org>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
         Michael Turquette <mturquette@baylibre.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
         Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org,
         linux-remoteproc@vger.kernel.org
-Subject: [PATCH 7/9] soc: ti: omap-prm: am3: add genpd support for remaining PRM instances
-Date:   Mon, 26 Oct 2020 13:10:47 +0200
-Message-Id: <20201026111049.54835-8-tony@atomide.com>
+Subject: [PATCH 5/9] bus: ti-sysc: Implement GPMC debug quirk to drop platform data
+Date:   Mon, 26 Oct 2020 13:10:45 +0200
+Message-Id: <20201026111049.54835-6-tony@atomide.com>
 X-Mailer: git-send-email 2.29.1
 In-Reply-To: <20201026111049.54835-1-tony@atomide.com>
 References: <20201026111049.54835-1-tony@atomide.com>
@@ -51,74 +51,53 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+We need to enable no-reset-on-init quirk for GPMC if the config
+option for CONFIG_OMAP_GPMC_DEBUG is set. Otherwise the GPMC
+driver code is unable to show the bootloader configured timings.
 
-Add genpd support for per, wkup, mpu, rtc and cefuse instances.
-
-Cc: Santosh Shilimkar <ssantosh@kernel.org>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/soc/ti/omap_prm.c | 36 +++++++++++++++++++++++++++++++++---
- 1 file changed, 33 insertions(+), 3 deletions(-)
+ drivers/bus/ti-sysc.c                 | 10 ++++++++++
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 2 files changed, 11 insertions(+)
 
-diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
---- a/drivers/soc/ti/omap_prm.c
-+++ b/drivers/soc/ti/omap_prm.c
-@@ -123,6 +123,10 @@ static const struct omap_prm_domain_map omap_prm_onoff_noauto = {
- 	.statechange = 1,
- };
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1382,6 +1382,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 		   SYSC_QUIRK_CLKDM_NOAUTO),
+ 	SYSC_QUIRK("dwc3", 0x488c0000, 0, 0x10, -ENODEV, 0x500a0200, 0xffffffff,
+ 		   SYSC_QUIRK_CLKDM_NOAUTO),
++	SYSC_QUIRK("gpmc", 0, 0, 0x10, 0x14, 0x00000060, 0xffffffff,
++		   SYSC_QUIRK_GPMC_DEBUG),
+ 	SYSC_QUIRK("hdmi", 0, 0, 0x10, -ENODEV, 0x50030200, 0xffffffff,
+ 		   SYSC_QUIRK_OPT_CLKS_NEEDED),
+ 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
+@@ -1815,6 +1817,14 @@ static void sysc_init_module_quirks(struct sysc *ddata)
+ 		return;
+ 	}
  
-+static const struct omap_prm_domain_map omap_prm_alwon = {
-+	.usable_modes = BIT(OMAP_PRMD_ON_ACTIVE),
-+};
++#ifdef CONFIG_OMAP_GPMC_DEBUG
++	if (ddata->cfg.quirks & SYSC_QUIRK_GPMC_DEBUG) {
++		ddata->cfg.quirks |= SYSC_QUIRK_NO_RESET_ON_INIT;
 +
- static const struct omap_rst_map rst_map_0[] = {
- 	{ .rst = 0, .st = 0 },
- 	{ .rst = -1 },
-@@ -189,14 +193,40 @@ static const struct omap_rst_map am3_wkup_rst_map[] = {
++		return;
++	}
++#endif
++
+ 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_I2C) {
+ 		ddata->pre_reset_quirk = sysc_pre_reset_quirk_i2c;
+ 		ddata->post_reset_quirk = sysc_post_reset_quirk_i2c;
+diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+--- a/include/linux/platform_data/ti-sysc.h
++++ b/include/linux/platform_data/ti-sysc.h
+@@ -50,6 +50,7 @@ struct sysc_regbits {
+ 	s8 emufree_shift;
  };
  
- static const struct omap_prm_data am3_prm_data[] = {
--	{ .name = "per", .base = 0x44e00c00, .rstctrl = 0x0, .rstmap = am3_per_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL, .clkdm_name = "pruss_ocp" },
--	{ .name = "wkup", .base = 0x44e00d00, .rstctrl = 0x0, .rstst = 0xc, .rstmap = am3_wkup_rst_map, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
--	{ .name = "device", .base = 0x44e00f00, .rstctrl = 0x0, .rstst = 0x8, .rstmap = rst_map_01, .flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM },
-+	{
-+		.name = "per", .base = 0x44e00c00,
-+		.pwrstctrl = 0xc, .pwrstst = 0x8, .dmap = &omap_prm_noinact,
-+		.rstctrl = 0x0, .rstmap = am3_per_rst_map,
-+		.flags = OMAP_PRM_HAS_RSTCTRL, .clkdm_name = "pruss_ocp"
-+	},
-+	{
-+		.name = "wkup", .base = 0x44e00d00,
-+		.pwrstctrl = 0x4, .pwrstst = 0x4, .dmap = &omap_prm_alwon,
-+		.rstctrl = 0x0, .rstst = 0xc, .rstmap = am3_wkup_rst_map,
-+		.flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM
-+	},
-+	{
-+		.name = "mpu", .base = 0x44e00e00,
-+		.pwrstctrl = 0x0, .pwrstst = 0x4, .dmap = &omap_prm_noinact,
-+	},
-+	{
-+		.name = "device", .base = 0x44e00f00,
-+		.rstctrl = 0x0, .rstst = 0x8, .rstmap = rst_map_01,
-+		.flags = OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_NO_CLKDM
-+	},
-+	{
-+		.name = "rtc", .base = 0x44e01000,
-+		.pwrstctrl = 0x0, .pwrstst = 0x4, .dmap = &omap_prm_alwon,
-+	},
- 	{
- 		.name = "gfx", .base = 0x44e01100,
- 		.pwrstctrl = 0, .pwrstst = 0x10, .dmap = &omap_prm_noinact,
- 		.rstctrl = 0x4, .rstst = 0x14, .rstmap = rst_map_0, .clkdm_name = "gfx_l3",
- 	},
-+	{
-+		.name = "cefuse", .base = 0x44e01200,
-+		.pwrstctrl = 0x0, .pwrstst = 0x4, .dmap = &omap_prm_onoff_noauto,
-+	},
- 	{ },
- };
- 
++#define SYSC_QUIRK_GPMC_DEBUG		BIT(26)
+ #define SYSC_MODULE_QUIRK_ENA_RESETDONE	BIT(25)
+ #define SYSC_MODULE_QUIRK_PRUSS		BIT(24)
+ #define SYSC_MODULE_QUIRK_DSS_RESET	BIT(23)
 -- 
 2.29.1
