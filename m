@@ -2,26 +2,26 @@ Return-Path: <SRS0=mtBc=EB=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCB63C4363A
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:11:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73132C4363A
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:11:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7303122277
-	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:11:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A74522265
+	for <linux-omap@archiver.kernel.org>; Mon, 26 Oct 2020 11:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1772482AbgJZLLP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 26 Oct 2020 07:11:15 -0400
-Received: from muru.com ([72.249.23.125]:46554 "EHLO muru.com"
+        id S1773164AbgJZLLW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:11:22 -0400
+Received: from muru.com ([72.249.23.125]:46584 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1773143AbgJZLLM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 26 Oct 2020 07:11:12 -0400
+        id S1773157AbgJZLLU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 26 Oct 2020 07:11:20 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 3BC7B80AA;
-        Mon, 26 Oct 2020 11:11:14 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 3B65A80AA;
+        Mon, 26 Oct 2020 11:11:22 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
@@ -33,15 +33,15 @@ Cc:     "Andrew F . Davis" <afd@ti.com>, Dave Gerlach <d-gerlach@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
         Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
+        Santosh Shilimkar <ssantosh@kernel.org>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
         Michael Turquette <mturquette@baylibre.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
         Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org,
         linux-remoteproc@vger.kernel.org
-Subject: [PATCH 4/9] bus: ti-sysc: Support modules without control registers
-Date:   Mon, 26 Oct 2020 13:10:44 +0200
-Message-Id: <20201026111049.54835-5-tony@atomide.com>
+Subject: [PATCH 6/9] soc: ti: omap-prm: Add pm_clk for genpd
+Date:   Mon, 26 Oct 2020 13:10:46 +0200
+Message-Id: <20201026111049.54835-7-tony@atomide.com>
 X-Mailer: git-send-email 2.29.1
 In-Reply-To: <20201026111049.54835-1-tony@atomide.com>
 References: <20201026111049.54835-1-tony@atomide.com>
@@ -51,40 +51,98 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Some modules like MPU have a powerdomain and functional clock but not
-necessarily any control registers. Let's allow configuring interconnect
-target modules with no control registers.
+In order to probe l3 and l4 interconnects with simple-pm-bus, we want
+genpd to manage the clocks for the interconnects. For interconnect target
+modules, we already have ti-sysc manage the clocks so let's skipe managing
+clocks for ti-sysc modules.
 
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/soc/ti/omap_prm.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -850,8 +850,12 @@ static int sysc_ioremap(struct sysc *ddata)
+diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
+--- a/drivers/soc/ti/omap_prm.c
++++ b/drivers/soc/ti/omap_prm.c
+@@ -7,6 +7,7 @@
   */
- static int sysc_map_and_check_registers(struct sysc *ddata)
- {
-+	struct device_node *np = ddata->dev->of_node;
- 	int error;
  
-+	if (!of_get_property(np, "reg", NULL))
+ #include <linux/kernel.h>
++#include <linux/clk.h>
+ #include <linux/device.h>
+ #include <linux/io.h>
+ #include <linux/iopoll.h>
+@@ -14,6 +15,7 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_clock.h>
+ #include <linux/pm_domain.h>
+ #include <linux/reset-controller.h>
+ #include <linux/delay.h>
+@@ -325,6 +327,35 @@ static int omap_prm_domain_power_off(struct generic_pm_domain *domain)
+ 	return 0;
+ }
+ 
++/*
++ * Note that ti-sysc already manages the module clocks separately so
++ * no need to manage those. Interconnect instances need clocks managed
++ * for simple-pm-bus.
++ */
++static int omap_prm_domain_attach_clock(struct device *dev)
++{
++	struct device_node *np = dev->of_node;
++	int error;
++
++	if (of_device_is_compatible(np, "ti-sysc"))
 +		return 0;
 +
- 	error = sysc_parse_and_check_child_range(ddata);
- 	if (error)
- 		return error;
-@@ -2906,6 +2910,9 @@ static int sysc_probe(struct platform_device *pdev)
- 	if (!ddata)
- 		return -ENOMEM;
++	if (!of_property_read_bool(np, "clocks"))
++		return 0;
++
++	error = pm_clk_create(dev);
++	if (error)
++		return error;
++
++	error = of_pm_clk_add_clks(dev);
++	if (error < 0) {
++		pm_clk_destroy(dev);
++		return error;
++	}
++
++	return 0;
++}
++
+ static int omap_prm_domain_attach_dev(struct generic_pm_domain *domain,
+ 				      struct device *dev)
+ {
+@@ -349,6 +380,10 @@ static int omap_prm_domain_attach_dev(struct generic_pm_domain *domain,
+ 	genpd_data = dev_gpd_data(dev);
+ 	genpd_data->data = NULL;
  
-+	ddata->offsets[SYSC_REVISION] = -ENODEV;
-+	ddata->offsets[SYSC_SYSCONFIG] = -ENODEV;
-+	ddata->offsets[SYSC_SYSSTATUS] = -ENODEV;
- 	ddata->dev = &pdev->dev;
- 	platform_set_drvdata(pdev, ddata);
++	ret = omap_prm_domain_attach_clock(dev);
++	if (ret)
++		return ret;
++
+ 	return 0;
+ }
  
+@@ -357,6 +392,7 @@ static void omap_prm_domain_detach_dev(struct generic_pm_domain *domain,
+ {
+ 	struct generic_pm_domain_data *genpd_data;
+ 
++	pm_clk_destroy(dev);
+ 	genpd_data = dev_gpd_data(dev);
+ 	genpd_data->data = NULL;
+ }
+@@ -393,6 +429,7 @@ static int omap_prm_domain_init(struct device *dev, struct omap_prm *prm)
+ 	prmd->pd.power_off = omap_prm_domain_power_off;
+ 	prmd->pd.attach_dev = omap_prm_domain_attach_dev;
+ 	prmd->pd.detach_dev = omap_prm_domain_detach_dev;
++	prmd->pd.flags = GENPD_FLAG_PM_CLK;
+ 
+ 	pm_genpd_init(&prmd->pd, NULL, true);
+ 	error = of_genpd_add_provider_simple(np, &prmd->pd);
 -- 
 2.29.1
