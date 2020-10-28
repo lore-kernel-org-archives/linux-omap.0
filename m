@@ -2,165 +2,72 @@ Return-Path: <SRS0=S7ps=ED=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40634C55179
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 21:48:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D23DC56201
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 21:50:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E31BB2245A
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 21:48:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603921694;
-	bh=vY3miNEVovvOkRzH70eloiXwb1xnqIdTIFpauz5CLvo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=2ZWVygf52Yg1oG7hvlErGSShMglhdYB2XV6/dDInLv3QtzVTpAvHQ0eArBFmlbkjT
-	 ly1jM20XC/IteP+POrPp4aCuz5ONCEKLpuu8iZNGuvw9kOFj81iFKdvcPTWJzueWMV
-	 5cdJgpNoSAifWtBxCQbj17dkwdESbiKgkcHxxJnk=
+	by mail.kernel.org (Postfix) with ESMTP id DAA9C2064C
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 21:50:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728025AbgJ1VsK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 17:48:10 -0400
-Received: from mail-yb1-f194.google.com ([209.85.219.194]:44256 "EHLO
-        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727421AbgJ1VsJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2020 17:48:09 -0400
-Received: by mail-yb1-f194.google.com with SMTP id i186so419003ybc.11;
-        Wed, 28 Oct 2020 14:48:08 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ZQyia8yFxJFo/T6o8CYQ5VyHneaAbbvX2dVIUGSCMQQ=;
-        b=qUGMbXLSvcyZKOG2c/+DT12PnvCwgP6OZxFqmDd1YjhFbjSuadK8+M05fstw1SKCzh
-         rdd65bpC51NX3YnqTGOyAKw5B1diqXr8QjQc2qFG2M5290tD1GlG5DnCM1xg+bc2m+FS
-         Ln40ESRenNL2tTqlAW/vm7WbkpifZSHCIu7ksNds1cSGEhcIZk/7QqdZQrb/9nIYZ+JU
-         qP29Rv4X3dsp6gYSko+i36/XUu3ixejAqPDfkayBdUPBVhDNT4UNj60INQvTa4Igr0y1
-         aaAhuwQ2h+Rac0KMWB5kV4H3Bj6KTtMWiNzGqJOeuFcpTH6PNs7WKnmHozM9I/aGdRTJ
-         g0gg==
-X-Gm-Message-State: AOAM532zL97D1xE3hz1Cwx9fSHUZBzFVDCQGhe4psIerMOjs2zIlMZ88
-        91u3yeTF6GBY7tZ62Pwa2Wex6ucA0A==
-X-Google-Smtp-Source: ABdhPJw2Fi0abZoXS4t0yH9eCkAEgtoxTCLjdD+B6EjQnzh8DitGWJBXxEHGCCo7AWLp1zCE4fxuXQ==
-X-Received: by 2002:a9d:685a:: with SMTP id c26mr883050oto.40.1603918014866;
-        Wed, 28 Oct 2020 13:46:54 -0700 (PDT)
-Received: from xps15.herring.priv (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
-        by smtp.googlemail.com with ESMTPSA id t17sm116123oor.3.2020.10.28.13.46.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2020 13:46:54 -0700 (PDT)
-From:   Rob Herring <robh@kernel.org>
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
-        Binghui Wang <wangbinghui@hisilicon.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Fabio Estevam <festevam@gmail.com>,
-        Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Jesper Nilsson <jesper.nilsson@axis.com>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Jonathan Chocron <jonnyc@amazon.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
-        linux-amlogic@lists.infradead.org, linux-arm-kernel@axis.com,
-        linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org,
-        linux-tegra@vger.kernel.org, Lucas Stach <l.stach@pengutronix.de>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Minghuan Lian <minghuan.Lian@nxp.com>,
-        Mingkai Hu <mingkai.hu@nxp.com>,
-        Murali Karicheri <m-karicheri2@ti.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Pratyush Anand <pratyush.anand@gmail.com>,
-        Richard Zhu <hongxing.zhu@nxp.com>,
-        Roy Zang <roy.zang@nxp.com>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Stanimir Varbanov <svarbanov@mm-sol.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Xiaowei Song <songxiaowei@hisilicon.com>,
-        Yue Wang <yue.wang@Amlogic.com>
-Subject: [PATCH 02/13] PCI: dwc/intel-gw: Move ATU offset out of driver match data
-Date:   Wed, 28 Oct 2020 15:46:35 -0500
-Message-Id: <20201028204646.356535-3-robh@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201028204646.356535-1-robh@kernel.org>
-References: <20201028204646.356535-1-robh@kernel.org>
+        id S1727995AbgJ1Vua (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 17:50:30 -0400
+Received: from mslow2.mail.gandi.net ([217.70.178.242]:36222 "EHLO
+        mslow2.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728003AbgJ1Vu3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2020 17:50:29 -0400
+Received: from relay5-d.mail.gandi.net (unknown [217.70.183.197])
+        by mslow2.mail.gandi.net (Postfix) with ESMTP id BE50E3A7812;
+        Wed, 28 Oct 2020 18:57:03 +0000 (UTC)
+X-Originating-IP: 86.194.74.19
+Received: from localhost (lfbn-lyo-1-997-19.w86-194.abo.wanadoo.fr [86.194.74.19])
+        (Authenticated sender: alexandre.belloni@bootlin.com)
+        by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id 5D5E81C0003;
+        Wed, 28 Oct 2020 18:56:37 +0000 (UTC)
+From:   Alexandre Belloni <alexandre.belloni@bootlin.com>
+To:     Pavel Machek <pavel@ucw.cz>, Alexander Dahl <post@lespocky.de>,
+        Rob Herring <robh+dt@kernel.org>, Dan Murphy <dmurphy@ti.com>
+Cc:     Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        linux-leds@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        Alexander Dahl <ada@thorsis.com>
+Subject: Re: [PATCH v7 00/12] leds: pwm: Make automatic labels work
+Date:   Wed, 28 Oct 2020 19:56:14 +0100
+Message-Id: <160391135997.385141.5554228268638639718.b4-ty@bootlin.com>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201005203451.9985-1-post@lespocky.de>
+References: <20201005203451.9985-1-post@lespocky.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The ATU offset should be a register range in DT called 'atu', not driver
-match data. Any future platforms with a different ATU offset should add
-it to their DT.
+On Mon, 5 Oct 2020 22:34:39 +0200, Alexander Dahl wrote:
+> Hei hei,
+> 
+> for leds-gpio you can use the properties 'function' and 'color' in the
+> devicetree node and omit 'label', the label is constructed
+> automatically.  This is a common feature supposed to be working for all
+> LED drivers.  However it did not work until recently for the 'leds-pwm'
+> driver.
+> 
+> [...]
 
-This is also in preparation to do DBI resource setup in the core DWC
-code, so let's move setting atu_base later in intel_pcie_rc_setup().
+Applied, thanks!
 
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Signed-off-by: Rob Herring <robh@kernel.org>
----
- drivers/pci/controller/dwc/pcie-intel-gw.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+[1/2] ARM: dts: at91: smartkiz: Reference led node directly
+      commit: 02e46262af5db410da5a27783833d68e2bdfb352
+[2/2] ARM: dts: at91: Fix schema warnings for pwm-leds
+      commit: 997ebd64df39f3916c37ca67a6eff58e79a13c73
 
-diff --git a/drivers/pci/controller/dwc/pcie-intel-gw.c b/drivers/pci/controller/dwc/pcie-intel-gw.c
-index 5650cb78acba..77ef88333115 100644
---- a/drivers/pci/controller/dwc/pcie-intel-gw.c
-+++ b/drivers/pci/controller/dwc/pcie-intel-gw.c
-@@ -58,7 +58,6 @@
- 
- struct intel_pcie_soc {
- 	unsigned int	pcie_ver;
--	unsigned int	pcie_atu_offset;
- 	u32		num_viewport;
- };
- 
-@@ -155,11 +154,15 @@ static void intel_pcie_init_n_fts(struct dw_pcie *pci)
- 
- static void intel_pcie_rc_setup(struct intel_pcie_port *lpp)
- {
-+	struct dw_pcie *pci = &lpp->pci;
-+
-+	pci->atu_base = pci->dbi_base + 0xC0000;
-+
- 	intel_pcie_ltssm_disable(lpp);
- 	intel_pcie_link_setup(lpp);
--	intel_pcie_init_n_fts(&lpp->pci);
--	dw_pcie_setup_rc(&lpp->pci.pp);
--	dw_pcie_upconfig_setup(&lpp->pci);
-+	intel_pcie_init_n_fts(pci);
-+	dw_pcie_setup_rc(&pci->pp);
-+	dw_pcie_upconfig_setup(pci);
- }
- 
- static int intel_pcie_ep_rst_init(struct intel_pcie_port *lpp)
-@@ -425,7 +428,6 @@ static const struct dw_pcie_host_ops intel_pcie_dw_ops = {
- 
- static const struct intel_pcie_soc pcie_data = {
- 	.pcie_ver =		0x520A,
--	.pcie_atu_offset =	0xC0000,
- 	.num_viewport =		3,
- };
- 
-@@ -461,7 +463,6 @@ static int intel_pcie_probe(struct platform_device *pdev)
- 
- 	pci->ops = &intel_pcie_ops;
- 	pci->version = data->pcie_ver;
--	pci->atu_base = pci->dbi_base + data->pcie_atu_offset;
- 	pp->ops = &intel_pcie_dw_ops;
- 
- 	ret = dw_pcie_host_init(pp);
+Best regards,
 -- 
-2.25.1
-
+Alexandre Belloni <alexandre.belloni@bootlin.com>
