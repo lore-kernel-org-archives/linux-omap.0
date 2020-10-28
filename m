@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3EBAC4363A
-	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:31:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B1AEC388F7
+	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:31:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9692E207DE
-	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:31:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D244207DE
+	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:31:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603931460;
-	bh=q4ewlq6+5TU/aXmlFx1DhX/KRpEoZg7JSVY6SR9RAQg=;
+	s=default; t=1603931468;
+	bh=ifer0qFpmgpScVnZn7aVvw9lQMczxYrypi1yqr3rAwI=;
 	h=From:To:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=EvCGSrJbdczcVdhmMLK9JvM7r8sRWUraMZqm2XdcVVY5iXe2dUEujGr4NPv5VSFsU
-	 AXQ8i3x/ScGnpbhx0snetiqEh+8mhm78FG+HTsMMOJuMkWX2SonT1kx0VyiOY5Bvd/
-	 QJzc4OyTMTkj1Y1CCDjneH2YFpVESTRgODgA2UxE=
+	b=nKmqyQ5/hufAEYzMgz7oQM9wjHoWJbPY/vbDUli+vbeC4Mu3KGnaJlsWN8vkeLKWp
+	 77hcp6bCoRqUUBRamLB9bv/GPLpxEDCLM3Qb6uLpCoxROQek57frnn/nORtVpRDKDr
+	 08XqXY8tAhJWADgOrOaG50Vt89NgZaTreo3ZrdlA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388607AbgJ2Aaz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:30:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47172 "EHLO mail.kernel.org"
+        id S2388568AbgJ1WdF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:33:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388176AbgJ1WdK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:33:10 -0400
+        id S2388494AbgJ1WdA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:33:00 -0400
 Received: from kozik-lap.proceq-device.com (unknown [194.230.155.184])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 166E620728;
-        Wed, 28 Oct 2020 22:33:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6CD602072E;
+        Wed, 28 Oct 2020 22:32:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603924389;
-        bh=q4ewlq6+5TU/aXmlFx1DhX/KRpEoZg7JSVY6SR9RAQg=;
+        s=default; t=1603924379;
+        bh=ifer0qFpmgpScVnZn7aVvw9lQMczxYrypi1yqr3rAwI=;
         h=From:To:Subject:Date:In-Reply-To:References:From;
-        b=IECvjWQ+dhjOgtvvSy48Rt7uWnMk36KnEXN9GLi4iNPXBHn3g2LyX2mAk1ngkH8wa
-         ef7Vu+jbxm3P5qmSiFOZ11zEUqicHz/ZRhDvybTYfzUPhOzJQacWWKSgVY3eTVIp3V
-         vpllfVWQihpM7zVlSSw9VvimbO5YsAueVOPhFpoQ=
+        b=NNULfFQLt/FTEQpuj0ZA9HTeU4TE3UfyQnnDWSDk74jLAnDEr22kWibODAsFZE2Ji
+         qtGRZOoGN9JwyoPKIHfdBKQojSnDD9lEY2ROWnNOmBIRcxKlw4Ur+gQtXewnT1BGCw
+         /GdULCATmV6cCysRHQ4Yy1kenbTnJ6ZX1bWfzkXI=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Lee Jones <lee.jones@linaro.org>,
         Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -59,9 +59,9 @@ To:     Lee Jones <lee.jones@linaro.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-rpi-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [RESEND PATCH 33/42] mfd: tps65090: use PLATFORM_DEVID_NONE
-Date:   Wed, 28 Oct 2020 23:30:00 +0100
-Message-Id: <20201028223009.369824-33-krzk@kernel.org>
+Subject: [RESEND PATCH 31/42] mfd: timberdale: use PLATFORM_DEVID_NONE
+Date:   Wed, 28 Oct 2020 23:29:58 +0100
+Message-Id: <20201028223009.369824-31-krzk@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201028223009.369824-1-krzk@kernel.org>
 References: <20201028223009.369824-1-krzk@kernel.org>
@@ -77,22 +77,43 @@ Use PLATFORM_DEVID_NONE define instead of "-1" value because:
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- drivers/mfd/tps65090.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/timberdale.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mfd/tps65090.c b/drivers/mfd/tps65090.c
-index 6cdf6c315034..f8f7170f5822 100644
---- a/drivers/mfd/tps65090.c
-+++ b/drivers/mfd/tps65090.c
-@@ -209,7 +209,7 @@ static int tps65090_i2c_probe(struct i2c_client *client,
- 		tps65090s[CHARGER].num_resources = 0;
- 	}
- 
--	ret = mfd_add_devices(tps65090->dev, -1, tps65090s,
-+	ret = mfd_add_devices(tps65090->dev, PLATFORM_DEVID_NONE, tps65090s,
- 			      ARRAY_SIZE(tps65090s), NULL,
- 			      0, regmap_irq_get_domain(tps65090->irq_data));
- 	if (ret) {
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index faecbca6dba3..de1589fa2120 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -740,25 +740,25 @@ static int timb_probe(struct pci_dev *dev,
+ 	ip_setup = priv->fw.config & TIMB_HW_VER_MASK;
+ 	switch (ip_setup) {
+ 	case TIMB_HW_VER0:
+-		err = mfd_add_devices(&dev->dev, -1,
++		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
+ 			timberdale_cells_bar0_cfg0,
+ 			ARRAY_SIZE(timberdale_cells_bar0_cfg0),
+ 			&dev->resource[0], msix_entries[0].vector, NULL);
+ 		break;
+ 	case TIMB_HW_VER1:
+-		err = mfd_add_devices(&dev->dev, -1,
++		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
+ 			timberdale_cells_bar0_cfg1,
+ 			ARRAY_SIZE(timberdale_cells_bar0_cfg1),
+ 			&dev->resource[0], msix_entries[0].vector, NULL);
+ 		break;
+ 	case TIMB_HW_VER2:
+-		err = mfd_add_devices(&dev->dev, -1,
++		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
+ 			timberdale_cells_bar0_cfg2,
+ 			ARRAY_SIZE(timberdale_cells_bar0_cfg2),
+ 			&dev->resource[0], msix_entries[0].vector, NULL);
+ 		break;
+ 	case TIMB_HW_VER3:
+-		err = mfd_add_devices(&dev->dev, -1,
++		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
+ 			timberdale_cells_bar0_cfg3,
+ 			ARRAY_SIZE(timberdale_cells_bar0_cfg3),
+ 			&dev->resource[0], msix_entries[0].vector, NULL);
 -- 
 2.25.1
 
