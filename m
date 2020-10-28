@@ -2,122 +2,100 @@ Return-Path: <SRS0=S7ps=ED=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1C1EC55179
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 301ABC4363A
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DE8B206E3
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:18:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9CF620719
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603923481;
-	bh=4Vz9K5VWILkqVQVWRhlSP7/sa3Zk4U9Q0Nqg2nrhOcc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=uH04C5cHLJBUW38rhCNqY55z86vWBnQsSxohVqZHHPV9tT1LxnYK6T5skfJxmPwzI
-	 cvTlX3XJ5jkvO6zFbPeUPOHO5qDjyB+SRqGr3an2yUbwwfFQBthCZyAKjLK6t7N1et
-	 pozUdRFpfd/2+RzaVErjr2H4Xq+KW4e1/Trytu9E=
+	s=default; t=1603924229;
+	bh=GBQ0jA1UbDnOOxIlEwQgVuqIYDKm0O9dv+Q1uOL6pdA=;
+	h=From:To:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=q7/Vbz3H6kCNNEAd06QnjwNtSwvGbr13moi5Ii/ankjo6OXNjG1+XDsOBkcQfCb99
+	 NOMEuKtFIBHHnQMf6hGT56U9cb6A+b8pG2TKmqC/grSf7R2gPjp9qBdu7FCWxyi7NY
+	 YQu8b1PBgqBUR71JUoitWsPzYFoxaIMXuV8/zHvs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731755AbgJ1WRn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:17:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60514 "EHLO mail.kernel.org"
+        id S2387689AbgJ1WaZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:30:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731715AbgJ1WRm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:17:42 -0400
-Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S2387665AbgJ1WaY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:30:24 -0400
+Received: from kozik-lap.proceq-device.com (unknown [194.230.155.184])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 84796246BF;
-        Wed, 28 Oct 2020 11:26:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BC70720720;
+        Wed, 28 Oct 2020 22:30:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603884420;
-        bh=4Vz9K5VWILkqVQVWRhlSP7/sa3Zk4U9Q0Nqg2nrhOcc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ZWcppmpESqFXU3Hg0RYaM8+OgGedONeP+ja3A+NsQ4iuMHP/cSCdIglAcGPUaQeQS
-         PAd5HVdFzbzPZeTAwuecuMpWvGHv0yrgnuXT6XkHETGQcH4ldJV8qCSGaZ5K6q1Drv
-         jw4UNBjUDtoi+nZuOL+PaVmMvj3p5s0VmetzCJsM=
-Date:   Wed, 28 Oct 2020 12:27:52 +0100
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Thomas Gleixner <tglx@linutronix.de>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        linux-usb@vger.kernel.org,
-        Thomas Winischhofer <thomas@winischhofer.net>,
-        Johan Hovold <johan@kernel.org>,
-        Mathias Nyman <mathias.nyman@intel.com>,
-        Valentina Manea <valentina.manea.m@gmail.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        linux-omap@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+        s=default; t=1603924223;
+        bh=GBQ0jA1UbDnOOxIlEwQgVuqIYDKm0O9dv+Q1uOL6pdA=;
+        h=From:To:Subject:Date:In-Reply-To:References:From;
+        b=tIn300E8Rzj6BZFs3bCXHp75IHLpBjGoOYIqtoovMUMHGn0FHLBGyVHUD48m7tUDX
+         /Za588QEIRJrpHNilXkNTADwp8hua11g9jS+fzjo9eQnezVpQrclTURxm+3+eL2hL1
+         5nG6mYSYxD3yprPQXPjmtMWOFeYbRLZIfCcgC/pY=
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+To:     Lee Jones <lee.jones@linaro.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
+        Support Opensource <support.opensource@diasemi.com>,
+        Andy Shevchenko <andy@kernel.org>, Milo Kim <milo.kim@ti.com>,
+        Chanwoo Choi <cw00.choi@samsung.com>,
         Krzysztof Kozlowski <krzk@kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tony Lindgren <tony@atomide.com>,
+        patches@opensource.cirrus.com, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@kernel.org>,
-        Duncan Sands <duncan.sands@free.fr>
-Subject: Re: [patch V2 06/13] usb: host: isp1362: Replace in_interrupt() usage
-Message-ID: <20201028112752.GA1991431@kroah.com>
-References: <20201019100629.419020859@linutronix.de>
- <20201019101110.240285929@linutronix.de>
+        linux-rpi-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: [RESEND PATCH 02/42] mfd: as3711: use PLATFORM_DEVID_NONE
+Date:   Wed, 28 Oct 2020 23:29:29 +0100
+Message-Id: <20201028223009.369824-2-krzk@kernel.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20201028223009.369824-1-krzk@kernel.org>
+References: <20201028223009.369824-1-krzk@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201019101110.240285929@linutronix.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Oct 19, 2020 at 12:06:35PM +0200, Thomas Gleixner wrote:
-> isp1362_show_regs() is a debugging-only function, with no call sites. It
-> prints the cached value of the HCuPINTENB register if in_interupt() is
-> true, otherwise it reads the actual register content.
-> 
-> The usage of in_interrupt() in drivers is phased out and Linus clearly
-> requested that code which changes behaviour depending on context should
-> either be separated or the context be conveyed in an argument passed by the
-> caller, which usually knows the context.
-> 
-> Make the conditional based on a function argument.
-> 
-> Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-usb@vger.kernel.org
-> ---
-> V2: Fix silly typo
-> ---
->  drivers/usb/host/isp1362.h |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> --- a/drivers/usb/host/isp1362.h
-> +++ b/drivers/usb/host/isp1362.h
-> @@ -793,7 +793,8 @@ static void isp1362_write_fifo(struct is
->  			ISP1362_REG_NO(ISP1362_REG_##r), isp1362_read_reg16(d, r));	\
->  }
->  
-> -static void __attribute__((__unused__)) isp1362_show_regs(struct isp1362_hcd *isp1362_hcd)
-> +static void __attribute__((__unused__))
-> +isp1362_show_regs(struct isp1362_hcd *isp1362_hcd, bool cached_inten)
->  {
->  	isp1362_show_reg(isp1362_hcd, HCREVISION);
->  	isp1362_show_reg(isp1362_hcd, HCCONTROL);
-> @@ -815,7 +816,7 @@ static void __attribute__((__unused__))
->  	isp1362_show_reg(isp1362_hcd, HCXFERCTR);
->  	isp1362_show_reg(isp1362_hcd, HCuPINT);
->  
-> -	if (in_interrupt())
-> +	if (cached_inten)
->  		DBG(0, "%-12s[%02x]:     %04x\n", "HCuPINTENB",
->  			 ISP1362_REG_NO(ISP1362_REG_HCuPINTENB), isp1362_hcd->irqenb);
->  	else
-> 
+Use PLATFORM_DEVID_NONE define instead of "-1" value because:
+ - it brings some meaning,
+ - it might point attention why auto device ID was not used.
 
-Let's just delete this whole function, if no one is calling it, it
-should not be present.  I'll go make up a patch for that...
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+---
+ drivers/mfd/as3711.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-thanks,
+diff --git a/drivers/mfd/as3711.c b/drivers/mfd/as3711.c
+index 3adaec6c37df..5933f322ad52 100644
+--- a/drivers/mfd/as3711.c
++++ b/drivers/mfd/as3711.c
+@@ -184,8 +184,9 @@ static int as3711_i2c_probe(struct i2c_client *client,
+ 		as3711_subdevs[AS3711_BACKLIGHT].pdata_size = 0;
+ 	}
+ 
+-	ret = devm_mfd_add_devices(as3711->dev, -1, as3711_subdevs,
+-				   ARRAY_SIZE(as3711_subdevs), NULL, 0, NULL);
++	ret = devm_mfd_add_devices(as3711->dev, PLATFORM_DEVID_NONE,
++				   as3711_subdevs, ARRAY_SIZE(as3711_subdevs),
++				   NULL, 0, NULL);
+ 	if (ret < 0)
+ 		dev_err(&client->dev, "add mfd devices failed: %d\n", ret);
+ 
+-- 
+2.25.1
 
-greg k-h
