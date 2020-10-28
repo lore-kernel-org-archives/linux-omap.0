@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8212C56202
-	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:32:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75AA2C4363A
+	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:32:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 647CD2080D
-	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:32:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F2DA206DC
+	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 00:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603931539;
-	bh=Z3MQKhv+ZLUhU7MgkJiui/AhRWMSips3cc5Y1lahYAY=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=ABBXOwOBYaqjhP9LYlJtA69nuK/5IdLRqglBwQffXZo0dU2SkuVUMknNrl9ptNx0F
-	 sTNGB1olHvlNsTkSU0YfTgn+yCcj0IZ0mesp20uMzJpckr+IojHiNHP/qw1geI+rgS
-	 Qrb9ZeMsxVfFTWNxaDOhQYWnVCxBcoKgiiWaqwY8=
+	s=default; t=1603931543;
+	bh=ntin2xDTkfek+9hEN28Uh4xls2Y0Qz++YiBXUELoDEs=;
+	h=From:To:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=FLxMC6V/z7i+YBEW9U0kN40vZHb3gaDOOEtyyMVAf+FSH3c5XgiL7cxDNE8tbOGD0
+	 pNTeIwA0eLyV6c2y1dD8tiVKVQKm0jXX6SqUoTTHchg3FdFI1nFygSUvv8JzwXrqAC
+	 /PtY/HD+B/zD9OGk/D6D+dUuvQw+ilCGu83rwmxg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387705AbgJ1Wa3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:30:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43398 "EHLO mail.kernel.org"
+        id S1728455AbgJ2AcS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 20:32:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43648 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732857AbgJ1WaS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:30:18 -0400
+        id S2387665AbgJ1Wa3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:30:29 -0400
 Received: from kozik-lap.proceq-device.com (unknown [194.230.155.184])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3895F20714;
-        Wed, 28 Oct 2020 22:30:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D9BF320725;
+        Wed, 28 Oct 2020 22:30:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603924218;
-        bh=Z3MQKhv+ZLUhU7MgkJiui/AhRWMSips3cc5Y1lahYAY=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ZfjpmpFm2yBCiugjBHAeL4425YSyLy0X5jKvkOBXp5l/nR0qUv1Nq60XeZZf8O8Xg
-         HiPz8zOo8yWC3Gmw+YVoEFVUwiF1UHqgRRYDf4t+PWoHMIrM8oLGyeehSfTMLmXPx0
-         vK5HI+7mrMUammjz14hEUuHkFGWdM2ge0XLVIH8U=
+        s=default; t=1603924228;
+        bh=ntin2xDTkfek+9hEN28Uh4xls2Y0Qz++YiBXUELoDEs=;
+        h=From:To:Subject:Date:In-Reply-To:References:From;
+        b=0V1FBsHK+nvjLRp126AH3+i2dyJb/rAa8ElL1i8ATwDXGztdqKPjBs3lYRwp9JVfw
+         piMxGGjfS11IlO3hM6zir4kgIQ3Wv5pLJCJFuRpSrXHXBUqFgXpmEPh1evvVnKPopm
+         nLImMBG8xwgdlnA2Ky31SUWgBqHQS0kH506ueuMA=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Lee Jones <lee.jones@linaro.org>,
         Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -59,11 +59,12 @@ To:     Lee Jones <lee.jones@linaro.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-rpi-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc:     Charles Keepax <ckeepax@opensource.cirrus.com>
-Subject: [RESEND PATCH 01/42] mfd: arizona: use PLATFORM_DEVID_NONE
-Date:   Wed, 28 Oct 2020 23:29:28 +0100
-Message-Id: <20201028223009.369824-1-krzk@kernel.org>
+Subject: [RESEND PATCH 03/42] mfd: as3722: use PLATFORM_DEVID_NONE
+Date:   Wed, 28 Oct 2020 23:29:30 +0100
+Message-Id: <20201028223009.369824-3-krzk@kernel.org>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20201028223009.369824-1-krzk@kernel.org>
+References: <20201028223009.369824-1-krzk@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -75,27 +76,23 @@ Use PLATFORM_DEVID_NONE define instead of "-1" value because:
  - it might point attention why auto device ID was not used.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-Acked-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- drivers/mfd/arizona-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mfd/as3722.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/mfd/arizona-core.c b/drivers/mfd/arizona-core.c
-index 000cb82023e3..bf48372db605 100644
---- a/drivers/mfd/arizona-core.c
-+++ b/drivers/mfd/arizona-core.c
-@@ -1043,8 +1043,9 @@ int arizona_dev_init(struct arizona *arizona)
- 	case CS47L24:
- 		break; /* No LDO1 regulator */
- 	default:
--		ret = mfd_add_devices(arizona->dev, -1, early_devs,
--				      ARRAY_SIZE(early_devs), NULL, 0, NULL);
-+		ret = mfd_add_devices(arizona->dev, PLATFORM_DEVID_NONE,
-+				      early_devs, ARRAY_SIZE(early_devs),
-+				      NULL, 0, NULL);
- 		if (ret != 0) {
- 			dev_err(dev, "Failed to add early children: %d\n", ret);
- 			return ret;
+diff --git a/drivers/mfd/as3722.c b/drivers/mfd/as3722.c
+index 59dfeff71592..b2151f56f3d2 100644
+--- a/drivers/mfd/as3722.c
++++ b/drivers/mfd/as3722.c
+@@ -397,7 +397,7 @@ static int as3722_i2c_probe(struct i2c_client *i2c,
+ 		return ret;
+ 	}
+ 
+-	ret = devm_mfd_add_devices(&i2c->dev, -1, as3722_devs,
++	ret = devm_mfd_add_devices(&i2c->dev, PLATFORM_DEVID_NONE, as3722_devs,
+ 				   ARRAY_SIZE(as3722_devs), NULL, 0,
+ 				   regmap_irq_get_domain(as3722->irq_data));
+ 	if (ret) {
 -- 
 2.25.1
 
