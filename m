@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5101C55179
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCBE7C55179
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:31:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E84520759
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A6A520725
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:31:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603924258;
-	bh=ZhHhkh6o1JF/ds+3rdUTx+1vE3mzIzoPH4I1vjLLy5w=;
+	s=default; t=1603924274;
+	bh=VCI2z1U690+gy2/g7ipJ4jAAws2M6QcgNV8q6Id1J30=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=E6hYsf/s8sCbqZi4NSxoiqP5kWdsJjgrX2jZUbHXMq3CvnoVJ6A7hh20UF54FwZqt
-	 aoGyZFlSy96u4gXNDxUgYb47yHhu6LRthraBmcBEbBfP/HANXIkh+4PnC7nK0rlIPS
-	 54TLMpBAnkAACY+AWtrjtqQhBDH24geiTvSlFrCg=
+	b=wDdVOfKyeDromgJjfhnuw5uK21Ipp7OiY+UIyvLX/tOyDd5BATsR0zfcLDVkLimTv
+	 SO6uHnfFPEZ7SsAdrHlVUEypXASjlg1SwnkT/V5FzjAP61gPnMBETsEimxrLS0wCCF
+	 3N8+fJd6LSgR/0DdPCDNA9/1fTtUTsurkam052yE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387810AbgJ1Wa5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:30:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44326 "EHLO mail.kernel.org"
+        id S2387842AbgJ1WbI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:31:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44588 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387793AbgJ1Wa4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:30:56 -0400
+        id S2387814AbgJ1WbG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:31:06 -0400
 Received: from kozik-lap.proceq-device.com (unknown [194.230.155.184])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6131F20725;
-        Wed, 28 Oct 2020 22:30:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1686020714;
+        Wed, 28 Oct 2020 22:31:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603924255;
-        bh=ZhHhkh6o1JF/ds+3rdUTx+1vE3mzIzoPH4I1vjLLy5w=;
+        s=default; t=1603924265;
+        bh=VCI2z1U690+gy2/g7ipJ4jAAws2M6QcgNV8q6Id1J30=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=viEbwuZDoYAR+E4LAsjCYAH8P8MbPR/9VNMiQXeZjcvtQ4o7mavRbVdZEiQJrGbN8
-         IZKQeADuKwgi++NkOMLojI0vZZ+OF54G4+fIBtUAw3IRGX8g4EY6ATwrT4zdksi+iG
-         ij1Ro79mS1Sy5op8AQNgV4NlIh6gvdzZRKBQANFg=
+        b=x1MZwqSn02evnnoX6GtFpoEy/Tk1Vng+ATRhLm/W1RBVO9FjvZ+1qyawFdz8Rh5En
+         JUw6sMFTVAc3gURhIT+kSv1tva3a9A2pz0VmjEPyJ3pdRySWfMhlmm8eKleBmna/8R
+         coqu5GgDD4cADMwtQLCOA9mpm4/zrOICeXJgAag0=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Lee Jones <lee.jones@linaro.org>,
         Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -59,10 +59,10 @@ To:     Lee Jones <lee.jones@linaro.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-rpi-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc:     Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
-Subject: [RESEND PATCH 08/42] mfd: da9055: use PLATFORM_DEVID_NONE
-Date:   Wed, 28 Oct 2020 23:29:35 +0100
-Message-Id: <20201028223009.369824-8-krzk@kernel.org>
+Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [RESEND PATCH 10/42] mfd: intel_msic: use PLATFORM_DEVID_NONE
+Date:   Wed, 28 Oct 2020 23:29:37 +0100
+Message-Id: <20201028223009.369824-10-krzk@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201028223009.369824-1-krzk@kernel.org>
 References: <20201028223009.369824-1-krzk@kernel.org>
@@ -77,24 +77,27 @@ Use PLATFORM_DEVID_NONE define instead of "-1" value because:
  - it might point attention why auto device ID was not used.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-Acked-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 ---
- drivers/mfd/da9055-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/intel_msic.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/da9055-core.c b/drivers/mfd/da9055-core.c
-index 6d0af8486269..ff8fe165b937 100644
---- a/drivers/mfd/da9055-core.c
-+++ b/drivers/mfd/da9055-core.c
-@@ -400,7 +400,7 @@ int da9055_device_init(struct da9055 *da9055)
+diff --git a/drivers/mfd/intel_msic.c b/drivers/mfd/intel_msic.c
+index bb24c2a07900..e9944a81dc44 100644
+--- a/drivers/mfd/intel_msic.c
++++ b/drivers/mfd/intel_msic.c
+@@ -317,8 +317,9 @@ static int intel_msic_init_devices(struct intel_msic *msic)
+ 		if (!pdata->irq[i])
+ 			continue;
  
- 	da9055->irq_base = regmap_irq_chip_get_base(da9055->irq_data);
- 
--	ret = mfd_add_devices(da9055->dev, -1,
-+	ret = mfd_add_devices(da9055->dev, PLATFORM_DEVID_NONE,
- 			      da9055_devs, ARRAY_SIZE(da9055_devs),
- 			      NULL, da9055->irq_base, NULL);
- 	if (ret)
+-		ret = mfd_add_devices(&pdev->dev, -1, &msic_devs[i], 1, NULL,
+-				      pdata->irq[i], NULL);
++		ret = mfd_add_devices(&pdev->dev, PLATFORM_DEVID_NONE,
++				      &msic_devs[i], 1, NULL, pdata->irq[i],
++				      NULL);
+ 		if (ret)
+ 			goto fail;
+ 	}
 -- 
 2.25.1
 
