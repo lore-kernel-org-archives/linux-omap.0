@@ -5,39 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D1ACC388F7
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5101C55179
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3190920719
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E84520759
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:30:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603924255;
-	bh=NcuGCp7psdo27lUEMs8BF/KiqmT2aaxB0ULJR4v6e7o=;
-	h=From:To:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=s5IflH+DfUaIaTe+QLZkJwEumMA6lSpXsaCFh4EyndMP7bzoRNrWEUzznki4231hX
-	 WXozROC3dmejYa3hLYTYhWFNF5kVvEQ7X8nmPpobhZ3xvwwv1736oB5LieHuIOWTjD
-	 osijPGUwzg0rPSLzjW5tWnK12p2/XrIygUHB/V8Q=
+	s=default; t=1603924258;
+	bh=ZhHhkh6o1JF/ds+3rdUTx+1vE3mzIzoPH4I1vjLLy5w=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=E6hYsf/s8sCbqZi4NSxoiqP5kWdsJjgrX2jZUbHXMq3CvnoVJ6A7hh20UF54FwZqt
+	 aoGyZFlSy96u4gXNDxUgYb47yHhu6LRthraBmcBEbBfP/HANXIkh+4PnC7nK0rlIPS
+	 54TLMpBAnkAACY+AWtrjtqQhBDH24geiTvSlFrCg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387782AbgJ1Wat (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:30:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44054 "EHLO mail.kernel.org"
+        id S2387810AbgJ1Wa5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:30:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387770AbgJ1Wap (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:30:45 -0400
+        id S2387793AbgJ1Wa4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:30:56 -0400
 Received: from kozik-lap.proceq-device.com (unknown [194.230.155.184])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9752B2071A;
-        Wed, 28 Oct 2020 22:30:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6131F20725;
+        Wed, 28 Oct 2020 22:30:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603924244;
-        bh=NcuGCp7psdo27lUEMs8BF/KiqmT2aaxB0ULJR4v6e7o=;
-        h=From:To:Subject:Date:In-Reply-To:References:From;
-        b=gPmiBVFZkjM8/PRhoi+g0DOY/qYr+lKQVs37NqNEDE/hbPWWta4wjmSb3gsXzFKFC
-         Kor22J9trrqBXevjrtm1BPwjgzj1KmmuLzsC4t2w9Xu8MG1lhMb4iJMdMLZR/OYeiL
-         7WwVBUsD2RSyKWZ5Mroke4aItrtxSQbjSHPGYuXw=
+        s=default; t=1603924255;
+        bh=ZhHhkh6o1JF/ds+3rdUTx+1vE3mzIzoPH4I1vjLLy5w=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=viEbwuZDoYAR+E4LAsjCYAH8P8MbPR/9VNMiQXeZjcvtQ4o7mavRbVdZEiQJrGbN8
+         IZKQeADuKwgi++NkOMLojI0vZZ+OF54G4+fIBtUAw3IRGX8g4EY6ATwrT4zdksi+iG
+         ij1Ro79mS1Sy5op8AQNgV4NlIh6gvdzZRKBQANFg=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Lee Jones <lee.jones@linaro.org>,
         Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -59,9 +59,10 @@ To:     Lee Jones <lee.jones@linaro.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-rpi-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [RESEND PATCH 06/42] mfd: bcm2835: use PLATFORM_DEVID_NONE
-Date:   Wed, 28 Oct 2020 23:29:33 +0100
-Message-Id: <20201028223009.369824-6-krzk@kernel.org>
+Cc:     Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+Subject: [RESEND PATCH 08/42] mfd: da9055: use PLATFORM_DEVID_NONE
+Date:   Wed, 28 Oct 2020 23:29:35 +0100
+Message-Id: <20201028223009.369824-8-krzk@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201028223009.369824-1-krzk@kernel.org>
 References: <20201028223009.369824-1-krzk@kernel.org>
@@ -76,34 +77,24 @@ Use PLATFORM_DEVID_NONE define instead of "-1" value because:
  - it might point attention why auto device ID was not used.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-Acked-by: Florian Fainelli <f.fainelli@gmail.com>
-Reviewed-by: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
+Acked-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
 ---
- drivers/mfd/bcm2835-pm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/da9055-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/mfd/bcm2835-pm.c b/drivers/mfd/bcm2835-pm.c
-index 42fe67f1538e..a76014512bde 100644
---- a/drivers/mfd/bcm2835-pm.c
-+++ b/drivers/mfd/bcm2835-pm.c
-@@ -44,7 +44,7 @@ static int bcm2835_pm_probe(struct platform_device *pdev)
- 	if (IS_ERR(pm->base))
- 		return PTR_ERR(pm->base);
+diff --git a/drivers/mfd/da9055-core.c b/drivers/mfd/da9055-core.c
+index 6d0af8486269..ff8fe165b937 100644
+--- a/drivers/mfd/da9055-core.c
++++ b/drivers/mfd/da9055-core.c
+@@ -400,7 +400,7 @@ int da9055_device_init(struct da9055 *da9055)
  
--	ret = devm_mfd_add_devices(dev, -1,
-+	ret = devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE,
- 				   bcm2835_pm_devs, ARRAY_SIZE(bcm2835_pm_devs),
- 				   NULL, 0, NULL);
+ 	da9055->irq_base = regmap_irq_chip_get_base(da9055->irq_data);
+ 
+-	ret = mfd_add_devices(da9055->dev, -1,
++	ret = mfd_add_devices(da9055->dev, PLATFORM_DEVID_NONE,
+ 			      da9055_devs, ARRAY_SIZE(da9055_devs),
+ 			      NULL, da9055->irq_base, NULL);
  	if (ret)
-@@ -60,7 +60,7 @@ static int bcm2835_pm_probe(struct platform_device *pdev)
- 		if (IS_ERR(pm->asb))
- 			return PTR_ERR(pm->asb);
- 
--		ret = devm_mfd_add_devices(dev, -1,
-+		ret = devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE,
- 					   bcm2835_power_devs,
- 					   ARRAY_SIZE(bcm2835_power_devs),
- 					   NULL, 0, NULL);
 -- 
 2.25.1
 
