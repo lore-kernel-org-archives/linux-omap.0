@@ -2,152 +2,102 @@ Return-Path: <SRS0=S7ps=ED=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DATE_IN_PAST_06_12,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73079C56202
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 21:55:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23E89C4363A
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:12:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F350246CD
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 21:55:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603922136;
-	bh=HbgKjEA/PYFjQPE2NMiuSnpd7j5N0Pl+TmmK5aOx498=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=I4oRVj4qB+HmJqNqF8pI1/WnVYHJKQO8eBqfcPKgJLNVfAnDnJIXzwrjbdmP5FXee
-	 Ipj9xgX04+vATb9wh09IHFijkH2bW86RKd+eLkVnO8DfrvVQuuar/9+vDGNq4MKIhx
-	 99ToKwFq3b/CjvI7YmflK5us2morv1kVKSZfFti8=
+	by mail.kernel.org (Postfix) with ESMTP id B861F2474B
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:12:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="aTm6r+eM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728814AbgJ1Vys (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 17:54:48 -0400
-Received: from mail-ua1-f68.google.com ([209.85.222.68]:42979 "EHLO
-        mail-ua1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728500AbgJ1Vwt (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2020 17:52:49 -0400
-Received: by mail-ua1-f68.google.com with SMTP id f15so140852uaq.9;
-        Wed, 28 Oct 2020 14:52:48 -0700 (PDT)
+        id S1730818AbgJ1WMQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:12:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52582 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730813AbgJ1WMQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2020 18:12:16 -0400
+Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E52B3C0613CF
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2020 15:12:15 -0700 (PDT)
+Received: by mail-lj1-x244.google.com with SMTP id k25so907317lji.9
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2020 15:12:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=RwHMd9nNJDrCZQQY9z9MsksS67ghdV6lf0qJYLBuL9w=;
+        b=aTm6r+eMKNxLRMIGLCcKhgs49InOA7XhLbWiAZ8Fd3GUsE1vqdKGuf8yz0Vce4w85e
+         xwvYL3xfpvCD5GJNf6F6behhTYCzHKYlB0JdoR6WmZ/4UUVN18WtIsVlHVUjvxoVxi1N
+         qMGyAVwbrMYiYSqCABbAHPvlSul0iqKmLv6dYMseSxFDtKXeBlK8oa9iD4/GuZ80UTjB
+         HZPIMWrNANB7IoD6R5cZX6dBU6CClzRkAEUz2fOdufW7fjA9YfWado2Q9ylMy3VVyzar
+         anfocd0VImDOQmW8a/1abWI2WWlK0TWl5gqRlGqPb/6SAWtx1XR/8Fbtykrrn2GnCmAD
+         huvg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=fkYpsqioT7Tb7YApRr6kOuIOqhvTBzDRVXioLFVYRRs=;
-        b=k2jYjlcMKpMD2XLjyWigYvkY87yVovtG4wl8FuzmK1dE1jE5i1BrpDypzG1v6Q0mst
-         cQbM+EW8kQbhvEfDQXqd7hc4PiVZJdoSWqHGyS9Fkgk0tfocLRRBgEcjXpUIwXRmpY0S
-         zy0ePDgsJyJL34Zz0JP4BBcX9LbXdkOIas1QciWmqnMqA4NcO+3Z2ybeUsU1FPCSCfwm
-         KZLJmmA+ZPu3+wRvWhJxy4eh6mBDEeK/dtcI2SFRoVoAkQ+odXzcuv2jf7OrMUjbBzOU
-         4KuxNmskXgIPYIN/hh/0Rin/wzGry06MM2MQKtUVtR7wSBVeh9qS80WMtf4LwJIb+w0D
-         ap2w==
-X-Gm-Message-State: AOAM533tu8csPmSwVwbN6+ajQuF8Fb7ZkuCUfnQipkHLzaoRNi//d9yy
-        igsRWRqrNaPLufw3srQNLLmbcQ/2Pw==
-X-Google-Smtp-Source: ABdhPJzUHZm4YYIM4XMiwc5sacukMJ5Sdrdk/i+veAcVoB9ovA+Vih+j4WmB8WVNzg3/epAFFNC3mg==
-X-Received: by 2002:a05:6830:1694:: with SMTP id k20mr912314otr.100.1603918009773;
-        Wed, 28 Oct 2020 13:46:49 -0700 (PDT)
-Received: from xps15.herring.priv (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
-        by smtp.googlemail.com with ESMTPSA id t17sm116123oor.3.2020.10.28.13.46.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2020 13:46:49 -0700 (PDT)
-From:   Rob Herring <robh@kernel.org>
-To:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc:     linux-pci@vger.kernel.org, Andy Gross <agross@kernel.org>,
-        Binghui Wang <wangbinghui@hisilicon.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Fabio Estevam <festevam@gmail.com>,
-        Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Jesper Nilsson <jesper.nilsson@axis.com>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Jonathan Chocron <jonnyc@amazon.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
-        linux-amlogic@lists.infradead.org, linux-arm-kernel@axis.com,
-        linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org,
-        linux-tegra@vger.kernel.org, Lucas Stach <l.stach@pengutronix.de>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Minghuan Lian <minghuan.Lian@nxp.com>,
-        Mingkai Hu <mingkai.hu@nxp.com>,
-        Murali Karicheri <m-karicheri2@ti.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Pratyush Anand <pratyush.anand@gmail.com>,
-        Richard Zhu <hongxing.zhu@nxp.com>,
-        Roy Zang <roy.zang@nxp.com>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Stanimir Varbanov <svarbanov@mm-sol.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Xiaowei Song <songxiaowei@hisilicon.com>,
-        Yue Wang <yue.wang@Amlogic.com>
-Subject: [PATCH 00/13] PCI: dwc: Another round of clean-ups
-Date:   Wed, 28 Oct 2020 15:46:33 -0500
-Message-Id: <20201028204646.356535-1-robh@kernel.org>
-X-Mailer: git-send-email 2.25.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=RwHMd9nNJDrCZQQY9z9MsksS67ghdV6lf0qJYLBuL9w=;
+        b=psVzL8LiopwtzEjhtMPFA2/LERq5q0EeiIFePVXzxpX9//76JjZpv8bloglFEiglCC
+         RqTuUStnTrISQXx7GMm+Qrx34VbHDPN7EaLrfnB3j0dbmgA9hNpQdrI93YqrqqRuJqwm
+         4KHC703Bp/NYZiDf0TmSWzmOKFVVLWnmSKBdKtCkuiFhmhAUW+7jBrMameIew5DrDUYR
+         RSib9LXTHRxyElRpIoy4UPpKNaDsW95rLe16FBvy5oldZW+5qxhGXTY9p0fzsEK4AxDc
+         WgyD9rLhwcDOOr1Q6V/IEHgfY1dFxLcvSsyWBwaKHbKepR345QjPq5MaAVW0CaE5eKbM
+         yE4A==
+X-Gm-Message-State: AOAM531bMhGJDDvv2AHBSp3ShSuxd3LQY3WxwIj7EzdAcruyk0vdwrLf
+        N514MuOdp9OmUjV3A7J9mFkqbPDEmo5HVfb40XygcNXsmCQMhw==
+X-Google-Smtp-Source: ABdhPJw939xH2jDNloF2M5EDl+nu2WQP9QKe67iGxQIrEdE6uS+aCV3rNRSgMKCxItJ3JdzJGWrxAgxigoGxnWREM4U=
+X-Received: by 2002:a19:191:: with SMTP id 139mr2699355lfb.502.1603899685282;
+ Wed, 28 Oct 2020 08:41:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20201028060556.56038-1-tony@atomide.com>
+In-Reply-To: <20201028060556.56038-1-tony@atomide.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Wed, 28 Oct 2020 16:41:14 +0100
+Message-ID: <CACRpkdYj_hjdA0iyOUdoyEDJ8N2v--JnEH_2CHhgVdJOFzfEkQ@mail.gmail.com>
+Subject: Re: [PATCH] Revert "Revert "gpio: omap: Fix lost edge wake-up interrupts""
+To:     ext Tony Lindgren <tony@atomide.com>
+Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Keerthy <j-keerthy@ti.com>,
+        Ladislav Michl <ladis@linux-mips.org>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Here's another batch of DWC PCI host refactoring. This series primarily
-moves more of the MSI, link up, and resource handling to the core
-code.
+On Wed, Oct 28, 2020 at 7:06 AM Tony Lindgren <tony@atomide.com> wrote:
 
-No doubt I've probably broken something. Please test. A git branch is
-here[1].
+> This reverts commit 579ced8fdb00b8e94304a83e3cc419f6f8eab08e.
+>
+> Turns out I was overly optimistic about cpu_pm blocking idle being a
+> solution for handling edge interrupts. While it helps in preventing
+> entering idle states that potentially lose context, we can still get
+> an edge interrupt triggering while entering idle. So we need to also
+> add back the workaround for seeing if there are any pending edge
+> interrupts when waking up.
+>
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Ladislav Michl <ladis@linux-mips.org>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Russell King <rmk+kernel@armlinux.org.uk>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Rob
+Patch applied for fixes!
 
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git pci-more-dwc-cleanup
-
-Rob Herring (13):
-  PCI: dwc/imx6: Drop setting PCI_MSI_FLAGS_ENABLE
-  PCI: dwc/intel-gw: Move ATU offset out of driver match data
-  PCI: dwc: Move "dbi", "dbi2", and "addr_space" resource setup into
-    common code
-  PCI: dwc/intel-gw: Remove some unneeded function wrappers
-  PCI: dwc: Ensure all outbound ATU windows are reset
-  PCI: dwc/dra7xx: Use the common MSI irq_chip
-  PCI: dwc: Drop the .set_num_vectors() host op
-  PCI: dwc: Move MSI interrupt setup into DWC common code
-  PCI: dwc: Rework MSI initialization
-  PCI: dwc: Move link handling into common code
-  PCI: dwc: Move dw_pcie_msi_init() into core
-  PCI: dwc: Move dw_pcie_setup_rc() to DWC common code
-  PCI: dwc: Remove unnecessary wrappers around dw_pcie_host_init()
-
- drivers/pci/controller/dwc/pci-dra7xx.c       | 141 +-----------------
- drivers/pci/controller/dwc/pci-exynos.c       |  50 ++-----
- drivers/pci/controller/dwc/pci-imx6.c         |  51 +------
- drivers/pci/controller/dwc/pci-keystone.c     |  68 +--------
- .../pci/controller/dwc/pci-layerscape-ep.c    |  37 +----
- drivers/pci/controller/dwc/pci-layerscape.c   |  67 +--------
- drivers/pci/controller/dwc/pci-meson.c        |  53 ++-----
- drivers/pci/controller/dwc/pcie-al.c          |  29 +---
- drivers/pci/controller/dwc/pcie-armada8k.c    |  37 ++---
- drivers/pci/controller/dwc/pcie-artpec6.c     |  76 +---------
- .../pci/controller/dwc/pcie-designware-ep.c   |  29 +++-
- .../pci/controller/dwc/pcie-designware-host.c |  80 ++++++----
- .../pci/controller/dwc/pcie-designware-plat.c |  70 +--------
- drivers/pci/controller/dwc/pcie-designware.h  |  12 +-
- drivers/pci/controller/dwc/pcie-histb.c       |  37 ++---
- drivers/pci/controller/dwc/pcie-intel-gw.c    |  59 ++------
- drivers/pci/controller/dwc/pcie-kirin.c       |  62 +-------
- drivers/pci/controller/dwc/pcie-qcom.c        |  38 +----
- drivers/pci/controller/dwc/pcie-spear13xx.c   |  62 +++-----
- drivers/pci/controller/dwc/pcie-tegra194.c    |  40 +----
- drivers/pci/controller/dwc/pcie-uniphier-ep.c |  38 +----
- drivers/pci/controller/dwc/pcie-uniphier.c    |  51 +------
- 22 files changed, 217 insertions(+), 970 deletions(-)
-
---
-2.25.1
+Yours,
+Linus Walleij
