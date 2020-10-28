@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B50C56202
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:35:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A5AC4363A
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:36:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E830206CB
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:35:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B21C2070E
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:36:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603924541;
-	bh=/opRYDoUP2hkyGCV09IodIsiWsmlN0SL1QF+3h41Rxg=;
-	h=From:To:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=WUf/+JiF82wyHz1cLOEC+tGqq87/Ms7C/dvRpQ6hIYo45HZNkHGTiBoHtRvXktquj
-	 Mnz6haYG1KIWQTrKF9F+Z7qUEYtGsr78epmgcezj7m9+7JhqDaEmno4JvGVyFqlWVn
-	 UkEVstZ2YYqw86Vo5o42gKmp3HRmbEJoHiY/gTJE=
+	s=default; t=1603924562;
+	bh=B/Vu+6xItSMaZHGt13GUipfykI5xbdYfX/hIHb/tkjs=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=XIqwtP+gosPnJoL632d+tTIo2rOHlOOV4yZqBVjtytafyfYjFF0B1X6CmHaO3P4pa
+	 W8Lh/33UmOZTyBz5LVRqRuAvG8aUy5hgi2MqqgWyN66TI2kDmEX0+AEdyQX06uizdm
+	 UADPNhO0I4RUY84wv7bCnuUbsEBWyY3jj6Ev82Lc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387922AbgJ1Weo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:34:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46842 "EHLO mail.kernel.org"
+        id S2388291AbgJ1WgB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:36:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388355AbgJ1Wcy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:32:54 -0400
+        id S1731063AbgJ1Wd7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:33:59 -0400
 Received: from kozik-lap.proceq-device.com (unknown [194.230.155.184])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5668720725;
-        Wed, 28 Oct 2020 22:32:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C340020714;
+        Wed, 28 Oct 2020 22:33:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603924374;
-        bh=/opRYDoUP2hkyGCV09IodIsiWsmlN0SL1QF+3h41Rxg=;
-        h=From:To:Subject:Date:In-Reply-To:References:From;
-        b=HhVzhSypvTcVdlYW7mJb/nTs+cnlDhpx9f/4lKsHv4R2JCiW7xHQKXZk39ERzB8/p
-         DwB7MRY32DiuHCEqGT8LBQ2k18rpAgAx8TC+BwK5Ciz9y+sR1l0mCWyJkqSnbHtwx3
-         V7/k2+yRH42jUNTIoXJQ4y2rce9kqC8gJtdhefOM=
+        s=default; t=1603924438;
+        bh=B/Vu+6xItSMaZHGt13GUipfykI5xbdYfX/hIHb/tkjs=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=gH5DZMP8j3zLEJjFKHVUigdfh2IdjmvsKy62IkVyMupbuxo8/Kf+ZtkY5rhl29wDc
+         jY7A8wCmNJKi9wgks7zS6IuUVfk+y6Gu+JrSXN2OVSC5huWEcn34KU6LMvcRtcndSp
+         Gvb11NTwHdH+iTwPODHuSShfCdYyq/rwYMS3mVdY=
 From:   Krzysztof Kozlowski <krzk@kernel.org>
 To:     Lee Jones <lee.jones@linaro.org>,
         Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -59,9 +59,10 @@ To:     Lee Jones <lee.jones@linaro.org>,
         linux-arm-kernel@lists.infradead.org,
         linux-rpi-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [RESEND PATCH 30/42] mfd: tc3589x: use PLATFORM_DEVID_NONE
-Date:   Wed, 28 Oct 2020 23:29:57 +0100
-Message-Id: <20201028223009.369824-30-krzk@kernel.org>
+Cc:     Charles Keepax <ckeepax@opensource.cirrus.com>
+Subject: [RESEND PATCH 42/42] mfd: wm8994: use PLATFORM_DEVID_NONE
+Date:   Wed, 28 Oct 2020 23:30:09 +0100
+Message-Id: <20201028223009.369824-42-krzk@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201028223009.369824-1-krzk@kernel.org>
 References: <20201028223009.369824-1-krzk@kernel.org>
@@ -76,34 +77,24 @@ Use PLATFORM_DEVID_NONE define instead of "-1" value because:
  - it might point attention why auto device ID was not used.
 
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Acked-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- drivers/mfd/tc3589x.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mfd/wm8994-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/mfd/tc3589x.c b/drivers/mfd/tc3589x.c
-index 7882a37ffc35..22821112cc6b 100644
---- a/drivers/mfd/tc3589x.c
-+++ b/drivers/mfd/tc3589x.c
-@@ -287,7 +287,8 @@ static int tc3589x_device_init(struct tc3589x *tc3589x)
- 	unsigned int blocks = tc3589x->pdata->block;
+diff --git a/drivers/mfd/wm8994-core.c b/drivers/mfd/wm8994-core.c
+index 3b2b93c5bbcb..5a8d4cc00cc1 100644
+--- a/drivers/mfd/wm8994-core.c
++++ b/drivers/mfd/wm8994-core.c
+@@ -578,7 +578,7 @@ static int wm8994_device_init(struct wm8994 *wm8994, int irq)
  
- 	if (blocks & TC3589x_BLOCK_GPIO) {
--		ret = mfd_add_devices(tc3589x->dev, -1, tc3589x_dev_gpio,
-+		ret = mfd_add_devices(tc3589x->dev, PLATFORM_DEVID_NONE,
-+				      tc3589x_dev_gpio,
- 				      ARRAY_SIZE(tc3589x_dev_gpio), NULL,
- 				      0, tc3589x->domain);
- 		if (ret) {
-@@ -298,7 +299,8 @@ static int tc3589x_device_init(struct tc3589x *tc3589x)
- 	}
+ 	wm8994_irq_init(wm8994);
  
- 	if (blocks & TC3589x_BLOCK_KEYPAD) {
--		ret = mfd_add_devices(tc3589x->dev, -1, tc3589x_dev_keypad,
-+		ret = mfd_add_devices(tc3589x->dev, PLATFORM_DEVID_NONE,
-+				      tc3589x_dev_keypad,
- 				      ARRAY_SIZE(tc3589x_dev_keypad), NULL,
- 				      0, tc3589x->domain);
- 		if (ret) {
+-	ret = mfd_add_devices(wm8994->dev, -1,
++	ret = mfd_add_devices(wm8994->dev, PLATFORM_DEVID_NONE,
+ 			      wm8994_devs, ARRAY_SIZE(wm8994_devs),
+ 			      NULL, 0, NULL);
+ 	if (ret != 0) {
 -- 
 2.25.1
 
