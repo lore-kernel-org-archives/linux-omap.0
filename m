@@ -2,100 +2,86 @@ Return-Path: <SRS0=S7ps=ED=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25861C56201
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:36:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 069D2C56201
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:36:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE3902070E
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:36:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603924572;
-	bh=tAc+eA+rqS8xp2/W/3QiNS5pvqKD4MUkDIEkIoRC2/4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YhbwBzmA8IP7P0AzPwWi3Kb4AMTww64sy5NT/Z6nfEr9xpj1RBd5Kth4kMCYUFbMo
-	 H9exrLEK69qiIFajPGho1oabfXcyLyl/BJEPYdyu4y1adJdsGuwIzCRGA5zsY3dXSM
-	 ZA6DVJS8CkDTW3jOy7kVNUFpbgF6fA7+APAFLGG0=
+	by mail.kernel.org (Postfix) with ESMTP id B5AB5206CB
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Oct 2020 22:36:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388287AbgJ1WgB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:36:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47674 "EHLO mail.kernel.org"
+        id S2388337AbgJ1WgN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:36:13 -0400
+Received: from muru.com ([72.249.23.125]:47076 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388460AbgJ1Wdy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:33:54 -0400
-Received: from kozik-lap.proceq-device.com (unknown [194.230.155.184])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6B7E520725;
-        Wed, 28 Oct 2020 22:33:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603924433;
-        bh=tAc+eA+rqS8xp2/W/3QiNS5pvqKD4MUkDIEkIoRC2/4=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=pqBsuCqgbiEf3WsSOkYjz65L3imY2hUfGeuvz+k3riT6Fz9UjM+KTMUQ4AhlhywUp
-         D0uHsz4fMUeQK9X2UMUo1teYCyLAvINPyVAHwTW2smSx5sbzyAG2V97qejXip7O+hD
-         1+f8TjgOON/Wq73dnrObQpkBFvdhUpHCKv79tE9s=
-From:   Krzysztof Kozlowski <krzk@kernel.org>
-To:     Lee Jones <lee.jones@linaro.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Nicolas Saenz Julienne <nsaenzjulienne@suse.de>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Andy Shevchenko <andy@kernel.org>, Milo Kim <milo.kim@ti.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tony Lindgren <tony@atomide.com>,
-        patches@opensource.cirrus.com, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-rpi-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc:     Charles Keepax <ckeepax@opensource.cirrus.com>
-Subject: [RESEND PATCH 41/42] mfd: wm8400: use PLATFORM_DEVID_NONE
-Date:   Wed, 28 Oct 2020 23:30:08 +0100
-Message-Id: <20201028223009.369824-41-krzk@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201028223009.369824-1-krzk@kernel.org>
-References: <20201028223009.369824-1-krzk@kernel.org>
+        id S2388458AbgJ1Wdx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:33:53 -0400
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 147A3807E;
+        Wed, 28 Oct 2020 06:05:06 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     linux-omap@vger.kernel.org
+Cc:     linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] ARM: OMAP2+: Manage MPU state properly for omap_enter_idle_coupled()
+Date:   Wed, 28 Oct 2020 08:04:57 +0200
+Message-Id: <20201028060457.55899-1-tony@atomide.com>
+X-Mailer: git-send-email 2.29.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Use PLATFORM_DEVID_NONE define instead of "-1" value because:
- - it brings some meaning,
- - it might point attention why auto device ID was not used.
+Based on more testing, commit 8ca5ee624b4c ("ARM: OMAP2+: Restore MPU
+power domain if cpu_cluster_pm_enter() fails") is a poor fix for handling
+cpu_cluster_pm_enter() returned errors.
 
-Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-Acked-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+We should not override the cpuidle states with a hardcoded PWRDM_POWER_ON
+value. Instead, we should use a configured idle state that does not cause
+the context to be lost. Otherwise we end up configuring a potentially
+improper state for the MPUSS. We also want to update the returned state
+index for the selected state.
+
+Let's just select the highest power idle state C1 to ensure no context
+loss is allowed on cpu_cluster_pm_enter() errors. With these changes we
+can now unconditionally call omap4_enter_lowpower() for WFI like we did
+earlier before commit 55be2f50336f ("ARM: OMAP2+: Handle errors for
+cpu_pm"). And we can return the selected state index.
+
+Fixes: 8ca5ee624b4c ("ARM: OMAP2+: Restore MPU power domain if cpu_cluster_pm_enter() fails")
+Fixes: 55be2f50336f ("ARM: OMAP2+: Handle errors for cpu_pm")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mfd/wm8400-core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/cpuidle44xx.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mfd/wm8400-core.c b/drivers/mfd/wm8400-core.c
-index 0fe32a05421b..9efca6f3fbb2 100644
---- a/drivers/mfd/wm8400-core.c
-+++ b/drivers/mfd/wm8400-core.c
-@@ -38,7 +38,8 @@ static int wm8400_register_codec(struct wm8400 *wm8400)
- 		.pdata_size = sizeof(*wm8400),
- 	};
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -175,8 +175,11 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 		if (mpuss_can_lose_context) {
+ 			error = cpu_cluster_pm_enter();
+ 			if (error) {
+-				omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
+-				goto cpu_cluster_pm_out;
++				index = 0;
++				cx = state_ptr + index;
++				pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
++				omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
++				mpuss_can_lose_context = 0;
+ 			}
+ 		}
+ 	}
+@@ -184,7 +187,6 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	omap4_enter_lowpower(dev->cpu, cx->cpu_state);
+ 	cpu_done[dev->cpu] = true;
  
--	return devm_mfd_add_devices(wm8400->dev, -1, &cell, 1, NULL, 0, NULL);
-+	return devm_mfd_add_devices(wm8400->dev, PLATFORM_DEVID_NONE, &cell, 1,
-+				    NULL, 0, NULL);
- }
+-cpu_cluster_pm_out:
+ 	/* Wakeup CPU1 only if it is not offlined */
+ 	if (dev->cpu == 0 && cpumask_test_cpu(1, cpu_online_mask)) {
  
- /*
 -- 
-2.25.1
-
+2.29.1
