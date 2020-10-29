@@ -2,113 +2,122 @@ Return-Path: <SRS0=mo/n=EE=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E439C4363A
-	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 17:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B1DCC4363A
+	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 19:09:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FFC520838
-	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 17:17:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 298132075E
+	for <linux-omap@archiver.kernel.org>; Thu, 29 Oct 2020 19:09:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="dJEN1cts"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="fXaqcHV2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726285AbgJ2RRA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 29 Oct 2020 13:17:00 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:37836 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726811AbgJ2RRA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2020 13:17:00 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09S7YVAk082354;
-        Wed, 28 Oct 2020 02:34:31 -0500
+        id S1725747AbgJ2TJg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 29 Oct 2020 15:09:36 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:58626 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725379AbgJ2TJf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2020 15:09:35 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09TJ9AYE086622;
+        Thu, 29 Oct 2020 14:09:10 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1603870471;
-        bh=7FyZjDkPHbMjozn34bZ1VFAs7xk/d+XHz6/LdreHKWs=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=dJEN1ctsuk0x/MhIn9kicNY8j5dfoWjL0YljwcBvyjv84F1z0Ij5yXFezP81eiEe6
-         5rxXcKttRiPFcGpmH3GLpam637JrIeaQlwIoOqYZ3Ew4hBti+gn6LV+5tz4hUSOA0n
-         Qr/VDFo9iGbkQRFRTIAT4fM7AL/kzpmnMrBVxPzQ=
-Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09S7YUk2089455
+        s=ti-com-17Q1; t=1603998550;
+        bh=98LQ/K/4JWA4RQGtsstxjKLqHusEqhxMQVJCpeQvN10=;
+        h=From:To:CC:Subject:Date;
+        b=fXaqcHV29wwJ/Z2yafPDiBzOT7CUhLr+Pv0eD5pnDoxDeRi99mjSoyJlgUn1/12qH
+         aTiu5GD8Z0ltj63WeIEE/ZH/gnQQdy0tVBhWqXPm5DJZIeVOo1VhKbQK6DY1J5MuIU
+         2w74HG/dfb7AkiDvYgCiXvv5+g7NpUeFziHA/vFo=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09TJ9Aj8118103
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 28 Oct 2020 02:34:31 -0500
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 28
- Oct 2020 02:34:30 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 29 Oct 2020 14:09:10 -0500
+Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 29
+ Oct 2020 14:09:10 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 28 Oct 2020 02:34:30 -0500
-Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09S7YRlP097403;
-        Wed, 28 Oct 2020 02:34:27 -0500
-Subject: Re: [PATCH v1] of: platform: Batch fwnode parsing in the
- init_machine() path
-To:     Saravana Kannan <saravanak@google.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC:     Grygorii Strashko <grygorii.strashko@ti.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        "open list:THERMAL" <linux-pm@vger.kernel.org>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Tony Lindgren <tony@atomide.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Android Kernel Team <kernel-team@android.com>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <CAGETcx8owDP_Bu4oNCyHEsME8XpKygxghm8+yNc2RyMA4wyjCA@mail.gmail.com>
- <20201001225952.3676755-1-saravanak@google.com>
- <CAL_JsqKOUkKBKyxPtZ+BFXPiOfm2uPXhgJPxKP=WS-qX6kSB0w@mail.gmail.com>
- <CAGETcx-tq446JQN0RpKhtyCXB+Y_PUePN_tBZsUmtpO7othm4g@mail.gmail.com>
- <20201002175423.GE3933@pendragon.ideasonboard.com>
- <CAGETcx-7nJaU6pDo_KL-nKmCaxv57C5aaXq-pvo4XiN=N0K5Jg@mail.gmail.com>
- <20201002182712.GF3933@pendragon.ideasonboard.com>
- <11018e7e-a6a1-2df6-5639-821a7c0cb68b@ti.com>
- <CAGETcx8DCiEJy-1PiHheyuuw3YBYfFh67MBcOwv4JEviXmsp3Q@mail.gmail.com>
- <20201003001342.GA1730@pendragon.ideasonboard.com>
- <CAGETcx8Vy2k8igc9QmktFohJSQXvdPTFYu8i_8tgeYvBLk6QfA@mail.gmail.com>
-From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <3fece387-94d9-b806-4cc0-fc20b6be4c6e@ti.com>
-Date:   Wed, 28 Oct 2020 09:34:26 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+ Frontend Transport; Thu, 29 Oct 2020 14:09:10 -0500
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09TJ99s1083876;
+        Thu, 29 Oct 2020 14:09:09 -0500
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>
+CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] net: ethernet: ti: cpsw: disable PTPv1 hw timestamping advertisement
+Date:   Thu, 29 Oct 2020 21:09:10 +0200
+Message-ID: <20201029190910.30789-1-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-In-Reply-To: <CAGETcx8Vy2k8igc9QmktFohJSQXvdPTFYu8i_8tgeYvBLk6QfA@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 27/10/2020 05:29, Saravana Kannan wrote:
+The TI CPTS does not natively support PTPv1, only PTPv2. But, as it
+happens, the CPTS can provide HW timestamp for PTPv1 Sync messages, because
+CPTS HW parser looks for PTP messageType id in PTP message octet 0 which
+value is 0 for PTPv1. As result, CPTS HW can detect Sync messages for PTPv1
+and PTPv2 (Sync messageType = 0 for both), but it fails for any other PTPv1
+messages (Delay_req/resp) and will return PTP messageType id 0 for them.
 
-> Can you try throwing around fw_devlink_pause/resume() around the
-> of_platform_populate() call in arch/arm/mach-omap2/pdata-quirks.c?
-> Just trying to verify the cause/fix.
+The commit e9523a5a32a1 ("net: ethernet: ti: cpsw: enable
+HWTSTAMP_FILTER_PTP_V1_L4_EVENT filter") added PTPv1 hw timestamping
+advertisement by mistake, only to make Linux Kernel "timestamping" utility
+work, and this causes issues with only PTPv1 compatible HW/SW - Sync HW
+timestamped, but Delay_req/resp are not.
 
-AM5 EVM on v5.10-rc1:
+Hence, fix it disabling PTPv1 hw timestamping advertisement, so only PTPv1
+compatible HW/SW can properly roll back to SW timestamping.
 
-[    1.139945] cpuidle: using governor menu
-[   13.126461] No ATAGs?
+Fixes: e9523a5a32a1 ("net: ethernet: ti: cpsw: enable HWTSTAMP_FILTER_PTP_V1_L4_EVENT filter")
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw_ethtool.c | 1 -
+ drivers/net/ethernet/ti/cpsw_priv.c    | 5 +----
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-After adding fw_devlink_pause/resume around of_platform_populate:
-
-[    1.139587] cpuidle: using governor menu
-[    1.899913] No ATAGs?
-
- Tomi
-
+diff --git a/drivers/net/ethernet/ti/cpsw_ethtool.c b/drivers/net/ethernet/ti/cpsw_ethtool.c
+index 4d02c5135611..4619c3a950b0 100644
+--- a/drivers/net/ethernet/ti/cpsw_ethtool.c
++++ b/drivers/net/ethernet/ti/cpsw_ethtool.c
+@@ -728,7 +728,6 @@ int cpsw_get_ts_info(struct net_device *ndev, struct ethtool_ts_info *info)
+ 		(1 << HWTSTAMP_TX_ON);
+ 	info->rx_filters =
+ 		(1 << HWTSTAMP_FILTER_NONE) |
+-		(1 << HWTSTAMP_FILTER_PTP_V1_L4_EVENT) |
+ 		(1 << HWTSTAMP_FILTER_PTP_V2_EVENT);
+ 	return 0;
+ }
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
+index 51cc29f39038..31c5e36ff706 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
++++ b/drivers/net/ethernet/ti/cpsw_priv.c
+@@ -639,13 +639,10 @@ static int cpsw_hwtstamp_set(struct net_device *dev, struct ifreq *ifr)
+ 		break;
+ 	case HWTSTAMP_FILTER_ALL:
+ 	case HWTSTAMP_FILTER_NTP_ALL:
+-		return -ERANGE;
+ 	case HWTSTAMP_FILTER_PTP_V1_L4_EVENT:
+ 	case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
+ 	case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
+-		priv->rx_ts_enabled = HWTSTAMP_FILTER_PTP_V1_L4_EVENT;
+-		cfg.rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_EVENT;
+-		break;
++		return -ERANGE;
+ 	case HWTSTAMP_FILTER_PTP_V2_L4_EVENT:
+ 	case HWTSTAMP_FILTER_PTP_V2_L4_SYNC:
+ 	case HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ:
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.17.1
+
