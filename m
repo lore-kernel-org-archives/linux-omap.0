@@ -2,133 +2,122 @@ Return-Path: <SRS0=27F4=EF=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4401DC4363A
-	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 12:47:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B0FC00A89
+	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 18:15:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D86CC221EB
-	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 12:47:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A64320729
+	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 18:15:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="RrM+sKZw"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="M8PYW0TL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726078AbgJ3MrI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 30 Oct 2020 08:47:08 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:51712 "EHLO
+        id S1726095AbgJ3SPw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 30 Oct 2020 14:15:52 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:39568 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725939AbgJ3MrI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2020 08:47:08 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09UCkoSo076934;
-        Fri, 30 Oct 2020 07:46:50 -0500
+        with ESMTP id S1725844AbgJ3SPw (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2020 14:15:52 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09UIFkEl069707;
+        Fri, 30 Oct 2020 13:15:46 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604062010;
-        bh=2qSGOItmaUl7+k/ZKn+vgyZIOTshegTsZdVz3ypY4BI=;
-        h=From:To:CC:Subject:Date;
-        b=RrM+sKZwpfcMm2Vvk9npufcJFb9zHVphHeaPBV0xD6Z5UGiXjOSmBhX/f6mGBq+cu
-         MoW8Bd1RSwyD8SaYXl7GSzKco6rytzJxPZL2hA324HtawglwmCnKcxjXls+NbYf6qv
-         n6E9y/qRpbiz06v0Zz8fBMjQewSOgq7fcX7sWsiA=
+        s=ti-com-17Q1; t=1604081746;
+        bh=9dgcKo3td0TMDTyJTQO2t4p6XonAw2x1KObaMxUhugI=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=M8PYW0TLGUb7ESlGjL2CdFH3YaD98GhUYL8wYWbb8aXKPmvXax9952OBeBhlA48pe
+         CWkyr1PTjryjNazbRkN/4oRcFe8TeMTK8zaMIxDB3KULfdivEMbuYOQeKV5rWigoft
+         aXUbYdtDwwd+jBkv3ZgSBbVLd8XM71iiepnrTnPs=
 Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09UCkocF013697
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09UIFka7020280
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 30 Oct 2020 07:46:50 -0500
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE113.ent.ti.com
+        Fri, 30 Oct 2020 13:15:46 -0500
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE113.ent.ti.com
  (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 30
- Oct 2020 07:46:50 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ Oct 2020 13:15:46 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 30 Oct 2020 07:46:50 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09UCknBX121081;
-        Fri, 30 Oct 2020 07:46:50 -0500
+ Frontend Transport; Fri, 30 Oct 2020 13:15:46 -0500
+Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09UIFgcK032563;
+        Fri, 30 Oct 2020 13:15:43 -0500
+Subject: Re: [PATCH 4/4] bus: ti-sysc: Fix bogus resetdone warning for cpsw
+To:     Tony Lindgren <tony@atomide.com>, <linux-omap@vger.kernel.org>
+CC:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
+        Tero Kristo <t-kristo@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20201026105812.38418-1-tony@atomide.com>
+ <20201026105812.38418-5-tony@atomide.com>
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
-List-Id: <soc.lore.kernel.org>
-To:     Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>,
-        <soc@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        <linux-omap@vger.kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2] ARM: multi_v7_defconfig: ti: Enable networking options for nfs boot
-Date:   Fri, 30 Oct 2020 14:46:50 +0200
-Message-ID: <20201030124650.20349-1-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
+Message-ID: <b8a3cfc1-f9f5-1b18-b980-e88eb8b20e43@ti.com>
+Date:   Fri, 30 Oct 2020 20:15:50 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20201026105812.38418-5-tony@atomide.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Enable networking options required for NFS boot on TI platforms, which is
-widely for automated test systems.
-- enable new TI CPSW switch driver and related NET_SWITCHDEV config
-- enable TI DP83867 phy
-- explicitly enable PTP clock support to ensure dependent networking
-drivers will stay built-in.
+Hi Tony,
 
-vmlinux size changes:
-- before:
-   text       data        bss        dec        hex    filename
-14703736    8024602     444976    23173314    16198c2    ./omap-arm/vmlinux
+On 26/10/2020 12:58, Tony Lindgren wrote:
+> The cpsw SOFT_RESET register is cleard when out of reset so let's
+> add SYSS_QUIRK_RESETDONE_INVERTED flag for cpsw. Otherwise we will
+> get bogus "OCP softreset timed out" warnings on boot.
 
-- after:
-   text       data        bss        dec        hex    filename
-14727271    8029150     444528    23200949    16204b5    ./omap-arm/vmlinux
+Not sure if this quirk based approach is right way to move forward here.
 
-diff: 27635 (dec)
+The cpsw/cpgmac is "ti,sysc-omap4-simple" which means sysc_omap4_simple, which,
+in turn, has .srst_shift = -ENODEV.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Reviewed-by: Nishanth Menon <nm@ti.com>
----
+And above should be enough to avoid both sysc_reset() and sysc_wait_softreset() for such modules.
 
-changes in v2:
-- rebased on top of 5.10-rc1
-- commit mesage updated
 
- arch/arm/configs/multi_v7_defconfig | 5 +++++
- 1 file changed, 5 insertions(+)
+> 
+> Fixes: d46f9fbec719 ("bus: ti-sysc: Use optional clocks on for enable and wait for softreset bit")
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   drivers/bus/ti-sysc.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+> --- a/drivers/bus/ti-sysc.c
+> +++ b/drivers/bus/ti-sysc.c
+> @@ -1364,6 +1364,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+>   	/* Quirks that need to be set based on detected module */
+>   	SYSC_QUIRK("aess", 0, 0, 0x10, -ENODEV, 0x40000000, 0xffffffff,
+>   		   SYSC_MODULE_QUIRK_AESS),
+> +	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
+> +		   0xffff00f0, SYSS_QUIRK_RESETDONE_INVERTED),
+>   	SYSC_QUIRK("dcan", 0x48480000, 0x20, -ENODEV, -ENODEV, 0xa3170504, 0xffffffff,
+>   		   SYSC_QUIRK_CLKDM_NOAUTO),
+>   	SYSC_QUIRK("dss", 0x4832a000, 0, 0x10, 0x14, 0x00000020, 0xffffffff,
+> @@ -1423,8 +1425,6 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+>   	SYSC_QUIRK("atl", 0, 0, -ENODEV, -ENODEV, 0x0a070100, 0xffffffff, 0),
+>   	SYSC_QUIRK("cm", 0, 0, -ENODEV, -ENODEV, 0x40000301, 0xffffffff, 0),
+>   	SYSC_QUIRK("control", 0, 0, 0x10, -ENODEV, 0x40000900, 0xffffffff, 0),
+> -	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
+> -		   0xffff00f0, 0),
+>   	SYSC_QUIRK("dcan", 0, 0x20, -ENODEV, -ENODEV, 0xa3170504, 0xffffffff, 0),
+>   	SYSC_QUIRK("dcan", 0, 0x20, -ENODEV, -ENODEV, 0x4edb1902, 0xffffffff, 0),
+>   	SYSC_QUIRK("dispc", 0x4832a400, 0, 0x10, 0x14, 0x00000030, 0xffffffff, 0),
+> 
 
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index e731cdf7c88c..32aaec92736b 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -154,6 +154,7 @@ CONFIG_INET6_IPCOMP=m
- CONFIG_IPV6_MIP6=m
- CONFIG_IPV6_TUNNEL=m
- CONFIG_IPV6_MULTIPLE_TABLES=y
-+CONFIG_NET_SWITCHDEV=y
- CONFIG_NET_DSA=m
- CONFIG_CAN=y
- CONFIG_CAN_AT91=m
-@@ -270,9 +271,12 @@ CONFIG_SNI_AVE=y
- CONFIG_STMMAC_ETH=y
- CONFIG_DWMAC_DWC_QOS_ETH=y
- CONFIG_TI_CPSW=y
-+CONFIG_TI_CPSW_SWITCHDEV=y
-+CONFIG_TI_CPTS=y
- CONFIG_XILINX_EMACLITE=y
- CONFIG_BROADCOM_PHY=y
- CONFIG_ICPLUS_PHY=y
-+CONFIG_DP83867_PHY=y
- CONFIG_MARVELL_PHY=y
- CONFIG_MICREL_PHY=y
- CONFIG_AT803X_PHY=y
-@@ -436,6 +440,7 @@ CONFIG_SPI_TEGRA20_SLINK=y
- CONFIG_SPI_XILINX=y
- CONFIG_SPI_SPIDEV=y
- CONFIG_SPMI=y
-+CONFIG_PTP_1588_CLOCK=y
- CONFIG_PINCTRL_AS3722=y
- CONFIG_PINCTRL_RZA2=y
- CONFIG_PINCTRL_STMFX=y
 -- 
-2.17.1
-
+Best regards,
+grygorii
