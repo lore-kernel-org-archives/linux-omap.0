@@ -8,45 +8,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2110FC00A89
-	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 20:08:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DEC2C4741F
+	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 20:17:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD8622071A
-	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 20:08:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7ACE2071A
+	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 20:17:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="vFtQ3pDo"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="XBEYzCX9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727811AbgJ3UHl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 30 Oct 2020 16:07:41 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:33236 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727803AbgJ3UHk (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2020 16:07:40 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09UK7ZYc108177;
-        Fri, 30 Oct 2020 15:07:35 -0500
+        id S1727771AbgJ3UHg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 30 Oct 2020 16:07:36 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:37816 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727747AbgJ3UHd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2020 16:07:33 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09UK7SWp104233;
+        Fri, 30 Oct 2020 15:07:28 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604088455;
-        bh=0m+e0cNmj2jKDpartKZUa902BaxeaD2NZhdh8fdtk68=;
+        s=ti-com-17Q1; t=1604088448;
+        bh=sINLZzRvjCtUj4l1ugcfLeB492coR1IzG3yWTNfER3U=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=vFtQ3pDoNAPkLuQaaBGhd9ccEdY5a6yvRsPGhQkR5WB6CX6EJ6S+qaxcV7VtDDEnx
-         nvGpaATy8cEOqwEQUsCOYq9EPbRyC+NeUxqBdyC8iy6KpJrH015RxT4+SijYAQxtmM
-         6PPR6iJYZEh6yYfrU8Qzu24ICWAfE59UtcmVmZ2c=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09UK7Zo4036591
+        b=XBEYzCX9uJu4NKjY0ERf1jURd1hRYVaBQymETbP26ZZT8A1XBZ6fQHA5A52bnxrzW
+         iLldxEz+4x6SMI5PjOevaZY+2007F6dMLC4NXb/YPhOsptRWqi/EOe3lS5rT0uPxhy
+         /KuPnom1QUB4+ZgcNzwmap1gs2H/d7D1OZxbuCiA=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09UK7Sfa055505
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 30 Oct 2020 15:07:35 -0500
-Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 30 Oct 2020 15:07:28 -0500
+Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 30
- Oct 2020 15:07:35 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ Oct 2020 15:07:27 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 30 Oct 2020 15:07:35 -0500
+ Frontend Transport; Fri, 30 Oct 2020 15:07:27 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09UK7YXk101800;
-        Fri, 30 Oct 2020 15:07:35 -0500
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09UK7QQv028907;
+        Fri, 30 Oct 2020 15:07:27 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
 To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
         <linux-omap@vger.kernel.org>,
         "Reviewed-by : Jesse Brandeburg" <jesse.brandeburg@intel.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v3 09/10] net: ethernet: ti: am65-cpsw: add multi port support in mac-only mode
-Date:   Fri, 30 Oct 2020 22:07:06 +0200
-Message-ID: <20201030200707.24294-10-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v3 05/10] net: ethernet: ti: am65-cpsw: fix vlan offload for multi mac mode
+Date:   Fri, 30 Oct 2020 22:07:02 +0200
+Message-ID: <20201030200707.24294-6-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20201030200707.24294-1-grygorii.strashko@ti.com>
 References: <20201030200707.24294-1-grygorii.strashko@ti.com>
@@ -68,316 +68,119 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This patch adds final multi-port support to TI AM65x CPSW driver path in
-preparation for adding support for multi-port devices, like Main CPSW0 on
-K3 J721E SoC or future CPSW3g on K3 AM64x SoC.
-- the separate netdev is created for every enabled external Port;
-- DMA channels are common/shared for all external Ports and the RX/TX NAPI
-and DMA processing assigned to first available netdev;
-- external Ports are configured in mac-only mode, which is similar to TI
-"dual-mac" mode for legacy TI CPSW - packets are sent to the Host port only
-in ingress and directly to the Port on egress. No packet switching between
-external ports happens.
-- every port supports the same features as current AM65x CPSW on external
-device.
+The VLAN offload for AM65x CPSW2G is implemented using existing ALE APIs,
+which are also used by legacy CPSW drivers.
+So, now it always adds current Ext. Port and Host as VLAN members when VLAN
+is added by 8021Q core (.ndo_vlan_rx_add_vid) and forcibly removes VLAN
+from ALE table in .ndo_vlan_rx_kill_vid(). This works as for AM65x CPSW2G
+(which has only one Ext. Port) as for legacy CPSW devices (which can't
+support same VLAN on more then one Port in multi mac (dual-mac) mode). But
+it doesn't work for the new J721E and AM64x multi port CPSWxG versions
+doesn't have such restrictions and allow to offload the same VLAN on any
+number of ports.
+
+Now the attempt to add same VLAN on two (or more) K3 CPSWxG Ports will
+cause:
+ - VLAN members mask overwrite when VLAN is added
+ - VLAN removal from ALE table when any Port removes VLAN
+
+This patch fixes an issue by:
+ - switching to use cpsw_ale_vlan_add_modify() instead of
+   cpsw_ale_add_vlan() when VLAN is added to ALE table, so VLAN members
+   mask will not be overwritten;
+ - Updates cpsw_ale_del_vlan() as:
+     if more than one ext. Port is in VLAN member mask
+     then remove only current port from VLAN member mask
+     else remove VLAN ALE entry
+
+ Example:
+  add: P1 | P0 (Host) -> members mask: P1 | P0
+  add: P2 | P0        -> members mask: P2 | P1 | P0
+  rem: P1 | P0        -> members mask: P2 | P0
+  rem: P2 | P0        -> members mask: -
+
+The VLAN is forcibly removed if port_mask=0 passed to cpsw_ale_del_vlan()
+to preserve existing legacy CPSW drivers functionality.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
 ---
- drivers/net/ethernet/ti/am65-cpsw-nuss.c | 129 ++++++++++++++---------
- drivers/net/ethernet/ti/am65-cpsw-nuss.h |   1 +
- 2 files changed, 82 insertions(+), 48 deletions(-)
+ drivers/net/ethernet/ti/am65-cpsw-nuss.c |  8 +++++---
+ drivers/net/ethernet/ti/cpsw_ale.c       | 19 +++++++++++++++----
+ 2 files changed, 20 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.c b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-index 86bfd253e295..feb94b813ffc 100644
+index 65c5446e324e..fecaf6b8270f 100644
 --- a/drivers/net/ethernet/ti/am65-cpsw-nuss.c
 +++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-@@ -272,8 +272,8 @@ static int am65_cpsw_nuss_ndo_slave_kill_vid(struct net_device *ndev,
+@@ -241,8 +241,8 @@ static int am65_cpsw_nuss_ndo_slave_add_vid(struct net_device *ndev,
+ 	if (!vid)
+ 		unreg_mcast = port_mask;
+ 	dev_info(common->dev, "Adding vlan %d to vlan filter\n", vid);
+-	ret = cpsw_ale_add_vlan(common->ale, vid, port_mask,
+-				unreg_mcast, port_mask, 0);
++	ret = cpsw_ale_vlan_add_modify(common->ale, vid, port_mask,
++				       unreg_mcast, port_mask, 0);
+ 
+ 	pm_runtime_put(common->dev);
  	return ret;
- }
- 
--static void am65_cpsw_slave_set_promisc_2g(struct am65_cpsw_port *port,
--					   bool promisc)
-+static void am65_cpsw_slave_set_promisc(struct am65_cpsw_port *port,
-+					bool promisc)
+@@ -252,6 +252,7 @@ static int am65_cpsw_nuss_ndo_slave_kill_vid(struct net_device *ndev,
+ 					     __be16 proto, u16 vid)
  {
- 	struct am65_cpsw_common *common = port->common;
- 
-@@ -298,7 +298,7 @@ static void am65_cpsw_nuss_ndo_slave_set_rx_mode(struct net_device *ndev)
- 	bool promisc;
- 
- 	promisc = !!(ndev->flags & IFF_PROMISC);
--	am65_cpsw_slave_set_promisc_2g(port, promisc);
-+	am65_cpsw_slave_set_promisc(port, promisc);
- 
- 	if (promisc)
- 		return;
-@@ -629,13 +629,13 @@ static int am65_cpsw_nuss_ndo_slave_open(struct net_device *ndev)
- 
- 	am65_cpsw_port_set_sl_mac(port, ndev->dev_addr);
- 
--	if (port->slave.mac_only)
-+	if (port->slave.mac_only) {
- 		/* enable mac-only mode on port */
- 		cpsw_ale_control_set(common->ale, port->port_id,
- 				     ALE_PORT_MACONLY, 1);
--	if (AM65_CPSW_IS_CPSW2G(common))
- 		cpsw_ale_control_set(common->ale, port->port_id,
- 				     ALE_PORT_NOLEARN, 1);
-+	}
- 
- 	port_mask = BIT(port->port_id) | ALE_PORT_HOST;
- 	cpsw_ale_add_ucast(common->ale, ndev->dev_addr,
-@@ -1441,7 +1441,7 @@ static void am65_cpsw_nuss_ndo_get_stats(struct net_device *dev,
- 	stats->tx_dropped	= dev->stats.tx_dropped;
- }
- 
--static const struct net_device_ops am65_cpsw_nuss_netdev_ops_2g = {
-+static const struct net_device_ops am65_cpsw_nuss_netdev_ops = {
- 	.ndo_open		= am65_cpsw_nuss_ndo_slave_open,
- 	.ndo_stop		= am65_cpsw_nuss_ndo_slave_stop,
- 	.ndo_start_xmit		= am65_cpsw_nuss_ndo_slave_xmit,
-@@ -1463,7 +1463,6 @@ static void am65_cpsw_nuss_slave_disable_unused(struct am65_cpsw_port *port)
- 	if (!port->disabled)
- 		return;
- 
--	common->disabled_ports_mask |= BIT(port->port_id);
- 	cpsw_ale_control_set(common->ale, port->port_id,
- 			     ALE_PORT_STATE, ALE_PORT_STATE_DISABLE);
- 
-@@ -1832,8 +1831,10 @@ static int am65_cpsw_nuss_init_slave_ports(struct am65_cpsw_common *common)
- 			return PTR_ERR(port->slave.mac_sl);
- 
- 		port->disabled = !of_device_is_available(port_np);
--		if (port->disabled)
-+		if (port->disabled) {
-+			common->disabled_ports_mask |= BIT(port->port_id);
- 			continue;
-+		}
- 
- 		port->slave.ifphy = devm_of_phy_get(dev, port_np, NULL);
- 		if (IS_ERR(port->slave.ifphy)) {
-@@ -1887,6 +1888,12 @@ static int am65_cpsw_nuss_init_slave_ports(struct am65_cpsw_common *common)
- 	}
- 	of_node_put(node);
- 
-+	/* is there at least one ext.port */
-+	if (!(~common->disabled_ports_mask & GENMASK(common->port_num, 1))) {
-+		dev_err(dev, "No Ext. port are available\n");
-+		return -ENODEV;
-+	}
-+
- 	return 0;
- }
- 
-@@ -1897,14 +1904,18 @@ static void am65_cpsw_pcpu_stats_free(void *data)
- 	free_percpu(stats);
- }
- 
--static int am65_cpsw_nuss_init_ndev_2g(struct am65_cpsw_common *common)
-+static int
-+am65_cpsw_nuss_init_port_ndev(struct am65_cpsw_common *common, u32 port_idx)
- {
- 	struct am65_cpsw_ndev_priv *ndev_priv;
- 	struct device *dev = common->dev;
- 	struct am65_cpsw_port *port;
+ 	struct am65_cpsw_common *common = am65_ndev_to_common(ndev);
++	struct am65_cpsw_port *port = am65_ndev_to_port(ndev);
  	int ret;
  
--	port = am65_common_get_port(common, 1);
-+	port = &common->ports[port_idx];
-+
-+	if (port->disabled)
-+		return 0;
- 
- 	/* alloc netdev */
- 	port->ndev = devm_alloc_etherdev_mqs(common->dev,
-@@ -1933,7 +1944,7 @@ static int am65_cpsw_nuss_init_ndev_2g(struct am65_cpsw_common *common)
- 	port->ndev->features = port->ndev->hw_features |
- 			       NETIF_F_HW_VLAN_CTAG_FILTER;
- 	port->ndev->vlan_features |=  NETIF_F_SG;
--	port->ndev->netdev_ops = &am65_cpsw_nuss_netdev_ops_2g;
-+	port->ndev->netdev_ops = &am65_cpsw_nuss_netdev_ops;
- 	port->ndev->ethtool_ops = &am65_cpsw_ethtool_ops_slave;
- 
- 	/* Disable TX checksum offload by default due to HW bug */
-@@ -1946,29 +1957,41 @@ static int am65_cpsw_nuss_init_ndev_2g(struct am65_cpsw_common *common)
- 
- 	ret = devm_add_action_or_reset(dev, am65_cpsw_pcpu_stats_free,
- 				       ndev_priv->stats);
--	if (ret) {
--		dev_err(dev, "Failed to add percpu stat free action %d\n", ret);
--		return ret;
-+	if (ret)
-+		dev_err(dev, "failed to add percpu stat free action %d\n", ret);
-+
-+	if (!common->dma_ndev)
-+		common->dma_ndev = port->ndev;
-+
-+	return ret;
-+}
-+
-+static int am65_cpsw_nuss_init_ndevs(struct am65_cpsw_common *common)
-+{
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < common->port_num; i++) {
-+		ret = am65_cpsw_nuss_init_port_ndev(common, i);
-+		if (ret)
-+			return ret;
+ 	if (!netif_running(ndev) || !vid)
+@@ -264,7 +265,8 @@ static int am65_cpsw_nuss_ndo_slave_kill_vid(struct net_device *ndev,
  	}
  
--	netif_napi_add(port->ndev, &common->napi_rx,
-+	netif_napi_add(common->dma_ndev, &common->napi_rx,
- 		       am65_cpsw_nuss_rx_poll, NAPI_POLL_WEIGHT);
+ 	dev_info(common->dev, "Removing vlan %d from vlan filter\n", vid);
+-	ret = cpsw_ale_del_vlan(common->ale, vid, 0);
++	ret = cpsw_ale_del_vlan(common->ale, vid,
++				BIT(port->port_id) | ALE_PORT_HOST);
  
+ 	pm_runtime_put(common->dev);
  	return ret;
- }
- 
--static int am65_cpsw_nuss_ndev_add_napi_2g(struct am65_cpsw_common *common)
-+static int am65_cpsw_nuss_ndev_add_tx_napi(struct am65_cpsw_common *common)
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index b1cce39eda17..cdc308a2aa3e 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -694,7 +694,7 @@ int cpsw_ale_vlan_del_modify(struct cpsw_ale *ale, u16 vid, int port_mask)
+ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
  {
- 	struct device *dev = common->dev;
--	struct am65_cpsw_port *port;
- 	int i, ret = 0;
+ 	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
+-	int idx;
++	int members, idx;
  
--	port = am65_common_get_port(common, 1);
--
- 	for (i = 0; i < common->tx_ch_num; i++) {
- 		struct am65_cpsw_tx_chn *tx_chn = &common->tx_chns[i];
+ 	idx = cpsw_ale_match_vlan(ale, vid);
+ 	if (idx < 0)
+@@ -702,11 +702,22 @@ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
  
--		netif_tx_napi_add(port->ndev, &tx_chn->napi_tx,
-+		netif_tx_napi_add(common->dma_ndev, &tx_chn->napi_tx,
- 				  am65_cpsw_nuss_tx_poll, NAPI_POLL_WEIGHT);
+ 	cpsw_ale_read(ale, idx, ale_entry);
  
- 		ret = devm_request_irq(dev, tx_chn->irq,
-@@ -1986,16 +2009,27 @@ static int am65_cpsw_nuss_ndev_add_napi_2g(struct am65_cpsw_common *common)
- 	return ret;
- }
- 
--static int am65_cpsw_nuss_ndev_reg_2g(struct am65_cpsw_common *common)
-+static void am65_cpsw_nuss_cleanup_ndev(struct am65_cpsw_common *common)
-+{
-+	struct am65_cpsw_port *port;
-+	int i;
+-	if (port_mask) {
+-		cpsw_ale_vlan_del_modify_int(ale, ale_entry, vid, port_mask);
+-	} else {
++	/* if !port_mask - force remove VLAN (legacy).
++	 * Check if there are other VLAN members ports
++	 * if no - remove VLAN.
++	 * if yes it means same VLAN was added to >1 port in multi port mode, so
++	 * remove port_mask ports from VLAN ALE entry excluding Host port.
++	 */
++	members = cpsw_ale_vlan_get_fld(ale, ale_entry, ALE_ENT_VID_MEMBER_LIST);
++	members &= ~port_mask;
 +
-+	for (i = 0; i < common->port_num; i++) {
-+		port = &common->ports[i];
-+		if (port->ndev)
-+			unregister_netdev(port->ndev);
-+	}
-+}
-+
-+static int am65_cpsw_nuss_register_ndevs(struct am65_cpsw_common *common)
- {
- 	struct device *dev = common->dev;
- 	struct am65_cpsw_port *port;
--	int ret = 0;
-+	int ret = 0, i;
- 
--	port = am65_common_get_port(common, 1);
--	ret = am65_cpsw_nuss_ndev_add_napi_2g(common);
-+	ret = am65_cpsw_nuss_ndev_add_tx_napi(common);
- 	if (ret)
--		goto err;
-+		return ret;
- 
- 	ret = devm_request_irq(dev, common->rx_chns.irq,
- 			       am65_cpsw_nuss_rx_irq,
-@@ -2003,17 +2037,31 @@ static int am65_cpsw_nuss_ndev_reg_2g(struct am65_cpsw_common *common)
- 	if (ret) {
- 		dev_err(dev, "failure requesting rx irq %u, %d\n",
- 			common->rx_chns.irq, ret);
--		goto err;
-+		return ret;
-+	}
-+
-+	for (i = 0; i < common->port_num; i++) {
-+		port = &common->ports[i];
-+
-+		if (!port->ndev)
-+			continue;
-+
-+		ret = register_netdev(port->ndev);
-+		if (ret) {
-+			dev_err(dev, "error registering slave net device%i %d\n",
-+				i, ret);
-+			goto err_cleanup_ndev;
-+		}
++	if (!port_mask || !members) {
++		/* last port or force remove - remove VLAN */
+ 		cpsw_ale_set_vlan_untag(ale, ale_entry, vid, 0);
+ 		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
++	} else {
++		port_mask &= ~ALE_PORT_HOST;
++		cpsw_ale_vlan_del_modify_int(ale, ale_entry, vid, port_mask);
  	}
  
--	ret = register_netdev(port->ndev);
--	if (ret)
--		dev_err(dev, "error registering slave net device %d\n", ret);
- 
- 	/* can't auto unregister ndev using devm_add_action() due to
- 	 * devres release sequence in DD core for DMA
- 	 */
--err:
-+	return 0;
-+
-+err_cleanup_ndev:
-+	am65_cpsw_nuss_cleanup_ndev(common);
- 	return ret;
- }
- 
-@@ -2026,19 +2074,7 @@ int am65_cpsw_nuss_update_tx_chns(struct am65_cpsw_common *common, int num_tx)
- 	if (ret)
- 		return ret;
- 
--	return am65_cpsw_nuss_ndev_add_napi_2g(common);
--}
--
--static void am65_cpsw_nuss_cleanup_ndev(struct am65_cpsw_common *common)
--{
--	struct am65_cpsw_port *port;
--	int i;
--
--	for (i = 0; i < common->port_num; i++) {
--		port = &common->ports[i];
--		if (port->ndev)
--			unregister_netdev(port->ndev);
--	}
-+	return am65_cpsw_nuss_ndev_add_tx_napi(common);
- }
- 
- struct am65_cpsw_soc_pdata {
-@@ -2126,9 +2162,6 @@ static int am65_cpsw_nuss_probe(struct platform_device *pdev)
- 		return -ENOENT;
- 	of_node_put(node);
- 
--	if (common->port_num != 1)
--		return -EOPNOTSUPP;
--
- 	common->rx_flow_id_base = -1;
- 	init_completion(&common->tdown_complete);
- 	common->tx_ch_num = 1;
-@@ -2223,11 +2256,11 @@ static int am65_cpsw_nuss_probe(struct platform_device *pdev)
- 
- 	dev_set_drvdata(dev, common);
- 
--	ret = am65_cpsw_nuss_init_ndev_2g(common);
-+	ret = am65_cpsw_nuss_init_ndevs(common);
- 	if (ret)
- 		goto err_of_clear;
- 
--	ret = am65_cpsw_nuss_ndev_reg_2g(common);
-+	ret = am65_cpsw_nuss_register_ndevs(common);
- 	if (ret)
- 		goto err_of_clear;
- 
-diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.h b/drivers/net/ethernet/ti/am65-cpsw-nuss.h
-index 8e0dc5728253..02aed4c0ceba 100644
---- a/drivers/net/ethernet/ti/am65-cpsw-nuss.h
-+++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.h
-@@ -95,6 +95,7 @@ struct am65_cpsw_common {
- 	struct am65_cpsw_host   host;
- 	struct am65_cpsw_port	*ports;
- 	u32			disabled_ports_mask;
-+	struct net_device	*dma_ndev;
- 
- 	int			usage_count; /* number of opened ports */
- 	struct cpsw_ale		*ale;
+ 	cpsw_ale_write(ale, idx, ale_entry);
 -- 
 2.17.1
 
