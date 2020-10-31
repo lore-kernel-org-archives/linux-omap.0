@@ -1,166 +1,67 @@
-Return-Path: <SRS0=27F4=EF=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=3IKH=EG=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5868DC4741F
-	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 20:17:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C96BC388F7
+	for <linux-omap@archiver.kernel.org>; Sat, 31 Oct 2020 07:11:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F339920704
-	for <linux-omap@archiver.kernel.org>; Fri, 30 Oct 2020 20:17:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ptR3Hpu3"
+	by mail.kernel.org (Postfix) with ESMTP id 38597207DE
+	for <linux-omap@archiver.kernel.org>; Sat, 31 Oct 2020 07:11:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727554AbgJ3UHb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 30 Oct 2020 16:07:31 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:33182 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727074AbgJ3UHa (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2020 16:07:30 -0400
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 09UK7QAM108121;
-        Fri, 30 Oct 2020 15:07:26 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604088446;
-        bh=8FBrCKKcG+xnEocjlYSZwiJo25oqycLBls6g6e0/Wek=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=ptR3Hpu355nOQ9mQNN1eza7HmHY+EbJH/KHnLn733bRl4gBorkijkRpAXyXnb0GIP
-         pSYajf+GWEdOBvB5CoRbPyDEP8cXEq248yNsqLp94mRcx54G6tEHJtSbYRwJ7vxR7J
-         vcunHFifkzNTMp5ebTXz2elM/FX0V39pHiC6q8PE=
-Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 09UK7PFh055490
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 30 Oct 2020 15:07:25 -0500
-Received: from DLEE106.ent.ti.com (157.170.170.36) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 30
- Oct 2020 15:07:25 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE106.ent.ti.com
- (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 30 Oct 2020 15:07:25 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 09UK7Ori028888;
-        Fri, 30 Oct 2020 15:07:25 -0500
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        "Reviewed-by : Jesse Brandeburg" <jesse.brandeburg@intel.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v3 04/10] net: ethernet: ti: cpsw_ale: add cpsw_ale_vlan_del_modify()
-Date:   Fri, 30 Oct 2020 22:07:01 +0200
-Message-ID: <20201030200707.24294-5-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20201030200707.24294-1-grygorii.strashko@ti.com>
-References: <20201030200707.24294-1-grygorii.strashko@ti.com>
+        id S1725890AbgJaHLt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 31 Oct 2020 03:11:49 -0400
+Received: from muru.com ([72.249.23.125]:47228 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725832AbgJaHLt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 31 Oct 2020 03:11:49 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id A9E2680A3;
+        Sat, 31 Oct 2020 07:11:51 +0000 (UTC)
+Date:   Sat, 31 Oct 2020 09:11:43 +0200
+From:   Tony Lindgren <tony@atomide.com>
+To:     Grygorii Strashko <grygorii.strashko@ti.com>
+Cc:     linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>,
+        Faiz Abbas <faiz_abbas@ti.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
+        Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 4/4] bus: ti-sysc: Fix bogus resetdone warning for cpsw
+Message-ID: <20201031071143.GL5639@atomide.com>
+References: <20201026105812.38418-1-tony@atomide.com>
+ <20201026105812.38418-5-tony@atomide.com>
+ <b8a3cfc1-f9f5-1b18-b980-e88eb8b20e43@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b8a3cfc1-f9f5-1b18-b980-e88eb8b20e43@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add/export cpsw_ale_vlan_del_modify() and use it in cpsw_switchdev instead
-of generic cpsw_ale_del_vlan() to avoid mixing 8021Q and switchdev VLAN
-offload. This is preparation patch equired by follow up changes.
+* Grygorii Strashko <grygorii.strashko@ti.com> [201030 18:15]:
+> Hi Tony,
+> 
+> On 26/10/2020 12:58, Tony Lindgren wrote:
+> > The cpsw SOFT_RESET register is cleard when out of reset so let's
+> > add SYSS_QUIRK_RESETDONE_INVERTED flag for cpsw. Otherwise we will
+> > get bogus "OCP softreset timed out" warnings on boot.
+> 
+> Not sure if this quirk based approach is right way to move forward here.
+> 
+> The cpsw/cpgmac is "ti,sysc-omap4-simple" which means sysc_omap4_simple, which,
+> in turn, has .srst_shift = -ENODEV.
+> 
+> And above should be enough to avoid both sysc_reset() and sysc_wait_softreset() for such modules.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
----
- drivers/net/ethernet/ti/cpsw_ale.c       | 24 +++++++++++++++++++++---
- drivers/net/ethernet/ti/cpsw_ale.h       |  1 +
- drivers/net/ethernet/ti/cpsw_switchdev.c |  2 +-
- 3 files changed, 23 insertions(+), 4 deletions(-)
+That sounds like a much better fix indeed, I'll take a look.
 
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index a6a455c32628..b1cce39eda17 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -634,8 +634,8 @@ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port_mask, int untag,
- 	return 0;
- }
- 
--static void cpsw_ale_del_vlan_modify(struct cpsw_ale *ale, u32 *ale_entry,
--				     u16 vid, int port_mask)
-+static void cpsw_ale_vlan_del_modify_int(struct cpsw_ale *ale,  u32 *ale_entry,
-+					 u16 vid, int port_mask)
- {
- 	int reg_mcast, unreg_mcast;
- 	int members, untag;
-@@ -644,6 +644,7 @@ static void cpsw_ale_del_vlan_modify(struct cpsw_ale *ale, u32 *ale_entry,
- 					ALE_ENT_VID_MEMBER_LIST);
- 	members &= ~port_mask;
- 	if (!members) {
-+		cpsw_ale_set_vlan_untag(ale, ale_entry, vid, 0);
- 		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
- 		return;
- 	}
-@@ -673,6 +674,23 @@ static void cpsw_ale_del_vlan_modify(struct cpsw_ale *ale, u32 *ale_entry,
- 			      ALE_ENT_VID_MEMBER_LIST, members);
- }
- 
-+int cpsw_ale_vlan_del_modify(struct cpsw_ale *ale, u16 vid, int port_mask)
-+{
-+	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
-+	int idx;
-+
-+	idx = cpsw_ale_match_vlan(ale, vid);
-+	if (idx < 0)
-+		return -ENOENT;
-+
-+	cpsw_ale_read(ale, idx, ale_entry);
-+
-+	cpsw_ale_vlan_del_modify_int(ale, ale_entry, vid, port_mask);
-+	cpsw_ale_write(ale, idx, ale_entry);
-+
-+	return 0;
-+}
-+
- int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
-@@ -685,7 +703,7 @@ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
- 	cpsw_ale_read(ale, idx, ale_entry);
- 
- 	if (port_mask) {
--		cpsw_ale_del_vlan_modify(ale, ale_entry, vid, port_mask);
-+		cpsw_ale_vlan_del_modify_int(ale, ale_entry, vid, port_mask);
- 	} else {
- 		cpsw_ale_set_vlan_untag(ale, ale_entry, vid, 0);
- 		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
-index 5e4a69662c5f..13fe47687fde 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.h
-+++ b/drivers/net/ethernet/ti/cpsw_ale.h
-@@ -134,6 +134,7 @@ static inline int cpsw_ale_get_vlan_p0_untag(struct cpsw_ale *ale, u16 vid)
- 
- int cpsw_ale_vlan_add_modify(struct cpsw_ale *ale, u16 vid, int port_mask,
- 			     int untag_mask, int reg_mcast, int unreg_mcast);
-+int cpsw_ale_vlan_del_modify(struct cpsw_ale *ale, u16 vid, int port_mask);
- void cpsw_ale_set_unreg_mcast(struct cpsw_ale *ale, int unreg_mcast_mask,
- 			      bool add);
- 
-diff --git a/drivers/net/ethernet/ti/cpsw_switchdev.c b/drivers/net/ethernet/ti/cpsw_switchdev.c
-index 985a929bb957..29747da5c514 100644
---- a/drivers/net/ethernet/ti/cpsw_switchdev.c
-+++ b/drivers/net/ethernet/ti/cpsw_switchdev.c
-@@ -227,7 +227,7 @@ static int cpsw_port_vlan_del(struct cpsw_priv *priv, u16 vid,
- 	else
- 		port_mask = BIT(priv->emac_port);
- 
--	ret = cpsw_ale_del_vlan(cpsw->ale, vid, port_mask);
-+	ret = cpsw_ale_vlan_del_modify(cpsw->ale, vid, port_mask);
- 	if (ret != 0)
- 		return ret;
- 
--- 
-2.17.1
+Thanks,
 
+Tony
