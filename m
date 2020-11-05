@@ -5,48 +5,47 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F676C5DF9D
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 581D0C4742C
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E76402224E
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 025E922248
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="r2hZ5eUc"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ysylF+Vs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730814AbgKEMFr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:05:47 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42856 "EHLO
+        id S1730044AbgKEMFy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:05:54 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42898 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730535AbgKEMFr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:47 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5Yq4057152;
-        Thu, 5 Nov 2020 06:05:34 -0600
+        with ESMTP id S1726067AbgKEMFy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:54 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5knR057198;
+        Thu, 5 Nov 2020 06:05:46 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577934;
-        bh=CYXj6N4VfE/jqMWwZRQevQvQaG/2qw7tiOL60jXZZPE=;
+        s=ti-com-17Q1; t=1604577946;
+        bh=XeHzEOsY8tQ5qt5b+xwqUp/f4NJh7PrCs4HLXd0zyEo=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=r2hZ5eUckjoanSggGeDAMwU7kN+XE2O0MAUdQt1H0RZjCAQNlqTqG4ZT2L7Ui2bF3
-         uPBEgwZeijH+dng4Sw+uNHw+ZhcufGXA+6DwnVrm/F7Ub5KfpvWIKC2kgAyPrNxG+s
-         tpfXXRwjXTHn+8FkwdJVoG6/u9TmZ6ZQ5LMz1KjI=
-Received: from DLEE100.ent.ti.com (dlee100.ent.ti.com [157.170.170.30])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5YYV043854
+        b=ysylF+VsKRh+JIm/sKeX3wqwW1f6Y20Wp6PHx7y765E+RncdQonXMtzcfmDNxsdYl
+         Y2i+42818dqlA3mWZlRO/072oO51l5/sxF1SEIbv5hf+zxq9ICFzB73rWIEMCel5Be
+         f7vCESfylPLnQBajNfX5kYg7dtLWt0+ucBelDRBU=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5kZi127154
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:05:34 -0600
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:05:46 -0600
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:05:33 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:05:46 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:05:33 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:05:46 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfc039111;
-        Thu, 5 Nov 2020 06:05:31 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfh039111;
+        Thu, 5 Nov 2020 06:05:43 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,12 +54,10 @@ To:     Sebastian Reichel <sre@kernel.org>,
 CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Sam Ravnborg <sam@ravnborg.org>
-Subject: [PATCH v3 40/56] drm/panel: Move OMAP's DSI command mode panel driver
-Date:   Thu, 5 Nov 2020 14:03:17 +0200
-Message-ID: <20201105120333.947408-41-tomi.valkeinen@ti.com>
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH v3 45/56] drm/omap: drop unused DSS next pointer
+Date:   Thu, 5 Nov 2020 14:03:22 +0200
+Message-ID: <20201105120333.947408-46-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -74,109 +71,117 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-The panel driver is no longer using any OMAP specific APIs, so
-let's move it into the generic panel directory.
+Since all encoders and panels are using the bridge API now,
+we next pointer is no longer useful and can be dropped.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/gpu/drm/omapdrm/Kconfig                        |  1 -
- drivers/gpu/drm/omapdrm/Makefile                       |  1 -
- drivers/gpu/drm/omapdrm/displays/Kconfig               | 10 ----------
- drivers/gpu/drm/omapdrm/displays/Makefile              |  2 --
- drivers/gpu/drm/panel/Kconfig                          |  9 +++++++++
- drivers/gpu/drm/panel/Makefile                         |  1 +
- .../gpu/drm/{omapdrm/displays => panel}/panel-dsi-cm.c |  0
- 7 files changed, 10 insertions(+), 14 deletions(-)
- delete mode 100644 drivers/gpu/drm/omapdrm/displays/Kconfig
- delete mode 100644 drivers/gpu/drm/omapdrm/displays/Makefile
- rename drivers/gpu/drm/{omapdrm/displays => panel}/panel-dsi-cm.c (100%)
+ drivers/gpu/drm/omapdrm/dss/base.c     |  2 +-
+ drivers/gpu/drm/omapdrm/dss/omapdss.h  |  1 -
+ drivers/gpu/drm/omapdrm/dss/output.c   | 13 +------------
+ drivers/gpu/drm/omapdrm/omap_encoder.c |  4 ----
+ 4 files changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/Kconfig b/drivers/gpu/drm/omapdrm/Kconfig
-index 5417e7a47072..cea3f44ea6d4 100644
---- a/drivers/gpu/drm/omapdrm/Kconfig
-+++ b/drivers/gpu/drm/omapdrm/Kconfig
-@@ -12,6 +12,5 @@ config DRM_OMAP
- if DRM_OMAP
+diff --git a/drivers/gpu/drm/omapdrm/dss/base.c b/drivers/gpu/drm/omapdrm/dss/base.c
+index c2791305c332..d62713b241d2 100644
+--- a/drivers/gpu/drm/omapdrm/dss/base.c
++++ b/drivers/gpu/drm/omapdrm/dss/base.c
+@@ -135,7 +135,7 @@ struct omap_dss_device *omapdss_device_next_output(struct omap_dss_device *from)
+ 			goto done;
+ 		}
  
- source "drivers/gpu/drm/omapdrm/dss/Kconfig"
--source "drivers/gpu/drm/omapdrm/displays/Kconfig"
+-		if (dssdev->id && (dssdev->next || dssdev->bridge))
++		if (dssdev->id && (dssdev->bridge))
+ 			goto done;
+ 	}
  
- endif
-diff --git a/drivers/gpu/drm/omapdrm/Makefile b/drivers/gpu/drm/omapdrm/Makefile
-index f115253115c5..66a73eae6f7c 100644
---- a/drivers/gpu/drm/omapdrm/Makefile
-+++ b/drivers/gpu/drm/omapdrm/Makefile
-@@ -5,7 +5,6 @@
- #
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+index 5d6edec5a427..1f02d3e406dc 100644
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
++++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+@@ -293,7 +293,6 @@ struct omap_dss_device {
+ 	struct module *owner;
  
- obj-y += dss/
--obj-y += displays/
+ 	struct dss_device *dss;
+-	struct omap_dss_device *next;
+ 	struct drm_bridge *bridge;
+ 	struct drm_bridge *next_bridge;
+ 	struct drm_panel *panel;
+diff --git a/drivers/gpu/drm/omapdrm/dss/output.c b/drivers/gpu/drm/omapdrm/dss/output.c
+index ce21c798cca6..40cb353572f6 100644
+--- a/drivers/gpu/drm/omapdrm/dss/output.c
++++ b/drivers/gpu/drm/omapdrm/dss/output.c
+@@ -30,7 +30,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 		return 0;
+ 	}
  
- omapdrm-y := omap_drv.o \
- 	omap_irq.o \
-diff --git a/drivers/gpu/drm/omapdrm/displays/Kconfig b/drivers/gpu/drm/omapdrm/displays/Kconfig
-deleted file mode 100644
-index f2be594c7eff..000000000000
---- a/drivers/gpu/drm/omapdrm/displays/Kconfig
-+++ /dev/null
-@@ -1,10 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--menu "OMAPDRM External Display Device Drivers"
+-	out->next = omapdss_find_device_by_node(remote_node);
+ 	out->bridge = of_drm_find_bridge(remote_node);
+ 	out->panel = of_drm_find_panel(remote_node);
+ 	if (IS_ERR(out->panel))
+@@ -38,12 +37,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 
+ 	of_node_put(remote_node);
+ 
+-	if (out->next && out->type != out->next->type) {
+-		dev_err(out->dev, "output type and display type don't match\n");
+-		ret = -EINVAL;
+-		goto error;
+-	}
 -
--config DRM_OMAP_PANEL_DSI_CM
--	tristate "Generic DSI Command Mode Panel"
--	depends on BACKLIGHT_CLASS_DEVICE
--	help
--	  Driver for generic DSI command mode panels.
--
--endmenu
-diff --git a/drivers/gpu/drm/omapdrm/displays/Makefile b/drivers/gpu/drm/omapdrm/displays/Makefile
-deleted file mode 100644
-index 488ddf153613..000000000000
---- a/drivers/gpu/drm/omapdrm/displays/Makefile
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0
--obj-$(CONFIG_DRM_OMAP_PANEL_DSI_CM) += panel-dsi-cm.o
-diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index b9dbedf8f15e..a71f95afc52e 100644
---- a/drivers/gpu/drm/panel/Kconfig
-+++ b/drivers/gpu/drm/panel/Kconfig
-@@ -48,6 +48,15 @@ config DRM_PANEL_BOE_TV101WUM_NL6
- 	  Say Y here if you want to support for BOE TV101WUM and AUO KD101N80
- 	  45NA WUXGA PANEL DSI Video Mode panel
+ 	if (out->panel) {
+ 		struct drm_bridge *bridge;
  
-+config DRM_PANEL_DSI_CM
-+	tristate "Generic DSI command mode panels"
-+	depends on OF
-+	depends on DRM_MIPI_DSI
-+	depends on BACKLIGHT_CLASS_DEVICE
-+	help
-+	  DRM panel driver for DSI command mode panels with support for
-+	  embedded and external backlights.
-+
- config DRM_PANEL_LVDS
- 	tristate "Generic LVDS panel driver"
- 	depends on OF
-diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
-index 2ba560bca61d..c553e968e9a9 100644
---- a/drivers/gpu/drm/panel/Makefile
-+++ b/drivers/gpu/drm/panel/Makefile
-@@ -3,6 +3,7 @@ obj-$(CONFIG_DRM_PANEL_ARM_VERSATILE) += panel-arm-versatile.o
- obj-$(CONFIG_DRM_PANEL_ASUS_Z00T_TM5P5_NT35596) += panel-asus-z00t-tm5p5-n35596.o
- obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
- obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_NL6) += panel-boe-tv101wum-nl6.o
-+obj-$(CONFIG_DRM_PANEL_DSI_CM) += panel-dsi-cm.o
- obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
- obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
- obj-$(CONFIG_DRM_PANEL_ELIDA_KD35T133) += panel-elida-kd35t133.o
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/panel/panel-dsi-cm.c
-similarity index 100%
-rename from drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-rename to drivers/gpu/drm/panel/panel-dsi-cm.c
+@@ -69,7 +62,7 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 		out->bridge = local_bridge;
+ 	}
+ 
+-	if (!out->next && !out->bridge) {
++	if (!out->bridge) {
+ 		ret = -EPROBE_DEFER;
+ 		goto error;
+ 	}
+@@ -78,7 +71,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 
+ error:
+ 	omapdss_device_cleanup_output(out);
+-	out->next = NULL;
+ 	return ret;
+ }
+ EXPORT_SYMBOL(omapdss_device_init_output);
+@@ -88,9 +80,6 @@ void omapdss_device_cleanup_output(struct omap_dss_device *out)
+ 	if (out->bridge && out->panel)
+ 		drm_panel_bridge_remove(out->next_bridge ?
+ 					out->next_bridge : out->bridge);
+-
+-	if (out->next)
+-		omapdss_device_put(out->next);
+ }
+ EXPORT_SYMBOL(omapdss_device_cleanup_output);
+ 
+diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
+index 610c5a2f2771..5f5fa01240a7 100644
+--- a/drivers/gpu/drm/omapdrm/omap_encoder.c
++++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
+@@ -75,7 +75,6 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
+ {
+ 	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
+ 	struct omap_dss_device *output = omap_encoder->output;
+-	struct omap_dss_device *dssdev;
+ 	struct drm_device *dev = encoder->dev;
+ 	struct drm_connector *connector;
+ 	struct drm_bridge *bridge;
+@@ -98,9 +97,6 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
+ 	 *
+ 	 * A better solution is to use DRM's bus-flags through the whole driver.
+ 	 */
+-	for (dssdev = output; dssdev; dssdev = dssdev->next)
+-		omap_encoder_update_videomode_flags(&vm, dssdev->bus_flags);
+-
+ 	for (bridge = output->bridge; bridge;
+ 	     bridge = drm_bridge_get_next_bridge(bridge)) {
+ 		if (!bridge->timings)
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
