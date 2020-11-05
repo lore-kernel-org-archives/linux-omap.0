@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8B67C55179
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5D37C4742C
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 72ECA20936
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46F2920A8B
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="rHc7paFM"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="eTMiIMnw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730445AbgKEME1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:04:27 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42216 "EHLO
+        id S1730466AbgKEMEb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:04:31 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42242 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726996AbgKEME0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:26 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C4IPV056560;
-        Thu, 5 Nov 2020 06:04:18 -0600
+        with ESMTP id S1729768AbgKEMEb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:31 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C4M5P056579;
+        Thu, 5 Nov 2020 06:04:22 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577858;
-        bh=igjwckg4tSGMd4hlmBI4YDCY4Ki2MlBZIsee8DLGZyw=;
+        s=ti-com-17Q1; t=1604577862;
+        bh=+XwRx5tsm7aDYHRrmEUc9vK+Z7kVezsD4fxXX3KSYxY=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=rHc7paFMTULu3wRgE5cwZ48Clqw117Wg9IiuShDVdEWgFni76vMaZLGqfuhSOfuhK
-         Eyd7fXfF/0c4DJidFbabzoHjzcTejFXQSU2ZCLqEBkkpGZi1OEaSOclDvlNzi9UWTN
-         KEmhReMegIh0JusMOGO77l0Tv4e1qFmkWQKq4ejc=
-Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C4Itl071941
+        b=eTMiIMnweSXxmibbUPvdusA7grRbh3AtMUyYOW7wILDU0CZ4GOtsK0Ka2+m6rQf0r
+         BuiIk69oKKVjIG9mpAK7yaoe1HAeXyCAIWstOBWX4FhBYQVeAtT9BTV+YMXTVL/6tX
+         f+TPGorAejM3KRUyZkuXZInCldQxDfIzzesjbtIM=
+Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C4MKw123383
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:04:18 -0600
-Received: from DFLE106.ent.ti.com (10.64.6.27) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:04:22 -0600
+Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:04:17 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE106.ent.ti.com
- (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:04:22 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:04:17 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:04:22 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rf7039111;
-        Thu, 5 Nov 2020 06:04:15 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rf9039111;
+        Thu, 5 Nov 2020 06:04:20 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 09/56] drm/omap: dsi: drop virtual channel logic
-Date:   Thu, 5 Nov 2020 14:02:46 +0200
-Message-ID: <20201105120333.947408-10-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 11/56] drm/omap: dsi: simplify read functions
+Date:   Thu, 5 Nov 2020 14:02:48 +0200
+Message-ID: <20201105120333.947408-12-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -71,173 +71,190 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-This drops the virtual channel logic. Afterwards DSI clients
-request their channel number and get the virtual channel with
-the same number or -EBUSY if already in use.
+Simplify the read related message handling by using the functionality
+provided by CONFIG_DRM_MIPI_DSI.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 11 ++---
- drivers/gpu/drm/omapdrm/dss/dsi.c             | 46 ++++---------------
- drivers/gpu/drm/omapdrm/dss/omapdss.h         |  4 +-
- 3 files changed, 12 insertions(+), 49 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 110 +++++++++---------------------
+ 1 file changed, 34 insertions(+), 76 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 8b2e80129bd8..ea76a89d1833 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -768,19 +768,12 @@ static int dsicm_connect(struct omap_dss_device *src,
- 	struct device *dev = &ddata->pdev->dev;
- 	int r;
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index e1595c0608f2..bbdc52ee3559 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -2742,60 +2742,6 @@ static int dsi_vc_write_common(struct omap_dss_device *dssdev,
+ 	return 0;
+ }
  
--	r = src->ops->dsi.request_vc(src, &ddata->channel);
-+	r = src->ops->dsi.request_vc(src, ddata->channel);
- 	if (r) {
- 		dev_err(dev, "failed to get virtual channel\n");
- 		return r;
- 	}
- 
--	r = src->ops->dsi.set_vc_id(src, ddata->channel, TCH);
+-static int dsi_vc_dcs_send_read_request(struct dsi_data *dsi, int channel,
+-					u8 dcs_cmd)
+-{
+-	int r;
+-
+-	if (dsi->debug_read)
+-		DSSDBG("dsi_vc_dcs_send_read_request(ch%d, dcs_cmd %x)\n",
+-			channel, dcs_cmd);
+-
+-	r = dsi_vc_send_short(dsi, channel, MIPI_DSI_DCS_READ, dcs_cmd, 0);
 -	if (r) {
--		dev_err(dev, "failed to set VC_ID\n");
--		src->ops->dsi.release_vc(src, ddata->channel);
+-		DSSERR("dsi_vc_dcs_send_read_request(ch %d, cmd 0x%02x)"
+-			" failed\n", channel, dcs_cmd);
 -		return r;
 -	}
 -
- 	ddata->src = src;
- 	return 0;
- }
-@@ -1215,6 +1208,8 @@ static int dsicm_probe_of(struct platform_device *pdev)
- 	struct display_timing timing;
- 	int err;
- 
-+	ddata->channel = TCH;
-+
- 	ddata->reset_gpio = devm_gpiod_get(&pdev->dev, "reset", GPIOD_OUT_LOW);
- 	if (IS_ERR(ddata->reset_gpio)) {
- 		err = PTR_ERR(ddata->reset_gpio);
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 2270730b16db..348be32505a2 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -350,7 +350,6 @@ struct dsi_data {
- 		struct omap_dss_device *dssdev;
- 		enum fifo_size tx_fifo_size;
- 		enum fifo_size rx_fifo_size;
--		int vc_id;
- 	} vc[4];
- 
- 	struct mutex lock;
-@@ -2579,7 +2578,7 @@ static inline void dsi_vc_write_long_header(struct dsi_data *dsi, int channel,
- 
- 	WARN_ON(!dsi_bus_is_locked(dsi));
- 
--	data_id = data_type | dsi->vc[channel].vc_id << 6;
-+	data_id = data_type | channel << 6;
- 
- 	val = FLD_VAL(data_id, 7, 0) | FLD_VAL(len, 23, 8) |
- 		FLD_VAL(ecc, 31, 24);
-@@ -2683,7 +2682,7 @@ static int dsi_vc_send_short(struct dsi_data *dsi, int channel, u8 data_type,
- 		return -EINVAL;
- 	}
- 
--	data_id = data_type | dsi->vc[channel].vc_id << 6;
-+	data_id = data_type | channel << 6;
- 
- 	r = (data_id << 0) | (data << 8) | (ecc << 24);
- 
-@@ -4789,45 +4788,19 @@ static enum omap_channel dsi_get_channel(struct dsi_data *dsi)
- 	}
- }
- 
--static int dsi_request_vc(struct omap_dss_device *dssdev, int *channel)
-+static int dsi_request_vc(struct omap_dss_device *dssdev, int channel)
- {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(dsi->vc); i++) {
--		if (!dsi->vc[i].dssdev) {
--			dsi->vc[i].dssdev = dssdev;
--			*channel = i;
--			return 0;
--		}
--	}
- 
--	DSSERR("cannot get VC for display %s", dssdev->name);
--	return -ENOSPC;
+-	return 0;
 -}
 -
--static int dsi_set_vc_id(struct omap_dss_device *dssdev, int channel, int vc_id)
+-static int dsi_vc_generic_send_read_request(struct dsi_data *dsi, int channel,
+-					    const u8 *reqdata, int reqlen)
 -{
--	struct dsi_data *dsi = to_dsi_data(dssdev);
+-	u16 data;
+-	u8 data_type;
+-	int r;
 -
--	if (vc_id < 0 || vc_id > 3) {
--		DSSERR("VC ID out of range\n");
+-	if (dsi->debug_read)
+-		DSSDBG("dsi_vc_generic_send_read_request(ch %d, reqlen %d)\n",
+-			channel, reqlen);
+-
+-	if (reqlen == 0) {
+-		data_type = MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM;
+-		data = 0;
+-	} else if (reqlen == 1) {
+-		data_type = MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM;
+-		data = reqdata[0];
+-	} else if (reqlen == 2) {
+-		data_type = MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM;
+-		data = reqdata[0] | (reqdata[1] << 8);
+-	} else {
+-		BUG();
 -		return -EINVAL;
 -	}
 -
--	if (channel < 0 || channel > 3) {
--		DSSERR("Virtual Channel out of range\n");
-+	if (channel < 0 || channel > 3)
- 		return -EINVAL;
+-	r = dsi_vc_send_short(dsi, channel, data_type, data, 0);
+-	if (r) {
+-		DSSERR("dsi_vc_generic_send_read_request(ch %d, reqlen %d)"
+-			" failed\n", channel, reqlen);
+-		return r;
 -	}
+-
+-	return 0;
+-}
+-
+ static int dsi_vc_read_rx_fifo(struct dsi_data *dsi, int channel, u8 *buf,
+ 			       int buflen, enum dss_dsi_content_type type)
+ {
+@@ -2904,13 +2850,18 @@ static int dsi_vc_read_rx_fifo(struct dsi_data *dsi, int channel, u8 *buf,
+ 	return r;
+ }
  
--	if (dsi->vc[channel].dssdev != dssdev) {
--		DSSERR("Virtual Channel not allocated to display %s\n",
--			dssdev->name);
--		return -EINVAL;
-+	if (dsi->vc[channel].dssdev) {
-+		DSSERR("cannot get VC for display %s", dssdev->name);
-+		return -EBUSY;
+-static int dsi_vc_dcs_read(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
+-		u8 *buf, int buflen)
++static int dsi_vc_dcs_read(struct omap_dss_device *dssdev,
++			   const struct mipi_dsi_msg *msg)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
++	u8 dcs_cmd = ((u8 *)msg->tx_buf)[0];
++	u8 channel = msg->channel;
+ 	int r;
+ 
+-	r = dsi_vc_dcs_send_read_request(dsi, channel, dcs_cmd);
++	if (dsi->debug_read)
++		DSSDBG("%s(ch %d, cmd %x)\n", __func__, channel, dcs_cmd);
++
++	r = dsi_vc_send_short(dsi, channel, MIPI_DSI_DCS_READ, dcs_cmd, 0);
+ 	if (r)
+ 		goto err;
+ 
+@@ -2918,47 +2869,58 @@ static int dsi_vc_dcs_read(struct omap_dss_device *dssdev, int channel, u8 dcs_c
+ 	if (r)
+ 		goto err;
+ 
+-	r = dsi_vc_read_rx_fifo(dsi, channel, buf, buflen,
++	r = dsi_vc_read_rx_fifo(dsi, channel, msg->rx_buf, msg->rx_len,
+ 		DSS_DSI_CONTENT_DCS);
+ 	if (r < 0)
+ 		goto err;
+ 
+-	if (r != buflen) {
++	if (r != msg->rx_len) {
+ 		r = -EIO;
+ 		goto err;
  	}
  
--	dsi->vc[channel].vc_id = vc_id;
--
-+	dsi->vc[channel].dssdev = dssdev;
  	return 0;
+ err:
+-	DSSERR("dsi_vc_dcs_read(ch %d, cmd 0x%02x) failed\n", channel, dcs_cmd);
++	DSSERR("%s(ch %d, cmd 0x%02x) failed\n", __func__, msg->channel, dcs_cmd);
+ 	return r;
  }
  
-@@ -4838,7 +4811,6 @@ static void dsi_release_vc(struct omap_dss_device *dssdev, int channel)
- 	if ((channel >= 0 && channel <= 3) &&
- 		dsi->vc[channel].dssdev == dssdev) {
- 		dsi->vc[channel].dssdev = NULL;
--		dsi->vc[channel].vc_id = 0;
+-static int dsi_vc_generic_read(struct omap_dss_device *dssdev, int channel,
+-		const u8 *reqdata, int reqlen, u8 *buf, int buflen)
++static int dsi_vc_generic_read(struct omap_dss_device *dssdev,
++			       const struct mipi_dsi_msg *msg)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
++	struct mipi_dsi_packet packet;
++	u16 data;
+ 	int r;
+ 
+-	r = dsi_vc_generic_send_read_request(dsi, channel, reqdata, reqlen);
++	r = mipi_dsi_create_packet(&packet, msg);
++	if (r < 0)
++		goto err;
++
++	data = packet.header[1] | (packet.header[2] << 8);
++
++	r = dsi_vc_send_short(dsi, msg->channel, msg->type, data, 0);
+ 	if (r)
+-		return r;
++		goto err;
+ 
+-	r = dsi_vc_send_bta_sync(dssdev, channel);
++	r = dsi_vc_send_bta_sync(dssdev, msg->channel);
+ 	if (r)
+-		return r;
++		goto err;
+ 
+-	r = dsi_vc_read_rx_fifo(dsi, channel, buf, buflen,
++	r = dsi_vc_read_rx_fifo(dsi, msg->channel, msg->rx_buf, msg->rx_len,
+ 		DSS_DSI_CONTENT_GENERIC);
+ 	if (r < 0)
+-		return r;
++		goto err;
+ 
+-	if (r != buflen) {
++	if (r != msg->rx_len) {
+ 		r = -EIO;
+-		return r;
++		goto err;
  	}
+ 
+ 	return 0;
++err:
++	DSSERR("%s(ch %d, reqlen %d) failed\n", __func__,  msg->channel, msg->tx_len);
++	return r;
  }
  
-@@ -4945,7 +4917,6 @@ static const struct omap_dss_device_ops dsi_ops = {
- 		.enable_te = dsi_enable_te,
- 
- 		.request_vc = dsi_request_vc,
--		.set_vc_id = dsi_set_vc_id,
- 		.release_vc = dsi_release_vc,
- 
- 		.transfer = omap_dsi_transfer,
-@@ -5401,7 +5372,6 @@ static int dsi_probe(struct platform_device *pdev)
- 	for (i = 0; i < ARRAY_SIZE(dsi->vc); i++) {
- 		dsi->vc[i].source = DSI_VC_SOURCE_L4;
- 		dsi->vc[i].dssdev = NULL;
--		dsi->vc[i].vc_id = 0;
+ static int dsi_enter_ulps(struct dsi_data *dsi)
+@@ -4775,13 +4737,9 @@ static ssize_t omap_dsi_transfer(struct omap_dss_device *dssdev,
+ 	case MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM:
+ 	case MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM:
+ 	case MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM:
+-		return dsi_vc_generic_read(dssdev, msg->channel,
+-					   msg->tx_buf, msg->tx_len,
+-					   msg->rx_buf, msg->rx_len);
++		return dsi_vc_generic_read(dssdev, msg);
+ 	case MIPI_DSI_DCS_READ:
+-		return dsi_vc_dcs_read(dssdev, msg->channel,
+-				       ((u8 *)msg->tx_buf)[0],
+-				       msg->rx_buf, msg->rx_len);
++		return dsi_vc_dcs_read(dssdev, msg);
  	}
  
- 	r = dsi_get_clocks(dsi);
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 9ead877cb24c..40e1ce9e256e 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -302,9 +302,7 @@ struct omapdss_dsi_ops {
- 	void (*disable_video_output)(struct omap_dss_device *dssdev,
- 			int channel);
- 
--	int (*request_vc)(struct omap_dss_device *dssdev, int *channel);
--	int (*set_vc_id)(struct omap_dss_device *dssdev, int channel,
--			int vc_id);
-+	int (*request_vc)(struct omap_dss_device *dssdev, int channel);
- 	void (*release_vc)(struct omap_dss_device *dssdev, int channel);
- 
- 	/* data transfer */
+ 	return -EINVAL;
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
