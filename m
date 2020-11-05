@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6F91C4741F
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0233DC64E7B
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:06:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DA2A22256
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96A5722248
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:06:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="czJPX02K"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Yhb3tEDR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729992AbgKEMF4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:05:56 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42910 "EHLO
+        id S1730501AbgKEMGB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:06:01 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42934 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726067AbgKEMF4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:56 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5mC5057212;
-        Thu, 5 Nov 2020 06:05:48 -0600
+        with ESMTP id S1729990AbgKEMGB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:06:01 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5rZg057224;
+        Thu, 5 Nov 2020 06:05:53 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577948;
-        bh=9f68lCdAbkEjoTga4StooGx0BetPqKE2WxkfM0H7ibk=;
+        s=ti-com-17Q1; t=1604577953;
+        bh=I5gYD9DyE3fUJusaVOvw4nvsHQAOXsIAcU4ZZCh/qq8=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=czJPX02KGdHySRAMomlPjKbAXRqAngPIG7VwmCK8cJnaXavDr1OpoSi/qE4TkPsie
-         uY82yt/5X3O2IJAN1UjNICaDA1n7xyd9cOoYxIupNwvyAo056eE6uCYPbRT2k8f/Qz
-         pAhO5hkQDuqiS61i3UwJhbri4OTK8EsRqvTqmVsk=
-Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5mdO073973
+        b=Yhb3tEDRCWbk5c0a03DuSfBc/dNeG8J1FxNymp205LCNYpriaq22vShaVV0GAA/eU
+         m9wE9pHRLv9k4mk5iJccYSnRTg1kmWVoT7oADx5E84XhdI2IrTVEZ5HwpCK7mwEqia
+         zMRQIPgexxR0QMCvzDteY98LxccIOg9QOC4P++JA=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5r83044076
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:05:48 -0600
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:05:53 -0600
+Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:05:48 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:05:53 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:05:48 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:05:53 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfi039111;
-        Thu, 5 Nov 2020 06:05:46 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfk039111;
+        Thu, 5 Nov 2020 06:05:51 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 46/56] drm/omap: drop empty omap_encoder helper functions
-Date:   Thu, 5 Nov 2020 14:03:23 +0200
-Message-ID: <20201105120333.947408-47-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 48/56] drm/omap: drop dssdev display field
+Date:   Thu, 5 Nov 2020 14:03:25 +0200
+Message-ID: <20201105120333.947408-49-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -71,55 +71,46 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Cleanup empty functions for encoder enable, disable and atomic check.
+All displays are using drm_panel instead off dssdev
+now, so this field is always 0 and can be dropped.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/omap_encoder.c | 28 --------------------------
- 1 file changed, 28 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/base.c    | 2 +-
+ drivers/gpu/drm/omapdrm/dss/omapdss.h | 6 ------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
-index 5f5fa01240a7..e24411fb9dac 100644
---- a/drivers/gpu/drm/omapdrm/omap_encoder.c
-+++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
-@@ -113,36 +113,8 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
- 	dss_mgr_set_timings(output, &vm);
- }
+diff --git a/drivers/gpu/drm/omapdrm/dss/base.c b/drivers/gpu/drm/omapdrm/dss/base.c
+index d62713b241d2..d9a5e7b9d401 100644
+--- a/drivers/gpu/drm/omapdrm/dss/base.c
++++ b/drivers/gpu/drm/omapdrm/dss/base.c
+@@ -198,7 +198,7 @@ void omapdss_device_disconnect(struct omap_dss_device *src,
+ 	}
  
--static void omap_encoder_disable(struct drm_encoder *encoder)
--{
--	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
--	struct omap_dss_device *dssdev = omap_encoder->output;
--	struct drm_device *dev = encoder->dev;
--
--	dev_dbg(dev->dev, "disable(%s)\n", dssdev->name);
--}
--
--static void omap_encoder_enable(struct drm_encoder *encoder)
--{
--	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
--	struct omap_dss_device *dssdev = omap_encoder->output;
--	struct drm_device *dev = encoder->dev;
--
--	dev_dbg(dev->dev, "enable(%s)\n", dssdev->name);
--}
--
--static int omap_encoder_atomic_check(struct drm_encoder *encoder,
--				     struct drm_crtc_state *crtc_state,
--				     struct drm_connector_state *conn_state)
--{
--	return 0;
--}
--
- static const struct drm_encoder_helper_funcs omap_encoder_helper_funcs = {
- 	.mode_set = omap_encoder_mode_set,
--	.disable = omap_encoder_disable,
--	.enable = omap_encoder_enable,
--	.atomic_check = omap_encoder_atomic_check,
- };
+ 	if (!dst->id && !omapdss_device_is_connected(dst)) {
+-		WARN_ON(!dst->display);
++		WARN_ON(1);
+ 		return;
+ 	}
  
- /* initialize encoder */
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+index 916c55101629..c2199c4946ec 100644
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
++++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+@@ -298,12 +298,6 @@ struct omap_dss_device {
+ 	 */
+ 	enum omap_display_type type;
+ 
+-	/*
+-	 * True if the device is a display (panel or connector) at the end of
+-	 * the pipeline, false otherwise.
+-	 */
+-	bool display;
+-
+ 	const char *name;
+ 
+ 	const struct omap_dss_device_ops *ops;
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
