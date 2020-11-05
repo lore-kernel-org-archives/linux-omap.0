@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95DC5C00A89
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45444C5517A
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 438A62083B
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5CFF20936
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Kbqc+KZ8"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="q+rSIaxC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730182AbgKEMER (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:04:17 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:46070 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729832AbgKEMER (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:17 -0500
+        id S1730424AbgKEMEX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:04:23 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42194 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729832AbgKEMEW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:22 -0500
 Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C4173069866;
-        Thu, 5 Nov 2020 06:04:01 -0600
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C4Da9056552;
+        Thu, 5 Nov 2020 06:04:13 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577841;
-        bh=xWxFkXfpR8ltdKqJPLQE3wKGrmPB7OBgmVFoO2E6X3s=;
+        s=ti-com-17Q1; t=1604577853;
+        bh=6LrlG2J6000oyfzwHfd1KGRZhhn9I6wQUec9zExoRpo=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=Kbqc+KZ8GTB9oYdI2Lk3yZU91HCR5mQgjMX5JgpAnm4e1qAMC61nKi3QYNzn0ZRHD
-         Snv+KRx9heYfAlImNXeigKVG0l2YZ9hBmC6JBetdJDZDytOr7pO2astdDIke9YVsED
-         qOtEuCrUYXNwuWNSAiS8MRPByvrjIAk5emMFqoYA=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C41WA124252
+        b=q+rSIaxC9hrf4nTcHuaUlH0BBy3Pfg8laqLQQ+JKRV1vlySgG/CQvteyg7kuZh5vk
+         MyR4nYR36+upDThb85qgVX51afmaQ7nXxAs6C0cdeCQQn+MverrZE5FX0YVjqD/TDz
+         THJ01dZ3B2CQ3vYUwOL/budXKhNhZRnhsXyDAa/Y=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C4Dxd125086
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:04:01 -0600
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:04:13 -0600
+Received: from DFLE112.ent.ti.com (10.64.6.33) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:04:00 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:04:12 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:04:00 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:04:12 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rf0039111;
-        Thu, 5 Nov 2020 06:03:58 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rf5039111;
+        Thu, 5 Nov 2020 06:04:10 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 02/56] Revert "drm/omap: dss: Remove unused omap_dss_device operations"
-Date:   Thu, 5 Nov 2020 14:02:39 +0200
-Message-ID: <20201105120333.947408-3-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 07/56] drm/omap: panel-dsi-cm: convert to transfer API
+Date:   Thu, 5 Nov 2020 14:02:44 +0200
+Message-ID: <20201105120333.947408-8-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -71,168 +71,224 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-This reverts commit 4ff8e98879e6eeae9d125dfcf3b642075d00089d.
-
-This is still needed by DSI. E.g. unloading modules without this will
-cause a crash.
+This converts the panel-dsi-cm driver to use the transfer
+API instead of specific functions, so that the specific
+functions can be unexported and squashed into the generic
+transfer function.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/base.c     | 26 +++++++++++++++
- drivers/gpu/drm/omapdrm/dss/omapdss.h  |  6 ++++
- drivers/gpu/drm/omapdrm/omap_encoder.c | 44 +++++++++++++++++++++++---
- 3 files changed, 71 insertions(+), 5 deletions(-)
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 132 +++++++++++++-----
+ 1 file changed, 95 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/base.c b/drivers/gpu/drm/omapdrm/dss/base.c
-index c7650a7c155d..455b410f7401 100644
---- a/drivers/gpu/drm/omapdrm/dss/base.c
-+++ b/drivers/gpu/drm/omapdrm/dss/base.c
-@@ -234,6 +234,18 @@ void omapdss_device_disconnect(struct omap_dss_device *src,
- }
- EXPORT_SYMBOL_GPL(omapdss_device_disconnect);
- 
-+void omapdss_device_pre_enable(struct omap_dss_device *dssdev)
-+{
-+	if (!dssdev)
-+		return;
-+
-+	omapdss_device_pre_enable(dssdev->next);
-+
-+	if (dssdev->ops && dssdev->ops->pre_enable)
-+		dssdev->ops->pre_enable(dssdev);
-+}
-+EXPORT_SYMBOL_GPL(omapdss_device_pre_enable);
-+
- void omapdss_device_enable(struct omap_dss_device *dssdev)
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index b8f3a7aacbf4..8b2e80129bd8 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -140,45 +140,61 @@ static void hw_guard_wait(struct panel_drv_data *ddata)
+ static int dsicm_dcs_read_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 *data)
  {
- 	if (!dssdev)
-@@ -260,6 +272,20 @@ void omapdss_device_disable(struct omap_dss_device *dssdev)
- }
- EXPORT_SYMBOL_GPL(omapdss_device_disable);
+ 	struct omap_dss_device *src = ddata->src;
+-	int r;
+-	u8 buf[1];
+-
+-	r = src->ops->dsi.dcs_read(src, ddata->channel, dcs_cmd, buf, 1);
+-
+-	if (r < 0)
+-		return r;
+-
+-	*data = buf[0];
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_READ,
++		.tx_len = 1,
++		.tx_buf = &dcs_cmd,
++		.rx_len = 1,
++		.rx_buf = data
++	};
  
-+void omapdss_device_post_disable(struct omap_dss_device *dssdev)
+-	return 0;
++	return src->ops->dsi.transfer(src, &msg);
+ }
+ 
+ static int dsicm_dcs_write_0(struct panel_drv_data *ddata, u8 dcs_cmd)
+ {
+ 	struct omap_dss_device *src = ddata->src;
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_SHORT_WRITE,
++		.tx_buf = &dcs_cmd,
++		.tx_len = 1,
++	};
+ 
+-	return src->ops->dsi.dcs_write(src, ddata->channel, &dcs_cmd, 1);
++	return src->ops->dsi.transfer(src, &msg);
+ }
+ 
+ static int dsicm_dcs_write_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 param)
+ {
+ 	struct omap_dss_device *src = ddata->src;
+-	u8 buf[2] = { dcs_cmd, param };
++	const u8 buf[] = { dcs_cmd, param };
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_SHORT_WRITE_PARAM,
++		.tx_buf = &buf,
++		.tx_len = 2,
++	};
+ 
+-	return src->ops->dsi.dcs_write(src, ddata->channel, buf, 2);
++	return src->ops->dsi.transfer(src, &msg);
+ }
+ 
+ static int dsicm_sleep_in(struct panel_drv_data *ddata)
+ 
+ {
+ 	struct omap_dss_device *src = ddata->src;
+-	u8 cmd;
+ 	int r;
++	const u8 cmd = MIPI_DCS_ENTER_SLEEP_MODE;
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_DCS_SHORT_WRITE,
++		.tx_buf = &cmd,
++		.tx_len = 1,
++	};
+ 
+ 	hw_guard_wait(ddata);
+ 
+-	cmd = MIPI_DCS_ENTER_SLEEP_MODE;
+-	r = src->ops->dsi.dcs_write_nosync(src, ddata->channel, &cmd, 1);
++	r = src->ops->dsi.transfer(src, &msg);
+ 	if (r)
+ 		return r;
+ 
+@@ -233,28 +249,43 @@ static int dsicm_set_update_window(struct panel_drv_data *ddata,
+ 	u16 y1 = y;
+ 	u16 y2 = y + h - 1;
+ 
+-	u8 buf[5];
+-	buf[0] = MIPI_DCS_SET_COLUMN_ADDRESS;
+-	buf[1] = (x1 >> 8) & 0xff;
+-	buf[2] = (x1 >> 0) & 0xff;
+-	buf[3] = (x2 >> 8) & 0xff;
+-	buf[4] = (x2 >> 0) & 0xff;
++	const u8 paramX[] = {
++		MIPI_DCS_SET_COLUMN_ADDRESS,
++		(x1 >> 8) & 0xff,
++		(x1 >> 0) & 0xff,
++		(x2 >> 8) & 0xff,
++		(x2 >> 0) & 0xff,
++	};
+ 
+-	r = src->ops->dsi.dcs_write_nosync(src, ddata->channel, buf, sizeof(buf));
+-	if (r)
+-		return r;
++	const struct mipi_dsi_msg msgX = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_GENERIC_LONG_WRITE,
++		.tx_buf = paramX,
++		.tx_len = 5,
++	};
++
++	const u8 paramY[] = {
++		MIPI_DCS_SET_PAGE_ADDRESS,
++		(y1 >> 8) & 0xff,
++		(y1 >> 0) & 0xff,
++		(y2 >> 8) & 0xff,
++		(y2 >> 0) & 0xff,
++	};
+ 
+-	buf[0] = MIPI_DCS_SET_PAGE_ADDRESS;
+-	buf[1] = (y1 >> 8) & 0xff;
+-	buf[2] = (y1 >> 0) & 0xff;
+-	buf[3] = (y2 >> 8) & 0xff;
+-	buf[4] = (y2 >> 0) & 0xff;
++	const struct mipi_dsi_msg msgY = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_GENERIC_LONG_WRITE,
++		.tx_buf = paramY,
++		.tx_len = 5,
++	};
+ 
+-	r = src->ops->dsi.dcs_write_nosync(src, ddata->channel, buf, sizeof(buf));
++	r = src->ops->dsi.transfer(src, &msgX);
+ 	if (r)
+ 		return r;
+ 
+-	src->ops->dsi.bta_sync(src, ddata->channel);
++	r = src->ops->dsi.transfer(src, &msgY);
++	if (r)
++		return r;
+ 
+ 	return r;
+ }
+@@ -991,6 +1022,27 @@ static int dsicm_get_te(struct omap_dss_device *dssdev)
+ 	return r;
+ }
+ 
++static int dsicm_set_max_rx_packet_size(struct omap_dss_device *dssdev,
++					u16 size)
 +{
-+	if (!dssdev)
-+		return;
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *src = ddata->src;
 +
-+	if (dssdev->ops && dssdev->ops->post_disable)
-+		dssdev->ops->post_disable(dssdev);
++	const u8 buf[] = {
++		size & 0xff,
++		size >> 8 & 0xff,
++	};
 +
-+	omapdss_device_post_disable(dssdev->next);
++	const struct mipi_dsi_msg msg = {
++		.channel = ddata->channel,
++		.type = MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE,
++		.tx_buf = buf,
++		.tx_len = 2,
++	};
 +
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++	return src->ops->dsi.transfer(src, &msg);
 +}
-+EXPORT_SYMBOL_GPL(omapdss_device_post_disable);
 +
- /* -----------------------------------------------------------------------------
-  * Components Handling
-  */
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index ab19d4af8de7..cbbe10b2b60d 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -342,11 +342,15 @@ struct omap_dss_device_ops {
- 	void (*disconnect)(struct omap_dss_device *dssdev,
- 			struct omap_dss_device *dst);
+ static int dsicm_memory_read(struct omap_dss_device *dssdev,
+ 		void *buf, size_t size,
+ 		u16 x, u16 y, u16 w, u16 h)
+@@ -1031,17 +1083,23 @@ static int dsicm_memory_read(struct omap_dss_device *dssdev,
  
-+	void (*pre_enable)(struct omap_dss_device *dssdev);
- 	void (*enable)(struct omap_dss_device *dssdev);
- 	void (*disable)(struct omap_dss_device *dssdev);
-+	void (*post_disable)(struct omap_dss_device *dssdev);
+ 	dsicm_set_update_window(ddata, x, y, w, h);
  
- 	int (*check_timings)(struct omap_dss_device *dssdev,
- 			     struct drm_display_mode *mode);
-+	void (*set_timings)(struct omap_dss_device *dssdev,
-+			    const struct drm_display_mode *mode);
+-	r = src->ops->dsi.set_max_rx_packet_size(src, ddata->channel, plen);
++	r = dsicm_set_max_rx_packet_size(dssdev, plen);
+ 	if (r)
+ 		goto err2;
  
- 	int (*get_modes)(struct omap_dss_device *dssdev,
- 			 struct drm_connector *connector);
-@@ -445,8 +449,10 @@ int omapdss_device_connect(struct dss_device *dss,
- 			   struct omap_dss_device *dst);
- void omapdss_device_disconnect(struct omap_dss_device *src,
- 			       struct omap_dss_device *dst);
-+void omapdss_device_pre_enable(struct omap_dss_device *dssdev);
- void omapdss_device_enable(struct omap_dss_device *dssdev);
- void omapdss_device_disable(struct omap_dss_device *dssdev);
-+void omapdss_device_post_disable(struct omap_dss_device *dssdev);
+ 	while (buf_used < size) {
+ 		u8 dcs_cmd = first ? 0x2e : 0x3e;
++		const struct mipi_dsi_msg msg = {
++			.channel = ddata->channel,
++			.type = MIPI_DSI_DCS_READ,
++			.tx_buf = &dcs_cmd,
++			.tx_len = 1,
++			.rx_buf = buf + buf_used,
++			.rx_len = size - buf_used,
++		};
+ 		first = 0;
  
- int omap_dss_get_num_overlay_managers(void);
+-		r = src->ops->dsi.dcs_read(src, ddata->channel, dcs_cmd,
+-				buf + buf_used, size - buf_used);
+-
++		r = src->ops->dsi.transfer(src, &msg);
+ 		if (r < 0) {
+ 			dev_err(dssdev->dev, "read error\n");
+ 			goto err3;
+@@ -1065,7 +1123,7 @@ static int dsicm_memory_read(struct omap_dss_device *dssdev,
+ 	r = buf_used;
  
-diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
-index ae4b867a67a3..18a79dde6815 100644
---- a/drivers/gpu/drm/omapdrm/omap_encoder.c
-+++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
-@@ -113,8 +113,13 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
- 	bus_flags = connector->display_info.bus_flags;
- 	omap_encoder_update_videomode_flags(&vm, bus_flags);
- 
--	/* Set timings for the dss manager. */
-+	/* Set timings for all devices in the display pipeline. */
- 	dss_mgr_set_timings(output, &vm);
-+
-+	for (dssdev = output; dssdev; dssdev = dssdev->next) {
-+		if (dssdev->ops && dssdev->ops->set_timings)
-+			dssdev->ops->set_timings(dssdev, adjusted_mode);
-+	}
- }
- 
- static void omap_encoder_disable(struct drm_encoder *encoder)
-@@ -127,10 +132,26 @@ static void omap_encoder_disable(struct drm_encoder *encoder)
- 
- 	/*
- 	 * Disable the chain of external devices, starting at the one at the
--	 * internal encoder's output. This is used for DSI outputs only, as
--	 * dssdev->next is NULL for all other outputs.
-+	 * internal encoder's output.
- 	 */
- 	omapdss_device_disable(dssdev->next);
-+
-+	/*
-+	 * Disable the internal encoder. This will disable the DSS output. The
-+	 * DSI is treated as an exception as DSI pipelines still use the legacy
-+	 * flow where the pipeline output controls the encoder.
-+	 */
-+	if (dssdev->type != OMAP_DISPLAY_TYPE_DSI) {
-+		if (dssdev->ops && dssdev->ops->disable)
-+			dssdev->ops->disable(dssdev);
-+		dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+	}
-+
-+	/*
-+	 * Perform the post-disable operations on the chain of external devices
-+	 * to complete the display pipeline disable.
-+	 */
-+	omapdss_device_post_disable(dssdev->next);
- }
- 
- static void omap_encoder_enable(struct drm_encoder *encoder)
-@@ -141,10 +162,23 @@ static void omap_encoder_enable(struct drm_encoder *encoder)
- 
- 	dev_dbg(dev->dev, "enable(%s)\n", dssdev->name);
- 
-+	/* Prepare the chain of external devices for pipeline enable. */
-+	omapdss_device_pre_enable(dssdev->next);
-+
-+	/*
-+	 * Enable the internal encoder. This will enable the DSS output. The
-+	 * DSI is treated as an exception as DSI pipelines still use the legacy
-+	 * flow where the pipeline output controls the encoder.
-+	 */
-+	if (dssdev->type != OMAP_DISPLAY_TYPE_DSI) {
-+		if (dssdev->ops && dssdev->ops->enable)
-+			dssdev->ops->enable(dssdev);
-+		dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+	}
-+
- 	/*
- 	 * Enable the chain of external devices, starting at the one at the
--	 * internal encoder's output. This is used for DSI outputs only, as
--	 * dssdev->next is NULL for all other outputs.
-+	 * internal encoder's output.
- 	 */
- 	omapdss_device_enable(dssdev->next);
- }
+ err3:
+-	src->ops->dsi.set_max_rx_packet_size(src, ddata->channel, 1);
++	dsicm_set_max_rx_packet_size(dssdev, 1);
+ err2:
+ 	src->ops->dsi.bus_unlock(src);
+ err1:
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
