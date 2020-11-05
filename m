@@ -2,51 +2,50 @@ Return-Path: <SRS0=Cm4E=EL=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81908C5517A
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74A05C56201
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 268FD2083B
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15BEE206ED
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="aDtbMJXD"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hTeDQ5Cc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730124AbgKEMEQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:04:16 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42160 "EHLO
+        id S1730069AbgKEMES (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:04:18 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42184 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728371AbgKEMEQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:16 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C46hY056527;
-        Thu, 5 Nov 2020 06:04:06 -0600
+        with ESMTP id S1729832AbgKEMES (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:18 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C4AHp056542;
+        Thu, 5 Nov 2020 06:04:10 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577846;
-        bh=KSkC/+kj4XnIOD6Ra5oW1bPYOcSwwuhv6XiaqCo+u58=;
+        s=ti-com-17Q1; t=1604577850;
+        bh=NY62PBg/t3i9PNCXVnDCYnEBfasB0Eg8t8CfoAkDcxQ=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=aDtbMJXDaye2gt26HIcdf00V9EKodB571Wcmj6VKCs6sRpln2TEWqks1TIJFvrNdU
-         hRgD0hUKsGyB8p26WjZlg+MxoU/bpO+QKreFcHh78InuTSODV92/YG3aav2wj/W/of
-         7rpbfj06VTTRrZGBQzxcfSyN2jZJAPmFTOA1gLWk=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C462A041699
+        b=hTeDQ5CcgYNL63G9FHFFEkLrggzjWN2fWA4jtSap+25f37Kjqw+1zNTFRDjNM1vAO
+         IHtGlTjjWPl5Z98QuZu19MFVrDHN48egIAblSMnf5/Cdf/ZUoM72z7lu9EADijI6uW
+         7YQU/wKiv8NLruMf9a0Z/hv5t8utKi1X23+nN79E=
+Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C4AIZ125039
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:04:06 -0600
-Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:04:10 -0600
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:04:05 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:04:10 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:04:05 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:04:10 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rf2039111;
-        Thu, 5 Nov 2020 06:04:03 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rf4039111;
+        Thu, 5 Nov 2020 06:04:08 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -56,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 04/56] drm/omap: dsi: use MIPI_DSI_FMT_* instead of OMAP_DSS_DSI_FMT_*
-Date:   Thu, 5 Nov 2020 14:02:41 +0200
-Message-ID: <20201105120333.947408-5-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 06/56] drm/omap: dsi: add generic transfer function
+Date:   Thu, 5 Nov 2020 14:02:43 +0200
+Message-ID: <20201105120333.947408-7-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -72,246 +71,105 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-This replaces OMAP specific enum for pixel format with
-common implementation.
+This prepares the driver for becoming a mipi_dsi_host implementation,
+which provides a generic transfer function instead of all kind of
+different read/write functions. The implementation will become more
+elegant after unexporting the specific functions in the following
+patches.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   |  2 +-
- drivers/gpu/drm/omapdrm/dss/dsi.c             | 55 ++++++++-----------
- drivers/gpu/drm/omapdrm/dss/omapdss.h         | 13 ++---
- 3 files changed, 28 insertions(+), 42 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c     | 54 +++++++++++++++++++++++++++
+ drivers/gpu/drm/omapdrm/dss/omapdss.h |  3 ++
+ 2 files changed, 57 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index ff610d2a13fd..b8f3a7aacbf4 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -595,7 +595,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 	int r;
- 	struct omap_dss_dsi_config dsi_config = {
- 		.mode = OMAP_DSS_DSI_CMD_MODE,
--		.pixel_format = OMAP_DSS_DSI_FMT_RGB888,
-+		.pixel_format = MIPI_DSI_FMT_RGB888,
- 		.vm = &ddata->vm,
- 		.hs_clk_min = 150000000,
- 		.hs_clk_max = 300000000,
 diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 5598fc8f91db..86b9d435fb94 100644
+index 22d74d762a10..59a62d1d41cb 100644
 --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
 +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -33,6 +33,7 @@
- #include <linux/component.h>
- #include <linux/sys_soc.h>
- 
-+#include <drm/drm_mipi_dsi.h>
- #include <video/mipi_display.h>
- 
- #include "omapdss.h"
-@@ -410,7 +411,7 @@ struct dsi_data {
- 
- 	struct dss_lcd_mgr_config mgr_config;
- 	struct videomode vm;
--	enum omap_dss_dsi_pixel_format pix_fmt;
-+	enum mipi_dsi_pixel_format pix_fmt;
- 	enum omap_dss_dsi_mode mode;
- 	struct omap_dss_dsi_videomode_timings vm_timings;
- 
-@@ -514,22 +515,6 @@ static inline bool wait_for_bit_change(struct dsi_data *dsi,
- 	return false;
+@@ -4842,6 +4842,58 @@ static void dsi_release_vc(struct omap_dss_device *dssdev, int channel)
+ 	}
  }
  
--static u8 dsi_get_pixel_size(enum omap_dss_dsi_pixel_format fmt)
--{
--	switch (fmt) {
--	case OMAP_DSS_DSI_FMT_RGB888:
--	case OMAP_DSS_DSI_FMT_RGB666:
--		return 24;
--	case OMAP_DSS_DSI_FMT_RGB666_PACKED:
--		return 18;
--	case OMAP_DSS_DSI_FMT_RGB565:
--		return 16;
--	default:
--		BUG();
--		return 0;
--	}
--}
--
- #ifdef DSI_PERF_MEASURE
- static void dsi_perf_mark_setup(struct dsi_data *dsi)
- {
-@@ -3239,7 +3224,7 @@ static void dsi_config_vp_num_line_buffers(struct dsi_data *dsi)
- 	int num_line_buffers;
- 
- 	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE) {
--		int bpp = dsi_get_pixel_size(dsi->pix_fmt);
-+		int bpp = mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt);
- 		const struct videomode *vm = &dsi->vm;
- 		/*
- 		 * Don't use line buffers if width is greater than the video
-@@ -3370,7 +3355,7 @@ static void dsi_config_cmd_mode_interleaving(struct dsi_data *dsi)
- 	int tclk_trail, ths_exit, exiths_clk;
- 	bool ddr_alwon;
- 	const struct videomode *vm = &dsi->vm;
--	int bpp = dsi_get_pixel_size(dsi->pix_fmt);
-+	int bpp = mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt);
- 	int ndl = dsi->num_lanes_used - 1;
- 	int dsi_fclk_hsdiv = dsi->user_dsi_cinfo.mX[HSDIV_DSI] + 1;
- 	int hsa_interleave_hs = 0, hsa_interleave_lp = 0;
-@@ -3498,7 +3483,7 @@ static int dsi_proto_config(struct dsi_data *dsi)
- 	dsi_set_lp_rx_timeout(dsi, 0x1fff, true, true);
- 	dsi_set_hs_tx_timeout(dsi, 0x1fff, true, true);
- 
--	switch (dsi_get_pixel_size(dsi->pix_fmt)) {
-+	switch (mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt)) {
- 	case 16:
- 		buswidth = 0;
- 		break;
-@@ -3619,7 +3604,7 @@ static void dsi_proto_timings(struct dsi_data *dsi)
- 		int window_sync = dsi->vm_timings.window_sync;
- 		bool hsync_end;
- 		const struct videomode *vm = &dsi->vm;
--		int bpp = dsi_get_pixel_size(dsi->pix_fmt);
-+		int bpp = mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt);
- 		int tl, t_he, width_bytes;
- 
- 		hsync_end = dsi->vm_timings.trans_mode == OMAP_DSS_DSI_PULSE_MODE;
-@@ -3726,7 +3711,7 @@ static int dsi_configure_pins(struct omap_dss_device *dssdev,
- static int dsi_enable_video_output(struct omap_dss_device *dssdev, int channel)
- {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
--	int bpp = dsi_get_pixel_size(dsi->pix_fmt);
-+	int bpp = mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt);
- 	u8 data_type;
- 	u16 word_count;
- 	int r;
-@@ -3737,16 +3722,16 @@ static int dsi_enable_video_output(struct omap_dss_device *dssdev, int channel)
- 
- 	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE) {
- 		switch (dsi->pix_fmt) {
--		case OMAP_DSS_DSI_FMT_RGB888:
-+		case MIPI_DSI_FMT_RGB888:
- 			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_24;
- 			break;
--		case OMAP_DSS_DSI_FMT_RGB666:
-+		case MIPI_DSI_FMT_RGB666:
- 			data_type = MIPI_DSI_PIXEL_STREAM_3BYTE_18;
- 			break;
--		case OMAP_DSS_DSI_FMT_RGB666_PACKED:
-+		case MIPI_DSI_FMT_RGB666_PACKED:
- 			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_18;
- 			break;
--		case OMAP_DSS_DSI_FMT_RGB565:
-+		case MIPI_DSI_FMT_RGB565:
- 			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_16;
- 			break;
- 		default:
-@@ -3824,7 +3809,7 @@ static void dsi_update_screen_dispc(struct dsi_data *dsi)
- 
- 	dsi_vc_config_source(dsi, channel, DSI_VC_SOURCE_VP);
- 
--	bytespp	= dsi_get_pixel_size(dsi->pix_fmt) / 8;
-+	bytespp	= mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt) / 8;
- 	bytespl = w * bytespp;
- 	bytespf = bytespl * h;
- 
-@@ -3954,7 +3939,7 @@ static int dsi_update(struct omap_dss_device *dssdev, int channel,
- 
- #ifdef DSI_PERF_MEASURE
- 	dsi->update_bytes = dw * dh *
--		dsi_get_pixel_size(dsi->pix_fmt) / 8;
-+		mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt) / 8;
- #endif
- 	dsi_update_screen_dispc(dsi);
- 
-@@ -4015,7 +4000,7 @@ static int dsi_display_init_dispc(struct dsi_data *dsi)
- 
- 	dsi->mgr_config.io_pad_mode = DSS_IO_PAD_MODE_BYPASS;
- 	dsi->mgr_config.video_port_width =
--			dsi_get_pixel_size(dsi->pix_fmt);
-+			mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt);
- 	dsi->mgr_config.lcden_sig_polarity = 0;
- 
- 	dss_mgr_set_lcd_config(&dsi->output, &dsi->mgr_config);
-@@ -4353,7 +4338,7 @@ static bool dsi_cm_calc(struct dsi_data *dsi,
- 	unsigned long pck, txbyteclk;
- 
- 	clkin = clk_get_rate(dsi->pll.clkin);
--	bitspp = dsi_get_pixel_size(cfg->pixel_format);
-+	bitspp = mipi_dsi_pixel_format_to_bpp(cfg->pixel_format);
- 	ndl = dsi->num_lanes_used - 1;
- 
- 	/*
-@@ -4386,7 +4371,7 @@ static bool dsi_vm_calc_blanking(struct dsi_clk_calc_ctx *ctx)
- {
- 	struct dsi_data *dsi = ctx->dsi;
- 	const struct omap_dss_dsi_config *cfg = ctx->config;
--	int bitspp = dsi_get_pixel_size(cfg->pixel_format);
-+	int bitspp = mipi_dsi_pixel_format_to_bpp(cfg->pixel_format);
- 	int ndl = dsi->num_lanes_used - 1;
- 	unsigned long hsclk = ctx->dsi_cinfo.clkdco / 4;
- 	unsigned long byteclk = hsclk / 4;
-@@ -4653,7 +4638,7 @@ static bool dsi_vm_calc(struct dsi_data *dsi,
- 	unsigned long pll_min;
- 	unsigned long pll_max;
- 	int ndl = dsi->num_lanes_used - 1;
--	int bitspp = dsi_get_pixel_size(cfg->pixel_format);
-+	int bitspp = mipi_dsi_pixel_format_to_bpp(cfg->pixel_format);
- 	unsigned long byteclk_min;
- 
- 	clkin = clk_get_rate(dsi->pll.clkin);
-@@ -4699,6 +4684,12 @@ static int dsi_set_config(struct omap_dss_device *dssdev,
- 	dsi->pix_fmt = config->pixel_format;
- 	dsi->mode = config->mode;
- 
-+	if (mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt) < 0) {
-+		DSSERR("invalid pixel format\n");
-+		r = -EINVAL;
-+		goto err;
++static ssize_t omap_dsi_transfer(struct omap_dss_device *dssdev,
++				 const struct mipi_dsi_msg *msg)
++{
++	/*
++	 * no_sync can be used to optimize performance by sending e.g. column
++	 * and page information without syncing in between. It's not absolutley
++	 * required, so postpone this feature for now.
++	 */
++	bool no_sync = false;
++	u16 val;
++
++	switch (msg->type) {
++	case MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM:
++	case MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM:
++	case MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM:
++	case MIPI_DSI_GENERIC_LONG_WRITE:
++		if (no_sync)
++			return dsi_vc_generic_write_nosync(dssdev, msg->channel,
++							   msg->tx_buf,
++							   msg->tx_len);
++		else
++			return dsi_vc_generic_write(dssdev, msg->channel,
++						    msg->tx_buf, msg->tx_len);
++	case MIPI_DSI_DCS_SHORT_WRITE:
++	case MIPI_DSI_DCS_SHORT_WRITE_PARAM:
++	case MIPI_DSI_DCS_LONG_WRITE:
++		if (no_sync)
++			return dsi_vc_dcs_write_nosync(dssdev, msg->channel,
++						       msg->tx_buf,
++						       msg->tx_len);
++		else
++			return dsi_vc_dcs_write(dssdev, msg->channel,
++						msg->tx_buf, msg->tx_len);
++	case MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM:
++	case MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM:
++	case MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM:
++		return dsi_vc_generic_read(dssdev, msg->channel,
++					   msg->tx_buf, msg->tx_len,
++					   msg->rx_buf, msg->rx_len);
++	case MIPI_DSI_DCS_READ:
++		return dsi_vc_dcs_read(dssdev, msg->channel,
++				       ((u8 *)msg->tx_buf)[0],
++				       msg->rx_buf, msg->rx_len);
++	case MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE:
++		val = le16_to_cpu(*((__le16 *)msg->tx_buf));
++		return dsi_vc_set_max_rx_packet_size(dssdev, msg->channel, val);
++	case MIPI_DSI_NULL_PACKET:
++		return dsi_vc_send_null(to_dsi_data(dssdev), msg->channel);
 +	}
 +
- 	if (config->mode == OMAP_DSS_DSI_VIDEO_MODE)
- 		ok = dsi_vm_calc(dsi, config, &ctx);
- 	else
++	return -EINVAL;
++}
+ 
+ static int dsi_get_clocks(struct dsi_data *dsi)
+ {
+@@ -4896,6 +4948,8 @@ static const struct omap_dss_device_ops dsi_ops = {
+ 		.set_vc_id = dsi_set_vc_id,
+ 		.release_vc = dsi_release_vc,
+ 
++		.transfer = omap_dsi_transfer,
++
+ 		.dcs_write = dsi_vc_dcs_write,
+ 		.dcs_write_nosync = dsi_vc_dcs_write_nosync,
+ 		.dcs_read = dsi_vc_dcs_read,
 diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index b0424daaceed..c4bc1f919ab4 100644
+index 8e96ab2f20b6..654618e5a4e5 100644
 --- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
 +++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -12,8 +12,10 @@
- #include <linux/interrupt.h>
- #include <video/videomode.h>
- #include <linux/platform_data/omapdss.h>
--#include <uapi/drm/drm_mode.h>
+@@ -308,6 +308,9 @@ struct omapdss_dsi_ops {
+ 	void (*release_vc)(struct omap_dss_device *dssdev, int channel);
+ 
+ 	/* data transfer */
++	ssize_t (*transfer)(struct omap_dss_device *dssdev,
++			    const struct mipi_dsi_msg *msg);
 +
- #include <drm/drm_crtc.h>
-+#include <drm/drm_mipi_dsi.h>
-+#include <drm/drm_mode.h>
- 
- #define DISPC_IRQ_FRAMEDONE		(1 << 0)
- #define DISPC_IRQ_VSYNC			(1 << 1)
-@@ -116,13 +118,6 @@ enum omap_dss_venc_type {
- 	OMAP_DSS_VENC_TYPE_SVIDEO,
- };
- 
--enum omap_dss_dsi_pixel_format {
--	OMAP_DSS_DSI_FMT_RGB888,
--	OMAP_DSS_DSI_FMT_RGB666,
--	OMAP_DSS_DSI_FMT_RGB666_PACKED,
--	OMAP_DSS_DSI_FMT_RGB565,
--};
--
- enum omap_dss_dsi_mode {
- 	OMAP_DSS_DSI_CMD_MODE = 0,
- 	OMAP_DSS_DSI_VIDEO_MODE,
-@@ -210,7 +205,7 @@ struct omap_dss_dsi_videomode_timings {
- 
- struct omap_dss_dsi_config {
- 	enum omap_dss_dsi_mode mode;
--	enum omap_dss_dsi_pixel_format pixel_format;
-+	enum mipi_dsi_pixel_format pixel_format;
- 	const struct videomode *vm;
- 
- 	unsigned long hs_clk_min, hs_clk_max;
+ 	int (*dcs_write)(struct omap_dss_device *dssdev, int channel,
+ 			const u8 *data, int len);
+ 	int (*dcs_write_nosync)(struct omap_dss_device *dssdev, int channel,
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
