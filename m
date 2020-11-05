@@ -1,99 +1,74 @@
-Return-Path: <SRS0=tstL=EK=vger.kernel.org=linux-omap-owner@kernel.org>
+Return-Path: <SRS0=Cm4E=EL=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D99B6C2D0A3
-	for <linux-omap@archiver.kernel.org>; Wed,  4 Nov 2020 14:45:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1619C2D0A3
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 01:33:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8755F20780
-	for <linux-omap@archiver.kernel.org>; Wed,  4 Nov 2020 14:45:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55E9720825
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 01:33:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Nt4YxLTr"
+	dkim=pass (2048-bit key) header.d=rere.qmqm.pl header.i=@rere.qmqm.pl header.b="SBqUY90c"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730242AbgKDOpY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 4 Nov 2020 09:45:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47772 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730208AbgKDOpR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2020 09:45:17 -0500
-Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 269D3C0613D3
-        for <linux-omap@vger.kernel.org>; Wed,  4 Nov 2020 06:45:15 -0800 (PST)
-Received: by mail-wr1-x441.google.com with SMTP id b8so22342559wrn.0
-        for <linux-omap@vger.kernel.org>; Wed, 04 Nov 2020 06:45:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=9OWAUFWKR6t7bxReqmvWgrAg/iWvkWfLXWjhohm+HkY=;
-        b=Nt4YxLTrGbzEFLQlgB6jldAUWPyHzdaO8QckIIG3P91zfSi3pAfwp4Ov+s2oyMqdoX
-         HO5TECF9Di+dt+ZvRyQC2Pq/lKyCtBkp5mtGQqV91D5mMgXffpUmxdoqFXq0w0Huwcoo
-         2l4H02s1czM/hpASCPdQM/yXVm2DTdQbNHyUnvcEwLlpYbNfv3SJ509j4zbZoBuC3FMZ
-         sRaE6OwzA5ESm+ElT72CbZP1uzY50LeB/Vti9QiGUy2DJydm6ZxsT1mn5I68fxCbnR4V
-         DnnpB+8TayXBAOgNpNMP+Mz8wMk2YQFcVcO3JZrbFpx97CbVGR8wRnXySYYRqyNQsmMq
-         e6Bw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=9OWAUFWKR6t7bxReqmvWgrAg/iWvkWfLXWjhohm+HkY=;
-        b=WfIKzDZ6KQe1oMp4tkmWpQoPP9lW+MkvfNctXzWlRIurcCv9TQwnkd2Rk7x3n3SVbW
-         4OeC7J+iNuxiKeHJbn9KzCyXqgWpHJZOvPV8IxHqU2bcuk5hLUTFsgi2uUXAU1eau2GT
-         /lyPl5K3eoeaJYxs8zPRHMYeFc83umK/nBRGPJcMfXCODaWHwLWvkeJjwdcwINYVh2HW
-         hLZZL4NhZDYYWalISx6KaT9CUiGKU5P+Nfk1XdjHqRuJ34fZvN8VLtPoqFBXwhDL826C
-         b3XacoMM3lLkCMxrJ7QVJt0LtjYk56DAruohnXOb9UJLS/WVrcDL6famkId7hNpCGfdS
-         S1NA==
-X-Gm-Message-State: AOAM530MGOadmGiLxy5zKkIlphXSlP1+J3R5DFa7BDcCbSsc5s8aBzgF
-        FFVlkHDuuWQLL2AwUFjADhsJXQ==
-X-Google-Smtp-Source: ABdhPJxHdgs8yA8BtfhGVcKDYrIhx3gbi+u4kSoZc49l5ZGadrCJN8o2W482MgUhplZtxB9qoB0JSw==
-X-Received: by 2002:a5d:4c8e:: with SMTP id z14mr1951514wrs.1.1604501113900;
-        Wed, 04 Nov 2020 06:45:13 -0800 (PST)
-Received: from dell ([91.110.221.242])
-        by smtp.gmail.com with ESMTPSA id t5sm2608695wmg.19.2020.11.04.06.45.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2020 06:45:13 -0800 (PST)
-Date:   Wed, 4 Nov 2020 14:45:11 +0000
-From:   Lee Jones <lee.jones@linaro.org>
-To:     =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
-Cc:     Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Mark Brown <broonie@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 4/5] mfd: tps65910: clean up after switching to regmap
-Message-ID: <20201104144511.GI4488@dell>
-References: <cover.1601164493.git.mirq-linux@rere.qmqm.pl>
- <8ebfb748eb55b68e5da4c5eefcf708ae9307b418.1601164493.git.mirq-linux@rere.qmqm.pl>
+        id S1730883AbgKEBdX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 4 Nov 2020 20:33:23 -0500
+Received: from rere.qmqm.pl ([91.227.64.183]:53100 "EHLO rere.qmqm.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730812AbgKEBdX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 4 Nov 2020 20:33:23 -0500
+Received: from remote.user (localhost [127.0.0.1])
+        by rere.qmqm.pl (Postfix) with ESMTPSA id 4CRQyS3Fwdz8p;
+        Thu,  5 Nov 2020 02:33:20 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rere.qmqm.pl; s=1;
+        t=1604540001; bh=8HZujv+B9glFMO2jIpcGlrIyBcBkf4Sxyjc0+yqd5Ts=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=SBqUY90c81QWrd00llbDujyB9JGO3jQsXx9jLs3NzdBjbzcRTt66hTsRFgIDVJQFt
+         Q/uvCtEvZXYILOW2eJf5Lab49xCnqVwG1FM0aH6y6YPmS4MG/D9voHyhbbCS/HkcTF
+         JbFzgQzyGB7uapvZS9X3foAiu61r9Oa4Mwpye9SXV69mttRgWMSsnsglEVJZhpThG2
+         4l2MEQ2S57GDHTCoJzilogEM49k8oRwsbilxjulxJsZf1HpWSH9TsIN0m4gPESjAKH
+         I1uOJeW75KedrlCTNksdNa8l3Zo0hzCw/zDnMKRwOgQkdRtsGmN7sFaqEPDACNnlXN
+         +WRLFoHLpKl5g==
+X-Virus-Status: Clean
+X-Virus-Scanned: clamav-milter 0.102.4 at mail
+Date:   Thu, 5 Nov 2020 02:33:19 +0100
+From:   =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
+To:     Dmitry Osipenko <digetx@gmail.com>
+Cc:     Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Zack Pearsall <zpearsall@yahoo.com>,
+        linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3] mfd: tps65910: Correct power-off programming sequence
+Message-ID: <20201105013319.GA17266@qmqm.qmqm.pl>
+References: <20201104134408.19911-1-digetx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-2
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <8ebfb748eb55b68e5da4c5eefcf708ae9307b418.1601164493.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <20201104134408.19911-1-digetx@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sun, 27 Sep 2020, Michał Mirosław wrote:
+On Wed, Nov 04, 2020 at 04:44:08PM +0300, Dmitry Osipenko wrote:
+> This patch fixes system shutdown on a devices that use TPS65910 as a
+> system's power controller. In accordance to the TPS65910 datasheet, the
+> PMIC's state-machine transitions into the OFF state only when DEV_OFF
+> bit of DEVCTRL_REG is set. The ON / SLEEP states also should be cleared,
+> otherwise PMIC won't get into a proper state on shutdown. Devices like
+> Nexus 7 tablet and Ouya game console are now shutting down properly.
+[...]
 
-> Remove wrappers around regmap calls to remove now-useless indirection.
-> 
-> Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
-> ---
->  drivers/mfd/tps65910.c       | 16 ++++++++--------
->  include/linux/mfd/tps65910.h | 35 -----------------------------------
->  2 files changed, 8 insertions(+), 43 deletions(-)
+You might want to rebase on https://lkml.org/lkml/2020/9/26/397 as it's
+probably going to be accepted shortly. This just means replacing
+register accesses: tps65910_reg_*() -> regmap_*().
 
-Applied, thanks.
-
--- 
-Lee Jones [李琼斯]
-Senior Technical Lead - Developer Services
-Linaro.org │ Open source software for Arm SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Best Regards,
+Micha� Miros�aw
