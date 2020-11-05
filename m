@@ -2,51 +2,50 @@ Return-Path: <SRS0=Cm4E=EL=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBAB0C4742C
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B82BC6369E
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7EF5022243
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0457722261
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="FhhB0JkN"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ipNEfukw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730783AbgKEMFj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:05:39 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:46762 "EHLO
+        id S1730754AbgKEMFc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:05:32 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:46720 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730775AbgKEMFi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:38 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5V6M070647;
-        Thu, 5 Nov 2020 06:05:31 -0600
+        with ESMTP id S1727851AbgKEMFc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:32 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5O1f070612;
+        Thu, 5 Nov 2020 06:05:24 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577931;
-        bh=5AtWfUhw9p682f9fxjJsBueD5cT3KIUJCOIhqlg9xqQ=;
+        s=ti-com-17Q1; t=1604577924;
+        bh=IUJVGWXxh+oW2tmxJbI0CkeUJmJF2JqB3VY5nLDbuW4=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=FhhB0JkN47N2is0Ii4AS6XMPeFZ8rxnknmFU1u6vj5XGUcxK8XitzTLSoLipfgGIv
-         DIDT9oQmgZVzT8BSyQu0URT76FONN++L5w5qnHfS5dv0m1m8XJVs1bEteDHAMSHeaw
-         iMICy9Y5xDCceUdfJAjaeFRSpzC32wzivW1D7Qqk=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5VP6043808
+        b=ipNEfukw2t2HWvaAKh0Nj1JaJ2RkAdQNoaR5eZmYvK23TLNLwWZPQ9UMQiEPSW5A3
+         rO0B9zJPkyvIKPfgSzB6mkZK62hjfbo03xXxE1JR2dMcer6y/cIAeN3LFfWbtiOXdB
+         aZ5rh200CKX7egVuz+KX/LaHzmezIAMY4wkpA4e8=
+Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5OK7124678
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:05:31 -0600
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:05:24 -0600
+Received: from DLEE101.ent.ti.com (157.170.170.31) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:05:31 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:05:23 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE101.ent.ti.com
+ (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:05:30 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:05:23 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfb039111;
-        Thu, 5 Nov 2020 06:05:29 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfY039111;
+        Thu, 5 Nov 2020 06:05:21 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -56,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 39/56] drm/omap: remove global dss_device variable
-Date:   Thu, 5 Nov 2020 14:03:16 +0200
-Message-ID: <20201105120333.947408-40-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 36/56] drm/omap: panel-dsi-cm: use DEVICE_ATTR_RO
+Date:   Thu, 5 Nov 2020 14:03:13 +0200
+Message-ID: <20201105120333.947408-37-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -72,130 +71,48 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-We can simply provide the device to the omapdrm driver
-via pdata. omapdss_is_initialized() is no longer required
-(even before this patch), since omapdrm device is only
-registered after the pointer is initialized.
+Use DEVICE_ATTR_RO helper instead of plain DEVICE_ATTR,
+which makes the code a bit shorter and easier to read.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/base.c    | 14 --------------
- drivers/gpu/drm/omapdrm/dss/dss.c     |  9 ++++-----
- drivers/gpu/drm/omapdrm/dss/omapdss.h |  9 +++------
- drivers/gpu/drm/omapdrm/omap_drv.c    |  6 ++----
- 4 files changed, 9 insertions(+), 29 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/base.c b/drivers/gpu/drm/omapdrm/dss/base.c
-index 455b410f7401..8e08c49b4f97 100644
---- a/drivers/gpu/drm/omapdrm/dss/base.c
-+++ b/drivers/gpu/drm/omapdrm/dss/base.c
-@@ -16,20 +16,6 @@
- #include "dss.h"
- #include "omapdss.h"
- 
--static struct dss_device *dss_device;
--
--struct dss_device *omapdss_get_dss(void)
--{
--	return dss_device;
--}
--EXPORT_SYMBOL(omapdss_get_dss);
--
--void omapdss_set_dss(struct dss_device *dss)
--{
--	dss_device = dss;
--}
--EXPORT_SYMBOL(omapdss_set_dss);
--
- struct dispc_device *dispc_get_dispc(struct dss_device *dss)
- {
- 	return dss->dispc;
-diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c b/drivers/gpu/drm/omapdrm/dss/dss.c
-index 6ccbc29c4ce4..6e86f4e67a2c 100644
---- a/drivers/gpu/drm/omapdrm/dss/dss.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dss.c
-@@ -1305,6 +1305,7 @@ static int dss_bind(struct device *dev)
- {
- 	struct dss_device *dss = dev_get_drvdata(dev);
- 	struct platform_device *drm_pdev;
-+	struct dss_pdata pdata;
- 	int r;
- 
- 	r = component_bind_all(dev, NULL);
-@@ -1313,9 +1314,9 @@ static int dss_bind(struct device *dev)
- 
- 	pm_set_vt_switch(0);
- 
--	omapdss_set_dss(dss);
--
--	drm_pdev = platform_device_register_simple("omapdrm", 0, NULL, 0);
-+	pdata.dss = dss;
-+	drm_pdev = platform_device_register_data(NULL, "omapdrm", 0,
-+						 &pdata, sizeof(pdata));
- 	if (IS_ERR(drm_pdev)) {
- 		component_unbind_all(dev, NULL);
- 		return PTR_ERR(drm_pdev);
-@@ -1332,8 +1333,6 @@ static void dss_unbind(struct device *dev)
- 
- 	platform_device_unregister(dss->drm_pdev);
- 
--	omapdss_set_dss(NULL);
--
- 	component_unbind_all(dev, NULL);
- }
- 
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 3ee3063b6a2d..42d1ec3aaf0c 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -356,12 +356,9 @@ struct omap_dss_device {
- 	unsigned int of_port;
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index 3668b3f0aff2..5159dd51a353 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -219,7 +219,7 @@ static const struct backlight_ops dsicm_bl_ops = {
+ 	.update_status  = dsicm_bl_update_status,
  };
  
--struct dss_device *omapdss_get_dss(void);
--void omapdss_set_dss(struct dss_device *dss);
--static inline bool omapdss_is_initialized(void)
--{
--	return !!omapdss_get_dss();
--}
-+struct dss_pdata {
-+	struct dss_device *dss;
-+};
- 
- void omapdss_display_init(struct omap_dss_device *dssdev);
- int omapdss_display_get_modes(struct drm_connector *connector,
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index 53d5e184ee77..b342f5b6ced0 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -577,6 +577,7 @@ static const struct soc_device_attribute omapdrm_soc_devices[] = {
- static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
+-static ssize_t dsicm_num_errors_show(struct device *dev,
++static ssize_t num_dsi_errors_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	const struct soc_device_attribute *soc;
-+	struct dss_pdata *pdata = dev->platform_data;
- 	struct drm_device *ddev;
- 	int ret;
+ 	struct panel_drv_data *ddata = dev_get_drvdata(dev);
+@@ -239,7 +239,7 @@ static ssize_t dsicm_num_errors_show(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", errors);
+ }
  
-@@ -591,7 +592,7 @@ static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
- 	ddev->dev_private = priv;
+-static ssize_t dsicm_hw_revision_show(struct device *dev,
++static ssize_t hw_revision_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(dev);
+@@ -259,8 +259,8 @@ static ssize_t dsicm_hw_revision_show(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%02x.%02x.%02x\n", id1, id2, id3);
+ }
  
- 	priv->dev = dev;
--	priv->dss = omapdss_get_dss();
-+	priv->dss = pdata->dss;
- 	priv->dispc = dispc_get_dispc(priv->dss);
- 	priv->dispc_ops = dispc_get_ops(priv->dss);
+-static DEVICE_ATTR(num_dsi_errors, S_IRUGO, dsicm_num_errors_show, NULL);
+-static DEVICE_ATTR(hw_revision, S_IRUGO, dsicm_hw_revision_show, NULL);
++static DEVICE_ATTR_RO(num_dsi_errors);
++static DEVICE_ATTR_RO(hw_revision);
  
-@@ -686,9 +687,6 @@ static int pdev_probe(struct platform_device *pdev)
- 	struct omap_drm_private *priv;
- 	int ret;
- 
--	if (omapdss_is_initialized() == false)
--		return -EPROBE_DEFER;
--
- 	ret = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
- 	if (ret) {
- 		dev_err(&pdev->dev, "Failed to set the DMA mask\n");
+ static struct attribute *dsicm_attrs[] = {
+ 	&dev_attr_num_dsi_errors.attr,
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
