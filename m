@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F13A9C4741F
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C63FAC55179
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9700A20BED
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6660222210
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="JfxmH6/f"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="xwSRH1N7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726067AbgKEMEQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1728371AbgKEMEQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Thu, 5 Nov 2020 07:04:16 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42158 "EHLO
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42172 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729832AbgKEMEP (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:15 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3wuL056509;
-        Thu, 5 Nov 2020 06:03:58 -0600
+        with ESMTP id S1730069AbgKEMEQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:16 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C485F056533;
+        Thu, 5 Nov 2020 06:04:08 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577838;
-        bh=XmoJGeQeqYLtLh5CsDTCe72MkwTql6cPDvCmd4sdvxU=;
+        s=ti-com-17Q1; t=1604577848;
+        bh=KuzRFxaZaEeub4lQnHBfyHYmcKOEXBqeB0NTeHEQ2IU=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=JfxmH6/fE9Z8VQHMwtsq/E2jcSNqbZr0tAKyx8JghvZ7CHwsN9XCiOmgBkJqY+NCh
-         IFSa45GpIr7Fucj4z7M1QXHl69cd1OJP81+okQI/t/zmrrza5Y9r1CJMnGfL3zysht
-         a65FNS4CR9ViKRz25ATdSV7YvsGouv2hJwQw86lE=
-Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C3w1p124204
+        b=xwSRH1N7jjMvXFMOrMtk3Vdj1eLjBP3yUbU36GTU/LJfOD76PJ+ft8bo5Xig52LZW
+         NC6MKKclz8Fb+RlKHBLAU1uESbhDy7rQR/8josZAS6Z4QWi4gZTlDtYiLpjtHHqVnH
+         P8uRajfd5iKrjn8tGE2IrD9GX3O1+uIm7iohuKxY=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C48ti071774
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:03:58 -0600
-Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:04:08 -0600
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:03:58 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:04:07 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:03:58 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:04:08 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rex039111;
-        Thu, 5 Nov 2020 06:03:56 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rf3039111;
+        Thu, 5 Nov 2020 06:04:05 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 01/56] drm/dsi: add MIPI_DSI_MODE_ULPS_IDLE
-Date:   Thu, 5 Nov 2020 14:02:38 +0200
-Message-ID: <20201105120333.947408-2-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 05/56] drm/omap: constify write buffers
+Date:   Thu, 5 Nov 2020 14:02:42 +0200
+Message-ID: <20201105120333.947408-6-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -71,34 +71,135 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-DSI command mode panels are self-refreshing displays, that
-can be updated very rarely for static images. For this kind
-of scenario some panels support, that the DSI bus switches
-into ULPS mode until the panel needs to be refreshed.
-
-This is problematic on some panels, so introduce a flag to
-signal the DSI host implementation that the panel allows
-going into ULPS mode.
+The write buffers are not modified, so they can be constant.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- include/drm/drm_mipi_dsi.h | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/gpu/drm/omapdrm/dss/dsi.c     | 24 ++++++++++++------------
+ drivers/gpu/drm/omapdrm/dss/omapdss.h | 10 +++++-----
+ 2 files changed, 17 insertions(+), 17 deletions(-)
 
-diff --git a/include/drm/drm_mipi_dsi.h b/include/drm/drm_mipi_dsi.h
-index 360e6377e84b..f36f89c14b4a 100644
---- a/include/drm/drm_mipi_dsi.h
-+++ b/include/drm/drm_mipi_dsi.h
-@@ -132,6 +132,8 @@ struct mipi_dsi_host *of_find_mipi_dsi_host_by_node(struct device_node *node);
- #define MIPI_DSI_CLOCK_NON_CONTINUOUS	BIT(10)
- /* transmit data in low power */
- #define MIPI_DSI_MODE_LPM		BIT(11)
-+/* allow going into ULPS mode while command mode panel is not updated */
-+#define MIPI_DSI_MODE_ULPS_IDLE		BIT(12)
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index 86b9d435fb94..22d74d762a10 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -2601,11 +2601,11 @@ static inline void dsi_vc_write_long_payload(struct dsi_data *dsi, int channel,
+ }
  
- enum mipi_dsi_pixel_format {
- 	MIPI_DSI_FMT_RGB888,
+ static int dsi_vc_send_long(struct dsi_data *dsi, int channel, u8 data_type,
+-			    u8 *data, u16 len, u8 ecc)
++			    const u8 *data, u16 len, u8 ecc)
+ {
+ 	/*u32 val; */
+ 	int i;
+-	u8 *p;
++	const u8 *p;
+ 	int r = 0;
+ 	u8 b1, b2, b3, b4;
+ 
+@@ -2698,7 +2698,7 @@ static int dsi_vc_send_null(struct dsi_data *dsi, int channel)
+ }
+ 
+ static int dsi_vc_write_nosync_common(struct dsi_data *dsi, int channel,
+-				      u8 *data, int len,
++				      const u8 *data, int len,
+ 				      enum dss_dsi_content_type type)
+ {
+ 	int r;
+@@ -2729,7 +2729,7 @@ static int dsi_vc_write_nosync_common(struct dsi_data *dsi, int channel,
+ }
+ 
+ static int dsi_vc_dcs_write_nosync(struct omap_dss_device *dssdev, int channel,
+-		u8 *data, int len)
++		const u8 *data, int len)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 
+@@ -2738,7 +2738,7 @@ static int dsi_vc_dcs_write_nosync(struct omap_dss_device *dssdev, int channel,
+ }
+ 
+ static int dsi_vc_generic_write_nosync(struct omap_dss_device *dssdev, int channel,
+-		u8 *data, int len)
++		const u8 *data, int len)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 
+@@ -2747,7 +2747,7 @@ static int dsi_vc_generic_write_nosync(struct omap_dss_device *dssdev, int chann
+ }
+ 
+ static int dsi_vc_write_common(struct omap_dss_device *dssdev,
+-			       int channel, u8 *data, int len,
++			       int channel, const u8 *data, int len,
+ 			       enum dss_dsi_content_type type)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+@@ -2776,15 +2776,15 @@ static int dsi_vc_write_common(struct omap_dss_device *dssdev,
+ 	return r;
+ }
+ 
+-static int dsi_vc_dcs_write(struct omap_dss_device *dssdev, int channel, u8 *data,
+-		int len)
++static int dsi_vc_dcs_write(struct omap_dss_device *dssdev, int channel,
++		const u8 *data, int len)
+ {
+ 	return dsi_vc_write_common(dssdev, channel, data, len,
+ 			DSS_DSI_CONTENT_DCS);
+ }
+ 
+-static int dsi_vc_generic_write(struct omap_dss_device *dssdev, int channel, u8 *data,
+-		int len)
++static int dsi_vc_generic_write(struct omap_dss_device *dssdev, int channel,
++		const u8 *data, int len)
+ {
+ 	return dsi_vc_write_common(dssdev, channel, data, len,
+ 			DSS_DSI_CONTENT_GENERIC);
+@@ -2810,7 +2810,7 @@ static int dsi_vc_dcs_send_read_request(struct dsi_data *dsi, int channel,
+ }
+ 
+ static int dsi_vc_generic_send_read_request(struct dsi_data *dsi, int channel,
+-					    u8 *reqdata, int reqlen)
++					    const u8 *reqdata, int reqlen)
+ {
+ 	u16 data;
+ 	u8 data_type;
+@@ -2983,7 +2983,7 @@ static int dsi_vc_dcs_read(struct omap_dss_device *dssdev, int channel, u8 dcs_c
+ }
+ 
+ static int dsi_vc_generic_read(struct omap_dss_device *dssdev, int channel,
+-		u8 *reqdata, int reqlen, u8 *buf, int buflen)
++		const u8 *reqdata, int reqlen, u8 *buf, int buflen)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	int r;
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+index c4bc1f919ab4..8e96ab2f20b6 100644
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
++++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+@@ -309,18 +309,18 @@ struct omapdss_dsi_ops {
+ 
+ 	/* data transfer */
+ 	int (*dcs_write)(struct omap_dss_device *dssdev, int channel,
+-			u8 *data, int len);
++			const u8 *data, int len);
+ 	int (*dcs_write_nosync)(struct omap_dss_device *dssdev, int channel,
+-			u8 *data, int len);
++			const u8 *data, int len);
+ 	int (*dcs_read)(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
+ 			u8 *data, int len);
+ 
+ 	int (*gen_write)(struct omap_dss_device *dssdev, int channel,
+-			u8 *data, int len);
++			const u8 *data, int len);
+ 	int (*gen_write_nosync)(struct omap_dss_device *dssdev, int channel,
+-			u8 *data, int len);
++			const u8 *data, int len);
+ 	int (*gen_read)(struct omap_dss_device *dssdev, int channel,
+-			u8 *reqdata, int reqlen,
++			const u8 *reqdata, int reqlen,
+ 			u8 *data, int len);
+ 
+ 	int (*bta_sync)(struct omap_dss_device *dssdev, int channel);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
