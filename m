@@ -5,48 +5,47 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0D1BC64E90
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66A57C64E75
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F3CE221FA
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CEEB2224B
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="mZJGs8uH"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="uJGy9v23"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730258AbgKEMF1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:05:27 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42740 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730754AbgKEMF1 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:27 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5Jpl057055;
-        Thu, 5 Nov 2020 06:05:19 -0600
+        id S1730231AbgKEMFg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:05:36 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:46748 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727851AbgKEMFg (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:36 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5Sv1070637;
+        Thu, 5 Nov 2020 06:05:28 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577919;
-        bh=LkNQ4VIIRZnUI7kX2jqd5XoEc4Wh6zLcPqK0LeTodc8=;
+        s=ti-com-17Q1; t=1604577928;
+        bh=sAi6SeEpXb3tNuvVU6DaN6+6EavE9vnDdow6zTDhLEs=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=mZJGs8uH57HK+OmGfCzLE1D8a9X9InyQBwplrrOTwZl/hSekcNEaL7ZGxoB7dNLtv
-         3g20eT0heXJ4uhTqk7+t3WEIZAL2bNG+/1dkoX01LqFczpc2v1Bk96h2qf1UgQLYIO
-         ZOzx+2xjqlJSYM8+4+jg1PYaUOI7XAowAPEc7aTw=
-Received: from DFLE103.ent.ti.com (dfle103.ent.ti.com [10.64.6.24])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5JfV073617
+        b=uJGy9v23pgHUHdrlV6rDOyqQ1vFX4kXQyA2yLCEja4K9XM8Jo4MseoywUVSnn1fuV
+         VmyqmictNJgqwKV1JCbLFR60RQpv+0gR624X+lx3N6unDDZBMKIyHhqDKNd1iBTFwx
+         72sloMCfhJlj9CyARNvW2cBT5aTlHGa10d2vblbU=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5SLQ043725
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:05:19 -0600
-Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE103.ent.ti.com
- (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:05:28 -0600
+Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:05:18 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:05:28 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE101.ent.ti.com
+ (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:05:18 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:05:28 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfW039111;
-        Thu, 5 Nov 2020 06:05:16 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfa039111;
+        Thu, 5 Nov 2020 06:05:26 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -56,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 34/56] drm/omap: drop omapdss-boot-init
-Date:   Thu, 5 Nov 2020 14:03:11 +0200
-Message-ID: <20201105120333.947408-35-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 38/56] drm/omap: panel-dsi-cm: fix remove()
+Date:   Thu, 5 Nov 2020 14:03:15 +0200
+Message-ID: <20201105120333.947408-39-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -72,283 +71,32 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-The table of compatible values needed to be prefixed with "omapdss,"
-is empty, so all of this code is doing nothing now. Let's drop it.
+Do not try to reset the panel after DSI has been
+detached, since the DSI clocks may have been disabled
+at this point. The panel will be disabled and unprepared
+before being removed and a reset will be done when being
+probed again.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/Kconfig           |   4 -
- drivers/gpu/drm/omapdrm/dss/Makefile          |   2 -
- .../gpu/drm/omapdrm/dss/omapdss-boot-init.c   | 228 ------------------
- 3 files changed, 234 deletions(-)
- delete mode 100644 drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
-index fd7dfa28ce97..6ec80771af3d 100644
---- a/drivers/gpu/drm/omapdrm/dss/Kconfig
-+++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
-@@ -1,7 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
--config OMAP2_DSS_INIT
--	bool
--
- config OMAP_DSS_BASE
- 	tristate
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index 086c7d71fe17..795db22d148d 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -622,9 +622,6 @@ static int dsicm_remove(struct mipi_dsi_device *dsi)
+ 	if (ddata->extbldev)
+ 		put_device(&ddata->extbldev->dev);
  
-@@ -9,7 +6,6 @@ menuconfig OMAP2_DSS
- 	tristate "OMAP2+ Display Subsystem support"
- 	select OMAP_DSS_BASE
- 	select VIDEOMODE_HELPERS
--	select OMAP2_DSS_INIT
- 	select HDMI
- 	help
- 	  OMAP2+ Display Subsystem support.
-diff --git a/drivers/gpu/drm/omapdrm/dss/Makefile b/drivers/gpu/drm/omapdrm/dss/Makefile
-index f967e6948f2e..811966cd7468 100644
---- a/drivers/gpu/drm/omapdrm/dss/Makefile
-+++ b/drivers/gpu/drm/omapdrm/dss/Makefile
-@@ -1,6 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--obj-$(CONFIG_OMAP2_DSS_INIT) += omapdss-boot-init.o
+-	/* reset, to be sure that the panel is in a valid state */
+-	dsicm_hw_reset(ddata);
 -
- obj-$(CONFIG_OMAP_DSS_BASE) += omapdss-base.o
- omapdss-base-y := base.o display.o output.o
+ 	return 0;
+ }
  
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c b/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
-deleted file mode 100644
-index 18560ca4bbb0..000000000000
---- a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
-+++ /dev/null
-@@ -1,228 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-- * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-- */
--
--/*
-- * As omapdss panel drivers are omapdss specific, but we want to define the
-- * DT-data in generic manner, we convert the compatible strings of the panel and
-- * encoder nodes from "panel-foo" to "omapdss,panel-foo". This way we can have
-- * both correct DT data and omapdss specific drivers.
-- *
-- * When we get generic panel drivers to the kernel, this file will be removed.
-- */
--
--#include <linux/kernel.h>
--#include <linux/of.h>
--#include <linux/of_graph.h>
--#include <linux/slab.h>
--#include <linux/list.h>
--
--static struct list_head dss_conv_list __initdata;
--
--static const char prefix[] __initconst = "omapdss,";
--
--struct dss_conv_node {
--	struct list_head list;
--	struct device_node *node;
--	bool root;
--};
--
--static int __init omapdss_count_strings(const struct property *prop)
--{
--	const char *p = prop->value;
--	int l = 0, total = 0;
--	int i;
--
--	for (i = 0; total < prop->length; total += l, p += l, i++)
--		l = strlen(p) + 1;
--
--	return i;
--}
--
--static void __init omapdss_update_prop(struct device_node *node, char *compat,
--	int len)
--{
--	struct property *prop;
--
--	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
--	if (!prop)
--		return;
--
--	prop->name = "compatible";
--	prop->value = compat;
--	prop->length = len;
--
--	of_update_property(node, prop);
--}
--
--static void __init omapdss_prefix_strcpy(char *dst, int dst_len,
--	const char *src, int src_len)
--{
--	size_t total = 0;
--
--	while (total < src_len) {
--		size_t l = strlen(src) + 1;
--
--		strcpy(dst, prefix);
--		dst += strlen(prefix);
--
--		strcpy(dst, src);
--		dst += l;
--
--		src += l;
--		total += l;
--	}
--}
--
--/* prepend compatible property strings with "omapdss," */
--static void __init omapdss_omapify_node(struct device_node *node)
--{
--	struct property *prop;
--	char *new_compat;
--	int num_strs;
--	int new_len;
--
--	prop = of_find_property(node, "compatible", NULL);
--
--	if (!prop || !prop->value)
--		return;
--
--	if (strnlen(prop->value, prop->length) >= prop->length)
--		return;
--
--	/* is it already prefixed? */
--	if (strncmp(prefix, prop->value, strlen(prefix)) == 0)
--		return;
--
--	num_strs = omapdss_count_strings(prop);
--
--	new_len = prop->length + strlen(prefix) * num_strs;
--	new_compat = kmalloc(new_len, GFP_KERNEL);
--
--	omapdss_prefix_strcpy(new_compat, new_len, prop->value, prop->length);
--
--	omapdss_update_prop(node, new_compat, new_len);
--}
--
--static void __init omapdss_add_to_list(struct device_node *node, bool root)
--{
--	struct dss_conv_node *n = kmalloc(sizeof(*n), GFP_KERNEL);
--	if (n) {
--		n->node = node;
--		n->root = root;
--		list_add(&n->list, &dss_conv_list);
--	}
--}
--
--static bool __init omapdss_list_contains(const struct device_node *node)
--{
--	struct dss_conv_node *n;
--
--	list_for_each_entry(n, &dss_conv_list, list) {
--		if (n->node == node)
--			return true;
--	}
--
--	return false;
--}
--
--static void __init omapdss_walk_device(struct device_node *node, bool root)
--{
--	struct device_node *n;
--
--	omapdss_add_to_list(node, root);
--
--	/*
--	 * of_graph_get_remote_port_parent() prints an error if there is no
--	 * port/ports node. To avoid that, check first that there's the node.
--	 */
--	n = of_get_child_by_name(node, "ports");
--	if (!n)
--		n = of_get_child_by_name(node, "port");
--	if (!n)
--		return;
--
--	of_node_put(n);
--
--	n = NULL;
--	while ((n = of_graph_get_next_endpoint(node, n)) != NULL) {
--		struct device_node *pn;
--
--		pn = of_graph_get_remote_port_parent(n);
--
--		if (!pn)
--			continue;
--
--		if (!of_device_is_available(pn) || omapdss_list_contains(pn)) {
--			of_node_put(pn);
--			continue;
--		}
--
--		omapdss_walk_device(pn, false);
--	}
--}
--
--static const struct of_device_id omapdss_of_match[] __initconst = {
--	{ .compatible = "ti,omap2-dss", },
--	{ .compatible = "ti,omap3-dss", },
--	{ .compatible = "ti,omap4-dss", },
--	{ .compatible = "ti,omap5-dss", },
--	{ .compatible = "ti,dra7-dss", },
--	{},
--};
--
--static const struct of_device_id omapdss_of_fixups_whitelist[] __initconst = {
--	{},
--};
--
--static void __init omapdss_find_children(struct device_node *np)
--{
--	struct device_node *child;
--
--	for_each_available_child_of_node(np, child) {
--		if (!of_find_property(child, "compatible", NULL))
--			continue;
--
--		omapdss_walk_device(child, true);
--
--		if (of_device_is_compatible(child, "ti,sysc"))
--			omapdss_find_children(child);
--	}
--}
--
--static int __init omapdss_boot_init(void)
--{
--	struct device_node *dss;
--
--	INIT_LIST_HEAD(&dss_conv_list);
--
--	dss = of_find_matching_node(NULL, omapdss_of_match);
--
--	if (dss == NULL || !of_device_is_available(dss))
--		goto put_node;
--
--	omapdss_walk_device(dss, true);
--	omapdss_find_children(dss);
--
--	while (!list_empty(&dss_conv_list)) {
--		struct dss_conv_node *n;
--
--		n = list_first_entry(&dss_conv_list, struct dss_conv_node,
--			list);
--
--		if (of_match_node(omapdss_of_fixups_whitelist, n->node))
--			omapdss_omapify_node(n->node);
--
--		list_del(&n->list);
--		of_node_put(n->node);
--		kfree(n);
--	}
--
--put_node:
--	of_node_put(dss);
--	return 0;
--}
--
--subsys_initcall(omapdss_boot_init);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
