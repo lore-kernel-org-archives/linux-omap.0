@@ -2,51 +2,51 @@ Return-Path: <SRS0=Cm4E=EL=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE624C00A89
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92A87C64E7D
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7290322228
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:04:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BF992222B
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="v3B41dfU"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Mn+ZJA1t"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730668AbgKEMEp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:04:45 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:46214 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730639AbgKEMEo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:44 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C4ZVH070100;
-        Thu, 5 Nov 2020 06:04:35 -0600
+        id S1730727AbgKEMFC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:05:02 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42430 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730669AbgKEME5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:04:57 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C4oEE056678;
+        Thu, 5 Nov 2020 06:04:50 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577875;
-        bh=F7S7Xfkp/kNtsLBhFCjHg7XOVHhiMw3wA9fwR7dcWuk=;
+        s=ti-com-17Q1; t=1604577890;
+        bh=LddkAFa8lpLNgzWL8wRR2dp2XyGs1GJumdWVJvO5jcw=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=v3B41dfUgowZxN8UBvJLrluwAKpr8mShVLiCfTu5m9kECp1m0hwiNIRMsqFOaY3eL
-         WLqXgLrrs7/byyRwb58+XAq8D3XvBwxwZP9fGAF4EoivI/ZirpScXV7gc/C7kuB2LI
-         AXoJawGIsh8TWOurM/PdA5pOrwDd+gMPG2T8PODU=
-Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C4ZML125384
+        b=Mn+ZJA1t4inzLcfjfwkRAA+IlZbM+jQRrTGiMWDffRRgQH/fZSvgdKVrXqDCFFC9U
+         Wkk9tsgpa9Zn5ItwklZXb68rn/sz/9m3W0Nxu/e/XDFqrgQctHFFJjbQ5MP35YGhte
+         Z9ubX/BuSGJeG0d4zCw5KVCujC0zv6dMzY6naJtk=
+Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C4oAi042295
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:04:35 -0600
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:04:50 -0600
+Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:04:35 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:04:49 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:04:35 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:04:49 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfE039111;
-        Thu, 5 Nov 2020 06:04:32 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfK039111;
+        Thu, 5 Nov 2020 06:04:47 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -56,9 +56,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 16/56] drm/omap: panel-dsi-cm: drop hardcoded VC
-Date:   Thu, 5 Nov 2020 14:02:53 +0200
-Message-ID: <20201105120333.947408-17-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 22/56] drm/omap: dsi: use pixel-format and mode from attach
+Date:   Thu, 5 Nov 2020 14:02:59 +0200
+Message-ID: <20201105120333.947408-23-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -72,108 +72,94 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Use dsi->channel everywhere, which originates from DT.
+In order to reduce the amount of custom functionality, this moves
+handling of pixel format and DSI mode from set_config() to dsi
+attach.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 20 +++++++------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   |  2 --
+ drivers/gpu/drm/omapdrm/dss/dsi.c             | 31 ++++++++++++-------
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index b1ca9b34ce17..25183744a61d 100644
+index a9609eed6bfa..2e9de33fc8d4 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -27,9 +27,6 @@
- 
- #include "../dss/omapdss.h"
- 
--/* DSI Virtual channel. Hardcoded for now. */
--#define TCH 0
--
- #define DCS_READ_NUM_ERRORS	0x05
- #define DCS_BRIGHTNESS		0x51
- #define DCS_CTRL_DISPLAY	0x53
-@@ -73,7 +70,6 @@ struct panel_drv_data {
- 	bool te_enabled;
- 
- 	atomic_t do_update;
--	int channel;
- 
- 	struct delayed_work te_timeout_work;
- 
-@@ -274,7 +270,7 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
- 		return 0;
- 
- 	src->ops->enable(src);
--	src->ops->dsi.enable_hs(src, ddata->channel, true);
-+	src->ops->dsi.enable_hs(src, ddata->dsi->channel, true);
- 
- 	r = _dsicm_enable_te(ddata, true);
- 	if (r) {
-@@ -591,7 +587,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 
- 	dsicm_hw_reset(ddata);
- 
--	src->ops->dsi.enable_hs(src, ddata->channel, false);
-+	src->ops->dsi.enable_hs(src, ddata->dsi->channel, false);
- 
- 	r = dsicm_sleep_out(ddata);
- 	if (r)
-@@ -622,7 +618,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 	if (r)
- 		goto err;
- 
--	r = src->ops->dsi.enable_video_output(src, ddata->channel);
-+	r = src->ops->dsi.enable_video_output(src, ddata->dsi->channel);
- 	if (r)
- 		goto err;
- 
-@@ -634,7 +630,7 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 		ddata->intro_printed = true;
- 	}
- 
--	src->ops->dsi.enable_hs(src, ddata->channel, true);
-+	src->ops->dsi.enable_hs(src, ddata->dsi->channel, true);
- 
- 	return 0;
- err:
-@@ -658,7 +654,7 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
- 	struct omap_dss_device *src = ddata->src;
+@@ -550,8 +550,6 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 	u8 id1, id2, id3;
+ 	int r;
+ 	struct omap_dss_dsi_config dsi_config = {
+-		.mode = OMAP_DSS_DSI_CMD_MODE,
+-		.pixel_format = MIPI_DSI_FMT_RGB888,
+ 		.vm = &ddata->vm,
+ 		.hs_clk_min = 150000000,
+ 		.hs_clk_max = 300000000,
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index a16427f3bc23..e341aca92462 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -4579,24 +4579,19 @@ static int dsi_set_config(struct omap_dss_device *dssdev,
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	struct dsi_clk_calc_ctx ctx;
++	struct omap_dss_dsi_config cfg = *config;
+ 	bool ok;
  	int r;
  
--	src->ops->dsi.disable_video_output(src, ddata->channel);
-+	src->ops->dsi.disable_video_output(src, ddata->dsi->channel);
+ 	mutex_lock(&dsi->lock);
  
- 	r = mipi_dsi_dcs_set_display_off(ddata->dsi);
- 	if (!r)
-@@ -777,7 +773,7 @@ static irqreturn_t dsicm_te_isr(int irq, void *data)
- 	if (old) {
- 		cancel_delayed_work(&ddata->te_timeout_work);
+-	dsi->pix_fmt = config->pixel_format;
+-	dsi->mode = config->mode;
++	cfg.mode = dsi->mode;
++	cfg.pixel_format = dsi->pix_fmt;
  
--		r = src->ops->dsi.update(src, ddata->channel, dsicm_framedone_cb,
-+		r = src->ops->dsi.update(src, ddata->dsi->channel, dsicm_framedone_cb,
- 				ddata);
- 		if (r)
- 			goto err;
-@@ -834,7 +830,7 @@ static int dsicm_update(struct omap_dss_device *dssdev,
- 				msecs_to_jiffies(250));
- 		atomic_set(&ddata->do_update, 1);
- 	} else {
--		r = src->ops->dsi.update(src, ddata->channel, dsicm_framedone_cb,
-+		r = src->ops->dsi.update(src, ddata->dsi->channel, dsicm_framedone_cb,
- 				ddata);
- 		if (r)
- 			goto err;
-@@ -1110,8 +1106,6 @@ static int dsicm_probe_of(struct mipi_dsi_device *dsi)
- 	struct display_timing timing;
- 	int err;
- 
--	ddata->channel = TCH;
+-	if (mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt) < 0) {
+-		DSSERR("invalid pixel format\n");
+-		r = -EINVAL;
+-		goto err;
+-	}
 -
- 	ddata->reset_gpio = devm_gpiod_get(&dsi->dev, "reset", GPIOD_OUT_LOW);
- 	if (IS_ERR(ddata->reset_gpio)) {
- 		err = PTR_ERR(ddata->reset_gpio);
+-	if (config->mode == OMAP_DSS_DSI_VIDEO_MODE)
+-		ok = dsi_vm_calc(dsi, config, &ctx);
++	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE)
++		ok = dsi_vm_calc(dsi, &cfg, &ctx);
+ 	else
+-		ok = dsi_cm_calc(dsi, config, &ctx);
++		ok = dsi_cm_calc(dsi, &cfg, &ctx);
+ 
+ 	if (!ok) {
+ 		DSSERR("failed to find suitable DSI clock settings\n");
+@@ -4607,7 +4602,7 @@ static int dsi_set_config(struct omap_dss_device *dssdev,
+ 	dsi_pll_calc_dsi_fck(dsi, &ctx.dsi_cinfo);
+ 
+ 	r = dsi_lp_clock_calc(ctx.dsi_cinfo.clkout[HSDIV_DSI],
+-		config->lp_clk_min, config->lp_clk_max, &dsi->user_lp_cinfo);
++		cfg.lp_clk_min, cfg.lp_clk_max, &dsi->user_lp_cinfo);
+ 	if (r) {
+ 		DSSERR("failed to find suitable DSI LP clock settings\n");
+ 		goto err;
+@@ -4785,7 +4780,19 @@ static int omap_dsi_host_attach(struct mipi_dsi_host *host,
+ 		return -EBUSY;
+ 	}
+ 
++	if (mipi_dsi_pixel_format_to_bpp(client->format) < 0) {
++		DSSERR("invalid pixel format\n");
++		return -EINVAL;
++	}
++
+ 	dsi->vc[channel].dest = client;
++
++	dsi->pix_fmt = client->format;
++	if (client->mode_flags & MIPI_DSI_MODE_VIDEO)
++		dsi->mode = OMAP_DSS_DSI_VIDEO_MODE;
++	else
++		dsi->mode = OMAP_DSS_DSI_CMD_MODE;
++
+ 	return 0;
+ }
+ 
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
