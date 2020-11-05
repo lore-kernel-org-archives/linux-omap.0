@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FFF1C5517A
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA3FEC64E7B
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 344A22225D
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A0B522256
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="vLxYQY4F"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="VP2WUUlR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730770AbgKEMFe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:05:34 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42808 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727851AbgKEMFe (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:34 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5QRT057077;
-        Thu, 5 Nov 2020 06:05:26 -0600
+        id S1730799AbgKEMFp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:05:45 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:46790 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730044AbgKEMFp (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:45 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5bZV070670;
+        Thu, 5 Nov 2020 06:05:37 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577926;
-        bh=izrUdZl8o40ZVh7OCGNQpXZPhZUSz2IMAsxzc17Y63M=;
+        s=ti-com-17Q1; t=1604577937;
+        bh=A9jxA/GtYLpSQNB0kuElEzX2Gl/TqEUvQveIjfNp0hw=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=vLxYQY4FCcynhBKAkYBl3aWB5GAB8SERv1aetT2enXUV3v33j7dmfXdsbevxFtb/w
-         RiQaCxLfJCe1guknlMRpwbStnIBmaErde8yqq2Owg1RO69lvLeXY6gqVqTY/169Xv0
-         qk1uIN7a+cZGX5l2IRD4yrL1vyeXKhkHVF0yM6ZA=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5QLX043681
+        b=VP2WUUlRrGROCIGJJZPKblUlnPNxlwZFZ7VlFBIoNfKkxl2bahyOL6HVig3O/uZyK
+         kSlFExeomg9HsJFXk19zMpf1v//yMJ0vBccHcXvHqaElTU5Kvf9USB/xI43MJxRryR
+         BrQO4CuBqodiAVE97dvpiVUJrEmP+gCU4j2DWW+s=
+Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5aMo124886
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:05:26 -0600
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:05:36 -0600
+Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:05:26 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:05:36 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE100.ent.ti.com
+ (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:05:26 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:05:36 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfZ039111;
-        Thu, 5 Nov 2020 06:05:24 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfd039111;
+        Thu, 5 Nov 2020 06:05:34 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 37/56] drm/omap: panel-dsi-cm: support unbinding
-Date:   Thu, 5 Nov 2020 14:03:14 +0200
-Message-ID: <20201105120333.947408-38-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 41/56] drm/omap: dsi: Register a drm_bridge
+Date:   Thu, 5 Nov 2020 14:03:18 +0200
+Message-ID: <20201105120333.947408-42-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -71,41 +71,213 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Now, that the driver implements the common DRM panel API
-the unbind no longer needs to be suppressed.
+In order to integrate with a chain of drm_bridge, the internal DSI
+output has to expose its operations through the drm_bridge API.
+Register a bridge at initialisation time to do so and remove the
+omap_dss_device operations that are now unused.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 134 ++++++++++++++++++++----------
+ 1 file changed, 89 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 5159dd51a353..086c7d71fe17 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -607,7 +607,7 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
- 	return r;
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index f643321434e9..bbcdb62e1571 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -35,6 +35,7 @@
+ #include <linux/component.h>
+ #include <linux/sys_soc.h>
+ 
++#include <drm/drm_bridge.h>
+ #include <drm/drm_mipi_dsi.h>
+ #include <drm/drm_panel.h>
+ #include <video/mipi_display.h>
+@@ -437,6 +438,7 @@ struct dsi_data {
+ 	struct omap_dss_dsi_videomode_timings vm_timings;
+ 
+ 	struct omap_dss_device output;
++	struct drm_bridge bridge;
+ };
+ 
+ struct dsi_packet_sent_handler_data {
+@@ -449,6 +451,9 @@ static bool dsi_perf;
+ module_param(dsi_perf, bool, 0644);
+ #endif
+ 
++#define drm_bridge_to_dsi(bridge) \
++	container_of(bridge, struct dsi_data, bridge)
++
+ static inline struct dsi_data *to_dsi_data(struct omap_dss_device *dssdev)
+ {
+ 	return dev_get_drvdata(dssdev->dev);
+@@ -5006,50 +5011,7 @@ static int dsi_get_clocks(struct dsi_data *dsi)
+ 	return 0;
  }
  
--static int __exit dsicm_remove(struct mipi_dsi_device *dsi)
-+static int dsicm_remove(struct mipi_dsi_device *dsi)
- {
- 	struct panel_drv_data *ddata = mipi_dsi_get_drvdata(dsi);
- 
-@@ -637,11 +637,10 @@ MODULE_DEVICE_TABLE(of, dsicm_of_match);
- 
- static struct mipi_dsi_driver dsicm_driver = {
- 	.probe = dsicm_probe,
--	.remove = __exit_p(dsicm_remove),
-+	.remove = dsicm_remove,
- 	.driver = {
- 		.name = "panel-dsi-cm",
- 		.of_match_table = dsicm_of_match,
--		.suppress_bind_attrs = true,
- 	},
+-static void dsi_set_timings(struct omap_dss_device *dssdev,
+-			    const struct drm_display_mode *mode)
+-{
+-	DSSDBG("dsi_set_timings\n");
+-	dsi_set_config(dssdev, mode);
+-}
+-
+-static int dsi_check_timings(struct omap_dss_device *dssdev,
+-			     struct drm_display_mode *mode)
+-{
+-	struct dsi_data *dsi = to_dsi_data(dssdev);
+-	struct dsi_clk_calc_ctx ctx;
+-	int r;
+-
+-	DSSDBG("dsi_check_timings\n");
+-
+-	mutex_lock(&dsi->lock);
+-	r = __dsi_calc_config(dsi, mode, &ctx);
+-	mutex_unlock(&dsi->lock);
+-
+-	return r;
+-}
+-
+-static int dsi_connect(struct omap_dss_device *src,
+-		       struct omap_dss_device *dst)
+-{
+-	return omapdss_device_connect(dst->dss, dst, dst->next);
+-}
+-
+-static void dsi_disconnect(struct omap_dss_device *src,
+-			   struct omap_dss_device *dst)
+-{
+-	omapdss_device_disconnect(dst, dst->next);
+-}
+-
+ static const struct omap_dss_device_ops dsi_ops = {
+-	.connect = dsi_connect,
+-	.disconnect = dsi_disconnect,
+-	.enable = dsi_enable_video_outputs,
+-	.disable = dsi_disable_video_outputs,
+-
+-	.check_timings = dsi_check_timings,
+-	.set_timings = dsi_set_timings,
+-
+ 	.dsi = {
+ 		.update = dsi_update_all,
+ 		.is_video_mode = dsi_is_video_mode,
+@@ -5393,6 +5355,83 @@ static const struct component_ops dsi_component_ops = {
+ 	.unbind	= dsi_unbind,
  };
- module_mipi_dsi_driver(dsicm_driver);
+ 
++/* -----------------------------------------------------------------------------
++ * DRM Bridge Operations
++ */
++
++static int dsi_bridge_attach(struct drm_bridge *bridge,
++			     enum drm_bridge_attach_flags flags)
++{
++	struct dsi_data *dsi = drm_bridge_to_dsi(bridge);
++
++	if (!(flags & DRM_BRIDGE_ATTACH_NO_CONNECTOR))
++		return -EINVAL;
++
++	return drm_bridge_attach(bridge->encoder, dsi->output.next_bridge,
++				 bridge, flags);
++}
++
++static enum drm_mode_status
++dsi_bridge_mode_valid(struct drm_bridge *bridge,
++		      const struct drm_display_info *info,
++		      const struct drm_display_mode *mode)
++{
++	struct dsi_data *dsi = drm_bridge_to_dsi(bridge);
++	struct dsi_clk_calc_ctx ctx;
++	int r;
++
++	mutex_lock(&dsi->lock);
++	r = __dsi_calc_config(dsi, mode, &ctx);
++	mutex_unlock(&dsi->lock);
++
++	return r ? MODE_CLOCK_RANGE : MODE_OK;
++}
++
++static void dsi_bridge_mode_set(struct drm_bridge *bridge,
++				const struct drm_display_mode *mode,
++				const struct drm_display_mode *adjusted_mode)
++{
++	struct dsi_data *dsi = drm_bridge_to_dsi(bridge);
++
++	dsi_set_config(&dsi->output, adjusted_mode);
++}
++
++static void dsi_bridge_enable(struct drm_bridge *bridge)
++{
++	struct dsi_data *dsi = drm_bridge_to_dsi(bridge);
++
++	dsi_enable_video_outputs(&dsi->output);
++}
++
++static void dsi_bridge_disable(struct drm_bridge *bridge)
++{
++	struct dsi_data *dsi = drm_bridge_to_dsi(bridge);
++
++	dsi_disable_video_outputs(&dsi->output);
++}
++
++static const struct drm_bridge_funcs dsi_bridge_funcs = {
++	.attach = dsi_bridge_attach,
++	.mode_valid = dsi_bridge_mode_valid,
++	.mode_set = dsi_bridge_mode_set,
++	.enable = dsi_bridge_enable,
++	.disable = dsi_bridge_disable,
++};
++
++static void dsi_bridge_init(struct dsi_data *dsi)
++{
++	dsi->bridge.funcs = &dsi_bridge_funcs;
++	dsi->bridge.of_node = dsi->host.dev->of_node;
++	dsi->bridge.type = DRM_MODE_CONNECTOR_DSI;
++
++	drm_bridge_add(&dsi->bridge);
++}
++
++static void dsi_bridge_cleanup(struct dsi_data *dsi)
++{
++	drm_bridge_remove(&dsi->bridge);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Probe & Remove, Suspend & Resume
+  */
+@@ -5402,6 +5441,8 @@ static int dsi_init_output(struct dsi_data *dsi)
+ 	struct omap_dss_device *out = &dsi->output;
+ 	int r;
+ 
++	dsi_bridge_init(dsi);
++
+ 	out->dev = dsi->dev;
+ 	out->id = dsi->module_id == 0 ?
+ 			OMAP_DSS_OUTPUT_DSI1 : OMAP_DSS_OUTPUT_DSI2;
+@@ -5416,9 +5457,11 @@ static int dsi_init_output(struct dsi_data *dsi)
+ 		       | DRM_BUS_FLAG_DE_HIGH
+ 		       | DRM_BUS_FLAG_SYNC_DRIVE_NEGEDGE;
+ 
+-	r = omapdss_device_init_output(out, NULL);
+-	if (r < 0)
++	r = omapdss_device_init_output(out, &dsi->bridge);
++	if (r < 0) {
++		dsi_bridge_cleanup(dsi);
+ 		return r;
++	}
+ 
+ 	omapdss_device_register(out);
+ 
+@@ -5431,6 +5474,7 @@ static void dsi_uninit_output(struct dsi_data *dsi)
+ 
+ 	omapdss_device_unregister(out);
+ 	omapdss_device_cleanup_output(out);
++	dsi_bridge_cleanup(dsi);
+ }
+ 
+ static int dsi_probe_of(struct dsi_data *dsi)
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
