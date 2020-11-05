@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 581D0C4742C
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE3E3C00A89
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 025E922248
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61F7222248
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ysylF+Vs"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="NmaXPaiQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730044AbgKEMFy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:05:54 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:42898 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726067AbgKEMFy (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:54 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5knR057198;
-        Thu, 5 Nov 2020 06:05:46 -0600
+        id S1730616AbgKEMFq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:05:46 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:46798 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730044AbgKEMFq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:46 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5djg070676;
+        Thu, 5 Nov 2020 06:05:39 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577946;
-        bh=XeHzEOsY8tQ5qt5b+xwqUp/f4NJh7PrCs4HLXd0zyEo=;
+        s=ti-com-17Q1; t=1604577939;
+        bh=LhZA6ldwY+34krVUkZQwUKyEoy3PFtlnsyeTo+tTNm8=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=ysylF+VsKRh+JIm/sKeX3wqwW1f6Y20Wp6PHx7y765E+RncdQonXMtzcfmDNxsdYl
-         Y2i+42818dqlA3mWZlRO/072oO51l5/sxF1SEIbv5hf+zxq9ICFzB73rWIEMCel5Be
-         f7vCESfylPLnQBajNfX5kYg7dtLWt0+ucBelDRBU=
-Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5kZi127154
+        b=NmaXPaiQ4luDLiQcJuzToB58WzcwMh/80DfucFAZ+uAFEb7Sk+giy/j6sQ1A412Te
+         2+QX8fbMG2Y2pQJ7IIxFSAu52C9wCv9rx17+CXB7kWYaxnB44sI3Nati2D5/uAQ4D6
+         yi9BltKzZbosgSsxbrkwJl+FcIbNi8Jx5cZa+WnM=
+Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5dnw043901
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:05:46 -0600
-Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:05:39 -0600
+Received: from DFLE113.ent.ti.com (10.64.6.34) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:05:46 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE114.ent.ti.com
- (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:05:38 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:05:46 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:05:38 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfh039111;
-        Thu, 5 Nov 2020 06:05:43 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfe039111;
+        Thu, 5 Nov 2020 06:05:36 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 45/56] drm/omap: drop unused DSS next pointer
-Date:   Thu, 5 Nov 2020 14:03:22 +0200
-Message-ID: <20201105120333.947408-46-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 42/56] drm/omap: remove legacy DSS device operations
+Date:   Thu, 5 Nov 2020 14:03:19 +0200
+Message-ID: <20201105120333.947408-43-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -71,117 +71,322 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Since all encoders and panels are using the bridge API now,
-we next pointer is no longer useful and can be dropped.
+All DSS devices have been converted to bridge API, so
+the device operations are always NULL. This removes
+the device ops function pointers and all code using it.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/base.c     |  2 +-
- drivers/gpu/drm/omapdrm/dss/omapdss.h  |  1 -
- drivers/gpu/drm/omapdrm/dss/output.c   | 13 +------------
- drivers/gpu/drm/omapdrm/omap_encoder.c |  4 ----
- 4 files changed, 2 insertions(+), 18 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/base.c       | 66 ------------------------
+ drivers/gpu/drm/omapdrm/dss/dss.c        |  8 ---
+ drivers/gpu/drm/omapdrm/dss/omapdss.h    | 34 ------------
+ drivers/gpu/drm/omapdrm/omap_connector.c | 29 -----------
+ drivers/gpu/drm/omapdrm/omap_encoder.c   | 40 --------------
+ 5 files changed, 177 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/dss/base.c b/drivers/gpu/drm/omapdrm/dss/base.c
-index c2791305c332..d62713b241d2 100644
+index 8e08c49b4f97..c2791305c332 100644
 --- a/drivers/gpu/drm/omapdrm/dss/base.c
 +++ b/drivers/gpu/drm/omapdrm/dss/base.c
-@@ -135,7 +135,7 @@ struct omap_dss_device *omapdss_device_next_output(struct omap_dss_device *from)
- 			goto done;
- 		}
+@@ -161,8 +161,6 @@ int omapdss_device_connect(struct dss_device *dss,
+ 			   struct omap_dss_device *src,
+ 			   struct omap_dss_device *dst)
+ {
+-	int ret;
+-
+ 	dev_dbg(&dss->pdev->dev, "connect(%s, %s)\n",
+ 		src ? dev_name(src->dev) : "NULL",
+ 		dst ? dev_name(dst->dev) : "NULL");
+@@ -181,14 +179,6 @@ int omapdss_device_connect(struct dss_device *dss,
  
--		if (dssdev->id && (dssdev->next || dssdev->bridge))
-+		if (dssdev->id && (dssdev->bridge))
- 			goto done;
- 	}
+ 	dst->dss = dss;
  
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 5d6edec5a427..1f02d3e406dc 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -293,7 +293,6 @@ struct omap_dss_device {
- 	struct module *owner;
- 
- 	struct dss_device *dss;
--	struct omap_dss_device *next;
- 	struct drm_bridge *bridge;
- 	struct drm_bridge *next_bridge;
- 	struct drm_panel *panel;
-diff --git a/drivers/gpu/drm/omapdrm/dss/output.c b/drivers/gpu/drm/omapdrm/dss/output.c
-index ce21c798cca6..40cb353572f6 100644
---- a/drivers/gpu/drm/omapdrm/dss/output.c
-+++ b/drivers/gpu/drm/omapdrm/dss/output.c
-@@ -30,7 +30,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
- 		return 0;
- 	}
- 
--	out->next = omapdss_find_device_by_node(remote_node);
- 	out->bridge = of_drm_find_bridge(remote_node);
- 	out->panel = of_drm_find_panel(remote_node);
- 	if (IS_ERR(out->panel))
-@@ -38,12 +37,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
- 
- 	of_node_put(remote_node);
- 
--	if (out->next && out->type != out->next->type) {
--		dev_err(out->dev, "output type and display type don't match\n");
--		ret = -EINVAL;
--		goto error;
+-	if (dst->ops && dst->ops->connect) {
+-		ret = dst->ops->connect(src, dst);
+-		if (ret < 0) {
+-			dst->dss = NULL;
+-			return ret;
+-		}
 -	}
 -
- 	if (out->panel) {
- 		struct drm_bridge *bridge;
- 
-@@ -69,7 +62,7 @@ int omapdss_device_init_output(struct omap_dss_device *out,
- 		out->bridge = local_bridge;
- 	}
- 
--	if (!out->next && !out->bridge) {
-+	if (!out->bridge) {
- 		ret = -EPROBE_DEFER;
- 		goto error;
- 	}
-@@ -78,7 +71,6 @@ int omapdss_device_init_output(struct omap_dss_device *out,
- 
- error:
- 	omapdss_device_cleanup_output(out);
--	out->next = NULL;
- 	return ret;
+ 	return 0;
  }
- EXPORT_SYMBOL(omapdss_device_init_output);
-@@ -88,9 +80,6 @@ void omapdss_device_cleanup_output(struct omap_dss_device *out)
- 	if (out->bridge && out->panel)
- 		drm_panel_bridge_remove(out->next_bridge ?
- 					out->next_bridge : out->bridge);
+ EXPORT_SYMBOL_GPL(omapdss_device_connect);
+@@ -212,66 +202,10 @@ void omapdss_device_disconnect(struct omap_dss_device *src,
+ 		return;
+ 	}
+ 
+-	WARN_ON(dst->state != OMAP_DSS_DISPLAY_DISABLED);
 -
--	if (out->next)
--		omapdss_device_put(out->next);
+-	if (dst->ops && dst->ops->disconnect)
+-		dst->ops->disconnect(src, dst);
+ 	dst->dss = NULL;
  }
- EXPORT_SYMBOL(omapdss_device_cleanup_output);
+ EXPORT_SYMBOL_GPL(omapdss_device_disconnect);
+ 
+-void omapdss_device_pre_enable(struct omap_dss_device *dssdev)
+-{
+-	if (!dssdev)
+-		return;
+-
+-	omapdss_device_pre_enable(dssdev->next);
+-
+-	if (dssdev->ops && dssdev->ops->pre_enable)
+-		dssdev->ops->pre_enable(dssdev);
+-}
+-EXPORT_SYMBOL_GPL(omapdss_device_pre_enable);
+-
+-void omapdss_device_enable(struct omap_dss_device *dssdev)
+-{
+-	if (!dssdev)
+-		return;
+-
+-	if (dssdev->ops && dssdev->ops->enable)
+-		dssdev->ops->enable(dssdev);
+-
+-	omapdss_device_enable(dssdev->next);
+-
+-	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+-}
+-EXPORT_SYMBOL_GPL(omapdss_device_enable);
+-
+-void omapdss_device_disable(struct omap_dss_device *dssdev)
+-{
+-	if (!dssdev)
+-		return;
+-
+-	omapdss_device_disable(dssdev->next);
+-
+-	if (dssdev->ops && dssdev->ops->disable)
+-		dssdev->ops->disable(dssdev);
+-}
+-EXPORT_SYMBOL_GPL(omapdss_device_disable);
+-
+-void omapdss_device_post_disable(struct omap_dss_device *dssdev)
+-{
+-	if (!dssdev)
+-		return;
+-
+-	if (dssdev->ops && dssdev->ops->post_disable)
+-		dssdev->ops->post_disable(dssdev);
+-
+-	omapdss_device_post_disable(dssdev->next);
+-
+-	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+-}
+-EXPORT_SYMBOL_GPL(omapdss_device_post_disable);
+-
+ /* -----------------------------------------------------------------------------
+  * Components Handling
+  */
+diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c b/drivers/gpu/drm/omapdrm/dss/dss.c
+index 6e86f4e67a2c..6a160138bf88 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dss.c
++++ b/drivers/gpu/drm/omapdrm/dss/dss.c
+@@ -1565,15 +1565,7 @@ static int dss_remove(struct platform_device *pdev)
+ 
+ static void dss_shutdown(struct platform_device *pdev)
+ {
+-	struct omap_dss_device *dssdev = NULL;
+-
+ 	DSSDBG("shutdown\n");
+-
+-	for_each_dss_output(dssdev) {
+-		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE &&
+-		    dssdev->ops && dssdev->ops->disable)
+-			dssdev->ops->disable(dssdev);
+-	}
+ }
+ 
+ static int dss_runtime_suspend(struct device *dev)
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+index 42d1ec3aaf0c..5d6edec5a427 100644
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
++++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+@@ -123,11 +123,6 @@ enum omap_dss_dsi_mode {
+ 	OMAP_DSS_DSI_VIDEO_MODE,
+ };
+ 
+-enum omap_dss_display_state {
+-	OMAP_DSS_DISPLAY_DISABLED = 0,
+-	OMAP_DSS_DISPLAY_ACTIVE,
+-};
+-
+ enum omap_dss_rotation_type {
+ 	OMAP_DSS_ROT_NONE	= 0,
+ 	OMAP_DSS_ROT_TILER	= 1 << 0,
+@@ -281,24 +276,6 @@ struct omapdss_dsi_ops {
+ };
+ 
+ struct omap_dss_device_ops {
+-	int (*connect)(struct omap_dss_device *dssdev,
+-			struct omap_dss_device *dst);
+-	void (*disconnect)(struct omap_dss_device *dssdev,
+-			struct omap_dss_device *dst);
+-
+-	void (*pre_enable)(struct omap_dss_device *dssdev);
+-	void (*enable)(struct omap_dss_device *dssdev);
+-	void (*disable)(struct omap_dss_device *dssdev);
+-	void (*post_disable)(struct omap_dss_device *dssdev);
+-
+-	int (*check_timings)(struct omap_dss_device *dssdev,
+-			     struct drm_display_mode *mode);
+-	void (*set_timings)(struct omap_dss_device *dssdev,
+-			    const struct drm_display_mode *mode);
+-
+-	int (*get_modes)(struct omap_dss_device *dssdev,
+-			 struct drm_connector *connector);
+-
+ 	const struct omapdss_dsi_ops dsi;
+ };
+ 
+@@ -342,8 +319,6 @@ struct omap_dss_device {
+ 	unsigned long ops_flags;
+ 	u32 bus_flags;
+ 
+-	enum omap_dss_display_state state;
+-
+ 	/* OMAP DSS output specific fields */
+ 
+ 	/* DISPC channel for this output */
+@@ -374,10 +349,6 @@ int omapdss_device_connect(struct dss_device *dss,
+ 			   struct omap_dss_device *dst);
+ void omapdss_device_disconnect(struct omap_dss_device *src,
+ 			       struct omap_dss_device *dst);
+-void omapdss_device_pre_enable(struct omap_dss_device *dssdev);
+-void omapdss_device_enable(struct omap_dss_device *dssdev);
+-void omapdss_device_disable(struct omap_dss_device *dssdev);
+-void omapdss_device_post_disable(struct omap_dss_device *dssdev);
+ 
+ int omap_dss_get_num_overlay_managers(void);
+ 
+@@ -397,11 +368,6 @@ int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask);
+ int omapdss_compat_init(void);
+ void omapdss_compat_uninit(void);
+ 
+-static inline bool omapdss_device_is_enabled(struct omap_dss_device *dssdev)
+-{
+-	return dssdev->state == OMAP_DSS_DISPLAY_ACTIVE;
+-}
+-
+ enum dss_writeback_channel {
+ 	DSS_WB_LCD1_MGR =	0,
+ 	DSS_WB_LCD2_MGR =	1,
+diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
+index de95dc1b861c..c6d9b4268841 100644
+--- a/drivers/gpu/drm/omapdrm/omap_connector.c
++++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+@@ -43,24 +43,8 @@ static void omap_connector_destroy(struct drm_connector *connector)
+ 
+ static int omap_connector_get_modes(struct drm_connector *connector)
+ {
+-	struct omap_connector *omap_connector = to_omap_connector(connector);
+-	struct omap_dss_device *dssdev = NULL;
+-	struct omap_dss_device *d;
+-
+ 	DBG("%s", connector->name);
+ 
+-	/*
+-	 * If the display pipeline reports modes (e.g. with a fixed resolution
+-	 * panel or an analog TV output), query it.
+-	 */
+-	for (d = omap_connector->output; d; d = d->next) {
+-		if (d->ops_flags & OMAP_DSS_DEVICE_OP_MODES)
+-			dssdev = d;
+-	}
+-
+-	if (dssdev)
+-		return dssdev->ops->get_modes(dssdev, connector);
+-
+ 	/* We can't retrieve modes. The KMS core will add the default modes. */
+ 	return 0;
+ }
+@@ -69,19 +53,6 @@ enum drm_mode_status omap_connector_mode_fixup(struct omap_dss_device *dssdev,
+ 					const struct drm_display_mode *mode,
+ 					struct drm_display_mode *adjusted_mode)
+ {
+-	int ret;
+-
+-	drm_mode_copy(adjusted_mode, mode);
+-
+-	for (; dssdev; dssdev = dssdev->next) {
+-		if (!dssdev->ops || !dssdev->ops->check_timings)
+-			continue;
+-
+-		ret = dssdev->ops->check_timings(dssdev, adjusted_mode);
+-		if (ret)
+-			return MODE_BAD;
+-	}
+-
+ 	return MODE_OK;
+ }
  
 diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
-index 610c5a2f2771..5f5fa01240a7 100644
+index 10abe4d01b0b..abb3821de8b8 100644
 --- a/drivers/gpu/drm/omapdrm/omap_encoder.c
 +++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
-@@ -75,7 +75,6 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
- {
- 	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
- 	struct omap_dss_device *output = omap_encoder->output;
--	struct omap_dss_device *dssdev;
- 	struct drm_device *dev = encoder->dev;
- 	struct drm_connector *connector;
- 	struct drm_bridge *bridge;
-@@ -98,9 +97,6 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
- 	 *
- 	 * A better solution is to use DRM's bus-flags through the whole driver.
- 	 */
--	for (dssdev = output; dssdev; dssdev = dssdev->next)
--		omap_encoder_update_videomode_flags(&vm, dssdev->bus_flags);
+@@ -115,11 +115,6 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
+ 
+ 	/* Set timings for all devices in the display pipeline. */
+ 	dss_mgr_set_timings(output, &vm);
 -
- 	for (bridge = output->bridge; bridge;
- 	     bridge = drm_bridge_get_next_bridge(bridge)) {
- 		if (!bridge->timings)
+-	for (dssdev = output; dssdev; dssdev = dssdev->next) {
+-		if (dssdev->ops && dssdev->ops->set_timings)
+-			dssdev->ops->set_timings(dssdev, adjusted_mode);
+-	}
+ }
+ 
+ static void omap_encoder_disable(struct drm_encoder *encoder)
+@@ -129,25 +124,6 @@ static void omap_encoder_disable(struct drm_encoder *encoder)
+ 	struct drm_device *dev = encoder->dev;
+ 
+ 	dev_dbg(dev->dev, "disable(%s)\n", dssdev->name);
+-
+-	/*
+-	 * Disable the chain of external devices, starting at the one at the
+-	 * internal encoder's output.
+-	 */
+-	omapdss_device_disable(dssdev->next);
+-
+-	/*
+-	 * Disable the internal encoder. This will disable the DSS output.
+-	 */
+-	if (dssdev->ops && dssdev->ops->disable)
+-		dssdev->ops->disable(dssdev);
+-	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+-
+-	/*
+-	 * Perform the post-disable operations on the chain of external devices
+-	 * to complete the display pipeline disable.
+-	 */
+-	omapdss_device_post_disable(dssdev->next);
+ }
+ 
+ static void omap_encoder_enable(struct drm_encoder *encoder)
+@@ -157,22 +133,6 @@ static void omap_encoder_enable(struct drm_encoder *encoder)
+ 	struct drm_device *dev = encoder->dev;
+ 
+ 	dev_dbg(dev->dev, "enable(%s)\n", dssdev->name);
+-
+-	/* Prepare the chain of external devices for pipeline enable. */
+-	omapdss_device_pre_enable(dssdev->next);
+-
+-	/*
+-	 * Enable the internal encoder. This will enable the DSS output.
+-	 */
+-	if (dssdev->ops && dssdev->ops->enable)
+-		dssdev->ops->enable(dssdev);
+-	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+-
+-	/*
+-	 * Enable the chain of external devices, starting at the one at the
+-	 * internal encoder's output.
+-	 */
+-	omapdss_device_enable(dssdev->next);
+ }
+ 
+ static int omap_encoder_atomic_check(struct drm_encoder *encoder,
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
