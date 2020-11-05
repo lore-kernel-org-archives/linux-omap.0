@@ -2,51 +2,50 @@ Return-Path: <SRS0=Cm4E=EL=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71B82C63699
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C997C64E8A
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 189F32224D
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 124B922256
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Nov 2020 12:05:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="sukRlZ6a"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="rrwFSQoN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730760AbgKEMF3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Nov 2020 07:05:29 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:46704 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730754AbgKEMF3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:29 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5LVR070606;
-        Thu, 5 Nov 2020 06:05:21 -0600
+        id S1730669AbgKEMFX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Nov 2020 07:05:23 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42728 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730258AbgKEMFX (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2020 07:05:23 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C5ELY057035;
+        Thu, 5 Nov 2020 06:05:14 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1604577921;
-        bh=F0sdBXDra4RhR9L7GRWYFpitThd/irsQ2IgXYN1EwfA=;
+        s=ti-com-17Q1; t=1604577914;
+        bh=EnwW5uwj8wX2hT8lvWFxbNfjenLJbYotmAzrx1/y+4w=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=sukRlZ6aqdzium0xvVAUrAY5HczAPim5Hjaxr6vRzb+XawBLTegPujodb+BA0Z9Xb
-         Y14osMNLZtwOxTMLPVCLZJoaF9pIiwAuOC2j0V2sxdid9LlZt+eySmB7lYTjVS8aDl
-         x00qkvb+OFJcLE6hBf8hzx/eqvXoF4XNHqhZl6ik=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5LAL043629
+        b=rrwFSQoNmvxdY3nXAC1tC57LmXVRBk2EvsjV/Y4BC0tqnYN1ob473JKilDjpmMxR3
+         77cxqRZmQolhgPptGxvSG1Qmq+RneFIvsU1Ged0YJ+3RUCFNdKywJfihXGQRgKCMj3
+         TyQ3svj4T1A5QJWtuhN48ff72FkYL5a1vZ4EEzko=
+Received: from DLEE100.ent.ti.com (dlee100.ent.ti.com [157.170.170.30])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A5C5EVs124535
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 5 Nov 2020 06:05:21 -0600
-Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 5 Nov 2020 06:05:14 -0600
+Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE100.ent.ti.com
+ (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 5 Nov
- 2020 06:05:21 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:05:13 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 5 Nov 2020 06:05:21 -0600
+ Frontend Transport; Thu, 5 Nov 2020 06:05:14 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfX039111;
-        Thu, 5 Nov 2020 06:05:19 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A5C3rfU039111;
+        Thu, 5 Nov 2020 06:05:12 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -56,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         "H . Nikolaus Schaller" <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v3 35/56] drm/omap: dsi: implement check timings
-Date:   Thu, 5 Nov 2020 14:03:12 +0200
-Message-ID: <20201105120333.947408-36-tomi.valkeinen@ti.com>
+Subject: [PATCH v3 32/56] drm/omap: dsi: drop custom panel capability support
+Date:   Thu, 5 Nov 2020 14:03:09 +0200
+Message-ID: <20201105120333.947408-33-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201105120333.947408-1-tomi.valkeinen@ti.com>
 References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
@@ -72,145 +71,133 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Implement check timings, which will check if its possible to
-configure the clocks for the provided mode using the same code
-as the set_config() hook.
+Due to previous changes the DSI encoder gets the capabilities
+via DSI client's mode_flags and no longer needs the omapdss
+specific caps. The core code now checks if the DSI encoder
+is actually configured into command mode instead of just checking
+the panel capabilities.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c | 70 +++++++++++++++++++------------
- 1 file changed, 44 insertions(+), 26 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c |  3 ---
+ drivers/gpu/drm/omapdrm/dss/dsi.c               |  8 ++++++++
+ drivers/gpu/drm/omapdrm/dss/omapdss.h           |  8 +-------
+ drivers/gpu/drm/omapdrm/omap_crtc.c             | 17 ++++++++---------
+ 4 files changed, 17 insertions(+), 19 deletions(-)
 
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index 45d417870498..d9b3444b4faf 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -599,9 +599,6 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
+ 	dssdev->of_port = 0;
+ 	dssdev->ops_flags = OMAP_DSS_DEVICE_OP_MODES;
+ 
+-	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
+-		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
+-
+ 	omapdss_display_init(dssdev);
+ 	omapdss_device_register(dssdev);
+ 
 diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index a1a867a7d91d..f643321434e9 100644
+index 0aa0d21cf896..620cef8bb1f2 100644
 --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
 +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -280,6 +280,11 @@ struct dsi_isr_tables {
- 	struct dsi_isr_data isr_table_cio[DSI_MAX_NR_ISRS];
- };
- 
-+struct dsi_lp_clock_info {
-+	unsigned long lp_clk;
-+	u16 lp_clk_div;
-+};
-+
- struct dsi_clk_calc_ctx {
- 	struct dsi_data *dsi;
- 	struct dss_pll *pll;
-@@ -294,16 +299,12 @@ struct dsi_clk_calc_ctx {
- 
- 	struct dss_pll_clock_info dsi_cinfo;
- 	struct dispc_clock_info dispc_cinfo;
-+	struct dsi_lp_clock_info user_lp_cinfo;
- 
- 	struct videomode vm;
- 	struct omap_dss_dsi_videomode_timings dsi_vm;
- };
- 
--struct dsi_lp_clock_info {
--	unsigned long lp_clk;
--	u16 lp_clk_div;
--};
--
- struct dsi_module_id_data {
- 	u32 address;
- 	int id;
-@@ -4789,44 +4790,55 @@ static bool dsi_is_video_mode(struct omap_dss_device *dssdev)
- 	return (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE);
+@@ -4727,6 +4727,13 @@ static bool dsi_vm_calc(struct dsi_data *dsi,
+ 			dsi_vm_calc_pll_cb, ctx);
  }
  
--static int dsi_set_config(struct omap_dss_device *dssdev,
--		const struct drm_display_mode *mode)
-+static int __dsi_calc_config(struct dsi_data *dsi,
-+		const struct drm_display_mode *mode,
-+		struct dsi_clk_calc_ctx *ctx)
- {
--	struct dsi_data *dsi = to_dsi_data(dssdev);
--	struct dsi_clk_calc_ctx ctx;
--	struct videomode vm;
- 	struct omap_dss_dsi_config cfg = dsi->config;
-+	struct videomode vm;
- 	bool ok;
- 	int r;
- 
- 	drm_display_mode_to_videomode(mode, &vm);
--	cfg.vm = &vm;
--
--	mutex_lock(&dsi->lock);
- 
-+	cfg.vm = &vm;
- 	cfg.mode = dsi->mode;
- 	cfg.pixel_format = dsi->pix_fmt;
- 
- 	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE)
--		ok = dsi_vm_calc(dsi, &cfg, &ctx);
-+		ok = dsi_vm_calc(dsi, &cfg, ctx);
- 	else
--		ok = dsi_cm_calc(dsi, &cfg, &ctx);
-+		ok = dsi_cm_calc(dsi, &cfg, ctx);
- 
--	if (!ok) {
--		DSSERR("failed to find suitable DSI clock settings\n");
--		r = -EINVAL;
--		goto err;
--	}
-+	if (!ok)
-+		return -EINVAL;
-+
-+	dsi_pll_calc_dsi_fck(dsi, &ctx->dsi_cinfo);
- 
--	dsi_pll_calc_dsi_fck(dsi, &ctx.dsi_cinfo);
-+	r = dsi_lp_clock_calc(ctx->dsi_cinfo.clkout[HSDIV_DSI],
-+		cfg.lp_clk_min, cfg.lp_clk_max, &ctx->user_lp_cinfo);
-+	if (r)
-+		return r;
-+
-+	return 0;
-+}
- 
--	r = dsi_lp_clock_calc(ctx.dsi_cinfo.clkout[HSDIV_DSI],
--		cfg.lp_clk_min, cfg.lp_clk_max, &dsi->user_lp_cinfo);
-+static int dsi_set_config(struct omap_dss_device *dssdev,
-+		const struct drm_display_mode *mode)
++static bool dsi_is_video_mode(struct omap_dss_device *dssdev)
 +{
 +	struct dsi_data *dsi = to_dsi_data(dssdev);
-+	struct dsi_clk_calc_ctx ctx;
-+	int r;
 +
-+	mutex_lock(&dsi->lock);
++	return (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE);
++}
 +
-+	r = __dsi_calc_config(dsi, mode, &ctx);
- 	if (r) {
--		DSSERR("failed to find suitable DSI LP clock settings\n");
-+		DSSERR("failed to find suitable DSI clock settings\n");
- 		goto err;
- 	}
- 
-+	dsi->user_lp_cinfo = ctx.user_lp_cinfo;
- 	dsi->user_dsi_cinfo = ctx.dsi_cinfo;
- 	dsi->user_dispc_cinfo = ctx.dispc_cinfo;
- 
-@@ -5004,11 +5016,17 @@ static void dsi_set_timings(struct omap_dss_device *dssdev,
- static int dsi_check_timings(struct omap_dss_device *dssdev,
- 			     struct drm_display_mode *mode)
+ static int dsi_set_config(struct omap_dss_device *dssdev,
+ 		const struct omap_dss_dsi_config *config)
  {
-+	struct dsi_data *dsi = to_dsi_data(dssdev);
-+	struct dsi_clk_calc_ctx ctx;
-+	int r;
-+
- 	DSSDBG("dsi_check_timings\n");
+@@ -4947,6 +4954,7 @@ static const struct omap_dss_device_ops dsi_ops = {
+ 		.disable_video_output = dsi_disable_video_output,
  
--	/* TODO */
-+	mutex_lock(&dsi->lock);
-+	r = __dsi_calc_config(dsi, mode, &ctx);
-+	mutex_unlock(&dsi->lock);
+ 		.update = dsi_update_all,
++		.is_video_mode = dsi_is_video_mode,
+ 	},
+ };
  
--	return 0;
-+	return r;
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+index de4c779c358a..4200611525d5 100644
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
++++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+@@ -123,11 +123,6 @@ enum omap_dss_dsi_mode {
+ 	OMAP_DSS_DSI_VIDEO_MODE,
+ };
+ 
+-enum omap_display_caps {
+-	OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE	= 1 << 0,
+-	OMAP_DSS_DISPLAY_CAP_TEAR_ELIM		= 1 << 1,
+-};
+-
+ enum omap_dss_display_state {
+ 	OMAP_DSS_DISPLAY_DISABLED = 0,
+ 	OMAP_DSS_DISPLAY_ACTIVE,
+@@ -282,6 +277,7 @@ struct omap_dss_writeback_info {
+ 
+ struct omapdss_dsi_ops {
+ 	int (*update)(struct omap_dss_device *dssdev);
++	bool (*is_video_mode)(struct omap_dss_device *dssdev);
+ 
+ 	/* legacy API used by omapdss panels */
+ 	int (*set_config)(struct omap_dss_device *dssdev,
+@@ -354,8 +350,6 @@ struct omap_dss_device {
+ 	unsigned long ops_flags;
+ 	u32 bus_flags;
+ 
+-	enum omap_display_caps caps;
+-
+ 	enum omap_dss_display_state state;
+ 
+ 	/* OMAP DSS output specific fields */
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index 3068e4fffa16..f6b968060cf0 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -496,8 +496,7 @@ static enum drm_mode_status omap_crtc_mode_valid(struct drm_crtc *crtc,
+ 	 * valid DISPC mode. DSI will calculate and configure the
+ 	 * proper DISPC mode later.
+ 	 */
+-	if (omap_crtc->pipe->output->next == NULL ||
+-	    omap_crtc->pipe->output->next->type != OMAP_DISPLAY_TYPE_DSI) {
++	if (omap_crtc->pipe->output->type != OMAP_DISPLAY_TYPE_DSI) {
+ 		r = priv->dispc_ops->mgr_check_timings(priv->dispc,
+ 						       omap_crtc->channel,
+ 						       &vm);
+@@ -549,17 +548,17 @@ static void omap_crtc_mode_set_nofb(struct drm_crtc *crtc)
+ static bool omap_crtc_is_manually_updated(struct drm_crtc *crtc)
+ {
+ 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
+-	struct omap_dss_device *display = omap_crtc->pipe->output->next;
++	struct omap_dss_device *dssdev = omap_crtc->pipe->output;
+ 
+-	if (!display)
++	if (dssdev->type != OMAP_DISPLAY_TYPE_DSI ||
++	    !dssdev->ops->dsi.is_video_mode)
+ 		return false;
+ 
+-	if (display->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
+-		DBG("detected manually updated display!");
+-		return true;
+-	}
++	if (dssdev->ops->dsi.is_video_mode(dssdev))
++		return false;
+ 
+-	return false;
++	DBG("detected manually updated display!");
++	return true;
  }
  
- static int dsi_connect(struct omap_dss_device *src,
+ static int omap_crtc_atomic_check(struct drm_crtc *crtc,
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
