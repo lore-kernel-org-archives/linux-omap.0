@@ -2,94 +2,184 @@ Return-Path: <SRS0=bNu4=EP=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EAD9C4741F
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Nov 2020 09:33:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FBEFC55ABD
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Nov 2020 09:45:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2315320719
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Nov 2020 09:33:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0ADA207BC
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Nov 2020 09:45:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="l7bdTqVs"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="W8tR9JVa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726482AbgKIJd3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Nov 2020 04:33:29 -0500
-Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.53]:28192 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728981AbgKIJd3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2020 04:33:29 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1604914407;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=MeJsKUHFOOrDgplDFdDbDkQpr7ypxrq9Rfygh+VRKKw=;
-        b=l7bdTqVs/b14oDR1O34hloQDqPGdgqOCIGKEY9mcviNEaMWrIMb/Glqwg8PABv/XhP
-        PvsLnt8WGLVoOE0zzkPUUv0vYBELBj1ntVQCRDHAg1pnCPakXo2v5rVlFAveAx6Y1YFN
-        xY4Z/wMEGvBajln4ThzHyuKd6CaIqo/OnUxK6E+g5ozgUOVxWmfyK9iDWu9mld9jdGpr
-        FGgVFO0/krFYOv44C8AyqKG1jfwr4hr0ZaSmDgvrUnbHdcgSHSvlPgRRWm8DrWSDiPZP
-        SaJ0DmGYQXlMbepMGBD/aYZVDTbTmAw1M1/Xwq0QAsdkLBISpHKb4p784e/3+fy+6FOh
-        r3Zg==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj5Qpw97WFDlaVXA0JCQ=="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 47.3.3 DYNA|AUTH)
-        with ESMTPSA id d04888wA99UKAp0
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Mon, 9 Nov 2020 10:30:20 +0100 (CET)
-Subject: Re: [PATCH v3 00/56] Convert DSI code to use drm_mipi_dsi and drm_panel
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <a20f2b88-bfe6-0ab4-a19b-ba5316db6c4f@ti.com>
-Date:   Mon, 9 Nov 2020 10:30:21 +0100
-Cc:     Sebastian Reichel <sre@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        id S1726482AbgKIJp5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Nov 2020 04:45:57 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:36160 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729005AbgKIJp5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2020 04:45:57 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0A99jjTV099774;
+        Mon, 9 Nov 2020 03:45:45 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1604915145;
+        bh=COAVyTk7i6o5HDEkvjL5xPKkFmEHDjO11P2Nn31PjK0=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=W8tR9JVablLbtSdMARP4yVhBa0MRvxd0q90XIXntb8Y1ejsjBCuE5J/lWjFzAEpGz
+         3bp39Im4JZRCPZCjgCBtunrcYwp/pMehTGQJx3fhhNcU/qaAOKjXJCjgTl07MVsVzb
+         K8esU4Obc0j5iqD56ZoViIIlZz4GFhCwyyWn64/M=
+Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0A99jjRx039519
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 9 Nov 2020 03:45:45 -0600
+Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 9 Nov
+ 2020 03:45:45 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Mon, 9 Nov 2020 03:45:45 -0600
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0A99jgti128248;
+        Mon, 9 Nov 2020 03:45:43 -0600
+Subject: Re: [PATCH v3 22/56] drm/omap: dsi: use pixel-format and mode from
+ attach
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC:     Sebastian Reichel <sre@kernel.org>,
         Nikhil Devshatwar <nikhil.nd@ti.com>,
-        linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <17F5238B-1CC3-4764-B744-C57D9CE4EB42@goldelico.com>
-References: <20201105120333.947408-1-tomi.valkeinen@ti.com> <61C04176-4654-4D2D-A55B-31FBB6D2E5AA@goldelico.com> <fcbc8488-5861-8e51-0f86-1ed6498083f7@ti.com> <579243AA-014A-411B-9014-F5846C9B8137@goldelico.com> <ab33baff-dd8c-2ee0-6f89-35aa4df7b9cf@ti.com> <837EA533-9946-43B3-B058-69060EC43981@goldelico.com> <08589e51-f5e6-2743-57ec-8ac509f97ff0@ti.com> <1f1afce4-c822-0fbf-1ce3-dda0064b65c6@ti.com> <67786545-23D2-444F-85B8-7A030070B317@goldelico.com> <a20f2b88-bfe6-0ab4-a19b-ba5316db6c4f@ti.com>
-To:     Tomi Valkeinen <tomi.valkeinen@ti.com>
-X-Mailer: Apple Mail (2.3124)
+        <linux-omap@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
+        Sebastian Reichel <sebastian.reichel@collabora.com>
+References: <20201105120333.947408-1-tomi.valkeinen@ti.com>
+ <20201105120333.947408-23-tomi.valkeinen@ti.com>
+ <20201109084921.GS6029@pendragon.ideasonboard.com>
+From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <c4ce6c5a-8515-4ae3-200b-7c4f8b890c31@ti.com>
+Date:   Mon, 9 Nov 2020 11:45:42 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
+MIME-Version: 1.0
+In-Reply-To: <20201109084921.GS6029@pendragon.ideasonboard.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On 09/11/2020 10:49, Laurent Pinchart wrote:
+> Hi Tomi and Sebastian,
+> 
+> Thank you for the patch.
+> 
+> On Thu, Nov 05, 2020 at 02:02:59PM +0200, Tomi Valkeinen wrote:
+>> From: Sebastian Reichel <sebastian.reichel@collabora.com>
+>>
+>> In order to reduce the amount of custom functionality, this moves
+>> handling of pixel format and DSI mode from set_config() to dsi
+>> attach.
+>>
+>> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>  .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   |  2 --
+>>  drivers/gpu/drm/omapdrm/dss/dsi.c             | 31 ++++++++++++-------
+>>  2 files changed, 19 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+>> index a9609eed6bfa..2e9de33fc8d4 100644
+>> --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+>> +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+>> @@ -550,8 +550,6 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+>>  	u8 id1, id2, id3;
+>>  	int r;
+>>  	struct omap_dss_dsi_config dsi_config = {
+>> -		.mode = OMAP_DSS_DSI_CMD_MODE,
+>> -		.pixel_format = MIPI_DSI_FMT_RGB888,
+>>  		.vm = &ddata->vm,
+>>  		.hs_clk_min = 150000000,
+>>  		.hs_clk_max = 300000000,
+>> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+>> index a16427f3bc23..e341aca92462 100644
+>> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
+>> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+>> @@ -4579,24 +4579,19 @@ static int dsi_set_config(struct omap_dss_device *dssdev,
+>>  {
+>>  	struct dsi_data *dsi = to_dsi_data(dssdev);
+>>  	struct dsi_clk_calc_ctx ctx;
+>> +	struct omap_dss_dsi_config cfg = *config;
+>>  	bool ok;
+>>  	int r;
+>>  
+>>  	mutex_lock(&dsi->lock);
+>>  
+>> -	dsi->pix_fmt = config->pixel_format;
+>> -	dsi->mode = config->mode;
+>> +	cfg.mode = dsi->mode;
+>> +	cfg.pixel_format = dsi->pix_fmt;
+>>  
+>> -	if (mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt) < 0) {
+>> -		DSSERR("invalid pixel format\n");
+>> -		r = -EINVAL;
+>> -		goto err;
+>> -	}
+>> -
+>> -	if (config->mode == OMAP_DSS_DSI_VIDEO_MODE)
+>> -		ok = dsi_vm_calc(dsi, config, &ctx);
+>> +	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE)
+>> +		ok = dsi_vm_calc(dsi, &cfg, &ctx);
+>>  	else
+>> -		ok = dsi_cm_calc(dsi, config, &ctx);
+>> +		ok = dsi_cm_calc(dsi, &cfg, &ctx);
+>>  
+>>  	if (!ok) {
+>>  		DSSERR("failed to find suitable DSI clock settings\n");
+>> @@ -4607,7 +4602,7 @@ static int dsi_set_config(struct omap_dss_device *dssdev,
+>>  	dsi_pll_calc_dsi_fck(dsi, &ctx.dsi_cinfo);
+>>  
+>>  	r = dsi_lp_clock_calc(ctx.dsi_cinfo.clkout[HSDIV_DSI],
+>> -		config->lp_clk_min, config->lp_clk_max, &dsi->user_lp_cinfo);
+>> +		cfg.lp_clk_min, cfg.lp_clk_max, &dsi->user_lp_cinfo);
+>>  	if (r) {
+>>  		DSSERR("failed to find suitable DSI LP clock settings\n");
+>>  		goto err;
+>> @@ -4785,7 +4780,19 @@ static int omap_dsi_host_attach(struct mipi_dsi_host *host,
+>>  		return -EBUSY;
+>>  	}
+>>  
+>> +	if (mipi_dsi_pixel_format_to_bpp(client->format) < 0) {
+>> +		DSSERR("invalid pixel format\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>>  	dsi->vc[channel].dest = client;
+>> +
+>> +	dsi->pix_fmt = client->format;
+> 
+> Does this mean that all clients must use the same pixel format ? Do we
+> even support multiple clients ? If no the VC allocation could be
+> simplified.
 
-> Am 09.11.2020 um 09:04 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
->=20
-> On 07/11/2020 14:19, H. Nikolaus Schaller wrote:
->=20
->> I have set up based on our complete letux-5.10-rc2 tree and maybe =
-using our private config makes
->> the difference. Anyways, the driver is now probed and I can see the =
-call to w677l_get_modes().
->>=20
->> I have still no image and no calls to prepare/unprepare etc. but now =
-I can start to debug on omap5.
->> And hopefully we are close to push the panel driver for review. And =
-in a second step some device
->> tree for the Pyra.
->>=20
->> The new tree is here: =
-https://git.goldelico.com/?p=3Dletux-kernel.git;a=3Dshortlog;h=3Drefs/head=
-s/work-pyra-panel
->=20
-> Ok, good. Do you have a link the previous driver that works (omapdrm =
-specific panel driver)? I think
-> it's good to have that as a reference.
+The driver does not (and has not) support multiple DSI peripherals, even if the plumbing has been
+there. Yes, the VC handling can be made simpler. I would prefer to do that after this series.
 
-Yes, here:
+As I see it, the main point of this series is to move to DRM model while keeping the current
+mainline drivers working (dsi and panel-dsi-cm). That will enable many cleanups also outside the dsi
+driver. The series adds some shortcuts in places where they don't affect the supported setup.
 
-=
-https://git.goldelico.com/?p=3Dletux-kernel.git;a=3Dshortlog;h=3Drefs/head=
-s/letux/panels
+When we get to the end, we'll be using DRM bridge and panel model, and re-writing the VC handling
+(and some other parts) should fall into place much more neatly than doing them either before the
+series (on top of omapdrm's custom APIs) or inside the series.
 
-BR and thanks,
-Nikolaus
+ Tomi
 
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
