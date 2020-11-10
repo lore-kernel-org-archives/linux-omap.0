@@ -6,55 +6,52 @@ X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AAF7C4742C
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 12:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9F36C388F7
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 13:15:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4E17207D3
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 12:57:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A10F220674
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 13:15:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730254AbgKJM5H (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Nov 2020 07:57:07 -0500
-Received: from muru.com ([72.249.23.125]:47868 "EHLO muru.com"
+        id S1730345AbgKJNPe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Nov 2020 08:15:34 -0500
+Received: from muru.com ([72.249.23.125]:47882 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730186AbgKJM5H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 10 Nov 2020 07:57:07 -0500
+        id S1726721AbgKJNPe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 10 Nov 2020 08:15:34 -0500
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id B4A8980BA;
-        Tue, 10 Nov 2020 12:57:12 +0000 (UTC)
-Date:   Tue, 10 Nov 2020 14:57:03 +0200
+        by muru.com (Postfix) with ESMTPS id 1554180BA;
+        Tue, 10 Nov 2020 13:15:38 +0000 (UTC)
+Date:   Tue, 10 Nov 2020 15:15:29 +0200
 From:   Tony Lindgren <tony@atomide.com>
-To:     Vinod Koul <vkoul@kernel.org>
-Cc:     Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org,
-        dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] dmaengine: ti: omap-dma: Block PM if SDMA is busy to fix
- audio
-Message-ID: <20201110125703.GG26857@atomide.com>
-References: <20201109154013.11950-1-tony@atomide.com>
- <acf280b4-f34d-cfc6-874c-48843cd54365@ti.com>
- <39089a2c-a883-d9b4-f1d6-493af2190410@ti.com>
- <20201110113346.GD26857@atomide.com>
- <20201110124116.GS3171@vkoul-mobl>
+To:     "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc:     =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        letux-kernel@openphoenux.org, kernel@pyra-handheld.com
+Subject: Re: [PATCH 0/2] AMR: DTS: fix and extension for Pandaboard ES
+Message-ID: <20201110131529.GH26857@atomide.com>
+References: <cover.1601734200.git.hns@goldelico.com>
+ <0EB41455-D489-4F38-A8F7-C264BAE8D903@goldelico.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201110124116.GS3171@vkoul-mobl>
+In-Reply-To: <0EB41455-D489-4F38-A8F7-C264BAE8D903@goldelico.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Vinod Koul <vkoul@kernel.org> [201110 12:41]:
-> On 10-11-20, 13:33, Tony Lindgren wrote:
-> > Sorry about that, I've bounced the original patch too. Vinod let me know if
-> > you want me to resend the patch.
+* H. Nikolaus Schaller <hns@goldelico.com> [201030 09:09]:
+> ping
 > 
-> That is okay, we have b4 now, so not much of a hassle to grab, review
-> and apply, will do that shortly
+> > Am 03.10.2020 um 16:09 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> > 
+> > * fix wrong pinmux offset preventing the user button from working
+> > * add uart connection for bluetooth wl1271 hci
+> > 
+> > H. Nikolaus Schaller (2):
+> >  ARM: dts: pandaboard: fix pinmux for gpio user button of Pandaboard ES
+> >  ARM: dts: pandaboard es: add bluetooth uart for HCI
 
-OK thanks!
-
-> And here is my rant to use get_maintainers.pl which should have pointed
-> you to the correct address ;-)
-
-Right :)
+Thanks applying both into omap-for-v5.11/dt.
 
 Tony
