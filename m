@@ -4,24 +4,24 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D6AEC55ABD
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:21:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 330E1C4742C
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:21:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9BE4207BB
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:21:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EADF720659
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731423AbgKJLVJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Nov 2020 06:21:09 -0500
-Received: from muru.com ([72.249.23.125]:47728 "EHLO muru.com"
+        id S1731950AbgKJLVW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Nov 2020 06:21:22 -0500
+Received: from muru.com ([72.249.23.125]:47776 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730986AbgKJLVI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 10 Nov 2020 06:21:08 -0500
+        id S1731947AbgKJLVU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 10 Nov 2020 06:21:20 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 17FA380BA;
-        Tue, 10 Nov 2020 11:21:10 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id A3C4381A8;
+        Tue, 10 Nov 2020 11:21:22 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
@@ -32,15 +32,15 @@ Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
         Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
+        Santosh Shilimkar <ssantosh@kernel.org>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
         Michael Turquette <mturquette@baylibre.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
         Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org,
         linux-remoteproc@vger.kernel.org
-Subject: [PATCH 5/9] bus: ti-sysc: Implement GPMC debug quirk to drop platform data
-Date:   Tue, 10 Nov 2020 13:20:38 +0200
-Message-Id: <20201110112042.65489-6-tony@atomide.com>
+Subject: [PATCH 8/9] soc: ti: pm33xx: Enable basic PM runtime support for genpd
+Date:   Tue, 10 Nov 2020 13:20:41 +0200
+Message-Id: <20201110112042.65489-9-tony@atomide.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20201110112042.65489-1-tony@atomide.com>
 References: <20201110112042.65489-1-tony@atomide.com>
@@ -50,53 +50,65 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We need to enable no-reset-on-init quirk for GPMC if the config
-option for CONFIG_OMAP_GPMC_DEBUG is set. Otherwise the GPMC
-driver code is unable to show the bootloader configured timings.
+To prepare for moving to use genpd, let's enable basic PM
+runtime support.
 
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c                 | 10 ++++++++++
- include/linux/platform_data/ti-sysc.h |  1 +
- 2 files changed, 11 insertions(+)
+ drivers/soc/ti/pm33xx.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1383,6 +1383,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_QUIRK_CLKDM_NOAUTO),
- 	SYSC_QUIRK("dwc3", 0x488c0000, 0, 0x10, -ENODEV, 0x500a0200, 0xffffffff,
- 		   SYSC_QUIRK_CLKDM_NOAUTO),
-+	SYSC_QUIRK("gpmc", 0, 0, 0x10, 0x14, 0x00000060, 0xffffffff,
-+		   SYSC_QUIRK_GPMC_DEBUG),
- 	SYSC_QUIRK("hdmi", 0, 0, 0x10, -ENODEV, 0x50030200, 0xffffffff,
- 		   SYSC_QUIRK_OPT_CLKS_NEEDED),
- 	SYSC_QUIRK("hdq1w", 0, 0, 0x14, 0x18, 0x00000006, 0xffffffff,
-@@ -1818,6 +1820,14 @@ static void sysc_init_module_quirks(struct sysc *ddata)
- 		return;
+diff --git a/drivers/soc/ti/pm33xx.c b/drivers/soc/ti/pm33xx.c
+--- a/drivers/soc/ti/pm33xx.c
++++ b/drivers/soc/ti/pm33xx.c
+@@ -19,6 +19,7 @@
+ #include <linux/of_address.h>
+ #include <linux/platform_data/pm33xx.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/rtc.h>
+ #include <linux/rtc/rtc-omap.h>
+ #include <linux/sizes.h>
+@@ -555,16 +556,26 @@ static int am33xx_pm_probe(struct platform_device *pdev)
+ 	suspend_wfi_flags |= WFI_FLAG_WAKE_M3;
+ #endif /* CONFIG_SUSPEND */
+ 
++	pm_runtime_enable(dev);
++	ret = pm_runtime_get_sync(dev);
++	if (ret < 0) {
++		pm_runtime_put_noidle(dev);
++		goto err_pm_runtime_disable;
++	}
++
+ 	ret = pm_ops->init(am33xx_do_sram_idle);
+ 	if (ret) {
+ 		dev_err(dev, "Unable to call core pm init!\n");
+ 		ret = -ENODEV;
+-		goto err_put_wkup_m3_ipc;
++		goto err_pm_runtime_put;
  	}
  
-+#ifdef CONFIG_OMAP_GPMC_DEBUG
-+	if (ddata->cfg.quirks & SYSC_QUIRK_GPMC_DEBUG) {
-+		ddata->cfg.quirks |= SYSC_QUIRK_NO_RESET_ON_INIT;
-+
-+		return;
-+	}
-+#endif
-+
- 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_I2C) {
- 		ddata->pre_reset_quirk = sysc_pre_reset_quirk_i2c;
- 		ddata->post_reset_quirk = sysc_post_reset_quirk_i2c;
-diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
---- a/include/linux/platform_data/ti-sysc.h
-+++ b/include/linux/platform_data/ti-sysc.h
-@@ -50,6 +50,7 @@ struct sysc_regbits {
- 	s8 emufree_shift;
- };
+ 	return 0;
  
-+#define SYSC_QUIRK_GPMC_DEBUG		BIT(26)
- #define SYSC_MODULE_QUIRK_ENA_RESETDONE	BIT(25)
- #define SYSC_MODULE_QUIRK_PRUSS		BIT(24)
- #define SYSC_MODULE_QUIRK_DSS_RESET	BIT(23)
+-err_put_wkup_m3_ipc:
++err_pm_runtime_put:
++	pm_runtime_put_sync(dev);
++err_pm_runtime_disable:
++	pm_runtime_disable(dev);
+ 	wkup_m3_ipc_put(m3_ipc);
+ err_free_sram:
+ 	am33xx_pm_free_sram();
+@@ -574,6 +585,8 @@ static int am33xx_pm_probe(struct platform_device *pdev)
+ 
+ static int am33xx_pm_remove(struct platform_device *pdev)
+ {
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
+ 	if (pm_ops->deinit)
+ 		pm_ops->deinit();
+ 	suspend_set_ops(NULL);
 -- 
 2.29.2
