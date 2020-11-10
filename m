@@ -2,26 +2,25 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA00CC4742C
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:06:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94F2BC55ABD
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:20:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9482B20795
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:06:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46EA2207D3
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:20:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726428AbgKJLGT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Nov 2020 06:06:19 -0500
-Received: from muru.com ([72.249.23.125]:47634 "EHLO muru.com"
+        id S1726690AbgKJLUt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Nov 2020 06:20:49 -0500
+Received: from muru.com ([72.249.23.125]:47654 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726152AbgKJLGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 10 Nov 2020 06:06:18 -0500
+        id S1726219AbgKJLUt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 10 Nov 2020 06:20:49 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id E5E2D80BA;
-        Tue, 10 Nov 2020 11:06:21 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id D546681A8;
+        Tue, 10 Nov 2020 11:20:51 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
@@ -31,10 +30,16 @@ Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
         Peter Ujfalusi <peter.ujfalusi@ti.com>,
         Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>,
         Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] bus: ti-sysc: Assert reset only after disabling clocks
-Date:   Tue, 10 Nov 2020 13:06:11 +0200
-Message-Id: <20201110110611.64983-1-tony@atomide.com>
+        linux-arm-kernel@lists.infradead.org,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org
+Subject: [PATCHv2 0/9] Genpd related code changes to drop am335x pdata
+Date:   Tue, 10 Nov 2020 13:20:33 +0200
+Message-Id: <20201110112042.65489-1-tony@atomide.com>
 X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -42,114 +47,50 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The rstctrl reset must be asserted after gating the module clock as
-described in the TRM at least for IVA. Otherwise the rstctrl reset
-done with module clock enabled can hang the system.
+Hi all,
 
-Note that this issue is has been only seen with related IVA changes
-that we do not currently have merged. So probably no need to apply
-this patch as a fix.
+Here's v2 set of changes for v5.11 merge window to drop the remaining
+am335x platform data.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
+Changes since v1:
+- Simplify wkup_m3_rproc.c changes as suggested by Philipp Zabel
+- Do not configure pm_clk for omap_prm.c except for simple-pm-bus
 
-This can probably wait for merge window and be merged along with
-the other genpd related changes I have been posting. At least I
-have not seen this issue except with IVA resets so far.
+These patches depend on:
 
----
- drivers/bus/ti-sysc.c | 24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+[PATCH 2/4] ARM: OMAP2+: Fix missing select PM_GENERIC_DOMAINS_OF
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1222,10 +1222,10 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
- 	ddata->enabled = false;
- 
- err_allow_idle:
--	reset_control_assert(ddata->rsts);
--
- 	sysc_clkdm_allow_idle(ddata);
- 
-+	reset_control_assert(ddata->rsts);
-+
- 	return error;
- }
- 
-@@ -1945,6 +1945,7 @@ static int sysc_reset(struct sysc *ddata)
-  */
- static int sysc_init_module(struct sysc *ddata)
- {
-+	bool rstctrl_deasserted = false;
- 	int error = 0;
- 
- 	error = sysc_clockdomain_init(ddata);
-@@ -1969,6 +1970,7 @@ static int sysc_init_module(struct sysc *ddata)
- 		error = reset_control_deassert(ddata->rsts);
- 		if (error)
- 			goto err_main_clocks;
-+		rstctrl_deasserted = true;
- 	}
- 
- 	ddata->revision = sysc_read_revision(ddata);
-@@ -1978,13 +1980,13 @@ static int sysc_init_module(struct sysc *ddata)
- 	if (ddata->legacy_mode) {
- 		error = sysc_legacy_init(ddata);
- 		if (error)
--			goto err_reset;
-+			goto err_main_clocks;
- 	}
- 
- 	if (!ddata->legacy_mode) {
- 		error = sysc_enable_module(ddata->dev);
- 		if (error)
--			goto err_reset;
-+			goto err_main_clocks;
- 	}
- 
- 	error = sysc_reset(ddata);
-@@ -1994,10 +1996,6 @@ static int sysc_init_module(struct sysc *ddata)
- 	if (error && !ddata->legacy_mode)
- 		sysc_disable_module(ddata->dev);
- 
--err_reset:
--	if (error && !(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT))
--		reset_control_assert(ddata->rsts);
--
- err_main_clocks:
- 	if (error)
- 		sysc_disable_main_clocks(ddata);
-@@ -2008,6 +2006,10 @@ static int sysc_init_module(struct sysc *ddata)
- 		sysc_clkdm_allow_idle(ddata);
- 	}
- 
-+	if (error && rstctrl_deasserted &&
-+	    !(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT))
-+		reset_control_assert(ddata->rsts);
-+
- 	return error;
- }
- 
-@@ -2975,9 +2977,6 @@ static int sysc_probe(struct platform_device *pdev)
- 	}
- 
- 	/* Balance use counts as PM runtime should have enabled these all */
--	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT))
--		reset_control_assert(ddata->rsts);
--
- 	if (!(ddata->cfg.quirks &
- 	      (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))) {
- 		sysc_disable_main_clocks(ddata);
-@@ -2985,6 +2984,9 @@ static int sysc_probe(struct platform_device *pdev)
- 		sysc_clkdm_allow_idle(ddata);
- 	}
- 
-+	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT))
-+		reset_control_assert(ddata->rsts);
-+
- 	sysc_show_registers(ddata);
- 
- 	ddata->dev->type = &sysc_device_type;
+And the related device tree changes have been posted as:
+
+[PATCH 00/18] Drop remaining pdata for am335x and use genpd
+
+Regards,
+
+Tony
+
+
+Tero Kristo (1):
+  soc: ti: omap-prm: am3: add genpd support for remaining PRM instances
+
+Tony Lindgren (8):
+  ARM: OMAP2+: Check for inited flag
+  ARM: OMAP2+: Probe PRCM first to probe l4_wkup with simple-pm-bus
+  clk: ti: am33xx: Keep am3 l3 main clock always on for genpd
+  bus: ti-sysc: Support modules without control registers
+  bus: ti-sysc: Implement GPMC debug quirk to drop platform data
+  soc: ti: omap-prm: Add pm_clk for genpd
+  soc: ti: pm33xx: Enable basic PM runtime support for genpd
+  remoteproc/wkup_m3: Use reset control driver if available
+
+ arch/arm/mach-omap2/omap_hwmod.c      |  6 ++
+ arch/arm/mach-omap2/pdata-quirks.c    | 11 ++++
+ drivers/bus/ti-sysc.c                 | 17 ++++++
+ drivers/clk/ti/clk-33xx.c             |  2 +
+ drivers/remoteproc/wkup_m3_rproc.c    | 41 +++++++++-----
+ drivers/soc/ti/omap_prm.c             | 80 ++++++++++++++++++++++++++-
+ drivers/soc/ti/pm33xx.c               | 17 +++++-
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 8 files changed, 157 insertions(+), 18 deletions(-)
+
 -- 
 2.29.2
