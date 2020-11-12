@@ -2,64 +2,106 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=BAYES_20,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	TVD_SPACE_RATIO autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BEFEC388F7
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:14:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44BC7C56202
+	for <linux-omap@archiver.kernel.org>; Thu, 12 Nov 2020 16:45:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2455D2076E
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Nov 2020 11:14:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D431622201
+	for <linux-omap@archiver.kernel.org>; Thu, 12 Nov 2020 16:45:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fJM5wgaD"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Npe45z1F"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726698AbgKJLOm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Nov 2020 06:14:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58462 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726690AbgKJLOm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2020 06:14:42 -0500
-Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6D03C0613CF
-        for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2020 03:14:40 -0800 (PST)
-Received: by mail-wr1-x430.google.com with SMTP id p1so12212885wrf.12
-        for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2020 03:14:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=aWHxUGhey1sdeZpkX3+AVgMK2Ne/YLbuPchhZeuH/Uc=;
-        b=fJM5wgaDjVrR7PxPlVnAQztZB1IVl9oBIwtvGmcw3IAXMQE3YOUgs5o4O17HieztUA
-         qfTNm7C2FQjLHf4bglBB/WHT618E4b4F034ElU4ZD0+0A0odZDmWjgSX1rsN5KRsLMO4
-         DeykB940RWboozvg337Y/BhLyZluVx4nNjBoeUjvBjevkM+qmpkVrybQXxAYEIETwBE9
-         lCYOugcHON8xTeYXK3wYvTHCeKgSupLh6/TiTTlZB2m3SfZTySHcN1mXxlW6YyRaKhfp
-         zeFcTTIGVyFApKnwRObyEs6JgbnOlOzgFeaHhp2fTX/BuXsz0RBpOvntK63Ak1h2AAJj
-         yz8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=aWHxUGhey1sdeZpkX3+AVgMK2Ne/YLbuPchhZeuH/Uc=;
-        b=n0KUArMygW1GhIbhnhmwS5Y8gAPCyI04spL/2nlsc/B+xjhIlv1jAQ9xSM0LpgZsyw
-         kKTHumwDIwVA+70Mu/JhZNaF4z4L77hrtGLTa1tqvx4Cgw0206xbS2W83ZXnD1LU9TRw
-         /EPKF4C8AiIodgT3XWK7gNv76SDCfoIi3VcnHzFido+hOen2asOvRyButk5aMahPxfeI
-         be6JPUu+02GKYJMTktCxsoXw4oLXQbdoeIThYbx/6cev+6qmP5OfTYw9DYoUn7XHxSwJ
-         cA7A2ep9i9hj/MxeOk5+5LaCIFnm4ZHhKReFFjPmE/GHjHV0F5mwSzmqSX5i1+raj/te
-         uwfA==
-X-Gm-Message-State: AOAM531gWL0DOaay6b3fn4HDsN7asc0fTcfkUs+TBBtirbv5Jd0Mm1II
-        hvinz12qTegekqjNK7SIGAAsdkR5Uc5eofQr9+cZiHzrqQ==
-X-Google-Smtp-Source: ABdhPJwWtv4auqTmoAea0qYBb3hHktVqkzr94zqBc5Asks6CLIraXEZdnqZ+famSmvo+5blxMZkS7QiXwrGMYHQb/9A=
-X-Received: by 2002:adf:f24a:: with SMTP id b10mr7281813wrp.352.1605006879086;
- Tue, 10 Nov 2020 03:14:39 -0800 (PST)
+        id S1729039AbgKLQpi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 12 Nov 2020 11:45:38 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:37566 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728977AbgKLQpi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2020 11:45:38 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0ACGjWVr030274;
+        Thu, 12 Nov 2020 10:45:32 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1605199532;
+        bh=nEeyGV/g8WhnDhmKwXjMR/xIRfMtEk/NvzJI7KH1IEg=;
+        h=From:To:CC:Subject:Date;
+        b=Npe45z1FSa8F+JxCBhh/LjOhcnJYvBvCpbZYribufbxj3kQd8+7B76xAs2QYK1Si9
+         0mTWvBX28fRfouowO7kkIYUbLJBMJse2FXSL6LOYjiLiAl3Ypdbk76TExVHGESigk9
+         S/S3kzeu5/wzB2fr0GI7Rx2gDB32DwPv/HOAe6AA=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0ACGjWYP057547
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 12 Nov 2020 10:45:32 -0600
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 12
+ Nov 2020 10:45:31 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Thu, 12 Nov 2020 10:45:31 -0600
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0ACGjVJ1098180;
+        Thu, 12 Nov 2020 10:45:31 -0600
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Jakub Kicinski <kuba@kernel.org>, Wang Qing <wangqing@vivo.com>
+CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH v5] net: ethernet: ti: am65-cpts: update ret when ptp_clock is ERROR
+Date:   Thu, 12 Nov 2020 18:45:41 +0200
+Message-ID: <20201112164541.3223-1-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-From:   Raffaele Recalcati <lamiaposta71@gmail.com>
-Date:   Tue, 10 Nov 2020 12:14:18 +0100
-Message-ID: <CAFU7RzNfOm+FYEAuM17bcgwwZFM3hDkBB-iQ+zNvxT0Z7vK_SA@mail.gmail.com>
-Subject: 
-To:     linux-omap@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-unsubscribe linux-omap
+From: Wang Qing <wangqing@vivo.com>
+
+We always have to update the value of ret, otherwise the
+ error value may be the previous one.
+
+Fixes: f6bd59526ca5 ("net: ethernet: ti: introduce am654 common platform time sync driver")
+Signed-off-by: Wang Qing <wangqing@vivo.com>
+[grygorii.strashko@ti.com: fix build warn, subj add fixes tag]
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Acked-by: Richard Cochran <richardcochran@gmail.com>
+---
+Hi
+
+I've update patch as requested and added Acked-by from Richard from v1.
+
+v4: https://lore.kernel.org/patchwork/patch/1336771/
+v3: https://lore.kernel.org/patchwork/patch/1334871/
+v2: https://lore.kernel.org/patchwork/patch/1334549/
+v1: https://lore.kernel.org/patchwork/patch/1334067/
+
+ drivers/net/ethernet/ti/am65-cpts.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/am65-cpts.c b/drivers/net/ethernet/ti/am65-cpts.c
+index 75056c14b161..5dc60ecabe56 100644
+--- a/drivers/net/ethernet/ti/am65-cpts.c
++++ b/drivers/net/ethernet/ti/am65-cpts.c
+@@ -1001,8 +1001,7 @@ struct am65_cpts *am65_cpts_create(struct device *dev, void __iomem *regs,
+ 	if (IS_ERR_OR_NULL(cpts->ptp_clock)) {
+ 		dev_err(dev, "Failed to register ptp clk %ld\n",
+ 			PTR_ERR(cpts->ptp_clock));
+-		if (!cpts->ptp_clock)
+-			ret = -ENODEV;
++		ret = cpts->ptp_clock ? PTR_ERR(cpts->ptp_clock) : -ENODEV;
+ 		goto refclk_disable;
+ 	}
+ 	cpts->phc_index = ptp_clock_index(cpts->ptp_clock);
+-- 
+2.17.1
+
