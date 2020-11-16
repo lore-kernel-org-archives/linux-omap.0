@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B000C82651
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Nov 2020 12:37:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFFC6C8265D
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Nov 2020 12:37:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4C322224B
-	for <linux-omap@archiver.kernel.org>; Mon, 16 Nov 2020 12:37:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD54520855
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Nov 2020 12:37:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727228AbgKPLUX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 16 Nov 2020 06:20:23 -0500
-Received: from muru.com ([72.249.23.125]:48458 "EHLO muru.com"
+        id S1729706AbgKPLU3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 16 Nov 2020 06:20:29 -0500
+Received: from muru.com ([72.249.23.125]:48488 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729682AbgKPLUU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 16 Nov 2020 06:20:20 -0500
+        id S1729595AbgKPLU3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 16 Nov 2020 06:20:29 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id DED3580C8;
-        Mon, 16 Nov 2020 11:20:24 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 25D50813D;
+        Mon, 16 Nov 2020 11:20:33 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>,
-        Suman Anna <s-anna@ti.com>,
         Michael Turquette <mturquette@baylibre.com>,
         Santosh Shilimkar <ssantosh@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>,
-        linux-clk@vger.kernel.org
-Subject: [PATCH 07/17] ARM: dts: Configure interconnect target module for am4 wkup_m3
-Date:   Mon, 16 Nov 2020 13:19:29 +0200
-Message-Id: <20201116111939.21405-8-tony@atomide.com>
+        Stephen Boyd <sboyd@kernel.org>, Suman Anna <s-anna@ti.com>,
+        Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org
+Subject: [PATCH 11/17] ARM: OMAP2+: Drop legacy platform data for am4 mpuss
+Date:   Mon, 16 Nov 2020 13:19:33 +0200
+Message-Id: <20201116111939.21405-12-tony@atomide.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20201116111939.21405-1-tony@atomide.com>
 References: <20201116111939.21405-1-tony@atomide.com>
@@ -43,78 +42,170 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with device tree only configuration using
-ti-sysc interconnect target module driver.
+We can now probe devices with ti-sysc interconnect driver and dts
+data. Let's drop the related platform data and custom ti,hwmods
+dts property.
 
-Note that we no longer need ti,no-reset-on-init as the rstctrl resets
-are properly handled by the reset driver and claimed by the RTC driver.
-And we need to squash together the module ranges for driver compability.
-
-Cc: Dave Gerlach <d-gerlach@ti.com>
-Cc: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am4372.dtsi    |  8 --------
- arch/arm/boot/dts/am437x-l4.dtsi | 27 +++++++++++++++++----------
- 2 files changed, 17 insertions(+), 18 deletions(-)
+ arch/arm/boot/dts/am4372.dtsi                 |  6 ------
+ arch/arm/boot/dts/am437x-l4.dtsi              | 18 ++++++++++++++++
+ .../omap_hwmod_33xx_43xx_common_data.h        |  3 ---
+ .../omap_hwmod_33xx_43xx_interconnect_data.c  | 16 --------------
+ .../omap_hwmod_33xx_43xx_ipblock_data.c       | 21 -------------------
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c    |  2 --
+ 6 files changed, 18 insertions(+), 48 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
 --- a/arch/arm/boot/dts/am4372.dtsi
 +++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -173,14 +173,6 @@ ocp@44000000 {
- 			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+@@ -107,12 +107,6 @@ oppnitro-1000000000 {
  
- 		l4_wkup: interconnect@44c00000 {
--			wkup_m3: wkup_m3@100000 {
--				compatible = "ti,am4372-wkup-m3";
--				reg = <0x100000 0x4000>,
--				      <0x180000	0x2000>;
--				reg-names = "umem", "dmem";
--				ti,hwmods = "wkup_m3";
--				ti,pm-firmware = "am335x-pm-firmware.elf";
--			};
- 		};
- 		l4_per: interconnect@48000000 {
- 		};
+ 	soc {
+ 		compatible = "ti,omap-infra";
+-		mpu {
+-			compatible = "ti,omap4-mpu";
+-			ti,hwmods = "mpu";
+-			pm-sram = <&pm_sram_code
+-				   &pm_sram_data>;
+-		};
+ 	};
+ 
+ 	gic: interrupt-controller@48241000 {
 diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
 --- a/arch/arm/boot/dts/am437x-l4.dtsi
 +++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -32,19 +32,26 @@ segment@100000 {					/* 0x44d00000 */
- 			 <0x000f0000 0x001f0000 0x010000>;	/* ap 8 */
- 
- 		target-module@0 {			/* 0x44d00000, ap 4 28.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "wkup_m3";
-+			reg = <0x0 0x4>;
-+			reg-names = "rev";
-+			clocks = <&l4_wkup_aon_clkctrl AM4_L4_WKUP_AON_WKUP_M3_CLKCTRL 0>;
+@@ -1631,6 +1631,24 @@ segment@200000 {					/* 0x48200000 */
+ 		compatible = "simple-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
++		ranges = <0x00000000 0x00200000 0x010000>;
++
++		target-module@0 {
++			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			power-domains = <&prm_mpu>;
++			clocks = <&mpu_clkctrl AM4_MPU_MPU_CLKCTRL 0>;
 +			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
--			ranges = <0x0 0x0 0x4000>;
--		};
-+			ranges = <0x00000000 0x00000000 0x4000>,
-+				 <0x00080000 0x00080000 0x2000>;
- 
--		target-module@80000 {			/* 0x44d80000, ap 6 10.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges = <0x0 0x80000 0x2000>;
-+			wkup_m3: cpu@0 {
-+				compatible = "ti,am4372-wkup-m3";
-+				reg = <0x00000000 0x4000>,
-+				      <0x00080000 0x2000>;
-+				reg-names = "umem", "dmem";
-+				resets = <&prm_wkup 3>;
-+				reset-names = "rstctrl";
-+				ti,pm-firmware = "am335x-pm-firmware.elf";
++			ti,no-idle;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0 0x10000>;
++
++			mpu@0 {
++				compatible = "ti,omap4-mpu";
++				pm-sram = <&pm_sram_code
++					   &pm_sram_data>;
 +			};
- 		};
++		};
+ 	};
  
- 		target-module@f0000 {			/* 0x44df0000, ap 8 58.0 */
+ 	segment@300000 {					/* 0x48300000 */
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+@@ -17,12 +17,10 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_OMAP_HWMOD_33XX_43XX_COMMON_DATA_H
+ #define __ARCH_ARM_MACH_OMAP2_OMAP_HWMOD_33XX_43XX_COMMON_DATA_H
+ 
+-extern struct omap_hwmod_ocp_if am33xx_mpu__l3_main;
+ extern struct omap_hwmod_ocp_if am33xx_l3_main__l3_s;
+ extern struct omap_hwmod_ocp_if am33xx_l3_s__l4_ls;
+ extern struct omap_hwmod_ocp_if am33xx_l3_s__l4_wkup;
+ extern struct omap_hwmod_ocp_if am33xx_l3_main__l3_instr;
+-extern struct omap_hwmod_ocp_if am33xx_mpu__prcm;
+ extern struct omap_hwmod_ocp_if am33xx_l3_s__l3_main;
+ extern struct omap_hwmod_ocp_if am33xx_gfx__l3_main;
+ extern struct omap_hwmod_ocp_if am33xx_l3_main__gfx;
+@@ -34,7 +32,6 @@ extern struct omap_hwmod am33xx_l3_s_hwmod;
+ extern struct omap_hwmod am33xx_l3_instr_hwmod;
+ extern struct omap_hwmod am33xx_l4_ls_hwmod;
+ extern struct omap_hwmod am33xx_l4_wkup_hwmod;
+-extern struct omap_hwmod am33xx_mpu_hwmod;
+ extern struct omap_hwmod am33xx_gfx_hwmod;
+ extern struct omap_hwmod am33xx_prcm_hwmod;
+ extern struct omap_hwmod am33xx_ocmcram_hwmod;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
+@@ -18,14 +18,6 @@
+ #include "omap_hwmod.h"
+ #include "omap_hwmod_33xx_43xx_common_data.h"
+ 
+-/* mpu -> l3 main */
+-struct omap_hwmod_ocp_if am33xx_mpu__l3_main = {
+-	.master		= &am33xx_mpu_hwmod,
+-	.slave		= &am33xx_l3_main_hwmod,
+-	.clk		= "dpll_mpu_m2_ck",
+-	.user		= OCP_USER_MPU,
+-};
+-
+ /* l3 main -> l3 s */
+ struct omap_hwmod_ocp_if am33xx_l3_main__l3_s = {
+ 	.master		= &am33xx_l3_main_hwmod,
+@@ -58,14 +50,6 @@ struct omap_hwmod_ocp_if am33xx_l3_main__l3_instr = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* mpu -> prcm */
+-struct omap_hwmod_ocp_if am33xx_mpu__prcm = {
+-	.master		= &am33xx_mpu_hwmod,
+-	.slave		= &am33xx_prcm_hwmod,
+-	.clk		= "dpll_mpu_m2_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3 s -> l3 main*/
+ struct omap_hwmod_ocp_if am33xx_l3_s__l3_main = {
+ 	.master		= &am33xx_l3_s_hwmod,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+@@ -104,26 +104,6 @@ struct omap_hwmod am33xx_l4_wkup_hwmod = {
+ 	},
+ };
+ 
+-/*
+- * 'mpu' class
+- */
+-static struct omap_hwmod_class am33xx_mpu_hwmod_class = {
+-	.name	= "mpu",
+-};
+-
+-struct omap_hwmod am33xx_mpu_hwmod = {
+-	.name		= "mpu",
+-	.class		= &am33xx_mpu_hwmod_class,
+-	.clkdm_name	= "mpu_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE,
+-	.main_clk	= "dpll_mpu_m2_ck",
+-	.prcm		= {
+-		.omap4	= {
+-			.modulemode	= MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+-
+ /*
+  * 'prcm' class
+  * power and reset manager (whole prcm infrastructure)
+@@ -196,7 +176,6 @@ static void omap_hwmod_am43xx_clkctrl(void)
+ 	CLKCTRL(am33xx_l4_ls_hwmod, AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET);
+ 	CLKCTRL(am33xx_l4_wkup_hwmod, AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
+ 	CLKCTRL(am33xx_l3_main_hwmod, AM43XX_CM_PER_L3_CLKCTRL_OFFSET);
+-	CLKCTRL(am33xx_mpu_hwmod , AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET);
+ }
+ 
+ void omap_hwmod_am43xx_reg(void)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -58,8 +58,6 @@ static struct omap_hwmod_ocp_if am43xx_l4_wkup__smartreflex1 = {
+ };
+ 
+ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+-	&am33xx_mpu__l3_main,
+-	&am33xx_mpu__prcm,
+ 	&am33xx_l3_s__l4_ls,
+ 	&am33xx_l3_s__l4_wkup,
+ 	&am43xx_l3_main__l4_hs,
 -- 
 2.29.2
