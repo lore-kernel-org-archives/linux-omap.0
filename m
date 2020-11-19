@@ -2,134 +2,83 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38D00C63798
-	for <linux-omap@archiver.kernel.org>; Thu, 19 Nov 2020 14:09:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 602FCC56201
+	for <linux-omap@archiver.kernel.org>; Thu, 19 Nov 2020 15:45:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0E32246D3
-	for <linux-omap@archiver.kernel.org>; Thu, 19 Nov 2020 14:09:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05F1D22256
+	for <linux-omap@archiver.kernel.org>; Thu, 19 Nov 2020 15:45:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="ui9Fzug9"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hOakFd6r"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727356AbgKSOJB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 Nov 2020 09:09:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60512 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727363AbgKSOI7 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2020 09:08:59 -0500
-Received: from mail-lj1-x243.google.com (mail-lj1-x243.google.com [IPv6:2a00:1450:4864:20::243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D42EC0613D4
-        for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2020 06:08:58 -0800 (PST)
-Received: by mail-lj1-x243.google.com with SMTP id p12so6346674ljc.9
-        for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2020 06:08:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=UF6cB4y26/1x+ilSgxNaVWPYjbbYhd7kb0SvD73E4kU=;
-        b=ui9Fzug9MSbXWblCAU0MDz8kBmjHpPOA+hoxmzbFgaHhog5Uei7ieNNzC17jJC5xXk
-         OgmaTyHT+6hLr5dzjkIyJ+MVA+gMjtMjOPPVwKlsKNdgckM0bXlqwsmnMKwhrBxl939N
-         bWMtMzLSp4CmWBTlibdc83mY3I5xQH1kg5hLJ5Y05IDhp94ygaK5NUvc5ay2VXX5VcEW
-         4mhHwhsr4Wi9rNZw7INdbzqllPp3rpMAfeRBHp8vR9XQLe+KC0PpCSWf/ec2kbsYwVek
-         Y7XJWjtDXAayJ9/h7GrTvJqHMWdz/a8nYd5Jb17bxrUaSvQmseoNUzeHdOhp8XewYOQg
-         SLfA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=UF6cB4y26/1x+ilSgxNaVWPYjbbYhd7kb0SvD73E4kU=;
-        b=VbHDh32mi+dZmi1zsHp9kkubftpOlJipcLVz69KPBCyutP/daw8x6tx8DLjSbTqUYw
-         +j8L0DXjyvmOyCvdqHFNodq/sPxzRKzAuJeCC7CibAURBCWHd3iXv+nNmcosmq+rV6Kk
-         XiNRrl3+e8EqtlfdLUV7MhQ627M1Oo5dyPrpTArebewOYFUGEYl3lX1F5VWA+qaaBQ13
-         XBTqHRL2g8hW0WoOmL0HU4nGkkBVYZD5IL62qVInEakWjPW3DSZXgwBnPoEqiIaXa29G
-         MCR82pd6tnHBCj8iv2oHleTidcy9VZpHEMAFXJ6+BnW5NDFRlIAAqOyiRhnZpJaCRaQE
-         /OSQ==
-X-Gm-Message-State: AOAM530RkqSHy/OxbZAf7wuabaS3qgSAhNL930j3zk/BMa5g/g7PMr2N
-        itBdXzbQ9gko0R+PkKAuY82P8A==
-X-Google-Smtp-Source: ABdhPJx0TL5BdSP4dq002vIYpP7fDsQO06jmylq7JLz3JU64d0Gv7AEXiEzyjG8SHTDOmTip9RP+jQ==
-X-Received: by 2002:a2e:90cb:: with SMTP id o11mr6356318ljg.465.1605794936946;
-        Thu, 19 Nov 2020 06:08:56 -0800 (PST)
-Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
-        by smtp.gmail.com with ESMTPSA id h12sm4024706lfl.74.2020.11.19.06.08.55
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 19 Nov 2020 06:08:56 -0800 (PST)
-From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-To:     ohad@wizery.com, bjorn.andersson@linaro.org,
-        mathieu.poirier@linaro.org, s-anna@ti.com
-Cc:     grzegorz.jaszczyk@linaro.org, linux-remoteproc@vger.kernel.org,
-        robh+dt@kernel.org, lee.jones@linaro.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        praneeth@ti.com, rogerq@ti.com
-Subject: [PATCH v2 0/6] Add a PRU remoteproc driver
-Date:   Thu, 19 Nov 2020 15:08:44 +0100
-Message-Id: <20201119140850.12268-1-grzegorz.jaszczyk@linaro.org>
-X-Mailer: git-send-email 2.29.0
+        id S1728529AbgKSPpD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 Nov 2020 10:45:03 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:50776 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728851AbgKSPpC (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2020 10:45:02 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AJFixwI126682;
+        Thu, 19 Nov 2020 09:44:59 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1605800699;
+        bh=TQXxcINRCAnbf5YwYtVF5aK6oPcqn1yRuOFJKkerAtU=;
+        h=From:To:CC:Subject:Date;
+        b=hOakFd6reMCjZ4e9cFBudcB+vuJvJ3rzfhw5lWxKDkicH1DGLCHg8xfJUHLvqhkYH
+         RM199M7ER8oHqsuUOk555iavfMizp7c348c010DVOEXt31C4BPrJ1zsxj11Kyv11uW
+         coiYxLRyObLRSwjnKRXOHxLPU+RrhwL3Vfug86dc=
+Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AJFix0e107680
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 19 Nov 2020 09:44:59 -0600
+Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 19
+ Nov 2020 09:44:59 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Thu, 19 Nov 2020 09:44:59 -0600
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AJFiwfj102457;
+        Thu, 19 Nov 2020 09:44:59 -0600
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+To:     Tony Lindgren <tony@atomide.com>
+CC:     Sekhar Nori <nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        <linux-omap@vger.kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH 0/2] ARM: dts: am335x-evm/evmsk/icev2: switch to new cpsw switch drv
+Date:   Thu, 19 Nov 2020 17:44:50 +0200
+Message-ID: <20201119154452.26961-1-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi All,
+Hi Tony,
 
-The Programmable Real-Time Unit and Industrial Communication Subsystem
-(PRU-ICSS or simply PRUSS) on various TI SoCs consists of dual 32-bit
-RISC cores (Programmable Real-Time Units, or PRUs) for program execution.
+This is the initial conversation of am335x boards to use new cpsw switch driver.
+This series adds the cpsw switch driver DT definition and am335x-evm/evmsk/icev2
+boards are converted to use it.
 
-The K3 AM65x amd J721E SoCs have the next generation of the PRU-ICSS IP,
-commonly called ICSSG. The ICSSG IP on AM65x SoCs has two PRU cores,
-two auxiliary custom PRU cores called Real Time Units (RTUs). The K3
-AM65x SR2.0 and J721E SoCs have a revised version of the ICSSG IP, and
-include two additional custom auxiliary PRU cores called Transmit PRUs
-(Tx_PRUs).
+Grygorii Strashko (2):
+  ARM: dts: am33xx-l4: add dt node for new cpsw switchdev driver
+  ARM: dts: am335x-evm/evmsk/icev2: switch to new cpsw switch drv
 
-This series contains the PRUSS remoteproc driver together with relevant
-dt-binding. This is the 3rd foundation component for PRUSS subsystem, the
-previous two were already merged and can be found under:
-1) drivers/soc/ti/pruss.c
-   Documentation/devicetree/bindings/soc/ti/ti,pruss.yaml
-2) drivers/irqchip/irq-pruss-intc.c
-   Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml
-
-The following is a v2 version of the series. Please see the individual patches
-for exact changes in each patch, following are the main changes from v1:
-- Patch #1: fix two yamllint warnings.
-- Patch #2: address Suman comments: minor style improvements and fix for
-	    optional resource table handling (moved from patch #3).
-- Patch #3: address Suman comment: minor style, comments and trace improvements
-	    (no functional changes).
-- Patch #4: No changes.
-- Patch #5: Update documentation of pru_rproc_memcpy() function and is_k3 flag.
-- Patch #6: No changes.
-
-Best regards,
-Grzegorz
-
-Grzegorz Jaszczyk (1):
-  remoteproc/pru: Add support for PRU specific interrupt configuration
-
-Suman Anna (5):
-  dt-bindings: remoteproc: Add binding doc for PRU cores in the PRU-ICSS
-  remoteproc/pru: Add a PRU remoteproc driver
-  remoteproc/pru: Add pru-specific debugfs support
-  remoteproc/pru: Add support for various PRU cores on K3 AM65x SoCs
-  remoteproc/pru: Add support for various PRU cores on K3 J721E SoCs
-
- .../bindings/remoteproc/ti,pru-rproc.yaml     | 214 +++++
- drivers/remoteproc/Kconfig                    |  12 +
- drivers/remoteproc/Makefile                   |   1 +
- drivers/remoteproc/pru_rproc.c                | 877 ++++++++++++++++++
- drivers/remoteproc/pru_rproc.h                |  46 +
- 5 files changed, 1150 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
- create mode 100644 drivers/remoteproc/pru_rproc.c
- create mode 100644 drivers/remoteproc/pru_rproc.h
+ arch/arm/boot/dts/am335x-evm.dts   | 13 +++++---
+ arch/arm/boot/dts/am335x-evmsk.dts | 14 ++++-----
+ arch/arm/boot/dts/am335x-icev2.dts | 14 ++++-----
+ arch/arm/boot/dts/am33xx-l4.dtsi   | 49 ++++++++++++++++++++++++++++++
+ 4 files changed, 69 insertions(+), 21 deletions(-)
 
 -- 
-2.29.0
+2.17.1
 
