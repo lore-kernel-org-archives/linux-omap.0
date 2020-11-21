@@ -5,66 +5,60 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF4E6C64E7A
-	for <linux-omap@archiver.kernel.org>; Sat, 21 Nov 2020 03:02:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F8A8C56202
+	for <linux-omap@archiver.kernel.org>; Sat, 21 Nov 2020 03:21:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8446A22403
-	for <linux-omap@archiver.kernel.org>; Sat, 21 Nov 2020 03:02:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3871A2408E
+	for <linux-omap@archiver.kernel.org>; Sat, 21 Nov 2020 03:21:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Lqj+7k29"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Zo6FeerU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727162AbgKUDCO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 20 Nov 2020 22:02:14 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:50548 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727244AbgKUDCL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2020 22:02:11 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AL323Ii047239;
-        Fri, 20 Nov 2020 21:02:03 -0600
+        id S1727048AbgKUDUq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 20 Nov 2020 22:20:46 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:54330 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726656AbgKUDUq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2020 22:20:46 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AL3Ki8C088775;
+        Fri, 20 Nov 2020 21:20:44 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1605927723;
-        bh=HMdSdR7V2x6ONvh3fs4KsUST5GUzlhQZ7uiFijupU2c=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=Lqj+7k291l4uOnCc3kVwF8kQYBHb0BW5o8eF8kGAj9iRLYLA9cz/1vUohnuLBztDk
-         +tviOeX/3dnyBSKwLsqhK6rmttpuzlfodLBoQdPnCM6UKKYlhCGssWYgYqfldg4y3S
-         MEoKytFEBXH64ai8JApLvpaTOXndTo9ORGocMOs4=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AL323oP021875
+        s=ti-com-17Q1; t=1605928844;
+        bh=cZWcMJfvF83UzHL9FrqB5NJItZJQGjIRAPeec50W65s=;
+        h=From:To:CC:Subject:Date;
+        b=Zo6FeerUkAy9VfJFiYGjOwAt74lMzfw5tYL2NgCOx74C8LvQuz0xeSM94wXIo8E+a
+         KmfuThVHAPkp0wR2vG602OT8Uv5E0RwvKk1G+dFfGzJcqF5DWVcMSlH9IJHcV7W1ki
+         BIFUH22ys7/eYWrWf8VzQyCDwiDlg2rh/p6/MgZ0=
+Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AL3KiAO036491
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 20 Nov 2020 21:02:03 -0600
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 20 Nov 2020 21:20:44 -0600
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 20
- Nov 2020 21:02:02 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 21:20:44 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 20 Nov 2020 21:02:03 -0600
+ Frontend Transport; Fri, 20 Nov 2020 21:20:44 -0600
 Received: from fllv0103.dal.design.ti.com (fllv0103.dal.design.ti.com [10.247.120.73])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AL322tm006992;
-        Fri, 20 Nov 2020 21:02:02 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AL3KhVh019782;
+        Fri, 20 Nov 2020 21:20:44 -0600
 Received: from localhost ([10.250.68.46])
-        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 0AL322mX038651;
-        Fri, 20 Nov 2020 21:02:02 -0600
+        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 0AL3KhPb056910;
+        Fri, 20 Nov 2020 21:20:43 -0600
 From:   Suman Anna <s-anna@ti.com>
 To:     Bjorn Andersson <bjorn.andersson@linaro.org>,
         Mathieu Poirier <mathieu.poirier@linaro.org>
-CC:     Arnaud Pouliquen <arnaud.pouliquen@st.com>,
-        Loic Pallardy <loic.pallardy@st.com>,
-        Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
-        Tony Lindgren <tony@atomide.com>,
+CC:     Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
         <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 2/3] remoteproc: Introduce deny_sysfs_ops flag
-Date:   Fri, 20 Nov 2020 21:01:55 -0600
-Message-ID: <20201121030156.22857-3-s-anna@ti.com>
+Subject: [PATCH] remoteproc: Add a rproc_set_firmware() API
+Date:   Fri, 20 Nov 2020 21:20:42 -0600
+Message-ID: <20201121032042.6195-1-s-anna@ti.com>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201121030156.22857-1-s-anna@ti.com>
-References: <20201121030156.22857-1-s-anna@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -73,90 +67,162 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The remoteproc framework provides sysfs interfaces for changing
-the firmware name and for starting/stopping a remote processor
-through the sysfs files 'state' and 'firmware'. The 'recovery'
-sysfs file can also be used similarly to control the error recovery
-state machine of a remoteproc. These interfaces are currently
-allowed irrespective of how the remoteprocs were booted (like
-remoteproc self auto-boot, remoteproc client-driven boot etc).
-These interfaces can adversely affect a remoteproc and its clients
-especially when a remoteproc is being controlled by a remoteproc
-client driver(s). Also, not all remoteproc drivers may want to
-support the sysfs interfaces by default.
+A new API, rproc_set_firmware() is added to allow the remoteproc platform
+drivers and remoteproc client drivers to be able to configure a custom
+firmware name that is different from the default name used during
+remoteproc registration. This function is being introduced to provide
+a kernel-level equivalent of the current sysfs interface to remoteproc
+client drivers, and can only change firmwares when the remoteproc is
+offline. This allows some remoteproc drivers to choose different firmwares
+at runtime based on the functionality the remote processor is providing.
+The TI PRU Ethernet driver will be an example of such usage as it
+requires to use different firmwares for different supported protocols.
 
-Add support to deny the sysfs state/firmware/recovery change by
-introducing a state flag 'deny_sysfs_ops' that the individual
-remoteproc drivers can set based on their usage needs. The default
-behavior is to allow the sysfs operations as before.
+Also, update the firmware_store() function used by the sysfs interface
+to reuse this function to avoid code duplication.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
-v2: revised to account for the 'recovery' sysfs file as well, patch
-    description updated accordingly
-v1: https://patchwork.kernel.org/project/linux-remoteproc/patch/20180915003725.17549-5-s-anna@ti.com/
+ drivers/remoteproc/remoteproc_core.c  | 63 +++++++++++++++++++++++++++
+ drivers/remoteproc/remoteproc_sysfs.c | 33 +-------------
+ include/linux/remoteproc.h            |  1 +
+ 3 files changed, 66 insertions(+), 31 deletions(-)
 
- drivers/remoteproc/remoteproc_sysfs.c | 12 ++++++++++++
- include/linux/remoteproc.h            |  2 ++
- 2 files changed, 14 insertions(+)
-
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index dab2c0f5caf0..46c2937ebea9 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -1934,6 +1934,69 @@ struct rproc *rproc_get_by_phandle(phandle phandle)
+ #endif
+ EXPORT_SYMBOL(rproc_get_by_phandle);
+ 
++/**
++ * rproc_set_firmware() - assign a new firmware
++ * @rproc: rproc handle to which the new firmware is being assigned
++ * @fw_name: new firmware name to be assigned
++ *
++ * This function allows remoteproc drivers or clients to configure a custom
++ * firmware name that is different from the default name used during remoteproc
++ * registration. The function does not trigger a remote processor boot,
++ * only sets the firmware name used for a subsequent boot. This function
++ * should also be called only when the remote processor is offline.
++ *
++ * This allows either the userspace to configure a different name through
++ * sysfs or a kernel-level remoteproc or a remoteproc client driver to set
++ * a specific firmware when it is controlling the boot and shutdown of the
++ * remote processor.
++ *
++ * Return: 0 on success or a negative value upon failure
++ */
++int rproc_set_firmware(struct rproc *rproc, const char *fw_name)
++{
++	struct device *dev;
++	int ret, len;
++	char *p;
++
++	if (!rproc || !fw_name)
++		return -EINVAL;
++
++	dev = rproc->dev.parent;
++
++	ret = mutex_lock_interruptible(&rproc->lock);
++	if (ret) {
++		dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, ret);
++		return -EINVAL;
++	}
++
++	if (rproc->state != RPROC_OFFLINE) {
++		dev_err(dev, "can't change firmware while running\n");
++		ret = -EBUSY;
++		goto out;
++	}
++
++	len = strcspn(fw_name, "\n");
++	if (!len) {
++		dev_err(dev, "can't provide empty string for firmware name\n");
++		ret = -EINVAL;
++		goto out;
++	}
++
++	p = kstrndup(fw_name, len, GFP_KERNEL);
++	if (!p) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	kfree(rproc->firmware);
++	rproc->firmware = p;
++
++out:
++	mutex_unlock(&rproc->lock);
++	return ret;
++}
++EXPORT_SYMBOL(rproc_set_firmware);
++
+ static int rproc_validate(struct rproc *rproc)
+ {
+ 	switch (rproc->state) {
 diff --git a/drivers/remoteproc/remoteproc_sysfs.c b/drivers/remoteproc/remoteproc_sysfs.c
-index bd2950a246c9..3fd18a71c188 100644
+index 3fd18a71c188..cf846caf2e1a 100644
 --- a/drivers/remoteproc/remoteproc_sysfs.c
 +++ b/drivers/remoteproc/remoteproc_sysfs.c
-@@ -49,6 +49,10 @@ static ssize_t recovery_store(struct device *dev,
+@@ -159,42 +159,13 @@ static ssize_t firmware_store(struct device *dev,
+ 			      const char *buf, size_t count)
  {
  	struct rproc *rproc = to_rproc(dev);
+-	char *p;
+-	int err, len = count;
++	int err;
  
-+	/* restrict sysfs operations if not allowed by remoteproc drivers */
-+	if (rproc->deny_sysfs_ops)
-+		return -EPERM;
-+
- 	if (sysfs_streq(buf, "enabled")) {
- 		/* change the flag and begin the recovery process if needed */
- 		rproc->recovery_disabled = false;
-@@ -158,6 +162,10 @@ static ssize_t firmware_store(struct device *dev,
- 	char *p;
- 	int err, len = count;
+ 	/* restrict sysfs operations if not allowed by remoteproc drivers */
+ 	if (rproc->deny_sysfs_ops)
+ 		return -EPERM;
  
-+	/* restrict sysfs operations if not allowed by remoteproc drivers */
-+	if (rproc->deny_sysfs_ops)
-+		return -EPERM;
-+
- 	err = mutex_lock_interruptible(&rproc->lock);
- 	if (err) {
- 		dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, err);
-@@ -225,6 +233,10 @@ static ssize_t state_store(struct device *dev,
- 	struct rproc *rproc = to_rproc(dev);
- 	int ret = 0;
+-	err = mutex_lock_interruptible(&rproc->lock);
+-	if (err) {
+-		dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, err);
+-		return -EINVAL;
+-	}
+-
+-	if (rproc->state != RPROC_OFFLINE) {
+-		dev_err(dev, "can't change firmware while running\n");
+-		err = -EBUSY;
+-		goto out;
+-	}
+-
+-	len = strcspn(buf, "\n");
+-	if (!len) {
+-		dev_err(dev, "can't provide a NULL firmware\n");
+-		err = -EINVAL;
+-		goto out;
+-	}
+-
+-	p = kstrndup(buf, len, GFP_KERNEL);
+-	if (!p) {
+-		err = -ENOMEM;
+-		goto out;
+-	}
+-
+-	kfree(rproc->firmware);
+-	rproc->firmware = p;
+-out:
+-	mutex_unlock(&rproc->lock);
++	err = rproc_set_firmware(rproc, buf);
  
-+	/* restrict sysfs operations if not allowed by remoteproc drivers */
-+	if (rproc->deny_sysfs_ops)
-+		return -EPERM;
-+
- 	if (sysfs_streq(buf, "start")) {
- 		if (rproc->state == RPROC_RUNNING)
- 			return -EBUSY;
+ 	return err ? err : count;
+ }
 diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 3fa3ba6498e8..dbc3767f7d0e 100644
+index dbc3767f7d0e..6e04b99413f8 100644
 --- a/include/linux/remoteproc.h
 +++ b/include/linux/remoteproc.h
-@@ -508,6 +508,7 @@ struct rproc_dump_segment {
-  * @has_iommu: flag to indicate if remote processor is behind an MMU
-  * @auto_boot: flag to indicate if remote processor should be auto-started
-  * @autonomous: true if an external entity has booted the remote processor
-+ * @deny_sysfs_ops: flag to not permit sysfs operations on state, firmware and recovery
-  * @dump_segments: list of segments in the firmware
-  * @nb_vdev: number of vdev currently handled by rproc
-  * @char_dev: character device of the rproc
-@@ -545,6 +546,7 @@ struct rproc {
- 	bool has_iommu;
- 	bool auto_boot;
- 	bool autonomous;
-+	bool deny_sysfs_ops;
- 	struct list_head dump_segments;
- 	int nb_vdev;
- 	u8 elf_class;
+@@ -655,6 +655,7 @@ rproc_of_resm_mem_entry_init(struct device *dev, u32 of_resm_idx, size_t len,
+ 
+ int rproc_boot(struct rproc *rproc);
+ void rproc_shutdown(struct rproc *rproc);
++int rproc_set_firmware(struct rproc *rproc, const char *fw_name);
+ void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type);
+ int rproc_coredump_add_segment(struct rproc *rproc, dma_addr_t da, size_t size);
+ int rproc_coredump_add_custom_segment(struct rproc *rproc,
 -- 
 2.28.0
 
