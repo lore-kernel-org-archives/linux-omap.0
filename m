@@ -2,50 +2,51 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DCB9C64E7A
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A18C71156
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43CB620782
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B60EA2073C
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="BJTItbKc"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="oaJynEqA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387674AbgKXMrN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:47:13 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:55204 "EHLO
+        id S2387669AbgKXMrF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:47:05 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:55164 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387656AbgKXMrN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:47:13 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCl3GL123592;
-        Tue, 24 Nov 2020 06:47:03 -0600
+        with ESMTP id S2387656AbgKXMrE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:47:04 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCktTd123562;
+        Tue, 24 Nov 2020 06:46:55 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606222023;
-        bh=W4VnBUcUQUvyCL5t4LUwpNzSUtJcaLqnHozO7Jf1fR0=;
+        s=ti-com-17Q1; t=1606222015;
+        bh=NPBDXD8YyrBPu5mj4nbjtoIDp+vMUDw2uI4h4HPKrH4=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=BJTItbKcW2AhCtOt27GegXc4HlJ5WPZ8OEl5t6OH758YDdV6bmaDlZhOeYsiDj0zX
-         7ea/QkIgIwZ22CBIcPx6FrsR9qV27k4rmVRO6onGAO4JXsIyem1CMQzbL9vV/IXdLZ
-         CFZ/en7F/Gs6BqPO2Jz7Pk3ieuG5BNxx/hi+7HqQ=
-Received: from DLEE100.ent.ti.com (dlee100.ent.ti.com [157.170.170.30])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCl33H043681
+        b=oaJynEqAX6jU3cerA2o45TFD7/3vdk6g8EnrhKCKs6tGI38aMyOMqZbxo0snPqLT1
+         W6f7/MJEmmim63t/o6l6Jds71PeOq9lBXd5lW+nMPOSZIftG6QVqD3FEzxHj26iZUg
+         2kk3lRKxbNQV2Of/ryi2VOpTZ5VZe+7cO5PShgxY=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCktbO042208
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 24 Nov 2020 06:47:03 -0600
-Received: from DLEE101.ent.ti.com (157.170.170.31) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 24 Nov 2020 06:46:55 -0600
+Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 24
- Nov 2020 06:47:03 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE101.ent.ti.com
- (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 06:46:55 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 24 Nov 2020 06:47:03 -0600
+ Frontend Transport; Tue, 24 Nov 2020 06:46:55 -0600
 Received: from deskari.lan (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpI040922;
-        Tue, 24 Nov 2020 06:47:01 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpF040922;
+        Tue, 24 Nov 2020 06:46:53 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +56,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v4 29/80] drm/omap: dsi: move panel refresh function to host
-Date:   Tue, 24 Nov 2020 14:44:47 +0200
-Message-ID: <20201124124538.660710-30-tomi.valkeinen@ti.com>
+Subject: [PATCH v4 26/80] drm/omap: dsi: do bus locking in host driver
+Date:   Tue, 24 Nov 2020 14:44:44 +0200
+Message-ID: <20201124124538.660710-27-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201124124538.660710-1-tomi.valkeinen@ti.com>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
@@ -71,344 +72,355 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-This moves the panel refresh/update function from the panel
-driver into the DSI host driver to prepare for common drm_panel
-support.
+This moves the bus locking into the host driver and unexports
+the custom API in preparation for drm_panel support.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 68 --------------
- drivers/gpu/drm/omapdrm/dss/dsi.c             | 91 +++++++++++++++++--
- drivers/gpu/drm/omapdrm/dss/omapdss.h         | 13 +--
- drivers/gpu/drm/omapdrm/omap_crtc.c           | 11 +--
- 4 files changed, 88 insertions(+), 95 deletions(-)
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 44 +------------------
+ drivers/gpu/drm/omapdrm/dss/dsi.c             | 41 +++++++++++------
+ drivers/gpu/drm/omapdrm/dss/omapdss.h         |  3 --
+ 3 files changed, 28 insertions(+), 60 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index bd115d601f04..98b50220ec31 100644
+index 766edeecdd79..a335c17d3c3b 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -173,27 +173,6 @@ static int dsicm_get_id(struct panel_drv_data *ddata, u8 *id1, u8 *id2, u8 *id3)
- 	return 0;
- }
- 
--static int dsicm_set_update_window(struct panel_drv_data *ddata,
--		u16 x, u16 y, u16 w, u16 h)
--{
--	struct mipi_dsi_device *dsi = ddata->dsi;
--	int r;
--	u16 x1 = x;
--	u16 x2 = x + w - 1;
--	u16 y1 = y;
--	u16 y2 = y + h - 1;
--
--	r = mipi_dsi_dcs_set_column_address(dsi, x1, x2);
--	if (r < 0)
--		return r;
--
--	r = mipi_dsi_dcs_set_page_address(dsi, y1, y2);
--	if (r < 0)
--		return r;
--
--	return 0;
--}
--
+@@ -296,7 +296,6 @@ static int dsicm_wake_up(struct panel_drv_data *ddata)
  static int dsicm_bl_update_status(struct backlight_device *dev)
  {
  	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
-@@ -467,48 +446,6 @@ static void dsicm_disable(struct omap_dss_device *dssdev)
+-	struct omap_dss_device *src = ddata->src;
+ 	int r = 0;
+ 	int level;
+ 
+@@ -311,14 +310,10 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
+ 	mutex_lock(&ddata->lock);
+ 
+ 	if (ddata->enabled) {
+-		src->ops->dsi.bus_lock(src);
+-
+ 		r = dsicm_wake_up(ddata);
+ 		if (!r)
+ 			r = dsicm_dcs_write_1(
+ 				ddata, MIPI_DCS_SET_DISPLAY_BRIGHTNESS, level);
+-
+-		src->ops->dsi.bus_unlock(src);
+ 	}
+ 
+ 	mutex_unlock(&ddata->lock);
+@@ -344,21 +339,16 @@ static ssize_t dsicm_num_errors_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(dev);
+-	struct omap_dss_device *src = ddata->src;
+ 	u8 errors = 0;
+ 	int r;
+ 
+ 	mutex_lock(&ddata->lock);
+ 
+ 	if (ddata->enabled) {
+-		src->ops->dsi.bus_lock(src);
+-
+ 		r = dsicm_wake_up(ddata);
+ 		if (!r)
+ 			r = dsicm_dcs_read_1(ddata, DCS_READ_NUM_ERRORS,
+ 					&errors);
+-
+-		src->ops->dsi.bus_unlock(src);
+ 	} else {
+ 		r = -ENODEV;
+ 	}
+@@ -375,20 +365,15 @@ static ssize_t dsicm_hw_revision_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(dev);
+-	struct omap_dss_device *src = ddata->src;
+ 	u8 id1, id2, id3;
+ 	int r;
+ 
+ 	mutex_lock(&ddata->lock);
+ 
+ 	if (ddata->enabled) {
+-		src->ops->dsi.bus_lock(src);
+-
+ 		r = dsicm_wake_up(ddata);
+ 		if (!r)
+ 			r = dsicm_get_id(ddata, &id1, &id2, &id3);
+-
+-		src->ops->dsi.bus_unlock(src);
+ 	} else {
+ 		r = -ENODEV;
+ 	}
+@@ -406,7 +391,6 @@ static ssize_t dsicm_store_ulps(struct device *dev,
+ 		const char *buf, size_t count)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(dev);
+-	struct omap_dss_device *src = ddata->src;
+ 	unsigned long t;
+ 	int r;
+ 
+@@ -417,14 +401,10 @@ static ssize_t dsicm_store_ulps(struct device *dev,
+ 	mutex_lock(&ddata->lock);
+ 
+ 	if (ddata->enabled) {
+-		src->ops->dsi.bus_lock(src);
+-
+ 		if (t)
+ 			r = dsicm_enter_ulps(ddata);
+ 		else
+ 			r = dsicm_wake_up(ddata);
+-
+-		src->ops->dsi.bus_unlock(src);
+ 	}
+ 
+ 	mutex_unlock(&ddata->lock);
+@@ -454,7 +434,6 @@ static ssize_t dsicm_store_ulps_timeout(struct device *dev,
+ 		const char *buf, size_t count)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(dev);
+-	struct omap_dss_device *src = ddata->src;
+ 	unsigned long t;
+ 	int r;
+ 
+@@ -467,9 +446,7 @@ static ssize_t dsicm_store_ulps_timeout(struct device *dev,
+ 
+ 	if (ddata->enabled) {
+ 		/* dsicm_wake_up will restart the timer */
+-		src->ops->dsi.bus_lock(src);
+ 		r = dsicm_wake_up(ddata);
+-		src->ops->dsi.bus_unlock(src);
+ 	}
+ 
+ 	mutex_unlock(&ddata->lock);
+@@ -670,17 +647,11 @@ static void dsicm_disconnect(struct omap_dss_device *src,
+ static void dsicm_enable(struct omap_dss_device *dssdev)
+ {
+ 	struct panel_drv_data *ddata = to_panel_data(dssdev);
+-	struct omap_dss_device *src = ddata->src;
+ 	int r;
+ 
+ 	mutex_lock(&ddata->lock);
+ 
+-	src->ops->dsi.bus_lock(src);
+-
+ 	r = dsicm_power_on(ddata);
+-
+-	src->ops->dsi.bus_unlock(src);
+-
+ 	if (r)
+ 		goto err;
+ 
+@@ -697,7 +668,6 @@ static void dsicm_enable(struct omap_dss_device *dssdev)
+ static void dsicm_disable(struct omap_dss_device *dssdev)
+ {
+ 	struct panel_drv_data *ddata = to_panel_data(dssdev);
+-	struct omap_dss_device *src = ddata->src;
+ 	int r;
+ 
+ 	dsicm_bl_power(ddata, false);
+@@ -706,24 +676,18 @@ static void dsicm_disable(struct omap_dss_device *dssdev)
+ 
+ 	dsicm_cancel_ulps_work(ddata);
+ 
+-	src->ops->dsi.bus_lock(src);
+-
+ 	r = dsicm_wake_up(ddata);
+ 	if (!r)
+ 		dsicm_power_off(ddata);
+ 
+-	src->ops->dsi.bus_unlock(src);
+-
  	mutex_unlock(&ddata->lock);
  }
  
--static void dsicm_framedone_cb(int err, void *data)
--{
--	struct panel_drv_data *ddata = data;
--
--	dev_dbg(&ddata->dsi->dev, "framedone, err %d\n", err);
--}
--
--static int dsicm_update(struct omap_dss_device *dssdev,
--				    u16 x, u16 y, u16 w, u16 h)
--{
--	struct panel_drv_data *ddata = to_panel_data(dssdev);
+ static void dsicm_framedone_cb(int err, void *data)
+ {
+ 	struct panel_drv_data *ddata = data;
 -	struct omap_dss_device *src = ddata->src;
--	int r;
--
--	dev_dbg(&ddata->dsi->dev, "update %d, %d, %d x %d\n", x, y, w, h);
--
--	mutex_lock(&ddata->lock);
--
--	if (!ddata->enabled) {
--		r = 0;
--		goto err;
--	}
--
--	/* XXX no need to send this every frame, but dsi break if not done */
--	r = dsicm_set_update_window(ddata, 0, 0, ddata->vm.hactive,
--				    ddata->vm.vactive);
--	if (r)
--		goto err;
--
--	r = src->ops->dsi.update(src, ddata->dsi->channel, dsicm_framedone_cb,
--			ddata);
--	if (r)
--		goto err;
--
--	mutex_unlock(&ddata->lock);
--
--	return 0;
--err:
--	mutex_unlock(&ddata->lock);
--	return r;
--}
--
- static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
- {
- 	struct mipi_dsi_device *dsi = ddata->dsi;
-@@ -569,10 +506,6 @@ static const struct omap_dss_device_ops dsicm_ops = {
- 	.check_timings	= dsicm_check_timings,
- };
  
--static const struct omap_dss_driver dsicm_dss_driver = {
--	.update		= dsicm_update,
--};
--
- static int dsicm_probe_of(struct mipi_dsi_device *dsi)
- {
- 	struct device_node *node = dsi->dev.of_node;
-@@ -653,7 +586,6 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
- 	dssdev = &ddata->dssdev;
- 	dssdev->dev = dev;
- 	dssdev->ops = &dsicm_ops;
--	dssdev->driver = &dsicm_dss_driver;
- 	dssdev->type = OMAP_DISPLAY_TYPE_DSI;
- 	dssdev->display = true;
- 	dssdev->owner = THIS_MODULE;
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 5f120cf0fe4e..288f92e95b6e 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -214,6 +214,9 @@ static void dsi_display_uninit_dispc(struct dsi_data *dsi);
- 
- static int dsi_vc_send_null(struct dsi_data *dsi, int channel);
- 
-+static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi,
-+				       const struct mipi_dsi_msg *msg);
-+
- /* DSI PLL HSDIV indices */
- #define HSDIV_DISPC	0
- #define HSDIV_DSI	1
-@@ -384,9 +387,6 @@ struct dsi_data {
- 
- 	struct delayed_work ulps_work;
- 
--	void (*framedone_callback)(int, void *);
--	void *framedone_data;
--
- 	struct delayed_work framedone_timeout_work;
- 
- #ifdef DSI_CATCH_MISSING_TE
-@@ -3802,8 +3802,6 @@ static void dsi_handle_framedone(struct dsi_data *dsi, int error)
- 	dsi_set_ulps_auto(dsi, true);
- 	dsi_bus_unlock(dsi);
- 
--	dsi->framedone_callback(error, dsi->framedone_data);
--
- 	if (!error)
- 		dsi_perf_show(dsi, "DISPC");
- }
-@@ -3835,6 +3833,8 @@ static void dsi_framedone_irq_callback(void *data)
- 
- 	cancel_delayed_work(&dsi->framedone_timeout_work);
- 
-+	DSSDBG("Framedone received!\n");
-+
- 	dsi_handle_framedone(dsi, 0);
+ 	dev_dbg(&ddata->dsi->dev, "framedone, err %d\n", err);
+-	src->ops->dsi.bus_unlock(src);
  }
  
-@@ -3856,17 +3856,69 @@ static int _dsi_update(struct dsi_data *dsi)
+ static int dsicm_update(struct omap_dss_device *dssdev,
+@@ -736,7 +700,6 @@ static int dsicm_update(struct omap_dss_device *dssdev,
+ 	dev_dbg(&ddata->dsi->dev, "update %d, %d, %d x %d\n", x, y, w, h);
+ 
+ 	mutex_lock(&ddata->lock);
+-	src->ops->dsi.bus_lock(src);
+ 
+ 	r = dsicm_wake_up(ddata);
+ 	if (r)
+@@ -758,11 +721,10 @@ static int dsicm_update(struct omap_dss_device *dssdev,
+ 	if (r)
+ 		goto err;
+ 
+-	/* note: no bus_unlock here. unlock is src framedone_cb */
+ 	mutex_unlock(&ddata->lock);
++
  	return 0;
+ err:
+-	src->ops->dsi.bus_unlock(src);
+ 	mutex_unlock(&ddata->lock);
+ 	return r;
  }
+@@ -788,7 +750,6 @@ static void dsicm_ulps_work(struct work_struct *work)
+ 	struct panel_drv_data *ddata = container_of(work, struct panel_drv_data,
+ 			ulps_work.work);
+ 	struct omap_dss_device *dssdev = &ddata->dssdev;
+-	struct omap_dss_device *src = ddata->src;
  
--static int dsi_update(struct omap_dss_device *dssdev, int channel,
--		void (*callback)(int, void *), void *data)
-+static int _dsi_update_window(struct dsi_data *dsi, int channel,
-+			      int x, int y, int w, int h)
-+{
-+	int x1 = x, x2 = (x + w - 1);
-+	int y1 = y, y2 = (y + h - 1);
-+	u8 payloadX[5] = { MIPI_DCS_SET_COLUMN_ADDRESS,
-+			   x1 >> 8, x1 & 0xff, x2 >> 8, x2 & 0xff };
-+	u8 payloadY[5] = { MIPI_DCS_SET_PAGE_ADDRESS,
-+			   y1 >> 8, y1 & 0xff, y2 >> 8, y2 & 0xff };
-+	struct mipi_dsi_msg msgX = { 0 }, msgY = { 0 };
-+	int ret;
-+
-+	WARN_ON(!dsi_bus_is_locked(dsi));
-+
-+	msgX.type = MIPI_DSI_DCS_LONG_WRITE;
-+	msgX.channel = channel;
-+	msgX.tx_buf = payloadX;
-+	msgX.tx_len = sizeof(payloadX);
-+
-+	msgY.type = MIPI_DSI_DCS_LONG_WRITE;
-+	msgY.channel = channel;
-+	msgY.tx_buf = payloadY;
-+	msgY.tx_len = sizeof(payloadY);
-+
-+	ret = _omap_dsi_host_transfer(dsi, &msgX);
-+	if (ret != 0)
-+		return ret;
-+
-+	return _omap_dsi_host_transfer(dsi, &msgY);
-+}
-+
-+static int dsi_update_channel(struct omap_dss_device *dssdev, int channel)
- {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
-+	int r;
-+
-+	if (channel > 3)
-+		return -EINVAL;
+ 	mutex_lock(&ddata->lock);
  
- 	dsi_bus_lock(dsi);
-+
-+	if (!dsi->vc[channel].dest) {
-+		r = -ENODEV;
-+		goto err;
-+	}
-+
-+	if (dsi->vm.hactive == 0 || dsi->vm.vactive == 0) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	DSSDBG("dsi_update_channel: %d", channel);
-+
- 	dsi_set_ulps_auto(dsi, false);
- 
-+	r = _dsi_update_window(dsi, channel, 0, 0, dsi->vm.hactive,
-+			       dsi->vm.vactive);
-+	if (r < 0) {
-+		DSSWARN("window update error: %d\n", r);
-+		goto err;
-+	}
-+
- 	dsi->update_channel = channel;
--	dsi->framedone_callback = callback;
--	dsi->framedone_data = data;
- 
- 	if (dsi->te_enabled && dsi->te_gpio) {
- 		schedule_delayed_work(&dsi->te_timeout_work,
-@@ -3877,6 +3929,25 @@ static int dsi_update(struct omap_dss_device *dssdev, int channel,
+@@ -797,11 +758,8 @@ static void dsicm_ulps_work(struct work_struct *work)
+ 		return;
  	}
  
- 	return 0;
-+
-+err:
-+	dsi_set_ulps_auto(dsi, true);
+-	src->ops->dsi.bus_lock(src);
+-
+ 	dsicm_enter_ulps(ddata);
+ 
+-	src->ops->dsi.bus_unlock(src);
+ 	mutex_unlock(&ddata->lock);
+ }
+ 
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index e0d0efffd923..2a3b63265bb2 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -477,17 +477,13 @@ static inline u32 dsi_read_reg(struct dsi_data *dsi, const struct dsi_reg idx)
+ 	return __raw_readl(base + idx.idx);
+ }
+ 
+-static void dsi_bus_lock(struct omap_dss_device *dssdev)
++static void dsi_bus_lock(struct dsi_data *dsi)
+ {
+-	struct dsi_data *dsi = to_dsi_data(dssdev);
+-
+ 	down(&dsi->bus_lock);
+ }
+ 
+-static void dsi_bus_unlock(struct omap_dss_device *dssdev)
++static void dsi_bus_unlock(struct dsi_data *dsi)
+ {
+-	struct dsi_data *dsi = to_dsi_data(dssdev);
+-
+ 	up(&dsi->bus_lock);
+ }
+ 
+@@ -3798,6 +3794,8 @@ static void dsi_handle_framedone(struct dsi_data *dsi, int error)
+ 		REG_FLD_MOD(dsi, DSI_TIMING2, 1, 15, 15); /* LP_RX_TO */
+ 	}
+ 
 +	dsi_bus_unlock(dsi);
++
+ 	dsi->framedone_callback(error, dsi->framedone_data);
+ 
+ 	if (!error)
+@@ -3857,6 +3855,8 @@ static int dsi_update(struct omap_dss_device *dssdev, int channel,
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 
++	dsi_bus_lock(dsi);
++
+ 	dsi->update_channel = channel;
+ 	dsi->framedone_callback = callback;
+ 	dsi->framedone_data = data;
+@@ -4062,7 +4062,7 @@ static void dsi_display_enable(struct omap_dss_device *dssdev)
+ 
+ 	DSSDBG("dsi_display_enable\n");
+ 
+-	WARN_ON(!dsi_bus_is_locked(dsi));
++	dsi_bus_lock(dsi);
+ 
+ 	mutex_lock(&dsi->lock);
+ 
+@@ -4078,6 +4078,8 @@ static void dsi_display_enable(struct omap_dss_device *dssdev)
+ 
+ 	mutex_unlock(&dsi->lock);
+ 
++	dsi_bus_unlock(dsi);
++
+ 	return;
+ 
+ err_init_dsi:
+@@ -4094,7 +4096,7 @@ static void dsi_display_disable(struct omap_dss_device *dssdev,
+ 
+ 	DSSDBG("dsi_display_disable\n");
+ 
+-	WARN_ON(!dsi_bus_is_locked(dsi));
++	dsi_bus_lock(dsi);
+ 
+ 	mutex_lock(&dsi->lock);
+ 
+@@ -4108,6 +4110,8 @@ static void dsi_display_disable(struct omap_dss_device *dssdev,
+ 	dsi_runtime_put(dsi);
+ 
+ 	mutex_unlock(&dsi->lock);
++
++	dsi_bus_unlock(dsi);
+ }
+ 
+ static int dsi_enable_te(struct dsi_data *dsi, bool enable)
+@@ -4716,10 +4720,9 @@ static enum omap_channel dsi_get_channel(struct dsi_data *dsi)
+ 	}
+ }
+ 
+-static ssize_t omap_dsi_host_transfer(struct mipi_dsi_host *host,
+-				      const struct mipi_dsi_msg *msg)
++static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi,
++				       const struct mipi_dsi_msg *msg)
+ {
+-	struct dsi_data *dsi = host_to_omap(host);
+ 	struct omap_dss_device *dssdev = &dsi->output;
+ 	int r;
+ 
+@@ -4768,6 +4771,19 @@ static ssize_t omap_dsi_host_transfer(struct mipi_dsi_host *host,
+ 	return 0;
+ }
+ 
++static ssize_t omap_dsi_host_transfer(struct mipi_dsi_host *host,
++				      const struct mipi_dsi_msg *msg)
++{
++	struct dsi_data *dsi = host_to_omap(host);
++	int r;
++
++	dsi_bus_lock(dsi);
++	r = _omap_dsi_host_transfer(dsi, msg);
++	dsi_bus_unlock(dsi);
++
 +	return r;
 +}
 +
-+static int dsi_update_all(struct omap_dss_device *dssdev)
-+{
-+	unsigned int i;
-+	int r;
-+
-+	for (i = 0; i < 4; i++) {
-+		r = dsi_update_channel(dssdev, i);
-+		if (r && r != -ENODEV)
-+			return r;
-+	}
-+
-+	return r;
- }
+ static int dsi_get_clocks(struct dsi_data *dsi)
+ {
+ 	struct clk *clk;
+@@ -4801,9 +4817,6 @@ static const struct omap_dss_device_ops dsi_ops = {
+ 	.enable = dsi_display_enable,
  
- /* Display funcs */
-@@ -4878,7 +4949,7 @@ static const struct omap_dss_device_ops dsi_ops = {
- 		.enable_video_output = dsi_enable_video_output,
- 		.disable_video_output = dsi_disable_video_output,
+ 	.dsi = {
+-		.bus_lock = dsi_bus_lock,
+-		.bus_unlock = dsi_bus_unlock,
+-
+ 		.disable = dsi_display_disable,
  
--		.update = dsi_update,
-+		.update = dsi_update_all,
- 	},
- };
- 
+ 		.set_config = dsi_set_config,
 diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 524cb87cd9ea..de4c779c358a 100644
+index 1520a5f752b7..43eba2ea1f96 100644
 --- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
 +++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -281,13 +281,12 @@ struct omap_dss_writeback_info {
- };
+@@ -291,9 +291,6 @@ struct omapdss_dsi_ops {
+ 	int (*update)(struct omap_dss_device *dssdev, int channel,
+ 			void (*callback)(int, void *), void *data);
  
- struct omapdss_dsi_ops {
--	/* bus configuration */
-+	int (*update)(struct omap_dss_device *dssdev);
-+
-+	/* legacy API used by omapdss panels */
- 	int (*set_config)(struct omap_dss_device *dssdev,
- 			const struct omap_dss_dsi_config *cfg);
- 
--	int (*update)(struct omap_dss_device *dssdev, int channel,
--			void (*callback)(int, void *), void *data);
+-	void (*bus_lock)(struct omap_dss_device *dssdev);
+-	void (*bus_unlock)(struct omap_dss_device *dssdev);
 -
  	int (*enable_video_output)(struct omap_dss_device *dssdev, int channel);
  	void (*disable_video_output)(struct omap_dss_device *dssdev,
  			int channel);
-@@ -351,7 +350,6 @@ struct omap_dss_device {
- 
- 	const char *name;
- 
--	const struct omap_dss_driver *driver;
- 	const struct omap_dss_device_ops *ops;
- 	unsigned long ops_flags;
- 	u32 bus_flags;
-@@ -372,11 +370,6 @@ struct omap_dss_device {
- 	unsigned int of_port;
- };
- 
--struct omap_dss_driver {
--	int (*update)(struct omap_dss_device *dssdev,
--			       u16 x, u16 y, u16 w, u16 h);
--};
--
- struct dss_device *omapdss_get_dss(void);
- void omapdss_set_dss(struct dss_device *dss);
- static inline bool omapdss_is_initialized(void)
-diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index dac9ccda98df..3068e4fffa16 100644
---- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-+++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -362,10 +362,8 @@ static void omap_crtc_manual_display_update(struct work_struct *data)
- {
- 	struct omap_crtc *omap_crtc =
- 			container_of(data, struct omap_crtc, update_work.work);
--	struct drm_display_mode *mode = &omap_crtc->pipe->crtc->mode;
--	struct omap_dss_device *dssdev = omap_crtc->pipe->output->next;
-+	struct omap_dss_device *dssdev = omap_crtc->pipe->output;
- 	struct drm_device *dev = omap_crtc->base.dev;
--	const struct omap_dss_driver *dssdrv;
- 	int ret;
- 
- 	if (!dssdev) {
-@@ -373,13 +371,12 @@ static void omap_crtc_manual_display_update(struct work_struct *data)
- 		return;
- 	}
- 
--	dssdrv = dssdev->driver;
--	if (!dssdrv || !dssdrv->update) {
--		dev_err_once(dev->dev, "missing or incorrect dssdrv!");
-+	if (dssdev->type != OMAP_DISPLAY_TYPE_DSI || !dssdev->ops->dsi.update) {
-+		dev_err_once(dev->dev, "no DSI update callback found!");
- 		return;
- 	}
- 
--	ret = dssdrv->update(dssdev, 0, 0, mode->hdisplay, mode->vdisplay);
-+	ret = dssdev->ops->dsi.update(dssdev);
- 	if (ret < 0) {
- 		spin_lock_irq(&dev->event_lock);
- 		omap_crtc->pending = false;
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
