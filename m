@@ -5,48 +5,47 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 525B0C71155
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB0BFC64E90
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CEF02083E
+	by mail.kernel.org (Postfix) with ESMTP id 9691F2083E
 	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="QZtT2EOE"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ffaptDTS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387661AbgKXMqt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:46:49 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:55098 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387656AbgKXMqt (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:46:49 -0500
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCkfDv123507;
-        Tue, 24 Nov 2020 06:46:41 -0600
+        id S2387659AbgKXMqo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:46:44 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:39598 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387656AbgKXMqn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:46:43 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCkaWv032373;
+        Tue, 24 Nov 2020 06:46:36 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606222001;
-        bh=90qNZKbYLXxPKKKa9JrCal53szqbPIoc+ppwv0XIqFc=;
+        s=ti-com-17Q1; t=1606221996;
+        bh=h5/B29k9RupbrN70RfOZ6pQkOiOR4AHKObBNHKvHA1Q=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=QZtT2EOElMBoad2ho547rhNjzq2dGJEsu6Gc1JapGU3AZBP9VIH9PJpkT83b4QjKJ
-         lO+ffn0zZTUbGwzOzmbo8pDDVPSwGXDX87Z/F4cAzf1CKdWjv6ksU8WLkfbV1fkodQ
-         ySwHy172BfpAFioq22lSTNsp+pMni5/Iz6OAe2SA=
-Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCkf9s106344
+        b=ffaptDTSCaK6lEG3sVemImFFZ9jB6ts3C8CQhXXEUmb9xE1q+kJdx2Adr1OoDg3OR
+         oLJRzubHvoWKwTFVRtMJoysnQclfFCC1UcglE4MEAaptOXcUOJ/zfEhQ68E68lLbXD
+         EssFC9reuh0empJKDVD3hQ5lpiKSSsgAQ4TK0zrQ=
+Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCkaRH043088
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 24 Nov 2020 06:46:41 -0600
-Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 24 Nov 2020 06:46:36 -0600
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 24
- Nov 2020 06:46:40 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 06:46:36 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 24 Nov 2020 06:46:40 -0600
+ Frontend Transport; Tue, 24 Nov 2020 06:46:35 -0600
 Received: from deskari.lan (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmp9040922;
-        Tue, 24 Nov 2020 06:46:38 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmp7040922;
+        Tue, 24 Nov 2020 06:46:33 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -56,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v4 20/80] drm/omap: dsi: drop useless sync()
-Date:   Tue, 24 Nov 2020 14:44:38 +0200
-Message-ID: <20201124124538.660710-21-tomi.valkeinen@ti.com>
+Subject: [PATCH v4 18/80] drm/omap: dsi: drop unused get_te()
+Date:   Tue, 24 Nov 2020 14:44:36 +0200
+Message-ID: <20201124124538.660710-19-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201124124538.660710-1-tomi.valkeinen@ti.com>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
@@ -72,80 +71,59 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-The DSI sync() function only locks the bus and then releases
-it again. Currently the only invocation is directly before
-update(), which locks the bus anyways.
+The get_te() callback is not used, so we can drop the
+custom API.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c    | 18 ------------------
- drivers/gpu/drm/omapdrm/dss/omapdss.h          |  1 -
- drivers/gpu/drm/omapdrm/omap_crtc.c            |  3 ---
- 3 files changed, 22 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 13 -------------
+ drivers/gpu/drm/omapdrm/dss/omapdss.h           |  1 -
+ 2 files changed, 14 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 04d8a0e0e214..cfc31b777bae 100644
+index 6e3fbf99ff91..b4c666064c85 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -844,23 +844,6 @@ static int dsicm_update(struct omap_dss_device *dssdev,
+@@ -918,18 +918,6 @@ static int dsicm_enable_te(struct omap_dss_device *dssdev, bool enable)
  	return r;
  }
  
--static int dsicm_sync(struct omap_dss_device *dssdev)
+-static int dsicm_get_te(struct omap_dss_device *dssdev)
 -{
 -	struct panel_drv_data *ddata = to_panel_data(dssdev);
--	struct omap_dss_device *src = ddata->src;
--
--	dev_dbg(&ddata->dsi->dev, "sync\n");
+-	int r;
 -
 -	mutex_lock(&ddata->lock);
--	src->ops->dsi.bus_lock(src);
--	src->ops->dsi.bus_unlock(src);
+-	r = ddata->te_enabled;
 -	mutex_unlock(&ddata->lock);
 -
--	dev_dbg(&ddata->dsi->dev, "sync done\n");
--
--	return 0;
+-	return r;
 -}
 -
- static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
+ static void dsicm_ulps_work(struct work_struct *work)
  {
- 	struct omap_dss_device *src = ddata->src;
-@@ -949,7 +932,6 @@ static const struct omap_dss_device_ops dsicm_ops = {
+ 	struct panel_drv_data *ddata = container_of(work, struct panel_drv_data,
+@@ -1001,7 +989,6 @@ static const struct omap_dss_driver dsicm_dss_driver = {
+ 	.sync		= dsicm_sync,
  
- static const struct omap_dss_driver dsicm_dss_driver = {
- 	.update		= dsicm_update,
--	.sync		= dsicm_sync,
+ 	.enable_te	= dsicm_enable_te,
+-	.get_te		= dsicm_get_te,
  };
  
  static int dsicm_probe_of(struct mipi_dsi_device *dsi)
 diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 55d5bca59f81..9bbd2c0f3187 100644
+index e67928373560..aa307f5ab9cf 100644
 --- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
 +++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -385,7 +385,6 @@ struct omap_dss_device {
- struct omap_dss_driver {
- 	int (*update)(struct omap_dss_device *dssdev,
- 			       u16 x, u16 y, u16 w, u16 h);
--	int (*sync)(struct omap_dss_device *dssdev);
+@@ -388,7 +388,6 @@ struct omap_dss_driver {
+ 	int (*sync)(struct omap_dss_device *dssdev);
+ 
+ 	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
+-	int (*get_te)(struct omap_dss_device *dssdev);
  };
  
  struct dss_device *omapdss_get_dss(void);
-diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index 328a4a74f534..dac9ccda98df 100644
---- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-+++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -379,9 +379,6 @@ static void omap_crtc_manual_display_update(struct work_struct *data)
- 		return;
- 	}
- 
--	if (dssdrv->sync)
--		dssdrv->sync(dssdev);
--
- 	ret = dssdrv->update(dssdev, 0, 0, mode->hdisplay, mode->vdisplay);
- 	if (ret < 0) {
- 		spin_lock_irq(&dev->event_lock);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
