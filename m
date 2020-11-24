@@ -2,50 +2,51 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48ED8C64E75
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F6D4C64E75
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1C6220872
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6908206B2
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="TunnFJRw"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="d7A+uyca"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387711AbgKXMsn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:48:43 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:55612 "EHLO
+        id S2387713AbgKXMsr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:48:47 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:55634 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732709AbgKXMsn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:48:43 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCmbs1123915;
-        Tue, 24 Nov 2020 06:48:37 -0600
+        with ESMTP id S1732709AbgKXMsr (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:48:47 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCmfem123955;
+        Tue, 24 Nov 2020 06:48:41 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606222117;
-        bh=9GKXdExOX8jhEF/s17rhuyqpQSVdCIYnoEG8JBmh0/o=;
+        s=ti-com-17Q1; t=1606222121;
+        bh=6pxAuwh2rEUpMWHQpRYHq3mchGyYZZkbH3pFsYg68iQ=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=TunnFJRwCy9EYbrw0G0cSFZ+GfOelloRQ7LIQxyzBvWdtioAHjeAjbZxnixzkptsJ
-         ZdogpQFtlKTkDtlB89XoKHsh1mrq6JKjpKf/BwNcnn/8Umg+SEF2YfYIhKTzBiOOcA
-         RpVj0tg+yVQIIaNpOKE5pIUDH6ZJRgreXf36DIns=
-Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCmbGq044920
+        b=d7A+uycajV+0QZIxRNzwuBfyjH3oyp09ludMYnfxlGkXKtFa7tpiAz42MauYTBcgI
+         OKqg3yhkjrST2H7ViZHQaimavYKLuqNL0hJ7KF2q62y2CUcuYg/wK1EbCkvj5Dx4Hz
+         ycF2eTE3WwPT7shdIwjKxIaMhc5OFVlL0v55a0rs=
+Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCmfbo109449
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 24 Nov 2020 06:48:37 -0600
-Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 24 Nov 2020 06:48:41 -0600
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 24
- Nov 2020 06:48:36 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 06:48:41 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 24 Nov 2020 06:48:36 -0600
+ Frontend Transport; Tue, 24 Nov 2020 06:48:41 -0600
 Received: from deskari.lan (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpv040922;
-        Tue, 24 Nov 2020 06:48:34 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpx040922;
+        Tue, 24 Nov 2020 06:48:39 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -53,9 +54,9 @@ To:     Sebastian Reichel <sre@kernel.org>,
         <linux-omap@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
 CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         <hns@goldelico.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v4 68/80] drm/panel: panel-dsi-cm: remove extra 'if'
-Date:   Tue, 24 Nov 2020 14:45:26 +0200
-Message-ID: <20201124124538.660710-69-tomi.valkeinen@ti.com>
+Subject: [PATCH v4 70/80] drm/panel: panel-dsi-cm: drop unneeded includes
+Date:   Tue, 24 Nov 2020 14:45:28 +0200
+Message-ID: <20201124124538.660710-71-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201124124538.660710-1-tomi.valkeinen@ti.com>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
@@ -67,42 +68,30 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We have a useless 'if' in the dsicm_bl_update_status(), a left over from
-the conversion to DRM model. Drop the if.
+Drop unneeded includes.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/panel/panel-dsi-cm.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/panel/panel-dsi-cm.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/panel/panel-dsi-cm.c b/drivers/gpu/drm/panel/panel-dsi-cm.c
-index 1e7f73340736..c17ed728c695 100644
+index ec87b785871f..91ed8237a1c2 100644
 --- a/drivers/gpu/drm/panel/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/panel/panel-dsi-cm.c
-@@ -194,7 +194,7 @@ static int dsicm_set_update_window(struct panel_drv_data *ddata)
- static int dsicm_bl_update_status(struct backlight_device *dev)
- {
- 	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
--	int r = 0;
-+	int r;
- 	int level;
+@@ -9,12 +9,7 @@
+ #include <linux/backlight.h>
+ #include <linux/delay.h>
+ #include <linux/gpio/consumer.h>
+-#include <linux/interrupt.h>
+ #include <linux/jiffies.h>
+-#include <linux/module.h>
+-#include <linux/sched/signal.h>
+-#include <linux/slab.h>
+-#include <linux/of_device.h>
+ #include <linux/regulator/consumer.h>
  
- 	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
-@@ -207,11 +207,9 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
- 
- 	mutex_lock(&ddata->lock);
- 
--	if (ddata->enabled) {
--		if (!r)
--			r = dsicm_dcs_write_1(
--				ddata, MIPI_DCS_SET_DISPLAY_BRIGHTNESS, level);
--	}
-+	if (ddata->enabled)
-+		r = dsicm_dcs_write_1(ddata, MIPI_DCS_SET_DISPLAY_BRIGHTNESS,
-+				      level);
- 
- 	mutex_unlock(&ddata->lock);
- 
+ #include <drm/drm_connector.h>
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
