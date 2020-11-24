@@ -8,45 +8,45 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99C6EC64E7D
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23A6AC64E8A
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DFDA2076E
+	by mail.kernel.org (Postfix) with ESMTP id C1CD02076E
 	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="X/T5irTE"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="SS3qoGJT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387658AbgKXMqm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:46:42 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:55070 "EHLO
+        id S2387660AbgKXMqq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:46:46 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:55092 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387656AbgKXMql (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:46:41 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCkXxC123025;
-        Tue, 24 Nov 2020 06:46:33 -0600
+        with ESMTP id S2387656AbgKXMqq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:46:46 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCkcGB123342;
+        Tue, 24 Nov 2020 06:46:38 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606221993;
-        bh=Uou7lf4FnvuBKr1JcXj+w7SWnikK6go06gMS8jjkWPI=;
+        s=ti-com-17Q1; t=1606221998;
+        bh=ig9WWcHJL7zo6ED4FSOEpBHYvY96SMfpAY9Z6rYU8k8=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=X/T5irTERXc+alL7XPR4B++cG1RbAn0+/Hqzo1VGzrqgxx0+VpIVM2fZKdXIcPWo9
-         rrhFjSwTEOSIwtIb1H9IqKEEIODCoV2BK/MZiCi2aVTBoeN6RCy8lwtwbPmWtoKwKR
-         bC+MgE+O7YPcMXnKnz6lJimkoFizKOKGg7k2QnX8=
-Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCkXFg041711
+        b=SS3qoGJT1flVCMMSVx7Rh0aEyydCHzgYGxzZFSGEAKBowpI59JBgI2+crI2UBRzzN
+         L5XnsoXfDeLckggc+SRuGsjbY87oTkvuWe5mMlD8H1Clt7TYdQ2XuGaxGUmXYOdqQ2
+         iCXL2wLNXH9b5BcdDdqsYqYDhilfOqd94fCrS7I4=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCkcL7106277
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 24 Nov 2020 06:46:33 -0600
-Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 24 Nov 2020 06:46:38 -0600
+Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 24
- Nov 2020 06:46:33 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE103.ent.ti.com
- (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 06:46:38 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE100.ent.ti.com
+ (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 24 Nov 2020 06:46:33 -0600
+ Frontend Transport; Tue, 24 Nov 2020 06:46:38 -0600
 Received: from deskari.lan (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmp6040922;
-        Tue, 24 Nov 2020 06:46:31 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmp8040922;
+        Tue, 24 Nov 2020 06:46:36 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -56,9 +56,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v4 17/80] drm/omap: dsi: drop unused memory_read()
-Date:   Tue, 24 Nov 2020 14:44:35 +0200
-Message-ID: <20201124124538.660710-18-tomi.valkeinen@ti.com>
+Subject: [PATCH v4 19/80] drm/omap: dsi: drop unused enable_te()
+Date:   Tue, 24 Nov 2020 14:44:37 +0200
+Message-ID: <20201124124538.660710-20-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201124124538.660710-1-tomi.valkeinen@ti.com>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
@@ -72,139 +72,82 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-memory_read is not used, so we can drop the code.
+enable_te() is not used, so the custom API can be dropped.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 93 -------------------
- drivers/gpu/drm/omapdrm/dss/omapdss.h         |  4 -
- 2 files changed, 97 deletions(-)
+ .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 39 -------------------
+ drivers/gpu/drm/omapdrm/dss/omapdss.h         |  2 -
+ 2 files changed, 41 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 53cfa86d95db..6e3fbf99ff91 100644
+index b4c666064c85..04d8a0e0e214 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -930,97 +930,6 @@ static int dsicm_get_te(struct omap_dss_device *dssdev)
+@@ -881,43 +881,6 @@ static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
  	return r;
  }
  
--static int dsicm_set_max_rx_packet_size(struct omap_dss_device *dssdev,
--					u16 size)
+-static int dsicm_enable_te(struct omap_dss_device *dssdev, bool enable)
 -{
 -	struct panel_drv_data *ddata = to_panel_data(dssdev);
--	struct mipi_dsi_device *dsi = ddata->dsi;
--
--	return mipi_dsi_set_maximum_return_packet_size(dsi, size);
--}
--
--static int dsicm_memory_read(struct omap_dss_device *dssdev,
--		void *buf, size_t size,
--		u16 x, u16 y, u16 w, u16 h)
--{
--	struct panel_drv_data *ddata = to_panel_data(dssdev);
--	struct mipi_dsi_device *dsi = ddata->dsi;
 -	struct omap_dss_device *src = ddata->src;
 -	int r;
--	int first = 1;
--	int plen;
--	unsigned int buf_used = 0;
--
--	if (size < w * h * 3)
--		return -ENOMEM;
 -
 -	mutex_lock(&ddata->lock);
 -
--	if (!ddata->enabled) {
--		r = -ENODEV;
--		goto err1;
--	}
--
--	size = min((u32)w * h * 3,
--		   ddata->vm.hactive * ddata->vm.vactive * 3);
+-	if (ddata->te_enabled == enable)
+-		goto end;
 -
 -	src->ops->dsi.bus_lock(src);
 -
--	r = dsicm_wake_up(ddata);
--	if (r)
--		goto err2;
+-	if (ddata->enabled) {
+-		r = dsicm_wake_up(ddata);
+-		if (r)
+-			goto err;
 -
--	/* plen 1 or 2 goes into short packet. until checksum error is fixed,
--	 * use short packets. plen 32 works, but bigger packets seem to cause
--	 * an error. */
--	if (size % 2)
--		plen = 1;
--	else
--		plen = 2;
--
--	dsicm_set_update_window(ddata, x, y, w, h);
--
--	r = dsicm_set_max_rx_packet_size(dssdev, plen);
--	if (r)
--		goto err2;
--
--	while (buf_used < size) {
--		u8 dcs_cmd = first ? 0x2e : 0x3e;
--		first = 0;
--
--		r = mipi_dsi_dcs_read(dsi, dcs_cmd,
--				      buf + buf_used, size - buf_used);
--		if (r < 0) {
--			dev_err(dssdev->dev, "read error\n");
--			goto err3;
--		}
--
--		buf_used += r;
--
--		if (r < plen) {
--			dev_err(&ddata->dsi->dev, "short read\n");
--			break;
--		}
--
--		if (signal_pending(current)) {
--			dev_err(&ddata->dsi->dev, "signal pending, "
--					"aborting memory read\n");
--			r = -ERESTARTSYS;
--			goto err3;
--		}
+-		r = _dsicm_enable_te(ddata, enable);
+-		if (r)
+-			goto err;
 -	}
 -
--	r = buf_used;
+-	ddata->te_enabled = enable;
 -
--err3:
--	dsicm_set_max_rx_packet_size(dssdev, 1);
--err2:
 -	src->ops->dsi.bus_unlock(src);
--err1:
+-end:
 -	mutex_unlock(&ddata->lock);
+-
+-	return 0;
+-err:
+-	src->ops->dsi.bus_unlock(src);
+-	mutex_unlock(&ddata->lock);
+-
 -	return r;
 -}
 -
  static void dsicm_ulps_work(struct work_struct *work)
  {
  	struct panel_drv_data *ddata = container_of(work, struct panel_drv_data,
-@@ -1093,8 +1002,6 @@ static const struct omap_dss_driver dsicm_dss_driver = {
- 
- 	.enable_te	= dsicm_enable_te,
- 	.get_te		= dsicm_get_te,
+@@ -987,8 +950,6 @@ static const struct omap_dss_device_ops dsicm_ops = {
+ static const struct omap_dss_driver dsicm_dss_driver = {
+ 	.update		= dsicm_update,
+ 	.sync		= dsicm_sync,
 -
--	.memory_read	= dsicm_memory_read,
+-	.enable_te	= dsicm_enable_te,
  };
  
  static int dsicm_probe_of(struct mipi_dsi_device *dsi)
 diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index 78041ef922cc..e67928373560 100644
+index aa307f5ab9cf..55d5bca59f81 100644
 --- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
 +++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -389,10 +389,6 @@ struct omap_dss_driver {
- 
- 	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
- 	int (*get_te)(struct omap_dss_device *dssdev);
+@@ -386,8 +386,6 @@ struct omap_dss_driver {
+ 	int (*update)(struct omap_dss_device *dssdev,
+ 			       u16 x, u16 y, u16 w, u16 h);
+ 	int (*sync)(struct omap_dss_device *dssdev);
 -
--	int (*memory_read)(struct omap_dss_device *dssdev,
--			void *buf, size_t size,
--			u16 x, u16 y, u16 w, u16 h);
+-	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
  };
  
  struct dss_device *omapdss_get_dss(void);
