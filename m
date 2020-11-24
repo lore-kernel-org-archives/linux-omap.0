@@ -5,48 +5,47 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7EA4C6379D
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B19EEC56201
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 854F220866
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5199220872
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hTj+K8eH"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="jNTtr/wO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387678AbgKXMrm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:47:42 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:39882 "EHLO
+        id S2387688AbgKXMro (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:47:44 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:39894 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387686AbgKXMrl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:47:41 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOClSNo032952;
-        Tue, 24 Nov 2020 06:47:28 -0600
+        with ESMTP id S2387686AbgKXMro (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:47:44 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOClZkG033018;
+        Tue, 24 Nov 2020 06:47:35 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606222048;
-        bh=uGM6bTkJXwg3mJ6MIvjtQtGOLfc72PuBKt49uDI5gqA=;
+        s=ti-com-17Q1; t=1606222055;
+        bh=+T0T+T+iLC0cDNGSBLtLL11u8pl/CIcDszABkofh87I=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=hTj+K8eH6k7khMeK6TnM+7tKTh3JgBUIziCrNvg0UYHlGYCuM2BUepEBK457KG1Fv
-         htrZaQLL74jjlwKEX1mIgtWtpqqyUUXaN6Fy/by+JFh3GOxwOCFpYr6hX8SdgAo6ix
-         szUPEYbLjFBeOE/nbfIjTZhPHOFMi3JpBqVz/NSI=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOClS47046398
+        b=jNTtr/wO000Zv+ZbqLTevxsyi/SanGNwK6f63H301YE4S5lrqi4HV4i2wGwvwhq6y
+         Zc9i24lr8wjov/G1RksZ0779N69OxhyBZKH4SFaJjgTV+3SUfwOXgUIvd58k9EgXjT
+         zOJY/TivTvGwrnux9ij5f2MiXFY6jZCMYkQ3nx90=
+Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOClZ4G044601
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 24 Nov 2020 06:47:28 -0600
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 24 Nov 2020 06:47:35 -0600
+Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 24
- Nov 2020 06:47:28 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 06:47:35 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE100.ent.ti.com
+ (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 24 Nov 2020 06:47:28 -0600
+ Frontend Transport; Tue, 24 Nov 2020 06:47:35 -0600
 Received: from deskari.lan (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpS040922;
-        Tue, 24 Nov 2020 06:47:25 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpV040922;
+        Tue, 24 Nov 2020 06:47:33 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,12 +54,10 @@ To:     Sebastian Reichel <sre@kernel.org>,
 CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Sam Ravnborg <sam@ravnborg.org>
-Subject: [PATCH v4 39/80] drm/panel: Move OMAP's DSI command mode panel driver
-Date:   Tue, 24 Nov 2020 14:44:57 +0200
-Message-ID: <20201124124538.660710-40-tomi.valkeinen@ti.com>
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH v4 42/80] drm/omap: remove unused omap_connector
+Date:   Tue, 24 Nov 2020 14:45:00 +0200
+Message-ID: <20201124124538.660710-43-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201124124538.660710-1-tomi.valkeinen@ti.com>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
@@ -74,111 +71,277 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-The panel driver is no longer using any OMAP specific APIs, so
-let's move it into the generic panel directory.
+Remove unused code. Connectors are now created via drm_bridge_connector_init()
+and no longer OMAP specific.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/gpu/drm/omapdrm/Kconfig                        |  1 -
- drivers/gpu/drm/omapdrm/Makefile                       |  1 -
- drivers/gpu/drm/omapdrm/displays/Kconfig               | 10 ----------
- drivers/gpu/drm/omapdrm/displays/Makefile              |  2 --
- drivers/gpu/drm/panel/Kconfig                          |  9 +++++++++
- drivers/gpu/drm/panel/Makefile                         |  1 +
- .../gpu/drm/{omapdrm/displays => panel}/panel-dsi-cm.c |  0
- 7 files changed, 10 insertions(+), 14 deletions(-)
- delete mode 100644 drivers/gpu/drm/omapdrm/displays/Kconfig
- delete mode 100644 drivers/gpu/drm/omapdrm/displays/Makefile
- rename drivers/gpu/drm/{omapdrm/displays => panel}/panel-dsi-cm.c (100%)
+ drivers/gpu/drm/omapdrm/Makefile         |   1 -
+ drivers/gpu/drm/omapdrm/omap_connector.c | 128 -----------------------
+ drivers/gpu/drm/omapdrm/omap_connector.h |  28 -----
+ drivers/gpu/drm/omapdrm/omap_drv.c       |  19 ++--
+ drivers/gpu/drm/omapdrm/omap_drv.h       |   1 -
+ drivers/gpu/drm/omapdrm/omap_encoder.c   |  19 ----
+ 6 files changed, 6 insertions(+), 190 deletions(-)
+ delete mode 100644 drivers/gpu/drm/omapdrm/omap_connector.c
+ delete mode 100644 drivers/gpu/drm/omapdrm/omap_connector.h
 
-diff --git a/drivers/gpu/drm/omapdrm/Kconfig b/drivers/gpu/drm/omapdrm/Kconfig
-index 5417e7a47072..cea3f44ea6d4 100644
---- a/drivers/gpu/drm/omapdrm/Kconfig
-+++ b/drivers/gpu/drm/omapdrm/Kconfig
-@@ -12,6 +12,5 @@ config DRM_OMAP
- if DRM_OMAP
- 
- source "drivers/gpu/drm/omapdrm/dss/Kconfig"
--source "drivers/gpu/drm/omapdrm/displays/Kconfig"
- 
- endif
 diff --git a/drivers/gpu/drm/omapdrm/Makefile b/drivers/gpu/drm/omapdrm/Makefile
-index f115253115c5..66a73eae6f7c 100644
+index 66a73eae6f7c..2a404e045b78 100644
 --- a/drivers/gpu/drm/omapdrm/Makefile
 +++ b/drivers/gpu/drm/omapdrm/Makefile
-@@ -5,7 +5,6 @@
- #
- 
- obj-y += dss/
--obj-y += displays/
- 
- omapdrm-y := omap_drv.o \
- 	omap_irq.o \
-diff --git a/drivers/gpu/drm/omapdrm/displays/Kconfig b/drivers/gpu/drm/omapdrm/displays/Kconfig
+@@ -12,7 +12,6 @@ omapdrm-y := omap_drv.o \
+ 	omap_crtc.o \
+ 	omap_plane.o \
+ 	omap_encoder.o \
+-	omap_connector.o \
+ 	omap_fb.o \
+ 	omap_gem.o \
+ 	omap_gem_dmabuf.o \
+diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
 deleted file mode 100644
-index f2be594c7eff..000000000000
---- a/drivers/gpu/drm/omapdrm/displays/Kconfig
+index c6d9b4268841..000000000000
+--- a/drivers/gpu/drm/omapdrm/omap_connector.c
 +++ /dev/null
-@@ -1,10 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--menu "OMAPDRM External Display Device Drivers"
+@@ -1,128 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+- * Author: Rob Clark <rob@ti.com>
+- */
 -
--config DRM_OMAP_PANEL_DSI_CM
--	tristate "Generic DSI Command Mode Panel"
--	depends on BACKLIGHT_CLASS_DEVICE
--	help
--	  Driver for generic DSI command mode panels.
+-#include <drm/drm_atomic_helper.h>
+-#include <drm/drm_crtc.h>
+-#include <drm/drm_probe_helper.h>
 -
--endmenu
-diff --git a/drivers/gpu/drm/omapdrm/displays/Makefile b/drivers/gpu/drm/omapdrm/displays/Makefile
+-#include "omap_drv.h"
+-
+-/*
+- * connector funcs
+- */
+-
+-#define to_omap_connector(x) container_of(x, struct omap_connector, base)
+-
+-struct omap_connector {
+-	struct drm_connector base;
+-	struct omap_dss_device *output;
+-};
+-
+-static enum drm_connector_status omap_connector_detect(
+-		struct drm_connector *connector, bool force)
+-{
+-	return connector_status_connected;
+-}
+-
+-static void omap_connector_destroy(struct drm_connector *connector)
+-{
+-	struct omap_connector *omap_connector = to_omap_connector(connector);
+-
+-	DBG("%s", connector->name);
+-
+-	drm_connector_unregister(connector);
+-	drm_connector_cleanup(connector);
+-
+-	omapdss_device_put(omap_connector->output);
+-
+-	kfree(omap_connector);
+-}
+-
+-static int omap_connector_get_modes(struct drm_connector *connector)
+-{
+-	DBG("%s", connector->name);
+-
+-	/* We can't retrieve modes. The KMS core will add the default modes. */
+-	return 0;
+-}
+-
+-enum drm_mode_status omap_connector_mode_fixup(struct omap_dss_device *dssdev,
+-					const struct drm_display_mode *mode,
+-					struct drm_display_mode *adjusted_mode)
+-{
+-	return MODE_OK;
+-}
+-
+-static enum drm_mode_status omap_connector_mode_valid(struct drm_connector *connector,
+-				 struct drm_display_mode *mode)
+-{
+-	struct omap_connector *omap_connector = to_omap_connector(connector);
+-	struct drm_display_mode new_mode = {};
+-	enum drm_mode_status status;
+-
+-	status = omap_connector_mode_fixup(omap_connector->output, mode,
+-					   &new_mode);
+-	if (status != MODE_OK)
+-		goto done;
+-
+-	/* Check if vrefresh is still valid. */
+-	if (drm_mode_vrefresh(mode) != drm_mode_vrefresh(&new_mode))
+-		status = MODE_NOCLOCK;
+-
+-done:
+-	DBG("connector: mode %s: " DRM_MODE_FMT,
+-			(status == MODE_OK) ? "valid" : "invalid",
+-			DRM_MODE_ARG(mode));
+-
+-	return status;
+-}
+-
+-static const struct drm_connector_funcs omap_connector_funcs = {
+-	.reset = drm_atomic_helper_connector_reset,
+-	.detect = omap_connector_detect,
+-	.fill_modes = drm_helper_probe_single_connector_modes,
+-	.destroy = omap_connector_destroy,
+-	.atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
+-	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
+-};
+-
+-static const struct drm_connector_helper_funcs omap_connector_helper_funcs = {
+-	.get_modes = omap_connector_get_modes,
+-	.mode_valid = omap_connector_mode_valid,
+-};
+-
+-/* initialize connector */
+-struct drm_connector *omap_connector_init(struct drm_device *dev,
+-					  struct omap_dss_device *output,
+-					  struct drm_encoder *encoder)
+-{
+-	struct drm_connector *connector = NULL;
+-	struct omap_connector *omap_connector;
+-
+-	DBG("%s", output->name);
+-
+-	omap_connector = kzalloc(sizeof(*omap_connector), GFP_KERNEL);
+-	if (!omap_connector)
+-		goto fail;
+-
+-	omap_connector->output = omapdss_device_get(output);
+-
+-	connector = &omap_connector->base;
+-	connector->interlace_allowed = 1;
+-	connector->doublescan_allowed = 0;
+-
+-	drm_connector_init(dev, connector, &omap_connector_funcs,
+-			   DRM_MODE_CONNECTOR_DSI);
+-	drm_connector_helper_add(connector, &omap_connector_helper_funcs);
+-
+-	return connector;
+-
+-fail:
+-	if (connector)
+-		omap_connector_destroy(connector);
+-
+-	return NULL;
+-}
+diff --git a/drivers/gpu/drm/omapdrm/omap_connector.h b/drivers/gpu/drm/omapdrm/omap_connector.h
 deleted file mode 100644
-index 488ddf153613..000000000000
---- a/drivers/gpu/drm/omapdrm/displays/Makefile
+index 0ecd4f1655b7..000000000000
+--- a/drivers/gpu/drm/omapdrm/omap_connector.h
 +++ /dev/null
-@@ -1,2 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0
--obj-$(CONFIG_DRM_OMAP_PANEL_DSI_CM) += panel-dsi-cm.o
-diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index b9dbedf8f15e..a71f95afc52e 100644
---- a/drivers/gpu/drm/panel/Kconfig
-+++ b/drivers/gpu/drm/panel/Kconfig
-@@ -48,6 +48,15 @@ config DRM_PANEL_BOE_TV101WUM_NL6
- 	  Say Y here if you want to support for BOE TV101WUM and AUO KD101N80
- 	  45NA WUXGA PANEL DSI Video Mode panel
+@@ -1,28 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * omap_connector.h -- OMAP DRM Connector
+- *
+- * Copyright (C) 2011 Texas Instruments
+- * Author: Rob Clark <rob@ti.com>
+- */
+-
+-#ifndef __OMAPDRM_CONNECTOR_H__
+-#define __OMAPDRM_CONNECTOR_H__
+-
+-#include <linux/types.h>
+-
+-enum drm_mode_status;
+-
+-struct drm_connector;
+-struct drm_device;
+-struct drm_encoder;
+-struct omap_dss_device;
+-
+-struct drm_connector *omap_connector_init(struct drm_device *dev,
+-					  struct omap_dss_device *output,
+-					  struct drm_encoder *encoder);
+-enum drm_mode_status omap_connector_mode_fixup(struct omap_dss_device *dssdev,
+-					const struct drm_display_mode *mode,
+-					struct drm_display_mode *adjusted_mode);
+-
+-#endif /* __OMAPDRM_CONNECTOR_H__ */
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index b342f5b6ced0..20b5b4e9071c 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -332,19 +332,12 @@ static int omap_modeset_init(struct drm_device *dev)
+ 		struct drm_encoder *encoder = pipe->encoder;
+ 		struct drm_crtc *crtc;
  
-+config DRM_PANEL_DSI_CM
-+	tristate "Generic DSI command mode panels"
-+	depends on OF
-+	depends on DRM_MIPI_DSI
-+	depends on BACKLIGHT_CLASS_DEVICE
-+	help
-+	  DRM panel driver for DSI command mode panels with support for
-+	  embedded and external backlights.
-+
- config DRM_PANEL_LVDS
- 	tristate "Generic LVDS panel driver"
- 	depends on OF
-diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
-index 2ba560bca61d..c553e968e9a9 100644
---- a/drivers/gpu/drm/panel/Makefile
-+++ b/drivers/gpu/drm/panel/Makefile
-@@ -3,6 +3,7 @@ obj-$(CONFIG_DRM_PANEL_ARM_VERSATILE) += panel-arm-versatile.o
- obj-$(CONFIG_DRM_PANEL_ASUS_Z00T_TM5P5_NT35596) += panel-asus-z00t-tm5p5-n35596.o
- obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
- obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_NL6) += panel-boe-tv101wum-nl6.o
-+obj-$(CONFIG_DRM_PANEL_DSI_CM) += panel-dsi-cm.o
- obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
- obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
- obj-$(CONFIG_DRM_PANEL_ELIDA_KD35T133) += panel-elida-kd35t133.o
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/panel/panel-dsi-cm.c
-similarity index 100%
-rename from drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-rename to drivers/gpu/drm/panel/panel-dsi-cm.c
+-		if (pipe->output->next) {
+-			pipe->connector = omap_connector_init(dev, pipe->output,
+-							      encoder);
+-			if (!pipe->connector)
+-				return -ENOMEM;
+-		} else {
+-			pipe->connector = drm_bridge_connector_init(dev, encoder);
+-			if (IS_ERR(pipe->connector)) {
+-				dev_err(priv->dev,
+-					"unable to create bridge connector for %s\n",
+-					pipe->output->name);
+-				return PTR_ERR(pipe->connector);
+-			}
++		pipe->connector = drm_bridge_connector_init(dev, encoder);
++		if (IS_ERR(pipe->connector)) {
++			dev_err(priv->dev,
++				"unable to create bridge connector for %s\n",
++				pipe->output->name);
++			return PTR_ERR(pipe->connector);
+ 		}
+ 
+ 		drm_connector_attach_encoder(pipe->connector, encoder);
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
+index 8a1fac680138..93d171ffd26d 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.h
++++ b/drivers/gpu/drm/omapdrm/omap_drv.h
+@@ -16,7 +16,6 @@
+ #include <drm/drm_gem.h>
+ #include <drm/omap_drm.h>
+ 
+-#include "omap_connector.h"
+ #include "omap_crtc.h"
+ #include "omap_encoder.h"
+ #include "omap_fb.h"
+diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
+index ef28dfa49ca1..5da7e028ddf2 100644
+--- a/drivers/gpu/drm/omapdrm/omap_encoder.c
++++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
+@@ -117,27 +117,8 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
+ 	dss_mgr_set_timings(output, &vm);
+ }
+ 
+-static int omap_encoder_atomic_check(struct drm_encoder *encoder,
+-				     struct drm_crtc_state *crtc_state,
+-				     struct drm_connector_state *conn_state)
+-{
+-	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
+-	enum drm_mode_status status;
+-
+-	status = omap_connector_mode_fixup(omap_encoder->output,
+-					   &crtc_state->mode,
+-					   &crtc_state->adjusted_mode);
+-	if (status != MODE_OK) {
+-		dev_err(encoder->dev->dev, "invalid timings: %d\n", status);
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ static const struct drm_encoder_helper_funcs omap_encoder_helper_funcs = {
+ 	.mode_set = omap_encoder_mode_set,
+-	.atomic_check = omap_encoder_atomic_check,
+ };
+ 
+ /* initialize encoder */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
