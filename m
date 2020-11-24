@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AD56C63798
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2702EC2D0E4
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BF3D2076B
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C47562076E
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:47:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="O5lb5Oc8"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="KFXaoskI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387656AbgKXMrO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:47:14 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:39710 "EHLO
+        id S2387680AbgKXMrW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:47:22 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:39740 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387672AbgKXMrO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:47:14 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCl6Ct032871;
-        Tue, 24 Nov 2020 06:47:06 -0600
+        with ESMTP id S2387672AbgKXMrV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:47:21 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOClDJi032893;
+        Tue, 24 Nov 2020 06:47:13 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606222026;
-        bh=QcHWMQNoF+SY4nkF5ay5rub+vRN3oSuRkvrhv6hB1oE=;
+        s=ti-com-17Q1; t=1606222033;
+        bh=4iGLsyiFsan1/GKhoF7NEGll/zJz85IgNrAf7PnDxWM=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=O5lb5Oc8EZ3iXf//OGyZPY6gwD8NoFpDaXIGhy2vdDdwCXq9fnwNh7SE9dSdqnDMT
-         cxy1m/FYxn3O90d6n7JqkePR26tK8E12Vp1G17plLOwZ0X9veo/lsXfPhy67rtuWLX
-         /B0JuhzqhXix9aAK1jYu6pZlmF6cntazmjpN27Do=
-Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCl5SA045881
+        b=KFXaoskIWybcZO80GWxQ7YA01WQeo/urDVBseCdZ+FlvMvrx4YJPWgVr5qG3J44ba
+         hEWLNLWsdHfiT6/rX4wUKO3C/yCHhtXCCP7NGnyzn8eN9Wsah34d/LrfZNeloO+A2r
+         EVXk68/TZCovkYgSl9fJt6JUZ6un/h++tbnjlXvs=
+Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOClD9q044082
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 24 Nov 2020 06:47:06 -0600
-Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 24 Nov 2020 06:47:13 -0600
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 24
- Nov 2020 06:47:05 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 06:47:13 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 24 Nov 2020 06:47:05 -0600
+ Frontend Transport; Tue, 24 Nov 2020 06:47:12 -0600
 Received: from deskari.lan (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpJ040922;
-        Tue, 24 Nov 2020 06:47:03 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpM040922;
+        Tue, 24 Nov 2020 06:47:10 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -55,9 +55,9 @@ CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         <hns@goldelico.com>,
         Sebastian Reichel <sebastian.reichel@collabora.com>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v4 30/80] drm/omap: dsi: Reverse direction of the DSS device enable/disable operations
-Date:   Tue, 24 Nov 2020 14:44:48 +0200
-Message-ID: <20201124124538.660710-31-tomi.valkeinen@ti.com>
+Subject: [PATCH v4 33/80] drm/omap: drop omapdss-boot-init
+Date:   Tue, 24 Nov 2020 14:44:51 +0200
+Message-ID: <20201124124538.660710-34-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201124124538.660710-1-tomi.valkeinen@ti.com>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
@@ -71,204 +71,284 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Complete the direction reversal of the DSS device enable/disable
-operations started by 19b4200d8f4b ("drm/omap: Reverse direction
-of the DSS device enable/disable operations").
-
-This effectively drops the requirement of calling DSS specific
-code from the DSI panel driver moving it a bit further to a
-standard drm_panel driver.
+The table of compatible values needed to be prefixed with "omapdss,"
+is empty, so all of this code is doing nothing now. Let's drop it.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- .../gpu/drm/omapdrm/displays/panel-dsi-cm.c   | 74 +++++++++----------
- drivers/gpu/drm/omapdrm/omap_encoder.c        | 28 ++-----
- 2 files changed, 45 insertions(+), 57 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/Kconfig           |   4 -
+ drivers/gpu/drm/omapdrm/dss/Makefile          |   2 -
+ .../gpu/drm/omapdrm/dss/omapdss-boot-init.c   | 228 ------------------
+ 3 files changed, 234 deletions(-)
+ delete mode 100644 drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 98b50220ec31..6ceff8bb3641 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -285,27 +285,6 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 	struct omap_dss_device *src = ddata->src;
- 	u8 id1, id2, id3;
- 	int r;
--	struct omap_dss_dsi_config dsi_config = {
--		.vm = &ddata->vm,
--		.hs_clk_min = 150000000,
--		.hs_clk_max = 300000000,
--		.lp_clk_min = 7000000,
--		.lp_clk_max = 10000000,
--	};
+diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
+index fd7dfa28ce97..6ec80771af3d 100644
+--- a/drivers/gpu/drm/omapdrm/dss/Kconfig
++++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
+@@ -1,7 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-config OMAP2_DSS_INIT
+-	bool
 -
--	r = regulator_bulk_enable(ARRAY_SIZE(ddata->supplies), ddata->supplies);
--	if (r) {
--		dev_err(&ddata->dsi->dev, "failed to enable supplies: %d\n", r);
--		return r;
+ config OMAP_DSS_BASE
+ 	tristate
+ 
+@@ -9,7 +6,6 @@ menuconfig OMAP2_DSS
+ 	tristate "OMAP2+ Display Subsystem support"
+ 	select OMAP_DSS_BASE
+ 	select VIDEOMODE_HELPERS
+-	select OMAP2_DSS_INIT
+ 	select HDMI
+ 	help
+ 	  OMAP2+ Display Subsystem support.
+diff --git a/drivers/gpu/drm/omapdrm/dss/Makefile b/drivers/gpu/drm/omapdrm/dss/Makefile
+index f967e6948f2e..811966cd7468 100644
+--- a/drivers/gpu/drm/omapdrm/dss/Makefile
++++ b/drivers/gpu/drm/omapdrm/dss/Makefile
+@@ -1,6 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0
+-obj-$(CONFIG_OMAP2_DSS_INIT) += omapdss-boot-init.o
+-
+ obj-$(CONFIG_OMAP_DSS_BASE) += omapdss-base.o
+ omapdss-base-y := base.o display.o output.o
+ 
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c b/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
+deleted file mode 100644
+index 18560ca4bbb0..000000000000
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c
++++ /dev/null
+@@ -1,228 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
+- * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+- */
+-
+-/*
+- * As omapdss panel drivers are omapdss specific, but we want to define the
+- * DT-data in generic manner, we convert the compatible strings of the panel and
+- * encoder nodes from "panel-foo" to "omapdss,panel-foo". This way we can have
+- * both correct DT data and omapdss specific drivers.
+- *
+- * When we get generic panel drivers to the kernel, this file will be removed.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/of.h>
+-#include <linux/of_graph.h>
+-#include <linux/slab.h>
+-#include <linux/list.h>
+-
+-static struct list_head dss_conv_list __initdata;
+-
+-static const char prefix[] __initconst = "omapdss,";
+-
+-struct dss_conv_node {
+-	struct list_head list;
+-	struct device_node *node;
+-	bool root;
+-};
+-
+-static int __init omapdss_count_strings(const struct property *prop)
+-{
+-	const char *p = prop->value;
+-	int l = 0, total = 0;
+-	int i;
+-
+-	for (i = 0; total < prop->length; total += l, p += l, i++)
+-		l = strlen(p) + 1;
+-
+-	return i;
+-}
+-
+-static void __init omapdss_update_prop(struct device_node *node, char *compat,
+-	int len)
+-{
+-	struct property *prop;
+-
+-	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
+-	if (!prop)
+-		return;
+-
+-	prop->name = "compatible";
+-	prop->value = compat;
+-	prop->length = len;
+-
+-	of_update_property(node, prop);
+-}
+-
+-static void __init omapdss_prefix_strcpy(char *dst, int dst_len,
+-	const char *src, int src_len)
+-{
+-	size_t total = 0;
+-
+-	while (total < src_len) {
+-		size_t l = strlen(src) + 1;
+-
+-		strcpy(dst, prefix);
+-		dst += strlen(prefix);
+-
+-		strcpy(dst, src);
+-		dst += l;
+-
+-		src += l;
+-		total += l;
+-	}
+-}
+-
+-/* prepend compatible property strings with "omapdss," */
+-static void __init omapdss_omapify_node(struct device_node *node)
+-{
+-	struct property *prop;
+-	char *new_compat;
+-	int num_strs;
+-	int new_len;
+-
+-	prop = of_find_property(node, "compatible", NULL);
+-
+-	if (!prop || !prop->value)
+-		return;
+-
+-	if (strnlen(prop->value, prop->length) >= prop->length)
+-		return;
+-
+-	/* is it already prefixed? */
+-	if (strncmp(prefix, prop->value, strlen(prefix)) == 0)
+-		return;
+-
+-	num_strs = omapdss_count_strings(prop);
+-
+-	new_len = prop->length + strlen(prefix) * num_strs;
+-	new_compat = kmalloc(new_len, GFP_KERNEL);
+-
+-	omapdss_prefix_strcpy(new_compat, new_len, prop->value, prop->length);
+-
+-	omapdss_update_prop(node, new_compat, new_len);
+-}
+-
+-static void __init omapdss_add_to_list(struct device_node *node, bool root)
+-{
+-	struct dss_conv_node *n = kmalloc(sizeof(*n), GFP_KERNEL);
+-	if (n) {
+-		n->node = node;
+-		n->root = root;
+-		list_add(&n->list, &dss_conv_list);
+-	}
+-}
+-
+-static bool __init omapdss_list_contains(const struct device_node *node)
+-{
+-	struct dss_conv_node *n;
+-
+-	list_for_each_entry(n, &dss_conv_list, list) {
+-		if (n->node == node)
+-			return true;
 -	}
 -
--	r = src->ops->dsi.set_config(src, &dsi_config);
--	if (r) {
--		dev_err(&ddata->dsi->dev, "failed to configure DSI\n");
--		goto err_regulators;
--	}
+-	return false;
+-}
 -
--	src->ops->enable(src);
- 
- 	dsicm_hw_reset(ddata);
- 
-@@ -360,12 +339,6 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 
- 	dsicm_hw_reset(ddata);
- 
--	src->ops->disable(src);
--err_regulators:
--	r = regulator_bulk_disable(ARRAY_SIZE(ddata->supplies), ddata->supplies);
--	if (r)
--		dev_err(&ddata->dsi->dev, "failed to disable supplies: %d\n", r);
+-static void __init omapdss_walk_device(struct device_node *node, bool root)
+-{
+-	struct device_node *n;
 -
- 	return r;
- }
- 
-@@ -374,6 +347,8 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
- 	struct omap_dss_device *src = ddata->src;
- 	int r;
- 
-+	ddata->enabled = false;
-+
- 	src->ops->dsi.disable_video_output(src, ddata->dsi->channel);
- 
- 	r = mipi_dsi_dcs_set_display_off(ddata->dsi);
-@@ -385,14 +360,6 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
- 				"error disabling panel, issuing HW reset\n");
- 		dsicm_hw_reset(ddata);
- 	}
+-	omapdss_add_to_list(node, root);
 -
--	src->ops->disable(src);
--
--	r = regulator_bulk_disable(ARRAY_SIZE(ddata->supplies), ddata->supplies);
--	if (r)
--		dev_err(&ddata->dsi->dev, "failed to disable supplies: %d\n", r);
--
--	ddata->enabled = false;
- }
- 
- static int dsicm_connect(struct omap_dss_device *src,
-@@ -412,6 +379,29 @@ static void dsicm_disconnect(struct omap_dss_device *src,
- 	ddata->src = NULL;
- }
- 
-+static void dsicm_pre_enable(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *src = ddata->src;
-+	int r;
-+	struct omap_dss_dsi_config dsi_config = {
-+		.vm = &ddata->vm,
-+		.hs_clk_min = 150000000,
-+		.hs_clk_max = 300000000,
-+		.lp_clk_min = 7000000,
-+		.lp_clk_max = 10000000,
-+	};
-+
-+	r = regulator_bulk_enable(ARRAY_SIZE(ddata->supplies), ddata->supplies);
-+	if (r)
-+		dev_err(&ddata->dsi->dev, "failed to enable supplies: %d\n", r);
-+
-+	r = src->ops->dsi.set_config(src, &dsi_config);
-+	if (r) {
-+		dev_err(&ddata->dsi->dev, "failed to configure DSI\n");
-+	}
-+}
-+
- static void dsicm_enable(struct omap_dss_device *dssdev)
- {
- 	struct panel_drv_data *ddata = to_panel_data(dssdev);
-@@ -446,6 +436,16 @@ static void dsicm_disable(struct omap_dss_device *dssdev)
- 	mutex_unlock(&ddata->lock);
- }
- 
-+static void dsicm_post_disable(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	int r;
-+
-+	r = regulator_bulk_disable(ARRAY_SIZE(ddata->supplies), ddata->supplies);
-+	if (r)
-+		dev_err(&ddata->dsi->dev, "failed to disable supplies: %d\n", r);
-+}
-+
- static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
- {
- 	struct mipi_dsi_device *dsi = ddata->dsi;
-@@ -499,8 +499,10 @@ static const struct omap_dss_device_ops dsicm_ops = {
- 	.connect	= dsicm_connect,
- 	.disconnect	= dsicm_disconnect,
- 
-+	.pre_enable	= dsicm_pre_enable,
- 	.enable		= dsicm_enable,
- 	.disable	= dsicm_disable,
-+	.post_disable	= dsicm_post_disable,
- 
- 	.get_modes	= dsicm_get_modes,
- 	.check_timings	= dsicm_check_timings,
-@@ -656,8 +658,6 @@ static int __exit dsicm_remove(struct mipi_dsi_device *dsi)
- 
- 	omapdss_device_unregister(dssdev);
- 
--	if (omapdss_device_is_enabled(dssdev))
--		dsicm_disable(dssdev);
- 	omapdss_device_disconnect(ddata->src, dssdev);
- 
- 	sysfs_remove_group(&dsi->dev.kobj, &dsicm_attr_group);
-diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
-index 18a79dde6815..330296ae8344 100644
---- a/drivers/gpu/drm/omapdrm/omap_encoder.c
-+++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
-@@ -136,16 +136,10 @@ static void omap_encoder_disable(struct drm_encoder *encoder)
- 	 */
- 	omapdss_device_disable(dssdev->next);
- 
 -	/*
--	 * Disable the internal encoder. This will disable the DSS output. The
--	 * DSI is treated as an exception as DSI pipelines still use the legacy
--	 * flow where the pipeline output controls the encoder.
+-	 * of_graph_get_remote_port_parent() prints an error if there is no
+-	 * port/ports node. To avoid that, check first that there's the node.
 -	 */
--	if (dssdev->type != OMAP_DISPLAY_TYPE_DSI) {
--		if (dssdev->ops && dssdev->ops->disable)
--			dssdev->ops->disable(dssdev);
--		dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+-	n = of_get_child_by_name(node, "ports");
+-	if (!n)
+-		n = of_get_child_by_name(node, "port");
+-	if (!n)
+-		return;
+-
+-	of_node_put(n);
+-
+-	n = NULL;
+-	while ((n = of_graph_get_next_endpoint(node, n)) != NULL) {
+-		struct device_node *pn;
+-
+-		pn = of_graph_get_remote_port_parent(n);
+-
+-		if (!pn)
+-			continue;
+-
+-		if (!of_device_is_available(pn) || omapdss_list_contains(pn)) {
+-			of_node_put(pn);
+-			continue;
+-		}
+-
+-		omapdss_walk_device(pn, false);
 -	}
-+	/* Disable the internal encoder. This will disable the DSS output. */
-+	if (dssdev->ops && dssdev->ops->disable)
-+		dssdev->ops->disable(dssdev);
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
- 
- 	/*
- 	 * Perform the post-disable operations on the chain of external devices
-@@ -165,16 +159,10 @@ static void omap_encoder_enable(struct drm_encoder *encoder)
- 	/* Prepare the chain of external devices for pipeline enable. */
- 	omapdss_device_pre_enable(dssdev->next);
- 
--	/*
--	 * Enable the internal encoder. This will enable the DSS output. The
--	 * DSI is treated as an exception as DSI pipelines still use the legacy
--	 * flow where the pipeline output controls the encoder.
--	 */
--	if (dssdev->type != OMAP_DISPLAY_TYPE_DSI) {
--		if (dssdev->ops && dssdev->ops->enable)
--			dssdev->ops->enable(dssdev);
--		dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+-}
+-
+-static const struct of_device_id omapdss_of_match[] __initconst = {
+-	{ .compatible = "ti,omap2-dss", },
+-	{ .compatible = "ti,omap3-dss", },
+-	{ .compatible = "ti,omap4-dss", },
+-	{ .compatible = "ti,omap5-dss", },
+-	{ .compatible = "ti,dra7-dss", },
+-	{},
+-};
+-
+-static const struct of_device_id omapdss_of_fixups_whitelist[] __initconst = {
+-	{},
+-};
+-
+-static void __init omapdss_find_children(struct device_node *np)
+-{
+-	struct device_node *child;
+-
+-	for_each_available_child_of_node(np, child) {
+-		if (!of_find_property(child, "compatible", NULL))
+-			continue;
+-
+-		omapdss_walk_device(child, true);
+-
+-		if (of_device_is_compatible(child, "ti,sysc"))
+-			omapdss_find_children(child);
 -	}
-+	/* Enable the internal encoder. This will enable the DSS output. */
-+	if (dssdev->ops && dssdev->ops->enable)
-+		dssdev->ops->enable(dssdev);
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
- 	/*
- 	 * Enable the chain of external devices, starting at the one at the
+-}
+-
+-static int __init omapdss_boot_init(void)
+-{
+-	struct device_node *dss;
+-
+-	INIT_LIST_HEAD(&dss_conv_list);
+-
+-	dss = of_find_matching_node(NULL, omapdss_of_match);
+-
+-	if (dss == NULL || !of_device_is_available(dss))
+-		goto put_node;
+-
+-	omapdss_walk_device(dss, true);
+-	omapdss_find_children(dss);
+-
+-	while (!list_empty(&dss_conv_list)) {
+-		struct dss_conv_node *n;
+-
+-		n = list_first_entry(&dss_conv_list, struct dss_conv_node,
+-			list);
+-
+-		if (of_match_node(omapdss_of_fixups_whitelist, n->node))
+-			omapdss_omapify_node(n->node);
+-
+-		list_del(&n->list);
+-		of_node_put(n->node);
+-		kfree(n);
+-	}
+-
+-put_node:
+-	of_node_put(dss);
+-	return 0;
+-}
+-
+-subsys_initcall(omapdss_boot_init);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
