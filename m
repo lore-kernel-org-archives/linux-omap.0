@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D84D5C63798
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB9EC63798
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A1DC2076E
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9666020782
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Nov 2020 12:48:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="CeSQQY6N"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="aiWIApQW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387701AbgKXMsc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 Nov 2020 07:48:32 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:40104 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732709AbgKXMsb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:48:31 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCmP3v033187;
-        Tue, 24 Nov 2020 06:48:25 -0600
+        id S2387709AbgKXMsh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Nov 2020 07:48:37 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:55568 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732709AbgKXMsg (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2020 07:48:36 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCmU5l123878;
+        Tue, 24 Nov 2020 06:48:30 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606222105;
-        bh=OzS9hctnVOx46cFklaoF1BsEwxZJ2uBRcjNr+C/Q+to=;
+        s=ti-com-17Q1; t=1606222110;
+        bh=Tu73si6Rn61aSIZMNLbrDV73nhKDiA3zzoX99G39TS8=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=CeSQQY6NAK/IScP3LFZwlpwXNf451HcS9QrN1Yxj7/tW0zCBQmCUHoS3cNv1Qmz+f
-         0KZWnKi5yVwKE5m4x2UIRO+LWQKFQ4NhfNss6yiDSALD1LmCZd+7FWArzKAffrylYP
-         abRRL8II4OuH6Px9W2QYAaJCkEOkrtFRJ5zN37o0=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCmPh3045588
+        b=aiWIApQWMw3XoyVyMa+WC/gdHb+riG38EV0pmWFmJ27g6KeyNbiGxcNtFNlTE8H/k
+         GgXFQ8piDITUYrTvUf4FIQmvUHFw+20IanWrwpfUpUz6VU3rpl7XG3XG730hCDFsJD
+         nifxEqTin2oT6L+lTKQTu63cOHLQ2aXKT0lb+zz8=
+Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AOCmUbm109305
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 24 Nov 2020 06:48:25 -0600
-Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 24 Nov 2020 06:48:30 -0600
+Received: from DLEE115.ent.ti.com (157.170.170.26) by DLEE107.ent.ti.com
+ (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 24
- Nov 2020 06:48:25 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE101.ent.ti.com
- (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 06:48:29 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 24 Nov 2020 06:48:24 -0600
+ Frontend Transport; Tue, 24 Nov 2020 06:48:29 -0600
 Received: from deskari.lan (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmpq040922;
-        Tue, 24 Nov 2020 06:48:23 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AOCjmps040922;
+        Tue, 24 Nov 2020 06:48:27 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -53,9 +53,9 @@ To:     Sebastian Reichel <sre@kernel.org>,
         <linux-omap@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
 CC:     Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         <hns@goldelico.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v4 63/80] drm/omap: dsi: drop useless channel checks
-Date:   Tue, 24 Nov 2020 14:45:21 +0200
-Message-ID: <20201124124538.660710-64-tomi.valkeinen@ti.com>
+Subject: [PATCH v4 65/80] drm/omap: dsi: skip dsi_vc_enable_hs when already in correct mode
+Date:   Tue, 24 Nov 2020 14:45:23 +0200
+Message-ID: <20201124124538.660710-66-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201124124538.660710-1-tomi.valkeinen@ti.com>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
@@ -67,53 +67,57 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-A DSI peripheral can have virtual channel ID of 0-3. This should be
-always the case, and there's no need in the driver to validate the
-channel.
+Simplify and optimize dsi_vc_enable_hs() so that it can be called
+without checking the current HS/LP mode. Make dsi_vc_enable_hs() return
+if the VC is already in the correct mode.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c | 11 -----------
- 1 file changed, 11 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 63338324c564..fbf05097612f 100644
+index 4ac82166edc3..c3f13226ac26 100644
 --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
 +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -3902,9 +3902,6 @@ static int dsi_update_channel(struct omap_dss_device *dssdev, int channel)
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
+@@ -341,7 +341,6 @@ struct dsi_data {
+ 	int irq;
+ 
+ 	bool is_enabled;
+-	bool in_lp_mode;
+ 
+ 	struct clk *dss_clk;
+ 	struct regmap *syscon;
+@@ -2441,6 +2440,9 @@ static void dsi_vc_enable_hs(struct omap_dss_device *dssdev, int vc,
+ 
+ 	DSSDBG("dsi_vc_enable_hs(%d, %d)\n", vc, enable);
+ 
++	if (REG_GET(dsi, DSI_VC_CTRL(vc), 9, 9) == enable)
++		return;
++
+ 	WARN_ON(!dsi_bus_is_locked(dsi));
+ 
+ 	dsi_vc_enable(dsi, vc, 0);
+@@ -2456,8 +2458,6 @@ static void dsi_vc_enable_hs(struct omap_dss_device *dssdev, int vc,
+ 	/* start the DDR clock by sending a NULL packet */
+ 	if (dsi->vm_timings.ddr_clk_always_on && enable)
+ 		dsi_vc_send_null(dsi, vc, dsi->dsidev->channel);
+-
+-	dsi->in_lp_mode = !enable;
+ }
+ 
+ static void dsi_vc_flush_long_data(struct dsi_data *dsi, int vc)
+@@ -4886,9 +4886,7 @@ static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi, int vc,
+ 	struct omap_dss_device *dssdev = &dsi->output;
  	int r;
  
--	if (channel > 3)
--		return -EINVAL;
--
- 	dsi_bus_lock(dsi);
+-	if (!!(msg->flags & MIPI_DSI_MSG_USE_LPM) != dsi->in_lp_mode)
+-		dsi_vc_enable_hs(dssdev, vc,
+-				 !(msg->flags & MIPI_DSI_MSG_USE_LPM));
++	dsi_vc_enable_hs(dssdev, vc, !(msg->flags & MIPI_DSI_MSG_USE_LPM));
  
- 	if (!dsi->video_enabled) {
-@@ -5063,12 +5060,8 @@ static int omap_dsi_host_attach(struct mipi_dsi_host *host,
- 				struct mipi_dsi_device *client)
- {
- 	struct dsi_data *dsi = host_to_omap(host);
--	unsigned int channel = client->channel;
- 	int r;
- 
--	if (channel > 3)
--		return -EINVAL;
--
- 	if (dsi->dsidev) {
- 		DSSERR("dsi client already attached\n");
- 		return -EBUSY;
-@@ -5118,10 +5111,6 @@ static int omap_dsi_host_detach(struct mipi_dsi_host *host,
- 				struct mipi_dsi_device *client)
- {
- 	struct dsi_data *dsi = host_to_omap(host);
--	unsigned int channel = client->channel;
--
--	if (channel > 3)
--		return -EINVAL;
- 
- 	if (WARN_ON(dsi->dsidev != client))
- 		return -EINVAL;
+ 	switch (msg->type) {
+ 	case MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM:
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
