@@ -2,119 +2,121 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD8A2C64E7A
-	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 07:38:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E59DCC64E7A
+	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 07:43:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 783492222C
-	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 07:38:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C18E22248
+	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 07:43:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="mAEP4Up0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392737AbgK0Hia (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 27 Nov 2020 02:38:30 -0500
-Received: from muru.com ([72.249.23.125]:49416 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387909AbgK0Hia (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 27 Nov 2020 02:38:30 -0500
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 3C4E080EE;
-        Fri, 27 Nov 2020 07:38:36 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-List-Id: <soc.lore.kernel.org>
-To:     soc@kernel.org
-Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        "Tony Lindgren" <tony@atomide.com>
-Subject: [GIT PULL 2/3] Devicetree changes for omaps for v5.11 merge window
-Date:   Fri, 27 Nov 2020 09:38:20 +0200
-Message-Id: <pull-1606462656-588116@atomide.com-2>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <pull-1606462656-588116@atomide.com>
-References: <pull-1606462656-588116@atomide.com>
+        id S2388343AbgK0Hnj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 27 Nov 2020 02:43:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55254 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388210AbgK0Hni (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2020 02:43:38 -0500
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83026C0613D4
+        for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2020 23:43:38 -0800 (PST)
+Received: by mail-wr1-x444.google.com with SMTP id u12so4556081wrt.0
+        for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2020 23:43:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=rEnnfAVid4AD+7VYyTlu/4hDcuao08OGFyiRJJS5gHM=;
+        b=mAEP4Up0E8VPIDiHTsetQh/Oq5MJPO4a7fnzIa2B78i+oO6AKfNsWzPBoDYLLwgrQX
+         t02naVresVptmihYObQ9bXLHe8A1rs1P8SLpPYzb7iWyhguefhlLOEvzBoeFP5d8GouD
+         B5F8Vr17OIyFsh9/TjQ4E/N930GNkUr97UKlsEqls3An3dVJ1nARLZKT42GpMey8NEE9
+         tRR6f33bMvDdt99F9zbVsLTUJ4RGGVOHBMB9EmMAYpe/mGoDz0gGyNqqtDbvi7Yil4SD
+         dsoB+5JQDQ46X/Pb1CYTRl+GGkmFJ4zx4xllOcadZ8mLH+vD/swKs8NRijjKv5Mwvhz0
+         u/PQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=rEnnfAVid4AD+7VYyTlu/4hDcuao08OGFyiRJJS5gHM=;
+        b=kKR0Eklia9vgajo0PjxgTFGLK20/2yK27598veoKZrKqlrzujnvLYaN9KPzj2/qMbH
+         MAx8tqWiZ9Zy5Knq2gLBs5G06zPADYJwjyqgNqi4gzN5XyYdNKUjH9FtQD0G6Be0WF1N
+         3SYKlffMHDUB9qQ2/ufK/728ylWzSZFULtQYuVwImYXpGXN6zLAR7pHQ+4VQ0arp13vV
+         1mLLIvYvvNq9xjE17zcYREcWHPG9e1WxAOSW67LqzA+d+ZBBJ+1ofDPlUhRNlQpKzdGQ
+         cwPWRdtdcthUc+cosJ/Vpa26cSVO2fW+CpaQ8u6vREs9Jb8JBX7btCBS3gurUzK6NMJF
+         cduw==
+X-Gm-Message-State: AOAM532JTlpfqfpjZqmcpns/zy+bQoi1tUU6OMxizi0J8Q3NQCTl4UHP
+        XkjCIcZ8KteVz5DxWdKLE5Db/w==
+X-Google-Smtp-Source: ABdhPJwNjuZb0tCHUVJNH0+fFMWOxXUcbmUbuJeZf6e0VklNKGWSDJaN44uBOvtnbFNkBCBOwEU/AA==
+X-Received: by 2002:a05:6000:10cd:: with SMTP id b13mr954380wrx.178.1606463017038;
+        Thu, 26 Nov 2020 23:43:37 -0800 (PST)
+Received: from dell ([91.110.221.235])
+        by smtp.gmail.com with ESMTPSA id j65sm5423167wmj.13.2020.11.26.23.43.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 26 Nov 2020 23:43:36 -0800 (PST)
+Date:   Fri, 27 Nov 2020 07:43:34 +0000
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Dmitry Osipenko <digetx@gmail.com>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
+        Zack Pearsall <zpearsall@yahoo.com>,
+        linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] mfd: tps65910: Correct power-off programming sequence
+Message-ID: <20201127074334.GH2455276@dell>
+References: <20201115204505.18616-1-digetx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20201115204505.18616-1-digetx@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+On Sun, 15 Nov 2020, Dmitry Osipenko wrote:
 
-The following changes since commit 3650b228f83adda7e5ee532e2b90429c03f7b9ec:
+> Correct power-off programming sequence in order to fix shutting down
+> devices which are using TPS65910 PMIC.
+> 
+> In accordance to the TPS65910 datasheet, the PMIC's state-machine
+> transitions into the OFF state only when DEV_OFF bit of DEVCTRL_REG is
+> set. The ON / SLEEP states also should be cleared, otherwise PMIC won't
+> get into a proper state on shutdown. Devices like Nexus 7 tablet and Ouya
+> game console are shutting down properly now.
+> 
+> Tested-by: Peter Geis <pgwipeout@gmail.com>
+> Tested-by: Zack Pearsall <zpearsall@yahoo.com>
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> ---
+> 
+> Changelog:
+> 
+> v4: - Rebased on a recent linux-next.
+> 
+> v3: - Removed the DEV_SLP_MASK clearing and adding clarifying comment to
+>       the code about why clearing PWR_OFF bit needs to be done, which was
+>       suggested by  Michał Mirosław in a review comment to v2.
+> 
+>     - Added tested-by from Peter Geis who tested v3 on his Ouya game
+>       console.
+> 
+> v2: - Now using a single tps65910_reg_update_bits() instead of set+clear.
+>       Thanks to Michał Mirosław for the suggestion.
+> 
+>  drivers/mfd/tps65910.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
 
-  Linux 5.10-rc1 (2020-10-25 15:14:11 -0700)
+Applied, thanks.
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.11/dt-signed
-
-for you to fetch changes up to d7356a7ab125c3a4fee521b7530f3122bc842ac4:
-
-  ARM: dts: am335x: Fix comments for AM335X_PIN_GPMC_WPN pin in GPIO mode (2020-11-16 13:38:29 +0200)
-
-----------------------------------------------------------------
-Devicetree changes for omaps for v5.11 merge window
-
-- Two non-urgent pandaboard updates to get gpio button and bluetooth
-  working on pandaboard-es
-
-- Updates to follow devicetree binding docs for dwc3 and pwm-leds
-
-- Add initial support for droid bionic based on what we have for droid4
-
-- Add second sha instance for dra7
-
-- Add eQEP nodes for am335x for boneblue
-
-- Fix wrong comments for am335x gpio_31
-
-----------------------------------------------------------------
-Alexander Dahl (1):
-      ARM: dts: omap: Fix schema warnings for pwm-leds
-
-Alexander Shiyan (1):
-      ARM: dts: am335x: Fix comments for AM335X_PIN_GPMC_WPN pin in GPIO mode
-
-Carl Philipp Klemm (2):
-      ARM: dts: mapphone: separate out xt894 specific things
-      ARM: dts: xt875: add section for kionix kxtf9
-
-David Lechner (2):
-      ARM: dts: am33xx: Add nodes for eQEP
-      ARM: dts: am335x-boneblue: Enable eQEP
-
-H. Nikolaus Schaller (2):
-      ARM: dts: pandaboard: fix pinmux for gpio user button of Pandaboard ES
-      ARM: dts: pandaboard es: add bluetooth uart for HCI
-
-Serge Semin (2):
-      ARM: dts: am437x: Correct DWC USB3 compatible string
-      ARM: dts: omap5: Harmonize DWC USB3 DT nodes name
-
-Tero Kristo (1):
-      ARM: dts: dra7: add second SHA instance
-
-Tony Lindgren (1):
-      Merge branch 'omap-for-v5.11/dt-mot-take2' into omap-for-v5.11/dt
-
- arch/arm/boot/dts/am335x-baltos.dtsi            |   2 +-
- arch/arm/boot/dts/am335x-boneblue.dts           |  54 +++++++++
- arch/arm/boot/dts/am335x-cm-t335.dts            |   2 +-
- arch/arm/boot/dts/am335x-evm.dts                |   2 +-
- arch/arm/boot/dts/am335x-igep0033.dtsi          |   2 +-
- arch/arm/boot/dts/am33xx-l4.dtsi                |  27 +++++
- arch/arm/boot/dts/am437x-l4.dtsi                |   4 +-
- arch/arm/boot/dts/dra7.dtsi                     |  34 +++++-
- arch/arm/boot/dts/motorola-mapphone-common.dtsi | 141 +----------------------
- arch/arm/boot/dts/omap3-beagle-xm.dts           |  10 +-
- arch/arm/boot/dts/omap3-overo-base.dtsi         |   4 +-
- arch/arm/boot/dts/omap4-droid-bionic-xt875.dts  |  46 ++++++++
- arch/arm/boot/dts/omap4-droid4-xt894.dts        | 143 ++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-kc1.dts                 |   6 +-
- arch/arm/boot/dts/omap4-panda-es.dts            |  34 +++++-
- arch/arm/boot/dts/omap4-sdp.dts                 |  26 +++--
- arch/arm/boot/dts/omap5-l4.dtsi                 |   2 +-
- 17 files changed, 367 insertions(+), 172 deletions(-)
+-- 
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
