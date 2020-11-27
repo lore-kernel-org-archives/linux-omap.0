@@ -2,97 +2,126 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB45BC2D0E4
-	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 08:43:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 301B1C63777
+	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 08:53:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F11622226
-	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 08:43:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF2112224A
+	for <linux-omap@archiver.kernel.org>; Fri, 27 Nov 2020 08:53:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="eiXc00S9"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="x/Td2FQn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728114AbgK0Inl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 27 Nov 2020 03:43:41 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:42812 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727742AbgK0Ink (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2020 03:43:40 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AR8hV57029011;
-        Fri, 27 Nov 2020 02:43:31 -0600
+        id S1726039AbgK0IxH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 27 Nov 2020 03:53:07 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:45524 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725616AbgK0IxG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2020 03:53:06 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0AR8qqFL058771;
+        Fri, 27 Nov 2020 02:52:52 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1606466611;
-        bh=aMzyk4R1VkVqE8u8Y1gkJ93UmYRtvSDrJWJA3BazLBI=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=eiXc00S9zlRjJ3t94onJsSPWheIemhEs3ZquGJurOy7u+2xZxMdZvVDwcC0+0BbS2
-         9tWMA0iebJ8hkhpP0Gd21eyt3QU5bDfDuRlvjdXGmyINuF6++rk3DzMmp4ib7Q4KER
-         9tkvchaAGWRLc9y9XIg5N1PuEPGD56wlZrT9MdGw=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AR8hVom099118
+        s=ti-com-17Q1; t=1606467173;
+        bh=22qq5cH0rtrp1yoHTvmHzVfEHlHoqWC5Nw0TTNSpnJQ=;
+        h=From:To:CC:Subject:Date;
+        b=x/Td2FQnsw8Ly3YMPNOjHZl65kkDMj2WBTnJ2kcFmUrtj75IlqPej86litB0/L5Ul
+         12NeEaE2U8Xl/dqKtmVqAGGeThrgCB6mjA5xz7GzHt2uo7Dr9aiNGXPn6HkitUe3TU
+         E0IU/lf9RDsW4Q4Mr7GEbZNYLrNE4FeggpqiTyos=
+Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0AR8qqPH024773
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 27 Nov 2020 02:43:31 -0600
-Received: from DFLE112.ent.ti.com (10.64.6.33) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 27 Nov 2020 02:52:52 -0600
+Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 27
- Nov 2020 02:43:30 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2020 02:52:52 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 27 Nov 2020 02:43:30 -0600
-Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AR8hSXW053143;
-        Fri, 27 Nov 2020 02:43:29 -0600
-Subject: Re: [REGRESSION] omapdrm/N900 display broken
-To:     Daniel Vetter <daniel@ffwll.ch>
-CC:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        ML dri-devel <dri-devel@lists.freedesktop.org>,
-        Tony Lindgren <tony@atomide.com>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <20200728181412.GA49617@darkstar.musicnaut.iki.fi>
- <660b2fe1-343d-b83e-11d2-5a5eb530b83f@ti.com>
- <448c1441-2cac-44ef-95ef-bb28b512297b@ti.com>
- <20200823162625.GC4313@darkstar.musicnaut.iki.fi>
- <ac42f7f9-2ac2-246e-69c1-3d56cea7e59b@ti.com>
- <CAKMK7uEAaNhr__aYxWpNmUb1jTruf0FMoPwgn8_so9mGV=yAOQ@mail.gmail.com>
+ Frontend Transport; Fri, 27 Nov 2020 02:52:52 -0600
+Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0AR8qom2074793;
+        Fri, 27 Nov 2020 02:52:50 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <6f7e2f5c-3e88-25c1-d46a-8c52c15527ce@ti.com>
-Date:   Fri, 27 Nov 2020 10:43:28 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+To:     <dri-devel@lists.freedesktop.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nikhil Devshatwar <nikhil.nd@ti.com>
+CC:     <linux-omap@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>, <stable@vger.kernel.org>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH] drm/omap: sdi: fix bridge enable/disable
+Date:   Fri, 27 Nov 2020 10:52:41 +0200
+Message-ID: <20201127085241.848461-1-tomi.valkeinen@ti.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uEAaNhr__aYxWpNmUb1jTruf0FMoPwgn8_so9mGV=yAOQ@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 25/11/2020 11:07, Daniel Vetter wrote:
+When the SDI output was converted to DRM bridge, the atomic versions of
+enable and disable funcs were used. This was not intended, as that would
+require implementing other atomic funcs too. This leads to:
 
->> Laurent, does this ring any bells? The WARN comes in drm_atomic_bridge_chain_enable() when
->> drm_atomic_get_old_bridge_state() returns null for (presumably) sdi bridge.
->>
->> I'm not sure why the bridge state would not be there.
-> 
-> Lack of state on first modeset usually means your
-> drm_mode_config_reset didn't create one. Or whatever it is you're
-> using. I didn't look whether you're wiring this up correctly or not.
-> We might even want to add a ->reset function to
-> drm_private_state_funcs to make this work for everyone.
+WARNING: CPU: 0 PID: 18 at drivers/gpu/drm/drm_bridge.c:708 drm_atomic_helper_commit_modeset_enables+0x134/0x268
 
-The bridge driver set atomic_enable and atomic_disable, but no other atomic funcs. It was supposed
-to set the legacy enable & disable.
+and display not working.
 
- Tomi
+Fix this by using the legacy enable/disable funcs.
 
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Fixes: 8bef8a6d5da81b909a190822b96805a47348146f ("drm/omap: sdi: Register a drm_bridge")
+Cc: stable@vger.kernel.org # v5.7+
+Tested-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ drivers/gpu/drm/omapdrm/dss/sdi.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/omapdrm/dss/sdi.c b/drivers/gpu/drm/omapdrm/dss/sdi.c
+index 033fd30074b0..282e4c837cd9 100644
+--- a/drivers/gpu/drm/omapdrm/dss/sdi.c
++++ b/drivers/gpu/drm/omapdrm/dss/sdi.c
+@@ -195,8 +195,7 @@ static void sdi_bridge_mode_set(struct drm_bridge *bridge,
+ 	sdi->pixelclock = adjusted_mode->clock * 1000;
+ }
+ 
+-static void sdi_bridge_enable(struct drm_bridge *bridge,
+-			      struct drm_bridge_state *bridge_state)
++static void sdi_bridge_enable(struct drm_bridge *bridge)
+ {
+ 	struct sdi_device *sdi = drm_bridge_to_sdi(bridge);
+ 	struct dispc_clock_info dispc_cinfo;
+@@ -259,8 +258,7 @@ static void sdi_bridge_enable(struct drm_bridge *bridge,
+ 	regulator_disable(sdi->vdds_sdi_reg);
+ }
+ 
+-static void sdi_bridge_disable(struct drm_bridge *bridge,
+-			       struct drm_bridge_state *bridge_state)
++static void sdi_bridge_disable(struct drm_bridge *bridge)
+ {
+ 	struct sdi_device *sdi = drm_bridge_to_sdi(bridge);
+ 
+@@ -278,8 +276,8 @@ static const struct drm_bridge_funcs sdi_bridge_funcs = {
+ 	.mode_valid = sdi_bridge_mode_valid,
+ 	.mode_fixup = sdi_bridge_mode_fixup,
+ 	.mode_set = sdi_bridge_mode_set,
+-	.atomic_enable = sdi_bridge_enable,
+-	.atomic_disable = sdi_bridge_disable,
++	.enable = sdi_bridge_enable,
++	.disable = sdi_bridge_disable,
+ };
+ 
+ static void sdi_bridge_init(struct sdi_device *sdi)
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
