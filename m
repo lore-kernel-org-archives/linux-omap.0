@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD57AC71156
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 07:20:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04238C64E8A
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 07:20:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75F542087C
+	by mail.kernel.org (Postfix) with ESMTP id A5B822168B
 	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 07:20:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727402AbgLAHT7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Dec 2020 02:19:59 -0500
-Received: from muru.com ([72.249.23.125]:49548 "EHLO muru.com"
+        id S1725859AbgLAHUE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Dec 2020 02:20:04 -0500
+Received: from muru.com ([72.249.23.125]:49572 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725859AbgLAHT6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 1 Dec 2020 02:19:58 -0500
+        id S1727690AbgLAHUE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 1 Dec 2020 02:20:04 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id DD8598167;
-        Tue,  1 Dec 2020 07:19:23 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 25B6981CB;
+        Tue,  1 Dec 2020 07:19:28 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 List-Id: <soc.lore.kernel.org>
 To:     soc@kernel.org
@@ -35,9 +35,9 @@ Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
         Ohad Ben-Cohen <ohad@wizery.com>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
         "Tony Lindgren" <tony@atomide.com>
-Subject: [GIT PULL 2/4] Update am335x to boot without platform data
-Date:   Tue,  1 Dec 2020 09:18:47 +0200
-Message-Id: <pull-1606806458-694517@atomide.com-2>
+Subject: [GIT PULL 4/4] Remaining genpd changes for omaps for v5.11
+Date:   Tue,  1 Dec 2020 09:18:49 +0200
+Message-Id: <pull-1606806458-694517@atomide.com-4>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <pull-1606806458-694517@atomide.com>
 References: <pull-1606806458-694517@atomide.com>
@@ -50,79 +50,87 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 57df7e370d2ab83a64c07acd157acfed4169f114:
+The following changes since commit df6c2ec872a62cf81dff86ef62818dea89cc9d98:
 
-  remoteproc/wkup_m3: Use reset control driver if available (2020-11-16 12:57:40 +0200)
+  ARM: OMAP2+: Drop legacy remaining legacy platform data for am4 (2020-11-16 13:11:17 +0200)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.11/genpd-am335x-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.11/genpd-rest-signed
 
-for you to fetch changes up to 133ad7ab7005dc951fb66d3de9e29a8259fe9744:
+for you to fetch changes up to b62168e516dab1b7cb7bb90976755b08d273cc3a:
 
-  ARM: OMAP2+: Build hwmod related code as needed (2020-11-16 12:58:21 +0200)
+  ARM: OMAP2+: Fix am4 only build after genpd changes (2020-11-27 08:13:25 +0200)
 
 ----------------------------------------------------------------
-Update am335x to boot without platform data
+Remaining genpd changes for omaps for v5.11
 
-With the driver updates done for genpd support, we can now update
-am335x dts files to boot with genpd and simple-pm-bus, and drop
-the related platform data.
+This series contains the remaining genpd changes for omap4/5,
+and dra7 to add the power domain and reset control data to
+omap-prm driver. We also update several devices to probe without
+platform data to get us closer to booting omap4/5, and dra7
+without platform data.
 
-To do that, we need to do the following changes for am335x:
+There is also a build fix for the earlier am437x series that
+I should have applied into a separate branch on top of the
+am437x breaking commit. It ended here as I was originally
+planning to send out a single pull request for all the genpd
+changes, but then decided to break it down to smaller chunks.
+It's all really a larger single git branch though, so this
+should be OK and I really did not want to start reorganizing
+the branch after testing it and having it sit in Linux next.
 
-- Add the remaining power domain and reset controller instances
+The changes done here are:
 
-- Configure interconnect clocks for system timers as those are
-  now managed separately by the drivers/clocksource drivers
+- Clock driver needs idlest check dropped for IVA for omap4
+  and dra7
 
-- Update control module, RTC, gpmc, debugss, emif, ocmcram,
-  instr, and mpuss for device tree data and drop the legacy
+- Add remaining power domain and reset control data to
+  omap-prm driver for omap4/5 and dra7
+
+- Add device tree data for remaining power domains and
+  reset control for omap4/5 and dra7 dts files
+
+- Update dss, dsp, iva and gpmc dts files to use genpd
+  and to drop the remaining platform data
+
+- Update dss for omap5 to use genpd
+
+- Update dra7 iva to to use genpd and to drop the remaining
   platform data
 
-- Update the interconnect instances to boot with gendp and
-  simple-pm-bus
-
-- Drop the remaining platform data for am335x
-
-- Add kconfig option for OMAP_HWMOD to build it only for the
-  SoCs that need it
-
 ----------------------------------------------------------------
-Tero Kristo (1):
-      ARM: dts: am33xx: add remaining PRM instances
+Tero Kristo (6):
+      soc: ti: omap-prm: omap4: add genpd support for remaining PRM instances
+      ARM: dts: omap4: add remaining PRM instances
+      soc: ti: omap-prm: dra7: add genpd support for remaining PRM instances
+      ARM: dts: dra7: add remaining PRM instances
+      soc: ti: omap-prm: omap5: add genpd support for remaining PRM instances
+      ARM: dts: omap5: add remaining PRM instances
 
-Tony Lindgren (17):
-      ARM: dts: Configure also interconnect clocks for am4 system timer
-      ARM: OMAP2+: Drop legacy platform data for am3 control module
-      ARM: dts: Configure RTC powerdomain for am3
-      ARM: dts: Configure interconnect target module for am3 wkup_m3
-      ARM: OMAP2+: Drop legacy platform data for am3 wkup_m3
-      ARM: OMAP2+: Drop legacy platform data for am3 and am4 gpmc
-      ARM: OMAP2+: Drop legacy platform data for am3 debugss
-      ARM: OMAP2+: Drop legacy platform data for am3 emif
-      ARM: OMAP2+: Drop legacy platform data for am3 ocmcram
-      ARM: OMAP2+: Drop legacy platform data for am3 instr
-      ARM: OMAP2+: Drop legacy platform data for am3 mpuss
-      ARM: dts: Use simple-pm-bus for genpd for am3 l4_wkup
-      ARM: dts: Use simple-pm-bus for genpd for am3 l4_fast
-      ARM: dts: Use simple-pm-bus for genpd for am3 l4_per
-      ARM: dts: Use simple-pm-bus for genpd for am3 l3
-      ARM: OMAP2+: Drop legacy remaining legacy platform data for am3
-      ARM: OMAP2+: Build hwmod related code as needed
+Tony Lindgren (10):
+      clk: ti: omap4: Drop idlest polling from IVA clkctrl clocks
+      ARM: dts: Configure power domain for omap4 dss
+      ARM: dts: Configure power domain for omap4 dsp
+      ARM: OMAP2+: Drop legacy platform data for omap4 iva
+      ARM: OMAP2+: Drop legacy platform data for omap4 gpmc
+      clk: ti: dra7: Drop idlest polling from IVA clkctrl clocks
+      ARM: dts: Configure interconnect target module for dra7 iva
+      ARM: OMAP2+: Drop legacy platform data for dra7 gpmc
+      ARM: dts: Configure power domain for omap5 dss
+      ARM: OMAP2+: Fix am4 only build after genpd changes
 
- arch/arm/boot/dts/am335x-nano.dts                  |   1 -
- arch/arm/boot/dts/am33xx-l4.dtsi                   |  75 ++++--
- arch/arm/boot/dts/am33xx.dtsi                      | 185 ++++++++-----
- arch/arm/boot/dts/am4372.dtsi                      |  49 ++--
- arch/arm/mach-omap2/Kconfig                        |   9 +
- arch/arm/mach-omap2/Makefile                       |  14 +-
- arch/arm/mach-omap2/io.c                           |   2 -
- .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |   2 -
- .../omap_hwmod_33xx_43xx_interconnect_data.c       |   8 -
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  36 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 294 ---------------------
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |   1 -
- arch/arm/mach-omap2/pdata-quirks.c                 |  12 +-
- 13 files changed, 236 insertions(+), 452 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+ arch/arm/boot/dts/dra7.dtsi                | 151 ++++++++++++++++--
+ arch/arm/boot/dts/dra7xx-clocks.dtsi       |  14 ++
+ arch/arm/boot/dts/omap4-l4.dtsi            |   1 +
+ arch/arm/boot/dts/omap4.dtsi               | 150 +++++++++++++++---
+ arch/arm/boot/dts/omap5.dtsi               |  58 +++++++
+ arch/arm/mach-omap2/io.c                   |   1 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 114 --------------
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  |  49 ------
+ arch/arm/mach-omap2/pdata-quirks.c         |  12 --
+ drivers/clk/ti/clk-44xx.c                  |   2 +-
+ drivers/clk/ti/clk-7xx.c                   |   7 +
+ drivers/soc/ti/omap_prm.c                  | 238 ++++++++++++++++++++++++++---
+ include/dt-bindings/clock/dra7.h           |   4 +
+ 13 files changed, 571 insertions(+), 230 deletions(-)
