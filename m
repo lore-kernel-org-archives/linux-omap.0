@@ -5,30 +5,31 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2469C83016
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A2CC8301A
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:32:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9242220C56
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:31:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 046FD2224B
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:32:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=leica-geosystems.com header.i=@leica-geosystems.com header.b="eQ09sOk7"
+	dkim=pass (1024-bit key) header.d=leica-geosystems.com header.i=@leica-geosystems.com header.b="YD7AkX/g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727179AbgLAWbW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Dec 2020 17:31:22 -0500
+        id S1727209AbgLAWbq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Dec 2020 17:31:46 -0500
 Received: from mail-eopbgr60097.outbound.protection.outlook.com ([40.107.6.97]:16646
         "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727064AbgLAWbV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 1 Dec 2020 17:31:21 -0500
+        id S1727064AbgLAWbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 1 Dec 2020 17:31:44 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=I2c0WH89Y8pIqElsF5MM4xB6UZlgcXBeGESFjLP3qkNOy1onL/xjQYEtJhw48yt+huRo9yNmF5LsV3N8pE4B6odYDFJWwz5IVEdZ5mvVzWstleqMurgyYH1O6uiDqtk+CU1LGkaI/q8QiNF7KoVLmP+sTTE+9LP1dljcYyUNDYhsNQeKPYbdWubMcwdnzlg5s12X5AeSGKU7ic6Eoh9ucvQuP7S+YnM6q6TvYJatLANr/ovddNJX6KC2/TBkNK3/gIg2eSW0vLfX669FrXTpvDbnpCQZHQEp5htF3e9Xl+sRYiAdz3Z1yEVtjZjnfD+jGdtAdrJFLLl4076PfnVjKg==
+ b=fIOz3WMHUvjdLhmxE2uEBzzbdx4V55BoI6Ygfp6RazOKIWimvNee3aO8vc4S0/DFlRbO4MpDk2DgrSzZhqLBHoujssG1unmwZRkuK3PN+Y7Pqk8+QgMm8YI5AqNdCzn/LBHttEWkHqexomHysTkRvbeMmhaSCMOUME8nssRQ83mNzuKiGfmSERLnO/XOfLj1C906gHHJx+2zE5iU6YAonp7jKy02PS5A9GH+pdRqeED+D+QOuhsO2yhgh3kIn74xkkrJ9HjNhvj7Ajfx+wzxDe+ErjgOf7vXytsfvr0NfCU6A/8N0wD/VhEsIXJNEJXTQ1xjb26tWrqSpHniDxX4tg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wQNbewLV3VO5tnqMlf4O+K3vo3WTGO6NgmUHjhgup+Y=;
- b=NQ3384f/XGAJY9LXV/n5Qkt/sMBr0GC1SoDn0xuA28BTc/3Jsk6OvhndakT/LijqLQrhyWtW/e4Jjy4XJRP/uyxYQ+c9S7hkIiXIVZ4klsSgiX3EMwJDBtE/TGXZYiRZ85fhKBjR5b5U44yjhk/h96V4VMQd/va1T/uKpbGnH2q/0Vr6/5mGg8vY5wy/eLFCw/4GKhRjRjmpJFM2k/0tLszPffRs0AVOn71aNHP2xuyg9j5qC/gZwlyol1h47R3tAYg4GfzN2VUK/8zqxuB9awM/qUjVKNye0cXXcr/yZjp0wXrTOFig0qrXOid8/q8zZZ4wobiYD+J2nHMWHZcUqw==
+ bh=0wJjQAZHI5NHAdE2q6LEx8sK4q6pN8M0elUMSYPsAqg=;
+ b=HCptyY6r28ExFIx1N9Xrcchn8YiDLgCbe+UqDKupMfYuKsm+M+d2YDPIV5HUw18oAAKFrHVkO3/v4aWrJTMUGinNyAkq7KJ1iiGpHbABmq4tFicoG7Y08z376ZQQVxgpLOEo9iS2ZjiHChwvPRYfbT0UzVSwAeAeFqzZoGzV811fEcL2XNBpmc1POnJQ5jhsYtx5LFsSJpcfxiBAEiudcwfLz+FqBUktIh6VNjI+SKPb2PDsyAwuiR56SFbaoZoxJ7VGwgSZSRfJMU9pp+Nu22TRExKFu47LFFyUAVlXm3n5GZ8WgmiiBdvhZiYTXoaKRu+kyv+AarS7n47fXCeHZA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=leica-geosystems.com; dmarc=pass action=none
  header.from=leica-geosystems.com; dkim=pass header.d=leica-geosystems.com;
@@ -36,8 +37,8 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=leica-geosystems.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wQNbewLV3VO5tnqMlf4O+K3vo3WTGO6NgmUHjhgup+Y=;
- b=eQ09sOk70ynAV45V+xnhcLw4G0yUnkXSVjHAQhy31jobfhGPfl2SRLEmc5TcbM2KjUjMwBbwiw7tcnM7wESzcHocHTcMSUK4UJMa2SLcwWfSUNu0sBqXk8qldzIZOcqj8aRcvKXFM7/SvMSBhALhgykR2gVaf4VCD84THifQfrw=
+ bh=0wJjQAZHI5NHAdE2q6LEx8sK4q6pN8M0elUMSYPsAqg=;
+ b=YD7AkX/g+iGwK60sH5ekUZqua9ZiQ18JmtHmO8ub07iY9GCTHqiGujaUBCzUH052f+HHg9BWK9BkymdRJeNef9dSGXASW7CprGmfEmV2YTG2bylbKkAEOsXjzDveE3CPaphtkfnao/Ddh9/eJDQPxwpwRWMP7UFz5SJGPOdliF0=
 Authentication-Results: armlinux.org.uk; dkim=none (message not signed)
  header.d=none;armlinux.org.uk; dmarc=none action=none
  header.from=leica-geosystems.com;
@@ -45,11 +46,11 @@ Received: from DB6PR0602MB2886.eurprd06.prod.outlook.com (2603:10a6:4:9b::11)
  by DB8PR06MB6236.eurprd06.prod.outlook.com (2603:10a6:10:10a::26) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3611.25; Tue, 1 Dec
- 2020 22:30:31 +0000
+ 2020 22:30:50 +0000
 Received: from DB6PR0602MB2886.eurprd06.prod.outlook.com
  ([fe80::49c3:4b5b:289c:d62c]) by DB6PR0602MB2886.eurprd06.prod.outlook.com
  ([fe80::49c3:4b5b:289c:d62c%12]) with mapi id 15.20.3611.025; Tue, 1 Dec 2020
- 22:30:31 +0000
+ 22:30:50 +0000
 From:   Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>
 List-Id: <soc.lore.kernel.org>
 To:     linux@armlinux.org.uk, nicolas.ferre@microchip.com,
@@ -66,10 +67,12 @@ To:     linux@armlinux.org.uk, nicolas.ferre@microchip.com,
         linux-tegra@vger.kernel.org, linux-mips@vger.kernel.org,
         linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         soc@kernel.org
-Subject: [PATCH v2 0/5] drop unused BACKLIGHT_GENERIC option
-Date:   Tue,  1 Dec 2020 22:29:17 +0000
-Message-Id: <20201201222922.3183-1-andrey.zhizhikin@leica-geosystems.com>
+Subject: [PATCH v2 2/5] arm64: defconfig: drop unused BACKLIGHT_GENERIC option
+Date:   Tue,  1 Dec 2020 22:29:19 +0000
+Message-Id: <20201201222922.3183-3-andrey.zhizhikin@leica-geosystems.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20201201222922.3183-1-andrey.zhizhikin@leica-geosystems.com>
+References: <20201201222922.3183-1-andrey.zhizhikin@leica-geosystems.com>
 Content-Type: text/plain
 X-Originating-IP: [193.8.40.112]
 X-ClientProxiedBy: ZR0P278CA0080.CHEP278.PROD.OUTLOOK.COM
@@ -77,95 +80,78 @@ X-ClientProxiedBy: ZR0P278CA0080.CHEP278.PROD.OUTLOOK.COM
  (2603:10a6:4:9b::11)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from aherlnxbspsrv01.lgs-net.com (193.8.40.112) by ZR0P278CA0080.CHEP278.PROD.OUTLOOK.COM (2603:10a6:910:22::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.17 via Frontend Transport; Tue, 1 Dec 2020 22:30:30 +0000
+Received: from aherlnxbspsrv01.lgs-net.com (193.8.40.112) by ZR0P278CA0080.CHEP278.PROD.OUTLOOK.COM (2603:10a6:910:22::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.17 via Frontend Transport; Tue, 1 Dec 2020 22:30:49 +0000
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 6d365363-08b1-4c89-53ed-08d89648b657
+X-MS-Office365-Filtering-Correlation-Id: 031b3484-b95f-4d4d-1198-08d89648c1c7
 X-MS-TrafficTypeDiagnostic: DB8PR06MB6236:
-X-Microsoft-Antispam-PRVS: <DB8PR06MB623630EB4354F1D60BA7FD44A6F40@DB8PR06MB6236.eurprd06.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:1169;
+X-Microsoft-Antispam-PRVS: <DB8PR06MB623656568E000446D98C9392A6F40@DB8PR06MB6236.eurprd06.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:1107;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: LMo6z8928fES3UzxAxn2rkjR/2DcWyNdmFlZuZsjMi56KGuIM3Nx2fWh6p7xbSDjIdki39DSUBYYVpJl4Q2+1Xzv5aAA7xsLMGPNxG+AJ6PMMgoTQ4nt1fWUtlDfjsNvhG9dvTplrQ/2/JWfSPG2jLDfh5WOwP4/nFQ3jGQMbcN2Gq3vz9f04qqZZlJU9swyjcQJ9vqEMF5BD+7Y5GPWFZzvcNrmYLqstUrulPaIqxbofPKfeOc1SJviIa/z+yDzDnZZXYY9hY0GfN4aSYwFTDJOlcdKrdxlKCq2tmEtjtXRMQxyLV0e4uUVfr69Ioh0UUF+n8eW5NAbyyRMhhuk/0jGKg4L6rlXDglnr27pFfT2GPq4G6e5nvpszs2f2fKWymPOShj5hpQy6Wh4mmf7Kw==
+X-Microsoft-Antispam-Message-Info: 28UMAZ9JvRCAXWzGWSSmUqPul0y1yOLmgkzkqJIRnmPPecJ7eZFOqzEjnRkTDjbIYd1zRR4iGcI/7SHR16M2l2eCTcpvsQiN4qXZPp9fvnBnzI7xrF4Q6jYG0o+waj/U0YGxphYMu8wi3Zv+brhsGucAVNZBavQ+9OmJy/nkcZCrTZdX2eY8tZ03kQEvGwcJgUJJymecYhvqyOCHLSN6VQS+8op7bncOT5HT8d2chlTQpdTksGE4hJrhCD8cHTMdQfmeP8C/4BgZy4CQWCypvk9LZY/Gg/t5rKICYszMsGv/anBINyCg0hA+7/4/fn9dumMBo5AcaSz5mB3Bn/rtFCmaKgYzFCfla3h0HBMIRctr5PiOf5+bjeB/IOQf72gMwVsGPPjkkxexg2l2kxR3cw==
 X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB6PR0602MB2886.eurprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(366004)(39860400002)(396003)(376002)(66476007)(6666004)(66556008)(86362001)(66946007)(26005)(1076003)(186003)(36756003)(8676002)(16526019)(83380400001)(2906002)(6512007)(478600001)(8936002)(7406005)(316002)(7416002)(2616005)(52116002)(921005)(956004)(44832011)(5660300002)(6486002)(6506007)(41533002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?ORbQbhIKfN1uqEBuSZvSCSxgb7ianXlDOp0P935hlkpkr7kTX1hsYWb0pvsk?=
- =?us-ascii?Q?JuWjrSrpzpyVQ9EG7jGC8GOncR3Bj83cFQAQJYBkcDUVoleD01yRzMJ6ItN1?=
- =?us-ascii?Q?bIQMi1HV469ZA4r33emxW0fbMlIJwoKmlGuiOJFE59n1ja4nXfVM0+FU220Y?=
- =?us-ascii?Q?2cwKNn0zLdgRZ0nKO7xEmFzGML3mtfpmXkwvn5y4jeXvFSvqVahFWdSGmVsI?=
- =?us-ascii?Q?VvciL6JAGFmhS3xL0dyIQ3iuqhkd3nvu2QgQQjVF3ZpOneFDLdEW1NjJ79qf?=
- =?us-ascii?Q?H01pVTrjbpdjzCJLDR4hWbf+pKrxqxKhhel5VXUXdMvhHUpmnjQGSudEsS7y?=
- =?us-ascii?Q?Hp24mTsX8eSZT16Ac2pNF2Lkl3RL65Uas4sjE96G9+irKOOTxyzTo8o5OxWz?=
- =?us-ascii?Q?uyYh9Gz0FQ/gfstpXNVaU4vHcJL3FM+PWxVDUWjjUzMZVN2rpKth8FSSYQkS?=
- =?us-ascii?Q?4yj+ciu9rwzposHj41msORGbW1LPpB8/Sas+uWt2spdue96FuuoVfW6A0Uzq?=
- =?us-ascii?Q?8ZWLeZi1KQJSzxQIeNrlJPRhQLHF/VNDXEIWd/7gNcFqGtxvJxf4YRxbPYiY?=
- =?us-ascii?Q?9u6WA/cLn8t/4sxV8H3VT10OCeKimY6e3xBLj44rTKdPsqTiISIN2Yuiaejd?=
- =?us-ascii?Q?Gcyw8CCboP0MWxAJzPkNF9ujISn0qENneo//DVhBqf+hR0gSnCOlCzZOr4H5?=
- =?us-ascii?Q?5WcpPjjzLJTdhc0UijW4VoNAd6YNhnWFd8zC1A21N/t5qDMSEKrQxJONK+lF?=
- =?us-ascii?Q?BTunrekVkhREA5wb1CVnkFa3v4+NS+Jj9F7jCFpE2epNdFUgc7Jv8zpn++eD?=
- =?us-ascii?Q?hx8xskKW4jtzwfVcg1PG7nDuqBRvJcyrfo6BIuGvejSPfPgKDSgdYZ33gFq9?=
- =?us-ascii?Q?ospqmsyZxxqIcHAA8ljPJrOCdF+U0Bx9e5nBa+CcdkC9NMpKJPviqy4Jhypk?=
- =?us-ascii?Q?mAaEXKrRaJ8J/xWuHnh3WIb4hiQeJYfG70gpgXhqdPJxqA8DdQw0RWiDecF8?=
- =?us-ascii?Q?6n5u?=
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?/CgIwPcpPaZ9PNI8HHVOFGlFtyykQWC7uLaFAg5pgBrX9x320VOnvOtN6txR?=
+ =?us-ascii?Q?AgQbO5Ij1PKHeHWFftxPX6XnCEOcx3DRz4I7n1HE98Hel9lQUkgq7nWKp4EZ?=
+ =?us-ascii?Q?wmdvoX2nepVK0SCT+svDbxf3RRpSV7UfCi+SRh0Wa0p+qbTijloHi6anCYuZ?=
+ =?us-ascii?Q?iIPULIAMYWl1zRks64W0exIWf4J4MENoRtMvA8U7so/+0MtZPKax//pJi1W1?=
+ =?us-ascii?Q?eF9x8heH3DOGc99by4n+PaZlB+necHk1jXzJbaH7iLdAd+J/2JkH7iAI/t2D?=
+ =?us-ascii?Q?440t7PtYUYBnI3frJXdQ4Yx42jEh4DlW2EK7uHeEqZ/E441dYfoD9t5RXtFg?=
+ =?us-ascii?Q?fzauNQBU1U0sx9UbuoCaAVsaL2xN51xUAnyGvAs/TDwfcmEitDQNkFQbYWz8?=
+ =?us-ascii?Q?sZpQeLtLljCenuNvL/r/Dp2kvwihr760VkxlnprFOig/En3YWX5NwFpePSg4?=
+ =?us-ascii?Q?aCLO8pDHtwHxI+INn2HBih/312A0n/MaKHRTiR0tiuudSSkYU9x2KeNuHnik?=
+ =?us-ascii?Q?yJQcWpuH2RzK1nRGWTPPgscKRzFdxWsAxxEuT2+mIxkakhnVWhhhavma2vBg?=
+ =?us-ascii?Q?2XnyqSEECqJi6ZX2WMGNzo/wA84ZxHFz2EKbYXz7rfZ1/SFZ5FmoCL1GbDwO?=
+ =?us-ascii?Q?o1vfuRGvUCvD9f7au4I1G4t7eZos1HTzY5yCjJMebiE2IRJjEPqyo1LPEez6?=
+ =?us-ascii?Q?9yfYwLsB6qz9/xKX6tN7eywDCeYdsUhVPh7fX4MDrGFhxEYdH1TS58xZz7yB?=
+ =?us-ascii?Q?ingdwS57fJIfi+EsvBFCpWA/y42ojOBT1PNtU8eh3TaoksHT9OUVihrhDlGf?=
+ =?us-ascii?Q?CIToiY/WFjGjc0krGtQyz+kJSAroxofyB9VBZ772uRy7vqQunXg2C9iD3E5L?=
+ =?us-ascii?Q?3KgKvxehCy2TF/aqdtLxZeEnA4maouWgaNCykN//G6+SzmTB0fhiQLG7sZz+?=
+ =?us-ascii?Q?jNIGQY+TW/LRhCEJXP5npL0UxZSurF1SQbnRZJa2C74vXNyt5GzyVtHkfM0T?=
+ =?us-ascii?Q?i4Qn?=
 X-OriginatorOrg: leica-geosystems.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6d365363-08b1-4c89-53ed-08d89648b657
+X-MS-Exchange-CrossTenant-Network-Message-Id: 031b3484-b95f-4d4d-1198-08d89648c1c7
 X-MS-Exchange-CrossTenant-AuthSource: DB6PR0602MB2886.eurprd06.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Dec 2020 22:30:31.7441
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Dec 2020 22:30:50.7704
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 1b16ab3e-b8f6-4fe3-9f3e-2db7fe549f6a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: g4iryKvc/eLM0i/wx6VOtknRmR0+bG26X4MggU95m8d0ngemwHphKtAlGhrxFPDWnhGYIjwuVneZ4bPk9qlbNl7SwzdJO7P9F/kZklGPS7s=
+X-MS-Exchange-CrossTenant-UserPrincipalName: 7AcqWtNvkWv0dzQtolZvMGWqvDiRGT3Cg10crUO2d/T0JwEFNRE6mwP2unNYdb1QelATQ+02tHGGDNmSimGkFXYzqQeyoajedXI31nBNZ/0=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB8PR06MB6236
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Since the removal of generic_bl driver from the source tree in commit
-7ecdea4a0226 ("backlight: generic_bl: Remove this driver as it is
-unused") BACKLIGHT_GENERIC config option became obsolete as well and
-therefore subject to clean-up from all configuration files.
+Commit 7ecdea4a0226 ("backlight: generic_bl: Remove this driver as it is
+unused") removed geenric_bl driver from the tree, together with
+corresponding config option.
 
-This series introduces patches to address this removal, separated by
-architectures in the kernel tree.
+Remove BACKLIGHT_GENERIC config item from arm64 configuration.
 
-Changes in v2:
-- Collect all Acked-by: and Reviewed-by: tags
-- Include ARM SOC maintainer list to recipients
+Fixes: 7ecdea4a0226 ("backlight: generic_bl: Remove this driver as it is unused")
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>
+Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
+Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/arm64/configs/defconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-Andrey Zhizhikin (5):
-  ARM: configs: drop unused BACKLIGHT_GENERIC option
-  arm64: defconfig: drop unused BACKLIGHT_GENERIC option
-  MIPS: configs: drop unused BACKLIGHT_GENERIC option
-  parisc: configs: drop unused BACKLIGHT_GENERIC option
-  powerpc/configs: drop unused BACKLIGHT_GENERIC option
-
- arch/arm/configs/at91_dt_defconfig          | 1 -
- arch/arm/configs/cm_x300_defconfig          | 1 -
- arch/arm/configs/colibri_pxa300_defconfig   | 1 -
- arch/arm/configs/jornada720_defconfig       | 1 -
- arch/arm/configs/magician_defconfig         | 1 -
- arch/arm/configs/mini2440_defconfig         | 1 -
- arch/arm/configs/omap2plus_defconfig        | 1 -
- arch/arm/configs/pxa3xx_defconfig           | 1 -
- arch/arm/configs/qcom_defconfig             | 1 -
- arch/arm/configs/sama5_defconfig            | 1 -
- arch/arm/configs/sunxi_defconfig            | 1 -
- arch/arm/configs/tegra_defconfig            | 1 -
- arch/arm/configs/u8500_defconfig            | 1 -
- arch/arm64/configs/defconfig                | 1 -
- arch/mips/configs/gcw0_defconfig            | 1 -
- arch/mips/configs/gpr_defconfig             | 1 -
- arch/mips/configs/lemote2f_defconfig        | 1 -
- arch/mips/configs/loongson3_defconfig       | 1 -
- arch/mips/configs/mtx1_defconfig            | 1 -
- arch/mips/configs/rs90_defconfig            | 1 -
- arch/parisc/configs/generic-64bit_defconfig | 1 -
- arch/powerpc/configs/powernv_defconfig      | 1 -
- 22 files changed, 22 deletions(-)
-
-
-base-commit: b65054597872ce3aefbc6a666385eabdf9e288da
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index 8e3f7ae71de5..280ed7404a1d 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -681,7 +681,6 @@ CONFIG_DRM_PANFROST=m
+ CONFIG_FB=y
+ CONFIG_FB_MODE_HELPERS=y
+ CONFIG_FB_EFI=y
+-CONFIG_BACKLIGHT_GENERIC=m
+ CONFIG_BACKLIGHT_PWM=m
+ CONFIG_BACKLIGHT_LP855X=m
+ CONFIG_LOGO=y
 -- 
 2.17.1
 
