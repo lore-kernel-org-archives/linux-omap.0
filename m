@@ -8,28 +8,28 @@ X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E90C8301F
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:32:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B843C8300F
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:32:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F86720671
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:32:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EAD020870
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 22:32:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=leica-geosystems.com header.i=@leica-geosystems.com header.b="PzLaCUF2"
+	dkim=pass (1024-bit key) header.d=leica-geosystems.com header.i=@leica-geosystems.com header.b="iJ+8WDxn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727153AbgLAWb6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Dec 2020 17:31:58 -0500
-Received: from mail-eopbgr60124.outbound.protection.outlook.com ([40.107.6.124]:40630
+        id S1727275AbgLAWcK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Dec 2020 17:32:10 -0500
+Received: from mail-eopbgr60097.outbound.protection.outlook.com ([40.107.6.97]:16646
         "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727168AbgLAWb5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 1 Dec 2020 17:31:57 -0500
+        id S1725893AbgLAWcJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 1 Dec 2020 17:32:09 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=mgZwiMM1Snra1VgFMCHLcqVvHYx2aL5AcqXn32DTkFLv9pHBWVUTKIDrbdeKlxr6JCybhMq5Ty7DmanUzHzFafl6GGn9hyRP4RTX9jwQ+VGUFiOBg0U+CkrFQrKTFVPtJlN5GFhrV/r2aFlZkptD22fP3sF6Ax1kofvAA9BxyjHtchimQsn0zkrqfW03MUEuIIyWeYxKaWgVqUXZ+NhPLBQX6CplxdY6iU9m5U/I3oi3Q4P+VWKeH2zEYROH52RAqLb3AsyoSyDWZ0LHS5pMHzjbON+Rjr+pNQHGb8aGdsDZ2BGN/LTn7E+7iNx5x2P8YZyh7P15nsfTv0WSsjz3Gw==
+ b=m2PuWOXU+ilJE7eX1aafzgmaD4HToLxw7TMS2VNIOFaAG91twHQz84n3OJSVhJ9pKTdwtbqjW9bkXu6HrpM39zlUjnsr0wzUHTjglgDZ0HnWUdY1gSpXNV71b5SkAKC1HEnwN/0ohMlCu36YfKhy/QrFFn+bzK0Y28SBHedFnCsmOiQWLYU+8v+BwdmXcJ/oQi+PMdvNfcRhnEFJO5Y4P+CBVy4LH0uBncLqlcAxMGMStCpPbgWH5OY5uRLAX8pUiNw6ZqtxuuHTUtfmzTPbvmk4A1DH4b41G+DHGMFHEZ5TjI+IZR7t6DhFPYISrFqzQiWBgpecPGIDx9xVUx1D2w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vVlzB1NfNYmdC6Y6Zd9qfd122vLOH4dW4xgAde2H9TA=;
- b=Ppb82mCZVPcfLvHFbZWsPmgEOcQ90u2SsNrZdFD+YbOtCflNaaB+P+Ny0IkzWeNh/+HMxlzXR8mthdtB+lLH7xd3la/SvfNwt48P/d4uWn6FzyIsfotwhuAm3j73Gm1XBthIymwbmL2TcDyAgTEWCU4LaLay/dsGPTRxMkRWhuXhFfaQl0CFGD0EjtIBG3pFB8+74QzBGHymwWAbSOaEt0aa7NP9XqQdHdTwf6smH5ibHQXmVbPkHfxoUYz7AqI1hBUbrYY4ok2yeN+VZRgLnivVOlbpQK6tbmgDNKdD+OUDO1xL/RBY+7RBwBLuIsn/bL1I3RqAVlbO1KMKMZNa3Q==
+ bh=ZvxTVpLo7EyuC7lnoOhD8+IaM3NfXhXEx5J9lFRGGHU=;
+ b=f2ljklkPPEdB84U/poBEaIXLysYFRxlIJF9WcCMYFzm8tLXBPgZ/S//f7SpyRde0W7kzvDUDcvf2GkQwjwCSIQkEfM1wjXglHpWr2jwHXK/lgWrwsMvmmIrrcILHTiadg47yVR8CypUxjJqVoKSyEYixCcKxz345d/OqT/GYCVnKTMia7fBE+MQEx23PTm8xU6oAcZFUtRJ2g1yS+efXpIjjtWOBjlz0To8xZyFpCewqi8kE3+0PIYZWuUBdZ8cwNxJ3p3HJQSC/ohCbB/zLnhSkN3qT7Jx65nLgFXnRrhDbDhdxwRzJaP1iRN3UuOjg7Q7wI1WKsKk5dC22W67FVw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=leica-geosystems.com; dmarc=pass action=none
  header.from=leica-geosystems.com; dkim=pass header.d=leica-geosystems.com;
@@ -37,8 +37,8 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=leica-geosystems.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vVlzB1NfNYmdC6Y6Zd9qfd122vLOH4dW4xgAde2H9TA=;
- b=PzLaCUF2yFvXKcqMnEGY37t2PZ7l+HRcDytWk6fUBCCX9zYdJgV/k3KSbu8lf/bS7V8+BnlLhVsBEhoRCx6P7QDBK0z3gU6YD7cq5EJv6zF4u7F/HKatcRRyP9+1UZ0aKEbtQ9rZwkb4u9NRex06UT0wQs3SjCksJdJYHgT4FHI=
+ bh=ZvxTVpLo7EyuC7lnoOhD8+IaM3NfXhXEx5J9lFRGGHU=;
+ b=iJ+8WDxn3eyrh1+/Di0dfLPqJqCeS/mlrs8bV8bSlqLM9rHiGuOnMrVm3Cawj4ORziAyBEp0vIPV1ZIr2upTsLoLhxCYFSIEhlW5XVb5iaecxSMgHA33HL80/eaVbmiIGOgV+FcraRl9UErQJoS1KnJEx8vDOi65rP6JHUZ78D0=
 Authentication-Results: armlinux.org.uk; dkim=none (message not signed)
  header.d=none;armlinux.org.uk; dmarc=none action=none
  header.from=leica-geosystems.com;
@@ -46,11 +46,11 @@ Received: from DB6PR0602MB2886.eurprd06.prod.outlook.com (2603:10a6:4:9b::11)
  by DB8PR06MB6236.eurprd06.prod.outlook.com (2603:10a6:10:10a::26) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3611.25; Tue, 1 Dec
- 2020 22:30:46 +0000
+ 2020 22:30:54 +0000
 Received: from DB6PR0602MB2886.eurprd06.prod.outlook.com
  ([fe80::49c3:4b5b:289c:d62c]) by DB6PR0602MB2886.eurprd06.prod.outlook.com
  ([fe80::49c3:4b5b:289c:d62c%12]) with mapi id 15.20.3611.025; Tue, 1 Dec 2020
- 22:30:46 +0000
+ 22:30:54 +0000
 From:   Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>
 List-Id: <soc.lore.kernel.org>
 To:     linux@armlinux.org.uk, nicolas.ferre@microchip.com,
@@ -67,9 +67,9 @@ To:     linux@armlinux.org.uk, nicolas.ferre@microchip.com,
         linux-tegra@vger.kernel.org, linux-mips@vger.kernel.org,
         linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         soc@kernel.org
-Subject: [PATCH v2 1/5] ARM: configs: drop unused BACKLIGHT_GENERIC option
-Date:   Tue,  1 Dec 2020 22:29:18 +0000
-Message-Id: <20201201222922.3183-2-andrey.zhizhikin@leica-geosystems.com>
+Subject: [PATCH v2 3/5] MIPS: configs: drop unused BACKLIGHT_GENERIC option
+Date:   Tue,  1 Dec 2020 22:29:20 +0000
+Message-Id: <20201201222922.3183-4-andrey.zhizhikin@leica-geosystems.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20201201222922.3183-1-andrey.zhizhikin@leica-geosystems.com>
 References: <20201201222922.3183-1-andrey.zhizhikin@leica-geosystems.com>
@@ -80,45 +80,45 @@ X-ClientProxiedBy: ZR0P278CA0080.CHEP278.PROD.OUTLOOK.COM
  (2603:10a6:4:9b::11)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from aherlnxbspsrv01.lgs-net.com (193.8.40.112) by ZR0P278CA0080.CHEP278.PROD.OUTLOOK.COM (2603:10a6:910:22::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.17 via Frontend Transport; Tue, 1 Dec 2020 22:30:44 +0000
+Received: from aherlnxbspsrv01.lgs-net.com (193.8.40.112) by ZR0P278CA0080.CHEP278.PROD.OUTLOOK.COM (2603:10a6:910:22::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.17 via Frontend Transport; Tue, 1 Dec 2020 22:30:52 +0000
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: b906cc89-bc5e-4f55-f70a-08d89648bee3
+X-MS-Office365-Filtering-Correlation-Id: 9513981d-5d84-40db-164b-08d89648c3d7
 X-MS-TrafficTypeDiagnostic: DB8PR06MB6236:
-X-Microsoft-Antispam-PRVS: <DB8PR06MB62361B1377CB942D51779C2EA6F40@DB8PR06MB6236.eurprd06.prod.outlook.com>
+X-Microsoft-Antispam-PRVS: <DB8PR06MB6236F509049EBD457D851019A6F40@DB8PR06MB6236.eurprd06.prod.outlook.com>
 X-MS-Oob-TLC-OOBClassifiers: OLM:153;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: oCk67c2jgGsoSOSrbm8OnGHxB4Dc9sDKmH83oUJK1pggLNcNidVkPnPskQHWntXiBuOka822AO8+YoYIX5zUfPxFTmWCnneWAzrq2Gkv/W6oAIUbb0BKaMvdKtuq4sHkGojXwKVNROHVKmoqGWjVpjCdBBq4vSNE06SsLKIGUmPTT1QzG+Fxlo12A8pc6KPrThXMYa9/PGEpp31QNCPRkmyPr0idDPO6Zhz9LFTcnAFeUUVrSMAk8zyG3+rpAH6KJOWoNpZSvFRgiRoCO2gEllxU351I5WHqAjEZpSjbdkfIBM4mPBEcOfsnAq0zuD0Unbgvq8HMb8Eb0ZJ1M8f3Pt+vJdCx6PTfS0iOSq03TY67cSCyO8HUb92MeMT1d+l3JeUmR8GdMGtYjNQvxb0ctg==
+X-Microsoft-Antispam-Message-Info: 2bgePueDPCRnPYAbPdO2Y6lnqzSmqcV1j2lfRAQjhbWDosaSjTewZKIKmJ7ChM/qei6zSXPPRuKLEtCvOug2AvVHlMXV2vJxwpe6dgcfV/5wUyB7i7kZgvQcrD2o1OPdYAkkBmZnbRb157CJnTQSYDBbsFjyH/4c0+MyHH69lHriujV5wpZws0TpMFB9Vv1HeV8FWRvM+Aaa0etXVMNAd3CcQ3h2J7ZVot7mLiypFWlHjIY6iFUDNw/3y82Vysb+f8mME7/U3yY8fY/ZEFcyMCiWUaxmUw+W2bQU1goy0rUREd8hqWYRVAUkk+b0lROw1MErSDsi/J3SX1JECDOK9+AOfCwFs2vI7OQbVowhQyOpqtBD8TPltnS1JSefOD44iB7/5vey2vIXe5bsobHtWA==
 X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB6PR0602MB2886.eurprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(366004)(39860400002)(396003)(376002)(66476007)(6666004)(66556008)(86362001)(66946007)(26005)(1076003)(186003)(36756003)(8676002)(16526019)(83380400001)(2906002)(6512007)(478600001)(8936002)(7406005)(316002)(7416002)(2616005)(52116002)(921005)(956004)(44832011)(5660300002)(6486002)(6506007)(41533002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?2eCM3zkNBddbv4VxSIVNg6so3b/Y5C4tYp0kpO3VXcH+fo96TLsUr4mUf8ST?=
- =?us-ascii?Q?nRs7ty4U2VkLFNP+eRtcaQnzPzOcdapXTqtv2l9aaMZtfqweVBVxFpCSNzXO?=
- =?us-ascii?Q?GA/vFQq4OyZtsLSZ0/HnQryg66f7U3v20os483QTdkKJ93cORPWOAtVYvFQs?=
- =?us-ascii?Q?zewNzaH8arVqIZmf2dijWNLYr7SsDbonZidU3QSWZjHQzqnPIdZz8e8G9GM/?=
- =?us-ascii?Q?y9JFwCSjySO0oepFL645C/IJ9TAaJiSAMp+dfA667VZyDNj2gF1lQ3c0jInA?=
- =?us-ascii?Q?1i5JPOODy4lNNJOGd4xVOBiXegn1l7ucUJfnlIIUuBsD3iHnFzEy1V7+tZvF?=
- =?us-ascii?Q?u6ristyh7dbijUiDIbfuB6wFL/V+r1fGrEeodqJ/niwKuLmT+6gwoRiAIz7T?=
- =?us-ascii?Q?4qheABEDL4jA+MzLE1DUqSaE2thwz09VbbdLHEYqzZBavm/8rAVw2sz49t5N?=
- =?us-ascii?Q?MHuFiMGOeDOTHwVBCd9Y1Fr50OKprRZr6OJLy8AoeKF3N3SXhPt7rnYA8USC?=
- =?us-ascii?Q?HNc8v3YeB8lZ2/pIU6ySzHTEtzvorGJbz1GH1NowOq/OFZXZGMyWnqQkyvIT?=
- =?us-ascii?Q?Dlc2/SnbKkmhWvy+lQ7Bn9fV4Ud10n5vy69iJpZxtYOlSV2p3l8b9mEhN7hI?=
- =?us-ascii?Q?lwMxAtQscwR7LCUTFCFPBGmKAJX+rIDKd2MJ4I1yB/zXNqNZnGiICPQXaoyP?=
- =?us-ascii?Q?CKmFM4qCmEb+3bauLLlWIB4fBuiDjL3bmoaM0qw7xEUFZxglqItXXLA3i7M2?=
- =?us-ascii?Q?WuUXkRS814WZUPFatWbTh2nUBe9IA3PYqVcJOdqjRDPPBeMBJHzPE7LFY3We?=
- =?us-ascii?Q?8vUaklyJMxMEMNeqGs2rdflhdxHA1eSD/DvebAOmVEN4ddi96IntXnnDlHuv?=
- =?us-ascii?Q?kHp++i+8XCAjO3UqdSN9tHd6GzoruRGU9jKV15TA8q0KYLL3wPn8bV6UTKqn?=
- =?us-ascii?Q?pNsQGsNtFCpx7tvlOBobRkkbzNlkUJb1dAL2qgWJuwE5qVaQ5qubxgOOdr/A?=
- =?us-ascii?Q?7a+n?=
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?O2iTE4L72yjCSIsYcmxdzPi/nxsAnSa2OYtP0h2Z7gk7S6M3FGeLvrHaSvEI?=
+ =?us-ascii?Q?7AcSzZAstwzbcatwNXbav/hyqbgB5it2/qlGaNayHhBHSZduvvcyiLa/ufLP?=
+ =?us-ascii?Q?zIDX4JmCh0mbxidpiEc+R2++8QnMENryOfxv02YOm8TTJykUuT6IBvwDUt1X?=
+ =?us-ascii?Q?tYmucL8lAzvl1Tu8exD1UBOUbg93o7rZi9tLBciU01yt3i1mqLKwo06XG2zt?=
+ =?us-ascii?Q?tg0ChrB2kYL0oPMLOj60JQiuLtVzC9yc7tknwIz9LTzwXiedzipv9tKuGo4h?=
+ =?us-ascii?Q?trpMpT+wAPEDewAsFOQqHHvPQz33ZCtAIXA2jSIGsJo0b4qO0djAMM6jEyrq?=
+ =?us-ascii?Q?IE2w3BGVfT1NHwFiDV8qiIWOxUWe2+rlhYxVix1JaQWz8s3FQqSnlFOv+zBj?=
+ =?us-ascii?Q?qk0ojry8PF4TQF25k0QyRoabptG6aSXG+2lmZce8nTsVbTrTJN2PdnIBYdFL?=
+ =?us-ascii?Q?bRHAWb2HbvoGPwaYVlcFl9MvuxQoYYdVWUiygHjI2/eEy2GodUyLi64le8Vl?=
+ =?us-ascii?Q?780Tq5N3S4Y+gm0DA9rWFsyOoCbdkbllxYzO2eWcTzIkXuP0eJp7q/6Fi7uo?=
+ =?us-ascii?Q?wXF2zO5vVbhVHOTAUgAkmWCR9G0+eZQ1SBn2GaLehyM/VWvKgGKb3zacuoea?=
+ =?us-ascii?Q?6+FjZPKhWf/twvJK+K0Fe4pRlIKTI3NLfYlUjLdpJd5c/zl7M6CF6iI4g4zr?=
+ =?us-ascii?Q?vJtWyGAXN/ZRZ+iojHuk7Sgeupj/i3EWWw58AblKJDw335IBxeyiVC2EOb/G?=
+ =?us-ascii?Q?dna4fbCZxO08qd9Sg/l5FJvu0SbNqPT6GsGn7LfVEAefGzoaT/FFlKDfBgBc?=
+ =?us-ascii?Q?s23mQ3436t6gxvhK5t/rOHtT24HwynJE9WSpBWe0dqvS6sO+ki7h/U6Aenpw?=
+ =?us-ascii?Q?ow1dnVPc5vha0XpCZAtW/U+B9oikBd+gBwZ4H/qoFeQ6D+N/C2FUKQ5rBa0E?=
+ =?us-ascii?Q?3ctCtIu3QSjxfeTcBJhIgmGSzLFO3BzvE+na36i062gv8FaO+iE9385E91H7?=
+ =?us-ascii?Q?e4kl?=
 X-OriginatorOrg: leica-geosystems.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b906cc89-bc5e-4f55-f70a-08d89648bee3
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9513981d-5d84-40db-164b-08d89648c3d7
 X-MS-Exchange-CrossTenant-AuthSource: DB6PR0602MB2886.eurprd06.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Dec 2020 22:30:46.1006
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Dec 2020 22:30:54.1869
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 1b16ab3e-b8f6-4fe3-9f3e-2db7fe549f6a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KPjBIfw65gRJOD6dLHqB3J8apgkNNY2niuAndYbhU9PrlOhrbk7/iSJPDkg2VjVNPMicc7mI5In2nunwkW6u3qTdVixM7rRWsusmVZssKk0=
+X-MS-Exchange-CrossTenant-UserPrincipalName: cPrbpF/Ikcgrh12gLISX+BVWlQlCmF9B/izgLtoqO6g6G1T2hSc4oPT6u3StBDJpp80GDtMy4ie0/e4iwphT3Fhgur7O9HQhBY9et6YisWA=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB8PR06MB6236
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -128,187 +128,95 @@ Commit 7ecdea4a0226 ("backlight: generic_bl: Remove this driver as it is
 unused") removed geenric_bl driver from the tree, together with
 corresponding config option.
 
-Remove BACKLIGHT_GENERIC config item from all ARM configurations.
+Remove BACKLIGHT_GENERIC config item from all MIPS configurations.
 
 Fixes: 7ecdea4a0226 ("backlight: generic_bl: Remove this driver as it is unused")
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>
 Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
-Acked-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
 Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
 Acked-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/arm/configs/at91_dt_defconfig        | 1 -
- arch/arm/configs/cm_x300_defconfig        | 1 -
- arch/arm/configs/colibri_pxa300_defconfig | 1 -
- arch/arm/configs/jornada720_defconfig     | 1 -
- arch/arm/configs/magician_defconfig       | 1 -
- arch/arm/configs/mini2440_defconfig       | 1 -
- arch/arm/configs/omap2plus_defconfig      | 1 -
- arch/arm/configs/pxa3xx_defconfig         | 1 -
- arch/arm/configs/qcom_defconfig           | 1 -
- arch/arm/configs/sama5_defconfig          | 1 -
- arch/arm/configs/sunxi_defconfig          | 1 -
- arch/arm/configs/tegra_defconfig          | 1 -
- arch/arm/configs/u8500_defconfig          | 1 -
- 13 files changed, 13 deletions(-)
+ arch/mips/configs/gcw0_defconfig      | 1 -
+ arch/mips/configs/gpr_defconfig       | 1 -
+ arch/mips/configs/lemote2f_defconfig  | 1 -
+ arch/mips/configs/loongson3_defconfig | 1 -
+ arch/mips/configs/mtx1_defconfig      | 1 -
+ arch/mips/configs/rs90_defconfig      | 1 -
+ 6 files changed, 6 deletions(-)
 
-diff --git a/arch/arm/configs/at91_dt_defconfig b/arch/arm/configs/at91_dt_defconfig
-index 4a0ba2ae1a25..6e52c9c965e6 100644
---- a/arch/arm/configs/at91_dt_defconfig
-+++ b/arch/arm/configs/at91_dt_defconfig
-@@ -132,7 +132,6 @@ CONFIG_DRM_ATMEL_HLCDC=y
- CONFIG_DRM_PANEL_SIMPLE=y
- CONFIG_FB_ATMEL=y
- CONFIG_BACKLIGHT_ATMEL_LCDC=y
+diff --git a/arch/mips/configs/gcw0_defconfig b/arch/mips/configs/gcw0_defconfig
+index 7e28a4fe9d84..460683b52285 100644
+--- a/arch/mips/configs/gcw0_defconfig
++++ b/arch/mips/configs/gcw0_defconfig
+@@ -73,7 +73,6 @@ CONFIG_DRM_PANEL_NOVATEK_NT39016=y
+ CONFIG_DRM_INGENIC=y
+ CONFIG_DRM_ETNAVIV=y
+ CONFIG_BACKLIGHT_CLASS_DEVICE=y
 -# CONFIG_BACKLIGHT_GENERIC is not set
  CONFIG_BACKLIGHT_PWM=y
+ # CONFIG_VGA_CONSOLE is not set
  CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_LOGO=y
-diff --git a/arch/arm/configs/cm_x300_defconfig b/arch/arm/configs/cm_x300_defconfig
-index 2f7acde2d921..502a9d870ca4 100644
---- a/arch/arm/configs/cm_x300_defconfig
-+++ b/arch/arm/configs/cm_x300_defconfig
-@@ -87,7 +87,6 @@ CONFIG_FB=y
- CONFIG_FB_PXA=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_TDO24M=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_DA903X=m
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
-diff --git a/arch/arm/configs/colibri_pxa300_defconfig b/arch/arm/configs/colibri_pxa300_defconfig
-index 0dae3b185284..26e5a67f8e2d 100644
---- a/arch/arm/configs/colibri_pxa300_defconfig
-+++ b/arch/arm/configs/colibri_pxa300_defconfig
-@@ -34,7 +34,6 @@ CONFIG_FB=y
- CONFIG_FB_PXA=y
+diff --git a/arch/mips/configs/gpr_defconfig b/arch/mips/configs/gpr_defconfig
+index 9085f4d6c698..87e20f3391ed 100644
+--- a/arch/mips/configs/gpr_defconfig
++++ b/arch/mips/configs/gpr_defconfig
+@@ -251,7 +251,6 @@ CONFIG_SSB_DRIVER_PCICORE=y
+ # CONFIG_VGA_ARB is not set
  # CONFIG_LCD_CLASS_DEVICE is not set
  CONFIG_BACKLIGHT_CLASS_DEVICE=y
 -# CONFIG_BACKLIGHT_GENERIC is not set
  # CONFIG_VGA_CONSOLE is not set
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_LOGO=y
-diff --git a/arch/arm/configs/jornada720_defconfig b/arch/arm/configs/jornada720_defconfig
-index 9f079be2b84b..069f60ffdcd8 100644
---- a/arch/arm/configs/jornada720_defconfig
-+++ b/arch/arm/configs/jornada720_defconfig
-@@ -48,7 +48,6 @@ CONFIG_FB=y
- CONFIG_FB_S1D13XXX=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
-diff --git a/arch/arm/configs/magician_defconfig b/arch/arm/configs/magician_defconfig
-index d2e684f6565a..b4670d42f378 100644
---- a/arch/arm/configs/magician_defconfig
-+++ b/arch/arm/configs/magician_defconfig
-@@ -95,7 +95,6 @@ CONFIG_FB_PXA_OVERLAY=y
- CONFIG_FB_W100=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_PWM=y
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_FRAMEBUFFER_CONSOLE=y
-diff --git a/arch/arm/configs/mini2440_defconfig b/arch/arm/configs/mini2440_defconfig
-index 301f29a1fcc3..898490aaa39e 100644
---- a/arch/arm/configs/mini2440_defconfig
-+++ b/arch/arm/configs/mini2440_defconfig
-@@ -158,7 +158,6 @@ CONFIG_FB_S3C2410=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_PLATFORM=y
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_PWM=y
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index de3b7813a1ce..7eae097a75d2 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -388,7 +388,6 @@ CONFIG_FB_TILEBLITTING=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_PLATFORM=y
+ CONFIG_USB_HID=m
+ CONFIG_USB_HIDDEV=y
+diff --git a/arch/mips/configs/lemote2f_defconfig b/arch/mips/configs/lemote2f_defconfig
+index 3a9a453b1264..688c91918db2 100644
+--- a/arch/mips/configs/lemote2f_defconfig
++++ b/arch/mips/configs/lemote2f_defconfig
+@@ -145,7 +145,6 @@ CONFIG_FB_SIS_300=y
+ CONFIG_FB_SIS_315=y
+ # CONFIG_LCD_CLASS_DEVICE is not set
  CONFIG_BACKLIGHT_CLASS_DEVICE=y
 -CONFIG_BACKLIGHT_GENERIC=m
- CONFIG_BACKLIGHT_PWM=m
- CONFIG_BACKLIGHT_PANDORA=m
- CONFIG_BACKLIGHT_GPIO=m
-diff --git a/arch/arm/configs/pxa3xx_defconfig b/arch/arm/configs/pxa3xx_defconfig
-index 06bbc7a59b60..f0c34017f2aa 100644
---- a/arch/arm/configs/pxa3xx_defconfig
-+++ b/arch/arm/configs/pxa3xx_defconfig
-@@ -74,7 +74,6 @@ CONFIG_FB_PXA=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_TDO24M=y
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_DA903X=y
  # CONFIG_VGA_CONSOLE is not set
- CONFIG_FRAMEBUFFER_CONSOLE=y
-diff --git a/arch/arm/configs/qcom_defconfig b/arch/arm/configs/qcom_defconfig
-index c882167e1496..d6733e745b80 100644
---- a/arch/arm/configs/qcom_defconfig
-+++ b/arch/arm/configs/qcom_defconfig
-@@ -159,7 +159,6 @@ CONFIG_FB=y
- CONFIG_FRAMEBUFFER_CONSOLE=y
- # CONFIG_LCD_CLASS_DEVICE is not set
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_LM3630A=y
- CONFIG_BACKLIGHT_LP855X=y
- CONFIG_SOUND=y
-diff --git a/arch/arm/configs/sama5_defconfig b/arch/arm/configs/sama5_defconfig
-index 037d3a718a60..0a167891eb05 100644
---- a/arch/arm/configs/sama5_defconfig
-+++ b/arch/arm/configs/sama5_defconfig
-@@ -161,7 +161,6 @@ CONFIG_DRM_ATMEL_HLCDC=y
- CONFIG_DRM_PANEL_SIMPLE=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_PWM=y
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_SOUND=y
-diff --git a/arch/arm/configs/sunxi_defconfig b/arch/arm/configs/sunxi_defconfig
-index 244126172fd6..af6e80d1a0f2 100644
---- a/arch/arm/configs/sunxi_defconfig
-+++ b/arch/arm/configs/sunxi_defconfig
-@@ -111,7 +111,6 @@ CONFIG_DRM_SIMPLE_BRIDGE=y
- CONFIG_DRM_LIMA=y
- CONFIG_FB_SIMPLE=y
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_PWM=y
- CONFIG_SOUND=y
- CONFIG_SND=y
-diff --git a/arch/arm/configs/tegra_defconfig b/arch/arm/configs/tegra_defconfig
-index fff5fae0db30..74739a52a8ad 100644
---- a/arch/arm/configs/tegra_defconfig
-+++ b/arch/arm/configs/tegra_defconfig
-@@ -205,7 +205,6 @@ CONFIG_DRM_PANEL_SIMPLE=y
- CONFIG_DRM_LVDS_CODEC=y
- # CONFIG_LCD_CLASS_DEVICE is not set
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
--# CONFIG_BACKLIGHT_GENERIC is not set
- CONFIG_BACKLIGHT_PWM=y
  CONFIG_FRAMEBUFFER_CONSOLE=y
  CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
-diff --git a/arch/arm/configs/u8500_defconfig b/arch/arm/configs/u8500_defconfig
-index 28dd7cf56048..24aacc255021 100644
---- a/arch/arm/configs/u8500_defconfig
-+++ b/arch/arm/configs/u8500_defconfig
-@@ -92,7 +92,6 @@ CONFIG_DRM_PANEL_SONY_ACX424AKP=y
- CONFIG_DRM_LIMA=y
- CONFIG_DRM_MCDE=y
- CONFIG_BACKLIGHT_CLASS_DEVICE=y
+diff --git a/arch/mips/configs/loongson3_defconfig b/arch/mips/configs/loongson3_defconfig
+index 38a817ead8e7..9c5fadef38cb 100644
+--- a/arch/mips/configs/loongson3_defconfig
++++ b/arch/mips/configs/loongson3_defconfig
+@@ -286,7 +286,6 @@ CONFIG_DRM_VIRTIO_GPU=y
+ CONFIG_FB_RADEON=y
+ CONFIG_LCD_CLASS_DEVICE=y
+ CONFIG_LCD_PLATFORM=m
 -CONFIG_BACKLIGHT_GENERIC=m
- CONFIG_BACKLIGHT_GPIO=y
- CONFIG_LOGO=y
- CONFIG_SOUND=y
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_FRAMEBUFFER_CONSOLE=y
+ CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+diff --git a/arch/mips/configs/mtx1_defconfig b/arch/mips/configs/mtx1_defconfig
+index 914af125a7fa..0ef2373404e5 100644
+--- a/arch/mips/configs/mtx1_defconfig
++++ b/arch/mips/configs/mtx1_defconfig
+@@ -450,7 +450,6 @@ CONFIG_WDT_MTX1=y
+ # CONFIG_VGA_ARB is not set
+ # CONFIG_LCD_CLASS_DEVICE is not set
+ CONFIG_BACKLIGHT_CLASS_DEVICE=y
+-# CONFIG_BACKLIGHT_GENERIC is not set
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_SOUND=m
+ CONFIG_SND=m
+diff --git a/arch/mips/configs/rs90_defconfig b/arch/mips/configs/rs90_defconfig
+index dfbb9fed9a42..4f540bb94628 100644
+--- a/arch/mips/configs/rs90_defconfig
++++ b/arch/mips/configs/rs90_defconfig
+@@ -97,7 +97,6 @@ CONFIG_DRM_FBDEV_OVERALLOC=300
+ CONFIG_DRM_PANEL_SIMPLE=y
+ CONFIG_DRM_INGENIC=y
+ CONFIG_BACKLIGHT_CLASS_DEVICE=y
+-# CONFIG_BACKLIGHT_GENERIC is not set
+ CONFIG_BACKLIGHT_PWM=y
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_FRAMEBUFFER_CONSOLE=y
 -- 
 2.17.1
 
