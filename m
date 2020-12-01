@@ -2,95 +2,106 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17F18C83017
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 09:27:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DBB0C71156
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 10:06:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACC6C20674
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 09:27:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21EC4206C0
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 10:06:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="f9etBgEU"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="FjLGvvbX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390592AbgLAJ1O (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Dec 2020 04:27:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39936 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729333AbgLAJCs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 1 Dec 2020 04:02:48 -0500
-Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6A7182067D;
-        Tue,  1 Dec 2020 09:02:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1606813328;
-        bh=2CsRxRuNwFh3a65/dV+0ouIDSkW1QZKlBHw6aZbL+MQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=f9etBgEU0gW40kuB2HvqLsE63PV8sYtRI8OmpehWOLLSiuYUHyrKKZdC7uqFL4Dms
-         a6pdnbaXc/rZYwbed03lBGu0gzE+uTTrI/yS7Ct69KA30fk+7njMMaVgdUE0u8Wfn4
-         dx29gBzsr93G5Pz493MNUGtD6evyACCoCGtHZbmU=
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        stable@vger.kernel.org, Faiz Abbas <faiz_abbas@ti.com>,
-        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-        Marc Kleine-Budde <mkl@pengutronix.de>,
-        Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 4.19 30/57] ARM: dts: dra76x: m_can: fix order of clocks
-Date:   Tue,  1 Dec 2020 09:53:35 +0100
-Message-Id: <20201201084650.621209674@linuxfoundation.org>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201201084647.751612010@linuxfoundation.org>
-References: <20201201084647.751612010@linuxfoundation.org>
-User-Agent: quilt/0.66
+        id S1729658AbgLAKFw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Dec 2020 05:05:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60818 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729648AbgLAKFv (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2020 05:05:51 -0500
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B62CC0617A6
+        for <linux-omap@vger.kernel.org>; Tue,  1 Dec 2020 02:05:11 -0800 (PST)
+Received: by mail-wm1-x342.google.com with SMTP id c198so1945516wmd.0
+        for <linux-omap@vger.kernel.org>; Tue, 01 Dec 2020 02:05:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=14bf6bn+oj8PMyR0sJXDa7vt6hfR/TzFTELJbHUC7s0=;
+        b=FjLGvvbX1fS+Lzs7Jouwk4Xu5zby+fhb4SU9TD2AE3FCHm8BPNZ/4cQd8SjrL4teyO
+         pIrlUihpdldsh6VzuqjFbQapRtHM/oN3isKB/EtTzfLNwGUKynKjH85fbuEntqzz9l/M
+         zF/SRCOBE4zD/aC/w5Xthj9RhPGPgnmrL1Rz6FLJ5TDvxvdmNo6KDHxdQhrfzeBvtEDD
+         7j2t4XSgW0acxS83X/ur3/Z7Yiq1aV+ISZfBRWfznhvkhv84rEvGPp6dBSgEpeJDwi6p
+         32U1wPJILW50xkF1pYoC8QGnRQPruXD1wlIYhAik+Nvz7XfPhgPfeX4tn2phCkRisXbC
+         h/dw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=14bf6bn+oj8PMyR0sJXDa7vt6hfR/TzFTELJbHUC7s0=;
+        b=RpePX/H3tpM25qDsC3wvSPKg1GZvjpk4X/9qPoiuKliH6QpJ7sQTj+d6HCuhSZHp49
+         wWeTrc2s7kgUS5Qfta/2DI1xrB+ibgrsB9PWRKN0tMMR3BtIy3wP3ucvZ1dOqG/1zs+Z
+         SrEWIS1diA0GeFZRDPvOpx6c6MI4HBKon44ZdJHTMp+Efj2E1fVIUge/9iDDrydwYTuz
+         s2phoeh0wdeUqKutHs2ZRD7p6VfSDCGkclxJ3CS9AULh/yWl6t9uUSourKsnHq7SppsU
+         h4BVgN9xYFIYVwfbjOgYIeGSHP1ILpVb3b7OaSETXgUKmWppUHzvhvyC0QR+1ANUbCRx
+         0+Fw==
+X-Gm-Message-State: AOAM532rLs9zoA5g7r1kParVNijbSzSgM4nf3rH+7MYBn4pGhjnnFAL8
+        7lHQ65dWsRhDjBkCbtoTP7ktyw==
+X-Google-Smtp-Source: ABdhPJxZXrE0bS930s4kHxmTujcKxrLUp8mkRl/hRPu1hEArkUtvSLrw9l0edI4pIsEcorzqGoW98g==
+X-Received: by 2002:a05:600c:255:: with SMTP id 21mr1914111wmj.69.1606817109823;
+        Tue, 01 Dec 2020 02:05:09 -0800 (PST)
+Received: from holly.lan (cpc141216-aztw34-2-0-cust174.18-1.cable.virginm.net. [80.7.220.175])
+        by smtp.gmail.com with ESMTPSA id p11sm2348078wrj.14.2020.12.01.02.05.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 01 Dec 2020 02:05:07 -0800 (PST)
+Date:   Tue, 1 Dec 2020 10:05:05 +0000
+From:   Daniel Thompson <daniel.thompson@linaro.org>
+To:     Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>
+Cc:     linux@armlinux.org.uk, nicolas.ferre@microchip.com,
+        alexandre.belloni@bootlin.com, ludovic.desroches@microchip.com,
+        tony@atomide.com, mripard@kernel.org, wens@csie.org,
+        jernej.skrabec@siol.net, thierry.reding@gmail.com,
+        jonathanh@nvidia.com, catalin.marinas@arm.com, will@kernel.org,
+        tsbogend@alpha.franken.de, James.Bottomley@hansenpartnership.com,
+        deller@gmx.de, mpe@ellerman.id.au, benh@kernel.crashing.org,
+        paulus@samba.org, lee.jones@linaro.org, sam@ravnborg.org,
+        emil.l.velikov@gmail.com, krzk@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org
+Subject: Re: [PATCH 0/5] drop unused BACKLIGHT_GENERIC option
+Message-ID: <20201201100505.xsocmjf6tmxu4uon@holly.lan>
+References: <20201130152137.24909-1-andrey.zhizhikin@leica-geosystems.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201130152137.24909-1-andrey.zhizhikin@leica-geosystems.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Marc Kleine-Budde <mkl@pengutronix.de>
+On Mon, Nov 30, 2020 at 03:21:32PM +0000, Andrey Zhizhikin wrote:
+> Since the removal of generic_bl driver from the source tree in commit
+> 7ecdea4a0226 ("backlight: generic_bl: Remove this driver as it is
+> unused") BACKLIGHT_GENERIC config option became obsolete as well and
+> therefore subject to clean-up from all configuration files.
+> 
+> This series introduces patches to address this removal, separated by
+> architectures in the kernel tree.
+> 
+> Andrey Zhizhikin (5):
+>   ARM: configs: drop unused BACKLIGHT_GENERIC option
+>   arm64: defconfig: drop unused BACKLIGHT_GENERIC option
+>   MIPS: configs: drop unused BACKLIGHT_GENERIC option
+>   parisc: configs: drop unused BACKLIGHT_GENERIC option
+>   powerpc/configs: drop unused BACKLIGHT_GENERIC option
 
-[ Upstream commit 05d5de6ba7dbe490dd413b5ca11d0875bd2bc006 ]
-
-According to the bosch,m_can.yaml bindings the first clock shall be the "hclk",
-while the second clock "cclk".
-
-This patch fixes the order accordingly.
-
-Fixes: 0adbe832f21a ("ARM: dts: dra76x: Add MCAN node")
-Cc: Faiz Abbas <faiz_abbas@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/dra76x.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
-index 216e1d1a69c7d..473d6721b7887 100644
---- a/arch/arm/boot/dts/dra76x.dtsi
-+++ b/arch/arm/boot/dts/dra76x.dtsi
-@@ -35,8 +35,8 @@
- 				interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
- 					     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
- 				interrupt-names = "int0", "int1";
--				clocks = <&mcan_clk>, <&l3_iclk_div>;
--				clock-names = "cclk", "hclk";
-+				clocks = <&l3_iclk_div>, <&mcan_clk>;
-+				clock-names = "hclk", "cclk";
- 				bosch,mram-cfg = <0x0 0 0 32 0 0 1 1>;
- 			};
- 		};
--- 
-2.27.0
+Whole series:
+Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
 
 
-
+Daniel.
