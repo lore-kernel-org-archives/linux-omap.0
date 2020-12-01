@@ -2,105 +2,95 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C353C83012
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 09:25:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B84B5C64E7B
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 09:26:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0ACB5206D8
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 09:25:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FEC620674
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Dec 2020 09:26:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="nAFK32JQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390828AbgLAJYc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Dec 2020 04:24:32 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8224 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390821AbgLAJYc (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2020 04:24:32 -0500
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Clc8j5CF8zkj6p;
-        Tue,  1 Dec 2020 17:23:17 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 1 Dec 2020 17:23:43 +0800
-From:   Qinglang Miao <miaoqinglang@huawei.com>
-To:     Vignesh R <vigneshr@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
-        "Tony Lindgren" <tony@atomide.com>
-CC:     <linux-omap@vger.kernel.org>, <linux-i2c@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Qinglang Miao <miaoqinglang@huawei.com>
-Subject: [PATCH 5/8] i2c: omap: fix reference leak when pm_runtime_get_sync fails
-Date:   Tue, 1 Dec 2020 17:31:43 +0800
-Message-ID: <20201201093143.113180-1-miaoqinglang@huawei.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201201092924.112461-1-miaoqinglang@huawei.com>
-References: <20201201092924.112461-1-miaoqinglang@huawei.com>
+        id S1727521AbgLAJFZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Dec 2020 04:05:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41456 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388908AbgLAJEq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 1 Dec 2020 04:04:46 -0500
+Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id D28F720671;
+        Tue,  1 Dec 2020 09:04:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1606813465;
+        bh=cc+KSuO3VxaPw2W2k0+0/0cUuTuf9IkxASgihbdWBi4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=nAFK32JQvMoMkLmizDyvpfuk6vLLLyORm4O7w7+mX9miU6nyqM3WbY5L7ioLnPLEv
+         f9V3EHkOc9TnIwWCu2N3qcFQn4myYa7boHIxCMUX+FYztFSC7LSSGPTSM7y3YM/CMS
+         nw8gU7rFA4/DEg4naN+AKKRjSN75yFf5+A8IJfoM=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        stable@vger.kernel.org, Faiz Abbas <faiz_abbas@ti.com>,
+        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+        Marc Kleine-Budde <mkl@pengutronix.de>,
+        Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 5.4 48/98] ARM: dts: dra76x: m_can: fix order of clocks
+Date:   Tue,  1 Dec 2020 09:53:25 +0100
+Message-Id: <20201201084657.446754415@linuxfoundation.org>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20201201084652.827177826@linuxfoundation.org>
+References: <20201201084652.827177826@linuxfoundation.org>
+User-Agent: quilt/0.66
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.113.25]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The PM reference count is not expected to be incremented on
-return in omap_i2c_probe() and omap_i2c_remove().
+From: Marc Kleine-Budde <mkl@pengutronix.de>
 
-However, pm_runtime_get_sync will increment the PM reference
-count even failed. Forgetting to putting operation will result
-in a reference leak here. I Replace it with pm_runtime_resume_and_get
-to keep usage counter balanced.
+[ Upstream commit 05d5de6ba7dbe490dd413b5ca11d0875bd2bc006 ]
 
-What's more, error path 'err_free_mem' seems not like a proper
-name any more. So I change the name to err_disable_pm and move
-pm_runtime_disable below, for pm_runtime of 'pdev->dev' should
-be disabled when pm_runtime_resume_and_get fails.
+According to the bosch,m_can.yaml bindings the first clock shall be the "hclk",
+while the second clock "cclk".
 
-Fixes: 3b0fb97c8dc4 ("I2C: OMAP: Handle error check for pm runtime")
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Qinglang Miao <miaoqinglang@huawei.com>
+This patch fixes the order accordingly.
+
+Fixes: 0adbe832f21a ("ARM: dts: dra76x: Add MCAN node")
+Cc: Faiz Abbas <faiz_abbas@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/i2c/busses/i2c-omap.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/dra76x.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 12ac4212a..d4f6c6d60 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1404,9 +1404,9 @@ omap_i2c_probe(struct platform_device *pdev)
- 	pm_runtime_set_autosuspend_delay(omap->dev, OMAP_I2C_PM_TIMEOUT);
- 	pm_runtime_use_autosuspend(omap->dev);
- 
--	r = pm_runtime_get_sync(omap->dev);
-+	r = pm_runtime_resume_and_get(omap->dev);
- 	if (r < 0)
--		goto err_free_mem;
-+		goto err_disable_pm;
- 
- 	/*
- 	 * Read the Rev hi bit-[15:14] ie scheme this is 1 indicates ver2.
-@@ -1513,8 +1513,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 	omap_i2c_write_reg(omap, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_dont_use_autosuspend(omap->dev);
- 	pm_runtime_put_sync(omap->dev);
-+err_disable_pm:
- 	pm_runtime_disable(&pdev->dev);
--err_free_mem:
- 
- 	return r;
- }
-@@ -1525,7 +1525,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
- 	int ret;
- 
- 	i2c_del_adapter(&omap->adapter);
--	ret = pm_runtime_get_sync(&pdev->dev);
-+	ret = pm_runtime_resume_and_get(&pdev->dev);
- 	if (ret < 0)
- 		return ret;
- 
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+index 9f6fbe4c1fee1..859e4382ac4bb 100644
+--- a/arch/arm/boot/dts/dra76x.dtsi
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -32,8 +32,8 @@
+ 				interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
+ 					     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
+ 				interrupt-names = "int0", "int1";
+-				clocks = <&mcan_clk>, <&l3_iclk_div>;
+-				clock-names = "cclk", "hclk";
++				clocks = <&l3_iclk_div>, <&mcan_clk>;
++				clock-names = "hclk", "cclk";
+ 				bosch,mram-cfg = <0x0 0 0 32 0 0 1 1>;
+ 			};
+ 		};
 -- 
-2.23.0
+2.27.0
+
+
 
