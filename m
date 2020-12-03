@@ -4,64 +4,63 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F3FFC4361B
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Dec 2020 21:37:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EF4DC4361A
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Dec 2020 21:37:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FAE722305
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Dec 2020 21:37:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0402D221F2
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Dec 2020 21:37:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389409AbgLCVg6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Dec 2020 16:36:58 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:27763 "EHLO
+        id S2389276AbgLCVgy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Dec 2020 16:36:54 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:34497 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2389397AbgLCVg6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2020 16:36:58 -0500
+        by vger.kernel.org with ESMTP id S1729417AbgLCVgv (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2020 16:36:51 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1607031331;
+        s=mimecast20190719; t=1607031324;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=DI29VqJzS72LXaEV13zDjLKn6lqs69y45EkLgkg/Hr4=;
-        b=FM/HHnmRx9JERGtKBdgRlHXPOAw81NsNpJfdR0MpxwzWy6+pTmrld67W6QqW710EsToGj+
-        fEtXZiyJe+AKauJfUCDdhC5XOBHrA8MKjG+HcQjo/G2+xLJqAVW6MxM0ztCxK/I0/bhjum
-        ccMbOK6yArsbmK8rjb1H320/p4kJhwE=
-Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com
- [209.85.222.197]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-275--v8VO9Y7P2ej5x_F6FnVZw-1; Thu, 03 Dec 2020 16:35:30 -0500
-X-MC-Unique: -v8VO9Y7P2ej5x_F6FnVZw-1
-Received: by mail-qk1-f197.google.com with SMTP id s29so3199885qkm.3
-        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2020 13:35:30 -0800 (PST)
+        bh=FOEQOBhWSpjeYwgvm7jnVQdC9SysAGqDTxCGYu9Ii/E=;
+        b=Nh8rPoxl/mZtIBMvVsqshoy6iwxwprWXYhWXNABlWMiCMWdH1nTBL7aZXn8NjriCRlwi4i
+        KRlAjGKl/xF7KIm/L3Z/e9DyaD8o19jsNdfnSZuSJPkpASPPfs2gvNpW0ogHO7WprjCnB1
+        onAV5UhAa/fgx88UJMS2POqTrQV90DU=
+Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com
+ [209.85.160.200]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-141-AH36Nzi9O4CbDWZWtVoHDA-1; Thu, 03 Dec 2020 16:35:22 -0500
+X-MC-Unique: AH36Nzi9O4CbDWZWtVoHDA-1
+Received: by mail-qt1-f200.google.com with SMTP id x62so2696118qtd.11
+        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2020 13:35:22 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
          :references:user-agent:mime-version:content-transfer-encoding;
-        bh=DI29VqJzS72LXaEV13zDjLKn6lqs69y45EkLgkg/Hr4=;
-        b=sOhvLwINzNfr3bgwuZhiL9h+fp1T7pEYi88SXYN3WXTzD76OZRo8Rpc2F6wMl0oEZp
-         bg8vpHIf/VvL/py/Uw1q6+CswU9Y84hrTw1ABzCB6hYFnQYQ55a1M5gkIJZT6uDnabW9
-         IaJSYUCHhj8j3q41B0qANVZSu5JEotw04xgq5BlPChNrprq1orboEQ/QOLKuAyKne8qr
-         MWDCFqfN0FaH30jjR7JGpWeiDfuvFPgViohn3RpTe+QybD9gbwmOdgAUg1ZJKzZIiz7C
-         EbF50jKkNV6ut1Sq8Ac1FAis//II4Z85kMUwVIWyxEzYdQg0omknKUV3hb4iymuCrLEW
-         n8jQ==
-X-Gm-Message-State: AOAM531B1EB/g45MQQJnFPTF30vcoaDDGFHE/6fh7UmveTRLoh+eoAQE
-        Wa3NV7BIqbhoL3YiYILvnSi4gWR25pSjunGgrNmCV89rU2lfidHTET9iLWuRhj37ByFXU4tzXNQ
-        GWqKDnaf2/n+HDUgGglOuHg==
-X-Received: by 2002:a05:620a:55b:: with SMTP id o27mr5033795qko.226.1607031329434;
-        Thu, 03 Dec 2020 13:35:29 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxfRbExoNkCbGd9OYQ3RciN25NTK0UbfbhfIQFCsxLV947DkzuxS3TC6F6RTtAe0QwlSNHrmg==
-X-Received: by 2002:a05:620a:55b:: with SMTP id o27mr5033743qko.226.1607031329039;
-        Thu, 03 Dec 2020 13:35:29 -0800 (PST)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id j124sm2913011qkf.113.2020.12.03.13.35.24
+        bh=FOEQOBhWSpjeYwgvm7jnVQdC9SysAGqDTxCGYu9Ii/E=;
+        b=NyxqUdb6aHtb3hTgI1wiXKG3CcKwNrNohDGAdG/I0T3b9ddnQpoXcRc9Ax+/z+pcte
+         Lh3SuBoijgUlqRa/csCj+CegSpkO4v6Jr/PdsI6ObXI2gIkhsk6lAO9k7TnEF3pUEJq+
+         6kNNfQf/NeiIUV0P5Q9LMWGMbVE2sCBSfxbVQ27M+mTZkcK/sA+XQmyqD29Ep6D8R7jX
+         pTO7WouFNG67JD0ObZA2m2MZIq2+XLwkq6VXekfTJkeZ025cpPut6h9oXd2GcS7sdAqu
+         KC6qsAasl/5FBHixzRkhj6t1Rpf0u/osjpHcBQyYABL9dx8WqnOk5Rbz2Ju37Mn/kS+e
+         Tj7w==
+X-Gm-Message-State: AOAM530GkFCkEclAB+/HXlRVv6t36jVCRK9TSDOoGmvWSnPqndiVd7PO
+        nB8xp9kZK2jPoo9OV9ek9Yk5EnBSRzLvqZVd+nD1nWzMDK5ZI9KxmRQFtsOsaUUuAAqHrTh7nGF
+        NATIphuhCl27nxlIZzbce1Q==
+X-Received: by 2002:a37:a88f:: with SMTP id r137mr5123196qke.437.1607031320984;
+        Thu, 03 Dec 2020 13:35:20 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJx00VOq0ClX50AjGWa467GOWc3rLaYOdNTf+KrH8xHZ6cY5kBzdnkH7aaycznfV49wVXoyP+A==
+X-Received: by 2002:a37:a88f:: with SMTP id r137mr5123158qke.437.1607031320769;
+        Thu, 03 Dec 2020 13:35:20 -0800 (PST)
+Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
+        by smtp.gmail.com with ESMTPSA id 64sm2795037qko.2.2020.12.03.13.35.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Dec 2020 13:35:25 -0800 (PST)
+        Thu, 03 Dec 2020 13:35:20 -0800 (PST)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id B23311843F0; Thu,  3 Dec 2020 22:35:23 +0100 (CET)
-Subject: [PATCH bpf 6/7] selftests/bpf/test_offload.py: reset ethtool features
- after failed setting
+        id 43E051843EB; Thu,  3 Dec 2020 22:35:18 +0100 (CET)
+Subject: [PATCH bpf 1/7] xdp: remove the xdp_attachment_flags_ok() callback
 From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
@@ -84,8 +83,8 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Jiri Benc <jbenc@redhat.com>, oss-drivers@netronome.com,
         linux-omap@vger.kernel.org, netdev@vger.kernel.org,
         bpf@vger.kernel.org
-Date:   Thu, 03 Dec 2020 22:35:23 +0100
-Message-ID: <160703132365.162669.12565799511526821110.stgit@toke.dk>
+Date:   Thu, 03 Dec 2020 22:35:18 +0100
+Message-ID: <160703131819.162669.2776807312730670823.stgit@toke.dk>
 In-Reply-To: <160703131710.162669.9632344967082582016.stgit@toke.dk>
 References: <160703131710.162669.9632344967082582016.stgit@toke.dk>
 User-Agent: StGit/0.23
@@ -98,26 +97,120 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Toke Høiland-Jørgensen <toke@redhat.com>
 
-When setting the ethtool feature flag fails (as expected for the test), the
-kernel now tracks that the feature was requested to be 'off' and refuses to
-subsequently disable it again. So reset it back to 'on' so a subsequent
-disable (that's not supposed to fail) can succeed.
+Since commit 7f0a838254bd ("bpf, xdp: Maintain info on attached XDP BPF
+programs in net_device"), the XDP program attachment info is now maintained
+in the core code. This interacts badly with the xdp_attachment_flags_ok()
+check that prevents unloading an XDP program with different load flags than
+it was loaded with. In practice, two kinds of failures are seen:
+
+- An XDP program loaded without specifying a mode (and which then ends up
+  in driver mode) cannot be unloaded if the program mode is specified on
+  unload.
+
+- The dev_xdp_uninstall() hook always calls the driver callback with the
+  mode set to the type of the program but an empty flags argument, which
+  means the flags_ok() check prevents the program from being removed,
+  leading to bpf prog reference leaks.
+
+Since we offloaded and non-offloaded programs can co-exist there doesn't
+really seem to be any reason for the check anyway, and it's only used in
+three drivers so let's just get rid of the callback entirely.
 
 Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
 ---
- tools/testing/selftests/bpf/test_offload.py |    1 +
- 1 file changed, 1 insertion(+)
+ .../net/ethernet/netronome/nfp/nfp_net_common.c    |    6 ------
+ drivers/net/ethernet/ti/cpsw_priv.c                |    3 ---
+ drivers/net/netdevsim/bpf.c                        |    3 ---
+ include/net/xdp.h                                  |    2 --
+ net/core/xdp.c                                     |   12 ------------
+ 5 files changed, 26 deletions(-)
 
-diff --git a/tools/testing/selftests/bpf/test_offload.py b/tools/testing/selftests/bpf/test_offload.py
-index 5b0fe8e0b2d2..f861503433c9 100755
---- a/tools/testing/selftests/bpf/test_offload.py
-+++ b/tools/testing/selftests/bpf/test_offload.py
-@@ -940,6 +940,7 @@ try:
-     start_test("Test disabling TC offloads is rejected while filters installed...")
-     ret, _ = sim.set_ethtool_tc_offloads(False, fail=False)
-     fail(ret == 0, "Driver should refuse to disable TC offloads with filters installed...")
-+    sim.set_ethtool_tc_offloads(True)
+diff --git a/drivers/net/ethernet/netronome/nfp/nfp_net_common.c b/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+index b150da43adb2..437226866ce8 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
++++ b/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+@@ -3562,9 +3562,6 @@ static int nfp_net_xdp_setup_drv(struct nfp_net *nn, struct netdev_bpf *bpf)
+ 	struct nfp_net_dp *dp;
+ 	int err;
  
-     start_test("Test qdisc removal frees things...")
-     sim.tc_flush_filters()
+-	if (!xdp_attachment_flags_ok(&nn->xdp, bpf))
+-		return -EBUSY;
+-
+ 	if (!prog == !nn->dp.xdp_prog) {
+ 		WRITE_ONCE(nn->dp.xdp_prog, prog);
+ 		xdp_attachment_setup(&nn->xdp, bpf);
+@@ -3593,9 +3590,6 @@ static int nfp_net_xdp_setup_hw(struct nfp_net *nn, struct netdev_bpf *bpf)
+ {
+ 	int err;
+ 
+-	if (!xdp_attachment_flags_ok(&nn->xdp_hw, bpf))
+-		return -EBUSY;
+-
+ 	err = nfp_app_xdp_offload(nn->app, nn, bpf->prog, bpf->extack);
+ 	if (err)
+ 		return err;
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
+index 31c5e36ff706..424e644724e4 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
++++ b/drivers/net/ethernet/ti/cpsw_priv.c
+@@ -1265,9 +1265,6 @@ static int cpsw_xdp_prog_setup(struct cpsw_priv *priv, struct netdev_bpf *bpf)
+ 	if (!priv->xdpi.prog && !prog)
+ 		return 0;
+ 
+-	if (!xdp_attachment_flags_ok(&priv->xdpi, bpf))
+-		return -EBUSY;
+-
+ 	WRITE_ONCE(priv->xdp_prog, prog);
+ 
+ 	xdp_attachment_setup(&priv->xdpi, bpf);
+diff --git a/drivers/net/netdevsim/bpf.c b/drivers/net/netdevsim/bpf.c
+index 2e90512f3bbe..85546664bdd5 100644
+--- a/drivers/net/netdevsim/bpf.c
++++ b/drivers/net/netdevsim/bpf.c
+@@ -190,9 +190,6 @@ nsim_xdp_set_prog(struct netdevsim *ns, struct netdev_bpf *bpf,
+ {
+ 	int err;
+ 
+-	if (!xdp_attachment_flags_ok(xdp, bpf))
+-		return -EBUSY;
+-
+ 	if (bpf->command == XDP_SETUP_PROG && !ns->bpf_xdpdrv_accept) {
+ 		NSIM_EA(bpf->extack, "driver XDP disabled in DebugFS");
+ 		return -EOPNOTSUPP;
+diff --git a/include/net/xdp.h b/include/net/xdp.h
+index 3814fb631d52..9dab2bc6f187 100644
+--- a/include/net/xdp.h
++++ b/include/net/xdp.h
+@@ -240,8 +240,6 @@ struct xdp_attachment_info {
+ };
+ 
+ struct netdev_bpf;
+-bool xdp_attachment_flags_ok(struct xdp_attachment_info *info,
+-			     struct netdev_bpf *bpf);
+ void xdp_attachment_setup(struct xdp_attachment_info *info,
+ 			  struct netdev_bpf *bpf);
+ 
+diff --git a/net/core/xdp.c b/net/core/xdp.c
+index 491ad569a79c..d900cebc0acd 100644
+--- a/net/core/xdp.c
++++ b/net/core/xdp.c
+@@ -403,18 +403,6 @@ void __xdp_release_frame(void *data, struct xdp_mem_info *mem)
+ }
+ EXPORT_SYMBOL_GPL(__xdp_release_frame);
+ 
+-bool xdp_attachment_flags_ok(struct xdp_attachment_info *info,
+-			     struct netdev_bpf *bpf)
+-{
+-	if (info->prog && (bpf->flags ^ info->flags) & XDP_FLAGS_MODES) {
+-		NL_SET_ERR_MSG(bpf->extack,
+-			       "program loaded with different flags");
+-		return false;
+-	}
+-	return true;
+-}
+-EXPORT_SYMBOL_GPL(xdp_attachment_flags_ok);
+-
+ void xdp_attachment_setup(struct xdp_attachment_info *info,
+ 			  struct netdev_bpf *bpf)
+ {
 
