@@ -2,85 +2,145 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-20.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DEF2C4361A
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 01:45:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFE78C433FE
+	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 07:53:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDD0320575
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 01:45:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACC0822573
+	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 07:53:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726589AbgLDBpB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Dec 2020 20:45:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56916 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726028AbgLDBpA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 3 Dec 2020 20:45:00 -0500
-Date:   Thu, 3 Dec 2020 17:44:17 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607046260;
-        bh=hesPmy1nwGmsLRTCW6Jx89Xg2zduiUm6o8IB8GX/LsM=;
-        h=From:To:Cc:Subject:In-Reply-To:References:From;
-        b=qkYd/fQKBfLTCGlE/4raBI6GDJ8UPTzsY/eXN430DMOeWmdFnC7P2e8e7oE+Wrzxd
-         ffeo1agq/5kP8Vzsjbq7ZB+Tjt+pYxB9RK1Witez/azllIoJO4gzssaJyZ9PoRR0FP
-         qH0tllmJp9u3+lObh0r6+21V32bS74RyAyZaw90p0DnNglGgeSJeiUFIJm3tAApwjm
-         89xGCn9ASpX0D0lIp9o7Q1q4kWEmSm50piq7J1dShLBrHh10ZH6ZmyVy6Q/1ZRv16o
-         1zRegudG/bMPBRoljwzLEoGFRn3r0e1i7/ui25+KktabljvpLb2+ul0JGh35/kYD18
-         FxDQjjh8+3y4A==
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Toke =?UTF-8?B?SMO4aWxhbmQtSsO4cmdlbnNlbg==?= <toke@redhat.com>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andriin@fb.com>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@chromium.org>,
-        Jesper Dangaard Brouer <hawk@kernel.org>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Romain Perier <romain.perier@gmail.com>,
-        Allen Pais <apais@linux.microsoft.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Simon Horman <simon.horman@netronome.com>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        Lorenzo Bianconi <lorenzo@kernel.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        Jiri Benc <jbenc@redhat.com>, oss-drivers@netronome.com,
-        linux-omap@vger.kernel.org, netdev@vger.kernel.org,
-        bpf@vger.kernel.org
-Subject: Re: [PATCH bpf 3/7] netdevsim: Add debugfs toggle to reject BPF
- programs in verifier
-Message-ID: <20201203174417.46255de5@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
-In-Reply-To: <160703132036.162669.7719186299991611592.stgit@toke.dk>
-References: <160703131710.162669.9632344967082582016.stgit@toke.dk>
-        <160703132036.162669.7719186299991611592.stgit@toke.dk>
+        id S1728203AbgLDHxM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 4 Dec 2020 02:53:12 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:45244 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726669AbgLDHxM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2020 02:53:12 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B47qBFU068550;
+        Fri, 4 Dec 2020 01:52:11 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1607068331;
+        bh=yzdzLYP32qo3w6V1OyjfV6SOJjwyiFbBdJ/Xu1to+A8=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=e/MWBtaaMatWOOg7HEJU31XwJf7BDNOqXMQAygxVOWg/bbu6XnflUlume+5XVfs9O
+         LkyAbN1xdUh+PT2SaeaExFPCFvdmZClRN0Dvl9iwnhIgmJ2nQnlwYv7HQ9ZjaTE22a
+         /nAV1sh+VJkaZHN5icf8sr33pOcrGAuvdFU2u4ZY=
+Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B47qBF5090865
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 4 Dec 2020 01:52:11 -0600
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE107.ent.ti.com
+ (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 4 Dec
+ 2020 01:52:10 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Fri, 4 Dec 2020 01:52:10 -0600
+Received: from a0393678-ssd.dal.design.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B47pL6t031834;
+        Fri, 4 Dec 2020 01:51:57 -0600
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+To:     Bjorn Helgaas <bhelgaas@google.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC:     <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>
+Subject: [PATCH v2 1/3] dt-bindings: pci: ti,j721e: Fix "ti,syscon-pcie-ctrl" to take argument
+Date:   Fri, 4 Dec 2020 13:21:15 +0530
+Message-ID: <20201204075117.10430-2-kishon@ti.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20201204075117.10430-1-kishon@ti.com>
+References: <20201204075117.10430-1-kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 03 Dec 2020 22:35:20 +0100 Toke H=C3=B8iland-J=C3=B8rgensen wrote:
-> diff --git a/drivers/net/netdevsim/netdevsim.h b/drivers/net/netdevsim/ne=
-tdevsim.h
-> index 827fc80f50a0..d1d329af3e61 100644
-> --- a/drivers/net/netdevsim/netdevsim.h
-> +++ b/drivers/net/netdevsim/netdevsim.h
-> @@ -190,6 +190,7 @@ struct nsim_dev {
->  	struct bpf_offload_dev *bpf_dev;
->  	bool bpf_bind_accept;
->  	u32 bpf_bind_verifier_delay;
-> +	bool bpf_bind_verifier_accept;
->  	struct dentry *ddir_bpf_bound_progs;
+Fix binding documentation of "ti,syscon-pcie-ctrl" to take phandle with
+argument. The argument is the register offset within "syscon" used to
+configure PCIe controller. This change is as discussed in [1]
 
-nit: if you respin please reorder the bpf_bind_verifier_* fields so
-that the structure packs better.
+[1] -> http://lore.kernel.org/r/CAL_JsqKiUcO76bo1GoepWM1TusJWoty_BRy2hFSgtEVMqtrvvQ@mail.gmail.com
 
-Acked-by: Jakub Kicinski <kuba@kernel.org>
+Fixes: 431b53b81cdc ("dt-bindings: PCI: Add host mode dt-bindings for TI's J721E SoC")
+Fixes: 45b39e928966 ("dt-bindings: PCI: Add EP mode dt-bindings for TI's J721E SoC")
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ .../devicetree/bindings/pci/ti,j721e-pci-ep.yaml      | 11 +++++++----
+ .../devicetree/bindings/pci/ti,j721e-pci-host.yaml    | 11 +++++++----
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
-Thanks for fixing this test!
+diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+index 3ae3e1a2d4b0..3766565cf258 100644
+--- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
++++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+@@ -29,9 +29,12 @@ properties:
+       - const: mem
+ 
+   ti,syscon-pcie-ctrl:
+-    description: Phandle to the SYSCON entry required for configuring PCIe mode
+-                 and link speed.
+-    $ref: /schemas/types.yaml#/definitions/phandle
++    $ref: /schemas/types.yaml#/definitions/phandle-array
++    items:
++      - items:
++          - description: Phandle to the SYSCON entry
++          - description: pcie_ctrl register offset within SYSCON
++    description: Specifier for configuring PCIe mode and link speed.
+ 
+   power-domains:
+     maxItems: 1
+@@ -80,7 +83,7 @@ examples:
+                  <0x00 0x0d000000 0x00 0x00800000>,
+                  <0x00 0x10000000 0x00 0x08000000>;
+            reg-names = "intd_cfg", "user_cfg", "reg", "mem";
+-           ti,syscon-pcie-ctrl = <&pcie0_ctrl>;
++           ti,syscon-pcie-ctrl = <&pcie0_ctrl 0x4070>;
+            max-link-speed = <3>;
+            num-lanes = <2>;
+            power-domains = <&k3_pds 239 TI_SCI_PD_EXCLUSIVE>;
+diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+index ee7a8eade3f6..2b6a1a5eaf7a 100644
+--- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
++++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+@@ -29,9 +29,12 @@ properties:
+       - const: cfg
+ 
+   ti,syscon-pcie-ctrl:
+-    description: Phandle to the SYSCON entry required for configuring PCIe mode
+-      and link speed.
+-    $ref: /schemas/types.yaml#/definitions/phandle
++    $ref: /schemas/types.yaml#/definitions/phandle-array
++    items:
++      - items:
++          - description: Phandle to the SYSCON entry
++          - description: pcie_ctrl register offset within SYSCON
++    description: Specifier for configuring PCIe mode and link speed.
+ 
+   power-domains:
+     maxItems: 1
+@@ -90,7 +93,7 @@ examples:
+                   <0x00 0x0d000000 0x00 0x00800000>,
+                   <0x00 0x10000000 0x00 0x00001000>;
+             reg-names = "intd_cfg", "user_cfg", "reg", "cfg";
+-            ti,syscon-pcie-ctrl = <&pcie0_ctrl>;
++            ti,syscon-pcie-ctrl = <&pcie0_ctrl 0x4070>;
+             max-link-speed = <3>;
+             num-lanes = <2>;
+             power-domains = <&k3_pds 239 TI_SCI_PD_EXCLUSIVE>;
+-- 
+2.17.1
+
