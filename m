@@ -4,64 +4,64 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6714C1B0D9
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 11:53:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34969C2BB3F
+	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 11:53:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 840D222482
+	by mail.kernel.org (Postfix) with ESMTP id 0107722A84
 	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 11:53:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387778AbgLDLxi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 4 Dec 2020 06:53:38 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:46002 "EHLO
+        id S1730120AbgLDLxj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 4 Dec 2020 06:53:39 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:29867 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730106AbgLDLxh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2020 06:53:37 -0500
+        by vger.kernel.org with ESMTP id S1730125AbgLDLxi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2020 06:53:38 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1607082730;
+        s=mimecast20190719; t=1607082731;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=zcUyCpLjDCll9Y1/aRPnij3wIkLUo17xw68D8racrjQ=;
-        b=jD1AwDVFyyYt1H51xp8v9YSB2emkASH+WXcgSRJNSP70gOsUgwQMeSY4AzFAxgWdizz2N2
-        VS1XfkySghH9U4Qyd5uaxrEfEbqpUl4uK/j5dY06hlGlvxmNY6TDYJuUDjbqheMvg3WLmO
-        /FA0ea6jIpicxgISMHg4amQdukPQdPk=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-582-YVJ1YeKlPXu9RN3rF79U2w-1; Fri, 04 Dec 2020 06:52:09 -0500
-X-MC-Unique: YVJ1YeKlPXu9RN3rF79U2w-1
-Received: by mail-ed1-f71.google.com with SMTP id z20so2230797edl.21
-        for <linux-omap@vger.kernel.org>; Fri, 04 Dec 2020 03:52:09 -0800 (PST)
+        bh=lUl3YRxLzhPFlWGiTKmymWpaAC8KhJLCEwifVZuc7JU=;
+        b=a2UJscbar5JqjKJHQQbLFS3TVX08BPZisYSNZOCNjgUF/5VG+vBEBdhVs4uNzZje73ygre
+        tJJlP6X/7wetkNePLrk9ShxhdiAu3iRHp2IhXxi0UWqJUEY+6efmmcljs71gWTQYQ6VmXu
+        m/ahlJS1V6VLW2DSa9jC440eR2f861w=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-248-rcTGFD54Pomq4iRs5xi_Fw-1; Fri, 04 Dec 2020 06:52:10 -0500
+X-MC-Unique: rcTGFD54Pomq4iRs5xi_Fw-1
+Received: by mail-ej1-f69.google.com with SMTP id a8so1966162ejc.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Dec 2020 03:52:10 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
          :references:user-agent:mime-version:content-transfer-encoding;
-        bh=zcUyCpLjDCll9Y1/aRPnij3wIkLUo17xw68D8racrjQ=;
-        b=lcZtgqXVl7PECIYHTYddhneLRTQgrF6/fa42+WFlYW1KkuBKwfp8hgFUBqXjzOyweI
-         YZFdpzqE22XHZOCnL3NH2iRMFCPK4tWB1eWDKD5VlUTRQejpNE3lm0Dkc2mqtiEbjCGQ
-         IThFcAvhK+UDTKzwf9pTnMtWz0XVSpb/P2BoS4wvIUYLt/KKxBILDN/ZIBMEsSivxTV+
-         c9lODwl/oP7MuLN6jg0smcHWakEfPtgWu0D8M3Nk2UyLTEnCG1CZ6Ao0UKjdQMvJ6MbC
-         ABQeqsIizJFWFV+zVN0v9k94kqTeC4TQ/MvFsVsrgs0A8KoiaN+SWLneu6Tw8JDkRWvJ
-         /INg==
-X-Gm-Message-State: AOAM531q2zlCZg0+pHKj363v2fGurlx0RAtZuHywfD7JeGgCTyFSYJUq
-        UPU4k3ijG5i1FlbVzddDPhZmVJpLE5wQT8w0U9E9mNuNo/wC+hfoS4uqs8qyTU/nCJdy8FKPiEf
-        b1JuSlLP2t48tCssx6UrxDA==
-X-Received: by 2002:a17:906:c087:: with SMTP id f7mr867465ejz.492.1607082727622;
-        Fri, 04 Dec 2020 03:52:07 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJzyEu66EqzxOKKZOgHPeEZHy0BRghOA3Syefi21Q3iNsPa4ViPa5k+lx+HXAso5qKcEfAQ7TQ==
-X-Received: by 2002:a17:906:c087:: with SMTP id f7mr867421ejz.492.1607082727090;
-        Fri, 04 Dec 2020 03:52:07 -0800 (PST)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id k18sm3200968edx.18.2020.12.04.03.52.05
+        bh=lUl3YRxLzhPFlWGiTKmymWpaAC8KhJLCEwifVZuc7JU=;
+        b=K3JGo+WO06vl2E5vyXUkSAnsHFNyNwWxGJ9EuqtebAL5hHG3m9/b1y8Auu4GZZ+Ocr
+         3zbhzlg9ZbtFIebGdTFmDPkllEiNyQs4wQ7MjHDJXmnbSW1BjN6PDMEcTkdiNaH8/9Da
+         wyPPPcNAZsUIUinrqoQLwBgUb4f9vRa+3fFr3G2wvAMZRCa/L8YWFbk6dCciqpdv+M9A
+         6VH1Z+BN9Z7Nx84Bwpipz2x4f3XAgktNQKZSmwAYNFy39Rv4BC3eBiFXMBnVsFzqiq/N
+         bboWBrTpm8YGb8Bcuc40+8Q7IwvWk+hxrwUDu9UKggTtyguJqBscuu/FkHafltSmldPG
+         8/hg==
+X-Gm-Message-State: AOAM531tEh9PAJeFzyr6ElK/YGHsdZHzMQ3vTk4Gp3NS2hTq7pX2uvsJ
+        W/OuQbHXtdcbaEDNg/zaQQP1hF0/9rk/7GaWPZYiwvVkMU6PQ1TJ5NOeyFC6C2u+ycSsVp+m9vG
+        Ext6ef9pw2GzUFlkT3idRxA==
+X-Received: by 2002:a17:906:fa13:: with SMTP id lo19mr6557292ejb.455.1607082728846;
+        Fri, 04 Dec 2020 03:52:08 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJxUwamXPIM/hd9eQ9ABpikH6bLI4zA+3HPcf7B32GCuXGObxGAEHI2EWUJuzvjPjmEKe00wSw==
+X-Received: by 2002:a17:906:fa13:: with SMTP id lo19mr6557267ejb.455.1607082728644;
+        Fri, 04 Dec 2020 03:52:08 -0800 (PST)
+Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
+        by smtp.gmail.com with ESMTPSA id h16sm2985869eji.110.2020.12.04.03.52.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Dec 2020 03:52:06 -0800 (PST)
+        Fri, 04 Dec 2020 03:52:08 -0800 (PST)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 845291843EB; Fri,  4 Dec 2020 12:52:05 +0100 (CET)
-Subject: [PATCH bpf v2 3/7] netdevsim: Add debugfs toggle to reject BPF
- programs in verifier
+        id B28D81843EC; Fri,  4 Dec 2020 12:52:07 +0100 (CET)
+Subject: [PATCH bpf v2 5/7] selftests/bpf/test_offload.py: fix expected case
+ of extack messages
 From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
@@ -84,8 +84,8 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Jiri Benc <jbenc@redhat.com>, oss-drivers@netronome.com,
         linux-omap@vger.kernel.org, netdev@vger.kernel.org,
         bpf@vger.kernel.org
-Date:   Fri, 04 Dec 2020 12:52:05 +0100
-Message-ID: <160708272546.192754.15754148712783914808.stgit@toke.dk>
+Date:   Fri, 04 Dec 2020 12:52:07 +0100
+Message-ID: <160708272763.192754.5153087321106504338.stgit@toke.dk>
 In-Reply-To: <160708272217.192754.14019805999368221369.stgit@toke.dk>
 References: <160708272217.192754.14019805999368221369.stgit@toke.dk>
 User-Agent: StGit/0.23
@@ -98,70 +98,36 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Toke Høiland-Jørgensen <toke@redhat.com>
 
-This adds a new debugfs toggle ('bpf_bind_verifier_accept') that can be
-used to make netdevsim reject BPF programs from being accepted by the
-verifier. If this toggle (which defaults to true) is set to false,
-nsim_bpf_verify_insn() will return EOPNOTSUPP on the last
-instruction (after outputting the 'Hello from netdevsim' verifier message).
+Commit 7f0a838254bd ("bpf, xdp: Maintain info on attached XDP BPF programs
+in net_device") changed the case of some of the extack messages being
+returned when attaching of XDP programs failed. This broke test_offload.py,
+so let's fix the test to reflect this.
 
-This makes it possible to check the verification callback in the driver
-from test_offload.py in selftests, since the verifier now clears the
-verifier log on a successful load, hiding the message from the driver.
-
-Acked-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
 ---
- drivers/net/netdevsim/bpf.c       |   12 ++++++++++--
- drivers/net/netdevsim/netdevsim.h |    1 +
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ tools/testing/selftests/bpf/test_offload.py |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/netdevsim/bpf.c b/drivers/net/netdevsim/bpf.c
-index 85546664bdd5..90aafb56f140 100644
---- a/drivers/net/netdevsim/bpf.c
-+++ b/drivers/net/netdevsim/bpf.c
-@@ -63,15 +63,20 @@ static int
- nsim_bpf_verify_insn(struct bpf_verifier_env *env, int insn_idx, int prev_insn)
- {
- 	struct nsim_bpf_bound_prog *state;
-+	int ret = 0;
+diff --git a/tools/testing/selftests/bpf/test_offload.py b/tools/testing/selftests/bpf/test_offload.py
+index 61527b43f067..51a5e4d939cc 100755
+--- a/tools/testing/selftests/bpf/test_offload.py
++++ b/tools/testing/selftests/bpf/test_offload.py
+@@ -1004,7 +1004,7 @@ try:
+                               fail=False, include_stderr=True)
+     fail(ret == 0, "Replaced XDP program with a program in different mode")
+     check_extack(err,
+-                 "native and generic XDP can't be active at the same time.",
++                 "Native and generic XDP can't be active at the same time.",
+                  args)
  
- 	state = env->prog->aux->offload->dev_priv;
- 	if (state->nsim_dev->bpf_bind_verifier_delay && !insn_idx)
- 		msleep(state->nsim_dev->bpf_bind_verifier_delay);
+     start_test("Test MTU restrictions...")
+@@ -1035,7 +1035,7 @@ try:
+     offload = bpf_pinned("/sys/fs/bpf/offload")
+     ret, _, err = sim.set_xdp(offload, "drv", fail=False, include_stderr=True)
+     fail(ret == 0, "attached offloaded XDP program to drv")
+-    check_extack(err, "using device-bound program without HW_MODE flag is not supported.", args)
++    check_extack(err, "Using device-bound program without HW_MODE flag is not supported.", args)
+     rm("/sys/fs/bpf/offload")
+     sim.wait_for_flush()
  
--	if (insn_idx == env->prog->len - 1)
-+	if (insn_idx == env->prog->len - 1) {
- 		pr_vlog(env, "Hello from netdevsim!\n");
- 
--	return 0;
-+		if (!state->nsim_dev->bpf_bind_verifier_accept)
-+			ret = -EOPNOTSUPP;
-+	}
-+
-+	return ret;
- }
- 
- static int nsim_bpf_finalize(struct bpf_verifier_env *env)
-@@ -595,6 +600,9 @@ int nsim_bpf_dev_init(struct nsim_dev *nsim_dev)
- 			    &nsim_dev->bpf_bind_accept);
- 	debugfs_create_u32("bpf_bind_verifier_delay", 0600, nsim_dev->ddir,
- 			   &nsim_dev->bpf_bind_verifier_delay);
-+	nsim_dev->bpf_bind_verifier_accept = true;
-+	debugfs_create_bool("bpf_bind_verifier_accept", 0600, nsim_dev->ddir,
-+			    &nsim_dev->bpf_bind_verifier_accept);
- 	return 0;
- }
- 
-diff --git a/drivers/net/netdevsim/netdevsim.h b/drivers/net/netdevsim/netdevsim.h
-index 827fc80f50a0..c4e7ad2a1964 100644
---- a/drivers/net/netdevsim/netdevsim.h
-+++ b/drivers/net/netdevsim/netdevsim.h
-@@ -189,6 +189,7 @@ struct nsim_dev {
- 	struct dentry *take_snapshot;
- 	struct bpf_offload_dev *bpf_dev;
- 	bool bpf_bind_accept;
-+	bool bpf_bind_verifier_accept;
- 	u32 bpf_bind_verifier_delay;
- 	struct dentry *ddir_bpf_bound_progs;
- 	u32 prog_id_gen;
 
