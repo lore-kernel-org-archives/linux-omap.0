@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60E62C2BBCA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7D5AC2BB40
 	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 20:19:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0753222B40
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 20:19:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0C2822C9C
+	for <linux-omap@archiver.kernel.org>; Fri,  4 Dec 2020 20:19:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387504AbgLDUTu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 4 Dec 2020 15:19:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35390 "EHLO
+        id S2387723AbgLDUTz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 4 Dec 2020 15:19:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387468AbgLDUTu (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2020 15:19:50 -0500
-Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECF83C08E863
-        for <linux-omap@vger.kernel.org>; Fri,  4 Dec 2020 12:18:21 -0800 (PST)
-Received: by mail-lf1-x130.google.com with SMTP id z21so9349602lfe.12
-        for <linux-omap@vger.kernel.org>; Fri, 04 Dec 2020 12:18:21 -0800 (PST)
+        with ESMTP id S2387494AbgLDUTy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2020 15:19:54 -0500
+Received: from mail-lf1-x141.google.com (mail-lf1-x141.google.com [IPv6:2a00:1450:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 333B2C09424A
+        for <linux-omap@vger.kernel.org>; Fri,  4 Dec 2020 12:18:25 -0800 (PST)
+Received: by mail-lf1-x141.google.com with SMTP id q13so9374926lfr.10
+        for <linux-omap@vger.kernel.org>; Fri, 04 Dec 2020 12:18:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Aebq4Z/X+Nr9WpJ3mNo4K1N0OlNLKMXiT5kwsV6RxHU=;
-        b=ZF68vQ4u0T8Ye3WoFbq1snUTda/EUuRSbX3jx/PItOvdMxEim+zkIzSP0oyzWL06ty
-         qdumYxBtYrs/Dekfk4PV9E29UNdPy5gVoCkv1h2XvifGLhAk5owCPDrdrQctVZc69/iK
-         VvZXP2I3ET/e+xPU2gcizbjlKacVQZTEzQPuna+aTfYn+f7BMuzfODbwSdISn90u+Izm
-         ze9Ryfa9iyDf1niKy9Nbp8WJKmM3fpYnj+nZEKqZMDYpgg4gFnfW9u++Uwa84956AyVb
-         +89d++Ucn9z2S+OdGeNeKuhQcoOS2HOMq6oE+wS4rgYLIxp8cYwAYbbCaZ8icdgXo341
-         Gvpw==
+        bh=wMxC+IvyWBR942e55z/Z2GZyYcRalCFkkkHaCkUZH8U=;
+        b=Wxd92WLg6xh09PWwhvh0Cg6ePBvFSIydmz64tQfxNVCufME5Tu2WsbRjTo6yKG2Yxe
+         WtvJa2fMVDcSnIXlMPS56hbEkjy3+HGs9xwdM/WH/LXc5TUNkX5mbfzJARHG5jScPM2d
+         E6SHuoINcexSQnqiXH7sMYZO8tXnTB9WeCumA26K4AD+/93yU5GjVXcLHy2N/SzuwlNT
+         GgehMyINZ4CGIqeVD70kLezRR5bvuaL+zz315oVKoeUfzGa7j9WHkOVu2Tt2+xCmis6y
+         iipjnuBPpeXfi4Zj6bZo5bETeewz1S/KF3PL4lrnUiRmIRrD/EebY0GeTOtxP2HyEX+3
+         hzSg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Aebq4Z/X+Nr9WpJ3mNo4K1N0OlNLKMXiT5kwsV6RxHU=;
-        b=o1Z8I594VkVLlypitTrHwGWWp0nXwVb7iaUO9gDFgbVBVl42ImTqM36AOq4HU5GeTo
-         jPhFyh1ulvtBkfLRsQOrLXS22BBa7e1QQUfMrSvGaUgHC0ZFi3nvGBlTFcgfxYbsOCXz
-         TNjVwJk/IsHUrAKicT1IFHMDHHqjSirblDk6iOwuDYisP1o+mwWk71ssT8m4Eic/qRb6
-         KosX2e1EYIOZYlkqGdiw67ReglHzx7PgMdvLdNhNRt9OPla+TGIB082sbTOg3ctYWSAB
-         P1Qz83OwJN/VmQz3RL5zjmiVQ6ggcSVNIKTB0ujyP+KEuu5x/Nx85fcd6YGQkL4eChWv
-         SzOg==
-X-Gm-Message-State: AOAM532S6H61diPngPZ3DK6w8qAecYUP1etVH+BiBM/Btw92kbmxGGg8
-        A66RzyESnovyOfYCMbMDERnyZg==
-X-Google-Smtp-Source: ABdhPJyBMjWv0xae8uc1WKwxROOr0Bq93BI0hP9fQ4+rFPpLeGAkEz5b5N0H6NQoVO1sjVMpJHRxJA==
-X-Received: by 2002:a05:6512:3481:: with SMTP id v1mr3763935lfr.113.1607113100409;
-        Fri, 04 Dec 2020 12:18:20 -0800 (PST)
+        bh=wMxC+IvyWBR942e55z/Z2GZyYcRalCFkkkHaCkUZH8U=;
+        b=HOWy+Rils+2agykSFhgPkkpCS+VNIMY5mPTl2gVqTfLgxQ0rHBkROYj9JDWKI0FQRx
+         nevW5HGQVE0umRWhoKqUmFBFJtnHU3zPAG4WKq69dzEiB0GLEN6Kn6NLAH8wooViQpTa
+         4Z5U1JYkTdoReCEkNh957OEeR3z6ZYSeD8d5iyuD8tzxG+1GOGRog0AS2kjMumGLNwfa
+         H2EE/eiAWW5qEiwkdyUVp0NIEcDymcmkQi4dio45MR91lvmv2lzTpSKMr0uJedF9HQ0H
+         eaqw0dNmpBWN29NeMCl+GYX6UlgixFl0lQnFLdXBzgAh8KxdiBblAICHJkBoGYzqsaHh
+         19XQ==
+X-Gm-Message-State: AOAM530BHMOFuUcK/vXL4eYJqS3yW6NsmsKdVc1IjsS6ZeefBD8l0LiO
+        jhmgyMybf9NVPpZNEham0YoFBQ==
+X-Google-Smtp-Source: ABdhPJxFSoGIddJCxiN4Y8NkGlcmp+kdTuenUUMsZMEkJuKSM0UQCjZr4f5QTLPqOoNyHQP/kNTfKg==
+X-Received: by 2002:ac2:4831:: with SMTP id 17mr4135030lft.487.1607113103639;
+        Fri, 04 Dec 2020 12:18:23 -0800 (PST)
 Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
-        by smtp.gmail.com with ESMTPSA id w21sm2036918lff.280.2020.12.04.12.18.19
+        by smtp.gmail.com with ESMTPSA id w21sm2036918lff.280.2020.12.04.12.18.21
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 04 Dec 2020 12:18:19 -0800 (PST)
+        Fri, 04 Dec 2020 12:18:23 -0800 (PST)
 From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 To:     ohad@wizery.com, bjorn.andersson@linaro.org,
         mathieu.poirier@linaro.org, s-anna@ti.com
@@ -63,9 +63,9 @@ Cc:     grzegorz.jaszczyk@linaro.org, linux-remoteproc@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         praneeth@ti.com, rogerq@ti.com
-Subject: [PATCH v3 3/6] remoteproc: pru: Add support for PRU specific interrupt configuration
-Date:   Fri,  4 Dec 2020 21:18:04 +0100
-Message-Id: <20201204201807.14716-4-grzegorz.jaszczyk@linaro.org>
+Subject: [PATCH v3 5/6] remoteproc: pru: Add support for various PRU cores on K3 AM65x SoCs
+Date:   Fri,  4 Dec 2020 21:18:06 +0100
+Message-Id: <20201204201807.14716-6-grzegorz.jaszczyk@linaro.org>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201204201807.14716-1-grzegorz.jaszczyk@linaro.org>
 References: <20201204201807.14716-1-grzegorz.jaszczyk@linaro.org>
@@ -75,371 +75,307 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The firmware blob can contain optional ELF sections: .resource_table
-section and .pru_irq_map one. The second one contains the PRUSS
-interrupt mapping description, which needs to be setup before powering
-on the PRU core. To avoid RAM wastage this ELF section is not mapped to
-any ELF segment (by the firmware linker) and therefore is not loaded to
-PRU memory.
+From: Suman Anna <s-anna@ti.com>
 
-The PRU interrupt configuration is handled within the PRUSS INTC irqchip
-driver and leverages the system events to interrupt channels and host
-interrupts mapping configuration. Relevant irq routing information is
-passed through a special .pru_irq_map ELF section (for interrupts routed
-to and used by PRU cores) or via the PRU application's device tree node
-(for interrupts routed to and used by the main CPU). The mappings are
-currently programmed during the booting/shutdown of the PRU.
+The K3 AM65x family of SoCs have the next generation of the PRU-ICSS
+processor subsystem, commonly referred to as ICSSG. Each ICSSG processor
+subsystem on AM65x SR1.0 contains two primary PRU cores and two new
+auxiliary PRU cores called RTUs. The AM65x SR2.0 SoCs have a revised
+ICSSG IP that is based off the subsequent IP revision used on J721E
+SoCs. This IP instance has two new custom auxiliary PRU cores called
+Transmit PRUs (Tx_PRUs) in addition to the existing PRUs and RTUs.
 
-The interrupt configuration passed through .pru_irq_map ELF section is
-optional. It varies on specific firmware functionality and therefore
-have to be unwinded during PRU stop and performed again during
-PRU start.
+Each RTU and Tx_PRU cores have their own dedicated IRAM (smaller than
+a PRU), Control and debug feature sets, but is different in terms of
+sub-modules integrated around it and does not have the full capabilities
+associated with a PRU core. The RTU core is typically used to aid a
+PRU core in accelerating data transfers, while the Tx_PRU cores is
+normally used to control the TX L2 FIFO if enabled in Ethernet
+applications. Both can also be used to run independent applications.
+The RTU and Tx_PRU cores though share the same Data RAMs as the PRU
+cores, so the memories have to be partitioned carefully between different
+applications. The new cores also support a new sub-module called Task
+Manager to support two different context thread executions.
 
-Co-developed-by: Suman Anna <s-anna@ti.com>
+Enhance the existing PRU remoteproc driver to support these new PRU, RTU
+and Tx PRU cores by using specific compatibles. The initial names for the
+firmware images for each PRU core are retrieved from DT nodes, and can
+be adjusted through sysfs if required.
+
+The PRU remoteproc driver has to be specifically modified to use a
+custom memcpy function within its ELF loader implementation for these
+new cores in order to overcome a limitation with copying data into each
+of the core's IRAM memories. These memory ports support only 4-byte
+writes, and any sub-word order byte writes clear out the remaining
+bytes other than the bytes being written within the containing word.
+The default ARM64 memcpy also cannot be used as it throws an exception
+when the preferred 8-byte copy operation is attempted. This choice is
+made by using a state flag that is set only on K3 SoCs.
+
 Signed-off-by: Suman Anna <s-anna@ti.com>
+Co-developed-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+Reviewed-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 ---
-v2-v3:
+v2->v3:
 Address Mathieu comments:
-- Because irq_create_fwspec_mapping() returns an unsigned int, convert
-  mapped_irq type to 'unsigned int *'. Due to this change update
-  relevant error path.
-- Since the num_evts is u8 value and can't be negative drop
-  'rsc->num_evts < 0' check.
-
-Fix checkpatch --strict warning:
- CHECK: Alignment should match open parenthesis
- #163: FILE: drivers/remoteproc/pru_rproc.c:165:
- +		dev_dbg(dev, "mapping%d: event %d, chnl %d, host %d\n",
- +		       i, fwspec.param[0], fwspec.param[1], fwspec.param[2]);
+- Change type of some local variable in pru_rproc_memcpy from 'int *' to
+  'u32 *'. At the occasion use size_t for 'size' inside mentioned
+  function.
+- Add Reviewed-by: tag.
 
 v1->v2:
-Address Suman comments:
-- Rework pru_rproc_find_interrupt_map() style: get rid of generic ELF
-  helpers macros usage and stick with elf32_* related structs instead
-  (in order to be consistent with pru_rproc_load_elf_segments() style).
-- Improve comments and dev_err msgs in pru_rproc_find_interrupt_map().
-- Use u8 instead of ssize_t for evt_count.
+- Update documentation of pru_rproc_memcpy() according to Suman
+  comments.
+- Update documentation of is_k3 flag.
 ---
- drivers/remoteproc/pru_rproc.c | 180 +++++++++++++++++++++++++++++++++
- drivers/remoteproc/pru_rproc.h |  46 +++++++++
- 2 files changed, 226 insertions(+)
- create mode 100644 drivers/remoteproc/pru_rproc.h
+ drivers/remoteproc/pru_rproc.c | 140 ++++++++++++++++++++++++++++++---
+ 1 file changed, 131 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index d33392bbd8af..4ef59d15d888 100644
+index b22c4903299e..f76423792acb 100644
 --- a/drivers/remoteproc/pru_rproc.c
 +++ b/drivers/remoteproc/pru_rproc.c
-@@ -11,13 +11,16 @@
-  */
+@@ -46,10 +46,14 @@
+ #define PRU_DEBUG_GPREG(x)	(0x0000 + (x) * 4)
+ #define PRU_DEBUG_CT_REG(x)	(0x0080 + (x) * 4)
  
- #include <linux/bitops.h>
-+#include <linux/irqdomain.h>
- #include <linux/module.h>
- #include <linux/of_device.h>
-+#include <linux/of_irq.h>
- #include <linux/pruss_driver.h>
- #include <linux/remoteproc.h>
+-/* PRU Core IRAM address masks */
++/* PRU/RTU/Tx_PRU Core IRAM address masks */
+ #define PRU_IRAM_ADDR_MASK	0x3ffff
+ #define PRU0_IRAM_ADDR_MASK	0x34000
+ #define PRU1_IRAM_ADDR_MASK	0x38000
++#define RTU0_IRAM_ADDR_MASK	0x4000
++#define RTU1_IRAM_ADDR_MASK	0x6000
++#define TX_PRU0_IRAM_ADDR_MASK	0xa000
++#define TX_PRU1_IRAM_ADDR_MASK	0xc000
  
- #include "remoteproc_internal.h"
- #include "remoteproc_elf_helpers.h"
-+#include "pru_rproc.h"
- 
- /* PRU_ICSS_PRU_CTRL registers */
- #define PRU_CTRL_CTRL		0x0000
-@@ -42,6 +45,8 @@
- #define PRU_SDRAM_DA	0x2000	/* Secondary Data RAM */
- #define PRU_SHRDRAM_DA	0x10000 /* Shared Data RAM */
- 
-+#define MAX_PRU_SYS_EVENTS 160
-+
- /**
-  * enum pru_iomem - PRU core memory/register range identifiers
-  *
-@@ -65,6 +70,10 @@ enum pru_iomem {
-  * @rproc: remoteproc pointer for this PRU core
-  * @mem_regions: data for each of the PRU memory regions
-  * @fw_name: name of firmware image used during loading
-+ * @mapped_irq: virtual interrupt numbers of created fw specific mapping
-+ * @pru_interrupt_map: pointer to interrupt mapping description (firmware)
-+ * @pru_interrupt_map_sz: pru_interrupt_map size
-+ * @evt_count: number of mapped events
-  */
- struct pru_rproc {
- 	int id;
-@@ -73,6 +82,10 @@ struct pru_rproc {
- 	struct rproc *rproc;
- 	struct pruss_mem_region mem_regions[PRU_IOMEM_MAX];
- 	const char *fw_name;
-+	unsigned int *mapped_irq;
-+	struct pru_irq_rsc *pru_interrupt_map;
-+	size_t pru_interrupt_map_sz;
-+	u8 evt_count;
+ /* PRU device addresses for various type of PRU RAMs */
+ #define PRU_IRAM_DA	0	/* Instruction RAM */
+@@ -74,12 +78,38 @@ enum pru_iomem {
+ 	PRU_IOMEM_MAX,
  };
  
- static inline u32 pru_control_read_reg(struct pru_rproc *pru, unsigned int reg)
-@@ -86,15 +99,107 @@ void pru_control_write_reg(struct pru_rproc *pru, unsigned int reg, u32 val)
- 	writel_relaxed(val, pru->mem_regions[PRU_IOMEM_CTRL].va + reg);
- }
- 
-+static void pru_dispose_irq_mapping(struct pru_rproc *pru)
-+{
-+	while (pru->evt_count--) {
-+		if (pru->mapped_irq[pru->evt_count] > 0)
-+			irq_dispose_mapping(pru->mapped_irq[pru->evt_count]);
-+	}
-+
-+	kfree(pru->mapped_irq);
-+}
-+
-+/*
-+ * Parse the custom PRU interrupt map resource and configure the INTC
-+ * appropriately.
-+ */
-+static int pru_handle_intrmap(struct rproc *rproc)
-+{
-+	struct device *dev = rproc->dev.parent;
-+	struct pru_rproc *pru = rproc->priv;
-+	struct pru_irq_rsc *rsc = pru->pru_interrupt_map;
-+	struct irq_fwspec fwspec;
-+	struct device_node *irq_parent;
-+	int i, ret = 0;
-+
-+	/* not having pru_interrupt_map is not an error */
-+	if (!rsc)
-+		return 0;
-+
-+	/* currently supporting only type 0 */
-+	if (rsc->type != 0) {
-+		dev_err(dev, "unsupported rsc type: %d\n", rsc->type);
-+		return -EINVAL;
-+	}
-+
-+	if (rsc->num_evts > MAX_PRU_SYS_EVENTS)
-+		return -EINVAL;
-+
-+	if (sizeof(*rsc) + rsc->num_evts * sizeof(struct pruss_int_map) !=
-+	    pru->pru_interrupt_map_sz)
-+		return -EINVAL;
-+
-+	pru->evt_count = rsc->num_evts;
-+	pru->mapped_irq = kcalloc(pru->evt_count, sizeof(int), GFP_KERNEL);
-+	if (!pru->mapped_irq)
-+		return -ENOMEM;
-+
-+	/*
-+	 * parse and fill in system event to interrupt channel and
-+	 * channel-to-host mapping
-+	 */
-+	irq_parent = of_irq_find_parent(pru->dev->of_node);
-+	if (!irq_parent) {
-+		kfree(pru->mapped_irq);
-+		return -ENODEV;
-+	}
-+
-+	fwspec.fwnode = of_node_to_fwnode(irq_parent);
-+	fwspec.param_count = 3;
-+	for (i = 0; i < pru->evt_count; i++) {
-+		fwspec.param[0] = rsc->pru_intc_map[i].event;
-+		fwspec.param[1] = rsc->pru_intc_map[i].chnl;
-+		fwspec.param[2] = rsc->pru_intc_map[i].host;
-+
-+		dev_dbg(dev, "mapping%d: event %d, chnl %d, host %d\n",
-+			i, fwspec.param[0], fwspec.param[1], fwspec.param[2]);
-+
-+		pru->mapped_irq[i] = irq_create_fwspec_mapping(&fwspec);
-+		if (!pru->mapped_irq[i]) {
-+			dev_err(dev, "failed to get virq\n");
-+			ret = pru->mapped_irq[i];
-+			goto map_fail;
-+		}
-+	}
-+
-+	return ret;
-+
-+map_fail:
-+	pru_dispose_irq_mapping(pru);
-+
-+	return ret;
-+}
-+
- static int pru_rproc_start(struct rproc *rproc)
- {
- 	struct device *dev = &rproc->dev;
- 	struct pru_rproc *pru = rproc->priv;
- 	u32 val;
-+	int ret;
- 
- 	dev_dbg(dev, "starting PRU%d: entry-point = 0x%llx\n",
- 		pru->id, (rproc->bootaddr >> 2));
- 
-+	ret = pru_handle_intrmap(rproc);
-+	/*
-+	 * reset references to pru interrupt map - they will stop being valid
-+	 * after rproc_start returns
-+	 */
-+	pru->pru_interrupt_map = NULL;
-+	pru->pru_interrupt_map_sz = 0;
-+	if (ret)
-+		return ret;
-+
- 	val = CTRL_CTRL_EN | ((rproc->bootaddr >> 2) << 16);
- 	pru_control_write_reg(pru, PRU_CTRL_CTRL, val);
- 
-@@ -113,6 +218,10 @@ static int pru_rproc_stop(struct rproc *rproc)
- 	val &= ~CTRL_CTRL_EN;
- 	pru_control_write_reg(pru, PRU_CTRL_CTRL, val);
- 
-+	/* dispose irq mapping - new firmware can provide new mapping */
-+	if (pru->mapped_irq)
-+		pru_dispose_irq_mapping(pru);
-+
- 	return 0;
- }
- 
-@@ -273,12 +382,70 @@ pru_rproc_load_elf_segments(struct rproc *rproc, const struct firmware *fw)
- 	return ret;
- }
- 
-+static const void *
-+pru_rproc_find_interrupt_map(struct device *dev, const struct firmware *fw)
-+{
-+	struct elf32_shdr *shdr, *name_table_shdr;
-+	const char *name_table;
-+	const u8 *elf_data = fw->data;
-+	struct elf32_hdr *ehdr = (struct elf32_hdr *)elf_data;
-+	u16 shnum = ehdr->e_shnum;
-+	u16 shstrndx = ehdr->e_shstrndx;
-+	int i;
-+
-+	/* first, get the section header */
-+	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
-+	/* compute name table section header entry in shdr array */
-+	name_table_shdr = shdr + shstrndx;
-+	/* finally, compute the name table section address in elf */
-+	name_table = elf_data + name_table_shdr->sh_offset;
-+
-+	for (i = 0; i < shnum; i++, shdr++) {
-+		u32 size = shdr->sh_size;
-+		u32 offset = shdr->sh_offset;
-+		u32 name = shdr->sh_name;
-+
-+		if (strcmp(name_table + name, ".pru_irq_map"))
-+			continue;
-+
-+		/* make sure we have the entire irq map */
-+		if (offset + size > fw->size || offset + size < size) {
-+			dev_err(dev, ".pru_irq_map section truncated\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+
-+		/* make sure irq map has at least the header */
-+		if (sizeof(struct pru_irq_rsc) > size) {
-+			dev_err(dev, "header-less .pru_irq_map section\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+
-+		return shdr;
-+	}
-+
-+	dev_dbg(dev, "no .pru_irq_map section found for this fw\n");
-+
-+	return NULL;
-+}
-+
- /*
-  * Use a custom parse_fw callback function for dealing with PRU firmware
-  * specific sections.
-+ *
-+ * The firmware blob can contain optional ELF sections: .resource_table section
-+ * and .pru_irq_map one. The second one contains the PRUSS interrupt mapping
-+ * description, which needs to be setup before powering on the PRU core. To
-+ * avoid RAM wastage this ELF section is not mapped to any ELF segment (by the
-+ * firmware linker) and therefore is not loaded to PRU memory.
-  */
- static int pru_rproc_parse_fw(struct rproc *rproc, const struct firmware *fw)
- {
-+	struct device *dev = &rproc->dev;
-+	struct pru_rproc *pru = rproc->priv;
-+	const u8 *elf_data = fw->data;
-+	const void *shdr;
-+	u8 class = fw_elf_get_class(fw);
-+	u64 sh_offset;
- 	int ret;
- 
- 	/* load optional rsc table */
-@@ -288,6 +455,19 @@ static int pru_rproc_parse_fw(struct rproc *rproc, const struct firmware *fw)
- 	else if (ret)
- 		return ret;
- 
-+	/* find .pru_interrupt_map section, not having it is not an error */
-+	shdr = pru_rproc_find_interrupt_map(dev, fw);
-+	if (IS_ERR(shdr))
-+		return PTR_ERR(shdr);
-+
-+	if (!shdr)
-+		return 0;
-+
-+	/* preserve pointer to PRU interrupt map together with it size */
-+	sh_offset = elf_shdr_get_sh_offset(class, shdr);
-+	pru->pru_interrupt_map = (struct pru_irq_rsc *)(elf_data + sh_offset);
-+	pru->pru_interrupt_map_sz = elf_shdr_get_sh_size(class, shdr);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/remoteproc/pru_rproc.h b/drivers/remoteproc/pru_rproc.h
-new file mode 100644
-index 000000000000..8ee9c3171610
---- /dev/null
-+++ b/drivers/remoteproc/pru_rproc.h
-@@ -0,0 +1,46 @@
-+/* SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause) */
-+/*
-+ * PRUSS Remote Processor specific types
-+ *
-+ * Copyright (C) 2014-2020 Texas Instruments Incorporated - https://www.ti.com/
-+ *	Suman Anna <s-anna@ti.com>
-+ */
-+
-+#ifndef _PRU_RPROC_H_
-+#define _PRU_RPROC_H_
-+
 +/**
-+ * struct pruss_int_map - PRU system events _to_ channel and host mapping
-+ * @event: number of the system event
-+ * @chnl: channel number assigned to a given @event
-+ * @host: host number assigned to a given @chnl
++ * enum pru_type - PRU core type identifier
 + *
-+ * PRU system events are mapped to channels, and these channels are mapped
-+ * to host interrupts. Events can be mapped to channels in a one-to-one or
-+ * many-to-one ratio (multiple events per channel), and channels can be
-+ * mapped to host interrupts in a one-to-one or many-to-one ratio (multiple
-+ * channels per interrupt).
++ * @PRU_TYPE_PRU: Programmable Real-time Unit
++ * @PRU_TYPE_RTU: Auxiliary Programmable Real-Time Unit
++ * @PRU_TYPE_TX_PRU: Transmit Programmable Real-Time Unit
++ * @PRU_TYPE_MAX: just keep this one at the end
 + */
-+struct pruss_int_map {
-+	u8 event;
-+	u8 chnl;
-+	u8 host;
++enum pru_type {
++	PRU_TYPE_PRU = 0,
++	PRU_TYPE_RTU,
++	PRU_TYPE_TX_PRU,
++	PRU_TYPE_MAX,
 +};
 +
 +/**
-+ * struct pru_irq_rsc - PRU firmware section header for IRQ data
-+ * @type: resource type
-+ * @num_evts: number of described events
-+ * @pru_intc_map: PRU interrupt routing description
-+ *
-+ * The PRU firmware blob can contain optional .pru_irq_map ELF section, which
-+ * provides the PRUSS interrupt mapping description. The pru_irq_rsc struct
-+ * describes resource entry format.
++ * struct pru_private_data - device data for a PRU core
++ * @type: type of the PRU core (PRU, RTU, Tx_PRU)
++ * @is_k3: flag used to identify the need for special load handling
 + */
-+struct pru_irq_rsc {
-+	u8 type;
-+	u8 num_evts;
-+	struct pruss_int_map pru_intc_map[];
-+} __packed;
++struct pru_private_data {
++	enum pru_type type;
++	unsigned int is_k3 : 1;
++};
 +
-+#endif	/* _PRU_RPROC_H_ */
+ /**
+  * struct pru_rproc - PRU remoteproc structure
+  * @id: id of the PRU core within the PRUSS
+  * @dev: PRU core device pointer
+  * @pruss: back-reference to parent PRUSS structure
+  * @rproc: remoteproc pointer for this PRU core
++ * @data: PRU core specific data
+  * @mem_regions: data for each of the PRU memory regions
+  * @fw_name: name of firmware image used during loading
+  * @mapped_irq: virtual interrupt numbers of created fw specific mapping
+@@ -94,6 +124,7 @@ struct pru_rproc {
+ 	struct device *dev;
+ 	struct pruss *pruss;
+ 	struct rproc *rproc;
++	const struct pru_private_data *data;
+ 	struct pruss_mem_region mem_regions[PRU_IOMEM_MAX];
+ 	const char *fw_name;
+ 	unsigned int *mapped_irq;
+@@ -318,11 +349,12 @@ static int pru_rproc_start(struct rproc *rproc)
+ {
+ 	struct device *dev = &rproc->dev;
+ 	struct pru_rproc *pru = rproc->priv;
++	const char *names[PRU_TYPE_MAX] = { "PRU", "RTU", "Tx_PRU" };
+ 	u32 val;
+ 	int ret;
+ 
+-	dev_dbg(dev, "starting PRU%d: entry-point = 0x%llx\n",
+-		pru->id, (rproc->bootaddr >> 2));
++	dev_dbg(dev, "starting %s%d: entry-point = 0x%llx\n",
++		names[pru->data->type], pru->id, (rproc->bootaddr >> 2));
+ 
+ 	ret = pru_handle_intrmap(rproc);
+ 	/*
+@@ -344,9 +376,10 @@ static int pru_rproc_stop(struct rproc *rproc)
+ {
+ 	struct device *dev = &rproc->dev;
+ 	struct pru_rproc *pru = rproc->priv;
++	const char *names[PRU_TYPE_MAX] = { "PRU", "RTU", "Tx_PRU" };
+ 	u32 val;
+ 
+-	dev_dbg(dev, "stopping PRU%d\n", pru->id);
++	dev_dbg(dev, "stopping %s%d\n", names[pru->data->type], pru->id);
+ 
+ 	val = pru_control_read_reg(pru, PRU_CTRL_CTRL);
+ 	val &= ~CTRL_CTRL_EN;
+@@ -458,9 +491,52 @@ static struct rproc_ops pru_rproc_ops = {
+ 	.da_to_va	= pru_rproc_da_to_va,
+ };
+ 
++/*
++ * Custom memory copy implementation for ICSSG PRU/RTU/Tx_PRU Cores
++ *
++ * The ICSSG PRU/RTU/Tx_PRU cores have a memory copying issue with IRAM
++ * memories, that is not seen on previous generation SoCs. The data is reflected
++ * properly in the IRAM memories only for integer (4-byte) copies. Any unaligned
++ * copies result in all the other pre-existing bytes zeroed out within that
++ * 4-byte boundary, thereby resulting in wrong text/code in the IRAMs. Also, the
++ * IRAM memory port interface does not allow any 8-byte copies (as commonly used
++ * by ARM64 memcpy implementation) and throws an exception. The DRAM memory
++ * ports do not show this behavior.
++ */
++static int pru_rproc_memcpy(void *dest, const void *src, size_t count)
++{
++	const u32 *s = src;
++	u32 *d = dest;
++	size_t size = count / 4;
++	u32 *tmp_src = NULL;
++
++	/*
++	 * TODO: relax limitation of 4-byte aligned dest addresses and copy
++	 * sizes
++	 */
++	if ((long)dest % 4 || count % 4)
++		return -EINVAL;
++
++	/* src offsets in ELF firmware image can be non-aligned */
++	if ((long)src % 4) {
++		tmp_src = kmemdup(src, count, GFP_KERNEL);
++		if (!tmp_src)
++			return -ENOMEM;
++		s = tmp_src;
++	}
++
++	while (size--)
++		*d++ = *s++;
++
++	kfree(tmp_src);
++
++	return 0;
++}
++
+ static int
+ pru_rproc_load_elf_segments(struct rproc *rproc, const struct firmware *fw)
+ {
++	struct pru_rproc *pru = rproc->priv;
+ 	struct device *dev = &rproc->dev;
+ 	struct elf32_hdr *ehdr;
+ 	struct elf32_phdr *phdr;
+@@ -508,7 +584,17 @@ pru_rproc_load_elf_segments(struct rproc *rproc, const struct firmware *fw)
+ 			break;
+ 		}
+ 
+-		memcpy(ptr, elf_data + phdr->p_offset, filesz);
++		if (pru->data->is_k3 && is_iram) {
++			ret = pru_rproc_memcpy(ptr, elf_data + phdr->p_offset,
++					       filesz);
++			if (ret) {
++				dev_err(dev, "PRU memory copy failed for da 0x%x memsz 0x%x\n",
++					da, memsz);
++				break;
++			}
++		} else {
++			memcpy(ptr, elf_data + phdr->p_offset, filesz);
++		}
+ 
+ 		/* skip the memzero logic performed by remoteproc ELF loader */
+ 	}
+@@ -614,9 +700,17 @@ static int pru_rproc_set_id(struct pru_rproc *pru)
+ 	int ret = 0;
+ 
+ 	switch (pru->mem_regions[PRU_IOMEM_IRAM].pa & PRU_IRAM_ADDR_MASK) {
++	case TX_PRU0_IRAM_ADDR_MASK:
++		fallthrough;
++	case RTU0_IRAM_ADDR_MASK:
++		fallthrough;
+ 	case PRU0_IRAM_ADDR_MASK:
+ 		pru->id = 0;
+ 		break;
++	case TX_PRU1_IRAM_ADDR_MASK:
++		fallthrough;
++	case RTU1_IRAM_ADDR_MASK:
++		fallthrough;
+ 	case PRU1_IRAM_ADDR_MASK:
+ 		pru->id = 1;
+ 		break;
+@@ -637,8 +731,13 @@ static int pru_rproc_probe(struct platform_device *pdev)
+ 	struct rproc *rproc = NULL;
+ 	struct resource *res;
+ 	int i, ret;
++	const struct pru_private_data *data;
+ 	const char *mem_names[PRU_IOMEM_MAX] = { "iram", "control", "debug" };
+ 
++	data = of_device_get_match_data(&pdev->dev);
++	if (!data)
++		return -ENODEV;
++
+ 	ret = of_property_read_string(np, "firmware-name", &fw_name);
+ 	if (ret) {
+ 		dev_err(dev, "unable to retrieve firmware-name %d\n", ret);
+@@ -671,6 +770,7 @@ static int pru_rproc_probe(struct platform_device *pdev)
+ 
+ 	pru = rproc->priv;
+ 	pru->dev = dev;
++	pru->data = data;
+ 	pru->pruss = platform_get_drvdata(ppdev);
+ 	pru->rproc = rproc;
+ 	pru->fw_name = fw_name;
+@@ -722,11 +822,33 @@ static int pru_rproc_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct pru_private_data pru_data = {
++	.type = PRU_TYPE_PRU,
++};
++
++static const struct pru_private_data k3_pru_data = {
++	.type = PRU_TYPE_PRU,
++	.is_k3 = 1,
++};
++
++static const struct pru_private_data k3_rtu_data = {
++	.type = PRU_TYPE_RTU,
++	.is_k3 = 1,
++};
++
++static const struct pru_private_data k3_tx_pru_data = {
++	.type = PRU_TYPE_TX_PRU,
++	.is_k3 = 1,
++};
++
+ static const struct of_device_id pru_rproc_match[] = {
+-	{ .compatible = "ti,am3356-pru", },
+-	{ .compatible = "ti,am4376-pru", },
+-	{ .compatible = "ti,am5728-pru", },
+-	{ .compatible = "ti,k2g-pru",    },
++	{ .compatible = "ti,am3356-pru",	.data = &pru_data },
++	{ .compatible = "ti,am4376-pru",	.data = &pru_data },
++	{ .compatible = "ti,am5728-pru",	.data = &pru_data },
++	{ .compatible = "ti,k2g-pru",		.data = &pru_data },
++	{ .compatible = "ti,am654-pru",		.data = &k3_pru_data },
++	{ .compatible = "ti,am654-rtu",		.data = &k3_rtu_data },
++	{ .compatible = "ti,am654-tx-pru",	.data = &k3_tx_pru_data },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, pru_rproc_match);
 -- 
 2.29.0
 
