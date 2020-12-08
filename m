@@ -2,49 +2,49 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AB1FC4167B
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3225EC433FE
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36AA923AC0
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFE3023ABA
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726278AbgLHMbB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Dec 2020 07:31:01 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:45170 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727992AbgLHMbB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:31:01 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTvvD066640;
-        Tue, 8 Dec 2020 06:29:57 -0600
+        id S1728496AbgLHMbL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Dec 2020 07:31:11 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:33576 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727992AbgLHMbL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:31:11 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CUBhZ064399;
+        Tue, 8 Dec 2020 06:30:11 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1607430597;
-        bh=XD/sefueOKoXyqgCh9BxBBpoHqtt4qwCxN2yjeUoZK4=;
+        s=ti-com-17Q1; t=1607430611;
+        bh=mbqWdYhHkd9811N/oed4zL3TdB7WbD0GV37g7DUAyJ0=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=RnZgNyPinWYkfuZjDZMZm8tgYth+cDBHPr7zePICNhiuUfeNe4F+NW17D9jlQ5WTR
-         sdOGbpWAOOgPFIUptiO5rjGsZ4+rTCEo9XGV3yI9XS9Zr27murYwRHHqcuuttWfxGh
-         K9k07GZYyAJR82vK7baJyA5FDeDL/TixkVo96clA=
-Received: from DLEE104.ent.ti.com (dlee104.ent.ti.com [157.170.170.34])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CTue4086386
+        b=ODhxgbvvgwrLkR7Kok2fVoAo96lNMV4eM3qj/3u26Uz4Vu0GVPOC6ZAsUvGSwjbrU
+         tfOvPnUApvZ3NN0fN8NOTqG+nCxQdplNBVGAjeJ4f28vdXS2xoSIJMbhzSJ+aB2yB1
+         ktoMapCU5RbRN+0zzPSiuuGAaB5n4TpfmDEY2O+M=
+Received: from DFLE102.ent.ti.com (dfle102.ent.ti.com [10.64.6.23])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CUATF105108
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Dec 2020 06:29:57 -0600
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Dec 2020 06:30:10 -0600
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 8 Dec
- 2020 06:29:56 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:30:09 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 8 Dec 2020 06:29:56 -0600
+ Frontend Transport; Tue, 8 Dec 2020 06:30:09 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjK095068;
-        Tue, 8 Dec 2020 06:29:54 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjP095068;
+        Tue, 8 Dec 2020 06:30:07 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -54,9 +54,9 @@ CC:     <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
         Tony Lindgren <tony@atomide.com>, <hns@goldelico.com>,
         Sam Ravnborg <sam@ravnborg.org>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v5 06/29] drm/omap: dsi: send nop instead of page & column
-Date:   Tue, 8 Dec 2020 14:28:32 +0200
-Message-ID: <20201208122855.254819-7-tomi.valkeinen@ti.com>
+Subject: [PATCH v5 11/29] drm/omap: dsi: pass vc to various functions
+Date:   Tue, 8 Dec 2020 14:28:37 +0200
+Message-ID: <20201208122855.254819-12-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201208122855.254819-1-tomi.valkeinen@ti.com>
 References: <20201208122855.254819-1-tomi.valkeinen@ti.com>
@@ -68,101 +68,233 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The OMAP DSI command mode panel driver used to send page & column
-address before each frame update, and this code was moved into the DSI
-host driver when converting it to the DRM bridge model.
+To start fixing the issues related to channels and vcs described in the
+previous commit, pass vc to various functions which will need it do
+properly handle different DSI channels and VCs.
 
-However, it's not really required to send the page & column address
-before each frame. It's also something that doesn't really belong to the
-DSI host driver, so we should drop the code.
-
-That said, frame updates break if we don't send _something_ between the
-frames. A NOP command does the trick.
-
-It is not clear if this behavior is as expected from a DSI command mode
-frame transfer, or is it a feature/issue with OMAP DSI driver, or a
-feature/issue in the command mode panel used.
-
-Most likely this is related to the following from the DSI spec:
-
-"To enable PHY synchronization the host processor should periodically
-end HS transmission and drive the Data Lanes to the LP state. This
-transition should take place at least once per frame."
+No functional changes.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c | 46 ++++++++++++-------------------
- 1 file changed, 17 insertions(+), 29 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 54 ++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 7fee9cf8782d..c6e044f8bece 100644
+index 273159e8f992..8d8412199693 100644
 --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
 +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -3884,35 +3884,19 @@ static int _dsi_update(struct dsi_data *dsi)
+@@ -214,9 +214,9 @@ static void dsi_set_ulps_auto(struct dsi_data *dsi, bool enable);
+ static int dsi_display_init_dispc(struct dsi_data *dsi);
+ static void dsi_display_uninit_dispc(struct dsi_data *dsi);
+ 
+-static int dsi_vc_send_null(struct dsi_data *dsi, int vc);
++static int dsi_vc_send_null(struct dsi_data *dsi, int vc, int channel);
+ 
+-static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi,
++static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi, int vc,
+ 				       const struct mipi_dsi_msg *msg);
+ 
+ static void dsi_display_disable(struct omap_dss_device *dssdev);
+@@ -2455,7 +2455,7 @@ static void dsi_vc_enable_hs(struct omap_dss_device *dssdev, int vc,
+ 
+ 	/* start the DDR clock by sending a NULL packet */
+ 	if (dsi->vm_timings.ddr_clk_always_on && enable)
+-		dsi_vc_send_null(dsi, vc);
++		dsi_vc_send_null(dsi, vc, dsi->dsidev->channel);
+ 
+ 	dsi->in_lp_mode = !enable;
+ }
+@@ -2605,7 +2605,8 @@ static int dsi_vc_send_bta_sync(struct omap_dss_device *dssdev, int vc)
+ }
+ 
+ static inline void dsi_vc_write_long_header(struct dsi_data *dsi, int vc,
+-					    u8 data_type, u16 len, u8 ecc)
++					    int channel, u8 data_type, u16 len,
++					    u8 ecc)
+ {
+ 	u32 val;
+ 	u8 data_id;
+@@ -2633,7 +2634,7 @@ static inline void dsi_vc_write_long_payload(struct dsi_data *dsi, int vc,
+ 	dsi_write_reg(dsi, DSI_VC_LONG_PACKET_PAYLOAD(vc), val);
+ }
+ 
+-static int dsi_vc_send_long(struct dsi_data *dsi,
++static int dsi_vc_send_long(struct dsi_data *dsi, int vc,
+ 			    const struct mipi_dsi_msg *msg)
+ {
+ 	/*u32 val; */
+@@ -2653,7 +2654,7 @@ static int dsi_vc_send_long(struct dsi_data *dsi,
+ 
+ 	dsi_vc_config_source(dsi, msg->channel, DSI_VC_SOURCE_L4);
+ 
+-	dsi_vc_write_long_header(dsi, msg->channel, msg->type, msg->tx_len, 0);
++	dsi_vc_write_long_header(dsi, vc, msg->channel, msg->type, msg->tx_len, 0);
+ 
+ 	p = msg->tx_buf;
+ 	for (i = 0; i < msg->tx_len >> 2; i++) {
+@@ -2696,7 +2697,7 @@ static int dsi_vc_send_long(struct dsi_data *dsi,
+ 	return r;
+ }
+ 
+-static int dsi_vc_send_short(struct dsi_data *dsi,
++static int dsi_vc_send_short(struct dsi_data *dsi, int vc,
+ 			     const struct mipi_dsi_msg *msg)
+ {
+ 	struct mipi_dsi_packet pkt;
+@@ -2727,26 +2728,26 @@ static int dsi_vc_send_short(struct dsi_data *dsi,
  	return 0;
  }
  
--static int _dsi_update_window(struct dsi_data *dsi, int channel,
--			      int x, int y, int w, int h)
--{
--	int x1 = x, x2 = (x + w - 1);
--	int y1 = y, y2 = (y + h - 1);
--	u8 payloadX[5] = { MIPI_DCS_SET_COLUMN_ADDRESS,
--			   x1 >> 8, x1 & 0xff, x2 >> 8, x2 & 0xff };
--	u8 payloadY[5] = { MIPI_DCS_SET_PAGE_ADDRESS,
--			   y1 >> 8, y1 & 0xff, y2 >> 8, y2 & 0xff };
--	struct mipi_dsi_msg msgX = { 0 }, msgY = { 0 };
--	int ret;
-+static int _dsi_send_nop(struct dsi_data *dsi, int channel)
-+{
-+	const u8 payload[] = { MIPI_DCS_NOP };
-+	const struct mipi_dsi_msg msg = {
-+		.channel = channel,
-+		.type = MIPI_DSI_DCS_SHORT_WRITE,
-+		.tx_len = 1,
-+		.tx_buf = payload,
-+	};
+-static int dsi_vc_send_null(struct dsi_data *dsi, int vc)
++static int dsi_vc_send_null(struct dsi_data *dsi, int vc, int channel)
+ {
+ 	const struct mipi_dsi_msg msg = {
+ 		.channel = vc,
+ 		.type = MIPI_DSI_NULL_PACKET,
+ 	};
+ 
+-	return dsi_vc_send_long(dsi, &msg);
++	return dsi_vc_send_long(dsi, vc, &msg);
+ }
+ 
+-static int dsi_vc_write_common(struct omap_dss_device *dssdev,
++static int dsi_vc_write_common(struct omap_dss_device *dssdev, int vc,
+ 			       const struct mipi_dsi_msg *msg)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	int r;
+ 
+ 	if (mipi_dsi_packet_format_is_short(msg->type))
+-		r = dsi_vc_send_short(dsi, msg);
++		r = dsi_vc_send_short(dsi, vc, msg);
+ 	else
+-		r = dsi_vc_send_long(dsi, msg);
++		r = dsi_vc_send_long(dsi, vc, msg);
+ 
+ 	if (r < 0)
+ 		return r;
+@@ -2882,7 +2883,7 @@ static int dsi_vc_read_rx_fifo(struct dsi_data *dsi, int vc, u8 *buf,
+ 	return r;
+ }
+ 
+-static int dsi_vc_dcs_read(struct omap_dss_device *dssdev,
++static int dsi_vc_dcs_read(struct omap_dss_device *dssdev, int vc,
+ 			   const struct mipi_dsi_msg *msg)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+@@ -2893,7 +2894,7 @@ static int dsi_vc_dcs_read(struct omap_dss_device *dssdev,
+ 	if (dsi->debug_read)
+ 		DSSDBG("%s(ch %d, cmd %x)\n", __func__, channel, cmd);
+ 
+-	r = dsi_vc_send_short(dsi, msg);
++	r = dsi_vc_send_short(dsi, vc, msg);
+ 	if (r)
+ 		goto err;
+ 
+@@ -2917,13 +2918,13 @@ static int dsi_vc_dcs_read(struct omap_dss_device *dssdev,
+ 	return r;
+ }
+ 
+-static int dsi_vc_generic_read(struct omap_dss_device *dssdev,
++static int dsi_vc_generic_read(struct omap_dss_device *dssdev, int vc,
+ 			       const struct mipi_dsi_msg *msg)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	int r;
+ 
+-	r = dsi_vc_send_short(dsi, msg);
++	r = dsi_vc_send_short(dsi, vc, msg);
+ 	if (r)
+ 		goto err;
+ 
+@@ -3672,7 +3673,7 @@ static void dsi_enable_video_output(struct omap_dss_device *dssdev, int vc)
+ 
+ 		word_count = DIV_ROUND_UP(dsi->vm.hactive * bpp, 8);
+ 
+-		dsi_vc_write_long_header(dsi, vc, data_type,
++		dsi_vc_write_long_header(dsi, vc, dsi->dsidev->channel, data_type,
+ 				word_count, 0);
+ 
+ 		dsi_vc_enable(dsi, vc, true);
+@@ -3770,7 +3771,7 @@ static void dsi_update_screen_dispc(struct dsi_data *dsi)
+ 	l = FLD_VAL(total_len, 23, 0); /* TE_SIZE */
+ 	dsi_write_reg(dsi, DSI_VC_TE(vc), l);
+ 
+-	dsi_vc_write_long_header(dsi, vc, MIPI_DSI_DCS_LONG_WRITE,
++	dsi_vc_write_long_header(dsi, vc, dsi->dsidev->channel, MIPI_DSI_DCS_LONG_WRITE,
+ 		packet_len, 0);
+ 
+ 	if (dsi->te_enabled)
+@@ -3882,7 +3883,7 @@ static int _dsi_update(struct dsi_data *dsi)
+ 	return 0;
+ }
+ 
+-static int _dsi_send_nop(struct dsi_data *dsi, int channel)
++static int _dsi_send_nop(struct dsi_data *dsi, int vc, int channel)
+ {
+ 	const u8 payload[] = { MIPI_DCS_NOP };
+ 	const struct mipi_dsi_msg msg = {
+@@ -3894,7 +3895,7 @@ static int _dsi_send_nop(struct dsi_data *dsi, int channel)
  
  	WARN_ON(!dsi_bus_is_locked(dsi));
  
--	msgX.type = MIPI_DSI_DCS_LONG_WRITE;
--	msgX.channel = channel;
--	msgX.tx_buf = payloadX;
--	msgX.tx_len = sizeof(payloadX);
--
--	msgY.type = MIPI_DSI_DCS_LONG_WRITE;
--	msgY.channel = channel;
--	msgY.tx_buf = payloadY;
--	msgY.tx_len = sizeof(payloadY);
--
--	ret = _omap_dsi_host_transfer(dsi, &msgX);
--	if (ret != 0)
--		return ret;
--
--	return _omap_dsi_host_transfer(dsi, &msgY);
-+	return _omap_dsi_host_transfer(dsi, &msg);
+-	return _omap_dsi_host_transfer(dsi, &msg);
++	return _omap_dsi_host_transfer(dsi, vc, &msg);
  }
  
- static int dsi_update_channel(struct omap_dss_device *dssdev, int channel)
-@@ -3944,10 +3928,14 @@ static int dsi_update_channel(struct omap_dss_device *dssdev, int channel)
- 
- 	dsi_set_ulps_auto(dsi, false);
- 
--	r = _dsi_update_window(dsi, channel, 0, 0, dsi->vm.hactive,
--			       dsi->vm.vactive);
-+	/*
-+	 * Send NOP between the frames. If we don't send something here, the
-+	 * updates stop working. This is probably related to DSI spec stating
-+	 * that the DSI host should transition to LP at least once per frame.
-+	 */
-+	r = _dsi_send_nop(dsi, channel);
+ static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
+@@ -3923,7 +3924,7 @@ static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
+ 	 * updates stop working. This is probably related to DSI spec stating
+ 	 * that the DSI host should transition to LP at least once per frame.
+ 	 */
+-	r = _dsi_send_nop(dsi, vc);
++	r = _dsi_send_nop(dsi, vc, dsi->dsidev->channel);
  	if (r < 0) {
--		DSSWARN("window update error: %d\n", r);
-+		DSSWARN("failed to send nop between frames: %d\n", r);
+ 		DSSWARN("failed to send nop between frames: %d\n", r);
  		goto err;
+@@ -4885,7 +4886,7 @@ static enum omap_channel dsi_get_dispc_channel(struct dsi_data *dsi)
  	}
+ }
  
+-static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi,
++static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi, int vc,
+ 				       const struct mipi_dsi_msg *msg)
+ {
+ 	struct omap_dss_device *dssdev = &dsi->output;
+@@ -4905,15 +4906,15 @@ static ssize_t _omap_dsi_host_transfer(struct dsi_data *dsi,
+ 	case MIPI_DSI_DCS_LONG_WRITE:
+ 	case MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE:
+ 	case MIPI_DSI_NULL_PACKET:
+-		r = dsi_vc_write_common(dssdev, msg);
++		r = dsi_vc_write_common(dssdev, vc, msg);
+ 		break;
+ 	case MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM:
+ 	case MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM:
+ 	case MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM:
+-		r = dsi_vc_generic_read(dssdev, msg);
++		r = dsi_vc_generic_read(dssdev, vc, msg);
+ 		break;
+ 	case MIPI_DSI_DCS_READ:
+-		r = dsi_vc_dcs_read(dssdev, msg);
++		r = dsi_vc_dcs_read(dssdev, vc, msg);
+ 		break;
+ 	default:
+ 		r = -EINVAL;
+@@ -4941,12 +4942,13 @@ static ssize_t omap_dsi_host_transfer(struct mipi_dsi_host *host,
+ {
+ 	struct dsi_data *dsi = host_to_omap(host);
+ 	int r;
++	int vc = VC_DEFAULT;
+ 
+ 	dsi_bus_lock(dsi);
+ 
+ 	if (dsi->video_enabled) {
+ 		dsi_set_ulps_auto(dsi, false);
+-		r = _omap_dsi_host_transfer(dsi, msg);
++		r = _omap_dsi_host_transfer(dsi, vc, msg);
+ 		dsi_set_ulps_auto(dsi, true);
+ 	} else {
+ 		r = -EIO;
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
