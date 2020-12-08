@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39073C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0546C433FE
 	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:30:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E453F23A9D
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:30:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADFB123AA7
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:30:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728192AbgLHMa5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Dec 2020 07:30:57 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:33282 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727463AbgLHMa5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:30:57 -0500
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTnfi064008;
-        Tue, 8 Dec 2020 06:29:49 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1607430589;
-        bh=s1EWE/SXUVeER6hkk0HRG9tRuUdyEyQIlfDmCa0tmQM=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=zWrShTYuAjhM8Vy/qqK0zmAqP7YKOCmAzzr6MU/v4JIP7cUb5gpy07kdNLfh2f+e2
-         VHt2+wg0VUdek0GNSAG5BA+AnKvf0uG5Qbk7x+Pv6a8l6R/aUozcL76HvGblZiq2pp
-         lLUuSCQtdz8kMoNVfOROWFbwZBpQKH2nvx9C09aA=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CTn9X103274
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Dec 2020 06:29:49 -0600
-Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 8 Dec
- 2020 06:29:48 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 8 Dec 2020 06:29:48 -0600
-Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjH095068;
+        id S1727463AbgLHMa6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Dec 2020 07:30:58 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:44994 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727992AbgLHMa6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:30:58 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTkT8066616;
         Tue, 8 Dec 2020 06:29:46 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1607430586;
+        bh=wbXNMafqm+H4Ot7y4k9lHFPPoLIUKb4M6mQEddffijU=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=Ak7mdCelO5e6xV9bPWmkvz8TkAV4/P1H3cAFrYMLrT+YHwHNccKpdgCz1R81Mm80X
+         BNkNFU4iw/eP96lu8pwHfEYl2lVwNqZ0caDdCR6tUI+7LCs6Op704fAEwzOgh9mTYA
+         kWHucRc1uRs6cK9wP3UEFImL+0XF1FiPDLkYs3XI=
+Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CTkWK086314
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 8 Dec 2020 06:29:46 -0600
+Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 8 Dec
+ 2020 06:29:46 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Tue, 8 Dec 2020 06:29:46 -0600
+Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjG095068;
+        Tue, 8 Dec 2020 06:29:44 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -53,9 +53,9 @@ CC:     <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
         Tony Lindgren <tony@atomide.com>, <hns@goldelico.com>,
         Sam Ravnborg <sam@ravnborg.org>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v5 03/29] drm/omap: pll: fix iteration loop check
-Date:   Tue, 8 Dec 2020 14:28:29 +0200
-Message-ID: <20201208122855.254819-4-tomi.valkeinen@ti.com>
+Subject: [PATCH v5 02/29] ARM: dts: omap5: add address-cells & size-cells to dsi
+Date:   Tue, 8 Dec 2020 14:28:28 +0200
+Message-ID: <20201208122855.254819-3-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201208122855.254819-1-tomi.valkeinen@ti.com>
 References: <20201208122855.254819-1-tomi.valkeinen@ti.com>
@@ -67,42 +67,40 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-If the PLL calc function is given bad parameters, n_start/m_start may be
-higher than n_stop/m_stop, which leads to the loops iterating through
-the whole u32 number space.
-
-Fix this by failing early on such cases.
+Add address-cells & size-cells to DSI nodes so that board files do not
+need to define them.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/gpu/drm/omapdrm/dss/pll.c | 6 ++++++
+ arch/arm/boot/dts/omap5.dtsi | 6 ++++++
  1 file changed, 6 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/pll.c b/drivers/gpu/drm/omapdrm/dss/pll.c
-index 1212f3cc52d1..12926218c436 100644
---- a/drivers/gpu/drm/omapdrm/dss/pll.c
-+++ b/drivers/gpu/drm/omapdrm/dss/pll.c
-@@ -222,6 +222,9 @@ bool dss_pll_calc_a(const struct dss_pll *pll, unsigned long clkin,
- 	n_stop = min((unsigned)(clkin / fint_hw_min), hw->n_max);
- 	n_inc = 1;
- 
-+	if (n_start > n_stop)
-+		return false;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 2bf2e5839a7f..e6f6947965ef 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -517,6 +517,9 @@ dsi1: encoder@0 {
+ 						clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 8>,
+ 							 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 10>;
+ 						clock-names = "fck", "sys_clk";
 +
- 	if (hw->errata_i886) {
- 		swap(n_start, n_stop);
- 		n_inc = -1;
-@@ -239,6 +242,9 @@ bool dss_pll_calc_a(const struct dss_pll *pll, unsigned long clkin,
- 				hw->m_max);
- 		m_inc = 1;
++						#address-cells = <1>;
++						#size-cells = <0>;
+ 					};
+ 				};
  
-+		if (m_start > m_stop)
-+			continue;
+@@ -549,6 +552,9 @@ dsi2: encoder@0 {
+ 						clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 8>,
+ 							 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 10>;
+ 						clock-names = "fck", "sys_clk";
 +
- 		if (hw->errata_i886) {
- 			swap(m_start, m_stop);
- 			m_inc = -1;
++						#address-cells = <1>;
++						#size-cells = <0>;
+ 					};
+ 				};
+ 
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
