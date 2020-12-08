@@ -2,48 +2,49 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39438C433FE
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:32:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97B1BC4361B
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:32:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05A1723ABA
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:32:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B0E623AFE
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:32:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728914AbgLHMcM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Dec 2020 07:32:12 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:45378 "EHLO
+        id S1729086AbgLHMcX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Dec 2020 07:32:23 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:45544 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726138AbgLHMcM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:32:12 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CUSra067129;
-        Tue, 8 Dec 2020 06:30:28 -0600
+        with ESMTP id S1726138AbgLHMcX (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:32:23 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CUfkt067278;
+        Tue, 8 Dec 2020 06:30:41 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1607430628;
-        bh=wkpeSnl6ikFuhT+ADcmIO790QCDNkpQoafAndzXn2hY=;
+        s=ti-com-17Q1; t=1607430641;
+        bh=zTT9fEZjyCV/0dU2ZX7MN0FPjh4mNRb8KoNtBKfA/LY=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=NJDA9A+JGZvig5hdTJ0grJTJzO+JHw3O2JN0vdYYUZk+1msGgARMQottjLa9/VgOY
-         yksZbkMivse13shPhLjdzblEoJs05cG6IRTyl/NMSeck9SIRqE3D36WJp2rAsBOeOu
-         8J/sMArOBUb20WcXzfj2qCkQTzLWTWYD0PpMECXg=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CUSgQ039020
+        b=mhuYq36zFeTBTaN5BZjwP9QNWfixOiVTc9o62KwgVwSKwDlCIcjaLUK0mntzW/ZRh
+         N0XLxqxLyX7skdSfg4mIZkq7j02khEuTB0H9i6wuVvh4wzzeAt0YzlR14CKAqhcayR
+         vt5btBiM98iIp6z7HyyPnTsBBqHAApu+Skcqlbs8=
+Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CUfCo014723
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Dec 2020 06:30:28 -0600
-Received: from DLEE115.ent.ti.com (157.170.170.26) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Dec 2020 06:30:41 -0600
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 8 Dec
- 2020 06:30:27 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:30:40 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 8 Dec 2020 06:30:27 -0600
+ Frontend Transport; Tue, 8 Dec 2020 06:30:40 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjW095068;
-        Tue, 8 Dec 2020 06:30:25 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjb095068;
+        Tue, 8 Dec 2020 06:30:38 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -53,9 +54,9 @@ CC:     <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
         Tony Lindgren <tony@atomide.com>, <hns@goldelico.com>,
         Sam Ravnborg <sam@ravnborg.org>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v5 18/29] drm/panel: panel-dsi-cm: drop unneeded includes
-Date:   Tue, 8 Dec 2020 14:28:44 +0200
-Message-ID: <20201208122855.254819-19-tomi.valkeinen@ti.com>
+Subject: [PATCH v5 23/29] drm/omap: dsi: rename dsi_display_* functions
+Date:   Tue, 8 Dec 2020 14:28:49 +0200
+Message-ID: <20201208122855.254819-24-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201208122855.254819-1-tomi.valkeinen@ti.com>
 References: <20201208122855.254819-1-tomi.valkeinen@ti.com>
@@ -67,29 +68,171 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Drop unneeded includes.
+The function names have evolved to be very confusing, and bunch of them
+have "display" in them even if the function doesn't deal with display as
+such (e.g. dsi_display_enable which just enables the DSI interface).
+Rename them by dropping the "display".
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/gpu/drm/panel/panel-dsi-cm.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 36 +++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/gpu/drm/panel/panel-dsi-cm.c b/drivers/gpu/drm/panel/panel-dsi-cm.c
-index 3fb5b2856283..3fe73c4bef6e 100644
---- a/drivers/gpu/drm/panel/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/panel/panel-dsi-cm.c
-@@ -11,9 +11,6 @@
- #include <linux/gpio/consumer.h>
- #include <linux/jiffies.h>
- #include <linux/module.h>
--#include <linux/sched/signal.h>
--#include <linux/slab.h>
--#include <linux/of_device.h>
- #include <linux/regulator/consumer.h>
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index d83346812810..d9c2cd849328 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -55,8 +55,8 @@
  
- #include <drm/drm_connector.h>
+ static void dsi_set_ulps_auto(struct dsi_data *dsi, bool enable);
+ 
+-static int dsi_display_init_dispc(struct dsi_data *dsi);
+-static void dsi_display_uninit_dispc(struct dsi_data *dsi);
++static int dsi_init_dispc(struct dsi_data *dsi);
++static void dsi_uninit_dispc(struct dsi_data *dsi);
+ 
+ static int dsi_vc_send_null(struct dsi_data *dsi, int vc, int channel);
+ 
+@@ -3257,7 +3257,7 @@ static void dsi_enable_video_output(struct omap_dss_device *dssdev, int vc)
+ 	u16 word_count;
+ 	int r;
+ 
+-	r = dsi_display_init_dispc(dsi);
++	r = dsi_init_dispc(dsi);
+ 	if (r) {
+ 		dev_err(dsi->dev, "failed to init dispc!\n");
+ 		return;
+@@ -3309,7 +3309,7 @@ static void dsi_enable_video_output(struct omap_dss_device *dssdev, int vc)
+ 		dsi_vc_enable(dsi, vc, false);
+ 	}
+ err_pix_fmt:
+-	dsi_display_uninit_dispc(dsi);
++	dsi_uninit_dispc(dsi);
+ 	dev_err(dsi->dev, "failed to enable DSI encoder!\n");
+ 	return;
+ }
+@@ -3331,7 +3331,7 @@ static void dsi_disable_video_output(struct omap_dss_device *dssdev, int vc)
+ 
+ 	dss_mgr_disable(&dsi->output);
+ 
+-	dsi_display_uninit_dispc(dsi);
++	dsi_uninit_dispc(dsi);
+ }
+ 
+ static void dsi_update_screen_dispc(struct dsi_data *dsi)
+@@ -3582,7 +3582,7 @@ static int dsi_configure_dispc_clocks(struct dsi_data *dsi)
+ 	return 0;
+ }
+ 
+-static int dsi_display_init_dispc(struct dsi_data *dsi)
++static int dsi_init_dispc(struct dsi_data *dsi)
+ {
+ 	enum omap_channel dispc_channel = dsi->output.dispc_channel;
+ 	int r;
+@@ -3627,7 +3627,7 @@ static int dsi_display_init_dispc(struct dsi_data *dsi)
+ 	return r;
+ }
+ 
+-static void dsi_display_uninit_dispc(struct dsi_data *dsi)
++static void dsi_uninit_dispc(struct dsi_data *dsi)
+ {
+ 	enum omap_channel dispc_channel = dsi->output.dispc_channel;
+ 
+@@ -3654,7 +3654,7 @@ static int dsi_configure_dsi_clocks(struct dsi_data *dsi)
+ 	return 0;
+ }
+ 
+-static int dsi_display_init_dsi(struct dsi_data *dsi)
++static int dsi_init_dsi(struct dsi_data *dsi)
+ {
+ 	int r;
+ 
+@@ -3718,7 +3718,7 @@ static int dsi_display_init_dsi(struct dsi_data *dsi)
+ 	return r;
+ }
+ 
+-static void dsi_display_uninit_dsi(struct dsi_data *dsi, bool disconnect_lanes,
++static void dsi_uninit_dsi(struct dsi_data *dsi, bool disconnect_lanes,
+ 				   bool enter_ulps)
+ {
+ 	if (enter_ulps && !dsi->ulps_enabled)
+@@ -3741,7 +3741,7 @@ static void dsi_display_uninit_dsi(struct dsi_data *dsi, bool disconnect_lanes,
+ 	}
+ }
+ 
+-static void dsi_display_enable(struct dsi_data *dsi)
++static void dsi_enable(struct dsi_data *dsi)
+ {
+ 	int r;
+ 
+@@ -3755,7 +3755,7 @@ static void dsi_display_enable(struct dsi_data *dsi)
+ 
+ 	_dsi_initialize_irq(dsi);
+ 
+-	r = dsi_display_init_dsi(dsi);
++	r = dsi_init_dsi(dsi);
+ 	if (r)
+ 		goto err_init_dsi;
+ 
+@@ -3767,10 +3767,10 @@ static void dsi_display_enable(struct dsi_data *dsi)
+ 	dsi_runtime_put(dsi);
+ err_get_dsi:
+ 	mutex_unlock(&dsi->lock);
+-	DSSDBG("dsi_display_ulps_enable FAILED\n");
++	DSSDBG("dsi_enable FAILED\n");
+ }
+ 
+-static void dsi_display_disable(struct dsi_data *dsi,
++static void dsi_disable(struct dsi_data *dsi,
+ 		bool disconnect_lanes, bool enter_ulps)
+ {
+ 	WARN_ON(!dsi_bus_is_locked(dsi));
+@@ -3782,7 +3782,7 @@ static void dsi_display_disable(struct dsi_data *dsi,
+ 	dsi_sync_vc(dsi, 2);
+ 	dsi_sync_vc(dsi, 3);
+ 
+-	dsi_display_uninit_dsi(dsi, disconnect_lanes, enter_ulps);
++	dsi_uninit_dsi(dsi, disconnect_lanes, enter_ulps);
+ 
+ 	dsi_runtime_put(dsi);
+ 
+@@ -3812,7 +3812,7 @@ static void omap_dsi_ulps_work_callback(struct work_struct *work)
+ 
+ 	dsi_enable_te(dsi, false);
+ 
+-	dsi_display_disable(dsi, false, true);
++	dsi_disable(dsi, false, true);
+ 
+ 	dsi_bus_unlock(dsi);
+ }
+@@ -3833,7 +3833,7 @@ static void dsi_set_ulps_auto(struct dsi_data *dsi, bool enable)
+ 			return;
+ 
+ 		dsi_bus_lock(dsi);
+-		dsi_display_enable(dsi);
++		dsi_enable(dsi);
+ 		dsi_enable_te(dsi, true);
+ 		dsi_bus_unlock(dsi);
+ 	}
+@@ -4924,7 +4924,7 @@ static void dsi_bridge_enable(struct drm_bridge *bridge)
+ 
+ 	dsi_bus_lock(dsi);
+ 
+-	dsi_display_enable(dsi);
++	dsi_enable(dsi);
+ 
+ 	dsi_enable_video_output(dssdev, VC_VIDEO);
+ 
+@@ -4946,7 +4946,7 @@ static void dsi_bridge_disable(struct drm_bridge *bridge)
+ 
+ 	dsi_disable_video_output(dssdev, VC_VIDEO);
+ 
+-	dsi_display_disable(dsi, true, false);
++	dsi_disable(dsi, true, false);
+ 
+ 	dsi_bus_unlock(dsi);
+ }
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
