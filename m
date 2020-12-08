@@ -5,46 +5,45 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EF57C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A5D6C4361B
 	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED87723ABA
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E7C923AC2
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728889AbgLHMbq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Dec 2020 07:31:46 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:45614 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727798AbgLHMbq (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:31:46 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CUmPO067379;
-        Tue, 8 Dec 2020 06:30:48 -0600
+        id S1727998AbgLHMbl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Dec 2020 07:31:41 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:33220 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728773AbgLHMbl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:31:41 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTpoQ064018;
+        Tue, 8 Dec 2020 06:29:51 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1607430648;
-        bh=12n9uBbFRI+BhW6WA14CLvPp6Se4mcgzs8vGJ0TtU3g=;
+        s=ti-com-17Q1; t=1607430591;
+        bh=A2yh5uoIc5rpq5mohJlKCQRU71EKsWsAa9cuN6BcACw=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=Z3If12EyV2mitLZRl+zdoQEk/RB5SzRgk6+gNVrubPOI5RBSlMTwJdmwinDCawAnP
-         PxBMfAgj3wSBzH8a/lV8+plK/FcptdYMlCeB61EH6LSlLXrF1mvCeX+9VM6CV8cAzS
-         B9LR33Behz+HztSwQ4iD9HgDWT34dEEFTg7WPbE4=
-Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CUmcr039437
+        b=pbQDHckAcpPOIPpP/odtmfPsKIMhM+jDIFaaAa9pj5z+Jje0DvsLp4Zev11TjOO12
+         vNDJlZXU47ruyKsFkdXmnyD7TMlKOTsIgYKZEAZfjuTLv8BrVU55+4YMAkk5CASY6/
+         HDq5fcdGbfWpLeUIJQGwDT0GOmyHpWSrmkel1yHc=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CTp6T103300
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Dec 2020 06:30:48 -0600
-Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Dec 2020 06:29:51 -0600
+Received: from DFLE113.ent.ti.com (10.64.6.34) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 8 Dec
- 2020 06:30:48 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:29:51 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 8 Dec 2020 06:30:48 -0600
+ Frontend Transport; Tue, 8 Dec 2020 06:29:51 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcje095068;
-        Tue, 8 Dec 2020 06:30:46 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjI095068;
+        Tue, 8 Dec 2020 06:29:49 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -54,9 +53,9 @@ CC:     <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
         Tony Lindgren <tony@atomide.com>, <hns@goldelico.com>,
         Sam Ravnborg <sam@ravnborg.org>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v5 26/29] drm/omap: dsi: fix and cleanup ddr_clk_always_on
-Date:   Tue, 8 Dec 2020 14:28:52 +0200
-Message-ID: <20201208122855.254819-27-tomi.valkeinen@ti.com>
+Subject: [PATCH v5 04/29] drm/omap: dsi: set trans_mode according to client mode_flags
+Date:   Tue, 8 Dec 2020 14:28:30 +0200
+Message-ID: <20201208122855.254819-5-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201208122855.254819-1-tomi.valkeinen@ti.com>
 References: <20201208122855.254819-1-tomi.valkeinen@ti.com>
@@ -68,76 +67,34 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver ignores MIPI_DSI_CLOCK_NON_CONTINUOUS, and always uses
-non-continuous clock.
-
-Fix this by using MIPI_DSI_CLOCK_NON_CONTINUOUS and at the same time,
-drop ddr_clk_always_on field which seems pretty useless.
+The DSI host driver currently ignores the video mode flags in
+client->mode_flags. Add the code to take the transfer mode from client's
+mode_flags.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c | 12 +++++-------
- drivers/gpu/drm/omapdrm/dss/dsi.h |  2 --
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 71de6119d2de..cc8b169b2223 100644
+index c3592c6db977..7fee9cf8782d 100644
 --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
 +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -1734,11 +1734,10 @@ static int dsi_cio_init(struct dsi_data *dsi)
+@@ -5140,6 +5140,13 @@ static int omap_dsi_host_attach(struct mipi_dsi_host *host,
+ 	dsi->config.lp_clk_min = 7000000; // TODO: get from client?
+ 	dsi->config.lp_clk_max = client->lp_rate;
  
- 	dsi_cio_timings(dsi);
++	if (client->mode_flags & MIPI_DSI_MODE_VIDEO_BURST)
++		dsi->config.trans_mode = OMAP_DSS_DSI_BURST_MODE;
++	else if (client->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
++		dsi->config.trans_mode = OMAP_DSS_DSI_PULSE_MODE;
++	else
++		dsi->config.trans_mode = OMAP_DSS_DSI_EVENT_MODE;
++
+ 	dsi->ulps_auto_idle = false;
  
--	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE) {
--		/* DDR_CLK_ALWAYS_ON */
--		REG_FLD_MOD(dsi, DSI_CLK_CTRL,
--			dsi->vm_timings.ddr_clk_always_on, 13, 13);
--	}
-+	/* DDR_CLK_ALWAYS_ON */
-+	REG_FLD_MOD(dsi, DSI_CLK_CTRL,
-+		    !(dsi->dsidev->mode_flags & MIPI_DSI_CLOCK_NON_CONTINUOUS),
-+		    13, 13);
- 
- 	dsi->ulps_enabled = false;
- 
-@@ -3646,7 +3645,7 @@ static void dsi_setup_dsi_vcs(struct dsi_data *dsi)
- 	dsi_force_tx_stop_mode_io(dsi);
- 
- 	/* start the DDR clock by sending a NULL packet */
--	if (dsi->vm_timings.ddr_clk_always_on)
-+	if (!(dsi->dsidev->mode_flags & MIPI_DSI_CLOCK_NON_CONTINUOUS))
- 		dsi_vc_send_null(dsi, VC_CMD, dsi->dsidev->channel);
- }
- 
-@@ -4155,7 +4154,6 @@ static bool dsi_vm_calc_blanking(struct dsi_clk_calc_ctx *ctx)
- 	dsi_vm->hfp_blanking_mode = 1;
- 	dsi_vm->hbp_blanking_mode = 1;
- 
--	dsi_vm->ddr_clk_always_on = cfg->ddr_clk_always_on;
- 	dsi_vm->window_sync = 4;
- 
- 	/* setup DISPC videomode */
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.h b/drivers/gpu/drm/omapdrm/dss/dsi.h
-index 478fc10bd18d..476069fda082 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.h
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.h
-@@ -212,7 +212,6 @@ struct omap_dss_dsi_videomode_timings {
- 
- 	enum omap_dss_dsi_trans_mode trans_mode;
- 
--	bool ddr_clk_always_on;
- 	int window_sync;
- };
- 
-@@ -224,7 +223,6 @@ struct omap_dss_dsi_config {
- 	unsigned long hs_clk_min, hs_clk_max;
- 	unsigned long lp_clk_min, lp_clk_max;
- 
--	bool ddr_clk_always_on;
- 	enum omap_dss_dsi_trans_mode trans_mode;
- };
- 
+ 	return 0;
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
