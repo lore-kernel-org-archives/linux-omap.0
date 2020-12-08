@@ -2,48 +2,49 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95ED1C4361B
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 296C0C4167B
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C05523ABA
+	by mail.kernel.org (Postfix) with ESMTP id E2B4F23ABA
 	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:31:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728868AbgLHMbm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Dec 2020 07:31:42 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:44956 "EHLO
+        id S1728773AbgLHMbn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Dec 2020 07:31:43 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:45598 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728773AbgLHMbm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:31:42 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTigB066606;
-        Tue, 8 Dec 2020 06:29:44 -0600
+        with ESMTP id S1727798AbgLHMbn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:31:43 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CUk4N067369;
+        Tue, 8 Dec 2020 06:30:46 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1607430584;
-        bh=yUn5N7xuRZ7wh1GGz0Cy7uuTOcliNJXdPx5b/4Ti4II=;
+        s=ti-com-17Q1; t=1607430646;
+        bh=FUQDAhBDKj6vFDMkTHn4HVjvTq5vQa7CU914GKl/Ozk=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=hpRrSaZLkr2mNJErroeGJuq9452GH8euaMHP9z5ajv1Osnuse6Me5nfhwqRXEWuG6
-         2cqO50Uhu2zrEkv817nhlGmbs90FuwFCnYETNRBuALA3SEVmOECI+2Gp12nhnqkb6N
-         idz2mIrtEI2j+KDYe0fXXbtGgTTzxGjBRLnZuLQI=
-Received: from DLEE104.ent.ti.com (dlee104.ent.ti.com [157.170.170.34])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CTiKh086297
+        b=niTENnBGDd/MPwqXrFcKZOqpvX7VkwTPziBpnpLxxeCri1ABiou6jwPnf/jmcVi8l
+         Dcsk1k0y7XU2BH52HZbqk/yaGjgdUl/4H8Sq2WyKRwQiTOP7fS6KDk7ARXvrI1lGIJ
+         PgzH5J+C43qx7jdchF+/0PH7pivU+4iXJsHTl39g=
+Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CUkcg014806
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Dec 2020 06:29:44 -0600
-Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Dec 2020 06:30:46 -0600
+Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 8 Dec
- 2020 06:29:43 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ 2020 06:30:45 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 8 Dec 2020 06:29:43 -0600
+ Frontend Transport; Tue, 8 Dec 2020 06:30:45 -0600
 Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjF095068;
-        Tue, 8 Dec 2020 06:29:41 -0600
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjd095068;
+        Tue, 8 Dec 2020 06:30:43 -0600
 From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
 To:     Sebastian Reichel <sre@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -53,9 +54,9 @@ CC:     <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
         Tony Lindgren <tony@atomide.com>, <hns@goldelico.com>,
         Sam Ravnborg <sam@ravnborg.org>,
         Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH v5 01/29] drm/panel: panel-dsi-cm: cleanup tear enable
-Date:   Tue, 8 Dec 2020 14:28:27 +0200
-Message-ID: <20201208122855.254819-2-tomi.valkeinen@ti.com>
+Subject: [PATCH v5 25/29] drm/omap: dsi: split video mode enable/disable into separate func
+Date:   Tue, 8 Dec 2020 14:28:51 +0200
+Message-ID: <20201208122855.254819-26-tomi.valkeinen@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201208122855.254819-1-tomi.valkeinen@ti.com>
 References: <20201208122855.254819-1-tomi.valkeinen@ti.com>
@@ -67,67 +68,152 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Simplify the code by moving code from _dsicm_enable_te() into
-dsicm_power_on().
+Clean up the code by separating video-mode enable/disable code into
+functions of their own.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/gpu/drm/panel/panel-dsi-cm.c | 23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 101 +++++++++++++++++-------------
+ 1 file changed, 57 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/gpu/drm/panel/panel-dsi-cm.c b/drivers/gpu/drm/panel/panel-dsi-cm.c
-index 729b42b4dabd..38f79dca1fd0 100644
---- a/drivers/gpu/drm/panel/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/panel/panel-dsi-cm.c
-@@ -68,8 +68,6 @@ static inline struct panel_drv_data *panel_to_ddata(struct drm_panel *panel)
- 	return container_of(panel, struct panel_drv_data, panel);
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index c32884f167b8..71de6119d2de 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -3207,12 +3207,61 @@ static int dsi_configure_pins(struct dsi_data *dsi,
+ 	return 0;
  }
  
--static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable);
--
- static void dsicm_bl_power(struct panel_drv_data *ddata, bool enable)
+-static void dsi_enable_video_output(struct omap_dss_device *dssdev, int vc)
++static int dsi_enable_video_mode(struct dsi_data *dsi, int vc)
  {
- 	struct backlight_device *backlight;
-@@ -313,10 +311,13 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 	if (r)
- 		goto err;
- 
--	r = _dsicm_enable_te(ddata, true);
-+	r = mipi_dsi_dcs_set_tear_on(ddata->dsi, MIPI_DSI_DCS_TEAR_MODE_VBLANK);
- 	if (r)
- 		goto err;
- 
-+	/* possible panel bug */
-+	msleep(100);
+-	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	int bpp = mipi_dsi_pixel_format_to_bpp(dsi->pix_fmt);
+ 	u8 data_type;
+ 	u16 word_count;
 +
- 	ddata->enabled = true;
++	switch (dsi->pix_fmt) {
++	case MIPI_DSI_FMT_RGB888:
++		data_type = MIPI_DSI_PACKED_PIXEL_STREAM_24;
++		break;
++	case MIPI_DSI_FMT_RGB666:
++		data_type = MIPI_DSI_PIXEL_STREAM_3BYTE_18;
++		break;
++	case MIPI_DSI_FMT_RGB666_PACKED:
++		data_type = MIPI_DSI_PACKED_PIXEL_STREAM_18;
++		break;
++	case MIPI_DSI_FMT_RGB565:
++		data_type = MIPI_DSI_PACKED_PIXEL_STREAM_16;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	dsi_if_enable(dsi, false);
++	dsi_vc_enable(dsi, vc, false);
++
++	/* MODE, 1 = video mode */
++	REG_FLD_MOD(dsi, DSI_VC_CTRL(vc), 1, 4, 4);
++
++	word_count = DIV_ROUND_UP(dsi->vm.hactive * bpp, 8);
++
++	dsi_vc_write_long_header(dsi, vc, dsi->dsidev->channel, data_type,
++			word_count, 0);
++
++	dsi_vc_enable(dsi, vc, true);
++	dsi_if_enable(dsi, true);
++
++	return 0;
++}
++
++static void dsi_disable_video_mode(struct dsi_data *dsi, int vc)
++{
++	dsi_if_enable(dsi, false);
++	dsi_vc_enable(dsi, vc, false);
++
++	/* MODE, 0 = command mode */
++	REG_FLD_MOD(dsi, DSI_VC_CTRL(vc), 0, 4, 4);
++
++	dsi_vc_enable(dsi, vc, true);
++	dsi_if_enable(dsi, true);
++}
++
++static void dsi_enable_video_output(struct omap_dss_device *dssdev, int vc)
++{
++	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	int r;
  
- 	if (!ddata->intro_printed) {
-@@ -417,22 +418,6 @@ static int dsicm_disable(struct drm_panel *panel)
- 	return r;
- }
+ 	r = dsi_init_dispc(dsi);
+@@ -3222,37 +3271,9 @@ static void dsi_enable_video_output(struct omap_dss_device *dssdev, int vc)
+ 	}
  
--static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
--{
--	struct mipi_dsi_device *dsi = ddata->dsi;
--	int r;
+ 	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE) {
+-		switch (dsi->pix_fmt) {
+-		case MIPI_DSI_FMT_RGB888:
+-			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_24;
+-			break;
+-		case MIPI_DSI_FMT_RGB666:
+-			data_type = MIPI_DSI_PIXEL_STREAM_3BYTE_18;
+-			break;
+-		case MIPI_DSI_FMT_RGB666_PACKED:
+-			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_18;
+-			break;
+-		case MIPI_DSI_FMT_RGB565:
+-			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_16;
+-			break;
+-		default:
+-			r = -EINVAL;
+-			goto err_pix_fmt;
+-		}
 -
--	if (enable)
--		r = mipi_dsi_dcs_set_tear_on(dsi, MIPI_DSI_DCS_TEAR_MODE_VBLANK);
--	else
--		r = mipi_dsi_dcs_set_tear_off(dsi);
+-		dsi_if_enable(dsi, false);
+-		dsi_vc_enable(dsi, vc, false);
 -
--	/* possible panel bug */
--	msleep(100);
+-		/* MODE, 1 = video mode */
+-		REG_FLD_MOD(dsi, DSI_VC_CTRL(vc), 1, 4, 4);
 -
--	return r;
--}
+-		word_count = DIV_ROUND_UP(dsi->vm.hactive * bpp, 8);
 -
- static int dsicm_get_modes(struct drm_panel *panel,
- 			   struct drm_connector *connector)
+-		dsi_vc_write_long_header(dsi, vc, dsi->dsidev->channel, data_type,
+-				word_count, 0);
+-
+-		dsi_vc_enable(dsi, vc, true);
+-		dsi_if_enable(dsi, true);
++		r = dsi_enable_video_mode(dsi, vc);
++		if (r)
++			goto err_video_mode;
+ 	}
+ 
+ 	r = dss_mgr_enable(&dsi->output);
+@@ -3266,7 +3287,7 @@ static void dsi_enable_video_output(struct omap_dss_device *dssdev, int vc)
+ 		dsi_if_enable(dsi, false);
+ 		dsi_vc_enable(dsi, vc, false);
+ 	}
+-err_pix_fmt:
++err_video_mode:
+ 	dsi_uninit_dispc(dsi);
+ 	dev_err(dsi->dev, "failed to enable DSI encoder!\n");
+ 	return;
+@@ -3276,16 +3297,8 @@ static void dsi_disable_video_output(struct omap_dss_device *dssdev, int vc)
  {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 
+-	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE) {
+-		dsi_if_enable(dsi, false);
+-		dsi_vc_enable(dsi, vc, false);
+-
+-		/* MODE, 0 = command mode */
+-		REG_FLD_MOD(dsi, DSI_VC_CTRL(vc), 0, 4, 4);
+-
+-		dsi_vc_enable(dsi, vc, true);
+-		dsi_if_enable(dsi, true);
+-	}
++	if (dsi->mode == OMAP_DSS_DSI_VIDEO_MODE)
++		dsi_disable_video_mode(dsi, vc);
+ 
+ 	dss_mgr_disable(&dsi->output);
+ 
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
