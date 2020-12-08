@@ -2,168 +2,108 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09937C4361B
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 11:05:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39073C4361B
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:30:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C46282076D
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 11:05:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E453F23A9D
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Dec 2020 12:30:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728764AbgLHLFP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Dec 2020 06:05:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34238 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727798AbgLHLFO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 06:05:14 -0500
-Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60F15C061793
-        for <linux-omap@vger.kernel.org>; Tue,  8 Dec 2020 03:04:34 -0800 (PST)
-Received: by mail-wr1-x441.google.com with SMTP id 91so11862111wrj.7
-        for <linux-omap@vger.kernel.org>; Tue, 08 Dec 2020 03:04:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=oVdto4l/iQFOE/jcGLfjaxzoGzq2Ps5a3Ie3KVUxu1I=;
-        b=qb024noJnAcaD4FrKPkd4Ne8IhxPQM8AlFz92r4A6tTwucH6MQXOpPuRiJdwTukbJK
-         J+1ZPm8YX5jCZaEvyjJ6vpn4lAMa7UFXjLoCTOLFc501Hrx1cNiVd+Z8WluLCJc96MuN
-         lG3zsMPbMQ7hm6N6VfWocnn+bbRnLm+Gti9iZ1XUFKkrwPa52L+7FuO98JnyIATsKAvJ
-         zhHBZaGpGCQf8SOU7RWmdoMsg25XwH8LXk3+VNnowPQbs0YR6Fbl8kFUTCijvApbHnRT
-         x/2pY4XAtfUyMd/mC2HSFBNTO0FPeKDCdLVM3JnPGjoXBVpvqs5FD3afdifAdwB7tAmT
-         gSLg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=oVdto4l/iQFOE/jcGLfjaxzoGzq2Ps5a3Ie3KVUxu1I=;
-        b=ROfImWdj9w28tI4IypgV1tFea9uKuQNersDu2AvMe/9zzpTNRPwPRh45H3/Z59FfQV
-         DuBqKCGq5qCXI+Z1Rsx8vRJ3fQ3oMqYkREJOpKOlKZ4crerF41tqBv3XcHLQstl6d6Lb
-         mu0l8eifjY7Io+HJmMGV7Oh8z4/hFyNjbXIDOVgbS2axU/bbFXhTy6y0SYSt0s3c4KFP
-         RF3MWV5jZyR4NuqsmVihmWZtZZm+EgzJX4S52QmUOvc5mZtIrW7pdTfl4pG9W425bBGM
-         3eG9eB4zRx9s3a38uiWsGLIhKW0CtSCQ5dshaQs/CkRK4UXd1+GE3m+AgDylIflE0j4X
-         s0eg==
-X-Gm-Message-State: AOAM532485/U8So12rfa9e5wM/kukLBkhIQU/T5ht9BCQhmbhuC8GQZ0
-        ERahpEtHH6XoImyky8n9bp9ExA==
-X-Google-Smtp-Source: ABdhPJxArhPoyEic163xkIJznknOhIaG8ofGldEM/e3Q9Bok2a5xIQOzLIt+OejlKTMEWByALsMqsw==
-X-Received: by 2002:adf:f7c2:: with SMTP id a2mr24125501wrq.11.1607425473108;
-        Tue, 08 Dec 2020 03:04:33 -0800 (PST)
-Received: from dell ([91.110.221.209])
-        by smtp.gmail.com with ESMTPSA id h20sm2925583wmb.29.2020.12.08.03.04.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Dec 2020 03:04:32 -0800 (PST)
-Date:   Tue, 8 Dec 2020 11:04:30 +0000
-From:   Lee Jones <lee.jones@linaro.org>
-To:     Mathieu Poirier <mathieu.poirier@linaro.org>
-Cc:     Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>, ohad@wizery.com,
-        bjorn.andersson@linaro.org, s-anna@ti.com,
-        linux-remoteproc@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        praneeth@ti.com, rogerq@ti.com
-Subject: Re: [PATCH v3 3/6] remoteproc: pru: Add support for PRU specific
- interrupt configuration
-Message-ID: <20201208110430.GS4801@dell>
-References: <20201204201807.14716-1-grzegorz.jaszczyk@linaro.org>
- <20201204201807.14716-4-grzegorz.jaszczyk@linaro.org>
- <20201207173731.GA1509079@xps15>
+        id S1728192AbgLHMa5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Dec 2020 07:30:57 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:33282 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727463AbgLHMa5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2020 07:30:57 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTnfi064008;
+        Tue, 8 Dec 2020 06:29:49 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1607430589;
+        bh=s1EWE/SXUVeER6hkk0HRG9tRuUdyEyQIlfDmCa0tmQM=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=zWrShTYuAjhM8Vy/qqK0zmAqP7YKOCmAzzr6MU/v4JIP7cUb5gpy07kdNLfh2f+e2
+         VHt2+wg0VUdek0GNSAG5BA+AnKvf0uG5Qbk7x+Pv6a8l6R/aUozcL76HvGblZiq2pp
+         lLUuSCQtdz8kMoNVfOROWFbwZBpQKH2nvx9C09aA=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0B8CTn9X103274
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 8 Dec 2020 06:29:49 -0600
+Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 8 Dec
+ 2020 06:29:48 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Tue, 8 Dec 2020 06:29:48 -0600
+Received: from deskari.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0B8CTcjH095068;
+        Tue, 8 Dec 2020 06:29:46 -0600
+From:   Tomi Valkeinen <tomi.valkeinen@ti.com>
+To:     Sebastian Reichel <sre@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nikhil Devshatwar <nikhil.nd@ti.com>,
+        <dri-devel@lists.freedesktop.org>
+CC:     <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+        Tony Lindgren <tony@atomide.com>, <hns@goldelico.com>,
+        Sam Ravnborg <sam@ravnborg.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH v5 03/29] drm/omap: pll: fix iteration loop check
+Date:   Tue, 8 Dec 2020 14:28:29 +0200
+Message-ID: <20201208122855.254819-4-tomi.valkeinen@ti.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20201208122855.254819-1-tomi.valkeinen@ti.com>
+References: <20201208122855.254819-1-tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20201207173731.GA1509079@xps15>
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, 07 Dec 2020, Mathieu Poirier wrote:
+If the PLL calc function is given bad parameters, n_start/m_start may be
+higher than n_stop/m_stop, which leads to the loops iterating through
+the whole u32 number space.
 
-> On Fri, Dec 04, 2020 at 09:18:04PM +0100, Grzegorz Jaszczyk wrote:
-> > The firmware blob can contain optional ELF sections: .resource_table
-> > section and .pru_irq_map one. The second one contains the PRUSS
-> > interrupt mapping description, which needs to be setup before powering
-> > on the PRU core. To avoid RAM wastage this ELF section is not mapped to
-> > any ELF segment (by the firmware linker) and therefore is not loaded to
-> > PRU memory.
-> > 
-> > The PRU interrupt configuration is handled within the PRUSS INTC irqchip
-> > driver and leverages the system events to interrupt channels and host
-> > interrupts mapping configuration. Relevant irq routing information is
-> > passed through a special .pru_irq_map ELF section (for interrupts routed
-> > to and used by PRU cores) or via the PRU application's device tree node
-> > (for interrupts routed to and used by the main CPU). The mappings are
-> > currently programmed during the booting/shutdown of the PRU.
-> > 
-> > The interrupt configuration passed through .pru_irq_map ELF section is
-> > optional. It varies on specific firmware functionality and therefore
-> > have to be unwinded during PRU stop and performed again during
-> > PRU start.
-> > 
-> > Co-developed-by: Suman Anna <s-anna@ti.com>
-> > Signed-off-by: Suman Anna <s-anna@ti.com>
-> > Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-> > ---
+Fix this by failing early on such cases.
 
-[...]
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/gpu/drm/omapdrm/dss/pll.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-> >  drivers/remoteproc/pru_rproc.c | 180 +++++++++++++++++++++++++++++++++
-> >  drivers/remoteproc/pru_rproc.h |  46 +++++++++
-> >  2 files changed, 226 insertions(+)
-> >  create mode 100644 drivers/remoteproc/pru_rproc.h
-> > 
-> > diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-> > index d33392bbd8af..4ef59d15d888 100644
-> > --- a/drivers/remoteproc/pru_rproc.c
-> > +++ b/drivers/remoteproc/pru_rproc.c
-> > @@ -11,13 +11,16 @@
-> >   */
-
-[...]
-
-> > +static int pru_handle_intrmap(struct rproc *rproc)
-> > +{
-> > +	struct device *dev = rproc->dev.parent;
-> > +	struct pru_rproc *pru = rproc->priv;
-> > +	struct pru_irq_rsc *rsc = pru->pru_interrupt_map;
-> > +	struct irq_fwspec fwspec;
-> > +	struct device_node *irq_parent;
-> > +	int i, ret = 0;
-> > +
-> > +	/* not having pru_interrupt_map is not an error */
-> > +	if (!rsc)
-> > +		return 0;
-> > +
-> > +	/* currently supporting only type 0 */
-> > +	if (rsc->type != 0) {
-> > +		dev_err(dev, "unsupported rsc type: %d\n", rsc->type);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (rsc->num_evts > MAX_PRU_SYS_EVENTS)
-> > +		return -EINVAL;
-> > +
-> > +	if (sizeof(*rsc) + rsc->num_evts * sizeof(struct pruss_int_map) !=
-> > +	    pru->pru_interrupt_map_sz)
-> > +		return -EINVAL;
-> > +
-> > +	pru->evt_count = rsc->num_evts;
-> > +	pru->mapped_irq = kcalloc(pru->evt_count, sizeof(int), GFP_KERNEL);
-> 
-> sizeof(unsigned int)
-
-Would you mind trimming your replies please?
-
-Brain grepping through 200+ lines of quote for a one line review
-comment is a little frustrating.
-
-TIA.
-
+diff --git a/drivers/gpu/drm/omapdrm/dss/pll.c b/drivers/gpu/drm/omapdrm/dss/pll.c
+index 1212f3cc52d1..12926218c436 100644
+--- a/drivers/gpu/drm/omapdrm/dss/pll.c
++++ b/drivers/gpu/drm/omapdrm/dss/pll.c
+@@ -222,6 +222,9 @@ bool dss_pll_calc_a(const struct dss_pll *pll, unsigned long clkin,
+ 	n_stop = min((unsigned)(clkin / fint_hw_min), hw->n_max);
+ 	n_inc = 1;
+ 
++	if (n_start > n_stop)
++		return false;
++
+ 	if (hw->errata_i886) {
+ 		swap(n_start, n_stop);
+ 		n_inc = -1;
+@@ -239,6 +242,9 @@ bool dss_pll_calc_a(const struct dss_pll *pll, unsigned long clkin,
+ 				hw->m_max);
+ 		m_inc = 1;
+ 
++		if (m_start > m_stop)
++			continue;
++
+ 		if (hw->errata_i886) {
+ 			swap(m_start, m_stop);
+ 			m_inc = -1;
 -- 
-Lee Jones [李琼斯]
-Senior Technical Lead - Developer Services
-Linaro.org │ Open source software for Arm SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
