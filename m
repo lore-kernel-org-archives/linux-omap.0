@@ -2,66 +2,65 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A0CCC4167B
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:21:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA832C433FE
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:21:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 304D423407
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:21:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95533233A1
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:21:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730657AbgLILVR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 9 Dec 2020 06:21:17 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:36849 "EHLO
+        id S1730277AbgLILVZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 9 Dec 2020 06:21:25 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:35741 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730521AbgLILUR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2020 06:20:17 -0500
+        by vger.kernel.org with ESMTP id S1728148AbgLILUJ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2020 06:20:09 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1607512730;
+        s=mimecast20190719; t=1607512723;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=paX/7UAlKmbp58QFD0gyJzQyU0HAfzMzkzakh+VAmUM=;
-        b=Ut2DG7fg1pAhVZlbcjfgf9bg2WexlR5jAuFY5+gr201Bov6tKKkI3e6GCtO3to+wCKIc7G
-        fM+5JOXY5iTBfXEp9iqXD3TTzw7mZ0k0n7pKaJ8GW3Iw2mf96wNuhWvAd90lVJRkDHt+si
-        eMtScq1n+Kq/kCYfJk37lq8zflA1L4Y=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-1-jGmUhyn6OjGqmgEcsfYzjQ-1; Wed, 09 Dec 2020 06:18:49 -0500
-X-MC-Unique: jGmUhyn6OjGqmgEcsfYzjQ-1
-Received: by mail-wr1-f70.google.com with SMTP id d26so328986wrb.1
-        for <linux-omap@vger.kernel.org>; Wed, 09 Dec 2020 03:18:48 -0800 (PST)
+         content-transfer-encoding:content-transfer-encoding;
+        bh=xSOTlsGZZ/ADfKcdaJ8Ay5xDLSKq4CczFccCePJHcIk=;
+        b=IT7tOjNU/v/A2MwUc+8BWQBfrwgDfAHQrhYC1xLjhp46/eIDZwiyfTixumlD7ymS/9u2Mi
+        0JfrZpfIs1tsFNwGn/QfEK7QM2B0e4X+i0dJe5IKmrOjIxU3WhvpL6ihLtylMTsFBJPPvO
+        fE/y52MCUp+NlvBQ3/cKrbGFLhFiomw=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-155-KMFZVB03NXCn7I2tUqpm6A-1; Wed, 09 Dec 2020 06:18:41 -0500
+X-MC-Unique: KMFZVB03NXCn7I2tUqpm6A-1
+Received: by mail-wr1-f71.google.com with SMTP id o4so523075wrw.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Dec 2020 03:18:41 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=paX/7UAlKmbp58QFD0gyJzQyU0HAfzMzkzakh+VAmUM=;
-        b=V0GDytAikYVqX0evrkDMtbxJ64et7a4/B2xp9x0VLMSuQQJKOtZaERZVBFm7V163g+
-         b78UkDqEGK9rfEK+sf49+gk9pBdtsm4BqNTVz++aZXihvSktRDWIEk+JUM1gXVe/CoLk
-         +868HZNMF4dnV13AYp05utGjsmTurM9hN1XCcn4zDQ3FF3DJm011E71Ok+KC6b8bsI/O
-         p9fNP783adte1L7RBU6qv/+XbBQZDCqjsrjtIW6w7NeukP5AUk8DxaSo+oA3XRST4VUh
-         c9q1FnjFQHmJDGu8/s0BTO38zXBZxts6VDCf7dFgexC/HN29ns5S56G9y6esUwzWDXjR
-         EQKg==
-X-Gm-Message-State: AOAM530elNqipY3EuaIl0NJag1wOFfczHbVH3W7M3TXx9I0r0i0DO1lO
-        CAbOQCPlAz4SGldAhH2WzAjCIZcaZa2d/OazgB6moZ3A9yfHGX4x0ea5O4r1Dqyy8k2VsyulbUX
-        I9sEbbbik2c43eBqzuSqzZw==
-X-Received: by 2002:a7b:c24b:: with SMTP id b11mr2243678wmj.168.1607512727668;
-        Wed, 09 Dec 2020 03:18:47 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxIQXSKeI1KTNfWKjLVO4BGjQ+RlzPjAi6h6dYdW2N/q7Mg8WugtYj7pqH+1ymMCaAkwmoJxQ==
-X-Received: by 2002:a7b:c24b:: with SMTP id b11mr2243632wmj.168.1607512727350;
-        Wed, 09 Dec 2020 03:18:47 -0800 (PST)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id m8sm2867185wmc.27.2020.12.09.03.18.45
+        h=x-gm-message-state:subject:from:to:cc:date:message-id:user-agent
+         :mime-version:content-transfer-encoding;
+        bh=xSOTlsGZZ/ADfKcdaJ8Ay5xDLSKq4CczFccCePJHcIk=;
+        b=gClXlPuBZ+MDlYIAvc87DInQYV8bLxaTaRlp69Eto25jhZ1fmPxgjn85S9N83cBMBX
+         /jbVXLoRwMZsBObO8Q5pel1kZ3J74PytEF2H7AXHYwYZxGLvXAVo8CW1igIu1cKDZz6k
+         hPD082yRKcm7wpedjPQZHL3PLf9BQBDYaKccHb/kZsMREN1hhHPYWz/AS2baQZh6iWsb
+         X8J6HGLGNlzrsM6GQMSniS82clXhITHGIuXZLfdmzlPq5l0vS9h1g9oEx/n7R28ue5lA
+         oHIJyxgYGT7gk8W1HEj+Q2MUf1HQsU7eom8oEFUDmYTS2vAEkhh4dpJ0s9mQa/0w5WeJ
+         ZJzg==
+X-Gm-Message-State: AOAM533p7AMeB6+n1hp3j6b4/MFx9lawAYxGOEthYYH6z4sve1k7mCJY
+        QRNXNpixyrjcjuFDeJPoNVYuc6mfp76DKZng+9JBQXWgZGHAwDh7/YatXFxtIKiCOp6yJAkvhH7
+        leKoWyKXhN6PY7HzLQyd8iw==
+X-Received: by 2002:a5d:4209:: with SMTP id n9mr2104995wrq.128.1607512720464;
+        Wed, 09 Dec 2020 03:18:40 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJzm5RxsK1e736lOeUy/K4LoocHFwg4m6StAtUALim1kfo/PoU+Wv+tRPAcTaMmDK/AR8J9m6Q==
+X-Received: by 2002:a5d:4209:: with SMTP id n9mr2104984wrq.128.1607512720296;
+        Wed, 09 Dec 2020 03:18:40 -0800 (PST)
+Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
+        by smtp.gmail.com with ESMTPSA id m81sm2860764wmf.29.2020.12.09.03.18.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Dec 2020 03:18:46 -0800 (PST)
+        Wed, 09 Dec 2020 03:18:39 -0800 (PST)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 96E5E18006E; Wed,  9 Dec 2020 12:18:44 +0100 (CET)
-Subject: [PATCH bpf v3 6/7] selftests/bpf/test_offload.py: reset ethtool
- features after failed setting
+        id 1576A180003; Wed,  9 Dec 2020 12:18:38 +0100 (CET)
+Subject: [PATCH bpf v3 0/7] selftests/bpf: Restore test_offload.py to working
+ order
 From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
@@ -84,10 +83,8 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Jiri Benc <jbenc@redhat.com>, oss-drivers@netronome.com,
         linux-omap@vger.kernel.org, netdev@vger.kernel.org,
         bpf@vger.kernel.org
-Date:   Wed, 09 Dec 2020 12:18:44 +0100
-Message-ID: <160751272453.104774.14088086677950503174.stgit@toke.dk>
-In-Reply-To: <160751271801.104774.5575431902172553440.stgit@toke.dk>
-References: <160751271801.104774.5575431902172553440.stgit@toke.dk>
+Date:   Wed, 09 Dec 2020 12:18:38 +0100
+Message-ID: <160751271801.104774.5575431902172553440.stgit@toke.dk>
 User-Agent: StGit/0.23
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -96,29 +93,42 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Toke Høiland-Jørgensen <toke@redhat.com>
+This series restores the test_offload.py selftest to working order. It seems a
+number of subtle behavioural changes have crept into various subsystems which
+broke test_offload.py in a number of ways. Most of these are fairly benign
+changes where small adjustments to the test script seems to be the best fix, but
+one is an actual kernel bug that I've observed in the wild caused by a bad
+interaction between xdp_attachment_flags_ok() and the rework of XDP program
+handling in the core netdev code.
 
-When setting the ethtool feature flag fails (as expected for the test), the
-kernel now tracks that the feature was requested to be 'off' and refuses to
-subsequently disable it again. So reset it back to 'on' so a subsequent
-disable (that's not supposed to fail) can succeed.
+Patch 1 fixes the bug by removing xdp_attachment_flags_ok(), and the reminder of
+the patches are adjustments to test_offload.py, including a new feature for
+netdevsim to force a BPF verification fail. Please see the individual patches
+for details.
 
-Fixes: 417ec26477a5 ("selftests/bpf: add offload test based on netdevsim")
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
+Changelog:
+
+v3:
+- Add Fixes: tags
+
+v2:
+- Replace xdp_attachment_flags_ok() with a check in dev_xdp_attach()
+- Better packing of struct nsim_dev
+
 ---
- tools/testing/selftests/bpf/test_offload.py |    1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/tools/testing/selftests/bpf/test_offload.py b/tools/testing/selftests/bpf/test_offload.py
-index 51a5e4d939cc..2128fbd8414b 100755
---- a/tools/testing/selftests/bpf/test_offload.py
-+++ b/tools/testing/selftests/bpf/test_offload.py
-@@ -946,6 +946,7 @@ try:
-     start_test("Test disabling TC offloads is rejected while filters installed...")
-     ret, _ = sim.set_ethtool_tc_offloads(False, fail=False)
-     fail(ret == 0, "Driver should refuse to disable TC offloads with filters installed...")
-+    sim.set_ethtool_tc_offloads(True)
- 
-     start_test("Test qdisc removal frees things...")
-     sim.tc_flush_filters()
+Toke Høiland-Jørgensen (7):
+      xdp: remove the xdp_attachment_flags_ok() callback
+      selftests/bpf/test_offload.py: Remove check for program load flags match
+      netdevsim: Add debugfs toggle to reject BPF programs in verifier
+      selftests/bpf/test_offload.py: only check verifier log on verification fails
+      selftests/bpf/test_offload.py: fix expected case of extack messages
+      selftests/bpf/test_offload.py: reset ethtool features after failed setting
+      selftests/bpf/test_offload.py: filter bpftool internal map when counting maps
+
+
+ drivers/net/netdevsim/bpf.c                 | 12 ++++-
+ drivers/net/netdevsim/netdevsim.h           |  1 +
+ tools/testing/selftests/bpf/test_offload.py | 53 +++++++++++----------
+ 3 files changed, 40 insertions(+), 26 deletions(-)
 
