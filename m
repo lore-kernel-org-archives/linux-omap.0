@@ -5,63 +5,63 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD08C4167B
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:20:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8804FC433FE
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:21:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D395823433
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:20:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5215F23407
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 11:21:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730595AbgLILUT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1730358AbgLILUT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Wed, 9 Dec 2020 06:20:19 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:52974 "EHLO
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:45445 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730354AbgLILUP (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2020 06:20:15 -0500
+        by vger.kernel.org with ESMTP id S1730586AbgLILUS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2020 06:20:18 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1607512728;
+        s=mimecast20190719; t=1607512731;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=vHtRZEbZli1h982vP/LiKLhTpQ4S7yCfLA6svbBiHq8=;
-        b=ihcgPzyeDjXEJNdIEsYIUpZCEh+KM3yj5P14vF+GnVt3GgoQHWEzrbkoTPsmwMdnHq/NeH
-        eWjxqL9LENWV+nI9WuREbN1RWngGvOJ9QbHWX7cPADfpJFGQvUNfvr6RT0fd2waDgq2cIa
-        zTopSukcrpn5VQnCFxian8gLDtTatFU=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-436-5WR-ydJTPyeHIIkTi90dNA-1; Wed, 09 Dec 2020 06:18:46 -0500
-X-MC-Unique: 5WR-ydJTPyeHIIkTi90dNA-1
-Received: by mail-wm1-f72.google.com with SMTP id f12so430359wmf.6
-        for <linux-omap@vger.kernel.org>; Wed, 09 Dec 2020 03:18:46 -0800 (PST)
+        bh=rdg7j0aoyv9xFKjTcy/3BS13uPnBUVbkHjhjaK6AxE0=;
+        b=S2108bF0cDW7RKHlAK5M0foap1uuDcDBnqQAqkeL227qJqN/RpEan2nhYYIL9B83aKfmNn
+        GOVgTw8bT3qtfCjygcy2hV1p99VuRASoZAB/+HLfpBSR8gpSr3q3ZCevcpV4G+yrG7fdFx
+        2w2915SF3YL0WrG0hT3AZv56pRXxspU=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-22-ojNM6W_KOeaOdd8ElDKIeg-1; Wed, 09 Dec 2020 06:18:49 -0500
+X-MC-Unique: ojNM6W_KOeaOdd8ElDKIeg-1
+Received: by mail-wr1-f72.google.com with SMTP id o4so523187wrw.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Dec 2020 03:18:49 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:date:message-id:in-reply-to
          :references:user-agent:mime-version:content-transfer-encoding;
-        bh=vHtRZEbZli1h982vP/LiKLhTpQ4S7yCfLA6svbBiHq8=;
-        b=pCpnWNfqZ4rbm0/y6w2KinADbSDsR4o9jLpkdBLpgPm2qsvi1kKY5NjJOXlrYpXJwZ
-         j/hrlSJgxRTskUp9U7xII/SfstUI7VVc5Azsdzsz430EO7PAweI4CADhieh+Bu5MurPO
-         l9eGQBcuZ3FHQ+RY1Q/JhPGl877m8NeT+ObNXIhXZ2s9x2HfaDzaNsIqhjwzYWgs7QAq
-         xVWbpmVd91yBnjGKoHzZRu/B9mzHpQV+BNOesbiK2P6ziItGn3rdTj02iPwYfTNIXr/1
-         q1h+WLETqSZ6PPrJD5mOlSiA5v7D8MCRNmSYSgkGtQCZtPUv8W0L4rlfAxbroDlFZmu9
-         KC+Q==
-X-Gm-Message-State: AOAM5307PZKAxG12a0L2fSj6D+SFbNIvYknWcsynOKzAsmgkvM91JwXY
-        e+jr7J4DeSyP6/FTInaQcbwAp3RAJ7BHXTLln2RDaDgoSqN7ytFEkq+AZsInaKMnnHnliDMmzpT
-        5v0s/xWVrMU3pYYtwh40KYA==
-X-Received: by 2002:a5d:6105:: with SMTP id v5mr2065766wrt.178.1607512725293;
-        Wed, 09 Dec 2020 03:18:45 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxB6RTggDKWVmluBFuFp8fDNooX99A3rM0VufkhCcyMx9n9rSn9l50zgZfXiRLkF1cVaFOU/Q==
-X-Received: by 2002:a5d:6105:: with SMTP id v5mr2065727wrt.178.1607512724896;
-        Wed, 09 Dec 2020 03:18:44 -0800 (PST)
+        bh=rdg7j0aoyv9xFKjTcy/3BS13uPnBUVbkHjhjaK6AxE0=;
+        b=ggeOzlf+UXgazIjgxjewk5PjCZoY/c+npkn6yxHzsejv3OmUppR36fEEADbAuVHYB0
+         mqXqrEUvzI5A4omIoBRDvkBlS5EkObX+V7RlSmOwxWnzr/01YiOV4WdIeSoqbvA72qeY
+         DMorDZ+IifT6Yj2PbDIsfWNzjC4JTXvL7vYJeNCCshMDQvUJ+Kl/qqh6vVgk1MDDBTau
+         5wUQZ6Yfv90PtdtJi64Z7H4rUklk3HEFgurXHKBv9vt5PLJ/leFRzi9vFH+UZb8WVEZl
+         VgdzSAuStqD4qrDjIVUe0WXXOxWXkKg/6XQL2r40uyFmtDHFUPywMELCNZTNy6Wq1I9f
+         coxA==
+X-Gm-Message-State: AOAM533JIwNnUu1eu/+tG5cP31Nw7CmwG297IySH641bz36PUeOE2U2h
+        4mRj+CpK+U+7askteah6cEADAeAqWjeyPra7IRBZBna88/ImlHJuaBh8SCMuwqRIQ3Yufqo3Joi
+        Y4fZbxQ8OeASQI/bkdQuRkg==
+X-Received: by 2002:adf:94c7:: with SMTP id 65mr2051397wrr.423.1607512728445;
+        Wed, 09 Dec 2020 03:18:48 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJzByUzK4whQvOkVhb3u3QIf2WOJnMrhMKCWhHgegG+om0p+KZUQ0AX0otTOa/8uQfiNtIENbA==
+X-Received: by 2002:adf:94c7:: with SMTP id 65mr2051355wrr.423.1607512728038;
+        Wed, 09 Dec 2020 03:18:48 -0800 (PST)
 Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id w12sm3172176wre.57.2020.12.09.03.18.42
+        by smtp.gmail.com with ESMTPSA id y2sm2663184wma.6.2020.12.09.03.18.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Dec 2020 03:18:44 -0800 (PST)
+        Wed, 09 Dec 2020 03:18:47 -0800 (PST)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 6B110180004; Wed,  9 Dec 2020 12:18:42 +0100 (CET)
-Subject: [PATCH bpf v3 4/7] selftests/bpf/test_offload.py: only check verifier
- log on verification fails
+        id AF47A180004; Wed,  9 Dec 2020 12:18:45 +0100 (CET)
+Subject: [PATCH bpf v3 7/7] selftests/bpf/test_offload.py: filter bpftool
+ internal map when counting maps
 From:   =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
@@ -84,8 +84,8 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Jiri Benc <jbenc@redhat.com>, oss-drivers@netronome.com,
         linux-omap@vger.kernel.org, netdev@vger.kernel.org,
         bpf@vger.kernel.org
-Date:   Wed, 09 Dec 2020 12:18:42 +0100
-Message-ID: <160751272235.104774.3114776457666871889.stgit@toke.dk>
+Date:   Wed, 09 Dec 2020 12:18:45 +0100
+Message-ID: <160751272562.104774.12715774646876868194.stgit@toke.dk>
 In-Reply-To: <160751271801.104774.5575431902172553440.stgit@toke.dk>
 References: <160751271801.104774.5575431902172553440.stgit@toke.dk>
 User-Agent: StGit/0.23
@@ -98,64 +98,42 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Toke Høiland-Jørgensen <toke@redhat.com>
 
-Since 6f8a57ccf85 ("bpf: Make verifier log more relevant by default"), the
-verifier discards log messages for successfully-verified programs. This
-broke test_offload.py which is looking for a verification message from the
-driver callback. Change test_offload.py to use the toggle in netdevsim to
-make the verification fail before looking for the verification message.
+A few of the tests in test_offload.py expects to see a certain number of
+maps created, and checks this by counting the number of maps returned by
+bpftool. There is already a filter that will remove any maps already there
+at the beginning of the test, but bpftool now creates a map for the PID
+iterator rodata on each invocation, which makes the map count wrong. Fix
+this by also filtering the pid_iter.rodata map by name when counting.
 
-Fixes: 6f8a57ccf85 ("bpf: Make verifier log more relevant by default")
+Fixes: d53dee3fe013 ("tools/bpftool: Show info for processes holding BPF map/prog/link/btf FDs")
 Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
 ---
- tools/testing/selftests/bpf/test_offload.py |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ tools/testing/selftests/bpf/test_offload.py |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/tools/testing/selftests/bpf/test_offload.py b/tools/testing/selftests/bpf/test_offload.py
-index becd27b2f4ba..61527b43f067 100755
+index 2128fbd8414b..b99bb8ed3ed4 100755
 --- a/tools/testing/selftests/bpf/test_offload.py
 +++ b/tools/testing/selftests/bpf/test_offload.py
-@@ -911,11 +911,18 @@ try:
+@@ -184,9 +184,7 @@ def bpftool_prog_list(expected=None, ns=""):
+ def bpftool_map_list(expected=None, ns=""):
+     _, maps = bpftool("map show", JSON=True, ns=ns, fail=True)
+     # Remove the base maps
+-    for m in base_maps:
+-        if m in maps:
+-            maps.remove(m)
++    maps = [m for m in maps if m not in base_maps and m.get('name') not in base_map_names]
+     if expected is not None:
+         if len(maps) != expected:
+             fail(True, "%d BPF maps loaded, expected %d" %
+@@ -770,6 +768,9 @@ ret, progs = bpftool("prog", fail=False)
+ skip(ret != 0, "bpftool not installed")
+ base_progs = progs
+ _, base_maps = bpftool("map")
++base_map_names = [
++    'pid_iter.rodata' # created on each bpftool invocation
++]
  
-     sim.tc_flush_filters()
- 
-+    start_test("Test TC offloads failure...")
-+    sim.dfs["dev/bpf_bind_verifier_accept"] = 0
-+    ret, _, err = sim.cls_bpf_add_filter(obj, verbose=True, skip_sw=True,
-+                                         fail=False, include_stderr=True)
-+    fail(ret == 0, "TC filter did not reject with TC offloads enabled")
-+    check_verifier_log(err, "[netdevsim] Hello from netdevsim!")
-+    sim.dfs["dev/bpf_bind_verifier_accept"] = 1
-+
-     start_test("Test TC offloads work...")
-     ret, _, err = sim.cls_bpf_add_filter(obj, verbose=True, skip_sw=True,
-                                          fail=False, include_stderr=True)
-     fail(ret != 0, "TC filter did not load with TC offloads enabled")
--    check_verifier_log(err, "[netdevsim] Hello from netdevsim!")
- 
-     start_test("Test TC offload basics...")
-     dfs = simdev.dfs_get_bound_progs(expected=1)
-@@ -1032,6 +1039,15 @@ try:
-     rm("/sys/fs/bpf/offload")
-     sim.wait_for_flush()
- 
-+    start_test("Test XDP load failure...")
-+    sim.dfs["dev/bpf_bind_verifier_accept"] = 0
-+    ret, _, err = bpftool_prog_load("sample_ret0.o", "/sys/fs/bpf/offload",
-+                                 dev=sim['ifname'], fail=False, include_stderr=True)
-+    fail(ret == 0, "verifier should fail on load")
-+    check_verifier_log(err, "[netdevsim] Hello from netdevsim!")
-+    sim.dfs["dev/bpf_bind_verifier_accept"] = 1
-+    sim.wait_for_flush()
-+
-     start_test("Test XDP offload...")
-     _, _, err = sim.set_xdp(obj, "offload", verbose=True, include_stderr=True)
-     ipl = sim.ip_link_show(xdp=True)
-@@ -1039,7 +1055,6 @@ try:
-     progs = bpftool_prog_list(expected=1)
-     prog = progs[0]
-     fail(link_xdp["id"] != prog["id"], "Loaded program has wrong ID")
--    check_verifier_log(err, "[netdevsim] Hello from netdevsim!")
- 
-     start_test("Test XDP offload is device bound...")
-     dfs = simdev.dfs_get_bound_progs(expected=1)
+ # Check netdevsim
+ ret, out = cmd("modprobe netdevsim", fail=False)
 
