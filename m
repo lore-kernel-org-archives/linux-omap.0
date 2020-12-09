@@ -2,67 +2,122 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8734AC19437
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 02:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21FAAC4361B
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 08:54:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5598923A75
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 02:21:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D74AA2388B
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Dec 2020 08:54:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726483AbgLICVu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Dec 2020 21:21:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59890 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725283AbgLICVu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 8 Dec 2020 21:21:50 -0500
-Content-Type: text/plain; charset="utf-8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607480470;
-        bh=WT8uMkIgKNBN83uC2I/u3BLNaEQfVrbj73eqAJizD0s=;
-        h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
-        b=LbgLHWcXRhEhXAFLR0hAcCso7IVVPje1UJAhAQ+5bbgdw9AjSgM8AOqn0lHOVr7Bt
-         apkawj38xBBoH2fUXAB6I86Mg9johh8e8MV1a4o3Kt1CgRxPLHBn+Fx9BExmEa/1WT
-         KRG5V+o+Eg2huML/xRZvKn9xqPT3EnN9IZoqNiV144xNmp/6KzyJEoXcT4OkCfhSfp
-         XOduhPHE39QD8sJMEVKRe80bvW+be+d5bheq7acHeoVcfgIdrEJ5tdnh3hV9/xBuO3
-         U1yNJYSh9v45TgilzY/BAXbEWXU/RAynaz0uUIrxF+fIYB5ohc9amxLd0BtALYaPLv
-         sTfMTR2zHlnOg==
+        id S1726073AbgLIIyP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 9 Dec 2020 03:54:15 -0500
+Received: from mout.kundenserver.de ([217.72.192.74]:53181 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725942AbgLIIyP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2020 03:54:15 -0500
+Received: from [192.168.1.155] ([77.2.91.93]) by mrelayeu.kundenserver.de
+ (mreue109 [212.227.15.183]) with ESMTPSA (Nemesis) id
+ 1MyK9S-1jux8A4AO4-00ykZ1; Wed, 09 Dec 2020 09:51:23 +0100
+Subject: Re: [RFC PATCH] RFC: drivers: gpio: helper for generic pin IRQ
+ handling
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>,
+        "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        William Breathitt Gray <vilhelm.gray@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        joyce.ooi@intel.com, Andrew Jeffery <andrew@aj.id.au>,
+        Hoan Tran <hoan@os.amperecomputing.com>,
+        Serge Semin <fancer.lancer@gmail.com>, orsonzhai@gmail.com,
+        baolin.wang7@gmail.com, zhang.lyra@gmail.com,
+        Andy Shevchenko <andy@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>,
+        Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawnguo@kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+References: <20201208141429.8836-1-info@metux.net>
+ <CAHp75VfMKmJ074R2-04be0Ag6OuKcY=_xhhbRKsL2D0H8hZZLg@mail.gmail.com>
+From:   "Enrico Weigelt, metux IT consult" <info@metux.net>
+Message-ID: <39d03958-786e-a6c8-a1e9-9b8a751e4c9e@metux.net>
+Date:   Wed, 9 Dec 2020 09:51:18 +0100
+User-Agent: Mozilla/5.0 (X11; Linux i686 on x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20201119130720.63140-2-tony@atomide.com>
-References: <20201119130720.63140-1-tony@atomide.com> <20201119130720.63140-2-tony@atomide.com>
-Subject: Re: [PATCH 1/7] clk: ti: omap4: Drop idlest polling from IVA clkctrl clocks
-From:   Stephen Boyd <sboyd@kernel.org>
-Cc:     =?utf-8?q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, linux-clk@vger.kernel.org,
-        Michael Turquette <mturquette@baylibre.com>,
-        Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>,
-        Roger Quadros <rogerq@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>
-To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Date:   Tue, 08 Dec 2020 18:21:08 -0800
-Message-ID: <160748046888.1580929.12704153857017758692@swboyd.mtv.corp.google.com>
-User-Agent: alot/0.9.1
+In-Reply-To: <CAHp75VfMKmJ074R2-04be0Ag6OuKcY=_xhhbRKsL2D0H8hZZLg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: tl
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:EuKdMo+/U1o5sFyWn2fUeeb59IOsjJ1lKvxlbr6jwLrI3rpvFd4
+ nhAYSKUtpDAcHNztBd1k9lK6qbyB1EcO8lUbEIU5JHIuIhzzSdv4XgexxRWXPF00dGCmnbf
+ nYQOr067XFqPOQiO8XUmYaHJ4wg6GfRagiQcILR4wwkTZgwJdowyWBZ0VPnXmbiUND2mKf9
+ wYeFaMGInmTUtMMfCkfUg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:MzrASONKidU=:2JvqAQMMojOiNOBmF4oVsI
+ UjxeFmft5OCgVFjNWuGw9iiMHyWs0gBwNW+1RbqjeGsXuBgPo796Xq4ZZv5+2sfyV+hd12CrE
+ EefDT434K7Io5QJGQvg/XvTcEbRA2uQyjC6ENbKlkH57TzhOeQNSqUyEdA46wGS8/1M51hLBZ
+ WuV+KrkvIwX06gKHr0UqFsDpHDmFu1o7JC7/YetwlnSjuuEqZwL6Dz+NXFjjiqHVNrAkCQBEv
+ zZNwDPdei+yEotyWDlKwnw7Kk3bXhdm4LxWZ+ws8xyqLuvxtsBdFYc6ou+l6WGEZTjIuG/kB8
+ QcWRe9NZ74Wl+5CCPfvN6q8dNHVHUmYrh02AfpGJGi8VtWsi08DpWoiqrdD8dD2+smmPlkMNj
+ Ip2kWmByQUeGlqnvgP1TuNeyldHDhZ2vtOJj7gfbiuKl5CdhmVjKWS5ZaSE7B
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Quoting Tony Lindgren (2020-11-19 05:07:14)
-> Similar to what we've done for IPU and DSP let's ignore the status bit
-> for the IVA clkctrl register.
->=20
-> The clkctrl status won't change unless the related rstctrl is deasserted,
-> and the rstctrl status won't change unless the clkctrl is enabled.
->=20
-> Cc: linux-clk@vger.kernel.org
-> Cc: Michael Turquette <mturquette@baylibre.com>
-> Cc: Stephen Boyd <sboyd@kernel.org>
-> Cc: Suman Anna <s-anna@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+On 08.12.20 15:19, Andy Shevchenko wrote:
 
-Acked-by: Stephen Boyd <sboyd@kernel.org>
+Hi,
+
+> Have you able to test them all?
+
+Not yet. It's still an *RFC*, I just like to discuss whether the whole
+idea makes sense at all.
+
+In case we come to the consensus that we should do it, I'm going to
+split up the patch and rework everything more carefully (for now,
+it's just a draft for illustrating the general idea)
+
+I'd also like to hear your opinion on whether we can consolidate these
+things even more, eg. using struct gpio_chip's irq data (enabled by
+CONFIG_GPIOLIB_IRQCHIP) instead of own fields.
+
+An interesting question here is how to do that w/o gpiolib assuming
+they've been managed by it - for example gpiochip_remove (which
+cleans up the IRQ stuff) is called by gpiochip_remove(), so we have to
+make sure that the driver clears the corresponding fields before
+gpiochip_remove() is called. So far so good. BUT: gpiochip_remove()
+is also called in error paths, when registration fails in the middle,
+and there the driver cannot act properly.
+
+Maybe introduce a flag for telling gpiolib that it should leave these
+fields alone and let the driver do everything ?
+
+> As the PCA953x case showed us this is not so simple, 
+
+Can you tell me more about it ?
+(BTW haven't touched it in my patch)
+
+> besides the name
+> which sucks — we don't *raise* and IRQ we *handle* it.
+
+right, the naming was bad, forgot to correct that before sending.
+
+
+--mtx
+
+-- 
+---
+Hinweis: unverschlüsselte E-Mails können leicht abgehört und manipuliert
+werden ! Für eine vertrauliche Kommunikation senden Sie bitte ihren
+GPG/PGP-Schlüssel zu.
+---
+Enrico Weigelt, metux IT consult
+Free software and Linux embedded engineering
+info@metux.net -- +49-151-27565287
