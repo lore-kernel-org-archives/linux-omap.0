@@ -2,88 +2,77 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20333C1B0D9
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 08:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E492C4361B
+	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 08:55:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D41E823CD3
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 08:39:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CB3823E1B
+	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 08:55:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391494AbgLKIix (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 11 Dec 2020 03:38:53 -0500
-Received: from muru.com ([72.249.23.125]:50122 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391451AbgLKIia (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 11 Dec 2020 03:38:30 -0500
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 419E180C8;
-        Fri, 11 Dec 2020 08:37:57 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-List-Id: <soc.lore.kernel.org>
-To:     soc@kernel.org
-Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        "Tony Lindgren" <tony@atomide.com>
-Subject: [GIT PULL 1/2] Late devicetree changes for omaps for v5.11
-Date:   Fri, 11 Dec 2020 10:37:41 +0200
-Message-Id: <pull-1607675790-251347@atomide.com>
-X-Mailer: git-send-email 2.29.2
+        id S2437195AbgLKIyx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 11 Dec 2020 03:54:53 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:9164 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2437143AbgLKIyt (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2020 03:54:49 -0500
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Csl1m5K8cz15bBF;
+        Fri, 11 Dec 2020 16:53:32 +0800 (CST)
+Received: from ubuntu.network (10.175.138.68) by
+ DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 11 Dec 2020 16:53:59 +0800
+From:   Zheng Yongjun <zhengyongjun3@huawei.com>
+To:     <balbi@kernel.org>, <gregkh@linuxfoundation.org>,
+        <linux-usb@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+CC:     Zheng Yongjun <zhengyongjun3@huawei.com>
+Subject: [PATCH -next] usb: phy: convert comma to semicolon
+Date:   Fri, 11 Dec 2020 16:54:28 +0800
+Message-ID: <20201211085428.2871-1-zhengyongjun3@huawei.com>
+X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.138.68]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Replace a comma between expression statements by a semicolon.
 
-The following changes since commit d7356a7ab125c3a4fee521b7530f3122bc842ac4:
+Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
+---
+ drivers/usb/phy/phy-isp1301-omap.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-  ARM: dts: am335x: Fix comments for AM335X_PIN_GPMC_WPN pin in GPIO mode (2020-11-16 13:38:29 +0200)
+diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
+index 4a6462c92ef2..6f4f74e6ba51 100644
+--- a/drivers/usb/phy/phy-isp1301-omap.c
++++ b/drivers/usb/phy/phy-isp1301-omap.c
+@@ -1566,13 +1566,13 @@ isp1301_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+ 
+ 	isp->phy.dev = &i2c->dev;
+ 	isp->phy.label = DRIVER_NAME;
+-	isp->phy.set_power = isp1301_set_power,
++	isp->phy.set_power = isp1301_set_power;
+ 
+ 	isp->phy.otg->usb_phy = &isp->phy;
+-	isp->phy.otg->set_host = isp1301_set_host,
+-	isp->phy.otg->set_peripheral = isp1301_set_peripheral,
+-	isp->phy.otg->start_srp = isp1301_start_srp,
+-	isp->phy.otg->start_hnp = isp1301_start_hnp,
++	isp->phy.otg->set_host = isp1301_set_host;
++	isp->phy.otg->set_peripheral = isp1301_set_peripheral;
++	isp->phy.otg->start_srp = isp1301_start_srp;
++	isp->phy.otg->start_hnp = isp1301_start_hnp;
+ 
+ 	enable_vbus_draw(isp, 0);
+ 	power_down(isp);
+-- 
+2.22.0
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.11/dt-late-signed
-
-for you to fetch changes up to 4d4ce69f19d4991701e84d5eaa0fc0e506210042:
-
-  ARM: dts: dra71-evm: mark ldo0 regulator as always on (2020-12-08 15:57:43 +0200)
-
-----------------------------------------------------------------
-Late devicetree changes for omaps for v5.11 merge window
-
-Here are few more late changes that would be nice to get into v5.11:
-
-- More updates to use cpsw switchdev driver
-
-- Enable gta04 PMIC power management
-
-- Updates for dra7 for ECC support, 1.8GHz speed and keep the
-  ldo0 regulator always on as specified in the data manual
-
-----------------------------------------------------------------
-Andreas Kemnade (1):
-      ARM: dts: omap3-gta04: fix twl4030-power settings
-
-Grygorii Strashko (2):
-      ARM: dts: am33xx-l4: add dt node for new cpsw switchdev driver
-      ARM: dts: am335x-evm/evmsk/icev2: switch to new cpsw switch drv
-
-Tero Kristo (3):
-      ARM: dts: am574x-idk: add support for EMIF1 ECC
-      ARM: dts: dra76x: add support for OPP_PLUS
-      ARM: dts: dra71-evm: mark ldo0 regulator as always on
-
- arch/arm/boot/dts/am335x-evm.dts   | 13 ++++++----
- arch/arm/boot/dts/am335x-evmsk.dts | 14 +++++------
- arch/arm/boot/dts/am335x-icev2.dts | 14 +++++------
- arch/arm/boot/dts/am33xx-l4.dtsi   | 49 ++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am574x-idk.dts   |  4 ++++
- arch/arm/boot/dts/dra71-evm.dts    |  2 ++
- arch/arm/boot/dts/dra76x.dtsi      | 36 ++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-gta04.dtsi |  4 ++--
- 8 files changed, 113 insertions(+), 23 deletions(-)
