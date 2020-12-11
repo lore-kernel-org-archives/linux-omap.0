@@ -5,56 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EBC4C4167B
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 14:57:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 529BBC4361B
+	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 14:58:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C32F020657
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 14:57:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C31A20637
+	for <linux-omap@archiver.kernel.org>; Fri, 11 Dec 2020 14:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406242AbgLKOcP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 11 Dec 2020 09:32:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44992 "EHLO
+        id S2406264AbgLKOcl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 11 Dec 2020 09:32:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2406231AbgLKOcE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2020 09:32:04 -0500
-Received: from mail-lj1-x242.google.com (mail-lj1-x242.google.com [IPv6:2a00:1450:4864:20::242])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE55EC06179C
-        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2020 06:30:44 -0800 (PST)
-Received: by mail-lj1-x242.google.com with SMTP id f11so11095791ljm.8
-        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2020 06:30:44 -0800 (PST)
+        with ESMTP id S2406257AbgLKOcU (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2020 09:32:20 -0500
+Received: from mail-lf1-x144.google.com (mail-lf1-x144.google.com [IPv6:2a00:1450:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 370A9C0611BB
+        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2020 06:30:50 -0800 (PST)
+Received: by mail-lf1-x144.google.com with SMTP id l11so13629221lfg.0
+        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2020 06:30:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=0Bzi7zWZFpWpBLLqpvQtDsZO5++kcCplDxHRmHja9cI=;
-        b=wNs3tztSbGhGSRdYNRMXcDgK6uUS0awig2xMeSst6auDjET0p9T9rOVFLI5qvluxc7
-         ymXTxQ73aXPPtjzZ7UY3F6u3qOwFCq37sQyfbo1pq4b8/jW3S8/1ALQLgH1PHI2XAvL4
-         Zqvel5eommqICdE6Huv/wZOYMQn9bfItnwovECGzxmyge4BRt5sIU4ZAJihXSBN6uVq+
-         5jNWG3kt1MI4+RhmnpZIAup2di0tVdSpWC64hrgamWjVfCr6Fv6mlsHnlBAV3rt1Lqkn
-         F6XibwLkOHliAAGLD2v8wCWzRgT9BeF8CGtuoI1badhxWovRvT0WzqM87aWYvirxuJVo
-         RDng==
+        bh=TC3nvcCsKElennu363xgzX81b8s+QPHA8xr9Tbhrl4w=;
+        b=fInATpmn5aXIMdqqCMq1nnYMD46JaKgeio7qqkIWPAy5iyQuaCf5xpZAzST7LnZiTm
+         pT70ncVHd2lqP67P4nbKHZ9a+8Iw2NPSoqecYwa0jtOBDVCG+mIRCn0Q6jO27a7E9Jem
+         ahwGZg63orgPCV+6S6kwJOvwUqast68vh5XMgDJ2lWzJngEVaQ00QMHEZAiTifJToCsP
+         xK98/H2A+EoE7gRboeajuRtpbjG80nnEqCp0WgPh88s/1f3JHi7gPkc9WG1gTYUtugLy
+         IlUJihn1oN5NSWXah1ZJG90tgoB8u82HSIRq82qIFd/JIvwvjQvTjDA9uoxSlHc0qgOo
+         iOLg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=0Bzi7zWZFpWpBLLqpvQtDsZO5++kcCplDxHRmHja9cI=;
-        b=ncKhGhzcHckr0EQu24qxEjtrluo5Vv6Xl4tdSE0eINoT4XvHNCPDY3MmJlzpnuS+Qm
-         rTeXIJH0QPJqIQaldx9dlo5CTZMKNaUMq9pHTMILBC+nDsgtRaxwMfDajGelHZ19z/eZ
-         EBTgT1mYHEVq1ZlqQYkZb4rHZ+68BGEVJgVS06sVN87bEzPUWOcN1/OpgHtmtzQLRD5N
-         vL2TsOpwdZ5r82KTcmxpJsJcYEpPvknimxtE3AapmKcn+UkIs6+WJEUHQhFWOEx+HouQ
-         iRK1buTNNIHbBk9oEA/QwooGCA6dVkE2WmP6JsORP2S1PxpwgJ6jGUFXr02fC87lAqyB
-         Wd7w==
-X-Gm-Message-State: AOAM530O/xpOY337UmlzxTHnrltPHicTHr/YnFHJZTN+ZxCbsUxy2aN9
-        n2jAIAAOICSTWoNncFpVc+hL8Q==
-X-Google-Smtp-Source: ABdhPJzO9zBWlpmTNhxt4K9gNK6CiFckMTzOZLq2gunHPlU2EbcAdva/+hJeIHrbnLPzyuTM/Rhobg==
-X-Received: by 2002:a2e:a407:: with SMTP id p7mr2894336ljn.78.1607697043341;
-        Fri, 11 Dec 2020 06:30:43 -0800 (PST)
+        bh=TC3nvcCsKElennu363xgzX81b8s+QPHA8xr9Tbhrl4w=;
+        b=cpfw/zUY4b90KxcBSUH/wGlklpUUTJLVLdfpwLOpZm9HT6Uy5oDQUV9fdDICdJIcYR
+         pkxp3j3apo+T7WE5C4VoGP/zsfPc0QOPqe2dwEkdU2kBEVzg9/V05opovHb4GiTF/2Ve
+         lcutfrHJFjxUD4C7IR/KEtwPd0meK763pWBMXbswUeYs/DfqKABGjHz4DTVKlwmFaa2s
+         7wdHguAs0ASghx9DnPOh1sBD2HROrSMY0k3ESphYXGoJYHW2qDQ8vw00SGQQecHAp1wg
+         Fd7juGxtbUO6BEM8Qo4jPRiLoOO3TGmb3TV0N4D9SktaxEsCUTw2NryHZuq0Idh3W8hy
+         AYHg==
+X-Gm-Message-State: AOAM530BmYEhIa1ULLeirfLrc0/p92Nz28FQsyhgjdvan5swbbYLvU2j
+        1WnxwZrhaS2PT8b3HESJbm/9gA==
+X-Google-Smtp-Source: ABdhPJxMxrQ4KNASC27zblm4T7/0+PW+bq/u7+d/RQzYScHtQ48AArv3ONiHIP4xpRXDnTufQITTrA==
+X-Received: by 2002:a19:5f5d:: with SMTP id a29mr4517141lfj.212.1607697048664;
+        Fri, 11 Dec 2020 06:30:48 -0800 (PST)
 Received: from gilgamesh.semihalf.com (193-106-246-138.noc.fibertech.net.pl. [193.106.246.138])
-        by smtp.gmail.com with ESMTPSA id x26sm906491lfq.112.2020.12.11.06.30.42
+        by smtp.gmail.com with ESMTPSA id x26sm906491lfq.112.2020.12.11.06.30.47
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 11 Dec 2020 06:30:42 -0800 (PST)
+        Fri, 11 Dec 2020 06:30:48 -0800 (PST)
 From:   Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 To:     ohad@wizery.com, bjorn.andersson@linaro.org,
         mathieu.poirier@linaro.org, robh+dt@kernel.org, s-anna@ti.com,
@@ -64,9 +64,9 @@ Cc:     grzegorz.jaszczyk@linaro.org, linux-remoteproc@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, praneeth@ti.com,
         rogerq@ti.com
-Subject: [PATCH 1/5] dt-bindings: remoteproc: Add PRU consumer bindings
-Date:   Fri, 11 Dec 2020 15:29:29 +0100
-Message-Id: <20201211142933.25784-2-grzegorz.jaszczyk@linaro.org>
+Subject: [PATCH 5/5] remoteproc: pru: Configure firmware based on client setup
+Date:   Fri, 11 Dec 2020 15:29:33 +0100
+Message-Id: <20201211142933.25784-6-grzegorz.jaszczyk@linaro.org>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201211142933.25784-1-grzegorz.jaszczyk@linaro.org>
 References: <20201211142933.25784-1-grzegorz.jaszczyk@linaro.org>
@@ -76,96 +76,89 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
 
-Add a YAML binding document for PRU consumers. The binding includes
-all the common properties that can be used by different PRU consumer
-or application nodes and supported by the PRU remoteproc driver.
-These are used to configure the PRU hardware for specific user
-applications.
+Client device node property firmware-name is now used to configure
+firmware for the PRU instances. The default firmware is also
+restored once releasing the PRU resource.
 
-The application nodes themselves should define their own bindings.
-
-Co-developed-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Co-developed-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Co-developed-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
 ---
- .../bindings/remoteproc/ti,pru-consumer.yaml  | 64 +++++++++++++++++++
- 1 file changed, 64 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,pru-consumer.yaml
+ drivers/remoteproc/pru_rproc.c | 35 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-consumer.yaml b/Documentation/devicetree/bindings/remoteproc/ti,pru-consumer.yaml
-new file mode 100644
-index 000000000000..2c5c5e2b6159
---- /dev/null
-+++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-consumer.yaml
-@@ -0,0 +1,64 @@
-+# SPDX-License-Identifier: (GPL-2.0-only or BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/remoteproc/ti,pru-consumer.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+index ac13e4452a57..fed7a2051ebf 100644
+--- a/drivers/remoteproc/pru_rproc.c
++++ b/drivers/remoteproc/pru_rproc.c
+@@ -170,6 +170,23 @@ void pru_control_set_reg(struct pru_rproc *pru, unsigned int reg,
+ 	spin_unlock_irqrestore(&pru->rmw_lock, flags);
+ }
+ 
++/**
++ * pru_rproc_set_firmware() - set firmware for a pru core
++ * @rproc: the rproc instance of the PRU
++ * @fw_name: the new firmware name, or NULL if default is desired
++ *
++ * Return: 0 on success, or errno in error case.
++ */
++static int pru_rproc_set_firmware(struct rproc *rproc, const char *fw_name)
++{
++	struct pru_rproc *pru = rproc->priv;
 +
-+title: Common TI PRU Consumer Binding
++	if (!fw_name)
++		fw_name = pru->fw_name;
 +
-+maintainers:
-+  - Suman Anna <s-anna@ti.com>
++	return rproc_set_firmware(rproc, fw_name);
++}
 +
-+description: |
-+  A PRU application/consumer/user node typically uses one or more PRU device
-+  nodes to implement a PRU application/functionality. Each application/client
-+  node would need a reference to at least a PRU node, and optionally define
-+  some properties needed for hardware/firmware configuration. The below
-+  properties are a list of common properties supported by the PRU remoteproc
-+  infrastructure.
+ static struct rproc *__pru_rproc_get(struct device_node *np, int index)
+ {
+ 	struct device_node *rproc_np = NULL;
+@@ -230,6 +247,8 @@ struct rproc *pru_rproc_get(struct device_node *np, int index,
+ 	struct rproc *rproc;
+ 	struct pru_rproc *pru;
+ 	struct device *dev;
++	const char *fw_name;
++	int ret;
+ 
+ 	rproc = __pru_rproc_get(np, index);
+ 	if (IS_ERR(rproc))
+@@ -254,7 +273,21 @@ struct rproc *pru_rproc_get(struct device_node *np, int index,
+ 	if (pru_id)
+ 		*pru_id = pru->id;
+ 
++	ret = of_property_read_string_index(np, "firmware-name", index,
++					    &fw_name);
++	if (!ret) {
++		ret = pru_rproc_set_firmware(rproc, fw_name);
++		if (ret) {
++			dev_err(dev, "failed to set firmware: %d\n", ret);
++			goto err;
++		}
++	}
 +
-+  The application nodes shall define their own bindings like regular platform
-+  devices, so below are in addition to each node's bindings.
+ 	return rproc;
 +
-+properties:
-+  prus:
-+    $ref: /schemas/types.yaml#/definitions/phandle-array
-+    description: phandles to the PRU, RTU or Tx_PRU nodes used
++err:
++	pru_rproc_put(rproc);
++	return ERR_PTR(ret);
+ }
+ EXPORT_SYMBOL_GPL(pru_rproc_get);
+ 
+@@ -276,6 +309,8 @@ void pru_rproc_put(struct rproc *rproc)
+ 	if (!pru->client_np)
+ 		return;
+ 
++	pru_rproc_set_firmware(rproc, NULL);
 +
-+  firmware-name:
-+    $ref: /schemas/types.yaml#/definitions/string-array
-+    description: |
-+      firmwares for the PRU cores, the default firmware for the core from
-+      the PRU node will be used if not provided. The firmware names should
-+      correspond to the PRU cores listed in the 'prus' property
-+
-+  ti,pruss-gp-mux-sel:
-+    $ref: /schemas/types.yaml#/definitions/uint32-array
-+    enum: [0, 1, 2, 3, 4]
-+    description: |
-+      array of values for the GP_MUX_SEL under PRUSS_GPCFG register for a PRU.
-+      This selects the internal muxing scheme for the PRU instance. Values
-+      should correspond to the PRU cores listed in the 'prus' property. The
-+      GP_MUX_SEL setting is a per-slice setting (one setting for PRU0, RTU0,
-+      and Tx_PRU0 on K3 SoCs). Use the same value for all cores within the
-+      same slice in the associative array. If the array size is smaller than
-+      the size of 'prus' property, the default out-of-reset value (0) for the
-+      PRU core is used.
-+
-+required:
-+  - prus
-+
-+dependencies:
-+  firmware-name: [ prus ]
-+  ti,pruss-gp-mux-sel: [ prus ]
-+
-+additionalProperties: true
-+
-+examples:
-+  - |
-+    /* PRU application node example */
-+    pru-app {
-+        prus = <&pru0>, <&pru1>;
-+        firmware-name = "pruss-app-fw0", "pruss-app-fw1";
-+        ti,pruss-gp-mux-sel = <2>, <1>;
-+    };
+ 	mutex_lock(&pru->lock);
+ 	pru->client_np = NULL;
+ 	rproc->deny_sysfs_ops = false;
 -- 
 2.29.0
 
