@@ -2,34 +2,34 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 661D5C4361B
-	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 15:56:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 532EAC2BB9A
+	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 16:05:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24C4022525
-	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 15:56:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C98922582
+	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 16:05:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725871AbgLNP4l (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 14 Dec 2020 10:56:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37474 "EHLO mail.kernel.org"
+        id S2439515AbgLNQFX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 14 Dec 2020 11:05:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42794 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731534AbgLNP4e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 14 Dec 2020 10:56:34 -0500
-Date:   Mon, 14 Dec 2020 16:55:51 +0100
+        id S2439358AbgLNQFQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 14 Dec 2020 11:05:16 -0500
+Date:   Mon, 14 Dec 2020 17:04:32 +0100
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607961353;
-        bh=7vCSGPuVmcJcIU053wxeeFt/OHphBY/y22MGgCi5USA=;
+        s=k20201202; t=1607961875;
+        bh=usCttM9UWOaZRoHso+h7e3djMyaXbAiPURu3AgJuAOY=;
         h=From:To:Cc:Subject:References:In-Reply-To:From;
-        b=d6sNZcyhT7+iZuJ3dO0vhKEuz84fqSaZkvwShFZt78TvNvlCx42L0EK2VjUKhyAA4
-         JXQFBUuMrOdbTGXk9PVU+A/OqqHjOAd9v4e05XaoX9oHn6orslR9aBhZCm3wtTlznw
-         z6P6HPErBIHOcMkkHPO7kMw5NiAhhQa0SSHEx6hOYO5Aogmr4S6u9jwBJKvGBh7ObY
-         T7rKUDTZnNdse0t/8UMkBRfV5m1VNkVtv6bymX5Fv0PhrQZvv1rzCi/plqzx5nSa11
-         mNfNDdbtlwXPgJ7UoNz+mSQYuFmkCZ0j1gxzjyjdJ3moaSBHsFcxNWWZl8q4quTXBl
-         VuBDNDTRQCQnw==
+        b=HkYyWMZfHh+YHan6t+4PlzTFUGYEeD6Mo3f+KLa0kzSS8uMiQ8YoqBL0HMQsGlDYG
+         mwtwuepPEmoYGjSVxHr/RX+raouCohj8UM0UnB0XH3vogQPkmzcVMcNL+Qzn2XPJ8a
+         8sjkVEbEqAhkysk8s9lgJY72J/3tx3rtAFeXsYE7rzzxDiXDqkWPn0p/CRXxXis/gy
+         tT9efLdjtV65UgqD7+EA1Se+jM5pP/4vVOFgMQ5a1ztfU/9rzdPM8G/Pds7RZRCfW0
+         8kkYsW6g6YApDYMS2V8sGfuFkEzx+iWZUO/n5R0dcScSnzCfm87Z24Hyz93mBWTzAC
+         eC6tiUVFKaNEw==
 From:   Sebastian Reichel <sre@kernel.org>
 To:     Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -37,86 +37,267 @@ Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
         Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         hns@goldelico.com, Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH v5 16/29] drm/panel: panel-dsi-cm: remove extra 'if'
-Message-ID: <20201214155551.k3jpvgjuxn2lr2bk@earth.universe>
+Subject: Re: [PATCH v5 17/29] drm/panel: panel-dsi-cm: add panel database to
+ driver
+Message-ID: <20201214160432.b3exd37yaj74jirg@earth.universe>
 References: <20201208122855.254819-1-tomi.valkeinen@ti.com>
- <20201208122855.254819-17-tomi.valkeinen@ti.com>
+ <20201208122855.254819-18-tomi.valkeinen@ti.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ggtzqcqnf3xbhkml"
+        protocol="application/pgp-signature"; boundary="tnqugli3o2psx3qb"
 Content-Disposition: inline
-In-Reply-To: <20201208122855.254819-17-tomi.valkeinen@ti.com>
+In-Reply-To: <20201208122855.254819-18-tomi.valkeinen@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 
---ggtzqcqnf3xbhkml
+--tnqugli3o2psx3qb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Tue, Dec 08, 2020 at 02:28:42PM +0200, Tomi Valkeinen wrote:
-> We have a useless 'if' in the dsicm_bl_update_status(), a left over from
-> the conversion to DRM model. Drop the if.
+On Tue, Dec 08, 2020 at 02:28:43PM +0200, Tomi Valkeinen wrote:
+> Add a panel database to the driver instead of reading propertes from DT
+> data. This is similar to panel-simple, and I believe it's more future
+> safe way to handle the panels.
 >=20
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 > ---
+>  drivers/gpu/drm/panel/panel-dsi-cm.c | 107 +++++++++++++++++----------
+>  1 file changed, 69 insertions(+), 38 deletions(-)
+>=20
+> diff --git a/drivers/gpu/drm/panel/panel-dsi-cm.c b/drivers/gpu/drm/panel=
+/panel-dsi-cm.c
+> index fa564aad7f25..3fb5b2856283 100644
+> --- a/drivers/gpu/drm/panel/panel-dsi-cm.c
+> +++ b/drivers/gpu/drm/panel/panel-dsi-cm.c
+> @@ -21,10 +21,7 @@
+>  #include <drm/drm_modes.h>
+>  #include <drm/drm_panel.h>
+> =20
+> -#include <video/display_timing.h>
+>  #include <video/mipi_display.h>
+> -#include <video/of_display_timing.h>
+> -#include <video/videomode.h>
+> =20
+>  #define DCS_GET_ID1		0xda
+>  #define DCS_GET_ID2		0xdb
+> @@ -32,6 +29,18 @@
+> =20
+>  #define DCS_REGULATOR_SUPPLY_NUM 2
+> =20
+> +static const struct of_device_id dsicm_of_match[];
+> +
+> +struct dsic_panel_data {
+> +	u32 xres;
+> +	u32 yres;
+> +	u32 refresh;
+> +	u32 width_mm;
+> +	u32 height_mm;
+> +	u32 max_hs_rate;
+> +	u32 max_lp_rate;
+> +};
+> +
+>  struct panel_drv_data {
+>  	struct mipi_dsi_device *dsi;
+>  	struct drm_panel panel;
+> @@ -47,16 +56,14 @@ struct panel_drv_data {
+>  					 */
+>  	unsigned long	hw_guard_wait;	/* max guard time in jiffies */
+> =20
+> -	/* panel HW configuration from DT or platform data */
+> +	const struct dsic_panel_data *panel_data;
+> +
+>  	struct gpio_desc *reset_gpio;
+> =20
+>  	struct regulator_bulk_data supplies[DCS_REGULATOR_SUPPLY_NUM];
+> =20
+>  	bool use_dsi_backlight;
+> =20
+> -	int width_mm;
+> -	int height_mm;
+> -
+>  	/* runtime variables */
+>  	bool enabled;
+> =20
+> @@ -450,11 +457,8 @@ static int dsicm_get_modes(struct drm_panel *panel,
+>  		return -ENOMEM;
+>  	}
+> =20
+> -	drm_mode_set_name(mode);
+> -	mode->type =3D DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
+> -
+> -	connector->display_info.width_mm =3D ddata->width_mm;
+> -	connector->display_info.height_mm =3D ddata->height_mm;
+> +	connector->display_info.width_mm =3D ddata->panel_data->width_mm;
+> +	connector->display_info.height_mm =3D ddata->panel_data->height_mm;
+> =20
+>  	drm_mode_probed_add(connector, mode);
+> =20
+> @@ -471,15 +475,10 @@ static const struct drm_panel_funcs dsicm_panel_fun=
+cs =3D {
+> =20
+>  static int dsicm_probe_of(struct mipi_dsi_device *dsi)
+>  {
+> -	struct device_node *node =3D dsi->dev.of_node;
+>  	struct backlight_device *backlight;
+>  	struct panel_drv_data *ddata =3D mipi_dsi_get_drvdata(dsi);
+> -	struct display_timing timing;
+> -	struct videomode vm =3D {
+> -		.hactive =3D 864,
+> -		.vactive =3D 480,
+> -	};
+>  	int err;
+> +	struct drm_display_mode *mode =3D &ddata->mode;
+> =20
+>  	ddata->reset_gpio =3D devm_gpiod_get(&dsi->dev, "reset", GPIOD_OUT_LOW);
+>  	if (IS_ERR(ddata->reset_gpio)) {
+> @@ -488,23 +487,16 @@ static int dsicm_probe_of(struct mipi_dsi_device *d=
+si)
+>  		return err;
+>  	}
+> =20
+> -	err =3D of_get_display_timing(node, "panel-timing", &timing);
+> -	if (!err) {
+> -		videomode_from_timing(&timing, &vm);
+> -	} else {
+> -		dev_warn(&dsi->dev,
+> -			 "failed to get video timing, using defaults\n");
+> -	}
+> -
+> -	if (!vm.pixelclock)
+> -		vm.pixelclock =3D vm.hactive * vm.vactive * 60;
+> -	drm_display_mode_from_videomode(&vm, &ddata->mode);
+> -
+> -	ddata->width_mm =3D 0;
+> -	of_property_read_u32(node, "width-mm", &ddata->width_mm);
+> -
+> -	ddata->height_mm =3D 0;
+> -	of_property_read_u32(node, "height-mm", &ddata->height_mm);
+> +	mode->hdisplay =3D mode->hsync_start =3D mode->hsync_end =3D mode->htot=
+al =3D
+> +		ddata->panel_data->xres;
+> +	mode->vdisplay =3D mode->vsync_start =3D mode->vsync_end =3D mode->vtot=
+al =3D
+> +		ddata->panel_data->yres;
+> +	mode->clock =3D ddata->panel_data->xres * ddata->panel_data->yres *
+> +		ddata->panel_data->refresh / 1000;
+> +	mode->width_mm =3D ddata->panel_data->width_mm;
+> +	mode->height_mm =3D ddata->panel_data->height_mm;
+> +	mode->type =3D DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
+> +	drm_mode_set_name(mode);
+> =20
+>  	ddata->supplies[0].supply =3D "vpnl";
+>  	ddata->supplies[1].supply =3D "vddi";
+> @@ -531,6 +523,7 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
+>  	struct panel_drv_data *ddata;
+>  	struct backlight_device *bldev =3D NULL;
+>  	struct device *dev =3D &dsi->dev;
+> +	const struct of_device_id *id;
+>  	int r;
+> =20
+>  	dev_dbg(dev, "probe\n");
+> @@ -542,6 +535,12 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
+>  	mipi_dsi_set_drvdata(dsi, ddata);
+>  	ddata->dsi =3D dsi;
+> =20
+> +	id =3D of_match_node(dsicm_of_match, dev->of_node);
+> +	if (!id)
+> +		return -ENODEV;
+> +
+> +	ddata->panel_data =3D id->data;
+
+ddata->panel_data =3D of_device_get_match_data(dev);
+if (!ddata->panel_data)
+    return -ENODEV;
+
+Otherwise looks good to me:
 
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
 -- Sebastian
 
->  drivers/gpu/drm/panel/panel-dsi-cm.c | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/gpu/drm/panel/panel-dsi-cm.c b/drivers/gpu/drm/panel=
-/panel-dsi-cm.c
-> index 556f9a2c5c0c..fa564aad7f25 100644
-> --- a/drivers/gpu/drm/panel/panel-dsi-cm.c
-> +++ b/drivers/gpu/drm/panel/panel-dsi-cm.c
-> @@ -202,11 +202,9 @@ static int dsicm_bl_update_status(struct backlight_d=
-evice *dev)
+>  	r =3D dsicm_probe_of(dsi);
+>  	if (r)
+>  		return r;
+> @@ -578,8 +577,8 @@ static int dsicm_probe(struct mipi_dsi_device *dsi)
+>  	dsi->format =3D MIPI_DSI_FMT_RGB888;
+>  	dsi->mode_flags =3D MIPI_DSI_CLOCK_NON_CONTINUOUS |
+>  			  MIPI_DSI_MODE_EOT_PACKET;
+> -	dsi->hs_rate =3D 300000000;
+> -	dsi->lp_rate =3D 10000000;
+> +	dsi->hs_rate =3D ddata->panel_data->max_hs_rate;
+> +	dsi->lp_rate =3D ddata->panel_data->max_lp_rate;
 > =20
->  	mutex_lock(&ddata->lock);
+>  	drm_panel_add(&ddata->panel);
 > =20
-> -	if (ddata->enabled) {
-> -		if (!r)
-> -			r =3D dsicm_dcs_write_1(
-> -				ddata, MIPI_DCS_SET_DISPLAY_BRIGHTNESS, level);
-> -	}
-> +	if (ddata->enabled)
-> +		r =3D dsicm_dcs_write_1(ddata, MIPI_DCS_SET_DISPLAY_BRIGHTNESS,
-> +				      level);
+> @@ -617,8 +616,40 @@ static int dsicm_remove(struct mipi_dsi_device *dsi)
+>  	return 0;
+>  }
 > =20
->  	mutex_unlock(&ddata->lock);
+> +static const struct dsic_panel_data taal_data =3D {
+> +	.xres =3D 864,
+> +	.yres =3D 480,
+> +	.refresh =3D 60,
+> +	.width_mm =3D 0,
+> +	.height_mm =3D 0,
+> +	.max_hs_rate =3D 300000000,
+> +	.max_lp_rate =3D 10000000,
+> +};
+> +
+> +static const struct dsic_panel_data himalaya_data =3D {
+> +	.xres =3D 480,
+> +	.yres =3D 864,
+> +	.refresh =3D 60,
+> +	.width_mm =3D 49,
+> +	.height_mm =3D 88,
+> +	.max_hs_rate =3D 300000000,
+> +	.max_lp_rate =3D 10000000,
+> +};
+> +
+> +static const struct dsic_panel_data droid4_data =3D {
+> +	.xres =3D 540,
+> +	.yres =3D 960,
+> +	.refresh =3D 60,
+> +	.width_mm =3D 50,
+> +	.height_mm =3D 89,
+> +	.max_hs_rate =3D 300000000,
+> +	.max_lp_rate =3D 10000000,
+> +};
+> +
+>  static const struct of_device_id dsicm_of_match[] =3D {
+> -	{ .compatible =3D "panel-dsi-cm", },
+> +	{ .compatible =3D "tpo,taal", .data =3D &taal_data },
+> +	{ .compatible =3D "nokia,himalaya", &himalaya_data },
+> +	{ .compatible =3D "motorola,droid4-panel", &droid4_data },
+>  	{},
+>  };
 > =20
 > --=20
 > Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 > Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 >=20
 
---ggtzqcqnf3xbhkml
+--tnqugli3o2psx3qb
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl/XiwYACgkQ2O7X88g7
-+prvZRAAj8/YuLu7eqqReaHRl8SdWzUXVVAgO+vkMBT8MPnJkEuCeE5NbruHWLqH
-8JzJna9aDdEZxVCS0PgPVoJK1SgVsomjfWjReDJaJ5B2rHprG1HcK+5sCClxlOWx
-suGTBOqvaeKJkUks/u6ljc6PjZRnpAJqHtbhQDpk3W+rxvmP8fojyDuAO1O8Buzs
-amxH4/TfPHBXa583/RHoT3sdq0MJYdAEM/uOYU11F8Wijy7JtfOP2jHJBT2SHqqR
-MVWuxV5Vl7A8uEHOiSS5pHGMTCM0yXhdJCgauYjECHvLYUA8e5O+4AizuXxwNAGO
-y02FK7Mxzr/n7LQCWjXkSW18CRWLw4nCld584vN+1HWmemIwg9sc0s6l8dsOsGVc
-FE2zCg99Nk/7X0Vsp4nXxlL8tzXzF71zPsGXLJZceJAZJIdHp6X0emscpm0oVKW7
-oCk/60+8SYGhrAtGHGnL1p1dCkN/KoPryEaAFY2AhZVfKSWnyVrLuhBo/ytwM0DO
-/SsxRbdEQNFzLVA9KgX2Ov+Nf/oIAEco59PuJ7BG2HhjNZdfVINI8wgJCmdDAKLh
-hPq7jDrHDhXWH1nNNNGD2GYX8U59B0hblGv2+/GoFGDClCq86HY45xk3CaiMP3QN
-TvsBejgpNOAJRL7vMW2CzVyM/kY+f9IADNZpxKgalhst1PhOvRA=
-=XSBz
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl/XjRAACgkQ2O7X88g7
++precg/+PyrY6iGUPm/NafnhhLU1nHtm0UcU08O40pf4wg0hn+SOcYG1+Cy00NZu
+Py4267GrGRaaBntqJQKzuBkEltLjaN0KEUPUt6+EUI0kdSGcFmbu14aHI/VabntK
+9/LOICoehYkw1ZzaCxVN+l/k1metAvOgU1zl+rKhEab4NtWwUEpj0goprPNTCIX0
++Wx4JXXrNDahlNgDvtN9Qu7LkqcEfuIzF8XrxJGt4GEDI08qID1gJFGP8otVJg6m
+9hlv5o4FlLJo3+C477U4YKMudi7PjS0nvU/YQbNCw7RyE8yuFedFyGpj0OgTzApm
+MTPXfzL4+1wiK6lKt9DUlLIJtxscQUGJaHaQ/Q4QNOqOFk5mk4X9G6eEXNr0iS0d
+k9kTt4tUKozaJ1G52GeB2XLssyhs06VXYcF33fErEr+ONBDkg8DiLLyMad9TXyKR
+HgF14gLIJOWrWYXvmlqfJ46wGm+9RNe5JxcjWn3W1JyYeu4ppiuN2yFPaU/r/BuJ
+hn0Q34qol80P3hozCsgkLk1RwsjAAFSDuR0obk98eNMR/EAAZcZ0Oz0aIRZtDva7
+MdVEG6bx2AYBvo7QQIvlZVI2A2GY6GRX7+AdV0mCMvu9FrZLnJo9terXbt7Zph5s
+s2PG6YpDfULFEBUMhT0DiNMpq/wTTjah4Ozfx+dINsseri93wP8=
+=Sz88
 -----END PGP SIGNATURE-----
 
---ggtzqcqnf3xbhkml--
+--tnqugli3o2psx3qb--
