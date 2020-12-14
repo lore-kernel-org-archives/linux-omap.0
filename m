@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48A80C4361B
-	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 12:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78A65C1B0E3
+	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 12:55:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 006D920728
-	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 12:54:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 490A62074B
+	for <linux-omap@archiver.kernel.org>; Mon, 14 Dec 2020 12:55:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438633AbgLNMyb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 14 Dec 2020 07:54:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52972 "EHLO mail.kernel.org"
+        id S1726886AbgLNMzB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 14 Dec 2020 07:55:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2438578AbgLNMyb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 14 Dec 2020 07:54:31 -0500
-Date:   Mon, 14 Dec 2020 13:53:48 +0100
+        id S2438578AbgLNMyy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 14 Dec 2020 07:54:54 -0500
+Date:   Mon, 14 Dec 2020 13:54:10 +0100
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607950430;
-        bh=JNK0fbQD0zMEs61k9XuSbktHsKG77yg75wDQGXVa3Y8=;
+        s=k20201202; t=1607950452;
+        bh=3Q0n780tTfMGfm83YEAeDTbfuEa1jbztZJPxtA1IcZM=;
         h=From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Oe+hPif+kyba0z+m0HGTUru5WUp4byjFu2hb3qe6AO7sdCge+B35yARlGE2x5zF4F
-         T+UVBvwe+vduqEYQJiAYjDMbPA8EL1orUTtw0j6PvI6++MiepIq/ACUalrOpANc0N6
-         MSJdQkHvQCQTE3W60sw26WPGjPp98bwY4R5L4iUYxyzN1eSARH2hMJ715T0d0To/uI
-         0ECbzAdb+GuqvXvFhphKcRvRgGjlM/O+kPfSJUUin6+2k4wBaqbYdpNJt4s5NsFAJs
-         aGg26eNP3mLMfyNblbLRt0TjEAj1sMC672nJKYafBtTDCABgMDZBaqt6FsI6jvICQ2
-         Q667c4zAAmLig==
+        b=pjr7kCzwNY82Pl0QoPtavpc43RmqJm/HoziHHCw4HtJDmu5zj3Nd4Hs0D8G/rQ9BC
+         86cSNL9DjxfxZS3OhT6XG9y/EG9kxN2tRQUxuNwLb8if5i33wG/lewxKJPvQEIfUeB
+         UjCUCDpPVl4McqqG7VKaz+JxAz7wzKvFy5oLVLxyXoMc2GeBkaKudnw/uGhypkqWO7
+         Pxy2v45uenSB8KdeTNyTKPwWezxWaKYsgDfl3j9hq1eauD7e/mPl5tiAEFulUeUU+F
+         Vr8vnWSqcRPVgxvy8lxQrLk4nIGotpXCrtziWBxnpviewukrICvOC2ZazsP/XNfsyp
+         hNxeFLhou2tdg==
 From:   Sebastian Reichel <sre@kernel.org>
 To:     Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -37,163 +37,393 @@ Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
         Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
         hns@goldelico.com
-Subject: Re: [PATCH v4 52/80] drm/omap: drop unused owner field
-Message-ID: <20201214125348.j76qcwqzqfdyhz5u@earth.universe>
+Subject: Re: [PATCH v4 54/80] drm/omap: remove dss_mgr_ops
+Message-ID: <20201214125410.igovz6ywmf4wensg@earth.universe>
 References: <20201124124538.660710-1-tomi.valkeinen@ti.com>
- <20201124124538.660710-53-tomi.valkeinen@ti.com>
+ <20201124124538.660710-55-tomi.valkeinen@ti.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="xqekzckk6mkpvmci"
+        protocol="application/pgp-signature"; boundary="zcundcsg4fvln232"
 Content-Disposition: inline
-In-Reply-To: <20201124124538.660710-53-tomi.valkeinen@ti.com>
+In-Reply-To: <20201124124538.660710-55-tomi.valkeinen@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 
---xqekzckk6mkpvmci
+--zcundcsg4fvln232
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Nov 24, 2020 at 02:45:10PM +0200, Tomi Valkeinen wrote:
-> dssdev->owner is set, but never used. We can drop the field.
+On Tue, Nov 24, 2020 at 02:45:12PM +0200, Tomi Valkeinen wrote:
+> dss_mgr_ops was needed with the multi-module architecture, but is no
+> longer needed. We can thus remove it and use direct calls.
 >=20
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
 
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
 -- Sebastian
 
->  drivers/gpu/drm/omapdrm/dss/dpi.c     | 1 -
->  drivers/gpu/drm/omapdrm/dss/dsi.c     | 1 -
->  drivers/gpu/drm/omapdrm/dss/hdmi4.c   | 1 -
->  drivers/gpu/drm/omapdrm/dss/hdmi5.c   | 1 -
->  drivers/gpu/drm/omapdrm/dss/omapdss.h | 2 --
->  drivers/gpu/drm/omapdrm/dss/sdi.c     | 1 -
->  drivers/gpu/drm/omapdrm/dss/venc.c    | 1 -
->  7 files changed, 8 deletions(-)
+>  drivers/gpu/drm/omapdrm/dss/dss.h     |  1 -
+>  drivers/gpu/drm/omapdrm/dss/omapdss.h | 42 +++++++++++----------------
+>  drivers/gpu/drm/omapdrm/dss/output.c  | 33 +++++----------------
+>  drivers/gpu/drm/omapdrm/omap_crtc.c   | 38 +++++-------------------
+>  drivers/gpu/drm/omapdrm/omap_crtc.h   |  2 --
+>  drivers/gpu/drm/omapdrm/omap_drv.c    |  4 +--
+>  6 files changed, 33 insertions(+), 87 deletions(-)
 >=20
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dpi.c b/drivers/gpu/drm/omapdrm/=
-dss/dpi.c
-> index 1d2992daef40..030f997eccd0 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dpi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dpi.c
-> @@ -641,7 +641,6 @@ static int dpi_init_output_port(struct dpi_data *dpi,=
- struct device_node *port)
->  	out->type =3D OMAP_DISPLAY_TYPE_DPI;
->  	out->dispc_channel =3D dpi_get_channel(dpi);
->  	out->of_port =3D port_num;
-> -	out->owner =3D THIS_MODULE;
+> diff --git a/drivers/gpu/drm/omapdrm/dss/dss.h b/drivers/gpu/drm/omapdrm/=
+dss/dss.h
+> index 96f702314c8c..a547527bb2f3 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/dss.h
+> +++ b/drivers/gpu/drm/omapdrm/dss/dss.h
+> @@ -257,7 +257,6 @@ struct dss_device {
+>  	struct dss_pll	*video2_pll;
 > =20
->  	r =3D omapdss_device_init_output(out, &dpi->bridge);
->  	if (r < 0) {
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/=
-dss/dsi.c
-> index 1ea490e4fc9d..c3592c6db977 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> @@ -5442,7 +5442,6 @@ static int dsi_init_output(struct dsi_data *dsi)
->  	out->name =3D dsi->module_id =3D=3D 0 ? "dsi.0" : "dsi.1";
->  	out->dispc_channel =3D dsi_get_channel(dsi);
->  	out->dsi_ops =3D &dsi_ops;
-> -	out->owner =3D THIS_MODULE;
->  	out->of_port =3D 0;
->  	out->bus_flags =3D DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE
->  		       | DRM_BUS_FLAG_DE_HIGH
-> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdr=
-m/dss/hdmi4.c
-> index a14fbf06cb30..13701571d59b 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> @@ -707,7 +707,6 @@ static int hdmi4_init_output(struct omap_hdmi *hdmi)
->  	out->type =3D OMAP_DISPLAY_TYPE_HDMI;
->  	out->name =3D "hdmi.0";
->  	out->dispc_channel =3D OMAP_DSS_CHANNEL_DIGIT;
-> -	out->owner =3D THIS_MODULE;
->  	out->of_port =3D 0;
+>  	struct dispc_device *dispc;
+> -	const struct dss_mgr_ops *mgr_ops;
+>  	struct omap_drm_private *mgr_ops_priv;
+>  };
 > =20
->  	r =3D omapdss_device_init_output(out, &hdmi->bridge);
-> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi5.c b/drivers/gpu/drm/omapdr=
-m/dss/hdmi5.c
-> index b738d9750686..5d627caf90f2 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/hdmi5.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi5.c
-> @@ -681,7 +681,6 @@ static int hdmi5_init_output(struct omap_hdmi *hdmi)
->  	out->type =3D OMAP_DISPLAY_TYPE_HDMI;
->  	out->name =3D "hdmi.0";
->  	out->dispc_channel =3D OMAP_DSS_CHANNEL_DIGIT;
-> -	out->owner =3D THIS_MODULE;
->  	out->of_port =3D 0;
-> =20
->  	r =3D omapdss_device_init_output(out, &hdmi->bridge);
 > diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omap=
 drm/dss/omapdss.h
-> index 90e41c635e45..4442e49ffc5c 100644
+> index fba5f05e5e48..9df322ca467d 100644
 > --- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
 > +++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-> @@ -263,8 +263,6 @@ struct omapdss_dsi_ops {
->  struct omap_dss_device {
->  	struct device *dev;
+> @@ -338,31 +338,23 @@ enum dss_writeback_channel {
+>  	DSS_WB_LCD3_MGR =3D	7,
+>  };
 > =20
-> -	struct module *owner;
+> -struct dss_mgr_ops {
+> -	void (*start_update)(struct omap_drm_private *priv,
+> -			     enum omap_channel channel);
+> -	int (*enable)(struct omap_drm_private *priv,
+> -		      enum omap_channel channel);
+> -	void (*disable)(struct omap_drm_private *priv,
+> -			enum omap_channel channel);
+> -	void (*set_timings)(struct omap_drm_private *priv,
+> -			    enum omap_channel channel,
+> -			    const struct videomode *vm);
+> -	void (*set_lcd_config)(struct omap_drm_private *priv,
+> -			       enum omap_channel channel,
+> -			       const struct dss_lcd_mgr_config *config);
+> -	int (*register_framedone_handler)(struct omap_drm_private *priv,
+> -			enum omap_channel channel,
+> -			void (*handler)(void *), void *data);
+> -	void (*unregister_framedone_handler)(struct omap_drm_private *priv,
+> -			enum omap_channel channel,
+> -			void (*handler)(void *), void *data);
+> -};
 > -
->  	struct dss_device *dss;
->  	struct drm_bridge *bridge;
->  	struct drm_bridge *next_bridge;
-> diff --git a/drivers/gpu/drm/omapdrm/dss/sdi.c b/drivers/gpu/drm/omapdrm/=
-dss/sdi.c
-> index 033fd30074b0..35827b4487bd 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/sdi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/sdi.c
-> @@ -314,7 +314,6 @@ static int sdi_init_output(struct sdi_device *sdi)
->  	out->dispc_channel =3D OMAP_DSS_CHANNEL_LCD;
->  	/* We have SDI only on OMAP3, where it's on port 1 */
->  	out->of_port =3D 1;
-> -	out->owner =3D THIS_MODULE;
->  	out->bus_flags =3D DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE	/* 15.5.9.1.2 */
->  		       | DRM_BUS_FLAG_SYNC_DRIVE_POSEDGE;
+> -int dss_install_mgr_ops(struct dss_device *dss,
+> -			const struct dss_mgr_ops *mgr_ops,
+> -			struct omap_drm_private *priv);
+> -void dss_uninstall_mgr_ops(struct dss_device *dss);
+> +void omap_crtc_dss_start_update(struct omap_drm_private *priv,
+> +				       enum omap_channel channel);
+> +void omap_crtc_set_enabled(struct drm_crtc *crtc, bool enable);
+> +int omap_crtc_dss_enable(struct omap_drm_private *priv, enum omap_channe=
+l channel);
+> +void omap_crtc_dss_disable(struct omap_drm_private *priv, enum omap_chan=
+nel channel);
+> +void omap_crtc_dss_set_timings(struct omap_drm_private *priv,
+> +		enum omap_channel channel,
+> +		const struct videomode *vm);
+> +void omap_crtc_dss_set_lcd_config(struct omap_drm_private *priv,
+> +		enum omap_channel channel,
+> +		const struct dss_lcd_mgr_config *config);
+> +int omap_crtc_dss_register_framedone(
+> +		struct omap_drm_private *priv, enum omap_channel channel,
+> +		void (*handler)(void *), void *data);
+> +void omap_crtc_dss_unregister_framedone(
+> +		struct omap_drm_private *priv, enum omap_channel channel,
+> +		void (*handler)(void *), void *data);
 > =20
-> diff --git a/drivers/gpu/drm/omapdrm/dss/venc.c b/drivers/gpu/drm/omapdrm=
-/dss/venc.c
-> index 6e418a0f7572..8ecffe5bbd29 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/venc.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/venc.c
-> @@ -730,7 +730,6 @@ static int venc_init_output(struct venc_device *venc)
->  	out->type =3D OMAP_DISPLAY_TYPE_VENC;
->  	out->name =3D "venc.0";
->  	out->dispc_channel =3D OMAP_DSS_CHANNEL_DIGIT;
-> -	out->owner =3D THIS_MODULE;
->  	out->of_port =3D 0;
+>  void dss_mgr_set_timings(struct omap_dss_device *dssdev,
+>  		const struct videomode *vm);
+> diff --git a/drivers/gpu/drm/omapdrm/dss/output.c b/drivers/gpu/drm/omapd=
+rm/dss/output.c
+> index 7a14d2b5b2f7..2121c947947b 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/output.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/output.c
+> @@ -81,54 +81,35 @@ void omapdss_device_cleanup_output(struct omap_dss_de=
+vice *out)
+>  					out->next_bridge : out->bridge);
+>  }
 > =20
->  	r =3D omapdss_device_init_output(out, &venc->bridge);
+> -int dss_install_mgr_ops(struct dss_device *dss,
+> -			const struct dss_mgr_ops *mgr_ops,
+> -			struct omap_drm_private *priv)
+> -{
+> -	if (dss->mgr_ops)
+> -		return -EBUSY;
+> -
+> -	dss->mgr_ops =3D mgr_ops;
+> -	dss->mgr_ops_priv =3D priv;
+> -
+> -	return 0;
+> -}
+> -
+> -void dss_uninstall_mgr_ops(struct dss_device *dss)
+> -{
+> -	dss->mgr_ops =3D NULL;
+> -	dss->mgr_ops_priv =3D NULL;
+> -}
+> -
+>  void dss_mgr_set_timings(struct omap_dss_device *dssdev,
+>  			 const struct videomode *vm)
+>  {
+> -	dssdev->dss->mgr_ops->set_timings(dssdev->dss->mgr_ops_priv,
+> +	omap_crtc_dss_set_timings(dssdev->dss->mgr_ops_priv,
+>  					  dssdev->dispc_channel, vm);
+>  }
+> =20
+>  void dss_mgr_set_lcd_config(struct omap_dss_device *dssdev,
+>  		const struct dss_lcd_mgr_config *config)
+>  {
+> -	dssdev->dss->mgr_ops->set_lcd_config(dssdev->dss->mgr_ops_priv,
+> +	omap_crtc_dss_set_lcd_config(dssdev->dss->mgr_ops_priv,
+>  					     dssdev->dispc_channel, config);
+>  }
+> =20
+>  int dss_mgr_enable(struct omap_dss_device *dssdev)
+>  {
+> -	return dssdev->dss->mgr_ops->enable(dssdev->dss->mgr_ops_priv,
+> +	return omap_crtc_dss_enable(dssdev->dss->mgr_ops_priv,
+>  					    dssdev->dispc_channel);
+>  }
+> =20
+>  void dss_mgr_disable(struct omap_dss_device *dssdev)
+>  {
+> -	dssdev->dss->mgr_ops->disable(dssdev->dss->mgr_ops_priv,
+> +	omap_crtc_dss_disable(dssdev->dss->mgr_ops_priv,
+>  				      dssdev->dispc_channel);
+>  }
+> =20
+>  void dss_mgr_start_update(struct omap_dss_device *dssdev)
+>  {
+> -	dssdev->dss->mgr_ops->start_update(dssdev->dss->mgr_ops_priv,
+> +	omap_crtc_dss_start_update(dssdev->dss->mgr_ops_priv,
+>  					   dssdev->dispc_channel);
+>  }
+> =20
+> @@ -137,7 +118,7 @@ int dss_mgr_register_framedone_handler(struct omap_ds=
+s_device *dssdev,
+>  {
+>  	struct dss_device *dss =3D dssdev->dss;
+> =20
+> -	return dss->mgr_ops->register_framedone_handler(dss->mgr_ops_priv,
+> +	return omap_crtc_dss_register_framedone(dss->mgr_ops_priv,
+>  							dssdev->dispc_channel,
+>  							handler, data);
+>  }
+> @@ -147,7 +128,7 @@ void dss_mgr_unregister_framedone_handler(struct omap=
+_dss_device *dssdev,
+>  {
+>  	struct dss_device *dss =3D dssdev->dss;
+> =20
+> -	dss->mgr_ops->unregister_framedone_handler(dss->mgr_ops_priv,
+> +	omap_crtc_dss_unregister_framedone(dss->mgr_ops_priv,
+>  						   dssdev->dispc_channel,
+>  						   handler, data);
+>  }
+> diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdr=
+m/omap_crtc.c
+> index 0bf5cef579b5..e3259338afb9 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_crtc.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+> @@ -100,14 +100,14 @@ int omap_crtc_wait_pending(struct drm_crtc *crtc)
+>   * the upstream part of the video pipe.
+>   */
+> =20
+> -static void omap_crtc_dss_start_update(struct omap_drm_private *priv,
+> +void omap_crtc_dss_start_update(struct omap_drm_private *priv,
+>  				       enum omap_channel channel)
+>  {
+>  	dispc_mgr_enable(priv->dispc, channel, true);
+>  }
+> =20
+>  /* Called only from the encoder enable/disable and suspend/resume handle=
+rs. */
+> -static void omap_crtc_set_enabled(struct drm_crtc *crtc, bool enable)
+> +void omap_crtc_set_enabled(struct drm_crtc *crtc, bool enable)
+>  {
+>  	struct omap_crtc_state *omap_state =3D to_omap_crtc_state(crtc->state);
+>  	struct drm_device *dev =3D crtc->dev;
+> @@ -180,8 +180,7 @@ static void omap_crtc_set_enabled(struct drm_crtc *cr=
+tc, bool enable)
+>  }
+> =20
+> =20
+> -static int omap_crtc_dss_enable(struct omap_drm_private *priv,
+> -				enum omap_channel channel)
+> +int omap_crtc_dss_enable(struct omap_drm_private *priv, enum omap_channe=
+l channel)
+>  {
+>  	struct drm_crtc *crtc =3D priv->channels[channel]->crtc;
+>  	struct omap_crtc *omap_crtc =3D to_omap_crtc(crtc);
+> @@ -193,8 +192,7 @@ static int omap_crtc_dss_enable(struct omap_drm_priva=
+te *priv,
+>  	return 0;
+>  }
+> =20
+> -static void omap_crtc_dss_disable(struct omap_drm_private *priv,
+> -				  enum omap_channel channel)
+> +void omap_crtc_dss_disable(struct omap_drm_private *priv, enum omap_chan=
+nel channel)
+>  {
+>  	struct drm_crtc *crtc =3D priv->channels[channel]->crtc;
+>  	struct omap_crtc *omap_crtc =3D to_omap_crtc(crtc);
+> @@ -202,7 +200,7 @@ static void omap_crtc_dss_disable(struct omap_drm_pri=
+vate *priv,
+>  	omap_crtc_set_enabled(&omap_crtc->base, false);
+>  }
+> =20
+> -static void omap_crtc_dss_set_timings(struct omap_drm_private *priv,
+> +void omap_crtc_dss_set_timings(struct omap_drm_private *priv,
+>  		enum omap_channel channel,
+>  		const struct videomode *vm)
+>  {
+> @@ -213,7 +211,7 @@ static void omap_crtc_dss_set_timings(struct omap_drm=
+_private *priv,
+>  	omap_crtc->vm =3D *vm;
+>  }
+> =20
+> -static void omap_crtc_dss_set_lcd_config(struct omap_drm_private *priv,
+> +void omap_crtc_dss_set_lcd_config(struct omap_drm_private *priv,
+>  		enum omap_channel channel,
+>  		const struct dss_lcd_mgr_config *config)
+>  {
+> @@ -225,7 +223,7 @@ static void omap_crtc_dss_set_lcd_config(struct omap_=
+drm_private *priv,
+>  					    config);
+>  }
+> =20
+> -static int omap_crtc_dss_register_framedone(
+> +int omap_crtc_dss_register_framedone(
+>  		struct omap_drm_private *priv, enum omap_channel channel,
+>  		void (*handler)(void *), void *data)
+>  {
+> @@ -244,7 +242,7 @@ static int omap_crtc_dss_register_framedone(
+>  	return 0;
+>  }
+> =20
+> -static void omap_crtc_dss_unregister_framedone(
+> +void omap_crtc_dss_unregister_framedone(
+>  		struct omap_drm_private *priv, enum omap_channel channel,
+>  		void (*handler)(void *), void *data)
+>  {
+> @@ -261,16 +259,6 @@ static void omap_crtc_dss_unregister_framedone(
+>  	omap_crtc->framedone_handler_data =3D NULL;
+>  }
+> =20
+> -static const struct dss_mgr_ops mgr_ops =3D {
+> -	.start_update =3D omap_crtc_dss_start_update,
+> -	.enable =3D omap_crtc_dss_enable,
+> -	.disable =3D omap_crtc_dss_disable,
+> -	.set_timings =3D omap_crtc_dss_set_timings,
+> -	.set_lcd_config =3D omap_crtc_dss_set_lcd_config,
+> -	.register_framedone_handler =3D omap_crtc_dss_register_framedone,
+> -	.unregister_framedone_handler =3D omap_crtc_dss_unregister_framedone,
+> -};
+> -
+>  /* ---------------------------------------------------------------------=
+--------
+>   * Setup, Flush and Page Flip
+>   */
+> @@ -753,16 +741,6 @@ static const char *channel_names[] =3D {
+>  	[OMAP_DSS_CHANNEL_LCD3] =3D "lcd3",
+>  };
+> =20
+> -void omap_crtc_pre_init(struct omap_drm_private *priv)
+> -{
+> -	dss_install_mgr_ops(priv->dss, &mgr_ops, priv);
+> -}
+> -
+> -void omap_crtc_pre_uninit(struct omap_drm_private *priv)
+> -{
+> -	dss_uninstall_mgr_ops(priv->dss);
+> -}
+> -
+>  /* initialize crtc */
+>  struct drm_crtc *omap_crtc_init(struct drm_device *dev,
+>  				struct omap_drm_pipeline *pipe,
+> diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.h b/drivers/gpu/drm/omapdr=
+m/omap_crtc.h
+> index 2fd57751ae2b..a8b9cbee86e0 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_crtc.h
+> +++ b/drivers/gpu/drm/omapdrm/omap_crtc.h
+> @@ -22,8 +22,6 @@ struct videomode;
+> =20
+>  struct videomode *omap_crtc_timings(struct drm_crtc *crtc);
+>  enum omap_channel omap_crtc_channel(struct drm_crtc *crtc);
+> -void omap_crtc_pre_init(struct omap_drm_private *priv);
+> -void omap_crtc_pre_uninit(struct omap_drm_private *priv);
+>  struct drm_crtc *omap_crtc_init(struct drm_device *dev,
+>  				struct omap_drm_pipeline *pipe,
+>  				struct drm_plane *plane);
+> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm=
+/omap_drv.c
+> index 46cb088c2977..da7183e98e3f 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_drv.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+> @@ -581,7 +581,7 @@ static int omapdrm_init(struct omap_drm_private *priv=
+, struct device *dev)
+>  	priv->dss =3D pdata->dss;
+>  	priv->dispc =3D dispc_get_dispc(priv->dss);
+> =20
+> -	omap_crtc_pre_init(priv);
+> +	priv->dss->mgr_ops_priv =3D priv;
+> =20
+>  	soc =3D soc_device_match(omapdrm_soc_devices);
+>  	priv->omaprev =3D soc ? (unsigned int)soc->data : 0;
+> @@ -634,7 +634,6 @@ static int omapdrm_init(struct omap_drm_private *priv=
+, struct device *dev)
+>  	omap_gem_deinit(ddev);
+>  	destroy_workqueue(priv->wq);
+>  	omap_disconnect_pipelines(ddev);
+> -	omap_crtc_pre_uninit(priv);
+>  	drm_dev_put(ddev);
+>  	return ret;
+>  }
+> @@ -660,7 +659,6 @@ static void omapdrm_cleanup(struct omap_drm_private *=
+priv)
+>  	destroy_workqueue(priv->wq);
+> =20
+>  	omap_disconnect_pipelines(ddev);
+> -	omap_crtc_pre_uninit(priv);
+> =20
+>  	drm_dev_put(ddev);
+>  }
 > --=20
 > Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 > Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 >=20
 
---xqekzckk6mkpvmci
+--zcundcsg4fvln232
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl/XYFwACgkQ2O7X88g7
-+ppQDhAAnkO8ZN+uPJN1rrGhoCLFdhWliAYnHp52sK2Yq/nJlJsGbXwM5SyD4Bsl
-TBXYHdZ6/PeF2thDC+CmdiF8eSJfX8hiNvbO6n+5R66hTwuJwS+jx5x+5l1jDNR0
-uuHVdmf1rAPskHs4AGv3Zcvv9Yncrn9sjGZre/hAgxB0XPppx6Z5CIKR6CjgWpyv
-wtwvRXy5tUMRw7jHsulbbt/hRgMjXuglvVSuViGOnY0c74b19fOeLuWM+Js9XBBd
-40Z0m4S1egp+0i2DRQIWN18vWiLWfjaCqCDJSWziQWTmaU+SgPaZxG9HVq7LWeSM
-N61O9MDWtVqlo56t4qz9F3dCwVL/oLWur1+hqwwMLc6OoxACm8gmUBRoU4TSaJw8
-GGgb5xU1y1jf3NQqu+i8eBh0jegtQakckEn/BdfAkX+fUqsZDKoJ6Xp6oi8x3gj1
-mt17+kTTQSD7w5aL85Dza7AXLJL7mACSgSzvh56hP7cojfNsJAv7pTpY7Jirc4XI
-b5Hx7TxHHVDl1ktljIgNBo73VZdUDlsh7xkjftVepIzI3OripU6GH8UQQe/xoxlC
-d2F/8EMgsx/qsfHSieKAWO9dz3366E9ErvSyxsQ1LuUf3/Lu8Chuv50sBR+9LJud
-zhJI3XiVpimBiIUhOnFVdv/UffjlXRMRjAcbxdFvsUS+Tag1PzQ=
-=WJno
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAl/XYHIACgkQ2O7X88g7
++prwdQ//V+h/Pa+QCwDzMbo08kpYwrwPvm571rrnQgH0lyNHfT+OnqESH1BXCtO8
+wFJtPnfsI1YqMpG6UqmY/YuicuLl4SnqVKGKzEeTiMVf2TxaumHozi/6CZmHG422
+BzM597Ij8rwvABx1anxAllSTMEICJypywikh7txyxN2eFlKaLYb6B6XVBabjcbmZ
+Fmm0HgKbr2Cxlj0GaOvTMWzUrrfJ0Dx2L1vKG0BhdJwTCDxHmwOu2TjKbGbLUMSF
+3bh3+YnVQ+L+MzxZZmmnEBbHJkTZbr1JOPaihuMrCtAFZLr3xwz/RynvpVXBAY2t
+AgSFEZbI5AtP6pjbSxOXjmX1wZPuvKLtqOZs7NwXjxIrqPerNR95/YsLMyatE86U
++bj96yCRkBSt70pKCnLauNNHFI3LaXag4xhgSY9998InWyeH67FOYmVEk7lCXgKh
+NxXEjMoySep9nVBD5c4/pnoyjsXv/OwqlP77FKbAXu4rrnkIPw/rpWOUH2q8fNhT
+ldrbnxHuAD2N9RbmEH/+QjAV+f7xYwyEJmwJ9Qlz4exYrHVXhnx69W27Ym50ajJO
+E8wb4MV8tOmt8fFKa/SImRIYti59BrZ8szVbokbgNc0JzPBYEr5tfUO350w8r/0j
+Uw2dXYHvP/OQYE5K4qeKAMP+vxV16QCZ1mzEY0iGSXg6CB9ASK0=
+=1XS3
 -----END PGP SIGNATURE-----
 
---xqekzckk6mkpvmci--
+--zcundcsg4fvln232--
