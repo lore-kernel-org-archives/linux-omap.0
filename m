@@ -2,48 +2,48 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE97C2BBCD
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:13:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F197CC2BB9A
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:14:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7037A2250F
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:13:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C635C22509
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:14:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728035AbgLONNr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Dec 2020 08:13:47 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:33790 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727053AbgLONNo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2020 08:13:44 -0500
+        id S1728450AbgLONNj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Dec 2020 08:13:39 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:37526 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727053AbgLONNj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2020 08:13:39 -0500
 Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BFDCuOB055970;
-        Tue, 15 Dec 2020 07:12:56 -0600
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BFDCnIS038054;
+        Tue, 15 Dec 2020 07:12:49 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1608037976;
-        bh=fflVV2euO6GX3p6e7gjWU0e5OJmiwk+o75/SeXICdqY=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=Itqw8bJIWMQQvNcKS6etI7VOGKWZXkcVT36/MJAeBJkDYvisTHPvNGEvCV5tlVfMx
-         InFbUsZQPtYEVdPeh7LCwjtugVQhiEkf2d4qQvGcRjjYWIMgu18iDdW3rzfuU91BW+
-         vkETEc7iccaVCTrF3Fu+61UIQ2LXJ0SybBLsU2pI=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BFDCtFj099693
+        s=ti-com-17Q1; t=1608037969;
+        bh=EWmVCvimxrwVI8v589mVNvUA9U7qN+JGJthzwW6Yrs8=;
+        h=From:To:CC:Subject:Date;
+        b=zWF2Ucxvvcoi1P7BdYFMRLVLbSYlOMnvXI28cAD6PfLo5NMve+vr/1oV0ph88jTTC
+         xKaLfNGuVnezO4YDsoNqocecqcZQ/0nOIA26jRNjQoXE84LbZVpiUZzaKLdRcYnwze
+         U5SaLh6TtDTiXiqD25Hchjt9ijW24tHijc1Dya40=
+Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BFDCneO099628
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 15 Dec 2020 07:12:55 -0600
-Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 15 Dec 2020 07:12:49 -0600
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 15
- Dec 2020 07:12:55 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2020 07:12:49 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 15 Dec 2020 07:12:55 -0600
+ Frontend Transport; Tue, 15 Dec 2020 07:12:49 -0600
 Received: from feketebors.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BFDCjkv037808;
-        Tue, 15 Dec 2020 07:12:52 -0600
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BFDCjkt037808;
+        Tue, 15 Dec 2020 07:12:46 -0600
 From:   Peter Ujfalusi <peter.ujfalusi@ti.com>
 To:     <vkoul@kernel.org>, <robh+dt@kernel.org>,
         <peter.ujfalusi@gmail.com>
@@ -52,12 +52,10 @@ CC:     <dan.j.williams@intel.com>, <linux-kernel@vger.kernel.org>,
         <grygorii.strashko@ti.com>, <devicetree@vger.kernel.org>,
         <linux-omap@vger.kernel.org>, <tony@atomide.com>,
         <linux@armlinux.org.uk>, <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH 2/2] dt-bindings: dma: ti: Update maintainer and author information
-Date:   Tue, 15 Dec 2020 15:13:48 +0200
-Message-ID: <20201215131348.11282-3-peter.ujfalusi@ti.com>
+Subject: [PATCH 0/2] dmaengine: ti: Maintainer mail address change
+Date:   Tue, 15 Dec 2020 15:13:46 +0200
+Message-ID: <20201215131348.11282-1-peter.ujfalusi@ti.com>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201215131348.11282-1-peter.ujfalusi@ti.com>
-References: <20201215131348.11282-1-peter.ujfalusi@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -66,77 +64,24 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-My employment with TI is coming to an end, add the copyright and author comments
-as they due and change the maintainer mail address.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@gmail.com>
+My TI address is going to bounce after Friday (18.12.2020), switch my address to
+my private one for now.
+
+Regards,
+Peter
 ---
- Documentation/devicetree/bindings/dma/ti/k3-bcdma.yaml  | 4 +++-
- Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml | 4 +++-
- Documentation/devicetree/bindings/dma/ti/k3-udma.yaml   | 4 +++-
- 3 files changed, 9 insertions(+), 3 deletions(-)
+Peter Ujfalusi (2):
+  MAINTAINERS: Add entry for Texas Instruments DMA drivers
+  dt-bindings: dma: ti: Update maintainer and author information
 
-diff --git a/Documentation/devicetree/bindings/dma/ti/k3-bcdma.yaml b/Documentation/devicetree/bindings/dma/ti/k3-bcdma.yaml
-index b15f68c499cb..df29d59d13a8 100644
---- a/Documentation/devicetree/bindings/dma/ti/k3-bcdma.yaml
-+++ b/Documentation/devicetree/bindings/dma/ti/k3-bcdma.yaml
-@@ -1,4 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+# Copyright (C) 2020 Texas Instruments Incorporated
-+# Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
- %YAML 1.2
- ---
- $id: http://devicetree.org/schemas/dma/ti/k3-bcdma.yaml#
-@@ -7,7 +9,7 @@ $schema: http://devicetree.org/meta-schemas/core.yaml#
- title: Texas Instruments K3 DMSS BCDMA Device Tree Bindings
- 
- maintainers:
--  - Peter Ujfalusi <peter.ujfalusi@ti.com>
-+  - Peter Ujfalusi <peter.ujfalusi@gmail.com>
- 
- description: |
-   The Block Copy DMA (BCDMA) is intended to perform similar functions as the TR
-diff --git a/Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml b/Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml
-index b13ab60cd740..ea19d12a9337 100644
---- a/Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml
-+++ b/Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml
-@@ -1,4 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+# Copyright (C) 2020 Texas Instruments Incorporated
-+# Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
- %YAML 1.2
- ---
- $id: http://devicetree.org/schemas/dma/ti/k3-pktdma.yaml#
-@@ -7,7 +9,7 @@ $schema: http://devicetree.org/meta-schemas/core.yaml#
- title: Texas Instruments K3 DMSS PKTDMA Device Tree Bindings
- 
- maintainers:
--  - Peter Ujfalusi <peter.ujfalusi@ti.com>
-+  - Peter Ujfalusi <peter.ujfalusi@gmail.com>
- 
- description: |
-   The Packet DMA (PKTDMA) is intended to perform similar functions as the packet
-diff --git a/Documentation/devicetree/bindings/dma/ti/k3-udma.yaml b/Documentation/devicetree/bindings/dma/ti/k3-udma.yaml
-index 9a87fd9041eb..6a09bbf83d46 100644
---- a/Documentation/devicetree/bindings/dma/ti/k3-udma.yaml
-+++ b/Documentation/devicetree/bindings/dma/ti/k3-udma.yaml
-@@ -1,4 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+# Copyright (C) 2019 Texas Instruments Incorporated
-+# Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
- %YAML 1.2
- ---
- $id: http://devicetree.org/schemas/dma/ti/k3-udma.yaml#
-@@ -7,7 +9,7 @@ $schema: http://devicetree.org/meta-schemas/core.yaml#
- title: Texas Instruments K3 NAVSS Unified DMA Device Tree Bindings
- 
- maintainers:
--  - Peter Ujfalusi <peter.ujfalusi@ti.com>
-+  - Peter Ujfalusi <peter.ujfalusi@gmail.com>
- 
- description: |
-   The UDMA-P is intended to perform similar (but significantly upgraded)
+ .../devicetree/bindings/dma/ti/k3-bcdma.yaml        |  4 +++-
+ .../devicetree/bindings/dma/ti/k3-pktdma.yaml       |  4 +++-
+ .../devicetree/bindings/dma/ti/k3-udma.yaml         |  4 +++-
+ MAINTAINERS                                         | 13 +++++++++++++
+ 4 files changed, 22 insertions(+), 3 deletions(-)
+
 -- 
 Peter
 
