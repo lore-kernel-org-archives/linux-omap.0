@@ -8,56 +8,57 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C28E5C2BB48
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:08:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57D96C4361B
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:13:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BA762246B
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:08:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 138A92250F
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:13:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726580AbgLONG5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Dec 2020 08:06:57 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:36170 "EHLO
+        id S1727278AbgLONNj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Dec 2020 08:13:39 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:37528 "EHLO
         fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729409AbgLONGu (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2020 08:06:50 -0500
+        with ESMTP id S1727437AbgLONNj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2020 08:13:39 -0500
 Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BFD4JVD035358;
-        Tue, 15 Dec 2020 07:04:19 -0600
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BFDCqlw038064;
+        Tue, 15 Dec 2020 07:12:52 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1608037459;
-        bh=kh1JyF3myH9RigEpk6YlMVXN1XqHXg4sQ+Mvc4uclGU=;
+        s=ti-com-17Q1; t=1608037972;
+        bh=6CpEH4zEcV4+sDTHJ2Gtr/fJNLhzbnJgxMi7aSNIz6A=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=cgn3PlV1xMKPyBJekMu8/0uS5SpY7Eo4U7o68m/SaHRoxSlFs/nY5cMlryyl2JpsW
-         HkLUPRDqUM4eA0lw+FG80s174wKvXI9yLe8MI+oBXGMqbZ9J81vQl+au3KDxkbQ4Hd
-         L6XYd1UttQ5C+EWR8MSDb6nbR1pfskYUbvRbwhlU=
-Received: from DLEE111.ent.ti.com (dlee111.ent.ti.com [157.170.170.22])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BFD4JwR087832
+        b=omn4lusPf30t062llsGbEwrAtw0r9QUeGa0grsXyN1hVi5BareK8XNVLatot6JPhm
+         EJWS77bIsb+oNGzM/w5S5eDJ/Ra1HcuIgt7V2R/yE/X4DQaN/MJM6BgLgX/pLh4kZi
+         Ir2uojnt+rhuxFkI1e0ByjIZG9tgWgqD9jPvrteA=
+Received: from DFLE110.ent.ti.com (dfle110.ent.ti.com [10.64.6.31])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BFDCq1V099674
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 15 Dec 2020 07:04:19 -0600
-Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 15 Dec 2020 07:12:52 -0600
+Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 15
- Dec 2020 07:04:18 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2020 07:12:52 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 15 Dec 2020 07:04:18 -0600
+ Frontend Transport; Tue, 15 Dec 2020 07:12:52 -0600
 Received: from feketebors.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BFD49vM024224;
-        Tue, 15 Dec 2020 07:04:16 -0600
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BFDCjku037808;
+        Tue, 15 Dec 2020 07:12:49 -0600
 From:   Peter Ujfalusi <peter.ujfalusi@ti.com>
-To:     <broonie@kernel.org>, <lgirdwood@gmail.com>,
-        <jarkko.nikula@bitmer.com>, <robh+dt@kernel.org>
-CC:     <alsa-devel@alsa-project.org>, <perex@perex.cz>, <tiwai@suse.com>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <jsarha@ti.com>
-Subject: [PATCH 2/2] ASoC: dt-bindings: ti,j721e: Update maintainer and author information
-Date:   Tue, 15 Dec 2020 15:05:12 +0200
-Message-ID: <20201215130512.8753-3-peter.ujfalusi@ti.com>
+To:     <vkoul@kernel.org>, <robh+dt@kernel.org>,
+        <peter.ujfalusi@gmail.com>
+CC:     <dan.j.williams@intel.com>, <linux-kernel@vger.kernel.org>,
+        <dmaengine@vger.kernel.org>, <vigneshr@ti.com>,
+        <grygorii.strashko@ti.com>, <devicetree@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, <tony@atomide.com>,
+        <linux@armlinux.org.uk>, <linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH 1/2] MAINTAINERS: Add entry for Texas Instruments DMA drivers
+Date:   Tue, 15 Dec 2020 15:13:47 +0200
+Message-ID: <20201215131348.11282-2-peter.ujfalusi@ti.com>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201215130512.8753-1-peter.ujfalusi@ti.com>
-References: <20201215130512.8753-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20201215131348.11282-1-peter.ujfalusi@ti.com>
+References: <20201215131348.11282-1-peter.ujfalusi@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -66,56 +67,39 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-My employment with TI is coming to an end, add the copyright and author comments
-as they due and change the maintainer mail address.
+My employment with TI is coming to an end, it is my intention to look after
+the DMA drivers I have worked with over the years.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@gmail.com>
 ---
- .../devicetree/bindings/sound/ti,j721e-cpb-audio.yaml         | 4 +++-
- .../devicetree/bindings/sound/ti,j721e-cpb-ivi-audio.yaml     | 4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ MAINTAINERS | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/sound/ti,j721e-cpb-audio.yaml b/Documentation/devicetree/bindings/sound/ti,j721e-cpb-audio.yaml
-index 805da4d6a88e..ec06789b21df 100644
---- a/Documentation/devicetree/bindings/sound/ti,j721e-cpb-audio.yaml
-+++ b/Documentation/devicetree/bindings/sound/ti,j721e-cpb-audio.yaml
-@@ -1,4 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+# Copyright (C) 2020 Texas Instruments Incorporated
-+# Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
- %YAML 1.2
- ---
- $id: http://devicetree.org/schemas/sound/ti,j721e-cpb-audio.yaml#
-@@ -7,7 +9,7 @@ $schema: http://devicetree.org/meta-schemas/core.yaml#
- title: Texas Instruments J721e Common Processor Board Audio Support
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 952731d1e43c..f6e7162241eb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -17549,6 +17549,19 @@ S:	Supported
+ F:	Documentation/devicetree/bindings/iio/dac/ti,dac7612.txt
+ F:	drivers/iio/dac/ti-dac7612.c
  
- maintainers:
--  - Peter Ujfalusi <peter.ujfalusi@ti.com>
-+  - Peter Ujfalusi <peter.ujfalusi@gmail.com>
- 
- description: |
-   The audio support on the board is using pcm3168a codec connected to McASP10
-diff --git a/Documentation/devicetree/bindings/sound/ti,j721e-cpb-ivi-audio.yaml b/Documentation/devicetree/bindings/sound/ti,j721e-cpb-ivi-audio.yaml
-index bb780f621628..ee9f960de36b 100644
---- a/Documentation/devicetree/bindings/sound/ti,j721e-cpb-ivi-audio.yaml
-+++ b/Documentation/devicetree/bindings/sound/ti,j721e-cpb-ivi-audio.yaml
-@@ -1,4 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+# Copyright (C) 2020 Texas Instruments Incorporated
-+# Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
- %YAML 1.2
- ---
- $id: http://devicetree.org/schemas/sound/ti,j721e-cpb-ivi-audio.yaml#
-@@ -7,7 +9,7 @@ $schema: http://devicetree.org/meta-schemas/core.yaml#
- title: Texas Instruments J721e Common Processor Board Audio Support
- 
- maintainers:
--  - Peter Ujfalusi <peter.ujfalusi@ti.com>
-+  - Peter Ujfalusi <peter.ujfalusi@gmail.com>
- 
- description: |
-   The Infotainment board plugs into the Common Processor Board, the support of the
++TEXAS INSTRUMENTS DMA DRIVERS
++M:	Peter Ujfalusi <peter.ujfalusi@gmail.com>
++L:	dmaengine@vger.kernel.org
++S:	Maintained
++F:	Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
++F:	Documentation/devicetree/bindings/dma/ti-edma.txt
++F:	Documentation/devicetree/bindings/dma/ti/
++F:	drivers/dma/ti/
++X:	drivers/dma/ti/cppi41.c
++F:	include/linux/dma/k3-udma-glue.h
++F:	include/linux/dma/ti-cppi5.h
++F:	include/linux/dma/k3-psil.h
++
+ TEXAS INSTRUMENTS' SYSTEM CONTROL INTERFACE (TISCI) PROTOCOL DRIVER
+ M:	Nishanth Menon <nm@ti.com>
+ M:	Tero Kristo <t-kristo@ti.com>
 -- 
 Peter
 
