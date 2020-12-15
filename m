@@ -2,113 +2,100 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 094ECC4361B
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:06:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18812C4361B
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:08:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B288822510
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:06:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B5959206B6
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Dec 2020 13:08:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728701AbgLONGr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Dec 2020 08:06:47 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:60670 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729385AbgLONGp (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2020 08:06:45 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BFD4GFF053267;
-        Tue, 15 Dec 2020 07:04:16 -0600
+        id S1728151AbgLONIF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Dec 2020 08:08:05 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:36616 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727103AbgLONH6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2020 08:07:58 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BFD6YZQ036237;
+        Tue, 15 Dec 2020 07:06:34 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1608037456;
-        bh=g5hfBmYSZ8Ze0r6Z6Oo1TRt7JEjW9VDWbA/XiqpERKQ=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=vQkp89D5LJrJ6MreL1xb6UFgCsdWAbBV908vl1vaESMQ2BvHuzyXgtOKHxCuejkLH
-         lQ17atqT5z9OHbhUwfT/kfyLYfLKqfZBbWOSJ5aC/DlHAf7ypy3VG7BmsgyG3210HH
-         AqDEMQDzy65ZHeL2m3X9ThfINE1KokRczdKkJePA=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BFD4Gqf035477
+        s=ti-com-17Q1; t=1608037594;
+        bh=v+wfwR8MsifsGuoRp9WQUfmkznAVY28F5hPJ+pwwwPY=;
+        h=Subject:From:To:CC:References:Date:In-Reply-To;
+        b=JWe5KjRBAcwxtlafH2+rIPtkiTbTg25Xcqf35/sROr6DRYkJZSu9uJaYsXSp3TmXm
+         m5IHvsJoVt7UmGzHvKgAGxNuTre40Lq45tSWILMnoPE17fQtV9zpymWmz5vVtGtsM9
+         U3f+XYHfl+z9/d1CgfPrj3L2RgaqWVoRLOHHdRno=
+Received: from DLEE111.ent.ti.com (dlee111.ent.ti.com [157.170.170.22])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BFD6YD9092758
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 15 Dec 2020 07:04:16 -0600
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 15 Dec 2020 07:06:34 -0600
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 15
- Dec 2020 07:04:15 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2020 07:06:33 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 15 Dec 2020 07:04:15 -0600
-Received: from feketebors.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BFD49vL024224;
-        Tue, 15 Dec 2020 07:04:13 -0600
+ Frontend Transport; Tue, 15 Dec 2020 07:06:33 -0600
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BFD6UL7027914;
+        Tue, 15 Dec 2020 07:06:31 -0600
+Subject: Re: [PATCH 0/2] ASoC: ti: Maintainer mail address change
 From:   Peter Ujfalusi <peter.ujfalusi@ti.com>
 To:     <broonie@kernel.org>, <lgirdwood@gmail.com>,
-        <jarkko.nikula@bitmer.com>, <robh+dt@kernel.org>
+        <jarkko.nikula@bitmer.com>, <robh+dt@kernel.org>,
+        <peter.ujfalusi@gmail.com>
 CC:     <alsa-devel@alsa-project.org>, <perex@perex.cz>, <tiwai@suse.com>,
         <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>, <jsarha@ti.com>
-Subject: [PATCH 1/2] MAINTAINERS: Update email address for TI ASoC and twl4030 codec drivers
-Date:   Tue, 15 Dec 2020 15:05:11 +0200
-Message-ID: <20201215130512.8753-2-peter.ujfalusi@ti.com>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201215130512.8753-1-peter.ujfalusi@ti.com>
 References: <20201215130512.8753-1-peter.ujfalusi@ti.com>
+Message-ID: <05baa6cf-9364-63e4-0bbe-a49ff2177941@ti.com>
+Date:   Tue, 15 Dec 2020 15:07:33 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.5.1
 MIME-Version: 1.0
+In-Reply-To: <20201215130512.8753-1-peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-My employment with TI is coming to an end, it is my intention to look after
-the drivers I have worked with over the years.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@gmail.com>
----
- MAINTAINERS | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On 15/12/2020 15.05, Peter Ujfalusi wrote:
+> Hi,
+> 
+> My TI address is going to bounce after Friday (18.12.2020), switch my email
+> address to my private one for now.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f6e7162241eb..a091f183b27f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12862,7 +12862,7 @@ F:	include/misc/ocxl*
- F:	include/uapi/misc/ocxl.h
- 
- OMAP AUDIO SUPPORT
--M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
-+M:	Peter Ujfalusi <peter.ujfalusi@gmail.com>
- M:	Jarkko Nikula <jarkko.nikula@bitmer.com>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- L:	linux-omap@vger.kernel.org
-@@ -17537,7 +17537,7 @@ F:	arch/xtensa/
- F:	drivers/irqchip/irq-xtensa-*
- 
- TEXAS INSTRUMENTS ASoC DRIVERS
--M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
-+M:	Peter Ujfalusi <peter.ujfalusi@gmail.com>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- S:	Maintained
- F:	sound/soc/ti/
-@@ -17847,7 +17847,7 @@ F:	Documentation/devicetree/bindings/net/nfc/trf7970a.txt
- F:	drivers/nfc/trf7970a.c
- 
- TI TWL4030 SERIES SOC CODEC DRIVER
--M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
-+M:	Peter Ujfalusi <peter.ujfalusi@gmail.com>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- S:	Maintained
- F:	sound/soc/codecs/twl4030*
--- 
-Peter
+Obviously I forgot to 'TO' the private myself...
+
+Doing that now.
+
+> 
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (2):
+>   MAINTAINERS: Update email address for TI ASoC and twl4030 codec
+>     drivers
+>   ASoC: dt-bindings: ti,j721e: Update maintainer and author information
+> 
+>  .../devicetree/bindings/sound/ti,j721e-cpb-audio.yaml       | 4 +++-
+>  .../devicetree/bindings/sound/ti,j721e-cpb-ivi-audio.yaml   | 4 +++-
+>  MAINTAINERS                                                 | 6 +++---
+>  3 files changed, 9 insertions(+), 5 deletions(-)
+> 
+
+- Péter
 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
