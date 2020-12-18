@@ -4,24 +4,24 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B819C3526E
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93BE7C4361B
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:35:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2741723A84
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:35:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63CDF23A84
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:35:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727996AbgLROfN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Dec 2020 09:35:13 -0500
-Received: from mout.kundenserver.de ([212.227.126.135]:53383 "EHLO
+        id S1728060AbgLROfP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Dec 2020 09:35:15 -0500
+Received: from mout.kundenserver.de ([212.227.126.130]:44739 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727819AbgLROfJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2020 09:35:09 -0500
+        with ESMTP id S1727894AbgLROfN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2020 09:35:13 -0500
 Received: from orion.localdomain ([95.115.54.243]) by mrelayeu.kundenserver.de
  (mreue009 [212.227.15.167]) with ESMTPSA (Nemesis) id
- 1MKbc4-1kVQWl3lds-00Kwal; Fri, 18 Dec 2020 15:31:48 +0100
+ 1MNKuI-1kSfN03xpi-00OoTh; Fri, 18 Dec 2020 15:31:41 +0100
 From:   "Enrico Weigelt, metux IT consult" <info@metux.net>
 To:     linux-kernel@vger.kernel.org
 Cc:     mark.rutland@arm.com, alexander.shishkin@linux.intel.com,
@@ -41,54 +41,54 @@ Cc:     mark.rutland@arm.com, alexander.shishkin@linux.intel.com,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-arch@vger.kernel.org
-Subject: [PATCH 04/23] arch: c6x: drop misleading warning on spurious IRQ
-Date:   Fri, 18 Dec 2020 15:31:03 +0100
-Message-Id: <20201218143122.19459-5-info@metux.net>
+Subject: [PATCH 01/23] kernel: irq: irqdescs: warn on spurious IRQ
+Date:   Fri, 18 Dec 2020 15:31:00 +0100
+Message-Id: <20201218143122.19459-2-info@metux.net>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20201218143122.19459-1-info@metux.net>
 References: <20201218143122.19459-1-info@metux.net>
-X-Provags-ID: V03:K1:LpND6+qlyx9AmGzooMou6Vf89HHTFuGLvWMR4fa2jE7KkvluiyQ
- HqgepSPJvSoquixtsLOVm+5iPC4lBlEuZqhzLMv6Gb39cQKFrL17Oy010oVncqAG1hs8ZLb
- pGhAnGzWftumzuN8fhte+J6A0Ofdx/haEbbuFjfqYrl0ZwJ97Mj0nh0dHoPAmWSljvPyBYo
- oj+4mi1bx8jhOre4f7beA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:84I6lyo19tM=:zj+0LdIy55dgj0XHWliHlu
- Z6IKSuWDQ1jjOF8yZCwA+1YWvrGO3DoiBv3ZgcLSKjOz0No0LNOfcA5IENpYgnEjP5Hyg7eF9
- Acr1srgzIAfrzoxVvReEJn6hodNaMiluUJJ4wAyoPFsORwPYP7zv0H1L3PH7AaenUVtOOotQy
- iMBJJV5YM9QbZ4ZeWrCswa1OAXsKNWV0YqhNAlkUQDN9z57gglGl3Vi5GCEsqr/3vT4gxQSop
- RKGgd9gIwDzD/9l5YndWHU0kT9xylbz3DwQuGVqCw4pVhW5yEq+gDn9wr9xXEUP5tWH3yfoIY
- m9ktZtYpbKzqkXtVXJVU1h7nUO6F6hLqjtv8Lyrgbg20wUqy49AHWpak7jjdXFQNyev+foz8D
- mskfV6gct5deZth1Yvg3FfFtrQF72YBxjuRJEDSfr2CzGLxOES+7x30oU5n3V
+X-Provags-ID: V03:K1:LV+vlieoH9S7FVeRD54ZyNGq0lXxd7A7eeGG73dV5SKsuNXUfZI
+ t5Tc1dALRs2AtPOwYKoApPnoyxW7/Lxyitn6jmEk7odPc1fXKRQf1B17b0Xo7GSaZpMx5dW
+ TGMTjUj10cvONDT+2jdjeydrLJOMscAH46e6N0Uv313zK0Un9DMFeG3NocxtaL9uYHwBWUE
+ aSQQOOS63nbzmSA0OZCyw==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:+jizveWrAag=:xi1E+afKqBPbuitFr74tH/
+ Pqa93R1CfB6VGpKCdCeA3imHCGUzmR1wu1gjA3PGPF+dMp9C4DR3rt99LswhF1TegW/RnTDot
+ 7d+qHzUK0gNbP/ybW7PGmodvcbOApL7/3hR0HaBIPYze29okX0qVKNaN0uUOc0aMPNrJm/lHf
+ rCFjulnbgKj9sYd2ill1azgaxbVSkzVmRlEPbAXZ+0ALMS8qEDGet+OtJmWpacsNa46vQXnQR
+ mVE6jRttoXsNQa2wg7diSy8ElyG3YIRCwJEWAPOcEpIC4aPBtfkksUoly5a7/5EKCc4EvuICg
+ YHQlmrQSz8cwd325SSQ2jSl5oaE8TxRVgzjar1+yw/FjC2rs1pHYfkD4L/u2NKSTYhAEHWZqD
+ //Tdu1h6FpFg7G/m1MYCJBESvLEx03W/xk08EHJHT4hVa+Y58QzG42CuKoHzR
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The warning in ack_bad_irq() is misleading in several ways:
-* the term "vector" isn't quite correct
-* the printing format isn't consistent across the archs: some print decimal,
-  some hex, some hex w/o 0x prefix.
-* the printed linux irq isn't meaningful in all cases - we actually would
-  want it to print the hw irq.
+Add a warning on spurious IRQs to __handle_domain_irq(), also telling the
+linux IRQ number (if any), the hw IRQ number and the max nr of IRQs.
 
-Since all call sites already print out more detailed and correct information,
-we just don't need to duplicate this in each single arch. So just drop it.
+That's far more informative than the warnings in (some of) the individual
+arch's ack_bad_irq()'s. These aren't really helpful since either the
+other callers already had printed more detailed information or (when called
+by __handle_domain_irq()) the printout just doesn't tell anything useful.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- arch/c6x/kernel/irq.c | 1 -
- 1 file changed, 1 deletion(-)
+ kernel/irq/irqdesc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/c6x/kernel/irq.c b/arch/c6x/kernel/irq.c
-index e4c53d185b62..b9f7cfa2ed21 100644
---- a/arch/c6x/kernel/irq.c
-+++ b/arch/c6x/kernel/irq.c
-@@ -116,7 +116,6 @@ void __init init_IRQ(void)
- 
- void ack_bad_irq(int irq)
- {
--	printk(KERN_ERR "IRQ: spurious interrupt %d\n", irq);
- 	irq_err_count++;
- }
- 
+diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
+index e810eb9906ea..62a381351775 100644
+--- a/kernel/irq/irqdesc.c
++++ b/kernel/irq/irqdesc.c
+@@ -681,6 +681,9 @@ int __handle_domain_irq(struct irq_domain *domain, unsigned int hwirq,
+ 	 * than crashing, do something sensible.
+ 	 */
+ 	if (unlikely(!irq || irq >= nr_irqs)) {
++		if (printk_ratelimit())
++			pr_warn("spurious IRQ: irq=%d hwirq=%d nr_irqs=%d\n",
++				irq, hwirq, nr_irqs);
+ 		ack_bad_irq(irq);
+ 		ret = -EINVAL;
+ 	} else {
 -- 
 2.11.0
 
