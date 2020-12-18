@@ -2,116 +2,205 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8700C352A2
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:37:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AB12C4361B
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:44:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE34723AC0
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:37:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40C4423AC4
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 14:44:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729140AbgLROhO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Dec 2020 09:37:14 -0500
-Received: from mout.kundenserver.de ([212.227.126.135]:59215 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727842AbgLROfK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2020 09:35:10 -0500
-Received: from orion.localdomain ([95.115.54.243]) by mrelayeu.kundenserver.de
- (mreue009 [212.227.15.167]) with ESMTPSA (Nemesis) id
- 1MIMXE-1ktVvH3Qeq-00EO5n; Fri, 18 Dec 2020 15:31:52 +0100
-From:   "Enrico Weigelt, metux IT consult" <info@metux.net>
-To:     linux-kernel@vger.kernel.org
-Cc:     mark.rutland@arm.com, alexander.shishkin@linux.intel.com,
-        jolsa@redhat.com, namhyung@kernel.org, catalin.marinas@arm.com,
-        will@kernel.org, msalter@redhat.com, jacquiot.aurelien@gmail.com,
-        gerg@linux-m68k.org, geert@linux-m68k.org,
-        tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com,
-        deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org,
-        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
-        tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com,
-        linus.walleij@linaro.org, bgolaszewski@baylibre.com,
-        maz@kernel.org, tony@atomide.com, arnd@arndb.de,
-        linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arch@vger.kernel.org
-Subject: [PATCH 06/23] arch: mips: drop misleading warning on spurious IRQ
-Date:   Fri, 18 Dec 2020 15:31:05 +0100
-Message-Id: <20201218143122.19459-7-info@metux.net>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20201218143122.19459-1-info@metux.net>
-References: <20201218143122.19459-1-info@metux.net>
-X-Provags-ID: V03:K1:FGKFVpjRm8i7alCduF6w5xVQ9QBhhI+BcbMoR2xYuHsBqi3HW+a
- zuZ/nO0yECgUh91EZuccQMI4v9u0fvgFaaXDlnfpg4pNnW+9YPm0m6vFzoP8y3nI/L80U2q
- tOYG+TtPDtewTmWoSaBjj031Z1xtRhX13X03Cj1R8WbJJ6hRxdjlasrHGXlgq0z0XRCY/7R
- 7bMVFVy/AwQ9G65ocohFQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:5QbacgAAcV8=:SjlVoKIRpMoJbMDin1Wxmv
- r7hX0/Hb1uQQh9DWyGtQ4hJ/O7UuoWSZBLXqv3HLbGuwbraALbYBJaVDC8hOM6Rc34+eN5uUd
- VRtPdFPKbEXn7MPrknDfMOMfZmLIdjknTzIWTnexfB4JFPWnpLPS2uCDscdMklO+Ww0/aBe30
- WK8pshbeLhGqWu+4zq5EeVvhjKHOayfwPjMJnG0vngvQQxPP1BmzSm0fNQLZTEARXdkwu2pqE
- Eear9qZL5q1/abLp+4Wu/OabD7PVErjHqqBocNxuGjo1pGM2bAzuyckbJ44wcZDSvUGHf7l2D
- ou8BxCqHc2Ss6RnvX/JERqSHQ55352dSyIVht/cmKR8eT9fg35ihrPgOO9fzNj7XQUWwawJOh
- HR9IQlONZti0Q4+USJXCQTytoyovM/QCwtkXcmv3mUZpColG/mUlBGm0hTFRX
+        id S1727430AbgLROoN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Dec 2020 09:44:13 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:40594 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726903AbgLROoN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2020 09:44:13 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BIEgJ1h002175;
+        Fri, 18 Dec 2020 08:42:19 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1608302539;
+        bh=pTnSOVQlYaLLFPXX46y4VH9Zff6M5493tQ8KFZNlnPg=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=qVoAcJrFpHv8UTLXJKvQVTwSvNJ8ZEnkeV7DBTCkURzuONJJ6bdsu7HivHuSkK4uZ
+         rCK+HZSjzBIG4mlmB6a+4y+SMxztzzM9J38Oqaf0i/GXQ5uULFPBjYrK63pAiC3ygn
+         lNtfC3xxZpPYoxzBWgqwwMBSjjYLM6IeAMvwXP4k=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BIEgJQ7111684
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 18 Dec 2020 08:42:19 -0600
+Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 18
+ Dec 2020 08:42:18 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Fri, 18 Dec 2020 08:42:18 -0600
+Received: from [10.250.235.36] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BIEgEl9113653;
+        Fri, 18 Dec 2020 08:42:15 -0600
+Subject: Re: [PATCH v5] PCI: cadence: Retrain Link to work around Gen2
+ training defect.
+To:     Rob Herring <robh@kernel.org>
+CC:     Tom Joseph <tjoseph@cadence.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Nadeem Athani <nadeem@cadence.com>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        PCI <linux-pci@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Milind Parab <mparab@cadence.com>,
+        Swapnil Kashinath Jakhade <sjakhade@cadence.com>,
+        Parshuram Raju Thombare <pthombar@cadence.com>
+References: <20201215070009.27937-1-kishon@ti.com>
+ <CAL_JsqJzi7JkMcd4NZewA=w8q6BsCkrhW3JcED63R=EyE3v29Q@mail.gmail.com>
+ <1ec78477-dadc-cbef-406f-568f44b6c62d@ti.com>
+ <CAL_JsqLepmopGObX_r+7gtR+keaNtEAA3WA1j697T4jAWP8DHA@mail.gmail.com>
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+Message-ID: <96ca64cb-ec3a-bb83-2de3-775034ba844b@ti.com>
+Date:   Fri, 18 Dec 2020 20:12:13 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
+MIME-Version: 1.0
+In-Reply-To: <CAL_JsqLepmopGObX_r+7gtR+keaNtEAA3WA1j697T4jAWP8DHA@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The warning in ack_bad_irq() is misleading in several ways:
-* the term "vector" isn't quite correct
-* the printing format isn't consistent across the archs: some print decimal,
-  some hex, some hex w/o 0x prefix.
-* the printed linux irq isn't meaningful in all cases - we actually would
-  want it to print the hw irq.
+Hi Rob,
 
-Since all call sites already print out more detailed and correct information,
-we just don't need to duplicate this in each single arch. So just drop it.
+On 16/12/20 10:31 pm, Rob Herring wrote:
+> On Wed, Dec 16, 2020 at 9:01 AM Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>
+>> Hi Rob,
+>>
+>> On 15/12/20 9:23 pm, Rob Herring wrote:
+>>> On Tue, Dec 15, 2020 at 1:00 AM Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>>
+>>>> From: Nadeem Athani <nadeem@cadence.com>
+>>>>
+>>>> Cadence controller will not initiate autonomous speed change if strapped as
+>>>> Gen2. The Retrain Link bit is set as quirk to enable this speed change.
+>>>>
+>>>> Signed-off-by: Nadeem Athani <nadeem@cadence.com>
+>>>> [kishon@ti.com: Enable the workaround for TI's J721E SoC]
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>> Hi Lorenzo,
+>>>> The previous version of the patch can be found at [1].
+>>>> I slightly re-worked the patch from Nadeem
+>>>> *) Removed additional Link Up Check
+>>>> *) Removed quirk from pcie-cadence-plat.c
+>>>> *) Also removed additional compatible
+>>>>    "cdns,cdns-pcie-host-quirk-retrain" added in that series
+>>>> *) Enabled the quirk for J721E
+>>>> [1] -> http://lore.kernel.org/r/20201211144236.3825-1-nadeem@cadence.com
+>>>>
+>>>>  drivers/pci/controller/cadence/pci-j721e.c    |  3 +
+>>>>  .../controller/cadence/pcie-cadence-host.c    | 67 ++++++++++++++-----
+>>>>  drivers/pci/controller/cadence/pcie-cadence.h | 11 ++-
+>>>>  3 files changed, 62 insertions(+), 19 deletions(-)
+>>>>
+>>>> diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+>>>> index dac1ac8a7615..baf729850cb1 100644
+>>>> --- a/drivers/pci/controller/cadence/pci-j721e.c
+>>>> +++ b/drivers/pci/controller/cadence/pci-j721e.c
+>>>> @@ -64,6 +64,7 @@ enum j721e_pcie_mode {
+>>>>
+>>>>  struct j721e_pcie_data {
+>>>>         enum j721e_pcie_mode    mode;
+>>>> +       bool                    quirk_retrain_flag;
+>>>>  };
+>>>>
+>>>>  static inline u32 j721e_pcie_user_readl(struct j721e_pcie *pcie, u32 offset)
+>>>> @@ -280,6 +281,7 @@ static struct pci_ops cdns_ti_pcie_host_ops = {
+>>>>
+>>>>  static const struct j721e_pcie_data j721e_pcie_rc_data = {
+>>>>         .mode = PCI_MODE_RC,
+>>>> +       .quirk_retrain_flag = true,
+>>>>  };
+>>>>
+>>>>  static const struct j721e_pcie_data j721e_pcie_ep_data = {
+>>>> @@ -388,6 +390,7 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+>>>>
+>>>>                 bridge->ops = &cdns_ti_pcie_host_ops;
+>>>>                 rc = pci_host_bridge_priv(bridge);
+>>>> +               rc->quirk_retrain_flag = data->quirk_retrain_flag;
+>>>>
+>>>>                 cdns_pcie = &rc->pcie;
+>>>>                 cdns_pcie->dev = dev;
+>>>> diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+>>>> index 811c1cb2e8de..773c0d1137ed 100644
+>>>> --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
+>>>> +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
+>>>> @@ -77,6 +77,50 @@ static struct pci_ops cdns_pcie_host_ops = {
+>>>>         .write          = pci_generic_config_write,
+>>>>  };
+>>>>
+>>>> +static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
+>>>> +{
+>>>> +       struct device *dev = pcie->dev;
+>>>> +       int retries;
+>>>> +
+>>>> +       /* Check if the link is up or not */
+>>>> +       for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
+>>>> +               if (cdns_pcie_link_up(pcie)) {
+>>>> +                       dev_info(dev, "Link up\n");
+>>>> +                       return 0;
+>>>> +               }
+>>>> +               usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
+>>>> +       }
+>>>> +
+>>>> +       return -ETIMEDOUT;
+>>>> +}
+>>>> +
+>>>> +static void cdns_pcie_retrain(struct cdns_pcie *pcie)
+>>>> +{
+>>>> +       u32 lnk_cap_sls, pcie_cap_off = CDNS_PCIE_RP_CAP_OFFSET;
+>>>> +       u16 lnk_stat, lnk_ctl;
+>>>> +
+>>>> +       /*
+>>>> +        * Set retrain bit if current speed is 2.5 GB/s,
+>>>> +        * but the PCIe root port support is > 2.5 GB/s.
+>>>
+>>> If you don't have the retrain quirk, wouldn't this condition never
+>>> happen and then the function is just a nop? So this could just be
+>>> called unconditionally.
+>>
+>> Yeah, but only for the quirk we have to retrain to go to GEN2 speed
+>> mode. Else the HW will automatically retrain and go to GEN2.
+> 
+> Again, so you don't need a flag for this. Comparing the speed is
+> enough. IOW, all you need is:
+> 
+> if (current speed < advertised speed)
+>   do retrain
+> 
+> The question is the condition ever true and you don't want to do a
+> retrain? I could see higher speeds being unstable or something, but
 
-Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
----
- arch/mips/include/asm/hardirq.h | 3 +--
- arch/mips/kernel/irq.c          | 9 ---------
- 2 files changed, 1 insertion(+), 11 deletions(-)
+For all GEN1 cards there will be re-train (since the Cadence IP RC is
+GEN2 or more say). This is going to be true for older Cadence IPs and
+newer Cadence IPs (where Cadence has enabled HW re-training).
 
-diff --git a/arch/mips/include/asm/hardirq.h b/arch/mips/include/asm/hardirq.h
-index c977a86c2c65..75444120e6cb 100644
---- a/arch/mips/include/asm/hardirq.h
-+++ b/arch/mips/include/asm/hardirq.h
-@@ -10,8 +10,7 @@
- #ifndef _ASM_HARDIRQ_H
- #define _ASM_HARDIRQ_H
- 
--extern void ack_bad_irq(unsigned int irq);
--#define ack_bad_irq ack_bad_irq
-+#define ack_bad_irq(irq)
- 
- #include <asm-generic/hardirq.h>
- 
-diff --git a/arch/mips/kernel/irq.c b/arch/mips/kernel/irq.c
-index 85b6c60f285d..c98be305fab6 100644
---- a/arch/mips/kernel/irq.c
-+++ b/arch/mips/kernel/irq.c
-@@ -27,15 +27,6 @@
- 
- void *irq_stack[NR_CPUS];
- 
--/*
-- * 'what should we do if we get a hw irq event on an illegal vector'.
-- * each architecture has to answer this themselves.
-- */
--void ack_bad_irq(unsigned int irq)
--{
--	printk("unexpected IRQ # %d\n", irq);
--}
--
- atomic_t irq_err_count;
- 
- int arch_show_interrupts(struct seq_file *p, int prec)
--- 
-2.11.0
+The quirk will prevent SW re-training for newer Cadence IPs when a GEN1
+card is connected.
+> then 'advertised speed' would be lowered in that case (to prevent auto
+> retraining, right?) and the condition would be false.
 
+I don't think the value in PCI_EXP_LNKCAP will change for unstable
+links. But yeah it'll fall back to GEN1 based on link training and if
+the link is unstable it'll again fall back to GEN1 on link RE-training.
+
+Thanks,
+Kishon
