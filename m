@@ -2,26 +2,25 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E56FC2BBD4
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 15:03:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD4C0C3526C
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 15:03:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0254923AFD
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 15:03:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B84A523B01
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Dec 2020 15:03:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730796AbgLRPC5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Dec 2020 10:02:57 -0500
-Received: from mout.kundenserver.de ([212.227.126.135]:59769 "EHLO
+        id S1728271AbgLRPBQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Dec 2020 10:01:16 -0500
+Received: from mout.kundenserver.de ([212.227.126.135]:60003 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728307AbgLRPBV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2020 10:01:21 -0500
+        with ESMTP id S1726247AbgLRPBP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2020 10:01:15 -0500
 Received: from orion.localdomain ([95.115.54.243]) by mrelayeu.kundenserver.de
  (mreue011 [212.227.15.167]) with ESMTPSA (Nemesis) id
- 1N1g3U-1k5urV3sfw-011xdL; Fri, 18 Dec 2020 15:58:14 +0100
+ 1N5FtF-1k7Hmp0Rxl-0118Hm; Fri, 18 Dec 2020 15:58:02 +0100
 From:   "Enrico Weigelt, metux IT consult" <info@metux.net>
 To:     linux-kernel@vger.kernel.org
 Cc:     mark.rutland@arm.com, alexander.shishkin@linux.intel.com,
@@ -41,56 +40,64 @@ Cc:     mark.rutland@arm.com, alexander.shishkin@linux.intel.com,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-arch@vger.kernel.org
-Subject: [PATCH 07/23] arch: parisc: drop misleading warning on spurious IRQ
-Date:   Fri, 18 Dec 2020 15:57:30 +0100
-Message-Id: <20201218145746.24205-8-info@metux.net>
+Subject: (repost) cleaning up handling of bad IRQs
+Date:   Fri, 18 Dec 2020 15:57:23 +0100
+Message-Id: <20201218145746.24205-1-info@metux.net>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20201218145746.24205-1-info@metux.net>
-References: <20201218145746.24205-1-info@metux.net>
-X-Provags-ID: V03:K1:oGmlfGkhJekOloE3MpuxkxNd1aPEER14Z6qxAgGlYdvB4SGRB7p
- 7y9tiukZZ7CHa+D5i7nGvfnSW+R5wAvqp5z+61y5/MFB4lzPUEK1Ipf0OaxnnWdvUVtvQiY
- 6FWp0hyc8Mmb2OoGtPFhz/88H0erdT/ig9y1yLOh95gO4aMsdyEeDo370OU+WSBUslEzplB
- udeX1JvpZlfy6olW+YCDw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:jeNZqaIrx4k=:iIZtJxLlwz4tSNkf59yuDp
- C8mkbAUeD1J1RRXMEWXpGvtrBGXW7cplJTteLoSP47lg8IeVCFNFUd5dezkStbdp6VOt7Ycmb
- PmcoCYYtQBYkW83gWQopEg/C8lk8UI5bRRZvUqC7j8lb+aFO66Yli/sD0xYmBX+8nLxUqqWjN
- cVUGYYsmTILE0qAFSs3WOVYQhDuhMoajYHDo+OlEzHs93WrIGfNP5gPjV6gmMZy+/39fBqSrT
- /sUF82JtABYtvr6gsH7UoWpKjArQ242DJ7cZh04+eCHZRZNzmmxjlBn1Uo35gNOqszE+X6z56
- pSWB5RIVFsfoNiwVqswKL/Vlmcg3E2v6dfz1hj9Kv5rkN7YajR4aq6HMJsgx9Bret+rFctGAL
- LrKCJT3mWC3+wmJ8F7iyW/tTCA2YpawqJVe2ZnBsFT9ZKZO3P/06X6iDsxsqjcyZSoEw56D8U
- 31OCFgTkKNaH+O6ldSIrFXyqvW/Q6mvUOcVpRPGYyKG/POMQmcybdeakmavlTYncgc+71qZjm
- OB4buYEqw8y1sho5C/FCo0=
+X-Provags-ID: V03:K1:kDy23KicY6yANCRUU/uS27W+PiA6W2GQEJc1w+ZgwWxEjEL6wp+
+ O8q9sjFQjB+V0eXbRSVHReMrDSfLKWhKYaglZe/mGoKnGo+tKe78BIINCtGjVGRkQlVCPRT
+ E0zs050IDCFNASTif7ntcdtcNCuqqIz4boa/lWXOWWv6+2VsptoinSFPTn2gbyoldCF3WLk
+ LPxaYtQibJh05k9ukhkIw==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:WqNj1TBcidE=:gp0GmOgW/MpqQGs+zxKh6i
+ I0088aGoSzOIfC95i/SEDZNYBUDmgwLa8n4SXmJkOmu/GGWNmsBGg/Xf8yNQt9k/hZG1GWXPN
+ xEBtNhEWsGOydmRhKc+SGqkOJt1MGEphhCucm67oCLQxZfaAVCyV1LE8fm4EHrJROazGyYjEq
+ lH16F/3XvcljV+pCYiqIoRjM6+oypx0etdtwnLgAZmNyA9S6WTF37Yqa3INS1S7FwBDy3Kbkw
+ IcBnm6E0VHQ4OPHXxABvAk2oIndJOeCt+tf9gc9//r1GcOSb4BYRCbTjQKkvol7Zx++hrz8D9
+ ayJibSTe5nhuLcL+SN4HlKtWfuz6RmVjv6c/fDlR3j/qL/eB03XvQh9FCZg3jiwKfX5w6bpnL
+ fTy0MG7FyqXlq0+laGULoIs9JiSUAXz4NDEYbZiUPQeKZN9i2edp69JRiVoBK
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The warning in ack_bad_irq() is misleading in several ways:
-* the term "vector" isn't quite correct
-* the printing format isn't consistent across the archs: some print decimal,
-  some hex, some hex w/o 0x prefix.
-* the printed linux irq isn't meaningful in all cases - we actually would
-  want it to print the hw irq.
+Hello friends,
 
-Since all call sites already print out more detailed and correct information,
-we just don't need to duplicate this in each single arch. So just drop it.
+ << reposting, since first queue didn't go through completely, due to mailer problem >>
 
-Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
----
- arch/parisc/include/asm/hardirq.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+here's a patch queue for cleaning up the IRQ handling. Inspired by a
+discussion we had on a previous patch of mine:
 
-diff --git a/arch/parisc/include/asm/hardirq.h b/arch/parisc/include/asm/hardirq.h
-index fad29aa6f45f..78b581f00bb3 100644
---- a/arch/parisc/include/asm/hardirq.h
-+++ b/arch/parisc/include/asm/hardirq.h
-@@ -34,6 +34,6 @@ DECLARE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
- #define __ARCH_IRQ_STAT
- #define inc_irq_stat(member)	this_cpu_inc(irq_stat.member)
- #define __inc_irq_stat(member)	__this_cpu_inc(irq_stat.member)
--#define ack_bad_irq(irq) WARN(1, "unexpected IRQ trap at vector %02x\n", irq)
-+#define ack_bad_irq(irq)
- 
- #endif /* _PARISC_HARDIRQ_H */
--- 
-2.11.0
+    "arch: fix 'unexpected IRQ trap at vector' warnings"
+    https://www.spinics.net/lists/kernel/msg3763137.html
+
+Turned out that the whole message, as it is right now, doesn't make much
+sense at at all - not just incorrect wording, but also not quite useful
+information. And the whole ack_bad_irq() thing deserves a cleanup anyways.
+
+So, I've had a closer look and came to these conclusions:
+
+1. The warning message doesn't need to be duplicated in the per architecture
+   ack_bad_irq() functions. All, but one callers already do their own warning.
+   Thus just adding a pr_warn() call there, printing out more useful data
+   like the hardware IRQ number, and dropping all warnings from all the
+   ack_bad_irq() functions.
+
+2. Many of the ack_bad_irq()'s count up the spurious interrupts - lots of
+   duplications over the various archs. Some of them using atomic_t, some
+   just plain ints. Consolidating this by introducing a global counter
+   with inline'd accessors and doing the upcounting in the (currently 3)
+   call sites of ack_bad_irq(). After that, step by step changing all
+   archs to use the new counter.
+
+3. For all but one arch (x86), ack_bad_irq() became a no-op.
+
+   On x86, it's just a call to ack_APIC_irq(), in order to prevent lockups
+   when IRQs missed to be ack'ed on the APIC. Could we perhaps do this in
+   some better place ? In that case, ack_bad_irq() could easily be removed
+   entirely.
+
+have fun,
+
+--mtx
+
+
 
