@@ -5,44 +5,44 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FBEAC43333
-	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 02:29:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7363DC4332D
+	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 02:34:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66A9E22482
-	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 02:29:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 528FF223E4
+	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 02:34:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730244AbgLWC3B (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 22 Dec 2020 21:29:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55968 "EHLO mail.kernel.org"
+        id S1729248AbgLWCeK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 22 Dec 2020 21:34:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730595AbgLWCZz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 22 Dec 2020 21:25:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C94FB22482;
-        Wed, 23 Dec 2020 02:25:38 +0000 (UTC)
+        id S1728747AbgLWCY5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 22 Dec 2020 21:24:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 930162333F;
+        Wed, 23 Dec 2020 02:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1608690339;
+        s=k20201202; t=1608690282;
         bh=J17Ye1tVNmhTMAZKXijNIjI7waSIU7anezzCCWHNJIk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VDtA8QIYChEquQv86HREyKhTGyGNAIfdNYFr6kL9Tik36B0bMZyguk8M230/iHPQU
-         rZcaj8Gf06edgJN/Gos2F8ifkpPArrM3Nt2xvZe4PVOYBPToisQeKDaMzIz9hyvQW8
-         v9AU7/FIQQrq4all22seWBOzJ76hA+FWu8hQz9R0BSiSdgCer1AaKyUqHdzFpCJjAZ
-         b8a/InraKHBJu3H9Tnru5hxCvF9QNSkToQ6z5+gWhAfHZE42frA6ZWw2XEW6Pww9/N
-         2ZKj34DOrxwKxJTvhsV9eiE4JkA1x+/0uYbzryBQEc1+iWRVZNjMYXZHfas3hvPjhb
-         SA4UH8f+gNsRg==
+        b=TTV1c4wIkWtHReTtANXGGJISzzRy1l69yeDZ+xtc/X2DojxcSBJVdSCK/sME9Uf5p
+         o/hBqz0Kmev6gei47beMmUlrW5PxMB9UsHKiAeXnAYJnOpBi2gjjv2syu2KjELmJko
+         qWG6NbIOwmhcdmQUfSbWMlcSZd6rG0G9kTTFtCJtup0tfNB3ZWxymzOBklqvEHXyWL
+         BuOmMacckF2wEAxDRGHRiKW7Kc1mTS3GuikW4j8l4Vj4usEJkUIbomERT1ry4y5LAB
+         brPmXF+2uByv4gRaSLY2n7VsJ63gW3K5LsNnI8k15//wp28P8X4wgQyjcK5dsPHHiK
+         7KaccyMDWcXQg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Youling Tang <tangyouling@loongson.cn>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>,
         linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 18/38] ARM: OMAP2+: Fix memleak in omap2xxx_clkt_vps_init
-Date:   Tue, 22 Dec 2020 21:24:56 -0500
-Message-Id: <20201223022516.2794471-18-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 21/48] ARM: OMAP2+: Fix memleak in omap2xxx_clkt_vps_init
+Date:   Tue, 22 Dec 2020 21:23:49 -0500
+Message-Id: <20201223022417.2794032-21-sashal@kernel.org>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20201223022516.2794471-1-sashal@kernel.org>
-References: <20201223022516.2794471-1-sashal@kernel.org>
+In-Reply-To: <20201223022417.2794032-1-sashal@kernel.org>
+References: <20201223022417.2794032-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
