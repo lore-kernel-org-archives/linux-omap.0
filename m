@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29454C4361A
-	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 02:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D97E8C4361A
+	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 03:02:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DDAE2256F
-	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 02:50:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BACFA20729
+	for <linux-omap@archiver.kernel.org>; Wed, 23 Dec 2020 03:02:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729598AbgLWCuD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 22 Dec 2020 21:50:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49898 "EHLO mail.kernel.org"
+        id S1731347AbgLWDCD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 22 Dec 2020 22:02:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45396 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729525AbgLWCV7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 22 Dec 2020 21:21:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8948E23340;
-        Wed, 23 Dec 2020 02:21:43 +0000 (UTC)
+        id S1728729AbgLWCTm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 22 Dec 2020 21:19:42 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D844F229CA;
+        Wed, 23 Dec 2020 02:19:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1608690104;
-        bh=J17Ye1tVNmhTMAZKXijNIjI7waSIU7anezzCCWHNJIk=;
+        s=k20201202; t=1608689954;
+        bh=Ny0nvANgIhhU6bTHscWWumHSI7lRAkDxmM5KCedXLDs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Zr9F/u4mMh2NjOhVgyAQ66hFfjiAEHBbyG2OQt3ybahFhvW3/8j0DOW6s4BpckIki
-         9GQdeNfA/hmwCHlpsuHezQ2P+JrQ8vT9Bl2wi8rJkMyFxIG8iiRHBI0wcJQKeNdWbc
-         Ecw36VLo/pKX5wGHrsepKi11fOCTFDPn9cAMm9gohWqpHtuL+YWME6Phy5s31e1X5v
-         6WFjgjvd/zWZVP7yTEGrWv9aIE8BZ8jYvlQpVxdYuHG9cM/CrxKqIwmTVYytUHL47w
-         0AQq+aCYpRgxCBDrTxcfuYtjrKudtGphdHt83+gTgLkG2PVPSph8J/M5D890beuvGC
-         2MSPLELO12MjA==
+        b=Au4Wku9gEgHzhswKaaM2klLl0I7Azuga3aQgGNR6DOPEOJ9QgE3yvJg8YUvYwbWEY
+         79k9p4c0+Ar3+YTu3QsY7Ptpxn1dco6BjQC/b82rg1dtKv3+6smW5MScZZL1AKk1mC
+         4gnC7PjNN8JPw1+6C5/EpOV+RK0dfg4ZgK+WEVMHBfZqIik0VkpEQ05dJx6oIBJaRd
+         8ObpErOz/IA0Q5WzAlojCfnAWwExcis3+R1Jks7zZqfDM1QtseQyb/uNxOcRo+bwKc
+         9Rg7B8KZZYDRJynVbYOPeeNgyq+hgC2oqshOvJygWMl0adWRT6tdKtGzFAFOSHZ2r/
+         PsVjKM8VaECBA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Youling Tang <tangyouling@loongson.cn>,
         Tony Lindgren <tony@atomide.com>,
-        Sasha Levin <sashal@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 33/87] ARM: OMAP2+: Fix memleak in omap2xxx_clkt_vps_init
-Date:   Tue, 22 Dec 2020 21:20:09 -0500
-Message-Id: <20201223022103.2792705-33-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH AUTOSEL 5.4 047/130] ARM: OMAP2+: Fix memleak in omap2xxx_clkt_vps_init
+Date:   Tue, 22 Dec 2020 21:16:50 -0500
+Message-Id: <20201223021813.2791612-47-sashal@kernel.org>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20201223022103.2792705-1-sashal@kernel.org>
-References: <20201223022103.2792705-1-sashal@kernel.org>
+In-Reply-To: <20201223021813.2791612-1-sashal@kernel.org>
+References: <20201223021813.2791612-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -66,10 +66,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index b64d717bfab6c..45fa2a87d5715 100644
+index 2a3e72286d3ab..70892b3da28d3 100644
 --- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
 +++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -247,6 +247,12 @@ void omap2xxx_clkt_vps_init(void)
+@@ -244,6 +244,12 @@ void omap2xxx_clkt_vps_init(void)
  	hw->hw.init = &init;
  
  	clk = clk_register(NULL, &hw->hw);
