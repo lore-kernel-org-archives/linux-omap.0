@@ -2,107 +2,115 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FCA5C4332D
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Dec 2020 11:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F23E5C43381
+	for <linux-omap@archiver.kernel.org>; Thu, 24 Dec 2020 15:00:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F2EC822288
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Dec 2020 11:59:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A363122518
+	for <linux-omap@archiver.kernel.org>; Thu, 24 Dec 2020 15:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728367AbgLXL65 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 24 Dec 2020 06:58:57 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:41556 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726746AbgLXL64 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 24 Dec 2020 06:58:56 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 0BOBvCrD086849;
-        Thu, 24 Dec 2020 05:57:12 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1608811032;
-        bh=5LOsNk+DfZ3KJX3uwomu6Vnma6rc/1g2DMZdSRAxi8s=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=tGydbZysrBUh3mESmaR7CxQsvo9rm1NXXlHyEHU2YdPr1bK4i288o54WjUiE7MbFP
-         5l69rNOLRJ67hyLaX82kd651vj7WA2eQPsWg8UKVNqs8D4SBBcwLZIMlUj4elq5g0m
-         4dOXCCKlgcIcaBNn0VkLQUdr37VWlLRpDTGX+ELo=
-Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 0BOBvCWE117324
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 24 Dec 2020 05:57:12 -0600
-Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Thu, 24
- Dec 2020 05:57:11 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Thu, 24 Dec 2020 05:57:11 -0600
-Received: from a0393678-ssd.dal.design.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 0BOBv0Hr006549;
-        Thu, 24 Dec 2020 05:57:07 -0600
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-To:     Kishon Vijay Abraham I <kishon@ti.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-CC:     <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH 1/4] dt-bindings: PCI: ti,j721e: Add binding to represent refclk to the connector
-Date:   Thu, 24 Dec 2020 17:26:55 +0530
-Message-ID: <20201224115658.2795-2-kishon@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20201224115658.2795-1-kishon@ti.com>
-References: <20201224115658.2795-1-kishon@ti.com>
+        id S1727184AbgLXO7p (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 24 Dec 2020 09:59:45 -0500
+Received: from jabberwock.ucw.cz ([46.255.230.98]:35460 "EHLO
+        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726609AbgLXO7p (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 24 Dec 2020 09:59:45 -0500
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 141511C0B96; Thu, 24 Dec 2020 15:59:02 +0100 (CET)
+Date:   Thu, 24 Dec 2020 15:59:01 +0100
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Johan Hovold <johan@kernel.org>, phone-devel@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh@kernel.org>,
+        Alan Cox <gnomes@lxorguk.ukuu.org.uk>,
+        Lee Jones <lee.jones@linaro.org>, Jiri Slaby <jslaby@suse.cz>,
+        Merlijn Wajer <merlijn@wizzup.org>,
+        Peter Hurley <peter@hurleysoftware.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        linux-serial@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCHv6 0/4] n_gsm serdev support and protocol driver for
+ droid4 modem
+Message-ID: <20201224145901.GA13643@duo.ucw.cz>
+References: <20200421232752.3070-1-tony@atomide.com>
+ <20200423114326.GQ18608@localhost>
+ <20200423153756.GE37466@atomide.com>
+ <20200528082420.GA10358@localhost>
+ <20201220224816.GA28213@duo.ucw.cz>
+ <20201224080239.GF26857@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Content-Disposition: inline
+In-Reply-To: <20201224080239.GF26857@atomide.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add binding to represent refclk to the PCIe connector.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- .../bindings/pci/ti,j721e-pci-host.yaml         | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-index 0880a613ece6..7607018a115b 100644
---- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-+++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-@@ -46,12 +46,21 @@ properties:
-     maxItems: 1
- 
-   clocks:
--    maxItems: 1
--    description: clock-specifier to represent input to the PCIe
-+    minItems: 1
-+    maxItems: 2
-+    description: clock-specifier to represent input to the PCIe for 1 item.
-+      2nd item if present represents reference clock to the connector.
- 
-   clock-names:
--    items:
--      - const: fck
-+    oneOf:
-+      - description: Represent input clock to the PCIe
-+        items:
-+          - const: fck
-+      - description: Represent input clock to the PCIe and reference clock to
-+          the connector.
-+        items:
-+          - const: fck
-+          - const: pcie_refclk
- 
-   vendor-id:
-     const: 0x104c
--- 
-2.17.1
+Hi!
 
+> > My notes say:
+> >=20
+> > /dev/motmdm1 -- basic support, calls, on/off                           =
+        =20
+> > /dev/motmdm3 -- send sms interface                                     =
+        =20
+> > /dev/motmdm9 -- receive sms interface                                  =
+        =20
+> >
+> > (and gsmtty numbering is same)
+>=20
+> Yes I have not had a chance to look at these for several months now,
+> but have the latest set in droid4-pending-v5.10 branch in my github
+> tree.
+>=20
+> The gnss device is at /dev/gsmtty6, see the current droid4-agps tool
+> to upload the almanac also on github. That's has turned out to be a
+> pretty good gsm serdev test too :)
+
+Thanks a lot for the info! Is it this one?
+https://github.com/tmlind/droid4-agps . GPS worked for me even w/o
+AGPS support, but I broke even that, so I need to fix that first.
+
+> > For now I converted gnss driver to use serdev interface, and n_gsm to
+> > provide it... Not yet finished but I believe I'm walking in the right
+> > direction.
+>=20
+> Great, sounds good to me if you got things working with just serdev
+> calls :) I'll try to take a look at this stuff again after I have
+> the other pending droid4 issues out of the way like v5.12 charger
+> and keyboard stuff.
+
+Just ask for latest code :-). I still believe I'm going right
+direction, but now I understand why you did it the way you did. Sound
+code needs to listen on gsmtty1, with the data still being provided
+for userspace.
+
+Best regards,
+								Pavel
+--=20
+http://www.livejournal.com/~pavelmachek
+
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCX+SstQAKCRAw5/Bqldv6
+8q2XAKC32dUkwQADDsKasbqBoLCsPuZZWACeMPhDNUkIk389F+IIFLew3RD5ScE=
+=CsTh
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
