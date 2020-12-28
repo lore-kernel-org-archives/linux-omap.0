@@ -2,200 +2,137 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B7AFC4332B
-	for <linux-omap@archiver.kernel.org>; Mon, 28 Dec 2020 15:14:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B75BC433E0
+	for <linux-omap@archiver.kernel.org>; Mon, 28 Dec 2020 17:46:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05D3E22582
-	for <linux-omap@archiver.kernel.org>; Mon, 28 Dec 2020 15:14:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24528221F0
+	for <linux-omap@archiver.kernel.org>; Mon, 28 Dec 2020 17:46:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438551AbgL1PNo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 28 Dec 2020 10:13:44 -0500
-Received: from mx0a-0014ca01.pphosted.com ([208.84.65.235]:10826 "EHLO
-        mx0a-0014ca01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2438251AbgL1OGw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 28 Dec 2020 09:06:52 -0500
-Received: from pps.filterd (m0042385.ppops.net [127.0.0.1])
-        by mx0a-0014ca01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 0BSDvc4i004305;
-        Mon, 28 Dec 2020 06:05:40 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cadence.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-type; s=proofpoint;
- bh=pCs8ZIWLbAqar7nQCRBh7v2ZcsGi82HUlYAsqpWpDFI=;
- b=jufdAzaVoE44SxIDnckSoI+qTM6uSuWoHnJr90OXPvQI8kZ5ADuVJwm5wSq+SKaa5h4/
- ofeLj9S+doE4azOkPIPGEUeiBk6VUYsmbITfXnJ9vc8ZsjZgd6lFvEZlAMYGu3SUyoq3
- jQIB5H0LObOQcUsOQ+W4+pJQY0RYArR9Cki6RuqolPEFo8c5HwecChfOOCwI0Ftoqahr
- UpANO2RsNy6IgUvSzQ6wH/r/ef3ZyZ4zOVEoBLm4Iu6WsBVAPL7Bt2iqisCHsqJ+XErb
- xnVjt/Aef91gethQ8cx+ikTZ0FwN00Y+uxWndmpOVbWogsYo9itpfhouSSvRgoabytMc Eg== 
-Received: from nam10-dm6-obe.outbound.protection.outlook.com (mail-dm6nam10lp2109.outbound.protection.outlook.com [104.47.58.109])
-        by mx0a-0014ca01.pphosted.com with ESMTP id 35p2m1be5q-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 28 Dec 2020 06:05:40 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=j3KMYQQLk1vvatrSqpjva9LFG1dMat13nttLdis2gs3qDwnJP9PMtc7Ma2C0aGoT2TTgNsh2alSKx0xXORdfyIxdunDT7YRVN/ANkR9p8UhVZbJgDAPLxT6qqJd0UtEDbkRnm2bdXZeR4QV0aTxWUCyaJVAwTJ+o7xaUbcrwFzGuqPJsU75swAgR/e+Wn1JBcH3npSTSYbzytKTx/VVqw9DokGuP9RcAmVhXuOCNZgFrz5qQeobk9ZzeXdy0fxaB2rTPcAZMwarxzutfNiBjtOu5AK+8Q0gyKzvaxdv/QBZPCGfHpbUNY1/Mpqj4GaboMT3GI+6Rn0HDNcjDBzCG3A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pCs8ZIWLbAqar7nQCRBh7v2ZcsGi82HUlYAsqpWpDFI=;
- b=mw2K2gSKxhUQM+vmkLlq3WopaYK/uhiyhbpKsOptoyEW307tBioGa7yQqXA89MIhBYWrdqQXjLpFtCprKo9OYzMbEqiqgWS/2s86bHeYwUVpbWwyTpY9KpR5zPVqDKvbB80/gBHUZ9srwkuDk0m2b0DDTyGOuu0x4fLjLlAo1C84BcWMA7G0P3W7PgOhcsH0q/thAnfhZMAEXKRTvs740las99qwvPjv1FWA3ylWNiff58RvL+uXERALLgXDZ//jsz9GQAHCLM8r4+JrMOdhueR6k3Y4hw2L7JqNeKvhQ+2Vd3rNDPts2NYaKRw9cUdjPdbx1zRecIB2EmLnzohkrg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 199.43.4.23) smtp.rcpttodomain=google.com smtp.mailfrom=cadence.com;
- dmarc=pass (p=none sp=none pct=100) action=none header.from=cadence.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cadence.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pCs8ZIWLbAqar7nQCRBh7v2ZcsGi82HUlYAsqpWpDFI=;
- b=NuzZSO/NcRdpBuT9otPj4Clt4uba1s+z1Ja7WRl42aW1SAQpBdmqWNCaJviLmg+7UPHDcwrzzJ4t1uTG+R7ZGZhqLR8KbwQpHaYkv8fLk5C7AdQpq5hzeWO+0/zwrrSELT974f2vyf/jATO8jKotRL2ZR+4CFHee14YCllo4jhg=
-Received: from DM6PR06CA0052.namprd06.prod.outlook.com (2603:10b6:5:54::29) by
- CY4PR0701MB3620.namprd07.prod.outlook.com (2603:10b6:910:90::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3700.28; Mon, 28 Dec
- 2020 14:05:37 +0000
-Received: from DM6NAM12FT062.eop-nam12.prod.protection.outlook.com
- (2603:10b6:5:54:cafe::e5) by DM6PR06CA0052.outlook.office365.com
- (2603:10b6:5:54::29) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3700.27 via Frontend
- Transport; Mon, 28 Dec 2020 14:05:37 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 199.43.4.23)
- smtp.mailfrom=cadence.com; google.com; dkim=none (message not signed)
- header.d=none;google.com; dmarc=pass action=none header.from=cadence.com;
-Received-SPF: Pass (protection.outlook.com: domain of cadence.com designates
- 199.43.4.23 as permitted sender) receiver=protection.outlook.com;
- client-ip=199.43.4.23; helo=rmmaillnx1.cadence.com;
-Received: from rmmaillnx1.cadence.com (199.43.4.23) by
- DM6NAM12FT062.mail.protection.outlook.com (10.13.178.107) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3700.20 via Frontend Transport; Mon, 28 Dec 2020 14:05:36 +0000
-Received: from maileu3.global.cadence.com (maileu3.cadence.com [10.160.88.99])
-        by rmmaillnx1.cadence.com (8.14.4/8.14.4) with ESMTP id 0BSE5XBO030293
-        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 28 Dec 2020 09:05:34 -0500
-X-CrossPremisesHeadersFilteredBySendConnector: maileu3.global.cadence.com
-Received: from maileu3.global.cadence.com (10.160.88.99) by
- maileu3.global.cadence.com (10.160.88.99) with Microsoft SMTP Server (TLS) id
- 15.0.1367.3; Mon, 28 Dec 2020 15:05:32 +0100
-Received: from vleu-orange.cadence.com (10.160.88.83) by
- maileu3.global.cadence.com (10.160.88.99) with Microsoft SMTP Server (TLS) id
- 15.0.1367.3 via Frontend Transport; Mon, 28 Dec 2020 15:05:32 +0100
-Received: from vleu-orange.cadence.com (localhost.localdomain [127.0.0.1])
-        by vleu-orange.cadence.com (8.14.4/8.14.4) with ESMTP id 0BSE5Wg9014705;
-        Mon, 28 Dec 2020 15:05:32 +0100
-Received: (from nadeem@localhost)
-        by vleu-orange.cadence.com (8.14.4/8.14.4/Submit) id 0BSE5W1Q014704;
-        Mon, 28 Dec 2020 15:05:32 +0100
-From:   Nadeem Athani <nadeem@cadence.com>
-To:     <tjoseph@cadence.com>, <lorenzo.pieralisi@arm.com>,
-        <robh@kernel.org>, <bhelgaas@google.com>, <kishon@ti.com>,
-        <linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     <nadeem@cadence.com>, <mparab@cadence.com>, <sjakhade@cadence.com>,
-        <pthombar@cadence.com>
-Subject: [PATCH v6 1/2] PCI: cadence: Retrain Link to work around Gen2 training defect.
-Date:   Mon, 28 Dec 2020 15:05:09 +0100
-Message-ID: <20201228140510.14641-2-nadeem@cadence.com>
-X-Mailer: git-send-email 2.15.0
-In-Reply-To: <20201228140510.14641-1-nadeem@cadence.com>
-References: <20201228140510.14641-1-nadeem@cadence.com>
+        id S1727924AbgL1RqZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 28 Dec 2020 12:46:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36774 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727739AbgL1RqZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2020 12:46:25 -0500
+Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C36E8C061793
+        for <linux-omap@vger.kernel.org>; Mon, 28 Dec 2020 09:45:44 -0800 (PST)
+Received: by mail-ot1-x329.google.com with SMTP id a109so9787712otc.1
+        for <linux-omap@vger.kernel.org>; Mon, 28 Dec 2020 09:45:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=Om6/ussyHcBEJZqJjYlQvXi/CwxT8/WrKL7Ny39pM38=;
+        b=sZAJkmUlGr6sQgRLHyrO1Bq7H8K74L/6g8idarABANKfZ+XaYYL1r//7C3XolSQ+ap
+         JAiBO606lpINpNPuXdFRIerXA4pPFhvQEP2Lx+T3A8XfGFbCg3btEwRrwbU87bE3SpYD
+         yRJ6SQUEt8Q7IOYyGApLZ2u5GNYm3S5C+Px71fKD1YQI7b2oG9qJH+9UqMp+/W/wMrA6
+         cOD6vZBYU8CPrJjjZ6ygf4ZQJsC7lOZpd7ZjFWJL5isVkmL5HhvS11Hw5liJ+qByoXj+
+         ysUcPiAiGy8VMHkgDzuPdM6Gb34H4MNNCBWZbfkpUC2Ctwki6sCg6mX6QgL+2h9rc3RF
+         ByFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=Om6/ussyHcBEJZqJjYlQvXi/CwxT8/WrKL7Ny39pM38=;
+        b=aMM9ZzIoDcFP3zWhRt7L3Tqvxfx13ZOiou1bGyDwY5zdb5xl/yTaduyuBmi6FJPE2i
+         SQv2eIseVAmiTrII6nWo9hGHiKyGEIRCYaz8v3BqWRCVeFqC/qkZXKOMdamf8E5tJMUX
+         bvKyHYUNvTOjCXfMslbUWjIxVVPIsfmfjQdnkhv4jECXg0NiLOh4drZUVEmb+H+pTGjR
+         ad/DXHNUAvZsm2JgFBf2FqWEgWmfi/tiHmxSJwfRpRDo1OJxNBJWsAd2I16t5gchz5wX
+         /5FH7EI8qTyhkG+fc8Xyg5RgpbF+Oitr9nQV+eKDhlkKNNpku3/OL8yNUs88ugsajiYR
+         FzlQ==
+X-Gm-Message-State: AOAM532b71A+M1hSPWpbjeOnhLI8cEaPcJ2Wc+825qrGrA5UOGrBOKUR
+        qs6og5kXbpch+jxeGLvB9/+oCw==
+X-Google-Smtp-Source: ABdhPJyoZSKeFeAkv0tZbKhS3/z5T3WZvwJv+hFwNI1MM01GlnpsEcFel2lF9Dl+RyQubSVL39RuIQ==
+X-Received: by 2002:a9d:2270:: with SMTP id o103mr32897108ota.320.1609177544012;
+        Mon, 28 Dec 2020 09:45:44 -0800 (PST)
+Received: from builder.lan (104-57-184-186.lightspeed.austtx.sbcglobal.net. [104.57.184.186])
+        by smtp.gmail.com with ESMTPSA id t25sm7356044oic.15.2020.12.28.09.45.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 28 Dec 2020 09:45:43 -0800 (PST)
+Date:   Mon, 28 Dec 2020 11:45:41 -0600
+From:   Bjorn Andersson <bjorn.andersson@linaro.org>
+To:     Dimitar Dimitrov <dimitar@dinux.eu>
+Cc:     ohad@wizery.com, Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
+        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
+        Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] remoteproc: pru: Fix loading of GNU Binutils ELF
+Message-ID: <X+oZxcgHLlInB3c2@builder.lan>
+References: <20201228074933.22675-1-dimitar@dinux.eu>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-OrganizationHeadersPreserved: maileu3.global.cadence.com
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 641dfbfa-2c7a-4148-1d25-08d8ab39a6aa
-X-MS-TrafficTypeDiagnostic: CY4PR0701MB3620:
-X-Microsoft-Antispam-PRVS: <CY4PR0701MB362067EC2AFD68D6320B06D9D8D90@CY4PR0701MB3620.namprd07.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4941;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: AlxBixrAS0rWOitHZI2GwSRal9BuCPZgCwYcdDWu93xAufONczQgqX1k4NqS5ogdMXrBHQPnYVOP8RbahktTgdV94MbRmF4fggFlJ2CIO/dYub4b3wb/Y1/DmliTHw8pi7Glw7/aAhPjMZ6CNFrXMXLkOA3Ka7GlREjm5M4TTJXSVS7lggHC+4KiNR3TeofD1OGimrvUUt0e0g5QslXJ3rsD3ldyWXbmD0yTSfP1uLTqakFGqTp7vzzd6eHNc60Y9PbKzqfLM+44bHUWgqe+OrarYb1Pz+zzwb1ymYHK4LhyCIaoQAKFJDLOHL0JZ7XDJnt4uF6w6mfAa/MTznyLXENBCQshvdpBq/5sbdgvmIgV6lXPTAi5JbNCM4nPX9RtnYvMX69fiirHYTDUKb31p26zUusvQpaekPerhZB7lao4zpImZS1oQlff5DgUpt40UfJ4HPEAm1sbnOhfNFEdSsn3HouZuGrTBrQhltBhDUCDZzTA/5DGynaoVYRyY46AZil3iO6CXDaMXc0WJW9JBA==
-X-Forefront-Antispam-Report: CIP:199.43.4.23;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:rmmaillnx1.cadence.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(396003)(136003)(346002)(376002)(39860400002)(36092001)(46966006)(2906002)(42186006)(86362001)(70586007)(4326008)(47076005)(36756003)(107886003)(2616005)(70206006)(54906003)(110136005)(82740400003)(83380400001)(81166007)(426003)(26005)(336012)(8936002)(1076003)(5660300002)(478600001)(316002)(6666004)(8676002)(186003)(356005)(82310400003)(2101003);DIR:OUT;SFP:1101;
-X-OriginatorOrg: cadence.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Dec 2020 14:05:36.9837
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 641dfbfa-2c7a-4148-1d25-08d8ab39a6aa
-X-MS-Exchange-CrossTenant-Id: d36035c5-6ce6-4662-a3dc-e762e61ae4c9
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=d36035c5-6ce6-4662-a3dc-e762e61ae4c9;Ip=[199.43.4.23];Helo=[rmmaillnx1.cadence.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM12FT062.eop-nam12.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR0701MB3620
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.343,18.0.737
- definitions=2020-12-28_11:2020-12-28,2020-12-28 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_check_notspam policy=outbound_check score=0 bulkscore=0
- lowpriorityscore=0 suspectscore=0 impostorscore=0 malwarescore=0
- spamscore=0 adultscore=0 clxscore=1015 mlxlogscore=999 mlxscore=0
- phishscore=0 priorityscore=1501 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2009150000 definitions=main-2012280088
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201228074933.22675-1-dimitar@dinux.eu>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Moving the function above to remove compilation error.
-No changes in function.
+On Mon 28 Dec 01:49 CST 2020, Dimitar Dimitrov wrote:
 
-Signed-off-by: Nadeem Athani <nadeem@cadence.com>
----
- drivers/pci/controller/cadence/pcie-cadence-host.c | 33 +++++++++++-----------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+> PRU port of GNU Binutils lacks support for separate address spaces.
+> PRU IRAM addresses are marked with artificial offset to differentiate
+> them from DRAM addresses. Hence remoteproc must mask IRAM addresses
+> coming from GNU ELF in order to get the true hardware address.
+> 
+> Patch was tested on top of latest linux-remoteproc/for-next branch:
+>   commit 4c0943255805 ("Merge branches 'hwspinlock-next', 'rpmsg-next' and 'rproc-next' into for-next")'
+> 
+> PRU firmware used for testing was the example in:
+>   https://github.com/dinuxbg/pru-gcc-examples/tree/master/blinking-led/pru
+> 
+> Signed-off-by: Dimitar Dimitrov <dimitar@dinux.eu>
+> ---
+>  drivers/remoteproc/pru_rproc.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+> index 2667919d76b3..b03114bbb9ab 100644
+> --- a/drivers/remoteproc/pru_rproc.c
+> +++ b/drivers/remoteproc/pru_rproc.c
+> @@ -61,6 +61,18 @@
+>  #define PRU_SDRAM_DA	0x2000	/* Secondary Data RAM */
+>  #define PRU_SHRDRAM_DA	0x10000 /* Shared Data RAM */
+>  
+> +/*
+> + * GNU binutils do not support multiple address spaces. The GNU linker's
+> + * default linker script places IRAM at an arbitrary high offset, in order
+> + * to differentiate it from DRAM. Hence we need to strip the artificial offset
+> + * in the IRAM addresses coming from the ELF file.
+> + *
+> + * The TI proprietary linker would never set those higher IRAM address bits
+> + * anyway. PRU architecture limits the program counter to 16 bit word
+> + * addresses.
+> + */
+> +#define PRU_IRAM_DA_MASK	0xfffff
 
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 811c1cb2e8de..9f7aa718c8d4 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -77,6 +77,22 @@ static struct pci_ops cdns_pcie_host_ops = {
- 	.write		= pci_generic_config_write,
- };
- 
-+static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
-+{
-+	struct device *dev = pcie->dev;
-+	int retries;
-+
-+	/* Check if the link is up or not */
-+	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-+		if (cdns_pcie_link_up(pcie)) {
-+			dev_info(dev, "Link up\n");
-+			return 0;
-+		}
-+		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
-+	}
-+
-+	return -ETIMEDOUT;
-+}
- 
- static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
- {
-@@ -398,23 +414,6 @@ static int cdns_pcie_host_init(struct device *dev,
- 	return cdns_pcie_host_init_address_translation(rc);
- }
- 
--static int cdns_pcie_host_wait_for_link(struct cdns_pcie *pcie)
--{
--	struct device *dev = pcie->dev;
--	int retries;
--
--	/* Check if the link is up or not */
--	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
--		if (cdns_pcie_link_up(pcie)) {
--			dev_info(dev, "Link up\n");
--			return 0;
--		}
--		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
--	}
--
--	return -ETIMEDOUT;
--}
--
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- {
- 	struct device *dev = rc->pcie.dev;
--- 
-2.15.0
+If the limit is 16 bits, why is your mask 20 bits?
 
+> +
+>  #define MAX_PRU_SYS_EVENTS 160
+>  
+>  /**
+> @@ -450,6 +462,8 @@ static void *pru_i_da_to_va(struct pru_rproc *pru, u32 da, size_t len)
+>  	if (len == 0)
+>  		return NULL;
+>  
+
+Given that the comment explains this operation I think it would be
+better to place it here. And if the masking directly follows what's
+described in the comment you don't need a define for the mask.
+
+Regards,
+Bjorn
+
+> +	da &= PRU_IRAM_DA_MASK;
+> +
+>  	if (da >= PRU_IRAM_DA &&
+>  	    da + len <= PRU_IRAM_DA + pru->mem_regions[PRU_IOMEM_IRAM].size) {
+>  		offset = da - PRU_IRAM_DA;
+> -- 
+> 2.20.1
+> 
