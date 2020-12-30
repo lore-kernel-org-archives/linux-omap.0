@@ -4,85 +4,154 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFC91C433E9
-	for <linux-omap@archiver.kernel.org>; Wed, 30 Dec 2020 08:43:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 268A6C433E0
+	for <linux-omap@archiver.kernel.org>; Wed, 30 Dec 2020 08:44:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8EEE422262
-	for <linux-omap@archiver.kernel.org>; Wed, 30 Dec 2020 08:43:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E39EB21D1B
+	for <linux-omap@archiver.kernel.org>; Wed, 30 Dec 2020 08:44:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726329AbgL3InZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 30 Dec 2020 03:43:25 -0500
-Received: from muru.com ([72.249.23.125]:40474 "EHLO muru.com"
+        id S1726289AbgL3Iob (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 30 Dec 2020 03:44:31 -0500
+Received: from muru.com ([72.249.23.125]:40498 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725853AbgL3InU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 30 Dec 2020 03:43:20 -0500
+        id S1725853AbgL3Ioa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 30 Dec 2020 03:44:30 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 40427812F;
-        Wed, 30 Dec 2020 08:42:53 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 9940380BA;
+        Wed, 30 Dec 2020 08:44:01 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, Carl Philipp Klemm <philipp@uvos.xyz>,
+To:     Amit Kucheria <amitk@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Zhang Rui <rui.zhang@intel.com>
+Cc:     Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>,
+        Carl Philipp Klemm <philipp@uvos.xyz>,
         Merlijn Wajer <merlijn@wizzup.org>,
         Pavel Machek <pavel@ucw.cz>,
-        Sebastian Reichel <sre@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Peter Ujfalusi <peter.ujfalusi@gmail.com>
-Subject: [PATCH 2/3] ARM: dts: motorola-mapphone: Configure lower temperature passive cooling
-Date:   Wed, 30 Dec 2020 10:42:31 +0200
-Message-Id: <20201230084232.19221-2-tony@atomide.com>
+        Peter Ujfalusi <peter.ujfalusi@gmail.com>,
+        Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 1/3] thermal: ti-soc-thermal: Fix stuck sensor with continuous mode for 4430
+Date:   Wed, 30 Dec 2020 10:43:36 +0200
+Message-Id: <20201230084338.19410-1-tony@atomide.com>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201230084232.19221-1-tony@atomide.com>
-References: <20201230084232.19221-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The current cooling device temperature is too high at 100C as we have a
-battery on the device right next to the SoC as pointed out by Carl Philipp
-Klemm <philipp@uvos.xyz>. Let's configure the max temperature to 80C.
+At least for 4430, trying to use the single conversion mode eventually
+hangs the thermal sensor. This can be quite easily seen with errors:
 
-As we only have a tshut interrupt and no talert interrupt on 4430, we have
-a passive cooling device configured for 4430. However, we want the poll
-interval to be 10 seconds instead of 1 second for power management. The
-value of 10 seconds seems like plenty of time to notice the temperature
-increase above the 75C temperatures. Having the bandgap temperature change
-seems to take several tens of seconds because of heat dissipation above
-75C range as monitored with a full CPU load.
+thermal thermal_zone0: failed to read out thermal zone (-5)
 
+Also, trying to read the temperature shows a stuck value with:
+
+$ while true; do cat /sys/class/thermal/thermal_zone0/temp; done
+
+Where the temperature is not rising at all with the busy loop.
+
+Additionally, the EOCZ (end of conversion) bit is not rising on 4430 in
+single conversion mode while it works fine in continuous conversion mode.
+It is also possible that the hung temperature sensor can affect the
+thermal shutdown alert too.
+
+Let's fix the issue by adding TI_BANDGAP_FEATURE_CONT_MODE_ONLY flag and
+use it for 4430.
+
+Note that we also need to add udelay to for the EOCZ (end of conversion)
+bit polling as otherwise we have it time out too early on 4430. We'll be
+changing the loop to use iopoll in the following clean-up patch.
+
+Cc: Adam Ford <aford173@gmail.com>
 Cc: Carl Philipp Klemm <philipp@uvos.xyz>
+Cc: Eduardo Valentin <edubezval@gmail.com>
 Cc: Merlijn Wajer <merlijn@wizzup.org>
 Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Peter Ujfalusi <peter.ujfalusi@gmail.com>
 Cc: Sebastian Reichel <sre@kernel.org>
-Suggested-by: Carl Philipp Klemm <philipp@uvos.xyz>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/motorola-mapphone-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/thermal/ti-soc-thermal/omap4-thermal-data.c | 3 ++-
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c         | 9 +++++++--
+ drivers/thermal/ti-soc-thermal/ti-bandgap.h         | 2 ++
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/motorola-mapphone-common.dtsi b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
---- a/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-+++ b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
-@@ -192,6 +192,14 @@ backlight: backlight {
- 	};
- };
+diff --git a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
+--- a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
++++ b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
+@@ -58,7 +58,8 @@ omap4430_adc_to_temp[OMAP4430_ADC_END_VALUE - OMAP4430_ADC_START_VALUE + 1] = {
+ const struct ti_bandgap_data omap4430_data = {
+ 	.features = TI_BANDGAP_FEATURE_MODE_CONFIG |
+ 			TI_BANDGAP_FEATURE_CLK_CTRL |
+-			TI_BANDGAP_FEATURE_POWER_SWITCH,
++			TI_BANDGAP_FEATURE_POWER_SWITCH |
++			TI_BANDGAP_FEATURE_CONT_MODE_ONLY,
+ 	.fclock_name = "bandgap_fclk",
+ 	.div_ck_name = "bandgap_fclk",
+ 	.conv_table = omap4430_adc_to_temp,
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -15,6 +15,7 @@
+ #include <linux/kernel.h>
+ #include <linux/interrupt.h>
+ #include <linux/clk.h>
++#include <linux/delay.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/platform_device.h>
+ #include <linux/err.h>
+@@ -605,8 +606,10 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
+ 	u32 counter = 1000;
+ 	struct temp_sensor_registers *tsr;
  
-+&cpu_thermal {
-+	polling-delay = <10000>; /* milliseconds */
-+};
-+
-+&cpu_alert0 {
-+        temperature = <80000>; /* millicelsius */
-+};
-+
- &dss {
- 	status = "okay";
- };
+-	/* Select single conversion mode */
+-	if (TI_BANDGAP_HAS(bgp, MODE_CONFIG))
++	/* Select continuous or single conversion mode */
++	if (TI_BANDGAP_HAS(bgp, CONT_MODE_ONLY))
++		RMW_BITS(bgp, id, bgap_mode_ctrl, mode_ctrl_mask, 1);
++	else if (TI_BANDGAP_HAS(bgp, MODE_CONFIG))
+ 		RMW_BITS(bgp, id, bgap_mode_ctrl, mode_ctrl_mask, 0);
+ 
+ 	/* Start of Conversion = 1 */
+@@ -619,6 +622,7 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
+ 		if (ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) &
+ 		    tsr->bgap_eocz_mask)
+ 			break;
++		udelay(1);
+ 	}
+ 
+ 	/* Start of Conversion = 0 */
+@@ -630,6 +634,7 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
+ 		if (!(ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) &
+ 		      tsr->bgap_eocz_mask))
+ 			break;
++		udelay(1);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+@@ -280,6 +280,7 @@ struct ti_temp_sensor {
+  *	has Errata 814
+  * TI_BANDGAP_FEATURE_UNRELIABLE - used when the sensor readings are too
+  *	inaccurate.
++ * TI_BANDGAP_FEATURE_CONT_MODE_ONLY - used when single mode hangs the sensor
+  * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is capable of a
+  *      specific feature (above) or not. Return non-zero, if yes.
+  */
+@@ -295,6 +296,7 @@ struct ti_temp_sensor {
+ #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
+ #define TI_BANDGAP_FEATURE_ERRATA_814		BIT(10)
+ #define TI_BANDGAP_FEATURE_UNRELIABLE		BIT(11)
++#define TI_BANDGAP_FEATURE_CONT_MODE_ONLY	BIT(12)
+ #define TI_BANDGAP_HAS(b, f)			\
+ 			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
+ 
 -- 
 2.29.2
