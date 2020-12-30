@@ -4,81 +4,98 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57289C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 994ECC43381
 	for <linux-omap@archiver.kernel.org>; Wed, 30 Dec 2020 08:43:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14EDF20784
+	by mail.kernel.org (Postfix) with ESMTP id 6727021D1B
 	for <linux-omap@archiver.kernel.org>; Wed, 30 Dec 2020 08:43:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726197AbgL3InT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 30 Dec 2020 03:43:19 -0500
-Received: from muru.com ([72.249.23.125]:40450 "EHLO muru.com"
+        id S1726185AbgL3InY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 30 Dec 2020 03:43:24 -0500
+Received: from muru.com ([72.249.23.125]:40488 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726161AbgL3InS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 30 Dec 2020 03:43:18 -0500
+        id S1726329AbgL3InX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 30 Dec 2020 03:43:23 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id D8D6280BA;
-        Wed, 30 Dec 2020 08:42:50 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id ADE9681B8;
+        Wed, 30 Dec 2020 08:42:55 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org, Carl Philipp Klemm <philipp@uvos.xyz>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Eduardo Valentin <edubezval@gmail.com>,
         Merlijn Wajer <merlijn@wizzup.org>,
         Pavel Machek <pavel@ucw.cz>,
-        Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-        Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 1/3] ARM: dts: Configure missing thermal interrupt for 4430
-Date:   Wed, 30 Dec 2020 10:42:30 +0200
-Message-Id: <20201230084232.19221-1-tony@atomide.com>
+        Sebastian Reichel <sre@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Peter Ujfalusi <peter.ujfalusi@gmail.com>
+Subject: [PATCH 3/3] ARM: dts: motorola-mapphone: Add 1.2GHz OPP
+Date:   Wed, 30 Dec 2020 10:42:32 +0200
+Message-Id: <20201230084232.19221-3-tony@atomide.com>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20201230084232.19221-1-tony@atomide.com>
+References: <20201230084232.19221-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We have gpio_86 wired internally to the bandgap thermal shutdown
-interrupt on 4430 like we have it on 4460 according to the TRM.
-This can be found easily by searching for TSHUT.
+From: Carl Philipp Klemm <philipp@uvos.xyz>
 
-For some reason the thermal shutdown interrupt was never added
-for 4430, let's add it. I believe this is needed for the thermal
-shutdown interrupt handler ti_bandgap_tshut_irq_handler() to call
-orderly_poweroff().
+The omap4430 HS HIGH performance devces support 1.2GHz opp, lower speed
+variants do not. However for mapphone devices Motorola seems to have
+decided that this does not really matter for the SoC variants they have
+tested to use, and decided to clock all devices, including the ones with
+STANDARD performance chips at 1.2GHz upon release of the 3.0.8 vendor
+kernel shiped with Android 4.0. Therefore it seems safe to do the same,
+but let's only do it for Motorola devices as the others have not been
+tested.
 
-Fixes: aa9bb4bb8878 ("arm: dts: add omap4430 thermal data")
-Cc: Carl Philipp Klemm <philipp@uvos.xyz>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Eduardo Valentin <edubezval@gmail.com>
+Note that we prevent overheating with the passive cooling device
+cpu_alert0 configured in the dts file that starts lowering the speed as
+needed.
+
+This also removes the "failed to find current OPP for freq 1200000000"
+warning.
+
 Cc: Merlijn Wajer <merlijn@wizzup.org>
 Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Peter Ujfalusi <peter.ujfalusi@gmail.com>
 Cc: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
+[tony@atomide.com: made motorola specific, updated comments]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap443x.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/motorola-mapphone-common.dtsi | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
---- a/arch/arm/boot/dts/omap443x.dtsi
-+++ b/arch/arm/boot/dts/omap443x.dtsi
-@@ -33,10 +33,12 @@ thermal-zones {
- 	};
+diff --git a/arch/arm/boot/dts/motorola-mapphone-common.dtsi b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
+--- a/arch/arm/boot/dts/motorola-mapphone-common.dtsi
++++ b/arch/arm/boot/dts/motorola-mapphone-common.dtsi
+@@ -200,6 +200,21 @@ &cpu_alert0 {
+         temperature = <80000>; /* millicelsius */
+ };
  
- 	ocp {
-+		/* 4430 has only gpio_86 tshut and no talert interrupt */
- 		bandgap: bandgap@4a002260 {
- 			reg = <0x4a002260 0x4
- 			       0x4a00232C 0x4>;
- 			compatible = "ti,omap4430-bandgap";
-+			gpios = <&gpio3 22 GPIO_ACTIVE_HIGH>;
- 
- 			#thermal-sensor-cells = <0>;
- 		};
++&cpu0 {
++        /*
++	 * Note that the 1.2GiHz mode is enabled for all SoC variants for
++	 * the Motorola Android Linux v3.0.8 based kernel.
++	 */
++        operating-points = <
++	        /* kHz    uV */
++	        300000  1025000
++	        600000  1200000
++	        800000  1313000
++	        1008000 1375000
++		1200000 1375000
++        >;
++};
++
+ &dss {
+ 	status = "okay";
+ };
 -- 
 2.29.2
