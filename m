@@ -2,96 +2,77 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DAEDC43332
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 12:44:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50F60C433DB
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 19:57:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE9DE21D93
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 12:44:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF56E2085B
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 19:57:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727012AbhADMnm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 4 Jan 2021 07:43:42 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:35032 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726472AbhADMnl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2021 07:43:41 -0500
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 104Cfw1r015297;
-        Mon, 4 Jan 2021 06:41:58 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1609764118;
-        bh=PDv3Jixr3M5clZhrNBfpbXuxNLrgt8dzQxEDS9DO98o=;
-        h=From:To:CC:Subject:Date;
-        b=tRRjTbwSyKK0+5oE7u7H9YfV5/HTw+rmvgwcZYTgx0Aq7SqrYHIQKSbw0qU/ozBZf
-         qc16m6P7YryD3D+sOTS+XmGQmUxj7h0rZ70YQEmVA6HB8qCjijPWJFnwcKOJB4lc1q
-         zMgA9OOkL9yzeXRBMMoEf+ZNHtorMuCDmSsGSKYE=
-Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 104CfwMs129208
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 4 Jan 2021 06:41:58 -0600
-Received: from DLEE104.ent.ti.com (157.170.170.34) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 4 Jan
- 2021 06:41:08 -0600
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 4 Jan 2021 06:41:08 -0600
-Received: from a0393678-ssd.ent.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 104Cf3bg034579;
-        Mon, 4 Jan 2021 06:41:04 -0600
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Nadeem Athani <nadeem@cadence.com>
-CC:     <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v2 0/4] AM64: Add PCIe bindings and driver support
-Date:   Mon, 4 Jan 2021 18:10:59 +0530
-Message-ID: <20210104124103.30930-1-kishon@ti.com>
-X-Mailer: git-send-email 2.17.1
-MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+        id S1726168AbhADT5a (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 4 Jan 2021 14:57:30 -0500
+Received: from sender11-of-o51.zoho.eu ([31.186.226.237]:21152 "EHLO
+        sender11-of-o51.zoho.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727520AbhADT5Y (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2021 14:57:24 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1609790194; cv=none; 
+        d=zohomail.eu; s=zohoarc; 
+        b=LUcWeICb7P3Lffusyw8GRvjFDdkjGaL2xpawtGA3vhh/8VOYfAwDpMgVPD10dTBVC0kJpSWauxQYbAvUzwteNV0UmE8dJQYZ2Tf723MxNeSjZdsBhG9TJwF9sCLvJHPtdUTh9BSmEkF8Nmkn1+Ov3cU4d6iqxJBCvY8NDlvBZ2I=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+        t=1609790194; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=HL+4cO3hptPd2j/OGX2u1lxqjVoG1JGQy1mc6uj3aYM=; 
+        b=TEWABq3zvY7qba4Y+dI4y0apvZkh9DSTBssuKeuFdX6CYnKnv6b/w08l8HAHN8CK91B0SXTbn6A/WvD3fxANO0if7Xu1lRs6Hw/rfzq1SD5gLMFYnCSwFMiJkRIIh7UENIqqx1G3JlMRF9TdjvDb2BFWzlZXTIbL1YfN3PVQj4U=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+        spf=pass  smtp.mailfrom=philipp@uvos.xyz;
+        dmarc=pass header.from=<philipp@uvos.xyz> header.from=<philipp@uvos.xyz>
+Received: from localhost.localdomain (ip-95-222-213-78.hsi15.unitymediagroup.de [95.222.213.78]) by mx.zoho.eu
+        with SMTPS id 1609790192154642.5039466454091; Mon, 4 Jan 2021 20:56:32 +0100 (CET)
+Date:   Mon, 4 Jan 2021 20:56:31 +0100
+From:   Carl Philipp Klemm <philipp@uvos.xyz>
+To:     tony@atomide.com, bcousson@baylibre.com
+Cc:     robh+dt@kernel.org, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH  v3 1/1] ARM: dts: omap443x: Correct sgx clock to 307.2MHz
+ as used on motorola vendor kernel
+Message-Id: <20210104205631.5db65991237a872b6525ed65@uvos.xyz>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-AM64 uses the same PCIe controller as in J7200, however AM642 EVM
-doesn't have a clock generator (unlike J7200 base board). Here
-the clock from the SERDES has to be routed to the PCIE connector.
-This series provides an option for the pci-j721e.c driver to
-drive reference clock output to the connector.
+The Android vendor kernel uses 307.2MHz or a divider ratio of /5 while active 
+153600000 or /10 is only used when the sgx core is inactive.
 
-v1 of the patch series can be found @ [1]
+Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
+---
+ arch/arm/boot/dts/omap443x.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Changes from v1:
-*) Fixed missing initialization of "ret" variable in the error path.
-
-[1] -> http://lore.kernel.org/r/20201224115658.2795-1-kishon@ti.com
-
-Kishon Vijay Abraham I (4):
-  dt-bindings: PCI: ti,j721e: Add binding to represent refclk to the
-    connector
-  dt-bindings: pci: ti,j721e: Add host mode dt-bindings for TI's AM64
-    SoC
-  dt-bindings: pci: ti,j721e: Add endpoint mode dt-bindings for TI's
-    AM64 SoC
-  PCI: j721e: Add support to provide refclk to PCIe connector
-
- .../bindings/pci/ti,j721e-pci-ep.yaml         | 10 ++++---
- .../bindings/pci/ti,j721e-pci-host.yaml       | 27 ++++++++++++++-----
- drivers/pci/controller/cadence/pci-j721e.c    | 18 +++++++++++++
- 3 files changed, 45 insertions(+), 10 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
+index dd8ef58cbaed..8466161197ae 100644
+--- a/arch/arm/boot/dts/omap443x.dtsi
++++ b/arch/arm/boot/dts/omap443x.dtsi
+@@ -78,11 +78,11 @@ &cpu_thermal {
+ /include/ "omap443x-clocks.dtsi"
+ 
+ /*
+- * Use dpll_per for sgx at 153.6MHz like droid4 stock v3.0.8 Android kernel
++ * Use dpll_per for sgx at 307.2MHz like droid4 stock v3.0.8 Android kernel
+  */
+ &sgx_module {
+ 	assigned-clocks = <&l3_gfx_clkctrl OMAP4_GPU_CLKCTRL 24>,
+ 			  <&dpll_per_m7x2_ck>;
+-	assigned-clock-rates = <0>, <153600000>;
++	assigned-clock-rates = <0>, <307200000>;
+ 	assigned-clock-parents = <&dpll_per_m7x2_ck>;
+ };
 -- 
-2.17.1
-
+2.29.2
