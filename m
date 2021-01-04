@@ -2,62 +2,122 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCBF0C433DB
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 07:31:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6391AC433E0
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 11:02:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A219E207B7
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 07:31:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E77B21D79
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 11:02:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727939AbhADHaw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 4 Jan 2021 02:30:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56958 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727810AbhADHav (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 4 Jan 2021 02:30:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 37FB4207B7;
-        Mon,  4 Jan 2021 07:30:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1609745411;
-        bh=kJ7tIx6+r+VyiiZ+ckZqxiWwz7LaTSEHsosRPI74mwg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=TvKUHELzK09cVV7YTMf2uNBplAB+TpYL8TZihmmi2JOUd9ed/PCiypfClJThTIJKp
-         TEew1m94iiR99Ok/ewIWmxUBrrl4TxTB8y5XV8TA43wTj8e0Qd00Q8e5WAOIsv3Of5
-         K8kJp1aZEbt24M2WdH8qpZAyhhhjSWACQtV8oDFH1BxRm+2n32s41bxopmvppZ2ufq
-         or/OQ/E2H+AQCsmXRI45GOg4n/s0ntKj6TMmCs/f9+JIVJOYlPRHLrXzYQWNl2Zst0
-         ALtBv8dRNG/7KhE6lHKsktfR8yGbhzeRaJVguBOBXUoZBKMvl3OvHWHvwblmDt8xLl
-         iJtHWH7Z749xA==
-Date:   Mon, 4 Jan 2021 13:00:06 +0530
-From:   Vinod Koul <vkoul@kernel.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
-        linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCH] phy: cpcap-usb: Fix warning for missing regulator_disable
-Message-ID: <20210104073006.GE120946@vkoul-mobl>
-References: <20201230102105.11826-1-tony@atomide.com>
+        id S1726129AbhADLCQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 4 Jan 2021 06:02:16 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:37542 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725830AbhADLCQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2021 06:02:16 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 104B0lxi067821;
+        Mon, 4 Jan 2021 05:00:47 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1609758047;
+        bh=nU0QXzcYjxUXyNhlJEPsHs1vQHfjG7/yfEack7+6TUs=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=GCZAMn6W6E9WSGxwUMj4InLxgkUAcf1wlFml6z59Ixk4e2MLou/UKaWdIZaIEJzob
+         8fUgL3JErRFNRl2ktPldoIbSwxAdPGYUtf0jrrTCKIQOmtf9scpNGE6wlKti9DyM0q
+         Qt51T27/JQJwvd4O8CwvhcWQKbri2vfsC6cMocYk=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 104B0lfo081309
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 4 Jan 2021 05:00:47 -0600
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 4 Jan
+ 2021 05:00:47 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Mon, 4 Jan 2021 05:00:47 -0600
+Received: from [10.250.235.36] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 104B0hxi030137;
+        Mon, 4 Jan 2021 05:00:44 -0600
+Subject: Re: [PATCH 4/4] PCI: j721e: Add support to provide refclk to PCIe
+ connector
+To:     Bjorn Helgaas <bhelgaas@google.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC:     <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20201224115658.2795-1-kishon@ti.com>
+ <20201224115658.2795-5-kishon@ti.com>
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+Message-ID: <da620ca1-d72a-b086-f8a8-f5aede0d4c56@ti.com>
+Date:   Mon, 4 Jan 2021 16:30:42 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201230102105.11826-1-tony@atomide.com>
+In-Reply-To: <20201224115658.2795-5-kishon@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 30-12-20, 12:21, Tony Lindgren wrote:
-> On deferred probe, we will get the following splat:
+Hi,
+
+On 24/12/20 5:26 pm, Kishon Vijay Abraham I wrote:
+> Add support to provide refclk to PCIe connector.
 > 
-> cpcap-usb-phy cpcap-usb-phy.0: could not initialize VBUS or ID IIO: -517
-> WARNING: CPU: 0 PID: 21 at drivers/regulator/core.c:2123 regulator_put+0x68/0x78
-> ...
-> (regulator_put) from [<c068ebf0>] (release_nodes+0x1b4/0x1fc)
-> (release_nodes) from [<c068a9a4>] (really_probe+0x104/0x4a0)
-> (really_probe) from [<c068b034>] (driver_probe_device+0x58/0xb4)
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/controller/cadence/pci-j721e.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+> index dac1ac8a7615..8ec6d9c3e164 100644
+> --- a/drivers/pci/controller/cadence/pci-j721e.c
+> +++ b/drivers/pci/controller/cadence/pci-j721e.c
+> @@ -6,6 +6,7 @@
+>   * Author: Kishon Vijay Abraham I <kishon@ti.com>
+>   */
+>  
+> +#include <linux/clk.h>
+>  #include <linux/delay.h>
+>  #include <linux/gpio/consumer.h>
+>  #include <linux/io.h>
+> @@ -50,6 +51,7 @@ enum link_status {
+>  
+>  struct j721e_pcie {
+>  	struct device		*dev;
+> +	struct clk		*refclk;
+>  	u32			mode;
+>  	u32			num_lanes;
+>  	struct cdns_pcie	*cdns_pcie;
+> @@ -310,6 +312,7 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+>  	struct cdns_pcie_ep *ep;
+>  	struct gpio_desc *gpiod;
+>  	void __iomem *base;
+> +	struct clk *clk;
+>  	u32 num_lanes;
+>  	u32 mode;
+>  	int ret;
+> @@ -408,6 +411,19 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+>  			goto err_get_sync;
+>  		}
+>  
+> +		clk = devm_clk_get_optional(dev, "pcie_refclk");
+> +		if (IS_ERR(clk)) {
+> +			dev_err(dev, "failed to get pcie_refclk\n");
 
-Applied, thanks
+missed initializing "ret" here. Will fix this and re-send new version.
 
--- 
-~Vinod
+Thanks
+Kishon
