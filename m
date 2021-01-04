@@ -2,77 +2,79 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50F60C433DB
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 19:57:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAB11C433DB
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 20:12:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF56E2085B
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 19:57:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84B24221F8
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 20:12:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726168AbhADT5a (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 4 Jan 2021 14:57:30 -0500
-Received: from sender11-of-o51.zoho.eu ([31.186.226.237]:21152 "EHLO
-        sender11-of-o51.zoho.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727520AbhADT5Y (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2021 14:57:24 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1609790194; cv=none; 
-        d=zohomail.eu; s=zohoarc; 
-        b=LUcWeICb7P3Lffusyw8GRvjFDdkjGaL2xpawtGA3vhh/8VOYfAwDpMgVPD10dTBVC0kJpSWauxQYbAvUzwteNV0UmE8dJQYZ2Tf723MxNeSjZdsBhG9TJwF9sCLvJHPtdUTh9BSmEkF8Nmkn1+Ov3cU4d6iqxJBCvY8NDlvBZ2I=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-        t=1609790194; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
-        bh=HL+4cO3hptPd2j/OGX2u1lxqjVoG1JGQy1mc6uj3aYM=; 
-        b=TEWABq3zvY7qba4Y+dI4y0apvZkh9DSTBssuKeuFdX6CYnKnv6b/w08l8HAHN8CK91B0SXTbn6A/WvD3fxANO0if7Xu1lRs6Hw/rfzq1SD5gLMFYnCSwFMiJkRIIh7UENIqqx1G3JlMRF9TdjvDb2BFWzlZXTIbL1YfN3PVQj4U=
-ARC-Authentication-Results: i=1; mx.zohomail.eu;
-        spf=pass  smtp.mailfrom=philipp@uvos.xyz;
-        dmarc=pass header.from=<philipp@uvos.xyz> header.from=<philipp@uvos.xyz>
-Received: from localhost.localdomain (ip-95-222-213-78.hsi15.unitymediagroup.de [95.222.213.78]) by mx.zoho.eu
-        with SMTPS id 1609790192154642.5039466454091; Mon, 4 Jan 2021 20:56:32 +0100 (CET)
-Date:   Mon, 4 Jan 2021 20:56:31 +0100
-From:   Carl Philipp Klemm <philipp@uvos.xyz>
-To:     tony@atomide.com, bcousson@baylibre.com
-Cc:     robh+dt@kernel.org, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH  v3 1/1] ARM: dts: omap443x: Correct sgx clock to 307.2MHz
- as used on motorola vendor kernel
-Message-Id: <20210104205631.5db65991237a872b6525ed65@uvos.xyz>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        id S1728153AbhADUMg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 4 Jan 2021 15:12:36 -0500
+Received: from vern.gendns.com ([98.142.107.122]:49348 "EHLO vern.gendns.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728150AbhADUMg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 4 Jan 2021 15:12:36 -0500
+X-Greylist: delayed 949 seconds by postgrey-1.27 at vger.kernel.org; Mon, 04 Jan 2021 15:12:35 EST
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=lechnology.com; s=default; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:Subject:From:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=hU6L/HbTEg6Yn+OtW3Z4kUfeWwPdfrHV+fA1tYktCis=; b=iNQQ4x9EnpzV1uNDrzKeWRlKTh
+        D0K1GhDBWJ+pLVbDAB3+2XCp3Xfjccq/zX6mxA/3KKt1NXnPXdqfIHCW8oxrF8aHPmcRRk/aNr1Bx
+        I6AXZAbWiGeF4JCW5vBjZlz6nXkxLC1Hc3ZBOVbE/6H1kvCkvs4VMawYmK5EqSVtQE1ZdvuEl/QP0
+        g2/p7s7zgdPXt/oafBFQTIYHEJc6fr5wKXgj6ZH+Ji5wSHyRFPCcIEmjnfIPPwGt8XOKzY8bN7oDC
+        0kUqaFE6Mwgu3zCS3bEvhSEJ9sadiAxLJA0A/C/XpRvQ/hzyibKDlLXFhk0gLybN2ggJ1MmXA/M1a
+        GKE0RxJg==;
+Received: from 108-198-5-147.lightspeed.okcbok.sbcglobal.net ([108.198.5.147]:53966 helo=[192.168.0.134])
+        by vern.gendns.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <david@lechnology.com>)
+        id 1kwWCl-0003hF-JR; Mon, 04 Jan 2021 15:11:51 -0500
+From:   David Lechner <david@lechnology.com>
+Subject: Re: [PATCH v2 0/5] Introduce PRU remoteproc consumer API
+To:     grzegorz.jaszczyk@linaro.org
+Cc:     bjorn.andersson@linaro.org, devicetree@vger.kernel.org,
+        lee.jones@linaro.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, mathieu.poirier@linaro.org,
+        ohad@wizery.com, praneeth@ti.com, robh+dt@kernel.org,
+        rogerq@ti.com, s-anna@ti.com, ssantosh@kernel.org, t-kristo@ti.com
+References: <20201216165239.2744-1-grzegorz.jaszczyk@linaro.org>
+Message-ID: <9603a894-495b-3c73-0916-aea52f98fe9f@lechnology.com>
+Date:   Mon, 4 Jan 2021 14:11:50 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
+MIME-Version: 1.0
+In-Reply-To: <20201216165239.2744-1-grzegorz.jaszczyk@linaro.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-ZohoMailClient: External
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - vern.gendns.com
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - lechnology.com
+X-Get-Message-Sender-Via: vern.gendns.com: authenticated_id: davidmain+lechnology.com/only user confirmed/virtual account not confirmed
+X-Authenticated-Sender: vern.gendns.com: davidmain@lechnology.com
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The Android vendor kernel uses 307.2MHz or a divider ratio of /5 while active 
-153600000 or /10 is only used when the sgx core is inactive.
 
-Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
----
- arch/arm/boot/dts/omap443x.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Please see the individual patches for exact changes in each patch, following is
+> the only change from v1:
+>  - Change the 'prus' property name to 'ti,prus' as suggested by Rob Herring,
+>  which influences patch #1 and patch #2
 
-diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
-index dd8ef58cbaed..8466161197ae 100644
---- a/arch/arm/boot/dts/omap443x.dtsi
-+++ b/arch/arm/boot/dts/omap443x.dtsi
-@@ -78,11 +78,11 @@ &cpu_thermal {
- /include/ "omap443x-clocks.dtsi"
- 
- /*
-- * Use dpll_per for sgx at 153.6MHz like droid4 stock v3.0.8 Android kernel
-+ * Use dpll_per for sgx at 307.2MHz like droid4 stock v3.0.8 Android kernel
-  */
- &sgx_module {
- 	assigned-clocks = <&l3_gfx_clkctrl OMAP4_GPU_CLKCTRL 24>,
- 			  <&dpll_per_m7x2_ck>;
--	assigned-clock-rates = <0>, <153600000>;
-+	assigned-clock-rates = <0>, <307200000>;
- 	assigned-clock-parents = <&dpll_per_m7x2_ck>;
- };
--- 
-2.29.2
+It looks like "soc: ti: pruss: Add pruss_{request, release}_mem_region() API"
+was also dropped in v2. Was this intentional?
