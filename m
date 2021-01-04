@@ -2,122 +2,111 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6391AC433E0
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 11:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D045C433E0
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 12:42:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E77B21D79
-	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 11:02:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D93221E92
+	for <linux-omap@archiver.kernel.org>; Mon,  4 Jan 2021 12:42:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726129AbhADLCQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 4 Jan 2021 06:02:16 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:37542 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725830AbhADLCQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2021 06:02:16 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 104B0lxi067821;
-        Mon, 4 Jan 2021 05:00:47 -0600
+        id S1726564AbhADMme (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 4 Jan 2021 07:42:34 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:34956 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726558AbhADMmd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2021 07:42:33 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 104Cfj1G015247;
+        Mon, 4 Jan 2021 06:41:45 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1609758047;
-        bh=nU0QXzcYjxUXyNhlJEPsHs1vQHfjG7/yfEack7+6TUs=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=GCZAMn6W6E9WSGxwUMj4InLxgkUAcf1wlFml6z59Ixk4e2MLou/UKaWdIZaIEJzob
-         8fUgL3JErRFNRl2ktPldoIbSwxAdPGYUtf0jrrTCKIQOmtf9scpNGE6wlKti9DyM0q
-         Qt51T27/JQJwvd4O8CwvhcWQKbri2vfsC6cMocYk=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 104B0lfo081309
+        s=ti-com-17Q1; t=1609764105;
+        bh=ekIjBsGEy8ttVisERONWFmyGyUxpFsUO4LLaUm07A6A=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=eGjuHFPqO9E0G40l1ubfF9q9XagbjWUNzwQZXW6oAJmvxNDBT0kQo0NK5s3A1nE6k
+         6bCIudcJxc62vSC7hsf/sK+q/YSWFz6yfi1FDiYugsJO0jbFhvpvLJ4FXsvzAutDCP
+         HsOO5qhPqzyM4pX/Om61J6uPBd4UxAu619wqZSY0=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 104CfjiD081592
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 4 Jan 2021 05:00:47 -0600
-Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 4 Jan 2021 06:41:45 -0600
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Mon, 4 Jan
- 2021 05:00:47 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE110.ent.ti.com
+ 2021 06:41:21 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE110.ent.ti.com
  (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Mon, 4 Jan 2021 05:00:47 -0600
-Received: from [10.250.235.36] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 104B0hxi030137;
-        Mon, 4 Jan 2021 05:00:44 -0600
-Subject: Re: [PATCH 4/4] PCI: j721e: Add support to provide refclk to PCIe
- connector
+ Frontend Transport; Mon, 4 Jan 2021 06:41:22 -0600
+Received: from a0393678-ssd.ent.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 104Cf3bj034579;
+        Mon, 4 Jan 2021 06:41:18 -0600
+From:   Kishon Vijay Abraham I <kishon@ti.com>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Rob Herring <robh+dt@kernel.org>,
         Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Nadeem Athani <nadeem@cadence.com>
 CC:     <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-References: <20201224115658.2795-1-kishon@ti.com>
- <20201224115658.2795-5-kishon@ti.com>
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-Message-ID: <da620ca1-d72a-b086-f8a8-f5aede0d4c56@ti.com>
-Date:   Mon, 4 Jan 2021 16:30:42 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+Subject: [PATCH v2 3/4] dt-bindings: pci: ti,j721e: Add endpoint mode dt-bindings for TI's AM64 SoC
+Date:   Mon, 4 Jan 2021 18:11:02 +0530
+Message-ID: <20210104124103.30930-4-kishon@ti.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20210104124103.30930-1-kishon@ti.com>
+References: <20210104124103.30930-1-kishon@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20201224115658.2795-5-kishon@ti.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Add endpoint mode dt-bindings for TI's AM64 SoC. This is the same IP
+used in J7200, however AM64 is a non-coherent architecture.
 
-On 24/12/20 5:26 pm, Kishon Vijay Abraham I wrote:
-> Add support to provide refclk to PCIe connector.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/controller/cadence/pci-j721e.c | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
-> index dac1ac8a7615..8ec6d9c3e164 100644
-> --- a/drivers/pci/controller/cadence/pci-j721e.c
-> +++ b/drivers/pci/controller/cadence/pci-j721e.c
-> @@ -6,6 +6,7 @@
->   * Author: Kishon Vijay Abraham I <kishon@ti.com>
->   */
->  
-> +#include <linux/clk.h>
->  #include <linux/delay.h>
->  #include <linux/gpio/consumer.h>
->  #include <linux/io.h>
-> @@ -50,6 +51,7 @@ enum link_status {
->  
->  struct j721e_pcie {
->  	struct device		*dev;
-> +	struct clk		*refclk;
->  	u32			mode;
->  	u32			num_lanes;
->  	struct cdns_pcie	*cdns_pcie;
-> @@ -310,6 +312,7 @@ static int j721e_pcie_probe(struct platform_device *pdev)
->  	struct cdns_pcie_ep *ep;
->  	struct gpio_desc *gpiod;
->  	void __iomem *base;
-> +	struct clk *clk;
->  	u32 num_lanes;
->  	u32 mode;
->  	int ret;
-> @@ -408,6 +411,19 @@ static int j721e_pcie_probe(struct platform_device *pdev)
->  			goto err_get_sync;
->  		}
->  
-> +		clk = devm_clk_get_optional(dev, "pcie_refclk");
-> +		if (IS_ERR(clk)) {
-> +			dev_err(dev, "failed to get pcie_refclk\n");
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ .../devicetree/bindings/pci/ti,j721e-pci-ep.yaml       | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-missed initializing "ret" here. Will fix this and re-send new version.
+diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+index d06f0c4464c6..447c8fe0f09e 100644
+--- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
++++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+@@ -16,12 +16,17 @@ allOf:
+ properties:
+   compatible:
+     oneOf:
+-      - description: PCIe EP controller in J7200
++      - const: ti,am64-pcie-ep
++      - const: ti,j7200-pcie-ep
++      - const: ti,j721e-pcie-ep
++      - description: PCIe EP controller in AM64
+         items:
++          - const: ti,am64-pcie-ep
+           - const: ti,j7200-pcie-ep
+           - const: ti,j721e-pcie-ep
+-      - description: PCIe EP controller in J721E
++      - description: PCIe EP controller in J7200
+         items:
++          - const: ti,j7200-pcie-ep
+           - const: ti,j721e-pcie-ep
+ 
+   reg:
+@@ -66,7 +71,6 @@ required:
+   - power-domains
+   - clocks
+   - clock-names
+-  - dma-coherent
+   - max-functions
+   - phys
+   - phy-names
+-- 
+2.17.1
 
-Thanks
-Kishon
