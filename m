@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61D13C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC032C4332D
 	for <linux-omap@archiver.kernel.org>; Wed,  6 Jan 2021 12:59:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 325B122DD3
+	by mail.kernel.org (Postfix) with ESMTP id 7A36322DD3
 	for <linux-omap@archiver.kernel.org>; Wed,  6 Jan 2021 12:59:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727260AbhAFM7S (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 6 Jan 2021 07:59:18 -0500
-Received: from muru.com ([72.249.23.125]:41010 "EHLO muru.com"
+        id S1726454AbhAFM7X (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 6 Jan 2021 07:59:23 -0500
+Received: from muru.com ([72.249.23.125]:41042 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727246AbhAFM7S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 6 Jan 2021 07:59:18 -0500
+        id S1727246AbhAFM7X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 6 Jan 2021 07:59:23 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id C88D98158;
-        Wed,  6 Jan 2021 12:58:56 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 9EC9E8164;
+        Wed,  6 Jan 2021 12:59:01 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc:     linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -31,9 +31,9 @@ Cc:     linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
         Merlijn Wajer <merlijn@wizzup.org>,
         Pavel Machek <pavel@ucw.cz>, ruleh <ruleh@gmx.de>,
         Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 2/4] Input: omap4-keypad - scan keys in two phases and simplify with bitmask
-Date:   Wed,  6 Jan 2021 14:58:20 +0200
-Message-Id: <20210106125822.31315-3-tony@atomide.com>
+Subject: [PATCH 4/4] Input: omap4-keypad - simplify probe with devm
+Date:   Wed,  6 Jan 2021 14:58:22 +0200
+Message-Id: <20210106125822.31315-5-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210106125822.31315-1-tony@atomide.com>
 References: <20210106125822.31315-1-tony@atomide.com>
@@ -43,19 +43,7 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Because of errata i689 the keyboard can idle with state where no key
-up interrupts are seen until after the next key press.
-
-This means we need to first check for any lost key up events before
-scanning for new down events.
-
-For example, rapidly pressing shift-shift-j can sometimes produce a J
-instead of j. Let's fix the issue by scanning the keyboard in two
-phases. First we scan for any key up events that we may have missed,
-and then we scan for key down events.
-
-Let's also simplify things with for_each_set_bit() as suggested by
-Dmitry Torokhov <dmitry.torokhov@gmail.com>.
+Simplify probe with devm.
 
 Cc: Arthur Demchenkov <spinal.by@gmail.com>
 Cc: Carl Philipp Klemm <philipp@uvos.xyz>
@@ -65,108 +53,174 @@ Cc: ruleh <ruleh@gmx.de>
 Cc: Sebastian Reichel <sre@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/input/keyboard/omap4-keypad.c | 70 ++++++++++++++++++---------
- 1 file changed, 47 insertions(+), 23 deletions(-)
+ drivers/input/keyboard/omap4-keypad.c | 81 ++++++++++-----------------
+ 1 file changed, 30 insertions(+), 51 deletions(-)
 
 diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
 --- a/drivers/input/keyboard/omap4-keypad.c
 +++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -78,7 +78,7 @@ struct omap4_keypad {
- 	u32 irqreg_offset;
- 	unsigned int row_shift;
- 	bool no_autorepeat;
--	unsigned char key_state[8];
-+	u64 keys;
- 	unsigned short *keymap;
- };
+@@ -341,7 +341,8 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 	if (irq < 0)
+ 		return irq;
  
-@@ -107,6 +107,41 @@ static void kbd_write_irqreg(struct omap4_keypad *keypad_data,
- 		     keypad_data->base + keypad_data->irqreg_offset + offset);
+-	keypad_data = kzalloc(sizeof(struct omap4_keypad), GFP_KERNEL);
++	keypad_data = devm_kzalloc(&pdev->dev, sizeof(struct omap4_keypad),
++				   GFP_KERNEL);
+ 	if (!keypad_data) {
+ 		dev_err(&pdev->dev, "keypad_data memory allocation failed\n");
+ 		return -ENOMEM;
+@@ -352,20 +353,20 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 
+ 	error = omap4_keypad_parse_dt(&pdev->dev, keypad_data);
+ 	if (error)
+-		goto err_free_keypad;
++		return error;
+ 
+-	res = request_mem_region(res->start, resource_size(res), pdev->name);
++	res = devm_request_mem_region(&pdev->dev, res->start,
++				      resource_size(res), pdev->name);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "can't request mem region\n");
+-		error = -EBUSY;
+-		goto err_free_keypad;
++		return -EBUSY;
+ 	}
+ 
+-	keypad_data->base = ioremap(res->start, resource_size(res));
++	keypad_data->base = devm_ioremap(&pdev->dev, res->start,
++					 resource_size(res));
+ 	if (!keypad_data->base) {
+ 		dev_err(&pdev->dev, "can't ioremap mem resource\n");
+-		error = -ENOMEM;
+-		goto err_release_mem;
++		return -ENOMEM;
+ 	}
+ 
+ 	pm_runtime_use_autosuspend(&pdev->dev);
+@@ -379,20 +380,19 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 	error = pm_runtime_get_sync(&pdev->dev);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
+-		pm_runtime_put_noidle(&pdev->dev);
+-	} else {
+-		error = omap4_keypad_check_revision(&pdev->dev,
+-						    keypad_data);
+-		if (!error) {
+-			/* Ensure device does not raise interrupts */
+-			omap4_keypad_stop(keypad_data);
+-		}
++		return error;
+ 	}
++
++	error = omap4_keypad_check_revision(&pdev->dev,
++					    keypad_data);
+ 	if (error)
+ 		goto err_pm_disable;
+ 
++	/* Ensure device does not raise interrupts */
++	omap4_keypad_stop(keypad_data);
++
+ 	/* input device allocation */
+-	keypad_data->input = input_dev = input_allocate_device();
++	keypad_data->input = input_dev = devm_input_allocate_device(&pdev->dev);
+ 	if (!input_dev) {
+ 		error = -ENOMEM;
+ 		goto err_pm_disable;
+@@ -416,13 +416,13 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 
+ 	keypad_data->row_shift = get_count_order(keypad_data->cols);
+ 	max_keys = keypad_data->rows << keypad_data->row_shift;
+-	keypad_data->keymap = kcalloc(max_keys,
+-				      sizeof(keypad_data->keymap[0]),
+-				      GFP_KERNEL);
++	keypad_data->keymap = devm_kcalloc(&pdev->dev, max_keys,
++					   sizeof(keypad_data->keymap[0]),
++					   GFP_KERNEL);
+ 	if (!keypad_data->keymap) {
+ 		dev_err(&pdev->dev, "Not enough memory for keymap\n");
+ 		error = -ENOMEM;
+-		goto err_free_input;
++		goto err_pm_disable;
+ 	}
+ 
+ 	error = matrix_keypad_build_keymap(NULL, NULL,
+@@ -430,21 +430,23 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 					   keypad_data->keymap, input_dev);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "failed to build keymap\n");
+-		goto err_free_keymap;
++		goto err_pm_disable;
+ 	}
+ 
+-	error = request_threaded_irq(keypad_data->irq, omap4_keypad_irq_handler,
+-				     omap4_keypad_irq_thread_fn, IRQF_ONESHOT,
+-				     "omap4-keypad", keypad_data);
++	error = devm_request_threaded_irq(&pdev->dev, keypad_data->irq,
++					  omap4_keypad_irq_handler,
++					  omap4_keypad_irq_thread_fn,
++					  IRQF_ONESHOT, "omap4-keypad",
++					  keypad_data);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "failed to register interrupt\n");
+-		goto err_free_keymap;
++		goto err_pm_disable;
+ 	}
+ 
+ 	error = input_register_device(keypad_data->input);
+ 	if (error < 0) {
+ 		dev_err(&pdev->dev, "failed to register input device\n");
+-		goto err_free_irq;
++		goto err_pm_disable;
+ 	}
+ 
+ 	device_init_wakeup(&pdev->dev, true);
+@@ -460,46 +462,23 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-err_free_irq:
+-	free_irq(keypad_data->irq, keypad_data);
+-err_free_keymap:
+-	kfree(keypad_data->keymap);
+-err_free_input:
+-	input_free_device(input_dev);
+ err_pm_disable:
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_dont_use_autosuspend(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(keypad_data->base);
+-err_release_mem:
+-	release_mem_region(res->start, resource_size(res));
+-err_free_keypad:
+-	kfree(keypad_data);
++
+ 	return error;
  }
  
-+static int omap4_keypad_scan_state(struct omap4_keypad *keypad_data, u64 keys,
-+				   bool down)
-+{
-+	struct input_dev *input_dev = keypad_data->input;
-+	unsigned int col, row, code;
-+	DECLARE_BITMAP(mask, 64);
-+	unsigned long bit;
-+	int events = 0;
-+	bool key_down;
-+	u64 changed;
-+
-+	changed = keys ^ keypad_data->keys;
-+	bitmap_from_u64(mask, changed);
-+
-+	for_each_set_bit(bit, mask, keypad_data->rows * BITS_PER_BYTE) {
-+		row = bit / BITS_PER_BYTE;
-+		col = bit % BITS_PER_BYTE;
-+		code = MATRIX_SCAN_CODE(row, col, keypad_data->row_shift);
-+
-+		if (BIT_ULL(bit) & keys)
-+			key_down = true;
-+		else
-+			key_down = false;
-+
-+		if (key_down != down)
-+			continue;
-+
-+		input_event(input_dev, EV_MSC, MSC_SCAN, code);
-+		input_report_key(input_dev, keypad_data->keymap[code],
-+				 key_down);
-+		events++;
-+	}
-+
-+	return events;
-+}
- 
- /* Interrupt handlers */
- static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
-@@ -123,34 +158,23 @@ static irqreturn_t omap4_keypad_irq_thread_fn(int irq, void *dev_id)
+ static int omap4_keypad_remove(struct platform_device *pdev)
  {
- 	struct omap4_keypad *keypad_data = dev_id;
- 	struct input_dev *input_dev = keypad_data->input;
--	unsigned char key_state[ARRAY_SIZE(keypad_data->key_state)];
--	unsigned int col, row, code, changed;
--	u32 *new_state = (u32 *) key_state;
-+	int keys_up, keys_down;
-+	u32 low, high;
-+	u64 keys;
+ 	struct omap4_keypad *keypad_data = platform_get_drvdata(pdev);
+-	struct resource *res;
  
--	*new_state = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
--	*(new_state + 1) = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
-+	low = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
-+	high = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
-+	keys = low | (u64)high << 32;
+ 	dev_pm_clear_wake_irq(&pdev->dev);
+-
+-	free_irq(keypad_data->irq, keypad_data);
+-
+ 	pm_runtime_dont_use_autosuspend(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-
+ 	input_unregister_device(keypad_data->input);
  
--	for (row = 0; row < keypad_data->rows; row++) {
--		changed = key_state[row] ^ keypad_data->key_state[row];
--		if (!changed)
--			continue;
-+	/* Scan for key up events for lost key-up interrupts */
-+	keys_up = omap4_keypad_scan_state(keypad_data, keys, false);
+-	iounmap(keypad_data->base);
+-
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(res->start, resource_size(res));
+-
+-	kfree(keypad_data->keymap);
+-	kfree(keypad_data);
+-
+ 	return 0;
+ }
  
--		for (col = 0; col < keypad_data->cols; col++) {
--			if (changed & (1 << col)) {
--				code = MATRIX_SCAN_CODE(row, col,
--						keypad_data->row_shift);
--				input_event(input_dev, EV_MSC, MSC_SCAN, code);
--				input_report_key(input_dev,
--						 keypad_data->keymap[code],
--						 key_state[row] & (1 << col));
--			}
--		}
--	}
-+	/* Scan for key down events */
-+	keys_down = omap4_keypad_scan_state(keypad_data, keys, true);
- 
- 	input_sync(input_dev);
- 
--	memcpy(keypad_data->key_state, key_state,
--		sizeof(keypad_data->key_state));
-+	keypad_data->keys = keys;
- 
- 	/* clear pending interrupts */
- 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
 -- 
 2.30.0
