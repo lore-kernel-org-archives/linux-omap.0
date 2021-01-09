@@ -2,105 +2,101 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7209C433DB
-	for <linux-omap@archiver.kernel.org>; Sat,  9 Jan 2021 16:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD060C433E6
+	for <linux-omap@archiver.kernel.org>; Sat,  9 Jan 2021 17:02:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B2F3B23884
-	for <linux-omap@archiver.kernel.org>; Sat,  9 Jan 2021 16:59:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E5AC23372
+	for <linux-omap@archiver.kernel.org>; Sat,  9 Jan 2021 17:02:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726251AbhAIQ66 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 9 Jan 2021 11:58:58 -0500
-Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.52]:10441 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726195AbhAIQ66 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jan 2021 11:58:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1610211366;
-        s=strato-dkim-0002; d=goldelico.com;
-        h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:From:
-        Subject:Sender;
-        bh=yZ1tzPuIdAyyljyt8M7WqNHeNP+VRFw89TM3Fu1kjjo=;
-        b=ttaF6dbYWgicFS/tWaoJbo3bw2QQ5SjsUH4v8VTFXaTYOP6hJGK/2KLJj4ktUVsCFT
-        tSPk7DpM+G/x3ekeqvsSUPMzPQ5qZOlrNIbKL/7k/i3K1Uz6gxE4GrtQ6BZW19fbn/bR
-        P4YMP7Je1Rx8YhPW7grHCobiTBbdX2+oUOFoKyDTIrvoMRiXRUtAavcHAz7LktmxGmr0
-        VNcnbIMNeGVY8CR/lN7GuyQL9Sv75cfkjb1FU4FgAosgQ9JeNi06nuuqIdf4p+Ua9Gok
-        IU4KUSjzTmir7xkWcgiAx72JAbJUulH7uOHjCeyH9E8AJJ7N7bgk+994dLqE+na6Tfa7
-        BvJg==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj4Qpw9iZeHmAiw4rsMg=="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-        by smtp.strato.de (RZmta 47.12.1 DYNA|AUTH)
-        with ESMTPSA id m056b3x09GtnJSK
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-        Sat, 9 Jan 2021 17:55:49 +0100 (CET)
-Subject: Re: [PATCH] ARM: dts: omap36xx: Remove turbo mode for 1GHz variants
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <20210109163916.1247431-1-aford173@gmail.com>
-Date:   Sat, 9 Jan 2021 17:55:48 +0100
-Cc:     Linux-OMAP <linux-omap@vger.kernel.org>, aford@beaconembedded.com,
-        =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
+        id S1726560AbhAIRBx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 9 Jan 2021 12:01:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49538 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726011AbhAIRBw (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jan 2021 12:01:52 -0500
+Received: from mail-io1-xd31.google.com (mail-io1-xd31.google.com [IPv6:2607:f8b0:4864:20::d31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AB4BC061786;
+        Sat,  9 Jan 2021 09:01:12 -0800 (PST)
+Received: by mail-io1-xd31.google.com with SMTP id e22so12635643iom.5;
+        Sat, 09 Jan 2021 09:01:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lswJw4ls0dqJza2JHYmabJJAMwLw6KbwVHaWT/Fl6/I=;
+        b=F2Eby1zdcDBxnyZ5YgRobJ77aXrntP2fW10N81+GRFrKOYBPaaj4yBWpsAVMnRj3V6
+         nyPaVaujkCdC1ufPhu1xP83S1yUJwoKpsI3IyXW7rhnCrRpC4RAeUMWgqv+cD3urKzrb
+         2Ad7pnYbCKYFJuHVZgJTqh/HqdOV7GHxsDLXrzeU7GlUXu3F25QQQhvCDBXG+1+QhpCt
+         MDbrOv5ljJmqtoZOwFx8/pG9HmE3wgyOy5xsI44R0flB9Buguk//pcIQaUVMnyVNzwmh
+         XKt7ONc6gbc/QoSf2tVstMQGYS/c7VH/Ek/pYX2ZCC86199m2oMD4/VuX/iz8ChC2PMS
+         1/mw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lswJw4ls0dqJza2JHYmabJJAMwLw6KbwVHaWT/Fl6/I=;
+        b=nhluekCtSBhyYE4KarT0yMA0UAlAkcNRVt3Z/8vnqB8/BmW+YCsj79WBeyVExqR5ua
+         mrR6Rki63C37V0y9Igg4C1K3xPAmfuiF7RWLgUHL1XcbId5kU1o/YiLUz1BKWvEAIUdN
+         D7pUiuuZjJ1yF19lSaolDWmAMy8cJOjUH6lQyaYqNzwMJV/AuDxkfr1Rc693KKrMc/jO
+         kAL1Ga0AEgsHtuKyz6Z09T6/+bvwFg11mSlElaSpsXQ5ag8ZAwzAOTefDOBltJxSRAPK
+         eXsc3FbfVtOlrrIeIjpFGb7qZzgT3QcqM2nUsPQsEVlWpw8fT/7SFS0yeq1s3Wqikb8H
+         1knw==
+X-Gm-Message-State: AOAM5318tjWenlAOVoh/BWbxZNO+uFZ4fRwyzwD2aG3M6zuM/QGBTGgT
+        mCOJapHyHa11s3XtVv2SoZQNSAMVJApqR90g/fU=
+X-Google-Smtp-Source: ABdhPJwsWbSlA5s+4uJHXUQnlAO3+hnEn2f75m1h/B1Wzcdu7WYfxcBXA2OqIhJdLwdd6/imW9/RQQ==
+X-Received: by 2002:a02:8790:: with SMTP id t16mr8320324jai.80.1610211671566;
+        Sat, 09 Jan 2021 09:01:11 -0800 (PST)
+Received: from aford-IdeaCentre-A730.lan ([2601:448:8400:9e8:798:54b8:18cb:ae74])
+        by smtp.gmail.com with ESMTPSA id z63sm10748487ilk.72.2021.01.09.09.01.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 09 Jan 2021 09:01:11 -0800 (PST)
+From:   Adam Ford <aford173@gmail.com>
+To:     linux-omap@vger.kernel.org
+Cc:     hns@goldelico.com, aford@beaconembedded.com,
+        Adam Ford <aford173@gmail.com>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andreas Kemnade <andreas@kemnade.info>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <8B45575E-A50B-407C-8920-D2A7E295DBE9@goldelico.com>
-References: <20210109163916.1247431-1-aford173@gmail.com>
-To:     Adam Ford <aford173@gmail.com>
-X-Mailer: Apple Mail (2.3124)
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH V2] ARM: dts: omap36xx: Remove turbo mode for 1GHz variants
+Date:   Sat,  9 Jan 2021 11:01:03 -0600
+Message-Id: <20210109170103.1249838-1-aford173@gmail.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Adam,
+Previously, the 1GHz variants were marked as a turbo,
+because that variant has reduced thermal operating range.
 
-> Am 09.01.2021 um 17:39 schrieb Adam Ford <aford173@gmail.com>:
->=20
-> Previously, the 1GHz variants were marked as a turbo,
-> because that variant has reduced thermal operating range.
->=20
-> Now that the thermal throttling is in place, it should be
-> safe to remove the turbo-mode from the 1GHz variants, because
-> the CPU will automatically slow if the thermal limit is reached.
+Now that the thermal throttling is in place, it should be
+safe to remove the turbo-mode from the 1GHz variants, because
+the CPU will automatically slow if the thermal limit is reached.
 
-Subject and description may be misunderstood in a way that 1GHz
-is now disabled.
+Signed-off-by: Adam Ford <aford173@gmail.com>
+---
+V2:  The orignal patch had the wrong file added. Add the omap36xx.dtsi
 
-Rather the 1GHz OPP is now permanently enabled and does no longer
-need to be manuall enabled through something like
-/sys/devices/system/cpu/cpufreq/boost.
-
->=20
-> Signed-off-by: Adam Ford <aford173@gmail.com>
->=20
-> diff --git a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi =
-b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-> index 3a5228562b0d..3451f9be104e 100644
-> --- a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-> +++ b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-> @@ -70,6 +70,7 @@ nand@0,0 {
-> 		gpmc,device-width =3D <2>;
-> 		#address-cells =3D <1>;
-> 		#size-cells =3D <1>;
-> +		status =3D "disabled";
-
-this does not seem to match the description?
-
-> 	};
-> };
->=20
-> --=20
-> 2.25.1
->=20
-
-BR,
-Nikolaus
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 05fe5ed127b0..20844dbc002e 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -72,7 +72,6 @@ opp1g-1000000000 {
+ 					 <1375000 1375000 1375000>;
+ 			/* only on am/dm37x with speed-binned bit set */
+ 			opp-supported-hw = <0xffffffff 2>;
+-			turbo-mode;
+ 		};
+ 	};
+ 
+-- 
+2.25.1
 
