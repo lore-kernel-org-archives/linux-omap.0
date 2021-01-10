@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91383C433E0
-	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62107C433DB
+	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DE1422A84
-	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37CDC225A9
+	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726686AbhAJTzc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 10 Jan 2021 14:55:32 -0500
-Received: from muru.com ([72.249.23.125]:42504 "EHLO muru.com"
+        id S1726811AbhAJTzd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 10 Jan 2021 14:55:33 -0500
+Received: from muru.com ([72.249.23.125]:42508 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726479AbhAJTzc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 10 Jan 2021 14:55:32 -0500
+        id S1726787AbhAJTzd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 10 Jan 2021 14:55:33 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 5364388B3;
-        Sun, 10 Jan 2021 19:54:20 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id BC42288CC;
+        Sun, 10 Jan 2021 19:54:25 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     Sebastian Reichel <sre@kernel.org>
 Cc:     linux-pm@vger.kernel.org, linux-omap@vger.kernel.org,
         Arthur Demchenkov <spinal.by@gmail.com>,
         Carl Philipp Klemm <philipp@uvos.xyz>,
         Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH 07/15] power: supply: cpcap-charger: Drop internal state and use generic stats
-Date:   Sun, 10 Jan 2021 21:53:55 +0200
-Message-Id: <20210110195403.13758-8-tony@atomide.com>
+Subject: [PATCH 10/15] power: supply: cpcap-battery: Use charger status for battery full detection
+Date:   Sun, 10 Jan 2021 21:53:58 +0200
+Message-Id: <20210110195403.13758-11-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210110195403.13758-1-tony@atomide.com>
 References: <20210110195403.13758-1-tony@atomide.com>
@@ -40,8 +40,14 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We currently have both state and status, get rid of state and use
-generic status instead.
+We now get battery full notification from cpcap-charger, so let's use that
+for battery full status and charger disconnect.
+
+Note that any current based battery full detection we have tried earlier is
+flakey as it won't account for example for CPU load increasing the battery
+current. Anyways, if current based battery full detection is also still
+needed, we can reconsider adding it in addition to the charger status based
+detection.
 
 Cc: Arthur Demchenkov <spinal.by@gmail.com>
 Cc: Carl Philipp Klemm <philipp@uvos.xyz>
@@ -49,140 +55,86 @@ Cc: Merlijn Wajer <merlijn@wizzup.org>
 Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/power/supply/cpcap-charger.c | 81 ++++++++++++++--------------
- 1 file changed, 42 insertions(+), 39 deletions(-)
+ drivers/power/supply/cpcap-battery.c | 56 ++++++++++++++++++++++++++--
+ 1 file changed, 52 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cpcap-charger.c
---- a/drivers/power/supply/cpcap-charger.c
-+++ b/drivers/power/supply/cpcap-charger.c
-@@ -140,7 +140,6 @@ struct cpcap_charger_ddata {
+diff --git a/drivers/power/supply/cpcap-battery.c b/drivers/power/supply/cpcap-battery.c
+--- a/drivers/power/supply/cpcap-battery.c
++++ b/drivers/power/supply/cpcap-battery.c
+@@ -135,6 +135,7 @@ struct cpcap_battery_ddata {
  	atomic_t active;
- 
  	int status;
--	int state;
- 	int voltage;
- 	int limit_current;
+ 	u16 vendor;
++	unsigned int is_full:1;
  };
-@@ -386,6 +385,39 @@ static void cpcap_charger_set_inductive_path(struct cpcap_charger_ddata *ddata,
- 	gpiod_set_value(ddata->gpio[1], enabled);
+ 
+ #define CPCAP_NO_BATTERY	-400
+@@ -371,15 +372,62 @@ static int cpcap_battery_cc_get_avg_current(struct cpcap_battery_ddata *ddata)
+ 	return cpcap_battery_cc_to_ua(ddata, sample, acc, offset);
  }
  
-+static void cpcap_charger_update_state(struct cpcap_charger_ddata *ddata,
-+				       int state)
++static int cpcap_battery_get_charger_status(struct cpcap_battery_ddata *ddata,
++					    int *val)
 +{
-+	const char *status;
++	union power_supply_propval prop;
++	struct power_supply *charger;
++	int error;
 +
-+	if (state > POWER_SUPPLY_STATUS_FULL) {
-+		dev_warn(ddata->dev, "unknown state: %i\n", state);
++	charger = power_supply_get_by_name("usb");
++	if (!charger)
++		return -ENODEV;
 +
-+		return;
-+	}
++	error = power_supply_get_property(charger, POWER_SUPPLY_PROP_STATUS,
++					  &prop);
++	if (error)
++		*val = POWER_SUPPLY_STATUS_UNKNOWN;
++	else
++		*val = prop.intval;
 +
-+	ddata->status = state;
++	power_supply_put(charger);
 +
-+	switch (state) {
-+	case POWER_SUPPLY_STATUS_DISCHARGING:
-+		status = "DISCONNECTED";
-+		break;
-+	case POWER_SUPPLY_STATUS_NOT_CHARGING:
-+		status = "DETECTING";
-+		break;
-+	case POWER_SUPPLY_STATUS_CHARGING:
-+		status = "CHARGING";
-+		break;
-+	case POWER_SUPPLY_STATUS_FULL:
-+		status = "DONE";
-+		break;
-+	default:
-+		return;
-+	}
-+
-+	dev_dbg(ddata->dev, "state: %s\n", status);
++	return error;
 +}
 +
- static int cpcap_charger_set_state(struct cpcap_charger_ddata *ddata,
- 				   int max_voltage, int charge_current,
- 				   int trickle_current)
-@@ -402,11 +434,13 @@ static int cpcap_charger_set_state(struct cpcap_charger_ddata *ddata,
- 					   CPCAP_REG_CRM_FET_OVRD |
- 					   CPCAP_REG_CRM_FET_CTRL);
- 		if (error) {
--			ddata->status = POWER_SUPPLY_STATUS_UNKNOWN;
-+			cpcap_charger_update_state(ddata,
-+						   POWER_SUPPLY_STATUS_UNKNOWN);
- 			goto out_err;
- 		}
+ static bool cpcap_battery_full(struct cpcap_battery_ddata *ddata)
+ {
+ 	struct cpcap_battery_state_data *state = cpcap_battery_latest(ddata);
++	unsigned int vfull;
++	int error, val;
++
++	error = cpcap_battery_get_charger_status(ddata, &val);
++	if (!error) {
++		switch (val) {
++		case POWER_SUPPLY_STATUS_DISCHARGING:
++			dev_dbg(ddata->dev, "charger disconnected\n");
++			ddata->is_full = 0;
++			break;
++		case POWER_SUPPLY_STATUS_FULL:
++			dev_dbg(ddata->dev, "charger full status\n");
++			ddata->is_full = 1;
++			break;
++		default:
++			break;
++		}
++	}
++
++	/*
++	 * The full battery voltage here can be inaccurate, it's used just to
++	 * filter out any trickle charging events. We clear the is_full status
++	 * on charger disconnect above anyways.
++	 */
++	vfull = ddata->config.bat.constant_charge_voltage_max_uv - 120000;
  
--		ddata->status = POWER_SUPPLY_STATUS_DISCHARGING;
-+		cpcap_charger_update_state(ddata,
-+					   POWER_SUPPLY_STATUS_DISCHARGING);
+-	if (state->voltage >=
+-	    (ddata->config.bat.constant_charge_voltage_max_uv - 18000))
+-		return true;
++	if (ddata->is_full && state->voltage < vfull)
++		ddata->is_full = 0;
  
- 		return 0;
- 	}
-@@ -419,11 +453,13 @@ static int cpcap_charger_set_state(struct cpcap_charger_ddata *ddata,
- 				   max_voltage |
- 				   charge_current);
- 	if (error) {
--		ddata->status = POWER_SUPPLY_STATUS_UNKNOWN;
-+		cpcap_charger_update_state(ddata,
-+					   POWER_SUPPLY_STATUS_UNKNOWN);
- 		goto out_err;
- 	}
- 
--	ddata->status = POWER_SUPPLY_STATUS_CHARGING;
-+	cpcap_charger_update_state(ddata,
-+				   POWER_SUPPLY_STATUS_CHARGING);
- 
- 	return 0;
- 
-@@ -555,39 +591,6 @@ static int cpcap_charger_get_ints_state(struct cpcap_charger_ddata *ddata,
- 	return 0;
+-	return false;
++	return ddata->is_full;
  }
  
--static void cpcap_charger_update_state(struct cpcap_charger_ddata *ddata,
--				       int state)
--{
--	const char *status;
--
--	if (state > POWER_SUPPLY_STATUS_FULL) {
--		dev_warn(ddata->dev, "unknown state: %i\n", state);
--
--		return;
--	}
--
--	ddata->state = state;
--
--	switch (state) {
--	case POWER_SUPPLY_STATUS_DISCHARGING:
--		status = "DISCONNECTED";
--		break;
--	case POWER_SUPPLY_STATUS_NOT_CHARGING:
--		status = "DETECTING";
--		break;
--	case POWER_SUPPLY_STATUS_CHARGING:
--		status = "CHARGING";
--		break;
--	case POWER_SUPPLY_STATUS_FULL:
--		status = "DONE";
--		break;
--	default:
--		return;
--	}
--
--	dev_dbg(ddata->dev, "state: %s\n", status);
--}
--
- static int cpcap_charger_voltage_to_regval(int voltage)
- {
- 	int offset;
-@@ -662,7 +665,7 @@ static void cpcap_usb_detect(struct work_struct *work)
- 	}
- 
- 	/* Throttle chrgcurr2 interrupt for charger done and retry */
--	switch (ddata->state) {
-+	switch (ddata->status) {
- 	case POWER_SUPPLY_STATUS_CHARGING:
- 		if (s.chrgcurr2)
- 			break;
+ static int cpcap_battery_update_status(struct cpcap_battery_ddata *ddata)
 -- 
 2.30.0
