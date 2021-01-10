@@ -4,171 +4,113 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1D5CC43332
-	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 571ABC43381
+	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB376225A9
-	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F91322A84
+	for <linux-omap@archiver.kernel.org>; Sun, 10 Jan 2021 19:55:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726827AbhAJTze (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 10 Jan 2021 14:55:34 -0500
-Received: from muru.com ([72.249.23.125]:42506 "EHLO muru.com"
+        id S1726846AbhAJTzf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 10 Jan 2021 14:55:35 -0500
+Received: from muru.com ([72.249.23.125]:42512 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726479AbhAJTzd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 10 Jan 2021 14:55:33 -0500
+        id S1726479AbhAJTzf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 10 Jan 2021 14:55:35 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id F3F0C88C3;
-        Sun, 10 Jan 2021 19:54:23 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 99F4188D7;
+        Sun, 10 Jan 2021 19:54:27 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     Sebastian Reichel <sre@kernel.org>
 Cc:     linux-pm@vger.kernel.org, linux-omap@vger.kernel.org,
         Arthur Demchenkov <spinal.by@gmail.com>,
         Carl Philipp Klemm <philipp@uvos.xyz>,
         Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH 09/15] power: supply: cpcap-charger: Provide state updates for battery from charger
-Date:   Sun, 10 Jan 2021 21:53:57 +0200
-Message-Id: <20210110195403.13758-10-tony@atomide.com>
+Subject: [PATCH 11/15] power: supply: cpcap-battery: Add charge_full property
+Date:   Sun, 10 Jan 2021 21:53:59 +0200
+Message-Id: <20210110195403.13758-12-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210110195403.13758-1-tony@atomide.com>
 References: <20210110195403.13758-1-tony@atomide.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We want to have the battery update it's status when the charge is done,
-and when the charger is disconnected. Otherwise the battery does not know
-when it's full unless there's a userspace app polling the battery status.
+From: Arthur Demchenkov <spinal.by@gmail.com>
 
-To do this, we add supplied_to handling to cpcap-battery, and implement
-power_supply_changed() for cpcap-charger. When cpcap-charger calls
-power_supply_changed(), cpcap-battery will update it's status.
-
-Let's also use new_state variable for the POWER_SUPPLY_STATUS_CHARGING
-case to have unified handling for the switch.
+Add charge_full property and let user update it. This is needed for
+capacity reporting in the following patches.
 
 Cc: Arthur Demchenkov <spinal.by@gmail.com>
 Cc: Carl Philipp Klemm <philipp@uvos.xyz>
 Cc: Merlijn Wajer <merlijn@wizzup.org>
 Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Arthur Demchenkov <spinal.by@gmail.com>
+[tony@atomide.com: updated comments]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/power/supply/cpcap-battery.c | 13 +++++++++++
- drivers/power/supply/cpcap-charger.c | 34 ++++++++++++++++++++++------
- 2 files changed, 40 insertions(+), 7 deletions(-)
+ drivers/power/supply/cpcap-battery.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/drivers/power/supply/cpcap-battery.c b/drivers/power/supply/cpcap-battery.c
 --- a/drivers/power/supply/cpcap-battery.c
 +++ b/drivers/power/supply/cpcap-battery.c
-@@ -416,6 +416,18 @@ static int cpcap_battery_update_status(struct cpcap_battery_ddata *ddata)
- 	return 0;
- }
- 
-+/*
-+ * Update battery status when cpcap-charger calls power_supply_changed().
-+ * This allows us to detect battery full condition before the charger
-+ * disconnects.
-+ */
-+static void cpcap_battery_external_power_changed(struct power_supply *psy)
-+{
-+	union power_supply_propval prop;
-+
-+	power_supply_get_property(psy, POWER_SUPPLY_PROP_STATUS, &prop);
-+}
-+
- static enum power_supply_property cpcap_battery_props[] = {
- 	POWER_SUPPLY_PROP_STATUS,
- 	POWER_SUPPLY_PROP_PRESENT,
-@@ -914,6 +926,7 @@ static int cpcap_battery_probe(struct platform_device *pdev)
- 	psy_desc->get_property = cpcap_battery_get_property;
- 	psy_desc->set_property = cpcap_battery_set_property;
- 	psy_desc->property_is_writeable = cpcap_battery_property_is_writeable;
-+	psy_desc->external_power_changed = cpcap_battery_external_power_changed;
- 
- 	psy_cfg.of_node = pdev->dev.of_node;
- 	psy_cfg.drv_data = ddata;
-diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cpcap-charger.c
---- a/drivers/power/supply/cpcap-charger.c
-+++ b/drivers/power/supply/cpcap-charger.c
-@@ -613,6 +613,16 @@ static void cpcap_charger_disconnect(struct cpcap_charger_ddata *ddata,
- {
- 	int error;
- 
-+	/* Update battery state before disconnecting the charger */
-+	switch (state) {
-+	case POWER_SUPPLY_STATUS_DISCHARGING:
-+	case POWER_SUPPLY_STATUS_FULL:
-+		power_supply_changed(ddata->usb);
-+		break;
-+	default:
-+		break;
-+	}
-+
- 	error = cpcap_charger_disable(ddata);
- 	if (error) {
- 		cpcap_charger_update_state(ddata, POWER_SUPPLY_STATUS_UNKNOWN);
-@@ -628,7 +638,7 @@ static void cpcap_usb_detect(struct work_struct *work)
- {
- 	struct cpcap_charger_ddata *ddata;
- 	struct cpcap_charger_ints_state s;
--	int error;
-+	int error, new_state;
- 
- 	ddata = container_of(work, struct cpcap_charger_ddata,
- 			     detect_work.work);
-@@ -662,19 +672,23 @@ static void cpcap_usb_detect(struct work_struct *work)
- 	case POWER_SUPPLY_STATUS_CHARGING:
- 		if (s.chrgcurr2)
- 			break;
-+		new_state = POWER_SUPPLY_STATUS_FULL;
-+
- 		if (s.chrgcurr1 && s.vbusvld) {
--			cpcap_charger_disconnect(ddata,
--						 POWER_SUPPLY_STATUS_FULL,
--						 HZ * 5);
-+			cpcap_charger_disconnect(ddata, new_state, HZ * 5);
- 			return;
- 		}
+@@ -133,6 +133,7 @@ struct cpcap_battery_ddata {
+ 	struct cpcap_battery_state_data state[CPCAP_BATTERY_STATE_NR];
+ 	u32 cc_lsb;		/* μAms per LSB */
+ 	atomic_t active;
++	int charge_full;
+ 	int status;
+ 	u16 vendor;
+ 	unsigned int is_full:1;
+@@ -486,6 +487,7 @@ static enum power_supply_property cpcap_battery_props[] = {
+ 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE,
+ 	POWER_SUPPLY_PROP_CURRENT_AVG,
+ 	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_CHARGE_FULL,
+ 	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
+ 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
+ 	POWER_SUPPLY_PROP_POWER_NOW,
+@@ -594,6 +596,11 @@ static int cpcap_battery_get_property(struct power_supply *psy,
+ 		else
+ 			val->intval = POWER_SUPPLY_CAPACITY_LEVEL_UNKNOWN;
  		break;
- 	case POWER_SUPPLY_STATUS_FULL:
- 		if (!s.chrgcurr2)
- 			break;
--		cpcap_charger_disconnect(ddata,
--					 POWER_SUPPLY_STATUS_NOT_CHARGING,
--					 HZ * 5);
-+		if (s.vbusvld)
-+			new_state = POWER_SUPPLY_STATUS_NOT_CHARGING;
-+		else
-+			new_state = POWER_SUPPLY_STATUS_DISCHARGING;
++	case POWER_SUPPLY_PROP_CHARGE_FULL:
++		if (!ddata->charge_full)
++			return -ENODATA;
++		val->intval = ddata->charge_full;
++		break;
+ 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+ 		val->intval = ddata->config.info.charge_full_design;
+ 		break;
+@@ -661,6 +668,15 @@ static int cpcap_battery_set_property(struct power_supply *psy,
+ 		ddata->config.bat.constant_charge_voltage_max_uv = val->intval;
+ 
+ 		return cpcap_battery_update_charger(ddata, val->intval);
++	case POWER_SUPPLY_PROP_CHARGE_FULL:
++		if (val->intval < 0)
++			return -EINVAL;
++		if (val->intval > ddata->config.info.charge_full_design)
++			return -EINVAL;
 +
-+		cpcap_charger_disconnect(ddata, new_state, HZ * 5);
++		ddata->charge_full = val->intval;
 +
- 		return;
++		return 0;
  	default:
- 		break;
-@@ -832,6 +846,10 @@ static int cpcap_charger_init_iio(struct cpcap_charger_ddata *ddata)
- 	return error;
- }
- 
-+static char *cpcap_charger_supplied_to[] = {
-+	"battery",
-+};
-+
- static const struct power_supply_desc cpcap_charger_usb_desc = {
- 	.name		= "usb",
- 	.type		= POWER_SUPPLY_TYPE_USB,
-@@ -889,6 +907,8 @@ static int cpcap_charger_probe(struct platform_device *pdev)
- 
- 	psy_cfg.of_node = pdev->dev.of_node;
- 	psy_cfg.drv_data = ddata;
-+	psy_cfg.supplied_to = cpcap_charger_supplied_to;
-+	psy_cfg.num_supplicants = ARRAY_SIZE(cpcap_charger_supplied_to),
- 
- 	ddata->usb = devm_power_supply_register(ddata->dev,
- 						&cpcap_charger_usb_desc,
+ 		return -EINVAL;
+ 	}
+@@ -673,6 +689,7 @@ static int cpcap_battery_property_is_writeable(struct power_supply *psy,
+ {
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
++	case POWER_SUPPLY_PROP_CHARGE_FULL:
+ 		return 1;
+ 	default:
+ 		return 0;
 -- 
 2.30.0
