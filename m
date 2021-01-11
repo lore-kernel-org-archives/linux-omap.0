@@ -2,79 +2,107 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C3FC433E6
-	for <linux-omap@archiver.kernel.org>; Mon, 11 Jan 2021 19:50:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DF04C433E6
+	for <linux-omap@archiver.kernel.org>; Mon, 11 Jan 2021 22:32:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 395ED22BF3
-	for <linux-omap@archiver.kernel.org>; Mon, 11 Jan 2021 19:50:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2855A22D07
+	for <linux-omap@archiver.kernel.org>; Mon, 11 Jan 2021 22:32:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390706AbhAKTuW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 11 Jan 2021 14:50:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50326 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389440AbhAKTuV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2021 14:50:21 -0500
-Received: from ms.lwn.net (ms.lwn.net [IPv6:2600:3c01:e000:3a1::42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1FE6C061786;
-        Mon, 11 Jan 2021 11:49:41 -0800 (PST)
-Received: from lwn.net (unknown [IPv6:2601:281:8300:104d::5f6])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ms.lwn.net (Postfix) with ESMTPSA id 3237B9A8;
-        Mon, 11 Jan 2021 19:48:59 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net 3237B9A8
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
-        t=1610394540; bh=EozPVlZIs3bnnXIKn7dDr0mmHi5XdirNCyxTvjIj9uE=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=PALuxSnoS8Zs3fpNgecTI09xiv7NwxbzGbThKLcbZn0OwLfz/f85HMLF4pkH+Bh0S
-         xOCAT8x5kzdjC6DaeAl+tDwZWJD9xczHoB0533HMDlPJTc3LFjs1wjJBzapB8Lj8vJ
-         Crekpj+OtXlgSOZa/iV7V0O2D99K/J+Sc3rIKlU3f3I5IkIAHU0JwkJwUSOAZ7R8bR
-         xYE1zThYgmvHl+zg8I6vfwmqo3HLkwnwq+Y3JYXbY6JXOczglR/+NSPlDSqvH4Hsyv
-         wJFZxlYSB/svsWGzxBKtsMTAuLhtbZdSvPEWmWRO4jXyrd34sKG6RlknO8ACwxc9ue
-         REcwd7vi+LDWg==
-Date:   Mon, 11 Jan 2021 12:48:58 -0700
-From:   Jonathan Corbet <corbet@lwn.net>
-To:     Joe Perches <joe@perches.com>
-Cc:     Bjorn Helgaas <helgaas@kernel.org>,
-        "Alexander A. Klimov" <grandmaster@al2klimov.de>,
-        bhelgaas@google.com, robh+dt@kernel.org, tglx@linutronix.de,
-        mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com,
-        kishon@ti.com, lorenzo.pieralisi@arm.com, hongxing.zhu@nxp.com,
-        l.stach@pengutronix.de, shawnguo@kernel.org,
-        s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com,
-        linux-imx@nxp.com, m-karicheri2@ti.com, songxiaowei@hisilicon.com,
-        wangbinghui@hisilicon.com, amurray@thegoodpenguin.co.uk,
-        sathyanarayanan.kuppuswamy@linux.intel.com, hkallweit1@gmail.com,
-        rafael.j.wysocki@intel.com, rdunlap@infradead.org,
-        linux-pci@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        id S2389532AbhAKWci (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 11 Jan 2021 17:32:38 -0500
+Received: from mail-oi1-f176.google.com ([209.85.167.176]:44486 "EHLO
+        mail-oi1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389738AbhAKWci (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2021 17:32:38 -0500
+Received: by mail-oi1-f176.google.com with SMTP id d189so268166oig.11;
+        Mon, 11 Jan 2021 14:32:22 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=JKujtSpNWqEBNkstC1Xi1WJEZqjaluSLJI5TMgni9DE=;
+        b=ZdMn+1HhnDMRhAr32BCXSi+/tYuATxGtFycDH21oCV/qKMuVuykLuCQtgLtW49BtIT
+         DoprPon1Vqdwk9vD+QtjAoQUQFnIOVwqyN+fgEZ2e9U742z5Dn5R5CYHLEH6anl2E+RA
+         e/uMeARrOjSf7++2NT2Kz5S7+/OcbOOEJr4deTHr62/w2zzodNUBAtc5IbPLqiwlfC3a
+         fYBz+i5e1FjsUzdszKzRl3ynC49pP4gOqak625uNLVI9sbgaaeAKer4Z0Y3LI1Pl+M7j
+         PHSKRefFvWCkTOq31tvByMHlJbjeFQ5+KiZfDRc0mqYUzeD83TrEi4cG6pM5Xg4WvAyd
+         jxZg==
+X-Gm-Message-State: AOAM531vtBH5/hwZziIVPQ4LaM0OrmO/HmLWdR5MnJR9TQ4qdusFL3Df
+        72hjgyEkbujKeWPkSfT05w==
+X-Google-Smtp-Source: ABdhPJzN6H3NDZjxhTjlFEytVExkly/VEM/rbtk+zSRv+UsB7q0EttO8kSe4TBbuNrMt5qlO+8v8qg==
+X-Received: by 2002:aca:4e0a:: with SMTP id c10mr634718oib.14.1610404317091;
+        Mon, 11 Jan 2021 14:31:57 -0800 (PST)
+Received: from robh.at.kernel.org (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id k10sm234299otn.71.2021.01.11.14.31.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 Jan 2021 14:31:55 -0800 (PST)
+Received: (nullmailer pid 3177511 invoked by uid 1000);
+        Mon, 11 Jan 2021 22:31:54 -0000
+Date:   Mon, 11 Jan 2021 16:31:54 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Kishon Vijay Abraham I <kishon@ti.com>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Nadeem Athani <nadeem@cadence.com>, linux-pci@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] Documentation: Replace lkml.org links with lore
-Message-ID: <20210111124858.2b35982c@lwn.net>
-In-Reply-To: <77cdb7f32cfb087955bfc3600b86c40bed5d4104.camel@perches.com>
-References: <20200627103050.71712-1-grandmaster@al2klimov.de>
-        <20200630180917.GA3455699@bjorn-Precision-5520>
-        <20200630140417.3a2dba67@lwn.net>
-        <77cdb7f32cfb087955bfc3600b86c40bed5d4104.camel@perches.com>
-Organization: LWN.net
+Subject: Re: [PATCH v2 1/4] dt-bindings: PCI: ti,j721e: Add binding to
+ represent refclk to the connector
+Message-ID: <20210111223154.GA3175106@robh.at.kernel.org>
+References: <20210104124103.30930-1-kishon@ti.com>
+ <20210104124103.30930-2-kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210104124103.30930-2-kishon@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sun, 10 Jan 2021 12:41:44 -0800
-Joe Perches <joe@perches.com> wrote:
+On Mon, Jan 04, 2021 at 06:11:00PM +0530, Kishon Vijay Abraham I wrote:
+> Add binding to represent refclk to the PCIe connector.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  .../bindings/pci/ti,j721e-pci-host.yaml         | 17 +++++++++++++----
+>  1 file changed, 13 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+> index 0880a613ece6..7607018a115b 100644
+> --- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+> +++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+> @@ -46,12 +46,21 @@ properties:
+>      maxItems: 1
+>  
+>    clocks:
+> -    maxItems: 1
+> -    description: clock-specifier to represent input to the PCIe
+> +    minItems: 1
+> +    maxItems: 2
+> +    description: clock-specifier to represent input to the PCIe for 1 item.
+> +      2nd item if present represents reference clock to the connector.
+>  
+>    clock-names:
+> -    items:
+> -      - const: fck
+> +    oneOf:
+> +      - description: Represent input clock to the PCIe
+> +        items:
+> +          - const: fck
+> +      - description: Represent input clock to the PCIe and reference clock to
+> +          the connector.
+> +        items:
+> +          - const: fck
+> +          - const: pcie_refclk
 
-> Replace the lkml.org links with lore to better use a single source
-> that's more likely to stay available long-term.
+Can be just:
 
-Makes sense to me...applied, thanks.
-
-jon
+minItems: 1
+items:
+  - const: fck
+  - const: pcie_refclk
