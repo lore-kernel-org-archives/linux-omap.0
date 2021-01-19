@@ -2,151 +2,111 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A2D3C10F29
-	for <linux-omap@archiver.kernel.org>; Tue, 19 Jan 2021 18:27:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA7AC10F0D
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11AD423104
-	for <linux-omap@archiver.kernel.org>; Tue, 19 Jan 2021 18:27:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8CDFC20706
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391376AbhASPdf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 19 Jan 2021 10:33:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48866 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388999AbhASPKs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 19 Jan 2021 10:10:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C421B23135;
-        Tue, 19 Jan 2021 15:10:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611069007;
-        bh=tujrG9Me8GcuwbvJoBlpOZZDK5rhXCB/ZsDuhMpneTc=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=kukxcTcK68tYNhXg0JrBBz1Swd0ITrzW6B1n1KtWl5Dx4VtBvXRBymsaEn4UNAeX0
-         +QNHxB0cjZxSpFWBbDvZx/JpEWHBwqROFrt8GGRjfJutyq+o4SoJLFgRnYa3+ImMLf
-         mCzRKLGz5mEdqgfnCsmiM8ywdVdBmIc3qbXGVgO4LiJ6nVDE4+cE1sHvUS/RmpQAZT
-         v0Ns1LodHkqoUxcihQmuDmZ5TlYn9QxWY2nw9tk1I4M8RoPSJLQ5PA+6jCznX0Gb+J
-         SXtctoIFFeV9+miL5IRCLlyvf/ieSs6sXWqHBvzOJBntvIidtYtc3JFMxC0Jor++Y7
-         Y/jYI19qWADMQ==
-Received: by mail-ed1-f46.google.com with SMTP id c6so14794891ede.0;
-        Tue, 19 Jan 2021 07:10:06 -0800 (PST)
-X-Gm-Message-State: AOAM5314RlRkkkylInn5OBGor44ctBx8mtBVo12z1ShKZDoV9WVGfhD/
-        rIx130B+r/kQGGb7smBZnJxDRgZdTknlQGWg3g==
-X-Google-Smtp-Source: ABdhPJzIDLsQw+ZJBToPFJHIKOR8/yNxcIbFQDixAfzF4A2i09TM5FH3rBt23cPA/y6TPGYq/CTIGF1sNC4c/U++d8E=
-X-Received: by 2002:a05:6402:1751:: with SMTP id v17mr3857788edx.289.1611069005313;
- Tue, 19 Jan 2021 07:10:05 -0800 (PST)
+        id S2389426AbhASQ7p (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 19 Jan 2021 11:59:45 -0500
+Received: from userp2130.oracle.com ([156.151.31.86]:54422 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389173AbhASQ7Y (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2021 11:59:24 -0500
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 10JGXWR0143590;
+        Tue, 19 Jan 2021 16:57:50 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=sgdV4DlHNHTspbd/aK7hkeNWRoha9hMFwjn/ZmwVWQk=;
+ b=N6ODgjzWnXRoegsWTwaFflZ7AM6NcT0c5vtyyMYYAXB5kuxnJ6eavvmWkBdXiZHEF6CR
+ aAb3lnX+7LCGEazD06mBnK0XvmUubX4XqHFajisIhSoKVG8QtuP97odTL8qGVf9m8LLZ
+ hEWvwyCpgefIrGHH6Qz/8wegaUpW0HDdkjKKWjj7avmOT2iGF1f3zNvSQHcX34oiTd6f
+ 4ODXLDIeJ6CUpO5Y6gg1wB2+2aaHVla/pucjEXLEddNsGN3cjpLoNzL+yM43SozyVVUs
+ g8lG/gZHA41S1tCkgjQonycuvavpiN/O8M+9VpsvypAT63qxVOj3j3w5xkhFthgAsEjS rw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2130.oracle.com with ESMTP id 363xyhse4g-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 19 Jan 2021 16:57:50 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 10JGsbvn142094;
+        Tue, 19 Jan 2021 16:57:49 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3020.oracle.com with ESMTP id 3661khg06j-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 19 Jan 2021 16:57:49 +0000
+Received: from abhmp0012.oracle.com (abhmp0012.oracle.com [141.146.116.18])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 10JGvk9l005845;
+        Tue, 19 Jan 2021 16:57:47 GMT
+Received: from [10.74.104.209] (/10.74.104.209)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Tue, 19 Jan 2021 08:57:46 -0800
+Subject: Re: [PATCH] dt-bindings: soc: ti: Update TI PRUSS bindings about
+ schemas to include
+To:     Suman Anna <s-anna@ti.com>
+Cc:     Rob Herring <robh@kernel.org>,
+        Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
+        tony@atomide.com, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, robh+dt@kernel.org,
+        ssantosh@kernel.org, praneeth@ti.com, lee.jones@linaro.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20201216225027.2681-1-grzegorz.jaszczyk@linaro.org>
+ <20201221213234.GA596829@robh.at.kernel.org>
+ <6f5b6609-bb9e-31f7-c0c2-3bb261a54d6a@ti.com>
+From:   santosh.shilimkar@oracle.com
+Organization: Oracle Corporation
+Message-ID: <a080a917-9c37-088b-075b-7b5a5d49256d@oracle.com>
+Date:   Tue, 19 Jan 2021 08:57:43 -0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
+ Gecko/20100101 Thunderbird/68.12.1
 MIME-Version: 1.0
-References: <20210118073340.62141-1-tony@atomide.com> <CAK8P3a1Eec1cAOdxNQ=8LORop+ESqx_=dg1uhJwpXhknxOydsg@mail.gmail.com>
-In-Reply-To: <CAK8P3a1Eec1cAOdxNQ=8LORop+ESqx_=dg1uhJwpXhknxOydsg@mail.gmail.com>
-From:   Rob Herring <robh+dt@kernel.org>
-Date:   Tue, 19 Jan 2021 09:09:51 -0600
-X-Gmail-Original-Message-ID: <CAL_Jsq+h5AOBbgpZX-xQwrnjDk6QB2A6oZs6AKUt=rCugsN-BA@mail.gmail.com>
-Message-ID: <CAL_Jsq+h5AOBbgpZX-xQwrnjDk6QB2A6oZs6AKUt=rCugsN-BA@mail.gmail.com>
-Subject: Re: [PATCHv2] drivers: bus: simple-pm-bus: Fix compatibility with
- simple-bus for auxdata
-To:     Arnd Bergmann <arnd@kernel.org>
-Cc:     Tony Lindgren <tony@atomide.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        DTML <devicetree@vger.kernel.org>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <6f5b6609-bb9e-31f7-c0c2-3bb261a54d6a@ti.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9869 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
+ phishscore=0 mlxscore=0 adultscore=0 spamscore=0 bulkscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2101190097
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9869 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 phishscore=0
+ malwarescore=0 mlxlogscore=999 bulkscore=0 priorityscore=1501 spamscore=0
+ mlxscore=0 impostorscore=0 lowpriorityscore=0 suspectscore=0 clxscore=1011
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2101190096
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-+Linus W
-
-On Mon, Jan 18, 2021 at 2:30 AM Arnd Bergmann <arnd@kernel.org> wrote:
->
-> On Mon, Jan 18, 2021 at 8:33 AM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > After converting am335x to probe devices with simple-pm-bus I noticed
-> > that we are not passing auxdata for of_platform_populate() like we do
-> > with simple-bus.
-> >
-> > While device tree using SoCs should no longer need platform data, there
-> > are still quite a few drivers that still need it as can be seen with
-> > git grep OF_DEV_AUXDATA. We want to have simple-pm-bus be usable as a
-> > replacement for simple-bus also for cases where OF_DEV_AUXDATA is still
-> > needed.
-> >
-> > Let's fix the issue by passing auxdata as platform data to simple-pm-bus.
-> > That way the SoCs needing this can pass the auxdata with OF_DEV_AUXDATA.
-> > And let's pass the auxdata for omaps to fix the issue for am335x.
-> >
-> > As an alternative solution, adding simple-pm-bus handling directly to
-> > drivers/of/platform.c was considered, but we would still need simple-pm-bus
-> > device driver. So passing auxdata as platform data seems like the simplest
-> > solution.
-> >
-> > Fixes: 5a230524f879 ("ARM: dts: Use simple-pm-bus for genpd for am3 l4_wkup")
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> > Changes since v1: Updated description, added devicetree list to Cc
->
-> This looks fine to me for now
->
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
->
-> But I think we should take the time to discuss how to phase out auxdata
-> over time. There are still a number of users, but it's not that many in the
-> end. For some of them I see a clear solution, for other ones I do not:
-
-Thanks for summarizing.
-
-> lpc32xx: Used only for pl080 DMA data with the old method, needs to
->     be converted to use the proper DT binding that was added a few years
->     ago.
->
-> kirkwood: I don't see what this does at all, as there is no pdata, and
->     there is no clkdev lookup for "mvebu-audio"
-
-Probably nothing. I reached that conclusion on u300 too. Clocks got
-added in DT and someone forgot to remove auxdata. Granted, it's pretty
-non-obvious what the purpose is if there is no platform_data.
-
->
-> orion: similar to kirkwood, these seem to have been added for
->     clkdev lookup, but the orion_clkdev_init() function seems to
->     not be called for the orion5x_dt variant.
->
-> omap2: I'll leave these for Tony to comment
->
-> spear3xx: pl022 and pl080 should just use the normal DT
->    binding, see lpc32xx.
->
-> u300: platform is scheduled for removal
->
-> integrator_ap: pl010_set_mctrl() needs a callback to
->     integrator_uart_set_mctrl(). I see no good alternative, but
->     a workaround might be to call into syscon directly from the
->     driver on versatile machines. For all I can tell, pl010 is only
->     used on versatile and ep93xx, so that would not harm a
->     commonly used driver.
-
-That was my conclusion.
-
-> versatile/integrator_cp: similar problem but for mmci, which is
->     used more widely. Used for card detection, which could
->     theoretically be implemented with a fake gpio driver, but that
->     might be excessive.
->
-> mips/pic32: used for setting up DMA for sdhci, could be done
->    in a platform-specific sdhci front-end.
->
-> arm-cci: used to pass cci address after ioremap(), avoiding
->    this would revert e9c112c94b01 ("perf/arm-cci: Untangle
->    global cci_ctrl_base").
-
-Create a regmap and then secondary drivers needing register access can
-lookup the regmap? Or just ioremap it twice... I'll take a closer look
-at this one.
-
-Rob
+On 1/15/21 8:38 AM, Suman Anna wrote:
+> Hi Santosh,
+> 
+> On 12/21/20 3:32 PM, Rob Herring wrote:
+>> On Wed, 16 Dec 2020 23:50:27 +0100, Grzegorz Jaszczyk wrote:
+>>> Now after ti,pruss-intc.yaml and ti,pru-rproc.yaml are merged, include
+>>> them in proper property and extend the examples section.
+>>>
+>>> At the occasion extend the allowed property list about dma-ranges.
+>>>
+>>> Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+>>> ---
+>>>   .../devicetree/bindings/soc/ti/ti,pruss.yaml  | 76 +++++++++++++++++++
+>>>   1 file changed, 76 insertions(+)
+>>>
+>>
+>> Reviewed-by: Rob Herring <robh@kernel.org>
+>>
+> 
+> Gentle reminder, I haven't seen this patch yet on linux-next.
+> Can you please pick this up for 5.12.
+> 
+Yes, will look into it this week.
