@@ -2,125 +2,56 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD543C433E9
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 08:32:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B283CC433E6
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 11:16:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D4FE22DD6
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 08:32:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 948DF2310C
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 11:16:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390160AbhAZIcH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 03:32:07 -0500
-Received: from muru.com ([72.249.23.125]:53172 "EHLO muru.com"
+        id S2392094AbhAZLQZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 06:16:25 -0500
+Received: from muru.com ([72.249.23.125]:53202 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728357AbhAZIbW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 Jan 2021 03:31:22 -0500
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 617BA8B5E;
-        Tue, 26 Jan 2021 08:28:05 +0000 (UTC)
+        id S2392197AbhAZLPr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 06:15:47 -0500
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id D77C58057;
+        Tue, 26 Jan 2021 11:15:08 +0000 (UTC)
+Date:   Tue, 26 Jan 2021 13:15:01 +0200
 From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, Balaji T K <balajitk@ti.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        linux-pci@vger.kernel.org
-Subject: [PATCH 20/27] ARM: OMAP2+: Drop legacy platform data for dra7 dmm
-Date:   Tue, 26 Jan 2021 10:27:09 +0200
-Message-Id: <20210126082716.54358-21-tony@atomide.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210126082716.54358-1-tony@atomide.com>
-References: <20210126082716.54358-1-tony@atomide.com>
+To:     =?utf-8?B?QW5kcsOp?= Hentschel <nerv@dawncrow.de>
+Cc:     robh+dt@kernel.org, bcousson@baylibre.com,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ARM: dts: omap3-echo: Add speaker sound card support
+Message-ID: <YA/5tcX+Fw3nCsPu@atomide.com>
+References: <20201227171353.2002674-1-nerv@dawncrow.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20201227171353.2002674-1-nerv@dawncrow.de>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with ti-sysc interconnect driver and dts data.
-Let's drop the related platform data and custom ti,hwmods dts property.
+* André Hentschel <nerv@dawncrow.de> [201227 19:18]:
+> This adds audio playback to the first generation Amazon Echo
+> 
+> Signed-off-by: André Hentschel <nerv@dawncrow.de>
+> ---
+> 
+> It took me by far too long to get this working as the codec sets one important bit based on the
+> combination of provided supplies. That was just too hidden for me.
+> The first generation Amazon Echo was codenamed Misto, so I used that for the sound card name.
 
-As we're just dropping data, and the early platform data init is based on
-the custom ti,hwmods property, we want to drop both the platform data and
-ti,hwmods property in a single patch.
+Cool, so it's now usable as a music player then :)
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/dra7.dtsi               |  1 -
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 30 -----------------------
- 2 files changed, 31 deletions(-)
+Applying into omap-for-v5.12/dt thanks.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -465,7 +465,6 @@ edma_tptc1: dma@0 {
- 
- 		target-module@4e000000 {
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "dmm";
- 			reg = <0x4e000000 0x4>,
- 			      <0x4e000010 0x4>;
- 			reg-names = "rev", "sysc";
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -30,27 +30,6 @@
-  * IP blocks
-  */
- 
--/*
-- * 'dmm' class
-- * instance(s): dmm
-- */
--static struct omap_hwmod_class dra7xx_dmm_hwmod_class = {
--	.name	= "dmm",
--};
--
--/* dmm */
--static struct omap_hwmod dra7xx_dmm_hwmod = {
--	.name		= "dmm",
--	.class		= &dra7xx_dmm_hwmod_class,
--	.clkdm_name	= "emif_clkdm",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_EMIF_DMM_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_EMIF_DMM_CONTEXT_OFFSET,
--		},
--	},
--};
--
- /*
-  * 'l3' class
-  * instance(s): l3_instr, l3_main_1, l3_main_2
-@@ -285,14 +264,6 @@ static struct omap_hwmod dra7xx_vcp2_hwmod = {
-  * Interfaces
-  */
- 
--/* l3_main_1 -> dmm */
--static struct omap_hwmod_ocp_if dra7xx_l3_main_1__dmm = {
--	.master		= &dra7xx_l3_main_1_hwmod,
--	.slave		= &dra7xx_dmm_hwmod,
--	.clk		= "l3_iclk_div",
--	.user		= OCP_USER_SDMA,
--};
--
- /* l3_main_2 -> l3_instr */
- static struct omap_hwmod_ocp_if dra7xx_l3_main_2__l3_instr = {
- 	.master		= &dra7xx_l3_main_2_hwmod,
-@@ -422,7 +393,6 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__vcp2 = {
- };
- 
- static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
--	&dra7xx_l3_main_1__dmm,
- 	&dra7xx_l3_main_2__l3_instr,
- 	&dra7xx_l4_cfg__l3_main_1,
- 	&dra7xx_l3_main_1__l3_main_2,
--- 
-2.30.0
+Tony
