@@ -5,23 +5,23 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02FD0C4332B
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:43:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF526C433E6
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:43:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D77EF23109
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:43:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B5A5523109
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:43:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403900AbhAZMmv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:42:51 -0500
-Received: from muru.com ([72.249.23.125]:53448 "EHLO muru.com"
+        id S2391770AbhAZMnC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:43:02 -0500
+Received: from muru.com ([72.249.23.125]:53444 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726110AbhAZMlk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 Jan 2021 07:41:40 -0500
+        id S2391813AbhAZMli (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 07:41:38 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id D26D98379;
-        Tue, 26 Jan 2021 12:40:32 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 3F8B0831C;
+        Tue, 26 Jan 2021 12:40:29 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -30,9 +30,9 @@ Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         linux-pci@vger.kernel.org
-Subject: [PATCH 07/15] ARM: dts: Configure interconnect target module for dra7 sata
-Date:   Tue, 26 Jan 2021 14:39:56 +0200
-Message-Id: <20210126124004.52550-8-tony@atomide.com>
+Subject: [PATCH 05/15] ARM: dts: Move dra7 l3 noc to a separate node
+Date:   Tue, 26 Jan 2021 14:39:54 +0200
+Message-Id: <20210126124004.52550-6-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210126124004.52550-1-tony@atomide.com>
 References: <20210126124004.52550-1-tony@atomide.com>
@@ -42,89 +42,43 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with device tree only configuration using
-ti-sysc interconnect target module driver. Let's configure the
-module, but keep the legacy "ti,hwmods" peroperty to avoid new boot
-time warnings. The legacy property will be removed in later patches
-together with the legacy platform data.
-
-Note that the old sysc register offset is wrong, the real offset is at
-0x1100 as listed in TRM for SATA_SYSCONFIG register. Looks like we've been
-happily using sata on the bootloader configured sysconfig register and
-nobody noticed. Also the old register range for SATAMAC_wrapper registers
-is wrong at 7 while it should be 8. But that too seems harmless.
-
-There is also an L3 parent interconnect range that we don't seem to be
-using. That can be added as needed later on.
+In order to prepare for probing l3 with genpd, we need to move l3 noc
+into a separate node for l3 interconnect to have it's own regs, and
+to avoid it claiming more than it needs for the io regions.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dra7-l4.dtsi | 29 ++++++++++++++++++++++++++---
- arch/arm/boot/dts/dra7.dtsi    | 12 ------------
- 2 files changed, 26 insertions(+), 15 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -572,11 +572,34 @@ target-module@8000 {			/* 0x4a108000, ap 29 1e.0 */
- 		};
- 
- 		target-module@40000 {			/* 0x4a140000, ap 31 06.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
--			#address-cells = <1>;
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "sata";
-+			reg = <0x400fc 4>,
-+			      <0x41100 4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>,
-+					<SYSC_IDLE_SMART_WKUP>;
-+			power-domains = <&prm_l3init>;
-+			clocks = <&l3init_clkctrl DRA7_L3INIT_SATA_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#size-cells = <1>;
-+			#address-cells = <1>;
- 			ranges = <0x0 0x40000 0x10000>;
-+
-+			sata: sata@0 {
-+				compatible = "snps,dwc-ahci";
-+				reg = <0 0x1100>, <0x1100 0x8>;
-+				interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
-+				phys = <&sata_phy>;
-+				phy-names = "sata-phy";
-+				clocks = <&l3init_clkctrl DRA7_L3INIT_SATA_CLKCTRL 8>;
-+				ports-implemented = <0x1>;
-+			};
- 		};
- 
- 		target-module@51000 {			/* 0x4a151000, ap 33 50.0 */
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -785,18 +785,6 @@ qspi: spi@0 {
- 			};
+@@ -144,16 +144,20 @@ mpu {
+ 	 * hierarchy.
+ 	 */
+ 	ocp: ocp {
+-		compatible = "ti,dra7-l3-noc", "simple-bus";
++		compatible = "simple-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0x0 0x0 0x0 0xc0000000>;
+ 		dma-ranges = <0x80000000 0x0 0x80000000 0x80000000>;
+ 		ti,hwmods = "l3_main_1", "l3_main_2";
+-		reg = <0x0 0x44000000 0x0 0x1000000>,
+-		      <0x0 0x45000000 0x0 0x1000>;
+-		interrupts-extended = <&crossbar_mpu GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>,
+-				      <&wakeupgen GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
++
++		l3-noc@44000000 {
++			compatible = "ti,dra7-l3-noc";
++			reg = <0x44000000 0x1000>,
++			      <0x45000000 0x1000>;
++			interrupts-extended = <&crossbar_mpu GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>,
++					      <&wakeupgen GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
++		};
+ 
+ 		l4_cfg: interconnect@4a000000 {
  		};
- 
--		/* OCP2SCP3 */
--		sata: sata@4a141100 {
--			compatible = "snps,dwc-ahci";
--			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
--			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
--			phys = <&sata_phy>;
--			phy-names = "sata-phy";
--			clocks = <&l3init_clkctrl DRA7_L3INIT_SATA_CLKCTRL 8>;
--			ti,hwmods = "sata";
--			ports-implemented = <0x1>;
--		};
--
- 		/* OCP2SCP1 */
- 		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
- 
 -- 
 2.30.0
