@@ -2,50 +2,119 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F19E0C433E6
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:08:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2E42C433E6
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:23:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1FA823129
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:08:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF8212311F
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:23:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729694AbhAZMI1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:08:27 -0500
-Received: from muru.com ([72.249.23.125]:53244 "EHLO muru.com"
+        id S2404605AbhAZMXJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:23:09 -0500
+Received: from muru.com ([72.249.23.125]:53302 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392313AbhAZLV6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 Jan 2021 06:21:58 -0500
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 303E18057;
-        Tue, 26 Jan 2021 11:21:21 +0000 (UTC)
-Date:   Tue, 26 Jan 2021 13:21:14 +0200
+        id S2404743AbhAZMWp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 07:22:45 -0500
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id B99A7814C;
+        Tue, 26 Jan 2021 12:22:08 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
-To:     Javier Martinez Canillas <javierm@redhat.com>
-Cc:     linux-kernel@vger.kernel.org,
-        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        Enric Balletbo i Serra <eballetbo@gmail.com>,
-        Javier Martinez Canillas <javier@dowhile0.org>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH] ARM: dts: omap3-igep: Change email address in copyright
- notice
-Message-ID: <YA/7KmtGlhcyF65m@atomide.com>
-References: <20210118081707.160596-1-javierm@redhat.com>
+To:     linux-omap@vger.kernel.org
+Cc:     linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 2/2] ARM: omap2plus_defconfig: Update for dropped options
+Date:   Tue, 26 Jan 2021 14:21:58 +0200
+Message-Id: <20210126122158.33761-2-tony@atomide.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210126122158.33761-1-tony@atomide.com>
+References: <20210126122158.33761-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210118081707.160596-1-javierm@redhat.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javierm@redhat.com> [210118 10:17]:
-> I've switched employer a long time ago and the mentioned email address no
-> longer exists. Use my personal address to prevent the issue in the future.
+Update omap2plus_defconfig for the following options that got dropped:
 
-Thanks applying into omap-for-v5.12/dt.
+- We have now default y for MEMCG_SWAP and SECCOMP with the options
+  already in omap2plus_defconfig
 
-Tony
+- The ZBOOT_ROM values now default to 0
+
+- ARM_TI_CPUFREQ no longer exists and we're using the generic driver
+  now that selects DT_IDLE_STATES
+
+- POWER_AVS option no longer exists
+
+- The MEDIA and VIDEO related options are now selected when we have
+  CONFIG_MEDIA_SUPPORT_FILTER not set
+
+- CEC_PLATFORM_DRIVERS no longer exists
+
+- MEDIA_SUBDRV_AUTOSELECT is not selected by default
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 13 -------------
+ 1 file changed, 13 deletions(-)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -10,7 +10,6 @@ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=16
+ CONFIG_CGROUPS=y
+ CONFIG_MEMCG=y
+-CONFIG_MEMCG_SWAP=y
+ CONFIG_BLK_CGROUP=y
+ CONFIG_CGROUP_SCHED=y
+ CONFIG_CFS_BANDWIDTH=y
+@@ -40,9 +39,6 @@ CONFIG_ARM_THUMBEE=y
+ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_SMP=y
+ CONFIG_NR_CPUS=2
+-CONFIG_SECCOMP=y
+-CONFIG_ZBOOT_ROM_TEXT=0x0
+-CONFIG_ZBOOT_ROM_BSS=0x0
+ CONFIG_ARM_APPENDED_DTB=y
+ CONFIG_ARM_ATAG_DTB_COMPAT=y
+ CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
+@@ -54,10 +50,8 @@ CONFIG_CPU_FREQ_GOV_USERSPACE=y
+ CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+ CONFIG_CPUFREQ_DT=m
+ # CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
+-CONFIG_ARM_TI_CPUFREQ=y
+ CONFIG_CPU_IDLE=y
+ CONFIG_ARM_CPUIDLE=y
+-CONFIG_DT_IDLE_STATES=y
+ CONFIG_KERNEL_MODE_NEON=y
+ CONFIG_PM_DEBUG=y
+ CONFIG_ARM_CRYPTO=y
+@@ -296,7 +290,6 @@ CONFIG_GPIO_TWL4030=y
+ CONFIG_W1=m
+ CONFIG_HDQ_MASTER_OMAP=m
+ CONFIG_W1_SLAVE_DS250X=m
+-CONFIG_POWER_AVS=y
+ CONFIG_POWER_RESET=y
+ CONFIG_POWER_RESET_GPIO=y
+ CONFIG_BATTERY_BQ27XXX=m
+@@ -354,14 +347,8 @@ CONFIG_IR_RX51=m
+ CONFIG_IR_GPIO_TX=m
+ CONFIG_IR_PWM_TX=m
+ CONFIG_MEDIA_SUPPORT=m
+-CONFIG_MEDIA_CAMERA_SUPPORT=y
+-CONFIG_MEDIA_CEC_SUPPORT=y
+-CONFIG_MEDIA_CONTROLLER=y
+-CONFIG_VIDEO_V4L2_SUBDEV_API=y
+ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_VIDEO_OMAP3=m
+-CONFIG_CEC_PLATFORM_DRIVERS=y
+-# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
+ CONFIG_VIDEO_TVP5150=m
+ CONFIG_VIDEO_MT9P031=m
+ CONFIG_DRM=m
+-- 
+2.30.0
