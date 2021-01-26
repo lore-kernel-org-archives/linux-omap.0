@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2968DC433DB
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:34:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CDBAC433E0
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:34:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EEDA12223D
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:34:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43D3E2224C
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:34:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726854AbhAZRYR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 12:24:17 -0500
-Received: from muru.com ([72.249.23.125]:53192 "EHLO muru.com"
+        id S2389537AbhAZRYG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 12:24:06 -0500
+Received: from muru.com ([72.249.23.125]:53178 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390153AbhAZIbr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 Jan 2021 03:31:47 -0500
+        id S2390139AbhAZIbW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 03:31:22 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 0FED78BF8;
-        Tue, 26 Jan 2021 08:28:19 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id F0BAB8AF6;
+        Tue, 26 Jan 2021 08:27:54 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -31,9 +31,9 @@ Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         linux-pci@vger.kernel.org
-Subject: [PATCH 27/27] ARM: OMAP2+: Drop legacy platform data for dra7 hwmod
-Date:   Tue, 26 Jan 2021 10:27:16 +0200
-Message-Id: <20210126082716.54358-28-tony@atomide.com>
+Subject: [PATCH 15/27] ARM: dts: Configure simple-pm-bus for dra7 l3
+Date:   Tue, 26 Jan 2021 10:27:04 +0200
+Message-Id: <20210126082716.54358-16-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210126082716.54358-1-tony@atomide.com>
 References: <20210126082716.54358-1-tony@atomide.com>
@@ -43,119 +43,33 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe interconnects with simple-pm-bus and genpd.
+We can now probe interconnects with device tree only configuration using
+simple-pm-bus and genpd.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Kconfig               |  1 -
- arch/arm/mach-omap2/Makefile              |  1 -
- arch/arm/mach-omap2/io.c                  |  2 -
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 64 -----------------------
- 4 files changed, 68 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+ arch/arm/boot/dts/dra7.dtsi | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -90,7 +90,6 @@ config SOC_DRA7XX
- 	select HAVE_ARM_ARCH_TIMER
- 	select IRQ_CROSSBAR
- 	select ARM_ERRATA_798181 if SMP
--	select OMAP_HWMOD
- 	select OMAP_INTERCONNECT
- 	select OMAP_INTERCONNECT_BARRIER
- 	select PM_OPP
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -209,7 +209,6 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
- obj-$(CONFIG_SOC_TI81XX)		+= omap_hwmod_81xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
--obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -132,12 +132,14 @@ opp_high@1500000000 {
+ 	 * hierarchy.
+ 	 */
+ 	ocp: ocp {
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
++		power-domains = <&prm_core>;
++		clocks = <&l3main1_clkctrl DRA7_L3MAIN1_L3_MAIN_1_CLKCTRL 0>,
++			 <&l3instr_clkctrl DRA7_L3INSTR_L3_MAIN_2_CLKCTRL 0>;
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0x0 0x0 0x0 0xc0000000>;
+ 		dma-ranges = <0x80000000 0x0 0x80000000 0x80000000>;
+-		ti,hwmods = "l3_main_1", "l3_main_2";
  
- # OMAP2420 MSDI controller integration support ("MMC")
- obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -667,8 +667,6 @@ void __init dra7xx_init_early(void)
- 	dra7xxx_check_revision();
- 	dra7xx_powerdomains_init();
- 	dra7xx_clockdomains_init();
--	dra7xx_hwmod_init();
--	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = dra7xx_dt_clk_init;
- 	omap_secure_init();
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-deleted file mode 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ /dev/null
-@@ -1,64 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * Hardware modules present on the DRA7xx chips
-- *
-- * Copyright (C) 2013 Texas Instruments Incorporated - https://www.ti.com
-- *
-- * Paul Walmsley
-- * Benoit Cousson
-- *
-- * This file is automatically generated from the OMAP hardware databases.
-- * We respectfully ask that any modifications to this file be coordinated
-- * with the public linux-omap@vger.kernel.org mailing list and the
-- * authors above to ensure that the autogeneration scripts are kept
-- * up-to-date with the file contents.
-- */
--
--#include <linux/io.h>
--
--#include "omap_hwmod.h"
--#include "omap_hwmod_common_data.h"
--#include "cm1_7xx.h"
--#include "cm2_7xx.h"
--#include "prm7xx.h"
--#include "soc.h"
--
--/* Base offset for all DRA7XX interrupts external to MPUSS */
--#define DRA7XX_IRQ_GIC_START	32
--
--/*
-- * Interfaces
-- */
--static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
--	NULL,
--};
--
--/* SoC variant specific hwmod links */
--static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
--	NULL,
--};
--
--static struct omap_hwmod_ocp_if *rtc_hwmod_ocp_ifs[] __initdata = {
--	NULL,
--};
--
--int __init dra7xx_hwmod_init(void)
--{
--	int ret;
--
--	omap_hwmod_init();
--	ret = omap_hwmod_register_links(dra7xx_hwmod_ocp_ifs);
--
--	if (!ret && soc_is_dra74x()) {
--		ret = omap_hwmod_register_links(rtc_hwmod_ocp_ifs);
--	} else if (!ret && soc_is_dra72x()) {
--		ret = omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
--		if (!ret && !of_machine_is_compatible("ti,dra718"))
--			ret = omap_hwmod_register_links(rtc_hwmod_ocp_ifs);
--	} else if (!ret && soc_is_dra76x()) {
--		if (!ret && soc_is_dra76x_abz())
--			ret = omap_hwmod_register_links(rtc_hwmod_ocp_ifs);
--	}
--
--	return ret;
--}
+ 		l3-noc@44000000 {
+ 			compatible = "ti,dra7-l3-noc";
 -- 
 2.30.0
