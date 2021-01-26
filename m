@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C6DC43331
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:53:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11F86C432C3
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:53:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A65F423104
+	by mail.kernel.org (Postfix) with ESMTP id DAF202312F
 	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:53:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403818AbhAZMxp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:53:45 -0500
-Received: from muru.com ([72.249.23.125]:53542 "EHLO muru.com"
+        id S2403845AbhAZMxr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:53:47 -0500
+Received: from muru.com ([72.249.23.125]:53538 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392011AbhAZMvM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S2392002AbhAZMvM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Tue, 26 Jan 2021 07:51:12 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id EA7038931;
-        Tue, 26 Jan 2021 12:50:00 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 7FF098379;
+        Tue, 26 Jan 2021 12:49:55 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>,
         Vignesh Raghavendra <vigneshr@ti.com>
-Subject: [PATCH 11/12] ARM: OMAP2+: Drop legacy platform data for dra7 l3
-Date:   Tue, 26 Jan 2021 14:49:36 +0200
-Message-Id: <20210126124937.52994-12-tony@atomide.com>
+Subject: [PATCH 07/12] ARM: OMAP2+: Drop legacy platform data for dra7 l4_per1
+Date:   Tue, 26 Jan 2021 14:49:32 +0200
+Message-Id: <20210126124937.52994-8-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210126124937.52994-1-tony@atomide.com>
 References: <20210126124937.52994-1-tony@atomide.com>
@@ -43,184 +43,63 @@ We can now probe interconnects with simple-pm-bus and genpd.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 162 ----------------------
- 1 file changed, 162 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 24 +----------------------
+ 1 file changed, 1 insertion(+), 23 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
 --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -26,172 +26,10 @@
- /* Base offset for all DRA7XX interrupts external to MPUSS */
- #define DRA7XX_IRQ_GIC_START	32
+@@ -81,7 +81,7 @@ static struct omap_hwmod dra7xx_l3_main_2_hwmod = {
  
--/*
-- * IP blocks
-- */
--
--/*
-- * 'l3' class
-- * instance(s): l3_instr, l3_main_1, l3_main_2
-- */
--static struct omap_hwmod_class dra7xx_l3_hwmod_class = {
--	.name	= "l3",
--};
--
--/* l3_instr */
--static struct omap_hwmod dra7xx_l3_instr_hwmod = {
--	.name		= "l3_instr",
--	.class		= &dra7xx_l3_hwmod_class,
--	.clkdm_name	= "l3instr_clkdm",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_L3INSTR_L3_INSTR_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_HWCTRL,
--		},
--	},
--};
--
--/* l3_main_1 */
--static struct omap_hwmod dra7xx_l3_main_1_hwmod = {
--	.name		= "l3_main_1",
--	.class		= &dra7xx_l3_hwmod_class,
--	.clkdm_name	= "l3main1_clkdm",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_L3MAIN1_L3_MAIN_1_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_L3MAIN1_L3_MAIN_1_CONTEXT_OFFSET,
--		},
--	},
--};
--
--/* l3_main_2 */
--static struct omap_hwmod dra7xx_l3_main_2_hwmod = {
--	.name		= "l3_main_2",
--	.class		= &dra7xx_l3_hwmod_class,
--	.clkdm_name	= "l3instr_clkdm",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_L3INSTR_L3_MAIN_2_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_L3INSTR_L3_MAIN_2_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_HWCTRL,
--		},
--	},
--};
--
--/*
-- * 'bb2d' class
-- *
-- */
--
--static struct omap_hwmod_class dra7xx_bb2d_hwmod_class = {
--	.name	= "bb2d",
--};
--
--/* bb2d */
--static struct omap_hwmod dra7xx_bb2d_hwmod = {
--	.name		= "bb2d",
--	.class		= &dra7xx_bb2d_hwmod_class,
--	.clkdm_name	= "dss_clkdm",
--	.main_clk	= "dpll_core_h24x2_ck",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_DSS_BB2D_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_DSS_BB2D_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
--		},
--	},
--};
--
--/*
-- * 'vcp' class
-- *
-- */
--
--static struct omap_hwmod_class dra7xx_vcp_hwmod_class = {
--	.name	= "vcp",
--};
--
--/* vcp1 */
--static struct omap_hwmod dra7xx_vcp1_hwmod = {
--	.name		= "vcp1",
--	.class		= &dra7xx_vcp_hwmod_class,
--	.clkdm_name	= "l3main1_clkdm",
--	.main_clk	= "l3_iclk_div",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_L3MAIN1_VCP1_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_L3MAIN1_VCP1_CONTEXT_OFFSET,
--		},
--	},
--};
--
--/* vcp2 */
--static struct omap_hwmod dra7xx_vcp2_hwmod = {
--	.name		= "vcp2",
--	.class		= &dra7xx_vcp_hwmod_class,
--	.clkdm_name	= "l3main1_clkdm",
--	.main_clk	= "l3_iclk_div",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_L3MAIN1_VCP2_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_L3MAIN1_VCP2_CONTEXT_OFFSET,
--		},
--	},
--};
--
--
--
  /*
-  * Interfaces
+  * 'l4' class
+- * instance(s): l4_cfg, l4_per1, l4_per2, l4_per3
++ * instance(s): l4_cfg, l4_per2, l4_per3
   */
--
--/* l3_main_2 -> l3_instr */
--static struct omap_hwmod_ocp_if dra7xx_l3_main_2__l3_instr = {
--	.master		= &dra7xx_l3_main_2_hwmod,
--	.slave		= &dra7xx_l3_instr_hwmod,
--	.clk		= "l3_iclk_div",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* l3_main_1 -> l3_main_2 */
--static struct omap_hwmod_ocp_if dra7xx_l3_main_1__l3_main_2 = {
--	.master		= &dra7xx_l3_main_1_hwmod,
--	.slave		= &dra7xx_l3_main_2_hwmod,
--	.clk		= "l3_iclk_div",
--	.user		= OCP_USER_MPU,
--};
--
--/* l3_main_1 -> bb2d */
--static struct omap_hwmod_ocp_if dra7xx_l3_main_1__bb2d = {
--	.master		= &dra7xx_l3_main_1_hwmod,
--	.slave		= &dra7xx_bb2d_hwmod,
--	.clk		= "l3_iclk_div",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* l3_main_1 -> vcp1 */
--static struct omap_hwmod_ocp_if dra7xx_l3_main_1__vcp1 = {
--	.master		= &dra7xx_l3_main_1_hwmod,
--	.slave		= &dra7xx_vcp1_hwmod,
--	.clk		= "l3_iclk_div",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* l3_main_1 -> vcp2 */
--static struct omap_hwmod_ocp_if dra7xx_l3_main_1__vcp2 = {
--	.master		= &dra7xx_l3_main_1_hwmod,
--	.slave		= &dra7xx_vcp2_hwmod,
--	.clk		= "l3_iclk_div",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
--	&dra7xx_l3_main_2__l3_instr,
--	&dra7xx_l3_main_1__l3_main_2,
--	&dra7xx_l3_main_1__bb2d,
--	&dra7xx_l3_main_1__vcp1,
--	&dra7xx_l3_main_1__vcp2,
- 	NULL,
+ static struct omap_hwmod_class dra7xx_l4_hwmod_class = {
+ 	.name	= "l4",
+@@ -100,19 +100,6 @@ static struct omap_hwmod dra7xx_l4_cfg_hwmod = {
+ 	},
  };
  
+-/* l4_per1 */
+-static struct omap_hwmod dra7xx_l4_per1_hwmod = {
+-	.name		= "l4_per1",
+-	.class		= &dra7xx_l4_hwmod_class,
+-	.clkdm_name	= "l4per_clkdm",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = DRA7XX_CM_L4PER_L4_PER1_CLKCTRL_OFFSET,
+-			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+-		},
+-	},
+-};
+-
+ /* l4_per2 */
+ static struct omap_hwmod dra7xx_l4_per2_hwmod = {
+ 	.name		= "l4_per2",
+@@ -270,14 +257,6 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__l4_cfg = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l3_main_1 -> l4_per1 */
+-static struct omap_hwmod_ocp_if dra7xx_l3_main_1__l4_per1 = {
+-	.master		= &dra7xx_l3_main_1_hwmod,
+-	.slave		= &dra7xx_l4_per1_hwmod,
+-	.clk		= "l3_iclk_div",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main_1 -> l4_per2 */
+ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__l4_per2 = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+@@ -348,7 +327,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l3_main_1__l3_main_2,
+ 	&dra7xx_l4_cfg__l3_main_2,
+ 	&dra7xx_l3_main_1__l4_cfg,
+-	&dra7xx_l3_main_1__l4_per1,
+ 	&dra7xx_l3_main_1__l4_per2,
+ 	&dra7xx_l3_main_1__l4_per3,
+ 	&dra7xx_l4_per2__atl,
 -- 
 2.30.0
