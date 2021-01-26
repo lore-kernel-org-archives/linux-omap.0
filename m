@@ -2,121 +2,146 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 711CAC433E9
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:48:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EA10C433DB
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 460B723109
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:48:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47A152310E
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391662AbhAZMsq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:48:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51110 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391915AbhAZMsf (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2021 07:48:35 -0500
-Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D25B6C0698DA
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2021 04:45:57 -0800 (PST)
-Received: by mail-wr1-x42a.google.com with SMTP id h9so6071125wrr.9
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2021 04:45:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=iORMEqJhCnrh6wIXXy7N9zvOdfWOGFh+mnFrMk+Wc4I=;
-        b=Ut1+hsKMp53ICFgNhpIw0ZooAhqTLBGxRB1GLTU+ou42L9Dcz2FMt2o95jvhCa5CJf
-         ZdlD9DBP1nU2IMrEQ9ly3HLM8tv74yCFWf3FpjdMVG0AGTNgKqPii/2dhd0ZSTMWHSke
-         SfKwvE+l7fcjMACW9iCx/76oeGNAriPw3VvxzsJlySd9/zOTfQUIsd5T5jPfqnf+CfEn
-         PEdLuEobbG2jPX0Gf/vBfIPoyJk2F6FLkDxVjXkK5SOztcfDLiR2N+b/QRpWjYsMV3c2
-         o3wVGKiDJsO/jHItbpGtc7Eet8TetxgNijbinf81a/1UNccJcvd1b63IVx6aw38fnnvk
-         54kg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=iORMEqJhCnrh6wIXXy7N9zvOdfWOGFh+mnFrMk+Wc4I=;
-        b=cKEz0D062CZipXcmtCDnkGMn5TpouZt7fQb3/gr2YFGZpRxbFPNcv+vDjojBdTi1a8
-         ZomC5H/6iY/pzdWIhNWImS+o2Q3s+dFrz6cIFRX2rNiPOEnJ37PyIueK+yWVqWg9BCSw
-         5JQV3OapEAanCjK0l2ZHHKihy7FD03L7qK2os08QEGg7Qufj8KgtM03QsfsopC7sN+kG
-         Oi9bPi+IpYbXQkVdX9TZOySSymhNmEdpCfXG4ZSlbLmV2T7Spk/93e3gcQTQhgTbnZhR
-         0bLkueE89x7gQ2dG8VHLyabF9ExaK/iyx54YHpHG7zpar6jpxkWbCgjDxNusHXO250TH
-         UYRg==
-X-Gm-Message-State: AOAM533X/WhxWv/4/jf0MC4Lnf8epeoGQFvhLZd6Gqz9Hw/WIU0XuD/w
-        mZK/bf0y5g9hYIDX8ga8PB0EmQ==
-X-Google-Smtp-Source: ABdhPJw2nx2B0oh6rm7aHoz4WYg84KTipml2Niimp8U30RwYdhTXFbsI0bCANZV1kpnLUvqsibBRAw==
-X-Received: by 2002:a5d:6c6b:: with SMTP id r11mr5998536wrz.38.1611665156576;
-        Tue, 26 Jan 2021 04:45:56 -0800 (PST)
-Received: from dell.default ([91.110.221.188])
-        by smtp.gmail.com with ESMTPSA id i131sm3263073wmi.25.2021.01.26.04.45.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Jan 2021 04:45:55 -0800 (PST)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org, Tero Kristo <kristo@kernel.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>, linux-omap@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: [PATCH 10/21] clk: ti: dpll44xx: Fix some potential doc-rot
-Date:   Tue, 26 Jan 2021 12:45:29 +0000
-Message-Id: <20210126124540.3320214-11-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210126124540.3320214-1-lee.jones@linaro.org>
-References: <20210126124540.3320214-1-lee.jones@linaro.org>
+        id S2404108AbhAZMug (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:50:36 -0500
+Received: from muru.com ([72.249.23.125]:53496 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2403994AbhAZMu2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 07:50:28 -0500
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 872048317;
+        Tue, 26 Jan 2021 12:49:51 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     linux-omap@vger.kernel.org
+Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>
+Subject: [PATCH 04/12] ARM: OMAP2+: Drop legacy platform data for dra7 mpu
+Date:   Tue, 26 Jan 2021 14:49:29 +0200
+Message-Id: <20210126124937.52994-5-tony@atomide.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210126124937.52994-1-tony@atomide.com>
+References: <20210126124937.52994-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Fixes the following W=1 kernel build warning(s):
+We can now probe devices with ti-sysc interconnect driver and dts data.
+Let's drop the related platform data and custom ti,hwmods dts property.
 
- drivers/clk/ti/dpll44xx.c:114: warning: Function parameter or member 'hw' not described in 'omap4_dpll_regm4xen_recalc'
- drivers/clk/ti/dpll44xx.c:114: warning: Function parameter or member 'parent_rate' not described in 'omap4_dpll_regm4xen_recalc'
- drivers/clk/ti/dpll44xx.c:114: warning: Excess function parameter 'clk' description in 'omap4_dpll_regm4xen_recalc'
- drivers/clk/ti/dpll44xx.c:150: warning: Function parameter or member 'hw' not described in 'omap4_dpll_regm4xen_round_rate'
- drivers/clk/ti/dpll44xx.c:150: warning: Function parameter or member 'parent_rate' not described in 'omap4_dpll_regm4xen_round_rate'
- drivers/clk/ti/dpll44xx.c:150: warning: Excess function parameter 'clk' description in 'omap4_dpll_regm4xen_round_rate'
+As we're just dropping data, and the early platform data init is based on
+the custom ti,hwmods property, we want to drop both the platform data and
+ti,hwmods property in a single patch.
 
-Cc: Tero Kristo <kristo@kernel.org>
-Cc: Michael Turquette <mturquette@baylibre.com>
-Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-clk@vger.kernel.org
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/clk/ti/dpll44xx.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi               |  1 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 42 -----------------------
+ 2 files changed, 43 deletions(-)
 
-diff --git a/drivers/clk/ti/dpll44xx.c b/drivers/clk/ti/dpll44xx.c
-index 89c3ed1a24b82..3fc2cab69a3fe 100644
---- a/drivers/clk/ti/dpll44xx.c
-+++ b/drivers/clk/ti/dpll44xx.c
-@@ -102,7 +102,8 @@ static void omap4_dpll_lpmode_recalc(struct dpll_data *dd)
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -158,7 +158,6 @@ l4_per1: interconnect@48000000 {
  
- /**
-  * omap4_dpll_regm4xen_recalc - compute DPLL rate, considering REGM4XEN bit
-- * @clk: struct clk * of the DPLL to compute the rate for
-+ * @hw: pointer to the clock to compute the rate for
-+ * @parent_rate: clock rate of the DPLL parent
-  *
-  * Compute the output rate for the OMAP4 DPLL represented by @clk.
-  * Takes the REGM4XEN bit into consideration, which is needed for the
-@@ -134,8 +135,9 @@ unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
+ 		target-module@48210000 {
+ 			compatible = "ti,sysc-omap4-simple", "ti,sysc";
+-			ti,hwmods = "mpu";
+ 			power-domains = <&prm_mpu>;
+ 			clocks = <&mpu_clkctrl DRA7_MPU_CLKCTRL 0>;
+ 			clock-names = "fck";
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -242,30 +242,6 @@ static struct omap_hwmod dra7xx_ctrl_module_wkup_hwmod = {
+ 	},
+ };
  
- /**
-  * omap4_dpll_regm4xen_round_rate - round DPLL rate, considering REGM4XEN bit
-- * @clk: struct clk * of the DPLL to round a rate for
-+ * @hw: struct hw_clk containing the struct clk * of the DPLL to round a rate for
-  * @target_rate: the desired rate of the DPLL
-+ * @parent_rate: clock rate of the DPLL parent
+-/*
+- * 'mpu' class
+- *
+- */
+-
+-static struct omap_hwmod_class dra7xx_mpu_hwmod_class = {
+-	.name	= "mpu",
+-};
+-
+-/* mpu */
+-static struct omap_hwmod dra7xx_mpu_hwmod = {
+-	.name		= "mpu",
+-	.class		= &dra7xx_mpu_hwmod_class,
+-	.clkdm_name	= "mpu_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+-	.main_clk	= "dpll_mpu_m2_ck",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = DRA7XX_CM_MPU_MPU_CLKCTRL_OFFSET,
+-			.context_offs = DRA7XX_RM_MPU_MPU_CONTEXT_OFFSET,
+-		},
+-	},
+-};
+-
+ /*
+  * 'vcp' class
   *
-  * Compute the rate that would be programmed into the DPLL hardware
-  * for @clk if set_rate() were to be provided with the rate
+@@ -333,14 +309,6 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__l3_main_1 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* mpu -> l3_main_1 */
+-static struct omap_hwmod_ocp_if dra7xx_mpu__l3_main_1 = {
+-	.master		= &dra7xx_mpu_hwmod,
+-	.slave		= &dra7xx_l3_main_1_hwmod,
+-	.clk		= "l3_iclk_div",
+-	.user		= OCP_USER_MPU,
+-};
+-
+ /* l3_main_1 -> l3_main_2 */
+ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__l3_main_2 = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+@@ -421,14 +389,6 @@ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__ctrl_module_wkup = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l4_cfg -> mpu */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__mpu = {
+-	.master		= &dra7xx_l4_cfg_hwmod,
+-	.slave		= &dra7xx_mpu_hwmod,
+-	.clk		= "l3_iclk_div",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main_1 -> vcp1 */
+ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__vcp1 = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+@@ -465,7 +425,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l3_main_1__dmm,
+ 	&dra7xx_l3_main_2__l3_instr,
+ 	&dra7xx_l4_cfg__l3_main_1,
+-	&dra7xx_mpu__l3_main_1,
+ 	&dra7xx_l3_main_1__l3_main_2,
+ 	&dra7xx_l4_cfg__l3_main_2,
+ 	&dra7xx_l3_main_1__l4_cfg,
+@@ -476,7 +435,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per2__atl,
+ 	&dra7xx_l3_main_1__bb2d,
+ 	&dra7xx_l4_wkup__ctrl_module_wkup,
+-	&dra7xx_l4_cfg__mpu,
+ 	&dra7xx_l3_main_1__vcp1,
+ 	&dra7xx_l4_per2__vcp1,
+ 	&dra7xx_l3_main_1__vcp2,
 -- 
-2.25.1
-
+2.30.0
