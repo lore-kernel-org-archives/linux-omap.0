@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD857C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBE26C43381
 	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:43:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A49823109
+	by mail.kernel.org (Postfix) with ESMTP id B6041230FE
 	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:43:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391840AbhAZMmi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:42:38 -0500
-Received: from muru.com ([72.249.23.125]:53454 "EHLO muru.com"
+        id S2391883AbhAZMmr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:42:47 -0500
+Received: from muru.com ([72.249.23.125]:53450 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391855AbhAZMlp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 Jan 2021 07:41:45 -0500
+        id S2391829AbhAZMlk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 07:41:40 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id F270C89BE;
-        Tue, 26 Jan 2021 12:40:41 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id CC90383B4;
+        Tue, 26 Jan 2021 12:40:34 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -30,9 +30,9 @@ Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         linux-pci@vger.kernel.org
-Subject: [PATCH 12/15] ARM: dts: Configure simple-pm-bus for dra7 l4_per2
-Date:   Tue, 26 Jan 2021 14:40:01 +0200
-Message-Id: <20210126124004.52550-13-tony@atomide.com>
+Subject: [PATCH 08/15] ARM: dts: Configure interconnect target module for dra7 mpu
+Date:   Tue, 26 Jan 2021 14:39:57 +0200
+Message-Id: <20210126124004.52550-9-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210126124004.52550-1-tony@atomide.com>
 References: <20210126124004.52550-1-tony@atomide.com>
@@ -42,37 +42,61 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe interconnects with device tree only configuration using
-simple-pm-bus and genpd.
+We can now probe devices with device tree only configuration using
+ti-sysc interconnect target module driver. Let's configure the
+module, but keep the legacy "ti,hwmods" peroperty to avoid new boot
+time warnings. The legacy property will be removed in later patches
+together with the legacy platform data.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dra7-l4.dtsi | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi | 28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -2302,7 +2302,10 @@ segment@200000 {					/* 0x48200000 */
- };
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -124,18 +124,6 @@ opp_high@1500000000 {
+ 		};
+ 	};
  
- &l4_per2 {						/* 0x48400000 */
--	compatible = "ti,dra7-l4-per2", "simple-bus";
-+	compatible = "ti,dra7-l4-per2", "simple-pm-bus";
-+	power-domains = <&prm_l4per>;
-+	clocks = <&l4per2_clkctrl DRA7_L4PER2_L4_PER2_CLKCTRL 0>;
-+	clock-names = "fck";
- 	reg = <0x48400000 0x800>,
- 	      <0x48400800 0x800>,
- 	      <0x48401000 0x400>,
-@@ -2322,7 +2325,7 @@ &l4_per2 {						/* 0x48400000 */
- 		 <0x48454000 0x48454000 0x400000>;	/* L3 data port */
- 
- 	segment@0 {					/* 0x48400000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges = <0x00000000 0x00000000 0x000800>,	/* ap 0 */
+-	/*
+-	 * The soc node represents the soc top level view. It is used for IPs
+-	 * that are not memory mapped in the MPU view or for the MPU itself.
+-	 */
+-	soc {
+-		compatible = "ti,omap-infra";
+-		mpu {
+-			compatible = "ti,omap5-mpu";
+-			ti,hwmods = "mpu";
+-		};
+-	};
+-
+ 	/*
+ 	 * XXX: Use a flat representation of the SOC interconnect.
+ 	 * The real OMAP interconnect network is quite complex.
+@@ -165,6 +153,22 @@ l4_wkup: interconnect@4ae00000 {
+ 		};
+ 		l4_per1: interconnect@48000000 {
+ 		};
++
++		target-module@48210000 {
++			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			ti,hwmods = "mpu";
++			power-domains = <&prm_mpu>;
++			clocks = <&mpu_clkctrl DRA7_MPU_CLKCTRL 0>;
++			clock-names = "fck";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0 0x1f0000>;
++
++			mpu {
++				compatible = "ti,omap5-mpu";
++			};
++		};
++
+ 		l4_per2: interconnect@48400000 {
+ 		};
+ 		l4_per3: interconnect@48800000 {
 -- 
 2.30.0
