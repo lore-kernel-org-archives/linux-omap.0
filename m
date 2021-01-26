@@ -2,32 +2,37 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 278FEC433E0
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:23:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF8A7C4332B
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:41:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEB732255F
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:23:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6F3323122
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:41:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404393AbhAZMXI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:23:08 -0500
-Received: from muru.com ([72.249.23.125]:53300 "EHLO muru.com"
+        id S2403761AbhAZMk6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:40:58 -0500
+Received: from muru.com ([72.249.23.125]:53318 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404643AbhAZMWp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 Jan 2021 07:22:45 -0500
+        id S2391625AbhAZMk5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 07:40:57 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id BD22C8057;
-        Tue, 26 Jan 2021 12:22:07 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id E4CD58057;
+        Tue, 26 Jan 2021 12:40:19 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
-Cc:     linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 1/2] ARM: omap2plus_defconfig: Update for moved options
-Date:   Tue, 26 Jan 2021 14:21:57 +0200
-Message-Id: <20210126122158.33761-1-tony@atomide.com>
+Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        devicetree@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        linux-pci@vger.kernel.org
+Subject: [PATCHv2 00/15] Update dra7 devicetree files to probe with genpd
+Date:   Tue, 26 Jan 2021 14:39:49 +0200
+Message-Id: <20210126124004.52550-1-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -35,58 +40,60 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Update for the following moved options to make applying defconfig
-related patches easier.
+Hi all,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap2plus_defconfig | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Here's v2 series to update dra7 to probe with ti-sysc and genpd like we've
+already done for am3 and 4.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -158,9 +158,9 @@ CONFIG_MTD_ONENAND=y
- CONFIG_MTD_ONENAND_VERIFY_WRITE=y
- CONFIG_MTD_ONENAND_OMAP2=y
- CONFIG_MTD_RAW_NAND=y
--CONFIG_MTD_NAND_ECC_SW_BCH=y
- CONFIG_MTD_NAND_OMAP2=y
- CONFIG_MTD_NAND_OMAP_BCH=y
-+CONFIG_MTD_NAND_ECC_SW_BCH=y
- CONFIG_MTD_SPI_NOR=m
- CONFIG_MTD_UBI=y
- CONFIG_ZRAM=m
-@@ -202,11 +202,11 @@ CONFIG_TI_CPSW_SWITCHDEV=y
- CONFIG_TI_CPTS=y
- # CONFIG_NET_VENDOR_VIA is not set
- # CONFIG_NET_VENDOR_WIZNET is not set
--CONFIG_DP83848_PHY=y
--CONFIG_DP83867_PHY=y
- CONFIG_MICREL_PHY=y
- CONFIG_AT803X_PHY=y
- CONFIG_SMSC_PHY=y
-+CONFIG_DP83848_PHY=y
-+CONFIG_DP83867_PHY=y
- CONFIG_PPP=m
- CONFIG_PPP_BSDCOMP=m
- CONFIG_PPP_DEFLATE=m
-@@ -517,14 +517,14 @@ CONFIG_IIO=m
- CONFIG_IIO_SW_DEVICE=m
- CONFIG_IIO_SW_TRIGGER=m
- CONFIG_IIO_ST_ACCEL_3AXIS=m
-+CONFIG_KXCJK1013=m
- CONFIG_CPCAP_ADC=m
- CONFIG_INA2XX_ADC=m
- CONFIG_TI_AM335X_ADC=m
- CONFIG_TWL4030_MADC=m
- CONFIG_SENSORS_ISL29028=m
--CONFIG_BMP280=m
--CONFIG_KXCJK1013=m
- CONFIG_AK8975=m
-+CONFIG_BMP280=m
- CONFIG_PWM=y
- CONFIG_PWM_OMAP_DMTIMER=m
- CONFIG_PWM_TIECAP=m
+These patches are against v5.11-rc1, and depend on the following commits
+in my fixes branch:
+
+7078a5ba7a58 ("soc: ti: omap-prm: Fix boot time errors for rst_map_012 bits 0 and 1")
+2a39af3870e9 ("ARM: OMAP2+: Fix booting for am335x after moving to simple-pm-bus")
+
+These patches also depend on the series:
+
+[PATCH 0/3] Few ti-sysc changes for v5.12 merge window
+
+Please review and test, I've also pushed out a temporary testing branch to
+make testing easier to [0][1].
+
+Regards,
+
+Tony
+
+Changes since v1:
+
+- Split the series into two parts, looks like most of the emails did not
+  make it to the lists
+
+- Dropped Balaji from Cc as the email address bounces
+
+[0] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git tmp-testing-genpd-dra7
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v5.12/tmp-testing-genpd-dra7
+
+Tony Lindgren (15):
+  PCI: pci-dra7xx: Prepare for deferred probe with
+    module_platform_driver
+  ARM: dts: Update pcie ranges for dra7
+  ARM: dts: Configure interconnect target module for dra7 pcie
+  ARM: dts: Properly configure dra7 edma sysconfig registers
+  ARM: dts: Move dra7 l3 noc to a separate node
+  ARM: dts: Configure interconnect target module for dra7 qspi
+  ARM: dts: Configure interconnect target module for dra7 sata
+  ARM: dts: Configure interconnect target module for dra7 mpu
+  ARM: dts: Configure interconnect target module for dra7 dmm
+  ARM: dts: Configure simple-pm-bus for dra7 l4_wkup
+  ARM: dts: Configure simple-pm-bus for dra7 l4_per1
+  ARM: dts: Configure simple-pm-bus for dra7 l4_per2
+  ARM: dts: Configure simple-pm-bus for dra7 l4_per3
+  ARM: dts: Configure simple-pm-bus for dra7 l4_cfg
+  ARM: dts: Configure simple-pm-bus for dra7 l3
+
+ arch/arm/boot/dts/dra7-l4.dtsi          |  76 ++++++---
+ arch/arm/boot/dts/dra7.dtsi             | 216 ++++++++++++++++--------
+ drivers/pci/controller/dwc/pci-dra7xx.c |  13 +-
+ 3 files changed, 213 insertions(+), 92 deletions(-)
+
 -- 
 2.30.0
