@@ -2,102 +2,154 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ECD7C4332B
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:33:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 327FFC433DB
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:34:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D105522228
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:33:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03E3F2224C
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 18:34:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730250AbhAZRYw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 12:24:52 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:38602 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2406000AbhAZQf2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2021 11:35:28 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 10QGWxhX087660;
-        Tue, 26 Jan 2021 10:32:59 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1611678779;
-        bh=zT5rXzi404sanDCD+FhX1p4eVM2SYSfy/bavMPjgsZ4=;
-        h=From:To:CC:Subject:Date;
-        b=cNY76W8khMWDiihJY+w8MLZDKUuaH3lNcFQ2hrFVzOT3LkWgLVJVkV29RAv+hniF2
-         zGTVg5PzHG3AUCBbMo1N6PvrvxxpmfQVCALvx9zoPYa58ImdqQNMoNgck+QUPDWGUA
-         cwgXcGJmus1xbwREQpFqeGuiFxg+UCaMcyLP5j3U=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 10QGWxR0082334
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 26 Jan 2021 10:32:59 -0600
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 26
- Jan 2021 10:32:58 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 26 Jan 2021 10:32:58 -0600
-Received: from lelv0597.itg.ti.com (lelv0597.itg.ti.com [10.181.64.32])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 10QGWwpA069669;
-        Tue, 26 Jan 2021 10:32:58 -0600
-Received: from localhost ([10.250.35.71])
-        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 10QGWwbq111807;
-        Tue, 26 Jan 2021 10:32:58 -0600
-From:   Suman Anna <s-anna@ti.com>
-To:     Rob Herring <robh+dt@kernel.org>, Marc Zyngier <maz@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>
-CC:     Jan Kiszka <jan.kiszka@siemens.com>,
-        David Lechner <david@lechnology.com>,
-        <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
-        Suman Anna <s-anna@ti.com>
-Subject: [PATCH] dt-bindings: irqchip: Add node name to PRUSS INTC
-Date:   Tue, 26 Jan 2021 10:32:51 -0600
-Message-ID: <20210126163251.29468-1-s-anna@ti.com>
-X-Mailer: git-send-email 2.29.2
+        id S1727275AbhAZRYW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 12:24:22 -0500
+Received: from muru.com ([72.249.23.125]:53184 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2390092AbhAZIbr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 03:31:47 -0500
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id A10168B66;
+        Tue, 26 Jan 2021 08:28:07 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     linux-omap@vger.kernel.org
+Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        devicetree@vger.kernel.org, Balaji T K <balajitk@ti.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        linux-pci@vger.kernel.org
+Subject: [PATCH 21/27] ARM: OMAP2+: Drop legacy platform data for dra7 l4_wkup
+Date:   Tue, 26 Jan 2021 10:27:10 +0200
+Message-Id: <20210126082716.54358-22-tony@atomide.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210126082716.54358-1-tony@atomide.com>
+References: <20210126082716.54358-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The current PRUSS Interrupt Controller binding doesn't exactly specify
-the convention for the node name. These interrupt-controllers will always
-have a unit address. Update the binding with the '$nodename' using the
-expected generic name, this shall ensure the interrupt-controller.yaml
-is automatically applied to this binding.
+We can now probe interconnects with simple-pm-bus and genpd.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-This patch is a result of the previous discussion at
-https://patchwork.kernel.org/comment/23926133/
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 54 +----------------------
+ 1 file changed, 1 insertion(+), 53 deletions(-)
 
- .../bindings/interrupt-controller/ti,pruss-intc.yaml           | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml
-index c2ce215501a5..9731dd4421a1 100644
---- a/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml
-+++ b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml
-@@ -33,6 +33,9 @@ description: |
-   corresponding PRUSS node. The node should be named "interrupt-controller".
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -81,7 +81,7 @@ static struct omap_hwmod dra7xx_l3_main_2_hwmod = {
  
- properties:
-+  $nodename:
-+    pattern: "^interrupt-controller@[0-9a-f]+$"
-+
-   compatible:
-     enum:
-       - ti,pruss-intc
+ /*
+  * 'l4' class
+- * instance(s): l4_cfg, l4_per1, l4_per2, l4_per3, l4_wkup
++ * instance(s): l4_cfg, l4_per1, l4_per2, l4_per3
+  */
+ static struct omap_hwmod_class dra7xx_l4_hwmod_class = {
+ 	.name	= "l4",
+@@ -139,19 +139,6 @@ static struct omap_hwmod dra7xx_l4_per3_hwmod = {
+ 	},
+ };
+ 
+-/* l4_wkup */
+-static struct omap_hwmod dra7xx_l4_wkup_hwmod = {
+-	.name		= "l4_wkup",
+-	.class		= &dra7xx_l4_hwmod_class,
+-	.clkdm_name	= "wkupaon_clkdm",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = DRA7XX_CM_WKUPAON_L4_WKUP_CLKCTRL_OFFSET,
+-			.context_offs = DRA7XX_RM_WKUPAON_L4_WKUP_CONTEXT_OFFSET,
+-		},
+-	},
+-};
+-
+ /*
+  * 'atl' class
+  *
+@@ -200,27 +187,6 @@ static struct omap_hwmod dra7xx_bb2d_hwmod = {
+ 	},
+ };
+ 
+-/*
+- * 'ctrl_module' class
+- *
+- */
+-
+-static struct omap_hwmod_class dra7xx_ctrl_module_hwmod_class = {
+-	.name	= "ctrl_module",
+-};
+-
+-/* ctrl_module_wkup */
+-static struct omap_hwmod dra7xx_ctrl_module_wkup_hwmod = {
+-	.name		= "ctrl_module_wkup",
+-	.class		= &dra7xx_ctrl_module_hwmod_class,
+-	.clkdm_name	= "wkupaon_clkdm",
+-	.prcm = {
+-		.omap4 = {
+-			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+-		},
+-	},
+-};
+-
+ /*
+  * 'vcp' class
+  *
+@@ -328,14 +294,6 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__l4_per3 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l3_main_1 -> l4_wkup */
+-static struct omap_hwmod_ocp_if dra7xx_l3_main_1__l4_wkup = {
+-	.master		= &dra7xx_l3_main_1_hwmod,
+-	.slave		= &dra7xx_l4_wkup_hwmod,
+-	.clk		= "wkupaon_iclk_mux",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l4_per2 -> atl */
+ static struct omap_hwmod_ocp_if dra7xx_l4_per2__atl = {
+ 	.master		= &dra7xx_l4_per2_hwmod,
+@@ -352,14 +310,6 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__bb2d = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l4_wkup -> ctrl_module_wkup */
+-static struct omap_hwmod_ocp_if dra7xx_l4_wkup__ctrl_module_wkup = {
+-	.master		= &dra7xx_l4_wkup_hwmod,
+-	.slave		= &dra7xx_ctrl_module_wkup_hwmod,
+-	.clk		= "wkupaon_iclk_mux",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main_1 -> vcp1 */
+ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__vcp1 = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+@@ -401,10 +351,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l3_main_1__l4_per1,
+ 	&dra7xx_l3_main_1__l4_per2,
+ 	&dra7xx_l3_main_1__l4_per3,
+-	&dra7xx_l3_main_1__l4_wkup,
+ 	&dra7xx_l4_per2__atl,
+ 	&dra7xx_l3_main_1__bb2d,
+-	&dra7xx_l4_wkup__ctrl_module_wkup,
+ 	&dra7xx_l3_main_1__vcp1,
+ 	&dra7xx_l4_per2__vcp1,
+ 	&dra7xx_l3_main_1__vcp2,
 -- 
-2.29.2
-
+2.30.0
