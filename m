@@ -5,23 +5,23 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0932FC433DB
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:42:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A26C433E9
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:42:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6EDA23109
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:42:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B2B9E23127
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Jan 2021 12:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391901AbhAZMmK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:42:10 -0500
-Received: from muru.com ([72.249.23.125]:53462 "EHLO muru.com"
+        id S2403902AbhAZMmd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:42:33 -0500
+Received: from muru.com ([72.249.23.125]:53458 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391883AbhAZMlr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 26 Jan 2021 07:41:47 -0500
+        id S2391875AbhAZMlp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 26 Jan 2021 07:41:45 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id CA22089DA;
-        Tue, 26 Jan 2021 12:40:43 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 2F6C88931;
+        Tue, 26 Jan 2021 12:40:40 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -30,9 +30,9 @@ Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         linux-pci@vger.kernel.org
-Subject: [PATCH 13/15] ARM: dts: Configure simple-pm-bus for dra7 l4_per3
-Date:   Tue, 26 Jan 2021 14:40:02 +0200
-Message-Id: <20210126124004.52550-14-tony@atomide.com>
+Subject: [PATCH 11/15] ARM: dts: Configure simple-pm-bus for dra7 l4_per1
+Date:   Tue, 26 Jan 2021 14:40:00 +0200
+Message-Id: <20210126124004.52550-12-tony@atomide.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210126124004.52550-1-tony@atomide.com>
 References: <20210126124004.52550-1-tony@atomide.com>
@@ -47,32 +47,41 @@ simple-pm-bus and genpd.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dra7-l4.dtsi | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra7-l4.dtsi | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
 --- a/arch/arm/boot/dts/dra7-l4.dtsi
 +++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -3123,7 +3123,10 @@ cpts {
+@@ -1029,7 +1029,10 @@ target-module@36000 {			/* 0x4a236000, ap 119 62.0 */
  };
  
- &l4_per3 {						/* 0x48800000 */
--	compatible = "ti,dra7-l4-per3", "simple-bus";
-+	compatible = "ti,dra7-l4-per3", "simple-pm-bus";
+ &l4_per1 {						/* 0x48000000 */
+-	compatible = "ti,dra7-l4-per1", "simple-bus";
++	compatible = "ti,dra7-l4-per1", "simple-pm-bus";
 +	power-domains = <&prm_l4per>;
-+	clocks = <&l4per3_clkctrl DRA7_L4PER3_L4_PER3_CLKCTRL 0>;
++	clocks = <&l4per_clkctrl DRA7_L4PER_L4_PER1_CLKCTRL 0>;
 +	clock-names = "fck";
- 	reg = <0x48800000 0x800>,
- 	      <0x48800800 0x800>,
- 	      <0x48801000 0x400>,
-@@ -3135,7 +3138,7 @@ &l4_per3 {						/* 0x48800000 */
- 	ranges = <0x00000000 0x48800000 0x200000>;	/* segment 0 */
+ 	reg = <0x48000000 0x800>,
+ 	      <0x48000800 0x800>,
+ 	      <0x48001000 0x400>,
+@@ -1043,7 +1046,7 @@ &l4_per1 {						/* 0x48000000 */
+ 		 <0x00200000 0x48200000 0x200000>;	/* segment 1 */
  
- 	segment@0 {					/* 0x48800000 */
+ 	segment@0 {					/* 0x48000000 */
 -		compatible = "simple-bus";
 +		compatible = "simple-pm-bus";
  		#address-cells = <1>;
  		#size-cells = <1>;
  		ranges = <0x00000000 0x00000000 0x000800>,	/* ap 0 */
+@@ -2292,7 +2295,7 @@ target-module@d5000 {			/* 0x480d5000, ap 73 30.0 */
+ 	};
+ 
+ 	segment@200000 {					/* 0x48200000 */
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 	};
 -- 
 2.30.0
