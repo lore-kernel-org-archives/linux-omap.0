@@ -2,98 +2,125 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D007DC433E0
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 17:32:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE163C433DB
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 19:57:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86FAA60187
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 17:32:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71F9564DA3
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 19:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235425AbhA0RcB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Jan 2021 12:32:01 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:57766 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235996AbhA0RaB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2021 12:30:01 -0500
-From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1611768553;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=gV4s82FEuVJugdNoRBb0xE+COjn/uKSW2UKMDbD6jHQ=;
-        b=wuR6CRkyif58OjIS/1cWiPhdkXgbh0OqmSlzr7gMAtiiifGyw7zj8i7FN1PfpPjucFGtZg
-        CA1lCRgAHYo766uQ0mV0iaP5l4k2JuL7uaQF4DhG88oUB0jsOTiNUe45KPn/WeV/mp5xcW
-        2Wj74lJO1uAMK/1hcdw6stC+FgTFqwI2i9kzTd+FtnLqZ1vd6aTy8Y6pKTE2CZX4DCAtd8
-        zTiPqDaAa7AQfweHPFdkFyMEWwFZcXMDFe4IV+qvOssPV9a0TraLPIajnhVptgqQhDKyl+
-        OTGE2j8s413MmOvIzgLY6bkRtFHqRsHHrx2kqvZSFjnSwBFf0209WFc1lYduuQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1611768553;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=gV4s82FEuVJugdNoRBb0xE+COjn/uKSW2UKMDbD6jHQ=;
-        b=NaDYvA+wOnqKU2brmmYmjgXx9Os1WNewhM31jbnuz8NnIT52LlmN3YFszE6p1b0tADmnBN
-        v0WyuLWIENFZMKAg==
-To:     linux-omap@vger.kernel.org
-Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Thomas Gleixner <tglx@linutronix.de>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 2/2] video: omapfb: Remove WARN_ON(in_interrupt()).
-Date:   Wed, 27 Jan 2021 18:29:02 +0100
-Message-Id: <20210127172902.145335-3-bigeasy@linutronix.de>
-In-Reply-To: <20210127172902.145335-1-bigeasy@linutronix.de>
-References: <20210127172902.145335-1-bigeasy@linutronix.de>
+        id S231343AbhA0T5G (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Jan 2021 14:57:06 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:53798 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231367AbhA0T5F (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2021 14:57:05 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 10RJu3Ll032949;
+        Wed, 27 Jan 2021 13:56:03 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1611777363;
+        bh=9TbAGQ3SS7VueTbjv88F6OHq3CLUtcuXkBHqFCcIsnw=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=gZjsZ29hox8Ic9fTYNtw7YcdrpqgosMsN6fZLgZE1OGljbbOr3qJaf6e2Fx+Joe+N
+         Aulf869ky1dfz1niqaJaLqwziFOf860N2K9Uyk28yO50yETswVS78HliwD3u+Sqk8e
+         i83Yw3FTE0Wp+uFWXq9U1/uZIVSj+waVVaCWQy8U=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 10RJu2dh051693
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 27 Jan 2021 13:56:03 -0600
+Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 27
+ Jan 2021 13:56:02 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Wed, 27 Jan 2021 13:56:02 -0600
+Received: from lelv0597.itg.ti.com (lelv0597.itg.ti.com [10.181.64.32])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 10RJu2xW107661;
+        Wed, 27 Jan 2021 13:56:02 -0600
+Received: from localhost ([10.250.69.64])
+        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 10RJu2i0082234;
+        Wed, 27 Jan 2021 13:56:02 -0600
+From:   Suman Anna <s-anna@ti.com>
+To:     Jassi Brar <jassisinghbrar@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+CC:     <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, Suman Anna <s-anna@ti.com>
+Subject: [PATCH 1/2] dt-bindings: mailbox: omap: Update binding for AM64x SoCs
+Date:   Wed, 27 Jan 2021 13:55:59 -0600
+Message-ID: <20210127195600.23501-2-s-anna@ti.com>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210127195600.23501-1-s-anna@ti.com>
+References: <20210127195600.23501-1-s-anna@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
+Update the existing OMAP Mailbox binding to include the info for
+AM64x SoCs. There are some minor IP integration differences between
+the AM64x SoCs and the previous AM65x and J721E SoC families.
 
-dsi_sync_vc() uses in_interrupt() to create a warning if the function is
-used in non-preemptible context.
-
-The usage of in_interrupt() in drivers is phased out and Linus clearly
-requested that code which changes behaviour depending on context should
-either be separated or the context be conveyed in an argument passed by the
-caller, which usually knows the context.
-
-The wait_for_completion() function (used in dsi_sync_vc_vp() and
-dsi_sync_vc_l4() has already a check if it is invoked from proper
-context.
-
-Remove WARN_ON(in_interrupt()) from the driver.
-
-Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/video/fbdev/omap2/omapfb/dss/dsi.c | 2 --
- 1 file changed, 2 deletions(-)
+ .../bindings/mailbox/omap-mailbox.txt         | 22 +++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbd=
-ev/omap2/omapfb/dss/dsi.c
-index dc34bb04b865c..df90091de75f8 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-@@ -2373,8 +2373,6 @@ static int dsi_sync_vc(struct platform_device *dsidev=
-, int channel)
-=20
- 	WARN_ON_ONCE(!dsi_bus_is_locked(dsidev));
-=20
--	WARN_ON(in_interrupt());
--
- 	if (!dsi_vc_is_enabled(dsidev, channel))
- 		return 0;
-=20
---=20
-2.30.0
+diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+index 5fe80c1c19fc..c993d1a5c14a 100644
+--- a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
++++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+@@ -28,6 +28,9 @@ SoCs has each of these instances form a cluster and combine multiple clusters
+ into a single IP block present within the Main NavSS. The interrupt lines from
+ all these clusters are multiplexed and routed to different processor subsystems
+ over a limited number of common interrupt output lines of an Interrupt Router.
++The AM64x SoCS also uses a single IP block comprising of multiple clusters,
++but the number of clusters are smaller, and the interrupt output lines are
++connected directly to various processors.
+ 
+ Mailbox Device Node:
+ ====================
+@@ -42,6 +45,7 @@ Required properties:
+ 			    "ti,omap4-mailbox" for OMAP44xx, OMAP54xx, AM33xx,
+ 						   AM43xx and DRA7xx SoCs
+ 			    "ti,am654-mailbox" for K3 AM65x and J721E SoCs
++			    "ti,am64-mailbox" for K3 AM64x SoCs
+ - reg:			Contains the mailbox register address range (base
+ 			address and length)
+ - interrupts:		Contains the interrupt information for the mailbox
+@@ -178,3 +182,21 @@ mailbox: mailbox@480c8000 {
+ 		};
+ 	};
+ };
++
++4. /* AM64x */
++&cbass_main {
++	mailbox0_cluster2: mailbox@29020000 {
++		compatible = "ti,am64-mailbox";
++		reg = <0x00 0x29020000 0x00 0x200>;
++		interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>,
++		             <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
++		#mbox-cells = <1>;
++		ti,mbox-num-users = <4>;
++		ti,mbox-num-fifos = <16>;
++
++		mbox_main_r5fss0_core0: mbox-main-r5fss0-core0 {
++			ti,mbox-rx = <0 0 2>;
++			ti,mbox-tx = <1 0 2>;
++		};
++	};
++};
+-- 
+2.29.2
 
