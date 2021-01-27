@@ -2,122 +2,232 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-22.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9C51C433E9
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 07:52:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9284FC433E9
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 17:31:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 695CF2074B
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 07:52:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CF5664DA6
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 17:31:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231889AbhA0HwA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Jan 2021 02:52:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52312 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234070AbhA0Hte (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 27 Jan 2021 02:49:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BF76B2074A;
-        Wed, 27 Jan 2021 07:48:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611733728;
-        bh=Nro3vfQTCFtmv98iajZ/Tld6vSBtHkyWqkV/zj14XFw=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=SHMBfSfTtkKbBZei+R26dC4Lsa2N+suQiJ9H3LZMp1MaKa5JjGt+4QjAdFsyIyLUT
-         tQmzXXgXxEdLQ2XzmFzAyIzEDH80xOrFrwsQDYWFBcKKnne9TgiIilSEhMFajPzLcb
-         WKlppAIzlGh3Fdk7NfvaI8omlrDmEFva/CSsY1cFN2joSSKZRYRcFT7U90A+CfEknv
-         NgBhXEjQyytURjwbuv1CbEWSI5z02gPfxp9eYDmJnFUBTAyEZEGvdNF+R6c9qOt6Gv
-         k1vZRXX2j4SYiZQErTdX1uQdkl0rrqMB5kZzlCHOYRGKTz5ie1ZeE0UWWrrB+E8xPk
-         07s+G/JFyQ1kw==
-Date:   Wed, 27 Jan 2021 08:48:37 +0100
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To:     Marek Szyprowski <m.szyprowski@samsung.com>
-Cc:     Rob Herring <robh+dt@kernel.org>, Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Fabio Estevam <festevam@gmail.com>,
-        Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Jesper Nilsson <jesper.nilsson@axis.com>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Jonathan Chocron <jonnyc@amazon.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
-        Lucas Stach <l.stach@pengutronix.de>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Richard Zhu <hongxing.zhu@nxp.com>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Zhou Wang <wangzhou1@hisilicon.com>,
-        devicetree@vger.kernel.org, linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@axis.com, linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: Re: [PATCH RFC 1/2] dt: pci: designware-pcie.txt: convert it to
- yaml
-Message-ID: <20210127084837.39d68850@coco.lan>
-In-Reply-To: <b6ab7110-fc87-85d7-d591-dffad32985ec@samsung.com>
-References: <cover.1611645945.git.mchehab+huawei@kernel.org>
-        <CGME20210126074127eucas1p1dd8f2d1704d708d64458922566b934f1@eucas1p1.samsung.com>
-        <55f479324098b66d7dba89c8f9c3e455731df4f7.1611645945.git.mchehab+huawei@kernel.org>
-        <b6ab7110-fc87-85d7-d591-dffad32985ec@samsung.com>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        id S1343617AbhA0Rau (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Jan 2021 12:30:50 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:57758 "EHLO
+        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235987AbhA0RaA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2021 12:30:00 -0500
+From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1611768552;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=YEjZOp8GCAMOFRDg3oxg2+c+yhJVKyviPPXBu30pB3M=;
+        b=x5DdagCitRCeNaECo9vEZ9pJbd1M0ZplYkKkAjc8QW0CHzjVY7UWUUicofqsOid5Q7EPBU
+        h6UT8880uQCZFqfYEJQsT0ljopcnGmn+KNzDk7YxD+tWFcvpGY4FVYEfwfLf9icLAHiJj6
+        0KaYwOrBhnYF0TdK4ot5QKMODZpZLxxkphf+IBHYoy6ycoEHMkghsnNlrDRDsl+kjM3uTN
+        8UzABcKxFOHEZFXeu+qtQpIJ4MfZ5Au6yF+K1btEPulpXgMp0zpzDMcvZosIMqmXIT2jJ3
+        WKOIKNYqx22zlk+sNSkkIh36y9GV2DOdTZOqw89eb25B39LaAnN3zaG0Dp4xJg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1611768552;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=YEjZOp8GCAMOFRDg3oxg2+c+yhJVKyviPPXBu30pB3M=;
+        b=3mHHww0ekTNZQhFmyUrOo+BHpk3ndmBHPbOOrpIKC+nD/NGyK6GFpxA4OWYmPpIqhrQC3I
+        7Z2gFMbob2t1HdDw==
+To:     linux-omap@vger.kernel.org
+Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Thomas Gleixner <tglx@linutronix.de>,
+        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 1/2] video: omap: Remove in_interrupt() usage.
+Date:   Wed, 27 Jan 2021 18:29:01 +0100
+Message-Id: <20210127172902.145335-2-bigeasy@linutronix.de>
+In-Reply-To: <20210127172902.145335-1-bigeasy@linutronix.de>
+References: <20210127172902.145335-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Marek,
+From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 
-Em Tue, 26 Jan 2021 11:13:20 +0100
-Marek Szyprowski <m.szyprowski@samsung.com> escreveu:
+alloc_req() uses in_interrupt() to detect if it is safe to use down().
 
-> Hi Mauro,
-> 
-> On 26.01.2021 08:35, Mauro Carvalho Chehab wrote:
-> > Convert the file into a JSON description at the yaml format.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-> > ---
-> >   .../bindings/pci/amlogic,meson-pcie.txt       |   4 +-
-> >   .../bindings/pci/axis,artpec6-pcie.txt        |   2 +-
-> >   .../bindings/pci/designware,pcie.yaml         | 194 ++++++++++++++++++
-> >   .../bindings/pci/designware-pcie.txt          |  77 -------
-> >   .../bindings/pci/fsl,imx6q-pcie.txt           |   2 +-
-> >   .../bindings/pci/hisilicon-histb-pcie.txt     |   2 +-
-> >   .../bindings/pci/hisilicon-pcie.txt           |   2 +-
-> >   .../devicetree/bindings/pci/kirin-pcie.txt    |   2 +-
-> >   .../bindings/pci/layerscape-pci.txt           |   2 +-
-> >   .../bindings/pci/nvidia,tegra194-pcie.txt     |   4 +-
-> >   .../devicetree/bindings/pci/pci-armada8k.txt  |   2 +-
-> >   .../devicetree/bindings/pci/pci-keystone.txt  |  10 +-
-> >   .../devicetree/bindings/pci/pcie-al.txt       |   2 +-
-> >   .../devicetree/bindings/pci/qcom,pcie.txt     |  14 +-
-> >   .../bindings/pci/samsung,exynos5440-pcie.txt  |   4 +-  
+The usage of in_interrupt() in drivers is phased out and Linus clearly
+requested that code which changes behaviour depending on context should
+either be separated or the context be conveyed in an argument passed by the
+caller, which usually knows the context.
 
-> You must have used an old tree for preparing this patchset. The above 
-> file is gone in v5.11-rc1 and there is 
-> Documentation/devicetree/bindings/pci/samsung,exynos-pcie.yaml instead.
+The semaphore is used as a counting semaphore, initialized with the
+number of slots in the request pool minus IRQ_REQ_POOL_SIZE - which are
+reserved for the in_interrupt() user to ensure that a request is always
+available. The preemptible user will block on the semphore waiting for a
+request to become available in case there are no requests available.
 
-Yeah, this series was generated against v5.10, as part of my efforts
-to have Hikey 970 properly supported upstream:
+Replace in_interrupt() with a `can_sleep' argument to indicate if it is
+safe to block on the sempahore.
 
-	https://github.com/mchehab/linux/commits/devel/hikey970
+Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/video/fbdev/omap/hwa742.c | 42 ++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
 
-For the next version, I'll rebase on the top of linux-next. 
+diff --git a/drivers/video/fbdev/omap/hwa742.c b/drivers/video/fbdev/omap/h=
+wa742.c
+index cfe63932f8255..b191bef22d984 100644
+--- a/drivers/video/fbdev/omap/hwa742.c
++++ b/drivers/video/fbdev/omap/hwa742.c
+@@ -100,6 +100,14 @@ struct {
+ 	struct hwa742_request	req_pool[REQ_POOL_SIZE];
+ 	struct list_head	pending_req_list;
+ 	struct list_head	free_req_list;
++
++	/*
++	 * @req_lock: protect request slots pool and its tracking lists
++	 * @req_sema: counter; slot allocators from task contexts must
++	 *            push it down before acquiring a slot. This
++	 *            guarantees that atomic contexts will always have
++	 *            a minimum of IRQ_REQ_POOL_SIZE slots available.
++	 */
+ 	struct semaphore	req_sema;
+ 	spinlock_t		req_lock;
+=20
+@@ -224,13 +232,13 @@ static void disable_tearsync(void)
+ 	hwa742_write_reg(HWA742_NDP_CTRL, b);
+ }
+=20
+-static inline struct hwa742_request *alloc_req(void)
++static inline struct hwa742_request *alloc_req(bool can_sleep)
+ {
+ 	unsigned long flags;
+ 	struct hwa742_request *req;
+ 	int req_flags =3D 0;
+=20
+-	if (!in_interrupt())
++	if (can_sleep)
+ 		down(&hwa742.req_sema);
+ 	else
+ 		req_flags =3D REQ_FROM_IRQ_POOL;
+@@ -399,8 +407,8 @@ static void send_frame_complete(void *data)
+ 	hwa742.int_ctrl->enable_plane(OMAPFB_PLANE_GFX, 0);
+ }
+=20
+-#define ADD_PREQ(_x, _y, _w, _h) do {		\
+-	req =3D alloc_req();			\
++#define ADD_PREQ(_x, _y, _w, _h, can_sleep) do {\
++	req =3D alloc_req(can_sleep);		\
+ 	req->handler	=3D send_frame_handler;	\
+ 	req->complete	=3D send_frame_complete;	\
+ 	req->par.update.x =3D _x;			\
+@@ -413,7 +421,8 @@ static void send_frame_complete(void *data)
+ } while(0)
+=20
+ static void create_req_list(struct omapfb_update_window *win,
+-			    struct list_head *req_head)
++			    struct list_head *req_head,
++			    bool can_sleep)
+ {
+ 	struct hwa742_request *req;
+ 	int x =3D win->x;
+@@ -427,7 +436,7 @@ static void create_req_list(struct omapfb_update_window=
+ *win,
+ 	color_mode =3D win->format & OMAPFB_FORMAT_MASK;
+=20
+ 	if (x & 1) {
+-		ADD_PREQ(x, y, 1, height);
++		ADD_PREQ(x, y, 1, height, can_sleep);
+ 		width--;
+ 		x++;
+ 		flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
+@@ -439,19 +448,19 @@ static void create_req_list(struct omapfb_update_wind=
+ow *win,
+=20
+ 		if (xspan * height * 2 > hwa742.max_transmit_size) {
+ 			yspan =3D hwa742.max_transmit_size / (xspan * 2);
+-			ADD_PREQ(x, ystart, xspan, yspan);
++			ADD_PREQ(x, ystart, xspan, yspan, can_sleep);
+ 			ystart +=3D yspan;
+ 			yspan =3D height - yspan;
+ 			flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
+ 		}
+=20
+-		ADD_PREQ(x, ystart, xspan, yspan);
++		ADD_PREQ(x, ystart, xspan, yspan, can_sleep);
+ 		x +=3D xspan;
+ 		width -=3D xspan;
+ 		flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
+ 	}
+ 	if (width)
+-		ADD_PREQ(x, y, 1, height);
++		ADD_PREQ(x, y, 1, height, can_sleep);
+ }
+=20
+ static void auto_update_complete(void *data)
+@@ -461,12 +470,12 @@ static void auto_update_complete(void *data)
+ 			  jiffies + HWA742_AUTO_UPDATE_TIME);
+ }
+=20
+-static void hwa742_update_window_auto(struct timer_list *unused)
++static void __hwa742_update_window_auto(bool can_sleep)
+ {
+ 	LIST_HEAD(req_list);
+ 	struct hwa742_request *last;
+=20
+-	create_req_list(&hwa742.auto_update_window, &req_list);
++	create_req_list(&hwa742.auto_update_window, &req_list, can_sleep);
+ 	last =3D list_entry(req_list.prev, struct hwa742_request, entry);
+=20
+ 	last->complete =3D auto_update_complete;
+@@ -475,6 +484,11 @@ static void hwa742_update_window_auto(struct timer_lis=
+t *unused)
+ 	submit_req_list(&req_list);
+ }
+=20
++static void hwa742_update_window_auto(struct timer_list *unused)
++{
++	__hwa742_update_window_auto(false);
++}
++
+ int hwa742_update_window_async(struct fb_info *fbi,
+ 				 struct omapfb_update_window *win,
+ 				 void (*complete_callback)(void *arg),
+@@ -497,7 +511,7 @@ int hwa742_update_window_async(struct fb_info *fbi,
+ 		goto out;
+ 	}
+=20
+-	create_req_list(win, &req_list);
++	create_req_list(win, &req_list, true);
+ 	last =3D list_entry(req_list.prev, struct hwa742_request, entry);
+=20
+ 	last->complete =3D complete_callback;
+@@ -544,7 +558,7 @@ static void hwa742_sync(void)
+ 	struct hwa742_request *req;
+ 	struct completion comp;
+=20
+-	req =3D alloc_req();
++	req =3D alloc_req(true);
+=20
+ 	req->handler =3D sync_handler;
+ 	req->complete =3D NULL;
+@@ -599,7 +613,7 @@ static int hwa742_set_update_mode(enum omapfb_update_mo=
+de mode)
+ 		omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_READY);
+ 		break;
+ 	case OMAPFB_AUTO_UPDATE:
+-		hwa742_update_window_auto(0);
++		__hwa742_update_window_auto(true);
+ 		break;
+ 	case OMAPFB_UPDATE_DISABLED:
+ 		break;
+--=20
+2.30.0
 
-Thanks,
-Mauro
