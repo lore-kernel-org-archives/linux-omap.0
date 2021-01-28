@@ -2,91 +2,115 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4D11C433E6
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 19:58:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 353C5C433DB
+	for <linux-omap@archiver.kernel.org>; Thu, 28 Jan 2021 07:45:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A03A164DA3
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Jan 2021 19:58:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8AD464DD8
+	for <linux-omap@archiver.kernel.org>; Thu, 28 Jan 2021 07:45:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232211AbhA0T62 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Jan 2021 14:58:28 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:34038 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231946AbhA0T5z (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2021 14:57:55 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 10RJu31J028751;
-        Wed, 27 Jan 2021 13:56:03 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1611777363;
-        bh=qv0+AotchmTZEDjYtGsMUhbEB1NMxoKxiwzceryYbmg=;
-        h=From:To:CC:Subject:Date;
-        b=qvTw9z7Dw+4LuvH6li80VJMdqlhLL+SUfC8m57lMjIXwMIWIUcvvB6xz9cEAqTGvR
-         gaVWZ/afiPUFskKjelG4RDqQHxE9zMguvftKnZx/oN4zwpBtoIMLMyYnXZ7TzAvf+6
-         8zDQfvLDHq/ZUbNBNYfd6LqpB7tdtwgJWQyiwYis=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 10RJu31D052025
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 27 Jan 2021 13:56:03 -0600
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Wed, 27
- Jan 2021 13:56:02 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Wed, 27 Jan 2021 13:56:02 -0600
-Received: from lelv0597.itg.ti.com (lelv0597.itg.ti.com [10.181.64.32])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 10RJu2oS107568;
-        Wed, 27 Jan 2021 13:56:02 -0600
-Received: from localhost ([10.250.69.64])
-        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 10RJu2vq082095;
-        Wed, 27 Jan 2021 13:56:02 -0600
-From:   Suman Anna <s-anna@ti.com>
-To:     Jassi Brar <jassisinghbrar@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC:     <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, Suman Anna <s-anna@ti.com>
-Subject: [PATCH 0/2] Add Mailbox support for TI K3 AM64x SoCs
-Date:   Wed, 27 Jan 2021 13:55:58 -0600
-Message-ID: <20210127195600.23501-1-s-anna@ti.com>
-X-Mailer: git-send-email 2.29.2
+        id S232083AbhA1HpY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 28 Jan 2021 02:45:24 -0500
+Received: from muru.com ([72.249.23.125]:53842 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231952AbhA1Hok (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 28 Jan 2021 02:44:40 -0500
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 22A2180A9;
+        Thu, 28 Jan 2021 07:44:01 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+List-Id: <soc.lore.kernel.org>
+To:     soc@kernel.org
+Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        "Tony Lindgren" <tony@atomide.com>
+Subject: [GIT PULL] Fixes for omaps for v5.11-rc cycle
+Date:   Thu, 28 Jan 2021 09:43:50 +0200
+Message-Id: <pull-1611818709-243493@atomide.com>
+X-Mailer: git-send-email 2.30.0
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Jassi,
+From: "Tony Lindgren" <tony@atomide.com>
 
-The following series extends the OMAP Mailbox driver to enable the
-Mailbox IP present on the most recent TI K3 AM64x SoCs [1]. AM64x is
-a 64-bit system, and the Mailbox IP is a cut-down version of the one
-present on previous TI K3 SoCs like AM65x and J721E.
+The following changes since commit 5c8fe583cce542aa0b84adc939ce85293de36e5e:
 
-DT nodes will be posted separately once the binding is acked/merged.
+  Linux 5.11-rc1 (2020-12-27 15:30:22 -0800)
 
-regards
-Suman
+are available in the Git repository at:
 
-[1] https://patchwork.kernel.org/project/linux-arm-kernel/cover/20210120202532.9011-1-d-gerlach@ti.com/
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.11/fixes-rc5
 
-Suman Anna (2):
-  dt-bindings: mailbox: omap: Update binding for AM64x SoCs
-  mailbox: omap: Add support for K3 AM64x SoCs
+for you to fetch changes up to 177d8f1f7f47fe7c18ceb1d87893890d7e9c95a7:
 
- .../bindings/mailbox/omap-mailbox.txt         | 22 +++++++++++++++++++
- drivers/mailbox/omap-mailbox.c                |  6 ++++-
- 2 files changed, 27 insertions(+), 1 deletion(-)
+  ARM: dts: omap4-droid4: Fix lost keypad slide interrupts for droid4 (2021-01-25 10:24:26 +0200)
 
--- 
-2.29.2
+----------------------------------------------------------------
+Fixes for omaps for v5.11-rc cycle
 
+The recent changes to switch SoCs to boot with ti-sysc interconnect
+target module driver and genpd caused few regressions:
+
+- The omap_prm reset driver needs to clear any reset bits deasserted by
+  the bootloader or kexec boot for the three reset bit cases. Otherwise
+  we can have an oops with accelerators starting to boot with potentially
+  unconfigured MMU for example
+
+- Custom kernel configs are not automatically selecting simple-pm-bus
+  driver that we now need to probe interconnects so we need to select it
+  always
+
+- We are not passing legacy platform data in auxdata with simple-pm-bus
+  like we do for simple-bus. We need to pass auxdata to simple-pm-bus so
+  it can pass it to of_platform_populate()
+
+Then recent RCU changes started causing splats for cpuidle44xx that now
+need RCU_NONIDLE added to the calls in several places
+
+And then we have few device specific fixes:
+
+- We need to remove legacy spi-cs-hig for gta04 display to work, and
+  set the gpio to active low
+
+- Omap1 specific ohci-omap needs to call gpio_free()
+
+- Droid4 needs to use padconf interrupt for the slider as the edge
+  gpio interrupts may be lost for deeper idle states
+
+----------------------------------------------------------------
+H. Nikolaus Schaller (2):
+      DTS: ARM: gta04: remove legacy spi-cs-high to make display work again
+      ARM: dts; gta04: SPI panel chip select is active low
+
+Linus Walleij (1):
+      ARM: OMAP1: OSK: fix ohci-omap breakage
+
+Tony Lindgren (7):
+      Merge branch 'fixes-omap3' into fixes
+      soc: ti: omap-prm: Fix boot time errors for rst_map_012 bits 0 and 1
+      ARM: OMAP2+: Fix suspcious RCU usage splats for omap_enter_idle_coupled
+      Merge branch 'cpuidle-fix' into fixes
+      ARM: OMAP2+: Fix booting for am335x after moving to simple-pm-bus
+      drivers: bus: simple-pm-bus: Fix compatibility with simple-bus for auxdata
+      ARM: dts: omap4-droid4: Fix lost keypad slide interrupts for droid4
+
+ arch/arm/boot/dts/omap3-gta04.dtsi       |  3 +--
+ arch/arm/boot/dts/omap3-n950-n9.dtsi     |  8 ++++++++
+ arch/arm/boot/dts/omap4-droid4-xt894.dts |  5 +++++
+ arch/arm/mach-omap1/board-osk.c          |  2 ++
+ arch/arm/mach-omap2/Kconfig              | 28 ++++++++++++++--------------
+ arch/arm/mach-omap2/cpuidle44xx.c        | 16 ++++++++--------
+ arch/arm/mach-omap2/omap_device.c        |  8 +++++---
+ arch/arm/mach-omap2/pdata-quirks.c       |  1 +
+ arch/arm/mach-omap2/pmic-cpcap.c         |  2 +-
+ drivers/bus/simple-pm-bus.c              |  3 ++-
+ drivers/soc/ti/omap_prm.c                | 11 +++++++++++
+ 11 files changed, 58 insertions(+), 29 deletions(-)
