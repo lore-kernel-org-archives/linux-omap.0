@@ -2,126 +2,143 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32798C433E0
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 15:22:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E768FC433E9
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 16:02:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC13E64DDA
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 15:22:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF01864F53
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 16:02:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237240AbhBDPWX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 4 Feb 2021 10:22:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36938 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237232AbhBDPVD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2021 10:21:03 -0500
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20960C061797;
-        Thu,  4 Feb 2021 07:19:20 -0800 (PST)
-Received: by mail-ej1-x62e.google.com with SMTP id w2so5853182ejk.13;
-        Thu, 04 Feb 2021 07:19:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=N2WmQEa3BjX3ncRzYIQrV88zAWNTStgvbrnt2gC25ds=;
-        b=pLrqpZXobX/BN7V31Gin+rlULIYKilZRzPSg2xhaB7QQRja338SqRQYtB6sGduQR6t
-         SpkFueZqQlQUV7s0D3t+VDoe2OSx3ZQ0jF8NNjnVGSKhdjjt3tv39fLJ6FokgRPf6MDH
-         HIYJ4A1t11mjke3xCrDwNitdGe8s5t7C0rF+tmMcLoAFmsI0NHv3u1paYz6DizW7Dcee
-         qJoPTnP501IOro5fX5d8YLp6cRf4/vCXxKn13ukVgCE97I6qboXn70vSgi53QRPGiG2P
-         N3+dVCm3EcSc/1p1hABKXa0ZdSbboQHX9IAigI+SaCiwDVU4Pn7GcYbT3dGKlebfQsU7
-         Jk3w==
+        id S237278AbhBDPdE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 4 Feb 2021 10:33:04 -0500
+Received: from mail-oo1-f44.google.com ([209.85.161.44]:44999 "EHLO
+        mail-oo1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237250AbhBDPVs (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2021 10:21:48 -0500
+Received: by mail-oo1-f44.google.com with SMTP id n19so827328ooj.11;
+        Thu, 04 Feb 2021 07:21:26 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=N2WmQEa3BjX3ncRzYIQrV88zAWNTStgvbrnt2gC25ds=;
-        b=GT6wxKKAUTT7B1HpFmRqa4qQkaNY/aatj0nixyL/E9yeUIGaZ8iYCy2lrta7lM97aK
-         8cN8cqDf9rBx4FsMX8sxXZAZ6usnLCtU9SktG0AnqDj42+0E3ETTASbQ55ab6NXCliKP
-         nkfjrPxnDO3S+o4gyBDxWm8H8BsTY2Mmq80viwfEEuMeJ+9NI7fwInnjwSAKY0dUpLHj
-         vR6thRO+jqjIYg6zwwhs1ElWsge2F6nWrPg3H4AYC9l4DzNdfCJukiQ5KWjvQUY6yez4
-         N1pAeFmTyShJsaujGKKeb1r25wjQjFqvz+G5HeNuluXqVfCV38Iv1SpwAVAGBFUmw+Jq
-         s87g==
-X-Gm-Message-State: AOAM531MCXLY4vnGMgnHjt1wL/QHcVWaqG42rVc1Xuiw0jUOSdVCFskO
-        QAVHuVi57YKeXAFik1j4J6IPid5lqC+GjyCE
-X-Google-Smtp-Source: ABdhPJwiILFpv5ahW61oLwlmasbtA/F6ia/OU2V3dbtBa3foPSZ6iMEwvO2Wb0/LY/T3k2+HMO4nDw==
-X-Received: by 2002:a17:906:43d7:: with SMTP id j23mr4464993ejn.519.1612451958882;
-        Thu, 04 Feb 2021 07:19:18 -0800 (PST)
-Received: from stitch.. ([80.71.140.73])
-        by smtp.gmail.com with ESMTPSA id a6sm2600001ejs.79.2021.02.04.07.19.17
+        h=x-gm-message-state:from:to:cc:in-reply-to:references:subject:date
+         :message-id;
+        bh=P7JarkNG0Jr4x/lj1itZ7BSEgkDgo9dz5ORdHCgfdk8=;
+        b=Zo0NmWhlaKEdDnz60vg4clm2uM+qfG+TmAsZm9uWAvERLScDh4aCBssmqQmhsnkvXV
+         /KQr2iMRTO/5k7QcFS6a7Wmgc4frscHFgJ/Z49Spim8GruSrTb3q5oGm2o/AthpH6U6a
+         Hu06U+3yLqV/fGfYkgWDEzNGkzrRZ2k7YNkUb1CaIGUEPIbiLPMfQiaG+1mVl7CznLH+
+         QrWpqhtMpGgkBss750HPJDA9UsMCWfSHsT7A+ekoJqIA2Y595xd9RyZeA/ApKwpiy8dD
+         0JqJCXvBMJ75aDILVkggF62iWKAVWqWt34UGrPUQU4e9F4fypVNbtyAqqtT5sFmgLdAs
+         6EXQ==
+X-Gm-Message-State: AOAM533IhD3MzlLMZgW2JJ2jxZvgpOGejP280jVFylV82VZMS/tWJ7Ax
+        3At+zr8vNQY/6C3jFuEKlw==
+X-Google-Smtp-Source: ABdhPJzM3kHORViPede34wMD/uUSw98pduiPbhxgxRYTa/nSc0pWIAtPIW3tqD1eZiyu3WZiHYs1VA==
+X-Received: by 2002:a4a:d50d:: with SMTP id m13mr52826oos.2.1612452060739;
+        Thu, 04 Feb 2021 07:21:00 -0800 (PST)
+Received: from robh.at.kernel.org (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id 33sm1139125ota.69.2021.02.04.07.20.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 Feb 2021 07:19:18 -0800 (PST)
-Sender: Emil Renner Berthing <emil.renner.berthing@gmail.com>
-From:   Emil Renner Berthing <kernel@esmil.dk>
-To:     linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc:     Emil Renner Berthing <kernel@esmil.dk>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Manuel Lauss <manuel.lauss@gmail.com>,
-        Jaehoon Chung <jh80.chung@samsung.com>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Ben Dooks <ben-linux@fluff.org>, Alex Dubov <oakad@yahoo.com>,
-        Bruce Chang <brucechang@via.com.tw>,
-        Harald Welte <HaraldWelte@viatech.com>,
-        Pierre Ossman <pierre@ossman.eu>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 8/9] mmc: via-sdmmc: Use new tasklet API
-Date:   Thu,  4 Feb 2021 16:18:46 +0100
-Message-Id: <20210204151847.91353-9-kernel@esmil.dk>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210204151847.91353-1-kernel@esmil.dk>
-References: <20210204151847.91353-1-kernel@esmil.dk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Thu, 04 Feb 2021 07:20:59 -0800 (PST)
+Received: (nullmailer pid 452035 invoked by uid 1000);
+        Thu, 04 Feb 2021 15:20:57 -0000
+From:   Rob Herring <robh@kernel.org>
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc:     Neil Armstrong <narmstrong@baylibre.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        linux-arm-kernel@axis.com, Kevin Hilman <khilman@baylibre.com>,
+        linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Jonathan Chocron <jonnyc@amazon.com>,
+        devicetree@vger.kernel.org, Jaehoon Chung <jh80.chung@samsung.com>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        linux-tegra@vger.kernel.org, linux-pci@vger.kernel.org,
+        Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
+        Jesper Nilsson <jesper.nilsson@axis.com>,
+        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Andy Gross <agross@kernel.org>, linux-arm-msm@vger.kernel.org,
+        linux-omap@vger.kernel.org, Jingoo Han <jingoohan1@gmail.com>,
+        linux-amlogic@lists.infradead.org,
+        Zhou Wang <wangzhou1@hisilicon.com>,
+        Lucas Stach <l.stach@pengutronix.de>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Fabio Estevam <festevam@gmail.com>,
+        Richard Zhu <hongxing.zhu@nxp.com>
+In-Reply-To: <bf3d0a5683c50062a55182922daeec5cfdbe00cc.1612335031.git.mchehab+huawei@kernel.org>
+References: <cover.1612335031.git.mchehab+huawei@kernel.org> <bf3d0a5683c50062a55182922daeec5cfdbe00cc.1612335031.git.mchehab+huawei@kernel.org>
+Subject: Re: [PATCH v2 01/11] doc: bindings: PCI: designware-pcie.txt: convert it to YAML
+Date:   Thu, 04 Feb 2021 09:20:57 -0600
+Message-Id: <1612452057.699681.452034.nullmailer@robh.at.kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This converts the driver to use the new tasklet API introduced in
-commit 12cc923f1ccc ("tasklet: Introduce new initialization API")
+On Wed, 03 Feb 2021 08:01:45 +0100, Mauro Carvalho Chehab wrote:
+> Convert the file into a DT schema.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+> ---
+>  .../bindings/pci/amlogic,meson-pcie.txt       |   4 +-
+>  .../bindings/pci/axis,artpec6-pcie.txt        |   2 +-
+>  .../bindings/pci/designware-pcie.txt          |  77 ----------
+>  .../bindings/pci/fsl,imx6q-pcie.txt           |   2 +-
+>  .../bindings/pci/hisilicon-histb-pcie.txt     |   2 +-
+>  .../bindings/pci/hisilicon-pcie.txt           |   2 +-
+>  .../devicetree/bindings/pci/kirin-pcie.txt    |   2 +-
+>  .../bindings/pci/layerscape-pci.txt           |   2 +-
+>  .../bindings/pci/nvidia,tegra194-pcie.txt     |   4 +-
+>  .../devicetree/bindings/pci/pci-armada8k.txt  |   2 +-
+>  .../devicetree/bindings/pci/pci-keystone.txt  |  10 +-
+>  .../devicetree/bindings/pci/pcie-al.txt       |   2 +-
+>  .../devicetree/bindings/pci/qcom,pcie.txt     |  14 +-
+>  .../bindings/pci/samsung,exynos-pcie.yaml     |   2 +-
+>  .../devicetree/bindings/pci/snps,pcie.yaml    | 139 ++++++++++++++++++
+>  .../pci/socionext,uniphier-pcie-ep.yaml       |   2 +-
+>  .../devicetree/bindings/pci/ti-pci.txt        |   4 +-
+>  .../devicetree/bindings/pci/uniphier-pcie.txt |   2 +-
+>  MAINTAINERS                                   |   2 +-
+>  19 files changed, 169 insertions(+), 107 deletions(-)
+>  delete mode 100644 Documentation/devicetree/bindings/pci/designware-pcie.txt
+>  create mode 100644 Documentation/devicetree/bindings/pci/snps,pcie.yaml
+> 
 
-Signed-off-by: Emil Renner Berthing <kernel@esmil.dk>
----
- drivers/mmc/host/via-sdmmc.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+My bot found errors running 'make dt_binding_check' on your patch:
 
-diff --git a/drivers/mmc/host/via-sdmmc.c b/drivers/mmc/host/via-sdmmc.c
-index 9b755ea0fa03..4f4c0813f9fd 100644
---- a/drivers/mmc/host/via-sdmmc.c
-+++ b/drivers/mmc/host/via-sdmmc.c
-@@ -959,14 +959,12 @@ static void via_sdc_timeout(struct timer_list *t)
- 	spin_unlock_irqrestore(&sdhost->lock, flags);
- }
- 
--static void via_sdc_tasklet_finish(unsigned long param)
-+static void via_sdc_tasklet_finish(struct tasklet_struct *t)
- {
--	struct via_crdr_mmc_host *host;
-+	struct via_crdr_mmc_host *host = from_tasklet(host, t, finish_tasklet);
- 	unsigned long flags;
- 	struct mmc_request *mrq;
- 
--	host = (struct via_crdr_mmc_host *)param;
--
- 	spin_lock_irqsave(&host->lock, flags);
- 
- 	del_timer(&host->timer);
-@@ -1050,8 +1048,7 @@ static void via_init_mmc_host(struct via_crdr_mmc_host *host)
- 
- 	INIT_WORK(&host->carddet_work, via_sdc_card_detect);
- 
--	tasklet_init(&host->finish_tasklet, via_sdc_tasklet_finish,
--		     (unsigned long)host);
-+	tasklet_setup(&host->finish_tasklet, via_sdc_tasklet_finish);
- 
- 	addrbase = host->sdhc_mmiobase;
- 	writel(0x0, addrbase + VIA_CRDR_SDINTMASK);
--- 
-2.30.0
+yamllint warnings/errors:
+
+dtschema/dtc warnings/errors:
+/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/pci/snps,pcie.yaml: properties:snps,enable-cdm-check: 'oneOf' conditional failed, one must be fixed:
+	'type' is a required property
+	Additional properties are not allowed ('$ref' was unexpected)
+	/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/pci/snps,pcie.yaml: properties:snps,enable-cdm-check: 'oneOf' conditional failed, one must be fixed:
+		'enum' is a required property
+		'const' is a required property
+	'/schemas/types.yaml#definitions/flag' does not match 'types.yaml#/definitions/'
+/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/pci/snps,pcie.yaml: ignoring, error in schema: properties: snps,enable-cdm-check
+warning: no schema found in file: ./Documentation/devicetree/bindings/pci/snps,pcie.yaml
+
+See https://patchwork.ozlabs.org/patch/1435145
+
+This check can fail if there are any dependencies. The base for a patch
+series is generally the most recent rc1.
+
+If you already ran 'make dt_binding_check' and didn't see the above
+error(s), then make sure 'yamllint' is installed and dt-schema is up to
+date:
+
+pip3 install dtschema --upgrade
+
+Please check and re-submit.
 
