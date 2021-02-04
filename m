@@ -2,104 +2,120 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF5A0C433DB
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 07:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 057A0C433E0
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 15:20:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D18C64F4D
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 07:47:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4FDE64E08
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 15:20:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234606AbhBDHrn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 4 Feb 2021 02:47:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52764 "EHLO
+        id S237141AbhBDPU3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 4 Feb 2021 10:20:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232941AbhBDHrm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2021 02:47:42 -0500
-Received: from mail-pg1-x535.google.com (mail-pg1-x535.google.com [IPv6:2607:f8b0:4864:20::535])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26338C061573
-        for <linux-omap@vger.kernel.org>; Wed,  3 Feb 2021 23:47:02 -0800 (PST)
-Received: by mail-pg1-x535.google.com with SMTP id r38so1504646pgk.13
-        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2021 23:47:02 -0800 (PST)
+        with ESMTP id S237047AbhBDPTs (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2021 10:19:48 -0500
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5FE9C061786;
+        Thu,  4 Feb 2021 07:19:08 -0800 (PST)
+Received: by mail-ej1-x630.google.com with SMTP id bl23so5939410ejb.5;
+        Thu, 04 Feb 2021 07:19:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=beagleboard-org.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=41k6/Br2dEAheslDj6eGm8t3m1CekeaO74gqIfyKr4g=;
-        b=pt/96seHNS8L+ZfNOR2uSQGE6w8Iwl6JN0uGCGfThVAm+Vf5mx2eY9Jqtabjq/tKHa
-         bCZCV7lMQJadrFZ7TUrHuBBfAnO4yVWX57wcntVmA7LiI12Kc+WssQ0BG+qLsVe0nYd4
-         LEG7dXuJ6xUjbnnXd9D75vVbYYhHqgp83sQ8eu9Lx7xWacouf2FaFo5IJVKq0ALHVIWj
-         ihsAbbV54PZhT+fYHPI8Gk05cNJmpJfNzn6qZFajNhrF+vA5fVWrJ/D3TCGTx8RWHl3Y
-         hRWTqApjoqUJywQjIdI2I7iaoJCOUR15i4bmIdki1IW29Mv5xZOjaY56TduB/aoF667+
-         KBcA==
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=M0B41tZ9BhfpLW130tpoMukMFanCubX5mUQuKs1xFi0=;
+        b=iYWnQw3hSsJEBErHWKDUIRMWHyND3VAfFPvB7gVkyB8D18b3eaWSt3iNjvjvrbHWQM
+         75Vdxp1oU1adk5KW22osTw+ituLWAmeQZ2m08qmG77wDsF0+nVY+IUxgrk9JjbLp6EM/
+         /Kf+nWKF1Bvd3a/oDHc2dxC+025HVLbw979OaCKqQpQUDOcbohLmO/PA/YqbcL8Jd33S
+         ubUuQ95FsYX8UhwW7TJSqjN4SbxPeKoDFJXIFxi6zEbW1jS+Em2KWNOCjy6whR7BhlEq
+         /QDuWCX6ldtTobr44tD7LVzn0l9ECAftuz5mpgLeUQkUUMFPrf9nPHpHp2toJ9qhwaVM
+         YNtA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=41k6/Br2dEAheslDj6eGm8t3m1CekeaO74gqIfyKr4g=;
-        b=dh6PspRadWcqWOs9G2rWOxcZtzfeGcNNFFSHjbdKz0DerDSEAD6zT6Zm0tK81//U5m
-         mTmqdfM4wYBtOpNN9cn++sF4UsofR4z7gCmIzFeSDh26upbUTt+h186opZF3RyGm1MNm
-         9hYh0RMEzZhT1fndfxJcF3hUbRQCy4IPvFmvF/tnwvgRS58R/Opc5o7QxLm/KQKuuFkR
-         mrygUzzVbYpY9uvmTGD9jIwnzQHPrPH5HMCzozux3Zc2Gy2zyOY9IhfQgtjQXkMdjcss
-         qiUaN8snmj97em3ktLn00gnOgbmd9RaNps+K+Ee1CgIZZoxHA1V2gr1D9ROpsxJdWE/F
-         8khw==
-X-Gm-Message-State: AOAM532ZxtD3DtZ9WT0d6agnYX5pBrXcsR4N2A8lOMXzqvSA+4ZIAAVO
-        8nlZ5KWiJL+7quiO1OMu20i4MA==
-X-Google-Smtp-Source: ABdhPJwOPqkO5dZ7dKG8OXWMJxBLQnabg7BBjYr7iIDslub4fSbdAcIlrod2x2BXblIBzpvT1gkuPQ==
-X-Received: by 2002:aa7:9f5a:0:b029:1d4:fa02:a044 with SMTP id h26-20020aa79f5a0000b02901d4fa02a044mr1794422pfr.30.1612424821654;
-        Wed, 03 Feb 2021 23:47:01 -0800 (PST)
-Received: from x1 ([2601:1c0:4701:ae70:7b0:75e8:7735:4209])
-        by smtp.gmail.com with ESMTPSA id m5sm5233340pgj.11.2021.02.03.23.47.00
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :in-reply-to:references:mime-version:content-transfer-encoding;
+        bh=M0B41tZ9BhfpLW130tpoMukMFanCubX5mUQuKs1xFi0=;
+        b=AvyRVf7/FwzhIq0jP6OOI3FH6xhxCEXclnCftNIpDg0E/liZ249MSPx1Srai8R4tKO
+         fAM+plP1fLvO7bp7i9ltP0aolzCLPghIkEXEwXQmvGdRgonguIt0V54LryFQsA/n7HN5
+         sQgoLr+T6kUPwA0P89KvZqhbmUlzAskqSZeAwUJLoglmLV/ESF5ZRxGHGLhoRE1CcrlU
+         98jJQfM4AWH1er1hE9vzmqedzksLRIj5rNbSgHDLF/70SQWT46Ej/29eCJTU6sD75aLB
+         u3DaYWOB1ASt9icWOrDkSOhFKDz4SHhRX/tAsHQlzHEiSKkYo7WtZdT8tBfQQbw/dXtL
+         WbBg==
+X-Gm-Message-State: AOAM5316jOaJbJViX0VkxFHON9pFVG+QuObfPO7YIXnmaIO2n0G9dsDs
+        0EkGfTkfFaKqOp6OM3XmrZdmJA83EVqObt43
+X-Google-Smtp-Source: ABdhPJyM0C+Whgrs7E27chcilpw2rTGgXyVbl/SoxO+o6Bj9uU3gr7yZUEbUSLYC1hmFrOCVw36NEg==
+X-Received: by 2002:a17:907:7289:: with SMTP id dt9mr8477022ejc.446.1612451947555;
+        Thu, 04 Feb 2021 07:19:07 -0800 (PST)
+Received: from stitch.. ([80.71.140.73])
+        by smtp.gmail.com with ESMTPSA id a6sm2600001ejs.79.2021.02.04.07.19.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Feb 2021 23:47:00 -0800 (PST)
-Date:   Wed, 3 Feb 2021 23:46:58 -0800
-From:   Drew Fustini <drew@beagleboard.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     bcousson@baylibre.com, Rob Herring <robh+dt@kernel.org>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Jason Kridner <jkridner@beagleboard.org>,
-        Robert Nelson <robertcnelson@beagleboard.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 1/2] ARM: dts: am335x-pocketbeagle: unique gpio-line-names
-Message-ID: <20210204074658.GA271881@x1>
-References: <20210127000303.436595-1-drew@beagleboard.org>
- <YBubDME90umkF9aQ@atomide.com>
+        Thu, 04 Feb 2021 07:19:07 -0800 (PST)
+Sender: Emil Renner Berthing <emil.renner.berthing@gmail.com>
+From:   Emil Renner Berthing <kernel@esmil.dk>
+To:     linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc:     Emil Renner Berthing <kernel@esmil.dk>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Manuel Lauss <manuel.lauss@gmail.com>,
+        Jaehoon Chung <jh80.chung@samsung.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Ben Dooks <ben-linux@fluff.org>, Alex Dubov <oakad@yahoo.com>,
+        Bruce Chang <brucechang@via.com.tw>,
+        Harald Welte <HaraldWelte@viatech.com>,
+        Pierre Ossman <pierre@ossman.eu>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/9] mmc: atmel-mci: Use new tasklet API
+Date:   Thu,  4 Feb 2021 16:18:39 +0100
+Message-Id: <20210204151847.91353-2-kernel@esmil.dk>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210204151847.91353-1-kernel@esmil.dk>
+References: <20210204151847.91353-1-kernel@esmil.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YBubDME90umkF9aQ@atomide.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Feb 04, 2021 at 08:58:20AM +0200, Tony Lindgren wrote:
-> * Drew Fustini <drew@beagleboard.org> [210127 02:04]:
-> > Based on linux-gpio discussion [1], it is best practice to make the
-> > gpio-line-names unique. Generic names like "[ethernet]" are replaced
-> > with the name of the unique signal on the AM3358 SoC ball corresponding
-> > to the gpio line. "[NC]" is also renamed to the standard "NC" name to
-> > represent "not connected".
-> > 
-> > [1] https://lore.kernel.org/linux-gpio/20201216195357.GA2583366@x1/
-> 
-> So are these needed for v5.12 as fixes, or can these wait until after
-> the merge window for v5.13?
-> 
-> Regards,
-> 
-> Tony
+This converts the driver to use the new tasklet API introduced in
+commit 12cc923f1ccc ("tasklet: Introduce new initialization API")
 
-I suppose it depends on if/when the patches to make gpio lines unique
-go in.  I believe the last response from Linus W. was in mid-December
-and indicated he holding off merging as it was immature [1]
+Signed-off-by: Emil Renner Berthing <kernel@esmil.dk>
+---
+ drivers/mmc/host/atmel-mci.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Thanks,
-Drew
+diff --git a/drivers/mmc/host/atmel-mci.c b/drivers/mmc/host/atmel-mci.c
+index 632412066eda..807177c953f3 100644
+--- a/drivers/mmc/host/atmel-mci.c
++++ b/drivers/mmc/host/atmel-mci.c
+@@ -1719,9 +1719,9 @@ static void atmci_detect_change(struct timer_list *t)
+ 	}
+ }
+ 
+-static void atmci_tasklet_func(unsigned long priv)
++static void atmci_tasklet_func(struct tasklet_struct *t)
+ {
+-	struct atmel_mci	*host = (struct atmel_mci *)priv;
++	struct atmel_mci        *host = from_tasklet(host, t, tasklet);
+ 	struct mmc_request	*mrq = host->mrq;
+ 	struct mmc_data		*data = host->data;
+ 	enum atmel_mci_state	state = host->state;
+@@ -2496,7 +2496,7 @@ static int atmci_probe(struct platform_device *pdev)
+ 
+ 	host->mapbase = regs->start;
+ 
+-	tasklet_init(&host->tasklet, atmci_tasklet_func, (unsigned long)host);
++	tasklet_setup(&host->tasklet, atmci_tasklet_func);
+ 
+ 	ret = request_irq(irq, atmci_interrupt, 0, dev_name(&pdev->dev), host);
+ 	if (ret) {
+-- 
+2.30.0
 
-[1] https://lore.kernel.org/linux-gpio/CACRpkdbXRHCDGX-YBbNY7cMob0dZNhi1ETA3QnC71ZtOYB30JQ@mail.gmail.com/
