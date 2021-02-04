@@ -6,46 +6,55 @@ X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B235C433E0
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 06:57:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2540EC433DB
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 06:59:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56F6B64F59
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 06:57:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DAB3164E4D
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 06:59:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233516AbhBDG5P (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 4 Feb 2021 01:57:15 -0500
-Received: from muru.com ([72.249.23.125]:56964 "EHLO muru.com"
+        id S230333AbhBDG7H (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 4 Feb 2021 01:59:07 -0500
+Received: from muru.com ([72.249.23.125]:56976 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232917AbhBDG5O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 4 Feb 2021 01:57:14 -0500
+        id S229998AbhBDG7G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 4 Feb 2021 01:59:06 -0500
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 0C75180C5;
-        Thu,  4 Feb 2021 06:56:45 +0000 (UTC)
-Date:   Thu, 4 Feb 2021 08:56:30 +0200
+        by muru.com (Postfix) with ESMTPS id 01C9A80C5;
+        Thu,  4 Feb 2021 06:58:35 +0000 (UTC)
+Date:   Thu, 4 Feb 2021 08:58:20 +0200
 From:   Tony Lindgren <tony@atomide.com>
-To:     Ivan Jelincic <parazyd@dyne.org>
-Cc:     linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 2/2] ARM: omap2plus_defconfig: Update for dropped options.
-Message-ID: <YBuankYwwMsG4MN9@atomide.com>
-References: <20210203113426.18964-1-parazyd@dyne.org>
- <20210203113426.18964-2-parazyd@dyne.org>
+To:     Drew Fustini <drew@beagleboard.org>
+Cc:     bcousson@baylibre.com, Rob Herring <robh+dt@kernel.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Jason Kridner <jkridner@beagleboard.org>,
+        Robert Nelson <robertcnelson@beagleboard.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        linux-gpio@vger.kernel.org
+Subject: Re: [PATCH 1/2] ARM: dts: am335x-pocketbeagle: unique gpio-line-names
+Message-ID: <YBubDME90umkF9aQ@atomide.com>
+References: <20210127000303.436595-1-drew@beagleboard.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210203113426.18964-2-parazyd@dyne.org>
+In-Reply-To: <20210127000303.436595-1-drew@beagleboard.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Ivan Jelincic <parazyd@dyne.org> [210203 13:35]:
-> Update omap2plus_defconfig for options that have been dropped:
+* Drew Fustini <drew@beagleboard.org> [210127 02:04]:
+> Based on linux-gpio discussion [1], it is best practice to make the
+> gpio-line-names unique. Generic names like "[ethernet]" are replaced
+> with the name of the unique signal on the AM3358 SoC ball corresponding
+> to the gpio line. "[NC]" is also renamed to the standard "NC" name to
+> represent "not connected".
 > 
-> - SIMPLE_PM_BUS no longer selected.
+> [1] https://lore.kernel.org/linux-gpio/20201216195357.GA2583366@x1/
 
-Oh right, we now need to always select it. Will queue this for
-fixes after the merge window. The other one I'll be queueing
-for v5.13 as the merge window is about to open and I'll only
-queue fixes for the next few weeks :)
+So are these needed for v5.12 as fixes, or can these wait until after
+the merge window for v5.13?
 
 Regards,
 
