@@ -2,140 +2,71 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.4 required=3.0 tests=BAYES_00,BODY_EMPTY,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02729C433E6
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 19:23:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66764C433E6
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 20:00:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FAB464E36
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 19:23:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EB2164FBB
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 20:00:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233360AbhBERlE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 5 Feb 2021 12:41:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56416 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233631AbhBERiK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2021 12:38:10 -0500
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DB60C061793
-        for <linux-omap@vger.kernel.org>; Fri,  5 Feb 2021 11:19:53 -0800 (PST)
-Received: by mail-wr1-x434.google.com with SMTP id g10so8937578wrx.1
-        for <linux-omap@vger.kernel.org>; Fri, 05 Feb 2021 11:19:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=jKpWYq7VIIL6VYUoIW5OckVXatPGRV104LzvjFGIr1c=;
-        b=HwIpaNjwBxYkUwux2fQ5Do8bhE9RIxKGf3pBtqircLjR/ltu3YBNFOqrISVA9cKWcR
-         9LZ/kEg7RcmLgK7zzuGM6Ws9pPX2PHkVBWjx7IaAGU/LGoLG4WajR2fEp/7WTQlSp7Ad
-         Qm2lM6PHf5+u73jqSb5tFR4dD3MD2z/riun81VWe0cKVIlc0Ddfjp7OiBOmLWFjVOrZF
-         EabzDIVnsRVobIqrdK9/T4ed2N0Y+9XPWyFj+AimPzyyzBk+I1nxbBwpskI6zwL8GDSt
-         aDbX+8HiSKRQ4DZoeaTXWnA7xfkWaLrWQdZj0Tysv6O9oTbtpPZD6bTpfDxJJNyB+kiD
-         Gswg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=jKpWYq7VIIL6VYUoIW5OckVXatPGRV104LzvjFGIr1c=;
-        b=kc3NzHmWRPMm3/F/T17xNlxCgbZx3F9SrRRDVkFp8Lw97jIWoLcrr92DNlT7o5auoa
-         ApkhdgRd8Aw7dW6z5PMw3C7UtMUcanEIUsnXM3AAChTIOfGGSt3jFilZtqXyINyM1gYi
-         kCLrWBKYzkzDTNlV0aAhk0Hl3Weng73j/gFfvLXcL6/xDe9R8hjk9J+4BXzHUSurOYRg
-         k4mSiPM2BI5Svmq6r201DK2wsWR6azyvupaimUmdIK53pyDtQNk0UcGCJ9vnIFI+XQoR
-         mzJA+ZcZmRp4dtEuIw7asBeANvB8Lina0K9kuUnL/mWNf78Z4FtrxzO89YJZ3mcGpE4C
-         3vTA==
-X-Gm-Message-State: AOAM531SNbyZy2G4AqhH2JN29zbudQtC0EgUa8srjebc22TeVeO/StDd
-        YC5z1ik+t5MwKsVOKuyXgtB8hg==
-X-Google-Smtp-Source: ABdhPJzCBGvv1VGUurr+4N/vSECBVMAquwr4j/9tJjZbqQkfy05JU+uYe9sEdOTVfMMZi1qhBeuO9w==
-X-Received: by 2002:a5d:4dd0:: with SMTP id f16mr6639112wru.304.1612552791820;
-        Fri, 05 Feb 2021 11:19:51 -0800 (PST)
-Received: from dell ([91.110.221.188])
-        by smtp.gmail.com with ESMTPSA id k4sm14244388wrm.53.2021.02.05.11.19.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 05 Feb 2021 11:19:51 -0800 (PST)
-Date:   Fri, 5 Feb 2021 19:19:48 +0000
-From:   Lee Jones <lee.jones@linaro.org>
-To:     Stephen Boyd <sboyd@kernel.org>
-Cc:     Ahmad Fatoum <a.fatoum@pengutronix.de>,
-        Andy Gross <agross@kernel.org>,
-        Avi Fishman <avifishman70@gmail.com>,
-        Benjamin Fair <benjaminfair@google.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Boris BREZILLON <boris.brezillon@free-electrons.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>,
-        Fabio Estevam <festevam@gmail.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Jan Kotas <jank@cadence.com>,
-        Jernej Skrabec <jernej.skrabec@siol.net>,
-        Jonathan Hunter <jonathanh@nvidia.com>, Loc Ho <lho@apm.com>,
-        Maxime Ripard <mripard@kernel.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Nancy Yuen <yuenn@google.com>,
-        Nuvoton Technologies <tali.perry@nuvoton.com>,
-        Patrick Venture <venture@google.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Peter De Schrijver <pdeschrijver@nvidia.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        P rashant Gaikwad <pgaikwad@nvidia.com>,
-        Rajan Vaja <rajan.vaja@xilinx.com>,
-        Rajeev Kumar <rajeev-dlh.kumar@st.com>,
-        Richard Woodruff <r-woodruff2@ti.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Shiraz Hashim <shiraz.linux.kernel@gmail.com>,
-        =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
-        Tali Perry <tali.perry1@gmail.com>,
-        Tero Kristo <kristo@kernel.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Tomer Maimon <tmaimon77@gmail.com>,
-        Viresh Kumar <vireshk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-clk@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        openbmc@lists.ozlabs.org
-Subject: Re: [PATCH 00/21] [Set 2] Rid W=1 warnings from Clock
-Message-ID: <20210205191948.GS2789116@dell>
-References: <20210126124540.3320214-1-lee.jones@linaro.org>
- <20210203083155.GA2329016@dell>
- <161255130506.76967.8682382463883809207@swboyd.mtv.corp.google.com>
+        id S233657AbhBESSC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 5 Feb 2021 13:18:02 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:46320 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233487AbhBESRp (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2021 13:17:45 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 115F49g7009021;
+        Fri, 5 Feb 2021 09:04:09 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1612537449;
+        bh=tgXH0jDlzSuMvnwwTfnKlyIjhADidsODFnKRxzXzEik=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=LBeps3WPW3s/+y9bQeHBU93RH0dev6IU4YhvQrfO9y3Snopf3nm89bFwVpNZ7ImFO
+         7f+exNeDR+Ytmm+k/wSz91gPC2rNXhs3KWnImq108y1VBp1I9KxAkFgd6aFDqe9oLx
+         pxTwy/9TAbynWF3+P6LdVjG9de5IqcHz7z87kGTE=
+Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 115F49Lh044774
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 5 Feb 2021 09:04:09 -0600
+Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 5 Feb
+ 2021 09:04:09 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Fri, 5 Feb 2021 09:04:09 -0600
+Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 115F479B085244;
+        Fri, 5 Feb 2021 09:04:07 -0600
+Subject: Re: [PATCH 2/2] ARM: omap2plus_defconfig: Update for dropped options.
+To:     Tony Lindgren <tony@atomide.com>
+CC:     "Ivan J." <parazyd@dyne.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20210203113426.18964-1-parazyd@dyne.org>
+ <20210203113426.18964-2-parazyd@dyne.org> <YBuankYwwMsG4MN9@atomide.com>
+ <4b32f566-92ad-3c49-0453-b44df23f1384@ti.com>
+ <20210205131736.3jivrc5lln4t2onr@fq> <YB1Ib41trny2JFDv@atomide.com>
+ <8ab86ccf-7568-c173-75f6-0d572fd43fec@ti.com> <YB1aS4Tn76hKM5NC@atomide.com>
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+Message-ID: <8daa6fce-bfad-ea28-e8dd-f3083bf43b01@ti.com>
+Date:   Fri, 5 Feb 2021 17:04:08 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <161255130506.76967.8682382463883809207@swboyd.mtv.corp.google.com>
+In-Reply-To: <YB1aS4Tn76hKM5NC@atomide.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
+Message-ID: <20210205150408.vaM-Pw59oRUQyecKVzwJ7baM8ec5y1lEBVFybuxkAZA@z>
 
-On Fri, 05 Feb 2021, Stephen Boyd wrote:
 
-> Quoting Lee Jones (2021-02-03 00:31:55)
-> > On Tue, 26 Jan 2021, Lee Jones wrote:
-> > 
-> > > This set is part of a larger effort attempting to clean-up W=1
-> > > kernel builds, which are currently overwhelmingly riddled with
-> > > niggly little warnings.
-> > > 
-> > > This is the last set.  Clock is clean after this.
-> > 
-> > Out of interest, what normally happens to the patches which aren't
-> > picked up by individual driver Maintainers?
-> > 
-> 
-> I have to go in and figure it out! :)
-
-Thanks mate, much obliged.
-
--- 
-Lee Jones [李琼斯]
-Senior Technical Lead - Developer Services
-Linaro.org │ Open source software for Arm SoCs
-Follow Linaro: Facebook | Twitter | Blog
