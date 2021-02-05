@@ -2,154 +2,90 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5AA3C433E0
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 18:34:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30705C433DB
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 13:20:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52DF164F51
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Feb 2021 18:34:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDE3364E4D
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 13:20:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239062AbhBDScs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 4 Feb 2021 13:32:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44982 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239153AbhBDSaq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 4 Feb 2021 13:30:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 13D1B64E06;
-        Thu,  4 Feb 2021 18:29:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612463391;
-        bh=m2ULECe/5nShjpaNukVPB1Kg9k0QQfSi+2ZmqBBEpGs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=O/LNBdO3xd+g9w7/5qjfXOSTtr4mSJ9IrEz1BxVvwHFiiel3fILTMyxF534RzQQ6e
-         dWNmW4YGkhvR3f0qNjS1F1cWrRBMnsLyW1vNcoqBVmXGn6etQ5nHpKlRcWNHvDfY3I
-         18fpGaTjYYafIzHvYgkqDlZdUYjXqHZqYDYrE8B3KTAurSebytxHkx/+7SfOJmKxtv
-         89V+vfbFUaYNvT3t1SVFjp//aaornWIug+AH20j3apiqMBiyXwAB76RYE8V6Ack1pN
-         4KVJeJiu3hHE7/lDBCLzXRh7+wGLvZ/Xw32uIGZaMFElJNBnci1ddtEY22poxwjSte
-         2KS29439QNy+g==
-Date:   Thu, 4 Feb 2021 19:29:39 +0100
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To:     Rob Herring <robh@kernel.org>
-Cc:     Sascha Hauer <s.hauer@pengutronix.de>,
-        linux-kernel@vger.kernel.org,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Jaehoon Chung <jh80.chung@samsung.com>,
-        Gustavo Pimentel <gustavo.pimentel@synopsys.com>,
-        Andy Gross <agross@kernel.org>,
-        Jesper Nilsson <jesper.nilsson@axis.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        Lucas Stach <l.stach@pengutronix.de>,
-        linux-samsung-soc@vger.kernel.org,
-        Kevin Hilman <khilman@baylibre.com>,
-        devicetree@vger.kernel.org,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        linux-arm-kernel@axis.com, Richard Zhu <hongxing.zhu@nxp.com>,
-        linux-arm-msm@vger.kernel.org,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Fabio Estevam <festevam@gmail.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-pci@vger.kernel.org, Jerome Brunet <jbrunet@baylibre.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        linux-omap@vger.kernel.org, Jingoo Han <jingoohan1@gmail.com>,
-        linux-tegra@vger.kernel.org, Jonathan Chocron <jonnyc@amazon.com>,
-        Zhou Wang <wangzhou1@hisilicon.com>,
-        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 01/13] doc: bindings: pci: designware-pcie.txt: convert
- it to yaml
-Message-ID: <20210204192939.0daaec74@coco.lan>
-In-Reply-To: <20210204172945.GA662023@robh.at.kernel.org>
-References: <cover.1612271903.git.mchehab+huawei@kernel.org>
-        <706e684f571e142362d7be74eb1dcee2c8558052.1612271903.git.mchehab+huawei@kernel.org>
-        <1612287895.001149.3887347.nullmailer@robh.at.kernel.org>
-        <20210203074900.6d581153@coco.lan>
-        <20210204172945.GA662023@robh.at.kernel.org>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+        id S229581AbhBENUU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 5 Feb 2021 08:20:20 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:35906 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229621AbhBENRC (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2021 08:17:02 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 115DF1YD096948;
+        Fri, 5 Feb 2021 07:15:01 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1612530901;
+        bh=GNcw8k0dfEBZTgTsrzpXl0t8YB0oVkDzbvtyH9eAguo=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=IEs0yOnlyyl2U+m6WIhvmROtIwG8KhWEO8xAwWVurmJkzYqpq1qfcMnzH/1jrJyQd
+         KDWohB2AGJELzkZCGVvzwYwp7MXBJB356lcREHp6mgVfm+dbf/PYoNRnfTZzDtjFLF
+         ptgrrbrbzMosZaggeQSkeV/xcBa+4JJxuoWINSxM=
+Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 115DF1Ur116294
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 5 Feb 2021 07:15:01 -0600
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 5 Feb
+ 2021 07:15:00 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Fri, 5 Feb 2021 07:15:00 -0600
+Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 115DExLL123408;
+        Fri, 5 Feb 2021 07:14:59 -0600
+Subject: Re: [PATCH 2/2] ARM: omap2plus_defconfig: Update for dropped options.
+To:     Tony Lindgren <tony@atomide.com>, Ivan Jelincic <parazyd@dyne.org>
+CC:     <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20210203113426.18964-1-parazyd@dyne.org>
+ <20210203113426.18964-2-parazyd@dyne.org> <YBuankYwwMsG4MN9@atomide.com>
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+Message-ID: <4b32f566-92ad-3c49-0453-b44df23f1384@ti.com>
+Date:   Fri, 5 Feb 2021 15:15:00 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <YBuankYwwMsG4MN9@atomide.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Em Thu, 4 Feb 2021 11:29:45 -0600
-Rob Herring <robh@kernel.org> escreveu:
 
-> On Wed, Feb 03, 2021 at 07:49:00AM +0100, Mauro Carvalho Chehab wrote:
-> > Hi Rob,
-> > 
-> > Em Tue, 02 Feb 2021 11:44:54 -0600
-> > Rob Herring <robh@kernel.org> escreveu:
-> >   
-> > > My bot found errors running 'make dt_binding_check' on your patch:
-> > > 
-> > > yamllint warnings/errors:
-> > > 
-> > > dtschema/dtc warnings/errors:
-> > > /builds/robherring/linux-dt-review/Documentation/devicetree/bindings/pci/snps,pcie.yaml: properties:snps,enable-cdm-check: 'oneOf' conditional failed, one must be fixed:
-> > > 	'type' is a required property
-> > > 	Additional properties are not allowed ('$ref' was unexpected)
-> > > 	/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/pci/snps,pcie.yaml: properties:snps,enable-cdm-check: 'oneOf' conditional failed, one must be fixed:
-> > > 		'enum' is a required property
-> > > 		'const' is a required property
-> > > 	'/schemas/types.yaml#definitions/flag' does not match 'types.yaml#/definitions/'  
+
+On 04/02/2021 08:56, Tony Lindgren wrote:
+> * Ivan Jelincic <parazyd@dyne.org> [210203 13:35]:
+>> Update omap2plus_defconfig for options that have been dropped:
+>>
+>> - SIMPLE_PM_BUS no longer selected.
 > 
-> You need a '/' between '#' and 'definitions'.
+> Oh right, we now need to always select it. Will queue this for
+> fixes after the merge window. The other one I'll be queueing
+> for v5.13 as the merge window is about to open and I'll only
+> queue fixes for the next few weeks :)
 
-ah, OK. Will add it at the next version.
- 
-> > > /builds/robherring/linux-dt-review/Documentation/devicetree/bindings/pci/snps,pcie.yaml: ignoring, error in schema: properties: snps,enable-cdm-check
-> > > warning: no schema found in file: ./Documentation/devicetree/bindings/pci/snps,pcie.yaml
-> > > 
-> > > See https://patchwork.ozlabs.org/patch/1434686
-> > > 
-> > > This check can fail if there are any dependencies. The base for a patch
-> > > series is generally the most recent rc1.
-> > > 
-> > > If you already ran 'make dt_binding_check' and didn't see the above
-> > > error(s), then make sure 'yamllint' is installed and dt-schema is up to
-> > > date:
-> > > 
-> > > pip3 install dtschema --upgrade
-> > > 
-> > > Please check and re-submit.  
-> > 
-> > I've no idea why the bot is hitting those. My tree is based on
-> > staging-testing[1], as I need the regulator patches merged there.
-> > Such tree is based on v5.11-rc5.
-> > 
-> > There, dt_binding_check doesn't get any warnings on this schema:
-> > 
-> > $ pip3 install dtschema --upgrade --user
-> > Requirement already up-to-date: dtschema in /home/mchehab/.local/lib/python3.9/site-packages (2020.12)  
-> 
-> This particular check is in master, but not yet a release on pypi. I'll 
-> be tagging a release soon.
-> 
-> I've got this problem that adding new meta-schema checks like this one 
-> requires fixing up all the existing in tree schemas first. So I give 
-> some amount of time before adding them to a tagged release. However, I 
-> want to start testing new schemas right away. I haven't come up with a 
-> better solution short of importing the meta-schema into the kernel tree 
-> or separately versioning them.
+"- MICREL_PHY no longer selected."
 
-IMO, having the meta-schema inside the Kernel tree would be better...
+I do not agree with above as MICREL_PHY is selected by KS8851, but on many boards there is no
+explicit dependency from KS8851, but MICREL PHYs are in use.
+So, I'd prefer to have it enabled explicitly in omap2plus_defconfig.
 
-It took me some time to discover that some problems I had with a past
-version of this patch series were due to something outside the
-Kernel tree, at local/lib/python3.9/site-packages.
+And not sure what exactly "no longer selected" means.
 
-Thanks,
-Mauro
+-- 
+Best regards,
+grygorii
