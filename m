@@ -2,164 +2,115 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3552EC433E6
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 13:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C959C433E0
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 17:29:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D443A64FC0
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 13:49:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02BF164F2A
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 17:29:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231480AbhBENsd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 5 Feb 2021 08:48:33 -0500
-Received: from muru.com ([72.249.23.125]:57646 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231380AbhBENq0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 5 Feb 2021 08:46:26 -0500
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 17B7F81A7;
-        Fri,  5 Feb 2021 13:45:55 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     Amit Kucheria <amitk@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Zhang Rui <rui.zhang@intel.com>
-Cc:     Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>,
-        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>,
-        Carl Philipp Klemm <philipp@uvos.xyz>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-        Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 2/4] thermal: ti-soc-thermal: Fix stuck sensor with continuous mode for 4430
-Date:   Fri,  5 Feb 2021 15:45:32 +0200
-Message-Id: <20210205134534.49200-3-tony@atomide.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210205134534.49200-1-tony@atomide.com>
-References: <20210205134534.49200-1-tony@atomide.com>
+        id S233231AbhBEPqh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 5 Feb 2021 10:46:37 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:41646 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233343AbhBEPoW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2021 10:44:22 -0500
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 115F49g7009021;
+        Fri, 5 Feb 2021 09:04:09 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1612537449;
+        bh=tgXH0jDlzSuMvnwwTfnKlyIjhADidsODFnKRxzXzEik=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=LBeps3WPW3s/+y9bQeHBU93RH0dev6IU4YhvQrfO9y3Snopf3nm89bFwVpNZ7ImFO
+         7f+exNeDR+Ytmm+k/wSz91gPC2rNXhs3KWnImq108y1VBp1I9KxAkFgd6aFDqe9oLx
+         pxTwy/9TAbynWF3+P6LdVjG9de5IqcHz7z87kGTE=
+Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 115F49Lh044774
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 5 Feb 2021 09:04:09 -0600
+Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 5 Feb
+ 2021 09:04:09 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
+ Frontend Transport; Fri, 5 Feb 2021 09:04:09 -0600
+Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 115F479B085244;
+        Fri, 5 Feb 2021 09:04:07 -0600
+Subject: Re: [PATCH 2/2] ARM: omap2plus_defconfig: Update for dropped options.
+To:     Tony Lindgren <tony@atomide.com>
+CC:     "Ivan J." <parazyd@dyne.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20210203113426.18964-1-parazyd@dyne.org>
+ <20210203113426.18964-2-parazyd@dyne.org> <YBuankYwwMsG4MN9@atomide.com>
+ <4b32f566-92ad-3c49-0453-b44df23f1384@ti.com>
+ <20210205131736.3jivrc5lln4t2onr@fq> <YB1Ib41trny2JFDv@atomide.com>
+ <8ab86ccf-7568-c173-75f6-0d572fd43fec@ti.com> <YB1aS4Tn76hKM5NC@atomide.com>
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+Message-ID: <8daa6fce-bfad-ea28-e8dd-f3083bf43b01@ti.com>
+Date:   Fri, 5 Feb 2021 17:04:08 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <YB1aS4Tn76hKM5NC@atomide.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-At least for 4430, trying to use the single conversion mode eventually
-hangs the thermal sensor. This can be quite easily seen with errors:
 
-thermal thermal_zone0: failed to read out thermal zone (-5)
 
-Also, trying to read the temperature shows a stuck value with:
+On 05/02/2021 16:46, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [210205 14:25]:
+>> On 05/02/2021 15:30, Tony Lindgren wrote:
+>>> Grgorii, maybe send a patch selecting MICREL_PHY in the Kconfig
+>>> for the other cases that do not use KS8851?
+>>
+>> The KS8851 config was added like 10years ago and is used on some omap4 platforms,
+>> it does select MICREL_PHY.
+>>
+>>  From other side, *some* am57x, am437 platforms uses MICREL PHYs with no dependency from KS8851.
+>>
+>> The omap2plus_defconfig is also used as base for custom configs and first thing people are doing -
+>> remove not needed options. As result, removal of KS8851 plus this patch will immediately
+>> cause MICREL_PHY=n and so breakage on existing and custom platforms.
+>>
+>> I do not see how it can be resolved by using Kconfig changes within much-omap2.
+>>
+>> So, sry, but NACK for this patch as it is.
+> 
+> We can wait on this patch no problem while we figure this out.
+> But certainly we need to fix things so make savedefconfig
+> produces valid configs that don't need to be manually edited.
+> 
+>> if some Kconfig dependencies need to be sorted out - probably the best way might be
+>> to get rid of select MICREL_PHY in KS8851/KS8851_MLL.
+> 
+> That will potentially break things too as the configs now expect
+> it to be selected :) Looks like that got changed with commit
+> f0791b92d2b6 ("net: ks8851: Select PHYLIB and MICREL_PHY in
+> Kconfig").
 
-$ while true; do cat /sys/class/thermal/thermal_zone0/temp; done
+Yah. It's really has to be "depends on".
 
-Where the temperature is not rising at all with the busy loop.
+> 
+> So why can't we do similar patches to select MICREL_PHY for
+> the other non-ks8851 configurations in drivers/net/ethernet
+> Kconfig files as needed?
 
-Additionally, the EOCZ (end of conversion) bit is not rising on 4430 in
-single conversion mode while it works fine in continuous conversion mode.
-It is also possible that the hung temperature sensor can affect the
-thermal shutdown alert too.
+because there is no dependency between Ethernet controller (CPSW) and
+Ethernet PHY - any MII capable PHY can be used with CPSW.
 
-Let's fix the issue by adding TI_BANDGAP_FEATURE_CONT_MODE_ONLY flag and
-use it for 4430.
-
-Note that we also need to add udelay to for the EOCZ (end of conversion)
-bit polling as otherwise we have it time out too early on 4430. We'll be
-changing the loop to use iopoll in the following clean-up patch.
-
-Cc: Adam Ford <aford173@gmail.com>
-Cc: Carl Philipp Klemm <philipp@uvos.xyz>
-Cc: Eduardo Valentin <edubezval@gmail.com>
-Cc: H. Nikolaus Schaller <hns@goldelico.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Peter Ujfalusi <peter.ujfalusi@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/thermal/ti-soc-thermal/omap4-thermal-data.c |  3 ++-
- drivers/thermal/ti-soc-thermal/ti-bandgap.c         | 13 ++++++++++---
- drivers/thermal/ti-soc-thermal/ti-bandgap.h         |  2 ++
- 3 files changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
---- a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
-@@ -58,7 +58,8 @@ omap4430_adc_to_temp[OMAP4430_ADC_END_VALUE - OMAP4430_ADC_START_VALUE + 1] = {
- const struct ti_bandgap_data omap4430_data = {
- 	.features = TI_BANDGAP_FEATURE_MODE_CONFIG |
- 			TI_BANDGAP_FEATURE_CLK_CTRL |
--			TI_BANDGAP_FEATURE_POWER_SWITCH,
-+			TI_BANDGAP_FEATURE_POWER_SWITCH |
-+			TI_BANDGAP_FEATURE_CONT_MODE_ONLY,
- 	.fclock_name = "bandgap_fclk",
- 	.div_ck_name = "bandgap_fclk",
- 	.conv_table = omap4430_adc_to_temp,
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -15,6 +15,7 @@
- #include <linux/kernel.h>
- #include <linux/interrupt.h>
- #include <linux/clk.h>
-+#include <linux/delay.h>
- #include <linux/gpio/consumer.h>
- #include <linux/platform_device.h>
- #include <linux/err.h>
-@@ -605,9 +606,13 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
- 	struct temp_sensor_registers *tsr = bgp->conf->sensors[id].registers;
- 	u32 counter;
- 
--	/* Select single conversion mode */
--	if (TI_BANDGAP_HAS(bgp, MODE_CONFIG))
--		RMW_BITS(bgp, id, bgap_mode_ctrl, mode_ctrl_mask, 0);
-+	/* Select continuous or single conversion mode */
-+	if (TI_BANDGAP_HAS(bgp, MODE_CONFIG)) {
-+		if (TI_BANDGAP_HAS(bgp, CONT_MODE_ONLY))
-+			RMW_BITS(bgp, id, bgap_mode_ctrl, mode_ctrl_mask, 1);
-+		else
-+			RMW_BITS(bgp, id, bgap_mode_ctrl, mode_ctrl_mask, 0);
-+	}
- 
- 	/* Set Start of Conversion if available */
- 	if (tsr->bgap_soc_mask) {
-@@ -619,6 +624,7 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
- 			if (ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) &
- 			    tsr->bgap_eocz_mask)
- 				break;
-+			udelay(1);
- 		}
- 
- 		/* Clear Start of Conversion if available */
-@@ -631,6 +637,7 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
- 		if (!(ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) &
- 		      tsr->bgap_eocz_mask))
- 			break;
-+		udelay(1);
- 	}
- 
- 	return 0;
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-@@ -280,6 +280,7 @@ struct ti_temp_sensor {
-  *	has Errata 814
-  * TI_BANDGAP_FEATURE_UNRELIABLE - used when the sensor readings are too
-  *	inaccurate.
-+ * TI_BANDGAP_FEATURE_CONT_MODE_ONLY - used when single mode hangs the sensor
-  * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is capable of a
-  *      specific feature (above) or not. Return non-zero, if yes.
-  */
-@@ -295,6 +296,7 @@ struct ti_temp_sensor {
- #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
- #define TI_BANDGAP_FEATURE_ERRATA_814		BIT(10)
- #define TI_BANDGAP_FEATURE_UNRELIABLE		BIT(11)
-+#define TI_BANDGAP_FEATURE_CONT_MODE_ONLY	BIT(12)
- #define TI_BANDGAP_HAS(b, f)			\
- 			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
- 
 -- 
-2.30.0
+Best regards,
+grygorii
