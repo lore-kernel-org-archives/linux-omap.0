@@ -2,109 +2,69 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB37EC433E0
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 22:41:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CF1AC433E0
+	for <linux-omap@archiver.kernel.org>; Sat,  6 Feb 2021 07:24:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9387E64E0A
-	for <linux-omap@archiver.kernel.org>; Fri,  5 Feb 2021 22:41:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3F8A64FD4
+	for <linux-omap@archiver.kernel.org>; Sat,  6 Feb 2021 07:24:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231131AbhBEWkA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 5 Feb 2021 17:40:00 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:48126 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231855AbhBEOCj (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2021 09:02:39 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 115E1cmp115333;
-        Fri, 5 Feb 2021 08:01:38 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1612533698;
-        bh=TGp6IigDxIpBSmlrVc45IQfgnTUYbtt60lWgtPYcvcQ=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=cs1HznXO6DKZbnn4RG5cdjm84+1cQRkS9ARXjccWUpMLgl/63grONxe+5ls/9Uyqx
-         0z9OiOV/jRtEF39GR7O3e7w8a60aKw60VatNZH95XVb2K+A0t11B9XHQgAtb9SfFPH
-         CWtehvxh4/uiNQMOy3xusM1sQnIrvzGNIvXhYFhI=
-Received: from DLEE101.ent.ti.com (dlee101.ent.ti.com [157.170.170.31])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 115E1c4L071760
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 5 Feb 2021 08:01:38 -0600
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE101.ent.ti.com
- (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Fri, 5 Feb
- 2021 08:01:38 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Fri, 5 Feb 2021 08:01:38 -0600
-Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 115E1aap127089;
-        Fri, 5 Feb 2021 08:01:37 -0600
-Subject: Re: [PATCH 1/2] ARM: omap2plus_defconfig: Enable Netfilter components
- as modules.
-To:     Tony Lindgren <tony@atomide.com>
-CC:     Ivan Jelincic <parazyd@dyne.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
+        id S229750AbhBFHYI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 6 Feb 2021 02:24:08 -0500
+Received: from muru.com ([72.249.23.125]:57962 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229745AbhBFHYH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 6 Feb 2021 02:24:07 -0500
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 23EE180AA;
+        Sat,  6 Feb 2021 07:23:39 +0000 (UTC)
+Date:   Sat, 6 Feb 2021 09:23:23 +0200
+From:   Tony Lindgren <tony@atomide.com>
+To:     Grygorii Strashko <grygorii.strashko@ti.com>
+Cc:     "Ivan J." <parazyd@dyne.org>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 2/2] ARM: omap2plus_defconfig: Update for dropped options.
+Message-ID: <YB5D6zYcU6GES7WY@atomide.com>
 References: <20210203113426.18964-1-parazyd@dyne.org>
- <72a4133f-db13-db12-0949-017054bc8265@ti.com> <YB1JEu8cfcy1Ixwb@atomide.com>
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-Message-ID: <7ab0268d-7dcf-494f-0120-c8ac42f47d70@ti.com>
-Date:   Fri, 5 Feb 2021 16:01:38 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+ <20210203113426.18964-2-parazyd@dyne.org>
+ <YBuankYwwMsG4MN9@atomide.com>
+ <4b32f566-92ad-3c49-0453-b44df23f1384@ti.com>
+ <20210205131736.3jivrc5lln4t2onr@fq>
+ <YB1Ib41trny2JFDv@atomide.com>
+ <8ab86ccf-7568-c173-75f6-0d572fd43fec@ti.com>
+ <YB1aS4Tn76hKM5NC@atomide.com>
+ <8daa6fce-bfad-ea28-e8dd-f3083bf43b01@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <YB1JEu8cfcy1Ixwb@atomide.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8daa6fce-bfad-ea28-e8dd-f3083bf43b01@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-
-
-On 05/02/2021 15:33, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [210205 13:18]:
->> On 03/02/2021 13:34, Ivan Jelincic wrote:
->>> Enable the majority of the Netfilter components as loadable modules
->>> in the omap2plus_defconfig file.
-> ...
->>> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
->>> index f250bf1cc022..9847502d2c97 100644
->>> --- a/arch/arm/configs/omap2plus_defconfig
->>> +++ b/arch/arm/configs/omap2plus_defconfig
->>> @@ -87,6 +87,155 @@ CONFIG_IP_PNP_DHCP=y
->>>    CONFIG_IP_PNP_BOOTP=y
->>>    CONFIG_IP_PNP_RARP=y
->>>    CONFIG_NETFILTER=y
->>> +CONFIG_NF_CONNTRACK=m
->>> +CONFIG_NF_LOG_NETDEV=m
->>> +CONFIG_NF_CONNTRACK_ZONES=y
->>> +CONFIG_NF_CONNTRACK_EVENTS=y
->>> +CONFIG_NF_CONNTRACK_TIMEOUT=y
->>> +CONFIG_NF_CONNTRACK_TIMESTAMP=y
->>> +CONFIG_NF_CT_NETLINK=m
->>
->> [..]
->>
->> Do we really want to enable all these not TI specific configs?
->> The main purpose of omap2plus_defconfig is to enable TI specific HW and HW features and
->> config options required to tests/demonstrate these features - like support for some networking
->> HW offloads.
+* Grygorii Strashko <grygorii.strashko@ti.com> [210205 15:04]:
+> On 05/02/2021 16:46, Tony Lindgren wrote:
+> > That will potentially break things too as the configs now expect
+> > it to be selected :) Looks like that got changed with commit
+> > f0791b92d2b6 ("net: ks8851: Select PHYLIB and MICREL_PHY in
+> > Kconfig").
 > 
-> Well these are loadable modules. And I'd like to have omap2plus_defconfig
-> and multi_v7_defconfig usable as a base config for distros to use.
+> Yah. It's really has to be "depends on".
+
+Yeah that's almost always better than select for sure.
+
+> > So why can't we do similar patches to select MICREL_PHY for
+> > the other non-ks8851 configurations in drivers/net/ethernet
+> > Kconfig files as needed?
 > 
-> For built-in options I agree. We should only enable absolute minimum
-> for built-in optoins as otherwise things get even more bloated.
+> because there is no dependency between Ethernet controller (CPSW) and
+> Ethernet PHY - any MII capable PHY can be used with CPSW.
 
-Ok. Up to you.
+OK thanks for the info.
 
--- 
-Best regards,
-grygorii
+Regards,
+
+Tony
