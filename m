@@ -2,86 +2,91 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB215C433E0
-	for <linux-omap@archiver.kernel.org>; Sat,  6 Feb 2021 13:15:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D27FDC433E0
+	for <linux-omap@archiver.kernel.org>; Sat,  6 Feb 2021 21:58:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 981CE64EBC
-	for <linux-omap@archiver.kernel.org>; Sat,  6 Feb 2021 13:15:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9042E64E87
+	for <linux-omap@archiver.kernel.org>; Sat,  6 Feb 2021 21:58:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229815AbhBFNPP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 6 Feb 2021 08:15:15 -0500
-Received: from jabberwock.ucw.cz ([46.255.230.98]:59944 "EHLO
-        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229529AbhBFNPP (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 6 Feb 2021 08:15:15 -0500
-Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
-        id 9ED161C0B77; Sat,  6 Feb 2021 14:14:16 +0100 (CET)
-Date:   Sat, 6 Feb 2021 14:14:15 +0100
-From:   Pavel Machek <pavel@ucw.cz>
-To:     kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
-        martin_rysavy@centrum.cz, phone-devel@vger.kernel.org,
-        maemo-leste@lists.dyne.org
-Subject: Droid 4 charging
-Message-ID: <20210206131415.GA4499@amd>
+        id S229561AbhBFV6N (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 6 Feb 2021 16:58:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60642 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229522AbhBFV6N (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 6 Feb 2021 16:58:13 -0500
+Received: from mail-pl1-x630.google.com (mail-pl1-x630.google.com [IPv6:2607:f8b0:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDB06C06174A
+        for <linux-omap@vger.kernel.org>; Sat,  6 Feb 2021 13:57:32 -0800 (PST)
+Received: by mail-pl1-x630.google.com with SMTP id u11so5361628plg.13
+        for <linux-omap@vger.kernel.org>; Sat, 06 Feb 2021 13:57:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=fKSrDzYYS1DVm77baWFlfXa1LzWdxJZEgPegFo92j6Y=;
+        b=l2Jzm7SQwcyN6QtLuZglQnX26Xc6QJNS9JrFqJsp8JYUrSt2IFpMQ68FlvXPLI2cLp
+         Hwq7vOKgSpYsZLj0sQ4be9WVfTpCJOi9DAdB21IlTJUrCoiY+7R4P1wzbjLRcM4LYYQj
+         dLKAVxGsOOYQvEFrLhi44wQsCJQwjD2C05sC4I8Ao9+KHP51Ks9AzbAQjMWGK31k4l2l
+         ZpE+rxxzWh1STfJNrn3cZ/qy+dW21u9ad9u4QgLkKaXIMOH+dUuhI1oLLBDiRck6r3ij
+         EYVWgfJrxngkscXKofc3AbEAv8qDFgCkGCwzR2q+NYmlYVdF7VaVlD7Mi2kaDK4hLeeM
+         GIyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=fKSrDzYYS1DVm77baWFlfXa1LzWdxJZEgPegFo92j6Y=;
+        b=H5Lo8jkf4oPYb7kdsX7yWaKoELfKSLLDuQdreyQW9sJdVzlbnC3cjfzZdvxR0cfZKI
+         s4019mNEy3udwrcjB/wAab11xhMFQ7/l1TKvlqyHD0V35h3Q9lIm6Glm1RKhMk6m05A+
+         +tAZSo6xFQAToKZpjjkUHiBa+90wiQOnUadtDgb+/mwK7hQ1Mbl7K/7ZUnDSqnHNBC6P
+         xmfpU6xEcusOep/5sBB7O23wsaXUrlB+fT609EIwnC+BBO9v+iC01DfiZfsgBUdgApTV
+         pvkO9tjExHL0fIdRWxGvtaLWfDIMuZmTGwaiUyFWE/FguFmcekBlibiYsgsGt19D5yul
+         iV0Q==
+X-Gm-Message-State: AOAM532UDoGkHrg03cCbc+m1ua9yjytUOwMoWHOWSVu64m6ga2EEnbaY
+        H5e4jNstRmuSi5AVVGT5WkEwGVq05cC+V/ii+YB3I5Xc1R7O9g==
+X-Google-Smtp-Source: ABdhPJxNdCPgrBFSngp3GknFcKIkCwAdqHDlhFMUtDIlCxofKNpiyxA5UYwea1yzdB40td+96vZlT7xXtcp0Zz9jJw8=
+X-Received: by 2002:a17:902:c284:b029:e1:8863:b3d6 with SMTP id
+ i4-20020a170902c284b02900e18863b3d6mr9737807pld.64.1612648652016; Sat, 06 Feb
+ 2021 13:57:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
-Content-Disposition: inline
-User-Agent: Mutt/1.5.23 (2014-03-12)
+From:   Adam Ford <aford173@gmail.com>
+Date:   Sat, 6 Feb 2021 15:57:21 -0600
+Message-ID: <CAHCN7xLXK774FTKVXPM1LQbg0KQm+7ASFxtiaYZsUbGKnwYfDQ@mail.gmail.com>
+Subject: DM3730 Suspend-Resume with 5.11-rc6
+To:     Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+I am having issues with suspend on a DM3730 running 5.11-rc6, and it
+seems like core_pwrdm may be the issue.
 
---Q68bSM7Ycu6FN28Q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+# echo mem > /sys/power/state
+[   82.024963] PM: suspend entry (deep)
+[   82.053283] Filesystems sync: 0.024 seconds
+[   82.059600] Freezing user space processes ... (elapsed 0.001 seconds) done.
+[   82.068511] OOM killer disabled.
+[   82.071777] Freezing remaining freezable tasks ... (elapsed 0.001
+seconds) done.
+[   82.647033] Disabling non-boot CPUs ...
+[   82.651000] Powerdomain (core_pwrdm) didn't enter target state 0
+[   82.651000] Could not enter target state in pm_suspend
+[   82.896881] omap-iommu 480bd400.mmu: 480bd400.mmu: version 1.1
+ [   83.049072] musb-hdrc musb-hdrc.2.auto: musb_set_peripheral:
+already in peripheral mode: 80
+[   83.519439] OOM killer enabled.
+[   83.522674] Restarting tasks ... done.
+[   83.589050] PM: suspend exit
+sh: write error: Operation not permitted
+#
 
-Hi!
+I am not that versed with the power management stuff and the
+references on elinux.org are outdated, and I was hoping someone might
+have some suggestions.
 
-(I'm using Leste 5.10 kernel here).
+Does anyone else have any issues?
 
-When battery is full, green light is off and 0.00A being drawn from
-USB.
-
-But that means that phone is now powered from battery, discharging
-it... And soon charging starts again. (Pretty much immediately, for me)
-
-That's bad ... right? It wears the battery out.
-
-If I turn off charging with echo 0 > input_current_limit, 0.2 to 0.4A
-is drawn from USB, and battery is not discharged:
-
-root@devuan-droid4:/sys/class/power_supply/usb# echo 0 >  input_current_lim=
-it
-root@devuan-droid4:/sys/class/power_supply/usb# cat current_now
-0
-
-Is that a better way to handle full battery?
-
-Best regards,
-								Pavel
---=20
-http://www.livejournal.com/~pavelmachek
-
---Q68bSM7Ycu6FN28Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAmAelicACgkQMOfwapXb+vK/bwCguKUzZuXqGMMpi7o3wYZkwua0
-qOAAoKJtVeDNf10adOClXBO+1nl0+ACG
-=hAuc
------END PGP SIGNATURE-----
-
---Q68bSM7Ycu6FN28Q--
+adam
