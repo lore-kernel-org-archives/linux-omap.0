@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C54CBC433E9
-	for <linux-omap@archiver.kernel.org>; Sun,  7 Feb 2021 23:25:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE6BC4332D
+	for <linux-omap@archiver.kernel.org>; Sun,  7 Feb 2021 23:25:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 93C6364E31
-	for <linux-omap@archiver.kernel.org>; Sun,  7 Feb 2021 23:25:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91E5C64E32
+	for <linux-omap@archiver.kernel.org>; Sun,  7 Feb 2021 23:25:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229702AbhBGXYk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 7 Feb 2021 18:24:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46664 "EHLO
+        id S229872AbhBGXYz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 7 Feb 2021 18:24:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229772AbhBGXY1 (ORCPT
+        with ESMTP id S229581AbhBGXY1 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Sun, 7 Feb 2021 18:24:27 -0500
-Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7DACC061793;
-        Sun,  7 Feb 2021 15:23:13 -0800 (PST)
-Received: by mail-ed1-x533.google.com with SMTP id y8so16087992ede.6;
-        Sun, 07 Feb 2021 15:23:13 -0800 (PST)
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64780C061797;
+        Sun,  7 Feb 2021 15:23:17 -0800 (PST)
+Received: by mail-ej1-x62f.google.com with SMTP id f14so21814930ejc.8;
+        Sun, 07 Feb 2021 15:23:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=y/6NgpsBeErYab+30KbKJBuFft3Z4fcnH7w7GQj4tp0=;
-        b=JbkOPJr04aovGfsmAXPf9CiN9/Koa04BxXUywI8aB5dDQfr4dJo77KZrCeVzJjMzuB
-         10VWCvRGiRtt5Ya0/9SRRpBtWCUWh+hXxUKwYMsc9BL8ar/HYLGN5k26Yzp33MvvYPmG
-         /iIRu+VDCGYluLfubCnaBoBN73kssBkwKg+8gjZeFPmzH2ZPEPrKD8vB4z+nkc9OwVdA
-         vaH2NKM9NmW5PsSgXP7j1t/3c/hdI6D0s45puXvW4SLb6dUZTiVXZR1eGxTOMi8iFzLF
-         cJF//YxAV9QxDR/DJSU3tBYgFbZn2vS7ErUYyocqt+Ha5qm5X05x0xVBqE1G8x05rsWH
-         aC6Q==
+        bh=QRsNxzGQFppccEbDrAzAQZxrCw1vkgxA8/iJ+Ragx3U=;
+        b=m59WEeCxgWWZb/rdO/f3mx2lkNSklmdBwbew55DbrdqSRbxuDmJcsfUNZYcZwmPPDN
+         NGQfiobNiMrnvAdnoI1IagELs1nE7CZrNt4dM1Mfo29L4iiFXY4X7m/jQoBGu2W/DIdt
+         aQqZcXPZl6s1CsL6vhQL3mCbW82C5ubqwM31JjCh6vx8xW2AprcbP21AQ9phdTKmHl1P
+         e+ii2ZThvFtCxM/v4vurD1+geRpLWEHyGnsRiHw94M343YQntw5ZTWTXF1AyieIJPTds
+         wAvV8xaPFSQ/EXx30kk2CmW/J6K+huKiymnW8PUJDs8gFk+fiHAxSKtH96XE/FrBd5FJ
+         Yl8w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=y/6NgpsBeErYab+30KbKJBuFft3Z4fcnH7w7GQj4tp0=;
-        b=SoyIyVvD0a6RaViVQCBWa7b5J9AoRKhDNTOPgxGiO4Bj/sNgLPoRJTctItQxH9sded
-         8kHLDGCSgv/nG/9hmvsa/1Uks14LhJaO2UgZJ7FYIbADOHTamVQwvHrGQD5YSckL6UiD
-         KCZGxTY1QqRfCr5NG5O2RC+zAvnQQ8IHfs6TiR+lej5Ej8gS4NTzcv4G70OAmrcT8vfN
-         dyBRE+ekm3y5ogWyzDA2R5r7UC8IRA3/sF8U7LU8wlFag53w9ClEna8u8UYbcwpe35Io
-         4vZ4iwLvoCnJhRTT1aaEie7iu++gw0OOpyVGO8vp5K+zaQmgA19DzuaVodXytyrr+PZF
-         zJGQ==
-X-Gm-Message-State: AOAM531+tB6C/hnd7gr13eOSKt8jENmzAfPmuLXvFfe0trMHGasFBfWD
-        4CVhH1XJwdevIuInYTVzK90=
-X-Google-Smtp-Source: ABdhPJz2MW6lRmsPoHfx225bQo9k1cPNmF8qL1rL6nIybLWX5V2DHCTvP5xKbieAUmwKKL1h47UG4Q==
-X-Received: by 2002:aa7:dc0d:: with SMTP id b13mr14557245edu.170.1612740192587;
-        Sun, 07 Feb 2021 15:23:12 -0800 (PST)
+        bh=QRsNxzGQFppccEbDrAzAQZxrCw1vkgxA8/iJ+Ragx3U=;
+        b=FbnnVXn5Jk4fXUUwgOsdz6NyFm70eJVK7Rmf8LMMMZ888d2mrGDfRh8UM2uTK8Pzx0
+         B+XDo3Lzp1zHkKuep3sl/uC7shMuS03Sj9Eyw31lfAyFmbWXTMgNWZDIfzC5XDfdReib
+         mxt4nUQpDY5Z0nCByGCtWT+NBOJq02811MZRW4ND/u66W/Iv5LKYRmK9JPysEYTIGzrK
+         XtEVqG15XAOWWjG2okwLU9s4+FZavwqM6H/PtnsHdpMXD8jPy0fmzFw3DbCU8XwxU0l5
+         ZqpWfhsj5mFZxdNXFVBxmzfAJAynscxxvugYNcTK0RBrd6pDWho5xKO165mTEIa8+LRE
+         LRsA==
+X-Gm-Message-State: AOAM531oT4OfY5Gg4RbcHW6mTuPFPJWy3Dq3evOdSwXv8N6q1FSScEIn
+        Fo+0M6S/mqsRQZDietYgdBo=
+X-Google-Smtp-Source: ABdhPJza32f6Qg/JIahyMSXGreUPQT5UkdkPMvCfBX4chge6VcsDk25poKrJdAtDPg9dvvtp5AdNTA==
+X-Received: by 2002:a17:906:31c1:: with SMTP id f1mr14137180ejf.263.1612740196137;
+        Sun, 07 Feb 2021 15:23:16 -0800 (PST)
 Received: from localhost.localdomain (5-12-227-87.residential.rdsnet.ro. [5.12.227.87])
-        by smtp.gmail.com with ESMTPSA id u21sm7540016ejj.120.2021.02.07.15.23.11
+        by smtp.gmail.com with ESMTPSA id u21sm7540016ejj.120.2021.02.07.15.23.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 07 Feb 2021 15:23:12 -0800 (PST)
+        Sun, 07 Feb 2021 15:23:15 -0800 (PST)
 From:   Vladimir Oltean <olteanv@gmail.com>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
@@ -74,9 +74,9 @@ Cc:     Andrew Lunn <andrew@lunn.ch>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         Ioana Ciornei <ioana.ciornei@nxp.com>,
         Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org
-Subject: [PATCH net-next 6/9] net: bridge: stop treating EOPNOTSUPP as special in br_switchdev_set_port_flag
-Date:   Mon,  8 Feb 2021 01:21:38 +0200
-Message-Id: <20210207232141.2142678-7-olteanv@gmail.com>
+Subject: [PATCH net-next 8/9] net: mscc: ocelot: offload bridge port flags to device
+Date:   Mon,  8 Feb 2021 01:21:40 +0200
+Message-Id: <20210207232141.2142678-9-olteanv@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210207232141.2142678-1-olteanv@gmail.com>
 References: <20210207232141.2142678-1-olteanv@gmail.com>
@@ -88,135 +88,184 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Vladimir Oltean <vladimir.oltean@nxp.com>
 
-It is customary to return -EOPNOTSUPP when an operation is not supported.
-Sometimes the fact that an operation is not supported is irrelevant to
-upper layers, and in that case the return code is ignored.
-
-However, in the case of br_switchdev_set_port_flag, it took it upon
-itself to treat -EOPNOTSUPP differently and replace it with 0.
-
-Due to that, users won't be notified that a switchdev port doesn't
-support changing a certain bridge port flag (learning, flooding etc).
-
-However, no one is returning -EOPNOTSUPP, seemingly as a workaround to
-the fact that -EOPNOTSUPP will be ignored.
-
-So let's stop treating -EOPNOTSUPP special, and just propagate that
-error, and convert all drivers to use EOPNOTSUPP instead of EINVAL.
-We already made br_switchdev_set_port_flag stop printing, and we have
-callers that shouldn't fail already ignore the error code.
+We should not be unconditionally enabling address learning, since doing
+that is actively detrimential when a port is standalone and not offloading
+a bridge. Namely, if a port in the switch is standalone and others are
+offloading the bridge, then we could enter a situation where we learn an
+address towards the standalone port, but the bridged ports could not
+forward the packet there, because the CPU is the only path between the
+standalone and the bridged ports. The solution of course is to not
+enable address learning unless the bridge asks for it.
 
 Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
+Reviewed-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
 ---
- .../ethernet/marvell/prestera/prestera_switchdev.c    |  2 +-
- .../net/ethernet/mellanox/mlxsw/spectrum_switchdev.c  |  2 +-
- drivers/net/ethernet/rocker/rocker_main.c             |  2 +-
- drivers/net/ethernet/ti/cpsw_switchdev.c              |  2 +-
- drivers/staging/fsl-dpaa2/ethsw/ethsw.c               |  2 +-
- net/bridge/br_switchdev.c                             | 11 +----------
- net/dsa/port.c                                        |  2 +-
- 7 files changed, 7 insertions(+), 16 deletions(-)
+ drivers/net/dsa/ocelot/felix.c         |  9 ++++
+ drivers/net/ethernet/mscc/ocelot.c     | 57 +++++++++++++++++++++++++-
+ drivers/net/ethernet/mscc/ocelot_net.c |  4 ++
+ include/soc/mscc/ocelot.h              |  4 ++
+ 4 files changed, 73 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/marvell/prestera/prestera_switchdev.c b/drivers/net/ethernet/marvell/prestera/prestera_switchdev.c
-index ab62945c7183..9acd6907454d 100644
---- a/drivers/net/ethernet/marvell/prestera/prestera_switchdev.c
-+++ b/drivers/net/ethernet/marvell/prestera/prestera_switchdev.c
-@@ -587,7 +587,7 @@ static int prestera_port_attr_br_flags_set(struct prestera_port *port,
- 	int err;
- 
- 	if (val.mask & ~(BR_LEARNING | BR_FLOOD | BR_MCAST_FLOOD))
--		err = -EINVAL;
-+		err = -EOPNOTSUPP;
- 
- 	br_port = prestera_bridge_port_by_dev(port->sw->swdev, dev);
- 	if (!br_port)
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
-index f19be04704e7..a2b2dd7bf6b3 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
-@@ -661,7 +661,7 @@ static int mlxsw_sp_port_attr_br_flags_set(struct mlxsw_sp_port *mlxsw_sp_port,
- 	int err;
- 
- 	if (val.mask & ~(BR_LEARNING | BR_FLOOD | BR_MCAST_FLOOD))
--		return -EINVAL;
-+		return -EOPNOTSUPP;
- 
- 	bridge_port = mlxsw_sp_bridge_port_find(mlxsw_sp_port->mlxsw_sp->bridge,
- 						orig_dev);
-diff --git a/drivers/net/ethernet/rocker/rocker_main.c b/drivers/net/ethernet/rocker/rocker_main.c
-index b8087dd0b284..e755c9ac8716 100644
---- a/drivers/net/ethernet/rocker/rocker_main.c
-+++ b/drivers/net/ethernet/rocker/rocker_main.c
-@@ -1591,7 +1591,7 @@ rocker_world_port_attr_bridge_flags_set(struct rocker_port *rocker_port,
- 		return err;
- 
- 	if (val.mask & ~brport_flags_s)
--		return -EINVAL;
-+		return -EOPNOTSUPP;
- 
- 	return wops->port_attr_bridge_flags_set(rocker_port, val.flags);
- }
-diff --git a/drivers/net/ethernet/ti/cpsw_switchdev.c b/drivers/net/ethernet/ti/cpsw_switchdev.c
-index dd4b1e161dde..b47ec2ac5b17 100644
---- a/drivers/net/ethernet/ti/cpsw_switchdev.c
-+++ b/drivers/net/ethernet/ti/cpsw_switchdev.c
-@@ -63,7 +63,7 @@ static int cpsw_port_attr_br_flags_set(struct cpsw_priv *priv,
- 	bool unreg_mcast_add = false;
- 
- 	if (val.mask & ~(BR_LEARNING | BR_MCAST_FLOOD))
--		return -EINVAL;
-+		return -EOPNOTSUPP;
- 
- 	if (val.flags & BR_MCAST_FLOOD)
- 		unreg_mcast_add = true;
-diff --git a/drivers/staging/fsl-dpaa2/ethsw/ethsw.c b/drivers/staging/fsl-dpaa2/ethsw/ethsw.c
-index c4bcd63b68b8..25ebb127db3c 100644
---- a/drivers/staging/fsl-dpaa2/ethsw/ethsw.c
-+++ b/drivers/staging/fsl-dpaa2/ethsw/ethsw.c
-@@ -915,7 +915,7 @@ static int dpaa2_switch_port_attr_br_flags_set(struct net_device *netdev,
- 	int err = 0;
- 
- 	if (val.mask & ~(BR_LEARNING | BR_FLOOD))
--		return -EINVAL;
-+		return -EOPNOTSUPP;
- 
- 	/* Learning is enabled per switch */
- 	err = dpaa2_switch_set_learning(port_priv->ethsw_data,
-diff --git a/net/bridge/br_switchdev.c b/net/bridge/br_switchdev.c
-index 3b460eb225dd..e1774f1b0a44 100644
---- a/net/bridge/br_switchdev.c
-+++ b/net/bridge/br_switchdev.c
-@@ -82,16 +82,7 @@ int br_switchdev_set_port_flag(struct net_bridge_port *p,
- 	/* We run from atomic context here */
- 	err = call_switchdev_notifiers(SWITCHDEV_PORT_ATTR_SET, p->dev,
- 				       &info.info, extack);
--	err = notifier_to_errno(err);
--	if (err == -EOPNOTSUPP)
--		return 0;
--
--	if (err) {
--		NL_SET_ERR_MSG_MOD(extack, "bridge flag offload is not supported");
--		return -EOPNOTSUPP;
--	}
--
--	return 0;
-+	return notifier_to_errno(err);
+diff --git a/drivers/net/dsa/ocelot/felix.c b/drivers/net/dsa/ocelot/felix.c
+index 1bd5aea12b25..4d1fef28b6cf 100644
+--- a/drivers/net/dsa/ocelot/felix.c
++++ b/drivers/net/dsa/ocelot/felix.c
+@@ -553,6 +553,14 @@ static void felix_bridge_stp_state_set(struct dsa_switch *ds, int port,
+ 	return ocelot_bridge_stp_state_set(ocelot, port, state);
  }
  
- static void
-diff --git a/net/dsa/port.c b/net/dsa/port.c
-index fffe5f14ec0a..26be06ba1461 100644
---- a/net/dsa/port.c
-+++ b/net/dsa/port.c
-@@ -388,7 +388,7 @@ int dsa_port_bridge_flags(const struct dsa_port *dp,
- 	struct dsa_switch *ds = dp->ds;
++static int felix_bridge_flags(struct dsa_switch *ds, int port,
++			      struct switchdev_brport_flags val)
++{
++	struct ocelot *ocelot = ds->priv;
++
++	return ocelot_port_bridge_flags(ocelot, port, val);
++}
++
+ static int felix_bridge_join(struct dsa_switch *ds, int port,
+ 			     struct net_device *br)
+ {
+@@ -1358,6 +1366,7 @@ const struct dsa_switch_ops felix_switch_ops = {
+ 	.port_fdb_del			= felix_fdb_del,
+ 	.port_mdb_add			= felix_mdb_add,
+ 	.port_mdb_del			= felix_mdb_del,
++	.port_bridge_flags		= felix_bridge_flags,
+ 	.port_bridge_join		= felix_bridge_join,
+ 	.port_bridge_leave		= felix_bridge_leave,
+ 	.port_lag_join			= felix_lag_join,
+diff --git a/drivers/net/ethernet/mscc/ocelot.c b/drivers/net/ethernet/mscc/ocelot.c
+index 8c1052346b58..c8bfc2f9534a 100644
+--- a/drivers/net/ethernet/mscc/ocelot.c
++++ b/drivers/net/ethernet/mscc/ocelot.c
+@@ -984,6 +984,7 @@ EXPORT_SYMBOL(ocelot_apply_bridge_fwd_mask);
  
- 	if (!ds->ops->port_bridge_flags)
--		return -EINVAL;
-+		return -EOPNOTSUPP;
+ void ocelot_bridge_stp_state_set(struct ocelot *ocelot, int port, u8 state)
+ {
++	struct ocelot_port *ocelot_port = ocelot->ports[port];
+ 	u32 port_cfg;
  
- 	return ds->ops->port_bridge_flags(ds, dp->index, val);
+ 	if (!(BIT(port) & ocelot->bridge_mask))
+@@ -996,7 +997,8 @@ void ocelot_bridge_stp_state_set(struct ocelot *ocelot, int port, u8 state)
+ 		ocelot->bridge_fwd_mask |= BIT(port);
+ 		fallthrough;
+ 	case BR_STATE_LEARNING:
+-		port_cfg |= ANA_PORT_PORT_CFG_LEARN_ENA;
++		if (ocelot_port->brport_flags & BR_LEARNING)
++			port_cfg |= ANA_PORT_PORT_CFG_LEARN_ENA;
+ 		break;
+ 
+ 	default:
+@@ -1253,6 +1255,7 @@ EXPORT_SYMBOL(ocelot_port_bridge_join);
+ int ocelot_port_bridge_leave(struct ocelot *ocelot, int port,
+ 			     struct net_device *bridge)
+ {
++	struct ocelot_port *ocelot_port = ocelot->ports[port];
+ 	struct ocelot_vlan pvid = {0}, native_vlan = {0};
+ 	int ret;
+ 
+@@ -1268,6 +1271,10 @@ int ocelot_port_bridge_leave(struct ocelot *ocelot, int port,
+ 	ocelot_port_set_pvid(ocelot, port, pvid);
+ 	ocelot_port_set_native_vlan(ocelot, port, native_vlan);
+ 
++	ocelot_port->brport_flags = 0;
++	ocelot_rmw_gix(ocelot, 0, ANA_PORT_PORT_CFG_LEARN_ENA,
++		       ANA_PORT_PORT_CFG, port);
++
+ 	return 0;
  }
+ EXPORT_SYMBOL(ocelot_port_bridge_leave);
+@@ -1480,6 +1487,54 @@ int ocelot_get_max_mtu(struct ocelot *ocelot, int port)
+ }
+ EXPORT_SYMBOL(ocelot_get_max_mtu);
+ 
++int ocelot_port_bridge_flags(struct ocelot *ocelot, int port,
++			     struct switchdev_brport_flags val)
++{
++	struct ocelot_port *ocelot_port = ocelot->ports[port];
++
++	if (val.mask & ~(BR_FLOOD | BR_MCAST_FLOOD | BR_BCAST_FLOOD | BR_LEARNING))
++		return -EOPNOTSUPP;
++
++	if (val.mask & BR_LEARNING) {
++		u32 port_cfg = 0;
++
++		if (val.flags & BR_LEARNING)
++			port_cfg = ANA_PORT_PORT_CFG_LEARN_ENA;
++
++		ocelot_rmw_gix(ocelot, port_cfg, ANA_PORT_PORT_CFG_LEARN_ENA,
++			       ANA_PORT_PORT_CFG, port);
++	}
++	if (val.mask & BR_FLOOD) {
++		u32 pgid = 0;
++
++		if (val.flags & BR_FLOOD)
++			pgid = BIT(port);
++
++		ocelot_rmw_rix(ocelot, pgid, BIT(port), ANA_PGID_PGID, PGID_UC);
++	}
++	if (val.mask & BR_MCAST_FLOOD) {
++		u32 pgid = 0;
++
++		if (val.flags & BR_MCAST_FLOOD)
++			pgid = BIT(port);
++
++		ocelot_rmw_rix(ocelot, pgid, BIT(port), ANA_PGID_PGID, PGID_MC);
++	}
++	if (val.mask & BR_BCAST_FLOOD) {
++		u32 pgid = 0;
++
++		if (val.flags & BR_BCAST_FLOOD)
++			pgid = BIT(port);
++
++		ocelot_rmw_rix(ocelot, pgid, BIT(port), ANA_PGID_PGID, PGID_BC);
++	}
++
++	ocelot_port->brport_flags = val.flags;
++
++	return 0;
++}
++EXPORT_SYMBOL(ocelot_port_bridge_flags);
++
+ void ocelot_init_port(struct ocelot *ocelot, int port)
+ {
+ 	struct ocelot_port *ocelot_port = ocelot->ports[port];
+diff --git a/drivers/net/ethernet/mscc/ocelot_net.c b/drivers/net/ethernet/mscc/ocelot_net.c
+index 8f12fa45b1b5..e5a07a1d7647 100644
+--- a/drivers/net/ethernet/mscc/ocelot_net.c
++++ b/drivers/net/ethernet/mscc/ocelot_net.c
+@@ -1025,6 +1025,10 @@ static int ocelot_port_attr_set(struct net_device *dev,
+ 	case SWITCHDEV_ATTR_ID_BRIDGE_MC_DISABLED:
+ 		ocelot_port_attr_mc_set(ocelot, port, !attr->u.mc_disabled);
+ 		break;
++	case SWITCHDEV_ATTR_ID_PORT_BRIDGE_FLAGS:
++		err = ocelot_port_bridge_flags(ocelot, port,
++					       attr->u.brport_flags);
++		break;
+ 	default:
+ 		err = -EOPNOTSUPP;
+ 		break;
+diff --git a/include/soc/mscc/ocelot.h b/include/soc/mscc/ocelot.h
+index 7ee85527cb5f..d8b4b1d3be15 100644
+--- a/include/soc/mscc/ocelot.h
++++ b/include/soc/mscc/ocelot.h
+@@ -597,6 +597,8 @@ struct ocelot_port {
+ 
+ 	struct regmap			*target;
+ 
++	unsigned long			brport_flags;
++
+ 	bool				vlan_aware;
+ 	/* VLAN that untagged frames are classified to, on ingress */
+ 	struct ocelot_vlan		pvid_vlan;
+@@ -764,6 +766,8 @@ void ocelot_adjust_link(struct ocelot *ocelot, int port,
+ int ocelot_port_vlan_filtering(struct ocelot *ocelot, int port, bool enabled);
+ void ocelot_bridge_stp_state_set(struct ocelot *ocelot, int port, u8 state);
+ void ocelot_apply_bridge_fwd_mask(struct ocelot *ocelot);
++int ocelot_port_bridge_flags(struct ocelot *ocelot, int port,
++			     struct switchdev_brport_flags val);
+ int ocelot_port_bridge_join(struct ocelot *ocelot, int port,
+ 			    struct net_device *bridge);
+ int ocelot_port_bridge_leave(struct ocelot *ocelot, int port,
 -- 
 2.25.1
 
