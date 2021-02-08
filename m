@@ -2,76 +2,104 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00348C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38ADEC43381
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Feb 2021 22:39:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEA5C64EB1
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Feb 2021 22:39:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 066FD64EAC
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Feb 2021 22:39:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230027AbhBHWjC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Feb 2021 17:39:02 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:39686 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229742AbhBHWjB (ORCPT
+        id S229742AbhBHWjD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Feb 2021 17:39:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35126 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229927AbhBHWjB (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2021 17:39:01 -0500
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A87B1C061786;
+        Mon,  8 Feb 2021 14:38:21 -0800 (PST)
 From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
         s=2020; t=1612823899;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=oYlVExh8VX0pz57F6MiWUgOYPKOwByipvE/Q5oPx108=;
-        b=r/s6nsTHQ6t3RiQrvC0zXyHPJTUafSzZ8l5wSBKSD5yjYCloH1SScX73LgwR6M8abp0rMT
-        cI6wDVU3Ba6EFU5Od/SuU0k2hbKuGNnRgrRsqDuFZm7SvCnME2V2hNL3aJ88MGRlMua60q
-        nbQY1675P2AAypIJi+jyxP9lVxnEeJ5detWOJztsWyocVDmZNyOqFQgWnN88XoV8egCKCR
-        LF731RFD40cB89r5ycA4tGg1p5OuVpP17S1SBL3bzfZNuq2S76b5E856BC2HErdFw2ygGp
-        280bF9YDEpEg+B+/Pns3WZf/bQ0I7ND7CkJfpDq53nuu96xkFHgYuHz5RfzBoA==
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Z3Vm5cN5ZRUgTJMYYFZ2xGq76D9G/sCK8skQRU1NGXs=;
+        b=zdkkD1GHAcXiTl5Xp5WBjkMHpvlCx8N1EMZZ0J5omzWl5zGMWQHcfr2leKqZ2OuFdFoxzo
+        LDNYCWrbNxQVyWVzbJZX40rmBncOwnx+IlIA/uWBNHfku+mwB5EF5GFyP6tSxz3SWjy06I
+        2vRBMefxXCJrCqlO3/xUg9aW21005IA0v8xkGMYSv1fGS7EUfolXQ0fNcBN1I2aGJLb1jM
+        vmGB6hTk034GoKkwiQwEBfai9G6Zi7jmYQrm+4bobOJYsU629npnlIduQTlvDVb5i06C/4
+        Ldr8LxS4CiXN7kcPb1E6TGdMyOwP2WiiuW3G9Gg8yKwfWwZuii+KTvk/zv1ayA==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
         s=2020e; t=1612823899;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=oYlVExh8VX0pz57F6MiWUgOYPKOwByipvE/Q5oPx108=;
-        b=mfCp0LBMuvAQS037Wg1z0a7lWj9nJ5aw64jFNQuZxdmpZz/SQDjUzP5m2Ar12sYFCoAT8s
-        2TYnfGJlJ3JpZWBw==
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Z3Vm5cN5ZRUgTJMYYFZ2xGq76D9G/sCK8skQRU1NGXs=;
+        b=KYB6Smx+kX0Y4v7x1cybAQtIzFv1RIr5biZy0O2ij6xXZJDo1M0tA6FUs+Iwi0KZrgY8UL
+        8QHHojAdWC4YLZCA==
 To:     linux-fbdev@vger.kernel.org
 Cc:     dri-devel@lists.freedesktop.org,
         Russell King <linux@armlinux.org.uk>,
         linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 0/3] video: Remove in_interrupt() usage.
-Date:   Mon,  8 Feb 2021 23:38:07 +0100
-Message-Id: <20210208223810.388502-1-bigeasy@linutronix.de>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 2/3] video: omapfb: Remove WARN_ON(in_interrupt()).
+Date:   Mon,  8 Feb 2021 23:38:09 +0100
+Message-Id: <20210208223810.388502-3-bigeasy@linutronix.de>
+In-Reply-To: <20210208223810.388502-1-bigeasy@linutronix.de>
+References: <20210208223810.388502-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Folks,
+From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 
-in the discussion about preempt count consistency across kernel
-configurations:
+dsi_sync_vc() uses in_interrupt() to create a warning if the function is
+used in non-preemptible context.
 
- https://lore.kernel.org/r/20200914204209.256266093@linutronix.de/
+The usage of in_interrupt() in drivers is phased out and Linus clearly
+requested that code which changes behaviour depending on context should
+either be separated or the context be conveyed in an argument passed by the
+caller, which usually knows the context.
 
-it was concluded that the usage of in_interrupt() and related context
-checks should be removed from non-core code.
+The wait_for_completion() function (used in dsi_sync_vc_vp() and
+dsi_sync_vc_l4() has already a check if it is invoked from proper
+context.
 
-In the long run, usage of 'preemptible, in_*irq etc.' should be banned from
-driver code completely.
+Remove WARN_ON(in_interrupt()) from the driver.
 
-This series targets the video subsystem. The omap patches are a repost
-of [0], the amba-clcd is new after I received no feedback on my analysis
-[1].
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/video/fbdev/omap2/omapfb/dss/dsi.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-[0] https://lkml.kernel.org/r/20210127172902.145335-1-bigeasy@linutronix.de
-[1] https://lkml.kernel.org/r/20210127174408.ududpwfrbg3dhyxj@linutronix.de
-
-Sebastian
-
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbd=
+ev/omap2/omapfb/dss/dsi.c
+index dc34bb04b865c..df90091de75f8 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
+@@ -2373,8 +2373,6 @@ static int dsi_sync_vc(struct platform_device *dsidev=
+, int channel)
+=20
+ 	WARN_ON_ONCE(!dsi_bus_is_locked(dsidev));
+=20
+-	WARN_ON(in_interrupt());
+-
+ 	if (!dsi_vc_is_enabled(dsidev, channel))
+ 		return 0;
+=20
+--=20
+2.30.0
 
