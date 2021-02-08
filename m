@@ -2,26 +2,23 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CDDC4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E0ECC4332D
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Feb 2021 22:39:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3784564E56
+	by mail.kernel.org (Postfix) with ESMTP id 62FA064E56
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Feb 2021 22:39:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229927AbhBHWjE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Feb 2021 17:39:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35128 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229621AbhBHWjB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2021 17:39:01 -0500
-Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF644C061788;
-        Mon,  8 Feb 2021 14:38:21 -0800 (PST)
+        id S229621AbhBHWjF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Feb 2021 17:39:05 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:39696 "EHLO
+        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229894AbhBHWjC (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2021 17:39:02 -0500
 From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
         s=2020; t=1612823899;
@@ -29,31 +26,31 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=v0cq3WK986SUH+YkubdosVAvIMlSY7yYpl0TWaVW1sQ=;
-        b=wuwra8SrIErSfUEvj46Wmh4CpVPpBAnZBmNF4wCyT1u4UhvfrSvb2NW9wYUfSXi37IkEoU
-        oEYNHL9bgB/n1/yZoBInp+B7RDD2KizFqPICjE94ofmycg9xKsq+id3Gwb4UrmpJ+XKor1
-        H3gzYfc0VtkE6GEgHj8+rkWpLQ74HzbkYKjlhFUnaV+00Zhy09oB9EHnBdzPWKysFARZpA
-        NfbbXmFxJ3C6uhUrJ6EUlpx9Wq9o0UEdmwjER8hh+yXmU2QAoHQc25caGgFns27M7PJuH7
-        bRUBGrl4d7LTJpiBUwuZI7wFto4EX4RYfaNxHHzf9x3nDiOlg0DxNa76bODtcg==
+        bh=BvatIb+SuoAuL1N1yaJF6Fqf9sEJaUMKCM1rr5oWM0c=;
+        b=HQ8/+BYas8HMUkPF27kztYqrFhdPsFIp69WWxyy/EEF0Ir4mMx5TNUNl8G8wjx968H0tWA
+        fijZ9pRp9yy5V9jXhZWQWreUCfT4VvtdxXJocSAJAfbcnTEnXMbC9JijwK3xwNArT9da0b
+        i2UhsAjxTMq5BlTbjlWVLsDU1x9n3FZRGzADq8hV1tP/mBQz4OmBfad+vXFf9kj1rgEbE8
+        a8qdJntipwhJnbJEeljHzFMKkgJyINRhS4I8h5SIrUv8Qf6tIC/OEZMZn49zJVbro20krO
+        QQNdgJn/wCKA3HDM9WtcFZWi60bIhfiG/B88mUBeQ3fJ50/YUEjVUQ8gyfmTrw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
         s=2020e; t=1612823899;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=v0cq3WK986SUH+YkubdosVAvIMlSY7yYpl0TWaVW1sQ=;
-        b=x8XMjFq1YWqgn/3UQwkMOZ42YQcUoy9EzkqPUkf3l/Y2t3VRpF2H5ckJPaIuOMFQxuFOgI
-        z1/Q+GJSz87c8kCA==
+        bh=BvatIb+SuoAuL1N1yaJF6Fqf9sEJaUMKCM1rr5oWM0c=;
+        b=3qtO6vvCZk8yVT+UG/xPNQ/5g6dZnHinwVdniGk7VN9PvM6WrZAx5BTDtKsCc/h3rdpMLb
+        QvvC58VbkmR+NmCA==
 To:     linux-fbdev@vger.kernel.org
 Cc:     dri-devel@lists.freedesktop.org,
         Russell King <linux@armlinux.org.uk>,
         linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>
-Subject: [PATCH 3/3] video: fbdev: amba-clcd: Always use msleep() for waiting
-Date:   Mon,  8 Feb 2021 23:38:10 +0100
-Message-Id: <20210208223810.388502-4-bigeasy@linutronix.de>
+        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 1/3] video: omap: Remove in_interrupt() usage.
+Date:   Mon,  8 Feb 2021 23:38:08 +0100
+Message-Id: <20210208223810.388502-2-bigeasy@linutronix.de>
 In-Reply-To: <20210208223810.388502-1-bigeasy@linutronix.de>
 References: <20210208223810.388502-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -62,76 +59,178 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver uses in_atomic() to distinguish between mdelay() and msleep().
+From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
+
+alloc_req() uses in_interrupt() to detect if it is safe to use down().
 
 The usage of in_interrupt() in drivers is phased out and Linus clearly
 requested that code which changes behaviour depending on context should
 either be separated or the context be conveyed in an argument passed by the
 caller, which usually knows the context.
 
-I traced the usage of in_interrupt() back to its initial merge:
-    bfe694f833643 ("[ARM] Add ARM AMBA CLCD framebuffer driver.")
-    https://git.kernel.org/history/history/c/bfe694f833643
+The semaphore is used as a counting semaphore, initialized with the
+number of slots in the request pool minus IRQ_REQ_POOL_SIZE - which are
+reserved for the in_interrupt() user to ensure that a request is always
+available. The preemptible user will block on the semphore waiting for a
+request to become available in case there are no requests available.
 
-The driver has been removed and added back in the meantime.
-I've been looking for the IRQ context as described in the comment and
-couldn't find it. The functions calling clcdfb_sleep() also call
-conditionally backlight_update_status() which acquires a mutex. If it is
-okay to acquire a mutex then it is okay to use msleep() since both
-functions must be used in preemptible context.
+Replace in_interrupt() with a `can_sleep' argument to indicate if it is
+safe to block on the sempahore.
 
-Replace clcdfb_sleep() with msleep().
-
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Russell King <linux@armlinux.org.uk>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/video/fbdev/amba-clcd.c | 17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ drivers/video/fbdev/omap/hwa742.c | 42 ++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/video/fbdev/amba-clcd.c b/drivers/video/fbdev/amba-clc=
-d.c
-index 33595cc4778e9..9ec969e136bfd 100644
---- a/drivers/video/fbdev/amba-clcd.c
-+++ b/drivers/video/fbdev/amba-clcd.c
-@@ -35,19 +35,6 @@
- /* This is limited to 16 characters when displayed by X startup */
- static const char *clcd_name =3D "CLCD FB";
+diff --git a/drivers/video/fbdev/omap/hwa742.c b/drivers/video/fbdev/omap/h=
+wa742.c
+index cfe63932f8255..b191bef22d984 100644
+--- a/drivers/video/fbdev/omap/hwa742.c
++++ b/drivers/video/fbdev/omap/hwa742.c
+@@ -100,6 +100,14 @@ struct {
+ 	struct hwa742_request	req_pool[REQ_POOL_SIZE];
+ 	struct list_head	pending_req_list;
+ 	struct list_head	free_req_list;
++
++	/*
++	 * @req_lock: protect request slots pool and its tracking lists
++	 * @req_sema: counter; slot allocators from task contexts must
++	 *            push it down before acquiring a slot. This
++	 *            guarantees that atomic contexts will always have
++	 *            a minimum of IRQ_REQ_POOL_SIZE slots available.
++	 */
+ 	struct semaphore	req_sema;
+ 	spinlock_t		req_lock;
 =20
--/*
-- * Unfortunately, the enable/disable functions may be called either from
-- * process or IRQ context, and we _need_ to delay.  This is _not_ good.
-- */
--static inline void clcdfb_sleep(unsigned int ms)
--{
--	if (in_atomic()) {
--		mdelay(ms);
--	} else {
--		msleep(ms);
--	}
--}
--
- static inline void clcdfb_set_start(struct clcd_fb *fb)
+@@ -224,13 +232,13 @@ static void disable_tearsync(void)
+ 	hwa742_write_reg(HWA742_NDP_CTRL, b);
+ }
+=20
+-static inline struct hwa742_request *alloc_req(void)
++static inline struct hwa742_request *alloc_req(bool can_sleep)
  {
- 	unsigned long ustart =3D fb->fb.fix.smem_start;
-@@ -77,7 +64,7 @@ static void clcdfb_disable(struct clcd_fb *fb)
- 		val &=3D ~CNTL_LCDPWR;
- 		writel(val, fb->regs + fb->off_cntl);
+ 	unsigned long flags;
+ 	struct hwa742_request *req;
+ 	int req_flags =3D 0;
 =20
--		clcdfb_sleep(20);
-+		msleep(20);
+-	if (!in_interrupt())
++	if (can_sleep)
+ 		down(&hwa742.req_sema);
+ 	else
+ 		req_flags =3D REQ_FROM_IRQ_POOL;
+@@ -399,8 +407,8 @@ static void send_frame_complete(void *data)
+ 	hwa742.int_ctrl->enable_plane(OMAPFB_PLANE_GFX, 0);
+ }
+=20
+-#define ADD_PREQ(_x, _y, _w, _h) do {		\
+-	req =3D alloc_req();			\
++#define ADD_PREQ(_x, _y, _w, _h, can_sleep) do {\
++	req =3D alloc_req(can_sleep);		\
+ 	req->handler	=3D send_frame_handler;	\
+ 	req->complete	=3D send_frame_complete;	\
+ 	req->par.update.x =3D _x;			\
+@@ -413,7 +421,8 @@ static void send_frame_complete(void *data)
+ } while(0)
+=20
+ static void create_req_list(struct omapfb_update_window *win,
+-			    struct list_head *req_head)
++			    struct list_head *req_head,
++			    bool can_sleep)
+ {
+ 	struct hwa742_request *req;
+ 	int x =3D win->x;
+@@ -427,7 +436,7 @@ static void create_req_list(struct omapfb_update_window=
+ *win,
+ 	color_mode =3D win->format & OMAPFB_FORMAT_MASK;
+=20
+ 	if (x & 1) {
+-		ADD_PREQ(x, y, 1, height);
++		ADD_PREQ(x, y, 1, height, can_sleep);
+ 		width--;
+ 		x++;
+ 		flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
+@@ -439,19 +448,19 @@ static void create_req_list(struct omapfb_update_wind=
+ow *win,
+=20
+ 		if (xspan * height * 2 > hwa742.max_transmit_size) {
+ 			yspan =3D hwa742.max_transmit_size / (xspan * 2);
+-			ADD_PREQ(x, ystart, xspan, yspan);
++			ADD_PREQ(x, ystart, xspan, yspan, can_sleep);
+ 			ystart +=3D yspan;
+ 			yspan =3D height - yspan;
+ 			flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
+ 		}
+=20
+-		ADD_PREQ(x, ystart, xspan, yspan);
++		ADD_PREQ(x, ystart, xspan, yspan, can_sleep);
+ 		x +=3D xspan;
+ 		width -=3D xspan;
+ 		flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
  	}
- 	if (val & CNTL_LCDEN) {
- 		val &=3D ~CNTL_LCDEN;
-@@ -109,7 +96,7 @@ static void clcdfb_enable(struct clcd_fb *fb, u32 cntl)
- 	cntl |=3D CNTL_LCDEN;
- 	writel(cntl, fb->regs + fb->off_cntl);
+ 	if (width)
+-		ADD_PREQ(x, y, 1, height);
++		ADD_PREQ(x, y, 1, height, can_sleep);
+ }
 =20
--	clcdfb_sleep(20);
-+	msleep(20);
+ static void auto_update_complete(void *data)
+@@ -461,12 +470,12 @@ static void auto_update_complete(void *data)
+ 			  jiffies + HWA742_AUTO_UPDATE_TIME);
+ }
 =20
- 	/*
- 	 * and now apply power.
+-static void hwa742_update_window_auto(struct timer_list *unused)
++static void __hwa742_update_window_auto(bool can_sleep)
+ {
+ 	LIST_HEAD(req_list);
+ 	struct hwa742_request *last;
+=20
+-	create_req_list(&hwa742.auto_update_window, &req_list);
++	create_req_list(&hwa742.auto_update_window, &req_list, can_sleep);
+ 	last =3D list_entry(req_list.prev, struct hwa742_request, entry);
+=20
+ 	last->complete =3D auto_update_complete;
+@@ -475,6 +484,11 @@ static void hwa742_update_window_auto(struct timer_lis=
+t *unused)
+ 	submit_req_list(&req_list);
+ }
+=20
++static void hwa742_update_window_auto(struct timer_list *unused)
++{
++	__hwa742_update_window_auto(false);
++}
++
+ int hwa742_update_window_async(struct fb_info *fbi,
+ 				 struct omapfb_update_window *win,
+ 				 void (*complete_callback)(void *arg),
+@@ -497,7 +511,7 @@ int hwa742_update_window_async(struct fb_info *fbi,
+ 		goto out;
+ 	}
+=20
+-	create_req_list(win, &req_list);
++	create_req_list(win, &req_list, true);
+ 	last =3D list_entry(req_list.prev, struct hwa742_request, entry);
+=20
+ 	last->complete =3D complete_callback;
+@@ -544,7 +558,7 @@ static void hwa742_sync(void)
+ 	struct hwa742_request *req;
+ 	struct completion comp;
+=20
+-	req =3D alloc_req();
++	req =3D alloc_req(true);
+=20
+ 	req->handler =3D sync_handler;
+ 	req->complete =3D NULL;
+@@ -599,7 +613,7 @@ static int hwa742_set_update_mode(enum omapfb_update_mo=
+de mode)
+ 		omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_READY);
+ 		break;
+ 	case OMAPFB_AUTO_UPDATE:
+-		hwa742_update_window_auto(0);
++		__hwa742_update_window_auto(true);
+ 		break;
+ 	case OMAPFB_UPDATE_DISABLED:
+ 		break;
 --=20
 2.30.0
 
