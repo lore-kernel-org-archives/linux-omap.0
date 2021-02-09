@@ -2,63 +2,61 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAC36C433E0
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Feb 2021 19:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39C6AC433E9
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Feb 2021 19:46:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6BE9564EAC
+	by mail.kernel.org (Postfix) with ESMTP id ECD2464E85
 	for <linux-omap@archiver.kernel.org>; Tue,  9 Feb 2021 19:46:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233035AbhBITpH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 9 Feb 2021 14:45:07 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:38610 "EHLO
+        id S233379AbhBITpS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 9 Feb 2021 14:45:18 -0500
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:38586 "EHLO
         fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233722AbhBITkK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2021 14:40:10 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 119Jb6fX021023;
-        Tue, 9 Feb 2021 13:37:06 -0600
+        with ESMTP id S233699AbhBITkJ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2021 14:40:09 -0500
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 119Jarfk020980;
+        Tue, 9 Feb 2021 13:36:53 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1612899427;
-        bh=L9YNORugLibqxGGcKUb7I7kHap34krhtwxZBPRsk79I=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=A8FoptXT3H0vp39VQ0D4plELeFt6ZT38OLGqyM0GcgoCP2faAwuDMTExeAHDGdu2Y
-         58OENQU/gh9e/HqteVyj7m+UgBbiyK60KvJJTNEUcsRpyqrraLweaIttrrrn7vgf7F
-         0pEUzoDudHd855vMXQgfUyJon1bL5Fm0JYnayjCk=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 119Jb6Jo115654
+        s=ti-com-17Q1; t=1612899413;
+        bh=WEvmW5fPviMFTlXzHzjYc91rOSWFJPJRq44UukhxYc8=;
+        h=From:To:CC:Subject:Date;
+        b=aY6zkuYxuckyg0u/Hl+bTDWfsqSS3CIvR08GYJ9WzTgJvtAdrY7MR33b3suBo5b9+
+         m2oWuPQNWBP+Ah1isPzy6WljxQX6R2Iq8m9wAFJ4PvHkyK+6pc+laMgFoV5x4pcMZA
+         oFpp9DnekNC818X3gQ7wCkloCZZY45f2aYJJbmQ4=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 119JarNc054717
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 9 Feb 2021 13:37:06 -0600
-Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 9 Feb 2021 13:36:53 -0600
+Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 9 Feb
- 2021 13:37:06 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+ 2021 13:36:52 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 9 Feb 2021 13:37:06 -0600
+ Frontend Transport; Tue, 9 Feb 2021 13:36:52 -0600
 Received: from lelv0597.itg.ti.com (lelv0597.itg.ti.com [10.181.64.32])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 119Jb6Q1080251;
-        Tue, 9 Feb 2021 13:37:06 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 119Jaqbm049383;
+        Tue, 9 Feb 2021 13:36:52 -0600
 Received: from localhost ([10.250.35.110])
-        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 119Jb6Ah082592;
-        Tue, 9 Feb 2021 13:37:06 -0600
+        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 119JaqI2082144;
+        Tue, 9 Feb 2021 13:36:52 -0600
 From:   Suman Anna <s-anna@ti.com>
 To:     Jassi Brar <jassisinghbrar@gmail.com>,
         Rob Herring <robh+dt@kernel.org>
 CC:     <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-kernel@vger.kernel.org>, Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 2/2] mailbox: omap: Add support for K3 AM64x SoCs
-Date:   Tue, 9 Feb 2021 13:36:43 -0600
-Message-ID: <20210209193643.24824-3-s-anna@ti.com>
+Subject: [PATCH v2 0/2] Add Mailbox support for TI K3 AM64x SoCs
+Date:   Tue, 9 Feb 2021 13:36:41 -0600
+Message-ID: <20210209193643.24824-1-s-anna@ti.com>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210209193643.24824-1-s-anna@ti.com>
-References: <20210209193643.24824-1-s-anna@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -67,48 +65,26 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The AM64x SoC contains a Mailbox IP instance with multiple clusters
-in the MAIN domain, and is a variant of the IP on current AM65x and
-J721E SoCs. The AM64x SoC has only 8 clusters with no interrupts
-routed to the A53 core on the first 2 clusters. The interrupt outputs
-from the IP do not go through any Interrupt Routers and are hard-wired
-to each processor, with only couple of interrupts from each cluster
-reaching the A53 core. The IP is also not built with the K3 safety
-feature in hardware.
+Hi Jassi,
 
-Add the support for this IP through a new compatible.
+The following is a minor revision of the series [1] that extends the OMAP
+Mailbox driver for the IP on TI K3 AM64x SoCs.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
-v2: No changes
+Only change is in patch 1 to drop the example in the dt-bindings patch.
 
- drivers/mailbox/omap-mailbox.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+regards
+Suman
 
-diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
-index 93fe08aef3ca..7295e3835e30 100644
---- a/drivers/mailbox/omap-mailbox.c
-+++ b/drivers/mailbox/omap-mailbox.c
-@@ -3,7 +3,7 @@
-  * OMAP mailbox driver
-  *
-  * Copyright (C) 2006-2009 Nokia Corporation. All rights reserved.
-- * Copyright (C) 2013-2019 Texas Instruments Incorporated - https://www.ti.com
-+ * Copyright (C) 2013-2021 Texas Instruments Incorporated - https://www.ti.com
-  *
-  * Contact: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-  *          Suman Anna <s-anna@ti.com>
-@@ -663,6 +663,10 @@ static const struct of_device_id omap_mailbox_of_match[] = {
- 		.compatible	= "ti,am654-mailbox",
- 		.data		= &omap4_data,
- 	},
-+	{
-+		.compatible	= "ti,am64-mailbox",
-+		.data		= &omap4_data,
-+	},
- 	{
- 		/* end */
- 	},
+[1] https://patchwork.kernel.org/project/linux-arm-kernel/cover/20210127195600.23501-1-s-anna@ti.com/
+
+Suman Anna (2):
+  dt-bindings: mailbox: omap: Update binding for AM64x SoCs
+  mailbox: omap: Add support for K3 AM64x SoCs
+
+ Documentation/devicetree/bindings/mailbox/omap-mailbox.txt | 4 ++++
+ drivers/mailbox/omap-mailbox.c                             | 6 +++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
 -- 
 2.29.2
 
