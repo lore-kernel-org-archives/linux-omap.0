@@ -2,235 +2,141 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E0ECC4332D
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Feb 2021 22:39:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E3D6C433DB
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Feb 2021 15:20:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62FA064E56
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Feb 2021 22:39:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52AAD64EB8
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Feb 2021 15:20:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229621AbhBHWjF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Feb 2021 17:39:05 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:39696 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbhBHWjC (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2021 17:39:02 -0500
-From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1612823899;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=BvatIb+SuoAuL1N1yaJF6Fqf9sEJaUMKCM1rr5oWM0c=;
-        b=HQ8/+BYas8HMUkPF27kztYqrFhdPsFIp69WWxyy/EEF0Ir4mMx5TNUNl8G8wjx968H0tWA
-        fijZ9pRp9yy5V9jXhZWQWreUCfT4VvtdxXJocSAJAfbcnTEnXMbC9JijwK3xwNArT9da0b
-        i2UhsAjxTMq5BlTbjlWVLsDU1x9n3FZRGzADq8hV1tP/mBQz4OmBfad+vXFf9kj1rgEbE8
-        a8qdJntipwhJnbJEeljHzFMKkgJyINRhS4I8h5SIrUv8Qf6tIC/OEZMZn49zJVbro20krO
-        QQNdgJn/wCKA3HDM9WtcFZWi60bIhfiG/B88mUBeQ3fJ50/YUEjVUQ8gyfmTrw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1612823899;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=BvatIb+SuoAuL1N1yaJF6Fqf9sEJaUMKCM1rr5oWM0c=;
-        b=3qtO6vvCZk8yVT+UG/xPNQ/5g6dZnHinwVdniGk7VN9PvM6WrZAx5BTDtKsCc/h3rdpMLb
-        QvvC58VbkmR+NmCA==
-To:     linux-fbdev@vger.kernel.org
-Cc:     dri-devel@lists.freedesktop.org,
-        Russell King <linux@armlinux.org.uk>,
-        linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 1/3] video: omap: Remove in_interrupt() usage.
-Date:   Mon,  8 Feb 2021 23:38:08 +0100
-Message-Id: <20210208223810.388502-2-bigeasy@linutronix.de>
-In-Reply-To: <20210208223810.388502-1-bigeasy@linutronix.de>
-References: <20210208223810.388502-1-bigeasy@linutronix.de>
+        id S232279AbhBIPU3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 9 Feb 2021 10:20:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52392 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232010AbhBIPU2 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2021 10:20:28 -0500
+Received: from mail-ed1-x52e.google.com (mail-ed1-x52e.google.com [IPv6:2a00:1450:4864:20::52e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE0D5C061786;
+        Tue,  9 Feb 2021 07:19:47 -0800 (PST)
+Received: by mail-ed1-x52e.google.com with SMTP id q2so21088299eds.11;
+        Tue, 09 Feb 2021 07:19:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=yDRspLtelsFoyIiE67CZ331AeQ0bTafkmpJeD+VF4pk=;
+        b=JC4s8djGQOzrTzuHwrVoADW5gtCbGscI01OdB+nb3cGLnM1OnabpHsTB4VGRUVRdga
+         JNMJ8mq3YA4XkJA+tzZaKBd1xO3+Lbi+FFhrCB7IEaBArX9vrRQKkeFh/TJ23+zE9Qtd
+         6D8lEGRdcKZUc5cquC8tNOrm2wI2clWRQi+tNFnlOSCZG45E9v2okcr4ziS9yPT9swq6
+         /mnw0hQt6ez8JD0vMx+6/bMAe3nS27x74d+1dtcaDY1y71L9NLYyBN/nwX7MGwLyj+Q6
+         n08dKeGS6KK7WKwNjPCnFgPvYlerVxg2jrayPTvULWk584aWaVxW0Jd16m7/7jUZVbxL
+         xsYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=yDRspLtelsFoyIiE67CZ331AeQ0bTafkmpJeD+VF4pk=;
+        b=NReClCNWLC0YvDmM2F1NcSi/t4t8bsQ3bcfB36PzvV2oxW0jYEenap/DHbGTuwxalL
+         SX5+BM0FvOPD5gM4Qsgi5MMGO/S1LcXuabDJKMKz8BitiCNqiL9DSmD65eS4vnnN6fp9
+         wGsRcduLPZZpV6k0Y77xwnMp1Exapn3uQETF4EuJOy1tMyUZEQeWMbCWG1fxQquDHTjI
+         drdSV/7Fwan4BNr83CAzRMD44Qo/KNGHRB+mDbE1SRBl6BTqAgVD5bAtxNQ7rS6XXqKM
+         lf8BeD8pxZyqTwyVdQyS/0qgka6mt0lrUzVvybnTinDQ4MX0HZjPSEDgBYZqBzzpN31D
+         RgCA==
+X-Gm-Message-State: AOAM531S7vO3AVl7EenwwB3gFXSODiMwWaxr3T43jpQFCqctlzWyZjDD
+        ImkZ3/b4+0I8GepJUW7GqGQ=
+X-Google-Smtp-Source: ABdhPJwzLundh0R6SURzETYbLmh0kFOoqfJRsXMB3w/pZ7Zwn+UIs+6xV2v2qd7WGvgRpczdct2WAw==
+X-Received: by 2002:a50:9d0b:: with SMTP id v11mr23859395ede.308.1612883986717;
+        Tue, 09 Feb 2021 07:19:46 -0800 (PST)
+Received: from localhost.localdomain (5-12-227-87.residential.rdsnet.ro. [5.12.227.87])
+        by smtp.gmail.com with ESMTPSA id q2sm11686108edv.93.2021.02.09.07.19.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 09 Feb 2021 07:19:45 -0800 (PST)
+From:   Vladimir Oltean <olteanv@gmail.com>
+To:     Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     Andrew Lunn <andrew@lunn.ch>,
+        Vivien Didelot <vivien.didelot@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        bridge@lists.linux-foundation.org, Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <nikolay@nvidia.com>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Ido Schimmel <idosch@idosch.org>,
+        Claudiu Manoil <claudiu.manoil@nxp.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
+        Taras Chornyi <tchornyi@marvell.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Ioana Ciornei <ioana.ciornei@nxp.com>,
+        Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org
+Subject: [PATCH v2 net-next 00/11] Cleanup in brport flags switchdev offload for DSA
+Date:   Tue,  9 Feb 2021 17:19:25 +0200
+Message-Id: <20210209151936.97382-1-olteanv@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
+From: Vladimir Oltean <vladimir.oltean@nxp.com>
 
-alloc_req() uses in_interrupt() to detect if it is safe to use down().
+The initial goal of this series was to have better support for
+standalone ports mode and multiple bridges on the DSA drivers like
+ocelot/felix and sja1105. Proper support for standalone mode requires
+disabling address learning, which in turn requires interaction with the
+switchdev notifier, which is actually where most of the patches are.
 
-The usage of in_interrupt() in drivers is phased out and Linus clearly
-requested that code which changes behaviour depending on context should
-either be separated or the context be conveyed in an argument passed by the
-caller, which usually knows the context.
+I also noticed that most of the drivers are actually talking either to
+firmware or SPI/MDIO connected devices from the brport flags switchdev
+attribute handler, so it makes sense to actually make it sleepable
+instead of atomic.
 
-The semaphore is used as a counting semaphore, initialized with the
-number of slots in the request pool minus IRQ_REQ_POOL_SIZE - which are
-reserved for the in_interrupt() user to ensure that a request is always
-available. The preemptible user will block on the semphore waiting for a
-request to become available in case there are no requests available.
+Vladimir Oltean (11):
+  net: switchdev: propagate extack to port attributes
+  net: bridge: offload all port flags at once in br_setport
+  net: bridge: don't print in br_switchdev_set_port_flag
+  net: bridge: offload initial and final port flags through switchdev
+  net: dsa: stop setting initial and final brport flags
+  net: squash switchdev attributes PRE_BRIDGE_FLAGS and BRIDGE_FLAGS
+  net: dsa: kill .port_egress_floods overengineering
+  net: bridge: put SWITCHDEV_ATTR_ID_PORT_BRIDGE_FLAGS on the blocking
+    call chain
+  net: mscc: ocelot: use separate flooding PGID for broadcast
+  net: mscc: ocelot: offload bridge port flags to device
+  net: dsa: sja1105: offload bridge port flags to device
 
-Replace in_interrupt() with a `can_sleep' argument to indicate if it is
-safe to block on the sempahore.
+ drivers/net/dsa/b53/b53_common.c              |  20 +-
+ drivers/net/dsa/mv88e6xxx/chip.c              |  21 +-
+ drivers/net/dsa/ocelot/felix.c                |  10 +
+ drivers/net/dsa/sja1105/sja1105.h             |   2 +
+ drivers/net/dsa/sja1105/sja1105_main.c        | 212 +++++++++++++++++-
+ drivers/net/dsa/sja1105/sja1105_spi.c         |   6 +
+ .../marvell/prestera/prestera_switchdev.c     |  32 +--
+ .../mellanox/mlxsw/spectrum_switchdev.c       |  31 +--
+ drivers/net/ethernet/mscc/ocelot.c            |  72 +++++-
+ drivers/net/ethernet/mscc/ocelot_net.c        |   7 +-
+ drivers/net/ethernet/rocker/rocker_main.c     |  24 +-
+ drivers/net/ethernet/ti/cpsw_switchdev.c      |  35 ++-
+ drivers/staging/fsl-dpaa2/ethsw/ethsw.c       |  43 ++--
+ include/linux/if_bridge.h                     |   3 +
+ include/net/dsa.h                             |   7 +-
+ include/net/switchdev.h                       |  14 +-
+ include/soc/mscc/ocelot.h                     |  18 +-
+ net/bridge/br_if.c                            |  21 +-
+ net/bridge/br_netlink.c                       | 160 ++++++-------
+ net/bridge/br_private.h                       |   6 +-
+ net/bridge/br_switchdev.c                     |  37 ++-
+ net/dsa/dsa_priv.h                            |   8 +-
+ net/dsa/port.c                                |  42 +---
+ net/dsa/slave.c                               |  10 +-
+ net/switchdev/switchdev.c                     |  11 +-
+ 25 files changed, 556 insertions(+), 296 deletions(-)
 
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/video/fbdev/omap/hwa742.c | 42 ++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/video/fbdev/omap/hwa742.c b/drivers/video/fbdev/omap/h=
-wa742.c
-index cfe63932f8255..b191bef22d984 100644
---- a/drivers/video/fbdev/omap/hwa742.c
-+++ b/drivers/video/fbdev/omap/hwa742.c
-@@ -100,6 +100,14 @@ struct {
- 	struct hwa742_request	req_pool[REQ_POOL_SIZE];
- 	struct list_head	pending_req_list;
- 	struct list_head	free_req_list;
-+
-+	/*
-+	 * @req_lock: protect request slots pool and its tracking lists
-+	 * @req_sema: counter; slot allocators from task contexts must
-+	 *            push it down before acquiring a slot. This
-+	 *            guarantees that atomic contexts will always have
-+	 *            a minimum of IRQ_REQ_POOL_SIZE slots available.
-+	 */
- 	struct semaphore	req_sema;
- 	spinlock_t		req_lock;
-=20
-@@ -224,13 +232,13 @@ static void disable_tearsync(void)
- 	hwa742_write_reg(HWA742_NDP_CTRL, b);
- }
-=20
--static inline struct hwa742_request *alloc_req(void)
-+static inline struct hwa742_request *alloc_req(bool can_sleep)
- {
- 	unsigned long flags;
- 	struct hwa742_request *req;
- 	int req_flags =3D 0;
-=20
--	if (!in_interrupt())
-+	if (can_sleep)
- 		down(&hwa742.req_sema);
- 	else
- 		req_flags =3D REQ_FROM_IRQ_POOL;
-@@ -399,8 +407,8 @@ static void send_frame_complete(void *data)
- 	hwa742.int_ctrl->enable_plane(OMAPFB_PLANE_GFX, 0);
- }
-=20
--#define ADD_PREQ(_x, _y, _w, _h) do {		\
--	req =3D alloc_req();			\
-+#define ADD_PREQ(_x, _y, _w, _h, can_sleep) do {\
-+	req =3D alloc_req(can_sleep);		\
- 	req->handler	=3D send_frame_handler;	\
- 	req->complete	=3D send_frame_complete;	\
- 	req->par.update.x =3D _x;			\
-@@ -413,7 +421,8 @@ static void send_frame_complete(void *data)
- } while(0)
-=20
- static void create_req_list(struct omapfb_update_window *win,
--			    struct list_head *req_head)
-+			    struct list_head *req_head,
-+			    bool can_sleep)
- {
- 	struct hwa742_request *req;
- 	int x =3D win->x;
-@@ -427,7 +436,7 @@ static void create_req_list(struct omapfb_update_window=
- *win,
- 	color_mode =3D win->format & OMAPFB_FORMAT_MASK;
-=20
- 	if (x & 1) {
--		ADD_PREQ(x, y, 1, height);
-+		ADD_PREQ(x, y, 1, height, can_sleep);
- 		width--;
- 		x++;
- 		flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
-@@ -439,19 +448,19 @@ static void create_req_list(struct omapfb_update_wind=
-ow *win,
-=20
- 		if (xspan * height * 2 > hwa742.max_transmit_size) {
- 			yspan =3D hwa742.max_transmit_size / (xspan * 2);
--			ADD_PREQ(x, ystart, xspan, yspan);
-+			ADD_PREQ(x, ystart, xspan, yspan, can_sleep);
- 			ystart +=3D yspan;
- 			yspan =3D height - yspan;
- 			flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
- 		}
-=20
--		ADD_PREQ(x, ystart, xspan, yspan);
-+		ADD_PREQ(x, ystart, xspan, yspan, can_sleep);
- 		x +=3D xspan;
- 		width -=3D xspan;
- 		flags &=3D ~OMAPFB_FORMAT_FLAG_TEARSYNC;
- 	}
- 	if (width)
--		ADD_PREQ(x, y, 1, height);
-+		ADD_PREQ(x, y, 1, height, can_sleep);
- }
-=20
- static void auto_update_complete(void *data)
-@@ -461,12 +470,12 @@ static void auto_update_complete(void *data)
- 			  jiffies + HWA742_AUTO_UPDATE_TIME);
- }
-=20
--static void hwa742_update_window_auto(struct timer_list *unused)
-+static void __hwa742_update_window_auto(bool can_sleep)
- {
- 	LIST_HEAD(req_list);
- 	struct hwa742_request *last;
-=20
--	create_req_list(&hwa742.auto_update_window, &req_list);
-+	create_req_list(&hwa742.auto_update_window, &req_list, can_sleep);
- 	last =3D list_entry(req_list.prev, struct hwa742_request, entry);
-=20
- 	last->complete =3D auto_update_complete;
-@@ -475,6 +484,11 @@ static void hwa742_update_window_auto(struct timer_lis=
-t *unused)
- 	submit_req_list(&req_list);
- }
-=20
-+static void hwa742_update_window_auto(struct timer_list *unused)
-+{
-+	__hwa742_update_window_auto(false);
-+}
-+
- int hwa742_update_window_async(struct fb_info *fbi,
- 				 struct omapfb_update_window *win,
- 				 void (*complete_callback)(void *arg),
-@@ -497,7 +511,7 @@ int hwa742_update_window_async(struct fb_info *fbi,
- 		goto out;
- 	}
-=20
--	create_req_list(win, &req_list);
-+	create_req_list(win, &req_list, true);
- 	last =3D list_entry(req_list.prev, struct hwa742_request, entry);
-=20
- 	last->complete =3D complete_callback;
-@@ -544,7 +558,7 @@ static void hwa742_sync(void)
- 	struct hwa742_request *req;
- 	struct completion comp;
-=20
--	req =3D alloc_req();
-+	req =3D alloc_req(true);
-=20
- 	req->handler =3D sync_handler;
- 	req->complete =3D NULL;
-@@ -599,7 +613,7 @@ static int hwa742_set_update_mode(enum omapfb_update_mo=
-de mode)
- 		omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_READY);
- 		break;
- 	case OMAPFB_AUTO_UPDATE:
--		hwa742_update_window_auto(0);
-+		__hwa742_update_window_auto(true);
- 		break;
- 	case OMAPFB_UPDATE_DISABLED:
- 		break;
---=20
-2.30.0
+-- 
+2.25.1
 
