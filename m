@@ -2,180 +2,174 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1713C433E0
-	for <linux-omap@archiver.kernel.org>; Thu, 11 Feb 2021 09:45:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9309C433E0
+	for <linux-omap@archiver.kernel.org>; Thu, 11 Feb 2021 10:47:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44F2464E15
-	for <linux-omap@archiver.kernel.org>; Thu, 11 Feb 2021 09:45:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A52E464E7E
+	for <linux-omap@archiver.kernel.org>; Thu, 11 Feb 2021 10:47:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229577AbhBKJpG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 11 Feb 2021 04:45:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33712 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230176AbhBKJgL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2021 04:36:11 -0500
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41D0EC0613D6;
-        Thu, 11 Feb 2021 01:35:31 -0800 (PST)
-Received: by mail-ed1-x530.google.com with SMTP id v7so6205689eds.10;
-        Thu, 11 Feb 2021 01:35:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=HCKcRp36jKpHDKsIoPlzTnpZmo2FFbM2qog3PW0onGA=;
-        b=TeiLXz9uxBxr0RNLjVXoPdeXMU0vPvWH8GKmzaoGwcRAJXsTI4sqzxOFft+uqhVGuC
-         3S9oJr9Bmqno+SA0dcWdgHYCedaajyGqKGGsc4xOvKVy8ccz5UCqmA9KGLNBJDQaHyEG
-         VHmGPZwltdjper4JRzS3iuFYi5MKTUwcZTW93JdLwWT0LQ5Ozfo8NtuD8UXSa8rxJG98
-         duXnERXYtR00eFVh969nmkyAfAQn5FIk7IZk8DQ8mfBZ9ACEpMUQuoZi4trlE87QtLbk
-         l6E7NDEkQfzssfWAqKcV7mUOOqzDzKsGW5xcfmtpxgupkGs5LODApcHB9z1WBU5SSiy8
-         APiQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=HCKcRp36jKpHDKsIoPlzTnpZmo2FFbM2qog3PW0onGA=;
-        b=TaXxM2+imbuLww34foKeZTzbrRrlgR3+/aMwHdFcFFkuxfRnrX6B5eGMKzs+MYo6Gd
-         iiHAlXQMML7Jm0ZbyiUjP59jJt9nuv6u9Q27WPr3A3cZ1gJDw9t02P3KRyVygZmoctyE
-         3GbeOtV5Od+rZUesmPwnCOWYQlFFgQtUNGqhVXGTjHRbd9jY+qqDopmxpjTcm3CAPcH5
-         RCsCIqM9xbs1R/+ZU88tENXMKW6xZgcRAo5Cfnd6RJdA8bTvUpjD8teqNtYqpUm7pUj6
-         deOs98VMtE5VMgPuNsgGThDh5m8bc+U8vmka02ksZVbM+P5cc/Nw49X7w3OULMk4wjde
-         30UQ==
-X-Gm-Message-State: AOAM531YZosmEciRjk8F9foy5++2EgnpDMh6FkgwBaYEfbz9l4Pcw+wb
-        EQiHPzgVlX2Rd3b/9BCM7xA=
-X-Google-Smtp-Source: ABdhPJzhRp4lLIofJYT+F83VReZpVe64dnuAnm/l2lEP0HrHgktCW0qPgvBMYd1i8qGDsCWxZbC3Rg==
-X-Received: by 2002:a05:6402:c7:: with SMTP id i7mr7618522edu.328.1613036129899;
-        Thu, 11 Feb 2021 01:35:29 -0800 (PST)
-Received: from skbuf (5-12-227-87.residential.rdsnet.ro. [5.12.227.87])
-        by smtp.gmail.com with ESMTPSA id cb21sm3396330edb.57.2021.02.11.01.35.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 11 Feb 2021 01:35:29 -0800 (PST)
-Date:   Thu, 11 Feb 2021 11:35:27 +0200
-From:   Vladimir Oltean <olteanv@gmail.com>
-To:     Ido Schimmel <idosch@idosch.org>
-Cc:     Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bridge@lists.linux-foundation.org, Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Claudiu Manoil <claudiu.manoil@nxp.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 net-next 04/11] net: bridge: offload initial and final
- port flags through switchdev
-Message-ID: <20210211093527.qyaa3czumgggvm7z@skbuf>
-References: <20210209151936.97382-1-olteanv@gmail.com>
- <20210209151936.97382-5-olteanv@gmail.com>
- <20210209185100.GA266253@shredder.lan>
- <20210209202045.obayorcud4fg2qqb@skbuf>
- <20210209220124.GA271860@shredder.lan>
- <20210209225153.j7u6zwnpdgskvr2v@skbuf>
- <20210210105949.GB287766@shredder.lan>
- <20210210232352.m7nqzvs2g4i74rx4@skbuf>
- <20210211074443.GB324421@shredder.lan>
+        id S229943AbhBKKqi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 11 Feb 2021 05:46:38 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:49071 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230219AbhBKKnt (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 11 Feb 2021 05:43:49 -0500
+X-Greylist: delayed 303 seconds by postgrey-1.27 at vger.kernel.org; Thu, 11 Feb 2021 05:43:48 EST
+Received: from cust-b5b5937f ([IPv6:fc0c:c16d:66b8:757f:c639:739b:9d66:799d])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id A9LMlXsw2Zvk6A9LQlud1p; Thu, 11 Feb 2021 11:37:08 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=xs4all.nl; s=s2;
+        t=1613039828; bh=x8JlAVrn67xNpnzpy5vZ00tzTAjgy0qYQsD6Sh3UeoY=;
+        h=From:To:Subject:Date:Message-Id:MIME-Version:From:Subject;
+        b=CLF44D2knSpMTOM5CFFDNJVJfbhGpoX2TwA9elpcpAr55XMNnySM0qrVPpQy/3SDg
+         Gz4nOgrEM7Asu/Rrlac5LtzOmRU1KfQ5VlChhz73D9X+w5iMYTPCOSSGZTTFzyM+Ph
+         Ie7KyUZ9QyAtTtQmsPtlN6gwVp1G5jsOXound5+NmD2VMb4/X4xxOjOlbgi/y2LjOE
+         NVeNj1NBjhJ2gjIZJ13+gad5VtYrLQ7Y9pJnVUrjeZxx3jJ3zTveasRYyWRyNIV4jV
+         09QimY0RuZJpB4AjgeWOFYJ7gDKhJ8gXF6JaOzyjo2v0DAfebfCiWw/WPLhtdbntdT
+         8Y5YPOudD9KxQ==
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Cc:     Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
+        Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 1/5] drm: drm_bridge: add cec_init/exit bridge ops
+Date:   Thu, 11 Feb 2021 11:36:59 +0100
+Message-Id: <20210211103703.444625-2-hverkuil-cisco@xs4all.nl>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210211103703.444625-1-hverkuil-cisco@xs4all.nl>
+References: <20210211103703.444625-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210211074443.GB324421@shredder.lan>
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4xfEpPuZfHrv3ScUk8i5acH1/+xpv+JQkYulPlSP9klHaiTLJnvoGeqywczB9nhmp8NrXq89BNNgFFzgEWAY1NcrXoyx9ColwZ/pzFSOk7VMXGprxvTFo+
+ wZRrhBLye8ylSK5j5RqtmzqVCsL83Kbsq8EUNRh2D4zm8VxdCIKJWsoI2mth5FrfY0V6ewUxwErJfkJTHJ8XhV/nxcX1Ri7QDchpEVyEZ/Nn7+6h8cZ/l9z4
+ 7osf3nfUcY8gmKFinG0v6SKIPTCQ53wQtdiijoXrt7p8wqVUJoO0NPIyayDQ8rAXGip8MCB4yDMaiJAxCsVtLCn4X6HmnRtFMTRUGFFee0/LR8D0nMCJvH2i
+ L9us7GCFH6XaEZVhcj/8YogMVCxxuh68963Smdwn9aauaCCNAesdV6apOCb4ZU6yVaBdraCoVtwRVlckFMv5FyC+sV1m++A1WmMyseBvIwlGj/1CxTw=
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Feb 11, 2021 at 09:44:43AM +0200, Ido Schimmel wrote:
-> On Thu, Feb 11, 2021 at 01:23:52AM +0200, Vladimir Oltean wrote:
-> > On Wed, Feb 10, 2021 at 12:59:49PM +0200, Ido Schimmel wrote:
-> > > > > The reverse, during unlinking, would be to refuse unlinking if the upper
-> > > > > has uppers of its own. netdev_upper_dev_unlink() needs to learn to
-> > > > > return an error and callers such as team/bond need to learn to handle
-> > > > > it, but it seems patchable.
-> > > >
-> > > > Again, this was treated prior to my deletion in this series and not by
-> > > > erroring out, I just really didn't think it through.
-> > > >
-> > > > So you're saying that if we impose that all switchdev drivers restrict
-> > > > the house of cards to be constructed from the bottom up, and destructed
-> > > > from the top down, then the notification of bridge port flags can stay
-> > > > in the bridge layer?
-> > >
-> > > I actually don't think it's a good idea to have this in the bridge in
-> > > any case. I understand that it makes sense for some devices where
-> > > learning, flooding, etc are port attributes, but in other devices these
-> > > can be {port,vlan} attributes and then you need to take care of them
-> > > when a vlan is added / deleted and not only when a port is removed from
-> > > the bridge. So for such devices this really won't save anything. I would
-> > > thus leave it to the lower levels to decide.
-> >
-> > Just for my understanding, how are per-{port,vlan} attributes such as
-> > learning and flooding managed by the Linux bridge? How can I disable
-> > flooding only in a certain VLAN?
->
-> You can't (currently). But it does not change the fact that in some
-> devices these are {port,vlan} attributes and we are talking here about
-> the interface towards these devices. Having these as {port,vlan}
-> attributes allows you to support use cases such as a port being enslaved
-> to a VLAN-aware bridge and its VLAN upper(s) enslaved to VLAN unaware
-> bridge(s).
+Add bridge cec_init/exit ops. These ops will be responsible for
+creating and destroying the CEC adapter for the bridge that supports
+CEC.
 
-I don't think I understand the use case really. You mean something like this?
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+ drivers/gpu/drm/drm_bridge_connector.c | 23 +++++++++++++++++++
+ include/drm/drm_bridge.h               | 31 ++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+)
 
-    br1 (vlan_filtering=0)
-    /           \
-   /             \
- swp0.100         \
-   |               \
-   |(vlan_filtering \
-   |  br0  =1)       \
-   | /   \            \
-   |/     \            \
- swp0    swp1         swp2
+diff --git a/drivers/gpu/drm/drm_bridge_connector.c b/drivers/gpu/drm/drm_bridge_connector.c
+index 791379816837..2ff90f5e468c 100644
+--- a/drivers/gpu/drm/drm_bridge_connector.c
++++ b/drivers/gpu/drm/drm_bridge_connector.c
+@@ -84,6 +84,13 @@ struct drm_bridge_connector {
+ 	 * connector modes detection, if any (see &DRM_BRIDGE_OP_MODES).
+ 	 */
+ 	struct drm_bridge *bridge_modes;
++	/**
++	 * @bridge_cec:
++	 *
++	 * The last bridge in the chain (closest to the connector) that provides
++	 * cec adapter support, if any (see &DRM_BRIDGE_OP_CEC).
++	 */
++	struct drm_bridge *bridge_cec;
+ };
+ 
+ #define to_drm_bridge_connector(x) \
+@@ -204,6 +211,11 @@ static void drm_bridge_connector_destroy(struct drm_connector *connector)
+ 	struct drm_bridge_connector *bridge_connector =
+ 		to_drm_bridge_connector(connector);
+ 
++	if (bridge_connector->bridge_cec) {
++		struct drm_bridge *cec = bridge_connector->bridge_cec;
++
++		cec->funcs->cec_exit(cec);
++	}
+ 	if (bridge_connector->bridge_hpd) {
+ 		struct drm_bridge *hpd = bridge_connector->bridge_hpd;
+ 
+@@ -352,6 +364,8 @@ struct drm_connector *drm_bridge_connector_init(struct drm_device *drm,
+ 			bridge_connector->bridge_detect = bridge;
+ 		if (bridge->ops & DRM_BRIDGE_OP_MODES)
+ 			bridge_connector->bridge_modes = bridge;
++		if (bridge->ops & DRM_BRIDGE_OP_CEC)
++			bridge_connector->bridge_cec = bridge;
+ 
+ 		if (!drm_bridge_get_next_bridge(bridge))
+ 			connector_type = bridge->type;
+@@ -374,6 +388,15 @@ struct drm_connector *drm_bridge_connector_init(struct drm_device *drm,
+ 	else if (bridge_connector->bridge_detect)
+ 		connector->polled = DRM_CONNECTOR_POLL_CONNECT
+ 				  | DRM_CONNECTOR_POLL_DISCONNECT;
++	if (bridge_connector->bridge_cec) {
++		struct drm_bridge *bridge = bridge_connector->bridge_cec;
++		int ret = bridge->funcs->cec_init(bridge, connector);
++
++		if (ret) {
++			drm_bridge_connector_destroy(connector);
++			return ERR_PTR(ret);
++		}
++	}
+ 
+ 	return connector;
+ }
+diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
+index 2195daa289d2..4c83c2657e87 100644
+--- a/include/drm/drm_bridge.h
++++ b/include/drm/drm_bridge.h
+@@ -629,6 +629,30 @@ struct drm_bridge_funcs {
+ 	 * the DRM_BRIDGE_OP_HPD flag in their &drm_bridge->ops.
+ 	 */
+ 	void (*hpd_disable)(struct drm_bridge *bridge);
++
++	/**
++	 * @cec_init:
++	 *
++	 * Initialize the CEC adapter.
++	 *
++	 * This callback is optional and shall only be implemented by bridges
++	 * that support a CEC adapter. Bridges that implement it shall also
++	 * implement the @cec_exit callback and set the DRM_BRIDGE_OP_CEC flag
++	 * in their &drm_bridge->ops.
++	 */
++	int (*cec_init)(struct drm_bridge *bridge, struct drm_connector *conn);
++
++	/**
++	 * @cec_exit:
++	 *
++	 * Terminate the CEC adapter.
++	 *
++	 * This callback is optional and shall only be implemented by bridges
++	 * that support a CEC adapter. Bridges that implement it shall also
++	 * implement the @cec_init callback and set the DRM_BRIDGE_OP_CEC flag
++	 * in their &drm_bridge->ops.
++	 */
++	void (*cec_exit)(struct drm_bridge *bridge);
+ };
+ 
+ /**
+@@ -698,6 +722,13 @@ enum drm_bridge_ops {
+ 	 * this flag shall implement the &drm_bridge_funcs->get_modes callback.
+ 	 */
+ 	DRM_BRIDGE_OP_MODES = BIT(3),
++	/**
++	 * @DRM_BRIDGE_OP_CEC: The bridge supports a CEC adapter.
++	 * Bridges that set this flag shall implement the
++	 * &drm_bridge_funcs->cec_init and &drm_bridge_funcs->cec_exit
++	 * callbacks.
++	 */
++	DRM_BRIDGE_OP_CEC = BIT(4),
+ };
+ 
+ /**
+-- 
+2.30.0
 
-A packet received on swp0 with VLAN tag 100 will go to swp0.100 which
-will be forwarded according to the FDB of br1, and will be delivered to
-swp2 as untagged? Respectively in the other direction, a packet received
-on swp2 will have a VLAN 100 tag pushed on egress towards swp0, even if
-it is already VLAN-tagged?
-
-What do you even use this for?
-And also: if the {port,vlan} attributes can be simulated by making the
-bridge port be an 8021q upper of a physical interface, then as far as
-the bridge is concerned, they still are per-port attributes, and they
-are per-{port,vlan} only as far as the switch driver is concerned -
-therefore I don't see why it isn't okay for the bridge to notify the
-brport flags in exactly the same way for them too.
-
-> Obviously you need to ensure there is no conflict between the
-> VLANs used by the VLAN-aware bridge and the VLAN device(s).
-
-On the other hand I think I have a more real-life use case that I think
-is in conflict with this last phrase.
-I have a VLAN-aware bridge and I want to run PTP in VLAN 7, but I also
-need to add VLAN 7 in the VLAN table of the bridge ports so that it
-doesn't drop traffic. PTP is link-local, so I need to run it on VLAN
-uppers of the switch ports. Like this:
-
-ip link add br0 type bridge vlan_filtering 1
-ip link set swp0 master br0
-ip link set swp1 master br0
-bridge vlan add dev swp0 vid 7 master
-bridge vlan add dev swp1 vid 7 master
-bridge vlan add dev br0 vid 7 self
-ip link add link swp0 name swp0.7 type vlan id 7
-ip link add link swp1 name swp0.7 type vlan id 7
-ptp4l -i swp0.7 -i swp1.7 -m
-
-How can I do that considering that you recommend avoiding conflicts
-between the VLAN-aware bridge and 8021q uppers? Or is that true only
-when the 8021q uppers are bridged?
