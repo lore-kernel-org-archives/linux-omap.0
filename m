@@ -2,110 +2,111 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7338DC433E0
-	for <linux-omap@archiver.kernel.org>; Sun, 14 Feb 2021 13:37:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78266C43381
+	for <linux-omap@archiver.kernel.org>; Sun, 14 Feb 2021 21:22:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D43B64DD1
-	for <linux-omap@archiver.kernel.org>; Sun, 14 Feb 2021 13:37:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AFFE64E12
+	for <linux-omap@archiver.kernel.org>; Sun, 14 Feb 2021 21:22:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229740AbhBNNhl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 14 Feb 2021 08:37:41 -0500
-Received: from smtp-17.italiaonline.it ([213.209.10.17]:42182 "EHLO libero.it"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S229642AbhBNNhk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 14 Feb 2021 08:37:40 -0500
-X-Greylist: delayed 381 seconds by postgrey-1.27 at vger.kernel.org; Sun, 14 Feb 2021 08:37:39 EST
-Received: from passgat-Modern-14-A10M.homenet.telecomitalia.it
- ([87.20.116.197])
-        by smtp-17.iol.local with ESMTPA
-        id BHTnlH3C4lChfBHTtlSRDk; Sun, 14 Feb 2021 14:30:38 +0100
-x-libjamoibt: 1601
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2014;
-        t=1613309438; bh=qkWp20AtpEuGNqbGNTXPOIoWBZsHRc1VmZLJjjdccCM=;
-        h=From;
-        b=XVsEKVyyYAbYU9CDwJwEr+FHvB2BJfOQo73SesfUCYaSvT24CYHNKPrjsmzlfHcCQ
-         x6I/5u2b7x5i8Y+WfmIvrnrf37YzZMQ3/cbJNMMPrhBzArhS2Fh2eNp1ZC0hPTCnlD
-         LD9ig1IXU1bQOomzizIvK+cIrzLCOpkojIqflAd6bgJRU0v9s+3xSFL4sSDa37GvLg
-         gEP/72awy9pZLDgiUZpUwK1i2sUw1JvRrNtn9bOAast6CcRJNICxXycspNfH1tqC0U
-         3pV5+HYIQNt97D/SxXxCP2xRERXB6CdbwN2qrCp0lRh5JoOUbLZvVd0vrSQAYYAbbA
-         4tBdpQmtv+CVA==
-X-CNFS-Analysis: v=2.4 cv=S6McfKgP c=1 sm=1 tr=0 ts=602925fe cx=a_exe
- a=AVqmXbCQpuNSdJmApS5GbQ==:117 a=AVqmXbCQpuNSdJmApS5GbQ==:17
- a=hN1Y6PlX_eMEyabRrE4A:9
-From:   Dario Binacchi <dariobin@libero.it>
-To:     linux-kernel@vger.kernel.org
-Cc:     Dario Binacchi <dariobin@libero.it>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH] ARM: dts: am33xx-l4: fix tscadc@0 node indentation
-Date:   Sun, 14 Feb 2021 14:30:20 +0100
-Message-Id: <20210214133020.10766-1-dariobin@libero.it>
-X-Mailer: git-send-email 2.17.1
-X-CMAE-Envelope: MS4xfGRUyz5EcWl8espVBbAuyJvbtjfyN4d/vmBdG5u7dVSesdkJ5jVuuTqypRY98NQr81Cxk9LQYWBMloEipwPyL9sF4jHk3Eq2bmtVrvuu7Z166WRDyI/l
- 5NFmXwl36vu4b/uevefFott5Grrppzu7dynghN8xm+8TiTQ1HradeGIgDp7yRyAydyExVYz41xCrl39fdBqax784emFBvlhqZTZBxAuAr7MPi1xI/5ix4FyT
- +7wSgclfCl/o1iE5lFIP5BCqSkX9uxKBig+YCB8DCVIRdt/bw+idrllDfvpBZW+siKY1+gVeSA45fphaeEDYhnbLBhWRz45KvAZXxFnNpPfSLEFNOK3D02U1
- ugVdCcXSVhtmm0WgKNc2qIvJXWhXEclkHPzapKrnd2PXCgsXOMd56PiwLwA3vzQzYNNve9onW0xABQwh+rnzWaUggU1OTA==
+        id S229931AbhBNVW0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 14 Feb 2021 16:22:26 -0500
+Received: from vps0.lunn.ch ([185.16.172.187]:41930 "EHLO vps0.lunn.ch"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229901AbhBNVW0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 14 Feb 2021 16:22:26 -0500
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94)
+        (envelope-from <andrew@lunn.ch>)
+        id 1lBOp6-006J5x-W6; Sun, 14 Feb 2021 22:20:56 +0100
+Date:   Sun, 14 Feb 2021 22:20:56 +0100
+From:   Andrew Lunn <andrew@lunn.ch>
+To:     Stephen Boyd <sboyd@kernel.org>, Jakub Kicinski <kuba@kernel.org>
+Cc:     Lee Jones <lee.jones@linaro.org>,
+        Prashant Gaikwad <pgaikwad@nvidia.com>,
+        Tomer Maimon <tmaimon77@gmail.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Rajeev Kumar <rajeev-dlh.kumar@st.com>,
+        Jan Kotas <jank@cadence.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Fabio Estevam <festevam@gmail.com>, linux-clk@vger.kernel.org,
+        Boris BREZILLON <boris.brezillon@free-electrons.com>,
+        Ahmad Fatoum <a.fatoum@pengutronix.de>,
+        Benjamin Fair <benjaminfair@google.com>,
+        Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>,
+        Viresh Kumar <vireshk@kernel.org>, openbmc@lists.ozlabs.org,
+        Michal Simek <michal.simek@xilinx.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Nancy Yuen <yuenn@google.com>, Chen-Yu Tsai <wens@csie.org>,
+        Andy Gross <agross@kernel.org>, Loc Ho <lho@apm.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Richard Woodruff <r-woodruff2@ti.com>,
+        Tali Perry <tali.perry1@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-arm-msm@vger.kernel.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Maxime Ripard <mripard@kernel.org>,
+        linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org,
+        Shiraz Hashim <shiraz.linux.kernel@gmail.com>,
+        linux-arm-kernel@lists.infradead.org,
+        =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
+        Jernej Skrabec <jernej.skrabec@siol.net>,
+        Tero Kristo <kristo@kernel.org>,
+        Rajan Vaja <rajan.vaja@xilinx.com>,
+        Avi Fishman <avifishman70@gmail.com>,
+        Patrick Venture <venture@google.com>,
+        Peter De Schrijver <pdeschrijver@nvidia.com>,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Nuvoton Technologies <tali.perry@nuvoton.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Shawn Guo <shawnguo@kernel.org>
+Subject: Re: [PATCH 00/21] [Set 2] Rid W=1 warnings from Clock
+Message-ID: <YCmUOHTtc+j4eLkO@lunn.ch>
+References: <161309925025.1254594.6210738031889810500@swboyd.mtv.corp.google.com>
+ <20210212092016.GF4572@dell>
+ <161316374113.1254594.14156657225822268891@swboyd.mtv.corp.google.com>
+ <20210212212503.GC179940@dell>
+ <20210212212630.GD179940@dell>
+ <161316754567.1254594.9542583200097699504@swboyd.mtv.corp.google.com>
+ <20210212223739.GE179940@dell>
+ <161317480301.1254594.16648868282165823277@swboyd.mtv.corp.google.com>
+ <YCf4kkMsX+Ymgy6N@lunn.ch>
+ <161333644244.1254594.4498059850307971318@swboyd.mtv.corp.google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <161333644244.1254594.4498059850307971318@swboyd.mtv.corp.google.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Fix the broken indentation of tscadc@0 node.
+On Sun, Feb 14, 2021 at 01:00:42PM -0800, Stephen Boyd wrote:
+> Quoting Andrew Lunn (2021-02-13 08:04:34)
+> > > I'm trying to see if we can make lives better for everyone by exposing
+> > > the warnings by default in the drivers/clk/ directory now that there are
+> > > supposedly none left. Shouldn't we tighten the screws now that we've
+> > > cleaned them?
+> > 
+> > Do you use patchwork? netdev has a bot attached which applies the
+> > patch and does a W=1 build, and will report any new warnings. But it
+> > does not email the developer, as far as i know. It is up to you as the
+> > maintainer to reject the patch and say why.
+> > 
+> 
+> Yes the kernel.org patchwork instance is used but I don't see any bot
+> putting test results there. How is that done?
+> 
+> https://patchwork.kernel.org/project/linux-clk/list/
 
-Signed-off-by: Dario Binacchi <dariobin@libero.it>
----
+Compare this with for example:
 
- arch/arm/boot/dts/am33xx-l4.dtsi | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+https://patchwork.kernel.org/project/netdevbpf/patch/20210213175257.28642-1-ap420073@gmail.com/
 
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-index 78088506d25b..9963eeb57f69 100644
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -259,22 +259,22 @@
- 			ranges = <0x00000000 0x0000d000 0x00001000>,
- 				 <0x00001000 0x0000e000 0x00001000>;
- 
--				tscadc: tscadc@0 {
--					compatible = "ti,am3359-tscadc";
--					reg = <0x0 0x1000>;
--					interrupts = <16>;
--					status = "disabled";
--					dmas = <&edma 53 0>, <&edma 57 0>;
--					dma-names = "fifo0", "fifo1";
-+			tscadc: tscadc@0 {
-+				compatible = "ti,am3359-tscadc";
-+				reg = <0x0 0x1000>;
-+				interrupts = <16>;
-+				status = "disabled";
-+				dmas = <&edma 53 0>, <&edma 57 0>;
-+				dma-names = "fifo0", "fifo1";
- 
--					tsc {
--						compatible = "ti,am3359-tsc";
--					};
--					am335x_adc: adc {
--						#io-channel-cells = <1>;
--						compatible = "ti,am3359-adc";
--					};
-+				tsc {
-+					compatible = "ti,am3359-tsc";
-+				};
-+				am335x_adc: adc {
-+					#io-channel-cells = <1>;
-+					compatible = "ti,am3359-adc";
- 				};
-+			};
- 		};
- 
- 		target-module@10000 {			/* 0x44e10000, ap 22 0c.0 */
--- 
-2.17.1
+Jakub can explain how he added these checks.
 
+      Andrew
