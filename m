@@ -6,107 +6,93 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78266C43381
-	for <linux-omap@archiver.kernel.org>; Sun, 14 Feb 2021 21:22:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 267A6C433E9
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Feb 2021 04:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AFFE64E12
-	for <linux-omap@archiver.kernel.org>; Sun, 14 Feb 2021 21:22:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0273B64E5E
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Feb 2021 04:36:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229931AbhBNVW0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 14 Feb 2021 16:22:26 -0500
-Received: from vps0.lunn.ch ([185.16.172.187]:41930 "EHLO vps0.lunn.ch"
+        id S229940AbhBOEf6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 14 Feb 2021 23:35:58 -0500
+Received: from muru.com ([72.249.23.125]:33412 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229901AbhBNVW0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 14 Feb 2021 16:22:26 -0500
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94)
-        (envelope-from <andrew@lunn.ch>)
-        id 1lBOp6-006J5x-W6; Sun, 14 Feb 2021 22:20:56 +0100
-Date:   Sun, 14 Feb 2021 22:20:56 +0100
-From:   Andrew Lunn <andrew@lunn.ch>
-To:     Stephen Boyd <sboyd@kernel.org>, Jakub Kicinski <kuba@kernel.org>
-Cc:     Lee Jones <lee.jones@linaro.org>,
-        Prashant Gaikwad <pgaikwad@nvidia.com>,
-        Tomer Maimon <tmaimon77@gmail.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Rajeev Kumar <rajeev-dlh.kumar@st.com>,
-        Jan Kotas <jank@cadence.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Fabio Estevam <festevam@gmail.com>, linux-clk@vger.kernel.org,
-        Boris BREZILLON <boris.brezillon@free-electrons.com>,
-        Ahmad Fatoum <a.fatoum@pengutronix.de>,
-        Benjamin Fair <benjaminfair@google.com>,
-        Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>,
-        Viresh Kumar <vireshk@kernel.org>, openbmc@lists.ozlabs.org,
-        Michal Simek <michal.simek@xilinx.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Nancy Yuen <yuenn@google.com>, Chen-Yu Tsai <wens@csie.org>,
-        Andy Gross <agross@kernel.org>, Loc Ho <lho@apm.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Richard Woodruff <r-woodruff2@ti.com>,
-        Tali Perry <tali.perry1@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-arm-msm@vger.kernel.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Maxime Ripard <mripard@kernel.org>,
-        linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org,
-        Shiraz Hashim <shiraz.linux.kernel@gmail.com>,
-        linux-arm-kernel@lists.infradead.org,
-        =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
-        Jernej Skrabec <jernej.skrabec@siol.net>,
-        Tero Kristo <kristo@kernel.org>,
-        Rajan Vaja <rajan.vaja@xilinx.com>,
-        Avi Fishman <avifishman70@gmail.com>,
-        Patrick Venture <venture@google.com>,
-        Peter De Schrijver <pdeschrijver@nvidia.com>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Nuvoton Technologies <tali.perry@nuvoton.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Shawn Guo <shawnguo@kernel.org>
-Subject: Re: [PATCH 00/21] [Set 2] Rid W=1 warnings from Clock
-Message-ID: <YCmUOHTtc+j4eLkO@lunn.ch>
-References: <161309925025.1254594.6210738031889810500@swboyd.mtv.corp.google.com>
- <20210212092016.GF4572@dell>
- <161316374113.1254594.14156657225822268891@swboyd.mtv.corp.google.com>
- <20210212212503.GC179940@dell>
- <20210212212630.GD179940@dell>
- <161316754567.1254594.9542583200097699504@swboyd.mtv.corp.google.com>
- <20210212223739.GE179940@dell>
- <161317480301.1254594.16648868282165823277@swboyd.mtv.corp.google.com>
- <YCf4kkMsX+Ymgy6N@lunn.ch>
- <161333644244.1254594.4498059850307971318@swboyd.mtv.corp.google.com>
+        id S229931AbhBOEfz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 14 Feb 2021 23:35:55 -0500
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 6508A80C7;
+        Mon, 15 Feb 2021 04:35:34 +0000 (UTC)
+Date:   Mon, 15 Feb 2021 06:35:05 +0200
+From:   Tony Lindgren <tony@atomide.com>
+To:     Pavel Machek <pavel@ucw.cz>
+Cc:     kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com,
+        mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz,
+        phone-devel@vger.kernel.org, maemo-leste@lists.dyne.org,
+        Carl Philipp Klemm <philipp@uvos.xyz>
+Subject: Re: Droid 4 charging
+Message-ID: <YCn5+ZPdPojwCz8g@atomide.com>
+References: <20210206131415.GA4499@amd>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <161333644244.1254594.4498059850307971318@swboyd.mtv.corp.google.com>
+In-Reply-To: <20210206131415.GA4499@amd>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sun, Feb 14, 2021 at 01:00:42PM -0800, Stephen Boyd wrote:
-> Quoting Andrew Lunn (2021-02-13 08:04:34)
-> > > I'm trying to see if we can make lives better for everyone by exposing
-> > > the warnings by default in the drivers/clk/ directory now that there are
-> > > supposedly none left. Shouldn't we tighten the screws now that we've
-> > > cleaned them?
-> > 
-> > Do you use patchwork? netdev has a bot attached which applies the
-> > patch and does a W=1 build, and will report any new warnings. But it
-> > does not email the developer, as far as i know. It is up to you as the
-> > maintainer to reject the patch and say why.
-> > 
+Hi,
+
+* Pavel Machek <pavel@ucw.cz> [210206 13:14]:
+> Hi!
 > 
-> Yes the kernel.org patchwork instance is used but I don't see any bot
-> putting test results there. How is that done?
+> (I'm using Leste 5.10 kernel here).
 > 
-> https://patchwork.kernel.org/project/linux-clk/list/
+> When battery is full, green light is off and 0.00A being drawn from
+> USB.
+> 
+> But that means that phone is now powered from battery, discharging
+> it... And soon charging starts again. (Pretty much immediately, for me)
+> 
+> That's bad ... right? It wears the battery out.
 
-Compare this with for example:
+Well maintenance charging at 4.2V sure is better for the battery than
+what android is doing charging it at 4.31V contantly..
 
-https://patchwork.kernel.org/project/netdevbpf/patch/20210213175257.28642-1-ap420073@gmail.com/
+> If I turn off charging with echo 0 > input_current_limit, 0.2 to 0.4A
+> is drawn from USB, and battery is not discharged:
+> 
+> root@devuan-droid4:/sys/class/power_supply/usb# echo 0 >  input_current_limit
+> root@devuan-droid4:/sys/class/power_supply/usb# cat current_now
+> 0
 
-Jakub can explain how he added these checks.
+Hmm so have you measured that setting the current limit to 0 actually
+draws something from the USB?
 
-      Andrew
+I recall clearing the ichrgr bits stops the vbus draw completely, but
+I could be wrong.
+
+> Is that a better way to handle full battery?
+
+We could experiment with switching over to usb power when the battery is
+full. Looking at the docs for mc1378 it might be possible that setting
+CPCAP_REG_CRM_FET_OVRD and clearing CPCAP_REG_CRM_FET_CTRL after the
+battery is full disables charging but still keep drawing power from
+the usb. I'd assume the current limit still needs to be nonzero there
+too? Totally untested..
+
+And switching back to battery power on usb disconnect will potentially
+only give us very little time based on the different line length for
+vbus and ground pins compared to data pins on the usb connector.. And
+uvos had some concerns about the battery capacity putting it back online,
+so adding him to Cc also.
+
+Maybe just clearing ichrgr does all this already though and is enough.
+It should be measured on the vbus line.
+
+And then we still need to restart the charger at some point, but that
+could happen based on much longer timeouts that what we currently have.
+
+Regards,
+
+Tony
