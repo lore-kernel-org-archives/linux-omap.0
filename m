@@ -2,135 +2,99 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B33EC433E9
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Feb 2021 21:59:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D446C433E6
+	for <linux-omap@archiver.kernel.org>; Sun, 21 Feb 2021 21:00:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF3E764E24
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Feb 2021 21:59:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F24164EC8
+	for <linux-omap@archiver.kernel.org>; Sun, 21 Feb 2021 21:00:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229959AbhBSV7g (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Feb 2021 16:59:36 -0500
-Received: from jabberwock.ucw.cz ([46.255.230.98]:53186 "EHLO
-        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229767AbhBSV6y (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2021 16:58:54 -0500
-Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
-        id B64A01C0BC2; Fri, 19 Feb 2021 22:57:53 +0100 (CET)
-Date:   Fri, 19 Feb 2021 22:57:53 +0100
-From:   Pavel Machek <pavel@ucw.cz>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     kernel list <linux-kernel@vger.kernel.org>,
+        id S231179AbhBUVAo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 21 Feb 2021 16:00:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43920 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231180AbhBUVAl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 21 Feb 2021 16:00:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BBABE64EB3;
+        Sun, 21 Feb 2021 20:56:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1613940975;
+        bh=/cN6BElwNRO7utpxxr5oOogV0crmkCkzi47VJ17rv6Y=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=u5zBCSAc/1TTXkd7Nrq4Qd8xtAs0yta4WTdPkw3gc3Jdx14HrWQs96Ls+tktnoPX4
+         3sbr0NBGPcfVOHo5htOoY0llhFi40Fqwz+MAHsfZlvcUYjJI2hq9+B1nVLftCXZBhP
+         m6cOamfrR7MgxV6tA4l1+KguVHttHCFrTBZSj1nAveXFmX3vu4cOjSSjauqk4bvvLt
+         AwoNBSasNcgEMKHQGfLOmlyJp1olZVakfInV2gg1YkGak0uqB5qEhae9pcJtBJ/2UC
+         +BaSNu2izN5iKRkWtduNVSZp4N0zX14jY9eShzW/8CmANbyABr4f8aAkcA5HgUOdxI
+         geOnXrgXtaGnQ==
+Received: by earth.universe (Postfix, from userid 1000)
+        id C3B803C0C96; Sun, 21 Feb 2021 21:56:13 +0100 (CET)
+Date:   Sun, 21 Feb 2021 21:56:13 +0100
+From:   Sebastian Reichel <sre@kernel.org>
+To:     Pavel Machek <pavel@ucw.cz>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        kernel list <linux-kernel@vger.kernel.org>,
         linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com,
-        mpartap@gmx.net, merlijn@wizzup.org, martin_rysavy@centrum.cz,
+        linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net,
+        merlijn@wizzup.org, martin_rysavy@centrum.cz,
         phone-devel@vger.kernel.org, maemo-leste@lists.dyne.org,
         Carl Philipp Klemm <philipp@uvos.xyz>
 Subject: Re: Droid 4 charging
-Message-ID: <20210219215752.GA31435@amd>
+Message-ID: <20210221205613.yuvxoxzi33wa74s3@earth.universe>
 References: <20210206131415.GA4499@amd>
  <YCn5+ZPdPojwCz8g@atomide.com>
+ <20210219215752.GA31435@amd>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="zeqgg3ishmvo4gqn"
 Content-Disposition: inline
-In-Reply-To: <YCn5+ZPdPojwCz8g@atomide.com>
-User-Agent: Mutt/1.5.23 (2014-03-12)
+In-Reply-To: <20210219215752.GA31435@amd>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 
---qMm9M+Fa2AknHoGS
+--zeqgg3ishmvo4gqn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Hi,
 
-> > (I'm using Leste 5.10 kernel here).
-> >=20
-> > When battery is full, green light is off and 0.00A being drawn from
-> > USB.
-> >=20
-> > But that means that phone is now powered from battery, discharging
-> > it... And soon charging starts again. (Pretty much immediately, for me)
-> >=20
-> > That's bad ... right? It wears the battery out.
+On Fri, Feb 19, 2021 at 10:57:53PM +0100, Pavel Machek wrote:
+> > And then we still need to restart the charger at some point, but that
+> > could happen based on much longer timeouts that what we currently have.
 >=20
-> Well maintenance charging at 4.2V sure is better for the battery than
-> what android is doing charging it at 4.31V contantly..
+> Li-ion batteries are very slow to self-discharge. This could timeout
+> could be week... or maybe a year.
 
-Well, 4.2 is better than 4.3, but I'm not sure about the rest.
+True, as long as the battery is not connected to anything. When connected
+to something there are often leak currents. So leak currents must be
+measured to figure out a sensible timeout.
 
-> > If I turn off charging with echo 0 > input_current_limit, 0.2 to 0.4A
-> > is drawn from USB, and battery is not discharged:
-> >=20
-> > root@devuan-droid4:/sys/class/power_supply/usb# echo 0 >  input_current=
-_limit
-> > root@devuan-droid4:/sys/class/power_supply/usb# cat current_now
-> > 0
->=20
-> Hmm so have you measured that setting the current limit to 0 actually
-> draws something from the USB?
+-- Sebastian
 
-Yes, it does, if I do the echo when charge is done. (I have small USB
-passthrough with volt and amp meters). It has been behaving weirdly in
-other cases.p
-
-> I recall clearing the ichrgr bits stops the vbus draw completely, but
-> I could be wrong.
->=20
-> > Is that a better way to handle full battery?
->=20
-> We could experiment with switching over to usb power when the battery is
-> full. Looking at the docs for mc1378 it might be possible that setting
-> CPCAP_REG_CRM_FET_OVRD and clearing CPCAP_REG_CRM_FET_CTRL after the
-> battery is full disables charging but still keep drawing power from
-> the usb. I'd assume the current limit still needs to be nonzero there
-> too? Totally untested..
-
-I may be able to test patches...
-
-> And switching back to battery power on usb disconnect will potentially
-> only give us very little time based on the different line length for
-> vbus and ground pins compared to data pins on the usb connector.. And
-> uvos had some concerns about the battery capacity putting it back online,
-> so adding him to Cc also.
-
-You mean, we'd have to take interrupt and switch registers in order to
-switch back to battery power, and system would crash if we did not
-make it in time?
-
-> Maybe just clearing ichrgr does all this already though and is enough.
-> It should be measured on the vbus line.
-
-It works for me... measuring current at the usb connector.
-
-> And then we still need to restart the charger at some point, but that
-> could happen based on much longer timeouts that what we currently have.
-
-Li-ion batteries are very slow to self-discharge. This could timeout
-could be week... or maybe a year.
-
-Best regards,
-								Pavel
---=20
-http://www.livejournal.com/~pavelmachek
-
---qMm9M+Fa2AknHoGS
+--zeqgg3ishmvo4gqn
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAmAwNGAACgkQMOfwapXb+vLZhACggmJ4K5ld7AzSt/1ows58as6s
-FKoAn3gFfGas6Mpw6BnpPiX/jRUU1ROZ
-=sZv1
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAmAyyOYACgkQ2O7X88g7
++pr5YRAAo+fP1HPtLciMak9zPcHNVtgFJos4FxbOBpjrju3KAz6ixUhMA1xaze6E
+enMYvXKAJGrdRxwr+zcBR6T/ST/YUo5uUJQwd+RjVRnKcZbXXOSQfIKCol8QJMFr
+EJEGAS2uS1PqkymwXz47GyQ8/m1wTEXyhwFzmuvivdsPMjkzKVprn+pCUV5a296X
+80wwwvFnMr1ENPl+FDU8NkiFuOc9JeGBH9ydmjpg+t6kEMJkqvfe863uEDN24nci
+PQVnqVnVx9nyiz9zKp0hkkjMVQYKaGDYhgU/T4gQdx7XRTWGe3NV/5wvvxqiARYI
+0tM9teZb5cIYKr+Zh53f0MCB3hRWxJebIrJDMLXa5vtbHQPaLkxcy1ZtnONjn/wO
+PLHBq017Sl4gCko1J7slmmoSPPG6BYdGYEOiGdnqjWbYfNhukyPbXH/N6hAGESVv
+ThOrr2af2rhXZLENhxfxQfGCkI+Cqwvda6D4Yu3YUt8adJ+7CQocTgHSGsqalSYb
+a7i9QWxZw/DCUpiWfs8fOb61N8qPqMmk6D/TWQimomH9OjGn2+aC/kr6eYq34Gks
+8tCaZb9d7ItNH5cpHDrBLpj5UdozNJE/YKMSVLYt+1MWQAdMdG5tt9DKE2aqFaSD
+u1YDX5a0l2Xix7OjS7HUqVT2rStOIFyUMJhfXtBTYhmlpZZXOmU=
+=vZ8i
 -----END PGP SIGNATURE-----
 
---qMm9M+Fa2AknHoGS--
+--zeqgg3ishmvo4gqn--
