@@ -2,116 +2,200 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD21C4361A
-	for <linux-omap@archiver.kernel.org>; Wed,  3 Mar 2021 01:02:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C068C43603
+	for <linux-omap@archiver.kernel.org>; Wed,  3 Mar 2021 01:02:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 248506023B
-	for <linux-omap@archiver.kernel.org>; Wed,  3 Mar 2021 01:02:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1E2864FA6
+	for <linux-omap@archiver.kernel.org>; Wed,  3 Mar 2021 01:02:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240687AbhCCAsD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 2 Mar 2021 19:48:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36014 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347855AbhCBQc0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2021 11:32:26 -0500
-Received: from mail-lj1-x235.google.com (mail-lj1-x235.google.com [IPv6:2a00:1450:4864:20::235])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41FF0C06178B
-        for <linux-omap@vger.kernel.org>; Tue,  2 Mar 2021 08:21:36 -0800 (PST)
-Received: by mail-lj1-x235.google.com with SMTP id a17so24691685ljq.2
-        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2021 08:21:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=dDtVuAUG8eYI5Eln5QS/TclUSCWz1TjGe2OhWQ2Hzok=;
-        b=if3nP/oZALnybjJAUkUtzqsvs3YK7lJTKnmGNAKAtkwkVzIB8mFHuhnw39Age4qxUS
-         UXw4iYbDW54LVkGsJpSlpCufhFpXSXWrspZnZVQvzvmbL4hoMK6k1yEd5RN5BV+l0zKp
-         tXtWk5HPWV2fweqJVtX8sHIWvuZWbxVoSpCFOUKgPtdFaCV2kH7EuRSveUN20qcFG1og
-         wyrqlkSN21mX7hX7xxtgzoot8V4HzSFxwkYFb/OJ+vf7aE1D4NJTbKYunNSiNEI9kP9y
-         s+wCBi42PEGQZkVQoauPMQTxxO1r/MHtP+jvcnpmfUsTbIdbT4RlvrpKFT5uBgM18SPw
-         Mw9Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=dDtVuAUG8eYI5Eln5QS/TclUSCWz1TjGe2OhWQ2Hzok=;
-        b=DWY406Zq0g1B6Pbi1ONtINuAunRQWuZBTBG6SGxEfXZxJPdIiTqINiZOV8Bx9+zIKR
-         M2Rd8Ac1qbjPuJwGTTT/Mb0C9B03ytW+9odqHs7L9tMJfuwZdzv061w/e79+9SXaRzUU
-         0q7PUSzA1c4cnFQuEzsAA63pFPAXFHT7KEk1EMPOnqOzGNa0RIDAfPzR9pZVPzQjPB/S
-         ekumR4L5M+eDbiTcD4TObxioC6JTYqANmNx6oD1jUOosLkoCNwMz8021kkCtcLos+7YV
-         2PX8Ppk3NWnrYbD0sZbJfGJaZZQct2JA8m1KwZZ8z5WExBXLjUEiKWQN57klF1qmtr0R
-         zQYQ==
-X-Gm-Message-State: AOAM532RhSS62QiKUNB4R2TPIgglDnejFV3q+3fQKuyvaiHNDRTPenjo
-        tHMsS8YFL/g/++702T5UYP2PVeGALDNB3fPXF6A9Sg==
-X-Google-Smtp-Source: ABdhPJzXqrYBkkHlZel98Kbs7UOBikTi+iuddAEEWTpHvvJw+VnT+XciCztoznAVqXpZN+sKledBjpv4CVaTd6nqOkQ=
-X-Received: by 2002:a2e:9041:: with SMTP id n1mr12550220ljg.273.1614702094699;
- Tue, 02 Mar 2021 08:21:34 -0800 (PST)
+        id S238358AbhCCAp5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 2 Mar 2021 19:45:57 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34177 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1449293AbhCBQ1g (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2021 11:27:36 -0500
+Received: from cust-b5b5937f ([IPv6:fc0c:c16d:66b8:757f:c639:739b:9d66:799d])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id H7oZlNjwSOruFH7ojlAWNn; Tue, 02 Mar 2021 17:24:13 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=xs4all.nl; s=s2;
+        t=1614702253; bh=OaJqdVTBPrMHS8u/9CNzq/j1aIrPc080TZS3zZHbMb8=;
+        h=From:To:Subject:Date:Message-Id:MIME-Version:From:Subject;
+        b=hdu3/d/F5gOs+r20PkYXhUWWeiucJZ1PIm2XWsfDCb3UiRfWANcx2ve4KZu6s7yhX
+         cbQ4DtWXCjq26F1qIrPQD6RVh2OlnYgklsOIVHB3iqZ9P77EYEGLSIPOsSbPBWcAU2
+         tb+QAVNzui0WRFhWqRP4oT7NROjoHysacOIbJsgzoAyvpZFpTEjZ0owb6TbHC02by0
+         sKr6MrNuZTRbo/aRwCJvVD/1gtzyg+amQ3MC04QScF2z0g2j91bgfBL7cFVPKarKWN
+         iVBo9WlXIXu740+MAzZWvXSUGshitvQLSEYnXzUIefpMYpYZss2RHnZOfgsP0iC4F0
+         G9EzLWT6bpMOg==
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Cc:     Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+        Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv2 2/6] drm/omapdrm/dss/hdmi4: switch to the connector bridge ops
+Date:   Tue,  2 Mar 2021 17:23:59 +0100
+Message-Id: <20210302162403.983585-3-hverkuil-cisco@xs4all.nl>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210302162403.983585-1-hverkuil-cisco@xs4all.nl>
+References: <20210302162403.983585-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
-References: <20210302011813.2331879-1-alexander.sverdlin@gmail.com>
-In-Reply-To: <20210302011813.2331879-1-alexander.sverdlin@gmail.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 2 Mar 2021 17:21:23 +0100
-Message-ID: <CACRpkdYErJH5RUjL+jPC5vnaqGiOqBwHsr0E42wOWrpBGrpS3w@mail.gmail.com>
-Subject: Re: [PATCH] gpio: omap: Honor "aliases" node
-To:     Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Cc:     Linux-OMAP <linux-omap@vger.kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4xfH1WztQd5puTGwx9jr7Qnb4a6LSVKsuJG9LXZaF/19eoi/zr0o+zEmykIrlunj4rGbDj3oLAAcpap3fmA4yi700pShKgsJ36UmKM8zK0vFiMwowA0McA
+ p0X7zcRF1f0Bt+0TiMwZV69oE5p+edWDprPpFmNQSTufy0OnE/pQhC92xNtsLnqWVDfoZxiFtpAEvcC7/+KkUrstDwDV/M1SeLECy7LVFrVhs5vUwU4KnGGZ
+ wNPMe4tXVnFU+jl0wKuYsOHJ7Cuozz3/FIm0BZtB3U74UIwhzitCO3SxTmRI7KJ8IlGcpVvNqtsjY3Gker1BwIfleBPvbm+oBjKwM97ip75SiLhsR/j6wuoy
+ FSuLKjGs6uTuwyNBnpk965gvV2ayGJirHEoBuzo3qRK4kJPO50FFGWqbcWHauP12Of9frF5+Uq6vUeXHjagZry7XZKFS7H5XgG5IlIqkKWNVaiwNc7MO1hyj
+ LVjo6Z5G+y/8Rv+pCmMoSJaVlYfFnG5ksHrCQHLCcaG8Rp/bCtrjct65LZc=
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Mar 2, 2021 at 2:18 AM Alexander Sverdlin
-<alexander.sverdlin@gmail.com> wrote:
+Implement the new connector_attach/detach bridge ops. This makes it
+possible to associate a CEC adapter with a drm connector, which helps
+userspace determine which cec device node belongs to which drm connector.
 
-> Currently the naming of the GPIO chips depends on their order in the DT,
-> but also on the kernel version (I've noticed the change from v5.10.x to
-> v5.11). Honor the persistent enumeration in the "aliases" node like other
-> GPIO drivers do.
->
-> Signed-off-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-> ---
-> Yes, I noticed checkpatch "WARNING: DT binding docs and includes should be
-> a separate patch."
-> However, the parts below are tiny and barely make sense separately.
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c     | 27 +++++++++++++++++--------
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c |  9 ++++++---
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h |  7 ++++---
+ 3 files changed, 29 insertions(+), 14 deletions(-)
 
-I've shut it down in the past because the instance ordering is a
-linuxism and the needs are in the Linux userspace somehow.
-It is different from a UART for example, which always need to
-be at the same place on any operating system, hence it has an
-alias.
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+index 35b750cebaeb..c387156a5cbb 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+@@ -482,6 +482,22 @@ static struct edid *hdmi4_bridge_get_edid(struct drm_bridge *bridge,
+ 	return edid;
+ }
+ 
++static void hdmi4_bridge_connector_attach(struct drm_bridge *bridge,
++					  struct drm_connector *conn)
++{
++	struct omap_hdmi *hdmi = drm_bridge_to_hdmi(bridge);
++
++	hdmi4_cec_init(hdmi->pdev, &hdmi->core, &hdmi->wp, conn);
++}
++
++static void hdmi4_bridge_connector_detach(struct drm_bridge *bridge,
++					  struct drm_connector *conn)
++{
++	struct omap_hdmi *hdmi = drm_bridge_to_hdmi(bridge);
++
++	hdmi4_cec_uninit(&hdmi->core);
++}
++
+ static const struct drm_bridge_funcs hdmi4_bridge_funcs = {
+ 	.attach = hdmi4_bridge_attach,
+ 	.mode_set = hdmi4_bridge_mode_set,
+@@ -492,6 +508,8 @@ static const struct drm_bridge_funcs hdmi4_bridge_funcs = {
+ 	.atomic_disable = hdmi4_bridge_disable,
+ 	.hpd_notify = hdmi4_bridge_hpd_notify,
+ 	.get_edid = hdmi4_bridge_get_edid,
++	.connector_attach = hdmi4_bridge_connector_attach,
++	.connector_detach = hdmi4_bridge_connector_detach,
+ };
+ 
+ static void hdmi4_bridge_init(struct omap_hdmi *hdmi)
+@@ -647,14 +665,10 @@ static int hdmi4_bind(struct device *dev, struct device *master, void *data)
+ 	if (r)
+ 		goto err_runtime_put;
+ 
+-	r = hdmi4_cec_init(hdmi->pdev, &hdmi->core, &hdmi->wp);
+-	if (r)
+-		goto err_pll_uninit;
+-
+ 	r = hdmi_audio_register(hdmi);
+ 	if (r) {
+ 		DSSERR("Registering HDMI audio failed\n");
+-		goto err_cec_uninit;
++		goto err_pll_uninit;
+ 	}
+ 
+ 	hdmi->debugfs = dss_debugfs_create_file(dss, "hdmi", hdmi_dump_regs,
+@@ -664,8 +678,6 @@ static int hdmi4_bind(struct device *dev, struct device *master, void *data)
+ 
+ 	return 0;
+ 
+-err_cec_uninit:
+-	hdmi4_cec_uninit(&hdmi->core);
+ err_pll_uninit:
+ 	hdmi_pll_uninit(&hdmi->pll);
+ err_runtime_put:
+@@ -682,7 +694,6 @@ static void hdmi4_unbind(struct device *dev, struct device *master, void *data)
+ 	if (hdmi->audio_pdev)
+ 		platform_device_unregister(hdmi->audio_pdev);
+ 
+-	hdmi4_cec_uninit(&hdmi->core);
+ 	hdmi_pll_uninit(&hdmi->pll);
+ }
+ 
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+index 43592c1cf081..80ec52c9c846 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+@@ -335,10 +335,10 @@ void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
+ }
+ 
+ int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
+-		  struct hdmi_wp_data *wp)
++		   struct hdmi_wp_data *wp, struct drm_connector *conn)
+ {
+-	const u32 caps = CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
+-			 CEC_CAP_PASSTHROUGH | CEC_CAP_RC;
++	const u32 caps = CEC_CAP_DEFAULTS | CEC_CAP_CONNECTOR_INFO;
++	struct cec_connector_info conn_info;
+ 	int ret;
+ 
+ 	core->adap = cec_allocate_adapter(&hdmi_cec_adap_ops, core,
+@@ -346,6 +346,8 @@ int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
+ 	ret = PTR_ERR_OR_ZERO(core->adap);
+ 	if (ret < 0)
+ 		return ret;
++	cec_fill_conn_info_from_drm(&conn_info, conn);
++	cec_s_conn_info(core->adap, &conn_info);
+ 	core->wp = wp;
+ 
+ 	/* Disable clock initially, hdmi_cec_adap_enable() manages it */
+@@ -354,6 +356,7 @@ int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
+ 	ret = cec_register_adapter(core->adap, &pdev->dev);
+ 	if (ret < 0) {
+ 		cec_delete_adapter(core->adap);
++		core->adap = NULL;
+ 		return ret;
+ 	}
+ 	return 0;
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
+index 0292337c97cc..b59a54c3040e 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
+@@ -29,7 +29,7 @@ struct platform_device;
+ void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa);
+ void hdmi4_cec_irq(struct hdmi_core_data *core);
+ int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
+-		  struct hdmi_wp_data *wp);
++		   struct hdmi_wp_data *wp, struct drm_connector *conn);
+ void hdmi4_cec_uninit(struct hdmi_core_data *core);
+ #else
+ static inline void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
+@@ -41,8 +41,9 @@ static inline void hdmi4_cec_irq(struct hdmi_core_data *core)
+ }
+ 
+ static inline int hdmi4_cec_init(struct platform_device *pdev,
+-				struct hdmi_core_data *core,
+-				struct hdmi_wp_data *wp)
++				 struct hdmi_core_data *core,
++				 struct hdmi_wp_data *wp,
++				 struct drm_connector *conn)
+ {
+ 	return 0;
+ }
+-- 
+2.30.1
 
-For kernelspace the instance order should not matter, since
-all resources are obtained from the device tree anyway
-by phandle.
-
-For userspace:
-The way to determine topology in Linux userspace is to use sysfs,
-and combined with the GPIO character device this provides a
-unique ID for each GPIO chip and line on the system.
-
-/sys/bus/gpio/devices/gpiochip0/
-/sys/bus/gpio/devices/gpiochip1/
-
-etc can change, but these appear as PCI, I2C, SPI, platform
-etc nodes as well. On my PC:
-
-/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.5/1-1.5:1.0/gpiochip0
-
-It's pretty clear where that gpiochip sits.
-
-Yours,
-Linus Walleij
