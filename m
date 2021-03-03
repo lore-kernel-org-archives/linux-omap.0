@@ -2,134 +2,103 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAFEBC433DB
-	for <linux-omap@archiver.kernel.org>; Wed,  3 Mar 2021 01:08:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D125C433E6
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Mar 2021 00:03:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7996964E1F
-	for <linux-omap@archiver.kernel.org>; Wed,  3 Mar 2021 01:08:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2DFC64EC0
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Mar 2021 00:03:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234969AbhCCAm5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 2 Mar 2021 19:42:57 -0500
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:55848 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1838142AbhCBJ3P (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2021 04:29:15 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 1229RZbM117601;
-        Tue, 2 Mar 2021 03:27:35 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1614677255;
-        bh=VKa9ZLInAy2XzS1IUg7DGYoE6OxMM/zNE7tI2sgufOA=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=nBxjVUfBlRsYk2MpVi97OJS/jowTlC6jCid6bRscRLGZNrHe9wRt63lIkr+MNtN2/
-         mqpHAEBGhvoT+ATAls/rEJsUrJKGrwFzUwUkHVVPQ772inAhNxvcin5ohos0G17bEg
-         fCGWJqE0kk3NsU8vEwXtP+cQ/zMx7skQSzb/+OpU=
-Received: from DLEE105.ent.ti.com (dlee105.ent.ti.com [157.170.170.35])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 1229RZtZ004151
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 2 Mar 2021 03:27:35 -0600
-Received: from DLEE101.ent.ti.com (157.170.170.31) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3; Tue, 2 Mar
- 2021 03:27:34 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE101.ent.ti.com
- (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1979.3 via
- Frontend Transport; Tue, 2 Mar 2021 03:27:34 -0600
-Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 1229RVZf054243;
-        Tue, 2 Mar 2021 03:27:32 -0600
-Subject: Re: [PATCH] gpio: omap: Honor "aliases" node
-To:     Alexander Sverdlin <alexander.sverdlin@gmail.com>,
-        <linux-omap@vger.kernel.org>
-CC:     Santosh Shilimkar <ssantosh@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>, <linux-gpio@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <20210302011813.2331879-1-alexander.sverdlin@gmail.com>
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-Message-ID: <eb34f303-4d05-4fcd-fb18-e304d06e6e2d@ti.com>
-Date:   Tue, 2 Mar 2021 11:27:25 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S245757AbhCDAAG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:00:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40612 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1842739AbhCCILR (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2021 03:11:17 -0500
+Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [IPv6:2001:4b98:dc2:55:216:3eff:fef7:d647])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 232EFC06121E;
+        Tue,  2 Mar 2021 23:51:36 -0800 (PST)
+Received: from [192.168.1.111] (91-157-208-71.elisa-laajakaista.fi [91.157.208.71])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 421848CA;
+        Wed,  3 Mar 2021 08:47:48 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1614757668;
+        bh=2eUYi8WkyCSR/IvUdJsbthJPtQ8SRxzb0VtzXPk/p90=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=dVcgqk6Fgs4I4LnyK+D2lONMjr5SFZ+SWIgq8d+XqaQVuko4jJblguOh7oAL78fjQ
+         f9VGFYaxjN/93eV1HvVHDNZlDmUyXQTFJ1DGX798vK+BH7gD2uPrR+G7vKWQjHZTwV
+         FKJjBHLWn7p/zWscwc0TJwA2bOHkGiHLs7YTPQp4=
+Subject: Re: [PATCHv2 6/6] drm/omapdrm/dss/hdmi5: add CEC support
+To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        linux-media@vger.kernel.org
+Cc:     Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+References: <20210302162403.983585-1-hverkuil-cisco@xs4all.nl>
+ <20210302162403.983585-7-hverkuil-cisco@xs4all.nl>
+From:   Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+Message-ID: <fe8eefe2-16d0-5d15-8a88-508d71a1f505@ideasonboard.com>
+Date:   Wed, 3 Mar 2021 09:47:47 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.1
 MIME-Version: 1.0
-In-Reply-To: <20210302011813.2331879-1-alexander.sverdlin@gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
+In-Reply-To: <20210302162403.983585-7-hverkuil-cisco@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-
-
-On 02/03/2021 03:18, Alexander Sverdlin wrote:
-> Currently the naming of the GPIO chips depends on their order in the DT,
-> but also on the kernel version (I've noticed the change from v5.10.x to
-> v5.11). Honor the persistent enumeration in the "aliases" node like other
-> GPIO drivers do.
+On 02/03/2021 18:24, Hans Verkuil wrote:
+> Add HDMI CEC support for OMAP5.
 > 
-> Signed-off-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > ---
-> Yes, I noticed checkpatch "WARNING: DT binding docs and includes should be
-> a separate patch."
-> However, the parts below are tiny and barely make sense separately.
-> 
->   Documentation/devicetree/bindings/gpio/gpio-omap.txt | 6 ++++++
->   drivers/gpio/gpio-omap.c                             | 5 +++++
->   2 files changed, 11 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> index e57b2cb28f6c..6050db3fd84e 100644
-> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> @@ -30,9 +30,15 @@ OMAP specific properties:
->   - ti,gpio-always-on: 	Indicates if a GPIO bank is always powered and
->   			so will never lose its logic state.
->   
-> +Note: GPIO ports can have an alias correctly numbered in "aliases" node for
-> +persistent enumeration.
->   
->   Example:
->   
-> +aliases {
-> +	gpio0 = &gpio0;
-> +};
+>   drivers/gpu/drm/omapdrm/Kconfig          |   8 +
+>   drivers/gpu/drm/omapdrm/Makefile         |   1 +
+>   drivers/gpu/drm/omapdrm/dss/hdmi.h       |   1 +
+>   drivers/gpu/drm/omapdrm/dss/hdmi5.c      |  63 +++++--
+>   drivers/gpu/drm/omapdrm/dss/hdmi5_cec.c  | 209 +++++++++++++++++++++++
+>   drivers/gpu/drm/omapdrm/dss/hdmi5_cec.h  |  42 +++++
+>   drivers/gpu/drm/omapdrm/dss/hdmi5_core.c |  35 +++-
+>   drivers/gpu/drm/omapdrm/dss/hdmi5_core.h |  33 +++-
+>   8 files changed, 373 insertions(+), 19 deletions(-)
+>   create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi5_cec.c
+>   create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi5_cec.h
+
+<snip>
+
+> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi5_core.h b/drivers/gpu/drm/omapdrm/dss/hdmi5_core.h
+> index 070cbf5fb57d..a83b634f6011 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/hdmi5_core.h
+> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi5_core.h
+> @@ -30,8 +30,18 @@
+>   #define HDMI_CORE_IH_PHY_STAT0			0x00410
+>   #define HDMI_CORE_IH_I2CM_STAT0			0x00414
+>   #define HDMI_CORE_IH_CEC_STAT0			0x00418
+> +#define CEC_STAT_DONE				BIT(0)
+> +#define CEC_STAT_EOM				BIT(1)
+> +#define CEC_STAT_NACK				BIT(2)
+> +#define CEC_STAT_ARBLOST			BIT(3)
+> +#define CEC_STAT_ERROR_INIT			BIT(4)
+> +#define CEC_STAT_ERROR_FOLL			BIT(5)
+> +#define CEC_STAT_WAKEUP				BIT(6)
 > +
->   gpio0: gpio@44e07000 {
->       compatible = "ti,omap4-gpio";
->       reg = <0x44e07000 0x1000>;
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 41952bb818ad..dd2a8f6d920f 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1014,6 +1014,11 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
->   			bank->chip.parent = &omap_mpuio_device.dev;
->   		bank->chip.base = OMAP_MPUIO(0);
->   	} else {
-> +#ifdef CONFIG_OF_GPIO
-> +		ret = of_alias_get_id(bank->chip.of_node, "gpio");
-> +		if (ret >= 0)
-> +			gpio = ret * bank->width;
-> +#endif
->   		label = devm_kasprintf(bank->chip.parent, GFP_KERNEL, "gpio-%d-%d",
->   				       gpio, gpio + bank->width - 1);
->   		if (!label)
-> 
+>   #define HDMI_CORE_IH_VP_STAT0			0x0041C
+>   #define HDMI_CORE_IH_I2CMPHY_STAT0		0x00420
+> +#define HDMI_CORE_IH_MUTE_I2CM_STAT0            0x00614
 
-You're not the first one, this was not accepted. See [1]
-[1] https://patchwork.kernel.org/project/linux-omap/patch/1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de/
+The line above has indentation in spaces, but everything else uses tabs.
 
+Other than that:
 
--- 
-Best regards,
-grygorii
+Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+
+  Tomi
