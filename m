@@ -2,105 +2,111 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA06EC43333
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Mar 2021 00:03:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97746C4332D
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Mar 2021 07:23:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E73564F77
-	for <linux-omap@archiver.kernel.org>; Thu,  4 Mar 2021 00:03:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5ABE264F0A
+	for <linux-omap@archiver.kernel.org>; Thu,  4 Mar 2021 07:23:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244717AbhCDAAF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:00:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40614 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1842738AbhCCILR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2021 03:11:17 -0500
-Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [IPv6:2001:4b98:dc2:55:216:3eff:fef7:d647])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8A6BC06121D;
-        Tue,  2 Mar 2021 23:49:39 -0800 (PST)
-Received: from [192.168.1.111] (91-157-208-71.elisa-laajakaista.fi [91.157.208.71])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8247CED;
-        Wed,  3 Mar 2021 08:44:57 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1614757498;
-        bh=pgHJQLX6F904nkIj+cn7Uu3xGcm1E0oEGrQESFkz/DE=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=kPsp5/nlPDzmHvW04qUyNZLnyDW864u23vU7iZIB42BDutSOT/YRdY2nM77y6MC60
-         /qEy5LIvxRazzcgxQUsZXzL8s7ACj9cHeM7dyQOkITDL4A6nE18Pm5NtORpizITZ+r
-         RoeoV2CEpK54v9E4+VKDcaPnfWxPE3fbcbC1wY5k=
-Subject: Re: [PATCHv2 5/6] dra7.dtsi/omap5.dtsi: add cec clock
-To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        linux-media@vger.kernel.org
-Cc:     Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-References: <20210302162403.983585-1-hverkuil-cisco@xs4all.nl>
- <20210302162403.983585-6-hverkuil-cisco@xs4all.nl>
-From:   Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Message-ID: <700a6c8b-8448-051e-044c-0390b8a38ae4@ideasonboard.com>
-Date:   Wed, 3 Mar 2021 09:44:56 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.1
+        id S234656AbhCDHWh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 4 Mar 2021 02:22:37 -0500
+Received: from muru.com ([72.249.23.125]:39278 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S236204AbhCDHW0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 4 Mar 2021 02:22:26 -0500
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id D012C810E;
+        Thu,  4 Mar 2021 07:22:23 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Cc:     Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 1/3] clocksource/drivers/timer-ti-dm: Fix posted mode status check order
+Date:   Thu,  4 Mar 2021 09:21:33 +0200
+Message-Id: <20210304072135.52712-2-tony@atomide.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210304072135.52712-1-tony@atomide.com>
+References: <20210304072135.52712-1-tony@atomide.com>
 MIME-Version: 1.0
-In-Reply-To: <20210302162403.983585-6-hverkuil-cisco@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 02/03/2021 18:24, Hans Verkuil wrote:
-> Add cec clock to the dra7 and omap5 device trees.
-> 
-> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
->   arch/arm/boot/dts/dra7.dtsi  | 5 +++--
->   arch/arm/boot/dts/omap5.dtsi | 5 +++--
->   2 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index ce1194744f84..efe579ddb324 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -879,8 +879,9 @@ hdmi: encoder@0 {
->   						interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
->   						status = "disabled";
->   						clocks = <&dss_clkctrl DRA7_DSS_DSS_CORE_CLKCTRL 9>,
-> -							 <&dss_clkctrl DRA7_DSS_DSS_CORE_CLKCTRL 10>;
-> -						clock-names = "fck", "sys_clk";
-> +							 <&dss_clkctrl DRA7_DSS_DSS_CORE_CLKCTRL 10>,
-> +							 <&dss_clkctrl DRA7_DSS_DSS_CORE_CLKCTRL 11>;
-> +						clock-names = "fck", "sys_clk", "cec";
->   						dmas = <&sdma_xbar 76>;
->   						dma-names = "audio_tx";
->   					};
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index e025b7c9a357..6726e1f1b07c 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -586,8 +586,9 @@ hdmi: encoder@0 {
->   						interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
->   						status = "disabled";
->   						clocks = <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 9>,
-> -							 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 10>;
-> -						clock-names = "fck", "sys_clk";
-> +							 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 10>,
-> +							 <&dss_clkctrl OMAP5_DSS_CORE_CLKCTRL 11>;
-> +						clock-names = "fck", "sys_clk", "cec";
->   						dmas = <&sdma 76>;
->   						dma-names = "audio_tx";
->   					};
-> 
+When the timer is configured in posted mode, we need to check the write-
+posted status register (TWPS) before writing to the register.
 
-Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+We now check TWPS after the write starting with commit 52762fbd1c47
+("clocksource/drivers/timer-ti-dm: Add clockevent and clocksource
+support").
 
-  Tomi
+For example, in the TRM for am571x the following is documented in chapter
+"22.2.4.13.1.1 Write Posting Synchronization Mode":
 
+"For each register, a status bit is provided in the timer write-posted
+ status (TWPS) register. In this mode, it is mandatory that software check
+ this status bit before any write access. If a write is attempted to a
+ register with a previous access pending, the previous access is discarded
+ without notice."
+
+The regression happened when I updated the code to use standard read/write
+accessors for the driver instead of using __omap_dm_timer_load_start().
+We have__omap_dm_timer_load_start() check the TWPS status correctly using
+__omap_dm_timer_write().
+
+Fixes: 52762fbd1c47 ("clocksource/drivers/timer-ti-dm: Add clockevent and clocksource support")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/clocksource/timer-ti-dm-systimer.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/clocksource/timer-ti-dm-systimer.c b/drivers/clocksource/timer-ti-dm-systimer.c
+--- a/drivers/clocksource/timer-ti-dm-systimer.c
++++ b/drivers/clocksource/timer-ti-dm-systimer.c
+@@ -449,13 +449,13 @@ static int dmtimer_set_next_event(unsigned long cycles,
+ 	struct dmtimer_systimer *t = &clkevt->t;
+ 	void __iomem *pend = t->base + t->pend;
+ 
+-	writel_relaxed(0xffffffff - cycles, t->base + t->counter);
+ 	while (readl_relaxed(pend) & WP_TCRR)
+ 		cpu_relax();
++	writel_relaxed(0xffffffff - cycles, t->base + t->counter);
+ 
+-	writel_relaxed(OMAP_TIMER_CTRL_ST, t->base + t->ctrl);
+ 	while (readl_relaxed(pend) & WP_TCLR)
+ 		cpu_relax();
++	writel_relaxed(OMAP_TIMER_CTRL_ST, t->base + t->ctrl);
+ 
+ 	return 0;
+ }
+@@ -490,18 +490,18 @@ static int dmtimer_set_periodic(struct clock_event_device *evt)
+ 	dmtimer_clockevent_shutdown(evt);
+ 
+ 	/* Looks like we need to first set the load value separately */
+-	writel_relaxed(clkevt->period, t->base + t->load);
+ 	while (readl_relaxed(pend) & WP_TLDR)
+ 		cpu_relax();
++	writel_relaxed(clkevt->period, t->base + t->load);
+ 
+-	writel_relaxed(clkevt->period, t->base + t->counter);
+ 	while (readl_relaxed(pend) & WP_TCRR)
+ 		cpu_relax();
++	writel_relaxed(clkevt->period, t->base + t->counter);
+ 
+-	writel_relaxed(OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
+-		       t->base + t->ctrl);
+ 	while (readl_relaxed(pend) & WP_TCLR)
+ 		cpu_relax();
++	writel_relaxed(OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
++		       t->base + t->ctrl);
+ 
+ 	return 0;
+ }
+-- 
+2.30.1
