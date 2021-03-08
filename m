@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4BECC43333
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:39:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C266C432C3
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:39:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84AC465100
+	by mail.kernel.org (Postfix) with ESMTP id D61B4651C2
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:39:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229704AbhCHNjZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 08:39:25 -0500
-Received: from muru.com ([72.249.23.125]:40864 "EHLO muru.com"
+        id S230111AbhCHNj2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 08:39:28 -0500
+Received: from muru.com ([72.249.23.125]:40876 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230476AbhCHNjR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 08:39:17 -0500
+        id S230511AbhCHNjU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 08:39:20 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 21DF280D4;
-        Mon,  8 Mar 2021 13:39:58 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 674A68117;
+        Mon,  8 Mar 2021 13:40:02 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org
-Subject: [PATCH 04/12] ARM: dts: Configure interconnect target module for omap4 emif
-Date:   Mon,  8 Mar 2021 15:39:02 +0200
-Message-Id: <20210308133910.12454-5-tony@atomide.com>
+Subject: [PATCH 07/12] ARM: dts: Move omap4 mmio-sram out of l3 interconnect
+Date:   Mon,  8 Mar 2021 15:39:05 +0200
+Message-Id: <20210308133910.12454-8-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308133910.12454-1-tony@atomide.com>
 References: <20210308133910.12454-1-tony@atomide.com>
@@ -38,88 +38,51 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with device tree only configuration using
-ti-sysc interconnect target module driver. Let's configure the
-module, but keep the legacy "ti,hwmods" property to avoid new boot
-time warnings. The legacy property will be removed in later patches
-together with the legacy platform data.
+We need mmio-sram early for omap4_sram_init() for IO barrier init, and
+will be moving l3 interconnect to probe with simple-pm-bus that probes
+at module_init() time. So let's move mmio-sram out of l3 to prepare for
+that.
+
+Otherwise we will get the following after probing the interconnects with
+simple-pm-bus:
+
+omap4_sram_init:Unable to get sram pool needed to handle errata I688
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap4.dtsi | 58 +++++++++++++++++++++++++-----------
- 1 file changed, 40 insertions(+), 18 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -282,28 +282,50 @@ dmm@0 {
- 			};
+@@ -58,6 +58,15 @@ cpu@1 {
  		};
+ 	};
  
--		emif1: emif@4c000000 {
--			compatible = "ti,emif-4d";
--			reg = <0x4c000000 0x100>;
--			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
-+		target-module@4c000000 {
-+			compatible = "ti,sysc-omap4-simple", "ti,sysc";
- 			ti,hwmods = "emif1";
--			ti,no-idle-on-init;
--			phy-type = <1>;
--			hw-caps-read-idle-ctrl;
--			hw-caps-ll-interface;
--			hw-caps-temp-alert;
-+			reg = <0x4c000000 0x4>;
-+			reg-names = "rev";
-+			clocks = <&l3_emif_clkctrl OMAP4_EMIF1_CLKCTRL 0>;
-+			clock-names = "fck";
-+			ti,no-idle;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x4c000000 0x1000000>;
++	/*
++	 * Needed early by omap4_sram_init() for barrier, do not move to l3
++	 * interconnect as simple-pm-bus probes at module_init() time.
++	 */
++	ocmcram: sram@40304000 {
++		compatible = "mmio-sram";
++		reg = <0x40304000 0xa000>; /* 40k */
++	};
 +
-+			emif1: emif@0 {
-+				compatible = "ti,emif-4d";
-+				reg = <0 0x100>;
-+				interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
-+				phy-type = <1>;
-+				hw-caps-read-idle-ctrl;
-+				hw-caps-ll-interface;
-+				hw-caps-temp-alert;
-+			};
+ 	gic: interrupt-controller@48241000 {
+ 		compatible = "arm,cortex-a9-gic";
+ 		interrupt-controller;
+@@ -136,11 +145,6 @@ mpu {
+ 		l4_abe: interconnect@40100000 {
  		};
  
--		emif2: emif@4d000000 {
--			compatible = "ti,emif-4d";
--			reg = <0x4d000000 0x100>;
--			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
-+		target-module@4d000000 {
-+			compatible = "ti,sysc-omap4-simple", "ti,sysc";
- 			ti,hwmods = "emif2";
--			ti,no-idle-on-init;
--			phy-type = <1>;
--			hw-caps-read-idle-ctrl;
--			hw-caps-ll-interface;
--			hw-caps-temp-alert;
-+			reg = <0x4d000000 0x4>;
-+			reg-names = "rev";
-+			clocks = <&l3_emif_clkctrl OMAP4_EMIF2_CLKCTRL 0>;
-+			clock-names = "fck";
-+			ti,no-idle;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x0 0x4d000000 0x1000000>;
-+
-+			emif2: emif@0 {
-+				compatible = "ti,emif-4d";
-+				reg = <0 0x100>;
-+				interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
-+				phy-type = <1>;
-+				hw-caps-read-idle-ctrl;
-+				hw-caps-ll-interface;
-+				hw-caps-temp-alert;
-+			};
- 		};
- 
- 		dsp: dsp {
+-		ocmcram: sram@40304000 {
+-			compatible = "mmio-sram";
+-			reg = <0x40304000 0xa000>; /* 40k */
+-		};
+-
+ 		target-module@50000000 {
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+ 			reg = <0x50000000 4>,
 -- 
 2.30.1
