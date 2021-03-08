@@ -7,27 +7,27 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF96C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EF6AC433E9
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:47:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB72E651CD
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:47:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F25D651D3
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:47:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229697AbhCHNq4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 08:46:56 -0500
-Received: from muru.com ([72.249.23.125]:40920 "EHLO muru.com"
+        id S229637AbhCHNqz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 08:46:55 -0500
+Received: from muru.com ([72.249.23.125]:40912 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229646AbhCHNqg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 08:46:36 -0500
+        id S229573AbhCHNqe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 08:46:34 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 773198199;
-        Mon,  8 Mar 2021 13:47:18 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 760A18117;
+        Mon,  8 Mar 2021 13:47:16 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 03/11] ARM: OMAP2+: Drop legacy platform data for omap4 dmm
-Date:   Mon,  8 Mar 2021 15:46:19 +0200
-Message-Id: <20210308134627.13056-4-tony@atomide.com>
+Subject: [PATCH 01/11] ARM: OMAP2+: Drop legacy platform data for omap4 iss
+Date:   Mon,  8 Mar 2021 15:46:17 +0200
+Message-Id: <20210308134627.13056-2-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308134627.13056-1-tony@atomide.com>
 References: <20210308134627.13056-1-tony@atomide.com>
@@ -37,92 +37,133 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with ti-sysc interconnect driver and dts data.
-Let's drop the related platform data and custom ti,hwmods dts property.
-
-As we're just dropping data, and the early platform data init is based on
-the custom ti,hwmods property, we want to drop both the platform data and
-ti,hwmods property in a single patch.
+We can now probe devices with ti-sysc interconnect driver and dts
+data. Let's drop the related platform data and custom ti,hwmods
+dts property.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
  arch/arm/boot/dts/omap4.dtsi               |  1 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 39 ----------------------
- 2 files changed, 40 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 69 ----------------------
+ 2 files changed, 70 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -287,7 +287,6 @@ target-module@4012c000 {
+@@ -192,7 +192,6 @@ gpmc: gpmc@50000000 {
  
- 		target-module@4e000000 {
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "dmm";
- 			reg = <0x4e000000 0x4>,
- 			      <0x4e000010 0x4>;
+ 		target-module@52000000 {
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+-			ti,hwmods = "iss";
+ 			reg = <0x52000000 0x4>,
+ 			      <0x52000010 0x4>;
  			reg-names = "rev", "sysc";
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -33,27 +33,6 @@
-  * IP blocks
-  */
+@@ -353,57 +353,6 @@ static struct omap_hwmod omap44xx_emif2_hwmod = {
+ 	},
+ };
  
 -/*
-- * 'dmm' class
-- * instance(s): dmm
+- * 'iss' class
+- * external images sensor pixel data processor
 - */
--static struct omap_hwmod_class omap44xx_dmm_hwmod_class = {
--	.name	= "dmm",
+-
+-static struct omap_hwmod_class_sysconfig omap44xx_iss_sysc = {
+-	.rev_offs	= 0x0000,
+-	.sysc_offs	= 0x0010,
+-	/*
+-	 * ISS needs 100 OCP clk cycles delay after a softreset before
+-	 * accessing sysconfig again.
+-	 * The lowest frequency at the moment for L3 bus is 100 MHz, so
+-	 * 1usec delay is needed. Add an x2 margin to be safe (2 usecs).
+-	 *
+-	 * TODO: Indicate errata when available.
+-	 */
+-	.srst_udelay	= 2,
+-	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
+-			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
+-			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
+-	.sysc_fields	= &omap_hwmod_sysc_type2,
 -};
 -
--/* dmm */
--static struct omap_hwmod omap44xx_dmm_hwmod = {
--	.name		= "dmm",
--	.class		= &omap44xx_dmm_hwmod_class,
--	.clkdm_name	= "l3_emif_clkdm",
+-static struct omap_hwmod_class omap44xx_iss_hwmod_class = {
+-	.name	= "iss",
+-	.sysc	= &omap44xx_iss_sysc,
+-};
+-
+-/* iss */
+-static struct omap_hwmod_opt_clk iss_opt_clks[] = {
+-	{ .role = "ctrlclk", .clk = "iss_ctrlclk" },
+-};
+-
+-static struct omap_hwmod omap44xx_iss_hwmod = {
+-	.name		= "iss",
+-	.class		= &omap44xx_iss_hwmod_class,
+-	.clkdm_name	= "iss_clkdm",
+-	.main_clk	= "ducati_clk_mux_ck",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs = OMAP4_CM_MEMIF_DMM_CLKCTRL_OFFSET,
--			.context_offs = OMAP4_RM_MEMIF_DMM_CONTEXT_OFFSET,
+-			.clkctrl_offs = OMAP4_CM_CAM_ISS_CLKCTRL_OFFSET,
+-			.context_offs = OMAP4_RM_CAM_ISS_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
 -		},
 -	},
+-	.opt_clks	= iss_opt_clks,
+-	.opt_clks_cnt	= ARRAY_SIZE(iss_opt_clks),
 -};
 -
  /*
-  * 'l3' class
-  * instance(s): l3_instr, l3_main_1, l3_main_2, l3_main_3
-@@ -440,22 +419,6 @@ static struct omap_hwmod omap44xx_sl2if_hwmod = {
-  * interfaces
-  */
- 
--/* l3_main_1 -> dmm */
--static struct omap_hwmod_ocp_if omap44xx_l3_main_1__dmm = {
--	.master		= &omap44xx_l3_main_1_hwmod,
--	.slave		= &omap44xx_dmm_hwmod,
--	.clk		= "l3_div_ck",
--	.user		= OCP_USER_SDMA,
--};
--
--/* mpu -> dmm */
--static struct omap_hwmod_ocp_if omap44xx_mpu__dmm = {
--	.master		= &omap44xx_mpu_hwmod,
--	.slave		= &omap44xx_dmm_hwmod,
--	.clk		= "l3_div_ck",
--	.user		= OCP_USER_MPU,
--};
--
- /* l3_main_3 -> l3_instr */
- static struct omap_hwmod_ocp_if omap44xx_l3_main_3__l3_instr = {
- 	.master		= &omap44xx_l3_main_3_hwmod,
-@@ -665,8 +628,6 @@ static struct omap_hwmod_ocp_if omap44xx_mpu__emif2 = {
+  * 'mpu' class
+  * mpu sub-system
+@@ -623,14 +572,6 @@ static struct omap_hwmod_ocp_if omap44xx_debugss__l3_main_2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
- static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
--	&omap44xx_l3_main_1__dmm,
--	&omap44xx_mpu__dmm,
- 	&omap44xx_l3_main_3__l3_instr,
- 	&omap44xx_ocp_wp_noc__l3_instr,
- 	&omap44xx_l3_main_2__l3_main_1,
+-/* iss -> l3_main_2 */
+-static struct omap_hwmod_ocp_if omap44xx_iss__l3_main_2 = {
+-	.master		= &omap44xx_iss_hwmod,
+-	.slave		= &omap44xx_l3_main_2_hwmod,
+-	.clk		= "l3_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main_1 -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_2 = {
+ 	.master		= &omap44xx_l3_main_1_hwmod,
+@@ -751,14 +692,6 @@ static struct omap_hwmod_ocp_if omap44xx_l3_instr__debugss = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l3_main_2 -> iss */
+-static struct omap_hwmod_ocp_if omap44xx_l3_main_2__iss = {
+-	.master		= &omap44xx_l3_main_2_hwmod,
+-	.slave		= &omap44xx_iss_hwmod,
+-	.clk		= "l3_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main_2 -> ocmc_ram */
+ static struct omap_hwmod_ocp_if omap44xx_l3_main_2__ocmc_ram = {
+ 	.master		= &omap44xx_l3_main_2_hwmod,
+@@ -840,7 +773,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_l4_cfg__l3_main_1,
+ 	&omap44xx_mpu__l3_main_1,
+ 	&omap44xx_debugss__l3_main_2,
+-	&omap44xx_iss__l3_main_2,
+ 	&omap44xx_l3_main_1__l3_main_2,
+ 	&omap44xx_l4_cfg__l3_main_2,
+ 	&omap44xx_l3_main_1__l3_main_3,
+@@ -856,7 +788,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap44xx_l4_wkup__ctrl_module_wkup,
+ 	&omap44xx_l4_wkup__ctrl_module_pad_wkup,
+ 	&omap44xx_l3_instr__debugss,
+-	&omap44xx_l3_main_2__iss,
+ 	&omap44xx_l3_main_2__ocmc_ram,
+ 	&omap44xx_mpu_private__prcm_mpu,
+ 	&omap44xx_l4_wkup__cm_core_aon,
 -- 
 2.30.1
