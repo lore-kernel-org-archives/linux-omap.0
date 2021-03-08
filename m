@@ -2,32 +2,32 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 686F7C4332D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 769AAC43331
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:20:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F66F652F7
+	by mail.kernel.org (Postfix) with ESMTP id 5DC58652F0
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:20:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231740AbhCHPTe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S231744AbhCHPTe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 8 Mar 2021 10:19:34 -0500
-Received: from muru.com ([72.249.23.125]:41050 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:41046 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231784AbhCHPT2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S231761AbhCHPT2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Mon, 8 Mar 2021 10:19:28 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 053F3819C;
-        Mon,  8 Mar 2021 15:20:10 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 1E1A08199;
+        Mon,  8 Mar 2021 15:20:09 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 4/9] ARM: OMAP2+: Drop legacy platform data for omap5 sata
-Date:   Mon,  8 Mar 2021 17:19:06 +0200
-Message-Id: <20210308151911.43203-5-tony@atomide.com>
+Subject: [PATCH 3/9] ARM: OMAP2+: Drop legacy platform data for omap5 mpu
+Date:   Mon,  8 Mar 2021 17:19:05 +0200
+Message-Id: <20210308151911.43203-4-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308151911.43203-1-tony@atomide.com>
 References: <20210308151911.43203-1-tony@atomide.com>
@@ -46,71 +46,114 @@ ti,hwmods property in a single patch.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 46 ----------------------
- 1 file changed, 46 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 71 ----------------------
+ 1 file changed, 71 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
 --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -139,51 +139,6 @@ static struct omap_hwmod omap54xx_l4_wkup_hwmod = {
+@@ -139,50 +139,6 @@ static struct omap_hwmod omap54xx_l4_wkup_hwmod = {
  	},
  };
  
 -/*
-- * 'sata' class
-- * sata:  serial ata interface  gen2 compliant   ( 1 rx/ 1 tx)
+- * 'mpu_bus' class
+- * instance(s): mpu_private
 - */
--
--static struct omap_hwmod_class_sysconfig omap54xx_sata_sysc = {
--	.rev_offs	= 0x00fc,
--	.sysc_offs	= 0x0000,
--	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
--			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type2,
+-static struct omap_hwmod_class omap54xx_mpu_bus_hwmod_class = {
+-	.name	= "mpu_bus",
 -};
 -
--static struct omap_hwmod_class omap54xx_sata_hwmod_class = {
--	.name	= "sata",
--	.sysc	= &omap54xx_sata_sysc,
--};
--
--/* sata */
--static struct omap_hwmod omap54xx_sata_hwmod = {
--	.name		= "sata",
--	.class		= &omap54xx_sata_hwmod_class,
--	.clkdm_name	= "l3init_clkdm",
--	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
--	.main_clk	= "func_48m_fclk",
--	.mpu_rt_idx	= 1,
+-/* mpu_private */
+-static struct omap_hwmod omap54xx_mpu_private_hwmod = {
+-	.name		= "mpu_private",
+-	.class		= &omap54xx_mpu_bus_hwmod_class,
+-	.clkdm_name	= "mpu_clkdm",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
--			.context_offs = OMAP54XX_RM_L3INIT_SATA_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
+-			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
 -		},
 -	},
 -};
 -
--/* l4_cfg -> sata */
--static struct omap_hwmod_ocp_if omap54xx_l4_cfg__sata = {
--	.master		= &omap54xx_l4_cfg_hwmod,
--	.slave		= &omap54xx_sata_hwmod,
+-/*
+- * 'mpu' class
+- * mpu sub-system
+- */
+-
+-static struct omap_hwmod_class omap54xx_mpu_hwmod_class = {
+-	.name	= "mpu",
+-};
+-
+-/* mpu */
+-static struct omap_hwmod omap54xx_mpu_hwmod = {
+-	.name		= "mpu",
+-	.class		= &omap54xx_mpu_hwmod_class,
+-	.clkdm_name	= "mpu_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE,
+-	.main_clk	= "dpll_mpu_m2_ck",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_MPU_MPU_CLKCTRL_OFFSET,
+-			.context_offs = OMAP54XX_RM_MPU_MPU_CONTEXT_OFFSET,
+-		},
+-	},
+-};
+-
+ /*
+  * 'sata' class
+  * sata:  serial ata interface  gen2 compliant   ( 1 rx/ 1 tx)
+@@ -256,14 +212,6 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__l3_main_1 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* mpu -> l3_main_1 */
+-static struct omap_hwmod_ocp_if omap54xx_mpu__l3_main_1 = {
+-	.master		= &omap54xx_mpu_hwmod,
+-	.slave		= &omap54xx_l3_main_1_hwmod,
+-	.clk		= "l3_iclk_div",
+-	.user		= OCP_USER_MPU,
+-};
+-
+ /* l3_main_1 -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap54xx_l3_main_1__l3_main_2 = {
+ 	.master		= &omap54xx_l3_main_1_hwmod,
+@@ -328,27 +276,10 @@ static struct omap_hwmod_ocp_if omap54xx_l3_main_1__l4_wkup = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* mpu -> mpu_private */
+-static struct omap_hwmod_ocp_if omap54xx_mpu__mpu_private = {
+-	.master		= &omap54xx_mpu_hwmod,
+-	.slave		= &omap54xx_mpu_private_hwmod,
 -	.clk		= "l3_iclk_div",
 -	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
- /*
-  * Interfaces
-  */
-@@ -288,7 +243,6 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
+-/* l4_cfg -> mpu */
+-static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
+-	.master		= &omap54xx_l4_cfg_hwmod,
+-	.slave		= &omap54xx_mpu_hwmod,
+-	.clk		= "l4_root_clk_div",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap54xx_l3_main_3__l3_instr,
+ 	&omap54xx_l3_main_2__l3_main_1,
+ 	&omap54xx_l4_cfg__l3_main_1,
+-	&omap54xx_mpu__l3_main_1,
+ 	&omap54xx_l3_main_1__l3_main_2,
+ 	&omap54xx_l4_cfg__l3_main_2,
+ 	&omap54xx_l3_main_1__l3_main_3,
+@@ -357,8 +288,6 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
  	&omap54xx_l3_main_1__l4_cfg,
  	&omap54xx_l3_main_2__l4_per,
  	&omap54xx_l3_main_1__l4_wkup,
--	&omap54xx_l4_cfg__sata,
+-	&omap54xx_mpu__mpu_private,
+-	&omap54xx_l4_cfg__mpu,
+ 	&omap54xx_l4_cfg__sata,
  	NULL,
  };
- 
 -- 
 2.30.1
