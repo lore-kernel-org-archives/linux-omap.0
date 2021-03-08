@@ -2,32 +2,32 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E434C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 686F7C4332D
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:20:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F362652F6
+	by mail.kernel.org (Postfix) with ESMTP id 4F66F652F7
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:20:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231397AbhCHPTd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 10:19:33 -0500
-Received: from muru.com ([72.249.23.125]:41038 "EHLO muru.com"
+        id S231740AbhCHPTe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 10:19:34 -0500
+Received: from muru.com ([72.249.23.125]:41050 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231308AbhCHPT0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 10:19:26 -0500
+        id S231784AbhCHPT2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 10:19:28 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 6124C8117;
-        Mon,  8 Mar 2021 15:20:08 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 053F3819C;
+        Mon,  8 Mar 2021 15:20:10 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 1/9] ARM: OMAP2+: Drop legacy platform data for omap5 dmm
-Date:   Mon,  8 Mar 2021 17:19:03 +0200
-Message-Id: <20210308151911.43203-2-tony@atomide.com>
+Subject: [PATCH 4/9] ARM: OMAP2+: Drop legacy platform data for omap5 sata
+Date:   Mon,  8 Mar 2021 17:19:06 +0200
+Message-Id: <20210308151911.43203-5-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308151911.43203-1-tony@atomide.com>
 References: <20210308151911.43203-1-tony@atomide.com>
@@ -46,74 +46,71 @@ ti,hwmods property in a single patch.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap5.dtsi               |  1 -
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 30 ----------------------
- 2 files changed, 31 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 46 ----------------------
+ 1 file changed, 46 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -279,7 +279,6 @@ ipu: ipu@55020000 {
- 
- 		target-module@4e000000 {
- 			compatible = "ti,sysc-omap2", "ti,sysc";
--			ti,hwmods = "dmm";
- 			reg = <0x4e000000 0x4>,
- 			      <0x4e000010 0x4>;
- 			reg-names = "rev", "sysc";
 diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
 --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -30,27 +30,6 @@
-  * IP blocks
-  */
+@@ -139,51 +139,6 @@ static struct omap_hwmod omap54xx_l4_wkup_hwmod = {
+ 	},
+ };
  
 -/*
-- * 'dmm' class
-- * instance(s): dmm
+- * 'sata' class
+- * sata:  serial ata interface  gen2 compliant   ( 1 rx/ 1 tx)
 - */
--static struct omap_hwmod_class omap54xx_dmm_hwmod_class = {
--	.name	= "dmm",
+-
+-static struct omap_hwmod_class_sysconfig omap54xx_sata_sysc = {
+-	.rev_offs	= 0x00fc,
+-	.sysc_offs	= 0x0000,
+-	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
+-			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
+-	.sysc_fields	= &omap_hwmod_sysc_type2,
 -};
 -
--/* dmm */
--static struct omap_hwmod omap54xx_dmm_hwmod = {
--	.name		= "dmm",
--	.class		= &omap54xx_dmm_hwmod_class,
--	.clkdm_name	= "emif_clkdm",
+-static struct omap_hwmod_class omap54xx_sata_hwmod_class = {
+-	.name	= "sata",
+-	.sysc	= &omap54xx_sata_sysc,
+-};
+-
+-/* sata */
+-static struct omap_hwmod omap54xx_sata_hwmod = {
+-	.name		= "sata",
+-	.class		= &omap54xx_sata_hwmod_class,
+-	.clkdm_name	= "l3init_clkdm",
+-	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+-	.main_clk	= "func_48m_fclk",
+-	.mpu_rt_idx	= 1,
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_EMIF_DMM_CLKCTRL_OFFSET,
--			.context_offs = OMAP54XX_RM_EMIF_DMM_CONTEXT_OFFSET,
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
+-			.context_offs = OMAP54XX_RM_L3INIT_SATA_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
 -		},
 -	},
 -};
 -
- /*
-  * 'l3' class
-  * instance(s): l3_instr, l3_main_1, l3_main_2, l3_main_3
-@@ -302,14 +281,6 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__sata = {
-  * Interfaces
-  */
- 
--/* l3_main_1 -> dmm */
--static struct omap_hwmod_ocp_if omap54xx_l3_main_1__dmm = {
--	.master		= &omap54xx_l3_main_1_hwmod,
--	.slave		= &omap54xx_dmm_hwmod,
+-/* l4_cfg -> sata */
+-static struct omap_hwmod_ocp_if omap54xx_l4_cfg__sata = {
+-	.master		= &omap54xx_l4_cfg_hwmod,
+-	.slave		= &omap54xx_sata_hwmod,
 -	.clk		= "l3_iclk_div",
--	.user		= OCP_USER_SDMA,
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
- /* l3_main_3 -> l3_instr */
- static struct omap_hwmod_ocp_if omap54xx_l3_main_3__l3_instr = {
- 	.master		= &omap54xx_l3_main_3_hwmod,
-@@ -439,7 +410,6 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
+ /*
+  * Interfaces
+  */
+@@ -288,7 +243,6 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap54xx_l3_main_1__l4_cfg,
+ 	&omap54xx_l3_main_2__l4_per,
+ 	&omap54xx_l3_main_1__l4_wkup,
+-	&omap54xx_l4_cfg__sata,
+ 	NULL,
  };
  
- static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
--	&omap54xx_l3_main_1__dmm,
- 	&omap54xx_l3_main_3__l3_instr,
- 	&omap54xx_l3_main_2__l3_main_1,
- 	&omap54xx_l4_cfg__l3_main_1,
 -- 
 2.30.1
