@@ -2,112 +2,66 @@ Return-Path: <SRS0=g0hO=IG=vger.kernel.org=linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22281C433E6
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 12:52:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01EE6C43381
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:39:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C68A6651FC
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 12:52:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB4D86513A
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:39:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229790AbhCHMvd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 07:51:33 -0500
-Received: from muru.com ([72.249.23.125]:40832 "EHLO muru.com"
+        id S229797AbhCHNjY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 08:39:24 -0500
+Received: from muru.com ([72.249.23.125]:40860 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229754AbhCHMvZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 07:51:25 -0500
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 93F7A80D4;
-        Mon,  8 Mar 2021 12:52:05 +0000 (UTC)
-Date:   Mon, 8 Mar 2021 14:51:20 +0200
+        id S230439AbhCHNjQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 08:39:16 -0500
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 1E45B8117;
+        Mon,  8 Mar 2021 13:39:57 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
-Cc:     =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        linux-pci@vger.kernel.org
-Subject: Re: [PATCH 09/15] ARM: dts: Configure interconnect target module for
- dra7 dmm
-Message-ID: <YEYdyFShtqq1uXes@atomide.com>
-References: <20210126124004.52550-1-tony@atomide.com>
- <20210126124004.52550-10-tony@atomide.com>
+Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCH 03/12] ARM: dts: Configure interconnect target module for omap4 dmm
+Date:   Mon,  8 Mar 2021 15:39:01 +0200
+Message-Id: <20210308133910.12454-4-tony@atomide.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210308133910.12454-1-tony@atomide.com>
+References: <20210308133910.12454-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210126124004.52550-10-tony@atomide.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [210126 12:43]:
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-...
-
-> +		target-module@4e000000 {
-> +			compatible = "ti,sysc-omap2", "ti,sysc";
->  			ti,hwmods = "dmm";
-> +			reg = <0x4e000000 0x4>,
-> +			      <0x4e000010 0x4>;
-> +			reg-names = "rev", "sysc";
-> +			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-> +					<SYSC_IDLE_NO>,
-> +					<SYSC_IDLE_SMART>;
-> +			ranges = <0x0 0x4e000000 0x2000000>;
-> +			#size-cells = <1>;
-> +			#address-cells = <1>;
-> +
-> +			dmm@0 {
-> +				compatible = "ti,omap5-dmm";
-> +				reg = <0x4e000000 0x800>;
-> +				interrupts = <GIC_SPI 108 IRQ_TYPE_LEVEL_HIGH>;
-> +			};
->  		};
-
-
-The dmm@0 reg property above should be zero instead of 0x4e000000 now that
-we're using ranges. Looks like I did not test with omapdrm loaded earlier,
-updated patch below.
-
-Regards,
-
-Tony
-
-8< ---------------------------
-From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 8 Mar 2021 14:22:49 +0200
-Subject: [PATCH] ARM: dts: Configure interconnect target module for dra7
- dmm
-
 We can now probe devices with device tree only configuration using
 ti-sysc interconnect target module driver. Let's configure the
-module, but keep the legacy "ti,hwmods" peroperty to avoid new boot
+module, but keep the legacy "ti,hwmods" property to avoid new boot
 time warnings. The legacy property will be removed in later patches
 together with the legacy platform data.
 
-Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+Let's also use GIC_SPI and IRQ_TYPE_LEVEL_HIGH defines while at it.
+
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 21 +++++++++++++++++----
+ arch/arm/boot/dts/omap4.dtsi | 21 +++++++++++++++++----
  1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -464,11 +464,24 @@ edma_tptc1: dma@0 {
- 			};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -262,11 +262,24 @@ target-module@4012c000 {
+ 			/* No child device binding or driver in mainline */
  		};
  
 -		dmm@4e000000 {
--			compatible = "ti,omap5-dmm";
+-			compatible = "ti,omap4-dmm";
 -			reg = <0x4e000000 0x800>;
--			interrupts = <GIC_SPI 108 IRQ_TYPE_LEVEL_HIGH>;
+-			interrupts = <0 113 0x4>;
 +		target-module@4e000000 {
 +			compatible = "ti,sysc-omap2", "ti,sysc";
  			ti,hwmods = "dmm";
@@ -122,12 +76,12 @@ diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
 +			#address-cells = <1>;
 +
 +			dmm@0 {
-+				compatible = "ti,omap5-dmm";
++				compatible = "ti,omap4-dmm";
 +				reg = <0 0x800>;
-+				interrupts = <GIC_SPI 108 IRQ_TYPE_LEVEL_HIGH>;
++				interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
 +			};
  		};
  
- 		ipu1: ipu@58820000 {
+ 		emif1: emif@4c000000 {
 -- 
 2.30.1
