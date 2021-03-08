@@ -2,121 +2,71 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C3F2C433E0
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:13:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D011C433DB
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:20:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 446A765222
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:13:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8118652EB
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:20:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229704AbhCHPMc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 10:12:32 -0500
-Received: from muru.com ([72.249.23.125]:41020 "EHLO muru.com"
+        id S229813AbhCHPTc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 10:19:32 -0500
+Received: from muru.com ([72.249.23.125]:41032 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229972AbhCHPMA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 10:12:00 -0500
+        id S231303AbhCHPTZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 10:19:25 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 2523A80D4;
-        Mon,  8 Mar 2021 15:12:40 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 63E5B80D4;
+        Mon,  8 Mar 2021 15:20:07 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
-Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCH 10/11] ARM: dts: Configure simple-pm-bus for omap5 l4_cfg
-Date:   Mon,  8 Mar 2021 17:11:42 +0200
-Message-Id: <20210308151143.27793-11-tony@atomide.com>
+Cc:     linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 0/9] Drop legacy data for omap5
+Date:   Mon,  8 Mar 2021 17:19:02 +0200
+Message-Id: <20210308151911.43203-1-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210308151143.27793-1-tony@atomide.com>
-References: <20210308151143.27793-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe interconnects with device tree only configuration using
-simple-pm-bus and genpd.
+Hi all,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap5-l4.dtsi | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+Here are the changes to drop legacy data for omap5 as we can now boot with
+devicetree data using genpd and simple-pm-bus.
 
-diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
---- a/arch/arm/boot/dts/omap5-l4.dtsi
-+++ b/arch/arm/boot/dts/omap5-l4.dtsi
-@@ -1,5 +1,8 @@
- &l4_cfg {						/* 0x4a000000 */
--	compatible = "ti,omap5-l4-cfg", "simple-bus";
-+	compatible = "ti,omap5-l4-cfg", "simple-pm-bus";
-+	power-domains = <&prm_core>;
-+	clocks = <&l4cfg_clkctrl OMAP5_L4_CFG_CLKCTRL 0>;
-+	clock-names = "fck";
- 	reg = <0x4a000000 0x800>,
- 	      <0x4a000800 0x800>,
- 	      <0x4a001000 0x1000>;
-@@ -15,7 +18,7 @@ &l4_cfg {						/* 0x4a000000 */
- 		 <0x00300000 0x4a300000 0x080000>;	/* segment 6 */
- 
- 	segment@0 {					/* 0x4a000000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges = <0x00000000 0x00000000 0x000800>,	/* ap 0 */
-@@ -391,7 +394,7 @@ target-module@75000 {			/* 0x4a075000, ap 81 32.0 */
- 	};
- 
- 	segment@80000 {					/* 0x4a080000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges = <0x00059000 0x000d9000 0x001000>,	/* ap 13 */
-@@ -654,7 +657,7 @@ hwspinlock: spinlock@0 {
- 	};
- 
- 	segment@100000 {					/* 0x4a100000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges = <0x00002000 0x00102000 0x001000>,	/* ap 59 */
-@@ -722,13 +725,13 @@ sata: sata@0 {
- 	};
- 
- 	segment@180000 {					/* 0x4a180000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 	};
- 
- 	segment@200000 {					/* 0x4a200000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges = <0x0001e000 0x0021e000 0x001000>,	/* ap 29 */
-@@ -934,13 +937,13 @@ target-module@2a000 {			/* 0x4a22a000, ap 55 5a.0 */
- 	};
- 
- 	segment@280000 {					/* 0x4a280000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 	};
- 
- 	segment@300000 {					/* 0x4a300000 */
--		compatible = "simple-bus";
-+		compatible = "simple-pm-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 	};
+These patches are against v5.12-rc2, and depend on the following series of
+patches:
+
+[PATCH 00/11] Update omap5 dts files to probe with genpd
+
+Regards,
+
+Tony
+
+Tony Lindgren (9):
+  ARM: OMAP2+: Drop legacy platform data for omap5 dmm
+  ARM: OMAP2+: Drop legacy platform data for omap5 emif
+  ARM: OMAP2+: Drop legacy platform data for omap5 mpu
+  ARM: OMAP2+: Drop legacy platform data for omap5 sata
+  ARM: OMAP2+: Drop legacy platform data for omap5 l4_wkup
+  ARM: OMAP2+: Drop legacy platform data for omap5 l4_per
+  ARM: OMAP2+: Drop legacy platform data for omap5 l4_cfg
+  ARM: OMAP2+: Drop legacy platform data for omap5 l3
+  ARM: OMAP2+: Drop legacy platform data for omap5 hwmod
+
+ arch/arm/boot/dts/omap5.dtsi               |   4 -
+ arch/arm/mach-omap2/Kconfig                |   1 -
+ arch/arm/mach-omap2/Makefile               |   1 -
+ arch/arm/mach-omap2/io.c                   |   2 -
+ arch/arm/mach-omap2/omap_hwmod.h           |   1 -
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 467 ---------------------
+ 6 files changed, 476 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+
 -- 
 2.30.1
