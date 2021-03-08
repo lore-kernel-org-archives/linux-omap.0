@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C025C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD712C4332B
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 12:22:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E296651C7
+	by mail.kernel.org (Postfix) with ESMTP id 8EDB8651C9
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 12:22:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231815AbhCHMV4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 07:21:56 -0500
-Received: from muru.com ([72.249.23.125]:40794 "EHLO muru.com"
+        id S231719AbhCHMV5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 07:21:57 -0500
+Received: from muru.com ([72.249.23.125]:40814 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231681AbhCHMVe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 07:21:34 -0500
+        id S231834AbhCHMVj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 07:21:39 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 2DF478192;
-        Mon,  8 Mar 2021 12:22:14 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 83E11819C;
+        Mon,  8 Mar 2021 12:22:19 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
@@ -31,11 +31,11 @@ Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
         Suman Anna <s-anna@ti.com>, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         Santosh Shilimkar <ssantosh@kernel.org>,
-        Tero Kristo <kristo@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>
-Subject: [PATCH 2/4] soc: ti: omap-prm: Allow hardware supported retention when idle
-Date:   Mon,  8 Mar 2021 14:21:16 +0200
-Message-Id: <20210308122118.62460-3-tony@atomide.com>
+        Stephen Boyd <sboyd@kernel.org>,
+        Tero Kristo <kristo@kernel.org>
+Subject: [PATCH 4/4] bus: ti-sysc: Check for old incomplete dtb
+Date:   Mon,  8 Mar 2021 14:21:18 +0200
+Message-Id: <20210308122118.62460-5-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308122118.62460-1-tony@atomide.com>
 References: <20210308122118.62460-1-tony@atomide.com>
@@ -45,75 +45,47 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-When moving the l4 interconnect instances to probe with simple-pm-bus and
-genpd, we will have l4per and core domains stop idling unless we configure
-the domain bits to allow retention when idle.
+Let's be nice and show an error on the SoCs about old imcomplete devicetree
+if the dtb is still using "simple-bus" instead of "simple-pm-bus" for the
+root OCP node.
 
-As the TI SoCs have hardware autoidle capabilities, this is safe to do.
-The domains will only enter retention on WFI when none of the devices on
-the domain block autoidle in the hardware. This follows what we are
-already currently doing.
-
-Cc: Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Tero Kristo <kristo@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/soc/ti/omap_prm.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/bus/ti-sysc.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
---- a/drivers/soc/ti/omap_prm.c
-+++ b/drivers/soc/ti/omap_prm.c
-@@ -88,6 +88,7 @@ struct omap_reset_data {
- #define OMAP_PRM_HAS_RSTCTRL	BIT(0)
- #define OMAP_PRM_HAS_RSTST	BIT(1)
- #define OMAP_PRM_HAS_NO_CLKDM	BIT(2)
-+#define OMAP_PRM_RET_WHEN_IDLE	BIT(3)
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -2858,6 +2858,7 @@ static int sysc_init_soc(struct sysc *ddata)
+ 	const struct soc_device_attribute *match;
+ 	struct ti_sysc_platform_data *pdata;
+ 	unsigned long features = 0;
++	struct device_node *np;
  
- #define OMAP_PRM_HAS_RESETS	(OMAP_PRM_HAS_RSTCTRL | OMAP_PRM_HAS_RSTST)
+ 	if (sysc_soc)
+ 		return 0;
+@@ -2878,6 +2879,21 @@ static int sysc_init_soc(struct sysc *ddata)
+ 	if (match && match->data)
+ 		sysc_soc->soc = (int)match->data;
  
-@@ -174,7 +175,8 @@ static const struct omap_prm_data omap4_prm_data[] = {
- 		.name = "core", .base = 0x4a306700,
- 		.pwrstctrl = 0x0, .pwrstst = 0x4, .dmap = &omap_prm_reton,
- 		.rstctrl = 0x210, .rstst = 0x214, .clkdm_name = "ducati",
--		.rstmap = rst_map_012
-+		.rstmap = rst_map_012,
-+		.flags = OMAP_PRM_RET_WHEN_IDLE,
- 	},
- 	{
- 		.name = "ivahd", .base = 0x4a306f00,
-@@ -199,7 +201,8 @@ static const struct omap_prm_data omap4_prm_data[] = {
- 	},
- 	{
- 		.name = "l4per", .base = 0x4a307400,
--		.pwrstctrl = 0x0, .pwrstst = 0x4, .dmap = &omap_prm_reton
-+		.pwrstctrl = 0x0, .pwrstst = 0x4, .dmap = &omap_prm_reton,
-+		.flags = OMAP_PRM_RET_WHEN_IDLE,
- 	},
- 	{
- 		.name = "cefuse", .base = 0x4a307600,
-@@ -517,7 +520,7 @@ static int omap_prm_domain_power_on(struct generic_pm_domain *domain)
- {
- 	struct omap_prm_domain *prmd;
- 	int ret;
--	u32 v;
-+	u32 v, mode;
- 
- 	prmd = genpd_to_prm_domain(domain);
- 	if (!prmd->cap)
-@@ -530,7 +533,12 @@ static int omap_prm_domain_power_on(struct generic_pm_domain *domain)
- 	else
- 		v = readl_relaxed(prmd->prm->base + prmd->pwrstctrl);
- 
--	writel_relaxed(v | OMAP_PRMD_ON_ACTIVE,
-+	if (prmd->prm->data->flags & OMAP_PRM_RET_WHEN_IDLE)
-+		mode = OMAP_PRMD_RETENTION;
-+	else
-+		mode = OMAP_PRMD_ON_ACTIVE;
++	/*
++	 * Check and warn about possible old incomplete dtb. We now want to see
++	 * simple-pm-bus instead of simple-bus in the dtb for genpd using SoCs.
++	 */
++	switch (sysc_soc->soc) {
++	case SOC_AM3:
++	case SOC_AM4:
++		np = of_find_node_by_path("/ocp");
++		WARN_ONCE(np && of_device_is_compatible(np, "simple-bus"),
++			  "ti-sysc: Incomplete old dtb, please update\n");
++		break;
++	default:
++		break;
++	}
 +
-+	writel_relaxed((v & ~PRM_POWERSTATE_MASK) | mode,
- 		       prmd->prm->base + prmd->pwrstctrl);
- 
- 	/* wait for the transition bit to get cleared */
+ 	/* Ignore devices that are not available on HS and EMU SoCs */
+ 	if (!sysc_soc->general_purpose) {
+ 		switch (sysc_soc->soc) {
 -- 
 2.30.1
