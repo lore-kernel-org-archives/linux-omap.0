@@ -7,27 +7,27 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D9BC432C3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60143C4321A
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:47:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11805651C2
+	by mail.kernel.org (Postfix) with ESMTP id 2BD66651D1
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 13:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229474AbhCHNqz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 08:46:55 -0500
-Received: from muru.com ([72.249.23.125]:40916 "EHLO muru.com"
+        id S229821AbhCHNq5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 08:46:57 -0500
+Received: from muru.com ([72.249.23.125]:40946 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229575AbhCHNqf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 08:46:35 -0500
+        id S229704AbhCHNqn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 08:46:43 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 760CA8192;
-        Mon,  8 Mar 2021 13:47:17 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 7FBCB8117;
+        Mon,  8 Mar 2021 13:47:25 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 02/11] ARM: OMAP2+: Drop legacy platform data for omap4 control modules
-Date:   Mon,  8 Mar 2021 15:46:18 +0200
-Message-Id: <20210308134627.13056-3-tony@atomide.com>
+Subject: [PATCH 11/11] ARM: OMAP2+: Drop legacy platform data for omap4 hwmod
+Date:   Mon,  8 Mar 2021 15:46:27 +0200
+Message-Id: <20210308134627.13056-12-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308134627.13056-1-tony@atomide.com>
 References: <20210308134627.13056-1-tony@atomide.com>
@@ -37,178 +37,111 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with ti-sysc interconnect driver and dts
-data. Let's drop the related platform data and custom ti,hwmods
-dts property.
+We can now probe interconnects with simple-pm-bus and genpd.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap4-l4.dtsi            |   4 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 104 ---------------------
- 2 files changed, 108 deletions(-)
+ arch/arm/mach-omap2/Kconfig                |  1 -
+ arch/arm/mach-omap2/Makefile               |  1 -
+ arch/arm/mach-omap2/io.c                   |  1 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 57 ----------------------
+ 4 files changed, 60 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 
-diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
---- a/arch/arm/boot/dts/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/omap4-l4.dtsi
-@@ -46,7 +46,6 @@ segment@0 {					/* 0x4a000000 */
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -34,7 +34,6 @@ config ARCH_OMAP4
+ 	select ARM_GIC
+ 	select HAVE_ARM_SCU if SMP
+ 	select HAVE_ARM_TWD if SMP
+-	select OMAP_HWMOD
+ 	select OMAP_INTERCONNECT
+ 	select OMAP_INTERCONNECT_BARRIER
+ 	select PL310_ERRATA_588369 if CACHE_L2X0
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -207,7 +207,6 @@ obj-$(CONFIG_SOC_OMAP2430)		+= omap_hwmod_2430_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_ipblock_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
+ obj-$(CONFIG_SOC_TI81XX)		+= omap_hwmod_81xx_data.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
+ obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
  
- 		target-module@2000 {			/* 0x4a002000, ap 3 06.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "ctrl_module_core";
- 			reg = <0x2000 0x4>,
- 			      <0x2010 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -656,7 +655,6 @@ segment@100000 {					/* 0x4a100000 */
- 
- 		target-module@0 {			/* 0x4a100000, ap 21 2a.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "ctrl_module_pad_core";
- 			reg = <0x0 0x4>,
- 			      <0x10 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -1047,7 +1045,6 @@ scrm_clockdomains: clockdomains {
- 
- 		target-module@c000 {			/* 0x4a30c000, ap 19 2c.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "ctrl_module_wkup";
- 			reg = <0xc000 0x4>,
- 			      <0xc010 0x4>;
- 			reg-names = "rev", "sysc";
-@@ -1208,7 +1205,6 @@ keypad: keypad@0 {
- 
- 		target-module@e000 {			/* 0x4a31e000, ap 21 30.0 */
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "ctrl_module_pad_wkup";
- 			reg = <0xe000 0x4>,
- 			      <0xe010 0x4>;
- 			reg-names = "rev", "sysc";
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -615,7 +615,6 @@ void __init omap4430_init_early(void)
+ 	omap44xx_voltagedomains_init();
+ 	omap44xx_powerdomains_init();
+ 	omap44xx_clockdomains_init();
+-	omap44xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+ 	omap_l2_cache_init();
+ 	omap_clk_soc_init = omap4xxx_dt_clk_init;
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+deleted file mode 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -216,74 +216,6 @@ static struct omap_hwmod omap44xx_ocp_wp_noc_hwmod = {
-  * usim
-  */
- 
++++ /dev/null
+@@ -1,57 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
 -/*
-- * 'ctrl_module' class
-- * attila core control module + core pad control module + wkup pad control
-- * module + attila wkup control module
+- * Hardware modules present on the OMAP44xx chips
+- *
+- * Copyright (C) 2009-2012 Texas Instruments, Inc.
+- * Copyright (C) 2009-2010 Nokia Corporation
+- *
+- * Paul Walmsley
+- * Benoit Cousson
+- *
+- * This file is automatically generated from the OMAP hardware databases.
+- * We respectfully ask that any modifications to this file be coordinated
+- * with the public linux-omap@vger.kernel.org mailing list and the
+- * authors above to ensure that the autogeneration scripts are kept
+- * up-to-date with the file contents.
+- * Note that this file is currently not in sync with autogeneration scripts.
+- * The above note to be removed, once it is synced up.
 - */
 -
--static struct omap_hwmod_class_sysconfig omap44xx_ctrl_module_sysc = {
--	.rev_offs	= 0x0000,
--	.sysc_offs	= 0x0010,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type2,
+-#include <linux/io.h>
+-
+-#include "omap_hwmod.h"
+-#include "omap_hwmod_common_data.h"
+-#include "cm1_44xx.h"
+-#include "cm2_44xx.h"
+-#include "prm44xx.h"
+-#include "prm-regbits-44xx.h"
+-
+-/*
+- * IP blocks
+- */
+-
+-/*
+- * Modules omap_hwmod structures
+- *
+- * The following IPs are excluded for the moment because:
+- * - They do not need an explicit SW control using omap_hwmod API.
+- * - They still need to be validated with the driver
+- *   properly adapted to omap_hwmod / omap_device
+- *
+- * usim
+- */
+-
+-/*
+- * interfaces
+- */
+-
+-static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
+-	NULL,
 -};
 -
--static struct omap_hwmod_class omap44xx_ctrl_module_hwmod_class = {
--	.name	= "ctrl_module",
--	.sysc	= &omap44xx_ctrl_module_sysc,
--};
+-int __init omap44xx_hwmod_init(void)
+-{
+-	omap_hwmod_init();
+-	return omap_hwmod_register_links(omap44xx_hwmod_ocp_ifs);
+-}
 -
--/* ctrl_module_core */
--static struct omap_hwmod omap44xx_ctrl_module_core_hwmod = {
--	.name		= "ctrl_module_core",
--	.class		= &omap44xx_ctrl_module_hwmod_class,
--	.clkdm_name	= "l4_cfg_clkdm",
--	.prcm = {
--		.omap4 = {
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
--		},
--	},
--};
--
--/* ctrl_module_pad_core */
--static struct omap_hwmod omap44xx_ctrl_module_pad_core_hwmod = {
--	.name		= "ctrl_module_pad_core",
--	.class		= &omap44xx_ctrl_module_hwmod_class,
--	.clkdm_name	= "l4_cfg_clkdm",
--	.prcm = {
--		.omap4 = {
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
--		},
--	},
--};
--
--/* ctrl_module_wkup */
--static struct omap_hwmod omap44xx_ctrl_module_wkup_hwmod = {
--	.name		= "ctrl_module_wkup",
--	.class		= &omap44xx_ctrl_module_hwmod_class,
--	.clkdm_name	= "l4_wkup_clkdm",
--	.prcm = {
--		.omap4 = {
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
--		},
--	},
--};
--
--/* ctrl_module_pad_wkup */
--static struct omap_hwmod omap44xx_ctrl_module_pad_wkup_hwmod = {
--	.name		= "ctrl_module_pad_wkup",
--	.class		= &omap44xx_ctrl_module_hwmod_class,
--	.clkdm_name	= "l4_wkup_clkdm",
--	.prcm = {
--		.omap4 = {
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
--		},
--	},
--};
--
- /*
-  * 'debugss' class
-  * debug and emulation sub system
-@@ -652,38 +584,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__ocp_wp_noc = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--/* l4_cfg -> ctrl_module_core */
--static struct omap_hwmod_ocp_if omap44xx_l4_cfg__ctrl_module_core = {
--	.master		= &omap44xx_l4_cfg_hwmod,
--	.slave		= &omap44xx_ctrl_module_core_hwmod,
--	.clk		= "l4_div_ck",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* l4_cfg -> ctrl_module_pad_core */
--static struct omap_hwmod_ocp_if omap44xx_l4_cfg__ctrl_module_pad_core = {
--	.master		= &omap44xx_l4_cfg_hwmod,
--	.slave		= &omap44xx_ctrl_module_pad_core_hwmod,
--	.clk		= "l4_div_ck",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* l4_wkup -> ctrl_module_wkup */
--static struct omap_hwmod_ocp_if omap44xx_l4_wkup__ctrl_module_wkup = {
--	.master		= &omap44xx_l4_wkup_hwmod,
--	.slave		= &omap44xx_ctrl_module_wkup_hwmod,
--	.clk		= "l4_wkup_clk_mux_ck",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* l4_wkup -> ctrl_module_pad_wkup */
--static struct omap_hwmod_ocp_if omap44xx_l4_wkup__ctrl_module_pad_wkup = {
--	.master		= &omap44xx_l4_wkup_hwmod,
--	.slave		= &omap44xx_ctrl_module_pad_wkup_hwmod,
--	.clk		= "l4_wkup_clk_mux_ck",
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- /* l3_instr -> debugss */
- static struct omap_hwmod_ocp_if omap44xx_l3_instr__debugss = {
- 	.master		= &omap44xx_l3_instr_hwmod,
-@@ -783,10 +683,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap44xx_l4_cfg__l4_wkup,
- 	&omap44xx_mpu__mpu_private,
- 	&omap44xx_l4_cfg__ocp_wp_noc,
--	&omap44xx_l4_cfg__ctrl_module_core,
--	&omap44xx_l4_cfg__ctrl_module_pad_core,
--	&omap44xx_l4_wkup__ctrl_module_wkup,
--	&omap44xx_l4_wkup__ctrl_module_pad_wkup,
- 	&omap44xx_l3_instr__debugss,
- 	&omap44xx_l3_main_2__ocmc_ram,
- 	&omap44xx_mpu_private__prcm_mpu,
 -- 
 2.30.1
