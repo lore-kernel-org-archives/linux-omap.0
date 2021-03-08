@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4576FC15509
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:12:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82836C433E6
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:13:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FE7565230
-	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:12:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59B7365227
+	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:13:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231684AbhCHPMD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 10:12:03 -0500
-Received: from muru.com ([72.249.23.125]:41004 "EHLO muru.com"
+        id S230458AbhCHPMb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 10:12:31 -0500
+Received: from muru.com ([72.249.23.125]:41026 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231308AbhCHPLz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 10:11:55 -0500
+        id S231512AbhCHPMA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 10:12:00 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 1B46380D4;
-        Mon,  8 Mar 2021 15:12:36 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 255158117;
+        Mon,  8 Mar 2021 15:12:41 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org
-Subject: [PATCH 06/11] ARM: dts: Move omap5 mmio-sram out of l3 interconnect
-Date:   Mon,  8 Mar 2021 17:11:38 +0200
-Message-Id: <20210308151143.27793-7-tony@atomide.com>
+Subject: [PATCH 11/11] ARM: dts: Configure simple-pm-bus for omap5 l3
+Date:   Mon,  8 Mar 2021 17:11:43 +0200
+Message-Id: <20210308151143.27793-12-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308151143.27793-1-tony@atomide.com>
 References: <20210308151143.27793-1-tony@atomide.com>
@@ -38,51 +38,29 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We need mmio-sram early for omap4_sram_init() for IO barrier init, and
-will be moving l3 interconnect to probe with simple-pm-bus that probes
-at module_init() time. So let's move mmio-sram out of l3 to prepare for
-that.
-
-Otherwise we will get the following after probing the interconnects with
-simple-pm-bus:
-
-omap4_sram_init:Unable to get sram pool needed to handle errata I688
+We can now probe interconnects with device tree only configuration using
+simple-pm-bus and genpd.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap5.dtsi | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
 --- a/arch/arm/boot/dts/omap5.dtsi
 +++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -106,6 +106,15 @@ pmu {
- 			     <GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>;
- 	};
- 
-+	/*
-+	 * Needed early by omap4_sram_init() for barrier, do not move to l3
-+	 * interconnect as simple-pm-bus probes at module_init() time.
-+	 */
-+	ocmcram: sram@40300000 {
-+		compatible = "mmio-sram";
-+		reg = <0 0x40300000 0 0x20000>; /* 128k */
-+	};
-+
- 	gic: interrupt-controller@48211000 {
- 		compatible = "arm,cortex-a15-gic";
- 		interrupt-controller;
-@@ -172,11 +181,6 @@ mpu {
- 		l4_abe: interconnect@40100000 {
- 		};
- 
--		ocmcram: sram@40300000 {
--			compatible = "mmio-sram";
--			reg = <0x40300000 0x20000>; /* 128k */
--		};
--
- 		target-module@50000000 {
- 			compatible = "ti,sysc-omap2", "ti,sysc";
- 			reg = <0x50000000 4>,
+@@ -142,7 +142,11 @@ wakeupgen: interrupt-controller@48281000 {
+ 	 * hierarchy.
+ 	 */
+ 	ocp {
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
++		power-domains = <&prm_core>;
++		clocks = <&l3main1_clkctrl OMAP5_L3_MAIN_1_CLKCTRL 0>,
++			 <&l3main2_clkctrl OMAP5_L3_MAIN_2_CLKCTRL 0>,
++			 <&l3instr_clkctrl OMAP5_L3_MAIN_3_CLKCTRL 0>;
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0 0 0 0xc0000000>;
 -- 
 2.30.1
