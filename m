@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A57C8C4360C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA2FFC4361A
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:12:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 781726523D
+	by mail.kernel.org (Postfix) with ESMTP id 914F86523F
 	for <linux-omap@archiver.kernel.org>; Mon,  8 Mar 2021 15:12:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231295AbhCHPMC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 Mar 2021 10:12:02 -0500
-Received: from muru.com ([72.249.23.125]:40996 "EHLO muru.com"
+        id S230521AbhCHPME (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 Mar 2021 10:12:04 -0500
+Received: from muru.com ([72.249.23.125]:41016 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231296AbhCHPLx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 8 Mar 2021 10:11:53 -0500
+        id S231329AbhCHPL6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 8 Mar 2021 10:11:58 -0500
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 1428180D4;
-        Mon,  8 Mar 2021 15:12:34 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 273278117;
+        Mon,  8 Mar 2021 15:12:40 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org
-Subject: [PATCH 04/11] ARM: dts: Configure interconnect target module for omap5 gpmc
-Date:   Mon,  8 Mar 2021 17:11:36 +0200
-Message-Id: <20210308151143.27793-5-tony@atomide.com>
+Subject: [PATCH 09/11] ARM: dts: Configure simple-pm-bus for omap5 l4_per
+Date:   Mon,  8 Mar 2021 17:11:41 +0200
+Message-Id: <20210308151143.27793-10-tony@atomide.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210308151143.27793-1-tony@atomide.com>
 References: <20210308151143.27793-1-tony@atomide.com>
@@ -38,76 +38,46 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We can now probe devices with device tree only configuration using
-ti-sysc interconnect target module driver. Let's configure the
-module, but keep the legacy "ti,hwmods" property to avoid new boot
-time warnings. The legacy property will be removed in later patches
-together with the legacy platform data.
+We can now probe interconnects with device tree only configuration using
+simple-pm-bus and genpd.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap5.dtsi | 49 ++++++++++++++++++++++++------------
- 1 file changed, 33 insertions(+), 16 deletions(-)
+ arch/arm/boot/dts/omap5-l4.dtsi | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -177,23 +177,40 @@ ocmcram: sram@40300000 {
- 			reg = <0x40300000 0x20000>; /* 128k */
- 		};
+diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
+--- a/arch/arm/boot/dts/omap5-l4.dtsi
++++ b/arch/arm/boot/dts/omap5-l4.dtsi
+@@ -947,7 +947,10 @@ segment@300000 {					/* 0x4a300000 */
+ };
  
--		gpmc: gpmc@50000000 {
--			compatible = "ti,omap4430-gpmc";
--			reg = <0x50000000 0x1000>;
--			#address-cells = <2>;
--			#size-cells = <1>;
--			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
--			dmas = <&sdma 4>;
--			dma-names = "rxtx";
--			gpmc,num-cs = <8>;
--			gpmc,num-waitpins = <4>;
--			ti,hwmods = "gpmc";
--			clocks = <&l3_iclk_div>;
-+		target-module@50000000 {
-+			compatible = "ti,sysc-omap2", "ti,sysc";
-+			reg = <0x50000000 4>,
-+			      <0x50000010 4>,
-+			      <0x50000014 4>;
-+			reg-names = "rev", "sysc", "syss";
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			ti,syss-mask = <1>;
-+			ti,no-idle-on-init;
-+			clocks = <&l3main2_clkctrl OMAP5_L3_MAIN_2_GPMC_CLKCTRL 0>;
- 			clock-names = "fck";
--			interrupt-controller;
--			#interrupt-cells = <2>;
--			gpio-controller;
--			#gpio-cells = <2>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x50000000 0x50000000 0x00001000>, /* regs */
-+				 <0x00000000 0x00000000 0x40000000>; /* data */
-+
-+			gpmc: gpmc@50000000 {
-+				compatible = "ti,omap4430-gpmc";
-+				reg = <0x50000000 0x1000>;
-+				#address-cells = <2>;
-+				#size-cells = <1>;
-+				interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
-+				dmas = <&sdma 4>;
-+				dma-names = "rxtx";
-+				gpmc,num-cs = <8>;
-+				gpmc,num-waitpins = <4>;
-+				clock-names = "fck";
-+				interrupt-controller;
-+				#interrupt-cells = <2>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
- 		};
+ &l4_per {						/* 0x48000000 */
+-	compatible = "ti,omap5-l4-per", "simple-bus";
++	compatible = "ti,omap5-l4-per", "simple-pm-bus";
++	power-domains = <&prm_core>;
++	clocks = <&l4per_clkctrl OMAP5_L4_PER_CLKCTRL 0>;
++	clock-names = "fck";
+ 	reg = <0x48000000 0x800>,
+ 	      <0x48000800 0x800>,
+ 	      <0x48001000 0x400>,
+@@ -961,7 +964,7 @@ &l4_per {						/* 0x48000000 */
+ 		 <0x00200000 0x48200000 0x200000>;	/* segment 1 */
  
- 		target-module@55082000 {
+ 	segment@0 {					/* 0x48000000 */
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0x00000000 0x00000000 0x000800>,	/* ap 0 */
+@@ -2170,7 +2173,7 @@ mmc5: mmc@0 {
+ 	};
+ 
+ 	segment@200000 {					/* 0x48200000 */
+-		compatible = "simple-bus";
++		compatible = "simple-pm-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 	};
 -- 
 2.30.1
