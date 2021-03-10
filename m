@@ -2,108 +2,77 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C10ECC433E0
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Mar 2021 13:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 403BAC433E9
+	for <linux-omap@archiver.kernel.org>; Wed, 10 Mar 2021 02:34:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6EE2465243
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Mar 2021 13:41:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAF8664F87
+	for <linux-omap@archiver.kernel.org>; Wed, 10 Mar 2021 02:34:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231139AbhCINlT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 9 Mar 2021 08:41:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47948 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231308AbhCINk5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2021 08:40:57 -0500
-Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE68EC06175F
-        for <linux-omap@vger.kernel.org>; Tue,  9 Mar 2021 05:40:56 -0800 (PST)
-Received: by mail-lj1-x229.google.com with SMTP id r25so20623306ljk.11
-        for <linux-omap@vger.kernel.org>; Tue, 09 Mar 2021 05:40:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=M2PVFTJad13/HHdNzwN8/vmlKlKOh1dKDhYFEC+sxbs=;
-        b=oCa2SWgwfdjgNjhmNjTTUyxncE1srgWbgq4n1tk+YicLak1fz2d0Ocha/HJoao7WS4
-         ijbw64tDUrTAHzwHknKJW5AWPQKLFKb9IYDL4Qsofhy5Zym6TQryG8BBvl1YlDiaM1Wx
-         PzK6QjxGbq6GglgWkaZRgJwFDjNDCYoFLs7xqyx5sZav6TvYbzLRsIbSF6k5iYuOBTmk
-         MuGvUGklfu2vmHSLGHJKvH0szrB7f5LB0aK8Bd9d4LWpxQXqhcHjW0+clsfA6zcFiXPZ
-         QJEOtQF+8u7WccHrdPD389iZjrOIP+sR/aSMvqPTn8OA/LFDOkOn1URA6ZDzGTykGwjc
-         d1Kw==
+        id S232187AbhCJCeM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 9 Mar 2021 21:34:12 -0500
+Received: from mail-io1-f52.google.com ([209.85.166.52]:32799 "EHLO
+        mail-io1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231228AbhCJCeG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2021 21:34:06 -0500
+Received: by mail-io1-f52.google.com with SMTP id n132so16315789iod.0;
+        Tue, 09 Mar 2021 18:34:06 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=M2PVFTJad13/HHdNzwN8/vmlKlKOh1dKDhYFEC+sxbs=;
-        b=sCXmhUFjqhd/ob7WHSEvE24xqGaSDf53FiYe04yNCN4b/UsyLJMfGTauNhfwgpSulS
-         83ImZ6yTBgIk1dThKBB3jRd2X3g1eb6GIr6ixZgxJo6SSWsouk+kWhy5jp7Dd1n0hZZY
-         9grwrPN3CXVcMnaDaZL+OC0fxtKcG+fVyjsDDRSI2aE4sxEOT6KxTwA7zJnxc34E3/Ul
-         +XvVry6lze5wAObENbBvqbU0NLM6lv5iYUehnQjDb0fweJhymuRTVelX23oBE+3+wfp5
-         N0Gkd2HpVc+htCsjvknbtQZr/mgP/Dk8lK4vQpCJqUt8x/PmnMsT1ZmdyToSablqfAA/
-         as2g==
-X-Gm-Message-State: AOAM533xsOkvopqabXitDCc9MsDIXFKs/flgNUPRws5uiZlWgPr/p5P5
-        PJaRsoakn/RNRWQDq42kEkFLWeToIIe5oggwYF/EeA==
-X-Google-Smtp-Source: ABdhPJybzyO6ZNZPaRk+OvWdcYfIHCWIpj+B9KZrup6oxp1HHl3PlLebHYEChGoROoICQaGOC6ZyrFwRYceCJuRDs0w=
-X-Received: by 2002:a05:651c:103a:: with SMTP id w26mr14436853ljm.273.1615297255364;
- Tue, 09 Mar 2021 05:40:55 -0800 (PST)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=jVJuHwNtFnhiIpdvi4iXC7hbsxDw7lapoWRXaBtbaCY=;
+        b=WBo9aLGdQo6Wv9ir34Vyd3IeO76B8ZBAx2IR85L65/LPciYZmUaBx4g3dyXCD3kDnN
+         RsKmfMP703Nv5Zl+UXcr3LeJYJVdDLalk44cI/+DGUBFwVs1TDPkgJ2YFkfMKrVR/OB9
+         95uprE2OxNiopkPSSe5D9DpnGabzUEF4Um+G5es7hKWMwscRD5eZDe2Ri0IUlAN4zYGl
+         reHALZs+XgBbxnwE5E/s+AKqlxtNIHO9N//tqYvtFBT3l/eIfs5u21b/1Vc/YOV/3JOs
+         +S/UcB4VyFY2DJ29/4FUuy+ccqU2wBs+81BNG19HeW3AEzPF/63e6PfuoyIfitiu29DP
+         kSJw==
+X-Gm-Message-State: AOAM530DF1K/hRb52bVykFd6bHeyEQHYm2cPrYWIhFG83Idkrt+DSVZF
+        7qWIlPtGfVezWqtCZcWH7Q==
+X-Google-Smtp-Source: ABdhPJzn5+OnaQcbq9py83N+I+20k5N0ExASimPvcyzCWj4ldTkE5CXKuj+Y0I7vEhmibFklnXgpEQ==
+X-Received: by 2002:a6b:e20a:: with SMTP id z10mr908695ioc.99.1615343646327;
+        Tue, 09 Mar 2021 18:34:06 -0800 (PST)
+Received: from robh.at.kernel.org ([64.188.179.253])
+        by smtp.gmail.com with ESMTPSA id t7sm8632404ilj.62.2021.03.09.18.34.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 09 Mar 2021 18:34:05 -0800 (PST)
+Received: (nullmailer pid 1622948 invoked by uid 1000);
+        Wed, 10 Mar 2021 02:34:03 -0000
+Date:   Tue, 9 Mar 2021 19:34:03 -0700
+From:   Rob Herring <robh@kernel.org>
+To:     Kishon Vijay Abraham I <kishon@ti.com>
+Cc:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Tom Joseph <tjoseph@cadence.com>,
+        Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-omap@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>,
+        Nadeem Athani <nadeem@cadence.com>
+Subject: Re: [PATCH v4 1/4] dt-bindings: PCI: ti, j721e: Add binding to
+ represent refclk to the connector
+Message-ID: <20210310023403.GA1622887@robh.at.kernel.org>
+References: <20210308063550.6227-1-kishon@ti.com>
+ <20210308063550.6227-2-kishon@ti.com>
 MIME-Version: 1.0
-References: <20210302011813.2331879-1-alexander.sverdlin@gmail.com>
- <CACRpkdYErJH5RUjL+jPC5vnaqGiOqBwHsr0E42wOWrpBGrpS3w@mail.gmail.com> <20210308183704.GA2747088@robh.at.kernel.org>
-In-Reply-To: <20210308183704.GA2747088@robh.at.kernel.org>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 9 Mar 2021 14:40:44 +0100
-Message-ID: <CACRpkda8+Lvz+c=ohXsEDkNSQ63hPo613P4p_90fvKyC_kQ_GA@mail.gmail.com>
-Subject: Re: [PATCH] gpio: omap: Honor "aliases" node
-To:     Rob Herring <robh@kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>
-Cc:     Alexander Sverdlin <alexander.sverdlin@gmail.com>,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210308063550.6227-2-kishon@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Mar 8, 2021 at 7:37 PM Rob Herring <robh@kernel.org> wrote:
+On Mon, 08 Mar 2021 12:05:47 +0530, Kishon Vijay Abraham I wrote:
+> Add binding to represent refclk to the PCIe connector.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  .../devicetree/bindings/pci/ti,j721e-pci-host.yaml       | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+> 
 
-> Can we remove the ones we have already for GPIO?
-
-I think we would get pretty hard pushback if we attempt that.
-We have all these drivers that utilize it:
-
-gpio-clps711x.c:        id = of_alias_get_id(np, "gpio");
-gpio-mvebu.c:   id = of_alias_get_id(pdev->dev.of_node, "gpio");
-gpio-mxc.c:     port->gc.base = (pdev->id < 0) ? of_alias_get_id(np,
-"gpio") * 32 :
-gpio-mxs.c:     port->id = of_alias_get_id(np, "gpio");
-gpio-vf610.c:   gc->base = of_alias_get_id(np, "gpio") * VF610_GPIO_PER_PORT;
-gpio-zynq.c:    chip->base = of_alias_get_id(pdev->dev.of_node, "gpio");
-pinctrl-at91.c: int alias_idx = of_alias_get_id(np, "gpio");
-pinctrl-st.c:   int bank_num = of_alias_get_id(np, "gpio");
-samsung/pinctrl-samsung.c:      id = of_alias_get_id(node, "pinctrl");
-
-Predictably it is so many bad examples that new driver authors will claim
-something along the line of
-"why can't I have a lollipop when all other kids got one".
-
-Several of those have this by a claim one way or another that
-the DT boot need to look like the boardfile boot. Some of these
-have been migrated from board files so could possible drop
-this id/base coding.
-
-I don't know what the maintainers would say, should we send
-attack patches? :D At least some kind of motivation would come
-out of it.
-
-Yours,
-Linus Walleij
+Reviewed-by: Rob Herring <robh@kernel.org>
