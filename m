@@ -2,98 +2,95 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C89BAC433E6
-	for <linux-omap@archiver.kernel.org>; Wed, 10 Mar 2021 13:55:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BEAEC433E0
+	for <linux-omap@archiver.kernel.org>; Wed, 10 Mar 2021 14:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9276B64F53
-	for <linux-omap@archiver.kernel.org>; Wed, 10 Mar 2021 13:55:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5911664F02
+	for <linux-omap@archiver.kernel.org>; Wed, 10 Mar 2021 14:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231519AbhCJNyi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 10 Mar 2021 08:54:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52546 "EHLO
+        id S230373AbhCJO7K (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 10 Mar 2021 09:59:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232300AbhCJNyd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2021 08:54:33 -0500
-Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCD0AC061760
-        for <linux-omap@vger.kernel.org>; Wed, 10 Mar 2021 05:54:32 -0800 (PST)
-Received: by mail-lj1-x230.google.com with SMTP id p15so25642776ljc.13
-        for <linux-omap@vger.kernel.org>; Wed, 10 Mar 2021 05:54:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=telliq.com; s=google;
-        h=from:subject:to:cc:message-id:date:user-agent:mime-version
-         :content-transfer-encoding;
-        bh=LnieKbR1sQg1mAtsZUa22eMkB6iSaXuJyq8ZlNF/US4=;
-        b=NrP1reGTTbYR9yAtVXHeNfeEwBnwsvul8i7FL4bJtUFgddNQFnwl3IdfGt1gA+rhJj
-         wd7AcDbWPhZBGfU3jJ0GkjcjBzdrGbN4HuyXlPkRROygew/glcW3rG3/z1lyD+XEUPbK
-         NVerWvTSH60/BPloDQFAioD8fDOpj3bPfVq0ZCSRgDOzfSGzjTBSI9XzMR4KSs/h0asD
-         tpqEBG1Eu5/8g/oCVXkn2fqXerS7PYlWISwgJQVgTW7p8u4Lvnd/mUlXzeIcJ7zm1F+K
-         Gj5/q4sptvKiaf9uS2OFfMolhfVWwNFt0WmLd6gOYqxRJEe4BI35SGyqYA0A73gPy3mN
-         RlYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:subject:to:cc:message-id:date:user-agent
-         :mime-version:content-transfer-encoding;
-        bh=LnieKbR1sQg1mAtsZUa22eMkB6iSaXuJyq8ZlNF/US4=;
-        b=KGtINxTCfX1TaGZH7x5b57z2YhDSq2aRh6Bx6RxdPNj4IDHTOtNI0enegjEnjwCP0B
-         b/7fbRbDFAHYju4qVoMESRPDrahYkdxOEUVNyLugrkpCI1cSYfCmNYbGZ2fQR7D47HIi
-         B8FBnF8D7EW1CTt7ANrW/A1BqgkeG9SErwAwViNCPUnYnJrAt0zzHjLRXsKrB21e20no
-         THRiFKJKrsemvD0tH/NR+3fbSZUASpRoea6O8e/xiqHTRf72vXz8zCL7K79skASOkfU2
-         V12Nqk0wps27s9dq0pXQKyOM5ZT64NLlCgBEhLbcM6lBTfGPYE5I62csMYK36QBjThtP
-         2oZg==
-X-Gm-Message-State: AOAM530tEipLZXBdibLKFCDSG+tznNTpACGt1KdkgDTmFP44fvLF+dsN
-        Frn2XD7A9bBVLCRSBiBuXMi3Ug==
-X-Google-Smtp-Source: ABdhPJxEHQ8LAoylBqUOEpRlv3nouEzg0BCQ0INlp19o7MMfm2LT9WvInOwjI1rCpoZDQ4tmPcMMkA==
-X-Received: by 2002:a2e:9c12:: with SMTP id s18mr1865809lji.383.1615384471365;
-        Wed, 10 Mar 2021 05:54:31 -0800 (PST)
-Received: from polera.kvasta (h77-53-209-86.cust.a3fiber.se. [77.53.209.86])
-        by smtp.gmail.com with ESMTPSA id r5sm3176931ljh.128.2021.03.10.05.54.30
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 10 Mar 2021 05:54:31 -0800 (PST)
-From:   Jan Kardell <jan.kardell@telliq.com>
-Subject: arm: lockdep complaining about locks allocations in static memory
-To:     Linux ARM <linux-arm-kernel@lists.infradead.org>
-Cc:     linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+        with ESMTP id S231163AbhCJO7I (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2021 09:59:08 -0500
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A895CC061760;
+        Wed, 10 Mar 2021 06:59:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=nCSk/kTayjqMafiLa1zeviIbw4QWdPqrZ0nPieuKqrU=; b=dKb893JWFwN5M+UEgAm/8gDV9
+        1QE1wWO0lfMKzS7YFXgiw70Ei2XDNMzNtOVpznLrtoQHkt4BwclB1Xj9zOd9mBoprsB5fL0XWNTrr
+        mXmpK3V3bBi/sSW6Zz67AhdSu0m/d7Z8bvDXDRSZmxqgS99leZIubNv4SJEhyUz8Eq/SslLscgoo2
+        1pjl3XLKtExu4JVdrL5qehzU3fP+hD2FicHQ1b1UZGaPwBXouUvhs+NxrXkJqQXjmxfabyf04IAjw
+        0wzdJ2Az6nFS8Ixx01O190T9hLgF9BY1nB1z92CMsSdeEoir/E33MMurJvOuKvKfNMI+5ouvSihpk
+        Z97jl+Y1A==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:50724)
+        by pandora.armlinux.org.uk with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1lK0Ij-0004YW-Kk; Wed, 10 Mar 2021 14:59:05 +0000
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.92)
+        (envelope-from <linux@shell.armlinux.org.uk>)
+        id 1lK0Ii-0000nR-K0; Wed, 10 Mar 2021 14:59:04 +0000
+Date:   Wed, 10 Mar 2021 14:59:04 +0000
+From:   Russell King - ARM Linux admin <linux@armlinux.org.uk>
+To:     Jan Kardell <jan.kardell@telliq.com>
+Cc:     Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        Tony Lindgren <tony@atomide.com>,
         Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
-Message-ID: <6df24716-8b41-8e9a-f2f4-a0f5d49643bd@telliq.com>
-Date:   Wed, 10 Mar 2021 14:54:30 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Firefox/60.0 SeaMonkey/2.53.5.1
+Subject: Re: arm: lockdep complaining about locks allocations in static memory
+Message-ID: <20210310145904.GA1470@shell.armlinux.org.uk>
+References: <6df24716-8b41-8e9a-f2f4-a0f5d49643bd@telliq.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6df24716-8b41-8e9a-f2f4-a0f5d49643bd@telliq.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Sender: Russell King - ARM Linux admin <linux@armlinux.org.uk>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+On Wed, Mar 10, 2021 at 02:54:30PM +0100, Jan Kardell wrote:
+> Hi,
+> 
+> During work lift the software and kernel versions on our custom TI am3352
+> board I started to see lockdep warnings after enabling CONFIG_PREEMT.
+> Lockdep seems to think the memory that previously was initmem is static
+> memory. I'm using linux 5.4, as that is what is used in the next OpenWrt
+> version.
+> 
+> [ 92.198989] WARNING: CPU: 0 PID: 2015 at kernel/locking/lockdep.c:1119
+> alloc_netdev_mqs+0xb4/0x3b0
+> 
+> I guess CONFIG_PREEMT just changes the timing of allocations, and is
+> otherwise irrelevant.
+> 
+> This was fixed for s390 in linux 5.2 commit
+> 7a5da02de8d6eafba99556f8c98e5313edebb449 by adding the function
+> arch_is_kernel_initmem_freed(). Later a very similar change was made for
+> powerpc, and a different solution for x86. I now believe that is needed for
+> arm as well. Though I don't know the inner workings of arm memory management
+> so I don't know if an identical solution to s390 will do for arm, but my
+> experiments suggests it works for am335x. The commit message for s390 says
+> "virt == phys", but that seems not to be the case for my arm system.
 
-During work lift the software and kernel versions on our custom TI 
-am3352 board I started to see lockdep warnings after enabling 
-CONFIG_PREEMT. Lockdep seems to think the memory that previously was 
-initmem is static memory. I'm using linux 5.4, as that is what is used 
-in the next OpenWrt version.
+I don't see any reason this couldn't be added to arm, but it needs
+someone to create and test a patch - which implies that they need to
+have a problem that needs to be solved. As you seem to be experiencing
+the problem, it seems you are well suited to this. Thanks.
 
-[ 92.198989] WARNING: CPU: 0 PID: 2015 at kernel/locking/lockdep.c:1119 
-alloc_netdev_mqs+0xb4/0x3b0
-
-I guess CONFIG_PREEMT just changes the timing of allocations, and is 
-otherwise irrelevant.
-
-This was fixed for s390 in linux 5.2 commit 
-7a5da02de8d6eafba99556f8c98e5313edebb449 by adding the function 
-arch_is_kernel_initmem_freed(). Later a very similar change was made for 
-powerpc, and a different solution for x86. I now believe that is needed 
-for arm as well. Though I don't know the inner workings of arm memory 
-management so I don't know if an identical solution to s390 will do for 
-arm, but my experiments suggests it works for am335x. The commit message 
-for s390 says "virt == phys", but that seems not to be the case for my 
-arm system.
-
-//Jan
-
+-- 
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
