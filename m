@@ -2,178 +2,73 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B69C433E9
-	for <linux-omap@archiver.kernel.org>; Fri, 12 Mar 2021 09:26:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CD05C433E0
+	for <linux-omap@archiver.kernel.org>; Fri, 12 Mar 2021 11:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E804564ED7
-	for <linux-omap@archiver.kernel.org>; Fri, 12 Mar 2021 09:26:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6793F64F78
+	for <linux-omap@archiver.kernel.org>; Fri, 12 Mar 2021 11:31:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232877AbhCLJZp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 12 Mar 2021 04:25:45 -0500
-Received: from muru.com ([72.249.23.125]:42306 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232874AbhCLJZa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 12 Mar 2021 04:25:30 -0500
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id DE20C810E;
-        Fri, 12 Mar 2021 09:26:14 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
-        Suman Anna <s-anna@ti.com>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 1/2] ARM: OMAP2+: Stop building legacy code for dra7 and omap4/5
-Date:   Fri, 12 Mar 2021 11:25:15 +0200
-Message-Id: <20210312092516.42884-2-tony@atomide.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210312092516.42884-1-tony@atomide.com>
-References: <20210312092516.42884-1-tony@atomide.com>
+        id S229487AbhCLLa4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 12 Mar 2021 06:30:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48618 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231834AbhCLLa1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2021 06:30:27 -0500
+Received: from mail-il1-x12e.google.com (mail-il1-x12e.google.com [IPv6:2607:f8b0:4864:20::12e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B3B4C061574
+        for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2021 03:30:27 -0800 (PST)
+Received: by mail-il1-x12e.google.com with SMTP id r7so2277625ilb.0
+        for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2021 03:30:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=tPMUAkO5fEyDRMfSYEoGzyPERJ9UKukzyVGkX/CWlDw=;
+        b=D8B/Djl7kpEn6bhw+gt5UheCScWT4oRnMR3lzJOE7oq+59rFd9QnfDRpFHDWf8STkv
+         1p4A/XHWkOFuIuL54Fq3GiXA2GF3elwILjB3KIuThQpdRdNACzLqOoCoAJfvBXdFvo12
+         In+EAYkzUvT9P6+6yLvgZS1miWqJWryeZ3f33VPpnyvijz2+upoSkW3LMvM1tnY1Sp+1
+         +FUEGWNhYPuQ6cq/E32tqyA5dF7TOmejdhQ0q9d/C8SosTdPr21ifYJqqAun5zpaiomV
+         DsiJIJrL3FuDV1zd1Fvos7OV3EUg3YOR27yPAcL/lV3w7FDf5/W6CBM13LSA8NRSkLbR
+         RNlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=tPMUAkO5fEyDRMfSYEoGzyPERJ9UKukzyVGkX/CWlDw=;
+        b=WcO4i9rtT2B/jBrcCqq5EuLDed/VarS9HqeeIemy22OgW3INvDQjRBxJLOe2PUHLEG
+         Tiqlnk97NFiO7DMz/ZxPi1mdp8lplat5V6mqrIR6eW5iZ9nJIHEADWwB1C08imfl3xot
+         SlJ65Xpbetpm6W4HtUgtFFhh3JAwEXCgKHv/gSmvlDfSND2/pYmoPRItBkg+9RqRR4JY
+         U55blO8+teb4JejLYsxNvkptnJOjd1nhjti6vVcXuPMeFwfMVjJ2mzf+vXT0cErCHN1N
+         fUEDlXfiChhbIWVP8Evh6pz1r4pPANENqGiyYgjq2f87v9jCdN4al9TFd5oZeiNbGgr4
+         /TpQ==
+X-Gm-Message-State: AOAM533/IzjVHowo/ccOO0qhoeHBH1qqJEZzrpfWs9SwEq48VbCXAW9W
+        zNpP6w6IRiT9I4hShDHpoXx2BjkzOIp0aPExy5DoH7/tyoHGLskElcI=
+X-Google-Smtp-Source: ABdhPJzqI+ziyT36aqlZVYM6t2sGvGhaY0LEhpoOK3YlEeYHJR87asPERDXIRgWj3lRogFTzLwioCeD/Mn1Q43KNkpI=
+X-Received: by 2002:a92:7d0d:: with SMTP id y13mr2030220ilc.269.1615548626080;
+ Fri, 12 Mar 2021 03:30:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CACLAQJGnXvd2Pk_BWH9n2ZZdWNC0FeTDwvHZ91wAJ=rTMQHc5w@mail.gmail.com>
+In-Reply-To: <CACLAQJGnXvd2Pk_BWH9n2ZZdWNC0FeTDwvHZ91wAJ=rTMQHc5w@mail.gmail.com>
+From:   Mighty M <mightymb17@gmail.com>
+Date:   Fri, 12 Mar 2021 17:00:13 +0530
+Message-ID: <CACLAQJFhwu_r4BuG4TscCV+FkF_cSG0RONNJW+_OwKP4_LOhPg@mail.gmail.com>
+Subject: Re: Display not working on omap4430
+To:     linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-With the recent changes we are now booting am3/4, dra7, and omap4/5
-without legacy data using devicetree, simple-pm-bus and genpd. Let's not
-initialize and build the legacy data unless CONFIG_OMAP_HWMOD is selected
-based on the SoCs enabled in .config.
+The full dmesg https://pastebin.ubuntu.com/p/KdBZyHzS7t/ i am running 5.11 rc3.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/Makefile       |  8 ++++----
- arch/arm/mach-omap2/io.c           |  7 ++++++-
- arch/arm/mach-omap2/omap_hwmod.h   | 13 +++++++++++++
- arch/arm/mach-omap2/pdata-quirks.c |  2 +-
- arch/arm/mach-omap2/sr_device.c    |  7 +++++++
- 5 files changed, 31 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -20,14 +20,14 @@ secure-common				= omap-smc.o omap-secure.o
- 
- obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
- obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
--obj-$(CONFIG_ARCH_OMAP4) += $(hwmod-common) $(secure-common)
-+obj-$(CONFIG_ARCH_OMAP4) += $(secure-common)
- obj-$(CONFIG_SOC_AM33XX) += $(secure-common)
--obj-$(CONFIG_SOC_OMAP5)  += $(hwmod-common) $(secure-common)
-+obj-$(CONFIG_SOC_OMAP5)  += $(secure-common)
- obj-$(CONFIG_SOC_AM43XX) += $(secure-common)
--obj-$(CONFIG_SOC_DRA7XX) += $(hwmod-common) $(secure-common)
-+obj-$(CONFIG_SOC_DRA7XX) += $(secure-common)
- 
- ifneq ($(CONFIG_SND_SOC_OMAP_MCBSP),)
--obj-y += mcbsp.o
-+obj-$(CONFIG_OMAP_HWMOD) += mcbsp.o
- endif
- 
- obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -402,6 +402,7 @@ static int __init _omap2_init_reprogram_sdrc(void)
- 	return v;
- }
- 
-+#ifdef CONFIG_OMAP_HWMOD
- static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
- {
- 	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
-@@ -414,6 +415,11 @@ static void __init __maybe_unused omap_hwmod_init_postsetup(void)
- 	/* Set the default postsetup state for all hwmods */
- 	omap_hwmod_for_each(_set_hwmod_postsetup_state, &postsetup_state);
- }
-+#else
-+static inline void omap_hwmod_init_postsetup(void)
-+{
-+}
-+#endif
- 
- #ifdef CONFIG_SOC_OMAP2420
- void __init omap2420_init_early(void)
-@@ -615,7 +621,6 @@ void __init omap4430_init_early(void)
- 	omap44xx_voltagedomains_init();
- 	omap44xx_powerdomains_init();
- 	omap44xx_clockdomains_init();
--	omap_hwmod_init_postsetup();
- 	omap_l2_cache_init();
- 	omap_clk_soc_init = omap4xxx_dt_clk_init;
- 	omap_secure_init();
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -607,6 +607,8 @@ struct omap_hwmod {
- 	struct omap_hwmod		*parent_hwmod;
- };
- 
-+#ifdef CONFIG_OMAP_HWMOD
-+
- struct device_node;
- 
- struct omap_hwmod *omap_hwmod_lookup(const char *name);
-@@ -656,6 +658,17 @@ extern void __init omap_hwmod_init(void);
- 
- const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
- 
-+#else	/* CONFIG_OMAP_HWMOD */
-+
-+static inline int
-+omap_hwmod_for_each_by_class(const char *classname,
-+			     int (*fn)(struct omap_hwmod *oh, void *user),
-+			     void *user)
-+{
-+	return 0;
-+}
-+#endif	/* CONFIG_OMAP_HWMOD */
-+
- /*
-  *
-  */
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -443,7 +443,7 @@ void omap_auxdata_legacy_init(struct device *dev)
- 	dev->platform_data = &twl_gpio_auxdata;
- }
- 
--#if IS_ENABLED(CONFIG_SND_SOC_OMAP_MCBSP)
-+#if defined(CONFIG_ARCH_OMAP3) && IS_ENABLED(CONFIG_SND_SOC_OMAP_MCBSP)
- static struct omap_mcbsp_platform_data mcbsp_pdata;
- static void __init omap3_mcbsp_init(void)
- {
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -152,6 +152,7 @@ static int __init sr_init_by_name(const char *name, const char *voltdm)
- 	return 0;
- }
- 
-+#ifdef CONFIG_OMAP_HWMOD
- static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- {
- 	struct omap_smartreflex_dev_attr *sr_dev_attr;
-@@ -165,6 +166,12 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 
- 	return sr_init_by_name(oh->name, sr_dev_attr->sensor_voltdm_name);
- }
-+#else
-+static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
-+{
-+	return -EINVAL;
-+}
-+#endif
- 
- /*
-  * API to be called from board files to enable smartreflex
--- 
-2.30.2
+On Thu, Mar 11, 2021 at 6:22 PM Mighty M <mightymb17@gmail.com> wrote:
+>
+> I have been working on Samsung Galaxy Tab 2 mainline, it uses omap4430
+> processor. But the display doesnt seem to be working, backlight is
+> fine but the screen is blank. Here is the dmesg
+> https://pastebin.ubuntu.com/p/SY9kdPY9Rd/. The error seems to be clk
+> mismatch, but i have no clue on how to fix it. Regards
