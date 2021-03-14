@@ -2,350 +2,158 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 214F2C4332E
-	for <linux-omap@archiver.kernel.org>; Sun, 14 Mar 2021 15:21:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC0FAC433E0
+	for <linux-omap@archiver.kernel.org>; Sun, 14 Mar 2021 16:41:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCE7C64EEF
-	for <linux-omap@archiver.kernel.org>; Sun, 14 Mar 2021 15:21:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8894164EC6
+	for <linux-omap@archiver.kernel.org>; Sun, 14 Mar 2021 16:41:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229495AbhCNPV0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 14 Mar 2021 11:21:26 -0400
-Received: from smtp-17-i2.italiaonline.it ([213.209.12.17]:48330 "EHLO
-        libero.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S231205AbhCNPVA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 14 Mar 2021 11:21:00 -0400
-Received: from passgat-Modern-14-A10M.homenet.telecomitalia.it
- ([87.20.116.197])
-        by smtp-17.iol.local with ESMTPA
-        id LSPzlDn2etpGHLSQ7lAQ8z; Sun, 14 Mar 2021 16:12:44 +0100
-x-libjamoibt: 1601
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2021;
-        t=1615734764; bh=OJexXQyYRFXRNDZK+nCiQVD7b1nhegx+74zGaKuvGxY=;
-        h=From;
-        b=Z5gWsyk/13lq+bJRI3LPPWFB/HDKqQ3WuK0bCNZO5vIEin0waMZMH8EDKmERlnHE9
-         4I1eat4xi9K5GF4x01t7sAm/LIURGV9aOwcDcbp6sL2J25Jg/3mfMCSYYfhygzHaL0
-         KohSM/qoTdS2nt+YwjAZlAboSEH/iiorZNfQBvcV/sx/RAQoguWlB30fZ3OkQG1/cZ
-         1EY5qa0D51Pm3A7oie8uDjOvQwm/FpavoL6CQrP7Dg0g1UpZOtba7CHJcRVZg02m71
-         R/61heMqk5Z6flpMX0ot6hs166oj6LDLRMS4spqQUqFXczNn5DGvBneQi4GT6DBTVK
-         lEwbXhd5m1vEQ==
-X-CNFS-Analysis: v=2.4 cv=Q7IXX66a c=1 sm=1 tr=0 ts=604e27ec cx=a_exe
- a=AVqmXbCQpuNSdJmApS5GbQ==:117 a=AVqmXbCQpuNSdJmApS5GbQ==:17
- a=IkcTkHD0fZMA:10 a=lv3YbdnuOFW5EWC_AkUA:9 a=QEXdDO2ut3YA:10
-From:   Dario Binacchi <dariobin@libero.it>
-To:     linux-kernel@vger.kernel.org
-Cc:     Dario Binacchi <dariobin@libero.it>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Tero Kristo <kristo@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH 4/4] clk: ti: add am33xx spread spectrum clock support
-Date:   Sun, 14 Mar 2021 16:12:33 +0100
-Message-Id: <20210314151233.23243-5-dariobin@libero.it>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210314151233.23243-1-dariobin@libero.it>
-References: <20210314151233.23243-1-dariobin@libero.it>
+        id S233977AbhCNQkm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 14 Mar 2021 12:40:42 -0400
+Received: from muru.com ([72.249.23.125]:43104 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233369AbhCNQkP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 14 Mar 2021 12:40:15 -0400
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id C927F80B4;
+        Sun, 14 Mar 2021 16:40:56 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     linux-omap@vger.kernel.org
+Cc:     linux-arm-kernel@lists.infradead.org,
+        Carlos Leija <cileija@ti.com>,
+        Praneeth Bajjuri <praneeth@ti.com>,
+        Bryan Buckley <bryan.buckley@ti.com>,
+        Tero Kristo <t-kristo@ti.com>,
+        Carl Philipp Klemm <philipp@uvos.xyz>,
+        Merlijn Wajer <merlijn@wizzup.org>,
+        Ivan Jelincic <parazyd@dyne.org>, Pavel Machek <pavel@ucw.cz>,
+        Sebastian Reichel <sre@kernel.org>,
+        Tero Kristo <kristo@kernel.org>
+Subject: [PATCH] ARM: OMAP4: PM: update ROM return address for OSWR and OFF
+Date:   Sun, 14 Mar 2021 18:39:43 +0200
+Message-Id: <20210314163943.6252-1-tony@atomide.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4xfFYu7+Zt+PPO7dSWSZFo1QYRwh0MVcVpc+2sxdqWYF0vFnwFQT0vF4W25cqoidEUgj7FteLrYvJBKAsazRuf8qnR+CrVIbMW3qqyijEv8uM/ZerTOvyG
- ZUXZbzT+ykVMVyyoZgWDJN/Np5w2OEc2KxIZ0Ay0rH6z3VLN/jzX5tbBAoOi3nfpS07I04iGmKmErD/kSUOFtE8VlnqLHXOlMuGyjKJernKeS2HiDKth743D
- /wSHeSdE2+CQuTbu9L6GhX2XNOgyYd8gwiV5t43UARmKN8W496NoQ+D2JOqDpg9KGBrVvNqfy3BquM4p/eTYBgT1ApOiXedUg3YP8tvzWXhY1lEyxtW7Wi+7
- QyKdCTXpILjtBKcBfupFmFvdFiEIq0r0gu565MNy4YcH4EXXZNRbmtP2gszaNc/eGGncMxYuTTZ7ciYrNDL6dW7RP2h3f4HiGnboZXUz544y6dPyDVkcUiAE
- PCxOUAL7RF+9uC/S+4wRptkccB+VHxxk72YKn+ThlZROoCvFj/peKVQ61AfAGb01EwBPP5oKc+VhJeoG0igmsCECjiEzGLPr7JRzXwy33LqEU3tO1xW4UDqW
- gk+MHR3tDKpRPYL+JIeM+T4d
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The patch enables spread spectrum clocking (SSC) for MPU and LCD PLLs.
-As reported by the TI spruh73x RM, SSC is only supported for the
-DISP/LCD and MPU PLLs on am33xx device. SSC is not supported for DDR,
-PER, and CORE PLLs.
+From: Carlos Leija <cileija@ti.com>
 
-Calculating the required values and setting the registers accordingly
-was taken from the set_mpu_spreadspectrum routine contained in the
-arch/arm/mach-omap2/am33xx/clock_am33xx.c file of the u-boot project.
+We need to add a dummy smc call to the cpuidle wakeup path to force the
+ROM code to save the return address after MMU is enabled again. This is
+needed to prevent random hangs on secure devices like droid4.
 
-In locked condition, DPLL output clock = CLKINP *[M/N]. In case of
-SSC enabled, the AM335x reference manual explains that there is a
-restriction of range of M values. Since the omap2_dpll_round_rate
-routine attempts to select the minimum possible N, the value of M
-obtained is not guaranteed to be within the range required. With the new
-"ti,min-div" parameter it is possible to increase N and consequently M
-to satisfy the constraint imposed by SSC.
+Otherwise the system will eventually hang when entering deeper SoC idle
+states with the core and mpu domains in open-switch retention (OSWR).
+The hang happens as the ROM code tries to use the earlier physical return
+address set by omap-headsmp.S with MMU off while waking up CPU1 again.
 
-Signed-off-by: Dario Binacchi <dariobin@libero.it>
+The hangs started happening in theory already with commit caf8c87d7ff2
+("ARM: OMAP2+: Allow core oswr for omap4"), but in practise the issue went
+unnoticed as various drivers were often blocking any deeper idle states
+with hardware autoidle features.
 
+This patch is based on an earlier TI Linux kernel tree commit 92f0b3028d9e
+("OMAP4: PM: update ROM return address for OSWR and OFF") written by
+Carlos Leija <cileija@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, and
+Bryan Buckley <bryan.buckley@ti.com>. A later version of the patch was
+updated to use CPU_PM notifiers by Tero Kristo <t-kristo@ti.com>.
+
+Signed-off-by: Carlos Leija <cileija@ti.com>
+Signed-off-by: Praneeth Bajjuri <praneeth@ti.com>
+Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Fixes: caf8c87d7ff2 ("ARM: OMAP2+: Allow core oswr for omap4")
+Reported-by: Carl Philipp Klemm <philipp@uvos.xyz>
+Reported-by: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Ivan Jelincic <parazyd@dyne.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Tero Kristo <kristo@kernel.org>
+[tony@atomide.com: updated to apply, updated description]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/mach-omap2/omap-secure.c | 39 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap-secure.h |  1 +
+ 2 files changed, 40 insertions(+)
 
- arch/arm/boot/dts/am33xx-clocks.dtsi |  4 +-
- drivers/clk/ti/dpll.c                | 41 ++++++++++++++
- drivers/clk/ti/dpll3xxx.c            | 85 ++++++++++++++++++++++++++++
- include/linux/clk/ti.h               | 24 ++++++++
- 4 files changed, 152 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am33xx-clocks.dtsi b/arch/arm/boot/dts/am33xx-clocks.dtsi
-index e7bbbf536a8c..a02e0b1229a4 100644
---- a/arch/arm/boot/dts/am33xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am33xx-clocks.dtsi
-@@ -164,7 +164,7 @@
- 		#clock-cells = <0>;
- 		compatible = "ti,am3-dpll-core-clock";
- 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
--		reg = <0x0490>, <0x045c>, <0x0468>, <0x0460>, <0x0464>;
-+		reg = <0x0490>, <0x045c>, <0x0468>;
- 	};
+diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+--- a/arch/arm/mach-omap2/omap-secure.c
++++ b/arch/arm/mach-omap2/omap-secure.c
+@@ -9,6 +9,7 @@
+  */
  
- 	dpll_core_x2_ck: dpll_core_x2_ck {
-@@ -204,7 +204,7 @@
- 		#clock-cells = <0>;
- 		compatible = "ti,am3-dpll-clock";
- 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
--		reg = <0x0488>, <0x0420>, <0x042c>;
-+		reg = <0x0488>, <0x0420>, <0x042c>, <0x0424>, <0x0428>;
- 	};
+ #include <linux/arm-smccc.h>
++#include <linux/cpu_pm.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
+@@ -20,6 +21,7 @@
  
- 	dpll_mpu_m2_ck: dpll_mpu_m2_ck@4a8 {
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index d6f1ac5b53e1..2738417a47b7 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -290,7 +290,9 @@ static void __init of_ti_dpll_setup(struct device_node *node,
- 	struct clk_init_data *init = NULL;
- 	const char **parent_names = NULL;
- 	struct dpll_data *dd = NULL;
-+	int ssc_clk_index;
- 	u8 dpll_mode = 0;
-+	u32 min_div;
+ #include "common.h"
+ #include "omap-secure.h"
++#include "soc.h"
  
- 	dd = kmemdup(ddt, sizeof(*dd), GFP_KERNEL);
- 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-@@ -345,6 +347,27 @@ static void __init of_ti_dpll_setup(struct device_node *node,
- 	if (dd->autoidle_mask) {
- 		if (ti_clk_get_reg_addr(node, 3, &dd->autoidle_reg))
- 			goto cleanup;
-+
-+		ssc_clk_index = 4;
-+	} else {
-+		ssc_clk_index = 3;
-+	}
-+
-+	if (dd->ssc_deltam_int_mask && dd->ssc_deltam_frac_mask &&
-+	    dd->ssc_modfreq_mant_mask && dd->ssc_modfreq_exp_mask) {
-+		if (ti_clk_get_reg_addr(node, ssc_clk_index++,
-+					&dd->ssc_deltam_reg))
-+			goto cleanup;
-+
-+		if (ti_clk_get_reg_addr(node, ssc_clk_index++,
-+					&dd->ssc_modfreq_reg))
-+			goto cleanup;
-+
-+		of_property_read_u32(node, "ti,ssc-modfreq", &dd->ssc_modfreq);
-+		of_property_read_u32(node, "ti,ssc-deltam", &dd->ssc_deltam);
-+		if (of_property_read_bool(node, "ti,ssc-downspread"))
-+			dd->ssc_downspread = 1;
-+
- 	}
+ static phys_addr_t omap_secure_memblock_base;
  
- 	if (of_property_read_bool(node, "ti,low-power-stop"))
-@@ -356,6 +379,10 @@ static void __init of_ti_dpll_setup(struct device_node *node,
- 	if (of_property_read_bool(node, "ti,lock"))
- 		dpll_mode |= 1 << DPLL_LOCKED;
- 
-+	if (!of_property_read_u32(node, "ti,min-div", &min_div) &&
-+	    min_div > dd->min_divider)
-+		dd->min_divider = min_div;
-+
- 	if (dpll_mode)
- 		dd->modes = dpll_mode;
- 
-@@ -585,8 +612,15 @@ static void __init of_ti_am3_no_gate_dpll_setup(struct device_node *node)
- 	const struct dpll_data dd = {
- 		.idlest_mask = 0x1,
- 		.enable_mask = 0x7,
-+		.ssc_enable_mask = 0x1 << 12,
-+		.ssc_ack_mask = 0x1 << 13,
-+		.ssc_downspread_mask = 0x1 << 14,
- 		.mult_mask = 0x7ff << 8,
- 		.div1_mask = 0x7f,
-+		.ssc_deltam_int_mask = 0x3 << 18,
-+		.ssc_deltam_frac_mask = 0x3ffff,
-+		.ssc_modfreq_mant_mask = 0x7f,
-+		.ssc_modfreq_exp_mask = 0x7 << 8,
- 		.max_multiplier = 2047,
- 		.max_divider = 128,
- 		.min_divider = 1,
-@@ -645,8 +679,15 @@ static void __init of_ti_am3_dpll_setup(struct device_node *node)
- 	const struct dpll_data dd = {
- 		.idlest_mask = 0x1,
- 		.enable_mask = 0x7,
-+		.ssc_enable_mask = 0x1 << 12,
-+		.ssc_ack_mask = 0x1 << 13,
-+		.ssc_downspread_mask = 0x1 << 14,
- 		.mult_mask = 0x7ff << 8,
- 		.div1_mask = 0x7f,
-+		.ssc_deltam_int_mask = 0x3 << 18,
-+		.ssc_deltam_frac_mask = 0x3ffff,
-+		.ssc_modfreq_mant_mask = 0x7f,
-+		.ssc_modfreq_exp_mask = 0x7 << 8,
- 		.max_multiplier = 2047,
- 		.max_divider = 128,
- 		.min_divider = 1,
-diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-index 94d5b5fe9a2b..e32b3515f9e7 100644
---- a/drivers/clk/ti/dpll3xxx.c
-+++ b/drivers/clk/ti/dpll3xxx.c
-@@ -291,6 +291,88 @@ static void _lookup_sddiv(struct clk_hw_omap *clk, u8 *sd_div, u16 m, u8 n)
- 	*sd_div = sd;
+@@ -213,3 +215,40 @@ void __init omap_secure_init(void)
+ {
+ 	omap_optee_init_check();
  }
- 
-+/**
-+ * omap3_noncore_dpll_ssc_program - set spread-spectrum clocking registers
-+ * @clk:	struct clk * of DPLL to set
-+ *
-+ * Enable the DPLL spread spectrum clocking if frequency modulation and
-+ * frequency spreading have been set, otherwise disable it.
++
++/*
++ * Dummy dispatcher call after core OSWR and MPU off. Updates the ROM return
++ * address after MMU has been re-enabled after CPU1 has been woken up again.
++ * Otherwise the ROM code will attempt to use the earlier physical return
++ * address that got set with MMU off when waking up CPU1. Only used on secure
++ * devices.
 + */
-+static void omap3_noncore_dpll_ssc_program(struct clk_hw_omap *clk)
++static int cpu_notifier(struct notifier_block *nb, unsigned long cmd, void *v)
 +{
-+	struct dpll_data *dd = clk->dpll_data;
-+	unsigned long ref_rate;
-+	u32 v, ctrl, mod_freq_divider, exponent, mantissa;
-+	u32 deltam_step, deltam_ceil;
-+
-+	ctrl = ti_clk_ll_ops->clk_readl(&dd->control_reg);
-+
-+	if (dd->ssc_modfreq && dd->ssc_deltam) {
-+		ctrl |= dd->ssc_enable_mask;
-+
-+		if (dd->ssc_downspread)
-+			ctrl |= dd->ssc_downspread_mask;
-+		else
-+			ctrl &= ~dd->ssc_downspread_mask;
-+
-+		ref_rate = clk_hw_get_rate(dd->clk_ref);
-+		mod_freq_divider =
-+		    (ref_rate / dd->last_rounded_n) / (4 * dd->ssc_modfreq);
-+		if (dd->ssc_modfreq > (ref_rate / 70))
-+			pr_warn("clock: SSC modulation frequency of DPLL %s greater than %ld\n",
-+				__clk_get_name(clk->hw.clk), ref_rate / 70);
-+
-+		exponent = 0;
-+		mantissa = mod_freq_divider;
-+		while ((mantissa > 127) && (exponent < 7)) {
-+			exponent++;
-+			mantissa /= 2;
-+		}
-+		if (mantissa > 127)
-+			mantissa = 127;
-+
-+		v = ti_clk_ll_ops->clk_readl(&dd->ssc_modfreq_reg);
-+		v &= ~(dd->ssc_modfreq_mant_mask | dd->ssc_modfreq_exp_mask);
-+		v |= mantissa << __ffs(dd->ssc_modfreq_mant_mask);
-+		v |= exponent << __ffs(dd->ssc_modfreq_exp_mask);
-+		ti_clk_ll_ops->clk_writel(v, &dd->ssc_modfreq_reg);
-+
-+		deltam_step = dd->last_rounded_m * dd->ssc_deltam;
-+		deltam_step /= 10;
-+		if (dd->ssc_downspread)
-+			deltam_step /= 2;
-+
-+		deltam_step <<= __ffs(dd->ssc_deltam_int_mask);
-+		deltam_step /= 100;
-+		deltam_step /= mod_freq_divider;
-+		if (deltam_step > 0xFFFFF)
-+			deltam_step = 0xFFFFF;
-+
-+		deltam_ceil = (deltam_step & dd->ssc_deltam_int_mask) >>
-+		    __ffs(dd->ssc_deltam_int_mask);
-+		if (deltam_step & dd->ssc_deltam_frac_mask)
-+			deltam_ceil++;
-+
-+		if ((dd->ssc_downspread &&
-+		     ((dd->last_rounded_m - (2 * deltam_ceil)) < 20 ||
-+		      dd->last_rounded_m > 2045)) ||
-+		    ((dd->last_rounded_m - deltam_ceil) < 20 ||
-+		     (dd->last_rounded_m + deltam_ceil) > 2045))
-+			pr_warn("clock: SSC multiplier of DPLL %s is out of range\n",
-+				__clk_get_name(clk->hw.clk));
-+
-+		v = ti_clk_ll_ops->clk_readl(&dd->ssc_deltam_reg);
-+		v &= ~(dd->ssc_deltam_int_mask | dd->ssc_deltam_frac_mask);
-+		v |= deltam_step << __ffs(dd->ssc_deltam_int_mask |
-+					  dd->ssc_deltam_frac_mask);
-+		ti_clk_ll_ops->clk_writel(v, &dd->ssc_deltam_reg);
-+	} else {
-+		ctrl &= ~dd->ssc_enable_mask;
++	switch (cmd) {
++	case CPU_CLUSTER_PM_EXIT:
++		omap_secure_dispatcher(OMAP4_PPA_SERVICE_0,
++				       FLAG_START_CRITICAL,
++				       0, 0, 0, 0, 0);
++		break;
++	default:
++		break;
 +	}
 +
-+	ti_clk_ll_ops->clk_writel(ctrl, &dd->control_reg);
++	return NOTIFY_OK;
 +}
 +
- /**
-  * omap3_noncore_dpll_program - set non-core DPLL M,N values directly
-  * @clk:	struct clk * of DPLL to set
-@@ -390,6 +472,9 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
- 		ti_clk_ll_ops->clk_writel(v, &dd->control_reg);
- 	}
- 
-+	if (dd->ssc_enable_mask)
-+		omap3_noncore_dpll_ssc_program(clk);
++static struct notifier_block secure_notifier_block = {
++	.notifier_call = cpu_notifier,
++};
 +
- 	/* We let the clock framework set the other output dividers later */
++static int __init secure_pm_init(void)
++{
++	if (omap_type() == OMAP2_DEVICE_TYPE_GP)
++		return 0;
++
++	cpu_pm_register_notifier(&secure_notifier_block);
++
++	return 0;
++}
++omap_arch_initcall(secure_pm_init);
+diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+--- a/arch/arm/mach-omap2/omap-secure.h
++++ b/arch/arm/mach-omap2/omap-secure.h
+@@ -50,6 +50,7 @@
+ #define OMAP5_DRA7_MON_SET_ACR_INDEX	0x107
  
- 	/* REVISIT: Set ramp-up delay? */
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index c62f6fa6763d..cba093de62d8 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -63,6 +63,18 @@ struct clk_omap_reg {
-  * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
-  * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
-  * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
-+ * @ssc_deltam_reg: register containing the DPLL SSC frequency spreading
-+ * @ssc_modfreq_reg: register containing the DPLL SSC modulation frequency
-+ * @ssc_modfreq_mant_mask: mask of the mantissa component in @ssc_modfreq_reg
-+ * @ssc_modfreq_exp_mask: mask of the exponent component in @ssc_modfreq_reg
-+ * @ssc_enable_mask: mask of the DPLL SSC enable bit in @control_reg
-+ * @ssc_ack_mask: mask of the DPLL SSC turned on/off bit in @control_reg
-+ * @ssc_downspread_mask: mask of the DPLL SSC low frequency only bit in
-+ *                       @control_reg
-+ * @ssc_modfreq: the DPLL SSC frequency modulation in kHz
-+ * @ssc_deltam: the DPLL SSC frequency spreading in permille (10th of percent)
-+ * @ssc_downspread: require the only low frequency spread of the DPLL in SSC
-+ *                   mode
-  * @flags: DPLL type/features (see below)
-  *
-  * Possible values for @flags:
-@@ -110,6 +122,18 @@ struct dpll_data {
- 	u8			auto_recal_bit;
- 	u8			recal_en_bit;
- 	u8			recal_st_bit;
-+	struct clk_omap_reg	ssc_deltam_reg;
-+	struct clk_omap_reg	ssc_modfreq_reg;
-+	u32			ssc_deltam_int_mask;
-+	u32			ssc_deltam_frac_mask;
-+	u32			ssc_modfreq_mant_mask;
-+	u32			ssc_modfreq_exp_mask;
-+	u32                     ssc_enable_mask;
-+	u32                     ssc_ack_mask;
-+	u32                     ssc_downspread_mask;
-+	u32                     ssc_modfreq;
-+	u32                     ssc_deltam;
-+	u8                      ssc_downspread;
- 	u8			flags;
- };
+ /* Secure PPA(Primary Protected Application) APIs */
++#define OMAP4_PPA_SERVICE_0		0x21
+ #define OMAP4_PPA_L2_POR_INDEX		0x23
+ #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
  
 -- 
-2.17.1
-
+2.30.2
