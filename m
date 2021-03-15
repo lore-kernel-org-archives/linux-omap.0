@@ -5,111 +5,99 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A33FDC433E6
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 15:03:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65071C433E0
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 21:00:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7B6FD64E2E
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 15:03:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3853D64F37
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 21:00:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232540AbhCOPCv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 15 Mar 2021 11:02:51 -0400
-Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:41256 "EHLO
-        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232487AbhCOPCW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2021 11:02:22 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1615820542; x=1647356542;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version;
-  bh=MClbUWH/t1IvBDSDmoru1ZjJma+KywzZ9kr5JOM7eLk=;
-  b=gbsP9FGlUoSouH8kguFHRqRt/aOXUUS7vME1CS1iDMf2jJJaxgJYXQaE
-   RCb1A9rS63nTXTbSeZXc+kbIjR4Xw7qqTUERu/g9dpWfhgmADYpGtPCkq
-   DnDukodVyLEaoXjXEzPdEaMpQ7zpHo682DdpjslFziIPUHiXhfInFbFvv
-   w=;
-IronPort-HdrOrdr: A9a23:0j59v6x32Mi2f4cBFNHyKrPxVOskLtp033Aq2lEZdDV/dNCenc
- y12OkcvCWE7Ao5cntIo769EYOHRm7R8oMw3JkJMd6ZLWvbkUaLDKUn14vtxDX8Bzbzn9Q3v5
- tIXqBiBLTLfCFHpOn37ASyG9wjhPmrmZrY/tv24GxqSWhRBp1IyydcJkKlHlZtRA9AbKBJd6
- a0wsZcvTKvdTA2Q62AZ0UtZOTIq93VmJ+OW3dvOzcd5BCKnXeU7tfBfySw5AsUUD9E3N4ZkV
- TtrgqR3MqemsD+4jv15En1q7B/uP6k8fdnLPzJt/gtBlzX+2OVTbUkc5mrjxYT5MWC1X4GuO
- Tlyi1QWPhb2jf2ZWG6oRzk3k3F3Cw143Hv6XLwuwqEneXJAAgXMY5mmZ9WdBvf5SMbzalB7J
- 4=
-X-IronPort-AV: E=Sophos;i="5.81,249,1610409600"; 
-   d="scan'208";a="93106824"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2a-69849ee2.us-west-2.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 15 Mar 2021 15:00:14 +0000
-Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
-        by email-inbound-relay-2a-69849ee2.us-west-2.amazon.com (Postfix) with ESMTPS id 118FCA1C3C;
-        Mon, 15 Mar 2021 15:00:13 +0000 (UTC)
-Received: from u8a88181e7b2355.ant.amazon.com (10.43.160.180) by
- EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Mon, 15 Mar 2021 15:00:06 +0000
-From:   Hanna Hawa <hhhawa@amazon.com>
-To:     <tony@atomide.com>, <haojian.zhuang@linaro.org>,
-        <linus.walleij@linaro.org>
-CC:     <dwmw@amazon.co.uk>, <benh@amazon.com>, <ronenk@amazon.com>,
-        <talel@amazon.com>, <jonnyc@amazon.com>, <hanochu@amazon.com>,
-        <tgershi@amazon.com>, <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <hhhawa@amazon.com>
-Subject: [PATCH 1/2] pinctrl: pinctrl-single: remove unused parameter
-Date:   Mon, 15 Mar 2021 16:59:43 +0200
-Message-ID: <20210315145944.20412-2-hhhawa@amazon.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210315145944.20412-1-hhhawa@amazon.com>
-References: <20210315145944.20412-1-hhhawa@amazon.com>
+        id S232741AbhCOU7n (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 15 Mar 2021 16:59:43 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:42438 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232240AbhCOU7O (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2021 16:59:14 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 12FKx5F3115937;
+        Mon, 15 Mar 2021 15:59:05 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1615841945;
+        bh=UoF3cldJyikro6utsBYNtr1jTBmig21JZkMN3IlKsys=;
+        h=From:To:CC:Subject:Date;
+        b=hK+xJkiURaN2Fv5+HlpWoMqYp6FagUS0NmqR82+0z1jMWDMZYApr9+hU8V6CwtwLK
+         U0XRIHgilJ0TjG5C0HPSx2kwulF8pJfu5uPODoqZzIzcqMF0gm4RofGnYwwiOJ7XiH
+         1nGJMleUmySctvvScF7ht/tnNE0+MXlSPRmTy7yg=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 12FKx4b7118738
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 15 Mar 2021 15:59:04 -0500
+Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Mon, 15
+ Mar 2021 15:59:04 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
+ Frontend Transport; Mon, 15 Mar 2021 15:59:04 -0500
+Received: from fllv0103.dal.design.ti.com (fllv0103.dal.design.ti.com [10.247.120.73])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 12FKx4dR098491;
+        Mon, 15 Mar 2021 15:59:04 -0500
+Received: from localhost ([10.250.34.48])
+        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 12FKx42r064830;
+        Mon, 15 Mar 2021 15:59:04 -0500
+From:   Suman Anna <s-anna@ti.com>
+To:     Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>
+CC:     Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
+        Jan Kiszka <jan.kiszka@siemens.com>,
+        Lokesh Vutla <lokeshvutla@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: [PATCH] remoteproc: pru: Fix firmware loading crashes on K3 SoCs
+Date:   Mon, 15 Mar 2021 15:58:59 -0500
+Message-ID: <20210315205859.19590-1-s-anna@ti.com>
+X-Mailer: git-send-email 2.30.1
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Originating-IP: [10.43.160.180]
-X-ClientProxiedBy: EX13D32UWB002.ant.amazon.com (10.43.161.139) To
- EX13D19EUB003.ant.amazon.com (10.43.166.69)
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Remove unused parameter 'pin_pos' from pcs_add_pin().
+The K3 PRUs are 32-bit processors and in general have some limitations
+in using the standard ARMv8 memcpy function for loading firmware segments,
+so the driver already uses a custom memcpy implementation. This added
+logic however is limited to only IRAMs at the moment, but the loading
+into Data RAMs is not completely ok either and does generate a kernel
+crash for unaligned accesses.
 
-Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
+Fix these crashes by removing the existing IRAM logic limitation and
+extending the custom memcpy usage to Data RAMs as well for all K3 SoCs.
+
+Fixes: 1d39f4d19921 ("remoteproc: pru: Add support for various PRU cores on K3 AM65x SoCs")
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/pinctrl/pinctrl-single.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/remoteproc/pru_rproc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 7771316dfffa..8a7922459896 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -656,10 +656,8 @@ static const struct pinconf_ops pcs_pinconf_ops = {
-  * pcs_add_pin() - add a pin to the static per controller pin array
-  * @pcs: pcs driver instance
-  * @offset: register offset from base
-- * @pin_pos: unused
-  */
--static int pcs_add_pin(struct pcs_device *pcs, unsigned offset,
--		unsigned pin_pos)
-+static int pcs_add_pin(struct pcs_device *pcs, unsigned int offset)
- {
- 	struct pcs_soc_data *pcs_soc = &pcs->socdata;
- 	struct pinctrl_pin_desc *pin;
-@@ -729,16 +727,14 @@ static int pcs_allocate_pin_table(struct pcs_device *pcs)
- 		unsigned offset;
- 		int res;
- 		int byte_num;
--		int pin_pos = 0;
- 
- 		if (pcs->bits_per_mux) {
- 			byte_num = (pcs->bits_per_pin * i) / BITS_PER_BYTE;
- 			offset = (byte_num / mux_bytes) * mux_bytes;
--			pin_pos = i % num_pins_in_register;
- 		} else {
- 			offset = i * mux_bytes;
+diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+index 2667919d76b3..16979c1cd2f4 100644
+--- a/drivers/remoteproc/pru_rproc.c
++++ b/drivers/remoteproc/pru_rproc.c
+@@ -585,7 +585,7 @@ pru_rproc_load_elf_segments(struct rproc *rproc, const struct firmware *fw)
+ 			break;
  		}
--		res = pcs_add_pin(pcs, offset, pin_pos);
-+		res = pcs_add_pin(pcs, offset);
- 		if (res < 0) {
- 			dev_err(pcs->dev, "error adding pins: %i\n", res);
- 			return res;
+ 
+-		if (pru->data->is_k3 && is_iram) {
++		if (pru->data->is_k3) {
+ 			ret = pru_rproc_memcpy(ptr, elf_data + phdr->p_offset,
+ 					       filesz);
+ 			if (ret) {
 -- 
-2.17.1
+2.30.1
 
