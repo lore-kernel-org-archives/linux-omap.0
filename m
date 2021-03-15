@@ -2,87 +2,80 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4914CC433DB
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 07:06:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B509C433E0
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 15:01:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 170CE64E1F
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 07:06:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 565F164E04
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Mar 2021 15:01:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229742AbhCOHGN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 15 Mar 2021 03:06:13 -0400
-Received: from out30-132.freemail.mail.aliyun.com ([115.124.30.132]:44538 "EHLO
-        out30-132.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229607AbhCOHFq (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 15 Mar 2021 03:05:46 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R991e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=yang.lee@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0URunCVN_1615791943;
-Received: from j63c13417.sqa.eu95.tbsite.net(mailfrom:yang.lee@linux.alibaba.com fp:SMTPD_---0URunCVN_1615791943)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 15 Mar 2021 15:05:44 +0800
-From:   Yang Li <yang.lee@linux.alibaba.com>
-To:     tony@atomide.com
-Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH] ARM: OMAP2+: use true and false for bool variable
-Date:   Mon, 15 Mar 2021 15:05:41 +0800
-Message-Id: <1615791941-62388-1-git-send-email-yang.lee@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
+        id S236533AbhCOPAb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 15 Mar 2021 11:00:31 -0400
+Received: from smtp-fw-6002.amazon.com ([52.95.49.90]:43129 "EHLO
+        smtp-fw-6002.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233971AbhCOPAR (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2021 11:00:17 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1615820418; x=1647356418;
+  h=from:to:cc:subject:date:message-id:mime-version;
+  bh=FcaTmFg+qW3hY4NrmRQtEj4VEdriTa7K4B7OzIG6SJQ=;
+  b=nDcJIiHUS7c/JhPWTBqJSHsKNS1d/CtzVXGyCe8tzA/yBFazYfeiSIDo
+   VAEtqe4ZZBpA0Ho77HJlOnoMuE3oxL9rfwyvZC/kAEYpIlUcnXtOok4oK
+   teugA/1tdYoEntR/+HiAmSxvvhtWS87mP5UnJdNLf6M2uq5jlA6aaswtD
+   Q=;
+IronPort-HdrOrdr: A9a23:+lwUlqkM9HscKOdb9tJEfUm4BWLpDfLD3DAbvn1ZSRFFG/Gwve
+ rGppsm/DXzjyscX2xlpMCYNMC7MBbh3LN8/IV5B9afdSb8vm/AFuxfxK/D5xGlJCHk7O5a0s
+ 5bAspDIfn9F0Jzg8q/wCTQKbYd6eKK+qypmuvSpk0FJWoBV4hb8wx7BgyHe3cZeCB6A/MCeK
+ a0145sojqtfmkvdcKrBnUJdPirnaytqLvWJToPBxsq82C1/FCVwY+/NQOZ0BcYWy5Oxrln0V
+ GtqX2c2pme
+X-IronPort-AV: E=Sophos;i="5.81,249,1610409600"; 
+   d="scan'208";a="97431197"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2b-4e24fd92.us-west-2.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-6002.iad6.amazon.com with ESMTP; 15 Mar 2021 15:00:08 +0000
+Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2b-4e24fd92.us-west-2.amazon.com (Postfix) with ESMTPS id EA365A1FC3;
+        Mon, 15 Mar 2021 15:00:06 +0000 (UTC)
+Received: from u8a88181e7b2355.ant.amazon.com (10.43.160.180) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Mon, 15 Mar 2021 15:00:00 +0000
+From:   Hanna Hawa <hhhawa@amazon.com>
+To:     <tony@atomide.com>, <haojian.zhuang@linaro.org>,
+        <linus.walleij@linaro.org>
+CC:     <dwmw@amazon.co.uk>, <benh@amazon.com>, <ronenk@amazon.com>,
+        <talel@amazon.com>, <jonnyc@amazon.com>, <hanochu@amazon.com>,
+        <tgershi@amazon.com>, <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <hhhawa@amazon.com>
+Subject: [PATCH 0/2] Fix pinctrl-single pcs_pin_dbg_show()
+Date:   Mon, 15 Mar 2021 16:59:42 +0200
+Message-ID: <20210315145944.20412-1-hhhawa@amazon.com>
+X-Mailer: git-send-email 2.17.1
+MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.43.160.180]
+X-ClientProxiedBy: EX13D32UWB002.ant.amazon.com (10.43.161.139) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-fixed the following coccicheck:
-./arch/arm/mach-omap2/powerdomain.c:1205:9-10: WARNING: return of 0/1 in
-function 'pwrdm_can_ever_lose_context' with return type bool
+These patches fix the pcs_pin_dbg_show() function for the scenario where
+a single register controls multiple pins (i.e. bits_per_mux != 0).
+Additionally, the common formula is moved to a separate function to
+allow reuse.
 
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
----
- arch/arm/mach-omap2/powerdomain.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Hanna Hawa (2):
+  pinctrl: pinctrl-single: remove unused parameter
+  pinctrl: pinctrl-single: fix pcs_pin_dbg_show() when bits_per_mux != 0
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 1cbac76..0a5b87e 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -1202,26 +1202,26 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
- 	if (!pwrdm) {
- 		pr_debug("powerdomain: %s: invalid powerdomain pointer\n",
- 			 __func__);
--		return 1;
-+		return true;
- 	}
- 
- 	if (pwrdm->pwrsts & PWRSTS_OFF)
--		return 1;
-+		return true;
- 
- 	if (pwrdm->pwrsts & PWRSTS_RET) {
- 		if (pwrdm->pwrsts_logic_ret & PWRSTS_OFF)
--			return 1;
-+			return true;
- 
- 		for (i = 0; i < pwrdm->banks; i++)
- 			if (pwrdm->pwrsts_mem_ret[i] & PWRSTS_OFF)
--				return 1;
-+				return true;
- 	}
- 
- 	for (i = 0; i < pwrdm->banks; i++)
- 		if (pwrdm->pwrsts_mem_on[i] & PWRSTS_OFF)
--			return 1;
-+			return true;
- 
--	return 0;
-+	return false;
- }
- 
- /**
+ drivers/pinctrl/pinctrl-single.c | 74 ++++++++++++++++++++------------
+ 1 file changed, 47 insertions(+), 27 deletions(-)
+
 -- 
-1.8.3.1
+2.17.1
 
