@@ -2,201 +2,94 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 237DCC433DB
-	for <linux-omap@archiver.kernel.org>; Wed, 17 Mar 2021 19:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 780C8C43381
+	for <linux-omap@archiver.kernel.org>; Wed, 17 Mar 2021 21:43:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBBBD64E04
-	for <linux-omap@archiver.kernel.org>; Wed, 17 Mar 2021 19:38:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F26764F41
+	for <linux-omap@archiver.kernel.org>; Wed, 17 Mar 2021 21:43:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233162AbhCQThe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 17 Mar 2021 15:37:34 -0400
-Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:63819 "EHLO
-        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233333AbhCQThc (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2021 15:37:32 -0400
+        id S231697AbhCQVmb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 17 Mar 2021 17:42:31 -0400
+Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:17787 "EHLO
+        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231710AbhCQVmW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2021 17:42:22 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1616009852; x=1647545852;
-  h=to:cc:references:from:message-id:date:mime-version:
-   in-reply-to:content-transfer-encoding:subject;
-  bh=489A1VRkztitIWAcLQ9i/t5Pl6Ug/jdMC2m9puuh5lk=;
-  b=T8cE6l3ilSHOuJrQlkjr0eg8dxO3fE8aDQ3NbDRraG2E0mtqEnchBNaR
-   SQyfzcupqzSLD5NvvWnKBTjBd48vxLCSWWXvOQI9WrLDqLOvPEtAhtUqp
-   /vV71VZlNblhPVFwwcG8RvkRQtTVTS4UDZttBluL9MU573TtSvUCYNG99
-   U=;
+  t=1616017343; x=1647553343;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version;
+  bh=3JSBlUFKcyKIVVyh2tD/o2Ia9bYRXCVww7vZxwWh5WE=;
+  b=RszIk+8ZoFTPM1N/Kqq8kxgeMjLSuXzuldh/+qw9wVAxKU5OaL3mOn4D
+   G4zeTlHs0HGisRu1SSBdE8CjiLv+f7RPNq/QaThvbkYv+V79gCXlP/woM
+   Fy1I1PxF45uyAC5l36VTDH2n96wyeyJu4um6I4unCTnk3vbfY9YAiaZqC
+   w=;
 X-IronPort-AV: E=Sophos;i="5.81,257,1610409600"; 
-   d="scan'208";a="93960458"
-Subject: Re: [PATCH v2 3/3] pinctrl: pinctrl-single: fix pcs_pin_dbg_show() when
- bits_per_mux != 0
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2a-d0be17ee.us-west-2.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 17 Mar 2021 19:35:24 +0000
-Received: from EX13MTAUEB001.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan3.pdx.amazon.com [10.236.137.198])
-        by email-inbound-relay-2a-d0be17ee.us-west-2.amazon.com (Postfix) with ESMTPS id 7B1BEA058D;
-        Wed, 17 Mar 2021 19:35:23 +0000 (UTC)
-Received: from EX13D08UEB002.ant.amazon.com (10.43.60.107) by
- EX13MTAUEB001.ant.amazon.com (10.43.60.129) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Wed, 17 Mar 2021 19:35:23 +0000
-Received: from EX13MTAUEB002.ant.amazon.com (10.43.60.12) by
- EX13D08UEB002.ant.amazon.com (10.43.60.107) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Wed, 17 Mar 2021 19:35:22 +0000
-Received: from [10.85.97.144] (10.85.97.144) by mail-relay.amazon.com
- (10.43.60.234) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Wed, 17 Mar 2021 19:35:19 +0000
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-CC:     Tony Lindgren <tony@atomide.com>,
-        Haojian Zhuang <haojian.zhuang@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        "David Woodhouse" <dwmw@amazon.co.uk>, <benh@amazon.com>,
-        <ronenk@amazon.com>, <talel@amazon.com>, <jonnyc@amazon.com>,
-        <hanochu@amazon.com>, <tgershi@amazon.com>,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <20210316202434.27555-1-hhhawa@amazon.com>
- <20210316202434.27555-4-hhhawa@amazon.com>
- <CAHp75VdVnFn+DuO54PsUVGk4ZWWCJpYKsSQVsaUkiDzZki2QRQ@mail.gmail.com>
-From:   "Hawa, Hanna" <hhhawa@amazon.com>
-Message-ID: <c2dc25d8-b71c-e6c2-4c36-3d82bd0f762f@amazon.com>
-Date:   Wed, 17 Mar 2021 21:35:19 +0200
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.0
+   d="scan'208";a="121282096"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2a-119b4f96.us-west-2.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 17 Mar 2021 21:42:21 +0000
+Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2a-119b4f96.us-west-2.amazon.com (Postfix) with ESMTPS id A90E81A07C3;
+        Wed, 17 Mar 2021 21:42:19 +0000 (UTC)
+Received: from u8a88181e7b2355.ant.amazon.com (10.43.161.86) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Wed, 17 Mar 2021 21:42:12 +0000
+From:   Hanna Hawa <hhhawa@amazon.com>
+To:     <andy.shevchenko@gmail.com>, <tony@atomide.com>,
+        <haojian.zhuang@linaro.org>, <linus.walleij@linaro.org>
+CC:     <dwmw@amazon.co.uk>, <benh@amazon.com>, <ronenk@amazon.com>,
+        <talel@amazon.com>, <jonnyc@amazon.com>, <hanochu@amazon.com>,
+        <tgershi@amazon.com>, <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <hhhawa@amazon.com>
+Subject: [PATCH v3 1/3] pinctrl: pinctrl-single: remove unused variable
+Date:   Wed, 17 Mar 2021 23:41:47 +0200
+Message-ID: <20210317214149.20833-2-hhhawa@amazon.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20210317214149.20833-1-hhhawa@amazon.com>
+References: <20210317214149.20833-1-hhhawa@amazon.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHp75VdVnFn+DuO54PsUVGk4ZWWCJpYKsSQVsaUkiDzZki2QRQ@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.43.161.86]
+X-ClientProxiedBy: EX13D48UWB004.ant.amazon.com (10.43.163.74) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+Remove unused parameter 'num_pins_in_register' from
+pcs_allocate_pin_table().
 
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
+---
+ drivers/pinctrl/pinctrl-single.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-On 3/17/2021 2:27 PM, Andy Shevchenko wrote:
-> 
-> On Tue, Mar 16, 2021 at 11:24 PM Hanna Hawa <hhhawa@amazon.com> wrote:
->>
->> An SError was detected when trying to print the supported pins in a
-> 
-> What SError is?
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 7771316dfffa..91c638b85d2c 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -703,14 +703,12 @@ static int pcs_add_pin(struct pcs_device *pcs, unsigned offset,
+ static int pcs_allocate_pin_table(struct pcs_device *pcs)
+ {
+ 	int mux_bytes, nr_pins, i;
+-	int num_pins_in_register = 0;
+ 
+ 	mux_bytes = pcs->width / BITS_PER_BYTE;
+ 
+ 	if (pcs->bits_per_mux) {
+ 		pcs->bits_per_pin = fls(pcs->fmask);
+ 		nr_pins = (pcs->size * BITS_PER_BYTE) / pcs->bits_per_pin;
+-		num_pins_in_register = pcs->width / pcs->bits_per_pin;
+ 	} else {
+ 		nr_pins = pcs->size / mux_bytes;
+ 	}
+-- 
+2.17.1
 
-System error:
-[   24.257831] SError Interrupt on CPU0, code 0xbf000002 -- SError
-...
-[   24.257855] Kernel panic - not syncing: Asynchronous SError Interrupt
-
-> 
->> pinctrl device which supports multiple pins per register. This change
->> fixes the pcs_pin_dbg_show() in pinctrl-single driver when
->> bits_per_mux != 0. In addition move offset calculation and pin offset in
-> 
-> '!= 0' -> 'is not zero'
-
-Will be fixed.
-
-> 
->> register to common function.
-> 
-> Fixes tag?
-
-Sure, will be added.
-
-> 
->> Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
->> ---
->>   drivers/pinctrl/pinctrl-single.c | 66 ++++++++++++++++++++++----------
->>   1 file changed, 45 insertions(+), 21 deletions(-)
->>
->> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
->> index f3394517cb2e..434f90c8b1b3 100644
->> --- a/drivers/pinctrl/pinctrl-single.c
->> +++ b/drivers/pinctrl/pinctrl-single.c
->> @@ -270,20 +270,53 @@ static void __maybe_unused pcs_writel(unsigned val, void __iomem *reg)
->>          writel(val, reg);
->>   }
->>
->> +static unsigned int pcs_pin_reg_offset_get(struct pcs_device *pcs,
->> +                                          unsigned int pin)
->> +{
->> +       unsigned int offset, mux_bytes;
-> 
-> Offset can be replaced by direct return statements.
-
-Ack.
-
-> 
->> +       mux_bytes = pcs->width / BITS_PER_BYTE;
->> +
->> +       if (pcs->bits_per_mux) {
->> +               unsigned int pin_offset_bytes;
->> +
->> +               pin_offset_bytes = (pcs->bits_per_pin * pin) / BITS_PER_BYTE;
->> +               offset = (pin_offset_bytes / mux_bytes) * mux_bytes;
->> +       } else {
->> +               offset = pin * mux_bytes;
->> +       }
->> +
->> +       return offset;
->> +}
->> +
->> +static unsigned int pcs_pin_shift_reg_get(struct pcs_device *pcs,
->> +                                         unsigned int pin)
->> +{
->> +       return ((pin % (pcs->width / pcs->bits_per_pin)) * pcs->bits_per_pin);
-> 
-> Too many parentheses.
-
-Will remove the extra parentheses.
-
-> 
->> +}
->> +
->>   static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
->>                                          struct seq_file *s,
->>                                          unsigned pin)
->>   {
->>          struct pcs_device *pcs;
->> -       unsigned val, mux_bytes;
->> +       unsigned int val;
->>          unsigned long offset;
->>          size_t pa;
->>
->>          pcs = pinctrl_dev_get_drvdata(pctldev);
->>
->> -       mux_bytes = pcs->width / BITS_PER_BYTE;
->> -       offset = pin * mux_bytes;
->> -       val = pcs->read(pcs->base + offset);
->> +       offset = pcs_pin_reg_offset_get(pcs, pin);
->> +
->> +       if (pcs->bits_per_mux) {
->> +               unsigned int pin_shift_in_reg = pcs_pin_shift_reg_get(pcs, pin);
-> 
->> +               val = pcs->read(pcs->base + offset)
->> +                       & (pcs->fmask << pin_shift_in_reg);
-> 
-> One line?
-> At least move & to the upper line.
-> 
->> +       } else {
->> +               val = pcs->read(pcs->base + offset);
-> 
-> It's the same as in above branch, why not
-> 
-> val = read();
-> if ()
->   val &= fmask << _reg_get(...);
-> 
-> ?
-
-Agree, looks better
-
-Thanks Andy, will send new patchset soon.
-
-Thanks,
-Hanna
