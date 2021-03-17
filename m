@@ -2,107 +2,247 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A443C43332
-	for <linux-omap@archiver.kernel.org>; Tue, 16 Mar 2021 20:26:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F1C9C433DB
+	for <linux-omap@archiver.kernel.org>; Wed, 17 Mar 2021 12:29:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0378764D9D
-	for <linux-omap@archiver.kernel.org>; Tue, 16 Mar 2021 20:26:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B49CC64F26
+	for <linux-omap@archiver.kernel.org>; Wed, 17 Mar 2021 12:29:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229884AbhCPUZi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 16 Mar 2021 16:25:38 -0400
-Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:12984 "EHLO
-        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230081AbhCPUZR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 16 Mar 2021 16:25:17 -0400
+        id S229602AbhCQM2o (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 17 Mar 2021 08:28:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57188 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229578AbhCQM2S (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2021 08:28:18 -0400
+Received: from mail-pl1-x630.google.com (mail-pl1-x630.google.com [IPv6:2607:f8b0:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84356C06174A;
+        Wed, 17 Mar 2021 05:28:18 -0700 (PDT)
+Received: by mail-pl1-x630.google.com with SMTP id z5so711680plg.3;
+        Wed, 17 Mar 2021 05:28:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1615926318; x=1647462318;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version;
-  bh=7rHP/Il1MAYfTug9uW2SOeBpIjYBzsbh242X2Z+B5kw=;
-  b=lmfJvxKc6XuA0dZxFYivOske/M1b7CaIQmWdb/tBrbAk8EBpk05BoBfY
-   6OH6kdGac640zj5jMbAv/+LTa7rVnSIO09S+GNaNpB3sJMXt0D3iftOAe
-   hIIhh+1fg54APRRBB3YD+R91tWUGfiqWUSxsrGKH6l+CXzzptziQkcuh/
-   A=;
-X-IronPort-AV: E=Sophos;i="5.81,254,1610409600"; 
-   d="scan'208";a="99356065"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2c-2225282c.us-west-2.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-out-6001.iad6.amazon.com with ESMTP; 16 Mar 2021 20:25:10 +0000
-Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan3.pdx.amazon.com [10.236.137.198])
-        by email-inbound-relay-2c-2225282c.us-west-2.amazon.com (Postfix) with ESMTPS id E9B76A256B;
-        Tue, 16 Mar 2021 20:25:08 +0000 (UTC)
-Received: from u8a88181e7b2355.ant.amazon.com (10.43.160.48) by
- EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Tue, 16 Mar 2021 20:25:02 +0000
-From:   Hanna Hawa <hhhawa@amazon.com>
-To:     <tony@atomide.com>, <haojian.zhuang@linaro.org>,
-        <linus.walleij@linaro.org>
-CC:     <dwmw@amazon.co.uk>, <benh@amazon.com>, <ronenk@amazon.com>,
-        <talel@amazon.com>, <jonnyc@amazon.com>, <hanochu@amazon.com>,
-        <tgershi@amazon.com>, <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <hhhawa@amazon.com>
-Subject: [PATCH v2 2/3] pinctrl: pinctrl-single: remove unused parameter
-Date:   Tue, 16 Mar 2021 22:24:33 +0200
-Message-ID: <20210316202434.27555-3-hhhawa@amazon.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210316202434.27555-1-hhhawa@amazon.com>
-References: <20210316202434.27555-1-hhhawa@amazon.com>
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=bvI9v1pKTWSB+Q5D+4FcitJi47hzIZ/zGTWvTz5RA5o=;
+        b=NmLe9K+UAmrek3W+rU4Nzr/U4SN72r5In4gcb7wYCfg/Efxv2L4AvWqlxRBvIRlCZn
+         g1soPaqS2Ow/tT+7FLaPtqhp39LUOI77S8ZB6+3KdSL1Dlk2JIHkTJ5A830D1GngTwgo
+         VqkVlcqyHITcA7wI0VvDMY0jux8p32/sQg6Yl59n86w+StOHcsX7DSVhEUPDIkXkKaCW
+         yEf+mzbfxq9G9HCZ3ayMoEPqyzLcmFzhRyNSnuP9NS1m9tpRkrdC5zXwNt7UOFoTAZYn
+         y/LNU+DFB+mBfrgXDo5nn8680IaEtbuBNzsr4dmAmNvXf6NVGzFQ1rFPPhNqFfLayra/
+         Pu7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=bvI9v1pKTWSB+Q5D+4FcitJi47hzIZ/zGTWvTz5RA5o=;
+        b=Rkm5QLlLGLWtFI1iaaFDyNe0pKx3pJIjJGwbqKqMcZuBeIzkZ0UKeuBZtSkLD1rGsc
+         UeI3t+HIin5jme2zi8NvDcD18Csk5rVKWZ6ci2K1TJIN/iE00Coamrs8YUDQPV54Yv+Z
+         IeBFigv1yPr3hGCVqpZcwbRUzj6ErAQPZc2hKeaMGkfUIp8rxJURfuBqefFrlhTdwod7
+         bok58fBGv5+qrHijvlfl+lLNt/dJoAISLQ6BIGSDeZPN+BrgJMVcN8iOi1hcsx3clUh4
+         uWZjA8rbhnvp1zX0XTzo0qKUlYT5//rKoDmdB51F4ywjRGX4F7ZXhSvFT06u3baEFHi/
+         dotg==
+X-Gm-Message-State: AOAM530z/ZQSqpHaJPDTLC5I+UE4lmQzZfi9rMidkkIgSel2Ax2H8BDn
+        XqCOocorqvvb55ujXrVyzAAv4+e1yysulSp3XRSNtTldVoSorg==
+X-Google-Smtp-Source: ABdhPJytMHuglf4+K2gGDKo1Eqmm/u9dzCbrGssky5mSD+PT9vdbsLusidWo2LllMrSBdmIzl8K0EfqmNtXvE292eXw=
+X-Received: by 2002:a17:90a:e454:: with SMTP id jp20mr4644470pjb.129.1615984097947;
+ Wed, 17 Mar 2021 05:28:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.43.160.48]
-X-ClientProxiedBy: EX13D02UWB003.ant.amazon.com (10.43.161.48) To
- EX13D19EUB003.ant.amazon.com (10.43.166.69)
+References: <20210316202434.27555-1-hhhawa@amazon.com> <20210316202434.27555-4-hhhawa@amazon.com>
+In-Reply-To: <20210316202434.27555-4-hhhawa@amazon.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Wed, 17 Mar 2021 14:27:53 +0200
+Message-ID: <CAHp75VdVnFn+DuO54PsUVGk4ZWWCJpYKsSQVsaUkiDzZki2QRQ@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] pinctrl: pinctrl-single: fix pcs_pin_dbg_show()
+ when bits_per_mux != 0
+To:     Hanna Hawa <hhhawa@amazon.com>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        David Woodhouse <dwmw@amazon.co.uk>, benh@amazon.com,
+        ronenk@amazon.com, talel@amazon.com, jonnyc@amazon.com,
+        hanochu@amazon.com, tgershi@amazon.com,
+        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
+        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Remove unused parameter 'pin_pos' from pcs_add_pin().
+On Tue, Mar 16, 2021 at 11:24 PM Hanna Hawa <hhhawa@amazon.com> wrote:
+>
+> An SError was detected when trying to print the supported pins in a
 
-Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
----
- drivers/pinctrl/pinctrl-single.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+What SError is?
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 91c638b85d2c..f3394517cb2e 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -656,10 +656,8 @@ static const struct pinconf_ops pcs_pinconf_ops = {
-  * pcs_add_pin() - add a pin to the static per controller pin array
-  * @pcs: pcs driver instance
-  * @offset: register offset from base
-- * @pin_pos: unused
-  */
--static int pcs_add_pin(struct pcs_device *pcs, unsigned offset,
--		unsigned pin_pos)
-+static int pcs_add_pin(struct pcs_device *pcs, unsigned int offset)
- {
- 	struct pcs_soc_data *pcs_soc = &pcs->socdata;
- 	struct pinctrl_pin_desc *pin;
-@@ -727,16 +725,14 @@ static int pcs_allocate_pin_table(struct pcs_device *pcs)
- 		unsigned offset;
- 		int res;
- 		int byte_num;
--		int pin_pos = 0;
- 
- 		if (pcs->bits_per_mux) {
- 			byte_num = (pcs->bits_per_pin * i) / BITS_PER_BYTE;
- 			offset = (byte_num / mux_bytes) * mux_bytes;
--			pin_pos = i % num_pins_in_register;
- 		} else {
- 			offset = i * mux_bytes;
- 		}
--		res = pcs_add_pin(pcs, offset, pin_pos);
-+		res = pcs_add_pin(pcs, offset);
- 		if (res < 0) {
- 			dev_err(pcs->dev, "error adding pins: %i\n", res);
- 			return res;
+> pinctrl device which supports multiple pins per register. This change
+> fixes the pcs_pin_dbg_show() in pinctrl-single driver when
+> bits_per_mux != 0. In addition move offset calculation and pin offset in
+
+'!= 0' -> 'is not zero'
+
+> register to common function.
+
+Fixes tag?
+
+> Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
+> ---
+>  drivers/pinctrl/pinctrl-single.c | 66 ++++++++++++++++++++++----------
+>  1 file changed, 45 insertions(+), 21 deletions(-)
+>
+> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+> index f3394517cb2e..434f90c8b1b3 100644
+> --- a/drivers/pinctrl/pinctrl-single.c
+> +++ b/drivers/pinctrl/pinctrl-single.c
+> @@ -270,20 +270,53 @@ static void __maybe_unused pcs_writel(unsigned val, void __iomem *reg)
+>         writel(val, reg);
+>  }
+>
+> +static unsigned int pcs_pin_reg_offset_get(struct pcs_device *pcs,
+> +                                          unsigned int pin)
+> +{
+> +       unsigned int offset, mux_bytes;
+
+Offset can be replaced by direct return statements.
+
+> +       mux_bytes = pcs->width / BITS_PER_BYTE;
+> +
+> +       if (pcs->bits_per_mux) {
+> +               unsigned int pin_offset_bytes;
+> +
+> +               pin_offset_bytes = (pcs->bits_per_pin * pin) / BITS_PER_BYTE;
+> +               offset = (pin_offset_bytes / mux_bytes) * mux_bytes;
+> +       } else {
+> +               offset = pin * mux_bytes;
+> +       }
+> +
+> +       return offset;
+> +}
+> +
+> +static unsigned int pcs_pin_shift_reg_get(struct pcs_device *pcs,
+> +                                         unsigned int pin)
+> +{
+> +       return ((pin % (pcs->width / pcs->bits_per_pin)) * pcs->bits_per_pin);
+
+Too many parentheses.
+
+> +}
+> +
+>  static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
+>                                         struct seq_file *s,
+>                                         unsigned pin)
+>  {
+>         struct pcs_device *pcs;
+> -       unsigned val, mux_bytes;
+> +       unsigned int val;
+>         unsigned long offset;
+>         size_t pa;
+>
+>         pcs = pinctrl_dev_get_drvdata(pctldev);
+>
+> -       mux_bytes = pcs->width / BITS_PER_BYTE;
+> -       offset = pin * mux_bytes;
+> -       val = pcs->read(pcs->base + offset);
+> +       offset = pcs_pin_reg_offset_get(pcs, pin);
+> +
+> +       if (pcs->bits_per_mux) {
+> +               unsigned int pin_shift_in_reg = pcs_pin_shift_reg_get(pcs, pin);
+
+> +               val = pcs->read(pcs->base + offset)
+> +                       & (pcs->fmask << pin_shift_in_reg);
+
+One line?
+At least move & to the upper line.
+
+> +       } else {
+> +               val = pcs->read(pcs->base + offset);
+
+It's the same as in above branch, why not
+
+val = read();
+if ()
+ val &= fmask << _reg_get(...);
+
+?
+
+> +       }
+> +
+>         pa = pcs->res->start + offset;
+>
+>         seq_printf(s, "%zx %08x %s ", pa, val, DRIVER_NAME);
+> @@ -384,7 +417,6 @@ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+>         struct pcs_device *pcs = pinctrl_dev_get_drvdata(pctldev);
+>         struct pcs_gpiofunc_range *frange = NULL;
+>         struct list_head *pos, *tmp;
+> -       int mux_bytes = 0;
+>         unsigned data;
+>
+>         /* If function mask is null, return directly. */
+> @@ -392,29 +424,27 @@ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+>                 return -ENOTSUPP;
+>
+>         list_for_each_safe(pos, tmp, &pcs->gpiofuncs) {
+> +               u32 offset;
+> +
+>                 frange = list_entry(pos, struct pcs_gpiofunc_range, node);
+>                 if (pin >= frange->offset + frange->npins
+>                         || pin < frange->offset)
+>                         continue;
+> -               mux_bytes = pcs->width / BITS_PER_BYTE;
+>
+> -               if (pcs->bits_per_mux) {
+> -                       int byte_num, offset, pin_shift;
+> +               offset = pcs_pin_reg_offset_get(pcs, pin);
+>
+> -                       byte_num = (pcs->bits_per_pin * pin) / BITS_PER_BYTE;
+> -                       offset = (byte_num / mux_bytes) * mux_bytes;
+> -                       pin_shift = pin % (pcs->width / pcs->bits_per_pin) *
+> -                                   pcs->bits_per_pin;
+> +               if (pcs->bits_per_mux) {
+> +                       int pin_shift = pcs_pin_shift_reg_get(pcs, pin);
+>
+>                         data = pcs->read(pcs->base + offset);
+>                         data &= ~(pcs->fmask << pin_shift);
+>                         data |= frange->gpiofunc << pin_shift;
+>                         pcs->write(data, pcs->base + offset);
+>                 } else {
+> -                       data = pcs->read(pcs->base + pin * mux_bytes);
+> +                       data = pcs->read(pcs->base + offset);
+>                         data &= ~pcs->fmask;
+>                         data |= frange->gpiofunc;
+> -                       pcs->write(data, pcs->base + pin * mux_bytes);
+> +                       pcs->write(data, pcs->base + offset);
+>                 }
+>                 break;
+>         }
+> @@ -724,14 +754,8 @@ static int pcs_allocate_pin_table(struct pcs_device *pcs)
+>         for (i = 0; i < pcs->desc.npins; i++) {
+>                 unsigned offset;
+>                 int res;
+> -               int byte_num;
+>
+> -               if (pcs->bits_per_mux) {
+> -                       byte_num = (pcs->bits_per_pin * i) / BITS_PER_BYTE;
+> -                       offset = (byte_num / mux_bytes) * mux_bytes;
+> -               } else {
+> -                       offset = i * mux_bytes;
+> -               }
+> +               offset = pcs_pin_reg_offset_get(pcs, i);
+>                 res = pcs_add_pin(pcs, offset);
+>                 if (res < 0) {
+>                         dev_err(pcs->dev, "error adding pins: %i\n", res);
+> --
+> 2.17.1
+>
+
+
 -- 
-2.17.1
-
+With Best Regards,
+Andy Shevchenko
