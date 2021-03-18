@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62C3AC4332D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86278C43332
 	for <linux-omap@archiver.kernel.org>; Thu, 18 Mar 2021 23:19:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E67D64F75
+	by mail.kernel.org (Postfix) with ESMTP id 5DB4764F7B
 	for <linux-omap@archiver.kernel.org>; Thu, 18 Mar 2021 23:19:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233368AbhCRXT2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 18 Mar 2021 19:19:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57076 "EHLO
+        id S233383AbhCRXTc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 18 Mar 2021 19:19:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233236AbhCRXSz (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2021 19:18:55 -0400
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1BEFC06174A;
-        Thu, 18 Mar 2021 16:18:54 -0700 (PDT)
-Received: by mail-ed1-x531.google.com with SMTP id b16so8699882eds.7;
-        Thu, 18 Mar 2021 16:18:54 -0700 (PDT)
+        with ESMTP id S230480AbhCRXTA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2021 19:19:00 -0400
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99013C06174A;
+        Thu, 18 Mar 2021 16:18:59 -0700 (PDT)
+Received: by mail-ed1-x533.google.com with SMTP id w18so8738925edc.0;
+        Thu, 18 Mar 2021 16:18:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=AJvI3GLtbyB3NENOYstHudltDDnCEpv9TEZkoJEx5R0=;
-        b=eJVDAQ86FmqIF5YoKlCF9nwRHWAAsj4eYzBW3k3hcKeH4HyXJ9Fh/LLkt+ig6XGwjb
-         fGUAY4eswPMhoYehHLg/ph1LKBgoKuL3+LsCgz0XQOaZpWz3drMX+VOz3tsiTjcNOd7B
-         P3Ll29+g9RA4ELiVOX84+TF80Prh8SIrPA3SnM3hNq+aNW62y6yPhyoyqfRlM6Mx+F0B
-         q0p9g03Ttom2f5OZBuF2oLmClOF56Jy56PYfwhuvZCdxLxAiuMKLeSl5D2zEBwk20v+J
-         LQwFhyCT7OgACdH6FnNQQtkYgfl4Jo9dk23wl+yOKT4xs6I50JgOXfokbYAuofGLJt1l
-         Rujg==
+        bh=7JhQ2kQzidiQfTakouPVoSEYKgYJywL0dJdeDO35/Oo=;
+        b=MxmrwRYXQ525YkLNK7v0HqyLjD4n7IIA1J7ocvk6uP80tzkk19KvL71GMMermYsxlN
+         xrRDlEkMwAUBjCB/6HIJVARUe/A/582Kf+6BEPeB/0ww94+iKh+K6FGYtPeOI0FB7JoJ
+         4T6ijcNbuBCL1zfSeybgGDmZPxW36z7clGnJ0M7JHysWHGdAiNp2lGpwtGqPZWR/ijLE
+         XjNxUD9ZipjDVEYXsdFf4V6RDGr7lq1hpLkCCFN1jui3aKUiT2sxGqMorhOSdVOHxHQ2
+         sgB25HvY5HWI0YcWABFOAJBJ1Wn0F6x0vTmgthCI25WOhAdWIk1+l1TH0W1lBNT9hjPx
+         G5rw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=AJvI3GLtbyB3NENOYstHudltDDnCEpv9TEZkoJEx5R0=;
-        b=tic+COLfymFyuvi37VvsOBt5NS7O6z2M/f6zFiDVmywunACtBocnSPEo4/0PUgwje/
-         nYRQHYzX36TapjaamdGbD9OXQo2i9Fxvv30/kKz5ZaeZTPhI2zgMC7XwHumo/2IPCwES
-         2rMD7Zx5f2tDJQZEyDaCHuxj4YzFhAiHWv7+3HCKm2Lm9G9McFJJTDwNtrcb4YLh8sV+
-         5XTMaE4u0LFfAj9+KzC57gCpr/fz+lLbsjasCnMPgefUAuQB0o9Aq9h3pMK0NdlL8Dxs
-         a9YR4cePq4qQqRnpzrmQ1YjN6HwpynBNUwQU+/R5mvQ63wL8IrJMfn1YWy6dyhbwSrTj
-         OQXg==
-X-Gm-Message-State: AOAM530Q4lAdc3y0jocITBSH0xYrnGhqE0yG5Np9Xz0029UPPOK7SZ7k
-        EmQlXCu0QsNZlwehkL6mW8U=
-X-Google-Smtp-Source: ABdhPJzDTzMO8Dcqvjz72FUCdZ2di8I/r/+1i7u/mIJ2+tsGZYwUHsTS3ul7ko5pDRxbzv73vN+dAA==
-X-Received: by 2002:aa7:dc04:: with SMTP id b4mr6439110edu.221.1616109533710;
-        Thu, 18 Mar 2021 16:18:53 -0700 (PDT)
+        bh=7JhQ2kQzidiQfTakouPVoSEYKgYJywL0dJdeDO35/Oo=;
+        b=KV9Al3FbtCoKBVAiTIfWV2B66xGj3Y+L6CLamIZl2F4CTqGjvF08elovtIsJkF/uQd
+         FCYbWMzjVJS5fHuX0aM8kqmoxUVwMcuuRIhCzYGEE7E5riHXukZtO7Ld5IWPvVaUc1eW
+         QBftIzv7NxlMcGtmzCrDccM05lQPAkcM96O5OXnkE4CMizQjQ+s23DYN0xbzAoYwLD8H
+         ip6ZVsUyajLXTy+y+KOV8QdjT/GlmI6IVhgYzgbE21qhESH+91bQxUtOW4QsPAc1ljid
+         zKI2IjIK4akBjAqo4W4L+Zug9z1ZjH4oXWnRyD5tQgfprFbYMXgYMhYdu/FSaGrDLbMb
+         qFog==
+X-Gm-Message-State: AOAM530DI32v2TsHAP9CqX6qY699qm+WrEXkhd8nrtp8DZSzg6FkxLvF
+        LRYJOkX7jNAP5q6iJG1lyrw=
+X-Google-Smtp-Source: ABdhPJyQXAh0mO9Sv4qRIZn0DODzbA5wbdUbHyu4xa0cB0sYM288Vc4H7afM+RdnEJQCytGqm5vcJQ==
+X-Received: by 2002:a50:cf48:: with SMTP id d8mr6755511edk.54.1616109538360;
+        Thu, 18 Mar 2021 16:18:58 -0700 (PDT)
 Received: from localhost.localdomain (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
-        by smtp.gmail.com with ESMTPSA id bx24sm2801131ejc.88.2021.03.18.16.18.52
+        by smtp.gmail.com with ESMTPSA id bx24sm2801131ejc.88.2021.03.18.16.18.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Mar 2021 16:18:53 -0700 (PDT)
+        Thu, 18 Mar 2021 16:18:58 -0700 (PDT)
 From:   Vladimir Oltean <olteanv@gmail.com>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
@@ -76,9 +76,9 @@ Cc:     Andrew Lunn <andrew@lunn.ch>,
         Ioana Ciornei <ioana.ciornei@nxp.com>,
         Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [RFC PATCH v2 net-next 07/16] net: dsa: sync ageing time when joining the bridge
-Date:   Fri, 19 Mar 2021 01:18:20 +0200
-Message-Id: <20210318231829.3892920-8-olteanv@gmail.com>
+Subject: [RFC PATCH v2 net-next 10/16] net: dsa: replay VLANs installed on port when joining the bridge
+Date:   Fri, 19 Mar 2021 01:18:23 +0200
+Message-Id: <20210318231829.3892920-11-olteanv@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210318231829.3892920-1-olteanv@gmail.com>
 References: <20210318231829.3892920-1-olteanv@gmail.com>
@@ -90,108 +90,152 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Vladimir Oltean <vladimir.oltean@nxp.com>
 
-The SWITCHDEV_ATTR_ID_BRIDGE_AGEING_TIME attribute is only emitted from:
+Currently this simple setup:
 
-sysfs/ioctl/netlink
--> br_set_ageing_time
-   -> __set_ageing_time
+ip link add br0 type bridge vlan_filtering 1
+ip link add bond0 type bond
+ip link set bond0 master br0
+ip link set swp0 master bond0
 
-therefore not at bridge port creation time, so:
-(a) drivers had to hardcode the initial value for the address ageing time,
-    because they didn't get any notification
-(b) that hardcoded value can be out of sync, if the user changes the
-    ageing time before enslaving the port to the bridge
+will not work because the bridge has created the PVID in br_add_if ->
+nbp_vlan_init, and it has notified switchdev of the existence of VLAN 1,
+but that was too early, since swp0 was not yet a lower of bond0, so it
+had no reason to act upon that notification.
 
 Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
 ---
- include/linux/if_bridge.h |  6 ++++++
- net/bridge/br_stp.c       | 13 +++++++++++++
- net/dsa/port.c            | 10 ++++++++++
- 3 files changed, 29 insertions(+)
+ include/linux/if_bridge.h | 10 ++++++
+ net/bridge/br_vlan.c      | 71 +++++++++++++++++++++++++++++++++++++++
+ net/dsa/port.c            |  6 ++++
+ 3 files changed, 87 insertions(+)
 
 diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index 920d3a02cc68..ebd16495459c 100644
+index 89596134e88f..ea176c508c0d 100644
 --- a/include/linux/if_bridge.h
 +++ b/include/linux/if_bridge.h
-@@ -137,6 +137,7 @@ struct net_device *br_fdb_find_port(const struct net_device *br_dev,
- void br_fdb_clear_offload(const struct net_device *dev, u16 vid);
- bool br_port_flag_is_set(const struct net_device *dev, unsigned long flag);
- u8 br_port_get_stp_state(const struct net_device *dev);
-+clock_t br_get_ageing_time(struct net_device *br_dev);
+@@ -111,6 +111,8 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid);
+ int br_vlan_get_proto(const struct net_device *dev, u16 *p_proto);
+ int br_vlan_get_info(const struct net_device *dev, u16 vid,
+ 		     struct bridge_vlan_info *p_vinfo);
++int br_vlan_replay(struct net_device *br_dev, struct net_device *dev,
++		   struct notifier_block *nb, struct netlink_ext_ack *extack);
  #else
- static inline struct net_device *
- br_fdb_find_port(const struct net_device *br_dev,
-@@ -160,6 +161,11 @@ static inline u8 br_port_get_stp_state(const struct net_device *dev)
+ static inline bool br_vlan_enabled(const struct net_device *dev)
  {
- 	return BR_STATE_DISABLED;
+@@ -137,6 +139,14 @@ static inline int br_vlan_get_info(const struct net_device *dev, u16 vid,
+ {
+ 	return -EINVAL;
  }
 +
-+static inline clock_t br_get_ageing_time(struct net_device *br_dev)
++static inline int br_vlan_replay(struct net_device *br_dev,
++				 struct net_device *dev,
++				 struct notifier_block *nb,
++				 struct netlink_ext_ack *extack)
 +{
-+	return 0;
++	return -EINVAL;
 +}
  #endif
  
- #endif
-diff --git a/net/bridge/br_stp.c b/net/bridge/br_stp.c
-index 86b5e05d3f21..3dafb6143cff 100644
---- a/net/bridge/br_stp.c
-+++ b/net/bridge/br_stp.c
-@@ -639,6 +639,19 @@ int br_set_ageing_time(struct net_bridge *br, clock_t ageing_time)
- 	return 0;
+ #if IS_ENABLED(CONFIG_BRIDGE)
+diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+index 8829f621b8ec..45a4eac1b217 100644
+--- a/net/bridge/br_vlan.c
++++ b/net/bridge/br_vlan.c
+@@ -1751,6 +1751,77 @@ void br_vlan_notify(const struct net_bridge *br,
+ 	kfree_skb(skb);
  }
  
-+clock_t br_get_ageing_time(struct net_device *br_dev)
++static int br_vlan_replay_one(struct notifier_block *nb,
++			      struct net_device *dev,
++			      struct switchdev_obj_port_vlan *vlan,
++			      struct netlink_ext_ack *extack)
 +{
++	struct switchdev_notifier_port_obj_info obj_info = {
++		.info = {
++			.dev = dev,
++			.extack = extack,
++		},
++		.obj = &vlan->obj,
++	};
++	int err;
++
++	err = nb->notifier_call(nb, SWITCHDEV_PORT_OBJ_ADD, &obj_info);
++	return notifier_to_errno(err);
++}
++
++int br_vlan_replay(struct net_device *br_dev, struct net_device *dev,
++		   struct notifier_block *nb, struct netlink_ext_ack *extack)
++{
++	struct net_bridge_vlan_group *vg;
++	struct net_bridge_vlan *v;
++	struct net_bridge_port *p;
 +	struct net_bridge *br;
++	int err = 0;
++	u16 pvid;
++
++	ASSERT_RTNL();
 +
 +	if (!netif_is_bridge_master(br_dev))
++		return -EINVAL;
++
++	if (!netif_is_bridge_master(dev) && !netif_is_bridge_port(dev))
++		return -EINVAL;
++
++	if (netif_is_bridge_master(dev)) {
++		br = netdev_priv(dev);
++		vg = br_vlan_group(br);
++		p = NULL;
++	} else {
++		p = br_port_get_rtnl(dev);
++		if (WARN_ON(!p))
++			return -EINVAL;
++		vg = nbp_vlan_group(p);
++		br = p->br;
++	}
++
++	if (!vg)
 +		return 0;
 +
-+	br = netdev_priv(br_dev);
++	pvid = br_get_pvid(vg);
 +
-+	return jiffies_to_clock_t(br->ageing_time);
++	list_for_each_entry(v, &vg->vlan_list, vlist) {
++		struct switchdev_obj_port_vlan vlan = {
++			.obj.orig_dev = dev,
++			.obj.id = SWITCHDEV_OBJ_ID_PORT_VLAN,
++			.flags = br_vlan_flags(v, pvid),
++			.vid = v->vid,
++		};
++
++		if (!br_vlan_should_use(v))
++			continue;
++
++		br_vlan_replay_one(nb, dev, &vlan, extack);
++		if (err)
++			return err;
++	}
++
++	return err;
 +}
-+EXPORT_SYMBOL_GPL(br_get_ageing_time);
-+
- /* called under bridge lock */
- void __br_set_topology_change(struct net_bridge *br, unsigned char val)
- {
+ /* check if v_curr can enter a range ending in range_end */
+ bool br_vlan_can_enter_range(const struct net_bridge_vlan *v_curr,
+ 			     const struct net_bridge_vlan *range_end)
 diff --git a/net/dsa/port.c b/net/dsa/port.c
-index 8380509ee47c..9fde2371e1bc 100644
+index 9850051071f2..6c3c357ac409 100644
 --- a/net/dsa/port.c
 +++ b/net/dsa/port.c
-@@ -173,6 +173,7 @@ static int dsa_port_switchdev_sync(struct dsa_port *dp,
- {
- 	struct net_device *brport_dev = dsa_port_to_bridge_port(dp);
- 	struct net_device *br = dp->bridge_dev;
-+	clock_t ageing_time;
- 	u8 stp_state;
- 	int err;
- 
-@@ -193,6 +194,11 @@ static int dsa_port_switchdev_sync(struct dsa_port *dp,
+@@ -209,6 +209,12 @@ static int dsa_port_switchdev_sync(struct dsa_port *dp,
  	if (err && err != -EOPNOTSUPP)
  		return err;
  
-+	ageing_time = br_get_ageing_time(br);
-+	err = dsa_port_ageing_time(dp, ageing_time);
++	err = br_vlan_replay(br, brport_dev,
++			     &dsa_slave_switchdev_blocking_notifier,
++			     extack);
 +	if (err && err != -EOPNOTSUPP)
 +		return err;
 +
  	return 0;
  }
  
-@@ -222,6 +228,10 @@ static void dsa_port_switchdev_unsync(struct dsa_port *dp)
- 	 * allow this in standalone mode too.
- 	 */
- 	dsa_port_mrouter(dp->cpu_dp, true, NULL);
-+
-+	/* Ageing time may be global to the switch chip, so don't change it
-+	 * here because we have no good reason (or value) to change it to.
-+	 */
- }
- 
- int dsa_port_bridge_join(struct dsa_port *dp, struct net_device *br,
 -- 
 2.25.1
 
