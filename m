@@ -2,63 +2,63 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BD7FC433DB
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 22:10:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55E2EC433E6
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 22:12:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB22F61985
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 22:10:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3421561994
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 22:12:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230317AbhCSWJc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Mar 2021 18:09:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41852 "EHLO
+        id S231145AbhCSWLm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 Mar 2021 18:11:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230341AbhCSWJE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 18:09:04 -0400
-Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55221C06175F;
-        Fri, 19 Mar 2021 15:08:53 -0700 (PDT)
-Received: by mail-pg1-x52d.google.com with SMTP id f8so1171944pgi.9;
-        Fri, 19 Mar 2021 15:08:53 -0700 (PDT)
+        with ESMTP id S230497AbhCSWLf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 18:11:35 -0400
+Received: from mail-pl1-x634.google.com (mail-pl1-x634.google.com [IPv6:2607:f8b0:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ABB2C061760;
+        Fri, 19 Mar 2021 15:11:24 -0700 (PDT)
+Received: by mail-pl1-x634.google.com with SMTP id o2so3580749plg.1;
+        Fri, 19 Mar 2021 15:11:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=subject:to:cc:references:from:message-id:date:user-agent
          :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=r6eY5ZOzAqwwciw96athK5PF+naRpfRhmF2rxJxUlYU=;
-        b=QUN/5HoW1VUXOOJNyfv5vropavY3GbqNMpECUuLKZogZs2nTmhGqhuMNlNNtPi5Avg
-         yF1mRpcNlZZPgWcfG2zL/ZXNuBsBh4/JnWEaLhfax/3pschWSPrAglrRTss7XxYrOQ1w
-         GdPAjT0O/K+nsfi/YhySC5lsIiTqA1LyDpCe+BUhBAEqcgD1py9S+0yUPlo7WYGNNJGa
-         3TTI/xD+uY+51tOaB4kPLme7RlxVWhv3mJaMxGPyfxjpQgnri5BWP+87BnGR2EtHyUal
-         3fsW22m/uFE2KpUPB4zSZzstkuug1gvI3mV+B1rgPCAC8uoVnJ8/qXfWpRutwNfc54xX
-         nqNQ==
+        bh=t8WayWLX100d3xFTK35dbfG/wOjXzoQhDFEPaisQ7eI=;
+        b=RgYIyxe03R+Jy1z5L+rb6cBGH2Qb1DV9sNFUQGfj69Kfmqk9/iJ8DECNE8GCDp+wCn
+         /PF7C6qtlDAuxpn9q1vBh2yp+wopRHaskbwm8iUBK4oxiosKJKuOwA1QRhSE0P/dDyWZ
+         7XsB4DtPLoeaw0se3lLaCLEdVwPO/kCEEboiOeeIUHYL4lHE5538KIl1yp02a2eBjVbs
+         NlGryOafI/X9nfwfcJLpU5pRaFIF+A6TcAAXS5vzPQNccYAsP3gyCtbcMNuF0cITcctH
+         9RTNBg7gfieIRBdDrM21dVFbAVaiZ5b6bwhjvBf6IeD2J6cy3rwUMjjE8QObI1ckiZOd
+         v1Kg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=r6eY5ZOzAqwwciw96athK5PF+naRpfRhmF2rxJxUlYU=;
-        b=YTKSyNdFS8AZn2FzWHmk45WbFridX3/o7GXOMdP8ceymqZFDcURkZcOAxqHof2I/bm
-         SN5f+7OW8GunNUnf477398EvsBMH8C/f0EKPyzDAtp1CWZnuSvgxxZ2uK4XVAq9QC0kB
-         HnXEHgGtCdkAHYbrg5uL6fPwZP7GIECz1vp6rzaP/ht7TaCv+FyCqedoP3QaPioHkddy
-         Og7nscAMIw4wuyeNKqab8SlkEq48xLz0HnV9KR7y+uigacnE2UuXfkcbozIBhgqLmage
-         CEVgqIDX+QxRpbimUMfFpNlTkBbZqeBjReeh2wOQRTyZYZ5H2fLN3VYRd8nIg9ClM93O
-         pKVg==
-X-Gm-Message-State: AOAM532Mh60wWS94oGRNPDU4+MW+nSjR6+/c3IpjoDamZ2PnCacnmCQ9
-        d41MaOTfLiKH9La9MEKhLRo=
-X-Google-Smtp-Source: ABdhPJzDm7vZ/M5ygrnDOeAoRc37EVrpkF+rC/u9ahvIDeIvb0TXM6FmbhrylREd/m/6JRpjYzoNHQ==
-X-Received: by 2002:a62:5c84:0:b029:1f2:a5f0:d12a with SMTP id q126-20020a625c840000b02901f2a5f0d12amr10851661pfb.36.1616191732763;
-        Fri, 19 Mar 2021 15:08:52 -0700 (PDT)
+        bh=t8WayWLX100d3xFTK35dbfG/wOjXzoQhDFEPaisQ7eI=;
+        b=oOAm1MbJ+uvyjx1oStEJSESEeiM57bYkJcKTPSnTQAL+yRyGOlH/nuKU6XGOJFslA1
+         rl/RYBm2Mh7rK5M6vU8gOfJyutfskfEKIM6gH+dEI//k7aQaIwXoOUoLHhUixpnuhnM6
+         sSEcZqLAfhGnhWImrwE5AejkF9b1U2e+1WtYNAsATznea6txP1+BMnwzsYr7TrkAvuFU
+         KgUj3Q0xlXz1njh9IolgucIP6ePcIuJa/Em3svnOwAKMWLKgVmiS3s0I5H350Raa/1aZ
+         cC9YV830pND5q0wVOTSXnzBkKcHlwOR+pPaxwg3hecsPtdE+NSli10yD24EdtuYNJYDe
+         NS0g==
+X-Gm-Message-State: AOAM5300nMFQFK7rZGe89/x/txjI/wufVH/jhoIlvlbh7I1sxJNBUoxG
+        RFNQrSc4PdaeFdU3x5GZbf4=
+X-Google-Smtp-Source: ABdhPJyisagm4D5zoRtKG3oF2VcxketjF4NttZj6PUIP0lph4ypKh2uzUvA8NEXKDH95sos75hrKuA==
+X-Received: by 2002:a17:902:da92:b029:e5:fa64:e9f3 with SMTP id j18-20020a170902da92b02900e5fa64e9f3mr15916568plx.54.1616191883967;
+        Fri, 19 Mar 2021 15:11:23 -0700 (PDT)
 Received: from [10.230.29.202] ([192.19.223.252])
-        by smtp.gmail.com with ESMTPSA id x19sm6154419pfi.220.2021.03.19.15.08.49
+        by smtp.gmail.com with ESMTPSA id fa21sm6475082pjb.41.2021.03.19.15.11.20
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 19 Mar 2021 15:08:52 -0700 (PDT)
-Subject: Re: [RFC PATCH v2 net-next 03/16] net: dsa: inherit the actual bridge
- port flags at join time
+        Fri, 19 Mar 2021 15:11:23 -0700 (PDT)
+Subject: Re: [RFC PATCH v2 net-next 04/16] net: dsa: sync up with bridge
+ port's STP state when joining
 To:     Vladimir Oltean <olteanv@gmail.com>,
         Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
@@ -79,14 +79,14 @@ Cc:     Andrew Lunn <andrew@lunn.ch>,
         Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org,
         Vladimir Oltean <vladimir.oltean@nxp.com>
 References: <20210318231829.3892920-1-olteanv@gmail.com>
- <20210318231829.3892920-4-olteanv@gmail.com>
+ <20210318231829.3892920-5-olteanv@gmail.com>
 From:   Florian Fainelli <f.fainelli@gmail.com>
-Message-ID: <2d10377e-88d0-6dea-ff12-469dab1aced0@gmail.com>
-Date:   Fri, 19 Mar 2021 15:08:46 -0700
+Message-ID: <c8094b39-3a9c-88dc-1e4b-198a9ef0f93b@gmail.com>
+Date:   Fri, 19 Mar 2021 15:11:18 -0700
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
  Firefox/78.0 Thunderbird/78.8.1
 MIME-Version: 1.0
-In-Reply-To: <20210318231829.3892920-4-olteanv@gmail.com>
+In-Reply-To: <20210318231829.3892920-5-olteanv@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -99,78 +99,36 @@ X-Mailing-List: linux-omap@vger.kernel.org
 On 3/18/2021 4:18 PM, Vladimir Oltean wrote:
 > From: Vladimir Oltean <vladimir.oltean@nxp.com>
 > 
-> DSA currently assumes that the bridge port starts off with this
-> constellation of bridge port flags:
+> It may happen that we have the following topology:
 > 
-> - learning on
-> - unicast flooding on
-> - multicast flooding on
-> - broadcast flooding on
-> 
-> just by virtue of code copy-pasta from the bridge layer (new_nbp).
-> This was a simple enough strategy thus far, because the 'bridge join'
-> moment always coincided with the 'bridge port creation' moment.
-> 
-> But with sandwiched interfaces, such as:
-> 
->  br0
->   |
-> bond0
->   |
->  swp0
-> 
-> it may happen that the user has had time to change the bridge port flags
-> of bond0 before enslaving swp0 to it. In that case, swp0 will falsely
-> assume that the bridge port flags are those determined by new_nbp, when
-> in fact this can happen:
-> 
-> ip link add br0 type bridge
+> ip link add br0 type bridge stp_state 1
 > ip link add bond0 type bond
 > ip link set bond0 master br0
-> ip link set bond0 type bridge_slave learning off
-> ip link set swp0 master br0
+> ip link set swp0 master bond0
+> ip link set swp1 master bond0
 > 
-> Now swp0 has learning enabled, bond0 has learning disabled. Not nice.
+> STP decides that it should put bond0 into the BLOCKING state, and
+> that's that. The ports that are actively listening for the switchdev
+> port attributes emitted for the bond0 bridge port (because they are
+> offloading it) and have the honor of seeing that switchdev port
+> attribute can react to it, so we can program swp0 and swp1 into the
+> BLOCKING state.
 > 
-> Fix this by "dumpster diving" through the actual bridge port flags with
-> br_port_flag_is_set, at bridge join time.
+> But if then we do:
 > 
-> We use this opportunity to split dsa_port_change_brport_flags into two
-> distinct functions called dsa_port_inherit_brport_flags and
-> dsa_port_clear_brport_flags, now that the implementation for the two
-> cases is no longer similar.
+> ip link set swp2 master bond0
+> 
+> then as far as the bridge is concerned, nothing has changed: it still
+> has one bridge port. But this new bridge port will not see any STP state
+> change notification and will remain FORWARDING, which is how the
+> standalone code leaves it in.
+> 
+> Add a function to the bridge which retrieves the current STP state, such
+> that drivers can synchronize to it when they may have missed switchdev
+> events.
 > 
 > Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
-> ---
->  net/dsa/port.c | 123 ++++++++++++++++++++++++++++++++-----------------
->  1 file changed, 82 insertions(+), 41 deletions(-)
-> 
-> diff --git a/net/dsa/port.c b/net/dsa/port.c
-> index fcbe5b1545b8..346c50467810 100644
-> --- a/net/dsa/port.c
-> +++ b/net/dsa/port.c
-> @@ -122,26 +122,82 @@ void dsa_port_disable(struct dsa_port *dp)
->  	rtnl_unlock();
->  }
->  
-> -static void dsa_port_change_brport_flags(struct dsa_port *dp,
-> -					 bool bridge_offload)
-> +static void dsa_port_clear_brport_flags(struct dsa_port *dp,
-> +					struct netlink_ext_ack *extack)
->  {
->  	struct switchdev_brport_flags flags;
-> -	int flag;
->  
-> -	flags.mask = BR_LEARNING | BR_FLOOD | BR_MCAST_FLOOD | BR_BCAST_FLOOD;
-> -	if (bridge_offload)
-> -		flags.val = flags.mask;
-> -	else
-> -		flags.val = flags.mask & ~BR_LEARNING;
-> +	flags.mask = BR_LEARNING;
-> +	flags.val = 0;
-> +	dsa_port_bridge_flags(dp, flags, extack);
 
-Would not you want to use the same for_each_set_bit() loop that
-dsa_port_change_br_flags() uses, that would be a tad more compact.
+Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
 -- 
 Florian
