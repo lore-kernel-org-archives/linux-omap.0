@@ -2,43 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A55C3C433E2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95423C433E0
 	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 15:22:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 737D361930
+	by mail.kernel.org (Postfix) with ESMTP id 5B13761931
 	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 15:22:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230340AbhCSPWP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Mar 2021 11:22:15 -0400
-Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:13402 "EHLO
+        id S230190AbhCSPWO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 Mar 2021 11:22:14 -0400
+Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:13264 "EHLO
         smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229736AbhCSPWL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 11:22:11 -0400
+        with ESMTP id S230314AbhCSPWE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 11:22:04 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1616167331; x=1647703331;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version;
-  bh=7rHP/Il1MAYfTug9uW2SOeBpIjYBzsbh242X2Z+B5kw=;
-  b=Ewv2sknAZPCbC/CeLCYAKgmi2jDuahOue22swx5w90Cr+WW3qwfvtoQg
-   8DefGTL7SxNbGQrfSH3mtJ4gzcPOYho07OsYdulofbeZSePSijbbJE8lj
-   cCKgaY3bx+pigylsGHP7/8SaZQm11j3SvfTwmxxwLjjZ7uPjTWLemavP4
-   k=;
+  t=1616167324; x=1647703324;
+  h=from:to:cc:subject:date:message-id:mime-version;
+  bh=EyrxdYGskd5nndv9DffBff17H/pW8ipDLECkcAeVTfk=;
+  b=G5KdmoHOoZeZaCMxvWvsfDq+uHHTT16BIAun33Nn998wtdrzEgw9Ynpn
+   NWcVqHXbeZ4VnTCQUKcVnc5A7OPRJ14gA3j8d2Qu19eWEuFDSRTxqRfNZ
+   gCZV9e1/0dU71QBZfyHCODmSo1CICQ0ikzy2bjHvRPyu4lN2MnpDYvxce
+   M=;
 X-IronPort-AV: E=Sophos;i="5.81,262,1610409600"; 
-   d="scan'208";a="121703771"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2c-76e0922c.us-west-2.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 19 Mar 2021 15:22:10 +0000
+   d="scan'208";a="121703728"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2a-53356bf6.us-west-2.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 19 Mar 2021 15:21:57 +0000
 Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
-        by email-inbound-relay-2c-76e0922c.us-west-2.amazon.com (Postfix) with ESMTPS id F09ECA65FE;
-        Fri, 19 Mar 2021 15:22:08 +0000 (UTC)
+        by email-inbound-relay-2a-53356bf6.us-west-2.amazon.com (Postfix) with ESMTPS id A6DAFA1D50;
+        Fri, 19 Mar 2021 15:21:55 +0000 (UTC)
 Received: from u8a88181e7b2355.ant.amazon.com (10.43.161.244) by
  EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Fri, 19 Mar 2021 15:22:02 +0000
+ id 15.0.1497.2; Fri, 19 Mar 2021 15:21:49 +0000
 From:   Hanna Hawa <hhhawa@amazon.com>
 To:     <andy.shevchenko@gmail.com>, <tony@atomide.com>,
         <haojian.zhuang@linaro.org>, <linus.walleij@linaro.org>
@@ -47,12 +46,10 @@ CC:     <dwmw@amazon.co.uk>, <benh@amazon.com>, <ronenk@amazon.com>,
         <tgershi@amazon.com>, <linux-arm-kernel@lists.infradead.org>,
         <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <hhhawa@amazon.com>
-Subject: [PATCH v4 2/3] pinctrl: pinctrl-single: remove unused parameter
-Date:   Fri, 19 Mar 2021 17:21:32 +0200
-Message-ID: <20210319152133.28705-3-hhhawa@amazon.com>
+Subject: [PATCH v4 0/3] Fix pinctrl-single pcs_pin_dbg_show()
+Date:   Fri, 19 Mar 2021 17:21:30 +0200
+Message-ID: <20210319152133.28705-1-hhhawa@amazon.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210319152133.28705-1-hhhawa@amazon.com>
-References: <20210319152133.28705-1-hhhawa@amazon.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.43.161.244]
@@ -62,47 +59,37 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Remove unused parameter 'pin_pos' from pcs_add_pin().
+These patches fix the pcs_pin_dbg_show() function for the scenario where
+a single register controls multiple pins (i.e. bits_per_mux is not zero)
+Additionally, the common formula is moved to a separate function to
+allow reuse.
 
-Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
----
- drivers/pinctrl/pinctrl-single.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+Changes since v3:
+-----------------
+- define and set variable 'mux_bytes' in one line
+- update commit message
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 91c638b85d2c..f3394517cb2e 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -656,10 +656,8 @@ static const struct pinconf_ops pcs_pinconf_ops = {
-  * pcs_add_pin() - add a pin to the static per controller pin array
-  * @pcs: pcs driver instance
-  * @offset: register offset from base
-- * @pin_pos: unused
-  */
--static int pcs_add_pin(struct pcs_device *pcs, unsigned offset,
--		unsigned pin_pos)
-+static int pcs_add_pin(struct pcs_device *pcs, unsigned int offset)
- {
- 	struct pcs_soc_data *pcs_soc = &pcs->socdata;
- 	struct pinctrl_pin_desc *pin;
-@@ -727,16 +725,14 @@ static int pcs_allocate_pin_table(struct pcs_device *pcs)
- 		unsigned offset;
- 		int res;
- 		int byte_num;
--		int pin_pos = 0;
- 
- 		if (pcs->bits_per_mux) {
- 			byte_num = (pcs->bits_per_pin * i) / BITS_PER_BYTE;
- 			offset = (byte_num / mux_bytes) * mux_bytes;
--			pin_pos = i % num_pins_in_register;
- 		} else {
- 			offset = i * mux_bytes;
- 		}
--		res = pcs_add_pin(pcs, offset, pin_pos);
-+		res = pcs_add_pin(pcs, offset);
- 		if (res < 0) {
- 			dev_err(pcs->dev, "error adding pins: %i\n", res);
- 			return res;
+Changes since v2:
+-----------------
+- move read() register to be outside of if condition (as it common
+  read()).
+- Remove extra parentheses
+- replace offset variable by direct return statements
+
+Changes since v1:
+-----------------
+- remove unused variable in In function 'pcs_allocate_pin_table'
+  (Reported-by: kernel test robot <lkp@intel.com>)
+
+Hanna Hawa (3):
+  pinctrl: pinctrl-single: remove unused variable
+  pinctrl: pinctrl-single: remove unused parameter
+  pinctrl: pinctrl-single: fix pcs_pin_dbg_show() when bits_per_mux is
+    not zero
+
+ drivers/pinctrl/pinctrl-single.c | 65 ++++++++++++++++++--------------
+ 1 file changed, 37 insertions(+), 28 deletions(-)
+
 -- 
 2.17.1
 
