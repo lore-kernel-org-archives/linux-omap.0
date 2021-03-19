@@ -2,134 +2,166 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE10DC43619
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Mar 2021 23:19:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15EC1C433DB
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 07:54:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DBEAC64F38
-	for <linux-omap@archiver.kernel.org>; Thu, 18 Mar 2021 23:19:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7C8A64ED6
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 07:54:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233414AbhCRXTg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 18 Mar 2021 19:19:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57136 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233340AbhCRXTH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2021 19:19:07 -0400
-Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4EDC06174A;
-        Thu, 18 Mar 2021 16:19:07 -0700 (PDT)
-Received: by mail-ed1-x536.google.com with SMTP id dm8so8717578edb.2;
-        Thu, 18 Mar 2021 16:19:06 -0700 (PDT)
+        id S234223AbhCSHxf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 Mar 2021 03:53:35 -0400
+Received: from smtp-fw-2101.amazon.com ([72.21.196.25]:32010 "EHLO
+        smtp-fw-2101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234249AbhCSHxK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 03:53:10 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=rvRvsfvBDHpsmjNEjVCg3MOXgysHWNruaanlbS6bjkU=;
-        b=TCj4DU97pcIqkEiYKCUx52mlILcs58xq5znQHckOJ9H1MQNG/6N1jFkiU6tqCUmeKd
-         8XLl+AfSWsIxSoAhvAJFxgZqwUZXhv8Lq5Y5Y7DTP60cCpSiGF32hwXSfe+9eaFmrRoF
-         IRuAxJQ0+NiQ6vL1e0a79ZuHiH/jQ45MZ+nhi1KiVsugqJi3ZbwZj2Z/S8Wuf6KDjRdd
-         sn/6gouk8YL4+lCUjfapCX0VHo6YsKA375cMMC4JslIDJbR/0P9FMJWpWsGY3mT3Wz0/
-         R4mGDT1T35/qGUJlSEhJQrJKMf2vczW6+tyI88v4CEE41NMrx8s/uwE1YFJjVnUUlR2q
-         Z5Kg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=rvRvsfvBDHpsmjNEjVCg3MOXgysHWNruaanlbS6bjkU=;
-        b=mMWCA+Q/8bh1JfsgIZoR2i0za2wt2+zinZpEG97UbyLhezkJdbfyYXrbU/y3i14Ovp
-         l876rW+acSUZk2oZ0k5oMXguWCrKvV3ae939CTuLTp/HhdROF4GN2kCVcuCHcjWqnoOO
-         RuLL6KEiJeeRv+SKPzmivRsO5njDMT+p+5XVRfk4RnOK/bFB2OwsURkClpkQKmVvulwS
-         vfLJbiuUeQZavMIArzEO9rhIAD3XAob4QU8e8A0nYlmU1IQfpX/+xwQO6cwZtA3UQ72v
-         5aioFcBUbCioOj01TCSJqqUyPNfnlvKZEQJpHvvXxoHwdbRi+rDfohXuv2KGewvm2IpX
-         b7QQ==
-X-Gm-Message-State: AOAM533+aDrIHvJt9tT8Creq6DgAVoWbY+5EgRCOZc3ebeCgmX6sfeR3
-        q/bSXiKFSthvHmpsdy/puMM=
-X-Google-Smtp-Source: ABdhPJytYbqHecnVZT/dcdYnDN02NMvULNoCRmXmjj537J2Yny33215vZPPOdYWd8ijSPBHkxqmSLg==
-X-Received: by 2002:a05:6402:42d1:: with SMTP id i17mr6280050edc.131.1616109545846;
-        Thu, 18 Mar 2021 16:19:05 -0700 (PDT)
-Received: from localhost.localdomain (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
-        by smtp.gmail.com with ESMTPSA id bx24sm2801131ejc.88.2021.03.18.16.19.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Mar 2021 16:19:05 -0700 (PDT)
-From:   Vladimir Oltean <olteanv@gmail.com>
-To:     Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Andrew Lunn <andrew@lunn.ch>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Ido Schimmel <idosch@idosch.org>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org,
-        Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [RFC PATCH v2 net-next 15/16] net: dsa: return -EOPNOTSUPP when driver does not implement .port_lag_join
-Date:   Fri, 19 Mar 2021 01:18:28 +0200
-Message-Id: <20210318231829.3892920-16-olteanv@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210318231829.3892920-1-olteanv@gmail.com>
-References: <20210318231829.3892920-1-olteanv@gmail.com>
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1616140390; x=1647676390;
+  h=to:cc:references:from:message-id:date:mime-version:
+   in-reply-to:content-transfer-encoding:subject;
+  bh=nnz4ZVwvkmvROymiBn8exsRn4Oe7nIPr4PArq24HC78=;
+  b=QCDXb+vw/M/NDO/KtnrIslGC/+sVgMXyEJRu8Zs3t2Lmoc94m3kxygBb
+   iXpOAZWDnzdjoyZT1swsioAVqyf9r6tuQWDwNGLpOJ4D3kUeOm3I2u9i6
+   bL7KXEm6Q+v0kNBIl41oxZs2YT+Qf+pUIHclDDXjS/oHv9uNZeEliIHKd
+   I=;
+X-IronPort-AV: E=Sophos;i="5.81,261,1610409600"; 
+   d="scan'208";a="95927641"
+Subject: Re: [PATCH v3 3/3] pinctrl: pinctrl-single: fix pcs_pin_dbg_show() when
+ bits_per_mux is not zero
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-2a-53356bf6.us-west-2.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-out-2101.iad2.amazon.com with ESMTP; 19 Mar 2021 07:53:02 +0000
+Received: from EX13MTAUEE002.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2a-53356bf6.us-west-2.amazon.com (Postfix) with ESMTPS id 64FECA187C;
+        Fri, 19 Mar 2021 07:53:01 +0000 (UTC)
+Received: from EX13D08UEE003.ant.amazon.com (10.43.62.118) by
+ EX13MTAUEE002.ant.amazon.com (10.43.62.24) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Fri, 19 Mar 2021 07:53:00 +0000
+Received: from EX13MTAUEE002.ant.amazon.com (10.43.62.24) by
+ EX13D08UEE003.ant.amazon.com (10.43.62.118) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Fri, 19 Mar 2021 07:53:00 +0000
+Received: from [192.168.19.39] (10.1.212.29) by mail-relay.amazon.com
+ (10.43.62.224) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Fri, 19 Mar 2021 07:52:56 +0000
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>
+CC:     Tony Lindgren <tony@atomide.com>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        "David Woodhouse" <dwmw@amazon.co.uk>, <benh@amazon.com>,
+        <ronenk@amazon.com>, <talel@amazon.com>, <jonnyc@amazon.com>,
+        <hanochu@amazon.com>, <tgershi@amazon.com>,
+        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
+        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <20210317214149.20833-1-hhhawa@amazon.com>
+ <20210317214149.20833-4-hhhawa@amazon.com>
+ <CAHp75VdYeVOHu5T37EBEjL5xfgjevzb-ErZb2QMy7defXDS5fg@mail.gmail.com>
+From:   "Hawa, Hanna" <hhhawa@amazon.com>
+Message-ID: <cd589749-7f37-9f7f-9d36-42032c724506@amazon.com>
+Date:   Fri, 19 Mar 2021 09:52:55 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHp75VdYeVOHu5T37EBEjL5xfgjevzb-ErZb2QMy7defXDS5fg@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Vladimir Oltean <vladimir.oltean@nxp.com>
 
-The DSA core has a layered structure, and even though we end up
-returning 0 (success) to user space when setting a bonding/team upper
-that can't be offloaded, some parts of the framework actually need to
-know that we couldn't offload that.
 
-For example, if dsa_switch_lag_join returns 0 as it currently does,
-dsa_port_lag_join has no way to tell a successful offload from a
-software fallback, and it will call dsa_port_bridge_join afterwards.
-Then we'll think we're offloading the bridge master of the LAG, when in
-fact we're not even offloading the LAG. In turn, this will make us set
-skb->offload_fwd_mark = true, which is incorrect and the bridge doesn't
-like it.
+On 3/18/2021 2:15 PM, Andy Shevchenko wrote:
+> 
+> 
+> On Wed, Mar 17, 2021 at 11:42 PM Hanna Hawa<hhhawa@amazon.com>  wrote:
+>> An SError was detected when trying to print the supported pins in a
+> What is SError? Yes, I have read a discussion, but here is the hint:
+> if a person sees this as a first text due to, for example, bisecting
+> an issue, what she/he can get from this cryptic name?
 
-Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
----
- net/dsa/switch.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+What you suggest?
+s/An SError/A kernel-panic/?
+Or remove the sentence and keep the below:
+"
+This change fixes the pcs_pin_dbg_show() in pinctrl-single driver when 
+bits_per_mux is not zero. In addition move offset calculation and pin 
+offset in register to common function.
+"
 
-diff --git a/net/dsa/switch.c b/net/dsa/switch.c
-index 4b5da89dc27a..162bbb2f5cec 100644
---- a/net/dsa/switch.c
-+++ b/net/dsa/switch.c
-@@ -213,7 +213,7 @@ static int dsa_switch_lag_join(struct dsa_switch *ds,
- 						   info->port, info->lag,
- 						   info->info);
- 
--	return 0;
-+	return -EOPNOTSUPP;
- }
- 
- static int dsa_switch_lag_leave(struct dsa_switch *ds,
-@@ -226,7 +226,7 @@ static int dsa_switch_lag_leave(struct dsa_switch *ds,
- 		return ds->ops->crosschip_lag_leave(ds, info->sw_index,
- 						    info->port, info->lag);
- 
--	return 0;
-+	return -EOPNOTSUPP;
- }
- 
- static bool dsa_switch_mdb_match(struct dsa_switch *ds, int port,
--- 
-2.25.1
+> 
+>> pinctrl device which supports multiple pins per register. This change
+>> fixes the pcs_pin_dbg_show() in pinctrl-single driver when bits_per_mux
+>> is not zero. In addition move offset calculation and pin offset in
+>> register to common function.
+> Reviewed-by: Andy Shevchenko<andy.shevchenko@gmail.com>
 
+Thanks
+
+> 
+>> Fixes: 4e7e8017a80e ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
+>> Signed-off-by: Hanna Hawa<hhhawa@amazon.com>
+>> ---
+>>   drivers/pinctrl/pinctrl-single.c | 57 +++++++++++++++++++++-----------
+>>   1 file changed, 37 insertions(+), 20 deletions(-)
+>>
+>> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+>> index f3394517cb2e..4595acf6545e 100644
+>> --- a/drivers/pinctrl/pinctrl-single.c
+>> +++ b/drivers/pinctrl/pinctrl-single.c
+>> @@ -270,20 +270,46 @@ static void __maybe_unused pcs_writel(unsigned val, void __iomem *reg)
+>>          writel(val, reg);
+>>   }
+>>
+>> +static unsigned int pcs_pin_reg_offset_get(struct pcs_device *pcs,
+>> +                                          unsigned int pin)
+>> +{
+>> +       unsigned int mux_bytes;
+>> +
+>> +       mux_bytes = pcs->width / BITS_PER_BYTE;
+> Can be folded to one line.
+
+Ack
+
+> 
+>> +       if (pcs->bits_per_mux) {
+>> +               unsigned int pin_offset_bytes;
+>> +
+>> +               pin_offset_bytes = (pcs->bits_per_pin * pin) / BITS_PER_BYTE;
+>> +               return (pin_offset_bytes / mux_bytes) * mux_bytes;
+> Side note for the further improvements (in a separate change, because
+> I see that you just copied an original code, and after all this is
+> just a fix patch): this can be replaced by round down APIs (one which
+> works for arbitrary divisors).
+
+Agree, didn't want to change the formula as it's fix patch. (here and 
+below), this can be taken for further improvements.
+
+> 
+>> +       }
+>> +
+>> +       return pin * mux_bytes;
+>> +}
+>> +
+>> +static unsigned int pcs_pin_shift_reg_get(struct pcs_device *pcs,
+>> +                                         unsigned int pin)
+>> +{
+>> +       return (pin % (pcs->width / pcs->bits_per_pin)) * pcs->bits_per_pin;
+> Also a side note: I'm wondering if this can be optimized to have less divisions.
+> 
+>> +}
+>> +
+>>   static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
+>>                                          struct seq_file *s,
+>>                                          unsigned pin)
+>>   {
+
+Thanks,
+Hanna
