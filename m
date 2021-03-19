@@ -2,111 +2,107 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF26C433E6
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 10:50:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A55C3C433E2
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 15:22:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 133B664F53
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 10:50:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 737D361930
+	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 15:22:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229793AbhCSKtd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Mar 2021 06:49:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36066 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229751AbhCSKt2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 06:49:28 -0400
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE8D2C06174A;
-        Fri, 19 Mar 2021 03:49:27 -0700 (PDT)
-Received: by mail-ej1-x62e.google.com with SMTP id l4so8923412ejc.10;
-        Fri, 19 Mar 2021 03:49:27 -0700 (PDT)
+        id S230340AbhCSPWP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 Mar 2021 11:22:15 -0400
+Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:13402 "EHLO
+        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229736AbhCSPWL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 11:22:11 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=USGUDMEOdyCFP/W1EZM1oa+tosxHd73jkoeD7niw7TE=;
-        b=CMAaLKHes3Tm4JPBbSs4OFt4YzVoWQWtN22gnAJrfOPQ4nGevyu57v6kl0G3D8aAGT
-         eP7YK7wdkd3yp0mQgHHD2hhxB4wdyopzOg4qePwhOK86DJjedg2z0bW2sR6WlrZnAP1v
-         FD0SzZjLfjiGEj9d8sTRVsztB1W/wolGNU2gZ1n9a5/PcLHibg9aSByn3P+I+6EV9/Jc
-         0XwoRngoMwcfZbpDxv8lgp3i0mfutdx7L1k5BfjcX+yFysCaqjjtm+n8EKWH/gDMGZgu
-         86UxLvO5EuutlchvGdwfLfEE0J8H5gHpvbfa/ozub1zE3X9S317mad1cd7+/kMEQXVTn
-         IN2g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=USGUDMEOdyCFP/W1EZM1oa+tosxHd73jkoeD7niw7TE=;
-        b=SzTLwGlA/zzaNu636XBY+YjwBuGn241mjcDuTdxfaghlVVAgBObNzzmKU1SqnjmteP
-         x8I8BDh+92oFDDMbbsZVe/uIB4CBVNsTGy9Pejnbov5aadA9gK7NBaDJ9w7Ly+b8pQcS
-         ZVwwN/RLWsKA4OHjcoiOP3IXfpIR0ptkGb7Dnt2eSQrDd1lXY3aJmDNRDk/9Mp9otp4y
-         Z1kwaa5/exvLvUHVcIY6nBg1Mikn4TjiZW+TAfK5QfUOSf2u9PdsE1BmHrcI1KVKev0C
-         IX49BisDBgS7q8UBaLe5IWC353rrOOCjPO20iU5rpSoC9r1OpV4O1RRLvODipYy2XDYl
-         bY8w==
-X-Gm-Message-State: AOAM533oX+9QyKK9IuLrkXWsgBl0mQfFfj7U3+DF1gPMM8qF6fsHwwB0
-        crcEypCebM3+zAknGXyEIgY=
-X-Google-Smtp-Source: ABdhPJxL2HK4jUKLV+cCAee0smFcofY0ElAZ4n0BGG/dTnliytQ6P4DqO/WWVO18CL8g48HRpmm1Hw==
-X-Received: by 2002:a17:906:68c5:: with SMTP id y5mr3624644ejr.371.1616150966614;
-        Fri, 19 Mar 2021 03:49:26 -0700 (PDT)
-Received: from skbuf (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
-        by smtp.gmail.com with ESMTPSA id bi26sm3475613ejb.120.2021.03.19.03.49.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 19 Mar 2021 03:49:26 -0700 (PDT)
-Date:   Fri, 19 Mar 2021 12:49:24 +0200
-From:   Vladimir Oltean <olteanv@gmail.com>
-To:     DENG Qingfang <dqfext@gmail.com>
-Cc:     Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>,
-        netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Ido Schimmel <idosch@idosch.org>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org,
-        Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: Re: [RFC PATCH v2 net-next 14/16] net: dsa: don't set
- skb->offload_fwd_mark when not offloading the bridge
-Message-ID: <20210319104924.gcdobjxmqcf6s4wq@skbuf>
-References: <20210318231829.3892920-1-olteanv@gmail.com>
- <20210318231829.3892920-15-olteanv@gmail.com>
- <20210319084025.GA2152639@haswell-ubuntu20>
- <20210319090642.bzmtlzc5im6xtbkh@skbuf>
- <CALW65janF_yztk7hH5n8wZFpWXxbCwQu3m4W=B-n2mcNG+W=Mw@mail.gmail.com>
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1616167331; x=1647703331;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version;
+  bh=7rHP/Il1MAYfTug9uW2SOeBpIjYBzsbh242X2Z+B5kw=;
+  b=Ewv2sknAZPCbC/CeLCYAKgmi2jDuahOue22swx5w90Cr+WW3qwfvtoQg
+   8DefGTL7SxNbGQrfSH3mtJ4gzcPOYho07OsYdulofbeZSePSijbbJE8lj
+   cCKgaY3bx+pigylsGHP7/8SaZQm11j3SvfTwmxxwLjjZ7uPjTWLemavP4
+   k=;
+X-IronPort-AV: E=Sophos;i="5.81,262,1610409600"; 
+   d="scan'208";a="121703771"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2c-76e0922c.us-west-2.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 19 Mar 2021 15:22:10 +0000
+Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2c-76e0922c.us-west-2.amazon.com (Postfix) with ESMTPS id F09ECA65FE;
+        Fri, 19 Mar 2021 15:22:08 +0000 (UTC)
+Received: from u8a88181e7b2355.ant.amazon.com (10.43.161.244) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Fri, 19 Mar 2021 15:22:02 +0000
+From:   Hanna Hawa <hhhawa@amazon.com>
+To:     <andy.shevchenko@gmail.com>, <tony@atomide.com>,
+        <haojian.zhuang@linaro.org>, <linus.walleij@linaro.org>
+CC:     <dwmw@amazon.co.uk>, <benh@amazon.com>, <ronenk@amazon.com>,
+        <talel@amazon.com>, <jonnyc@amazon.com>, <hanochu@amazon.com>,
+        <tgershi@amazon.com>, <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <hhhawa@amazon.com>
+Subject: [PATCH v4 2/3] pinctrl: pinctrl-single: remove unused parameter
+Date:   Fri, 19 Mar 2021 17:21:32 +0200
+Message-ID: <20210319152133.28705-3-hhhawa@amazon.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20210319152133.28705-1-hhhawa@amazon.com>
+References: <20210319152133.28705-1-hhhawa@amazon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALW65janF_yztk7hH5n8wZFpWXxbCwQu3m4W=B-n2mcNG+W=Mw@mail.gmail.com>
+Content-Type: text/plain
+X-Originating-IP: [10.43.161.244]
+X-ClientProxiedBy: EX13D37UWA004.ant.amazon.com (10.43.160.23) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Mar 19, 2021 at 05:29:12PM +0800, DENG Qingfang wrote:
-> On Fri, Mar 19, 2021 at 5:06 PM Vladimir Oltean <olteanv@gmail.com> wrote:
-> >
-> > This is a good point actually, which I thought about, but did not give a
-> > lot of importance to for the moment. Either we go full steam ahead with
-> > assisted learning on the CPU port for everybody, and we selectively
-> > learn the addresses relevant to the bridging funciton only, or we do
-> > what you say, but then it will be a little bit more complicated IMO, and
-> > have hardware dependencies, which isn't as nice.
-> 
-> Are skb->offload_fwd_mark and source DSA switch kept in dsa_slave_xmit?
-> I think SA learning should be bypassed iff skb->offload_fwd_mark == 1 and
-> source DSA switch == destination DSA switch.
+Remove unused parameter 'pin_pos' from pcs_add_pin().
 
-Why would you even want to look at the source net device for forwarding?
-I'd say that if dp->bridge_dev is NULL in the xmit function, you certainly
-want to bypass address learning if you can. Maybe also for link-local traffic.
+Signed-off-by: Hanna Hawa <hhhawa@amazon.com>
+---
+ drivers/pinctrl/pinctrl-single.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 91c638b85d2c..f3394517cb2e 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -656,10 +656,8 @@ static const struct pinconf_ops pcs_pinconf_ops = {
+  * pcs_add_pin() - add a pin to the static per controller pin array
+  * @pcs: pcs driver instance
+  * @offset: register offset from base
+- * @pin_pos: unused
+  */
+-static int pcs_add_pin(struct pcs_device *pcs, unsigned offset,
+-		unsigned pin_pos)
++static int pcs_add_pin(struct pcs_device *pcs, unsigned int offset)
+ {
+ 	struct pcs_soc_data *pcs_soc = &pcs->socdata;
+ 	struct pinctrl_pin_desc *pin;
+@@ -727,16 +725,14 @@ static int pcs_allocate_pin_table(struct pcs_device *pcs)
+ 		unsigned offset;
+ 		int res;
+ 		int byte_num;
+-		int pin_pos = 0;
+ 
+ 		if (pcs->bits_per_mux) {
+ 			byte_num = (pcs->bits_per_pin * i) / BITS_PER_BYTE;
+ 			offset = (byte_num / mux_bytes) * mux_bytes;
+-			pin_pos = i % num_pins_in_register;
+ 		} else {
+ 			offset = i * mux_bytes;
+ 		}
+-		res = pcs_add_pin(pcs, offset, pin_pos);
++		res = pcs_add_pin(pcs, offset);
+ 		if (res < 0) {
+ 			dev_err(pcs->dev, "error adding pins: %i\n", res);
+ 			return res;
+-- 
+2.17.1
+
