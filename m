@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE8BC433E8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E0D1C433E6
 	for <linux-omap@archiver.kernel.org>; Sat, 20 Mar 2021 22:37:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DA0D6146D
+	by mail.kernel.org (Postfix) with ESMTP id 7C4C861933
 	for <linux-omap@archiver.kernel.org>; Sat, 20 Mar 2021 22:37:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230076AbhCTWgD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 20 Mar 2021 18:36:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44104 "EHLO
+        id S230087AbhCTWgF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 20 Mar 2021 18:36:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229986AbhCTWfb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 20 Mar 2021 18:35:31 -0400
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BC93C061574;
-        Sat, 20 Mar 2021 15:35:31 -0700 (PDT)
-Received: by mail-ed1-x52f.google.com with SMTP id w18so15012539edc.0;
-        Sat, 20 Mar 2021 15:35:30 -0700 (PDT)
+        with ESMTP id S230001AbhCTWfg (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 20 Mar 2021 18:35:36 -0400
+Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D767AC061762;
+        Sat, 20 Mar 2021 15:35:34 -0700 (PDT)
+Received: by mail-ej1-x62b.google.com with SMTP id hq27so15290994ejc.9;
+        Sat, 20 Mar 2021 15:35:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=nhlOQ59araspQoyg2IoS80KsG4FClPd2yFkVhKlApp4=;
-        b=hBM5aa2Ii67NCc2E2XLh9QI2/zRXiKrL9nVD+C/d26f7tuqLn5R+DNaJdyME3ZrauX
-         BjVfWulUZ/3+Fisn6j+q/AxYueSuaPorqGbcvSkznxR4vbs3QozxsfzYDifMoxOOWiBj
-         8nlNrAf4ZrOpol8jnnmPcHr9mhtVXIDzgsKUWyBUrv0IKCuuPCZEX+hVNYq+PnxbQ2U/
-         CdsUWjbdCUSgFgdsB5BuWRkjwkKYu3pwz/Ri0q4mf/fUyH7Jw+sN6ekLRqLZcOl3demY
-         3TnN5LKVSwgnzW6iL0XUNU0oqMTaFtj9aIsSdad359iLlrwTi/JcIGI1UYLNpGqJ3aPw
-         s8DQ==
+        bh=SoiJi9I8+4T7GzSieCrgTmk0ey5FdI/Q8mWfB1Ye++w=;
+        b=UnW4cJHToksyV98Tyk1saDsRdTk2upOzwgjGjPSagA8F+cBmKTMBT315m9Lc93Mupr
+         f91ZUIXknIOvlxpdIYzCRFqJps6oWl1/OSFAQP7lTEIhOHe7acuiUqv5L+tH/XHNA5Lk
+         VB+mO2Xo48RZTmmIaiUsYak19WlumxKzaG9VfMTt+HBcZDoqmSxstyJsFmmwy4zMfz1L
+         Gq08B4hAQ6K00FpWkrYRakavT65B332VERVZPjgqi7Abfap4ltpabjEN6unkN3NZFZ2J
+         bBUDTookXurLZjYjDROcZPAM8QZR1BGRIF183beVq1Gb2RI//nSBCWIy01sB/C2bL+iQ
+         mOcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=nhlOQ59araspQoyg2IoS80KsG4FClPd2yFkVhKlApp4=;
-        b=qJD3uxSw/WpSjq0WOMigX2qMvZ98yFo5znKGGMLqjhmFLU3tHdZ0yHE4WhXzltPhht
-         hSvQndwY9oROFjZaAYP1t93S3Dn8PP9VWwdk+mU8Vmc98RsRrxEohlhRDh564ukeOQMV
-         S3LD1VElE59OHb3KrW629xEOJh7XYoMRWFLxL3zNUIk3kxerz2kr3YFanUelZoMPWRr3
-         Q6JRglrVzq85197hFPG3S99xmHRo2lSovjspOlmHXEiVjQhmiNUgcU3bXYkhIWxodyKI
-         OxpM4F00R5VoOQBQx0fWHQqok/otydahfLkCz49Y7rqL4tBiyiq+gGfnfGrTHwZwYH2K
-         nHDg==
-X-Gm-Message-State: AOAM530tXEBLiBjB7ybYgYF94V6DKgkl9IWRrZhGX5NYJL28+qm7/P5X
-        6V8tMjjEC+HkPH8XiberGXU=
-X-Google-Smtp-Source: ABdhPJw/E/RHWgd603Os5zGoJgYkLZc80gojimMxTvLiIntiPDHwmfxxfgNlXwJ+7dWwdRMBccrmVg==
-X-Received: by 2002:a05:6402:17d6:: with SMTP id s22mr17440526edy.232.1616279729731;
-        Sat, 20 Mar 2021 15:35:29 -0700 (PDT)
+        bh=SoiJi9I8+4T7GzSieCrgTmk0ey5FdI/Q8mWfB1Ye++w=;
+        b=NU+1tBcM7E92Y0bzVwbI45nlmyME8Bx/jsy8QTGzWwMmeFAU/bp4QP5CiHDrmF/VpT
+         B945AOdTA85qMrrNHYJnF6Ilot2J8iuqFTUXwz2vOD4t1MM0wvk9njYKiMutwxdwuMSR
+         sLQdKOZFiafFC2S3ks7nxHVei4WCoIEVFPlGucZPdm3LDezRCK0rsyZzNEXYKdp5a5so
+         gfDpJus/x5n5waG3sgl1v6erbNUbxdSdv0MkF4OEiZomv+iZ73wMrIy6p6WsxcPVzhIw
+         us3d+pYC6WkrEZrDCbiomkgg1agBEf2TEpp9UaOodvT9Ps8xg+NjigmuPBbzJFBHUlkR
+         jeEA==
+X-Gm-Message-State: AOAM5300nOTe2Coj+eLcTh9JT8M41ti2DOuFnzFz8TjLFc81I1ldamJG
+        kqZlRVmq8vH9PmvzmMAdq6Q=
+X-Google-Smtp-Source: ABdhPJz+0ZiFFy9XNFb1oGGwhYDjnkw39hzlLyf5EdDFjVQK9YRucWN4mcsc3ueFuPi4mQvf1dz1gQ==
+X-Received: by 2002:a17:906:7f01:: with SMTP id d1mr11913739ejr.136.1616279733638;
+        Sat, 20 Mar 2021 15:35:33 -0700 (PDT)
 Received: from localhost.localdomain (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
-        by smtp.gmail.com with ESMTPSA id n2sm6090850ejl.1.2021.03.20.15.35.28
+        by smtp.gmail.com with ESMTPSA id n2sm6090850ejl.1.2021.03.20.15.35.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 20 Mar 2021 15:35:29 -0700 (PDT)
+        Sat, 20 Mar 2021 15:35:33 -0700 (PDT)
 From:   Vladimir Oltean <olteanv@gmail.com>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
@@ -73,9 +73,9 @@ Cc:     Andrew Lunn <andrew@lunn.ch>,
         UNGLinuxDriver@microchip.com, Ivan Vecera <ivecera@redhat.com>,
         linux-omap@vger.kernel.org,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH v3 net-next 08/12] net: dsa: replay port and host-joined mdb entries when joining the bridge
-Date:   Sun, 21 Mar 2021 00:34:44 +0200
-Message-Id: <20210320223448.2452869-9-olteanv@gmail.com>
+Subject: [PATCH v3 net-next 11/12] net: ocelot: call ocelot_netdevice_bridge_join when joining a bridged LAG
+Date:   Sun, 21 Mar 2021 00:34:47 +0200
+Message-Id: <20210320223448.2452869-12-olteanv@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210320223448.2452869-1-olteanv@gmail.com>
 References: <20210320223448.2452869-1-olteanv@gmail.com>
@@ -87,244 +87,191 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Vladimir Oltean <vladimir.oltean@nxp.com>
 
-I have udhcpcd in my system and this is configured to bring interfaces
-up as soon as they are created.
-
-I create a bridge as follows:
+Similar to the DSA situation, ocelot supports LAG offload but treats
+this scenario improperly:
 
 ip link add br0 type bridge
+ip link add bond0 type bond
+ip link set bond0 master br0
+ip link set swp0 master bond0
 
-As soon as I create the bridge and udhcpcd brings it up, I also have
-avahi which automatically starts sending IPv6 packets to advertise some
-local services, and because of that, the br0 bridge joins the following
-IPv6 groups due to the code path detailed below:
+We do the same thing as we do there, which is to simulate a 'bridge join'
+on 'lag join', if we detect that the bonding upper has a bridge upper.
 
-33:33:ff:6d:c1:9c vid 0
-33:33:00:00:00:6a vid 0
-33:33:00:00:00:fb vid 0
+Again, same as DSA, ocelot supports software fallback for LAG, and in
+that case, we should avoid calling ocelot_netdevice_changeupper.
 
-br_dev_xmit
--> br_multicast_rcv
-   -> br_ip6_multicast_add_group
-      -> __br_multicast_add_group
-         -> br_multicast_host_join
-            -> br_mdb_notify
-
-This is all fine, but inside br_mdb_notify we have br_mdb_switchdev_host
-hooked up, and switchdev will attempt to offload the host joined groups
-to an empty list of ports. Of course nobody offloads them.
-
-Then when we add a port to br0:
-
-ip link set swp0 master br0
-
-the bridge doesn't replay the host-joined MDB entries from br_add_if,
-and eventually the host joined addresses expire, and a switchdev
-notification for deleting it is emitted, but surprise, the original
-addition was already completely missed.
-
-The strategy to address this problem is to replay the MDB entries (both
-the port ones and the host joined ones) when the new port joins the
-bridge, similar to what vxlan_fdb_replay does (in that case, its FDB can
-be populated and only then attached to a bridge that you offload).
-However there are 2 possibilities: the addresses can be 'pushed' by the
-bridge into the port, or the port can 'pull' them from the bridge.
-
-Considering that in the general case, the new port can be really late to
-the party, and there may have been many other switchdev ports that
-already received the initial notification, we would like to avoid
-delivering duplicate events to them, since they might misbehave. And
-currently, the bridge calls the entire switchdev notifier chain, whereas
-for replaying it should just call the notifier block of the new guy.
-But the bridge doesn't know what is the new guy's notifier block, it
-just knows where the switchdev notifier chain is. So for simplification,
-we make this a driver-initiated pull for now, and the notifier block is
-passed as an argument.
-
-To emulate the calling context for mdb objects (deferred and put on the
-blocking notifier chain), we must iterate under RCU protection through
-the bridge's mdb entries, queue them, and only call them once we're out
-of the RCU read-side critical section.
-
-Suggested-by: Ido Schimmel <idosch@idosch.org>
 Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
 ---
 Changes in v3:
-- Removed the implication that avahi is crap from the commit message.
-- Made the br_mdb_replay shim return -EOPNOTSUPP.
+None.
 
- include/linux/if_bridge.h |  9 +++++
- net/bridge/br_mdb.c       | 84 +++++++++++++++++++++++++++++++++++++++
- net/dsa/dsa_priv.h        |  2 +
- net/dsa/port.c            |  6 +++
- net/dsa/slave.c           |  2 +-
- 5 files changed, 102 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mscc/ocelot_net.c | 111 +++++++++++++++++++------
+ 1 file changed, 86 insertions(+), 25 deletions(-)
 
-diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index ebd16495459c..f6472969bb44 100644
---- a/include/linux/if_bridge.h
-+++ b/include/linux/if_bridge.h
-@@ -69,6 +69,8 @@ bool br_multicast_has_querier_anywhere(struct net_device *dev, int proto);
- bool br_multicast_has_querier_adjacent(struct net_device *dev, int proto);
- bool br_multicast_enabled(const struct net_device *dev);
- bool br_multicast_router(const struct net_device *dev);
-+int br_mdb_replay(struct net_device *br_dev, struct net_device *dev,
-+		  struct notifier_block *nb, struct netlink_ext_ack *extack);
- #else
- static inline int br_multicast_list_adjacent(struct net_device *dev,
- 					     struct list_head *br_ip_list)
-@@ -93,6 +95,13 @@ static inline bool br_multicast_router(const struct net_device *dev)
+diff --git a/drivers/net/ethernet/mscc/ocelot_net.c b/drivers/net/ethernet/mscc/ocelot_net.c
+index c08164cd88f4..d1376f7b34fd 100644
+--- a/drivers/net/ethernet/mscc/ocelot_net.c
++++ b/drivers/net/ethernet/mscc/ocelot_net.c
+@@ -1117,10 +1117,15 @@ static int ocelot_port_obj_del(struct net_device *dev,
+ 	return ret;
+ }
+ 
+-static int ocelot_netdevice_bridge_join(struct ocelot *ocelot, int port,
+-					struct net_device *bridge)
++static int ocelot_netdevice_bridge_join(struct net_device *dev,
++					struct net_device *bridge,
++					struct netlink_ext_ack *extack)
  {
- 	return false;
- }
-+static inline int br_mdb_replay(struct net_device *br_dev,
-+				struct net_device *dev,
-+				struct notifier_block *nb,
-+				struct netlink_ext_ack *extack)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif
++	struct ocelot_port_private *priv = netdev_priv(dev);
++	struct ocelot_port *ocelot_port = &priv->port;
++	struct ocelot *ocelot = ocelot_port->ocelot;
+ 	struct switchdev_brport_flags flags;
++	int port = priv->chip_port;
+ 	int err;
  
- #if IS_ENABLED(CONFIG_BRIDGE) && IS_ENABLED(CONFIG_BRIDGE_VLAN_FILTERING)
-diff --git a/net/bridge/br_mdb.c b/net/bridge/br_mdb.c
-index 8846c5bcd075..23973186094c 100644
---- a/net/bridge/br_mdb.c
-+++ b/net/bridge/br_mdb.c
-@@ -506,6 +506,90 @@ static void br_mdb_complete(struct net_device *dev, int err, void *priv)
- 	kfree(priv);
- }
- 
-+static int br_mdb_replay_one(struct notifier_block *nb, struct net_device *dev,
-+			     struct net_bridge_mdb_entry *mp, int obj_id,
-+			     struct net_device *orig_dev,
-+			     struct netlink_ext_ack *extack)
-+{
-+	struct switchdev_notifier_port_obj_info obj_info = {
-+		.info = {
-+			.dev = dev,
-+			.extack = extack,
-+		},
-+	};
-+	struct switchdev_obj_port_mdb mdb = {
-+		.obj = {
-+			.orig_dev = orig_dev,
-+			.id = obj_id,
-+		},
-+		.vid = mp->addr.vid,
-+	};
-+	int err;
-+
-+	if (mp->addr.proto == htons(ETH_P_IP))
-+		ip_eth_mc_map(mp->addr.dst.ip4, mdb.addr);
-+#if IS_ENABLED(CONFIG_IPV6)
-+	else if (mp->addr.proto == htons(ETH_P_IPV6))
-+		ipv6_eth_mc_map(&mp->addr.dst.ip6, mdb.addr);
-+#endif
-+	else
-+		ether_addr_copy(mdb.addr, mp->addr.dst.mac_addr);
-+
-+	obj_info.obj = &mdb.obj;
-+
-+	err = nb->notifier_call(nb, SWITCHDEV_PORT_OBJ_ADD, &obj_info);
-+	return notifier_to_errno(err);
-+}
-+
-+int br_mdb_replay(struct net_device *br_dev, struct net_device *dev,
-+		  struct notifier_block *nb, struct netlink_ext_ack *extack)
-+{
-+	struct net_bridge_mdb_entry *mp;
-+	struct list_head mdb_list;
-+	struct net_bridge *br;
-+	int err = 0;
-+
-+	ASSERT_RTNL();
-+
-+	INIT_LIST_HEAD(&mdb_list);
-+
-+	if (!netif_is_bridge_master(br_dev) || !netif_is_bridge_port(dev))
-+		return -EINVAL;
-+
-+	br = netdev_priv(br_dev);
-+
-+	if (!br_opt_get(br, BROPT_MULTICAST_ENABLED))
-+		return 0;
-+
-+	hlist_for_each_entry(mp, &br->mdb_list, mdb_node) {
-+		struct net_bridge_port_group __rcu **pp;
-+		struct net_bridge_port_group *p;
-+
-+		if (mp->host_joined) {
-+			err = br_mdb_replay_one(nb, dev, mp,
-+						SWITCHDEV_OBJ_ID_HOST_MDB,
-+						br_dev, extack);
-+			if (err)
-+				return err;
-+		}
-+
-+		for (pp = &mp->ports; (p = rtnl_dereference(*pp)) != NULL;
-+		     pp = &p->next) {
-+			if (p->key.port->dev != dev)
-+				continue;
-+
-+			err = br_mdb_replay_one(nb, dev, mp,
-+						SWITCHDEV_OBJ_ID_PORT_MDB,
-+						dev, extack);
-+			if (err)
-+				return err;
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(br_mdb_replay);
-+
- static void br_mdb_switchdev_host_port(struct net_device *dev,
- 				       struct net_device *lower_dev,
- 				       struct net_bridge_mdb_entry *mp,
-diff --git a/net/dsa/dsa_priv.h b/net/dsa/dsa_priv.h
-index b8778c5d8529..b14c43cb88bb 100644
---- a/net/dsa/dsa_priv.h
-+++ b/net/dsa/dsa_priv.h
-@@ -262,6 +262,8 @@ static inline bool dsa_tree_offloads_bridge_port(struct dsa_switch_tree *dst,
- 
- /* slave.c */
- extern const struct dsa_device_ops notag_netdev_ops;
-+extern struct notifier_block dsa_slave_switchdev_blocking_notifier;
-+
- void dsa_slave_mii_bus_init(struct dsa_switch *ds);
- int dsa_slave_create(struct dsa_port *dp);
- void dsa_slave_destroy(struct net_device *slave_dev);
-diff --git a/net/dsa/port.c b/net/dsa/port.c
-index 95e6f2861290..3e61e9e6675c 100644
---- a/net/dsa/port.c
-+++ b/net/dsa/port.c
-@@ -199,6 +199,12 @@ static int dsa_port_switchdev_sync(struct dsa_port *dp,
- 	if (err && err != -EOPNOTSUPP)
- 		return err;
- 
-+	err = br_mdb_replay(br, brport_dev,
-+			    &dsa_slave_switchdev_blocking_notifier,
-+			    extack);
-+	if (err && err != -EOPNOTSUPP)
-+		return err;
-+
+ 	flags.mask = BR_LEARNING | BR_FLOOD | BR_MCAST_FLOOD | BR_BCAST_FLOOD;
+@@ -1135,10 +1140,14 @@ static int ocelot_netdevice_bridge_join(struct ocelot *ocelot, int port,
  	return 0;
  }
  
-diff --git a/net/dsa/slave.c b/net/dsa/slave.c
-index 1ff48be476bb..b974d8f84a2e 100644
---- a/net/dsa/slave.c
-+++ b/net/dsa/slave.c
-@@ -2396,7 +2396,7 @@ static struct notifier_block dsa_slave_switchdev_notifier = {
- 	.notifier_call = dsa_slave_switchdev_event,
- };
+-static int ocelot_netdevice_bridge_leave(struct ocelot *ocelot, int port,
++static int ocelot_netdevice_bridge_leave(struct net_device *dev,
+ 					 struct net_device *bridge)
+ {
++	struct ocelot_port_private *priv = netdev_priv(dev);
++	struct ocelot_port *ocelot_port = &priv->port;
++	struct ocelot *ocelot = ocelot_port->ocelot;
+ 	struct switchdev_brport_flags flags;
++	int port = priv->chip_port;
+ 	int err;
  
--static struct notifier_block dsa_slave_switchdev_blocking_notifier = {
-+struct notifier_block dsa_slave_switchdev_blocking_notifier = {
- 	.notifier_call = dsa_slave_switchdev_blocking_event,
- };
+ 	flags.mask = BR_LEARNING | BR_FLOOD | BR_MCAST_FLOOD | BR_BCAST_FLOOD;
+@@ -1151,43 +1160,89 @@ static int ocelot_netdevice_bridge_leave(struct ocelot *ocelot, int port,
+ 	return err;
+ }
  
+-static int ocelot_netdevice_changeupper(struct net_device *dev,
+-					struct netdev_notifier_changeupper_info *info)
++static int ocelot_netdevice_lag_join(struct net_device *dev,
++				     struct net_device *bond,
++				     struct netdev_lag_upper_info *info,
++				     struct netlink_ext_ack *extack)
+ {
+ 	struct ocelot_port_private *priv = netdev_priv(dev);
+ 	struct ocelot_port *ocelot_port = &priv->port;
+ 	struct ocelot *ocelot = ocelot_port->ocelot;
++	struct net_device *bridge_dev;
+ 	int port = priv->chip_port;
++	int err;
++
++	err = ocelot_port_lag_join(ocelot, port, bond, info);
++	if (err == -EOPNOTSUPP) {
++		NL_SET_ERR_MSG_MOD(extack, "Offloading not supported");
++		return 0;
++	}
++
++	bridge_dev = netdev_master_upper_dev_get(bond);
++	if (!bridge_dev || !netif_is_bridge_master(bridge_dev))
++		return 0;
++
++	err = ocelot_netdevice_bridge_join(dev, bridge_dev, extack);
++	if (err)
++		goto err_bridge_join;
++
++	return 0;
++
++err_bridge_join:
++	ocelot_port_lag_leave(ocelot, port, bond);
++	return err;
++}
++
++static int ocelot_netdevice_lag_leave(struct net_device *dev,
++				      struct net_device *bond)
++{
++	struct ocelot_port_private *priv = netdev_priv(dev);
++	struct ocelot_port *ocelot_port = &priv->port;
++	struct ocelot *ocelot = ocelot_port->ocelot;
++	struct net_device *bridge_dev;
++	int port = priv->chip_port;
++
++	ocelot_port_lag_leave(ocelot, port, bond);
++
++	bridge_dev = netdev_master_upper_dev_get(bond);
++	if (!bridge_dev || !netif_is_bridge_master(bridge_dev))
++		return 0;
++
++	return ocelot_netdevice_bridge_leave(dev, bridge_dev);
++}
++
++static int ocelot_netdevice_changeupper(struct net_device *dev,
++					struct netdev_notifier_changeupper_info *info)
++{
++	struct netlink_ext_ack *extack;
+ 	int err = 0;
+ 
++	extack = netdev_notifier_info_to_extack(&info->info);
++
+ 	if (netif_is_bridge_master(info->upper_dev)) {
+-		if (info->linking) {
+-			err = ocelot_netdevice_bridge_join(ocelot, port,
+-							   info->upper_dev);
+-		} else {
+-			err = ocelot_netdevice_bridge_leave(ocelot, port,
+-							    info->upper_dev);
+-		}
++		if (info->linking)
++			err = ocelot_netdevice_bridge_join(dev, info->upper_dev,
++							   extack);
++		else
++			err = ocelot_netdevice_bridge_leave(dev, info->upper_dev);
+ 	}
+ 	if (netif_is_lag_master(info->upper_dev)) {
+-		if (info->linking) {
+-			err = ocelot_port_lag_join(ocelot, port,
+-						   info->upper_dev,
+-						   info->upper_info);
+-			if (err == -EOPNOTSUPP) {
+-				NL_SET_ERR_MSG_MOD(info->info.extack,
+-						   "Offloading not supported");
+-				err = 0;
+-			}
+-		} else {
+-			ocelot_port_lag_leave(ocelot, port,
+-					      info->upper_dev);
+-		}
++		if (info->linking)
++			err = ocelot_netdevice_lag_join(dev, info->upper_dev,
++							info->upper_info, extack);
++		else
++			ocelot_netdevice_lag_leave(dev, info->upper_dev);
+ 	}
+ 
+ 	return notifier_from_errno(err);
+ }
+ 
++/* Treat CHANGEUPPER events on an offloaded LAG as individual CHANGEUPPER
++ * events for the lower physical ports of the LAG.
++ * If the LAG upper isn't offloaded, ignore its CHANGEUPPER events.
++ * In case the LAG joined a bridge, notify that we are offloading it and can do
++ * forwarding in hardware towards it.
++ */
+ static int
+ ocelot_netdevice_lag_changeupper(struct net_device *dev,
+ 				 struct netdev_notifier_changeupper_info *info)
+@@ -1197,6 +1252,12 @@ ocelot_netdevice_lag_changeupper(struct net_device *dev,
+ 	int err = NOTIFY_DONE;
+ 
+ 	netdev_for_each_lower_dev(dev, lower, iter) {
++		struct ocelot_port_private *priv = netdev_priv(lower);
++		struct ocelot_port *ocelot_port = &priv->port;
++
++		if (ocelot_port->bond != dev)
++			return NOTIFY_OK;
++
+ 		err = ocelot_netdevice_changeupper(lower, info);
+ 		if (err)
+ 			return notifier_from_errno(err);
 -- 
 2.25.1
 
