@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE3FC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33306C433E2
 	for <linux-omap@archiver.kernel.org>; Sat, 20 Mar 2021 22:37:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE0CB6146D
-	for <linux-omap@archiver.kernel.org>; Sat, 20 Mar 2021 22:37:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EC7261933
+	for <linux-omap@archiver.kernel.org>; Sat, 20 Mar 2021 22:37:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230039AbhCTWf7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 20 Mar 2021 18:35:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44070 "EHLO
+        id S230060AbhCTWgB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 20 Mar 2021 18:36:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229835AbhCTWf0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 20 Mar 2021 18:35:26 -0400
-Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6D1FC061574;
-        Sat, 20 Mar 2021 15:35:25 -0700 (PDT)
-Received: by mail-ej1-x636.google.com with SMTP id a7so15286005ejs.3;
-        Sat, 20 Mar 2021 15:35:25 -0700 (PDT)
+        with ESMTP id S229946AbhCTWf2 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 20 Mar 2021 18:35:28 -0400
+Received: from mail-ed1-x52e.google.com (mail-ed1-x52e.google.com [IPv6:2a00:1450:4864:20::52e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64403C061574;
+        Sat, 20 Mar 2021 15:35:28 -0700 (PDT)
+Received: by mail-ed1-x52e.google.com with SMTP id j3so14928294edp.11;
+        Sat, 20 Mar 2021 15:35:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=uoAitKxY6Wm3fAUsNhRpFwI+ektVXceRmnN56H84oYw=;
-        b=TwxUm1ebl6brytJbAJCTLrZWGI266T/DszMJZ+5RUe9AgtE+WcoclaxTaz9cJKJUEQ
-         7+8JQfQOgglsCk77eP7Qjx0u2e0MYjtFxrqWki6WFIu/RTIsME6MMdtI124da56OA/at
-         Gf7HkRUmjmphUs0jdlayZQA+HSJsSyTV5KydjCxerJgGoQdSwJj+kjwxOc7trxWkhsSh
-         B/nnUdFyEDMpcklyp19QGSR8otPGUgiMpV/Z5Nv4xXh8E1YEPeopXsGFf2ePm9N3ioMi
-         rJgtB7BiMG0M7FSjT+aTXIy2eUAtl1U6N1LCQYpjkCwZffsI2NYLz4d9ztqYnStvYwz1
-         9anw==
+        bh=UUgWwEswye+b4aK+2bQLBIyYwXBiDuUTJA+VOwNWdDg=;
+        b=PDRmZMcSgapKHhYZ7/XzOm2AZoQBVGGqPPm+7Men9VPsp3L4NRNrAbOfhffpStXFgF
+         ao31aEDiX4VkFAfJAVaYu/IJD5jhNxWXkoD274Wte4ccHVA14P3+2KZNA5je7plX9L2y
+         Fetf4eoAmR8/O2PwdyOr+/DElxS6irjZh7y1UrtzcVbVxLfax3PI15q7wPvjfpzLos6R
+         NKFQ/F7R4hX4w8Rl/2vcBI6vtX0zomXt8tyRjq4NVv2K1sLU7QVeClPV6mgqoUM46e5W
+         NHh8/mvaWbzajoQAbWUvVVRK7LuAI+xcfY1p1ks0blYVBky5z12vb889cPlgCXEHWsnb
+         eYqQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=uoAitKxY6Wm3fAUsNhRpFwI+ektVXceRmnN56H84oYw=;
-        b=mS1uFO/ban3bvmgtT2S9/f0EH1hyweJyxVBiO69SDG2Nvuywp9Ld1E27Lzygbwdj2X
-         5UKtEMM1kBu6UEzIBgHZ660cqS0W7WtgRx2SvTw8shb/UuwbBdrm8oCZFYyDeysMuHqd
-         FActButYZ1DOGeb4DP3QbG8orf8PHkre/CI5errEC5jya0mGadbDNb/kwNrzh05d/gDv
-         OWhjlT2AABI1eH0PnSYCzlNCu53XvR3d47k4lssIN3V0j1aGdk04ijDJJbEcqeZc4qfP
-         lE2MCSpCZKRcq6NKUCk5hFd/9dXIgDzrRNDCAtMe4MRQzzwjfSxOw2G0BbigtZ3OgGFj
-         kkxA==
-X-Gm-Message-State: AOAM532RLpLY+Fa4asEMROzvLjp0BYrLlaXSfn3wUOod9GHj2wYNPknV
-        aSvrP9UldgEG7YQCJCUPUsc=
-X-Google-Smtp-Source: ABdhPJwZ+qANVk5Dz01q9updiuAD0xK8qCumTxArrh9EmyN1EUfBkR2yHqXYQ/9I4uqAYnwYdgv7gg==
-X-Received: by 2002:a17:906:a3d1:: with SMTP id ca17mr11728884ejb.92.1616279724641;
-        Sat, 20 Mar 2021 15:35:24 -0700 (PDT)
+        bh=UUgWwEswye+b4aK+2bQLBIyYwXBiDuUTJA+VOwNWdDg=;
+        b=gUK0mZaYuyD5qM5daYTXrxxJ3mgVN5F4zrSIa1vv03j8+/foLWZKHUWICpIyp9Vn1x
+         tDjgFd1PMHvIlKyAOFCisxflxU592yGtYb70lWiGdStVmQtuOnmJSiDZvxjXAbQTraO2
+         O4C6/3vFLV7zLenjyJ0tHGxXAyOUp2UlvgAvGsMNR/aRoEl0aVhqpflRKRW4i7QA2Sbn
+         wZqZQnExxAYOlaa+PDBZZRdJni6PTczKJhs5KrwwTmeOApymTM3KYC+CWv8cXeQX9INj
+         OnYa7kBQL3O7sGX5r++poXbOXoq+2T4LAV8mCjJW5//f7Qj+pStizqVz3xLP9/OrOEhx
+         fnxw==
+X-Gm-Message-State: AOAM5307FJszvozu+lbX3H2zKLlZLWHGdf+ZPjmGUdPdhApt/B1qX0YQ
+        n74/jIh7dT5VeKkp1Vc3v7xggE0lz8k=
+X-Google-Smtp-Source: ABdhPJxzcRf3pELkQzpNwfHINX/b43Q36CdVMrCXgNpOQfOOUIe31YLIA8EWHOST5LxVIKOS+CgPUg==
+X-Received: by 2002:aa7:da46:: with SMTP id w6mr17838479eds.40.1616279727186;
+        Sat, 20 Mar 2021 15:35:27 -0700 (PDT)
 Received: from localhost.localdomain (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
-        by smtp.gmail.com with ESMTPSA id n2sm6090850ejl.1.2021.03.20.15.35.23
+        by smtp.gmail.com with ESMTPSA id n2sm6090850ejl.1.2021.03.20.15.35.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 20 Mar 2021 15:35:24 -0700 (PDT)
+        Sat, 20 Mar 2021 15:35:26 -0700 (PDT)
 From:   Vladimir Oltean <olteanv@gmail.com>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
@@ -73,9 +73,9 @@ Cc:     Andrew Lunn <andrew@lunn.ch>,
         UNGLinuxDriver@microchip.com, Ivan Vecera <ivecera@redhat.com>,
         linux-omap@vger.kernel.org,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH v3 net-next 04/12] net: dsa: sync up with bridge port's STP state when joining
-Date:   Sun, 21 Mar 2021 00:34:40 +0200
-Message-Id: <20210320223448.2452869-5-olteanv@gmail.com>
+Subject: [PATCH v3 net-next 06/12] net: dsa: sync multicast router state when joining the bridge
+Date:   Sun, 21 Mar 2021 00:34:42 +0200
+Message-Id: <20210320223448.2452869-7-olteanv@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210320223448.2452869-1-olteanv@gmail.com>
 References: <20210320223448.2452869-1-olteanv@gmail.com>
@@ -87,33 +87,10 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Vladimir Oltean <vladimir.oltean@nxp.com>
 
-It may happen that we have the following topology:
-
-ip link add br0 type bridge stp_state 1
-ip link add bond0 type bond
-ip link set bond0 master br0
-ip link set swp0 master bond0
-ip link set swp1 master bond0
-
-STP decides that it should put bond0 into the BLOCKING state, and
-that's that. The ports that are actively listening for the switchdev
-port attributes emitted for the bond0 bridge port (because they are
-offloading it) and have the honor of seeing that switchdev port
-attribute can react to it, so we can program swp0 and swp1 into the
-BLOCKING state.
-
-But if then we do:
-
-ip link set swp2 master bond0
-
-then as far as the bridge is concerned, nothing has changed: it still
-has one bridge port. But this new bridge port will not see any STP state
-change notification and will remain FORWARDING, which is how the
-standalone code leaves it in.
-
-Add a function to the bridge which retrieves the current STP state, such
-that drivers can synchronize to it when they may have missed switchdev
-events.
+Make sure that the multicast router setting of the bridge is picked up
+correctly by DSA when joining, regardless of whether there are
+sandwiched interfaces or not. The SWITCHDEV_ATTR_ID_BRIDGE_MROUTER port
+attribute is only emitted from br_mc_router_state_change.
 
 Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
 Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
@@ -121,84 +98,37 @@ Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
 Changes in v3:
 None.
 
- include/linux/if_bridge.h |  6 ++++++
- net/bridge/br_stp.c       | 14 ++++++++++++++
- net/dsa/port.c            |  7 +++++++
- 3 files changed, 27 insertions(+)
+ net/dsa/port.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index b979005ea39c..920d3a02cc68 100644
---- a/include/linux/if_bridge.h
-+++ b/include/linux/if_bridge.h
-@@ -136,6 +136,7 @@ struct net_device *br_fdb_find_port(const struct net_device *br_dev,
- 				    __u16 vid);
- void br_fdb_clear_offload(const struct net_device *dev, u16 vid);
- bool br_port_flag_is_set(const struct net_device *dev, unsigned long flag);
-+u8 br_port_get_stp_state(const struct net_device *dev);
- #else
- static inline struct net_device *
- br_fdb_find_port(const struct net_device *br_dev,
-@@ -154,6 +155,11 @@ br_port_flag_is_set(const struct net_device *dev, unsigned long flag)
- {
- 	return false;
- }
-+
-+static inline u8 br_port_get_stp_state(const struct net_device *dev)
-+{
-+	return BR_STATE_DISABLED;
-+}
- #endif
- 
- #endif
-diff --git a/net/bridge/br_stp.c b/net/bridge/br_stp.c
-index 21c6781906aa..86b5e05d3f21 100644
---- a/net/bridge/br_stp.c
-+++ b/net/bridge/br_stp.c
-@@ -64,6 +64,20 @@ void br_set_state(struct net_bridge_port *p, unsigned int state)
- 	}
- }
- 
-+u8 br_port_get_stp_state(const struct net_device *dev)
-+{
-+	struct net_bridge_port *p;
-+
-+	ASSERT_RTNL();
-+
-+	p = br_port_get_rtnl(dev);
-+	if (!p)
-+		return BR_STATE_DISABLED;
-+
-+	return p->state;
-+}
-+EXPORT_SYMBOL_GPL(br_port_get_stp_state);
-+
- /* called under bridge lock */
- struct net_bridge_port *br_get_port(struct net_bridge *br, u16 port_no)
- {
 diff --git a/net/dsa/port.c b/net/dsa/port.c
-index 8dbc6e0db30c..2ecdc824ea66 100644
+index 3f938c253c99..124f8bb21204 100644
 --- a/net/dsa/port.c
 +++ b/net/dsa/port.c
-@@ -171,12 +171,19 @@ static void dsa_port_clear_brport_flags(struct dsa_port *dp,
- static int dsa_port_switchdev_sync(struct dsa_port *dp,
- 				   struct netlink_ext_ack *extack)
- {
-+	struct net_device *brport_dev = dsa_port_to_bridge_port(dp);
-+	u8 stp_state;
- 	int err;
- 
- 	err = dsa_port_inherit_brport_flags(dp, extack);
- 	if (err)
+@@ -189,6 +189,10 @@ static int dsa_port_switchdev_sync(struct dsa_port *dp,
+ 	if (err && err != -EOPNOTSUPP)
  		return err;
  
-+	stp_state = br_port_get_stp_state(brport_dev);
-+	err = dsa_port_set_state(dp, stp_state);
++	err = dsa_port_mrouter(dp->cpu_dp, br_multicast_router(br), extack);
 +	if (err && err != -EOPNOTSUPP)
 +		return err;
 +
  	return 0;
  }
  
+@@ -212,6 +216,12 @@ static void dsa_port_switchdev_unsync(struct dsa_port *dp)
+ 	dsa_port_set_state_now(dp, BR_STATE_FORWARDING);
+ 
+ 	/* VLAN filtering is handled by dsa_switch_bridge_leave */
++
++	/* Some drivers treat the notification for having a local multicast
++	 * router by allowing multicast to be flooded to the CPU, so we should
++	 * allow this in standalone mode too.
++	 */
++	dsa_port_mrouter(dp->cpu_dp, true, NULL);
+ }
+ 
+ int dsa_port_bridge_join(struct dsa_port *dp, struct net_device *br,
 -- 
 2.25.1
 
