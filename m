@@ -2,67 +2,65 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65B36C433C1
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 22:25:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1069C433E2
+	for <linux-omap@archiver.kernel.org>; Sat, 20 Mar 2021 11:13:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C9F16196E
-	for <linux-omap@archiver.kernel.org>; Fri, 19 Mar 2021 22:25:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73E29619A3
+	for <linux-omap@archiver.kernel.org>; Sat, 20 Mar 2021 11:13:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230203AbhCSWYp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 Mar 2021 18:24:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45244 "EHLO
+        id S230045AbhCTLMa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 20 Mar 2021 07:12:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230177AbhCSWYo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2021 18:24:44 -0400
-Received: from mail-pg1-x52f.google.com (mail-pg1-x52f.google.com [IPv6:2607:f8b0:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5713C061760;
-        Fri, 19 Mar 2021 15:24:44 -0700 (PDT)
-Received: by mail-pg1-x52f.google.com with SMTP id e33so4623369pgm.13;
-        Fri, 19 Mar 2021 15:24:44 -0700 (PDT)
+        with ESMTP id S229793AbhCTLMK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 20 Mar 2021 07:12:10 -0400
+Received: from mail-wr1-x435.google.com (mail-wr1-x435.google.com [IPv6:2a00:1450:4864:20::435])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D50ADC061794;
+        Sat, 20 Mar 2021 03:35:18 -0700 (PDT)
+Received: by mail-wr1-x435.google.com with SMTP id t4so1203269wrn.11;
+        Sat, 20 Mar 2021 03:35:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=D6Tu/wg6IZ1QbkLv7RywDYi5OUj38qXT4mDw8fzWwnM=;
-        b=WkHigZsTftvvuUzbADDdaTAm4NX6Dpl2C4M8rM1ZD3PVuK6LoNv83LdAAHho8VmrH1
-         09pnH8FGdeEMrqhs69y44qeSwcf+zxV84YM7/5aj7omqz3BGIaXiAr4Nq+DC64ln85/Y
-         Ul2f0V9ZdhOwj5+vjNUDZ6L8TwJUky/qNguypLw5jlkCFogMShYNKQVGlmIw6YQk3rZF
-         ENTmbwSDcaSX+ypKAxNWLLta2LDhvF6ogTcgUX1bfNzCNkvmMoleF/lV6ygB1AjNDzRs
-         yzbeuu5YRCIAegrbjk34v/ou3nY9QsL4e6ozgc8fI08sO/j4b4FXcqQ8MWQPdsRZAzC1
-         /1Fg==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=TP+FtNROxyLbaOckk0iExdure1j/Nq80b62IW/64ezM=;
+        b=LoUTcH+VzzCLcAWrK0vuR2PaKQ80+HhUCYIqhQ8q2McJfGeN4KqzBsa7Ng6Bn/gcUL
+         ObgZw+D2aKjUqvW5fduHCzFNaQx6loyz/rnKYFrAnTaKEgHC/VOv9IBSTqbN/nMJ6Gwo
+         XEdnbouS67rjLlJycgwUddlStZa5/IB9XztqPjGG78fIcsqwQ35gOORY6Xx3NmOhsfcg
+         418J0VNMyUb4hMTC3V/gUCTxquENWomJzKnalF5nBHz/jImDhhhq4V4I7dKRL8JmqNkz
+         nN9oKLaC6C82ZYATelcRiXC5f0VDoC6TAQGtbMHIzmzgsuL4G/CsXBBUBlbuiuCSzi/f
+         uxng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=D6Tu/wg6IZ1QbkLv7RywDYi5OUj38qXT4mDw8fzWwnM=;
-        b=A9BQeRlmvHcNjQoeJsCpq/YESiJsWz2e8rszlJ2NdJAlufVrnBZE1MOolzxrzt2P+u
-         u1Ky4maReaXpBrFaGxaJUB4+fQMiPFknYPwji5rXNymdjSwcipFIuIiedpy6/QlN5os2
-         FDShMz6C9x/aALXOqHcLkmIibYe3S5nfUPrHA/CKoNJWvY1tJqHDmsR9yyVQzITiW807
-         QzLteq31B7lzGZDPN+MCH4zXT0CSxemti2Iyg+6r50IdSNPMpgOP41QzE8b/OWUJhlMQ
-         HF76typucNbTuQhEhPzmsJte2ak2TjtoezocBalpPHvB680iAFAlrdBjo8lr1HplsmO0
-         lo6A==
-X-Gm-Message-State: AOAM53244xhnpNg2Owsmvxv7mwVoFf4IFqjypLN+/h+D4PrR+uL1UYSO
-        ce2sY9EbWn0kA6hx6D7IP5I=
-X-Google-Smtp-Source: ABdhPJwKqgb2pN/ayGfB+nlJBvSQo9qLRJYtiUARyxmSzuE9FrZzMBoN2CY/DhwZGrj0pRNko/DqcA==
-X-Received: by 2002:a62:fc10:0:b029:1ef:141f:609 with SMTP id e16-20020a62fc100000b02901ef141f0609mr10956501pfh.78.1616192683987;
-        Fri, 19 Mar 2021 15:24:43 -0700 (PDT)
-Received: from [10.230.29.202] ([192.19.223.252])
-        by smtp.gmail.com with ESMTPSA id y7sm6573050pfq.70.2021.03.19.15.24.41
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 19 Mar 2021 15:24:43 -0700 (PDT)
-Subject: Re: [RFC PATCH v2 net-next 10/16] net: dsa: replay VLANs installed on
- port when joining the bridge
-To:     Vladimir Oltean <olteanv@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Andrew Lunn <andrew@lunn.ch>,
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=TP+FtNROxyLbaOckk0iExdure1j/Nq80b62IW/64ezM=;
+        b=CrUQ3X6Y0irhtOWHGUPyd7X3dMbJfVFEo03NoFB9ZnVdnTov7DkssMB6zrNNx/BNzW
+         wsoOaJj2I9V+LMeIlnkz9P+lyoDV9yIOHTGPV+UhdUB47FJZ6/ZgppKn/au4HhIk2faE
+         iRri1K7/XVa/c3sehN7jm2t1QxgJOg8ahCMSPI7W58HCBUf4KfbltD5xpihXrcQKhRc7
+         t6TxUkG4gVDVn1c/bUg2jAnwutTkaKx75yCrPga/81DhHh1zo/sPT/9dtlWv8ztsN4x3
+         Wtk5IWnC0kiRFW4DX3pO54sk2gVq9nJ0WeOc4IqJjgYYppndKS4urkD2Rd3G3bb5Cnn2
+         KfFg==
+X-Gm-Message-State: AOAM5326l+ihCb/flFOQubx2kSxdVtSXhFL6IYhLz9yLOjJC+YP8BPGd
+        VCJ0694TLw4hqnFmvDlzNZU3g+PDrcE=
+X-Google-Smtp-Source: ABdhPJyWUNT8oSWbTTKG6xeLiRmZl0+fc9j5teyYJ/LFak8AwzwgsJoRcSLKFOolfm7NGHxJAX00xg==
+X-Received: by 2002:a17:906:ef2:: with SMTP id x18mr9172430eji.323.1616235001944;
+        Sat, 20 Mar 2021 03:10:01 -0700 (PDT)
+Received: from skbuf (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
+        by smtp.gmail.com with ESMTPSA id s6sm5081696ejx.83.2021.03.20.03.10.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 20 Mar 2021 03:10:01 -0700 (PDT)
+Date:   Sat, 20 Mar 2021 12:09:59 +0200
+From:   Vladimir Oltean <olteanv@gmail.com>
+To:     Florian Fainelli <f.fainelli@gmail.com>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Lunn <andrew@lunn.ch>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Tobias Waldekranz <tobias@waldekranz.com>,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -78,73 +76,43 @@ Cc:     Andrew Lunn <andrew@lunn.ch>,
         Ioana Ciornei <ioana.ciornei@nxp.com>,
         Ivan Vecera <ivecera@redhat.com>, linux-omap@vger.kernel.org,
         Vladimir Oltean <vladimir.oltean@nxp.com>
+Subject: Re: [RFC PATCH v2 net-next 07/16] net: dsa: sync ageing time when
+ joining the bridge
+Message-ID: <20210320100959.w6mwmcwf4mstxord@skbuf>
 References: <20210318231829.3892920-1-olteanv@gmail.com>
- <20210318231829.3892920-11-olteanv@gmail.com>
-From:   Florian Fainelli <f.fainelli@gmail.com>
-Message-ID: <8af0a24a-9599-93f2-0d69-d7d35a28286c@gmail.com>
-Date:   Fri, 19 Mar 2021 15:24:40 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Firefox/78.0 Thunderbird/78.8.1
+ <20210318231829.3892920-8-olteanv@gmail.com>
+ <7bc2c277-e75c-35e7-23d7-78616757177e@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20210318231829.3892920-11-olteanv@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7bc2c277-e75c-35e7-23d7-78616757177e@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On Fri, Mar 19, 2021 at 03:13:03PM -0700, Florian Fainelli wrote:
+> > diff --git a/net/bridge/br_stp.c b/net/bridge/br_stp.c
+> > index 86b5e05d3f21..3dafb6143cff 100644
+> > --- a/net/bridge/br_stp.c
+> > +++ b/net/bridge/br_stp.c
+> > @@ -639,6 +639,19 @@ int br_set_ageing_time(struct net_bridge *br, clock_t ageing_time)
+> >  	return 0;
+> >  }
+> >  
+> > +clock_t br_get_ageing_time(struct net_device *br_dev)
+> > +{
+> > +	struct net_bridge *br;
+> > +
+> > +	if (!netif_is_bridge_master(br_dev))
+> > +		return 0;
+> > +
+> > +	br = netdev_priv(br_dev);
+> > +
+> > +	return jiffies_to_clock_t(br->ageing_time);
+> 
+> Don't you want an ASSERT_RTNL() in this function as well?
 
-
-On 3/18/2021 4:18 PM, Vladimir Oltean wrote:
-> From: Vladimir Oltean <vladimir.oltean@nxp.com>
-> 
-> Currently this simple setup:
-> 
-> ip link add br0 type bridge vlan_filtering 1
-> ip link add bond0 type bond
-> ip link set bond0 master br0
-> ip link set swp0 master bond0
-> 
-> will not work because the bridge has created the PVID in br_add_if ->
-> nbp_vlan_init, and it has notified switchdev of the existence of VLAN 1,
-> but that was too early, since swp0 was not yet a lower of bond0, so it
-> had no reason to act upon that notification.
-> 
-> Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
-> ---
->  include/linux/if_bridge.h | 10 ++++++
->  net/bridge/br_vlan.c      | 71 +++++++++++++++++++++++++++++++++++++++
->  net/dsa/port.c            |  6 ++++
->  3 files changed, 87 insertions(+)
-> 
-> diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-> index 89596134e88f..ea176c508c0d 100644
-> --- a/include/linux/if_bridge.h
-> +++ b/include/linux/if_bridge.h
-> @@ -111,6 +111,8 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid);
->  int br_vlan_get_proto(const struct net_device *dev, u16 *p_proto);
->  int br_vlan_get_info(const struct net_device *dev, u16 vid,
->  		     struct bridge_vlan_info *p_vinfo);
-> +int br_vlan_replay(struct net_device *br_dev, struct net_device *dev,
-> +		   struct notifier_block *nb, struct netlink_ext_ack *extack);
->  #else
->  static inline bool br_vlan_enabled(const struct net_device *dev)
->  {
-> @@ -137,6 +139,14 @@ static inline int br_vlan_get_info(const struct net_device *dev, u16 vid,
->  {
->  	return -EINVAL;
->  }
-> +
-> +static inline int br_vlan_replay(struct net_device *br_dev,
-> +				 struct net_device *dev,
-> +				 struct notifier_block *nb,
-> +				 struct netlink_ext_ack *extack)
-> +{
-> +	return -EINVAL;
-
-Same comment as patch 8, CONFIG_BRIDGE_VLAN_FILTERING can be turned off
-even if this does not really make practical sense with a hardware
-switch. Should we return -EOPNOTSUPP instead?
--- 
-Florian
+Hmm, I'm not sure. I don't think I'm accessing anything that is under
+the protection of the rtnl_mutex. If anything, the ageing time is
+protected by the "bridge lock", but I don't think there's much of an
+issue if I read an unsigned int while not holding it.
