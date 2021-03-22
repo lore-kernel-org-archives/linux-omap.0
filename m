@@ -8,54 +8,54 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85832C433E2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F556C433E1
 	for <linux-omap@archiver.kernel.org>; Mon, 22 Mar 2021 23:52:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58750619A4
+	by mail.kernel.org (Postfix) with ESMTP id 3DCD3619AE
 	for <linux-omap@archiver.kernel.org>; Mon, 22 Mar 2021 23:52:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230455AbhCVXwQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 22 Mar 2021 19:52:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57614 "EHLO
+        id S230465AbhCVXwR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 22 Mar 2021 19:52:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230295AbhCVXwF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2021 19:52:05 -0400
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE077C061574;
-        Mon, 22 Mar 2021 16:52:04 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id jy13so24098737ejc.2;
-        Mon, 22 Mar 2021 16:52:04 -0700 (PDT)
+        with ESMTP id S230267AbhCVXwI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2021 19:52:08 -0400
+Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C82DC061574;
+        Mon, 22 Mar 2021 16:52:07 -0700 (PDT)
+Received: by mail-ej1-x62d.google.com with SMTP id hq27so24111759ejc.9;
+        Mon, 22 Mar 2021 16:52:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=M9VtCMHjMqidFWejIfAw/dLhfjAfoFArbamAgjqVgRk=;
-        b=m3UolH3ty2cUCEdnj1dEmGcRrOwe/EqNyV8MzCbuacAJ20aUSCVJFqOd3FRkM2wYed
-         weGqi4atZ7ZemcwKoFSBpUdAu1p17VsW4w7KIvlzENsZNOdmMuJlrw3rtF490vbk4HBL
-         mojg4z98weoMRSnL9VfxSUdReyeIR1YETtPUPV9YkmqhhbGGqRyVbFdzy+0nsjVZ7NQc
-         zAPZkxD2Hl1sRdbsptHqNUKLKuK4QN7sXcNeJze4DTLrRK0mumNt5yEheA/4bIDmdMau
-         bSUBVopxW1wBwMWCRB05Cr6oT0pyr9uecKsKUjeK2CorgvHb+lDDr/89QoX7aEs61T2x
-         rXvw==
+        bh=PqzMdjhV83LXsXb2kivK1TtVxn6ToXVfM5lC7LerSCY=;
+        b=V36fTkVTj174Ff6kbcd4RUHIGnsQ2X68qQgURWhEBIEJhIo8aTBgyYG9tH7NnV8/Hr
+         3AeWQf4OWxqURjcx4j0zKlKNs7aWrGEfio5ikbWk/uYUbXNBxfGY3KR/LYRtpGGq2bEL
+         YAj79ITkwnUuAqfFL1d7PcCrSXzyZpth87K7HLwOwW4qBCWDyggfuE7KwvQ2scgFomUU
+         zFZLsdeW4XTzQEtuKf2kdY+ENWVSmqby5Gq6fA3YYDwLu+h9js3xjIqwqwlsriWoTYp3
+         27b8M4Onsy862soxmV6nIBLNJ/RbAoCa6yzrm2bFoRFCKU9RD0yAvDTn6PwMBjRf8BZ1
+         nnQA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=M9VtCMHjMqidFWejIfAw/dLhfjAfoFArbamAgjqVgRk=;
-        b=mAYtlNT87R6zp6GbZJ/usS/X+uDPIlw+3uOCPjzy9hP7CP3+cyTuxWb88XimyYk6Uv
-         BdEUchmpunSEAn4wjrRP3i4ucV9b5WrarKVa8vZEuylIVXy10tsNnFLgxy1Oy2gWZLMA
-         RcPpOwRTHwvDmX6z/s/SoyfspVMO7gXgDxA+K8NzdnwBKL6FbUfZiFyNyxJN6LHctzE7
-         GwuK2CMFuffxSpo/y4L2xlo89rS7cFM/RnKYEjFVf6LPMk/jXGf2uyfF+RkcnvPhST0N
-         72xjmDVAgJkEDJnYslEobUWmOyo8tSoftQ4NhYb1Y1UhGh/S/as+EKUBsc2y7rpuPfaJ
-         CFcQ==
-X-Gm-Message-State: AOAM53198jpMhBCGACXbRBLNbyFwMmFy7pjAKFw4Ep6/WMoK+OB4L9X2
-        IawDqQER0OxkghyBX47CZvo=
-X-Google-Smtp-Source: ABdhPJzP7L0v60H16t3CsrXuPrni7YlMX3LqeuPibQaDWYuBwG14+H1uBhPAdImeVpubykwEBzznpg==
-X-Received: by 2002:a17:906:489:: with SMTP id f9mr2106844eja.428.1616457123736;
-        Mon, 22 Mar 2021 16:52:03 -0700 (PDT)
+        bh=PqzMdjhV83LXsXb2kivK1TtVxn6ToXVfM5lC7LerSCY=;
+        b=KBtAkYcsNl3WbNcw4zIwNbAO3G0hAv7j9O5fxptRtDSF9VAFMKT95fNriZQ22NmJFe
+         UCOGgZl7VdxPAQFmNOp2VmNl1Baq4HftYW/vluGy5qRRbDDzaS3nZdssrN3aAW2APkL2
+         Z9Pq0pzJ0yU6RjY3dB/rv7MAVH9hnskXRYbkzqVTANb8Vz3r+Z/TxK9kJYegbXqyKKVp
+         c3LxodhViQdq0escGxqjrcN+BvR5ffNA97qzthbSbCkSZ7YlK4iKlNoj0eKQSgh85Ryz
+         1BakKDZcMrbbQXE+WLoAMkpOOJsYIt5D7Ka3cah0OX9wT10Rty3Rbo9b3eQwbRbzMa84
+         ObiQ==
+X-Gm-Message-State: AOAM530m/duoYafm7G7z83PpRpwIvw44fayFPCn/0ZzMVKjggejkyIDd
+        es2V7vDEIHDSpGiLPHsvOh41RCCpn0Q=
+X-Google-Smtp-Source: ABdhPJz7Dys6eSoQpDlOu4Yb2/lmja+Qf5fwPq6I/O2bYqdJ0ipLa4hBcw2catE+XOqHs/Gt0uvROA==
+X-Received: by 2002:a17:906:1453:: with SMTP id q19mr2220820ejc.76.1616457126334;
+        Mon, 22 Mar 2021 16:52:06 -0700 (PDT)
 Received: from localhost.localdomain (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
-        by smtp.gmail.com with ESMTPSA id q16sm12436933edv.61.2021.03.22.16.52.02
+        by smtp.gmail.com with ESMTPSA id q16sm12436933edv.61.2021.03.22.16.52.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Mar 2021 16:52:03 -0700 (PDT)
+        Mon, 22 Mar 2021 16:52:06 -0700 (PDT)
 From:   Vladimir Oltean <olteanv@gmail.com>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
@@ -73,9 +73,9 @@ Cc:     Andrew Lunn <andrew@lunn.ch>,
         UNGLinuxDriver@microchip.com, Ivan Vecera <ivecera@redhat.com>,
         linux-omap@vger.kernel.org,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH v4 net-next 02/11] net: bridge: add helper to retrieve the current ageing time
-Date:   Tue, 23 Mar 2021 01:51:43 +0200
-Message-Id: <20210322235152.268695-3-olteanv@gmail.com>
+Subject: [PATCH v4 net-next 04/11] net: bridge: add helper to replay port and local fdb entries
+Date:   Tue, 23 Mar 2021 01:51:45 +0200
+Message-Id: <20210322235152.268695-5-olteanv@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210322235152.268695-1-olteanv@gmail.com>
 References: <20210322235152.268695-1-olteanv@gmail.com>
@@ -87,78 +87,129 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Vladimir Oltean <vladimir.oltean@nxp.com>
 
-The SWITCHDEV_ATTR_ID_BRIDGE_AGEING_TIME attribute is only emitted from:
+When a switchdev port starts offloading a LAG that is already in a
+bridge and has an FDB entry pointing to it:
 
-sysfs/ioctl/netlink
--> br_set_ageing_time
-   -> __set_ageing_time
+ip link set bond0 master br0
+bridge fdb add dev bond0 00:01:02:03:04:05 master static
+ip link set swp0 master bond0
 
-therefore not at bridge port creation time, so:
-(a) switchdev drivers have to hardcode the initial value for the address
-    ageing time, because they didn't get any notification
-(b) that hardcoded value can be out of sync, if the user changes the
-    ageing time before enslaving the port to the bridge
+the switchdev driver will have no idea that this FDB entry is there,
+because it missed the switchdev event emitted at its creation.
 
-We need a helper in the bridge, such that switchdev drivers can query
-the current value of the bridge ageing time when they start offloading
-it.
+Ido Schimmel pointed this out during a discussion about challenges with
+switchdev offloading of stacked interfaces between the physical port and
+the bridge, and recommended to just catch that condition and deny the
+CHANGEUPPER event:
+https://lore.kernel.org/netdev/20210210105949.GB287766@shredder.lan/
 
+But in fact, we might need to deal with the hard thing anyway, which is
+to replay all FDB addresses relevant to this port, because it isn't just
+static FDB entries, but also local addresses (ones that are not
+forwarded but terminated by the bridge). There, we can't just say 'oh
+yeah, there was an upper already so I'm not joining that'.
+
+So, similar to the logic for replaying MDB entries, add a function that
+must be called by individual switchdev drivers and replays local FDB
+entries as well as ones pointing towards a bridge port. This time, we
+use the atomic switchdev notifier block, since that's what FDB entries
+expect for some reason.
+
+Reported-by: Ido Schimmel <idosch@idosch.org>
 Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
-Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
-Reviewed-by: Tobias Waldekranz <tobias@waldekranz.com>
 ---
- include/linux/if_bridge.h |  6 ++++++
- net/bridge/br_stp.c       | 13 +++++++++++++
- 2 files changed, 19 insertions(+)
+ include/linux/if_bridge.h |  9 +++++++
+ net/bridge/br_fdb.c       | 50 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
 
 diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index 920d3a02cc68..ebd16495459c 100644
+index f6472969bb44..b564c4486a45 100644
 --- a/include/linux/if_bridge.h
 +++ b/include/linux/if_bridge.h
-@@ -137,6 +137,7 @@ struct net_device *br_fdb_find_port(const struct net_device *br_dev,
- void br_fdb_clear_offload(const struct net_device *dev, u16 vid);
+@@ -147,6 +147,8 @@ void br_fdb_clear_offload(const struct net_device *dev, u16 vid);
  bool br_port_flag_is_set(const struct net_device *dev, unsigned long flag);
  u8 br_port_get_stp_state(const struct net_device *dev);
-+clock_t br_get_ageing_time(struct net_device *br_dev);
+ clock_t br_get_ageing_time(struct net_device *br_dev);
++int br_fdb_replay(struct net_device *br_dev, struct net_device *dev,
++		  struct notifier_block *nb);
  #else
  static inline struct net_device *
  br_fdb_find_port(const struct net_device *br_dev,
-@@ -160,6 +161,11 @@ static inline u8 br_port_get_stp_state(const struct net_device *dev)
+@@ -175,6 +177,13 @@ static inline clock_t br_get_ageing_time(struct net_device *br_dev)
  {
- 	return BR_STATE_DISABLED;
+ 	return 0;
  }
 +
-+static inline clock_t br_get_ageing_time(struct net_device *br_dev)
++static inline int br_fdb_replay(struct net_device *br_dev,
++				struct net_device *dev,
++				struct notifier_block *nb)
 +{
-+	return 0;
++	return -EOPNOTSUPP;
 +}
  #endif
  
  #endif
-diff --git a/net/bridge/br_stp.c b/net/bridge/br_stp.c
-index 86b5e05d3f21..3dafb6143cff 100644
---- a/net/bridge/br_stp.c
-+++ b/net/bridge/br_stp.c
-@@ -639,6 +639,19 @@ int br_set_ageing_time(struct net_bridge *br, clock_t ageing_time)
- 	return 0;
+diff --git a/net/bridge/br_fdb.c b/net/bridge/br_fdb.c
+index b7490237f3fc..698b79747d32 100644
+--- a/net/bridge/br_fdb.c
++++ b/net/bridge/br_fdb.c
+@@ -726,6 +726,56 @@ static inline size_t fdb_nlmsg_size(void)
+ 		+ nla_total_size(sizeof(u8)); /* NFEA_ACTIVITY_NOTIFY */
  }
  
-+clock_t br_get_ageing_time(struct net_device *br_dev)
++static int br_fdb_replay_one(struct notifier_block *nb,
++			     struct net_bridge_fdb_entry *fdb,
++			     struct net_device *dev)
 +{
-+	struct net_bridge *br;
++	struct switchdev_notifier_fdb_info item;
++	int err;
 +
-+	if (!netif_is_bridge_master(br_dev))
-+		return 0;
++	item.addr = fdb->key.addr.addr;
++	item.vid = fdb->key.vlan_id;
++	item.added_by_user = test_bit(BR_FDB_ADDED_BY_USER, &fdb->flags);
++	item.offloaded = test_bit(BR_FDB_OFFLOADED, &fdb->flags);
++	item.info.dev = dev;
++
++	err = nb->notifier_call(nb, SWITCHDEV_FDB_ADD_TO_DEVICE, &item);
++	return notifier_to_errno(err);
++}
++
++int br_fdb_replay(struct net_device *br_dev, struct net_device *dev,
++		  struct notifier_block *nb)
++{
++	struct net_bridge_fdb_entry *fdb;
++	struct net_bridge *br;
++	int err = 0;
++
++	if (!netif_is_bridge_master(br_dev) || !netif_is_bridge_port(dev))
++		return -EINVAL;
 +
 +	br = netdev_priv(br_dev);
 +
-+	return jiffies_to_clock_t(br->ageing_time);
-+}
-+EXPORT_SYMBOL_GPL(br_get_ageing_time);
++	rcu_read_lock();
 +
- /* called under bridge lock */
- void __br_set_topology_change(struct net_bridge *br, unsigned char val)
- {
++	hlist_for_each_entry_rcu(fdb, &br->fdb_list, fdb_node) {
++		struct net_bridge_port *dst = READ_ONCE(fdb->dst);
++		struct net_device *dst_dev;
++
++		dst_dev = dst ? dst->dev : br->dev;
++		if (dst_dev != br_dev && dst_dev != dev)
++			continue;
++
++		err = br_fdb_replay_one(nb, fdb, dst_dev);
++		if (err)
++			break;
++	}
++
++	rcu_read_unlock();
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(br_fdb_replay);
++
+ static void fdb_notify(struct net_bridge *br,
+ 		       const struct net_bridge_fdb_entry *fdb, int type,
+ 		       bool swdev_notify)
 -- 
 2.25.1
 
