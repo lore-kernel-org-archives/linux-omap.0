@@ -2,109 +2,115 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67B4BC433E6
-	for <linux-omap@archiver.kernel.org>; Tue, 23 Mar 2021 22:39:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF23C433E0
+	for <linux-omap@archiver.kernel.org>; Tue, 23 Mar 2021 23:21:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C665619DD
-	for <linux-omap@archiver.kernel.org>; Tue, 23 Mar 2021 22:39:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C4DC619F1
+	for <linux-omap@archiver.kernel.org>; Tue, 23 Mar 2021 23:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234007AbhCWWj2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 23 Mar 2021 18:39:28 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:44578 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233738AbhCWWi4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2021 18:38:56 -0400
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 12NMce1b129789;
-        Tue, 23 Mar 2021 17:38:40 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1616539120;
-        bh=TvscpToZMQACxUA/dOzxJjIy1byQa47pq+p1H55TNi8=;
-        h=From:To:CC:Subject:Date;
-        b=Wc8eJbE1OLP2lGt/6l+ILJAaz44jaqQfI9kBhbGAgPBVIjbOJ/DWLu3ABUGxLZk4D
-         EC7WIO7WfY1eC/j7DOx+xsw61lR15QrBSTN3zYxYVhqfB0T3wv3ufAlDTKp1PC4GAI
-         7DGHdeIVwZTTg2dSUG8w71UEYjOEk1On/0KD+qf8=
-Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 12NMceEU034124
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 23 Mar 2021 17:38:40 -0500
-Received: from DFLE113.ent.ti.com (10.64.6.34) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Tue, 23
- Mar 2021 17:38:40 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
- Frontend Transport; Tue, 23 Mar 2021 17:38:40 -0500
-Received: from lelv0597.itg.ti.com (lelv0597.itg.ti.com [10.181.64.32])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 12NMcewV058842;
-        Tue, 23 Mar 2021 17:38:40 -0500
-Received: from localhost ([10.250.221.195])
-        by lelv0597.itg.ti.com (8.14.7/8.14.7) with ESMTP id 12NMcdSS102209;
-        Tue, 23 Mar 2021 17:38:39 -0500
-From:   Suman Anna <s-anna@ti.com>
-To:     Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>
-CC:     Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
+        id S234216AbhCWXUs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 23 Mar 2021 19:20:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51262 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229670AbhCWXUT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2021 19:20:19 -0400
+Received: from mail-pf1-x434.google.com (mail-pf1-x434.google.com [IPv6:2607:f8b0:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25FAFC061763
+        for <linux-omap@vger.kernel.org>; Tue, 23 Mar 2021 16:20:18 -0700 (PDT)
+Received: by mail-pf1-x434.google.com with SMTP id l3so15941791pfc.7
+        for <linux-omap@vger.kernel.org>; Tue, 23 Mar 2021 16:20:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=2mPqZ8T3s6ATLiDuP1AsIgNdhiWZsvEH4M6lDW4cfTI=;
+        b=FkYfaAkO0Z6/s4JItNqmcW1gokGmTqNJc9DB36xytboCFozRTY5w7JdrA4JFNrrqUc
+         PScrQdfFxWrPte+4sTO//YvN7fQwHcV4zIOKvLkNX+zkTewbGEUrY0GEDOiEQUF4vYuU
+         aFAGddHODC9RZFrFAz47xwrt5Rc5jXEikRcLR5EzlVCiEtalcSZHIkFUV2dR22EvrkrX
+         0xQkfBA3CaMmqYlEvQNU41R3KeX7PtTHWJztwsyq20bzwZz7nyLoXhDTLGfFphS2wpwu
+         5p3iYee6HWfEVuxS+9Mfdy0BB3mLXec96LfugcFuNmiAtUKDyBgTj9/PwhGHdbLPB8XF
+         4C/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=2mPqZ8T3s6ATLiDuP1AsIgNdhiWZsvEH4M6lDW4cfTI=;
+        b=VHJUtcCIAiRRi8f70AAn6adQMZn+FpU7A3MItI0+TrkrJvGYvacG8ixwVx9cTUB7a5
+         C3xtgi7NXDl0W34rxgTZv9gHgcGITZhsyPR8BNBZQp98kWAk+IuE/CrV/emDn9Que11X
+         2rKhZotxk28cQqQvGTVX4wNsy7Q9B6gtWsg+pw4UBuwT7a8OJCw5KCPU+VXAYW+4unE4
+         XL/IDJpMUNzRYQixklv9ENclZj6o9TMOecO1PFc4K11zM8ZWDVO/+PS6hkYjkgbknauy
+         mhEApgFTSuteY+1xF3qsNgIsv2nK402CLhVBdxZYcKn2gjbHxmJLdH+j8HU0j/j3NgEy
+         z0yQ==
+X-Gm-Message-State: AOAM530Ui+zt3q/TWP2Lg1sScAZrZs6HIrPrfv6zIunbjTQz0nbDG4s8
+        uQArL+PVwOnTBbrwViPtYAG0XQ==
+X-Google-Smtp-Source: ABdhPJxNQ1MKjV1GEOTfkga2yU4EzySf+ImHzG//t/vH8JyfFvC/Ow4Oj+kKSp7Y3MjTm9kaPF1qEw==
+X-Received: by 2002:a17:902:8e89:b029:e6:ef44:6a54 with SMTP id bg9-20020a1709028e89b02900e6ef446a54mr756979plb.7.1616541617252;
+        Tue, 23 Mar 2021 16:20:17 -0700 (PDT)
+Received: from xps15 (S0106889e681aac74.cg.shawcable.net. [68.147.0.187])
+        by smtp.gmail.com with ESMTPSA id 22sm230405pjl.31.2021.03.23.16.20.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 23 Mar 2021 16:20:16 -0700 (PDT)
+Date:   Tue, 23 Mar 2021 17:20:14 -0600
+From:   Mathieu Poirier <mathieu.poirier@linaro.org>
+To:     Suman Anna <s-anna@ti.com>
+Cc:     Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
         Jan Kiszka <jan.kiszka@siemens.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
         Lokesh Vutla <lokeshvutla@ti.com>,
-        <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH 0/3] PRU firmware event/interrupt mapping fixes
-Date:   Tue, 23 Mar 2021 17:38:36 -0500
-Message-ID: <20210323223839.17464-1-s-anna@ti.com>
-X-Mailer: git-send-email 2.30.1
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] remoteproc: pru: Fix firmware loading crashes on K3 SoCs
+Message-ID: <20210323232014.GA1782475@xps15>
+References: <20210315205859.19590-1-s-anna@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210315205859.19590-1-s-anna@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Mar 15, 2021 at 03:58:59PM -0500, Suman Anna wrote:
+> The K3 PRUs are 32-bit processors and in general have some limitations
+> in using the standard ARMv8 memcpy function for loading firmware segments,
+> so the driver already uses a custom memcpy implementation. This added
+> logic however is limited to only IRAMs at the moment, but the loading
+> into Data RAMs is not completely ok either and does generate a kernel
+> crash for unaligned accesses.
+> 
+> Fix these crashes by removing the existing IRAM logic limitation and
+> extending the custom memcpy usage to Data RAMs as well for all K3 SoCs.
+> 
+> Fixes: 1d39f4d19921 ("remoteproc: pru: Add support for various PRU cores on K3 AM65x SoCs")
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-The following series includes fixes for various different issues
-associated with the PRU firmware event/interrupt mapping configuration
-logic added in the same commit c75c9fdac66e ("remoteproc: pru: Add
-support for PRU specific interrupt configuration"). The fixes are
-agnostic of SoC family.
+Probably a good idea to CC stable as well...
 
-Following is the summary of issues and fixes:
- - Patch #1 fixes the interrupt node finding logic to always use the
-   inherent sibling relationship between a PRU/RTU/Tx_PRU node and its
-   corresponding PRUSS INTC node. This fixes the firmware event mappings
-   for cases when the PRU nodes do not have an 'interrupt-parent' property
-   (this is the norm, the property is neither required nor added in the DT
-   nodes normally).
- - Patch #2 fixes a minor issue with returning a success value to the
-   caller on a fw event mapping failure.
- - Patch #3 fixes a kernel crash due to switching of firmwares between
-   consecutive runs, the first one with events and the second one without
-   events. There are no issues when the same firmwares are run or if they
-   are run in reverse order.
+Reviewed-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 
-Patches should apply cleanly on top of the current rproc-fixes branch
-commit 9afeefcf06fc ("remoteproc: pru: Fix firmware loading crashes on K3 SoCs")
-
-regards
-Suman
-
-Suman Anna (3):
-  remoteproc: pru: Fixup interrupt-parent logic for fw events
-  remoteproc: pru: Fix wrong success return value for fw events
-  remoteproc: pru: Fix and cleanup firmware interrupt mapping logic
-
- drivers/remoteproc/pru_rproc.c | 33 +++++++++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 8 deletions(-)
-
--- 
-2.30.1
-
+> ---
+>  drivers/remoteproc/pru_rproc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+> index 2667919d76b3..16979c1cd2f4 100644
+> --- a/drivers/remoteproc/pru_rproc.c
+> +++ b/drivers/remoteproc/pru_rproc.c
+> @@ -585,7 +585,7 @@ pru_rproc_load_elf_segments(struct rproc *rproc, const struct firmware *fw)
+>  			break;
+>  		}
+>  
+> -		if (pru->data->is_k3 && is_iram) {
+> +		if (pru->data->is_k3) {
+>  			ret = pru_rproc_memcpy(ptr, elf_data + phdr->p_offset,
+>  					       filesz);
+>  			if (ret) {
+> -- 
+> 2.30.1
+> 
