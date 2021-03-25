@@ -2,86 +2,109 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1AFC433C1
-	for <linux-omap@archiver.kernel.org>; Thu, 25 Mar 2021 08:08:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F039FC433C1
+	for <linux-omap@archiver.kernel.org>; Thu, 25 Mar 2021 09:10:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6225B61963
-	for <linux-omap@archiver.kernel.org>; Thu, 25 Mar 2021 08:08:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD04161A1E
+	for <linux-omap@archiver.kernel.org>; Thu, 25 Mar 2021 09:10:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230008AbhCYIHe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 25 Mar 2021 04:07:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52662 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229979AbhCYIHQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2021 04:07:16 -0400
-Received: from mail-lj1-x231.google.com (mail-lj1-x231.google.com [IPv6:2a00:1450:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B94FEC06174A
-        for <linux-omap@vger.kernel.org>; Thu, 25 Mar 2021 01:07:15 -0700 (PDT)
-Received: by mail-lj1-x231.google.com with SMTP id 15so2048914ljj.0
-        for <linux-omap@vger.kernel.org>; Thu, 25 Mar 2021 01:07:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=0wB5lQya3fiuyoxrh9PPyJyATOmdemC/qwgZIh3MLq4=;
-        b=aM6TFeKy/Sr4tGz1N1EnSXdfLU3vaY2kFJX6BdJBgbN8xVtCGXpCEg9Z45lrOPNDGK
-         DURl7B5z2+X1tLD7URoxhT3zym1TUIu3Rbenz0WDKPOBKjrQ5ayWbVYIg2fEWptAdn5N
-         fvIOtx72uXurYiOV39DZbqWVzh3c7FaXh3q1WnDlyPBbNFRVA9i35GNIX9MZJOg4kwfv
-         UK017DDdxjchn8spNPBYnfKmRpNh1wJqpCVMiE32xJE72FgUXXcTKTjSGV7VROCKwnvr
-         xhNWS1SxFiwkDbplB1uJeM1x2b4R1+q6eZLAjNHK84mWQjb96MTxlqKWwrT/j0l+oYtK
-         uzvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=0wB5lQya3fiuyoxrh9PPyJyATOmdemC/qwgZIh3MLq4=;
-        b=CVXlDocj9a3vUeJvNt5BUnr77JBXSphp7s3Yi9n9nRvT0jA1Nby7sCrLSojBktOEun
-         crzXyrCN1eoYls1rBsfcxmMLGGA9DPbnrlxVoypahawL99VgbLmWdpbj3cxdNgkkz/wA
-         xzIEvj2atkhNat6ewPoSqhPUo/ML+0XvkQYC5lg6HA1ol9PtOrBkgdVVRORAxceEIjy+
-         /oPKfr4g5u5IITHUxszJItzYlW3qQ/TQLsaW9CZUtKj9XfoQp8/qwr3Z7/FbRC1XRoBF
-         U4Pb9cq5QR22jlmFQVLbPuO2or4il/zW+J1SiUZIzCHa2olF5OROM73m4X/Biv4PI/Cc
-         ppTA==
-X-Gm-Message-State: AOAM533YYzwLle4bMkyqFiYSVeEoBN0kdnP4mXJDdpZuHsbFfYD1wyMw
-        FAKCYDGBwr82eB63yUfptJeOJzem8iuYbxn6Ugg2+A==
-X-Google-Smtp-Source: ABdhPJyEjmj0S3oXWHBTy1EHddL0x3XbQxu8mxutybTuakd3pMAfgd9Z1tNfs50pgymJMyN0PvQ3nb3gnIjf7aoNSkE=
-X-Received: by 2002:a2e:1649:: with SMTP id 9mr5011080ljw.74.1616659634275;
- Thu, 25 Mar 2021 01:07:14 -0700 (PDT)
+        id S229833AbhCYJKO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 25 Mar 2021 05:10:14 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:51564 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229614AbhCYJKF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2021 05:10:05 -0400
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 12P99lea038638;
+        Thu, 25 Mar 2021 04:09:47 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1616663387;
+        bh=AeY8bwpsTEdVriFD7mSsybeuz4u/oaVgUpLB4yQ524w=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=mQm2QofS/bxHOXVPUhWQFlvQr24M87g5UfV2rgT36ABrGk1NUlqRdz5hlaza/m2/c
+         oyPmho2Sm1hlI/TptEBx/m9CqhLYlFuVQNQBJrXf9wnNs28qh6vi+rCmxipkMjggeO
+         YbMrS9JbPAIAGA+XYqBaBP+29KMeLHy9jHzWdWd8=
+Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 12P99lOq032201
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 25 Mar 2021 04:09:47 -0500
+Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Thu, 25
+ Mar 2021 04:09:47 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
+ Frontend Transport; Thu, 25 Mar 2021 04:09:47 -0500
+Received: from a0393678-ssd.dhcp.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 12P99b9w078373;
+        Thu, 25 Mar 2021 04:09:43 -0500
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+To:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Marc Zyngier <maz@kernel.org>
+CC:     Tom Joseph <tjoseph@cadence.com>, <linux-omap@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH 1/4] dt-bindings: PCI: ti,j721e: Add bindings to specify legacy interrupts
+Date:   Thu, 25 Mar 2021 14:39:33 +0530
+Message-ID: <20210325090936.9306-2-kishon@ti.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20210325090936.9306-1-kishon@ti.com>
+References: <20210325090936.9306-1-kishon@ti.com>
 MIME-Version: 1.0
-References: <20210319152133.28705-1-hhhawa@amazon.com>
-In-Reply-To: <20210319152133.28705-1-hhhawa@amazon.com>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 25 Mar 2021 09:07:03 +0100
-Message-ID: <CACRpkdbMiW=P49kyxvy1PqgpZ8BAGaZ8wyrWSdTJmu+oD4dV=Q@mail.gmail.com>
-Subject: Re: [PATCH v4 0/3] Fix pinctrl-single pcs_pin_dbg_show()
-To:     Hanna Hawa <hhhawa@amazon.com>
-Cc:     Andy Shevchenko <andy.shevchenko@gmail.com>,
-        ext Tony Lindgren <tony@atomide.com>,
-        Haojian Zhuang <haojian.zhuang@linaro.org>, dwmw@amazon.co.uk,
-        Benjamin Herrenschmidt <benh@amazon.com>, ronenk@amazon.com,
-        Talel Shenhar <talel@amazon.com>,
-        Jonathan Chocron <jonnyc@amazon.com>, hanochu@amazon.com,
-        tgershi@amazon.com,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Mar 19, 2021 at 4:22 PM Hanna Hawa <hhhawa@amazon.com> wrote:
+Add bindings to specify interrupt controller for legacy interrupts.
 
-> These patches fix the pcs_pin_dbg_show() function for the scenario where
-> a single register controls multiple pins (i.e. bits_per_mux is not zero)
-> Additionally, the common formula is moved to a separate function to
-> allow reuse.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ .../devicetree/bindings/pci/ti,j721e-pci-host.yaml  | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-This v4 patch set applied!
+diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+index 05aeb1aa362a..3e70a8049eea 100644
+--- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
++++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+@@ -73,6 +73,11 @@ properties:
+ 
+   msi-map: true
+ 
++patternProperties:
++  "interrupt-controller":
++    type: object
++    description: interrupt controller to handle legacy interrupts.
++
+ required:
+   - compatible
+   - reg
+@@ -130,5 +135,13 @@ examples:
+             ranges = <0x01000000 0x0 0x10001000  0x00 0x10001000  0x0 0x0010000>,
+                      <0x02000000 0x0 0x10011000  0x00 0x10011000  0x0 0x7fef000>;
+             dma-ranges = <0x02000000 0x0 0x0 0x0 0x0 0x10000 0x0>;
++
++
++            pcie0_intc: interrupt-controller {
++                    interrupt-controller;
++                    #interrupt-cells = <1>;
++                    interrupt-parent = <&gic500>;
++                    interrupts = <GIC_SPI 312 IRQ_TYPE_EDGE_RISING>;
++            };
+         };
+     };
+-- 
+2.17.1
 
-Yours,
-Linus Walleij
