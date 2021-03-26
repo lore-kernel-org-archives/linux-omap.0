@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E3D5C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A79F0C433E4
 	for <linux-omap@archiver.kernel.org>; Fri, 26 Mar 2021 22:01:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6915F61A2A
+	by mail.kernel.org (Postfix) with ESMTP id 98B8D61A36
 	for <linux-omap@archiver.kernel.org>; Fri, 26 Mar 2021 22:01:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230449AbhCZWAh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S230436AbhCZWAh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Fri, 26 Mar 2021 18:00:37 -0400
 Received: from mga04.intel.com ([192.55.52.120]:61331 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230416AbhCZWAT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 26 Mar 2021 18:00:19 -0400
-IronPort-SDR: NIURe4pAK8sVOlm6nK+bg7e2KehHkYVENbnSXyGgOFC022Ne8zyCvBtnI7Gk8YlRK1+U6hl/xS
- nYC0f3YLQWhw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9935"; a="188957164"
+        id S230076AbhCZWAS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 26 Mar 2021 18:00:18 -0400
+IronPort-SDR: tgDjlUKxqiWb+UA/Za2tn9Xm31NjnKHx0ZO+i5qvKogGzoSAleCrp0WCibgZFT/kmB3clMjtK1
+ vCLqPx+rNH2Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9935"; a="188957161"
 X-IronPort-AV: E=Sophos;i="5.81,281,1610438400"; 
-   d="scan'208";a="188957164"
+   d="scan'208";a="188957161"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2021 15:00:18 -0700
-IronPort-SDR: ASrSkSy8ZzswgpddkfExnkweIrF0cmWYNKVfEIkWOgDZgL5x4QQMuVTx979VYSanpiBWsvpsoE
- oMy7OKeqDUbw==
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2021 15:00:17 -0700
+IronPort-SDR: L69N9VpMxxYFEMXkpmZM/AoW24ukbCE7ajCVSK54wsNGlrbfNhw4hIsTWntdYiyBR1RF8VVD1d
+ SfVNsZVn7PwQ==
 X-IronPort-AV: E=Sophos;i="5.81,281,1610438400"; 
-   d="scan'208";a="416706935"
+   d="scan'208";a="416706915"
 Received: from zcmahone-mobl1.amr.corp.intel.com (HELO pbossart-mobl3.intel.com) ([10.255.231.203])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2021 15:00:17 -0700
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2021 15:00:16 -0700
 From:   Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 To:     alsa-devel@alsa-project.org
 Cc:     tiwai@suse.de, broonie@kernel.org, linux-kernel@vger.kernel.org,
@@ -42,9 +42,9 @@ Cc:     tiwai@suse.de, broonie@kernel.org, linux-kernel@vger.kernel.org,
         Jaroslav Kysela <perex@perex.cz>,
         Takashi Iwai <tiwai@suse.com>,
         linux-omap@vger.kernel.org (open list:OMAP AUDIO SUPPORT)
-Subject: [PATCH 15/17] ASoC: ti: omap-mcsp: remove duplicate test
-Date:   Fri, 26 Mar 2021 16:59:25 -0500
-Message-Id: <20210326215927.936377-16-pierre-louis.bossart@linux.intel.com>
+Subject: [PATCH 14/17] ASoC: ti: omap-abe-twl6040: remove useless assignment
+Date:   Fri, 26 Mar 2021 16:59:24 -0500
+Message-Id: <20210326215927.936377-15-pierre-louis.bossart@linux.intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210326215927.936377-1-pierre-louis.bossart@linux.intel.com>
 References: <20210326215927.936377-1-pierre-louis.bossart@linux.intel.com>
@@ -56,43 +56,29 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 cppcheck warning:
 
-sound/soc/ti/omap-mcbsp.c:379:11: style: The if condition is the same
-as the previous if condition [duplicateCondition]
-
- if (mcbsp->irq) {
-          ^
-sound/soc/ti/omap-mcbsp.c:376:11: note: First condition
- if (mcbsp->irq)
-          ^
-sound/soc/ti/omap-mcbsp.c:379:11: note: Second condition
- if (mcbsp->irq) {
-          ^
-
-Keeping two separate tests was probably intentional for clarity, but
-since this generates warnings we might as well make cppcheck happy so
-that we have fewer warnings.
+sound/soc/ti/omap-abe-twl6040.c:173:10: style: Variable 'ret' is
+assigned a value that is never used. [unreadVariable]
+ int ret = 0;
+         ^
 
 Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 ---
- sound/soc/ti/omap-mcbsp.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ sound/soc/ti/omap-abe-twl6040.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
-index 6025b30bbe77..db47981768c5 100644
---- a/sound/soc/ti/omap-mcbsp.c
-+++ b/sound/soc/ti/omap-mcbsp.c
-@@ -373,10 +373,9 @@ static void omap_mcbsp_free(struct omap_mcbsp *mcbsp)
- 		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+diff --git a/sound/soc/ti/omap-abe-twl6040.c b/sound/soc/ti/omap-abe-twl6040.c
+index 16ea039ff865..91cc9a4f44d7 100644
+--- a/sound/soc/ti/omap-abe-twl6040.c
++++ b/sound/soc/ti/omap-abe-twl6040.c
+@@ -170,7 +170,7 @@ static int omap_abe_twl6040_init(struct snd_soc_pcm_runtime *rtd)
+ 	struct snd_soc_card *card = rtd->card;
+ 	struct abe_twl6040 *priv = snd_soc_card_get_drvdata(card);
+ 	int hs_trim;
+-	int ret = 0;
++	int ret;
  
- 	/* Disable interrupt requests */
--	if (mcbsp->irq)
-+	if (mcbsp->irq) {
- 		MCBSP_WRITE(mcbsp, IRQEN, 0);
- 
--	if (mcbsp->irq) {
- 		free_irq(mcbsp->irq, (void *)mcbsp);
- 	} else {
- 		free_irq(mcbsp->rx_irq, (void *)mcbsp);
+ 	/*
+ 	 * Configure McPDM offset cancellation based on the HSOTRIM value from
 -- 
 2.25.1
 
