@@ -4,81 +4,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A79F0C433E4
-	for <linux-omap@archiver.kernel.org>; Fri, 26 Mar 2021 22:01:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB34AC433DB
+	for <linux-omap@archiver.kernel.org>; Sat, 27 Mar 2021 01:38:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98B8D61A36
-	for <linux-omap@archiver.kernel.org>; Fri, 26 Mar 2021 22:01:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFA7861A21
+	for <linux-omap@archiver.kernel.org>; Sat, 27 Mar 2021 01:38:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230436AbhCZWAh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 26 Mar 2021 18:00:37 -0400
-Received: from mga04.intel.com ([192.55.52.120]:61331 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230076AbhCZWAS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 26 Mar 2021 18:00:18 -0400
-IronPort-SDR: tgDjlUKxqiWb+UA/Za2tn9Xm31NjnKHx0ZO+i5qvKogGzoSAleCrp0WCibgZFT/kmB3clMjtK1
- vCLqPx+rNH2Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9935"; a="188957161"
-X-IronPort-AV: E=Sophos;i="5.81,281,1610438400"; 
-   d="scan'208";a="188957161"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2021 15:00:17 -0700
-IronPort-SDR: L69N9VpMxxYFEMXkpmZM/AoW24ukbCE7ajCVSK54wsNGlrbfNhw4hIsTWntdYiyBR1RF8VVD1d
- SfVNsZVn7PwQ==
-X-IronPort-AV: E=Sophos;i="5.81,281,1610438400"; 
-   d="scan'208";a="416706915"
-Received: from zcmahone-mobl1.amr.corp.intel.com (HELO pbossart-mobl3.intel.com) ([10.255.231.203])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2021 15:00:16 -0700
-From:   Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-To:     alsa-devel@alsa-project.org
-Cc:     tiwai@suse.de, broonie@kernel.org, linux-kernel@vger.kernel.org,
-        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-        Jarkko Nikula <jarkko.nikula@bitmer.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        linux-omap@vger.kernel.org (open list:OMAP AUDIO SUPPORT)
-Subject: [PATCH 14/17] ASoC: ti: omap-abe-twl6040: remove useless assignment
-Date:   Fri, 26 Mar 2021 16:59:24 -0500
-Message-Id: <20210326215927.936377-15-pierre-louis.bossart@linux.intel.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210326215927.936377-1-pierre-louis.bossart@linux.intel.com>
-References: <20210326215927.936377-1-pierre-louis.bossart@linux.intel.com>
+        id S230131AbhC0BiU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 26 Mar 2021 21:38:20 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:14493 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230114AbhC0BiG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2021 21:38:06 -0400
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4F6hJ30czdzySC3;
+        Sat, 27 Mar 2021 09:36:03 +0800 (CST)
+Received: from thunder-town.china.huawei.com (10.174.179.202) by
+ DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
+ 14.3.498.0; Sat, 27 Mar 2021 09:37:57 +0800
+From:   Zhen Lei <thunder.leizhen@huawei.com>
+To:     Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>,
+        "Zhang Rui" <rui.zhang@intel.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        "Amit Kucheria" <amitk@kernel.org>,
+        linux-pm <linux-pm@vger.kernel.org>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+CC:     Zhen Lei <thunder.leizhen@huawei.com>
+Subject: [PATCH 1/1] thermal: ti-soc-thermal: Remove duplicated header file inclusion
+Date:   Sat, 27 Mar 2021 09:37:48 +0800
+Message-ID: <20210327013749.1765-1-thunder.leizhen@huawei.com>
+X-Mailer: git-send-email 2.26.0.windows.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.174.179.202]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-cppcheck warning:
+The header file <linux/of_device.h> is already included above and can be
+removed here.
 
-sound/soc/ti/omap-abe-twl6040.c:173:10: style: Variable 'ret' is
-assigned a value that is never used. [unreadVariable]
- int ret = 0;
-         ^
-
-Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 ---
- sound/soc/ti/omap-abe-twl6040.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/ti/omap-abe-twl6040.c b/sound/soc/ti/omap-abe-twl6040.c
-index 16ea039ff865..91cc9a4f44d7 100644
---- a/sound/soc/ti/omap-abe-twl6040.c
-+++ b/sound/soc/ti/omap-abe-twl6040.c
-@@ -170,7 +170,7 @@ static int omap_abe_twl6040_init(struct snd_soc_pcm_runtime *rtd)
- 	struct snd_soc_card *card = rtd->card;
- 	struct abe_twl6040 *priv = snd_soc_card_get_drvdata(card);
- 	int hs_trim;
--	int ret = 0;
-+	int ret;
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+index 8a3646e26ddd208..d81af89166d2360 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -32,7 +32,6 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/pm.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
  
- 	/*
- 	 * Configure McPDM offset cancellation based on the HSOTRIM value from
+ #include "ti-bandgap.h"
+ 
 -- 
-2.25.1
+1.8.3
+
 
