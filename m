@@ -2,106 +2,156 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5F9EC433E5
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 16:51:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D46C433E0
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 17:54:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A315B6198E
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 16:51:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 411486193A
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 17:54:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230495AbhC2QvN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Mar 2021 12:51:13 -0400
-Received: from smtp-17-i2.italiaonline.it ([213.209.12.17]:51490 "EHLO
-        libero.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S230323AbhC2Qup (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 29 Mar 2021 12:50:45 -0400
-Received: from passgat-Modern-14-A10M.homenet.telecomitalia.it
- ([87.20.116.197])
-        by smtp-17.iol.local with ESMTPA
-        id Quy8lKyqctpGHQuyIliOli; Mon, 29 Mar 2021 18:42:34 +0200
-x-libjamoibt: 1601
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2021;
-        t=1617036154; bh=CrKShqEBNERCGbMjDPhba4sclJ+Oc3QI/7X+s8tPzg8=;
-        h=From;
-        b=DL6HiJxE/Kw4hwO+ZJSbUxNXrze1Oa6v35dm8Jvvi82zv5Z1glA7Z7eXk9awrkSf7
-         8xFsn3CC96XicAPm1732eUJCAb7C5Fa7bInWSL7tM8Fsmu+CuYUcQs8oGEIiCZch1M
-         yDOReAV0a67vyZR+6HA4eBx1ya2MM+QmZffBjHBpSnvUqCezbLyO9pKEBejSVEEaTJ
-         8Wd3T0qY7YXwkycYWKMgZLC81hvTS46LNT0CSN55/8tsVzpnAtu7LNKMq7zQQKxoMK
-         2vAO9ZVegx24GqYPEx3LTwjRxDh9gOcWxMux+r01lY+Ja06ihBbNSUmhwdob4CSCV1
-         SBA3oCBkvP7iw==
-X-CNFS-Analysis: v=2.4 cv=Q7IXX66a c=1 sm=1 tr=0 ts=6062037a cx=a_exe
- a=AVqmXbCQpuNSdJmApS5GbQ==:117 a=AVqmXbCQpuNSdJmApS5GbQ==:17 a=2KMo9-giAAAA:8
- a=jCmRPZ0w5czJu0AXxT0A:9 a=2pGyGSWy5nf2n_rBi4rp:22 a=UeCTMeHK7YUBiLmz_SX7:22
- a=fCgQI5UlmZDRPDxm0A3o:22 a=pHzHmUro8NiASowvMSCR:22 a=xoEH_sTeL_Rfw54TyV31:22
-From:   Dario Binacchi <dariobin@libero.it>
-To:     linux-kernel@vger.kernel.org
-Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
-        Dario Binacchi <dariobin@libero.it>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH v3 3/4] ARM: dts: am33xx-clocks: add spread spectrum support
-Date:   Mon, 29 Mar 2021 18:42:20 +0200
-Message-Id: <20210329164222.26794-4-dariobin@libero.it>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210329164222.26794-1-dariobin@libero.it>
-References: <20210329164222.26794-1-dariobin@libero.it>
-X-CMAE-Envelope: MS4xfOR5sfuN7CDFFUQ88TsfF0HHMJBZaMkZQKbATvMx0SfTeVaDp7fVsaCecIeyLBX8/d+G1bstcZDBADy2NQJIrQIptnGEweg1OqaE4mJjica+kR8FyFLb
- /AmZxcJHouBpWLUiZ5mUizeJOATj8KKHjfr3K3UHGLz2FiulZO3rJmbARCXty3Gx0Hq1EGoK23EhhXdjWuKubVdCF3PL4Z2h+up08N3uSNzotfvXWbN1YsYB
- Yv2DyW6geKfO8IwFL/eaAd4EnZ057kJzisqZkqLMT5iETMhWynGAA3Gc5gzvimZwki9mtYbCZ+M+CUf+CiaSj0x8tYzp22TmK7NvBiPWJ2Mmj7DZf20JOVAd
- LLltkryBzP/gagF2hI4j/Rn3KgO00TkkcbkTT0y4P5DIfBcbgg1yZqVFrRWbH/pet6mc1mtn15g7Y6PMyu8SEkVeD9zrtJGtwtSgQ+FfPl++ixbeWo2YFSCI
- padWBKiLpifWKLGw
+        id S230224AbhC2Rxn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Mar 2021 13:53:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33160 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229711AbhC2RxV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Mar 2021 13:53:21 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B756C061756
+        for <linux-omap@vger.kernel.org>; Mon, 29 Mar 2021 10:53:21 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id p19so7052682wmq.1
+        for <linux-omap@vger.kernel.org>; Mon, 29 Mar 2021 10:53:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=telliq.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=N6EnRd/MY7h8IstQCaZRWpBwbfFtnJv4s7DJ21C8TVU=;
+        b=CAYs0tgpe8vK037DR+QKaY/dFao1NgmTdZvmoJDVBWeLeSuPcF3sVB1RqBALma6L8e
+         60P2lVgiHv00myzkjExiWiTZHHsP7a/koD0WhGQ+zNK1slD/vjgM6DrhEZVhmH2+Tnmu
+         Z/mI+39OQ3DTCUwCqMrlnG5aMbvmKzhNwdyUvJ44OPCCWxE0MdElOpdyvE7VNhXccv/5
+         HebYIbIELrPYac0N9mRrcLivnzbn51nOkbB2tL/qlB5Q0pwMejygyEGxzUBbSykJ3YuR
+         LLyWHvkBLRHBMbVOTCYKZhA1cUYOPBjFs2k3h6OlZiJnMiAZoytiL8wzI5xn/HtZmzbW
+         zm+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=N6EnRd/MY7h8IstQCaZRWpBwbfFtnJv4s7DJ21C8TVU=;
+        b=LAGcf2oHv9JxXJl46Mw4CH0z7TgDXv9MY6MlZd0jtX3Z/cmJitYGr6QqrWEr6wULow
+         lfWFteUqE49WTIGwtIwwZaWlsq7w1nXrpREa1r3/v5Ot0bOl4WUiRRMvA8VTcWACVcc1
+         xdFLXwh1MIHTSp3h6tclvU02JFn+Idy3fi4TiZKlnfLmKQw8fiFQCRNJT/c6Eb+RO/w0
+         rG/la9Cihp8az6/XrhoD7/Xm+V1FNlGoXogEXolIgg1394sbulWLdyMkjV1i5eDG2U+c
+         3q6MgejKYFzGzKPEv8K9C/dVQeDXKSL4cc1PSCJMYfY/AVSkug0uPYoUqYihtDSXVk8G
+         y1Zg==
+X-Gm-Message-State: AOAM532PDrzbPyzI6botvMb3Of0nhDeqdtpzj7JTuWwTI6H0qUN9vgo8
+        qHYElp6bKNRuLjF827t1WIY3fw==
+X-Google-Smtp-Source: ABdhPJzNvL5rgMlYeb3DLyMYlNh0fTGWd7RQJVVnvzJUaoumN5K/evaFhoN2SSC65l7mRBlLfxAODg==
+X-Received: by 2002:a7b:c841:: with SMTP id c1mr232796wml.123.1617040399629;
+        Mon, 29 Mar 2021 10:53:19 -0700 (PDT)
+Received: from emu.mida (static-212-247-121-18.cust.tele2.se. [212.247.121.18])
+        by smtp.gmail.com with ESMTPSA id q4sm154209wma.20.2021.03.29.10.53.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 29 Mar 2021 10:53:19 -0700 (PDT)
+From:   Jan Kardell <jan.kardell@telliq.com>
+To:     Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc:     linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        linux-omap@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
+Subject: [PATCH] arm: Define arch_is_kernel_initmem_freed() for lockdep
+Date:   Mon, 29 Mar 2021 19:53:18 +0200
+Message-Id: <20210329175318.21393-1-jan.kardell@telliq.com>
+X-Mailer: git-send-email 2.26.2
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Registers for adjusting the spread spectrum clocking (SSC) have been
-added. As reported by the TI spruh73x RM, SSC is supported only for
-LCD and MPU PLLs.
+This fixes the warning:
 
-Signed-off-by: Dario Binacchi <dariobin@libero.it>
-Acked-by: Tony Lindgren <tony@atomide.com>
+WARNING: CPU: 0 PID: 1994 at kernel/locking/lockdep.c:1119 alloc_netdev_mqs+0xb4/0x3b0
 
+This warning is because the check in static_obj() assumes that all
+memory within [_stext, _end] belongs to static objects. The init
+section is also part of this range, and freeing it allows the buddy
+allocator to allocate memory from it.
+
+To fix this, define arch_is_kernel_initmem_freed() for arm, it will
+return 1 if initmem has been freed and the address is in the range
+[__init_begin, __init_end], and this function is called by the
+static_obj() function in lockdep.
+
+Tested on TI am3352 (Cortex A8).
+
+This change is modelled after commit 7a5da02de8d6eafba995
+("locking/lockdep: check for freed initmem in static_obj()") for s390 by
+Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+
+Signed-off-by: Jan Kardell <jan.kardell@telliq.com>
 ---
+ arch/arm/include/asm/sections.h | 13 +++++++++++++
+ arch/arm/mm/init.c              |  6 +++++-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-Changes in v3:
-- Add Tony Lindgren acked tag.
-
-Changes in v2:
-- Remove SSC registers from dpll_core_ck@490 node (SSC is not supported)
-- Add SSC registers to dpll_mpu_ck@488 node.
-
- arch/arm/boot/dts/am33xx-clocks.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am33xx-clocks.dtsi b/arch/arm/boot/dts/am33xx-clocks.dtsi
-index dced92a8970e..a02e0b1229a4 100644
---- a/arch/arm/boot/dts/am33xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am33xx-clocks.dtsi
-@@ -204,7 +204,7 @@
- 		#clock-cells = <0>;
- 		compatible = "ti,am3-dpll-clock";
- 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
--		reg = <0x0488>, <0x0420>, <0x042c>;
-+		reg = <0x0488>, <0x0420>, <0x042c>, <0x0424>, <0x0428>;
- 	};
+diff --git a/arch/arm/include/asm/sections.h b/arch/arm/include/asm/sections.h
+index 700b8bcdf9bd..1dd64c90c1ac 100644
+--- a/arch/arm/include/asm/sections.h
++++ b/arch/arm/include/asm/sections.h
+@@ -2,6 +2,8 @@
+ #ifndef _ASM_ARM_SECTIONS_H
+ #define _ASM_ARM_SECTIONS_H
  
- 	dpll_mpu_m2_ck: dpll_mpu_m2_ck@4a8 {
-@@ -244,7 +244,7 @@
- 		#clock-cells = <0>;
- 		compatible = "ti,am3-dpll-no-gate-clock";
- 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
--		reg = <0x0498>, <0x0448>, <0x0454>;
-+		reg = <0x0498>, <0x0448>, <0x0454>, <0x044c>, <0x0450>;
- 	};
++#define arch_is_kernel_initmem_freed arch_is_kernel_initmem_freed
++
+ #include <asm-generic/sections.h>
  
- 	dpll_disp_m2_ck: dpll_disp_m2_ck@4a4 {
+ extern char _exiprom[];
+@@ -11,6 +13,17 @@ extern char __idmap_text_end[];
+ extern char __entry_text_start[];
+ extern char __entry_text_end[];
+ 
++extern bool initmem_freed;
++
++static inline int arch_is_kernel_initmem_freed(unsigned long addr)
++{
++	if (!initmem_freed)
++		return 0;
++	return addr >= (unsigned long)__init_begin &&
++	       addr < (unsigned long)__init_end;
++}
++
++
+ static inline bool in_entry_text(unsigned long addr)
+ {
+ 	return memory_contains(__entry_text_start, __entry_text_end,
+diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+index 828a2561b229..cd7a4273797a 100644
+--- a/arch/arm/mm/init.c
++++ b/arch/arm/mm/init.c
+@@ -41,6 +41,8 @@
+ 
+ #include "mm.h"
+ 
++bool initmem_freed;
++
+ #ifdef CONFIG_CPU_CP15_MMU
+ unsigned long __init __clear_cr(unsigned long mask)
+ {
+@@ -523,8 +525,10 @@ void free_initmem(void)
+ 	fix_kernmem_perms();
+ 
+ 	poison_init_mem(__init_begin, __init_end - __init_begin);
+-	if (!machine_is_integrator() && !machine_is_cintegrator())
++	if (!machine_is_integrator() && !machine_is_cintegrator()) {
++		initmem_freed = true;
+ 		free_initmem_default(-1);
++	}
+ }
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
 -- 
-2.17.1
+2.26.2
 
