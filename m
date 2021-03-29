@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B185C433E2
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:22:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EDB2C43617
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:23:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E05D61989
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:22:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50CB1619CE
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:23:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231623AbhC2WVl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Mar 2021 18:21:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45672 "EHLO mail.kernel.org"
+        id S232617AbhC2WXm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Mar 2021 18:23:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231178AbhC2WVg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 29 Mar 2021 18:21:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 29C6961976;
-        Mon, 29 Mar 2021 22:21:35 +0000 (UTC)
+        id S232069AbhC2WWY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 29 Mar 2021 18:22:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5409A61989;
+        Mon, 29 Mar 2021 22:22:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617056495;
-        bh=s8xVeCkUcIIUZRjdFBBt4uo+PoH7BainyAdB8Rcq+gw=;
+        s=k20201202; t=1617056544;
+        bh=/f8PHLgOoBRK9H053cwLq8xLIhrP9vYDSvC2JRE5oBM=;
         h=From:To:Cc:Subject:Date:From;
-        b=K41u8mytm+1u2kR6Or2N1CnLcOg9pExNE44ABAcCKZv+uCKundpeMO9k6RZrDcZqh
-         sfov+M4mnoZ+iRgwahfS2CYjhIxVdwdSW5fvonEH9L3xxfjWKKUnrOpazO+X3xwcLh
-         uQn8ZyT0+oveAojnK1uNCaIASYuDV7VLkN56zgr9yiM22JtHIhfU9xU5ryiJZKEnMl
-         4QHENri6g9pHqEZM2pCsiA5DlvCKOiTwnKWrneDXc9OOxcnuob+JlHxX9zC3bjIwrQ
-         rixSMiiSaCvk2uVmzDQXUrf77a1LO4a3/PFjriFsswBorRQzGh1B/t/FSV+wwENEKR
-         C+y0YmWAFdhLw==
+        b=tC7l0boUe8uksNdeZMcL50vWPc+kWoaehbLQCrbmWQIQmC9h5SUIiekaqN3COI5wS
+         77iWXQc1AIR59owceMEPTOl5RXtPKcFrl3fMAWZl3hSr+epmDTSzwmqG0KnDARbgON
+         7YU+Np/zY2j5lTnwax0emKMNxueVNd39d7IqFC9Gl6PW2S+97o/CpzRy9vQw2ufFMX
+         9yT6eKsp7G/S7l6UEkpIEBDISPbz6sLcy/WAe3u0DSSoW5V5wERLml3i6qrqO1v2CD
+         x9Pwnu90Rz+VSRQA1z+wYyWrgxj3DaNEc4fFTID+0qKB/Vg3CXgk6X9x5Oeanlw2vF
+         YAOAaQPr037Xg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Mans Rullgard <mans@mansr.com>, Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.11 01/38] ARM: dts: am33xx: add aliases for mmc interfaces
-Date:   Mon, 29 Mar 2021 18:20:56 -0400
-Message-Id: <20210329222133.2382393-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 01/33] ARM: dts: am33xx: add aliases for mmc interfaces
+Date:   Mon, 29 Mar 2021 18:21:49 -0400
+Message-Id: <20210329222222.2382987-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.1
 MIME-Version: 1.0
 X-stable: review
@@ -68,7 +68,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 5b213a1e68bb..5e33d0e88f5b 100644
+index 4c2298024137..f09a61cac2dc 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -40,6 +40,9 @@ aliases {
