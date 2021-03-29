@@ -2,156 +2,92 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D46C433E0
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 17:54:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2598FC433C1
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:22:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 411486193A
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 17:54:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEDAA6198F
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:22:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230224AbhC2Rxn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Mar 2021 13:53:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33160 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229711AbhC2RxV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Mar 2021 13:53:21 -0400
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B756C061756
-        for <linux-omap@vger.kernel.org>; Mon, 29 Mar 2021 10:53:21 -0700 (PDT)
-Received: by mail-wm1-x32d.google.com with SMTP id p19so7052682wmq.1
-        for <linux-omap@vger.kernel.org>; Mon, 29 Mar 2021 10:53:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=telliq.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=N6EnRd/MY7h8IstQCaZRWpBwbfFtnJv4s7DJ21C8TVU=;
-        b=CAYs0tgpe8vK037DR+QKaY/dFao1NgmTdZvmoJDVBWeLeSuPcF3sVB1RqBALma6L8e
-         60P2lVgiHv00myzkjExiWiTZHHsP7a/koD0WhGQ+zNK1slD/vjgM6DrhEZVhmH2+Tnmu
-         Z/mI+39OQ3DTCUwCqMrlnG5aMbvmKzhNwdyUvJ44OPCCWxE0MdElOpdyvE7VNhXccv/5
-         HebYIbIELrPYac0N9mRrcLivnzbn51nOkbB2tL/qlB5Q0pwMejygyEGxzUBbSykJ3YuR
-         LLyWHvkBLRHBMbVOTCYKZhA1cUYOPBjFs2k3h6OlZiJnMiAZoytiL8wzI5xn/HtZmzbW
-         zm+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=N6EnRd/MY7h8IstQCaZRWpBwbfFtnJv4s7DJ21C8TVU=;
-        b=LAGcf2oHv9JxXJl46Mw4CH0z7TgDXv9MY6MlZd0jtX3Z/cmJitYGr6QqrWEr6wULow
-         lfWFteUqE49WTIGwtIwwZaWlsq7w1nXrpREa1r3/v5Ot0bOl4WUiRRMvA8VTcWACVcc1
-         xdFLXwh1MIHTSp3h6tclvU02JFn+Idy3fi4TiZKlnfLmKQw8fiFQCRNJT/c6Eb+RO/w0
-         rG/la9Cihp8az6/XrhoD7/Xm+V1FNlGoXogEXolIgg1394sbulWLdyMkjV1i5eDG2U+c
-         3q6MgejKYFzGzKPEv8K9C/dVQeDXKSL4cc1PSCJMYfY/AVSkug0uPYoUqYihtDSXVk8G
-         y1Zg==
-X-Gm-Message-State: AOAM532PDrzbPyzI6botvMb3Of0nhDeqdtpzj7JTuWwTI6H0qUN9vgo8
-        qHYElp6bKNRuLjF827t1WIY3fw==
-X-Google-Smtp-Source: ABdhPJzNvL5rgMlYeb3DLyMYlNh0fTGWd7RQJVVnvzJUaoumN5K/evaFhoN2SSC65l7mRBlLfxAODg==
-X-Received: by 2002:a7b:c841:: with SMTP id c1mr232796wml.123.1617040399629;
-        Mon, 29 Mar 2021 10:53:19 -0700 (PDT)
-Received: from emu.mida (static-212-247-121-18.cust.tele2.se. [212.247.121.18])
-        by smtp.gmail.com with ESMTPSA id q4sm154209wma.20.2021.03.29.10.53.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 29 Mar 2021 10:53:19 -0700 (PDT)
-From:   Jan Kardell <jan.kardell@telliq.com>
-To:     Linux ARM <linux-arm-kernel@lists.infradead.org>
-Cc:     linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        linux-omap@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
-Subject: [PATCH] arm: Define arch_is_kernel_initmem_freed() for lockdep
-Date:   Mon, 29 Mar 2021 19:53:18 +0200
-Message-Id: <20210329175318.21393-1-jan.kardell@telliq.com>
-X-Mailer: git-send-email 2.26.2
+        id S231633AbhC2WVl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Mar 2021 18:21:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45680 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231238AbhC2WVh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 29 Mar 2021 18:21:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E1876196E;
+        Mon, 29 Mar 2021 22:21:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1617056496;
+        bh=qEbXIiiTD2de8QKeiUzSVhvasjIpygLJJz1CG8FeMqw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ZFMeUshdk2jq/WhzfOvq5Nk+9ZO4AKXU3edcQbQzTasYFPkGJ0vdIRm2Zh77cjLf0
+         GYkB5u77x5CvrVBIdpwyEdZia035uv8CaqMbBJ8boY0fJRc+k7SJA+5LTWgD/uY5ki
+         yy1SP/gxzh2MH6Z1F92wLpNL2VYHKtIMftNiU2sCaJpOuQxfIperyYhekfQzqiSh9x
+         qEezVq+yXY+8LufA2DHGafdQ033/oBydIICeqWlyNGUVJF1I15NUO3rij/Ev2k9XY4
+         6tQsbRbuJH9+ZO6NkrSjmAk6DnMFlIMvi0Nf6+iMCiGmNJEMr4BfReXrSjhBguvPGK
+         k9zWNPxy1+j+g==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>,
+        linux-omap@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.11 02/38] bus: ti-sysc: Fix warning on unbind if reset is not deasserted
+Date:   Mon, 29 Mar 2021 18:20:57 -0400
+Message-Id: <20210329222133.2382393-2-sashal@kernel.org>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210329222133.2382393-1-sashal@kernel.org>
+References: <20210329222133.2382393-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This fixes the warning:
+From: Tony Lindgren <tony@atomide.com>
 
-WARNING: CPU: 0 PID: 1994 at kernel/locking/lockdep.c:1119 alloc_netdev_mqs+0xb4/0x3b0
+[ Upstream commit a7b5d7c4969aba8d1f04c29048906abaa71fb6a9 ]
 
-This warning is because the check in static_obj() assumes that all
-memory within [_stext, _end] belongs to static objects. The init
-section is also part of this range, and freeing it allows the buddy
-allocator to allocate memory from it.
+We currently get thefollowing on driver unbind if a reset is configured
+and asserted:
 
-To fix this, define arch_is_kernel_initmem_freed() for arm, it will
-return 1 if initmem has been freed and the address is in the range
-[__init_begin, __init_end], and this function is called by the
-static_obj() function in lockdep.
+WARNING: CPU: 0 PID: 993 at drivers/reset/core.c:432 reset_control_assert
+...
+(reset_control_assert) from [<c0fecda8>] (sysc_remove+0x190/0x1e4)
+(sysc_remove) from [<c0a2bb58>] (platform_remove+0x24/0x3c)
+(platform_remove) from [<c0a292fc>] (__device_release_driver+0x154/0x214)
+(__device_release_driver) from [<c0a2a210>] (device_driver_detach+0x3c/0x8c)
+(device_driver_detach) from [<c0a27d64>] (unbind_store+0x60/0xd4)
+(unbind_store) from [<c0546bec>] (kernfs_fop_write_iter+0x10c/0x1cc)
 
-Tested on TI am3352 (Cortex A8).
+Let's fix it by checking the reset status.
 
-This change is modelled after commit 7a5da02de8d6eafba995
-("locking/lockdep: check for freed initmem in static_obj()") for s390 by
-Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-
-Signed-off-by: Jan Kardell <jan.kardell@telliq.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/include/asm/sections.h | 13 +++++++++++++
- arch/arm/mm/init.c              |  6 +++++-
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ drivers/bus/ti-sysc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/sections.h b/arch/arm/include/asm/sections.h
-index 700b8bcdf9bd..1dd64c90c1ac 100644
---- a/arch/arm/include/asm/sections.h
-+++ b/arch/arm/include/asm/sections.h
-@@ -2,6 +2,8 @@
- #ifndef _ASM_ARM_SECTIONS_H
- #define _ASM_ARM_SECTIONS_H
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index a27d751cf219..3d74f237f005 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -3053,7 +3053,9 @@ static int sysc_remove(struct platform_device *pdev)
  
-+#define arch_is_kernel_initmem_freed arch_is_kernel_initmem_freed
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	reset_control_assert(ddata->rsts);
 +
- #include <asm-generic/sections.h>
++	if (!reset_control_status(ddata->rsts))
++		reset_control_assert(ddata->rsts);
  
- extern char _exiprom[];
-@@ -11,6 +13,17 @@ extern char __idmap_text_end[];
- extern char __entry_text_start[];
- extern char __entry_text_end[];
- 
-+extern bool initmem_freed;
-+
-+static inline int arch_is_kernel_initmem_freed(unsigned long addr)
-+{
-+	if (!initmem_freed)
-+		return 0;
-+	return addr >= (unsigned long)__init_begin &&
-+	       addr < (unsigned long)__init_end;
-+}
-+
-+
- static inline bool in_entry_text(unsigned long addr)
- {
- 	return memory_contains(__entry_text_start, __entry_text_end,
-diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
-index 828a2561b229..cd7a4273797a 100644
---- a/arch/arm/mm/init.c
-+++ b/arch/arm/mm/init.c
-@@ -41,6 +41,8 @@
- 
- #include "mm.h"
- 
-+bool initmem_freed;
-+
- #ifdef CONFIG_CPU_CP15_MMU
- unsigned long __init __clear_cr(unsigned long mask)
- {
-@@ -523,8 +525,10 @@ void free_initmem(void)
- 	fix_kernmem_perms();
- 
- 	poison_init_mem(__init_begin, __init_end - __init_begin);
--	if (!machine_is_integrator() && !machine_is_cintegrator())
-+	if (!machine_is_integrator() && !machine_is_cintegrator()) {
-+		initmem_freed = true;
- 		free_initmem_default(-1);
-+	}
- }
- 
- #ifdef CONFIG_BLK_DEV_INITRD
+ unprepare:
+ 	sysc_unprepare(ddata);
 -- 
-2.26.2
+2.30.1
 
