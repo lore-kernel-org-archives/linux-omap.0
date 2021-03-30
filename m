@@ -2,85 +2,60 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80D2BC433E9
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:28:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86C99C433DB
+	for <linux-omap@archiver.kernel.org>; Tue, 30 Mar 2021 02:23:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63C0C6044F
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Mar 2021 22:28:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C82961987
+	for <linux-omap@archiver.kernel.org>; Tue, 30 Mar 2021 02:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232334AbhC2W2U (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Mar 2021 18:28:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47666 "EHLO mail.kernel.org"
+        id S230482AbhC3CXV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Mar 2021 22:23:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231911AbhC2WZy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 29 Mar 2021 18:25:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 22F9961613;
-        Mon, 29 Mar 2021 22:23:47 +0000 (UTC)
+        id S230122AbhC3CXT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 29 Mar 2021 22:23:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0FB8F61989;
+        Tue, 30 Mar 2021 02:23:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617056627;
-        bh=xijELzIbG11EAeYB9pA2+IKC5TFVDVEPkhj8LCfB5Ew=;
-        h=From:To:Cc:Subject:Date:From;
-        b=a7whbFxrH6UG1X76NSPZv05y71LXL007idmF5GYR2Zy4l3CkDWojdRmwKeefw41P5
-         Z6eC54mba9rGCEQNxZW994VCeZpld0UbxJjgN3712e9jPw4+/2DUGG75CUyvDoVTcn
-         3/0cRdhba4gebvNY/ONLIhEpTG9vE487Pie8NYld9Xx8r8lRpdktGhf55gHJhzOZF3
-         BIOMtdbwanelTRgx0jC1YR6Y/4weA539UKY+y0YF7ZqEoW1H1jBo9KhvHNZ4g1gVvk
-         df68bsUsEKyyqYT8lBB3aL8wV4bjBXWJeyPpSazQ1N9fgEN6KdShD1lP5EdRbPAWBS
-         pjRJLSXRWduRA==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mans Rullgard <mans@mansr.com>, Tony Lindgren <tony@atomide.com>,
-        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 01/12] ARM: dts: am33xx: add aliases for mmc interfaces
-Date:   Mon, 29 Mar 2021 18:23:34 -0400
-Message-Id: <20210329222345.2383777-1-sashal@kernel.org>
-X-Mailer: git-send-email 2.30.1
+        s=k20201202; t=1617070999;
+        bh=Cohu/2cxN+tEHFYMMs+yo/4uX8ZIfwZVuwWi3CEctjg=;
+        h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
+        b=IfCM2kN5SV3cPW8NVJ54qVpbJoOyswsjKsIhS7lPXUc/n5ey7mz7MoB5QnZMX1d3l
+         eAU0p3Dq9SfLssaHRwZVqkXGLdZs7JfFjJZP3XNXhnABbg+RHIjEdmkg8QrUyPhhN9
+         /KcBV1qFle2j1AhKLonOTkWjyPE6T2yZPpGHLSYWo9EBkxoQgwL7oOdAUzFts5G9Oi
+         dSSJ3KWYIblRtXZT/phK+Th9tN1NisJQGHQB6dbdvE61M8DDrobM+2Oi9p7o9c1Maz
+         un9w602H3kZZPHH2iRWL5Ygy59QJOEfZhWTNPjhfxxEhbWNJuBEdB+cJdskId9YbIJ
+         LH9ubvQ2ab6yA==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20210318172627.12173-2-dariobin@libero.it>
+References: <20210318172627.12173-1-dariobin@libero.it> <20210318172627.12173-2-dariobin@libero.it>
+Subject: Re: [PATCH v2 1/4] clk: ti: fix typo in routine description
+From:   Stephen Boyd <sboyd@kernel.org>
+Cc:     Dario Binacchi <dariobin@libero.it>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Tero Kristo <kristo@kernel.org>, linux-clk@vger.kernel.org,
+        linux-omap@vger.kernel.org
+To:     Dario Binacchi <dariobin@libero.it>, linux-kernel@vger.kernel.org
+Date:   Mon, 29 Mar 2021 19:23:17 -0700
+Message-ID: <161707099768.3012082.16934007943600501374@swboyd.mtv.corp.google.com>
+User-Agent: alot/0.9.1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Mans Rullgard <mans@mansr.com>
+Quoting Dario Binacchi (2021-03-18 10:26:23)
+> Replace _omap3_noncore_dpll_program with omap3_noncore_dpll_program.
+>=20
+> Signed-off-by: Dario Binacchi <dariobin@libero.it>
+> ---
 
-[ Upstream commit 9bbce32a20d6a72c767a7f85fd6127babd1410ac ]
-
-Without DT aliases, the numbering of mmc interfaces is unpredictable.
-Adding them makes it possible to refer to devices consistently.  The
-popular suggestion to use UUIDs obviously doesn't work with a blank
-device fresh from the factory.
-
-See commit fa2d0aa96941 ("mmc: core: Allow setting slot index via
-device tree alias") for more discussion.
-
-Signed-off-by: Mans Rullgard <mans@mansr.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/am33xx.dtsi | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index e58fab8aec5d..8923273a2f73 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -38,6 +38,9 @@ aliases {
- 		ethernet1 = &cpsw_emac1;
- 		spi0 = &spi0;
- 		spi1 = &spi1;
-+		mmc0 = &mmc1;
-+		mmc1 = &mmc2;
-+		mmc2 = &mmc3;
- 	};
- 
- 	cpus {
--- 
-2.30.1
-
+Reviewed-by: Stephen Boyd <sboyd@kernel.org>
