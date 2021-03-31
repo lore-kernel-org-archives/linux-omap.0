@@ -2,57 +2,54 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=0.0 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACF13C433C1
-	for <linux-omap@archiver.kernel.org>; Wed, 31 Mar 2021 06:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AB32C4345D
+	for <linux-omap@archiver.kernel.org>; Wed, 31 Mar 2021 07:31:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 644DA619BC
-	for <linux-omap@archiver.kernel.org>; Wed, 31 Mar 2021 06:42:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82390619FB
+	for <linux-omap@archiver.kernel.org>; Wed, 31 Mar 2021 07:31:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233780AbhCaGlx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 31 Mar 2021 02:41:53 -0400
-Received: from muru.com ([72.249.23.125]:49186 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233814AbhCaGld (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 31 Mar 2021 02:41:33 -0400
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id AEF9D80C3;
-        Wed, 31 Mar 2021 06:42:34 +0000 (UTC)
-Date:   Wed, 31 Mar 2021 09:41:28 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc:     =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Joe Perches <joe@perches.com>,
-        Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] MAINTAINERS: remove obsolete OMAP HWMOD DATA FOR
- OMAP4-BASED DEVICES
-Message-ID: <YGQZmIsbXnuIX5S4@atomide.com>
-References: <20210318172520.6634-1-lukas.bulwahn@gmail.com>
+        id S234111AbhCaHar convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 31 Mar 2021 03:30:47 -0400
+Received: from bizcloud-power.sawafuji.co.jp ([128.199.220.203]:46712 "EHLO
+        mta0.sawafuji.co.jp" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S234120AbhCaHa0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2021 03:30:26 -0400
+X-Greylist: delayed 673 seconds by postgrey-1.27 at vger.kernel.org; Wed, 31 Mar 2021 03:30:26 EDT
+From:   Albert Bourla <info@universalautomation.com.pk>
+To:     linux-omap@vger.kernel.org
+Subject: Bidding invitation
+Date:   31 Mar 2021 09:10:07 +0200
+Message-ID: <20210331091007.E72A9105D273F6DA@universalautomation.com.pk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210318172520.6634-1-lukas.bulwahn@gmail.com>
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Lukas Bulwahn <lukas.bulwahn@gmail.com> [210318 19:26]:
-> Commit 2584d7e7f87a ("ARM: OMAP2+: Drop legacy platform data for omap4
-> hwmod") drops the file ./arch/arm/mach-omap2/omap_hwmod_44xx_data.c, but
-> misses to drop the now obsolete OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
-> section in MAINTAINERS, which refers to only that file.
-> 
-> Hence, ./scripts/get_maintainer.pl --self-test=patterns complains:
-> 
->   warning: no file matches  F:  arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> 
-> Remove the obsolete OMAP HWMOD DATA FOR OMAP4-BASED DEVICES section.
+Good Day Sir/Ms,
 
-Thanks applying into omap-for-v5.13/genpd-cleanup.
+We are please to invite you or your company to quote the 
+following item listed below:
+ 
+Product/Model No: A702TH FYNE PRESSURE REGULATOR
+Model Number: A702TH
+Qty. 30 units
 
-Tony
+
+Compulsory,Kindly send your quotation to: 
+quotation@pfizerbvsupply.com 
+for immediate approval.
+
+Kind Regards,
+Albert Bourla
+PFIZER B.V Supply Chain Manager
+Tel: +31(0)208080 880
+ADDRESS: Rivium Westlaan 142, 2909 LD
+Capelle aan den IJssel, Netherlands
