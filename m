@@ -2,86 +2,75 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28A87C433DB
-	for <linux-omap@archiver.kernel.org>; Tue, 30 Mar 2021 21:58:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5A18C433C1
+	for <linux-omap@archiver.kernel.org>; Wed, 31 Mar 2021 02:57:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00F2761998
-	for <linux-omap@archiver.kernel.org>; Tue, 30 Mar 2021 21:58:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F00A619D8
+	for <linux-omap@archiver.kernel.org>; Wed, 31 Mar 2021 02:57:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231951AbhC3V6U (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 30 Mar 2021 17:58:20 -0400
-Received: from fgw22-4.mail.saunalahti.fi ([62.142.5.109]:27197 "EHLO
-        fgw22-4.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232829AbhC3V6K (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 30 Mar 2021 17:58:10 -0400
-Received: from darkstar.musicnaut.iki.fi (85-76-72-22-nat.elisa-mobile.fi [85.76.72.22])
-        by fgw22.mail.saunalahti.fi (Halon) with ESMTP
-        id beb0906a-91a0-11eb-88cb-005056bdf889;
-        Wed, 31 Mar 2021 00:41:56 +0300 (EEST)
-Date:   Wed, 31 Mar 2021 00:41:54 +0300
-From:   Aaro Koskinen <aaro.koskinen@iki.fi>
-To:     Aditya Srivastava <yashsri421@gmail.com>
-Cc:     linux-kernel@vger.kernel.org, lukas.bulwahn@gmail.com,
-        rdunlap@infradead.org, tony@atomide.com, linux@armlinux.org.uk,
-        linux-kernel-mentees@lists.linuxfoundation.org,
-        linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCH] ARM: OMAP1: fix incorrect kernel-doc comment syntax in
- file
-Message-ID: <20210330214154.GB120746@darkstar.musicnaut.iki.fi>
-References: <20210330205330.26345-1-yashsri421@gmail.com>
+        id S233368AbhCaC4c (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 30 Mar 2021 22:56:32 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:15111 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233291AbhCaC4S (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 30 Mar 2021 22:56:18 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4F99rL6xMWz1BFQv;
+        Wed, 31 Mar 2021 10:54:10 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.56) by
+ DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
+ 14.3.498.0; Wed, 31 Mar 2021 10:56:10 +0800
+From:   Tian Tao <tiantao6@hisilicon.com>
+To:     <grygorii.strashko@ti.com>, <ssantosh@kernel.org>,
+        <khilman@kernel.org>, <linus.walleij@linaro.org>,
+        <bgolaszewski@baylibre.com>
+CC:     <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>
+Subject: [PATCH] gpio: omap: Use device_get_match_data() helper
+Date:   Wed, 31 Mar 2021 10:56:40 +0800
+Message-ID: <1617159400-19775-1-git-send-email-tiantao6@hisilicon.com>
+X-Mailer: git-send-email 2.7.4
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210330205330.26345-1-yashsri421@gmail.com>
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.56]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Use the device_get_match_data() helper instead of open coding.
 
-On Wed, Mar 31, 2021 at 02:23:30AM +0530, Aditya Srivastava wrote:
-> The opening comment mark '/**' is used for highlighting the beginning of
-> kernel-doc comments.
-> The header for arch/arm/mach-omap1/timer.c follows this syntax, but the
-> content inside does not comply with kernel-doc.
-> 
-> This line was probably not meant for kernel-doc parsing, but is parsed
-> due to the presence of kernel-doc like comment syntax(i.e, '/**'), which
-> causes unexpected warning from kernel-doc:
-> "warning: expecting prototype for OMAP1 Dual(). Prototype was for OMAP1610_GPTIMER1_BASE() instead"
-> 
-> Provide a simple fix by replacing this occurrence with general comment
-> format, i.e. '/*', to prevent kernel-doc from parsing it.
-> 
-> Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+---
+ drivers/gpio/gpio-omap.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 41952bb..9d94486 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1364,15 +1364,14 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *node = dev->of_node;
+-	const struct of_device_id *match;
+ 	const struct omap_gpio_platform_data *pdata;
+ 	struct gpio_bank *bank;
+ 	struct irq_chip *irqc;
+ 	int ret;
+ 
+-	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
++	pdata = device_get_match_data(dev);
+ 
+-	pdata = match ? match->data : dev_get_platdata(dev);
++	pdata = pdata ? : dev_get_platdata(dev);
+ 	if (!pdata)
+ 		return -EINVAL;
+ 
+-- 
+2.7.4
 
-A.
-
-> ---
-> * Applies perfectly on next-20210326
-> 
->  arch/arm/mach-omap1/timer.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
-> index 97fc2096b970..0411d5508d63 100644
-> --- a/arch/arm/mach-omap1/timer.c
-> +++ b/arch/arm/mach-omap1/timer.c
-> @@ -1,4 +1,4 @@
-> -/**
-> +/*
->   * OMAP1 Dual-Mode Timers - platform device registration
->   *
->   * Contains first level initialization routines which internally
-> -- 
-> 2.17.1
-> 
