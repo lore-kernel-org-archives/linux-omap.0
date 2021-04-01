@@ -2,102 +2,81 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6CC3C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1BEAC433ED
 	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6803E610A0
+	by mail.kernel.org (Postfix) with ESMTP id 9B23C6112E
 	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236133AbhDAR6W (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:58:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57202 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236630AbhDARzA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:55:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BD3861381;
-        Thu,  1 Apr 2021 16:37:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617295057;
-        bh=mSocOIXGvAFKcL19Ce6fU683sMoxx6GOB2FI63UFFps=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=pfG4Ny5Naj2xO9xJs/GhyfkzUzVPEQeW7HePHaZfQpEBvHsMoE1lwGJBb/BJJTaxu
-         LUTinilDjFtooZMZrmOLb/hUKZBguT8qdlqESp7Is4n7dJZVoo00lOu+jqlZFuehBv
-         xFVWQB5fH6jYeAqP1RSl77oan6W2dBgFrNW/7Bbw5CaRaedgR8kecWxdJ+9v4+6kKX
-         Vu0AG3AcvLjiGo6cASKJTWUltZn2tikCt7qkRAD6CxQSq5OynMTpNQNRDpoHoKuPlo
-         Ey4SipMN6Cv/6ZK//nVQA7KzYcBsJJaHRBGp9lrar9wH/NdJxw/UUq5x7MiVzUIahF
-         WAHIpad4zTH0w==
-Date:   Thu, 1 Apr 2021 09:37:32 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
-To:     Maciej Falkowski <maciej.falkowski9@gmail.com>
-Cc:     aaro.koskinen@iki.fi, tony@atomide.com, linux@armlinux.org.uk,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, clang-built-linux@googlegroups.com
-Subject: Re: [PATCH] ARM: OMAP1: ams-delta: remove unused function
- ams_delta_camera_power
-Message-ID: <20210401163732.gl63gs2dpi6pickt@archlinux-ax161>
-References: <20210401160434.7655-1-maciej.falkowski9@gmail.com>
+        id S236676AbhDAR60 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 1 Apr 2021 13:58:26 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:16318 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236825AbhDARzW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2021 13:55:22 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4FB3MS0z2cz9420;
+        Thu,  1 Apr 2021 21:05:40 +0800 (CST)
+Received: from huawei.com (10.175.112.125) by DGGEMS410-HUB.china.huawei.com
+ (10.3.19.210) with Microsoft SMTP Server id 14.3.498.0; Thu, 1 Apr 2021
+ 21:07:42 +0800
+From:   Yongqiang Liu <liuyongqiang13@huawei.com>
+To:     <tony@atomide.com>, <linux@armlinux.org.uk>
+CC:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+Subject: [PATCH -next] ARM: OMAP2+: Fix build warning when mmc_omap is not built
+Date:   Thu, 1 Apr 2021 13:15:33 +0000
+Message-ID: <20210401131533.998767-1-liuyongqiang13@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210401160434.7655-1-maciej.falkowski9@gmail.com>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.112.125]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Apr 01, 2021 at 06:04:34PM +0200, Maciej Falkowski wrote:
-> The ams_delta_camera_power() function is unused as reports
-> Clang compilation with omap1_defconfig on linux-next:
-> 
-> arch/arm/mach-omap1/board-ams-delta.c:462:12: warning: unused function 'ams_delta_camera_power' [-Wunused-function]
-> static int ams_delta_camera_power(struct device *dev, int power)
->            ^
-> 1 warning generated.
-> 
-> The soc_camera support was dropped without removing
-> ams_delta_camera_power() function, making it unused.
-> 
-> Signed-off-by: Maciej Falkowski <maciej.falkowski9@gmail.com>
-> Fixes: ce548396a433 ("media: mach-omap1: board-ams-delta.c: remove soc_camera dependencies")
-> Link: https://github.com/ClangBuiltLinux/linux/issues/1326
+GCC reports the following warning with W=1:
 
-Thanks for the patch!
+arch/arm/mach-omap2/board-n8x0.c:325:19: warning:
+variable 'index' set but not used [-Wunused-but-set-variable]
+325 |  int bit, *openp, index;
+    |                   ^~~~~
 
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Fix this by moving CONFIG_MMC_OMAP to cover the rest codes
+in the n8x0_mmc_callback().
 
-> ---
->  arch/arm/mach-omap1/board-ams-delta.c | 14 --------------
->  1 file changed, 14 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-> index 2ee527c00284..1026a816dcc0 100644
-> --- a/arch/arm/mach-omap1/board-ams-delta.c
-> +++ b/arch/arm/mach-omap1/board-ams-delta.c
-> @@ -458,20 +458,6 @@ static struct gpiod_lookup_table leds_gpio_table = {
->  
->  #ifdef CONFIG_LEDS_TRIGGERS
->  DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
-> -
-> -static int ams_delta_camera_power(struct device *dev, int power)
-> -{
-> -	/*
-> -	 * turn on camera LED
-> -	 */
-> -	if (power)
-> -		led_trigger_event(ams_delta_camera_led_trigger, LED_FULL);
-> -	else
-> -		led_trigger_event(ams_delta_camera_led_trigger, LED_OFF);
-> -	return 0;
-> -}
-> -#else
-> -#define ams_delta_camera_power	NULL
->  #endif
->  
->  static struct platform_device ams_delta_audio_device = {
-> -- 
-> 2.26.3
-> 
+Signed-off-by: Yongqiang Liu <liuyongqiang13@huawei.com>
+---
+ arch/arm/mach-omap2/board-n8x0.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 418a61ecb827..5e86145db0e2 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -322,6 +322,7 @@ static int n8x0_mmc_get_cover_state(struct device *dev, int slot)
+ 
+ static void n8x0_mmc_callback(void *data, u8 card_mask)
+ {
++#ifdef CONFIG_MMC_OMAP
+ 	int bit, *openp, index;
+ 
+ 	if (board_is_n800()) {
+@@ -339,7 +340,6 @@ static void n8x0_mmc_callback(void *data, u8 card_mask)
+ 	else
+ 		*openp = 0;
+ 
+-#ifdef CONFIG_MMC_OMAP
+ 	omap_mmc_notify_cover_event(mmc_device, index, *openp);
+ #else
+ 	pr_warn("MMC: notify cover event not available\n");
+-- 
+2.25.1
+
