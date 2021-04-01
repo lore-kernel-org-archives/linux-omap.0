@@ -2,69 +2,68 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70676C43470
-	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 18:10:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9621C43462
+	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 18:31:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58304611BD
-	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 18:10:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92C7660FEA
+	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 18:31:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235210AbhDASK4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 1 Apr 2021 14:10:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35608 "EHLO
+        id S233817AbhDASbs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 1 Apr 2021 14:31:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234671AbhDASGm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2021 14:06:42 -0400
-Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAFC8C02FEA7;
-        Thu,  1 Apr 2021 09:12:38 -0700 (PDT)
-Received: by mail-lj1-x230.google.com with SMTP id u9so2814499ljd.11;
-        Thu, 01 Apr 2021 09:12:38 -0700 (PDT)
+        with ESMTP id S236787AbhDASSd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2021 14:18:33 -0400
+Received: from mail-lf1-x134.google.com (mail-lf1-x134.google.com [IPv6:2a00:1450:4864:20::134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAC8BC02FEAD;
+        Thu,  1 Apr 2021 09:20:59 -0700 (PDT)
+Received: by mail-lf1-x134.google.com with SMTP id b14so3656101lfv.8;
+        Thu, 01 Apr 2021 09:20:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=r2enjizmpD/LJygPj4XEpQS/6/yzRXEF2wF7GTPmSXo=;
-        b=KyF3n3noNl+TF4SyZKEn3jqL0Mzlp8c6bW86UpMr0aPNIIUPyLsI61pZeNXgA6PwAD
-         wtYKQFIZc3XNHc+wGhz6vJWtEUGczM+s5yO4a21aLeQDUt0C476NSjWybeLLLsSxzuv3
-         wS7dD9KBYCSl8nDJB1lJrgZxACXRZ1jJcNoluQWLGdq8drqI+0kro/pqmrX0V5m2754/
-         Lh8Nv6nsac84VCAYU/AyyH44y1hQ2rUN8EnBO8ZS6RhdFm7yQTUOvPtosrCUrFVX7ubT
-         D65RGfnGaBJhMlVWWEpaeaL3h/23JxZImJs7qLSg66uHwgDoCeVzv/jBsVnTXRV/D9YC
-         OhqA==
+        bh=TsIThPytQbw/FRN51LQr5onPfH3wKs5FFxL6HpmuigI=;
+        b=Hw1BPIfiyZ7aUDBzT39/2jsbMvbTf8HPb2QUwf4hI0XKP192wn4EzGN+L3hQqgPanp
+         sX0QFytMKOpSTZeYkoxOHx/HUjdFps6AWMPfj1t4EfwqJl5qUwEcW6IpDKTS28ip/wg/
+         sc0fPXTQcsw75VnbeOx4HZeM08wymM5mH7cETSGlHqnXJzv9IpDiOgYK2TvH5dxY3SNM
+         GibA/Vd79u+cdoFNSEMcxV1lkDlm2euUERmWrClfWVCePXf1R8leC14xY88tZCixYVXt
+         hKlqKS2tDojiF8nzKh1NmPOT7u57Uv+m0HJe7ystjpQiwCoV63Fj2dzQcFcwJ5oytX+W
+         Ox0A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=r2enjizmpD/LJygPj4XEpQS/6/yzRXEF2wF7GTPmSXo=;
-        b=QrMZsHCazGDNoYMDT8CFEUKhQrXtNgeHQk4FeemzJPCjLudq5zzopOrJCg7xaLHlRN
-         Dd4veYU9+BaOy6vYz3Mi07LcVfHi/ZlDppeKG+nQPNYlspfyj7YUN65tUAwdhJE0PXXc
-         sfHzAY6eniGGLB8BSqu5ABH8dwRk3TNLNHKnyyGhDqJP2e1wisWHoHFuqtH5bl4WbA9n
-         r4ijoi0CT9n/dX0FzHo7aq0i6uVQMVkYbsXk7AzGY69vuAkjz9za2sUBM7PX7QX0/xzr
-         YSOJkadNNGvTrvAxQ3D+YhrBm/FI1GfVZiMWxQFeSSt3iZvI1u9KRSk1PRe8mn9LPQTJ
-         BMEw==
-X-Gm-Message-State: AOAM533ikS3a8+eh3XC/wsjB1osIW8BqlVs+BvpX074ZpGYnHBUeEENH
-        BqP+xR2K+vWJ/NiNjFw+f/A=
-X-Google-Smtp-Source: ABdhPJzcTjTlmmQdnEzAYC4y/zeNUyjAzAY+REJdX/vK/J+OVPyc4sDFCIkK9GVuPk/uNanPkBQncQ==
-X-Received: by 2002:a2e:b5d8:: with SMTP id g24mr6094104ljn.64.1617293557129;
-        Thu, 01 Apr 2021 09:12:37 -0700 (PDT)
+        bh=TsIThPytQbw/FRN51LQr5onPfH3wKs5FFxL6HpmuigI=;
+        b=YKkf26N5TZ6jH/XycuwyvWAUvUvjOEXtQq1S+SfpZrhgz0tslbjvev6lGBMfB3GMtp
+         +pfJWDeNA2Qk27cKHzMfJ+cpzMOOY34TgAvwPgsDDIIrI3vDuHEc0bRQBlaqeEsvov5m
+         Jgd3Ct/aNDWF+dF+ZQuPqeyx1kIyTcL9vdbpKNJUUIL7saCrdaOj+vSVNgJSzrTOUNFc
+         az0tJZmurvEaZXV5i1rwEFCMjn9eqTt85SFoC/vJqgG0UgUCfpEpaYR5wun9vaHclzzv
+         swPXN3Io7BpgFb52TzIVY3hKCXznnLdrcsoWzlVeQ5/6ewpBqGBkllROQJJoImQKia41
+         QLSQ==
+X-Gm-Message-State: AOAM531md4X7sF6XM3S/NI29nUk2yJaxRteTDFxe/1LMUJXF+UbqRHvG
+        hmF0SLaI8Qst41naujjcL/LOopjsyjQnFx++AV8=
+X-Google-Smtp-Source: ABdhPJz6rLKvbNN33cNOyRe6Bkzr8oEKoNLyjT7Ra6rDxJqkBGZUxfyPim7i3mmJn0j4lNpaQNwB3Q==
+X-Received: by 2002:a05:6512:4c4:: with SMTP id w4mr6080047lfq.91.1617294058343;
+        Thu, 01 Apr 2021 09:20:58 -0700 (PDT)
 Received: from 192.168.1.8 ([212.59.242.58])
-        by smtp.gmail.com with ESMTPSA id l10sm586356lfk.48.2021.04.01.09.12.35
+        by smtp.gmail.com with ESMTPSA id n22sm660215ljc.23.2021.04.01.09.20.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Apr 2021 09:12:36 -0700 (PDT)
+        Thu, 01 Apr 2021 09:20:57 -0700 (PDT)
 From:   Maciej Falkowski <maciej.falkowski9@gmail.com>
-To:     khilman@kernel.org, aaro.koskinen@iki.fi, tony@atomide.com,
-        linux@armlinux.org.uk
+To:     aaro.koskinen@iki.fi, tony@atomide.com, linux@armlinux.org.uk
 Cc:     linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-kernel@vger.kernel.org, clang-built-linux@googlegroups.com,
         maciej.falkowski9@gmail.com
-Subject: [PATCH] ARM: OMAP: Fix use of possibly uninitialized irq variable
-Date:   Thu,  1 Apr 2021 18:11:27 +0200
-Message-Id: <20210401161127.8942-1-maciej.falkowski9@gmail.com>
+Subject: [PATCH] usb: isp1301-omap: Add missing gpiod_add_lookup_table function
+Date:   Thu,  1 Apr 2021 18:20:32 +0200
+Message-Id: <20210401162032.10150-1-maciej.falkowski9@gmail.com>
 X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -72,58 +71,45 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The current control flow of IRQ number assignment to `irq` variable
-allows a request of IRQ of unspecified value,
-generating a warning under Clang compilation with omap1_defconfig on linux-next:
+The gpiod table was added without any usage making it unused
+as reported by Clang compilation from omap1_defconfig on linux-next:
 
-arch/arm/mach-omap1/pm.c:656:11: warning: variable 'irq' is used uninitialized whenever
-'if' condition is false [-Wsometimes-uninitialized]
-        else if (cpu_is_omap16xx())
-                 ^~~~~~~~~~~~~~~~~
-./arch/arm/mach-omap1/include/mach/soc.h:123:30: note: expanded from macro 'cpu_is_omap16xx'
-                                        ^~~~~~~~~~~~~
-arch/arm/mach-omap1/pm.c:658:18: note: uninitialized use occurs here
-        if (request_irq(irq, omap_wakeup_interrupt, 0, "peripheral wakeup",
-                        ^~~
-arch/arm/mach-omap1/pm.c:656:7: note: remove the 'if' if its condition is always true
-        else if (cpu_is_omap16xx())
-             ^~~~~~~~~~~~~~~~~~~~~~
-arch/arm/mach-omap1/pm.c:611:9: note: initialize the variable 'irq' to silence this warning
-        int irq;
-               ^
-                = 0
+arch/arm/mach-omap1/board-h2.c:347:34: warning: unused variable 'isp1301_gpiod_table' [-Wunused-variable]
+static struct gpiod_lookup_table isp1301_gpiod_table = {
+                                 ^
 1 warning generated.
 
-The patch provides a default value to the `irq` variable
-along with a validity check.
+The patch adds the missing gpiod_add_lookup_table() function.
 
 Signed-off-by: Maciej Falkowski <maciej.falkowski9@gmail.com>
-Link: https://github.com/ClangBuiltLinux/linux/issues/1324
+Fixes: f3ef38160e3d ("usb: isp1301-omap: Convert to use GPIO descriptors")
+Link: https://github.com/ClangBuiltLinux/linux/issues/1325
 ---
- arch/arm/mach-omap1/pm.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap1/board-h2.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index 2c1e2b32b9b3..a745d64d4699 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -655,9 +655,13 @@ static int __init omap_pm_init(void)
- 		irq = INT_7XX_WAKE_UP_REQ;
- 	else if (cpu_is_omap16xx())
- 		irq = INT_1610_WAKE_UP_REQ;
--	if (request_irq(irq, omap_wakeup_interrupt, 0, "peripheral wakeup",
--			NULL))
--		pr_err("Failed to request irq %d (peripheral wakeup)\n", irq);
-+	else
-+		irq = -1;
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index c40cf5ef8607..977b0b744c22 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -320,7 +320,7 @@ static int tps_setup(struct i2c_client *client, void *context)
+ {
+ 	if (!IS_BUILTIN(CONFIG_TPS65010))
+ 		return -ENOSYS;
+-	
 +
-+	if (irq >= 0) {
-+		if (request_irq(irq, omap_wakeup_interrupt, 0, "peripheral wakeup", NULL))
-+			pr_err("Failed to request irq %d (peripheral wakeup)\n", irq);
-+	}
+ 	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V |
+ 				TPS_LDO1_ENABLE | TPS_VLDO1_3_0V);
  
- 	/* Program new power ramp-up time
- 	 * (0 for most boards since we don't lower voltage when in deep sleep)
+@@ -394,6 +394,8 @@ static void __init h2_init(void)
+ 	BUG_ON(gpio_request(H2_NAND_RB_GPIO_PIN, "NAND ready") < 0);
+ 	gpio_direction_input(H2_NAND_RB_GPIO_PIN);
+ 
++	gpiod_add_lookup_table(&isp1301_gpiod_table);
++
+ 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
+ 	omap_cfg_reg(M8_1610_FLASH_CS2B_WE);
+ 
 -- 
 2.26.3
 
