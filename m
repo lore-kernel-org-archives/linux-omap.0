@@ -2,81 +2,98 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1BEAC433ED
-	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1F27C433ED
+	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 18:03:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B23C6112E
-	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB95E610C7
+	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 18:03:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236676AbhDAR60 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:58:26 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:16318 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236825AbhDARzW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2021 13:55:22 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4FB3MS0z2cz9420;
-        Thu,  1 Apr 2021 21:05:40 +0800 (CST)
-Received: from huawei.com (10.175.112.125) by DGGEMS410-HUB.china.huawei.com
- (10.3.19.210) with Microsoft SMTP Server id 14.3.498.0; Thu, 1 Apr 2021
- 21:07:42 +0800
-From:   Yongqiang Liu <liuyongqiang13@huawei.com>
-To:     <tony@atomide.com>, <linux@armlinux.org.uk>
-CC:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
-Subject: [PATCH -next] ARM: OMAP2+: Fix build warning when mmc_omap is not built
-Date:   Thu, 1 Apr 2021 13:15:33 +0000
-Message-ID: <20210401131533.998767-1-liuyongqiang13@huawei.com>
-X-Mailer: git-send-email 2.25.1
+        id S234276AbhDASDQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 1 Apr 2021 14:03:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60752 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S236545AbhDAR57 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 1 Apr 2021 13:57:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 29D3A61387;
+        Thu,  1 Apr 2021 16:42:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1617295360;
+        bh=riU2tj1yT3F0IuQjhXa4pac/YO1rxRb6i7I4npVo5pc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=uy4xXAI3nBUkXRgA0xxeelm039DdHmY9QrvgEaqV7c/hD+R3nWhON3cXTJoePyVOK
+         65TLCm9Vvx8Oono/XektCuGvkxxtS/OpzP76l7X9ArmZWC3T9HAzTqG3kthfICS8B0
+         TLdgjhWO7aHkT4ac/gDc6bhLz/wOtaNe9Q2BvGjDoG8PGAJrtS+Kvl9AzYZjn3IoMC
+         sdagP+R3Sfh0a9YiJqDSHpdR5RiVuJOd715GMoSWZaJBGv/IJUDbh73XeR76dbe9dC
+         d3xqhz16ddFbbOyiBFs0T1p/9STP7/TVn5CSiH0humaQcteVWfIoMVADqs2KRvSB0/
+         NmJAKJdL5fBRg==
+Date:   Thu, 1 Apr 2021 09:42:35 -0700
+From:   Nathan Chancellor <nathan@kernel.org>
+To:     Maciej Falkowski <maciej.falkowski9@gmail.com>
+Cc:     aaro.koskinen@iki.fi, tony@atomide.com, linux@armlinux.org.uk,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, clang-built-linux@googlegroups.com
+Subject: Re: [PATCH] usb: isp1301-omap: Add missing gpiod_add_lookup_table
+ function
+Message-ID: <20210401164235.cb6hrx55vkqiuvz2@archlinux-ax161>
+References: <20210401162032.10150-1-maciej.falkowski9@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.112.125]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210401162032.10150-1-maciej.falkowski9@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-GCC reports the following warning with W=1:
+On Thu, Apr 01, 2021 at 06:20:32PM +0200, Maciej Falkowski wrote:
+> The gpiod table was added without any usage making it unused
+> as reported by Clang compilation from omap1_defconfig on linux-next:
+> 
+> arch/arm/mach-omap1/board-h2.c:347:34: warning: unused variable 'isp1301_gpiod_table' [-Wunused-variable]
+> static struct gpiod_lookup_table isp1301_gpiod_table = {
+>                                  ^
+> 1 warning generated.
+> 
+> The patch adds the missing gpiod_add_lookup_table() function.
+> 
+> Signed-off-by: Maciej Falkowski <maciej.falkowski9@gmail.com>
+> Fixes: f3ef38160e3d ("usb: isp1301-omap: Convert to use GPIO descriptors")
+> Link: https://github.com/ClangBuiltLinux/linux/issues/1325
 
-arch/arm/mach-omap2/board-n8x0.c:325:19: warning:
-variable 'index' set but not used [-Wunused-but-set-variable]
-325 |  int bit, *openp, index;
-    |                   ^~~~~
+Thanks for the patch!
 
-Fix this by moving CONFIG_MMC_OMAP to cover the rest codes
-in the n8x0_mmc_callback().
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
 
-Signed-off-by: Yongqiang Liu <liuyongqiang13@huawei.com>
----
- arch/arm/mach-omap2/board-n8x0.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 418a61ecb827..5e86145db0e2 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -322,6 +322,7 @@ static int n8x0_mmc_get_cover_state(struct device *dev, int slot)
- 
- static void n8x0_mmc_callback(void *data, u8 card_mask)
- {
-+#ifdef CONFIG_MMC_OMAP
- 	int bit, *openp, index;
- 
- 	if (board_is_n800()) {
-@@ -339,7 +340,6 @@ static void n8x0_mmc_callback(void *data, u8 card_mask)
- 	else
- 		*openp = 0;
- 
--#ifdef CONFIG_MMC_OMAP
- 	omap_mmc_notify_cover_event(mmc_device, index, *openp);
- #else
- 	pr_warn("MMC: notify cover event not available\n");
--- 
-2.25.1
-
+> ---
+>  arch/arm/mach-omap1/board-h2.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+> index c40cf5ef8607..977b0b744c22 100644
+> --- a/arch/arm/mach-omap1/board-h2.c
+> +++ b/arch/arm/mach-omap1/board-h2.c
+> @@ -320,7 +320,7 @@ static int tps_setup(struct i2c_client *client, void *context)
+>  {
+>  	if (!IS_BUILTIN(CONFIG_TPS65010))
+>  		return -ENOSYS;
+> -	
+> +
+>  	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V |
+>  				TPS_LDO1_ENABLE | TPS_VLDO1_3_0V);
+>  
+> @@ -394,6 +394,8 @@ static void __init h2_init(void)
+>  	BUG_ON(gpio_request(H2_NAND_RB_GPIO_PIN, "NAND ready") < 0);
+>  	gpio_direction_input(H2_NAND_RB_GPIO_PIN);
+>  
+> +	gpiod_add_lookup_table(&isp1301_gpiod_table);
+> +
+>  	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
+>  	omap_cfg_reg(M8_1610_FLASH_CS2B_WE);
+>  
+> -- 
+> 2.26.3
+> 
