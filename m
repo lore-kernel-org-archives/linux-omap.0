@@ -2,129 +2,102 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BECEC433B4
-	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 09:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6CC3C433B4
+	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3EBE8610CC
-	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 09:44:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6803E610A0
+	for <linux-omap@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233553AbhDAJn3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 1 Apr 2021 05:43:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56794 "EHLO mail.kernel.org"
+        id S236133AbhDAR6W (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 1 Apr 2021 13:58:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57202 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230284AbhDAJnG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 1 Apr 2021 05:43:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8958560FE8;
-        Thu,  1 Apr 2021 09:43:05 +0000 (UTC)
+        id S236630AbhDARzA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 1 Apr 2021 13:55:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BD3861381;
+        Thu,  1 Apr 2021 16:37:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617270185;
-        bh=Yrz9+JUWWWv7fTZsYX+1n7GPNYO74iP0u1uRWzNvi1k=;
+        s=k20201202; t=1617295057;
+        bh=mSocOIXGvAFKcL19Ce6fU683sMoxx6GOB2FI63UFFps=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=LTMT1i2w1rDsrdehRnXN2kA8j/04CGtN/4wASwI2hC7otfSvjl5Qeu1cdjaRV22Qf
-         /+i35ov2TbqjwLFeSq2UQEQlS8Or7pnp3G4E80tGTzm+DqzO1r8C4FYfDDVStLNMru
-         RIhd8uT3508g70HvDpF0M+EEBXMewf/gzM/nqGYSQrbCusQzjwtpvClxLtMuJx1VCK
-         UQT+C7BQDeNLx96rNQ7NhulvzPPNDCGN7Odrs5vfus7tURnPvvq/b8AvX6XDpy/fLg
-         9Usu14BmlWtw8dU4nWbN23KPkb5uNHsXEh57UE4H0OurWELIWEM/b41PUddtWzUb1n
-         ACGOgpgVykG3g==
-Received: from johan by xi.lan with local (Exim 4.93.0.4)
-        (envelope-from <johan@kernel.org>)
-        id 1lRtqw-0008PZ-UA; Thu, 01 Apr 2021 11:43:02 +0200
-Date:   Thu, 1 Apr 2021 11:43:02 +0200
-From:   Johan Hovold <johan@kernel.org>
-To:     Pavel Machek <pavel@ucw.cz>
-Cc:     Rob Herring <robh@kernel.org>, Tony Lindgren <tony@atomide.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <gnomes@lxorguk.ukuu.org.uk>,
-        Lee Jones <lee.jones@linaro.org>, Jiri Slaby <jslaby@suse.cz>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Peter Hurley <peter@hurleysoftware.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-serial@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH 3/6] dt-bindings: serdev: ngsm: Add binding for GNSS
- child node
-Message-ID: <YGWVpvEci16RpAOg@hovoldconsulting.com>
-References: <20200512214713.40501-1-tony@atomide.com>
- <20200512214713.40501-4-tony@atomide.com>
- <20200527192817.GA2587830@bogus>
- <20200528095151.GE10358@localhost>
- <20210305104635.GA16695@duo.ucw.cz>
+        b=pfG4Ny5Naj2xO9xJs/GhyfkzUzVPEQeW7HePHaZfQpEBvHsMoE1lwGJBb/BJJTaxu
+         LUTinilDjFtooZMZrmOLb/hUKZBguT8qdlqESp7Is4n7dJZVoo00lOu+jqlZFuehBv
+         xFVWQB5fH6jYeAqP1RSl77oan6W2dBgFrNW/7Bbw5CaRaedgR8kecWxdJ+9v4+6kKX
+         Vu0AG3AcvLjiGo6cASKJTWUltZn2tikCt7qkRAD6CxQSq5OynMTpNQNRDpoHoKuPlo
+         Ey4SipMN6Cv/6ZK//nVQA7KzYcBsJJaHRBGp9lrar9wH/NdJxw/UUq5x7MiVzUIahF
+         WAHIpad4zTH0w==
+Date:   Thu, 1 Apr 2021 09:37:32 -0700
+From:   Nathan Chancellor <nathan@kernel.org>
+To:     Maciej Falkowski <maciej.falkowski9@gmail.com>
+Cc:     aaro.koskinen@iki.fi, tony@atomide.com, linux@armlinux.org.uk,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, clang-built-linux@googlegroups.com
+Subject: Re: [PATCH] ARM: OMAP1: ams-delta: remove unused function
+ ams_delta_camera_power
+Message-ID: <20210401163732.gl63gs2dpi6pickt@archlinux-ax161>
+References: <20210401160434.7655-1-maciej.falkowski9@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="/Hd9/fYkpnpPNgUL"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210305104635.GA16695@duo.ucw.cz>
+In-Reply-To: <20210401160434.7655-1-maciej.falkowski9@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On Thu, Apr 01, 2021 at 06:04:34PM +0200, Maciej Falkowski wrote:
+> The ams_delta_camera_power() function is unused as reports
+> Clang compilation with omap1_defconfig on linux-next:
+> 
+> arch/arm/mach-omap1/board-ams-delta.c:462:12: warning: unused function 'ams_delta_camera_power' [-Wunused-function]
+> static int ams_delta_camera_power(struct device *dev, int power)
+>            ^
+> 1 warning generated.
+> 
+> The soc_camera support was dropped without removing
+> ams_delta_camera_power() function, making it unused.
+> 
+> Signed-off-by: Maciej Falkowski <maciej.falkowski9@gmail.com>
+> Fixes: ce548396a433 ("media: mach-omap1: board-ams-delta.c: remove soc_camera dependencies")
+> Link: https://github.com/ClangBuiltLinux/linux/issues/1326
 
---/Hd9/fYkpnpPNgUL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for the patch!
 
-On Fri, Mar 05, 2021 at 11:46:35AM +0100, Pavel Machek wrote:
-> Hi!
->=20
-> > > > For motorola modem case, we may have a GNSS device on channel 4.
-> > > > Let's add that to the binding and example.
-> > > >=20
-> > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > > ---
-> > > >  .../devicetree/bindings/serdev/serdev-ngsm.yaml          | 9 +++++=
-++++
-> > > >  1 file changed, 9 insertions(+)
->=20
-> >=20
-> > And since we're describing a mux, I think you need nodes for the virtual
-> > ports rather than a reg property in what should be a serial client. That
-> > is something like
-> >=20
-> > 	serial@nnn {
-> > 		modem {
-> > 			compatible =3D "etsi,ts27001-mux";
-> >=20
-> > 			serial@4 {
-> > 				compatible =3D "etsi,ts27001-serial";
-> > 				reg =3D <4>;
-> >=20
-> > 				gnss {
-> > 					compatible =3D "motorola,motmdm-gnss";
-> > 				};
-> > 			};
-> > 		};
-> > 	};
-> >=20
-> > This way you can actually use serdev for the client drivers (e.g. for
-> > gnss), and those drivers also be used for non-muxed ports if needed
-> > (e.g. over USB).
->=20
-> I have done changes you requested, and then hit "serdev is busy
-> because it can have at most one child" limit in the code. You have
-> pretty clean driver in your inbox, and no reply. No help with serdev
-> core limitations, either. Can you start to communicate?
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
 
-Heh, look at the devicetree example above that I gave you back in March.
-It has the virtual serial ports described ("serial@4"), which you were
-missing.
-
-Johan
-
---/Hd9/fYkpnpPNgUL
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQQHbPq+cpGvN/peuzMLxc3C7H1lCAUCYGWVogAKCRALxc3C7H1l
-CP6uAQDltdfufHVUrRYNBelpVl3fEoTsf1GoHJoqhBC24nKaSAEA3NEtBSgdOhRM
-Pv+uTEMD+C+Z5GqmUMgcrl1pzCWVIwM=
-=JZxP
------END PGP SIGNATURE-----
-
---/Hd9/fYkpnpPNgUL--
+> ---
+>  arch/arm/mach-omap1/board-ams-delta.c | 14 --------------
+>  1 file changed, 14 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> index 2ee527c00284..1026a816dcc0 100644
+> --- a/arch/arm/mach-omap1/board-ams-delta.c
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> @@ -458,20 +458,6 @@ static struct gpiod_lookup_table leds_gpio_table = {
+>  
+>  #ifdef CONFIG_LEDS_TRIGGERS
+>  DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
+> -
+> -static int ams_delta_camera_power(struct device *dev, int power)
+> -{
+> -	/*
+> -	 * turn on camera LED
+> -	 */
+> -	if (power)
+> -		led_trigger_event(ams_delta_camera_led_trigger, LED_FULL);
+> -	else
+> -		led_trigger_event(ams_delta_camera_led_trigger, LED_OFF);
+> -	return 0;
+> -}
+> -#else
+> -#define ams_delta_camera_power	NULL
+>  #endif
+>  
+>  static struct platform_device ams_delta_audio_device = {
+> -- 
+> 2.26.3
+> 
