@@ -2,114 +2,170 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F524C43460
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Apr 2021 15:57:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90DECC43470
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Apr 2021 16:10:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB5FD61262
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Apr 2021 15:57:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66E7A610E8
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Apr 2021 16:10:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353967AbhDGP5P (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 7 Apr 2021 11:57:15 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:52412 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353963AbhDGP5O (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2021 11:57:14 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 137Fuv2M116694;
-        Wed, 7 Apr 2021 10:56:57 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1617811017;
-        bh=lOwAl47wlPJVft+vfoxzycwCK0HQrG3UgumGfK8Po28=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=KNtSgeq3aa588FmSwv19JSBiEhzJZpsLe4s5FO8io2vutKBzIiFU9YuIEoOLbomUx
-         r7ehHeJVRnkH7cPh+D/3wbXfCHlHt2Zrg2ercYdZyrwGUgJq/8ao8PXDLNmfbJ2jCU
-         iMi2evWA/FY4Xl65mlTSk6S0Oqr4/n4Bcswe7F1o=
-Received: from DLEE110.ent.ti.com (dlee110.ent.ti.com [157.170.170.21])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 137FuvrE045267
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 7 Apr 2021 10:56:57 -0500
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Wed, 7 Apr
- 2021 10:56:57 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
- Frontend Transport; Wed, 7 Apr 2021 10:56:57 -0500
-Received: from fllv0103.dal.design.ti.com (fllv0103.dal.design.ti.com [10.247.120.73])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 137FuvV9112804;
-        Wed, 7 Apr 2021 10:56:57 -0500
-Received: from localhost ([10.250.37.105])
-        by fllv0103.dal.design.ti.com (8.14.7/8.14.7) with ESMTP id 137Fuv7D101689;
-        Wed, 7 Apr 2021 10:56:57 -0500
-From:   Suman Anna <s-anna@ti.com>
-To:     Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>
-CC:     Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
-        Jan Kiszka <jan.kiszka@siemens.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Lokesh Vutla <lokeshvutla@ti.com>,
-        <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH v2 2/3] remoteproc: pru: Fix wrong success return value for fw events
-Date:   Wed, 7 Apr 2021 10:56:40 -0500
-Message-ID: <20210407155641.5501-3-s-anna@ti.com>
-X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210407155641.5501-1-s-anna@ti.com>
-References: <20210407155641.5501-1-s-anna@ti.com>
+        id S235169AbhDGQK5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 7 Apr 2021 12:10:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42402 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232069AbhDGQKy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2021 12:10:54 -0400
+Received: from ssl.serverraum.org (ssl.serverraum.org [IPv6:2a01:4f8:151:8464::1:2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED212C061760;
+        Wed,  7 Apr 2021 09:10:38 -0700 (PDT)
+Received: from ssl.serverraum.org (web.serverraum.org [172.16.0.2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ssl.serverraum.org (Postfix) with ESMTPSA id 18A9F22236;
+        Wed,  7 Apr 2021 18:10:31 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=walle.cc; s=mail2016061301;
+        t=1617811836;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=gjuAN9QqCnWD77UCettma95Ojaeyk86+8J2wmtLYYZo=;
+        b=i99BezLwmPOE6w4/hGL0FvjE3br7uwuw9VGO9aRg8uJTlzeGu8Ac4FIxGX9vOQ8oMVP/r/
+        vE3I00R508lGU6R1pfNebHfFNtH5wO92z1+kMGfRRoMcmLezfBux9iSvegup2fWrGU4qza
+        5flIWUW4ulzNHWTXNBqNWa8WPLM3Izs=
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date:   Wed, 07 Apr 2021 18:10:30 +0200
+From:   Michael Walle <michael@walle.cc>
+To:     ath9k-devel@qca.qualcomm.com, UNGLinuxDriver@microchip.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
+        linux-mediatek@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-amlogic@lists.infradead.org, linux-oxnas@groups.io,
+        linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-staging@lists.linux.dev
+Cc:     Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Andreas Larsson <andreas@gaisler.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Maxime Ripard <mripard@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Jernej Skrabec <jernej.skrabec@siol.net>,
+        Joyce Ooi <joyce.ooi@intel.com>,
+        Chris Snook <chris.snook@gmail.com>,
+        =?UTF-8?Q?Rafa=C5=82_Mi=C5=82ecki?= <rafal@milecki.pl>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Sunil Goutham <sgoutham@marvell.com>,
+        Fugang Duan <fugang.duan@nxp.com>,
+        Madalin Bucur <madalin.bucur@nxp.com>,
+        Pantelis Antoniou <pantelis.antoniou@gmail.com>,
+        Claudiu Manoil <claudiu.manoil@nxp.com>,
+        Li Yang <leoyang.li@nxp.com>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
+        Hauke Mehrtens <hauke@hauke-m.de>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Vadym Kochan <vkochan@marvell.com>,
+        Taras Chornyi <tchornyi@marvell.com>,
+        Mirko Lindner <mlindner@marvell.com>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        Felix Fietkau <nbd@nbd.name>, John Crispin <john@phrozen.org>,
+        Sean Wang <sean.wang@mediatek.com>,
+        Mark Lee <Mark-MC.Lee@mediatek.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Bryan Whitehead <bryan.whitehead@microchip.com>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Sergei Shtylyov <sergei.shtylyov@gmail.com>,
+        Byungho An <bh74.an@samsung.com>,
+        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+        Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Jose Abreu <joabreu@synopsys.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Vinod Koul <vkoul@kernel.org>,
+        Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Wingman Kwok <w-kwok2@ti.com>,
+        Murali Karicheri <m-karicheri2@ti.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>,
+        Ryder Lee <ryder.lee@mediatek.com>,
+        Stanislaw Gruszka <stf_xl@wp.pl>,
+        Helmut Schaa <helmut.schaa@googlemail.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        =?UTF-8?Q?J=C3=A9r=C3=B4me?= =?UTF-8?Q?_Pouiller?= 
+        <jerome.pouiller@silabs.com>,
+        Vivien Didelot <vivien.didelot@gmail.com>,
+        Vladimir Oltean <olteanv@gmail.com>
+Subject: Re: [PATCH net-next v3 1/2] of: net: pass the dst buffer to
+ of_get_mac_address()
+In-Reply-To: <20210406220921.24313-2-michael@walle.cc>
+References: <20210406220921.24313-1-michael@walle.cc>
+ <20210406220921.24313-2-michael@walle.cc>
+User-Agent: Roundcube Webmail/1.4.11
+Message-ID: <50f474611ecf0f5e61c9a14a24b28773@walle.cc>
+X-Sender: michael@walle.cc
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The irq_create_fwspec_mapping() returns a proper virq value on success
-and 0 upon any failure. The pru_handle_intrmap() treats this as an error
-and disposes all firmware event mappings correctly, but is returning
-this incorrect value as is, letting the pru_rproc_start() interpret it
-as a success and boot the PRU.
+Am 2021-04-07 00:09, schrieb Michael Walle:
+[..]
+> diff --git a/drivers/of/of_net.c b/drivers/of/of_net.c
+> index bc0a27de69d4..2d5d5e59aea5 100644
+> --- a/drivers/of/of_net.c
+> +++ b/drivers/of/of_net.c
+> @@ -45,42 +45,35 @@ int of_get_phy_mode(struct device_node *np,
+> phy_interface_t *interface)
+>  }
+>  EXPORT_SYMBOL_GPL(of_get_phy_mode);
+> 
+> -static const void *of_get_mac_addr(struct device_node *np, const char 
+> *name)
+> +static int of_get_mac_addr(struct device_node *np, const char *name, 
+> u8 *addr)
+>  {
+>  	struct property *pp = of_find_property(np, name, NULL);
+> 
+> -	if (pp && pp->length == ETH_ALEN && is_valid_ether_addr(pp->value))
+> -		return pp->value;
+> -	return NULL;
+> +	if (pp && pp->length == ETH_ALEN && is_valid_ether_addr(pp->value)) {
+> +		ether_addr_copy(addr, pp->value);
 
-Fix this by returning an error value back upon any such failure. While
-at this, revise the error trace to print some meaningful info about the
-failed event.
+Mh, I guess this should rather be memcpy(addr, pp->value, ETH_ALEN) 
+because
+ether_addr_copy() needs 2 byte aligned source and destination buffers.
 
-Fixes: c75c9fdac66e ("remoteproc: pru: Add support for PRU specific interrupt configuration")
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Reviewed-by: Mathieu Poirier <mathieu.poirier@linaro.org>
----
-v2:
- - No changes, picked up Reviewed-by tag
-v1: https://patchwork.kernel.org/project/linux-remoteproc/patch/20210323223839.17464-3-s-anna@ti.com/
-
- drivers/remoteproc/pru_rproc.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index a9d07c0751be..87b43976c51b 100644
---- a/drivers/remoteproc/pru_rproc.c
-+++ b/drivers/remoteproc/pru_rproc.c
-@@ -339,8 +339,10 @@ static int pru_handle_intrmap(struct rproc *rproc)
- 
- 		pru->mapped_irq[i] = irq_create_fwspec_mapping(&fwspec);
- 		if (!pru->mapped_irq[i]) {
--			dev_err(dev, "failed to get virq\n");
--			ret = pru->mapped_irq[i];
-+			dev_err(dev, "failed to get virq for fw mapping %d: event %d chnl %d host %d\n",
-+				i, fwspec.param[0], fwspec.param[1],
-+				fwspec.param[2]);
-+			ret = -EINVAL;
- 			goto map_fail;
- 		}
- 	}
--- 
-2.30.1
-
+-michael
