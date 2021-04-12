@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7F25C4360C
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A95A1C43470
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:25:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C46616139D
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:25:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 750F761367
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:25:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244249AbhDLQZa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Apr 2021 12:25:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57016 "EHLO mail.kernel.org"
+        id S244447AbhDLQZ7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 12 Apr 2021 12:25:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243827AbhDLQY2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 12 Apr 2021 12:24:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1B72061289;
-        Mon, 12 Apr 2021 16:24:09 +0000 (UTC)
+        id S243810AbhDLQYl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 12 Apr 2021 12:24:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5950061288;
+        Mon, 12 Apr 2021 16:24:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618244649;
-        bh=08saPRykXgVBm3qGNlVbF5oPH9Hn4UhPEzwU3vJzLjI=;
+        s=k20201202; t=1618244663;
+        bh=hHIQYb42wdWozvUKH6R1Uzezj7+klWmXY0qSapeadp8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RsOw20DZMBLGNeZSSuY8uI7DVyTpv61YXRhuoY9JJdTn7sIbKV3hXyVslVMJ5vs0F
-         7334ZQkeioDuY2UHBteRE9LLAZLdyT8lFr2h1pQonXhaG6fD2F4Awvdg2tz43mvg4r
-         uIm9VVopFaE+IEWKiatJ4jxk7eMca8e+QAdtEppmJCJGZju3ut8TNv/+ST19EjKg7t
-         s990DtJHofAOZoIyivj/r/Atty6K9NMi6e1QwMzEqZ4bCgbVqp4wRpzoyKQc2lndBe
-         4TCBkWIcwZ7LNVqaavQrmdFtGMx+M5LoxcqYvcLgTlXOnXYQeQ0rMiezP/SEsJnccR
-         3UV3xpCahWk1A==
+        b=OGqFORcNoUdFpxh9qWircI7bertpx74a4Ccq1vxg4SBgANOWOoJP63d277K2u5Kfi
+         Mh6+IGRLiWUfRLdME6MdFUFIb1bMYvqAy7YRs6qJLXwpwTCBd1o3gBTXKNSSf4Uz8K
+         4Bzq3kMmO5xCAvo3Vzi3Flj7un5COKTvqAmHgQfihqcKZj4T1orLCSyGztVret/YX8
+         SVWNt8ND5bG38LnvEa9ayu7v7/FIsqvYXRv781lAzkrGxqPOZZZFn5de5Wu1zd2g+c
+         IRI1+msp4nUjBwcerrB/QxAIRpJIX8pDMHBWlZDMFfP9ZijLrJVNe0btpmdFZgxyWq
+         z1ZcMuQBDDFIQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 06/46] ARM: dts: Drop duplicate sha2md5_fck to fix clk_disable race
-Date:   Mon, 12 Apr 2021 12:23:21 -0400
-Message-Id: <20210412162401.314035-6-sashal@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>,
+        Sasha Levin <sashal@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        clang-built-linux@googlegroups.com
+Subject: [PATCH AUTOSEL 5.10 17/46] ARM: omap1: fix building with clang IAS
+Date:   Mon, 12 Apr 2021 12:23:32 -0400
+Message-Id: <20210412162401.314035-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210412162401.314035-1-sashal@kernel.org>
 References: <20210412162401.314035-1-sashal@kernel.org>
@@ -49,40 +51,54 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
 
-[ Upstream commit 140a776833957539c84301dbdb4c3013876de118 ]
+[ Upstream commit 28399a5a6d569c9bdb612345e4933046ca37cde5 ]
 
-We have a duplicate legacy clock defined for sha2md5_fck that can
-sometimes race with clk_disable() with the dts configured clock
-for OMAP4_SHA2MD5_CLKCTRL when unused clocks are disabled during
-boot causing an "Unhandled fault: imprecise external abort".
+The clang integrated assembler fails to build one file with
+a complex asm instruction:
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+arch/arm/mach-omap1/ams-delta-fiq-handler.S:249:2: error: invalid instruction, any one of the following would fix this:
+ mov r10, #(1 << (((NR_IRQS_LEGACY + 12) - NR_IRQS_LEGACY) % 32)) @ set deferred_fiq bit
+ ^
+arch/arm/mach-omap1/ams-delta-fiq-handler.S:249:2: note: instruction requires: armv6t2
+ mov r10, #(1 << (((NR_IRQS_LEGACY + 12) - NR_IRQS_LEGACY) % 32)) @ set deferred_fiq bit
+ ^
+arch/arm/mach-omap1/ams-delta-fiq-handler.S:249:2: note: instruction requires: thumb2
+ mov r10, #(1 << (((NR_IRQS_LEGACY + 12) - NR_IRQS_LEGACY) % 32)) @ set deferred_fiq bit
+ ^
+
+The problem is that 'NR_IRQS_LEGACY' is not defined here. Apparently
+gas does not care because we first add and then subtract this number,
+leading to the immediate value to be the same regardless of the
+specific definition of NR_IRQS_LEGACY.
+
+Neither the way that 'gas' just silently builds this file, nor the
+way that clang IAS makes nonsensical suggestions for how to fix it
+is great. Fortunately there is an easy fix, which is to #include
+the header that contains the definition.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Link: https://lore.kernel.org/r/20210308153430.2530616-1-arnd@kernel.org'
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap44xx-clocks.dtsi | 8 --------
- 1 file changed, 8 deletions(-)
+ arch/arm/mach-omap1/ams-delta-fiq-handler.S | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-index 532868591107..1f1c04d8f472 100644
---- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-@@ -770,14 +770,6 @@ per_abe_nc_fclk: per_abe_nc_fclk@108 {
- 		ti,max-div = <2>;
- 	};
+diff --git a/arch/arm/mach-omap1/ams-delta-fiq-handler.S b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+index 14a6c3eb3298..f745a65d3bd7 100644
+--- a/arch/arm/mach-omap1/ams-delta-fiq-handler.S
++++ b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+@@ -15,6 +15,7 @@
+ #include <linux/platform_data/gpio-omap.h>
  
--	sha2md5_fck: sha2md5_fck@15c8 {
--		#clock-cells = <0>;
--		compatible = "ti,gate-clock";
--		clocks = <&l3_div_ck>;
--		ti,bit-shift = <1>;
--		reg = <0x15c8>;
--	};
--
- 	usb_phy_cm_clk32k: usb_phy_cm_clk32k@640 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
+ #include <asm/assembler.h>
++#include <asm/irq.h>
+ 
+ #include "ams-delta-fiq.h"
+ #include "board-ams-delta.h"
 -- 
 2.30.2
 
