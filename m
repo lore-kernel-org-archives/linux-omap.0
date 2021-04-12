@@ -7,42 +7,40 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C94E8C43461
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:23:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65828C43461
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:24:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9759761288
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:23:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 492B46138A
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Apr 2021 16:24:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243524AbhDLQXz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Apr 2021 12:23:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55546 "EHLO mail.kernel.org"
+        id S243937AbhDLQZI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 12 Apr 2021 12:25:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243457AbhDLQXl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 12 Apr 2021 12:23:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 16EC160FD7;
-        Mon, 12 Apr 2021 16:23:22 +0000 (UTC)
+        id S243578AbhDLQY3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 12 Apr 2021 12:24:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3EEB561241;
+        Mon, 12 Apr 2021 16:24:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618244602;
-        bh=hHIQYb42wdWozvUKH6R1Uzezj7+klWmXY0qSapeadp8=;
+        s=k20201202; t=1618244650;
+        bh=HWezMgCm2M/PGxUl5tDZmJg3Y7L78SJ4bHpqYvaDNXo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=d/1pgvglx1vhGGEde5tPQFbQFo6dgK6tl2k6S9BO9U8OksNCfUAFBzfQWlkQ4l1hy
-         B4hADjubx1nj7yRTrGy6dKqtS8ZAW1Sem0mQ+zZOjwPWnHrs7/kDxhflniHevgI0c+
-         KvB40aw5PB9K7qEeewlaVOw2L1CxFzctHryoKnxaRn4/OATkzpmliRYQCngkDhRqVg
-         toMrMFbq4lFYTKXzwfCFnD5AX13fIOBC1lLd6jKmkgClel4Yyo7Xer0vmb5cDcclRS
-         +d04/5YMIakMs8caqYL0L3rU3vFu6e6bQbP/UYlKnoFjexGcLlO13NCmm41/zVl1MN
-         6tJXcfCREEtNg==
+        b=ORRKyuLl76JqpFYUQA8jlbHdj+cgro/BE8UjSq3+TUhbvl35H4IIFvkE7uoQenMfo
+         Ih29TvZio3cgq6RnasqmtfkX4G6EF2ygw27t9bTOGqASlu8twROmh883CPDQ9urMso
+         HTI8KpdsWhJmpUslbjFuWTwMRJlAN+7h/2/oaPVGJWZNHcwOwVAaLvoX09iEXoPaXF
+         4m7to/YRq2WgopPYh4xe8RsLHJQvqbPdkkhWbbT36iVbSlN7e55Hz9FchfuGkASlvd
+         13TFc+6CmzOA/QAQB/igIV7trxLTFwRXnm+MlvkWF9lZfCPlT5x32vCTbWJPUvK5RV
+         D9fTmecQvHXeQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>,
-        Sasha Levin <sashal@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        clang-built-linux@googlegroups.com
-Subject: [PATCH AUTOSEL 5.11 21/51] ARM: omap1: fix building with clang IAS
-Date:   Mon, 12 Apr 2021 12:22:26 -0400
-Message-Id: <20210412162256.313524-21-sashal@kernel.org>
+Cc:     Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.10 07/46] ARM: dts: Fix moving mmc devices with aliases for omap4 & 5
+Date:   Mon, 12 Apr 2021 12:23:22 -0400
+Message-Id: <20210412162401.314035-7-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210412162256.313524-1-sashal@kernel.org>
-References: <20210412162256.313524-1-sashal@kernel.org>
+In-Reply-To: <20210412162401.314035-1-sashal@kernel.org>
+References: <20210412162401.314035-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -51,54 +49,53 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 28399a5a6d569c9bdb612345e4933046ca37cde5 ]
+[ Upstream commit 77335a040178a0456d4eabc8bf17a7ca3ee4a327 ]
 
-The clang integrated assembler fails to build one file with
-a complex asm instruction:
+Fix moving mmc devices with dts aliases as discussed on the lists.
+Without this we now have internal eMMC mmc1 show up as mmc2 compared
+to the earlier order of devices.
 
-arch/arm/mach-omap1/ams-delta-fiq-handler.S:249:2: error: invalid instruction, any one of the following would fix this:
- mov r10, #(1 << (((NR_IRQS_LEGACY + 12) - NR_IRQS_LEGACY) % 32)) @ set deferred_fiq bit
- ^
-arch/arm/mach-omap1/ams-delta-fiq-handler.S:249:2: note: instruction requires: armv6t2
- mov r10, #(1 << (((NR_IRQS_LEGACY + 12) - NR_IRQS_LEGACY) % 32)) @ set deferred_fiq bit
- ^
-arch/arm/mach-omap1/ams-delta-fiq-handler.S:249:2: note: instruction requires: thumb2
- mov r10, #(1 << (((NR_IRQS_LEGACY + 12) - NR_IRQS_LEGACY) % 32)) @ set deferred_fiq bit
- ^
-
-The problem is that 'NR_IRQS_LEGACY' is not defined here. Apparently
-gas does not care because we first add and then subtract this number,
-leading to the immediate value to be the same regardless of the
-specific definition of NR_IRQS_LEGACY.
-
-Neither the way that 'gas' just silently builds this file, nor the
-way that clang IAS makes nonsensical suggestions for how to fix it
-is great. Fortunately there is an easy fix, which is to #include
-the header that contains the definition.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Link: https://lore.kernel.org/r/20210308153430.2530616-1-arnd@kernel.org'
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap1/ams-delta-fiq-handler.S | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/omap4.dtsi | 5 +++++
+ arch/arm/boot/dts/omap5.dtsi | 5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/arch/arm/mach-omap1/ams-delta-fiq-handler.S b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
-index 14a6c3eb3298..f745a65d3bd7 100644
---- a/arch/arm/mach-omap1/ams-delta-fiq-handler.S
-+++ b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
-@@ -15,6 +15,7 @@
- #include <linux/platform_data/gpio-omap.h>
- 
- #include <asm/assembler.h>
-+#include <asm/irq.h>
- 
- #include "ams-delta-fiq.h"
- #include "board-ams-delta.h"
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index d6475cc6a91a..049174086756 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -22,6 +22,11 @@ aliases {
+ 		i2c1 = &i2c2;
+ 		i2c2 = &i2c3;
+ 		i2c3 = &i2c4;
++		mmc0 = &mmc1;
++		mmc1 = &mmc2;
++		mmc2 = &mmc3;
++		mmc3 = &mmc4;
++		mmc4 = &mmc5;
+ 		serial0 = &uart1;
+ 		serial1 = &uart2;
+ 		serial2 = &uart3;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 2bf2e5839a7f..530210db2719 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -25,6 +25,11 @@ aliases {
+ 		i2c2 = &i2c3;
+ 		i2c3 = &i2c4;
+ 		i2c4 = &i2c5;
++		mmc0 = &mmc1;
++		mmc1 = &mmc2;
++		mmc2 = &mmc3;
++		mmc3 = &mmc4;
++		mmc4 = &mmc5;
+ 		serial0 = &uart1;
+ 		serial1 = &uart2;
+ 		serial2 = &uart3;
 -- 
 2.30.2
 
