@@ -2,148 +2,59 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24A19C433B4
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Apr 2021 17:33:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1403C433B4
+	for <linux-omap@archiver.kernel.org>; Sat, 17 Apr 2021 08:28:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 096B5613C3
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Apr 2021 17:33:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74FDF611EF
+	for <linux-omap@archiver.kernel.org>; Sat, 17 Apr 2021 08:28:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242401AbhDPReC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 16 Apr 2021 13:34:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56898 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236140AbhDPReB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2021 13:34:01 -0400
-Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBBE5C061574;
-        Fri, 16 Apr 2021 10:33:34 -0700 (PDT)
-Received: by mail-pg1-x532.google.com with SMTP id f29so19662676pgm.8;
-        Fri, 16 Apr 2021 10:33:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=876TdlxpIgolIqB7TgA6C4sSIAHeJmBjH/AC0fUWrq8=;
-        b=mKb1rl39y0JzpkxwXj4mL6f6szGIyzuIKbFdNMjxe6nuMkVYGxXW93C/39DhEraJdt
-         gEbYxOJ+OTkxSdjRB71o75UBGWLzK8bn9nLXenDL/Uigtoi8XiHRZ8hQ+XWdOVOIhcFt
-         gEdg/sniSoty2ZKt9JQnIo8IJBnI0R2MpDbmpyIyOSBem3sl+CsysG0qeN8Mj/Juh5TC
-         FeebXUajPAwsYgdda2P58WVF8pO7aQw0Lh2rzADmcrwQlmaogwU3j8ZJQIM9uadYjzOi
-         ZXpmrehEe7gDeneL0xmMo0ruIbjgRhqANtI4+ES9O3iduUeb50DV0Fk/DB5zEedvc8BA
-         6YSw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=876TdlxpIgolIqB7TgA6C4sSIAHeJmBjH/AC0fUWrq8=;
-        b=nMgfZm21c6TuFMlDbFoULB0WLzrr5ufJPXAhctIaBYyhD4ooCzpyu6kkgBxApGqIuN
-         tOmIYu8iiXOgd6O2mTW40XgFxSTbwW1WXvjxi22aOzG0ObAJ+uANkULtM2sOXcP5gEkm
-         GAtJQcfeQ8O2VcUOWtLESpFKzlB7UjtHPtu8biEe4oFVEFh+EYl2e2wsAXqt1dIQfVmn
-         WnnWbf9YPxhxzlMxp1mhUwkj9dMalwqwq5AwIw/Bhuu2BmoU4LBhbi0HmCSXK7gmGJU9
-         TlBudA+ipUl9B8iFViX1acygZK8D1agqgfdkRS8IBkrlQxRmLXfyvKRSYkW8VY/zl0qr
-         T1VA==
-X-Gm-Message-State: AOAM531x9YKyZg03aB8yqP2LibbQqk7AFmBLz6obuF1KN6TYWgmIArtI
-        p+4ouxAax754gGFzOYimDTA=
-X-Google-Smtp-Source: ABdhPJxsMditEAqpW7zYE0X2jC+ufC8elmfmlrUGGu5qb8OzU1RqvlLCacjZNEjuOMuX0e5K3xkXHQ==
-X-Received: by 2002:a05:6a00:1687:b029:253:f417:4dba with SMTP id k7-20020a056a001687b0290253f4174dbamr8897443pfc.5.1618594414452;
-        Fri, 16 Apr 2021 10:33:34 -0700 (PDT)
-Received: from skbuf (5-12-16-165.residential.rdsnet.ro. [5.12.16.165])
-        by smtp.gmail.com with ESMTPSA id x26sm5347094pfm.134.2021.04.16.10.33.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Apr 2021 10:33:33 -0700 (PDT)
-Date:   Fri, 16 Apr 2021 20:33:19 +0300
-From:   Vladimir Oltean <olteanv@gmail.com>
-To:     Ido Schimmel <idosch@idosch.org>
-Cc:     Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Vadym Kochan <vkochan@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Jiri Pirko <jiri@nvidia.com>, Ido Schimmel <idosch@nvidia.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Ivan Vecera <ivecera@redhat.com>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-omap@vger.kernel.org,
-        Vladimir Oltean <vladimir.oltean@nxp.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>
-Subject: Re: [PATCH resend net-next 2/2] net: bridge: switchdev: include
- local flag in FDB notifications
-Message-ID: <20210416173319.id4y37ecdmwd2u52@skbuf>
-References: <20210414165256.1837753-1-olteanv@gmail.com>
- <20210414165256.1837753-3-olteanv@gmail.com>
- <YHmroFOPM3Hl/5uP@shredder.lan>
+        id S229972AbhDQI27 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 17 Apr 2021 04:28:59 -0400
+Received: from muru.com ([72.249.23.125]:55438 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229870AbhDQI27 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 17 Apr 2021 04:28:59 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 1FB7F80CD;
+        Sat, 17 Apr 2021 08:29:49 +0000 (UTC)
+Date:   Sat, 17 Apr 2021 11:28:28 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Grygorii Strashko <grygorii.strashko@ti.com>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Adam Ford <aford173@gmail.com>,
+        Andreas Kemnade <andreas@kemnade.info>,
+        Peter Ujfalusi <peter.ujfalusi@gmail.com>
+Subject: Re: [PATCH] gpio: omap: Save and restore sysconfig
+Message-ID: <YHqcLHxnCDfcd+6s@atomide.com>
+References: <20210415085305.56413-1-tony@atomide.com>
+ <67113b0b-5e5f-b2f4-1b1c-b58a1055f0ed@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <YHmroFOPM3Hl/5uP@shredder.lan>
+In-Reply-To: <67113b0b-5e5f-b2f4-1b1c-b58a1055f0ed@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Apr 16, 2021 at 06:22:08PM +0300, Ido Schimmel wrote:
-> On Wed, Apr 14, 2021 at 07:52:56PM +0300, Vladimir Oltean wrote:
-> > From: Vladimir Oltean <vladimir.oltean@nxp.com>
-> > 
-> > As explained in bugfix commit 6ab4c3117aec ("net: bridge: don't notify
-> > switchdev for local FDB addresses") as well as in this discussion:
-> > https://lore.kernel.org/netdev/20210117193009.io3nungdwuzmo5f7@skbuf/
-> > 
-> > the switchdev notifiers for FDB entries managed to have a zero-day bug,
-> > which was that drivers would not know what to do with local FDB entries,
-> > because they were not told that they are local. The bug fix was to
-> > simply not notify them of those addresses.
-> > 
-> > Let us now add the 'is_local' bit to bridge FDB entries, and make all
-> > drivers ignore these entries by their own choice.
-> > 
-> > Co-developed-by: Tobias Waldekranz <tobias@waldekranz.com>
-> > Signed-off-by: Tobias Waldekranz <tobias@waldekranz.com>
-> > Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
+* Grygorii Strashko <grygorii.strashko@ti.com> [210415 23:48]:
+> On 15/04/2021 11:53, Tony Lindgren wrote:
+> > As we are using cpu_pm to save and restore context, we must also save and
+> > restore the timer sysconfig register TIOCP_CFG. This is needed because
+> > we are not calling PM runtime functions at all with cpu_pm.
 > 
-> Reviewed-by: Ido Schimmel <idosch@nvidia.com>
+> Smth. is wrong with description.
 
-Thanks!
+Oops yeah sorry about that. Both timer-ti-dm and gpio-omap suffer from
+the same issue since the cpu_pm conversion. Will post v2.
 
-> One comment below
-> 
-> > diff --git a/net/bridge/br_switchdev.c b/net/bridge/br_switchdev.c
-> > index c390f84adea2..a5e601e41cb9 100644
-> > --- a/net/bridge/br_switchdev.c
-> > +++ b/net/bridge/br_switchdev.c
-> > @@ -114,13 +114,12 @@ br_switchdev_fdb_notify(const struct net_bridge_fdb_entry *fdb, int type)
-> >  		.addr = fdb->key.addr.addr,
-> >  		.vid = fdb->key.vlan_id,
-> >  		.added_by_user = test_bit(BR_FDB_ADDED_BY_USER, &fdb->flags),
-> > +		.is_local = test_bit(BR_FDB_LOCAL, &fdb->flags),
-> >  		.offloaded = test_bit(BR_FDB_OFFLOADED, &fdb->flags),
-> >  	};
-> >  
-> >  	if (!fdb->dst)
-> >  		return;
-> 
-> Do you plan to eventually remove this check so that entries pointing to
-> the bridge device itself will be notified? For example:
-> 
-> # bridge fdb add 00:01:02:03:04:05 dev br0 self local
-> 
-> > -	if (test_bit(BR_FDB_LOCAL, &fdb->flags))
-> > -		return;
-> >  
-> >  	switch (type) {
-> >  	case RTM_DELNEIGH:
+Regards,
 
-Yes I do, it's this patch over here:
-https://patchwork.kernel.org/project/netdevbpf/patch/20210224114350.2791260-10-olteanv@gmail.com/
-
-One at a time though.
+Tony
