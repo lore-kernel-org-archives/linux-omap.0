@@ -2,120 +2,138 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB12EC433ED
-	for <linux-omap@archiver.kernel.org>; Sun, 18 Apr 2021 14:57:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60CC7C4360C
+	for <linux-omap@archiver.kernel.org>; Sun, 18 Apr 2021 14:57:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A50CC6109F
-	for <linux-omap@archiver.kernel.org>; Sun, 18 Apr 2021 14:57:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 498726109F
+	for <linux-omap@archiver.kernel.org>; Sun, 18 Apr 2021 14:57:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231341AbhDRO5g (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 18 Apr 2021 10:57:36 -0400
-Received: from smtp-35.italiaonline.it ([213.209.10.35]:43400 "EHLO libero.it"
+        id S230028AbhDRO5i (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 18 Apr 2021 10:57:38 -0400
+Received: from smtp-35.italiaonline.it ([213.209.10.35]:56586 "EHLO libero.it"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S229691AbhDRO5f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 18 Apr 2021 10:57:35 -0400
+        id S230470AbhDRO5g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 18 Apr 2021 10:57:36 -0400
 Received: from passgat-Modern-14-A10M.homenet.telecomitalia.it
  ([95.244.94.151])
         by smtp-35.iol.local with ESMTPA
-        id Y8r3lCRdYpK9wY8rBla5VB; Sun, 18 Apr 2021 16:57:06 +0200
+        id Y8r3lCRdYpK9wY8rDla5Wr; Sun, 18 Apr 2021 16:57:08 +0200
 x-libjamoibt: 1601
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2021;
-        t=1618757826; bh=olZ0wz76vMXLsV08flCc5AVxfd/v9Jixr/3NXTZsFCw=;
+        t=1618757828; bh=PPTo8GvjIIsaEKU5B1TIF8N7cm5fuyUf7SEXiLKXv5E=;
         h=From;
-        b=RdGd4yErLWJgm+vPMucdoHLq2R9gV6+eI7QD76x6MVIyx71ZvCh9dLY0Hg7nfTMc1
-         HEBPVNTaAxFiKRppHRYtZd8XIkunnXReUAEvYoYBLihMU4yJe2oYVRjj4nWc8/cDm+
-         7XZ/ejndk8hQpL6GbTN0M+73UGEv5TDrKu0kJq94rMKd35HxObkXuE7crYAoygtYHK
-         NhXmR7b+1mbMZSD+jXlSRrkV1I6UOtPmeJ0gCT92O17/Etk2QP+gFOaSSGw9V5+47S
-         3uthKTVbH6EaIMZxLis5MjFbBb6wv1Bp7ehZR5BZdhWEMvsMlTH8J+JLQfL0a3HcK0
-         5F+p4GCgCQSIA==
-X-CNFS-Analysis: v=2.4 cv=A9ipg4aG c=1 sm=1 tr=0 ts=607c48c2 cx=a_exe
+        b=M2ijvZZSZQT/v6PbbF/gar4n99oDleH/vJy90ywfkzYOZDldg1JGJ3C6qvxEaE0++
+         QMFhKHecisqt3vWqp0012NSl8ju48t88H7N3i1psdRvwkkjgCwgwC2WfWREOEUWsx3
+         m97LlplDbCA71bqw5hYjFSXdyXwPehvu+4GfL+dEpdhNc9Au+3a00FwHBVop2lrJQk
+         UnNsfj4rSHV0/xe3LCYwJF+u71xW8yh8Mh/Y9bUP9UH0w68fDoBLeSJeui9uQm178a
+         yyQIfV6Kf0rijYZDZGM+JkZ5tOQHmApKVkBK7lau3ggJOQAgVnKOAcu7g/h9zJw8nz
+         0MnwRPKYxV5/A==
+X-CNFS-Analysis: v=2.4 cv=A9ipg4aG c=1 sm=1 tr=0 ts=607c48c4 cx=a_exe
  a=ugxisoNCKEotYwafST++Mw==:117 a=ugxisoNCKEotYwafST++Mw==:17
- a=IkcTkHD0fZMA:10 a=7lJUY2J14ryrXklOE8AA:9 a=QEXdDO2ut3YA:10
+ a=2OX5x-OEy5pyK2UBO5QA:9
 From:   Dario Binacchi <dariobin@libero.it>
 To:     linux-kernel@vger.kernel.org
 Cc:     Dario Binacchi <dariobin@libero.it>,
         Tero Kristo <kristo@kernel.org>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Michael Turquette <mturquette@baylibre.com>,
         Rob Herring <robh+dt@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>,
         Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH v5 0/5] clk: ti: add am33xx spread spectrum clock support
-Date:   Sun, 18 Apr 2021 16:56:50 +0200
-Message-Id: <20210418145655.10415-1-dariobin@libero.it>
+        linux-omap@vger.kernel.org
+Subject: [PATCH v5 4/5] ARM: dts: am43xx-clocks: add spread spectrum support
+Date:   Sun, 18 Apr 2021 16:56:54 +0200
+Message-Id: <20210418145655.10415-5-dariobin@libero.it>
 X-Mailer: git-send-email 2.17.1
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4xfLJ32xryx0zJbSv/pCGIcH5UmtmnokARk/xsaPBFowp6UztyiGOVUTDn3mEyJIJIRdrgRjlEXJj5lsxBZWVTZpbOq4B/5/vwDnCgjTWsQgpM+VVTpESe
- Oo43KFHKLo0W2BHTDTc1WoXA96gYEf4ybTwGXu2vB8hmUUcdt9YaePpvog0BdqZiQiqD41/ZODMoLDZE0l3VaIvHZbRF8Fs5eL8VY0ryKe1OAYRGbY1EK8ST
- wT3bN5phQD2nLR9IgI2RONQ5JrPTWRQksrZ5ngoKVMJaS2Pdq8iFAvJ8fXqLlXJa5LGkxXraz0q7knCS2jk9OSsWheIPt1IQr9Yoz60MYoaid9LJlNortOXH
- XiYdH8DrbazRnDytulyAfmEPhro7nB43ZcmDs6cBBa3c3ULNasp3Gz9xQxwCT7Mbh0PHberYgrPQ3ACAU7mDIPGHOOngh2x/wFpoW8BssqV9c2KtL5wDCKgA
- f4kDy0H+70Se2OVaDlZjSKuE3KsTnsZHoBZMY3N0RWdr4TXnxfccibkcyowH+cHoSNb7K1yeqj0lxwokRWw87jzl6OZM5F6DaB42XKOj4Dw6GasghAp0WWVG
- rZ/fih0jrFb2kDnhAOAxe0DwN+AIuOBGk3z0XH2OV6gm8Q==
+In-Reply-To: <20210418145655.10415-1-dariobin@libero.it>
+References: <20210418145655.10415-1-dariobin@libero.it>
+X-CMAE-Envelope: MS4xfEEDn3jitYUQGbECNbNKfE4AK0GKfoesZKzqjpXT9CKmPBYOCHHkKYqW9TUuAnkjV3+TqTFTaz1+7FuYK0OL1zzpIf+Adf05KNVuv5//iErIudu/qogs
+ ZMSMzCeRM238bMKWDhjYXRV7tBKa4j+BmtjUz0KGu5s4VYUI8lf1Qs+74HXw+kbRef4CrA3z7zTGG1Mw+Fp2sfHZlciH4n3redz+zni9+tlJy5N+wtthJe5i
+ p7awBDxeJ8tAyquot8JoFme3+z/uvoeQ61fBSoUrDhwKax2ZAQaI98k8nkBp3hrVv14b/LQngxxqpMAXe5n0+5jgQOlWlzc5s9CUrsbON03Gk0ijYlm0x1FV
+ n9khWmAxnZoAuBNHB0wp13bdryStLdwl6b/tHekkQEXLLwtHWLu4QFbBrK9aGDXvEz8U65bdKeseHQ3ItfmPvWLmoCx5CEX68R7M/2JvqzaXhNSPpt3zZUkz
+ hFejMdyoGCSfnDKpPjfJFrB42G4jVHEn7eJvQg==
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+Registers for adjusting the spread spectrum clocking (SSC) have been
+added. As reported by the TI spruhl7x RM, SSC is supported only for LCD
+and MPU PLLs, but the PRCM_CM_SSC_DELTAMSTEP_DPLL_XXX and
+PRCM_CM_SSC_MODFREQDIV_DPLL_XXX registers, as well as the enable field
+in the PRCM_CM_CLKMODE_DPLL_XXX registers are mapped for all PLLs (CORE,
+MPU, DDR, PER, DISP, EXTDEV).
 
-As reported by the TI spruh73x/spruhl7x RM, MPU and LCD modules support
-spread spectrum clocking (SSC) on their output clocks. SSC is used to
-spread the spectral peaking of the clock to reduce any electromagnetic
-interference (EMI) that may be caused due to the clock’s fundamental
-or any of its harmonics.
-The series allows you to enable and adjust the spread spectrum clocking
-for all am33xx/am43xx PLLs for which it is supported. All these issues
-have been fixed.
+Signed-off-by: Dario Binacchi <dariobin@libero.it>
+---
 
+(no changes since v1)
 
-Previous versions of the series did not supported SSC for am43xx SOCs,
-causing clock registration failure for DPLLs. Furthermore, for am33xx
-SOCs, clock registration failed for DPLLs for which SSC is not supported.
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Changes in v5:
-- Remove ssc_ack_mask field from dpll_data structure. It was not used.
-- Change ssc_downspread type from u8 to bool in dpll_data structure.
-
-Changes in v4:
-- Add Stephen Boyd review tag.
-- Add Rob Herring review tag.
-- Add SSC registers for CORE, DDR and PER PLLs.
-- Update commit message.
-- Update commit message.
-
-Changes in v3:
-- Add '-hz' suffix to "ti,ssc-modfreq" binding.
-- Add Tony Lindgren acked tag.
-- Use "ti,ssc-modfreq-hz" binding instead of "ti,ssc-modfreq".
-
-Changes in v2:
-- Remove SSC registers from dpll_core_ck@490 node (SSC is not supported)
-- Add SSC registers to dpll_mpu_ck@488 node.
-- Move the DT changes to the previous patch in the series.
-
-Dario Binacchi (5):
-  clk: ti: fix typo in routine description
-  dt-bindings: ti: dpll: add spread spectrum support
-  ARM: dts: am33xx-clocks: add spread spectrum support
-  ARM: dts: am43xx-clocks: add spread spectrum support
-  clk: ti: add am33xx/am43xx spread spectrum clock support
-
- .../devicetree/bindings/clock/ti/dpll.txt     | 20 +++++
- arch/arm/boot/dts/am33xx-clocks.dtsi          | 10 +--
- arch/arm/boot/dts/am43xx-clocks.dtsi          | 12 +--
- drivers/clk/ti/dpll.c                         | 39 +++++++++
- drivers/clk/ti/dpll3xxx.c                     | 87 ++++++++++++++++++-
- include/linux/clk/ti.h                        | 22 +++++
- 6 files changed, 178 insertions(+), 12 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index c726cd8dbdf1..314fc5975acb 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -204,7 +204,7 @@
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-core-clock";
+ 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
+-		reg = <0x2d20>, <0x2d24>, <0x2d2c>;
++		reg = <0x2d20>, <0x2d24>, <0x2d2c>, <0x2d48>, <0x2d4c>;
+ 	};
+ 
+ 	dpll_core_x2_ck: dpll_core_x2_ck {
+@@ -250,7 +250,7 @@
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-clock";
+ 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
+-		reg = <0x2d60>, <0x2d64>, <0x2d6c>;
++		reg = <0x2d60>, <0x2d64>, <0x2d6c>, <0x2d88>, <0x2d8c>;
+ 	};
+ 
+ 	dpll_mpu_m2_ck: dpll_mpu_m2_ck@2d70 {
+@@ -276,7 +276,7 @@
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-clock";
+ 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
+-		reg = <0x2da0>, <0x2da4>, <0x2dac>;
++		reg = <0x2da0>, <0x2da4>, <0x2dac>, <0x2dc8>, <0x2dcc>;
+ 	};
+ 
+ 	dpll_ddr_m2_ck: dpll_ddr_m2_ck@2db0 {
+@@ -294,7 +294,7 @@
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-clock";
+ 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
+-		reg = <0x2e20>, <0x2e24>, <0x2e2c>;
++		reg = <0x2e20>, <0x2e24>, <0x2e2c>, <0x2e48>, <0x2e4c>;
+ 	};
+ 
+ 	dpll_disp_m2_ck: dpll_disp_m2_ck@2e30 {
+@@ -313,7 +313,7 @@
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-j-type-clock";
+ 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
+-		reg = <0x2de0>, <0x2de4>, <0x2dec>;
++		reg = <0x2de0>, <0x2de4>, <0x2dec>, <0x2e08>, <0x2e0c>;
+ 	};
+ 
+ 	dpll_per_m2_ck: dpll_per_m2_ck@2df0 {
+@@ -557,7 +557,7 @@
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-clock";
+ 		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
+-		reg = <0x2e60>, <0x2e64>, <0x2e6c>;
++		reg = <0x2e60>, <0x2e64>, <0x2e6c>, <0x2e88>, <0x2e8c>;
+ 	};
+ 
+ 	dpll_extdev_m2_ck: dpll_extdev_m2_ck@2e70 {
 -- 
 2.17.1
 
