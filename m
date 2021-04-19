@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC58CC43461
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:48:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4426C43460
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:49:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7716E6135F
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:48:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4156613EE
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:49:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243133AbhDSUsc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 19 Apr 2021 16:48:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55198 "EHLO mail.kernel.org"
+        id S242928AbhDSUuI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 19 Apr 2021 16:50:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54916 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242616AbhDSUqb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 19 Apr 2021 16:46:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 58440613D1;
-        Mon, 19 Apr 2021 20:45:23 +0000 (UTC)
+        id S241982AbhDSUsO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 19 Apr 2021 16:48:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 62CE8613EA;
+        Mon, 19 Apr 2021 20:45:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618865124;
-        bh=g/eXUpVLDWn4ZrQfKGHLQWDA56ui5qqB1PXgWsHwueE=;
+        s=k20201202; t=1618865142;
+        bh=oUTiTeBTmouvEPFGR+1PMxjEwPUKb3rrkFwv+6AUChw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Gkn4jB7wXcRJi3TcF4fxZtZ/AHFTEEXlH5WGHDtwcqDfC3Dyxo917ZDlqR4vXsCHZ
-         9x+8Ex05z5RMA3Gxg1oczNjb/v80HvuK47QSgMT5IgqGJY6CwdHh0TQdvCZdXCvS/z
-         ZKK8rbpS0lNN1C86iDqp7IrtoOaGfTfU5BxZvbxwgJJrCoxUlGvRTP+LGKnFd1AsWW
-         IRjzLLogE/VQPtXbI38kXgd4CTD2Y8LYTbvnUnD83P9KpLwmxyw6Ba0K5WFrL850Vu
-         NZ5kEuoZlB6wGY+LCVdOnR5tOmqNoYPu5Gs5VR9Od22bLZbmo9VYPtlOED/JIpbckZ
-         LF2vvPFOFCpsg==
+        b=tAqEOFu+JYChTFOUr1Hk/+iqKkmH5tbKqohUjPCoDrg0GaWilK1vmFt8UzknhPsNK
+         pqlGGJOTU74Vn994NJ4iSja7JOiAzhJk0sdfZg9SsP445jOKoWnP/Z5N5DAq94zvAI
+         7fnQ+DbQHsmuVCi5AeOjtK3ey3QAkhIuT5s/lW+3CZjjDtUY25pUBDXozMWwcQPdUF
+         M1i/VdAfu9Wg2I6ukWqhlOeN2Gj+rZ8dlwRJ6NZgw6FHmDr78exKxda+Rv3abWhSR+
+         XEW721GEl5CZJQkNUVskU9Vm63GLN52qETG6qoI6Y9TM4ieoCRRyHhXY7VAfvUcugV
+         PRxZ9XMyiWjVw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tony Lindgren <tony@atomide.com>,
@@ -38,12 +38,12 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Peter Ujfalusi <peter.ujfalusi@gmail.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 04/12] ARM: dts: Fix swapped mmc order for omap3
-Date:   Mon, 19 Apr 2021 16:45:09 -0400
-Message-Id: <20210419204517.6770-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 03/11] ARM: dts: Fix swapped mmc order for omap3
+Date:   Mon, 19 Apr 2021 16:45:28 -0400
+Message-Id: <20210419204536.6924-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210419204517.6770-1-sashal@kernel.org>
-References: <20210419204517.6770-1-sashal@kernel.org>
+In-Reply-To: <20210419204536.6924-1-sashal@kernel.org>
+References: <20210419204536.6924-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -73,7 +73,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 4043ecb38016..0c8fcfb292bf 100644
+index bdaf30c8c405..21eef1679d08 100644
 --- a/arch/arm/boot/dts/omap3.dtsi
 +++ b/arch/arm/boot/dts/omap3.dtsi
 @@ -23,6 +23,9 @@ aliases {
