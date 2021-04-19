@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F940C433ED
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:46:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC58CC43461
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:48:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC693613AC
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:46:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7716E6135F
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Apr 2021 20:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240167AbhDSUrA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 19 Apr 2021 16:47:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54402 "EHLO mail.kernel.org"
+        id S243133AbhDSUsc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 19 Apr 2021 16:48:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242788AbhDSUph (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 19 Apr 2021 16:45:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 550B5613D7;
-        Mon, 19 Apr 2021 20:45:00 +0000 (UTC)
+        id S242616AbhDSUqb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 19 Apr 2021 16:46:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 58440613D1;
+        Mon, 19 Apr 2021 20:45:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618865101;
+        s=k20201202; t=1618865124;
         bh=g/eXUpVLDWn4ZrQfKGHLQWDA56ui5qqB1PXgWsHwueE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=D2D3C/9zfroeJ1Pl+ifI1pAxP/0vmwwLzcyNfwSvz25wtyw0+K4EZBQPmzxjk8Sc2
-         KSVHqE/1iyCtP79MiaUqbt3TsXO09mMtw2W2A1monLQNVlJfZV+nZPFnaG1B+RrWE4
-         zh3sJGpagNwNvfWYuLPhah6tK7h84sg4VZiPwUl+cVRF70bK3S7G7NbWed20P9PZLy
-         rPwpCYqkrhRzMzCv+bF2h2U23/Tn962JqP8oNgY9uOr0TIeo6tyvwpW+rFSavS344G
-         Syh4PLedQrphmT9+uSp9fee8pUCJa4PDuOoEI3/HrxiE/ejNAyLTuPnMKqu9wYZ4x7
-         pHanMurvPOTBQ==
+        b=Gkn4jB7wXcRJi3TcF4fxZtZ/AHFTEEXlH5WGHDtwcqDfC3Dyxo917ZDlqR4vXsCHZ
+         9x+8Ex05z5RMA3Gxg1oczNjb/v80HvuK47QSgMT5IgqGJY6CwdHh0TQdvCZdXCvS/z
+         ZKK8rbpS0lNN1C86iDqp7IrtoOaGfTfU5BxZvbxwgJJrCoxUlGvRTP+LGKnFd1AsWW
+         IRjzLLogE/VQPtXbI38kXgd4CTD2Y8LYTbvnUnD83P9KpLwmxyw6Ba0K5WFrL850Vu
+         NZ5kEuoZlB6wGY+LCVdOnR5tOmqNoYPu5Gs5VR9Od22bLZbmo9VYPtlOED/JIpbckZ
+         LF2vvPFOFCpsg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tony Lindgren <tony@atomide.com>,
@@ -38,12 +38,12 @@ Cc:     Tony Lindgren <tony@atomide.com>,
         Peter Ujfalusi <peter.ujfalusi@gmail.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 04/14] ARM: dts: Fix swapped mmc order for omap3
-Date:   Mon, 19 Apr 2021 16:44:44 -0400
-Message-Id: <20210419204454.6601-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 04/12] ARM: dts: Fix swapped mmc order for omap3
+Date:   Mon, 19 Apr 2021 16:45:09 -0400
+Message-Id: <20210419204517.6770-4-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210419204454.6601-1-sashal@kernel.org>
-References: <20210419204454.6601-1-sashal@kernel.org>
+In-Reply-To: <20210419204517.6770-1-sashal@kernel.org>
+References: <20210419204517.6770-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
