@@ -2,168 +2,102 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF4FAC4360C
-	for <linux-omap@archiver.kernel.org>; Tue, 20 Apr 2021 11:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCBC2C433B4
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Apr 2021 17:06:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3621613CD
-	for <linux-omap@archiver.kernel.org>; Tue, 20 Apr 2021 11:57:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CEFE613AF
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Apr 2021 17:06:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231987AbhDTL5i (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 20 Apr 2021 07:57:38 -0400
-Received: from mx0b-00069f02.pphosted.com ([205.220.177.32]:58890 "EHLO
-        mx0b-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231709AbhDTL5h (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 20 Apr 2021 07:57:37 -0400
-X-Greylist: delayed 1986 seconds by postgrey-1.27 at vger.kernel.org; Tue, 20 Apr 2021 07:57:36 EDT
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-        by mx0b-00069f02.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 13KBMmuM012376;
-        Tue, 20 Apr 2021 11:22:48 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=R7JGUmF3J71wLA6dPwUce8FwqmxU6JTnhs1XaoTWtpc=;
- b=mzrAyP3z3vTbOYF05fKTtm1FSfsRhaXIMtNI32junvaq2xixqdu4DFtiOEnKHMCjmDAu
- pzOmg6bFqIFulJfFAK3gAc4G1ubri2zL7y+ukl2ZTNZd4enmkHEeJ6kOxa09vXbI9Cau
- pxckDe5aQNXRp1SihBx1WvxHHU5bOAl0qwzbdRlKb6bAcGZRRvbBEvMsbe3h/AM/l6mO
- 6K0B0emzos5cXJDAWeD+zogdWeN4yukpTfk465biG7Agf/JhaT7Tq2FLJjNIss62qUS9
- j74qQsLbz2k9Dn5eRznUZ+6NPhFOVGc2XKyCruqh+CG4TG6qi4y3ofFXm87t+4F6DYgG CQ== 
-Received: from oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by mx0b-00069f02.pphosted.com with ESMTP id 381bjn86tg-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 20 Apr 2021 11:22:48 +0000
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [127.0.0.1])
-        by pps.podrdrct (8.16.0.36/8.16.0.36) with SMTP id 13KBKXsp006877;
-        Tue, 20 Apr 2021 11:22:47 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-        by aserp3020.oracle.com with ESMTP id 3809k06m19-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 20 Apr 2021 11:22:47 +0000
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [127.0.0.1])
-        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 13KBKAbB005467;
-        Tue, 20 Apr 2021 11:22:46 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by aserp3020.oracle.com with ESMTP id 3809k06m07-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 20 Apr 2021 11:22:46 +0000
-Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 13KBMEHV030572;
-        Tue, 20 Apr 2021 11:22:18 GMT
-Received: from kadam (/102.36.221.92)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 20 Apr 2021 04:22:13 -0700
-Date:   Tue, 20 Apr 2021 14:21:52 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     "Alice Guo (OSS)" <alice.guo@oss.nxp.com>,
-        gregkh@linuxfoundation.org, rafael@kernel.org,
-        horia.geanta@nxp.com, aymen.sghaier@nxp.com,
-        herbert@gondor.apana.org.au, davem@davemloft.net, tony@atomide.com,
-        geert+renesas@glider.be, mturquette@baylibre.com, sboyd@kernel.org,
-        vkoul@kernel.org, peter.ujfalusi@gmail.com, a.hajda@samsung.com,
-        narmstrong@baylibre.com, robert.foss@linaro.org, airlied@linux.ie,
-        daniel@ffwll.ch, khilman@baylibre.com, tomba@kernel.org,
-        jyri.sarha@iki.fi, joro@8bytes.org, will@kernel.org,
-        mchehab@kernel.org, ulf.hansson@linaro.org,
-        adrian.hunter@intel.com, kishon@ti.com, kuba@kernel.org,
-        linus.walleij@linaro.org, Roy.Pledge@nxp.com, leoyang.li@nxp.com,
-        ssantosh@kernel.org, matthias.bgg@gmail.com, edubezval@gmail.com,
-        j-keerthy@ti.com, balbi@kernel.org, linux@prisktech.co.nz,
-        stern@rowland.harvard.edu, wim@linux-watchdog.org,
-        linux@roeck-us.net, linux-kernel@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-clk@vger.kernel.org,
-        dmaengine@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netdev@vger.kernel.org,
-        linux-phy@lists.infradead.org, linux-gpio@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-staging@lists.linux.dev,
-        linux-mediatek@lists.infradead.org, linux-pm@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC v1 PATCH 1/3] drivers: soc: add support for
- soc_device_match returning -EPROBE_DEFER
-Message-ID: <20210420112151.GE1981@kadam>
-References: <20210419042722.27554-1-alice.guo@oss.nxp.com>
- <20210419042722.27554-2-alice.guo@oss.nxp.com>
- <CAMuHMdUbrPxtJ9DCP0_nFrReuuO4vFY2J79LrKY82D7bCOfzRw@mail.gmail.com>
+        id S233086AbhDTRHM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 20 Apr 2021 13:07:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58434 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232769AbhDTRHM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2021 13:07:12 -0400
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77501C06138A
+        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2021 10:06:39 -0700 (PDT)
+Received: by mail-wr1-x42f.google.com with SMTP id k26so21992507wrc.8
+        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2021 10:06:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=subject:to:references:from:message-id:date:user-agent:mime-version
+         :in-reply-to:content-language:content-transfer-encoding;
+        bh=w4puqZlCjEVgTM6gNpPaQUNAEdM5uE2S+cE3Q3nkYsc=;
+        b=r8sXmNBiOSRBf34r6zlXlbaKlZty6hEdAKb9VgV5rjRXEsP+fwzI1NMDRDOGWjcy9b
+         z9MPys5vSDQ9KFbbp28iuqeGSOGQp0TWgff3cHeQmdVvbMk1SCjef8TmDnAvK8OqxMNr
+         iJTQNm7vzjFxfNoaAWHikcJ1dQuLE6ta+HaSrDSrA27NqD5tk8Nt6DFSW+W4il/QUqdY
+         wFGuIA8lQ9CRODk8YVbyaeKrvPOELlI9FY+kWP/y2DmMBz20yHg61bkuKlPRn1PRHDek
+         kfYq6ZRpvvSvJAdQPNouGRnl2aqGmieYf94//R876ZlaM2APNtkvXA/zFH2UuFzCL97z
+         pzLg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=w4puqZlCjEVgTM6gNpPaQUNAEdM5uE2S+cE3Q3nkYsc=;
+        b=J3ZJi1jRcebaafs7ntGnz5GW3bKc828MlLcyQUlrocErBlk9QfhkPsdRAK5WPdIOdF
+         dZw3qpyqfN6Bj1zBV+U8ratTGL944IJKIA9/93+IjCg8LgPsEK3oAktBkoE4BEFv4Sns
+         peqgB1omEi6PgApT5HG5Q+6L4RknIPg+MhC7WGmF1PPg+JwyCT+gC0zBuvqMU/UrWIDl
+         Aft0rczO/M1JM8R5dDy0Dkz/4GRF48hje3PMnNDVgpDd3PRTzIBU2/2dP+L4jNcM7hDN
+         Z5djgFHxKgS0tuiL1hFt3aLJnPy13PC+uHwVc0U+dSTTdFvSFzMe+nFrcXYJC/R9f162
+         A6fw==
+X-Gm-Message-State: AOAM5332iRFU8zFEcGU3AEQ3DaZFq64OA++lgJjUs8i63jhqKVcPC+/V
+        bOow/Pc1hBhYeuuCEgCVEmm5bw==
+X-Google-Smtp-Source: ABdhPJwC4KWyM00E2bI8Fa/45JxKpliIW1TQwZbNPE5p/V99lkVz6F4RPTMzvDQKNEg4Uu7pkLiSAg==
+X-Received: by 2002:adf:a40c:: with SMTP id d12mr21389263wra.91.1618938398032;
+        Tue, 20 Apr 2021 10:06:38 -0700 (PDT)
+Received: from ?IPv6:2a01:e34:ed2f:f020:a079:f96:da87:2d00? ([2a01:e34:ed2f:f020:a079:f96:da87:2d00])
+        by smtp.googlemail.com with ESMTPSA id y125sm3916431wmc.40.2021.04.20.10.06.36
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 20 Apr 2021 10:06:37 -0700 (PDT)
+Subject: Re: [PATCH v2 1/1] thermal: ti-soc-thermal: Remove duplicated header
+ file inclusion
+To:     Zhen Lei <thunder.leizhen@huawei.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>,
+        Amit Kucheria <amitk@kernel.org>,
+        linux-pm <linux-pm@vger.kernel.org>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+References: <20210406091912.2583-1-thunder.leizhen@huawei.com>
+ <20210406091912.2583-2-thunder.leizhen@huawei.com>
+From:   Daniel Lezcano <daniel.lezcano@linaro.org>
+Message-ID: <f31ac615-fde6-f26b-5f97-479aaa638860@linaro.org>
+Date:   Tue, 20 Apr 2021 19:06:36 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdUbrPxtJ9DCP0_nFrReuuO4vFY2J79LrKY82D7bCOfzRw@mail.gmail.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-GUID: e0r_GcH24oUhB4PQiI_vI2-dauff_ZRM
-X-Proofpoint-ORIG-GUID: e0r_GcH24oUhB4PQiI_vI2-dauff_ZRM
+In-Reply-To: <20210406091912.2583-2-thunder.leizhen@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Apr 19, 2021 at 10:20:13AM +0200, Geert Uytterhoeven wrote:
-> Hi Alice,
-> 
-> CC Arnd (soc_device_match() author)
-> 
-> On Mon, Apr 19, 2021 at 6:28 AM Alice Guo (OSS) <alice.guo@oss.nxp.com> wrote:
-> > From: Alice Guo <alice.guo@nxp.com>
-> >
-> > In i.MX8M boards, the registration of SoC device is later than caam
-> > driver which needs it. Caam driver needs soc_device_match to provide
-> > -EPROBE_DEFER when no SoC device is registered and no
-> > early_soc_dev_attr.
-> 
-> I'm wondering if this is really a good idea: soc_device_match() is a
-> last-resort low-level check, and IMHO should be made available early on,
-> so there is no need for -EPROBE_DEFER.
-> 
-> >
-> > Signed-off-by: Alice Guo <alice.guo@nxp.com>
-> 
-> Thanks for your patch!
-> 
-> > --- a/drivers/base/soc.c
-> > +++ b/drivers/base/soc.c
-> > @@ -110,6 +110,7 @@ static void soc_release(struct device *dev)
-> >  }
-> >
-> >  static struct soc_device_attribute *early_soc_dev_attr;
-> > +static bool soc_dev_attr_init_done = false;
-> 
-> Do you need this variable?
-> 
-> >
-> >  struct soc_device *soc_device_register(struct soc_device_attribute *soc_dev_attr)
-> >  {
-> > @@ -157,6 +158,7 @@ struct soc_device *soc_device_register(struct soc_device_attribute *soc_dev_attr
-> >                 return ERR_PTR(ret);
-> >         }
-> >
-> > +       soc_dev_attr_init_done = true;
-> >         return soc_dev;
-> >
-> >  out3:
-> > @@ -246,6 +248,9 @@ const struct soc_device_attribute *soc_device_match(
-> >         if (!matches)
-> >                 return NULL;
-> >
-> > +       if (!soc_dev_attr_init_done && !early_soc_dev_attr)
-> 
-> if (!soc_bus_type.p && !early_soc_dev_attr)
+On 06/04/2021 11:19, Zhen Lei wrote:
+> Delete one of the header files <linux/of_device.h> that are included
+> twice, all included header files are then rearranged alphabetically.
 
-There is one place checking this already.  We could wrap it in a helper
-function:
+The duplicate header file inclusion has been already fixed in a previous
+patch.
 
-static bool device_init_done(void)
-{
-	return soc_bus_type.p ? true : false;
-}
+Applied this patch by massaging the changelog accordingly and fixing the
+conflict.
 
-regards,
-dan carpenter
+Thanks
+
+  -- Daniel
+
+-- 
+<http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
