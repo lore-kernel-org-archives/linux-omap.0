@@ -4,44 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83412C43460
-	for <linux-omap@archiver.kernel.org>; Fri, 23 Apr 2021 13:01:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8685CC433ED
+	for <linux-omap@archiver.kernel.org>; Fri, 23 Apr 2021 13:11:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A2E961465
-	for <linux-omap@archiver.kernel.org>; Fri, 23 Apr 2021 13:01:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FD27613F5
+	for <linux-omap@archiver.kernel.org>; Fri, 23 Apr 2021 13:11:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242569AbhDWNBx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 23 Apr 2021 09:01:53 -0400
-Received: from sender11-of-o51.zoho.eu ([31.186.226.237]:21195 "EHLO
+        id S242593AbhDWNLl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 23 Apr 2021 09:11:41 -0400
+Received: from sender11-of-o51.zoho.eu ([31.186.226.237]:21123 "EHLO
         sender11-of-o51.zoho.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242540AbhDWNBw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2021 09:01:52 -0400
-X-Greylist: delayed 314 seconds by postgrey-1.27 at vger.kernel.org; Fri, 23 Apr 2021 09:01:51 EDT
-ARC-Seal: i=1; a=rsa-sha256; t=1619182859; cv=none; 
+        with ESMTP id S242545AbhDWNLl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2021 09:11:41 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1619182545; cv=none; 
         d=zohomail.eu; s=zohoarc; 
-        b=Xhtbc+XTfak7Fd+bd2fi+E7APArH6SvomV9WJfCt0z27NrdnUrYwtKT7KBPr/DyL6piGJFUDJgp4h3rOz55yeIiTdEiT2U9hSB+sE4D9tQ1pftS4tbIMl4YRAe5uQP3qoYEJzI3hpdnMjbkDesnL9+PuMGSkwMTdrm3vD7uwHPo=
+        b=i+LG1Tc6ti9PK1vEaO5ltayUDVjJyv3pyRKW/LEOT6i2qeyvhb0zsTR0UPDKi+xojLGAFi9rBchPHXM2BuUQTDDDoSVEfXTFlc8sPbHpM61XYaXISxFgr4ln13f8ljiggZWR/KYQJzn8OxLDO9Xtc8h1SsJa6ejDh3ocQkB3NOg=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-        t=1619182859; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
-        bh=/Www13c1RRjJyZQ2ij29U6Ef95VskP+Y2GPW+4P6PrI=; 
-        b=Ya1p4d+CCeTcPNNT6qDlI80/bFDXrAu4+JbdrUDu2wo4K1gqTWAmNJsjrMntUQDqBjh5TnZVwxBiTF9cwJolW60QjI5fPGgzMfx5VLH3T2YmV0L6rAZ+4rvbEd9WLaJBMgRRyZwu8AHAFTrcPovCqPRyTGV3GN4ey4EIwqM+zOY=
+        t=1619182545; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=nSPxlV9nE44ILQFzsc70ZwuLQHRsdexGdyZ9jOvuxyc=; 
+        b=eB9xEB4U3gsNTO6B3kkfOgbU6HET1X3gVf5e+0NXeGDdEZqnpxyEUSY6yvHH4hnEbCXnVFtpydycGPDoS8yh1+f+6RJHs3ozD4cflWmi6F8w7xoEtoKReRzfVPfV8TdgHW27dRtdLrxcZ0V7GuNuPbrQVkcw5oaErZui6c8x5oE=
 ARC-Authentication-Results: i=1; mx.zohomail.eu;
         spf=pass  smtp.mailfrom=philipp@uvos.xyz;
         dmarc=pass header.from=<philipp@uvos.xyz> header.from=<philipp@uvos.xyz>
 Received: from UVOSLinux (ip-95-222-215-151.hsi15.unitymediagroup.de [95.222.215.151]) by mx.zoho.eu
-        with SMTPS id 1619182858059347.3495751384486; Fri, 23 Apr 2021 15:00:58 +0200 (CEST)
-Date:   Fri, 23 Apr 2021 15:00:57 +0200
+        with SMTPS id 1619182543944207.52861232420764; Fri, 23 Apr 2021 14:55:43 +0200 (CEST)
+Date:   Fri, 23 Apr 2021 14:55:43 +0200
 From:   Carl Philipp Klemm <philipp@uvos.xyz>
 To:     Sebastian Reichel <sre@kernel.org>
-Cc:     linux-pm@vger.kernel.org, linux-omap@vger.kernel.org,
+Cc:     linux-omap@vger.kernel.org,
         Arthur Demchenkov <spinal.by@gmail.com>,
         Tony Lindgren <tony@atomide.com>,
         Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH v2] power: supply: cpcap-charger: get the battery inserted
- infomation from cpcap-battery
-Message-Id: <20210423150057.97e0a2b43f20fdc3513f4fea@uvos.xyz>
+Subject: [PATCH v2 1/2] power: supply: cpcap-battery: Add battery type auto
+ detection for mapphone devices
+Message-Id: <20210423145543.d007e8aa9bd2fc91dc51caa5@uvos.xyz>
 X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -51,76 +50,222 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This avoids reimplementing the detection logic twice and removes the
-possibility of activating charging with 500mA even if a battery is not
-detected.
+This allows cpcap-battery to detect whitch battery is inserted, HW4X or BW8X for
+xt875 and EB41 for xt894 by examining the battery nvmem. If no known battery is
+detected sane defaults are used.
 
 Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
 ---
- drivers/power/supply/cpcap-charger.c | 39 ++++++++++++++--------------
- 1 file changed, 20 insertions(+), 19 deletions(-)
+ drivers/power/supply/cpcap-battery.c | 131 ++++++++++++++++++++-------
+ 1 file changed, 98 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cpcap-charger.c
-index 641dcad1133f..a5983365b81a 100644
---- a/drivers/power/supply/cpcap-charger.c
-+++ b/drivers/power/supply/cpcap-charger.c
-@@ -173,23 +173,6 @@ static enum power_supply_property cpcap_charger_props[] = {
- 	POWER_SUPPLY_PROP_CURRENT_NOW,
+diff --git a/drivers/power/supply/cpcap-battery.c b/drivers/power/supply/cpcap-battery.c
+index 6d5bcdb9f45d..386d269e699f 100644
+--- a/drivers/power/supply/cpcap-battery.c
++++ b/drivers/power/supply/cpcap-battery.c
+@@ -28,6 +28,7 @@
+ #include <linux/power_supply.h>
+ #include <linux/reboot.h>
+ #include <linux/regmap.h>
++#include <linux/nvmem-consumer.h>
+ #include <linux/moduleparam.h>
+ 
+ #include <linux/iio/consumer.h>
+@@ -73,6 +74,9 @@
+ 
+ #define CPCAP_BATTERY_CC_SAMPLE_PERIOD_MS	250
+ 
++#define CPCAP_BATTERY_EB41_HW4X_ID 0x9E
++#define CPCAP_BATTERY_BW8X_ID 0x98
++
+ enum {
+ 	CPCAP_BATTERY_IIO_BATTDET,
+ 	CPCAP_BATTERY_IIO_VOLTAGE,
+@@ -97,6 +101,7 @@ struct cpcap_interrupt_desc {
+ 
+ struct cpcap_battery_config {
+ 	int cd_factor;
++	char id;
+ 	struct power_supply_info info;
+ 	struct power_supply_battery_info bat;
+ };
+@@ -138,6 +143,8 @@ struct cpcap_battery_ddata {
+ 	int charge_full;
+ 	int status;
+ 	u16 vendor;
++	bool check_nvmem;
++	bool no_nvmem_warned;
+ 	unsigned int is_full:1;
  };
  
--/* No battery always shows temperature of -40000 */
--static bool cpcap_charger_battery_found(struct cpcap_charger_ddata *ddata)
--{
--	struct iio_channel *channel;
--	int error, temperature;
+@@ -354,6 +361,91 @@ cpcap_battery_read_accumulated(struct cpcap_battery_ddata *ddata,
+ 				       ccd->offset);
+ }
+ 
++
++/*
++ * Based on the values from Motorola mapphone Linux kernel for the
++ * stock Droid 4 battery eb41. In the Motorola mapphone Linux
++ * kernel tree the value for pm_cd_factor is passed to the kernel
++ * via device tree. If it turns out to be something device specific
++ * we can consider that too later. These values are also fine for
++ * Bionic's hw4x.
++ *
++ * And looking at the battery full and shutdown values for the stock
++ * kernel on droid 4, full is 4351000 and software initiates shutdown
++ * at 3078000. The device will die around 2743000.
++ */
++static const struct cpcap_battery_config cpcap_battery_eb41_data = {
++	.cd_factor = 0x3cc,
++	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
++	.info.voltage_max_design = 4351000,
++	.info.voltage_min_design = 3100000,
++	.info.charge_full_design = 1740000,
++	.bat.constant_charge_voltage_max_uv = 4200000,
++};
++
++/* Values for the extended Droid Bionic battery bw8x. */
++static const struct cpcap_battery_config cpcap_battery_bw8x_data = {
++	.cd_factor = 0x3cc,
++	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
++	.info.voltage_max_design = 4200000,
++	.info.voltage_min_design = 3200000,
++	.info.charge_full_design = 2760000,
++	.bat.constant_charge_voltage_max_uv = 4200000,
++};
++
++/*
++ * Safe values for any lipo battery likely to fit into a mapphone
++ * battery bay.
++ */
++static const struct cpcap_battery_config cpcap_battery_unkown_data = {
++	.cd_factor = 0x3cc,
++	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
++	.info.voltage_max_design = 4200000,
++	.info.voltage_min_design = 3200000,
++	.info.charge_full_design = 3000000,
++	.bat.constant_charge_voltage_max_uv = 4200000,
++};
++
++static int cpcap_battery_match_nvmem(struct device *dev, const void *data)
++{
++	if (strcmp(dev_name(dev), "89-500029ba0f73") == 0)
++		return 1;
++	else
++		return 0;
++}
++
++static void cpcap_battery_detect_battery_type(struct cpcap_battery_ddata *ddata)
++{
++	struct nvmem_device *nvmem;
++	u8 battery_id = 0;
++
++	ddata->check_nvmem = false;
++
++	nvmem = nvmem_device_find(NULL, &cpcap_battery_match_nvmem);
++	if (IS_ERR_OR_NULL(nvmem)) {
++		ddata->check_nvmem = true;
++		if (!ddata->no_nvmem_warned) {
++			dev_info(ddata->dev, "Can not find battery nvmem device. Assuming generic lipo battery\n");
++			ddata->no_nvmem_warned = true;
++		}
++	} else if (nvmem_device_read(nvmem, 2, 1, &battery_id) < 0) {
++		battery_id = 0;
++		ddata->check_nvmem = true;
++		dev_warn(ddata->dev, "Can not read battery nvmem device. Assuming generic lipo battery\n");
++	}
++
++	switch (battery_id) {
++	case CPCAP_BATTERY_EB41_HW4X_ID:
++		memcpy(&ddata->config, &cpcap_battery_eb41_data, sizeof(ddata->config));
++		break;
++	case CPCAP_BATTERY_BW8X_ID:
++		memcpy(&ddata->config, &cpcap_battery_bw8x_data, sizeof(ddata->config));
++		break;
++	default:
++		memcpy(&ddata->config, &cpcap_battery_unkown_data, sizeof(ddata->config));
++	}
++}
++
+ /**
+  * cpcap_battery_cc_get_avg_current - read cpcap coulumb counter
+  * @ddata: cpcap battery driver device data
+@@ -571,6 +663,9 @@ static int cpcap_battery_get_property(struct power_supply *psy,
+ 	latest = cpcap_battery_latest(ddata);
+ 	previous = cpcap_battery_previous(ddata);
+ 
++	if (ddata->check_nvmem)
++		cpcap_battery_detect_battery_type(ddata);
++
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_PRESENT:
+ 		if (latest->temperature > CPCAP_NO_BATTERY || ignore_temperature_probe)
+@@ -969,30 +1064,10 @@ static int cpcap_battery_calibrate(struct cpcap_battery_ddata *ddata)
+ 	return error;
+ }
+ 
+-/*
+- * Based on the values from Motorola mapphone Linux kernel. In the
+- * the Motorola mapphone Linux kernel tree the value for pm_cd_factor
+- * is passed to the kernel via device tree. If it turns out to be
+- * something device specific we can consider that too later.
+- *
+- * And looking at the battery full and shutdown values for the stock
+- * kernel on droid 4, full is 4351000 and software initiates shutdown
+- * at 3078000. The device will die around 2743000.
+- */
+-static const struct cpcap_battery_config cpcap_battery_default_data = {
+-	.cd_factor = 0x3cc,
+-	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
+-	.info.voltage_max_design = 4351000,
+-	.info.voltage_min_design = 3100000,
+-	.info.charge_full_design = 1740000,
+-	.bat.constant_charge_voltage_max_uv = 4200000,
+-};
 -
--	channel = ddata->channels[CPCAP_CHARGER_IIO_BATTDET];
--	error = iio_read_channel_processed(channel, &temperature);
--	if (error < 0) {
--		dev_warn(ddata->dev, "%s failed: %i\n", __func__, error);
+ #ifdef CONFIG_OF
+ static const struct of_device_id cpcap_battery_id_table[] = {
+ 	{
+ 		.compatible = "motorola,cpcap-battery",
+-		.data = &cpcap_battery_default_data,
+ 	},
+ 	{},
+ };
+@@ -1010,31 +1085,21 @@ static const struct power_supply_desc cpcap_charger_battery_desc = {
+ 	.external_power_changed = cpcap_battery_external_power_changed,
+ };
+ 
++
+ static int cpcap_battery_probe(struct platform_device *pdev)
+ {
+ 	struct cpcap_battery_ddata *ddata;
+-	const struct of_device_id *match;
+ 	struct power_supply_config psy_cfg = {};
+ 	int error;
+ 
+-	match = of_match_device(of_match_ptr(cpcap_battery_id_table),
+-				&pdev->dev);
+-	if (!match)
+-		return -EINVAL;
 -
--		return false;
+-	if (!match->data) {
+-		dev_err(&pdev->dev, "no configuration data found\n");
+-
+-		return -ENODEV;
 -	}
 -
--	return temperature > -20000 && temperature < 60000;
--}
--
- static int cpcap_charger_get_charge_voltage(struct cpcap_charger_ddata *ddata)
- {
- 	struct iio_channel *channel;
-@@ -697,11 +680,29 @@ static void cpcap_usb_detect(struct work_struct *work)
+ 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+ 		return -ENOMEM;
  
- 	if (!ddata->feeding_vbus && cpcap_charger_vbus_valid(ddata) &&
- 	    s.chrgcurr1) {
--		int max_current = 532000;
-+		int max_current;
- 		int vchrg, ichrg;
-+		union power_supply_propval val;
-+		struct power_supply *battery;
- 
--		if (cpcap_charger_battery_found(ddata))
-+		battery = power_supply_get_by_name("battery");
-+		if (IS_ERR_OR_NULL(battery)) {
-+			dev_err(ddata->dev, "battery power_supply not available %li\n",
-+					PTR_ERR(battery));
-+			return;
-+		}
++	cpcap_battery_detect_battery_type(ddata);
 +
-+		error = power_supply_get_property(battery, POWER_SUPPLY_PROP_PRESENT, &val);
-+		power_supply_put(battery);
-+		if (error)
-+			goto out_err;
-+
-+		if (val.intval) {
- 			max_current = 1596000;
-+		} else {
-+			dev_info(ddata->dev, "battery not inserted charging disabled\n");
-+			max_current = 0;
-+		}
+ 	INIT_LIST_HEAD(&ddata->irq_list);
+ 	ddata->dev = &pdev->dev;
+-	memcpy(&ddata->config, match->data, sizeof(ddata->config));
  
- 		if (max_current > ddata->limit_current)
- 			max_current = ddata->limit_current;
+ 	ddata->reg = dev_get_regmap(ddata->dev->parent, NULL);
+ 	if (!ddata->reg)
 -- 
 2.31.0
-
 
