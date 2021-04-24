@@ -2,105 +2,75 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69E01C433ED
-	for <linux-omap@archiver.kernel.org>; Fri, 23 Apr 2021 13:13:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9CC8C43461
+	for <linux-omap@archiver.kernel.org>; Sat, 24 Apr 2021 06:48:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 31E74613C8
-	for <linux-omap@archiver.kernel.org>; Fri, 23 Apr 2021 13:13:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF76B61606
+	for <linux-omap@archiver.kernel.org>; Sat, 24 Apr 2021 06:48:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231220AbhDWNOZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 23 Apr 2021 09:14:25 -0400
-Received: from sender11-of-o51.zoho.eu ([31.186.226.237]:21154 "EHLO
-        sender11-of-o51.zoho.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229479AbhDWNOY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2021 09:14:24 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1619182713; cv=none; 
-        d=zohomail.eu; s=zohoarc; 
-        b=R9f1QxYmddGFZTqz/hZqF5tvBoex/fKYbofSPjgmFSjDx6D7sY7sKVsf9EkH/Rc/zMNt9uzfM6kyc1LvkdLpwQOgmNAJf5eJKitrKz87QjswlDTNmGmuW0d5dZ/uwkPTbC8x94IsoJAPKlMfkeQSIdAg+AU6jn3F98QOb2FubJo=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-        t=1619182713; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
-        bh=6fFd2RWg6ZB7ZOJqmflBA0fUpb9RZMdgrn2KoLcfnjg=; 
-        b=ikuCEjOFE2ugOWiBOgaNi2sKXp7evILXchxeFMYGpRWwMvzOj3YQ5HasG4iRL0oBLrdYiyGHh5wyVGYvjUL0y7n1i82CbL9QcJoOOzTK/WAHmShGQ5Oa1s20YrOUWYlCJukdulQ+bbdLPqxkcKcVapW74IwgHgES0jmNd/fyQhQ=
-ARC-Authentication-Results: i=1; mx.zohomail.eu;
-        spf=pass  smtp.mailfrom=philipp@uvos.xyz;
-        dmarc=pass header.from=<philipp@uvos.xyz> header.from=<philipp@uvos.xyz>
-Received: from UVOSLinux (ip-95-222-215-151.hsi15.unitymediagroup.de [95.222.215.151]) by mx.zoho.eu
-        with SMTPS id 1619182711610837.8148067591384; Fri, 23 Apr 2021 14:58:31 +0200 (CEST)
-Date:   Fri, 23 Apr 2021 14:58:31 +0200
-From:   Carl Philipp Klemm <philipp@uvos.xyz>
-To:     Sebastian Reichel <sre@kernel.org>
-Cc:     linux-pm@vger.kernel.org, linux-omap@vger.kernel.org,
+        id S244407AbhDXGtC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 24 Apr 2021 02:49:02 -0400
+Received: from muru.com ([72.249.23.125]:48106 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231701AbhDXGsS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 24 Apr 2021 02:48:18 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 0943080C3;
+        Sat, 24 Apr 2021 06:47:33 +0000 (UTC)
+Date:   Sat, 24 Apr 2021 09:47:27 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Carl Philipp Klemm <philipp@uvos.xyz>
+Cc:     Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org,
         Arthur Demchenkov <spinal.by@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
         Merlijn Wajer <merlijn@wizzup.org>, Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH v2] power: supply: cpcap-battery: invalidate
- empty->counter_uah and charge_full when charge_now indicates that they are
- grossly wrong
-Message-Id: <20210423145831.a8f0ba37baa211353cdf43b8@uvos.xyz>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-ZohoMailClient: External
+Subject: Re: [PATCH v2 1/2] power: supply: cpcap-battery: Add battery type
+ auto detection for mapphone devices
+Message-ID: <YIO+/0OnFCoYkVIB@atomide.com>
+References: <20210423145543.d007e8aa9bd2fc91dc51caa5@uvos.xyz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210423145543.d007e8aa9bd2fc91dc51caa5@uvos.xyz>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This invalidates empty->counter_uah and charge_full when charge_now indicates
-that they are grossly wrong and adds some tolerance to
-POWER_SUPPLY_PROP_CHARGE_FULL to allow for inaccuracies in the charge counter
-and manufacturing tolerances in the battery.
+Hi,
 
-Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
----
- drivers/power/supply/cpcap-battery.c | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+* Carl Philipp Klemm <philipp@uvos.xyz> [210423 12:55]:
+> +static void cpcap_battery_detect_battery_type(struct cpcap_battery_ddata *ddata)
+> +{
+> +	struct nvmem_device *nvmem;
+> +	u8 battery_id = 0;
+> +
+> +	ddata->check_nvmem = false;
+> +
+> +	nvmem = nvmem_device_find(NULL, &cpcap_battery_match_nvmem);
+> +	if (IS_ERR_OR_NULL(nvmem)) {
+> +		ddata->check_nvmem = true;
+> +		if (!ddata->no_nvmem_warned) {
+> +			dev_info(ddata->dev, "Can not find battery nvmem device. Assuming generic lipo battery\n");
+> +			ddata->no_nvmem_warned = true;
+> +		}
 
-diff --git a/drivers/power/supply/cpcap-battery.c b/drivers/power/supply/cpcap-battery.c
-index 386d269e699f..9d9453231ea7 100644
---- a/drivers/power/supply/cpcap-battery.c
-+++ b/drivers/power/supply/cpcap-battery.c
-@@ -762,10 +762,23 @@ static int cpcap_battery_get_property(struct power_supply *psy,
- 		if (!empty->voltage)
- 			return -ENODATA;
- 		val->intval = empty->counter_uah - latest->counter_uah;
--		if (val->intval < 0)
-+		if (val->intval < 0) {
-+			/* Assume invalid config if CHARGE_NOW is -20% */
-+			if (ddata->charge_full && abs(val->intval) > ddata->charge_full/5) {
-+				empty->voltage = 0;
-+				ddata->charge_full = 0;
-+				return -ENODATA;
-+			}
- 			val->intval = 0;
--		else if (ddata->charge_full && ddata->charge_full < val->intval)
-+		} else if (ddata->charge_full && ddata->charge_full < val->intval) {
-+			/* Assume invalid config if CHARGE_NOW exceeds CHARGE_FULL by 20% */
-+			if (val->intval > (6*ddata->charge_full)/5) {
-+				empty->voltage = 0;
-+				ddata->charge_full = 0;
-+				return -ENODATA;
-+			}
- 			val->intval = ddata->charge_full;
-+		}
- 		break;
- 	case POWER_SUPPLY_PROP_CHARGE_FULL:
- 		if (!ddata->charge_full)
-@@ -842,7 +855,7 @@ static int cpcap_battery_set_property(struct power_supply *psy,
- 	case POWER_SUPPLY_PROP_CHARGE_FULL:
- 		if (val->intval < 0)
- 			return -EINVAL;
--		if (val->intval > ddata->config.info.charge_full_design)
-+		if (val->intval > (6*ddata->config.info.charge_full_design)/5)
- 			return -EINVAL;
- 
- 		ddata->charge_full = val->intval;
--- 
-2.31.0
+Folks are also using the device with no battery at all to have it directly
+connected to the power supply. This is handy for remotely power cycling
+the device, and also for measuring power consumption with a bench power
+supply. So by default I think we should continue assuming no battery is
+inserted rather than assume a generic battery is inserted.
 
+How about require configuring the undetected battery parameters via
+/sys/class/power_supply to indicate a non-standard battery is inserted?
 
+At least battery type, capacity, and voltage can depend on the generic
+battery inserted.
+
+Other than that, the NVRAM changes look nice to me.
+
+Regards,
+
+Tony
