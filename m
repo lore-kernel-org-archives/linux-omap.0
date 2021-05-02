@@ -2,107 +2,133 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_20,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,PHP_SCRIPT,
-	PLING_QUERY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BE67C433ED
-	for <linux-omap@archiver.kernel.org>; Sat,  1 May 2021 20:55:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D3FC19772
+	for <linux-omap@archiver.kernel.org>; Sun,  2 May 2021 14:03:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3AA56139A
-	for <linux-omap@archiver.kernel.org>; Sat,  1 May 2021 20:55:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F9D8613C1
+	for <linux-omap@archiver.kernel.org>; Sun,  2 May 2021 14:03:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231724AbhEAU4p (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 1 May 2021 16:56:45 -0400
-Received: from out2-92.antispamcloud.com ([185.201.17.92]:41600 "EHLO
-        out2-92.antispamcloud.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231547AbhEAU4o (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2021 16:56:44 -0400
-X-Greylist: delayed 1510 seconds by postgrey-1.27 at vger.kernel.org; Sat, 01 May 2021 16:56:44 EDT
-Received: from master12.serverwl.com ([89.40.227.248])
-        by mx53.antispamcloud.com with esmtps (TLSv1.2:AES128-GCM-SHA256:128)
-        (Exim 4.92)
-        (envelope-from <info@orologi-gioielli.net>)
-        id 1lcwGB-0006tY-Bg
-        for linux-omap@vger.kernel.org; Sat, 01 May 2021 22:30:43 +0200
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=orologi-gioielli.net; s=default; h=Content-Type:Content-Transfer-Encoding:
-        MIME-Version:Message-ID:Reply-To:From:Date:Subject:To:Sender:Cc:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=UvFJ2y5AuYLOFEv2BDXVVvj1CLPKtMoyvpvgwasbZ08=; b=Bhe6FNjuQoltKO0TuRE38Kf+r4
-        zFTSpGHxFjP8ClJNrL2WMHn9HDYRv0lnWnmwOpmLi+C6JNzyiTeyHWJTZ18OQt8GlvghgytJHaLfr
-        FlOzqgX4HcGGdZhj3fgIhNDqaHeiIiU46XOtpYGjDndqm2bYrukU8DdfN5H6dJRpyHkg=;
-Received: from orologigioielli by master12.serverwl.com with local (Exim 4.94)
-        (envelope-from <info@orologi-gioielli.net>)
-        id 1lcw1t-00BH6i-5q
-        for linux-omap@vger.kernel.org; Sat, 01 May 2021 22:15:57 +0200
-To:     linux-omap@vger.kernel.org
-Subject: Dettagli account per Make your payment today! Enjoy the YEAR! - viewing the report http://depmakaganquiven.tk?K19ikYb  7537301 Make your payment today! Enjoy the YEAR! - viewing the report http://depmakaganquiven.tk?K19ikYb  7537301 su Orologi-gioielli
-X-PHP-Script: orologi-gioielli.net/index.php for 77.222.109.213
-X-PHP-Originating-Script: 1274:phpmailer.php
-Date:   Sat, 1 May 2021 20:15:56 +0000
-From:   Gioielli D'Ercole <info@orologi-gioielli.net>
-Reply-To: Gioielli D'Ercole <info@orologi-gioielli.net>
-Message-ID: <ea153dfcba683265f021a3fcb3d2066b@orologi-gioielli.net>
-X-Priority: 3
-X-Mailer: PHPMailer 5.2.1 (http://code.google.com/a/apache-extras.org/p/phpmailer/)
+        id S232420AbhEBOEk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 2 May 2021 10:04:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49656 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232410AbhEBOEj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 2 May 2021 10:04:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 117176135D;
+        Sun,  2 May 2021 14:03:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1619964227;
+        bh=9rBdmnqcNBYq4mulLLtVltQzh9zTOIB56p2i5oS17/I=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Vnv0BLpnKhCv6b+g7MHN5W405uURlIbvG5UVkthUM4+4BePwRpk4rPId/XpojQU3C
+         lGPsEjwYcN9xfJXbXoXOdca2MV8e3sebQzQsr7mSQ2A806bv1CRHT03vv9k3VNqQWj
+         /gXyg3HDkp0mA5Cu2Rwt2BoAl05nNQLK1rKHEKeizZeI01bOJTV3DrA+7n8p7RksT3
+         Ra/NjBMUlsq3yFiFi6uyPYtN4I7VnKEOBZXGU1aM23o9Zn0TPribGuFyyUnQk9F795
+         27hihn48Tkc8QfFNZ9T5J0QrNdJ83DxF+Hh53U1lo4gzAig6XwGNRlVzSlejasB/Kq
+         cGyQJFwN8Kz6w==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>,
+        linux-omap@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.11 01/70] bus: ti-sysc: Probe for l4_wkup and l4_cfg interconnect devices first
+Date:   Sun,  2 May 2021 10:02:35 -0400
+Message-Id: <20210502140344.2719040-1-sashal@kernel.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - master12.serverwl.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [1274 995] / [47 12]
-X-AntiAbuse: Sender Address Domain - orologi-gioielli.net
-X-Get-Message-Sender-Via: master12.serverwl.com: authenticated_id: orologigioielli/from_h
-X-Authenticated-Sender: master12.serverwl.com: info@orologi-gioielli.net
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: orologi-gioielli.net:/public_html
-X-Originating-IP: 89.40.227.248
-X-VirtualSolution-Domain: 89.40.227.248
-X-VirtualSolution-Username: 89.40.227.248
-Authentication-Results: antispamcloud.com; auth=pass smtp.auth=89.40.227.248@89.40.227.248
-X-VirtualSolution-Outgoing-Class: unsure
-X-VirtualSolution-Outgoing-Evidence: Combined (0.78)
-X-Recommended-Action: accept
-X-Filter-ID: Pt3MvcO5N4iKaDQ5O6lkdGlMVN6RH8bjRMzItlySaT9mTjMOLiYsd/Y8AHOqQiThPUtbdvnXkggZ
- 3YnVId/Y5jcf0yeVQAvfjHznO7+bT5wGgERXQeehIgZ2We2qZfrKt8C9mOBdONdnsxgsk1D2pw/C
- h5SE4jAyhe1COeASyU/Vs4n5zZOoT2F92mQBfuKN4ld5rdi2ZxohSIq+dqifZt5o/TdFlZzuamb7
- UdGvFL4ZmG0x6899nnrfHS1cnoSjwBXLEvPJ94cBwYzQYU6GOE70UU5YRtdsbp5eHN8IpDyIUp8P
- WMqBh8f7pLmoNVig3/sqS8sT38oWBQ1bB0SlKVkGmkkmkXBUxcWkbwA4DrhXQFOX0czP0M0FvfyK
- B99wrcqvpsjBn5Sn1bTSk5BNXyYqM9ObjmCo3xKKR0HB0Y53iLlH9D5kZlWtBtbSECn84hJ877w3
- BrOappvVwxNqXWVmZiDFiRtg8zYnq8FneOb9qNV/dgp+FFPSSde3UJEu4sw4+FXyxmIVea1OKVqa
- VhEWYzL8H724WTq8vrfAU1P+If6LSStWM+DiPz1lnI7uY3sCdadijThrZ7LiHH92/6a5zn3o6MtK
- 8pf0hPbAkeCZME8HeiOTBXPmeRcbGamAcxw3qqhc+N6cuEg4XWh5Fsd7O1f8zBmysr6xnN8wcWKE
- AIyXUWeyUuAbvh9XxbL6+WaOQRInspaoY5FHN2G2iWLvAuZiee2RvYPUH2waSBeoaSXw9d33CUIW
- 4/2FBqsIQ1T0OnzHr9QTD70ParuHFtM+m4WpRRDP6YzwkAPgQJYx+TAvs/Uuq+fGUNYVLh8ft80c
- 3qQV+ynAEAU5sAKy/egEmb5UloYMWkWBKz2SoGA49TmXkI0oAg+rxG6woL3wZuM7jUXIESohoO51
- xWmU8Ud6S2O1qnN3qDty1ebGROSyJ2duc4GVz3I17tJapCAjajzzoKLFwteB1h7+wyq5PtqQDdPA
- SfOEv0q2tBR+8B0r8l1a+B3b8WJsR0wzQmfG79VwBFEkmDQI9UZcVgDvELHtJZkGl0BQCuf9K3TR
- oZoyps3/ybxKA0veqhtTl9Z2ZAd5rTM8EwC058NNOGZx9DEvuGslKTrRIXcXpFg5ivY=
-X-Report-Abuse-To: spam@quarantine10.antispamcloud.com
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Salve Make your payment today! Enjoy the YEAR! - viewing the report
- http://depmakaganquiven.tk?K19ikYb
-  7537301 Make your payment today! Enjoy the YEAR! - viewing the report
- http://depmakaganquiven.tk?K19ikYb
-  7537301,
+From: Tony Lindgren <tony@atomide.com>
 
-Grazie per esserti registrato su Orologi-gioielli. Il tuo account è stato creato e deve essere verificato prima che tu possa utilizzarlo.
-Per verificare l'account clicca sul link seguente o fai copia e incolla sul browser:
- https://orologi-gioielli.net/index.php?option=com_jshopping&controller=user&task=activate&token=caa77b1eb999cfeaf805c459c896f3cf 
+[ Upstream commit 4700a00755fb5a4bb5109128297d6fd2d1272ee6 ]
 
-Dopo la verifica, verrà inviata una notifica ad un amministratore perchè attivi il tuo account. Riceverai una conferma quando sarà fatto.
-Una volta attivato il tuo account, potrai effettuare il login su https://orologi-gioielli.net/ utilizzando i seguenti nome utente e password:
+We want to probe l4_wkup and l4_cfg interconnect devices first to avoid
+issues with missing resources. Otherwise we attempt to probe l4_per
+devices first causing pointless deferred probe and also annoyingh
+renumbering of the MMC devices for example.
 
-Nome utente: Make your payment today! Enjoy the YEAR! - viewing the report
- http://depmakaganquiven.tk?K19ikYb
-  7537301
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/bus/ti-sysc.c | 49 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index 3d74f237f005..9e535336689f 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -635,6 +635,51 @@ static int sysc_parse_and_check_child_range(struct sysc *ddata)
+ 	return 0;
+ }
+ 
++/* Interconnect instances to probe before l4_per instances */
++static struct resource early_bus_ranges[] = {
++	/* am3/4 l4_wkup */
++	{ .start = 0x44c00000, .end = 0x44c00000 + 0x300000, },
++	/* omap4/5 and dra7 l4_cfg */
++	{ .start = 0x4a000000, .end = 0x4a000000 + 0x300000, },
++	/* omap4 l4_wkup */
++	{ .start = 0x4a300000, .end = 0x4a300000 + 0x30000,  },
++	/* omap5 and dra7 l4_wkup without dra7 dcan segment */
++	{ .start = 0x4ae00000, .end = 0x4ae00000 + 0x30000,  },
++};
++
++static atomic_t sysc_defer = ATOMIC_INIT(10);
++
++/**
++ * sysc_defer_non_critical - defer non_critical interconnect probing
++ * @ddata: device driver data
++ *
++ * We want to probe l4_cfg and l4_wkup interconnect instances before any
++ * l4_per instances as l4_per instances depend on resources on l4_cfg and
++ * l4_wkup interconnects.
++ */
++static int sysc_defer_non_critical(struct sysc *ddata)
++{
++	struct resource *res;
++	int i;
++
++	if (!atomic_read(&sysc_defer))
++		return 0;
++
++	for (i = 0; i < ARRAY_SIZE(early_bus_ranges); i++) {
++		res = &early_bus_ranges[i];
++		if (ddata->module_pa >= res->start &&
++		    ddata->module_pa <= res->end) {
++			atomic_set(&sysc_defer, 0);
++
++			return 0;
++		}
++	}
++
++	atomic_dec_if_positive(&sysc_defer);
++
++	return -EPROBE_DEFER;
++}
++
+ static struct device_node *stdout_path;
+ 
+ static void sysc_init_stdout_path(struct sysc *ddata)
+@@ -863,6 +908,10 @@ static int sysc_map_and_check_registers(struct sysc *ddata)
+ 	if (error)
+ 		return error;
+ 
++	error = sysc_defer_non_critical(ddata);
++	if (error)
++		return error;
++
+ 	sysc_check_children(ddata);
+ 
+ 	error = sysc_parse_registers(ddata);
+-- 
+2.30.2
 
