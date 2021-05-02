@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC98AC4361B
-	for <linux-omap@archiver.kernel.org>; Sun,  2 May 2021 14:04:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E870CC43460
+	for <linux-omap@archiver.kernel.org>; Sun,  2 May 2021 14:04:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B90C613BB
-	for <linux-omap@archiver.kernel.org>; Sun,  2 May 2021 14:04:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CED5C61462
+	for <linux-omap@archiver.kernel.org>; Sun,  2 May 2021 14:04:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232267AbhEBOEb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 2 May 2021 10:04:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49132 "EHLO mail.kernel.org"
+        id S232797AbhEBOFU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 2 May 2021 10:05:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50382 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231964AbhEBOEa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 2 May 2021 10:04:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 54B176102A;
-        Sun,  2 May 2021 14:03:18 +0000 (UTC)
+        id S232688AbhEBOFJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 2 May 2021 10:05:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D7A6613DC;
+        Sun,  2 May 2021 14:04:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1619964199;
-        bh=9rBdmnqcNBYq4mulLLtVltQzh9zTOIB56p2i5oS17/I=;
+        s=k20201202; t=1619964253;
+        bh=v5XGusImn6QmKPp8HJBTBjOXUorUWO8M4g+OdsIfnys=;
         h=From:To:Cc:Subject:Date:From;
-        b=XVIXdqBVxIn8B0y0By1BryoBOwQl5GVper6y4RZlbtzKJaP3jcT758JRiyWANV892
-         JzC6AnV82f+qsWHoRXu2uIFkkgkWQgOWJdqopw9xRzRTCenPa3z/IBAYPUl41jqQ8X
-         XE9pd5+nJkak+BOo8z0bonBZbkuW0cbzgCRNXkQkYu86Wz8AQfBEjSTiNzjXRrNq/J
-         0EYld+vrxlT/kwCU5tBi21Mu6GKgC7BIKZj//ms41YPF4XipfJ3LeREV4hzvt0E+Lp
-         PBcBfgLvEcKDtPM4zjsuIxCJb+uY/XUeMbu/JYMGpKIPIRyx7JEwvf/P7bhdRjFVh/
-         lZNh4pgxi8j2w==
+        b=m31Wm482daOYmFVCWSlWyInU8ZbiFqhdmGMUf9tNmEZmDVKfxo6iKjjRg8IZ4XXVd
+         GUlsgXUKx+7sqZpkdCxaLPw9kB5Rva0WqeyYV4kwYioxWNcVdWC519brvSC6VeEIht
+         BvG9dMH+wqZZw5gGzA84xNUGmE5Qo8cxwjQWVTk+oMx803NVCtk+YY4/Yl+edGI8yv
+         qJ8MlCbLz6CNKT/SEwEypLfT0b02OP6KAgv7wc4TQC97vTwj+lZeGYdESeMFCqhrzw
+         r12Mey/DKxrntTuSdG3vDIdldNVT64QW2VfeOsYluor59YTCYgwOt2HeKEdY6N7GsZ
+         lvxqXL/V8CBag==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>,
         linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.12 01/79] bus: ti-sysc: Probe for l4_wkup and l4_cfg interconnect devices first
-Date:   Sun,  2 May 2021 10:01:58 -0400
-Message-Id: <20210502140316.2718705-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 01/66] bus: ti-sysc: Probe for l4_wkup and l4_cfg interconnect devices first
+Date:   Sun,  2 May 2021 10:03:06 -0400
+Message-Id: <20210502140411.2719301-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 X-stable: review
@@ -63,7 +63,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 49 insertions(+)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 3d74f237f005..9e535336689f 100644
+index 16e389dce111..9afbe4992a1d 100644
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
 @@ -635,6 +635,51 @@ static int sysc_parse_and_check_child_range(struct sysc *ddata)
@@ -118,7 +118,7 @@ index 3d74f237f005..9e535336689f 100644
  static struct device_node *stdout_path;
  
  static void sysc_init_stdout_path(struct sysc *ddata)
-@@ -863,6 +908,10 @@ static int sysc_map_and_check_registers(struct sysc *ddata)
+@@ -859,6 +904,10 @@ static int sysc_map_and_check_registers(struct sysc *ddata)
  	if (error)
  		return error;
  
