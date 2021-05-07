@@ -2,33 +2,30 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB45C43460
-	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:03:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D688C433ED
+	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:23:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C6E561468
-	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:03:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28A5C6144F
+	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:23:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236705AbhEGJEL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 7 May 2021 05:04:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40680 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236690AbhEGJEI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2021 05:04:08 -0400
-X-Greylist: delayed 2161 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 07 May 2021 02:03:09 PDT
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46272C061574;
-        Fri,  7 May 2021 02:03:09 -0700 (PDT)
-Received: from ip4d14bd53.dynamic.kabel-deutschland.de ([77.20.189.83] helo=[192.168.66.200]); authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1levp9-0004o6-Bo; Fri, 07 May 2021 10:27:03 +0200
-To:     Tony Lindgren <tony@atomide.com>,
-        Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc:     "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        id S234484AbhEGJY1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 7 May 2021 05:24:27 -0400
+Received: from muru.com ([72.249.23.125]:52666 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235202AbhEGJY0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 7 May 2021 05:24:26 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id C992681AC;
+        Fri,  7 May 2021 09:23:27 +0000 (UTC)
+Date:   Fri, 7 May 2021 12:23:22 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Thorsten Leemhuis <linux@leemhuis.info>
+Cc:     Naresh Kamboju <naresh.kamboju@linaro.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
         <devicetree@vger.kernel.org>, lkft-triage@lists.linaro.org,
         Linux ARM <linux-arm-kernel@lists.infradead.org>,
         Linux-OMAP <linux-omap@vger.kernel.org>,
@@ -38,70 +35,39 @@ Cc:     "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
         Vignesh Raghavendra <vigneshr@ti.com>,
         Viresh Kumar <viresh.kumar@linaro.org>,
         Rob Herring <robh+dt@kernel.org>
+Subject: Re: #regzb introduced: 98feab31ac49 ("ARM: OMAP2+: Drop legacy
+ platform data for dra7 sata")
+Message-ID: <YJUHCpjsAY7ZnHjJ@atomide.com>
 References: <CA+G9fYtTN6ug3eBAW3wMcDeESUo+ebj7L5HBe5_fj4uqDExFQg@mail.gmail.com>
  <YJPYvsdkfx4JD4vT@atomide.com>
  <CA+G9fYv48aJ6tmSaf_HtRKHse4yN40hEYSPR5=A3W6HRoJ8p_g@mail.gmail.com>
  <YJTz+D9Sp8Eyp+iw@atomide.com>
-From:   Thorsten Leemhuis <linux@leemhuis.info>
-Subject: Re: #regzb introduced: 98feab31ac49 ("ARM: OMAP2+: Drop legacy
- platform data for dra7 sata")
-Message-ID: <e896704c-c13a-739d-0723-22fec35406ed@leemhuis.info>
-Date:   Fri, 7 May 2021 10:27:02 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
+ <e896704c-c13a-739d-0723-22fec35406ed@leemhuis.info>
 MIME-Version: 1.0
-In-Reply-To: <YJTz+D9Sp8Eyp+iw@atomide.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-BZ
-Content-Transfer-Encoding: 8bit
-X-bounce-key: webpack.hosteurope.de;linux@leemhuis.info;1620378189;540b3e67;
-X-HE-SMSGID: 1levp9-0004o6-Bo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e896704c-c13a-739d-0723-22fec35406ed@leemhuis.info>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 07.05.21 10:02, Tony Lindgren wrote:
-> * Naresh Kamboju <naresh.kamboju@linaro.org> [210506 15:19]:
->> On Thu, 6 May 2021 at 17:23, Tony Lindgren <tony@atomide.com> wrote:
->>> * Naresh Kamboju <naresh.kamboju@linaro.org> [210506 11:00]:
->>>> Our bisect script pointed this as the first bad commit on linux
->>>> mainline master branch.
->>>> commit 98feab31ac491400f28b76a04dabd18ce21e91ba
->>>> Author: Tony Lindgren <tony@atomide.com>
->>>> Date:   Wed Mar 10 14:03:51 2021 +0200
->>>>     ARM: OMAP2+: Drop legacy platform data for dra7 sata
->>> Thanks for the report, looks like we are now missing the sata related
->>> quirk flags compared to the patch above.
->>> Below is a quick patch to add the missing quirk flags that might help
->>> if you can give it a try.
->> The reported problem was solved by this patch. Thank you.
->> Please add reported and tested by tags.
->> Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
->> Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-> OK good to hear and thanks for testing. Will send out a proper patch.
+Hi,
 
-Great to see that this is about to be fixed. And Naresh, many thx for
-giving the #regzb tag a try, even if regzbot (shameless plug for the
-unaware: https://linux-regtracking.leemhuis.info/post/regzbot-approach/
-) is not up and running already, much appreciated!
+* Thorsten Leemhuis <linux@leemhuis.info> [210507 08:27]:
+> Ohh, and Tony, if you want to do me a favour please include
+> 
+> Link:
+> https://lore.kernel.org/regressions/CA+G9fYtTN6ug3eBAW3wMcDeESUo+ebj7L5HBe5_fj4uqDExFQg@mail.gmail.com/
+> 
+> in the commit message of the fix, then I have some real data already at
+> hand to test regzbot in practice. :-D
 
-But FWIW, you don't need to add the tag to the subject; in fact, better
-use it for it's intended purpose. Instead add the tag to the mail's
-body, like this:
+OK sent with a fixes and link tag. As a test, I sent it to the lists I
+usually send patches to for this driver. The subject line is different,
+and I left out all the extra Cc including you and regzb mailing list as
+those are easy to forget to add to the mail. Let's see if regzb finds
+the fix based on the Link or Fixes tag :)
 
-#regzb introduced: 98feab31ac49 ("ARM: OMAP2+: Drop legacy platform data
-for dra7 sata")
+Regards,
 
-Just ensure there is a blank line after that, as regzbot will have to
-deal with line breaks (as can be seen above) and somehow needs to decide
-where to stop. ;-)
-
-Ohh, and Tony, if you want to do me a favour please include
-
-Link:
-https://lore.kernel.org/regressions/CA+G9fYtTN6ug3eBAW3wMcDeESUo+ebj7L5HBe5_fj4uqDExFQg@mail.gmail.com/
-
-in the commit message of the fix, then I have some real data already at
-hand to test regzbot in practice. :-D
-
-Ciao, Thorsten
+Tony
