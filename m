@@ -2,71 +2,64 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D23EBC433B4
-	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:28:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D133C433B4
+	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:35:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99E976144F
-	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:28:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE31261432
+	for <linux-omap@archiver.kernel.org>; Fri,  7 May 2021 09:35:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233468AbhEGJ3K (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 7 May 2021 05:29:10 -0400
-Received: from muru.com ([72.249.23.125]:52674 "EHLO muru.com"
+        id S236728AbhEGJgZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 7 May 2021 05:36:25 -0400
+Received: from muru.com ([72.249.23.125]:52700 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236718AbhEGJ3J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 7 May 2021 05:29:09 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id C13A480E0;
-        Fri,  7 May 2021 09:17:49 +0000 (UTC)
+        id S236325AbhEGJgT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 7 May 2021 05:36:19 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 1FE2480E0;
+        Fri,  7 May 2021 09:35:17 +0000 (UTC)
+Date:   Fri, 7 May 2021 12:35:12 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
-        Suman Anna <s-anna@ti.com>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Naresh Kamboju <naresh.kamboju@linaro.org>
-Subject: [PATCH] bus: ti-sysc: Fix missing quirk flags for sata
-Date:   Fri,  7 May 2021 12:17:44 +0300
-Message-Id: <20210507091744.19753-1-tony@atomide.com>
-X-Mailer: git-send-email 2.31.1
+To:     Thorsten Leemhuis <linux@leemhuis.info>
+Cc:     Naresh Kamboju <naresh.kamboju@linaro.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
+        <devicetree@vger.kernel.org>, lkft-triage@lists.linaro.org,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        regressions@lists.linux.dev,
+        Benoit Cousson <bcousson@baylibre.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: Re: #regzb introduced: 98feab31ac49 ("ARM: OMAP2+: Drop legacy
+ platform data for dra7 sata")
+Message-ID: <YJUJ0AMAWvNMaCRu@atomide.com>
+References: <CA+G9fYtTN6ug3eBAW3wMcDeESUo+ebj7L5HBe5_fj4uqDExFQg@mail.gmail.com>
+ <YJPYvsdkfx4JD4vT@atomide.com>
+ <CA+G9fYv48aJ6tmSaf_HtRKHse4yN40hEYSPR5=A3W6HRoJ8p_g@mail.gmail.com>
+ <YJTz+D9Sp8Eyp+iw@atomide.com>
+ <e896704c-c13a-739d-0723-22fec35406ed@leemhuis.info>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e896704c-c13a-739d-0723-22fec35406ed@leemhuis.info>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Naresh Kamboju <naresh.kamboju@linaro.org> reported that Beaglebone-X15
-does not detect sata drives any longer after dra7 was flipped to boot with
-device tree data only. Turns out we are now missing the sata related quirk
-flags in ti-sysc that we used to have earlier.
+* Thorsten Leemhuis <linux@leemhuis.info> [210507 08:27]:
+> Great to see that this is about to be fixed. And Naresh, many thx for
+> giving the #regzb tag a try, even if regzbot (shameless plug for the
+> unaware: https://linux-regtracking.leemhuis.info/post/regzbot-approach/
+> ) is not up and running already, much appreciated!
 
-Fixes: 98feab31ac49 ("ARM: OMAP2+: Drop legacy platform data for dra7 sata")
-Fixes: 21206c8f2cb5 ("ARM: OMAP2+: Drop legacy platform data for omap5 sata")
-Link: https://lore.kernel.org/regressions/CA+G9fYtTN6ug3eBAW3wMcDeESUo+ebj7L5HBe5_fj4uqDExFQg@mail.gmail.com/
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c | 2 ++
- 1 file changed, 2 insertions(+)
+Hmm so the link above does not show where to git clone the regzb program
+from? Or is that not yet published? Just wondering.
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1455,6 +1455,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
- 	SYSC_QUIRK("tptc", 0, 0, -ENODEV, -ENODEV, 0x40007c00, 0xffffffff,
- 		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
-+	SYSC_QUIRK("sata", 0, 0xfc, 0x1100, -ENODEV, 0x5e412000, 0xffffffff,
-+		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
- 	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, 0x14, 0x50700100, 0xffffffff,
- 		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_SWSUP_MSTANDBY),
- 	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, -ENODEV, 0x50700101, 0xffffffff,
--- 
-2.31.1
+Regards,
+
+Tony
