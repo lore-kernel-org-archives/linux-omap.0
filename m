@@ -1,78 +1,112 @@
 Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.0 required=3.0 tests=BAYES_50,DKIMWL_BL,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 104D7C433B4
-	for <linux-omap@archiver.kernel.org>; Mon, 10 May 2021 16:52:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3521C433ED
+	for <linux-omap@archiver.kernel.org>; Tue, 11 May 2021 15:20:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7C5061421
-	for <linux-omap@archiver.kernel.org>; Mon, 10 May 2021 16:52:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7156861400
+	for <linux-omap@archiver.kernel.org>; Tue, 11 May 2021 15:20:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231915AbhEJQxl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 10 May 2021 12:53:41 -0400
-Received: from flippiebeckerswealth.xyz ([62.173.147.206]:43884 "EHLO
-        host.flippiebeckerswealth.xyz" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229566AbhEJQxk (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 10 May 2021 12:53:40 -0400
-X-Greylist: delayed 7511 seconds by postgrey-1.27 at vger.kernel.org; Mon, 10 May 2021 12:53:40 EDT
-Received: from flippiebeckerswealth.xyz (ec2-3-142-218-249.us-east-2.compute.amazonaws.com [3.142.218.249])
-        by host.flippiebeckerswealth.xyz (Postfix) with ESMTPA id A7A5D1E0497
-        for <linux-omap@vger.kernel.org>; Mon, 10 May 2021 17:06:50 +0300 (MSK)
-DKIM-Filter: OpenDKIM Filter v2.11.0 host.flippiebeckerswealth.xyz A7A5D1E0497
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=flippiebeckerswealth.xyz; s=default; t=1620655611;
-        bh=Lxx5rGQCX/MQzrwE9epz1Mb5yPYRqDyEupWj6GReobo=;
-        h=Reply-To:From:To:Subject:Date:From;
-        b=rScisYqJ7G4gBoNLxsaBzzkMP2LAGuqBtaSBTDbUQ8lagwZQ0iduWVsg9R1vhdKEA
-         B8mRPwl5F7wlLY5rZYyLzv6ySCvFYjEDEwKsubkILxpTL0HQDkbekdXQ4vsnxQnePL
-         Wc/8QMCX5ct/MYF0z08YHlKEQ+10O9sestTfIKFo=
-DKIM-Filter: OpenDKIM Filter v2.11.0 host.flippiebeckerswealth.xyz A7A5D1E0497
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=flippiebeckerswealth.xyz; s=default; t=1620655611;
-        bh=Lxx5rGQCX/MQzrwE9epz1Mb5yPYRqDyEupWj6GReobo=;
-        h=Reply-To:From:To:Subject:Date:From;
-        b=rScisYqJ7G4gBoNLxsaBzzkMP2LAGuqBtaSBTDbUQ8lagwZQ0iduWVsg9R1vhdKEA
-         B8mRPwl5F7wlLY5rZYyLzv6ySCvFYjEDEwKsubkILxpTL0HQDkbekdXQ4vsnxQnePL
-         Wc/8QMCX5ct/MYF0z08YHlKEQ+10O9sestTfIKFo=
-Reply-To: cpavlides@flippiebeckerwealthservices.com
-From:   Chris Pavlides <cpavlides@flippiebeckerswealth.xyz>
-To:     linux-omap@vger.kernel.org
-Subject: Personal
-Date:   10 May 2021 14:06:50 +0000
-Message-ID: <20210510140650.61B73BDCF85DCCC6@flippiebeckerswealth.xyz>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+        id S231735AbhEKPVP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 11 May 2021 11:21:15 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:60942 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231461AbhEKPVP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2021 11:21:15 -0400
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 14BFK1ID104690;
+        Tue, 11 May 2021 10:20:01 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1620746401;
+        bh=Rz6bXU6XS7j+KrR9SbLWdgtPtvzU7RGsksFsLi91ok0=;
+        h=From:To:CC:Subject:Date;
+        b=aGhMb5FWFWTaB+lqKOUzIpi70y0df5odSGMm3gxUmY3H2wuyqV/q4tL7aK+EqChA7
+         5M+moxI73OJKm6pSoEHhZITbIZb71BloZfdcqOlCOb9r2oPNLzrmQKNvH2c+PWX+JA
+         EXP4z8UQQ1YpF9LzMdyk6dhoe39inqprq4uTr1HE=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 14BFK1uJ062601
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 11 May 2021 10:20:01 -0500
+Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Tue, 11
+ May 2021 10:20:01 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
+ Frontend Transport; Tue, 11 May 2021 10:20:01 -0500
+Received: from ula0132425.ent.ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 14BFJwuG121251;
+        Tue, 11 May 2021 10:19:59 -0500
+From:   Vignesh Raghavendra <vigneshr@ti.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>
+CC:     Vignesh Raghavendra <vigneshr@ti.com>,
+        Jan Kiszka <jan.kiszka@siemens.com>,
+        <linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: [PATCH] serial: 8250: 8250_omap: Fix possible interrupt storm
+Date:   Tue, 11 May 2021 20:49:55 +0530
+Message-ID: <20210511151955.28071-1-vigneshr@ti.com>
+X-Mailer: git-send-email 2.31.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hello there,
+It is possible that RX TIMEOUT is signalled after RX FIFO has been
+drained, in which case a dummy read of RX FIFO is required to clear RX
+TIMEOUT condition. Otherwise, RX TIMEOUT condition is not cleared
+leading to an interrupt storm
 
-I hope this message finds you in good spirits especially during=20
-this challenging time of coronavirus pandemic. I hope you and=20
-your family are well and keeping safe. Anyway, I am Chris=20
-Pavlides, a broker working with Flippiebecker Wealth. I got your=20
-contact (along with few other contacts) through an online=20
-business directory and I thought I should contact you to see if=20
-you are interested in this opportunity. I am contacting you=20
-because one of my high profile clients is interested in investing=20
-abroad and has asked me to look for individuals and companies=20
-with interesting business ideas and projects that he can invest=20
-in. He wants to invest a substantial amount of asset abroad.
+Cc: stable@vger.kernel.org
+Reported-by: Jan Kiszka <jan.kiszka@siemens.com>
+Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Please kindly respond back to this email if you are interested in=20
-this opportunity. Once I receive your response, I will give you=20
-more details and we can plan a strategy that will be beneficial=20
-to all parties.
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 8ac11eaeca51..c71bd766fa56 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -104,6 +104,9 @@
+ #define UART_OMAP_EFR2			0x23
+ #define UART_OMAP_EFR2_TIMEOUT_BEHAVE	BIT(6)
+ 
++/* RX FIFO occupancy indicator */
++#define UART_OMAP_RX_LVL		0x64
++
+ struct omap8250_priv {
+ 	int line;
+ 	u8 habit;
+@@ -625,6 +628,15 @@ static irqreturn_t omap8250_irq(int irq, void *dev_id)
+ 	serial8250_rpm_get(up);
+ 	iir = serial_port_in(port, UART_IIR);
+ 	ret = serial8250_handle_irq(port, iir);
++	/*
++	 * It is possible that RX TIMEOUT is signalled after FIFO
++	 * has been drained, in which case a dummy read of RX FIFO is
++	 * required to clear RX TIMEOUT condition.
++	 */
++	if ((iir & UART_IIR_RX_TIMEOUT) == UART_IIR_RX_TIMEOUT) {
++		if (serial_port_in(port, UART_OMAP_RX_LVL) == 0)
++			serial_port_in(port, UART_RX);
++	}
+ 	serial8250_rpm_put(up);
+ 
+ 	return IRQ_RETVAL(ret);
+-- 
+2.31.1
 
-Best regards
-
-C Pavlides
-Flippiebecker Wealth
