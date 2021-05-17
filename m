@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99B5FC43461
-	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:39:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99ECEC433ED
+	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:45:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D25D6112F
-	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:39:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81D52611ED
+	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243132AbhEQPkt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 May 2021 11:40:49 -0400
-Received: from hostingweb31-40.netsons.net ([89.40.174.40]:60079 "EHLO
+        id S241141AbhEQPrI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 17 May 2021 11:47:08 -0400
+Received: from hostingweb31-40.netsons.net ([89.40.174.40]:34160 "EHLO
         hostingweb31-40.netsons.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S245089AbhEQPh1 (ORCPT
+        by vger.kernel.org with ESMTP id S1344185AbhEQPmy (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 17 May 2021 11:37:27 -0400
-Received: from [77.244.183.192] (port=64716 helo=melee.fritz.box)
+        Mon, 17 May 2021 11:42:54 -0400
+Received: from [77.244.183.192] (port=64722 helo=melee.fritz.box)
         by hostingweb31.netsons.net with esmtpa (Exim 4.94.2)
         (envelope-from <luca@lucaceresoli.net>)
-        id 1lifHt-000CDv-67; Mon, 17 May 2021 17:36:09 +0200
+        id 1lifNA-000Exi-RL; Mon, 17 May 2021 17:41:36 +0200
 From:   Luca Ceresoli <luca@lucaceresoli.net>
 To:     linux-pci@vger.kernel.org
 Cc:     Luca Ceresoli <luca@lucaceresoli.net>, linux-omap@vger.kernel.org,
@@ -31,11 +31,15 @@ Cc:     Luca Ceresoli <luca@lucaceresoli.net>, linux-omap@vger.kernel.org,
         Kishon Vijay Abraham I <kishon@ti.com>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
         Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH] PCI: dwc: pci-dra7xx: fix reset behaviour
-Date:   Mon, 17 May 2021 17:35:57 +0200
-Message-Id: <20210517153557.429623-1-luca@lucaceresoli.net>
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Jingoo Han <jingoohan1@gmail.com>,
+        Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+Subject: [PATCH 1/5] PCI: dwc: export more symbols to allow modular drivers
+Date:   Mon, 17 May 2021 17:41:18 +0200
+Message-Id: <20210517154122.430544-2-luca@lucaceresoli.net>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210517154122.430544-1-luca@lucaceresoli.net>
+References: <20210517154122.430544-1-luca@lucaceresoli.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
@@ -52,44 +56,39 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The PCIe PERSTn reset pin is active low and should be asserted, then
-deasserted.
-
-The current implementation only drives the pin once in "HIGH" position,
-thus presumably it was intended to deassert the pin. This has two problems:
-
-  1) it assumes the pin was asserted by other means before loading the
-     driver
-  2) it has the wrong polarity, since "HIGH" means "active", and the pin is
-     presumably configured as active low coherently with the PCIe
-     convention, thus it is driven physically to 0, keeping the device
-     under reset unless the pin is configured as active high.
-
-Fix both problems by:
-
-  1) keeping devm_gpiod_get_optional(dev, NULL, GPIOD_OUT_HIGH) as is, but
-     assuming the pin is correctly configured as "active low" this now
-     becomes a reset assertion
-  2) adding gpiod_set_value(reset, 0) after a delay to deassert reset
+These symbols are used by the pci-dra7xx driver. Export them to allow
+building pci-dra7xx as a module.
 
 Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 ---
- drivers/pci/controller/dwc/pci-dra7xx.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pci/controller/dwc/pcie-designware-ep.c | 1 +
+ drivers/pci/controller/dwc/pcie-designware.c    | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index dacd6da70c35..8dd20b394d0c 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -800,6 +800,8 @@ static int dra7xx_pcie_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "gpio request failed, ret %d\n", ret);
- 		goto err_gpio;
- 	}
-+	usleep_range(1000, 2000);
-+	gpiod_set_value(reset, 0);
+diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
+index 8d028a88b375..f2692a138216 100644
+--- a/drivers/pci/controller/dwc/pcie-designware-ep.c
++++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
+@@ -83,6 +83,7 @@ void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+ 	for (func_no = 0; func_no < funcs; func_no++)
+ 		__dw_pcie_ep_reset_bar(pci, func_no, bar, 0);
+ }
++EXPORT_SYMBOL_GPL(dw_pcie_ep_reset_bar);
  
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
- 	reg &= ~LTSSM_EN;
+ static u8 __dw_pcie_ep_find_next_cap(struct dw_pcie_ep *ep, u8 func_no,
+ 		u8 cap_ptr, u8 cap)
+diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
+index a945f0c0e73d..850b4533f4ef 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.c
++++ b/drivers/pci/controller/dwc/pcie-designware.c
+@@ -538,6 +538,7 @@ int dw_pcie_link_up(struct dw_pcie *pci)
+ 	return ((val & PCIE_PORT_DEBUG1_LINK_UP) &&
+ 		(!(val & PCIE_PORT_DEBUG1_LINK_IN_TRAINING)));
+ }
++EXPORT_SYMBOL_GPL(dw_pcie_link_up);
+ 
+ void dw_pcie_upconfig_setup(struct dw_pcie *pci)
+ {
 -- 
 2.25.1
 
