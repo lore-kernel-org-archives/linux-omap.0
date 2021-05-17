@@ -2,28 +2,27 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E46AC4363E
-	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:45:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18A73C43619
+	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:45:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 012E661108
-	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:45:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0B94611BE
+	for <linux-omap@archiver.kernel.org>; Mon, 17 May 2021 15:45:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244541AbhEQPrN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 May 2021 11:47:13 -0400
-Received: from hostingweb31-40.netsons.net ([89.40.174.40]:47636 "EHLO
+        id S243725AbhEQPrJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 17 May 2021 11:47:09 -0400
+Received: from hostingweb31-40.netsons.net ([89.40.174.40]:39951 "EHLO
         hostingweb31-40.netsons.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1344190AbhEQPm4 (ORCPT
+        by vger.kernel.org with ESMTP id S1344184AbhEQPmy (ORCPT
         <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 17 May 2021 11:42:56 -0400
+        Mon, 17 May 2021 11:42:54 -0400
 Received: from [77.244.183.192] (port=64722 helo=melee.fritz.box)
         by hostingweb31.netsons.net with esmtpa (Exim 4.94.2)
         (envelope-from <luca@lucaceresoli.net>)
-        id 1lifNC-000Exi-Ly; Mon, 17 May 2021 17:41:38 +0200
+        id 1lifNA-000Exi-CJ; Mon, 17 May 2021 17:41:36 +0200
 From:   Luca Ceresoli <luca@lucaceresoli.net>
 To:     linux-pci@vger.kernel.org
 Cc:     Luca Ceresoli <luca@lucaceresoli.net>, linux-omap@vger.kernel.org,
@@ -34,12 +33,10 @@ Cc:     Luca Ceresoli <luca@lucaceresoli.net>, linux-omap@vger.kernel.org,
         Bjorn Helgaas <bhelgaas@google.com>,
         Jingoo Han <jingoohan1@gmail.com>,
         Gustavo Pimentel <gustavo.pimentel@synopsys.com>
-Subject: [PATCH 5/5] PCI: dwc: pci-dra7xx: get an optional clock
-Date:   Mon, 17 May 2021 17:41:22 +0200
-Message-Id: <20210517154122.430544-6-luca@lucaceresoli.net>
+Subject: [PATCH 0/5] PCI: dwc: pci-dra7xx: miscellaneous improvements
+Date:   Mon, 17 May 2021 17:41:17 +0200
+Message-Id: <20210517154122.430544-1-luca@lucaceresoli.net>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210517154122.430544-1-luca@lucaceresoli.net>
-References: <20210517154122.430544-1-luca@lucaceresoli.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
@@ -56,59 +53,25 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-If the clock is provided externally we need to make sure it is enabled
-before starting PCI scan.
+This is an series of mixed improvements to the DRA7 PCI controller driver:
+allow building as a loadabel module, allow to get and enable a clock and a
+small cleanup.
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
----
- drivers/pci/controller/dwc/pci-dra7xx.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Luca
 
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index 05d06806c300..8dd20b394d0c 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -7,6 +7,7 @@
-  * Authors: Kishon Vijay Abraham I <kishon@ti.com>
-  */
- 
-+#include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/err.h>
-@@ -90,6 +91,7 @@ struct dra7xx_pcie {
- 	int			phy_count;	/* DT phy-names count */
- 	struct phy		**phy;
- 	struct irq_domain	*irq_domain;
-+	struct clk              *clk;
- 	enum dw_pcie_device_mode mode;
- };
- 
-@@ -744,6 +746,15 @@ static int dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (!link)
- 		return -ENOMEM;
- 
-+	dra7xx->clk = devm_clk_get_optional(dev, NULL);
-+	if (IS_ERR(dra7xx->clk))
-+		return dev_err_probe(dev, PTR_ERR(dra7xx->clk),
-+				     "clock request failed");
-+
-+	ret = clk_prepare_enable(dra7xx->clk);
-+	if (ret)
-+		return ret;
-+
- 	for (i = 0; i < phy_count; i++) {
- 		snprintf(name, sizeof(name), "pcie-phy%d", i);
- 		phy[i] = devm_phy_get(dev, name);
-@@ -931,6 +942,8 @@ static void dra7xx_pcie_shutdown(struct platform_device *pdev)
- 
- 	pm_runtime_disable(dev);
- 	dra7xx_pcie_disable_phy(dra7xx);
-+
-+	clk_disable_unprepare(dra7xx->clk);
- }
- 
- static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+Luca Ceresoli (5):
+  PCI: dwc: export more symbols to allow modular drivers
+  PCI: dwc: pci-dra7xx: make it a kernel module
+  PCI: dwc: pci-dra7xx: allow to build as a loadable module
+  PCI: dwc: pci-dra7xx: remove unused include
+  PCI: dwc: pci-dra7xx: get an optional clock
+
+ drivers/pci/controller/dwc/Kconfig            |  6 +++---
+ drivers/pci/controller/dwc/pci-dra7xx.c       | 21 +++++++++++++++++--
+ .../pci/controller/dwc/pcie-designware-ep.c   |  1 +
+ drivers/pci/controller/dwc/pcie-designware.c  |  1 +
+ 4 files changed, 24 insertions(+), 5 deletions(-)
+
 -- 
 2.25.1
 
