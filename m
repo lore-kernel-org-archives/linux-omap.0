@@ -2,56 +2,90 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A213EC433ED
-	for <linux-omap@archiver.kernel.org>; Tue, 18 May 2021 05:13:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F18AC433ED
+	for <linux-omap@archiver.kernel.org>; Tue, 18 May 2021 06:05:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7666B6023B
-	for <linux-omap@archiver.kernel.org>; Tue, 18 May 2021 05:13:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 004D46117A
+	for <linux-omap@archiver.kernel.org>; Tue, 18 May 2021 06:05:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241302AbhERFOU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 18 May 2021 01:14:20 -0400
-Received: from muru.com ([72.249.23.125]:56902 "EHLO muru.com"
+        id S239474AbhERGGq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 18 May 2021 02:06:46 -0400
+Received: from muru.com ([72.249.23.125]:56924 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236877AbhERFOU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 18 May 2021 01:14:20 -0400
+        id S230376AbhERGGo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 18 May 2021 02:06:44 -0400
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 1A84480BA;
-        Tue, 18 May 2021 05:13:05 +0000 (UTC)
-Date:   Tue, 18 May 2021 08:12:58 +0300
+        by muru.com (Postfix) with ESMTPS id 5E32D80BA;
+        Tue, 18 May 2021 06:05:30 +0000 (UTC)
+Date:   Tue, 18 May 2021 09:05:23 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     Luca Ceresoli <luca@lucaceresoli.net>
-Cc:     Andreas Kemnade <andreas@kemnade.info>, linux-omap@vger.kernel.org
-Subject: Re: Status of ti/ti-linux-5.10.y development
-Message-ID: <YKNM2jJTMqNBfVLt@atomide.com>
-References: <78852763-4bc3-dc59-02c4-b3b07584c0ed@lucaceresoli.net>
- <20210515154758.5b1b4fc5@aktux>
- <7879604b-467f-7363-8294-7164238032d0@lucaceresoli.net>
+To:     Dario Binacchi <dariobin@libero.it>
+Cc:     linux-kernel@vger.kernel.org,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
+        linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] pinctrl: single: set pinmux from pins debug file
+Message-ID: <YKNZIzyO5Q/XGLRs@atomide.com>
+References: <20210517200002.6316-1-dariobin@libero.it>
+ <20210517200002.6316-3-dariobin@libero.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <7879604b-467f-7363-8294-7164238032d0@lucaceresoli.net>
+In-Reply-To: <20210517200002.6316-3-dariobin@libero.it>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Luca Ceresoli <luca@lucaceresoli.net> [210517 08:43]:
-> Actually I still haven't tackled HDMI on ti-linux-5.10.y, I only found
-> it by comparing the .config from the working 4.19 branch and from 5.10
-> and noticed the config option has disappeared.
-> 
-> My current problem is that omapdrm does not populate /dev/fb0 (perhaps
-> due to a similar reason) and the VIP driver apparently just not present
-> on the 5.10.y branch.
+Hi,
 
-Well HDMI should be working, at least it was when I last tested with
-omap2plus_defconfig. Maybe you're missing CONFIG_FB=y ?
+I noticed few more things I started to wonder about after
+looking at this again.
 
-No idea about VIP driver though.
+* Dario Binacchi <dariobin@libero.it> [210517 20:00]:
+> +static int pcs_pin_dbg_set(struct pinctrl_dev *pctldev, unsigned int pin,
+> +			   char *buf)
+> +{
+> +	struct pcs_device *pcs;
+> +	unsigned int val, mux_bytes;
+> +
+> +	buf = skip_spaces(buf);
+> +	if (kstrtouint(buf, 0, &val))
+> +		return -EINVAL;
+> +
+> +	pcs = pinctrl_dev_get_drvdata(pctldev);
+> +
+> +	mux_bytes = pcs->width / BITS_PER_BYTE;
+> +	pcs->write(val, pcs->base + pin * mux_bytes);
+> +	return 0;
+> +}
 
-Regaqrds,
+Since you're adding a new interface, how about pass unsigned
+int val instead of char *buf?
+
+>  static void pcs_dt_free_map(struct pinctrl_dev *pctldev,
+>  				struct pinctrl_map *map, unsigned num_maps)
+>  {
+> @@ -331,6 +348,9 @@ static const struct pinctrl_ops pcs_pinctrl_ops = {
+>  	.get_group_name = pinctrl_generic_get_group_name,
+>  	.get_group_pins = pinctrl_generic_get_group_pins,
+>  	.pin_dbg_show = pcs_pin_dbg_show,
+> +#if IS_ENABLED(CONFIG_DEVMEM)
+> +	.pin_dbg_set = pcs_pin_dbg_set,
+> +#endif
+>  	.dt_node_to_map = pcs_dt_node_to_map,
+>  	.dt_free_map = pcs_dt_free_map,
+>  };
+
+It might be better to always have the .pin_dbg_set around to
+avoid the IS_ENABLED(CONFIG_DEVMEM).
+
+Does the new interface need something under Documentation too?
+
+Regards,
 
 Tony
