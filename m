@@ -2,91 +2,111 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DADF5C433ED
-	for <linux-omap@archiver.kernel.org>; Wed, 19 May 2021 11:31:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A95BC433B4
+	for <linux-omap@archiver.kernel.org>; Wed, 19 May 2021 15:14:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7941611C2
-	for <linux-omap@archiver.kernel.org>; Wed, 19 May 2021 11:31:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 418D0610A8
+	for <linux-omap@archiver.kernel.org>; Wed, 19 May 2021 15:14:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239842AbhESLdN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 19 May 2021 07:33:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57156 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229554AbhESLdN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2021 07:33:13 -0400
-Received: from mail-pf1-x430.google.com (mail-pf1-x430.google.com [IPv6:2607:f8b0:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E86CC06175F;
-        Wed, 19 May 2021 04:31:54 -0700 (PDT)
-Received: by mail-pf1-x430.google.com with SMTP id x18so5385393pfi.9;
-        Wed, 19 May 2021 04:31:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=S3az4aOopeu8PToPYTiB4gPF4tOtIx0O5/U+DExxUeI=;
-        b=MlQdVLTfmyS+jmnvPXSCPFU8qxgppbaMswdRbCCGctJrcHyZRJLO9NSf2BCFZIoGgi
-         p1UfCSuGe1FlownvAkyKCtoOuKCCLEB+Hn6S9eSjVmjYbmfkIvlGRLqinGPeieUN98kr
-         glkO/74KCT00da1aiYsqt/hlz0Vyo6mPEVy747QfRjeg2n/QrsPNLLC4UphxJnrZ6fC+
-         0WWxdVKRYtKhR7x/LpFZlkXGzQ8xjb8GgMk0vloPZ3f/bu76clVyUXoazfqus7f5bKj0
-         fjI7mEt8w+Ro6H1ApkFr2dp9eHFpJ4C4O1QsdOlIyoGdmKv7yKEqR1UJkpqnvT9X9Xk7
-         2Sig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=S3az4aOopeu8PToPYTiB4gPF4tOtIx0O5/U+DExxUeI=;
-        b=GuDw92QhlZUvSQcWEbrOv+d7WaAgodJnU8oFu6s6uv7bJbpeVmKg6Mv7SI2LiBXHH3
-         9rPk3AvaoaZZm+hJ5YRgdSfiYPh5bhwltj5ZQaQ0Gh7IKVFD29yauaagw7rICSrcEl02
-         78UE0lwBaLno2nofrLyPuUuRUpCUUe3HtAer47DJYKpmnWC9gkARxLLAb52hy8Ym7EsA
-         cl6HzTfLZNE2PmhbHCrJyDWMLaOaVnvQ2t5kZH990Z0b9eD7Bc2CNf2nowDY6n5S83d4
-         y3eAlM1hoJoC2sqwn0Vh25GZ5DK1P7sE9mdMoA/f6JtAmSM+LHkEw15thhyPlKUsmuU6
-         TJfg==
-X-Gm-Message-State: AOAM530soxc38VZ8+LzfjHrqSyODEA3yRZmq2t5vLCg+/HIun95H1DmN
-        wXpLcNQiP8x/1Rtw4BXqTTlnh5kPSp78txY4RmO4V4tCfx0=
-X-Google-Smtp-Source: ABdhPJy9StB6CLmDduXztdxo3V1PZk9GmaxBlE5HP/AnxW3AU7T3ysCXLYhWRwW9+4Zx+8hH7HpQvITx5FQR/cXIOCY=
-X-Received: by 2002:a63:cd11:: with SMTP id i17mr10333646pgg.74.1621423913678;
- Wed, 19 May 2021 04:31:53 -0700 (PDT)
+        id S240858AbhESPPp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 19 May 2021 11:15:45 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:53550 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233577AbhESPPo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2021 11:15:44 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 14JFEEhZ107727;
+        Wed, 19 May 2021 10:14:14 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1621437254;
+        bh=JLprp5Wyndl+zIrf2Vm1yh2awJx90eNQiNKEDp5mqt0=;
+        h=Subject:To:CC:References:From:Date:In-Reply-To;
+        b=rUotHyVawT2S/Vg0zGFaqNEt1igJm0hiHu0q8V6HGufhFMBaTGwTQUx/4SC8LiCuV
+         dUs05FVcE0qzdsJfeQLp7Xuy0PKXqDeUPd+omHAWeDgAxMd9vMOaBvnon3w3E7P/jy
+         PiCCMkLnxpVP7lpAy6/dQ+KbZ1ZIkYj6n+jgoKMU=
+Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 14JFEE7q030202
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 19 May 2021 10:14:14 -0500
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Wed, 19
+ May 2021 10:14:14 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
+ Frontend Transport; Wed, 19 May 2021 10:14:14 -0500
+Received: from [10.250.32.40] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 14JFEEBI018990;
+        Wed, 19 May 2021 10:14:14 -0500
+Subject: Re: [PATCH] dt-bindings: mailbox: Convert omap-mailbox.txt binding to
+ YAML
+To:     Rob Herring <robh+dt@kernel.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>
+CC:     Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>,
+        Jan Kiszka <jan.kiszka@siemens.com>,
+        <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20210518172022.10562-1-s-anna@ti.com>
+From:   Suman Anna <s-anna@ti.com>
+Message-ID: <c666919f-cc10-3ca5-a1e3-5062c260e827@ti.com>
+Date:   Wed, 19 May 2021 10:14:14 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-References: <20210517200002.6316-1-dariobin@libero.it>
-In-Reply-To: <20210517200002.6316-1-dariobin@libero.it>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Wed, 19 May 2021 14:31:37 +0300
-Message-ID: <CAHp75Vc0kmwuT21=bvpfUj+qAO1XmKEXUpxEEhx3TRZrQbR4Gw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/2] am335x: set pinmux registers from pins debug file
-To:     Dario Binacchi <dariobin@libero.it>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Haojian Zhuang <haojian.zhuang@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Tony Lindgren <tony@atomide.com>,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20210518172022.10562-1-s-anna@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, May 19, 2021 at 3:58 AM Dario Binacchi <dariobin@libero.it> wrote:
->
->
-> The patch was born from the need to change the slew rate of the LCD pins
-> of a custom AM335x board during EMC tests. The AM335x, as described in a
-> note in section 9.1 of its reference manual [1], is unable to write
-> pinmux registers from user space. The series now makes it possible to
-> write these registers from the pins debug file.
+On 5/18/21 12:20 PM, Suman Anna wrote:
+> Convert the current OMAP Mailbox binding from text format to YAML
+> format/DT schema, and delete the legacy text binding file.
+> 
+> The new YAML binding conversion is an updated version compared to
+> the original. The descriptions for certain properties have been
+> improved to provide more clarity. Constraints are added to the
+> properties 'ti,mbox-num-users', 'ti,mbox-num-fifos' and 'interrupts'.
+> The 'ti,hwmods' is a legacy property and is retained only to reflect
+> the existing usage on some older OMAP2 and OMAP3 platforms.
+> 
+> All the existing examples have also been updated to reflect the
+> latest dts nodes (ti,hwmods removed from OMAP4 and AM33xx examples,
+> and interrupts value updated for AM65x SoCs).
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+> Hi,
+> 
+> This patch does fix a number of dtbs_check warnings seen around OMAP Mailbox
+> nodes with the latest kernel. There are few left-over warnings when just
+> this patch is used on v5.13-rc1 or next-20210518. I have posted a separate
+> fix for a warning on TI K3 SoCs [1], and will be posting a separate cleanup
+> series for OMAP2+ SoCs. The dts patches can be picked up independently
+> of this patch.
 
-Even for debugfs it would be nice to have a piece of documentation.
-Because pin control is a quite sensitive area and if something goes
-wrong, it may damage the hardware.
+FYI, All the dtbs_check warnings will be gone with [1] and the OMAP2+ cleanup
+series [2].
 
-> [1] https://www.ti.com/lit/ug/spruh73q/spruh73q.pdf
+> 
+> regards
+> Suman
+> 
+> [1] https://patchwork.kernel.org/project/linux-arm-kernel/patch/20210514212016.3153-1-s-anna@ti.com/
 
+[2] https://patchwork.kernel.org/project/linux-omap/list/?series=484489
 
--- 
-With Best Regards,
-Andy Shevchenko
+[snip]
+
+regards
+Suman
