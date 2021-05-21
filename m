@@ -2,124 +2,86 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A4D2C43611
-	for <linux-omap@archiver.kernel.org>; Fri, 21 May 2021 07:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE6CC433B4
+	for <linux-omap@archiver.kernel.org>; Fri, 21 May 2021 08:45:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3112C613AF
-	for <linux-omap@archiver.kernel.org>; Fri, 21 May 2021 07:54:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97F4A61132
+	for <linux-omap@archiver.kernel.org>; Fri, 21 May 2021 08:45:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236388AbhEUHzl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 May 2021 03:55:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36744 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236402AbhEUHzl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2021 03:55:41 -0400
-Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35FFCC06138C
-        for <linux-omap@vger.kernel.org>; Fri, 21 May 2021 00:54:18 -0700 (PDT)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed20:18b5:4195:d4ed:57e1])
-        by albert.telenet-ops.be with bizsmtp
-        id 7KuC2500946MpxJ06KuCnj; Fri, 21 May 2021 09:54:16 +0200
-Received: from rox.of.borg ([192.168.97.57])
-        by ramsan.of.borg with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1ljzz1-007iyX-Nf; Fri, 21 May 2021 09:54:11 +0200
-Received: from geert by rox.of.borg with local (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1ljzz1-00A3ua-8U; Fri, 21 May 2021 09:54:11 +0200
-From:   Geert Uytterhoeven <geert+renesas@glider.be>
-To:     Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Jan Tuerk <jan.tuerk@emtrion.com>,
-        Shawn Guo <shawnguo@kernel.org>
-Cc:     devicetree@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 1/3] ARM: dts: dra7x-evm: Align GPIO hog names with dt-schema
-Date:   Fri, 21 May 2021 09:54:06 +0200
-Message-Id: <e8350ea542c92465020f03481d76943168df2935.1621583562.git.geert+renesas@glider.be>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1621583562.git.geert+renesas@glider.be>
-References: <cover.1621583562.git.geert+renesas@glider.be>
+        id S232785AbhEUIq6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 May 2021 04:46:58 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:47030 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230442AbhEUIq6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2021 04:46:58 -0400
+Received: from [192.168.1.111] (91-157-208-71.elisa-laajakaista.fi [91.157.208.71])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id C43428D8;
+        Fri, 21 May 2021 10:45:30 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1621586731;
+        bh=WIs/t3U/kddeRP0vSywJKonvx676D72juDfNaO7cqkc=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=e2Un5NxX3Gh2pQL1HLaRtlF3OdVX0EDoBOp+zNnXP0/bflRKoEcQKUvMxDWIG2mws
+         HAASKaYBq+Z42l6/U7fjdHhT+HSlKsGHQxEtnXk43XoPfKwnjhY4rE0XPD9a2gghOq
+         fg/mPxubxUH/wVRo+ZUtWNXLXbpakntB/0GzLMVE=
+Subject: Re: Random stack corruption on v5.13 with dra76
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>,
+        "Bajjuri, Praneeth" <praneeth@ti.com>, linux-omap@vger.kernel.org
+References: <0f48c7e5-6acd-1143-35ef-3dea2255bec6@ideasonboard.com>
+ <YKdG5rsNCRYVLDpj@atomide.com>
+ <f71c2b05-9d11-f8a4-a0ff-c2c179eda7f0@ideasonboard.com>
+ <YKdjyAYY1s8BXLAz@atomide.com>
+From:   Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+Message-ID: <064a9324-cfcf-47b9-6ae3-a29085a52683@ideasonboard.com>
+Date:   Fri, 21 May 2021 11:45:29 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <YKdjyAYY1s8BXLAz@atomide.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The dt-schema for nxp,pcf8575 expects GPIO hogs node names to end with a
-'hog' suffix.
+On 21/05/2021 10:39, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ideasonboard.com> [210521 07:05]:
+>> On 21/05/2021 08:36, Tony Lindgren wrote:
+>>> * Tomi Valkeinen <tomi.valkeinen@ideasonboard.com> [210520 08:27]:
+>>>> Hi,
+>>>>
+>>>> I've noticed that the v5.13 rcs crash randomly (but quite often) on dra76 evm
+>>>> (I haven't tested other boards). Anyone else seen this problem?
+>>>
+>>> I have not seen this so far and beagle-x15 is behaving for me.
+>>>
+>>> Does it always happen on boot?
+>>
+>> No, but quite often. I can't really say how often, as it's annoyingly random.
+>> I tried to bisect, but that proved to be difficult as sometimes I get multiple (5+)
+>> successful boots before the crash.
+>>
+>> I tested with x15, same issue (below). So... Something in my kernel config? Or compiler?
+>> Looks like the crash happens always very soon after (or during) probing palmas.
+> 
+> After about 10 reboots with your .config I'm seeing it now too on
+> beagle-x15. So far no luck reproducing it with omap2plus_defconfig.
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- arch/arm/boot/dts/dra7-evm.dts          | 2 +-
- arch/arm/boot/dts/dra71-evm.dts         | 2 +-
- arch/arm/boot/dts/dra72-evm-common.dtsi | 2 +-
- arch/arm/boot/dts/dra76-evm.dts         | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+I think I have an easy way to see if a kernel is good or bad, by 
+printing stack_not_used(current) in the first call to 
+omap_i2c_xfer_irq(). There's a huge drop between v5.12 and v5.13-rc1.
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 38530dbb89a00b7c..3dcb6e1f49bcf1f0 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -366,7 +366,7 @@ pcf_hdmi: gpio@26 {
- 		reg = <0x26>;
- 		gpio-controller;
- 		#gpio-cells = <2>;
--		p1 {
-+		hdmi-audio-hog {
- 			/* vin6_sel_s0: high: VIN6, low: audio */
- 			gpio-hog;
- 			gpios = <1 GPIO_ACTIVE_HIGH>;
-diff --git a/arch/arm/boot/dts/dra71-evm.dts b/arch/arm/boot/dts/dra71-evm.dts
-index 6d2cca6b44883e59..a64364443031525b 100644
---- a/arch/arm/boot/dts/dra71-evm.dts
-+++ b/arch/arm/boot/dts/dra71-evm.dts
-@@ -187,7 +187,7 @@ &pcf_gpio_21 {
- };
- 
- &pcf_hdmi {
--	p0 {
-+	hdmi-i2c-disable-hog {
- 		/*
- 		 * PM_OEn to High: Disable routing I2C3 to PM_I2C
- 		 * With this PM_SEL(p3) should not matter
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index b65b2dd094d0ff57..f2384277d5dcdc5c 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -268,7 +268,7 @@ pcf_hdmi: pcf8575@26 {
- 		 */
- 		lines-initial-states = <0x0f2b>;
- 
--		p1 {
-+		hdmi-audio-hog {
- 			/* vin6_sel_s0: high: VIN6, low: audio */
- 			gpio-hog;
- 			gpios = <1 GPIO_ACTIVE_HIGH>;
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 9bd01ae40b1d1fbb..df47ea59c9c404c2 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -381,7 +381,7 @@ pcf_hdmi: pcf8575@26 {
- 		reg = <0x26>;
- 		gpio-controller;
- 		#gpio-cells = <2>;
--		p1 {
-+		hdmi-audio-hog {
- 			/* vin6_sel_s0: high: VIN6, low: audio */
- 			gpio-hog;
- 			gpios = <1 GPIO_ACTIVE_HIGH>;
--- 
-2.25.1
+And interestingly, sometimes a simple printk seems to use hundreds of 
+bytes of stack (i.e. compare stack usage before and after the print). 
+But not always. So maybe the issue is somehow related to printk.
 
+I'm bisecting.
+
+  Tomi
