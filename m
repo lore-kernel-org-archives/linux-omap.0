@@ -2,104 +2,120 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0C4BC47088
-	for <linux-omap@archiver.kernel.org>; Wed, 26 May 2021 12:51:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F27DC47082
+	for <linux-omap@archiver.kernel.org>; Wed, 26 May 2021 14:49:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C89DE613EC
-	for <linux-omap@archiver.kernel.org>; Wed, 26 May 2021 12:51:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60B8C613B9
+	for <linux-omap@archiver.kernel.org>; Wed, 26 May 2021 14:49:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234447AbhEZMwq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 26 May 2021 08:52:46 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:56894 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234887AbhEZMtO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2021 08:49:14 -0400
-Received: from mail-ua1-f69.google.com ([209.85.222.69])
-        by youngberry.canonical.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.93)
-        (envelope-from <krzysztof.kozlowski@canonical.com>)
-        id 1llswn-0000yc-I4
-        for linux-omap@vger.kernel.org; Wed, 26 May 2021 12:47:41 +0000
-Received: by mail-ua1-f69.google.com with SMTP id f15-20020a9f2bcf0000b02901f8fe91b89cso746314uaj.0
-        for <linux-omap@vger.kernel.org>; Wed, 26 May 2021 05:47:41 -0700 (PDT)
+        id S234977AbhEZOum (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 26 May 2021 10:50:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37580 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234893AbhEZOum (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2021 10:50:42 -0400
+Received: from mail-wr1-x431.google.com (mail-wr1-x431.google.com [IPv6:2a00:1450:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1B0FC061574
+        for <linux-omap@vger.kernel.org>; Wed, 26 May 2021 07:49:10 -0700 (PDT)
+Received: by mail-wr1-x431.google.com with SMTP id r12so1460471wrp.1
+        for <linux-omap@vger.kernel.org>; Wed, 26 May 2021 07:49:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=4yzCAHgH1guS2Y/0Pu674rbF+XBExPOSLFaI2JjAr9o=;
+        b=RzcyMIr4so58tJ/yAtZJpcVi6jfoQjSa78q5+zCUvWhjT8ApP+sC9MGWT0SslIRymM
+         OOUsuUiB8Q8miGAkRv6t1l+V8AguLEnIXkCilfhI3WdUAj4rIjVvfDCX0QeOAob479qK
+         llkmocaP7/SJypt9g96oKJW63enU3yMMfT/6g2bBXJx0X5rlXpoiaDXRmtnelLQgKLng
+         uoIX7m5cRWPdlqNsFOxbphLBe65vbj17DoyKPkAg5PIZ2oXvNrBu4xcoKH3yRYeE5dHi
+         05Xs/YfPmdCUnBObgfyfvRQ5yUEINyxULpVaHrph4sFjMl3cfWrFsTyI7GgjlDCuGMH5
+         PWTA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=WIVLcdNNtMYgH1JGfFPDDOgy1+OAkNQskR3ugQF/qLg=;
-        b=Oa7Vyx81dczeLtNvtVsWh0BYbY8PkWDpF7uTkyN8JBrQfHN/7rRwrrxh3pT4svzaeA
-         lJ4+dIRn4LfdtJBGzFOMNIrG9I0iyfzAI1L1B1mCZN0pzAJ+ZJlYuHoveeJOa9RRKuYC
-         XUi7hFJ6WrLWUHlsFfmzRCXWjZ0e0SexTpJTXUGV4qrLS2Osgsx9AzCNLe8dGpYnx8E+
-         jlEqvxFSML/7CsPinLPYqUVJR9sWFkYQY2O8pVzfL21xwvRwPefhy+wDf1w1cehlm24R
-         BqmkURD0bFNlijckXAVBTzbFJ57u3O3nCFkB9iGdxSA+pB+FpWssvycovY6HlqIwJFRC
-         pyCA==
-X-Gm-Message-State: AOAM533bBy6kzri1Xvq/G9/p7CLbUxUOutdsoTOyWinCND/Fq9ZPGIKU
-        kgZlvayVxFfrIDzmNKCBMLvm7ENVUOj138pGi/B0KUa9lCz0p/LMZRKj2SJ+lEPKT1r/n72HG+t
-        HHFgAsVusd954xt1ScqwIS2iVUmMgOaAUs737pjs=
-X-Received: by 2002:a67:ee07:: with SMTP id f7mr29741178vsp.55.1622033260695;
-        Wed, 26 May 2021 05:47:40 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJwLAavyPatTn6lusqjCi70ec2x9vA5s1Emg7eGeEsn1Ovy17QVDFuG9G6nwebdsE/DwG++62w==
-X-Received: by 2002:a67:ee07:: with SMTP id f7mr29741168vsp.55.1622033260560;
-        Wed, 26 May 2021 05:47:40 -0700 (PDT)
-Received: from localhost.localdomain ([45.237.48.3])
-        by smtp.gmail.com with ESMTPSA id c126sm875817vkh.47.2021.05.26.05.47.38
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=4yzCAHgH1guS2Y/0Pu674rbF+XBExPOSLFaI2JjAr9o=;
+        b=tlHOLbKWu1/Odb8qE3K2+CxlDznrFKd7yJtOry41GDetFRRTHDptYzp3Yc5ee1AdDj
+         ys9lytoeP28VaXDNja8bdQVM4Q65v8cImKAFB67Ijzf6ddrX4fIucCDRfjV9Fh7kaA0j
+         sIRK/OGToOZuxoTNvkbH7+tKv69ctUjpA+Wr/u5huUyrx1JrsuNgWmYaFiyWWeUlJxCy
+         Z32GbWfHoKoqh3QJp/31aF8/UINaMHma1TCEQloSYSvqgc/DGgTj9WNnQdtljCzeIquN
+         Bo/SDMI3ffxA1m+JOhVsy/J/bDlYbodr4BW4ci0ranuAc77UplIYwACfe+CwEt5uXk4h
+         GWuw==
+X-Gm-Message-State: AOAM531nRZSn8JI9YAlQTs5G5Tko4MSJ4amx+DQUdvWX/L+lLvMbIENf
+        3yymBQEuxJOHsjsKZ+TxiYZjjA==
+X-Google-Smtp-Source: ABdhPJymhCb8+adtmqlgsuAxsyUXeg3vOV/bRVZzi9wBHWjkqTj0A6AdeBSSxDHabNoMiIbDMcdDvg==
+X-Received: by 2002:adf:e9c9:: with SMTP id l9mr32872343wrn.85.1622040549363;
+        Wed, 26 May 2021 07:49:09 -0700 (PDT)
+Received: from dell ([91.110.221.223])
+        by smtp.gmail.com with ESMTPSA id t204sm7201207wmg.38.2021.05.26.07.49.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 May 2021 05:47:40 -0700 (PDT)
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
-To:     Lee Jones <lee.jones@linaro.org>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
+        Wed, 26 May 2021 07:49:08 -0700 (PDT)
+Date:   Wed, 26 May 2021 15:49:07 +0100
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
+Cc:     Support Opensource <support.opensource@diasemi.com>,
         Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
         Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-        patches@opensource.cirrus.com
-Cc:     Charles Keepax <ckeepax@opensource.cirrus.com>
-Subject: [RESEND PATCH v2 06/13] mfd: wm831x: Correct kerneldoc
-Date:   Wed, 26 May 2021 08:47:04 -0400
-Message-Id: <20210526124711.33223-7-krzysztof.kozlowski@canonical.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20210526124711.33223-1-krzysztof.kozlowski@canonical.com>
+        patches@opensource.cirrus.com,
+        Charles Keepax <ckeepax@opensource.cirrus.com>
+Subject: Re: [RESEND PATCH v2 06/13] mfd: wm831x: Correct kerneldoc
+Message-ID: <20210526144907.GC543307@dell>
 References: <20210526124711.33223-1-krzysztof.kozlowski@canonical.com>
+ <20210526124711.33223-7-krzysztof.kozlowski@canonical.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210526124711.33223-7-krzysztof.kozlowski@canonical.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Correct kerneldoc function name to fix W=1 warning:
+On Wed, 26 May 2021, Krzysztof Kozlowski wrote:
+65;6200;1c
+> Correct kerneldoc function name to fix W=1 warning:
+> 
+>   drivers/mfd/wm831x-core.c:121: warning:
+>     expecting prototype for wm831x_reg_unlock(). Prototype was for wm831x_reg_lock() instead
+> 
+> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
+> Acked-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+> 
+> ---
+> 
+> Changes since v1:
+> 1. Add Ack
+> ---
+>  drivers/mfd/wm831x-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-  drivers/mfd/wm831x-core.c:121: warning:
-    expecting prototype for wm831x_reg_unlock(). Prototype was for wm831x_reg_lock() instead
+This one has been fixed already:
 
-Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
-Acked-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+https://lore.kernel.org/lkml/20210520120820.3465562-2-lee.jones@linaro.org/
 
----
+> diff --git a/drivers/mfd/wm831x-core.c b/drivers/mfd/wm831x-core.c
+> index bcef08f58fb3..c31809b17547 100644
+> --- a/drivers/mfd/wm831x-core.c
+> +++ b/drivers/mfd/wm831x-core.c
+> @@ -109,7 +109,7 @@ static int wm831x_reg_locked(struct wm831x *wm831x, unsigned short reg)
+>  }
+>  
+>  /**
+> - * wm831x_reg_unlock: Unlock user keyed registers
+> + * wm831x_reg_lock: Unlock user keyed registers
+>   *
+>   * The WM831x has a user key preventing writes to particularly
+>   * critical registers.  This function locks those registers,
 
-Changes since v1:
-1. Add Ack
----
- drivers/mfd/wm831x-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/mfd/wm831x-core.c b/drivers/mfd/wm831x-core.c
-index bcef08f58fb3..c31809b17547 100644
---- a/drivers/mfd/wm831x-core.c
-+++ b/drivers/mfd/wm831x-core.c
-@@ -109,7 +109,7 @@ static int wm831x_reg_locked(struct wm831x *wm831x, unsigned short reg)
- }
- 
- /**
-- * wm831x_reg_unlock: Unlock user keyed registers
-+ * wm831x_reg_lock: Unlock user keyed registers
-  *
-  * The WM831x has a user key preventing writes to particularly
-  * critical registers.  This function locks those registers,
 -- 
-2.27.0
-
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
