@@ -2,120 +2,68 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 176A9C47083
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Jun 2021 06:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6B0DC47083
+	for <linux-omap@archiver.kernel.org>; Fri,  4 Jun 2021 07:24:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFFB36140F
-	for <linux-omap@archiver.kernel.org>; Fri,  4 Jun 2021 06:35:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92B6261415
+	for <linux-omap@archiver.kernel.org>; Fri,  4 Jun 2021 07:24:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229844AbhFDGhE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 4 Jun 2021 02:37:04 -0400
-Received: from muru.com ([72.249.23.125]:36112 "EHLO muru.com"
+        id S230055AbhFDHZ6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 4 Jun 2021 03:25:58 -0400
+Received: from muru.com ([72.249.23.125]:36134 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229826AbhFDGhE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 4 Jun 2021 02:37:04 -0400
+        id S230049AbhFDHZ6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 4 Jun 2021 03:25:58 -0400
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id A8C8F8027;
-        Fri,  4 Jun 2021 06:35:25 +0000 (UTC)
-Date:   Fri, 4 Jun 2021 09:35:15 +0300
+        by muru.com (Postfix) with ESMTPS id 2DABC8167;
+        Fri,  4 Jun 2021 07:24:18 +0000 (UTC)
+Date:   Fri, 4 Jun 2021 10:24:07 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc:     linux-omap@vger.kernel.org
-Subject: Re: Regression with 6cfcd5563b4f on BeagleBoard Rev C2
-Message-ID: <YLnJowBaoJPyZWOk@atomide.com>
-References: <68f28473-a196-b106-b4ae-e9162b7002e6@bitmer.com>
- <YLcXicwDxue0a52/@atomide.com>
- <5037cd3e-9c4f-0028-ceef-8315d297f2bc@bitmer.com>
+To:     Dario Binacchi <dariobin@libero.it>
+Cc:     linux-kernel@vger.kernel.org,
+        Michael Turquette <mturquette@baylibre.com>,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v7 0/5] clk: ti: add am33xx spread spectrum clock support
+Message-ID: <YLnVF6owlhZu6JU6@atomide.com>
+References: <20210602150009.17531-1-dariobin@libero.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <5037cd3e-9c4f-0028-ceef-8315d297f2bc@bitmer.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210602150009.17531-1-dariobin@libero.it>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 Hi,
 
-* Jarkko Nikula <jarkko.nikula@bitmer.com> [210602 18:21]:
-> Hi
+* Dario Binacchi <dariobin@libero.it> [210602 15:00]:
 > 
-> On 6/2/21 8:30 AM, Tony Lindgren wrote:
-> > Sounds like the beagleboard timer errata handling is either picking
-> > a wrong clockevent timer, or later on ti-sysc misdetects the active
-> > timer for clockevent and idles it.
-> > 
-> > What does dmesg say in the beginning for clockevent and clocksource
-> > timers?
-> > 
-> I attached logs from commit 6cfcd5563b4f and commit 30c66fc30ee7 before
-> it. Perhaps this is relevant difference between them?
+> As reported by the TI spruh73x/spruhl7x RM, MPU and LCD modules support
+> spread spectrum clocking (SSC) on their output clocks. SSC is used to
+> spread the spectral peaking of the clock to reduce any electromagnetic
+> interference (EMI) that may be caused due to the clock’s fundamental
+> or any of its harmonics.
+> The series allows you to enable and adjust the spread spectrum clocking
+> for all am33xx/am43xx PLLs for which it is supported. All these issues
+> have been fixed.
 > 
-> +ti-sysc: probe of 49032000.target-module failed with error -16
-> +ti-sysc: probe of 48304000.target-module failed with error -16
+> 
+> Previous versions of the series did not supported SSC for am43xx SOCs,
+> causing clock registration failure for DPLLs. Furthermore, for am33xx
+> SOCs, clock registration failed for DPLLs for which SSC is not supported.
 
-Yeah so it seems. We now attempt to ignore the system timer instances
-while it seems we need also block idling at least for timer12 that is
-used for the beagle timer.
-
-Can you test the following patch and see if it helps?
+Looks good to me, probably best to queue this all via the clock tree.
 
 Regards,
 
 Tony
-
-8< ------------------------
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -100,6 +100,7 @@ static const char * const clock_names[SYSC_MAX_CLOCKS] = {
-  * @cookie: data used by legacy platform callbacks
-  * @name: name if available
-  * @revision: interconnect target module revision
-+ * @reserved: target module is reserved and already in use
-  * @enabled: sysc runtime enabled status
-  * @needs_resume: runtime resume needed on resume from suspend
-  * @child_needs_resume: runtime resume needed for child on resume from suspend
-@@ -130,6 +131,7 @@ struct sysc {
- 	struct ti_sysc_cookie cookie;
- 	const char *name;
- 	u32 revision;
-+	unsigned int reserved:1;
- 	unsigned int enabled:1;
- 	unsigned int needs_resume:1;
- 	unsigned int child_needs_resume:1;
-@@ -3045,8 +3047,8 @@ static int sysc_probe(struct platform_device *pdev)
- 		return error;
- 
- 	error = sysc_check_active_timer(ddata);
--	if (error)
--		return error;
-+	if (error == -EBUSY)
-+		ddata->reserved = true;
- 
- 	error = sysc_get_clocks(ddata);
- 	if (error)
-@@ -3082,11 +3084,15 @@ static int sysc_probe(struct platform_device *pdev)
- 	sysc_show_registers(ddata);
- 
- 	ddata->dev->type = &sysc_device_type;
--	error = of_platform_populate(ddata->dev->of_node, sysc_match_table,
--				     pdata ? pdata->auxdata : NULL,
--				     ddata->dev);
--	if (error)
--		goto err;
-+
-+	if (!ddata->reserved) {
-+		error = of_platform_populate(ddata->dev->of_node,
-+					     sysc_match_table,
-+					     pdata ? pdata->auxdata : NULL,
-+					     ddata->dev);
-+		if (error)
-+			goto err;
-+	}
- 
- 	INIT_DELAYED_WORK(&ddata->idle_work, ti_sysc_idle);
- 
