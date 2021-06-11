@@ -2,48 +2,81 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEE44C4743D
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Jun 2021 04:43:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7CC7C4743D
+	for <linux-omap@archiver.kernel.org>; Fri, 11 Jun 2021 05:17:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A78F610A5
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Jun 2021 04:43:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B959B6023B
+	for <linux-omap@archiver.kernel.org>; Fri, 11 Jun 2021 05:17:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230168AbhFKEpv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 11 Jun 2021 00:45:51 -0400
-Received: from muru.com ([72.249.23.125]:41550 "EHLO muru.com"
+        id S230405AbhFKFTm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 11 Jun 2021 01:19:42 -0400
+Received: from muru.com ([72.249.23.125]:41580 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229562AbhFKEpv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 11 Jun 2021 00:45:51 -0400
+        id S230361AbhFKFTl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 11 Jun 2021 01:19:41 -0400
 Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 5D06D80E1;
-        Fri, 11 Jun 2021 04:44:02 +0000 (UTC)
-Date:   Fri, 11 Jun 2021 07:43:50 +0300
+        by muru.com (Postfix) with ESMTPS id F405580E1;
+        Fri, 11 Jun 2021 05:17:51 +0000 (UTC)
+Date:   Fri, 11 Jun 2021 08:17:40 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     David Russell <david.russell73@gmail.com>
-Cc:     "Woodruff, Richard" <r-woodruff2@ti.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [EXTERNAL] OMAP2430 kernel hangs on ioremap of IVA2.1 addresses
-Message-ID: <YMLqBvxtQy+1VJzj@atomide.com>
-References: <E26ACA77-0F54-41BC-BA45-29B641A6BEA9@gmail.com>
- <cb562f9f798d4431a09f19e8efd24727@ti.com>
- <YMBdt8dDdvySofuC@atomide.com>
- <7307CCC8-4052-45DF-B733-8752E2A8447E@gmail.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Bin Liu <b-liu@ti.com>, linux-usb@vger.kernel.org,
+        linux-omap@vger.kernel.org,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Andreas Kemnade <andreas@kemnade.info>,
+        Bhushan Shah <bshah@kde.org>,
+        Drew Fustini <drew@beagleboard.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Subject: Re: [PATCH 1/2] usb: musb: Simplify cable state handling
+Message-ID: <YMLx9O0DnWc1umPo@atomide.com>
+References: <20210604080536.12185-1-tony@atomide.com>
+ <YMCJL7KXI1GxwQBl@kroah.com>
+ <YMCtQRbTIjNViMVB@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <7307CCC8-4052-45DF-B733-8752E2A8447E@gmail.com>
+In-Reply-To: <YMCtQRbTIjNViMVB@atomide.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* David Russell <david.russell73@gmail.com> [210609 12:11]:
-> Again, thank you for your quick responses; very appreciated.  I intend on submitting some patches in the near future to address some of the previously mentioned 2430-holes, especially affecting the USB.
+* Tony Lindgren <tony@atomide.com> [210609 12:00]:
+> * Greg Kroah-Hartman <gregkh@linuxfoundation.org> [210609 09:26]:
+> > On Fri, Jun 04, 2021 at 11:05:35AM +0300, Tony Lindgren wrote:
+> > > Simplify cable state handling a bit to leave out duplicated code.
+> > > We are just scheduling work and showing state info if a recheck is
+> > > needed. No intended functional changes.
+> > > 
+> > > Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+> > > Cc: Andreas Kemnade <andreas@kemnade.info>
+> > > Cc: Bhushan Shah <bshah@kde.org>
+> > > Cc: Drew Fustini <drew@beagleboard.org>
+> > > Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > ---
+> > >  drivers/usb/musb/musb_core.c | 40 ++++++++++++++++++------------------
+> > >  1 file changed, 20 insertions(+), 20 deletions(-)
+> > 
+> > Does not apply to my usb-next branch, what tree/branch did you make this
+> > against?
+> 
+> This was against Linux next last week, I'll take a look and
+> repost.
 
-OK great, please do send patches.
+Looks like the issue applying these patches is caused by commit
+b65ba0c362be ("usb: musb: fix MUSB_QUIRK_B_DISCONNECT_99 handling")
+that is in usb-linus but not in usb-next.
+
+Probably best to merge usb-linus to usb-next and then these patches
+apply no problem and a merge conflict is avoided?
+
+Let me know if you still want me to repost against usb-next, I can
+do that no problem if you prefer that :)
 
 Regards,
 
