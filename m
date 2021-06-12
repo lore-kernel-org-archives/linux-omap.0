@@ -2,150 +2,199 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-18.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55438C48BE5
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Jun 2021 20:53:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E1E8C48BE6
+	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:01:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39CB3613DD
-	for <linux-omap@archiver.kernel.org>; Fri, 11 Jun 2021 20:53:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F9F661374
+	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:01:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230017AbhFKUzF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 11 Jun 2021 16:55:05 -0400
-Received: from fllv0016.ext.ti.com ([198.47.19.142]:37434 "EHLO
-        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230136AbhFKUzE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2021 16:55:04 -0400
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 15BKr1lr003367;
-        Fri, 11 Jun 2021 15:53:01 -0500
+        id S230269AbhFLBDS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 11 Jun 2021 21:03:18 -0400
+Received: from fllv0015.ext.ti.com ([198.47.19.141]:48782 "EHLO
+        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229942AbhFLBDS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2021 21:03:18 -0400
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 15C11IoQ053113;
+        Fri, 11 Jun 2021 20:01:18 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1623444781;
-        bh=OXOHFNWGFBcOzEQxsJ5B9bTZa4VVR3rYf4P90qJOCmE=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=uoY5VvKZ0MF4xYG8gEDRAPmv2y3d0Sc0y+zvDuPmtcLQn+AHPWL+g6hKESuoe50mP
-         XumAeUnmTGFesSEy6mOV4PTNBbYLnT9wnxzFpxhc/UQh7hsEeKhCoxJ4UrHUidL+02
-         Uwabdo6LuXSQCkHCYO/+nGZ0U8vTBs1o2zN1i/ds=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 15BKr1UB121519
+        s=ti-com-17Q1; t=1623459678;
+        bh=O+z6rxDk43Xhjtwb3FQLdhrotsk/08Dn822tfzEbcTo=;
+        h=From:To:CC:Subject:Date;
+        b=Fh2Xh5JkIbhVjAxwE0ozQM3AVkLC0X4gqUOVqs/Ql82BjtN5FUraaKs8IOnaFbRDH
+         FTE3HvdLrPwfLRJn7KOQr7VDmw/cZgspwKxc2/qhmss6UxL1ciWPSThduqkbNi0uA4
+         Wf4LEx825Jil9fi/Pa++BD7t3bfleAt1Dr2E4Qm0=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 15C11IRL071950
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 11 Jun 2021 15:53:01 -0500
-Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 11 Jun 2021 20:01:18 -0500
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Fri, 11
- Jun 2021 15:53:00 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+ Jun 2021 20:01:18 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
- Frontend Transport; Fri, 11 Jun 2021 15:53:01 -0500
-Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 15BKqwAc128126;
-        Fri, 11 Jun 2021 15:52:59 -0500
-Subject: Re: [PATCH net] net: ethernet: ti: cpsw: fix min eth packet size for
- non-switch use-cases
-To:     Ben Hutchings <ben.hutchings@essensium.com>
-CC:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        <linux-omap@vger.kernel.org>, Lokesh Vutla <lokeshvutla@ti.com>,
-        <stable@vger.kernel.org>
-References: <20210611132732.10690-1-grygorii.strashko@ti.com>
- <20210611175448.GA25728@cephalopod>
+ Frontend Transport; Fri, 11 Jun 2021 20:01:18 -0500
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 15C11GI9080530;
+        Fri, 11 Jun 2021 20:01:17 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
-Message-ID: <7d41dc85-ba44-ff46-8c53-019f97e0703d@ti.com>
-Date:   Fri, 11 Jun 2021 23:52:53 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
+To:     Tony Lindgren <tony@atomide.com>
+CC:     Lokesh Vutla <lokeshvutla@ti.com>, <linux-kernel@vger.kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        <linux-omap@vger.kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH next] ARM: dts: am335x-bone: switch to new cpsw switch drv
+Date:   Sat, 12 Jun 2021 04:01:06 +0300
+Message-ID: <20210612010106.9970-1-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-In-Reply-To: <20210611175448.GA25728@cephalopod>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+The dual_mac mode has been preserved the same way between legacy and new
+driver, and one port devices works the same as 1 dual_mac port - it's safe
+to switch drivers.
 
+So, Switch BeagleBone boards to use new cpsw switch driver. Those boards
+have or 2 Ext. port wired and configured in dual_mac mode by default, or
+only 1 Ext. port.
 
-On 11/06/2021 20:54, Ben Hutchings wrote:
-> On Fri, Jun 11, 2021 at 04:27:32PM +0300, Grygorii Strashko wrote:
-> [...]
->> --- a/drivers/net/ethernet/ti/cpsw_new.c
->> +++ b/drivers/net/ethernet/ti/cpsw_new.c
->> @@ -918,14 +918,17 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
->>   	struct cpts *cpts = cpsw->cpts;
->>   	struct netdev_queue *txq;
->>   	struct cpdma_chan *txch;
->> +	unsigned int len;
->>   	int ret, q_idx;
->>   
->> -	if (skb_padto(skb, CPSW_MIN_PACKET_SIZE)) {
->> +	if (skb_padto(skb, priv->tx_packet_min)) {
->>   		cpsw_err(priv, tx_err, "packet pad failed\n");
->>   		ndev->stats.tx_dropped++;
->>   		return NET_XMIT_DROP;
->>   	}
->>   
->> +	len = skb->len < priv->tx_packet_min ? priv->tx_packet_min : skb->len;
->> +
->>   	if (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP &&
->>   	    priv->tx_ts_enabled && cpts_can_timestamp(cpts, skb))
->>   		skb_shinfo(skb)->tx_flags |= SKBTX_IN_PROGRESS;
->> @@ -937,7 +940,7 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
->>   	txch = cpsw->txv[q_idx].ch;
->>   	txq = netdev_get_tx_queue(ndev, q_idx);
->>   	skb_tx_timestamp(skb);
->> -	ret = cpdma_chan_submit(txch, skb, skb->data, skb->len,
->> +	ret = cpdma_chan_submit(txch, skb, skb->data, len,
->>   				priv->emac_port);
->>   	if (unlikely(ret != 0)) {
->>   		cpsw_err(priv, tx_err, "desc submit failed\n");
-> 
-> This change is odd because cpdma_chan_submit() already pads the DMA
-> length.
-> 
-> Would it not make more sense to update cpdma_params::min_packet_size
-> instead of adding a second minimum?
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi     | 13 +++++---
+ .../boot/dts/am335x-boneblack-wireless.dts    |  2 +-
+ .../boot/dts/am335x-bonegreen-wireless.dts    |  2 +-
+ arch/arm/boot/dts/am335x-sancloud-bbe.dts     | 33 ++-----------------
+ 4 files changed, 12 insertions(+), 38 deletions(-)
 
-i've been thinking about it, but cpdma parameter copied into cpdma context once at probe,
-so change will be more complex.
-Can be done if you insist.
-
-> 
-> [...]
->> @@ -1686,6 +1690,7 @@ static int cpsw_dl_switch_mode_set(struct devlink *dl, u32 id,
->>   
->>   			priv = netdev_priv(sl_ndev);
->>   			slave->port_vlan = vlan;
->> +			priv->tx_packet_min = CPSW_MIN_PACKET_SIZE_VLAN;
->>   			if (netif_running(sl_ndev))
->>   				cpsw_port_add_switch_def_ale_entries(priv,
->>   								     slave);
->> @@ -1714,6 +1719,7 @@ static int cpsw_dl_switch_mode_set(struct devlink *dl, u32 id,
->>   
->>   			priv = netdev_priv(slave->ndev);
->>   			slave->port_vlan = slave->data->dual_emac_res_vlan;
->> +			priv->tx_packet_min = CPSW_MIN_PACKET_SIZE;
->>   			cpsw_port_add_dual_emac_def_ale_entries(priv, slave);
->>   		}
->>
-> [...]
-> 
-> What happens if this races with the TX path?  Should there be a
-> netif_tx_lock() / netif_tx_unlock() around this change?
-
-Mode change operation is heavy and expected to be done once when bridge is configured.
-It will completely wipe out all ALE entries and so all VLAN setting -
-which any way need to be configured (reconfigured) during bridge configuration.
-So, traffic can be disturbed during mode change operation.
-
-As result, in my opinion, it make no sense to add additional complexity here.
-
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 2d51d4bba6d4..37e1539f0211 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -353,24 +353,27 @@
+ 	};
+ };
+ 
+-&cpsw_emac0 {
++&cpsw_port1 {
+ 	phy-handle = <&ethphy0>;
+ 	phy-mode = "mii";
++	ti,dual-emac-pvid = <1>;
+ };
+ 
+-&mac {
+-	slaves = <1>;
++&cpsw_port2 {
++	status = "disabled";
++};
++
++&mac_sw {
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
+ 	status = "okay";
+ };
+ 
+-&davinci_mdio {
++&davinci_mdio_sw {
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&davinci_mdio_default>;
+ 	pinctrl-1 = <&davinci_mdio_sleep>;
+-	status = "okay";
+ 
+ 	ethphy0: ethernet-phy@0 {
+ 		reg = <0>;
+diff --git a/arch/arm/boot/dts/am335x-boneblack-wireless.dts b/arch/arm/boot/dts/am335x-boneblack-wireless.dts
+index 80116646a3fe..5a4d5d4ab7b8 100644
+--- a/arch/arm/boot/dts/am335x-boneblack-wireless.dts
++++ b/arch/arm/boot/dts/am335x-boneblack-wireless.dts
+@@ -62,7 +62,7 @@
+ 	};
+ };
+ 
+-&mac {
++&mac_sw {
+ 	status = "disabled";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-bonegreen-wireless.dts b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
+index 74db0fc39397..215f279e476b 100644
+--- a/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
++++ b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
+@@ -62,7 +62,7 @@
+ 	};
+ };
+ 
+-&mac {
++&mac_sw {
+ 	status = "disabled";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-sancloud-bbe.dts b/arch/arm/boot/dts/am335x-sancloud-bbe.dts
+index 275ba339adf4..86dcd1144db4 100644
+--- a/arch/arm/boot/dts/am335x-sancloud-bbe.dts
++++ b/arch/arm/boot/dts/am335x-sancloud-bbe.dts
+@@ -53,22 +53,6 @@
+ 		>;
+ 	};
+ 
+-	davinci_mdio_default: davinci_mdio_default {
+-		pinctrl-single,pins = <
+-			/* MDIO */
+-			AM33XX_PADCONF(AM335X_PIN_MDIO, PIN_INPUT_PULLUP | SLEWCTRL_FAST, MUX_MODE0)
+-			AM33XX_PADCONF(AM335X_PIN_MDC, PIN_OUTPUT_PULLUP, MUX_MODE0)
+-		>;
+-	};
+-
+-	davinci_mdio_sleep: davinci_mdio_sleep {
+-		pinctrl-single,pins = <
+-			/* MDIO reset value */
+-			AM33XX_PADCONF(AM335X_PIN_MDIO, PIN_INPUT_PULLDOWN, MUX_MODE7)
+-			AM33XX_PADCONF(AM335X_PIN_MDC, PIN_INPUT_PULLDOWN, MUX_MODE7)
+-		>;
+-	};
+-
+ 	usb_hub_ctrl: usb_hub_ctrl {
+ 		pinctrl-single,pins = <
+ 			AM33XX_PADCONF(AM335X_PIN_RMII1_REF_CLK, PIN_OUTPUT_PULLUP, MUX_MODE7)     /* rmii1_refclk.gpio0_29 */
+@@ -88,25 +72,12 @@
+ 	};
+ };
+ 
+-&mac {
+-	pinctrl-names = "default", "sleep";
++&mac_sw {
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
+-	status = "okay";
+-};
+-
+-&davinci_mdio {
+-	pinctrl-names = "default", "sleep";
+-	pinctrl-0 = <&davinci_mdio_default>;
+-	pinctrl-1 = <&davinci_mdio_sleep>;
+-	status = "okay";
+-
+-	ethphy0: ethernet-phy@0 {
+-		reg = <0>;
+-	};
+ };
+ 
+-&cpsw_emac0 {
++&cpsw_port1 {
+ 	phy-handle = <&ethphy0>;
+ 	phy-mode = "rgmii-id";
+ };
 -- 
-Best regards,
-grygorii
+2.17.1
+
