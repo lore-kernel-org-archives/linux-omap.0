@@ -8,43 +8,43 @@ X-Spam-Status: No, score=-18.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 402DDC48BE6
-	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:16:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F886C48BE8
+	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:16:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2630B613BC
-	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:16:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79D44613B8
+	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:16:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231254AbhFLBSI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 11 Jun 2021 21:18:08 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:51798 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230395AbhFLBSI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2021 21:18:08 -0400
+        id S230395AbhFLBSQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 11 Jun 2021 21:18:16 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:32908 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231268AbhFLBSP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2021 21:18:15 -0400
 Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 15C1G7M0058183;
-        Fri, 11 Jun 2021 20:16:07 -0500
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 15C1GGjL094191;
+        Fri, 11 Jun 2021 20:16:16 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1623460567;
-        bh=/3yt5MixPALFiw45w63mh14Poyilq5iISBy9nyqxuL8=;
+        s=ti-com-17Q1; t=1623460576;
+        bh=XLWSL129ZCsUF7sT9nq+bbvsngOfs+0cjgyCL4rU03Q=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=KpDDqLnYGQXW10CWTqgotZWXsYMYSQvJK+ENa/1wLK+1bPfw3OUWcOdvwGwU3pAjE
-         uuQsr/9b6CBFeJ3tMPlmkaJnMdrgM5CQquuVYxuwZvT0mH1eqaUK7gv5+skHrwKFnR
-         t/+KZFZSiiKN3rL0IQI/29t7yV1WTP8oua/lJbFI=
-Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 15C1G72I082099
+        b=isOiTuvFacE+RCGqT4iqQcSMExqy0jJBKha3tkVTShHKfxF5p1bhOMQDf71/0qJD/
+         TrhoFftUMWIJxw/5YhtX4sR0RkzCl9lpDWod7tsZF2kvOGqFZBk15UHNjgrkt00n96
+         iYLfukxvrNUUkk90SlhvSy1g8vfz1JESl3SaOB7A=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 15C1GGX9082372
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 11 Jun 2021 20:16:07 -0500
-Received: from DFLE115.ent.ti.com (10.64.6.36) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 11 Jun 2021 20:16:16 -0500
+Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Fri, 11
- Jun 2021 20:16:06 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ Jun 2021 20:16:15 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
- Frontend Transport; Fri, 11 Jun 2021 20:16:06 -0500
+ Frontend Transport; Fri, 11 Jun 2021 20:16:16 -0500
 Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 15C1G5MK065229;
-        Fri, 11 Jun 2021 20:16:06 -0500
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 15C1GEKg009054;
+        Fri, 11 Jun 2021 20:16:15 -0500
 From:   Grygorii Strashko <grygorii.strashko@ti.com>
 To:     Tony Lindgren <tony@atomide.com>
 CC:     Lokesh Vutla <lokeshvutla@ti.com>, <devicetree@vger.kernel.org>,
@@ -52,9 +52,9 @@ CC:     Lokesh Vutla <lokeshvutla@ti.com>, <devicetree@vger.kernel.org>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         <linux-omap@vger.kernel.org>,
         Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH next 11/15] ARM: dts: am335x-pepper: switch to new cpsw switch drv
-Date:   Sat, 12 Jun 2021 04:14:32 +0300
-Message-ID: <20210612011436.10437-12-grygorii.strashko@ti.com>
+Subject: [PATCH next 13/15] ARM: dts: am335x-shc: switch to new cpsw switch drv
+Date:   Sat, 12 Jun 2021 04:14:34 +0300
+Message-ID: <20210612011436.10437-14-grygorii.strashko@ti.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20210612011436.10437-1-grygorii.strashko@ti.com>
 References: <20210612011436.10437-1-grygorii.strashko@ti.com>
@@ -69,60 +69,75 @@ The dual_mac mode has been preserved the same way between legacy and new
 driver, and one port devices works the same as 1 dual_mac port - it's safe
 to switch drivers.
 
-So, switch Gumstix Pepper to use new cpsw switch driver.
+So, switch Bosch SHC to use new cpsw switch driver.
 Those boards have or 2 Ext. port wired and configured in dual_mac mode by
 default, or only 1 Ext. port.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- arch/arm/boot/dts/am335x-pepper.dts | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ arch/arm/boot/dts/am335x-shc.dts | 38 ++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index f9a027b47962..b5e88e627bc1 100644
---- a/arch/arm/boot/dts/am335x-pepper.dts
-+++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -260,20 +260,19 @@
- };
- 
- /* Ethernet */
--&cpsw_emac0 {
--	status = "okay";
-+&cpsw_port1 {
- 	phy-handle = <&ethphy0>;
- 	phy-mode = "rgmii";
-+	ti,dual-emac-pvid = <1>;
- };
- 
--&cpsw_emac1 {
--	status = "okay";
-+&cpsw_port2 {
- 	phy-handle = <&ethphy1>;
- 	phy-mode = "rgmii";
-+	ti,dual-emac-pvid = <2>;
+diff --git a/arch/arm/boot/dts/am335x-shc.dts b/arch/arm/boot/dts/am335x-shc.dts
+index 2bfe60d32783..6b9877560741 100644
+--- a/arch/arm/boot/dts/am335x-shc.dts
++++ b/arch/arm/boot/dts/am335x-shc.dts
+@@ -117,18 +117,6 @@
+ 	status = "okay";
  };
  
 -&davinci_mdio {
+-	pinctrl-names = "default", "sleep";
+-	pinctrl-0 = <&davinci_mdio_default>;
+-	pinctrl-1 = <&davinci_mdio_sleep>;
 -	status = "okay";
-+&davinci_mdio_sw {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mdio_pins>;
+-
+-	ethernetphy0: ethernet-phy@0 {
+-		reg = <0>;
+-		smsc,disable-energy-detect;
+-	};
+-};
+-
+ &epwmss1 {
+ 	status = "okay";
  
-@@ -286,13 +285,12 @@
+@@ -193,15 +181,31 @@
  	};
  };
  
 -&mac {
 +&mac_sw {
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
  	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&ethernet_pins>;
+-	slaves = <1>;
+-	cpsw_emac0: slave@200 {
+-		phy-mode = "mii";
+-		phy-handle = <&ethernetphy0>;
++};
++
++&cpsw_port1 {
++	phy-mode = "mii";
++	phy-handle = <&ethernetphy0>;
++	ti,dual-emac-pvid = <1>;
++};
++
++&cpsw_port2 {
++	status = "disabled";
++};
++
++&davinci_mdio_sw {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&davinci_mdio_default>;
++	pinctrl-1 = <&davinci_mdio_sleep>;
++
++	ethernetphy0: ethernet-phy@0 {
++		reg = <0>;
++		smsc,disable-energy-detect;
+ 	};
  };
  
--
- &am33xx_pinmux {
- 	ethernet_pins: pinmux_ethernet {
- 		pinctrl-single,pins = <
 -- 
 2.17.1
 
