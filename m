@@ -8,101 +8,92 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF0EC49360
-	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:51:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D83C7C48BDF
+	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:52:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EA2E61264
-	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:51:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B698261279
+	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:52:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231904AbhFMMxh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 13 Jun 2021 08:53:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34224 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231945AbhFMMxY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 13 Jun 2021 08:53:24 -0400
-Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78243C061574
-        for <linux-omap@vger.kernel.org>; Sun, 13 Jun 2021 05:51:11 -0700 (PDT)
-Received: by mail-wr1-x429.google.com with SMTP id a11so11281576wrt.13
-        for <linux-omap@vger.kernel.org>; Sun, 13 Jun 2021 05:51:11 -0700 (PDT)
+        id S231799AbhFMMyM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 13 Jun 2021 08:54:12 -0400
+Received: from mail-wr1-f47.google.com ([209.85.221.47]:44940 "EHLO
+        mail-wr1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231767AbhFMMyK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 13 Jun 2021 08:54:10 -0400
+Received: by mail-wr1-f47.google.com with SMTP id f2so11276369wri.11
+        for <linux-omap@vger.kernel.org>; Sun, 13 Jun 2021 05:52:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=7FNZsPAAGrb1WAeeF9cUXTEjimHXovHW3qsy7t+IKd8=;
-        b=jgqjNg/jXnEEMLzltC/qolBFRt/UA50o4WlB8zB3BXrmEM7AKtgKjubWiz41IgmASL
-         O5vL0rEpckyAkTcnJv5oY25wV8D1sIsuiR7XX0GNBl6TmhKGcFhYiRuNU6IvWOXMQQwQ
-         5XHmehCO3rl9yyDOHwPGRrci3PcK/oAoIm64josdFlh6OZ9h9pWgW5tLGdcCvyQGmLZf
-         n/oJoPBEeEg3mT5+YaklBLGrBYAyJ3ZgEvD/ePlhD7U+1Cj0e9/Wukd9/rPzaTGEtzP7
-         31uTluWkAGO0itJFQZpuyVab5KurSbAiUro4T8SGPyV4vm52xtXOhew3bWq3+hqONhtf
-         iK1w==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=S7x0yXgSGt2oHbuYIah2pjK0DDqOWTD6n400T1HqOzU=;
+        b=tdJpFMIzHihbIuQu9Ze+gKgTR7REdWI4SpzLT1u4MCukJI/wVaSBllECShRlWXGN0u
+         bam75NJCGb7pS7MZD1zC24zpbcni+fp9ZXnXJ9yND3KBpfJuBETm+q6kPBnvu1luSP6W
+         hXSWNP2zOlm3kuGnMuDb4iwdZTNbecrrtqCKRFtxhSqP1ElEZ/QY5wLzDKURMPqT8AHe
+         j/Z9CKButmiXMt9nfnxrudPXJW+BIkEQC75CBAixHjUsclkEdOg40XRjNYq3VICbe8se
+         3qdpP2HT7Gnoiij0psJeVZCq7u8sKVnDzsxXI0bpDkinwIomdUlD73Fo2DoaWPZrDcYR
+         FW9w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=7FNZsPAAGrb1WAeeF9cUXTEjimHXovHW3qsy7t+IKd8=;
-        b=IoYCXJJyDi/k4HrrCftLrz8PHb3Ip8sgOZX6qCjCdfdFmoeQ44R6Bev7ujkHUo30Xk
-         DoCE86IER/UmtYYc2LJNqPfXIPf2cJ0zGuLq1KLiFAYRHpfML3O5oeQxorSYFjwTR17V
-         mq9I0USQ09UvwsoCO7QilLFkZM5LS/m3J8EFHbmGhdES/qxH+nZmEomdxXFaSLkKFvLU
-         cSo6+vYgYTd+fM5K0sdH8QfI8nrNXLNg3gAlN6E3PB98TsKYKodBw3htzAQEXHxyziRf
-         fgYzo8mfpEiCJxcpyN4UoTcXJxupl9d14cR0v1TJmht6ufkYH0NaNnTHix6KNAbHD4QD
-         o7ng==
-X-Gm-Message-State: AOAM530pvZELWjKWCuT4iK3O+lMyWiKdFVPULQ/Ny0V1Jrh1RYW6QHTE
-        p7Ail4JaHgOqfjWzUYEbOPI=
-X-Google-Smtp-Source: ABdhPJyaqzFN4ibTvRvbeBK8CSXvfvDSn4qt+xqc+tLnZPgf1oOp0x0d34ZHhpqaJ0KW7Kodhzk0MQ==
-X-Received: by 2002:adf:a45d:: with SMTP id e29mr14094064wra.161.1623588670027;
-        Sun, 13 Jun 2021 05:51:10 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=S7x0yXgSGt2oHbuYIah2pjK0DDqOWTD6n400T1HqOzU=;
+        b=f1ZOP9nnBpl1Slr8a/sZhBXUD6agOMnRTyNJbfM9/DAuxIZxtZVV0nT2+PQgnRj1CM
+         soc/ktP9f3hKGdDHFidWwGfTIutjWThYey+ZGpvKHGERzH0VILNN/Uew6/tbOGujk+lK
+         2myD4fn5ppuWEHSTMNXXevr9NK11zYIzKklwRCgLVNGUa6NerbRJNmacoCBFZ07544to
+         EiXDggOYUKbqTMK8zlWzYT4fiHswtq9wZ94vs+wBLeuXSfrvtkHlSXIKE4QmS7v+NP04
+         Zxi9PU0dyyEF5ookDqdEaUXaxW9hlBKRREcpXTCL/9Ll26lHyhH7isv0+VbVmOPZ4uud
+         TJ8w==
+X-Gm-Message-State: AOAM530EonZtcFRxeF29x0v4pHFr7uY2P128p8KJ65t+UG5LxFBe+4Jr
+        PpUfJk1/PkRGa9nd9NwHGsw=
+X-Google-Smtp-Source: ABdhPJwbRGdb6lgN7xAfV1+cx4pw+I/LtrX1W5khWvTpxIgpoKo5FgYIxDXmnoAY1Xx2Y5Hdt2xMZQ==
+X-Received: by 2002:a05:6000:1864:: with SMTP id d4mr13418803wri.369.1623588668852;
+        Sun, 13 Jun 2021 05:51:08 -0700 (PDT)
 Received: from morpheus.home.roving-it.com (f.c.9.1.f.e.c.d.1.e.0.0.2.b.5.5.1.8.6.2.1.1.b.f.0.b.8.0.1.0.0.2.ip6.arpa. [2001:8b0:fb11:2681:55b2:e1:dcef:19cf])
-        by smtp.googlemail.com with ESMTPSA id 4sm12879500wry.74.2021.06.13.05.51.09
+        by smtp.googlemail.com with ESMTPSA id 4sm12879500wry.74.2021.06.13.05.51.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 13 Jun 2021 05:51:09 -0700 (PDT)
+        Sun, 13 Jun 2021 05:51:08 -0700 (PDT)
 From:   Peter Robinson <pbrobinson@gmail.com>
 To:     Tony Lindgren <tony@atomide.com>,
         linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc:     Peter Robinson <pbrobinson@gmail.com>
-Subject: [PATCH 3/3] arm: omap2: Drop the unused OMAP_PACKAGE_* KConfig entries
-Date:   Sun, 13 Jun 2021 13:51:05 +0100
-Message-Id: <20210613125105.786984-3-pbrobinson@gmail.com>
+Subject: [PATCH 1/3] arm: omap2: Drop MACH_OMAP3517EVM entry
+Date:   Sun, 13 Jun 2021 13:51:03 +0100
+Message-Id: <20210613125105.786984-1-pbrobinson@gmail.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210613125105.786984-1-pbrobinson@gmail.com>
-References: <20210613125105.786984-1-pbrobinson@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The OMAP_PACKAGE_* Kconfig entries are no longer referenced
-in the kernel so can be dropped as they're obsolete.
+The MACH_OMAP3517EVM was added back in commit 549f95ed2016 due to
+being used by the ASoC driver, but this driver was dropped in
+commit 2c2596f3ab25 as the audio for this board had been moved to
+a simple-audio-card configuration so MACH_OMAP3517EVM is now
+properly unuused and can be dropped.
 
 Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
 ---
- arch/arm/mach-omap2/Kconfig | 12 ------------
- 1 file changed, 12 deletions(-)
+ arch/arm/mach-omap2/Kconfig | 5 -----
+ 1 file changed, 5 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 0d93914a8e3f..7f13adf26e61 100644
+index 7df8f5276ddf..dbe7fa6e8232 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -181,18 +181,6 @@ config SOC_TI81XX
+@@ -204,11 +204,6 @@ config MACH_OMAP2_TUSB6010
+ 	depends on ARCH_OMAP2 && SOC_OMAP2420
+ 	default y if MACH_NOKIA_N8X0
+ 
+-config MACH_OMAP3517EVM
+-	bool "OMAP3517/ AM3517 EVM board"
+-	depends on ARCH_OMAP3
+-	default y
+-
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
  	depends on ARCH_OMAP3
- 	default y
- 
--config OMAP_PACKAGE_CBC
--       bool
--
--config OMAP_PACKAGE_CBB
--       bool
--
--config OMAP_PACKAGE_CUS
--       bool
--
--config OMAP_PACKAGE_CBP
--       bool
--
- comment "OMAP Legacy Platform Data Board Type"
- 	depends on ARCH_OMAP2PLUS
- 
 -- 
 2.31.1
 
