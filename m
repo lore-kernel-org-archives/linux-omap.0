@@ -2,115 +2,107 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5327C49360
-	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:16:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF0EC49360
+	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:51:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3716610F8
-	for <linux-omap@archiver.kernel.org>; Sat, 12 Jun 2021 01:16:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EA2E61264
+	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:51:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231274AbhFLBSZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 11 Jun 2021 21:18:25 -0400
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:51828 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231297AbhFLBSW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2021 21:18:22 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 15C1GMSR058357;
-        Fri, 11 Jun 2021 20:16:22 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1623460582;
-        bh=x+t+JDKcFgSLTKQoFsdt+3c/G1fxs1yBUS5wSgOOxzs=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=jGthbID+xjS6ZGN1PNDZBKdZAcXGYphYZ/x0IOXpFqZ6nRozJoq2y6gJWhTClqkSw
-         zY77jI8FPxPE5TAnBG3sMn46NgsBODay0s4n3V9Hdkh/+DntA02oHWvRg82RezzH8R
-         p4l93ivdHgUAxOgJLKMMLBjn6Qc2BeempNz7iGOM=
-Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 15C1GMm9090410
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 11 Jun 2021 20:16:22 -0500
-Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE114.ent.ti.com
- (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Fri, 11
- Jun 2021 20:16:22 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE101.ent.ti.com
- (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
- Frontend Transport; Fri, 11 Jun 2021 20:16:22 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 15C1GLrn065608;
-        Fri, 11 Jun 2021 20:16:22 -0500
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-To:     Tony Lindgren <tony@atomide.com>
-CC:     Lokesh Vutla <lokeshvutla@ti.com>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        <linux-omap@vger.kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH next 14/15] ARM: dts: am335x-sl50: switch to new cpsw switch drv
-Date:   Sat, 12 Jun 2021 04:14:35 +0300
-Message-ID: <20210612011436.10437-15-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210612011436.10437-1-grygorii.strashko@ti.com>
-References: <20210612011436.10437-1-grygorii.strashko@ti.com>
+        id S231904AbhFMMxh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 13 Jun 2021 08:53:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34224 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231945AbhFMMxY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 13 Jun 2021 08:53:24 -0400
+Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78243C061574
+        for <linux-omap@vger.kernel.org>; Sun, 13 Jun 2021 05:51:11 -0700 (PDT)
+Received: by mail-wr1-x429.google.com with SMTP id a11so11281576wrt.13
+        for <linux-omap@vger.kernel.org>; Sun, 13 Jun 2021 05:51:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=7FNZsPAAGrb1WAeeF9cUXTEjimHXovHW3qsy7t+IKd8=;
+        b=jgqjNg/jXnEEMLzltC/qolBFRt/UA50o4WlB8zB3BXrmEM7AKtgKjubWiz41IgmASL
+         O5vL0rEpckyAkTcnJv5oY25wV8D1sIsuiR7XX0GNBl6TmhKGcFhYiRuNU6IvWOXMQQwQ
+         5XHmehCO3rl9yyDOHwPGRrci3PcK/oAoIm64josdFlh6OZ9h9pWgW5tLGdcCvyQGmLZf
+         n/oJoPBEeEg3mT5+YaklBLGrBYAyJ3ZgEvD/ePlhD7U+1Cj0e9/Wukd9/rPzaTGEtzP7
+         31uTluWkAGO0itJFQZpuyVab5KurSbAiUro4T8SGPyV4vm52xtXOhew3bWq3+hqONhtf
+         iK1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=7FNZsPAAGrb1WAeeF9cUXTEjimHXovHW3qsy7t+IKd8=;
+        b=IoYCXJJyDi/k4HrrCftLrz8PHb3Ip8sgOZX6qCjCdfdFmoeQ44R6Bev7ujkHUo30Xk
+         DoCE86IER/UmtYYc2LJNqPfXIPf2cJ0zGuLq1KLiFAYRHpfML3O5oeQxorSYFjwTR17V
+         mq9I0USQ09UvwsoCO7QilLFkZM5LS/m3J8EFHbmGhdES/qxH+nZmEomdxXFaSLkKFvLU
+         cSo6+vYgYTd+fM5K0sdH8QfI8nrNXLNg3gAlN6E3PB98TsKYKodBw3htzAQEXHxyziRf
+         fgYzo8mfpEiCJxcpyN4UoTcXJxupl9d14cR0v1TJmht6ufkYH0NaNnTHix6KNAbHD4QD
+         o7ng==
+X-Gm-Message-State: AOAM530pvZELWjKWCuT4iK3O+lMyWiKdFVPULQ/Ny0V1Jrh1RYW6QHTE
+        p7Ail4JaHgOqfjWzUYEbOPI=
+X-Google-Smtp-Source: ABdhPJyaqzFN4ibTvRvbeBK8CSXvfvDSn4qt+xqc+tLnZPgf1oOp0x0d34ZHhpqaJ0KW7Kodhzk0MQ==
+X-Received: by 2002:adf:a45d:: with SMTP id e29mr14094064wra.161.1623588670027;
+        Sun, 13 Jun 2021 05:51:10 -0700 (PDT)
+Received: from morpheus.home.roving-it.com (f.c.9.1.f.e.c.d.1.e.0.0.2.b.5.5.1.8.6.2.1.1.b.f.0.b.8.0.1.0.0.2.ip6.arpa. [2001:8b0:fb11:2681:55b2:e1:dcef:19cf])
+        by smtp.googlemail.com with ESMTPSA id 4sm12879500wry.74.2021.06.13.05.51.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 13 Jun 2021 05:51:09 -0700 (PDT)
+From:   Peter Robinson <pbrobinson@gmail.com>
+To:     Tony Lindgren <tony@atomide.com>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc:     Peter Robinson <pbrobinson@gmail.com>
+Subject: [PATCH 3/3] arm: omap2: Drop the unused OMAP_PACKAGE_* KConfig entries
+Date:   Sun, 13 Jun 2021 13:51:05 +0100
+Message-Id: <20210613125105.786984-3-pbrobinson@gmail.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210613125105.786984-1-pbrobinson@gmail.com>
+References: <20210613125105.786984-1-pbrobinson@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The dual_mac mode has been preserved the same way between legacy and new
-driver, and one port devices works the same as 1 dual_mac port - it's safe
-to switch drivers.
+The OMAP_PACKAGE_* Kconfig entries are no longer referenced
+in the kernel so can be dropped as they're obsolete.
 
-So, switch Toby Churchill SL50 Series to use new cpsw switch driver.
-Those boards have or 2 Ext. port wired and configured in dual_mac mode by
-default, or only 1 Ext. port.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
 ---
- arch/arm/boot/dts/am335x-sl50.dts | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/Kconfig | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
-index f4684c8eaffe..6516907ed579 100644
---- a/arch/arm/boot/dts/am335x-sl50.dts
-+++ b/arch/arm/boot/dts/am335x-sl50.dts
-@@ -661,20 +661,24 @@
- 	};
- };
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 0d93914a8e3f..7f13adf26e61 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -181,18 +181,6 @@ config SOC_TI81XX
+ 	depends on ARCH_OMAP3
+ 	default y
  
--&cpsw_emac0 {
-+&cpsw_port1 {
- 	phy-mode = "mii";
- 	phy-handle = <&ethphy0>;
-+	ti,dual-emac-pvid = <1>;
- };
+-config OMAP_PACKAGE_CBC
+-       bool
+-
+-config OMAP_PACKAGE_CBB
+-       bool
+-
+-config OMAP_PACKAGE_CUS
+-       bool
+-
+-config OMAP_PACKAGE_CBP
+-       bool
+-
+ comment "OMAP Legacy Platform Data Board Type"
+ 	depends on ARCH_OMAP2PLUS
  
--&mac {
-+&cpsw_port2 {
-+	status = "disabled";
-+};
-+
-+&mac_sw {
- 	status = "okay";
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&cpsw_default>;
- 	pinctrl-1 = <&cpsw_sleep>;
- };
- 
--&davinci_mdio {
--	status = "okay";
-+&davinci_mdio_sw {
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
 -- 
-2.17.1
+2.31.1
 
