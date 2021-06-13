@@ -2,98 +2,77 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1395C48BDF
-	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:52:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 385AEC48BE8
+	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 18:03:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C4F56100A
-	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 12:52:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02E33610A0
+	for <linux-omap@archiver.kernel.org>; Sun, 13 Jun 2021 18:03:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231899AbhFMMyW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 13 Jun 2021 08:54:22 -0400
-Received: from mail-wm1-f53.google.com ([209.85.128.53]:53035 "EHLO
-        mail-wm1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231862AbhFMMyW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 13 Jun 2021 08:54:22 -0400
-Received: by mail-wm1-f53.google.com with SMTP id f17so10523274wmf.2
-        for <linux-omap@vger.kernel.org>; Sun, 13 Jun 2021 05:52:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=Ah1ld02LgyCAKBWIkH7RUzMXyjk4o3gII9N/SQONNLY=;
-        b=jChf4oxRX6tx4bicJZWeN5XgiHXWBh/ZEmdcuAdKFf8ud6yBS5g9A9H1G2qSBEGR6Q
-         KI/HkgCPBDr7leJi/MAAB2TumL5THtzdglTZl9+L9lNSwU9a9mbjm6Xu/r9r8wQOnCNn
-         Ar8ihWb60sLrVCwRF+9eQpG0yBfhyZxk87/W6I+oxV9fD4xYjcjeQgcgZG+O7ONACX3E
-         sZmiK+egXQIBjmRo1rnpGF44wa2rMuTkXA6sUT9sNbhBj2AOghwzsVsdD4brfJ+0jVDD
-         iDwO5YUsARrQB/dkuEqCICeHwCsPXGvjstU+eyMi+nEU6XvR1lGHvoAMsis1vEbjNd3d
-         rMMg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=Ah1ld02LgyCAKBWIkH7RUzMXyjk4o3gII9N/SQONNLY=;
-        b=DE4v2K8+XUbpQ0P8a9TRWTfQSl+ArQYwmfRYv1odYs2ioWfJk2tx2gEmbjGYkPIqE0
-         ohQ6xMZ6d+svWr2VI8NkogwA9UKjTe/0pT4j5vI4Ar1rEMyU4HnGv2RQ6QgGu+KZKVbG
-         CFOyzzWt1XLi3c1msAQqH+XMxYo6jqPy2aIF1d4UqIykqeDci+zPFRBHC9pMcm1VHaJ1
-         P8oWeGgKYx5F9YU1Y940SErJMYXkxcJ+/ILEiAqQDjOb7OedT8JRkPxI9cV/mjgIWmdw
-         7QjvxFaP+e0PvvwvkpfrcfGymeAj/jp3XbPu2xjJL9+V58alB5BB/pf46CNNur1q/aBh
-         prEw==
-X-Gm-Message-State: AOAM531rZIY4tz+TpSl7s7w2h3XZiTzZAeE/Qcea6rjOyZbqazv3zeT7
-        qenQ6/gN9KPiIteIohNasBQ=
-X-Google-Smtp-Source: ABdhPJyQxam6suUDTKSVFyAKfEYYvGO/JmDNm7aaEBierUKatEIPHiTZrwFtPNo29YDHEHOXoQ0vRA==
-X-Received: by 2002:a7b:c006:: with SMTP id c6mr27732710wmb.11.1623588669413;
-        Sun, 13 Jun 2021 05:51:09 -0700 (PDT)
-Received: from morpheus.home.roving-it.com (f.c.9.1.f.e.c.d.1.e.0.0.2.b.5.5.1.8.6.2.1.1.b.f.0.b.8.0.1.0.0.2.ip6.arpa. [2001:8b0:fb11:2681:55b2:e1:dcef:19cf])
-        by smtp.googlemail.com with ESMTPSA id 4sm12879500wry.74.2021.06.13.05.51.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 13 Jun 2021 05:51:09 -0700 (PDT)
-From:   Peter Robinson <pbrobinson@gmail.com>
-To:     Tony Lindgren <tony@atomide.com>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc:     Peter Robinson <pbrobinson@gmail.com>
-Subject: [PATCH 2/3] arm: omap2: Drop obsolete MACH_OMAP3_PANDORA entry
-Date:   Sun, 13 Jun 2021 13:51:04 +0100
-Message-Id: <20210613125105.786984-2-pbrobinson@gmail.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210613125105.786984-1-pbrobinson@gmail.com>
-References: <20210613125105.786984-1-pbrobinson@gmail.com>
+        id S232000AbhFMSFc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 13 Jun 2021 14:05:32 -0400
+Received: from 49-237-179-185.static.tentacle.fi ([185.179.237.49]:55372 "EHLO
+        bitmer.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231997AbhFMSFc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 13 Jun 2021 14:05:32 -0400
+Received: from 88-114-184-142.elisa-laajakaista.fi ([88.114.184.142] helo=[192.168.1.42])
+        by bitmer.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.89)
+        (envelope-from <jarkko.nikula@bitmer.com>)
+        id 1lsUSE-0005HD-Cs; Sun, 13 Jun 2021 21:03:26 +0300
+From:   Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Regression? omap2plus_defconfig bloat due drivers/media/Kconfig
+ changes
+To:     linux-media@vger.kernel.org
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Message-ID: <2d389925-db9d-58f5-7928-0baa5f187afb@bitmer.com>
+Date:   Sun, 13 Jun 2021 21:03:21 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The MACH_OMAP3_PANDORA is no longer referenced anywhere in the kernel
-options so it can now be dropped as the board has long moved to DT.
+Hi
 
-Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
----
- arch/arm/mach-omap2/Kconfig | 6 ------
- 1 file changed, 6 deletions(-)
+I noticed omap2plus_defconfig build is much slower than before and I saw
+during build many DVB drivers were compiled. Which made me thinking it
+doesn't look right especially there are no changes in
+arch/arm/configs/omap2plus_defconfig related to DVB.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index dbe7fa6e8232..0d93914a8e3f 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -204,12 +204,6 @@ config MACH_OMAP2_TUSB6010
- 	depends on ARCH_OMAP2 && SOC_OMAP2420
- 	default y if MACH_NOKIA_N8X0
- 
--config MACH_OMAP3_PANDORA
--	bool "OMAP3 Pandora"
--	depends on ARCH_OMAP3
--	default y
--	select OMAP_PACKAGE_CBB
--
- config MACH_NOKIA_N810
-        bool
- 
--- 
-2.31.1
+I tracked manually last good and first bad
+arch/arm/configs/omap2plus_defconfig change.
 
+This was tested by "make ARCH=arm omap2plus_defconfig" and grepping is
+CONFIG_DVB_CORE set in .config.
+
+good: 8b136018da7b ("mm: rename CONFIG_PGTABLE_MAPPING to
+CONFIG_ZSMALLOC_PGTABLE_MAPPING")
+bad: 8aa6361f7251 ("ARM: omap2plus_defconfig: enable twl4030_madc as a
+loadable module")
+
+Then I started bisecting which commit adds CONFIG_DVB_CORE and found
+commit 8e5b5d75e9d0 ("media: Kconfig: DVB support should be enabled for
+Digital TV").
+
+That alone didn't look the answer so bisected then commit adding
+MEDIA_DIGITAL_TV_SUPPORT and found c6774ee035dc ("media: Kconfig: make
+filtering devices optional").
+
+I'm not familiar with media subsystem but after that commit bunch of
+media drivers will get enabled when CONFIG_MEDIA_SUPPORT is set but not
+CONFIG_MEDIA_SUPPORT_FILTER.
+
+I don't know is that best to fix in omap2plus_defconfig or
+drivers/media/Kconfig. Just thinking if there are other minimal
+defconfigs with the same issue?
+
+Jarkko
