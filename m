@@ -2,101 +2,270 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A67C49361
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Jun 2021 07:55:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B16CC49361
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Jun 2021 14:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 266A56109E
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Jun 2021 07:55:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F87861351
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Jun 2021 14:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232298AbhFRH5T (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Jun 2021 03:57:19 -0400
-Received: from muru.com ([72.249.23.125]:48274 "EHLO muru.com"
+        id S234874AbhFRPAz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Jun 2021 11:00:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47992 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233697AbhFRH5B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 18 Jun 2021 03:57:01 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id C4C2C81AC;
-        Fri, 18 Jun 2021 07:55:01 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-List-Id: <soc.lore.kernel.org>
-To:     soc@kernel.org
-Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        "Tony Lindgren" <tony@atomide.com>
-Subject: [GIT PULL 2/2] Devicetree binding clean-up for omaps for v5.14
-Date:   Fri, 18 Jun 2021 10:54:46 +0300
-Message-Id: <pull-1624002812-396117@atomide.com-2>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <pull-1624002812-396117@atomide.com>
-References: <pull-1624002812-396117@atomide.com>
+        id S234850AbhFRPAt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 18 Jun 2021 11:00:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D986E613E2;
+        Fri, 18 Jun 2021 14:58:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1624028319;
+        bh=gvrE5ecmlT4/FJKe+nQLJWvVfWI7v2fx8UJbL88CJ6c=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=svMQTztnr9GKpMNR9Y/NwF8epArs/6gpDgjNvAHOwxcwN43nSKdwNZ5E2KLpl47IS
+         g9B0ZsU4NMePu8tYu+5aUXUIO4qBODIBU0vQn49jzDM1m93Xta40Zro/KzYoQO0M9l
+         b3dWG0wuUFAYO7/AQKKJBMnCvQQgMIF9JWETDJNbZdvp2QeGu3tKCY4DgHIG+BVktL
+         TLSQDIyz4hVPO/zKt9628GmUtQKGQJo7/j0Es9CeK/nBt+C531F83f/eWNROPrLzAQ
+         omtgg8VQDMVogAFa2F6/mdqWctbO2q/xdrvL2D4CgmCG1kzm+DG835djNimxyJXkW9
+         OW7nKhnkWliGA==
+Received: by mail-ed1-f41.google.com with SMTP id z12so9093116edc.1;
+        Fri, 18 Jun 2021 07:58:39 -0700 (PDT)
+X-Gm-Message-State: AOAM531dsyGeZWDr98BHWVLaezI06X65W+TH0RcqmlaFDrMHIQGELmzY
+        ImcMLb17ladRfR58j4ZUh4/KE2lSW3UEZE0NuQ==
+X-Google-Smtp-Source: ABdhPJzjuPtUFgRoKPpwhgygmJo+XsY1mLgW7cvQlyXBImHd5SJrSyJAg5MMSnN+gKu8gb6MezHJJaAsCFWdWGhbg3E=
+X-Received: by 2002:aa7:cac9:: with SMTP id l9mr5414748edt.373.1624028318425;
+ Fri, 18 Jun 2021 07:58:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20210610182227.2480-1-vigneshr@ti.com>
+In-Reply-To: <20210610182227.2480-1-vigneshr@ti.com>
+From:   Rob Herring <robh+dt@kernel.org>
+Date:   Fri, 18 Jun 2021 08:58:26 -0600
+X-Gmail-Original-Message-ID: <CAL_JsqLjqtUapkr6ARyaeTduhSghJL-q7hBWGFPm7ubbvqCmJw@mail.gmail.com>
+Message-ID: <CAL_JsqLjqtUapkr6ARyaeTduhSghJL-q7hBWGFPm7ubbvqCmJw@mail.gmail.com>
+Subject: Re: [PATCH v2] dt-bindings: serial: Move omap-serial.txt to YAML schema
+To:     Vignesh Raghavendra <vigneshr@ti.com>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "open list:SERIAL DRIVERS" <linux-serial@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>,
+        Tony Lindgren <tony@atomide.com>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        Nishanth Menon <nm@ti.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+On Thu, Jun 10, 2021 at 12:22 PM Vignesh Raghavendra <vigneshr@ti.com> wrote:
+>
+> Convert serial-omap.txt to YAML schema for better checks and documentation.
+>
+> Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+> ---
+>
+> v2:
+> *Drop reg-io-width and reg-shift as they are constant and documented in
+>  txt bindings (also not used by driver).
+> *Drop unused label in example.
+> *Rename file to 8250_omap.yaml to be more generic as IP is present in
+> varies families of TI SoCs.
+> *Add description for interrupt entries
+>
+>  .../devicetree/bindings/serial/8250_omap.yaml | 118 ++++++++++++++++++
+>  .../bindings/serial/omap_serial.txt           |  40 ------
+>  2 files changed, 118 insertions(+), 40 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/serial/8250_omap.yaml
+>  delete mode 100644 Documentation/devicetree/bindings/serial/omap_serial.txt
+>
+> diff --git a/Documentation/devicetree/bindings/serial/8250_omap.yaml b/Documentation/devicetree/bindings/serial/8250_omap.yaml
+> new file mode 100644
+> index 000000000000..1c826fcf5828
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/serial/8250_omap.yaml
+> @@ -0,0 +1,118 @@
+> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+> +%YAML 1.2
+> +---
+> +$id: http://devicetree.org/schemas/serial/8250_omap.yaml#
+> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> +
+> +title: Bindings for 8250 compliant UARTs on TI's OMAP2+ and K3 SoCs
+> +
+> +maintainers:
+> +  - Vignesh Raghavendra <vigneshr@ti.com>
+> +
+> +allOf:
+> +  - $ref: /schemas/serial/serial.yaml#
+> +  - $ref: /schemas/serial/rs485.yaml#
+> +
+> +properties:
+> +  compatible:
+> +    oneOf:
+> +      - enum:
+> +          - ti,am3352-uart
+> +          - ti,am4372-uart
+> +          - ti,am654-uart
+> +          - ti,dra742-uart
+> +          - ti,omap2-uart
+> +          - ti,omap3-uart
+> +          - ti,omap4-uart
+> +      - items:
+> +          - enum:
+> +              - ti,am64-uart
+> +              - ti,j721e-uart
+> +          - const: ti,am654-uart
+> +
+> +  ti,hwmods:
+> +    description:
+> +      Must be "uart<n>", n being the instance number (1-based)
+> +      This property is applicable only on legacy platforms mainly omap2/3
+> +      and ti81xx and should not be used on other platforms.
+> +    $ref: /schemas/types.yaml#/definitions/string
+> +    deprecated: true
+> +
+> +  dmas:
+> +    minItems: 1
+> +    maxItems: 2
+> +
+> +  dma-names:
+> +    items:
+> +      - const: tx
+> +      - const: rx
+> +
+> +  reg:
+> +    maxItems: 1
+> +
+> +  interrupts:
+> +    minItems: 1
+> +    maxItems: 2
+> +    description:
+> +      First entry is module IRQ required for normal IO operation.
+> +      Second entry is optional and corresponds to system wakeup IRQ
+> +      where supported.
 
-The following changes since commit 9e7f5ee1137397def6580461e27e5efcb68183ee:
+interrupts:
+  minItems: 1
+  items:
+    - description: module IRQ required for normal IO operation
+    - description: system wakeup IRQ
 
-  ARM: dts: OMAP2+: Replace underscores in sub-mailbox node names (2021-05-27 15:12:33 +0300)
+> +
+> +  clocks:
+> +    maxItems: 1
+> +
+> +  clock-names:
+> +    const: fclk
+> +
+> +  rts-gpios: true
+> +  cts-gpios: true
+> +  dtr-gpios: true
+> +  dsr-gpios: true
+> +  rng-gpios: true
+> +  dcd-gpios: true
+> +  rs485-rts-delay: true
+> +  rs485-rts-active-low: true
+> +  rs485-rx-during-tx: true
+> +  rs485-rts-active-high: true
+> +  linux,rs485-enabled-at-boot-time: true
+> +  rts-gpio: true
+> +  power-domains: true
+> +  clock-frequency: true
+> +  current-speed: true
+> +
+> +required:
+> +  - compatible
+> +  - reg
+> +  - interrupts
+> +
+> +additionalProperties: false
 
-are available in the Git repository at:
+Do you want to support serial attached devices? If so, you need:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.14/dt-cleanup-signed
+unevaluatedProperties: false
 
-for you to fetch changes up to 9b11fec7345f21995f4ea4bafb0e108b9a620238:
+You can also drop listing all the inherited properties from the
+included schemas.
 
-  ARM: dts: am437x: align ti,pindir-d0-out-d1-in property with dt-shema (2021-06-11 10:35:08 +0300)
-
-----------------------------------------------------------------
-Devicetree binding clean-up for omaps for v5.14
-
-Minor devicetree clean-up for omaps for the binding checks:
-
-- Drop unsupported dmas for omap2/3 i2c
-- Drop redundant ehrpwm compatible
-- Drop am33xx-ecap compatible no longer needed
-- Correct node names for ecap
-- Drop unsupported interrupts for ecap
-- Drop redundant ti,pcf8575
-- Correct usage for ti,pindir-d0-out-d1-in
-
-----------------------------------------------------------------
-Aswath Govindraju (2):
-      ARM: dts: am335x: align ti,pindir-d0-out-d1-in property with dt-shema
-      ARM: dts: am437x: align ti,pindir-d0-out-d1-in property with dt-shema
-
-Geert Uytterhoeven (1):
-      ARM: dts: dra7x-evm: Drop "ti,pcf8575"
-
-Lokesh Vutla (4):
-      ARM: dts: ti: drop usage of redundant compatible
-      ARM: dts: ti: Drop usage of ti,am33xx-ecap from DT nodes
-      ARM: dts: ti: Fix node name for all ecap dt nodes
-      ARM: dts: am33xx: Drop interrupt property from ecap nodes
-
-Vignesh Raghavendra (1):
-      ARM: dts: omap2/3: Drop dmas property from I2C node
-
- arch/arm/boot/dts/am335x-cm-t335.dts    |  4 ++--
- arch/arm/boot/dts/am335x-evm.dts        |  2 +-
- arch/arm/boot/dts/am335x-evmsk.dts      |  2 +-
- arch/arm/boot/dts/am33xx-l4.dtsi        | 30 +++++++++---------------------
- arch/arm/boot/dts/am437x-l4.dtsi        | 33 ++++++++++++---------------------
- arch/arm/boot/dts/am43x-epos-evm.dts    |  4 ++--
- arch/arm/boot/dts/da850.dtsi            | 21 ++++++++-------------
- arch/arm/boot/dts/dm816x.dtsi           |  4 ----
- arch/arm/boot/dts/dra7-evm.dts          |  6 +++---
- arch/arm/boot/dts/dra7-l4.dtsi          |  6 +++---
- arch/arm/boot/dts/dra72-evm-common.dtsi |  4 ++--
- arch/arm/boot/dts/dra76-evm.dts         |  6 +++---
- arch/arm/boot/dts/omap2.dtsi            |  4 ----
- arch/arm/boot/dts/omap3.dtsi            |  6 ------
- 14 files changed, 46 insertions(+), 86 deletions(-)
+> +
+> +if:
+> +  properties:
+> +    compatible:
+> +      oneOf:
+> +        - const: ti,omap2-uart
+> +        - const: ti,omap3-uart
+> +        - const: ti,omap4-uart
+> +
+> +then:
+> +  properties:
+> +    ti,hwmods:
+> +      items:
+> +        - pattern: "^uart([1-9])$"
+> +
+> +else:
+> +  properties:
+> +    ti,hwmods: false
+> +
+> +examples:
+> +  - |
+> +          serial@49042000 {
+> +            compatible = "ti,omap3-uart";
+> +            reg = <0x49042000 0x400>;
+> +            interrupts = <80>;
+> +            dmas = <&sdma 81 &sdma 82>;
+> +            dma-names = "tx", "rx";
+> +            ti,hwmods = "uart4";
+> +            clock-frequency = <48000000>;
+> +          };
+> diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
+> deleted file mode 100644
+> index c2db8cabf2ab..000000000000
+> --- a/Documentation/devicetree/bindings/serial/omap_serial.txt
+> +++ /dev/null
+> @@ -1,40 +0,0 @@
+> -OMAP UART controller
+> -
+> -Required properties:
+> -- compatible : should be "ti,am64-uart", "ti,am654-uart" for AM64 controllers
+> -- compatible : should be "ti,j721e-uart", "ti,am654-uart" for J721E controllers
+> -- compatible : should be "ti,am654-uart" for AM654 controllers
+> -- compatible : should be "ti,omap2-uart" for OMAP2 controllers
+> -- compatible : should be "ti,omap3-uart" for OMAP3 controllers
+> -- compatible : should be "ti,omap4-uart" for OMAP4 controllers
+> -- compatible : should be "ti,am4372-uart" for AM437x controllers
+> -- compatible : should be "ti,am3352-uart" for AM335x controllers
+> -- compatible : should be "ti,dra742-uart" for DRA7x controllers
+> -- reg : address and length of the register space
+> -- interrupts or interrupts-extended : Should contain the uart interrupt
+> -                                      specifier or both the interrupt
+> -                                      controller phandle and interrupt
+> -                                      specifier.
+> -- ti,hwmods : Must be "uart<n>", n being the instance number (1-based)
+> -
+> -Optional properties:
+> -- clock-frequency : frequency of the clock input to the UART
+> -- dmas : DMA specifier, consisting of a phandle to the DMA controller
+> -         node and a DMA channel number.
+> -- dma-names : "rx" for receive channel, "tx" for transmit channel.
+> -- rs485-rts-delay, rs485-rx-during-tx, linux,rs485-enabled-at-boot-time: see rs485.txt
+> -- rs485-rts-active-high: drive RTS high when sending (default is low).
+> -- clocks: phandle to the functional clock as per
+> -  Documentation/devicetree/bindings/clock/clock-bindings.txt
+> -
+> -Example:
+> -
+> -                uart4: serial@49042000 {
+> -                        compatible = "ti,omap3-uart";
+> -                        reg = <0x49042000 0x400>;
+> -                        interrupts = <80>;
+> -                        dmas = <&sdma 81 &sdma 82>;
+> -                        dma-names = "tx", "rx";
+> -                        ti,hwmods = "uart4";
+> -                        clock-frequency = <48000000>;
+> -                };
+> --
+> 2.32.0
+>
