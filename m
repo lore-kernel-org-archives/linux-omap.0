@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5202DC49360
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:42:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64F18C47E48
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:42:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E831613F0
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:42:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F958613F1
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:42:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236707AbhGNTpe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Jul 2021 15:45:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37258 "EHLO mail.kernel.org"
+        id S237233AbhGNTpf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Jul 2021 15:45:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234332AbhGNTo4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S236464AbhGNTo4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Wed, 14 Jul 2021 15:44:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 332D2613DA;
-        Wed, 14 Jul 2021 19:41:33 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BF311613EA;
+        Wed, 14 Jul 2021 19:41:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626291694;
-        bh=7lcPWf3wZRfK+H9bwkya6bRuladn8RNSUn5Y8jRll8s=;
+        s=k20201202; t=1626291696;
+        bh=61zfSRzG8fZ7cjyr30XK1KAYJ+D4Q/kZXSuqGCbjFjQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=jaKDaQCq6dYPRMbI/pKYql3H+Qq+2jGPQuhAfgH9bXJNBx7A/u4bota826R0FCDJu
-         BlFw38ZFV+0OKWwrA8oOm9xe4ZnQZ/dsP1kwRdmIq5S6vTax/3kaFKeDT8ayT7cTI6
-         rZj7zYaMr0239iwW18jRnloF/BhvSfu7xXTdhTgBNOd4GXsGPU1LLwni6Vs3R0eang
-         zmC48EEFlZKTjJ4V5meGHZ+fgw9zxsVQ7xy4+tFPpuCWe8kbtCoJuaw8Ak41+5bRRB
-         JEKKpaTkW59+akpR2QeRFk8F/RSP+B5eMrlfCsilFNJeSlbWBOjivgQCRFb15/qLC5
-         /ahTA9YVBlxLg==
+        b=rbJUXTe7aEeAqHfl6DO9VY2aAMUPlmveXnBpjuPgsxQzLJUZv5iABe8px0UDQQjsU
+         HNsr27lbWn5ivQF7bOehaK1VKe63aW01rMBoCurATrga1V8BNG7jmIQirAcMdFBthP
+         WC4X3GWwhAIAUYbhGwOzfk2yijRcffxnQ1jLSsm2WtbYP1WzPuRShjhcXySQfHciJn
+         SzVNzXO6HHrB5hgRA1Cq3XNQeo++u+eROJW6e0b9VH5CTJ6kKjtjnggpRaFUGYIZZ2
+         +b7kg0EXXE2pQOC7YbJg3j/6C5Qzhx8QCxTI0hzYDh0EbX9Z2m5lwDehoWEkStyzYX
+         hU2y5miYzk4og==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.12 041/102] ARM: dts: am437x: align gpio hog names with dt-schema
-Date:   Wed, 14 Jul 2021 15:39:34 -0400
-Message-Id: <20210714194036.53141-41-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.12 043/102] ARM: dts: omap5-board-common: align gpio hog names with dt-schema
+Date:   Wed, 14 Jul 2021 15:39:36 -0400
+Message-Id: <20210714194036.53141-43-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210714194036.53141-1-sashal@kernel.org>
 References: <20210714194036.53141-1-sashal@kernel.org>
@@ -53,7 +53,7 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-[ Upstream commit bd551acdde3ad40da1a97391abd6e0db7852bf66 ]
+[ Upstream commit 4823117cb80eedf31ddbc126b9bd92e707bd9a26 ]
 
 The GPIO Hog dt-schema node naming convention expect GPIO hogs node names
 to end with a 'hog' suffix.
@@ -62,45 +62,22 @@ Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts  | 4 ++--
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap5-board-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 6e4d05d649e9..45cbc7fb557a 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -786,7 +786,7 @@ &gpio0 {
- 	pinctrl-0 = <&gpio0_pins>;
- 	status = "okay";
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index d8f13626cfd1..45435bb88c89 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -149,7 +149,7 @@ sound: sound {
  
--	p23 {
-+	sel-emmc-nand-hog {
+ &gpio8 {
+ 	/* TI trees use GPIO instead of msecure, see also muxing */
+-	p234 {
++	msecure-hog {
  		gpio-hog;
- 		gpios = <23 GPIO_ACTIVE_HIGH>;
- 		/* SelEMMCorNAND selects between eMMC and NAND:
-@@ -819,7 +819,7 @@ &gpio5 {
- 	status = "okay";
- 	ti,no-reset-on-init;
- 
--	p8 {
-+	sel-lcd-hdmi-hog {
- 		/*
- 		 * SelLCDorHDMI selects between display and audio paths:
- 		 * Low: HDMI display with audio via HDMI
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index f517d1e843cf..d717d5ada812 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -725,7 +725,7 @@ &gpio2 {
- 	pinctrl-0 = <&display_mux_pins>;
- 	status = "okay";
- 
--	p1 {
-+	sel-lcd-hdmi-hog {
- 		/*
- 		 * SelLCDorHDMI selects between display and audio paths:
- 		 * Low: HDMI display with audio via HDMI
+ 		gpios = <10 GPIO_ACTIVE_HIGH>;
+ 		output-high;
 -- 
 2.30.2
 
