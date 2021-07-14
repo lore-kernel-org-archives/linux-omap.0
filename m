@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B30E6C1B08C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8CACC47E4D
 	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B842613C3
+	by mail.kernel.org (Postfix) with ESMTP id AB016613DC
 	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237791AbhGNTyC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Jul 2021 15:54:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46246 "EHLO mail.kernel.org"
+        id S240971AbhGNTyH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Jul 2021 15:54:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239115AbhGNTtL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S239105AbhGNTtL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Wed, 14 Jul 2021 15:49:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E05B561410;
-        Wed, 14 Jul 2021 19:44:03 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 23732613D3;
+        Wed, 14 Jul 2021 19:44:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626291844;
-        bh=S3IlfG69UXparSHCr+oLXcne8yC6qMFeodELkSRQv1c=;
+        s=k20201202; t=1626291842;
+        bh=kZF8/ieUsXrMmaq/wXqVUkL5F7XLLCOj7SNQ9omZ0V4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SkacUGdPjgAfJNP9KrKxm7kGpTBNWV9oVZ9pKO+UXzeGSPtZ9/rKVPCgjcOeqqSKs
-         RS8lDQYy9geiHxd8hj33uN/Zqm6+8P9ZDkiBacy2RwrF1LZM0Xe9qeRaCYPir4Ajoi
-         GA0/YDdDkzdmWrFHWAGG4I13JjeOOPhASjxEleJm9M61Dy0xe/BoUp8ZWd+8Tcjlet
-         LlCyNQeZZfQiHBJJsKRq2Wtgpue2n68r5hTnzDWL45jLrj54UPxT1GhkOwmZY+hTIv
-         OHPWn45zKFKxIyBCV7ICOfGcO1gAaLt51QmKmoB2O7AHOLVuE4T80Cib05l3djD1A6
-         CoAPmOi6hD29A==
+        b=RiUcmxi/IVpW5WGtIKWkGheATCmi5g9B79ONYuw1FcNYCbsa+t9nqzKyOCioR2Pb6
+         ZU3tWQfOL8xPifdVS6OT4+TcvitTnchNNEgF65AIFarCjVjx6JrHUCqKYffcZ9P0HI
+         rOK6fx2Cnh/lZtcF5ZhLxsddzpg2FfePAzfMcrCF4qdTO5BgK1DS9Hv4HNYhmG8c/8
+         lHWF7FwBFdE+/geTvA6zr40OS20YQGuFWg5d/qKdFRGEHcsKb378v8eqcN9UVHt9vn
+         icZKkp9LBdw1L09vpVmMR7uBAdihqwYbxwYHukzAOTvUl2VE3sDJf5x0kEqxMTqog+
+         WqDp6p/UjiAHg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 40/88] ARM: dts: am335x: fix ti,no-reset-on-init flag for gpios
-Date:   Wed, 14 Jul 2021 15:42:15 -0400
-Message-Id: <20210714194303.54028-40-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 38/88] ARM: dts: am57xx-cl-som-am57x: fix ti,no-reset-on-init flag for gpios
+Date:   Wed, 14 Jul 2021 15:42:13 -0400
+Message-Id: <20210714194303.54028-38-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210714194303.54028-1-sashal@kernel.org>
 References: <20210714194303.54028-1-sashal@kernel.org>
@@ -53,7 +53,7 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-[ Upstream commit d7d30b8fcd111e9feb171023c0e0c8d855582dcb ]
+[ Upstream commit b644c5e01c870056e13a096e14b9a92075c8f682 ]
 
 The ti,no-reset-on-init flag need to be at the interconnect target module
 level for the modules that have it defined.
@@ -64,82 +64,51 @@ Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am335x-baltos.dtsi              | 4 ++--
- arch/arm/boot/dts/am335x-evmsk.dts                | 2 +-
- arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi | 2 +-
- arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi | 2 +-
- arch/arm/boot/dts/am33xx-l4.dtsi                  | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 5 ++---
+ arch/arm/boot/dts/dra7-l4.dtsi            | 4 ++--
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
-index b7f64c7ba83d..77e23e736854 100644
---- a/arch/arm/boot/dts/am335x-baltos.dtsi
-+++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-@@ -393,10 +393,10 @@ &aes {
- 	status = "okay";
- };
- 
--&gpio0 {
-+&gpio0_target {
- 	ti,no-reset-on-init;
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+index 0d5fe2bfb683..39eba2bc36dd 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -610,12 +610,11 @@ &mcasp3 {
+ 	>;
  };
  
 -&gpio3 {
+-	status = "okay";
 +&gpio3_target {
  	ti,no-reset-on-init;
  };
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index b43b94122d3c..bf05b68274c2 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -648,7 +648,7 @@ &aes {
- 	status = "okay";
- };
  
--&gpio0 {
-+&gpio0_target {
+-&gpio2 {
++&gpio2_target {
+ 	status = "okay";
  	ti,no-reset-on-init;
  };
- 
-diff --git a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
-index 4e90f9c23d2e..8121a199607c 100644
---- a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
-@@ -150,7 +150,7 @@ &aes {
- 	status = "okay";
- };
- 
--&gpio0 {
-+&gpio0_target {
- 	ti,no-reset-on-init;
- };
- 
-diff --git a/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi b/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi
-index 98d8ed4ad967..39e5d2ce600a 100644
---- a/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi
-@@ -353,7 +353,7 @@ &aes {
- 	status = "okay";
- };
- 
--&gpio0 {
-+&gpio0_target {
- 	ti,no-reset-on-init;
- };
- 
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-index ea20e4bdf040..29fafb67cfaa 100644
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -1723,7 +1723,7 @@ gpio2: gpio@0 {
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index a294a02f2d23..d1ff8a4121f5 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -1315,7 +1315,7 @@ gpio8: gpio@0 {
  			};
  		};
  
--		target-module@ae000 {			/* 0x481ae000, ap 56 3a.0 */
-+		gpio3_target: target-module@ae000 {		/* 0x481ae000, ap 56 3a.0 */
+-		target-module@55000 {			/* 0x48055000, ap 13 0e.0 */
++		gpio2_target: target-module@55000 {		/* 0x48055000, ap 13 0e.0 */
  			compatible = "ti,sysc-omap2", "ti,sysc";
- 			reg = <0xae000 0x4>,
- 			      <0xae010 0x4>,
+ 			reg = <0x55000 0x4>,
+ 			      <0x55010 0x4>,
+@@ -1348,7 +1348,7 @@ gpio2: gpio@0 {
+ 			};
+ 		};
+ 
+-		target-module@57000 {			/* 0x48057000, ap 15 06.0 */
++		gpio3_target: target-module@57000 {		/* 0x48057000, ap 15 06.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+ 			reg = <0x57000 0x4>,
+ 			      <0x57010 0x4>,
 -- 
 2.30.2
 
