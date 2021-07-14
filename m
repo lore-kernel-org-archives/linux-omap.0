@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DF0AC47E54
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:51:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B30E6C1B08C
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C2F5613D6
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:51:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B842613C3
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236492AbhGNTyC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S237791AbhGNTyC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Wed, 14 Jul 2021 15:54:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47276 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238902AbhGNTss (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 14 Jul 2021 15:48:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5E10D61416;
-        Wed, 14 Jul 2021 19:43:58 +0000 (UTC)
+        id S239115AbhGNTtL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 14 Jul 2021 15:49:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E05B561410;
+        Wed, 14 Jul 2021 19:44:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626291839;
-        bh=61zfSRzG8fZ7cjyr30XK1KAYJ+D4Q/kZXSuqGCbjFjQ=;
+        s=k20201202; t=1626291844;
+        bh=S3IlfG69UXparSHCr+oLXcne8yC6qMFeodELkSRQv1c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DcNVH0GdcNVhIjEe0LoH7CMn3C8K+o8wDvyev5VvgrU1qVLcrSOI2r0Riu1qfeNiV
-         H+69y8BeFWnBK/yK3AIRU8fAQQWMByFXs55dzFaKY5AYWIABOnNhBH7U508L2LTWln
-         4Eg92+nXDpUzEfQtQdk9eoBvGNQAkAHC5LovqP9wbfEZXE/ABS8cXs6dFISlkO7/87
-         9/SbWdiKDmQ7LIl7UYuUXGCvioFCDiC2hRC05Gxynz6U70tkZpWHIyt14s3Xu74Uv7
-         qO5m62M0lA/0Kus5sVqLwmgKdz3I5lcQvHiTUNfSg1XzrNMC3ZJMsMNrA7Cl4QIjd5
-         MsVotCoKkcYXQ==
+        b=SkacUGdPjgAfJNP9KrKxm7kGpTBNWV9oVZ9pKO+UXzeGSPtZ9/rKVPCgjcOeqqSKs
+         RS8lDQYy9geiHxd8hj33uN/Zqm6+8P9ZDkiBacy2RwrF1LZM0Xe9qeRaCYPir4Ajoi
+         GA0/YDdDkzdmWrFHWAGG4I13JjeOOPhASjxEleJm9M61Dy0xe/BoUp8ZWd+8Tcjlet
+         LlCyNQeZZfQiHBJJsKRq2Wtgpue2n68r5hTnzDWL45jLrj54UPxT1GhkOwmZY+hTIv
+         OHPWn45zKFKxIyBCV7ICOfGcO1gAaLt51QmKmoB2O7AHOLVuE4T80Cib05l3djD1A6
+         CoAPmOi6hD29A==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 36/88] ARM: dts: omap5-board-common: align gpio hog names with dt-schema
-Date:   Wed, 14 Jul 2021 15:42:11 -0400
-Message-Id: <20210714194303.54028-36-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 40/88] ARM: dts: am335x: fix ti,no-reset-on-init flag for gpios
+Date:   Wed, 14 Jul 2021 15:42:15 -0400
+Message-Id: <20210714194303.54028-40-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210714194303.54028-1-sashal@kernel.org>
 References: <20210714194303.54028-1-sashal@kernel.org>
@@ -53,31 +53,93 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-[ Upstream commit 4823117cb80eedf31ddbc126b9bd92e707bd9a26 ]
+[ Upstream commit d7d30b8fcd111e9feb171023c0e0c8d855582dcb ]
 
-The GPIO Hog dt-schema node naming convention expect GPIO hogs node names
-to end with a 'hog' suffix.
+The ti,no-reset-on-init flag need to be at the interconnect target module
+level for the modules that have it defined.
+The ti-sysc driver handles this case, but produces warning, not a critical
+issue.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap5-board-common.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/am335x-baltos.dtsi              | 4 ++--
+ arch/arm/boot/dts/am335x-evmsk.dts                | 2 +-
+ arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi | 2 +-
+ arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi | 2 +-
+ arch/arm/boot/dts/am33xx-l4.dtsi                  | 2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index d8f13626cfd1..45435bb88c89 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -149,7 +149,7 @@ sound: sound {
+diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
+index b7f64c7ba83d..77e23e736854 100644
+--- a/arch/arm/boot/dts/am335x-baltos.dtsi
++++ b/arch/arm/boot/dts/am335x-baltos.dtsi
+@@ -393,10 +393,10 @@ &aes {
+ 	status = "okay";
+ };
  
- &gpio8 {
- 	/* TI trees use GPIO instead of msecure, see also muxing */
--	p234 {
-+	msecure-hog {
- 		gpio-hog;
- 		gpios = <10 GPIO_ACTIVE_HIGH>;
- 		output-high;
+-&gpio0 {
++&gpio0_target {
+ 	ti,no-reset-on-init;
+ };
+ 
+-&gpio3 {
++&gpio3_target {
+ 	ti,no-reset-on-init;
+ };
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index b43b94122d3c..bf05b68274c2 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -648,7 +648,7 @@ &aes {
+ 	status = "okay";
+ };
+ 
+-&gpio0 {
++&gpio0_target {
+ 	ti,no-reset-on-init;
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
+index 4e90f9c23d2e..8121a199607c 100644
+--- a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
++++ b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
+@@ -150,7 +150,7 @@ &aes {
+ 	status = "okay";
+ };
+ 
+-&gpio0 {
++&gpio0_target {
+ 	ti,no-reset-on-init;
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi b/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi
+index 98d8ed4ad967..39e5d2ce600a 100644
+--- a/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi
++++ b/arch/arm/boot/dts/am335x-moxa-uc-8100-common.dtsi
+@@ -353,7 +353,7 @@ &aes {
+ 	status = "okay";
+ };
+ 
+-&gpio0 {
++&gpio0_target {
+ 	ti,no-reset-on-init;
+ };
+ 
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+index ea20e4bdf040..29fafb67cfaa 100644
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1723,7 +1723,7 @@ gpio2: gpio@0 {
+ 			};
+ 		};
+ 
+-		target-module@ae000 {			/* 0x481ae000, ap 56 3a.0 */
++		gpio3_target: target-module@ae000 {		/* 0x481ae000, ap 56 3a.0 */
+ 			compatible = "ti,sysc-omap2", "ti,sysc";
+ 			reg = <0xae000 0x4>,
+ 			      <0xae010 0x4>,
 -- 
 2.30.2
 
