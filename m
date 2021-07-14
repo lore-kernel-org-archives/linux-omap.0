@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53E65C47E5A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E430FC49360
 	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C1F1613F3
+	by mail.kernel.org (Postfix) with ESMTP id DBAEC613DC
 	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241067AbhGNTyK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Jul 2021 15:54:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45586 "EHLO mail.kernel.org"
+        id S241300AbhGNTyR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Jul 2021 15:54:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240652AbhGNTt7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 14 Jul 2021 15:49:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4058D61443;
-        Wed, 14 Jul 2021 19:45:47 +0000 (UTC)
+        id S241114AbhGNTuY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 14 Jul 2021 15:50:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 84C21613DA;
+        Wed, 14 Jul 2021 19:46:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626291948;
-        bh=IJePZ/sCwsqtF2QiD6At5BE13rbflLhIkvUAqVUMLog=;
+        s=k20201202; t=1626292014;
+        bh=BY0hHaeHE1u0Y7GbKxxZ3kwF47Klbjbz4U3Qw7Y0FlE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qJx+cnHHr1BvxK4mBKIHpLPig6S3ArIuVndGl/m9byHVoSICWz6aUbTUt8lUCtw7b
-         LED8Mg1NRmw+8Vr4BVnB5r2lV1MTSS0SsIC6CSwfnJbsuBzJUptTJnZYcCXKmAEqA5
-         1R2noebB7ELcA27beaAzvQyAvSiQaKyCFDIRr6lRb6xHNpFDXhZkl6h0KwLFo5dkYW
-         0NrvZ8q97BCzerPRLkBG5FqM+TaPAsEOBWdPZ+OVOyBWcINCiGkGySsrCFNyezbpY4
-         +ySSBn2X2XU6VZrIZabD2xbW+tweX3fpD1QNhYqyzUmvhBm+AuhhBk6HZfLJzxKrTO
-         j3l1TTT/rTkDQ==
+        b=aqLNVd5plLqSBuggC8bKeXoGRs7Vk2XcO+/RyvJN/jNhG0m0kvOz35e7gmzTckOxR
+         ZSM6VfZwhjv7XKNxDZRAS408hCPte+jBi6Dtgc/s3EFkWWV1LpzMnLxTFpbDPdF7NC
+         onep9pw89M0c77jncE5azKwF5olRrkpcp4N8QBSgRq/rU/lRHw4Uj88ajCiXVx8iUR
+         UUrQdxD3con+q3qdJ/8BvibQ4kZS99m2C8D6NU7wDmHLBSFPdCHSzpzKU7XnJdlbIV
+         JARHQP/o2ID2hBX4QaZlzi+tv9t63BjDvTl2QkR6XkrUGNpFd+M0++wIJb5uHhdA7W
+         LQBcd4wXuqz2g==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 24/51] ARM: dts: am437x: align gpio hog names with dt-schema
-Date:   Wed, 14 Jul 2021 15:44:46 -0400
-Message-Id: <20210714194513.54827-24-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 20/39] ARM: dts: am437x: align gpio hog names with dt-schema
+Date:   Wed, 14 Jul 2021 15:46:05 -0400
+Message-Id: <20210714194625.55303-20-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210714194513.54827-1-sashal@kernel.org>
-References: <20210714194513.54827-1-sashal@kernel.org>
+In-Reply-To: <20210714194625.55303-1-sashal@kernel.org>
+References: <20210714194625.55303-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -67,10 +67,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 811c8cae315b..acc4c2760f46 100644
+index 8a17eca2bc97..7511b10182af 100644
 --- a/arch/arm/boot/dts/am437x-gp-evm.dts
 +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -802,7 +802,7 @@ &gpio0 {
+@@ -698,7 +698,7 @@ &gpio0 {
  	pinctrl-0 = <&gpio0_pins>;
  	status = "okay";
  
@@ -79,7 +79,7 @@ index 811c8cae315b..acc4c2760f46 100644
  		gpio-hog;
  		gpios = <23 GPIO_ACTIVE_HIGH>;
  		/* SelEMMCorNAND selects between eMMC and NAND:
-@@ -835,7 +835,7 @@ &gpio5 {
+@@ -731,7 +731,7 @@ &gpio5 {
  	status = "okay";
  	ti,no-reset-on-init;
  
@@ -89,10 +89,10 @@ index 811c8cae315b..acc4c2760f46 100644
  		 * SelLCDorHDMI selects between display and audio paths:
  		 * Low: HDMI display with audio via HDMI
 diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index a6fbc088daa8..45a44c705a70 100644
+index b6950eee550b..9e6d0888f115 100644
 --- a/arch/arm/boot/dts/am43x-epos-evm.dts
 +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -717,7 +717,7 @@ &gpio2 {
+@@ -708,7 +708,7 @@ &gpio2 {
  	pinctrl-0 = <&display_mux_pins>;
  	status = "okay";
  
