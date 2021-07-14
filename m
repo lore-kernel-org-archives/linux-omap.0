@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E45C47E4F
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FC72C47E55
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4CE1613ED
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22393613CF
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:52:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240998AbhGNTyI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Jul 2021 15:54:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46236 "EHLO mail.kernel.org"
+        id S241059AbhGNTyJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Jul 2021 15:54:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239114AbhGNTtL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 14 Jul 2021 15:49:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CB006141E;
-        Wed, 14 Jul 2021 19:44:02 +0000 (UTC)
+        id S240657AbhGNTt7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 14 Jul 2021 15:49:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ACE19613D1;
+        Wed, 14 Jul 2021 19:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626291843;
-        bh=qltVzMhUCkSuWWGB4rLl+ufH0pA2gORcNdWaHr3L8d4=;
+        s=k20201202; t=1626291949;
+        bh=tkbnrYTRku90PmRyB2CpW7EvmcO8ivAcS/EzWo9+h1Q=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=b/iwgKtll33KWOkSfPGcSCGuFf/Go/g/D5j7mkgjvlhQkYNJXfmVm8xgn0yOIbnKP
-         imBvv9GevCG+pBudvACc/8dSsliOWxcSTi4KsnCNN7o4HxUN7Me2EMEekENgsGCbOQ
-         psXqqGH4AFkkOWSqXxZKSjFVz1hhekH2NPCKhelORhhTjo47mq3poUKJ3X7LjSoHdA
-         DmHbUS869cwvSK87sdnF/hx8fH2itFjEwBZD5cllHIOAAin6Ec0MySUqkmTBIItU24
-         atoI9+LiKxjcPhV7KuWcf9jcXXxsDz4kbtuYD/o75Sxg6ITKK763jy0e611jeqvB4I
-         wMUScll+zi1OA==
+        b=nIEb8VWsKoPRUiYaB8SwW6PokKHnmHXBf/NJB0YSdNFQ+36SEgzjpgheYfsBk/1Xh
+         7SEBgO0P9+fERApzLg0e6RnnNSHSuqUllZgElKHnlDTNSRe8ScBEHmIS4wl7rca/vk
+         BTdGkplv4UGNsjjjJGYzxeHVWkjx8HiEW6UkiDW63PLCUgd/b3ApFgvhkxYMIxSso6
+         WNVYgztrw/seD5bbmO2XZbFZgUsBAaleAua+XpnLRyvJz24kV7UqddS1VQiZ1ejofo
+         d7ueKhWxXRwdt7nyba1fcsmFf3aBGHE2/yGFZmFxfZLoMCjxEx/POZW/qljd21lisz
+         c7ivSXvXnvNaQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 39/88] ARM: dts: am437x-gp-evm: fix ti,no-reset-on-init flag for gpios
-Date:   Wed, 14 Jul 2021 15:42:14 -0400
-Message-Id: <20210714194303.54028-39-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 25/51] ARM: dts: omap3: align gpio hog names with dt-schema
+Date:   Wed, 14 Jul 2021 15:44:47 -0400
+Message-Id: <20210714194513.54827-25-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210714194303.54028-1-sashal@kernel.org>
-References: <20210714194303.54028-1-sashal@kernel.org>
+In-Reply-To: <20210714194513.54827-1-sashal@kernel.org>
+References: <20210714194513.54827-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -53,54 +53,45 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-[ Upstream commit 2566d5b8c1670f7d7a44cc1426d254147ec5c421 ]
+[ Upstream commit cfb4ab3b5df86c6001127346d8331f5e87012f91 ]
 
-The ti,no-reset-on-init flag need to be at the interconnect target module
-level for the modules that have it defined.
-The ti-sysc driver handles this case, but produces warning, not a critical
-issue.
+The GPIO Hog dt-schema node naming convention expect GPIO hogs node names
+to end with a 'hog' suffix.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 5 ++++-
- arch/arm/boot/dts/am437x-l4.dtsi    | 2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap3-evm-processor-common.dtsi | 2 +-
+ arch/arm/boot/dts/omap3-gta04a5.dts               | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 45cbc7fb557a..e2677682b540 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -813,11 +813,14 @@ &gpio4 {
- 	status = "okay";
+diff --git a/arch/arm/boot/dts/omap3-evm-processor-common.dtsi b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
+index b4109f48ec18..e6ba30a21166 100644
+--- a/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
++++ b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
+@@ -195,7 +195,7 @@ &uart3 {
+  * for bus switch SN74CB3Q3384A, level-shifter SN74AVC16T245DGGR, and 1.8V.
+  */
+ &gpio2 {
+-	en_usb2_port {
++	en-usb2-port-hog {
+ 		gpio-hog;
+ 		gpios = <29 GPIO_ACTIVE_HIGH>;	/* gpio_61 */
+ 		output-low;
+diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
+index fd84bbf3b9cc..9ce8d81250aa 100644
+--- a/arch/arm/boot/dts/omap3-gta04a5.dts
++++ b/arch/arm/boot/dts/omap3-gta04a5.dts
+@@ -37,7 +37,7 @@ pps {
  };
  
-+&gpio5_target {
-+	ti,no-reset-on-init;
-+};
-+
  &gpio5 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&display_mux_pins>;
- 	status = "okay";
--	ti,no-reset-on-init;
- 
- 	sel-lcd-hdmi-hog {
- 		/*
-diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
-index 243e35f7a56c..370c4e64676f 100644
---- a/arch/arm/boot/dts/am437x-l4.dtsi
-+++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -2033,7 +2033,7 @@ gpio4: gpio@0 {
- 			};
- 		};
- 
--		target-module@22000 {			/* 0x48322000, ap 116 64.0 */
-+		gpio5_target: target-module@22000 {		/* 0x48322000, ap 116 64.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
- 			reg = <0x22000 0x4>,
- 			      <0x22010 0x4>,
+-	irda_en {
++	irda-en-hog {
+ 		gpio-hog;
+ 		gpios = <(175-160) GPIO_ACTIVE_HIGH>;
+ 		output-high;	/* activate gpio_175 to disable IrDA receiver */
 -- 
 2.30.2
 
