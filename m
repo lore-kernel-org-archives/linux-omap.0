@@ -7,39 +7,40 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F223C47E4E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C604C47E51
 	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:42:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75AF3613F3
+	by mail.kernel.org (Postfix) with ESMTP id 7D37F61411
 	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:42:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237267AbhGNTph (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Jul 2021 15:45:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38836 "EHLO mail.kernel.org"
+        id S237247AbhGNTpg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Jul 2021 15:45:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236045AbhGNTo4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        id S236591AbhGNTo4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
         Wed, 14 Jul 2021 15:44:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E3FF613F0;
-        Wed, 14 Jul 2021 19:41:34 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 37BF2613E6;
+        Wed, 14 Jul 2021 19:41:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626291695;
-        bh=tkbnrYTRku90PmRyB2CpW7EvmcO8ivAcS/EzWo9+h1Q=;
+        s=k20201202; t=1626291698;
+        bh=MGbGQrJ3adadjnLKu1fb72/dngB4J4tAJ+SjgSlVw4A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=la3+XjAqJpluuLzR6O470kbIkEH4p2KydmmYYwM+b+5D54oi1FDxg1OkWy32zAA8Z
-         8LmW/wAbKopV+McHlckCRGVpnouP1BUYZphBoQho7dJ0rJAzcUwSGhYWSrIrH5TrN8
-         JDbwzyew1cxHtMdKrTnHCn2QwnZoFMBoLphc7uTgolEpS3WdzfqtEEjAjj/+GC6LzF
-         AIKKMcpL/MQszMlHP6i0cc2kpYJbge7Xo2gl7zz415yyn86dTGWTPi9GKeIEMHBc6e
-         M1H1/2zOapvmnstR62c7l5kuqVVCqwo69yxA0Jj2BRfP+fNny8dc2IITynTO4YXM8i
-         wHDuC3G4CqHaw==
+        b=TP3qVxbzC7txwXHGWH0PGFfdWAhnKKAuvzSN7UGWQr5XXPLRZ9BBo3CaCR4ShRrFJ
+         PvXhqvDmpbea+s/LGjfIfvJIIBbHf+3W26WMaTp26KDmih2puC6dG3wWT7obFiw32R
+         pHRrkjObsBur+/G3Nhle1To/nfRfeEgoh5X1QFCBCcA9J3/dyCZnVzUjrWjZCRkb3n
+         uW1yyJc0BQZsGy5EJUMKmFYMI22AZX+5hiIplaLQeYsABdte5MOD1sAjVv38zZjnWd
+         UX+/wuwokiSOSA4pFJ9Jn3STxBpNg9+eWkw2GkB3ivlNZFL7m0sj+2K4ph5r+K9sGA
+         eN5qjvjJ4yg+A==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
+Cc:     Geert Uytterhoeven <geert+renesas@glider.be>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.12 042/102] ARM: dts: omap3: align gpio hog names with dt-schema
-Date:   Wed, 14 Jul 2021 15:39:35 -0400
-Message-Id: <20210714194036.53141-42-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.12 044/102] ARM: dts: dra7x-evm: Align GPIO hog names with dt-schema
+Date:   Wed, 14 Jul 2021 15:39:37 -0400
+Message-Id: <20210714194036.53141-44-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210714194036.53141-1-sashal@kernel.org>
 References: <20210714194036.53141-1-sashal@kernel.org>
@@ -51,47 +52,76 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+From: Geert Uytterhoeven <geert+renesas@glider.be>
 
-[ Upstream commit cfb4ab3b5df86c6001127346d8331f5e87012f91 ]
+[ Upstream commit 0c149400c2f676e7b4cc68e517db29005a7a38c7 ]
 
-The GPIO Hog dt-schema node naming convention expect GPIO hogs node names
-to end with a 'hog' suffix.
+The dt-schema for nxp,pcf8575 expects GPIO hogs node names to end with a
+'hog' suffix.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-evm-processor-common.dtsi | 2 +-
- arch/arm/boot/dts/omap3-gta04a5.dts               | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra7-evm.dts          | 2 +-
+ arch/arm/boot/dts/dra71-evm.dts         | 2 +-
+ arch/arm/boot/dts/dra72-evm-common.dtsi | 2 +-
+ arch/arm/boot/dts/dra76-evm.dts         | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-evm-processor-common.dtsi b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-index b4109f48ec18..e6ba30a21166 100644
---- a/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-@@ -195,7 +195,7 @@ &uart3 {
-  * for bus switch SN74CB3Q3384A, level-shifter SN74AVC16T245DGGR, and 1.8V.
-  */
- &gpio2 {
--	en_usb2_port {
-+	en-usb2-port-hog {
- 		gpio-hog;
- 		gpios = <29 GPIO_ACTIVE_HIGH>;	/* gpio_61 */
- 		output-low;
-diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
-index fd84bbf3b9cc..9ce8d81250aa 100644
---- a/arch/arm/boot/dts/omap3-gta04a5.dts
-+++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-@@ -37,7 +37,7 @@ pps {
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 38530dbb89a0..3dcb6e1f49bc 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -366,7 +366,7 @@ pcf_hdmi: gpio@26 {
+ 		reg = <0x26>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+-		p1 {
++		hdmi-audio-hog {
+ 			/* vin6_sel_s0: high: VIN6, low: audio */
+ 			gpio-hog;
+ 			gpios = <1 GPIO_ACTIVE_HIGH>;
+diff --git a/arch/arm/boot/dts/dra71-evm.dts b/arch/arm/boot/dts/dra71-evm.dts
+index 6d2cca6b4488..a64364443031 100644
+--- a/arch/arm/boot/dts/dra71-evm.dts
++++ b/arch/arm/boot/dts/dra71-evm.dts
+@@ -187,7 +187,7 @@ &pcf_gpio_21 {
  };
  
- &gpio5 {
--	irda_en {
-+	irda-en-hog {
- 		gpio-hog;
- 		gpios = <(175-160) GPIO_ACTIVE_HIGH>;
- 		output-high;	/* activate gpio_175 to disable IrDA receiver */
+ &pcf_hdmi {
+-	p0 {
++	hdmi-i2c-disable-hog {
+ 		/*
+ 		 * PM_OEn to High: Disable routing I2C3 to PM_I2C
+ 		 * With this PM_SEL(p3) should not matter
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index b65b2dd094d0..f2384277d5dc 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -268,7 +268,7 @@ pcf_hdmi: pcf8575@26 {
+ 		 */
+ 		lines-initial-states = <0x0f2b>;
+ 
+-		p1 {
++		hdmi-audio-hog {
+ 			/* vin6_sel_s0: high: VIN6, low: audio */
+ 			gpio-hog;
+ 			gpios = <1 GPIO_ACTIVE_HIGH>;
+diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
+index 9bd01ae40b1d..df47ea59c9c4 100644
+--- a/arch/arm/boot/dts/dra76-evm.dts
++++ b/arch/arm/boot/dts/dra76-evm.dts
+@@ -381,7 +381,7 @@ pcf_hdmi: pcf8575@26 {
+ 		reg = <0x26>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+-		p1 {
++		hdmi-audio-hog {
+ 			/* vin6_sel_s0: high: VIN6, low: audio */
+ 			gpio-hog;
+ 			gpios = <1 GPIO_ACTIVE_HIGH>;
 -- 
 2.30.2
 
