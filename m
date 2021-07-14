@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AB87C47E52
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:39:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B48A2C47E4D
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:39:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 07727613D4
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:39:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A1423613E5
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Jul 2021 19:39:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234683AbhGNTmK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Jul 2021 15:42:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36534 "EHLO mail.kernel.org"
+        id S233864AbhGNTmN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Jul 2021 15:42:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36772 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234343AbhGNTl5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 14 Jul 2021 15:41:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C2C62613DA;
-        Wed, 14 Jul 2021 19:39:04 +0000 (UTC)
+        id S234287AbhGNTlz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 14 Jul 2021 15:41:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 03309613D9;
+        Wed, 14 Jul 2021 19:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626291545;
-        bh=Q9EHnnOZZqRiMJ5Is/OpXOkoNAoq5rDKZRtPLZozFYY=;
+        s=k20201202; t=1626291542;
+        bh=61zfSRzG8fZ7cjyr30XK1KAYJ+D4Q/kZXSuqGCbjFjQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=eS7Asl8nnUNvE9tQTKzHX957gXvT1FaqePkrEi1EeYC4wa+vYzdTGheCx2nt2UI3b
-         RCUTAsEhNA8kP+GKT3YXMVmjiE/3evavk0Ugp9MAgr53LqwFtQpUFYXJgxQyfOchz/
-         Qugw130isiY3kr5MJ9DnJB3z0i3YJHK1l0mqS9ur7c+DgWGm5RLf1wdY61zqUY+c1L
-         oQ/g7Bu6Uwk3TihjfjyWvS9hk5Drj+9/N1Hhl8g2EoWKm3hLJEwUVa4N3PGesLDu2j
-         zF6ZxQb2Tvv8XRBvkaaU4Fu48QX6roNtDLAN8WHrxbgEvS9RlIMMLRcRt0fCH3dDMF
-         DZU5+FEHvrMyw==
+        b=dzbBf/WM0By+rCDG7p6nX8WjcqSCBJaKGwFJoN/U7leUuIbQ+2kPxu2FQnDZLWlXP
+         QO/wmWAjTZu14KJmt5t7TIEUYUHuWqFEfTGueXv1wFh76ggjEZLj6LDM2TSXq/mW4X
+         EJr/XX1balgFex0THeqDNhIERf9/0rsUH+wXERbty9kCJh1OqQLvMk+C5AOSpTNnOd
+         s7tK0q4gHTTvLEu8GM80Ym0omsEwgMlYoEC1xQZJD1aoB4NyF7IqGxsetU5f+glvVx
+         kIG/bA/DoYgOSdRfUnM95GBHbte2uhh0GfdW+5gMNCBA6e57ulk3YKhmPoUweM72Rv
+         TPOTaVeMHOvrg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.13 045/108] ARM: dts: am57xx-cl-som-am57x: fix ti,no-reset-on-init flag for gpios
-Date:   Wed, 14 Jul 2021 15:36:57 -0400
-Message-Id: <20210714193800.52097-45-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.13 043/108] ARM: dts: omap5-board-common: align gpio hog names with dt-schema
+Date:   Wed, 14 Jul 2021 15:36:55 -0400
+Message-Id: <20210714193800.52097-43-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210714193800.52097-1-sashal@kernel.org>
 References: <20210714193800.52097-1-sashal@kernel.org>
@@ -53,62 +53,31 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-[ Upstream commit b644c5e01c870056e13a096e14b9a92075c8f682 ]
+[ Upstream commit 4823117cb80eedf31ddbc126b9bd92e707bd9a26 ]
 
-The ti,no-reset-on-init flag need to be at the interconnect target module
-level for the modules that have it defined.
-The ti-sysc driver handles this case, but produces warning, not a critical
-issue.
+The GPIO Hog dt-schema node naming convention expect GPIO hogs node names
+to end with a 'hog' suffix.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 5 ++---
- arch/arm/boot/dts/dra7-l4.dtsi            | 4 ++--
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/omap5-board-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-index 0d5fe2bfb683..39eba2bc36dd 100644
---- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-@@ -610,12 +610,11 @@ &mcasp3 {
- 	>;
- };
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index d8f13626cfd1..45435bb88c89 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -149,7 +149,7 @@ sound: sound {
  
--&gpio3 {
--	status = "okay";
-+&gpio3_target {
- 	ti,no-reset-on-init;
- };
- 
--&gpio2 {
-+&gpio2_target {
- 	status = "okay";
- 	ti,no-reset-on-init;
- };
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index 149144cdff35..6e33c0bf32a9 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -1343,7 +1343,7 @@ gpio8: gpio@0 {
- 			};
- 		};
- 
--		target-module@55000 {			/* 0x48055000, ap 13 0e.0 */
-+		gpio2_target: target-module@55000 {		/* 0x48055000, ap 13 0e.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
- 			reg = <0x55000 0x4>,
- 			      <0x55010 0x4>,
-@@ -1376,7 +1376,7 @@ gpio2: gpio@0 {
- 			};
- 		};
- 
--		target-module@57000 {			/* 0x48057000, ap 15 06.0 */
-+		gpio3_target: target-module@57000 {		/* 0x48057000, ap 15 06.0 */
- 			compatible = "ti,sysc-omap2", "ti,sysc";
- 			reg = <0x57000 0x4>,
- 			      <0x57010 0x4>,
+ &gpio8 {
+ 	/* TI trees use GPIO instead of msecure, see also muxing */
+-	p234 {
++	msecure-hog {
+ 		gpio-hog;
+ 		gpios = <10 GPIO_ACTIVE_HIGH>;
+ 		output-high;
 -- 
 2.30.2
 
