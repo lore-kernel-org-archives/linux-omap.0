@@ -2,256 +2,1639 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 721DEC636C8
-	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 08:41:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2191CC636CA
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 15:12:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A0E961209
-	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 08:41:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2F9761242
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 15:12:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229872AbhGTIA7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 20 Jul 2021 04:00:59 -0400
-Received: from mail-eopbgr110129.outbound.protection.outlook.com ([40.107.11.129]:19456
-        "EHLO GBR01-CWL-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S229588AbhGTIA6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 20 Jul 2021 04:00:58 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=bP4MaUmTnC5O5cv5JY9ydJIYI27c6uLI2+MUyg5PJbYlNEW/HPkJvgkkqcOzo5mSvzFaBEJsLCIv4gtCAJaiOTky74danu5bBQJOCjTm5qkuIyk9FfUZVjjVAllxkryEVkcGk7d25dgN4R6OhRJMFPgxTQrb0hRy9oAgCuWKj/5VFKxg1ShmV/4Qnqqk/v7gXNQN061zrn0kSGRZL+WfYe8XX/221X6P5C/ffkntRmmjWkGaqljrCDRiiN/7Wn974JiFac13VDFcpBeYbEFo1WZAey4MKpbTWEUsqTDl5YuWhBHeyMveWZY+edoTRPVzKMcfJKZ2VmmjG/7ohMo+9A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f9tj66jO5dVWtaH0rERbTckq74257x1LIQ7/yjA7t3E=;
- b=X61yyvzWOFceDGcFajYvefW4LpQwftivFy32f82aSuXdTZfjDBK/DQvJJtoTB7hWBrStBVGReIDNx7OhwYuvaJO2qnswaOTn6sn+MloA0fy4dgH8qmtHCMQXear7sRq3zbmXyR9ioc9NVHNR/zzU0OGIJNn9GSrBFkI25BQ8vWICmxq4FEr/sqdZbyl5X8IQnmIqKMNe8+ALFATGGlIQ7QMfY5gdKqKpiw91BMBVhL14EJtOueqyk8uRoOiQRJzqugNfRbZfHgrodKIEJn+b7+E38N+sI9FGezKOSj2nfDqwIBF9yF7u/dIradIcx3O1VcMjZBBULvOkGaNVAq/tQg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=sancloud.com; dmarc=pass action=none header.from=sancloud.com;
- dkim=pass header.d=sancloud.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=sancloud.onmicrosoft.com; s=selector2-sancloud-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f9tj66jO5dVWtaH0rERbTckq74257x1LIQ7/yjA7t3E=;
- b=J+W3+GKojH+QmiHgtD3T98zWTqZNB1mlsKbb0XWMajBtAq8a1pvtxegIkLf/qKLj9cVGVMSPukLDAapgrWjAL8hc1KoQqRNVo7t/xK5mtQ8/MSgBikQCEYlHUFo5aFcGSj5Ve626N5qkDUw45G7g97/t/qq7PU0WgQ0/Mf+n9G4=
-Authentication-Results: baylibre.com; dkim=none (message not signed)
- header.d=none;baylibre.com; dmarc=none action=none header.from=sancloud.com;
-Received: from CWLP123MB2241.GBRP123.PROD.OUTLOOK.COM (2603:10a6:401:61::19)
- by CWLP123MB3764.GBRP123.PROD.OUTLOOK.COM (2603:10a6:400:94::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4331.21; Tue, 20 Jul
- 2021 08:41:35 +0000
-Received: from CWLP123MB2241.GBRP123.PROD.OUTLOOK.COM
- ([fe80::dc2:e929:76be:a8b0]) by CWLP123MB2241.GBRP123.PROD.OUTLOOK.COM
- ([fe80::dc2:e929:76be:a8b0%7]) with mapi id 15.20.4331.034; Tue, 20 Jul 2021
- 08:41:35 +0000
-Date:   Tue, 20 Jul 2021 09:41:33 +0100
-From:   Paul Barker <paul.barker@sancloud.com>
-Cc:     =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        Marc Murphy <marc.murphy@sancloud.com>,
-        Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 3/4] ARM: dts: am335x-sancloud-bbe-lite: New devicetree
-Message-ID: <20210720094133.10006323.paul.barker@sancloud.com>
-In-Reply-To: <20210629141034.2f9a2fea.paul.barker@sancloud.com>
-References: <20210617093330.9179-1-paul.barker@sancloud.com>
-        <20210617093330.9179-4-paul.barker@sancloud.com>
-        <CAOCHtYjEn+F+_chyMQ0cppA0y=ZeHrme3c66A2Z5U6pJf9a8_w@mail.gmail.com>
-        <20210629141034.2f9a2fea.paul.barker@sancloud.com>
-Organization: SanCloud Ltd
-X-Mailer: Claws Mail 3.18.0 (GTK+ 2.24.32; x86_64-suse-linux-gnu)
-Content-Type: multipart/signed; boundary="Sig_/MFaT197QZpTt50mFfIrjMfc";
- protocol="application/pgp-signature"; micalg=pgp-sha256
-X-ClientProxiedBy: LO2P265CA0205.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:9e::25) To CWLP123MB2241.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:401:61::19)
+        id S239641AbhGTO2w (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 20 Jul 2021 10:28:52 -0400
+Received: from mail-il1-f176.google.com ([209.85.166.176]:36725 "EHLO
+        mail-il1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240094AbhGTOBD (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2021 10:01:03 -0400
+Received: by mail-il1-f176.google.com with SMTP id j5so19343542ilk.3;
+        Tue, 20 Jul 2021 07:41:28 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=rcuwSgrZWM3C5L1B2lT/FIFYmLWWWq+SQtW4nqrJcYs=;
+        b=jH+Kcau+7VK44dbHqJdhykfh+Wk75Ep/nzsvLUy6OtYvcEYsz+I7Vyee0Fz2t3OIs6
+         9YdZakEcQSY1/Ox+B8jZTxOZ7RwQmn9Tjx5uj4BWQQZ5LNRW2GtvbzezK2ob4St4PlnY
+         EkloVLJ3xidLM25L8Z1uEMwWkhuR597jJ+7Wfptp9HBbMrNw/ThorMfsGR/WCrYEV+NW
+         pu0iheStiu1hXb6g0aCi/uVfMgyENi1VlW1qLdbdiA/jcwNWujJQ6IB6QZOs5Vb56s/G
+         6i9acnzeVFZcAKDk38uD6oMCT417rZC+8Sgx+Wgw3xx1cClpZX+extcJmTybsGtsS/rw
+         /M2Q==
+X-Gm-Message-State: AOAM532wqunHlh+sU1fVxttNSTGMRX0uBkjYtNT8EHsgq9PuPGxLXAWy
+        aisLkjy7+uuyN4Vg8T3YJw==
+X-Google-Smtp-Source: ABdhPJw9GgcXbsOtCGGqUN+fFRXzkIU5t36tXfKt3fnbOI1ND4RlhTTrlRS7dKOJsVITVg7I51K5Qw==
+X-Received: by 2002:a92:b50d:: with SMTP id f13mr21061912ile.253.1626792088364;
+        Tue, 20 Jul 2021 07:41:28 -0700 (PDT)
+Received: from xps15.herring.priv ([64.188.179.248])
+        by smtp.googlemail.com with ESMTPSA id 10sm2091407iln.39.2021.07.20.07.41.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Jul 2021 07:41:27 -0700 (PDT)
+From:   Rob Herring <robh@kernel.org>
+To:     Viresh Kumar <viresh.kumar@linaro.org>,
+        Tony Lindgren <tony@atomide.com>
+Cc:     devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        linux-omap@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>,
+        Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@kernel.org>,
+        Maxime Ripard <mripard@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>, linux-pm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v3 3/3] dt-bindings: opp: Convert to DT schema
+Date:   Tue, 20 Jul 2021 08:41:21 -0600
+Message-Id: <20210720144121.66713-3-robh@kernel.org>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20210720144121.66713-1-robh@kernel.org>
+References: <20210720144121.66713-1-robh@kernel.org>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from owl.home.b5net.uk (80.7.160.81) by LO2P265CA0205.GBRP265.PROD.OUTLOOK.COM (2603:10a6:600:9e::25) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4331.21 via Frontend Transport; Tue, 20 Jul 2021 08:41:34 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: d5519320-9a3e-40e4-9129-08d94b5a2e90
-X-MS-TrafficTypeDiagnostic: CWLP123MB3764:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <CWLP123MB376467268E811B39E858DD5493E29@CWLP123MB3764.GBRP123.PROD.OUTLOOK.COM>
-X-MS-Oob-TLC-OOBClassifiers: OLM:5236;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: Lh5hOCQr4Cu5iFAzrpSAqOyC/B8EAqpy7fKDN+vnn+x+FfDAWEM5/QL6yiCk0rLJdiwHoUhizJp42htoxyc0/3OQ36aOyZh7d7GCGCY9lTcIKBFfLWmE20yBGXSxSf/cSoOmASjpVul2WCazcIE55zQxzVO1ed76DVLWWJ/Q30YP+7JB30qobwNLYrYwmLEczi7i9r/yyPjGLZGDSssvVTmCQNuojY/WabQANRgZ6EYFqKNQ1OVRJ+BKgioH7wd+ETE4r3jtb1Gn1mg8oL1adPYnEaJMPp/FqhP/+rVZbanYlPMV7Jc/76UB8d7iD08hEe6DDR0uYxCFfm8Jng+GS2hfFTgaO2+soi3itV2s1VCsrxkEzyRxO3yXCo3eW+YS6SFfJREf67zrsZYcxgpwjVBN7RrQS6FQAQrsBpBrunKWJMWQxDtSqVjTEz/yE0yRlwQ5gfoVkRTsxXGxAwcX6d6dn2grPBtlD7O1SZKo++NBcvzzGYt33FYGch2W53bbtNTm0b6RUHWDQsQSC+00hCIgAnVYK63Dn7+ouvHzqMIqxDkZ8X0TypTex5BKF1uoVANO5gErDUEs0o47bCBxU/95PNf6L79Dird4TnjNSP2cE9J0j8A+orm23p+o+jwiJjZYgltS6rozXaI51FDulkudh31YQeXxfv2dWbCjLV+fn0E59jmt/xOvzEnkNDWDuBpPn3FWBE64i15RbbigJ4sHzI3twR1EkxpUh2v8qGwVzCCGWtT7+xZRxFaXGWLKjtB8EA8TjioCDgSWcJcLPSIHNRSZI7EwXt9yxLY0f+8=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CWLP123MB2241.GBRP123.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(346002)(366004)(376002)(136003)(396003)(39830400003)(66946007)(6486002)(26005)(8676002)(54906003)(38350700002)(38100700002)(186003)(8936002)(83380400001)(4326008)(316002)(66556008)(66476007)(6512007)(53546011)(2616005)(5660300002)(36756003)(966005)(52116002)(956004)(478600001)(36916002)(6506007)(44832011)(109986005)(1076003)(86362001)(2906002)(103116003)(14296002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?tWQg3JnTZJVgj1pZOJIKEYReQ3RxFqhlOPzXaeuE2aTxiFV4+PS+Q0wzyeqj?=
- =?us-ascii?Q?D6CUWSgMqhp1XSi1F1ABmkKW/VMKTVFXaFcmRxIdoY3WZwQxiookR55zfP+T?=
- =?us-ascii?Q?o/DXIahcaAqjEom/vrhrzWCcbFZioL9pmRKaYzTcBtaRCWXPX65v7FXSGqYg?=
- =?us-ascii?Q?39cu8b1nvPs6MixSo+Dx4uOG5c4S0gEKKw3Me6s8VMPjkvWiur7CcftFvuzL?=
- =?us-ascii?Q?XPN7Ba63PUmioXp6H8gRirOprZ/nGOnbGrywUhnWVX74U2+rLySRBhQstbX4?=
- =?us-ascii?Q?sMKwDI/GzIv7eraGyq2d1FhLlmnbE1PntBYwCd2v+3l+IrqH/qhGO0C8itrf?=
- =?us-ascii?Q?tdsbCi9e2HT8YQuA6lBSTgcOY8yZrZ0E3hdDnQw8Sw7DBw+3qp4k7ObVx5FG?=
- =?us-ascii?Q?WZdyeJ1XORTgxSmaqO3wlpuT1O3RQXz+WEh3jgvw4tbecNdbUqzEks4WA0pr?=
- =?us-ascii?Q?R4LNAw3VpU3LRPx6QnmUrtmV7GRU2VtgnJZMYm+bfMVO9mx9erbe1Zd9XsnV?=
- =?us-ascii?Q?rzixy44S4O8UJ8F+OWKjkCJUcJyYrAxOU7g9crCswfIy07lcIFWUTiNU20ce?=
- =?us-ascii?Q?4YTSX1jDwb33rFtrCicmcxEfJRczndfVRWVNMpz4TLElaEjyxvpIvZzZUvFZ?=
- =?us-ascii?Q?P3Ou7ATZY1WS5KRX+dsPa2uszaTfZw4gZ7k6/zhqSepmRGXHXHXX+vlLJaX2?=
- =?us-ascii?Q?prpfs3gMf02e1ER9MYwP3yt7AzfYUNKxFdbZFYkjmHYtna5e3JUNORTCGdfh?=
- =?us-ascii?Q?fmNs8V+eoornVoZOrhznhAdeZPoj0pzy89hlu5PCyECmqhYze9qWih86NcRX?=
- =?us-ascii?Q?FZlKuna6wdJ/ute2rGzTDGjzwJv6iAbZHkA6qONsEUhUaO5R+PZSuVosnoMS?=
- =?us-ascii?Q?MJHQG3KHgwWBYArt2TM2u7i2+RST2zLbOR4NxXNXCURDoF/9q7KMUVsk1RSD?=
- =?us-ascii?Q?mh5IStkK8sMrgdvnNiluys4H28um7kGwPj7MxGV4mg/ESJ29UbcgRV2YomGB?=
- =?us-ascii?Q?0FSdF/bEm9pjI6cdyJEPd9cmj8vWTVVG+S/dGi+ssriPVjeCZm1tEX0fDkdW?=
- =?us-ascii?Q?Y+QNutvP2sNCgSyih3rVX8tibbWYLplskPMf5wGwqmW9YtwbT8nSbHdxxodk?=
- =?us-ascii?Q?g1+xMDFUhtwZgZRonFMqoxSdO6Gg3+6v+AcPPF4V02MwVd1SI9a5EOfn/4qD?=
- =?us-ascii?Q?gFY/7zapsVQGBgWf0O2GalcvMyPB1oOQeq/EA+0ALhKpwhN/7IjELlh8VVqJ?=
- =?us-ascii?Q?mQTa1pvWSGaFx19sGM7RLY9T984voOIamzQzDY35rdrz09pox3415JqNV/D3?=
- =?us-ascii?Q?+DyjkfBL95y+RK/JnuUxYMGr?=
-X-OriginatorOrg: sancloud.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: d5519320-9a3e-40e4-9129-08d94b5a2e90
-X-MS-Exchange-CrossTenant-AuthSource: CWLP123MB2241.GBRP123.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Jul 2021 08:41:35.0911
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 840be37c-244a-450e-9bcc-2064862de1f4
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: dmxEZ5JCYSwzEGsGs7TyCPXI86b5Zk9Om5eQlhxF56Z1Eman8aV1E1FmU0B0LDXxvT9uMW0gAvN01++UG/aeP5ILlqgbBjaE9sgnIcvSl0Y=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CWLP123MB3764
-To:     unlisted-recipients:; (no To-header on input)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
---Sig_/MFaT197QZpTt50mFfIrjMfc
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Convert the OPP v1 and v2 bindings to DT schema format. As the OPPv2 binding
+can be extended by vendors, we need to split the common part out from the
+"operating-points-v2" conforming compatible.
 
-On Tue, 29 Jun 2021 14:10:33 +0100
-Paul Barker <paul.barker@sancloud.com> wrote:
+Cc: Yangtao Li <tiny.windzz@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Chen-Yu Tsai <wens@csie.org>
+Cc: linux-pm@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+v3:
+- Update opp.txt references
+- Change vendor,cpu-type to foo,cpu-type to avoid compatible warning
 
-> On Fri, 18 Jun 2021 11:02:12 -0500
-> Robert Nelson <robertcnelson@gmail.com> wrote:
->=20
-> > Hi Paul,
-> >=20
-> > On Thu, Jun 17, 2021 at 4:35 AM Paul Barker
-> > <paul.barker@sancloud.com> wrote: =20
-> > >
-> > > This adds support for the Sancloud BBE Lite which shares a common
-> > > hardware base with the non-Lite version of the BBE.
-> > >
-> > > Signed-off-by: Paul Barker <paul.barker@sancloud.com>
-> > > ---
-> > >  arch/arm/boot/dts/Makefile                    |  1 +
-> > >  .../arm/boot/dts/am335x-sancloud-bbe-lite.dts | 51
-> > > +++++++++++++++++++ 2 files changed, 52 insertions(+)
-> > >  create mode 100644 arch/arm/boot/dts/am335x-sancloud-bbe-lite.dts
-> > >
-> > > diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> > > index f8f09c5066e7..8629c941f573 100644
-> > > --- a/arch/arm/boot/dts/Makefile
-> > > +++ b/arch/arm/boot/dts/Makefile
-> > > @@ -834,6 +834,7 @@ dtb-$(CONFIG_SOC_AM33XX) +=3D \
-> > >         am335x-pocketbeagle.dtb \
-> > >         am335x-regor-rdk.dtb \
-> > >         am335x-sancloud-bbe.dtb \
-> > > +       am335x-sancloud-bbe-lite.dtb \
-> > >         am335x-shc.dtb \
-> > >         am335x-sbc-t335.dtb \
-> > >         am335x-sl50.dtb \
-> > > diff --git a/arch/arm/boot/dts/am335x-sancloud-bbe-lite.dts
-> > > b/arch/arm/boot/dts/am335x-sancloud-bbe-lite.dts new file mode
-> > > 100644 index 000000000000..9c311bd106f6
-> > > --- /dev/null
-> > > +++ b/arch/arm/boot/dts/am335x-sancloud-bbe-lite.dts
-> > > @@ -0,0 +1,51 @@
-> > > +// SPDX-License-Identifier: GPL-2.0-only
-> > > +/*
-> > > + * Copyright (C) 2012 Texas Instruments Incorporated -
-> > > http://www.ti.com/
-> > > + * Copyright (C) 2021 SanCloud Ltd
-> > > + */
-> > > +/dts-v1/;
-> > > +
-> > > +#include "am33xx.dtsi"
-> > > +#include "am335x-bone-common.dtsi"
-> > > +#include "am335x-boneblack-common.dtsi"
-> > > +#include "am335x-sancloud-bbe-common.dtsi"
-> > > +
-> > > +/ {
-> > > +       model =3D "SanCloud BeagleBone Enhanced Lite";
-> > > +       compatible =3D "sancloud,am335x-boneenhanced",
-> > > +                    "ti,am335x-bone-black",
-> > > +                    "ti,am335x-bone",
-> > > +                    "ti,am33xx";
-> > > +};
-> > > +
-> > > +&am33xx_pinmux {
-> > > +       bb_spi0_pins: pinmux_bb_spi0_pins {
-> > > +               pinctrl-single,pins =3D <
-> > > +                       AM33XX_PADCONF(AM335X_PIN_SPI0_SCLK,
-> > > PIN_INPUT, MUX_MODE0)
-> > > +                       AM33XX_PADCONF(AM335X_PIN_SPI0_D0,
-> > > PIN_INPUT, MUX_MODE0)
-> > > +                       AM33XX_PADCONF(AM335X_PIN_SPI0_D1,
-> > > PIN_INPUT, MUX_MODE0)
-> > > +                       AM33XX_PADCONF(AM335X_PIN_SPI0_CS0,
-> > > PIN_INPUT, MUX_MODE0)
-> > > +               >;
-> > > +       };
-> > > +};
-> > > +
-> > > +&spi0 {
-> > > +       #address-cells =3D <1>;
-> > > +       #size-cells =3D <0>;
-> > > +
-> > > +       status =3D "okay";
-> > > +       pinctrl-names =3D "default";
-> > > +       pinctrl-0 =3D <&bb_spi0_pins>;
-> > > +
-> > > +       channel@0 {
-> > > +               #address-cells =3D <1>;
-> > > +               #size-cells =3D <0>;
-> > > +
-> > > +               compatible =3D "micron,spi-authenta";
-> > > +               symlink =3D "spi/0.0";   =20
-> >=20
-> > Sorry, this "symlink" is an undocumented "feature" of the
-> > BeagleBoard.org tree.. We use it to help "identity" spi/usart/i2c
-> > nodes names when they dynamically change node numbers based on kernel
-> > versions or even 'drivers'....
-> >=20
-> > https://github.com/beagleboard/customizations/blob/master/etc/udev/rule=
-s.d/10-of-symlink.rules
-> >=20
-> > For 'mainline' we need to remove it.. =20
->=20
-> Ok, that's a straightforward change. I'll send an updated patch series
-> later in the week.
->=20
-> Thanks,
->=20
+v2:
+- move opp-peak-kBps next to opp-avg-kBps. Also add a dependency schema.
+- Correct the opp-microamp schemas. It's always a single value for each
+  regulator.
+- Add missing type for '^opp-microamp-'
+---
+ .../bindings/cpufreq/cpufreq-dt.txt           |   2 +-
+ .../bindings/cpufreq/cpufreq-mediatek.txt     |   2 +-
+ .../bindings/cpufreq/cpufreq-st.txt           |   6 +-
+ .../cpufreq/nvidia,tegra20-cpufreq.txt        |   2 +-
+ .../bindings/devfreq/rk3399_dmc.txt           |   2 +-
+ .../allwinner,sun50i-h6-operating-points.yaml |   4 +
+ .../devicetree/bindings/opp/opp-v1.yaml       |  51 ++
+ .../devicetree/bindings/opp/opp-v2-base.yaml  | 214 ++++++
+ .../devicetree/bindings/opp/opp-v2.yaml       | 475 +++++++++++++
+ Documentation/devicetree/bindings/opp/opp.txt | 622 ------------------
+ .../devicetree/bindings/opp/qcom-opp.txt      |   2 +-
+ .../bindings/opp/ti-omap5-opp-supply.txt      |   2 +-
+ .../bindings/power/power-domain.yaml          |   2 +-
+ 13 files changed, 753 insertions(+), 633 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/opp/opp-v1.yaml
+ create mode 100644 Documentation/devicetree/bindings/opp/opp-v2-base.yaml
+ create mode 100644 Documentation/devicetree/bindings/opp/opp-v2.yaml
+ delete mode 100644 Documentation/devicetree/bindings/opp/opp.txt
 
-Sorry folks, v2 got delayed due to illness. I've sent it today.
+diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-dt.txt b/Documentation/devicetree/bindings/cpufreq/cpufreq-dt.txt
+index 56f442374383..1d7e49167666 100644
+--- a/Documentation/devicetree/bindings/cpufreq/cpufreq-dt.txt
++++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-dt.txt
+@@ -11,7 +11,7 @@ Required properties:
+ - None
+ 
+ Optional properties:
+-- operating-points: Refer to Documentation/devicetree/bindings/opp/opp.txt for
++- operating-points: Refer to Documentation/devicetree/bindings/opp/opp-v1.yaml for
+   details. OPPs *must* be supplied either via DT, i.e. this property, or
+   populated at runtime.
+ - clock-latency: Specify the possible maximum transition latency for clock,
+diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-mediatek.txt b/Documentation/devicetree/bindings/cpufreq/cpufreq-mediatek.txt
+index ef68711716fb..b8233ec91d3d 100644
+--- a/Documentation/devicetree/bindings/cpufreq/cpufreq-mediatek.txt
++++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-mediatek.txt
+@@ -10,7 +10,7 @@ Required properties:
+ 			  transition and not stable yet.
+ 	Please refer to Documentation/devicetree/bindings/clock/clock-bindings.txt for
+ 	generic clock consumer properties.
+-- operating-points-v2: Please refer to Documentation/devicetree/bindings/opp/opp.txt
++- operating-points-v2: Please refer to Documentation/devicetree/bindings/opp/opp-v2.yaml
+ 	for detail.
+ - proc-supply: Regulator for Vproc of CPU cluster.
+ 
+diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-st.txt b/Documentation/devicetree/bindings/cpufreq/cpufreq-st.txt
+index d91a02a3b6b0..6b0b452acef0 100644
+--- a/Documentation/devicetree/bindings/cpufreq/cpufreq-st.txt
++++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-st.txt
+@@ -6,8 +6,6 @@ from the SoC, then supplies the OPP framework with 'prop' and 'supported
+ hardware' information respectively.  The framework is then able to read
+ the DT and operate in the usual way.
+ 
+-For more information about the expected DT format [See: ../opp/opp.txt].
+-
+ Frequency Scaling only
+ ----------------------
+ 
+@@ -15,7 +13,7 @@ No vendor specific driver required for this.
+ 
+ Located in CPU's node:
+ 
+-- operating-points		: [See: ../power/opp.txt]
++- operating-points		: [See: ../power/opp-v1.yaml]
+ 
+ Example [safe]
+ --------------
+@@ -37,7 +35,7 @@ This requires the ST CPUFreq driver to supply 'process' and 'version' info.
+ 
+ Located in CPU's node:
+ 
+-- operating-points-v2		: [See ../power/opp.txt]
++- operating-points-v2		: [See ../power/opp-v2.yaml]
+ 
+ Example [unsafe]
+ ----------------
+diff --git a/Documentation/devicetree/bindings/cpufreq/nvidia,tegra20-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/nvidia,tegra20-cpufreq.txt
+index 52a24b82fd86..bdbfd7c36101 100644
+--- a/Documentation/devicetree/bindings/cpufreq/nvidia,tegra20-cpufreq.txt
++++ b/Documentation/devicetree/bindings/cpufreq/nvidia,tegra20-cpufreq.txt
+@@ -4,7 +4,7 @@ Binding for NVIDIA Tegra20 CPUFreq
+ Required properties:
+ - clocks: Must contain an entry for the CPU clock.
+   See ../clocks/clock-bindings.txt for details.
+-- operating-points-v2: See ../bindings/opp/opp.txt for details.
++- operating-points-v2: See ../bindings/opp/opp-v2.yaml for details.
+ - #cooling-cells: Should be 2. See ../thermal/thermal-cooling-devices.yaml for details.
+ 
+ For each opp entry in 'operating-points-v2' table:
+diff --git a/Documentation/devicetree/bindings/devfreq/rk3399_dmc.txt b/Documentation/devicetree/bindings/devfreq/rk3399_dmc.txt
+index ac189dd82b08..3fbeb3733c48 100644
+--- a/Documentation/devicetree/bindings/devfreq/rk3399_dmc.txt
++++ b/Documentation/devicetree/bindings/devfreq/rk3399_dmc.txt
+@@ -8,7 +8,7 @@ Required properties:
+ - clocks:		 Phandles for clock specified in "clock-names" property
+ - clock-names :		 The name of clock used by the DFI, must be
+ 			 "pclk_ddr_mon";
+-- operating-points-v2:	 Refer to Documentation/devicetree/bindings/opp/opp.txt
++- operating-points-v2:	 Refer to Documentation/devicetree/bindings/opp/opp-v2.yaml
+ 			 for details.
+ - center-supply:	 DMC supply node.
+ - status:		 Marks the node enabled/disabled.
+diff --git a/Documentation/devicetree/bindings/opp/allwinner,sun50i-h6-operating-points.yaml b/Documentation/devicetree/bindings/opp/allwinner,sun50i-h6-operating-points.yaml
+index aeff2bd774dd..729ae97b63d9 100644
+--- a/Documentation/devicetree/bindings/opp/allwinner,sun50i-h6-operating-points.yaml
++++ b/Documentation/devicetree/bindings/opp/allwinner,sun50i-h6-operating-points.yaml
+@@ -18,6 +18,9 @@ description: |
+   sun50i-cpufreq-nvmem driver reads the efuse value from the SoC to
+   provide the OPP framework with required information.
+ 
++allOf:
++  - $ref: opp-v2-base.yaml#
++
+ properties:
+   compatible:
+     const: allwinner,sun50i-h6-operating-points
+@@ -43,6 +46,7 @@ patternProperties:
+ 
+     properties:
+       opp-hz: true
++      clock-latency-ns: true
+ 
+     patternProperties:
+       "opp-microvolt-.*": true
+diff --git a/Documentation/devicetree/bindings/opp/opp-v1.yaml b/Documentation/devicetree/bindings/opp/opp-v1.yaml
+new file mode 100644
+index 000000000000..d585d536a3fb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/opp/opp-v1.yaml
+@@ -0,0 +1,51 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/opp/opp-v1.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Generic OPP (Operating Performance Points) v1 Bindings
++
++maintainers:
++  - Viresh Kumar <viresh.kumar@linaro.org>
++
++description: |+
++  Devices work at voltage-current-frequency combinations and some implementations
++  have the liberty of choosing these. These combinations are called Operating
++  Performance Points aka OPPs. This document defines bindings for these OPPs
++  applicable across wide range of devices. For illustration purpose, this document
++  uses CPU as a device.
++
++  This binding only supports voltage-frequency pairs.
++
++select: true
++
++properties:
++  operating-points:
++    $ref: /schemas/types.yaml#/definitions/uint32-matrix
++    items:
++      items:
++        - description: Frequency in kHz
++        - description: Voltage for OPP in uV
++
++
++additionalProperties: true
++examples:
++  - |
++    cpus {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "arm,cortex-a9";
++            device_type = "cpu";
++            reg = <0>;
++            next-level-cache = <&L2>;
++            operating-points =
++                /* kHz    uV */
++                <792000 1100000>,
++                <396000 950000>,
++                <198000 850000>;
++        };
++    };
++...
+diff --git a/Documentation/devicetree/bindings/opp/opp-v2-base.yaml b/Documentation/devicetree/bindings/opp/opp-v2-base.yaml
+new file mode 100644
+index 000000000000..ae3ae4d39843
+--- /dev/null
++++ b/Documentation/devicetree/bindings/opp/opp-v2-base.yaml
+@@ -0,0 +1,214 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/opp/opp-v2-base.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Generic OPP (Operating Performance Points) Common Binding
++
++maintainers:
++  - Viresh Kumar <viresh.kumar@linaro.org>
++
++description: |
++  Devices work at voltage-current-frequency combinations and some implementations
++  have the liberty of choosing these. These combinations are called Operating
++  Performance Points aka OPPs. This document defines bindings for these OPPs
++  applicable across wide range of devices. For illustration purpose, this document
++  uses CPU as a device.
++
++  This describes the OPPs belonging to a device.
++
++select: false
++
++properties:
++  $nodename:
++    pattern: '^opp-table(-[a-z0-9]+)?$'
++
++  opp-shared:
++    description:
++      Indicates that device nodes using this OPP Table Node's phandle switch
++      their DVFS state together, i.e. they share clock/voltage/current lines.
++      Missing property means devices have independent clock/voltage/current
++      lines, but they share OPP tables.
++    type: boolean
++
++patternProperties:
++  '^opp-?[0-9]+$':
++    type: object
++    description:
++      One or more OPP nodes describing voltage-current-frequency combinations.
++      Their name isn't significant but their phandle can be used to reference an
++      OPP. These are mandatory except for the case where the OPP table is
++      present only to indicate dependency between devices using the opp-shared
++      property.
++
++    properties:
++      opp-hz:
++        description:
++          Frequency in Hz, expressed as a 64-bit big-endian integer. This is a
++          required property for all device nodes, unless another "required"
++          property to uniquely identify the OPP nodes exists. Devices like power
++          domains must have another (implementation dependent) property.
++
++      opp-microvolt:
++        description: |
++          Voltage for the OPP
++
++          A single regulator's voltage is specified with an array of size one or three.
++          Single entry is for target voltage and three entries are for <target min max>
++          voltages.
++
++          Entries for multiple regulators shall be provided in the same field separated
++          by angular brackets <>. The OPP binding doesn't provide any provisions to
++          relate the values to their power supplies or the order in which the supplies
++          need to be configured and that is left for the implementation specific
++          binding.
++
++          Entries for all regulators shall be of the same size, i.e. either all use a
++          single value or triplets.
++        minItems: 1
++        maxItems: 8   # Should be enough regulators
++        items:
++          minItems: 1
++          maxItems: 3
++
++      opp-microamp:
++        description: |
++          The maximum current drawn by the device in microamperes considering
++          system specific parameters (such as transients, process, aging,
++          maximum operating temperature range etc.) as necessary. This may be
++          used to set the most efficient regulator operating mode.
++
++          Should only be set if opp-microvolt or opp-microvolt-<name> is set for
++          the OPP.
++
++          Entries for multiple regulators shall be provided in the same field
++          separated by angular brackets <>. If current values aren't required
++          for a regulator, then it shall be filled with 0. If current values
++          aren't required for any of the regulators, then this field is not
++          required. The OPP binding doesn't provide any provisions to relate the
++          values to their power supplies or the order in which the supplies need
++          to be configured and that is left for the implementation specific
++          binding.
++        minItems: 1
++        maxItems: 8   # Should be enough regulators
++
++      opp-level:
++        description:
++          A value representing the performance level of the device.
++        $ref: /schemas/types.yaml#/definitions/uint32
++
++      opp-peak-kBps:
++        description:
++          Peak bandwidth in kilobytes per second, expressed as an array of
++          32-bit big-endian integers. Each element of the array represents the
++          peak bandwidth value of each interconnect path. The number of elements
++          should match the number of interconnect paths.
++        minItems: 1
++        maxItems: 32  # Should be enough
++
++      opp-avg-kBps:
++        description:
++          Average bandwidth in kilobytes per second, expressed as an array
++          of 32-bit big-endian integers. Each element of the array represents the
++          average bandwidth value of each interconnect path. The number of elements
++          should match the number of interconnect paths. This property is only
++          meaningful in OPP tables where opp-peak-kBps is present.
++        minItems: 1
++        maxItems: 32  # Should be enough
++
++      clock-latency-ns:
++        description:
++          Specifies the maximum possible transition latency (in nanoseconds) for
++          switching to this OPP from any other OPP.
++
++      turbo-mode:
++        description:
++          Marks the OPP to be used only for turbo modes. Turbo mode is available
++          on some platforms, where the device can run over its operating
++          frequency for a short duration of time limited by the device's power,
++          current and thermal limits.
++        type: boolean
++
++      opp-suspend:
++        description:
++          Marks the OPP to be used during device suspend. If multiple OPPs in
++          the table have this, the OPP with highest opp-hz will be used.
++        type: boolean
++
++      opp-supported-hw:
++        description: |
++          This property allows a platform to enable only a subset of the OPPs
++          from the larger set present in the OPP table, based on the current
++          version of the hardware (already known to the operating system).
++
++          Each block present in the array of blocks in this property, represents
++          a sub-group of hardware versions supported by the OPP. i.e. <sub-group
++          A>, <sub-group B>, etc. The OPP will be enabled if _any_ of these
++          sub-groups match the hardware's version.
++
++          Each sub-group is a platform defined array representing the hierarchy
++          of hardware versions supported by the platform. For a platform with
++          three hierarchical levels of version (X.Y.Z), this field shall look
++          like
++
++          opp-supported-hw = <X1 Y1 Z1>, <X2 Y2 Z2>, <X3 Y3 Z3>.
++
++          Each level (eg. X1) in version hierarchy is represented by a 32 bit
++          value, one bit per version and so there can be maximum 32 versions per
++          level. Logical AND (&) operation is performed for each level with the
++          hardware's level version and a non-zero output for _all_ the levels in
++          a sub-group means the OPP is supported by hardware. A value of
++          0xFFFFFFFF for each level in the sub-group will enable the OPP for all
++          versions for the hardware.
++        $ref: /schemas/types.yaml#/definitions/uint32-matrix
++        maxItems: 32
++        items:
++          minItems: 1
++          maxItems: 4
++
++      required-opps:
++        description:
++          This contains phandle to an OPP node in another device's OPP table. It
++          may contain an array of phandles, where each phandle points to an OPP
++          of a different device. It should not contain multiple phandles to the
++          OPP nodes in the same OPP table. This specifies the minimum required
++          OPP of the device(s), whose OPP's phandle is present in this property,
++          for the functioning of the current device at the current OPP (where
++          this property is present).
++        $ref: /schemas/types.yaml#/definitions/phandle-array
++
++    patternProperties:
++      '^opp-microvolt-':
++        description:
++          Named opp-microvolt property. This is exactly similar to the above
++          opp-microvolt property, but allows multiple voltage ranges to be
++          provided for the same OPP. At runtime, the platform can pick a <name>
++          and matching opp-microvolt-<name> property will be enabled for all
++          OPPs. If the platform doesn't pick a specific <name> or the <name>
++          doesn't match with any opp-microvolt-<name> properties, then
++          opp-microvolt property shall be used, if present.
++        $ref: /schemas/types.yaml#/definitions/uint32-matrix
++        minItems: 1
++        maxItems: 8   # Should be enough regulators
++        items:
++          minItems: 1
++          maxItems: 3
++
++      '^opp-microamp-':
++        description:
++          Named opp-microamp property. Similar to opp-microvolt-<name> property,
++          but for microamp instead.
++        $ref: /schemas/types.yaml#/definitions/uint32-array
++        minItems: 1
++        maxItems: 8   # Should be enough regulators
++
++    dependencies:
++      opp-avg-kBps: [ opp-peak-kBps ]
++
++required:
++  - compatible
++
++additionalProperties: true
++
++...
+diff --git a/Documentation/devicetree/bindings/opp/opp-v2.yaml b/Documentation/devicetree/bindings/opp/opp-v2.yaml
+new file mode 100644
+index 000000000000..eaf8fba2c691
+--- /dev/null
++++ b/Documentation/devicetree/bindings/opp/opp-v2.yaml
+@@ -0,0 +1,475 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/opp/opp-v2.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Generic OPP (Operating Performance Points) Bindings
++
++maintainers:
++  - Viresh Kumar <viresh.kumar@linaro.org>
++
++allOf:
++  - $ref: opp-v2-base.yaml#
++
++properties:
++  compatible:
++    const: operating-points-v2
++
++unevaluatedProperties: false
++
++examples:
++  - |
++    /*
++     * Example 1: Single cluster Dual-core ARM cortex A9, switch DVFS states
++     * together.
++     */
++    cpus {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "arm,cortex-a9";
++            device_type = "cpu";
++            reg = <0>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 0>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply0>;
++            operating-points-v2 = <&cpu0_opp_table0>;
++        };
++
++        cpu@1 {
++            compatible = "arm,cortex-a9";
++            device_type = "cpu";
++            reg = <1>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 0>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply0>;
++            operating-points-v2 = <&cpu0_opp_table0>;
++        };
++    };
++
++    cpu0_opp_table0: opp-table {
++        compatible = "operating-points-v2";
++        opp-shared;
++
++        opp-1000000000 {
++            opp-hz = /bits/ 64 <1000000000>;
++            opp-microvolt = <975000 970000 985000>;
++            opp-microamp = <70000>;
++            clock-latency-ns = <300000>;
++            opp-suspend;
++        };
++        opp-1100000000 {
++            opp-hz = /bits/ 64 <1100000000>;
++            opp-microvolt = <1000000 980000 1010000>;
++            opp-microamp = <80000>;
++            clock-latency-ns = <310000>;
++        };
++        opp-1200000000 {
++            opp-hz = /bits/ 64 <1200000000>;
++            opp-microvolt = <1025000>;
++            clock-latency-ns = <290000>;
++            turbo-mode;
++        };
++    };
++
++  - |
++    /*
++     * Example 2: Single cluster, Quad-core Qualcom-krait, switches DVFS states
++     * independently.
++     */
++    cpus {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "qcom,krait";
++            device_type = "cpu";
++            reg = <0>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 0>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply0>;
++            operating-points-v2 = <&cpu_opp_table>;
++        };
++
++        cpu@1 {
++            compatible = "qcom,krait";
++            device_type = "cpu";
++            reg = <1>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 1>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply1>;
++            operating-points-v2 = <&cpu_opp_table>;
++        };
++
++        cpu@2 {
++            compatible = "qcom,krait";
++            device_type = "cpu";
++            reg = <2>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 2>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply2>;
++            operating-points-v2 = <&cpu_opp_table>;
++        };
++
++        cpu@3 {
++            compatible = "qcom,krait";
++            device_type = "cpu";
++            reg = <3>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 3>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply3>;
++            operating-points-v2 = <&cpu_opp_table>;
++        };
++    };
++
++    cpu_opp_table: opp-table {
++        compatible = "operating-points-v2";
++
++        /*
++         * Missing opp-shared property means CPUs switch DVFS states
++         * independently.
++         */
++
++        opp-1000000000 {
++            opp-hz = /bits/ 64 <1000000000>;
++            opp-microvolt = <975000 970000 985000>;
++            opp-microamp = <70000>;
++            clock-latency-ns = <300000>;
++            opp-suspend;
++        };
++        opp-1100000000 {
++            opp-hz = /bits/ 64 <1100000000>;
++            opp-microvolt = <1000000 980000 1010000>;
++            opp-microamp = <80000>;
++            clock-latency-ns = <310000>;
++        };
++        opp-1200000000 {
++            opp-hz = /bits/ 64 <1200000000>;
++            opp-microvolt = <1025000>;
++            opp-microamp = <90000>;
++            lock-latency-ns = <290000>;
++            turbo-mode;
++        };
++    };
++
++  - |
++    /*
++     * Example 3: Dual-cluster, Dual-core per cluster. CPUs within a cluster switch
++     * DVFS state together.
++     */
++    cpus {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "arm,cortex-a7";
++            device_type = "cpu";
++            reg = <0>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 0>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply0>;
++            operating-points-v2 = <&cluster0_opp>;
++        };
++
++        cpu@1 {
++            compatible = "arm,cortex-a7";
++            device_type = "cpu";
++            reg = <1>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 0>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply0>;
++            operating-points-v2 = <&cluster0_opp>;
++        };
++
++        cpu@100 {
++            compatible = "arm,cortex-a15";
++            device_type = "cpu";
++            reg = <100>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 1>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply1>;
++            operating-points-v2 = <&cluster1_opp>;
++        };
++
++        cpu@101 {
++            compatible = "arm,cortex-a15";
++            device_type = "cpu";
++            reg = <101>;
++            next-level-cache = <&L2>;
++            clocks = <&clk_controller 1>;
++            clock-names = "cpu";
++            cpu-supply = <&cpu_supply1>;
++            operating-points-v2 = <&cluster1_opp>;
++        };
++    };
++
++    cluster0_opp: opp-table-0 {
++        compatible = "operating-points-v2";
++        opp-shared;
++
++        opp-1000000000 {
++            opp-hz = /bits/ 64 <1000000000>;
++            opp-microvolt = <975000 970000 985000>;
++            opp-microamp = <70000>;
++            clock-latency-ns = <300000>;
++            opp-suspend;
++        };
++        opp-1100000000 {
++            opp-hz = /bits/ 64 <1100000000>;
++            opp-microvolt = <1000000 980000 1010000>;
++            opp-microamp = <80000>;
++            clock-latency-ns = <310000>;
++        };
++        opp-1200000000 {
++            opp-hz = /bits/ 64 <1200000000>;
++            opp-microvolt = <1025000>;
++            opp-microamp = <90000>;
++            clock-latency-ns = <290000>;
++            turbo-mode;
++        };
++    };
++
++    cluster1_opp: opp-table-1 {
++        compatible = "operating-points-v2";
++        opp-shared;
++
++        opp-1300000000 {
++            opp-hz = /bits/ 64 <1300000000>;
++            opp-microvolt = <1050000 1045000 1055000>;
++            opp-microamp = <95000>;
++            clock-latency-ns = <400000>;
++            opp-suspend;
++        };
++        opp-1400000000 {
++            opp-hz = /bits/ 64 <1400000000>;
++            opp-microvolt = <1075000>;
++            opp-microamp = <100000>;
++            clock-latency-ns = <400000>;
++        };
++        opp-1500000000 {
++            opp-hz = /bits/ 64 <1500000000>;
++            opp-microvolt = <1100000 1010000 1110000>;
++            opp-microamp = <95000>;
++            clock-latency-ns = <400000>;
++            turbo-mode;
++        };
++    };
++
++  - |
++    /* Example 4: Handling multiple regulators */
++    cpus {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "foo,cpu-type";
++            device_type = "cpu";
++            reg = <0>;
++
++            vcc0-supply = <&cpu_supply0>;
++            vcc1-supply = <&cpu_supply1>;
++            vcc2-supply = <&cpu_supply2>;
++            operating-points-v2 = <&cpu0_opp_table4>;
++        };
++    };
++
++    cpu0_opp_table4: opp-table-0 {
++        compatible = "operating-points-v2";
++        opp-shared;
++
++        opp-1000000000 {
++            opp-hz = /bits/ 64 <1000000000>;
++            opp-microvolt = <970000>, /* Supply 0 */
++                            <960000>, /* Supply 1 */
++                            <960000>; /* Supply 2 */
++            opp-microamp =  <70000>,  /* Supply 0 */
++                            <70000>,  /* Supply 1 */
++                            <70000>;  /* Supply 2 */
++            clock-latency-ns = <300000>;
++        };
++
++        /* OR */
++
++        opp-1000000001 {
++            opp-hz = /bits/ 64 <1000000001>;
++            opp-microvolt = <975000 970000 985000>, /* Supply 0 */
++                            <965000 960000 975000>, /* Supply 1 */
++                            <965000 960000 975000>; /* Supply 2 */
++            opp-microamp =  <70000>,    /* Supply 0 */
++                <70000>,    /* Supply 1 */
++                <70000>;    /* Supply 2 */
++            clock-latency-ns = <300000>;
++        };
++
++        /* OR */
++
++        opp-1000000002 {
++            opp-hz = /bits/ 64 <1000000002>;
++            opp-microvolt = <975000 970000 985000>, /* Supply 0 */
++                <965000 960000 975000>, /* Supply 1 */
++                <965000 960000 975000>; /* Supply 2 */
++            opp-microamp =  <70000>,    /* Supply 0 */
++                <0>,      /* Supply 1 doesn't need this */
++                <70000>;    /* Supply 2 */
++            clock-latency-ns = <300000>;
++        };
++    };
++
++  - |
++    /*
++     * Example 5: opp-supported-hw
++     * (example: three level hierarchy of versions: cuts, substrate and process)
++     */
++    cpus {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "arm,cortex-a7";
++            device_type = "cpu";
++            reg = <0>;
++            cpu-supply = <&cpu_supply>;
++            operating-points-v2 = <&cpu0_opp_table_slow>;
++        };
++    };
++
++    cpu0_opp_table_slow: opp-table {
++        compatible = "operating-points-v2";
++        opp-shared;
++
++        opp-600000000 {
++            /*
++             * Supports all substrate and process versions for 0xF
++             * cuts, i.e. only first four cuts.
++             */
++            opp-supported-hw = <0xF 0xFFFFFFFF 0xFFFFFFFF>;
++            opp-hz = /bits/ 64 <600000000>;
++        };
++
++        opp-800000000 {
++            /*
++             * Supports:
++             * - cuts: only one, 6th cut (represented by 6th bit).
++             * - substrate: supports 16 different substrate versions
++             * - process: supports 9 different process versions
++             */
++            opp-supported-hw = <0x20 0xff0000ff 0x0000f4f0>;
++            opp-hz = /bits/ 64 <800000000>;
++        };
++
++        opp-900000000 {
++            /*
++             * Supports:
++             * - All cuts and substrate where process version is 0x2.
++             * - All cuts and process where substrate version is 0x2.
++             */
++            opp-supported-hw = <0xFFFFFFFF 0xFFFFFFFF 0x02>,
++                               <0xFFFFFFFF 0x01 0xFFFFFFFF>;
++            opp-hz = /bits/ 64 <900000000>;
++        };
++    };
++
++  - |
++    /*
++     * Example 6: opp-microvolt-<name>, opp-microamp-<name>:
++     * (example: device with two possible microvolt ranges: slow and fast)
++     */
++    cpus {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "arm,cortex-a7";
++            device_type = "cpu";
++            reg = <0>;
++            operating-points-v2 = <&cpu0_opp_table6>;
++        };
++    };
++
++    cpu0_opp_table6: opp-table-0 {
++        compatible = "operating-points-v2";
++        opp-shared;
++
++        opp-1000000000 {
++            opp-hz = /bits/ 64 <1000000000>;
++            opp-microvolt-slow = <915000 900000 925000>;
++            opp-microvolt-fast = <975000 970000 985000>;
++            opp-microamp-slow =  <70000>;
++            opp-microamp-fast =  <71000>;
++        };
++
++        opp-1200000000 {
++            opp-hz = /bits/ 64 <1200000000>;
++            opp-microvolt-slow = <915000 900000 925000>, /* Supply vcc0 */
++                                 <925000 910000 935000>; /* Supply vcc1 */
++            opp-microvolt-fast = <975000 970000 985000>, /* Supply vcc0 */
++                                 <965000 960000 975000>; /* Supply vcc1 */
++            opp-microamp =  <70000>; /* Will be used for both slow/fast */
++        };
++    };
++
++  - |
++    /*
++     * Example 7: Single cluster Quad-core ARM cortex A53, OPP points from firmware,
++     * distinct clock controls but two sets of clock/voltage/current lines.
++     */
++    cpus {
++        #address-cells = <2>;
++        #size-cells = <0>;
++
++        cpu@0 {
++            compatible = "arm,cortex-a53";
++            device_type = "cpu";
++            reg = <0x0 0x100>;
++            next-level-cache = <&A53_L2>;
++            clocks = <&dvfs_controller 0>;
++            operating-points-v2 = <&cpu_opp0_table>;
++        };
++        cpu@1 {
++            compatible = "arm,cortex-a53";
++            device_type = "cpu";
++            reg = <0x0 0x101>;
++            next-level-cache = <&A53_L2>;
++            clocks = <&dvfs_controller 1>;
++            operating-points-v2 = <&cpu_opp0_table>;
++        };
++        cpu@2 {
++            compatible = "arm,cortex-a53";
++            device_type = "cpu";
++            reg = <0x0 0x102>;
++            next-level-cache = <&A53_L2>;
++            clocks = <&dvfs_controller 2>;
++            operating-points-v2 = <&cpu_opp1_table>;
++        };
++        cpu@3 {
++            compatible = "arm,cortex-a53";
++            device_type = "cpu";
++            reg = <0x0 0x103>;
++            next-level-cache = <&A53_L2>;
++            clocks = <&dvfs_controller 3>;
++            operating-points-v2 = <&cpu_opp1_table>;
++        };
++
++    };
++
++    cpu_opp0_table: opp-table-0 {
++        compatible = "operating-points-v2";
++        opp-shared;
++    };
++
++    cpu_opp1_table: opp-table-1 {
++        compatible = "operating-points-v2";
++        opp-shared;
++    };
++...
+diff --git a/Documentation/devicetree/bindings/opp/opp.txt b/Documentation/devicetree/bindings/opp/opp.txt
+deleted file mode 100644
+index 08b3da4736cf..000000000000
+--- a/Documentation/devicetree/bindings/opp/opp.txt
++++ /dev/null
+@@ -1,622 +0,0 @@
+-Generic OPP (Operating Performance Points) Bindings
+-----------------------------------------------------
+-
+-Devices work at voltage-current-frequency combinations and some implementations
+-have the liberty of choosing these. These combinations are called Operating
+-Performance Points aka OPPs. This document defines bindings for these OPPs
+-applicable across wide range of devices. For illustration purpose, this document
+-uses CPU as a device.
+-
+-This document contain multiple versions of OPP binding and only one of them
+-should be used per device.
+-
+-Binding 1: operating-points
+-============================
+-
+-This binding only supports voltage-frequency pairs.
+-
+-Properties:
+-- operating-points: An array of 2-tuples items, and each item consists
+-  of frequency and voltage like <freq-kHz vol-uV>.
+-	freq: clock frequency in kHz
+-	vol: voltage in microvolt
+-
+-Examples:
+-
+-cpu@0 {
+-	compatible = "arm,cortex-a9";
+-	reg = <0>;
+-	next-level-cache = <&L2>;
+-	operating-points = <
+-		/* kHz    uV */
+-		792000  1100000
+-		396000  950000
+-		198000  850000
+-	>;
+-};
+-
+-
+-Binding 2: operating-points-v2
+-============================
+-
+-* Property: operating-points-v2
+-
+-Devices supporting OPPs must set their "operating-points-v2" property with
+-phandle to a OPP table in their DT node. The OPP core will use this phandle to
+-find the operating points for the device.
+-
+-This can contain more than one phandle for power domain providers that provide
+-multiple power domains. That is, one phandle for each power domain. If only one
+-phandle is available, then the same OPP table will be used for all power domains
+-provided by the power domain provider.
+-
+-If required, this can be extended for SoC vendor specific bindings. Such bindings
+-should be documented as Documentation/devicetree/bindings/power/<vendor>-opp.txt
+-and should have a compatible description like: "operating-points-v2-<vendor>".
+-
+-* OPP Table Node
+-
+-This describes the OPPs belonging to a device. This node can have following
+-properties:
+-
+-Required properties:
+-- compatible: Allow OPPs to express their compatibility. It should be:
+-  "operating-points-v2".
+-
+-- OPP nodes: One or more OPP nodes describing voltage-current-frequency
+-  combinations. Their name isn't significant but their phandle can be used to
+-  reference an OPP. These are mandatory except for the case where the OPP table
+-  is present only to indicate dependency between devices using the opp-shared
+-  property.
+-
+-Optional properties:
+-- opp-shared: Indicates that device nodes using this OPP Table Node's phandle
+-  switch their DVFS state together, i.e. they share clock/voltage/current lines.
+-  Missing property means devices have independent clock/voltage/current lines,
+-  but they share OPP tables.
+-
+-- status: Marks the OPP table enabled/disabled.
+-
+-
+-* OPP Node
+-
+-This defines voltage-current-frequency combinations along with other related
+-properties.
+-
+-Required properties:
+-- opp-hz: Frequency in Hz, expressed as a 64-bit big-endian integer. This is a
+-  required property for all device nodes, unless another "required" property to
+-  uniquely identify the OPP nodes exists. Devices like power domains must have
+-  another (implementation dependent) property.
+-
+-- opp-peak-kBps: Peak bandwidth in kilobytes per second, expressed as an array
+-  of 32-bit big-endian integers. Each element of the array represents the
+-  peak bandwidth value of each interconnect path. The number of elements should
+-  match the number of interconnect paths.
+-
+-Optional properties:
+-- opp-microvolt: voltage in micro Volts.
+-
+-  A single regulator's voltage is specified with an array of size one or three.
+-  Single entry is for target voltage and three entries are for <target min max>
+-  voltages.
+-
+-  Entries for multiple regulators shall be provided in the same field separated
+-  by angular brackets <>. The OPP binding doesn't provide any provisions to
+-  relate the values to their power supplies or the order in which the supplies
+-  need to be configured and that is left for the implementation specific
+-  binding.
+-
+-  Entries for all regulators shall be of the same size, i.e. either all use a
+-  single value or triplets.
+-
+-- opp-microvolt-<name>: Named opp-microvolt property. This is exactly similar to
+-  the above opp-microvolt property, but allows multiple voltage ranges to be
+-  provided for the same OPP. At runtime, the platform can pick a <name> and
+-  matching opp-microvolt-<name> property will be enabled for all OPPs. If the
+-  platform doesn't pick a specific <name> or the <name> doesn't match with any
+-  opp-microvolt-<name> properties, then opp-microvolt property shall be used, if
+-  present.
+-
+-- opp-microamp: The maximum current drawn by the device in microamperes
+-  considering system specific parameters (such as transients, process, aging,
+-  maximum operating temperature range etc.) as necessary. This may be used to
+-  set the most efficient regulator operating mode.
+-
+-  Should only be set if opp-microvolt is set for the OPP.
+-
+-  Entries for multiple regulators shall be provided in the same field separated
+-  by angular brackets <>. If current values aren't required for a regulator,
+-  then it shall be filled with 0. If current values aren't required for any of
+-  the regulators, then this field is not required. The OPP binding doesn't
+-  provide any provisions to relate the values to their power supplies or the
+-  order in which the supplies need to be configured and that is left for the
+-  implementation specific binding.
+-
+-- opp-microamp-<name>: Named opp-microamp property. Similar to
+-  opp-microvolt-<name> property, but for microamp instead.
+-
+-- opp-level: A value representing the performance level of the device,
+-  expressed as a 32-bit integer.
+-
+-- opp-avg-kBps: Average bandwidth in kilobytes per second, expressed as an array
+-  of 32-bit big-endian integers. Each element of the array represents the
+-  average bandwidth value of each interconnect path. The number of elements
+-  should match the number of interconnect paths. This property is only
+-  meaningful in OPP tables where opp-peak-kBps is present.
+-
+-- clock-latency-ns: Specifies the maximum possible transition latency (in
+-  nanoseconds) for switching to this OPP from any other OPP.
+-
+-- turbo-mode: Marks the OPP to be used only for turbo modes. Turbo mode is
+-  available on some platforms, where the device can run over its operating
+-  frequency for a short duration of time limited by the device's power, current
+-  and thermal limits.
+-
+-- opp-suspend: Marks the OPP to be used during device suspend. If multiple OPPs
+-  in the table have this, the OPP with highest opp-hz will be used.
+-
+-- opp-supported-hw: This property allows a platform to enable only a subset of
+-  the OPPs from the larger set present in the OPP table, based on the current
+-  version of the hardware (already known to the operating system).
+-
+-  Each block present in the array of blocks in this property, represents a
+-  sub-group of hardware versions supported by the OPP. i.e. <sub-group A>,
+-  <sub-group B>, etc. The OPP will be enabled if _any_ of these sub-groups match
+-  the hardware's version.
+-
+-  Each sub-group is a platform defined array representing the hierarchy of
+-  hardware versions supported by the platform. For a platform with three
+-  hierarchical levels of version (X.Y.Z), this field shall look like
+-
+-  opp-supported-hw = <X1 Y1 Z1>, <X2 Y2 Z2>, <X3 Y3 Z3>.
+-
+-  Each level (eg. X1) in version hierarchy is represented by a 32 bit value, one
+-  bit per version and so there can be maximum 32 versions per level. Logical AND
+-  (&) operation is performed for each level with the hardware's level version
+-  and a non-zero output for _all_ the levels in a sub-group means the OPP is
+-  supported by hardware. A value of 0xFFFFFFFF for each level in the sub-group
+-  will enable the OPP for all versions for the hardware.
+-
+-- status: Marks the node enabled/disabled.
+-
+-- required-opps: This contains phandle to an OPP node in another device's OPP
+-  table. It may contain an array of phandles, where each phandle points to an
+-  OPP of a different device. It should not contain multiple phandles to the OPP
+-  nodes in the same OPP table. This specifies the minimum required OPP of the
+-  device(s), whose OPP's phandle is present in this property, for the
+-  functioning of the current device at the current OPP (where this property is
+-  present).
+-
+-Example 1: Single cluster Dual-core ARM cortex A9, switch DVFS states together.
+-
+-/ {
+-	cpus {
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-
+-		cpu@0 {
+-			compatible = "arm,cortex-a9";
+-			reg = <0>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 0>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply0>;
+-			operating-points-v2 = <&cpu0_opp_table>;
+-		};
+-
+-		cpu@1 {
+-			compatible = "arm,cortex-a9";
+-			reg = <1>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 0>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply0>;
+-			operating-points-v2 = <&cpu0_opp_table>;
+-		};
+-	};
+-
+-	cpu0_opp_table: opp_table0 {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-
+-		opp-1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <975000 970000 985000>;
+-			opp-microamp = <70000>;
+-			clock-latency-ns = <300000>;
+-			opp-suspend;
+-		};
+-		opp-1100000000 {
+-			opp-hz = /bits/ 64 <1100000000>;
+-			opp-microvolt = <1000000 980000 1010000>;
+-			opp-microamp = <80000>;
+-			clock-latency-ns = <310000>;
+-		};
+-		opp-1200000000 {
+-			opp-hz = /bits/ 64 <1200000000>;
+-			opp-microvolt = <1025000>;
+-			clock-latency-ns = <290000>;
+-			turbo-mode;
+-		};
+-	};
+-};
+-
+-Example 2: Single cluster, Quad-core Qualcom-krait, switches DVFS states
+-independently.
+-
+-/ {
+-	cpus {
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-
+-		cpu@0 {
+-			compatible = "qcom,krait";
+-			reg = <0>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 0>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply0>;
+-			operating-points-v2 = <&cpu_opp_table>;
+-		};
+-
+-		cpu@1 {
+-			compatible = "qcom,krait";
+-			reg = <1>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 1>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply1>;
+-			operating-points-v2 = <&cpu_opp_table>;
+-		};
+-
+-		cpu@2 {
+-			compatible = "qcom,krait";
+-			reg = <2>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 2>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply2>;
+-			operating-points-v2 = <&cpu_opp_table>;
+-		};
+-
+-		cpu@3 {
+-			compatible = "qcom,krait";
+-			reg = <3>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 3>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply3>;
+-			operating-points-v2 = <&cpu_opp_table>;
+-		};
+-	};
+-
+-	cpu_opp_table: opp_table {
+-		compatible = "operating-points-v2";
+-
+-		/*
+-		 * Missing opp-shared property means CPUs switch DVFS states
+-		 * independently.
+-		 */
+-
+-		opp-1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <975000 970000 985000>;
+-			opp-microamp = <70000>;
+-			clock-latency-ns = <300000>;
+-			opp-suspend;
+-		};
+-		opp-1100000000 {
+-			opp-hz = /bits/ 64 <1100000000>;
+-			opp-microvolt = <1000000 980000 1010000>;
+-			opp-microamp = <80000>;
+-			clock-latency-ns = <310000>;
+-		};
+-		opp-1200000000 {
+-			opp-hz = /bits/ 64 <1200000000>;
+-			opp-microvolt = <1025000>;
+-			opp-microamp = <90000;
+-			lock-latency-ns = <290000>;
+-			turbo-mode;
+-		};
+-	};
+-};
+-
+-Example 3: Dual-cluster, Dual-core per cluster. CPUs within a cluster switch
+-DVFS state together.
+-
+-/ {
+-	cpus {
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-
+-		cpu@0 {
+-			compatible = "arm,cortex-a7";
+-			reg = <0>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 0>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply0>;
+-			operating-points-v2 = <&cluster0_opp>;
+-		};
+-
+-		cpu@1 {
+-			compatible = "arm,cortex-a7";
+-			reg = <1>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 0>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply0>;
+-			operating-points-v2 = <&cluster0_opp>;
+-		};
+-
+-		cpu@100 {
+-			compatible = "arm,cortex-a15";
+-			reg = <100>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 1>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply1>;
+-			operating-points-v2 = <&cluster1_opp>;
+-		};
+-
+-		cpu@101 {
+-			compatible = "arm,cortex-a15";
+-			reg = <101>;
+-			next-level-cache = <&L2>;
+-			clocks = <&clk_controller 1>;
+-			clock-names = "cpu";
+-			cpu-supply = <&cpu_supply1>;
+-			operating-points-v2 = <&cluster1_opp>;
+-		};
+-	};
+-
+-	cluster0_opp: opp_table0 {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-
+-		opp-1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <975000 970000 985000>;
+-			opp-microamp = <70000>;
+-			clock-latency-ns = <300000>;
+-			opp-suspend;
+-		};
+-		opp-1100000000 {
+-			opp-hz = /bits/ 64 <1100000000>;
+-			opp-microvolt = <1000000 980000 1010000>;
+-			opp-microamp = <80000>;
+-			clock-latency-ns = <310000>;
+-		};
+-		opp-1200000000 {
+-			opp-hz = /bits/ 64 <1200000000>;
+-			opp-microvolt = <1025000>;
+-			opp-microamp = <90000>;
+-			clock-latency-ns = <290000>;
+-			turbo-mode;
+-		};
+-	};
+-
+-	cluster1_opp: opp_table1 {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-
+-		opp-1300000000 {
+-			opp-hz = /bits/ 64 <1300000000>;
+-			opp-microvolt = <1050000 1045000 1055000>;
+-			opp-microamp = <95000>;
+-			clock-latency-ns = <400000>;
+-			opp-suspend;
+-		};
+-		opp-1400000000 {
+-			opp-hz = /bits/ 64 <1400000000>;
+-			opp-microvolt = <1075000>;
+-			opp-microamp = <100000>;
+-			clock-latency-ns = <400000>;
+-		};
+-		opp-1500000000 {
+-			opp-hz = /bits/ 64 <1500000000>;
+-			opp-microvolt = <1100000 1010000 1110000>;
+-			opp-microamp = <95000>;
+-			clock-latency-ns = <400000>;
+-			turbo-mode;
+-		};
+-	};
+-};
+-
+-Example 4: Handling multiple regulators
+-
+-/ {
+-	cpus {
+-		cpu@0 {
+-			compatible = "vendor,cpu-type";
+-			...
+-
+-			vcc0-supply = <&cpu_supply0>;
+-			vcc1-supply = <&cpu_supply1>;
+-			vcc2-supply = <&cpu_supply2>;
+-			operating-points-v2 = <&cpu0_opp_table>;
+-		};
+-	};
+-
+-	cpu0_opp_table: opp_table0 {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-
+-		opp-1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <970000>, /* Supply 0 */
+-					<960000>, /* Supply 1 */
+-					<960000>; /* Supply 2 */
+-			opp-microamp =  <70000>,  /* Supply 0 */
+-					<70000>,  /* Supply 1 */
+-					<70000>;  /* Supply 2 */
+-			clock-latency-ns = <300000>;
+-		};
+-
+-		/* OR */
+-
+-		opp-1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <975000 970000 985000>, /* Supply 0 */
+-					<965000 960000 975000>, /* Supply 1 */
+-					<965000 960000 975000>; /* Supply 2 */
+-			opp-microamp =  <70000>,		/* Supply 0 */
+-					<70000>,		/* Supply 1 */
+-					<70000>;		/* Supply 2 */
+-			clock-latency-ns = <300000>;
+-		};
+-
+-		/* OR */
+-
+-		opp-1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <975000 970000 985000>, /* Supply 0 */
+-					<965000 960000 975000>, /* Supply 1 */
+-					<965000 960000 975000>; /* Supply 2 */
+-			opp-microamp =  <70000>,		/* Supply 0 */
+-					<0>,			/* Supply 1 doesn't need this */
+-					<70000>;		/* Supply 2 */
+-			clock-latency-ns = <300000>;
+-		};
+-	};
+-};
+-
+-Example 5: opp-supported-hw
+-(example: three level hierarchy of versions: cuts, substrate and process)
+-
+-/ {
+-	cpus {
+-		cpu@0 {
+-			compatible = "arm,cortex-a7";
+-			...
+-
+-			cpu-supply = <&cpu_supply>
+-			operating-points-v2 = <&cpu0_opp_table_slow>;
+-		};
+-	};
+-
+-	opp_table {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-
+-		opp-600000000 {
+-			/*
+-			 * Supports all substrate and process versions for 0xF
+-			 * cuts, i.e. only first four cuts.
+-			 */
+-			opp-supported-hw = <0xF 0xFFFFFFFF 0xFFFFFFFF>
+-			opp-hz = /bits/ 64 <600000000>;
+-			...
+-		};
+-
+-		opp-800000000 {
+-			/*
+-			 * Supports:
+-			 * - cuts: only one, 6th cut (represented by 6th bit).
+-			 * - substrate: supports 16 different substrate versions
+-			 * - process: supports 9 different process versions
+-			 */
+-			opp-supported-hw = <0x20 0xff0000ff 0x0000f4f0>
+-			opp-hz = /bits/ 64 <800000000>;
+-			...
+-		};
+-
+-		opp-900000000 {
+-			/*
+-			 * Supports:
+-			 * - All cuts and substrate where process version is 0x2.
+-			 * - All cuts and process where substrate version is 0x2.
+-			 */
+-			opp-supported-hw = <0xFFFFFFFF 0xFFFFFFFF 0x02>, <0xFFFFFFFF 0x01 0xFFFFFFFF>
+-			opp-hz = /bits/ 64 <900000000>;
+-			...
+-		};
+-	};
+-};
+-
+-Example 6: opp-microvolt-<name>, opp-microamp-<name>:
+-(example: device with two possible microvolt ranges: slow and fast)
+-
+-/ {
+-	cpus {
+-		cpu@0 {
+-			compatible = "arm,cortex-a7";
+-			...
+-
+-			operating-points-v2 = <&cpu0_opp_table>;
+-		};
+-	};
+-
+-	cpu0_opp_table: opp_table0 {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-
+-		opp-1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt-slow = <915000 900000 925000>;
+-			opp-microvolt-fast = <975000 970000 985000>;
+-			opp-microamp-slow =  <70000>;
+-			opp-microamp-fast =  <71000>;
+-		};
+-
+-		opp-1200000000 {
+-			opp-hz = /bits/ 64 <1200000000>;
+-			opp-microvolt-slow = <915000 900000 925000>, /* Supply vcc0 */
+-					      <925000 910000 935000>; /* Supply vcc1 */
+-			opp-microvolt-fast = <975000 970000 985000>, /* Supply vcc0 */
+-					     <965000 960000 975000>; /* Supply vcc1 */
+-			opp-microamp =  <70000>; /* Will be used for both slow/fast */
+-		};
+-	};
+-};
+-
+-Example 7: Single cluster Quad-core ARM cortex A53, OPP points from firmware,
+-distinct clock controls but two sets of clock/voltage/current lines.
+-
+-/ {
+-	cpus {
+-		#address-cells = <2>;
+-		#size-cells = <0>;
+-
+-		cpu@0 {
+-			compatible = "arm,cortex-a53";
+-			reg = <0x0 0x100>;
+-			next-level-cache = <&A53_L2>;
+-			clocks = <&dvfs_controller 0>;
+-			operating-points-v2 = <&cpu_opp0_table>;
+-		};
+-		cpu@1 {
+-			compatible = "arm,cortex-a53";
+-			reg = <0x0 0x101>;
+-			next-level-cache = <&A53_L2>;
+-			clocks = <&dvfs_controller 1>;
+-			operating-points-v2 = <&cpu_opp0_table>;
+-		};
+-		cpu@2 {
+-			compatible = "arm,cortex-a53";
+-			reg = <0x0 0x102>;
+-			next-level-cache = <&A53_L2>;
+-			clocks = <&dvfs_controller 2>;
+-			operating-points-v2 = <&cpu_opp1_table>;
+-		};
+-		cpu@3 {
+-			compatible = "arm,cortex-a53";
+-			reg = <0x0 0x103>;
+-			next-level-cache = <&A53_L2>;
+-			clocks = <&dvfs_controller 3>;
+-			operating-points-v2 = <&cpu_opp1_table>;
+-		};
+-
+-	};
+-
+-	cpu_opp0_table: opp0_table {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-	};
+-
+-	cpu_opp1_table: opp1_table {
+-		compatible = "operating-points-v2";
+-		opp-shared;
+-	};
+-};
+diff --git a/Documentation/devicetree/bindings/opp/qcom-opp.txt b/Documentation/devicetree/bindings/opp/qcom-opp.txt
+index 32eb0793c7e6..41d3e4ff2dc3 100644
+--- a/Documentation/devicetree/bindings/opp/qcom-opp.txt
++++ b/Documentation/devicetree/bindings/opp/qcom-opp.txt
+@@ -1,7 +1,7 @@
+ Qualcomm OPP bindings to describe OPP nodes
+ 
+ The bindings are based on top of the operating-points-v2 bindings
+-described in Documentation/devicetree/bindings/opp/opp.txt
++described in Documentation/devicetree/bindings/opp/opp-v2-base.yaml
+ Additional properties are described below.
+ 
+ * OPP Table Node
+diff --git a/Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt b/Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
+index 832346e489a3..b70d326117cd 100644
+--- a/Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
++++ b/Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
+@@ -13,7 +13,7 @@ regulators to the device that will undergo OPP transitions we can make use
+ of the multi regulator binding that is part of the OPP core described here [1]
+ to describe both regulators needed by the platform.
+ 
+-[1] Documentation/devicetree/bindings/opp/opp.txt
++[1] Documentation/devicetree/bindings/opp/opp-v2.yaml
+ 
+ Required Properties for Device Node:
+ - vdd-supply: phandle to regulator controlling VDD supply
+diff --git a/Documentation/devicetree/bindings/power/power-domain.yaml b/Documentation/devicetree/bindings/power/power-domain.yaml
+index aed51e9dcb11..3143ed9a3313 100644
+--- a/Documentation/devicetree/bindings/power/power-domain.yaml
++++ b/Documentation/devicetree/bindings/power/power-domain.yaml
+@@ -46,7 +46,7 @@ properties:
+       Phandles to the OPP tables of power domains provided by a power domain
+       provider. If the provider provides a single power domain only or all
+       the power domains provided by the provider have identical OPP tables,
+-      then this shall contain a single phandle. Refer to ../opp/opp.txt
++      then this shall contain a single phandle. Refer to ../opp/opp-v2-base.yaml
+       for more information.
+ 
+   "#power-domain-cells":
+-- 
+2.27.0
 
-Thanks,
-
---=20
-Paul Barker
-Principal Software Engineer
-SanCloud Ltd
-
---Sig_/MFaT197QZpTt50mFfIrjMfc
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iHUEARYIAB0WIQS7m7rT1+CktY3YG1PYN3IfEvob6gUCYPaMPQAKCRDYN3IfEvob
-6vjkAQD/vuTFcL1DLcoP9GdstvMp7jHfpoH4EAb1oFun00/vwgD/Ze7IDVKfBfUx
-jY3hgS5FWuKQ+iN/MyPowe7L+s9pCwo=
-=VHkX
------END PGP SIGNATURE-----
-
---Sig_/MFaT197QZpTt50mFfIrjMfc--
