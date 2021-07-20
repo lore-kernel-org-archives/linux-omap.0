@@ -2,98 +2,131 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7383FC07E95
-	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 15:12:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADF40C636CA
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 15:12:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51513610A0
-	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 15:12:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FA9861164
+	for <linux-omap@archiver.kernel.org>; Tue, 20 Jul 2021 15:12:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237295AbhGTOcK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 20 Jul 2021 10:32:10 -0400
-Received: from mail-io1-f48.google.com ([209.85.166.48]:45797 "EHLO
-        mail-io1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240062AbhGTOBD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2021 10:01:03 -0400
-Received: by mail-io1-f48.google.com with SMTP id z17so17588491iog.12;
-        Tue, 20 Jul 2021 07:41:25 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=In2GK4BxVSXJR0G130bXVhwb0ZRtK2Xg1pZUaR2Rkhw=;
-        b=JUNMygylc7btrek/cYakoVG0IvI1X/YBHGjCnz8H7WM2PgiU33KNOC7Qq7xJc0ldEb
-         MYweXHPdmgHjZhjDdeAVw4XMOHLrKNyJy3oodNYAgwHzmyVyDkTjd0mKljQgEsgshDsL
-         m5ABp72fJjyuxTgAhjAMI7GUJwTrJE1UHaY5Le/+/Jy/HjXx5tXXchQzkXTx9KU9WOPv
-         ItCMmYYyEzAA5WhDgsBU6jec4Tj0QB6aAWfQK3Sfbji3ykwTem5RPC6Mtt1FEY475KQo
-         crHtvZchGR24NhPZiWsQOqJCXq12HlgMMB0B5qy8+l2+cCknfyx/tBq3+V8V5n43gXYD
-         0TYQ==
-X-Gm-Message-State: AOAM531KgQO8/alBfQPozzciVXbzS5qO4QIt/NdHTDVamxMllOU6o2kC
-        6J3TWuXOe3cp/eEl+No54w==
-X-Google-Smtp-Source: ABdhPJxk5X0o3xzuhm3cRt+07VqKHazcPxgi4roaqr/BN8khWbAjpu3jyJn74HzrfKV96K5418RpQw==
-X-Received: by 2002:a6b:e016:: with SMTP id z22mr22726636iog.187.1626792084568;
-        Tue, 20 Jul 2021 07:41:24 -0700 (PDT)
-Received: from xps15.herring.priv ([64.188.179.248])
-        by smtp.googlemail.com with ESMTPSA id 10sm2091407iln.39.2021.07.20.07.41.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Jul 2021 07:41:24 -0700 (PDT)
-From:   Rob Herring <robh@kernel.org>
-To:     Viresh Kumar <viresh.kumar@linaro.org>,
-        Tony Lindgren <tony@atomide.com>
-Cc:     devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        linux-omap@vger.kernel.org
-Subject: [PATCH v3 1/3] ARM: dts: omap: Drop references to opp.txt
-Date:   Tue, 20 Jul 2021 08:41:19 -0600
-Message-Id: <20210720144121.66713-1-robh@kernel.org>
-X-Mailer: git-send-email 2.27.0
+        id S237664AbhGTOcM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 20 Jul 2021 10:32:12 -0400
+Received: from wnew3-smtp.messagingengine.com ([64.147.123.17]:39567 "EHLO
+        wnew3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233834AbhGTORl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 20 Jul 2021 10:17:41 -0400
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailnew.west.internal (Postfix) with ESMTP id F02382B00098;
+        Tue, 20 Jul 2021 10:46:27 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute5.internal (MEProxy); Tue, 20 Jul 2021 10:46:28 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cerno.tech; h=
+        date:from:to:cc:subject:message-id:references:mime-version
+        :content-type:in-reply-to; s=fm3; bh=JQ7dL4Jy0EGO6kUdYQlXq0cbld5
+        RjOtqdlBNzkW45wE=; b=dpA3z5HuGcw6wPGwzRseO8UtRiM6C5u6hgaimt45bT4
+        sLQ+4fcxt/7pfzueqgDy2yWC4jqHu7FR+ld0LGW3GILMzXhi3g/O2NTlPEJrupmb
+        APf3Qb0ZqdQGa6MVGUljTiuD3wdQ0dnTIS8KBfpaVqg6XVFnuG6kRXD1ei5DsYpN
+        48dUPzoK5Rgd8ruduI6syvQXNysi40tPL4knwGzjZKfU7hSVVhxAlpNxvG3YtNHj
+        SRGVBUmVH8/dubF9I4O+clmvvIaaK027DfSc6Zd+SsJHlPjQIZxfRy/IqDS0WieN
+        K9mXr8cu0ouer6rMVVtNv61TSMgvQ2c8cugpHsDCTHQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; bh=JQ7dL4
+        Jy0EGO6kUdYQlXq0cbld5RjOtqdlBNzkW45wE=; b=rWCcre49+pR5m+NUoZEwBf
+        niuqZ3csoSTSvjA5+d0BEAqumf3S4p/ETDrgLYSZY0Di9PnWB2Mfyqxk3a/swn4Z
+        KvTqnrcOJ6FigBytPWxLvQ2ycoabGJon7cT+pPOeNqcHk7QH8Bzh/2web5AVi8+X
+        EzIb79BXjHZMnF3yksrYn7ukSlT8i4g1JJS+7IdMrFb1seMguqKylT72dw5IEvjx
+        LGjymgYlth0POLxXETiSVpnTw6VQ5OFI70zYnqqGZ90GyAloGmdchFSchvFGOW2z
+        AWdSdOm9OF8iqOSf6ge2NLpWW1yIMoaTfeZbTY4G0D5WAOK0W7oEoGjI/8LnjNUw
+        ==
+X-ME-Sender: <xms:wuH2YIivU5LAMih6k1LjCNYgNsfrYViBlF-Z98k3WOPei2pifpQLKA>
+    <xme:wuH2YBAJrIZ90nYxhWA346SoPng9x5kO9fLBUxRcbEUkGg1ugV7L4G9EFgD6aqkZw
+    1wpbYhQOJo-xOP-adY>
+X-ME-Received: <xmr:wuH2YAGUhBk2XJR65Gcd9X2wm2W3GHM_7wyehV0rHp1Kbcf72-WNnw6MdewfyIMsOIlCe17YiaQp-MLbI34ARwZ78WEoJzFmoURA>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvtddrfedvgdejkecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpeffhffvuffkfhggtggujgesghdtreertddtvdenucfhrhhomhepofgrgihimhgv
+    ucftihhprghrugcuoehmrgigihhmvgestggvrhhnohdrthgvtghhqeenucggtffrrghtth
+    gvrhhnpeelkeeghefhuddtleejgfeljeffheffgfeijefhgfeufefhtdevteegheeiheeg
+    udenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehmrg
+    igihhmvgestggvrhhnohdrthgvtghh
+X-ME-Proxy: <xmx:wuH2YJRWO44t2gOP54wr2ZwYjuc9WQcBUebfC0pUGnbRf5JIbwPojg>
+    <xmx:wuH2YFyZwEPj1pnAu4HRzH-_vwkm3vYZdBMi6PDVgwGkxsHzF6c8Qw>
+    <xmx:wuH2YH6QgIymgXjbR1FN_mfKqX0viGfX-OZ8eiQEHzRHWDKmEqPVyw>
+    <xmx:w-H2YL6-c6WsgqyjZ4JhIoPR3IlM_SvI78Ul2rTcD-NmS8vo_v0h1dk25fo>
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 20 Jul 2021 10:46:26 -0400 (EDT)
+Date:   Tue, 20 Jul 2021 16:46:24 +0200
+From:   Maxime Ripard <maxime@cerno.tech>
+To:     Rob Herring <robh@kernel.org>
+Cc:     Viresh Kumar <viresh.kumar@linaro.org>,
+        Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        linux-omap@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>,
+        Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>, linux-pm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3 3/3] dt-bindings: opp: Convert to DT schema
+Message-ID: <20210720144624.aieivojs2a5tayhb@gilmour>
+References: <20210720144121.66713-1-robh@kernel.org>
+ <20210720144121.66713-3-robh@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="fhrdjgohnlbn6yyp"
+Content-Disposition: inline
+In-Reply-To: <20210720144121.66713-3-robh@kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-opp.txt is getting removed with the OPP binding converted to DT schema.
-As it is unusual to reference a binding doc from a dts file, let's just
-remove the reference.
 
-Cc: "Benoît Cousson" <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
----
- arch/arm/boot/dts/omap34xx.dtsi | 1 -
- arch/arm/boot/dts/omap36xx.dtsi | 1 -
- 2 files changed, 2 deletions(-)
+--fhrdjgohnlbn6yyp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index feaa43b78535..8b8451399784 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -24,7 +24,6 @@ cpu: cpu@0 {
- 		};
- 	};
- 
--	/* see Documentation/devicetree/bindings/opp/opp.txt */
- 	cpu0_opp_table: opp-table {
- 		compatible = "operating-points-v2-ti-cpu";
- 		syscon = <&scm_conf>;
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 20844dbc002e..22b33098b1a2 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -29,7 +29,6 @@ cpu: cpu@0 {
- 		};
- 	};
- 
--	/* see Documentation/devicetree/bindings/opp/opp.txt */
- 	cpu0_opp_table: opp-table {
- 		compatible = "operating-points-v2-ti-cpu";
- 		syscon = <&scm_conf>;
--- 
-2.27.0
+On Tue, Jul 20, 2021 at 08:41:21AM -0600, Rob Herring wrote:
+> Convert the OPP v1 and v2 bindings to DT schema format. As the OPPv2 bind=
+ing
+> can be extended by vendors, we need to split the common part out from the
+> "operating-points-v2" conforming compatible.
+>=20
+> Cc: Yangtao Li <tiny.windzz@gmail.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> Cc: Maxime Ripard <mripard@kernel.org>
+> Cc: Chen-Yu Tsai <wens@csie.org>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> Signed-off-by: Rob Herring <robh@kernel.org>
 
+Acked-by: Maxime Ripard <maxime@cerno.tech>
+
+I spent some time a couple of weeks ago trying to figure it out, I'm
+glad you ended up doing it :)
+
+Thanks!
+
+Maxime
+
+--fhrdjgohnlbn6yyp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCYPbhwAAKCRDj7w1vZxhR
+xQkDAPoDnHTLxRhV8i4mtobLgzhetkwTkMwDAg1c5YcpjoXXPwD+NlKUek5wdjdK
+8P4B8eTnm8/IcbKMNmb1Y48nlptVIAE=
+=DFjy
+-----END PGP SIGNATURE-----
+
+--fhrdjgohnlbn6yyp--
