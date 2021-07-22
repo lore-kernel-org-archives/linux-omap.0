@@ -2,82 +2,93 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 700DEC6377D
-	for <linux-omap@archiver.kernel.org>; Thu, 22 Jul 2021 03:40:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88B70C63793
+	for <linux-omap@archiver.kernel.org>; Thu, 22 Jul 2021 14:05:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 622EE610CC
-	for <linux-omap@archiver.kernel.org>; Thu, 22 Jul 2021 03:40:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D0DA6128C
+	for <linux-omap@archiver.kernel.org>; Thu, 22 Jul 2021 14:05:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231189AbhGVDAR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 21 Jul 2021 23:00:17 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:7411 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231150AbhGVDAJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jul 2021 23:00:09 -0400
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GVdRg4GvJz7xvF;
-        Thu, 22 Jul 2021 11:37:03 +0800 (CST)
-Received: from dggpemm500006.china.huawei.com (7.185.36.236) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 22 Jul 2021 11:40:36 +0800
-Received: from thunder-town.china.huawei.com (10.174.179.0) by
- dggpemm500006.china.huawei.com (7.185.36.236) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 22 Jul 2021 11:40:36 +0800
-From:   Zhen Lei <thunder.leizhen@huawei.com>
-To:     Tony Lindgren <tony@atomide.com>,
-        Haojian Zhuang <haojian.zhuang@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        linux-gpio <linux-gpio@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-CC:     Zhen Lei <thunder.leizhen@huawei.com>
-Subject: [PATCH v2 1/2] pinctrl: single: Fix error return code in pcs_parse_bits_in_pinctrl_entry()
-Date:   Thu, 22 Jul 2021 11:39:29 +0800
-Message-ID: <20210722033930.4034-2-thunder.leizhen@huawei.com>
-X-Mailer: git-send-email 2.26.0.windows.1
-In-Reply-To: <20210722033930.4034-1-thunder.leizhen@huawei.com>
-References: <20210722033930.4034-1-thunder.leizhen@huawei.com>
+        id S232253AbhGVNZI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 22 Jul 2021 09:25:08 -0400
+Received: from vps0.lunn.ch ([185.16.172.187]:40392 "EHLO vps0.lunn.ch"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232198AbhGVNZI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 22 Jul 2021 09:25:08 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+        bh=9I5Yn7jbTPFxeXXmcV2hyvn+AXm6wM45iGZ04yQBfXQ=; b=bMKIeQtSLgDOkvicAxFY0sKlS4
+        kF+iLqp2nfKqlyFO6hmC2k/RqoQ+vBpSIKd++M/TYjDiN7E49QOmRyGFcbSsFCt4Guu9TJFKD1DUB
+        XkPjjIh1GtXMizQwobvTW6tsqSIkVX6pMC5b5AT3YDYckq1fzHtTFdcnNJAyuNUcG+sw=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+        (envelope-from <andrew@lunn.ch>)
+        id 1m6ZKQ-00EL32-0X; Thu, 22 Jul 2021 16:05:34 +0200
+Date:   Thu, 22 Jul 2021 16:05:33 +0200
+From:   Andrew Lunn <andrew@lunn.ch>
+To:     Colin Foster <colin.foster@in-advantage.com>
+Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC PATCH v1 net-next 1/1] net: ethernet: ti: cpsw: allow MTU >
+ 1500 when overridden by module parameter
+Message-ID: <YPl7LdLMMTmhSu1z@lunn.ch>
+References: <20210721210538.22394-1-colin.foster@in-advantage.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.174.179.0]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- dggpemm500006.china.huawei.com (7.185.36.236)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210721210538.22394-1-colin.foster@in-advantage.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Fix to return -ENOTSUPP instead of 0 when PCS_HAS_PINCONF is true, which
-is the same as that returned in pcs_parse_pinconf().
+On Wed, Jul 21, 2021 at 02:05:38PM -0700, Colin Foster wrote:
+> The module parameter rx_packet_max can be overridden at module load or
+> boot args. But it doesn't adjust the max_mtu for the device accordingly.
+> 
+> If a CPSW device is to be used in a DSA architecture, increasing the
+> MTU by small amounts to account for switch overhead becomes necessary.
+> This way, a boot arg of cpsw.rx_packet_max=1600 should allow the MTU
+> to be increased to values of 1520, which is necessary for DSA tagging
+> protocols like "ocelot" and "seville".
 
-Fixes: 4e7e8017a80e ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
----
- drivers/pinctrl/pinctrl-single.c | 1 +
- 1 file changed, 1 insertion(+)
+Hi Colin
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index e3aa64798f7d..4fcae8458359 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1224,6 +1224,7 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
- 
- 	if (PCS_HAS_PINCONF) {
- 		dev_err(pcs->dev, "pinconf not supported\n");
-+		res = -ENOTSUPP;
- 		goto free_pingroups;
- 	}
- 
--- 
-2.25.1
+As far as your patch goes, it makes sense.
 
+However, module parameters are unlikely by netdev maintainers. Having
+to set one in order to make DSA work is not nice. What is involved in
+actually removing the module parameter and making the MTU change work
+without it?
+
+> Signed-off-by: Colin Foster <colin.foster@in-advantage.com>
+> ---
+>  drivers/net/ethernet/ti/cpsw.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index c0cd7de88316..d400163c4ef2 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -1625,6 +1625,14 @@ static int cpsw_probe(struct platform_device *pdev)
+>  		goto clean_cpts;
+>  	}
+>  
+> +	/* adjust max_mtu to match module parameter rx_packet_max */
+> +	if (cpsw->rx_packet_max > CPSW_MAX_PACKET_SIZE) {
+> +		ndev->max_mtu = ETH_DATA_LEN + (cpsw->rx_packet_max -
+> +				CPSW_MAX_PACKET_SIZE);
+> +		dev_info(dev, "overriding default MTU to %d\n\n",
+> +			 ndev->max_mtu);
+
+There is no need for dev_info(). You could consider dev_dbg(), or just
+remove it.
+
+       Andrew
