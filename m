@@ -2,67 +2,133 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABAD7C4338F
-	for <linux-omap@archiver.kernel.org>; Fri,  6 Aug 2021 12:14:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE46CC4338F
+	for <linux-omap@archiver.kernel.org>; Fri,  6 Aug 2021 14:28:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D51D6103B
-	for <linux-omap@archiver.kernel.org>; Fri,  6 Aug 2021 12:14:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEF11611C3
+	for <linux-omap@archiver.kernel.org>; Fri,  6 Aug 2021 14:28:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343615AbhHFMOv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 6 Aug 2021 08:14:51 -0400
-Received: from helcar.hmeau.com ([216.24.177.18]:51750 "EHLO deadmen.hmeau.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1343589AbhHFMOu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 6 Aug 2021 08:14:50 -0400
-Received: from gondobar.mordor.me.apana.org.au ([192.168.128.4] helo=gondobar)
-        by deadmen.hmeau.com with esmtp (Exim 4.92 #5 (Debian))
-        id 1mBykB-0003gR-3f; Fri, 06 Aug 2021 20:14:31 +0800
-Received: from herbert by gondobar with local (Exim 4.92)
-        (envelope-from <herbert@gondor.apana.org.au>)
-        id 1mByk6-0006eb-FL; Fri, 06 Aug 2021 20:14:26 +0800
-Date:   Fri, 6 Aug 2021 20:14:26 +0800
-From:   Herbert Xu <herbert@gondor.apana.org.au>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     "David S . Miller" <davem@davemloft.net>,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-crypto@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>,
-        Tero Kristo <kristo@kernel.org>
-Subject: Re: [PATCH 1/6] crypto: omap-sham - clear dma flags only after
- omap_sham_update_dma_stop()
-Message-ID: <20210806121426.GA25554@gondor.apana.org.au>
-References: <20210727102339.49141-1-tony@atomide.com>
+        id S238810AbhHFO2i (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 6 Aug 2021 10:28:38 -0400
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:60806 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238446AbhHFO2g (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2021 10:28:36 -0400
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 176ESFNA082549;
+        Fri, 6 Aug 2021 09:28:15 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1628260095;
+        bh=BilTB8yGmwYUQpauRBnVTlubDNoaX2E2FswH6R2Se1Q=;
+        h=From:To:CC:Subject:Date;
+        b=KtxHbrOQBNvw8E6nJ04+p0zF+7+XPmAe5jge98qRmOUmD6n2NJYiswB+55FpUzIJc
+         qcn8u4Y5anh6cP9UyW6IkaKRWRTgsoXWxUaGQhHbg6mYzACYtnWVgig5A3ptZBYbYL
+         1IR0seu2Zs7dWy1z/6D5Ka/fkM/3narztc5HxMaw=
+Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 176ESFoP119293
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 6 Aug 2021 09:28:15 -0500
+Received: from DFLE112.ent.ti.com (10.64.6.33) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Fri, 6 Aug
+ 2021 09:28:15 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2 via
+ Frontend Transport; Fri, 6 Aug 2021 09:28:15 -0500
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 176ESEIp094816;
+        Fri, 6 Aug 2021 09:28:14 -0500
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>
+CC:     <linux-kernel@vger.kernel.org>,
+        Ben Hutchings <ben.hutchings@essensium.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        <linux-omap@vger.kernel.org>, Lokesh Vutla <lokeshvutla@ti.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH net-next] net: ethernet: ti: davinci_cpdma: revert "drop frame padding"
+Date:   Fri, 6 Aug 2021 17:28:09 +0300
+Message-ID: <20210806142809.15069-1-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210727102339.49141-1-tony@atomide.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Jul 27, 2021 at 01:23:34PM +0300, Tony Lindgren wrote:
-> We should not clear FLAGS_DMA_ACTIVE before omap_sham_update_dma_stop() is
-> done calling dma_unmap_sg(). We already clear FLAGS_DMA_ACTIVE at the
-> end of omap_sham_update_dma_stop().
-> 
-> The early clearing of FLAGS_DMA_ACTIVE is not causing issues as we do not
-> need to defer anything based on FLAGS_DMA_ACTIVE currently. So this can be
-> applied as clean-up.
-> 
-> Cc: Lokesh Vutla <lokeshvutla@ti.com>
-> Cc: Tero Kristo <kristo@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/crypto/omap-sham.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+This reverts commit 9ffc513f95ee ("net: ethernet: ti: davinci_cpdma: drop
+frame padding") which has depndency from not yet merged patch [1] and so
+breaks cpsw_new driver.
 
-All applied.  Thanks.
+[1] https://patchwork.kernel.org/project/netdevbpf/patch/20210805145511.12016-1-grygorii.strashko@ti.com/
+Fixes: 9ffc513f95ee ("net: ethernet: ti: davinci_cpdma: drop frame padding")
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw_priv.c     | 1 +
+ drivers/net/ethernet/ti/davinci_cpdma.c | 5 +++++
+ drivers/net/ethernet/ti/davinci_cpdma.h | 1 +
+ drivers/net/ethernet/ti/davinci_emac.c  | 1 +
+ 4 files changed, 8 insertions(+)
+
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
+index d97a72c9ec53..ecc2a6b7e28f 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
++++ b/drivers/net/ethernet/ti/cpsw_priv.c
+@@ -518,6 +518,7 @@ int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
+ 
+ 	dma_params.num_chan		= data->channels;
+ 	dma_params.has_soft_reset	= true;
++	dma_params.min_packet_size	= CPSW_MIN_PACKET_SIZE;
+ 	dma_params.desc_mem_size	= data->bd_ram_size;
+ 	dma_params.desc_align		= 16;
+ 	dma_params.has_ext_regs		= true;
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 753d94c9915a..d2eab5cd1e0c 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -1034,6 +1034,11 @@ static int cpdma_chan_submit_si(struct submit_info *si)
+ 		return -ENOMEM;
+ 	}
+ 
++	if (len < ctlr->params.min_packet_size) {
++		len = ctlr->params.min_packet_size;
++		chan->stats.runt_transmit_buff++;
++	}
++
+ 	mode = CPDMA_DESC_OWNER | CPDMA_DESC_SOP | CPDMA_DESC_EOP;
+ 	cpdma_desc_to_port(chan, mode, si->directed);
+ 
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
+index 62151f13c7ce..d3cfe234d16a 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.h
++++ b/drivers/net/ethernet/ti/davinci_cpdma.h
+@@ -26,6 +26,7 @@ struct cpdma_params {
+ 	void __iomem		*rxthresh, *rxfree;
+ 	int			num_chan;
+ 	bool			has_soft_reset;
++	int			min_packet_size;
+ 	dma_addr_t		desc_mem_phys;
+ 	dma_addr_t		desc_hw_addr;
+ 	int			desc_mem_size;
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index cd2ef0282f38..b1c5cbe7478b 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1850,6 +1850,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 	dma_params.txcp			= priv->emac_base + 0x640;
+ 	dma_params.rxcp			= priv->emac_base + 0x660;
+ 	dma_params.num_chan		= EMAC_MAX_TXRX_CHANNELS;
++	dma_params.min_packet_size	= EMAC_DEF_MIN_ETHPKTSIZE;
+ 	dma_params.desc_hw_addr		= hw_ram_addr;
+ 	dma_params.desc_mem_size	= pdata->ctrl_ram_size;
+ 	dma_params.desc_align		= 16;
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.17.1
+
