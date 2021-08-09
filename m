@@ -2,94 +2,252 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D47EC4338F
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Aug 2021 09:30:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1806C4320A
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Aug 2021 09:39:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF0DD61056
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Aug 2021 09:30:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1BFB610FF
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Aug 2021 09:39:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234334AbhHIJab (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Aug 2021 05:30:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41972 "EHLO mail.kernel.org"
+        id S234604AbhHIJj1 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Aug 2021 05:39:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234288AbhHIJab (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 9 Aug 2021 05:30:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 576F56101D;
-        Mon,  9 Aug 2021 09:30:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1628501405;
-        bh=nOXYxYQLW5zR6aM4Cmr6nujW0ijsZafmxUDF+RZWAMY=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=emzl5ThEFQTkQ+mmgehTGVj65FmnpQTe9RYyjHCPh361pv5kj2fz/z6Bhp3U2YGS+
-         ZoItmmKoKrCxAgeySofsNiyn50bHWRA7+Y+bVQwqoAo0xznxfiUGb4YU9VvE+h4UXM
-         AYow2Vmc0kokIgc1EzcfqKv8Ls8gzN0nfy33LHSCjLVNIjh9Zloc5r9/U6aMPdHffM
-         CEmSZo+udGe8buqiIrrz8lDk/Cwf+fycgnr3l/BrSlz6sIBDDw1KgVCJVoJbLsTMh3
-         qt6icx9m92+823p6zQ3pk/t1Go7K6qNuPTuKF0jqY6vNNbtDO4lWTqNShv4q4vBOLs
-         jO7ubl68Mq09g==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] devlink: Set device as early as possible
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <162850140527.16932.1083737685938240617.git-patchwork-notify@kernel.org>
-Date:   Mon, 09 Aug 2021 09:30:05 +0000
-References: <6859503f7e3e6cd706bf01ef06f1cae8c0b0970b.1628449004.git.leonro@nvidia.com>
-In-Reply-To: <6859503f7e3e6cd706bf01ef06f1cae8c0b0970b.1628449004.git.leonro@nvidia.com>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     davem@davemloft.net, kuba@kernel.org, leonro@nvidia.com,
-        alexandre.belloni@bootlin.com, andrew@lunn.ch, aelior@marvell.com,
-        luobin9@huawei.com, claudiu.manoil@nxp.com, coiby.xu@gmail.com,
-        dchickles@marvell.com, drivers@pensando.io, fmanlunas@marvell.com,
-        f.fainelli@gmail.com, gakula@marvell.com,
-        gregkh@linuxfoundation.org, GR-everest-linux-l2@marvell.com,
-        GR-Linux-NIC-Dev@marvell.com, hkelam@marvell.com,
-        idosch@nvidia.com, intel-wired-lan@lists.osuosl.org,
-        ioana.ciornei@nxp.com, jerinj@marvell.com,
-        jesse.brandeburg@intel.com, jiri@nvidia.com, lcherian@marvell.com,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-staging@lists.linux.dev, manishc@marvell.com,
-        michael.chan@broadcom.com, netdev@vger.kernel.org,
-        oss-drivers@corigine.com, richardcochran@gmail.com,
-        saeedm@nvidia.com, salil.mehta@huawei.com, sburla@marvell.com,
-        snelson@pensando.io, simon.horman@corigine.com,
-        sbhatta@marvell.com, sgoutham@marvell.com, tchornyi@marvell.com,
-        tariqt@nvidia.com, anthony.l.nguyen@intel.com,
-        UNGLinuxDriver@microchip.com, vkochan@marvell.com,
-        vivien.didelot@gmail.com, vladimir.oltean@nxp.com,
-        yisen.zhuang@huawei.com
+        id S234468AbhHIJj1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 9 Aug 2021 05:39:27 -0400
+Received: from disco-boy.misterjones.org (disco-boy.misterjones.org [51.254.78.96])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 994FE60F35;
+        Mon,  9 Aug 2021 09:39:06 +0000 (UTC)
+Received: from sofa.misterjones.org ([185.219.108.64] helo=why.misterjones.org)
+        by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <maz@kernel.org>)
+        id 1mD1kO-003mj9-6f; Mon, 09 Aug 2021 10:39:04 +0100
+Date:   Mon, 09 Aug 2021 10:39:03 +0100
+Message-ID: <87o8a7arew.wl-maz@kernel.org>
+From:   Marc Zyngier <maz@kernel.org>
+To:     Kishon Vijay Abraham I <kishon@ti.com>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Tom Joseph <tjoseph@cadence.com>, <linux-omap@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH v2 2/3] PCI: j721e: Add PCI legacy interrupt support for J721E
+In-Reply-To: <c20be7ae-e4a7-c3ba-f1c9-e4ff2aae0a66@ti.com>
+References: <20210804132912.30685-1-kishon@ti.com>
+        <20210804132912.30685-3-kishon@ti.com>
+        <87h7g5w8d8.wl-maz@kernel.org>
+        <c20be7ae-e4a7-c3ba-f1c9-e4ff2aae0a66@ti.com>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/27.1
+ (x86_64-pc-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+X-SA-Exim-Connect-IP: 185.219.108.64
+X-SA-Exim-Rcpt-To: kishon@ti.com, bhelgaas@google.com, robh+dt@kernel.org, lorenzo.pieralisi@arm.com, tjoseph@cadence.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lokeshvutla@ti.com
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hello:
-
-This patch was applied to netdev/net-next.git (refs/heads/master):
-
-On Sun,  8 Aug 2021 21:57:43 +0300 you wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
+On Mon, 09 Aug 2021 05:50:10 +0100,
+Kishon Vijay Abraham I <kishon@ti.com> wrote:
 > 
-> All kernel devlink implementations call to devlink_alloc() during
-> initialization routine for specific device which is used later as
-> a parent device for devlink_register().
+> Hi Marc,
 > 
-> Such late device assignment causes to the situation which requires us to
-> call to device_register() before setting other parameters, but that call
-> opens devlink to the world and makes accessible for the netlink users.
+> On 04/08/21 8:43 pm, Marc Zyngier wrote:
+> > On Wed, 04 Aug 2021 14:29:11 +0100,
+> > Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> >>
+> >> Add PCI legacy interrupt support for J721E. J721E has a single HW
+> >> interrupt line for all the four legacy interrupts INTA/INTB/INTC/INTD.
+> >> The HW interrupt line connected to GIC is a pulse interrupt whereas
+> >> the legacy interrupts by definition is level interrupt. In order to
+> >> provide level interrupt functionality to edge interrupt line, PCIe
+> >> in J721E has provided IRQ_EOI register.
+> >>
+> >> However due to Errata ID #i2094 ([1]), EOI feature is not enabled in HW
+> >> and only a single pulse interrupt will be generated for every
+> >> ASSERT_INTx/DEASSERT_INTx.
+> > 
+> > So my earlier remark stands. If you get a single edge, how do you
+> > handle a level that is still high after having handled the interrupt
+> > on hardware that has this bug?
 > 
-> [...]
+> Right, this hardware (J721E) has a bug but was fixed in J7200 (Patch 3/3
+> handles that).
 
-Here is the summary with links:
-  - [net-next] devlink: Set device as early as possible
-    https://git.kernel.org/netdev/net-next/c/919d13a7e455
+But how do you make it work with J721E? Is it even worth supporting if
+(as I expect) it is unreliable?
 
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+> > 
+> >>
+> >> [1] -> J721E DRA829/TDA4VM Processors Silicon Revision 1.1/1.0 SPRZ455A –
+> >>        DECEMBER 2020 – REVISED AUGUST 2021
+> >>        (https://www.ti.com/lit/er/sprz455a/sprz455a.pdf)
+> >>
+> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >> ---
+> >>  drivers/pci/controller/cadence/pci-j721e.c | 85 ++++++++++++++++++++++
+> >>  1 file changed, 85 insertions(+)
+> >>
+> >> diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+> >> index 2ec037c43bd5..c2e7a78dc31f 100644
+> >> --- a/drivers/pci/controller/cadence/pci-j721e.c
+> >> +++ b/drivers/pci/controller/cadence/pci-j721e.c
+> >> @@ -29,6 +29,13 @@
+> >>  #define LINK_DOWN		BIT(1)
+> >>  #define J7200_LINK_DOWN		BIT(10)
+> >>  
+> >> +#define EOI_REG			0x10
+> >> +
+> >> +#define ENABLE_REG_SYS_0	0x100
+> >> +#define STATUS_REG_SYS_0	0x500
+> >> +#define STATUS_CLR_REG_SYS_0	0x700
+> >> +#define INTx_EN(num)		(1 << (num))
+> >> +
+> >>  #define J721E_PCIE_USER_CMD_STATUS	0x4
+> >>  #define LINK_TRAINING_ENABLE		BIT(0)
+> >>  
+> >> @@ -59,6 +66,7 @@ struct j721e_pcie {
+> >>  	void __iomem		*user_cfg_base;
+> >>  	void __iomem		*intd_cfg_base;
+> >>  	u32			linkdown_irq_regfield;
+> >> +	struct irq_domain	*legacy_irq_domain;
+> >>  };
+> >>  
+> >>  enum j721e_pcie_mode {
+> >> @@ -121,6 +129,79 @@ static void j721e_pcie_config_link_irq(struct j721e_pcie *pcie)
+> >>  	j721e_pcie_intd_writel(pcie, ENABLE_REG_SYS_2, reg);
+> >>  }
+> >>  
+> >> +static void j721e_pcie_v1_legacy_irq_handler(struct irq_desc *desc)
+> >> +{
+> >> +	struct j721e_pcie *pcie = irq_desc_get_handler_data(desc);
+> >> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+> >> +	int i, virq;
+> >> +	u32 reg;
+> >> +
+> >> +	chained_irq_enter(chip, desc);
+> >> +
+> >> +	for (i = 0; i < PCI_NUM_INTX; i++) {
+> >> +		reg = j721e_pcie_intd_readl(pcie, STATUS_REG_SYS_0);
+> >> +		if (!(reg & INTx_EN(i)))
+> >> +			continue;
+> > 
+> > Why do you need to perform multiple reads? Surely reg contains all the
+> > bits you need, doesn't it?
+> 
+> Right, will fix it up.
+> > 
+> >> +
+> >> +		virq = irq_find_mapping(pcie->legacy_irq_domain, 3 - i);
+> >> +		generic_handle_irq(virq);
+> > 
+> > Please combine both lines into a single generic_handle_domain_irq()
+> > call.
+> 
+> Okay.
+> > 
+> >> +		j721e_pcie_intd_writel(pcie, STATUS_CLR_REG_SYS_0, INTx_EN(i));
+> > 
+> > What is the purpose of this write? It feels like this should be a
+> > irq_eoi callback.
+> 
+> It's an IRQ ACK, since in this platform the level to edge is not
+> implemented properly in HW.
 
+An Ack for an edge interrupt would need to happen before you handle
+the interrupt, or you'd wrongly acknowledge edges that fire between
+the handling of the interrupt and the Ack, and that would never be
+handled.
 
+If it really is an Ack, it needs to be moved *before* the handling,
+preferably in an irq_ack callback. Otherwise, it is an EOI, and it
+belongs to irq_eoi.
+
+> > 
+> >> +	}
+> >> +
+> >> +	chained_irq_exit(chip, desc);
+> >> +}
+> >> +
+> >> +static int j721e_pcie_intx_map(struct irq_domain *domain, unsigned int irq, irq_hw_number_t hwirq)
+> >> +{
+> >> +	irq_set_chip_and_handler(irq, &dummy_irq_chip, handle_simple_irq);
+> > 
+> > An INTx interrupt is a level interrupt. Please use the corresponding flow.
+> 
+> Okay.
+> > 
+> >> +	irq_set_chip_data(irq, domain->host_data);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static const struct irq_domain_ops j721e_pcie_intx_domain_ops = {
+> >> +	.map = j721e_pcie_intx_map,
+> >> +};
+> >> +
+> >> +static int j721e_pcie_config_legacy_irq(struct j721e_pcie *pcie)
+> >> +{
+> >> +	struct irq_domain *legacy_irq_domain;
+> >> +	struct device *dev = pcie->dev;
+> >> +	struct device_node *node = dev->of_node;
+> >> +	struct device_node *intc_node;
+> >> +	int irq, i;
+> >> +	u32 reg;
+> >> +
+> >> +	intc_node = of_get_child_by_name(node, "interrupt-controller");
+> >> +	if (!intc_node) {
+> >> +		dev_dbg(dev, "interrupt-controller node is absent. Legacy INTR not supported\n");
+> >> +		return 0;
+> >> +	}
+> >> +
+> >> +	irq = irq_of_parse_and_map(intc_node, 0);
+> >> +	if (!irq) {
+> >> +		dev_err(dev, "Failed to parse and map legacy irq\n");
+> >> +		return -EINVAL;
+> >> +	}
+> >> +	irq_set_chained_handler_and_data(irq, j721e_pcie_v1_legacy_irq_handler, pcie);
+> >> +
+> >> +	legacy_irq_domain = irq_domain_add_linear(intc_node, PCI_NUM_INTX,
+> >> +						  &j721e_pcie_intx_domain_ops, pcie);
+> >> +	if (!legacy_irq_domain) {
+> >> +		dev_err(dev, "Failed to add irq domain for legacy irqs\n");
+> >> +		return -EINVAL;
+> >> +	}
+> >> +	pcie->legacy_irq_domain = legacy_irq_domain;
+> >> +
+> >> +	for (i = 0; i < PCI_NUM_INTX; i++) {
+> >> +		reg = j721e_pcie_intd_readl(pcie, ENABLE_REG_SYS_0);
+> >> +		reg |= INTx_EN(i);
+> >> +		j721e_pcie_intd_writel(pcie, ENABLE_REG_SYS_0, reg);
+> >> +	}
+> > 
+> > This should be moved to the irq_unmask() callback.
+> 
+> Should we also have a corresponding irq_mask()? Then would require us
+> implement reference counting since legacy interrupts are shared.
+
+The core code should already deal with this, I expect. It isn't like
+shared interrupts are something new. And yes, you should have both
+mask and unmask.
+
+Thanks,
+
+	M.
+
+-- 
+Without deviation from the norm, progress is not possible.
