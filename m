@@ -2,98 +2,84 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30096C432BE
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 14:22:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE5DC432BE
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 20:30:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CC0B60F41
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 14:22:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86562604AC
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 20:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241226AbhHJOWU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Aug 2021 10:22:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54602 "EHLO mail.kernel.org"
+        id S233315AbhHJUa3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Aug 2021 16:30:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40070 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243488AbhHJOTx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 10 Aug 2021 10:19:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A1EA61164;
-        Tue, 10 Aug 2021 14:17:10 +0000 (UTC)
+        id S233254AbhHJUa2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 10 Aug 2021 16:30:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id D915A61008;
+        Tue, 10 Aug 2021 20:30:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1628605031;
-        bh=Cm5j0X/rlGpemmIzWlhC1EiSgCDA2HdowtW6WmC0BK0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ONDysHdjZPMOHND8HvOf0BYqMKOh8teihUse1W0Vn2vrByoMNs5WjEc3sFuIHl1t8
-         0esgrTuILRVwF5lWIpZ2OxuALrP1RaNE2pLaX3MTLDmu1mMl50gyjGUDVjdYnSzLFI
-         5Mx6DMS/P2ID+3EO5iSXbZLQ1jm3HKkh3u852/uBiXbbfFGLIB/oHDIZZzYR1D+eua
-         7iHUNL4kE9XLx/tKUX26wILQekNKimnV49jWuuxxVHF5aVz0Pd8gZZJbIZLhy2ds1m
-         XMFog92Ye9ItcGq73FsV7lwsaDiyhp+9dJFTGfbEveB4bOutaxhnsqjl62jlhAEjLE
-         gmz5yKgvSjTsw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dave Gerlach <d-gerlach@ti.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 2/6] ARM: dts: am43x-epos-evm: Reduce i2c0 bus speed for tps65218
-Date:   Tue, 10 Aug 2021 10:17:03 -0400
-Message-Id: <20210810141707.3118714-2-sashal@kernel.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210810141707.3118714-1-sashal@kernel.org>
-References: <20210810141707.3118714-1-sashal@kernel.org>
+        s=k20201202; t=1628627405;
+        bh=2lDrpN5sVgt5Al+6FtFDkfLPd2yIOq9/MTsVWaprtBA=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=aMxK/lnKxAxzyHW1M86Q4h5jZQ7QsE1PI+9bepMwe5zmMTR0f8ZiaActaaAEgOdDh
+         WWIv1lmv4pZQ600DjYEKD/7ML71RBMQzKwQ+iq/uKKnI3hQhepAWUr6ay4Zd7wzMwz
+         lrZ8nRsZ0FAr7RH/GW+0Q8BE1T30JO5lMPHGf8qNYiNHO0Vmg/NQlOklLHp91sPykc
+         p7e0xM+vdQ8s6Vwoshr3KfByV7QXS/R/XNFau+sq4R3PA30G7h3vraSrUxTt4uIRos
+         CyEX5ScZxkbKV0++IOA3J9JO7qrs9BMkuqjJhxLrlqlznT4r1jtZOuqimMFOgD8fHq
+         2teZsmGlvc20A==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v2 net] net: switchdev: zero-initialize struct
+ switchdev_notifier_fdb_info emitted by drivers towards the bridge
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <162862740581.16281.10031076649352815360.git-patchwork-notify@kernel.org>
+Date:   Tue, 10 Aug 2021 20:30:05 +0000
+References: <20210810115024.1629983-1-vladimir.oltean@nxp.com>
+In-Reply-To: <20210810115024.1629983-1-vladimir.oltean@nxp.com>
+To:     Vladimir Oltean <vladimir.oltean@nxp.com>
+Cc:     netdev@vger.kernel.org, kuba@kernel.org, davem@davemloft.net,
+        andrew@lunn.ch, f.fainelli@gmail.com, vivien.didelot@gmail.com,
+        olteanv@gmail.com, vkochan@marvell.com, tchornyi@marvell.com,
+        saeedm@nvidia.com, leon@kernel.org, jiri@nvidia.com,
+        idosch@nvidia.com, lars.povlsen@microchip.com,
+        Steen.Hegelund@microchip.com, UNGLinuxDriver@microchip.com,
+        grygorii.strashko@ti.com, jwi@linux.ibm.com, kgraul@linux.ibm.com,
+        hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com,
+        jianbol@nvidia.com, vladbu@nvidia.com,
+        bjarni.jonasson@microchip.com, vigneshr@ti.com,
+        tobias@waldekranz.com, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux@armlinux.org.uk, idosch@idosch.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Dave Gerlach <d-gerlach@ti.com>
+Hello:
 
-[ Upstream commit 20a6b3fd8e2e2c063b25fbf2ee74d86b898e5087 ]
+This patch was applied to netdev/net.git (refs/heads/master):
 
-Based on the latest timing specifications for the TPS65218 from the data
-sheet, http://www.ti.com/lit/ds/symlink/tps65218.pdf, document SLDS206
-from November 2014, we must change the i2c bus speed to better fit within
-the minimum high SCL time required for proper i2c transfer.
+On Tue, 10 Aug 2021 14:50:24 +0300 you wrote:
+> The blamed commit a new field to struct switchdev_notifier_fdb_info, but
+> did not make sure that all call paths set it to something valid. For
+> example, a switchdev driver may emit a SWITCHDEV_FDB_ADD_TO_BRIDGE
+> notifier, and since the 'is_local' flag is not set, it contains junk
+> from the stack, so the bridge might interpret those notifications as
+> being for local FDB entries when that was not intended.
+> 
+> [...]
 
-When running at 400khz, measurements show that SCL spends
-0.8125 uS/1.666 uS high/low which violates the requirement for minimum
-high period of SCL provided in datasheet Table 7.6 which is 1 uS.
-Switching to 100khz gives us 5 uS/5 uS high/low which both fall above
-the minimum given values for 100 khz, 4.0 uS/4.7 uS high/low.
+Here is the summary with links:
+  - [v2,net] net: switchdev: zero-initialize struct switchdev_notifier_fdb_info emitted by drivers towards the bridge
+    https://git.kernel.org/netdev/net/c/c35b57ceff90
 
-Without this patch occasionally a voltage set operation from the kernel
-will appear to have worked but the actual voltage reflected on the PMIC
-will not have updated, causing problems especially with cpufreq that may
-update to a higher OPP without actually raising the voltage on DCDC2,
-leading to a hang.
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index a74b09f17a1a..e7cd99793bc6 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -411,7 +411,7 @@ &i2c0 {
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c0_pins>;
--	clock-frequency = <400000>;
-+	clock-frequency = <100000>;
- 
- 	tps65218: tps65218@24 {
- 		reg = <0x24>;
--- 
-2.30.2
 
