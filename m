@@ -2,106 +2,114 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83714C4320A
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 13:08:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22271C4338F
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 13:25:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6279D60EBB
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 13:08:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E837F61019
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Aug 2021 13:25:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239178AbhHJNIt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Aug 2021 09:08:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238793AbhHJNIs (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2021 09:08:48 -0400
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B935AC0613D3;
-        Tue, 10 Aug 2021 06:08:26 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id e19so35299192ejs.9;
-        Tue, 10 Aug 2021 06:08:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=xs/+O7rAz0hyKzsctUcio2WQZUKn46iac13X1YxyLOs=;
-        b=HCCl7rgFmcy3zKwIxkaZ/SBUd8zqPrb094075z1tmOI4VPtPFJxydk1aoQ4B2mcRJ2
-         cQbJUQDbzcm1dkhCvmLco8Me5ubngY8nbgtYF0sJ4eL85zbQyFqLGyp/ySVX1oMF/iSG
-         vbjIbxMCaeikvl+bgs/I6KvQSlwON8h6QIJ/y4JkTJzU3UePnUxBhQOh1L7I7o6lC6Va
-         ajSBOfrGIA0UG06ic10DngwwBxhWDA2POkbpQH93j60p7JEWn4jt32GvxfG2iNSy4hfj
-         yyCxV6P1vKnmRiuGGEdWGMZQPJ5OaIGrTF36KT7jCgkXxKcljAlP0sCWBR/x3nM56IYM
-         tq6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=xs/+O7rAz0hyKzsctUcio2WQZUKn46iac13X1YxyLOs=;
-        b=H3uO4uX3kTzkyDqsI6ddJbwdtQ5lQL+5yR9AaGTABOvQqiWqC6881CxtuyfW90vwKg
-         Pd0xAdu9HKfusKypLX2RTIba4WeYUe3t8Z62/85XeXxQzvHm6Jz6TIpJacgJD1ajaIAt
-         F/pHvixOkWZS0d1D+Pcn0dgDKh81sB1l7hkGe1ayWUjhgQbX5CaTGSmurI4epFQ8iSXb
-         JjD/cvQgJuA5MG991EpQBD2WYeA/9egyxS3e4R4Ze/SCuTWlYBg4RI07ZWdteNON15Il
-         rDMQwPiBRqIIK85oTQ2uY//atSLvBBxT677/Sg9TGtMdapQSnuO+hHj0h/a3q+EAFkwI
-         nltA==
-X-Gm-Message-State: AOAM531SegdyiacFQIUb8leS8bsyYS9U3zWeZTbi8FvEUBrZSiM/Rwxk
-        cb3VbqIMO/h8EQl1SNToMLE=
-X-Google-Smtp-Source: ABdhPJwUr/73rEkMhaIveh98iMIskFOJfJbfcePSx7fWzOrGY6Gd0FewqY2WalFFgiQ4kd1+ecE4PA==
-X-Received: by 2002:a17:906:dfe5:: with SMTP id lc5mr27153744ejc.20.1628600905375;
-        Tue, 10 Aug 2021 06:08:25 -0700 (PDT)
-Received: from skbuf ([188.25.144.60])
-        by smtp.gmail.com with ESMTPSA id b25sm9645288edv.9.2021.08.10.06.08.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Aug 2021 06:08:24 -0700 (PDT)
-Date:   Tue, 10 Aug 2021 16:08:21 +0300
-From:   Vladimir Oltean <olteanv@gmail.com>
-To:     Karsten Graul <kgraul@linux.ibm.com>
-Cc:     Vladimir Oltean <vladimir.oltean@nxp.com>, netdev@vger.kernel.org,
-        Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Vadym Kochan <vkochan@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Jiri Pirko <jiri@nvidia.com>, Ido Schimmel <idosch@nvidia.com>,
-        Lars Povlsen <lars.povlsen@microchip.com>,
-        Steen Hegelund <Steen.Hegelund@microchip.com>,
-        UNGLinuxDriver@microchip.com,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Julian Wiedmann <jwi@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Jianbo Liu <jianbol@nvidia.com>,
-        Vlad Buslov <vladbu@nvidia.com>,
-        Bjarni Jonasson <bjarni.jonasson@microchip.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-s390@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        Ido Schimmel <idosch@idosch.org>
-Subject: Re: [PATCH v2 net] net: switchdev: zero-initialize struct
- switchdev_notifier_fdb_info emitted by drivers towards the bridge
-Message-ID: <20210810130821.7gdngordzzxkpws3@skbuf>
-References: <20210810115024.1629983-1-vladimir.oltean@nxp.com>
- <dfa98bf7-cab4-4076-ef5f-880a8baa89ee@linux.ibm.com>
+        id S241348AbhHJN0E (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Aug 2021 09:26:04 -0400
+Received: from foss.arm.com ([217.140.110.172]:55352 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S241448AbhHJNZn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 10 Aug 2021 09:25:43 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 350041FB;
+        Tue, 10 Aug 2021 06:25:21 -0700 (PDT)
+Received: from [10.57.9.181] (unknown [10.57.9.181])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 8EF013F70D;
+        Tue, 10 Aug 2021 06:25:16 -0700 (PDT)
+Subject: Re: [PATCH 0/8] cpufreq: Auto-register with energy model
+To:     Quentin Perret <qperret@google.com>
+Cc:     Viresh Kumar <viresh.kumar@linaro.org>,
+        Rafael Wysocki <rjw@rjwysocki.net>,
+        Vincent Donnefort <vincent.donnefort@arm.com>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Cristian Marussi <cristian.marussi@arm.com>,
+        Fabio Estevam <festevam@gmail.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>, linux-pm@vger.kernel.org,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org
+References: <cover.1628579170.git.viresh.kumar@linaro.org>
+ <YRJym+Vn4bbwQzzs@google.com>
+From:   Lukasz Luba <lukasz.luba@arm.com>
+Message-ID: <af06b333-3d8a-807c-9ccb-d491d6a54930@arm.com>
+Date:   Tue, 10 Aug 2021 14:25:15 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dfa98bf7-cab4-4076-ef5f-880a8baa89ee@linux.ibm.com>
+In-Reply-To: <YRJym+Vn4bbwQzzs@google.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Aug 10, 2021 at 02:41:48PM +0200, Karsten Graul wrote:
-> On 10/08/2021 13:50, Vladimir Oltean wrote:
-> > The blamed commit a new field to struct switchdev_notifier_fdb_info, but
->                   ^^^ added?
 
-yes. but I won't send a v3 just for that. thanks for noticing.
+
+On 8/10/21 1:35 PM, Quentin Perret wrote:
+> On Tuesday 10 Aug 2021 at 13:06:47 (+0530), Viresh Kumar wrote:
+>> Provide a cpufreq driver flag so drivers can ask the cpufreq core to register
+>> with the EM core on their behalf.
+> 
+> Hmm, that's not quite what this does. This asks the cpufreq core to
+> use *PM_OPP* to register an EM, which I think is kinda wrong to do from
+> there IMO. The decision to use PM_OPP or another mechanism to register
+> an EM belongs to platform specific code (drivers), so it is odd for the
+> PM_OPP registration to have its own cpufreq flag but not the other ways.
+> 
+> As mentioned in another thread, the very reason to have PM_EM is to not
+> depend on PM_OPP, so I'm worried about the direction of travel with this
+> series TBH.
+> 
+>> This allows us to get rid of duplicated code
+>> in the drivers and fix the unregistration part as well, which none of the
+>> drivers have done until now.
+> 
+> This series adds more code than it removes, and the unregistration is
+> not a fix as we don't ever remove the EM tables by design, so not sure
+> either of these points are valid arguments.
+> 
+>> This would also make the registration with EM core to happen only after policy
+>> is fully initialized, and the EM core can do other stuff from in there, like
+>> marking frequencies as inefficient (WIP). Though this patchset is useful without
+>> that work being done and should be merged nevertheless.
+>>
+>> This doesn't update scmi cpufreq driver for now as it is a special case and need
+>> to be handled differently. Though we can make it work with this if required.
+> 
+> Note that we'll have more 'special cases' if other architectures start
+> using PM_EM, which is what we have been trying to allow since the
+> beginning, so that's worth keeping in mind.
+> 
+
+The way I see this is that the flag in cpufreq avoids
+mistakes potentially made by driver developer. It will automaticaly
+register the *simple* EM model via dev_pm_opp_of_register_em() on behalf
+of drivers (which is already done manually by drivers). The developer
+would just set the flag similarly to CPUFREQ_IS_COOLING_DEV and be sure
+it will register at the right time. Well tested flag approach should be
+safer, easier to understand, maintain.
+
+If there is a need for *advanced* EM model, driver developer would
+have to care about all these things (order, setup-ready-structures,
+fw channels, freeing, etc) while developing custom registration.
+The developer won't set this flag in such case, so the core won't
+try to auto register the EM for that driver.
+
+I don't see the dependency of PM_EM on PM_OPP in this series.
