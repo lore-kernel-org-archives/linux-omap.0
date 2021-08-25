@@ -7,24 +7,24 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F40AFC25AEF
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:34:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CB51C25AF3
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:34:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E961C610A4
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:34:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1ED2661100
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:34:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241963AbhHYPfl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S241973AbhHYPfl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Wed, 25 Aug 2021 11:35:41 -0400
-Received: from mslow1.mail.gandi.net ([217.70.178.240]:55019 "EHLO
+Received: from mslow1.mail.gandi.net ([217.70.178.240]:50191 "EHLO
         mslow1.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241911AbhHYPfh (ORCPT
+        with ESMTP id S241906AbhHYPfh (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2021 11:35:37 -0400
 Received: from relay6-d.mail.gandi.net (unknown [217.70.183.198])
-        by mslow1.mail.gandi.net (Postfix) with ESMTP id 4D66DCB3A3;
-        Wed, 25 Aug 2021 15:26:44 +0000 (UTC)
+        by mslow1.mail.gandi.net (Postfix) with ESMTP id 5BC8EC6994;
+        Wed, 25 Aug 2021 15:26:42 +0000 (UTC)
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id EC168C0016;
-        Wed, 25 Aug 2021 15:26:19 +0000 (UTC)
+        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id E8FC9C0018;
+        Wed, 25 Aug 2021 15:26:15 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -41,9 +41,9 @@ Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         linux-input@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-clk@vger.kernel.org,
         Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: [PATCH 29/40] mfd: ti_am335x_tscadc: Support the correctly spelled DT property
-Date:   Wed, 25 Aug 2021 17:25:07 +0200
-Message-Id: <20210825152518.379386-30-miquel.raynal@bootlin.com>
+Subject: [PATCH 27/40] mfd: ti_am335x_tscadc: Move control register configuration
+Date:   Wed, 25 Aug 2021 17:25:05 +0200
+Message-Id: <20210825152518.379386-28-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210825152518.379386-1-miquel.raynal@bootlin.com>
 References: <20210825152518.379386-1-miquel.raynal@bootlin.com>
@@ -54,37 +54,40 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-There was in the past a typo in the coordinate readouts property. The
-bindings have been updated, the touchscreen driver as well and now
-supports both. However, the MFD driver that is in charge of verifying
-the validity of the property only checks the bogus one. Add support for
-the correctly spelled DT property.
+The datasheet states that most of the configuration should be set in the
+control register in the first place, before actually enabling the
+hardware. So far only half of the configuration was made in the first
+step, which does not make really sense and would complicating the code
+when introducing support for the am437x hardware.
 
-Fixes: c9aeb249bf72 ("Input: ti_am335x_tsc - fix spelling mistake in TSC/ADC DT binding")
+Let's move that register write a bit below to enclose more configuration.
+
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
 ---
- drivers/mfd/ti_am335x_tscadc.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/mfd/ti_am335x_tscadc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index f4f6b9db4d2a..0bd260edc9ad 100644
+index a40091830cea..1a30610dc65f 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -143,7 +143,13 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+@@ -224,7 +224,6 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	tscadc->ctrl = CNTRLREG_STEPID;
  	if (tscadc->data->has_tsc) {
- 		node = of_get_child_by_name(pdev->dev.of_node, "tsc");
- 		of_property_read_u32(node, "ti,wires", &tscmag_wires);
--		of_property_read_u32(node, "ti,coordiante-readouts", &readouts);
-+		err = of_property_read_u32(node, "ti,coordinate-readouts",
-+					   &readouts);
-+		if (err < 0) {
-+			err = of_property_read_u32(node, "ti,coordiante-readouts",
-+						   &readouts);
-+		}
+ 		tscadc->ctrl |= CNTRLREG_TSC_STEPCONFIGWRT;
+-		regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl);
+ 		if (use_tsc) {
+ 			tscadc->ctrl |= CNTRLREG_TSC_ENB;
+ 			if (tscmag_wires == 5)
+@@ -235,6 +234,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 
+ 	}
+ 
++	regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl);
 +
- 		if (tscmag_wires)
- 			use_tsc = true;
- 	} else {
+ 	tscadc_idle_config(tscadc);
+ 
+ 	/* Enable the TSC module enable bit */
 -- 
 2.27.0
 
