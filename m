@@ -2,130 +2,109 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1398C2D0C3
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:35:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8658C432BE
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 22:19:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB0C8610A4
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:35:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A04AA61008
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 22:19:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241953AbhHYPfu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 25 Aug 2021 11:35:50 -0400
-Received: from mslow1.mail.gandi.net ([217.70.178.240]:37095 "EHLO
-        mslow1.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241957AbhHYPfl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2021 11:35:41 -0400
-Received: from relay6-d.mail.gandi.net (unknown [217.70.183.198])
-        by mslow1.mail.gandi.net (Postfix) with ESMTP id 651C6C0953;
-        Wed, 25 Aug 2021 15:27:04 +0000 (UTC)
-Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id AAADEC000F;
-        Wed, 25 Aug 2021 15:26:40 +0000 (UTC)
-From:   Miquel Raynal <miquel.raynal@bootlin.com>
-To:     Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Rob Herring <robh+dt@kernel.org>,
-        Lee Jones <lee.jones@linaro.org>, bcousson@baylibre.com,
+        id S229890AbhHYWU1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 25 Aug 2021 18:20:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36712 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229684AbhHYWU1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2021 18:20:27 -0400
+Received: from mail-pl1-x629.google.com (mail-pl1-x629.google.com [IPv6:2607:f8b0:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 320DAC061757
+        for <linux-omap@vger.kernel.org>; Wed, 25 Aug 2021 15:19:41 -0700 (PDT)
+Received: by mail-pl1-x629.google.com with SMTP id c4so431033plh.7
+        for <linux-omap@vger.kernel.org>; Wed, 25 Aug 2021 15:19:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=pdp7-com.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7y91ZZBFmSi3o3CDJ8D/muM7G6GHXmZrIVUvgWSiFNA=;
+        b=hWNx527ojuNThiL2YMY3rZod4+Absf8DJSeJjrO49nLpWRQI3m+2ekATsn8sTS93FX
+         bP0o8PIavWDxSLI3bRSZktmWzndwZiI90kzxMrP9uHAgWqR0d2bOyh9RCv3XVtdJ/4lz
+         bdKPDdq6Kx+RE9e6mHbWeAB12Z8PZA+Ve8m64+iGU/vsieXsR1gM66yOi6YQU5YU0IQe
+         ASa1i20ApqlFz/d70s/KFEJA+Gd12HXD68b8yzVDisF4e8ME2vM3rhjInw5bZ/pDzmcy
+         sgxAK5JIMKW15oFwHPvczE5PyFryxpuWEV1qogUMASSO6foCfQlgQexK7dIE1oP++Ahd
+         CzFQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7y91ZZBFmSi3o3CDJ8D/muM7G6GHXmZrIVUvgWSiFNA=;
+        b=knjY3qgHGysIGHN/XujmmI84dEq7T/cYV5MVBLDzOQCUH82V0+gUfWva9iedLXq5Dt
+         2eZxBeiXwOO3uRMQWKTBIdXqzKOaP0g8yfhUeVrReJMClhT544dZQBQrTuXplW5028i9
+         GlUbarKUntfv4dW774ZNJIv4nOl/v1mh2/WXuse/FxE8pd0+DWPKupCYYcWUmveMQOH5
+         urrHUK2W8PA9yJchE6LMTooCqDXcWy375Dwgu6ObP24edIL/5lPsNokb7twj3iigRNGV
+         cVdWg8YdrWQBsDs8RXa1j43i7HEitwUAG1j39gAAzGpSH9YSfd8SSkjV6a8ANYk+ZuU9
+         iuPQ==
+X-Gm-Message-State: AOAM530jHGtTEm9qWvULdK1VrdaJTkjBByowkkpzS78UTl2bNhHIDOGz
+        W8J2KIBh/Jl2rEuIl8PYbuVdLg==
+X-Google-Smtp-Source: ABdhPJx3ajUGrJMkfstuFqFPcxHSkqyvquMO1us6MWW98soyBM8Kd3/DJQ6RnBTpANpt4pJ8qmtAaQ==
+X-Received: by 2002:a17:902:e8ce:b0:132:b140:9540 with SMTP id v14-20020a170902e8ce00b00132b1409540mr678239plg.28.1629929980596;
+        Wed, 25 Aug 2021 15:19:40 -0700 (PDT)
+Received: from localhost.localdomain ([174.127.163.79])
+        by smtp.gmail.com with ESMTPSA id n1sm969527pgt.63.2021.08.25.15.19.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 25 Aug 2021 15:19:40 -0700 (PDT)
+From:   Drew Fustini <drew@pdp7.com>
+To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>,
-        Tero Kristo <t-kristo@ti.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>
-Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        "Ryan J . Barnett" <ryan.barnett@collins.com>,
-        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-clk@vger.kernel.org,
-        Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: [PATCH 39/40] ARM: dts: am43xx: Describe the magnetic reader/ADC1 hardware module
-Date:   Wed, 25 Aug 2021 17:25:17 +0200
-Message-Id: <20210825152518.379386-40-miquel.raynal@bootlin.com>
+        Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Drew Fustini <drew@pdp7.com>
+Subject: [PATCH] ARM: dts: am335x-pocketbeagle: switch to pinconf-single
+Date:   Wed, 25 Aug 2021 13:25:19 -0700
+Message-Id: <20210825202516.1384510-1-drew@pdp7.com>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20210825152518.379386-1-miquel.raynal@bootlin.com>
-References: <20210825152518.379386-1-miquel.raynal@bootlin.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This hardware module is close to the am33xx ADC module but instead of
-featuring a touchscreen it has a magnetic reader capability.
+Switch the compatible for the am33xx_pinmux pin controller node from
+pinctrl-single to pinconf-single. The only change between these two
+compatibles is that PCS_HAS_PINCONF will be true. This then allows
+pinconf properties to be utilized.
 
-Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+The purpose of this change is to allow the PocketBeagle to use:
+
+  pinctrl-single,bias-pullup
+  pinctrl-single,bias-pulldown
+
+This dts already defines these properites for gpio pins in the default
+pinctrl state but it has no effect unless PCS_HAS_PINCONF is set.
+
+The bias properties can then be modified on the corresponding gpio lines
+through the gpiod uapi. The mapping between the pins and gpio lines is
+defined by gpio-ranges under the gpio controller nodes in am33xx-l4.dtsi
+
+Signed-off-by: Drew Fustini <drew@pdp7.com>
 ---
- arch/arm/boot/dts/am437x-l4.dtsi     | 31 ++++++++++++++++++++++++++--
- arch/arm/boot/dts/am43xx-clocks.dtsi |  7 +++++++
- 2 files changed, 36 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am335x-pocketbeagle.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
-index 40ef3973f2a9..cc01b4e83955 100644
---- a/arch/arm/boot/dts/am437x-l4.dtsi
-+++ b/arch/arm/boot/dts/am437x-l4.dtsi
-@@ -2378,11 +2378,38 @@ hdq: hdq@0 {
- 		};
+diff --git a/arch/arm/boot/dts/am335x-pocketbeagle.dts b/arch/arm/boot/dts/am335x-pocketbeagle.dts
+index 209cdd17dc1e..5e415d8ffdd8 100644
+--- a/arch/arm/boot/dts/am335x-pocketbeagle.dts
++++ b/arch/arm/boot/dts/am335x-pocketbeagle.dts
+@@ -205,6 +205,7 @@ &gpio3 {
  
- 		target-module@4c000 {			/* 0x4834c000, ap 114 72.0 */
--			compatible = "ti,sysc";
--			status = "disabled";
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			reg = <0x4c000 0x4>,
-+			      <0x4c010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_NO>,
-+					<SYSC_IDLE_SMART>;
-+			clocks = <&l3s_clkctrl AM4_L3S_ADC1_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x4c000 0x2000>;
-+
-+			magadc: magadc@0 {
-+				compatible = "ti,am4372-magadc";
-+				reg = <0x0 0x2000>;
-+				interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&adc_mag_fck>;
-+				clock-names = "fck";
-+				dmas = <&edma 54 0>, <&edma 55 0>;;
-+				dma-names = "fifo0", "fifo1";
-+				status = "disabled";
-+
-+				mag {
-+					compatible = "ti,am4372-mag";
-+				};
-+
-+				adc {
-+					#io-channel-cells = <1>;
-+					compatible ="ti,am4372-adc";
-+				};
-+			};
- 		};
+ &am33xx_pinmux {
  
- 		target-module@80000 {			/* 0x48380000, ap 123 42.0 */
-diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-index 314fc5975acb..66e892fa3398 100644
---- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-@@ -444,6 +444,13 @@ wdt1_fck: wdt1_fck@422c {
- 		reg = <0x422c>;
- 	};
++	compatible = "pinconf-single";
+ 	pinctrl-names = "default";
  
-+	adc_mag_fck: adc_mag_fck@424c {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sys_clkin_ck>, <&dpll_per_m2_ck>;
-+		reg = <0x424c>;
-+	};
-+
- 	l3_gclk: l3_gclk {
- 		#clock-cells = <0>;
- 		compatible = "fixed-factor-clock";
+ 	pinctrl-0 =   < &P2_03_gpio &P1_34_gpio &P2_19_gpio &P2_24_gpio
 -- 
 2.27.0
 
