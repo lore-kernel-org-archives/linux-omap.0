@@ -7,24 +7,24 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFE26C25AE9
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:32:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B39CC43214
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:32:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9640610A4
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:32:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13E0661153
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:32:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240102AbhHYPdD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 25 Aug 2021 11:33:03 -0400
-Received: from mslow1.mail.gandi.net ([217.70.178.240]:38145 "EHLO
+        id S241722AbhHYPdN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 25 Aug 2021 11:33:13 -0400
+Received: from mslow1.mail.gandi.net ([217.70.178.240]:43743 "EHLO
         mslow1.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241566AbhHYPdC (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2021 11:33:02 -0400
+        with ESMTP id S241741AbhHYPdM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2021 11:33:12 -0400
 Received: from relay6-d.mail.gandi.net (unknown [217.70.183.198])
-        by mslow1.mail.gandi.net (Postfix) with ESMTP id 6FFF5C88D6;
-        Wed, 25 Aug 2021 15:26:07 +0000 (UTC)
+        by mslow1.mail.gandi.net (Postfix) with ESMTP id 30208C5687;
+        Wed, 25 Aug 2021 15:26:09 +0000 (UTC)
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 4DB48C0013;
-        Wed, 25 Aug 2021 15:25:41 +0000 (UTC)
+        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 66DCBC000C;
+        Wed, 25 Aug 2021 15:25:45 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -41,9 +41,9 @@ Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         linux-input@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-clk@vger.kernel.org,
         Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: [PATCH 10/40] mfd: ti_am335x_tscadc: Drop extra spacing when declaring stack variables
-Date:   Wed, 25 Aug 2021 17:24:48 +0200
-Message-Id: <20210825152518.379386-11-miquel.raynal@bootlin.com>
+Subject: [PATCH 12/40] mfd: ti_am335x_tscadc: Move the driver structure allocation earlier
+Date:   Wed, 25 Aug 2021 17:24:50 +0200
+Message-Id: <20210825152518.379386-13-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210825152518.379386-1-miquel.raynal@bootlin.com>
 References: <20210825152518.379386-1-miquel.raynal@bootlin.com>
@@ -54,75 +54,46 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Many variables will be updated (renamed, dropped, added) in the upcoming
-changes, so let's simplify the style to avoid messing with spaces over
-and over again.
+Allocating the driver structure should be done earlier in the probe so
+that we can used its members from the beginning.
 
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
 ---
- drivers/mfd/ti_am335x_tscadc.c | 28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ drivers/mfd/ti_am335x_tscadc.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index 540c6dcef541..f0824732badf 100644
+index 8e86b766b619..0fef35e1e64b 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -113,18 +113,16 @@ static void tscadc_idle_config(struct ti_tscadc_dev *tscadc)
+@@ -124,6 +124,13 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	int tsc_wires = 0, adc_channels = 0, readouts = 0;
+ 	int total_channels, clock_rate, ctrl, err;
  
- static	int ti_tscadc_probe(struct platform_device *pdev)
- {
--	struct ti_tscadc_dev	*tscadc;
--	struct resource		*res;
--	struct clk		*clk;
--	struct device_node	*node;
--	struct mfd_cell		*cell;
--	struct property         *prop;
--	const __be32            *cur;
--	u32			val;
--	int			err, ctrl;
--	int			clock_rate;
--	int			tsc_wires = 0, adc_channels = 0, total_channels;
--	int			readouts = 0;
-+	struct ti_tscadc_dev *tscadc;
-+	struct device_node *node;
-+	struct property *prop;
-+	struct mfd_cell *cell;
-+	struct resource *res;
-+	const __be32 *cur;
-+	struct clk *clk;
-+	u32 val;
-+	int tsc_wires = 0, adc_channels = 0, readouts = 0;
-+	int total_channels, clock_rate, ctrl, err;
- 
++	/* Allocate memory for device */
++	tscadc = devm_kzalloc(&pdev->dev, sizeof(*tscadc), GFP_KERNEL);
++	if (!tscadc)
++		return -ENOMEM;
++
++	tscadc->dev = &pdev->dev;
++
  	if (!pdev->dev.of_node) {
  		dev_err(&pdev->dev, "Could not find valid DT data.\n");
-@@ -278,7 +276,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+@@ -159,13 +166,6 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
  
- static int ti_tscadc_remove(struct platform_device *pdev)
- {
--	struct ti_tscadc_dev	*tscadc = platform_get_drvdata(pdev);
-+	struct ti_tscadc_dev *tscadc = platform_get_drvdata(pdev);
- 
- 	regmap_write(tscadc->regmap, REG_SE, 0x00);
- 
-@@ -297,7 +295,7 @@ static int __maybe_unused ti_tscadc_can_wakeup(struct device *dev, void *data)
- 
- static int __maybe_unused tscadc_suspend(struct device *dev)
- {
--	struct ti_tscadc_dev	*tscadc = dev_get_drvdata(dev);
-+	struct ti_tscadc_dev *tscadc = dev_get_drvdata(dev);
- 
- 	regmap_write(tscadc->regmap, REG_SE, 0x00);
- 	if (device_for_each_child(dev, NULL, ti_tscadc_can_wakeup)) {
-@@ -315,7 +313,7 @@ static int __maybe_unused tscadc_suspend(struct device *dev)
- 
- static int __maybe_unused tscadc_resume(struct device *dev)
- {
--	struct ti_tscadc_dev	*tscadc = dev_get_drvdata(dev);
-+	struct ti_tscadc_dev *tscadc = dev_get_drvdata(dev);
- 	u32 ctrl;
- 
- 	pm_runtime_get_sync(dev);
+-	/* Allocate memory for device */
+-	tscadc = devm_kzalloc(&pdev->dev, sizeof(*tscadc), GFP_KERNEL);
+-	if (!tscadc)
+-		return -ENOMEM;
+-
+-	tscadc->dev = &pdev->dev;
+-
+ 	err = platform_get_irq(pdev, 0);
+ 	if (err < 0) {
+ 		dev_err(&pdev->dev, "no irq ID is specified.\n");
 -- 
 2.27.0
 
