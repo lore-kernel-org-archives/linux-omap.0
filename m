@@ -7,24 +7,24 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C41FC00144
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:31:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7C98C43214
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:32:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91A19610A4
-	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:31:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1125610A4
+	for <linux-omap@archiver.kernel.org>; Wed, 25 Aug 2021 15:32:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241614AbhHYPcn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 25 Aug 2021 11:32:43 -0400
-Received: from mslow1.mail.gandi.net ([217.70.178.240]:55557 "EHLO
+        id S241593AbhHYPdC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 25 Aug 2021 11:33:02 -0400
+Received: from mslow1.mail.gandi.net ([217.70.178.240]:37723 "EHLO
         mslow1.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240869AbhHYPcm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2021 11:32:42 -0400
+        with ESMTP id S240869AbhHYPdB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2021 11:33:01 -0400
 Received: from relay6-d.mail.gandi.net (unknown [217.70.183.198])
-        by mslow1.mail.gandi.net (Postfix) with ESMTP id 73F43CA51B;
-        Wed, 25 Aug 2021 15:26:03 +0000 (UTC)
+        by mslow1.mail.gandi.net (Postfix) with ESMTP id 4D9E9C5ECD;
+        Wed, 25 Aug 2021 15:26:07 +0000 (UTC)
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 53F77C000A;
-        Wed, 25 Aug 2021 15:25:39 +0000 (UTC)
+        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 6BB5BC000E;
+        Wed, 25 Aug 2021 15:25:43 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -41,9 +41,9 @@ Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         linux-input@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-clk@vger.kernel.org,
         Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: [PATCH 09/40] mfd: ti_am335x_tscadc: Fix style
-Date:   Wed, 25 Aug 2021 17:24:47 +0200
-Message-Id: <20210825152518.379386-10-miquel.raynal@bootlin.com>
+Subject: [PATCH 11/40] mfd: ti_am335x_tscadc: Get rid of useless gotos
+Date:   Wed, 25 Aug 2021 17:24:49 +0200
+Message-Id: <20210825152518.379386-12-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210825152518.379386-1-miquel.raynal@bootlin.com>
 References: <20210825152518.379386-1-miquel.raynal@bootlin.com>
@@ -54,57 +54,45 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-These are mostly deffects reported by checkpatch.pl.
+Gotos jumping to a return statement are not really useful, drop them.
 
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
 ---
- drivers/mfd/ti_am335x_tscadc.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/mfd/ti_am335x_tscadc.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index 45262ca7734a..540c6dcef541 100644
+index f0824732badf..8e86b766b619 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -140,15 +140,17 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 		adc_channels++;
- 		if (val > 7) {
- 			dev_err(&pdev->dev, " PIN numbers are 0..7 (not %d)\n",
--					val);
-+				val);
- 			return -EINVAL;
- 		}
- 	}
-+
- 	total_channels = tsc_wires + adc_channels;
- 	if (total_channels > 8) {
- 		dev_err(&pdev->dev, "Number of i/p channels more than 8\n");
- 		return -EINVAL;
- 	}
-+
- 	if (total_channels == 0) {
- 		dev_err(&pdev->dev, "Need atleast one channel.\n");
- 		return -EINVAL;
-@@ -170,8 +172,9 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+@@ -169,7 +169,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	err = platform_get_irq(pdev, 0);
  	if (err < 0) {
  		dev_err(&pdev->dev, "no irq ID is specified.\n");
- 		goto ret;
--	} else
-+	} else {
+-		goto ret;
++		return err;
+ 	} else {
  		tscadc->irq = err;
-+	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	tscadc->tscadc_base = devm_ioremap_resource(&pdev->dev, res);
-@@ -180,7 +183,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 
- 	tscadc->tscadc_phys_base = res->start;
- 	tscadc->regmap = devm_regmap_init_mmio(&pdev->dev,
--			tscadc->tscadc_base, &tscadc_regmap_config);
-+					       tscadc->tscadc_base,
-+					       &tscadc_regmap_config);
+ 	}
+@@ -185,8 +185,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 					       &tscadc_regmap_config);
  	if (IS_ERR(tscadc->regmap)) {
  		dev_err(&pdev->dev, "regmap init failed\n");
- 		err = PTR_ERR(tscadc->regmap);
+-		err = PTR_ERR(tscadc->regmap);
+-		goto ret;
++		return PTR_ERR(tscadc->regmap);
+ 	}
+ 
+ 	spin_lock_init(&tscadc->reg_lock);
+@@ -270,7 +269,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ err_disable_clk:
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-ret:
++
+ 	return err;
+ }
+ 
 -- 
 2.27.0
 
