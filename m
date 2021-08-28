@@ -2,104 +2,76 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD293C4320A
-	for <linux-omap@archiver.kernel.org>; Thu, 26 Aug 2021 13:26:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A6F6C432BE
+	for <linux-omap@archiver.kernel.org>; Sat, 28 Aug 2021 08:55:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A42FE60EE0
-	for <linux-omap@archiver.kernel.org>; Thu, 26 Aug 2021 13:26:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D57860EBD
+	for <linux-omap@archiver.kernel.org>; Sat, 28 Aug 2021 08:55:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242739AbhHZN1I (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 26 Aug 2021 09:27:08 -0400
-Received: from mail-oi1-f171.google.com ([209.85.167.171]:45647 "EHLO
-        mail-oi1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242697AbhHZN0y (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2021 09:26:54 -0400
-Received: by mail-oi1-f171.google.com with SMTP id q39so4459904oiw.12;
-        Thu, 26 Aug 2021 06:26:05 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:in-reply-to:references:subject:date
-         :message-id;
-        bh=qufLi4mKRTkscRC7vpQ3Mm2vfDa/EHLDpUYXZ1BfFnY=;
-        b=Asgua0W+6M4TBG0DWlXPZ/LMCWX9Fk8pVD/at1y4/cx9loTXNSRkpljdYN4oYNaICw
-         Lq93ZBKJNKoyx2KICwdzbqANhZca63RnF3QbsTYTFBi/If9Whm73PXIpN9IMgF5dmAG2
-         9tagoCoapd+ni9dQh7XsrdCuFRKyZ0dbVObJJHXhUDVe8+ddur/TYWuJ5fWTT4FMbxxb
-         M+kTHVeIxZjL/4W0mpCIiDXaKrVAdbxjnvby3Hb1+L+vEQonMTjNaastbdku5QmfHmvm
-         wTvPYhQEQM03D/tJpu1jm8P3YazPbJJyR1V1Uy5BUUQIU30y6X7IfpAaDsnGXvLta2MP
-         +N8Q==
-X-Gm-Message-State: AOAM530CY1sTyfFixGN/Asqk0Nc/mV1a2I9DXM2x3b1NL2DIlQJ/glX2
-        yWpc8oZizOCpJ66SBPpeSw==
-X-Google-Smtp-Source: ABdhPJyFOyPAhNjI9w6NY4VdLDffLd5xdVg58r0phf4E35lbkQXgJCb8wdzMavL7X+ULwtKTLmeeTg==
-X-Received: by 2002:a05:6808:1513:: with SMTP id u19mr11302474oiw.109.1629984364800;
-        Thu, 26 Aug 2021 06:26:04 -0700 (PDT)
-Received: from robh.at.kernel.org (66-90-148-213.dyn.grandenetworks.net. [66.90.148.213])
-        by smtp.gmail.com with ESMTPSA id r15sm575293oth.7.2021.08.26.06.26.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Aug 2021 06:26:04 -0700 (PDT)
-Received: (nullmailer pid 1033386 invoked by uid 1000);
-        Thu, 26 Aug 2021 13:26:01 -0000
-From:   Rob Herring <robh@kernel.org>
-To:     Roger Quadros <rogerq@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, tony@atomide.com, nm@ti.com,
-        lokeshvutla@ti.com, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org, robh+dt@kernel.org
-In-Reply-To: <20210826085731.15300-1-rogerq@kernel.org>
-References: <20210826085731.15300-1-rogerq@kernel.org>
-Subject: Re: [PATCH] dt-bindings: memory-controllers: ti,gpmc: Convert to yaml
-Date:   Thu, 26 Aug 2021 08:26:01 -0500
-Message-Id: <1629984361.367999.1033385.nullmailer@robh.at.kernel.org>
+        id S233493AbhH1I4R (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 28 Aug 2021 04:56:17 -0400
+Received: from mx21.baidu.com ([220.181.3.85]:51374 "EHLO baidu.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S233446AbhH1I4R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 28 Aug 2021 04:56:17 -0400
+Received: from BC-Mail-Ex06.internal.baidu.com (unknown [172.31.51.46])
+        by Forcepoint Email with ESMTPS id 3D7B5594B4CA4834E692;
+        Sat, 28 Aug 2021 16:55:11 +0800 (CST)
+Received: from BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42) by
+ BC-Mail-Ex06.internal.baidu.com (172.31.51.46) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2242.12; Sat, 28 Aug 2021 16:55:11 +0800
+Received: from LAPTOP-UKSR4ENP.internal.baidu.com (172.31.62.16) by
+ BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2308.14; Sat, 28 Aug 2021 16:55:10 +0800
+From:   Cai Huoqing <caihuoqing@baidu.com>
+To:     <ulf.hansson@linaro.org>, <dianders@chromium.org>
+CC:     <linux-mmc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        Cai Huoqing <caihuoqing@baidu.com>
+Subject: [PATCH] mmc: omap_hsmmc: Make use of the helper macro SET_RUNTIME_PM_OPS()
+Date:   Sat, 28 Aug 2021 16:54:46 +0800
+Message-ID: <20210828085446.1878-1-caihuoqing@baidu.com>
+X-Mailer: git-send-email 2.32.0.windows.2
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [172.31.62.16]
+X-ClientProxiedBy: BC-Mail-Ex18.internal.baidu.com (172.31.51.12) To
+ BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 26 Aug 2021 11:57:31 +0300, Roger Quadros wrote:
-> Convert omap-gpmc.txt to ti,gpmc.yaml.
-> 
-> Signed-off-by: Roger Quadros <rogerq@kernel.org>
-> ---
->  .../bindings/memory-controllers/omap-gpmc.txt | 157 --------
->  .../bindings/memory-controllers/ti,gpmc.yaml  | 360 ++++++++++++++++++
->  2 files changed, 360 insertions(+), 157 deletions(-)
->  delete mode 100644 Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
->  create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti,gpmc.yaml
-> 
+Use the helper macro SET_RUNTIME_PM_OPS() instead of the verbose
+operators ".runtime_suspend/.runtime_resume", because the
+SET_RUNTIME_PM_OPS() is a nice helper macro that could be brought
+in to make code a little clearer, a little more concise.
 
-My bot found errors running 'make DT_CHECKER_FLAGS=-m dt_binding_check'
-on your patch (DT_CHECKER_FLAGS is new in v5.13):
+Signed-off-by: Cai Huoqing <caihuoqing@baidu.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-yamllint warnings/errors:
-
-dtschema/dtc warnings/errors:
-Documentation/devicetree/bindings/memory-controllers/ti,gpmc.example.dt.yaml:0:0: /example-0/memory-controller@50000000/nand-controller@0,0: failed to match any schema with compatible: ['ti,omap2-nand']
-
-doc reference errors (make refcheckdocs):
-Warning: Documentation/devicetree/bindings/mtd/gpmc-nand.txt references a file that doesn't exist: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Warning: Documentation/devicetree/bindings/mtd/gpmc-nor.txt references a file that doesn't exist: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Warning: Documentation/devicetree/bindings/mtd/gpmc-nor.txt references a file that doesn't exist: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Warning: Documentation/devicetree/bindings/mtd/gpmc-onenand.txt references a file that doesn't exist: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Warning: Documentation/devicetree/bindings/net/gpmc-eth.txt references a file that doesn't exist: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Warning: Documentation/devicetree/bindings/net/gpmc-eth.txt references a file that doesn't exist: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Documentation/devicetree/bindings/mtd/gpmc-nand.txt: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Documentation/devicetree/bindings/mtd/gpmc-nor.txt: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Documentation/devicetree/bindings/mtd/gpmc-nor.txt: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Documentation/devicetree/bindings/mtd/gpmc-onenand.txt: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Documentation/devicetree/bindings/net/gpmc-eth.txt: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-Documentation/devicetree/bindings/net/gpmc-eth.txt: Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-
-See https://patchwork.ozlabs.org/patch/1521000
-
-This check can fail if there are any dependencies. The base for a patch
-series is generally the most recent rc1.
-
-If you already ran 'make dt_binding_check' and didn't see the above
-error(s), then make sure 'yamllint' is installed and dt-schema is up to
-date:
-
-pip3 install dtschema --upgrade
-
-Please check and re-submit.
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 2f8038d69f67..748303e14841 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2156,8 +2156,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+ 
+ static const struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(omap_hsmmc_suspend, omap_hsmmc_resume)
+-	.runtime_suspend = omap_hsmmc_runtime_suspend,
+-	.runtime_resume = omap_hsmmc_runtime_resume,
++	SET_RUNTIME_PM_OPS(omap_hsmmc_runtime_suspend, omap_hsmmc_runtime_resume, NULL)
+ };
+ 
+ static struct platform_driver omap_hsmmc_driver = {
+-- 
+2.25.1
 
