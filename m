@@ -2,88 +2,90 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F6B1C43216
-	for <linux-omap@archiver.kernel.org>; Mon, 30 Aug 2021 12:32:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94F0BC432BE
+	for <linux-omap@archiver.kernel.org>; Mon, 30 Aug 2021 12:33:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4669A60F57
-	for <linux-omap@archiver.kernel.org>; Mon, 30 Aug 2021 12:32:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7338460F23
+	for <linux-omap@archiver.kernel.org>; Mon, 30 Aug 2021 12:33:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234334AbhH3Mc4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 30 Aug 2021 08:32:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49054 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234217AbhH3Mcz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 30 Aug 2021 08:32:55 -0400
-Received: from jic23-huawei (cpc108967-cmbg20-2-0-cust86.5-4.cable.virginm.net [81.101.6.87])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 298B360724;
-        Mon, 30 Aug 2021 12:31:55 +0000 (UTC)
-Date:   Mon, 30 Aug 2021 13:35:07 +0100
-From:   Jonathan Cameron <jic23@kernel.org>
-To:     Miquel Raynal <miquel.raynal@bootlin.com>
-Cc:     Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Rob Herring <robh+dt@kernel.org>,
-        Lee Jones <lee.jones@linaro.org>, bcousson@baylibre.com,
-        Tony Lindgren <tony@atomide.com>,
-        Tero Kristo <t-kristo@ti.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        "Ryan J . Barnett" <ryan.barnett@collins.com>,
-        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: Re: [PATCH 07/40] dt-bindings: iio: adc: ti,am3359-adc: Describe
- am4372 ADC compatible
-Message-ID: <20210830133507.407721e0@jic23-huawei>
-In-Reply-To: <20210825152518.379386-8-miquel.raynal@bootlin.com>
-References: <20210825152518.379386-1-miquel.raynal@bootlin.com>
-        <20210825152518.379386-8-miquel.raynal@bootlin.com>
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.30; x86_64-pc-linux-gnu)
+        id S236587AbhH3MeX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 30 Aug 2021 08:34:23 -0400
+Received: from smtpbg127.qq.com ([109.244.180.96]:32466 "EHLO smtpbg.qq.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S232267AbhH3MeX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 30 Aug 2021 08:34:23 -0400
+X-QQ-mid: bizesmtp40t1630326771tm1kaj5x
+Received: from localhost.localdomain (unknown [171.223.99.71])
+        by esmtp6.qq.com (ESMTP) with 
+        id ; Mon, 30 Aug 2021 20:32:48 +0800 (CST)
+X-QQ-SSF: 01000000004000C0D000B00A0000000
+X-QQ-FEAT: ikVgnzmvsa8SxmQ1mguFw4U+Du57XD1NId7DJ3hYvRKitl6EyUueCghgz8fvv
+        QKUHdVrL/kV4wtPmoV3Slb51CeH5ZoXSUzj9J/KcgDIa5AraQX6MtIUEwoZCVXaKn39VNz+
+        iA8TrKZwp3F+3VuvtA0Sp0j4LCkM8BVazT3UwDy4pS6lhbahQ3gP0BZsDTXFk5dBApCWBxg
+        RL7dize42e0pBY08I8lQhS7SAetez70Jy+Cn43HM8Gepn+g3ltp6GUfaZXZalP6ZMH3sARW
+        Xq2PQMQkgObcXAXFUjrSyuyDzWYMjkywTOYm/z0Bc6I+kZUSM6LduBLcNL7rQ2i+XmfxK8l
+        r/6PYsp
+X-QQ-GoodBg: 0
+From:   Jason Wang <wangborong@cdjrlc.com>
+To:     tony@atomide.com
+Cc:     linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jason Wang <wangborong@cdjrlc.com>
+Subject: [PATCH] ARM: OMAP2+: Fix comment typo
+Date:   Mon, 30 Aug 2021 20:31:28 +0800
+Message-Id: <20210830123128.9767-1-wangborong@cdjrlc.com>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:cdjrlc.com:qybgspam:qybgspam1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 25 Aug 2021 17:24:45 +0200
-Miquel Raynal <miquel.raynal@bootlin.com> wrote:
+Remove one of the repeated 'not' in three comments.
 
-> A more recent version of the am3359 ADC is available on certain SoCs of
-> the am437x family. This IP has evolved a little bit and deserves its own
-> compatible.
-> 
-> Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
-> ---
->  Documentation/devicetree/bindings/iio/adc/ti,am3359-adc.yaml | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/iio/adc/ti,am3359-adc.yaml b/Documentation/devicetree/bindings/iio/adc/ti,am3359-adc.yaml
-> index 85d9d642dc67..34743371ee18 100644
-> --- a/Documentation/devicetree/bindings/iio/adc/ti,am3359-adc.yaml
-> +++ b/Documentation/devicetree/bindings/iio/adc/ti,am3359-adc.yaml
-> @@ -11,7 +11,9 @@ maintainers:
->  
->  properties:
->    compatible:
-> -    const: ti,am3359-adc
-> +    oneOf:
-> +      - const: ti,am3359-adc
-> +      - const: ti,am4372-adc
+Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
+---
+ arch/arm/mach-omap2/powerdomain.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-enum
-
-With that change
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
->  
->    '#io-channel-cells':
->      const: 1
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 0a5b87e2a4b0..2d747f6cffe8 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -626,7 +626,7 @@ int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+  * powerdomain @pwrdm will enter when the powerdomain enters retention.
+  * This will be either RETENTION or OFF, if supported.  Returns
+  * -EINVAL if the powerdomain pointer is null or the target power
+- * state is not not supported, or returns 0 upon success.
++ * state is not supported, or returns 0 upon success.
+  */
+ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ {
+@@ -658,7 +658,7 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+  * state.  @bank will be a number from 0 to 3, and represents different
+  * types of memory, depending on the powerdomain.  Returns -EINVAL if
+  * the powerdomain pointer is null or the target power state is not
+- * not supported for this memory bank, -EEXIST if the target memory
++ * supported for this memory bank, -EEXIST if the target memory
+  * bank does not exist or is not controllable, or returns 0 upon
+  * success.
+  */
+@@ -696,7 +696,7 @@ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+  * different types of memory, depending on the powerdomain.  @pwrst
+  * will be either RETENTION or OFF, if supported.  Returns -EINVAL if
+  * the powerdomain pointer is null or the target power state is not
+- * not supported for this memory bank, -EEXIST if the target memory
++ * supported for this memory bank, -EEXIST if the target memory
+  * bank does not exist or is not controllable, or returns 0 upon
+  * success.
+  */
+-- 
+2.33.0
 
