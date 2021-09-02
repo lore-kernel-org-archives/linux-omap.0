@@ -4,24 +4,24 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CDBDC433F5
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7377C433EF
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F9FD61176
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B09A360E8B
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347870AbhIBVyb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:54:31 -0400
-Received: from relay10.mail.gandi.net ([217.70.178.230]:50669 "EHLO
+        id S1347852AbhIBVyH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:54:07 -0400
+Received: from relay10.mail.gandi.net ([217.70.178.230]:33777 "EHLO
         relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347766AbhIBVyS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2021 17:54:18 -0400
+        with ESMTP id S1347835AbhIBVx7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2021 17:53:59 -0400
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay10.mail.gandi.net (Postfix) with ESMTPSA id E670D240007;
-        Thu,  2 Sep 2021 21:53:15 +0000 (UTC)
+        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 41DB3240004;
+        Thu,  2 Sep 2021 21:52:58 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -39,10 +39,11 @@ Cc:     linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
         Ryan Barnett <ryan.barnett@collins.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         Jason Reeder <jreeder@ti.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: [PATCH v2 46/46] ARM: dts: am437x-gp-evm: enable ADC1
-Date:   Thu,  2 Sep 2021 23:51:44 +0200
-Message-Id: <20210902215144.507243-47-miquel.raynal@bootlin.com>
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH v2 37/46] iio: adc: ti_am335x_adc: Replace license text with SPDX tag
+Date:   Thu,  2 Sep 2021 23:51:35 +0200
+Message-Id: <20210902215144.507243-38-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210902215144.507243-1-miquel.raynal@bootlin.com>
 References: <20210902215144.507243-1-miquel.raynal@bootlin.com>
@@ -53,34 +54,37 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-ADC0 and ADC1 pins are available on external connector J22.
-
-Enable ADC1 which was missing.
+Drop the text license and replace it with an equivalent SPDX license tag
+identifier which also matches the MODULE_LICENSE("GPL").
 
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/iio/adc/ti_am335x_adc.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 033b984ff637..2396ff2ae790 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -775,6 +775,14 @@ adc {
- 	};
- };
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 2e86484409c3..7479b3c629e8 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -1,16 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * TI ADC MFD driver
+  *
+  * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com/
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
  
-+&magadc {
-+	status = "okay";
-+
-+	adc {
-+		ti,adc-channels = <0 1 2 3 4 5 6 7>;
-+	};
-+};
-+
- &ecap0 {
- 	status = "okay";
- 	pinctrl-names = "default";
+ #include <linux/kernel.h>
 -- 
 2.27.0
 
