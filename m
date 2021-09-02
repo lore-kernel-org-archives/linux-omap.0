@@ -4,24 +4,24 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41CF9C4321E
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51755C433EF
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 304046113D
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 345A161158
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347754AbhIBVxg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:53:36 -0400
-Received: from relay10.mail.gandi.net ([217.70.178.230]:41929 "EHLO
+        id S1347770AbhIBVxj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:53:39 -0400
+Received: from relay10.mail.gandi.net ([217.70.178.230]:44843 "EHLO
         relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347710AbhIBVxb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2021 17:53:31 -0400
+        with ESMTP id S1347743AbhIBVxf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2021 17:53:35 -0400
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 910F0240007;
-        Thu,  2 Sep 2021 21:52:29 +0000 (UTC)
+        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 6A503240002;
+        Thu,  2 Sep 2021 21:52:33 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -40,9 +40,9 @@ Cc:     linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         Jason Reeder <jreeder@ti.com>,
         Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: [PATCH v2 22/46] mfd: ti_am335x_tscadc: Gather the ctrl register logic in one place
-Date:   Thu,  2 Sep 2021 23:51:20 +0200
-Message-Id: <20210902215144.507243-23-miquel.raynal@bootlin.com>
+Subject: [PATCH v2 24/46] mfd: ti_am335x_tscadc: Fix header spacing
+Date:   Thu,  2 Sep 2021 23:51:22 +0200
+Message-Id: <20210902215144.507243-25-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210902215144.507243-1-miquel.raynal@bootlin.com>
 References: <20210902215144.507243-1-miquel.raynal@bootlin.com>
@@ -53,102 +53,54 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Instead of deriving in the probe and in the resume path the value of the
-ctrl register, let's do it only once in the probe, save the value of
-this register in the driver's structure and use it from the resume
-callback.
+Harmonize the spacing within macro definitions.
 
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
 ---
- drivers/mfd/ti_am335x_tscadc.c       | 33 ++++++++--------------------
- include/linux/mfd/ti_am335x_tscadc.h |  2 +-
- 2 files changed, 10 insertions(+), 25 deletions(-)
+ include/linux/mfd/ti_am335x_tscadc.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index 61f878c7593b..a3ff3cc29318 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -121,7 +121,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	struct property *prop;
- 	const __be32 *cur;
- 	u32 val;
--	int err, ctrl;
-+	int err;
- 	int tsc_wires = 0, adc_channels = 0, cell_idx = 0, total_channels;
- 	int readouts = 0;
- 
-@@ -220,21 +220,20 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	regmap_write(tscadc->regmap, REG_CLKDIV, tscadc->clk_div);
- 
- 	/* Set the control register bits */
--	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
-+	tscadc->ctrl = CNTRLREG_STEPCONFIGWRT | CNTRLREG_STEPID;
- 	if (tsc_wires > 0) {
--		tscadc->tsc_wires = tsc_wires;
-+		tscadc->ctrl |= CNTRLREG_TSCENB;
- 		if (tsc_wires == 5)
--			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
-+			tscadc->ctrl |= CNTRLREG_5WIRE;
- 		else
--			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
-+			tscadc->ctrl |= CNTRLREG_4WIRE;
- 	}
--	regmap_write(tscadc->regmap, REG_CTRL, ctrl);
-+	regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl);
- 
- 	tscadc_idle_config(tscadc);
- 
- 	/* Enable the TSC module enable bit */
--	ctrl |= CNTRLREG_TSCSSENB;
--	regmap_write(tscadc->regmap, REG_CTRL, ctrl);
-+	regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl | CNTRLREG_TSCSSENB);
- 
- 	/* TSC Cell */
- 	if (tsc_wires > 0) {
-@@ -309,27 +308,13 @@ static int __maybe_unused tscadc_suspend(struct device *dev)
- static int __maybe_unused tscadc_resume(struct device *dev)
- {
- 	struct ti_tscadc_dev *tscadc = dev_get_drvdata(dev);
--	u32 ctrl;
- 
- 	pm_runtime_get_sync(dev);
- 
--	/* context restore */
- 	regmap_write(tscadc->regmap, REG_CLKDIV, tscadc->clk_div);
--
--	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
--	if (tscadc->tsc_wires > 0) {
--		if (tscadc->tsc_wires == 5)
--			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
--		else
--			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
--	}
--
--	regmap_write(tscadc->regmap, REG_CTRL, ctrl);
--
-+	regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl);
- 	tscadc_idle_config(tscadc);
--
--	ctrl |= CNTRLREG_TSCSSENB;
--	regmap_write(tscadc->regmap, REG_CTRL, ctrl);
-+	regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl | CNTRLREG_TSCSSENB);
- 
- 	return 0;
- }
 diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-index e734fb97dff8..02963b6ebbac 100644
+index 334ce1a879df..efafecfc87a7 100644
 --- a/include/linux/mfd/ti_am335x_tscadc.h
 +++ b/include/linux/mfd/ti_am335x_tscadc.h
-@@ -177,8 +177,8 @@ struct ti_tscadc_dev {
- 	phys_addr_t tscadc_phys_base;
- 	const struct ti_tscadc_data *data;
- 	int irq;
--	int tsc_wires;
- 	struct mfd_cell cells[TSCADC_CELLS];
-+	u32 ctrl;
- 	u32 reg_se_cache;
- 	bool adc_waiting;
- 	bool adc_in_use;
+@@ -41,7 +41,7 @@
+ /* Step Enable */
+ #define STEPENB_MASK		(0x1FFFF << 0)
+ #define STEPENB(val)		((val) << 0)
+-#define ENB(val)			(1 << (val))
++#define ENB(val)		(1 << (val))
+ #define STPENB_STEPENB		STEPENB(0x1FFFF)
+ #define STPENB_STEPENB_TC	STEPENB(0x1FFF)
+ 
+@@ -122,15 +122,15 @@
+ #define CNTRLREG_TSCENB		BIT(7)
+ 
+ /* FIFO READ Register */
+-#define FIFOREAD_DATA_MASK (0xfff << 0)
+-#define FIFOREAD_CHNLID_MASK (0xf << 16)
++#define FIFOREAD_DATA_MASK	(0xfff << 0)
++#define FIFOREAD_CHNLID_MASK	(0xf << 16)
+ 
+ /* DMA ENABLE/CLEAR Register */
+ #define DMA_FIFO0		BIT(0)
+ #define DMA_FIFO1		BIT(1)
+ 
+ /* Sequencer Status */
+-#define SEQ_STATUS BIT(5)
++#define SEQ_STATUS		BIT(5)
+ #define CHARGE_STEP		0x11
+ 
+ #define ADC_CLK			3000000
+@@ -150,7 +150,7 @@
+  *
+  * max processing time: 266431 * 308ns = 83ms(approx)
+  */
+-#define IDLE_TIMEOUT 83 /* milliseconds */
++#define IDLE_TIMEOUT		83 /* milliseconds */
+ 
+ #define TSCADC_CELLS		2
+ 
 -- 
 2.27.0
 
