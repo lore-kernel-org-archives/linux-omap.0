@@ -2,26 +2,26 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B663C4332F
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60521C00449
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12A276113E
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DB8B61154
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347722AbhIBVx1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:53:27 -0400
-Received: from relay10.mail.gandi.net ([217.70.178.230]:39245 "EHLO
+        id S1347675AbhIBVx2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:53:28 -0400
+Received: from relay10.mail.gandi.net ([217.70.178.230]:38923 "EHLO
         relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347692AbhIBVxW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2021 17:53:22 -0400
+        with ESMTP id S1347708AbhIBVxZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2021 17:53:25 -0400
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 53BA4240003;
-        Thu,  2 Sep 2021 21:52:20 +0000 (UTC)
+        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 1F24224000A;
+        Thu,  2 Sep 2021 21:52:24 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -39,11 +39,10 @@ Cc:     linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
         Ryan Barnett <ryan.barnett@collins.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         Jason Reeder <jreeder@ti.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v2 17/46] mfd: ti_am335x_tscadc: Use driver data
-Date:   Thu,  2 Sep 2021 23:51:15 +0200
-Message-Id: <20210902215144.507243-18-miquel.raynal@bootlin.com>
+        Miquel Raynal <miquel.raynal@bootlin.com>
+Subject: [PATCH v2 19/46] mfd: ti_am335x_tscadc: Drop useless variables from the driver structure
+Date:   Thu,  2 Sep 2021 23:51:17 +0200
+Message-Id: <20210902215144.507243-20-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210902215144.507243-1-miquel.raynal@bootlin.com>
 References: <20210902215144.507243-1-miquel.raynal@bootlin.com>
@@ -54,110 +53,80 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-So far every sub-cell parameter in this driver was hardcoded: cell name,
-cell compatible, specific clock name and desired clock frequency.
-
-As we are about to introduce support for ADC1/magnetic reader, we need a
-bit of flexibility. Let's add a driver data structure which will contain
-these information.
+Keeping the count of tsc_cells and adc_cells is completely redundant, we
+can derive this information from other variables. Plus, these variables
+are not used anywhere else now. Let's get rid of them.
 
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 ---
- drivers/mfd/ti_am335x_tscadc.c       | 25 +++++++++++++++++++------
- include/linux/mfd/ti_am335x_tscadc.h |  9 +++++++++
- 2 files changed, 28 insertions(+), 6 deletions(-)
+ drivers/mfd/ti_am335x_tscadc.c       | 15 ++++-----------
+ include/linux/mfd/ti_am335x_tscadc.h |  3 ---
+ 2 files changed, 4 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index ea52d8523524..3424befb0d29 100644
+index 0dcc2151ac1f..4a24fc1141cf 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -137,6 +137,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
+@@ -122,7 +122,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	const __be32 *cur;
+ 	u32 val;
+ 	int err, ctrl;
+-	int tsc_wires = 0, adc_channels = 0, total_channels;
++	int tsc_wires = 0, adc_channels = 0, cell_idx = 0, total_channels;
+ 	int readouts = 0;
  
-+	tscadc->data = of_device_get_match_data(&pdev->dev);
-+
- 	node = of_get_child_by_name(pdev->dev.of_node, "tsc");
- 	of_property_read_u32(node, "ti,wires", &tsc_wires);
- 	of_property_read_u32(node, "ti,coordiante-readouts", &readouts);
-@@ -214,7 +216,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 		goto err_disable_clk;
- 	}
+ 	/* Allocate memory for device */
+@@ -237,14 +237,9 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	ctrl |= CNTRLREG_TSCSSENB;
+ 	regmap_write(tscadc->regmap, REG_CTRL, ctrl);
  
--	tscadc->clk_div = (clk_get_rate(clk) / ADC_CLK) - 1;
-+	tscadc->clk_div = (clk_get_rate(clk) / tscadc->data->target_clk_rate) - 1;
- 	regmap_write(tscadc->regmap, REG_CLKDIV, tscadc->clk_div);
- 
- 	/* Set the control register bits */
-@@ -243,8 +245,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+-	tscadc->used_cells = 0;
+-	tscadc->tsc_cell = -1;
+-	tscadc->adc_cell = -1;
+-
+ 	/* TSC Cell */
  	if (tsc_wires > 0) {
- 		tscadc->tsc_cell = tscadc->used_cells;
- 		cell = &tscadc->cells[tscadc->used_cells++];
--		cell->name = "TI-am335x-tsc";
--		cell->of_compatible = "ti,am3359-tsc";
-+		cell->name = tscadc->data->name_tscmag;
-+		cell->of_compatible = tscadc->data->compat_tscmag;
+-		tscadc->tsc_cell = tscadc->used_cells;
+-		cell = &tscadc->cells[tscadc->used_cells++];
++		cell = &tscadc->cells[cell_idx++];
+ 		cell->name = tscadc->data->name_tscmag;
+ 		cell->of_compatible = tscadc->data->compat_tscmag;
  		cell->platform_data = &tscadc;
- 		cell->pdata_size = sizeof(tscadc);
- 	}
-@@ -253,8 +255,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+@@ -253,8 +248,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 
+ 	/* ADC Cell */
  	if (adc_channels > 0) {
- 		tscadc->adc_cell = tscadc->used_cells;
- 		cell = &tscadc->cells[tscadc->used_cells++];
--		cell->name = "TI-am335x-adc";
--		cell->of_compatible = "ti,am3359-adc";
-+		cell->name = tscadc->data->name_adc;
-+		cell->of_compatible = tscadc->data->compat_adc;
+-		tscadc->adc_cell = tscadc->used_cells;
+-		cell = &tscadc->cells[tscadc->used_cells++];
++		cell = &tscadc->cells[cell_idx++];
+ 		cell->name = tscadc->data->name_adc;
+ 		cell->of_compatible = tscadc->data->compat_adc;
  		cell->platform_data = &tscadc;
- 		cell->pdata_size = sizeof(tscadc);
+@@ -262,8 +256,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
  	}
-@@ -340,8 +342,19 @@ static int __maybe_unused tscadc_resume(struct device *dev)
  
- static SIMPLE_DEV_PM_OPS(tscadc_pm_ops, tscadc_suspend, tscadc_resume);
+ 	err = mfd_add_devices(&pdev->dev, PLATFORM_DEVID_AUTO,
+-			      tscadc->cells, tscadc->used_cells, NULL,
+-			      0, NULL);
++			      tscadc->cells, cell_idx, NULL, 0, NULL);
+ 	if (err < 0)
+ 		goto err_disable_clk;
  
-+static const struct ti_tscadc_data tscdata = {
-+	.name_tscmag = "TI-am335x-tsc",
-+	.compat_tscmag = "ti,am3359-tsc",
-+	.name_adc = "TI-am335x-adc",
-+	.compat_adc = "ti,am3359-adc",
-+	.target_clk_rate = ADC_CLK,
-+};
-+
- static const struct of_device_id ti_tscadc_dt_ids[] = {
--	{ .compatible = "ti,am3359-tscadc", },
-+	{
-+		.compatible = "ti,am3359-tscadc",
-+		.data = &tscdata,
-+	},
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, ti_tscadc_dt_ids);
 diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-index ffc091b77633..0f581c15d95a 100644
+index 0f581c15d95a..e734fb97dff8 100644
 --- a/include/linux/mfd/ti_am335x_tscadc.h
 +++ b/include/linux/mfd/ti_am335x_tscadc.h
-@@ -162,11 +162,20 @@
- 
- #define TSCADC_CELLS		2
- 
-+struct ti_tscadc_data {
-+	char *name_tscmag;
-+	char *compat_tscmag;
-+	char *name_adc;
-+	char *compat_adc;
-+	unsigned int target_clk_rate;
-+};
-+
- struct ti_tscadc_dev {
- 	struct device *dev;
- 	struct regmap *regmap;
- 	void __iomem *tscadc_base;
+@@ -177,10 +177,7 @@ struct ti_tscadc_dev {
  	phys_addr_t tscadc_phys_base;
-+	const struct ti_tscadc_data *data;
+ 	const struct ti_tscadc_data *data;
  	int irq;
- 	int used_cells;	/* 1-2 */
+-	int used_cells;	/* 1-2 */
  	int tsc_wires;
+-	int tsc_cell;	/* -1 if not used */
+-	int adc_cell;	/* -1 if not used */
+ 	struct mfd_cell cells[TSCADC_CELLS];
+ 	u32 reg_se_cache;
+ 	bool adc_waiting;
 -- 
 2.27.0
 
