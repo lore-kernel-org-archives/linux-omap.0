@@ -2,208 +2,106 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-26.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0F9FC433FE
-	for <linux-omap@archiver.kernel.org>; Sat,  4 Sep 2021 00:05:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CF9CC433FE
+	for <linux-omap@archiver.kernel.org>; Sat,  4 Sep 2021 13:17:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 968C6610E6
-	for <linux-omap@archiver.kernel.org>; Sat,  4 Sep 2021 00:05:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B06560F9C
+	for <linux-omap@archiver.kernel.org>; Sat,  4 Sep 2021 13:17:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350665AbhIDAG4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 3 Sep 2021 20:06:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57780 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350810AbhIDAGy (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2021 20:06:54 -0400
-Received: from mail-yb1-xb49.google.com (mail-yb1-xb49.google.com [IPv6:2607:f8b0:4864:20::b49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94496C061757
-        for <linux-omap@vger.kernel.org>; Fri,  3 Sep 2021 17:05:53 -0700 (PDT)
-Received: by mail-yb1-xb49.google.com with SMTP id e5-20020a255005000000b0059eef58e1eeso913565ybb.19
-        for <linux-omap@vger.kernel.org>; Fri, 03 Sep 2021 17:05:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
-         :cc;
-        bh=SfbHJEWQeRliBoQsEhXHv1u4n2Ik1OMNCo9r1o66Q/M=;
-        b=GZ0vA80A2Z6y+ef/rz+ER1DjhGiMBo8Unx54I5q93wBFk5a1Z+4+yOIbK6F8i6ml2Z
-         huiMjvHV8w71Q3r8BTQ/7TSElsFnHWLQDvxTnX+hKAiCZ254RixITRjqZ/IkeQDEa6Xa
-         ZHq5gAWBcLx2sATUvcX6LCd5uJwhAibNyPK+H1uI1wDW2vOEQs5tun/Diez11Orwu/Mj
-         2YGwWwNS6bgr7AHu7BQ0hkDZZcShVMOj8cb659TQVcsEXS6doanhqlsyn3p8XcHOx0/l
-         7WZRAHbvWGlOrm6KJSi1Nlvvtq8mjZIHmKkwItCNckxL3rBNLO4+NL0/ug488Wqf9rZm
-         Ud7g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=SfbHJEWQeRliBoQsEhXHv1u4n2Ik1OMNCo9r1o66Q/M=;
-        b=MGV9m6dhFNIS+ykvWMVRb8pQ/mfLMP+rTJ755OgVY0/tXKphayj/hqoZao/5olKolm
-         aM058AAcXyb0nfIriIx3U2uXbunWZ1bmfd1Wdb+E1ONN8hb21xHrnw60QOlH8rxgGjOB
-         4LxldzjvgOLL7CU1VZJ21qpRokrrWzcoBjvMy3tYdBbRWjXjuOP+AcFcYpnT30HxCLmx
-         iIIpxgUQjA75RjFTnVvXBUosFI3nj9vneMnJ/Jzld9pHk6dMfNNjcpIPmnBnOC5bfix7
-         HNrPMzsGbSllIOA8Rwxlq2N8qB41ERwiMroD+Imr34oMZ/gVieYkOC6hPRl5xu8nafek
-         pkjg==
-X-Gm-Message-State: AOAM5312Vcoi7yMPP1mPcrlE8HitRqrM1BfH408AXkYcp2oqY5MJ+GcQ
-        rjhQGvuv/KrsJqHSx/imGD7ZTd1Pys3ZFNw=
-X-Google-Smtp-Source: ABdhPJxMnuM52qVl21b48kLxkv3AyKumezraz5sUmqPRmVkkOO34LbbxoyfV+PPzFtSDDybtmhFrOnQR8bYDu7Y=
-X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:b45b:ca56:952a:2176])
- (user=saravanak job=sendgmr) by 2002:a25:268c:: with SMTP id
- m134mr2133217ybm.298.1630713952840; Fri, 03 Sep 2021 17:05:52 -0700 (PDT)
-Date:   Fri,  3 Sep 2021 17:05:42 -0700
-In-Reply-To: <20210904000543.2019010-1-saravanak@google.com>
-Message-Id: <20210904000543.2019010-3-saravanak@google.com>
-Mime-Version: 1.0
-References: <20210904000543.2019010-1-saravanak@google.com>
-X-Mailer: git-send-email 2.33.0.153.gba50c8fa24-goog
-Subject: [PATCH v3 2/2] drivers: bus: Delete CONFIG_SIMPLE_PM_BUS
-From:   Saravana Kannan <saravanak@google.com>
-To:     Russell King <linux@armlinux.org.uk>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Damien Le Moal <damien.lemoal@wdc.com>
-Cc:     Saravana Kannan <saravanak@google.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>, kernel-team@android.com,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-oxnas@groups.io, linux-renesas-soc@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-riscv@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
+        id S233149AbhIDNSq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 4 Sep 2021 09:18:46 -0400
+Received: from mout.gmx.net ([212.227.15.15]:35711 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230379AbhIDNSp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 4 Sep 2021 09:18:45 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
+        s=badeba3b8450; t=1630761459;
+        bh=anRpNVH27qFxp/JuNYRLaMaSlrUvcuVTQZSIBrXFAPM=;
+        h=X-UI-Sender-Class:From:To:Cc:Subject:Date;
+        b=hGeA4LjSAWagwA+D3QEVGKowTQTlSwiVD6jHCasbiDtYxF/xOMIqAugRyElrcsdwo
+         Rkn00cOrVvvP4dRdDfkgFc0TP8gqTvG0fbHDVmQddt8pBNJhVclqDPqJSUnXqY9Iws
+         Kf2sXun9Wymc/FCizeRWdCNiqjf4abclqO3beKP0=
+X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
+Received: from localhost.localdomain ([79.150.72.99]) by mail.gmx.net
+ (mrgmx004 [212.227.17.184]) with ESMTPSA (Nemesis) id
+ 1MEUzA-1mAuxF2gNG-00FzhO; Sat, 04 Sep 2021 15:17:39 +0200
+From:   Len Baker <len.baker@gmx.com>
+To:     Tero Kristo <kristo@kernel.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>
+Cc:     Len Baker <len.baker@gmx.com>, Kees Cook <keescook@chromium.org>,
+        linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] clk: ti: composite: Prefer kcalloc over open coded arithmetic
+Date:   Sat,  4 Sep 2021 15:17:14 +0200
+Message-Id: <20210904131714.2312-1-len.baker@gmx.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:/CTvZZgUUU4aW56h57ya80evQdHSE2y2Afe+boB24hpwe914lpk
+ x6nxeUz3HoNtUEfE1fnSXTLwXfieC2KH6c6TZ+oCh9X2txpFZoLwBi62uqIF4fxree+EXlm
+ 19hxmCeNtTHbUGTpwIR1H6xVRexeCNuRKUzceIuwCt3mfhEySYtUub3ltH4wJjOVLmRsbJ9
+ /ZxJr/45nR990NCS/pdCA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:tVroNg3tl+w=:PPfRbT44yh/VG/YPE/zc4S
+ Hf5BJscqDVAdXhETLWnirVm9IF5zVkrlhVa76tCVJZTLSshkIVx4ck71kza5L0Jp2pmhrp5Ue
+ MFIzURUtMrhYBRuaaQgpi6AzA6R6z4HypWEAkpdFEwJTMs7EUwJ1KDGifGp+5JxsQn6rLFvdy
+ H3v5snz/I7tRhqCdOBgkVpqyKpTBUCXf5/2ATAdDPxyUZ48ic024WmtvbfRQBkEEATeX7DAKD
+ gFZIA31OEwSgkn+XQVI846aQX0z9PYuoAzr43KHwIIK8cqr3Ku2ABCSUmJI6HrUqke2Gbf1z4
+ i6JpFTHZSWhT3Q1VqNorWSE65+NIfUszWvkuDieAtCR/P/n0eDyb01jQv3vjRHbLjhJJJ3hr7
+ m2C8oEsAICIBQA44xNbmiEjmuqXhIlYHtYznFyJLRTQKpwoAgxTfi6xN58KGmtmc/AMI4PjOI
+ TjUK7fxDyHSUaone8+XStiGtn3xGW61IqElWkJ2JHtHY4XpMis+fYMzISlPAEfBXqRQqUpEJK
+ c0Z83nIFNt8J1C0XDEgkto348schP5gU9m/Xi4LAWlkL8oGNYxLGDqBc9MI+CYws8Ems2XFZ8
+ nvujerrwm767GgE4Mdy8XzXjV8i15NLYklBTEogPxEICbJ4WuMYAxWGbvPjdzESY4PhXr9LkA
+ 3JIUFB28t6YppK+oPUh4OHY4mmVJeFx28KvKYQTSbjx0MwjxKfRC0jDGi0Po+nQrJuHDWA51o
+ MEqtdqNFp4+eb9jjaDfHOQxa2GYks/ej3KnKs+Ff9gEoAJESG3w1Zwr9OH9Cgoxjx5rqb/6zk
+ je69cg4CiOrQyN3qU1mcKXohc7s0ppe4Aj+OlSsVu7NDmfDyH6pDkTIKRIHm4k0zCs9joXyvn
+ bNMsJ0EpfgMwEe+KyGyDgHpj7eWu3pvwp2CHC7d03i2CFfK5t498aDPlq5gGzbY46Dp9GsS3y
+ rZbk/cA9cMfoy5pPmfpK5tyOuafql1gRu4JZk6nsBG4aUPqfSG4MJAkmh4zHnbny6UwSK98qN
+ 2xTVgl6c7Vlc4krtIGLYfcf3hrqx9nzFsMQP2GjHuiiLCrAS3gKLXBnxrzHc99342cFQxTxh3
+ je/ODOtT8sZgRzfi+Bwwd5Se+Z4TTid3yf5SbjIJimUmZd/dFvprkcn3w==
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The simple-pm-bus driver is mandatory for CONFIG_OF based platforms to
-work with fw_devlink. So, always compile it in for CONFIG_OF and delete
-the config since it's no longer necessary.
+As noted in the "Deprecated Interfaces, Language Features, Attributes,
+and Conventions" documentation [1], size calculations (especially
+multiplication) should not be performed in memory allocator (or similar)
+function arguments due to the risk of them overflowing. This could lead
+to values wrapping around and a smaller allocation being made than the
+caller was expecting. Using those allocations could lead to linear
+overflows of heap memory and other misbehaviors.
 
-Signed-off-by: Saravana Kannan <saravanak@google.com>
----
- arch/arm/configs/multi_v7_defconfig |  1 -
- arch/arm/configs/oxnas_v6_defconfig |  1 -
- arch/arm/configs/shmobile_defconfig |  1 -
- arch/arm/mach-omap2/Kconfig         |  1 -
- arch/arm64/configs/defconfig        |  1 -
- drivers/bus/Kconfig                 | 12 ------------
- drivers/bus/Makefile                |  2 +-
- drivers/soc/canaan/Kconfig          |  1 -
- 8 files changed, 1 insertion(+), 19 deletions(-)
+So, use the purpose specific kcalloc() function instead of the argument
+size * count in the kzalloc() function.
 
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index d9abaae118dd..362720ae8d65 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -196,7 +196,6 @@ CONFIG_PCI_EPF_TEST=m
- CONFIG_DEVTMPFS=y
- CONFIG_DEVTMPFS_MOUNT=y
- CONFIG_OMAP_OCP2SCP=y
--CONFIG_SIMPLE_PM_BUS=y
- CONFIG_MTD=y
- CONFIG_MTD_CMDLINE_PARTS=y
- CONFIG_MTD_BLOCK=y
-diff --git a/arch/arm/configs/oxnas_v6_defconfig b/arch/arm/configs/oxnas_v6_defconfig
-index cae0db6b4eaf..de37f7e90999 100644
---- a/arch/arm/configs/oxnas_v6_defconfig
-+++ b/arch/arm/configs/oxnas_v6_defconfig
-@@ -46,7 +46,6 @@ CONFIG_DEVTMPFS=y
- CONFIG_DEVTMPFS_MOUNT=y
- CONFIG_DMA_CMA=y
- CONFIG_CMA_SIZE_MBYTES=64
--CONFIG_SIMPLE_PM_BUS=y
- CONFIG_MTD=y
- CONFIG_MTD_CMDLINE_PARTS=y
- CONFIG_MTD_BLOCK=y
-diff --git a/arch/arm/configs/shmobile_defconfig b/arch/arm/configs/shmobile_defconfig
-index d9a27e4e0914..18d2a960b2d2 100644
---- a/arch/arm/configs/shmobile_defconfig
-+++ b/arch/arm/configs/shmobile_defconfig
-@@ -40,7 +40,6 @@ CONFIG_PCI_RCAR_GEN2=y
- CONFIG_PCIE_RCAR_HOST=y
- CONFIG_DEVTMPFS=y
- CONFIG_DEVTMPFS_MOUNT=y
--CONFIG_SIMPLE_PM_BUS=y
- CONFIG_MTD=y
- CONFIG_MTD_BLOCK=y
- CONFIG_MTD_CFI=y
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 7df8f5276ddf..02f2f3157f07 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -112,7 +112,6 @@ config ARCH_OMAP2PLUS
- 	select PM_GENERIC_DOMAINS
- 	select PM_GENERIC_DOMAINS_OF
- 	select RESET_CONTROLLER
--	select SIMPLE_PM_BUS
- 	select SOC_BUS
- 	select TI_SYSC
- 	select OMAP_IRQCHIP
-diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
-index f423d08b9a71..474b1f2e3f06 100644
---- a/arch/arm64/configs/defconfig
-+++ b/arch/arm64/configs/defconfig
-@@ -245,7 +245,6 @@ CONFIG_DEVTMPFS_MOUNT=y
- CONFIG_FW_LOADER_USER_HELPER=y
- CONFIG_FW_LOADER_USER_HELPER_FALLBACK=y
- CONFIG_HISILICON_LPC=y
--CONFIG_SIMPLE_PM_BUS=y
- CONFIG_FSL_MC_BUS=y
- CONFIG_TEGRA_ACONNECT=m
- CONFIG_GNSS=m
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-index e7f7eee6ee9a..dc3801369488 100644
---- a/drivers/bus/Kconfig
-+++ b/drivers/bus/Kconfig
-@@ -141,18 +141,6 @@ config QCOM_EBI2
- 	  Interface 2, which can be used to connect things like NAND Flash,
- 	  SRAM, ethernet adapters, FPGAs and LCD displays.
- 
--config SIMPLE_PM_BUS
--	tristate "Simple Power-Managed Bus Driver"
--	depends on OF && PM
--	help
--	  Driver for transparent busses that don't need a real driver, but
--	  where the bus controller is part of a PM domain, or under the control
--	  of a functional clock, and thus relies on runtime PM for managing
--	  this PM domain and/or clock.
--	  An example of such a bus controller is the Renesas Bus State
--	  Controller (BSC, sometimes called "LBSC within Bus Bridge", or
--	  "External Bus Interface") as found on several Renesas ARM SoCs.
--
- config SUN50I_DE2_BUS
- 	bool "Allwinner A64 DE2 Bus Driver"
- 	  default ARM64
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-index 397e35392bff..86aacd36a56d 100644
---- a/drivers/bus/Makefile
-+++ b/drivers/bus/Makefile
-@@ -26,7 +26,7 @@ obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
- obj-$(CONFIG_QCOM_EBI2)		+= qcom-ebi2.o
- obj-$(CONFIG_SUN50I_DE2_BUS)	+= sun50i-de2.o
- obj-$(CONFIG_SUNXI_RSB)		+= sunxi-rsb.o
--obj-$(CONFIG_SIMPLE_PM_BUS)	+= simple-pm-bus.o
-+obj-$(CONFIG_OF)		+= simple-pm-bus.o
- obj-$(CONFIG_TEGRA_ACONNECT)	+= tegra-aconnect.o
- obj-$(CONFIG_TEGRA_GMI)		+= tegra-gmi.o
- obj-$(CONFIG_TI_PWMSS)		+= ti-pwmss.o
-diff --git a/drivers/soc/canaan/Kconfig b/drivers/soc/canaan/Kconfig
-index 8179b69518b4..853096b7e84c 100644
---- a/drivers/soc/canaan/Kconfig
-+++ b/drivers/soc/canaan/Kconfig
-@@ -5,7 +5,6 @@ config SOC_K210_SYSCTL
- 	depends on RISCV && SOC_CANAAN && OF
- 	default SOC_CANAAN
-         select PM
--        select SIMPLE_PM_BUS
-         select SYSCON
-         select MFD_SYSCON
- 	help
--- 
-2.33.0.153.gba50c8fa24-goog
+[1] https://www.kernel.org/doc/html/v5.14/process/deprecated.html#open-cod=
+ed-arithmetic-in-allocator-arguments
+
+Signed-off-by: Len Baker <len.baker@gmx.com>
+=2D--
+ drivers/clk/ti/composite.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
+index eaa43575cfa5..eb5ce9735c7d 100644
+=2D-- a/drivers/clk/ti/composite.c
++++ b/drivers/clk/ti/composite.c
+@@ -253,7 +253,7 @@ int __init ti_clk_add_component(struct device_node *no=
+de, struct clk_hw *hw,
+ 		return -EINVAL;
+ 	}
+
+-	parent_names =3D kzalloc((sizeof(char *) * num_parents), GFP_KERNEL);
++	parent_names =3D kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
+ 	if (!parent_names)
+ 		return -ENOMEM;
+
+=2D-
+2.25.1
 
