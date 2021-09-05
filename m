@@ -2,96 +2,103 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B57CC4332F
-	for <linux-omap@archiver.kernel.org>; Sun,  5 Sep 2021 13:21:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EACEEC433FE
+	for <linux-omap@archiver.kernel.org>; Sun,  5 Sep 2021 13:23:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 410356101C
-	for <linux-omap@archiver.kernel.org>; Sun,  5 Sep 2021 13:21:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBD1360FBF
+	for <linux-omap@archiver.kernel.org>; Sun,  5 Sep 2021 13:23:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233765AbhIENWG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 5 Sep 2021 09:22:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37936 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231754AbhIENWF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 5 Sep 2021 09:22:05 -0400
-Received: from jic23-huawei (cpc108967-cmbg20-2-0-cust86.5-4.cable.virginm.net [81.101.6.87])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4FB8E60F45;
-        Sun,  5 Sep 2021 13:20:55 +0000 (UTC)
-Date:   Sun, 5 Sep 2021 14:24:19 +0100
-From:   Jonathan Cameron <jic23@kernel.org>
-To:     Miquel Raynal <miquel.raynal@bootlin.com>
-Cc:     Lars-Peter Clausen <lars@metafoo.de>,
+        id S234300AbhIENY0 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 5 Sep 2021 09:24:26 -0400
+Received: from mslow1.mail.gandi.net ([217.70.178.240]:35037 "EHLO
+        mslow1.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233827AbhIENY0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 5 Sep 2021 09:24:26 -0400
+Received: from relay6-d.mail.gandi.net (unknown [217.70.183.198])
+        by mslow1.mail.gandi.net (Postfix) with ESMTP id 01A86C1EBC;
+        Sun,  5 Sep 2021 13:23:21 +0000 (UTC)
+Received: (Authenticated sender: miquel.raynal@bootlin.com)
+        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 1C587C0006;
+        Sun,  5 Sep 2021 13:22:56 +0000 (UTC)
+Date:   Sun, 5 Sep 2021 15:22:56 +0200
+From:   Miquel Raynal <miquel.raynal@bootlin.com>
+To:     Jonathan Cameron <jic23@kernel.org>
+Cc:     Grygorii Strashko <grygorii.strashko@ti.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
         Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
         Rob Herring <robh+dt@kernel.org>,
         Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Lee Jones <lee.jones@linaro.org>, bcousson@baylibre.com,
-        Tony Lindgren <tony@atomide.com>, linux-iio@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-omap@vger.kernel.org,
+        Lee Jones <lee.jones@linaro.org>, <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>, <linux-iio@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-input@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         Lokesh Vutla <lokeshvutla@ti.com>,
         Tero Kristo <kristo@kernel.org>,
         Ryan Barnett <ryan.barnett@collins.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
         Jason Reeder <jreeder@ti.com>
-Subject: Re: [PATCH v2 35/46] mfd: ti_am335x_tscadc: Support the correctly
- spelled DT property
-Message-ID: <20210905142419.67b7f48f@jic23-huawei>
-In-Reply-To: <20210902215144.507243-36-miquel.raynal@bootlin.com>
+Subject: Re: [PATCH v2 33/46] mfd: ti_am335x_tscadc: Move control register
+ configuration
+Message-ID: <20210905152256.48259b8d@xps13>
+In-Reply-To: <20210905141830.1a0deaa9@jic23-huawei>
 References: <20210902215144.507243-1-miquel.raynal@bootlin.com>
-        <20210902215144.507243-36-miquel.raynal@bootlin.com>
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.30; x86_64-pc-linux-gnu)
+        <20210902215144.507243-34-miquel.raynal@bootlin.com>
+        <3bc1f515-0b3c-ad0c-9624-4d4804899007@ti.com>
+        <20210905141830.1a0deaa9@jic23-huawei>
+Organization: Bootlin
+X-Mailer: Claws Mail 3.17.7 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu,  2 Sep 2021 23:51:33 +0200
-Miquel Raynal <miquel.raynal@bootlin.com> wrote:
+Hi Jonathan,
 
-> There was in the past a typo in the coordinate readouts property. The
-> bindings have been updated, the touchscreen driver as well and now
-> supports both. However, the MFD driver that is in charge of verifying
-> the validity of the property only checks the bogus one. Add support for
-> the correctly spelled DT property.
+jic23@kernel.org wrote on Sun, 5 Sep 2021 14:18:52 +0100:
+
+> On Fri, 3 Sep 2021 16:24:22 +0300
+> Grygorii Strashko <grygorii.strashko@ti.com> wrote:
 > 
-> Fixes: c9aeb249bf72 ("Input: ti_am335x_tsc - fix spelling mistake in TSC/ADC DT binding")
-> Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
-Looks good now.
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-> ---
->  drivers/mfd/ti_am335x_tscadc.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
+> > On 03/09/2021 00:51, Miquel Raynal wrote:  
+> > > The datasheet states that most of the configuration should be set in the
+> > > control register in the first place, before actually enabling the
+> > > hardware. So far only half of the configuration was made in the first
+> > > step, which does not make really sense and would complicating the code
+> > > when introducing support for the am437x hardware.
+> > > 
+> > > Let's move that register write a bit below to enclose more configuration.
+> > > 
+> > > Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+> > > ---
+> > >   drivers/mfd/ti_am335x_tscadc.c | 2 ++
+> > >   1 file changed, 2 insertions(+)
+> > > 
+> > > diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+> > > index 29ada9da8826..a0db3e4ff265 100644
+> > > --- a/drivers/mfd/ti_am335x_tscadc.c
+> > > +++ b/drivers/mfd/ti_am335x_tscadc.c
+> > > @@ -239,6 +239,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+> > >   	}
+> > >   	regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl);
+> > >   
+> > > +	regmap_write(tscadc->regmap, REG_CTRL, tscadc->ctrl);
+> > > +    
+> > 
+> > Strange change - above 2 lines a the same !?  
 > 
-> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-> index a3347f9fc388..4c2fe9910400 100644
-> --- a/drivers/mfd/ti_am335x_tscadc.c
-> +++ b/drivers/mfd/ti_am335x_tscadc.c
-> @@ -144,8 +144,14 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
->  	if (tscadc->data->has_tsc) {
->  		node = of_get_child_by_name(pdev->dev.of_node, "tsc");
->  		of_property_read_u32(node, "ti,wires", &tscmag_wires);
-> -		of_property_read_u32(node, "ti,coordiante-readouts", &readouts);
-> +		err = of_property_read_u32(node, "ti,coordinate-readouts",
-> +					   &readouts);
-> +		if (err < 0)
-> +			of_property_read_u32(node, "ti,coordiante-readouts",
-> +					     &readouts);
-> +
->  		of_node_put(node);
-> +
->  		if (tscmag_wires)
->  			use_tsc = true;
->  	} else {
+> Yup, Looks like this one got handled earlier and the rebase went wrong.
+> So drop it.
 
+Exactly. That's a rebase issue I didn't notice.
+
+Thanks,
+Miquèl
