@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6706FC4167E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A62CC28CA2
 	for <linux-omap@archiver.kernel.org>; Wed, 15 Sep 2021 16:00:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 495066127A
+	by mail.kernel.org (Postfix) with ESMTP id 628F36137B
 	for <linux-omap@archiver.kernel.org>; Wed, 15 Sep 2021 16:00:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238138AbhIOQCH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S238191AbhIOQCH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Wed, 15 Sep 2021 12:02:07 -0400
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:37001 "EHLO
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:43721 "EHLO
         relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238112AbhIOQB6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2021 12:01:58 -0400
+        with ESMTP id S238128AbhIOQCB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2021 12:02:01 -0400
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id B859B1BF211;
-        Wed, 15 Sep 2021 16:00:35 +0000 (UTC)
+        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id 7C0EB1BF215;
+        Wed, 15 Sep 2021 16:00:39 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -39,11 +39,10 @@ Cc:     linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
         Ryan Barnett <ryan.barnett@collins.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         Jason Reeder <jreeder@ti.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v3 43/47] iio: adc: ti_am335x_adc: Add the scale information
-Date:   Wed, 15 Sep 2021 17:59:04 +0200
-Message-Id: <20210915155908.476767-44-miquel.raynal@bootlin.com>
+        Miquel Raynal <miquel.raynal@bootlin.com>
+Subject: [PATCH v3 45/47] ARM: dts: am437x-cm-t43: Use a correctly spelled DT property
+Date:   Wed, 15 Sep 2021 17:59:06 +0200
+Message-Id: <20210915155908.476767-46-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210915155908.476767-1-miquel.raynal@bootlin.com>
 References: <20210915155908.476767-1-miquel.raynal@bootlin.com>
@@ -54,51 +53,29 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Without the scale, the values returned to the user are just a picture of
-the input voltage against the full scale range of the ADC. We need to
-provide the actual conversion factor to get milli-Volts values.
+Back in 2014 a property got misspelled "ti,coordiante-readouts" instead
+of "ti,coordinate-readouts".
+
+The year after it got fixed but both are still supported, although this
+is not a reason to continue using this old deprecated property.
 
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 ---
- drivers/iio/adc/ti_am335x_adc.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ arch/arm/boot/dts/am437x-cm-t43.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index e7dba10b29b4..867690b6c2dd 100644
---- a/drivers/iio/adc/ti_am335x_adc.c
-+++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -417,6 +417,7 @@ static int tiadc_channel_init(struct device *dev, struct iio_dev *indio_dev,
- 		chan->indexed = 1;
- 		chan->channel = adc_dev->channel_line[i];
- 		chan->info_mask_separate = BIT(IIO_CHAN_INFO_RAW);
-+		chan->info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE);
- 		chan->datasheet_name = chan_name_ain[chan->channel];
- 		chan->scan_index = i;
- 		chan->scan_type.sign = 'u';
-@@ -441,6 +442,23 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 	unsigned long timeout;
- 	int ret;
- 
-+	switch (mask) {
-+	case IIO_CHAN_INFO_RAW:
-+		break;
-+	case IIO_CHAN_INFO_SCALE:
-+		switch (chan->type) {
-+		case IIO_VOLTAGE:
-+			*val = 1800;
-+			*val2 = chan->scan_type.realbits;
-+			return IIO_VAL_FRACTIONAL_LOG2;
-+		default:
-+			return -EINVAL;
-+		}
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
- 	if (iio_buffer_enabled(indio_dev))
- 		return -EBUSY;
+diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
+index 5ce8e684e7d3..3e3354780db8 100644
+--- a/arch/arm/boot/dts/am437x-cm-t43.dts
++++ b/arch/arm/boot/dts/am437x-cm-t43.dts
+@@ -399,7 +399,7 @@ &tscadc {
+ 	tsc {
+ 		ti,wires = <4>;
+ 		ti,x-plate-resistance = <200>;
+-		ti,coordiante-readouts = <5>;
++		ti,coordinate-readouts = <5>;
+ 		ti,wire-config = <0x00 0x11 0x22 0x33>;
+ 	};
  
 -- 
 2.27.0
