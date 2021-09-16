@@ -2,134 +2,156 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1405FC4332F
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Sep 2021 09:56:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6C66C433FE
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Sep 2021 10:48:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0474A61214
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Sep 2021 09:56:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF7AF61214
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Sep 2021 10:48:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237262AbhIPJ5h (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Sep 2021 05:57:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58044 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236073AbhIPJ4s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 16 Sep 2021 05:56:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D6596120F;
-        Thu, 16 Sep 2021 09:55:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631786126;
-        bh=75WrKbSFBKg3yzGt07IbXwPNTFQ0wIIFH/Or+OVz1tk=;
-        h=From:To:Cc:Subject:Date:From;
-        b=uF5yJPv/qiKbXXEFvin6OmfsjMRrph3HNOgVM4VP8l98VyCCn6ZiDH4Vz9ThIa3nO
-         /R3BLqZrexnLqAhaLqqje35cJvGT4N3rzjw+tJcda+Ho3iJSy3WwY5wVLASpoPMaG0
-         BdVfOxuhSoKonDNgYiYNAV5b+jhnTDG3G0iRsZjuDNsSqouJPu1+uSll78aJKox5Ns
-         KwHB376rUBOCM9pslwyGU8l8WVSDWBaAmSdRQHZs7Vn9W0IUzd/0QWauFDPCMtQEHo
-         PeyD1wssHY2MBiz2gKKjgNgw/LEq0+KlatdR8BlJsvdBjXO7hPlAu8a1uYbkmb9sPv
-         1LdRPeVp9uZAg==
-Received: by mail.kernel.org with local (Exim 4.94.2)
-        (envelope-from <mchehab@kernel.org>)
-        id 1mQo72-001vTH-32; Thu, 16 Sep 2021 11:55:24 +0200
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>,
-        David Airlie <airlied@linux.ie>,
-        Evgeniy Polyakov <zbr@ioremap.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@kernel.org>, Martin KaFai Lau <kafai@fb.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        bpf@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-kselftest@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-mmc@vger.kernel.org,
-        linux-omap@vger.kernel.org, netdev@vger.kernel.org,
-        sparmaintainer@unisys.com
-Subject: [PATCH v2 00/23] Fix some issues at documentation
-Date:   Thu, 16 Sep 2021 11:54:59 +0200
-Message-Id: <cover.1631785820.git.mchehab+huawei@kernel.org>
-X-Mailer: git-send-email 2.31.1
+        id S235644AbhIPKtn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Sep 2021 06:49:43 -0400
+Received: from smtp-relay-internal-0.canonical.com ([185.125.188.122]:41034
+        "EHLO smtp-relay-internal-0.canonical.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S235570AbhIPKtn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 16 Sep 2021 06:49:43 -0400
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com [209.85.208.70])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 2FC6A3F077
+        for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2021 10:48:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1631789302;
+        bh=kVs9piweAjfYKX1/D2zYPYLh8oMdXLORitDm0x3OItc=;
+        h=To:Cc:References:From:Subject:Message-ID:Date:MIME-Version:
+         In-Reply-To:Content-Type;
+        b=Z+L8RQG5ANhF34LExzxkQYwIdTOymYuyFGbAHKYFocaLCX0/e2gUFpLHUB9WHRMMs
+         7A2Y25zay3vg8bmSJm1K40XQMR2jhvOsRc4vZkPB27prf/XX70m7XzbDbKEzOrsDA5
+         4eN/c8CFj+3UMf/Id1ONvw7cbHle7KJshuKrLgiYqok8CT6sAc05yIyJCAraZx1k3b
+         N0/Nj9iN/a3to9lQ3xF20cC6lxLica/SZUGPtlS0AB1vyKuV8NEbijWM3BcMnrCN6Q
+         YunoCZdIEJnEx1excPiW39+kxfF95/AHsSnOkbL1sCOA6iNY/j3y4UVdrfkZDtEbs8
+         Q/5MwZYmU8B9w==
+Received: by mail-ed1-f70.google.com with SMTP id j6-20020aa7de86000000b003d4ddaf2bf9so4970816edv.7
+        for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2021 03:48:22 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:to:cc:references:from:subject:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=kVs9piweAjfYKX1/D2zYPYLh8oMdXLORitDm0x3OItc=;
+        b=oVnd7XSh3I+HhrP3dCZKgEAMdw28qBrIhmiZKn/c4GgpRDuKWkwYojv7M94hgwwavs
+         ku7VYRiJfPqsmcInE21GgQm3qfnQs4OOo3ILtf0GKs0aBxD5mwXR3R3t3qfjvGFgJP6y
+         VqmMRI9eYNVZDywph2FXQWEy9mB+6S4mrfHGUTivKLVKuseIdbLkEQsBL2XwcPtAsIyC
+         sp/x31Yl+18P9yks8VOaYYlLWI37K4yCO3CVnOUPTL+nXOyaOQeECetKky7Pma2b1qQW
+         3e8izzX1OKTPd6k/70k82UsTJ3+iIlMy/CDoNw+Z+VwWlIMacWZ8JiWOK7lIdf1dWsTo
+         umRA==
+X-Gm-Message-State: AOAM532s5q+fAdZXl4rz8byBe9CWq1/WMVSkYf0LJcBAa7spQpW55PlG
+        eelWuxpHOs1nfhNRCLvkucLG/pkZvJEusoMrIqZH+5hQSKZb75inoVZOwUEvp8pUj6WFyfiB/62
+        1VAckcyD4OEdDJLYXLUixtDJkfDDdltGzMyAJDMY=
+X-Received: by 2002:a17:906:d045:: with SMTP id bo5mr5518401ejb.461.1631789301890;
+        Thu, 16 Sep 2021 03:48:21 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJynS1M3E+u6uh9PExpnyfy/1dCw+s8TwhyM85ZmKchIA4QZXHFyZ+/z9Io2RWKgwjZkL25Tow==
+X-Received: by 2002:a17:906:d045:: with SMTP id bo5mr5518370ejb.461.1631789301532;
+        Thu, 16 Sep 2021 03:48:21 -0700 (PDT)
+Received: from [192.168.3.211] (lk.84.20.244.219.dc.cable.static.lj-kabel.net. [84.20.244.219])
+        by smtp.gmail.com with ESMTPSA id m10sm1007452ejx.76.2021.09.16.03.48.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 16 Sep 2021 03:48:21 -0700 (PDT)
+To:     Roger Quadros <rogerq@kernel.org>, tony@atomide.com
+Cc:     robh+dt@kernel.org, grygorii.strashko@ti.com, nm@ti.com,
+        lokeshvutla@ti.com, nsekhar@ti.com, miquel.raynal@bootlin.com,
+        devicetree@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20210907113226.31876-1-rogerq@kernel.org>
+ <20210907113226.31876-9-rogerq@kernel.org>
+ <aa465bd9-b3d5-8d75-3e59-e86c2cd093cd@canonical.com>
+ <a881ac1f-2f00-e675-aea6-154b28ca6eff@kernel.org>
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
+Subject: Re: [PATCH v3 8/8] memory: gpmc-omap: "gpmc,device-width" DT property
+ is optional
+Message-ID: <35643319-e3b0-bde1-c51b-57c3b5474146@canonical.com>
+Date:   Thu, 16 Sep 2021 12:48:19 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.13.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <a881ac1f-2f00-e675-aea6-154b28ca6eff@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-Sender: Mauro Carvalho Chehab <mchehab@kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi John,
+On 15/09/2021 11:11, Roger Quadros wrote:
+> Hi Krzysztof,
+> 
+> On 07/09/2021 15:36, Krzysztof Kozlowski wrote:
+>> On 07/09/2021 13:32, Roger Quadros wrote:
+>>> Check for valid gpmc,device-width, nand-bus-width and bank-width
+>>> at one place. Default to 8-bit width if none present.
+>>
+>> I don't understand the message in the context of the patch. The title
+>> says one property is optional - that's it. The message says you
+>> consolidate checks. How is this related to the title?
+>>
+>> The patch itself moves around checking of properties and reads
+>> nand-bus-width *always*. It does not "check at one place" but rather
+>> "check always". In the same time, the patch does not remove
+>> gpmc,device-width check in other place.
+>>
+>> All three elements - the title, message and patch - do different things.
+>> What did you want to achieve here? Can you help in clarifying it?
+>>
+> 
+> OK I will explain it better in commit log in next revision. Let me explain here a bit.
+> 
+> Prior to this patch it was working like this
+> 
+> 	/* in gpmc_read_settings_dt() */
+> 	s->device_width = 0;	/* invalid width, should be 1 for 8-bit, 2 for 16-bit */
+> 	of_property_read_u32(np, "gpmc,device-width", s->device_width);
+> 
+> 	/* in gpmc_probe_generic_child () */
+> 	if (of_device_is_compatible(child, "ti,omap2-nand")) {
+> 		/* check for nand-bus-width, if absent set s->device_width to 1 (i.e. 8-bit) */
+> 	} else {
+> 		/* check for bank-width, if absent and s->device_width not set, error out */
+> 	}
+> 
+> So that means if all three, "gpmc,device-width". "nand-bus-width" and "bank-width" are missing then
+> it would create an error situation.
+> 
+> The patch is doing 3 things.
+> 1) Make sure all DT checks related to bus width are being done at one place for better readability.
 
-Please ignore the previous series I sent today [1].  I forgot that I had
-already submitted a first version of this series.
+Not entirely. The gpmc,device-width is still done in the other place
+because you did not remove it from the code. Unless you meant parsing of
+gpmc,device-width not reading from DT? But then another round of checks
+is in gpmc_cs_program_settings() so not in one place.
 
-[1]  https://lore.kernel.org/all/cover.1631783482.git.mchehab+huawei@kernel.org/
+If you consolidate the checks to one place, I would expect the code to
+be removed from other places, so from gpmc_cs_program_settings() and
+gpmc_read_settings_dt(). Since this is not happening, the message
+confuses me.
 
+> 2) even if all 3 width properties are absent, we will not treat it as error and default to 8-bit.
 
-The first patch in this series fix a bad character used instead of
-a "(c)" UTF-8 symbol.
+This is not mentioned in commit msg.
 
-The remaining ones fix several broken references to files
-under Documentation/, several due to DT schema conversions
-from .txt to .yaml.
+> 3) check for nand-bus-width regardless of whether compatible to "ti,omap2-nand" or not.
 
----
+Also not mentioned in commit msg.
 
-v2:
-   - Added a couple of extra fixes;
-   - merged two patches touching mtd-physmap.yaml;
-   - added missing tags (acked-by/reviewed-by) received after v1.
-v1: https://lore.kernel.org/all/cover.1626947923.git.mchehab+huawei@kernel.org/
+Your commit reorganizes parsing and validating the child DT properties
+but it does not change from "multiple place" to "one place".
 
+At least I don't see it.
 
-
-Mauro Carvalho Chehab (23):
-  visorbus: fix a copyright symbol that was bad encoded
-  dt-bindings: net: dsa: sja1105: update nxp,sja1105.yaml reference
-  dt-bindings: arm: mediatek: mmsys: update mediatek,mmsys.yaml
-    reference
-  dt-bindings: w1: update w1-gpio.yaml reference
-  dt-bindings: mmc: update mmc-card.yaml reference
-  libbpf: update index.rst reference
-  docs: accounting: update delay-accounting.rst reference
-  tools: bpftool: update bpftool-prog.rst reference
-  tools: bpftool: update bpftool-map.rst reference
-  bpftool: update bpftool-cgroup.rst reference
-  MAINTAINERS: update arm,vic.yaml reference
-  MAINTAINERS: update aspeed,i2c.yaml reference
-  MAINTAINERS: update faraday,ftrtc010.yaml reference
-  MAINTAINERS: update fsl,fec.yaml reference
-  MAINTAINERS: update ti,sci.yaml reference
-  MAINTAINERS: update intel,ixp46x-rng.yaml reference
-  MAINTAINERS: update nxp,imx8-jpeg.yaml reference
-  MAINTAINERS: update gemini.yaml reference
-  MAINTAINERS: update brcm,unimac-mdio.yaml reference
-  MAINTAINERS: update chipone,icn8318.yaml reference
-  MAINTAINERS: update silergy,sy8106a.yaml reference
-  MAINTAINERS: update mtd-physmap.yaml reference
-  MAINTAINERS: update ti,am654-hbmc.yaml reference
-
- Documentation/admin-guide/sysctl/kernel.rst   |  2 +-
- Documentation/bpf/index.rst                   |  2 +-
- .../display/mediatek/mediatek,disp.txt        |  2 +-
- Documentation/networking/dsa/sja1105.rst      |  2 +-
- Documentation/w1/masters/w1-gpio.rst          |  2 +-
- MAINTAINERS                                   | 28 +++++++++----------
- drivers/mmc/host/omap_hsmmc.c                 |  2 +-
- drivers/visorbus/visorbus_main.c              |  2 +-
- .../selftests/bpf/test_bpftool_synctypes.py   |  6 ++--
- 9 files changed, 24 insertions(+), 24 deletions(-)
-
--- 
-2.31.1
-
-
+Best regards,
+Krzysztof
