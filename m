@@ -2,85 +2,87 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1797DC28CAA
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Sep 2021 16:00:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72717C433F5
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Sep 2021 09:14:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3BE361269
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Sep 2021 16:00:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4AAB61185
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Sep 2021 09:14:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234526AbhIOQCL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 15 Sep 2021 12:02:11 -0400
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:44495 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238513AbhIOQCE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2021 12:02:04 -0400
-Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id 00A7B1BF21B;
-        Wed, 15 Sep 2021 16:00:42 +0000 (UTC)
-From:   Miquel Raynal <miquel.raynal@bootlin.com>
-To:     Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Rob Herring <robh+dt@kernel.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Lee Jones <lee.jones@linaro.org>, bcousson@baylibre.com,
-        Tony Lindgren <tony@atomide.com>
-Cc:     linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Lokesh Vutla <lokeshvutla@ti.com>,
-        Tero Kristo <kristo@kernel.org>,
-        Ryan Barnett <ryan.barnett@collins.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Jason Reeder <jreeder@ti.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: [PATCH v3 47/47] ARM: dts: am437x-gp-evm: enable ADC1
-Date:   Wed, 15 Sep 2021 17:59:08 +0200
-Message-Id: <20210915155908.476767-48-miquel.raynal@bootlin.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20210915155908.476767-1-miquel.raynal@bootlin.com>
-References: <20210915155908.476767-1-miquel.raynal@bootlin.com>
+        id S235462AbhIPJPl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Sep 2021 05:15:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40776 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235243AbhIPJPl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 16 Sep 2021 05:15:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A8AE611C8;
+        Thu, 16 Sep 2021 09:14:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1631783661;
+        bh=JwWCjmG96CZuiWgSlG9dyPmxEM9GvaJcEKBMYRMsB90=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=h+l3xVhrI7zt21b+ioX8SbwwGExRKlakRD4WElIq+yjA1P3EhyxfM9Umri1Um4q5W
+         ODLyWgFwxvJltlcWhcKl8mmrUVoCDDeY7Hoh0vlftiK9Vj+Oc+XoaO4Bwp5vQUbEzp
+         camz4FsSyoxvKTBWmwIChphQzZG5dQr8vzueaZqwy5FAhhJvY5UyVo8DUyHN/z9xs/
+         c0CGdsD7JoEDcMgLghH16PJJo7OlDhsCcS+v1z4fru7qcpTf8Hh4nvyzqchD2uynAG
+         8bzUkXMn5IxQYaivNN9JgLjQGg1juBNfNsRQm0P0KuMn75CPiNzsTAtS9orz9oLIL2
+         rkUOhF6TYUmhQ==
+Received: by mail.kernel.org with local (Exim 4.94.2)
+        (envelope-from <mchehab@kernel.org>)
+        id 1mQnTH-001sKt-EJ; Thu, 16 Sep 2021 11:14:19 +0200
+From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        Cai Huoqing <caihuoqing@baidu.com>,
+        Maxime Ripard <maxime@cerno.tech>,
+        Rob Herring <robh@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Yang Li <abaci-bugfix@linux.alibaba.com>,
+        linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-omap@vger.kernel.org
+Subject: [PATCH 05/24] dt-bindings: mmc: update mmc-card.yaml reference
+Date:   Thu, 16 Sep 2021 11:13:58 +0200
+Message-Id: <865336184bbf2306b5f185cd11d39ed69fddeca6.1631783482.git.mchehab+huawei@kernel.org>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1631783482.git.mchehab+huawei@kernel.org>
+References: <cover.1631783482.git.mchehab+huawei@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+Sender: Mauro Carvalho Chehab <mchehab@kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-ADC0 and ADC1 pins are available on external connector J22.
+Changeset 922eefdafc80 ("dt-bindings: mmc: Convert MMC Card binding to a schema")
+renamed: Documentation/devicetree/bindings/mmc/mmc-card.txt
+to: Documentation/devicetree/bindings/mmc/mmc-card.yaml.
 
-Enable ADC1 which was missing.
+Update its cross-reference accordingly.
 
-Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+Fixes: 922eefdafc80 ("dt-bindings: mmc: Convert MMC Card binding to a schema")
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/mmc/host/omap_hsmmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index c2e4896076e7..4416ddb559e4 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -775,6 +775,14 @@ adc {
- 	};
- };
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 7a29ad542e4a..9dafcbf969d9 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1510,7 +1510,7 @@ static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
+ 		 * REVISIT: should be moved to sdio core and made more
+ 		 * general e.g. by expanding the DT bindings of child nodes
+ 		 * to provide a mechanism to provide this information:
+-		 * Documentation/devicetree/bindings/mmc/mmc-card.txt
++		 * Documentation/devicetree/bindings/mmc/mmc-card.yaml
+ 		 */
  
-+&magadc {
-+	status = "okay";
-+
-+	adc {
-+		ti,adc-channels = <0 1 2 3 4 5 6 7>;
-+	};
-+};
-+
- &ecap0 {
- 	status = "okay";
- 	pinctrl-names = "default";
+ 		np = of_get_compatible_child(np, "ti,wl1251");
 -- 
-2.27.0
+2.31.1
 
