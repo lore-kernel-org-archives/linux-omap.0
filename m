@@ -2,78 +2,144 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95647C4332F
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Sep 2021 04:40:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3CDFC433EF
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Sep 2021 06:14:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 707E260FBF
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Sep 2021 04:40:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A279A61019
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Sep 2021 06:14:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244693AbhIQElv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Sep 2021 00:41:51 -0400
-Received: from mx24.baidu.com ([111.206.215.185]:38232 "EHLO baidu.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S244721AbhIQElZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Fri, 17 Sep 2021 00:41:25 -0400
-Received: from BC-Mail-Ex26.internal.baidu.com (unknown [172.31.51.20])
-        by Forcepoint Email with ESMTPS id 0E81EF5CE8855A0DC3F0;
-        Fri, 17 Sep 2021 12:24:27 +0800 (CST)
-Received: from BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42) by
- BC-Mail-Ex26.internal.baidu.com (172.31.51.20) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Fri, 17 Sep 2021 12:24:26 +0800
-Received: from LAPTOP-UKSR4ENP.internal.baidu.com (172.31.63.8) by
- BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2308.14; Fri, 17 Sep 2021 12:24:26 +0800
-From:   Cai Huoqing <caihuoqing@baidu.com>
-To:     <caihuoqing@baidu.com>
-CC:     <linux-fbdev@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH 4/4] fbdev: omapfb: panel-tpo-td043mtea1: Make use of the helper function dev_err_probe()
-Date:   Fri, 17 Sep 2021 12:24:13 +0800
-Message-ID: <20210917042414.17787-4-caihuoqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210917042414.17787-1-caihuoqing@baidu.com>
-References: <20210917042414.17787-1-caihuoqing@baidu.com>
+        id S234581AbhIQGPu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Sep 2021 02:15:50 -0400
+Received: from muru.com ([72.249.23.125]:33802 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232039AbhIQGPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 17 Sep 2021 02:15:50 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id D4DC180FB;
+        Fri, 17 Sep 2021 06:14:54 +0000 (UTC)
+Date:   Fri, 17 Sep 2021 09:14:26 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     "Vaittinen, Matti" <Matti.Vaittinen@fi.rohmeurope.com>
+Cc:     "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Suman Anna <s-anna@ti.com>, "Andrew F. Davis" <afd@ti.com>,
+        Paul Barker <paul.barker@sancloud.com>,
+        Peter Ujfalusi <peter.ujfalusi@gmail.com>,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: beaglebone black boot failure Linux v5.15.rc1
+Message-ID: <YUQyQgFAOFnBlcdP@atomide.com>
+References: <120a0ca4-28c7-5a7b-f1ab-2015c8817bda@fi.rohmeurope.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [172.31.63.8]
-X-ClientProxiedBy: BC-Mail-Ex15.internal.baidu.com (172.31.51.55) To
- BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42)
+Content-Type: multipart/mixed; boundary="oRDPEQLgRneHPu9G"
+Content-Disposition: inline
+In-Reply-To: <120a0ca4-28c7-5a7b-f1ab-2015c8817bda@fi.rohmeurope.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-When possible use dev_err_probe help to properly deal with the
-PROBE_DEFER error, the benefit is that DEFER issue will be logged
-in the devices_deferred debugfs file.
-Using dev_err_probe() can reduce code size, and the error value
-gets printed.
 
-Signed-off-by: Cai Huoqing <caihuoqing@baidu.com>
----
- .../video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c   | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+--oRDPEQLgRneHPu9G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
-index afac1d9445aa..3db0232c31ab 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
-@@ -517,8 +517,7 @@ static int tpo_td043_probe(struct spi_device *spi)
+Hi,
+
+* Vaittinen, Matti <Matti.Vaittinen@fi.rohmeurope.com> [210916 09:15]:
+> Yesterday I asked about this at #armlinux so if someone saw my message 
+> there - this is the same topic.
+> 
+> My beaglebone black (rev c) based test environment fails to boot with 
+> v5.15-rc1. Boot succeeds with the v5.14.
+> 
+> I use pretty old uBoot, TFTP to load kernel and device-tree, and have 
+> hosted the rootfs on NFS server.
+
+Using older u-boot versions should be just fine. Using bootz with zImage
+instead of uimage is a good reason to update for folks using a really
+old u-boot though.
+
+> The v5.15-rc1 fails to boot with no prints from kernel visible in serial 
+> console. Please see the serial log at the end of this message.
+> 
+> Bisecting the Linus' tree pointed out the commit:
+> [1c7ba565e70365763ea780666a3eee679344b962] ARM: dts: am335x-baltos: 
+> switch to new cpsw switch drv
+> 
+> I don't see this exact commit touching the BBB device-tree. In Linus' 
+> tree it is a part of a merge commit. Reverting the whole merge on top of 
+> the v5.15-rc1
+> 
+> This reverts commit 81b6a285737700c2e04ef0893617b80481b6b4b7, reversing
+> changes made to f73979109bc11a0ed26b6deeb403fb5d05676ffc.
+> 
+> makes my beaglebone black to boot again.
+> 
+> Yesterday I tried adding this patch:
+> https://lore.kernel.org/linux-omap/20210915065032.45013-1-tony@atomide.com/T/#u
+> pointed by Tom on top of the v5.15-rc1 - no avail. I also did #define 
+> DEBUG at ti-sys.c as was suggested by Tom - but I don't see any more output.
+
+Correction, that was me, not Tom :)
+
+For me, adding any kind of delay fixed the issue. Also adding some printk
+statements fixed it for me.
+
+> Any suggestions what to check next?
+
+Maybe try the attached patch? If it helps, just try with the with the
+ti,sysc-delay-us = <2> added as few modules need that after enable.
+
+It's also possible there is an issue with some other device that is now
+getting enabled other than pruss. The last XXX printk output should show
+the last device being probed.
+
+Looks like you need to also enable CONFIG_SERIAL_EARLYCON=y, and pass
+console=ttyS0,115200 debug earlycon in the kernel command line.
+
+Regards,
+
+Tony
+
+--oRDPEQLgRneHPu9G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename="debug.patch"
+
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -845,6 +845,7 @@ pruss_tm: target-module@300000 {	/* 0x4a300000, ap 9 04.0 */
+ 			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
+ 					<SYSC_IDLE_NO>,
+ 					<SYSC_IDLE_SMART>;
++			ti,sysc-delay-us = <2>;
+ 			clocks = <&pruss_ocp_clkctrl AM3_PRUSS_OCP_PRUSS_CLKCTRL 0>;
+ 			clock-names = "fck";
+ 			resets = <&prm_per 1>;
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -2,7 +2,7 @@
+ /*
+  * ti-sysc.c - Texas Instruments sysc interconnect target driver
+  */
+-
++#define DEBUG
+ #include <linux/io.h>
+ #include <linux/clk.h>
+ #include <linux/clkdev.h>
+@@ -3051,6 +3051,8 @@ static int sysc_probe(struct platform_device *pdev)
+ 	if (!ddata)
+ 		return -ENOMEM;
  
- 	ddata->vcc_reg = devm_regulator_get(&spi->dev, "vcc");
- 	if (IS_ERR(ddata->vcc_reg)) {
--		dev_err(&spi->dev, "failed to get LCD VCC regulator\n");
--		r = PTR_ERR(ddata->vcc_reg);
-+		r = dev_err_probe(&spi->dev, r, "failed to get LCD VCC regulator\n");
- 		goto err_regulator;
- 	}
- 
--- 
-2.25.1
++	dev_info(&pdev->dev, "XXX %s\n", __func__);
++
+ 	ddata->offsets[SYSC_REVISION] = -ENODEV;
+ 	ddata->offsets[SYSC_SYSCONFIG] = -ENODEV;
+ 	ddata->offsets[SYSC_SYSSTATUS] = -ENODEV;
 
+--oRDPEQLgRneHPu9G--
