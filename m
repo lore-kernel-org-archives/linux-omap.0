@@ -2,78 +2,230 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAD5AC433F5
-	for <linux-omap@archiver.kernel.org>; Mon, 20 Sep 2021 15:25:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B53E8C433FE
+	for <linux-omap@archiver.kernel.org>; Mon, 20 Sep 2021 15:30:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90425610CE
-	for <linux-omap@archiver.kernel.org>; Mon, 20 Sep 2021 15:25:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A099460F38
+	for <linux-omap@archiver.kernel.org>; Mon, 20 Sep 2021 15:30:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236781AbhITP1B (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 20 Sep 2021 11:27:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36812 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232422AbhITP1A (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2021 11:27:00 -0400
-X-Greylist: delayed 1993 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 20 Sep 2021 08:25:33 PDT
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B2B0C061574
-        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2021 08:25:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=kemnade.info; s=20180802; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=go+/gEITCs03fpg1GDFKdWvXdGfCh7Xg90tSzpOmvXQ=; b=ENF3iJotxO6kBJxKbz9Ie62lJt
-        P3UDpgX7YT4QhYjJiI/qv7yCyJLFm0FLG5phuWZz5mftExAgTAg90BC8MvP0uQunMLEMLnZiqLUJG
-        6fTd/OE75g1sj+QWSGzs6OwNpx1e9NEqrQ3J0R7YsOSFlgJC8upnJeRM0YLjec66ETxA=;
-Received: from p200300ccff0bf1001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff0b:f100:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1mSKeW-0004ki-TT; Mon, 20 Sep 2021 16:52:17 +0200
-Date:   Mon, 20 Sep 2021 16:52:16 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Jarkko Nikula <jarkko.nikula@bitmer.com>,
+        id S241479AbhITPcA convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 20 Sep 2021 11:32:00 -0400
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:60025 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S241477AbhITPcA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2021 11:32:00 -0400
+Received: (Authenticated sender: miquel.raynal@bootlin.com)
+        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 58CD06000B;
+        Mon, 20 Sep 2021 15:30:29 +0000 (UTC)
+Date:   Mon, 20 Sep 2021 17:30:28 +0200
+From:   Miquel Raynal <miquel.raynal@bootlin.com>
+To:     Lee Jones <lee.jones@linaro.org>
+Cc:     Jonathan Cameron <jic23@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>,
+        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
         linux-omap@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Regression with e428e250fde6 on BeagleBoard Rev C2
-Message-ID: <20210920165216.34abc4dd@aktux>
-In-Reply-To: <YUiOA4QEbZXPmQ7F@atomide.com>
-References: <3f6924a7-1934-b94e-2441-4781fe737f32@bitmer.com>
-        <YUiOA4QEbZXPmQ7F@atomide.com>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Lokesh Vutla <lokeshvutla@ti.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Ryan Barnett <ryan.barnett@collins.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Jason Reeder <jreeder@ti.com>
+Subject: Re: [PATCH v3 00/47] TI AM437X ADC1
+Message-ID: <20210920173028.1ffee757@xps13>
+In-Reply-To: <20210915155908.476767-1-miquel.raynal@bootlin.com>
+References: <20210915155908.476767-1-miquel.raynal@bootlin.com>
+Organization: Bootlin
+X-Mailer: Claws Mail 3.17.7 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Hello Lee,
 
-On Mon, 20 Sep 2021 16:34:59 +0300
-Tony Lindgren <tony@atomide.com> wrote:
+miquel.raynal@bootlin.com wrote on Wed, 15 Sep 2021 17:58:21 +0200:
 
-> > I fail to understand how omap3isp affects this since it actually disable
-> > clocks after probe. Does it keep some power domain active which then
-> > keeps the timer active etc?  
+> Hello,
 > 
-> Sounds like it's because omap3isp never allows the SoC to enter deeper
-> idle states. The mpu clock is stopped for idle states.
+> This is a (fairly big) series bringing support of AM437X ADC1.
+> On TI AM33XX SoCs family there is an ADC that can also be connected to a
+> touchscreen. This hardware has been extended and is present on certain
+> SoCs from the AM437X family. In particular, the touchscreen has been
+> replaced by a magnetic card reader. In both cases, the representation is
+> an MFD device with two children:
+> * on AM33XX: the touchscreen controller and the ADC
+> * on AM437X: the magnetic card reader and the ADC
+> 
+> This series really targets small and atomic changes so that the overall
+> review is eased, even though it leads to a lot of rather small patches.
+> Here are the steps:
+> * Supporting the missing clock
+> * Translating a single text file containing the description for the
+>   MFD, the touchscreen and the ADC into three independent yaml files.
+> * Cleaning/preparing the MFD driver.
+> * Supporting ADC1 in the MFD driver.
+> * Cleaning/preparing of the ADC driver.
+> * Supporting ADC1 in the ADC driver.
+> * Updating various device trees.
+> 
+> Here is the full series again, almost reviewed and acked entirely, but
+> rebased on the last -rc1. The clock patch has been acked, the ADC
+> patches as well, so we expect the series to go through the MFD
+> tree if hte maintainers agree with it.
 
-On GTA04 I experienced also some strange pm issues with omap3isp:
-rmmod clears up everything fine.
+Lee, I would welcome your feedback about this big series. I received
+the acknowledgment of:
+* Stephen for the clock patch
+* Jonathan and Rob for the binding patches
+* Jonathan for the IIO patches
+* Jonathan again for the MFD patches
 
-After probing, clocks seems to be turned off, but power consumption
-does not drop. It only drops when there is an iommu_detach paired to
-that iommu_attach in the driver.
-But if I add it, the driver does not work properly.
+There is currently only one issue left: I should reorder 28/47 before
+26/47 and change the commit message of patch 27/47.
 
-Regards,
-Andreas
+If this is fine for you I would like to:
+* let you pick patches from 1 to 25 of v3
+* I will send a v4 with only three patches: 26, 27, 28 with Jonathan's
+  last comments addressed.
+* Finally you could take the remaining patches of v3 up to patch 44 (the
+  last 3 are DT patches).
+
+Would this work for you? If possible I would like to avoid resending
+the entire series once again. Unless of course you have additional
+comments which I will obviously address.
+
+Thanks,
+Miquèl
+
+> Changes in v3:
+> * Rebased on top of v5.15-rc1.
+> * R-by/A-by tags added.
+> * Light reordering to let the of_put_node() fix to be applied more easily
+> * Dropped a patch made useless because of the previous reordering
+> * Explained how the tscadc->ctrl variable was used.
+> * Fixed a couple of typos.
+> * Included the change for the HZ macro.
+> * Went further in the BIT()/FIELD_PREP() cleanup.
+> * Added maximum definitions for sample delay/open delay.
+> * Removed useless definitions.
+> * Fixed a couple of rebase conflicts (the series was not bisectable).
+> 
+> Changes in v2:
+> * Added various R-by/A-by tags.
+> * Various typos & style fixes.
+> [Bindings]
+> * Included the missing ti,am654-tscadc compatible.
+> * Reworded the compatible lines as requested by Jonathan.
+> * Reworded the bindings content a little bit as advised by Rob (subnodes
+>   being objects, MFD descriptions provided once, status and unused
+>   labels removed).
+> [SPDX changes]
+> * Mentioned that the license macro and the license text matched.
+> * Also added an SPDX tag in the MFD header.
+> [MFD header]
+> * Used the BIT(), GENMASK() and PREP_FIELD() macros when relevant.
+> [MFD driver]
+> * Did not reordered the variables declared on the probe stack as advised
+>   by Jonathan.
+> * Added missing of_node_put() calls.
+> * Moved the patch changing the place where the main structure is
+>   allocated to directly precede the patch using this change.
+> * Fixed the driver data wiring (bug happening between ex patches 16 and
+>   28).
+> * Added a commit just to explain the reordering of the register writes
+>   during initialization/resume.
+> * Explained the check about 'use_tsc' in the commit message.
+> * Added a link to the TRM in a commit message referencing it.
+> * Removed the use of the ti,tracks property, used a constant value
+>   instead.
+> * Dropped the error check when retrieving the "wrong" DT property
+>   (coordiante-readouts) which is unused.
+> 
+> 
+> Miquel Raynal (47):
+>   clk: ti: am43xx: Add clkctrl data for am43xx ADC1
+>   dt-bindings: mfd: ti,am3359-tscadc: Add a yaml description for this
+>     MFD
+>   dt-bindings: touchscreen: ti,am3359-tsc: New yaml description
+>   dt-bindings: iio: adc: ti,am3359-adc: New yaml description
+>   dt-bindings: touchscreen: ti,am3359-tsc: Remove deprecated text file
+>   dt-bindings: mfd: ti,am3359-tscadc: Describe am4372 MFD compatible
+>   dt-bindings: iio: adc: ti,am3359-adc: Describe am4372 ADC compatible
+>   mfd: ti_am335x_tscadc: Ensure a balanced number of node get/put
+>   mfd: ti_am335x_tscadc: Replace license text with SPDX tag
+>   mfd: ti_am335x_tscadc: Fix style
+>   mfd: ti_am335x_tscadc: Drop extra spacing when declaring stack
+>     variables
+>   mfd: ti_am335x_tscadc: Get rid of useless gotos
+>   mfd: ti_am335x_tscadc: Reword the comment explaining the dividers
+>   mfd: ti_am335x_tscadc: Don't search the tree for our clock
+>   mfd: ti_am335x_tscadc: Simplify divisor calculation
+>   mfd: ti_am335x_tscadc: Move the driver structure allocation earlier
+>   mfd: ti_am335x_tscadc: Use driver data
+>   mfd: ti_am335x_tscadc: Mimic the probe from resume()
+>   mfd: ti_am335x_tscadc: Drop useless variables from the driver
+>     structure
+>   mfd: ti_am335x_tscadc: Always provide an idle configuration
+>   mfd: ti_am335x_tscadc: Reorder the initialization steps
+>   mfd: ti_am335x_tscadc: Gather the ctrl register logic in one place
+>   mfd: ti_am335x_tscadc: Replace the header license text with SPDX tag
+>   mfd: ti_am335x_tscadc: Fix header spacing
+>   mfd: ti_am335x_tscadc: Use the new HZ_PER_MHZ macro
+>   mfd: ti_am335x_tscadc: Use BIT(), GENMASK() and FIELD_PREP() when
+>     relevant
+>   mfd: ti_am335x_tscadc: Clarify the maximum values for DT entries
+>   mfd: ti_am335x_tscadc: Drop useless definitions from the header
+>   mfd: ti_am335x_tscadc: Rename the subsystem enable macro
+>   mfd: ti_am335x_tscadc: Add TSC prefix in certain macros
+>   mfd: ti_am335x_tscadc: Rename a variable
+>   mfd: ti_am335x_tscadc: Fix an error message
+>   mfd: ti_am335x_tscadc: Add a boolean to clarify the presence of a
+>     touchscreen
+>   mfd: ti_am335x_tscadc: Introduce has_tsc
+>   mfd: ti_am335x_tscadc: Add ADC1/magnetic reader support
+>   mfd: ti_am335x_tscadc: Support the correctly spelled DT property
+>   iio: adc: ti_am335x_adc: Wait the idle state to avoid stalls
+>   iio: adc: ti_am335x_adc: Replace license text with SPDX tag
+>   iio: adc: ti_am335x_adc: Fix style
+>   iio: adc: ti_am335x_adc: Get rid of useless gotos
+>   iio: adc: ti_am335x_adc: Gather the checks on the delays
+>   iio: adc: ti_am335x_adc: Add a unit to the timeout delay
+>   iio: adc: ti_am335x_adc: Add the scale information
+>   iio: adc: ti_am335x_adc: Add the am437x compatible
+>   ARM: dts: am437x-cm-t43: Use a correctly spelled DT property
+>   ARM: dts: am43xx: Describe the magnetic reader/ADC1 hardware module
+>   ARM: dts: am437x-gp-evm: enable ADC1
+> 
+>  .../bindings/iio/adc/ti,am3359-adc.yaml       |  70 +++++
+>  .../input/touchscreen/ti,am3359-tsc.yaml      |  76 ++++++
+>  .../bindings/input/touchscreen/ti-tsc-adc.txt |  91 -------
+>  .../bindings/mfd/ti,am3359-tscadc.yaml        |  84 ++++++
+>  arch/arm/boot/dts/am437x-cm-t43.dts           |   2 +-
+>  arch/arm/boot/dts/am437x-gp-evm.dts           |   8 +
+>  arch/arm/boot/dts/am437x-l4.dtsi              |  31 ++-
+>  arch/arm/boot/dts/am43xx-clocks.dtsi          |   7 +
+>  drivers/clk/ti/clk-43xx.c                     |   1 +
+>  drivers/iio/adc/ti_am335x_adc.c               | 220 +++++++++-------
+>  drivers/mfd/ti_am335x_tscadc.c                | 243 ++++++++++--------
+>  include/dt-bindings/clock/am4.h               |   1 +
+>  include/linux/mfd/ti_am335x_tscadc.h          | 115 ++++-----
+>  13 files changed, 599 insertions(+), 350 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/iio/adc/ti,am3359-adc.yaml
+>  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/ti,am3359-tsc.yaml
+>  delete mode 100644 Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+>  create mode 100644 Documentation/devicetree/bindings/mfd/ti,am3359-tscadc.yaml
+> 
+
