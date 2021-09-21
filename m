@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0838C4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 07:51:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC03C433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 07:51:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7D54611C5
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 07:51:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1012A610A1
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 07:51:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230497AbhIUHwo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 21 Sep 2021 03:52:44 -0400
-Received: from muru.com ([72.249.23.125]:35320 "EHLO muru.com"
+        id S230415AbhIUHxH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 21 Sep 2021 03:53:07 -0400
+Received: from muru.com ([72.249.23.125]:35338 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230136AbhIUHwj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 21 Sep 2021 03:52:39 -0400
+        id S230136AbhIUHxH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 21 Sep 2021 03:53:07 -0400
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 5ED9580A8;
-        Tue, 21 Sep 2021 07:51:38 +0000 (UTC)
-Date:   Tue, 21 Sep 2021 10:51:09 +0300
+        by muru.com (Postfix) with ESMTPS id 0352880A8;
+        Tue, 21 Sep 2021 07:52:07 +0000 (UTC)
+Date:   Tue, 21 Sep 2021 10:51:37 +0300
 From:   Tony Lindgren <tony@atomide.com>
 To:     Miquel Raynal <miquel.raynal@bootlin.com>
 Cc:     Jonathan Cameron <jic23@kernel.org>,
@@ -40,24 +40,21 @@ Cc:     Jonathan Cameron <jic23@kernel.org>,
         Ryan Barnett <ryan.barnett@collins.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         Jason Reeder <jreeder@ti.com>
-Subject: Re: [PATCH v3 45/47] ARM: dts: am437x-cm-t43: Use a correctly
- spelled DT property
-Message-ID: <YUmO7Y7C5IQYU4dj@atomide.com>
+Subject: Re: [PATCH v3 46/47] ARM: dts: am43xx: Describe the magnetic
+ reader/ADC1 hardware module
+Message-ID: <YUmPCSwyQ/dwl7+B@atomide.com>
 References: <20210915155908.476767-1-miquel.raynal@bootlin.com>
- <20210915155908.476767-46-miquel.raynal@bootlin.com>
+ <20210915155908.476767-47-miquel.raynal@bootlin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210915155908.476767-46-miquel.raynal@bootlin.com>
+In-Reply-To: <20210915155908.476767-47-miquel.raynal@bootlin.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 * Miquel Raynal <miquel.raynal@bootlin.com> [210915 16:01]:
-> Back in 2014 a property got misspelled "ti,coordiante-readouts" instead
-> of "ti,coordinate-readouts".
-> 
-> The year after it got fixed but both are still supported, although this
-> is not a reason to continue using this old deprecated property.
+> This hardware module is close to the am33xx ADC module but instead of
+> featuring a touchscreen it has a magnetic reader capability.
 
 Acked-by: Tony Lindgren <tony@atomide.com>
