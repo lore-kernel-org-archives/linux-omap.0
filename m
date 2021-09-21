@@ -2,194 +2,130 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4BB3C433FE
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 11:16:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78614C433F5
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 11:59:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E82D61184
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 11:16:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 587B461184
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Sep 2021 11:59:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232400AbhIULRv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 21 Sep 2021 07:17:51 -0400
-Received: from muru.com ([72.249.23.125]:35722 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232387AbhIULRo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Tue, 21 Sep 2021 07:17:44 -0400
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 221F88132;
-        Tue, 21 Sep 2021 11:16:41 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     Ulf Hansson <ulf.hansson@linaro.org>
-Cc:     Adrian Hunter <adrian.hunter@intel.com>,
-        Chunyan Zhang <zhang.chunyan@linaro.org>,
-        Faiz Abbas <faiz_abbas@ti.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH 4/5] mmc: sdhci-omap: Implement PM runtime functions
-Date:   Tue, 21 Sep 2021 14:15:59 +0300
-Message-Id: <20210921111600.24577-5-tony@atomide.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20210921111600.24577-1-tony@atomide.com>
-References: <20210921111600.24577-1-tony@atomide.com>
+        id S232100AbhIUMBF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 21 Sep 2021 08:01:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58114 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231778AbhIUMBF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2021 08:01:05 -0400
+Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1155AC061574;
+        Tue, 21 Sep 2021 04:59:37 -0700 (PDT)
+Received: by mail-ed1-x532.google.com with SMTP id bx4so28912094edb.4;
+        Tue, 21 Sep 2021 04:59:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=KHxdyV8EyJ0XBPQEDxJ1v4h9kj1JfLTsZlYSfzSaMA0=;
+        b=HlBo9gi3cYBrHujgvixSoBUWSIePnuwaETvI0dM2Zg0LvfzLZ7Rd2nOyujd9kLs3xM
+         RA+PE9pbT4RBXfsXmbqlJsds5UuHBuekAngHh3DPOwjrFg/lQSEOATEtrnsUIu6NeMS6
+         9EtSMV8JZOu/qiO0/PmvpUfhvQ0g7IyvWPKaP9fFMpWMmC2N3np2yhUWq+yLfmOyTGv3
+         LBmVy4gS2+4LPpRwBTyhtMThNelJr30jqSJSc+iGNxTKI5dvyQIfIdmoFgryXPYtvDdK
+         XYCuQ5NDxTbv3DlHEhKkBogdlGHW/RW5sdfCzetPJXUthJJ7ppx4I9ilKuhGktpqHu+q
+         B2XQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=KHxdyV8EyJ0XBPQEDxJ1v4h9kj1JfLTsZlYSfzSaMA0=;
+        b=O54PU5FsxTHkR7p+YMUGqap3hnef4XwgkEsW5ClgFs1zvUuzKIcSIlOOzgajz5g75T
+         3flcdA5lZWyDBj1Z9NZYQ/zLUZtaSZnkV+ayObTLFaMjGvIjkwdxuFU6ai9hfh2Knjt2
+         sLr30cD21FI3nnlqnGu1cOUpwdN1khu3AFTcwbLpO3m6w7DUfHpcohkS0XI9fFOyYWBg
+         zn7Ulx2cV2NPJgzSYINXFszmt0OlCPPDCI/B+izPHvhAT6TlXLvtzp5pxTL9CCpz7Vau
+         TLxNvH7xTRtN+ERprT74zg9UEkbtOskMpoY8BP/xmXXJeXyVSiUQ8f2Td8kGW1fUdeNF
+         3yRw==
+X-Gm-Message-State: AOAM53265p9LgQ/l0IPWjPCXwyQjRo3aoX4PncbuJgy+z5Arvyu4yX0x
+        i6W+Ld/V4JkEx++qarZEgr5yjRBllre/CxHARAI=
+X-Google-Smtp-Source: ABdhPJxmDNUrn/pjfqGBtuarR0ifn3xMY97hBg31i3Lrvhgn4lXmgIdu/Mx35BIvjqGEfO7bu1TPzpTPeYd3gQihQQU=
+X-Received: by 2002:a17:906:90c9:: with SMTP id v9mr32826020ejw.356.1632225573722;
+ Tue, 21 Sep 2021 04:59:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210921103346.64824-1-tony@atomide.com> <20210921103346.64824-2-tony@atomide.com>
+In-Reply-To: <20210921103346.64824-2-tony@atomide.com>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Tue, 21 Sep 2021 14:58:55 +0300
+Message-ID: <CAHp75VeBM-k39HJWe8cyiz+7sKbgMwJLivOGSs_8=nMADUbukw@mail.gmail.com>
+Subject: Re: [PATCH 1/6] n_tty: Start making use of -EAGAIN returned from process_output_block()
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@intel.com>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Johan Hovold <johan@kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        "open list:SERIAL DRIVERS" <linux-serial@vger.kernel.org>,
+        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Implement PM runtime functions and enable MMC_CAP_AGGRESSIVE_PM.
+On Tue, Sep 21, 2021 at 1:34 PM Tony Lindgren <tony@atomide.com> wrote:
+>
+> We check for -EAGAIN in n_tty_write() but never currently get it from
+> process_output_block(). Let's add -EAGAIN handling and break out with 0
+> bytes processed. Note that if we return -EAGAIN from n_tty_write(), it
+> will be treated as error by the caller rather than a retry.
+>
+> Looking at the patch description for commit 9ef8927f45f2 ("n_tty: check
+> for negative and zero space return from tty_write_room") it looks like we
+> have not made use of -EGAIN from process_output_block() so far, so this
 
-Note that we save context in probe to avoid restoring invalid context
-on the first resume. For system suspend, we have the new PM runtime
-functions do most of the work.
+-EGAIN?
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mmc/host/sdhci-omap.c | 66 +++++++++++++++++++++++++++++------
- 1 file changed, 56 insertions(+), 10 deletions(-)
+> does not seem like it's currently needed as a fix.
+>
+> We can use -EAGAIN for serial layer power management changes as we now
+> will make use of write_room() returning 0 for an idled serial port.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/tty/n_tty.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/tty/n_tty.c b/drivers/tty/n_tty.c
+> --- a/drivers/tty/n_tty.c
+> +++ b/drivers/tty/n_tty.c
+> @@ -549,6 +549,8 @@ static ssize_t process_output_block(struct tty_struct *tty,
+>         space = tty_write_room(tty);
+>         if (space <= 0) {
+>                 mutex_unlock(&ldata->output_lock);
+> +               if (!space)
+> +                       space = -EAGAIN;
+>                 return space;
+>         }
+>         if (nr > space)
+> @@ -2287,8 +2289,10 @@ static ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
+>                         while (nr > 0) {
+>                                 ssize_t num = process_output_block(tty, b, nr);
+>                                 if (num < 0) {
+> -                                       if (num == -EAGAIN)
+> -                                               break;
+> +                                       if (num == -EAGAIN) {
+> +                                               retval = 0;
+> +                                               goto break_out;
+> +                                       }
+>                                         retval = num;
+>                                         goto break_out;
+>                                 }
+> --
+> 2.33.0
 
-diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
---- a/drivers/mmc/host/sdhci-omap.c
-+++ b/drivers/mmc/host/sdhci-omap.c
-@@ -117,6 +117,9 @@ struct sdhci_omap_host {
- 
- 	struct pinctrl		*pinctrl;
- 	struct pinctrl_state	**pinctrl_state;
-+	unsigned long		context_valid:1;
-+	unsigned long		is_runtime_suspended:1;
-+	unsigned long		needs_resume:1;
- 	bool			is_tuning;
- 
- 	/* Offset for omap specific registers from base */
-@@ -1207,6 +1210,8 @@ static const struct soc_device_attribute sdhci_omap_soc_devices[] = {
- 	}
- };
- 
-+static void sdhci_omap_context_save(struct sdhci_omap_host *omap_host);
-+
- static int sdhci_omap_probe(struct platform_device *pdev)
- {
- 	int ret;
-@@ -1338,6 +1343,8 @@ static int sdhci_omap_probe(struct platform_device *pdev)
- 	/* R1B responses is required to properly manage HW busy detection. */
- 	mmc->caps |= MMC_CAP_NEED_RSP_BUSY;
- 
-+	mmc->caps |= MMC_CAP_AGGRESSIVE_PM;
-+
- 	ret = sdhci_setup_host(host);
- 	if (ret)
- 		goto err_put_sync;
-@@ -1350,6 +1357,11 @@ static int sdhci_omap_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_cleanup_host;
- 
-+	sdhci_omap_context_save(omap_host);
-+	omap_host->context_valid = 1;
-+
-+	pm_runtime_put_sync(dev);
-+
- 	return 0;
- 
- err_cleanup_host:
-@@ -1371,6 +1383,7 @@ static int sdhci_omap_remove(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct sdhci_host *host = platform_get_drvdata(pdev);
- 
-+	pm_runtime_get_sync(dev);
- 	sdhci_remove_host(host, true);
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
-@@ -1402,42 +1415,75 @@ static void sdhci_omap_context_restore(struct sdhci_omap_host *omap_host)
- 	sdhci_omap_writel(omap_host, SDHCI_OMAP_ISE, omap_host->ise);
- }
- 
--static int __maybe_unused sdhci_omap_suspend(struct device *dev)
-+static int __maybe_unused sdhci_omap_runtime_suspend(struct device *dev)
- {
- 	struct sdhci_host *host = dev_get_drvdata(dev);
- 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
- 	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
- 
--	sdhci_suspend_host(host);
--
- 	sdhci_omap_context_save(omap_host);
- 
- 	pinctrl_pm_select_idle_state(dev);
- 
--	pm_runtime_force_suspend(dev);
-+	omap_host->is_runtime_suspended = 1;
- 
- 	return 0;
- }
- 
--static int __maybe_unused sdhci_omap_resume(struct device *dev)
-+static int __maybe_unused sdhci_omap_runtime_resume(struct device *dev)
- {
- 	struct sdhci_host *host = dev_get_drvdata(dev);
- 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
- 	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
- 
--	pm_runtime_force_resume(dev);
--
- 	pinctrl_pm_select_default_state(dev);
- 
--	sdhci_omap_context_restore(omap_host);
-+	if (omap_host->context_valid)
-+		sdhci_omap_context_restore(omap_host);
-+
-+	omap_host->is_runtime_suspended = 0;
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused sdhci_omap_suspend(struct device *dev)
-+{
-+	struct sdhci_host *host = dev_get_drvdata(dev);
-+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-+	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
-+
-+	if (omap_host->is_runtime_suspended)
-+		return 0;
-+
-+	sdhci_suspend_host(host);
-+	sdhci_omap_runtime_suspend(dev);
-+	omap_host->needs_resume = 1;
- 
-+	return 0;
-+}
-+
-+static int __maybe_unused sdhci_omap_resume(struct device *dev)
-+{
-+	struct sdhci_host *host = dev_get_drvdata(dev);
-+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-+	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
-+
-+	if (!omap_host->needs_resume)
-+		return 0;
-+
-+	sdhci_omap_runtime_resume(dev);
- 	sdhci_resume_host(host);
-+	omap_host->needs_resume = 0;
- 
- 	return 0;
- }
- #endif
--static SIMPLE_DEV_PM_OPS(sdhci_omap_dev_pm_ops, sdhci_omap_suspend,
--			 sdhci_omap_resume);
-+
-+static const struct dev_pm_ops sdhci_omap_dev_pm_ops = {
-+	SET_RUNTIME_PM_OPS(sdhci_omap_runtime_suspend,
-+			   sdhci_omap_runtime_resume, NULL)
-+	SET_SYSTEM_SLEEP_PM_OPS(sdhci_omap_suspend, sdhci_omap_resume)
-+};
- 
- static struct platform_driver sdhci_omap_driver = {
- 	.probe = sdhci_omap_probe,
+
+
 -- 
-2.33.0
+With Best Regards,
+Andy Shevchenko
