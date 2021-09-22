@@ -2,104 +2,224 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FSL_HELO_FAKE,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35FC5C433F5
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Sep 2021 13:22:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9C6DC433FE
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Sep 2021 15:01:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 190EC611B0
-	for <linux-omap@archiver.kernel.org>; Wed, 22 Sep 2021 13:22:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1DE861107
+	for <linux-omap@archiver.kernel.org>; Wed, 22 Sep 2021 15:01:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231660AbhIVNYT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 22 Sep 2021 09:24:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46622 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230413AbhIVNYT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 22 Sep 2021 09:24:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A880760FC1;
-        Wed, 22 Sep 2021 13:22:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632316969;
-        bh=RMLmKC2ffOq6sR/gzS529nDFxhd9wlS77MVexpDzG6E=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=lkWzjNglpdHkDPCl+AybxJ57pkPgALNx9aV/Fy7QfdVVqQdxl3S9IifKmtR6bzPUm
-         sX0M6EVDQzdO/i1jX/kIjYrSlMhO3q2UFV3UOH5i56st5JIMfJ2fBmD9YzmUFV6qxO
-         ci39RgUEQ5V/AsXiKRYf1m6ECWmF6BSrN+cGtMMq7atGke9nHXLXmAeIz/xL2gWY7V
-         3bMA6Hc74s/osrSr5a2NocRFZq6W5fp9wNJrkzLeS6kpvj+Ag2GurH/Nzd3ddQPqV0
-         YNDFc+U1kLBFE75PKv4+2Wy5cE1s0/n2YI5SsKYoRpR1X9ziVH0w++LaLJHHhKrBTG
-         CyN3i7ALKNH7A==
-Date:   Wed, 22 Sep 2021 06:22:46 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     "David S . Miller" <davem@davemloft.net>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Andrew Lunn <andrew@lunn.ch>, Ariel Elior <aelior@marvell.com>,
-        Bin Luo <luobin9@huawei.com>,
-        Claudiu Manoil <claudiu.manoil@nxp.com>,
-        Coiby Xu <coiby.xu@gmail.com>,
-        Derek Chickles <dchickles@marvell.com>, drivers@pensando.io,
-        Felix Manlunas <fmanlunas@marvell.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Geetha sowjanya <gakula@marvell.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
-        hariprasad <hkelam@marvell.com>,
-        Ido Schimmel <idosch@nvidia.com>,
-        Intel Corporation <linuxwwan@intel.com>,
-        intel-wired-lan@lists.osuosl.org,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Jerin Jacob <jerinj@marvell.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Jiri Pirko <jiri@nvidia.com>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Linu Cherian <lcherian@marvell.com>,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-staging@lists.linux.dev,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Manish Chopra <manishc@marvell.com>,
-        M Chetan Kumar <m.chetan.kumar@intel.com>,
-        Michael Chan <michael.chan@broadcom.com>,
-        netdev@vger.kernel.org, oss-drivers@corigine.com,
-        Richard Cochran <richardcochran@gmail.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Satanand Burla <sburla@marvell.com>,
-        Sergey Ryazanov <ryazanov.s.a@gmail.com>,
-        Shannon Nelson <snelson@pensando.io>,
-        Simon Horman <simon.horman@corigine.com>,
-        Subbaraya Sundeep <sbhatta@marvell.com>,
-        Sunil Goutham <sgoutham@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Vladimir Oltean <vladimir.oltean@nxp.com>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>
-Subject: Re: [PATCH net-next v1] devlink: Make devlink_register to be void
-Message-ID: <20210922062246.26e38305@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <311a6c7e74ad612474446890a12c9d310b9507ed.1632300324.git.leonro@nvidia.com>
-References: <311a6c7e74ad612474446890a12c9d310b9507ed.1632300324.git.leonro@nvidia.com>
+        id S236303AbhIVPD1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 22 Sep 2021 11:03:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37340 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236334AbhIVPD0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2021 11:03:26 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63BB8C061757
+        for <linux-omap@vger.kernel.org>; Wed, 22 Sep 2021 08:01:56 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id d6so7652718wrc.11
+        for <linux-omap@vger.kernel.org>; Wed, 22 Sep 2021 08:01:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=e/8vlf6ZJGgT0nFK3H9I5QV9du1gDdHD92jDJeZbQnc=;
+        b=MrlCvM9fTVPK8UCQ3ZxglrH5BVRHqFmwHH7UebhoEibKMzIZsiLnkPD0iV3IkXJ2Lu
+         fhBXkvjUdg5gu40HiSHO+iwclKd92Rpp5NPeFExco+d9VFcte+3WhPmVbYmavZ1kSt7b
+         dwf4uxU1tMuTISLUpHeiaMQviDQ5UVW7awBdvuGWiOpj/lFSR8wDmkXYE7zrK+9r7p3q
+         LKVJy/sMWgy58vzyNFzJ2E8IdmGV1a/LE0c/ceQ2TnJhN5KPXzj9qecT8ghg//a2pSpF
+         UbdKpjfeKu3topNapIKUrSkejYg7LTtonUC/oJOrgnfuFinh90yS774S2xvQGqAYlKjb
+         OmOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=e/8vlf6ZJGgT0nFK3H9I5QV9du1gDdHD92jDJeZbQnc=;
+        b=Sgy7sLZp4qZSnbDfnqZaeU6gJTNmOAo2eDgDhj/dHKqo8xYVWjUzbyk4lantu1E848
+         i3zqV6HaoFHnfTy2NMqA6P8C93mi1zJcmFRU+GGcQaA20pMiL1q35SUp/vkc5AGU+2N/
+         lEJaVQU3a7qu0pUPXB1P4EpqvDekBVD0bFmdRgNjS5D4MuK2LlEVM+fAyLWOhBmOF/r7
+         dEy3asMmBS/euiyCC53aoV+cl4MobrdQLdAlxJ1KINnB3pEVy4dfv8KJSZmDUHZjwOZS
+         fTS3/YXD4sat8Ww15r5k6UCtkBDH5M0Yawsz8aYhdrjx8VvxeNJ3i6MD5gmGtDmJkL8r
+         ieGg==
+X-Gm-Message-State: AOAM532YJ2pfkV1OZra0g64QwZYCD1av8jnOMfq1DVK4PxEGUVVy0zgx
+        RO/w4QZnZczg1tO6AmO0Fw8Mmg==
+X-Google-Smtp-Source: ABdhPJy8lhd5Xbf6p0Cw8bQC6TWALcWr6/FiKINfo9OvwSibxVc/vVq99NAlmqvZoMQd5Mb+BoI0xw==
+X-Received: by 2002:a05:600c:22d6:: with SMTP id 22mr11062985wmg.17.1632322914822;
+        Wed, 22 Sep 2021 08:01:54 -0700 (PDT)
+Received: from google.com ([95.148.6.233])
+        by smtp.gmail.com with ESMTPSA id k6sm5942844wmo.37.2021.09.22.08.01.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Sep 2021 08:01:53 -0700 (PDT)
+Date:   Wed, 22 Sep 2021 16:01:51 +0100
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Miquel Raynal <miquel.raynal@bootlin.com>
+Cc:     Jonathan Cameron <jic23@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>,
+        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-omap@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Lokesh Vutla <lokeshvutla@ti.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Ryan Barnett <ryan.barnett@collins.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Jason Reeder <jreeder@ti.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [PATCH v3 17/47] mfd: ti_am335x_tscadc: Use driver data
+Message-ID: <YUtFX/6I4VuBHXgf@google.com>
+References: <20210915155908.476767-1-miquel.raynal@bootlin.com>
+ <20210915155908.476767-18-miquel.raynal@bootlin.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210915155908.476767-18-miquel.raynal@bootlin.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 22 Sep 2021 11:58:03 +0300 Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> devlink_register() can't fail and always returns success, but all drivers
-> are obligated to check returned status anyway. This adds a lot of boilerplate
-> code to handle impossible flow.
-> 
-> Make devlink_register() void and simplify the drivers that use that
-> API call.
-> 
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+On Wed, 15 Sep 2021, Miquel Raynal wrote:
 
-Acked-by: Jakub Kicinski <kuba@kernel.org>
+> So far every sub-cell parameter in this driver was hardcoded: cell name,
+> cell compatible, specific clock name and desired clock frequency.
+> 
+> As we are about to introduce support for ADC1/magnetic reader, we need a
+> bit of flexibility. Let's add a driver data structure which will contain
+> these information.
+> 
+> Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> ---
+>  drivers/mfd/ti_am335x_tscadc.c       | 25 +++++++++++++++++++------
+>  include/linux/mfd/ti_am335x_tscadc.h |  9 +++++++++
+>  2 files changed, 28 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+> index ba821109e98b..fbc8e338188a 100644
+> --- a/drivers/mfd/ti_am335x_tscadc.c
+> +++ b/drivers/mfd/ti_am335x_tscadc.c
+> @@ -137,6 +137,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+>  
+> +	tscadc->data = of_device_get_match_data(&pdev->dev);
+> +
+>  	node = of_get_child_by_name(pdev->dev.of_node, "tsc");
+>  	of_property_read_u32(node, "ti,wires", &tsc_wires);
+>  	of_property_read_u32(node, "ti,coordiante-readouts", &readouts);
+> @@ -212,7 +214,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+>  		goto err_disable_clk;
+>  	}
+>  
+> -	tscadc->clk_div = (clk_get_rate(clk) / ADC_CLK) - 1;
+> +	tscadc->clk_div = (clk_get_rate(clk) / tscadc->data->target_clk_rate) - 1;
+>  	regmap_write(tscadc->regmap, REG_CLKDIV, tscadc->clk_div);
+>  
+>  	/* Set the control register bits */
+> @@ -241,8 +243,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+>  	if (tsc_wires > 0) {
+>  		tscadc->tsc_cell = tscadc->used_cells;
+>  		cell = &tscadc->cells[tscadc->used_cells++];
+> -		cell->name = "TI-am335x-tsc";
+> -		cell->of_compatible = "ti,am3359-tsc";
+> +		cell->name = tscadc->data->name_tscmag;
+> +		cell->of_compatible = tscadc->data->compat_tscmag;
+>  		cell->platform_data = &tscadc;
+>  		cell->pdata_size = sizeof(tscadc);
+>  	}
+> @@ -251,8 +253,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+>  	if (adc_channels > 0) {
+>  		tscadc->adc_cell = tscadc->used_cells;
+>  		cell = &tscadc->cells[tscadc->used_cells++];
+> -		cell->name = "TI-am335x-adc";
+> -		cell->of_compatible = "ti,am3359-adc";
+> +		cell->name = tscadc->data->name_adc;
+> +		cell->of_compatible = tscadc->data->compat_adc;
+>  		cell->platform_data = &tscadc;
+>  		cell->pdata_size = sizeof(tscadc);
+>  	}
+> @@ -338,8 +340,19 @@ static int __maybe_unused tscadc_resume(struct device *dev)
+>  
+>  static SIMPLE_DEV_PM_OPS(tscadc_pm_ops, tscadc_suspend, tscadc_resume);
+>  
+> +static const struct ti_tscadc_data tscdata = {
+> +	.name_tscmag = "TI-am335x-tsc",
+> +	.compat_tscmag = "ti,am3359-tsc",
+> +	.name_adc = "TI-am335x-adc",
+> +	.compat_adc = "ti,am3359-adc",
+> +	.target_clk_rate = ADC_CLK,
+> +};
+> +
+>  static const struct of_device_id ti_tscadc_dt_ids[] = {
+> -	{ .compatible = "ti,am3359-tscadc", },
+> +	{
+> +		.compatible = "ti,am3359-tscadc",
+> +		.data = &tscdata,
+> +	},
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(of, ti_tscadc_dt_ids);
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+> index ffc091b77633..0f581c15d95a 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -162,11 +162,20 @@
+>  
+>  #define TSCADC_CELLS		2
+>  
+> +struct ti_tscadc_data {
+> +	char *name_tscmag;
+> +	char *compat_tscmag;
+> +	char *name_adc;
+> +	char *compat_adc;
+
+I think these names should be improved.
+
+What is tscmag?
+
+Does that represent both the Magnetic Reader and the Touchscreen?
+
+If so, I'd prefer that you split them.  If not, I need more info.
+
+For readability, I suggest;
+
+  touchscreen_name
+  touchscreen_compatible
+  mag_reader_name
+  mag_reader_compatible
+  adc_name
+  adc_compatible
+  etc
+
+What is a magnetic reader anyway?
+
+Does it read the magnetic stripe on a payment card?
+
+> +	unsigned int target_clk_rate;
+> +};
+> +
+>  struct ti_tscadc_dev {
+>  	struct device *dev;
+>  	struct regmap *regmap;
+>  	void __iomem *tscadc_base;
+>  	phys_addr_t tscadc_phys_base;
+> +	const struct ti_tscadc_data *data;
+>  	int irq;
+>  	int used_cells;	/* 1-2 */
+>  	int tsc_wires;
+
+-- 
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
