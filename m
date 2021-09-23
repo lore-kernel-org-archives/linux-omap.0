@@ -7,80 +7,80 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B01C43217
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D25C433FE
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC1D961261
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9C3461164
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239569AbhIWHIl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Sep 2021 03:08:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58004 "EHLO
+        id S239583AbhIWHIm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Sep 2021 03:08:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239550AbhIWHIj (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2021 03:08:39 -0400
-Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDF36C061764
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:07 -0700 (PDT)
-Received: by mail-wr1-x42d.google.com with SMTP id g16so14223584wrb.3
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:07 -0700 (PDT)
+        with ESMTP id S239567AbhIWHIl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2021 03:08:41 -0400
+Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE9F8C061574
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:09 -0700 (PDT)
+Received: by mail-wr1-x432.google.com with SMTP id u15so14172919wru.6
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=baylibre-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Wl17Sf97iY4+CSQLIuQXO5q/f+FclNaJ+Vy/LLxmins=;
-        b=wadVxuPECaq6jBXx+vE0dAlmtjq1K60UUU8UhDYaCZaHgp0OWgpQMOby+IVKehWhqL
-         eJ0O5eHemyoNQ95y9RNhE3NqzFwxJt/jWpyk5Q9djCPV9ZZFj6jloHuixhs+CTvZ1hx4
-         Dluu7ru+cCV1hPjkJhanveEw5S/mSqeBEQqdbRb2ewoRM/KW/cUvsp5PxngGMAN7lg8D
-         utMqD2TOFguFdpxs9+hrR2DPbYpppAq4PhlHGA1PNxYAPCnfGsz32s41qFvYFZp0H7m2
-         GDcY2xUC7Y7kCwDuCU6HmtuZHjAW9gbsUBwO8xCYdVSsAVT8svO0N5HrUFaVm50H8tPg
-         RdWA==
+        bh=MhWIp0UrXPh24CZld2TkpSz0zhxZL6RpebTBKJIQEs0=;
+        b=zACrs0pfcolWyOc2u+w6I6s2NyMneenBh05GeBLLJSEWdeEJY/Atr2aljjHNmXqM/q
+         /DayN/oDxACZBrN3L081fbtwSBFBoXoS5/BDJ9tRZu2vsDA31WWMbSmHllVaB25+HhE5
+         pE4SVoDFGf6tCs6yl9ZcfOk68W1ykYdwpb+zPSdhuZxkbo+UMvsbkzAr/dzMwO3osD6t
+         wJJGW+4okxdE6k/Irtp+GHyn1numHkRrDoGMWr0BoeNkUk7C4SHGzj195LcQF7eUHojy
+         hp6JKUtAFTRU9CV7ZREL2R02cvKwzKjFD+Ss/OUJgvNjjBo2ukm4iLr1e442EPc3CS90
+         suUw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Wl17Sf97iY4+CSQLIuQXO5q/f+FclNaJ+Vy/LLxmins=;
-        b=f3TGdnc9ckPocZ/ddG73L6lPH1eiFUXsqyUGqfwmmFep/93ZIqW4Io8w80SgyvGZ0p
-         pHczJZGvhIc7ZLOCv/iMJrGb/8+RudZmCOA8FLb82v0MipcWrkNGYJdoK4YJ/HWuaIE4
-         0dXJJmPUMjq4vZVMhtUjOFhnMhTPsF40jQb1niV0KWH78usBsuQbNr6zQbhULoCx2+Xu
-         8qVBouyi7bZlEq9rnRiFyDYCgw03+AwD6Ak53h5uBzjCf5o8cYIMiRWs2l7bMxySE5XQ
-         VI1uTlDu9Js8wNDkF1HDIXHZ5RqOR23+qZX4cqmciIR3RINQFsXXE693G+sT+qR6yg93
-         9n7Q==
-X-Gm-Message-State: AOAM5315k6+VwO7MmbCp9ZNF41xaSmJLV3ibmZ3DSnFCMfv0N4CxAN0D
-        c/R31eUTDAcAW+vdEByV5nNsSQ==
-X-Google-Smtp-Source: ABdhPJxlI3k77jX0qdlzsxLuFwk8s3QEwsT66ZecdMTqZMnzud3Vhe7JYcVrPxsky/1ouVvDy9PhXw==
-X-Received: by 2002:adf:ecc9:: with SMTP id s9mr3359188wro.2.1632380826327;
-        Thu, 23 Sep 2021 00:07:06 -0700 (PDT)
+        bh=MhWIp0UrXPh24CZld2TkpSz0zhxZL6RpebTBKJIQEs0=;
+        b=ww8XHYzcIqEEQQ4bxDb1CDPiH9+vZM0ekDkmad45lC1PleAFDM6Xe5YY1rjjcqO7b/
+         BnoTRp+kNMQH7vN12D0ILx7hVxYLwAu2Y+VPswJ5bQiAGAW3LUKP38vgPEGZjrCH43Yu
+         CvwIK95B710Vrlh8M9HQ94WHpT7oK/Sj/MHZrL5i9Fi+Nmh5yvLSpVeG75rKVY3wg0Jy
+         5IXEUnZgiUFgdpF/xT7dZIgeu30LX0zH4MtMFVcu59SjAk4miLBxNg5BnRDXDdJotvz3
+         jZWHZCTB/9zmU95OMIsUPBqqsPniuT9dbhmImJFYGGUeMHoFue8WlDqks4If++Lo2Kk3
+         wU+g==
+X-Gm-Message-State: AOAM530zZAokoNup88Nx7vFb1Y3/03gpwZko40HYwgqlSOEsUkzYmqWx
+        FgSbj9sBXH0Te7elQU3n6ucAew==
+X-Google-Smtp-Source: ABdhPJxHqtnVog+Xd9wnlR+qnWZFpYpzP97F5H+o+HJ7eRDzQVIvTb6TMG5bdoniPcP/3w6qKTyCVA==
+X-Received: by 2002:a1c:3b87:: with SMTP id i129mr14503811wma.115.1632380828228;
+        Thu, 23 Sep 2021 00:07:08 -0700 (PDT)
 Received: from localhost.localdomain ([2001:861:44c0:66c0:74cf:b054:76f4:7692])
-        by smtp.gmail.com with ESMTPSA id d2sm4380357wrc.32.2021.09.23.00.07.05
+        by smtp.gmail.com with ESMTPSA id d2sm4380357wrc.32.2021.09.23.00.07.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Sep 2021 00:07:05 -0700 (PDT)
+        Thu, 23 Sep 2021 00:07:07 -0700 (PDT)
 From:   Neil Armstrong <narmstrong@baylibre.com>
 To:     tomba@kernel.org
 Cc:     linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-kernel@vger.kernel.org, khilman@baylibre.com,
         Benoit Parrot <bparrot@ti.com>,
         Neil Armstrong <narmstrong@baylibre.com>
-Subject: [PATCH v5 3/8] drm/omap: introduce omap_hw_overlay
-Date:   Thu, 23 Sep 2021 09:06:56 +0200
-Message-Id: <20210923070701.145377-4-narmstrong@baylibre.com>
+Subject: [PATCH v5 5/8] drm/omap: Add global state as a private atomic object
+Date:   Thu, 23 Sep 2021 09:06:58 +0200
+Message-Id: <20210923070701.145377-6-narmstrong@baylibre.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210923070701.145377-1-narmstrong@baylibre.com>
 References: <20210923070701.145377-1-narmstrong@baylibre.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=11056; i=narmstrong@baylibre.com;
- h=from:subject; bh=PNSPGHwtK+8fALF03jz6BERDIiy/R3kVBjpu2V6TpVI=;
- b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhTCchwo1qrutd22RgDCRkGmpEVtqHb96qLhns2I+7
- M3TmmnmJAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYUwnIQAKCRB33NvayMhJ0QQQEA
- CA/CcJ4NmZvtmXYpvTCYmRsM7FJVX391yp01vJTwnQgnxCP+mpcFeLXqxLPrV1E2yeNAZBvxZ050+o
- 7QaLkZklHGqY1gmxDewdX6roJFK7CQM2ierO0LnbmrK/jIz6R5zbO7h/GkjQ5SyQ1LiIBbsoKFnJZE
- u7B4ea22cN9SuKTRo8ERDRT2QI5K6Bq7pIdyaRsngbj2EOOaVy2jCsO4BsOcvi7KFqcr3A1o3c23z5
- kmHZP8PRfMT6/WNMs/GrmoIn+ihrQkYJBHEgkEXYU3Zo4gji4HrCD+1o0+9V7cChcqCRGQZRsiWXce
- Tb/rv5vzh7eClozu7+qxfbTQAtfrLhzD5IUQ0kgM2bvgB+q172cI2L0stwzkuEOxLL4f8wD7rt0564
- M5O5YHK4iRedxV1M21o0dU1CxhUrrjJRM38SQvRVoZ2huvjw6A0n9uUPkYt28LLSi5agYUMHRal+iV
- zyhErLA1qhi/OSyLHEFoiIJI/5lTJZyZPyHWBKgeY189aHRJeFmEqeOI9erWVRro+QaZwgN2LUlKuW
- DadcLbivBKMHC/NEM6vm/dwsQJUIOPpwmA3nv5nLm0kulnJ2ZPC6SJCh8L3iWZuPCkad8s9MNXnPpX
- sP8f5fjoOyWnOq6Qbu/ieBCShKk9K1h8n3VM2gwQ34cSDlTk8KrWK6tlFChw==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6530; i=narmstrong@baylibre.com;
+ h=from:subject; bh=bSg+1BfDSAo3dwQf+G6Jt2gIX5PWaQNLdCzBbuvRQWc=;
+ b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhTCchR26nV3qW8AuUaoQwnqAkIsox28FjcLhgq5bf
+ FIUdDZqJAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYUwnIQAKCRB33NvayMhJ0R37D/
+ wNU0IjIPd77tPKcsxwEDvbnjeklqgFmPTe0r0p+HQwA12XcWmu29xZ8A+9bSfQhApkNBbO3AeG3Szs
+ 6kp3axxnZJCR/UeorBYcVWPH0aaW3nES8H0Ov1mSlxRqWE4RHS856N7xx1UFtagVFrlzL0bP+8PuPX
+ YR9Iqp9gWYqKgR5etWwTPiKO/dglCBXXvHMEdG631fOR3zYBDFNe2OJsc4zAeTJJSQ5upIzbqLzYzE
+ 4ETFlv1W1l+Byw/JZ+egf92KLi/bfQbbxePna8KTmCZ8Nf317YWg0yCxBAgGkKyBxmCl6BhoXnc6sf
+ 9RrEj8/hxOjqI6raBYz/x0wvcUCH9PUrLsgd7krg9Y9BmQL+9jGbSrWIsoGVyPJHZ990bnB/P9vbTq
+ XLp7sRJ0Kw97e0VFhCNKBsJK1hIu03Rcp7L5S8SWufDN4CwtL/PiYY4gJhDWWFUmqw5uJYxnk96JEg
+ ADi7qqPufYLwbfAWVVNob3YIuFc9vBVPul/+NZC5pZZ1aTwzmvEvJ/2r60m1Y/ECET/kj2LRBe/9IG
+ prrMm7Nnvp1geu/RN5By4JYpT5eGZYLWXdtwbsZdFbk/AmRrbIdZ6RTXEnVQYBd5OcJnENfp/wt4PY
+ s8P7dNe9uBaatHPPlLsFD7KmktBvusSTUPZ+YujtNg8oL/b4MRNbETcYFyKA==
 X-Developer-Key: i=narmstrong@baylibre.com; a=openpgp; fpr=89EC3D058446217450F22848169AB7B1A4CFF8AE
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -89,353 +89,213 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Benoit Parrot <bparrot@ti.com>
 
-Split out the hardware overlay specifics from omap_plane.
-To start, the hw overlays are statically assigned to planes.
+Global shared resources (like hw overlays) for omapdrm are implemented
+as a part of atomic state using the drm_private_obj infrastructure
+available in the atomic core.
 
-The goal is to eventually assign hw overlays dynamically to planes
-during plane->atomic_check() based on requested caps (scaling, YUV,
-etc). And then perform hw overlay re-assignment if required.
+omap_global_state is introduced as a drm atomic private object. The two
+funcs omap_get_global_state() and omap_get_existing_global_state() are
+the two variants that will be used to access omap_global_state.
+
+drm_mode_config_init() needs to be called earlier because it
+creates/initializes the private_obj link list maintained by the atomic
+framework. The private_obj link list has to exist prior to calling
+drm_atomic_private_obj_init(). Similarly the cleanup handler are
+reordered appropriately.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- drivers/gpu/drm/omapdrm/Makefile       |  1 +
- drivers/gpu/drm/omapdrm/omap_drv.c     |  9 ++-
- drivers/gpu/drm/omapdrm/omap_drv.h     |  4 ++
- drivers/gpu/drm/omapdrm/omap_overlay.c | 87 ++++++++++++++++++++++++++
- drivers/gpu/drm/omapdrm/omap_overlay.h | 31 +++++++++
- drivers/gpu/drm/omapdrm/omap_plane.c   | 42 ++++++-------
- 6 files changed, 151 insertions(+), 23 deletions(-)
- create mode 100644 drivers/gpu/drm/omapdrm/omap_overlay.c
- create mode 100644 drivers/gpu/drm/omapdrm/omap_overlay.h
+ drivers/gpu/drm/omapdrm/omap_drv.c | 91 +++++++++++++++++++++++++++++-
+ drivers/gpu/drm/omapdrm/omap_drv.h | 21 +++++++
+ 2 files changed, 109 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/Makefile b/drivers/gpu/drm/omapdrm/Makefile
-index 21e8277ff88f..710b4e0abcf0 100644
---- a/drivers/gpu/drm/omapdrm/Makefile
-+++ b/drivers/gpu/drm/omapdrm/Makefile
-@@ -9,6 +9,7 @@ omapdrm-y := omap_drv.o \
- 	omap_debugfs.o \
- 	omap_crtc.o \
- 	omap_plane.o \
-+	omap_overlay.o \
- 	omap_encoder.o \
- 	omap_fb.o \
- 	omap_gem.o \
 diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index f86e20578143..b994014b22e8 100644
+index b994014b22e8..c7912374d393 100644
 --- a/drivers/gpu/drm/omapdrm/omap_drv.c
 +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -583,10 +583,14 @@ static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
+@@ -128,6 +128,82 @@ static const struct drm_mode_config_funcs omap_mode_config_funcs = {
+ 	.atomic_commit = drm_atomic_helper_commit,
+ };
+ 
++/* Global/shared object state funcs */
++
++/*
++ * This is a helper that returns the private state currently in operation.
++ * Note that this would return the "old_state" if called in the atomic check
++ * path, and the "new_state" after the atomic swap has been done.
++ */
++struct omap_global_state *
++omap_get_existing_global_state(struct omap_drm_private *priv)
++{
++	return to_omap_global_state(priv->glob_obj.state);
++}
++
++/*
++ * This acquires the modeset lock set aside for global state, creates
++ * a new duplicated private object state.
++ */
++struct omap_global_state *__must_check
++omap_get_global_state(struct drm_atomic_state *s)
++{
++	struct omap_drm_private *priv = s->dev->dev_private;
++	struct drm_private_state *priv_state;
++
++	priv_state = drm_atomic_get_private_obj_state(s, &priv->glob_obj);
++	if (IS_ERR(priv_state))
++		return ERR_CAST(priv_state);
++
++	return to_omap_global_state(priv_state);
++}
++
++static struct drm_private_state *
++omap_global_duplicate_state(struct drm_private_obj *obj)
++{
++	struct omap_global_state *state;
++
++	state = kmemdup(obj->state, sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return NULL;
++
++	__drm_atomic_helper_private_obj_duplicate_state(obj, &state->base);
++
++	return &state->base;
++}
++
++static void omap_global_destroy_state(struct drm_private_obj *obj,
++				      struct drm_private_state *state)
++{
++	struct omap_global_state *omap_state = to_omap_global_state(state);
++
++	kfree(omap_state);
++}
++
++static const struct drm_private_state_funcs omap_global_state_funcs = {
++	.atomic_duplicate_state = omap_global_duplicate_state,
++	.atomic_destroy_state = omap_global_destroy_state,
++};
++
++static int omap_global_obj_init(struct drm_device *dev)
++{
++	struct omap_drm_private *priv = dev->dev_private;
++	struct omap_global_state *state;
++
++	state = kzalloc(sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return -ENOMEM;
++
++	drm_atomic_private_obj_init(dev, &priv->glob_obj, &state->base,
++				    &omap_global_state_funcs);
++	return 0;
++}
++
++static void omap_global_obj_fini(struct omap_drm_private *priv)
++{
++	drm_atomic_private_obj_fini(&priv->glob_obj);
++}
++
+ static void omap_disconnect_pipelines(struct drm_device *ddev)
+ {
+ 	struct omap_drm_private *priv = ddev->dev_private;
+@@ -231,8 +307,6 @@ static int omap_modeset_init(struct drm_device *dev)
+ 	if (!omapdss_stack_is_ready())
+ 		return -EPROBE_DEFER;
+ 
+-	drm_mode_config_init(dev);
+-
+ 	ret = omap_modeset_init_properties(dev);
+ 	if (ret < 0)
+ 		return ret;
+@@ -583,10 +657,16 @@ static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
  
  	omap_gem_init(ddev);
  
+-	ret = omap_hwoverlays_init(priv);
++	drm_mode_config_init(ddev);
++
++	ret = omap_global_obj_init(ddev);
+ 	if (ret)
+ 		goto err_gem_deinit;
+ 
 +	ret = omap_hwoverlays_init(priv);
 +	if (ret)
-+		goto err_gem_deinit;
++		goto err_free_priv_obj;
 +
  	ret = omap_modeset_init(ddev);
  	if (ret) {
  		dev_err(priv->dev, "omap_modeset_init failed: ret=%d\n", ret);
--		goto err_gem_deinit;
-+		goto err_free_overlays;
- 	}
- 
- 	/* Initialize vblank handling, start with all CRTCs disabled. */
-@@ -618,6 +622,8 @@ static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
- 	omap_fbdev_fini(ddev);
- err_cleanup_modeset:
+@@ -624,7 +704,10 @@ static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
  	omap_modeset_fini(ddev);
-+err_free_overlays:
-+	omap_hwoverlays_destroy(priv);
+ err_free_overlays:
+ 	omap_hwoverlays_destroy(priv);
++err_free_priv_obj:
++	omap_global_obj_fini(priv);
  err_gem_deinit:
++	drm_mode_config_cleanup(ddev);
  	omap_gem_deinit(ddev);
  	destroy_workqueue(priv->wq);
-@@ -642,6 +648,7 @@ static void omapdrm_cleanup(struct omap_drm_private *priv)
- 	drm_atomic_helper_shutdown(ddev);
+ 	omap_disconnect_pipelines(ddev);
+@@ -649,6 +732,8 @@ static void omapdrm_cleanup(struct omap_drm_private *priv)
  
  	omap_modeset_fini(ddev);
-+	omap_hwoverlays_destroy(priv);
+ 	omap_hwoverlays_destroy(priv);
++	omap_global_obj_fini(priv);
++	drm_mode_config_cleanup(ddev);
  	omap_gem_deinit(ddev);
  
  	destroy_workqueue(priv->wq);
 diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-index 591d4c273f02..b4d9c2062723 100644
+index b4d9c2062723..280cdd27bc8e 100644
 --- a/drivers/gpu/drm/omapdrm/omap_drv.h
 +++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-@@ -24,6 +24,7 @@
- #include "omap_gem.h"
- #include "omap_irq.h"
- #include "omap_plane.h"
-+#include "omap_overlay.h"
+@@ -14,6 +14,7 @@
+ #include "dss/omapdss.h"
+ #include "dss/dss.h"
  
- #define DBG(fmt, ...) DRM_DEBUG_DRIVER(fmt"\n", ##__VA_ARGS__)
- #define VERB(fmt, ...) if (0) DRM_DEBUG_DRIVER(fmt, ##__VA_ARGS__) /* verbose debug */
-@@ -57,6 +58,9 @@ struct omap_drm_private {
- 	unsigned int num_planes;
- 	struct drm_plane *planes[8];
++#include <drm/drm_atomic.h>
+ #include <drm/drm_gem.h>
+ #include <drm/omap_drm.h>
  
-+	unsigned int num_ovls;
-+	struct omap_hw_overlay *overlays[8];
+@@ -41,6 +42,15 @@ struct omap_drm_pipeline {
+ 	unsigned int alias_id;
+ };
+ 
++/*
++ * Global private object state for tracking resources that are shared across
++ * multiple kms objects (planes/crtcs/etc).
++ */
++#define to_omap_global_state(x) container_of(x, struct omap_global_state, base)
++struct omap_global_state {
++	struct drm_private_state base;
++};
++
+ struct omap_drm_private {
+ 	struct drm_device *ddev;
+ 	struct device *dev;
+@@ -61,6 +71,13 @@ struct omap_drm_private {
+ 	unsigned int num_ovls;
+ 	struct omap_hw_overlay *overlays[8];
+ 
++	/*
++	 * Global private object state, Do not access directly, use
++	 * omap_global_get_state()
++	 */
++	struct drm_modeset_lock glob_obj_lock;
++	struct drm_private_obj glob_obj;
 +
  	struct drm_fb_helper *fbdev;
  
  	struct workqueue_struct *wq;
-diff --git a/drivers/gpu/drm/omapdrm/omap_overlay.c b/drivers/gpu/drm/omapdrm/omap_overlay.c
-new file mode 100644
-index 000000000000..2b1416d2aad2
---- /dev/null
-+++ b/drivers/gpu/drm/omapdrm/omap_overlay.c
-@@ -0,0 +1,87 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2018 Texas Instruments Incorporated -  http://www.ti.com/
-+ * Author: Benoit Parrot, <bparrot@ti.com>
-+ */
-+
-+#include <drm/drm_atomic.h>
-+#include <drm/drm_atomic_helper.h>
-+#include <drm/drm_plane_helper.h>
-+
-+#include "omap_dmm_tiler.h"
-+#include "omap_drv.h"
-+
-+/*
-+ * overlay funcs
-+ */
-+static const char * const overlay_id_to_name[] = {
-+	[OMAP_DSS_GFX] = "gfx",
-+	[OMAP_DSS_VIDEO1] = "vid1",
-+	[OMAP_DSS_VIDEO2] = "vid2",
-+	[OMAP_DSS_VIDEO3] = "vid3",
-+};
-+
-+static void omap_overlay_destroy(struct omap_hw_overlay *overlay)
-+{
-+	kfree(overlay);
-+}
-+
-+static struct omap_hw_overlay *omap_overlay_init(enum omap_plane_id overlay_id,
-+						 enum omap_overlay_caps caps)
-+{
-+	struct omap_hw_overlay *overlay;
-+
-+	overlay = kzalloc(sizeof(*overlay), GFP_KERNEL);
-+	if (!overlay)
-+		return ERR_PTR(-ENOMEM);
-+
-+	overlay->name = overlay_id_to_name[overlay_id];
-+	overlay->overlay_id = overlay_id;
-+	overlay->caps = caps;
-+	/*
-+	 * When this is called priv->num_crtcs is not known yet.
-+	 * Use a safe mask value to start with, it will get updated to the
-+	 * proper value after the first use.
-+	 */
-+	overlay->possible_crtcs = 0xff;
-+
-+	return overlay;
-+}
-+
-+int omap_hwoverlays_init(struct omap_drm_private *priv)
-+{
-+	static const enum omap_plane_id hw_plane_ids[] = {
-+			OMAP_DSS_GFX, OMAP_DSS_VIDEO1,
-+			OMAP_DSS_VIDEO2, OMAP_DSS_VIDEO3,
-+	};
-+	u32 num_overlays = dispc_get_num_ovls(priv->dispc);
-+	enum omap_overlay_caps caps;
-+	int i, ret;
-+
-+	for (i = 0; i < num_overlays; i++) {
-+		struct omap_hw_overlay *overlay;
-+
-+		caps = dispc_ovl_get_caps(priv->dispc, hw_plane_ids[i]);
-+		overlay = omap_overlay_init(hw_plane_ids[i], caps);
-+		if (IS_ERR(overlay)) {
-+			ret = PTR_ERR(overlay);
-+			dev_err(priv->dev, "failed to construct overlay for %s (%d)\n",
-+				overlay_id_to_name[i], ret);
-+			return ret;
-+		}
-+		overlay->idx = priv->num_ovls;
-+		priv->overlays[priv->num_ovls++] = overlay;
-+	}
-+
-+	return 0;
-+}
-+
-+void omap_hwoverlays_destroy(struct omap_drm_private *priv)
-+{
-+	int i;
-+
-+	for (i = 0; i < priv->num_ovls; i++) {
-+		omap_overlay_destroy(priv->overlays[i]);
-+		priv->overlays[i] = NULL;
-+	}
-+}
-diff --git a/drivers/gpu/drm/omapdrm/omap_overlay.h b/drivers/gpu/drm/omapdrm/omap_overlay.h
-new file mode 100644
-index 000000000000..892fecb67adb
---- /dev/null
-+++ b/drivers/gpu/drm/omapdrm/omap_overlay.h
-@@ -0,0 +1,31 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Copyright (C) 2018 Texas Instruments Incorporated -  http://www.ti.com/
-+ * Author: Benoit Parrot, <bparrot@ti.com>
-+ */
-+
-+#ifndef __OMAPDRM_OVERLAY_H__
-+#define __OMAPDRM_OVERLAY_H__
-+
-+#include <linux/types.h>
-+
-+enum drm_plane_type;
-+
-+struct drm_device;
-+struct drm_mode_object;
-+struct drm_plane;
-+
-+/* Used to associate a HW overlay/plane to a plane */
-+struct omap_hw_overlay {
-+	int idx;
-+
-+	const char *name;
-+	enum omap_plane_id overlay_id;
-+
-+	enum omap_overlay_caps caps;
-+	u32 possible_crtcs;
-+};
-+
-+int omap_hwoverlays_init(struct omap_drm_private *priv);
-+void omap_hwoverlays_destroy(struct omap_drm_private *priv);
-+#endif /* __OMAPDRM_OVERLAY_H__ */
-diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
-index d0a67b7ed1a0..0df5381cc015 100644
---- a/drivers/gpu/drm/omapdrm/omap_plane.c
-+++ b/drivers/gpu/drm/omapdrm/omap_plane.c
-@@ -22,6 +22,8 @@ struct omap_plane {
- 	struct drm_plane base;
- 	enum omap_plane_id id;
- 	const char *name;
-+
-+	struct omap_hw_overlay *overlay;
- };
+@@ -88,5 +105,9 @@ struct omap_drm_private {
  
- static int omap_plane_prepare_fb(struct drm_plane *plane,
-@@ -49,6 +51,7 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
- 	struct omap_plane *omap_plane = to_omap_plane(plane);
- 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state,
- 									   plane);
-+	enum omap_plane_id ovl_id = omap_plane->overlay->overlay_id;
- 	struct omap_overlay_info info;
- 	int ret;
  
-@@ -77,17 +80,17 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
- 			&info.paddr, &info.p_uv_addr);
+ void omap_debugfs_init(struct drm_minor *minor);
++struct omap_global_state *__must_check
++omap_get_global_state(struct drm_atomic_state *s);
++struct omap_global_state *
++omap_get_existing_global_state(struct omap_drm_private *priv);
  
- 	/* and finally, update omapdss: */
--	ret = dispc_ovl_setup(priv->dispc, omap_plane->id, &info,
-+	ret = dispc_ovl_setup(priv->dispc, ovl_id, &info,
- 			      omap_crtc_timings(new_state->crtc), false,
- 			      omap_crtc_channel(new_state->crtc));
- 	if (ret) {
- 		dev_err(plane->dev->dev, "Failed to setup plane %s\n",
- 			omap_plane->name);
--		dispc_ovl_enable(priv->dispc, omap_plane->id, false);
-+		dispc_ovl_enable(priv->dispc, ovl_id, false);
- 		return;
- 	}
- 
--	dispc_ovl_enable(priv->dispc, omap_plane->id, true);
-+	dispc_ovl_enable(priv->dispc, ovl_id, true);
- }
- 
- static void omap_plane_atomic_disable(struct drm_plane *plane,
-@@ -97,11 +100,12 @@ static void omap_plane_atomic_disable(struct drm_plane *plane,
- 									   plane);
- 	struct omap_drm_private *priv = plane->dev->dev_private;
- 	struct omap_plane *omap_plane = to_omap_plane(plane);
-+	enum omap_plane_id ovl_id = omap_plane->overlay->overlay_id;
- 
- 	new_state->rotation = DRM_MODE_ROTATE_0;
- 	new_state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY ? 0 : omap_plane->id;
- 
--	dispc_ovl_enable(priv->dispc, omap_plane->id, false);
-+	dispc_ovl_enable(priv->dispc, ovl_id, false);
- }
- 
- static int omap_plane_atomic_check(struct drm_plane *plane,
-@@ -213,7 +217,7 @@ static void omap_plane_reset(struct drm_plane *plane)
- 	 * plane.
- 	 */
- 	plane->state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY
--			   ? 0 : omap_plane->id;
-+			   ? 0 : omap_plane->overlay->overlay_id;
- 	plane->state->color_encoding = DRM_COLOR_YCBCR_BT601;
- 	plane->state->color_range = DRM_COLOR_YCBCR_FULL_RANGE;
- }
-@@ -282,13 +286,6 @@ static const char *plane_id_to_name[] = {
- 	[OMAP_DSS_VIDEO3] = "vid3",
- };
- 
--static const enum omap_plane_id plane_idx_to_id[] = {
--	OMAP_DSS_GFX,
--	OMAP_DSS_VIDEO1,
--	OMAP_DSS_VIDEO2,
--	OMAP_DSS_VIDEO3,
--};
--
- /* initialize plane */
- struct drm_plane *omap_plane_init(struct drm_device *dev,
- 		int idx, enum drm_plane_type type,
-@@ -298,27 +295,28 @@ struct drm_plane *omap_plane_init(struct drm_device *dev,
- 	unsigned int num_planes = dispc_get_num_ovls(priv->dispc);
- 	struct drm_plane *plane;
- 	struct omap_plane *omap_plane;
--	enum omap_plane_id id;
- 	int ret;
- 	u32 nformats;
- 	const u32 *formats;
- 
--	if (WARN_ON(idx >= ARRAY_SIZE(plane_idx_to_id)))
-+	if (WARN_ON(idx >= num_planes))
- 		return ERR_PTR(-EINVAL);
- 
--	id = plane_idx_to_id[idx];
--
--	DBG("%s: type=%d", plane_id_to_name[id], type);
--
- 	omap_plane = kzalloc(sizeof(*omap_plane), GFP_KERNEL);
- 	if (!omap_plane)
- 		return ERR_PTR(-ENOMEM);
- 
--	formats = dispc_ovl_get_color_modes(priv->dispc, id);
-+	omap_plane->id = idx;
-+	omap_plane->name = plane_id_to_name[idx];
-+	omap_plane->overlay = priv->overlays[idx];
-+
-+	DBG("%s: type=%d", omap_plane->name, type);
-+	DBG("	omap_plane->id: %d", omap_plane->id);
-+	DBG("	crtc_mask: 0x%04x", possible_crtcs);
-+
-+	formats = dispc_ovl_get_color_modes(priv->dispc, omap_plane->overlay->overlay_id);
- 	for (nformats = 0; formats[nformats]; ++nformats)
- 		;
--	omap_plane->id = id;
--	omap_plane->name = plane_id_to_name[id];
- 
- 	plane = &omap_plane->base;
- 
-@@ -349,7 +347,7 @@ struct drm_plane *omap_plane_init(struct drm_device *dev,
- 
- error:
- 	dev_err(dev->dev, "%s(): could not create plane: %s\n",
--		__func__, plane_id_to_name[id]);
-+		__func__, omap_plane->name);
- 
- 	kfree(omap_plane);
- 	return NULL;
+ #endif /* __OMAPDRM_DRV_H__ */
 -- 
 2.25.1
 
