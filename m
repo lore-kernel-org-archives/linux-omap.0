@@ -2,58 +2,67 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B89C433FE
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 05:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A09C433F5
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 05:41:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2CE9F6115A
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 05:33:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7679560FC1
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 05:41:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239182AbhIWFfG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Sep 2021 01:35:06 -0400
-Received: from muru.com ([72.249.23.125]:36354 "EHLO muru.com"
+        id S229902AbhIWFnA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Sep 2021 01:43:00 -0400
+Received: from muru.com ([72.249.23.125]:36368 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229902AbhIWFfG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 23 Sep 2021 01:35:06 -0400
+        id S229890AbhIWFnA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 23 Sep 2021 01:43:00 -0400
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 6461180F0;
-        Thu, 23 Sep 2021 05:34:02 +0000 (UTC)
-Date:   Thu, 23 Sep 2021 08:33:32 +0300
+        by muru.com (Postfix) with ESMTPS id F2B4180F0;
+        Thu, 23 Sep 2021 05:41:56 +0000 (UTC)
+Date:   Thu, 23 Sep 2021 08:41:27 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     Grygorii Strashko <grygorii.strashko@ti.com>
-Cc:     Ulf Hansson <ulf.hansson@linaro.org>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Chunyan Zhang <zhang.chunyan@linaro.org>,
-        Faiz Abbas <faiz_abbas@ti.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH 5/5] mmc: sdhci-omap: Configure optional wakeirq
-Message-ID: <YUwRrHT2mTvf9GDi@atomide.com>
-References: <20210921111600.24577-1-tony@atomide.com>
- <20210921111600.24577-6-tony@atomide.com>
- <eafa3743-1f73-8a6e-bcb4-d97405dcdb11@ti.com>
+To:     Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc:     linux-omap@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: Regression with e428e250fde6 on BeagleBoard Rev C2
+Message-ID: <YUwThz8SAdjBD+cn@atomide.com>
+References: <3f6924a7-1934-b94e-2441-4781fe737f32@bitmer.com>
+ <YUiOA4QEbZXPmQ7F@atomide.com>
+ <5de5382b-9f11-c99b-5b9b-c90ae023e10b@bitmer.com>
+ <YUmC/xbYDnXMrsb1@atomide.com>
+ <638e4599-ab1d-ee88-6974-17463ce42f5c@bitmer.com>
+ <YUsAffFIHUi1ZxEY@atomide.com>
+ <cbe53e9f-b407-d758-67bb-5fb65bddfc03@bitmer.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <eafa3743-1f73-8a6e-bcb4-d97405dcdb11@ti.com>
+In-Reply-To: <cbe53e9f-b407-d758-67bb-5fb65bddfc03@bitmer.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [210922 15:23]:
-> > @@ -1360,6 +1363,21 @@ static int sdhci_omap_probe(struct platform_device *pdev)
-> >   	sdhci_omap_context_save(omap_host);
-> >   	omap_host->context_valid = 1;
-> > +	of_irq_get_byname(dev->of_node, "wakeup");
-> 
-> No assign to omap_host->wakeirq
+* Jarkko Nikula <jarkko.nikula@bitmer.com> [210922 17:22]:
+> Better luck with this one but looks like idling cause "undefined
+> instruction" crash. Cache/memory etc corruption perhaps? Serial console
+> log attached.
 
-Oops. Thanks for spotting it, will fix.
+Hmm. If you comment out the twl power node, does the omap3-beagle-ab4.dtb
+boot normally for you? It should behave the same as current mainline then
+with the omap3isp issue.
+
+> I used the new omap3-beagle-ab4.dtb:
+
+OK. So for your rev c2 board, does the new omap3-beagle.dtb boot and
+work for you?
+
+> I guess the timer change would be the fix and twl changes for normal
+> development cycle?
+
+Yeah. Especially if it makes things worse for omap3-beagle-ab4.dtb.
 
 Regards,
 
