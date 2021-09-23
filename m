@@ -7,80 +7,80 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D25C433FE
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A95EC4321E
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9C3461164
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 544DA61131
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239583AbhIWHIm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Sep 2021 03:08:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58018 "EHLO
+        id S239601AbhIWHIn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Sep 2021 03:08:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239567AbhIWHIl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2021 03:08:41 -0400
-Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE9F8C061574
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:09 -0700 (PDT)
-Received: by mail-wr1-x432.google.com with SMTP id u15so14172919wru.6
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:09 -0700 (PDT)
+        with ESMTP id S239587AbhIWHIm (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2021 03:08:42 -0400
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8FF5C061756
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:11 -0700 (PDT)
+Received: by mail-wr1-x42e.google.com with SMTP id t8so14229557wrq.4
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=baylibre-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=MhWIp0UrXPh24CZld2TkpSz0zhxZL6RpebTBKJIQEs0=;
-        b=zACrs0pfcolWyOc2u+w6I6s2NyMneenBh05GeBLLJSEWdeEJY/Atr2aljjHNmXqM/q
-         /DayN/oDxACZBrN3L081fbtwSBFBoXoS5/BDJ9tRZu2vsDA31WWMbSmHllVaB25+HhE5
-         pE4SVoDFGf6tCs6yl9ZcfOk68W1ykYdwpb+zPSdhuZxkbo+UMvsbkzAr/dzMwO3osD6t
-         wJJGW+4okxdE6k/Irtp+GHyn1numHkRrDoGMWr0BoeNkUk7C4SHGzj195LcQF7eUHojy
-         hp6JKUtAFTRU9CV7ZREL2R02cvKwzKjFD+Ss/OUJgvNjjBo2ukm4iLr1e442EPc3CS90
-         suUw==
+        bh=spYtq8N9tOYZ3bDuoIAir81jdpnT4AkNUpr6oHbfic8=;
+        b=1RO5ZobrgG5++dYNnzrLOUv0cRpwUlemb5+o+u9Q1gPopjjnubyP6BaIGORmEeuxjc
+         yffM2Byy9QsuWh99hcBLQq6ysJ3yXdTTN3qpeHAJOg1aalCqgUFe6CniN8igzwuf/C6e
+         SjIt+PTPnJOsC2Ak2ovuUFcQNMqlLONXy6IRbzmKVOXNHsE5QRoJNXBuSSrt5/4DwNBY
+         OPIVZiLphjhEQRwfHr3GwaN/PLuDB0bvvq9uSuF4UXRJ0NSCdSO8/ZZYfcj3K+gVIlFY
+         u2git7nzI6k2XQCguwxQcuadg10sqm18637IU7kKeGuCgfZjr/IKe3wK+4Q9Z8zRWeAM
+         qgdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=MhWIp0UrXPh24CZld2TkpSz0zhxZL6RpebTBKJIQEs0=;
-        b=ww8XHYzcIqEEQQ4bxDb1CDPiH9+vZM0ekDkmad45lC1PleAFDM6Xe5YY1rjjcqO7b/
-         BnoTRp+kNMQH7vN12D0ILx7hVxYLwAu2Y+VPswJ5bQiAGAW3LUKP38vgPEGZjrCH43Yu
-         CvwIK95B710Vrlh8M9HQ94WHpT7oK/Sj/MHZrL5i9Fi+Nmh5yvLSpVeG75rKVY3wg0Jy
-         5IXEUnZgiUFgdpF/xT7dZIgeu30LX0zH4MtMFVcu59SjAk4miLBxNg5BnRDXDdJotvz3
-         jZWHZCTB/9zmU95OMIsUPBqqsPniuT9dbhmImJFYGGUeMHoFue8WlDqks4If++Lo2Kk3
-         wU+g==
-X-Gm-Message-State: AOAM530zZAokoNup88Nx7vFb1Y3/03gpwZko40HYwgqlSOEsUkzYmqWx
-        FgSbj9sBXH0Te7elQU3n6ucAew==
-X-Google-Smtp-Source: ABdhPJxHqtnVog+Xd9wnlR+qnWZFpYpzP97F5H+o+HJ7eRDzQVIvTb6TMG5bdoniPcP/3w6qKTyCVA==
-X-Received: by 2002:a1c:3b87:: with SMTP id i129mr14503811wma.115.1632380828228;
-        Thu, 23 Sep 2021 00:07:08 -0700 (PDT)
+        bh=spYtq8N9tOYZ3bDuoIAir81jdpnT4AkNUpr6oHbfic8=;
+        b=T0+OhAOlEGWo41KkE8M4Bw5pe3wsvsKOzjZ7mIGBpEFMY5LXPbPox4qrqiC+7VzBTa
+         RnoqHCs2I03NkbZTmMvP45ddtZHVtW+z6HySeKrB++e5ZsYsbo8ilTRkRi5ePC+ZGywJ
+         hANIGLurnC6OLDBk/vpHF3z1HKgjrmk6sBcJ2St4YoUqHmIb1VqXwJg2FDb/gdesZhXy
+         f/liyn+xgGsJfCWed5QreEKR9IsSdpd9nC9TkGwG1Uhf+hm7Xx+fTDdZn1q5Ew1lGzBy
+         Eke/oxkYDgr8BSm1Q2A9x4aJ6cPhlklUgatQJZDDsGtsaplzZx3OnfLcSLBcU1BhYc6U
+         5O9w==
+X-Gm-Message-State: AOAM5322tea0K7a6GFHnhgfdE18QCo1GRRlqYtlEEz1TBStUU3K36xrg
+        aociEL5eAd6b/q8qTcwNPOeukw==
+X-Google-Smtp-Source: ABdhPJwOv7McjYGzFwHzxGJAV+ts3fm09N336sM14adogDpXQRV9SjPwiwhmsdpZNlzYLAKpJMKXmw==
+X-Received: by 2002:a5d:598c:: with SMTP id n12mr3030473wri.391.1632380830122;
+        Thu, 23 Sep 2021 00:07:10 -0700 (PDT)
 Received: from localhost.localdomain ([2001:861:44c0:66c0:74cf:b054:76f4:7692])
-        by smtp.gmail.com with ESMTPSA id d2sm4380357wrc.32.2021.09.23.00.07.07
+        by smtp.gmail.com with ESMTPSA id d2sm4380357wrc.32.2021.09.23.00.07.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Sep 2021 00:07:07 -0700 (PDT)
+        Thu, 23 Sep 2021 00:07:09 -0700 (PDT)
 From:   Neil Armstrong <narmstrong@baylibre.com>
 To:     tomba@kernel.org
 Cc:     linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-kernel@vger.kernel.org, khilman@baylibre.com,
         Benoit Parrot <bparrot@ti.com>,
         Neil Armstrong <narmstrong@baylibre.com>
-Subject: [PATCH v5 5/8] drm/omap: Add global state as a private atomic object
-Date:   Thu, 23 Sep 2021 09:06:58 +0200
-Message-Id: <20210923070701.145377-6-narmstrong@baylibre.com>
+Subject: [PATCH v5 7/8] drm/omap: add plane_atomic_print_state support
+Date:   Thu, 23 Sep 2021 09:07:00 +0200
+Message-Id: <20210923070701.145377-8-narmstrong@baylibre.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210923070701.145377-1-narmstrong@baylibre.com>
 References: <20210923070701.145377-1-narmstrong@baylibre.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6530; i=narmstrong@baylibre.com;
- h=from:subject; bh=bSg+1BfDSAo3dwQf+G6Jt2gIX5PWaQNLdCzBbuvRQWc=;
- b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhTCchR26nV3qW8AuUaoQwnqAkIsox28FjcLhgq5bf
- FIUdDZqJAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYUwnIQAKCRB33NvayMhJ0R37D/
- wNU0IjIPd77tPKcsxwEDvbnjeklqgFmPTe0r0p+HQwA12XcWmu29xZ8A+9bSfQhApkNBbO3AeG3Szs
- 6kp3axxnZJCR/UeorBYcVWPH0aaW3nES8H0Ov1mSlxRqWE4RHS856N7xx1UFtagVFrlzL0bP+8PuPX
- YR9Iqp9gWYqKgR5etWwTPiKO/dglCBXXvHMEdG631fOR3zYBDFNe2OJsc4zAeTJJSQ5upIzbqLzYzE
- 4ETFlv1W1l+Byw/JZ+egf92KLi/bfQbbxePna8KTmCZ8Nf317YWg0yCxBAgGkKyBxmCl6BhoXnc6sf
- 9RrEj8/hxOjqI6raBYz/x0wvcUCH9PUrLsgd7krg9Y9BmQL+9jGbSrWIsoGVyPJHZ990bnB/P9vbTq
- XLp7sRJ0Kw97e0VFhCNKBsJK1hIu03Rcp7L5S8SWufDN4CwtL/PiYY4gJhDWWFUmqw5uJYxnk96JEg
- ADi7qqPufYLwbfAWVVNob3YIuFc9vBVPul/+NZC5pZZ1aTwzmvEvJ/2r60m1Y/ECET/kj2LRBe/9IG
- prrMm7Nnvp1geu/RN5By4JYpT5eGZYLWXdtwbsZdFbk/AmRrbIdZ6RTXEnVQYBd5OcJnENfp/wt4PY
- s8P7dNe9uBaatHPPlLsFD7KmktBvusSTUPZ+YujtNg8oL/b4MRNbETcYFyKA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1894; i=narmstrong@baylibre.com;
+ h=from:subject; bh=ut7MrM2quhUltiKLTR0Hvs3i6r3x/VqxCeFv4yQK71M=;
+ b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhTCchINs7VR8suG1q30wHKBeLlE92EeTR8kdg4y/a
+ rQCD7P+JAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYUwnIQAKCRB33NvayMhJ0WPUEA
+ CWqjItqPiNBCOoAuFwrxfJbSdx2CgxQO1mppCAJWVfvDExE5YGcNJubbARXWHCab8y99LGzTImdTil
+ LY1hKI8xDTwoq2c1EA+g36lWk+7cn7NFQHWAW01tgiTWo2sWh4ZJP4ZspXo5QH8UHBfMsmasgurlfs
+ 5/e3UIagRfBX/k7J6fdkwe2RYGGveaeVut60rTB1lpk7n7WmHUs6hTGuk5e2MwUSnS6TgC+uD+RWTS
+ kiKKsALVsXJsted3MhasB2N/V/weowNXc92xb6q5OUOjhuBM2QBNJmtPO0jHB1bSK8N83YHok6O+H9
+ g81/5TFMd0ZoTGI7MnenlM+FZFQNjn9dwr/I+e+DLCbQohvjfSlHaRU1bUmcbg/vVeWgJbc2Q9qxxd
+ FqYS+V5R3yEJxBrbD1kPdL5d1gRyM/qDgj41nUYCDmN+eDaThAGlWDHvPTiI0QA6bpswfEzDpfDj3z
+ oXu6n2U3GcoJs9eKvXPbGEmaBFPDffD780mkc0CvwRZviEDm15OBWMEh/62y1OfEoF5/w4YPdAujGf
+ kSsFcEaH+XzICDbuUFU1EuVMMdJF5D0ZfVQgsPVoKY9KNy1aX1FWTCdU7ROUuJKtEPm30/qU7fyCeq
+ tt5vsHeOOo1f8gkReDboK7QuK8z6jUJzhLaU6jW34LcVm5wEEoEWHzW1Fifg==
 X-Developer-Key: i=narmstrong@baylibre.com; a=openpgp; fpr=89EC3D058446217450F22848169AB7B1A4CFF8AE
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -89,213 +89,52 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Benoit Parrot <bparrot@ti.com>
 
-Global shared resources (like hw overlays) for omapdrm are implemented
-as a part of atomic state using the drm_private_obj infrastructure
-available in the atomic core.
-
-omap_global_state is introduced as a drm atomic private object. The two
-funcs omap_get_global_state() and omap_get_existing_global_state() are
-the two variants that will be used to access omap_global_state.
-
-drm_mode_config_init() needs to be called earlier because it
-creates/initializes the private_obj link list maintained by the atomic
-framework. The private_obj link list has to exist prior to calling
-drm_atomic_private_obj_init(). Similarly the cleanup handler are
-reordered appropriately.
+Now that we added specific item to our subclassed drm_plane_state
+we can add omap_plane_atomic_print_state() helper to dump out our own
+driver specific plane state.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- drivers/gpu/drm/omapdrm/omap_drv.c | 91 +++++++++++++++++++++++++++++-
- drivers/gpu/drm/omapdrm/omap_drv.h | 21 +++++++
- 2 files changed, 109 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_plane.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index b994014b22e8..c7912374d393 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -128,6 +128,82 @@ static const struct drm_mode_config_funcs omap_mode_config_funcs = {
- 	.atomic_commit = drm_atomic_helper_commit,
+diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
+index 4b400a8bfe9e..badbafeb3402 100644
+--- a/drivers/gpu/drm/omapdrm/omap_plane.c
++++ b/drivers/gpu/drm/omapdrm/omap_plane.c
+@@ -355,6 +355,23 @@ omap_plane_atomic_duplicate_state(struct drm_plane *plane)
+ 	return &copy->base;
+ }
+ 
++static void omap_plane_atomic_print_state(struct drm_printer *p,
++					  const struct drm_plane_state *state)
++{
++	struct omap_plane_state *omap_state = to_omap_plane_state(state);
++
++	drm_printf(p, "\toverlay=%s\n", omap_state->overlay ?
++					omap_state->overlay->name : "(null)");
++	if (omap_state->overlay) {
++		drm_printf(p, "\t\tidx=%d\n", omap_state->overlay->idx);
++		drm_printf(p, "\t\toverlay_id=%d\n",
++			   omap_state->overlay->overlay_id);
++		drm_printf(p, "\t\tcaps=0x%x\n", omap_state->overlay->caps);
++		drm_printf(p, "\t\tpossible_crtcs=0x%x\n",
++			   omap_state->overlay->possible_crtcs);
++	}
++}
++
+ static int omap_plane_atomic_set_property(struct drm_plane *plane,
+ 					  struct drm_plane_state *state,
+ 					  struct drm_property *property,
+@@ -394,6 +411,7 @@ static const struct drm_plane_funcs omap_plane_funcs = {
+ 	.atomic_destroy_state = drm_atomic_helper_plane_destroy_state,
+ 	.atomic_set_property = omap_plane_atomic_set_property,
+ 	.atomic_get_property = omap_plane_atomic_get_property,
++	.atomic_print_state = omap_plane_atomic_print_state,
  };
  
-+/* Global/shared object state funcs */
-+
-+/*
-+ * This is a helper that returns the private state currently in operation.
-+ * Note that this would return the "old_state" if called in the atomic check
-+ * path, and the "new_state" after the atomic swap has been done.
-+ */
-+struct omap_global_state *
-+omap_get_existing_global_state(struct omap_drm_private *priv)
-+{
-+	return to_omap_global_state(priv->glob_obj.state);
-+}
-+
-+/*
-+ * This acquires the modeset lock set aside for global state, creates
-+ * a new duplicated private object state.
-+ */
-+struct omap_global_state *__must_check
-+omap_get_global_state(struct drm_atomic_state *s)
-+{
-+	struct omap_drm_private *priv = s->dev->dev_private;
-+	struct drm_private_state *priv_state;
-+
-+	priv_state = drm_atomic_get_private_obj_state(s, &priv->glob_obj);
-+	if (IS_ERR(priv_state))
-+		return ERR_CAST(priv_state);
-+
-+	return to_omap_global_state(priv_state);
-+}
-+
-+static struct drm_private_state *
-+omap_global_duplicate_state(struct drm_private_obj *obj)
-+{
-+	struct omap_global_state *state;
-+
-+	state = kmemdup(obj->state, sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return NULL;
-+
-+	__drm_atomic_helper_private_obj_duplicate_state(obj, &state->base);
-+
-+	return &state->base;
-+}
-+
-+static void omap_global_destroy_state(struct drm_private_obj *obj,
-+				      struct drm_private_state *state)
-+{
-+	struct omap_global_state *omap_state = to_omap_global_state(state);
-+
-+	kfree(omap_state);
-+}
-+
-+static const struct drm_private_state_funcs omap_global_state_funcs = {
-+	.atomic_duplicate_state = omap_global_duplicate_state,
-+	.atomic_destroy_state = omap_global_destroy_state,
-+};
-+
-+static int omap_global_obj_init(struct drm_device *dev)
-+{
-+	struct omap_drm_private *priv = dev->dev_private;
-+	struct omap_global_state *state;
-+
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	drm_atomic_private_obj_init(dev, &priv->glob_obj, &state->base,
-+				    &omap_global_state_funcs);
-+	return 0;
-+}
-+
-+static void omap_global_obj_fini(struct omap_drm_private *priv)
-+{
-+	drm_atomic_private_obj_fini(&priv->glob_obj);
-+}
-+
- static void omap_disconnect_pipelines(struct drm_device *ddev)
- {
- 	struct omap_drm_private *priv = ddev->dev_private;
-@@ -231,8 +307,6 @@ static int omap_modeset_init(struct drm_device *dev)
- 	if (!omapdss_stack_is_ready())
- 		return -EPROBE_DEFER;
- 
--	drm_mode_config_init(dev);
--
- 	ret = omap_modeset_init_properties(dev);
- 	if (ret < 0)
- 		return ret;
-@@ -583,10 +657,16 @@ static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
- 
- 	omap_gem_init(ddev);
- 
--	ret = omap_hwoverlays_init(priv);
-+	drm_mode_config_init(ddev);
-+
-+	ret = omap_global_obj_init(ddev);
- 	if (ret)
- 		goto err_gem_deinit;
- 
-+	ret = omap_hwoverlays_init(priv);
-+	if (ret)
-+		goto err_free_priv_obj;
-+
- 	ret = omap_modeset_init(ddev);
- 	if (ret) {
- 		dev_err(priv->dev, "omap_modeset_init failed: ret=%d\n", ret);
-@@ -624,7 +704,10 @@ static int omapdrm_init(struct omap_drm_private *priv, struct device *dev)
- 	omap_modeset_fini(ddev);
- err_free_overlays:
- 	omap_hwoverlays_destroy(priv);
-+err_free_priv_obj:
-+	omap_global_obj_fini(priv);
- err_gem_deinit:
-+	drm_mode_config_cleanup(ddev);
- 	omap_gem_deinit(ddev);
- 	destroy_workqueue(priv->wq);
- 	omap_disconnect_pipelines(ddev);
-@@ -649,6 +732,8 @@ static void omapdrm_cleanup(struct omap_drm_private *priv)
- 
- 	omap_modeset_fini(ddev);
- 	omap_hwoverlays_destroy(priv);
-+	omap_global_obj_fini(priv);
-+	drm_mode_config_cleanup(ddev);
- 	omap_gem_deinit(ddev);
- 
- 	destroy_workqueue(priv->wq);
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-index b4d9c2062723..280cdd27bc8e 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.h
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-@@ -14,6 +14,7 @@
- #include "dss/omapdss.h"
- #include "dss/dss.h"
- 
-+#include <drm/drm_atomic.h>
- #include <drm/drm_gem.h>
- #include <drm/omap_drm.h>
- 
-@@ -41,6 +42,15 @@ struct omap_drm_pipeline {
- 	unsigned int alias_id;
- };
- 
-+/*
-+ * Global private object state for tracking resources that are shared across
-+ * multiple kms objects (planes/crtcs/etc).
-+ */
-+#define to_omap_global_state(x) container_of(x, struct omap_global_state, base)
-+struct omap_global_state {
-+	struct drm_private_state base;
-+};
-+
- struct omap_drm_private {
- 	struct drm_device *ddev;
- 	struct device *dev;
-@@ -61,6 +71,13 @@ struct omap_drm_private {
- 	unsigned int num_ovls;
- 	struct omap_hw_overlay *overlays[8];
- 
-+	/*
-+	 * Global private object state, Do not access directly, use
-+	 * omap_global_get_state()
-+	 */
-+	struct drm_modeset_lock glob_obj_lock;
-+	struct drm_private_obj glob_obj;
-+
- 	struct drm_fb_helper *fbdev;
- 
- 	struct workqueue_struct *wq;
-@@ -88,5 +105,9 @@ struct omap_drm_private {
- 
- 
- void omap_debugfs_init(struct drm_minor *minor);
-+struct omap_global_state *__must_check
-+omap_get_global_state(struct drm_atomic_state *s);
-+struct omap_global_state *
-+omap_get_existing_global_state(struct omap_drm_private *priv);
- 
- #endif /* __OMAPDRM_DRV_H__ */
+ static bool omap_plane_supports_yuv(struct drm_plane *plane)
 -- 
 2.25.1
 
