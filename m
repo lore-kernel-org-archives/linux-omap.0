@@ -7,80 +7,80 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9AECC433F5
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D85AC433FE
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC40461164
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82FCA60F56
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Sep 2021 07:07:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239571AbhIWHIn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Sep 2021 03:08:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58030 "EHLO
+        id S239608AbhIWHIo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Sep 2021 03:08:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239575AbhIWHIm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2021 03:08:42 -0400
-Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2C40C061756
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:10 -0700 (PDT)
-Received: by mail-wr1-x430.google.com with SMTP id t28so800170wra.7
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:10 -0700 (PDT)
+        with ESMTP id S239598AbhIWHIo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2021 03:08:44 -0400
+Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9032DC061756
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:12 -0700 (PDT)
+Received: by mail-wr1-x432.google.com with SMTP id t18so14288863wrb.0
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2021 00:07:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=baylibre-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=FBqrBUoIEhA7zPg5WZi+GKs45CGmVn79mbbh6TY7Vl4=;
-        b=58+brv97DGbXVrVPk+dScj+Ywo5kU4ddu2wC7x0Qfshf5jnTr7pki4BUvvlZbGaRs0
-         o6b3TIWDnUTCBg40BjLJ/309An4luzBQeK4lvjisnmXEVYzsgX0BhcjwmiXu81/LywxS
-         4kvHR8z/MrHiHVX2+baN7+gUIbsHg17t1VnAx5vzCoi0UlU1U48c6ORc/j/3PkqcNQp+
-         hfai/FzJq2eXrHlbcq21/WsisvnUs9vy4iuoEDRzj9BKCx+EBdmTPg3JW9PvAnH12AdW
-         5kmNgZY5GUJlRZJoVh/pbZR9zEuWouqgUbZiXOSxrxHuA3xOyDaQdXaRRO1RFVYIAmBQ
-         HYjA==
+        bh=4PMS3EsUME0yXf2wLvBhrQWzVpCL17iuqXFXZ3vBBGU=;
+        b=hxnkdMrp/zCZbfmK/ZpCTr4ZvDNcRAcLxpMTC0tZOK2Nc0tHIECQTEENMafOC/zLKt
+         NMZnCuz/UD8GlaTjDGlMuweVUU8VOZ6M5Y0lYAGgyXO8NMgZkSDd4jBhieZUslTgN9yc
+         U89amw5vZ8JRM2fzKry0KNZjPYfAwq8qTE/YYe3P3fB5HAvUDRYTvRn2pDgvW7j8TJcI
+         dSTLU4UhVphkf1bx/5NXiCXvmtzSrGWzxD8QkgyQTjaTc3xK9FDebnZMUK1SxHBzUqzA
+         nDY9+PJU47DQ7wXMEFXkkTpZKBsQLilMih19smSXPun866JglBIICDCsCdgOD7HP/P17
+         2dIg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=FBqrBUoIEhA7zPg5WZi+GKs45CGmVn79mbbh6TY7Vl4=;
-        b=r7gPLSk2q/E4pi33a554MrH2gQ2ePK8Yf1+obdcayFhNknoDlaLdw+IHdzk3n62tcv
-         neHEWZQoXTRe0RxuOAlNimiqAy21ME4D9gYtZIQOQqW0vyTXj3ZaGt81rTESpq+nyaFw
-         cWRnJRsAKw+Eiem16WOd4gVlG9WP2eRDKGevWBJFogT12R7LuxeDqC/J2lMasDHpKQZL
-         pdls4/HjvwQRmr1m2PO8R/o4urKU53zxbyHtLRhG+KcdJY7AdDEPapbJn/sz/RvQ1rTi
-         gA5nRD5Li0Y7DuRAYuyxbA0KzNLNmeKVxx5Wl+x5E5L1xVNsBW2l89uyl1vtGOxYfrYz
-         559Q==
-X-Gm-Message-State: AOAM53124WVXxu0uijbk4i8DlcGg3mEBTI0i0wkY4Ep2IzCbVEoIzYWC
-        J9N1dgXvsYNBqrcC1WGs7Usmfg==
-X-Google-Smtp-Source: ABdhPJxHIfQyf8ogJQ2ts31VdlPaWuR1SmXTyKmytU79svWpi+RsDqLaTkOtB1WJfcE0XcxqS4EMGQ==
-X-Received: by 2002:adf:f789:: with SMTP id q9mr3193355wrp.367.1632380829178;
-        Thu, 23 Sep 2021 00:07:09 -0700 (PDT)
+        bh=4PMS3EsUME0yXf2wLvBhrQWzVpCL17iuqXFXZ3vBBGU=;
+        b=PD3+1iRHGk1oUeaWfk8T7X63ZHsLBTTmlvffu9iuUM8JSGMD8EFbGlAkTpm+wFC0eG
+         TSb9OvV2BE6oDiLhlKB7gXh0RApVh2rTVH3OWLk9JLu9kiYpi8V0qDbynOf9EW+1pzFM
+         KbnV0BiF2eBikBx19TssexinSdh7sKPIaXvQpaqe/tamLoKoML2eV98193qCn0CTr+sD
+         K9pBKYu65aM1O2zXB1B9nUNh0NeC8XjC6wMyR/8uWVE9aRdFUOa0L5B19UJNt9yy3fuc
+         IuF5cs8q74S3q4H/0xeeXeju32a760AoSOIiNl859/Hjk+sRsutxNbHdkCdkZQ1SQEuA
+         Z6Ng==
+X-Gm-Message-State: AOAM531PoZg0jMq0mgnWpWdCDNYEBBLfihu417hFqCtwuvo5bvK8J250
+        5zjrQjeIOlAMsNr+6yk4oHZGww==
+X-Google-Smtp-Source: ABdhPJy+VHRxQjQATb+jYkzmG8h26CDN11px9sSgv57dZ833thRPpO+aVzUegA/K7WmJ+BvE4Tl2WQ==
+X-Received: by 2002:a05:600c:19cb:: with SMTP id u11mr2713543wmq.185.1632380831031;
+        Thu, 23 Sep 2021 00:07:11 -0700 (PDT)
 Received: from localhost.localdomain ([2001:861:44c0:66c0:74cf:b054:76f4:7692])
-        by smtp.gmail.com with ESMTPSA id d2sm4380357wrc.32.2021.09.23.00.07.08
+        by smtp.gmail.com with ESMTPSA id d2sm4380357wrc.32.2021.09.23.00.07.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Sep 2021 00:07:08 -0700 (PDT)
+        Thu, 23 Sep 2021 00:07:10 -0700 (PDT)
 From:   Neil Armstrong <narmstrong@baylibre.com>
 To:     tomba@kernel.org
 Cc:     linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-kernel@vger.kernel.org, khilman@baylibre.com,
         Benoit Parrot <bparrot@ti.com>,
         Neil Armstrong <narmstrong@baylibre.com>
-Subject: [PATCH v5 6/8] drm/omap: dynamically assign hw overlays to planes
-Date:   Thu, 23 Sep 2021 09:06:59 +0200
-Message-Id: <20210923070701.145377-7-narmstrong@baylibre.com>
+Subject: [PATCH v5 8/8] drm/omap: Add a 'right overlay' to plane state
+Date:   Thu, 23 Sep 2021 09:07:01 +0200
+Message-Id: <20210923070701.145377-9-narmstrong@baylibre.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210923070701.145377-1-narmstrong@baylibre.com>
 References: <20210923070701.145377-1-narmstrong@baylibre.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=16407; i=narmstrong@baylibre.com;
- h=from:subject; bh=YGAHRpQPqb7639ejCmo/rSM9XWVC0JlfHHP5F6geRgA=;
- b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhTCchu5T9hs8qazhBdo4pKtf40yfdq+UPNfkPK4tX
- LgLL1wKJAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYUwnIQAKCRB33NvayMhJ0c5CEA
- C/aO2gUGa5Q9dLCDVNrX9n0hnOLsAe8WaaBxYN81LKVtKykp613ZwJXNm2XmlqqMPR448H2nmSdraY
- 8wwwE3Y504IDLNgqSX3rHGVppGZPcUWJc7L4e2sMoH/+Dp/fjx/BW6SDkt7EJSmx18JJf33n38bzGo
- Dfwd0Xl0V2NXiMJzH7hKTtsY8b44qpNVJKyO5+w7Ks9DtvVLeVi2SPNCM8/BMbkUrs7cZLEhuOHKMC
- 6CTrhtpe4JWt3wChLSHEaqc4NqljaNp2FpPGfTUvGJjbQl0SKG4Y1sJnsMMfZ6wFxQMHeLoS9LFHdA
- /VspWvSk/0TS1y+eIJhXMHBUiBrdqnDP0CVqvgKV3FkWYStF/hKxRD/JdCECVz0zpZ6fNMQyPuSKJe
- zmMuqoKfRU7ZEgu9hno/qGqpgLtlSxQQVYDXXN8ABGb5tTmBHbZwFk6soZQCMWR/l+ZGcLk+o53W+n
- me5phpWn7vM8miNX+tfVUlU3fsb7BrsVvhagHvWwbTnXsNkgI6l5gwenQyj9CYwHwQH9BE5Ild+Ht/
- S4vcaaLtBCxFMaV4RKeN5mevxw+93ZgHUqC57OSd72OZ/M12w1/KALIrYz5YOFZhwvimD2wjtIsBHr
- kHDWTv3R4Ue3D9F6C5kjk8Uk4HJBQ38Q/y5eWw6ea/Tty3P3THmJFMNW1PIw==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=18742; i=narmstrong@baylibre.com;
+ h=from:subject; bh=+661j1zEvtnPsQWVJxVE4D5iAlVcnnSzmTVhaUnKJeQ=;
+ b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhTCcigKd8NpYUe5LxbQdysXRRqUlvbRHszGL0OwN5
+ 1QVBnVWJAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYUwnIgAKCRB33NvayMhJ0UDKD/
+ 48G39msyg+6hkP2+AYsP+MKh43ZwCiIOeqlNdlsIDu+AmaherC4FKeuLWH03m2l9fgbHaJuztYaAX4
+ XzsOtrt22uKi9kBzLv+VKX5QKLoREW4Dc++2A4QIIQNHyPyVmd68HSmFmD6pEENw/wC3CaBeN3i80X
+ pAafl7j39lV+tHRG+uJbR6QALvQ9J/LLIog6/ld7d7vq3vN3mQz+KsO27uph4viN7iy5SKGTo1QNcw
+ jmNbmcYR5cvMHoVhbyZZuZLQn5wIsk/3VWwkRHvl1iwAAdgQHWIRH24nHakbNEY8k3NHv4DmuJhNTA
+ tHl86IgnbMfHXlLbWRfC9Fx/Xa4k/+l7GwSWUNtXJRzP32B2jsbYXlqy96HT8Kjkd8SptxtpB3Si/M
+ qjaSRZr8pqK4nXqms14IB4zsKU6+WmGyzweXqiqT8EQj9hqTbt5urYeFHC9aTSH7ZajemcrH1C74yn
+ v9j+bENP8/Id3fOV43zS0dPZuo73OwgGyDMUBZcb2ySyY9u6ePAFXHx1Jki7JyQFNoYi5XdSxIAfED
+ Ge2RXlCeKSLtxYHv735Jid9Vj2gqOMXdnhXeoD731Wu63VYZUOHn7lnjGvXtFbguQ6L7utYhnCLxbe
+ +N2qYS0DJ8+n6mDhUFp3c3cxO+KjUzxYOtdbNsXXpdeIqRzm0+xrmO1XKCEw==
 X-Developer-Key: i=narmstrong@baylibre.com; a=openpgp; fpr=89EC3D058446217450F22848169AB7B1A4CFF8AE
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -89,485 +89,544 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Benoit Parrot <bparrot@ti.com>
 
-(re)assign the hw overlays to planes based on required caps, and to
-handle situations where we could not modify an in-use plane.
+If the drm_plane has a source width that's greater than the max width
+supported by a single hw overlay, then we assign a 'r_overlay' to it in
+omap_plane_atomic_check().
 
-This means all planes advertise the superset of formats and properties.
-Userspace must (as always) use atomic TEST_ONLY step for atomic updates,
-as not all planes may be available for use on every frame.
+Both overlays should have the capabilities required to handle the source
+framebuffer. The only parameters that vary between the left and right
+hwoverlays are the src_w, crtc_w, src_x and crtc_x as we just even chop
+the fb into left and right halves.
 
-The mapping of hwoverlays to plane is stored in omap_global_state, so
-that state updates are atomically committed in the same way that
-plane/etc state updates are managed.  This is needed because the
-omap_plane_state keeps a pointer to the hwoverlay, and we don't want
-global state to become out of sync with the plane state if an atomic
-update fails, we hit deadlock/ backoff scenario, etc.  The use of
-global_state_lock keeps multiple parallel updates which both re-assign
-hwoverlays properly serialized.
+We also take care of not creating odd width size when dealing with YUV
+formats.
+
+Since both halves need to be 'appear' side by side the zpos is
+recalculated when dealing with dual overlay cases so that the other
+planes zpos is consistent.
+
+Depending on user space usage it is possible that on occasion the number
+of requested planes exceeds the numbers of overlays required to display
+them. In that case a failure would be returned for the plane that cannot
+be handled at that time. It is up to user space to make sure the H/W
+resource are not over-subscribed.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- drivers/gpu/drm/omapdrm/omap_drv.h     |   3 +
- drivers/gpu/drm/omapdrm/omap_overlay.c | 140 ++++++++++++++++++++
- drivers/gpu/drm/omapdrm/omap_overlay.h |   9 ++
- drivers/gpu/drm/omapdrm/omap_plane.c   | 170 ++++++++++++++++++++-----
- 4 files changed, 287 insertions(+), 35 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_drv.c     |  91 +++++++++++++++++-
+ drivers/gpu/drm/omapdrm/omap_fb.c      |  33 ++++++-
+ drivers/gpu/drm/omapdrm/omap_fb.h      |   4 +-
+ drivers/gpu/drm/omapdrm/omap_overlay.c |  31 +++++-
+ drivers/gpu/drm/omapdrm/omap_overlay.h |   3 +-
+ drivers/gpu/drm/omapdrm/omap_plane.c   | 127 +++++++++++++++++++++++--
+ drivers/gpu/drm/omapdrm/omap_plane.h   |   1 +
+ 7 files changed, 276 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-index 280cdd27bc8e..2d5928f05a23 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.h
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-@@ -49,6 +49,9 @@ struct omap_drm_pipeline {
- #define to_omap_global_state(x) container_of(x, struct omap_global_state, base)
- struct omap_global_state {
- 	struct drm_private_state base;
-+
-+	/* global atomic state of assignment between overlays and planes */
-+	struct drm_plane *hwoverlay_to_plane[8];
- };
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index c7912374d393..f088b6313950 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -117,6 +117,95 @@ static void omap_atomic_commit_tail(struct drm_atomic_state *old_state)
+ 	dispc_runtime_put(priv->dispc);
+ }
  
- struct omap_drm_private {
-diff --git a/drivers/gpu/drm/omapdrm/omap_overlay.c b/drivers/gpu/drm/omapdrm/omap_overlay.c
-index 2b1416d2aad2..f1a23c2203aa 100644
---- a/drivers/gpu/drm/omapdrm/omap_overlay.c
-+++ b/drivers/gpu/drm/omapdrm/omap_overlay.c
-@@ -21,6 +21,146 @@ static const char * const overlay_id_to_name[] = {
- 	[OMAP_DSS_VIDEO3] = "vid3",
- };
- 
-+static struct omap_hw_overlay *
-+omap_plane_find_free_overlay(struct drm_device *dev,
-+			     struct drm_plane *hwoverlay_to_plane[],
-+			     u32 caps, u32 fourcc, u32 crtc_mask)
++static int drm_atomic_state_normalized_zpos_cmp(const void *a, const void *b)
 +{
-+	struct omap_drm_private *priv = dev->dev_private;
-+	int i;
++	const struct drm_plane_state *sa = *(struct drm_plane_state **)a;
++	const struct drm_plane_state *sb = *(struct drm_plane_state **)b;
 +
-+	DBG("caps: %x fourcc: %x crtc: %x", caps, fourcc, crtc_mask);
-+
-+	for (i = 0; i < priv->num_ovls; i++) {
-+		struct omap_hw_overlay *cur = priv->overlays[i];
-+
-+		DBG("%d: id: %d cur->caps: %x cur->crtc: %x",
-+		    cur->idx, cur->overlay_id, cur->caps, cur->possible_crtcs);
-+
-+		/* skip if already in-use */
-+		if (hwoverlay_to_plane[cur->idx])
-+			continue;
-+
-+		/* check if allowed on crtc */
-+		if (!(cur->possible_crtcs & crtc_mask))
-+			continue;
-+
-+		/* skip if doesn't support some required caps: */
-+		if (caps & ~cur->caps)
-+			continue;
-+
-+		/* check supported format */
-+		if (!dispc_ovl_color_mode_supported(priv->dispc,
-+						    cur->overlay_id, fourcc))
-+			continue;
-+
-+		return cur;
-+	}
-+
-+	DBG("no match");
-+	return NULL;
++	if (sa->normalized_zpos != sb->normalized_zpos)
++		return sa->normalized_zpos - sb->normalized_zpos;
++	else
++		return sa->plane->base.id - sb->plane->base.id;
 +}
 +
-+int omap_overlay_assign(struct drm_atomic_state *s, struct drm_plane *plane,
-+			u32 caps, u32 fourcc, u32 crtc_mask,
-+			struct omap_hw_overlay **overlay)
++static int omap_atomic_update_normalize_zpos(struct drm_device *dev,
++					     struct drm_atomic_state *state)
 +{
-+	struct omap_drm_private *priv = s->dev->dev_private;
-+	struct omap_global_state *new_global_state, *old_global_state;
-+	struct drm_plane **overlay_map;
-+	struct omap_hw_overlay *ovl;
++	struct drm_crtc *crtc;
++	struct drm_crtc_state *old_state, *new_state;
++	struct drm_plane *plane;
++	int c, i, n, inc;
++	int total_planes = dev->mode_config.num_total_plane;
++	struct drm_plane_state **states;
++	int ret = 0;
 +
-+	new_global_state = omap_get_global_state(s);
-+	if (IS_ERR(new_global_state))
-+		return PTR_ERR(new_global_state);
++	states = kmalloc_array(total_planes, sizeof(*states), GFP_KERNEL);
++	if (!states)
++		return -ENOMEM;
 +
-+	/*
-+	 * grab old_state after omap_get_global_state(),
-+	 * since now we hold lock:
-+	 */
-+	old_global_state = omap_get_existing_global_state(priv);
-+	DBG("new_global_state: %p old_global_state: %p",
-+	    new_global_state, old_global_state);
++	for_each_oldnew_crtc_in_state(state, crtc, old_state, new_state, c) {
++		if (old_state->plane_mask == new_state->plane_mask &&
++		    !new_state->zpos_changed)
++			continue;
 +
-+	overlay_map = new_global_state->hwoverlay_to_plane;
++		/* Reset plane increment and index value for every crtc */
++		n = 0;
 +
-+	if (!*overlay) {
-+		ovl = omap_plane_find_free_overlay(s->dev, overlay_map,
-+						   caps, fourcc, crtc_mask);
-+		if (!ovl)
-+			return -ENOMEM;
++		/*
++		 * Normalization process might create new states for planes
++		 * which normalized_zpos has to be recalculated.
++		 */
++		drm_for_each_plane_mask(plane, dev, new_state->plane_mask) {
++			struct drm_plane_state *plane_state =
++				drm_atomic_get_plane_state(new_state->state,
++							   plane);
++			if (IS_ERR(plane_state)) {
++				ret = PTR_ERR(plane_state);
++				goto done;
++			}
++			states[n++] = plane_state;
++		}
 +
-+		ovl->possible_crtcs = crtc_mask;
-+		overlay_map[ovl->idx] = plane;
-+		*overlay = ovl;
++		sort(states, n, sizeof(*states),
++		     drm_atomic_state_normalized_zpos_cmp, NULL);
 +
-+		DBG("%s: assign to plane %s caps %x on crtc %x",
-+		    (*overlay)->name, plane->name, caps, crtc_mask);
++		for (i = 0, inc = 0; i < n; i++) {
++			plane = states[i]->plane;
++
++			states[i]->normalized_zpos = i + inc;
++			DRM_DEBUG_ATOMIC("[PLANE:%d:%s] updated normalized zpos value %d\n",
++					 plane->base.id, plane->name,
++					 states[i]->normalized_zpos);
++
++			if (is_omap_plane_dual_overlay(states[i]))
++				inc++;
++		}
++		new_state->zpos_changed = true;
++	}
++
++done:
++	kfree(states);
++	return ret;
++}
++
++static int omap_atomic_check(struct drm_device *dev,
++			     struct drm_atomic_state *state)
++{
++	int ret;
++
++	ret = drm_atomic_helper_check(dev, state);
++	if (ret)
++		return ret;
++
++	if (dev->mode_config.normalize_zpos) {
++		ret = omap_atomic_update_normalize_zpos(dev, state);
++		if (ret)
++			return ret;
 +	}
 +
 +	return 0;
 +}
 +
-+void omap_overlay_release(struct drm_atomic_state *s,
-+			  struct drm_plane *plane,
-+			  struct omap_hw_overlay *overlay)
-+{
-+	struct omap_global_state *state = omap_get_global_state(s);
-+	struct drm_plane **overlay_map = state->hwoverlay_to_plane;
-+
-+	if (!overlay)
-+		return;
-+
-+	if (WARN_ON(!overlay_map[overlay->idx]))
-+		return;
-+	/*
-+	 * Check that the overlay we are releasing is actually
-+	 * assigned to the plane we are trying to release it from.
-+	 */
-+	if (overlay_map[overlay->idx] == plane) {
-+		DBG("%s: release from plane %s", overlay->name, plane->name);
-+
-+		overlay_map[overlay->idx] = NULL;
-+	}
-+}
-+
-+void omap_overlay_disable(struct drm_atomic_state *s,
-+			  struct drm_plane *plane,
-+			  struct omap_hw_overlay *overlay)
-+{
-+	struct omap_drm_private *priv = s->dev->dev_private;
-+	struct drm_plane **overlay_map;
-+	struct omap_global_state *old_state;
-+
-+	old_state = omap_get_existing_global_state(priv);
-+	overlay_map = old_state->hwoverlay_to_plane;
-+
-+	if (!overlay)
-+		return;
-+
-+	/*
-+	 * Check that the overlay we are trying to disable has not
-+	 * been re-assigned to another plane already
-+	 */
-+	if (!overlay_map[overlay->idx]) {
-+		DBG("%s: on %s disabled", overlay->name, plane->name);
-+
-+		/* disable the overlay */
-+		dispc_ovl_enable(priv->dispc, overlay->overlay_id, false);
-+
-+		/*
-+		 * Since we are disabling this overlay in this
-+		 * atomic cycle we can reset the available crtcs
-+		 * it can be used on
-+		 */
-+		overlay->possible_crtcs = (1 << priv->num_pipes) - 1;
-+	}
-+
-+	/*
-+	 * Otherwise the overlay is still in use so leave it alone
-+	 */
-+}
-+
- static void omap_overlay_destroy(struct omap_hw_overlay *overlay)
+ static const struct drm_mode_config_helper_funcs omap_mode_config_helper_funcs = {
+ 	.atomic_commit_tail = omap_atomic_commit_tail,
+ };
+@@ -124,7 +213,7 @@ static const struct drm_mode_config_helper_funcs omap_mode_config_helper_funcs =
+ static const struct drm_mode_config_funcs omap_mode_config_funcs = {
+ 	.fb_create = omap_framebuffer_create,
+ 	.output_poll_changed = drm_fb_helper_output_poll_changed,
+-	.atomic_check = drm_atomic_helper_check,
++	.atomic_check = omap_atomic_check,
+ 	.atomic_commit = drm_atomic_helper_commit,
+ };
+ 
+diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/omap_fb.c
+index 190afc564914..895e66b08a81 100644
+--- a/drivers/gpu/drm/omapdrm/omap_fb.c
++++ b/drivers/gpu/drm/omapdrm/omap_fb.c
+@@ -131,7 +131,9 @@ static u32 drm_rotation_to_tiler(unsigned int drm_rot)
+ /* update ovl info for scanout, handles cases of multi-planar fb's, etc.
+  */
+ void omap_framebuffer_update_scanout(struct drm_framebuffer *fb,
+-		struct drm_plane_state *state, struct omap_overlay_info *info)
++		struct drm_plane_state *state,
++		struct omap_overlay_info *info,
++		struct omap_overlay_info *r_info)
  {
- 	kfree(overlay);
+ 	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
+ 	const struct drm_format_info *format = omap_fb->format;
+@@ -218,6 +220,35 @@ void omap_framebuffer_update_scanout(struct drm_framebuffer *fb,
+ 	} else {
+ 		info->p_uv_addr = 0;
+ 	}
++
++	if (r_info) {
++		info->width /= 2;
++		info->out_width /= 2;
++
++		*r_info = *info;
++
++		if (fb->format->is_yuv) {
++			if (info->width & 1) {
++				info->width++;
++				r_info->width--;
++			}
++
++			if (info->out_width & 1) {
++				info->out_width++;
++				r_info->out_width--;
++			}
++		}
++
++		r_info->pos_x = info->pos_x + info->out_width;
++
++		r_info->paddr =	get_linear_addr(fb, format, 0,
++						x + info->width, y);
++		if (fb->format->format == DRM_FORMAT_NV12) {
++			r_info->p_uv_addr =
++				get_linear_addr(fb, format, 1,
++						x + info->width, y);
++		}
++	}
+ }
+ 
+ /* pin, prepare for scanout: */
+diff --git a/drivers/gpu/drm/omapdrm/omap_fb.h b/drivers/gpu/drm/omapdrm/omap_fb.h
+index c0e19aed8220..b75f0b5ef1d8 100644
+--- a/drivers/gpu/drm/omapdrm/omap_fb.h
++++ b/drivers/gpu/drm/omapdrm/omap_fb.h
+@@ -26,7 +26,9 @@ struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
+ int omap_framebuffer_pin(struct drm_framebuffer *fb);
+ void omap_framebuffer_unpin(struct drm_framebuffer *fb);
+ void omap_framebuffer_update_scanout(struct drm_framebuffer *fb,
+-		struct drm_plane_state *state, struct omap_overlay_info *info);
++		struct drm_plane_state *state,
++		struct omap_overlay_info *info,
++		struct omap_overlay_info *r_info);
+ bool omap_framebuffer_supports_rotation(struct drm_framebuffer *fb);
+ void omap_framebuffer_describe(struct drm_framebuffer *fb, struct seq_file *m);
+ 
+diff --git a/drivers/gpu/drm/omapdrm/omap_overlay.c b/drivers/gpu/drm/omapdrm/omap_overlay.c
+index f1a23c2203aa..a4f4be008bd5 100644
+--- a/drivers/gpu/drm/omapdrm/omap_overlay.c
++++ b/drivers/gpu/drm/omapdrm/omap_overlay.c
+@@ -63,12 +63,14 @@ omap_plane_find_free_overlay(struct drm_device *dev,
+ 
+ int omap_overlay_assign(struct drm_atomic_state *s, struct drm_plane *plane,
+ 			u32 caps, u32 fourcc, u32 crtc_mask,
+-			struct omap_hw_overlay **overlay)
++			struct omap_hw_overlay **overlay,
++			struct omap_hw_overlay **r_overlay)
+ {
+ 	struct omap_drm_private *priv = s->dev->dev_private;
+ 	struct omap_global_state *new_global_state, *old_global_state;
+ 	struct drm_plane **overlay_map;
+-	struct omap_hw_overlay *ovl;
++	struct omap_hw_overlay *ovl, *r_ovl;
++	u32 save_possible_crtcs;
+ 
+ 	new_global_state = omap_get_global_state(s);
+ 	if (IS_ERR(new_global_state))
+@@ -90,12 +92,37 @@ int omap_overlay_assign(struct drm_atomic_state *s, struct drm_plane *plane,
+ 		if (!ovl)
+ 			return -ENOMEM;
+ 
++		/* in case we need to backtrack */
++		save_possible_crtcs = ovl->possible_crtcs;
++
+ 		ovl->possible_crtcs = crtc_mask;
+ 		overlay_map[ovl->idx] = plane;
+ 		*overlay = ovl;
+ 
++		if (r_overlay) {
++			r_ovl = omap_plane_find_free_overlay(s->dev,
++							     overlay_map,
++							     caps, fourcc,
++							     crtc_mask);
++			if (!r_ovl) {
++				ovl->possible_crtcs = save_possible_crtcs;
++				overlay_map[ovl->idx] = NULL;
++				*overlay = NULL;
++				return -ENOMEM;
++			}
++
++			r_ovl->possible_crtcs = crtc_mask;
++			overlay_map[r_ovl->idx] = plane;
++			*r_overlay = r_ovl;
++		}
++
+ 		DBG("%s: assign to plane %s caps %x on crtc %x",
+ 		    (*overlay)->name, plane->name, caps, crtc_mask);
++
++		if (r_overlay) {
++			DBG("%s: assign to right of plane %s caps %x on crtc %x",
++			    (*r_overlay)->name, plane->name, caps, crtc_mask);
++		}
+ 	}
+ 
+ 	return 0;
 diff --git a/drivers/gpu/drm/omapdrm/omap_overlay.h b/drivers/gpu/drm/omapdrm/omap_overlay.h
-index 892fecb67adb..d5033ee481c2 100644
+index d5033ee481c2..a800468511f1 100644
 --- a/drivers/gpu/drm/omapdrm/omap_overlay.h
 +++ b/drivers/gpu/drm/omapdrm/omap_overlay.h
-@@ -28,4 +28,13 @@ struct omap_hw_overlay {
- 
- int omap_hwoverlays_init(struct omap_drm_private *priv);
+@@ -30,7 +30,8 @@ int omap_hwoverlays_init(struct omap_drm_private *priv);
  void omap_hwoverlays_destroy(struct omap_drm_private *priv);
-+int omap_overlay_assign(struct drm_atomic_state *s, struct drm_plane *plane,
-+			u32 caps, u32 fourcc, u32 crtc_mask,
-+			struct omap_hw_overlay **overlay);
-+void omap_overlay_release(struct drm_atomic_state *s,
-+			  struct drm_plane *plane,
-+			  struct omap_hw_overlay *overlay);
-+void omap_overlay_disable(struct drm_atomic_state *s,
-+			  struct drm_plane *plane,
-+			  struct omap_hw_overlay *overlay);
- #endif /* __OMAPDRM_OVERLAY_H__ */
+ int omap_overlay_assign(struct drm_atomic_state *s, struct drm_plane *plane,
+ 			u32 caps, u32 fourcc, u32 crtc_mask,
+-			struct omap_hw_overlay **overlay);
++			struct omap_hw_overlay **overlay,
++			struct omap_hw_overlay **r_overlay);
+ void omap_overlay_release(struct drm_atomic_state *s,
+ 			  struct drm_plane *plane,
+ 			  struct omap_hw_overlay *overlay);
 diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
-index bda794b4c915..4b400a8bfe9e 100644
+index badbafeb3402..13bfda7305e9 100644
 --- a/drivers/gpu/drm/omapdrm/omap_plane.c
 +++ b/drivers/gpu/drm/omapdrm/omap_plane.c
-@@ -8,6 +8,7 @@
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_gem_atomic_helper.h>
- #include <drm/drm_plane_helper.h>
-+#include <drm/drm_fourcc.h>
- 
- #include "omap_dmm_tiler.h"
- #include "omap_drv.h"
-@@ -21,6 +22,8 @@
- struct omap_plane_state {
- 	/* Must be first. */
+@@ -24,6 +24,7 @@ struct omap_plane_state {
  	struct drm_plane_state base;
-+
-+	struct omap_hw_overlay *overlay;
+ 
+ 	struct omap_hw_overlay *overlay;
++	struct omap_hw_overlay *r_overlay;  /* right overlay */
  };
  
  #define to_omap_plane(x) container_of(x, struct omap_plane, base)
-@@ -29,8 +32,6 @@ struct omap_plane {
- 	struct drm_plane base;
- 	enum omap_plane_id id;
+@@ -34,6 +35,13 @@ struct omap_plane {
  	const char *name;
--
--	struct omap_hw_overlay *overlay;
  };
  
++bool is_omap_plane_dual_overlay(struct drm_plane_state *state)
++{
++	struct omap_plane_state *omap_state = to_omap_plane_state(state);
++
++	return !!omap_state->r_overlay;
++}
++
  static int omap_plane_prepare_fb(struct drm_plane *plane,
-@@ -58,10 +59,27 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
- 	struct omap_plane *omap_plane = to_omap_plane(plane);
- 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state,
+ 				 struct drm_plane_state *new_state)
+ {
+@@ -63,15 +71,20 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
  									   plane);
--	enum omap_plane_id ovl_id = omap_plane->overlay->overlay_id;
-+	struct drm_plane_state *old_state = drm_atomic_get_old_plane_state(state,
-+									   plane);
-+	struct omap_plane_state *new_omap_state;
-+	struct omap_plane_state *old_omap_state;
- 	struct omap_overlay_info info;
-+	enum omap_plane_id ovl_id;
+ 	struct omap_plane_state *new_omap_state;
+ 	struct omap_plane_state *old_omap_state;
+-	struct omap_overlay_info info;
+-	enum omap_plane_id ovl_id;
++	struct omap_overlay_info info, r_info;
++	enum omap_plane_id ovl_id, r_ovl_id;
  	int ret;
++	bool dual_ovl;
  
-+	new_omap_state = to_omap_plane_state(new_state);
-+	old_omap_state = to_omap_plane_state(old_state);
-+
-+	/* Cleanup previously held overlay if needed */
-+	omap_overlay_disable(old_state->state, plane, old_omap_state->overlay);
-+
-+	if (!new_omap_state->overlay) {
-+		DBG("[PLANE:%d:%s] overlay_id: ??? (%p)", plane->base.id, plane->name,
-+		    new_omap_state->overlay);
-+		return;
-+	}
-+
-+	ovl_id = new_omap_state->overlay->overlay_id;
- 	DBG("%s, crtc=%p fb=%p", omap_plane->name, new_state->crtc,
- 	    new_state->fb);
+ 	new_omap_state = to_omap_plane_state(new_state);
+ 	old_omap_state = to_omap_plane_state(old_state);
  
-@@ -80,9 +98,9 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
++	dual_ovl = is_omap_plane_dual_overlay(new_state);
++
+ 	/* Cleanup previously held overlay if needed */
+ 	omap_overlay_disable(old_state->state, plane, old_omap_state->overlay);
++	omap_overlay_disable(old_state->state, plane,
++			     old_omap_state->r_overlay);
+ 
+ 	if (!new_omap_state->overlay) {
+ 		DBG("[PLANE:%d:%s] overlay_id: ??? (%p)", plane->base.id, plane->name,
+@@ -95,8 +108,11 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
+ 	info.color_encoding = new_state->color_encoding;
+ 	info.color_range = new_state->color_range;
+ 
++	r_info = info;
++
  	/* update scanout: */
- 	omap_framebuffer_update_scanout(new_state->fb, new_state, &info);
+-	omap_framebuffer_update_scanout(new_state->fb, new_state, &info);
++	omap_framebuffer_update_scanout(new_state->fb, new_state, &info,
++					dual_ovl ? &r_info : NULL);
  
--	DBG("%dx%d -> %dx%d (%d)", info.width, info.height,
--			info.out_width, info.out_height,
--			info.screen_width);
-+	DBG("%s: %dx%d -> %dx%d (%d)",
-+			new_omap_state->overlay->name, info.width, info.height,
-+			info.out_width, info.out_height, info.screen_width);
+ 	DBG("%s: %dx%d -> %dx%d (%d)",
+ 			new_omap_state->overlay->name, info.width, info.height,
+@@ -104,18 +120,50 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
  	DBG("%d,%d %pad %pad", info.pos_x, info.pos_y,
  			&info.paddr, &info.p_uv_addr);
  
-@@ -105,55 +123,66 @@ static void omap_plane_atomic_disable(struct drm_plane *plane,
- {
- 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state,
- 									   plane);
--	struct omap_drm_private *priv = plane->dev->dev_private;
--	struct omap_plane *omap_plane = to_omap_plane(plane);
--	enum omap_plane_id ovl_id = omap_plane->overlay->overlay_id;
-+	struct drm_plane_state *old_state = drm_atomic_get_old_plane_state(state,
-+									   plane);
-+	struct omap_plane_state *new_omap_state;
-+	struct omap_plane_state *old_omap_state;
-+
-+	new_omap_state = to_omap_plane_state(new_state);
-+	old_omap_state = to_omap_plane_state(old_state);
-+
-+	if (!old_omap_state->overlay)
-+		return;
- 
- 	new_state->rotation = DRM_MODE_ROTATE_0;
--	new_state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY ? 0 : omap_plane->id;
-+	new_state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY
-+			? 0 : old_omap_state->overlay->overlay_id;
- 
--	dispc_ovl_enable(priv->dispc, ovl_id, false);
-+	omap_overlay_disable(old_state->state, plane, old_omap_state->overlay);
-+	new_omap_state->overlay = NULL;
- }
- 
-+#define FRAC_16_16(mult, div)    (((mult) << 16) / (div))
- static int omap_plane_atomic_check(struct drm_plane *plane,
- 				   struct drm_atomic_state *state)
- {
- 	struct drm_plane_state *new_plane_state = drm_atomic_get_new_plane_state(state,
- 										 plane);
-+	struct drm_plane_state *old_plane_state = drm_atomic_get_old_plane_state(state,
-+										 plane);
-+	struct drm_crtc *crtc;
- 	struct omap_drm_private *priv = plane->dev->dev_private;
-+	struct omap_plane_state *omap_state = to_omap_plane_state(new_plane_state);
-+	struct omap_global_state *omap_overlay_global_state;
-+	u32 crtc_mask;
-+	u32 fourcc;
-+	u32 caps = 0;
-+	bool new_hw_overlay = false;
-+	int min_scale, max_scale;
-+	int ret;
- 	struct drm_crtc_state *crtc_state;
- 	u16 width, height;
- 	u32 width_fp, height_fp;
- 
--	if (!new_plane_state->fb)
--		return 0;
-+	omap_overlay_global_state = omap_get_global_state(state);
-+	if (IS_ERR(omap_overlay_global_state))
-+		return PTR_ERR(omap_overlay_global_state);
-+	DBG("%s: omap_overlay_global_state: %p", plane->name,
-+	    omap_overlay_global_state);
- 
- 	dispc_ovl_get_max_size(priv->dispc, &width, &height);
- 	width_fp = width << 16;
- 	height_fp = height << 16;
- 
--	/* crtc should only be NULL when disabling (i.e., !new_plane_state->fb) */
--	if (WARN_ON(!new_plane_state->crtc))
-+	crtc = new_plane_state->crtc ? new_plane_state->crtc : plane->state->crtc;
-+	if (!crtc)
- 		return 0;
- 
--	crtc_state = drm_atomic_get_existing_crtc_state(state,
--							new_plane_state->crtc);
-+	crtc_state = drm_atomic_get_existing_crtc_state(state, crtc);
- 	/* we should have a crtc state if the plane is attached to a crtc */
- 	if (WARN_ON(!crtc_state))
- 		return 0;
- 
--	if (!crtc_state->enable)
--		return 0;
--
--	if (new_plane_state->crtc_x < 0 || new_plane_state->crtc_y < 0)
--		return -EINVAL;
--
--	if (new_plane_state->crtc_x + new_plane_state->crtc_w > crtc_state->adjusted_mode.hdisplay)
--		return -EINVAL;
--
--	if (new_plane_state->crtc_y + new_plane_state->crtc_h > crtc_state->adjusted_mode.vdisplay)
--		return -EINVAL;
--
- 	/* Make sure dimensions are within bounds. */
- 	if (new_plane_state->src_h > height_fp || new_plane_state->crtc_h > height)
- 		return -EINVAL;
-@@ -161,9 +190,81 @@ static int omap_plane_atomic_check(struct drm_plane *plane,
- 	if (new_plane_state->src_w > width_fp || new_plane_state->crtc_w > width)
- 		return -EINVAL;
- 
--	if (new_plane_state->rotation != DRM_MODE_ROTATE_0 &&
--	    !omap_framebuffer_supports_rotation(new_plane_state->fb))
--		return -EINVAL;
-+
-+	/*
-+	 * Note: these are just sanity checks to filter out totally bad scaling
-+	 * factors. The real limits must be calculated case by case, and
-+	 * unfortunately we currently do those checks only at the commit
-+	 * phase in dispc.
-+	 */
-+	min_scale = FRAC_16_16(1, 8);
-+	max_scale = FRAC_16_16(8, 1);
-+
-+	ret = drm_atomic_helper_check_plane_state(new_plane_state, crtc_state,
-+						  min_scale, max_scale,
-+						  true, true);
-+	if (ret)
-+		return ret;
-+
-+	DBG("%s: check (%d -> %d)", plane->name,
-+	    old_plane_state->visible, new_plane_state->visible);
-+
-+	if (new_plane_state->visible) {
-+		if (new_plane_state->rotation != DRM_MODE_ROTATE_0 &&
-+		    !omap_framebuffer_supports_rotation(new_plane_state->fb))
-+			return -EINVAL;
-+
-+		if ((new_plane_state->src_w >> 16) != new_plane_state->crtc_w ||
-+		    (new_plane_state->src_h >> 16) != new_plane_state->crtc_h)
-+			caps |= OMAP_DSS_OVL_CAP_SCALE;
-+
-+		fourcc = new_plane_state->fb->format->format;
-+		crtc_mask = drm_crtc_mask(new_plane_state->crtc);
-+
++	if (dual_ovl) {
++		r_ovl_id = new_omap_state->r_overlay->overlay_id;
 +		/*
-+		 * (re)allocate hw overlay if we don't have one or
-+		 * there is a caps mismatch
++		 * If the current plane uses 2 hw planes the very next
++		 * zorder is used by the r_overlay so we just use the
++		 * main overlay zorder + 1
 +		 */
-+		if (!omap_state->overlay ||
-+		    (caps & ~omap_state->overlay->caps)) {
-+			new_hw_overlay = true;
-+		} else {
-+			/* check if allowed on crtc */
-+			if (!(omap_state->overlay->possible_crtcs & crtc_mask))
-+				new_hw_overlay = true;
++		r_info.zorder = info.zorder + 1;
 +
-+			/* check supported format */
-+			if (!dispc_ovl_color_mode_supported(priv->dispc,
-+						omap_state->overlay->overlay_id,
-+						fourcc))
-+				new_hw_overlay = true;
-+		}
-+
-+		if (new_hw_overlay) {
-+			struct omap_hw_overlay *old_ovl = omap_state->overlay;
-+			struct omap_hw_overlay *new_ovl = NULL;
-+
-+			omap_overlay_release(state, plane, old_ovl);
-+
-+			ret = omap_overlay_assign(state, plane, caps,
-+						  fourcc, crtc_mask, &new_ovl);
-+			if (ret) {
-+				DBG("%s: failed to assign hw_overlay(s)!",
-+				    plane->name);
-+				omap_state->overlay = NULL;
-+				return ret;
-+			}
-+
-+			omap_state->overlay = new_ovl;
-+		}
-+	} else {
-+		omap_overlay_release(state, plane, omap_state->overlay);
-+		omap_state->overlay = NULL;
++		DBG("%s: %dx%d -> %dx%d (%d)",
++		    new_omap_state->r_overlay->name,
++		    r_info.width, r_info.height,
++		    r_info.out_width, r_info.out_height, r_info.screen_width);
++		DBG("%d,%d %pad %pad", r_info.pos_x, r_info.pos_y,
++		    &r_info.paddr, &r_info.p_uv_addr);
 +	}
 +
-+	if (omap_state->overlay)
-+		DBG("plane: %s overlay_id: %d", plane->name,
-+		    omap_state->overlay->overlay_id);
+ 	/* and finally, update omapdss: */
+ 	ret = dispc_ovl_setup(priv->dispc, ovl_id, &info,
+ 			      omap_crtc_timings(new_state->crtc), false,
+ 			      omap_crtc_channel(new_state->crtc));
+ 	if (ret) {
+-		dev_err(plane->dev->dev, "Failed to setup plane %s\n",
++		dev_err(plane->dev->dev, "Failed to setup plane1 %s\n",
+ 			omap_plane->name);
+ 		dispc_ovl_enable(priv->dispc, ovl_id, false);
+ 		return;
+ 	}
+ 
+ 	dispc_ovl_enable(priv->dispc, ovl_id, true);
++
++	if (dual_ovl) {
++		ret = dispc_ovl_setup(priv->dispc, r_ovl_id, &r_info,
++				      omap_crtc_timings(new_state->crtc), false,
++				      omap_crtc_channel(new_state->crtc));
++		if (ret) {
++			dev_err(plane->dev->dev, "Failed to setup plane2 %s\n",
++				omap_plane->name);
++			dispc_ovl_enable(priv->dispc, r_ovl_id, false);
++			dispc_ovl_enable(priv->dispc, ovl_id, false);
++			return;
++		}
++
++		dispc_ovl_enable(priv->dispc, r_ovl_id, true);
++	}
+ }
+ 
+ static void omap_plane_atomic_disable(struct drm_plane *plane,
+@@ -140,6 +188,11 @@ static void omap_plane_atomic_disable(struct drm_plane *plane,
+ 
+ 	omap_overlay_disable(old_state->state, plane, old_omap_state->overlay);
+ 	new_omap_state->overlay = NULL;
++	if (is_omap_plane_dual_overlay(old_state)) {
++		omap_overlay_disable(old_state->state, plane,
++				     old_omap_state->r_overlay);
++		new_omap_state->r_overlay = NULL;
++	}
+ }
+ 
+ #define FRAC_16_16(mult, div)    (((mult) << 16) / (div))
+@@ -158,6 +211,8 @@ static int omap_plane_atomic_check(struct drm_plane *plane,
+ 	u32 fourcc;
+ 	u32 caps = 0;
+ 	bool new_hw_overlay = false;
++	bool new_r_hw_overlay = false;
++	bool is_fourcc_yuv = false;
+ 	int min_scale, max_scale;
+ 	int ret;
+ 	struct drm_crtc_state *crtc_state;
+@@ -187,9 +242,31 @@ static int omap_plane_atomic_check(struct drm_plane *plane,
+ 	if (new_plane_state->src_h > height_fp || new_plane_state->crtc_h > height)
+ 		return -EINVAL;
+ 
+-	if (new_plane_state->src_w > width_fp || new_plane_state->crtc_w > width)
+-		return -EINVAL;
+-
++	if (new_plane_state->fb)
++		is_fourcc_yuv = new_plane_state->fb->format->is_yuv;
++
++	if (new_plane_state->src_w > width_fp || new_plane_state->crtc_w > width) {
++		if (is_fourcc_yuv &&
++		    (((new_plane_state->src_w >> 16) / 2 & 1) ||
++		     new_plane_state->crtc_w / 2 & 1)) {
++			/*
++			 * When calculating the split overlay width
++			 * and it yield an odd value we will need to adjust
++			 * the indivual width +/- 1. So make sure it fits
++			 */
++			if (new_plane_state->src_w <= ((2 * width - 1) << 16) &&
++			    new_plane_state->crtc_w <= (2 * width - 1))
++				new_r_hw_overlay = true;
++			else
++				return -EINVAL;
++		} else {
++			if (new_plane_state->src_w <= (2 * width_fp) &&
++			    new_plane_state->crtc_w <= (2 * width))
++				new_r_hw_overlay = true;
++			else
++				return -EINVAL;
++		}
++	}
+ 
+ 	/*
+ 	 * Note: these are just sanity checks to filter out totally bad scaling
+@@ -239,32 +316,55 @@ static int omap_plane_atomic_check(struct drm_plane *plane,
+ 						fourcc))
+ 				new_hw_overlay = true;
+ 		}
++		/*
++		 * check if we need two overlays and only have 1 or
++		 * if we had 2 overlays but will only need 1
++		 */
++		if ((new_r_hw_overlay && !omap_state->r_overlay) ||
++		    (!new_r_hw_overlay && omap_state->r_overlay))
++			new_hw_overlay = true;
+ 
+ 		if (new_hw_overlay) {
+ 			struct omap_hw_overlay *old_ovl = omap_state->overlay;
++			struct omap_hw_overlay *old_r_ovl =
++						omap_state->r_overlay;
+ 			struct omap_hw_overlay *new_ovl = NULL;
++			struct omap_hw_overlay *new_r_ovl = NULL;
+ 
+ 			omap_overlay_release(state, plane, old_ovl);
++			omap_overlay_release(state, plane, old_r_ovl);
+ 
+ 			ret = omap_overlay_assign(state, plane, caps,
+-						  fourcc, crtc_mask, &new_ovl);
++						  fourcc, crtc_mask, &new_ovl,
++						  new_r_hw_overlay ?
++						  &new_r_ovl : NULL);
+ 			if (ret) {
+ 				DBG("%s: failed to assign hw_overlay(s)!",
+ 				    plane->name);
+ 				omap_state->overlay = NULL;
++				omap_state->r_overlay = NULL;
+ 				return ret;
+ 			}
+ 
+ 			omap_state->overlay = new_ovl;
++			if (new_r_hw_overlay)
++				omap_state->r_overlay = new_r_ovl;
++			else
++				omap_state->r_overlay = NULL;
+ 		}
+ 	} else {
+ 		omap_overlay_release(state, plane, omap_state->overlay);
++		omap_overlay_release(state, plane, omap_state->r_overlay);
+ 		omap_state->overlay = NULL;
++		omap_state->r_overlay = NULL;
+ 	}
+ 
+ 	if (omap_state->overlay)
+ 		DBG("plane: %s overlay_id: %d", plane->name,
+ 		    omap_state->overlay->overlay_id);
++	if (omap_state->r_overlay)
++		DBG("plane: %s r_overlay_id: %d", plane->name,
++		    omap_state->r_overlay->overlay_id);
  
  	return 0;
  }
-@@ -230,7 +331,7 @@ static void omap_plane_reset(struct drm_plane *plane)
- 	 * plane.
- 	 */
- 	plane->state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY
--			   ? 0 : omap_plane->overlay->overlay_id;
-+			   ? 0 : omap_plane->id;
- 	plane->state->color_encoding = DRM_COLOR_YCBCR_BT601;
- 	plane->state->color_range = DRM_COLOR_YCBCR_FULL_RANGE;
+@@ -370,6 +470,17 @@ static void omap_plane_atomic_print_state(struct drm_printer *p,
+ 		drm_printf(p, "\t\tpossible_crtcs=0x%x\n",
+ 			   omap_state->overlay->possible_crtcs);
+ 	}
++
++	drm_printf(p, "\tr_overlay=%s\n", omap_state->r_overlay ?
++					  omap_state->r_overlay->name : "(null)");
++	if (omap_state->r_overlay) {
++		drm_printf(p, "\t\tidx=%d\n", omap_state->r_overlay->idx);
++		drm_printf(p, "\t\toverlay_id=%d\n",
++			   omap_state->r_overlay->overlay_id);
++		drm_printf(p, "\t\tcaps=0x%x\n", omap_state->r_overlay->caps);
++		drm_printf(p, "\t\tpossible_crtcs=0x%x\n",
++			   omap_state->r_overlay->possible_crtcs);
++	}
  }
-@@ -340,13 +441,12 @@ struct drm_plane *omap_plane_init(struct drm_device *dev,
  
- 	omap_plane->id = idx;
- 	omap_plane->name = plane_id_to_name[idx];
--	omap_plane->overlay = priv->overlays[idx];
+ static int omap_plane_atomic_set_property(struct drm_plane *plane,
+diff --git a/drivers/gpu/drm/omapdrm/omap_plane.h b/drivers/gpu/drm/omapdrm/omap_plane.h
+index 0c28fe8ffa20..a9a33e12722a 100644
+--- a/drivers/gpu/drm/omapdrm/omap_plane.h
++++ b/drivers/gpu/drm/omapdrm/omap_plane.h
+@@ -22,5 +22,6 @@ struct drm_plane *omap_plane_init(struct drm_device *dev,
+ 		u32 possible_crtcs);
+ void omap_plane_install_properties(struct drm_plane *plane,
+ 		struct drm_mode_object *obj);
++bool is_omap_plane_dual_overlay(struct drm_plane_state *state);
  
- 	DBG("%s: type=%d", omap_plane->name, type);
- 	DBG("	omap_plane->id: %d", omap_plane->id);
- 	DBG("	crtc_mask: 0x%04x", possible_crtcs);
- 
--	formats = dispc_ovl_get_color_modes(priv->dispc, omap_plane->overlay->overlay_id);
-+	formats = dispc_ovl_get_color_modes(priv->dispc, omap_plane->id);
- 	for (nformats = 0; formats[nformats]; ++nformats)
- 		;
- 
+ #endif /* __OMAPDRM_PLANE_H__ */
 -- 
 2.25.1
 
