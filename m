@@ -2,30 +2,30 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E6CCC433EF
-	for <linux-omap@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62BE8C433F5
+	for <linux-omap@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06BEF6128A
-	for <linux-omap@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 372CC61288
+	for <linux-omap@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244576AbhIYLYp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 25 Sep 2021 07:24:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55318 "EHLO mail.kernel.org"
+        id S244794AbhIYLY4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 25 Sep 2021 07:24:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244572AbhIYLYo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 25 Sep 2021 07:24:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4721B61283;
-        Sat, 25 Sep 2021 11:23:09 +0000 (UTC)
+        id S244725AbhIYLYv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 25 Sep 2021 07:24:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD4986127C;
+        Sat, 25 Sep 2021 11:23:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632568990;
-        bh=3uCY0iZrxWFrDSXP86vU6Gnic5vFXMQM0QlKZCzTd6I=;
+        s=k20201202; t=1632568996;
+        bh=cCL9OPu7ylTp3lXAkUh0UgmGr0ZctC2d0EdfzXcuSDs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YNYk0Mv63XX5PqerdlMIOLxUIzh5mfJBU1cn1qTr9FvUEQmPZw4WFkZf3JsdOAIvg
-         Ps//rK0fsA3n/Q9f7CJTLCp4yRG28ssNng+d0anCpUptlMKSTkl52iFnzRCJL3vWIV
-         DY0xxS4mTDNDx6elazDRWDcQ2byO7wJoGxZwleamszH0C7+Aq/3PQfUNjjdDt9jWQi
-         6NlJjTK/y4kVrXiZa8QQBshnRcI94odNI1xzPzB/qharb+WdgDGHeC1YxccquPBvwR
-         61o8XtdDanfVfUsNxAPMpX7UZVtoJV3g6hHhfN/Z8n4x1KxlDuCXjiZowCwtKkJsjU
-         PUfn4nZNdtUiA==
+        b=c9YNQD+E2p1TmAdtqT0WIwmiJu5kmUIVN+O+nplzesA2lLLcARe0V/utgO/vGx8lF
+         DaZJnAMul9QUW5QGKzdFYXLss2DIlj4VOai0ic6LDtd7+26oCTBwNaeAJviNFDzSA1
+         COwBr7dTsUw7g0++Wj9lyb3LuPDjKcbnr2Dsrt7/p3VwD6QwP7Umb69VvNtd/6+TTj
+         mlM+hoVAKG9BTNPfXEH//VST0WH4AcLFAK8sbQQC0r1UH4mERsDgPC0j9YYFdoNvy1
+         4toONRoZ2+u/r7lz48dgmissq7azoDonbkAMJLJxFHBliNJx9qw8YM63YO2F/FeYr6
+         6JQgCJMr6c7Cw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -73,9 +73,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next v1 01/21] devlink: Notify users when objects are accessible
-Date:   Sat, 25 Sep 2021 14:22:41 +0300
-Message-Id: <0f7f201a059b24c96eac837e1f424e2483254e1c.1632565508.git.leonro@nvidia.com>
+Subject: [PATCH net-next v1 04/21] dpaa2-eth: Register devlink instance at the end of probe
+Date:   Sat, 25 Sep 2021 14:22:44 +0300
+Message-Id: <c6abd202014523d6e685a97c0ec844d2756ffd34.1632565508.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632565508.git.leonro@nvidia.com>
 References: <cover.1632565508.git.leonro@nvidia.com>
@@ -87,257 +87,119 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-The devlink core code notified users about add/remove objects without
-relation if this object can be accessible or not. In this patch we unify
-such user visible notifications in one place.
+Move devlink_register to be the last command in the initialization
+sequence.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- net/core/devlink.c | 107 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 93 insertions(+), 14 deletions(-)
+ .../ethernet/freescale/dpaa2/dpaa2-eth-devlink.c   | 14 +++++++++++---
+ drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c   |  9 ++++++---
+ drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h   |  5 ++++-
+ 3 files changed, 21 insertions(+), 7 deletions(-)
 
-diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 3ea33c689790..06edb2f1d21e 100644
---- a/net/core/devlink.c
-+++ b/net/core/devlink.c
-@@ -742,6 +742,7 @@ static void devlink_notify(struct devlink *devlink, enum devlink_command cmd)
- 	int err;
+diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c
+index 426926fb6fc6..7fefe1574b6a 100644
+--- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c
++++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c
+@@ -189,7 +189,7 @@ static const struct devlink_ops dpaa2_eth_devlink_ops = {
+ 	.trap_group_action_set = dpaa2_eth_dl_trap_group_action_set,
+ };
  
- 	WARN_ON(cmd != DEVLINK_CMD_NEW && cmd != DEVLINK_CMD_DEL);
-+	WARN_ON(!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED));
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
-@@ -1040,11 +1041,15 @@ static int devlink_nl_port_fill(struct sk_buff *msg,
- static void devlink_port_notify(struct devlink_port *devlink_port,
- 				enum devlink_command cmd)
+-int dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv)
++int dpaa2_eth_dl_alloc(struct dpaa2_eth_priv *priv)
  {
-+	struct devlink *devlink = devlink_port->devlink;
- 	struct sk_buff *msg;
- 	int err;
- 
- 	WARN_ON(cmd != DEVLINK_CMD_PORT_NEW && cmd != DEVLINK_CMD_PORT_DEL);
- 
-+	if (!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED))
-+		return;
-+
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
- 		return;
-@@ -1055,18 +1060,19 @@ static void devlink_port_notify(struct devlink_port *devlink_port,
- 		return;
+ 	struct net_device *net_dev = priv->net_dev;
+ 	struct device *dev = net_dev->dev.parent;
+@@ -203,15 +203,23 @@ int dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv)
  	}
- 
--	genlmsg_multicast_netns(&devlink_nl_family,
--				devlink_net(devlink_port->devlink), msg, 0,
--				DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
-+	genlmsg_multicast_netns(&devlink_nl_family, devlink_net(devlink), msg,
-+				0, DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
- }
- 
- static void devlink_rate_notify(struct devlink_rate *devlink_rate,
- 				enum devlink_command cmd)
- {
-+	struct devlink *devlink = devlink_rate->devlink;
- 	struct sk_buff *msg;
- 	int err;
- 
- 	WARN_ON(cmd != DEVLINK_CMD_RATE_NEW && cmd != DEVLINK_CMD_RATE_DEL);
-+	WARN_ON(!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED));
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
-@@ -1078,9 +1084,8 @@ static void devlink_rate_notify(struct devlink_rate *devlink_rate,
- 		return;
- 	}
- 
--	genlmsg_multicast_netns(&devlink_nl_family,
--				devlink_net(devlink_rate->devlink), msg, 0,
--				DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
-+	genlmsg_multicast_netns(&devlink_nl_family, devlink_net(devlink), msg,
-+				0, DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
- }
- 
- static int devlink_nl_cmd_rate_get_dumpit(struct sk_buff *msg,
-@@ -4150,6 +4155,7 @@ static void __devlink_flash_update_notify(struct devlink *devlink,
- 	WARN_ON(cmd != DEVLINK_CMD_FLASH_UPDATE &&
- 		cmd != DEVLINK_CMD_FLASH_UPDATE_END &&
- 		cmd != DEVLINK_CMD_FLASH_UPDATE_STATUS);
-+	WARN_ON(!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED));
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
-@@ -5145,17 +5151,18 @@ static void devlink_nl_region_notify(struct devlink_region *region,
- 				     struct devlink_snapshot *snapshot,
- 				     enum devlink_command cmd)
- {
-+	struct devlink *devlink = region->devlink;
- 	struct sk_buff *msg;
- 
- 	WARN_ON(cmd != DEVLINK_CMD_REGION_NEW && cmd != DEVLINK_CMD_REGION_DEL);
-+	WARN_ON(!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED));
- 
- 	msg = devlink_nl_region_notify_build(region, snapshot, cmd, 0, 0);
- 	if (IS_ERR(msg))
- 		return;
- 
--	genlmsg_multicast_netns(&devlink_nl_family,
--				devlink_net(region->devlink), msg, 0,
--				DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
-+	genlmsg_multicast_netns(&devlink_nl_family, devlink_net(devlink), msg,
-+				0, DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
- }
- 
- /**
-@@ -6920,10 +6927,12 @@ devlink_nl_health_reporter_fill(struct sk_buff *msg,
- static void devlink_recover_notify(struct devlink_health_reporter *reporter,
- 				   enum devlink_command cmd)
- {
-+	struct devlink *devlink = reporter->devlink;
- 	struct sk_buff *msg;
- 	int err;
- 
- 	WARN_ON(cmd != DEVLINK_CMD_HEALTH_REPORTER_RECOVER);
-+	WARN_ON(!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED));
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
-@@ -6935,9 +6944,8 @@ static void devlink_recover_notify(struct devlink_health_reporter *reporter,
- 		return;
- 	}
- 
--	genlmsg_multicast_netns(&devlink_nl_family,
--				devlink_net(reporter->devlink),
--				msg, 0, DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
-+	genlmsg_multicast_netns(&devlink_nl_family, devlink_net(devlink), msg,
-+				0, DEVLINK_MCGRP_CONFIG, GFP_KERNEL);
- }
- 
- void
-@@ -8955,6 +8963,68 @@ struct devlink *devlink_alloc_ns(const struct devlink_ops *ops,
- }
- EXPORT_SYMBOL_GPL(devlink_alloc_ns);
- 
-+static void
-+devlink_trap_policer_notify(struct devlink *devlink,
-+			    const struct devlink_trap_policer_item *policer_item,
-+			    enum devlink_command cmd);
-+static void
-+devlink_trap_group_notify(struct devlink *devlink,
-+			  const struct devlink_trap_group_item *group_item,
-+			  enum devlink_command cmd);
-+static void devlink_trap_notify(struct devlink *devlink,
-+				const struct devlink_trap_item *trap_item,
-+				enum devlink_command cmd);
-+
-+static void devlink_notify_register(struct devlink *devlink)
-+{
-+	struct devlink_trap_policer_item *policer_item;
-+	struct devlink_trap_group_item *group_item;
-+	struct devlink_trap_item *trap_item;
-+	struct devlink_port *devlink_port;
-+
-+	devlink_notify(devlink, DEVLINK_CMD_NEW);
-+	list_for_each_entry(devlink_port, &devlink->port_list, list)
-+		devlink_port_notify(devlink_port, DEVLINK_CMD_PORT_NEW);
-+
-+	list_for_each_entry(policer_item, &devlink->trap_policer_list, list)
-+		devlink_trap_policer_notify(devlink, policer_item,
-+					    DEVLINK_CMD_TRAP_POLICER_NEW);
-+
-+	list_for_each_entry(group_item, &devlink->trap_group_list, list)
-+		devlink_trap_group_notify(devlink, group_item,
-+					  DEVLINK_CMD_TRAP_GROUP_NEW);
-+
-+	list_for_each_entry(trap_item, &devlink->trap_list, list)
-+		devlink_trap_notify(devlink, trap_item, DEVLINK_CMD_TRAP_NEW);
-+
-+	devlink_params_publish(devlink);
+ 	dl_priv = devlink_priv(priv->devlink);
+ 	dl_priv->dpaa2_priv = priv;
++	return 0;
 +}
 +
-+static void devlink_notify_unregister(struct devlink *devlink)
++void dpaa2_eth_dl_free(struct dpaa2_eth_priv *priv)
 +{
-+	struct devlink_trap_policer_item *policer_item;
-+	struct devlink_trap_group_item *group_item;
-+	struct devlink_trap_item *trap_item;
-+	struct devlink_port *devlink_port;
-+
-+	devlink_params_unpublish(devlink);
-+
-+	list_for_each_entry_reverse(trap_item, &devlink->trap_list, list)
-+		devlink_trap_notify(devlink, trap_item, DEVLINK_CMD_TRAP_DEL);
-+
-+	list_for_each_entry_reverse(group_item, &devlink->trap_group_list, list)
-+		devlink_trap_group_notify(devlink, group_item,
-+					  DEVLINK_CMD_TRAP_GROUP_DEL);
-+	list_for_each_entry_reverse(policer_item, &devlink->trap_policer_list,
-+				    list)
-+		devlink_trap_policer_notify(devlink, policer_item,
-+					    DEVLINK_CMD_TRAP_POLICER_DEL);
-+
-+	list_for_each_entry_reverse(devlink_port, &devlink->port_list, list)
-+		devlink_port_notify(devlink_port, DEVLINK_CMD_PORT_DEL);
-+	devlink_notify(devlink, DEVLINK_CMD_DEL);
++	devlink_free(priv->devlink);
 +}
 +
- /**
-  *	devlink_register - Register devlink instance
-  *
-@@ -8964,7 +9034,7 @@ void devlink_register(struct devlink *devlink)
- {
- 	mutex_lock(&devlink_mutex);
- 	xa_set_mark(&devlinks, devlink->index, DEVLINK_REGISTERED);
--	devlink_notify(devlink, DEVLINK_CMD_NEW);
-+	devlink_notify_register(devlink);
- 	mutex_unlock(&devlink_mutex);
- }
- EXPORT_SYMBOL_GPL(devlink_register);
-@@ -8982,7 +9052,7 @@ void devlink_unregister(struct devlink *devlink)
- 	mutex_lock(&devlink_mutex);
- 	WARN_ON(devlink_reload_supported(devlink->ops) &&
- 		devlink->reload_enabled);
--	devlink_notify(devlink, DEVLINK_CMD_DEL);
-+	devlink_notify_unregister(devlink);
- 	xa_clear_mark(&devlinks, devlink->index, DEVLINK_REGISTERED);
- 	mutex_unlock(&devlink_mutex);
- }
-@@ -10086,6 +10156,9 @@ void devlink_params_publish(struct devlink *devlink)
- {
- 	struct devlink_param_item *param_item;
  
-+	if (!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED))
-+		return;
++void dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv)
++{
+ 	devlink_register(priv->devlink);
+-	return 0;
+ }
+ 
+ void dpaa2_eth_dl_unregister(struct dpaa2_eth_priv *priv)
+ {
+ 	devlink_unregister(priv->devlink);
+-	devlink_free(priv->devlink);
+ }
+ 
+ int dpaa2_eth_dl_port_add(struct dpaa2_eth_priv *priv)
+diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c
+index 7065c71ed7b8..03c168b1712f 100644
+--- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c
++++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c
+@@ -4431,7 +4431,7 @@ static int dpaa2_eth_probe(struct fsl_mc_device *dpni_dev)
+ 	if (err)
+ 		goto err_connect_mac;
+ 
+-	err = dpaa2_eth_dl_register(priv);
++	err = dpaa2_eth_dl_alloc(priv);
+ 	if (err)
+ 		goto err_dl_register;
+ 
+@@ -4453,6 +4453,7 @@ static int dpaa2_eth_probe(struct fsl_mc_device *dpni_dev)
+ 	dpaa2_dbg_add(priv);
+ #endif
+ 
++	dpaa2_eth_dl_register(priv);
+ 	dev_info(dev, "Probed interface %s\n", net_dev->name);
+ 	return 0;
+ 
+@@ -4461,7 +4462,7 @@ static int dpaa2_eth_probe(struct fsl_mc_device *dpni_dev)
+ err_dl_port_add:
+ 	dpaa2_eth_dl_traps_unregister(priv);
+ err_dl_trap_register:
+-	dpaa2_eth_dl_unregister(priv);
++	dpaa2_eth_dl_free(priv);
+ err_dl_register:
+ 	dpaa2_eth_disconnect_mac(priv);
+ err_connect_mac:
+@@ -4508,6 +4509,8 @@ static int dpaa2_eth_remove(struct fsl_mc_device *ls_dev)
+ 	net_dev = dev_get_drvdata(dev);
+ 	priv = netdev_priv(net_dev);
+ 
++	dpaa2_eth_dl_unregister(priv);
 +
- 	list_for_each_entry(param_item, &devlink->param_list, list) {
- 		if (param_item->published)
- 			continue;
-@@ -10631,6 +10704,8 @@ devlink_trap_group_notify(struct devlink *devlink,
+ #ifdef CONFIG_DEBUG_FS
+ 	dpaa2_dbg_remove(priv);
+ #endif
+@@ -4519,7 +4522,7 @@ static int dpaa2_eth_remove(struct fsl_mc_device *ls_dev)
  
- 	WARN_ON_ONCE(cmd != DEVLINK_CMD_TRAP_GROUP_NEW &&
- 		     cmd != DEVLINK_CMD_TRAP_GROUP_DEL);
-+	if (!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED))
-+		return;
+ 	dpaa2_eth_dl_port_del(priv);
+ 	dpaa2_eth_dl_traps_unregister(priv);
+-	dpaa2_eth_dl_unregister(priv);
++	dpaa2_eth_dl_free(priv);
  
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
-@@ -10672,6 +10747,8 @@ static void devlink_trap_notify(struct devlink *devlink,
+ 	if (priv->do_link_poll)
+ 		kthread_stop(priv->poll_thread);
+diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h
+index cdb623d5f2c1..628d2d45f045 100644
+--- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h
++++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h
+@@ -725,7 +725,10 @@ void dpaa2_eth_set_rx_taildrop(struct dpaa2_eth_priv *priv,
  
- 	WARN_ON_ONCE(cmd != DEVLINK_CMD_TRAP_NEW &&
- 		     cmd != DEVLINK_CMD_TRAP_DEL);
-+	if (!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED))
-+		return;
+ extern const struct dcbnl_rtnl_ops dpaa2_eth_dcbnl_ops;
  
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
-@@ -11053,6 +11130,8 @@ devlink_trap_policer_notify(struct devlink *devlink,
+-int dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv);
++int dpaa2_eth_dl_alloc(struct dpaa2_eth_priv *priv);
++void dpaa2_eth_dl_free(struct dpaa2_eth_priv *priv);
++
++void dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv);
+ void dpaa2_eth_dl_unregister(struct dpaa2_eth_priv *priv);
  
- 	WARN_ON_ONCE(cmd != DEVLINK_CMD_TRAP_POLICER_NEW &&
- 		     cmd != DEVLINK_CMD_TRAP_POLICER_DEL);
-+	if (!xa_get_mark(&devlinks, devlink->index, DEVLINK_REGISTERED))
-+		return;
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
+ int dpaa2_eth_dl_port_add(struct dpaa2_eth_priv *priv);
 -- 
 2.31.1
 
