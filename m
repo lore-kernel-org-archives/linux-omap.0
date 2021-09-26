@@ -2,81 +2,55 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF603C433EF
-	for <linux-omap@archiver.kernel.org>; Sat, 25 Sep 2021 14:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80FA5C433F5
+	for <linux-omap@archiver.kernel.org>; Sun, 26 Sep 2021 14:16:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9C5E610EA
-	for <linux-omap@archiver.kernel.org>; Sat, 25 Sep 2021 14:55:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A7A261090
+	for <linux-omap@archiver.kernel.org>; Sun, 26 Sep 2021 14:16:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343833AbhIYO5G (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 25 Sep 2021 10:57:06 -0400
-Received: from 49-237-179-185.static.tentacle.fi ([185.179.237.49]:55056 "EHLO
-        bitmer.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234173AbhIYO5G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 25 Sep 2021 10:57:06 -0400
-Received: from 88-114-184-142.elisa-laajakaista.fi ([88.114.184.142] helo=[192.168.1.42])
-        by bitmer.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.89)
-        (envelope-from <jarkko.nikula@bitmer.com>)
-        id 1mU95J-00047V-Oa; Sat, 25 Sep 2021 17:55:25 +0300
-Subject: Re: Regression with e428e250fde6 on BeagleBoard Rev C2
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     linux-omap@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Andreas Kemnade <andreas@kemnade.info>
-References: <3f6924a7-1934-b94e-2441-4781fe737f32@bitmer.com>
- <YUiOA4QEbZXPmQ7F@atomide.com>
- <5de5382b-9f11-c99b-5b9b-c90ae023e10b@bitmer.com>
- <YUmC/xbYDnXMrsb1@atomide.com>
- <638e4599-ab1d-ee88-6974-17463ce42f5c@bitmer.com>
- <YUsAffFIHUi1ZxEY@atomide.com>
- <cbe53e9f-b407-d758-67bb-5fb65bddfc03@bitmer.com>
- <YUwThz8SAdjBD+cn@atomide.com>
- <93196bcd-836d-2432-9d1c-458904ba4f41@bitmer.com>
- <YU14FjzAMU0uUubW@atomide.com>
-From:   Jarkko Nikula <jarkko.nikula@bitmer.com>
-Message-ID: <18a27933-e412-c1ed-a744-62cfbcd6a81b@bitmer.com>
-Date:   Sat, 25 Sep 2021 17:55:22 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
+        id S231825AbhIZORp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 26 Sep 2021 10:17:45 -0400
+Received: from fgw23-4.mail.saunalahti.fi ([62.142.5.110]:44043 "EHLO
+        fgw23-4.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231743AbhIZORp (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Sun, 26 Sep 2021 10:17:45 -0400
+X-Greylist: delayed 964 seconds by postgrey-1.27 at vger.kernel.org; Sun, 26 Sep 2021 10:17:45 EDT
+Received: from darkstar.musicnaut.iki.fi (85-76-143-163-nat.elisa-mobile.fi [85.76.143.163])
+        by fgw23.mail.saunalahti.fi (Halon) with ESMTP
+        id 0c2e5c44-1ed2-11ec-877a-005056bdfda7;
+        Sun, 26 Sep 2021 17:00:04 +0300 (EEST)
+Date:   Sun, 26 Sep 2021 17:00:03 +0300
+From:   Aaro Koskinen <aaro.koskinen@iki.fi>
+To:     linux-omap@vger.kernel.org,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>
+Subject: Bug report: Amstrad Delta IRQ hang (serio?) during boot
+Message-ID: <20210926140003.GA2438@darkstar.musicnaut.iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <YU14FjzAMU0uUubW@atomide.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 9/24/21 10:02 AM, Tony Lindgren wrote:
-> * Jarkko Nikula <jarkko.nikula@bitmer.com> [210923 18:04]:
->> On 9/23/21 8:41 AM, Tony Lindgren wrote:
->>> * Jarkko Nikula <jarkko.nikula@bitmer.com> [210922 17:22]:
->>>> Better luck with this one but looks like idling cause "undefined
->>>> instruction" crash. Cache/memory etc corruption perhaps? Serial console
->>>> log attached.
->>>
->>> Hmm. If you comment out the twl power node, does the omap3-beagle-ab4.dtb
->>> boot normally for you? It should behave the same as current mainline then
->>> with the omap3isp issue.
->>>
->> Commenting the twl_power node out or removing the twl section leads to
->> immediately rebooting kernel:
-> 
-> Below is an updated patch to move the timer quirks to omap3-beagle-ab4.dtb
-> with no twl changes.
-> 
-Sigh, I found the reason for immediately rebooting kernel from bash history:
+Hi,
 
-"rm arch/arm/boot/zImage" followed by "cat
-arch/arm/boot/dts/omap3-beagle-ab4.dtb >>arch/arm/boot/zImage; ma
-LOADADDR=0x80008000 uImage", i.e. forgot to build the zImage between.
+I noticed that with the recent change to switch to asynchronous initramfs
+unpacking (initramfs_async=1), the Amstrad Delta seems to occasinally
+hang during the boot with the current mainline. This is probably some old
+bug that gets now triggered more easily due to changes in the boot order.
 
-(alias ma='nice make -j `getconf _NPROCESSORS_ONLN` ARCH=arm
-CROSS_COMPILE="ccache arm-linux-gnueabihf-"')
+It's a bit tricky to debug as adding printk()s may make the problem go
+away, but so far I've noticed:
 
-So yes, with your latest patch omap3-beagle-ab4.dtb behaves as unpatched
-omap3-beagle.dtb (boots but timer issues when omap3_isp not loaded).
+	- happens when ams-delta-serio and USB are being probed roughly
+          in parallel,
 
-Jarkko
+	- the hang: omap1_handle_irq() loops forever with irqnr == 14.
+
+I guess this has to do something the special handling of serio irqs on
+this board. As a workaround switching back to initramfs_async=0 helps.
+Also async=1 and disabling CONFIG_SERIO_AMS_DELTA works.
+
+A.
