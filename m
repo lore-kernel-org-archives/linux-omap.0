@@ -2,122 +2,186 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BB77C433F5
-	for <linux-omap@archiver.kernel.org>; Sun, 26 Sep 2021 14:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F6A0C4332F
+	for <linux-omap@archiver.kernel.org>; Mon, 27 Sep 2021 08:09:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECD1961041
-	for <linux-omap@archiver.kernel.org>; Sun, 26 Sep 2021 14:56:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36142611BD
+	for <linux-omap@archiver.kernel.org>; Mon, 27 Sep 2021 08:09:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231894AbhIZO55 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 26 Sep 2021 10:57:57 -0400
-Received: from new4-smtp.messagingengine.com ([66.111.4.230]:44631 "EHLO
-        new4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231849AbhIZO55 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>);
-        Sun, 26 Sep 2021 10:57:57 -0400
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailnew.nyi.internal (Postfix) with ESMTP id 5A6CC580E5A;
-        Sun, 26 Sep 2021 10:56:20 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute1.internal (MEProxy); Sun, 26 Sep 2021 10:56:20 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; bh=1SwiLo
-        0OKzrgae4gARfd9XtQ8Pfr/C7RtDkZYQvq+Zg=; b=KBG2mbIWFypeGTDA9ukwZC
-        Savr3ve9ghFgzW+47++suGkjfTn8IUgdskA1e1Fmq+2Zq65GqH8vzvr/rp1w4zuF
-        WHyhzfZbYSwjgTImHz0ce55HU9h0rf0nI8lt+Xu6oLVTSUN+ZJdFlq3gZouTev6v
-        AZ50bV6l9xWh7R5PropJfcGY0I+40wasmcYkVCSl1fo6oGkEmmCGuSEYR3sMKkjt
-        S/WBzvQ4to7Ythk3Y+qj2OuS5EqRs8U8qfPDccFDg10R98P11jm0ThngMC0bWnRr
-        pT4oRUoxf4oztch6dNt4h3oiK2AIOib/gA49p0WDrMSSBDspfP54i03xpTpWCklg
-        ==
-X-ME-Sender: <xms:EopQYZuKY-wnuTHI3n3YNNlj836zAWFflpNAqplVMrOL5Y2tNxWHkg>
-    <xme:EopQYSdiw41V7repoJJNFKpvgH4U2aBdDU5Pj0MNb3GrPksmrsPyf-jGHw2tJVSkB
-    gd1N5HMqXap-Yw>
-X-ME-Received: <xmr:EopQYcwstCsOU4Z_p68cMIlcEMb3hVnYwslc6YfFWgOB93fhDAaFtaha-7si25STMNqTY_HRq0425NLsRqbHBICeGlzqhg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvtddrudejiedgkeduucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepfffhvffukfhfgggtuggjsehttdertddttddvnecuhfhrohhmpefkughoucfu
-    tghhihhmmhgvlhcuoehiughoshgthhesihguohhstghhrdhorhhgqeenucggtffrrghtth
-    gvrhhnpedtffekkeefudffveegueejffejhfetgfeuuefgvedtieehudeuueekhfduheel
-    teenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehiug
-    hoshgthhesihguohhstghhrdhorhhg
-X-ME-Proxy: <xmx:EopQYQPH6fS_kSAXkwpoRrga7m7P7o_kMYSgUegnKfpcyPV56t8etQ>
-    <xmx:EopQYZ8yXp1UBxlU1AWoyJrpuNoSGVm1Egd65OrtWZqGjWYuSr1yMA>
-    <xmx:EopQYQUEEbB_HClKbhfwf5wQ4Cqon53BsD1txQrhSArqcRAjYdcKKA>
-    <xmx:FIpQYeYCbRFkSd5u4Mh_xIjItI9js46gZfOLDMA8h_Pobpt2EHM_sA>
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
- 26 Sep 2021 10:56:17 -0400 (EDT)
-Date:   Sun, 26 Sep 2021 17:56:13 +0300
-From:   Ido Schimmel <idosch@idosch.org>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Andrew Lunn <andrew@lunn.ch>, Ariel Elior <aelior@marvell.com>,
-        Bin Luo <luobin9@huawei.com>,
-        Claudiu Manoil <claudiu.manoil@nxp.com>,
-        Coiby Xu <coiby.xu@gmail.com>,
-        Derek Chickles <dchickles@marvell.com>, drivers@pensando.io,
-        Felix Manlunas <fmanlunas@marvell.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Geetha sowjanya <gakula@marvell.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
-        hariprasad <hkelam@marvell.com>,
-        Ido Schimmel <idosch@nvidia.com>,
-        Intel Corporation <linuxwwan@intel.com>,
-        intel-wired-lan@lists.osuosl.org,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Jerin Jacob <jerinj@marvell.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Jiri Pirko <jiri@nvidia.com>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Linu Cherian <lcherian@marvell.com>,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-staging@lists.linux.dev,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Manish Chopra <manishc@marvell.com>,
-        M Chetan Kumar <m.chetan.kumar@intel.com>,
-        Michael Chan <michael.chan@broadcom.com>,
-        Michael Guralnik <michaelgur@mellanox.com>,
-        netdev@vger.kernel.org, oss-drivers@corigine.com,
-        Richard Cochran <richardcochran@gmail.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Satanand Burla <sburla@marvell.com>,
-        Sergey Ryazanov <ryazanov.s.a@gmail.com>,
-        Shannon Nelson <snelson@pensando.io>,
-        Simon Horman <simon.horman@corigine.com>,
-        Subbaraya Sundeep <sbhatta@marvell.com>,
-        Sunil Goutham <sgoutham@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: Re: [PATCH net-next v1 11/21] mlxsw: core: Register devlink instance
- last
-Message-ID: <YVCKDR1pyHaH2sR5@shredder>
-References: <cover.1632565508.git.leonro@nvidia.com>
- <ca198a30949abb3bdf283ff87e6e718be355d0cf.1632565508.git.leonro@nvidia.com>
+        id S233374AbhI0ILO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 27 Sep 2021 04:11:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54262 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233300AbhI0ILO (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2021 04:11:14 -0400
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D340C061575
+        for <linux-omap@vger.kernel.org>; Mon, 27 Sep 2021 01:09:36 -0700 (PDT)
+Received: by mail-wr1-x42f.google.com with SMTP id i23so49947383wrb.2
+        for <linux-omap@vger.kernel.org>; Mon, 27 Sep 2021 01:09:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=9F/dOrkeMh+t6dNCFSGwYqJcbpKTkv75T5foTFZYKGo=;
+        b=iTKf8Re+I7mIU+dY+9f70h+TO1JO28z8McxFJ9wpr9nUjRpAcq2N6jO+Fd7uqgWdT8
+         Bel0Q2yBp9zy/+WWlUDNwVgQ9DcPnwGl1zLGtuXWz/irz/2rkcKXpvdiM0UGpz7Rn5Fa
+         6oYzQ5m7n2FQDJT2Pa+EAoMcGO4Wc8jTtMQKwBDp5sIcjmSDreg763ZMt4KUNo6J809H
+         50x5CGwn+3uIKPoYfsscMPqqfSQLyOdfezeR3NZFRWVwgjTcZscQkEAdb8CQWS4r3RBB
+         leyFg1JQaXBJ1+hGlCPZXg0RoXXXztxk4kqZGvo7VpAtBKbCFsT+r5IDYSALNg+g6P56
+         9ffg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=9F/dOrkeMh+t6dNCFSGwYqJcbpKTkv75T5foTFZYKGo=;
+        b=mWNiI+XS3za1judCSrK8W+sWhUlGU+wot4n/dwzdoxVcamWiVVS0yVZUO8Jg5ygJFy
+         uY/w7pdy73I120akFKnNkosYYelmbpHvnlRN/V52mmG+ePVTEJLH8mMzPAl2i8K5OeYH
+         sgKYGWg0ctZt3UjTNX7S0J7liNRak7FAVKAn7pavdfT9iZ/cAZWBUTFXfh2K49h06rmY
+         ybfFbcVoxmq6s9oflw6vLv1liRRgF4G0NQyzp6/jCTtPo4OfixhsjC4o86Iyqpa9WNM7
+         UZ5h+ggpOykF4VvA4GxSCy3YvQ9d9BKbj1I6Xo/Qg7HAmSu3cZkfIwCzTmJWTeNiVQY4
+         c6LA==
+X-Gm-Message-State: AOAM531wteMKP21GutJlotYUXhBSkZwl/BxOggD2ktbCYSE7V4FO4Yox
+        Iu4JYOR42h8Mg4T3StZakbRToA==
+X-Google-Smtp-Source: ABdhPJyFXeKtm+hoVqcltCOEbNO4S5Q/93mKEKweRYj2kfH4joPD+V4sXuktCJZGy0649HSQxMJd+w==
+X-Received: by 2002:a1c:19c6:: with SMTP id 189mr11595703wmz.121.1632730175006;
+        Mon, 27 Sep 2021 01:09:35 -0700 (PDT)
+Received: from google.com ([95.148.6.233])
+        by smtp.gmail.com with ESMTPSA id w18sm451077wrt.79.2021.09.27.01.09.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Sep 2021 01:09:34 -0700 (PDT)
+Date:   Mon, 27 Sep 2021 09:09:32 +0100
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Miquel Raynal <miquel.raynal@bootlin.com>
+Cc:     Jonathan Cameron <jic23@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>,
+        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-omap@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Lokesh Vutla <lokeshvutla@ti.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Ryan Barnett <ryan.barnett@collins.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Jason Reeder <jreeder@ti.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [PATCH v3 36/47] mfd: ti_am335x_tscadc: Support the correctly
+ spelled DT property
+Message-ID: <YVF8PDl54lpUc+6S@google.com>
+References: <20210915155908.476767-1-miquel.raynal@bootlin.com>
+ <20210915155908.476767-37-miquel.raynal@bootlin.com>
+ <YUtSVo9HBAiomswv@google.com>
+ <20210923101922.2c108d2b@xps13>
+ <YUxEsfOvn7Vr8F2c@google.com>
+ <20210923113312.14fc9027@xps13>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ca198a30949abb3bdf283ff87e6e718be355d0cf.1632565508.git.leonro@nvidia.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210923113312.14fc9027@xps13>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sat, Sep 25, 2021 at 02:22:51PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> Make sure that devlink is open to receive user input when all
-> parameters are initialized.
-> 
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+On Thu, 23 Sep 2021, Miquel Raynal wrote:
 
-Reviewed-by: Ido Schimmel <idosch@nvidia.com>
-Tested-by: Ido Schimmel <idosch@nvidia.com>
+> Hi Lee,
+> 
+> lee.jones@linaro.org wrote on Thu, 23 Sep 2021 10:11:13 +0100:
+> 
+> > On Thu, 23 Sep 2021, Miquel Raynal wrote:
+> > 
+> > > Hi Lee,
+> > > 
+> > > lee.jones@linaro.org wrote on Wed, 22 Sep 2021 16:57:10 +0100:
+> > >   
+> > > > On Wed, 15 Sep 2021, Miquel Raynal wrote:
+> > > >   
+> > > > > There was in the past a typo in the coordinate readouts property. The
+> > > > > bindings have been updated, the touchscreen driver as well and now
+> > > > > supports both. However, the MFD driver that is in charge of verifying
+> > > > > the validity of the property only checks the bogus one. Add support for
+> > > > > the correctly spelled DT property.
+> > > > > 
+> > > > > Fixes: c9aeb249bf72 ("Input: ti_am335x_tsc - fix spelling mistake in TSC/ADC DT binding")
+> > > > > Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+> > > > > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > > > > ---
+> > > > >  drivers/mfd/ti_am335x_tscadc.c | 8 +++++++-
+> > > > >  1 file changed, 7 insertions(+), 1 deletion(-)
+> > > > > 
+> > > > > diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+> > > > > index 155a8ed879b3..aa46ed669016 100644
+> > > > > --- a/drivers/mfd/ti_am335x_tscadc.c
+> > > > > +++ b/drivers/mfd/ti_am335x_tscadc.c
+> > > > > @@ -144,8 +144,14 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+> > > > >  	if (tscadc->data->has_tsc) {
+> > > > >  		node = of_get_child_by_name(pdev->dev.of_node, "tsc");
+> > > > >  		of_property_read_u32(node, "ti,wires", &tscmag_wires);
+> > > > > -		of_property_read_u32(node, "ti,coordiante-readouts", &readouts);
+> > > > > +		err = of_property_read_u32(node, "ti,coordinate-readouts",
+> > > > > +					   &readouts);
+> > > > > +		if (err < 0)
+> > > > > +			of_property_read_u32(node, "ti,coordiante-readouts",
+> > > > > +					     &readouts);
+> > > > > +    
+> > > > 
+> > > > How long are you proposing that we support this churn?  
+> > > 
+> > > Well, I am not proposing anything, I am just "fixing" the driver so
+> > > that it fits the bindings :) Given the fact that at the end of this
+> > > series there is a patch that changes the "coordiante" typo to
+> > > "coordinate" in a device tree source file, I believe it is still too
+> > > soon...  
+> > 
+> > If this is something you're changing in this set, please reconsider.
+> > 
+> > I'd rather have a slightly misspelled documented property than being
+> > forced to support 2 for any length of time.
+> 
+> I am not suggesting anything here:
+> - "coordiante" was introduced back in 2014.
+> - "coordinate" was introduced shortly later.
+> - "coordiante" was considered part of the "stable API" back in 2014 and
+>   even though the right spelling got introduced very shortly after, DT
+>   stability rules wanted us to support it forever.
+> - The touchscreen driver has immediately be fixed to support both but
+>   not the MFD driver, and this does not make any sense!
+> 
+> We *should* either support only one property (1) or support both in the
+> two drivers (2), but supporting the two in one driver and supporting
+> only one in the other one does not make any sense (given the fact that
+> these two drives are tied together, the touchscreen driver does not
+> exist without the MFD driver). That is what I am fixing here.
+> 
+> Is #1 valid? Theoretically it's the best scenario. In practice it is
+> not (yet) possible because the two versions are still used in the
+> mainline device trees:
+> $ git grep coordiante-readouts -- arch/arm/boot/dts/ | wc -l
+> 1
+> $ git grep coordinate-readouts -- arch/arm/boot/dts/ | wc -l
+> 5
+> 
+> So in this series I am fixing the MFD driver to be sure it handles
+> correctly the correctly spelled DT property which is used by 5 boards
+> since at least 6 years and I am also updating the remaining DT to use
+> the correctly spelled property as well.
+> 
+> I suppose we could propose to drop support for the "coordiante"
+> version of that property in a few years but if we decide to do it right
+> now we're definitely gonna break users.
+
+It's a shame that the misspelled one is still in use.  If they were
+all changed over at the start, there would be a strong case for
+dropping support for it.
+
+-- 
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
