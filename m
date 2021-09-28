@@ -2,21 +2,21 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B75DDC4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 28 Sep 2021 13:34:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 236FCC43219
+	for <linux-omap@archiver.kernel.org>; Tue, 28 Sep 2021 13:34:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1B4D60F9D
-	for <linux-omap@archiver.kernel.org>; Tue, 28 Sep 2021 13:34:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E6796127C
+	for <linux-omap@archiver.kernel.org>; Tue, 28 Sep 2021 13:34:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241424AbhI1Nfp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 28 Sep 2021 09:35:45 -0400
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:56381 "EHLO
+        id S241435AbhI1Nfr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 28 Sep 2021 09:35:47 -0400
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:46527 "EHLO
         relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241435AbhI1NfK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2021 09:35:10 -0400
+        with ESMTP id S241334AbhI1NfO (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2021 09:35:14 -0400
 Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id B955A60012;
-        Tue, 28 Sep 2021 13:33:27 +0000 (UTC)
+        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 854B36000F;
+        Tue, 28 Sep 2021 13:33:32 +0000 (UTC)
 From:   Miquel Raynal <miquel.raynal@bootlin.com>
 To:     Jonathan Cameron <jic23@kernel.org>,
         Lars-Peter Clausen <lars@metafoo.de>,
@@ -36,9 +36,9 @@ Cc:     Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
         Jason Reeder <jreeder@ti.com>, <linux-kernel@vger.kernel.org>,
         Miquel Raynal <miquel.raynal@bootlin.com>,
         Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v4 42/48] iio: adc: ti_am335x_adc: Gather the checks on the delays
-Date:   Tue, 28 Sep 2021 15:31:37 +0200
-Message-Id: <20210928133143.157329-43-miquel.raynal@bootlin.com>
+Subject: [PATCH v4 44/48] iio: adc: ti_am335x_adc: Add the scale information
+Date:   Tue, 28 Sep 2021 15:31:39 +0200
+Message-Id: <20210928133143.157329-45-miquel.raynal@bootlin.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210928133143.157329-1-miquel.raynal@bootlin.com>
 References: <20210928133143.157329-1-miquel.raynal@bootlin.com>
@@ -49,113 +49,51 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Move the checks over the delays provided in the device tree to the
-location where these values are read to clarify where they come from.
-
-There are no functional changes besides the device structure used to
-display the warnings: let's use the ADC instead of the MFD device.
+Without the scale, the values returned to the user are just a picture of
+the input voltage against the full scale range of the ADC. We need to
+provide the actual conversion factor to get milli-Volts values.
 
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
 Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 ---
- drivers/iio/adc/ti_am335x_adc.c | 50 ++++++++++++++++++++-------------
- 1 file changed, 30 insertions(+), 20 deletions(-)
+ drivers/iio/adc/ti_am335x_adc.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index aa151d702a14..6f47a1ace3d4 100644
+index e7dba10b29b4..867690b6c2dd 100644
 --- a/drivers/iio/adc/ti_am335x_adc.c
 +++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -107,7 +107,6 @@ static int tiadc_wait_idle(struct tiadc_device *adc_dev)
- static void tiadc_step_config(struct iio_dev *indio_dev)
- {
- 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
--	struct device *dev = adc_dev->mfd_tscadc->dev;
- 	unsigned int stepconfig;
- 	int i, steps = 0;
+@@ -417,6 +417,7 @@ static int tiadc_channel_init(struct device *dev, struct iio_dev *indio_dev,
+ 		chan->indexed = 1;
+ 		chan->channel = adc_dev->channel_line[i];
+ 		chan->info_mask_separate = BIT(IIO_CHAN_INFO_RAW);
++		chan->info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE);
+ 		chan->datasheet_name = chan_name_ain[chan->channel];
+ 		chan->scan_index = i;
+ 		chan->scan_type.sign = 'u';
+@@ -441,6 +442,23 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	unsigned long timeout;
+ 	int ret;
  
-@@ -125,12 +124,6 @@ static void tiadc_step_config(struct iio_dev *indio_dev)
- 
- 		chan = adc_dev->channel_line[i];
- 
--		if (adc_dev->step_avg[i] > STEPCONFIG_AVG_16) {
--			dev_warn(dev, "chan %d: wrong step avg, truncated to %ld\n",
--				 chan, STEPCONFIG_AVG_16);
--			adc_dev->step_avg[i] = STEPCONFIG_AVG_16;
--		}
--
- 		if (adc_dev->step_avg[i])
- 			stepconfig = STEPCONFIG_AVG(ffs(adc_dev->step_avg[i]) - 1) |
- 				     STEPCONFIG_FIFO1;
-@@ -145,18 +138,6 @@ static void tiadc_step_config(struct iio_dev *indio_dev)
- 			     STEPCONFIG_INM_ADCREFM | STEPCONFIG_RFP_VREFP |
- 			     STEPCONFIG_RFM_VREFN);
- 
--		if (adc_dev->open_delay[i] > STEPCONFIG_MAX_OPENDLY) {
--			dev_warn(dev, "chan %d: wrong open delay, truncated to 0x%lX\n",
--				 chan, STEPCONFIG_MAX_OPENDLY);
--			adc_dev->open_delay[i] = STEPCONFIG_MAX_OPENDLY;
--		}
--
--		if (adc_dev->sample_delay[i] > STEPCONFIG_MAX_SAMPLE) {
--			dev_warn(dev, "chan %d: wrong sample delay, truncated to 0x%lX\n",
--				 chan, STEPCONFIG_MAX_SAMPLE);
--			adc_dev->sample_delay[i] = STEPCONFIG_MAX_SAMPLE;
--		}
--
- 		tiadc_writel(adc_dev, REG_STEPDELAY(steps),
- 			     STEPDELAY_OPEN(adc_dev->open_delay[i]) |
- 			     STEPDELAY_SAMPLE(adc_dev->sample_delay[i]));
-@@ -572,6 +553,7 @@ static int tiadc_parse_dt(struct platform_device *pdev,
- 	const __be32 *cur;
- 	int channels = 0;
- 	u32 val;
-+	int i;
- 
- 	of_property_for_each_u32(node, "ti,adc-channels", prop, cur, val) {
- 		adc_dev->channel_line[channels] = val;
-@@ -584,6 +566,8 @@ static int tiadc_parse_dt(struct platform_device *pdev,
- 		channels++;
- 	}
- 
-+	adc_dev->channels = channels;
-+
- 	of_property_read_u32_array(node, "ti,chan-step-avg",
- 				   adc_dev->step_avg, channels);
- 	of_property_read_u32_array(node, "ti,chan-step-opendelay",
-@@ -591,7 +575,33 @@ static int tiadc_parse_dt(struct platform_device *pdev,
- 	of_property_read_u32_array(node, "ti,chan-step-sampledelay",
- 				   adc_dev->sample_delay, channels);
- 
--	adc_dev->channels = channels;
-+	for (i = 0; i < adc_dev->channels; i++) {
-+		int chan;
-+
-+		chan = adc_dev->channel_line[i];
-+
-+		if (adc_dev->step_avg[i] > STEPCONFIG_AVG_16) {
-+			dev_warn(&pdev->dev,
-+				 "chan %d: wrong step avg, truncated to %ld\n",
-+				 chan, STEPCONFIG_AVG_16);
-+			adc_dev->step_avg[i] = STEPCONFIG_AVG_16;
++	switch (mask) {
++	case IIO_CHAN_INFO_RAW:
++		break;
++	case IIO_CHAN_INFO_SCALE:
++		switch (chan->type) {
++		case IIO_VOLTAGE:
++			*val = 1800;
++			*val2 = chan->scan_type.realbits;
++			return IIO_VAL_FRACTIONAL_LOG2;
++		default:
++			return -EINVAL;
 +		}
-+
-+		if (adc_dev->open_delay[i] > STEPCONFIG_MAX_OPENDLY) {
-+			dev_warn(&pdev->dev,
-+				 "chan %d: wrong open delay, truncated to 0x%lX\n",
-+				 chan, STEPCONFIG_MAX_OPENDLY);
-+			adc_dev->open_delay[i] = STEPCONFIG_MAX_OPENDLY;
-+		}
-+
-+		if (adc_dev->sample_delay[i] > STEPCONFIG_MAX_SAMPLE) {
-+			dev_warn(&pdev->dev,
-+				 "chan %d: wrong sample delay, truncated to 0x%lX\n",
-+				 chan, STEPCONFIG_MAX_SAMPLE);
-+			adc_dev->sample_delay[i] = STEPCONFIG_MAX_SAMPLE;
-+		}
++		break;
++	default:
++		return -EINVAL;
 +	}
 +
- 	return 0;
- }
+ 	if (iio_buffer_enabled(indio_dev))
+ 		return -EBUSY;
  
 -- 
 2.27.0
