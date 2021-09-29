@@ -2,34 +2,33 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CE94C433EF
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Sep 2021 12:02:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 630BCC433FE
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Sep 2021 12:25:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 269616128E
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Sep 2021 12:02:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49C0A6134F
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Sep 2021 12:25:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245295AbhI2MDl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 29 Sep 2021 08:03:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52802 "EHLO mail.kernel.org"
+        id S1343661AbhI2M0y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 29 Sep 2021 08:26:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1343672AbhI2MCt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Wed, 29 Sep 2021 08:02:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 571F161458;
-        Wed, 29 Sep 2021 12:01:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632916868;
-        bh=lXfh5WGrONF4SJ4gvPOiSDik2vUfqacZzHc0ckI9xmU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=k+SaC/XRY78lkMZMf/9ZlPVWz42NJag/7vrrv5aq1Qk9gs+mNu44Vtn3x3bQFUTS6
-         bo6gzrBWbPMMqnjABLLOQkgqYgq5KoJPUn5+IaUw4y9RtWKEf12NLXQMNyPvhaEzlk
-         /zS4g9c83rDl9j/TeAYmTBrLJh7VbEuCPQfOwhsr9YdUu640cKCYUx05tJSyODsBU1
-         YBM70A+4307elg6yASJ0lZKBW2Mga7XtrtWiv2stlfdWGniA3H1BqVKfXZXro2OrMt
-         FJHV6ztCZ5eVuovmB933WtgXaWZWooVOOyFyribGiEnRY+Nnghr9ezH40H3wCZXMB1
-         ffC3REvybWkdw==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        id S1343657AbhI2M0p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Wed, 29 Sep 2021 08:26:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F09DB6134F;
+        Wed, 29 Sep 2021 12:25:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1632918304;
+        bh=wWhYoJmf5o0goYtd67yiGvYSKB/JovKlR7TP3Zqi99g=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=FOgYB8oD4xLYiT0MCbtWOdRGH09IaQNPSb9EOFkBWsnpoxLHGflJa7ENoq5BBegTA
+         /idNuAQ88djuyX6GEANEa3D9oBEdUuEjGy3rDzcd4GQcWFa+2U/Gw+KtNXffW4v0Ud
+         7oDuoKWmOB12QpwjmS0H8zNQahoQsoL0nRw6FaFU=
+Date:   Wed, 29 Sep 2021 14:25:00 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Leon Romanovsky <leonro@nvidia.com>,
         Alexandre Belloni <alexandre.belloni@bootlin.com>,
         Andrew Lunn <andrew@lunn.ch>, Ariel Elior <aelior@marvell.com>,
         Bin Luo <luobin9@huawei.com>,
@@ -40,7 +39,6 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Felix Manlunas <fmanlunas@marvell.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
         Geetha sowjanya <gakula@marvell.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
         hariprasad <hkelam@marvell.com>,
         Ido Schimmel <idosch@nvidia.com>,
@@ -73,77 +71,41 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>,
         Yisen Zhuang <yisen.zhuang@huawei.com>
-Subject: [PATCH net-next v1 4/5] net/mlx5: Register separate reload devlink ops for multiport device
-Date:   Wed, 29 Sep 2021 15:00:45 +0300
-Message-Id: <a8bf9a036fe0a590df830a77a31cc81c355f525d.1632916329.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <cover.1632916329.git.leonro@nvidia.com>
+Subject: Re: [PATCH net-next v1 3/5] devlink: Allow set specific ops
+ callbacks dynamically
+Message-ID: <YVRbHMODzcciHa2p@kroah.com>
 References: <cover.1632916329.git.leonro@nvidia.com>
+ <aac64d4861d6207a90a6d45245ee5ed59114659a.1632916329.git.leonro@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aac64d4861d6207a90a6d45245ee5ed59114659a.1632916329.git.leonro@nvidia.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Wed, Sep 29, 2021 at 03:00:44PM +0300, Leon Romanovsky wrote:
+> +void devlink_set_ops(struct devlink *devlink, struct devlink_ops *ops)
+> +{
+> +	struct devlink_ops *dev_ops = devlink->ops;
+> +
+> +	WARN_ON(!devlink_reload_actions_valid(ops));
+> +
+> +#define SET_DEVICE_OP(ptr, op, name)                                           \
+> +	do {                                                                   \
+> +		if ((op)->name)                                                \
+> +			if (!((ptr)->name))                                    \
+> +				(ptr)->name = (op)->name;                      \
+> +	} while (0)
+> +
+> +	/* Keep sorted */
+> +	SET_DEVICE_OP(dev_ops, ops, reload_actions);
+> +	SET_DEVICE_OP(dev_ops, ops, reload_down);
+> +	SET_DEVICE_OP(dev_ops, ops, reload_limits);
+> +	SET_DEVICE_OP(dev_ops, ops, reload_up);
 
-Mulitport slave device doesn't support devlink reload, so instead of
-complicating initialization flow with devlink_reload_enable() which
-will be removed in next patch, set specialized devlink ops callbacks
-for reload operations.
+Keep sorted in what order?  And why?
 
-This fixes an error when reload counters exposed (and equal zero) for
-the mode that is not supported at all.
+thanks,
 
-Fixes: d89ddaae1766 ("net/mlx5: Disable devlink reload for multi port slave device")
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index 47c9f7f5bb79..e85eca6976a9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -309,14 +309,17 @@ static struct devlink_ops mlx5_devlink_ops = {
- #endif
- 	.flash_update = mlx5_devlink_flash_update,
- 	.info_get = mlx5_devlink_info_get,
-+	.trap_init = mlx5_devlink_trap_init,
-+	.trap_fini = mlx5_devlink_trap_fini,
-+	.trap_action_set = mlx5_devlink_trap_action_set,
-+};
-+
-+static struct devlink_ops mlx5_devlink_reload = {
- 	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT) |
- 			  BIT(DEVLINK_RELOAD_ACTION_FW_ACTIVATE),
- 	.reload_limits = BIT(DEVLINK_RELOAD_LIMIT_NO_RESET),
- 	.reload_down = mlx5_devlink_reload_down,
- 	.reload_up = mlx5_devlink_reload_up,
--	.trap_init = mlx5_devlink_trap_init,
--	.trap_fini = mlx5_devlink_trap_fini,
--	.trap_action_set = mlx5_devlink_trap_action_set,
- };
- 
- void mlx5_devlink_trap_report(struct mlx5_core_dev *dev, int trap_id, struct sk_buff *skb,
-@@ -791,6 +794,7 @@ static void mlx5_devlink_traps_unregister(struct devlink *devlink)
- 
- int mlx5_devlink_register(struct devlink *devlink)
- {
-+	struct mlx5_core_dev *dev = devlink_priv(devlink);
- 	int err;
- 
- 	err = devlink_params_register(devlink, mlx5_devlink_params,
-@@ -808,6 +812,9 @@ int mlx5_devlink_register(struct devlink *devlink)
- 	if (err)
- 		goto traps_reg_err;
- 
-+	if (!mlx5_core_is_mp_slave(dev))
-+		devlink_set_ops(devlink, &mlx5_devlink_reload);
-+
- 	return 0;
- 
- traps_reg_err:
--- 
-2.31.1
-
+greg k-h
