@@ -2,47 +2,47 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B9B0C43217
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:34:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAC41C433F5
+	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:34:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5376361A84
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:34:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9578761A7B
+	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:34:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352562AbhJAHgU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 1 Oct 2021 03:36:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42126 "EHLO
+        id S1352567AbhJAHgX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 1 Oct 2021 03:36:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352536AbhJAHgT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2021 03:36:19 -0400
+        with ESMTP id S1352570AbhJAHgV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2021 03:36:21 -0400
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3EEDC06177B;
-        Fri,  1 Oct 2021 00:34:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4077AC06177E;
+        Fri,  1 Oct 2021 00:34:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=kemnade.info; s=20180802; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=3O4R6BZeGP2JNzpOzTMgUeC+5bYWwX/x98EX33QX5CU=; b=aMzIMXwA7cbheobPgZL9SC9Uou
-        WyAEwzn2pHjz+KoVsSZ+b+b/+bVnZBAQxN+g2QxXO2k9bq+G1yycZvrpxbulhYW+wd2SogbtSyJDm
-        14yMs5cHNe90NvkopbdLAqOw7uH0tlzUORfarqpl6uQgvIFK+Gf0tBV/bEc7C7+INMHI=;
+        bh=VhsqtsfjNgyHpyCbKl21yTB03JZ/scJRnZfa8O240gA=; b=V7wiHUByP+yv6+nyAlGvKS74kG
+        aZGY9IiZ3xhh9cLtLr+M95u12kkE0OeLpZsW2aIYILEFIoVNZPDPyVXmHTVjsPTJ/8lb8nutW01U0
+        8XVM76cOWgCiY6svHvnuCIORSoZluDhtGtOwoANvaYgl2Q2D9dqh6fKQWzq1Fp6+fUOE=;
 Received: from p200300ccff0b42001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff0b:4200:1a3d:a2ff:febf:d33a] helo=aktux)
         by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <andreas@kemnade.info>)
-        id 1mWD3u-000139-0b; Fri, 01 Oct 2021 09:34:30 +0200
+        id 1mWD3w-000142-HD; Fri, 01 Oct 2021 09:34:32 +0200
 Received: from andi by aktux with local (Exim 4.94.2)
         (envelope-from <andreas@kemnade.info>)
-        id 1mWD3t-00CBfZ-HX; Fri, 01 Oct 2021 09:34:29 +0200
+        id 1mWD3r-00CBfS-2B; Fri, 01 Oct 2021 09:34:27 +0200
 From:   Andreas Kemnade <andreas@kemnade.info>
 To:     bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org,
         hns@goldelico.com, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         letux-kernel@openphoenux.org
 Cc:     Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH 3/5] arm: dts: omap3-gta04a5: fix missing sensor supply
-Date:   Fri,  1 Oct 2021 09:34:14 +0200
-Message-Id: <20211001073416.2904733-4-andreas@kemnade.info>
+Subject: [PATCH 1/5] arm: dts: omap3-gta04: cleanup LCD definition
+Date:   Fri,  1 Oct 2021 09:34:12 +0200
+Message-Id: <20211001073416.2904733-2-andreas@kemnade.info>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211001073416.2904733-1-andreas@kemnade.info>
 References: <20211001073416.2904733-1-andreas@kemnade.info>
@@ -52,26 +52,38 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add mandatory supply properties. The supply is always on, so it is just
-a syntax issue, no functional change.
+Replace depreciated nodenames, fix label name to match scheme.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- arch/arm/boot/dts/omap3-gta04a5.dts | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
-index 9ce8d81250aa..a2ba4030cf27 100644
---- a/arch/arm/boot/dts/omap3-gta04a5.dts
-+++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-@@ -133,5 +133,7 @@ bmc150@12 {
- 	bme280@76 {
- 		compatible = "bosch,bme280";
- 		reg = <0x76>;
-+		vdda-supply = <&vio>;
-+		vddd-supply = <&vio>;
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 938cc691bb2f..9ccd45599104 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -104,16 +104,16 @@ gtm601_codec: gsm_codec {
+ 		#sound-dai-cells = <0>;
  	};
- };
+ 
+-	spi_lcd: spi_lcd {
++	spi_lcd: spi {
+ 		compatible = "spi-gpio";
+ 		#address-cells = <0x1>;
+ 		#size-cells = <0x0>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&spi_gpio_pins>;
+ 
+-		gpio-sck = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+-		gpio-miso = <&gpio1 18 GPIO_ACTIVE_HIGH>;
+-		gpio-mosi = <&gpio1 20 GPIO_ACTIVE_HIGH>;
++		sck-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
++		miso-gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
++		mosi-gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>;
+ 		cs-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
+ 		num-chipselects = <1>;
+ 
 -- 
 2.30.2
 
