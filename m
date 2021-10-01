@@ -2,164 +2,72 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA6BDC433EF
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Sep 2021 11:19:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5688C433F5
+	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:11:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9B56619E5
-	for <linux-omap@archiver.kernel.org>; Thu, 30 Sep 2021 11:19:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D3D36128C
+	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:11:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350355AbhI3LVj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 30 Sep 2021 07:21:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47130 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350339AbhI3LVj (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2021 07:21:39 -0400
-Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7BA5C06176A;
-        Thu, 30 Sep 2021 04:19:56 -0700 (PDT)
-Received: by mail-lf1-x129.google.com with SMTP id y26so23773025lfa.11;
-        Thu, 30 Sep 2021 04:19:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:content-language:to:cc
-         :references:from:subject:in-reply-to:content-transfer-encoding;
-        bh=CuBe7VTii+ARJV5/n/7vopDodxCqVzGoRsKXxt3uaw4=;
-        b=JAcRjj/iUrMxuV1LGjqfn9OGQIFIFvABmlDHzLB9Fnk+IxuJlcnF/uyWjuS7nOT31g
-         Ig62W6rHb7jNdnnxa8MIkxrQ78YdxSyQ2b+3BxaVX9/1FQ12vqBgN6k+tIFjXBPDuUc0
-         ZrkBqPGOa0BZ46Wcz1n4hPO4I0JtNG4IA2HGQ75DKTclBVwgan/pXpWy3sLSQSkVid91
-         S+noo9Pms40YVwK48q6S0bn6ZfZYURP0jggNvxdX83mhUGd6g05H+MDnn5lkP5+hVcGw
-         3Srq8j64v4cvUVhIEt40eMP6MvcZIAx9HQxvGLjabd9OVU0UK0M5KI/kXmFEH1fBq2Rt
-         Q8mQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent
-         :content-language:to:cc:references:from:subject:in-reply-to
-         :content-transfer-encoding;
-        bh=CuBe7VTii+ARJV5/n/7vopDodxCqVzGoRsKXxt3uaw4=;
-        b=iu4n7rHG/1/UsdVXAmqONjhFMwFvBbAsSo0Hqd6NoM0V32J2mLR34pTjsIDw9TR0Dq
-         h01x6qiqmVRUBK5n1AGL0o0ShFEJ1HnN/fB4NZYuBQd/bNlqke+kYy9YMFc73150eK5Y
-         n+FlO1iJf3yPTzF2bYVgEGae6tBc4uTPiZCNaEiMS/aDBoQXiIOEN1llEwjbsVDMy/8J
-         0nIVxmHywk7o1yI5HXJLcVzG9d9+noqZedNVsJjvHYPwmvYj14zNcozZQ7d6hrPvxFC0
-         fQs+0w3quYszxTF1bzu5336qGs9IgA18eix1GiiPxWuKet0aXUpj/L4/h/86iMOgQXqA
-         VsDw==
-X-Gm-Message-State: AOAM533WLCi7L74OpdlzVXXhNERCQjPsIBKCWb5+dgpadoPJH+nFZqqJ
-        D66Iqmh7HSlqPkJu9xREIVw=
-X-Google-Smtp-Source: ABdhPJx0nRBwAJ+86I/QjB/tl0HbB3qHY2gL2tdDV5jhToumrsymicQo8P+FIzD0waz19xvFuXd0MA==
-X-Received: by 2002:a2e:8617:: with SMTP id a23mr5443721lji.199.1633000794938;
-        Thu, 30 Sep 2021 04:19:54 -0700 (PDT)
-Received: from [172.16.185.20] ([213.255.186.46])
-        by smtp.gmail.com with ESMTPSA id s22sm310824ljg.15.2021.09.30.04.19.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 30 Sep 2021 04:19:54 -0700 (PDT)
-Message-ID: <b7d29bf2-f7b6-1d53-2d59-9c1bb5ee4d84@gmail.com>
-Date:   Thu, 30 Sep 2021 14:19:53 +0300
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.1.0
-Content-Language: en-US
-To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc:     Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Suman Anna <s-anna@ti.com>, Tero Kristo <kristo@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Drew Fustini <pdp7pdp7@gmail.com>,
+        id S1352306AbhJAHNZ convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 1 Oct 2021 03:13:25 -0400
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:49765 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1352057AbhJAHNY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2021 03:13:24 -0400
+Received: (Authenticated sender: miquel.raynal@bootlin.com)
+        by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id CA64D1C000A;
+        Fri,  1 Oct 2021 07:11:35 +0000 (UTC)
+Date:   Fri, 1 Oct 2021 09:11:32 +0200
+From:   Miquel Raynal <miquel.raynal@bootlin.com>
+To:     Jonathan Cameron <jic23@kernel.org>
+Cc:     Lars-Peter Clausen <lars@metafoo.de>,
+        Lee Jones <lee.jones@linaro.org>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>,
+        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-omap@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Lokesh Vutla <lokeshvutla@ti.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Ryan Barnett <ryan.barnett@collins.com>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Robert Nelson <robertcnelson@gmail.com>,
-        Yongqin Liu <yongqin.liu@linaro.org>
-References: <20210930080100.56820-1-tony@atomide.com>
-From:   Matti Vaittinen <mazziesaccount@gmail.com>
-Subject: Re: [PATCH] soc: ti: omap-prm: Fix external abort for am335x pruss
-In-Reply-To: <20210930080100.56820-1-tony@atomide.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Jason Reeder <jreeder@ti.com>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 25/48] mfd: ti_am335x_tscadc: Use the new HZ_PER_MHZ
+ macro
+Message-ID: <20211001091132.748a624d@xps13>
+In-Reply-To: <20210929162905.5fc771c5@jic23-huawei>
+References: <20210928133143.157329-1-miquel.raynal@bootlin.com>
+        <20210928133143.157329-26-miquel.raynal@bootlin.com>
+        <20210929162905.5fc771c5@jic23-huawei>
+Organization: Bootlin
+X-Mailer: Claws Mail 3.17.7 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Thanks Tony!
+Hi Jonathan,
 
-This was _much_ appreciated :)
+jic23@kernel.org wrote on Wed, 29 Sep 2021 16:29:05 +0100:
 
-On 9/30/21 11:01, Tony Lindgren wrote:
-> Starting with v5.15-rc1, we may now see some am335x beaglebone black
-> device produce the following error on pruss probe:
+> On Tue, 28 Sep 2021 15:31:20 +0200
+> Miquel Raynal <miquel.raynal@bootlin.com> wrote:
 > 
-> Unhandled fault: external abort on non-linefetch (0x1008) at 0xe0326000
+> > Before adding another frequency with even more zeroes, use the
+> > HZ_PER_MHZ macro to clarify the number.
+> > 
+> > Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>  
+> You missed tag I gave on v3.
 > 
-> This has started with the enabling of pruss for am335x in the dts files.
-> 
-> Turns out the is caused by the PRM reset handling not waiting for the
-> reset bit to clear. To fix the issue, let's always wait for the reset
-> bit to clear, even if there is a separate reset status register.
-> 
-> We attempted to fix a similar issue for dra7 iva with a udelay() in
-> commit effe89e40037 ("soc: ti: omap-prm: Fix occasional abort on reset
-> deassert for dra7 iva"). There is no longer a need for the udelay()
-> for dra7 iva reset either with the check added for reset bit clearing.
-> 
-> Cc: Drew Fustini <pdp7pdp7@gmail.com>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: "H. Nikolaus Schaller" <hns@goldelico.com>
-> Cc: Robert Nelson <robertcnelson@gmail.com>
-> Cc: Yongqin Liu <yongqin.liu@linaro.org>
-> Reported-by: Matti Vaittinen <mazziesaccount@gmail.com>
-> Fixes: effe89e40037 ("soc: ti: omap-prm: Fix occasional abort on reset deassert for dra7 iva")
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-Tested-by: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
+Oh right, sorry about that.
 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   drivers/soc/ti/omap_prm.c | 27 +++++++++++++++------------
->   1 file changed, 15 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/soc/ti/omap_prm.c b/drivers/soc/ti/omap_prm.c
-> --- a/drivers/soc/ti/omap_prm.c
-> +++ b/drivers/soc/ti/omap_prm.c
-> @@ -825,25 +825,28 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
->   	writel_relaxed(v, reset->prm->base + reset->prm->data->rstctrl);
->   	spin_unlock_irqrestore(&reset->lock, flags);
->   
-> -	if (!has_rstst)
-> -		goto exit;
-> +	/* wait for the reset bit to clear */
-> +	ret = readl_relaxed_poll_timeout_atomic(reset->prm->base +
-> +						reset->prm->data->rstctrl,
-> +						v, !(v & BIT(id)), 1,
-> +						OMAP_RESET_MAX_WAIT);
-> +	if (ret)
-> +		pr_err("%s: timedout waiting for %s:%lu\n", __func__,
-> +		       reset->prm->data->name, id);
-
-If I was writing this I might drop the __func__. AFAIR dyndbg allows 
-enabling the functipn names to be printed by +f. This is just a 'nit' 
-though - I am happy if this fix gets in no matter how this print 
-eventually looks like. I just thought I mention this as the __func__ 
-catched my eye.
-
->   
->   	/* wait for the status to be set */
-> -	ret = readl_relaxed_poll_timeout_atomic(reset->prm->base +
-> +	if (has_rstst) {
-> +		ret = readl_relaxed_poll_timeout_atomic(reset->prm->base +
->   						 reset->prm->data->rstst,
->   						 v, v & BIT(st_bit), 1,
->   						 OMAP_RESET_MAX_WAIT);
-> -	if (ret)
-> -		pr_err("%s: timedout waiting for %s:%lu\n", __func__,
-> -		       reset->prm->data->name, id);
-> +		if (ret)
-> +			pr_err("%s: timedout waiting for %s:%lu\n", __func__,
-> +			       reset->prm->data->name, id);
-
-Same here (although that would be unrelated change as the print exists 
-prior this patch).
-
-I tested this patch on v5.15-rc3 using my BBB Rev C - it seems to fix 
-the boot issue on my board! Thanks a bunch!
-
-
-Best Regards
-	--Matti Vaittinen
-
-
+Cheers,
+Miquèl
