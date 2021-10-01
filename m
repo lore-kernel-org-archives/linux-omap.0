@@ -2,72 +2,77 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5688C433F5
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85271C433FE
+	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:34:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D3D36128C
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:11:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67B8461A7A
+	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 07:34:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352306AbhJAHNZ convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 1 Oct 2021 03:13:25 -0400
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:49765 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352057AbhJAHNY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2021 03:13:24 -0400
-Received: (Authenticated sender: miquel.raynal@bootlin.com)
-        by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id CA64D1C000A;
-        Fri,  1 Oct 2021 07:11:35 +0000 (UTC)
-Date:   Fri, 1 Oct 2021 09:11:32 +0200
-From:   Miquel Raynal <miquel.raynal@bootlin.com>
-To:     Jonathan Cameron <jic23@kernel.org>
-Cc:     Lars-Peter Clausen <lars@metafoo.de>,
-        Lee Jones <lee.jones@linaro.org>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Rob Herring <robh+dt@kernel.org>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>,
-        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Lokesh Vutla <lokeshvutla@ti.com>,
-        Tero Kristo <kristo@kernel.org>,
-        Ryan Barnett <ryan.barnett@collins.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Jason Reeder <jreeder@ti.com>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 25/48] mfd: ti_am335x_tscadc: Use the new HZ_PER_MHZ
- macro
-Message-ID: <20211001091132.748a624d@xps13>
-In-Reply-To: <20210929162905.5fc771c5@jic23-huawei>
-References: <20210928133143.157329-1-miquel.raynal@bootlin.com>
-        <20210928133143.157329-26-miquel.raynal@bootlin.com>
-        <20210929162905.5fc771c5@jic23-huawei>
-Organization: Bootlin
-X-Mailer: Claws Mail 3.17.7 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+        id S1352518AbhJAHgS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 1 Oct 2021 03:36:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42110 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231431AbhJAHgR (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2021 03:36:17 -0400
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C58BDC061775;
+        Fri,  1 Oct 2021 00:34:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=kemnade.info; s=20180802; h=Content-Transfer-Encoding:MIME-Version:
+        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+        Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=Ap6uUMQ3j4gc9wyY3/X5V6udN3WmpT7CQ9ty7Jf/Pno=; b=DAdqJQFa5L5dxabht1BGmV+e/Q
+        uez0ls0KKEXPPFjPuILcD6nAo8EmJtkSKgOTsmfH3gmnPu2EGj395i+yvV8iZ139kNIcL33GrggXu
+        Zvufbz6jWA/Xq5i//RbBEl3MT4RTuBRY4m4bKo7JyoM1s9Eq6HrUk97Ke4YirCXhViCk=;
+Received: from p200300ccff0b42001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff0b:4200:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <andreas@kemnade.info>)
+        id 1mWD3t-00012v-5x; Fri, 01 Oct 2021 09:34:29 +0200
+Received: from andi by aktux with local (Exim 4.94.2)
+        (envelope-from <andreas@kemnade.info>)
+        id 1mWD3s-00CBfV-NB; Fri, 01 Oct 2021 09:34:28 +0200
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org,
+        hns@goldelico.com, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        letux-kernel@openphoenux.org
+Cc:     Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH 2/5] arm: dts: omap3-gta04: fix missing sensor supply
+Date:   Fri,  1 Oct 2021 09:34:13 +0200
+Message-Id: <20211001073416.2904733-3-andreas@kemnade.info>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20211001073416.2904733-1-andreas@kemnade.info>
+References: <20211001073416.2904733-1-andreas@kemnade.info>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Jonathan,
+Add mandatory supply properties. The supply is always on, so it is just
+a syntax issue, no functional change.
 
-jic23@kernel.org wrote on Wed, 29 Sep 2021 16:29:05 +0100:
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> On Tue, 28 Sep 2021 15:31:20 +0200
-> Miquel Raynal <miquel.raynal@bootlin.com> wrote:
-> 
-> > Before adding another frequency with even more zeroes, use the
-> > HZ_PER_MHZ macro to clarify the number.
-> > 
-> > Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>  
-> You missed tag I gave on v3.
-> 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 9ccd45599104..ca6c95b432b5 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -508,6 +508,8 @@ bmp085@77 {
+ 		pinctrl-0 = <&bmp085_pins>;
+ 		interrupt-parent = <&gpio4>;
+ 		interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* GPIO_113 */
++		vdda-supply = <&vio>;
++		vddd-supply = <&vio>;
+ 	};
+ 
+ 	/* accelerometer */
+-- 
+2.30.2
 
-Oh right, sorry about that.
-
-Cheers,
-Miquèl
