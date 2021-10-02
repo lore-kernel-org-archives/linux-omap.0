@@ -2,79 +2,141 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED85CC433F5
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 21:18:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BC05C433FE
+	for <linux-omap@archiver.kernel.org>; Sat,  2 Oct 2021 12:12:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBC1A61AF9
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Oct 2021 21:18:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC6FF61B08
+	for <linux-omap@archiver.kernel.org>; Sat,  2 Oct 2021 12:12:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355197AbhJAVTu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 1 Oct 2021 17:19:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36316 "EHLO
+        id S233080AbhJBMOE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 2 Oct 2021 08:14:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbhJAVTt (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2021 17:19:49 -0400
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58193C061775;
-        Fri,  1 Oct 2021 14:18:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=kemnade.info; s=20180802; h=Content-Transfer-Encoding:MIME-Version:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=PdSBB4OD8Z96jv9k0gbPRt7UamTTE3IqtKafpBbsEtc=; b=B4tqVKothBlBDJde4YFtdv2lmr
-        EC3Wk1ZTii7bE7imNJ2jcJ2mqRnWhenhjUUCOPSiHg1iZ9iz/NN7brum2O1F3magOOZnZPwaeQjzu
-        x/wtHGt6dMvUGV/kZC8DJGr78oM5tO/Yt8ZkDMod6FVzb76WqiSHEQLudZUYWC9NiVdg=;
-Received: from p200300ccff0b42001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff0b:4200:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1mWPun-0002Ck-3o; Fri, 01 Oct 2021 23:17:57 +0200
-Received: from andi by aktux with local (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1mWPum-00CGR3-GI; Fri, 01 Oct 2021 23:17:56 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     gregkh@linuxfoundation.org, robh+dt@kernel.org, vigneshr@ti.com,
-        linux-serial@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        linux-omap@vger.kernel.org
-Cc:     Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH] dt-bindings: serial: 8250_omap: allow serdev subnodes
-Date:   Fri,  1 Oct 2021 23:17:31 +0200
-Message-Id: <20211001211731.2923066-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.30.2
+        with ESMTP id S233061AbhJBMOD (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 2 Oct 2021 08:14:03 -0400
+Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68889C061570;
+        Sat,  2 Oct 2021 05:12:17 -0700 (PDT)
+Received: by mail-ed1-x529.google.com with SMTP id g8so44856498edt.7;
+        Sat, 02 Oct 2021 05:12:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=tibZxfhm6fu2F8DsDvkJG8AdOd90GMcQ9Sq4RnXIpao=;
+        b=iWQa2iTvX91F8F82So6xGlEkqOnobmYIUO5LO1QMYBy3FCLwD9rwtyGdjok0vzbSMP
+         aL1RSEN/i5HuNIFQRWVKveeY+bSomwKCkfZhbLOvv1dc2aXYNQ0F0lciuRf5jcaR69oA
+         prYD6/bj6dYl8StO5tXzlyegRVNV6gfdz8h9MC/Bp5PbAWdzHF84oo/8ls8CvrYODI4+
+         oxShbmsCy4u4EW2PRA5MI+z0m3tAQDUpQgmCRGlpfA+E2BN7UdCXrFx52r3ffBvpBw+4
+         AFVuBZ+5gP69lo7IreZ2g6Rn/7AjptHRKqR6hR7TUnUAk8mcXzdYqvkBjdJC2+r7uY5n
+         3Tpg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=tibZxfhm6fu2F8DsDvkJG8AdOd90GMcQ9Sq4RnXIpao=;
+        b=CxTx1qnti8KpJlr43gE1DddJh4Yv0zFacBsruGfIGiD6Jo66cwxtjVZspsg6+LPIKk
+         l/jnqluPfnK5FwbEKsTdQOQUu4WouXHRaEraYc0vv2b1t2v7YVB+kmNzRf1FA/PSJ5wv
+         rcEOWuJe07ZZL7QQWHMrrrQyFDCdJKX5XRvhCzXvflB60YVDFS5HAtS8zkdz+igWg8xE
+         qoz3R8eQOpvsaoV9Q+NknfqyrkTDA1mvr2p9GSIZs7Cq0/dyu6RrJHeasuk5pzNbujKj
+         kNnSY4l09eD1TA3MgvPQ3r/SyThvMRfWRcJSNio/i2NHyzPuimav7EiD+GuMa3c03lKg
+         5BlA==
+X-Gm-Message-State: AOAM531Do8nerhmlNaQqUxf3c0cpcPOm1v0y2b2hDUslVhH527uMNdik
+        dMF9zQynS3XBHwXsWylffFGj5Q/w2wa8urEPERc=
+X-Google-Smtp-Source: ABdhPJzRxQBHF8PF9+dkIDaraDxFnDec/EX7TuXiX2MTf3E7412z/FH6I1BLi4GLb0YEgWAmK2F33FQn+BSWtqjtAS8=
+X-Received: by 2002:a17:907:785a:: with SMTP id lb26mr3815050ejc.77.1633176735741;
+ Sat, 02 Oct 2021 05:12:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210109170103.1249838-1-aford173@gmail.com> <20211001095404.41f73d88@aktux>
+ <C0A84970-0AAC-42E7-8E0F-4D165F0C9551@goldelico.com>
+In-Reply-To: <C0A84970-0AAC-42E7-8E0F-4D165F0C9551@goldelico.com>
+From:   Adam Ford <aford173@gmail.com>
+Date:   Sat, 2 Oct 2021 07:12:05 -0500
+Message-ID: <CAHCN7x+TdPb0UthQ9CeQL_sWwJmRK++M1kUXZVvCcj8anAFqRQ@mail.gmail.com>
+Subject: Re: [PATCH V2] ARM: dts: omap36xx: Remove turbo mode for 1GHz variants
+To:     "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc:     Andreas Kemnade <andreas@kemnade.info>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        Adam Ford-BE <aford@beaconembedded.com>,
+        =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-additionalProperties: false
-ignores the pattern matching for serdev objects in serial.yaml, causing
-error messages when serdev subnodes like bluetooth or gnss devices are
-defined. Using unevaluatedProperties instead is the correct way
-if arbitrary children nodes can appear.
+On Fri, Oct 1, 2021 at 4:59 AM H. Nikolaus Schaller <hns@goldelico.com> wrote:
+>
+>
+>
+> > Am 01.10.2021 um 09:54 schrieb Andreas Kemnade <andreas@kemnade.info>:
+> >
+> > On Sat,  9 Jan 2021 11:01:03 -0600
+> > Adam Ford <aford173@gmail.com> wrote:
+> >
+> >> Previously, the 1GHz variants were marked as a turbo,
+> >> because that variant has reduced thermal operating range.
+> >>
+> >> Now that the thermal throttling is in place, it should be
+> >> safe to remove the turbo-mode from the 1GHz variants, because
+> >> the CPU will automatically slow if the thermal limit is reached.
+> >>
+> >> Signed-off-by: Adam Ford <aford173@gmail.com>
+> >> ---
+> >> V2:  The orignal patch had the wrong file added. Add the omap36xx.dtsi
+> >>
+> > hmm, I somehow expected that there is a revert of this thing going
+> > through. But now, the turbo-mode is still missing
+>
+> tagging by turbo-mode means the OPP is *disabled* by default and
+> needs to be enabled actively.
+>
+> > and I understood the
+> > revert is only in Nikolaus' trees.
+>
+> It is just a revert for the gta04a5 because I think it is the only board
+> which is affected (maybe it would need SmartReflex in operation to
+> fine tune the OPPs compared to the generic table). Therefore I have
+> a patch which adds turbo-mode to the gta04a5.dts
+>
+> > The 1Ghz mode was working for some
+> > time but does not anymore. Is it just me or do others also have the
+> > same problems?
+>
+> That would be interesting to know.
+>
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- Documentation/devicetree/bindings/serial/8250_omap.yaml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+What version are you seeing the break?  It's working for me on 5.15.y branch
 
-diff --git a/Documentation/devicetree/bindings/serial/8250_omap.yaml b/Documentation/devicetree/bindings/serial/8250_omap.yaml
-index 70ca61688bb9..7b34ec8fa90e 100644
---- a/Documentation/devicetree/bindings/serial/8250_omap.yaml
-+++ b/Documentation/devicetree/bindings/serial/8250_omap.yaml
-@@ -86,7 +86,7 @@ required:
-   - reg
-   - interrupts
- 
--additionalProperties: false
-+unevaluatedProperties: false
- 
- if:
-   properties:
--- 
-2.30.2
+# cat /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies
+300000 600000 800000 1000000
+# uname -a
+Linux buildroot 5.14.9-00260-g70248e7b378b-dirty #1 SMP Sat Oct 2
+06:56:02 CDT 2021 armv7l GNU/Linux
+#
 
+adam
+
+
+> BR,
+> NIkolaus
+>
+> >
+> >
+> >> diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+> >> index 05fe5ed127b0..20844dbc002e 100644
+> >> --- a/arch/arm/boot/dts/omap36xx.dtsi
+> >> +++ b/arch/arm/boot/dts/omap36xx.dtsi
+> >> @@ -72,7 +72,6 @@ opp1g-1000000000 {
+> >>                                       <1375000 1375000 1375000>;
+> >>                      /* only on am/dm37x with speed-binned bit set */
+> >>                      opp-supported-hw = <0xffffffff 2>;
+> >> -                    turbo-mode;
+> >>              };
+> >>      };
+> >>
+> >
+>
