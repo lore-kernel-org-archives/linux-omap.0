@@ -2,159 +2,127 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 645C2C4332F
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 10:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACCC6C433FE
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 12:08:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 499E961262
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 10:16:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 993E86124A
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 12:08:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232760AbhJGKS1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Oct 2021 06:18:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53418 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231825AbhJGKSZ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2021 06:18:25 -0400
-Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7B6CC061746;
-        Thu,  7 Oct 2021 03:16:31 -0700 (PDT)
-Received: by mail-wr1-x42d.google.com with SMTP id o20so17426625wro.3;
-        Thu, 07 Oct 2021 03:16:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=1gYAE2vWPz0MbraCtd8aQQgWxPLZqacAtSV7iYxbEtQ=;
-        b=EbdSYwqx3mHUc7kNlSYIJXdd6OTrPllHE9Wd8JhKhMNbu0hEFfGYAtI3UQ+Pa8yoxe
-         KC6ZA+SRfrhiNSnvdR1W5txmyvjKgQvkbk1BLqqkTs+K//aTJl1BC53AzkNZPhHbj4Cj
-         VWgCh+lDEedu1+BOMFt+UONsQg1FM8vjKTnvIKmXXQWDTgoWbkxMB4jvRxpk6o171WAf
-         7yV0zS2NI9Dh92/WE2viXUmxxoDadKN91gTfU54gtNyqhDdPq0E8yiM+a0umZ7edr7Md
-         lYfQC/RDsM6EOXB2s2fEJXkO/JIdRMVGLNaSrQs4xC7/Oq7vpju5VBSAX8hs1jbHr6pe
-         U5RQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=1gYAE2vWPz0MbraCtd8aQQgWxPLZqacAtSV7iYxbEtQ=;
-        b=T+VK2jwhupWP+dMbLbqheIhPfbQsLwnpuBVxFwM2NacZssS8HqnwbVorUGV04pO0YW
-         pTD2CQT4P8ydUb6pOkT6tHNdSYn+cb6dIV4eRxghK74u9wxIo/cgBRz8hK7ZYGrkqSIh
-         c24NNbS0ZGYWHGQqJJ63mHhGKN0OXUwQjPPWA48YkI/UO44TiudNpd1JE3dN1Vcj/zuG
-         Z9RAyKNsK8nPdmHfH8m7hVI97qPgE56BTNzt5/VRNhT2J8Nd6UXf08F6h9Bu2ugkFvii
-         aq4sCMfBYhJFyyRPG9K6wpWaLvBnBRr5H0DyULnNjCNsEigEgugmX9tgmNOXvmbStFyq
-         ic5w==
-X-Gm-Message-State: AOAM532xBQBmXGTNB+Mb/TvVV4n1288b4mWSQOjToKHpmELC9n6OZpgk
-        3M+NbSV8z7zkjolsuCooxJo=
-X-Google-Smtp-Source: ABdhPJyO84sEJgEs46P+YCpyCH8r2D08a2F9o/3ytykleY8cSd00FUEVVOpPAaOOAp7N04KX5vUOtQ==
-X-Received: by 2002:a1c:f302:: with SMTP id q2mr3697177wmq.56.1633601790274;
-        Thu, 07 Oct 2021 03:16:30 -0700 (PDT)
-Received: from [192.168.0.14] (095160158079.dynamic-2-waw-k-4-2-0.vectranet.pl. [95.160.158.79])
-        by smtp.gmail.com with ESMTPSA id e8sm9576415wrg.48.2021.10.07.03.16.28
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 07 Oct 2021 03:16:29 -0700 (PDT)
-Subject: Re: [PATCH v2 00/34] component: Make into an aggregate bus
-To:     Stephen Boyd <swboyd@chromium.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, freedreno@lists.freedesktop.org,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Chen Feng <puck.chen@hisilicon.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Christian Gmeiner <christian.gmeiner@gmail.com>,
-        Chun-Kuang Hu <chunkuang.hu@kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Emma Anholt <emma@anholt.net>,
-        =?UTF-8?Q?Heiko_St=c3=bcbner?= <heiko@sntech.de>,
-        Inki Dae <inki.dae@samsung.com>,
-        James Qian Wang <james.qian.wang@arm.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Joerg Roedel <joro@8bytes.org>,
-        John Stultz <john.stultz@linaro.org>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Jyri Sarha <jyri.sarha@iki.fi>,
-        Kai Vehmanen <kai.vehmanen@linux.intel.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-pm@vger.kernel.org, Liviu Dudau <liviu.dudau@arm.com>,
-        Lucas Stach <l.stach@pengutronix.de>,
-        Mark Brown <broonie@kernel.org>,
-        Maxime Ripard <mripard@kernel.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Paul Cercueil <paul@crapouillou.net>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Russell King <linux+etnaviv@armlinux.org.uk>,
-        Russell King <rmk+kernel@arm.linux.org.uk>,
-        Sandy Huang <hjc@rock-chips.com>,
-        Saravana Kannan <saravanak@google.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Takashi Iwai <tiwai@suse.com>,
-        Tian Tao <tiantao6@hisilicon.com>,
-        Tomas Winkler <tomas.winkler@intel.com>,
-        Tomi Valkeinen <tomba@kernel.org>,
-        Will Deacon <will@kernel.org>,
-        Xinliang Liu <xinliang.liu@linaro.org>,
-        Xinwei Kong <kong.kongxinwei@hisilicon.com>,
-        Yong Wu <yong.wu@mediatek.com>
-References: <20211006193819.2654854-1-swboyd@chromium.org>
-From:   Andrzej Hajda <andrzej.hajda@gmail.com>
-Message-ID: <5d3f4343-da38-04b4-fdb9-cb2dd4983db2@gmail.com>
-Date:   Thu, 7 Oct 2021 12:16:27 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
-MIME-Version: 1.0
-In-Reply-To: <20211006193819.2654854-1-swboyd@chromium.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        id S241275AbhJGMKn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Oct 2021 08:10:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50478 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S241286AbhJGMK3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 7 Oct 2021 08:10:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4B0E46124A;
+        Thu,  7 Oct 2021 12:08:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1633608515;
+        bh=HGmW2Bpu1a5bINyn8Ucb9I/QzXitFICRrfHlC6pBvyo=;
+        h=From:To:Cc:Subject:Date:From;
+        b=qrpuaWuWYUgvFHeoxYcoGRQfTOKj/mc808W/UqinXepQ5T7choodbBwd5koV1P1FQ
+         tnxk/DB1uq1ENhO4rRokT0ymGl88lECHW2GT51fIP02rcKkYyhhNsgryArkzEXyH4S
+         o9+cPFdfFhGAeEe1HAB9sdqOWl4PxxvzOsrgXjAZaDFKrlLIlf2/r3yzDKecYa9Z+P
+         bNjcxikeMXEjGYpLXkdn+OFirALx2Bdf6tUecjnnnR5Xn2zG8xwiLSnboBTX8L5w4c
+         awGfaC0DiP4/K0utyH2X2YdWrgNL2552Efl4NUd2xl89jiynScHxKiKz2x8kcc/WET
+         Sm8ViJilejvFg==
+From:   Roger Quadros <rogerq@kernel.org>
+To:     tony@atomide.com
+Cc:     robh+dt@kernel.org, grygorii.strashko@ti.com, nm@ti.com,
+        lokeshvutla@ti.com, nsekhar@ti.com,
+        krzysztof.kozlowski@canonical.com, miquel.raynal@bootlin.com,
+        devicetree@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Roger Quadros <rogerq@kernel.org>
+Subject: [PATCH v5 0/8] dt-bindings: memory-controllers: ti,gpmc: Convert to yaml
+Date:   Thu,  7 Oct 2021 15:08:22 +0300
+Message-Id: <20211007120830.17221-1-rogerq@kernel.org>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Stephen,
+Hi,
 
-On 06.10.2021 21:37, Stephen Boyd wrote:
-> This series is from discussion we had on reordering the device lists for
-> drm shutdown paths[1]. I've introduced an 'aggregate' bus that we put
-> the aggregate device onto and then we probe the aggregate device once
-> all the components are probed and call component_add(). The probe/remove
-> hooks are where the bind/unbind calls go, and then a shutdown hook is
-> added that can be used to shutdown the drm display pipeline at the right
-> time.
-> 
-> This works for me on my sc7180 board. I no longer get a warning from i2c
-> at shutdown that we're trying to make an i2c transaction after the i2c
-> bus has been shutdown. There's more work to do on the msm drm driver to
-> extract component device resources like clks, regulators, etc. out of
-> the component bind function into the driver probe but I wanted to move
-> everything over now in other component drivers before tackling that
-> problem.
+This series converts ti,gpmc memory controller and ti,gpmc-nand and
+ti,gpmc-onenand MTD controller bindings to yaml.
 
+cheers,
+-roger
 
-As I understand you have DSI host with i2c-controlled DSI bridge. And 
-there is an issue that bridge is shutdown before msmdrm. Your solution 
-is to 'adjust' device order on pm list.
-I had similar issue and solved it locally by adding notification from 
-DSI bridge to DSI host that is has to be removed: mipi_dsi_detach, this 
-notification escalates in DSI host to component_del and this allow to 
-react properly.
+Changelog:
+v5
+- separated DT changes so easy to review
+- dropped ethernet@gpmc label changes. I was trying to fix the dtbs_check
+ warning "'ethernet@gpmc' does not match any of the regexes: '@[0-7],[a-f0-9]+$', 'pinctrl-[0-9]+'"
+ but the patch causes a side effect for omap4-duovero-parlor.dts such that the
+ GPMC timings specified in the board DTS wer not being used but
+ being overridden by omap-gpmc-smsc911x.dtsi instead. This is not what we
+ want.
+- dropped patch "memory: gpmc-omap: "gpmc,device-width" DT property is optional"
+ I will pick this up in another series. Don't want this patch to hold back the .yaml cleanup series.
+- arranged compatibles in alphabetical order in ti,gpmc.yaml
+- fixed example in ti,gpmc-onenand.yaml
+- Rebased on 5.15-rc1
+- Added Acks
 
-Advantages:
-- it is local (only involves DSI host and DSI device),
-- it does not depend on PM internals,
-- it can be used in other scenarios as well - unbinding DSI device driver
+v4
+- reference partition.yaml in ti,gpmc-nand.yaml and ti,gpmc-onenenc.yaml
+- use address-cells/size-cells: true instead of absolute size.
 
-Disadvantage:
-- It is DSI specific (but this is your case), I have advertised some 
-time ago more general approach [1][2].
+v3:
+- fix indentation
+- split GPMC child timings/settings into ti,gpmc-child.yaml
+This allows us to refer to it at 3 places and avoid use of
+'additionalProperties: true' at 2 places.
+- specify defaults where applicable
+- reordered patches
+- added patch for making "gpmc,device-width" optional with defaults.
+- address all review comments.
 
-[1]: https://static.sched.com/hosted_files/osseu18/0f/deferred_problem.pdf
-[2]: https://lwn.net/Articles/625454/
+v2:
+- Fix all errors in dtbs_check and dt_bindings_check
+- remove references to gpmc-omap.txt
+- Convert ti,gpmc-nand and ti,gpmc-onenand bindings to yaml as well
 
+Roger Quadros (8):
+  dt-bindings: mtd: Remove gpmc-nor.txt
+  dt-bindings: net: Remove gpmc-eth.txt
+  dt-bindings: memory-controllers: Introduce ti,gpmc-child
+  dt-bindings: mtd: ti,gpmc-nand: Convert to yaml
+  dt-bindings: mtd: ti,gpmc-onenand: Convert to yaml
+  dt-bindings: memory-controllers: ti,gpmc: Convert to yaml
+  ARM: dts: omap: Fix boolean properties
+    gpmc,cycle2cycle-{same|diff}csen
+  ARM: dts: omap: fix gpmc,mux-add-data type
 
-Regards
-Andrzej
+ .../bindings/memory-controllers/omap-gpmc.txt | 157 -----------
+ .../memory-controllers/ti,gpmc-child.yaml     | 245 ++++++++++++++++++
+ .../bindings/memory-controllers/ti,gpmc.yaml  | 172 ++++++++++++
+ .../devicetree/bindings/mtd/gpmc-nand.txt     | 147 -----------
+ .../devicetree/bindings/mtd/gpmc-nor.txt      |  98 -------
+ .../devicetree/bindings/mtd/gpmc-onenand.txt  |  48 ----
+ .../devicetree/bindings/mtd/ti,gpmc-nand.yaml | 121 +++++++++
+ .../bindings/mtd/ti,gpmc-onenand.yaml         |  81 ++++++
+ .../devicetree/bindings/net/gpmc-eth.txt      |  97 -------
+ arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi     |   4 +-
+ arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi     |   2 +-
+ arch/arm/boot/dts/omap-zoom-common.dtsi       |   4 +-
+ arch/arm/boot/dts/omap2430-sdp.dts            |   4 +-
+ .../arm/boot/dts/omap3-devkit8000-common.dtsi |   4 +-
+ .../boot/dts/omap3-overo-tobiduo-common.dtsi  |   2 +-
+ arch/arm/boot/dts/omap3-sb-t35.dtsi           |   4 +-
+ 16 files changed, 631 insertions(+), 559 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti,gpmc-child.yaml
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti,gpmc.yaml
+ delete mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+ delete mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
+ delete mode 100644 Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+ create mode 100644 Documentation/devicetree/bindings/mtd/ti,gpmc-nand.yaml
+ create mode 100644 Documentation/devicetree/bindings/mtd/ti,gpmc-onenand.yaml
+ delete mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+
+-- 
+2.17.1
+
