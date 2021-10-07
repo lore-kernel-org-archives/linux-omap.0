@@ -2,21 +2,21 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CFBDC433F5
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 12:49:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7799BC433FE
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 12:49:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F28CE60FD9
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 12:49:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D875610A5
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Oct 2021 12:49:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241377AbhJGMvE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Oct 2021 08:51:04 -0400
-Received: from muru.com ([72.249.23.125]:41860 "EHLO muru.com"
+        id S241496AbhJGMvJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Oct 2021 08:51:09 -0400
+Received: from muru.com ([72.249.23.125]:41866 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233158AbhJGMvE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 7 Oct 2021 08:51:04 -0400
+        id S241492AbhJGMvJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 7 Oct 2021 08:51:09 -0400
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 77FB58131;
-        Thu,  7 Oct 2021 12:49:39 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id D8C188206;
+        Thu,  7 Oct 2021 12:49:44 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Rob Herring <robh+dt@kernel.org>,
@@ -26,9 +26,9 @@ Cc:     Rob Herring <robh+dt@kernel.org>,
         Rob Herring <robh@kernel.org>,
         Simon Horman <horms+renesas@verge.net.au>,
         Suman Anna <s-anna@ti.com>
-Subject: [PATCH 1/3] dt-bindings: bus: simple-pm-bus: Make clocks and power-domains optional
-Date:   Thu,  7 Oct 2021 15:48:56 +0300
-Message-Id: <20211007124858.44011-2-tony@atomide.com>
+Subject: [PATCH 2/3] dt-bindings: bus: simple-pm-bus: Add more matches for node name
+Date:   Thu,  7 Oct 2021 15:48:57 +0300
+Message-Id: <20211007124858.44011-3-tony@atomide.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211007124858.44011-1-tony@atomide.com>
 References: <20211007124858.44011-1-tony@atomide.com>
@@ -38,16 +38,12 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Clocks and power domains are not required by the simple-pm-bus driver.
-There are buses with read-only registers for clocks and power domains
-that are always on.
+At least omaps use simple-pm-bus for interconnects and interconnect
+segments. While the interconnects do have configurable registers, there is
+currently no need for a dedicated interconnect driver.
 
-Even without clocks and power domains configured, simple-pm-bus is still
-different from simple-bus as simple-pm-bus enables runtime PM for the bus
-driver.
-
-Let's update the binding accordingly as this remove the related warnings
-for dt_binding_check for omaps.
+Let's update the list of allowed node names to remove the related
+dt_binding_check warnings for omaps.
 
 Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Rob Herring <robh@kernel.org>
@@ -55,51 +51,20 @@ Cc: Simon Horman <horms+renesas@verge.net.au>
 Cc: Suman Anna <s-anna@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- .../devicetree/bindings/bus/simple-pm-bus.yaml  | 17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ Documentation/devicetree/bindings/bus/simple-pm-bus.yaml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Documentation/devicetree/bindings/bus/simple-pm-bus.yaml b/Documentation/devicetree/bindings/bus/simple-pm-bus.yaml
 --- a/Documentation/devicetree/bindings/bus/simple-pm-bus.yaml
 +++ b/Documentation/devicetree/bindings/bus/simple-pm-bus.yaml
-@@ -13,10 +13,9 @@ description: |
-   A Simple Power-Managed Bus is a transparent bus that doesn't need a real
-   driver, as it's typically initialized by the boot loader.
+@@ -23,7 +23,7 @@ description: |
  
--  However, its bus controller is part of a PM domain, or under the control
--  of a functional clock.  Hence, the bus controller's PM domain and/or
--  clock must be enabled for child devices connected to the bus (either
--  on-SoC or externally) to function.
-+  However, its bus controller is typically part of a PM domain, or under
-+  the control of a functional clock.  Without PM domain or functional clock,
-+  it still enables runtime PM for the bus driver unlike "simple-bus".
+ properties:
+   $nodename:
+-    pattern: "^bus(@[0-9a-f]+)?$"
++    pattern: "^(bus|interconnect|segment)(@[0-9a-f]+)?$"
  
-   While "simple-pm-bus" follows the "simple-bus" set of properties, as
-   specified in the Devicetree Specification, it is not an extension of
-@@ -43,10 +42,10 @@ properties:
- 
-   clocks: true
-     # Functional clocks
--    # Required if power-domains is absent, optional otherwise
-+    # Typically used if power-domains is absent
- 
-   power-domains:
--    # Required if clocks is absent, optional otherwise
-+    # Typically used if clocks is absent
-     minItems: 1
- 
- required:
-@@ -55,12 +54,6 @@ required:
-   - '#size-cells'
-   - ranges
- 
--anyOf:
--  - required:
--      - clocks
--  - required:
--      - power-domains
--
- additionalProperties: true
- 
- examples:
+   compatible:
+     contains:
 -- 
 2.33.0
