@@ -2,172 +2,152 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DE8C433EF
-	for <linux-omap@archiver.kernel.org>; Mon, 18 Oct 2021 19:42:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8D74C433FE
+	for <linux-omap@archiver.kernel.org>; Mon, 18 Oct 2021 21:52:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 331F060F9D
-	for <linux-omap@archiver.kernel.org>; Mon, 18 Oct 2021 19:42:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B3EF60E78
+	for <linux-omap@archiver.kernel.org>; Mon, 18 Oct 2021 21:52:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231787AbhJRTob (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 18 Oct 2021 15:44:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60670 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230159AbhJRTob (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 18 Oct 2021 15:44:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9485E60F57;
-        Mon, 18 Oct 2021 19:42:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1634586139;
-        bh=sL9bIISzFWXLmkxiyBctOfsH3HvP/CyNjDg9oXri6sw=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=swOvq8MdtbJ0gdSpPW1iV1a4gLL6xWh1VP4h+WRTK3nC930K8SL2AVILnvOEAf8Sf
-         5UrRJwwFlHUy3NdAHL7REtWQd6KiMW2RrZQ/QPbPCLOvJTE2tSLWppOHFa5XQrBWsh
-         AqQeLuaUAFHIPFZWgIXEYIaLpV5VBC5PYU36O8wVqZOUzO4Yiz0HIh2FUpcKCT0Lxl
-         0oXObKITDoEHU+rhJLhyX14BoOYFSEdbPcNVybr3UMNWvWRJi8cYUvtVT9gXmJzf5K
-         RszevF2H7zHLyV9Q9ev7s+YPpIcxMvNV6o4P/dhXesLlngpGwgNcw83rRBLUynRMyv
-         0i4jVj1xvDoqA==
-Date:   Mon, 18 Oct 2021 14:42:18 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Parshuram Raju Thombare <pthombar@cadence.com>
-Cc:     kishon@ti.com, tjoseph@cadence.com, lorenzo.pieralisi@arm.com,
-        robh@kernel.org, kw@linux.com, bhelgaas@google.com,
-        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        mparab@cadence.com
-Subject: Re: [PATCH] PCI: cadence: Disable Function Level Reset support
-Message-ID: <20211018194218.GA2248370@bhelgaas>
+        id S231956AbhJRVyh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 18 Oct 2021 17:54:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37626 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231903AbhJRVyf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2021 17:54:35 -0400
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E049DC061765
+        for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2021 14:52:21 -0700 (PDT)
+Received: by mail-pf1-x42c.google.com with SMTP id k26so15825448pfi.5
+        for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2021 14:52:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=EWLOc8/hfNY9oAs9EE0iuyf6SIeHv8bSlieQBFSOAOY=;
+        b=h21olQ5pkxOvAuyDiL6+lQnbDoSYtfdw97cCVojeFtilLvyejrpzmnVRi11+TWq0WE
+         c1LPHf1/J8CHhq/uBC+C0+eUo5dLZGlo2RAxBfbIvP3otk0X+9JUrORGvOjL9I4Hj2+W
+         NjgnQtL2E3+lsP/Z6yf2TlyawFC6VhQ9RFxKhBLke63j+4chIJHJsI5tIV0HXQxfnyxI
+         lXYdt9WUavsPS5ZvrEzI3izIK0KgHgkD9jKxtRv0KvPGQMe2ppin82+wY1fMbfPt+sFx
+         qEevOKsG2//YrAVlDIyRHMfxGsTVgIRygHCGOqHWE534Sa6VmQWu+Yp2QMwCp67sqsLk
+         anhw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=EWLOc8/hfNY9oAs9EE0iuyf6SIeHv8bSlieQBFSOAOY=;
+        b=UgwlWgg31wsrTqRk2fStw00F1H/rw9YBuDSjigsmocmbTdyXR3M87tFwEH41AeVswd
+         HFGYi8AN/NsdifkH6rrqLEOPV3tCUTeo8CnO4F82vZWEcRuI3mhcfwT+4E1nVzKfMg3A
+         ogR5cfKMIbOUHRloiLDpBg2SCrPlL9Nr06dFkFAaBm/OZ+W2fe0802zh3JyQ9Ta6W0uG
+         I5xsPC90zRhLDvqweCIEnVcE0zXyNQ+1uGCOKhvX1eVtw4iyWCgBpzifnAzGeEWt7uSg
+         STNJui8RcmoJ9DeRvmuMIExNLsLb9eXPWhTvGtATzKdx9436fL5mpuTRH47YokeJwgQF
+         4k8w==
+X-Gm-Message-State: AOAM533O8Ko4itvKRGuRhru//Pza9+HqS046ZJFIxjOMeCSllRs5XcIQ
+        iMoCNDbOpvhQ9akBKrF8jzVBUg==
+X-Google-Smtp-Source: ABdhPJxnoKfy7cQGgbm9Qj9dvU1D0JpfsXSBXHhrsKy6hBHS1bJJgr7nnXJZlcI9G4typEdTt5nZpA==
+X-Received: by 2002:a62:5a41:0:b0:448:152d:78bf with SMTP id o62-20020a625a41000000b00448152d78bfmr31100259pfb.77.1634593940518;
+        Mon, 18 Oct 2021 14:52:20 -0700 (PDT)
+Received: from x1.hsd1.or.comcast.net ([2601:1c2:1080:1950:c418:eaf5:1edc:3f9c])
+        by smtp.gmail.com with ESMTPSA id a30sm14409079pfr.64.2021.10.18.14.52.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 18 Oct 2021 14:52:20 -0700 (PDT)
+From:   Drew Fustini <dfustini@baylibre.com>
+To:     Benoit Cousson <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Drew Fustini <dfustini@baylibre.com>,
+        Jason Kridner <jkridner@beagleboard.org>,
+        Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>,
+        Johan Hovold <johan@kernel.org>
+Subject: [PATCH 0/2] ARM: dts: am335x: add rtc system-power-controller
+Date:   Mon, 18 Oct 2021 14:50:16 -0700
+Message-Id: <20211018215015.1435289-1-dfustini@baylibre.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1634580445-89772-1-git-send-email-pthombar@cadence.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Oct 18, 2021 at 11:07:25AM -0700, Parshuram Raju Thombare wrote:
-> From: Parshuram Thombare <pthombar@cadence.com>
-> 
-> This patch disables FLR (Function Level Reset) support on all physical
-> functions.
-> During FLR, the Margining Lane Status and Margining Lane Control
-> registers should not be reset, as per PCIe specification.
-> However, the Controller incorrectly resets these registers upon FLR.
-> This causes PCISIG compliance FLR test to fail. Hence disabling
-> FLR on all functions using quirk flag.
+Johan pointed out when I submitted "ARM: dts: am335x: Add rtc node as
+system-power-controller" [1] that mentioning am335x-evm and boneblack
+in the commit message was incorrect. system-power-controller is already
+present in am335x-boneblack-common.dtsi and am335x-evm would need the
+property added directly to the dts file.
 
-Add blank lines between paragraphs.
+These are the dts files that currently include either
+am335x-bone-common.dtsi or am335x-boneblack-common.dtsi:
 
-Write the text in imperative mood, e.g.,
+    am335x-bone.dts
+	am335x-bone-common.dtsi
 
-  Disable FLR (Function Level Reset) support on all functions.
+    am335x-boneblack.dts
+        am335x-bone-common.dtsi
+	am335x-boneblack-common.dtsi
 
-It looks like this patch clears PCI_EXP_DEVCAP_FLR in the Device
-Capabilities register.  From the point of view of Linux, that means
-the device doesn't *advertise* FLR support.
+    am335x-boneblack-wireless.dts
+	am335x-bone-common.dtsi
+	am335x-boneblack-common.dtsi
 
-That's different from actualy *disabling* FLR support, but maybe
-there's internal logic in the device that ignores
-PCI_EXP_DEVCTL_BCR_FLR when PCI_EXP_DEVCAP_FLR is cleared?
+    am335x-bonegreen.dts
+	am335x-bone-common.dtsi
 
-> Signed-off-by: Parshuram Thombare <pthombar@cadence.com>
-> ---
->  drivers/pci/controller/cadence/pci-j721e.c       |  3 +++
->  drivers/pci/controller/cadence/pcie-cadence-ep.c | 18 +++++++++++++++++-
->  drivers/pci/controller/cadence/pcie-cadence.h    |  3 +++
->  3 files changed, 23 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
-> index ffb176d..635e36c 100644
-> --- a/drivers/pci/controller/cadence/pci-j721e.c
-> +++ b/drivers/pci/controller/cadence/pci-j721e.c
-> @@ -70,6 +70,7 @@ struct j721e_pcie_data {
->  	enum j721e_pcie_mode	mode;
->  	unsigned int		quirk_retrain_flag:1;
->  	unsigned int		quirk_detect_quiet_flag:1;
-> +	unsigned int		quirk_disable_flr:1;
->  	u32			linkdown_irq_regfield;
->  	unsigned int		byte_access_allowed:1;
->  };
-> @@ -308,6 +309,7 @@ static int cdns_ti_pcie_config_write(struct pci_bus *bus, unsigned int devfn,
->  static const struct j721e_pcie_data j7200_pcie_ep_data = {
->  	.mode = PCI_MODE_EP,
->  	.quirk_detect_quiet_flag = true,
-> +	.quirk_disable_flr = true,
->  };
->  
->  static const struct j721e_pcie_data am64_pcie_rc_data = {
-> @@ -510,6 +512,7 @@ static int j721e_pcie_probe(struct platform_device *pdev)
->  			goto err_get_sync;
->  		}
->  		ep->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
-> +		ep->quirk_disable_flr = data->quirk_disable_flr;
->  
->  		cdns_pcie = &ep->pcie;
->  		cdns_pcie->dev = dev;
-> diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> index 88e05b9..4b1c4bc 100644
-> --- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> +++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> @@ -565,7 +565,8 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
->  	struct cdns_pcie_ep *ep = epc_get_drvdata(epc);
->  	struct cdns_pcie *pcie = &ep->pcie;
->  	struct device *dev = pcie->dev;
-> -	int ret;
-> +	int max_epfs = sizeof(epc->function_num_map) * 8;
-> +	int ret, value, epf;
->  
->  	/*
->  	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
-> @@ -573,6 +574,21 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
->  	 */
->  	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, epc->function_num_map);
->  
-> +	if (ep->quirk_disable_flr) {
-> +		for (epf = 0; epf < max_epfs; epf++) {
-> +			if (!(epc->function_num_map & BIT(epf)))
-> +				continue;
-> +
-> +			value = cdns_pcie_ep_fn_readl(pcie, epf,
-> +					CDNS_PCIE_EP_FUNC_DEV_CAP_OFFSET +
-> +					PCI_EXP_DEVCAP);
-> +			value &= ~PCI_EXP_DEVCAP_FLR;
-> +			cdns_pcie_ep_fn_writel(pcie, epf,
-> +					CDNS_PCIE_EP_FUNC_DEV_CAP_OFFSET +
-> +					PCI_EXP_DEVCAP, value);
-> +		}
-> +	}
-> +
->  	ret = cdns_pcie_start_link(pcie);
->  	if (ret) {
->  		dev_err(dev, "Failed to start link\n");
-> diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-> index 262421e..e978e7c 100644
-> --- a/drivers/pci/controller/cadence/pcie-cadence.h
-> +++ b/drivers/pci/controller/cadence/pcie-cadence.h
-> @@ -123,6 +123,7 @@
->  
->  #define CDNS_PCIE_EP_FUNC_MSI_CAP_OFFSET	0x90
->  #define CDNS_PCIE_EP_FUNC_MSIX_CAP_OFFSET	0xb0
-> +#define CDNS_PCIE_EP_FUNC_DEV_CAP_OFFSET	0xc0
->  #define CDNS_PCIE_EP_FUNC_SRIOV_CAP_OFFSET	0x200
->  
->  /*
-> @@ -357,6 +358,7 @@ struct cdns_pcie_epf {
->   *        minimize time between read and write
->   * @epf: Structure to hold info about endpoint function
->   * @quirk_detect_quiet_flag: LTSSM Detect Quiet min delay set as quirk
-> + * @quirk_disable_flr: Disable FLR (Function Level Reset) quirk flag
->   */
->  struct cdns_pcie_ep {
->  	struct cdns_pcie	pcie;
-> @@ -372,6 +374,7 @@ struct cdns_pcie_ep {
->  	spinlock_t		lock;
->  	struct cdns_pcie_epf	*epf;
->  	unsigned int		quirk_detect_quiet_flag:1;
-> +	unsigned int		quirk_disable_flr:1;
->  };
->  
->  
-> -- 
-> 1.9.1
-> 
+    am335x-bonegreen-wireless.dts
+	am335x-bone-common.dtsi
+
+    am335x-sancloud-bbe.dts
+	am335x-bone-common.dtsi
+	am335x-boneblack-common.dtsi
+
+    am335x-sancloud-bbe-lite.dts
+	am335x-bone-common.dtsi
+	am335x-boneblack-common.dtsi
+
+am335x-boneblack, am335x-boneblack-wireless, am335x-sancloud-bbe and
+am335x-sancloud-bbe-lite currently get the system-power-controller
+property from am335x-boneblack-common.dtsi. Moving that property to
+am335x-bone-common.dtsi would have no change for these boards as they
+include that dtsi file too.
+
+This change would result in the addition of system-power-controller
+to bone, bonegreen and bonegreen-wireless. These boards all have
+PMIC_POWR_EN (ZCZ ball C6) connected to PWR_EN on the TPS65217B PMIC.
+Thus system-power-controller is a valid property for them too.
+
+In addition to BeagleBone, I have reviewed the TI AM335x eval boards:
+
+am335x-evm.dts should _not_ have the system-power-controller property as
+the PMIC_POWER_EN is not connected on the TMDXEVM3358 board [2]. The
+ball would be connected to SLEEP (pin 37) on the TPS65910A3 PMIC but R65
+is marked as do not populate.
+
+am335x-evmsk.dts should _not_ have system-power-controller property as
+PMIC_POWER_EN is not connected on the TMDSSK3358 board [3].
+
+am335x-icev2.dts should have the system-power-controller property as the
+PMIC_POWER_EN (ZCZ ball C6) is connected to PWRHOLD (pin 1) of the
+TPS65910A3 PMIC on the TMDSICE3359 board [4].
+
+Cc: Jason Kridner <jkridner@beagleboard.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Johan Hovold <johan@kernel.org>
+
+[1] https://lore.kernel.org/linux-omap/20211012191311.879838-1-dfustini@baylibre.com/
+[2] https://www.ti.com/tool/TMDXEVM3358
+[3] https://www.ti.com/tool/TMDSSK3358
+[4] https://www.ti.com/tool/TMDSICE3359
+
+
+Drew Fustini (2):
+  ARM: dts: am335x-boneblack-common: move system-power-controller
+  ARM: dts: am335x-icev2: Add system-power-controller to RTC node
+
+ arch/arm/boot/dts/am335x-bone-common.dtsi      | 1 +
+ arch/arm/boot/dts/am335x-boneblack-common.dtsi | 4 ----
+ arch/arm/boot/dts/am335x-icev2.dts             | 4 ++++
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+-- 
+2.27.0
+
