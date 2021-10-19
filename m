@@ -2,107 +2,124 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0625DC433EF
-	for <linux-omap@archiver.kernel.org>; Mon, 18 Oct 2021 22:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30FA6C4332F
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Oct 2021 11:37:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E315661165
-	for <linux-omap@archiver.kernel.org>; Mon, 18 Oct 2021 22:04:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D93A61361
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Oct 2021 11:37:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230466AbhJRWGP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 18 Oct 2021 18:06:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40292 "EHLO
+        id S235396AbhJSLj7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 19 Oct 2021 07:39:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229991AbhJRWGP (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2021 18:06:15 -0400
-Received: from mail-pl1-x629.google.com (mail-pl1-x629.google.com [IPv6:2607:f8b0:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66937C06161C
-        for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2021 15:04:03 -0700 (PDT)
-Received: by mail-pl1-x629.google.com with SMTP id n11so12251343plf.4
-        for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2021 15:04:03 -0700 (PDT)
+        with ESMTP id S235425AbhJSLjq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2021 07:39:46 -0400
+Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4132CC061769
+        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2021 04:37:29 -0700 (PDT)
+Received: by mail-lf1-x130.google.com with SMTP id x192so6679133lff.12
+        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2021 04:37:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=wVk5yD+PSi8ucg8AJyWuZQNAEZaSAnXc3EBZDpnorZg=;
-        b=h8RxE+sleFIIIi9+GM8T2hHJAXb+ITeMu16ORqv199ebFSTKNdCfY5m3jdXRMgLp82
-         cXl4UctkCwWjI+Ck3YlTu2QXNJsu49lBCEGvqIckVm7tt50Ddt3rb65gWSDDbB5pBznt
-         uDIJznM3Oe9Osldm/cP2C66U6d0x0E8xOUzy736fBmmGBVKV26CP8BvuG9xYZ8jpfdLg
-         lFoc3Q0sPMFNhQtwLjXHFw7+HYcj7NltJKFMLqmzrpXJtmsRSQkPO/5IsdzL9BK7x8XR
-         X6+gpTuFFjaCM1WYb2eymhxyWgDjWtxbBQXEbacBhYulAbijNX/qKsaqgfJuiPwgoXLZ
-         VJIg==
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=CdPF+nAmej64mkR0xEgrQMTU0no804stc0osvj6kTUg=;
+        b=lZYxFWcKseVaD8ggpOAQFkgIWWlgAO6sN+FF9jcLwlhS3lrFVB5KyR8l8ZfmHtxL47
+         szt5OrrZCFK2dSyV1ZKyfCDUrtrSTRT5ipWX9seSlWfav6OxroI2PTm8FQWCwhNl+uKu
+         4J8gVG6OArjQSom9+ixsQZWRMjCE/N+nhbgwsBjDLY6sSGLfHn9dbVrDNyjD1XYqfKuq
+         7dg3UbCgNhgc+O5VxwUxWCFPADhFekYCjz/IquF7jkv6Trt7+dAuzUip9z+jHPSODShn
+         /Hl34ChP8MeQLItRCLKh/mJwHgiEI8Vo+FgGxjeYUteu0IEpSFSmZCZgork79wsabyvx
+         8zuA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=wVk5yD+PSi8ucg8AJyWuZQNAEZaSAnXc3EBZDpnorZg=;
-        b=zsktcUOojiakQ9RHRCGHsOu6DLn4lyZBST90tqLmQ3A6mIJiZ5GqNKo52YHvQoDG8m
-         1DzZqeSZMZQgz9LvrF1+wZWwMXc9mz+bbnJfjuyicP7lwYqVLWiuhTDO7vw+L9ulzkRf
-         RrKku7UBEYJn3iJXE5X4GknbH+IVd8aAqQ8WI1Akr4uw6tQmJvtBUGdzD3NYfAFO3Ma+
-         RjMc1AYwx3Wbg1FBMUngmvEZ57sPZUPl2IfP69yR64/x4IHcKZiSpZ13cgAu/Dgnn9KP
-         ixeJUo6ekWDGsrhkXhSls0rBhJcxvmb23qJ1mLwm8jtnERcHUmxJ57eyZzEdnLYcS+Xb
-         idTg==
-X-Gm-Message-State: AOAM533svOY+MnCmO8qyg4p5bsww8eb6C1b2SmCr7nRcxmo7Jp4/qwsQ
-        Jg7SbUP5agVkeXbqBiTo5vkrqw==
-X-Google-Smtp-Source: ABdhPJwPsYtJw8pT0uukx1WutHu6glhwiN0vfKwZnWeQTAGQ1H0i5QPdYGaNZTWES3zvVMxwDF67mg==
-X-Received: by 2002:a17:902:edcf:b0:13f:165e:f485 with SMTP id q15-20020a170902edcf00b0013f165ef485mr29763759plk.58.1634594642968;
-        Mon, 18 Oct 2021 15:04:02 -0700 (PDT)
-Received: from x1.lan ([2607:fb90:3273:95f2:c715:2287:eaad:f905])
-        by smtp.gmail.com with ESMTPSA id f33sm386796pjk.42.2021.10.18.15.04.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Oct 2021 15:04:02 -0700 (PDT)
-From:   Drew Fustini <dfustini@baylibre.com>
-To:     Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>,
-        Johan Hovold <johan@kernel.org>,
-        Jason Kridner <jkridner@beagleboard.org>,
-        Benoit Cousson <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Drew Fustini <dfustini@baylibre.com>
-Subject: [PATCH 2/2] ARM: dts: am335x-icev2: Add system-power-controller to RTC node
-Date:   Mon, 18 Oct 2021 15:00:20 -0700
-Message-Id: <20211018220018.1514652-3-dfustini@baylibre.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20211018220018.1514652-1-dfustini@baylibre.com>
-References: <20211018220018.1514652-1-dfustini@baylibre.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=CdPF+nAmej64mkR0xEgrQMTU0no804stc0osvj6kTUg=;
+        b=0ysSw6suv7/srJ4NtKwLnjI1x0Kso5P65bzr+DjvvCkYwVCkF65F9F1HTmVMGvcfGG
+         e5/ej6amDwvt6LVzRw66KTyCiW7qzD71Fru97z2H7nNe3UnkkxbnTz9de3aPN5KNCK2y
+         6WqnrfTjj6aKtqVdbiFqmTFZcTj6GmmJMgrl7pWuISos1rvhuSTdQOxI7yP9SPvAEdKg
+         jgEt+sEw6X0w05wNlXKdcxkDfQEoTkTpzyoSS7z/MPPBpZvSsptgtGwiTIxW660f3y2t
+         8h28pOakrCcAqfvciH04Ebp1dNBfXYDWUcroLY5jp39jx0RahXcXG96DPOENxA4RsVal
+         ga7A==
+X-Gm-Message-State: AOAM532AP8rhN0r4KCccAWDaDSJm+8GTO3NjmW1KwyzJQbeyDQL3XrFb
+        JdfDevt0PWtKzIWATlrcpoxE9baNT0qyjxeT7UZQMg==
+X-Google-Smtp-Source: ABdhPJxKT3O/0e6XB8E3CXnzNjzfH4t/JQnxNF+xHXvwOIFdL47cQ56BLWHm9PXUgYML55dzAFoM5Me5qL51ZGBzpb8=
+X-Received: by 2002:ac2:5e3c:: with SMTP id o28mr5494689lfg.184.1634643447603;
+ Tue, 19 Oct 2021 04:37:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20211015104720.52240-1-tony@atomide.com>
+In-Reply-To: <20211015104720.52240-1-tony@atomide.com>
+From:   Ulf Hansson <ulf.hansson@linaro.org>
+Date:   Tue, 19 Oct 2021 13:36:51 +0200
+Message-ID: <CAPDyKFra85z7w3LkJFJ-rkb-0PwdcxRCAVTrFEWpvV7gqJAAtw@mail.gmail.com>
+Subject: Re: [PATCHv4 0/6] More SoCs for sdhci-omap to deprecate omap_hsmmc
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Adrian Hunter <adrian.hunter@intel.com>,
+        Chunyan Zhang <zhang.chunyan@linaro.org>,
+        Faiz Abbas <faiz_abbas@ti.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        linux-mmc <linux-mmc@vger.kernel.org>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        DTML <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On the am335x-icev2 board [1], AM3359 PMIC_PWR_EN (ZCZ ball C6) is
-connected to PWRHOLD (pin 1) on the TPS65910A3 PMIC. The addition of
-system-power-controller to the rtc node will enable the capability of
-the RTC driver to poweroff the board.
+On Fri, 15 Oct 2021 at 12:47, Tony Lindgren <tony@atomide.com> wrote:
+>
+> Hi,
+>
+> Here are v4 changes to add support to sdhci-omap for earlier SoCs so we
+> can start deprecating the old omap_hsmmc driver.
+>
+> For most part these changes can be tested just by changing the old hsmmc
+> devicetree compatible value for the SoC as described in the first binding
+> patch. Then after some testing, I'll post patches to enable sdhci-omap
+> for all the omap variants instead of omap_hsmmc.
+>
+> These patches are against current Linux next.
+>
+> Regards,
+>
+> Tony
+>
+> Changes since v3:
+>
+> - More runtime PM fixes and improvments as commented by Ulf
+>
+> - Use 0U instead of 0UL to fix compile warnings
+>
+> Changes since v2:
+>
+> - Fix up runtime PM issues and enable autosuspend based on comments
+>   from Ulf
+>
+>   Changes since v1:
+>
+>   - Added Rob's ack for the binding changes
+>
+>   - Fix wakeirq assignment as noted by Grygorii
+>
+>
+> Tony Lindgren (6):
+>   dt-bindings: sdhci-omap: Update binding for legacy SoCs
+>   mmc: sdhci-omap: Handle voltages to add support omap4
+>   mmc: sdhci-omap: Add omap_offset to support omap3 and earlier
+>   mmc: sdhci-omap: Implement PM runtime functions
+>   mmc: sdhci-omap: Allow SDIO card power off and enable aggressive PM
+>   mmc: sdhci-omap: Configure optional wakeirq
+>
+>  .../devicetree/bindings/mmc/sdhci-omap.txt    |   6 +-
+>  drivers/mmc/host/sdhci-omap.c                 | 260 ++++++++++++++----
+>  2 files changed, 204 insertions(+), 62 deletions(-)
+>
+> --
+> 2.33.0
 
-Based on 15c7be47fb7c ("ARM: dts: am335x: Add rtc node as
-system-power-controller") by Keerthy in ti-linux-5.4.y branch [2].
+Applied for next, thanks!
 
-[1] https://www.ti.com/tool/TMDSICE3359
-[2] git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git
-
-Cc: Dave Gerlach <d-gerlach@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>
-Link: https://lore.kernel.org/linux-omap/20211012191311.879838-1-dfustini@baylibre.com/
-Suggested-by: Johan Hovold <johan@kernel.org>
-Signed-off-by: Drew Fustini <dfustini@baylibre.com>
----
- arch/arm/boot/dts/am335x-icev2.dts | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
-index e5ce89c8f54d..5835c0cdda50 100644
---- a/arch/arm/boot/dts/am335x-icev2.dts
-+++ b/arch/arm/boot/dts/am335x-icev2.dts
-@@ -512,3 +512,7 @@ ethphy1: ethernet-phy@3 {
- &pruss_tm {
- 	status = "okay";
- };
-+
-+&rtc {
-+	system-power-controller;
-+};
--- 
-2.27.0
-
+Kind regards
+Uffe
