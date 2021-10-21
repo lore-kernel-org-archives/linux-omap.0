@@ -2,78 +2,96 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84611C4167D
-	for <linux-omap@archiver.kernel.org>; Thu, 21 Oct 2021 13:19:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D017C433EF
+	for <linux-omap@archiver.kernel.org>; Thu, 21 Oct 2021 13:43:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 704D661205
-	for <linux-omap@archiver.kernel.org>; Thu, 21 Oct 2021 13:19:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 254F56112D
+	for <linux-omap@archiver.kernel.org>; Thu, 21 Oct 2021 13:43:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230425AbhJUNVW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 21 Oct 2021 09:21:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51010 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230436AbhJUNVT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2021 09:21:19 -0400
-Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C62FC061228
-        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2021 06:19:03 -0700 (PDT)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed20:2c41:c2bf:5c8f:53c5])
-        by baptiste.telenet-ops.be with bizsmtp
-        id 8dJy2600L1Z5S4H01dJyWi; Thu, 21 Oct 2021 15:19:01 +0200
-Received: from rox.of.borg ([192.168.97.57])
-        by ramsan.of.borg with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1mdXyE-006ZAF-6s; Thu, 21 Oct 2021 15:18:58 +0200
-Received: from geert by rox.of.borg with local (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1mdXyD-00GQ8E-LI; Thu, 21 Oct 2021 15:18:57 +0200
-From:   Geert Uytterhoeven <geert+renesas@glider.be>
-To:     Russell King <linux@armlinux.org.uk>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Fabrizio Castro <fabrizio.castro.jz@renesas.com>
-Cc:     David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 2/3] [RFC] arm64: dts: renesas: cat874: Drop bogus clocks property
-Date:   Thu, 21 Oct 2021 15:18:52 +0200
-Message-Id: <a554460f8a66842fdd7f73375d9c490a45813491.1634822085.git.geert+renesas@glider.be>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1634822085.git.geert+renesas@glider.be>
-References: <cover.1634822085.git.geert+renesas@glider.be>
+        id S230508AbhJUNqO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 21 Oct 2021 09:46:14 -0400
+Received: from muru.com ([72.249.23.125]:47044 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230390AbhJUNqN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 21 Oct 2021 09:46:13 -0400
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 092D980EB;
+        Thu, 21 Oct 2021 13:44:28 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     Ulf Hansson <ulf.hansson@linaro.org>
+Cc:     Adrian Hunter <adrian.hunter@intel.com>,
+        Chunyan Zhang <zhang.chunyan@linaro.org>,
+        Faiz Abbas <faiz_abbas@ti.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org,
+        kernel test robot <lkp@intel.com>
+Subject: [PATCH] mmc: sdhci-omap: Fix build if CONFIG_PM_SLEEP is not set
+Date:   Thu, 21 Oct 2021 16:43:52 +0300
+Message-Id: <20211021134352.10135-1-tony@atomide.com>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The NXP TDA998x HDMI transmitter Device Tree binding documentation does
-not mention a clocks property.
+Commit f433e8aac6b9 ("mmc: sdhci-omap: Implement PM runtime functions")
+combined the use of runtime PM and system suspend functions but left the
+ifdef CONFIG_PM_SLEEP in place causing undeclared identifier error for
+sdhci_omap_runtime_suspend if CONFIG_PM_SLEEP is not enabled.
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
-Is this property just missing from the bindings?
-The driver doesn't seem to use it.
----
- arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts | 1 -
- 1 file changed, 1 deletion(-)
+Let's fix the error by removing ifdef CONFIG_PM_SLEEP and tagging the
+reset of the PM related functions with __maybe_unused.
 
-diff --git a/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts b/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts
-index 4e72e4f2bab055a5..c6fb684814bc290e 100644
---- a/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts
-+++ b/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts
-@@ -239,7 +239,6 @@ tda19988: tda19988@70 {
+Let's also remove the forward declaration for sdhci_omap_context_save(),
+that was accidentally left from an earlier version and is no longer used.
+
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/mmc/host/sdhci-omap.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+--- a/drivers/mmc/host/sdhci-omap.c
++++ b/drivers/mmc/host/sdhci-omap.c
+@@ -1210,8 +1210,6 @@ static const struct soc_device_attribute sdhci_omap_soc_devices[] = {
+ 	}
+ };
  
- 		#sound-dai-cells = <0>;
- 		audio-ports = <TDA998x_I2S 0x03>;
--		clocks = <&rcar_sound 1>;
+-static void sdhci_omap_context_save(struct sdhci_omap_host *omap_host);
+-
+ static int sdhci_omap_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+@@ -1417,8 +1415,8 @@ static int sdhci_omap_remove(struct platform_device *pdev)
  
- 		ports {
- 			#address-cells = <1>;
+ 	return 0;
+ }
+-#ifdef CONFIG_PM_SLEEP
+-static void sdhci_omap_context_save(struct sdhci_omap_host *omap_host)
++
++static void __maybe_unused sdhci_omap_context_save(struct sdhci_omap_host *omap_host)
+ {
+ 	omap_host->con = sdhci_omap_readl(omap_host, SDHCI_OMAP_CON);
+ 	omap_host->hctl = sdhci_omap_readl(omap_host, SDHCI_OMAP_HCTL);
+@@ -1429,7 +1427,7 @@ static void sdhci_omap_context_save(struct sdhci_omap_host *omap_host)
+ }
+ 
+ /* Order matters here, HCTL must be restored in two phases */
+-static void sdhci_omap_context_restore(struct sdhci_omap_host *omap_host)
++static void __maybe_unused sdhci_omap_context_restore(struct sdhci_omap_host *omap_host)
+ {
+ 	sdhci_omap_writel(omap_host, SDHCI_OMAP_HCTL, omap_host->hctl);
+ 	sdhci_omap_writel(omap_host, SDHCI_OMAP_CAPA, omap_host->capa);
+@@ -1471,7 +1469,6 @@ static int __maybe_unused sdhci_omap_runtime_resume(struct device *dev)
+ 
+ 	return 0;
+ }
+-#endif
+ 
+ static const struct dev_pm_ops sdhci_omap_dev_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(sdhci_omap_runtime_suspend,
 -- 
-2.25.1
-
+2.33.0
